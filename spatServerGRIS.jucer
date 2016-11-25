@@ -11,10 +11,11 @@
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>
-    <XCODE_MAC targetFolder="Builds/MacOSX">
+    <XCODE_MAC targetFolder="Builds/MacOSX" externalLibraries="Jackmp">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" osxSDK="default" osxCompatibility="default" osxArchitecture="default"
-                       isDebug="1" optimisation="1" targetName="spatServerGRIS"/>
+                       isDebug="1" optimisation="1" targetName="spatServerGRIS" headerPath="~/Documents/sdks/jack"
+                       libraryPath="~/Documents/sdks/jack/lib"/>
         <CONFIGURATION name="Release" osxSDK="default" osxCompatibility="default" osxArchitecture="default"
                        isDebug="0" optimisation="3" targetName="spatServerGRIS"/>
       </CONFIGURATIONS>
