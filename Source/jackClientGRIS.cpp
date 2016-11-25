@@ -32,7 +32,9 @@
 jack_port_t     *output_port1, *output_port2;
 jack_client_t   *client;
 
-int main (int argc, char *argv[]) {
+
+
+int constructor (int argc, char *argv[]) {
     const char      *client_name;
     const char      *server_name = NULL;
     jack_options_t  options = JackNullOption;

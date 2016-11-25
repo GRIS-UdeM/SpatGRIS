@@ -5,19 +5,23 @@
               jucerVersion="4.1.0" companyName="GRIS - UdeM">
   <MAINGROUP id="lsxaKA" name="spatServerGRIS">
     <GROUP id="{534A7161-2617-F3B1-0706-CC62D7A3FE71}" name="Source">
+      <FILE id="kACxoj" name="jackClientGRIS.h" compile="0" resource="0"
+            file="Source/jackClientGRIS.h"/>
+      <FILE id="A5skyB" name="jackClientGRIS.cpp" compile="1" resource="0"
+            file="Source/jackClientGRIS.cpp"/>
       <FILE id="IoOl9R" name="MainComponent.cpp" compile="1" resource="0"
             file="Source/MainComponent.cpp"/>
       <FILE id="UmWQ55" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>
-    <XCODE_MAC targetFolder="Builds/MacOSX" externalLibraries="">
+    <XCODE_MAC targetFolder="Builds/MacOSX" externalLibraries="" extraFrameworks="">
       <CONFIGURATIONS>
-        <CONFIGURATION name="Debug" osxSDK="default" osxCompatibility="default" osxArchitecture="default"
-                       isDebug="1" optimisation="1" targetName="spatServerGRIS" headerPath=""
-                       libraryPath=""/>
-        <CONFIGURATION name="Release" osxSDK="default" osxCompatibility="default" osxArchitecture="default"
-                       isDebug="0" optimisation="3" targetName="spatServerGRIS"/>
+        <CONFIGURATION name="Debug" osxSDK="default" osxCompatibility="10.11 SDK" osxArchitecture="default"
+                       isDebug="1" optimisation="1" targetName="spatServerGRIS" headerPath="~/Documents/sdks/jack"
+                       libraryPath="~/Documents/sdks/jack/lib"/>
+        <CONFIGURATION name="Release" osxSDK="default" osxCompatibility="10.10 SDK"
+                       osxArchitecture="default" isDebug="0" optimisation="3" targetName="spatServerGRIS"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_core" path="../../sdks/JUCE-4.1.0/modules"/>
