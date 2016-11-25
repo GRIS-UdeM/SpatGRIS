@@ -15,6 +15,8 @@
  along with spatServerGRIS.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <jack/jack.h>
+
 #ifndef M_PI
 #define M_PI  (3.14159265)
 #endif
@@ -32,3 +34,9 @@ paTestData;
 int         process (jack_nframes_t nframes, void *arg);
 static void signal_handler(int sig);
 void        jack_shutdown (void *arg);
+
+class jackClientGRIS {
+public:
+//    jackClientGRIS(int argc, char *argv[]);
+    jackClientGRIS();
+};

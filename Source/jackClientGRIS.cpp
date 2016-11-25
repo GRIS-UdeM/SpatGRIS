@@ -26,35 +26,19 @@
 #include <unistd.h>
 #endif
 
-#include <jack/jack.h>
+
 #include "jackClientGRIS.h"
 
 jack_port_t     *output_port1, *output_port2;
 jack_client_t   *client;
 
 
-
-int constructor (int argc, char *argv[]) {
-    const char      *client_name;
+//jackClientGRIS::jackClientGRIS (int argc, char *argv[]) {
+jackClientGRIS::jackClientGRIS () {
+    const char      *client_name = "jackClientGris";
     const char      *server_name = NULL;
     jack_options_t  options = JackNullOption;
     
-    
-    if (argc >= 2) {                /* client name specified? */
-        client_name = argv[1];
-        if (argc >= 3) {            /* server name specified? */
-            server_name = argv[2];
-            int my_option = JackNullOption | JackServerName;
-            options = (jack_options_t)my_option;
-        }
-    } else {                        /* use basename of argv[0] */
-        client_name = strrchr(argv[0], '/');
-        if (client_name == 0) {
-            client_name = argv[0];
-        } else {
-            client_name++;
-        }
-    }
     
     //fill wave table
     paTestData data;
@@ -62,7 +46,6 @@ int constructor (int argc, char *argv[]) {
         data.sine[i] = 0.2 * (float) sin( ((double)i/(double)TABLE_SIZE) * M_PI * 2. );
     }
     data.left_phase = data.right_phase = 0;
-    
     
     // open a client connection to the JACK server. Start server if it is not running.
     jack_status_t status;
@@ -136,16 +119,15 @@ int constructor (int argc, char *argv[]) {
     
     /* keep running until the Ctrl+C */
     
-    while (1) {
-        #ifdef WIN32
-        Sleep(1000);
-        #else
-        sleep (1);
-        #endif
-    }
+//    while (1) {
+//        #ifdef WIN32
+//        Sleep(1000);
+//        #else
+//        sleep (1);
+//        #endif
+//    }
     
-    jack_client_close (client);
-    exit (0);
+
 }
 
 
