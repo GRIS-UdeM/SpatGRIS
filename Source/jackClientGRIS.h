@@ -1,18 +1,18 @@
 /*
- This file is part of jackClientGRIS.
+ This file is part of spatServerGRIS.
  
- jackClientGRIS is free software: you can redistribute it and/or modify
+ spatServerGRIS is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
  
- jackClientGRIS is distributed in the hope that it will be useful,
+ spatServerGRIS is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
  
  You should have received a copy of the GNU General Public License
- along with jackClientGRIS.  If not, see <http://www.gnu.org/licenses/>.
+ along with spatServerGRIS.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef M_PI
