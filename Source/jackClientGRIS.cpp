@@ -22,21 +22,21 @@
 
 static int process_audio (jack_nframes_t nframes, void* arg) {
     
-    jackClientGris* metro = (jackClientGris*)arg;
+    jackClientGris* client = (jackClientGris*)arg;
     
-    jack_default_audio_sample_t *out1 = (jack_default_audio_sample_t*)jack_port_get_buffer (metro->output_port1, nframes);
-    jack_default_audio_sample_t *out2 = (jack_default_audio_sample_t*)jack_port_get_buffer (metro->output_port2, nframes);
+    jack_default_audio_sample_t *out1 = (jack_default_audio_sample_t*)jack_port_get_buffer (client->output_port1, nframes);
+    jack_default_audio_sample_t *out2 = (jack_default_audio_sample_t*)jack_port_get_buffer (client->output_port2, nframes);
     
     for(int i = 0; i < nframes; ++i) {
-        out1[i] = metro->sine[metro->left_phase];
-        out2[i] = metro->sine[metro->right_phase];
-        metro->left_phase += 1;
-        if (metro->left_phase >= metro->sine.size()){
-            metro->left_phase -= metro->sine.size();
+        out1[i] = client->sine[client->left_phase];
+        out2[i] = client->sine[client->right_phase];
+        client->left_phase += 1;
+        if (client->left_phase >= client->sine.size()){
+            client->left_phase -= client->sine.size();
         }
-        metro->right_phase += 1; /* higher pitch so we can distinguish left and right. */
-        if(metro->right_phase >= metro->sine.size()){
-            metro->right_phase -= metro->sine.size();
+        client->right_phase += 1; /* higher pitch so we can distinguish left and right. */
+        if(client->right_phase >= client->sine.size()){
+            client->right_phase -= client->sine.size();
         }
     }
     
@@ -49,7 +49,7 @@ jackClientGris::jackClientGris() {
     //open a client connection to the JACK server. Start server if it is not running.
     //--------------------------------------------------
     
-    const char      *client_name = "InternalMetro";
+    const char      *client_name = "jackClientGris";
     const char      *server_name = NULL;
     jack_options_t  options = JackNullOption;
     jack_status_t   status;
@@ -69,7 +69,6 @@ jackClientGris::jackClientGris() {
     }
     
     
-    
     //--------------------------------------------------
     //fill wave table.
     //--------------------------------------------------
@@ -82,20 +81,21 @@ jackClientGris::jackClientGris() {
     left_phase = right_phase = 0;
     
     
+    //--------------------------------------------------
+    //register callback, ports
+    //--------------------------------------------------
     jack_set_process_callback (client, process_audio, this);
     
+    output_port1 = jack_port_register (client,  "output1", JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
+    output_port2 = jack_port_register (client,  "output2", JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
+    input_port   = jack_port_register (client,  "input",   JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput,  0);
     
-    output_port1 = jack_port_register (client, "output1", JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
-    output_port2 = jack_port_register (client, "output2", JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
-    input_port = jack_port_register (client, "metro_in", JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
-    
-    
+    //--------------------------------------------------
+    // Activate client and connect the ports. Playback ports are "input" to the backend, and capture ports are "output" from it.
+    //--------------------------------------------------
     if (jack_activate (client)) {
         fprintf(stderr, "\n\n\n======cannot activate client");
     }
-    
-    
-    // Once client is activated, connect the ports. Playback ports are "input" to the backend, and capture ports are "output" from it.
     const char **ports = jack_get_ports (client, NULL, NULL, JackPortIsPhysical|JackPortIsInput);
     if (ports == NULL) {
         fprintf(stderr, "\n\n\n======no physical playback ports\n");
