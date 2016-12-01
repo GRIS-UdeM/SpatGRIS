@@ -37,8 +37,8 @@ public:
         // This method is where you should put your application's initialisation code..
 
         mainWindow = new MainWindow (getApplicationName());
-        jackClientGRIS jackClient;
-        while(1);
+//        jackClientGRIS jackClient;
+//        while(1);
     }
 
     void shutdown() override

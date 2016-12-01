@@ -19,6 +19,7 @@
 #define MAINCOMPONENT_H_INCLUDED
 
 #include "../JuceLibraryCode/JuceHeader.h"
+#include "jackClientGRIS.h"
 
 //==============================================================================
 /*
@@ -95,7 +96,8 @@ private:
     //==============================================================================
 
     // Your private member variables go here...
-
+    jackClientGRIS jackClient;
+    
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
 };
