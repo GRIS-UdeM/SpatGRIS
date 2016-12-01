@@ -34,7 +34,7 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
         if (client->left_phase >= client->sine.size()){
             client->left_phase -= client->sine.size();
         }
-        client->right_phase += 1; /* higher pitch so we can distinguish left and right. */
+        client->right_phase += 2; /* higher pitch so we can distinguish left and right. */
         if(client->right_phase >= client->sine.size()){
             client->right_phase -= client->sine.size();
         }
@@ -48,7 +48,6 @@ jackClientGris::jackClientGris() {
     //--------------------------------------------------
     //open a client connection to the JACK server. Start server if it is not running.
     //--------------------------------------------------
-    
     const char      *client_name = "jackClientGris";
     const char      *server_name = NULL;
     jack_options_t  options = JackNullOption;
@@ -68,18 +67,16 @@ jackClientGris::jackClientGris() {
         fprintf (stderr, "\n\n\n======chosen name already existed, new unique name `%s' assigned\n", client_name);
     }
     
-    
     //--------------------------------------------------
     //fill wave table.
     //--------------------------------------------------
     float fs = jack_get_sample_rate (client);
-    float f = 1000.f / fs;
-    float T = 1/f;
+    float f  = 1000.f / fs;
+    float T  = 1/f;
     for(int i = 0; i < 10*T; ++i) {
         sine.push_back(0.2 * sin( i * M_PI * 2. * f ));
     }
     left_phase = right_phase = 0;
-    
     
     //--------------------------------------------------
     //register callback, ports
@@ -109,8 +106,6 @@ jackClientGris::jackClientGris() {
     }
     jack_free (ports);
 }
-
-
 
 
 jackClientGris::~jackClientGris() {
