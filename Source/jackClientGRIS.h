@@ -38,4 +38,5 @@ void        jack_shutdown (void *arg);
 class jackClientGRIS {
 public:
     jackClientGRIS();
+    ~jackClientGRIS();
 };

@@ -32,8 +32,18 @@
 jack_port_t     *output_port1, *output_port2;
 jack_client_t   *client;
 
+jackClientGRIS::~jackClientGRIS () {
+    
+    fprintf (stderr, "============= DESTRUCT =============\n");
+}
+
+
 
 jackClientGRIS::jackClientGRIS () {
+    
+    fprintf (stderr, "============= CONSTRUCT =============\n");
+    
+    
     const char      *client_name = "jackClientGris";
     const char      *server_name = NULL;
     jack_options_t  options = JackNullOption;
@@ -118,15 +128,15 @@ jackClientGRIS::jackClientGRIS () {
     
     /* keep running until the Ctrl+C */
     
-    while (1) {
-        #ifdef WIN32
-        Sleep(1000);
-        #else
-        sleep (1);
-        #endif
-    }
+//    while (1) {
+//        #ifdef WIN32
+//        Sleep(1000);
+//        #else
+//        sleep (1);
+//        #endif
+//    }
     
-    jack_client_close (client);
+//    jack_client_close (client);
     //    exit (0);
 
 
