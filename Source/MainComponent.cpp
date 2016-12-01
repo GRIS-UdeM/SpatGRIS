@@ -103,7 +103,7 @@ private:
     //==============================================================================
 
     // Your private member variables go here...
-    jackClientGRIS jackClient;
+    jackClientGris jackClient;
 //    A a;
     
 
