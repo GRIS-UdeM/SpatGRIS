@@ -11,6 +11,7 @@
 		04B1D6DC1AF6E333CC14FF67 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FF05A796E8F9F15C80DA1F42 /* IOKit.framework */; };
 		04CF901E6DCE0A68232B9454 /* Main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2116513B99CFF9F0DCC85055 /* Main.cpp */; };
 		082189A3147E4D9BF465BE2B /* juce_audio_devices.mm in Sources */ = {isa = PBXBuildFile; fileRef = F7C70F69BBB1F67E3273C729 /* juce_audio_devices.mm */; };
+		0D0550D51DF07AFC001730B8 /* Jackservermp in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D0550D41DF07AFC001730B8 /* Jackservermp */; };
 		0D76540CEB135C65E2C77E42 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A49E2EA8DC00B3CFBC3B8FC /* Cocoa.framework */; };
 		11A12218CC19874050897D70 /* juce_graphics.mm in Sources */ = {isa = PBXBuildFile; fileRef = 111A6D5574112116C13912AF /* juce_graphics.mm */; };
 		14E1864F61765881437B2AF8 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A290A4B264C78F0C18D6F058 /* Accelerate.framework */; };
@@ -88,6 +89,9 @@
 		0C98F79E910F67B37F53F54C /* juce_MidiBuffer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_MidiBuffer.h; path = ../../JuceLibraryCode/modules/juce_audio_basics/midi/juce_MidiBuffer.h; sourceTree = SOURCE_ROOT; };
 		0C99699A22FA40ABA7EA5A37 /* juce_DynamicObject.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_DynamicObject.h; path = ../../JuceLibraryCode/modules/juce_core/containers/juce_DynamicObject.h; sourceTree = SOURCE_ROOT; };
 		0CA183E0BD935F99C9D13006 /* juce_TextDiff.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_TextDiff.h; path = ../../JuceLibraryCode/modules/juce_core/text/juce_TextDiff.h; sourceTree = SOURCE_ROOT; };
+		0D0550D01DF07A83001730B8 /* jack_coreaudio.so */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = jack_coreaudio.so; path = ../../jack/lib/jack_coreaudio.so; sourceTree = "<group>"; };
+		0D0550D21DF07A8F001730B8 /* Jackmp */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = Jackmp; path = ../../jack/lib/Jackmp; sourceTree = "<group>"; };
+		0D0550D41DF07AFC001730B8 /* Jackservermp */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = Jackservermp; path = ../../jack/lib/Jackservermp; sourceTree = "<group>"; };
 		0D0F144A717EB80B8FC0AF66 /* juce_QuickTimeMovieComponent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_QuickTimeMovieComponent.h; path = ../../JuceLibraryCode/modules/juce_video/playback/juce_QuickTimeMovieComponent.h; sourceTree = SOURCE_ROOT; };
 		0DAEE47D7405B9E5383EA97F /* juce_RelativePointPath.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_RelativePointPath.h; path = ../../JuceLibraryCode/modules/juce_gui_basics/positioning/juce_RelativePointPath.h; sourceTree = SOURCE_ROOT; };
 		0E1684DFB4EB8971A5F1D1DA /* juce_Uuid.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = juce_Uuid.cpp; path = ../../JuceLibraryCode/modules/juce_core/misc/juce_Uuid.cpp; sourceTree = SOURCE_ROOT; };
@@ -990,6 +994,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0D0550D51DF07AFC001730B8 /* Jackservermp in Frameworks */,
 				14E1864F61765881437B2AF8 /* Accelerate.framework in Frameworks */,
 				83E8051A98159BCED1FB14B4 /* AudioToolbox.framework in Frameworks */,
 				E18CF09FF07DD460A2179190 /* Carbon.framework in Frameworks */,
@@ -2756,6 +2761,9 @@
 		F5A12AB396B85DBC74140D9B /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				0D0550D41DF07AFC001730B8 /* Jackservermp */,
+				0D0550D21DF07A8F001730B8 /* Jackmp */,
+				0D0550D01DF07A83001730B8 /* jack_coreaudio.so */,
 				A290A4B264C78F0C18D6F058 /* Accelerate.framework */,
 				0FD279E88FD45389728A9CB4 /* AudioToolbox.framework */,
 				AFD30D83137E514A4002A681 /* Carbon.framework */,
