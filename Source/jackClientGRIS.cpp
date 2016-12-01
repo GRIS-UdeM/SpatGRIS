@@ -33,7 +33,6 @@ jack_port_t     *output_port1, *output_port2;
 jack_client_t   *client;
 
 
-//jackClientGRIS::jackClientGRIS (int argc, char *argv[]) {
 jackClientGRIS::jackClientGRIS () {
     const char      *client_name = "jackClientGris";
     const char      *server_name = NULL;
@@ -119,14 +118,17 @@ jackClientGRIS::jackClientGRIS () {
     
     /* keep running until the Ctrl+C */
     
-//    while (1) {
-//        #ifdef WIN32
-//        Sleep(1000);
-//        #else
-//        sleep (1);
-//        #endif
-//    }
+    while (1) {
+        #ifdef WIN32
+        Sleep(1000);
+        #else
+        sleep (1);
+        #endif
+    }
     
+    jack_client_close (client);
+    //    exit (0);
+
 
 }
 

@@ -37,6 +37,5 @@ void        jack_shutdown (void *arg);
 
 class jackClientGRIS {
 public:
-//    jackClientGRIS(int argc, char *argv[]);
     jackClientGRIS();
 };

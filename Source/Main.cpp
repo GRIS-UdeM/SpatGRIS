@@ -38,6 +38,7 @@ public:
 
         mainWindow = new MainWindow (getApplicationName());
         jackClientGRIS jackClient;
+        while(1);
     }
 
     void shutdown() override
