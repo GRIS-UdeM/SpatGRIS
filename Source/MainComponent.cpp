@@ -22,12 +22,6 @@
 #include "jackClientGRIS.h"
 
 
-class A{
-public:
-    A(){std::cout << "============= CONSTRUCT =============\n";}
-    ~A(){std::cout << "============= DESTRUCT =============\n";}
-};
-
 //==============================================================================
 /*
     This component lives inside our window, and this is where you should put all
@@ -104,7 +98,6 @@ private:
 
     // Your private member variables go here...
     jackClientGris jackClient;
-//    A a;
     
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
