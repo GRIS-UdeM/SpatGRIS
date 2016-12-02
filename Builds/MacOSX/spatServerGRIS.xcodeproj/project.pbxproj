@@ -28,7 +28,7 @@
 		83E8051A98159BCED1FB14B4 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0FD279E88FD45389728A9CB4 /* AudioToolbox.framework */; };
 		88D94586749B47A092E5C29C /* QuickTime.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A89E6CCD625518078BDC4D3A /* QuickTime.framework */; };
 		8B73D6A042471F47F597D406 /* CoreMIDI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A31CCC7D74E3E04DB8A5C1EB /* CoreMIDI.framework */; };
-		B1C55E881DF1EF0E005579B0 /* Jackmp in Frameworks */ = {isa = PBXBuildFile; fileRef = B1C55E871DF1EF0E005579B0 /* Jackmp */; };
+		B1C55E8A1DF1F01B005579B0 /* Jackmp in Frameworks */ = {isa = PBXBuildFile; fileRef = B1C55E891DF1F01B005579B0 /* Jackmp */; };
 		C5D9AB7401DB2D3B2252A211 /* juce_opengl.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2613FD651CC635EAF6993C61 /* juce_opengl.mm */; };
 		C7BFE17001C2225525200226 /* DiscRecording.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2FDE0D27014A24EC92E45384 /* DiscRecording.framework */; };
 		C873E4D4FFE15FEFAB9E03D8 /* juce_data_structures.mm in Sources */ = {isa = PBXBuildFile; fileRef = F5EE621D4F03E96BC6A73363 /* juce_data_structures.mm */; };
@@ -535,6 +535,7 @@
 		808C5D1987D3EEE9181E9F98 /* juce_ComponentPeer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_ComponentPeer.h; path = ../../JuceLibraryCode/modules/juce_gui_basics/windows/juce_ComponentPeer.h; sourceTree = SOURCE_ROOT; };
 		818AAB9A377D395F1627F4FA /* juce_StretchableObjectResizer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_StretchableObjectResizer.h; path = ../../JuceLibraryCode/modules/juce_gui_basics/layout/juce_StretchableObjectResizer.h; sourceTree = SOURCE_ROOT; };
 		8224B7E6BCCD440ECE154CCB /* juce_MessageManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_MessageManager.h; path = ../../JuceLibraryCode/modules/juce_events/messages/juce_MessageManager.h; sourceTree = SOURCE_ROOT; };
+		8280A25BF8F41A8E7ED31EE6 /* SpeakerViewComponent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = SpeakerViewComponent.h; path = ../../Source/SpeakerViewComponent.h; sourceTree = SOURCE_ROOT; };
 		8302F69A3F545D7B583F652D /* juce_android_SystemStats.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = juce_android_SystemStats.cpp; path = ../../JuceLibraryCode/modules/juce_core/native/juce_android_SystemStats.cpp; sourceTree = SOURCE_ROOT; };
 		83122DA38F6CEED0EB0DEAB0 /* juce_LinkedListPointer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_LinkedListPointer.h; path = ../../JuceLibraryCode/modules/juce_core/containers/juce_LinkedListPointer.h; sourceTree = SOURCE_ROOT; };
 		83627859FB96937739FEEBC8 /* juce_ValueTree.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_ValueTree.h; path = ../../JuceLibraryCode/modules/juce_data_structures/values/juce_ValueTree.h; sourceTree = SOURCE_ROOT; };
@@ -695,7 +696,7 @@
 		B1546F9799CAF71AF3677F6C /* juce_RelativeParallelogram.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_RelativeParallelogram.h; path = ../../JuceLibraryCode/modules/juce_gui_basics/positioning/juce_RelativeParallelogram.h; sourceTree = SOURCE_ROOT; };
 		B1AB29694129F4E2333795AD /* juce_SystemTrayIconComponent.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = juce_SystemTrayIconComponent.cpp; path = ../../JuceLibraryCode/modules/juce_gui_extra/misc/juce_SystemTrayIconComponent.cpp; sourceTree = SOURCE_ROOT; };
 		B1C0027834F3424A36F5CCAB /* juce_AudioTransportSource.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_AudioTransportSource.h; path = ../../JuceLibraryCode/modules/juce_audio_devices/sources/juce_AudioTransportSource.h; sourceTree = SOURCE_ROOT; };
-		B1C55E871DF1EF0E005579B0 /* Jackmp */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = Jackmp; path = ../../jack/lib/Jackmp; sourceTree = "<group>"; };
+		B1C55E891DF1F01B005579B0 /* Jackmp */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = Jackmp; path = ../../jack/lib/Jackmp; sourceTree = "<group>"; };
 		B2306514A5151F668AEEC16D /* juce_ComponentMovementWatcher.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = juce_ComponentMovementWatcher.cpp; path = ../../JuceLibraryCode/modules/juce_gui_basics/layout/juce_ComponentMovementWatcher.cpp; sourceTree = SOURCE_ROOT; };
 		B240A0DB28363F7BD95A9476 /* juce_TextEditor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_TextEditor.h; path = ../../JuceLibraryCode/modules/juce_gui_basics/widgets/juce_TextEditor.h; sourceTree = SOURCE_ROOT; };
 		B2F266CB8C1815379E01E700 /* juce_mac_MessageManager.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = juce_mac_MessageManager.mm; path = ../../JuceLibraryCode/modules/juce_events/native/juce_mac_MessageManager.mm; sourceTree = SOURCE_ROOT; };
@@ -999,7 +1000,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B1C55E881DF1EF0E005579B0 /* Jackmp in Frameworks */,
+				B1C55E8A1DF1F01B005579B0 /* Jackmp in Frameworks */,
 				14E1864F61765881437B2AF8 /* Accelerate.framework in Frameworks */,
 				83E8051A98159BCED1FB14B4 /* AudioToolbox.framework in Frameworks */,
 				E18CF09FF07DD460A2179190 /* Carbon.framework in Frameworks */,
@@ -2777,7 +2778,7 @@
 		F5A12AB396B85DBC74140D9B /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				B1C55E871DF1EF0E005579B0 /* Jackmp */,
+				B1C55E891DF1F01B005579B0 /* Jackmp */,
 				A290A4B264C78F0C18D6F058 /* Accelerate.framework */,
 				0FD279E88FD45389728A9CB4 /* AudioToolbox.framework */,
 				AFD30D83137E514A4002A681 /* Carbon.framework */,
@@ -2830,6 +2831,7 @@
 				47C54DB943C2526DBA8D5C7D /* jackClientGRIS.h */,
 				CB166B04AB89B0476A24CE28 /* jackClientGRIS.cpp */,
 				E3B6A6FA18247E8D6D6B7876 /* MainComponent.cpp */,
+				8280A25BF8F41A8E7ED31EE6 /* SpeakerViewComponent.h */,
 				E1D7954498022C0D9253C924 /* SpeakerViewComponent.cpp */,
 				2116513B99CFF9F0DCC85055 /* Main.cpp */,
 			);

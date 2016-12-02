@@ -20,6 +20,7 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "jackClientGRIS.h"
+//#include "SpeakerViewComponent.cpp"
 
 
 //==============================================================================
@@ -145,6 +146,7 @@ private:
     ScopedPointer<StretchableLayoutResizerBar> verticalDividerBar;
     
     Label leftLabel, rightLabel;
+    SpeakerViewComponent speakerView;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
 };

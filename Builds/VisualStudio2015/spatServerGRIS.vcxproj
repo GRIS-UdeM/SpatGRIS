@@ -1318,6 +1318,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Source\jackClientGRIS.h"/>
+    <ClInclude Include="..\..\Source\SpeakerViewComponent.h"/>
     <ClInclude Include="..\..\Source\Resources\WavefrontObjParser.h"/>
     <ClInclude Include="..\..\JuceLibraryCode\modules\juce_audio_basics\buffers\juce_AudioDataConverters.h"/>
     <ClInclude Include="..\..\JuceLibraryCode\modules\juce_audio_basics\buffers\juce_AudioSampleBuffer.h"/>

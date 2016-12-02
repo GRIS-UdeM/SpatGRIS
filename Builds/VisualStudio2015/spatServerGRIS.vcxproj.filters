@@ -1632,6 +1632,9 @@
     <ClInclude Include="..\..\Source\jackClientGRIS.h">
       <Filter>spatServerGRIS\Source</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\SpeakerViewComponent.h">
+      <Filter>spatServerGRIS\Source</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\Resources\WavefrontObjParser.h">
       <Filter>spatServerGRIS</Filter>
     </ClInclude>
