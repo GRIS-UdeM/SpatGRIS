@@ -19,16 +19,16 @@
     This component lives inside our window, and this is where you should put all
     your controls and content.
 */
-class MainContentComponent   : public OpenGLAppComponent
+class SpeakerViewComponent   : public OpenGLAppComponent
 {
 public:
     //==============================================================================
-    MainContentComponent()
+    SpeakerViewComponent()
     {
         setSize (800, 600);
     }
 
-    ~MainContentComponent()
+    ~SpeakerViewComponent()
     {
         shutdownOpenGL();
     }
@@ -102,7 +102,7 @@ public:
 
     void resized() override
     {
-        // This is called when the MainContentComponent is resized.
+        // This is called when the SpeakerViewComponent is resized.
         // If you add any child components, this is where you should
         // update their positions.
         
@@ -391,12 +391,12 @@ private:
 
     String newVertexShader, newFragmentShader;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SpeakerViewComponent)
 };
 
 
 // (This function is called by the app startup code to create our main component)
-Component* createMainContentComponent()    { return new MainContentComponent(); }
+//Component* createMainContentComponent()    { return new MainContentComponent(); }
 
 
 #endif  // MAINCOMPONENT_H_INCLUDED
