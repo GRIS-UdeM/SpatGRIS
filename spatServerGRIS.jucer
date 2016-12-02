@@ -5,14 +5,21 @@
               jucerVersion="4.1.0" companyName="GRIS - UdeM">
   <MAINGROUP id="lsxaKA" name="spatServerGRIS">
     <GROUP id="{534A7161-2617-F3B1-0706-CC62D7A3FE71}" name="Source">
+      <GROUP id="{1D675086-8813-E4F1-75DE-65877D43EF08}" name="Resources">
+        <FILE id="R5Bpx0" name="teapot.obj" compile="0" resource="1" file="Source/Resources/teapot.obj"/>
+      </GROUP>
       <FILE id="kACxoj" name="jackClientGRIS.h" compile="0" resource="0"
             file="Source/jackClientGRIS.h"/>
       <FILE id="A5skyB" name="jackClientGRIS.cpp" compile="1" resource="0"
             file="Source/jackClientGRIS.cpp"/>
       <FILE id="IoOl9R" name="MainComponent.cpp" compile="1" resource="0"
             file="Source/MainComponent.cpp"/>
+      <FILE id="Tz4yI1" name="SpeakerViewComponent.cpp" compile="1" resource="0"
+            file="Source/SpeakerViewComponent.cpp"/>
       <FILE id="UmWQ55" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
     </GROUP>
+    <FILE id="J71TaM" name="WavefrontObjParser.h" compile="0" resource="0"
+          file="Source/Resources/WavefrontObjParser.h"/>
   </MAINGROUP>
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX" externalLibraries="" extraFrameworks="">

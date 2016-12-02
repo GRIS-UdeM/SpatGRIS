@@ -8,6 +8,9 @@
     <Filter Include="spatServerGRIS\Source">
       <UniqueIdentifier>{EEE3F2AC-5E37-31FC-0D79-1BD25B34B29F}</UniqueIdentifier>
     </Filter>
+    <Filter Include="spatServerGRIS\Source\Resources">
+      <UniqueIdentifier>{5F84B7C9-3AC1-E5F8-C91D-7427E1C5BB6A}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Juce Modules">
       <UniqueIdentifier>{422C46B7-0467-2DB0-BF3C-16DFCAFD69AC}</UniqueIdentifier>
     </Filter>
@@ -323,6 +326,9 @@
       <Filter>spatServerGRIS\Source</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\MainComponent.cpp">
+      <Filter>spatServerGRIS\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SpeakerViewComponent.cpp">
       <Filter>spatServerGRIS\Source</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Main.cpp">
@@ -1576,6 +1582,9 @@
     <ClCompile Include="..\..\JuceLibraryCode\modules\juce_video\native\juce_win32_QuickTimeMovieComponent.cpp">
       <Filter>Juce Modules\juce_video\native</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\JuceLibraryCode\BinaryData.cpp">
+      <Filter>Juce Library Code</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\JuceLibraryCode\modules\juce_audio_basics\juce_audio_basics.cpp">
       <Filter>Juce Library Code</Filter>
     </ClCompile>
@@ -1622,6 +1631,9 @@
   <ItemGroup>
     <ClInclude Include="..\..\Source\jackClientGRIS.h">
       <Filter>spatServerGRIS\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Resources\WavefrontObjParser.h">
+      <Filter>spatServerGRIS</Filter>
     </ClInclude>
     <ClInclude Include="..\..\JuceLibraryCode\modules\juce_audio_basics\buffers\juce_AudioDataConverters.h">
       <Filter>Juce Modules\juce_audio_basics\buffers</Filter>
@@ -3054,11 +3066,17 @@
     <ClInclude Include="..\..\JuceLibraryCode\AppConfig.h">
       <Filter>Juce Library Code</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\JuceLibraryCode\BinaryData.h">
+      <Filter>Juce Library Code</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\JuceLibraryCode\JuceHeader.h">
       <Filter>Juce Library Code</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\Source\Resources\teapot.obj">
+      <Filter>spatServerGRIS\Source\Resources</Filter>
+    </None>
     <None Include="..\..\JuceLibraryCode\modules\juce_audio_basics\juce_module_info">
       <Filter>Juce Modules\juce_audio_basics</Filter>
     </None>

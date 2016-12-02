@@ -113,9 +113,6 @@ public:
     //=======================================================================
     void paint (Graphics& g) override
     {
-        // (Our component is opaque, so we must completely fill the background with a solid colour)
-//        g.fillAll (Colours::black);
-
 
         // You can add your drawing code here!
     }
@@ -135,22 +132,6 @@ public:
         
         rightLabel.setBounds (r.removeFromBottom (26));
         r.removeFromBottom (8);
-        
-//        const int labelWidth = 60;
-//        
-//        Rectangle<int> row (r.removeFromBottom (30));
-//        row.removeFromLeft (labelWidth);
-//        boldToggle.setBounds (row.removeFromLeft (row.getWidth() / 2));
-//        italicToggle.setBounds (row);
-//        
-//        r.removeFromBottom (8);
-//        scaleSlider.setBounds (r.removeFromBottom (30).withTrimmedLeft (labelWidth));
-//        r.removeFromBottom (8);
-//        kerningSlider.setBounds (r.removeFromBottom (30).withTrimmedLeft (labelWidth));
-//        r.removeFromBottom (8);
-//        heightSlider.setBounds (r.removeFromBottom (30).withTrimmedLeft (labelWidth));
-//        r.removeFromBottom (8);
-//        demoTextBox.setBounds (r);
         
     }
     
