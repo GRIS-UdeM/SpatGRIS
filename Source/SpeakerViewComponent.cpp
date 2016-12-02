@@ -201,29 +201,25 @@ void SpeakerViewComponent::initialise() {
     createShaders();
 }
 
-void SpeakerViewComponent::shutdown()
-{
+void SpeakerViewComponent::shutdown() {
     shader = nullptr;
     shape = nullptr;
     attributes = nullptr;
     uniforms = nullptr;
 }
 
-Matrix3D<float> SpeakerViewComponent::getProjectionMatrix() const
-{
+Matrix3D<float> SpeakerViewComponent::getProjectionMatrix() const {
     float w = 1.0f / (0.5f + 0.1f);
     float h = w * getLocalBounds().toFloat().getAspectRatio (false);
     return Matrix3D<float>::fromFrustum (-w, w, -h, h, 4.0f, 30.0f);
 }
 
-Matrix3D<float> SpeakerViewComponent::getViewMatrix() const
-{
+Matrix3D<float> SpeakerViewComponent::getViewMatrix() const {
     return draggableOrientation.getRotationMatrix() * Vector3D<float> (0.0f, 1.0f, -10.0f);
     
 }
 
-void SpeakerViewComponent::render()
-{
+void SpeakerViewComponent::render() {
     
     jassert (OpenGLHelpers::isContextActive());
     
@@ -251,40 +247,30 @@ void SpeakerViewComponent::render()
     
 }
 
-void SpeakerViewComponent::paint (Graphics& g)
-{
-    // You can add your component specific drawing code here!
-    // This will draw over the top of the openGL background.
-    
-    g.setColour(Colours::white);
-    g.setFont (20);
-    g.drawText ("OpenGL Example", 25, 20, 300, 30, Justification::left);
-    g.drawLine (20, 20, 170, 20);
-    g.drawLine (20, 50, 170, 50);
+void SpeakerViewComponent::paint (Graphics& g) {
+//    // You can add your component specific drawing code here!
+//    // This will draw over the top of the openGL background.
+//    
+//    g.setColour(Colours::white);
+//    g.setFont (20);
+//    g.drawText ("OpenGL Example", 25, 20, 300, 30, Justification::left);
+//    g.drawLine (20, 20, 170, 20);
+//    g.drawLine (20, 50, 170, 50);
 }
 
-void SpeakerViewComponent::resized()
-{
-    // This is called when the SpeakerViewComponent is resized.
-    // If you add any child components, this is where you should
-    // update their positions.
-    
+void SpeakerViewComponent::resized() {
     draggableOrientation.setViewport (getLocalBounds());
-    
 }
 
-void SpeakerViewComponent::mouseDown (const MouseEvent& e)
-{
+void SpeakerViewComponent::mouseDown (const MouseEvent& e) {
     draggableOrientation.mouseDown (e.getPosition());
 }
 
-void SpeakerViewComponent::mouseDrag (const MouseEvent& e)
-{
+void SpeakerViewComponent::mouseDrag (const MouseEvent& e) {
     draggableOrientation.mouseDrag (e.getPosition());
 }
 
-void SpeakerViewComponent::createShaders()
-{
+void SpeakerViewComponent::createShaders() {
     vertexShader =
     "attribute vec4 position;\n"
     "attribute vec4 sourceColour;\n"
@@ -322,9 +308,7 @@ void SpeakerViewComponent::createShaders()
     String statusText;
     
     if (newShader->addVertexShader (OpenGLHelpers::translateVertexShaderToV3 (vertexShader))
-        && newShader->addFragmentShader (OpenGLHelpers::translateFragmentShaderToV3 (fragmentShader))
-        && newShader->link())
-    {
+        && newShader->addFragmentShader (OpenGLHelpers::translateFragmentShaderToV3 (fragmentShader)) && newShader->link()) {
         shape = nullptr;
         attributes = nullptr;
         uniforms = nullptr;
@@ -332,14 +316,12 @@ void SpeakerViewComponent::createShaders()
         shader = newShader;
         shader->use();
         
-        shape      = new Shape (openGLContext);
+        shape      = new Shape      (openGLContext);
         attributes = new Attributes (openGLContext, *shader);
-        uniforms   = new Uniforms (openGLContext, *shader);
+        uniforms   = new Uniforms   (openGLContext, *shader);
         
         statusText = "GLSL: v" + String (OpenGLShaderProgram::getLanguageVersion(), 2);
-    }
-    else
-    {
+    } else {
         statusText = newShader->getLastError();
     }
 }
