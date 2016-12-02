@@ -31,12 +31,35 @@ class MainContentComponent   : public AudioAppComponent
 {
 public:
     //==============================================================================
-    MainContentComponent()
+    MainContentComponent() :
+    leftLabel (String::empty, "LEFT"),
+    rightLabel (String::empty, "RIGHT")
     {
-        setSize (800, 600);
+        
 
-        // specify the number of input and output channels that we want to open
-//        setAudioChannels (2, 2);
+        
+        //add the components
+        addAndMakeVisible (leftLabel);
+        addAndMakeVisible (rightLabel);
+        
+        
+        // set up the layout and resizer bars
+        verticalLayout.setItemLayout (0, -0.2, -0.8, -0.35); // width of the font list must be between 20% and 80%, preferably 50%
+        verticalLayout.setItemLayout (1, 8, 8, 8);           // the vertical divider drag-bar thing is always 8 pixels wide
+        verticalLayout.setItemLayout (2, 150, -1.0, -0.65);  // the components on the right must be at least 150 pixels wide, preferably 50% of the total width
+        verticalDividerBar = new StretchableLayoutResizerBar (&verticalLayout, 1, true);
+        addAndMakeVisible (verticalDividerBar);
+
+        
+        
+        
+        
+        
+        // #1: this is not working with jack with non-built-in audio devices
+        //        setAudioChannels (2, 2);
+        
+        setSize (1200, 600);
+        
     }
 
     ~MainContentComponent()
@@ -65,8 +88,20 @@ public:
         // Right now we are not producing any data, in which case we need to clear the buffer
         // (to prevent the output of random noise)
         bufferToFill.clearActiveBufferRegion();
+        
+        //sample code taken from juce 4.3.0 audio app example
+//        for (int chan = 0; chan < bufferToFill.buffer->getNumChannels(); ++chan) {
+//            phase = originalPhase;
+//            float* const channelData = bufferToFill.buffer->getWritePointer (chan, bufferToFill.startSample);
+//            for (int i = 0; i < bufferToFill.numSamples ; ++i) {
+//                channelData[i] = amplitude * std::sin (phase);
+//                
+//                // increment the phase step for the next sample
+//                phase = std::fmod (phase + phaseDelta, float_Pi * 2.0f);
+//            }
+//        }
     }
-
+    
     void releaseResources() override
     {
         // This will be called when the audio device stops, or when it is being
@@ -79,26 +114,56 @@ public:
     void paint (Graphics& g) override
     {
         // (Our component is opaque, so we must completely fill the background with a solid colour)
-        g.fillAll (Colours::black);
+//        g.fillAll (Colours::black);
 
 
         // You can add your drawing code here!
     }
 
-    void resized() override
-    {
-        // This is called when the MainContentComponent is resized.
-        // If you add any child components, this is where you should
-        // update their positions.
+    void resized() override {
+        
+        Rectangle<int> r (getLocalBounds().reduced (5));
+        
+        // lay out the list box and vertical divider..
+        Component* vcomps[] = { &leftLabel, verticalDividerBar, nullptr };
+        
+        // lay out side-by-side and resize the components' heights as well as widths
+        verticalLayout.layOutComponents (vcomps, 3, r.getX(), r.getY(), r.getWidth(), r.getHeight(), false, true);
+        
+        
+        r.removeFromLeft (verticalDividerBar->getRight());
+        
+        rightLabel.setBounds (r.removeFromBottom (26));
+        r.removeFromBottom (8);
+        
+//        const int labelWidth = 60;
+//        
+//        Rectangle<int> row (r.removeFromBottom (30));
+//        row.removeFromLeft (labelWidth);
+//        boldToggle.setBounds (row.removeFromLeft (row.getWidth() / 2));
+//        italicToggle.setBounds (row);
+//        
+//        r.removeFromBottom (8);
+//        scaleSlider.setBounds (r.removeFromBottom (30).withTrimmedLeft (labelWidth));
+//        r.removeFromBottom (8);
+//        kerningSlider.setBounds (r.removeFromBottom (30).withTrimmedLeft (labelWidth));
+//        r.removeFromBottom (8);
+//        heightSlider.setBounds (r.removeFromBottom (30).withTrimmedLeft (labelWidth));
+//        r.removeFromBottom (8);
+//        demoTextBox.setBounds (r);
+        
     }
-
-
+    
+    
 private:
     //==============================================================================
 
-    // Your private member variables go here...
     jackClientGris jackClient;
     
+    StretchableLayoutManager verticalLayout;
+    ScopedPointer<StretchableLayoutResizerBar> verticalDividerBar;
+    
+    Label leftLabel, rightLabel;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
 };
