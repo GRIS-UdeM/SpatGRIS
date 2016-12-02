@@ -1,10 +1,10 @@
 /*
-  ==============================================================================
-
-    This file was auto-generated!
-
-  ==============================================================================
-*/
+ ==============================================================================
+ 
+ This file was auto-generated!
+ 
+ ==============================================================================
+ */
 
 
 #include "SpeakerViewComponent.h"
@@ -22,45 +22,38 @@ struct Vertex
 
 //==============================================================================
 // This class just manages the attributes that the shaders use.
-struct Attributes
-{
-    Attributes (OpenGLContext& openGLContext, OpenGLShaderProgram& shaderProgram)
-    {
+class Attributes {
+public:
+    Attributes (OpenGLContext& openGLContext, OpenGLShaderProgram& shaderProgram) {
         position      = createAttribute (openGLContext, shaderProgram, "position");
         normal        = createAttribute (openGLContext, shaderProgram, "normal");
         sourceColour  = createAttribute (openGLContext, shaderProgram, "sourceColour");
         texureCoordIn = createAttribute (openGLContext, shaderProgram, "texureCoordIn");
     }
     
-    void enable (OpenGLContext& openGLContext)
-    {
-        if (position != nullptr)
-        {
+    void enable (OpenGLContext& openGLContext) {
+        if (position != nullptr) {
             openGLContext.extensions.glVertexAttribPointer (position->attributeID, 3, GL_FLOAT, GL_FALSE, sizeof (Vertex), 0);
             openGLContext.extensions.glEnableVertexAttribArray (position->attributeID);
         }
         
-        if (normal != nullptr)
-        {
+        if (normal != nullptr) {
             openGLContext.extensions.glVertexAttribPointer (normal->attributeID, 3, GL_FLOAT, GL_FALSE, sizeof (Vertex), (GLvoid*) (sizeof (float) * 3));
             openGLContext.extensions.glEnableVertexAttribArray (normal->attributeID);
         }
         
-        if (sourceColour != nullptr)
-        {
+        if (sourceColour != nullptr) {
             openGLContext.extensions.glVertexAttribPointer (sourceColour->attributeID, 4, GL_FLOAT, GL_FALSE, sizeof (Vertex), (GLvoid*) (sizeof (float) * 6));
             openGLContext.extensions.glEnableVertexAttribArray (sourceColour->attributeID);
         }
         
-        if (texureCoordIn != nullptr)
-        {
+        if (texureCoordIn != nullptr) {
             openGLContext.extensions.glVertexAttribPointer (texureCoordIn->attributeID, 2, GL_FLOAT, GL_FALSE, sizeof (Vertex), (GLvoid*) (sizeof (float) * 10));
             openGLContext.extensions.glEnableVertexAttribArray (texureCoordIn->attributeID);
         }
     }
     
-    void disable (OpenGLContext& openGLContext)
-    {
+    void disable (OpenGLContext& openGLContext) {
         if (position != nullptr)       openGLContext.extensions.glDisableVertexAttribArray (position->attributeID);
         if (normal != nullptr)         openGLContext.extensions.glDisableVertexAttribArray (normal->attributeID);
         if (sourceColour != nullptr)   openGLContext.extensions.glDisableVertexAttribArray (sourceColour->attributeID);
@@ -70,23 +63,18 @@ struct Attributes
     ScopedPointer<OpenGLShaderProgram::Attribute> position, normal, sourceColour, texureCoordIn;
     
 private:
-    static OpenGLShaderProgram::Attribute* createAttribute (OpenGLContext& openGLContext,
-                                                            OpenGLShaderProgram& shader,
-                                                            const char* attributeName)
-    {
-        if (openGLContext.extensions.glGetAttribLocation (shader.getProgramID(), attributeName) < 0)
+    static OpenGLShaderProgram::Attribute* createAttribute (OpenGLContext& openGLContext, OpenGLShaderProgram& shader, const char* attributeName) {
+        if (openGLContext.extensions.glGetAttribLocation (shader.getProgramID(), attributeName) < 0){
             return nullptr;
-        
+        }
         return new OpenGLShaderProgram::Attribute (shader, attributeName);
     }
 };
 
 //==============================================================================
 // This class just manages the uniform values that the demo shaders use.
-struct Uniforms
-{
-    Uniforms (OpenGLContext& openGLContext, OpenGLShaderProgram& shaderProgram)
-    {
+struct Uniforms{
+    Uniforms (OpenGLContext& openGLContext, OpenGLShaderProgram& shaderProgram) {
         projectionMatrix = createUniform (openGLContext, shaderProgram, "projectionMatrix");
         viewMatrix       = createUniform (openGLContext, shaderProgram, "viewMatrix");
     }
@@ -94,35 +82,30 @@ struct Uniforms
     ScopedPointer<OpenGLShaderProgram::Uniform> projectionMatrix, viewMatrix;
     
 private:
-    static OpenGLShaderProgram::Uniform* createUniform (OpenGLContext& openGLContext,
-                                                        OpenGLShaderProgram& shaderProgram,
-                                                        const char* uniformName)
-    {
-        if (openGLContext.extensions.glGetUniformLocation (shaderProgram.getProgramID(), uniformName) < 0)
+    static OpenGLShaderProgram::Uniform* createUniform (OpenGLContext& openGLContext, OpenGLShaderProgram& shaderProgram, const char* uniformName) {
+        if (openGLContext.extensions.glGetUniformLocation (shaderProgram.getProgramID(), uniformName) < 0){
             return nullptr;
+        }
         
         return new OpenGLShaderProgram::Uniform (shaderProgram, uniformName);
     }
 };
 
+
 //==============================================================================
-/** This loads a 3D model from an OBJ file and converts it into some vertex buffers
- that we can draw.
- */
-struct Shape
-{
-    Shape (OpenGLContext& openGLContext)
-    {
-        if (shapeFile.load (BinaryData::teapot_obj).wasOk())
-            for (int i = 0; i < shapeFile.shapes.size(); ++i)
+// This loads a 3D model from an OBJ file and converts it into some vertex buffers that we can draw.
+class Shape {
+public:
+    Shape (OpenGLContext& openGLContext) {
+        if (shapeFile.load (BinaryData::teapot_obj).wasOk()){
+            for (int i = 0; i < shapeFile.shapes.size(); ++i){
                 vertexBuffers.add (new VertexBuffer (openGLContext, *shapeFile.shapes.getUnchecked(i)));
-        
+            }
+        }
     }
     
-    void draw (OpenGLContext& openGLContext, Attributes& glAttributes)
-    {
-        for (int i = 0; i < vertexBuffers.size(); ++i)
-        {
+    void draw (OpenGLContext& openGLContext, Attributes& glAttributes) {
+        for (int i = 0; i < vertexBuffers.size(); ++i) {
             VertexBuffer& vertexBuffer = *vertexBuffers.getUnchecked (i);
             vertexBuffer.bind();
             
@@ -133,10 +116,9 @@ struct Shape
     }
     
 private:
-    struct VertexBuffer
-    {
-        VertexBuffer (OpenGLContext& context, WavefrontObjFile::Shape& aShape) : openGLContext (context)
-        {
+    class VertexBuffer {
+    public:
+        VertexBuffer (OpenGLContext& context, WavefrontObjFile::Shape& aShape) : openGLContext (context) {
             numIndices = aShape.mesh.indices.size();
             
             openGLContext.extensions.glGenBuffers (1, &vertexBuffer);
@@ -156,14 +138,12 @@ private:
                                                    aShape.mesh.indices.getRawDataPointer(), GL_STATIC_DRAW);
         }
         
-        ~VertexBuffer()
-        {
+        ~VertexBuffer() {
             openGLContext.extensions.glDeleteBuffers (1, &vertexBuffer);
             openGLContext.extensions.glDeleteBuffers (1, &indexBuffer);
         }
         
-        void bind()
-        {
+        void bind() {
             openGLContext.extensions.glBindBuffer (GL_ARRAY_BUFFER, vertexBuffer);
             openGLContext.extensions.glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
         }
@@ -175,11 +155,7 @@ private:
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VertexBuffer)
     };
     
-    WavefrontObjFile shapeFile;
-    OwnedArray<VertexBuffer> vertexBuffers;
-    
-    static void createVertexListFromMesh (const WavefrontObjFile::Mesh& mesh, Array<Vertex>& list, Colour colour)
-    {
+    static void createVertexListFromMesh (const WavefrontObjFile::Mesh& mesh, Array<Vertex>& list, Colour colour) {
         const float scale = 0.2f;
         WavefrontObjFile::TextureCoord defaultTexCoord = { 0.5f, 0.5f };
         WavefrontObjFile::Vertex defaultNormal = { 0.5f, 0.5f, 0.5f };
@@ -205,167 +181,170 @@ private:
             list.add (vert);
         }
     }
+    
+    WavefrontObjFile shapeFile;
+    OwnedArray<VertexBuffer> vertexBuffers;
+    
 };
 
-SpeakerViewComponent::SpeakerViewComponent()
-{
-    setSize (800, 600);
+//==========================================================================================
+// ACTUAL SPEAKER VIEW CLASS DEFS
+//==========================================================================================
+SpeakerViewComponent::SpeakerViewComponent() {
 }
 
-SpeakerViewComponent::~SpeakerViewComponent()
-{
+SpeakerViewComponent::~SpeakerViewComponent() {
     shutdownOpenGL();
 }
 
-void SpeakerViewComponent::initialise()
-{
+void SpeakerViewComponent::initialise() {
     createShaders();
-    }
+}
 
-    void SpeakerViewComponent::shutdown()
+void SpeakerViewComponent::shutdown()
+{
+    shader = nullptr;
+    shape = nullptr;
+    attributes = nullptr;
+    uniforms = nullptr;
+}
+
+Matrix3D<float> SpeakerViewComponent::getProjectionMatrix() const
+{
+    float w = 1.0f / (0.5f + 0.1f);
+    float h = w * getLocalBounds().toFloat().getAspectRatio (false);
+    return Matrix3D<float>::fromFrustum (-w, w, -h, h, 4.0f, 30.0f);
+}
+
+Matrix3D<float> SpeakerViewComponent::getViewMatrix() const
+{
+    return draggableOrientation.getRotationMatrix() * Vector3D<float> (0.0f, 1.0f, -10.0f);
+    
+}
+
+void SpeakerViewComponent::render()
+{
+    
+    jassert (OpenGLHelpers::isContextActive());
+    
+    const float desktopScale = (float) openGLContext.getRenderingScale();
+    OpenGLHelpers::clear (Colour::greyLevel (0.1f));
+    
+    glEnable (GL_BLEND);
+    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    
+    glViewport (0, 0, roundToInt (desktopScale * getWidth()), roundToInt (desktopScale * getHeight()));
+    
+    shader->use();
+    
+    if (uniforms->projectionMatrix != nullptr)
+        uniforms->projectionMatrix->setMatrix4 (getProjectionMatrix().mat, 1, false);
+    
+    if (uniforms->viewMatrix != nullptr)
+        uniforms->viewMatrix->setMatrix4 (getViewMatrix().mat, 1, false);
+    
+    shape->draw (openGLContext, *attributes);
+    
+    // Reset the element buffers so child Components draw correctly
+    openGLContext.extensions.glBindBuffer (GL_ARRAY_BUFFER, 0);
+    openGLContext.extensions.glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
+    
+}
+
+void SpeakerViewComponent::paint (Graphics& g)
+{
+    // You can add your component specific drawing code here!
+    // This will draw over the top of the openGL background.
+    
+    g.setColour(Colours::white);
+    g.setFont (20);
+    g.drawText ("OpenGL Example", 25, 20, 300, 30, Justification::left);
+    g.drawLine (20, 20, 170, 20);
+    g.drawLine (20, 50, 170, 50);
+}
+
+void SpeakerViewComponent::resized()
+{
+    // This is called when the SpeakerViewComponent is resized.
+    // If you add any child components, this is where you should
+    // update their positions.
+    
+    draggableOrientation.setViewport (getLocalBounds());
+    
+}
+
+void SpeakerViewComponent::mouseDown (const MouseEvent& e)
+{
+    draggableOrientation.mouseDown (e.getPosition());
+}
+
+void SpeakerViewComponent::mouseDrag (const MouseEvent& e)
+{
+    draggableOrientation.mouseDrag (e.getPosition());
+}
+
+void SpeakerViewComponent::createShaders()
+{
+    vertexShader =
+    "attribute vec4 position;\n"
+    "attribute vec4 sourceColour;\n"
+    "attribute vec2 texureCoordIn;\n"
+    "\n"
+    "uniform mat4 projectionMatrix;\n"
+    "uniform mat4 viewMatrix;\n"
+    "\n"
+    "varying vec4 destinationColour;\n"
+    "varying vec2 textureCoordOut;\n"
+    "\n"
+    "void main()\n"
+    "{\n"
+    "    destinationColour = sourceColour;\n"
+    "    textureCoordOut = texureCoordIn;\n"
+    "    gl_Position = projectionMatrix * viewMatrix * position;\n"
+    "}\n";
+    
+    fragmentShader =
+#if JUCE_OPENGL_ES
+    "varying lowp vec4 destinationColour;\n"
+    "varying lowp vec2 textureCoordOut;\n"
+#else
+    "varying vec4 destinationColour;\n"
+    "varying vec2 textureCoordOut;\n"
+#endif
+    "\n"
+    "void main()\n"
+    "{\n"
+    "    vec4 colour = vec4(0.95, 0.57, 0.03, 0.7);\n"
+    "    gl_FragColor = colour;\n"
+    "}\n";
+    
+    ScopedPointer<OpenGLShaderProgram> newShader (new OpenGLShaderProgram (openGLContext));
+    String statusText;
+    
+    if (newShader->addVertexShader (OpenGLHelpers::translateVertexShaderToV3 (vertexShader))
+        && newShader->addFragmentShader (OpenGLHelpers::translateFragmentShaderToV3 (fragmentShader))
+        && newShader->link())
     {
-        shader = nullptr;
         shape = nullptr;
         attributes = nullptr;
         uniforms = nullptr;
-    }
-
-    Matrix3D<float> SpeakerViewComponent::getProjectionMatrix() const
-    {
-        float w = 1.0f / (0.5f + 0.1f);
-        float h = w * getLocalBounds().toFloat().getAspectRatio (false);
-        return Matrix3D<float>::fromFrustum (-w, w, -h, h, 4.0f, 30.0f);
-    }
-
-    Matrix3D<float> SpeakerViewComponent::getViewMatrix() const
-    {
-        return draggableOrientation.getRotationMatrix() * Vector3D<float> (0.0f, 1.0f, -10.0f);
         
-    }
-
-    void SpeakerViewComponent::render()
-    {
-
-        jassert (OpenGLHelpers::isContextActive());
-
-        const float desktopScale = (float) openGLContext.getRenderingScale();
-        OpenGLHelpers::clear (Colour::greyLevel (0.1f));
-
-        glEnable (GL_BLEND);
-        glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-        glViewport (0, 0, roundToInt (desktopScale * getWidth()), roundToInt (desktopScale * getHeight()));
-
+        shader = newShader;
         shader->use();
-
-        if (uniforms->projectionMatrix != nullptr)
-            uniforms->projectionMatrix->setMatrix4 (getProjectionMatrix().mat, 1, false);
-
-        if (uniforms->viewMatrix != nullptr)
-            uniforms->viewMatrix->setMatrix4 (getViewMatrix().mat, 1, false);
-
-        shape->draw (openGLContext, *attributes);
-
-        // Reset the element buffers so child Components draw correctly
-        openGLContext.extensions.glBindBuffer (GL_ARRAY_BUFFER, 0);
-        openGLContext.extensions.glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
-
-    }
-
-    void SpeakerViewComponent::paint (Graphics& g)
-    {
-        // You can add your component specific drawing code here!
-        // This will draw over the top of the openGL background.
-
-        g.setColour(Colours::white);
-        g.setFont (20);
-        g.drawText ("OpenGL Example", 25, 20, 300, 30, Justification::left);
-        g.drawLine (20, 20, 170, 20);
-        g.drawLine (20, 50, 170, 50);
-    }
-
-    void SpeakerViewComponent::resized()
-    {
-        // This is called when the SpeakerViewComponent is resized.
-        // If you add any child components, this is where you should
-        // update their positions.
         
-        draggableOrientation.setViewport (getLocalBounds());
-
+        shape      = new Shape (openGLContext);
+        attributes = new Attributes (openGLContext, *shader);
+        uniforms   = new Uniforms (openGLContext, *shader);
+        
+        statusText = "GLSL: v" + String (OpenGLShaderProgram::getLanguageVersion(), 2);
     }
-    
-    void SpeakerViewComponent::mouseDown (const MouseEvent& e)
+    else
     {
-        draggableOrientation.mouseDown (e.getPosition());
+        statusText = newShader->getLastError();
     }
-    
-    void SpeakerViewComponent::mouseDrag (const MouseEvent& e)
-    {
-        draggableOrientation.mouseDrag (e.getPosition());
-    }
-    
-    void SpeakerViewComponent::createShaders()
-    {
-        vertexShader =
-            "attribute vec4 position;\n"
-            "attribute vec4 sourceColour;\n"
-            "attribute vec2 texureCoordIn;\n"
-            "\n"
-            "uniform mat4 projectionMatrix;\n"
-            "uniform mat4 viewMatrix;\n"
-            "\n"
-            "varying vec4 destinationColour;\n"
-            "varying vec2 textureCoordOut;\n"
-            "\n"
-            "void main()\n"
-            "{\n"
-            "    destinationColour = sourceColour;\n"
-            "    textureCoordOut = texureCoordIn;\n"
-            "    gl_Position = projectionMatrix * viewMatrix * position;\n"
-            "}\n";
+}
 
-        fragmentShader =
-           #if JUCE_OPENGL_ES
-            "varying lowp vec4 destinationColour;\n"
-            "varying lowp vec2 textureCoordOut;\n"
-           #else
-            "varying vec4 destinationColour;\n"
-            "varying vec2 textureCoordOut;\n"
-           #endif
-            "\n"
-            "void main()\n"
-            "{\n"
-            "    vec4 colour = vec4(0.95, 0.57, 0.03, 0.7);\n"
-            "    gl_FragColor = colour;\n"
-            "}\n";
 
-        ScopedPointer<OpenGLShaderProgram> newShader (new OpenGLShaderProgram (openGLContext));
-        String statusText;
-
-        if (newShader->addVertexShader (OpenGLHelpers::translateVertexShaderToV3 (vertexShader))
-              && newShader->addFragmentShader (OpenGLHelpers::translateFragmentShaderToV3 (fragmentShader))
-              && newShader->link())
-        {
-            shape = nullptr;
-            attributes = nullptr;
-            uniforms = nullptr;
-
-            shader = newShader;
-            shader->use();
-
-            shape      = new Shape (openGLContext);
-            attributes = new Attributes (openGLContext, *shader);
-            uniforms   = new Uniforms (openGLContext, *shader);
-
-            statusText = "GLSL: v" + String (OpenGLShaderProgram::getLanguageVersion(), 2);
-        }
-        else
-        {
-            statusText = newShader->getLastError();
-        }
-    }
-    
-    
 
 
 

@@ -33,14 +33,12 @@ class MainContentComponent   : public AudioAppComponent
 public:
     //==============================================================================
     MainContentComponent() :
-    leftLabel (String::empty, "LEFT"),
     rightLabel (String::empty, "RIGHT")
     {
         
 
         
         //add the components
-//        addAndMakeVisible (leftLabel);
         addAndMakeVisible (speakerView);
         addAndMakeVisible (rightLabel);
         
@@ -124,12 +122,10 @@ public:
         Rectangle<int> r (getLocalBounds().reduced (5));
         
         // lay out the list box and vertical divider..
-//        Component* vcomps[] = { &leftLabel, verticalDividerBar, nullptr };
         Component* vcomps[] = { &speakerView, verticalDividerBar, nullptr };
         
         // lay out side-by-side and resize the components' heights as well as widths
         verticalLayout.layOutComponents (vcomps, 3, r.getX(), r.getY(), r.getWidth(), r.getHeight(), false, true);
-        
         
         r.removeFromLeft (verticalDividerBar->getRight());
         
@@ -147,7 +143,7 @@ private:
     StretchableLayoutManager verticalLayout;
     ScopedPointer<StretchableLayoutResizerBar> verticalDividerBar;
     
-    Label leftLabel, rightLabel;
+    Label rightLabel;
     SpeakerViewComponent speakerView;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
