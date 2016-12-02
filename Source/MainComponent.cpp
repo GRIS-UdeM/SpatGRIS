@@ -20,7 +20,7 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "jackClientGRIS.h"
-//#include "SpeakerViewComponent.cpp"
+#include "SpeakerViewComponent.h"
 
 
 //==============================================================================
@@ -40,7 +40,8 @@ public:
 
         
         //add the components
-        addAndMakeVisible (leftLabel);
+//        addAndMakeVisible (leftLabel);
+        addAndMakeVisible (speakerView);
         addAndMakeVisible (rightLabel);
         
         
@@ -123,7 +124,8 @@ public:
         Rectangle<int> r (getLocalBounds().reduced (5));
         
         // lay out the list box and vertical divider..
-        Component* vcomps[] = { &leftLabel, verticalDividerBar, nullptr };
+//        Component* vcomps[] = { &leftLabel, verticalDividerBar, nullptr };
+        Component* vcomps[] = { &speakerView, verticalDividerBar, nullptr };
         
         // lay out side-by-side and resize the components' heights as well as widths
         verticalLayout.layOutComponents (vcomps, 3, r.getX(), r.getY(), r.getWidth(), r.getHeight(), false, true);
