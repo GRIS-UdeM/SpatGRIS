@@ -1,19 +1,25 @@
 /*
- ==============================================================================
+ This file is part of spatServerGRIS.
  
- This file was auto-generated!
+ spatServerGRIS is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
  
- ==============================================================================
+ spatServerGRIS is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with spatServerGRIS.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 
 #include "SpeakerViewComponent.h"
 
-
-
 //==============================================================================
-struct Vertex
-{
+struct Vertex {
     float position[3];
     float normal[3];
     float colour[4];
@@ -21,7 +27,7 @@ struct Vertex
 };
 
 //==============================================================================
-// This class just manages the attributes that the shaders use.
+// This class just manages the mAttributes that the shaders use.
 class Attributes {
 public:
     Attributes (OpenGLContext& openGLContext, OpenGLShaderProgram& shaderProgram) {
@@ -63,11 +69,11 @@ public:
     ScopedPointer<OpenGLShaderProgram::Attribute> position, normal, sourceColour, texureCoordIn;
     
 private:
-    static OpenGLShaderProgram::Attribute* createAttribute (OpenGLContext& openGLContext, OpenGLShaderProgram& shader, const char* attributeName) {
-        if (openGLContext.extensions.glGetAttribLocation (shader.getProgramID(), attributeName) < 0){
+    static OpenGLShaderProgram::Attribute* createAttribute (OpenGLContext& openGLContext, OpenGLShaderProgram& mShader, const char* attributeName) {
+        if (openGLContext.extensions.glGetAttribLocation (mShader.getProgramID(), attributeName) < 0){
             return nullptr;
         }
-        return new OpenGLShaderProgram::Attribute (shader, attributeName);
+        return new OpenGLShaderProgram::Attribute (mShader, attributeName);
     }
 };
 
@@ -97,16 +103,16 @@ private:
 class Shape {
 public:
     Shape (OpenGLContext& openGLContext) {
-        if (shapeFile.load (BinaryData::teapot_obj).wasOk()){
-            for (int i = 0; i < shapeFile.shapes.size(); ++i){
-                vertexBuffers.add (new VertexBuffer (openGLContext, *shapeFile.shapes.getUnchecked(i)));
+        if (mShapeFile.load (BinaryData::teapot_obj).wasOk()){
+            for (int i = 0; i < mShapeFile.shapes.size(); ++i){
+                mVertexBuffers.add (new VertexBuffer (openGLContext, *mShapeFile.shapes.getUnchecked(i)));
             }
         }
     }
     
     void draw (OpenGLContext& openGLContext, Attributes& glAttributes) {
-        for (int i = 0; i < vertexBuffers.size(); ++i) {
-            VertexBuffer& vertexBuffer = *vertexBuffers.getUnchecked (i);
+        for (int i = 0; i < mVertexBuffers.size(); ++i) {
+            VertexBuffer& vertexBuffer = *mVertexBuffers.getUnchecked (i);
             vertexBuffer.bind();
             
             glAttributes.enable (openGLContext);
@@ -179,8 +185,9 @@ private:
         }
     }
     
-    WavefrontObjFile shapeFile;
-    OwnedArray<VertexBuffer> vertexBuffers;
+private:
+    WavefrontObjFile         mShapeFile;
+    OwnedArray<VertexBuffer> mVertexBuffers;
     
 };
 
@@ -199,10 +206,10 @@ void SpeakerViewComponent::initialise() {
 }
 
 void SpeakerViewComponent::shutdown() {
-    shader = nullptr;
-    shape = nullptr;
-    attributes = nullptr;
-    uniforms = nullptr;
+    mShader = nullptr;
+    mShape = nullptr;
+    mAttributes = nullptr;
+    mUniforms = nullptr;
 }
 
 Matrix3D<float> SpeakerViewComponent::getProjectionMatrix() const {
@@ -228,17 +235,17 @@ void SpeakerViewComponent::render() {
     
     glViewport (0, 0, roundToInt (desktopScale * getWidth()), roundToInt (desktopScale * getHeight()));
     
-    shader->use();
+    mShader->use();
     
-    if (uniforms->projectionMatrix != nullptr){
-        uniforms->projectionMatrix->setMatrix4 (getProjectionMatrix().mat, 1, false);
+    if (mUniforms->projectionMatrix != nullptr){
+        mUniforms->projectionMatrix->setMatrix4 (getProjectionMatrix().mat, 1, false);
     }
     
-    if (uniforms->viewMatrix != nullptr){
-        uniforms->viewMatrix->setMatrix4 (getViewMatrix().mat, 1, false);
+    if (mUniforms->viewMatrix != nullptr){
+        mUniforms->viewMatrix->setMatrix4 (getViewMatrix().mat, 1, false);
     }
     
-    shape->draw (openGLContext, *attributes);
+    mShape->draw (openGLContext, *mAttributes);
     
     // Reset the element buffers so child Components draw correctly
     openGLContext.extensions.glBindBuffer (GL_ARRAY_BUFFER, 0);
@@ -270,7 +277,7 @@ void SpeakerViewComponent::mouseDrag (const MouseEvent& e) {
 }
 
 void SpeakerViewComponent::createShaders() {
-    vertexShader =
+    m_cVertexShader =
     "attribute vec4 position;\n"
     "attribute vec4 sourceColour;\n"
     "attribute vec2 texureCoordIn;\n"
@@ -281,43 +288,40 @@ void SpeakerViewComponent::createShaders() {
     "varying vec4 destinationColour;\n"
     "varying vec2 textureCoordOut;\n"
     "\n"
-    "void main()\n"
-    "{\n"
+    "void main(){\n"
     "    destinationColour = sourceColour;\n"
     "    textureCoordOut = texureCoordIn;\n"
     "    gl_Position = projectionMatrix * viewMatrix * position;\n"
     "}\n";
     
-    fragmentShader =
-#if JUCE_OPENGL_ES
-    "varying lowp vec4 destinationColour;\n"
-    "varying lowp vec2 textureCoordOut;\n"
-#else
+    m_cFragmentShader =
     "varying vec4 destinationColour;\n"
     "varying vec2 textureCoordOut;\n"
-#endif
     "\n"
-    "void main()\n"
-    "{\n"
-    "    vec4 colour = vec4(0.95, 0.57, 0.03, 0.7);\n"
+    "void main(){\n"
+    "    vec4 colour = vec4(0.95, 0.57, 0.93, 0.7);\n"  //this is the color of the teapot
     "    gl_FragColor = colour;\n"
     "}\n";
     
     ScopedPointer<OpenGLShaderProgram> newShader (new OpenGLShaderProgram (openGLContext));
     String statusText;
     
-    if (newShader->addVertexShader (OpenGLHelpers::translateVertexShaderToV3 (vertexShader))
-        && newShader->addFragmentShader (OpenGLHelpers::translateFragmentShaderToV3 (fragmentShader)) && newShader->link()) {
-        shape = nullptr;
-        attributes = nullptr;
-        uniforms = nullptr;
+    if (newShader->addVertexShader   (OpenGLHelpers::translateVertexShaderToV3 (m_cVertexShader)) &&
+        newShader->addFragmentShader (OpenGLHelpers::translateFragmentShaderToV3 (m_cFragmentShader)) &&
+        newShader->link()) {
+        //clear stuff
+        mShape       = nullptr;
+        mAttributes  = nullptr;
+        mUniforms    = nullptr;
         
-        shader = newShader;
-        shader->use();
+        //use the new shader
+        mShader      = newShader;
+        mShader->use();
         
-        shape      = new Shape      (openGLContext);
-        attributes = new Attributes (openGLContext, *shader);
-        uniforms   = new Uniforms   (openGLContext, *shader);
+        
+        mShape      = new Shape      (openGLContext);
+        mAttributes = new Attributes (openGLContext, *mShader);
+        mUniforms   = new Uniforms   (openGLContext, *mShader);
         
         statusText = "GLSL: v" + String (OpenGLShaderProgram::getLanguageVersion(), 2);
     } else {

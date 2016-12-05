@@ -357,13 +357,13 @@ public:
     //==============================================================================
     struct ShaderProgramHolder
     {
-        ShaderProgramHolder (OpenGLContext& context, const char* fragmentShader, const char* vertexShader)
+        ShaderProgramHolder (OpenGLContext& context, const char* fragmentShader, const char* getLinkSurfaceOrPan)
             : program (context)
         {
             JUCE_CHECK_OPENGL_ERROR
 
-            if (vertexShader == nullptr)
-                vertexShader = "attribute vec2 position;"
+            if (getLinkSurfaceOrPan == nullptr)
+                getLinkSurfaceOrPan = "attribute vec2 position;"
                                "attribute vec4 colour;"
                                "uniform vec4 screenBounds;"
                                "varying " JUCE_MEDIUMP " vec4 frontColour;"
@@ -377,7 +377,7 @@ public:
                                  "gl_Position = vec4 (scaledPos.x - 1.0, 1.0 - scaledPos.y, 0, 1.0);"
                                "}";
 
-            if (program.addVertexShader (OpenGLHelpers::translateVertexShaderToV3 (vertexShader))
+            if (program.addVertexShader (OpenGLHelpers::translateVertexShaderToV3 (getLinkSurfaceOrPan))
                  && program.addFragmentShader (OpenGLHelpers::translateFragmentShaderToV3 (fragmentShader))
                  && program.link())
             {
@@ -395,8 +395,8 @@ public:
 
     struct ShaderBase   : public ShaderProgramHolder
     {
-        ShaderBase (OpenGLContext& context, const char* fragmentShader, const char* vertexShader = nullptr)
-            : ShaderProgramHolder (context, fragmentShader, vertexShader),
+        ShaderBase (OpenGLContext& context, const char* fragmentShader, const char* getLinkSurfaceOrPan = nullptr)
+            : ShaderProgramHolder (context, fragmentShader, getLinkSurfaceOrPan),
               positionAttribute (program, "position"),
               colourAttribute (program, "colour"),
               screenBounds (program, "screenBounds")
