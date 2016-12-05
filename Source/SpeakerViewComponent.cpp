@@ -160,15 +160,12 @@ private:
         WavefrontObjFile::TextureCoord defaultTexCoord = { 0.5f, 0.5f };
         WavefrontObjFile::Vertex defaultNormal = { 0.5f, 0.5f, 0.5f };
         
-        for (int i = 0; i < mesh.vertices.size(); ++i)
-        {
+        for (int i = 0; i < mesh.vertices.size(); ++i) {
             const WavefrontObjFile::Vertex& v = mesh.vertices.getReference (i);
             
-            const WavefrontObjFile::Vertex& n
-            = i < mesh.normals.size() ? mesh.normals.getReference (i) : defaultNormal;
+            const WavefrontObjFile::Vertex& n = (i < mesh.normals.size()) ? mesh.normals.getReference (i) : defaultNormal;
             
-            const WavefrontObjFile::TextureCoord& tc
-            = i < mesh.textureCoords.size() ? mesh.textureCoords.getReference (i) : defaultTexCoord;
+            const WavefrontObjFile::TextureCoord& tc = (i < mesh.textureCoords.size()) ? mesh.textureCoords.getReference (i) : defaultTexCoord;
             
             Vertex vert =
             {
@@ -233,11 +230,13 @@ void SpeakerViewComponent::render() {
     
     shader->use();
     
-    if (uniforms->projectionMatrix != nullptr)
+    if (uniforms->projectionMatrix != nullptr){
         uniforms->projectionMatrix->setMatrix4 (getProjectionMatrix().mat, 1, false);
+    }
     
-    if (uniforms->viewMatrix != nullptr)
+    if (uniforms->viewMatrix != nullptr){
         uniforms->viewMatrix->setMatrix4 (getViewMatrix().mat, 1, false);
+    }
     
     shape->draw (openGLContext, *attributes);
     

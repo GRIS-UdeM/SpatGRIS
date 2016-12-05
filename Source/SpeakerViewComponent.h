@@ -46,7 +46,6 @@ public:
     
     Draggable3DOrientation draggableOrientation;
     
-    
 private:
     
     const char* vertexShader;
