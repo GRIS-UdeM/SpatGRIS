@@ -24,6 +24,9 @@
 #include <OpenGL/gl.h>
 #include <OpenGl/glu.h>
 #include <GLUT/glut.h>
+
+
+
 #include <math.h>
 
 using namespace std;
@@ -51,9 +54,15 @@ public:
     
 private:
 
+    void drawBackground();
+    void drawOriginGrid();
+    void drawCube(float x, float y, float z);
 
-    double rotate_y=0;
-    double rotate_x=0;
+    float camAngleX=35;
+    float camAngleY=35;
+    
+    GLdouble xS, yS, zS;
+    GLdouble xE, yE, zE;
     
      ComponentDragger myDragger;
     
