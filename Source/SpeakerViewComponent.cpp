@@ -18,183 +18,12 @@
 
 #include "SpeakerViewComponent.h"
 
-//==============================================================================
-struct Vertex {
-    float position[3];
-    float normal[3];
-    float colour[4];
-    float texCoord[2];
-};
-
-//==============================================================================
-// This class just manages the mAttributes that the shaders use.
-class Attributes {
-public:
-    Attributes (OpenGLContext& openGLContext, OpenGLShaderProgram& shaderProgram) {
-        position      = createAttribute (openGLContext, shaderProgram, "position");
-        normal        = createAttribute (openGLContext, shaderProgram, "normal");
-        sourceColour  = createAttribute (openGLContext, shaderProgram, "sourceColour");
-        texureCoordIn = createAttribute (openGLContext, shaderProgram, "texureCoordIn");
-    }
-    
-    void enable (OpenGLContext& openGLContext) {
-        if (position != nullptr) {
-            openGLContext.extensions.glVertexAttribPointer (position->attributeID, 3, GL_FLOAT, GL_FALSE, sizeof (Vertex), 0);
-            openGLContext.extensions.glEnableVertexAttribArray (position->attributeID);
-        }
-        
-        if (normal != nullptr) {
-            openGLContext.extensions.glVertexAttribPointer (normal->attributeID, 3, GL_FLOAT, GL_FALSE, sizeof (Vertex), (GLvoid*) (sizeof (float) * 3));
-            openGLContext.extensions.glEnableVertexAttribArray (normal->attributeID);
-        }
-        
-        if (sourceColour != nullptr) {
-            openGLContext.extensions.glVertexAttribPointer (sourceColour->attributeID, 4, GL_FLOAT, GL_FALSE, sizeof (Vertex), (GLvoid*) (sizeof (float) * 6));
-            openGLContext.extensions.glEnableVertexAttribArray (sourceColour->attributeID);
-        }
-        
-        if (texureCoordIn != nullptr) {
-            openGLContext.extensions.glVertexAttribPointer (texureCoordIn->attributeID, 2, GL_FLOAT, GL_FALSE, sizeof (Vertex), (GLvoid*) (sizeof (float) * 10));
-            openGLContext.extensions.glEnableVertexAttribArray (texureCoordIn->attributeID);
-        }
-    }
-    
-    void disable (OpenGLContext& openGLContext) {
-        if (position != nullptr)       openGLContext.extensions.glDisableVertexAttribArray (position->attributeID);
-        if (normal != nullptr)         openGLContext.extensions.glDisableVertexAttribArray (normal->attributeID);
-        if (sourceColour != nullptr)   openGLContext.extensions.glDisableVertexAttribArray (sourceColour->attributeID);
-        if (texureCoordIn != nullptr)  openGLContext.extensions.glDisableVertexAttribArray (texureCoordIn->attributeID);
-    }
-    
-    ScopedPointer<OpenGLShaderProgram::Attribute> position, normal, sourceColour, texureCoordIn;
-    
-private:
-    static OpenGLShaderProgram::Attribute* createAttribute (OpenGLContext& openGLContext, OpenGLShaderProgram& mShader, const char* attributeName) {
-        if (openGLContext.extensions.glGetAttribLocation (mShader.getProgramID(), attributeName) < 0){
-            return nullptr;
-        }
-        return new OpenGLShaderProgram::Attribute (mShader, attributeName);
-    }
-};
-
-//==============================================================================
-// This class just manages the uniform values that the demo shaders use.
-struct Uniforms{
-    Uniforms (OpenGLContext& openGLContext, OpenGLShaderProgram& shaderProgram) {
-        projectionMatrix = createUniform (openGLContext, shaderProgram, "projectionMatrix");
-        viewMatrix       = createUniform (openGLContext, shaderProgram, "viewMatrix");
-    }
-    
-    ScopedPointer<OpenGLShaderProgram::Uniform> projectionMatrix, viewMatrix;
-    
-private:
-    static OpenGLShaderProgram::Uniform* createUniform (OpenGLContext& openGLContext, OpenGLShaderProgram& shaderProgram, const char* uniformName) {
-        if (openGLContext.extensions.glGetUniformLocation (shaderProgram.getProgramID(), uniformName) < 0){
-            return nullptr;
-        }
-        
-        return new OpenGLShaderProgram::Uniform (shaderProgram, uniformName);
-    }
-};
-
-
-//==============================================================================
-// This loads a 3D model from an OBJ file and converts it into some vertex buffers that we can draw.
-class Shape {
-public:
-    Shape (OpenGLContext& openGLContext) {
-        if (mShapeFile.load (BinaryData::teapot_obj).wasOk()){
-            for (int i = 0; i < mShapeFile.shapes.size(); ++i){
-                mVertexBuffers.add (new VertexBuffer (openGLContext, *mShapeFile.shapes.getUnchecked(i)));
-            }
-        }
-    }
-    
-    void draw (OpenGLContext& openGLContext, Attributes& glAttributes) {
-        for (int i = 0; i < mVertexBuffers.size(); ++i) {
-            VertexBuffer& vertexBuffer = *mVertexBuffers.getUnchecked (i);
-            vertexBuffer.bind();
-            
-            glAttributes.enable (openGLContext);
-            glDrawElements (GL_TRIANGLES, vertexBuffer.numIndices, GL_UNSIGNED_INT, 0);
-            glAttributes.disable (openGLContext);
-        }
-    }
-    
-private:
-    class VertexBuffer {
-    public:
-        VertexBuffer (OpenGLContext& context, WavefrontObjFile::Shape& aShape) : openGLContext (context) {
-            numIndices = aShape.mesh.indices.size();
-            
-            openGLContext.extensions.glGenBuffers (1, &vertexBuffer);
-            openGLContext.extensions.glBindBuffer (GL_ARRAY_BUFFER, vertexBuffer);
-            
-            Array<Vertex> vertices;
-            createVertexListFromMesh (aShape.mesh, vertices, Colours::green);
-            
-            openGLContext.extensions.glBufferData (GL_ARRAY_BUFFER,
-                                                   static_cast<GLsizeiptr> (static_cast<size_t> (vertices.size()) * sizeof (Vertex)),
-                                                   vertices.getRawDataPointer(), GL_STATIC_DRAW);
-            
-            openGLContext.extensions.glGenBuffers (1, &indexBuffer);
-            openGLContext.extensions.glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-            openGLContext.extensions.glBufferData (GL_ELEMENT_ARRAY_BUFFER,
-                                                   static_cast<GLsizeiptr> (static_cast<size_t> (numIndices) * sizeof (juce::uint32)),
-                                                   aShape.mesh.indices.getRawDataPointer(), GL_STATIC_DRAW);
-        }
-        
-        ~VertexBuffer() {
-            openGLContext.extensions.glDeleteBuffers (1, &vertexBuffer);
-            openGLContext.extensions.glDeleteBuffers (1, &indexBuffer);
-        }
-        
-        void bind() {
-            openGLContext.extensions.glBindBuffer (GL_ARRAY_BUFFER, vertexBuffer);
-            openGLContext.extensions.glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-        }
-        
-        GLuint vertexBuffer, indexBuffer;
-        int numIndices;
-        OpenGLContext& openGLContext;
-        
-        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VertexBuffer)
-    };
-    
-    static void createVertexListFromMesh (const WavefrontObjFile::Mesh& mesh, Array<Vertex>& list, Colour colour) {
-        const float scale = 0.2f;
-        WavefrontObjFile::TextureCoord defaultTexCoord = { 0.5f, 0.5f };
-        WavefrontObjFile::Vertex defaultNormal = { 0.5f, 0.5f, 0.5f };
-        
-        for (int i = 0; i < mesh.vertices.size(); ++i) {
-            const WavefrontObjFile::Vertex& v = mesh.vertices.getReference (i);
-            
-            const WavefrontObjFile::Vertex& n = (i < mesh.normals.size()) ? mesh.normals.getReference (i) : defaultNormal;
-            
-            const WavefrontObjFile::TextureCoord& tc = (i < mesh.textureCoords.size()) ? mesh.textureCoords.getReference (i) : defaultTexCoord;
-            
-            Vertex vert =
-            {
-                { scale * v.x, scale * v.y, scale * v.z, },
-                { scale * n.x, scale * n.y, scale * n.z, },
-                { colour.getFloatRed(), colour.getFloatGreen(), colour.getFloatBlue(), colour.getFloatAlpha() },
-                { tc.x, tc.y }
-            };
-            
-            list.add (vert);
-        }
-    }
-    
-private:
-    WavefrontObjFile         mShapeFile;
-    OwnedArray<VertexBuffer> mVertexBuffers;
-    
-};
 
 //==========================================================================================
 // ACTUAL SPEAKER VIEW CLASS DEFS
 //==========================================================================================
 SpeakerViewComponent::SpeakerViewComponent() {
+    setSize(400, 400);
 }
 
 SpeakerViewComponent::~SpeakerViewComponent() {
@@ -202,30 +31,35 @@ SpeakerViewComponent::~SpeakerViewComponent() {
 }
 
 void SpeakerViewComponent::initialise() {
-    createShaders();
+    glClearColor(0.0, 0.0, 0.0, 1.0);
+    glColor3f(1.0, 1.0, 1.0);
+    
+    // Set the camera lens to have a 60 degree (vertical) field of view, an
+    // aspect ratio of 4/3, and have everything closer than 1 unit to the
+    // camera and greater than 40 units distant clipped away.
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    
+    gluPerspective(90.0, 16.0/9.0, 1, 40);
+    
+    // Position camera at (4, 6, 5) looking at (0, 0, 0) with the vector
+    // <0, 1, 0> pointing upward.
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    
+    gluLookAt(4, 6, 5, 0, 0, 0, 0, 1, 0);
 }
 
 void SpeakerViewComponent::shutdown() {
-    mShader = nullptr;
-    mShape = nullptr;
-    mAttributes = nullptr;
-    mUniforms = nullptr;
 }
 
-Matrix3D<float> SpeakerViewComponent::getProjectionMatrix() const {
-    float w = 1.0f / (0.5f + 0.1f);
-    float h = w * getLocalBounds().toFloat().getAspectRatio (false);
-    return Matrix3D<float>::fromFrustum (-w, w, -h, h, 4.0f, 30.0f);
-}
 
-Matrix3D<float> SpeakerViewComponent::getViewMatrix() const {
-    return draggableOrientation.getRotationMatrix() * Vector3D<float> (0.0f, 1.0f, -10.0f);
-    
-}
+
+
 
 void SpeakerViewComponent::render() {
     
-    jassert (OpenGLHelpers::isContextActive());
+    /*jassert (OpenGLHelpers::isContextActive());
     
     const float desktopScale = (float) openGLContext.getRenderingScale();
     OpenGLHelpers::clear (Colour::greyLevel (0.1f));
@@ -235,7 +69,12 @@ void SpeakerViewComponent::render() {
     
     glViewport (0, 0, roundToInt (desktopScale * getWidth()), roundToInt (desktopScale * getHeight()));
     
+    DrawGrid(2);
+
+    //call it like this
+    
     mShader->use();
+    DrawGrid(4);
     
     if (mUniforms->projectionMatrix != nullptr){
         mUniforms->projectionMatrix->setMatrix4 (getProjectionMatrix().mat, 1, false);
@@ -244,12 +83,185 @@ void SpeakerViewComponent::render() {
     if (mUniforms->viewMatrix != nullptr){
         mUniforms->viewMatrix->setMatrix4 (getViewMatrix().mat, 1, false);
     }
-    
+    DrawGrid(6);
     mShape->draw (openGLContext, *mAttributes);
-    
+   DrawGrid(8);
     // Reset the element buffers so child Components draw correctly
     openGLContext.extensions.glBindBuffer (GL_ARRAY_BUFFER, 0);
-    openGLContext.extensions.glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
+    openGLContext.extensions.glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);*/
+    
+    
+    glClear(GL_COLOR_BUFFER_BIT);
+    
+    // Draw a white torus of outer radius 3, inner radius 0.5 with 15 stacks
+    // and 30 slices.
+    glColor3f(1.0, 1.0, 1.0);
+    //glutWireTorus(0.5, 3, 15, 30);
+    
+    // Draw a red x-axis, a green y-axis, and a blue z-axis.  Each of the
+    // axes are ten units long.
+    glBegin(GL_LINES);
+    glColor3f(1, 0, 0); glVertex3f(0, 0, 0); glVertex3f(10, 0, 0);
+    glColor3f(0, 1, 0); glVertex3f(0, 0, 0); glVertex3f(0, 10, 0);
+    glColor3f(0, 0, 1); glVertex3f(0, 0, 0); glVertex3f(0, 0, 10);
+    glEnd();
+    
+    glColor3f(1, 0, 0);
+    for(int x = -25; x < 25; x++){
+        glBegin(GL_LINE_LOOP);
+        glVertex3f(x,0,-25);
+        glVertex3f(x,0,25);
+        glEnd();
+    };
+    
+    glColor3f(0, 0, 1);
+    for(int z = -25; z < 25; z++){
+        glBegin(GL_LINE_LOOP);
+        glVertex3f(-25,0,z);
+        glVertex3f(25,0,z);
+        glEnd();
+    };
+    
+    glFlush();
+    
+    
+/*
+    OpenGLHelpers::clear(Colours::black);
+    
+    //  Clear screen and Z-buffer
+    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+    
+    // Reset transformations
+    glLoadIdentity();
+    
+    glBegin(GL_LINES);
+    glColor3f(1, 0, 0); glVertex3f(0, 0, 0); glVertex3f(10, 0, 0);
+    glColor3f(0, 1, 0); glVertex3f(0, 0, 0); glVertex3f(0, 10, 0);
+    glColor3f(0, 0, 1); glVertex3f(0, 0, 0); glVertex3f(0, 0, 10);
+    glEnd();
+    
+    // Other Transformations
+    // glTranslatef( 0.1, 0.0, 0.0 );      // Not included
+    // glRotatef( 180, 0.0, 1.0, 0.0 );    // Not included
+    
+    // Rotate when user changes rotate_x and rotate_y
+    glRotatef( rotate_x, 1.0, 0.0, 0.0 );
+    glRotatef( rotate_y, 0.0, 1.0, 0.0 );
+    
+    // Other Transformations
+    // glScalef( 2.0, 2.0, 0.0 );          // Not included
+    
+    //Multi-colored side - FRONT
+    glBegin(GL_POLYGON);
+    
+    glColor3f( 1.0, 0.0, 0.0 );     glVertex3f(  0.5, -0.5, -0.5 );      // P1 is red
+    glColor3f( 0.0, 1.0, 0.0 );     glVertex3f(  0.5,  0.5, -0.5 );      // P2 is green
+    glColor3f( 0.0, 0.0, 1.0 );     glVertex3f( -0.5,  0.5, -0.5 );      // P3 is blue
+    glColor3f( 1.0, 0.0, 1.0 );     glVertex3f( -0.5, -0.5, -0.5 );      // P4 is purple
+    
+    glEnd();
+    
+    // White side - BACK
+    glBegin(GL_POLYGON);
+    glColor3f(   1.0,  1.0, 1.0 );
+    glVertex3f(  0.5, -0.5, 0.5 );
+    glVertex3f(  0.5,  0.5, 0.5 );
+    glVertex3f( -0.5,  0.5, 0.5 );
+    glVertex3f( -0.5, -0.5, 0.5 );
+    glEnd();
+    
+    // Purple side - RIGHT
+    glBegin(GL_POLYGON);
+    glColor3f(  1.0,  0.0,  1.0 );
+    glVertex3f( 0.5, -0.5, -0.5 );
+    glVertex3f( 0.5,  0.5, -0.5 );
+    glVertex3f( 0.5,  0.5,  0.5 );
+    glVertex3f( 0.5, -0.5,  0.5 );
+    glEnd();
+    
+    // Green side - LEFT
+    glBegin(GL_POLYGON);
+    glColor3f(   0.0,  1.0,  0.0 );
+    glVertex3f( -0.5, -0.5,  0.5 );
+    glVertex3f( -0.5,  0.5,  0.5 );
+    glVertex3f( -0.5,  0.5, -0.5 );
+    glVertex3f( -0.5, -0.5, -0.5 );
+    glEnd();
+    
+    // Blue side - TOP
+    glBegin(GL_POLYGON);
+    glColor3f(   0.0,  0.0,  1.0 );
+    glVertex3f(  0.5,  0.5,  0.5 );
+    glVertex3f(  0.5,  0.5, -0.5 );
+    glVertex3f( -0.5,  0.5, -0.5 );
+    glVertex3f( -0.5,  0.5,  0.5 );
+    glEnd();
+    
+    // Red side - BOTTOM
+    glBegin(GL_POLYGON);
+    glColor3f(   1.0,  0.0,  0.0 );
+    glVertex3f(  0.5, -0.5, -0.5 );
+    glVertex3f(  0.5, -0.5,  0.5 );
+    glVertex3f( -0.5, -0.5,  0.5 );
+    glVertex3f( -0.5, -0.5, -0.5 );
+    glEnd();
+    
+    glFlush();
+
+  */
+    //glutSwapBuffers();
+   
+
+   /* for(int x = 0; x < 2; x++){
+        glBegin(GL_LINE_LOOP);
+        glVertex3f(x,0,0);
+        glVertex3f(x,10,0);
+        glEnd();
+    };
+    
+    for(int y = 0; y < 10; y++){
+        glBegin(GL_LINE_LOOP);
+        glVertex3f(y,0,0);
+        glVertex3f(y,2,0);
+        glEnd();
+    };
+    */
+    
+    /*
+    glEnable(GL_LINES);
+    
+    glColor3f(1, 0, 0);
+    glVertex3f(-1000, 0, 0);
+    glVertex3f(1000, 0, 0);
+    glEnd();
+    
+    
+    glEnable(GL_LINES);
+    glColor3f(0, 1, 0);
+    glVertex3f(0, -1000, 0);
+    glVertex3f(0, 1000, 0);
+    glEnd();
+    
+    glEnable(GL_LINES);
+    glColor3f(0, 0, 1);
+    glVertex3f(0, 0, -1000);
+    glVertex3f(0, 0, 1000);
+    
+    
+    glEnd();
+    
+    /*
+    glBegin(GL_LINES);
+    glColor3f(1, 0, 0);
+    for(int i=-4;i<=4;i++)
+    {
+        glVertex3f((float)i,(float)-4,0);
+        glVertex3f((float)i,(float)4,0);
+        
+        glVertex3f((float)-4,(float)i,0);
+        glVertex3f((float)4,(float)i,0);
+    }
+    glEnd();*/
     
 }
 
@@ -265,71 +277,43 @@ void SpeakerViewComponent::paint (Graphics& g) {
 }
 
 void SpeakerViewComponent::resized() {
-    draggableOrientation.setViewport (getLocalBounds());
+    //draggableOrientation.setViewport (getLocalBounds());
 }
 
+
+
 void SpeakerViewComponent::mouseDown (const MouseEvent& e) {
-    draggableOrientation.mouseDown (e.getPosition());
+    rotate_x += 0.005;
+    rotate_y += 5;
+    
+
+    
 }
 
 void SpeakerViewComponent::mouseDrag (const MouseEvent& e) {
-    draggableOrientation.mouseDrag (e.getPosition());
+    
+    
+    float distance = 15.0f;      // Straight line distance between the camera and look at point
+    float camAngleX =e.getPosition().x;
+    cout << camAngleX << endl;
+    float camAngleY = e.getPosition().y;
+    // Calculate the camera position using the distance and angles
+    float camX = distance * sinf(camAngleX*(M_PI/180)) * cosf((camAngleY)*(M_PI/180));
+    float camY = distance * sinf((camAngleY)*(M_PI/180));
+    float camZ = distance * cosf((camAngleX)*(M_PI/180)) * cosf((camAngleY)*(M_PI/180));
+    
+    glLoadIdentity();
+    gluLookAt(camX, camY, camZ, 0, 0, 0, 0,1,0);
+    
+  /*  rotate_x = e.getPosition().y;
+    glRotatef(e.getPosition().y, 0.0f, 1.0, 0.0f);
+    glRotatef(e.getPosition().x, 1.0f, 0.0f, 0.0f);
+
+    rotate_y = e.getPosition().x;*/
+    
+    
+    
+   //myDragger.dragComponent (this, e, nullptr);
 }
-
-void SpeakerViewComponent::createShaders() {
-    m_cVertexShader =
-    "attribute vec4 position;\n"
-    "attribute vec4 sourceColour;\n"
-    "attribute vec2 texureCoordIn;\n"
-    "\n"
-    "uniform mat4 projectionMatrix;\n"
-    "uniform mat4 viewMatrix;\n"
-    "\n"
-    "varying vec4 destinationColour;\n"
-    "varying vec2 textureCoordOut;\n"
-    "\n"
-    "void main(){\n"
-    "    destinationColour = sourceColour;\n"
-    "    textureCoordOut = texureCoordIn;\n"
-    "    gl_Position = projectionMatrix * viewMatrix * position;\n"
-    "}\n";
-    
-    m_cFragmentShader =
-    "varying vec4 destinationColour;\n"
-    "varying vec2 textureCoordOut;\n"
-    "\n"
-    "void main(){\n"
-    "    vec4 colour = vec4(0.95, 0.57, 0.93, 0.7);\n"  //this is the color of the teapot
-    "    gl_FragColor = colour;\n"
-    "}\n";
-    
-    ScopedPointer<OpenGLShaderProgram> newShader (new OpenGLShaderProgram (openGLContext));
-    String statusText;
-    
-    if (newShader->addVertexShader   (OpenGLHelpers::translateVertexShaderToV3 (m_cVertexShader)) &&
-        newShader->addFragmentShader (OpenGLHelpers::translateFragmentShaderToV3 (m_cFragmentShader)) &&
-        newShader->link()) {
-        //clear stuff
-        mShape       = nullptr;
-        mAttributes  = nullptr;
-        mUniforms    = nullptr;
-        
-        //use the new shader
-        mShader      = newShader;
-        mShader->use();
-        
-        
-        mShape      = new Shape      (openGLContext);
-        mAttributes = new Attributes (openGLContext, *mShader);
-        mUniforms   = new Uniforms   (openGLContext, *mShader);
-        
-        statusText = "GLSL: v" + String (OpenGLShaderProgram::getLanguageVersion(), 2);
-    } else {
-        statusText = newShader->getLastError();
-    }
-}
-
-
-
 
 

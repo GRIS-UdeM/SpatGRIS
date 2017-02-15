@@ -43,9 +43,12 @@ public:
     int left_phase;
     int right_phase;
     
+    bool isReady() { return clientReady; }
     jackClientGris();
     virtual ~jackClientGris();
     
+private:
+    bool clientReady;
 };
 
 

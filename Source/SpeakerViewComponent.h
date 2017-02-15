@@ -21,12 +21,12 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "Resources/WavefrontObjParser.h"
+#include <OpenGL/gl.h>
+#include <OpenGl/glu.h>
+#include <GLUT/glut.h>
+#include <math.h>
 
-
-class Shape;
-class Attributes;
-struct Uniforms;
-
+using namespace std;
 class SpeakerViewComponent : public OpenGLAppComponent {
 public:
     //==============================================================================
@@ -38,33 +38,24 @@ public:
     
     void shutdown() override;
     
-    Matrix3D<float> getProjectionMatrix() const;
-    
-    Matrix3D<float> getViewMatrix() const;
-    
+
     void render() override;
     
     void paint (Graphics& g) override;
     void resized() override;
     
-    void mouseDown (const MouseEvent& e) override;
+    void mouseDown(const MouseEvent& e)override;
+    void mouseDrag (const MouseEvent& e)override;
     
-    void mouseDrag (const MouseEvent& e) override;
-    
-    void createShaders();
-    
-    Draggable3DOrientation draggableOrientation;
+
     
 private:
+
+
+    double rotate_y=0;
+    double rotate_x=0;
     
-    const char* m_cVertexShader;
-    const char* m_cFragmentShader;
-    
-    ScopedPointer<OpenGLShaderProgram> mShader;
-    ScopedPointer<Shape> mShape;
-    ScopedPointer<Attributes> mAttributes;
-    ScopedPointer<Uniforms> mUniforms;
-    
+     ComponentDragger myDragger;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SpeakerViewComponent)
 };

@@ -42,7 +42,7 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
 }
 
 jackClientGris::jackClientGris() {
-    
+    clientReady = false;
     //--------------------------------------------------
     //open a client connection to the JACK server. Start server if it is not running.
     //--------------------------------------------------
@@ -56,13 +56,16 @@ jackClientGris::jackClientGris() {
         if (status & JackServerFailed) {
             fprintf (stderr, "\n\n\n======Unable to connect to JACK server\n");
         }
+        return;
     }
     if (status & JackServerStarted) {
         fprintf (stderr, "\n===================\njackdmp wasn't running so it was started\n===================\n");
+        return;
     }
     if (status & JackNameNotUnique) {
         client_name = jack_get_client_name(client);
         fprintf (stderr, "\n\n\n======chosen name already existed, new unique name `%s' assigned\n", client_name);
+        return;
     }
     
     //--------------------------------------------------
@@ -90,19 +93,24 @@ jackClientGris::jackClientGris() {
     //--------------------------------------------------
     if (jack_activate (client)) {
         fprintf(stderr, "\n\n\n======cannot activate client");
+        return;
     }
     const char **ports = jack_get_ports (client, NULL, NULL, JackPortIsPhysical|JackPortIsInput);
     if (ports == NULL) {
         fprintf(stderr, "\n\n\n======no physical playback ports\n");
+        return;
     }
     if (jack_connect (client, jack_port_name (output_port1), ports[0])) {
         fprintf (stderr, "\n\n\n======cannot connect output ports\n");
+        return;
     }
     
     if (jack_connect (client, jack_port_name (output_port2), ports[1])) {
         fprintf (stderr, "\n\n\n======cannot connect output ports\n");
+        return;
     }
     jack_free (ports);
+    clientReady = true;
 }
 
 

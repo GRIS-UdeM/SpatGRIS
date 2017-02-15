@@ -14,6 +14,7 @@
             file="Source/jackClientGRIS.cpp"/>
       <FILE id="IoOl9R" name="MainComponent.cpp" compile="1" resource="0"
             file="Source/MainComponent.cpp"/>
+      <FILE id="eDgSPm" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
       <FILE id="ItaT5M" name="SpeakerViewComponent.h" compile="0" resource="0"
             file="Source/SpeakerViewComponent.h"/>
       <FILE id="Tz4yI1" name="SpeakerViewComponent.cpp" compile="1" resource="0"
