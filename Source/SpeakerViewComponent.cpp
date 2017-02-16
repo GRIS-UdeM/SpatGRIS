@@ -19,11 +19,98 @@
 #include "SpeakerViewComponent.h"
 
 
+
+SpeakerObj::SpeakerObj(glm::vec3 pos){
+    this->position = pos;
+}
+
+SpeakerObj::~SpeakerObj(){
+    
+}
+
+
+void SpeakerObj::draw(){
+    
+    glTranslatef(this->position.x, this->position.y, this->position.z);
+    
+    glBegin(GL_QUADS);
+    
+    glColor3f(this->color.x, this->color.y, this->color.z);
+
+    
+    // FRONT
+    glVertex3f(-sizex, -sizey, sizez);
+    glVertex3f(sizex, -sizey, sizez);
+    glVertex3f(sizex, sizey, sizez);
+    glVertex3f(-sizex, sizey, sizez);
+    
+    // BACK
+    glVertex3f(-sizex, -sizey, -sizez);
+    glVertex3f(-sizex, sizey, -sizez);
+    glVertex3f(sizex, sizey, -sizez);
+    glVertex3f(sizex, -sizey, -sizez);
+    
+    
+    
+    // LEFT
+    glVertex3f(-sizex, -sizey, sizez);
+    glVertex3f(-sizex, sizey, sizez);
+    glVertex3f(-sizex, sizey, -sizez);
+    glVertex3f(-sizex, -sizey, -sizez);
+    
+    // RIGHT
+    glVertex3f(sizex, -sizey, -sizez);
+    glVertex3f(sizex, sizey, -sizez);
+    glVertex3f(sizex, sizey, sizez);
+    glVertex3f(sizex, -sizey, sizez);
+    
+    
+    
+    // TOP
+    glVertex3f(-sizex, sizey, sizez);
+    glVertex3f(sizex, sizey, sizez);
+    glVertex3f(sizex, sizey, -sizez);
+    glVertex3f(-sizex, sizey, -sizez);
+    
+    // BOTTOM
+    glVertex3f(-sizex, -sizey, sizez);
+    glVertex3f(-sizex, -sizey, -sizez);
+    glVertex3f(sizex, -sizey, -sizez);
+    glVertex3f(sizex, -sizey, sizez);
+    
+    glEnd();
+    
+    glTranslatef(-this->position.x, -this->position.y, -this->position.z);
+}
+
+
+void SpeakerObj::setPosition(glm::vec3 pos){
+    this->position = pos;
+    draw();
+}
+
+glm::vec3 SpeakerObj::getPosition(){
+    return  this->position;
+}
+
+
+
 //==========================================================================================
 // ACTUAL SPEAKER VIEW CLASS DEFS
 //==========================================================================================
 SpeakerViewComponent::SpeakerViewComponent() {
     setSize(400, 400);
+    
+    this->listSpeaker = std::vector<SpeakerObj>();
+    this->listSpeaker.push_back(SpeakerObj(glm::vec3(-10,-5,0)));
+    this->listSpeaker.push_back(SpeakerObj(glm::vec3(10,0,0)));
+    
+    /*this->listSpeaker.push_back(SpeakerObj(glm::vec3(-8,0,-5)));
+    this->listSpeaker.push_back(SpeakerObj(glm::vec3(8,0,-5)));
+    
+    this->listSpeaker.push_back(SpeakerObj(glm::vec3(-8,0,5)));
+    this->listSpeaker.push_back(SpeakerObj(glm::vec3(8,0,5)));*/
+
 }
 
 SpeakerViewComponent::~SpeakerViewComponent() {
@@ -141,16 +228,14 @@ void SpeakerViewComponent::render() {
     
     drawOriginGrid();
     
-    drawCube(-10,0,0);
-    drawCube(10,0,0);
-    drawCube(-8,0,-5);
-    drawCube(8,0,-5);
     
-    drawCube(-8,0,5);
-    drawCube(8,0,5);
+    for(int i = 0; i < this->listSpeaker.size(); ++i) {
+        this->listSpeaker[i].draw();
+    }
+    
     
     glBegin(GL_LINES);
-    glColor3f(1, 0, 0); glVertex3f(xS, yS, zS); glVertex3f(xE, yE, zE);
+    glColor3f(1, 0, 0); glVertex3f(startClick.x, startClick.y, startClick.z); glVertex3f(endClick.x, endClick.y, endClick.z);
     glEnd();
     
     glFlush();
@@ -185,23 +270,52 @@ void SpeakerViewComponent::mouseDown (const MouseEvent& e) {
     double winX = (double)e.getPosition().x;
     double winY = viewport[3] - (double)e.getPosition().y;
 	
+    GLdouble xS, yS, zS;
+    GLdouble xE, yE, zE;
 
-
-    
     gluUnProject(winX, winY, 0.0, matModelView, matProjection,viewport, &xS,&yS,&zS);
     gluUnProject(winX, winY, 1.0, matModelView, matProjection, viewport, &xE, &yE, &zE);
     
+    startClick = glm::vec3(xS, yS, zS);
+    endClick = glm::vec3(xE, yE, zE);
+    
+    
+
+    glm::vec3 tMin = (listSpeaker[0].getMin() - startClick) / endClick;
+    glm::vec3 tMax = (listSpeaker[0].getMax() - startClick) / endClick;
+    glm::vec3 t1 = min(tMin, tMax);
+    glm::vec3 t2 = max(tMin, tMax);
+    float tNear = max(max(t1.x, t1.y), t1.z);
+    float tFar = min(min(t2.x, t2.y), t2.z);
+    
+    posC =  glm::vec2(tNear, tFar);
+    
+
+    float smallest = 1000.0;
+    bool found = false;
+    hitinfo info;
+    
+    //cout << (posC.x > 0.0) << " * "<< (posC.x < posC.y) << " * "<< (posC.x < smallest) << endl;
+
+    if (posC.x > 0.0 && posC.x < posC.y && posC.x < smallest) {
+        info.lambda = posC;
+        info.bi = 0;//i
+        smallest = posC.x;
+        found = true;
+    }
+    cout << found << endl;
+
  
-   
 }
 
 void SpeakerViewComponent::mouseDrag (const MouseEvent& e) {
-    
-    
+    if(e.mods.isRightButtonDown()){
+        camAngleX =e.getPosition().x;
+        
+        camAngleY = e.getPosition().y;
+    }
           // Straight line distance between the camera and look at point
-    camAngleX =e.getPosition().x;
-
-     camAngleY = e.getPosition().y;
+    
     // Calculate the camera position using the distance and angles
     
   /*  rotate_x = e.getPosition().y;
@@ -215,6 +329,9 @@ void SpeakerViewComponent::mouseDrag (const MouseEvent& e) {
    //myDragger.dragComponent (this, e, nullptr);
 }
 
+void SpeakerViewComponent::mouseWheelMove(const MouseEvent& e,const MouseWheelDetails& wheel){
+    
+}
 
 
 void SpeakerViewComponent::drawCube(float x, float y, float z)
@@ -241,7 +358,7 @@ void SpeakerViewComponent::drawCube(float x, float y, float z)
     glVertex3f(sizex, sizey, -sizez);
     glVertex3f(sizex, -sizey, -sizez);
     
-
+    
     
     // LEFT
     glVertex3f(-sizex, -sizey, sizez);
@@ -255,7 +372,7 @@ void SpeakerViewComponent::drawCube(float x, float y, float z)
     glVertex3f(sizex, sizey, sizez);
     glVertex3f(sizex, -sizey, sizez);
     
-
+    
     
     // TOP
     glVertex3f(-sizex, sizey, sizez);

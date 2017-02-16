@@ -2979,6 +2979,7 @@
 					../../JuceLibraryCode/modules,
 					../../jack,
 					"$(inherited)",
+					../../glm,
 				);
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";

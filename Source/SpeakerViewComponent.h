@@ -24,12 +24,42 @@
 #include <OpenGL/gl.h>
 #include <OpenGl/glu.h>
 #include <GLUT/glut.h>
-
+#include "../glm/glm.hpp"
 
 
 #include <math.h>
 
 using namespace std;
+
+struct hitinfo {
+    glm::vec2 lambda;
+    int bi;
+};
+
+class SpeakerObj{
+public:
+    SpeakerObj(glm::vec3 pos = glm::vec3(0,0,0));
+    ~SpeakerObj();
+    
+    void draw();
+    
+    void setPosition(glm::vec3 pos);
+    glm::vec3 getPosition();
+    
+    glm::vec3 getMin(){ return glm::vec3(this->position.x-0.5f,this->position.y-0.5f,this->position.z-0.5f); }
+    glm::vec3 getMax(){ return glm::vec3(this->position.x+0.5f,this->position.y+0.5f,this->position.z+0.5f); }
+    
+
+private:
+    glm::vec3 position;
+    glm::vec3 color = glm::vec3(0.85, 0.86, 0.87);
+    
+    const float sizex = 0.5f;
+    const float sizey = 0.5f;
+    const float sizez = 0.5f;
+
+};
+
 class SpeakerViewComponent : public OpenGLAppComponent {
 public:
     //==============================================================================
@@ -50,6 +80,9 @@ public:
     void mouseDown(const MouseEvent& e)override;
     void mouseDrag (const MouseEvent& e)override;
     
+    void mouseWheelMove(const MouseEvent& e,const MouseWheelDetails& wheel)override;
+
+    
 
     
 private:
@@ -57,14 +90,18 @@ private:
     void drawBackground();
     void drawOriginGrid();
     void drawCube(float x, float y, float z);
+    
 
     float camAngleX=35;
     float camAngleY=35;
     
-    GLdouble xS, yS, zS;
-    GLdouble xE, yE, zE;
+    glm::vec3 startClick;
+    glm::vec3 endClick;
+    glm::vec2 posC;
     
-     ComponentDragger myDragger;
+    std::vector<SpeakerObj> listSpeaker;
+    
+    ComponentDragger myDragger;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SpeakerViewComponent)
 };
