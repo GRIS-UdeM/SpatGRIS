@@ -31,7 +31,7 @@ SpeakerObj::~SpeakerObj(){
 
 void SpeakerObj::draw(){
     
-    glTranslatef(this->position.x, this->position.y, this->position.z);
+    //glTranslatef(this->position.x, this->position.y, this->position.z);
     
     glBegin(GL_QUADS);
     
@@ -39,50 +39,58 @@ void SpeakerObj::draw(){
 
     
     // FRONT
-    glVertex3f(-sizex, -sizey, sizez);
-    glVertex3f(sizex, -sizey, sizez);
-    glVertex3f(sizex, sizey, sizez);
-    glVertex3f(-sizex, sizey, sizez);
+    glVertex3f(this->position.x-sizex, this->position.y-sizey, this->position.z+sizez);
+    glVertex3f(this->position.x+sizex, this->position.y-sizey, this->position.z+sizez);
+    glVertex3f(this->position.x+sizex, this->position.y+sizey, this->position.z+sizez);
+    glVertex3f(this->position.x-sizex, this->position.y+sizey, this->position.z+sizez);
     
     // BACK
-    glVertex3f(-sizex, -sizey, -sizez);
-    glVertex3f(-sizex, sizey, -sizez);
-    glVertex3f(sizex, sizey, -sizez);
-    glVertex3f(sizex, -sizey, -sizez);
+    glVertex3f(this->position.x-sizex, this->position.y-sizey, this->position.z-sizez);
+    glVertex3f(this->position.x-sizex, this->position.y+sizey, this->position.z-sizez);
+    glVertex3f(this->position.x+sizex, this->position.y+sizey, this->position.z-sizez);
+    glVertex3f(this->position.x+sizex, this->position.y-sizey, this->position.z-sizez);
     
     
     
     // LEFT
-    glVertex3f(-sizex, -sizey, sizez);
-    glVertex3f(-sizex, sizey, sizez);
-    glVertex3f(-sizex, sizey, -sizez);
-    glVertex3f(-sizex, -sizey, -sizez);
+    glVertex3f(this->position.x-sizex, this->position.y-sizey, this->position.z+sizez);
+    glVertex3f(this->position.x-sizex, this->position.y+sizey, this->position.z+sizez);
+    glVertex3f(this->position.x-sizex, this->position.y+sizey, this->position.z-sizez);
+    glVertex3f(this->position.x-sizex, this->position.y-sizey, this->position.z-sizez);
     
     // RIGHT
-    glVertex3f(sizex, -sizey, -sizez);
-    glVertex3f(sizex, sizey, -sizez);
-    glVertex3f(sizex, sizey, sizez);
-    glVertex3f(sizex, -sizey, sizez);
+    glVertex3f(this->position.x+sizex, this->position.y-sizey, this->position.z-sizez);
+    glVertex3f(this->position.x+sizex, this->position.y+sizey, this->position.z-sizez);
+    glVertex3f(this->position.x+sizex, this->position.y+sizey, this->position.z+sizez);
+    glVertex3f(this->position.x+sizex, this->position.y-sizey, this->position.z+sizez);
     
     
     
     // TOP
-    glVertex3f(-sizex, sizey, sizez);
-    glVertex3f(sizex, sizey, sizez);
-    glVertex3f(sizex, sizey, -sizez);
-    glVertex3f(-sizex, sizey, -sizez);
+    glVertex3f(this->position.x-sizex, this->position.y+sizey, this->position.z+sizez);
+    glVertex3f(this->position.x+sizex, this->position.y+sizey, this->position.z+sizez);
+    glVertex3f(this->position.x+sizex, this->position.y+sizey, this->position.z-sizez);
+    glVertex3f(this->position.x-sizex, this->position.y+sizey, this->position.z-sizez);
     
     // BOTTOM
-    glVertex3f(-sizex, -sizey, sizez);
-    glVertex3f(-sizex, -sizey, -sizez);
-    glVertex3f(sizex, -sizey, -sizez);
-    glVertex3f(sizex, -sizey, sizez);
+    glVertex3f(this->position.x-sizex, this->position.y-sizey, this->position.z+sizez);
+    glVertex3f(this->position.x-sizex, this->position.y-sizey, this->position.z-sizez);
+    glVertex3f(this->position.x+sizex, this->position.y-sizey, this->position.z-sizez);
+    glVertex3f(this->position.x+sizex, this->position.y-sizey, this->position.z+sizez);
     
     glEnd();
     
-    glTranslatef(-this->position.x, -this->position.y, -this->position.z);
+    //glTranslatef(-this->position.x, -this->position.y, -this->position.z);
 }
 
+void SpeakerObj::selectSpeaker()
+{
+    this->color = colorSpeakerSelect;
+}
+void SpeakerObj::unSelectSpeaker()
+{
+    this->color = colorSpeaker;
+}
 
 void SpeakerObj::setPosition(glm::vec3 pos){
     this->position = pos;
@@ -102,8 +110,8 @@ SpeakerViewComponent::SpeakerViewComponent() {
     setSize(400, 400);
     
     this->listSpeaker = std::vector<SpeakerObj>();
-    this->listSpeaker.push_back(SpeakerObj(glm::vec3(-10,-5,0)));
-    this->listSpeaker.push_back(SpeakerObj(glm::vec3(10,0,0)));
+    this->listSpeaker.push_back(SpeakerObj(glm::vec3(4,0,2)));
+    //this->listSpeaker.push_back(SpeakerObj(glm::vec3(10,0,0)));
     
     /*this->listSpeaker.push_back(SpeakerObj(glm::vec3(-8,0,-5)));
     this->listSpeaker.push_back(SpeakerObj(glm::vec3(8,0,-5)));
@@ -218,7 +226,7 @@ void SpeakerViewComponent::render() {
     glMatrixMode(GL_MODELVIEW);
     
     
-    float distance = 15.0f;
+    
     float camX = distance * sinf(camAngleX*(M_PI/180)) * cosf((camAngleY)*(M_PI/180));
     float camY = distance * sinf((camAngleY)*(M_PI/180));
     float camZ = distance * cosf((camAngleX)*(M_PI/180)) * cosf((camAngleY)*(M_PI/180));
@@ -229,14 +237,16 @@ void SpeakerViewComponent::render() {
     drawOriginGrid();
     
     
+    glBegin(GL_LINES);
+    glColor3f(1, 0, 0); glVertex3f(r.origin.x, r.origin.y, r.origin.z); glVertex3f(r.dir.x, r.dir.y, r.dir.z);
+    glEnd();
+
     for(int i = 0; i < this->listSpeaker.size(); ++i) {
         this->listSpeaker[i].draw();
     }
     
     
-    glBegin(GL_LINES);
-    glColor3f(1, 0, 0); glVertex3f(startClick.x, startClick.y, startClick.z); glVertex3f(endClick.x, endClick.y, endClick.z);
-    glEnd();
+   
     
     glFlush();
   
@@ -276,13 +286,86 @@ void SpeakerViewComponent::mouseDown (const MouseEvent& e) {
     gluUnProject(winX, winY, 0.0, matModelView, matProjection,viewport, &xS,&yS,&zS);
     gluUnProject(winX, winY, 1.0, matModelView, matProjection, viewport, &xE, &yE, &zE);
     
-    startClick = glm::vec3(xS, yS, zS);
-    endClick = glm::vec3(xE, yE, zE);
+   
+    listSpeaker[0].unSelectSpeaker();
+    r.orig = glm::vec3(xS, yS, zS);
+    r.dir = glm::vec3(xE, yE, zE);
+    
+    float tmin, tmax, tymin, tymax, tzmin, tzmax;
+    
+    tmin = (bounds[r.sign[0]].x - r.orig.x) * r.invdir.x;
+    tmax = (bounds[1-r.sign[0]].x - r.orig.x) * r.invdir.x;
+    tymin = (bounds[r.sign[1]].y - r.orig.y) * r.invdir.y;
+    tymax = (bounds[1-r.sign[1]].y - r.orig.y) * r.invdir.y;
+    
+    if ((tmin > tymax) || (tymin > tmax)){
+        cout << "false" << endl;
+        return;
+    }
+    if (tymin > tmin)
+        tmin = tymin;
+    if (tymax < tmax)
+        tmax = tymax;
+    
+    tzmin = (bounds[r.sign[2]].z - r.orig.z) * r.invdir.z;
+    tzmax = (bounds[1-r.sign[2]].z - r.orig.z) * r.invdir.z;
+    
+    if ((tmin > tzmax) || (tzmin > tmax)){
+        cout << "false" << endl;
+        return;
+    }
+    if (tzmin > tmin)
+        tmin = tzmin;
+    if (tzmax < tmax)
+        tmax = tzmax;
+    
+    listSpeaker[0].selectSpeaker();
+    cout << "true" << endl;
+    
+    /*
+    float tmin = (listSpeaker[0].getMin().x - r.origin.x) / r.dir.x;
+    float tmax = (listSpeaker[0].getMax().x - r.origin.x) / r.dir.x;
+    
+    if (tmin > tmax) swap(tmin, tmax);
+    
+    float tymin = (listSpeaker[0].getMin().y - r.origin.y) / r.dir.y;
+    float tymax = (listSpeaker[0].getMax().y - r.origin.y) / r.dir.y;
+    
+    if (tymin > tymax) swap(tymin, tymax);
+    
+    if ((tmin > tymax) || (tymin > tmax)){
+         cout << "false" << endl;
+        return;
+    }
+    
+    if (tymin > tmin)
+        tmin = tymin;
+    
+    if (tymax < tmax)
+        tmax = tymax;
+    
+    float tzmin = (listSpeaker[0].getMin().z - r.origin.z) / r.dir.z;
+    float tzmax = (listSpeaker[0].getMax().z - r.origin.z) / r.dir.z;
+    
+    if (tzmin > tzmax) swap(tzmin, tzmax);
+    
+    if ((tmin > tzmax) || (tzmin > tmax)){
+        cout << "false" << endl;
+        return;
+    }
     
     
+    if (tzmin > tmin)
+        tmin = tzmin;
+    
+    if (tzmax < tmax)
+        tmax = tzmax;
+    listSpeaker[0].selectSpeaker();
+    cout << "true" << endl;
 
-    glm::vec3 tMin = (listSpeaker[0].getMin() - startClick) / endClick;
-    glm::vec3 tMax = (listSpeaker[0].getMax() - startClick) / endClick;
+/*
+    glm::vec3 tMin = (listSpeaker[0].getMin() - r.origin) / r.dir;
+    glm::vec3 tMax = (listSpeaker[0].getMax() - r.origin) / r.dir;
     glm::vec3 t1 = min(tMin, tMax);
     glm::vec3 t2 = max(tMin, tMax);
     float tNear = max(max(t1.x, t1.y), t1.z);
@@ -293,17 +376,16 @@ void SpeakerViewComponent::mouseDown (const MouseEvent& e) {
 
     float smallest = 1000.0;
     bool found = false;
-    hitinfo info;
+
     
     //cout << (posC.x > 0.0) << " * "<< (posC.x < posC.y) << " * "<< (posC.x < smallest) << endl;
 
     if (posC.x > 0.0 && posC.x < posC.y && posC.x < smallest) {
-        info.lambda = posC;
-        info.bi = 0;//i
         smallest = posC.x;
         found = true;
+        listSpeaker[0].selectSpeaker();
     }
-    cout << found << endl;
+    cout << found << endl;*/
 
  
 }
@@ -314,24 +396,12 @@ void SpeakerViewComponent::mouseDrag (const MouseEvent& e) {
         
         camAngleY = e.getPosition().y;
     }
-          // Straight line distance between the camera and look at point
-    
-    // Calculate the camera position using the distance and angles
-    
-  /*  rotate_x = e.getPosition().y;
-    glRotatef(e.getPosition().y, 0.0f, 1.0, 0.0f);
-    glRotatef(e.getPosition().x, 1.0f, 0.0f, 0.0f);
-
-    rotate_y = e.getPosition().x;*/
-    
-    
-    
-   //myDragger.dragComponent (this, e, nullptr);
 }
 
 void SpeakerViewComponent::mouseWheelMove(const MouseEvent& e,const MouseWheelDetails& wheel){
-    
+        distance -= (wheel.deltaY*1.5f);
 }
+
 
 
 void SpeakerViewComponent::drawCube(float x, float y, float z)

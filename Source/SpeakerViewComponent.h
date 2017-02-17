@@ -31,10 +31,29 @@
 
 using namespace std;
 
-struct hitinfo {
-    glm::vec2 lambda;
-    int bi;
+const glm::vec3 colorSpeaker = glm::vec3(0.85, 0.86, 0.87);
+const glm::vec3 colorSpeakerSelect = glm::vec3(1.0, 0.66, 0.67);
+/*
+struct Ray {
+    glm::vec3 origin;
+    glm::vec3 dir;
 };
+*/
+class Ray
+{
+public:
+    Ray(const glm::vec3 orig, const glm::vec3 dir) : orig(orig), dir(dir)
+    {
+        invdir = 1.0f / dir;
+        sign[0] = (invdir.x < 0);
+        sign[1] = (invdir.y < 0);
+        sign[2] = (invdir.z < 0);
+    }
+    glm::vec3 orig, dir;       // ray orig and dir
+    glm::vec3 invdir;
+    int sign[3];
+};
+
 
 class SpeakerObj{
 public:
@@ -43,6 +62,8 @@ public:
     
     void draw();
     
+    void selectSpeaker();
+    void unSelectSpeaker();
     void setPosition(glm::vec3 pos);
     glm::vec3 getPosition();
     
@@ -52,11 +73,13 @@ public:
 
 private:
     glm::vec3 position;
-    glm::vec3 color = glm::vec3(0.85, 0.86, 0.87);
+    glm::vec3 color = colorSpeaker;
     
     const float sizex = 0.5f;
     const float sizey = 0.5f;
     const float sizez = 0.5f;
+    
+
 
 };
 
@@ -94,9 +117,10 @@ private:
 
     float camAngleX=35;
     float camAngleY=35;
+    float distance = 15.0f;
     
-    glm::vec3 startClick;
-    glm::vec3 endClick;
+    Ray r;
+
     glm::vec2 posC;
     
     std::vector<SpeakerObj> listSpeaker;
