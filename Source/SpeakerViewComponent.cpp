@@ -34,7 +34,7 @@ void SpeakerObj::draw(){
     //glTranslatef(this->position.x, this->position.y, this->position.z);
     
     glBegin(GL_QUADS);
-    
+
     glColor3f(this->color.x, this->color.y, this->color.z);
 
     
@@ -107,17 +107,19 @@ glm::vec3 SpeakerObj::getPosition(){
 // ACTUAL SPEAKER VIEW CLASS DEFS
 //==========================================================================================
 SpeakerViewComponent::SpeakerViewComponent() {
+    
+   
     setSize(400, 400);
     
     this->listSpeaker = std::vector<SpeakerObj>();
-    this->listSpeaker.push_back(SpeakerObj(glm::vec3(4,0,2)));
-    //this->listSpeaker.push_back(SpeakerObj(glm::vec3(10,0,0)));
+    this->listSpeaker.push_back(SpeakerObj(glm::vec3(1,1,0)));
+    this->listSpeaker.push_back(SpeakerObj(glm::vec3(10,0,0)));
     
-    /*this->listSpeaker.push_back(SpeakerObj(glm::vec3(-8,0,-5)));
+    this->listSpeaker.push_back(SpeakerObj(glm::vec3(-8,0,-5)));
     this->listSpeaker.push_back(SpeakerObj(glm::vec3(8,0,-5)));
     
     this->listSpeaker.push_back(SpeakerObj(glm::vec3(-8,0,5)));
-    this->listSpeaker.push_back(SpeakerObj(glm::vec3(8,0,5)));*/
+    this->listSpeaker.push_back(SpeakerObj(glm::vec3(8,0,5)));
 
 }
 
@@ -219,10 +221,15 @@ void SpeakerViewComponent::render() {
     
     
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_LINE_SMOOTH);
+    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
     
     drawBackground();
     
-    gluPerspective(90.0, 16.0/9.0, 1, 40);
+    gluPerspective(90.0, 16.0/9.0, 0.1f, 60.0f);
     glMatrixMode(GL_MODELVIEW);
     
     
@@ -238,7 +245,8 @@ void SpeakerViewComponent::render() {
     
     
     glBegin(GL_LINES);
-    glColor3f(1, 0, 0); glVertex3f(r.origin.x, r.origin.y, r.origin.z); glVertex3f(r.dir.x, r.dir.y, r.dir.z);
+    glColor3f(1, 0, 0); glVertex3f(r.orig().x, r.orig().y, r.orig().z); glVertex3f(r.dir().x, r.dir().y, r.dir().z);
+    
     glEnd();
 
     for(int i = 0; i < this->listSpeaker.size(); ++i) {
@@ -272,6 +280,10 @@ void SpeakerViewComponent::resized() {
 
 void SpeakerViewComponent::mouseDown (const MouseEvent& e) {
 
+    for(int i = 0; i < this->listSpeaker.size(); ++i) {
+        this->listSpeaker[i].unSelectSpeaker();
+    }
+    
     double matModelView[16], matProjection[16];
     int viewport[4];
     glGetDoublev( GL_MODELVIEW_MATRIX, matModelView );
@@ -283,20 +295,32 @@ void SpeakerViewComponent::mouseDown (const MouseEvent& e) {
     GLdouble xS, yS, zS;
     GLdouble xE, yE, zE;
 
-    gluUnProject(winX, winY, 0.0, matModelView, matProjection,viewport, &xS,&yS,&zS);
+    gluUnProject(winX, winY, 0.0, matModelView, matProjection,viewport, &xS, &yS,&zS);
     gluUnProject(winX, winY, 1.0, matModelView, matProjection, viewport, &xE, &yE, &zE);
     
    
-    listSpeaker[0].unSelectSpeaker();
-    r.orig = glm::vec3(xS, yS, zS);
-    r.dir = glm::vec3(xE, yE, zE);
     
+    
+    //listSpeaker[0].unSelectSpeaker();
+    r = Ray(glm::vec3(xS, yS, zS),glm::vec3(xE, yE, zE));
+    /*r.orig = glm::vec3(xS, yS, zS);
+    r.dir = glm::vec3(xE, yE, zE);
+    r.invdir =  r.dir;
+    
+    r.invdir = normalize(r.dir);*/
+
+
+    /*
     float tmin, tmax, tymin, tymax, tzmin, tzmax;
     
-    tmin = (bounds[r.sign[0]].x - r.orig.x) * r.invdir.x;
-    tmax = (bounds[1-r.sign[0]].x - r.orig.x) * r.invdir.x;
-    tymin = (bounds[r.sign[1]].y - r.orig.y) * r.invdir.y;
-    tymax = (bounds[1-r.sign[1]].y - r.orig.y) * r.invdir.y;
+    tmin = (listSpeaker[0].getMin().x - r.orig.x) * r.invdir.x;
+    tmax = (listSpeaker[0].getMax().x- r.orig.x) * r.invdir.x;
+    tymin = (listSpeaker[0].getMin().y - r.orig.y) * r.invdir.y;
+    tymax = (listSpeaker[0].getMax().y - r.orig.y) * r.invdir.y;
+    tzmin = (listSpeaker[0].getMin().z - r.orig.z) * r.invdir.z;
+    tzmax = (listSpeaker[0].getMax().z - r.orig.z) * r.invdir.z;
+    cout << "tmin:" << tmin << "  tmax:" << tmax << "  tymin:" << tymin << "  tymax:" << tymax << "  tzmin:" << tzmin << "  tzmax:" << tzmax <<endl;
+    
     
     if ((tmin > tymax) || (tymin > tmax)){
         cout << "false" << endl;
@@ -307,29 +331,23 @@ void SpeakerViewComponent::mouseDown (const MouseEvent& e) {
     if (tymax < tmax)
         tmax = tymax;
     
-    tzmin = (bounds[r.sign[2]].z - r.orig.z) * r.invdir.z;
-    tzmax = (bounds[1-r.sign[2]].z - r.orig.z) * r.invdir.z;
-    
     if ((tmin > tzmax) || (tzmin > tmax)){
         cout << "false" << endl;
         return;
     }
-    if (tzmin > tmin)
-        tmin = tzmin;
-    if (tzmax < tmax)
-        tmax = tzmax;
+
     
     listSpeaker[0].selectSpeaker();
-    cout << "true" << endl;
+    cout << "true" << endl;*/
     
-    /*
-    float tmin = (listSpeaker[0].getMin().x - r.origin.x) / r.dir.x;
-    float tmax = (listSpeaker[0].getMax().x - r.origin.x) / r.dir.x;
+    
+    /*float tmin = (listSpeaker[0].getMin().x - r.orig.x) / r.dir.x;
+    float tmax = (listSpeaker[0].getMax().x - r.orig.x) / r.dir.x;
     
     if (tmin > tmax) swap(tmin, tmax);
     
-    float tymin = (listSpeaker[0].getMin().y - r.origin.y) / r.dir.y;
-    float tymax = (listSpeaker[0].getMax().y - r.origin.y) / r.dir.y;
+    float tymin = (listSpeaker[0].getMin().y - r.orig.y) / r.dir.y;
+    float tymax = (listSpeaker[0].getMax().y - r.orig.y) / r.dir.y;
     
     if (tymin > tymax) swap(tymin, tymax);
     
@@ -344,8 +362,8 @@ void SpeakerViewComponent::mouseDown (const MouseEvent& e) {
     if (tymax < tmax)
         tmax = tymax;
     
-    float tzmin = (listSpeaker[0].getMin().z - r.origin.z) / r.dir.z;
-    float tzmax = (listSpeaker[0].getMax().z - r.origin.z) / r.dir.z;
+    float tzmin = (listSpeaker[0].getMin().z - r.orig.z) / r.dir.z;
+    float tzmax = (listSpeaker[0].getMax().z - r.orig.z) / r.dir.z;
     
     if (tzmin > tzmax) swap(tzmin, tzmax);
     
@@ -361,31 +379,100 @@ void SpeakerViewComponent::mouseDown (const MouseEvent& e) {
     if (tzmax < tmax)
         tmax = tzmax;
     listSpeaker[0].selectSpeaker();
-    cout << "true" << endl;
+    cout << "true" << endl;*/
+    /*printMatrix(r.orig);
+    printMatrix(r.dir);
+    */
+    /*
+    float tx = ((listSpeaker[0].getPosition().x) - r.orig.x) / r.dir.x;
+    float ty = ((listSpeaker[0].getPosition().y) - r.orig.y) / r.dir.y;
+    float tz = ((listSpeaker[0].getPosition().z) - r.orig.z) / r.dir.z;
 
-/*
-    glm::vec3 tMin = (listSpeaker[0].getMin() - r.origin) / r.dir;
-    glm::vec3 tMax = (listSpeaker[0].getMax() - r.origin) / r.dir;
-    glm::vec3 t1 = min(tMin, tMax);
-    glm::vec3 t2 = max(tMin, tMax);
+    
+    glm::vec3 tMin = (listSpeaker[0].getMin() - r.orig) / r.dir;
+    glm::vec3 tMax = (listSpeaker[0].getMax() - r.orig) / r.dir;
+
+        printMatrix(tMin*10.0f);
+        printMatrix(glm::vec3(tx, ty, tz));
+    //printMatrix(tMax);
+
+     t1 = min(glm::vec3(tx, ty, tz), tMax);
+     t2 = max(tMin, tMax);
     float tNear = max(max(t1.x, t1.y), t1.z);
     float tFar = min(min(t2.x, t2.y), t2.z);
     
     posC =  glm::vec2(tNear, tFar);
     
 
-    float smallest = 1000.0;
-    bool found = false;
 
-    
+
     //cout << (posC.x > 0.0) << " * "<< (posC.x < posC.y) << " * "<< (posC.x < smallest) << endl;
 
-    if (posC.x > 0.0 && posC.x < posC.y && posC.x < smallest) {
-        smallest = posC.x;
-        found = true;
+    if (posC.x > 0.0 && posC.x <= posC.y ) {
+
         listSpeaker[0].selectSpeaker();
+        cout << "True" << endl;
+        cout << t1.x << " . "<< t2.x<< endl;
+        cout << t1.y << " . "<< t2.y<< endl;
+        cout << t1.z << " . "<< t2.z<< endl;
+    }*/
+    
+    
+
+    for(int i = 0; i < this->listSpeaker.size(); ++i) {
+
+        float tMinX = (this->listSpeaker[i].getMin().x - r.orig().x) / r.Normal().x;
+        float tMaxX = (this->listSpeaker[i].getMax().x - r.orig().x) / r.Normal().x;
+        
+        float tMinY = (this->listSpeaker[i].getMin().y - r.orig().y) / r.Normal().y;
+        float tMaxY = (this->listSpeaker[i].getMax().y - r.orig().y) / r.Normal().y;
+        
+        float tMinZ = (this->listSpeaker[i].getMin().z - r.orig().z) / r.Normal().z;
+        float tMaxZ = (this->listSpeaker[i].getMax().z - r.orig().z) / r.Normal().z;
+        
+        float tmin = max(max(min(tMinX, tMaxX), min(tMinY, tMaxY)), min(tMinZ, tMaxZ));
+        float tmax = min(min(max(tMinX, tMaxX), max(tMinY, tMaxY)), max(tMinZ, tMaxZ));
+        
+        if (tmax < 0 || tmin > tmax ) {
+            cout << "False" << endl;
+    
+        }else{
+            this->listSpeaker[i].selectSpeaker();
+            cout << "True" << endl;
+
+        }
     }
-    cout << found << endl;*/
+
+   
+    /* float t1 = (listSpeaker[0].getMin().x - r.orig().x) / r.Normal().x;
+    float t2 = (listSpeaker[0].getMax().x - r.orig().x) / r.Normal().x;
+    float t3 = (listSpeaker[0].getMin().y - r.orig().y) / r.Normal().y;
+    float t4 = (listSpeaker[0].getMax().y - r.orig().y) / r.Normal().y;
+    float t5 = (listSpeaker[0].getMin().z - r.orig().z) / r.Normal().z;
+    float t6 = (listSpeaker[0].getMax().z - r.orig().z) / r.Normal().z;
+    
+    float tmin = max(max(min(t1, t2), min(t3, t4)), min(t5, t6));
+    float tmax = min(min(max(t1, t2), max(t3, t4)), max(t5, t6));
+    
+    // if tmax < 0, ray (line) is intersecting AABB, but whole AABB is behing us
+    if (tmax < 0) {
+        cout << "False" << endl;
+    }
+    
+    // if tmin > tmax, ray doesn't intersect AABB
+    if (tmin > tmax) {
+        cout << "False" << endl;
+
+    }
+    
+    if (tmin < 0.f) {
+        listSpeaker[0].selectSpeaker();
+        cout << "True" << endl;
+    }
+    if((bool)tmin){
+        listSpeaker[0].selectSpeaker();
+            cout << tmin << endl;
+    }*/
 
  
 }

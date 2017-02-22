@@ -24,6 +24,7 @@
 #include <OpenGL/gl.h>
 #include <OpenGl/glu.h>
 #include <GLUT/glut.h>
+
 #include "../glm/glm.hpp"
 
 
@@ -34,24 +35,49 @@ using namespace std;
 const glm::vec3 colorSpeaker = glm::vec3(0.85, 0.86, 0.87);
 const glm::vec3 colorSpeakerSelect = glm::vec3(1.0, 0.66, 0.67);
 /*
-struct Ray {
-    glm::vec3 origin;
+struct Ray{
+    
+    glm::vec3 orig;
+    
     glm::vec3 dir;
+    glm::vec3 invdir;
+    
 };
 */
-class Ray
-{
-public:
-    Ray(const glm::vec3 orig, const glm::vec3 dir) : orig(orig), dir(dir)
-    {
-        invdir = 1.0f / dir;
-        sign[0] = (invdir.x < 0);
-        sign[1] = (invdir.y < 0);
-        sign[2] = (invdir.z < 0);
+class Ray {
+    
+public :
+    Ray() {
+        this->position = glm::vec3(0,0,0);
+        this->direction = glm::vec3(0,0,0);
+        this->normal = glm::vec3(0,0,0);
     }
-    glm::vec3 orig, dir;       // ray orig and dir
-    glm::vec3 invdir;
-    int sign[3];
+    
+    Ray(glm::vec3 p, glm::vec3 d) {
+        this->position = (p);//glm::vec3(p.x, p.y, p.z);
+        this->direction = d;
+        this->normal = normalize(glm::vec3(d.x, d.y, d.z));
+    }
+    
+    glm::vec3 Normal() {
+        return this->normal;
+    }
+    glm::vec3 orig() {
+        return this->position;
+    }
+    
+    glm::vec3 dir() {
+        return this->direction;
+    }
+    
+
+
+    
+private:
+    glm::vec3 position;
+    glm::vec3 direction;
+    glm::vec3 normal;
+    
 };
 
 
@@ -67,20 +93,34 @@ public:
     void setPosition(glm::vec3 pos);
     glm::vec3 getPosition();
     
-    glm::vec3 getMin(){ return glm::vec3(this->position.x-0.5f,this->position.y-0.5f,this->position.z-0.5f); }
-    glm::vec3 getMax(){ return glm::vec3(this->position.x+0.5f,this->position.y+0.5f,this->position.z+0.5f); }
+    glm::vec3 getMin(){
+        
+        /*return glm::vec3(min( this->position.x+0.5f, this->position.x-0.5f ),
+        min( this->position.y+0.5f, this->position.y-0.5f ),
+        min( this->position.z+0.5f, this->position.z-0.5f ));*/
+        
+        return (glm::vec3(this->position.x-0.5f,this->position.y-0.5f,this->position.z-0.5f));
+    }
+    glm::vec3 getMax(){
+        /*return glm::vec3(max( this->position.x+0.5f, this->position.x-0.5f ),
+                         max( this->position.y+0.5f, this->position.y-0.5f ),
+                         max( this->position.z+0.5f, this->position.z-0.5f ));*/
+
+        return (glm::vec3(this->position.x+0.5f,this->position.y+0.5f,this->position.z+0.5f));
+    }
     
 
 private:
     glm::vec3 position;
     glm::vec3 color = colorSpeaker;
     
+   
+    
     const float sizex = 0.5f;
     const float sizey = 0.5f;
     const float sizez = 0.5f;
     
-
-
+   
 };
 
 class SpeakerViewComponent : public OpenGLAppComponent {
@@ -109,6 +149,11 @@ public:
 
     
 private:
+    void printMatrix(glm::vec3 m){
+        cout << "["<< m.x << " . "<<  m.y << " . "<<  m.z << "]"<<endl;
+    }
+    glm::vec4 trace(glm::vec3 origin, glm::vec3 dir);
+    
 
     void drawBackground();
     void drawOriginGrid();
@@ -122,7 +167,7 @@ private:
     Ray r;
 
     glm::vec2 posC;
-    
+     glm::vec3 t1, t2;
     std::vector<SpeakerObj> listSpeaker;
     
     ComponentDragger myDragger;
