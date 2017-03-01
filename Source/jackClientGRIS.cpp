@@ -18,11 +18,13 @@
 #include "jackClientGRIS.h"
 #include <cmath>
 
+int simple_quit = 0;
+
 static int process_audio (jack_nframes_t nframes, void* arg) {
     
     jackClientGris* client = (jackClientGris*)arg;
     
-    jack_default_audio_sample_t *out1 = (jack_default_audio_sample_t*)jack_port_get_buffer (client->output_port1, nframes);
+    /*jack_default_audio_sample_t *out1 = (jack_default_audio_sample_t*)jack_port_get_buffer (client->output_port1, nframes);
     jack_default_audio_sample_t *out2 = (jack_default_audio_sample_t*)jack_port_get_buffer (client->output_port2, nframes);
     
     for(int i = 0; i < nframes; ++i) {
@@ -32,13 +34,41 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
         if (client->left_phase >= client->sine.size()){
             client->left_phase -= client->sine.size();
         }
-        client->right_phase += 2; /* higher pitch so we can distinguish left and right. */
+        client->right_phase += 2; // higher pitch so we can distinguish left and right. 
         if(client->right_phase >= client->sine.size()){
             client->right_phase -= client->sine.size();
         }
-    }
+    }*/
+   
     
     return 0;
+}
+
+
+void session_callback (jack_session_event_t *event, void *arg)
+{
+    jackClientGris* client = (jackClientGris*)arg;
+    
+    char retval[100];
+    printf ("session notification\n");
+    printf ("path %s, uuid %s, type: %s\n", event->session_dir, event->client_uuid, event->type == JackSessionSave ? "save" : "quit");
+    
+    
+    snprintf (retval, 100, "jack_simple_session_client %s", event->client_uuid);
+    event->command_line = strdup (retval);
+    
+    jack_session_reply(client->client, event);
+    
+    if (event->type == JackSessionSaveAndQuit) {
+        simple_quit = 1;
+    }
+    
+    jack_session_event_free (event);
+}
+
+void jack_shutdown (void *arg)
+{
+    exit (1);
 }
 
 jackClientGris::jackClientGris() {
@@ -46,17 +76,26 @@ jackClientGris::jackClientGris() {
     //--------------------------------------------------
     //open a client connection to the JACK server. Start server if it is not running.
     //--------------------------------------------------
+    const char      **ports;
     const char      *client_name = "jackClientGris";
-    const char      *server_name = NULL;
+    const char      *server_name = "coreaudio";
     jack_options_t  options = JackNullOption;
     jack_status_t   status;
+    
     client = jack_client_open (client_name, options, &status, server_name);
     if (client == NULL) {
-        fprintf (stderr, "\n\n\n======jack_client_open() failed, status = 0x%2.0x\n", status);
-        if (status & JackServerFailed) {
-            fprintf (stderr, "\n\n\n======Unable to connect to JACK server\n");
+        
+        fprintf (stderr, "\nTry again...\n");
+        const char      *server_name = "coreaudio";
+        jack_options_t  options = JackServerName;
+        client = jack_client_open (client_name, options, &status, server_name);
+        if (client == NULL) {
+            fprintf (stderr, "\n\n\n======jack_client_open() failed, status = 0x%2.0x\n", status);
+            if (status & JackServerFailed) {
+                fprintf (stderr, "\n\n\n======Unable to connect to JACK server\n");
+            }
+            return;
         }
-        return;
     }
     if (status & JackServerStarted) {
         fprintf (stderr, "\n===================\njackdmp wasn't running so it was started\n===================\n");
@@ -83,10 +122,15 @@ jackClientGris::jackClientGris() {
     //register callback, ports
     //--------------------------------------------------
     jack_set_process_callback (client, process_audio, this);
+    jack_on_shutdown (client, jack_shutdown, 0);
+    jack_set_session_callback (client, session_callback, this);
     
+    printf ("engine sample rate: %" PRIu32 "\n",jack_get_sample_rate (client));
+    
+    input_port   = jack_port_register (client,  "input",   JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput,  0);
     output_port1 = jack_port_register (client,  "output1", JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
     output_port2 = jack_port_register (client,  "output2", JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
-    input_port   = jack_port_register (client,  "input",   JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput,  0);
+
     
     //--------------------------------------------------
     // Activate client and connect the ports. Playback ports are "input" to the backend, and capture ports are "output" from it.
@@ -95,7 +139,7 @@ jackClientGris::jackClientGris() {
         fprintf(stderr, "\n\n\n======cannot activate client");
         return;
     }
-    const char **ports = jack_get_ports (client, NULL, NULL, JackPortIsPhysical|JackPortIsInput);
+    ports = jack_get_ports (client, NULL, NULL, JackPortIsPhysical|JackPortIsInput);
     if (ports == NULL) {
         fprintf(stderr, "\n\n\n======no physical playback ports\n");
         return;
@@ -104,21 +148,17 @@ jackClientGris::jackClientGris() {
         fprintf (stderr, "\n\n\n======cannot connect output ports\n");
         return;
     }
-    
     if (jack_connect (client, jack_port_name (output_port2), ports[1])) {
         fprintf (stderr, "\n\n\n======cannot connect output ports\n");
         return;
     }
+    
     jack_free (ports);
     clientReady = true;
 }
 
 
 jackClientGris::~jackClientGris() {
-    jack_deactivate(client);
-    jack_port_unregister(client, input_port);
-    jack_port_unregister(client, output_port1);
-    jack_port_unregister(client, output_port2);
     jack_client_close(client);
     
 }

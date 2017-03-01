@@ -25,6 +25,8 @@
 
 #include "jack/jack.h"
 #include "jack/transport.h"
+#include "jack/types.h"
+#include "jack/session.h"
 
 #ifndef M_PI
 #define M_PI  (3.14159265)

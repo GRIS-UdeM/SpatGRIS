@@ -11,6 +11,7 @@
 		04B1D6DC1AF6E333CC14FF67 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FF05A796E8F9F15C80DA1F42 /* IOKit.framework */; };
 		04CF901E6DCE0A68232B9454 /* Main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2116513B99CFF9F0DCC85055 /* Main.cpp */; };
 		082189A3147E4D9BF465BE2B /* juce_audio_devices.mm in Sources */ = {isa = PBXBuildFile; fileRef = F7C70F69BBB1F67E3273C729 /* juce_audio_devices.mm */; };
+		0D2F863A1E676EC3002E2F93 /* ToolsGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D2F86381E676EC3002E2F93 /* ToolsGL.cpp */; };
 		0D76540CEB135C65E2C77E42 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A49E2EA8DC00B3CFBC3B8FC /* Cocoa.framework */; };
 		0DB3F8991E4BDAEE00B41CCF /* Jackmp in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DB3F8981E4BDAEE00B41CCF /* Jackmp */; };
 		11A12218CC19874050897D70 /* juce_graphics.mm in Sources */ = {isa = PBXBuildFile; fileRef = 111A6D5574112116C13912AF /* juce_graphics.mm */; };
@@ -92,6 +93,8 @@
 		0C99699A22FA40ABA7EA5A37 /* juce_DynamicObject.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_DynamicObject.h; path = ../../JuceLibraryCode/modules/juce_core/containers/juce_DynamicObject.h; sourceTree = SOURCE_ROOT; };
 		0CA183E0BD935F99C9D13006 /* juce_TextDiff.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_TextDiff.h; path = ../../JuceLibraryCode/modules/juce_core/text/juce_TextDiff.h; sourceTree = SOURCE_ROOT; };
 		0D0F144A717EB80B8FC0AF66 /* juce_QuickTimeMovieComponent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_QuickTimeMovieComponent.h; path = ../../JuceLibraryCode/modules/juce_video/playback/juce_QuickTimeMovieComponent.h; sourceTree = SOURCE_ROOT; };
+		0D2F86381E676EC3002E2F93 /* ToolsGL.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ToolsGL.cpp; path = ../../Source/ToolsGL.cpp; sourceTree = "<group>"; };
+		0D2F86391E676EC3002E2F93 /* ToolsGL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ToolsGL.h; path = ../../Source/ToolsGL.h; sourceTree = "<group>"; };
 		0DAEE47D7405B9E5383EA97F /* juce_RelativePointPath.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_RelativePointPath.h; path = ../../JuceLibraryCode/modules/juce_gui_basics/positioning/juce_RelativePointPath.h; sourceTree = SOURCE_ROOT; };
 		0DB3F8981E4BDAEE00B41CCF /* Jackmp */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = Jackmp; path = ../../jack/lib/Jackmp; sourceTree = "<group>"; };
 		0E1684DFB4EB8971A5F1D1DA /* juce_Uuid.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = juce_Uuid.cpp; path = ../../JuceLibraryCode/modules/juce_core/misc/juce_Uuid.cpp; sourceTree = SOURCE_ROOT; };
@@ -2836,6 +2839,8 @@
 				8280A25BF8F41A8E7ED31EE6 /* SpeakerViewComponent.h */,
 				E1D7954498022C0D9253C924 /* SpeakerViewComponent.cpp */,
 				2116513B99CFF9F0DCC85055 /* Main.cpp */,
+				0D2F86381E676EC3002E2F93 /* ToolsGL.cpp */,
+				0D2F86391E676EC3002E2F93 /* ToolsGL.h */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -2911,6 +2916,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0D2F863A1E676EC3002E2F93 /* ToolsGL.cpp in Sources */,
 				D9ABB7BC8BFB59D392B6C505 /* jackClientGRIS.cpp in Sources */,
 				55024BBBD9BD507767A097E2 /* MainComponent.cpp in Sources */,
 				73F1AE184D3099A045FE8A3C /* SpeakerViewComponent.cpp in Sources */,

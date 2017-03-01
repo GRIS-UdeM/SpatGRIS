@@ -18,110 +18,18 @@
 #ifndef SPEAKERVIEWCOMPONENT_H_INCLUDED
 #define SPEAKERVIEWCOMPONENT_H_INCLUDED
 
-
-#include "../JuceLibraryCode/JuceHeader.h"
-#include "Resources/WavefrontObjParser.h"
 #include <OpenGL/gl.h>
 #include <OpenGl/glu.h>
 #include <GLUT/glut.h>
-
-#include "../glm/glm.hpp"
-
-
 #include <math.h>
 
+#include "../JuceLibraryCode/JuceHeader.h"
+#include "Resources/WavefrontObjParser.h"
+#include "../glm/glm.hpp"
+
+#include "ToolsGL.h"
+
 using namespace std;
-
-const glm::vec3 colorSpeaker = glm::vec3(0.85, 0.86, 0.87);
-const glm::vec3 colorSpeakerSelect = glm::vec3(1.0, 0.66, 0.67);
-/*
-struct Ray{
-    
-    glm::vec3 orig;
-    
-    glm::vec3 dir;
-    glm::vec3 invdir;
-    
-};
-*/
-class Ray {
-    
-public :
-    Ray() {
-        this->position = glm::vec3(0,0,0);
-        this->direction = glm::vec3(0,0,0);
-        this->normal = glm::vec3(0,0,0);
-    }
-    
-    Ray(glm::vec3 p, glm::vec3 d) {
-        this->position = (p);//glm::vec3(p.x, p.y, p.z);
-        this->direction = d;
-        this->normal = normalize(glm::vec3(d.x, d.y, d.z));
-    }
-    
-    glm::vec3 Normal() {
-        return this->normal;
-    }
-    glm::vec3 orig() {
-        return this->position;
-    }
-    
-    glm::vec3 dir() {
-        return this->direction;
-    }
-    
-
-
-    
-private:
-    glm::vec3 position;
-    glm::vec3 direction;
-    glm::vec3 normal;
-    
-};
-
-
-class SpeakerObj{
-public:
-    SpeakerObj(glm::vec3 pos = glm::vec3(0,0,0));
-    ~SpeakerObj();
-    
-    void draw();
-    
-    void selectSpeaker();
-    void unSelectSpeaker();
-    void setPosition(glm::vec3 pos);
-    glm::vec3 getPosition();
-    
-    glm::vec3 getMin(){
-        
-        /*return glm::vec3(min( this->position.x+0.5f, this->position.x-0.5f ),
-        min( this->position.y+0.5f, this->position.y-0.5f ),
-        min( this->position.z+0.5f, this->position.z-0.5f ));*/
-        
-        return (glm::vec3(this->position.x-0.5f,this->position.y-0.5f,this->position.z-0.5f));
-    }
-    glm::vec3 getMax(){
-        /*return glm::vec3(max( this->position.x+0.5f, this->position.x-0.5f ),
-                         max( this->position.y+0.5f, this->position.y-0.5f ),
-                         max( this->position.z+0.5f, this->position.z-0.5f ));*/
-
-        return (glm::vec3(this->position.x+0.5f,this->position.y+0.5f,this->position.z+0.5f));
-    }
-    
-
-private:
-    glm::vec3 position;
-    glm::vec3 color = colorSpeaker;
-    
-   
-    
-    const float sizex = 0.5f;
-    const float sizey = 0.5f;
-    const float sizez = 0.5f;
-    
-   
-};
 
 class SpeakerViewComponent : public OpenGLAppComponent {
 public:
@@ -144,16 +52,9 @@ public:
     void mouseDrag (const MouseEvent& e)override;
     
     void mouseWheelMove(const MouseEvent& e,const MouseWheelDetails& wheel)override;
-
     
-
     
 private:
-    void printMatrix(glm::vec3 m){
-        cout << "["<< m.x << " . "<<  m.y << " . "<<  m.z << "]"<<endl;
-    }
-    glm::vec4 trace(glm::vec3 origin, glm::vec3 dir);
-    
 
     void drawBackground();
     void drawOriginGrid();
@@ -165,17 +66,10 @@ private:
     float distance = 15.0f;
     
     Ray r;
-
-    glm::vec2 posC;
-     glm::vec3 t1, t2;
     std::vector<SpeakerObj> listSpeaker;
-    
-    ComponentDragger myDragger;
+
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SpeakerViewComponent)
 };
-
-
-
 
 #endif  // SPEAKERVIEWCOMPONENT_H_INCLUDED
