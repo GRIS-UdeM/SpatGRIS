@@ -61,6 +61,7 @@ private:
 
     void drawBackground();
     void drawOriginGrid();
+    void drawText( string val, glm::vec3 position, bool camLock = true);
     void drawCube(float x, float y, float z);
     
 
@@ -70,6 +71,7 @@ private:
     
     Ray r;
     std::vector<Speaker3D> listSpeaker;
+    glm::vec3 camPos;
 
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SpeakerViewComponent)

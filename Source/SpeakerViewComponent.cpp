@@ -116,18 +116,26 @@ void SpeakerViewComponent::render() {
     gluPerspective(90.0, 16.0/9.0, 0.1f, 60.0f);
     glMatrixMode(GL_MODELVIEW);
 
+    
     float camX = distance * sinf(camAngleX*(M_PI/180.f)) * cosf((camAngleY)*(M_PI/180.f));
     float camY = distance * sinf((camAngleY)*(M_PI/180.f));
     float camZ = distance * cosf((camAngleX)*(M_PI/180.f)) * cosf((camAngleY)*(M_PI/180.f));
+    
+    
     glLoadIdentity();
     gluLookAt(camX, camY, camZ, 0, 0, 0, 0,1,0);
-
+    camPos = glm::vec3(camX,camY,camZ);
     
     drawOriginGrid();
     
     for(int i = 0; i < this->listSpeaker.size(); ++i) {
         this->listSpeaker[i].draw();
     }
+    
+    drawText("0",glm::vec3(0,0,0));
+    drawText("X",glm::vec3(10,0,0));
+    drawText("Y",glm::vec3(0,10,0));
+    drawText("Z",glm::vec3(0,0,10));
     
     glFlush();
 }
@@ -149,10 +157,6 @@ void SpeakerViewComponent::resized() {
 
 
 void SpeakerViewComponent::mouseDown (const MouseEvent& e) {
-
-    for(int i = 0; i < this->listSpeaker.size(); ++i) {
-        this->listSpeaker[i].unSelectSpeaker();
-    }
     
     double matModelView[16], matProjection[16];
     int viewport[4];
@@ -171,11 +175,28 @@ void SpeakerViewComponent::mouseDown (const MouseEvent& e) {
     
     r = Ray(glm::vec3(xS, yS, zS),glm::vec3(xE, yE, zE));
     
+    int iBestSpeaker = -1;
     for(int i = 0; i < this->listSpeaker.size(); ++i) {
         if (ToolsGL::Raycast(r, this->listSpeaker[i]) != -1 ) {
+            if(iBestSpeaker == -1){
+                iBestSpeaker = i;
+            }else{
+                if(ToolsGL::speakerNearCam(this->listSpeaker[i].getCenter(), this->listSpeaker[iBestSpeaker].getCenter(), this->camPos)){
+                     iBestSpeaker = i;
+                }
+            }
+        }
+    }
+    
+    for(int i = 0; i < this->listSpeaker.size(); ++i) {
+        if(i!=iBestSpeaker)
+        {
+            this->listSpeaker[i].unSelectSpeaker();
+        }else{
             this->listSpeaker[i].selectSpeaker();
         }
     }
+    
 }
 
 void SpeakerViewComponent::mouseDrag (const MouseEvent& e) {
@@ -217,8 +238,7 @@ void SpeakerViewComponent::drawBackground()
 void SpeakerViewComponent::drawOriginGrid()
 {
     
-    
-    //Draw circle------------------------------
+    //Draw circle------------------------
     glLineWidth(1.5f);
     
     glBegin(GL_LINE_LOOP);
@@ -244,7 +264,7 @@ void SpeakerViewComponent::drawOriginGrid()
     glEnd();
     
     
-    //3D RGB line
+    //3D RGB line----------------------
     glLineWidth(2);
     glBegin(GL_LINES);
     glColor3f(0.4, 0, 0); glVertex3f(-10, 0, 0); glVertex3f(0, 0, 0);
@@ -255,9 +275,8 @@ void SpeakerViewComponent::drawOriginGrid()
     glEnd();
 
     
-    glLineWidth(1);
-    
     //Grid-----------------------------
+    glLineWidth(1);
     glColor3f(0.49, 0.49, 0.49);
     for(int x = -12; x < 13; x+=2){
         if(x != 0){
@@ -266,7 +285,7 @@ void SpeakerViewComponent::drawOriginGrid()
             glVertex3f(x,0,12);
             glEnd();
         }
-    };
+    }
     
     for(int z = -12; z < 13; z+=2){
         if(z != 0){
@@ -275,7 +294,32 @@ void SpeakerViewComponent::drawOriginGrid()
             glVertex3f(12,0,z);
             glEnd();
         }
-    };
+    }
+}
+
+void SpeakerViewComponent::drawText(string val, glm::vec3 position, bool camLock){
+    glPushMatrix();
+    glTranslatef(position.x, position.y, position.z);
+    
+    //glRotatef(-90.0f, 1, 1, 0);
+    if(camLock){
+        glRotatef((camAngleX), 0, 1, 0);
+        glRotatef(-camAngleY, 1, 0, 0);
+        
+    }
+    //cout << camAngleX  << " . " <<camAngleY<< endl;
+    float s = 0.005f;
+    glScalef( s, s, s );
+
+    
+    glColor3f( 1, 1, 1 );
+    for (char & c : val)
+    {
+        glutStrokeCharacter( GLUT_STROKE_MONO_ROMAN, c );
+    }
+   
+    glTranslatef(-1*position.x, -1*position.y, -1*position.z);
+    glPopMatrix();
 }
 
 

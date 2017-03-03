@@ -18,7 +18,6 @@
 #include "../glm/glm.hpp"
 
 
-
 const glm::vec3 colorSpeaker = glm::vec3(0.85, 0.86, 0.87);
 const glm::vec3 colorSpeakerSelect = glm::vec3(1.0, 0.66, 0.67);
 const glm::vec3 sizeSpeaker = glm::vec3(0.5, 0.5, 0.5);
@@ -31,6 +30,7 @@ public:
     
     glm::vec3 getMin();
     glm::vec3 getMax();
+    glm::vec3 getCenter();
     
     bool isValid();
     void fix();
@@ -53,7 +53,5 @@ private :
     
     bool selected = false;
 };
-
-
 
 #endif /* Speaker3D_h */

@@ -38,3 +38,9 @@ float ToolsGL::Raycast(Ray ray, Speaker3D speaker) {
 void ToolsGL::printMatrix(glm::vec3 m){
     cout << "["<< m.x << " . "<<  m.y << " . "<<  m.z << "]" << endl;
 }
+
+
+bool ToolsGL::speakerNearCam(glm::vec3 speak1, glm::vec3 speak2, glm::vec3 cam){
+    return (sqrt( exp2(speak1.x - cam.x) + exp2(speak1.y - cam.y) +exp2(speak1.z - cam.z) ) <=
+            sqrt( exp2(speak2.x - cam.x) + exp2(speak2.y - cam.y) +exp2(speak2.z - cam.z) ));
+}

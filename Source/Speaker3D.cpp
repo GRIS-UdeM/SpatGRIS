@@ -8,7 +8,6 @@
 
 #include "Speaker3D.h"
 
-
 Speaker3D::Speaker3D(){
 
 }
@@ -39,6 +38,10 @@ glm::vec3 Speaker3D::getMax() {
     return this->max;
 }
 
+glm::vec3 Speaker3D::getCenter(){
+    return this->center;
+}
+
 bool Speaker3D::isValid() {
     return (this->min.x < this->max.x && this->min.y < this->max.y && this->min.z < this->max.z);
 }
@@ -63,11 +66,13 @@ void Speaker3D::fix() {
 bool Speaker3D::isSelected(){
     return this->selected;
 }
+
 void Speaker3D::selectSpeaker()
 {
     this->color = colorSpeakerSelect;
     this->selected = true;
 }
+
 void Speaker3D::unSelectSpeaker()
 {
     this->color = colorSpeaker;
@@ -83,9 +88,6 @@ void Speaker3D::draw() {
     glRotatef(zAngle, 0, 0, 1.0);
     //glRotatef(0, 1.0, 0, 0); Z useless
     glTranslatef(-1*this->center.x, -1*this->center.y, -1*this->center.z);
-    
-    
-   
     
     glBegin(GL_QUADS);
     
