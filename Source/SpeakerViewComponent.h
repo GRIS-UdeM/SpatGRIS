@@ -21,6 +21,7 @@
 #include <OpenGL/gl.h>
 #include <OpenGl/glu.h>
 #include <GLUT/glut.h>
+
 #include <math.h>
 
 #include "../JuceLibraryCode/JuceHeader.h"
@@ -28,6 +29,8 @@
 #include "../glm/glm.hpp"
 
 #include "ToolsGL.h"
+
+class ToolsGL;
 
 using namespace std;
 
@@ -63,10 +66,10 @@ private:
 
     float camAngleX=35;
     float camAngleY=35;
-    float distance = 15.0f;
+    float distance = 12.0f;
     
     Ray r;
-    std::vector<SpeakerObj> listSpeaker;
+    std::vector<Speaker3D> listSpeaker;
 
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SpeakerViewComponent)

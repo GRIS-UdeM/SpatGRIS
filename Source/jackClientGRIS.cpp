@@ -68,6 +68,7 @@ void session_callback (jack_session_event_t *event, void *arg)
 
 void jack_shutdown (void *arg)
 {
+    fprintf (stdout, "\nBye jack\n");
     exit (1);
 }
 
@@ -159,6 +160,10 @@ jackClientGris::jackClientGris() {
 
 
 jackClientGris::~jackClientGris() {
+    jack_deactivate(client);
+    jack_port_unregister(client, input_port);
+    jack_port_unregister(client, output_port1);
+    jack_port_unregister(client, output_port2);
     jack_client_close(client);
     
 }

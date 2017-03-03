@@ -8,7 +8,7 @@
 
 #include "ToolsGL.h"
 
-float ToolsGL::Raycast(Ray ray, SpeakerObj speaker) {
+float ToolsGL::Raycast(Ray ray, Speaker3D speaker) {
     float t1 = (speaker.getMin().x - ray.getPosition().x) / ray.getNormal().x;
     float t2 = (speaker.getMax().x - ray.getPosition().x) / ray.getNormal().x;
     float t3 = (speaker.getMin().y - ray.getPosition().y) / ray.getNormal().y;

@@ -24,15 +24,56 @@
 SpeakerViewComponent::SpeakerViewComponent() {
     setSize(400, 400);
 
-    this->listSpeaker = std::vector<SpeakerObj>();
-    this->listSpeaker.push_back(SpeakerObj(glm::vec3(1,1,0)));
-    this->listSpeaker.push_back(SpeakerObj(glm::vec3(10,0,0)));
+    this->listSpeaker = std::vector<Speaker3D>();
     
-    this->listSpeaker.push_back(SpeakerObj(glm::vec3(-8,0,-5)));
-    this->listSpeaker.push_back(SpeakerObj(glm::vec3(8,0,-5)));
     
-    this->listSpeaker.push_back(SpeakerObj(glm::vec3(-8,0,5)));
-    this->listSpeaker.push_back(SpeakerObj(glm::vec3(8,0,5)));
+    this->listSpeaker.push_back(Speaker3D(glm::vec3(5,0.5,0)));
+    this->listSpeaker.push_back(Speaker3D(glm::vec3(5,3,0)));
+    this->listSpeaker.push_back(Speaker3D(glm::vec3(4,6,0)));
+    this->listSpeaker.push_back(Speaker3D(glm::vec3(3,8,0)));
+    
+    
+    this->listSpeaker.push_back(Speaker3D(glm::vec3(-5,0.5,0)));
+    this->listSpeaker.push_back(Speaker3D(glm::vec3(-5,3,0)));
+    this->listSpeaker.push_back(Speaker3D(glm::vec3(-4,6,0)));
+    this->listSpeaker.push_back(Speaker3D(glm::vec3(-3,8,0)));
+    
+    this->listSpeaker.push_back(Speaker3D(glm::vec3(0,0.5,5)));
+    this->listSpeaker.push_back(Speaker3D(glm::vec3(0,3,5)));
+    this->listSpeaker.push_back(Speaker3D(glm::vec3(0,6,4)));
+    this->listSpeaker.push_back(Speaker3D(glm::vec3(0,8,3)));
+
+    this->listSpeaker.push_back(Speaker3D(glm::vec3(0,0.5,-5)));
+    this->listSpeaker.push_back(Speaker3D(glm::vec3(0,3,-5)));
+    this->listSpeaker.push_back(Speaker3D(glm::vec3(0,6,-4)));
+    this->listSpeaker.push_back(Speaker3D(glm::vec3(0,8,-3)));
+    
+    
+    
+    this->listSpeaker.push_back(Speaker3D(glm::vec3(5,0.5,5)));
+    this->listSpeaker.push_back(Speaker3D(glm::vec3(5,3,5)));
+    this->listSpeaker.push_back(Speaker3D(glm::vec3(4,6,4)));
+    this->listSpeaker.push_back(Speaker3D(glm::vec3(3,8,3)));
+    
+    this->listSpeaker.push_back(Speaker3D(glm::vec3(5,0.5,-5)));
+    this->listSpeaker.push_back(Speaker3D(glm::vec3(5,3,-5)));
+    this->listSpeaker.push_back(Speaker3D(glm::vec3(4,6,-4)));
+    this->listSpeaker.push_back(Speaker3D(glm::vec3(3,8,-3)));
+    
+    
+    
+    this->listSpeaker.push_back(Speaker3D(glm::vec3(-5,0.5,5)));
+    this->listSpeaker.push_back(Speaker3D(glm::vec3(-5,3,5)));
+    this->listSpeaker.push_back(Speaker3D(glm::vec3(-4,6,4)));
+    this->listSpeaker.push_back(Speaker3D(glm::vec3(-3,8,3)));
+    
+    this->listSpeaker.push_back(Speaker3D(glm::vec3(-5,0.5,-5)));
+    this->listSpeaker.push_back(Speaker3D(glm::vec3(-5,3,-5)));
+    this->listSpeaker.push_back(Speaker3D(glm::vec3(-4,6,-4)));
+    this->listSpeaker.push_back(Speaker3D(glm::vec3(-3,8,-3)));
+    
+    
+    
 }
 
 SpeakerViewComponent::~SpeakerViewComponent() {
@@ -43,15 +84,12 @@ void SpeakerViewComponent::initialise() {
     glClearColor(0.0, 0.0, 0.0, 1.0);
     glColor3f(1.0, 1.0, 1.0);
 
-    // Set the camera lens to have a 60 degree (vertical) field of view, an
-    // aspect ratio of 4/3, and have everything closer than 1 unit to the
-    // camera and greater than 40 units distant clipped away.
+
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluPerspective(90.0, 16.0/9.0, 1, 40);
     
-    // Position camera at (4, 6, 5) looking at (0, 0, 0) with the vector
-    // <0, 1, 0> pointing upward.
+
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     gluLookAt(4, 6, 5, 0, 0, 0, 0, 1, 0);
@@ -65,8 +103,9 @@ void SpeakerViewComponent::shutdown() {
 
 void SpeakerViewComponent::render() {
     
+    glEnable(GL_DEPTH_TEST);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+    
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_LINE_SMOOTH);
@@ -76,18 +115,16 @@ void SpeakerViewComponent::render() {
     
     gluPerspective(90.0, 16.0/9.0, 0.1f, 60.0f);
     glMatrixMode(GL_MODELVIEW);
-    
-    float camX = distance * sinf(camAngleX*(M_PI/180)) * cosf((camAngleY)*(M_PI/180));
-    float camY = distance * sinf((camAngleY)*(M_PI/180));
-    float camZ = distance * cosf((camAngleX)*(M_PI/180)) * cosf((camAngleY)*(M_PI/180));
-    
+
+    float camX = distance * sinf(camAngleX*(M_PI/180.f)) * cosf((camAngleY)*(M_PI/180.f));
+    float camY = distance * sinf((camAngleY)*(M_PI/180.f));
+    float camZ = distance * cosf((camAngleX)*(M_PI/180.f)) * cosf((camAngleY)*(M_PI/180.f));
     glLoadIdentity();
     gluLookAt(camX, camY, camZ, 0, 0, 0, 0,1,0);
+
     
     drawOriginGrid();
     
-    r.draw();
-
     for(int i = 0; i < this->listSpeaker.size(); ++i) {
         this->listSpeaker[i].draw();
     }
@@ -109,7 +146,6 @@ void SpeakerViewComponent::paint (Graphics& g) {
 void SpeakerViewComponent::resized() {
     //draggableOrientation.setViewport (getLocalBounds());
 }
-
 
 
 void SpeakerViewComponent::mouseDown (const MouseEvent& e) {
@@ -144,14 +180,13 @@ void SpeakerViewComponent::mouseDown (const MouseEvent& e) {
 
 void SpeakerViewComponent::mouseDrag (const MouseEvent& e) {
     if(e.mods.isRightButtonDown()){
-        camAngleX =e.getPosition().x;
-        
+        camAngleX = e.getPosition().x;
         camAngleY = e.getPosition().y;
     }
 }
 
 void SpeakerViewComponent::mouseWheelMove(const MouseEvent& e,const MouseWheelDetails& wheel){
-        distance -= (wheel.deltaY*1.5f);
+    distance -= (wheel.deltaY*1.5f);
 }
 
 void SpeakerViewComponent::drawBackground()
@@ -159,9 +194,8 @@ void SpeakerViewComponent::drawBackground()
     glMatrixMode(GL_PROJECTION );
     glLoadIdentity();
     glOrtho(0,1,0,1,-1,1);
-    //glDisable(GL_DEPTH_TEST);
-    //glDisable(GL_LIGHTING);
-    //glDepthMask(GL_FALSE);
+    glDisable(GL_DEPTH_TEST);
+
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     //draw 2D image
@@ -175,44 +209,73 @@ void SpeakerViewComponent::drawBackground()
     glVertex2f(1.0, 0.0);
     glEnd();
     
-    //glDepthMask(GL_TRUE);
-    //glEnable(GL_DEPTH_TEST);
-    //glEnable(GL_LIGHTING);
+    glEnable(GL_DEPTH_TEST);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 }
 
 void SpeakerViewComponent::drawOriginGrid()
 {
-    glColor3f(0.49, 0.49, 0.49);
-    for(int x = -25; x < 25; x++){
-        glBegin(GL_LINE_LOOP);
-        glVertex3f(x,0,-25);
-        glVertex3f(x,0,25);
-        glEnd();
-    };
     
-    for(int z = -25; z < 25; z++){
-        glBegin(GL_LINE_LOOP);
-        glVertex3f(-25,0,z);
-        glVertex3f(25,0,z);
-        glEnd();
-    };
     
+    //Draw circle------------------------------
+    glLineWidth(1.5f);
+    
+    glBegin(GL_LINE_LOOP);
+    glColor3f(0, 0, 0);
+    for(int i =0; i <= 180; i++){
+        double angle = (2 * M_PI * i / 180);
+        glVertex3f(cos(angle)*1.0f, 0.0f, sin(angle)*1.0f);
+    }
+    glEnd();
+    
+    glBegin(GL_LINE_LOOP);
+    for(int i =0; i <= 180; i++){
+        double angle = (2 * M_PI * i / 180);
+        glVertex3f(cos(angle)*5.0f, 0.0f, sin(angle)*5.0f);
+    }
+    glEnd();
+    
+    glBegin(GL_LINE_LOOP);
+    for(int i =0; i <= 180; i++){
+        double angle = (2 * M_PI * i / 180);
+        glVertex3f(cos(angle)*10.0f, 0.0f, sin(angle)*10.0f);
+    }
+    glEnd();
+    
+    
+    //3D RGB line
     glLineWidth(2);
     glBegin(GL_LINES);
-    glColor3f(0, 0, 0);
-    glVertex3f(-25, 0, 0);glVertex3f(25, 0, 0);
-    glVertex3f(0, 0, -25); glVertex3f(0, 0, 25);
-    glEnd();
-    
-    glBegin(GL_LINES);
+    glColor3f(0.4, 0, 0); glVertex3f(-10, 0, 0); glVertex3f(0, 0, 0);
     glColor3f(1, 0, 0); glVertex3f(0, 0, 0); glVertex3f(10, 0, 0);
     glColor3f(0, 1, 0); glVertex3f(0, 0, 0); glVertex3f(0, 10, 0);
+    glColor3f(0, 0, 0.4); glVertex3f(0, 0, -10); glVertex3f(0, 0, 0);
     glColor3f(0, 0, 1); glVertex3f(0, 0, 0); glVertex3f(0, 0, 10);
     glEnd();
+
     
     glLineWidth(1);
+    
+    //Grid-----------------------------
+    glColor3f(0.49, 0.49, 0.49);
+    for(int x = -12; x < 13; x+=2){
+        if(x != 0){
+            glBegin(GL_LINE_LOOP);
+            glVertex3f(x,0,-12);
+            glVertex3f(x,0,12);
+            glEnd();
+        }
+    };
+    
+    for(int z = -12; z < 13; z+=2){
+        if(z != 0){
+            glBegin(GL_LINE_LOOP);
+            glVertex3f(-12,0,z);
+            glVertex3f(12,0,z);
+            glEnd();
+        }
+    };
 }
 
 

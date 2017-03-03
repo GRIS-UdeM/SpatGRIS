@@ -35,71 +35,31 @@ class MainContentComponent   : public AudioAppComponent
 public:
     //==============================================================================
     MainContentComponent();
-    
-    ~MainContentComponent() {
-        shutdownAudio();
-    }
+    ~MainContentComponent();
     
     //=======================================================================
-    void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override {
-    }
+    void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
     
-    void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override {
-        bufferToFill.clearActiveBufferRegion();
-        
-        //sample code taken from juce 4.3.0 audio app example
-        //        for (int chan = 0; chan < bufferToFill.buffer->getNumChannels(); ++chan) {
-        //            phase = originalPhase;
-        //            float* const channelData = bufferToFill.buffer->getWritePointer (chan, bufferToFill.startSample);
-        //            for (int i = 0; i < bufferToFill.numSamples ; ++i) {
-        //                channelData[i] = amplitude * std::sin (phase);
-        //
-        //                // increment the phase step for the next sample
-        //                phase = std::fmod (phase + phaseDelta, float_Pi * 2.0f);
-        //            }
-        //        }
-    }
+    void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override;
     
-    void releaseResources() override {
-        // This will be called when the audio device stops, or when it is being
-        // restarted due to a setting change.
-        
-        // For more details, see the help for AudioProcessor::releaseResources()
-    }
+    void releaseResources() override;
     
     //=======================================================================
-    void paint (Graphics& g) override {
-        
-    }
+    void paint (Graphics& g) override;
     
-    void resized() override {
-        
-        Rectangle<int> r (getLocalBounds().reduced (5));
-        
-        // lay out the list box and vertical divider..
-        Component* vcomps[] = { &speakerView, verticalDividerBar, nullptr };
-        
-        // lay out side-by-side and resize the components' heights as well as widths
-        verticalLayout.layOutComponents (vcomps, 3, r.getX(), r.getY(), r.getWidth(), r.getHeight(), false, true);
-        
-        r.removeFromLeft (verticalDividerBar->getRight());
-        
-        this->rightLabel.setBounds (r.removeFromBottom (26));
-        r.removeFromBottom (8);
-        
-    }
+    void resized() override;
     
     
 private:
     //==============================================================================
     
-    jackClientGris jackClient;
+    jackClientGris *jackClient;
     
     StretchableLayoutManager verticalLayout;
     ScopedPointer<StretchableLayoutResizerBar> verticalDividerBar;
     
-    Label rightLabel;
-    SpeakerViewComponent speakerView;
+    Label *rightLabel;
+    SpeakerViewComponent *speakerView;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
 };

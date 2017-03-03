@@ -14,6 +14,8 @@
 		0D2F863A1E676EC3002E2F93 /* ToolsGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D2F86381E676EC3002E2F93 /* ToolsGL.cpp */; };
 		0D76540CEB135C65E2C77E42 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A49E2EA8DC00B3CFBC3B8FC /* Cocoa.framework */; };
 		0DB3F8991E4BDAEE00B41CCF /* Jackmp in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DB3F8981E4BDAEE00B41CCF /* Jackmp */; };
+		0DBCE89E1E68D10A00ED7634 /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DBCE89D1E68D10A00ED7634 /* GLUT.framework */; };
+		0DBCE8A11E68DA3A00ED7634 /* Speaker3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0DBCE89F1E68DA3900ED7634 /* Speaker3D.cpp */; };
 		11A12218CC19874050897D70 /* juce_graphics.mm in Sources */ = {isa = PBXBuildFile; fileRef = 111A6D5574112116C13912AF /* juce_graphics.mm */; };
 		14E1864F61765881437B2AF8 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A290A4B264C78F0C18D6F058 /* Accelerate.framework */; };
 		226656DA03C754BD1D8608BF /* juce_core.mm in Sources */ = {isa = PBXBuildFile; fileRef = 32C340FFD5BE45B1AF3C6016 /* juce_core.mm */; };
@@ -97,6 +99,9 @@
 		0D2F86391E676EC3002E2F93 /* ToolsGL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ToolsGL.h; path = ../../Source/ToolsGL.h; sourceTree = "<group>"; };
 		0DAEE47D7405B9E5383EA97F /* juce_RelativePointPath.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_RelativePointPath.h; path = ../../JuceLibraryCode/modules/juce_gui_basics/positioning/juce_RelativePointPath.h; sourceTree = SOURCE_ROOT; };
 		0DB3F8981E4BDAEE00B41CCF /* Jackmp */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = Jackmp; path = ../../jack/lib/Jackmp; sourceTree = "<group>"; };
+		0DBCE89D1E68D10A00ED7634 /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = System/Library/Frameworks/GLUT.framework; sourceTree = SDKROOT; };
+		0DBCE89F1E68DA3900ED7634 /* Speaker3D.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Speaker3D.cpp; path = ../../Source/Speaker3D.cpp; sourceTree = "<group>"; };
+		0DBCE8A01E68DA3900ED7634 /* Speaker3D.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Speaker3D.h; path = ../../Source/Speaker3D.h; sourceTree = "<group>"; };
 		0E1684DFB4EB8971A5F1D1DA /* juce_Uuid.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = juce_Uuid.cpp; path = ../../JuceLibraryCode/modules/juce_core/misc/juce_Uuid.cpp; sourceTree = SOURCE_ROOT; };
 		0E45BAC07192E20F20B98922 /* juce_MidiMessageCollector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_MidiMessageCollector.h; path = ../../JuceLibraryCode/modules/juce_audio_devices/midi_io/juce_MidiMessageCollector.h; sourceTree = SOURCE_ROOT; };
 		0E4DB5D765565118296212AB /* juce_TextDiff.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = juce_TextDiff.cpp; path = ../../JuceLibraryCode/modules/juce_core/text/juce_TextDiff.cpp; sourceTree = SOURCE_ROOT; };
@@ -1004,6 +1009,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0DBCE89E1E68D10A00ED7634 /* GLUT.framework in Frameworks */,
 				0DB3F8991E4BDAEE00B41CCF /* Jackmp in Frameworks */,
 				14E1864F61765881437B2AF8 /* Accelerate.framework in Frameworks */,
 				83E8051A98159BCED1FB14B4 /* AudioToolbox.framework in Frameworks */,
@@ -2782,6 +2788,7 @@
 		F5A12AB396B85DBC74140D9B /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				0DBCE89D1E68D10A00ED7634 /* GLUT.framework */,
 				0DB3F8981E4BDAEE00B41CCF /* Jackmp */,
 				A290A4B264C78F0C18D6F058 /* Accelerate.framework */,
 				0FD279E88FD45389728A9CB4 /* AudioToolbox.framework */,
@@ -2841,6 +2848,8 @@
 				2116513B99CFF9F0DCC85055 /* Main.cpp */,
 				0D2F86381E676EC3002E2F93 /* ToolsGL.cpp */,
 				0D2F86391E676EC3002E2F93 /* ToolsGL.h */,
+				0DBCE89F1E68DA3900ED7634 /* Speaker3D.cpp */,
+				0DBCE8A01E68DA3900ED7634 /* Speaker3D.h */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -2934,6 +2943,7 @@
 				11A12218CC19874050897D70 /* juce_graphics.mm in Sources */,
 				C8EB9EBD5A6A432E4CB82A09 /* juce_gui_basics.mm in Sources */,
 				40550E987FAB6E3F876F46A3 /* juce_gui_extra.mm in Sources */,
+				0DBCE8A11E68DA3A00ED7634 /* Speaker3D.cpp in Sources */,
 				C5D9AB7401DB2D3B2252A211 /* juce_opengl.mm in Sources */,
 				249EF0EA2F350F38379AD678 /* juce_video.mm in Sources */,
 			);
