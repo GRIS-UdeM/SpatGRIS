@@ -22,6 +22,8 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
+#include "../../GrisCommonFiles/GrisLookAndFeel.h"
+
 #include "jackClientGRIS.h"
 #include "Speaker.h"
 #include "SpeakerViewComponent.h"
@@ -67,7 +69,7 @@ private:
     Label *rightLabel;
     SpeakerViewComponent *speakerView;
     
-
+    GrisLookAndFeel mGrisFeel;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
 };

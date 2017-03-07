@@ -19,6 +19,8 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
+#include "../../GrisCommonFiles/GrisLookAndFeel.h"
+
 const glm::vec3 colorSpeaker = glm::vec3(0.85, 0.86, 0.87);
 const glm::vec3 colorSpeakerSelect = glm::vec3(1.0, 0.66, 0.67);
 const glm::vec3 sizeSpeaker = glm::vec3(0.5, 0.5, 0.5);
@@ -61,6 +63,7 @@ private :
     
     Label *label;
     TextEditor *teCenterX;
+        GrisLookAndFeel mGrisFeel;
 };
 
 #endif /* Speaker_h */

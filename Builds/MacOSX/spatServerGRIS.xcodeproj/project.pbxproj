@@ -102,6 +102,7 @@
 		0DBCE89D1E68D10A00ED7634 /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = System/Library/Frameworks/GLUT.framework; sourceTree = SDKROOT; };
 		0DBCE89F1E68DA3900ED7634 /* Speaker.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Speaker.cpp; path = ../../Source/Speaker.cpp; sourceTree = "<group>"; };
 		0DBCE8A01E68DA3900ED7634 /* Speaker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Speaker.h; path = ../../Source/Speaker.h; sourceTree = "<group>"; };
+		0DBE7DE71E6F7180004BAD71 /* GrisLookAndFeel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GrisLookAndFeel.h; path = ../../../GrisCommonFiles/GrisLookAndFeel.h; sourceTree = "<group>"; };
 		0E1684DFB4EB8971A5F1D1DA /* juce_Uuid.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = juce_Uuid.cpp; path = ../../JuceLibraryCode/modules/juce_core/misc/juce_Uuid.cpp; sourceTree = SOURCE_ROOT; };
 		0E45BAC07192E20F20B98922 /* juce_MidiMessageCollector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_MidiMessageCollector.h; path = ../../JuceLibraryCode/modules/juce_audio_devices/midi_io/juce_MidiMessageCollector.h; sourceTree = SOURCE_ROOT; };
 		0E4DB5D765565118296212AB /* juce_TextDiff.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = juce_TextDiff.cpp; path = ../../JuceLibraryCode/modules/juce_core/text/juce_TextDiff.cpp; sourceTree = SOURCE_ROOT; };
@@ -1149,6 +1150,14 @@
 			name = interprocess;
 			sourceTree = "<group>";
 		};
+		0DBE7DE61E6F715D004BAD71 /* GrisCommonFiles */ = {
+			isa = PBXGroup;
+			children = (
+				0DBE7DE71E6F7180004BAD71 /* GrisLookAndFeel.h */,
+			);
+			name = GrisCommonFiles;
+			sourceTree = "<group>";
+		};
 		10BD509E05B880AAEC005EA8 /* effects */ = {
 			isa = PBXGroup;
 			children = (
@@ -1572,6 +1581,7 @@
 		415CDF7CC3930A66F88F88C6 /* spatServerGRIS */ = {
 			isa = PBXGroup;
 			children = (
+				0DBE7DE61E6F715D004BAD71 /* GrisCommonFiles */,
 				FAA16A21521DD35AC3040C00 /* Source */,
 				EADEE28F671B09F44C438355 /* WavefrontObjParser.h */,
 			);

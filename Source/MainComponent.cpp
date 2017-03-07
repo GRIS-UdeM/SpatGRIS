@@ -18,6 +18,7 @@
 
 MainContentComponent::MainContentComponent(){
 
+    LookAndFeel::setDefaultLookAndFeel(&mGrisFeel);
     
     listSpeaker = std::vector<Speaker *>();
     
@@ -155,7 +156,7 @@ void MainContentComponent::releaseResources() {
 }
 
 void MainContentComponent::paint (Graphics& g) {
-    
+    g.fillAll (mGrisFeel.getWinBackgroundColour());
 }
 
 void MainContentComponent::resized() {

@@ -16,6 +16,8 @@
  */
 
 #include "../JuceLibraryCode/JuceHeader.h"
+#include "../../GrisCommonFiles/GrisLookAndFeel.h"
+
 
 
 Component* createMainContentComponent();
@@ -34,6 +36,7 @@ public:
     //==============================================================================
     void initialise (const String& commandLine) override
     {
+        LookAndFeel::setDefaultLookAndFeel(&mGrisFeel);
         // This method is where you should put your application's initialisation code..
         mainWindow = new MainWindow (getApplicationName());
     }
@@ -76,6 +79,7 @@ public:
 
             centreWithSize (getWidth(), getHeight());
             setVisible (true);
+     
         }
 
         void closeButtonPressed() override
@@ -98,6 +102,7 @@ public:
     };
 
 private:
+    GrisLookAndFeel mGrisFeel;
     ScopedPointer<MainWindow> mainWindow;
 };
 

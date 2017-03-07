@@ -13,6 +13,7 @@ Speaker::Speaker(){
 }
 
 Speaker::Speaker(glm::vec3 center, glm::vec3 extents) {
+    LookAndFeel::setDefaultLookAndFeel(&mGrisFeel);
     //min == center - extents, max == c+e
     this->min.x = center.x - extents.x;
     this->min.y = center.y - extents.y;
