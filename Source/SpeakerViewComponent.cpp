@@ -24,59 +24,66 @@
 SpeakerViewComponent::SpeakerViewComponent() {
     setSize(400, 400);
 
-    this->listSpeaker = std::vector<Speaker3D>();
+    this->listSpeaker = std::vector<Speaker *>();
     
     
-    this->listSpeaker.push_back(Speaker3D(glm::vec3(5,0.5,0)));
-    this->listSpeaker.push_back(Speaker3D(glm::vec3(5,3,0)));
-    this->listSpeaker.push_back(Speaker3D(glm::vec3(4,6,0)));
-    this->listSpeaker.push_back(Speaker3D(glm::vec3(3,8,0)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(5,0.5,0)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(5,3,0)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(4,6,0)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(3,8,0)));
     
     
-    this->listSpeaker.push_back(Speaker3D(glm::vec3(-5,0.5,0)));
-    this->listSpeaker.push_back(Speaker3D(glm::vec3(-5,3,0)));
-    this->listSpeaker.push_back(Speaker3D(glm::vec3(-4,6,0)));
-    this->listSpeaker.push_back(Speaker3D(glm::vec3(-3,8,0)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(-5,0.5,0)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(-5,3,0)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(-4,6,0)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(-3,8,0)));
     
-    this->listSpeaker.push_back(Speaker3D(glm::vec3(0,0.5,5)));
-    this->listSpeaker.push_back(Speaker3D(glm::vec3(0,3,5)));
-    this->listSpeaker.push_back(Speaker3D(glm::vec3(0,6,4)));
-    this->listSpeaker.push_back(Speaker3D(glm::vec3(0,8,3)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(0,0.5,5)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(0,3,5)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(0,6,4)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(0,8,3)));
 
-    this->listSpeaker.push_back(Speaker3D(glm::vec3(0,0.5,-5)));
-    this->listSpeaker.push_back(Speaker3D(glm::vec3(0,3,-5)));
-    this->listSpeaker.push_back(Speaker3D(glm::vec3(0,6,-4)));
-    this->listSpeaker.push_back(Speaker3D(glm::vec3(0,8,-3)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(0,0.5,-5)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(0,3,-5)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(0,6,-4)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(0,8,-3)));
     
     
     
-    this->listSpeaker.push_back(Speaker3D(glm::vec3(5,0.5,5)));
-    this->listSpeaker.push_back(Speaker3D(glm::vec3(5,3,5)));
-    this->listSpeaker.push_back(Speaker3D(glm::vec3(4,6,4)));
-    this->listSpeaker.push_back(Speaker3D(glm::vec3(3,8,3)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(5,0.5,5)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(5,3,5)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(4,6,4)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(3,8,3)));
     
-    this->listSpeaker.push_back(Speaker3D(glm::vec3(5,0.5,-5)));
-    this->listSpeaker.push_back(Speaker3D(glm::vec3(5,3,-5)));
-    this->listSpeaker.push_back(Speaker3D(glm::vec3(4,6,-4)));
-    this->listSpeaker.push_back(Speaker3D(glm::vec3(3,8,-3)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(5,0.5,-5)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(5,3,-5)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(4,6,-4)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(3,8,-3)));
     
     
     
-    this->listSpeaker.push_back(Speaker3D(glm::vec3(-5,0.5,5)));
-    this->listSpeaker.push_back(Speaker3D(glm::vec3(-5,3,5)));
-    this->listSpeaker.push_back(Speaker3D(glm::vec3(-4,6,4)));
-    this->listSpeaker.push_back(Speaker3D(glm::vec3(-3,8,3)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(-5,0.5,5)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(-5,3,5)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(-4,6,4)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(-3,8,3)));
     
-    this->listSpeaker.push_back(Speaker3D(glm::vec3(-5,0.5,-5)));
-    this->listSpeaker.push_back(Speaker3D(glm::vec3(-5,3,-5)));
-    this->listSpeaker.push_back(Speaker3D(glm::vec3(-4,6,-4)));
-    this->listSpeaker.push_back(Speaker3D(glm::vec3(-3,8,-3)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(-5,0.5,-5)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(-5,3,-5)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(-4,6,-4)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(-3,8,-3)));
     
     
     
 }
 
 SpeakerViewComponent::~SpeakerViewComponent() {
+    
+    for (std::vector< Speaker * >::iterator it = this->listSpeaker.begin() ; it != this->listSpeaker.end(); ++it)
+    {
+        delete (*it);
+    }
+    this->listSpeaker.clear();
+    
     shutdownOpenGL();
 }
 
@@ -129,7 +136,7 @@ void SpeakerViewComponent::render() {
     drawOriginGrid();
     
     for(int i = 0; i < this->listSpeaker.size(); ++i) {
-        this->listSpeaker[i].draw();
+        this->listSpeaker[i]->draw();
     }
     
     drawText("0",glm::vec3(0,0,0));
@@ -158,6 +165,9 @@ void SpeakerViewComponent::resized() {
 
 void SpeakerViewComponent::mouseDown (const MouseEvent& e) {
     
+    deltaClickX = e.getPosition().x;
+    deltaClickY = e.getPosition().y;
+
     double matModelView[16], matProjection[16];
     int viewport[4];
     
@@ -177,11 +187,11 @@ void SpeakerViewComponent::mouseDown (const MouseEvent& e) {
     
     int iBestSpeaker = -1;
     for(int i = 0; i < this->listSpeaker.size(); ++i) {
-        if (ToolsGL::Raycast(r, this->listSpeaker[i]) != -1 ) {
+        if (ToolsGL::Raycast(r, *this->listSpeaker[i]) != -1 ) {
             if(iBestSpeaker == -1){
                 iBestSpeaker = i;
             }else{
-                if(ToolsGL::speakerNearCam(this->listSpeaker[i].getCenter(), this->listSpeaker[iBestSpeaker].getCenter(), this->camPos)){
+                if(ToolsGL::speakerNearCam(this->listSpeaker[i]->getCenter(), this->listSpeaker[iBestSpeaker]->getCenter(), this->camPos)){
                      iBestSpeaker = i;
                 }
             }
@@ -191,9 +201,9 @@ void SpeakerViewComponent::mouseDown (const MouseEvent& e) {
     for(int i = 0; i < this->listSpeaker.size(); ++i) {
         if(i!=iBestSpeaker)
         {
-            this->listSpeaker[i].unSelectSpeaker();
+            this->listSpeaker[i]->unSelectSpeaker();
         }else{
-            this->listSpeaker[i].selectSpeaker();
+            this->listSpeaker[i]->selectSpeaker();
         }
     }
     
@@ -201,8 +211,9 @@ void SpeakerViewComponent::mouseDown (const MouseEvent& e) {
 
 void SpeakerViewComponent::mouseDrag (const MouseEvent& e) {
     if(e.mods.isRightButtonDown()){
-        camAngleX = e.getPosition().x;
-        camAngleY = e.getPosition().y;
+        cout << ( deltaClickX)<< newLine;
+        camAngleX = e.getPosition().x - deltaClickX;
+        camAngleY = e.getPosition().y + deltaClickY;
     }
 }
 
@@ -304,7 +315,10 @@ void SpeakerViewComponent::drawText(string val, glm::vec3 position, bool camLock
     //glRotatef(-90.0f, 1, 1, 0);
     if(camLock){
         glRotatef((camAngleX), 0, 1, 0);
-        glRotatef(-camAngleY, 1, 0, 0);
+        if(camAngleY < 0 && camAngleY > 90.f){
+            glRotatef(-camAngleY, 1, 0, 0);
+        }
+
         
     }
     //cout << camAngleX  << " . " <<camAngleY<< endl;

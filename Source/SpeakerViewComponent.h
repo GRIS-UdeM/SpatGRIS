@@ -69,8 +69,11 @@ private:
     float camAngleY=35;
     float distance = 12.0f;
     
+    float deltaClickX;
+    float deltaClickY;
+    
     Ray r;
-    std::vector<Speaker3D> listSpeaker;
+    std::vector<Speaker *> listSpeaker;
     glm::vec3 camPos;
 
     

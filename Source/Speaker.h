@@ -1,13 +1,13 @@
 //
-//  Speaker3D.h
+//  Speaker.h
 //  spatServerGRIS
 //
 //  Created by GRIS on 2017-03-02.
 //
 //
 
-#ifndef Speaker3D_h
-#define Speaker3D_h
+#ifndef Speaker_h
+#define Speaker_h
 
 #include <stdio.h>
 #include <iostream>
@@ -22,11 +22,11 @@ const glm::vec3 colorSpeaker = glm::vec3(0.85, 0.86, 0.87);
 const glm::vec3 colorSpeakerSelect = glm::vec3(1.0, 0.66, 0.67);
 const glm::vec3 sizeSpeaker = glm::vec3(0.5, 0.5, 0.5);
 
-class Speaker3D {
+class Speaker {
 public:
     
-    Speaker3D();
-    Speaker3D(glm::vec3 center, glm::vec3 extents = sizeSpeaker);
+    Speaker();
+    Speaker(glm::vec3 center, glm::vec3 extents = sizeSpeaker);
     
     glm::vec3 getMin();
     glm::vec3 getMax();
@@ -54,4 +54,4 @@ private :
     bool selected = false;
 };
 
-#endif /* Speaker3D_h */
+#endif /* Speaker_h */

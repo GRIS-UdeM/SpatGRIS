@@ -1,18 +1,18 @@
 //
-//  Speaker3D.cpp
+//  Speaker.cpp
 //  spatServerGRIS
 //
 //  Created by GRIS on 2017-03-02.
 //
 //
 
-#include "Speaker3D.h"
+#include "Speaker.h"
 
-Speaker3D::Speaker3D(){
+Speaker::Speaker(){
 
 }
 
-Speaker3D::Speaker3D(glm::vec3 center, glm::vec3 extents) {
+Speaker::Speaker(glm::vec3 center, glm::vec3 extents) {
     //min == center - extents, max == c+e
     this->min.x = center.x - extents.x;
     this->min.y = center.y - extents.y;
@@ -30,23 +30,23 @@ Speaker3D::Speaker3D(glm::vec3 center, glm::vec3 extents) {
     zAngle = ( -atan2(this->center.y, sqrt(this->center.x*this->center.x + this->center.z*this->center.z)) * 180.0f) / M_PI;
 }
 
-glm::vec3 Speaker3D::getMin() {
+glm::vec3 Speaker::getMin() {
     return this->min;
 }
 
-glm::vec3 Speaker3D::getMax() {
+glm::vec3 Speaker::getMax() {
     return this->max;
 }
 
-glm::vec3 Speaker3D::getCenter(){
+glm::vec3 Speaker::getCenter(){
     return this->center;
 }
 
-bool Speaker3D::isValid() {
+bool Speaker::isValid() {
     return (this->min.x < this->max.x && this->min.y < this->max.y && this->min.z < this->max.z);
 }
 
-void Speaker3D::fix() {
+void Speaker::fix() {
     glm::vec3 _max = (this->max);
     //change new "min" to previous max
     if (this->min.x > this->max.x) {
@@ -63,23 +63,23 @@ void Speaker3D::fix() {
     }
 }
 
-bool Speaker3D::isSelected(){
+bool Speaker::isSelected(){
     return this->selected;
 }
 
-void Speaker3D::selectSpeaker()
+void Speaker::selectSpeaker()
 {
     this->color = colorSpeakerSelect;
     this->selected = true;
 }
 
-void Speaker3D::unSelectSpeaker()
+void Speaker::unSelectSpeaker()
 {
     this->color = colorSpeaker;
     this->selected = false;
 }
 
-void Speaker3D::draw() {
+void Speaker::draw() {
     
     glPushMatrix();
 
