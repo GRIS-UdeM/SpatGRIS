@@ -41,6 +41,7 @@ Speaker::~Speaker(){
 
 void Speaker::paint (Graphics& g)
 {
+    label->setBounds(2, 2, 150, getHeight());
     Colour c = Colours::black;
 
     g.setColour (c.withMultipliedAlpha (0.3f));
