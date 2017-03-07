@@ -60,6 +60,7 @@ private :
     bool selected = false;
     
     Label *label;
+    TextEditor *teCenterX;
 };
 
 #endif /* Speaker_h */

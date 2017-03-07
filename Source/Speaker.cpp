@@ -30,18 +30,24 @@ Speaker::Speaker(glm::vec3 center, glm::vec3 extents) {
     zAngle = ( -atan2(this->center.y, sqrt(this->center.x*this->center.x + this->center.z*this->center.z)) * 180.0f) / M_PI;
     
     label = new Label();
-    label->setText("OKOK", NotificationType::dontSendNotification);
-    
+    label->setText("X", NotificationType::dontSendNotification);
     this->addAndMakeVisible(label);
+    
+    teCenterX = new TextEditor();
+    teCenterX->setText(String(this->center.x), NotificationType::dontSendNotification);
+    this->addAndMakeVisible(teCenterX);
+
 }
 
 Speaker::~Speaker(){
     delete label;
+    delete teCenterX;
 }
 
 void Speaker::paint (Graphics& g)
 {
-    label->setBounds(2, 2, 150, getHeight());
+    label->setBounds(2, 2, 20, getHeight());
+    teCenterX->setBounds(22, 2, 24, getHeight());
     Colour c = Colours::black;
 
     g.setColour (c.withMultipliedAlpha (0.3f));
