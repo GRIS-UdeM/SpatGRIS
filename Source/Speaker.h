@@ -17,16 +17,20 @@
 
 #include "../glm/glm.hpp"
 
+#include "../JuceLibraryCode/JuceHeader.h"
 
 const glm::vec3 colorSpeaker = glm::vec3(0.85, 0.86, 0.87);
 const glm::vec3 colorSpeakerSelect = glm::vec3(1.0, 0.66, 0.67);
 const glm::vec3 sizeSpeaker = glm::vec3(0.5, 0.5, 0.5);
 
-class Speaker {
+class Speaker : public Component,
+                public TextEditor::Listener
+{
 public:
     
     Speaker();
     Speaker(glm::vec3 center, glm::vec3 extents = sizeSpeaker);
+    ~Speaker();
     
     glm::vec3 getMin();
     glm::vec3 getMax();

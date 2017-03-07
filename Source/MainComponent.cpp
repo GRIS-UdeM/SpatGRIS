@@ -18,6 +18,56 @@
 
 MainContentComponent::MainContentComponent(){
 
+    
+    this->listSpeaker = std::vector<Speaker *>();
+    
+    
+    this->listSpeaker.push_back(new Speaker(glm::vec3(5,0.5,0)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(5,3,0)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(4,6,0)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(3,8,0)));
+    
+    
+    this->listSpeaker.push_back(new Speaker(glm::vec3(-5,0.5,0)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(-5,3,0)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(-4,6,0)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(-3,8,0)));
+    
+    this->listSpeaker.push_back(new Speaker(glm::vec3(0,0.5,5)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(0,3,5)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(0,6,4)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(0,8,3)));
+    
+    this->listSpeaker.push_back(new Speaker(glm::vec3(0,0.5,-5)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(0,3,-5)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(0,6,-4)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(0,8,-3)));
+    
+    
+    
+    this->listSpeaker.push_back(new Speaker(glm::vec3(5,0.5,5)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(5,3,5)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(4,6,4)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(3,8,3)));
+    
+    this->listSpeaker.push_back(new Speaker(glm::vec3(5,0.5,-5)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(5,3,-5)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(4,6,-4)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(3,8,-3)));
+    
+    
+    
+    this->listSpeaker.push_back(new Speaker(glm::vec3(-5,0.5,5)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(-5,3,5)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(-4,6,4)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(-3,8,3)));
+    
+    this->listSpeaker.push_back(new Speaker(glm::vec3(-5,0.5,-5)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(-5,3,-5)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(-4,6,-4)));
+    this->listSpeaker.push_back(new Speaker(glm::vec3(-3,8,-3)));
+    
+    
     this->rightLabel = new Label();
     this->rightLabel->setText("RIGHT", NotificationType::dontSendNotification);
     
@@ -42,7 +92,7 @@ MainContentComponent::MainContentComponent(){
     this->setSize (1200, 600);
 
     
-
+    
     
     //Start JACK
     /*this->jackClient = new jackClientGris();
@@ -55,10 +105,21 @@ MainContentComponent::MainContentComponent(){
 
 MainContentComponent::~MainContentComponent() {
     //elete this->jackClient;
+    for (std::vector< Speaker * >::iterator it = this->listSpeaker.begin() ; it != this->listSpeaker.end(); ++it)
+    {
+        delete (*it);
+    }
+    this->listSpeaker.clear();
     
+   
     delete this->rightLabel;
     delete this->speakerView;
     //shutdownAudio();
+}
+
+
+vector<Speaker *> MainContentComponent::getListSpeaker() {
+    return this->listSpeaker;
 }
 
 void MainContentComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRate) {

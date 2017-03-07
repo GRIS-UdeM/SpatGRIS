@@ -16,8 +16,7 @@
 
 #include "../glm/glm.hpp"
 
-#include "Speaker.h"
-class Speaker;
+
 
 using namespace std;
 
@@ -68,7 +67,7 @@ private:
 class ToolsGL
 {
 public:
-    static float Raycast(Ray ray, Speaker &speaker);
+    //static float Raycast(Ray ray, Speaker &speaker);
     static void printMatrix(glm::vec3 m);
     static bool speakerNearCam(glm::vec3 speak1, glm::vec3 speak2, glm::vec3 cam);
 

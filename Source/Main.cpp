@@ -16,7 +16,7 @@
  */
 
 #include "../JuceLibraryCode/JuceHeader.h"
-#include "jackClientGRIS.h"
+
 
 Component* createMainContentComponent();
 
@@ -35,10 +35,7 @@ public:
     void initialise (const String& commandLine) override
     {
         // This method is where you should put your application's initialisation code..
-
         mainWindow = new MainWindow (getApplicationName());
-//        jackClientGRIS jackClient;
-//        while(1);
     }
 
     void shutdown() override
@@ -71,9 +68,7 @@ public:
     class MainWindow    : public DocumentWindow
     {
     public:
-        MainWindow (String name)  : DocumentWindow (name,
-                                                    Colours::lightgrey,
-                                                    DocumentWindow::allButtons)
+        MainWindow (String name)  : DocumentWindow (name,Colours::lightgrey,DocumentWindow::allButtons)
         {
             setUsingNativeTitleBar (true);
             setContentOwned (createMainContentComponent(), true);

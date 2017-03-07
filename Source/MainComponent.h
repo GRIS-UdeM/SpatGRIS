@@ -21,10 +21,13 @@
 #define MAINCOMPONENT_H_INCLUDED
 
 #include "../JuceLibraryCode/JuceHeader.h"
+
 #include "jackClientGRIS.h"
+#include "Speaker.h"
 #include "SpeakerViewComponent.h"
 
 
+using namespace std;
 //==============================================================================
 /*
  This component lives inside our window, and this is where you should put all
@@ -37,6 +40,8 @@ public:
     MainContentComponent();
     ~MainContentComponent();
     
+    
+    vector<Speaker *> getListSpeaker();
     //=======================================================================
     void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
     
@@ -61,12 +66,16 @@ private:
     Label *rightLabel;
     SpeakerViewComponent *speakerView;
     
+    vector<Speaker *> listSpeaker;
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
 };
 
 
 // (This function is called by the app startup code to create our main component)
-Component* createMainContentComponent()     { return new MainContentComponent(); }
+Component* createMainContentComponent(){
+    return new MainContentComponent();
+}
 
 
 #endif  // MAINCOMPONENT_H_INCLUDED

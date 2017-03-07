@@ -30,6 +30,10 @@ Speaker::Speaker(glm::vec3 center, glm::vec3 extents) {
     zAngle = ( -atan2(this->center.y, sqrt(this->center.x*this->center.x + this->center.z*this->center.z)) * 180.0f) / M_PI;
 }
 
+Speaker::~Speaker(){
+    
+}
+
 glm::vec3 Speaker::getMin() {
     return this->min;
 }

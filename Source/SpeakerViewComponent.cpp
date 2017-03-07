@@ -22,68 +22,13 @@
 // ACTUAL SPEAKER VIEW CLASS DEFS
 //==========================================================================================
 SpeakerViewComponent::SpeakerViewComponent() {
+ 
+
     setSize(400, 400);
-
-    this->listSpeaker = std::vector<Speaker *>();
-    
-    
-    this->listSpeaker.push_back(new Speaker(glm::vec3(5,0.5,0)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(5,3,0)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(4,6,0)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(3,8,0)));
-    
-    
-    this->listSpeaker.push_back(new Speaker(glm::vec3(-5,0.5,0)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(-5,3,0)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(-4,6,0)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(-3,8,0)));
-    
-    this->listSpeaker.push_back(new Speaker(glm::vec3(0,0.5,5)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(0,3,5)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(0,6,4)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(0,8,3)));
-
-    this->listSpeaker.push_back(new Speaker(glm::vec3(0,0.5,-5)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(0,3,-5)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(0,6,-4)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(0,8,-3)));
-    
-    
-    
-    this->listSpeaker.push_back(new Speaker(glm::vec3(5,0.5,5)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(5,3,5)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(4,6,4)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(3,8,3)));
-    
-    this->listSpeaker.push_back(new Speaker(glm::vec3(5,0.5,-5)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(5,3,-5)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(4,6,-4)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(3,8,-3)));
-    
-    
-    
-    this->listSpeaker.push_back(new Speaker(glm::vec3(-5,0.5,5)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(-5,3,5)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(-4,6,4)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(-3,8,3)));
-    
-    this->listSpeaker.push_back(new Speaker(glm::vec3(-5,0.5,-5)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(-5,3,-5)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(-4,6,-4)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(-3,8,-3)));
-    
-    
     
 }
 
 SpeakerViewComponent::~SpeakerViewComponent() {
-    
-    for (std::vector< Speaker * >::iterator it = this->listSpeaker.begin() ; it != this->listSpeaker.end(); ++it)
-    {
-        delete (*it);
-    }
-    this->listSpeaker.clear();
-    
     shutdownOpenGL();
 }
 
@@ -135,10 +80,10 @@ void SpeakerViewComponent::render() {
     
     drawOriginGrid();
     
-    for(int i = 0; i < this->listSpeaker.size(); ++i) {
-        this->listSpeaker[i]->draw();
+    /*for(int i = 0; i < this->mainWin->getListSpeaker().size(); ++i) {
+        this->mainWin->getListSpeaker()[i]->draw();
     }
-    
+    */
     drawText("0",glm::vec3(0,0,0));
     drawText("X",glm::vec3(10,0,0));
     drawText("Y",glm::vec3(0,10,0));
@@ -185,7 +130,7 @@ void SpeakerViewComponent::mouseDown (const MouseEvent& e) {
     
     r = Ray(glm::vec3(xS, yS, zS),glm::vec3(xE, yE, zE));
     
-    int iBestSpeaker = -1;
+    /*int iBestSpeaker = -1;
     for(int i = 0; i < this->listSpeaker.size(); ++i) {
         if (ToolsGL::Raycast(r, *this->listSpeaker[i]) != -1 ) {
             if(iBestSpeaker == -1){
@@ -205,13 +150,12 @@ void SpeakerViewComponent::mouseDown (const MouseEvent& e) {
         }else{
             this->listSpeaker[i]->selectSpeaker();
         }
-    }
+    }*/
     
 }
 
 void SpeakerViewComponent::mouseDrag (const MouseEvent& e) {
     if(e.mods.isRightButtonDown()){
-        cout << ( deltaClickX)<< newLine;
         camAngleX = e.getPosition().x - deltaClickX;
         camAngleY = e.getPosition().y + deltaClickY;
     }

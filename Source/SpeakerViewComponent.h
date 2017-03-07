@@ -18,19 +18,19 @@
 #ifndef SPEAKERVIEWCOMPONENT_H_INCLUDED
 #define SPEAKERVIEWCOMPONENT_H_INCLUDED
 
+#include "../JuceLibraryCode/JuceHeader.h"
+
 #include <OpenGL/gl.h>
 #include <OpenGl/glu.h>
 #include <GLUT/glut.h>
+#include "../glm/glm.hpp"
 
 #include <math.h>
 
-#include "../JuceLibraryCode/JuceHeader.h"
-#include "Resources/WavefrontObjParser.h"
-#include "../glm/glm.hpp"
 
 #include "ToolsGL.h"
+#include "Speaker.h"
 
-class ToolsGL;
 
 using namespace std;
 
@@ -73,10 +73,8 @@ private:
     float deltaClickY;
     
     Ray r;
-    std::vector<Speaker *> listSpeaker;
     glm::vec3 camPos;
 
-    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SpeakerViewComponent)
 };
 
