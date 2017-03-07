@@ -150,6 +150,7 @@ void SpeakerViewComponent::mouseDown (const MouseEvent& e) {
         }else{
             listSpeaker[i]->selectSpeaker();
         }
+        listSpeaker[i]->repaint();
     }
     
 }

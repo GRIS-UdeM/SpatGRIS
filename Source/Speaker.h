@@ -47,10 +47,14 @@ public:
     
     void draw() ;
     
+    void textEditorFocusLost (TextEditor &textEditor);
+    void textEditorReturnKeyPressed (TextEditor &textEditor);
     void paint (Graphics& g);
     
 private :
 
+    void newPosition(glm::vec3 center, glm::vec3 extents = sizeSpeaker);
+    
     float yAngle;
     float zAngle;
     
@@ -63,7 +67,11 @@ private :
     
     Label *label;
     TextEditor *teCenterX;
-        GrisLookAndFeel mGrisFeel;
+    TextEditor *teCenterY;
+    TextEditor *teCenterZ;
+    
+    
+    GrisLookAndFeel mGrisFeel;
 };
 
 #endif /* Speaker_h */
