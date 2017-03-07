@@ -45,6 +45,8 @@ public:
     
     void draw() ;
     
+    void paint (Graphics& g);
+    
 private :
 
     float yAngle;
@@ -56,6 +58,8 @@ private :
     glm::vec3 color = colorSpeaker;
     
     bool selected = false;
+    
+    Label *label;
 };
 
 #endif /* Speaker_h */

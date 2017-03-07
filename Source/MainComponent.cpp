@@ -19,54 +19,59 @@
 MainContentComponent::MainContentComponent(){
 
     
-    this->listSpeaker = std::vector<Speaker *>();
+    listSpeaker = std::vector<Speaker *>();
     
     
-    this->listSpeaker.push_back(new Speaker(glm::vec3(5,0.5,0)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(5,3,0)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(4,6,0)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(3,8,0)));
+    listSpeaker.push_back(new Speaker(glm::vec3(5,0.5,0)));
+    listSpeaker.push_back(new Speaker(glm::vec3(5,3,0)));
+    listSpeaker.push_back(new Speaker(glm::vec3(4,6,0)));
+    listSpeaker.push_back(new Speaker(glm::vec3(3,8,0)));
     
     
-    this->listSpeaker.push_back(new Speaker(glm::vec3(-5,0.5,0)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(-5,3,0)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(-4,6,0)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(-3,8,0)));
+    listSpeaker.push_back(new Speaker(glm::vec3(-5,0.5,0)));
+    listSpeaker.push_back(new Speaker(glm::vec3(-5,3,0)));
+    listSpeaker.push_back(new Speaker(glm::vec3(-4,6,0)));
+    listSpeaker.push_back(new Speaker(glm::vec3(-3,8,0)));
     
-    this->listSpeaker.push_back(new Speaker(glm::vec3(0,0.5,5)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(0,3,5)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(0,6,4)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(0,8,3)));
+    listSpeaker.push_back(new Speaker(glm::vec3(0,0.5,5)));
+    listSpeaker.push_back(new Speaker(glm::vec3(0,3,5)));
+    listSpeaker.push_back(new Speaker(glm::vec3(0,6,4)));
+    listSpeaker.push_back(new Speaker(glm::vec3(0,8,3)));
     
-    this->listSpeaker.push_back(new Speaker(glm::vec3(0,0.5,-5)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(0,3,-5)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(0,6,-4)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(0,8,-3)));
-    
-    
-    
-    this->listSpeaker.push_back(new Speaker(glm::vec3(5,0.5,5)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(5,3,5)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(4,6,4)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(3,8,3)));
-    
-    this->listSpeaker.push_back(new Speaker(glm::vec3(5,0.5,-5)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(5,3,-5)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(4,6,-4)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(3,8,-3)));
+    listSpeaker.push_back(new Speaker(glm::vec3(0,0.5,-5)));
+    listSpeaker.push_back(new Speaker(glm::vec3(0,3,-5)));
+    listSpeaker.push_back(new Speaker(glm::vec3(0,6,-4)));
+    listSpeaker.push_back(new Speaker(glm::vec3(0,8,-3)));
     
     
     
-    this->listSpeaker.push_back(new Speaker(glm::vec3(-5,0.5,5)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(-5,3,5)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(-4,6,4)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(-3,8,3)));
+    listSpeaker.push_back(new Speaker(glm::vec3(5,0.5,5)));
+    listSpeaker.push_back(new Speaker(glm::vec3(5,3,5)));
+    listSpeaker.push_back(new Speaker(glm::vec3(4,6,4)));
+    listSpeaker.push_back(new Speaker(glm::vec3(3,8,3)));
     
-    this->listSpeaker.push_back(new Speaker(glm::vec3(-5,0.5,-5)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(-5,3,-5)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(-4,6,-4)));
-    this->listSpeaker.push_back(new Speaker(glm::vec3(-3,8,-3)));
+    listSpeaker.push_back(new Speaker(glm::vec3(5,0.5,-5)));
+    listSpeaker.push_back(new Speaker(glm::vec3(5,3,-5)));
+    listSpeaker.push_back(new Speaker(glm::vec3(4,6,-4)));
+    listSpeaker.push_back(new Speaker(glm::vec3(3,8,-3)));
     
+    
+    
+    listSpeaker.push_back(new Speaker(glm::vec3(-5,0.5,5)));
+    listSpeaker.push_back(new Speaker(glm::vec3(-5,3,5)));
+    listSpeaker.push_back(new Speaker(glm::vec3(-4,6,4)));
+    listSpeaker.push_back(new Speaker(glm::vec3(-3,8,3)));
+    
+    listSpeaker.push_back(new Speaker(glm::vec3(-5,0.5,-5)));
+    listSpeaker.push_back(new Speaker(glm::vec3(-5,3,-5)));
+    listSpeaker.push_back(new Speaker(glm::vec3(-4,6,-4)));
+    listSpeaker.push_back(new Speaker(glm::vec3(-3,8,-3)));
+    
+    
+    for (std::vector< Speaker * >::iterator it = listSpeaker.begin() ; it != listSpeaker.end(); ++it)
+    {
+        this->addAndMakeVisible(*it);
+    }
     
     this->rightLabel = new Label();
     this->rightLabel->setText("RIGHT", NotificationType::dontSendNotification);
@@ -105,11 +110,11 @@ MainContentComponent::MainContentComponent(){
 
 MainContentComponent::~MainContentComponent() {
     //elete this->jackClient;
-    for (std::vector< Speaker * >::iterator it = this->listSpeaker.begin() ; it != this->listSpeaker.end(); ++it)
+    for (std::vector< Speaker * >::iterator it = listSpeaker.begin() ; it != listSpeaker.end(); ++it)
     {
         delete (*it);
     }
-    this->listSpeaker.clear();
+    listSpeaker.clear();
     
    
     delete this->rightLabel;
@@ -117,10 +122,10 @@ MainContentComponent::~MainContentComponent() {
     //shutdownAudio();
 }
 
-
+/*
 vector<Speaker *> MainContentComponent::getListSpeaker() {
     return this->listSpeaker;
-}
+}*/
 
 void MainContentComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRate) {
     
@@ -166,7 +171,19 @@ void MainContentComponent::resized() {
     r.removeFromLeft (verticalDividerBar->getRight());
     
     this->rightLabel->setBounds (r.removeFromBottom (26));
+    
+    
     r.removeFromBottom (8);
+    
+    if(listSpeaker.size()!=0){
+        std::vector<Speaker *>::iterator iter = listSpeaker.begin();
+        delete *iter;
+        listSpeaker.erase(iter);
+    }
+    for (std::vector< Speaker * >::iterator it = listSpeaker.begin() ; it != listSpeaker.end(); ++it)
+    {
+        (*it)->setBounds(r.removeFromTop(26));
+    }
     
 }
 

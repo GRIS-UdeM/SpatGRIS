@@ -27,6 +27,7 @@
 #include "SpeakerViewComponent.h"
 
 
+vector<Speaker *> listSpeaker;
 using namespace std;
 //==============================================================================
 /*
@@ -41,7 +42,7 @@ public:
     ~MainContentComponent();
     
     
-    vector<Speaker *> getListSpeaker();
+    //vector<Speaker *> getListSpeaker();
     //=======================================================================
     void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
     
@@ -66,7 +67,7 @@ private:
     Label *rightLabel;
     SpeakerViewComponent *speakerView;
     
-    vector<Speaker *> listSpeaker;
+
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
 };

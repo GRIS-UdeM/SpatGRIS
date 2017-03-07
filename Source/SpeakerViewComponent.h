@@ -34,6 +34,8 @@
 
 using namespace std;
 
+extern vector<Speaker *> listSpeaker;
+
 class SpeakerViewComponent : public OpenGLAppComponent {
 public:
     //==============================================================================

@@ -80,10 +80,10 @@ void SpeakerViewComponent::render() {
     
     drawOriginGrid();
     
-    /*for(int i = 0; i < this->mainWin->getListSpeaker().size(); ++i) {
-        this->mainWin->getListSpeaker()[i]->draw();
+    for(int i = 0; i < listSpeaker.size(); ++i) {
+        listSpeaker[i]->draw();
     }
-    */
+    
     drawText("0",glm::vec3(0,0,0));
     drawText("X",glm::vec3(10,0,0));
     drawText("Y",glm::vec3(0,10,0));
@@ -130,27 +130,27 @@ void SpeakerViewComponent::mouseDown (const MouseEvent& e) {
     
     r = Ray(glm::vec3(xS, yS, zS),glm::vec3(xE, yE, zE));
     
-    /*int iBestSpeaker = -1;
-    for(int i = 0; i < this->listSpeaker.size(); ++i) {
-        if (ToolsGL::Raycast(r, *this->listSpeaker[i]) != -1 ) {
+    int iBestSpeaker = -1;
+    for(int i = 0; i < listSpeaker.size(); ++i) {
+        if (ToolsGL::Raycast(r, *listSpeaker[i]) != -1 ) {
             if(iBestSpeaker == -1){
                 iBestSpeaker = i;
             }else{
-                if(ToolsGL::speakerNearCam(this->listSpeaker[i]->getCenter(), this->listSpeaker[iBestSpeaker]->getCenter(), this->camPos)){
+                if(ToolsGL::speakerNearCam(listSpeaker[i]->getCenter(), listSpeaker[iBestSpeaker]->getCenter(), camPos)){
                      iBestSpeaker = i;
                 }
             }
         }
     }
     
-    for(int i = 0; i < this->listSpeaker.size(); ++i) {
+    for(int i = 0; i < listSpeaker.size(); ++i) {
         if(i!=iBestSpeaker)
         {
-            this->listSpeaker[i]->unSelectSpeaker();
+            listSpeaker[i]->unSelectSpeaker();
         }else{
-            this->listSpeaker[i]->selectSpeaker();
+            listSpeaker[i]->selectSpeaker();
         }
-    }*/
+    }
     
 }
 

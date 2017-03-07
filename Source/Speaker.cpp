@@ -28,10 +28,25 @@ Speaker::Speaker(glm::vec3 center, glm::vec3 extents) {
     
     yAngle = ( (atan2(this->center.x, this->center.z) * 180.0f) / M_PI) +90.0f;
     zAngle = ( -atan2(this->center.y, sqrt(this->center.x*this->center.x + this->center.z*this->center.z)) * 180.0f) / M_PI;
+    
+    label = new Label();
+    label->setText("OKOK", NotificationType::dontSendNotification);
+    
+    this->addAndMakeVisible(label);
 }
 
 Speaker::~Speaker(){
-    
+    delete label;
+}
+
+void Speaker::paint (Graphics& g)
+{
+    Colour c = Colours::black;
+
+    g.setColour (c.withMultipliedAlpha (0.3f));
+    g.fillAll ();
+    g.setColour (c);
+    g.drawRect (0,0,getWidth(),getHeight(),1);
 }
 
 glm::vec3 Speaker::getMin() {
