@@ -15,6 +15,7 @@ Speaker::Speaker(){
 Speaker::Speaker(glm::vec3 center, glm::vec3 extents) {
     LookAndFeel::setDefaultLookAndFeel(&mGrisFeel);
     
+    //Load position
     this->newPosition(center, extents);
 
     label = new Label();
@@ -25,19 +26,35 @@ Speaker::Speaker(glm::vec3 center, glm::vec3 extents) {
     
     
     teCenterX = new TextEditor();
-    teCenterX->setText(String(this->center.x), NotificationType::dontSendNotification);
+    teCenterX->setText(String(this->center.x/10.0f), NotificationType::dontSendNotification);
     teCenterX->addListener(this);
     this->addAndMakeVisible(teCenterX);
     
     teCenterZ = new TextEditor();
-    teCenterZ->setText(String(this->center.y), NotificationType::dontSendNotification);
+    teCenterZ->setText(String(this->center.y/10.0f), NotificationType::dontSendNotification);
     teCenterZ->addListener(this);
     this->addAndMakeVisible(teCenterZ);
     
     teCenterY = new TextEditor();
-    teCenterY->setText(String(this->center.z), NotificationType::dontSendNotification);
+    teCenterY->setText(String(this->center.z/10.0f), NotificationType::dontSendNotification);
     teCenterY->addListener(this);
     this->addAndMakeVisible(teCenterY);
+    
+    
+    teAzimuth = new TextEditor();
+    teAzimuth->setText(String(this->aziZenRad.x), NotificationType::dontSendNotification);
+    teAzimuth->addListener(this);
+    this->addAndMakeVisible(teAzimuth);
+    
+    teZenith = new TextEditor();
+    teZenith->setText(String(this->aziZenRad.y), NotificationType::dontSendNotification);
+    teZenith->addListener(this);
+    this->addAndMakeVisible(teZenith);
+    
+    teRadius = new TextEditor();
+    teRadius->setText(String(this->aziZenRad.z/10.0f), NotificationType::dontSendNotification);
+    teRadius->addListener(this);
+    this->addAndMakeVisible(teRadius);
 
 
 }
@@ -47,6 +64,10 @@ Speaker::~Speaker(){
     delete teCenterX;
     delete teCenterY;
     delete teCenterZ;
+    
+    delete teAzimuth;
+    delete teZenith;
+    delete teRadius;
 }
 
 void Speaker::focusOfChildComponentChanged (FocusChangeType cause){
@@ -64,27 +85,58 @@ void Speaker::textEditorReturnKeyPressed (TextEditor &textEditor) {
     
     if (&textEditor == teCenterX) {
         glm::vec3 newCenter = this->center;
-        newCenter.x = teCenterX->getText().getFloatValue();
+        newCenter.x = teCenterX->getText().getFloatValue()*10.0f;
         this->newPosition(newCenter);
     }else if(&textEditor == teCenterZ) {
         glm::vec3 newCenter = this->center;
-        newCenter.y = teCenterZ->getText().getFloatValue();
+        newCenter.y = teCenterZ->getText().getFloatValue()*10.0f;
         this->newPosition(newCenter);
     }
     else if(&textEditor == teCenterY) {
         glm::vec3 newCenter = this->center;
-        newCenter.z = teCenterY->getText().getFloatValue();
+        newCenter.z = teCenterY->getText().getFloatValue()*10.0f;
         this->newPosition(newCenter);
     }
+    
+    else if(&textEditor == teAzimuth) {
+        glm::vec3 newAziZenRad = this->aziZenRad;
+        newAziZenRad.x = teAzimuth->getText().getFloatValue();
+        this->newSpheriqueCoord(newAziZenRad);
+    }
+    else if(&textEditor == teZenith) {
+        glm::vec3 newAziZenRad = this->aziZenRad;
+        newAziZenRad.y = teZenith->getText().getFloatValue();
+        this->newSpheriqueCoord(newAziZenRad);
+    }
+    else if(&textEditor == teRadius) {
+        glm::vec3 newAziZenRad = this->aziZenRad;
+        newAziZenRad.z = teRadius->getText().getFloatValue()*10.0f;
+        this->newSpheriqueCoord(newAziZenRad);
+    }
+
+    
+    teCenterX->setText(String(this->center.x/10.0f), NotificationType::dontSendNotification);
+    teCenterZ->setText(String(this->center.y/10.0f), NotificationType::dontSendNotification);
+    teCenterY->setText(String(this->center.z/10.0f), NotificationType::dontSendNotification);
+
+    teAzimuth->setText(String(this->aziZenRad.x), NotificationType::dontSendNotification);
+    teZenith->setText(String(this->aziZenRad.y), NotificationType::dontSendNotification);
+    teRadius->setText(String(this->aziZenRad.z/10.0f), NotificationType::dontSendNotification);
+
+
 
 }
 void Speaker::paint (Graphics& g)
 {
 
     label->setBounds(2, 2, 20, getHeight());
-    teCenterX->setBounds(22, 2, 46, 22);
-    teCenterY->setBounds(90, 2, 46, 22);
-    teCenterZ->setBounds(138, 2, 46, 22);
+    teCenterX->setBounds(22, 2, 66, 22);
+    teCenterY->setBounds(90, 2, 66, 22);
+    teCenterZ->setBounds(158, 2, 66, 22);
+    
+    teAzimuth->setBounds(230, 2, 66, 22);
+    teZenith->setBounds(298, 2, 66, 22);
+    teRadius->setBounds(366, 2, 66, 22);
     
     if(this->selected){
         Colour c = mGrisFeel.getOnColour();
@@ -172,9 +224,37 @@ void Speaker::newPosition(glm::vec3 center, glm::vec3 extents)
     }
     this->center = glm::vec3(this->min.x+(this->max.x - this->min.x) / 2.0f, this->min.y+(this->max.y - this->min.y) / 2.0f, this->min.z+(this->max.z - this->min.z) / 2.0f);
     
-    this->yAngle = ( (atan2(this->center.x, this->center.z) * 180.0f) / M_PI) +90.0f;
-    this->zAngle = ( -atan2(this->center.y, sqrt(this->center.x*this->center.x + this->center.z*this->center.z)) * 180.0f) / M_PI;
+    float azimuth = ( (atan2(this->center.x, this->center.z) * 180.0f) / M_PI) +90.0f;
+    float zenith = ( atan2(this->center.y, sqrt(this->center.x*this->center.x + this->center.z*this->center.z)) * 180.0f) / M_PI;
+    float radius = sqrt((this->center.x*this->center.x)+(this->center.y*this->center.y)+(this->center.z*this->center.z));
+    azimuth = 180.0f-azimuth;
+    if(azimuth < 0.0f){
+        azimuth+=360.0f;
+    }
+    if(zenith < 0.0f){
+        zenith+=360.0f;
+    }
+    if(zenith >= 360.0f){
+        zenith=0.0f;
+    }
+    this->aziZenRad = glm::vec3(azimuth, zenith, radius);
+}
+
+void Speaker::newSpheriqueCoord(glm::vec3 aziZenRad, glm::vec3 extents){
+    glm::vec3 nCenter;
+
+    aziZenRad.y = -90.0f+aziZenRad.y;
+
+    aziZenRad.x = abs( (aziZenRad.x * M_PI ) / 180.0f) ;
+    aziZenRad.y = abs( (aziZenRad.y * M_PI ) / 180.0f);
+    //aziZenRad.x = radNormalize2Pi(aziZenRad.x);
+    //aziZenRad.y = radNormalizePi(aziZenRad.y);
     
+    nCenter.x = GetFloatPrecision(aziZenRad.z * sin(aziZenRad.y)*cos(aziZenRad.x), 6);
+    nCenter.z = GetFloatPrecision(aziZenRad.z * sin(aziZenRad.y)*sin(aziZenRad.x), 6);
+    nCenter.y = GetFloatPrecision(aziZenRad.z * cos(aziZenRad.y), 6);
+    
+    this->newPosition(nCenter);
 }
 
 void Speaker::draw() {
@@ -182,8 +262,9 @@ void Speaker::draw() {
     glPushMatrix();
 
     glTranslatef(this->center.x, this->center.y, this->center.z);
-    glRotatef(yAngle, 0, 1.0, 0);
-    glRotatef(zAngle, 0, 0, 1.0);
+    
+    glRotatef(180.0f-this->aziZenRad.x, 0, 1.0, 0);
+    glRotatef(-this->aziZenRad.y, 0, 0, 1.0);
     //glRotatef(0, 1.0, 0, 0); Z useless
     glTranslatef(-1*this->center.x, -1*this->center.y, -1*this->center.z);
     

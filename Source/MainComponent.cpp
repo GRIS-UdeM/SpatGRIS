@@ -227,11 +227,11 @@ void MainContentComponent::resized() {
     
     r.removeFromBottom (8);
     
-    if(listSpeaker.size()!=0){
+    /*if(listSpeaker.size()!=0){
         std::vector<Speaker *>::iterator iter = listSpeaker.begin();
         delete *iter;
         listSpeaker.erase(iter);
-    }
+    }*/
     for (std::vector< Speaker * >::iterator it = listSpeaker.begin() ; it != listSpeaker.end(); ++it)
     {
         (*it)->setBounds(r.removeFromTop(26));

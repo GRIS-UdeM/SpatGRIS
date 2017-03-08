@@ -21,6 +21,7 @@
 
 #include "../../GrisCommonFiles/GrisLookAndFeel.h"
 
+
 const glm::vec3 colorSpeaker = glm::vec3(0.85, 0.86, 0.87);
 const glm::vec3 colorSpeakerSelect = glm::vec3(1.0, 0.66, 0.67);
 const glm::vec3 sizeSpeaker = glm::vec3(0.5, 0.5, 0.5);
@@ -28,9 +29,29 @@ const glm::vec3 sizeSpeaker = glm::vec3(0.5, 0.5, 0.5);
 using namespace std;
 
 
+static double radNormalizePi(float x){
+    x = fmod(x,M_PI/4.0f);
+    if (x < 0)
+        x += M_PI/4.0f;
+    return x;
+}
+static double radNormalize2Pi(float x){
+    x = fmod(x,2*M_PI);
+    if (x < 0)
+        x += 2*M_PI;
+    return x;
+}
+
+static double GetFloatPrecision(double value, double precision)
+{
+    return (floor((value * pow(10, precision) + 0.5)) / pow(10, precision));
+}
+
 class Speaker : public Component,
                 public TextEditor::Listener
 {
+    
+
 public:
     
     Speaker();
@@ -61,13 +82,12 @@ public:
 private :
 
     void newPosition(glm::vec3 center, glm::vec3 extents = sizeSpeaker);
-    
-    float yAngle;
-    float zAngle;
+    void newSpheriqueCoord(glm::vec3 aziZenRad, glm::vec3 extents = sizeSpeaker);
     
     glm::vec3 min = glm::vec3(0,0,0);
     glm::vec3 max = glm::vec3(0,0,0);
     glm::vec3 center;
+    glm::vec3 aziZenRad;
     glm::vec3 color = colorSpeaker;
     
     bool selected = false;
@@ -76,6 +96,10 @@ private :
     TextEditor *teCenterX;
     TextEditor *teCenterY;
     TextEditor *teCenterZ;
+    
+    TextEditor *teAzimuth;
+    TextEditor *teZenith;
+    TextEditor *teRadius;
     
     
     GrisLookAndFeel mGrisFeel;

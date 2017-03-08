@@ -219,13 +219,14 @@ void SpeakerViewComponent::drawOriginGrid()
     //Draw circle------------------------
     glLineWidth(1.5f);
     
-    glBegin(GL_LINE_LOOP);
     glColor3f(0, 0, 0);
+    
+    /*glBegin(GL_LINE_LOOP);
     for(int i =0; i <= 180; i++){
         double angle = (2 * M_PI * i / 180);
         glVertex3f(cos(angle)*1.0f, 0.0f, sin(angle)*1.0f);
     }
-    glEnd();
+    glEnd();*/
     
     glBegin(GL_LINE_LOOP);
     for(int i =0; i <= 180; i++){
@@ -256,20 +257,20 @@ void SpeakerViewComponent::drawOriginGrid()
     //Grid-----------------------------
     glLineWidth(1);
     glColor3f(0.49, 0.49, 0.49);
-    for(int x = -12; x < 13; x+=2){
+    for(int x = -16; x < 17; x+=2){
         if(x != 0){
             glBegin(GL_LINE_LOOP);
-            glVertex3f(x,0,-12);
-            glVertex3f(x,0,12);
+            glVertex3f(x,0,-16);
+            glVertex3f(x,0,16);
             glEnd();
         }
     }
     
-    for(int z = -12; z < 13; z+=2){
+    for(int z = -16; z < 17; z+=2){
         if(z != 0){
             glBegin(GL_LINE_LOOP);
-            glVertex3f(-12,0,z);
-            glVertex3f(12,0,z);
+            glVertex3f(-16,0,z);
+            glVertex3f(16,0,z);
             glEnd();
         }
     }
