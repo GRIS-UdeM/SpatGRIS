@@ -159,6 +159,12 @@ void MainContentComponent::paint (Graphics& g) {
     g.fillAll (mGrisFeel.getWinBackgroundColour());
 }
 
+
+void MainContentComponent::buttonClicked (Button *button)
+{
+    
+}
+
 void MainContentComponent::resized() {
     
     Rectangle<int> r (getLocalBounds().reduced (5));

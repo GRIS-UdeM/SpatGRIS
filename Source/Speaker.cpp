@@ -19,6 +19,8 @@ Speaker::Speaker(glm::vec3 center, glm::vec3 extents) {
 
     label = new Label();
     label->setText("X", NotificationType::dontSendNotification);
+    label->setFont(mGrisFeel.getFont());
+    label->setLookAndFeel(&mGrisFeel);
     this->addAndMakeVisible(label);
     
     
@@ -48,8 +50,16 @@ Speaker::~Speaker(){
     delete teCenterZ;
 }
 
+void Speaker::focusOfChildComponentChanged (FocusChangeType cause){
+    this->selectSpeaker();
+}
+void Speaker::focusLost (FocusChangeType cause){
+    this->unSelectSpeaker();
+}
+
 void Speaker::textEditorFocusLost (TextEditor &textEditor) {
     textEditorReturnKeyPressed(textEditor);
+    this->unSelectSpeaker();
 }
 void Speaker::textEditorReturnKeyPressed (TextEditor &textEditor) {
     
@@ -70,6 +80,8 @@ void Speaker::textEditorReturnKeyPressed (TextEditor &textEditor) {
 }
 void Speaker::paint (Graphics& g)
 {
+
+    
     label->setBounds(2, 2, 20, getHeight());
     teCenterX->setBounds(22, 2, 46, 22);
     
@@ -77,7 +89,7 @@ void Speaker::paint (Graphics& g)
     teCenterZ->setBounds(138, 2, 46, 22);
     
     if(this->selected){
-        Colour c = mGrisFeel.getFieldColour();
+        Colour c = mGrisFeel.getOnColour();
         g.setColour (c.withMultipliedAlpha (0.3f));
         g.fillAll ();
         g.setColour (c);
@@ -129,14 +141,22 @@ bool Speaker::isSelected(){
 
 void Speaker::selectSpeaker()
 {
+    for (std::vector< Speaker * >::iterator it = listSpeaker.begin() ; it != listSpeaker.end(); ++it)
+    {
+        (*it)->unSelectSpeaker();
+    }
+
+    
     this->color = colorSpeakerSelect;
     this->selected = true;
+    this->repaint();
 }
 
 void Speaker::unSelectSpeaker()
 {
     this->color = colorSpeaker;
     this->selected = false;
+    this->repaint();
 }
 
 

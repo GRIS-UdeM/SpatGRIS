@@ -113,46 +113,48 @@ void SpeakerViewComponent::mouseDown (const MouseEvent& e) {
     deltaClickX = e.getPosition().x;
     deltaClickY = e.getPosition().y;
 
-    double matModelView[16], matProjection[16];
-    int viewport[4];
-    
-    glGetDoublev( GL_MODELVIEW_MATRIX, matModelView );
-    glGetDoublev( GL_PROJECTION_MATRIX, matProjection );
-    glGetIntegerv( GL_VIEWPORT, viewport );
-    double winX = (double)e.getPosition().x;
-    double winY = viewport[3] - (double)e.getPosition().y;
-	
-    GLdouble xS, yS, zS;
-    GLdouble xE, yE, zE;
-
-    gluUnProject(winX, winY, 0.0, matModelView, matProjection,viewport, &xS, &yS,&zS);
-    gluUnProject(winX, winY, 1.0, matModelView, matProjection, viewport, &xE, &yE, &zE);
-    
-    r = Ray(glm::vec3(xS, yS, zS),glm::vec3(xE, yE, zE));
-    
-    int iBestSpeaker = -1;
-    for(int i = 0; i < listSpeaker.size(); ++i) {
-        if (ToolsGL::Raycast(r, *listSpeaker[i]) != -1 ) {
-            if(iBestSpeaker == -1){
-                iBestSpeaker = i;
-            }else{
-                if(ToolsGL::speakerNearCam(listSpeaker[i]->getCenter(), listSpeaker[iBestSpeaker]->getCenter(), camPos)){
-                     iBestSpeaker = i;
+    if(e.mods.isLeftButtonDown()){
+        
+        double matModelView[16], matProjection[16];
+        int viewport[4];
+        
+        glGetDoublev( GL_MODELVIEW_MATRIX, matModelView );
+        glGetDoublev( GL_PROJECTION_MATRIX, matProjection );
+        glGetIntegerv( GL_VIEWPORT, viewport );
+        double winX = (double)e.getPosition().x;
+        double winY = viewport[3] - (double)e.getPosition().y;
+        
+        GLdouble xS, yS, zS;
+        GLdouble xE, yE, zE;
+        
+        gluUnProject(winX, winY, 0.0, matModelView, matProjection,viewport, &xS, &yS,&zS);
+        gluUnProject(winX, winY, 1.0, matModelView, matProjection, viewport, &xE, &yE, &zE);
+        
+        r = Ray(glm::vec3(xS, yS, zS),glm::vec3(xE, yE, zE));
+        
+        int iBestSpeaker = -1;
+        for(int i = 0; i < listSpeaker.size(); ++i) {
+            if (ToolsGL::Raycast(r, *listSpeaker[i]) != -1 ) {
+                if(iBestSpeaker == -1){
+                    iBestSpeaker = i;
+                }else{
+                    if(ToolsGL::speakerNearCam(listSpeaker[i]->getCenter(), listSpeaker[iBestSpeaker]->getCenter(), camPos)){
+                        iBestSpeaker = i;
+                    }
                 }
             }
         }
-    }
-    
-    for(int i = 0; i < listSpeaker.size(); ++i) {
-        if(i!=iBestSpeaker)
-        {
-            listSpeaker[i]->unSelectSpeaker();
-        }else{
-            listSpeaker[i]->selectSpeaker();
+        
+        for(int i = 0; i < listSpeaker.size(); ++i) {
+            if(i!=iBestSpeaker)
+            {
+                listSpeaker[i]->unSelectSpeaker();
+            }else{
+                listSpeaker[i]->selectSpeaker();
+            }
+            listSpeaker[i]->repaint();
         }
-        listSpeaker[i]->repaint();
     }
-    
 }
 
 void SpeakerViewComponent::mouseDrag (const MouseEvent& e) {

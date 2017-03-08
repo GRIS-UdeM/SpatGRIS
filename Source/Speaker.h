@@ -25,6 +25,9 @@ const glm::vec3 colorSpeaker = glm::vec3(0.85, 0.86, 0.87);
 const glm::vec3 colorSpeakerSelect = glm::vec3(1.0, 0.66, 0.67);
 const glm::vec3 sizeSpeaker = glm::vec3(0.5, 0.5, 0.5);
 
+using namespace std;
+
+
 class Speaker : public Component,
                 public TextEditor::Listener
 {
@@ -47,6 +50,9 @@ public:
     
     void draw() ;
     
+    void focusOfChildComponentChanged (FocusChangeType cause);
+    void focusLost (FocusChangeType cause);
+
     void textEditorFocusLost (TextEditor &textEditor);
     void textEditorReturnKeyPressed (TextEditor &textEditor);
     void paint (Graphics& g);
@@ -74,4 +80,5 @@ private :
     GrisLookAndFeel mGrisFeel;
 };
 
+extern vector<Speaker *> listSpeaker;
 #endif /* Speaker_h */
