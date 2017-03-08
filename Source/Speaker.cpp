@@ -233,7 +233,47 @@ void Speaker::draw() {
     glVertex3f(this->center.x+sizeSpeaker.x,this->center.y, this->center.z);
     glVertex3f(this->center.x+ 1.2f,this->center.y, this->center.z);
     glEnd();
+    
+    if(this->selected){
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);  // this tells it to only render lines
+        
+        glLineWidth(4);
+        glBegin(GL_LINES);
+        glVertex3f(this->min.x, this->min.y, this->max.z);
+        glVertex3f(this->max.x, this->min.y, this->max.z);
+        glVertex3f(this->max.x, this->max.y, this->max.z);
+        glVertex3f(this->min.x, this->max.y, this->max.z);
+        
+        glVertex3f(this->max.x, this->min.y, this->max.z);
+        glVertex3f(this->max.x, this->min.y, this->min.z);
+        glVertex3f(this->max.x, this->max.y, this->min.z);
+        glVertex3f(this->max.x, this->max.y, this->max.z);
+        
+        glVertex3f(this->min.x, this->max.y, this->max.z);
+        glVertex3f(this->max.x, this->max.y, this->max.z);
+        glVertex3f(this->max.x, this->max.y, this->min.z);
+        glVertex3f(this->min.x, this->max.y, this->min.z);
+        
+        glVertex3f(this->min.x, this->min.y, this->min.z);
+        glVertex3f(this->min.x, this->max.y, this->min.z);
+        glVertex3f(this->max.x, this->max.y, this->min.z);
+        glVertex3f(this->max.x, this->min.y, this->min.z);
+        
+        glVertex3f(this->min.x, this->min.y, this->min.z);
+        glVertex3f(this->max.x, this->min.y, this->min.z);
+        glVertex3f(this->max.x, this->min.y, this->max.z);
+        glVertex3f(this->min.x, this->min.y, this->max.z);
+        
+        glVertex3f(this->min.x, this->min.y, this->min.z);
+        glVertex3f(this->min.x, this->min.y, this->max.z);
+        glVertex3f(this->min.x, this->max.y, this->max.z);
+        glVertex3f(this->min.x, this->max.y, this->min.z);
 
+
+        glEnd();
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+    
     
     glPopMatrix();
 }

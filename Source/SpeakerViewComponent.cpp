@@ -110,8 +110,8 @@ void SpeakerViewComponent::resized() {
 
 void SpeakerViewComponent::mouseDown (const MouseEvent& e) {
     
-    deltaClickX = e.getPosition().x;
-    deltaClickY = e.getPosition().y;
+    deltaClickX = camAngleX - e.getPosition().x ;
+    deltaClickY = camAngleY - e.getPosition().y;
 
     if(e.mods.isLeftButtonDown()){
         
@@ -158,9 +158,11 @@ void SpeakerViewComponent::mouseDown (const MouseEvent& e) {
 }
 
 void SpeakerViewComponent::mouseDrag (const MouseEvent& e) {
+    
     if(e.mods.isRightButtonDown()){
-        camAngleX = e.getPosition().x - deltaClickX;
-        camAngleY = e.getPosition().y + deltaClickY;
+        cout << e.getPosition().x - deltaClickX << newLine;
+        camAngleX = (e.getPosition().x + deltaClickX);
+        camAngleY = (e.getPosition().y + deltaClickY);
     }
 }
 
