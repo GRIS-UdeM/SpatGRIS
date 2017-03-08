@@ -61,6 +61,8 @@ public:
     
     
 private:
+    
+    void openXmlFile(String path);
     //==============================================================================
     
     jackClientGris *jackClient;
@@ -73,6 +75,7 @@ private:
     
     GrisLookAndFeel mGrisFeel;
     
+    String nameConfig;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
 };
 

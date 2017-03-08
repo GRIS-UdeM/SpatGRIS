@@ -29,16 +29,15 @@ Speaker::Speaker(glm::vec3 center, glm::vec3 extents) {
     teCenterX->addListener(this);
     this->addAndMakeVisible(teCenterX);
     
-    teCenterY = new TextEditor();
-    teCenterY->setText(String(this->center.y), NotificationType::dontSendNotification);
-    teCenterY->addListener(this);
-    this->addAndMakeVisible(teCenterY);
-
-    
     teCenterZ = new TextEditor();
-    teCenterZ->setText(String(this->center.z), NotificationType::dontSendNotification);
+    teCenterZ->setText(String(this->center.y), NotificationType::dontSendNotification);
     teCenterZ->addListener(this);
     this->addAndMakeVisible(teCenterZ);
+    
+    teCenterY = new TextEditor();
+    teCenterY->setText(String(this->center.z), NotificationType::dontSendNotification);
+    teCenterY->addListener(this);
+    this->addAndMakeVisible(teCenterY);
 
 
 }
@@ -59,21 +58,22 @@ void Speaker::focusLost (FocusChangeType cause){
 
 void Speaker::textEditorFocusLost (TextEditor &textEditor) {
     textEditorReturnKeyPressed(textEditor);
-    this->unSelectSpeaker();
 }
+
 void Speaker::textEditorReturnKeyPressed (TextEditor &textEditor) {
     
     if (&textEditor == teCenterX) {
         glm::vec3 newCenter = this->center;
         newCenter.x = teCenterX->getText().getFloatValue();
         this->newPosition(newCenter);
-    }else if(&textEditor == teCenterY) {
-        glm::vec3 newCenter = this->center;
-        newCenter.y = teCenterY->getText().getFloatValue();
-        this->newPosition(newCenter);
     }else if(&textEditor == teCenterZ) {
         glm::vec3 newCenter = this->center;
-        newCenter.z = teCenterZ->getText().getFloatValue();
+        newCenter.y = teCenterZ->getText().getFloatValue();
+        this->newPosition(newCenter);
+    }
+    else if(&textEditor == teCenterY) {
+        glm::vec3 newCenter = this->center;
+        newCenter.z = teCenterY->getText().getFloatValue();
         this->newPosition(newCenter);
     }
 
@@ -81,10 +81,8 @@ void Speaker::textEditorReturnKeyPressed (TextEditor &textEditor) {
 void Speaker::paint (Graphics& g)
 {
 
-    
     label->setBounds(2, 2, 20, getHeight());
     teCenterX->setBounds(22, 2, 46, 22);
-    
     teCenterY->setBounds(90, 2, 46, 22);
     teCenterZ->setBounds(138, 2, 46, 22);
     
@@ -146,7 +144,6 @@ void Speaker::selectSpeaker()
         (*it)->unSelectSpeaker();
     }
 
-    
     this->color = colorSpeakerSelect;
     this->selected = true;
     this->repaint();
@@ -239,37 +236,47 @@ void Speaker::draw() {
         
         glLineWidth(4);
         glBegin(GL_LINES);
-        glVertex3f(this->min.x, this->min.y, this->max.z);
-        glVertex3f(this->max.x, this->min.y, this->max.z);
-        glVertex3f(this->max.x, this->max.y, this->max.z);
-        glVertex3f(this->min.x, this->max.y, this->max.z);
+        float over = 0.02f;
         
-        glVertex3f(this->max.x, this->min.y, this->max.z);
-        glVertex3f(this->max.x, this->min.y, this->min.z);
-        glVertex3f(this->max.x, this->max.y, this->min.z);
-        glVertex3f(this->max.x, this->max.y, this->max.z);
+        glVertex3f(this->min.x-over, this->min.y-over, this->min.z-over);
+        glVertex3f(this->min.x-over, this->min.y-over, this->max.z+over);
         
-        glVertex3f(this->min.x, this->max.y, this->max.z);
-        glVertex3f(this->max.x, this->max.y, this->max.z);
-        glVertex3f(this->max.x, this->max.y, this->min.z);
-        glVertex3f(this->min.x, this->max.y, this->min.z);
+        glVertex3f(this->max.x+over, this->min.y-over, this->min.z-over);
+        glVertex3f(this->max.x+over, this->min.y-over, this->max.z+over);
         
-        glVertex3f(this->min.x, this->min.y, this->min.z);
-        glVertex3f(this->min.x, this->max.y, this->min.z);
-        glVertex3f(this->max.x, this->max.y, this->min.z);
-        glVertex3f(this->max.x, this->min.y, this->min.z);
+        glVertex3f(this->max.x+over, this->max.y+over, this->min.z-over);
+        glVertex3f(this->max.x+over, this->max.y+over, this->max.z+over);
         
-        glVertex3f(this->min.x, this->min.y, this->min.z);
-        glVertex3f(this->max.x, this->min.y, this->min.z);
-        glVertex3f(this->max.x, this->min.y, this->max.z);
-        glVertex3f(this->min.x, this->min.y, this->max.z);
+        glVertex3f(this->min.x-over, this->max.y+over, this->min.z-over);
+        glVertex3f(this->min.x-over, this->max.y+over, this->max.z+over);
         
-        glVertex3f(this->min.x, this->min.y, this->min.z);
-        glVertex3f(this->min.x, this->min.y, this->max.z);
-        glVertex3f(this->min.x, this->max.y, this->max.z);
-        glVertex3f(this->min.x, this->max.y, this->min.z);
 
+        glVertex3f(this->min.x-over, this->min.y-over, this->min.z-over);
+        glVertex3f(this->max.x+over, this->min.y-over, this->min.z-over);
+        
+        glVertex3f(this->min.x-over, this->min.y-over, this->max.z+over);
+        glVertex3f(this->max.x+over, this->min.y-over, this->max.z+over);
+        
+        glVertex3f(this->min.x-over, this->max.y+over, this->min.z-over);
+        glVertex3f(this->max.x+over, this->max.y+over, this->min.z-over);
+        
+        glVertex3f(this->min.x-over, this->max.y+over, this->max.z+over);
+        glVertex3f(this->max.x+over, this->max.y+over, this->max.z+over);
+        
+        
+        glVertex3f(this->min.x-over, this->min.y-over, this->min.z-over);
+        glVertex3f(this->min.x-over, this->max.y+over, this->min.z-over);
+        
+        glVertex3f(this->min.x-over, this->min.y-over, this->max.z+over);
+        glVertex3f(this->min.x-over, this->max.y+over, this->max.z+over);
+        
+        glVertex3f(this->max.x+over, this->min.y-over, this->min.z-over);
+        glVertex3f(this->max.x+over, this->max.y+over, this->min.z-over);
+        
+        glVertex3f(this->max.x+over, this->min.y-over, this->max.z+over);
+        glVertex3f(this->max.x+over, this->max.y+over, this->max.z+over);
 
+        
         glEnd();
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }

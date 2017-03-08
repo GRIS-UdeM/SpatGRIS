@@ -50,6 +50,7 @@ public:
     
     void draw() ;
     
+    //Juce=================================================
     void focusOfChildComponentChanged (FocusChangeType cause);
     void focusLost (FocusChangeType cause);
 

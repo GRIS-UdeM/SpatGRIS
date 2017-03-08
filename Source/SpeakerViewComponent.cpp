@@ -22,8 +22,9 @@
 // ACTUAL SPEAKER VIEW CLASS DEFS
 //==========================================================================================
 SpeakerViewComponent::SpeakerViewComponent() {
- 
-
+    //openGLContext.setMultisamplingEnabled (true);
+    
+    perspectivCam = glm::vec4(80.0, (16.0/9.0), 0.5, 45);
     setSize(400, 400);
     
 }
@@ -33,18 +34,23 @@ SpeakerViewComponent::~SpeakerViewComponent() {
 }
 
 void SpeakerViewComponent::initialise() {
+   
+    
     glClearColor(0.0, 0.0, 0.0, 1.0);
     glColor3f(1.0, 1.0, 1.0);
 
+    
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(90.0, 16.0/9.0, 1, 40);
+    gluPerspective(perspectivCam.x, perspectivCam.y, perspectivCam.z, perspectivCam.w);
     
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     gluLookAt(4, 6, 5, 0, 0, 0, 0, 1, 0);
+    
+
 }
 
 void SpeakerViewComponent::shutdown() {
@@ -58,14 +64,28 @@ void SpeakerViewComponent::render() {
     glEnable(GL_DEPTH_TEST);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
+
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH | GLUT_MULTISAMPLE);
+    
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    
     glEnable(GL_LINE_SMOOTH);
-    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+    glHint(GL_LINE_SMOOTH, GL_NICEST);
+    
+    glEnable(GL_POINT_SMOOTH);
+    glHint(GL_POINT_SMOOTH, GL_NICEST);
+
+    glEnable(GL_MULTISAMPLE_ARB);
+    glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
+    
+    
+    
+    
     
     drawBackground();
     
-    gluPerspective(90.0, 16.0/9.0, 0.1f, 60.0f);
+    gluPerspective(perspectivCam.x, perspectivCam.y, perspectivCam.z, perspectivCam.w);
     glMatrixMode(GL_MODELVIEW);
 
     
@@ -78,17 +98,16 @@ void SpeakerViewComponent::render() {
     gluLookAt(camX, camY, camZ, 0, 0, 0, 0,1,0);
     camPos = glm::vec3(camX,camY,camZ);
     
+    
+
     drawOriginGrid();
     
+
     for(int i = 0; i < listSpeaker.size(); ++i) {
         listSpeaker[i]->draw();
     }
-    
-    drawText("0",glm::vec3(0,0,0));
-    drawText("X",glm::vec3(10,0,0));
-    drawText("Y",glm::vec3(0,10,0));
-    drawText("Z",glm::vec3(0,0,10));
-    
+
+
     glFlush();
 }
 
@@ -98,7 +117,7 @@ void SpeakerViewComponent::paint (Graphics& g) {
 //    
     g.setColour(Colours::white);
     g.setFont (16);
-    g.drawText ("3D View", 25, 20, 300, 30, Justification::left);
+    g.drawText (this->nameConfig, 25, 20, 300, 30, Justification::left);
 //    g.drawLine (20, 20, 170, 20);
 //    g.drawLine (20, 50, 170, 50);
 }
@@ -160,7 +179,6 @@ void SpeakerViewComponent::mouseDown (const MouseEvent& e) {
 void SpeakerViewComponent::mouseDrag (const MouseEvent& e) {
     
     if(e.mods.isRightButtonDown()){
-        cout << e.getPosition().x - deltaClickX << newLine;
         camAngleX = (e.getPosition().x + deltaClickX);
         camAngleY = (e.getPosition().y + deltaClickY);
     }
@@ -255,6 +273,11 @@ void SpeakerViewComponent::drawOriginGrid()
             glEnd();
         }
     }
+    
+    drawText("0",glm::vec3(0,0.1,0));
+    drawText("X",glm::vec3(10,0.1,0));
+    drawText("Y",glm::vec3(0,0.1,10));
+    drawText("Z",glm::vec3(0,10,0));
 }
 
 void SpeakerViewComponent::drawText(string val, glm::vec3 position, bool camLock){
@@ -270,11 +293,9 @@ void SpeakerViewComponent::drawText(string val, glm::vec3 position, bool camLock
 
         
     }
-    //cout << camAngleX  << " . " <<camAngleY<< endl;
+
     float s = 0.005f;
     glScalef( s, s, s );
-
-    
     glColor3f( 1, 1, 1 );
     for (char & c : val)
     {

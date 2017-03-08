@@ -48,6 +48,7 @@ public:
     void shutdown() override;
     
 
+    void setNameConfig(String name){ this->nameConfig = name; }
     void render() override;
     
     void paint (Graphics& g) override;
@@ -76,6 +77,8 @@ private:
     
     Ray r;
     glm::vec3 camPos;
+    glm::vec4 perspectivCam;
+    String nameConfig = "...";
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SpeakerViewComponent)
 };

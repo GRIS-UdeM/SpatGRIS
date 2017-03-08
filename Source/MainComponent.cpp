@@ -23,7 +23,7 @@ MainContentComponent::MainContentComponent(){
     listSpeaker = std::vector<Speaker *>();
     
     
-    listSpeaker.push_back(new Speaker(glm::vec3(5,0.5,0)));
+    /*listSpeaker.push_back(new Speaker(glm::vec3(5,0.5,0)));
     listSpeaker.push_back(new Speaker(glm::vec3(5,3,0)));
     listSpeaker.push_back(new Speaker(glm::vec3(4,6,0)));
     listSpeaker.push_back(new Speaker(glm::vec3(3,8,0)));
@@ -66,13 +66,10 @@ MainContentComponent::MainContentComponent(){
     listSpeaker.push_back(new Speaker(glm::vec3(-5,0.5,-5)));
     listSpeaker.push_back(new Speaker(glm::vec3(-5,3,-5)));
     listSpeaker.push_back(new Speaker(glm::vec3(-4,6,-4)));
-    listSpeaker.push_back(new Speaker(glm::vec3(-3,8,-3)));
+    listSpeaker.push_back(new Speaker(glm::vec3(-3,8,-3)));*/
     
     
-    for (std::vector< Speaker * >::iterator it = listSpeaker.begin() ; it != listSpeaker.end(); ++it)
-    {
-        this->addAndMakeVisible(*it);
-    }
+   
     
     this->rightLabel = new Label();
     this->rightLabel->setText("RIGHT", NotificationType::dontSendNotification);
@@ -99,7 +96,7 @@ MainContentComponent::MainContentComponent(){
 
     
     
-    
+    openXmlFile("/Users/gris/Documents/GRIS/zirkonium/ZirkSpeakers_Dome 16 UdeM.xml");
     //Start JACK
     /*this->jackClient = new jackClientGris();
     
@@ -127,6 +124,54 @@ MainContentComponent::~MainContentComponent() {
 vector<Speaker *> MainContentComponent::getListSpeaker() {
     return this->listSpeaker;
 }*/
+
+
+void MainContentComponent::openXmlFile(String path)
+{
+    XmlDocument myDocument (File (path.toStdString()));
+    ScopedPointer<XmlElement> mainElement (myDocument.getDocumentElement());
+    if (mainElement == nullptr)
+    {
+        String error = myDocument.getLastParseError();
+    }
+    else
+    {
+        if(mainElement->hasTagName("SpeakerSetup")){
+            nameConfig =  mainElement->getStringAttribute("Name");
+            cout << nameConfig << newLine;
+            this->speakerView->setNameConfig(nameConfig);
+            
+            forEachXmlChildElement (*mainElement, ring)
+            {
+                if (ring->hasTagName ("Ring"))
+                {
+                    forEachXmlChildElement (*ring, spk)
+                    {
+                        if (spk->hasTagName ("Speaker"))
+                        {
+                            
+                            listSpeaker.push_back(new Speaker(glm::vec3(spk->getDoubleAttribute("PositionX")*10.0f,
+                                                                        spk->getDoubleAttribute("PositionZ")*10.0f,
+                                                                        spk->getDoubleAttribute("PositionY")*10.0f)));
+                 
+
+                        }
+                    }
+                    
+                }
+            }
+            
+        }
+        
+    }
+    
+    for (std::vector< Speaker * >::iterator it = listSpeaker.begin() ; it != listSpeaker.end(); ++it)
+    {
+        this->addAndMakeVisible(*it);
+    }
+    this->resized();
+}
+
 
 void MainContentComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRate) {
     
