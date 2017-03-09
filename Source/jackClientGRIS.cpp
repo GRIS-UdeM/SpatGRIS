@@ -24,7 +24,7 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
     
     jackClientGris* client = (jackClientGris*)arg;
     
-    /*jack_default_audio_sample_t *out1 = (jack_default_audio_sample_t*)jack_port_get_buffer (client->output_port1, nframes);
+    jack_default_audio_sample_t *out1 = (jack_default_audio_sample_t*)jack_port_get_buffer (client->output_port1, nframes);
     jack_default_audio_sample_t *out2 = (jack_default_audio_sample_t*)jack_port_get_buffer (client->output_port2, nframes);
     
     for(int i = 0; i < nframes; ++i) {
@@ -34,12 +34,11 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
         if (client->left_phase >= client->sine.size()){
             client->left_phase -= client->sine.size();
         }
-        client->right_phase += 2; // higher pitch so we can distinguish left and right. 
+        client->right_phase += 1; // higher pitch so we can distinguish left and right.
         if(client->right_phase >= client->sine.size()){
             client->right_phase -= client->sine.size();
         }
-    }*/
-   
+    }
     
     return 0;
 }
@@ -107,7 +106,7 @@ jackClientGris::jackClientGris() {
         fprintf (stderr, "\n\n\n======chosen name already existed, new unique name `%s' assigned\n", client_name);
         return;
     }
-    
+
     //--------------------------------------------------
     //fill wave table.
     //--------------------------------------------------
@@ -160,7 +159,7 @@ jackClientGris::jackClientGris() {
 
 
 jackClientGris::~jackClientGris() {
-    jack_deactivate(client);
+    //jack_deactivate(client);
     jack_port_unregister(client, input_port);
     jack_port_unregister(client, output_port1);
     jack_port_unregister(client, output_port2);

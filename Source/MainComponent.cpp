@@ -23,13 +23,33 @@ MainContentComponent::MainContentComponent(){
     
     listSpeaker = std::vector<Speaker *>();
    
-    this->rightLabel = new Label();
-    this->rightLabel->setText("RIGHT", NotificationType::dontSendNotification);
-    
+    //SpeakerViewComponent 3D VIEW------------------------------
     this->speakerView= new SpeakerViewComponent();
-    
     this->addAndMakeVisible (speakerView);
-    this->addAndMakeVisible(this->rightLabel);
+    
+    //BOX Inputs------------------------------------------------
+    this->boxInputsUI = new Box(true, &mGrisFeel, "Inputs~");
+    addAndMakeVisible(this->boxInputsUI);
+    
+    //BOX Outputs-----------------------------------------------
+    this->boxOutputsUI = new Box(true, &mGrisFeel, "Outputs~");
+    addAndMakeVisible(this->boxOutputsUI);
+    
+    //BOX Control-----------------------------------------------
+    this->boxControlUI = new Box(true, &mGrisFeel);
+    addAndMakeVisible(this->boxControlUI);
+
+    
+    this->labelJackStatus = new Label();
+    this->labelJackStatus->setText("Jack Unknown", NotificationType::dontSendNotification);
+    this->labelJackStatus->setFont(mGrisFeel.getFont());
+    this->labelJackStatus->setLookAndFeel(&mGrisFeel);
+    this->labelJackStatus->setColour(Label::textColourId, mGrisFeel.getFontColour());
+    this->labelJackStatus->setBounds(0, 0, 150, 28);
+    this->boxControlUI->getContent()->addAndMakeVisible(this->labelJackStatus);
+    
+    
+
 
     // set up the layout and resizer bars
     this->verticalLayout.setItemLayout (0, -0.2, -0.8, -0.5); // width of the font list must be between 20% and 80%, preferably 50%
@@ -39,13 +59,13 @@ MainContentComponent::MainContentComponent(){
     this->addAndMakeVisible (verticalDividerBar);
 
     
-    this->setSize (1200, 600);
+    this->setSize (1360, 760);
 
 #if USE_JACK
     this->jackClient = new jackClientGris();
     
     if(!jackClient->isReady()){
-        this->rightLabel->setText("jackClient Not Connected", NotificationType::dontSendNotification);
+        this->labelJackStatus->setText("jackClient Not Connected", NotificationType::dontSendNotification);
     }
 #endif
     
@@ -69,7 +89,11 @@ MainContentComponent::~MainContentComponent() {
     }
     listSpeaker.clear();
     
-    delete this->rightLabel;
+    delete this->boxInputsUI;
+    delete this->boxOutputsUI;
+    delete this->boxControlUI;
+    
+    delete this->labelJackStatus;
     delete this->speakerView;
     
     #if USE_JACK
@@ -118,10 +142,18 @@ void MainContentComponent::openXmlFile(String path)
         
     }
     
+    int x = 2;
+    int y = 0;
+
+    Component *compBoxInputs = this->boxInputsUI->getContent();
     for (std::vector< Speaker * >::iterator it = listSpeaker.begin() ; it != listSpeaker.end(); ++it)
     {
-        this->addAndMakeVisible(*it);
+        juce::Rectangle<int> boundsSpeak(x, y,550, 28);
+        (*it)->setBounds(boundsSpeak);
+        compBoxInputs->addAndMakeVisible(*it);
+        y+=24;
     }
+
     this->resized();
 }
 
@@ -165,7 +197,7 @@ void MainContentComponent::buttonClicked (Button *button)
 
 void MainContentComponent::resized() {
     
-    Rectangle<int> r (getLocalBounds().reduced (5));
+    Rectangle<int> r (getLocalBounds().reduced (2));
     
     // lay out the list box and vertical divider..
     Component* vcomps[] = { speakerView, verticalDividerBar, nullptr };
@@ -175,20 +207,33 @@ void MainContentComponent::resized() {
     
     r.removeFromLeft (verticalDividerBar->getRight());
     
-    this->rightLabel->setBounds (r.removeFromBottom (26));
+    //this->labelJackStatus->setBounds (r.removeFromBottom (26));
     
     
     r.removeFromBottom (8);
+    
+
+    this->boxInputsUI->setBounds(speakerView->getWidth()+6, 2, getWidth()-(speakerView->getWidth()+10),240);
+    this->boxInputsUI->correctSize(this->boxInputsUI->getWidth()-8, 450);
+    //this->boxInputsUI->getContent()->setBounds(0, 50,this->boxInputsUI->getWidth()-8, 450);
+    
+
+    this->boxOutputsUI->setBounds(speakerView->getWidth()+6, 244, getWidth()-(speakerView->getWidth()+10),240);
+    this->boxOutputsUI->correctSize(this->boxOutputsUI->getWidth()-8, 450);
+
+    this->boxControlUI->setBounds(speakerView->getWidth()+6, 488, getWidth()-(speakerView->getWidth()+10), getHeight()-490);
+    this->boxControlUI->correctSize(this->boxControlUI->getWidth()-8, 450);
+    
     
     /*if(listSpeaker.size()!=0){
         std::vector<Speaker *>::iterator iter = listSpeaker.begin();
         delete *iter;
         listSpeaker.erase(iter);
     }*/
-    for (std::vector< Speaker * >::iterator it = listSpeaker.begin() ; it != listSpeaker.end(); ++it)
+    /*for (std::vector< Speaker * >::iterator it = listSpeaker.begin() ; it != listSpeaker.end(); ++it)
     {
         (*it)->setBounds(r.removeFromTop(26));
-    }
+    }*/
     
 }
 

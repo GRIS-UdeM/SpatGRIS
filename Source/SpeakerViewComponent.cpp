@@ -97,14 +97,14 @@ void SpeakerViewComponent::render() {
     }
     
     //Draw Sphere : Use many CPU
-    glPushMatrix();
+   /* glPushMatrix();
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glLineWidth(1);
     glRotatef(90, 1, 0, 0);
     glColor3f(0.8, 0.2, 0.1);
     glutSolidSphere(10,50,50);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    glPopMatrix();
+    glPopMatrix();*/
     
 
     glFlush();

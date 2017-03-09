@@ -71,6 +71,10 @@ Speaker::~Speaker(){
 }
 
 
+void Speaker::setBounds(const Rectangle<int> &newBounds){
+    this->juce::Component::setBounds(newBounds);
+}
+
 glm::vec3 Speaker::getCoordinate(){
     return this->center /10.0f ;
 }

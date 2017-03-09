@@ -95,6 +95,7 @@
 		0C99699A22FA40ABA7EA5A37 /* juce_DynamicObject.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_DynamicObject.h; path = ../../JuceLibraryCode/modules/juce_core/containers/juce_DynamicObject.h; sourceTree = SOURCE_ROOT; };
 		0CA183E0BD935F99C9D13006 /* juce_TextDiff.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_TextDiff.h; path = ../../JuceLibraryCode/modules/juce_core/text/juce_TextDiff.h; sourceTree = SOURCE_ROOT; };
 		0D0F144A717EB80B8FC0AF66 /* juce_QuickTimeMovieComponent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_QuickTimeMovieComponent.h; path = ../../JuceLibraryCode/modules/juce_video/playback/juce_QuickTimeMovieComponent.h; sourceTree = SOURCE_ROOT; };
+		0D17833E1E71EF2800EA078F /* UiComponent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = UiComponent.h; path = ../../Source/UiComponent.h; sourceTree = "<group>"; };
 		0D2F86381E676EC3002E2F93 /* ToolsGL.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ToolsGL.cpp; path = ../../Source/ToolsGL.cpp; sourceTree = "<group>"; };
 		0D2F86391E676EC3002E2F93 /* ToolsGL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ToolsGL.h; path = ../../Source/ToolsGL.h; sourceTree = "<group>"; };
 		0DAEE47D7405B9E5383EA97F /* juce_RelativePointPath.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_RelativePointPath.h; path = ../../JuceLibraryCode/modules/juce_gui_basics/positioning/juce_RelativePointPath.h; sourceTree = SOURCE_ROOT; };
@@ -2860,6 +2861,7 @@
 				0D2F86391E676EC3002E2F93 /* ToolsGL.h */,
 				0DBCE89F1E68DA3900ED7634 /* Speaker.cpp */,
 				0DBCE8A01E68DA3900ED7634 /* Speaker.h */,
+				0D17833E1E71EF2800EA078F /* UiComponent.h */,
 			);
 			name = Source;
 			sourceTree = "<group>";

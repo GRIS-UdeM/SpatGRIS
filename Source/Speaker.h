@@ -48,6 +48,7 @@ public:
     void unSelectSpeaker();
     
     //Normalise for user =================================
+    void setBounds(const Rectangle<int> &newBounds);
     glm::vec3 getCoordinate();
     glm::vec3 getAziZenRad();
     

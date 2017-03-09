@@ -27,10 +27,11 @@
 #include "jackClientGRIS.h"
 #include "Speaker.h"
 #include "SpeakerViewComponent.h"
+#include "UiComponent.h"
 
 
 #ifndef USE_JACK
-#define USE_JACK 1
+#define USE_JACK 0
 #endif
 
 vector<Speaker *> listSpeaker;
@@ -70,15 +71,25 @@ private:
     #if USE_JACK
     jackClientGris *jackClient;
     #endif
+    
+    
     StretchableLayoutManager verticalLayout;
     ScopedPointer<StretchableLayoutResizerBar> verticalDividerBar;
-    
-    Label *rightLabel;
-    SpeakerViewComponent *speakerView;
     
     GrisLookAndFeel mGrisFeel;
     
     String nameConfig;
+  
+    //UI Components---------------------------
+    SpeakerViewComponent *speakerView;
+    
+    Box * boxInputsUI;
+    Box * boxOutputsUI;
+    Box * boxControlUI;
+    
+    Label *labelJackStatus;
+    
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
 };
 

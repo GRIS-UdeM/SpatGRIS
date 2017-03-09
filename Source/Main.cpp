@@ -18,7 +18,8 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "../../GrisCommonFiles/GrisLookAndFeel.h"
 
-
+#define STRING2(x) #x
+#define STRING(x) STRING2(x)
 
 Component* createMainContentComponent();
 
@@ -74,6 +75,9 @@ public:
         MainWindow (String name)  : DocumentWindow (name,Colours::lightgrey,DocumentWindow::allButtons)
         {
             setUsingNativeTitleBar (true);
+            String version = STRING(JUCE_APP_VERSION);
+            version = "SpatServer GRIS : "+version;
+            setName(version);
             setContentOwned (createMainContentComponent(), true);
             setResizable (true, true);
 
