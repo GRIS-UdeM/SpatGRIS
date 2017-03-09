@@ -29,6 +29,10 @@
 #include "SpeakerViewComponent.h"
 
 
+#ifndef USE_JACK
+#define USE_JACK 1
+#endif
+
 vector<Speaker *> listSpeaker;
 using namespace std;
 //==============================================================================
@@ -63,9 +67,9 @@ private:
     
     void openXmlFile(String path);
     //==============================================================================
-
+    #if USE_JACK
     jackClientGris *jackClient;
-    
+    #endif
     StretchableLayoutManager verticalLayout;
     ScopedPointer<StretchableLayoutResizerBar> verticalDividerBar;
     

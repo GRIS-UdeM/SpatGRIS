@@ -41,6 +41,14 @@ MainContentComponent::MainContentComponent(){
     
     this->setSize (1200, 600);
 
+#if USE_JACK
+    this->jackClient = new jackClientGris();
+    
+    if(!jackClient->isReady()){
+        this->rightLabel->setText("jackClient Not Connected", NotificationType::dontSendNotification);
+    }
+#endif
+    
     
     openXmlFile("/Users/gris/Documents/GRIS/zirkonium/ZirkSpeakers_Dome 16 UdeM.xml");
     
@@ -50,12 +58,7 @@ MainContentComponent::MainContentComponent(){
     //        setAudioChannels (2, 2);
     
     //Start JACK
-    /*this->jackClient = new jackClientGris();
-    
-    if(!jackClient->isReady()){
-        this->rightLabel->setText("jackClient Not Connected", NotificationType::dontSendNotification);
-    }*/
-       
+
 }
 
 MainContentComponent::~MainContentComponent() {
@@ -68,7 +71,11 @@ MainContentComponent::~MainContentComponent() {
     
     delete this->rightLabel;
     delete this->speakerView;
-    //shutdownAudio();
+    
+    #if USE_JACK
+    shutdownAudio();
+    delete  this->jackClient;
+    #endif
 }
 
 
