@@ -48,8 +48,6 @@ MainContentComponent::MainContentComponent(){
     this->labelJackStatus->setBounds(0, 0, 150, 28);
     this->boxControlUI->getContent()->addAndMakeVisible(this->labelJackStatus);
     
-    
-
 
     // set up the layout and resizer bars
     this->verticalLayout.setItemLayout (0, -0.2, -0.8, -0.5); // width of the font list must be between 20% and 80%, preferably 50%
@@ -58,10 +56,15 @@ MainContentComponent::MainContentComponent(){
     this->verticalDividerBar = new StretchableLayoutResizerBar (&verticalLayout, 1, true);
     this->addAndMakeVisible (verticalDividerBar);
 
-    
     this->setSize (1360, 760);
+    
+    
 
 #if USE_JACK
+    // #1: this is not working with jack with non-built-in audio devices
+    //        setAudioChannels (2, 2);
+    
+    //Start JACK
     this->jackClient = new jackClientGris();
     
     if(!jackClient->isReady()){
@@ -71,18 +74,11 @@ MainContentComponent::MainContentComponent(){
     
     
     openXmlFile("/Users/gris/Documents/GRIS/zirkonium/ZirkSpeakers_Dome 16 UdeM.xml");
-    
-    
-    
-    // #1: this is not working with jack with non-built-in audio devices
-    //        setAudioChannels (2, 2);
-    
-    //Start JACK
 
 }
 
 MainContentComponent::~MainContentComponent() {
-    //elete this->jackClient;
+
     for (std::vector< Speaker * >::iterator it = listSpeaker.begin() ; it != listSpeaker.end(); ++it)
     {
         delete (*it);
@@ -142,13 +138,12 @@ void MainContentComponent::openXmlFile(String path)
         
     }
     
-    int x = 2;
-    int y = 0;
 
+    int y = 0;
     Component *compBoxInputs = this->boxInputsUI->getContent();
     for (std::vector< Speaker * >::iterator it = listSpeaker.begin() ; it != listSpeaker.end(); ++it)
     {
-        juce::Rectangle<int> boundsSpeak(x, y,550, 28);
+        juce::Rectangle<int> boundsSpeak(2, y,550, 28);
         (*it)->setBounds(boundsSpeak);
         compBoxInputs->addAndMakeVisible(*it);
         y+=24;
@@ -205,18 +200,9 @@ void MainContentComponent::resized() {
     // lay out side-by-side and resize the components' heights as well as widths
     verticalLayout.layOutComponents (vcomps, 3, r.getX(), r.getY(), r.getWidth(), r.getHeight(), false, true);
     
-    r.removeFromLeft (verticalDividerBar->getRight());
-    
-    //this->labelJackStatus->setBounds (r.removeFromBottom (26));
-    
-    
-    r.removeFromBottom (8);
-    
 
     this->boxInputsUI->setBounds(speakerView->getWidth()+6, 2, getWidth()-(speakerView->getWidth()+10),240);
     this->boxInputsUI->correctSize(this->boxInputsUI->getWidth()-8, 450);
-    //this->boxInputsUI->getContent()->setBounds(0, 50,this->boxInputsUI->getWidth()-8, 450);
-    
 
     this->boxOutputsUI->setBounds(speakerView->getWidth()+6, 244, getWidth()-(speakerView->getWidth()+10),240);
     this->boxOutputsUI->correctSize(this->boxOutputsUI->getWidth()-8, 450);
