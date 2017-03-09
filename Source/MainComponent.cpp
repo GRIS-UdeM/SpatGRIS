@@ -20,57 +20,9 @@ MainContentComponent::MainContentComponent(){
 
     LookAndFeel::setDefaultLookAndFeel(&mGrisFeel);
     
+    
     listSpeaker = std::vector<Speaker *>();
-    
-    
-    /*listSpeaker.push_back(new Speaker(glm::vec3(5,0.5,0)));
-    listSpeaker.push_back(new Speaker(glm::vec3(5,3,0)));
-    listSpeaker.push_back(new Speaker(glm::vec3(4,6,0)));
-    listSpeaker.push_back(new Speaker(glm::vec3(3,8,0)));
-    
-    
-    listSpeaker.push_back(new Speaker(glm::vec3(-5,0.5,0)));
-    listSpeaker.push_back(new Speaker(glm::vec3(-5,3,0)));
-    listSpeaker.push_back(new Speaker(glm::vec3(-4,6,0)));
-    listSpeaker.push_back(new Speaker(glm::vec3(-3,8,0)));
-    
-    listSpeaker.push_back(new Speaker(glm::vec3(0,0.5,5)));
-    listSpeaker.push_back(new Speaker(glm::vec3(0,3,5)));
-    listSpeaker.push_back(new Speaker(glm::vec3(0,6,4)));
-    listSpeaker.push_back(new Speaker(glm::vec3(0,8,3)));
-    
-    listSpeaker.push_back(new Speaker(glm::vec3(0,0.5,-5)));
-    listSpeaker.push_back(new Speaker(glm::vec3(0,3,-5)));
-    listSpeaker.push_back(new Speaker(glm::vec3(0,6,-4)));
-    listSpeaker.push_back(new Speaker(glm::vec3(0,8,-3)));
-    
-    
-    
-    listSpeaker.push_back(new Speaker(glm::vec3(5,0.5,5)));
-    listSpeaker.push_back(new Speaker(glm::vec3(5,3,5)));
-    listSpeaker.push_back(new Speaker(glm::vec3(4,6,4)));
-    listSpeaker.push_back(new Speaker(glm::vec3(3,8,3)));
-    
-    listSpeaker.push_back(new Speaker(glm::vec3(5,0.5,-5)));
-    listSpeaker.push_back(new Speaker(glm::vec3(5,3,-5)));
-    listSpeaker.push_back(new Speaker(glm::vec3(4,6,-4)));
-    listSpeaker.push_back(new Speaker(glm::vec3(3,8,-3)));
-    
-    
-    
-    listSpeaker.push_back(new Speaker(glm::vec3(-5,0.5,5)));
-    listSpeaker.push_back(new Speaker(glm::vec3(-5,3,5)));
-    listSpeaker.push_back(new Speaker(glm::vec3(-4,6,4)));
-    listSpeaker.push_back(new Speaker(glm::vec3(-3,8,3)));
-    
-    listSpeaker.push_back(new Speaker(glm::vec3(-5,0.5,-5)));
-    listSpeaker.push_back(new Speaker(glm::vec3(-5,3,-5)));
-    listSpeaker.push_back(new Speaker(glm::vec3(-4,6,-4)));
-    listSpeaker.push_back(new Speaker(glm::vec3(-3,8,-3)));*/
-    
-    
    
-    
     this->rightLabel = new Label();
     this->rightLabel->setText("RIGHT", NotificationType::dontSendNotification);
     
@@ -87,16 +39,16 @@ MainContentComponent::MainContentComponent(){
     this->addAndMakeVisible (verticalDividerBar);
 
     
+    this->setSize (1200, 600);
+
+    
+    openXmlFile("/Users/gris/Documents/GRIS/zirkonium/ZirkSpeakers_Dome 16 UdeM.xml");
+    
     
     
     // #1: this is not working with jack with non-built-in audio devices
     //        setAudioChannels (2, 2);
     
-    this->setSize (1200, 600);
-
-    
-    
-    openXmlFile("/Users/gris/Documents/GRIS/zirkonium/ZirkSpeakers_Dome 16 UdeM.xml");
     //Start JACK
     /*this->jackClient = new jackClientGris();
     
@@ -114,16 +66,10 @@ MainContentComponent::~MainContentComponent() {
     }
     listSpeaker.clear();
     
-   
     delete this->rightLabel;
     delete this->speakerView;
     //shutdownAudio();
 }
-
-/*
-vector<Speaker *> MainContentComponent::getListSpeaker() {
-    return this->listSpeaker;
-}*/
 
 
 void MainContentComponent::openXmlFile(String path)

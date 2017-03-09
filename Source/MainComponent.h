@@ -43,8 +43,7 @@ public:
     MainContentComponent();
     ~MainContentComponent();
     
-    
-    //vector<Speaker *> getListSpeaker();
+   
     //=======================================================================
     void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
     
@@ -64,7 +63,7 @@ private:
     
     void openXmlFile(String path);
     //==============================================================================
-    
+
     jackClientGris *jackClient;
     
     StretchableLayoutManager verticalLayout;

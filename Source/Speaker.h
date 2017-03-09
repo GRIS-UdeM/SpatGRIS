@@ -22,25 +22,12 @@
 #include "../../GrisCommonFiles/GrisLookAndFeel.h"
 
 
-const glm::vec3 colorSpeaker = glm::vec3(0.85, 0.86, 0.87);
-const glm::vec3 colorSpeakerSelect = glm::vec3(1.0, 0.66, 0.67);
-const glm::vec3 sizeSpeaker = glm::vec3(0.5, 0.5, 0.5);
+static const glm::vec3 colorSpeaker = glm::vec3(0.85, 0.86, 0.87);
+static const glm::vec3 colorSpeakerSelect = glm::vec3(1.0, 0.66, 0.67);
+static const glm::vec3 sizeSpeaker = glm::vec3(0.5, 0.5, 0.5);
 
 using namespace std;
 
-
-static double radNormalizePi(float x){
-    x = fmod(x,M_PI/4.0f);
-    if (x < 0)
-        x += M_PI/4.0f;
-    return x;
-}
-static double radNormalize2Pi(float x){
-    x = fmod(x,2*M_PI);
-    if (x < 0)
-        x += 2*M_PI;
-    return x;
-}
 
 static double GetFloatPrecision(double value, double precision)
 {
@@ -50,28 +37,32 @@ static double GetFloatPrecision(double value, double precision)
 class Speaker : public Component,
                 public TextEditor::Listener
 {
-    
-
 public:
     
     Speaker();
     Speaker(glm::vec3 center, glm::vec3 extents = sizeSpeaker);
     ~Speaker();
     
-    glm::vec3 getMin();
-    glm::vec3 getMax();
-    glm::vec3 getCenter();
-    
-    bool isValid();
-    void fix();
-    
     bool isSelected();
     void selectSpeaker();
     void unSelectSpeaker();
     
+    //Normalise for user =================================
+    glm::vec3 getCoordinate();
+    glm::vec3 getAziZenRad();
+    
+    
+    
+    //OpenGL ==============================================
+    glm::vec3 getMin();
+    glm::vec3 getMax();
+    glm::vec3 getCenter();
+
+    bool isValid();
+    void fix();
     void draw() ;
     
-    //Juce=================================================
+    //Juce =================================================
     void focusOfChildComponentChanged (FocusChangeType cause);
     void focusLost (FocusChangeType cause);
 

@@ -9,7 +9,7 @@
 #include "Speaker.h"
 
 Speaker::Speaker(){
-
+    Speaker(glm::vec3(0,0,0));
 }
 
 Speaker::Speaker(glm::vec3 center, glm::vec3 extents) {
@@ -22,6 +22,7 @@ Speaker::Speaker(glm::vec3 center, glm::vec3 extents) {
     label->setText("X", NotificationType::dontSendNotification);
     label->setFont(mGrisFeel.getFont());
     label->setLookAndFeel(&mGrisFeel);
+    label->setColour(Label::textColourId, mGrisFeel.getFontColour());
     this->addAndMakeVisible(label);
     
     
@@ -56,7 +57,6 @@ Speaker::Speaker(glm::vec3 center, glm::vec3 extents) {
     teRadius->addListener(this);
     this->addAndMakeVisible(teRadius);
 
-
 }
 
 Speaker::~Speaker(){
@@ -68,6 +68,14 @@ Speaker::~Speaker(){
     delete teAzimuth;
     delete teZenith;
     delete teRadius;
+}
+
+
+glm::vec3 Speaker::getCoordinate(){
+    return this->center /10.0f ;
+}
+glm::vec3 Speaker::getAziZenRad(){
+    return glm::vec3(this->aziZenRad.x, this->aziZenRad.y, this->aziZenRad.z/10.0f);
 }
 
 void Speaker::focusOfChildComponentChanged (FocusChangeType cause){
@@ -114,7 +122,6 @@ void Speaker::textEditorReturnKeyPressed (TextEditor &textEditor) {
         this->newSpheriqueCoord(newAziZenRad);
     }
 
-    
     teCenterX->setText(String(this->center.x/10.0f), NotificationType::dontSendNotification);
     teCenterZ->setText(String(this->center.y/10.0f), NotificationType::dontSendNotification);
     teCenterY->setText(String(this->center.z/10.0f), NotificationType::dontSendNotification);
@@ -123,12 +130,9 @@ void Speaker::textEditorReturnKeyPressed (TextEditor &textEditor) {
     teZenith->setText(String(this->aziZenRad.y), NotificationType::dontSendNotification);
     teRadius->setText(String(this->aziZenRad.z/10.0f), NotificationType::dontSendNotification);
 
-
-
 }
 void Speaker::paint (Graphics& g)
 {
-
     label->setBounds(2, 2, 20, getHeight());
     teCenterX->setBounds(22, 2, 66, 22);
     teCenterY->setBounds(90, 2, 66, 22);
@@ -145,11 +149,6 @@ void Speaker::paint (Graphics& g)
         g.setColour (c);
         g.drawRect (0,0,getWidth(),getHeight(),1);
     }
-    /*Colour c = Colours::black;
-    g.setColour (c.withMultipliedAlpha (0.3f));
-    g.fillAll ();
-    g.setColour (c);
-    g.drawRect (0,0,getWidth(),getHeight(),1);*/
 }
 
 glm::vec3 Speaker::getMin() {
@@ -243,16 +242,12 @@ void Speaker::newPosition(glm::vec3 center, glm::vec3 extents)
 void Speaker::newSpheriqueCoord(glm::vec3 aziZenRad, glm::vec3 extents){
     glm::vec3 nCenter;
 
-    aziZenRad.y = -90.0f+aziZenRad.y;
-
     aziZenRad.x = abs( (aziZenRad.x * M_PI ) / 180.0f) ;
-    aziZenRad.y = abs( (aziZenRad.y * M_PI ) / 180.0f);
-    //aziZenRad.x = radNormalize2Pi(aziZenRad.x);
-    //aziZenRad.y = radNormalizePi(aziZenRad.y);
+    aziZenRad.y = abs( ((-90.0f+aziZenRad.y) * M_PI ) / 180.0f);
     
-    nCenter.x = GetFloatPrecision(aziZenRad.z * sin(aziZenRad.y)*cos(aziZenRad.x), 6);
-    nCenter.z = GetFloatPrecision(aziZenRad.z * sin(aziZenRad.y)*sin(aziZenRad.x), 6);
-    nCenter.y = GetFloatPrecision(aziZenRad.z * cos(aziZenRad.y), 6);
+    nCenter.x = GetFloatPrecision(aziZenRad.z * sinf(aziZenRad.y)*cosf(aziZenRad.x), 6);
+    nCenter.z = GetFloatPrecision(aziZenRad.z * sinf(aziZenRad.y)*sinf(aziZenRad.x), 6);
+    nCenter.y = GetFloatPrecision(aziZenRad.z * cosf(aziZenRad.y), 6);
     
     this->newPosition(nCenter);
 }
@@ -361,7 +356,6 @@ void Speaker::draw() {
         glEnd();
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
-    
-    
+
     glPopMatrix();
 }

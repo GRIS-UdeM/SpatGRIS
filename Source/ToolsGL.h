@@ -21,7 +21,6 @@
 using namespace std;
 
 
-
 class Ray {
 public :
     Ray() {
@@ -31,7 +30,7 @@ public :
     }
     
     Ray(glm::vec3 p, glm::vec3 d) {
-        this->position = p;//glm::vec3(p.x, p.y, p.z);
+        this->position = p;
         this->direction = d;
         this->normal = (this->direction - this->position)/5000.0f;//normalize(glm::vec3(d.x, d.y, d.z));
     }

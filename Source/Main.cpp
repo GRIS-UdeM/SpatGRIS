@@ -79,7 +79,6 @@ public:
 
             centreWithSize (getWidth(), getHeight());
             setVisible (true);
-     
         }
 
         void closeButtonPressed() override

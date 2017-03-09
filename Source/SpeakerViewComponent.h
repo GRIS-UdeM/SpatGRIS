@@ -36,6 +36,8 @@ using namespace std;
 
 extern vector<Speaker *> listSpeaker;
 
+static const int nbrGridLines = 16;
+
 class SpeakerViewComponent : public OpenGLAppComponent {
 public:
     //==============================================================================
