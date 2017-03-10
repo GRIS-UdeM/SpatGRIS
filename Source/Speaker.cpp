@@ -7,12 +7,14 @@
 //
 
 #include "Speaker.h"
+#include "MainComponent.h"
 
-Speaker::Speaker(int idS){
-    Speaker(idS, idS, glm::vec3(0,0,0));
+Speaker::Speaker(MainContentComponent *parent, int idS){
+    Speaker(parent, idS, idS, glm::vec3(0,0,0));
 }
 
-Speaker::Speaker(int idS,int outP, glm::vec3 center, glm::vec3 extents) {
+Speaker::Speaker(MainContentComponent *parent, int idS,int outP, glm::vec3 center, glm::vec3 extents) {
+    this->mainParent = parent;
     this->idSpeaker = idS;
     this->outputPatch = outP;
     LookAndFeel::setDefaultLookAndFeel(&mGrisFeel);
@@ -211,11 +213,12 @@ bool Speaker::isSelected(){
 
 void Speaker::selectSpeaker()
 {
-    for (std::vector< Speaker * >::iterator it = listSpeaker.begin() ; it != listSpeaker.end(); ++it)
-    {
-        (*it)->unSelectSpeaker();
+    this->mainParent->getLockSpeakers()->try_lock();
+    for(int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
+        this->mainParent->getListSpeaker()[i]->unSelectSpeaker();
     }
-
+    this->mainParent->getLockSpeakers()->unlock();
+    
     this->color = colorSpeakerSelect;
     this->selected = true;
     this->repaint();

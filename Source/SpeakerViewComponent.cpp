@@ -17,13 +17,14 @@
 
 
 #include "SpeakerViewComponent.h"
+#include "MainComponent.h"
 
 //==========================================================================================
 // ACTUAL SPEAKER VIEW CLASS DEFS
 //==========================================================================================
-SpeakerViewComponent::SpeakerViewComponent() {
+SpeakerViewComponent::SpeakerViewComponent(MainContentComponent *parent) {
     //openGLContext.setMultisamplingEnabled (true);
-    
+    this->mainParent = parent;
     perspectivCam = glm::vec4(80.0, (16.0/9.0), 0.5, 45);
     setSize(400, 400);
     
@@ -91,10 +92,12 @@ void SpeakerViewComponent::render() {
     
 
     drawOriginGrid();
-
-    for(int i = 0; i < listSpeaker.size(); ++i) {
-        listSpeaker[i]->draw();
+    
+    this->mainParent->getLockSpeakers()->lock();
+    for(int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
+        this->mainParent->getListSpeaker()[i]->draw();
     }
+    this->mainParent->getLockSpeakers()->unlock();
     
     //Draw Sphere : Use many CPU
    /* glPushMatrix();
@@ -147,29 +150,29 @@ void SpeakerViewComponent::mouseDown (const MouseEvent& e) {
         gluUnProject(winX, winY, 0.0, matModelView, matProjection,viewport, &xS, &yS,&zS);
         gluUnProject(winX, winY, 1.0, matModelView, matProjection, viewport, &xE, &yE, &zE);
         
-        r = Ray(glm::vec3(xS, yS, zS),glm::vec3(xE, yE, zE));
+        ray = Ray(glm::vec3(xS, yS, zS),glm::vec3(xE, yE, zE));
         
         int iBestSpeaker = -1;
-        for(int i = 0; i < listSpeaker.size(); ++i) {
-            if (ToolsGL::Raycast(r, *listSpeaker[i]) != -1 ) {
+        for(int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
+            if (raycast( this->mainParent->getListSpeaker()[i]) != -1 ) {
                 if(iBestSpeaker == -1){
                     iBestSpeaker = i;
                 }else{
-                    if(ToolsGL::speakerNearCam(listSpeaker[i]->getCenter(), listSpeaker[iBestSpeaker]->getCenter(), camPos)){
+                    if(speakerNearCam(this->mainParent->getListSpeaker()[i]->getCenter(), this->mainParent->getListSpeaker()[iBestSpeaker]->getCenter(), camPos)){
                         iBestSpeaker = i;
                     }
                 }
             }
         }
         
-        for(int i = 0; i < listSpeaker.size(); ++i) {
+        for(int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
             if(i!=iBestSpeaker)
             {
-                listSpeaker[i]->unSelectSpeaker();
+                this->mainParent->getListSpeaker()[i]->unSelectSpeaker();
             }else{
-                listSpeaker[i]->selectSpeaker();
+                this->mainParent->getListSpeaker()[i]->selectSpeaker();
             }
-            listSpeaker[i]->repaint();
+            this->mainParent->getListSpeaker()[i]->repaint();
         }
     }
 }
@@ -348,3 +351,39 @@ void SpeakerViewComponent::drawCube(float x, float y, float z)
     
     glTranslatef(-x, -y, -z);
 }
+
+
+float SpeakerViewComponent::raycast(Speaker *speaker) {
+    float t1 = (speaker->getMin().x - ray.getPosition().x) / ray.getNormal().x;
+    float t2 = (speaker->getMax().x - ray.getPosition().x) / ray.getNormal().x;
+    float t3 = (speaker->getMin().y - ray.getPosition().y) / ray.getNormal().y;
+    float t4 = (speaker->getMax().y - ray.getPosition().y) / ray.getNormal().y;
+    float t5 = (speaker->getMin().z - ray.getPosition().z) / ray.getNormal().z;
+    float t6 = (speaker->getMax().z - ray.getPosition().z) / ray.getNormal().z;
+    
+    float tmin = fmax(fmax(fmin(t1, t2), fmin(t3, t4)), fmin(t5, t6));
+    float tmax = fmin(fmin(fmax(t1, t2), fmax(t3, t4)), fmax(t5, t6));
+    
+    // if tmax < 0, ray (line) is intersecting AABB, but whole AABB is behing us
+    if (tmax < 0) {
+        return -1;
+    }
+    
+    // if tmin > tmax, ray doesn't intersect AABB
+    if (tmin > tmax) {
+        return -1;
+    }
+    
+    if (tmin < 0.0f) {
+        return tmax;
+    }
+    return tmin;
+}
+
+
+
+bool SpeakerViewComponent::speakerNearCam(glm::vec3 speak1, glm::vec3 speak2, glm::vec3 cam){
+    return (sqrt( exp2(speak1.x - cam.x) + exp2(speak1.y - cam.y) +exp2(speak1.z - cam.z) ) <=
+            sqrt( exp2(speak2.x - cam.x) + exp2(speak2.y - cam.y) +exp2(speak2.z - cam.z) ));
+}
+

@@ -21,7 +21,8 @@
 #define STRING2(x) #x
 #define STRING(x) STRING2(x)
 
-Component* createMainContentComponent();
+#include "MainComponent.h"
+
 
 //==============================================================================
 class spatServerGRISApplication  : public JUCEApplication
@@ -78,7 +79,7 @@ public:
             String version = STRING(JUCE_APP_VERSION);
             version = "SpatServer GRIS : "+version;
             setName(version);
-            setContentOwned (createMainContentComponent(), true);
+            setContentOwned (new MainContentComponent(), true);
             setResizable (true, true);
 
             centreWithSize (getWidth(), getHeight());

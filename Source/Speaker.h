@@ -21,6 +21,8 @@
 
 #include "../../GrisCommonFiles/GrisLookAndFeel.h"
 
+class MainContentComponent;
+
 
 static const glm::vec3 colorSpeaker = glm::vec3(0.85, 0.86, 0.87);
 static const glm::vec3 colorSpeakerSelect = glm::vec3(1.0, 0.66, 0.67);
@@ -40,8 +42,9 @@ class Speaker : public Component,
 {
 public:
     
-    Speaker(int idS = 1);
-    Speaker(int idS = -1, int outP = -1, glm::vec3 center = defaultCenter, glm::vec3 extents = sizeSpeaker);
+    Speaker(MainContentComponent *parent = nullptr, int idS = 1);
+    Speaker(MainContentComponent *parent = nullptr, int idS = -1,
+            int outP = -1, glm::vec3 center = defaultCenter, glm::vec3 extents = sizeSpeaker);
     ~Speaker();
     
     bool isSelected();
@@ -88,6 +91,7 @@ private :
     
     bool selected = false;
     
+    MainContentComponent *mainParent;
     Label *label;
     TextEditor *teCenterX;
     TextEditor *teCenterY;
@@ -100,7 +104,8 @@ private :
     TextEditor *teOutputPatch;
     
     GrisLookAndFeel mGrisFeel;
+    
 };
 
-extern vector<Speaker *> listSpeaker;
+
 #endif /* Speaker_h */

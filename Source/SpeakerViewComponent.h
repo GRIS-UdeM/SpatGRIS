@@ -27,21 +27,23 @@
 
 #include <math.h>
 
+#include "Ray.h"
 
-#include "ToolsGL.h"
-#include "Speaker.h"
+
+class MainContentComponent;
+class Speaker;
 
 
 using namespace std;
 
-extern vector<Speaker *> listSpeaker;
 
 static const int nbrGridLines = 16;
+
 
 class SpeakerViewComponent : public OpenGLAppComponent {
 public:
     //==============================================================================
-    SpeakerViewComponent();
+    SpeakerViewComponent(MainContentComponent *parent = nullptr);
     
     ~SpeakerViewComponent();
     
@@ -63,7 +65,10 @@ public:
     
     
 private:
-
+    
+    float raycast(Speaker *speaker);
+    bool speakerNearCam(glm::vec3 speak1, glm::vec3 speak2, glm::vec3 cam);
+    
     void drawBackground();
     void drawOriginGrid();
     void drawText( string val, glm::vec3 position, bool camLock = true);
@@ -77,7 +82,8 @@ private:
     float deltaClickX;
     float deltaClickY;
     
-    Ray r;
+    Ray ray;
+    MainContentComponent *mainParent;
     glm::vec3 camPos;
     glm::vec4 perspectivCam;
     String nameConfig = "...";

@@ -11,7 +11,6 @@
 		04B1D6DC1AF6E333CC14FF67 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FF05A796E8F9F15C80DA1F42 /* IOKit.framework */; };
 		04CF901E6DCE0A68232B9454 /* Main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2116513B99CFF9F0DCC85055 /* Main.cpp */; };
 		082189A3147E4D9BF465BE2B /* juce_audio_devices.mm in Sources */ = {isa = PBXBuildFile; fileRef = F7C70F69BBB1F67E3273C729 /* juce_audio_devices.mm */; };
-		0D2F863A1E676EC3002E2F93 /* ToolsGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D2F86381E676EC3002E2F93 /* ToolsGL.cpp */; };
 		0D76540CEB135C65E2C77E42 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A49E2EA8DC00B3CFBC3B8FC /* Cocoa.framework */; };
 		0DB3F8991E4BDAEE00B41CCF /* Jackmp in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DB3F8981E4BDAEE00B41CCF /* Jackmp */; };
 		0DBCE89E1E68D10A00ED7634 /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DBCE89D1E68D10A00ED7634 /* GLUT.framework */; };
@@ -96,8 +95,7 @@
 		0CA183E0BD935F99C9D13006 /* juce_TextDiff.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_TextDiff.h; path = ../../JuceLibraryCode/modules/juce_core/text/juce_TextDiff.h; sourceTree = SOURCE_ROOT; };
 		0D0F144A717EB80B8FC0AF66 /* juce_QuickTimeMovieComponent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_QuickTimeMovieComponent.h; path = ../../JuceLibraryCode/modules/juce_video/playback/juce_QuickTimeMovieComponent.h; sourceTree = SOURCE_ROOT; };
 		0D17833E1E71EF2800EA078F /* UiComponent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = UiComponent.h; path = ../../Source/UiComponent.h; sourceTree = "<group>"; };
-		0D2F86381E676EC3002E2F93 /* ToolsGL.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ToolsGL.cpp; path = ../../Source/ToolsGL.cpp; sourceTree = "<group>"; };
-		0D2F86391E676EC3002E2F93 /* ToolsGL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ToolsGL.h; path = ../../Source/ToolsGL.h; sourceTree = "<group>"; };
+		0D2F86391E676EC3002E2F93 /* Ray.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Ray.h; path = ../../Source/Ray.h; sourceTree = "<group>"; };
 		0DAEE47D7405B9E5383EA97F /* juce_RelativePointPath.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_RelativePointPath.h; path = ../../JuceLibraryCode/modules/juce_gui_basics/positioning/juce_RelativePointPath.h; sourceTree = SOURCE_ROOT; };
 		0DB3F8981E4BDAEE00B41CCF /* Jackmp */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = Jackmp; path = ../../jack/lib/Jackmp; sourceTree = "<group>"; };
 		0DBCE89D1E68D10A00ED7634 /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = System/Library/Frameworks/GLUT.framework; sourceTree = SDKROOT; };
@@ -2857,8 +2855,7 @@
 				8280A25BF8F41A8E7ED31EE6 /* SpeakerViewComponent.h */,
 				E1D7954498022C0D9253C924 /* SpeakerViewComponent.cpp */,
 				2116513B99CFF9F0DCC85055 /* Main.cpp */,
-				0D2F86381E676EC3002E2F93 /* ToolsGL.cpp */,
-				0D2F86391E676EC3002E2F93 /* ToolsGL.h */,
+				0D2F86391E676EC3002E2F93 /* Ray.h */,
 				0DBCE89F1E68DA3900ED7634 /* Speaker.cpp */,
 				0DBCE8A01E68DA3900ED7634 /* Speaker.h */,
 				0D17833E1E71EF2800EA078F /* UiComponent.h */,
@@ -2937,11 +2934,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0D2F863A1E676EC3002E2F93 /* ToolsGL.cpp in Sources */,
 				D9ABB7BC8BFB59D392B6C505 /* jackClientGRIS.cpp in Sources */,
 				55024BBBD9BD507767A097E2 /* MainComponent.cpp in Sources */,
-				73F1AE184D3099A045FE8A3C /* SpeakerViewComponent.cpp in Sources */,
 				04CF901E6DCE0A68232B9454 /* Main.cpp in Sources */,
+				73F1AE184D3099A045FE8A3C /* SpeakerViewComponent.cpp in Sources */,
 				E66BF49B899FAA4750F25B9A /* BinaryData.cpp in Sources */,
 				263229798B4469E2D47B669F /* juce_audio_basics.mm in Sources */,
 				082189A3147E4D9BF465BE2B /* juce_audio_devices.mm in Sources */,
@@ -2987,11 +2983,12 @@
 		B019F3E391720C8D81D3D0DF /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
-				CLANG_LINK_OBJC_RUNTIME = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "compiler-default";
+				CLANG_LINK_OBJC_RUNTIME = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				CONFIGURATION_BUILD_DIR = "$(PROJECT_DIR)/build/$(CONFIGURATION)";
 				COPY_PHASE_STRIP = NO;
+				ENABLE_TESTABILITY = YES;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -3001,6 +2998,7 @@
 					"JUCE_APP_VERSION=0.0.1",
 					"JUCE_APP_VERSION_HEX=0x1",
 				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = (
 					../../JuceLibraryCode,
@@ -3017,6 +3015,10 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MACOSX_DEPLOYMENT_TARGET_ppc = 10.4;
+				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = YES;
+				PRIVATE_HEADERS_FOLDER_PATH = "";
+				PUBLIC_HEADERS_FOLDER_PATH = "";
+				SCAN_ALL_SOURCE_FILES_FOR_INCLUDES = NO;
 				SDKROOT_ppc = macosx10.5;
 			};
 			name = Debug;
@@ -3024,8 +3026,8 @@
 		CA305892D6AF814BE9BCB32C /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
-				CLANG_LINK_OBJC_RUNTIME = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "compiler-default";
+				CLANG_LINK_OBJC_RUNTIME = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				CONFIGURATION_BUILD_DIR = "$(PROJECT_DIR)/build/$(CONFIGURATION)";
 				DEAD_CODE_STRIPPING = YES;
@@ -3038,7 +3040,7 @@
 					"JUCE_APP_VERSION=0.0.1",
 					"JUCE_APP_VERSION_HEX=0x1",
 				);
-				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = (
 					../../JuceLibraryCode,
@@ -3049,6 +3051,10 @@
 				INSTALL_PATH = "$(HOME)/Applications";
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				MACOSX_DEPLOYMENT_TARGET_ppc = 10.4;
+				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = YES;
+				PRIVATE_HEADERS_FOLDER_PATH = "";
+				PUBLIC_HEADERS_FOLDER_PATH = "";
+				SCAN_ALL_SOURCE_FILES_FOR_INCLUDES = NO;
 				SDKROOT_ppc = macosx10.5;
 			};
 			name = Release;

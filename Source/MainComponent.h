@@ -24,17 +24,19 @@
 
 #include "../../GrisCommonFiles/GrisLookAndFeel.h"
 
+
 #include "jackClientGRIS.h"
 #include "Speaker.h"
 #include "SpeakerViewComponent.h"
 #include "UiComponent.h"
 
 
+
 #ifndef USE_JACK
 #define USE_JACK 0
 #endif
 
-vector<Speaker *> listSpeaker;
+
 using namespace std;
 //==============================================================================
 /*
@@ -48,7 +50,8 @@ public:
     MainContentComponent();
     ~MainContentComponent();
     
-   
+    vector<Speaker *> getListSpeaker() { return this->listSpeaker; }
+    mutex* getLockSpeakers(){ return this->lockSpeakers; }
     //=======================================================================
     void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
     
@@ -76,11 +79,14 @@ private:
     StretchableLayoutManager verticalLayout;
     ScopedPointer<StretchableLayoutResizerBar> verticalDividerBar;
     
-    GrisLookAndFeel mGrisFeel;
+    vector<Speaker *> listSpeaker;
+    mutex *lockSpeakers;
+
     
     String nameConfig;
   
     //UI Components---------------------------
+    GrisLookAndFeel mGrisFeel;
     SpeakerViewComponent *speakerView;
     
     Box * boxInputsUI;
@@ -94,10 +100,6 @@ private:
 };
 
 
-// (This function is called by the app startup code to create our main component)
-Component* createMainContentComponent(){
-    return new MainContentComponent();
-}
-
-
 #endif  // MAINCOMPONENT_H_INCLUDED
+
+

@@ -21,10 +21,10 @@ MainContentComponent::MainContentComponent(){
     LookAndFeel::setDefaultLookAndFeel(&mGrisFeel);
     
     
-    listSpeaker = std::vector<Speaker *>();
-   
+    this->listSpeaker = std::vector<Speaker *>();
+    this->lockSpeakers = new mutex();
     //SpeakerViewComponent 3D VIEW------------------------------
-    this->speakerView= new SpeakerViewComponent();
+    this->speakerView= new SpeakerViewComponent(this);
     this->addAndMakeVisible (speakerView);
     
     //BOX Inputs------------------------------------------------
@@ -78,12 +78,6 @@ MainContentComponent::MainContentComponent(){
 }
 
 MainContentComponent::~MainContentComponent() {
-
-    for (std::vector< Speaker * >::iterator it = listSpeaker.begin() ; it != listSpeaker.end(); ++it)
-    {
-        delete (*it);
-    }
-    listSpeaker.clear();
     
     delete this->boxInputsUI;
     delete this->boxOutputsUI;
@@ -92,11 +86,20 @@ MainContentComponent::~MainContentComponent() {
     delete this->labelJackStatus;
     delete this->speakerView;
     
+    this->lockSpeakers->lock();
+    for (std::vector< Speaker * >::iterator it = listSpeaker.begin() ; it != listSpeaker.end(); ++it)
+    {
+        delete (*it);
+    }
+    listSpeaker.clear();
+    this->lockSpeakers->unlock();
+    
     #if USE_JACK
     shutdownAudio();
     delete  this->jackClient;
     #endif
 }
+
 
 
 void MainContentComponent::openXmlFile(String path)
@@ -123,7 +126,7 @@ void MainContentComponent::openXmlFile(String path)
                         if (spk->hasTagName ("Speaker"))
                         {
                             
-                            listSpeaker.push_back(new Speaker(spk->getIntAttribute("LayoutIndex"),
+                            listSpeaker.push_back(new Speaker(this, spk->getIntAttribute("LayoutIndex"),
                                                               spk->getIntAttribute("OutputPatch"),
                                                               glm::vec3(spk->getDoubleAttribute("PositionX")*10.0f,
                                                                         spk->getDoubleAttribute("PositionZ")*10.0f,
