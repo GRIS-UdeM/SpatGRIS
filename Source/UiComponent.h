@@ -39,12 +39,14 @@ public:
     void correctSize(int width, int height){
         if(this->title!=""){
             this->viewport->setTopLeftPosition(0, 20);
+            this->content->setSize(width, height+20);
 
         }else{
             this->viewport->setTopLeftPosition(0, 0);
+            this->content->setSize(width, height);
 
         }
-        this->content->setSize(width, height);
+        
     }
     
     Component * getContent() {

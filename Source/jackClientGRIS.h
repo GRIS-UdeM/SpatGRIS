@@ -38,7 +38,9 @@
 class jackClientGris {
 public:
     jack_client_t *client;
-    jack_port_t *input_port, *output_port1, *output_port2;
+    jack_port_t *input_port;
+    jack_port_t *output_port1;
+    jack_port_t *output_port2;
     
     //    float sine[TABLE_SIZE];
     std::vector<double> sine;

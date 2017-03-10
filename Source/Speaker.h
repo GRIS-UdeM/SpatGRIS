@@ -25,6 +25,7 @@
 static const glm::vec3 colorSpeaker = glm::vec3(0.85, 0.86, 0.87);
 static const glm::vec3 colorSpeakerSelect = glm::vec3(1.0, 0.66, 0.67);
 static const glm::vec3 sizeSpeaker = glm::vec3(0.5, 0.5, 0.5);
+static const glm::vec3 defaultCenter = glm::vec3(0, 0, 0);
 
 using namespace std;
 
@@ -39,8 +40,8 @@ class Speaker : public Component,
 {
 public:
     
-    Speaker();
-    Speaker(glm::vec3 center, glm::vec3 extents = sizeSpeaker);
+    Speaker(int idS = 1);
+    Speaker(int idS = -1, int outP = -1, glm::vec3 center = defaultCenter, glm::vec3 extents = sizeSpeaker);
     ~Speaker();
     
     bool isSelected();
@@ -82,6 +83,9 @@ private :
     glm::vec3 aziZenRad;
     glm::vec3 color = colorSpeaker;
     
+    int idSpeaker = -1;
+    int outputPatch = -1;
+    
     bool selected = false;
     
     Label *label;
@@ -93,6 +97,7 @@ private :
     TextEditor *teZenith;
     TextEditor *teRadius;
     
+    TextEditor *teOutputPatch;
     
     GrisLookAndFeel mGrisFeel;
 };

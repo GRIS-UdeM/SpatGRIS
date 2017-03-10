@@ -8,18 +8,20 @@
 
 #include "Speaker.h"
 
-Speaker::Speaker(){
-    Speaker(glm::vec3(0,0,0));
+Speaker::Speaker(int idS){
+    Speaker(idS, idS, glm::vec3(0,0,0));
 }
 
-Speaker::Speaker(glm::vec3 center, glm::vec3 extents) {
+Speaker::Speaker(int idS,int outP, glm::vec3 center, glm::vec3 extents) {
+    this->idSpeaker = idS;
+    this->outputPatch = outP;
     LookAndFeel::setDefaultLookAndFeel(&mGrisFeel);
     
     //Load position
     this->newPosition(center, extents);
 
     label = new Label();
-    label->setText("X", NotificationType::dontSendNotification);
+    label->setText(String(this->idSpeaker), NotificationType::dontSendNotification);
     label->setFont(mGrisFeel.getFont());
     label->setLookAndFeel(&mGrisFeel);
     label->setColour(Label::textColourId, mGrisFeel.getFontColour());
@@ -56,6 +58,13 @@ Speaker::Speaker(glm::vec3 center, glm::vec3 extents) {
     teRadius->setText(String(this->aziZenRad.z/10.0f), NotificationType::dontSendNotification);
     teRadius->addListener(this);
     this->addAndMakeVisible(teRadius);
+    
+    teOutputPatch = new TextEditor();
+    teOutputPatch->setText(String(this->outputPatch), NotificationType::dontSendNotification);
+    teOutputPatch->addListener(this);
+    this->addAndMakeVisible(teOutputPatch);
+
+    
 
 }
 
@@ -68,6 +77,8 @@ Speaker::~Speaker(){
     delete teAzimuth;
     delete teZenith;
     delete teRadius;
+    
+    delete teOutputPatch;
 }
 
 
@@ -125,6 +136,10 @@ void Speaker::textEditorReturnKeyPressed (TextEditor &textEditor) {
         newAziZenRad.z = teRadius->getText().getFloatValue()*10.0f;
         this->newSpheriqueCoord(newAziZenRad);
     }
+    
+    else if(&textEditor == teOutputPatch) {
+       this->outputPatch = teOutputPatch->getText().getIntValue();
+    }
 
     teCenterX->setText(String(this->center.x/10.0f), NotificationType::dontSendNotification);
     teCenterZ->setText(String(this->center.y/10.0f), NotificationType::dontSendNotification);
@@ -145,6 +160,8 @@ void Speaker::paint (Graphics& g)
     teAzimuth->setBounds(230, 2, 66, 22);
     teZenith->setBounds(298, 2, 66, 22);
     teRadius->setBounds(366, 2, 66, 22);
+    
+    teOutputPatch->setBounds(440, 2, 26, 22);
     
     if(this->selected){
         Colour c = mGrisFeel.getOnColour();

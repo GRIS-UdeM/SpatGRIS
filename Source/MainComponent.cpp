@@ -123,7 +123,9 @@ void MainContentComponent::openXmlFile(String path)
                         if (spk->hasTagName ("Speaker"))
                         {
                             
-                            listSpeaker.push_back(new Speaker(glm::vec3(spk->getDoubleAttribute("PositionX")*10.0f,
+                            listSpeaker.push_back(new Speaker(spk->getIntAttribute("LayoutIndex"),
+                                                              spk->getIntAttribute("OutputPatch"),
+                                                              glm::vec3(spk->getDoubleAttribute("PositionX")*10.0f,
                                                                         spk->getDoubleAttribute("PositionZ")*10.0f,
                                                                         spk->getDoubleAttribute("PositionY")*10.0f)));
                  
@@ -143,10 +145,10 @@ void MainContentComponent::openXmlFile(String path)
     Component *compBoxInputs = this->boxInputsUI->getContent();
     for (std::vector< Speaker * >::iterator it = listSpeaker.begin() ; it != listSpeaker.end(); ++it)
     {
-        juce::Rectangle<int> boundsSpeak(2, y,550, 28);
+        juce::Rectangle<int> boundsSpeak(0, y,550, 26);
         (*it)->setBounds(boundsSpeak);
         compBoxInputs->addAndMakeVisible(*it);
-        y+=24;
+        y+=28;
     }
 
     this->resized();
