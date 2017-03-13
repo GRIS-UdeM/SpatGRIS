@@ -22,7 +22,7 @@ MainContentComponent::MainContentComponent(){
     
     
     this->listSpeaker = vector<Speaker *>();
-    this->listLevelComp = vector<LevelBox *>();
+    this->listLevelComp = vector<LevelComponent *>();
 
     this->lockSpeakers = new mutex();
     //SpeakerViewComponent 3D VIEW------------------------------
@@ -77,20 +77,20 @@ MainContentComponent::MainContentComponent(){
     
     openXmlFile("/Users/gris/Documents/GRIS/zirkonium/ZirkSpeakers_Dome 16 UdeM.xml");
     
-    for(int i = 0; i < 64; i ++){
-        this->listLevelComp.push_back(new LevelBox(this, &mGrisFeel, i));
+    for(int i = 1; i <= 64; i ++){
+        this->listLevelComp.push_back(new LevelComponent(this, &mGrisFeel, i));
     }
     
     
     
-    int x = 4;
+    int x = 2;
     Component *compBoxInputs = this->boxOutputsUI->getContent();
     for (auto&& it : listLevelComp)
     {
-        juce::Rectangle<int> level(x, 24, 12, 125 );
+        juce::Rectangle<int> level(x, 4, sizeWidthLevelComp, 200);
         it->setBounds(level);
         compBoxInputs->addAndMakeVisible(it);
-        x+=22;
+        x+=sizeWidthLevelComp;
     }
    
     this->resized();
@@ -221,7 +221,7 @@ void MainContentComponent::paint (Graphics& g) {
 
 void MainContentComponent::buttonClicked (Button *button)
 {
-    
+    this->listLevelComp[0]->setVisible(false);
 }
 
 void MainContentComponent::resized() {
@@ -239,23 +239,11 @@ void MainContentComponent::resized() {
     this->boxInputsUI->correctSize(this->boxInputsUI->getWidth()-8, 450);
 
     this->boxOutputsUI->setBounds(speakerView->getWidth()+6, 244, getWidth()-(speakerView->getWidth()+10),240);
-
-    this->boxOutputsUI->correctSize((listLevelComp.size()*23), 200);
+    this->boxOutputsUI->correctSize((listLevelComp.size()*(sizeWidthLevelComp))+4, 210);
     
-
     this->boxControlUI->setBounds(speakerView->getWidth()+6, 488, getWidth()-(speakerView->getWidth()+10), getHeight()-490);
     this->boxControlUI->correctSize(this->boxControlUI->getWidth()-8, 450);
     
-    
-    /*if(listSpeaker.size()!=0){
-        std::vector<Speaker *>::iterator iter = listSpeaker.begin();
-        delete *iter;
-        listSpeaker.erase(iter);
-    }*/
-    /*for (std::vector< Speaker * >::iterator it = listSpeaker.begin() ; it != listSpeaker.end(); ++it)
-    {
-        (*it)->setBounds(r.removeFromTop(26));
-    }*/
-    
+
 }
 

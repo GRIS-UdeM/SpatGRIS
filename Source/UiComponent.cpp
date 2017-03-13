@@ -7,7 +7,7 @@
 //
 
 #include "UiComponent.h"
-#include "MainComponent.h"
+#include "LevelComponent.h"
 
 
 //======================================= BOX ===========================================================================
@@ -27,13 +27,11 @@ Box::Box(GrisLookAndFeel *feel, String title) {
     
     this->viewport->setLookAndFeel(this->grisFeel);
     addAndMakeVisible(this->viewport);
-
 }
 
 Box::~Box(){
     delete this->viewport;
     delete this->content;
-
 }
 
 Component * Box::getContent() {
@@ -74,11 +72,10 @@ void Box::paint(Graphics &g) {
 
 
 //======================================= LevelBox =====================================================================
-LevelBox::LevelBox(MainContentComponent* parent, GrisLookAndFeel *feel, int index):
+LevelBox::LevelBox(LevelComponent * parent, GrisLookAndFeel *feel):
     mainParent(parent),
-    grisFeel(feel),
-    mIndex(index),
-    muted(false){
+    grisFeel(feel)
+{
 
 }
 
@@ -86,9 +83,6 @@ LevelBox::~LevelBox(){
     
 }
 
-void LevelBox::setMute(bool b){
-    muted = b;
-}
 
 void LevelBox::setBounds(const Rectangle<int> &newBounds){
     this->juce::Component::setBounds(newBounds);
@@ -97,11 +91,11 @@ void LevelBox::setBounds(const Rectangle<int> &newBounds){
 }
 
 void LevelBox::paint (Graphics& g){
-    if(muted){
+    if(this->mainParent->isMuted()){
         g.fillAll (grisFeel->getWinBackgroundColour());
-        
-    }else{
-        float level = linearToDb(mainParent->getLevel(mIndex));
+    }
+    else{
+        float level = this->mainParent->getLevel();
         g.setGradientFill(colorGrad);
         g.fillRect(0, 0, getWidth() ,getHeight());
         

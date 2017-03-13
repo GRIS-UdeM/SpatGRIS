@@ -13,8 +13,11 @@
 #include "GrisLookAndFeel.h"
 
 class MainContentComponent;
+class LevelComponent;
 
-//======================================= BOX ===========================================================================
+using namespace std;
+
+//======================================= BOX ========================================
 class Box : public Component
 {
 public:
@@ -24,7 +27,6 @@ public:
     Component * getContent();
     void resized();
     void correctSize(int width, int height);
-
     void paint(Graphics &g) ;
     
 private:
@@ -40,25 +42,20 @@ private:
 
 
 
-
-//======================================= LevelBox =====================================================================
-
+//======================================= LevelBox ===================================
 class LevelBox : public Component
 {
 public:
-    LevelBox(MainContentComponent* parent, GrisLookAndFeel *feel, int index);
+    LevelBox(LevelComponent* parent, GrisLookAndFeel *feel);
     ~LevelBox();
     
-    void setMute(bool b);
     void setBounds(const Rectangle<int> &newBounds);
     void paint (Graphics& g);
     
 private:
-    MainContentComponent *mainParent;
+    LevelComponent *mainParent;
     GrisLookAndFeel *grisFeel;
     ColourGradient colorGrad;
-    int mIndex;
-    bool muted;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LevelBox)
 };
