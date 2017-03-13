@@ -38,6 +38,16 @@
 
 
 using namespace std;
+
+static const float MinLevelComp = -60.f;
+static const float MaxLevelComp = 1.f;
+static const float MaxMinLevComp = MaxLevelComp - MinLevelComp;
+
+
+static inline float linearToDb(float linear) {
+    return log10f(linear) * 20.f;
+}
+
 //==============================================================================
 /*
  This component lives inside our window, and this is where you should put all
@@ -53,6 +63,7 @@ public:
     vector<Speaker *> getListSpeaker() { return this->listSpeaker; }
     mutex* getLockSpeakers(){ return this->lockSpeakers; }
     //=======================================================================
+    float getLevel(int indexLevel){return 1.0f;} //TODO
     void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
     
     void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override;
@@ -81,7 +92,9 @@ private:
     
     vector<Speaker *> listSpeaker;
     mutex *lockSpeakers;
-
+    
+    
+    vector<LevelComponent *> listLevelComp;
     
     String nameConfig;
   

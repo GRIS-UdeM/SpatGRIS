@@ -21,22 +21,24 @@ MainContentComponent::MainContentComponent(){
     LookAndFeel::setDefaultLookAndFeel(&mGrisFeel);
     
     
-    this->listSpeaker = std::vector<Speaker *>();
+    this->listSpeaker = vector<Speaker *>();
+    this->listLevelComp = vector<LevelComponent *>();
+
     this->lockSpeakers = new mutex();
     //SpeakerViewComponent 3D VIEW------------------------------
     this->speakerView= new SpeakerViewComponent(this);
     this->addAndMakeVisible (speakerView);
     
     //BOX Inputs------------------------------------------------
-    this->boxInputsUI = new Box(true, &mGrisFeel, "Inputs~");
+    this->boxInputsUI = new Box(&mGrisFeel, "Inputs~");
     addAndMakeVisible(this->boxInputsUI);
     
     //BOX Outputs-----------------------------------------------
-    this->boxOutputsUI = new Box(true, &mGrisFeel, "Outputs~");
+    this->boxOutputsUI = new Box(&mGrisFeel, "Outputs~");
     addAndMakeVisible(this->boxOutputsUI);
     
     //BOX Control-----------------------------------------------
-    this->boxControlUI = new Box(true, &mGrisFeel);
+    this->boxControlUI = new Box(&mGrisFeel);
     addAndMakeVisible(this->boxControlUI);
 
     
@@ -74,7 +76,23 @@ MainContentComponent::MainContentComponent(){
     
     
     openXmlFile("/Users/gris/Documents/GRIS/zirkonium/ZirkSpeakers_Dome 16 UdeM.xml");
-
+    
+    for(int i = 0; i < 64; i ++){
+        this->listLevelComp.push_back(new LevelComponent(this, &mGrisFeel, i));
+    }
+    
+    
+    
+    int x = 4;
+    Component *compBoxInputs = this->boxOutputsUI->getContent();
+    for (std::vector< LevelComponent * >::iterator it = listLevelComp.begin() ; it != listLevelComp.end(); ++it)
+    {
+        juce::Rectangle<int> level(x, 24, 12, 125 );
+        (*it)->setBounds(level);
+        compBoxInputs->addAndMakeVisible(*it);
+        x+=22;
+    }
+    
 }
 
 MainContentComponent::~MainContentComponent() {
@@ -93,6 +111,13 @@ MainContentComponent::~MainContentComponent() {
     }
     listSpeaker.clear();
     this->lockSpeakers->unlock();
+    delete this->lockSpeakers;
+    
+    for (std::vector< LevelComponent * >::iterator it = listLevelComp.begin() ; it != listLevelComp.end(); ++it)
+    {
+        delete (*it);
+    }
+    listLevelComp.clear();
     
     #if USE_JACK
     shutdownAudio();
@@ -210,7 +235,8 @@ void MainContentComponent::resized() {
     this->boxInputsUI->correctSize(this->boxInputsUI->getWidth()-8, 450);
 
     this->boxOutputsUI->setBounds(speakerView->getWidth()+6, 244, getWidth()-(speakerView->getWidth()+10),240);
-    this->boxOutputsUI->correctSize(this->boxOutputsUI->getWidth()-8, 450);
+    
+    this->boxOutputsUI->correctSize(1500, 200);
 
     this->boxControlUI->setBounds(speakerView->getWidth()+6, 488, getWidth()-(speakerView->getWidth()+10), getHeight()-490);
     this->boxControlUI->correctSize(this->boxControlUI->getWidth()-8, 450);
