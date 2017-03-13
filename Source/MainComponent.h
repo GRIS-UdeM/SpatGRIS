@@ -52,7 +52,8 @@ static inline float linearToDb(float linear) {
  This component lives inside our window, and this is where you should put all
  your controls and content.
  */
-class MainContentComponent   : public AudioAppComponent
+class MainContentComponent   :  public AudioAppComponent,
+                                public Button::Listener
 {
 public:
     //==============================================================================
@@ -74,12 +75,14 @@ public:
     void paint (Graphics& g) override;
     
     void resized() override;
-    void buttonClicked (Button *button);
+    void buttonClicked (Button *button) override;
     
     
 private:
     
-    void openXmlFile(String path);
+    TextButton* addButton(const String &s, int x, int y, int w, int h, Component *into);
+    
+    void openXmlFileSpeaker(String path);
     //==============================================================================
     #if USE_JACK
     jackClientGris *jackClient;
@@ -101,11 +104,14 @@ private:
     GrisLookAndFeel mGrisFeel;
     SpeakerViewComponent *speakerView;
     
+    //3 Main Box---------------------
     Box * boxInputsUI;
     Box * boxOutputsUI;
     Box * boxControlUI;
     
+    //Component in Box 3 -----------
     Label *labelJackStatus;
+    TextButton * butLoadXMLSpeakers;
     
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)

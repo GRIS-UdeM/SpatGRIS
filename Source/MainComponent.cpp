@@ -42,6 +42,8 @@ MainContentComponent::MainContentComponent(){
     addAndMakeVisible(this->boxControlUI);
 
     
+    
+    //Components in BOX 3 ------------------------------------------------------------------
     this->labelJackStatus = new Label();
     this->labelJackStatus->setText("Jack Unknown", NotificationType::dontSendNotification);
     this->labelJackStatus->setFont(mGrisFeel.getFont());
@@ -49,6 +51,9 @@ MainContentComponent::MainContentComponent(){
     this->labelJackStatus->setColour(Label::textColourId, mGrisFeel.getFontColour());
     this->labelJackStatus->setBounds(0, 0, 150, 28);
     this->boxControlUI->getContent()->addAndMakeVisible(this->labelJackStatus);
+    
+    
+    this->butLoadXMLSpeakers = addButton("XML Speakers",4,36,124,28,this->boxControlUI->getContent());
     
 
     // set up the layout and resizer bars
@@ -75,25 +80,22 @@ MainContentComponent::MainContentComponent(){
 #endif
     
     
-    openXmlFile("/Users/gris/Documents/GRIS/zirkonium/ZirkSpeakers_Dome 16 UdeM.xml");
-    
-    for(int i = 1; i <= 64; i ++){
-        this->listLevelComp.push_back(new LevelComponent(this, &mGrisFeel, i));
-    }
+    openXmlFileSpeaker("/Users/gris/Documents/GRIS/zirkonium/ZirkSpeakers_Dome 16 UdeM.xml");
     
     
-    
-    int x = 2;
-    Component *compBoxInputs = this->boxOutputsUI->getContent();
-    for (auto&& it : listLevelComp)
-    {
-        juce::Rectangle<int> level(x, 4, sizeWidthLevelComp, 200);
-        it->setBounds(level);
-        compBoxInputs->addAndMakeVisible(it);
-        x+=sizeWidthLevelComp;
-    }
-   
     this->resized();
+}
+
+TextButton* MainContentComponent::addButton(const String &s, int x, int y, int w, int h, Component *into)
+{
+    TextButton *tb = new TextButton();
+    tb->setButtonText(s);
+    tb->setSize(w, h);
+    tb->setTopLeftPosition(x, y);
+    tb->addListener(this);
+    tb->setLookAndFeel(&mGrisFeel);
+    into->addAndMakeVisible(tb);
+    return tb;
 }
 
 MainContentComponent::~MainContentComponent() {
@@ -103,6 +105,7 @@ MainContentComponent::~MainContentComponent() {
     delete this->boxControlUI;
     
     delete this->labelJackStatus;
+    delete this->butLoadXMLSpeakers;
     delete this->speakerView;
     
     this->lockSpeakers->lock();
@@ -130,13 +133,28 @@ MainContentComponent::~MainContentComponent() {
 
 
 
-void MainContentComponent::openXmlFile(String path)
+void MainContentComponent::openXmlFileSpeaker(String path)
 {
+    this->lockSpeakers->lock();
+    for (auto&& it : listSpeaker)
+    {
+        delete (it);
+    }
+    listSpeaker.clear();
+    this->lockSpeakers->unlock();
+    
+    for (auto&& it : listLevelComp)
+    {
+        delete (it);
+    }
+    listLevelComp.clear();
+
     XmlDocument myDocument (File (path.toStdString()));
     ScopedPointer<XmlElement> mainElement (myDocument.getDocumentElement());
     if (mainElement == nullptr)
     {
-        String error = myDocument.getLastParseError();
+        AlertWindow::showMessageBoxAsync (AlertWindow::AlertIconType::WarningIcon,"Error XML !",
+                                          "Your file is corrupted !\n"+myDocument.getLastParseError(),String(),0);
     }
     else
     {
@@ -160,28 +178,39 @@ void MainContentComponent::openXmlFile(String path)
                                                                         spk->getDoubleAttribute("PositionZ")*10.0f,
                                                                         spk->getDoubleAttribute("PositionY")*10.0f)));
                  
-
+                            this->listLevelComp.push_back(new LevelComponent(this, &mGrisFeel,spk->getIntAttribute("OutputPatch")));
                         }
                     }
                     
                 }
             }
             
+        }else{
+            AlertWindow::showMessageBoxAsync (AlertWindow::AlertIconType::WarningIcon,"Error XML !",
+                                              "SpeakerSetup not found !",String(),0);
         }
         
     }
     
 
     int y = 0;
-    Component *compBoxInputs = this->boxInputsUI->getContent();
-    
     for (auto&& it : listSpeaker)
     {
         juce::Rectangle<int> boundsSpeak(0, y,550, 26);
-        (it)->setBounds(boundsSpeak);
-        compBoxInputs->addAndMakeVisible(it);
+        it->setBounds(boundsSpeak);
+        this->boxInputsUI->getContent()->addAndMakeVisible(it);
         y+=28;
     }
+    
+    int x = 2;
+    for (auto&& it : listLevelComp)
+    {
+        juce::Rectangle<int> level(x, 4, sizeWidthLevelComp, 200);
+        it->setBounds(level);
+        this->boxOutputsUI->getContent()->addAndMakeVisible(it);
+        x+=sizeWidthLevelComp;
+    }
+
 
     this->resized();
 }
@@ -221,7 +250,23 @@ void MainContentComponent::paint (Graphics& g) {
 
 void MainContentComponent::buttonClicked (Button *button)
 {
-    this->listLevelComp[0]->setVisible(false);
+    if(button == this->butLoadXMLSpeakers){
+        
+        FileChooser fc ("Choose a file to open...",File::getCurrentWorkingDirectory(),"*.xml",true);
+        if (fc.browseForFileToOpen())
+        {
+            String chosen = fc.getResults().getReference(0).getFullPathName();
+            int r = AlertWindow::showOkCancelBox (AlertWindow::AlertIconType::WarningIcon,"Open XML !",
+                                          "You want to load : "+chosen+"\nEverything not saved will be lost !",
+                                                  String(),String(),0);
+            //Click OK -> Open xml
+            if(r==1){
+                this->openXmlFileSpeaker(chosen);
+            }
+        }
+    }
+    
+    
 }
 
 void MainContentComponent::resized() {
@@ -236,7 +281,7 @@ void MainContentComponent::resized() {
     
 
     this->boxInputsUI->setBounds(speakerView->getWidth()+6, 2, getWidth()-(speakerView->getWidth()+10),240);
-    this->boxInputsUI->correctSize(this->boxInputsUI->getWidth()-8, 450);
+    this->boxInputsUI->correctSize(this->boxInputsUI->getWidth()-8, (this->listSpeaker.size()*28)+4);//Not important
 
     this->boxOutputsUI->setBounds(speakerView->getWidth()+6, 244, getWidth()-(speakerView->getWidth()+10),240);
     this->boxOutputsUI->correctSize((listLevelComp.size()*(sizeWidthLevelComp))+4, 210);

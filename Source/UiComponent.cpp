@@ -49,9 +49,13 @@ void Box::correctSize(int width, int height){
     if(this->title!=""){
         this->viewport->setTopLeftPosition(0, 20);
         this->viewport->setSize(getWidth(), getHeight()-20);
+        if(width<20){
+            width = 20;
+        }
     }else{
         this->viewport->setTopLeftPosition(0, 0);
     }
+
     this->getContent()->setSize(width, height);
 }
 
