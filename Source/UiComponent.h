@@ -60,5 +60,25 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LevelBox)
 };
 
+//======================================= Window Edit Speaker===========================
+class WindowEditSpeaker : public DocumentWindow
+{
+public:
+    WindowEditSpeaker(const String& name, Colour backgroundColour, int buttonsNeeded, MainContentComponent * parent, GrisLookAndFeel * feel);
+    ~WindowEditSpeaker();
+    
+    void initComp();
+    void closeButtonPressed();
+    
+private:
+    MainContentComponent *mainParent;
+    GrisLookAndFeel *grisFeel;
+    Box * boxListSpeaker;
+    Label *labColumn;
+    
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (WindowEditSpeaker)
+};
+
+
 #endif /* UiComponent_h */
 

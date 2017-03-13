@@ -25,6 +25,8 @@ MainContentComponent::MainContentComponent(){
     this->listLevelComp = vector<LevelComponent *>();
 
     this->lockSpeakers = new mutex();
+    
+    this->winSpeakConfig = nullptr;
     //SpeakerViewComponent 3D VIEW------------------------------
     this->speakerView= new SpeakerViewComponent(this);
     this->addAndMakeVisible (speakerView);
@@ -44,16 +46,13 @@ MainContentComponent::MainContentComponent(){
     
     
     //Components in BOX 3 ------------------------------------------------------------------
-    this->labelJackStatus = new Label();
-    this->labelJackStatus->setText("Jack Unknown", NotificationType::dontSendNotification);
-    this->labelJackStatus->setFont(mGrisFeel.getFont());
-    this->labelJackStatus->setLookAndFeel(&mGrisFeel);
-    this->labelJackStatus->setColour(Label::textColourId, mGrisFeel.getFontColour());
-    this->labelJackStatus->setBounds(0, 0, 150, 28);
-    this->boxControlUI->getContent()->addAndMakeVisible(this->labelJackStatus);
-    
+    this->labelJackStatus = addLabel("Jack Unknown",0, 0, 150, 28,this->boxControlUI->getContent());
     
     this->butLoadXMLSpeakers = addButton("XML Speakers",4,36,124,28,this->boxControlUI->getContent());
+    
+    this->butEditableSpeakers = addButton("Edit Speakers",4,70,124,28,this->boxControlUI->getContent());
+    
+    
     
 
     // set up the layout and resizer bars
@@ -79,11 +78,24 @@ MainContentComponent::MainContentComponent(){
     }
 #endif
     
-    
+
     openXmlFileSpeaker("/Users/gris/Documents/GRIS/zirkonium/ZirkSpeakers_Dome 16 UdeM.xml");
     
-    
     this->resized();
+}
+
+
+Label* MainContentComponent::addLabel(const String &s, int x, int y, int w, int h, Component *into)
+{
+    Label *lb = new Label();
+    lb->setText(s, NotificationType::dontSendNotification);
+    lb->setJustificationType(Justification::left);
+    lb->setFont(mGrisFeel.getFont());
+    lb->setLookAndFeel(&mGrisFeel);
+    lb->setColour(Label::textColourId, mGrisFeel.getFontColour());
+    lb->setBounds(x, y, w, h);
+    into->addAndMakeVisible(lb);
+    return lb;
 }
 
 TextButton* MainContentComponent::addButton(const String &s, int x, int y, int w, int h, Component *into)
@@ -100,11 +112,15 @@ TextButton* MainContentComponent::addButton(const String &s, int x, int y, int w
 
 MainContentComponent::~MainContentComponent() {
     
+    if(this->winSpeakConfig != nullptr){
+        delete this->winSpeakConfig;
+    }
     delete this->boxInputsUI;
     delete this->boxOutputsUI;
     delete this->boxControlUI;
     
     delete this->labelJackStatus;
+    delete this->butEditableSpeakers;
     delete this->butLoadXMLSpeakers;
     delete this->speakerView;
     
@@ -193,14 +209,14 @@ void MainContentComponent::openXmlFileSpeaker(String path)
     }
     
 
-    int y = 0;
+    /*int y = 0;
     for (auto&& it : listSpeaker)
     {
         juce::Rectangle<int> boundsSpeak(0, y,550, 26);
         it->setBounds(boundsSpeak);
         this->boxInputsUI->getContent()->addAndMakeVisible(it);
         y+=28;
-    }
+    }*/
     
     int x = 2;
     for (auto&& it : listLevelComp)
@@ -264,6 +280,21 @@ void MainContentComponent::buttonClicked (Button *button)
                 this->openXmlFileSpeaker(chosen);
             }
         }
+    }else if(button == this->butEditableSpeakers){
+    
+        if(this->winSpeakConfig != nullptr){
+            delete this->winSpeakConfig;
+        }
+        this->winSpeakConfig = new WindowEditSpeaker("Speakers config", this->mGrisFeel.getWinBackgroundColour(),DocumentWindow::allButtons, this, &this->mGrisFeel);
+        
+        Rectangle<int> result (this->getScreenX()+ this->speakerView->getWidth(),this->getScreenY(),600,480);
+        this->winSpeakConfig->setBounds (result);
+        this->winSpeakConfig->setResizable (true, true);
+        this->winSpeakConfig->setUsingNativeTitleBar (true);
+        this->winSpeakConfig->setVisible (true);
+        
+        this->winSpeakConfig->initComp();
+        
     }
     
     
@@ -274,19 +305,19 @@ void MainContentComponent::resized() {
     Rectangle<int> r (getLocalBounds().reduced (2));
     
     // lay out the list box and vertical divider..
-    Component* vcomps[] = { speakerView, verticalDividerBar, nullptr };
+    Component* vcomps[] = { this->speakerView, this->verticalDividerBar, nullptr };
     
     // lay out side-by-side and resize the components' heights as well as widths
-    verticalLayout.layOutComponents (vcomps, 3, r.getX(), r.getY(), r.getWidth(), r.getHeight(), false, true);
+    this->verticalLayout.layOutComponents (vcomps, 3, r.getX(), r.getY(), r.getWidth(), r.getHeight(), false, true);
     
 
-    this->boxInputsUI->setBounds(speakerView->getWidth()+6, 2, getWidth()-(speakerView->getWidth()+10),240);
-    this->boxInputsUI->correctSize(this->boxInputsUI->getWidth()-8, (this->listSpeaker.size()*28)+4);//Not important
+    this->boxInputsUI->setBounds(this->speakerView->getWidth()+6, 2, getWidth()-(this->speakerView->getWidth()+10),240);
+    this->boxInputsUI->correctSize(this->boxInputsUI->getWidth()-8, 210);//Not important
 
-    this->boxOutputsUI->setBounds(speakerView->getWidth()+6, 244, getWidth()-(speakerView->getWidth()+10),240);
-    this->boxOutputsUI->correctSize((listLevelComp.size()*(sizeWidthLevelComp))+4, 210);
+    this->boxOutputsUI->setBounds(this->speakerView->getWidth()+6, 244, getWidth()-(this->speakerView->getWidth()+10),240);
+    this->boxOutputsUI->correctSize((this->listLevelComp.size()*(sizeWidthLevelComp))+4, 210);
     
-    this->boxControlUI->setBounds(speakerView->getWidth()+6, 488, getWidth()-(speakerView->getWidth()+10), getHeight()-490);
+    this->boxControlUI->setBounds(this->speakerView->getWidth()+6, 488, getWidth()-(this->speakerView->getWidth()+10), getHeight()-490);
     this->boxControlUI->correctSize(this->boxControlUI->getWidth()-8, 450);
     
 

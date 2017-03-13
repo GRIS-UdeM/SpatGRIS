@@ -70,7 +70,7 @@ public:
     
     void releaseResources() override;
     
-    
+    void destroyWinSpeakConf() { this->winSpeakConfig = nullptr; }
     //=======================================================================
     void paint (Graphics& g) override;
     
@@ -79,31 +79,31 @@ public:
     
     
 private:
-    
+    Label*      addLabel(const String &s, int x, int y, int w, int h, Component *into);
     TextButton* addButton(const String &s, int x, int y, int w, int h, Component *into);
-    
+
     void openXmlFileSpeaker(String path);
+    
     //==============================================================================
     #if USE_JACK
     jackClientGris *jackClient;
     #endif
     
     
-    StretchableLayoutManager verticalLayout;
-    ScopedPointer<StretchableLayoutResizerBar> verticalDividerBar;
-    
     vector<Speaker *> listSpeaker;
     mutex *lockSpeakers;
     
-    
     vector<LevelComponent *> listLevelComp;
-    
     String nameConfig;
-  
+    
+    
     //UI Components---------------------------
+    StretchableLayoutManager verticalLayout;
+    ScopedPointer<StretchableLayoutResizerBar> verticalDividerBar;
     GrisLookAndFeel mGrisFeel;
     SpeakerViewComponent *speakerView;
     
+    WindowEditSpeaker* winSpeakConfig;
     //3 Main Box---------------------
     Box * boxInputsUI;
     Box * boxOutputsUI;
@@ -112,7 +112,7 @@ private:
     //Component in Box 3 -----------
     Label *labelJackStatus;
     TextButton * butLoadXMLSpeakers;
-    
+    TextButton * butEditableSpeakers;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
 };

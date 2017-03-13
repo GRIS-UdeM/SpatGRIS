@@ -8,7 +8,7 @@
 
 #include "UiComponent.h"
 #include "LevelComponent.h"
-
+#include "MainComponent.h"
 
 //======================================= BOX ===========================================================================
 Box::Box(GrisLookAndFeel *feel, String title) {
@@ -112,5 +112,55 @@ void LevelBox::paint (Graphics& g){
             g.fillRect(0, 0, getWidth() ,(int)(getHeight()*(level/MinLevelComp)));
         }
     }
+}
+
+
+//======================================= Window Edit Speaker============================================================
+
+WindowEditSpeaker::WindowEditSpeaker(const String& name, Colour backgroundColour, int buttonsNeeded,
+                                     MainContentComponent * parent, GrisLookAndFeel * feel):
+    DocumentWindow (name, backgroundColour, buttonsNeeded)
+{
+    this->mainParent = parent;
+    this->grisFeel = feel;
+    
+}
+WindowEditSpeaker::~WindowEditSpeaker(){
+    delete this->labColumn;
+    delete this->boxListSpeaker;
+    this->mainParent->destroyWinSpeakConf();
+}
+void WindowEditSpeaker::initComp(){
+    this->boxListSpeaker = new Box(this->grisFeel, "Configuration Speakers");
+    this->setContentComponent(this->boxListSpeaker);
+    
+    this->labColumn = new Label();
+    this->labColumn->setText("X                   Y                   Z                       Azimuth         Zenith          Radius          #",
+                             NotificationType::dontSendNotification);
+    this->labColumn->setJustificationType(Justification::left);
+    this->labColumn->setFont(this->grisFeel->getFont());
+    this->labColumn->setLookAndFeel(this->grisFeel);
+    this->labColumn->setColour(Label::textColourId, this->grisFeel->getFontColour());
+    this->labColumn->setBounds(25, 0, getWidth(), 22);
+    this->boxListSpeaker->getContent()->addAndMakeVisible(this->labColumn);
+    
+    int y = 18;
+    for (auto&& it : this->mainParent->getListSpeaker())
+    {
+        juce::Rectangle<int> boundsSpeak(0, y,550, 26);
+        it->setBounds(boundsSpeak);
+        this->boxListSpeaker->getContent()->addAndMakeVisible(it);
+        y+=28;
+    }
+    
+    
+    this->boxListSpeaker->setBounds(0, 0, getWidth(),getHeight());
+    this->boxListSpeaker->correctSize(getWidth()-8, (this->mainParent->getListSpeaker().size()*28)+50);
+}
+
+void WindowEditSpeaker::closeButtonPressed()
+{
+
+    delete this;
 }
 
