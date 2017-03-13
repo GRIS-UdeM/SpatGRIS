@@ -22,7 +22,7 @@ MainContentComponent::MainContentComponent(){
     
     
     this->listSpeaker = vector<Speaker *>();
-    this->listLevelComp = vector<LevelComponent *>();
+    this->listLevelComp = vector<LevelBox *>();
 
     this->lockSpeakers = new mutex();
     //SpeakerViewComponent 3D VIEW------------------------------
@@ -78,21 +78,22 @@ MainContentComponent::MainContentComponent(){
     openXmlFile("/Users/gris/Documents/GRIS/zirkonium/ZirkSpeakers_Dome 16 UdeM.xml");
     
     for(int i = 0; i < 64; i ++){
-        this->listLevelComp.push_back(new LevelComponent(this, &mGrisFeel, i));
+        this->listLevelComp.push_back(new LevelBox(this, &mGrisFeel, i));
     }
     
     
     
     int x = 4;
     Component *compBoxInputs = this->boxOutputsUI->getContent();
-    for (std::vector< LevelComponent * >::iterator it = listLevelComp.begin() ; it != listLevelComp.end(); ++it)
+    for (auto&& it : listLevelComp)
     {
         juce::Rectangle<int> level(x, 24, 12, 125 );
-        (*it)->setBounds(level);
-        compBoxInputs->addAndMakeVisible(*it);
+        it->setBounds(level);
+        compBoxInputs->addAndMakeVisible(it);
         x+=22;
     }
-    
+   
+    this->resized();
 }
 
 MainContentComponent::~MainContentComponent() {
@@ -105,19 +106,21 @@ MainContentComponent::~MainContentComponent() {
     delete this->speakerView;
     
     this->lockSpeakers->lock();
-    for (std::vector< Speaker * >::iterator it = listSpeaker.begin() ; it != listSpeaker.end(); ++it)
+    for (auto&& it : listSpeaker)
     {
-        delete (*it);
+        delete (it);
     }
     listSpeaker.clear();
     this->lockSpeakers->unlock();
     delete this->lockSpeakers;
     
-    for (std::vector< LevelComponent * >::iterator it = listLevelComp.begin() ; it != listLevelComp.end(); ++it)
+    
+    for (auto&& it : listLevelComp)
     {
-        delete (*it);
+        delete (it);
     }
     listLevelComp.clear();
+    
     
     #if USE_JACK
     shutdownAudio();
@@ -171,11 +174,12 @@ void MainContentComponent::openXmlFile(String path)
 
     int y = 0;
     Component *compBoxInputs = this->boxInputsUI->getContent();
-    for (std::vector< Speaker * >::iterator it = listSpeaker.begin() ; it != listSpeaker.end(); ++it)
+    
+    for (auto&& it : listSpeaker)
     {
         juce::Rectangle<int> boundsSpeak(0, y,550, 26);
-        (*it)->setBounds(boundsSpeak);
-        compBoxInputs->addAndMakeVisible(*it);
+        (it)->setBounds(boundsSpeak);
+        compBoxInputs->addAndMakeVisible(it);
         y+=28;
     }
 
@@ -235,8 +239,9 @@ void MainContentComponent::resized() {
     this->boxInputsUI->correctSize(this->boxInputsUI->getWidth()-8, 450);
 
     this->boxOutputsUI->setBounds(speakerView->getWidth()+6, 244, getWidth()-(speakerView->getWidth()+10),240);
+
+    this->boxOutputsUI->correctSize((listLevelComp.size()*23), 200);
     
-    this->boxOutputsUI->correctSize(1500, 200);
 
     this->boxControlUI->setBounds(speakerView->getWidth()+6, 488, getWidth()-(speakerView->getWidth()+10), getHeight()-490);
     this->boxControlUI->correctSize(this->boxControlUI->getWidth()-8, 450);

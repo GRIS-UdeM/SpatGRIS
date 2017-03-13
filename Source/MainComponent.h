@@ -94,7 +94,7 @@ private:
     mutex *lockSpeakers;
     
     
-    vector<LevelComponent *> listLevelComp;
+    vector<LevelBox *> listLevelComp;
     
     String nameConfig;
   

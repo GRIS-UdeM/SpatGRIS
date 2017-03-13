@@ -41,13 +41,13 @@ private:
 
 
 
-//======================================= LevelComponent =====================================================================
+//======================================= LevelBox =====================================================================
 
-class LevelComponent : public Component
+class LevelBox : public Component
 {
 public:
-    LevelComponent(MainContentComponent* parent, GrisLookAndFeel *feel, int index);
-    ~LevelComponent();
+    LevelBox(MainContentComponent* parent, GrisLookAndFeel *feel, int index);
+    ~LevelBox();
     
     void setMute(bool b);
     void setBounds(const Rectangle<int> &newBounds);
@@ -60,7 +60,7 @@ private:
     int mIndex;
     bool muted;
     
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LevelComponent)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LevelBox)
 };
 
 #endif /* UiComponent_h */

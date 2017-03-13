@@ -73,8 +73,8 @@ void Box::paint(Graphics &g) {
 
 
 
-//======================================= LevelComponent =====================================================================
-LevelComponent::LevelComponent(MainContentComponent* parent, GrisLookAndFeel *feel, int index):
+//======================================= LevelBox =====================================================================
+LevelBox::LevelBox(MainContentComponent* parent, GrisLookAndFeel *feel, int index):
     mainParent(parent),
     grisFeel(feel),
     mIndex(index),
@@ -82,21 +82,21 @@ LevelComponent::LevelComponent(MainContentComponent* parent, GrisLookAndFeel *fe
 
 }
 
-LevelComponent::~LevelComponent(){
+LevelBox::~LevelBox(){
     
 }
 
-void LevelComponent::setMute(bool b){
+void LevelBox::setMute(bool b){
     muted = b;
 }
 
-void LevelComponent::setBounds(const Rectangle<int> &newBounds){
+void LevelBox::setBounds(const Rectangle<int> &newBounds){
     this->juce::Component::setBounds(newBounds);
     colorGrad = ColourGradient(Colours::red, 0.f, 0.f, Colour::fromRGB(17, 255, 159), 0.f, getHeight(), false);
     colorGrad.addColour(0.1, Colours::yellow);
 }
 
-void LevelComponent::paint (Graphics& g){
+void LevelBox::paint (Graphics& g){
     if(muted){
         g.fillAll (grisFeel->getWinBackgroundColour());
         
