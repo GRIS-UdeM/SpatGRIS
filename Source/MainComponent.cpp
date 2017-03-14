@@ -20,7 +20,6 @@ MainContentComponent::MainContentComponent(){
 
     LookAndFeel::setDefaultLookAndFeel(&mGrisFeel);
     
-    
     this->listSpeaker = vector<Speaker *>();
     this->listLevelComp = vector<LevelComponent *>();
 
@@ -46,11 +45,11 @@ MainContentComponent::MainContentComponent(){
     
     
     //Components in BOX 3 ------------------------------------------------------------------
-    this->labelJackStatus = addLabel("Jack Unknown",0, 0, 150, 28,this->boxControlUI->getContent());
+    this->labelJackStatus = addLabel("Jack Unknown","",0, 0, 150, 28,this->boxControlUI->getContent());
     
-    this->butLoadXMLSpeakers = addButton("XML Speakers",4,36,124,28,this->boxControlUI->getContent());
+    this->butLoadXMLSpeakers = addButton("XML Speakers","Load Xml File Coniguration",4,36,124,28,this->boxControlUI->getContent());
     
-    this->butEditableSpeakers = addButton("Edit Speakers",4,70,124,28,this->boxControlUI->getContent());
+    this->butEditableSpeakers = addButton("Edit Speakers","Edit position of spkeakers",4,70,124,28,this->boxControlUI->getContent());
     
     
     
@@ -85,10 +84,11 @@ MainContentComponent::MainContentComponent(){
 }
 
 
-Label* MainContentComponent::addLabel(const String &s, int x, int y, int w, int h, Component *into)
+Label* MainContentComponent::addLabel(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into)
 {
     Label *lb = new Label();
     lb->setText(s, NotificationType::dontSendNotification);
+    lb->setTooltip (stooltip);
     lb->setJustificationType(Justification::left);
     lb->setFont(mGrisFeel.getFont());
     lb->setLookAndFeel(&mGrisFeel);
@@ -98,9 +98,10 @@ Label* MainContentComponent::addLabel(const String &s, int x, int y, int w, int 
     return lb;
 }
 
-TextButton* MainContentComponent::addButton(const String &s, int x, int y, int w, int h, Component *into)
+TextButton* MainContentComponent::addButton(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into)
 {
     TextButton *tb = new TextButton();
+    tb->setTooltip (stooltip);
     tb->setButtonText(s);
     tb->setSize(w, h);
     tb->setTopLeftPosition(x, y);
@@ -147,7 +148,63 @@ MainContentComponent::~MainContentComponent() {
     #endif
 }
 
+void MainContentComponent::addSpeaker(){
+    this->lockSpeakers->lock();
+    int idNewSpeaker = listSpeaker.size()+1;
+    this->listSpeaker.push_back(new Speaker(this, idNewSpeaker, idNewSpeaker, glm::vec3(0.0f, 0.0f, 0.0f)));
+    this->listLevelComp.push_back(new LevelComponent(this, &mGrisFeel,idNewSpeaker));
+    
+   /* juce::Rectangle<int> level(((this->listLevelComp.size()-1)*sizeWidthLevelComp)+2, 4, sizeWidthLevelComp, 200);
+    this->listLevelComp[idNewSpeaker-1]->setBounds(level);
+    this->boxOutputsUI->getContent()->addAndMakeVisible(this->listLevelComp[idNewSpeaker-1]);*/
+    this->lockSpeakers->unlock();
+    /*this->boxOutputsUI->repaint();
+    this->resized();*/
+    updateLevelComp();
+}
 
+void MainContentComponent::removeSpeaker(int idSpeaker){
+
+    this->lockSpeakers->lock();
+    int index = 0;
+    for (auto&& it : this->listSpeaker)
+    {
+        if(index == idSpeaker){
+            delete (it);
+            this->listSpeaker.erase(this->listSpeaker.begin() + idSpeaker);
+
+        }
+        index+=1;
+    }
+    index = 0;
+    for (auto&& it : this->listLevelComp)
+    {
+        if(index == idSpeaker){
+            delete (it);
+            this->listLevelComp.erase(this->listLevelComp.begin()+idSpeaker);
+        }
+        index+=1;
+    }
+    this->lockSpeakers->unlock();
+    updateLevelComp();
+
+}
+
+void MainContentComponent::updateLevelComp(){
+    int x = 2;
+    int indexS = 0;
+    for (auto&& it : this->listLevelComp)
+    {
+        it->setOutputLab(String(this->listSpeaker[indexS]->getOutputPatch()));
+        juce::Rectangle<int> level(x, 4, sizeWidthLevelComp, 200);
+        it->setBounds(level);
+        this->boxOutputsUI->getContent()->addAndMakeVisible(it);
+        x+=sizeWidthLevelComp;
+        indexS+=1;
+    }
+    this->boxOutputsUI->repaint();
+    this->resized();
+}
 
 void MainContentComponent::openXmlFileSpeaker(String path)
 {
@@ -188,7 +245,7 @@ void MainContentComponent::openXmlFileSpeaker(String path)
                         if (spk->hasTagName ("Speaker"))
                         {
                             
-                            listSpeaker.push_back(new Speaker(this, spk->getIntAttribute("LayoutIndex"),
+                            this->listSpeaker.push_back(new Speaker(this, spk->getIntAttribute("LayoutIndex"),
                                                               spk->getIntAttribute("OutputPatch"),
                                                               glm::vec3(spk->getDoubleAttribute("PositionX")*10.0f,
                                                                         spk->getDoubleAttribute("PositionZ")*10.0f,
@@ -209,26 +266,7 @@ void MainContentComponent::openXmlFileSpeaker(String path)
     }
     
 
-    /*int y = 0;
-    for (auto&& it : listSpeaker)
-    {
-        juce::Rectangle<int> boundsSpeak(0, y,550, 26);
-        it->setBounds(boundsSpeak);
-        this->boxInputsUI->getContent()->addAndMakeVisible(it);
-        y+=28;
-    }*/
-    
-    int x = 2;
-    for (auto&& it : listLevelComp)
-    {
-        juce::Rectangle<int> level(x, 4, sizeWidthLevelComp, 200);
-        it->setBounds(level);
-        this->boxOutputsUI->getContent()->addAndMakeVisible(it);
-        x+=sizeWidthLevelComp;
-    }
-
-
-    this->resized();
+    updateLevelComp();
 }
 
 
@@ -285,7 +323,7 @@ void MainContentComponent::buttonClicked (Button *button)
         if(this->winSpeakConfig == nullptr){
             this->winSpeakConfig = new WindowEditSpeaker("Speakers config", this->mGrisFeel.getWinBackgroundColour(),DocumentWindow::allButtons, this, &this->mGrisFeel);
             
-            Rectangle<int> result (this->getScreenX()+ this->speakerView->getWidth(),this->getScreenY(),600,480);
+            Rectangle<int> result (this->getScreenX()+ this->speakerView->getWidth()+22,this->getScreenY(),600,480);
             this->winSpeakConfig->setBounds (result);
             this->winSpeakConfig->setResizable (true, true);
             this->winSpeakConfig->setUsingNativeTitleBar (true);

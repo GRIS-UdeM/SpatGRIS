@@ -130,6 +130,7 @@ WindowEditSpeaker::~WindowEditSpeaker(){
     //delete this->labColumn;
     //delete this->boxListSpeaker;
     delete this->toggleShowSphere;
+    delete this->butAddSpeaker;
     this->mainParent->destroyWinSpeakConf();
 }
 void WindowEditSpeaker::initComp(){
@@ -164,6 +165,8 @@ void WindowEditSpeaker::initComp(){
     
     tableListSpeakers.getHeader().addColumn("Output", 8, 40, 40, 60,TableHeaderComponent::defaultFlags);
     
+    tableListSpeakers.getHeader().addColumn("delete", 9, 40, 40, 60,TableHeaderComponent::defaultFlags);
+    
     tableListSpeakers.getHeader().setSortColumnId (1, true); // sort forwards by the ID column
     //tableListSpeakers.getHeader().setColumnVisible (7, false);
     
@@ -174,7 +177,7 @@ void WindowEditSpeaker::initComp(){
 
     
     this->boxListSpeaker->setBounds(0, 0, getWidth(),getHeight());
-    this->boxListSpeaker->correctSize(getWidth()-8, (this->mainParent->getListSpeaker().size()*28)+50);
+    this->boxListSpeaker->correctSize(getWidth()-8, getHeight());
     tableListSpeakers.setSize(getWidth(), 400);
     
     tableListSpeakers.updateContent();
@@ -188,15 +191,39 @@ void WindowEditSpeaker::initComp(){
     this->toggleShowSphere->setLookAndFeel(this->grisFeel);
     this->boxListSpeaker->getContent()->addAndMakeVisible(this->toggleShowSphere);
     
-    //tableListSpeakers.repaint();
+    
+    this->butAddSpeaker = new TextButton();
+    this->butAddSpeaker->setButtonText("Add Speaker");
+    this->butAddSpeaker->setBounds(4, 404, 88, 22);
+    this->butAddSpeaker->addListener(this);
+    this->butAddSpeaker->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
+    this->butAddSpeaker->setLookAndFeel(this->grisFeel);
+    this->boxListSpeaker->getContent()->addAndMakeVisible(this->butAddSpeaker);
+    
+    
+    
+    this->boxListSpeaker->repaint();
+    this->boxListSpeaker->resized();
 }
 
 void WindowEditSpeaker::buttonClicked(Button *button){
+    
     if (button == this->toggleShowSphere) {
         this->mainParent->setShowShepre(this->toggleShowSphere->getToggleState());
-        //this->muted = this->boxListSpeaker->getToggleState();
-        //this->boxListSpeaker->repaint();
     }
+    else if (button == this->butAddSpeaker) {
+        this->mainParent->addSpeaker();
+        numRows =this->mainParent->getListSpeaker().size();
+        tableListSpeakers.updateContent();
+    }
+    
+    if( button->getName() != "" && (button->getName().getIntValue()>=0 && button->getName().getIntValue()<= this->mainParent->getListSpeaker().size())){
+
+        this->mainParent->removeSpeaker(button->getName().getIntValue());
+        numRows =this->mainParent->getListSpeaker().size();
+        tableListSpeakers.updateContent();
+    }
+    
 }
 
 
@@ -223,10 +250,10 @@ String WindowEditSpeaker::getText (const int columnNumber, const int rowNumber) 
                 text =String(this->mainParent->getListSpeaker()[rowNumber]->getCoordinate().x);
                 break;
             case 3 :
-                text =String(this->mainParent->getListSpeaker()[rowNumber]->getCoordinate().y);
+                text =String(this->mainParent->getListSpeaker()[rowNumber]->getCoordinate().z);
                 break;
             case 4 :
-                text =String(this->mainParent->getListSpeaker()[rowNumber]->getCoordinate().z);
+                text =String(this->mainParent->getListSpeaker()[rowNumber]->getCoordinate().y);
                 break;
                 
             case 5 :
@@ -242,7 +269,6 @@ String WindowEditSpeaker::getText (const int columnNumber, const int rowNumber) 
             case 8 :
                 text =String(this->mainParent->getListSpeaker()[rowNumber]->getOutputPatch());
                 break;
-                
             default:
                 text ="?";
         }
@@ -268,12 +294,12 @@ void WindowEditSpeaker::setText (const int columnNumber, const int rowNumber, co
                 break;
             case 3 :
                 newP = this->mainParent->getListSpeaker()[rowNumber]->getCoordinate();
-                newP.y = newText.getFloatValue();
+                newP.z = newText.getFloatValue();
                 this->mainParent->getListSpeaker()[rowNumber]->setCoordinate(newP);
                 break;
             case 4 :
                 newP = this->mainParent->getListSpeaker()[rowNumber]->getCoordinate();
-                newP.z = newText.getFloatValue();
+                newP.y = newText.getFloatValue();
                 this->mainParent->getListSpeaker()[rowNumber]->setCoordinate(newP);
                 break;
                 
@@ -295,6 +321,7 @@ void WindowEditSpeaker::setText (const int columnNumber, const int rowNumber, co
                 
             case 8 :
                 this->mainParent->getListSpeaker()[rowNumber]->setOutputPatch(newText.getIntValue());
+                this->mainParent->updateLevelComp();
                 break;
                 
         }
@@ -351,7 +378,19 @@ void WindowEditSpeaker::paintCell (Graphics& g, int rowNumber, int columnId, int
 Component* WindowEditSpeaker::refreshComponentForCell (int rowNumber, int columnId, bool /*isRowSelected*/,
                                     Component* existingComponentToUpdate)
 {
-    
+    if(columnId==9){
+        TextButton* tbRemove = static_cast<TextButton*> (existingComponentToUpdate);
+        if (tbRemove == nullptr)
+            tbRemove = new TextButton ();
+        tbRemove->setButtonText("X");
+        tbRemove->setName(String(rowNumber));
+        tbRemove->setBounds(4, 404, 88, 22);
+        tbRemove->addListener(this);
+        tbRemove->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
+        tbRemove->setLookAndFeel(this->grisFeel);
+        //tbRemove->getContent()->addAndMakeVisible(this->butAddSpeaker);
+        return tbRemove;
+    }
     // The other columns are editable text columns, for which we use the custom Label component
     EditableTextCustomComponent* textLabel = static_cast<EditableTextCustomComponent*> (existingComponentToUpdate);
     

@@ -25,6 +25,7 @@ public:
     LevelComponent(MainContentComponent* parent, GrisLookAndFeel *feel, int id=-1);
     ~LevelComponent();
     
+    void setOutputLab(String value) { this->indexLab->setText(value, dontSendNotification); }
     float getLevel();
     bool isMuted();
     void buttonClicked(Button *button);

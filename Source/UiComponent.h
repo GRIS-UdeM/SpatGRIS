@@ -91,12 +91,14 @@ private:
     MainContentComponent *mainParent;
     GrisLookAndFeel *grisFeel;
     Box * boxListSpeaker;
+    
     Label *labColumn;
     ToggleButton *toggleShowSphere;
+    TextButton *butAddSpeaker;
     
     TableListBox tableListSpeakers;
     Font font;
-     int numRows;
+    int numRows;
     
     
     class EditableTextCustomComponent  : public Label
@@ -104,32 +106,24 @@ private:
     public:
         EditableTextCustomComponent (WindowEditSpeaker& td)  : owner (td)
         {
-            // double click to edit the label text; single click handled below
             setEditable (false, true, false);
             setColour (textColourId, Colours::black);
         }
-        
         void mouseDown (const MouseEvent& event) override
         {
-            // single click on the label should simply select the row
             owner.tableListSpeakers.selectRowsBasedOnModifierKeys (row, event.mods, false);
-            
             Label::mouseDown (event);
         }
-        
         void textWasEdited() override
         {
             owner.setText (columnId, row, getText());
         }
-        
-        // Our demo code will call this when we may need to update our contents
-        void setRowAndColumn (const int newRow, const int newColumn)
+       void setRowAndColumn (const int newRow, const int newColumn)
         {
             row = newRow;
             columnId = newColumn;
             setText (owner.getText(columnId, row), dontSendNotification);
         }
-        
     private:
         WindowEditSpeaker& owner;
         int row, columnId;

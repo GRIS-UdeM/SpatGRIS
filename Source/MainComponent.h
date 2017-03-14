@@ -64,6 +64,9 @@ public:
     mutex* getLockSpeakers(){ return this->lockSpeakers; }
     
     void setShowShepre(bool value){ this->speakerView->setShowSphere(value); }
+    void addSpeaker();
+    void removeSpeaker(int idSpeaker);
+    void updateLevelComp();
     //=======================================================================
     float getLevel(int indexLevel){return 0.85f;} //TODO
     void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
@@ -81,11 +84,12 @@ public:
     
     
 private:
-    Label*      addLabel(const String &s, int x, int y, int w, int h, Component *into);
-    TextButton* addButton(const String &s, int x, int y, int w, int h, Component *into);
+    Label*      addLabel(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into);
+    TextButton* addButton(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into);
 
     void openXmlFileSpeaker(String path);
     
+    void updateSkeapersConf();
     //==============================================================================
     #if USE_JACK
     jackClientGris *jackClient;
@@ -100,6 +104,7 @@ private:
     
     
     //UI Components---------------------------
+    TooltipWindow tooltipWindow;
     StretchableLayoutManager verticalLayout;
     ScopedPointer<StretchableLayoutResizerBar> verticalDividerBar;
     GrisLookAndFeel mGrisFeel;

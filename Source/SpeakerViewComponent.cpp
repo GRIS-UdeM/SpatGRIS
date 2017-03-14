@@ -127,7 +127,7 @@ void SpeakerViewComponent::render() {
         glLineWidth(1);
         glRotatef(90, 1, 0, 0);
         glColor3f(0.8, 0.2, 0.1);
-        glutSolidSphere(max(max(maxRadCirleX,maxRadCirleY),maxRadCirleZ) ,50,50);
+        glutSolidSphere(max(max(max(maxRadCirleX,maxRadCirleY),maxRadCirleZ),1.0f) ,50,50);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         glPopMatrix();
     }
