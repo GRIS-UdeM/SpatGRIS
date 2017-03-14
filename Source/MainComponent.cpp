@@ -294,6 +294,7 @@ void MainContentComponent::buttonClicked (Button *button)
         this->winSpeakConfig->setVisible (true);
         
         this->winSpeakConfig->initComp();
+        this->winSpeakConfig->repaint();
         
     }
     

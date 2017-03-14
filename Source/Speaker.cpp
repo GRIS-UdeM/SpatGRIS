@@ -88,11 +88,29 @@ void Speaker::setBounds(const Rectangle<int> &newBounds){
     this->juce::Component::setBounds(newBounds);
 }
 
+int Speaker::getIdSpeaker(){
+    return this->idSpeaker;
+}
 glm::vec3 Speaker::getCoordinate(){
     return this->center /10.0f ;
 }
 glm::vec3 Speaker::getAziZenRad(){
     return glm::vec3(this->aziZenRad.x, this->aziZenRad.y, this->aziZenRad.z/10.0f);
+}
+
+void Speaker::setCoordinate(glm::vec3 value){
+    this->newPosition(value*10.0f);
+}
+void Speaker::setAziZenRad(glm::vec3 value){
+    value.z = value.z*10.0f;
+    this->newSpheriqueCoord(value);
+}
+
+int Speaker::getOutputPatch(){
+    return this->outputPatch;
+}
+void Speaker::setOutputPatch(int value){
+    this->outputPatch = value;
 }
 
 void Speaker::focusOfChildComponentChanged (FocusChangeType cause){

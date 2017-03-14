@@ -53,9 +53,13 @@ public:
     
     //Normalise for user =================================
     void setBounds(const Rectangle<int> &newBounds);
+    int getIdSpeaker();
     glm::vec3 getCoordinate();
     glm::vec3 getAziZenRad();
-    
+    void setCoordinate(glm::vec3 value);
+    void setAziZenRad(glm::vec3 value);
+    int getOutputPatch();
+    void setOutputPatch(int value);
     
     
     //OpenGL ==============================================
