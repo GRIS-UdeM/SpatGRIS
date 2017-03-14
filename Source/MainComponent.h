@@ -84,9 +84,10 @@ public:
     
     
 private:
-    Label*      addLabel(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into);
-    TextButton* addButton(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into);
-
+    Label*          addLabel(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into);
+    TextButton*     addButton(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into);
+    ToggleButton*   addToggleButton(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into, bool toggle = false);
+    
     void openXmlFileSpeaker(String path);
     
     void updateSkeapersConf();
@@ -118,8 +119,9 @@ private:
     
     //Component in Box 3 -----------
     Label *labelJackStatus;
-    TextButton * butLoadXMLSpeakers;
-    TextButton * butEditableSpeakers;
+    TextButton *    butLoadXMLSpeakers;
+    TextButton *    butEditableSpeakers;
+    ToggleButton *  butShowSpeakerNumber;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
 };

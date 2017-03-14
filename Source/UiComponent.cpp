@@ -213,20 +213,21 @@ void WindowEditSpeaker::buttonClicked(Button *button){
     }
     else if (button == this->butAddSpeaker) {
         this->mainParent->addSpeaker();
-        numRows =this->mainParent->getListSpeaker().size();
-        tableListSpeakers.updateContent();
+        updateWinContent();
     }
     
     if( button->getName() != "" && (button->getName().getIntValue()>=0 && button->getName().getIntValue()<= this->mainParent->getListSpeaker().size())){
 
         this->mainParent->removeSpeaker(button->getName().getIntValue());
-        numRows =this->mainParent->getListSpeaker().size();
-        tableListSpeakers.updateContent();
+        updateWinContent();
     }
     
 }
 
-
+void WindowEditSpeaker::updateWinContent(){
+    numRows =this->mainParent->getListSpeaker().size();
+    tableListSpeakers.updateContent();
+}
 void WindowEditSpeaker::closeButtonPressed()
 {
     delete this;

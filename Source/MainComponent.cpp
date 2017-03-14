@@ -51,7 +51,7 @@ MainContentComponent::MainContentComponent(){
     
     this->butEditableSpeakers = addButton("Edit Speakers","Edit position of spkeakers",4,70,124,28,this->boxControlUI->getContent());
     
-    
+    this->butShowSpeakerNumber = addToggleButton("Show numbers", "Show numbers skeapers", 4, 100, 124, 28, this->boxControlUI->getContent());
     
 
     // set up the layout and resizer bars
@@ -73,7 +73,9 @@ MainContentComponent::MainContentComponent(){
     this->jackClient = new jackClientGris();
     
     if(!jackClient->isReady()){
-        this->labelJackStatus->setText("jackClient Not Connected", NotificationType::dontSendNotification);
+        this->labelJackStatus->setText("JackClient Not Connected", dontSendNotification);
+    }else{
+         this->labelJackStatus->setText("Jack Ready", dontSendNotification);
     }
 #endif
     
@@ -106,6 +108,22 @@ TextButton* MainContentComponent::addButton(const String &s, const String &stool
     tb->setSize(w, h);
     tb->setTopLeftPosition(x, y);
     tb->addListener(this);
+    tb->setColour(ToggleButton::textColourId, mGrisFeel.getFontColour());
+    tb->setLookAndFeel(&mGrisFeel);
+    into->addAndMakeVisible(tb);
+    return tb;
+}
+
+ToggleButton* MainContentComponent::addToggleButton(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into, bool toggle)
+{
+    ToggleButton *tb = new ToggleButton();
+    tb->setTooltip (stooltip);
+    tb->setButtonText(s);
+    tb->setToggleState(toggle, dontSendNotification);
+    tb->setSize(w, h);
+    tb->setTopLeftPosition(x, y);
+    tb->addListener(this);
+    tb->setColour(ToggleButton::textColourId, mGrisFeel.getFontColour());
     tb->setLookAndFeel(&mGrisFeel);
     into->addAndMakeVisible(tb);
     return tb;
@@ -123,6 +141,7 @@ MainContentComponent::~MainContentComponent() {
     delete this->labelJackStatus;
     delete this->butEditableSpeakers;
     delete this->butLoadXMLSpeakers;
+    delete this->butShowSpeakerNumber;
     delete this->speakerView;
     
     this->lockSpeakers->lock();
@@ -153,13 +172,8 @@ void MainContentComponent::addSpeaker(){
     int idNewSpeaker = listSpeaker.size()+1;
     this->listSpeaker.push_back(new Speaker(this, idNewSpeaker, idNewSpeaker, glm::vec3(0.0f, 0.0f, 0.0f)));
     this->listLevelComp.push_back(new LevelComponent(this, &mGrisFeel,idNewSpeaker));
-    
-   /* juce::Rectangle<int> level(((this->listLevelComp.size()-1)*sizeWidthLevelComp)+2, 4, sizeWidthLevelComp, 200);
-    this->listLevelComp[idNewSpeaker-1]->setBounds(level);
-    this->boxOutputsUI->getContent()->addAndMakeVisible(this->listLevelComp[idNewSpeaker-1]);*/
     this->lockSpeakers->unlock();
-    /*this->boxOutputsUI->repaint();
-    this->resized();*/
+
     updateLevelComp();
 }
 
@@ -202,6 +216,10 @@ void MainContentComponent::updateLevelComp(){
         x+=sizeWidthLevelComp;
         indexS+=1;
     }
+    if(this->winSpeakConfig != nullptr){
+        this->winSpeakConfig->updateWinContent();
+    }
+    
     this->boxOutputsUI->repaint();
     this->resized();
 }
@@ -333,6 +351,9 @@ void MainContentComponent::buttonClicked (Button *button)
             this->winSpeakConfig->initComp();
             this->winSpeakConfig->repaint();
         }
+    }else if(button == butShowSpeakerNumber){
+        this->speakerView->setShowNumber(this->butShowSpeakerNumber->getToggleState());
+        
     }
 }
 

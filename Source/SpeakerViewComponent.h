@@ -52,6 +52,7 @@ public:
     void shutdown() override;
     
     void setShowSphere(bool value){ this->showShpere = value; }
+    void setShowNumber(bool value){ this->showNumber = value; }
     
     void setNameConfig(String name){ this->nameConfig = name; }
     void render() override;
@@ -72,10 +73,11 @@ private:
     
     void drawBackground();
     void drawOriginGrid();
-    void drawText( string val, glm::vec3 position, bool camLock = true);
+    void drawText( string val, glm::vec3 position,float scale = 0.005f, bool camLock = true);
     void drawCube(float x, float y, float z);
     
     bool showShpere = false;
+    bool showNumber = false;
     
     float camAngleX=35;
     float camAngleY=35;

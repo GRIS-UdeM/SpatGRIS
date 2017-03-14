@@ -96,28 +96,24 @@ void SpeakerViewComponent::render() {
     this->mainParent->getLockSpeakers()->lock();
     for(int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
         this->mainParent->getListSpeaker()[i]->draw();
+        if(this->showNumber){
+            glm::vec3 posT = this->mainParent->getListSpeaker()[i]->getCenter();
+            posT.y +=sizeSpeaker.y+0.4f;
+            drawText(to_string(this->mainParent->getListSpeaker()[i]->getOutputPatch()),posT,0.002f);
+        }
     }
     this->mainParent->getLockSpeakers()->unlock();
     
+    
     //Draw Sphere : Use many CPU
     if(this->showShpere){
-        float maxRadCirleX = 0.0f;;
-        float maxRadCirleY = 0.0f;
-        float maxRadCirleZ = 0.0f;
+        float maxRadius = 0.0f;;
+
         
         this->mainParent->getLockSpeakers()->lock();
         for(int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
-            
-            if(abs(this->mainParent->getListSpeaker()[i]->getCenter().x) > maxRadCirleX){
-                maxRadCirleX = abs(this->mainParent->getListSpeaker()[i]->getCenter().x) ;
-            }
-            
-            if(abs(this->mainParent->getListSpeaker()[i]->getCenter().y) > maxRadCirleX){
-                maxRadCirleY = abs(this->mainParent->getListSpeaker()[i]->getCenter().y) ;
-            }
-            
-            if(abs(this->mainParent->getListSpeaker()[i]->getCenter().z) > maxRadCirleX){
-                maxRadCirleZ = abs(this->mainParent->getListSpeaker()[i]->getCenter().z) ;
+            if(abs(this->mainParent->getListSpeaker()[i]->getAziZenRad().z*10.f) > maxRadius){
+                maxRadius = abs(this->mainParent->getListSpeaker()[i]->getAziZenRad().z*10.0f) ;
             }
         }
         this->mainParent->getLockSpeakers()->unlock();
@@ -127,7 +123,7 @@ void SpeakerViewComponent::render() {
         glLineWidth(1);
         glRotatef(90, 1, 0, 0);
         glColor3f(0.8, 0.2, 0.1);
-        glutSolidSphere(max(max(max(maxRadCirleX,maxRadCirleY),maxRadCirleZ),1.0f) ,50,50);
+        glutSolidSphere(max(maxRadius,1.0f) ,50,50);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         glPopMatrix();
     }
@@ -293,22 +289,19 @@ void SpeakerViewComponent::drawOriginGrid()
     drawText("Z",glm::vec3(0,10,0));
 }
 
-void SpeakerViewComponent::drawText(string val, glm::vec3 position, bool camLock){
+void SpeakerViewComponent::drawText(string val, glm::vec3 position,float scale, bool camLock){
     glPushMatrix();
     glTranslatef(position.x, position.y, position.z);
     
     //glRotatef(-90.0f, 1, 1, 0);
     if(camLock){
         glRotatef((camAngleX), 0, 1, 0);
-        if(camAngleY < 0 && camAngleY > 90.f){
-            glRotatef(-camAngleY, 1, 0, 0);
+        if(camAngleY < 0  || camAngleY > 90.f){
+            glRotatef(-camAngleY, 0, 1, 0);
         }
-
-        
     }
 
-    float s = 0.005f;
-    glScalef( s, s, s );
+    glScalef( scale, scale, scale);
     glColor3f( 1, 1, 1 );
     for (char & c : val)
     {

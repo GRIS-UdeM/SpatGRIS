@@ -73,6 +73,8 @@ public:
     WindowEditSpeaker(const String& name, Colour backgroundColour, int buttonsNeeded, MainContentComponent * parent, GrisLookAndFeel * feel);
     ~WindowEditSpeaker();
     
+    void updateWinContent();
+    
     void initComp();
     void buttonClicked(Button *button);
     void closeButtonPressed();
