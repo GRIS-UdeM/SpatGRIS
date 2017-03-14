@@ -126,8 +126,10 @@ WindowEditSpeaker::WindowEditSpeaker(const String& name, Colour backgroundColour
     
 }
 WindowEditSpeaker::~WindowEditSpeaker(){
+    this->mainParent->setShowShepre(false);
     //delete this->labColumn;
     //delete this->boxListSpeaker;
+    delete this->toggleShowSphere;
     this->mainParent->destroyWinSpeakConf();
 }
 void WindowEditSpeaker::initComp(){
@@ -173,11 +175,30 @@ void WindowEditSpeaker::initComp(){
     
     this->boxListSpeaker->setBounds(0, 0, getWidth(),getHeight());
     this->boxListSpeaker->correctSize(getWidth()-8, (this->mainParent->getListSpeaker().size()*28)+50);
-    tableListSpeakers.setSize(getWidth(), getHeight());
+    tableListSpeakers.setSize(getWidth(), 400);
     
     tableListSpeakers.updateContent();
-    tableListSpeakers.repaint();
+    
+    this->toggleShowSphere = new ToggleButton();
+    this->toggleShowSphere->setButtonText("Show Sphere");
+    this->toggleShowSphere->setBounds(4, 430, 88, 22);
+    this->toggleShowSphere->addListener(this);
+    this->toggleShowSphere->setToggleState(false, dontSendNotification);
+    this->toggleShowSphere->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
+    this->toggleShowSphere->setLookAndFeel(this->grisFeel);
+    this->boxListSpeaker->getContent()->addAndMakeVisible(this->toggleShowSphere);
+    
+    //tableListSpeakers.repaint();
 }
+
+void WindowEditSpeaker::buttonClicked(Button *button){
+    if (button == this->toggleShowSphere) {
+        this->mainParent->setShowShepre(this->toggleShowSphere->getToggleState());
+        //this->muted = this->boxListSpeaker->getToggleState();
+        //this->boxListSpeaker->repaint();
+    }
+}
+
 
 void WindowEditSpeaker::closeButtonPressed()
 {

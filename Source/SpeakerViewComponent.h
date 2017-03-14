@@ -51,7 +51,8 @@ public:
     
     void shutdown() override;
     
-
+    void setShowSphere(bool value){ this->showShpere = value; }
+    
     void setNameConfig(String name){ this->nameConfig = name; }
     void render() override;
     
@@ -74,7 +75,8 @@ private:
     void drawText( string val, glm::vec3 position, bool camLock = true);
     void drawCube(float x, float y, float z);
     
-
+    bool showShpere = false;
+    
     float camAngleX=35;
     float camAngleY=35;
     float distance = 12.0f;

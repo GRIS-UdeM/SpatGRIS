@@ -282,23 +282,20 @@ void MainContentComponent::buttonClicked (Button *button)
         }
     }else if(button == this->butEditableSpeakers){
     
-        if(this->winSpeakConfig != nullptr){
-            delete this->winSpeakConfig;
+        if(this->winSpeakConfig == nullptr){
+            this->winSpeakConfig = new WindowEditSpeaker("Speakers config", this->mGrisFeel.getWinBackgroundColour(),DocumentWindow::allButtons, this, &this->mGrisFeel);
+            
+            Rectangle<int> result (this->getScreenX()+ this->speakerView->getWidth(),this->getScreenY(),600,480);
+            this->winSpeakConfig->setBounds (result);
+            this->winSpeakConfig->setResizable (true, true);
+            this->winSpeakConfig->setUsingNativeTitleBar (true);
+            this->winSpeakConfig->setVisible (true);
+            this->winSpeakConfig->setAlwaysOnTop(true);
+            
+            this->winSpeakConfig->initComp();
+            this->winSpeakConfig->repaint();
         }
-        this->winSpeakConfig = new WindowEditSpeaker("Speakers config", this->mGrisFeel.getWinBackgroundColour(),DocumentWindow::allButtons, this, &this->mGrisFeel);
-        
-        Rectangle<int> result (this->getScreenX()+ this->speakerView->getWidth(),this->getScreenY(),600,480);
-        this->winSpeakConfig->setBounds (result);
-        this->winSpeakConfig->setResizable (true, true);
-        this->winSpeakConfig->setUsingNativeTitleBar (true);
-        this->winSpeakConfig->setVisible (true);
-        
-        this->winSpeakConfig->initComp();
-        this->winSpeakConfig->repaint();
-        
     }
-    
-    
 }
 
 void MainContentComponent::resized() {

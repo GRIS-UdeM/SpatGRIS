@@ -66,13 +66,15 @@ private:
 
 //======================================= Window Edit Speaker===========================
 class WindowEditSpeaker :   public DocumentWindow,
-                            public TableListBoxModel
+                            public TableListBoxModel,
+                            public ToggleButton::Listener
 {
 public:
     WindowEditSpeaker(const String& name, Colour backgroundColour, int buttonsNeeded, MainContentComponent * parent, GrisLookAndFeel * feel);
     ~WindowEditSpeaker();
     
     void initComp();
+    void buttonClicked(Button *button);
     void closeButtonPressed();
     
     String getText (const int columnNumber, const int rowNumber) const;
@@ -90,6 +92,7 @@ private:
     GrisLookAndFeel *grisFeel;
     Box * boxListSpeaker;
     Label *labColumn;
+    ToggleButton *toggleShowSphere;
     
     TableListBox tableListSpeakers;
     Font font;

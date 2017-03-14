@@ -62,6 +62,8 @@ public:
     
     vector<Speaker *> getListSpeaker() { return this->listSpeaker; }
     mutex* getLockSpeakers(){ return this->lockSpeakers; }
+    
+    void setShowShepre(bool value){ this->speakerView->setShowSphere(value); }
     //=======================================================================
     float getLevel(int indexLevel){return 0.85f;} //TODO
     void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
