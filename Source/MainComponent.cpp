@@ -85,10 +85,9 @@ MainContentComponent::MainContentComponent(){
     }
 #endif
     
-    //this->oscReceiver = new OSCReceiver();
-    bool c = this->connect(this->tedOSCInPort->getTextValue().toString().getIntValue());
-    cout << c << endl;
-    
+    this->oscReceiver = new OscInput();
+    this->oscReceiver->startConnection(this->tedOSCInPort->getTextValue().toString().getIntValue());
+
 
     openXmlFileSpeaker("/Users/gris/Documents/GRIS/zirkonium/ZirkSpeakers_Dome 16 UdeM.xml");
     
@@ -203,7 +202,7 @@ MainContentComponent::~MainContentComponent() {
 }
 
 
-void MainContentComponent::oscMessageReceived	(const OSCMessage & message)
+/*void MainContentComponent::oscMessageReceived	(const OSCMessage & message)
 {
     cout << message.begin()->getString() << endl;
 }/*

@@ -16,6 +16,7 @@
 		0DD1323D1E7AEAD100793ED9 /* Jackmp in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DD1323C1E7AEAD100793ED9 /* Jackmp */; };
 		0DD132401E7AEAE700793ED9 /* BinaryData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0DD1323E1E7AEAE700793ED9 /* BinaryData.cpp */; };
 		0DD132421E7AEB3900793ED9 /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DD132411E7AEB3900793ED9 /* GLUT.framework */; };
+		0DD132451E7AF70600793ED9 /* OscInput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0DD132431E7AF70600793ED9 /* OscInput.cpp */; };
 		11A12218CC19874050897D70 /* juce_graphics.mm in Sources */ = {isa = PBXBuildFile; fileRef = 111A6D5574112116C13912AF /* juce_graphics.mm */; };
 		14E1864F61765881437B2AF8 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A290A4B264C78F0C18D6F058 /* Accelerate.framework */; };
 		226656DA03C754BD1D8608BF /* juce_core.mm in Sources */ = {isa = PBXBuildFile; fileRef = 32C340FFD5BE45B1AF3C6016 /* juce_core.mm */; };
@@ -104,6 +105,8 @@
 		0DD1323E1E7AEAE700793ED9 /* BinaryData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = BinaryData.cpp; path = ../../JuceLibraryCode/BinaryData.cpp; sourceTree = "<group>"; };
 		0DD1323F1E7AEAE700793ED9 /* BinaryData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = BinaryData.h; path = ../../JuceLibraryCode/BinaryData.h; sourceTree = "<group>"; };
 		0DD132411E7AEB3900793ED9 /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = System/Library/Frameworks/GLUT.framework; sourceTree = SDKROOT; };
+		0DD132431E7AF70600793ED9 /* OscInput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = OscInput.cpp; path = ../../Source/OscInput.cpp; sourceTree = "<group>"; };
+		0DD132441E7AF70600793ED9 /* OscInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OscInput.h; path = ../../Source/OscInput.h; sourceTree = "<group>"; };
 		0E1684DFB4EB8971A5F1D1DA /* juce_Uuid.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = juce_Uuid.cpp; path = ../../JuceLibraryCode/modules/juce_core/misc/juce_Uuid.cpp; sourceTree = SOURCE_ROOT; };
 		0E45BAC07192E20F20B98922 /* juce_MidiMessageCollector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_MidiMessageCollector.h; path = ../../JuceLibraryCode/modules/juce_audio_devices/midi_io/juce_MidiMessageCollector.h; sourceTree = SOURCE_ROOT; };
 		0E4DB5D765565118296212AB /* juce_TextDiff.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = juce_TextDiff.cpp; path = ../../JuceLibraryCode/modules/juce_core/text/juce_TextDiff.cpp; sourceTree = SOURCE_ROOT; };
@@ -2910,6 +2913,8 @@
 				8280A25BF8F41A8E7ED31EE6 /* SpeakerViewComponent.h */,
 				E1D7954498022C0D9253C924 /* SpeakerViewComponent.cpp */,
 				2116513B99CFF9F0DCC85055 /* Main.cpp */,
+				0DD132431E7AF70600793ED9 /* OscInput.cpp */,
+				0DD132441E7AF70600793ED9 /* OscInput.h */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -2987,6 +2992,7 @@
 			files = (
 				083608DE849F7E27B9DE0162 /* Speaker.cpp in Sources */,
 				ACD3FA443393EEF11E03DDAA /* LevelComponent.cpp in Sources */,
+				0DD132451E7AF70600793ED9 /* OscInput.cpp in Sources */,
 				8684CFBF4BCCAD3FC8F21130 /* UiComponent.cpp in Sources */,
 				D9ABB7BC8BFB59D392B6C505 /* jackClientGRIS.cpp in Sources */,
 				55024BBBD9BD507767A097E2 /* MainComponent.cpp in Sources */,

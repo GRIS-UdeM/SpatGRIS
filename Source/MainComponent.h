@@ -30,7 +30,7 @@
 #include "SpeakerViewComponent.h"
 #include "UiComponent.h"
 #include "LevelComponent.h"
-
+#include "OscInput.h"
 
 #ifndef USE_JACK
 #define USE_JACK 0
@@ -54,9 +54,7 @@ static inline float linearToDb(float linear) {
  */
 class MainContentComponent   :  public AudioAppComponent,
                                 public Button::Listener,
-                                public TextEditor::Listener,
-                    private OSCReceiver,
-                    private OSCReceiver::Listener<OSCReceiver::RealtimeCallback>
+                                public TextEditor::Listener
 {
 public:
     //==============================================================================
@@ -86,7 +84,7 @@ public:
     void buttonClicked (Button *button) override;
     
     
-    void oscMessageReceived (const OSCMessage& message) override;
+    //void oscMessageReceived (const OSCMessage& message) override;
 private:
 
     
@@ -110,7 +108,7 @@ private:
     vector<LevelComponent *> listLevelComp;
     String nameConfig;
     
-    OSCReceiver * oscReceiver;
+    OscInput * oscReceiver;
 
     //UI Components---------------------------
     TooltipWindow tooltipWindow;
