@@ -25,6 +25,7 @@ MainContentComponent::MainContentComponent(){
     this->listSourceInput= vector<Input *>();
     
     this->lockSpeakers = new mutex();
+    this->lockInputs= new mutex();
     
     this->winSpeakConfig = nullptr;
     //SpeakerViewComponent 3D VIEW------------------------------
@@ -54,11 +55,9 @@ MainContentComponent::MainContentComponent(){
     
     this->butShowSpeakerNumber = addToggleButton("Show numbers", "Show numbers skeapers", 4, 100, 124, 24, this->boxControlUI->getContent());
     
-    
-    this->tedOSCInIP = addTextEditor("IP OSC In :", "IP Address", "IP Address OSC Input", 140, 36, 120, 24, this->boxControlUI->getContent());
-    this->tedOSCInIP->setText("127.0.0.1");
-    this->tedOSCInPort = addTextEditor("Port OSC In :", "Port Socket", "Port Socket OSC Input", 140, 70, 120, 24, this->boxControlUI->getContent());
+    this->tedOSCInPort = addTextEditor("Port OSC In :", "Port Socket", "Port Socket OSC Input", 140, 36, 50, 24, this->boxControlUI->getContent());
     this->tedOSCInPort->setText("18032");
+    this->labOSCStatus= addLabel("...","OSC Receiver status",270, 36, 50, 24,this->boxControlUI->getContent());
     
     
     // set up the layout and resizer bars
@@ -93,7 +92,8 @@ MainContentComponent::MainContentComponent(){
         this->listSourceInput.push_back(new Input(i+1));
     }
     this->oscReceiver = new OscInput(this);
-    this->oscReceiver->startConnection(this->tedOSCInPort->getTextValue().toString().getIntValue());
+
+    textEditorReturnKeyPressed(*this->tedOSCInPort);
 
 
     openXmlFileSpeaker("/Users/gris/Documents/GRIS/zirkonium/ZirkSpeakers_Dome 16 UdeM.xml");
@@ -154,6 +154,7 @@ TextEditor* MainContentComponent::addTextEditor(const String &s, const String &e
         te->setBounds(x, y, w, h);
         te->setColour(ToggleButton::textColourId, mGrisFeel.getFontColour());
         te->setLookAndFeel(&mGrisFeel);
+        te->addListener(this);
         into->addAndMakeVisible(te);
         return te;
     }else{
@@ -163,6 +164,7 @@ TextEditor* MainContentComponent::addTextEditor(const String &s, const String &e
         te->setBounds(x+wLab, y, w, h);
         te->setColour(ToggleButton::textColourId, mGrisFeel.getFontColour());
         te->setLookAndFeel(&mGrisFeel);
+        te->addListener(this);
         into->addAndMakeVisible(te);
         Label *lb =addLabel(s, "", x, y, wLab, h, into);
         lb->setJustificationType(Justification::centredRight);
@@ -173,11 +175,13 @@ TextEditor* MainContentComponent::addTextEditor(const String &s, const String &e
 
 
 MainContentComponent::~MainContentComponent() {
+    delete this->oscReceiver;
     
     if(this->winSpeakConfig != nullptr){
         delete this->winSpeakConfig;
     }
     
+    delete this->speakerView;
     
     this->lockSpeakers->lock();
     for (auto&& it : listSpeaker)
@@ -188,25 +192,26 @@ MainContentComponent::~MainContentComponent() {
     this->lockSpeakers->unlock();
     delete this->lockSpeakers;
     
-    
     for (auto&& it : listLevelComp)
     {
         delete (it);
     }
     listLevelComp.clear();
     
+    this->lockInputs->lock();
     for (auto&& it : listSourceInput)
     {
         delete (it);
     }
     listSourceInput.clear();
+    this->lockInputs->unlock();
+    delete this->lockInputs;
     
-    delete this->oscReceiver;
-    
+   
     delete this->boxInputsUI;
     delete this->boxOutputsUI;
     delete this->boxControlUI;
-    delete this->speakerView;
+
 
 #if USE_JACK
     shutdownAudio();
@@ -378,6 +383,24 @@ void MainContentComponent::paint (Graphics& g) {
     g.fillAll (mGrisFeel.getWinBackgroundColour());
 }
 
+
+void MainContentComponent::textEditorFocusLost (TextEditor &textEditor)
+{
+    textEditorReturnKeyPressed(textEditor);
+}
+
+void MainContentComponent::textEditorReturnKeyPressed (TextEditor & textEditor){
+    if(&textEditor == this->tedOSCInPort){
+        if(this->oscReceiver->startConnection(this->tedOSCInPort->getTextValue().toString().getIntValue())){
+            this->labOSCStatus->setText("OK", dontSendNotification);
+            this->labOSCStatus->setColour(Label::textColourId, mGrisFeel.getFontColour());
+        }else{
+            this->labOSCStatus->setText("Error", dontSendNotification);
+            this->labOSCStatus->setColour(Label::textColourId, Colours::red);
+        }
+        
+    }
+}
 
 void MainContentComponent::buttonClicked (Button *button)
 {

@@ -44,12 +44,9 @@ void Input::updateValues(float az, float ze, float azS, float zeS, float g){
     this->azimSpan=azS;
     this->zeniSpan=zeS;
     this->gain = g;
-        cout << azimuth << "\n";
     
     this->center.x = (10.0f * sinf(this->zenith)*cosf(this->azimuth));
     this->center.z = (10.0f * sinf(this->zenith)*sinf(this->azimuth));
     this->center.y = (10.0f * cosf(this->zenith)) + (sizeT/2.0f );
-
-    
 
 }

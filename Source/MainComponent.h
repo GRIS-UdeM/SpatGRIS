@@ -64,6 +64,8 @@ public:
     vector<Speaker *> getListSpeaker() { return this->listSpeaker; }
     mutex* getLockSpeakers(){ return this->lockSpeakers; }
     vector<Input *> getListSourceInput(){ return this->listSourceInput; }
+    mutex* getLockInputs(){ return this->lockInputs; }
+    
     
     void setShowShepre(bool value){ this->speakerView->setShowSphere(value); }
     void addSpeaker();
@@ -83,9 +85,10 @@ public:
     
     void resized() override;
     void buttonClicked (Button *button) override;
+    void textEditorFocusLost (TextEditor &textEditor) override;
+    void textEditorReturnKeyPressed (TextEditor &textEditor) override;
     
     
-    //void oscMessageReceived (const OSCMessage& message) override;
 private:
 
     
@@ -107,10 +110,12 @@ private:
     mutex *lockSpeakers;
     
     vector<LevelComponent *> listLevelComp;
+ 
     String nameConfig;
     
     OscInput * oscReceiver;
     vector<Input *> listSourceInput;
+    mutex *lockInputs;
 
     //UI Components---------------------------
     TooltipWindow tooltipWindow;
@@ -126,13 +131,13 @@ private:
     Box * boxControlUI;
     
     //Component in Box 3 -----------
-    Label *labelJackStatus;
+    Label *         labelJackStatus;
     TextButton *    butLoadXMLSpeakers;
     TextButton *    butEditableSpeakers;
     ToggleButton *  butShowSpeakerNumber;
     
-    TextEditor * tedOSCInIP;
-    TextEditor * tedOSCInPort;
+    TextEditor *    tedOSCInPort;
+    Label *         labOSCStatus;
 
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)

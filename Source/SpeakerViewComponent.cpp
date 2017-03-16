@@ -104,6 +104,7 @@ void SpeakerViewComponent::render() {
     }
     this->mainParent->getLockSpeakers()->unlock();
     
+    this->mainParent->getLockInputs()->lock();
     for(int i = 0; i < this->mainParent->getListSourceInput().size(); ++i) {
         this->mainParent->getListSourceInput()[i]->draw();
         if(this->showNumber){
@@ -112,6 +113,7 @@ void SpeakerViewComponent::render() {
             drawText(to_string(this->mainParent->getListSourceInput()[i]->getId()),posT,0.002f);
         }
     }
+    this->mainParent->getLockInputs()->unlock();
     
     //Draw Sphere : Use many CPU
     if(this->showShpere){
