@@ -147,30 +147,23 @@ ToggleButton* MainContentComponent::addToggleButton(const String &s, const Strin
 
 TextEditor* MainContentComponent::addTextEditor(const String &s, const String &emptyS, const String &stooltip, int x, int y, int w, int h, Component *into, int wLab)
 {
+    TextEditor *te = new TextEditor();
+    te->setTooltip (stooltip);
+    te->setTextToShowWhenEmpty(emptyS, mGrisFeel.getOffColour());
+    te->setColour(ToggleButton::textColourId, mGrisFeel.getFontColour());
+    te->setLookAndFeel(&mGrisFeel);
+    
     if (s.isEmpty()){
-        TextEditor *te = new TextEditor();
-        te->setTooltip (stooltip);
-        te->setTextToShowWhenEmpty(emptyS, mGrisFeel.getOffColour());
         te->setBounds(x, y, w, h);
-        te->setColour(ToggleButton::textColourId, mGrisFeel.getFontColour());
-        te->setLookAndFeel(&mGrisFeel);
-        te->addListener(this);
-        into->addAndMakeVisible(te);
-        return te;
     }else{
-        TextEditor *te = new TextEditor();
-        te->setTooltip (stooltip);
-        te->setTextToShowWhenEmpty(emptyS, mGrisFeel.getOffColour());
         te->setBounds(x+wLab, y, w, h);
-        te->setColour(ToggleButton::textColourId, mGrisFeel.getFontColour());
-        te->setLookAndFeel(&mGrisFeel);
-        te->addListener(this);
-        into->addAndMakeVisible(te);
         Label *lb =addLabel(s, "", x, y, wLab, h, into);
         lb->setJustificationType(Justification::centredRight);
-        return te;
-        
     }
+    
+    te->addListener(this);
+    into->addAndMakeVisible(te);
+    return te;
 }
 
 

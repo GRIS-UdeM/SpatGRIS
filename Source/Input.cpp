@@ -41,8 +41,11 @@ void Input::updateValues(float az, float ze, float azS, float zeS, float g){
 
     this->azimuth=((az/M_PI)-M_PI)*-10.0f;
     this->zenith=((ze-0.5f)/M_PI)*-10.0f;
-    this->azimSpan=azS;
+    
+    this->azimSpan=(azS*M_PI);
     this->zeniSpan=zeS;
+    
+    cout << this->azimSpan << " <> "<< zeS<< endl;
     this->gain = g;
     
     this->center.x = (10.0f * sinf(this->zenith)*cosf(this->azimuth));
