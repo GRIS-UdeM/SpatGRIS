@@ -104,6 +104,10 @@ void SpeakerViewComponent::render() {
     }
     this->mainParent->getLockSpeakers()->unlock();
     
+    for(int i = 0; i < this->mainParent->getListSourceInput().size(); ++i) {
+        this->mainParent->getListSourceInput()[i]->draw();
+        
+    }
     
     //Draw Sphere : Use many CPU
     if(this->showShpere){

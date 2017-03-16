@@ -31,6 +31,7 @@
 #include "UiComponent.h"
 #include "LevelComponent.h"
 #include "OscInput.h"
+#include "Input.h"
 
 #ifndef USE_JACK
 #define USE_JACK 0
@@ -38,7 +39,6 @@
 
 
 using namespace std;
-
 
 
 static const unsigned int sizeWidthLevelComp = 36;
@@ -63,6 +63,7 @@ public:
     
     vector<Speaker *> getListSpeaker() { return this->listSpeaker; }
     mutex* getLockSpeakers(){ return this->lockSpeakers; }
+    vector<Input *> getListSourceInput(){ return this->listSourceInput; }
     
     void setShowShepre(bool value){ this->speakerView->setShowSphere(value); }
     void addSpeaker();
@@ -109,6 +110,7 @@ private:
     String nameConfig;
     
     OscInput * oscReceiver;
+    vector<Input *> listSourceInput;
 
     //UI Components---------------------------
     TooltipWindow tooltipWindow;

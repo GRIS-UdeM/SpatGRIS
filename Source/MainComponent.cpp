@@ -22,7 +22,8 @@ MainContentComponent::MainContentComponent(){
     
     this->listSpeaker = vector<Speaker *>();
     this->listLevelComp = vector<LevelComponent *>();
-
+    this->listSourceInput= vector<Input *>();
+    
     this->lockSpeakers = new mutex();
     
     this->winSpeakConfig = nullptr;
@@ -85,7 +86,13 @@ MainContentComponent::MainContentComponent(){
     }
 #endif
     
-    this->oscReceiver = new OscInput();
+    
+    //OSC Receiver----------------------------------------------------------------------------
+
+    for(int i = 0 ; i< 64;i++){
+        this->listSourceInput.push_back(new Input(i));
+    }
+    this->oscReceiver = new OscInput(this);
     this->oscReceiver->startConnection(this->tedOSCInPort->getTextValue().toString().getIntValue());
 
 
@@ -187,6 +194,12 @@ MainContentComponent::~MainContentComponent() {
         delete (it);
     }
     listLevelComp.clear();
+    
+    for (auto&& it : listSourceInput)
+    {
+        delete (it);
+    }
+    listSourceInput.clear();
     
     delete this->oscReceiver;
     
