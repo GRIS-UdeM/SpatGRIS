@@ -89,8 +89,8 @@ MainContentComponent::MainContentComponent(){
     
     //OSC Receiver----------------------------------------------------------------------------
 
-    for(int i = 0 ; i< 64;i++){
-        this->listSourceInput.push_back(new Input(i));
+    for(int i = 0 ; i< 12;i++){
+        this->listSourceInput.push_back(new Input(i+1));
     }
     this->oscReceiver = new OscInput(this);
     this->oscReceiver->startConnection(this->tedOSCInPort->getTextValue().toString().getIntValue());

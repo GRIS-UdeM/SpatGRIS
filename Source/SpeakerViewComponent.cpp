@@ -106,7 +106,11 @@ void SpeakerViewComponent::render() {
     
     for(int i = 0; i < this->mainParent->getListSourceInput().size(); ++i) {
         this->mainParent->getListSourceInput()[i]->draw();
-        
+        if(this->showNumber){
+            glm::vec3 posT = this->mainParent->getListSourceInput()[i]->getCenter();
+            posT.y +=sizeSpeaker.y+0.4f;
+            drawText(to_string(this->mainParent->getListSourceInput()[i]->getId()),posT,0.002f);
+        }
     }
     
     //Draw Sphere : Use many CPU

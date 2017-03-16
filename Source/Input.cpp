@@ -11,41 +11,45 @@
 
 Input::Input(int id){
     this->idChannel = id;
-
 }
 Input::~Input(){
 
 }
-
+int Input::getId(){
+    return this->idChannel;
+}
+glm::vec3 Input::getCenter(){
+    return this->center;
+}
 
 void Input::draw(){
-
+    // Draw 3D sphere.
     glPushMatrix();
-    glTranslatef(position.x, position.y, position.z);
+    glTranslatef(this->center.x, this->center.y, this->center.z);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    glLineWidth(1);
+    glLineWidth(2);
     glRotatef(90, 1, 0, 0);
     glColor3f(0.8, 0.2, 0.1);
-    glutSolidSphere(0.5 ,5, 5);
+    glutSolidSphere(sizeT, 6, 6);
+    glTranslatef(-1*this->center.x, -1*this->center.y, -1*this->center.z);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    glTranslatef(-1*position.x, -1*position.y, -1*position.z);
     glPopMatrix();
 }
 
 
 void Input::updateValues(float az, float ze, float azS, float zeS, float g){
-    this->azimuth=(az/M_PI)*-10.0f;
-    this->zenith=((ze-0.5f)/M_PI)*10.0f;
+
+    this->azimuth=((az/M_PI)-M_PI)*-10.0f;
+    this->zenith=((ze-0.5f)/M_PI)*-10.0f;
     this->azimSpan=azS;
     this->zeniSpan=zeS;
     this->gain = g;
-    glm::vec3 nCenter;
+        cout << azimuth << "\n";
     
-    //aziZenRad.x = abs( (this->azimuth * M_PI ) / 180.0f) ;
-    //aziZenRad.y = abs( ((-90.0f+this->zenith) * M_PI ) / 180.0f);
+    this->center.x = (10.0f * sinf(this->zenith)*cosf(this->azimuth));
+    this->center.z = (10.0f * sinf(this->zenith)*sinf(this->azimuth));
+    this->center.y = (10.0f * cosf(this->zenith)) + (sizeT/2.0f );
+
     
-    nCenter.x = (10.0f  * sinf(this->zenith)*cosf(this->azimuth));
-    nCenter.z = (10.0f * sinf(this->zenith)*sinf(this->azimuth));
-    nCenter.y = (10.0f * cosf(this->zenith));
-    this->position =nCenter;
+
 }
