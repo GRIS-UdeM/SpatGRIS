@@ -47,13 +47,19 @@ MainContentComponent::MainContentComponent(){
     //Components in BOX 3 ------------------------------------------------------------------
     this->labelJackStatus = addLabel("Jack Unknown","",0, 0, 150, 28,this->boxControlUI->getContent());
     
-    this->butLoadXMLSpeakers = addButton("XML Speakers","Load Xml File Coniguration",4,36,124,28,this->boxControlUI->getContent());
+    this->butLoadXMLSpeakers = addButton("XML Speakers","Load Xml File Coniguration",4,36,124,24,this->boxControlUI->getContent());
     
-    this->butEditableSpeakers = addButton("Edit Speakers","Edit position of spkeakers",4,70,124,28,this->boxControlUI->getContent());
+    this->butEditableSpeakers = addButton("Edit Speakers","Edit position of spkeakers",4,70,124,24,this->boxControlUI->getContent());
     
-    this->butShowSpeakerNumber = addToggleButton("Show numbers", "Show numbers skeapers", 4, 100, 124, 28, this->boxControlUI->getContent());
+    this->butShowSpeakerNumber = addToggleButton("Show numbers", "Show numbers skeapers", 4, 100, 124, 24, this->boxControlUI->getContent());
     
-
+    
+    this->tedOSCInIP = addTextEditor("IP OSC In :", "IP Address", "IP Address OSC Input", 140, 36, 120, 24, this->boxControlUI->getContent());
+    this->tedOSCInIP->setText("127.0.0.1");
+    this->tedOSCInPort = addTextEditor("Port OSC In :", "Port Socket", "Port Socket OSC Input", 140, 70, 120, 24, this->boxControlUI->getContent());
+    this->tedOSCInPort->setText("18032");
+    
+    
     // set up the layout and resizer bars
     this->verticalLayout.setItemLayout (0, -0.2, -0.8, -0.5); // width of the font list must be between 20% and 80%, preferably 50%
     this->verticalLayout.setItemLayout (1, 8, 8, 8);           // the vertical divider drag-bar thing is always 8 pixels wide
@@ -78,6 +84,10 @@ MainContentComponent::MainContentComponent(){
          this->labelJackStatus->setText("Jack Ready", dontSendNotification);
     }
 #endif
+    
+    //this->oscReceiver = new OSCReceiver();
+    bool c = this->connect(this->tedOSCInPort->getTextValue().toString().getIntValue());
+    cout << c << endl;
     
 
     openXmlFileSpeaker("/Users/gris/Documents/GRIS/zirkonium/ZirkSpeakers_Dome 16 UdeM.xml");
@@ -129,20 +139,39 @@ ToggleButton* MainContentComponent::addToggleButton(const String &s, const Strin
     return tb;
 }
 
+TextEditor* MainContentComponent::addTextEditor(const String &s, const String &emptyS, const String &stooltip, int x, int y, int w, int h, Component *into, int wLab)
+{
+    if (s.isEmpty()){
+        TextEditor *te = new TextEditor();
+        te->setTooltip (stooltip);
+        te->setTextToShowWhenEmpty(emptyS, mGrisFeel.getOffColour());
+        te->setBounds(x, y, w, h);
+        te->setColour(ToggleButton::textColourId, mGrisFeel.getFontColour());
+        te->setLookAndFeel(&mGrisFeel);
+        into->addAndMakeVisible(te);
+        return te;
+    }else{
+        TextEditor *te = new TextEditor();
+        te->setTooltip (stooltip);
+        te->setTextToShowWhenEmpty(emptyS, mGrisFeel.getOffColour());
+        te->setBounds(x+wLab, y, w, h);
+        te->setColour(ToggleButton::textColourId, mGrisFeel.getFontColour());
+        te->setLookAndFeel(&mGrisFeel);
+        into->addAndMakeVisible(te);
+        Label *lb =addLabel(s, "", x, y, wLab, h, into);
+        lb->setJustificationType(Justification::centredRight);
+        return te;
+        
+    }
+}
+
+
 MainContentComponent::~MainContentComponent() {
     
     if(this->winSpeakConfig != nullptr){
         delete this->winSpeakConfig;
     }
-    delete this->boxInputsUI;
-    delete this->boxOutputsUI;
-    delete this->boxControlUI;
     
-    delete this->labelJackStatus;
-    delete this->butEditableSpeakers;
-    delete this->butLoadXMLSpeakers;
-    delete this->butShowSpeakerNumber;
-    delete this->speakerView;
     
     this->lockSpeakers->lock();
     for (auto&& it : listSpeaker)
@@ -160,12 +189,30 @@ MainContentComponent::~MainContentComponent() {
     }
     listLevelComp.clear();
     
+    delete this->oscReceiver;
     
-    #if USE_JACK
+    delete this->boxInputsUI;
+    delete this->boxOutputsUI;
+    delete this->boxControlUI;
+    delete this->speakerView;
+
+#if USE_JACK
     shutdownAudio();
     delete  this->jackClient;
     #endif
 }
+
+
+void MainContentComponent::oscMessageReceived	(const OSCMessage & message)
+{
+    cout << message.begin()->getString() << endl;
+}/*
+void MainContentComponent::oscBundleReceived	(const OSCBundle & bundle)
+{
+  
+    cout << bundle.begin() << endl;
+}*/
+
 
 void MainContentComponent::addSpeaker(){
     this->lockSpeakers->lock();

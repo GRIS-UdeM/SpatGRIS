@@ -129,6 +129,9 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Source\Speaker.cpp"/>
+    <ClCompile Include="..\..\Source\LevelComponent.cpp"/>
+    <ClCompile Include="..\..\Source\UiComponent.cpp"/>
     <ClCompile Include="..\..\Source\jackClientGRIS.cpp"/>
     <ClCompile Include="..\..\Source\MainComponent.cpp"/>
     <ClCompile Include="..\..\Source\SpeakerViewComponent.cpp"/>
@@ -1285,6 +1288,30 @@
     <ClCompile Include="..\..\JuceLibraryCode\modules\juce_opengl\utils\juce_OpenGLAppComponent.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="..\..\JuceLibraryCode\modules\juce_osc\osc\juce_OSCAddress.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\JuceLibraryCode\modules\juce_osc\osc\juce_OSCArgument.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\JuceLibraryCode\modules\juce_osc\osc\juce_OSCBundle.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\JuceLibraryCode\modules\juce_osc\osc\juce_OSCMessage.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\JuceLibraryCode\modules\juce_osc\osc\juce_OSCReceiver.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\JuceLibraryCode\modules\juce_osc\osc\juce_OSCSender.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\JuceLibraryCode\modules\juce_osc\osc\juce_OSCTimeTag.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\JuceLibraryCode\modules\juce_osc\osc\juce_OSCTypes.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\JuceLibraryCode\modules\juce_video\capture\juce_CameraDevice.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
@@ -1300,7 +1327,6 @@
     <ClCompile Include="..\..\JuceLibraryCode\modules\juce_video\native\juce_win32_QuickTimeMovieComponent.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\JuceLibraryCode\BinaryData.cpp"/>
     <ClCompile Include="..\..\JuceLibraryCode\modules\juce_audio_basics\juce_audio_basics.cpp"/>
     <ClCompile Include="..\..\JuceLibraryCode\modules\juce_audio_devices\juce_audio_devices.cpp"/>
     <ClCompile Include="..\..\JuceLibraryCode\modules\juce_audio_formats\juce_audio_formats.cpp"/>
@@ -1314,13 +1340,18 @@
     <ClCompile Include="..\..\JuceLibraryCode\modules\juce_gui_basics\juce_gui_basics.cpp"/>
     <ClCompile Include="..\..\JuceLibraryCode\modules\juce_gui_extra\juce_gui_extra.cpp"/>
     <ClCompile Include="..\..\JuceLibraryCode\modules\juce_opengl\juce_opengl.cpp"/>
+    <ClCompile Include="..\..\JuceLibraryCode\modules\juce_osc\juce_osc.cpp"/>
     <ClCompile Include="..\..\JuceLibraryCode\modules\juce_video\juce_video.cpp"/>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\GrisCommonFiles\GrisLookAndFeel.h"/>
+    <ClInclude Include="..\..\Source\Speaker.h"/>
+    <ClInclude Include="..\..\Source\LevelComponent.h"/>
+    <ClInclude Include="..\..\Source\Ray.h"/>
+    <ClInclude Include="..\..\Source\UiComponent.h"/>
     <ClInclude Include="..\..\Source\jackClientGRIS.h"/>
     <ClInclude Include="..\..\Source\MainComponent.h"/>
     <ClInclude Include="..\..\Source\SpeakerViewComponent.h"/>
-    <ClInclude Include="..\..\Source\Resources\WavefrontObjParser.h"/>
     <ClInclude Include="..\..\JuceLibraryCode\modules\juce_audio_basics\buffers\juce_AudioDataConverters.h"/>
     <ClInclude Include="..\..\JuceLibraryCode\modules\juce_audio_basics\buffers\juce_AudioSampleBuffer.h"/>
     <ClInclude Include="..\..\JuceLibraryCode\modules\juce_audio_basics\buffers\juce_FloatVectorOperations.h"/>
@@ -1793,16 +1824,23 @@
     <ClInclude Include="..\..\JuceLibraryCode\modules\juce_opengl\native\juce_OpenGL_win32.h"/>
     <ClInclude Include="..\..\JuceLibraryCode\modules\juce_opengl\native\juce_OpenGLExtensions.h"/>
     <ClInclude Include="..\..\JuceLibraryCode\modules\juce_opengl\juce_opengl.h"/>
+    <ClInclude Include="..\..\JuceLibraryCode\modules\juce_osc\osc\juce_OSCAddress.h"/>
+    <ClInclude Include="..\..\JuceLibraryCode\modules\juce_osc\osc\juce_OSCArgument.h"/>
+    <ClInclude Include="..\..\JuceLibraryCode\modules\juce_osc\osc\juce_OSCBundle.h"/>
+    <ClInclude Include="..\..\JuceLibraryCode\modules\juce_osc\osc\juce_OSCMessage.h"/>
+    <ClInclude Include="..\..\JuceLibraryCode\modules\juce_osc\osc\juce_OSCReceiver.h"/>
+    <ClInclude Include="..\..\JuceLibraryCode\modules\juce_osc\osc\juce_OSCSender.h"/>
+    <ClInclude Include="..\..\JuceLibraryCode\modules\juce_osc\osc\juce_OSCTimeTag.h"/>
+    <ClInclude Include="..\..\JuceLibraryCode\modules\juce_osc\osc\juce_OSCTypes.h"/>
+    <ClInclude Include="..\..\JuceLibraryCode\modules\juce_osc\juce_osc.h"/>
     <ClInclude Include="..\..\JuceLibraryCode\modules\juce_video\playback\juce_DirectShowComponent.h"/>
     <ClInclude Include="..\..\JuceLibraryCode\modules\juce_video\playback\juce_QuickTimeMovieComponent.h"/>
     <ClInclude Include="..\..\JuceLibraryCode\modules\juce_video\capture\juce_CameraDevice.h"/>
     <ClInclude Include="..\..\JuceLibraryCode\modules\juce_video\juce_video.h"/>
     <ClInclude Include="..\..\JuceLibraryCode\AppConfig.h"/>
-    <ClInclude Include="..\..\JuceLibraryCode\BinaryData.h"/>
     <ClInclude Include="..\..\JuceLibraryCode\JuceHeader.h"/>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\Source\Resources\teapot.obj"/>
     <None Include="..\..\JuceLibraryCode\modules\juce_audio_basics\juce_module_info"/>
     <None Include="..\..\JuceLibraryCode\modules\juce_audio_devices\juce_module_info"/>
     <None Include="..\..\JuceLibraryCode\modules\juce_audio_formats\juce_module_info"/>
@@ -1816,6 +1854,7 @@
     <None Include="..\..\JuceLibraryCode\modules\juce_gui_basics\juce_module_info"/>
     <None Include="..\..\JuceLibraryCode\modules\juce_gui_extra\juce_module_info"/>
     <None Include="..\..\JuceLibraryCode\modules\juce_opengl\juce_module_info"/>
+    <None Include="..\..\JuceLibraryCode\modules\juce_osc\juce_module_info"/>
     <None Include="..\..\JuceLibraryCode\modules\juce_video\juce_module_info"/>
   </ItemGroup>
   <ItemGroup>

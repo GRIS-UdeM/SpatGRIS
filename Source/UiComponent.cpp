@@ -30,6 +30,7 @@ Box::Box(GrisLookAndFeel *feel, String title) {
 }
 
 Box::~Box(){
+    this->content->deleteAllChildren();
     delete this->viewport;
     delete this->content;
 }

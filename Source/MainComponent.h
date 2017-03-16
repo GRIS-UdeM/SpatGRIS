@@ -53,7 +53,10 @@ static inline float linearToDb(float linear) {
  your controls and content.
  */
 class MainContentComponent   :  public AudioAppComponent,
-                                public Button::Listener
+                                public Button::Listener,
+                                public TextEditor::Listener,
+                    private OSCReceiver,
+                    private OSCReceiver::Listener<OSCReceiver::RealtimeCallback>
 {
 public:
     //==============================================================================
@@ -83,10 +86,14 @@ public:
     void buttonClicked (Button *button) override;
     
     
+    void oscMessageReceived (const OSCMessage& message) override;
 private:
+
+    
     Label*          addLabel(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into);
     TextButton*     addButton(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into);
     ToggleButton*   addToggleButton(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into, bool toggle = false);
+    TextEditor*     addTextEditor(const String &s, const String &emptyS, const String &stooltip, int x, int y, int w, int h, Component *into, int wLab = 80);
     
     void openXmlFileSpeaker(String path);
     
@@ -103,7 +110,8 @@ private:
     vector<LevelComponent *> listLevelComp;
     String nameConfig;
     
-    
+    OSCReceiver * oscReceiver;
+
     //UI Components---------------------------
     TooltipWindow tooltipWindow;
     StretchableLayoutManager verticalLayout;
@@ -122,7 +130,11 @@ private:
     TextButton *    butLoadXMLSpeakers;
     TextButton *    butEditableSpeakers;
     ToggleButton *  butShowSpeakerNumber;
+    
+    TextEditor * tedOSCInIP;
+    TextEditor * tedOSCInPort;
 
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
 };
 
