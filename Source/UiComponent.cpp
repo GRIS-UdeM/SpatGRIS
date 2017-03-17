@@ -56,7 +56,6 @@ void Box::correctSize(int width, int height){
     }else{
         this->viewport->setTopLeftPosition(0, 0);
     }
-
     this->getContent()->setSize(width, height);
 }
 

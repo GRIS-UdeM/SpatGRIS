@@ -52,6 +52,7 @@ public:
     ~WindowEditSpeaker();
     
     void updateWinContent();
+    void selectedRow(int value){ this->tableListSpeakers.selectRow(value); this->repaint();}
     
     void initComp();
     void buttonClicked(Button *button);

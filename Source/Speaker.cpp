@@ -231,11 +231,11 @@ bool Speaker::isSelected(){
 
 void Speaker::selectSpeaker()
 {
-    this->mainParent->getLockSpeakers()->try_lock();
+    /*this->mainParent->getLockSpeakers()->try_lock();
     for(int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
         this->mainParent->getListSpeaker()[i]->unSelectSpeaker();
     }
-    this->mainParent->getLockSpeakers()->unlock();
+    this->mainParent->getLockSpeakers()->unlock();*/
     
     this->color = colorSpeakerSelect;
     this->selected = true;

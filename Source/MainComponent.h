@@ -83,6 +83,7 @@ public:
     
     void releaseResources() override;
     
+    void refreshWinSpeakConf(int r) { if(this->winSpeakConfig != nullptr){ this->winSpeakConfig->selectedRow(r); } }
     void destroyWinSpeakConf() { this->winSpeakConfig = nullptr; }
     //=======================================================================
     void paint (Graphics& g) override;
