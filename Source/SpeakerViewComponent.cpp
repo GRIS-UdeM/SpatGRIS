@@ -93,7 +93,7 @@ void SpeakerViewComponent::render() {
 
     drawOriginGrid();
     
-    this->mainParent->getLockSpeakers()->lock();
+    if(this->mainParent->getLockSpeakers()->try_lock()){
     for(int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
         this->mainParent->getListSpeaker()[i]->draw();
         if(this->showNumber){
@@ -103,8 +103,9 @@ void SpeakerViewComponent::render() {
         }
     }
     this->mainParent->getLockSpeakers()->unlock();
+    }
     
-    this->mainParent->getLockInputs()->lock();
+    if(this->mainParent->getLockInputs()->try_lock()){
     for(int i = 0; i < this->mainParent->getListSourceInput().size(); ++i) {
         this->mainParent->getListSourceInput()[i]->draw();
         if(this->showNumber){
@@ -114,20 +115,17 @@ void SpeakerViewComponent::render() {
         }
     }
     this->mainParent->getLockInputs()->unlock();
+    }
     
     //Draw Sphere : Use many CPU
     if(this->showShpere){
+        if(this->mainParent->getLockSpeakers()->try_lock()){
         float maxRadius = 0.0f;;
-
-        
-        this->mainParent->getLockSpeakers()->lock();
         for(int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
             if(abs(this->mainParent->getListSpeaker()[i]->getAziZenRad().z*10.f) > maxRadius){
                 maxRadius = abs(this->mainParent->getListSpeaker()[i]->getAziZenRad().z*10.0f) ;
             }
         }
-        this->mainParent->getLockSpeakers()->unlock();
-        
         glPushMatrix();
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         glLineWidth(1);
@@ -136,6 +134,8 @@ void SpeakerViewComponent::render() {
         glutSolidSphere(max(maxRadius,1.0f) ,50,50);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         glPopMatrix();
+        this->mainParent->getLockSpeakers()->unlock();
+        }
     }
 
     glFlush();
@@ -181,6 +181,7 @@ void SpeakerViewComponent::mouseDown (const MouseEvent& e) {
         ray = Ray(glm::vec3(xS, yS, zS),glm::vec3(xE, yE, zE));
         
         int iBestSpeaker = -1;
+        if(this->mainParent->getLockSpeakers()->try_lock()){
         for(int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
             if (raycast( this->mainParent->getListSpeaker()[i]) != -1 ) {
                 if(iBestSpeaker == -1){
@@ -193,6 +194,7 @@ void SpeakerViewComponent::mouseDown (const MouseEvent& e) {
             }
         }
         
+
         for(int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
             if(i!=iBestSpeaker)
             {
@@ -200,7 +202,17 @@ void SpeakerViewComponent::mouseDown (const MouseEvent& e) {
             }else{
                 this->mainParent->getListSpeaker()[i]->selectSpeaker();
             }
+            
+            if(this->mainParent->getLockLevelComp()->try_lock()){
+                this->mainParent->getListLevelComp()[i]->setSelected(i==iBestSpeaker);
+                this->mainParent->getLockLevelComp()->unlock();
+            }
+            
             this->mainParent->getListSpeaker()[i]->repaint();
+        }
+        
+
+        this->mainParent->getLockSpeakers()->unlock();
         }
     }
 }

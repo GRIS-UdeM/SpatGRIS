@@ -76,44 +76,6 @@ void Box::paint(Graphics &g) {
 
 
 
-//======================================= LevelBox =====================================================================
-LevelBox::LevelBox(LevelComponent * parent, GrisLookAndFeel *feel):
-    mainParent(parent),
-    grisFeel(feel)
-{
-
-}
-
-LevelBox::~LevelBox(){
-    
-}
-
-
-void LevelBox::setBounds(const Rectangle<int> &newBounds){
-    this->juce::Component::setBounds(newBounds);
-    colorGrad = ColourGradient(Colours::red, 0.f, 0.f, Colour::fromRGB(17, 255, 159), 0.f, getHeight(), false);
-    colorGrad.addColour(0.1, Colours::yellow);
-}
-
-void LevelBox::paint (Graphics& g){
-    if(this->mainParent->isMuted()){
-        g.fillAll (grisFeel->getWinBackgroundColour());
-    }
-    else{
-        float level = this->mainParent->getLevel();
-        g.setGradientFill(colorGrad);
-        g.fillRect(0, 0, getWidth() ,getHeight());
-        
-        if (level < MinLevelComp){
-            level = MinLevelComp;
-        }
-        if (level < 0.9f){
-            level = -abs(level);
-            g.setColour(grisFeel->getDarkColour());
-            g.fillRect(0, 0, getWidth() ,(int)(getHeight()*(level/MinLevelComp)));
-        }
-    }
-}
 
 
 //======================================= Window Edit Speaker============================================================

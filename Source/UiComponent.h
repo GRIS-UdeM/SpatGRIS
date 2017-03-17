@@ -42,28 +42,6 @@ private:
 };
 
 
-
-
-//======================================= LevelBox ===================================
-class LevelBox : public Component
-{
-public:
-    LevelBox(LevelComponent* parent, GrisLookAndFeel *feel);
-    ~LevelBox();
-    
-    void setBounds(const Rectangle<int> &newBounds);
-    void paint (Graphics& g);
-    
-private:
-    LevelComponent *mainParent;
-    GrisLookAndFeel *grisFeel;
-    ColourGradient colorGrad;
-    
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LevelBox)
-};
-
-
-
 //======================================= Window Edit Speaker===========================
 class WindowEditSpeaker :   public DocumentWindow,
                             public TableListBoxModel,

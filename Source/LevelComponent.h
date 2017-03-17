@@ -19,6 +19,25 @@ static const float MaxMinLevComp = MaxLevelComp - MinLevelComp;
 
 class MainContentComponent;
 
+//======================================= LevelBox ===================================
+class LevelBox : public Component
+{
+public:
+    LevelBox(LevelComponent* parent, GrisLookAndFeel *feel);
+    ~LevelBox();
+    
+    void setBounds(const Rectangle<int> &newBounds);
+    void paint (Graphics& g);
+    
+private:
+    LevelComponent *mainParent;
+    GrisLookAndFeel *grisFeel;
+    ColourGradient colorGrad;
+    
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LevelBox)
+};
+
+//====================================================================================
 class LevelComponent : public Component, public ToggleButton::Listener
 {
 public:
@@ -28,6 +47,7 @@ public:
     void setOutputLab(String value) { this->indexLab->setText(value, dontSendNotification); }
     float getLevel();
     bool isMuted();
+    void setSelected(bool value);
     void buttonClicked(Button *button);
     void setBounds(const Rectangle<int> &newBounds);
 
@@ -39,6 +59,7 @@ private:
     GrisLookAndFeel *grisFeel;
     int index;
     bool muted;
+    bool selected;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LevelComponent)
 };
 #endif /* LevelComponent_h */

@@ -22,10 +22,12 @@ MainContentComponent::MainContentComponent(){
     
     this->listSpeaker = vector<Speaker *>();
     this->listLevelComp = vector<LevelComponent *>();
-    this->listSourceInput= vector<Input *>();
+    this->listSourceInput = vector<Input *>();
     
     this->lockSpeakers = new mutex();
-    this->lockInputs= new mutex();
+    this->lockLevelComp = new mutex();
+    this->lockInputs = new mutex();
+    
     
     this->winSpeakConfig = nullptr;
     //SpeakerViewComponent 3D VIEW------------------------------
