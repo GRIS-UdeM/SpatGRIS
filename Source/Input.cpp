@@ -7,6 +7,7 @@
 //
 
 #include "Input.h"
+#include "MainComponent.h"
 #include "LevelComponent.h"
 
 Input::Input(MainContentComponent * parent, GrisLookAndFeel * feel,int id){
@@ -27,7 +28,7 @@ glm::vec3 Input::getCenter(){
 }
 
 float Input::getLevel(){
-    return 0.0f;
+    return this->mainParent->getLevelsIn(this->idChannel);
 }
 void Input::draw(){
     // Draw 3D sphere.

@@ -40,7 +40,9 @@
 //#define TABLE_SIZE   (441)
 using namespace std;
 
-unsigned int const MaxOutputs = 64;
+unsigned int const MaxOutputs = 128;
+unsigned int const MaxInputs = 128;
+
 class jackClientGris {
 public:
 
@@ -54,23 +56,23 @@ public:
     int left_phase;
     int right_phase;
     
-    float mLevels[MaxOutputs];
+    float levelsIn[MaxInputs];
+    float levelsOut[MaxOutputs];
+
     unsigned int sampleRate;
     unsigned int bufferSize;
     
     bool isReady() { return clientReady; }
     float getCpuUsed() const { return jack_cpu_load(client); }
-    float getLevel(int index) const { return mLevels[index]; }
+    float getLevelsOut(int index) const { return levelsOut[index]; }
+    float getLevelsIn(int index) const { return levelsIn[index]; }
     
     jackClientGris();
     virtual ~jackClientGris();
     
 private:
     bool clientReady;
-    
-    
-    int maxInputs = 2;
-    int maxOutputs = 2;
+
     
 };
 

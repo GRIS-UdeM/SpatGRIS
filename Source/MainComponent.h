@@ -73,7 +73,8 @@ public:
     void removeSpeaker(int idSpeaker);
     void updateLevelComp();
     //=======================================================================
-    float getLevel(int indexLevel){return this->jackClient->getLevel(indexLevel);} //TODO
+    float getLevelsOut(int indexLevel){return this->jackClient->getLevelsOut(indexLevel);}
+    float getLevelsIn(int indexLevel){return this->jackClient->getLevelsIn(indexLevel);}
     void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
     
     void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override;

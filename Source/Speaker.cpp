@@ -32,7 +32,7 @@ Speaker::~Speaker(){
 }
 
 float Speaker::getLevel(){
-    return this->mainParent->getLevel(outputPatch-1);
+    return this->mainParent->getLevelsOut(outputPatch-1);
 }
 void Speaker::setBounds(const Rectangle<int> &newBounds){
     this->juce::Component::setBounds(newBounds);
