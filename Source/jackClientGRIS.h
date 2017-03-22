@@ -42,6 +42,11 @@ using namespace std;
 
 class jackClientGris {
 public:
+    
+    float getLevel(int index) const {
+        return mLevels[index];
+    }
+ 
     jack_client_t *client;
     //jack_port_t *input_port;
     //jack_port_t *output_port1;
@@ -53,6 +58,9 @@ public:
     vector<double> sine;
     int left_phase;
     int right_phase;
+    float mLevels[2];
+    unsigned int sampleRate;
+    unsigned int bufferSize;
     
     bool isReady() { return clientReady; }
     float getCpuUsed(){ return jack_cpu_load(client); }
@@ -62,8 +70,10 @@ public:
 private:
     bool clientReady;
     
-    int maxInputs = 16;
-    int maxOutputs = 16;
+    
+    int maxInputs = 2;
+    int maxOutputs = 2;
+    
 };
 
 

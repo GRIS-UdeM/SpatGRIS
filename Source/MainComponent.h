@@ -46,7 +46,8 @@ static const unsigned int sizeWidthLevelComp = 36;
 static const unsigned int hertzRefresh = 30;
 
 static inline float linearToDb(float linear) {
-    return log10f(linear) * 20.f;
+    return linear;
+    //return log10f(linear) * 20.f;
 }
 
 //==============================================================================
@@ -79,7 +80,7 @@ public:
     void removeSpeaker(int idSpeaker);
     void updateLevelComp();
     //=======================================================================
-    float getLevel(int indexLevel){return 0.85f;} //TODO
+    float getLevel(int indexLevel){return this->jackClient->getLevel(indexLevel);} //TODO
     void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
     
     void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override;

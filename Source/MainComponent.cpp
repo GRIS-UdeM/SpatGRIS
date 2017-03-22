@@ -381,6 +381,10 @@ void MainContentComponent::releaseResources() {
 
 void MainContentComponent::timerCallback(){
     this->labelJackStatus->setText(String(this->jackClient->getCpuUsed()), dontSendNotification);
+    for (auto&& it : listLevelComp)
+    {
+        it->repaint();
+    }
 }
 
 void MainContentComponent::paint (Graphics& g) {

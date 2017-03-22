@@ -101,7 +101,7 @@ void LevelComponent::buttonClicked(Button *button){
 
 
 float LevelComponent::getLevel(){
-    return linearToDb(this->mainParent->getLevel(this->index));
+    return (this->mainParent->getLevel(this->index-1));
 }
 
 bool LevelComponent::isMuted(){
