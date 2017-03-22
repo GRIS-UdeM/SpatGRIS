@@ -27,6 +27,8 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
     jack_default_audio_sample_t *in = (jack_default_audio_sample_t*)jack_port_get_buffer (client->inputs[0], nframes);
     jack_default_audio_sample_t *out1 = (jack_default_audio_sample_t*)jack_port_get_buffer ((jack_port_t*)3, nframes);
     jack_default_audio_sample_t *out2 = (jack_default_audio_sample_t*)jack_port_get_buffer ((jack_port_t*)4, nframes);
+    jack_default_audio_sample_t *out3 = (jack_default_audio_sample_t*)jack_port_get_buffer ((jack_port_t*)9, nframes);
+    jack_default_audio_sample_t *out4 = (jack_default_audio_sample_t*)jack_port_get_buffer ((jack_port_t*)10, nframes);
     
     
    /* for(int i = 0; i < nframes; ++i) {
@@ -43,13 +45,19 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
     }*/
     
     //==================================== DB METER STUFF ===========================================
-    memset(client->mLevels, -100, 2*sizeof(*client->mLevels));
-    float sum = 0;
+    fill(client->mLevels, client->mLevels+MaxOutputs, -100.0f);
+    float sums[MaxOutputs];
+    fill(sums, sums+MaxOutputs, 0.0f);
     for(int i = 0; i < nframes; ++i) {
-            sum+=(out1[i]*out1[i]);
+        
+        sums[0]+=(out1[i]*out1[i]);
+        sums[1]+=(out2[i]*out2[i]);
+        sums[2]+=(out3[i]*out3[i]);
+        sums[4]+=(out4[i]*out4[i]);
     }
-    for (int iSpeaker = 0; iSpeaker < 2; iSpeaker++) {
-        client->mLevels[iSpeaker] = 10.0f* log10( sqrt(sum/nframes));
+    
+    for (int iSpeaker = 0; iSpeaker < MaxOutputs; iSpeaker++) {
+        client->mLevels[iSpeaker] = 10.0f* log10( sqrt(sums[iSpeaker]/nframes));
     }
  /*          //envelope constants
         const float attack  = 0.05f;

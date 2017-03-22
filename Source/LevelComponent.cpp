@@ -101,8 +101,17 @@ void LevelComponent::buttonClicked(Button *button){
 
 
 float LevelComponent::getLevel(){
-    return (this->mainParent->getLevel(this->index-1));
+    return level;
 }
+
+void LevelComponent::update(){
+    float l = this->mainParent->getLevel(this->index-1);
+    if(level != l){
+        repaint();
+    }
+    level = l;
+}
+
 
 bool LevelComponent::isMuted(){
     return this->muted;

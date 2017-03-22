@@ -219,18 +219,6 @@ MainContentComponent::~MainContentComponent() {
     #endif
 }
 
-
-/*void MainContentComponent::oscMessageReceived	(const OSCMessage & message)
-{
-    cout << message.begin()->getString() << endl;
-}/*
-void MainContentComponent::oscBundleReceived	(const OSCBundle & bundle)
-{
-  
-    cout << bundle.begin() << endl;
-}*/
-
-
 void MainContentComponent::addSpeaker(){
     this->lockSpeakers->lock();
     int idNewSpeaker = listSpeaker.size()+1;
@@ -383,7 +371,7 @@ void MainContentComponent::timerCallback(){
     this->labelJackStatus->setText(String(this->jackClient->getCpuUsed()), dontSendNotification);
     for (auto&& it : listLevelComp)
     {
-        it->repaint();
+        it->update();
     }
 }
 

@@ -46,6 +46,7 @@ public:
     
     void setOutputLab(String value) { this->indexLab->setText(value, dontSendNotification); }
     float getLevel();
+    void update();
     bool isMuted();
     void setSelected(bool value);
     void buttonClicked(Button *button);
@@ -60,6 +61,7 @@ private:
     int index;
     bool muted;
     bool selected;
+    float level = -100.0f;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LevelComponent)
 };
 #endif /* LevelComponent_h */

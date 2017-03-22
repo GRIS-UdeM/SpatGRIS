@@ -43,12 +43,7 @@ using namespace std;
 
 
 static const unsigned int sizeWidthLevelComp = 36;
-static const unsigned int hertzRefresh = 30;
-
-static inline float linearToDb(float linear) {
-    return linear;
-    //return log10f(linear) * 20.f;
-}
+static const unsigned int hertzRefresh = 10;
 
 //==============================================================================
 /*
