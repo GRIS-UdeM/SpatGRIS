@@ -23,10 +23,14 @@
 #include <stdio.h>
 #include <math.h>
 
+#include "../JuceLibraryCode/JuceHeader.h"
+
+
 #include "jack/jack.h"
 #include "jack/transport.h"
 #include "jack/types.h"
 #include "jack/session.h"
+
 
 #ifndef M_PI
 #define M_PI  (3.14159265)
@@ -34,25 +38,32 @@
 
 //table size needs to fit an even number of periods. with a frequency of 1000hz and a sample rate of 44100, T = fs/f = 44100/1000
 //#define TABLE_SIZE   (441)
+using namespace std;
 
 class jackClientGris {
 public:
     jack_client_t *client;
-    jack_port_t *input_port;
-    jack_port_t *output_port1;
-    jack_port_t *output_port2;
+    //jack_port_t *input_port;
+    //jack_port_t *output_port1;
+    //jack_port_t *output_port2;
     
+    vector<jack_port_t *> inputs;
+    vector<jack_port_t *> outputs;
     //    float sine[TABLE_SIZE];
-    std::vector<double> sine;
+    vector<double> sine;
     int left_phase;
     int right_phase;
     
     bool isReady() { return clientReady; }
+    float getCpuUsed(){ return jack_cpu_load(client); }
     jackClientGris();
     virtual ~jackClientGris();
     
 private:
     bool clientReady;
+    
+    int maxInputs = 16;
+    int maxOutputs = 16;
 };
 
 

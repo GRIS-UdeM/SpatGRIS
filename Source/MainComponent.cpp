@@ -78,7 +78,9 @@ MainContentComponent::MainContentComponent(){
     //        setAudioChannels (2, 2);
     
     //Start JACK
+      this->jackServer = new jackServerGRIS();
     this->jackClient = new jackClientGris();
+  
     
     if(!jackClient->isReady()){
         this->labelJackStatus->setText("JackClient Not Connected", dontSendNotification);
@@ -101,6 +103,7 @@ MainContentComponent::MainContentComponent(){
     openXmlFileSpeaker("/Users/gris/Documents/GRIS/zirkonium/ZirkSpeakers_Dome 16 UdeM.xml");
     
     this->resized();
+    startTimerHz(hertzRefresh);
 }
 
 
@@ -211,6 +214,8 @@ MainContentComponent::~MainContentComponent() {
 #if USE_JACK
     shutdownAudio();
     delete  this->jackClient;
+    
+    delete this->jackServer;
     #endif
 }
 
@@ -372,6 +377,10 @@ void MainContentComponent::releaseResources() {
     // restarted due to a setting change.
     
     // For more details, see the help for AudioProcessor::releaseResources()
+}
+
+void MainContentComponent::timerCallback(){
+    this->labelJackStatus->setText(String(this->jackClient->getCpuUsed()), dontSendNotification);
 }
 
 void MainContentComponent::paint (Graphics& g) {

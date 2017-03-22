@@ -26,6 +26,7 @@
 
 
 #include "jackClientGRIS.h"
+#include "jackServerGRIS.h"
 #include "Speaker.h"
 #include "SpeakerViewComponent.h"
 #include "UiComponent.h"
@@ -34,7 +35,7 @@
 #include "Input.h"
 
 #ifndef USE_JACK
-#define USE_JACK 0
+#define USE_JACK 1
 #endif
 
 
@@ -42,6 +43,7 @@ using namespace std;
 
 
 static const unsigned int sizeWidthLevelComp = 36;
+static const unsigned int hertzRefresh = 30;
 
 static inline float linearToDb(float linear) {
     return log10f(linear) * 20.f;
@@ -54,7 +56,8 @@ static inline float linearToDb(float linear) {
  */
 class MainContentComponent   :  public AudioAppComponent,
                                 public Button::Listener,
-                                public TextEditor::Listener
+                                public TextEditor::Listener,
+                                private Timer
 {
 public:
     //==============================================================================
@@ -86,6 +89,7 @@ public:
     void refreshWinSpeakConf(int r) { if(this->winSpeakConfig != nullptr){ this->winSpeakConfig->selectedRow(r); } }
     void destroyWinSpeakConf() { this->winSpeakConfig = nullptr; }
     //=======================================================================
+    void timerCallback();
     void paint (Graphics& g) override;
     
     void resized() override;
@@ -108,6 +112,7 @@ private:
     //==============================================================================
     #if USE_JACK
     jackClientGris *jackClient;
+    jackServerGRIS *jackServer;
     #endif
     
     

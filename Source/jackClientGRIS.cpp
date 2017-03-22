@@ -24,8 +24,10 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
     
     jackClientGris* client = (jackClientGris*)arg;
     
-    jack_default_audio_sample_t *out1 = (jack_default_audio_sample_t*)jack_port_get_buffer (client->output_port1, nframes);
-    jack_default_audio_sample_t *out2 = (jack_default_audio_sample_t*)jack_port_get_buffer (client->output_port2, nframes);
+    jack_default_audio_sample_t *in = (jack_default_audio_sample_t*)jack_port_get_buffer (client->inputs[0], nframes);
+    jack_default_audio_sample_t *out1 = (jack_default_audio_sample_t*)jack_port_get_buffer (client->outputs[0], nframes);
+    jack_default_audio_sample_t *out2 = (jack_default_audio_sample_t*)jack_port_get_buffer (client->outputs[1], nframes);
+    
     
     for(int i = 0; i < nframes; ++i) {
         out1[i] = client->sine[client->left_phase];
@@ -39,7 +41,9 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
             client->right_phase -= client->sine.size();
         }
     }
-    
+
+    //memcpy (out1 , in, sizeof (jack_default_audio_sample_t) * nframes);
+    //memcpy (out2 , in, sizeof (jack_default_audio_sample_t) * nframes);
     return 0;
 }
 
@@ -70,6 +74,25 @@ void jack_shutdown (void *arg)
     fprintf (stdout, "\nBye jack\n");
 }
 
+int sample_rate_callback(jack_nframes_t nframes, void *arg)
+{
+    printf("the sample rate is now %" PRIu32 "\n", nframes);
+    return 0;
+}
+
+void port_connect_callback(jack_port_id_t a, jack_port_id_t b, int connect, void* arg)
+{
+    printf("port_connect_callback : ");
+    if(connect){
+        printf("Connect ");
+    }else{
+        printf("Disconnect ");
+
+    }
+    printf("%" PRIu32 " <> %" PRIu32 "\n", a,b);
+}
+
+
 jackClientGris::jackClientGris() {
     clientReady = false;
     //--------------------------------------------------
@@ -78,7 +101,7 @@ jackClientGris::jackClientGris() {
     const char      **ports;
     const char      *client_name = "jackClientGris";
     const char      *server_name = "coreaudio";
-    jack_options_t  options = JackNullOption;
+    jack_options_t  options = JackUseExactName;
     jack_status_t   status;
     
     client = jack_client_open (client_name, options, &status, server_name);
@@ -93,29 +116,18 @@ jackClientGris::jackClientGris() {
             if (status & JackServerFailed) {
                 fprintf (stderr, "\n\n\n======Unable to connect to JACK server\n");
             }
-            return;
+            //return;
         }
     }
     if (status & JackServerStarted) {
         fprintf (stderr, "\n===================\njackdmp wasn't running so it was started\n===================\n");
-        return;
+        //return;
     }
     if (status & JackNameNotUnique) {
         client_name = jack_get_client_name(client);
         fprintf (stderr, "\n\n\n======chosen name already existed, new unique name `%s' assigned\n", client_name);
-        return;
+        //return;
     }
-
-    //--------------------------------------------------
-    //fill wave table.
-    //--------------------------------------------------
-    float fs = jack_get_sample_rate (client);
-    float f  = 1000.f / fs;
-    float T  = 1/f;
-    for(int i = 0; i < 10*T; ++i) {
-        sine.push_back(0.2 * sin( i * M_PI * 2. * f ));
-    }
-    left_phase = right_phase = 0;
     
     //--------------------------------------------------
     //register callback, ports
@@ -123,12 +135,44 @@ jackClientGris::jackClientGris() {
     jack_set_process_callback (client, process_audio, this);
     jack_on_shutdown (client, jack_shutdown, 0);
     jack_set_session_callback (client, session_callback, this);
+    jack_set_port_connect_callback(client, port_connect_callback, this);
+    jack_set_sample_rate_callback (client, sample_rate_callback, 0);
     
+    jack_set_buffer_size(client, 1024);
+
     printf ("engine sample rate: %" PRIu32 "\n",jack_get_sample_rate (client));
+    printf ("engine buffer size: %" PRIu32 "\n",jack_get_buffer_size (client));
+
+    //--------------------------------------------------
+    //fill wave table.
+    //--------------------------------------------------
+    float fs = jack_get_sample_rate (client);
+    float f  = 400.f / fs;
+    float T  = 1/f;
+    for(int i = 0; i < 10*T; ++i) {
+        sine.push_back(0.2 * sin( i * M_PI * 2. * f ));
+    }
+    left_phase = right_phase = 0;
     
-    input_port   = jack_port_register (client,  "input",   JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput,  0);
-    output_port1 = jack_port_register (client,  "output1", JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
-    output_port2 = jack_port_register (client,  "output2", JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
+    this->inputs = vector<jack_port_t *>();
+    for(int i = 0 ; i < maxInputs ; i++){
+        String nameOut = "input";
+        nameOut+= String(i);
+        this->inputs.push_back(jack_port_register(client,  nameOut.toUTF8(), JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput,  0));
+    }
+    
+    //input_port   = jack_port_register (client,  "input",   JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput,  0);
+    
+    this->outputs = vector<jack_port_t *>();
+    for(int i = 0 ; i < maxOutputs ; i++){
+        String nameOut = "output";
+        nameOut+= String(i);
+        this->outputs.push_back(jack_port_register(client,  nameOut.toUTF8(), JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput,  0));
+    }
+    
+    
+    //output_port1 = jack_port_register (client,  "output1", JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
+    //output_port2 = jack_port_register (client,  "output2", JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
 
     
     //--------------------------------------------------
@@ -143,14 +187,20 @@ jackClientGris::jackClientGris() {
         fprintf(stderr, "\n\n\n======no physical playback ports\n");
         return;
     }
-    if (jack_connect (client, jack_port_name (output_port1), ports[0])) {
-        fprintf (stderr, "\n\n\n======cannot connect output ports\n");
-        return;
+    for(int i = 0 ; i < maxOutputs ; i++){
+        if (jack_connect (client, jack_port_name (this->outputs[i]), ports[i])) {
+            fprintf (stderr, "\n\n\n======cannot connect output ports\n");
+    
+        }
     }
-    if (jack_connect (client, jack_port_name (output_port2), ports[1])) {
-        fprintf (stderr, "\n\n\n======cannot connect output ports\n");
-        return;
-    }
+    
+    /*ports = jack_get_ports (client, NULL, NULL, 0);
+    for(int i = 0 ; i < maxInputs+maxOutputs ; i++){
+        const char * t = jack_port_name((const jack_port_t *ports[i]);
+        cout << t << newLine;
+        
+    }*/
+    
     
     jack_free (ports);
     clientReady = true;
@@ -159,9 +209,13 @@ jackClientGris::jackClientGris() {
 
 jackClientGris::~jackClientGris() {
     //jack_deactivate(client);
-    jack_port_unregister(client, input_port);
-    jack_port_unregister(client, output_port1);
-    jack_port_unregister(client, output_port2);
+    for(int i = 0 ; i < maxInputs ; i++){
+        jack_port_unregister(client, this->inputs[i]);
+    }
+    
+    for(int i = 0 ; i < maxOutputs ; i++){
+        jack_port_unregister(client, this->outputs[i]);
+    }
     jack_client_close(client);
     
 }
