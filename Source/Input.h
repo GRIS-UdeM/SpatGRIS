@@ -18,15 +18,28 @@
 
 #include "../glm/glm.hpp"
 
+#include "../JuceLibraryCode/JuceHeader.h"
+
+#include "../../GrisCommonFiles/GrisLookAndFeel.h"
+#include "ParentLevelComponent.h"
+
 using namespace std;
-class Input
+
+class MainContentComponent;
+class LevelComponent;
+
+
+class Input :   public ParentLevelComponent
 {
 
 public :
-    Input(int id = 0);
+    Input(MainContentComponent * parent, GrisLookAndFeel * feel, int id = 0);
     ~Input();
     
     int getId();
+    float getLevel();
+    LevelComponent * getVuMeter(){ return this->vuMeter; }
+
     glm::vec3 getCenter();
     void draw();
     void updateValues(float az, float ze, float azS, float zeS, float g);
@@ -42,5 +55,9 @@ private:
     
     float sizeT = 0.5f;
     glm::vec3 center;
+    
+    LevelComponent *vuMeter;
+    MainContentComponent * mainParent;
+    GrisLookAndFeel * grisFeel;
 };
 #endif /* Input_h */

@@ -103,6 +103,7 @@
 		0C99699A22FA40ABA7EA5A37 /* juce_DynamicObject.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_DynamicObject.h; path = ../../JuceLibraryCode/modules/juce_core/containers/juce_DynamicObject.h; sourceTree = SOURCE_ROOT; };
 		0CA183E0BD935F99C9D13006 /* juce_TextDiff.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_TextDiff.h; path = ../../JuceLibraryCode/modules/juce_core/text/juce_TextDiff.h; sourceTree = SOURCE_ROOT; };
 		0D0F144A717EB80B8FC0AF66 /* juce_QuickTimeMovieComponent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_QuickTimeMovieComponent.h; path = ../../JuceLibraryCode/modules/juce_video/playback/juce_QuickTimeMovieComponent.h; sourceTree = SOURCE_ROOT; };
+		0D137C3D1E830B840075DE39 /* ParentLevelComponent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ParentLevelComponent.h; sourceTree = "<group>"; };
 		0D145FAC1E81A90A004E6AE6 /* jack */ = {isa = PBXFileReference; lastKnownFileType = folder; name = jack; path = ../../jack; sourceTree = "<group>"; };
 		0D145FAE1E81A920004E6AE6 /* Jackservermp */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = Jackservermp; path = ../../jack/lib/Jackservermp; sourceTree = "<group>"; };
 		0D145FB31E81BB9F004E6AE6 /* jackServerGRIS.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = jackServerGRIS.cpp; path = ../../Source/jackServerGRIS.cpp; sourceTree = "<group>"; };
@@ -2931,6 +2932,7 @@
 				0DD132471E7B036E00793ED9 /* Input.h */,
 				0D145FB31E81BB9F004E6AE6 /* jackServerGRIS.cpp */,
 				0D145FB41E81BB9F004E6AE6 /* jackServerGRIS.h */,
+				0D137C3D1E830B840075DE39 /* ParentLevelComponent.h */,
 			);
 			name = Source;
 			sourceTree = "<group>";

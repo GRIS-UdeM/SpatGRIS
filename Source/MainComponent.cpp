@@ -78,7 +78,7 @@ MainContentComponent::MainContentComponent(){
     //        setAudioChannels (2, 2);
     
     //Start JACK
-      this->jackServer = new jackServerGRIS();
+    this->jackServer = new jackServerGRIS();
     this->jackClient = new jackClientGris();
   
     
@@ -93,7 +93,7 @@ MainContentComponent::MainContentComponent(){
     //OSC Receiver----------------------------------------------------------------------------
 
     for(int i = 0 ; i< 12;i++){
-        this->listSourceInput.push_back(new Input(i+1));
+        this->listSourceInput.push_back(new Input(this, &mGrisFeel,i+1));
     }
     this->oscReceiver = new OscInput(this);
 
@@ -189,12 +189,7 @@ MainContentComponent::~MainContentComponent() {
     listSpeaker.clear();
     this->lockSpeakers->unlock();
     delete this->lockSpeakers;
-    
-    /*for (auto&& it : listLevelComp)
-    {
-        delete (it);
-    }
-    listLevelComp.clear();*/
+
     
     this->lockInputs->lock();
     for (auto&& it : listSourceInput)
@@ -223,7 +218,6 @@ void MainContentComponent::addSpeaker(){
     this->lockSpeakers->lock();
     int idNewSpeaker = listSpeaker.size()+1;
     this->listSpeaker.push_back(new Speaker(this, idNewSpeaker, idNewSpeaker, glm::vec3(0.0f, 0.0f, 0.0f)));
-    //this->listLevelComp.push_back(new LevelComponent(this, &mGrisFeel,idNewSpeaker));
     this->lockSpeakers->unlock();
 
     updateLevelComp();
@@ -238,19 +232,10 @@ void MainContentComponent::removeSpeaker(int idSpeaker){
         if(index == idSpeaker){
             delete (it);
             this->listSpeaker.erase(this->listSpeaker.begin() + idSpeaker);
-
         }
         index+=1;
     }
-    /*index = 0;
-    for (auto&& it : this->listLevelComp)
-    {
-        if(index == idSpeaker){
-            delete (it);
-            this->listLevelComp.erase(this->listLevelComp.begin()+idSpeaker);
-        }
-        index+=1;
-    }*/
+
     this->lockSpeakers->unlock();
     updateLevelComp();
 
@@ -264,6 +249,18 @@ void MainContentComponent::updateLevelComp(){
         juce::Rectangle<int> level(x, 4, sizeWidthLevelComp, 200);
         it->getVuMeter()->setBounds(level);
         this->boxOutputsUI->getContent()->addAndMakeVisible(it->getVuMeter());
+        it->getVuMeter()->repaint();
+        x+=sizeWidthLevelComp;
+        indexS+=1;
+    }
+    
+    x = 2;
+    indexS = 0;
+    for (auto&& it : this->listSourceInput)
+    {
+        juce::Rectangle<int> level(x, 4, sizeWidthLevelComp, 200);
+        it->getVuMeter()->setBounds(level);
+        this->boxInputsUI->getContent()->addAndMakeVisible(it->getVuMeter());
         it->getVuMeter()->repaint();
         x+=sizeWidthLevelComp;
         indexS+=1;
@@ -285,12 +282,7 @@ void MainContentComponent::openXmlFileSpeaker(String path)
     }
     listSpeaker.clear();
     this->lockSpeakers->unlock();
-    
-    /*for (auto&& it : listLevelComp)
-    {
-        delete (it);
-    }
-    listLevelComp.clear();*/
+
 
     XmlDocument myDocument (File (path.toStdString()));
     ScopedPointer<XmlElement> mainElement (myDocument.getDocumentElement());
@@ -321,7 +313,6 @@ void MainContentComponent::openXmlFileSpeaker(String path)
                                                                         spk->getDoubleAttribute("PositionZ")*10.0f,
                                                                         spk->getDoubleAttribute("PositionY")*10.0f)));
                  
-                            //this->listLevelComp.push_back(new LevelComponent(this, &mGrisFeel,spk->getIntAttribute("OutputPatch")));
                         }
                     }
                     
@@ -447,7 +438,7 @@ void MainContentComponent::resized() {
     
 
     this->boxInputsUI->setBounds(this->speakerView->getWidth()+6, 2, getWidth()-(this->speakerView->getWidth()+10),240);
-    this->boxInputsUI->correctSize(this->boxInputsUI->getWidth()-8, 210);//Not important
+    this->boxInputsUI->correctSize((this->listSourceInput.size()*(sizeWidthLevelComp))+4, 210);
 
     this->boxOutputsUI->setBounds(this->speakerView->getWidth()+6, 244, getWidth()-(this->speakerView->getWidth()+10),240);
     this->boxOutputsUI->correctSize((this->listSpeaker.size()*(sizeWidthLevelComp))+4, 210);

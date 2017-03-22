@@ -20,9 +20,11 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 
 #include "../../GrisCommonFiles/GrisLookAndFeel.h"
+#include "ParentLevelComponent.h"
 
 class MainContentComponent;
 class LevelComponent;
+
 
 static const glm::vec3 colorSpeaker = glm::vec3(0.85, 0.86, 0.87);
 static const glm::vec3 colorSpeakerSelect = glm::vec3(1.0, 0.66, 0.67);
@@ -37,7 +39,8 @@ static double GetFloatPrecision(double value, double precision)
     return (floor((value * pow(10, precision) + 0.5)) / pow(10, precision));
 }
 
-class Speaker : public Component
+class Speaker : public Component,
+                public ParentLevelComponent
 {
 public:
     
@@ -62,6 +65,7 @@ public:
     void setAziZenRad(glm::vec3 value);
     int getOutputPatch();
     void setOutputPatch(int value);
+    int getId(){ return this->outputPatch ;};
     
     
     //OpenGL ==============================================

@@ -12,13 +12,14 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "GrisLookAndFeel.h"
 #include "UiComponent.h"
-
+#include "ParentLevelComponent.h"
 
 static const float MinLevelComp = -60.f;
 static const float MaxLevelComp = 1.f;
 static const float MaxMinLevComp = MaxLevelComp - MinLevelComp;
 
-class Speaker;
+
+
 
 //======================================= LevelBox ===================================
 class LevelBox : public Component
@@ -42,7 +43,7 @@ private:
 class LevelComponent : public Component, public ToggleButton::Listener
 {
 public:
-    LevelComponent(Speaker * parent, GrisLookAndFeel *feel);
+    LevelComponent(ParentLevelComponent * parent, GrisLookAndFeel *feel);
     ~LevelComponent();
     
     void setOutputLab(String value) { this->indexLab->setText(value, dontSendNotification); }
@@ -54,7 +55,7 @@ public:
     void setBounds(const Rectangle<int> &newBounds);
 
 private:
-    Speaker* mainParent;
+    ParentLevelComponent* mainParent;
     LevelBox *levelBox;
     Label *indexLab;
     ToggleButton *muteToggleBut;

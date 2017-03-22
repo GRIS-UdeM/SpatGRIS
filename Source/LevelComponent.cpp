@@ -50,16 +50,15 @@ void LevelBox::paint (Graphics& g){
 
 
 //======================================================================================================================
-LevelComponent::LevelComponent(Speaker* parent, GrisLookAndFeel *feel){
+LevelComponent::LevelComponent(ParentLevelComponent* parent, GrisLookAndFeel *feel){
     this->mainParent = parent;
     this->grisFeel = feel;
-
     this->muted = false;
 
     
     //Label================================================================
     this->indexLab = new Label();
-    this->indexLab->setText(String(this->mainParent->getOutputPatch()), dontSendNotification);
+    this->indexLab->setText(String(this->mainParent->getId()), dontSendNotification);//this->mainParent->getOutputPatch()
     this->indexLab->setSize(36, 22);
     this->indexLab->setJustificationType(Justification::centred);
     this->indexLab->setMinimumHorizontalScale(1);
@@ -106,7 +105,7 @@ float LevelComponent::getLevel(){
 
 void LevelComponent::update(){
     float l = this->mainParent->getLevel();
-    if(this->level != l){
+    if(!this->muted && this->level != l){
         this->repaint();
     }
     this->level = l;

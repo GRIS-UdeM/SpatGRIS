@@ -63,8 +63,6 @@ public:
     vector<Speaker *> getListSpeaker() { return this->listSpeaker; }
     mutex* getLockSpeakers(){ return this->lockSpeakers; }
     
-    /*vector<LevelComponent *> getListLevelComp() { return this->listLevelComp; }
-    mutex* getLockLevelComp(){ return this->lockLevelComp; }*/
     
     vector<Input *> getListSourceInput(){ return this->listSourceInput; }
     mutex* getLockInputs(){ return this->lockInputs; }
@@ -114,10 +112,7 @@ private:
     
     vector<Speaker *> listSpeaker;
     mutex *lockSpeakers;
-    
-    /*vector<LevelComponent *> listLevelComp;
-    mutex *lockLevelComp;*/
- 
+
     String nameConfig;
     
     OscInput * oscReceiver;

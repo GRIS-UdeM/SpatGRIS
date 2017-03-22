@@ -7,13 +7,17 @@
 //
 
 #include "Input.h"
+#include "LevelComponent.h"
 
-
-Input::Input(int id){
+Input::Input(MainContentComponent * parent, GrisLookAndFeel * feel,int id){
+    this->mainParent = parent;
+    this->grisFeel = feel;
     this->idChannel = id;
+    
+    this->vuMeter = new LevelComponent(this, this->grisFeel);
 }
 Input::~Input(){
-
+    delete this->vuMeter;
 }
 int Input::getId(){
     return this->idChannel;
@@ -22,6 +26,9 @@ glm::vec3 Input::getCenter(){
     return this->center;
 }
 
+float Input::getLevel(){
+    return 0.0f;
+}
 void Input::draw(){
     // Draw 3D sphere.
     glPushMatrix();
