@@ -7,7 +7,7 @@
 //
 
 #include "LevelComponent.h"
-#include "MainComponent.h"
+#include "Speaker.h"
 
 //======================================= LevelBox =====================================================================
 LevelBox::LevelBox(LevelComponent * parent, GrisLookAndFeel *feel):
@@ -50,16 +50,16 @@ void LevelBox::paint (Graphics& g){
 
 
 //======================================================================================================================
-LevelComponent::LevelComponent(MainContentComponent* parent, GrisLookAndFeel *feel, int id){
+LevelComponent::LevelComponent(Speaker* parent, GrisLookAndFeel *feel){
     this->mainParent = parent;
     this->grisFeel = feel;
-    this->index = id;
+
     this->muted = false;
-    this->selected = false;
+
     
     //Label================================================================
     this->indexLab = new Label();
-    this->indexLab->setText(String(this->index), dontSendNotification);
+    this->indexLab->setText(String(this->mainParent->getOutputPatch()), dontSendNotification);
     this->indexLab->setSize(36, 22);
     this->indexLab->setJustificationType(Justification::centred);
     this->indexLab->setMinimumHorizontalScale(1);
@@ -105,11 +105,11 @@ float LevelComponent::getLevel(){
 }
 
 void LevelComponent::update(){
-    float l = this->mainParent->getLevel(this->index-1);
-    if(level != l){
-        repaint();
+    float l = this->mainParent->getLevel();
+    if(this->level != l){
+        this->repaint();
     }
-    level = l;
+    this->level = l;
 }
 
 
@@ -118,15 +118,14 @@ bool LevelComponent::isMuted(){
 }
 
 void LevelComponent::setSelected(bool value){
-    this->selected = value;
-    if(this->selected){
-        this->indexLab->setColour(Label::textColourId, this->grisFeel->getWinBackgroundColour());
-        this->indexLab->setColour(Label::backgroundColourId, this->grisFeel->getOnColour());
-    }else{
-        this->indexLab->setColour(Label::textColourId, this->grisFeel->getFontColour());
-        this->indexLab->setColour(Label::backgroundColourId, this->grisFeel->getBackgroundColour());
-    }
-    this->repaint();
+     if(value){
+         this->indexLab->setColour(Label::textColourId, this->grisFeel->getWinBackgroundColour());
+         this->indexLab->setColour(Label::backgroundColourId, this->grisFeel->getOnColour());
+     }else{
+         this->indexLab->setColour(Label::textColourId, this->grisFeel->getFontColour());
+         this->indexLab->setColour(Label::backgroundColourId, this->grisFeel->getBackgroundColour());
+     }
+     this->repaint();
 }
 
 void LevelComponent::setBounds(const Rectangle<int> &newBounds){

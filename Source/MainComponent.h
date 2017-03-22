@@ -43,7 +43,7 @@ using namespace std;
 
 
 static const unsigned int sizeWidthLevelComp = 36;
-static const unsigned int hertzRefresh = 10;
+static const unsigned int hertzRefresh = 24;
 
 //==============================================================================
 /*
@@ -63,8 +63,8 @@ public:
     vector<Speaker *> getListSpeaker() { return this->listSpeaker; }
     mutex* getLockSpeakers(){ return this->lockSpeakers; }
     
-    vector<LevelComponent *> getListLevelComp() { return this->listLevelComp; }
-    mutex* getLockLevelComp(){ return this->lockLevelComp; }
+    /*vector<LevelComponent *> getListLevelComp() { return this->listLevelComp; }
+    mutex* getLockLevelComp(){ return this->lockLevelComp; }*/
     
     vector<Input *> getListSourceInput(){ return this->listSourceInput; }
     mutex* getLockInputs(){ return this->lockInputs; }
@@ -85,7 +85,7 @@ public:
     void refreshWinSpeakConf(int r) { if(this->winSpeakConfig != nullptr){ this->winSpeakConfig->selectedRow(r); } }
     void destroyWinSpeakConf() { this->winSpeakConfig = nullptr; }
     //=======================================================================
-    void timerCallback();
+    void timerCallback() override;
     void paint (Graphics& g) override;
     
     void resized() override;
@@ -115,8 +115,8 @@ private:
     vector<Speaker *> listSpeaker;
     mutex *lockSpeakers;
     
-    vector<LevelComponent *> listLevelComp;
-    mutex *lockLevelComp;
+    /*vector<LevelComponent *> listLevelComp;
+    mutex *lockLevelComp;*/
  
     String nameConfig;
     

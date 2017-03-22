@@ -144,27 +144,9 @@ static void print_internal(jackctl_internal_t * internal)
     print_parameters(jackctl_internal_get_parameters(internal));
 }
 
-static void usage()
-{
-    fprintf (stderr, "\n"
-             "usage: jack_server_control \n"
-             "              [ --driver OR -d driver_name ]\n"
-             "              [ --client OR -c client_name ]\n"
-             );
-}
-
-/*
-static void jack_info ( const char * format )
-{
-    printf("\n%s \n", format);
-
-}*/
-
-
 class jackServerGRIS {
 public:
     jackctl_server_t *server;
-        jackctl_sigmask_t * sigmask;
     jackServerGRIS();
     ~jackServerGRIS();
     

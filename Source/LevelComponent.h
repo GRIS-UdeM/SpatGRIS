@@ -13,11 +13,12 @@
 #include "GrisLookAndFeel.h"
 #include "UiComponent.h"
 
+
 static const float MinLevelComp = -60.f;
 static const float MaxLevelComp = 1.f;
 static const float MaxMinLevComp = MaxLevelComp - MinLevelComp;
 
-class MainContentComponent;
+class Speaker;
 
 //======================================= LevelBox ===================================
 class LevelBox : public Component
@@ -41,7 +42,7 @@ private:
 class LevelComponent : public Component, public ToggleButton::Listener
 {
 public:
-    LevelComponent(MainContentComponent* parent, GrisLookAndFeel *feel, int id=-1);
+    LevelComponent(Speaker * parent, GrisLookAndFeel *feel);
     ~LevelComponent();
     
     void setOutputLab(String value) { this->indexLab->setText(value, dontSendNotification); }
@@ -53,14 +54,12 @@ public:
     void setBounds(const Rectangle<int> &newBounds);
 
 private:
-    MainContentComponent* mainParent;
+    Speaker* mainParent;
     LevelBox *levelBox;
     Label *indexLab;
     ToggleButton *muteToggleBut;
     GrisLookAndFeel *grisFeel;
-    int index;
     bool muted;
-    bool selected;
     float level = -100.0f;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LevelComponent)
 };

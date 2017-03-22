@@ -22,7 +22,7 @@
 #include "../../GrisCommonFiles/GrisLookAndFeel.h"
 
 class MainContentComponent;
-
+class LevelComponent;
 
 static const glm::vec3 colorSpeaker = glm::vec3(0.85, 0.86, 0.87);
 static const glm::vec3 colorSpeakerSelect = glm::vec3(1.0, 0.66, 0.67);
@@ -37,8 +37,7 @@ static double GetFloatPrecision(double value, double precision)
     return (floor((value * pow(10, precision) + 0.5)) / pow(10, precision));
 }
 
-class Speaker : public Component,
-                public TextEditor::Listener
+class Speaker : public Component
 {
 public:
     
@@ -50,6 +49,9 @@ public:
     bool isSelected();
     void selectSpeaker();
     void unSelectSpeaker();
+    
+    LevelComponent * getVuMeter(){ return this->vuMeter; }
+    float getLevel();
     
     //Normalise for user =================================
     void setBounds(const Rectangle<int> &newBounds);
@@ -71,13 +73,6 @@ public:
     void fix();
     void draw() ;
     
-    //Juce =================================================
-    void focusOfChildComponentChanged (FocusChangeType cause);
-    void focusLost (FocusChangeType cause);
-
-    void textEditorFocusLost (TextEditor &textEditor);
-    void textEditorReturnKeyPressed (TextEditor &textEditor);
-    void paint (Graphics& g);
     
 private :
 
@@ -96,16 +91,7 @@ private :
     bool selected = false;
     
     MainContentComponent *mainParent;
-    Label *label;
-    TextEditor *teCenterX;
-    TextEditor *teCenterY;
-    TextEditor *teCenterZ;
-    
-    TextEditor *teAzimuth;
-    TextEditor *teZenith;
-    TextEditor *teRadius;
-    
-    TextEditor *teOutputPatch;
+    LevelComponent *vuMeter;
     
     GrisLookAndFeel mGrisFeel;
     

@@ -8,6 +8,7 @@
 
 #include "Speaker.h"
 #include "MainComponent.h"
+#include "LevelComponent.h"
 
 Speaker::Speaker(MainContentComponent *parent, int idS){
     Speaker(parent, idS, idS, glm::vec3(0,0,0));
@@ -21,69 +22,18 @@ Speaker::Speaker(MainContentComponent *parent, int idS,int outP, glm::vec3 cente
     
     //Load position
     this->newPosition(center, extents);
-
-    label = new Label();
-    label->setText(String(this->idSpeaker), NotificationType::dontSendNotification);
-    label->setFont(mGrisFeel.getFont());
-    label->setLookAndFeel(&mGrisFeel);
-    label->setColour(Label::textColourId, mGrisFeel.getFontColour());
-    this->addAndMakeVisible(label);
     
-    
-    teCenterX = new TextEditor();
-    teCenterX->setText(String(this->center.x/10.0f), NotificationType::dontSendNotification);
-    teCenterX->addListener(this);
-    this->addAndMakeVisible(teCenterX);
-    
-    teCenterZ = new TextEditor();
-    teCenterZ->setText(String(this->center.y/10.0f), NotificationType::dontSendNotification);
-    teCenterZ->addListener(this);
-    this->addAndMakeVisible(teCenterZ);
-    
-    teCenterY = new TextEditor();
-    teCenterY->setText(String(this->center.z/10.0f), NotificationType::dontSendNotification);
-    teCenterY->addListener(this);
-    this->addAndMakeVisible(teCenterY);
-    
-    
-    teAzimuth = new TextEditor();
-    teAzimuth->setText(String(this->aziZenRad.x), NotificationType::dontSendNotification);
-    teAzimuth->addListener(this);
-    this->addAndMakeVisible(teAzimuth);
-    
-    teZenith = new TextEditor();
-    teZenith->setText(String(this->aziZenRad.y), NotificationType::dontSendNotification);
-    teZenith->addListener(this);
-    this->addAndMakeVisible(teZenith);
-    
-    teRadius = new TextEditor();
-    teRadius->setText(String(this->aziZenRad.z/10.0f), NotificationType::dontSendNotification);
-    teRadius->addListener(this);
-    this->addAndMakeVisible(teRadius);
-    
-    teOutputPatch = new TextEditor();
-    teOutputPatch->setText(String(this->outputPatch), NotificationType::dontSendNotification);
-    teOutputPatch->addListener(this);
-    this->addAndMakeVisible(teOutputPatch);
-
-    
+    this->vuMeter = new LevelComponent(this, &mGrisFeel);
 
 }
 
 Speaker::~Speaker(){
-    delete label;
-    delete teCenterX;
-    delete teCenterY;
-    delete teCenterZ;
-    
-    delete teAzimuth;
-    delete teZenith;
-    delete teRadius;
-    
-    delete teOutputPatch;
+    delete this->vuMeter;
 }
 
-
+float Speaker::getLevel(){
+    return this->mainParent->getLevel(outputPatch-1);
+}
 void Speaker::setBounds(const Rectangle<int> &newBounds){
     this->juce::Component::setBounds(newBounds);
 }
@@ -111,85 +61,7 @@ int Speaker::getOutputPatch(){
 }
 void Speaker::setOutputPatch(int value){
     this->outputPatch = value;
-}
-
-void Speaker::focusOfChildComponentChanged (FocusChangeType cause){
-    this->selectSpeaker();
-}
-void Speaker::focusLost (FocusChangeType cause){
-    this->unSelectSpeaker();
-}
-
-void Speaker::textEditorFocusLost (TextEditor &textEditor) {
-    textEditorReturnKeyPressed(textEditor);
-}
-
-void Speaker::textEditorReturnKeyPressed (TextEditor &textEditor) {
-    
-    if (&textEditor == teCenterX) {
-        glm::vec3 newCenter = this->center;
-        newCenter.x = teCenterX->getText().getFloatValue()*10.0f;
-        this->newPosition(newCenter);
-    }else if(&textEditor == teCenterZ) {
-        glm::vec3 newCenter = this->center;
-        newCenter.y = teCenterZ->getText().getFloatValue()*10.0f;
-        this->newPosition(newCenter);
-    }
-    else if(&textEditor == teCenterY) {
-        glm::vec3 newCenter = this->center;
-        newCenter.z = teCenterY->getText().getFloatValue()*10.0f;
-        this->newPosition(newCenter);
-    }
-    
-    else if(&textEditor == teAzimuth) {
-        glm::vec3 newAziZenRad = this->aziZenRad;
-        newAziZenRad.x = teAzimuth->getText().getFloatValue();
-        this->newSpheriqueCoord(newAziZenRad);
-    }
-    else if(&textEditor == teZenith) {
-        glm::vec3 newAziZenRad = this->aziZenRad;
-        newAziZenRad.y = teZenith->getText().getFloatValue();
-        this->newSpheriqueCoord(newAziZenRad);
-    }
-    else if(&textEditor == teRadius) {
-        glm::vec3 newAziZenRad = this->aziZenRad;
-        newAziZenRad.z = teRadius->getText().getFloatValue()*10.0f;
-        this->newSpheriqueCoord(newAziZenRad);
-    }
-    
-    else if(&textEditor == teOutputPatch) {
-       this->outputPatch = teOutputPatch->getText().getIntValue();
-    }
-
-    teCenterX->setText(String(this->center.x/10.0f), NotificationType::dontSendNotification);
-    teCenterZ->setText(String(this->center.y/10.0f), NotificationType::dontSendNotification);
-    teCenterY->setText(String(this->center.z/10.0f), NotificationType::dontSendNotification);
-
-    teAzimuth->setText(String(this->aziZenRad.x), NotificationType::dontSendNotification);
-    teZenith->setText(String(this->aziZenRad.y), NotificationType::dontSendNotification);
-    teRadius->setText(String(this->aziZenRad.z/10.0f), NotificationType::dontSendNotification);
-
-}
-void Speaker::paint (Graphics& g)
-{
-    label->setBounds(2, 2, 20, getHeight());
-    teCenterX->setBounds(22, 2, 66, 22);
-    teCenterY->setBounds(90, 2, 66, 22);
-    teCenterZ->setBounds(158, 2, 66, 22);
-    
-    teAzimuth->setBounds(230, 2, 66, 22);
-    teZenith->setBounds(298, 2, 66, 22);
-    teRadius->setBounds(366, 2, 66, 22);
-    
-    teOutputPatch->setBounds(440, 2, 26, 22);
-    
-    if(this->selected){
-        Colour c = mGrisFeel.getOnColour();
-        g.setColour (c.withMultipliedAlpha (0.3f));
-        g.fillAll ();
-        g.setColour (c);
-        g.drawRect (0,0,getWidth(),getHeight(),1);
-    }
+    this->vuMeter->setOutputLab(String(this->outputPatch));
 }
 
 glm::vec3 Speaker::getMin() {
@@ -231,14 +103,9 @@ bool Speaker::isSelected(){
 
 void Speaker::selectSpeaker()
 {
-    /*this->mainParent->getLockSpeakers()->try_lock();
-    for(int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
-        this->mainParent->getListSpeaker()[i]->unSelectSpeaker();
-    }
-    this->mainParent->getLockSpeakers()->unlock();*/
-    
     this->color = colorSpeakerSelect;
     this->selected = true;
+    this->vuMeter->setSelected(this->selected);
     this->repaint();
 }
 
@@ -246,6 +113,7 @@ void Speaker::unSelectSpeaker()
 {
     this->color = colorSpeaker;
     this->selected = false;
+    this->vuMeter->setSelected(this->selected);
     this->repaint();
 }
 
