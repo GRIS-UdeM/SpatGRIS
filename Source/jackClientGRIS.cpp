@@ -354,12 +354,14 @@ void jackClientGris::autoConnectClient()
         cout << jack_port_name(jack_port_by_name(client,portsOut[i])) << newLine;
         if(nameClient == clientName)
         {
-            if(portsIn[j]){
+            while(portsIn[j]){
                 nameClient = getClientName(portsIn[j]);
-                if(nameClient != clientName){
+                if(nameClient == "system"){
                     jack_connect (client, portsOut[i] ,portsIn[j]);
                     j+=1;
+                    break;
                 }
+                j+=1;
             }
         }
         i+=1;
