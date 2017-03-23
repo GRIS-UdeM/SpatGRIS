@@ -69,14 +69,25 @@ LevelComponent::LevelComponent(ParentLevelComponent* parent, GrisLookAndFeel *fe
     
     //ToggleButton=========================================================
     this->muteToggleBut = new ToggleButton();
-    this->muteToggleBut->setButtonText("");
-    this->muteToggleBut->setSize(36, 22);
+    this->muteToggleBut->setButtonText("M");
+    this->muteToggleBut->setSize(18, 18);
     this->muteToggleBut->setTooltip ("Mute "+String(this->mainParent->getId()));
     this->muteToggleBut->addListener(this);
     this->muteToggleBut->setToggleState(this->muted, dontSendNotification);
     this->muteToggleBut->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
     this->muteToggleBut->setLookAndFeel(this->grisFeel);
     this->addAndMakeVisible(this->muteToggleBut);
+    
+    //ToggleButton=========================================================
+    this->soloToggleBut = new ToggleButton();
+    this->soloToggleBut->setButtonText("S");
+    this->soloToggleBut->setSize(18, 18);
+    this->soloToggleBut->setTooltip ("Solo "+String(this->mainParent->getId()));
+    this->soloToggleBut->addListener(this);
+    this->soloToggleBut->setToggleState(this->muted, dontSendNotification);
+    this->soloToggleBut->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
+    this->soloToggleBut->setLookAndFeel(this->grisFeel);
+    this->addAndMakeVisible(this->soloToggleBut);
     
     //Level BOX============================================================
     this->levelBox = new LevelBox(this, this->grisFeel);
@@ -87,6 +98,7 @@ LevelComponent::LevelComponent(ParentLevelComponent* parent, GrisLookAndFeel *fe
 
 LevelComponent::~LevelComponent(){
     delete this->muteToggleBut;
+    delete this->soloToggleBut;
     delete this->indexLab;
     delete this->levelBox;
 }
@@ -132,9 +144,10 @@ void LevelComponent::setSelected(bool value){
 void LevelComponent::setBounds(const Rectangle<int> &newBounds){
     this->juce::Component::setBounds(newBounds);
     this->indexLab->setSize(newBounds.getWidth(), 22);
-    this->muteToggleBut->setTopLeftPosition((newBounds.getWidth()/2)-10, getHeight()-22);
-    
-    int newWidth = newBounds.getWidth()/2;
+    this->muteToggleBut->setBounds((newBounds.getWidth()/2)-15, getHeight()-22, this->muteToggleBut->getWidth(), this->muteToggleBut->getHeight());
+    this->soloToggleBut->setBounds((newBounds.getWidth()/2)+1, getHeight()-22, this->muteToggleBut->getWidth(), this->muteToggleBut->getHeight());
+
+    int newWidth = 2;
     juce::Rectangle<int> level(newWidth/2, 18, newBounds.getWidth()-newWidth, getHeight()-40 );
     this->levelBox->setBounds(level);
 }

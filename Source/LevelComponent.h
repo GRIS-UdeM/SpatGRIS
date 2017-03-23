@@ -59,6 +59,7 @@ private:
     LevelBox *levelBox;
     Label *indexLab;
     ToggleButton *muteToggleBut;
+    ToggleButton *soloToggleBut;
     GrisLookAndFeel *grisFeel;
     bool muted;
     float level = -100.0f;
