@@ -61,6 +61,8 @@ MainContentComponent::MainContentComponent(){
     this->tedOSCInPort->setText("18032");
     this->labOSCStatus= addLabel("...","OSC Receiver status",270, 36, 50, 24,this->boxControlUI->getContent());
     
+    this->tedAddInputs= addTextEditor("Inputs :", "0", "Numbers of Inputs", 140, 70, 50, 24, this->boxControlUI->getContent());
+    
     
     // set up the layout and resizer bars
     this->verticalLayout.setItemLayout (0, -0.2, -0.8, -0.5); // width of the font list must be between 20% and 80%, preferably 50%
@@ -92,9 +94,7 @@ MainContentComponent::MainContentComponent(){
     
     //OSC Receiver----------------------------------------------------------------------------
 
-    for(int i = 0 ; i< 12;i++){
-        this->listSourceInput.push_back(new Input(this, &mGrisFeel,i+1));
-    }
+    /**/
     this->oscReceiver = new OscInput(this);
 
     textEditorReturnKeyPressed(*this->tedOSCInPort);
@@ -312,7 +312,7 @@ void MainContentComponent::openXmlFileSpeaker(String path)
                                                               glm::vec3(spk->getDoubleAttribute("PositionX")*10.0f,
                                                                         spk->getDoubleAttribute("PositionZ")*10.0f,
                                                                         spk->getDoubleAttribute("PositionY")*10.0f)));
-                 
+                            this->jackClient->addOutput();
                         }
                     }
                     
@@ -360,10 +360,15 @@ void MainContentComponent::releaseResources() {
 
 void MainContentComponent::timerCallback(){
     this->labelJackStatus->setText(String(this->jackClient->getCpuUsed()), dontSendNotification);
+    for (auto&& it : listSourceInput)
+    {
+        it->getVuMeter()->update();
+    }
     for (auto&& it : listSpeaker)
     {
         it->getVuMeter()->update();
     }
+   
 }
 
 void MainContentComponent::paint (Graphics& g) {
@@ -386,6 +391,19 @@ void MainContentComponent::textEditorReturnKeyPressed (TextEditor & textEditor){
             this->labOSCStatus->setColour(Label::textColourId, Colours::red);
         }
         
+    }else if(&textEditor == this->tedAddInputs){
+        this->jackClient->addRemoveInput(this->tedAddInputs->getTextValue().toString().getIntValue());
+        this->lockInputs->lock();
+        for (auto&& it : listSourceInput)
+        {
+            delete (it);
+        }
+        listSourceInput.clear();
+        for(int i = 0 ; i< this->jackClient->inputs.size();i++){
+            this->listSourceInput.push_back(new Input(this, &mGrisFeel,i+1));
+        }
+        this->lockInputs->unlock();
+        updateLevelComp();
     }
 }
 

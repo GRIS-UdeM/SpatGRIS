@@ -50,8 +50,8 @@ void Box::correctSize(int width, int height){
     if(this->title!=""){
         this->viewport->setTopLeftPosition(0, 20);
         this->viewport->setSize(getWidth(), getHeight()-20);
-        if(width<20){
-            width = 20;
+        if(width<80){
+            width = 80;
         }
     }else{
         this->viewport->setTopLeftPosition(0, 0);

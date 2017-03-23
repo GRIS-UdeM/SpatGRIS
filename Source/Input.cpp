@@ -28,7 +28,7 @@ glm::vec3 Input::getCenter(){
 }
 
 float Input::getLevel(){
-    return this->mainParent->getLevelsIn(this->idChannel);
+    return this->mainParent->getLevelsIn(this->idChannel-1);
 }
 void Input::draw(){
     // Draw 3D sphere.

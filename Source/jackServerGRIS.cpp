@@ -69,12 +69,10 @@ jackServerGRIS::jackServerGRIS(){
         node_ptr = jack_slist_next(node_ptr);
     }
 
-    
     jackctl_server_open(server, jackctl_server_get_driver(server, driver_name));
     jackctl_server_start(server);
     jackctl_server_load_internal(server, jackctl_server_get_internal(server, client_name));
-    
-    
+        
     const JSList * parameters2 = jackctl_server_get_parameters(server);
     print_parameters(parameters2);
     printf("\n========================== \n");

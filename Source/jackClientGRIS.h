@@ -32,6 +32,7 @@
 #include "jack/session.h"
 
 
+
 #ifndef M_PI
 #define M_PI  (3.14159265)
 #endif
@@ -40,8 +41,9 @@
 //#define TABLE_SIZE   (441)
 using namespace std;
 
-unsigned int const MaxOutputs = 128;
-unsigned int const MaxInputs = 128;
+
+static unsigned int const MaxInputs = 64;
+static unsigned int const MaxOutputs = 64;
 
 class jackClientGris {
 public:
@@ -53,6 +55,7 @@ public:
 
     
     vector<double> sine;
+    vector<int> outPut;
     int left_phase;
     int right_phase;
     
@@ -64,11 +67,16 @@ public:
     
     bool isReady() { return clientReady; }
     float getCpuUsed() const { return jack_cpu_load(client); }
-    float getLevelsOut(int index) const { return levelsOut[index]; }
     float getLevelsIn(int index) const { return levelsIn[index]; }
+    float getLevelsOut(int index) const { return levelsOut[index]; }
+
     
     jackClientGris();
     virtual ~jackClientGris();
+    
+    
+    void addRemoveInput(int number);
+    void addOutput();
     
 private:
     bool clientReady;

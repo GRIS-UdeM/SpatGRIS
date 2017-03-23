@@ -24,72 +24,54 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
 
     jackClientGris* client = (jackClientGris*)arg;
     
-
-    jack_default_audio_sample_t * outs[MaxOutputs+MaxInputs];
-    for (int iSpeaker = 1; iSpeaker < MaxOutputs+MaxInputs-1; iSpeaker++) {
-        outs[iSpeaker] = (jack_default_audio_sample_t*)jack_port_get_buffer ((jack_port_t*)iSpeaker, nframes);
-    }
-    /*for(int i = 0; i < nframes; ++i) {
-        out1[i] = client->sine[client->left_phase];
-        out2[i] = client->sine[client->right_phase];
-        client->left_phase += 1;
-        if (client->left_phase >= client->sine.size()){
-            client->left_phase -= client->sine.size();
-        }
-        client->right_phase += 1; // higher pitch so we can distinguish left and right.
-        if(client->right_phase >= client->sine.size()){
-            client->right_phase -= client->sine.size();
-        }
-    }*/
+    const unsigned int sizeInputs = client->inputs.size() ;
+    const unsigned int sizeOutputs = client->outputs.size() ;
     
-    //==================================== DB METER STUFF ===========================================
-    fill(client->levelsOut, client->levelsOut+MaxOutputs, -100.0f);
-    float sums[MaxOutputs];
-    fill(sums, sums+MaxOutputs, 0.0f);
-    for(int i = 0; i < nframes; ++i) {
-        for (int iSpeaker = 0; iSpeaker < MaxOutputs; iSpeaker++) {
-            sums[iSpeaker] += outs[iSpeaker+1][i] * outs[iSpeaker+1][i];
-        }
+    //Get all buffer from all input - output
+    jack_default_audio_sample_t * ins[sizeInputs];
+    for (int i = 0; i < sizeInputs; i++) {
+        ins[i] = (jack_default_audio_sample_t*)jack_port_get_buffer (client->inputs[i], nframes);
+    }
+    jack_default_audio_sample_t * outs[sizeOutputs];
+    for (int i = 0; i < sizeOutputs; i++) {
+        outs[i] = (jack_default_audio_sample_t*)jack_port_get_buffer (client->outputs[i], nframes);
     }
     
-    for (int iSpeaker = 0; iSpeaker < MaxOutputs; iSpeaker++) {
-        client->levelsOut[iSpeaker] = 10.0f* log10( sqrt(sums[iSpeaker]/nframes));
-    }
-   /* for(int i = 0; i < nframes; ++i) {
-        
-        out1[i] = 0.0f;
-        out2[i] = 0.0f;
-        in1[i] = 0.0f;
-        in2[i] = 0.0f;
-
-    }*/
- /*          //envelope constants
-        const float attack  = 0.05f;
-        const float release = 100;
-        const float ag      = powf(0.01f, 1000.f / (attack * client->sampleRate));
-        const float rg      = powf(0.01f, 1000.f / (release * client->sampleRate));
-        //for each speaker
-    //get pointer to current spot in output buffer
-    float *output = (jack_default_audio_sample_t*)jack_port_get_buffer (client->inputs[0], nframes);;
-    float env = client->mLevels[0];
     
-    //for each frame that are left to process
-    for (unsigned int f = 0; f < client->bufferSize; f++) {
-        float s = fabsf(out1[f]);
-        float g = (s > env) ? ag : rg;
-        env = g * env + (1.f - g) * 1;
-    }
-
-        for (int iSpeaker = 0; iSpeaker < 2; iSpeaker++) {
-            client->mLevels[iSpeaker] = env;
-            if(0==iSpeaker){
-                cout << env<< endl;
-            }
+    //================ INPUTS ==========================================
+    float sumsIn[sizeInputs];
+    fill(client->levelsIn, client->levelsIn+sizeInputs, -100.0f);
+    fill(sumsIn, sumsIn+sizeInputs, 0.0f);
+    
+    for(int nF = 0; nF < nframes; ++nF) {
+        for (int i = 0; i < sizeInputs; ++i) {
+            sumsIn[i] +=  ins[i][nF] * ins[i][nF];
         }
+    }
+    for (int iSpeaker = 0; iSpeaker < sizeInputs; iSpeaker++) {
+        client->levelsIn[iSpeaker] = sumsIn[iSpeaker]/nframes;//20.0f * log10( sqrt(sumsIn[iSpeaker]/nframes));
+        if(iSpeaker < sizeOutputs){
+            memcpy (outs[iSpeaker], ins[iSpeaker] , sizeof (jack_default_audio_sample_t) * nframes);
+        }
+    }
     
-    */
-    //memcpy (in , out1, sizeof (jack_default_audio_sample_t) * nframes);
-   // memcpy (in , out2, sizeof (jack_default_audio_sample_t) * nframes);
+    
+    
+    //================ Outputs =========================================
+    float sumsOut[sizeOutputs];
+    fill(client->levelsOut, client->levelsOut+sizeOutputs, -100.0f);
+    fill(sumsOut, sumsOut+sizeOutputs, 0.0f);
+    
+    for(int nF = 0; nF < nframes; ++nF) {
+        for (int i = 0; i < sizeInputs; ++i) {
+            sumsOut[i] +=  outs[i][nF] * outs[i][nF];
+        }
+    }
+    for (int iSpeaker = 0; iSpeaker < sizeInputs; iSpeaker++) {
+        client->levelsOut[iSpeaker] = sumsOut[iSpeaker]/nframes;//20.0f * log10( sqrt(sumsIn[iSpeaker]/nframes));
+    }
+    
+    
     return 0;
 }
 
@@ -126,6 +108,12 @@ int sample_rate_callback(jack_nframes_t nframes, void *arg)
     return 0;
 }
 
+void client_registration_callback(const char *name, int regist, void *arg)
+{
+    printf("client_registration_callback : %s : %" PRIu32 "\n",name, regist);
+
+}
+
 void latency_callback(jack_latency_callback_mode_t  mode, void *arg)
 {
     switch (mode) {
@@ -153,7 +141,7 @@ void port_connect_callback(jack_port_id_t a, jack_port_id_t b, int connect, void
 
     }
     printf("%" PRIu32 " <> %" PRIu32 "\n", a,b);
-    
+
 }
 
 
@@ -196,12 +184,13 @@ jackClientGris::jackClientGris() {
     //--------------------------------------------------
     //register callback, ports
     //--------------------------------------------------
-    jack_on_shutdown (client, jack_shutdown, 0);
+    jack_on_shutdown (client, jack_shutdown, this);
     jack_set_process_callback (client, process_audio, this);
+    jack_set_client_registration_callback(client, client_registration_callback, this);
   
     jack_set_session_callback (client, session_callback, this);
     jack_set_port_connect_callback(client, port_connect_callback, this);
-    jack_set_sample_rate_callback (client, sample_rate_callback, 0);
+    jack_set_sample_rate_callback (client, sample_rate_callback, this);
     //jack_set_latency_callback(client, latency_callback, this);
     
     jack_set_buffer_size(client, 1024);
@@ -223,21 +212,14 @@ jackClientGris::jackClientGris() {
     left_phase = right_phase = 0;
     
     this->inputs = vector<jack_port_t *>();
-    for(int i = 0 ; i < MaxInputs ; i++){
-        String nameOut = "input";
-        nameOut+= String(i);
-        this->inputs.push_back(jack_port_register(client,  nameOut.toUTF8(), JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput,  0));
-    }
-    
-    //input_port   = jack_port_register (client,  "input",   JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput,  0);
-    
     this->outputs = vector<jack_port_t *>();
-    for(int i = 0 ; i < MaxOutputs ; i++){
-        String nameOut = "output";
-        nameOut+= String(i);
-        this->outputs.push_back(jack_port_register(client,  nameOut.toUTF8(), JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput,  0));
-    }
-    
+   
+   /* for(int i = 0 ; i < MaxInputs ; i++){
+        String nameOut = "input";
+        nameOut+= String(i+1);
+        this->inputs.push_back(jack_port_register(client,  nameOut.toUTF8(), JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput,  0));
+    }*/
+
 
     //--------------------------------------------------
     // Activate client and connect the ports. Playback ports are "input" to the backend, and capture ports are "output" from it.
@@ -251,17 +233,19 @@ jackClientGris::jackClientGris() {
         fprintf(stderr, "\n\n\n======no physical playback ports\n");
         return;
     }
-    for(int i = 0 ; i < MaxOutputs ; i++){
+    /*for(int i = 0 ; i < MaxOutputs ; i++){
         if (jack_connect (client, jack_port_name (this->outputs[i]), ports[i])) {
             fprintf (stderr, "======     Cannot connect output ports %" PRIu32 "\n",i);
     
         }
-    }
+    }*/
     
     
     ports = jack_get_ports (client, NULL, NULL, 0);
-    for(int i = 1 ; i < MaxOutputs+MaxInputs ; i++){
+    int i=0;
+    while (ports[i]){
         cout << ports[i] << newLine;
+        i+=1;
     }
     
     
@@ -269,14 +253,47 @@ jackClientGris::jackClientGris() {
     clientReady = true;
 }
 
+void jackClientGris::addRemoveInput(int number){
+    
+    if(number < this->inputs.size()){
+        while(number < this->inputs.size()){
+            jack_port_unregister(client, this->inputs.back());
+            this->inputs.pop_back();
+        }
+    }else{
+        while(number > this->inputs.size()){
+            String nameIn = "input";
+            nameIn+= String(this->inputs.size() +1);
+            jack_port_t* newPort = jack_port_register(this->client,  nameIn.toUTF8(), JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
+            this->inputs.push_back(newPort);
+        }
+    }
+
+}
+
+void jackClientGris::addOutput(){
+
+    String nameOut = "output";
+    nameOut+= String(this->outputs.size() +1);
+    
+    jack_port_t* newPort = jack_port_register(this->client,  nameOut.toUTF8(), JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput,  0);
+    
+    
+    const char ** ports = jack_get_ports (client, NULL, NULL, JackPortIsPhysical|JackPortIsInput);
+    if (jack_connect (client, jack_port_name (newPort), ports[this->outputs.size()])) {
+        fprintf (stderr, "======     Cannot connect output ports %" PRIu32 "\n",this->outputs.size()+1);
+    }
+    this->outputs.push_back(newPort);
+    jack_free (ports);
+}
 
 jackClientGris::~jackClientGris() {
     //jack_deactivate(client);
-    for(int i = 0 ; i < MaxInputs ; i++){
+    for(int i = 0 ; i < this->inputs.size() ; i++){
         jack_port_unregister(client, this->inputs[i]);
     }
     
-    for(int i = 0 ; i < MaxOutputs ; i++){
+    for(int i = 0 ; i < this->outputs.size()  ; i++){
         jack_port_unregister(client, this->outputs[i]);
     }
     jack_client_close(client);

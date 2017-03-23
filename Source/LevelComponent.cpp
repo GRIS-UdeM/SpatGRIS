@@ -105,6 +105,7 @@ float LevelComponent::getLevel(){
 
 void LevelComponent::update(){
     float l = this->mainParent->getLevel();
+    if(isnan(l)){ return; }
     if(!this->muted && this->level != l){
         this->repaint();
     }

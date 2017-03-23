@@ -45,6 +45,8 @@ using namespace std;
 static const unsigned int sizeWidthLevelComp = 36;
 static const unsigned int hertzRefresh = 24;
 
+
+
 //==============================================================================
 /*
  This component lives inside our window, and this is where you should put all
@@ -65,7 +67,7 @@ public:
     
     
     vector<Input *> getListSourceInput(){ return this->listSourceInput; }
-    mutex* getLockInputs(){ return this->lockInputs; }
+    mutex* getLockInputs(){ return this->lockInputs; }  
     
     
     void setShowShepre(bool value){ this->speakerView->setShowSphere(value); }
@@ -73,8 +75,8 @@ public:
     void removeSpeaker(int idSpeaker);
     void updateLevelComp();
     //=======================================================================
-    float getLevelsOut(int indexLevel){return this->jackClient->getLevelsOut(indexLevel);}
-    float getLevelsIn(int indexLevel){return this->jackClient->getLevelsIn(indexLevel);}
+    float getLevelsOut(int indexLevel){return (20.0f * log10(sqrt(this->jackClient->getLevelsOut(indexLevel))));}
+    float getLevelsIn(int indexLevel){return (20.0f * log10(sqrt(this->jackClient->getLevelsIn(indexLevel)))); }
     void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
     
     void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override;
@@ -141,6 +143,8 @@ private:
     
     TextEditor *    tedOSCInPort;
     Label *         labOSCStatus;
+    
+    TextEditor *    tedAddInputs;
 
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
