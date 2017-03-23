@@ -69,7 +69,7 @@ LevelComponent::LevelComponent(ParentLevelComponent* parent, GrisLookAndFeel *fe
     
     //ToggleButton=========================================================
     this->muteToggleBut = new ToggleButton();
-    this->muteToggleBut->setButtonText("M");
+    this->muteToggleBut->setButtonText("");
     this->muteToggleBut->setSize(18, 18);
     this->muteToggleBut->setTooltip ("Mute "+String(this->mainParent->getId()));
     this->muteToggleBut->addListener(this);
@@ -80,7 +80,7 @@ LevelComponent::LevelComponent(ParentLevelComponent* parent, GrisLookAndFeel *fe
     
     //ToggleButton=========================================================
     this->soloToggleBut = new ToggleButton();
-    this->soloToggleBut->setButtonText("S");
+    this->soloToggleBut->setButtonText("");
     this->soloToggleBut->setSize(18, 18);
     this->soloToggleBut->setTooltip ("Solo "+String(this->mainParent->getId()));
     this->soloToggleBut->addListener(this);
@@ -144,8 +144,8 @@ void LevelComponent::setSelected(bool value){
 void LevelComponent::setBounds(const Rectangle<int> &newBounds){
     this->juce::Component::setBounds(newBounds);
     this->indexLab->setSize(newBounds.getWidth(), 22);
-    this->muteToggleBut->setBounds((newBounds.getWidth()/2)-15, getHeight()-22, this->muteToggleBut->getWidth(), this->muteToggleBut->getHeight());
-    this->soloToggleBut->setBounds((newBounds.getWidth()/2)+1, getHeight()-22, this->muteToggleBut->getWidth(), this->muteToggleBut->getHeight());
+    this->muteToggleBut->setBounds((newBounds.getWidth()/2)-16, getHeight()-22, this->muteToggleBut->getWidth(), this->muteToggleBut->getHeight());
+    this->soloToggleBut->setBounds((newBounds.getWidth()/2)-2, getHeight()-22, this->muteToggleBut->getWidth(), this->muteToggleBut->getHeight());
 
     int newWidth = 2;
     juce::Rectangle<int> level(newWidth/2, 18, newBounds.getWidth()-newWidth, getHeight()-40 );
