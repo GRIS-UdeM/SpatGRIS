@@ -55,7 +55,7 @@ public:
 
     
     vector<double> sine;
-    vector<int> outPut;
+    vector<String> nameClient;
     int left_phase;
     int right_phase;
     
@@ -76,12 +76,16 @@ public:
     
     
     void addRemoveInput(int number);
-    void addOutput();
+    bool addOutput();
     void removeOutput();
     
+    void autoConnectClient();
+    
 private:
+    string getClientName(const char * port);
+    
     bool clientReady;
-
+    const char  *clientName = "jackClientGris";
     
 };
 

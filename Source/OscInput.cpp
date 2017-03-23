@@ -12,7 +12,6 @@
 
 OscInput::OscInput(MainContentComponent* parent){
     this->mainParent = parent;
-    
 }
 
 OscInput::~OscInput(){

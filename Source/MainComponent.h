@@ -137,6 +137,9 @@ private:
     
     //Component in Box 3 -----------
     Label *         labelJackStatus;
+    Label *         labelJackLoad;
+    Label *         labelJackRate;
+    Label *         labelJackBuffer;
     TextButton *    butLoadXMLSpeakers;
     TextButton *    butEditableSpeakers;
     ToggleButton *  butShowSpeakerNumber;
@@ -145,6 +148,7 @@ private:
     Label *         labOSCStatus;
     
     TextEditor *    tedAddInputs;
+    TextButton *    butAutoConnectJack;
 
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)

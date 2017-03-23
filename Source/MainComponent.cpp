@@ -49,7 +49,16 @@ MainContentComponent::MainContentComponent(){
     
     
     //Components in BOX 3 ------------------------------------------------------------------
-    this->labelJackStatus = addLabel("Jack Unknown","",0, 0, 150, 28,this->boxControlUI->getContent());
+    this->labelJackStatus = addLabel("Jack Unknown","",0, 0, 80, 28,this->boxControlUI->getContent());
+    this->labelJackLoad = addLabel("0.000000 %","",80, 0, 80, 28,this->boxControlUI->getContent());
+    this->labelJackRate = addLabel("00000 Hz","",160, 0, 80, 28,this->boxControlUI->getContent());
+    this->labelJackBuffer = addLabel("0000 spls","",240, 0, 80, 28,this->boxControlUI->getContent());
+    
+    this->labelJackStatus->setColour(Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
+    this->labelJackLoad->setColour(Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
+    this->labelJackRate->setColour(Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
+    this->labelJackBuffer->setColour(Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
+
     
     this->butLoadXMLSpeakers = addButton("XML Speakers","Load Xml File Coniguration",4,36,124,24,this->boxControlUI->getContent());
     
@@ -62,6 +71,8 @@ MainContentComponent::MainContentComponent(){
     this->labOSCStatus= addLabel("...","OSC Receiver status",270, 36, 50, 24,this->boxControlUI->getContent());
     
     this->tedAddInputs= addTextEditor("Inputs :", "0", "Numbers of Inputs", 140, 70, 50, 24, this->boxControlUI->getContent());
+    
+    this->butAutoConnectJack= addButton("Auto Connect","Auto connection with jack",140,104,130,24,this->boxControlUI->getContent());
     
     
     // set up the layout and resizer bars
@@ -89,6 +100,8 @@ MainContentComponent::MainContentComponent(){
     }else{
          this->labelJackStatus->setText("Jack Ready", dontSendNotification);
     }
+    this->labelJackRate->setText(String(this->jackClient->sampleRate)+ " Hz", dontSendNotification);
+    this->labelJackBuffer->setText(String(this->jackClient->bufferSize)+ " spls", dontSendNotification);
 #endif
     
     
@@ -359,7 +372,7 @@ void MainContentComponent::releaseResources() {
 }
 
 void MainContentComponent::timerCallback(){
-    this->labelJackStatus->setText(String(this->jackClient->getCpuUsed()), dontSendNotification);
+    this->labelJackLoad->setText(String(this->jackClient->getCpuUsed())+ " %", dontSendNotification);
     for (auto&& it : listSourceInput)
     {
         it->getVuMeter()->update();
@@ -441,6 +454,8 @@ void MainContentComponent::buttonClicked (Button *button)
     }else if(button == butShowSpeakerNumber){
         this->speakerView->setShowNumber(this->butShowSpeakerNumber->getToggleState());
         
+    }else if(button == this->butAutoConnectJack){
+        this->jackClient->autoConnectClient();
     }
 }
 

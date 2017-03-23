@@ -34,6 +34,7 @@ static const glm::vec3 defaultCenter = glm::vec3(0, 0, 0);
 using namespace std;
 
 
+
 static double GetFloatPrecision(double value, double precision)
 {
     return (floor((value * pow(10, precision) + 0.5)) / pow(10, precision));
@@ -93,6 +94,7 @@ private :
     int outputPatch = -1;
     
     bool selected = false;
+
     
     MainContentComponent *mainParent;
     LevelComponent *vuMeter;

@@ -41,6 +41,14 @@ jackServerGRIS::jackServerGRIS(){
         jackctl_parameter_set_value(param, &value);
     }*/
     
+    /*jackctl_parameter_t* param;
+    union jackctl_parameter_value value;
+    param = jackctl_get_parameter(parameters, "self-connect-mode");
+    if (param != NULL) {
+        value.b = false;
+        jackctl_parameter_set_value(param, &value);
+    }*/
+    
     printf("\n========================== \n");
     printf("List of server parameters \n");
     printf("========================== \n");
@@ -74,6 +82,9 @@ jackServerGRIS::jackServerGRIS(){
     jackctl_server_load_internal(server, jackctl_server_get_internal(server, client_name));
         
     const JSList * parameters2 = jackctl_server_get_parameters(server);
+    
+   
+    
     print_parameters(parameters2);
     printf("\n========================== \n");
     printf("Jack Server Run \n");
