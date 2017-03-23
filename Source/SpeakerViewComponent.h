@@ -79,9 +79,9 @@ private:
     bool showShpere = false;
     bool showNumber = false;
     
-    float camAngleX=35;
-    float camAngleY=35;
-    float distance = 12.0f;
+    float camAngleX= 30.0f;
+    float camAngleY= 25.0f;
+    float distance = 15.0f;
     
     float deltaClickX;
     float deltaClickY;

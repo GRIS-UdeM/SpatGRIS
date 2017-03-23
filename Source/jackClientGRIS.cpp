@@ -29,10 +29,11 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
     
     //Get all buffer from all input - output
     jack_default_audio_sample_t * ins[sizeInputs];
+    jack_default_audio_sample_t * outs[sizeOutputs];
+    
     for (int i = 0; i < sizeInputs; i++) {
         ins[i] = (jack_default_audio_sample_t*)jack_port_get_buffer (client->inputs[i], nframes);
     }
-    jack_default_audio_sample_t * outs[sizeOutputs];
     for (int i = 0; i < sizeOutputs; i++) {
         outs[i] = (jack_default_audio_sample_t*)jack_port_get_buffer (client->outputs[i], nframes);
     }
@@ -50,6 +51,7 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
     }
     for (int iSpeaker = 0; iSpeaker < sizeInputs; iSpeaker++) {
         client->levelsIn[iSpeaker] = sumsIn[iSpeaker]/nframes;//20.0f * log10( sqrt(sumsIn[iSpeaker]/nframes));
+        //Basic Sound Transfert------------------
         if(iSpeaker < sizeOutputs){
             memcpy (outs[iSpeaker], ins[iSpeaker] , sizeof (jack_default_audio_sample_t) * nframes);
         }
@@ -99,7 +101,9 @@ void session_callback (jack_session_event_t *event, void *arg)
 
 void jack_shutdown (void *arg)
 {
+    AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon, "FATAL ERROR", "Please check :\n - Buffer Size (1024)\n - Sample Rate(48000)\n - Inputs/Outputs");
     fprintf (stdout, "\nBye jack\n");
+    exit(1);
 }
 
 int sample_rate_callback(jack_nframes_t nframes, void *arg)

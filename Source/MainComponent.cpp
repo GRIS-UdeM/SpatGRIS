@@ -219,7 +219,7 @@ void MainContentComponent::addSpeaker(){
     int idNewSpeaker = listSpeaker.size()+1;
     this->listSpeaker.push_back(new Speaker(this, idNewSpeaker, idNewSpeaker, glm::vec3(0.0f, 0.0f, 0.0f)));
     this->lockSpeakers->unlock();
-
+    this->jackClient->addOutput();
     updateLevelComp();
 }
 

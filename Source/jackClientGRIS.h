@@ -77,6 +77,7 @@ public:
     
     void addRemoveInput(int number);
     void addOutput();
+    void removeOutput();
     
 private:
     bool clientReady;

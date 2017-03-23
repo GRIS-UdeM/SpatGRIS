@@ -33,7 +33,7 @@ jackServerGRIS::jackServerGRIS(){
     server = jackctl_server_create(on_device_acquire, on_device_release);
     parameters = jackctl_server_get_parameters(server);
     
-   /* jackctl_parameter_t* param;
+    /*jackctl_parameter_t* param;
     union jackctl_parameter_value value;
     param = jackctl_get_parameter(parameters, "verbose");
     if (param != NULL) {
