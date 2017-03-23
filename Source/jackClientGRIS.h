@@ -80,12 +80,14 @@ public:
     void removeOutput();
     
     void autoConnectClient();
-    
-private:
     string getClientName(const char * port);
+    const char  *clientName = "jackClientGris";
+    bool autoConnection;
+private:
+
     
     bool clientReady;
-    const char  *clientName = "jackClientGris";
+    
     
 };
 

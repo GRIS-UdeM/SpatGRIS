@@ -142,7 +142,6 @@ void client_registration_callback(const char *name, int regist, void *arg)
             }
         }
     }
-
 }
 
 void latency_callback(jack_latency_callback_mode_t  mode, void *arg)
@@ -164,9 +163,10 @@ void latency_callback(jack_latency_callback_mode_t  mode, void *arg)
 
 void port_registration_callback ( jack_port_id_t a, int regist, void * arg)
 {
+    jackClientGris* client = (jackClientGris*)arg;
     printf("client_registration_callback : %" PRIu32 " : " ,a);
     if(regist){
-        printf("saved\n");
+        printf("saved \n");
     }else{
         
         printf("deleted\n");
@@ -177,8 +177,18 @@ void port_registration_callback ( jack_port_id_t a, int regist, void * arg)
 
 void port_connect_callback(jack_port_id_t a, jack_port_id_t b, int connect, void* arg)
 {
+    jackClientGris* client = (jackClientGris*)arg;
     printf("port_connect_callback : ");
     if(connect){
+        //Stop Auto connection with system...
+        if(!client->autoConnection){
+            string nameClient = jack_port_name(jack_port_by_id(client->client,a));
+            string tempN = jack_port_short_name(jack_port_by_id(client->client,a));
+            nameClient =   nameClient.substr(0,nameClient.size()-(tempN.size()+1));
+            if(nameClient != client->clientName && nameClient!="system"){
+                jack_disconnect(client->client, jack_port_name(jack_port_by_id(client->client,a)), jack_port_name(jack_port_by_id(client->client,b)));
+            }
+        }
         printf("Connect ");
     }else{
         printf("Disconnect ");
@@ -191,6 +201,7 @@ void port_connect_callback(jack_port_id_t a, jack_port_id_t b, int connect, void
 
 jackClientGris::jackClientGris() {
     clientReady = false;
+    autoConnection = false;
     nameClient =  vector<String >();
     //--------------------------------------------------
     //open a client connection to the JACK server. Start server if it is not running.
@@ -370,6 +381,7 @@ void jackClientGris::autoConnectClient()
     //Connect other client to jackClientGris------------------------------------------
     i=0;
     j=0;
+    autoConnection = true;
     while (portsOut[i]){
         string nameClient = getClientName(portsOut[i]);
         cout << jack_port_name(jack_port_by_name(client,portsOut[i])) << newLine;
@@ -388,7 +400,7 @@ void jackClientGris::autoConnectClient()
         }
         i+=1;
     }
-
+    autoConnection = false;
     
     jack_free (portsIn);
     jack_free(portsOut);
