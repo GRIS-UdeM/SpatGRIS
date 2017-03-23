@@ -38,7 +38,11 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
         outs[i] = (jack_default_audio_sample_t*)jack_port_get_buffer (client->outputs[i], nframes);
     }
     
-    
+    for (int i = 0; i < sizeOutputs; i++) {
+        if(client->muteIn[i]){
+            memset (ins[i-1], 0, sizeof (jack_default_audio_sample_t) * nframes);
+        }
+    }
     //================ INPUTS ==========================================
     float sumsIn[sizeInputs];
     fill(client->levelsIn, client->levelsIn+sizeInputs, -100.0f);
@@ -58,6 +62,11 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
     }
     
     
+    for (int i = 0; i < sizeOutputs; i++) {
+        if(client->muteOut[i]){
+            memset (outs[i-1], 0, sizeof (jack_default_audio_sample_t) * nframes);
+        }
+    }
     
     //================ Outputs =========================================
     float sumsOut[sizeOutputs];
@@ -299,7 +308,7 @@ jackClientGris::jackClientGris() {
         }
     }*/
     
-    
+    jack_free (ports);
     ports = jack_get_ports (client, NULL, NULL, 0);
     int i=0;
     while (ports[i]){
@@ -418,7 +427,7 @@ string jackClientGris::getClientName(const char * port)
     }return "";
 }
 jackClientGris::~jackClientGris() {
-    //jack_deactivate(client);
+    jack_deactivate(client);
     for(int i = 0 ; i < this->inputs.size() ; i++){
         jack_port_unregister(client, this->inputs[i]);
     }

@@ -71,7 +71,7 @@ LevelComponent::LevelComponent(ParentLevelComponent* parent, GrisLookAndFeel *fe
     this->muteToggleBut = new ToggleButton();
     this->muteToggleBut->setButtonText("");
     this->muteToggleBut->setSize(36, 22);
-
+    this->muteToggleBut->setTooltip ("Mute "+String(this->mainParent->getId()));
     this->muteToggleBut->addListener(this);
     this->muteToggleBut->setToggleState(this->muted, dontSendNotification);
     this->muteToggleBut->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
@@ -94,6 +94,7 @@ LevelComponent::~LevelComponent(){
 void LevelComponent::buttonClicked(Button *button){
     if (button == this->muteToggleBut) {
         this->muted = this->muteToggleBut->getToggleState();
+        this->mainParent->setMuted(this->muted);
         this->levelBox->repaint();
     }
 }

@@ -42,8 +42,8 @@
 using namespace std;
 
 
-static unsigned int const MaxInputs = 64;
-static unsigned int const MaxOutputs = 64;
+static unsigned int const MaxInputs = 128;
+static unsigned int const MaxOutputs = 128;
 
 class jackClientGris {
 public:
@@ -61,6 +61,9 @@ public:
     
     float levelsIn[MaxInputs];
     float levelsOut[MaxOutputs];
+    
+    bool muteIn[MaxInputs];
+    bool muteOut[MaxOutputs];
 
     unsigned int sampleRate;
     unsigned int bufferSize;

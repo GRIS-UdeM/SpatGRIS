@@ -74,6 +74,8 @@ public:
     void addSpeaker();
     void removeSpeaker(int idSpeaker);
     void updateLevelComp();
+    void muteInput(int id, bool mute);
+    void muteOutput(int id, bool mute);
     //=======================================================================
     float getLevelsOut(int indexLevel){return (20.0f * log10(sqrt(this->jackClient->getLevelsOut(indexLevel))));}
     float getLevelsIn(int indexLevel){return (20.0f * log10(sqrt(this->jackClient->getLevelsIn(indexLevel)))); }

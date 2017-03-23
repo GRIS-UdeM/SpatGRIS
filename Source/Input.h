@@ -39,7 +39,8 @@ public :
     int getId();
     float getLevel();
     LevelComponent * getVuMeter(){ return this->vuMeter; }
-
+    void setMuted(bool mute);
+    
     glm::vec3 getCenter();
     void draw();
     void updateValues(float az, float ze, float azS, float zeS, float g);

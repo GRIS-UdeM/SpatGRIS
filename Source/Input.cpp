@@ -30,6 +30,10 @@ glm::vec3 Input::getCenter(){
 float Input::getLevel(){
     return this->mainParent->getLevelsIn(this->idChannel-1);
 }
+void Input::setMuted(bool mute){
+    this->mainParent->muteInput(this->idChannel, mute);
+}
+
 void Input::draw(){
     // Draw 3D sphere.
     glPushMatrix();

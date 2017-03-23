@@ -104,17 +104,21 @@ MainContentComponent::MainContentComponent(){
     }
     this->labelJackRate->setText(String(this->jackClient->sampleRate)+ " Hz", dontSendNotification);
     this->labelJackBuffer->setText(String(this->jackClient->bufferSize)+ " spls", dontSendNotification);
+    
+    
+    fill(this->jackClient->muteOut, this->jackClient->muteOut+MaxOutputs, false);
+    fill(this->jackClient->muteIn, this->jackClient->muteIn+MaxInputs, false);
+
 #endif
     
     
     //OSC Receiver----------------------------------------------------------------------------
-
-    /**/
     this->oscReceiver = new OscInput(this);
-
     textEditorReturnKeyPressed(*this->tedOSCInPort);
-
-
+    
+    this->tedAddInputs->setText("8",dontSendNotification);
+    textEditorReturnKeyPressed(*this->tedAddInputs);
+    
     openXmlFileSpeaker("/Users/gris/Documents/GRIS/zirkonium/ZirkSpeakers_Dome 16 UdeM.xml");
     
     this->resized();
@@ -288,6 +292,12 @@ void MainContentComponent::updateLevelComp(){
     this->resized();
 }
 
+void MainContentComponent::muteInput(int id, bool mute){
+    this->jackClient->muteIn[id] = mute;
+}
+void MainContentComponent::muteOutput(int id, bool mute){
+    this->jackClient->muteOut[id] = mute;
+}
 void MainContentComponent::openXmlFileSpeaker(String path)
 {
     this->lockSpeakers->lock();
