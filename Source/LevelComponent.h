@@ -14,12 +14,10 @@
 #include "UiComponent.h"
 #include "ParentLevelComponent.h"
 
-static const float MinLevelComp = -60.f;
-static const float MaxLevelComp = 1.f;
+static const float MinLevelComp  = -60.f;
+static const float MaxLevelComp  = 1.f;
 static const float MaxMinLevComp = MaxLevelComp - MinLevelComp;
-
-
-
+static const int   WidthRect     = 2;
 
 //======================================= LevelBox ===================================
 class LevelBox : public Component
@@ -46,7 +44,7 @@ public:
     LevelComponent(ParentLevelComponent * parent, GrisLookAndFeel *feel);
     ~LevelComponent();
     
-    void setOutputLab(String value) { this->indexLab->setText(value, dontSendNotification); }
+    void setOutputLab(String value) { this->labId->setText(value, dontSendNotification); }
     float getLevel();
     void update();
     bool isMuted();
@@ -56,12 +54,11 @@ public:
 
 private:
     ParentLevelComponent* mainParent;
-    LevelBox *levelBox;
-    Label *indexLab;
-    ToggleButton *muteToggleBut;
-    ToggleButton *soloToggleBut;
-    GrisLookAndFeel *grisFeel;
-    bool muted;
+    LevelBox * levelBox;
+    Label * labId;
+    ToggleButton * muteToggleBut;
+    ToggleButton * soloToggleBut;
+    GrisLookAndFeel * grisFeel;
     float level = -100.0f;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LevelComponent)
 };
