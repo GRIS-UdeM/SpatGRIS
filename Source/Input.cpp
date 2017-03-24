@@ -33,7 +33,9 @@ float Input::getLevel(){
 void Input::setMuted(bool mute){
     this->mainParent->muteInput(this->idChannel, mute);
 }
-
+void Input::setSolo(bool solo){
+    this->mainParent->soloInput(this->idChannel, solo);
+}
 void Input::draw(){
     // Draw 3D sphere.
     glPushMatrix();

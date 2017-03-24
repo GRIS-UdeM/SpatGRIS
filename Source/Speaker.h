@@ -57,6 +57,7 @@ public:
     LevelComponent * getVuMeter(){ return this->vuMeter; }
     float getLevel();
     void setMuted(bool mute);
+    void setSolo(bool solo);
     //Normalise for user =================================
     void setBounds(const Rectangle<int> &newBounds);
     int getIdSpeaker();

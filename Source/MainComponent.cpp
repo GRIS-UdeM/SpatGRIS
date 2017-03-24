@@ -104,11 +104,6 @@ MainContentComponent::MainContentComponent(){
     }
     this->labelJackRate->setText(String(this->jackClient->sampleRate)+ " Hz", dontSendNotification);
     this->labelJackBuffer->setText(String(this->jackClient->bufferSize)+ " spls", dontSendNotification);
-    
-    
-    fill(this->jackClient->muteOut, this->jackClient->muteOut+MaxOutputs, false);
-    fill(this->jackClient->muteIn, this->jackClient->muteIn+MaxInputs, false);
-
 #endif
     
     
@@ -298,6 +293,25 @@ void MainContentComponent::muteInput(int id, bool mute){
 void MainContentComponent::muteOutput(int id, bool mute){
     this->jackClient->muteOut[id] = mute;
 }
+void MainContentComponent::soloInput(int id, bool solo){
+    this->jackClient->soloIn[id] = solo;
+    this->jackClient->soloIn[MaxInputs+1] = false;
+    for (int i = 0; i < MaxInputs; i++) {
+        if(this->jackClient->soloIn[i]){
+            this->jackClient->soloIn[MaxInputs+1] = true;
+        }
+    }
+}
+void MainContentComponent::soloOutput(int id, bool solo){
+    this->jackClient->soloOut[id] = solo;
+    this->jackClient->soloOut[MaxInputs+1] = false;
+    for (int i = 0; i < MaxOutputs; i++) {
+        if(this->jackClient->soloOut[i]){
+            this->jackClient->soloOut[MaxInputs+1] = true;
+        }
+    }
+}
+
 void MainContentComponent::openXmlFileSpeaker(String path)
 {
     this->lockSpeakers->lock();

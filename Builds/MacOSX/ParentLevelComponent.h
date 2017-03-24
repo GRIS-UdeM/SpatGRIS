@@ -13,9 +13,10 @@ class LevelComponent;
 
 class ParentLevelComponent{
 public:
-    virtual float getLevel() = 0;
     virtual int getId() = 0;
+    virtual float getLevel() = 0;
     virtual void setMuted(bool mute) = 0;
+    virtual void setSolo(bool solo) = 0;
     virtual LevelComponent * getVuMeter() = 0;
 };
 

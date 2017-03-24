@@ -76,6 +76,9 @@ public:
     void updateLevelComp();
     void muteInput(int id, bool mute);
     void muteOutput(int id, bool mute);
+    
+    void soloInput(int id, bool solo);
+    void soloOutput(int id, bool solo);
     //=======================================================================
     float getLevelsOut(int indexLevel){return (20.0f * log10(sqrt(this->jackClient->getLevelsOut(indexLevel))));}
     float getLevelsIn(int indexLevel){return (20.0f * log10(sqrt(this->jackClient->getLevelsIn(indexLevel)))); }

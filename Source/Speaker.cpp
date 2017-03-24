@@ -37,6 +37,9 @@ float Speaker::getLevel(){
 void Speaker::setMuted(bool mute){
     this->mainParent->muteOutput(this->outputPatch, mute);
 }
+void Speaker::setSolo(bool solo){
+    this->mainParent->soloOutput(this->outputPatch, solo);
+}
 void Speaker::setBounds(const Rectangle<int> &newBounds){
     this->juce::Component::setBounds(newBounds);
 }

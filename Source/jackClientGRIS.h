@@ -64,6 +64,10 @@ public:
     
     bool muteIn[MaxInputs];
     bool muteOut[MaxOutputs];
+    
+    
+    bool soloIn[MaxInputs+1];
+    bool soloOut[MaxOutputs+1];
 
     unsigned int sampleRate;
     unsigned int bufferSize;

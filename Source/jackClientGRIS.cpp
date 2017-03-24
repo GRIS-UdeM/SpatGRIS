@@ -38,10 +38,16 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
         outs[i] = (jack_default_audio_sample_t*)jack_port_get_buffer (client->outputs[i], nframes);
     }
     
-    for (int i = 0; i < sizeOutputs; i++) {
+    for (int i = 0; i < sizeInputs; i++) {
         if(client->muteIn[i]){
             memset (ins[i-1], 0, sizeof (jack_default_audio_sample_t) * nframes);
         }
+        if(client->soloIn[MaxInputs+1]){
+            if(!client->soloIn[i]){
+                memset (ins[i-1], 0, sizeof (jack_default_audio_sample_t) * nframes);
+            }
+        }
+        
     }
     //================ INPUTS ==========================================
     float sumsIn[sizeInputs];
@@ -65,6 +71,11 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
     for (int i = 0; i < sizeOutputs; i++) {
         if(client->muteOut[i]){
             memset (outs[i-1], 0, sizeof (jack_default_audio_sample_t) * nframes);
+        }
+        if(client->soloOut[MaxOutputs+1]){
+            if(!client->soloOut[i] && i>0){
+                memset (outs[i-1], 0, sizeof (jack_default_audio_sample_t) * nframes);
+            }
         }
     }
     
@@ -212,6 +223,12 @@ jackClientGris::jackClientGris() {
     clientReady = false;
     autoConnection = false;
     nameClient =  vector<String >();
+    
+    
+    fill(this->muteIn, this->muteIn+MaxInputs, false);
+    fill(this->soloIn, this->soloIn+MaxInputs+1, false);
+    fill(this->muteOut, this->muteOut+MaxOutputs, false);
+    fill(this->soloOut, this->soloOut+MaxOutputs+1, false);
     //--------------------------------------------------
     //open a client connection to the JACK server. Start server if it is not running.
     //--------------------------------------------------
