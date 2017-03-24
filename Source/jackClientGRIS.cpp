@@ -38,16 +38,16 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
         outs[i] = (jack_default_audio_sample_t*)jack_port_get_buffer (client->outputs[i], nframes);
     }
     
+   
     for (int i = 0; i < sizeInputs; i++) {
         if(client->muteIn[i]){
-            memset (ins[i-1], 0, sizeof (jack_default_audio_sample_t) * nframes);
+            memset (ins[i], 0, sizeof (jack_default_audio_sample_t) * nframes);
         }
-        if(client->soloIn[MaxInputs+1]){
+        if(client->soloIn[MaxInputs]){
             if(!client->soloIn[i]){
-                memset (ins[i-1], 0, sizeof (jack_default_audio_sample_t) * nframes);
+                memset (ins[i], 0, sizeof (jack_default_audio_sample_t) * nframes);
             }
         }
-        
     }
     //================ INPUTS ==========================================
     float sumsIn[sizeInputs];
@@ -70,15 +70,15 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
     
     for (int i = 0; i < sizeOutputs; i++) {
         if(client->muteOut[i]){
-            memset (outs[i-1], 0, sizeof (jack_default_audio_sample_t) * nframes);
+            memset (outs[i], 0, sizeof (jack_default_audio_sample_t) * nframes);
         }
-        if(client->soloOut[MaxOutputs+1]){
-            if(!client->soloOut[i] && i>0){
-                memset (outs[i-1], 0, sizeof (jack_default_audio_sample_t) * nframes);
+        if(client->soloOut[MaxOutputs]){
+            if(!client->soloOut[i]){
+                memset (outs[i], 0, sizeof (jack_default_audio_sample_t) * nframes);
             }
         }
     }
-    
+
     //================ Outputs =========================================
     float sumsOut[sizeOutputs];
     fill(client->levelsOut, client->levelsOut+sizeOutputs, -100.0f);

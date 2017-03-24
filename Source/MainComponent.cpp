@@ -74,7 +74,6 @@ MainContentComponent::MainContentComponent(){
     
     this->butAutoConnectJack= addButton("Auto Connect","Auto connection with jack",140,104,130,24,this->boxControlUI->getContent());
     
-    
     this->labelAllClients= addLabel("...","Clients Connected",140, 130, 120, 80,this->boxControlUI->getContent());
     
     // set up the layout and resizer bars
@@ -89,10 +88,7 @@ MainContentComponent::MainContentComponent(){
     
 
 #if USE_JACK
-    // #1: this is not working with jack with non-built-in audio devices
-    //        setAudioChannels (2, 2);
-    
-    //Start JACK
+    //Start JACK Server and client
     this->jackServer = new jackServerGRIS();
     this->jackClient = new jackClientGris();
   
@@ -225,7 +221,7 @@ MainContentComponent::~MainContentComponent() {
     delete  this->jackClient;
     
     delete this->jackServer;
-    #endif
+#endif
 }
 
 void MainContentComponent::addSpeaker(){
@@ -288,26 +284,26 @@ void MainContentComponent::updateLevelComp(){
 }
 
 void MainContentComponent::muteInput(int id, bool mute){
-    this->jackClient->muteIn[id] = mute;
+    this->jackClient->muteIn[id-1] = mute;
 }
 void MainContentComponent::muteOutput(int id, bool mute){
-    this->jackClient->muteOut[id] = mute;
+    this->jackClient->muteOut[id-1] = mute;
 }
 void MainContentComponent::soloInput(int id, bool solo){
-    this->jackClient->soloIn[id] = solo;
-    this->jackClient->soloIn[MaxInputs+1] = false;
+    this->jackClient->soloIn[id-1] = solo;
+    this->jackClient->soloIn[MaxInputs] = false;
     for (int i = 0; i < MaxInputs; i++) {
         if(this->jackClient->soloIn[i]){
-            this->jackClient->soloIn[MaxInputs+1] = true;
+            this->jackClient->soloIn[MaxInputs] = true;
         }
     }
 }
 void MainContentComponent::soloOutput(int id, bool solo){
-    this->jackClient->soloOut[id] = solo;
-    this->jackClient->soloOut[MaxInputs+1] = false;
+    this->jackClient->soloOut[id-1] = solo;
+    this->jackClient->soloOut[MaxInputs] = false;
     for (int i = 0; i < MaxOutputs; i++) {
         if(this->jackClient->soloOut[i]){
-            this->jackClient->soloOut[MaxInputs+1] = true;
+            this->jackClient->soloOut[MaxOutputs] = true;
         }
     }
 }
