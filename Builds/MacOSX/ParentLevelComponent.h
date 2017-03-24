@@ -18,6 +18,7 @@ public:
     virtual void setMuted(bool mute) = 0;
     virtual void setSolo(bool solo) = 0;
     virtual LevelComponent * getVuMeter() = 0;
+    virtual ~ParentLevelComponent(){}
 };
 
 #endif /* ParentLevelComponent_h */

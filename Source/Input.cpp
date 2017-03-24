@@ -20,9 +20,7 @@ Input::Input(MainContentComponent * parent, GrisLookAndFeel * feel,int id){
 Input::~Input(){
     delete this->vuMeter;
 }
-int Input::getId(){
-    return this->idChannel;
-}
+
 glm::vec3 Input::getCenter(){
     return this->center;
 }
@@ -36,6 +34,7 @@ void Input::setMuted(bool mute){
 void Input::setSolo(bool solo){
     this->mainParent->soloInput(this->idChannel, solo);
 }
+
 void Input::draw(){
     // Draw 3D sphere.
     glPushMatrix();

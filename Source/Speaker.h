@@ -40,7 +40,7 @@ static double GetFloatPrecision(double value, double precision)
     return (floor((value * pow(10, precision) + 0.5)) / pow(10, precision));
 }
 
-class Speaker : public Component,
+class Speaker : 
                 public ParentLevelComponent
 {
 public:
@@ -54,10 +54,13 @@ public:
     void selectSpeaker();
     void unSelectSpeaker();
     
-    LevelComponent * getVuMeter(){ return this->vuMeter; }
+    //ParentLevelComponent ===============================
+    int getId(){ return this->outputPatch ;};
     float getLevel();
     void setMuted(bool mute);
     void setSolo(bool solo);
+    LevelComponent * getVuMeter(){ return this->vuMeter; }
+
     //Normalise for user =================================
     void setBounds(const Rectangle<int> &newBounds);
     int getIdSpeaker();
@@ -67,7 +70,7 @@ public:
     void setAziZenRad(glm::vec3 value);
     int getOutputPatch();
     void setOutputPatch(int value);
-    int getId(){ return this->outputPatch ;};
+
     
     
     //OpenGL ==============================================

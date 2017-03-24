@@ -36,11 +36,13 @@ public :
     Input(MainContentComponent * parent, GrisLookAndFeel * feel, int id = 0);
     ~Input();
     
-    int getId();
+    //ParentLevelComponent ===============================
+    int getId(){ return this->idChannel ;};
     float getLevel();
-    LevelComponent * getVuMeter(){ return this->vuMeter; }
     void setMuted(bool mute);
     void setSolo(bool solo);
+    LevelComponent * getVuMeter(){ return this->vuMeter; }
+    
     glm::vec3 getCenter();
     void draw();
     void updateValues(float az, float ze, float azS, float zeS, float g);

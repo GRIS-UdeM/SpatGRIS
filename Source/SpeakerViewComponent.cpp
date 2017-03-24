@@ -202,7 +202,6 @@ void SpeakerViewComponent::mouseDown (const MouseEvent& e) {
             }else{
                 this->mainParent->getListSpeaker()[i]->selectSpeaker();
             }
-            this->mainParent->getListSpeaker()[i]->repaint();
         }
         this->mainParent->getLockSpeakers()->unlock();
         }
