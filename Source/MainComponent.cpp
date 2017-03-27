@@ -68,6 +68,7 @@ MainContentComponent::MainContentComponent(){
     this->butEditableSpeakers = addButton("Edit Speakers","Edit position of spkeakers",4,70,124,24,this->boxControlUI->getContent());
     
     this->butShowSpeakerNumber = addToggleButton("Show numbers", "Show numbers skeapers", 4, 100, 124, 24, this->boxControlUI->getContent());
+    this->butHighPerformance = addToggleButton("High performance", "Enable Low CPU Usage", 4, 130, 124, 24, this->boxControlUI->getContent());
     
     this->tedOSCInPort = addTextEditor("Port OSC In :", "Port Socket", "Port Socket OSC Input", 140, 36, 50, 24, this->boxControlUI->getContent());
     this->tedOSCInPort->setText("18032");
@@ -121,7 +122,7 @@ MainContentComponent::MainContentComponent(){
     openXmlFileSpeaker("/Users/gris/Documents/GRIS/zirkonium/ZirkSpeakers_Dome 16 UdeM.xml");
     
     this->resized();
-    startTimerHz(hertzRefresh);
+    startTimerHz(HertzRefreshNormal);
 }
 
 
@@ -264,11 +265,11 @@ void MainContentComponent::updateLevelComp(){
     int indexS = 0;
     for (auto&& it : this->listSpeaker)
     {
-        juce::Rectangle<int> level(x, 4, sizeWidthLevelComp, 200);
+        juce::Rectangle<int> level(x, 4, SizeWidthLevelComp, 200);
         it->getVuMeter()->setBounds(level);
         this->boxOutputsUI->getContent()->addAndMakeVisible(it->getVuMeter());
         it->getVuMeter()->repaint();
-        x+=sizeWidthLevelComp;
+        x+=SizeWidthLevelComp;
         indexS+=1;
     }
     
@@ -276,11 +277,11 @@ void MainContentComponent::updateLevelComp(){
     indexS = 0;
     for (auto&& it : this->listSourceInput)
     {
-        juce::Rectangle<int> level(x, 4, sizeWidthLevelComp, 200);
+        juce::Rectangle<int> level(x, 4, SizeWidthLevelComp, 200);
         it->getVuMeter()->setBounds(level);
         this->boxInputsUI->getContent()->addAndMakeVisible(it->getVuMeter());
         it->getVuMeter()->repaint();
-        x+=sizeWidthLevelComp;
+        x+=SizeWidthLevelComp;
         indexS+=1;
     }
     if(this->winSpeakConfig != nullptr){
@@ -486,6 +487,14 @@ void MainContentComponent::buttonClicked (Button *button)
         
     }else if(button == this->butAutoConnectJack){
         this->jackClient->autoConnectClient();
+    }else if(button == this->butHighPerformance){
+        stopTimer();
+        if(this->butHighPerformance->getToggleState()){
+            startTimerHz(HertzRefreshLowCpu);
+        }else{
+            startTimerHz(HertzRefreshNormal);
+        }
+        
     }
 }
 
@@ -501,10 +510,10 @@ void MainContentComponent::resized() {
     
 
     this->boxInputsUI->setBounds(this->speakerView->getWidth()+6, 2, getWidth()-(this->speakerView->getWidth()+10),240);
-    this->boxInputsUI->correctSize((this->listSourceInput.size()*(sizeWidthLevelComp))+4, 210);
+    this->boxInputsUI->correctSize((this->listSourceInput.size()*(SizeWidthLevelComp))+4, 210);
 
     this->boxOutputsUI->setBounds(this->speakerView->getWidth()+6, 244, getWidth()-(this->speakerView->getWidth()+10),240);
-    this->boxOutputsUI->correctSize((this->listSpeaker.size()*(sizeWidthLevelComp))+4, 210);
+    this->boxOutputsUI->correctSize((this->listSpeaker.size()*(SizeWidthLevelComp))+4, 210);
     
     this->boxControlUI->setBounds(this->speakerView->getWidth()+6, 488, getWidth()-(this->speakerView->getWidth()+10), getHeight()-490);
     this->boxControlUI->correctSize(this->boxControlUI->getWidth()-8, 450);

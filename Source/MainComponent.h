@@ -42,9 +42,9 @@
 using namespace std;
 
 
-static const unsigned int sizeWidthLevelComp = 36;
-static const unsigned int hertzRefresh = 24;
-
+static const unsigned int SizeWidthLevelComp = 36;
+static const unsigned int HertzRefreshNormal = 24;
+static const unsigned int HertzRefreshLowCpu = 6;
 
 
 //==============================================================================
@@ -151,6 +151,7 @@ private:
     TextButton *    butLoadXMLSpeakers;
     TextButton *    butEditableSpeakers;
     ToggleButton *  butShowSpeakerNumber;
+    ToggleButton *  butHighPerformance;
     
     TextEditor *    tedOSCInPort;
     Label *         labOSCStatus;
