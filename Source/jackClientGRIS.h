@@ -41,10 +41,12 @@
 //#define TABLE_SIZE   (441)
 using namespace std;
 
+
 struct Client {
     String name;
-    unsigned int portStart;
-    unsigned int portEnd;
+    unsigned int portStart = 1;
+    unsigned int portEnd = 32;
+    bool connected = false;
 };
 
 static const unsigned int BufferSize[] = {256, 512, 1024, 2048};
@@ -98,6 +100,7 @@ public:
     void removeOutput();
     
     void autoConnectClient();
+    void connectionClient(String name, bool connect = true);
     string getClientName(const char * port);
     unsigned int getPortStartClient(String nameClient);
     

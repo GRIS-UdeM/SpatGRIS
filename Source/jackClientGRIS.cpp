@@ -154,8 +154,7 @@ void client_registration_callback(const char *name, int regist, void *arg)
     if(regist){
         Client cli;
         cli.name = name;
-        cli.portStart = 1;
-        cli.portEnd = 32;
+
         client->listClient.push_back(cli);
         printf("saved\n");
     }else{
@@ -449,6 +448,57 @@ void jackClientGris::autoConnectClient()
     jack_free(portsOut);
 }
 
+void jackClientGris::connectionClient(String name, bool connect){
+    const char ** portsOut = jack_get_ports (client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput);
+    const char ** portsIn = jack_get_ports (client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput);
+
+    int i=0;
+    int j=0;
+    int startJ = 0;
+    int endJ = 0;
+    bool conn = false;
+    //Connect other client to jackClientGris------------------------------------------
+    autoConnection = true;
+    
+    for (auto&& cli : this->listClient)
+    {
+        i=0;
+        j=0;
+        
+        String nameClient = cli.name;
+        startJ = cli.portStart-1;
+        endJ = cli.portEnd;
+        while (portsOut[i]){
+            if(nameClient == name && nameClient == getClientName(portsOut[i]))
+            {
+                //cout << jack_port_name(jack_port_by_name(client,portsOut[i])) << newLine;
+                while(portsIn[j]){
+                    if(getClientName(portsIn[j]) == ClientName){
+                        if(j>= startJ && j<endJ){
+                            jack_connect (client, portsOut[i] ,portsIn[j]);
+                            conn = true;
+                            j+=1;
+                            break;
+                        }else{
+                            j+=1;
+                        }
+                    }else{
+                        j+=1;
+                        startJ+=1;
+                        endJ+=1;
+                    }
+                }
+                cli.connected = conn;
+            }
+            i+=1;
+        }
+    }
+    
+    autoConnection = false;
+    
+    jack_free(portsIn);
+    jack_free(portsOut);
+}
 
 bool jackClientGris::setBufferSize(int sizeB)
 {

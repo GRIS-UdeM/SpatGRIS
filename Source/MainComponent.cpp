@@ -80,7 +80,7 @@ MainContentComponent::MainContentComponent(){
     //this->labelAllClients= addLabel("...","Clients Connected",140, 130, 120, 80,this->boxControlUI->getContent());
     
     this->boxClientJack = new BoxClient(this, &mGrisFeel);
-    this->boxClientJack->setBounds(140, 130, 180,120);
+    this->boxClientJack->setBounds(140, 130, 220, 120);
     this->boxControlUI->getContent()->addAndMakeVisible(this->boxClientJack);
     
     // set up the layout and resizer bars
@@ -409,7 +409,7 @@ void MainContentComponent::timerCallback(){
     {
         it->getVuMeter()->update();
     }
-   
+    
     this->boxClientJack->updateContentCli();
     //this->labelAllClients->setText(texC,dontSendNotification);
 }

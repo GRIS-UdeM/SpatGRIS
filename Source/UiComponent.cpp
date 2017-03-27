@@ -90,6 +90,7 @@ BoxClient::BoxClient(MainContentComponent * parent, GrisLookAndFeel *feel){
     
     tableListClient.getHeader().addColumn("Start", 2, 40, 35, 70,TableHeaderComponent::defaultFlags);
     tableListClient.getHeader().addColumn("End", 3, 40, 35, 70,TableHeaderComponent::defaultFlags);
+    tableListClient.getHeader().addColumn("On/Off", 4, 40, 35, 70,TableHeaderComponent::defaultFlags);
     
     
     tableListClient.getHeader().setSortColumnId (1, true); // sort forwards by the ID column
@@ -105,6 +106,12 @@ BoxClient::~BoxClient(){
 
 }
 
+void BoxClient::buttonClicked(Button *button){
+    this->mainParent->connectionClientJack(this->mainParent->getListClientjack()->at(button->getName().getIntValue()).name);
+    updateContentCli();
+
+}
+
 void BoxClient::setBounds(int x, int y, int width, int height)
 {
     this->juce::Component::setBounds(x, y, width, height);
@@ -114,27 +121,21 @@ void BoxClient::setBounds(int x, int y, int width, int height)
 void BoxClient::updateContentCli(){
     numRows =this->mainParent->getListClientjack()->size();
     tableListClient.updateContent();
-    
 }
 
 void BoxClient::setValue (const int rowNumber, const int columnNumber,const int newRating)
 {
     if (this->mainParent->getListClientjack()->size()> rowNumber)
     {
-        
         switch(columnNumber){
-
             case 2 :
                 this->mainParent->getListClientjack()->at(rowNumber).portStart = newRating;
                 break;
             case 3 :
                 this->mainParent->getListClientjack()->at(rowNumber).portEnd= newRating;
                 break;
-
         }
-    
     }
-    //dataList->getChildElement (rowNumber)->setAttribute ("Rating", newRating);
 }
 
 int BoxClient::getValue (const int rowNumber,const int columnNumber) const{
@@ -150,14 +151,12 @@ int BoxClient::getValue (const int rowNumber,const int columnNumber) const{
                 break;
                 
         }
-        
     }
 }
 
 String BoxClient::getText (const int columnNumber, const int rowNumber) const
 {
-    String text = "";
-    //this->mainParent->getLockSpeakers()->lock();
+    String text;
     if (this->mainParent->getListClientjack()->size()> rowNumber)
     {
         
@@ -166,19 +165,18 @@ String BoxClient::getText (const int columnNumber, const int rowNumber) const
                 text =String(this->mainParent->getListClientjack()->at(rowNumber).name);
                 break;
                 
-            case 2 :
+            /*case 2 :
                 text =String(this->mainParent->getListClientjack()->at(rowNumber).portStart);
                 break;
+                
             case 3 :
                 text =String(this->mainParent->getListClientjack()->at(rowNumber).portEnd);
-                break;
+                break;*/
             
             default:
                 text ="?";
         }
     }
-    
-    //this->mainParent->getLockSpeakers()->unlock();
     return text;
 }
 
@@ -189,32 +187,33 @@ int BoxClient::getNumRows()
 {
     return numRows;
 }
-// This is overloaded from TableListBoxModel, and should fill in the background of the whole row
+
 void BoxClient::paintRowBackground (Graphics& g, int rowNumber, int /*width*/, int /*height*/, bool rowIsSelected)
 {
-    if (rowIsSelected){
+    /*if (rowIsSelected){
         g.fillAll (this->grisFeel->getOnColour());
     }
-    else{
+    else{*/
         if (rowNumber % 2){
             g.fillAll (this->grisFeel->getBackgroundColour().withBrightness(0.6));
         }else{
             g.fillAll (this->grisFeel->getBackgroundColour().withBrightness(0.7));
         }
-    }
+    //}
 }
 
-// This is overloaded from TableListBoxModel, and must paint any cells that aren't using custom
-// components.
+
 void BoxClient::paintCell (Graphics& g, int rowNumber, int columnId, int width, int height, bool /*rowIsSelected*/)
 {
     g.setColour (Colours::black);
-    g.setFont (14.0f);
+    g.setFont (12.0f);
     
     if (this->mainParent->getListClientjack()->size()> rowNumber)
     {
-        String text = getText(columnId, rowNumber);
-        g.drawText (text, 2, 0, width - 4, height, Justification::centredLeft, true);
+        if(columnId==1){
+            String text = getText(columnId, rowNumber);
+            g.drawText (text, 2, 0, width - 4, height, Justification::centredLeft, true);
+        }
     }
 
     g.setColour (Colours::black.withAlpha (0.2f));
@@ -227,7 +226,27 @@ Component* BoxClient::refreshComponentForCell (int rowNumber, int columnId, bool
      if(columnId==1){
          return existingComponentToUpdate;
      }
-        // The other columns are editable text columns, for which we use the custom Label component
+    
+    if(columnId==4){
+        TextButton* tbRemove = static_cast<TextButton*> (existingComponentToUpdate);
+        if (tbRemove == nullptr){
+            tbRemove = new TextButton ();
+            tbRemove->setName(String(rowNumber));
+            tbRemove->setBounds(4, 404, 88, 22);
+            tbRemove->addListener(this);
+            tbRemove->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
+            tbRemove->setLookAndFeel(this->grisFeel);
+        }
+        if(this->mainParent->getListClientjack()->at(rowNumber).connected){
+            tbRemove->setButtonText("<->");
+        }else{
+            tbRemove->setButtonText("<X>");
+        }
+        
+                //tbRemove->getContent()->addAndMakeVisible(this->butAddSpeaker);
+        return tbRemove;
+    }
+
     ListIntOutComp* textLabel = static_cast<ListIntOutComp*> (existingComponentToUpdate);
     
     // same as above...

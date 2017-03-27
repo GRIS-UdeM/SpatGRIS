@@ -46,13 +46,16 @@ private:
 //======================================= BoxClient===========================
 
 class BoxClient :   public Component,
-                    public TableListBoxModel
+                    public TableListBoxModel,
+                    public ToggleButton::Listener
+
 {
 public:
     BoxClient(MainContentComponent * parent, GrisLookAndFeel *feel);
     ~BoxClient();
     
     void updateContentCli();
+    void buttonClicked(Button *button);
     void setBounds(int x, int y, int width, int height);
     String getText (const int columnNumber, const int rowNumber) const;
     void setValue (const int rowNumber,const int columnNumber, const int newRating);
