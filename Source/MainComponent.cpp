@@ -360,8 +360,6 @@ void MainContentComponent::openXmlFileSpeaker(String path)
         }
         
     }
-    
-
     updateLevelComp();
 }
 
@@ -441,7 +439,7 @@ void MainContentComponent::textEditorReturnKeyPressed (TextEditor & textEditor){
             delete (it);
         }
         listSourceInput.clear();
-        for(int i = 0 ; i< this->jackClient->inputs.size();i++){
+        for(int i = 0 ; i< this->jackClient->inputsPort.size();i++){
             this->listSourceInput.push_back(new Input(this, &mGrisFeel,i+1));
         }
         this->lockInputs->unlock();

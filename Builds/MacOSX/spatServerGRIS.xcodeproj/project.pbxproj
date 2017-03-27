@@ -2914,8 +2914,8 @@
 			children = (
 				CB166B04AB89B0476A24CE28 /* jackClientGRIS.cpp */,
 				47C54DB943C2526DBA8D5C7D /* jackClientGRIS.h */,
-				0D145FB41E81BB9F004E6AE6 /* jackServerGRIS.h */,
 				0D145FB31E81BB9F004E6AE6 /* jackServerGRIS.cpp */,
+				0D145FB41E81BB9F004E6AE6 /* jackServerGRIS.h */,
 				2116513B99CFF9F0DCC85055 /* Main.cpp */,
 				E3B6A6FA18247E8D6D6B7876 /* MainComponent.cpp */,
 				B80010A17A8017CEFFF4C8A0 /* MainComponent.h */,

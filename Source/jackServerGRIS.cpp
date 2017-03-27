@@ -7,6 +7,8 @@
 //
 
 #include "jackServerGRIS.h"
+#include "jackClientGRIS.h"
+
 
 bool on_device_acquire(const char *device_name)
 {
@@ -27,9 +29,6 @@ jackServerGRIS::jackServerGRIS(){
     const JSList * internals;
     const JSList * node_ptr;
 
-    const char* driver_name = "coreaudio";
-    const char* client_name = "audioadapter";
-    
     server = jackctl_server_create(on_device_acquire, on_device_release);
     parameters = jackctl_server_get_parameters(server);
     
@@ -48,6 +47,14 @@ jackServerGRIS::jackServerGRIS(){
         value.b = false;
         jackctl_parameter_set_value(param, &value);
     }*/
+    
+    jackctl_parameter_t* param;
+    union jackctl_parameter_value value;
+    param = jackctl_get_parameter(parameters, "sync");
+    if (param != NULL) {
+        value.b = true;
+        jackctl_parameter_set_value(param, &value);
+    }
     
     printf("\n========================== \n");
     printf("List of server parameters \n");
@@ -77,17 +84,19 @@ jackServerGRIS::jackServerGRIS(){
         node_ptr = jack_slist_next(node_ptr);
     }
 
-    jackctl_server_open(server, jackctl_server_get_driver(server, driver_name));
+    printf("\n========================== \n");
+    printf("Start Jack Server \n");
+    printf("========================== \n");
+
+    jackctl_server_open(server, jackctl_server_get_driver(server, DriverNameSys));
     jackctl_server_start(server);
-    jackctl_server_load_internal(server, jackctl_server_get_internal(server, client_name));
+    jackctl_server_load_internal(server, jackctl_server_get_internal(server, ClientNameSys));
         
     const JSList * parameters2 = jackctl_server_get_parameters(server);
-    
-   
-    
     print_parameters(parameters2);
     printf("\n========================== \n");
     printf("Jack Server Run \n");
+    
 
 }
 

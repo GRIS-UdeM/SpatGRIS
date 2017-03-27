@@ -25,43 +25,36 @@
 static jackctl_driver_t * jackctl_server_get_driver(jackctl_server_t *server, const char *driver_name)
 {
     const JSList * node_ptr = jackctl_server_get_drivers_list(server);
-    
     while (node_ptr) {
         if (strcmp(jackctl_driver_get_name((jackctl_driver_t *)node_ptr->data), driver_name) == 0) {
-            
             return (jackctl_driver_t *)node_ptr->data;
         }
         node_ptr = jack_slist_next(node_ptr);
     }
-    
     return NULL;
 }
 
 static jackctl_internal_t * jackctl_server_get_internal(jackctl_server_t *server, const char *internal_name)
 {
     const JSList * node_ptr = jackctl_server_get_internals_list(server);
-    
     while (node_ptr) {
         if (strcmp(jackctl_internal_get_name((jackctl_internal_t *)node_ptr->data), internal_name) == 0) {
             return (jackctl_internal_t *)node_ptr->data;
         }
         node_ptr = jack_slist_next(node_ptr);
     }
-    
     return NULL;
 }
 
 static JSList * jackctl_server_get_internal2(jackctl_server_t *server, const char *internal_name)
 {
     const JSList * node_ptr = jackctl_server_get_internals_list(server);
-    
     while (node_ptr) {
         if (strcmp(jackctl_internal_get_name((jackctl_internal_t *)node_ptr->data), internal_name) == 0) {
             return (JSList *)node_ptr;
         }
         node_ptr = jack_slist_next(node_ptr);
     }
-    
     return NULL;
 }
 
@@ -117,9 +110,43 @@ static void print_parameters(const JSList * node_ptr)
         if(!strcmp(jackctl_parameter_get_name(parameter), "rate")){
             union jackctl_parameter_value value;
             value.ui = 48000;
-            printf("%i ",jackctl_parameter_set_value(parameter, &value));
+            value.i = 48000;
+            printf("%s ",jackctl_parameter_set_value(parameter, &value)? "true" : "false");
 
         }
+        
+        /*if(!strcmp(jackctl_parameter_get_name(parameter), "audio-ins")){
+            union jackctl_parameter_value value;
+            value.ui = 30;
+            value.i = 30;
+            printf("%s ",jackctl_parameter_set_value(parameter, &value)? "true" : "false");
+            
+        }
+        
+        if(!strcmp(jackctl_parameter_get_name(parameter), "audio-outs")){
+            union jackctl_parameter_value value;
+            value.ui = 30;
+            value.i = 30;
+            printf("%s ",jackctl_parameter_set_value(parameter, &value)? "true" : "false");
+            
+        }
+        
+        if(!strcmp(jackctl_parameter_get_name(parameter), "input-list")){
+            union jackctl_parameter_value value;
+            std::strncpy(value.str, "24",JACK_PARAM_STRING_MAX);
+            printf("%s ",jackctl_parameter_set_value(parameter, &value)? "true" : "false");
+            
+        }
+        
+        if(!strcmp(jackctl_parameter_get_name(parameter), "output-list")){
+            union jackctl_parameter_value value;
+            std::strncpy(value.str, "24",JACK_PARAM_STRING_MAX);
+
+            printf("%s ",jackctl_parameter_set_value(parameter, &value)? "true" : "false");
+            
+        }*/
+        
+        
         printf("parameter id = %c\n", jackctl_parameter_get_id(parameter));
         printf("parameter short decs = %s\n", jackctl_parameter_get_short_description(parameter));
         printf("parameter long decs = %s\n", jackctl_parameter_get_long_description(parameter));
@@ -149,9 +176,6 @@ public:
     jackctl_server_t *server;
     jackServerGRIS();
     ~jackServerGRIS();
-    
-private:
-
 };
 
 

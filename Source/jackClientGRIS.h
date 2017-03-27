@@ -42,16 +42,22 @@
 using namespace std;
 
 
+static const unsigned int BufferSize[] = {128,256,512,1024,2048};
+
 static unsigned int const MaxInputs = 128;
 static unsigned int const MaxOutputs = 128;
+
+static const char* ClientName = "jackClientGris";
+static const char* DriverNameSys = "coreaudio";
+static const char* ClientNameSys = "system";
 
 class jackClientGris {
 public:
 
     jack_client_t *client;
 
-    vector<jack_port_t *> inputs;
-    vector<jack_port_t *> outputs;
+    vector<jack_port_t *> inputsPort;
+    vector<jack_port_t *> outputsPort;
 
     
     vector<double> sine;
@@ -88,13 +94,15 @@ public:
     
     void autoConnectClient();
     string getClientName(const char * port);
-    const char  *clientName = "jackClientGris";
     bool autoConnection;
+    
+    unsigned int numberInputs;
+    unsigned int numberOutputs;
+    
+    bool setBufferSize(int sizeB);
 private:
-
     
     bool clientReady;
-    
     
 };
 
