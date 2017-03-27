@@ -39,6 +39,9 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
     }
     
    
+
+    //================ INPUTS ==========================================
+    //Mute IN-----------------------------------
     for (int i = 0; i < sizeInputs; i++) {
         if(client->muteIn[i]){
             memset (ins[i], 0, sizeof (jack_default_audio_sample_t) * nframes);
@@ -49,7 +52,7 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
             }
         }
     }
-    //================ INPUTS ==========================================
+    //---------------------------------------------
     float sumsIn[sizeInputs];
     fill(client->levelsIn, client->levelsIn+sizeInputs, -100.0f);
     fill(sumsIn, sumsIn+sizeInputs, 0.0f);
@@ -60,14 +63,18 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
         }
     }
     for (int iSpeaker = 0; iSpeaker < sizeInputs; iSpeaker++) {
-        client->levelsIn[iSpeaker] = sumsIn[iSpeaker]/nframes;//20.0f * log10( sqrt(sumsIn[iSpeaker]/nframes));
-        //Basic Sound Transfert------------------
+        client->levelsIn[iSpeaker] = sumsIn[iSpeaker]/nframes;
+        
+        //Basic Sound Transfert------------------(I -> O)
         if(iSpeaker < sizeOutputs){
             memcpy (outs[iSpeaker], ins[iSpeaker] , sizeof (jack_default_audio_sample_t) * nframes);
         }
     }
     
     
+   
+    //================ OUTPUTS =========================================
+    //Mute Out--------------------------------
     for (int i = 0; i < sizeOutputs; i++) {
         if(client->muteOut[i]){
             memset (outs[i], 0, sizeof (jack_default_audio_sample_t) * nframes);
@@ -78,8 +85,7 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
             }
         }
     }
-
-    //================ Outputs =========================================
+    //-----------------------------------------
     float sumsOut[sizeOutputs];
     fill(client->levelsOut, client->levelsOut+sizeOutputs, -100.0f);
     fill(sumsOut, sumsOut+sizeOutputs, 0.0f);
@@ -90,7 +96,7 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
         }
     }
     for (int iSpeaker = 0; iSpeaker < sizeInputs; iSpeaker++) {
-        client->levelsOut[iSpeaker] = sumsOut[iSpeaker]/nframes;//20.0f * log10( sqrt(sumsIn[iSpeaker]/nframes));
+        client->levelsOut[iSpeaker] = sumsOut[iSpeaker]/nframes;
     }
     
     return 0;
@@ -200,7 +206,7 @@ void port_connect_callback(jack_port_id_t a, jack_port_id_t b, int connect, void
             string nameClient = jack_port_name(jack_port_by_id(client->client,a));
             string tempN = jack_port_short_name(jack_port_by_id(client->client,a));
             nameClient =   nameClient.substr(0,nameClient.size()-(tempN.size()+1));
-            if(nameClient != ClientName && nameClient!= ClientNameSys){
+            if((nameClient != ClientName && nameClient!= ClientNameSys) || nameClient== ClientNameSys){
                 jack_disconnect(client->client, jack_port_name(jack_port_by_id(client->client,a)), jack_port_name(jack_port_by_id(client->client,b)));
             }
         }
@@ -300,8 +306,10 @@ jackClientGris::jackClientGris() {
     }
     left_phase = right_phase = 0;
 
-
-    //Print Inputs Port available
+    
+    //--------------------------------------------------
+    //Print Inputs Ports available
+    //--------------------------------------------------
     const char **ports = jack_get_ports (client, NULL, NULL, JackPortIsInput);
     if (ports == NULL) {
         printf("\n======NO Input PORTS\n");
@@ -317,7 +325,9 @@ jackClientGris::jackClientGris() {
     cout << newLine << numberInputs <<" =====================" << newLine << newLine;
     
     
-    //Print Inputs Port available
+    //--------------------------------------------------
+    //Print Outputs Ports available
+    //--------------------------------------------------
     ports = jack_get_ports (client, NULL, NULL, JackPortIsOutput);
     if (ports == NULL) {
         printf("\n======NO Outputs PORTS\n");
