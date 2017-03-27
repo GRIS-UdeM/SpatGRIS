@@ -4,33 +4,43 @@
               bundleIdentifier="com.UdeM.GRIS.spatServerGRIS" includeBinaryInAppConfig="1"
               jucerVersion="4.1.0" companyName="GRIS - UdeM">
   <MAINGROUP id="lsxaKA" name="spatServerGRIS">
+    <GROUP id="{048E368A-4132-92B3-5696-FA2749D96397}" name="GrisCommonFiles">
+      <FILE id="cvZwgD" name="GrisLookAndFeel.h" compile="0" resource="0"
+            file="../GrisCommonFiles/GrisLookAndFeel.h"/>
+    </GROUP>
     <GROUP id="{534A7161-2617-F3B1-0706-CC62D7A3FE71}" name="Source">
-      <GROUP id="{1D675086-8813-E4F1-75DE-65877D43EF08}" name="Resources">
-        <FILE id="R5Bpx0" name="teapot.obj" compile="0" resource="1" file="Source/Resources/teapot.obj"/>
-      </GROUP>
+      <FILE id="KcFQB2" name="Speaker.cpp" compile="1" resource="0" file="Source/Speaker.cpp"/>
+      <FILE id="i4Suin" name="Speaker.h" compile="0" resource="0" file="Source/Speaker.h"/>
+      <FILE id="arLWJq" name="LevelComponent.cpp" compile="1" resource="0"
+            file="Source/LevelComponent.cpp"/>
+      <FILE id="Fv8Faz" name="LevelComponent.h" compile="0" resource="0"
+            file="Source/LevelComponent.h"/>
+      <FILE id="oaSq5k" name="Ray.h" compile="0" resource="0" file="Source/Ray.h"/>
+      <FILE id="MW5ESG" name="UiComponent.cpp" compile="1" resource="0" file="Source/UiComponent.cpp"/>
+      <FILE id="RG3FbE" name="UiComponent.h" compile="0" resource="0" file="Source/UiComponent.h"/>
       <FILE id="kACxoj" name="jackClientGRIS.h" compile="0" resource="0"
             file="Source/jackClientGRIS.h"/>
       <FILE id="A5skyB" name="jackClientGRIS.cpp" compile="1" resource="0"
             file="Source/jackClientGRIS.cpp"/>
       <FILE id="IoOl9R" name="MainComponent.cpp" compile="1" resource="0"
             file="Source/MainComponent.cpp"/>
+      <FILE id="eDgSPm" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
       <FILE id="ItaT5M" name="SpeakerViewComponent.h" compile="0" resource="0"
             file="Source/SpeakerViewComponent.h"/>
       <FILE id="Tz4yI1" name="SpeakerViewComponent.cpp" compile="1" resource="0"
             file="Source/SpeakerViewComponent.cpp"/>
       <FILE id="UmWQ55" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
     </GROUP>
-    <FILE id="J71TaM" name="WavefrontObjParser.h" compile="0" resource="0"
-          file="Source/Resources/WavefrontObjParser.h"/>
   </MAINGROUP>
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX" externalLibraries="" extraFrameworks="">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" osxSDK="default" osxCompatibility="10.11 SDK" osxArchitecture="default"
-                       isDebug="1" optimisation="1" targetName="spatServerGRIS" headerPath="../../jack"
+                       isDebug="1" optimisation="1" targetName="spatServerGRIS" headerPath="../../jack&#10;../../glm"
                        libraryPath="../../jack/lib"/>
         <CONFIGURATION name="Release" osxSDK="default" osxCompatibility="10.10 SDK"
-                       osxArchitecture="default" isDebug="0" optimisation="3" targetName="spatServerGRIS"/>
+                       osxArchitecture="default" isDebug="0" optimisation="3" targetName="spatServerGRIS"
+                       headerPath="../../jack&#10;../../glm" libraryPath="../../jack/lib"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_core" path="../../sdks/JUCE-4.1.0/modules"/>
@@ -47,6 +57,7 @@
         <MODULEPATH id="juce_audio_formats" path="../../sdks/JUCE-4.1.0/modules"/>
         <MODULEPATH id="juce_audio_processors" path="../../sdks/JUCE-4.1.0/modules"/>
         <MODULEPATH id="juce_audio_utils" path="../../sdks/JUCE-4.1.0/modules"/>
+        <MODULEPATH id="juce_osc" path="../../sdks/JUCE-4.1.0/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
     <VS2015 targetFolder="Builds/VisualStudio2015">
@@ -71,6 +82,7 @@
         <MODULEPATH id="juce_audio_formats" path="../../sdks/JUCE-4.1.0/modules"/>
         <MODULEPATH id="juce_audio_processors" path="../../sdks/JUCE-4.1.0/modules"/>
         <MODULEPATH id="juce_audio_utils" path="../../sdks/JUCE-4.1.0/modules"/>
+        <MODULEPATH id="juce_osc" path="../../sdks/JUCE-4.1.0/modules"/>
       </MODULEPATHS>
     </VS2015>
   </EXPORTFORMATS>
@@ -88,6 +100,7 @@
     <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="1"/>
     <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="1"/>
     <MODULE id="juce_opengl" showAllCode="1" useLocalCopy="1"/>
+    <MODULE id="juce_osc" showAllCode="1" useLocalCopy="1"/>
     <MODULE id="juce_video" showAllCode="1" useLocalCopy="1"/>
   </MODULES>
   <JUCEOPTIONS/>

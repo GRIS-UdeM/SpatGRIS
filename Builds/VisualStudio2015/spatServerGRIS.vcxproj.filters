@@ -5,11 +5,11 @@
     <Filter Include="spatServerGRIS">
       <UniqueIdentifier>{A7F1C4E7-35A9-679F-A390-23E999F45465}</UniqueIdentifier>
     </Filter>
+    <Filter Include="spatServerGRIS\GrisCommonFiles">
+      <UniqueIdentifier>{83E0E3C8-49C9-8279-76C8-621432DB8EEA}</UniqueIdentifier>
+    </Filter>
     <Filter Include="spatServerGRIS\Source">
       <UniqueIdentifier>{EEE3F2AC-5E37-31FC-0D79-1BD25B34B29F}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="spatServerGRIS\Source\Resources">
-      <UniqueIdentifier>{5F84B7C9-3AC1-E5F8-C91D-7427E1C5BB6A}</UniqueIdentifier>
     </Filter>
     <Filter Include="Juce Modules">
       <UniqueIdentifier>{422C46B7-0467-2DB0-BF3C-16DFCAFD69AC}</UniqueIdentifier>
@@ -305,6 +305,12 @@
     <Filter Include="Juce Modules\juce_opengl\native">
       <UniqueIdentifier>{151B49D8-6102-F802-1C07-D59931BC0574}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Juce Modules\juce_osc">
+      <UniqueIdentifier>{1A62F82C-C14A-E14A-94DE-8A27E0F8A090}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Juce Modules\juce_osc\osc">
+      <UniqueIdentifier>{3D19F603-7985-B222-DFDA-9B83329ACA9D}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Juce Modules\juce_video">
       <UniqueIdentifier>{72A923E2-C729-DB92-D7BF-A9D4AFAE5896}</UniqueIdentifier>
     </Filter>
@@ -322,6 +328,15 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Source\Speaker.cpp">
+      <Filter>spatServerGRIS\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\LevelComponent.cpp">
+      <Filter>spatServerGRIS\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\UiComponent.cpp">
+      <Filter>spatServerGRIS\Source</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\jackClientGRIS.cpp">
       <Filter>spatServerGRIS\Source</Filter>
     </ClCompile>
@@ -1561,6 +1576,30 @@
     <ClCompile Include="..\..\JuceLibraryCode\modules\juce_opengl\utils\juce_OpenGLAppComponent.cpp">
       <Filter>Juce Modules\juce_opengl\utils</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\JuceLibraryCode\modules\juce_osc\osc\juce_OSCAddress.cpp">
+      <Filter>Juce Modules\juce_osc\osc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\JuceLibraryCode\modules\juce_osc\osc\juce_OSCArgument.cpp">
+      <Filter>Juce Modules\juce_osc\osc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\JuceLibraryCode\modules\juce_osc\osc\juce_OSCBundle.cpp">
+      <Filter>Juce Modules\juce_osc\osc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\JuceLibraryCode\modules\juce_osc\osc\juce_OSCMessage.cpp">
+      <Filter>Juce Modules\juce_osc\osc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\JuceLibraryCode\modules\juce_osc\osc\juce_OSCReceiver.cpp">
+      <Filter>Juce Modules\juce_osc\osc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\JuceLibraryCode\modules\juce_osc\osc\juce_OSCSender.cpp">
+      <Filter>Juce Modules\juce_osc\osc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\JuceLibraryCode\modules\juce_osc\osc\juce_OSCTimeTag.cpp">
+      <Filter>Juce Modules\juce_osc\osc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\JuceLibraryCode\modules\juce_osc\osc\juce_OSCTypes.cpp">
+      <Filter>Juce Modules\juce_osc\osc</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\JuceLibraryCode\modules\juce_video\capture\juce_CameraDevice.cpp">
       <Filter>Juce Modules\juce_video\capture</Filter>
     </ClCompile>
@@ -1581,9 +1620,6 @@
     </ClCompile>
     <ClCompile Include="..\..\JuceLibraryCode\modules\juce_video\native\juce_win32_QuickTimeMovieComponent.cpp">
       <Filter>Juce Modules\juce_video\native</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\JuceLibraryCode\BinaryData.cpp">
-      <Filter>Juce Library Code</Filter>
     </ClCompile>
     <ClCompile Include="..\..\JuceLibraryCode\modules\juce_audio_basics\juce_audio_basics.cpp">
       <Filter>Juce Library Code</Filter>
@@ -1624,19 +1660,37 @@
     <ClCompile Include="..\..\JuceLibraryCode\modules\juce_opengl\juce_opengl.cpp">
       <Filter>Juce Library Code</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\JuceLibraryCode\modules\juce_osc\juce_osc.cpp">
+      <Filter>Juce Library Code</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\JuceLibraryCode\modules\juce_video\juce_video.cpp">
       <Filter>Juce Library Code</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\GrisCommonFiles\GrisLookAndFeel.h">
+      <Filter>spatServerGRIS\GrisCommonFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Speaker.h">
+      <Filter>spatServerGRIS\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\LevelComponent.h">
+      <Filter>spatServerGRIS\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Ray.h">
+      <Filter>spatServerGRIS\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\UiComponent.h">
+      <Filter>spatServerGRIS\Source</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\jackClientGRIS.h">
+      <Filter>spatServerGRIS\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\MainComponent.h">
       <Filter>spatServerGRIS\Source</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\SpeakerViewComponent.h">
       <Filter>spatServerGRIS\Source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Resources\WavefrontObjParser.h">
-      <Filter>spatServerGRIS</Filter>
     </ClInclude>
     <ClInclude Include="..\..\JuceLibraryCode\modules\juce_audio_basics\buffers\juce_AudioDataConverters.h">
       <Filter>Juce Modules\juce_audio_basics\buffers</Filter>
@@ -3054,6 +3108,33 @@
     <ClInclude Include="..\..\JuceLibraryCode\modules\juce_opengl\juce_opengl.h">
       <Filter>Juce Modules\juce_opengl</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\JuceLibraryCode\modules\juce_osc\osc\juce_OSCAddress.h">
+      <Filter>Juce Modules\juce_osc\osc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\JuceLibraryCode\modules\juce_osc\osc\juce_OSCArgument.h">
+      <Filter>Juce Modules\juce_osc\osc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\JuceLibraryCode\modules\juce_osc\osc\juce_OSCBundle.h">
+      <Filter>Juce Modules\juce_osc\osc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\JuceLibraryCode\modules\juce_osc\osc\juce_OSCMessage.h">
+      <Filter>Juce Modules\juce_osc\osc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\JuceLibraryCode\modules\juce_osc\osc\juce_OSCReceiver.h">
+      <Filter>Juce Modules\juce_osc\osc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\JuceLibraryCode\modules\juce_osc\osc\juce_OSCSender.h">
+      <Filter>Juce Modules\juce_osc\osc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\JuceLibraryCode\modules\juce_osc\osc\juce_OSCTimeTag.h">
+      <Filter>Juce Modules\juce_osc\osc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\JuceLibraryCode\modules\juce_osc\osc\juce_OSCTypes.h">
+      <Filter>Juce Modules\juce_osc\osc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\JuceLibraryCode\modules\juce_osc\juce_osc.h">
+      <Filter>Juce Modules\juce_osc</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\JuceLibraryCode\modules\juce_video\playback\juce_DirectShowComponent.h">
       <Filter>Juce Modules\juce_video\playback</Filter>
     </ClInclude>
@@ -3069,17 +3150,11 @@
     <ClInclude Include="..\..\JuceLibraryCode\AppConfig.h">
       <Filter>Juce Library Code</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\JuceLibraryCode\BinaryData.h">
-      <Filter>Juce Library Code</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\JuceLibraryCode\JuceHeader.h">
       <Filter>Juce Library Code</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\Source\Resources\teapot.obj">
-      <Filter>spatServerGRIS\Source\Resources</Filter>
-    </None>
     <None Include="..\..\JuceLibraryCode\modules\juce_audio_basics\juce_module_info">
       <Filter>Juce Modules\juce_audio_basics</Filter>
     </None>
@@ -3118,6 +3193,9 @@
     </None>
     <None Include="..\..\JuceLibraryCode\modules\juce_opengl\juce_module_info">
       <Filter>Juce Modules\juce_opengl</Filter>
+    </None>
+    <None Include="..\..\JuceLibraryCode\modules\juce_osc\juce_module_info">
+      <Filter>Juce Modules\juce_osc</Filter>
     </None>
     <None Include="..\..\JuceLibraryCode\modules\juce_video\juce_module_info">
       <Filter>Juce Modules\juce_video</Filter>

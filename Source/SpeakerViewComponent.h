@@ -18,19 +18,32 @@
 #ifndef SPEAKERVIEWCOMPONENT_H_INCLUDED
 #define SPEAKERVIEWCOMPONENT_H_INCLUDED
 
-
 #include "../JuceLibraryCode/JuceHeader.h"
-#include "Resources/WavefrontObjParser.h"
+
+#include <OpenGL/gl.h>
+#include <OpenGl/glu.h>
+#include <GLUT/glut.h>
+#include "../glm/glm.hpp"
+
+#include <math.h>
+
+#include "Ray.h"
 
 
-class Shape;
-class Attributes;
-struct Uniforms;
+class MainContentComponent;
+class Speaker;
+
+
+using namespace std;
+
+
+static const int nbrGridLines = 16;
+
 
 class SpeakerViewComponent : public OpenGLAppComponent {
 public:
     //==============================================================================
-    SpeakerViewComponent();
+    SpeakerViewComponent(MainContentComponent *parent = nullptr);
     
     ~SpeakerViewComponent();
     
@@ -38,38 +51,48 @@ public:
     
     void shutdown() override;
     
-    Matrix3D<float> getProjectionMatrix() const;
+    void setShowSphere(bool value){ this->showShpere = value; }
+    void setShowNumber(bool value){ this->showNumber = value; }
     
-    Matrix3D<float> getViewMatrix() const;
-    
+    void setNameConfig(String name){ this->nameConfig = name; }
     void render() override;
     
     void paint (Graphics& g) override;
     void resized() override;
     
-    void mouseDown (const MouseEvent& e) override;
+    void mouseDown(const MouseEvent& e)override;
+    void mouseDrag (const MouseEvent& e)override;
     
-    void mouseDrag (const MouseEvent& e) override;
+    void mouseWheelMove(const MouseEvent& e,const MouseWheelDetails& wheel)override;
     
-    void createShaders();
-    
-    Draggable3DOrientation draggableOrientation;
     
 private:
     
-    const char* m_cVertexShader;
-    const char* m_cFragmentShader;
+    float raycast(Speaker *speaker);
+    bool speakerNearCam(glm::vec3 speak1, glm::vec3 speak2, glm::vec3 cam);
     
-    ScopedPointer<OpenGLShaderProgram> mShader;
-    ScopedPointer<Shape> mShape;
-    ScopedPointer<Attributes> mAttributes;
-    ScopedPointer<Uniforms> mUniforms;
+    void drawBackground();
+    void drawOriginGrid();
+    void drawText( string val, glm::vec3 position,float scale = 0.005f, bool camLock = true);
+    void drawCube(float x, float y, float z);
     
+    bool showShpere = false;
+    bool showNumber = false;
     
+    float camAngleX= 30.0f;
+    float camAngleY= 25.0f;
+    float distance = 15.0f;
+    
+    float deltaClickX;
+    float deltaClickY;
+    
+    Ray ray;
+    MainContentComponent *mainParent;
+    glm::vec3 camPos;
+    glm::vec4 perspectivCam;
+    String nameConfig = "...";
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SpeakerViewComponent)
 };
-
-
-
 
 #endif  // SPEAKERVIEWCOMPONENT_H_INCLUDED

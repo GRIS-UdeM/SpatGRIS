@@ -17,184 +17,17 @@
 
 
 #include "SpeakerViewComponent.h"
-
-//==============================================================================
-struct Vertex {
-    float position[3];
-    float normal[3];
-    float colour[4];
-    float texCoord[2];
-};
-
-//==============================================================================
-// This class just manages the mAttributes that the shaders use.
-class Attributes {
-public:
-    Attributes (OpenGLContext& openGLContext, OpenGLShaderProgram& shaderProgram) {
-        position      = createAttribute (openGLContext, shaderProgram, "position");
-        normal        = createAttribute (openGLContext, shaderProgram, "normal");
-        sourceColour  = createAttribute (openGLContext, shaderProgram, "sourceColour");
-        texureCoordIn = createAttribute (openGLContext, shaderProgram, "texureCoordIn");
-    }
-    
-    void enable (OpenGLContext& openGLContext) {
-        if (position != nullptr) {
-            openGLContext.extensions.glVertexAttribPointer (position->attributeID, 3, GL_FLOAT, GL_FALSE, sizeof (Vertex), 0);
-            openGLContext.extensions.glEnableVertexAttribArray (position->attributeID);
-        }
-        
-        if (normal != nullptr) {
-            openGLContext.extensions.glVertexAttribPointer (normal->attributeID, 3, GL_FLOAT, GL_FALSE, sizeof (Vertex), (GLvoid*) (sizeof (float) * 3));
-            openGLContext.extensions.glEnableVertexAttribArray (normal->attributeID);
-        }
-        
-        if (sourceColour != nullptr) {
-            openGLContext.extensions.glVertexAttribPointer (sourceColour->attributeID, 4, GL_FLOAT, GL_FALSE, sizeof (Vertex), (GLvoid*) (sizeof (float) * 6));
-            openGLContext.extensions.glEnableVertexAttribArray (sourceColour->attributeID);
-        }
-        
-        if (texureCoordIn != nullptr) {
-            openGLContext.extensions.glVertexAttribPointer (texureCoordIn->attributeID, 2, GL_FLOAT, GL_FALSE, sizeof (Vertex), (GLvoid*) (sizeof (float) * 10));
-            openGLContext.extensions.glEnableVertexAttribArray (texureCoordIn->attributeID);
-        }
-    }
-    
-    void disable (OpenGLContext& openGLContext) {
-        if (position != nullptr)       openGLContext.extensions.glDisableVertexAttribArray (position->attributeID);
-        if (normal != nullptr)         openGLContext.extensions.glDisableVertexAttribArray (normal->attributeID);
-        if (sourceColour != nullptr)   openGLContext.extensions.glDisableVertexAttribArray (sourceColour->attributeID);
-        if (texureCoordIn != nullptr)  openGLContext.extensions.glDisableVertexAttribArray (texureCoordIn->attributeID);
-    }
-    
-    ScopedPointer<OpenGLShaderProgram::Attribute> position, normal, sourceColour, texureCoordIn;
-    
-private:
-    static OpenGLShaderProgram::Attribute* createAttribute (OpenGLContext& openGLContext, OpenGLShaderProgram& mShader, const char* attributeName) {
-        if (openGLContext.extensions.glGetAttribLocation (mShader.getProgramID(), attributeName) < 0){
-            return nullptr;
-        }
-        return new OpenGLShaderProgram::Attribute (mShader, attributeName);
-    }
-};
-
-//==============================================================================
-// This class just manages the uniform values that the demo shaders use.
-struct Uniforms{
-    Uniforms (OpenGLContext& openGLContext, OpenGLShaderProgram& shaderProgram) {
-        projectionMatrix = createUniform (openGLContext, shaderProgram, "projectionMatrix");
-        viewMatrix       = createUniform (openGLContext, shaderProgram, "viewMatrix");
-    }
-    
-    ScopedPointer<OpenGLShaderProgram::Uniform> projectionMatrix, viewMatrix;
-    
-private:
-    static OpenGLShaderProgram::Uniform* createUniform (OpenGLContext& openGLContext, OpenGLShaderProgram& shaderProgram, const char* uniformName) {
-        if (openGLContext.extensions.glGetUniformLocation (shaderProgram.getProgramID(), uniformName) < 0){
-            return nullptr;
-        }
-        
-        return new OpenGLShaderProgram::Uniform (shaderProgram, uniformName);
-    }
-};
-
-
-//==============================================================================
-// This loads a 3D model from an OBJ file and converts it into some vertex buffers that we can draw.
-class Shape {
-public:
-    Shape (OpenGLContext& openGLContext) {
-        if (mShapeFile.load (BinaryData::teapot_obj).wasOk()){
-            for (int i = 0; i < mShapeFile.shapes.size(); ++i){
-                mVertexBuffers.add (new VertexBuffer (openGLContext, *mShapeFile.shapes.getUnchecked(i)));
-            }
-        }
-    }
-    
-    void draw (OpenGLContext& openGLContext, Attributes& glAttributes) {
-        for (int i = 0; i < mVertexBuffers.size(); ++i) {
-            VertexBuffer& vertexBuffer = *mVertexBuffers.getUnchecked (i);
-            vertexBuffer.bind();
-            
-            glAttributes.enable (openGLContext);
-            glDrawElements (GL_TRIANGLES, vertexBuffer.numIndices, GL_UNSIGNED_INT, 0);
-            glAttributes.disable (openGLContext);
-        }
-    }
-    
-private:
-    class VertexBuffer {
-    public:
-        VertexBuffer (OpenGLContext& context, WavefrontObjFile::Shape& aShape) : openGLContext (context) {
-            numIndices = aShape.mesh.indices.size();
-            
-            openGLContext.extensions.glGenBuffers (1, &vertexBuffer);
-            openGLContext.extensions.glBindBuffer (GL_ARRAY_BUFFER, vertexBuffer);
-            
-            Array<Vertex> vertices;
-            createVertexListFromMesh (aShape.mesh, vertices, Colours::green);
-            
-            openGLContext.extensions.glBufferData (GL_ARRAY_BUFFER,
-                                                   static_cast<GLsizeiptr> (static_cast<size_t> (vertices.size()) * sizeof (Vertex)),
-                                                   vertices.getRawDataPointer(), GL_STATIC_DRAW);
-            
-            openGLContext.extensions.glGenBuffers (1, &indexBuffer);
-            openGLContext.extensions.glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-            openGLContext.extensions.glBufferData (GL_ELEMENT_ARRAY_BUFFER,
-                                                   static_cast<GLsizeiptr> (static_cast<size_t> (numIndices) * sizeof (juce::uint32)),
-                                                   aShape.mesh.indices.getRawDataPointer(), GL_STATIC_DRAW);
-        }
-        
-        ~VertexBuffer() {
-            openGLContext.extensions.glDeleteBuffers (1, &vertexBuffer);
-            openGLContext.extensions.glDeleteBuffers (1, &indexBuffer);
-        }
-        
-        void bind() {
-            openGLContext.extensions.glBindBuffer (GL_ARRAY_BUFFER, vertexBuffer);
-            openGLContext.extensions.glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-        }
-        
-        GLuint vertexBuffer, indexBuffer;
-        int numIndices;
-        OpenGLContext& openGLContext;
-        
-        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VertexBuffer)
-    };
-    
-    static void createVertexListFromMesh (const WavefrontObjFile::Mesh& mesh, Array<Vertex>& list, Colour colour) {
-        const float scale = 0.2f;
-        WavefrontObjFile::TextureCoord defaultTexCoord = { 0.5f, 0.5f };
-        WavefrontObjFile::Vertex defaultNormal = { 0.5f, 0.5f, 0.5f };
-        
-        for (int i = 0; i < mesh.vertices.size(); ++i) {
-            const WavefrontObjFile::Vertex& v = mesh.vertices.getReference (i);
-            
-            const WavefrontObjFile::Vertex& n = (i < mesh.normals.size()) ? mesh.normals.getReference (i) : defaultNormal;
-            
-            const WavefrontObjFile::TextureCoord& tc = (i < mesh.textureCoords.size()) ? mesh.textureCoords.getReference (i) : defaultTexCoord;
-            
-            Vertex vert =
-            {
-                { scale * v.x, scale * v.y, scale * v.z, },
-                { scale * n.x, scale * n.y, scale * n.z, },
-                { colour.getFloatRed(), colour.getFloatGreen(), colour.getFloatBlue(), colour.getFloatAlpha() },
-                { tc.x, tc.y }
-            };
-            
-            list.add (vert);
-        }
-    }
-    
-private:
-    WavefrontObjFile         mShapeFile;
-    OwnedArray<VertexBuffer> mVertexBuffers;
-    
-};
+#include "MainComponent.h"
 
 //==========================================================================================
 // ACTUAL SPEAKER VIEW CLASS DEFS
 //==========================================================================================
-SpeakerViewComponent::SpeakerViewComponent() {
+SpeakerViewComponent::SpeakerViewComponent(MainContentComponent *parent) {
+    //openGLContext.setMultisamplingEnabled (true);
+    this->mainParent = parent;
+    perspectivCam = glm::vec4(80.0, (16.0/9.0), 0.5, 75);
+    setSize(400, 400);
+    
 }
 
 SpeakerViewComponent::~SpeakerViewComponent() {
@@ -202,134 +35,384 @@ SpeakerViewComponent::~SpeakerViewComponent() {
 }
 
 void SpeakerViewComponent::initialise() {
-    createShaders();
+   
+    glClearColor(0.0, 0.0, 0.0, 1.0);
+    glColor3f(1.0, 1.0, 1.0);
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(perspectivCam.x, perspectivCam.y, perspectivCam.z, perspectivCam.w);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    gluLookAt(4, 6, 5, 0, 0, 0, 0, 1, 0);
 }
 
 void SpeakerViewComponent::shutdown() {
-    mShader = nullptr;
-    mShape = nullptr;
-    mAttributes = nullptr;
-    mUniforms = nullptr;
-}
-
-Matrix3D<float> SpeakerViewComponent::getProjectionMatrix() const {
-    float w = 1.0f / (0.5f + 0.1f);
-    float h = w * getLocalBounds().toFloat().getAspectRatio (false);
-    return Matrix3D<float>::fromFrustum (-w, w, -h, h, 4.0f, 30.0f);
-}
-
-Matrix3D<float> SpeakerViewComponent::getViewMatrix() const {
-    return draggableOrientation.getRotationMatrix() * Vector3D<float> (0.0f, 1.0f, -10.0f);
     
 }
+
+
 
 void SpeakerViewComponent::render() {
     
-    jassert (OpenGLHelpers::isContextActive());
+    glEnable(GL_DEPTH_TEST);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-    const float desktopScale = (float) openGLContext.getRenderingScale();
-    OpenGLHelpers::clear (Colour::greyLevel (0.1f));
+    //Smooth
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH | GLUT_MULTISAMPLE);
     
-    glEnable (GL_BLEND);
-    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
-    glViewport (0, 0, roundToInt (desktopScale * getWidth()), roundToInt (desktopScale * getHeight()));
+    glEnable(GL_LINE_SMOOTH);
+    glHint(GL_LINE_SMOOTH, GL_NICEST);
     
-    mShader->use();
+    glEnable(GL_POINT_SMOOTH);
+    glHint(GL_POINT_SMOOTH, GL_NICEST);
+
+    glEnable(GL_MULTISAMPLE_ARB);
+    glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
     
-    if (mUniforms->projectionMatrix != nullptr){
-        mUniforms->projectionMatrix->setMatrix4 (getProjectionMatrix().mat, 1, false);
+    
+    drawBackground();
+    
+    gluPerspective(perspectivCam.x, perspectivCam.y, perspectivCam.z, perspectivCam.w);
+    glMatrixMode(GL_MODELVIEW);
+
+    
+    float camX = distance * sinf(camAngleX*(M_PI/180.f)) * cosf((camAngleY)*(M_PI/180.f));
+    float camY = distance * sinf((camAngleY)*(M_PI/180.f));
+    float camZ = distance * cosf((camAngleX)*(M_PI/180.f)) * cosf((camAngleY)*(M_PI/180.f));
+    
+    
+    glLoadIdentity();
+    gluLookAt(camX, camY, camZ, 0, 0, 0, 0,1,0);
+    camPos = glm::vec3(camX,camY,camZ);
+    
+
+    drawOriginGrid();
+    
+    if(this->mainParent->getLockSpeakers()->try_lock()){
+    for(int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
+        this->mainParent->getListSpeaker()[i]->draw();
+        if(this->showNumber){
+            glm::vec3 posT = this->mainParent->getListSpeaker()[i]->getCenter();
+            posT.y +=sizeSpeaker.y+0.4f;
+            drawText(to_string(this->mainParent->getListSpeaker()[i]->getOutputPatch()),posT,0.002f);
+        }
+    }
+    this->mainParent->getLockSpeakers()->unlock();
     }
     
-    if (mUniforms->viewMatrix != nullptr){
-        mUniforms->viewMatrix->setMatrix4 (getViewMatrix().mat, 1, false);
+    if(this->mainParent->getLockInputs()->try_lock()){
+    for(int i = 0; i < this->mainParent->getListSourceInput().size(); ++i) {
+        this->mainParent->getListSourceInput()[i]->draw();
+        if(this->showNumber){
+            glm::vec3 posT = this->mainParent->getListSourceInput()[i]->getCenter();
+            posT.y +=sizeSpeaker.y+0.4f;
+            drawText(to_string(this->mainParent->getListSourceInput()[i]->getId()),posT,0.002f);
+        }
+    }
+    this->mainParent->getLockInputs()->unlock();
     }
     
-    mShape->draw (openGLContext, *mAttributes);
-    
-    // Reset the element buffers so child Components draw correctly
-    openGLContext.extensions.glBindBuffer (GL_ARRAY_BUFFER, 0);
-    openGLContext.extensions.glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
-    
+    //Draw Sphere : Use many CPU
+    if(this->showShpere){
+        if(this->mainParent->getLockSpeakers()->try_lock()){
+        float maxRadius = 0.0f;;
+        for(int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
+            if(abs(this->mainParent->getListSpeaker()[i]->getAziZenRad().z*10.f) > maxRadius){
+                maxRadius = abs(this->mainParent->getListSpeaker()[i]->getAziZenRad().z*10.0f) ;
+            }
+        }
+        glPushMatrix();
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        glLineWidth(1);
+        glRotatef(90, 1, 0, 0);
+        glColor3f(0.8, 0.2, 0.1);
+        glutSolidSphere(max(maxRadius,1.0f) ,50,50);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        glPopMatrix();
+        this->mainParent->getLockSpeakers()->unlock();
+        }
+    }
+
+    glFlush();
 }
 
 void SpeakerViewComponent::paint (Graphics& g) {
 //    // You can add your component specific drawing code here!
 //    // This will draw over the top of the openGL background.
 //    
-//    g.setColour(Colours::white);
-//    g.setFont (20);
-//    g.drawText ("OpenGL Example", 25, 20, 300, 30, Justification::left);
+    g.setColour(Colours::white);
+    g.setFont (16);
+    g.drawText (this->nameConfig, 25, 20, 300, 30, Justification::left);
 //    g.drawLine (20, 20, 170, 20);
-//    g.drawLine (20, 50, 170, 50);
 }
 
 void SpeakerViewComponent::resized() {
-    draggableOrientation.setViewport (getLocalBounds());
+    //draggableOrientation.setViewport (getLocalBounds());
 }
+
 
 void SpeakerViewComponent::mouseDown (const MouseEvent& e) {
-    draggableOrientation.mouseDown (e.getPosition());
-}
+    
+    deltaClickX = camAngleX - e.getPosition().x ;
+    deltaClickY = camAngleY - e.getPosition().y;
 
-void SpeakerViewComponent::mouseDrag (const MouseEvent& e) {
-    draggableOrientation.mouseDrag (e.getPosition());
-}
+    if(e.mods.isLeftButtonDown()){
+        
+        double matModelView[16], matProjection[16];
+        int viewport[4];
+        
+        glGetDoublev( GL_MODELVIEW_MATRIX, matModelView );
+        glGetDoublev( GL_PROJECTION_MATRIX, matProjection );
+        glGetIntegerv( GL_VIEWPORT, viewport );
+        double winX = (double)e.getPosition().x;
+        double winY = viewport[3] - (double)e.getPosition().y;
+        
+        GLdouble xS, yS, zS;
+        GLdouble xE, yE, zE;
+        
+        gluUnProject(winX, winY, 0.0, matModelView, matProjection,viewport, &xS, &yS,&zS);
+        gluUnProject(winX, winY, 1.0, matModelView, matProjection, viewport, &xE, &yE, &zE);
+        
+        ray = Ray(glm::vec3(xS, yS, zS),glm::vec3(xE, yE, zE));
+        
+        int iBestSpeaker = -1;
+        if(this->mainParent->getLockSpeakers()->try_lock()){
+        for(int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
+            if (raycast( this->mainParent->getListSpeaker()[i]) != -1 ) {
+                if(iBestSpeaker == -1){
+                    iBestSpeaker = i;
+                }else{
+                    if(speakerNearCam(this->mainParent->getListSpeaker()[i]->getCenter(), this->mainParent->getListSpeaker()[iBestSpeaker]->getCenter(), camPos)){
+                        iBestSpeaker = i;
+                    }
+                }
+            }
+        }
+        
 
-void SpeakerViewComponent::createShaders() {
-    m_cVertexShader =
-    "attribute vec4 position;\n"
-    "attribute vec4 sourceColour;\n"
-    "attribute vec2 texureCoordIn;\n"
-    "\n"
-    "uniform mat4 projectionMatrix;\n"
-    "uniform mat4 viewMatrix;\n"
-    "\n"
-    "varying vec4 destinationColour;\n"
-    "varying vec2 textureCoordOut;\n"
-    "\n"
-    "void main(){\n"
-    "    destinationColour = sourceColour;\n"
-    "    textureCoordOut = texureCoordIn;\n"
-    "    gl_Position = projectionMatrix * viewMatrix * position;\n"
-    "}\n";
-    
-    m_cFragmentShader =
-    "varying vec4 destinationColour;\n"
-    "varying vec2 textureCoordOut;\n"
-    "\n"
-    "void main(){\n"
-    "    vec4 colour = vec4(0.95, 0.57, 0.93, 0.7);\n"  //this is the color of the teapot
-    "    gl_FragColor = colour;\n"
-    "}\n";
-    
-    ScopedPointer<OpenGLShaderProgram> newShader (new OpenGLShaderProgram (openGLContext));
-    String statusText;
-    
-    if (newShader->addVertexShader   (OpenGLHelpers::translateVertexShaderToV3 (m_cVertexShader)) &&
-        newShader->addFragmentShader (OpenGLHelpers::translateFragmentShaderToV3 (m_cFragmentShader)) &&
-        newShader->link()) {
-        //clear stuff
-        mShape       = nullptr;
-        mAttributes  = nullptr;
-        mUniforms    = nullptr;
-        
-        //use the new shader
-        mShader      = newShader;
-        mShader->use();
-        
-        
-        mShape      = new Shape      (openGLContext);
-        mAttributes = new Attributes (openGLContext, *mShader);
-        mUniforms   = new Uniforms   (openGLContext, *mShader);
-        
-        statusText = "GLSL: v" + String (OpenGLShaderProgram::getLanguageVersion(), 2);
-    } else {
-        statusText = newShader->getLastError();
+        for(int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
+            if(i!=iBestSpeaker)
+            {
+                this->mainParent->getListSpeaker()[i]->unSelectSpeaker();
+            }else{
+                this->mainParent->getListSpeaker()[i]->selectSpeaker();
+            }
+        }
+        this->mainParent->getLockSpeakers()->unlock();
+        }
+        this->mainParent->refreshWinSpeakConf(iBestSpeaker);
     }
 }
 
+void SpeakerViewComponent::mouseDrag (const MouseEvent& e) {
+    if(e.mods.isRightButtonDown()){
+        camAngleX = (e.getPosition().x + deltaClickX);
+        camAngleY = (e.getPosition().y + deltaClickY);
+    }
+}
+
+void SpeakerViewComponent::mouseWheelMove(const MouseEvent& e,const MouseWheelDetails& wheel){
+    distance -= (wheel.deltaY*1.5f);
+}
+
+void SpeakerViewComponent::drawBackground()
+{
+    glMatrixMode(GL_PROJECTION );
+    glLoadIdentity();
+    glOrtho(0,1,0,1,-1,1);
+    glDisable(GL_DEPTH_TEST);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    //draw 2D image
+    glBegin(GL_QUADS);
+    glColor3f(0.48,0.55,0.63);
+    glVertex2f(1.0,1.0);
+    glVertex2f(-1.0,1.0);
+    
+    glColor3f(0.0,0.0,0.0);
+    glVertex2f(0.0, 0.0);
+    glVertex2f(1.0, 0.0);
+    glEnd();
+    
+    glEnable(GL_DEPTH_TEST);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+}
+
+void SpeakerViewComponent::drawOriginGrid()
+{
+    
+    //Draw circle------------------------
+    glLineWidth(1.5f);
+    
+    glColor3f(0, 0, 0);
+    
+    glBegin(GL_LINE_LOOP);
+    for(int i =0; i <= 180; i++){
+        double angle = (2 * M_PI * i / 180);
+        glVertex3f(cos(angle)*5.0f, 0.0f, sin(angle)*5.0f);
+    }
+    glEnd();
+    
+    glBegin(GL_LINE_LOOP);
+    for(int i =0; i <= 180; i++){
+        double angle = (2 * M_PI * i / 180);
+        glVertex3f(cos(angle)*10.0f, 0.0f, sin(angle)*10.0f);
+    }
+    glEnd();
+    
+    
+    //3D RGB line----------------------
+    glLineWidth(2);
+    glBegin(GL_LINES);
+    glColor3f(0.4, 0, 0); glVertex3f(-10, 0, 0); glVertex3f(0, 0, 0);
+    glColor3f(1, 0, 0); glVertex3f(0, 0, 0); glVertex3f(10, 0, 0);
+    glColor3f(0, 0, 1); glVertex3f(0, 0, 0); glVertex3f(0, 10, 0);
+    glColor3f(0, 0.4, 0); glVertex3f(0, 0, -10); glVertex3f(0, 0, 0);
+    glColor3f(0, 1, 0); glVertex3f(0, 0, 0); glVertex3f(0, 0, 10);
+    glEnd();
+
+    
+    //Grid-----------------------------
+    glLineWidth(1);
+    glColor3f(0.49, 0.49, 0.49);
+    for(int x = -nbrGridLines; x < nbrGridLines+1; x+=2){
+        glBegin(GL_LINE_LOOP);
+        glVertex3f(x,0,-nbrGridLines);
+        glVertex3f(x,0,nbrGridLines);
+        glEnd();
+
+    }
+    
+    for(int z = -nbrGridLines; z < nbrGridLines+1; z+=2){
+        glBegin(GL_LINE_LOOP);
+        glVertex3f(-nbrGridLines,0,z);
+        glVertex3f(nbrGridLines,0,z);
+        glEnd();
+    }
+    
+    drawText("0",glm::vec3(0,0.1,0));
+    drawText("X",glm::vec3(10,0.1,0));
+    drawText("Y",glm::vec3(0,0.1,10));
+    drawText("Z",glm::vec3(0,10,0));
+}
+
+void SpeakerViewComponent::drawText(string val, glm::vec3 position,float scale, bool camLock){
+    glPushMatrix();
+    glTranslatef(position.x, position.y, position.z);
+    
+    //glRotatef(-90.0f, 1, 1, 0);
+    if(camLock){
+        glRotatef((camAngleX), 0, 1, 0);
+        if(camAngleY < 0  || camAngleY > 90.f){
+            glRotatef(-camAngleY, 0, 1, 0);
+        }
+    }
+
+    glScalef( scale, scale, scale);
+    glColor3f( 1, 1, 1 );
+    for (char & c : val)
+    {
+        glutStrokeCharacter( GLUT_STROKE_MONO_ROMAN, c );
+    }
+   
+    glTranslatef(-1*position.x, -1*position.y, -1*position.z);
+    glPopMatrix();
+}
+
+
+void SpeakerViewComponent::drawCube(float x, float y, float z)
+
+{
+    const float sizex = 0.5f;
+    const float sizey = 0.5f;
+    const float sizez = 0.5f;
+    
+    glTranslatef(x, y, z);
+    
+    glBegin(GL_QUADS);
+    
+    glColor3f(0.85, 0.86, 0.87);
+    
+    // FRONT
+    glVertex3f(-sizex, -sizey, sizez);
+    glVertex3f(sizex, -sizey, sizez);
+    glVertex3f(sizex, sizey, sizez);
+    glVertex3f(-sizex, sizey, sizez);
+    
+    // BACK
+    glVertex3f(-sizex, -sizey, -sizez);
+    glVertex3f(-sizex, sizey, -sizez);
+    glVertex3f(sizex, sizey, -sizez);
+    glVertex3f(sizex, -sizey, -sizez);
+    
+    // LEFT
+    glVertex3f(-sizex, -sizey, sizez);
+    glVertex3f(-sizex, sizey, sizez);
+    glVertex3f(-sizex, sizey, -sizez);
+    glVertex3f(-sizex, -sizey, -sizez);
+    
+    // RIGHT
+    glVertex3f(sizex, -sizey, -sizez);
+    glVertex3f(sizex, sizey, -sizez);
+    glVertex3f(sizex, sizey, sizez);
+    glVertex3f(sizex, -sizey, sizez);
+    
+    // TOP
+    glVertex3f(-sizex, sizey, sizez);
+    glVertex3f(sizex, sizey, sizez);
+    glVertex3f(sizex, sizey, -sizez);
+    glVertex3f(-sizex, sizey, -sizez);
+    
+    // BOTTOM
+    glVertex3f(-sizex, -sizey, sizez);
+    glVertex3f(-sizex, -sizey, -sizez);
+    glVertex3f(sizex, -sizey, -sizez);
+    glVertex3f(sizex, -sizey, sizez);
+    
+    glEnd();
+    
+    glTranslatef(-x, -y, -z);
+}
+
+
+float SpeakerViewComponent::raycast(Speaker *speaker) {
+    float t1 = (speaker->getMin().x - ray.getPosition().x) / ray.getNormal().x;
+    float t2 = (speaker->getMax().x - ray.getPosition().x) / ray.getNormal().x;
+    float t3 = (speaker->getMin().y - ray.getPosition().y) / ray.getNormal().y;
+    float t4 = (speaker->getMax().y - ray.getPosition().y) / ray.getNormal().y;
+    float t5 = (speaker->getMin().z - ray.getPosition().z) / ray.getNormal().z;
+    float t6 = (speaker->getMax().z - ray.getPosition().z) / ray.getNormal().z;
+    
+    float tmin = fmax(fmax(fmin(t1, t2), fmin(t3, t4)), fmin(t5, t6));
+    float tmax = fmin(fmin(fmax(t1, t2), fmax(t3, t4)), fmax(t5, t6));
+    
+    // if tmax < 0, ray (line) is intersecting AABB, but whole AABB is behing us
+    if (tmax < 0) {
+        return -1;
+    }
+    
+    // if tmin > tmax, ray doesn't intersect AABB
+    if (tmin > tmax) {
+        return -1;
+    }
+    
+    if (tmin < 0.0f) {
+        return tmax;
+    }
+    return tmin;
+}
 
 
 
+bool SpeakerViewComponent::speakerNearCam(glm::vec3 speak1, glm::vec3 speak2, glm::vec3 cam){
+    return (sqrt( exp2(speak1.x - cam.x) + exp2(speak1.y - cam.y) +exp2(speak1.z - cam.z) ) <=
+            sqrt( exp2(speak2.x - cam.x) + exp2(speak2.y - cam.y) +exp2(speak2.z - cam.z) ));
+}
 

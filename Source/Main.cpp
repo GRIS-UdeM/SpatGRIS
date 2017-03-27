@@ -16,9 +16,13 @@
  */
 
 #include "../JuceLibraryCode/JuceHeader.h"
-#include "jackClientGRIS.h"
+#include "../../GrisCommonFiles/GrisLookAndFeel.h"
 
-Component* createMainContentComponent();
+#define STRING2(x) #x
+#define STRING(x) STRING2(x)
+
+#include "MainComponent.h"
+
 
 //==============================================================================
 class spatServerGRISApplication  : public JUCEApplication
@@ -34,11 +38,9 @@ public:
     //==============================================================================
     void initialise (const String& commandLine) override
     {
+        LookAndFeel::setDefaultLookAndFeel(&mGrisFeel);
         // This method is where you should put your application's initialisation code..
-
         mainWindow = new MainWindow (getApplicationName());
-//        jackClientGRIS jackClient;
-//        while(1);
     }
 
     void shutdown() override
@@ -71,12 +73,13 @@ public:
     class MainWindow    : public DocumentWindow
     {
     public:
-        MainWindow (String name)  : DocumentWindow (name,
-                                                    Colours::lightgrey,
-                                                    DocumentWindow::allButtons)
+        MainWindow (String name)  : DocumentWindow (name,Colours::lightgrey,DocumentWindow::allButtons)
         {
             setUsingNativeTitleBar (true);
-            setContentOwned (createMainContentComponent(), true);
+            String version = STRING(JUCE_APP_VERSION);
+            version = "SpatServer GRIS : "+version;
+            setName(version);
+            setContentOwned (new MainContentComponent(), true);
             setResizable (true, true);
 
             centreWithSize (getWidth(), getHeight());
@@ -103,6 +106,7 @@ public:
     };
 
 private:
+    GrisLookAndFeel mGrisFeel;
     ScopedPointer<MainWindow> mainWindow;
 };
 
