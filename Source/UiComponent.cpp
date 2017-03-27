@@ -75,6 +75,170 @@ void Box::paint(Graphics &g) {
 
 
 
+//======================================= BOX CLIENT ===========================================================================
+BoxClient::BoxClient(MainContentComponent * parent, GrisLookAndFeel *feel){
+    this->mainParent= parent;
+    this->grisFeel = feel;
+    
+    tableListClient.setModel(this);
+    
+    tableListClient.setColour (ListBox::outlineColourId, this->grisFeel->getWinBackgroundColour());
+    tableListClient.setColour(ListBox::backgroundColourId, this->grisFeel->getWinBackgroundColour());
+    tableListClient.setOutlineThickness (1);
+    
+    tableListClient.getHeader().addColumn("Name", 1, 90, 70, 120,TableHeaderComponent::defaultFlags);
+    
+    tableListClient.getHeader().addColumn("Start", 2, 40, 35, 70,TableHeaderComponent::defaultFlags);
+    tableListClient.getHeader().addColumn("End", 3, 40, 35, 70,TableHeaderComponent::defaultFlags);
+    
+    
+    tableListClient.getHeader().setSortColumnId (1, true); // sort forwards by the ID column
+
+    tableListClient.setMultipleSelectionEnabled (false);
+    
+    numRows = 0;
+    tableListClient.updateContent();
+    
+    this->addAndMakeVisible(tableListClient);
+}
+BoxClient::~BoxClient(){
+
+}
+
+void BoxClient::setBounds(int x, int y, int width, int height)
+{
+    this->juce::Component::setBounds(x, y, width, height);
+    tableListClient.setSize(width, height);
+}
+
+void BoxClient::updateContentCli(){
+    numRows =this->mainParent->getListClientjack()->size();
+    tableListClient.updateContent();
+    
+}
+
+void BoxClient::setValue (const int rowNumber, const int columnNumber,const int newRating)
+{
+    if (this->mainParent->getListClientjack()->size()> rowNumber)
+    {
+        
+        switch(columnNumber){
+
+            case 2 :
+                this->mainParent->getListClientjack()->at(rowNumber).portStart = newRating;
+                break;
+            case 3 :
+                this->mainParent->getListClientjack()->at(rowNumber).portEnd= newRating;
+                break;
+
+        }
+    
+    }
+    //dataList->getChildElement (rowNumber)->setAttribute ("Rating", newRating);
+}
+
+int BoxClient::getValue (const int rowNumber,const int columnNumber) const{
+    if (this->mainParent->getListClientjack()->size()> rowNumber)
+    {
+        switch(columnNumber){
+                
+            case 2 :
+                return this->mainParent->getListClientjack()->at(rowNumber).portStart;
+                break;
+            case 3 :
+                return this->mainParent->getListClientjack()->at(rowNumber).portEnd;
+                break;
+                
+        }
+        
+    }
+}
+
+String BoxClient::getText (const int columnNumber, const int rowNumber) const
+{
+    String text = "";
+    //this->mainParent->getLockSpeakers()->lock();
+    if (this->mainParent->getListClientjack()->size()> rowNumber)
+    {
+        
+        switch(columnNumber){
+            case 1 :
+                text =String(this->mainParent->getListClientjack()->at(rowNumber).name);
+                break;
+                
+            case 2 :
+                text =String(this->mainParent->getListClientjack()->at(rowNumber).portStart);
+                break;
+            case 3 :
+                text =String(this->mainParent->getListClientjack()->at(rowNumber).portEnd);
+                break;
+            
+            default:
+                text ="?";
+        }
+    }
+    
+    //this->mainParent->getLockSpeakers()->unlock();
+    return text;
+}
+
+
+
+
+int BoxClient::getNumRows()
+{
+    return numRows;
+}
+// This is overloaded from TableListBoxModel, and should fill in the background of the whole row
+void BoxClient::paintRowBackground (Graphics& g, int rowNumber, int /*width*/, int /*height*/, bool rowIsSelected)
+{
+    if (rowIsSelected){
+        g.fillAll (this->grisFeel->getOnColour());
+    }
+    else{
+        if (rowNumber % 2){
+            g.fillAll (this->grisFeel->getBackgroundColour().withBrightness(0.6));
+        }else{
+            g.fillAll (this->grisFeel->getBackgroundColour().withBrightness(0.7));
+        }
+    }
+}
+
+// This is overloaded from TableListBoxModel, and must paint any cells that aren't using custom
+// components.
+void BoxClient::paintCell (Graphics& g, int rowNumber, int columnId, int width, int height, bool /*rowIsSelected*/)
+{
+    g.setColour (Colours::black);
+    g.setFont (14.0f);
+    
+    if (this->mainParent->getListClientjack()->size()> rowNumber)
+    {
+        String text = getText(columnId, rowNumber);
+        g.drawText (text, 2, 0, width - 4, height, Justification::centredLeft, true);
+    }
+
+    g.setColour (Colours::black.withAlpha (0.2f));
+    g.fillRect (width - 1, 0, 1, height);
+}
+
+Component* BoxClient::refreshComponentForCell (int rowNumber, int columnId, bool /*isRowSelected*/,
+                                                       Component* existingComponentToUpdate)
+{
+     if(columnId==1){
+         return existingComponentToUpdate;
+     }
+        // The other columns are editable text columns, for which we use the custom Label component
+    ListIntOutComp* textLabel = static_cast<ListIntOutComp*> (existingComponentToUpdate);
+    
+    // same as above...
+    if (textLabel == nullptr)
+        textLabel = new ListIntOutComp (*this);
+    
+    textLabel->setRowAndColumn (rowNumber, columnId);
+    
+    return textLabel;
+}
+
 
 
 //======================================= Window Edit Speaker============================================================

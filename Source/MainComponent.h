@@ -69,7 +69,7 @@ public:
     vector<Input *> getListSourceInput(){ return this->listSourceInput; }
     mutex* getLockInputs(){ return this->lockInputs; }  
     
-    
+    vector<Client> *getListClientjack(){ return &this->jackClient->listClient; }
     void setShowShepre(bool value){ this->speakerView->setShowSphere(value); }
     void addSpeaker();
     void removeSpeaker(int idSpeaker);
@@ -157,6 +157,7 @@ private:
     TextButton *    butAutoConnectJack;
     
     Label *         labelAllClients;
+    BoxClient *     boxClientJack;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
 };

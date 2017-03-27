@@ -41,8 +41,13 @@
 //#define TABLE_SIZE   (441)
 using namespace std;
 
+struct Client {
+    String name;
+    unsigned int portStart;
+    unsigned int portEnd;
+};
 
-static const unsigned int BufferSize[] = {128,256,512,1024,2048};
+static const unsigned int BufferSize[] = {256, 512, 1024, 2048};
 
 static unsigned int const MaxInputs = 128;
 static unsigned int const MaxOutputs = 128;
@@ -61,7 +66,7 @@ public:
 
     
     vector<double> sine;
-    vector<String> nameClient;
+    vector<Client> listClient;
     int left_phase;
     int right_phase;
     
@@ -94,6 +99,8 @@ public:
     
     void autoConnectClient();
     string getClientName(const char * port);
+    unsigned int getPortStartClient(String nameClient);
+    
     bool autoConnection;
     
     unsigned int numberInputs;
@@ -103,6 +110,7 @@ public:
 private:
     
     bool clientReady;
+
     
 };
 

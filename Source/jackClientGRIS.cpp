@@ -152,14 +152,18 @@ void client_registration_callback(const char *name, int regist, void *arg)
     jackClientGris* client = (jackClientGris*)arg;
     printf("client_registration_callback : %s : " ,name);
     if(regist){
-        client->nameClient.push_back(name);
+        Client cli;
+        cli.name = name;
+        cli.portStart = 1;
+        cli.portEnd = 32;
+        client->listClient.push_back(cli);
         printf("saved\n");
     }else{
-        for( vector<String>::iterator iter = client->nameClient.begin(); iter != client->nameClient.end(); ++iter )
+        for( vector<Client>::iterator iter = client->listClient.begin(); iter != client->listClient.end(); ++iter )
         {
-            if( *iter == String(name) )
+            if( iter->name == String(name) )
             {
-                client->nameClient.erase( iter );
+                client->listClient.erase( iter );
                 printf("deleted\n");
                 break;
             }
@@ -224,7 +228,7 @@ jackClientGris::jackClientGris() {
     //INIT variable and clear Array========================
     clientReady = false;
     autoConnection = false;
-    nameClient =  vector<String >();
+    listClient =  vector<Client>();
     
     fill(this->muteIn, this->muteIn+MaxInputs, false);
     fill(this->soloIn, this->soloIn+MaxInputs+1, false);
@@ -262,6 +266,7 @@ jackClientGris::jackClientGris() {
         printf("\n\n\n======chosen name already existed, new unique name `%s' assigned\n", ClientName);
     }
     
+    
     //--------------------------------------------------
     //register callback, ports
     //--------------------------------------------------
@@ -279,21 +284,13 @@ jackClientGris::jackClientGris() {
     //jack_set_latency_callback(client, latency_callback, this);
     
     jack_set_buffer_size(client, 1024);
-
+    
     sampleRate = jack_get_sample_rate (client);
     bufferSize = jack_get_buffer_size (client);
     printf ("engine sample rate: %" PRIu32 "\n",sampleRate);
     printf ("engine buffer size: %" PRIu32 "\n",jack_get_buffer_size (client));
+    
 
-    //--------------------------------------------------
-    // Activate client and connect the ports. Playback ports are "input" to the backend, and capture ports are "output" from it.
-    //--------------------------------------------------
-    if (jack_activate (client)) {
-        printf("\n\n\n======cannot activate client");
-        return;
-    }
-    
-    
     //--------------------------------------------------
     //fill wave table.
     //--------------------------------------------------
@@ -341,6 +338,15 @@ jackClientGris::jackClientGris() {
     jack_free (ports);
     cout << newLine << numberOutputs <<" =====================" << newLine << newLine;
 
+    
+    //--------------------------------------------------
+    // Activate client and connect the ports. Playback ports are "input" to the backend, and capture ports are "output" from it.
+    //--------------------------------------------------
+    if (jack_activate (client)) {
+        printf("\n\n\n======cannot activate client");
+        return;
+    }
+    
     clientReady = true;
 }
 
@@ -384,14 +390,13 @@ void jackClientGris::autoConnectClient()
     //Connect jackClientGris to system---------------------------------------------------
     int i=0;
     int j=0;
+    int startJ = 0;
+    int endJ = 0;
     while (portsOut[i]){
-        string nameClient = getClientName(portsOut[i]);
-        cout << jack_port_name(jack_port_by_name(client,portsOut[i])) << newLine;
-        if(nameClient == ClientName)
+        if(getClientName(portsOut[i]) == ClientName)    //jackClient
         {
             while(portsIn[j]){
-                nameClient = getClientName(portsIn[j]);
-                if(nameClient == "system"){
+                if(getClientName(portsIn[j]) == ClientNameSys){ //system
                     jack_connect (client, portsOut[i] ,portsIn[j]);
                     j+=1;
                     break;
@@ -401,36 +406,50 @@ void jackClientGris::autoConnectClient()
         }
         i+=1;
     }
+    
     
     //Connect other client to jackClientGris------------------------------------------
-    i=0;
-    j=0;
     autoConnection = true;
-    while (portsOut[i]){
-        string nameClient = getClientName(portsOut[i]);
-        cout << jack_port_name(jack_port_by_name(client,portsOut[i])) << newLine;
-        if(nameClient != ClientName && nameClient != "system")
-        {
-            while(portsIn[j]){
-                nameClient = getClientName(portsIn[j]);
-                if(nameClient == ClientName){
-                    jack_connect (client, portsOut[i] ,portsIn[j]);
-                    j+=1;
-                    break;
+    
+    for (auto&& cli : this->listClient)
+    {
+        i=0;
+        j=0;
+        
+        String nameClient = cli.name;
+        startJ = cli.portStart-1;
+        endJ = cli.portEnd;
+        while (portsOut[i]){
+            if(nameClient == getClientName(portsOut[i]))
+            {
+                //cout << jack_port_name(jack_port_by_name(client,portsOut[i])) << newLine;
+                while(portsIn[j]){
+                    if(getClientName(portsIn[j]) == ClientName){
+                        if(j>= startJ && j<endJ){
+                            jack_connect (client, portsOut[i] ,portsIn[j]);
+                            j+=1;
+                            break;
+                        }else{
+                            j+=1;
+                        }
+                    }else{
+                        j+=1;
+                        startJ+=1;
+                        endJ+=1;
+                    }
                 }
-                j+=1;
-
             }
+            i+=1;
         }
-        i+=1;
     }
+    
     autoConnection = false;
     
-    jack_free (portsIn);
+    jack_free(portsIn);
     jack_free(portsOut);
-
-   
 }
+
+
 bool jackClientGris::setBufferSize(int sizeB)
 {
     return jack_set_buffer_size(this->client, sizeB);
@@ -443,6 +462,16 @@ string jackClientGris::getClientName(const char * port)
         string tempN = jack_port_short_name(jack_port_by_name(client,port));
         return  nameClient.substr(0,nameClient.size()-(tempN.size()+1));
     }return "";
+}
+unsigned int jackClientGris::getPortStartClient(String nameClient)
+{
+    for (auto&& it : this->listClient)
+    {
+        if(it.name==nameClient){
+            return it.portStart;
+        }
+    }
+    return 0;
 }
 jackClientGris::~jackClientGris() {
     jack_deactivate(client);

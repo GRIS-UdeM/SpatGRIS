@@ -77,7 +77,11 @@ MainContentComponent::MainContentComponent(){
     
     this->butAutoConnectJack= addButton("Auto Connect","Auto connection with jack",140,104,130,24,this->boxControlUI->getContent());
     
-    this->labelAllClients= addLabel("...","Clients Connected",140, 130, 120, 80,this->boxControlUI->getContent());
+    //this->labelAllClients= addLabel("...","Clients Connected",140, 130, 120, 80,this->boxControlUI->getContent());
+    
+    this->boxClientJack = new BoxClient(this, &mGrisFeel);
+    this->boxClientJack->setBounds(140, 130, 180,120);
+    this->boxControlUI->getContent()->addAndMakeVisible(this->boxClientJack);
     
     // set up the layout and resizer bars
     this->verticalLayout.setItemLayout (0, -0.2, -0.8, -0.5); // width of the font list must be between 20% and 80%, preferably 50%
@@ -406,13 +410,8 @@ void MainContentComponent::timerCallback(){
         it->getVuMeter()->update();
     }
    
-    String texC = "";
-    for (auto&& it : this->jackClient->nameClient)
-    {
-        texC+=it+"\n";
-       
-    }
-    this->labelAllClients->setText(texC,dontSendNotification);
+    this->boxClientJack->updateContentCli();
+    //this->labelAllClients->setText(texC,dontSendNotification);
 }
 
 void MainContentComponent::paint (Graphics& g) {

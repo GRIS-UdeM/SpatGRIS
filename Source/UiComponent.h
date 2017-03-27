@@ -42,6 +42,81 @@ private:
 };
 
 
+
+//======================================= BoxClient===========================
+
+class BoxClient :   public Component,
+                    public TableListBoxModel
+{
+public:
+    BoxClient(MainContentComponent * parent, GrisLookAndFeel *feel);
+    ~BoxClient();
+    
+    void updateContentCli();
+    void setBounds(int x, int y, int width, int height);
+    String getText (const int columnNumber, const int rowNumber) const;
+    void setValue (const int rowNumber,const int columnNumber, const int newRating);
+    int getValue (const int rowNumber,const int columnNumber) const;
+    int getNumRows() override;
+    void paintRowBackground (Graphics& g, int rowNumber, int /*width*/, int /*height*/, bool rowIsSelected) override;
+    void paintCell (Graphics& g, int rowNumber, int columnId,
+                    int width, int height, bool /*rowIsSelected*/) override;
+    
+    Component* refreshComponentForCell (int rowNumber, int columnId, bool /*isRowSelected*/,
+                                        Component* existingComponentToUpdate) override;
+    
+private:
+    MainContentComponent *mainParent;
+    GrisLookAndFeel *grisFeel;
+    int numRows;
+    TableListBox tableListClient;
+    Box * box;
+    
+    class ListIntOutComp    : public Component,
+    private ComboBoxListener
+    {
+    public:
+        ListIntOutComp (BoxClient& td)  : owner (td)
+        {
+            // just put a combo box inside this component
+            addAndMakeVisible (comboBox);
+            for(int i = 1; i < 64; i++){
+                comboBox.addItem (String(i), i);
+            }
+            
+            
+            // when the combo is changed, we'll get a callback.
+            comboBox.addListener (this);
+            comboBox.setWantsKeyboardFocus (false);
+        }
+        
+        void resized() override
+        {
+            comboBox.setBoundsInset (BorderSize<int> (2));
+        }
+        
+        // Our demo code will call this when we may need to update our contents
+        void setRowAndColumn (int newRow, int newColumn)
+        {
+            row = newRow;
+            columnId = newColumn;
+            comboBox.setSelectedId (owner.getValue (row,columnId), dontSendNotification);
+        }
+        
+        void comboBoxChanged (ComboBox*) override
+        {
+            owner.setValue (row, columnId, comboBox.getSelectedId());
+        }
+        
+    private:
+        BoxClient& owner;
+        ComboBox comboBox;
+        int row, columnId;
+    };
+};
+
+
+
 //======================================= Window Edit Speaker===========================
 class WindowEditSpeaker :   public DocumentWindow,
                             public TableListBoxModel,
