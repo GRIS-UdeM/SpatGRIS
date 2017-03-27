@@ -49,15 +49,18 @@ MainContentComponent::MainContentComponent(){
     
     
     //Components in BOX 3 ------------------------------------------------------------------
-    this->labelJackStatus = addLabel("Jack Unknown","",0, 0, 80, 28,this->boxControlUI->getContent());
-    this->labelJackLoad = addLabel("0.000000 %","",80, 0, 80, 28,this->boxControlUI->getContent());
-    this->labelJackRate = addLabel("00000 Hz","",160, 0, 80, 28,this->boxControlUI->getContent());
-    this->labelJackBuffer = addLabel("0000 spls","",240, 0, 80, 28,this->boxControlUI->getContent());
+    this->labelJackStatus = addLabel("Jack Unknown","Jack Status",0, 0, 80, 28,this->boxControlUI->getContent());
+    this->labelJackLoad = addLabel("0.000000 %","Load Jack CPU",80, 0, 80, 28,this->boxControlUI->getContent());
+    this->labelJackRate = addLabel("00000 Hz","Rate",160, 0, 80, 28,this->boxControlUI->getContent());
+    this->labelJackBuffer = addLabel("0000 spls","Buffer Size",240, 0, 80, 28,this->boxControlUI->getContent());
+    this->labelJackInfo = addLabel("...","Jack Inputs/Outputs system",320, 0, 80, 28,this->boxControlUI->getContent());
+    
     
     this->labelJackStatus->setColour(Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
     this->labelJackLoad->setColour(Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
     this->labelJackRate->setColour(Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
     this->labelJackBuffer->setColour(Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
+    this->labelJackInfo->setColour(Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
 
     
     this->butLoadXMLSpeakers = addButton("XML Speakers","Load Xml File Coniguration",4,36,124,24,this->boxControlUI->getContent());
@@ -100,6 +103,7 @@ MainContentComponent::MainContentComponent(){
     }
     this->labelJackRate->setText(String(this->jackClient->sampleRate)+ " Hz", dontSendNotification);
     this->labelJackBuffer->setText(String(this->jackClient->bufferSize)+ " spls", dontSendNotification);
+    this->labelJackInfo->setText("I : "+String(this->jackClient->numberInputs)+ " - O : "+String(this->jackClient->numberOutputs), dontSendNotification);
 #endif
     
     

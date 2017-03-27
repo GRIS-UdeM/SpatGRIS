@@ -73,7 +73,6 @@ private:
     GrisLookAndFeel *grisFeel;
     Box * boxListSpeaker;
     
-    Label *labColumn;
     ToggleButton *toggleShowSphere;
     TextButton *butAddSpeaker;
     

@@ -89,7 +89,6 @@ WindowEditSpeaker::WindowEditSpeaker(const String& name, Colour backgroundColour
 }
 WindowEditSpeaker::~WindowEditSpeaker(){
     this->mainParent->setShowShepre(false);
-    //delete this->labColumn;
     //delete this->boxListSpeaker;
     delete this->toggleShowSphere;
     delete this->butAddSpeaker;
@@ -98,17 +97,8 @@ WindowEditSpeaker::~WindowEditSpeaker(){
 void WindowEditSpeaker::initComp(){
     this->boxListSpeaker = new Box(this->grisFeel, "Configuration Speakers");
     this->setContentComponent(this->boxListSpeaker);
-    
-    
-    /*this->labColumn = new Label();
-    this->labColumn->setText("X                   Y                   Z                       Azimuth         Zenith          Radius          #",
-                             NotificationType::dontSendNotification);
-    this->labColumn->setJustificationType(Justification::left);
-    this->labColumn->setFont(this->grisFeel->getFont());
-    this->labColumn->setLookAndFeel(this->grisFeel);
-    this->labColumn->setColour(Label::textColourId, this->grisFeel->getFontColour());
-    this->labColumn->setBounds(25, 0, getWidth(), 22);*/
     this->boxListSpeaker->getContent()->addAndMakeVisible(tableListSpeakers);
+    
     tableListSpeakers.setModel(this);
     
     tableListSpeakers.setColour (ListBox::outlineColourId, this->grisFeel->getWinBackgroundColour());
@@ -200,7 +190,7 @@ void WindowEditSpeaker::closeButtonPressed()
 String WindowEditSpeaker::getText (const int columnNumber, const int rowNumber) const
 {
     String text = "";
-    this->mainParent->getLockSpeakers()->lock();
+    //this->mainParent->getLockSpeakers()->lock();
     if (this->mainParent->getListSpeaker().size()> rowNumber)
     {
         
@@ -237,7 +227,7 @@ String WindowEditSpeaker::getText (const int columnNumber, const int rowNumber) 
         }
     }
 
-    this->mainParent->getLockSpeakers()->unlock();
+    //this->mainParent->getLockSpeakers()->unlock();
     return text;
 }
 

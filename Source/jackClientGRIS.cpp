@@ -213,7 +213,6 @@ void port_connect_callback(jack_port_id_t a, jack_port_id_t b, int connect, void
         printf("Connect ");
     }else{
         printf("Disconnect ");
-
     }
     printf("%" PRIu32 " <> %" PRIu32 "\n", a,b);
     return;

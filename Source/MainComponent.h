@@ -145,6 +145,7 @@ private:
     Label *         labelJackLoad;
     Label *         labelJackRate;
     Label *         labelJackBuffer;
+    Label *         labelJackInfo;
     TextButton *    butLoadXMLSpeakers;
     TextButton *    butEditableSpeakers;
     ToggleButton *  butShowSpeakerNumber;
