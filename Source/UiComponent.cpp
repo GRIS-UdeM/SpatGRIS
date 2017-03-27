@@ -107,9 +107,9 @@ BoxClient::~BoxClient(){
 }
 
 void BoxClient::buttonClicked(Button *button){
-    this->mainParent->connectionClientJack(this->mainParent->getListClientjack()->at(button->getName().getIntValue()).name);
+    bool connectedCli = !this->mainParent->getListClientjack()->at(button->getName().getIntValue()).connected;
+    this->mainParent->connectionClientJack(this->mainParent->getListClientjack()->at(button->getName().getIntValue()).name, connectedCli);
     updateContentCli();
-
 }
 
 void BoxClient::setBounds(int x, int y, int width, int height)

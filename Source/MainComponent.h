@@ -70,7 +70,7 @@ public:
     mutex* getLockInputs(){ return this->lockInputs; }  
     
     vector<Client> *getListClientjack(){ return &this->jackClient->listClient; }
-    void connectionClientJack(String nameCli) {this->jackClient->connectionClient(nameCli); }
+    void connectionClientJack(String nameCli, bool conn = true) {this->jackClient->connectionClient(nameCli, conn); }
     
     void setShowShepre(bool value){ this->speakerView->setShowSphere(value); }
     void addSpeaker();

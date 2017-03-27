@@ -364,7 +364,8 @@ void jackClientGris::addRemoveInput(int number){
             this->inputsPort.push_back(newPort);
         }
     }
-
+    
+    connectedGristoSystem();
 }
 
 bool jackClientGris::addOutput(){
@@ -374,23 +375,17 @@ bool jackClientGris::addOutput(){
     
     jack_port_t* newPort = jack_port_register(this->client,  nameOut.toUTF8(), JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput,  0);
     this->outputsPort.push_back(newPort);
-
+    connectedGristoSystem();
     return true;
 }
 
-
-void jackClientGris::autoConnectClient()
-{
-    cout << jack_get_client_name(client) << endl;
-    
+void jackClientGris::connectedGristoSystem(){
     const char ** portsOut = jack_get_ports (client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput);
     const char ** portsIn = jack_get_ports (client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput);
     
     //Connect jackClientGris to system---------------------------------------------------
     int i=0;
     int j=0;
-    int startJ = 0;
-    int endJ = 0;
     while (portsOut[i]){
         if(getClientName(portsOut[i]) == ClientName)    //jackClient
         {
@@ -405,7 +400,25 @@ void jackClientGris::autoConnectClient()
         }
         i+=1;
     }
+    jack_free(portsIn);
+    jack_free(portsOut);
+
+}
+
+
+void jackClientGris::autoConnectClient()
+{
+    cout << jack_get_client_name(client) << endl;
     
+    connectedGristoSystem();
+    
+    const char ** portsOut = jack_get_ports (client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput);
+    const char ** portsIn = jack_get_ports (client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput);
+    
+    int i=0;
+    int j=0;
+    int startJ = 0;
+    int endJ = 0;
     
     //Connect other client to jackClientGris------------------------------------------
     autoConnection = true;
@@ -426,6 +439,7 @@ void jackClientGris::autoConnectClient()
                     if(getClientName(portsIn[j]) == ClientName){
                         if(j>= startJ && j<endJ){
                             jack_connect (client, portsOut[i] ,portsIn[j]);
+                            cli.connected = true;
                             j+=1;
                             break;
                         }else{
@@ -457,14 +471,36 @@ void jackClientGris::connectionClient(String name, bool connect){
     int startJ = 0;
     int endJ = 0;
     bool conn = false;
+    
+    //Disconencted Client------------------------------------------------
+    while (portsOut[i]){
+        if(getClientName(portsOut[i]) == name)
+        {
+            j = 0;
+            while(portsIn[j]){
+                if(getClientName(portsIn[j]) == ClientName){ //jackClient
+                    jack_disconnect(client, portsOut[i] ,portsIn[j]);
+                }
+                j+=1;
+            }
+        }
+        i+=1;
+    }
+    for (auto&& cli : this->listClient)
+    {
+        if(cli.name == name){
+            cli.connected = false;
+        }
+    }
+    i=0;
+    j=0;
+    if(!connect){ return ; }
     //Connect other client to jackClientGris------------------------------------------
     autoConnection = true;
-    
     for (auto&& cli : this->listClient)
     {
         i=0;
         j=0;
-        
         String nameClient = cli.name;
         startJ = cli.portStart-1;
         endJ = cli.portEnd;
