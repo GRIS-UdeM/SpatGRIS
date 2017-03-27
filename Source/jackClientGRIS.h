@@ -105,6 +105,7 @@ public:
     unsigned int getPortStartClient(String nameClient);
     
     bool autoConnection;
+    bool noiseSound;
     
     unsigned int numberInputs;
     unsigned int numberOutputs;

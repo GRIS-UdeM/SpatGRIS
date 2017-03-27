@@ -38,7 +38,26 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
         outs[i] = (jack_default_audio_sample_t*)jack_port_get_buffer (client->outputsPort[i], nframes);
     }
     
-   
+    //NoiseSound-----------------------------------------------
+    if(client->noiseSound){
+        for(int nF = 0; nF < nframes; ++nF) {
+            for (int i = 0; i < sizeInputs; i++) {
+                if(i%2==0){
+                    ins[i][nF] = client->sine[client->left_phase];
+                }else{
+                    ins[i][nF] = client->sine[client->right_phase];
+                }
+            }
+            client->left_phase += 1;
+            if (client->left_phase >= client->sine.size()){
+                client->left_phase -= client->sine.size();
+            }
+            client->right_phase += 2; /* higher pitch so we can distinguish left and right. */
+            if(client->right_phase >= client->sine.size()){
+                client->right_phase -= client->sine.size();
+            }
+        }
+    }
 
     //================ INPUTS ==========================================
     //Mute IN-----------------------------------
@@ -70,9 +89,7 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
             memcpy (outs[iSpeaker], ins[iSpeaker] , sizeof (jack_default_audio_sample_t) * nframes);
         }
     }
-    
-    
-   
+
     //================ OUTPUTS =========================================
     //Mute Out--------------------------------
     for (int i = 0; i < sizeOutputs; i++) {
@@ -225,6 +242,7 @@ void port_connect_callback(jack_port_id_t a, jack_port_id_t b, int connect, void
 jackClientGris::jackClientGris() {
     
     //INIT variable and clear Array========================
+    noiseSound = false;
     clientReady = false;
     autoConnection = false;
     listClient =  vector<Client>();

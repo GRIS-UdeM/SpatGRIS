@@ -69,6 +69,7 @@ MainContentComponent::MainContentComponent(){
     
     this->butShowSpeakerNumber = addToggleButton("Show numbers", "Show numbers skeapers", 4, 100, 124, 24, this->boxControlUI->getContent());
     this->butHighPerformance = addToggleButton("High performance", "Enable Low CPU Usage", 4, 130, 124, 24, this->boxControlUI->getContent());
+    this->butNoiseSound = addToggleButton("Noise Sound", "Enable bip noise", 4, 160, 124, 24, this->boxControlUI->getContent());
     
     this->tedOSCInPort = addTextEditor("Port OSC In :", "Port Socket", "Port Socket OSC Input", 140, 36, 50, 24, this->boxControlUI->getContent());
     this->tedOSCInPort->setText("18032");
@@ -495,6 +496,8 @@ void MainContentComponent::buttonClicked (Button *button)
             startTimerHz(HertzRefreshNormal);
         }
         
+    }else if(button == this->butNoiseSound){
+        this->jackClient->noiseSound = butNoiseSound->getToggleState();
     }
 }
 

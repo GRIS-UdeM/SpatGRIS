@@ -152,6 +152,7 @@ private:
     TextButton *    butEditableSpeakers;
     ToggleButton *  butShowSpeakerNumber;
     ToggleButton *  butHighPerformance;
+    ToggleButton *  butNoiseSound;
     
     TextEditor *    tedOSCInPort;
     Label *         labOSCStatus;

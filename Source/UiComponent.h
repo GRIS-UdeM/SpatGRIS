@@ -83,7 +83,7 @@ private:
         {
             // just put a combo box inside this component
             addAndMakeVisible (comboBox);
-            for(int i = 1; i < 64; i++){
+            for(int i = 1; i <= 64; i++){
                 comboBox.addItem (String(i), i);
             }
             
