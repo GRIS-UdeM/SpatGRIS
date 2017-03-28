@@ -65,11 +65,15 @@ MainContentComponent::MainContentComponent(){
     
     this->butLoadXMLSpeakers = addButton("XML Speakers","Load Xml File Configuration",4,36,124,24,this->boxControlUI->getContent());
     
-    this->butEditableSpeakers = addButton("Edit Speakers","Edit position of spkeakers",4,70,124,24,this->boxControlUI->getContent());
+    this->butEditableSpeakers = addButton("Edit Speakers","Edit position of spkeakers",4,66,124,24,this->boxControlUI->getContent());
     
     this->butShowSpeakerNumber = addToggleButton("Show numbers", "Show numbers skeapers", 4, 100, 124, 24, this->boxControlUI->getContent());
     this->butHighPerformance = addToggleButton("High performance", "Enable Low CPU Usage", 4, 130, 124, 24, this->boxControlUI->getContent());
     this->butNoiseSound = addToggleButton("Noise Sound", "Enable bip noise", 4, 160, 124, 24, this->boxControlUI->getContent());
+    
+    this->butLoadPreset = addButton("Open","Open preset",4,200,124,24,this->boxControlUI->getContent());
+    
+    this->butSavePreset = addButton("Save","Save preset",4,230,124,24,this->boxControlUI->getContent());
     
     this->tedOSCInPort = addTextEditor("Port OSC In :", "Port Socket", "Port Socket OSC Input", 140, 36, 50, 24, this->boxControlUI->getContent());
     this->tedOSCInPort->setText("18032");
@@ -79,13 +83,13 @@ MainContentComponent::MainContentComponent(){
     
     this->butAutoConnectJack= addButton("Auto Connect","Auto connection with jack",140,104,130,24,this->boxControlUI->getContent());
     
-    this->sliderMasterGainOut = addSlider("Master Gain", "Master Gain Outputs", 140, 130, 80, 80, this->boxControlUI->getContent());
+    this->sliderMasterGainOut = addSlider("Master Gain", "Master Gain Outputs", 320, 36, 80, 80, this->boxControlUI->getContent());
     this->sliderMasterGainOut->setRange(0.0, 1.0, 0.01);
 
     //this->labelAllClients= addLabel("...","Clients Connected",140, 130, 120, 80,this->boxControlUI->getContent());
     
     this->boxClientJack = new BoxClient(this, &mGrisFeel);
-    this->boxClientJack->setBounds(404, 0, 260, 120);
+    this->boxClientJack->setBounds(140, 134, 260, 120);
     this->boxControlUI->getContent()->addAndMakeVisible(this->boxClientJack);
     
     // set up the layout and resizer bars
@@ -413,6 +417,14 @@ void MainContentComponent::openXmlFileSpeaker(String path)
     updateLevelComp();
 }
 
+void MainContentComponent::openPreset(String path){
+    
+}
+
+void MainContentComponent::savePreset(String path){
+
+}
+
 void MainContentComponent::timerCallback(){
     this->labelJackLoad->setText(String(this->jackClient->getCpuUsed())+ " %", dontSendNotification);
     for (auto&& it : listSourceInput)
@@ -478,15 +490,46 @@ void MainContentComponent::buttonClicked (Button *button)
         if (fc.browseForFileToOpen())
         {
             String chosen = fc.getResults().getReference(0).getFullPathName();
-            int r = AlertWindow::showOkCancelBox (AlertWindow::AlertIconType::WarningIcon,"Open XML !",
+            bool r = AlertWindow::showOkCancelBox (AlertWindow::AlertIconType::WarningIcon,"Open XML !",
                                           "You want to load : "+chosen+"\nEverything not saved will be lost !",
                                                   String(),String(),0);
             //Click OK -> Open xml
-            if(r==1){
+            if(r){
                 this->openXmlFileSpeaker(chosen);
             }
         }
-    }else if(button == this->butEditableSpeakers){
+        
+    }
+    else if(button == this->butLoadPreset){
+        
+        FileChooser fc ("Choose a file to open...",File::getCurrentWorkingDirectory(),"*.xml",true);
+        if (fc.browseForFileToOpen())
+        {
+            String chosen = fc.getResults().getReference(0).getFullPathName();
+            bool r = AlertWindow::showOkCancelBox (AlertWindow::AlertIconType::WarningIcon,"Open Preset !",
+                                                   "You want to load : "+chosen+"\nEverything not saved will be lost !",
+                                                   String(),String(),0);
+            //Click OK -> Open
+            if(r){
+                this->openPreset(chosen);
+            }
+        }
+        
+    }
+    else if(button == this->butSavePreset){
+        
+        FileChooser fc ("Choose a file to save...",File::getCurrentWorkingDirectory(), "*.xml", true);
+        if (fc.browseForFileToSave (true))
+        {
+            String chosen = fc.getResults().getReference(0).getFullPathName();
+            bool r = AlertWindow::showOkCancelBox (AlertWindow::InfoIcon,"Save preset","Save to : " + chosen);
+            //Save preset
+            if(r){
+                this->savePreset(chosen);
+            }
+        }
+    }
+    else if(button == this->butEditableSpeakers){
     
         if(this->winSpeakConfig == nullptr){
             this->winSpeakConfig = new WindowEditSpeaker("Speakers config", this->mGrisFeel.getWinBackgroundColour(),DocumentWindow::allButtons, this, &this->mGrisFeel);
@@ -501,13 +544,17 @@ void MainContentComponent::buttonClicked (Button *button)
             this->winSpeakConfig->initComp();
             this->winSpeakConfig->repaint();
         }
+        
     }else if(button == butShowSpeakerNumber){
+        
         this->speakerView->setShowNumber(this->butShowSpeakerNumber->getToggleState());
         
     }else if(button == this->butAutoConnectJack){
+        
         this->jackClient->autoConnectClient();
         
     }else if(button == this->butHighPerformance){
+        
         stopTimer();
         if(this->butHighPerformance->getToggleState()){
             startTimerHz(HertzRefreshLowCpu);
@@ -517,6 +564,7 @@ void MainContentComponent::buttonClicked (Button *button)
         this->speakerView->setHighPerfor(this->butHighPerformance->getToggleState());
         
     }else if(button == this->butNoiseSound){
+        
         this->jackClient->noiseSound = butNoiseSound->getToggleState();
     }
 }
@@ -544,7 +592,7 @@ void MainContentComponent::resized() {
     this->boxOutputsUI->correctSize((this->listSpeaker.size()*(SizeWidthLevelComp))+4, 210);
     
     this->boxControlUI->setBounds(this->speakerView->getWidth()+6, 488, getWidth()-(this->speakerView->getWidth()+10), getHeight()-490);
-    this->boxControlUI->correctSize(700, 450);
+    this->boxControlUI->correctSize(700, 270);
     
 
 }

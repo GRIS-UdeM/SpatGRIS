@@ -86,12 +86,12 @@ BoxClient::BoxClient(MainContentComponent * parent, GrisLookAndFeel *feel){
     tableListClient.setColour(ListBox::backgroundColourId, this->grisFeel->getWinBackgroundColour());
     tableListClient.setOutlineThickness (1);
     
-    tableListClient.getHeader().addColumn("Name",   1, 80, 70, 120,TableHeaderComponent::notSortable);
+    tableListClient.getHeader().addColumn("Client",   1, 80, 70, 120,TableHeaderComponent::notSortable);
     
     tableListClient.getHeader().addColumn("Start",  2, 40, 35, 70,TableHeaderComponent::notSortable);
     tableListClient.getHeader().addColumn("End",    3, 40, 35, 70,TableHeaderComponent::notSortable);
     tableListClient.getHeader().addColumn("Available", 4, 50, 35, 70,TableHeaderComponent::notSortable);
-    tableListClient.getHeader().addColumn("On/Off", 5, 40, 35, 70,TableHeaderComponent::notSortable);
+    tableListClient.getHeader().addColumn("On/Off", 5, 45, 35, 70,TableHeaderComponent::notSortable);
 
 
     tableListClient.setMultipleSelectionEnabled (false);

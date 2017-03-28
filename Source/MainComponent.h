@@ -114,6 +114,8 @@ private:
     Slider*         addSlider(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into);
     
     void openXmlFileSpeaker(String path);
+    void openPreset(String path);
+    void savePreset(String path);
     
     void updateSkeapersConf();
     //==============================================================================
@@ -151,8 +153,12 @@ private:
     Label *         labelJackRate;
     Label *         labelJackBuffer;
     Label *         labelJackInfo;
+    
     TextButton *    butLoadXMLSpeakers;
     TextButton *    butEditableSpeakers;
+    TextButton *    butLoadPreset;
+    TextButton *    butSavePreset;
+    
     ToggleButton *  butShowSpeakerNumber;
     ToggleButton *  butHighPerformance;
     ToggleButton *  butNoiseSound;
