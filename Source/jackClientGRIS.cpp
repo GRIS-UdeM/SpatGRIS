@@ -66,7 +66,7 @@ static void muteSoloVuMeterGainOut(jackClientGris & jackCli, jack_default_audio_
     for(int nF = 0; nF < nframes; ++nF) {
         for (int i = 0; i < sizeOutputs; ++i) {
             //Gain volume
-            outs[i][nF] = outs[i][nF] * mGain;
+            outs[i][nF] *= mGain;
             
             sumsOut[i] +=  outs[i][nF] * outs[i][nF];
         }
@@ -80,9 +80,9 @@ static void addNoiseSound(jackClientGris & jackCli, jack_default_audio_sample_t 
     for(int nF = 0; nF < nframes; ++nF) {
         for (int i = 0; i < sizeInputs; i++) {
             if(i%2==0){
-                ins[i][nF] = jackCli.sineNoise[jackCli.left_phase];
+                ins[i][nF] += jackCli.sineNoise[jackCli.left_phase];
             }else{
-                ins[i][nF] = jackCli.sineNoise[jackCli.right_phase];
+                ins[i][nF] += jackCli.sineNoise[jackCli.right_phase];
             }
         }
         jackCli.left_phase += 1;
@@ -139,12 +139,12 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
     }
     
     //Get Speaker and Source values
-    for (int i = 0; i < sizeSpkeakerOut; i++) {
+    /*for (int i = 0; i < sizeSpkeakerOut; i++) {
         printf("%i : %f  - %f - %f \n", jackCli->listSpeakerOut.at(i).id, jackCli->listSpeakerOut.at(i).azimuth, jackCli->listSpeakerOut.at(i).zenith, jackCli->listSpeakerOut.at(i).radius);
     }
     for (int i = 0; i < sizeSourceIn; i++) {
         printf("%i : %f  - %f \n", jackCli->listSourceIn.at(i).id, jackCli->listSourceIn.at(i).azimuth, jackCli->listSourceIn.at(i).zenith);
-    }
+    }*/
     
     
     
