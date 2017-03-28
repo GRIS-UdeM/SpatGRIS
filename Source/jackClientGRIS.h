@@ -46,6 +46,22 @@ struct Client {
 };
 
 
+struct SpeakerOut {
+    unsigned int id;
+    float azimuth;
+    float zenith;
+    float radius;
+    float gain;//Not Implemented
+};
+
+struct SourceIn {
+    unsigned int id;
+    float azimuth;
+    float zenith;
+    float radius;
+    float gain;//Not Implemented
+};
+
 static const unsigned int BufferSize[] = {256, 512, 1024, 2048};
 
 static unsigned int const MaxInputs = 256;
@@ -82,6 +98,8 @@ public:
     float masterGainOut;
     //------------------------
     vector<Client> listClient;
+    vector<SourceIn> listSourceIn;
+    vector<SpeakerOut> listSpeakerOut;
     
     bool noiseSound;
     bool autoConnection;

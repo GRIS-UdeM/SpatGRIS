@@ -279,9 +279,18 @@ void MainContentComponent::removeSpeaker(int idSpeaker){
 
 }
 
+void MainContentComponent::updateInputJack(int inInput, Input &inp){
+    SourceIn *si = &this->jackClient->listSourceIn[inInput];
+    si->azimuth = inp.getAziMuth();
+    si->zenith = inp.getZenith();
+    si->radius = inp.getRad();
+}
+
 void MainContentComponent::updateLevelComp(){
     int x = 2;
     int indexS = 0;
+    
+    this->jackClient->listSpeakerOut.clear();
     for (auto&& it : this->listSpeaker)
     {
         juce::Rectangle<int> level(x, 4, SizeWidthLevelComp, 200);
@@ -290,10 +299,17 @@ void MainContentComponent::updateLevelComp(){
         it->getVuMeter()->repaint();
         x+=SizeWidthLevelComp;
         indexS+=1;
+        SpeakerOut so;
+        so.id = it->getIdSpeaker();
+        so.azimuth = it->getAziZenRad().x;
+        so.zenith = it->getAziZenRad().y;
+        so.radius = it->getAziZenRad().z;
+        this->jackClient->listSpeakerOut.push_back(so);
     }
     
     x = 2;
     indexS = 0;
+    this->jackClient->listSourceIn.clear();
     for (auto&& it : this->listSourceInput)
     {
         juce::Rectangle<int> level(x, 4, SizeWidthLevelComp, 200);
@@ -302,6 +318,12 @@ void MainContentComponent::updateLevelComp(){
         it->getVuMeter()->repaint();
         x+=SizeWidthLevelComp;
         indexS+=1;
+        SourceIn si;
+        si.id = it->getId();
+        si.azimuth = it->getAziMuth();
+        si.zenith = it->getZenith();
+        si.radius = it->getRad();
+        this->jackClient->listSourceIn.push_back(si);
     }
     if(this->winSpeakConfig != nullptr){
         this->winSpeakConfig->updateWinContent();

@@ -100,8 +100,12 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
 
     jackClientGris* jackCli = (jackClientGris*)arg;
     
+    
+    //================ LOAD BUFFER ============================================
     const unsigned int sizeInputs = jackCli->inputsPort.size() ;
     const unsigned int sizeOutputs = jackCli->outputsPort.size() ;
+    const unsigned int sizeSourceIn = jackCli->listSourceIn.size() ;
+    const unsigned int sizeSpkeakerOut = jackCli->listSpeakerOut.size() ;
     
     //Get all buffer from all input - output
     jack_default_audio_sample_t * ins[sizeInputs];
@@ -126,13 +130,21 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
     
     
     //================ PROCESS ==============================================
+    
     //Basic Sound Transfert------------------(I -> O)
     for (int iSpeaker = 0; iSpeaker < sizeInputs; iSpeaker++) {
         if(iSpeaker < sizeOutputs){
             memcpy (outs[iSpeaker], ins[iSpeaker] , sizeof (jack_default_audio_sample_t) * nframes);
         }
     }
-
+    
+    //Get Speaker and Source values
+    for (int i = 0; i < sizeSpkeakerOut; i++) {
+        printf("%i : %f  - %f - %f \n", jackCli->listSpeakerOut.at(i).id, jackCli->listSpeakerOut.at(i).azimuth, jackCli->listSpeakerOut.at(i).zenith, jackCli->listSpeakerOut.at(i).radius);
+    }
+    for (int i = 0; i < sizeSourceIn; i++) {
+        printf("%i : %f  - %f \n", jackCli->listSourceIn.at(i).id, jackCli->listSourceIn.at(i).azimuth, jackCli->listSourceIn.at(i).zenith);
+    }
     
     
     
@@ -269,7 +281,10 @@ jackClientGris::jackClientGris() {
     this->clientReady = false;
     this->autoConnection = false;
     this->masterGainOut = 1.0f;
+    
     this->listClient =  vector<Client>();
+    this->listSourceIn =  vector<SourceIn>();
+    this->listSpeakerOut =  vector<SpeakerOut>();
     
     fill(this->muteIn, this->muteIn+MaxInputs, false);
     fill(this->soloIn, this->soloIn+MaxInputs+1, false);

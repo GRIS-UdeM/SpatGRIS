@@ -72,7 +72,8 @@ public:
     
     
     vector<Input *> getListSourceInput(){ return this->listSourceInput; }
-    mutex* getLockInputs(){ return this->lockInputs; }  
+    mutex* getLockInputs(){ return this->lockInputs; }
+    void updateInputJack(int inInput, Input &inp);
     
     vector<Client> *getListClientjack(){ return &this->jackClient->listClient; }
     void connectionClientJack(String nameCli, bool conn = true) {this->jackClient->connectionClient(nameCli, conn); }
