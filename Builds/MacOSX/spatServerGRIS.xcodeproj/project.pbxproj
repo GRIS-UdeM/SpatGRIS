@@ -14,6 +14,7 @@
 		083608DE849F7E27B9DE0162 /* Speaker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A6E8384CEB071AC4366E3D23 /* Speaker.cpp */; };
 		0D145FAF1E81A920004E6AE6 /* Jackservermp in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D145FAE1E81A920004E6AE6 /* Jackservermp */; };
 		0D145FB51E81BB9F004E6AE6 /* jackServerGRIS.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D145FB31E81BB9F004E6AE6 /* jackServerGRIS.cpp */; };
+		0D53B8A21E8AA8D000B01E01 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0D53B8A11E8AA8D000B01E01 /* Images.xcassets */; };
 		0D76540CEB135C65E2C77E42 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A49E2EA8DC00B3CFBC3B8FC /* Cocoa.framework */; };
 		0DD1323D1E7AEAD100793ED9 /* Jackmp in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DD1323C1E7AEAD100793ED9 /* Jackmp */; };
 		0DD132401E7AEAE700793ED9 /* BinaryData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0DD1323E1E7AEAE700793ED9 /* BinaryData.cpp */; };
@@ -108,6 +109,7 @@
 		0D145FAE1E81A920004E6AE6 /* Jackservermp */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = Jackservermp; path = ../../jack/lib/Jackservermp; sourceTree = "<group>"; };
 		0D145FB31E81BB9F004E6AE6 /* jackServerGRIS.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = jackServerGRIS.cpp; path = ../../Source/jackServerGRIS.cpp; sourceTree = "<group>"; };
 		0D145FB41E81BB9F004E6AE6 /* jackServerGRIS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jackServerGRIS.h; path = ../../Source/jackServerGRIS.h; sourceTree = "<group>"; };
+		0D53B8A11E8AA8D000B01E01 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = spatServerGRIS/Images.xcassets; sourceTree = "<group>"; };
 		0DAEE47D7405B9E5383EA97F /* juce_RelativePointPath.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_RelativePointPath.h; path = ../../JuceLibraryCode/modules/juce_gui_basics/positioning/juce_RelativePointPath.h; sourceTree = SOURCE_ROOT; };
 		0DD1323C1E7AEAD100793ED9 /* Jackmp */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = Jackmp; path = ../../../../sdks/jack/lib/Jackmp; sourceTree = "<group>"; };
 		0DD1323E1E7AEAE700793ED9 /* BinaryData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = BinaryData.cpp; path = ../../JuceLibraryCode/BinaryData.cpp; sourceTree = "<group>"; };
@@ -1627,6 +1629,7 @@
 			children = (
 				5D157CDC266C1D7DE9E93C5A /* GrisCommonFiles */,
 				FAA16A21521DD35AC3040C00 /* Source */,
+				0D53B8A11E8AA8D000B01E01 /* Images.xcassets */,
 			);
 			name = spatServerGRIS;
 			sourceTree = "<group>";
@@ -2998,6 +3001,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CC991455799A452BB31707A0 /* RecentFilesMenuTemplate.nib in Resources */,
+				0D53B8A21E8AA8D000B01E01 /* Images.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3063,6 +3067,7 @@
 		B019F3E391720C8D81D3D0DF /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_LINK_OBJC_RUNTIME = NO;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -3100,6 +3105,7 @@
 		CA305892D6AF814BE9BCB32C /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_LINK_OBJC_RUNTIME = NO;
 				COMBINE_HIDPI_IMAGES = YES;

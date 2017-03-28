@@ -580,12 +580,12 @@ void jackClientGris::updateClientPortAvailable(){
     while (portsOut[i]){
         string nameCli = getClientName(portsOut[i]);
         if(nameCli != ClientName &&  nameCli != ClientNameSys){
-        for (auto&& cli : this->listClient)
-        {
-            if(cli.name == nameCli){
-                cli.portAvailable+=1;
+            for (auto&& cli : this->listClient)
+            {
+                if(cli.name == nameCli){
+                    cli.portAvailable+=1;
+                }
             }
-        }
         }
         i++;
     }
