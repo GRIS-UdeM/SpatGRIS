@@ -36,8 +36,7 @@
 #define M_PI  (3.14159265)
 #endif
 
-//table size needs to fit an even number of periods. with a frequency of 1000hz and a sample rate of 44100, T = fs/f = 44100/1000
-//#define TABLE_SIZE   (441)
+
 using namespace std;
 
 
@@ -55,9 +54,9 @@ static const unsigned int BufferSize[] = {256, 512, 1024, 2048};
 static unsigned int const MaxInputs = 256;
 static unsigned int const MaxOutputs = 128;
 
-static const char* ClientName = "jackClientGris";
-static const char* DriverNameSys = "coreaudio";
-static const char* ClientNameSys = "system";
+static const char* ClientName =     "jackClientGris";
+static const char* DriverNameSys =  "coreaudio";
+static const char* ClientNameSys =  "system";
 
 class jackClientGris {
 public:

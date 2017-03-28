@@ -38,28 +38,34 @@ private:
 };
 
 //====================================================================================
-class LevelComponent : public Component, public ToggleButton::Listener
+class LevelComponent :  public Component,
+                        public ToggleButton::Listener,
+                        public ChangeListener
 {
 public:
-    LevelComponent(ParentLevelComponent * parent, GrisLookAndFeel *feel);
+    LevelComponent(ParentLevelComponent * parent, GrisLookAndFeel *feel, bool colorful = true);
     ~LevelComponent();
     
-    void setOutputLab(String value) { this->labId->setText(value, dontSendNotification); }
+    void setOutputLab(String value) { this->idBut->setButtonText(value); }
     float getLevel();
     void update();
     bool isMuted();
     void setSelected(bool value);
     void buttonClicked(Button *button);
     void setBounds(const Rectangle<int> &newBounds);
-
+    void changeListenerCallback (ChangeBroadcaster* source) override;
+    
+    
 private:
     ParentLevelComponent* mainParent;
     LevelBox * levelBox;
-    Label * labId;
+    //Label * labId;
+    TextButton * idBut;
     ToggleButton * muteToggleBut;
     ToggleButton * soloToggleBut;
     GrisLookAndFeel * grisFeel;
-    float level = -100.0f;
+    float level = MinLevelComp;
+    bool isColorful;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LevelComponent)
 };
 #endif /* LevelComponent_h */

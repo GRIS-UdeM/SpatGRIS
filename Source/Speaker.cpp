@@ -22,7 +22,7 @@ Speaker::Speaker(MainContentComponent *parent, int idS,int outP, glm::vec3 cente
     
     //Load position
     this->newPosition(center, extents);
-    this->vuMeter = new LevelComponent(this, &mGrisFeel);
+    this->vuMeter = new LevelComponent(this, &mGrisFeel, false);
 }
 
 Speaker::~Speaker(){

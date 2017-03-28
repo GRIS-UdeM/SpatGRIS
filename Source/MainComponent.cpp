@@ -63,7 +63,7 @@ MainContentComponent::MainContentComponent(){
     this->labelJackInfo->setColour(Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
 
     
-    this->butLoadXMLSpeakers = addButton("XML Speakers","Load Xml File Coniguration",4,36,124,24,this->boxControlUI->getContent());
+    this->butLoadXMLSpeakers = addButton("XML Speakers","Load Xml File Configuration",4,36,124,24,this->boxControlUI->getContent());
     
     this->butEditableSpeakers = addButton("Edit Speakers","Edit position of spkeakers",4,70,124,24,this->boxControlUI->getContent());
     
@@ -308,7 +308,7 @@ void MainContentComponent::soloInput(int id, bool solo){
 }
 void MainContentComponent::soloOutput(int id, bool solo){
     this->jackClient->soloOut[id-1] = solo;
-    this->jackClient->soloOut[MaxInputs] = false;
+    this->jackClient->soloOut[MaxOutputs] = false;
     for (int i = 0; i < MaxOutputs; i++) {
         if(this->jackClient->soloOut[i]){
             this->jackClient->soloOut[MaxOutputs] = true;
