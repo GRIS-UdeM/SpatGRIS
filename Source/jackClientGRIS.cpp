@@ -116,11 +116,13 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
         addNoiseSound(*jackCli, ins, nframes, sizeInputs);
     }
 
-    //================ INPUTS ==========================================
+    //================ INPUTS ===============================================
     muteSoloVuMeterIn(*jackCli, ins, nframes, sizeInputs);
     //---------------------------------------------
 
     
+    
+    //================ PROCESS ==============================================
     
     //Basic Sound Transfert------------------(I -> O)
     for (int iSpeaker = 0; iSpeaker < sizeInputs; iSpeaker++) {
@@ -132,7 +134,7 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
     
     
     
-    //================ OUTPUTS =========================================
+    //================ OUTPUTS ==============================================
     muteSoloVuMeterOut(*jackCli, outs, nframes, sizeOutputs);
     //-----------------------------------------
     
@@ -225,7 +227,7 @@ void latency_callback(jack_latency_callback_mode_t  mode, void *arg)
 
 void port_registration_callback ( jack_port_id_t a, int regist, void * arg)
 {
-    jackClientGris* jackCli = (jackClientGris*)arg;
+    //jackClientGris* jackCli = (jackClientGris*)arg;
     printf("client_registration_callback : %" PRIu32 " : " ,a);
     if(regist){
         printf("saved \n");

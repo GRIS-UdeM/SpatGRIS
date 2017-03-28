@@ -167,14 +167,6 @@ String BoxClient::getText (const int columnNumber, const int rowNumber) const
             case 4 :
                 text =String(this->mainParent->getListClientjack()->at(rowNumber).portAvailable);
                 break;
-                
-            /*case 2 :
-                text =String(this->mainParent->getListClientjack()->at(rowNumber).portStart);
-                break;
-                
-            case 3 :
-                text =String(this->mainParent->getListClientjack()->at(rowNumber).portEnd);
-                break;*/
             
             default:
                 text ="?";

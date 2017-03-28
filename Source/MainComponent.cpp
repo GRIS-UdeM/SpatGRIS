@@ -437,6 +437,12 @@ void MainContentComponent::textEditorReturnKeyPressed (TextEditor & textEditor){
         }
         
     }else if(&textEditor == this->tedAddInputs){
+        if(this->tedAddInputs->getTextValue().toString().getIntValue() < 0){
+            this->tedAddInputs->setText("0");
+        }
+        if(this->tedAddInputs->getTextValue().toString().getIntValue() > MaxInputs){
+            this->tedAddInputs->setText(String(MaxInputs));
+        }
         this->jackClient->addRemoveInput(this->tedAddInputs->getTextValue().toString().getIntValue());
         this->lockInputs->lock();
         for (auto&& it : listSourceInput)
@@ -488,6 +494,7 @@ void MainContentComponent::buttonClicked (Button *button)
         
     }else if(button == this->butAutoConnectJack){
         this->jackClient->autoConnectClient();
+        
     }else if(button == this->butHighPerformance){
         stopTimer();
         if(this->butHighPerformance->getToggleState()){
@@ -495,6 +502,7 @@ void MainContentComponent::buttonClicked (Button *button)
         }else{
             startTimerHz(HertzRefreshNormal);
         }
+        this->speakerView->setHighPerfor(this->butHighPerformance->getToggleState());
         
     }else if(button == this->butNoiseSound){
         this->jackClient->noiseSound = butNoiseSound->getToggleState();
@@ -519,7 +527,7 @@ void MainContentComponent::resized() {
     this->boxOutputsUI->correctSize((this->listSpeaker.size()*(SizeWidthLevelComp))+4, 210);
     
     this->boxControlUI->setBounds(this->speakerView->getWidth()+6, 488, getWidth()-(this->speakerView->getWidth()+10), getHeight()-490);
-    this->boxControlUI->correctSize(this->boxControlUI->getWidth()-8, 450);
+    this->boxControlUI->correctSize(700, 450);
     
 
 }

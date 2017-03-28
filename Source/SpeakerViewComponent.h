@@ -53,6 +53,7 @@ public:
     
     void setShowSphere(bool value){ this->showShpere = value; }
     void setShowNumber(bool value){ this->showNumber = value; }
+    void setHighPerfor(bool value){ this->highPerf = value; }
     
     void setNameConfig(String name){ this->nameConfig = name; }
     void render() override;
@@ -78,6 +79,7 @@ private:
     
     bool showShpere = false;
     bool showNumber = false;
+    bool highPerf   = false;
     
     float camAngleX= 30.0f;
     float camAngleY= 25.0f;
