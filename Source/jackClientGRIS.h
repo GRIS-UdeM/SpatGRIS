@@ -32,9 +32,6 @@
 #include "jack/session.h"
 
 
-#ifndef M_PI
-#define M_PI  (3.14159265)
-#endif
 
 
 using namespace std;
@@ -82,7 +79,7 @@ public:
     bool soloIn[MaxInputs+1];
     bool soloOut[MaxOutputs+1];
     
-
+    float masterGainOut;
     //------------------------
     vector<Client> listClient;
     

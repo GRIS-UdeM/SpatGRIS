@@ -79,6 +79,9 @@ MainContentComponent::MainContentComponent(){
     
     this->butAutoConnectJack= addButton("Auto Connect","Auto connection with jack",140,104,130,24,this->boxControlUI->getContent());
     
+    this->sliderMasterGainOut = addSlider("Master Gain", "Master Gain Outputs", 140, 130, 80, 80, this->boxControlUI->getContent());
+    this->sliderMasterGainOut->setRange(0.0, 1.0, 0.01);
+
     //this->labelAllClients= addLabel("...","Clients Connected",140, 130, 120, 80,this->boxControlUI->getContent());
     
     this->boxClientJack = new BoxClient(this, &mGrisFeel);
@@ -100,16 +103,17 @@ MainContentComponent::MainContentComponent(){
     //Start JACK Server and client
     this->jackServer = new jackServerGRIS();
     this->jackClient = new jackClientGris();
-  
+    
     
     if(!jackClient->isReady()){
         this->labelJackStatus->setText("JackClient Not Connected", dontSendNotification);
     }else{
-         this->labelJackStatus->setText("Jack Ready", dontSendNotification);
+        this->labelJackStatus->setText("Jack Ready", dontSendNotification);
     }
     this->labelJackRate->setText(String(this->jackClient->sampleRate)+ " Hz", dontSendNotification);
     this->labelJackBuffer->setText(String(this->jackClient->bufferSize)+ " spls", dontSendNotification);
     this->labelJackInfo->setText("I : "+String(this->jackClient->numberInputs)+ " - O : "+String(this->jackClient->numberOutputs), dontSendNotification);
+    this->sliderMasterGainOut->setValue(1.0);
 #endif
     
     
@@ -191,6 +195,22 @@ TextEditor* MainContentComponent::addTextEditor(const String &s, const String &e
     return te;
 }
 
+Slider* MainContentComponent::addSlider(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into)
+{
+    Slider *sd = new Slider();
+    sd->setTooltip (stooltip);
+    //sd->setTextValueSuffix(s);
+    sd->setSize(w, h);
+    sd->setTopLeftPosition(x, y);
+    sd->setSliderStyle(Slider::Rotary);
+    sd->setRotaryParameters(M_PI * 1.3f, M_PI * 2.7f, true);
+    sd->setTextBoxStyle (Slider::TextBoxBelow, false, 60, 20);
+    sd->setColour(ToggleButton::textColourId, mGrisFeel.getFontColour());
+    sd->setLookAndFeel(&mGrisFeel);
+    sd->addListener(this);
+    into->addAndMakeVisible(sd);
+    return sd;
+}
 
 MainContentComponent::~MainContentComponent() {
     delete this->oscReceiver;
@@ -479,6 +499,11 @@ void MainContentComponent::buttonClicked (Button *button)
     }
 }
 
+void MainContentComponent::sliderValueChanged (Slider* slider){
+    if(slider == this->sliderMasterGainOut){
+        this->jackClient->masterGainOut = this->sliderMasterGainOut->getValue();
+    }
+}
 void MainContentComponent::resized() {
     
     Rectangle<int> r (getLocalBounds().reduced (2));

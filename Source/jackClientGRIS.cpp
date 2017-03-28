@@ -46,7 +46,7 @@ static void muteSoloVuMeterIn(jackClientGris & jackCli, jack_default_audio_sampl
     }
 }
 
-static void muteSoloVuMeterOut(jackClientGris & jackCli, jack_default_audio_sample_t ** outs, const jack_nframes_t &nframes, const unsigned int &sizeOutputs){
+static void muteSoloVuMeterGainOut(jackClientGris & jackCli, jack_default_audio_sample_t ** outs, const jack_nframes_t &nframes, const unsigned int &sizeOutputs, const float mGain = 1.0f){
     for (int i = 0; i < sizeOutputs; ++i) {
         if(jackCli.muteOut[i]){
             memset (outs[i], 0, sizeof (jack_default_audio_sample_t) * nframes);
@@ -65,6 +65,9 @@ static void muteSoloVuMeterOut(jackClientGris & jackCli, jack_default_audio_samp
     
     for(int nF = 0; nF < nframes; ++nF) {
         for (int i = 0; i < sizeOutputs; ++i) {
+            //Gain volume
+            outs[i][nF] = outs[i][nF] * mGain;
+            
             sumsOut[i] +=  outs[i][nF] * outs[i][nF];
         }
     }
@@ -123,7 +126,6 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
     
     
     //================ PROCESS ==============================================
-    
     //Basic Sound Transfert------------------(I -> O)
     for (int iSpeaker = 0; iSpeaker < sizeInputs; iSpeaker++) {
         if(iSpeaker < sizeOutputs){
@@ -135,7 +137,7 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
     
     
     //================ OUTPUTS ==============================================
-    muteSoloVuMeterOut(*jackCli, outs, nframes, sizeOutputs);
+    muteSoloVuMeterGainOut(*jackCli, outs, nframes, sizeOutputs, jackCli->masterGainOut);
     //-----------------------------------------
     
     return 0;
@@ -266,6 +268,7 @@ jackClientGris::jackClientGris() {
     this->noiseSound = false;
     this->clientReady = false;
     this->autoConnection = false;
+    this->masterGainOut = 1.0f;
     this->listClient =  vector<Client>();
     
     fill(this->muteIn, this->muteIn+MaxInputs, false);

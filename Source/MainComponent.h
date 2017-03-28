@@ -38,6 +38,10 @@
 #define USE_JACK 1
 #endif
 
+#ifndef M_PI
+#define M_PI  (3.1415926535897932384626433832795)
+#endif
+
 
 using namespace std;
 
@@ -55,6 +59,7 @@ static const unsigned int HertzRefreshLowCpu = 6;
 class MainContentComponent   :  public Component,
                                 public Button::Listener,
                                 public TextEditor::Listener,
+                                public Slider::Listener,
                                 private Timer
 {
 public:
@@ -93,6 +98,7 @@ public:
     
     void resized() override;
     void buttonClicked (Button *button) override;
+    void sliderValueChanged (Slider* slider) override;
     void textEditorFocusLost (TextEditor &textEditor) override;
     void textEditorReturnKeyPressed (TextEditor &textEditor) override;
     
@@ -104,6 +110,7 @@ private:
     TextButton*     addButton(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into);
     ToggleButton*   addToggleButton(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into, bool toggle = false);
     TextEditor*     addTextEditor(const String &s, const String &emptyS, const String &stooltip, int x, int y, int w, int h, Component *into, int wLab = 80);
+    Slider*         addSlider(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into);
     
     void openXmlFileSpeaker(String path);
     
@@ -148,6 +155,8 @@ private:
     ToggleButton *  butShowSpeakerNumber;
     ToggleButton *  butHighPerformance;
     ToggleButton *  butNoiseSound;
+    
+    Slider *        sliderMasterGainOut;
     
     TextEditor *    tedOSCInPort;
     Label *         labOSCStatus;
