@@ -34,12 +34,13 @@ void OscInput::oscMessageReceived(const OSCMessage& message) {
         
         int idS = message[0].getInt32();
         this->mainParent->getLockInputs()->lock();
-        this->mainParent->getListSourceInput()[idS]->updateValues(message[1].getFloat32(),
-                                                                  message[2].getFloat32(),
-                                                                  message[3].getFloat32(),
-                                                                  message[4].getFloat32(),
-                                                                  message[5].getFloat32());
+        if(this->mainParent->getListSourceInput().size() > idS){
+            this->mainParent->getListSourceInput()[idS]->updateValues(message[1].getFloat32(),
+                                                                      message[2].getFloat32(),
+                                                                      message[3].getFloat32(),
+                                                                      message[4].getFloat32(),
+                                                                      message[5].getFloat32());
+        }
         this->mainParent->getLockInputs()->unlock();
-
     }
 }

@@ -86,11 +86,13 @@ BoxClient::BoxClient(MainContentComponent * parent, GrisLookAndFeel *feel){
     tableListClient.setColour(ListBox::backgroundColourId, this->grisFeel->getWinBackgroundColour());
     tableListClient.setOutlineThickness (1);
     
-    tableListClient.getHeader().addColumn("Name", 1, 90, 70, 120,TableHeaderComponent::notSortable);
+    tableListClient.getHeader().addColumn("Name",   1, 80, 70, 120,TableHeaderComponent::notSortable);
     
-    tableListClient.getHeader().addColumn("Start", 2, 40, 35, 70,TableHeaderComponent::notSortable);
-    tableListClient.getHeader().addColumn("End", 3, 40, 35, 70,TableHeaderComponent::notSortable);
-    tableListClient.getHeader().addColumn("On/Off", 4, 40, 35, 70,TableHeaderComponent::notSortable);
+    tableListClient.getHeader().addColumn("Start",  2, 40, 35, 70,TableHeaderComponent::notSortable);
+    tableListClient.getHeader().addColumn("End",    3, 40, 35, 70,TableHeaderComponent::notSortable);
+    tableListClient.getHeader().addColumn("Available", 4, 50, 35, 70,TableHeaderComponent::notSortable);
+    tableListClient.getHeader().addColumn("On/Off", 5, 40, 35, 70,TableHeaderComponent::notSortable);
+
 
     tableListClient.setMultipleSelectionEnabled (false);
     
@@ -118,6 +120,7 @@ void BoxClient::setBounds(int x, int y, int width, int height)
 void BoxClient::updateContentCli(){
     numRows =this->mainParent->getListClientjack()->size();
     tableListClient.updateContent();
+    tableListClient.repaint();
 }
 
 void BoxClient::setValue (const int rowNumber, const int columnNumber,const int newRating)
@@ -160,6 +163,9 @@ String BoxClient::getText (const int columnNumber, const int rowNumber) const
         switch(columnNumber){
             case 1 :
                 text =String(this->mainParent->getListClientjack()->at(rowNumber).name);
+                break;
+            case 4 :
+                text =String(this->mainParent->getListClientjack()->at(rowNumber).portAvailable);
                 break;
                 
             /*case 2 :
@@ -211,6 +217,10 @@ void BoxClient::paintCell (Graphics& g, int rowNumber, int columnId, int width, 
             String text = getText(columnId, rowNumber);
             g.drawText (text, 2, 0, width - 4, height, Justification::centredLeft, true);
         }
+        if(columnId==4){
+            String text = getText(columnId, rowNumber);
+            g.drawText (text, 2, 0, width - 4, height, Justification::centred, true);
+        }
     }
 
     g.setColour (Colours::black.withAlpha (0.2f));
@@ -220,11 +230,11 @@ void BoxClient::paintCell (Graphics& g, int rowNumber, int columnId, int width, 
 Component* BoxClient::refreshComponentForCell (int rowNumber, int columnId, bool /*isRowSelected*/,
                                                        Component* existingComponentToUpdate)
 {
-     if(columnId==1){
+     if(columnId==1|| columnId==4){
          return existingComponentToUpdate;
      }
     
-    if(columnId==4){
+    if(columnId==5){
         TextButton* tbRemove = static_cast<TextButton*> (existingComponentToUpdate);
         if (tbRemove == nullptr){
             tbRemove = new TextButton ();

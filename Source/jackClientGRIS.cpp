@@ -141,6 +141,8 @@ void session_callback (jack_session_event_t *event, void *arg)
 
 int graph_order_callback ( void * arg)
 {
+    jackClientGris* client = (jackClientGris*)arg;
+    client->updateClientPortAvailable();
     printf ("graph_order_callback \n");
     return 0;
 }
@@ -489,7 +491,7 @@ void jackClientGris::connectionClient(String name, bool connect){
     int startJ = 0;
     int endJ = 0;
     bool conn = false;
-    
+    updateClientPortAvailable();
     //Disconencted Client------------------------------------------------
     while (portsOut[i]){
         if(getClientName(portsOut[i]) == name)
@@ -567,6 +569,29 @@ string jackClientGris::getClientName(const char * port)
         return  nameClient.substr(0,nameClient.size()-(tempN.size()+1));
     }return "";
 }
+
+void jackClientGris::updateClientPortAvailable(){
+    const char ** portsOut = jack_get_ports (client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput);
+    int i = 0;
+    for (auto&& cli : this->listClient)
+    {
+        cli.portAvailable = 0;
+    }
+    while (portsOut[i]){
+        string nameCli = getClientName(portsOut[i]);
+        if(nameCli != ClientName &&  nameCli != ClientNameSys){
+        for (auto&& cli : this->listClient)
+        {
+            if(cli.name == nameCli){
+                cli.portAvailable+=1;
+            }
+        }
+        }
+        i++;
+    }
+    jack_free(portsOut);
+}
+
 unsigned int jackClientGris::getPortStartClient(String nameClient)
 {
     for (auto&& it : this->listClient)

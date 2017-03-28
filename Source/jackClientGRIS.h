@@ -47,6 +47,7 @@ struct Client {
     unsigned int portStart = 1;
     unsigned int portEnd = 32;
     bool connected = false;
+    unsigned int portAvailable = 0;
 };
 
 static const unsigned int BufferSize[] = {256, 512, 1024, 2048};
@@ -102,6 +103,7 @@ public:
     void autoConnectClient();
     void connectionClient(String name, bool connect = true);
     string getClientName(const char * port);
+    void updateClientPortAvailable();
     unsigned int getPortStartClient(String nameClient);
     
     bool autoConnection;
