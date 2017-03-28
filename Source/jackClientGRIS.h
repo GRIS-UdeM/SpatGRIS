@@ -32,7 +32,6 @@
 #include "jack/session.h"
 
 
-
 #ifndef M_PI
 #define M_PI  (3.14159265)
 #endif
@@ -50,6 +49,7 @@ struct Client {
     unsigned int portAvailable = 0;
 };
 
+
 static const unsigned int BufferSize[] = {256, 512, 1024, 2048};
 
 static unsigned int const MaxInputs = 128;
@@ -62,38 +62,48 @@ static const char* ClientNameSys = "system";
 class jackClientGris {
 public:
 
+    //Jack var
     jack_client_t *client;
 
     vector<jack_port_t *> inputsPort;
     vector<jack_port_t *> outputsPort;
 
-    
-    vector<double> sine;
-    vector<Client> listClient;
+    //Noise Sound
+    vector<double> sineNoise;
     int left_phase;
     int right_phase;
     
+    //Mute Solo Vu meter
     float levelsIn[MaxInputs];
     float levelsOut[MaxOutputs];
     
     bool muteIn[MaxInputs];
     bool muteOut[MaxOutputs];
     
-    
     bool soloIn[MaxInputs+1];
     bool soloOut[MaxOutputs+1];
+    
 
+    //------------------------
+    vector<Client> listClient;
+    
+    bool noiseSound;
+    bool autoConnection;
     unsigned int sampleRate;
     unsigned int bufferSize;
+    unsigned int numberInputs;
+    unsigned int numberOutputs;
+
     
-    bool isReady() { return clientReady; }
+
+    //---------------------------------
+    jackClientGris();
+    virtual ~jackClientGris();
+    
+    bool  isReady() { return clientReady; }
     float getCpuUsed() const { return jack_cpu_load(client); }
     float getLevelsIn(int index) const { return levelsIn[index]; }
     float getLevelsOut(int index) const { return levelsOut[index]; }
-
-    
-    jackClientGris();
-    virtual ~jackClientGris();
     
     
     void addRemoveInput(int number);
@@ -102,22 +112,18 @@ public:
     
     void autoConnectClient();
     void connectionClient(String name, bool connect = true);
-    string getClientName(const char * port);
     void updateClientPortAvailable();
+    
+    string getClientName(const char * port);
     unsigned int getPortStartClient(String nameClient);
     
-    bool autoConnection;
-    bool noiseSound;
-    
-    unsigned int numberInputs;
-    unsigned int numberOutputs;
-    
     bool setBufferSize(int sizeB);
+    
+    
 private:
     
     bool clientReady;
     void connectedGristoSystem();
-
     
 };
 

@@ -18,62 +18,22 @@
 #include "jackClientGRIS.h"
 #include <cmath>
 
-int simple_quit = 0;
 
-static int process_audio (jack_nframes_t nframes, void* arg) {
-
-    jackClientGris* client = (jackClientGris*)arg;
-    
-    const unsigned int sizeInputs = client->inputsPort.size() ;
-    const unsigned int sizeOutputs = client->outputsPort.size() ;
-    
-    //Get all buffer from all input - output
-    jack_default_audio_sample_t * ins[sizeInputs];
-    jack_default_audio_sample_t * outs[sizeOutputs];
-    
-    for (int i = 0; i < sizeInputs; i++) {
-        ins[i] = (jack_default_audio_sample_t*)jack_port_get_buffer (client->inputsPort[i], nframes);
-    }
-    for (int i = 0; i < sizeOutputs; i++) {
-        outs[i] = (jack_default_audio_sample_t*)jack_port_get_buffer (client->outputsPort[i], nframes);
-    }
-    
-    //NoiseSound-----------------------------------------------
-    if(client->noiseSound){
-        for(int nF = 0; nF < nframes; ++nF) {
-            for (int i = 0; i < sizeInputs; i++) {
-                if(i%2==0){
-                    ins[i][nF] = client->sine[client->left_phase];
-                }else{
-                    ins[i][nF] = client->sine[client->right_phase];
-                }
-            }
-            client->left_phase += 1;
-            if (client->left_phase >= client->sine.size()){
-                client->left_phase -= client->sine.size();
-            }
-            client->right_phase += 2; /* higher pitch so we can distinguish left and right. */
-            if(client->right_phase >= client->sine.size()){
-                client->right_phase -= client->sine.size();
-            }
-        }
-    }
-
-    //================ INPUTS ==========================================
-    //Mute IN-----------------------------------
-    for (int i = 0; i < sizeInputs; i++) {
-        if(client->muteIn[i]){
+static void muteSoloVuMeterIn(jackClientGris & jackCli, jack_default_audio_sample_t ** ins, const jack_nframes_t &nframes, const unsigned int &sizeInputs){
+    for (int i = 0; i < sizeInputs; ++i) {
+        if(jackCli.muteIn[i]){
             memset (ins[i], 0, sizeof (jack_default_audio_sample_t) * nframes);
         }
-        if(client->soloIn[MaxInputs]){
-            if(!client->soloIn[i]){
+        if(jackCli.soloIn[MaxInputs]){
+            if(!jackCli.soloIn[i]){
                 memset (ins[i], 0, sizeof (jack_default_audio_sample_t) * nframes);
             }
         }
     }
-    //---------------------------------------------
+    
+    //Vu meter-----------------------------------
     float sumsIn[sizeInputs];
-    fill(client->levelsIn, client->levelsIn+sizeInputs, -100.0f);
+    fill(jackCli.levelsIn, jackCli.levelsIn+sizeInputs, -60.0f);
     fill(sumsIn, sumsIn+sizeInputs, 0.0f);
     
     for(int nF = 0; nF < nframes; ++nF) {
@@ -81,40 +41,100 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
             sumsIn[i] +=  ins[i][nF] * ins[i][nF];
         }
     }
+    for (int i = 0; i < sizeInputs; ++i) {
+        jackCli.levelsIn[i] = sumsIn[i]/nframes;
+    }
+}
+
+static void muteSoloVuMeterOut(jackClientGris & jackCli, jack_default_audio_sample_t ** outs, const jack_nframes_t &nframes, const unsigned int &sizeOutputs){
+    for (int i = 0; i < sizeOutputs; ++i) {
+        if(jackCli.muteOut[i]){
+            memset (outs[i], 0, sizeof (jack_default_audio_sample_t) * nframes);
+        }
+        if(jackCli.soloOut[MaxOutputs]){
+            if(!jackCli.soloOut[i]){
+                memset (outs[i], 0, sizeof (jack_default_audio_sample_t) * nframes);
+            }
+        }
+    }
+    
+    //Vu meter-----------------------------------
+    float sumsOut[sizeOutputs];
+    fill(jackCli.levelsOut, jackCli.levelsOut+sizeOutputs, -60.0f);
+    fill(sumsOut, sumsOut+sizeOutputs, 0.0f);
+    
+    for(int nF = 0; nF < nframes; ++nF) {
+        for (int i = 0; i < sizeOutputs; ++i) {
+            sumsOut[i] +=  outs[i][nF] * outs[i][nF];
+        }
+    }
+    for (int i = 0; i < sizeOutputs; ++i) {
+        jackCli.levelsOut[i] = sumsOut[i]/nframes;
+    }
+}
+
+static void addNoiseSound(jackClientGris & jackCli, jack_default_audio_sample_t ** ins, const jack_nframes_t &nframes, const unsigned int &sizeInputs){
+    for(int nF = 0; nF < nframes; ++nF) {
+        for (int i = 0; i < sizeInputs; i++) {
+            if(i%2==0){
+                ins[i][nF] = jackCli.sineNoise[jackCli.left_phase];
+            }else{
+                ins[i][nF] = jackCli.sineNoise[jackCli.right_phase];
+            }
+        }
+        jackCli.left_phase += 1;
+        if (jackCli.left_phase >= jackCli.sineNoise.size()){
+            jackCli.left_phase -= jackCli.sineNoise.size();
+        }
+        jackCli.right_phase += 2; // higher pitch so we can distinguish left and right.
+        if(jackCli.right_phase >= jackCli.sineNoise.size()){
+            jackCli.right_phase -= jackCli.sineNoise.size();
+        }
+    }
+}
+
+static int process_audio (jack_nframes_t nframes, void* arg) {
+
+    jackClientGris* jackCli = (jackClientGris*)arg;
+    
+    const unsigned int sizeInputs = jackCli->inputsPort.size() ;
+    const unsigned int sizeOutputs = jackCli->outputsPort.size() ;
+    
+    //Get all buffer from all input - output
+    jack_default_audio_sample_t * ins[sizeInputs];
+    jack_default_audio_sample_t * outs[sizeOutputs];
+    
+    for (int i = 0; i < sizeInputs; i++) {
+        ins[i] = (jack_default_audio_sample_t*)jack_port_get_buffer (jackCli->inputsPort[i], nframes);
+    }
+    for (int i = 0; i < sizeOutputs; i++) {
+        outs[i] = (jack_default_audio_sample_t*)jack_port_get_buffer (jackCli->outputsPort[i], nframes);
+    }
+    
+    //NoiseSound-----------------------------------------------
+    if(jackCli->noiseSound){
+        addNoiseSound(*jackCli, ins, nframes, sizeInputs);
+    }
+
+    //================ INPUTS ==========================================
+    muteSoloVuMeterIn(*jackCli, ins, nframes, sizeInputs);
+    //---------------------------------------------
+
+    
+    
+    //Basic Sound Transfert------------------(I -> O)
     for (int iSpeaker = 0; iSpeaker < sizeInputs; iSpeaker++) {
-        client->levelsIn[iSpeaker] = sumsIn[iSpeaker]/nframes;
-        
-        //Basic Sound Transfert------------------(I -> O)
         if(iSpeaker < sizeOutputs){
             memcpy (outs[iSpeaker], ins[iSpeaker] , sizeof (jack_default_audio_sample_t) * nframes);
         }
     }
 
-    //================ OUTPUTS =========================================
-    //Mute Out--------------------------------
-    for (int i = 0; i < sizeOutputs; i++) {
-        if(client->muteOut[i]){
-            memset (outs[i], 0, sizeof (jack_default_audio_sample_t) * nframes);
-        }
-        if(client->soloOut[MaxOutputs]){
-            if(!client->soloOut[i]){
-                memset (outs[i], 0, sizeof (jack_default_audio_sample_t) * nframes);
-            }
-        }
-    }
-    //-----------------------------------------
-    float sumsOut[sizeOutputs];
-    fill(client->levelsOut, client->levelsOut+sizeOutputs, -100.0f);
-    fill(sumsOut, sumsOut+sizeOutputs, 0.0f);
     
-    for(int nF = 0; nF < nframes; ++nF) {
-        for (int i = 0; i < sizeInputs; ++i) {
-            sumsOut[i] +=  outs[i][nF] * outs[i][nF];
-        }
-    }
-    for (int iSpeaker = 0; iSpeaker < sizeInputs; iSpeaker++) {
-        client->levelsOut[iSpeaker] = sumsOut[iSpeaker]/nframes;
-    }
+    
+    
+    //================ OUTPUTS =========================================
+    muteSoloVuMeterOut(*jackCli, outs, nframes, sizeOutputs);
+    //-----------------------------------------
     
     return 0;
 }
@@ -122,7 +142,7 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
 
 void session_callback (jack_session_event_t *event, void *arg)
 {
-    jackClientGris* client = (jackClientGris*)arg;
+    jackClientGris* jackCli = (jackClientGris*)arg;
     
     char retval[100];
     printf ("session notification\n");
@@ -131,18 +151,15 @@ void session_callback (jack_session_event_t *event, void *arg)
     snprintf (retval, 100, "jack_simple_session_client %s", event->client_uuid);
     event->command_line = strdup (retval);
     
-    jack_session_reply(client->client, event);
+    jack_session_reply(jackCli->client, event);
     
-    if (event->type == JackSessionSaveAndQuit) {
-        simple_quit = 1;
-    }
     jack_session_event_free (event);
 }
 
 int graph_order_callback ( void * arg)
 {
-    jackClientGris* client = (jackClientGris*)arg;
-    client->updateClientPortAvailable();
+    jackClientGris* jackCli = (jackClientGris*)arg;
+    jackCli->updateClientPortAvailable();
     printf ("graph_order_callback \n");
     return 0;
 }
@@ -168,20 +185,20 @@ int sample_rate_callback(jack_nframes_t nframes, void *arg)
 
 void client_registration_callback(const char *name, int regist, void *arg)
 {
-    jackClientGris* client = (jackClientGris*)arg;
+    jackClientGris* jackCli = (jackClientGris*)arg;
     printf("client_registration_callback : %s : " ,name);
     if(regist){
         Client cli;
         cli.name = name;
 
-        client->listClient.push_back(cli);
+        jackCli->listClient.push_back(cli);
         printf("saved\n");
     }else{
-        for( vector<Client>::iterator iter = client->listClient.begin(); iter != client->listClient.end(); ++iter )
+        for( vector<Client>::iterator iter = jackCli->listClient.begin(); iter != jackCli->listClient.end(); ++iter )
         {
             if( iter->name == String(name) )
             {
-                client->listClient.erase( iter );
+                jackCli->listClient.erase( iter );
                 printf("deleted\n");
                 break;
             }
@@ -208,7 +225,7 @@ void latency_callback(jack_latency_callback_mode_t  mode, void *arg)
 
 void port_registration_callback ( jack_port_id_t a, int regist, void * arg)
 {
-    jackClientGris* client = (jackClientGris*)arg;
+    jackClientGris* jackCli = (jackClientGris*)arg;
     printf("client_registration_callback : %" PRIu32 " : " ,a);
     if(regist){
         printf("saved \n");
@@ -220,16 +237,16 @@ void port_registration_callback ( jack_port_id_t a, int regist, void * arg)
 
 void port_connect_callback(jack_port_id_t a, jack_port_id_t b, int connect, void* arg)
 {
-    jackClientGris* client = (jackClientGris*)arg;
+    jackClientGris* jackCli = (jackClientGris*)arg;
     printf("port_connect_callback : ");
     if(connect){
         //Stop Auto connection with system...
-        if(!client->autoConnection){
-            string nameClient = jack_port_name(jack_port_by_id(client->client,a));
-            string tempN = jack_port_short_name(jack_port_by_id(client->client,a));
+        if(!jackCli->autoConnection){
+            string nameClient = jack_port_name(jack_port_by_id(jackCli->client,a));
+            string tempN = jack_port_short_name(jack_port_by_id(jackCli->client,a));
             nameClient =   nameClient.substr(0,nameClient.size()-(tempN.size()+1));
             if((nameClient != ClientName && nameClient!= ClientNameSys) || nameClient== ClientNameSys){
-                jack_disconnect(client->client, jack_port_name(jack_port_by_id(client->client,a)), jack_port_name(jack_port_by_id(client->client,b)));
+                jack_disconnect(jackCli->client, jack_port_name(jack_port_by_id(jackCli->client,a)), jack_port_name(jack_port_by_id(jackCli->client,b)));
             }
         }
         printf("Connect ");
@@ -244,10 +261,10 @@ void port_connect_callback(jack_port_id_t a, jack_port_id_t b, int connect, void
 jackClientGris::jackClientGris() {
     
     //INIT variable and clear Array========================
-    noiseSound = false;
-    clientReady = false;
-    autoConnection = false;
-    listClient =  vector<Client>();
+    this->noiseSound = false;
+    this->clientReady = false;
+    this->autoConnection = false;
+    this->listClient =  vector<Client>();
     
     fill(this->muteIn, this->muteIn+MaxInputs, false);
     fill(this->soloIn, this->soloIn+MaxInputs+1, false);
@@ -263,14 +280,14 @@ jackClientGris::jackClientGris() {
     jack_options_t  options = JackUseExactName;
     jack_status_t   status;
     
-    client = jack_client_open (ClientName, options, &status, DriverNameSys);
-    if (client == NULL) {
+    this->client = jack_client_open (ClientName, options, &status, DriverNameSys);
+    if (this->client == NULL) {
         
         printf("\nTry again...\n");
 
         options = JackServerName;
-        client = jack_client_open (ClientName, options, &status, DriverNameSys);
-        if (client == NULL) {
+        this->client = jack_client_open (ClientName, options, &status, DriverNameSys);
+        if (this->client == NULL) {
             printf("\n\n\n======jack_client_open() failed, status = 0x%2.0x\n", status);
             if (status & JackServerFailed) {
                 printf("\n\n\n======Unable to connect to JACK server\n");
@@ -281,7 +298,7 @@ jackClientGris::jackClientGris() {
         printf("\n===================\njackdmp wasn't running so it was started\n===================\n");
     }
     if (status & JackNameNotUnique) {
-        ClientName = jack_get_client_name(client);
+        ClientName = jack_get_client_name(this->client);
         printf("\n\n\n======chosen name already existed, new unique name `%s' assigned\n", ClientName);
     }
     
@@ -289,55 +306,57 @@ jackClientGris::jackClientGris() {
     //--------------------------------------------------
     //register callback, ports
     //--------------------------------------------------
-    jack_on_shutdown (client, jack_shutdown, this);
-    jack_set_process_callback (client, process_audio, this);
-    jack_set_client_registration_callback(client, client_registration_callback, this);
+    jack_on_shutdown                        (this->client, jack_shutdown, this);
+    jack_set_process_callback               (this->client, process_audio, this);
+    jack_set_client_registration_callback   (this->client, client_registration_callback, this);
   
-    jack_set_session_callback (client, session_callback, this);
-    jack_set_port_connect_callback(client, port_connect_callback, this);
-    jack_set_port_registration_callback(client, port_registration_callback, this);
-    jack_set_sample_rate_callback (client, sample_rate_callback, this);
+    jack_set_session_callback               (this->client, session_callback, this);
+    jack_set_port_connect_callback          (this->client, port_connect_callback, this);
+    jack_set_port_registration_callback     (this->client, port_registration_callback, this);
+    jack_set_sample_rate_callback           (this->client, sample_rate_callback, this);
     
-    jack_set_graph_order_callback(client, graph_order_callback, this);
-    jack_set_xrun_callback(client, xrun_callback, this);
-    //jack_set_latency_callback(client, latency_callback, this);
+    jack_set_graph_order_callback           (this->client, graph_order_callback, this);
+    jack_set_xrun_callback                  (this->client, xrun_callback, this);
+    //jack_set_latency_callback               (this->client, latency_callback, this);
     
-    jack_set_buffer_size(client, 1024);
+    //Default buffer size 1024
+    jack_set_buffer_size(this->client, 1024);
     
-    sampleRate = jack_get_sample_rate (client);
-    bufferSize = jack_get_buffer_size (client);
-    printf ("engine sample rate: %" PRIu32 "\n",sampleRate);
-    printf ("engine buffer size: %" PRIu32 "\n",jack_get_buffer_size (client));
+    sampleRate = jack_get_sample_rate (this->client);
+    bufferSize = jack_get_buffer_size (this->client);
+    
+    printf ("engine sample rate: %" PRIu32 "\n", sampleRate);
+    printf ("engine buffer size: %" PRIu32 "\n", jack_get_buffer_size(this->client));
     
 
     //--------------------------------------------------
     //fill wave table.
     //--------------------------------------------------
-    float fs = jack_get_sample_rate (client);
+    float fs = jack_get_sample_rate (this->client);
     float f  = 400.f / fs;
     float T  = 1/f;
     for(int i = 0; i < 10*T; ++i) {
-        sine.push_back(0.2 * sin( i * M_PI * 2. * f ));
+        this->sineNoise.push_back(0.2 * sin( i * M_PI * 2. * f ));
     }
-    left_phase = right_phase = 0;
+    this->left_phase = this->right_phase = 0;
 
     
     //--------------------------------------------------
     //Print Inputs Ports available
     //--------------------------------------------------
-    const char **ports = jack_get_ports (client, NULL, NULL, JackPortIsInput);
+    const char **ports = jack_get_ports (this->client, NULL, NULL, JackPortIsInput);
     if (ports == NULL) {
         printf("\n======NO Input PORTS\n");
         return;
     }
-    numberInputs = 0;
+    this->numberInputs = 0;
     cout << newLine << "Ports I ================" << newLine << newLine;
-    while (ports[numberInputs]){
-        cout << ports[numberInputs] << newLine;
-        numberInputs+=1;
+    while (ports[this->numberInputs]){
+        cout << ports[this->numberInputs] << newLine;
+        this->numberInputs+=1;
     }
     jack_free (ports);
-    cout << newLine << numberInputs <<" =====================" << newLine << newLine;
+    cout << newLine << this->numberInputs <<" =====================" << newLine << newLine;
     
     
     //--------------------------------------------------
@@ -348,25 +367,25 @@ jackClientGris::jackClientGris() {
         printf("\n======NO Outputs PORTS\n");
         return;
     }
-    numberOutputs = 0;
+    this->numberOutputs = 0;
     cout << newLine << "Ports O ================" << newLine << newLine;
-    while (ports[numberOutputs]){
-        cout << ports[numberOutputs] << newLine;
-        numberOutputs+=1;
+    while (ports[this->numberOutputs]){
+        cout << ports[this->numberOutputs] << newLine;
+        this->numberOutputs+=1;
     }
     jack_free (ports);
-    cout << newLine << numberOutputs <<" =====================" << newLine << newLine;
+    cout << newLine << this->numberOutputs <<" =====================" << newLine << newLine;
 
     
     //--------------------------------------------------
     // Activate client and connect the ports. Playback ports are "input" to the backend, and capture ports are "output" from it.
     //--------------------------------------------------
-    if (jack_activate (client)) {
+    if (jack_activate (this->client)) {
         printf("\n\n\n======cannot activate client");
         return;
     }
     
-    clientReady = true;
+    this->clientReady = true;
 }
 
 void jackClientGris::addRemoveInput(int number){
@@ -400,8 +419,8 @@ bool jackClientGris::addOutput(){
 }
 
 void jackClientGris::connectedGristoSystem(){
-    const char ** portsOut = jack_get_ports (client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput);
-    const char ** portsIn = jack_get_ports (client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput);
+    const char ** portsOut = jack_get_ports (this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput);
+    const char ** portsIn = jack_get_ports (this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput);
     
     //Connect jackClientGris to system---------------------------------------------------
     int i=0;
@@ -411,7 +430,7 @@ void jackClientGris::connectedGristoSystem(){
         {
             while(portsIn[j]){
                 if(getClientName(portsIn[j]) == ClientNameSys){ //system
-                    jack_connect (client, portsOut[i] ,portsIn[j]);
+                    jack_connect (this->client, portsOut[i] ,portsIn[j]);
                     j+=1;
                     break;
                 }
@@ -428,12 +447,10 @@ void jackClientGris::connectedGristoSystem(){
 
 void jackClientGris::autoConnectClient()
 {
-    cout << jack_get_client_name(client) << endl;
-    
     connectedGristoSystem();
     
-    const char ** portsOut = jack_get_ports (client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput);
-    const char ** portsIn = jack_get_ports (client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput);
+    const char ** portsOut = jack_get_ports (this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput);
+    const char ** portsIn = jack_get_ports (this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput);
     
     int i=0;
     int j=0;
@@ -441,7 +458,7 @@ void jackClientGris::autoConnectClient()
     int endJ = 0;
     
     //Connect other client to jackClientGris------------------------------------------
-    autoConnection = true;
+    this->autoConnection = true;
     
     for (auto&& cli : this->listClient)
     {
@@ -458,7 +475,7 @@ void jackClientGris::autoConnectClient()
                 while(portsIn[j]){
                     if(getClientName(portsIn[j]) == ClientName){
                         if(j>= startJ && j<endJ){
-                            jack_connect (client, portsOut[i] ,portsIn[j]);
+                            jack_connect (this->client, portsOut[i] ,portsIn[j]);
                             cli.connected = true;
                             j+=1;
                             break;
@@ -476,22 +493,22 @@ void jackClientGris::autoConnectClient()
         }
     }
     
-    autoConnection = false;
+    this->autoConnection = false;
     
     jack_free(portsIn);
     jack_free(portsOut);
 }
 
 void jackClientGris::connectionClient(String name, bool connect){
-    const char ** portsOut = jack_get_ports (client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput);
-    const char ** portsIn = jack_get_ports (client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput);
+    const char ** portsOut = jack_get_ports (this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput);
+    const char ** portsIn = jack_get_ports (this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput);
 
     int i=0;
     int j=0;
     int startJ = 0;
     int endJ = 0;
     bool conn = false;
-    updateClientPortAvailable();
+    this->updateClientPortAvailable();
     //Disconencted Client------------------------------------------------
     while (portsOut[i]){
         if(getClientName(portsOut[i]) == name)
@@ -499,7 +516,7 @@ void jackClientGris::connectionClient(String name, bool connect){
             j = 0;
             while(portsIn[j]){
                 if(getClientName(portsIn[j]) == ClientName){ //jackClient
-                    jack_disconnect(client, portsOut[i] ,portsIn[j]);
+                    jack_disconnect(this->client, portsOut[i] ,portsIn[j]);
                 }
                 j+=1;
             }
@@ -516,7 +533,7 @@ void jackClientGris::connectionClient(String name, bool connect){
     j=0;
     if(!connect){ return ; }
     //Connect other client to jackClientGris------------------------------------------
-    autoConnection = true;
+    this->autoConnection = true;
     for (auto&& cli : this->listClient)
     {
         i=0;
@@ -531,7 +548,7 @@ void jackClientGris::connectionClient(String name, bool connect){
                 while(portsIn[j]){
                     if(getClientName(portsIn[j]) == ClientName){
                         if(j>= startJ && j<endJ){
-                            jack_connect (client, portsOut[i] ,portsIn[j]);
+                            jack_connect (this->client, portsOut[i] ,portsIn[j]);
                             conn = true;
                             j+=1;
                             break;
@@ -550,7 +567,7 @@ void jackClientGris::connectionClient(String name, bool connect){
         }
     }
     
-    autoConnection = false;
+    this->autoConnection = false;
     
     jack_free(portsIn);
     jack_free(portsOut);
@@ -564,14 +581,14 @@ bool jackClientGris::setBufferSize(int sizeB)
 string jackClientGris::getClientName(const char * port)
 {
     if(port){
-        string nameClient = jack_port_name(jack_port_by_name(client,port));
-        string tempN = jack_port_short_name(jack_port_by_name(client,port));
+        string nameClient = jack_port_name(jack_port_by_name(this->client, port));
+        string tempN = jack_port_short_name(jack_port_by_name(this->client, port));
         return  nameClient.substr(0,nameClient.size()-(tempN.size()+1));
     }return "";
 }
 
 void jackClientGris::updateClientPortAvailable(){
-    const char ** portsOut = jack_get_ports (client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput);
+    const char ** portsOut = jack_get_ports (this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput);
     int i = 0;
     for (auto&& cli : this->listClient)
     {
@@ -603,13 +620,13 @@ unsigned int jackClientGris::getPortStartClient(String nameClient)
     return 0;
 }
 jackClientGris::~jackClientGris() {
-    jack_deactivate(client);
+    jack_deactivate(this->client);
     for(int i = 0 ; i < this->inputsPort.size() ; i++){
-        jack_port_unregister(client, this->inputsPort[i]);
+        jack_port_unregister(this->client, this->inputsPort[i]);
     }
     
     for(int i = 0 ; i < this->outputsPort.size()  ; i++){
-        jack_port_unregister(client, this->outputsPort[i]);
+        jack_port_unregister(this->client, this->outputsPort[i]);
     }
-    jack_client_close(client);
+    jack_client_close(this->client);
 }
