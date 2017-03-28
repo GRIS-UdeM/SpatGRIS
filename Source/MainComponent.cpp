@@ -364,15 +364,6 @@ void MainContentComponent::soloOutput(int id, bool solo){
 
 void MainContentComponent::openXmlFileSpeaker(String path)
 {
-    this->lockSpeakers->lock();
-    for (auto&& it : listSpeaker)
-    {
-        delete (it);
-    }
-    listSpeaker.clear();
-    this->lockSpeakers->unlock();
-
-
     XmlDocument myDocument (File (path.toStdString()));
     ScopedPointer<XmlElement> mainElement (myDocument.getDocumentElement());
     if (mainElement == nullptr)
@@ -383,6 +374,15 @@ void MainContentComponent::openXmlFileSpeaker(String path)
     else
     {
         if(mainElement->hasTagName("SpeakerSetup")){
+            
+            this->lockSpeakers->lock();
+            for (auto&& it : listSpeaker)
+            {
+                delete (it);
+            }
+            listSpeaker.clear();
+            this->lockSpeakers->unlock();
+    
             nameConfig =  mainElement->getStringAttribute("Name");
             cout << nameConfig << newLine;
             this->speakerView->setNameConfig(nameConfig);
@@ -437,7 +437,6 @@ void MainContentComponent::timerCallback(){
     }
     
     this->boxClientJack->updateContentCli();
-    //this->labelAllClients->setText(texC,dontSendNotification);
 }
 
 void MainContentComponent::paint (Graphics& g) {
@@ -534,7 +533,7 @@ void MainContentComponent::buttonClicked (Button *button)
         if(this->winSpeakConfig == nullptr){
             this->winSpeakConfig = new WindowEditSpeaker("Speakers config", this->mGrisFeel.getWinBackgroundColour(),DocumentWindow::allButtons, this, &this->mGrisFeel);
             
-            Rectangle<int> result (this->getScreenX()+ this->speakerView->getWidth()+22,this->getScreenY(),600,480);
+            Rectangle<int> result (this->getScreenX()+ this->speakerView->getWidth()+22,this->getScreenY(),600,500);
             this->winSpeakConfig->setBounds (result);
             this->winSpeakConfig->setResizable (true, true);
             this->winSpeakConfig->setUsingNativeTitleBar (true);

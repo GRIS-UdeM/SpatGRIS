@@ -268,18 +268,52 @@ WindowEditSpeaker::WindowEditSpeaker(const String& name, Colour backgroundColour
     this->mainParent = parent;
     this->grisFeel = feel;
     
+    this->boxListSpeaker = new Box(this->grisFeel, "Configuration Speakers");
+    
+    this->butAddSpeaker = new TextButton();
+    this->butAddSpeaker->setButtonText("Add Speaker");
+    this->butAddSpeaker->setBounds(4, 404, 88, 22);
+    this->butAddSpeaker->addListener(this);
+    this->butAddSpeaker->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
+    this->butAddSpeaker->setLookAndFeel(this->grisFeel);
+    this->boxListSpeaker->getContent()->addAndMakeVisible(this->butAddSpeaker);
+    
+    
+    this->toggleShowSphere = new ToggleButton();
+    this->toggleShowSphere->setButtonText("Show Sphere");
+    this->toggleShowSphere->setBounds(4, 430, 120, 22);
+    this->toggleShowSphere->addListener(this);
+    this->toggleShowSphere->setToggleState(false, dontSendNotification);
+    this->toggleShowSphere->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
+    this->toggleShowSphere->setLookAndFeel(this->grisFeel);
+    this->boxListSpeaker->getContent()->addAndMakeVisible(this->toggleShowSphere);
+    
+    
+    this->butsaveSpeakers = new TextButton();
+    this->butsaveSpeakers->setButtonText("Save");
+    this->butsaveSpeakers->setBounds(100, 404, 88, 22);
+    this->butsaveSpeakers->addListener(this);
+    this->butsaveSpeakers->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
+    this->butsaveSpeakers->setLookAndFeel(this->grisFeel);
+    this->boxListSpeaker->getContent()->addAndMakeVisible(this->butsaveSpeakers);
+    
+    this->setContentComponent(this->boxListSpeaker);
+    this->boxListSpeaker->getContent()->addAndMakeVisible(tableListSpeakers);
+
+    this->boxListSpeaker->repaint();
+    this->boxListSpeaker->resized();
+    
 }
 WindowEditSpeaker::~WindowEditSpeaker(){
     this->mainParent->setShowShepre(false);
     //delete this->boxListSpeaker;
     delete this->toggleShowSphere;
     delete this->butAddSpeaker;
+    delete this->butsaveSpeakers;
     this->mainParent->destroyWinSpeakConf();
 }
 void WindowEditSpeaker::initComp(){
-    this->boxListSpeaker = new Box(this->grisFeel, "Configuration Speakers");
-    this->setContentComponent(this->boxListSpeaker);
-    this->boxListSpeaker->getContent()->addAndMakeVisible(tableListSpeakers);
+
     
     tableListSpeakers.setModel(this);
     
@@ -316,28 +350,13 @@ void WindowEditSpeaker::initComp(){
     
     tableListSpeakers.updateContent();
     
-    this->toggleShowSphere = new ToggleButton();
-    this->toggleShowSphere->setButtonText("Show Sphere");
-    this->toggleShowSphere->setBounds(4, 430, 88, 22);
-    this->toggleShowSphere->addListener(this);
-    this->toggleShowSphere->setToggleState(false, dontSendNotification);
-    this->toggleShowSphere->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
-    this->toggleShowSphere->setLookAndFeel(this->grisFeel);
-    this->boxListSpeaker->getContent()->addAndMakeVisible(this->toggleShowSphere);
     
     
-    this->butAddSpeaker = new TextButton();
-    this->butAddSpeaker->setButtonText("Add Speaker");
-    this->butAddSpeaker->setBounds(4, 404, 88, 22);
-    this->butAddSpeaker->addListener(this);
-    this->butAddSpeaker->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
-    this->butAddSpeaker->setLookAndFeel(this->grisFeel);
-    this->boxListSpeaker->getContent()->addAndMakeVisible(this->butAddSpeaker);
-    
-    
+
     
     this->boxListSpeaker->repaint();
     this->boxListSpeaker->resized();
+    this->resized();
 }
 
 void WindowEditSpeaker::buttonClicked(Button *button){
@@ -367,7 +386,20 @@ void WindowEditSpeaker::closeButtonPressed()
     delete this;
 }
 
+void WindowEditSpeaker::resized(){
+    this->juce::DocumentWindow::resized();
+    
+    tableListSpeakers.setSize(getWidth(), getHeight()-120);
+    
+    this->boxListSpeaker->setSize(getWidth(), getHeight());
+    this->boxListSpeaker->correctSize(getWidth()-10, getHeight()-30);
 
+    this->butAddSpeaker->setBounds(4, getHeight()-110, 88, 22);
+    this->toggleShowSphere->setBounds(4, getHeight()-86, 120, 22);
+    this->butsaveSpeakers->setBounds(100, getHeight()-110, 88, 22);
+    
+    //this->boxListSpeaker->correctSize((this->listSourceInput.size()*(SizeWidthLevelComp))+4, 210);
+}
 
 String WindowEditSpeaker::getText (const int columnNumber, const int rowNumber) const
 {

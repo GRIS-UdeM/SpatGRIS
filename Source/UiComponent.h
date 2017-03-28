@@ -136,6 +136,8 @@ public:
     void buttonClicked(Button *button);
     void closeButtonPressed();
     
+    void resized() override;
+    
     String getText (const int columnNumber, const int rowNumber) const;
     void setText (const int columnNumber, const int rowNumber, const String& newText);
     int getNumRows() override;
@@ -153,6 +155,7 @@ private:
     
     ToggleButton *toggleShowSphere;
     TextButton *butAddSpeaker;
+    TextButton *butsaveSpeakers;
     
     TableListBox tableListSpeakers;
     Font font;
