@@ -52,7 +52,7 @@ static const unsigned int HertzRefreshLowCpu = 6;
  This component lives inside our window, and this is where you should put all
  your controls and content.
  */
-class MainContentComponent   :  public AudioAppComponent,
+class MainContentComponent   :  public Component,
                                 public Button::Listener,
                                 public TextEditor::Listener,
                                 private Timer
@@ -84,11 +84,6 @@ public:
     //=======================================================================
     float getLevelsOut(int indexLevel){return (20.0f * log10(sqrt(this->jackClient->getLevelsOut(indexLevel))));}
     float getLevelsIn(int indexLevel){return (20.0f * log10(sqrt(this->jackClient->getLevelsIn(indexLevel)))); }
-    void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
-    
-    void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override;
-    
-    void releaseResources() override;
     
     void refreshWinSpeakConf(int r) { if(this->winSpeakConfig != nullptr){ this->winSpeakConfig->selectedRow(r); } }
     void destroyWinSpeakConf() { this->winSpeakConfig = nullptr; }

@@ -227,9 +227,7 @@ MainContentComponent::~MainContentComponent() {
 
 
 #if USE_JACK
-    shutdownAudio();
     delete  this->jackClient;
-    
     delete this->jackServer;
 #endif
 }
@@ -371,34 +369,6 @@ void MainContentComponent::openXmlFileSpeaker(String path)
         
     }
     updateLevelComp();
-}
-
-
-void MainContentComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRate) {
-    
-}
-
-void MainContentComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) {
-    bufferToFill.clearActiveBufferRegion();
-    
-    //sample code taken from juce 4.3.0 audio app example
-    //        for (int chan = 0; chan < bufferToFill.buffer->getNumChannels(); ++chan) {
-    //            phase = originalPhase;
-    //            float* const channelData = bufferToFill.buffer->getWritePointer (chan, bufferToFill.startSample);
-    //            for (int i = 0; i < bufferToFill.numSamples ; ++i) {
-    //                channelData[i] = amplitude * std::sin (phase);
-    //
-    //                // increment the phase step for the next sample
-    //                phase = std::fmod (phase + phaseDelta, float_Pi * 2.0f);
-    //            }
-    //        }
-}
-
-void MainContentComponent::releaseResources() {
-    // This will be called when the audio device stops, or when it is being
-    // restarted due to a setting change.
-    
-    // For more details, see the help for AudioProcessor::releaseResources()
 }
 
 void MainContentComponent::timerCallback(){
