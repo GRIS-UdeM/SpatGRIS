@@ -45,6 +45,7 @@ public :
     LevelComponent * getVuMeter(){ return this->vuMeter; }
     
     glm::vec3 getCenter();
+    glm::vec3 getColor();
     float getAziMuth(){ return this->azimuth; }
     float getZenith(){ return this->zenith; }
     float getRad(){ return 10.0f; }

@@ -129,6 +129,7 @@ private:
     mutex *lockSpeakers;
 
     String nameConfig;
+    String pathCurrentFileSpeaker;
     
     OscInput * oscReceiver;
     vector<Input *> listSourceInput;

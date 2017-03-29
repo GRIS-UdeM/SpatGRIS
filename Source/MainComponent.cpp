@@ -365,16 +365,17 @@ void MainContentComponent::soloOutput(int id, bool solo){
 
 void MainContentComponent::openXmlFileSpeaker(String path)
 {
-    XmlDocument myDocument (File (path.toStdString()));
-    ScopedPointer<XmlElement> mainElement (myDocument.getDocumentElement());
-    if (mainElement == nullptr)
+    this->pathCurrentFileSpeaker = path.toStdString();
+    XmlDocument xmlDoc (File (this->pathCurrentFileSpeaker));
+    ScopedPointer<XmlElement> mainXmlElem (xmlDoc.getDocumentElement());
+    if (mainXmlElem == nullptr)
     {
         AlertWindow::showMessageBoxAsync (AlertWindow::AlertIconType::WarningIcon,"Error XML !",
-                                          "Your file is corrupted !\n"+myDocument.getLastParseError(),String(),0);
+                                          "Your file is corrupted !\n"+xmlDoc.getLastParseError(),String(),0);
     }
     else
     {
-        if(mainElement->hasTagName("SpeakerSetup")){
+        if(mainXmlElem->hasTagName("SpeakerSetup")){
             
             this->lockSpeakers->lock();
             for (auto&& it : listSpeaker)
@@ -384,11 +385,11 @@ void MainContentComponent::openXmlFileSpeaker(String path)
             listSpeaker.clear();
             this->lockSpeakers->unlock();
     
-            nameConfig =  mainElement->getStringAttribute("Name");
+            nameConfig =  mainXmlElem->getStringAttribute("Name");
             cout << nameConfig << newLine;
             this->speakerView->setNameConfig(nameConfig);
             
-            forEachXmlChildElement (*mainElement, ring)
+            forEachXmlChildElement (*mainXmlElem, ring)
             {
                 if (ring->hasTagName ("Ring"))
                 {
@@ -419,11 +420,67 @@ void MainContentComponent::openXmlFileSpeaker(String path)
 }
 
 void MainContentComponent::openPreset(String path){
-    
+    File xmlFile = File (path.toStdString());
+    XmlDocument xmlDoc (xmlFile);
+    ScopedPointer<XmlElement> mainXmlElem (xmlDoc.getDocumentElement());
+    if (mainXmlElem == nullptr)
+    {
+        AlertWindow::showMessageBoxAsync (AlertWindow::AlertIconType::WarningIcon,"Error XML !",
+                                          "Your file is corrupted !\n"+xmlDoc.getLastParseError(),String(),0);
+    }else{
+        if(mainXmlElem->hasTagName("SpatServerGRIS_Preset")){
+            this->tedOSCInPort->setText(mainXmlElem->getStringAttribute("OSC_Input_Port"));
+            this->tedAddInputs->setText(mainXmlElem->getStringAttribute("Number_Of_Inputs"));
+            this->sliderMasterGainOut->setValue(mainXmlElem->getDoubleAttribute("Master_Gain_Out"));
+            this->butShowSpeakerNumber->setToggleState(mainXmlElem->getBoolAttribute("Show_Numbers"),dontSendNotification);
+            this->butHighPerformance->setToggleState(mainXmlElem->getBoolAttribute("High_Performance"),dontSendNotification);
+            this->pathCurrentFileSpeaker = mainXmlElem->getStringAttribute("Speaker_Setup_File");
+            
+            textEditorReturnKeyPressed(*this->tedOSCInPort);
+            textEditorReturnKeyPressed(*this->tedAddInputs);
+            sliderValueChanged(this->sliderMasterGainOut);
+            buttonClicked(this->butShowSpeakerNumber);
+            buttonClicked(this->butHighPerformance);
+            
+            forEachXmlChildElement (*mainXmlElem, input)
+            {
+                if (input->hasTagName ("Input"))
+                {
+                    for (auto&& it : listSourceInput)
+                    {
+                        if(it->getId() == input->getIntAttribute("Index")){
+                            it->setColor(Colour::fromFloatRGBA((float)input->getDoubleAttribute("R"), (float)input->getDoubleAttribute("G"), (float)input->getDoubleAttribute("B"), 1.0f),true);
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 void MainContentComponent::savePreset(String path){
-
+    File xmlFile = File (path.toStdString());
+    XmlDocument xmlDoc (xmlFile);
+    ScopedPointer<XmlElement>  xml = new XmlElement("SpatServerGRIS_Preset");
+    
+    xml->setAttribute ("OSC_Input_Port",     this->tedOSCInPort->getTextValue().toString());
+    xml->setAttribute ("Number_Of_Inputs",   this->tedAddInputs->getTextValue().toString());
+    xml->setAttribute ("Master_Gain_Out",    this->sliderMasterGainOut->getValue());
+    xml->setAttribute ("Show_Numbers",       this->butShowSpeakerNumber->getToggleState());
+    xml->setAttribute ("High_Performance",   this->butHighPerformance->getToggleState());
+    xml->setAttribute ("Speaker_Setup_File", this->pathCurrentFileSpeaker);
+    
+    for (auto&& it : listSourceInput)
+    {
+        XmlElement * xmlInput = new  XmlElement("Input");
+        xmlInput->setAttribute("Index", it->getId());
+        xmlInput->setAttribute("R", it->getColor().x);
+        xmlInput->setAttribute("G", it->getColor().y);
+        xmlInput->setAttribute("B", it->getColor().z);
+        xml->addChildElement(xmlInput);
+    }
+    xml->writeToFile(xmlFile,"");
+    xmlFile.create();
 }
 
 void MainContentComponent::timerCallback(){

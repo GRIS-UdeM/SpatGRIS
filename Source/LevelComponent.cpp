@@ -173,7 +173,7 @@ void LevelComponent::setBounds(const Rectangle<int> &newBounds){
     this->juce::Component::setBounds(newBounds);
 
     juce::Rectangle<int> labRect(WidthRect/2, 0, newBounds.getWidth()-WidthRect, this->idBut->getHeight() );
-     this->idBut->setBounds(labRect);
+    this->idBut->setBounds(labRect);
     //this->labId->setSize(newBounds.getWidth(), 22);
     this->muteToggleBut->setBounds((newBounds.getWidth()/2)-16, getHeight()-22, this->muteToggleBut->getWidth(), this->muteToggleBut->getHeight());
     this->soloToggleBut->setBounds((newBounds.getWidth()/2), getHeight()-22, this->muteToggleBut->getWidth(), this->muteToggleBut->getHeight());

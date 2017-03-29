@@ -42,6 +42,9 @@ void Input::setColor(Colour color, bool updateLevel){
         this->vuMeter->setColor(color);
     }
 }
+glm::vec3 Input::getColor(){
+    return this->color;
+}
 
 void Input::draw(){
     // Draw 3D sphere.
