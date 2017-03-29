@@ -18,6 +18,13 @@
 
 MainContentComponent::MainContentComponent(){
 
+
+    File fs = File ( File::getCurrentWorkingDirectory().getFullPathName()+("/spatServerGRIS.app/Contents/Resources/splash.png"));
+    if(fs.exists()){
+        this->splash = new SplashScreen ("SpatServerGRIS",ImageFileFormat::loadFrom (fs),true);
+    }
+
+   
     LookAndFeel::setDefaultLookAndFeel(&mGrisFeel);
     
     this->listSpeaker = vector<Speaker *>();
@@ -147,6 +154,10 @@ MainContentComponent::MainContentComponent(){
 
     this->resized();
     startTimerHz(HertzRefreshNormal);
+    
+    if(fs.exists()){
+        this->splash->deleteAfterDelay(RelativeTime::seconds (1), false);
+    }
 }
 
 
@@ -232,7 +243,7 @@ Slider* MainContentComponent::addSlider(const String &s, const String &stooltip,
 }
 
 bool MainContentComponent::exitApp(){
-    ScopedPointer<AlertWindow> alert = new AlertWindow ("Exit SpatServerGRIS !","Do you want to save preset ?", AlertWindow::InfoIcon);
+    ScopedPointer<AlertWindow> alert = new AlertWindow ("Exi SpatServerGRIS !","Do you want to save preset ?", AlertWindow::InfoIcon);
     alert->addButton ("Save", 1);
     alert->addButton ("Cancel", 0);
     alert->addButton ("Exit", 2);
@@ -255,13 +266,11 @@ bool MainContentComponent::exitApp(){
  
 }
 MainContentComponent::~MainContentComponent() {
-    
-    
-   
+
     applicationProperties.getUserSettings()->setValue("lastOpentPreset", this->pathCurrentPreset);
     applicationProperties.saveIfNeeded();
     applicationProperties.closeFiles();
-    
+
     delete this->oscReceiver;
     
     if(this->winSpeakConfig != nullptr){

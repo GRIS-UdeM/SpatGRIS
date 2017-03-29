@@ -183,6 +183,7 @@ private:
     Label *         labelAllClients;
     BoxClient *     boxClientJack;
     
+    SplashScreen *  splash;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
 };
 

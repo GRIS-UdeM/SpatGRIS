@@ -15,6 +15,7 @@
 		0D145FAF1E81A920004E6AE6 /* Jackservermp in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D145FAE1E81A920004E6AE6 /* Jackservermp */; };
 		0D145FB51E81BB9F004E6AE6 /* jackServerGRIS.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D145FB31E81BB9F004E6AE6 /* jackServerGRIS.cpp */; };
 		0D53B8A21E8AA8D000B01E01 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0D53B8A11E8AA8D000B01E01 /* Images.xcassets */; };
+		0D548E451E8C5E3C003BF62B /* splash.png in Resources */ = {isa = PBXBuildFile; fileRef = 0D548E441E8C5E3C003BF62B /* splash.png */; };
 		0D76540CEB135C65E2C77E42 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A49E2EA8DC00B3CFBC3B8FC /* Cocoa.framework */; };
 		0DD1323D1E7AEAD100793ED9 /* Jackmp in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DD1323C1E7AEAD100793ED9 /* Jackmp */; };
 		0DD132401E7AEAE700793ED9 /* BinaryData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0DD1323E1E7AEAE700793ED9 /* BinaryData.cpp */; };
@@ -110,6 +111,7 @@
 		0D145FB31E81BB9F004E6AE6 /* jackServerGRIS.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = jackServerGRIS.cpp; path = ../../Source/jackServerGRIS.cpp; sourceTree = "<group>"; };
 		0D145FB41E81BB9F004E6AE6 /* jackServerGRIS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jackServerGRIS.h; path = ../../Source/jackServerGRIS.h; sourceTree = "<group>"; };
 		0D53B8A11E8AA8D000B01E01 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = spatServerGRIS/Images.xcassets; sourceTree = "<group>"; };
+		0D548E441E8C5E3C003BF62B /* splash.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = splash.png; sourceTree = "<group>"; };
 		0DAEE47D7405B9E5383EA97F /* juce_RelativePointPath.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_RelativePointPath.h; path = ../../JuceLibraryCode/modules/juce_gui_basics/positioning/juce_RelativePointPath.h; sourceTree = SOURCE_ROOT; };
 		0DD1323C1E7AEAD100793ED9 /* Jackmp */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = Jackmp; path = ../../../../sdks/jack/lib/Jackmp; sourceTree = "<group>"; };
 		0DD1323E1E7AEAE700793ED9 /* BinaryData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = BinaryData.cpp; path = ../../JuceLibraryCode/BinaryData.cpp; sourceTree = "<group>"; };
@@ -2570,6 +2572,7 @@
 		D197AC8A7278BF19DF69D425 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				0D548E441E8C5E3C003BF62B /* splash.png */,
 				415CDF7CC3930A66F88F88C6 /* spatServerGRIS */,
 				16FAB0AD2349A989040A29E8 /* Juce Modules */,
 				8C248ABFB6C52E1FC3AC34EC /* Juce Library Code */,
@@ -3000,6 +3003,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0D548E451E8C5E3C003BF62B /* splash.png in Resources */,
 				CC991455799A452BB31707A0 /* RecentFilesMenuTemplate.nib in Resources */,
 				0D53B8A21E8AA8D000B01E01 /* Images.xcassets in Resources */,
 			);
