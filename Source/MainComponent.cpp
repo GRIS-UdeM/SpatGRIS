@@ -338,6 +338,12 @@ void MainContentComponent::updateLevelComp(){
     this->resized();
 }
 
+
+void MainContentComponent::setNameConfig(String name){
+    this->nameConfig = name;
+    this->speakerView->setNameConfig(nameConfig);
+}
+
 void MainContentComponent::muteInput(int id, bool mute){
     this->jackClient->muteIn[id-1] = mute;
 }
@@ -489,6 +495,41 @@ void MainContentComponent::savePreset(String path){
     xmlFile.create();
 }
 
+
+void MainContentComponent::savePresetSpeakers(String path){
+    
+    this->pathCurrentFileSpeaker = path;
+    File xmlFile = File (path.toStdString());
+    XmlDocument xmlDoc (xmlFile);
+    ScopedPointer<XmlElement>  xml = new XmlElement("SpeakerSetup");
+    
+    xml->setAttribute ("Name", this->nameConfig);
+    xml->setAttribute ("Dimension", 3);
+    
+    XmlElement * xmlRing = new  XmlElement("Ring");
+    
+
+    for (auto&& it : listSpeaker)
+    {
+        XmlElement * xmlInput = new  XmlElement("Speaker");
+        xmlInput->setAttribute("PositionX", it->getCoordinate().x);
+        xmlInput->setAttribute("PositionY", it->getCoordinate().z);
+        xmlInput->setAttribute("PositionZ", it->getCoordinate().y);
+        
+        xmlInput->setAttribute("Azimuth", it->getAziZenRad().x);
+        xmlInput->setAttribute("Zenith", it->getAziZenRad().y);
+        xmlInput->setAttribute("Radius", it->getAziZenRad().z);
+
+        xmlInput->setAttribute("LayoutIndex", it->getIdSpeaker());
+        xmlInput->setAttribute("OutputPatch", it->getOutputPatch());
+        xmlRing->addChildElement(xmlInput);
+    }
+    xml->addChildElement(xmlRing);
+    xml->writeToFile(xmlFile,"");
+    xmlFile.create();
+}
+
+
 void MainContentComponent::timerCallback(){
     this->labelJackLoad->setText(String(this->jackClient->getCpuUsed())+ " %", dontSendNotification);
     for (auto&& it : listSourceInput)
@@ -595,7 +636,7 @@ void MainContentComponent::buttonClicked (Button *button)
     else if(button == this->butEditableSpeakers){
     
         if(this->winSpeakConfig == nullptr){
-            this->winSpeakConfig = new WindowEditSpeaker("Speakers config", this->mGrisFeel.getWinBackgroundColour(),DocumentWindow::allButtons, this, &this->mGrisFeel);
+            this->winSpeakConfig = new WindowEditSpeaker("Speakers config", this->nameConfig, this->mGrisFeel.getWinBackgroundColour(),DocumentWindow::allButtons, this, &this->mGrisFeel);
             
             Rectangle<int> result (this->getScreenX()+ this->speakerView->getWidth()+22,this->getScreenY(),600,500);
             this->winSpeakConfig->setBounds (result);

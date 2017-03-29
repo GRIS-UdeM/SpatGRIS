@@ -78,8 +78,11 @@ public:
     vector<Client> *getListClientjack(){ return &this->jackClient->listClient; }
     void connectionClientJack(String nameCli, bool conn = true) {this->jackClient->connectionClient(nameCli, conn); }
     
+    
+    void setNameConfig(String name);
     void setShowShepre(bool value){ this->speakerView->setShowSphere(value); }
     void addSpeaker();
+    void savePresetSpeakers(String path);
     void removeSpeaker(int idSpeaker);
     void updateLevelComp();
     void muteInput(int id, bool mute);

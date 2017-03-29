@@ -123,10 +123,11 @@ private:
 //======================================= Window Edit Speaker===========================
 class WindowEditSpeaker :   public DocumentWindow,
                             public TableListBoxModel,
-                            public ToggleButton::Listener
+                            public ToggleButton::Listener,
+                            public TextEditor::Listener
 {
 public:
-    WindowEditSpeaker(const String& name, Colour backgroundColour, int buttonsNeeded, MainContentComponent * parent, GrisLookAndFeel * feel);
+    WindowEditSpeaker(const String& name,String& nameC, Colour backgroundColour, int buttonsNeeded, MainContentComponent * parent, GrisLookAndFeel * feel);
     ~WindowEditSpeaker();
     
     void updateWinContent();
@@ -137,7 +138,9 @@ public:
     void closeButtonPressed();
     
     void resized() override;
-    
+    void textEditorFocusLost (TextEditor &textEditor) override;
+    void textEditorReturnKeyPressed (TextEditor &textEditor) override;
+
     String getText (const int columnNumber, const int rowNumber) const;
     void setText (const int columnNumber, const int rowNumber, const String& newText);
     int getNumRows() override;
@@ -156,6 +159,7 @@ private:
     ToggleButton *toggleShowSphere;
     TextButton *butAddSpeaker;
     TextButton *butsaveSpeakers;
+    TextEditor *texEditNameConf;
     
     TableListBox tableListSpeakers;
     Font font;

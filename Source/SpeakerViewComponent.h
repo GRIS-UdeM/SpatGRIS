@@ -58,7 +58,7 @@ public:
     void setShowNumber(bool value){ this->showNumber = value; }
     void setHighPerfor(bool value){ this->highPerf = value; }
     
-    void setNameConfig(String name){ this->nameConfig = name; }
+    void setNameConfig(String name){ this->nameConfig = name; this->repaint(); }
     void render() override;
     
     void paint (Graphics& g) override;

@@ -261,7 +261,7 @@ Component* BoxClient::refreshComponentForCell (int rowNumber, int columnId, bool
 
 //======================================= Window Edit Speaker============================================================
 
-WindowEditSpeaker::WindowEditSpeaker(const String& name, Colour backgroundColour, int buttonsNeeded,
+WindowEditSpeaker::WindowEditSpeaker(const String& name, String& nameC,Colour backgroundColour, int buttonsNeeded,
                                      MainContentComponent * parent, GrisLookAndFeel * feel):
     DocumentWindow (name, backgroundColour, buttonsNeeded), font (14.0f)
 {
@@ -297,6 +297,16 @@ WindowEditSpeaker::WindowEditSpeaker(const String& name, Colour backgroundColour
     this->butsaveSpeakers->setLookAndFeel(this->grisFeel);
     this->boxListSpeaker->getContent()->addAndMakeVisible(this->butsaveSpeakers);
     
+    this->texEditNameConf = new TextEditor();
+    this->texEditNameConf->setText(nameC);
+    this->texEditNameConf->setBounds(190, 404, 88, 22);
+    this->texEditNameConf->addListener(this);
+    this->texEditNameConf->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
+    this->texEditNameConf->setLookAndFeel(this->grisFeel);
+    this->boxListSpeaker->getContent()->addAndMakeVisible(this->texEditNameConf);
+
+    
+    
     this->setContentComponent(this->boxListSpeaker);
     this->boxListSpeaker->getContent()->addAndMakeVisible(tableListSpeakers);
 
@@ -310,6 +320,7 @@ WindowEditSpeaker::~WindowEditSpeaker(){
     delete this->toggleShowSphere;
     delete this->butAddSpeaker;
     delete this->butsaveSpeakers;
+    delete this->texEditNameConf;
     this->mainParent->destroyWinSpeakConf();
 }
 void WindowEditSpeaker::initComp(){
@@ -368,6 +379,18 @@ void WindowEditSpeaker::buttonClicked(Button *button){
         this->mainParent->addSpeaker();
         updateWinContent();
     }
+    else if (button == this->butsaveSpeakers) {
+        FileChooser fc ("Choose a file to save...",File::getCurrentWorkingDirectory(), "*.xml", true);
+        if (fc.browseForFileToSave (true))
+        {
+            String chosen = fc.getResults().getReference(0).getFullPathName();
+            bool r = AlertWindow::showOkCancelBox (AlertWindow::InfoIcon,"Save preset","Save to : " + chosen);
+            //Save preset speaker
+            if(r){
+                this->mainParent->savePresetSpeakers(chosen);
+            }
+        }
+    }
     
     if( button->getName() != "" && (button->getName().getIntValue()>=0 && button->getName().getIntValue()<= this->mainParent->getListSpeaker().size())){
 
@@ -386,6 +409,15 @@ void WindowEditSpeaker::closeButtonPressed()
     delete this;
 }
 
+void WindowEditSpeaker::textEditorFocusLost (TextEditor &textEditor){
+    textEditorReturnKeyPressed(textEditor);
+}
+void WindowEditSpeaker::textEditorReturnKeyPressed (TextEditor &textEditor){
+    if(&textEditor == this->texEditNameConf){
+        this->mainParent->setNameConfig(this->texEditNameConf->getTextValue().toString());
+    }
+}
+
 void WindowEditSpeaker::resized(){
     this->juce::DocumentWindow::resized();
     
@@ -397,6 +429,7 @@ void WindowEditSpeaker::resized(){
     this->butAddSpeaker->setBounds(4, getHeight()-110, 88, 22);
     this->toggleShowSphere->setBounds(4, getHeight()-86, 120, 22);
     this->butsaveSpeakers->setBounds(100, getHeight()-110, 88, 22);
+    this->texEditNameConf->setBounds(190, getHeight()-110, 88, 22);
     
     //this->boxListSpeaker->correctSize((this->listSourceInput.size()*(SizeWidthLevelComp))+4, 210);
 }
