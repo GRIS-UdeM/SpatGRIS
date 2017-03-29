@@ -299,7 +299,7 @@ WindowEditSpeaker::WindowEditSpeaker(const String& name, String& nameC,Colour ba
     
     this->texEditNameConf = new TextEditor();
     this->texEditNameConf->setText(nameC);
-    this->texEditNameConf->setBounds(190, 404, 88, 22);
+    this->texEditNameConf->setBounds(190, 404, 160, 22);
     this->texEditNameConf->addListener(this);
     this->texEditNameConf->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
     this->texEditNameConf->setLookAndFeel(this->grisFeel);
@@ -429,7 +429,7 @@ void WindowEditSpeaker::resized(){
     this->butAddSpeaker->setBounds(4, getHeight()-110, 88, 22);
     this->toggleShowSphere->setBounds(4, getHeight()-86, 120, 22);
     this->butsaveSpeakers->setBounds(100, getHeight()-110, 88, 22);
-    this->texEditNameConf->setBounds(190, getHeight()-110, 88, 22);
+    this->texEditNameConf->setBounds(190, getHeight()-110, 160, 22);
     
     //this->boxListSpeaker->correctSize((this->listSourceInput.size()*(SizeWidthLevelComp))+4, 210);
 }

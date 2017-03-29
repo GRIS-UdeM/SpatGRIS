@@ -92,7 +92,7 @@ MainContentComponent::MainContentComponent(){
     this->butAutoConnectJack= addButton("Auto Connect","Auto connection with jack",140,104,130,24,this->boxControlUI->getContent());
     
     this->sliderMasterGainOut = addSlider("Master Gain", "Master Gain Outputs", 320, 36, 80, 80, this->boxControlUI->getContent());
-    this->sliderMasterGainOut->setRange(0.0, 1.0, 0.01);
+    this->sliderMasterGainOut->setRange(0.0, 1.0, 0.001);
 
     //this->labelAllClients= addLabel("...","Clients Connected",140, 130, 120, 80,this->boxControlUI->getContent());
     
