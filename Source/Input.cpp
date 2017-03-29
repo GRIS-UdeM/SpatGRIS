@@ -34,6 +34,14 @@ void Input::setMuted(bool mute){
 void Input::setSolo(bool solo){
     this->mainParent->soloInput(this->idChannel, solo);
 }
+void Input::setColor(Colour color, bool updateLevel){
+    this->color.x = color.getFloatRed();
+    this->color.y = color.getFloatGreen();
+    this->color.z = color.getFloatBlue();
+    if(updateLevel){
+        this->vuMeter->setColor(color);
+    }
+}
 
 void Input::draw(){
     // Draw 3D sphere.
@@ -42,7 +50,7 @@ void Input::draw(){
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glLineWidth(2);
     glRotatef(90, 1, 0, 0);
-    glColor3f(0.8, 0.2, 0.1);
+    glColor3f(this->color.x, this->color.y, this->color.z);
     glutSolidSphere(sizeT, 6, 6);
     glTranslatef(-1*this->center.x, -1*this->center.y, -1*this->center.z);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

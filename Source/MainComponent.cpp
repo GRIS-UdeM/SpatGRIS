@@ -77,9 +77,10 @@ MainContentComponent::MainContentComponent(){
     
     this->tedOSCInPort = addTextEditor("Port OSC In :", "Port Socket", "Port Socket OSC Input", 140, 36, 50, 24, this->boxControlUI->getContent());
     this->tedOSCInPort->setText("18032");
-    this->labOSCStatus= addLabel("...","OSC Receiver status",270, 36, 50, 24,this->boxControlUI->getContent());
+    this->labOSCStatus= addLabel("...","OSC Receiver status",276, 36, 50, 24,this->boxControlUI->getContent());
     
     this->tedAddInputs= addTextEditor("Inputs :", "0", "Numbers of Inputs", 140, 70, 50, 24, this->boxControlUI->getContent());
+    this->butDefaultColorIn= addButton("C","Set Default color Inputs",276,70,24,24,this->boxControlUI->getContent());
     
     this->butAutoConnectJack= addButton("Auto Connect","Auto connection with jack",140,104,130,24,this->boxControlUI->getContent());
     
@@ -565,6 +566,15 @@ void MainContentComponent::buttonClicked (Button *button)
     }else if(button == this->butNoiseSound){
         
         this->jackClient->noiseSound = butNoiseSound->getToggleState();
+    }
+    else if(button == this->butDefaultColorIn){
+        
+        float hue = 0;
+        for (auto&& it : listSourceInput)
+        {
+            it->setColor(Colour::fromHSV(hue, 1, 0.8, 1), true);
+            hue+=0.01f;
+        }
     }
 }
 

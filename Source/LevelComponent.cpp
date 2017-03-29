@@ -58,6 +58,7 @@ LevelComponent::LevelComponent(ParentLevelComponent* parent, GrisLookAndFeel *fe
     //Label================================================================
     this->idBut = new TextButton();
     this->idBut->setButtonText(String(this->mainParent->getId()));//this->mainParent->getOutputPatch()
+    this->idBut->setTooltip(String(this->mainParent->getId()));
     this->idBut->setSize(36, 22);
     //this->idBut->setJustificationType(Justification::centred);
     //this->idBut->setMinimumHorizontalScale(1);
@@ -132,7 +133,8 @@ void LevelComponent::buttonClicked(Button *button){
 void LevelComponent::changeListenerCallback (ChangeBroadcaster* source)
 {
     if (ColourSelector* cs = dynamic_cast<ColourSelector*> (source)){
-        this->idBut->setColour (TextButton::buttonColourId, cs->getCurrentColour());
+        this->idBut->setColour(TextButton::buttonColourId, cs->getCurrentColour());
+        this->mainParent->setColor(cs->getCurrentColour());
     }
 }
 

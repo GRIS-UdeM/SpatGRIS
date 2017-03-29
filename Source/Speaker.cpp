@@ -38,6 +38,9 @@ void Speaker::setMuted(bool mute){
 void Speaker::setSolo(bool solo){
     this->mainParent->soloOutput(this->outputPatch, solo);
 }
+void Speaker::setColor(Colour color, bool updateLevel){
+
+}
 
 int Speaker::getIdSpeaker(){
     return this->idSpeaker;

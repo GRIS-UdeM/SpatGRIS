@@ -158,6 +158,7 @@ private:
     TextButton *    butEditableSpeakers;
     TextButton *    butLoadPreset;
     TextButton *    butSavePreset;
+    TextButton *    butDefaultColorIn;
     
     ToggleButton *  butShowSpeakerNumber;
     ToggleButton *  butHighPerformance;
