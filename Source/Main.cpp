@@ -79,7 +79,8 @@ public:
             String version = STRING(JUCE_APP_VERSION);
             version = "SpatServer GRIS : "+version;
             setName(version);
-            setContentOwned (new MainContentComponent(), true);
+            mcc = new MainContentComponent();
+            setContentOwned (mcc, true);
             setResizable (true, true);
 
             centreWithSize (getWidth(), getHeight());
@@ -88,10 +89,13 @@ public:
 
         void closeButtonPressed() override
         {
+            if(mcc->exitApp()){
+                JUCEApplication::getInstance()->systemRequestedQuit();
+            }
             // This is called when the user tries to close this window. Here, we'll just
             // ask the app to quit when this happens, but you can change this to do
             // whatever you need.
-            JUCEApplication::getInstance()->systemRequestedQuit();
+            
         }
 
         /* Note: Be careful if you override any DocumentWindow methods - the base
@@ -102,6 +106,7 @@ public:
         */
 
     private:
+        MainContentComponent * mcc;
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainWindow)
     };
 

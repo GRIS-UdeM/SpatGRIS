@@ -120,17 +120,31 @@ MainContentComponent::MainContentComponent(){
     this->labelJackInfo->setText("I : "+String(this->jackClient->numberInputs)+ " - O : "+String(this->jackClient->numberOutputs), dontSendNotification);
     this->sliderMasterGainOut->setValue(1.0);
 #endif
+
     
+    PropertiesFile::Options options;
+    options.applicationName = "SpatServerGRIS";
+    options.commonToAllUsers = false;
+    options.filenameSuffix = "xml";
+    options.folderName = "GRIS";
+    options.storageFormat = PropertiesFile::storeAsXML;
+    options.ignoreCaseOfKeyNames = true;
+    options.osxLibrarySubFolder = "Application Support";
+    applicationProperties.setStorageParameters(options);
+    applicationProperties.getCommonSettings(true);
+
     
     //OSC Receiver----------------------------------------------------------------------------
     this->oscReceiver = new OscInput(this);
     textEditorReturnKeyPressed(*this->tedOSCInPort);
     
-    this->tedAddInputs->setText("8",dontSendNotification);
+    this->tedAddInputs->setText("16",dontSendNotification);
     textEditorReturnKeyPressed(*this->tedAddInputs);
+
     
-    openXmlFileSpeaker("/Users/gris/Documents/GRIS/zirkonium/ZirkSpeakers_Dome 16 UdeM.xml");
-    
+    this->openPreset(applicationProperties.getUserSettings()->getValue("lastOpentPreset"));
+
+
     this->resized();
     startTimerHz(HertzRefreshNormal);
 }
@@ -217,7 +231,37 @@ Slider* MainContentComponent::addSlider(const String &s, const String &stooltip,
     return sd;
 }
 
+bool MainContentComponent::exitApp(){
+    ScopedPointer<AlertWindow> alert = new AlertWindow ("Exit SpatServerGRIS !","Do you want to save preset ?", AlertWindow::InfoIcon);
+    alert->addButton ("Save", 1);
+    alert->addButton ("Cancel", 0);
+    alert->addButton ("Exit", 2);
+    int exitV = alert->runModalLoop();
+    if (exitV == 1) {
+        FileChooser fc ("Choose a file to save...",File::getCurrentWorkingDirectory(), "*.xml", true);
+        if (fc.browseForFileToSave (true))
+        {
+            String chosen = fc.getResults().getReference(0).getFullPathName();
+            bool r = AlertWindow::showOkCancelBox (AlertWindow::InfoIcon,"Save preset","Save to : " + chosen);
+            //Save preset
+            if(r){
+                this->savePreset(chosen);
+            }else {
+                return 2;
+            }
+        }
+    }
+    return (exitV != 0);
+ 
+}
 MainContentComponent::~MainContentComponent() {
+    
+    
+   
+    applicationProperties.getUserSettings()->setValue("lastOpentPreset", this->pathCurrentPreset);
+    applicationProperties.saveIfNeeded();
+    applicationProperties.closeFiles();
+    
     delete this->oscReceiver;
     
     if(this->winSpeakConfig != nullptr){
@@ -426,6 +470,7 @@ void MainContentComponent::openXmlFileSpeaker(String path)
 }
 
 void MainContentComponent::openPreset(String path){
+    this->pathCurrentPreset = path;
     File xmlFile = File (path.toStdString());
     XmlDocument xmlDoc (xmlFile);
     ScopedPointer<XmlElement> mainXmlElem (xmlDoc.getDocumentElement());

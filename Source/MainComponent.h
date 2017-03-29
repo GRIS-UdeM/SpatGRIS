@@ -66,6 +66,7 @@ public:
     //==============================================================================
     MainContentComponent();
     ~MainContentComponent();
+    bool exitApp();
     
     vector<Speaker *> getListSpeaker() { return this->listSpeaker; }
     mutex* getLockSpeakers(){ return this->lockSpeakers; }
@@ -122,7 +123,7 @@ private:
     
     void updateSkeapersConf();
     
-    
+    ApplicationProperties applicationProperties;
     //==============================================================================
     #if USE_JACK
     jackClientGris *jackClient;
@@ -135,6 +136,7 @@ private:
 
     String nameConfig;
     String pathCurrentFileSpeaker;
+    String pathCurrentPreset;
     
     OscInput * oscReceiver;
     vector<Input *> listSourceInput;
