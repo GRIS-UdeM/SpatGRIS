@@ -199,20 +199,8 @@ void SpeakerViewComponent::clickRay(){
             }
         }
     }
-    
-    
-    for(int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
-        if(i!=iBestSpeaker)
-        {
-            this->mainParent->getListSpeaker()[i]->unSelectSpeaker();
-        }else{
-            this->mainParent->getListSpeaker()[i]->selectSpeaker();
-        }
-    }
+    this->mainParent->selectSpeaker(iBestSpeaker);
     this->mainParent->getLockSpeakers()->unlock();
-    
-    this->mainParent->refreshWinSpeakConf(iBestSpeaker);
-    
 }
 
 void SpeakerViewComponent::mouseDown (const MouseEvent& e) {

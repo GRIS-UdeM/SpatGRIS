@@ -79,7 +79,7 @@ public:
     vector<Client> *getListClientjack(){ return &this->jackClient->listClient; }
     void connectionClientJack(String nameCli, bool conn = true) {this->jackClient->connectionClient(nameCli, conn); }
     
-    
+    void selectSpeaker(int idS);
     void setNameConfig(String name);
     void setShowShepre(bool value){ this->speakerView->setShowSphere(value); }
     void addSpeaker();
@@ -95,7 +95,7 @@ public:
     float getLevelsOut(int indexLevel){return (20.0f * log10(sqrt(this->jackClient->getLevelsOut(indexLevel))));}
     float getLevelsIn(int indexLevel){return (20.0f * log10(sqrt(this->jackClient->getLevelsIn(indexLevel)))); }
     
-    void refreshWinSpeakConf(int r) { if(this->winSpeakConfig != nullptr){ this->winSpeakConfig->selectedRow(r); } }
+
     void destroyWinSpeakConf() { this->winSpeakConfig = nullptr; }
     //=======================================================================
     void timerCallback() override;

@@ -119,14 +119,18 @@ void LevelComponent::buttonClicked(Button *button){
     }else if (button == this->soloToggleBut) {
         this->mainParent->setSolo(this->soloToggleBut->getToggleState());
         
-    }else if (button == this->idBut && this->isColorful) {
-        ColourSelector* colourSelector = new ColourSelector();
-        colourSelector->setName ("background");
-        colourSelector->setCurrentColour (this->idBut->findColour (TextButton::buttonColourId));
-        colourSelector->addChangeListener (this);
-        colourSelector->setColour (ColourSelector::backgroundColourId, Colours::transparentBlack);
-        colourSelector->setSize (300, 400);
-        CallOutBox::launchAsynchronously (colourSelector, getScreenBounds(), nullptr);
+    }else if (button == this->idBut) {
+        if( this->isColorful){  //Input
+            ColourSelector* colourSelector = new ColourSelector();
+            colourSelector->setName ("background");
+            colourSelector->setCurrentColour (this->idBut->findColour (TextButton::buttonColourId));
+            colourSelector->addChangeListener (this);
+            colourSelector->setColour (ColourSelector::backgroundColourId, Colours::transparentBlack);
+            colourSelector->setSize (300, 400);
+            CallOutBox::launchAsynchronously (colourSelector, getScreenBounds(), nullptr);
+        }else{      //Output
+            this->mainParent->selectClick();
+        }
     }
 }
 

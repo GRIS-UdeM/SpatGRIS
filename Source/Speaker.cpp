@@ -101,6 +101,9 @@ void Speaker::fix() {
     }
 }
 
+void Speaker::selectClick(){
+    this->mainParent->selectSpeaker(this->idSpeaker-1);
+}
 bool Speaker::isSelected(){
     return this->selected;
 }

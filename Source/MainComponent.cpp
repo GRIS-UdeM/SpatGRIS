@@ -310,6 +310,21 @@ MainContentComponent::~MainContentComponent() {
 #endif
 }
 
+
+void MainContentComponent::selectSpeaker(int idS)
+{
+    for(int i = 0; i < this->listSpeaker.size(); ++i) {
+        if(i!=idS)
+        {
+            this->listSpeaker[i]->unSelectSpeaker();
+        }else{
+            this->listSpeaker[i]->selectSpeaker();
+        }
+    }
+    if(this->winSpeakConfig != nullptr){
+        this->winSpeakConfig->selectedRow(idS);
+    }
+}
 void MainContentComponent::addSpeaker(){
     this->lockSpeakers->lock();
     int idNewSpeaker = listSpeaker.size()+1;
