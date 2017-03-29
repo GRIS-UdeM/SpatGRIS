@@ -47,7 +47,7 @@ public:
     ~LevelComponent();
     
     void setOutputLab(String value) { this->idBut->setButtonText(value); }
-    void setColor(Colour color){ this->idBut->setColour(TextButton::buttonColourId, color);}
+    void setColor(Colour color){ this->idBut->setColour(TextButton::buttonColourId, color); this->repaint(); }
     float getLevel();
     void update();
     bool isMuted();

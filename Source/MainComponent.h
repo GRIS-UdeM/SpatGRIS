@@ -99,7 +99,7 @@ public:
     
     void resized() override;
     void buttonClicked (Button *button) override;
-    void sliderValueChanged (Slider* slider) override;
+    void sliderValueChanged (Slider *slider) override;
     void textEditorFocusLost (TextEditor &textEditor) override;
     void textEditorReturnKeyPressed (TextEditor &textEditor) override;
     
@@ -118,6 +118,8 @@ private:
     void savePreset(String path);
     
     void updateSkeapersConf();
+    
+    
     //==============================================================================
     #if USE_JACK
     jackClientGris *jackClient;

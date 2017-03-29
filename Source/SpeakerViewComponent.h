@@ -22,8 +22,11 @@
 
 #include <OpenGL/gl.h>
 #include <OpenGl/glu.h>
-#include <GLUT/glut.h>
 #include "../glm/glm.hpp"
+
+#include <OpenGL/gl3.h>
+#define __gl_h_
+#include <GLUT/glut.h>
 
 #include <math.h>
 
@@ -72,6 +75,7 @@ private:
     float raycast(Speaker *speaker);
     bool speakerNearCam(glm::vec3 speak1, glm::vec3 speak2, glm::vec3 cam);
     
+    void clickRay();
     void drawBackground();
     void drawOriginGrid();
     void drawText( string val, glm::vec3 position,float scale = 0.005f, bool camLock = true);
@@ -80,6 +84,7 @@ private:
     bool showShpere = false;
     bool showNumber = false;
     bool highPerf   = false;
+    bool clickLeft  = false;
     
     float camAngleX= 30.0f;
     float camAngleY= 25.0f;
@@ -88,11 +93,18 @@ private:
     float deltaClickX;
     float deltaClickY;
     
+    double rayClickX;
+    double rayClickY;
+    
     Ray ray;
     MainContentComponent *mainParent;
     glm::vec3 camPos;
     glm::vec4 perspectivCam;
+
     String nameConfig = "...";
+    
+    GLdouble xS, yS, zS = 0;
+    GLdouble xE, yE, zE = 0;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SpeakerViewComponent)
 };

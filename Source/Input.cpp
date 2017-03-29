@@ -50,13 +50,15 @@ void Input::draw(){
     // Draw 3D sphere.
     glPushMatrix();
     glTranslatef(this->center.x, this->center.y, this->center.z);
+    glRotatef(90, 1, 0, 0);
+    glTranslatef(-this->center.x, -this->center.y, -this->center.z);
+    
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glLineWidth(2);
-    glRotatef(90, 1, 0, 0);
     glColor3f(this->color.x, this->color.y, this->color.z);
     glutSolidSphere(sizeT, 6, 6);
-    glTranslatef(-1*this->center.x, -1*this->center.y, -1*this->center.z);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    
     glPopMatrix();
 }
 

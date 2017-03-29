@@ -157,6 +157,7 @@ bool LevelComponent::isMuted(){
 }
 
 void LevelComponent::setSelected(bool value){
+    const MessageManagerLock mmLock;
      if(value){
          this->idBut->setColour(TextButton::textColourOnId, this->grisFeel->getWinBackgroundColour());
          this->idBut->setColour(TextButton::textColourOffId, this->grisFeel->getWinBackgroundColour());
@@ -166,7 +167,6 @@ void LevelComponent::setSelected(bool value){
          this->idBut->setColour(TextButton::textColourOffId, this->grisFeel->getFontColour());
          this->idBut->setColour(TextButton::buttonColourId, this->grisFeel->getBackgroundColour());
      }
-     this->repaint();
 }
 
 void LevelComponent::setBounds(const Rectangle<int> &newBounds){

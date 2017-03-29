@@ -432,15 +432,18 @@ void MainContentComponent::openPreset(String path){
             this->tedOSCInPort->setText(mainXmlElem->getStringAttribute("OSC_Input_Port"));
             this->tedAddInputs->setText(mainXmlElem->getStringAttribute("Number_Of_Inputs"));
             this->sliderMasterGainOut->setValue(mainXmlElem->getDoubleAttribute("Master_Gain_Out"));
-            this->butShowSpeakerNumber->setToggleState(mainXmlElem->getBoolAttribute("Show_Numbers"),dontSendNotification);
-            this->butHighPerformance->setToggleState(mainXmlElem->getBoolAttribute("High_Performance"),dontSendNotification);
+            this->butShowSpeakerNumber->setToggleState(mainXmlElem->getBoolAttribute("Show_Numbers"),sendNotification);
+            this->butHighPerformance->setToggleState(mainXmlElem->getBoolAttribute("High_Performance"),sendNotification);
             this->pathCurrentFileSpeaker = mainXmlElem->getStringAttribute("Speaker_Setup_File");
             
-            textEditorReturnKeyPressed(*this->tedOSCInPort);
-            textEditorReturnKeyPressed(*this->tedAddInputs);
-            sliderValueChanged(this->sliderMasterGainOut);
-            buttonClicked(this->butShowSpeakerNumber);
-            buttonClicked(this->butHighPerformance);
+            
+            //Update----------------------------------
+            this->textEditorReturnKeyPressed(*this->tedOSCInPort);
+            this->textEditorReturnKeyPressed(*this->tedAddInputs);
+            this->sliderValueChanged(this->sliderMasterGainOut);
+            
+            /*this->buttonClicked(this->butShowSpeakerNumber);
+            this->buttonClicked(this->butHighPerformance);*/
             
             forEachXmlChildElement (*mainXmlElem, input)
             {
@@ -454,6 +457,9 @@ void MainContentComponent::openPreset(String path){
                     }
                 }
             }
+            
+            this->openXmlFileSpeaker(this->pathCurrentFileSpeaker);
+            
         }
     }
 }
