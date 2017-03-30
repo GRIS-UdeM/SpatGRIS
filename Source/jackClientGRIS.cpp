@@ -162,12 +162,14 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
     jack_default_audio_sample_t * ins[sizeInputs];
     jack_default_audio_sample_t * outs[sizeOutputs];
     
+    
     for (int i = 0; i < sizeInputs; i++) {
         ins[i] = (jack_default_audio_sample_t*)jack_port_get_buffer (jackCli->inputsPort[i], nframes);
     }
     for (int i = 0; i < sizeOutputs; i++) {
         outs[i] = (jack_default_audio_sample_t*)jack_port_get_buffer (jackCli->outputsPort[i], nframes);
     }
+    
     
     //NoiseSound-----------------------------------------------
     if(jackCli->noiseSound){
@@ -185,7 +187,16 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
     //Basix Free volume Spat---------------------------------------
     processFreeVolume(*jackCli, ins, outs, nframes, sizeInputs, sizeOutputs);
     
-    
+
+    //cout << fOldValuesPortion<< newLine;
+    /*for (int i = 0; i < sizeOutputs; i++) {
+        for (int f = 0; f < nframes; ++f){
+            if(outs[i][f] != (outsLast[i][f]) ){
+                outs[i][f] -= (outsLast[i][f]*0.9);
+            }
+               //Other input
+        }
+    }*/
     //Basic Sound Transfert------------------(I -> O)
     /*for (int iSpeaker = 0; iSpeaker < sizeInputs; iSpeaker++) {
         if(iSpeaker < sizeOutputs){

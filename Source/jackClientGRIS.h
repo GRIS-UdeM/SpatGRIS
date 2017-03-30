@@ -22,6 +22,8 @@
 #include <vector>
 #include <stdio.h>
 #include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
