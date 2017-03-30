@@ -378,7 +378,7 @@ void MainContentComponent::updateLevelComp(){
         x+=SizeWidthLevelComp;
         indexS+=1;
         SpeakerOut so;
-        so.id = it->getIdSpeaker();
+        so.id = it->getOutputPatch();
         
         so.x = it->getCoordinate().x;
         so.y = it->getCoordinate().y;
@@ -387,7 +387,7 @@ void MainContentComponent::updateLevelComp(){
         so.azimuth = it->getAziZenRad().x;
         so.zenith = it->getAziZenRad().y;
         so.radius = it->getAziZenRad().z;
-        this->jackClient->listSpeakerOut.setUnchecked(i,so);
+        this->jackClient->listSpeakerOut.setUnchecked(it->getOutputPatch()-1,so);
         i++;
     }
     
@@ -413,6 +413,7 @@ void MainContentComponent::updateLevelComp(){
         si.radius = it->getRad();
         
         this->jackClient->listSourceIn.setUnchecked(i,si);
+        i++;
     }
     if(this->winSpeakConfig != nullptr){
         this->winSpeakConfig->updateWinContent();

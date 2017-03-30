@@ -92,8 +92,8 @@ public:
     void soloInput(int id, bool solo);
     void soloOutput(int id, bool solo);
     //=======================================================================
-    float getLevelsOut(int indexLevel){return (20.0f * log10(sqrt(this->jackClient->getLevelsOut(indexLevel))));}
-    float getLevelsIn(int indexLevel){return (20.0f * log10(sqrt(this->jackClient->getLevelsIn(indexLevel)))); }
+    float getLevelsOut(int indexLevel){return (20.0f * log10f(sqrtf(this->jackClient->getLevelsOut(indexLevel))));}
+    float getLevelsIn(int indexLevel){return (20.0f * log10f(sqrtf(this->jackClient->getLevelsIn(indexLevel)))); }
     
 
     void destroyWinSpeakConf() { this->winSpeakConfig = nullptr; }
