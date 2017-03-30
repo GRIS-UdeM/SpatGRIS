@@ -67,7 +67,7 @@ static void muteSoloVuMeterGainOut(jackClientGris & jackCli, jack_default_audio_
         for (int i = 0; i < sizeOutputs; ++i) {
             //Gain volume
             outs[i][nF] *= mGain;
-            
+            //cout << outs[i][nF] << newLine;
             sumsOut[i] +=  outs[i][nF] * outs[i][nF];
         }
     }
@@ -130,13 +130,42 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
     
     
     //================ PROCESS ==============================================
+
+    for (int o = 0; o < sizeSpkeakerOut; o++) {
+        
+        float outputX =  jackCli->listSpeakerOut.at(o).x;
+        float outputY =  jackCli->listSpeakerOut.at(o).z;
+        
+        for (int i = 0; i < sizeSourceIn; i++) {
+            
+            float inputX =  jackCli->listSourceIn.at(i).x;
+            float inputY =  jackCli->listSourceIn.at(i).z;
+
+            for (unsigned int f = 0; f < nframes; f++){
+                float dx = inputX - outputX;
+                float dy = inputY - outputY;
+                float d = sqrtf(dx*dx + dy*dy);
+                float da = d ;//* adj_factor ;//* inputR[f];
+                if (da > 1.0f) da = 1.0f;
+                if (da < 0.1f) da = 0.1f;
+                da = -log10f(da);
+                if (i == 0){
+                    outs[o][f] = da * ins[i][f];
+                } else {
+                    outs[o][f] +=  da * ins[i][f];
+                }
+            }
+        }
+    }
+    
+    
     
     //Basic Sound Transfert------------------(I -> O)
-    for (int iSpeaker = 0; iSpeaker < sizeInputs; iSpeaker++) {
+    /*for (int iSpeaker = 0; iSpeaker < sizeInputs; iSpeaker++) {
         if(iSpeaker < sizeOutputs){
             memcpy (outs[iSpeaker], ins[iSpeaker] , sizeof (jack_default_audio_sample_t) * nframes);
         }
-    }
+    }*/
     
     //Get Speaker and Source values
     /*for (int i = 0; i < sizeSpkeakerOut; i++) {

@@ -354,6 +354,10 @@ void MainContentComponent::removeSpeaker(int idSpeaker){
 
 void MainContentComponent::updateInputJack(int inInput, Input &inp){
     SourceIn *si = &this->jackClient->listSourceIn[inInput];
+    si->x = inp.getCenter().x/10.0f;
+    si->y = inp.getCenter().y/10.0f;
+    si->z = inp.getCenter().z/10.0f;
+
     si->azimuth = inp.getAziMuth();
     si->zenith = inp.getZenith();
     si->radius = inp.getRad();
@@ -374,6 +378,11 @@ void MainContentComponent::updateLevelComp(){
         indexS+=1;
         SpeakerOut so;
         so.id = it->getIdSpeaker();
+        
+        so.x = it->getCoordinate().x;
+        so.y = it->getCoordinate().y;
+        so.z = it->getCoordinate().z;
+
         so.azimuth = it->getAziZenRad().x;
         so.zenith = it->getAziZenRad().y;
         so.radius = it->getAziZenRad().z;
@@ -393,6 +402,9 @@ void MainContentComponent::updateLevelComp(){
         indexS+=1;
         SourceIn si;
         si.id = it->getId();
+        si.x = it->getCenter().x/10.0f;
+        si.y = it->getCenter().y/10.0f;
+        si.z = it->getCenter().z/10.0f;
         si.azimuth = it->getAziMuth();
         si.zenith = it->getZenith();
         si.radius = it->getRad();
@@ -745,7 +757,7 @@ void MainContentComponent::buttonClicked (Button *button)
         float hue = 0;
         for (auto&& it : listSourceInput)
         {
-            it->setColor(Colour::fromHSV(hue, 1, 0.8, 1), true);
+            it->setColor(Colour::fromHSV(hue, 1, 0.85, 1), true);
             hue+=0.01f;
         }
     }

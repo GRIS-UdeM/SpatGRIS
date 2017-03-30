@@ -48,17 +48,25 @@ struct Client {
 
 struct SpeakerOut {
     unsigned int id;
-    float azimuth;
-    float zenith;
-    float radius;
+    float x = 1.0f;
+    float y = 0.0f;;
+    float z = 0.0f;;//Not Implemented
+    
+    float azimuth = 0.0f;;
+    float zenith = 0.0f;;
+    float radius = 0.0f;;
     float gain;//Not Implemented
 };
 
 struct SourceIn {
     unsigned int id;
-    float azimuth;
-    float zenith;
-    float radius;
+    float x = 1.0f;;
+    float y = 0.0f;;
+    float z = 0.0f;;//Not Implemented
+    
+    float azimuth = 0.0f;;
+    float zenith = 0.0f;;
+    float radius = 0.0f;;
     float gain;//Not Implemented
 };
 
