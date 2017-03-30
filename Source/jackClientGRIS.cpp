@@ -19,6 +19,10 @@
 #include <cmath>
 
 
+
+//=========================================================================================
+//MUTE SOLO MasterGainOut and NOISE
+//=========================================================================================
 static void muteSoloVuMeterIn(jackClientGris & jackCli, jack_default_audio_sample_t ** ins, const jack_nframes_t &nframes, const unsigned int &sizeInputs){
     for (int i = 0; i < sizeInputs; ++i) {
         if(jackCli.muteIn[i]){
@@ -96,6 +100,55 @@ static void addNoiseSound(jackClientGris & jackCli, jack_default_audio_sample_t 
     }
 }
 
+//=========================================================================================
+//FREE VOLUME PROCESS (Basic)
+//=========================================================================================
+static void processFreeVolume(jackClientGris & jackCli, jack_default_audio_sample_t ** ins, jack_default_audio_sample_t ** outs, const jack_nframes_t &nframes, const unsigned int &sizeInputs, const unsigned int &sizeOutputs){
+    
+    float outputX, outputY, dx, dy, da;
+    unsigned int i,o,f;
+    
+    //Basix Free volume Spat---------------------------------------
+    for (o = 0; o < sizeOutputs; ++o) {
+        
+        outputX = jackCli.listSpeakerOut[o].x;
+        outputY = jackCli.listSpeakerOut[o].z;
+        
+        //Process Input 1-------------------------------------
+        dx = jackCli.listSourceIn[0].x - outputX;
+        dy = jackCli.listSourceIn[0].z - outputY;
+        da = sqrtf(dx*dx + dy*dy);
+        
+        if (da > 1.0f) da = 1.0f;
+        if (da < 0.1f) da = 0.1f;
+        
+        da = -log10f(da);
+        for (f = 0; f < nframes; ++f){
+            outs[o][f] = da * ins[0][f];        //Diff Input 1
+        }
+        
+        //Process Other Input -----------------------------------
+        for (i = 1; i < sizeInputs; ++i) {
+            
+            dx = jackCli.listSourceIn[i].x - outputX;
+            dy = jackCli.listSourceIn[i].z - outputY;
+            da = sqrtf(dx*dx + dy*dy);
+            
+            if (da > 1.0f) da = 1.0f;
+            if (da < 0.1f) da = 0.1f;
+            
+            da = -log10f(da);
+            for (f = 0; f < nframes; ++f){
+                outs[o][f] += da * ins[i][f];   //Other input
+            }
+        }
+    }
+}
+
+
+//=========================================================================================
+//MASTER PROCESS
+//=========================================================================================
 static int process_audio (jack_nframes_t nframes, void* arg) {
 
     jackClientGris* jackCli = (jackClientGris*)arg;
@@ -130,39 +183,7 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
     //================ PROCESS ==============================================
 
     //Basix Free volume Spat---------------------------------------
-    for (int o = 0; o < sizeOutputs; o++) {
-        
-        float outputX =  jackCli->listSpeakerOut[o].x;
-        float outputY =  jackCli->listSpeakerOut[o].z;
-        
-        //Process Input 1-------------------------------------
-        float dx = jackCli->listSourceIn[0].x - outputX;
-        float dy = jackCli->listSourceIn[0].z - outputY;
-        float da = sqrtf(dx*dx + dy*dy);
-        if (da > 1.0f) da = 1.0f;
-        if (da < 0.1f) da = 0.1f;
-        da = -log10f(da);
-        for (unsigned int f = 0; f < nframes; ++f){
-            outs[o][f] = da * ins[0][f];
-        }
-       
-        //Process Other Input -----------------------------------
-        for (int i = 1; i < sizeInputs; i++) {
-            
-            dx = jackCli->listSourceIn[i].x - outputX;
-            dy = jackCli->listSourceIn[i].z - outputY;
-            da = sqrtf(dx*dx + dy*dy);
-
-            if (da > 1.0f) da = 1.0f;
-            if (da < 0.1f) da = 0.1f;
-            
-            da = -log10f(da);
-            for (unsigned int f = 0; f < nframes; ++f){
-                outs[o][f] += da * ins[i][f];
-            }
-        }
-    }
-    
+    processFreeVolume(*jackCli, ins, outs, nframes, sizeInputs, sizeOutputs);
     
     
     //Basic Sound Transfert------------------(I -> O)
@@ -170,14 +191,6 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
         if(iSpeaker < sizeOutputs){
             memcpy (outs[iSpeaker], ins[iSpeaker] , sizeof (jack_default_audio_sample_t) * nframes);
         }
-    }*/
-    
-    //Get Speaker and Source values
-    /*for (int i = 0; i < sizeSpkeakerOut; i++) {
-        printf("%i : %f  - %f - %f \n", jackCli->listSpeakerOut.at(i).id, jackCli->listSpeakerOut.at(i).azimuth, jackCli->listSpeakerOut.at(i).zenith, jackCli->listSpeakerOut.at(i).radius);
-    }
-    for (int i = 0; i < sizeSourceIn; i++) {
-        printf("%i : %f  - %f \n", jackCli->listSourceIn.at(i).id, jackCli->listSourceIn.at(i).azimuth, jackCli->listSourceIn.at(i).zenith);
     }*/
     
     
