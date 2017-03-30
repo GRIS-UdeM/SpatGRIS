@@ -72,7 +72,7 @@ struct SourceIn {
 
 static const unsigned int BufferSize[] = {256, 512, 1024, 2048};
 
-static unsigned int const MaxInputs = 256;
+static unsigned int const MaxInputs = 128;
 static unsigned int const MaxOutputs = 128;
 
 static const char* ClientName =     "jackClientGris";
@@ -106,11 +106,13 @@ public:
     float masterGainOut;
     //------------------------
     vector<Client> listClient;
-    vector<SourceIn> listSourceIn;
-    vector<SpeakerOut> listSpeakerOut;
+    Array<SourceIn> listSourceIn;
+    Array<SpeakerOut> listSpeakerOut;
     
     bool noiseSound;
     bool autoConnection;
+    bool overload;
+    
     unsigned int sampleRate;
     unsigned int bufferSize;
     unsigned int numberInputs;

@@ -62,7 +62,6 @@ MainContentComponent::MainContentComponent(){
     this->labelJackBuffer = addLabel("0000 spls","Buffer Size",240, 0, 80, 28,this->boxControlUI->getContent());
     this->labelJackInfo = addLabel("...","Jack Inputs/Outputs system",320, 0, 80, 28,this->boxControlUI->getContent());
     
-    
     this->labelJackStatus->setColour(Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
     this->labelJackLoad->setColour(Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
     this->labelJackRate->setColour(Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
@@ -243,7 +242,7 @@ Slider* MainContentComponent::addSlider(const String &s, const String &stooltip,
 }
 
 bool MainContentComponent::exitApp(){
-    ScopedPointer<AlertWindow> alert = new AlertWindow ("Exi SpatServerGRIS !","Do you want to save preset ?", AlertWindow::InfoIcon);
+    ScopedPointer<AlertWindow> alert = new AlertWindow ("Exit SpatServerGRIS !","Do you want to save preset ?", AlertWindow::InfoIcon);
     alert->addButton ("Save", 1);
     alert->addButton ("Cancel", 0);
     alert->addButton ("Exit", 2);
@@ -353,7 +352,7 @@ void MainContentComponent::removeSpeaker(int idSpeaker){
 }
 
 void MainContentComponent::updateInputJack(int inInput, Input &inp){
-    SourceIn *si = &this->jackClient->listSourceIn[inInput];
+    SourceIn *si = &this->jackClient->listSourceIn.getReference(inInput);
     si->x = inp.getCenter().x/10.0f;
     si->y = inp.getCenter().y/10.0f;
     si->z = inp.getCenter().z/10.0f;
@@ -364,10 +363,12 @@ void MainContentComponent::updateInputJack(int inInput, Input &inp){
 }
 
 void MainContentComponent::updateLevelComp(){
+
     int x = 2;
     int indexS = 0;
     
-    this->jackClient->listSpeakerOut.clear();
+    //this->jackClient->listSpeakerOut.clear();
+    int i = 0;
     for (auto&& it : this->listSpeaker)
     {
         juce::Rectangle<int> level(x, 4, SizeWidthLevelComp, 200);
@@ -386,12 +387,14 @@ void MainContentComponent::updateLevelComp(){
         so.azimuth = it->getAziZenRad().x;
         so.zenith = it->getAziZenRad().y;
         so.radius = it->getAziZenRad().z;
-        this->jackClient->listSpeakerOut.push_back(so);
+        this->jackClient->listSpeakerOut.setUnchecked(i,so);
+        i++;
     }
     
     x = 2;
     indexS = 0;
-    this->jackClient->listSourceIn.clear();
+    //this->jackClient->listSourceIn.clear();
+    i=0;
     for (auto&& it : this->listSourceInput)
     {
         juce::Rectangle<int> level(x, 4, SizeWidthLevelComp, 200);
@@ -408,12 +411,13 @@ void MainContentComponent::updateLevelComp(){
         si.azimuth = it->getAziMuth();
         si.zenith = it->getZenith();
         si.radius = it->getRad();
-        this->jackClient->listSourceIn.push_back(si);
+        
+        this->jackClient->listSourceIn.setUnchecked(i,si);
     }
     if(this->winSpeakConfig != nullptr){
         this->winSpeakConfig->updateWinContent();
     }
-    
+
     this->boxOutputsUI->repaint();
     this->resized();
 }
@@ -613,6 +617,12 @@ void MainContentComponent::savePresetSpeakers(String path){
 
 void MainContentComponent::timerCallback(){
     this->labelJackLoad->setText(String(this->jackClient->getCpuUsed())+ " %", dontSendNotification);
+    if(this->jackClient->overload){
+        this->labelJackLoad->setColour(Label::backgroundColourId, Colours::darkred);
+    }else{
+        this->labelJackLoad->setColour(Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
+    }
+    
     for (auto&& it : listSourceInput)
     {
         it->getVuMeter()->update();

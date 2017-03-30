@@ -99,13 +99,11 @@ static void addNoiseSound(jackClientGris & jackCli, jack_default_audio_sample_t 
 static int process_audio (jack_nframes_t nframes, void* arg) {
 
     jackClientGris* jackCli = (jackClientGris*)arg;
-    
-    
+
     //================ LOAD BUFFER ============================================
     const unsigned int sizeInputs = jackCli->inputsPort.size() ;
     const unsigned int sizeOutputs = jackCli->outputsPort.size() ;
-    const unsigned int sizeSourceIn = jackCli->listSourceIn.size() ;
-    const unsigned int sizeSpkeakerOut = jackCli->listSpeakerOut.size() ;
+    
     
     //Get all buffer from all input - output
     jack_default_audio_sample_t * ins[sizeInputs];
@@ -131,29 +129,36 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
     
     //================ PROCESS ==============================================
 
-    for (int o = 0; o < sizeSpkeakerOut; o++) {
+    //Basix Free volume Spat---------------------------------------
+    for (int o = 0; o < sizeOutputs; o++) {
         
-        float outputX =  jackCli->listSpeakerOut.at(o).x;
-        float outputY =  jackCli->listSpeakerOut.at(o).z;
+        float outputX =  jackCli->listSpeakerOut[o].x;
+        float outputY =  jackCli->listSpeakerOut[o].z;
         
-        for (int i = 0; i < sizeSourceIn; i++) {
+        //Process Input 1-------------------------------------
+        float dx = jackCli->listSourceIn[0].x - outputX;
+        float dy = jackCli->listSourceIn[0].z - outputY;
+        float da = sqrtf(dx*dx + dy*dy);
+        if (da > 1.0f) da = 1.0f;
+        if (da < 0.1f) da = 0.1f;
+        da = -log10f(da);
+        for (unsigned int f = 0; f < nframes; ++f){
+            outs[o][f] = da * ins[0][f];
+        }
+       
+        //Process Other Input -----------------------------------
+        for (int i = 1; i < sizeInputs; i++) {
             
-            float inputX =  jackCli->listSourceIn.at(i).x;
-            float inputY =  jackCli->listSourceIn.at(i).z;
+            dx = jackCli->listSourceIn[i].x - outputX;
+            dy = jackCli->listSourceIn[i].z - outputY;
+            da = sqrtf(dx*dx + dy*dy);
 
-            for (unsigned int f = 0; f < nframes; f++){
-                float dx = inputX - outputX;
-                float dy = inputY - outputY;
-                float d = sqrtf(dx*dx + dy*dy);
-                float da = d ;//* adj_factor ;//* inputR[f];
-                if (da > 1.0f) da = 1.0f;
-                if (da < 0.1f) da = 0.1f;
-                da = -log10f(da);
-                if (i == 0){
-                    outs[o][f] = da * ins[i][f];
-                } else {
-                    outs[o][f] +=  da * ins[i][f];
-                }
+            if (da > 1.0f) da = 1.0f;
+            if (da < 0.1f) da = 0.1f;
+            
+            da = -log10f(da);
+            for (unsigned int f = 0; f < nframes; ++f){
+                outs[o][f] += da * ins[i][f];
             }
         }
     }
@@ -180,7 +185,7 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
     //================ OUTPUTS ==============================================
     muteSoloVuMeterGainOut(*jackCli, outs, nframes, sizeOutputs, jackCli->masterGainOut);
     //-----------------------------------------
-    
+    jackCli->overload = false;
     return 0;
 }
 
@@ -211,6 +216,8 @@ int graph_order_callback ( void * arg)
 
 int xrun_callback ( void * arg)
 {
+    jackClientGris* jackCli = (jackClientGris*)arg;
+    jackCli->overload = true;
     printf ("xrun_callback \n");
     return 0;
 }
@@ -309,11 +316,13 @@ jackClientGris::jackClientGris() {
     this->noiseSound = false;
     this->clientReady = false;
     this->autoConnection = false;
+    this->overload = false;
     this->masterGainOut = 1.0f;
     
     this->listClient =  vector<Client>();
-    this->listSourceIn =  vector<SourceIn>();
-    this->listSpeakerOut =  vector<SpeakerOut>();
+    this->listSourceIn.resize(MaxInputs);
+    this->listSpeakerOut.resize(MaxOutputs);
+
     
     fill(this->muteIn, this->muteIn+MaxInputs, false);
     fill(this->soloIn, this->soloIn+MaxInputs+1, false);
@@ -366,7 +375,7 @@ jackClientGris::jackClientGris() {
     
     jack_set_graph_order_callback           (this->client, graph_order_callback, this);
     jack_set_xrun_callback                  (this->client, xrun_callback, this);
-    //jack_set_latency_callback               (this->client, latency_callback, this);
+    jack_set_latency_callback               (this->client, latency_callback, this);
     
     //Default buffer size 1024
     jack_set_buffer_size(this->client, 1024);
