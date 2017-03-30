@@ -72,8 +72,8 @@ struct SourceIn {
 
 static const unsigned int BufferSize[] = {256, 512, 1024, 2048};
 
-static unsigned int const MaxInputs = 128;
-static unsigned int const MaxOutputs = 128;
+static unsigned int const MaxInputs = 256;
+static unsigned int const MaxOutputs = 256;
 
 static const char* ClientName =     "jackClientGris";
 static const char* DriverNameSys =  "coreaudio";
