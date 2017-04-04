@@ -60,20 +60,21 @@ void SpeakerViewComponent::render() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     //Smooth
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH | GLUT_MULTISAMPLE);
-    
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    
-    glEnable(GL_LINE_SMOOTH);
-    glHint(GL_LINE_SMOOTH, GL_NICEST);
-    
-    glEnable(GL_POINT_SMOOTH);
-    glHint(GL_POINT_SMOOTH, GL_NICEST);
-
-    glEnable(GL_MULTISAMPLE_ARB);
-    glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
-    
+    if(!this->highPerf){
+        glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH | GLUT_MULTISAMPLE);
+        
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        
+        glEnable(GL_LINE_SMOOTH);
+        glHint(GL_LINE_SMOOTH, GL_NICEST);
+        
+        glEnable(GL_POINT_SMOOTH);
+        glHint(GL_POINT_SMOOTH, GL_NICEST);
+        
+        glEnable(GL_MULTISAMPLE_ARB);
+        glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
+    }
     
     drawBackground();
     
@@ -137,7 +138,16 @@ void SpeakerViewComponent::render() {
         this->mainParent->getLockSpeakers()->unlock();
         }
     }
-
+    
+    if(this->clickLeft){
+        this->clickRay();
+    }
+    
+    /*glLineWidth(2);
+    glBegin(GL_LINES);
+    glColor3f(0.8, 0, 0); glVertex3f(xS, yS, zS); glVertex3f(xE, yE, zE);
+    glEnd();*/
+    
     glFlush();
 }
 
@@ -155,6 +165,43 @@ void SpeakerViewComponent::resized() {
     //draggableOrientation.setViewport (getLocalBounds());
 }
 
+void SpeakerViewComponent::clickRay(){
+    this->clickLeft = false;
+    double matModelView[16], matProjection[16];
+    int viewport[4];
+    
+    glGetDoublev( GL_MODELVIEW_MATRIX, matModelView );
+    glGetDoublev( GL_PROJECTION_MATRIX, matProjection );
+    glGetIntegerv( GL_VIEWPORT, viewport );
+    
+    double winX = this->rayClickX;
+    double winY = viewport[3] - this->rayClickY;
+    
+    gluUnProject(winX, winY, 0.0, matModelView, matProjection,viewport, &xS, &yS,&zS);
+    gluUnProject(winX, winY, 1.0, matModelView, matProjection, viewport, &xE, &yE, &zE);
+    
+    /*cout << winX << " - " << winY << newLine;
+     cout << (double)e.getPosition().x << " <> " << (double)e.getPosition().y << newLine;
+     cout << xS << " * " << yS << " * " << zS << xE << " * " << yE << " * " << zE << newLine;*/
+    
+    this->ray.setRay(glm::vec3(xS, yS, zS),glm::vec3(xE, yE, zE));
+    
+    int iBestSpeaker = -1;
+    this->mainParent->getLockSpeakers()->lock();
+    for(int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
+        if (raycast( this->mainParent->getListSpeaker()[i]) != -1 ) {
+            if(iBestSpeaker == -1){
+                iBestSpeaker = i;
+            }else{
+                if(speakerNearCam(this->mainParent->getListSpeaker()[i]->getCenter(), this->mainParent->getListSpeaker()[iBestSpeaker]->getCenter(), camPos)){
+                    iBestSpeaker = i;
+                }
+            }
+        }
+    }
+    this->mainParent->selectSpeaker(iBestSpeaker);
+    this->mainParent->getLockSpeakers()->unlock();
+}
 
 void SpeakerViewComponent::mouseDown (const MouseEvent& e) {
     
@@ -162,50 +209,9 @@ void SpeakerViewComponent::mouseDown (const MouseEvent& e) {
     deltaClickY = camAngleY - e.getPosition().y;
 
     if(e.mods.isLeftButtonDown()){
-        
-        double matModelView[16], matProjection[16];
-        int viewport[4];
-        
-        glGetDoublev( GL_MODELVIEW_MATRIX, matModelView );
-        glGetDoublev( GL_PROJECTION_MATRIX, matProjection );
-        glGetIntegerv( GL_VIEWPORT, viewport );
-        double winX = (double)e.getPosition().x;
-        double winY = viewport[3] - (double)e.getPosition().y;
-        
-        GLdouble xS, yS, zS;
-        GLdouble xE, yE, zE;
-        
-        gluUnProject(winX, winY, 0.0, matModelView, matProjection,viewport, &xS, &yS,&zS);
-        gluUnProject(winX, winY, 1.0, matModelView, matProjection, viewport, &xE, &yE, &zE);
-        
-        ray = Ray(glm::vec3(xS, yS, zS),glm::vec3(xE, yE, zE));
-        
-        int iBestSpeaker = -1;
-        if(this->mainParent->getLockSpeakers()->try_lock()){
-        for(int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
-            if (raycast( this->mainParent->getListSpeaker()[i]) != -1 ) {
-                if(iBestSpeaker == -1){
-                    iBestSpeaker = i;
-                }else{
-                    if(speakerNearCam(this->mainParent->getListSpeaker()[i]->getCenter(), this->mainParent->getListSpeaker()[iBestSpeaker]->getCenter(), camPos)){
-                        iBestSpeaker = i;
-                    }
-                }
-            }
-        }
-        
-
-        for(int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
-            if(i!=iBestSpeaker)
-            {
-                this->mainParent->getListSpeaker()[i]->unSelectSpeaker();
-            }else{
-                this->mainParent->getListSpeaker()[i]->selectSpeaker();
-            }
-        }
-        this->mainParent->getLockSpeakers()->unlock();
-        }
-        this->mainParent->refreshWinSpeakConf(iBestSpeaker);
+        this->rayClickX = (double)e.getPosition().x;
+        this->rayClickY = (double)e.getPosition().y;
+        this->clickLeft = true;
     }
 }
 
@@ -306,7 +312,7 @@ void SpeakerViewComponent::drawOriginGrid()
 void SpeakerViewComponent::drawText(string val, glm::vec3 position,float scale, bool camLock){
     glPushMatrix();
     glTranslatef(position.x, position.y, position.z);
-    
+
     //glRotatef(-90.0f, 1, 1, 0);
     if(camLock){
         glRotatef((camAngleX), 0, 1, 0);
@@ -321,8 +327,7 @@ void SpeakerViewComponent::drawText(string val, glm::vec3 position,float scale, 
     {
         glutStrokeCharacter( GLUT_STROKE_MONO_ROMAN, c );
     }
-   
-    glTranslatef(-1*position.x, -1*position.y, -1*position.z);
+        glTranslatef(-position.x, -position.y, -position.z);
     glPopMatrix();
 }
 
@@ -383,12 +388,12 @@ void SpeakerViewComponent::drawCube(float x, float y, float z)
 
 
 float SpeakerViewComponent::raycast(Speaker *speaker) {
-    float t1 = (speaker->getMin().x - ray.getPosition().x) / ray.getNormal().x;
-    float t2 = (speaker->getMax().x - ray.getPosition().x) / ray.getNormal().x;
-    float t3 = (speaker->getMin().y - ray.getPosition().y) / ray.getNormal().y;
-    float t4 = (speaker->getMax().y - ray.getPosition().y) / ray.getNormal().y;
-    float t5 = (speaker->getMin().z - ray.getPosition().z) / ray.getNormal().z;
-    float t6 = (speaker->getMax().z - ray.getPosition().z) / ray.getNormal().z;
+    float t1 = (speaker->getMin().x - this->ray.getPosition().x) / this->ray.getNormal().x;
+    float t2 = (speaker->getMax().x - this->ray.getPosition().x) / this->ray.getNormal().x;
+    float t3 = (speaker->getMin().y - this->ray.getPosition().y) / this->ray.getNormal().y;
+    float t4 = (speaker->getMax().y - this->ray.getPosition().y) / this->ray.getNormal().y;
+    float t5 = (speaker->getMin().z - this->ray.getPosition().z) / this->ray.getNormal().z;
+    float t6 = (speaker->getMax().z - this->ray.getPosition().z) / this->ray.getNormal().z;
     
     float tmin = fmax(fmax(fmin(t1, t2), fmin(t3, t4)), fmin(t5, t6));
     float tmax = fmin(fmin(fmax(t1, t2), fmax(t3, t4)), fmax(t5, t6));

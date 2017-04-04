@@ -26,11 +26,12 @@ public :
         this->normal = glm::vec3(0,0,0);
     }
     
-    Ray(glm::vec3 p, glm::vec3 d) {
-        this->position = p;
-        this->direction = d;
+    void setRay(glm::vec3 p, glm::vec3 d) {
+        this->position = glm::vec3(p);
+        this->direction = glm::vec3(d);
         this->normal = (this->direction - this->position)/5000.0f;//normalize(glm::vec3(d.x, d.y, d.z));
     }
+    
     
     glm::vec3 getNormal() {
         return this->normal;

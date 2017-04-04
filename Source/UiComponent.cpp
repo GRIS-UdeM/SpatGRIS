@@ -86,14 +86,13 @@ BoxClient::BoxClient(MainContentComponent * parent, GrisLookAndFeel *feel){
     tableListClient.setColour(ListBox::backgroundColourId, this->grisFeel->getWinBackgroundColour());
     tableListClient.setOutlineThickness (1);
     
-    tableListClient.getHeader().addColumn("Name", 1, 90, 70, 120,TableHeaderComponent::defaultFlags);
+    tableListClient.getHeader().addColumn("Client",   1, 80, 70, 120,TableHeaderComponent::notSortable);
     
-    tableListClient.getHeader().addColumn("Start", 2, 40, 35, 70,TableHeaderComponent::defaultFlags);
-    tableListClient.getHeader().addColumn("End", 3, 40, 35, 70,TableHeaderComponent::defaultFlags);
-    tableListClient.getHeader().addColumn("On/Off", 4, 40, 35, 70,TableHeaderComponent::defaultFlags);
-    
-    
-    tableListClient.getHeader().setSortColumnId (1, true); // sort forwards by the ID column
+    tableListClient.getHeader().addColumn("Start",  2, 40, 35, 70,TableHeaderComponent::notSortable);
+    tableListClient.getHeader().addColumn("End",    3, 40, 35, 70,TableHeaderComponent::notSortable);
+    tableListClient.getHeader().addColumn("Available", 4, 50, 35, 70,TableHeaderComponent::notSortable);
+    tableListClient.getHeader().addColumn("On/Off", 5, 45, 35, 70,TableHeaderComponent::notSortable);
+
 
     tableListClient.setMultipleSelectionEnabled (false);
     
@@ -121,6 +120,7 @@ void BoxClient::setBounds(int x, int y, int width, int height)
 void BoxClient::updateContentCli(){
     numRows =this->mainParent->getListClientjack()->size();
     tableListClient.updateContent();
+    tableListClient.repaint();
 }
 
 void BoxClient::setValue (const int rowNumber, const int columnNumber,const int newRating)
@@ -164,14 +164,9 @@ String BoxClient::getText (const int columnNumber, const int rowNumber) const
             case 1 :
                 text =String(this->mainParent->getListClientjack()->at(rowNumber).name);
                 break;
-                
-            /*case 2 :
-                text =String(this->mainParent->getListClientjack()->at(rowNumber).portStart);
+            case 4 :
+                text =String(this->mainParent->getListClientjack()->at(rowNumber).portAvailable);
                 break;
-                
-            case 3 :
-                text =String(this->mainParent->getListClientjack()->at(rowNumber).portEnd);
-                break;*/
             
             default:
                 text ="?";
@@ -214,6 +209,10 @@ void BoxClient::paintCell (Graphics& g, int rowNumber, int columnId, int width, 
             String text = getText(columnId, rowNumber);
             g.drawText (text, 2, 0, width - 4, height, Justification::centredLeft, true);
         }
+        if(columnId==4){
+            String text = getText(columnId, rowNumber);
+            g.drawText (text, 2, 0, width - 4, height, Justification::centred, true);
+        }
     }
 
     g.setColour (Colours::black.withAlpha (0.2f));
@@ -223,11 +222,11 @@ void BoxClient::paintCell (Graphics& g, int rowNumber, int columnId, int width, 
 Component* BoxClient::refreshComponentForCell (int rowNumber, int columnId, bool /*isRowSelected*/,
                                                        Component* existingComponentToUpdate)
 {
-     if(columnId==1){
+     if(columnId==1|| columnId==4){
          return existingComponentToUpdate;
      }
     
-    if(columnId==4){
+    if(columnId==5){
         TextButton* tbRemove = static_cast<TextButton*> (existingComponentToUpdate);
         if (tbRemove == nullptr){
             tbRemove = new TextButton ();
@@ -262,12 +261,57 @@ Component* BoxClient::refreshComponentForCell (int rowNumber, int columnId, bool
 
 //======================================= Window Edit Speaker============================================================
 
-WindowEditSpeaker::WindowEditSpeaker(const String& name, Colour backgroundColour, int buttonsNeeded,
+WindowEditSpeaker::WindowEditSpeaker(const String& name, String& nameC,Colour backgroundColour, int buttonsNeeded,
                                      MainContentComponent * parent, GrisLookAndFeel * feel):
     DocumentWindow (name, backgroundColour, buttonsNeeded), font (14.0f)
 {
     this->mainParent = parent;
     this->grisFeel = feel;
+    
+    this->boxListSpeaker = new Box(this->grisFeel, "Configuration Speakers");
+    
+    this->butAddSpeaker = new TextButton();
+    this->butAddSpeaker->setButtonText("Add Speaker");
+    this->butAddSpeaker->setBounds(4, 404, 88, 22);
+    this->butAddSpeaker->addListener(this);
+    this->butAddSpeaker->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
+    this->butAddSpeaker->setLookAndFeel(this->grisFeel);
+    this->boxListSpeaker->getContent()->addAndMakeVisible(this->butAddSpeaker);
+    
+    
+    this->toggleShowSphere = new ToggleButton();
+    this->toggleShowSphere->setButtonText("Show Sphere");
+    this->toggleShowSphere->setBounds(4, 430, 120, 22);
+    this->toggleShowSphere->addListener(this);
+    this->toggleShowSphere->setToggleState(false, dontSendNotification);
+    this->toggleShowSphere->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
+    this->toggleShowSphere->setLookAndFeel(this->grisFeel);
+    this->boxListSpeaker->getContent()->addAndMakeVisible(this->toggleShowSphere);
+    
+    
+    this->butsaveSpeakers = new TextButton();
+    this->butsaveSpeakers->setButtonText("Save");
+    this->butsaveSpeakers->setBounds(100, 404, 88, 22);
+    this->butsaveSpeakers->addListener(this);
+    this->butsaveSpeakers->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
+    this->butsaveSpeakers->setLookAndFeel(this->grisFeel);
+    this->boxListSpeaker->getContent()->addAndMakeVisible(this->butsaveSpeakers);
+    
+    this->texEditNameConf = new TextEditor();
+    this->texEditNameConf->setText(nameC);
+    this->texEditNameConf->setBounds(190, 404, 160, 22);
+    this->texEditNameConf->addListener(this);
+    this->texEditNameConf->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
+    this->texEditNameConf->setLookAndFeel(this->grisFeel);
+    this->boxListSpeaker->getContent()->addAndMakeVisible(this->texEditNameConf);
+
+    
+    
+    this->setContentComponent(this->boxListSpeaker);
+    this->boxListSpeaker->getContent()->addAndMakeVisible(tableListSpeakers);
+
+    this->boxListSpeaker->repaint();
+    this->boxListSpeaker->resized();
     
 }
 WindowEditSpeaker::~WindowEditSpeaker(){
@@ -275,12 +319,12 @@ WindowEditSpeaker::~WindowEditSpeaker(){
     //delete this->boxListSpeaker;
     delete this->toggleShowSphere;
     delete this->butAddSpeaker;
+    delete this->butsaveSpeakers;
+    delete this->texEditNameConf;
     this->mainParent->destroyWinSpeakConf();
 }
 void WindowEditSpeaker::initComp(){
-    this->boxListSpeaker = new Box(this->grisFeel, "Configuration Speakers");
-    this->setContentComponent(this->boxListSpeaker);
-    this->boxListSpeaker->getContent()->addAndMakeVisible(tableListSpeakers);
+
     
     tableListSpeakers.setModel(this);
     
@@ -317,28 +361,13 @@ void WindowEditSpeaker::initComp(){
     
     tableListSpeakers.updateContent();
     
-    this->toggleShowSphere = new ToggleButton();
-    this->toggleShowSphere->setButtonText("Show Sphere");
-    this->toggleShowSphere->setBounds(4, 430, 88, 22);
-    this->toggleShowSphere->addListener(this);
-    this->toggleShowSphere->setToggleState(false, dontSendNotification);
-    this->toggleShowSphere->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
-    this->toggleShowSphere->setLookAndFeel(this->grisFeel);
-    this->boxListSpeaker->getContent()->addAndMakeVisible(this->toggleShowSphere);
     
     
-    this->butAddSpeaker = new TextButton();
-    this->butAddSpeaker->setButtonText("Add Speaker");
-    this->butAddSpeaker->setBounds(4, 404, 88, 22);
-    this->butAddSpeaker->addListener(this);
-    this->butAddSpeaker->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
-    this->butAddSpeaker->setLookAndFeel(this->grisFeel);
-    this->boxListSpeaker->getContent()->addAndMakeVisible(this->butAddSpeaker);
-    
-    
+
     
     this->boxListSpeaker->repaint();
     this->boxListSpeaker->resized();
+    this->resized();
 }
 
 void WindowEditSpeaker::buttonClicked(Button *button){
@@ -349,6 +378,18 @@ void WindowEditSpeaker::buttonClicked(Button *button){
     else if (button == this->butAddSpeaker) {
         this->mainParent->addSpeaker();
         updateWinContent();
+    }
+    else if (button == this->butsaveSpeakers) {
+        FileChooser fc ("Choose a file to save...",File::getCurrentWorkingDirectory(), "*.xml", true);
+        if (fc.browseForFileToSave (true))
+        {
+            String chosen = fc.getResults().getReference(0).getFullPathName();
+            bool r = AlertWindow::showOkCancelBox (AlertWindow::InfoIcon,"Save preset","Save to : " + chosen);
+            //Save preset speaker
+            if(r){
+                this->mainParent->savePresetSpeakers(chosen);
+            }
+        }
     }
     
     if( button->getName() != "" && (button->getName().getIntValue()>=0 && button->getName().getIntValue()<= this->mainParent->getListSpeaker().size())){
@@ -368,7 +409,30 @@ void WindowEditSpeaker::closeButtonPressed()
     delete this;
 }
 
+void WindowEditSpeaker::textEditorFocusLost (TextEditor &textEditor){
+    textEditorReturnKeyPressed(textEditor);
+}
+void WindowEditSpeaker::textEditorReturnKeyPressed (TextEditor &textEditor){
+    if(&textEditor == this->texEditNameConf){
+        this->mainParent->setNameConfig(this->texEditNameConf->getTextValue().toString());
+    }
+}
 
+void WindowEditSpeaker::resized(){
+    this->juce::DocumentWindow::resized();
+    
+    tableListSpeakers.setSize(getWidth(), getHeight()-120);
+    
+    this->boxListSpeaker->setSize(getWidth(), getHeight());
+    this->boxListSpeaker->correctSize(getWidth()-10, getHeight()-30);
+
+    this->butAddSpeaker->setBounds(4, getHeight()-110, 88, 22);
+    this->toggleShowSphere->setBounds(4, getHeight()-86, 120, 22);
+    this->butsaveSpeakers->setBounds(100, getHeight()-110, 88, 22);
+    this->texEditNameConf->setBounds(190, getHeight()-110, 160, 22);
+    
+    //this->boxListSpeaker->correctSize((this->listSourceInput.size()*(SizeWidthLevelComp))+4, 210);
+}
 
 String WindowEditSpeaker::getText (const int columnNumber, const int rowNumber) const
 {
@@ -540,4 +604,83 @@ Component* WindowEditSpeaker::refreshComponentForCell (int rowNumber, int column
     }
     return textLabel;
 }
+
+
+
+
+//======================================= WinJackSettings ===========================
+
+WindowJackSetting::WindowJackSetting(const String& name, Colour backgroundColour, int buttonsNeeded,MainContentComponent * parent, GrisLookAndFeel * feel, int indR, int indB):
+    DocumentWindow (name, backgroundColour, buttonsNeeded)
+{
+    this->mainParent = parent;
+    this->grisFeel = feel;
+    
+    this->labRate = new Label();
+    this->labRate->setText("Rate :", NotificationType::dontSendNotification);
+    this->labRate->setJustificationType(Justification::right);
+    this->labRate->setBounds(10, 20, 60, 22);
+    this->labRate->setFont(this->grisFeel->getFont());
+    this->labRate->setLookAndFeel(this->grisFeel);
+    this->labRate->setColour(Label::textColourId, this->grisFeel->getFontColour());
+    this->juce::Component::addAndMakeVisible(this->labRate);
+    
+    this->labBuff = new Label();
+    this->labBuff->setText("Buffer :", NotificationType::dontSendNotification);
+    this->labBuff->setJustificationType(Justification::right);
+    this->labBuff->setBounds(10, 60, 60, 22);
+    this->labBuff->setFont(this->grisFeel->getFont());
+    this->labBuff->setLookAndFeel(this->grisFeel);
+    this->labBuff->setColour(Label::textColourId, this->grisFeel->getFontColour());
+    this->juce::Component::addAndMakeVisible(this->labBuff);
+
+    
+    this->cobRate = new ComboBox();
+    this->cobRate->addItemList(RateValues, 1);
+    this->cobRate->setSelectedItemIndex(indR);
+    this->cobRate->setBounds(70, 20, 160, 22);
+    this->cobRate->setLookAndFeel(this->grisFeel);
+    this->juce::Component::addAndMakeVisible(this->cobRate);
+    
+    this->cobBuffer = new ComboBox();
+    this->cobBuffer->addItemList(BufferSize, 1);
+    this->cobBuffer->setSelectedItemIndex(indB);
+    this->cobBuffer->setBounds(70, 60, 160, 22);
+    this->cobBuffer->setLookAndFeel(this->grisFeel);
+    this->juce::Component::addAndMakeVisible(this->cobBuffer);
+
+    
+    this->butValidSettings = new TextButton();
+    this->butValidSettings->setButtonText("Save");
+    this->butValidSettings->setBounds(70, 100, 88, 22);
+    this->butValidSettings->addListener(this);
+    this->butValidSettings->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
+    this->butValidSettings->setLookAndFeel(this->grisFeel);
+    this->juce::Component::addAndMakeVisible(this->butValidSettings);
+
+}
+
+WindowJackSetting::~WindowJackSetting(){
+    delete this->labRate;
+    delete this->labBuff;
+    delete this->cobRate;
+    delete this->cobBuffer;
+    delete this->butValidSettings;
+    this->mainParent->destroyWinJackSetting();
+}
+
+void WindowJackSetting::closeButtonPressed()
+{
+    delete this;
+}
+
+
+void WindowJackSetting::buttonClicked(Button *button)
+{
+    if( button == this->butValidSettings){
+        this->mainParent->saveJackSettings(this->cobRate->getText().getIntValue(), this->cobBuffer->getText().getIntValue());
+        delete this;
+    }
+}
+
 

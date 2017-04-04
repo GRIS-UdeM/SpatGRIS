@@ -43,7 +43,7 @@ private:
 
 
 
-//======================================= BoxClient===========================
+//======================================= BoxClient ===========================
 
 class BoxClient :   public Component,
                     public TableListBoxModel,
@@ -83,7 +83,7 @@ private:
         {
             // just put a combo box inside this component
             addAndMakeVisible (comboBox);
-            for(int i = 1; i < 64; i++){
+            for(int i = 1; i <= 64; i++){
                 comboBox.addItem (String(i), i);
             }
             
@@ -123,10 +123,11 @@ private:
 //======================================= Window Edit Speaker===========================
 class WindowEditSpeaker :   public DocumentWindow,
                             public TableListBoxModel,
-                            public ToggleButton::Listener
+                            public ToggleButton::Listener,
+                            public TextEditor::Listener
 {
 public:
-    WindowEditSpeaker(const String& name, Colour backgroundColour, int buttonsNeeded, MainContentComponent * parent, GrisLookAndFeel * feel);
+    WindowEditSpeaker(const String& name,String& nameC, Colour backgroundColour, int buttonsNeeded, MainContentComponent * parent, GrisLookAndFeel * feel);
     ~WindowEditSpeaker();
     
     void updateWinContent();
@@ -136,6 +137,10 @@ public:
     void buttonClicked(Button *button);
     void closeButtonPressed();
     
+    void resized() override;
+    void textEditorFocusLost (TextEditor &textEditor) override;
+    void textEditorReturnKeyPressed (TextEditor &textEditor) override;
+
     String getText (const int columnNumber, const int rowNumber) const;
     void setText (const int columnNumber, const int rowNumber, const String& newText);
     int getNumRows() override;
@@ -153,6 +158,8 @@ private:
     
     ToggleButton *toggleShowSphere;
     TextButton *butAddSpeaker;
+    TextButton *butsaveSpeakers;
+    TextEditor *texEditNameConf;
     
     TableListBox tableListSpeakers;
     Font font;
@@ -191,5 +198,30 @@ private:
 };
 
 
+//======================================= WinJackSettings ===========================
+
+class WindowJackSetting :   public DocumentWindow,
+                            public TextButton::Listener
+
+{
+public:
+    WindowJackSetting(const String& name, Colour backgroundColour, int buttonsNeeded,MainContentComponent * parent, GrisLookAndFeel * feel, int indR=0, int indB=0);
+    ~WindowJackSetting();
+
+    void buttonClicked(Button *button);
+    void closeButtonPressed();
+    
+    
+private:
+    MainContentComponent *mainParent;
+    GrisLookAndFeel *grisFeel;
+    
+    Label *labRate;
+    Label *labBuff;
+    ComboBox *cobRate;
+    ComboBox *cobBuffer;
+    TextButton *butValidSettings;
+
+};
 #endif /* UiComponent_h */
 

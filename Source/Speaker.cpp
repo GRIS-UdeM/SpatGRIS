@@ -22,7 +22,7 @@ Speaker::Speaker(MainContentComponent *parent, int idS,int outP, glm::vec3 cente
     
     //Load position
     this->newPosition(center, extents);
-    this->vuMeter = new LevelComponent(this, &mGrisFeel);
+    this->vuMeter = new LevelComponent(this, &mGrisFeel, false);
 }
 
 Speaker::~Speaker(){
@@ -37,6 +37,9 @@ void Speaker::setMuted(bool mute){
 }
 void Speaker::setSolo(bool solo){
     this->mainParent->soloOutput(this->outputPatch, solo);
+}
+void Speaker::setColor(Colour color, bool updateLevel){
+
 }
 
 int Speaker::getIdSpeaker(){
@@ -98,6 +101,9 @@ void Speaker::fix() {
     }
 }
 
+void Speaker::selectClick(){
+    this->mainParent->selectSpeaker(this->idSpeaker-1);
+}
 bool Speaker::isSelected(){
     return this->selected;
 }

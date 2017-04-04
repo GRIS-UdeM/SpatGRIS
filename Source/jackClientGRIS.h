@@ -22,6 +22,8 @@
 #include <vector>
 #include <stdio.h>
 #include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
@@ -33,12 +35,7 @@
 
 
 
-#ifndef M_PI
-#define M_PI  (3.14159265)
-#endif
 
-//table size needs to fit an even number of periods. with a frequency of 1000hz and a sample rate of 44100, T = fs/f = 44100/1000
-//#define TABLE_SIZE   (441)
 using namespace std;
 
 
@@ -47,52 +44,93 @@ struct Client {
     unsigned int portStart = 1;
     unsigned int portEnd = 32;
     bool connected = false;
+    unsigned int portAvailable = 0;
 };
 
-static const unsigned int BufferSize[] = {256, 512, 1024, 2048};
 
-static unsigned int const MaxInputs = 128;
-static unsigned int const MaxOutputs = 128;
+struct SpeakerOut {
+    unsigned int id;
+    float x = 1.0f;
+    float y = 0.0f;;
+    float z = 0.0f;;//Not Implemented
+    
+    float azimuth = 0.0f;;
+    float zenith = 0.0f;;
+    float radius = 0.0f;;
+    float gain;//Not Implemented
+};
 
-static const char* ClientName = "jackClientGris";
-static const char* DriverNameSys = "coreaudio";
-static const char* ClientNameSys = "system";
+struct SourceIn {
+    unsigned int id;
+    float x = 1.0f;;
+    float y = 0.0f;;
+    float z = 0.0f;;//Not Implemented
+    
+    float azimuth = 0.0f;;
+    float zenith = 0.0f;;
+    float radius = 0.0f;;
+    float gain;//Not Implemented
+};
+
+static const StringArray BufferSize = {"32", "64", "128", "256", "512", "1024", "2048"};
+static const StringArray RateValues = {"44100", "48000", "88200", "96000"};
+
+static unsigned int const MaxInputs = 256;
+static unsigned int const MaxOutputs = 256;
+
+static const char* ClientName =     "jackClientGris";
+static const char* DriverNameSys =  "coreaudio";
+static const char* ClientNameSys =  "system";
 
 class jackClientGris {
 public:
 
+    //Jack var
     jack_client_t *client;
 
     vector<jack_port_t *> inputsPort;
     vector<jack_port_t *> outputsPort;
 
-    
-    vector<double> sine;
-    vector<Client> listClient;
+    //Noise Sound
+    vector<double> sineNoise;
     int left_phase;
     int right_phase;
     
+    //Mute Solo Vu meter
     float levelsIn[MaxInputs];
     float levelsOut[MaxOutputs];
     
     bool muteIn[MaxInputs];
     bool muteOut[MaxOutputs];
     
-    
     bool soloIn[MaxInputs+1];
     bool soloOut[MaxOutputs+1];
-
+    
+    float masterGainOut;
+    //------------------------
+    vector<Client> listClient;
+    Array<SourceIn> listSourceIn;
+    Array<SpeakerOut> listSpeakerOut;
+    
+    bool noiseSound;
+    bool autoConnection;
+    bool overload;
+    
     unsigned int sampleRate;
     unsigned int bufferSize;
+    unsigned int numberInputs;
+    unsigned int numberOutputs;
+
     
-    bool isReady() { return clientReady; }
+
+    //---------------------------------
+    jackClientGris(unsigned int bufferS = 1024);
+    virtual ~jackClientGris();
+    
+    bool  isReady() { return clientReady; }
     float getCpuUsed() const { return jack_cpu_load(client); }
     float getLevelsIn(int index) const { return levelsIn[index]; }
     float getLevelsOut(int index) const { return levelsOut[index]; }
-
-    
-    jackClientGris();
-    virtual ~jackClientGris();
     
     
     void addRemoveInput(int number);
@@ -101,20 +139,16 @@ public:
     
     void autoConnectClient();
     void connectionClient(String name, bool connect = true);
+    void updateClientPortAvailable();
+    
     string getClientName(const char * port);
     unsigned int getPortStartClient(String nameClient);
     
-    bool autoConnection;
     
-    unsigned int numberInputs;
-    unsigned int numberOutputs;
-    
-    bool setBufferSize(int sizeB);
 private:
     
     bool clientReady;
     void connectedGristoSystem();
-
     
 };
 

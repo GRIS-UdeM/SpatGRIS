@@ -22,8 +22,9 @@ void on_device_release(const char *device_name)
 }
 
 
-jackServerGRIS::jackServerGRIS(){
+jackServerGRIS::jackServerGRIS(unsigned int rateV){
     
+    this->rateValue = rateV;
     const JSList * parameters;
     const JSList * drivers;
     const JSList * internals;
@@ -56,6 +57,7 @@ jackServerGRIS::jackServerGRIS(){
         jackctl_parameter_set_value(param, &value);
     }
     
+    #if PRINT_SERVER
     printf("\n========================== \n");
     printf("List of server parameters \n");
     printf("========================== \n");
@@ -65,6 +67,7 @@ jackServerGRIS::jackServerGRIS(){
     printf("\n========================== \n");
     printf("List of drivers \n");
     printf("========================== \n");
+    #endif
     
     drivers = jackctl_server_get_drivers_list(server);
     node_ptr = drivers;
@@ -73,9 +76,11 @@ jackServerGRIS::jackServerGRIS(){
         node_ptr = jack_slist_next(node_ptr);
     }
     
+    #if PRINT_SERVER
     printf("\n========================== \n");
     printf("List of internal clients \n");
     printf("========================== \n");
+    #endif
     
     internals = jackctl_server_get_internals_list(server);
     node_ptr = internals;
@@ -83,7 +88,7 @@ jackServerGRIS::jackServerGRIS(){
         print_internal((jackctl_internal_t *)node_ptr->data);
         node_ptr = jack_slist_next(node_ptr);
     }
-
+    
     printf("\n========================== \n");
     printf("Start Jack Server \n");
     printf("========================== \n");
@@ -91,11 +96,15 @@ jackServerGRIS::jackServerGRIS(){
     jackctl_server_open(server, jackctl_server_get_driver(server, DriverNameSys));
     jackctl_server_start(server);
     jackctl_server_load_internal(server, jackctl_server_get_internal(server, ClientNameSys));
-        
+    
+    #if PRINT_SERVER
     const JSList * parameters2 = jackctl_server_get_parameters(server);
     print_parameters(parameters2);
+    #endif
+    
     printf("\n========================== \n");
     printf("Jack Server Run \n");
+    printf("========================== \n");
     
 
 }

@@ -41,9 +41,16 @@ public :
     float getLevel();
     void setMuted(bool mute);
     void setSolo(bool solo);
+    void setColor(Colour color, bool updateLevel = false);
+    void selectClick(){};
     LevelComponent * getVuMeter(){ return this->vuMeter; }
     
     glm::vec3 getCenter();
+    glm::vec3 getColor();
+    float getAziMuth(){ return this->azimuth; }
+    float getZenith(){ return this->zenith; }
+    float getRad(){ return 10.0f; }
+    
     void draw();
     void updateValues(float az, float ze, float azS, float zeS, float g);
     
@@ -58,6 +65,7 @@ private:
     
     float sizeT = 0.5f;
     glm::vec3 center;
+    glm::vec3 color;
     
     LevelComponent *vuMeter;
     MainContentComponent * mainParent;
