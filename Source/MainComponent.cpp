@@ -23,8 +23,24 @@ MainContentComponent::MainContentComponent(){
     if(fs.exists()){
         this->splash = new SplashScreen ("SpatServerGRIS",ImageFileFormat::loadFrom (fs),true);
     }
+    
+    PropertiesFile::Options options;
+    options.applicationName = "SpatServerGRIS";
+    options.commonToAllUsers = false;
+    options.filenameSuffix = "xml";
+    options.folderName = "GRIS";
+    options.storageFormat = PropertiesFile::storeAsXML;
+    options.ignoreCaseOfKeyNames = true;
+    options.osxLibrarySubFolder = "Application Support";
+    applicationProperties.setStorageParameters(options);
+    applicationProperties.getCommonSettings(true);
+    
+    applicationProperties.getUserSettings()->setValue("BufferValue", 512);
+    applicationProperties.getUserSettings()->setValue("RateValue", 44100);
+    applicationProperties.saveIfNeeded();
+    
 
-   
+
     LookAndFeel::setDefaultLookAndFeel(&mGrisFeel);
     
     this->listSpeaker = vector<Speaker *>();
@@ -111,9 +127,12 @@ MainContentComponent::MainContentComponent(){
     
 
 #if USE_JACK
+    unsigned int BufferValue = applicationProperties.getUserSettings()->getValue("BufferValue").getIntValue();
+    unsigned int RateValue = applicationProperties.getUserSettings()->getValue("RateValue").getIntValue();
+    
     //Start JACK Server and client
-    this->jackServer = new jackServerGRIS();
-    this->jackClient = new jackClientGris();
+    this->jackServer = new jackServerGRIS(RateValue);
+    this->jackClient = new jackClientGris(BufferValue);
     
     
     if(!jackClient->isReady()){
@@ -128,16 +147,6 @@ MainContentComponent::MainContentComponent(){
 #endif
 
     
-    PropertiesFile::Options options;
-    options.applicationName = "SpatServerGRIS";
-    options.commonToAllUsers = false;
-    options.filenameSuffix = "xml";
-    options.folderName = "GRIS";
-    options.storageFormat = PropertiesFile::storeAsXML;
-    options.ignoreCaseOfKeyNames = true;
-    options.osxLibrarySubFolder = "Application Support";
-    applicationProperties.setStorageParameters(options);
-    applicationProperties.getCommonSettings(true);
 
     
     //OSC Receiver----------------------------------------------------------------------------

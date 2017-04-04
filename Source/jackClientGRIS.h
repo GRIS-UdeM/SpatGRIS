@@ -123,7 +123,7 @@ public:
     
 
     //---------------------------------
-    jackClientGris();
+    jackClientGris(unsigned int bufferS = 1024);
     virtual ~jackClientGris();
     
     bool  isReady() { return clientReady; }
@@ -142,8 +142,6 @@ public:
     
     string getClientName(const char * port);
     unsigned int getPortStartClient(String nameClient);
-    
-    bool setBufferSize(int sizeB);
     
     
 private:

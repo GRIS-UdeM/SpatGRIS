@@ -334,7 +334,12 @@ void port_connect_callback(jack_port_id_t a, jack_port_id_t b, int connect, void
 }
 
 
-jackClientGris::jackClientGris() {
+
+
+//=================================================================================================================
+//  jackClientGris
+//=================================================================================================================
+jackClientGris::jackClientGris(unsigned int bufferS) {
     
     //INIT variable and clear Array========================
     this->noiseSound = false;
@@ -361,6 +366,10 @@ jackClientGris::jackClientGris() {
     //--------------------------------------------------
     jack_options_t  options = JackUseExactName;
     jack_status_t   status;
+    
+    printf("\n========================== \n");
+    printf("Start Jack Client \n");
+    printf("========================== \n");
     
     this->client = jack_client_open (ClientName, options, &status, DriverNameSys);
     if (this->client == NULL) {
@@ -402,7 +411,7 @@ jackClientGris::jackClientGris() {
     jack_set_latency_callback               (this->client, latency_callback, this);
     
     //Default buffer size 1024
-    jack_set_buffer_size(this->client, 1024);
+    jack_set_buffer_size(this->client, bufferS);
     
     sampleRate = jack_get_sample_rate (this->client);
     bufferSize = jack_get_buffer_size (this->client);
@@ -466,6 +475,10 @@ jackClientGris::jackClientGris() {
         printf("\n\n\n======cannot activate client");
         return;
     }
+    
+    printf("\n========================== \n");
+    printf("Jack Client Run \n");
+    printf("========================== \n");
     
     this->clientReady = true;
 }
@@ -655,10 +668,6 @@ void jackClientGris::connectionClient(String name, bool connect){
     jack_free(portsOut);
 }
 
-bool jackClientGris::setBufferSize(int sizeB)
-{
-    return jack_set_buffer_size(this->client, sizeB);
-}
 
 string jackClientGris::getClientName(const char * port)
 {

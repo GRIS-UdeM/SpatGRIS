@@ -20,6 +20,17 @@
 #ifndef MAINCOMPONENT_H_INCLUDED
 #define MAINCOMPONENT_H_INCLUDED
 
+//Macro-----------------------
+#ifndef USE_JACK
+#define USE_JACK 1
+#endif
+//-----------
+#ifndef M_PI
+#define M_PI  (3.1415926535897932384626433832795)
+#endif
+//============================
+
+
 #include "../JuceLibraryCode/JuceHeader.h"
 
 #include "../../GrisCommonFiles/GrisLookAndFeel.h"
@@ -34,13 +45,7 @@
 #include "OscInput.h"
 #include "Input.h"
 
-#ifndef USE_JACK
-#define USE_JACK 1
-#endif
 
-#ifndef M_PI
-#define M_PI  (3.1415926535897932384626433832795)
-#endif
 
 
 using namespace std;
