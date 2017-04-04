@@ -72,7 +72,8 @@ struct SourceIn {
     float gain;//Not Implemented
 };
 
-static const unsigned int BufferSize[] = {256, 512, 1024, 2048};
+static const StringArray BufferSize = {"32", "64", "128", "256", "512", "1024", "2048"};
+static const StringArray RateValues = {"44100", "48000", "88200", "96000"};
 
 static unsigned int const MaxInputs = 256;
 static unsigned int const MaxOutputs = 256;

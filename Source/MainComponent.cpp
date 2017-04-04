@@ -35,10 +35,7 @@ MainContentComponent::MainContentComponent(){
     applicationProperties.setStorageParameters(options);
     applicationProperties.getCommonSettings(true);
     
-    applicationProperties.getUserSettings()->setValue("BufferValue", 512);
-    applicationProperties.getUserSettings()->setValue("RateValue", 44100);
-    applicationProperties.saveIfNeeded();
-    
+   
 
 
     LookAndFeel::setDefaultLookAndFeel(&mGrisFeel);
@@ -53,6 +50,7 @@ MainContentComponent::MainContentComponent(){
     
     
     this->winSpeakConfig = nullptr;
+    this->winJackSetting = nullptr;
     //SpeakerViewComponent 3D VIEW------------------------------
     this->speakerView= new SpeakerViewComponent(this);
     this->addAndMakeVisible (speakerView);
@@ -83,7 +81,8 @@ MainContentComponent::MainContentComponent(){
     this->labelJackRate->setColour(Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
     this->labelJackBuffer->setColour(Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
     this->labelJackInfo->setColour(Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
-
+    
+    this->butJackParam = addButton("Jack settings","Change jack settings",400,0,80,28,this->boxControlUI->getContent());
     
     this->butLoadXMLSpeakers = addButton("XML Speakers","Load Xml File Configuration",4,36,124,24,this->boxControlUI->getContent());
     
@@ -283,6 +282,9 @@ MainContentComponent::~MainContentComponent() {
     
     if(this->winSpeakConfig != nullptr){
         delete this->winSpeakConfig;
+    }
+    if(this->winJackSetting != nullptr){
+        delete this->winJackSetting;
     }
     
     delete this->speakerView;
@@ -625,8 +627,33 @@ void MainContentComponent::savePresetSpeakers(String path){
 }
 
 
+void MainContentComponent::saveJackSettings(unsigned int rate, unsigned int buff){
+    unsigned int BufferValue = applicationProperties.getUserSettings()->getValue("BufferValue").getIntValue();
+    unsigned int RateValue = applicationProperties.getUserSettings()->getValue("RateValue").getIntValue();
+
+    if(rate != RateValue || buff != BufferValue){
+        bool r = AlertWindow::showOkCancelBox(AlertWindow::AlertIconType::WarningIcon,"Restart SpatServerGRIS",
+                                               "Need to restart SpatServerGRIS for apply new settings !");
+        //Click OK -> Open xml
+        if(r){
+            applicationProperties.getUserSettings()->setValue("BufferValue", (int)buff);
+            applicationProperties.getUserSettings()->setValue("RateValue", (int)rate );
+            applicationProperties.saveIfNeeded();
+            
+            //Restart APP
+            String applicationPath = File::getSpecialLocation(File::currentApplicationFile).getFullPathName();
+            String relaunchCommand = "open " + applicationPath;
+            ScopedPointer<ChildProcess> scriptProcess = new ChildProcess();
+            
+            JUCEApplication::getInstance()->systemRequestedQuit();
+            cout << relaunchCommand << newLine;
+            scriptProcess->start(relaunchCommand, (!ChildProcess::wantStdErr | !ChildProcess::wantStdOut));
+        }
+    }
+}
+
 void MainContentComponent::timerCallback(){
-    this->labelJackLoad->setText(String(this->jackClient->getCpuUsed())+ " %", dontSendNotification);
+    this->labelJackLoad->setText(String(this->jackClient->getCpuUsed(),4)+ " %", dontSendNotification);
     if(this->jackClient->overload){
         this->labelJackLoad->setColour(Label::backgroundColourId, Colours::darkred);
     }else{
@@ -750,6 +777,22 @@ void MainContentComponent::buttonClicked (Button *button)
             this->winSpeakConfig->repaint();
         }
         
+    }else if(button == this->butJackParam){
+        
+        if(this->winJackSetting == nullptr){
+            unsigned int BufferValue = applicationProperties.getUserSettings()->getValue("BufferValue").getIntValue();
+            unsigned int RateValue = applicationProperties.getUserSettings()->getValue("RateValue").getIntValue();
+
+            this->winJackSetting = new WindowJackSetting("Jack Settings", this->mGrisFeel.getWinBackgroundColour(),DocumentWindow::allButtons, this, &this->mGrisFeel, RateValues.indexOf(String(RateValue)), BufferSize.indexOf(String(BufferValue)));
+            Rectangle<int> result (this->getScreenX()+ (this->speakerView->getWidth()/2)-150,this->getScreenY()+(this->speakerView->getHeight()/2)-75,300,150);
+            this->winJackSetting->setBounds (result);
+            this->winJackSetting->setResizable (false, false);
+            this->winJackSetting->setUsingNativeTitleBar (true);
+            this->winJackSetting->setVisible (true);
+            this->winJackSetting->setAlwaysOnTop(true);
+            this->winJackSetting->repaint();
+        }
+        
     }else if(button == butShowSpeakerNumber){
         
         this->speakerView->setShowNumber(this->butShowSpeakerNumber->getToggleState());
@@ -781,6 +824,7 @@ void MainContentComponent::buttonClicked (Button *button)
             hue+=0.01f;
         }
     }
+    
 }
 
 void MainContentComponent::sliderValueChanged (Slider* slider){

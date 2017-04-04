@@ -393,7 +393,6 @@ jackClientGris::jackClientGris(unsigned int bufferS) {
         printf("\n\n\n======chosen name already existed, new unique name `%s' assigned\n", ClientName);
     }
     
-    
     //--------------------------------------------------
     //register callback, ports
     //--------------------------------------------------

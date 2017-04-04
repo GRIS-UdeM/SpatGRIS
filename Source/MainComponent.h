@@ -55,7 +55,7 @@ static const unsigned int SizeWidthLevelComp = 36;
 static const unsigned int HertzRefreshNormal = 24;
 static const unsigned int HertzRefreshLowCpu = 6;
 
-
+class spatServerGRISApplication;
 //==============================================================================
 /*
  This component lives inside our window, and this is where you should put all
@@ -96,12 +96,15 @@ public:
     
     void soloInput(int id, bool solo);
     void soloOutput(int id, bool solo);
+    
+    void saveJackSettings(unsigned int rate, unsigned int buff);
     //=======================================================================
     float getLevelsOut(int indexLevel){return (20.0f * log10f(sqrtf(this->jackClient->getLevelsOut(indexLevel))));}
     float getLevelsIn(int indexLevel){return (20.0f * log10f(sqrtf(this->jackClient->getLevelsIn(indexLevel)))); }
     
 
     void destroyWinSpeakConf() { this->winSpeakConfig = nullptr; }
+    void destroyWinJackSetting() { this->winJackSetting = nullptr; }
     //=======================================================================
     void timerCallback() override;
     void paint (Graphics& g) override;
@@ -155,6 +158,7 @@ private:
     SpeakerViewComponent *speakerView;
     
     WindowEditSpeaker* winSpeakConfig;
+    WindowJackSetting* winJackSetting;
     //3 Main Box---------------------
     Box * boxInputsUI;
     Box * boxOutputsUI;
@@ -172,6 +176,7 @@ private:
     TextButton *    butLoadPreset;
     TextButton *    butSavePreset;
     TextButton *    butDefaultColorIn;
+    TextButton *    butJackParam;
     
     ToggleButton *  butShowSpeakerNumber;
     ToggleButton *  butHighPerformance;

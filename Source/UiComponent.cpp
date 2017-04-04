@@ -605,3 +605,82 @@ Component* WindowEditSpeaker::refreshComponentForCell (int rowNumber, int column
     return textLabel;
 }
 
+
+
+
+//======================================= WinJackSettings ===========================
+
+WindowJackSetting::WindowJackSetting(const String& name, Colour backgroundColour, int buttonsNeeded,MainContentComponent * parent, GrisLookAndFeel * feel, int indR, int indB):
+    DocumentWindow (name, backgroundColour, buttonsNeeded)
+{
+    this->mainParent = parent;
+    this->grisFeel = feel;
+    
+    this->labRate = new Label();
+    this->labRate->setText("Rate :", NotificationType::dontSendNotification);
+    this->labRate->setJustificationType(Justification::right);
+    this->labRate->setBounds(10, 20, 60, 22);
+    this->labRate->setFont(this->grisFeel->getFont());
+    this->labRate->setLookAndFeel(this->grisFeel);
+    this->labRate->setColour(Label::textColourId, this->grisFeel->getFontColour());
+    this->juce::Component::addAndMakeVisible(this->labRate);
+    
+    this->labBuff = new Label();
+    this->labBuff->setText("Buffer :", NotificationType::dontSendNotification);
+    this->labBuff->setJustificationType(Justification::right);
+    this->labBuff->setBounds(10, 60, 60, 22);
+    this->labBuff->setFont(this->grisFeel->getFont());
+    this->labBuff->setLookAndFeel(this->grisFeel);
+    this->labBuff->setColour(Label::textColourId, this->grisFeel->getFontColour());
+    this->juce::Component::addAndMakeVisible(this->labBuff);
+
+    
+    this->cobRate = new ComboBox();
+    this->cobRate->addItemList(RateValues, 1);
+    this->cobRate->setSelectedItemIndex(indR);
+    this->cobRate->setBounds(70, 20, 160, 22);
+    this->cobRate->setLookAndFeel(this->grisFeel);
+    this->juce::Component::addAndMakeVisible(this->cobRate);
+    
+    this->cobBuffer = new ComboBox();
+    this->cobBuffer->addItemList(BufferSize, 1);
+    this->cobBuffer->setSelectedItemIndex(indB);
+    this->cobBuffer->setBounds(70, 60, 160, 22);
+    this->cobBuffer->setLookAndFeel(this->grisFeel);
+    this->juce::Component::addAndMakeVisible(this->cobBuffer);
+
+    
+    this->butValidSettings = new TextButton();
+    this->butValidSettings->setButtonText("Save");
+    this->butValidSettings->setBounds(70, 100, 88, 22);
+    this->butValidSettings->addListener(this);
+    this->butValidSettings->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
+    this->butValidSettings->setLookAndFeel(this->grisFeel);
+    this->juce::Component::addAndMakeVisible(this->butValidSettings);
+
+}
+
+WindowJackSetting::~WindowJackSetting(){
+    delete this->labRate;
+    delete this->labBuff;
+    delete this->cobRate;
+    delete this->cobBuffer;
+    delete this->butValidSettings;
+    this->mainParent->destroyWinJackSetting();
+}
+
+void WindowJackSetting::closeButtonPressed()
+{
+    delete this;
+}
+
+
+void WindowJackSetting::buttonClicked(Button *button)
+{
+    if( button == this->butValidSettings){
+        this->mainParent->saveJackSettings(this->cobRate->getText().getIntValue(), this->cobBuffer->getText().getIntValue());
+        delete this;
+    }
+}
+
+

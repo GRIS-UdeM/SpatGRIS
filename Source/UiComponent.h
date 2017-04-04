@@ -43,7 +43,7 @@ private:
 
 
 
-//======================================= BoxClient===========================
+//======================================= BoxClient ===========================
 
 class BoxClient :   public Component,
                     public TableListBoxModel,
@@ -198,5 +198,30 @@ private:
 };
 
 
+//======================================= WinJackSettings ===========================
+
+class WindowJackSetting :   public DocumentWindow,
+                            public TextButton::Listener
+
+{
+public:
+    WindowJackSetting(const String& name, Colour backgroundColour, int buttonsNeeded,MainContentComponent * parent, GrisLookAndFeel * feel, int indR=0, int indB=0);
+    ~WindowJackSetting();
+
+    void buttonClicked(Button *button);
+    void closeButtonPressed();
+    
+    
+private:
+    MainContentComponent *mainParent;
+    GrisLookAndFeel *grisFeel;
+    
+    Label *labRate;
+    Label *labBuff;
+    ComboBox *cobRate;
+    ComboBox *cobBuffer;
+    TextButton *butValidSettings;
+
+};
 #endif /* UiComponent_h */
 
