@@ -129,7 +129,7 @@ void BoxClient::setBounds(int x, int y, int width, int height)
 }
 
 void BoxClient::updateContentCli(){
-    numRows =this->mainParent->getListClientjack()->size();
+    numRows = (unsigned int)this->mainParent->getListClientjack()->size();
     tableListClient.updateContent();
     tableListClient.repaint();
 }
@@ -163,6 +163,7 @@ int BoxClient::getValue (const int rowNumber,const int columnNumber) const{
                 
         }
     }
+    return -1;
 }
 
 String BoxClient::getText (const int columnNumber, const int rowNumber) const
@@ -412,8 +413,13 @@ void WindowEditSpeaker::buttonClicked(Button *button){
 }
 
 void WindowEditSpeaker::updateWinContent(){
-    numRows =this->mainParent->getListSpeaker().size();
+    numRows = (unsigned int)this->mainParent->getListSpeaker().size();
     tableListSpeakers.updateContent();
+}
+void WindowEditSpeaker::selectedRow(int value){
+    MessageManagerLock mmlock;
+    this->tableListSpeakers.selectRow(value);
+    this->repaint();
 }
 void WindowEditSpeaker::closeButtonPressed()
 {

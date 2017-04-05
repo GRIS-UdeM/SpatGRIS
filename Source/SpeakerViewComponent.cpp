@@ -327,7 +327,7 @@ void SpeakerViewComponent::drawText(string val, glm::vec3 position,float scale, 
     {
         glutStrokeCharacter( GLUT_STROKE_MONO_ROMAN, c );
     }
-        glTranslatef(-position.x, -position.y, -position.z);
+    glTranslatef(-position.x, -position.y, -position.z);
     glPopMatrix();
 }
 

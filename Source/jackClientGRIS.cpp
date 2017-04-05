@@ -624,8 +624,6 @@ void jackClientGris::connectionClient(String name, bool connect){
             cli.connected = false;
         }
     }
-    i=0;
-    j=0;
     if(!connect){ return ; }
     //Connect other client to jackClientGris------------------------------------------
     this->autoConnection = true;

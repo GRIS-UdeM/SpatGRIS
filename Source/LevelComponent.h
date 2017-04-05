@@ -62,7 +62,7 @@ public:
     void update();
     bool isMuted();
     void setSelected(bool value);
-    void buttonClicked(Button *button);
+    void buttonClicked(Button *button) override;
     void setBounds(const Rectangle<int> &newBounds);
     void changeListenerCallback (ChangeBroadcaster* source) override;
     

@@ -66,7 +66,7 @@ public:
     ~BoxClient();
     
     void updateContentCli();
-    void buttonClicked(Button *button);
+    void buttonClicked(Button *button) override;
     void setBounds(int x, int y, int width, int height);
     String getText (const int columnNumber, const int rowNumber) const;
     void setValue (const int rowNumber,const int columnNumber, const int newRating);
@@ -82,7 +82,7 @@ public:
 private:
     MainContentComponent *mainParent;
     GrisLookAndFeel *grisFeel;
-    int numRows;
+    unsigned int numRows;
     TableListBox tableListClient;
     Box * box;
     
@@ -142,11 +142,11 @@ public:
     ~WindowEditSpeaker();
     
     void updateWinContent();
-    void selectedRow(int value){ this->tableListSpeakers.selectRow(value); this->repaint();}
+    void selectedRow(int value);
     
     void initComp();
-    void buttonClicked(Button *button);
-    void closeButtonPressed();
+    void buttonClicked(Button *button) override;
+    void closeButtonPressed() override;
     
     void resized() override;
     void textEditorFocusLost (TextEditor &textEditor) override;
