@@ -152,8 +152,8 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
     jackClientGris* jackCli = (jackClientGris*)arg;
 
     //================ LOAD BUFFER ============================================
-    const unsigned int sizeInputs = jackCli->inputsPort.size() ;
-    const unsigned int sizeOutputs = jackCli->outputsPort.size() ;
+    const unsigned int sizeInputs = (unsigned int)jackCli->inputsPort.size() ;
+    const unsigned int sizeOutputs = (unsigned int)jackCli->outputsPort.size() ;
     
     
     //Get all buffer from all input - output

@@ -339,7 +339,7 @@ void MainContentComponent::selectSpeaker(int idS)
 }
 void MainContentComponent::addSpeaker(){
     this->lockSpeakers->lock();
-    int idNewSpeaker = listSpeaker.size()+1;
+    unsigned int idNewSpeaker = (unsigned int)listSpeaker.size()+1;
     this->listSpeaker.push_back(new Speaker(this, idNewSpeaker, idNewSpeaker, glm::vec3(0.0f, 0.0f, 0.0f)));
     this->lockSpeakers->unlock();
     this->jackClient->addOutput();
@@ -846,10 +846,10 @@ void MainContentComponent::resized() {
     
 
     this->boxInputsUI->setBounds(this->speakerView->getWidth()+6, 2, getWidth()-(this->speakerView->getWidth()+10),240);
-    this->boxInputsUI->correctSize((this->listSourceInput.size()*(SizeWidthLevelComp))+4, 210);
+    this->boxInputsUI->correctSize(((unsigned int )this->listSourceInput.size()*(SizeWidthLevelComp))+4, 210);
 
     this->boxOutputsUI->setBounds(this->speakerView->getWidth()+6, 244, getWidth()-(this->speakerView->getWidth()+10),240);
-    this->boxOutputsUI->correctSize((this->listSpeaker.size()*(SizeWidthLevelComp))+4, 210);
+    this->boxOutputsUI->correctSize(((unsigned int )this->listSpeaker.size()*(SizeWidthLevelComp))+4, 210);
     
     this->boxControlUI->setBounds(this->speakerView->getWidth()+6, 488, getWidth()-(this->speakerView->getWidth()+10), getHeight()-490);
     this->boxControlUI->correctSize(700, 270);

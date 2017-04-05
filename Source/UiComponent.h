@@ -39,7 +39,7 @@ public:
     
     Component * getContent();
     void resized();
-    void correctSize(int width, int height);
+    void correctSize(unsigned int width, unsigned int height);
     void paint(Graphics &g) ;
     
 private:

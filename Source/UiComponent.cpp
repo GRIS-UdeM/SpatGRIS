@@ -57,7 +57,7 @@ void Box::resized() {
     }
 }
 
-void Box::correctSize(int width, int height){
+void Box::correctSize(unsigned int width, unsigned int height){
     if(this->title!=""){
         this->viewport->setTopLeftPosition(0, 20);
         this->viewport->setSize(getWidth(), getHeight()-20);
@@ -363,10 +363,9 @@ void WindowEditSpeaker::initComp(){
     
     tableListSpeakers.setMultipleSelectionEnabled (false);
     
-    numRows =this->mainParent->getListSpeaker().size();
+    numRows = (unsigned int)this->mainParent->getListSpeaker().size();
 
 
-    
     this->boxListSpeaker->setBounds(0, 0, getWidth(),getHeight());
     this->boxListSpeaker->correctSize(getWidth()-8, getHeight());
     tableListSpeakers.setSize(getWidth(), 400);
