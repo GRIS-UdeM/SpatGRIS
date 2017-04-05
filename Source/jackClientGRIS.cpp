@@ -538,7 +538,9 @@ void jackClientGris::connectedGristoSystem(){
         {
             j=0;
             while(portsIn[j]){
-                jack_disconnect(this->client, portsOut[i] ,portsIn[j]);
+                if(getClientName(portsIn[j]) == ClientNameSys){ //system
+                    jack_disconnect(this->client, portsOut[i] ,portsIn[j]);
+                }
                 j+=1;
             }
         }
