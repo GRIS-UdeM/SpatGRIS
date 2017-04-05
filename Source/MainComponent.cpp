@@ -137,9 +137,9 @@ MainContentComponent::MainContentComponent(){
     
     
     if(!jackClient->isReady()){
-        this->labelJackStatus->setText("JackClient Not Connected", dontSendNotification);
+        this->labelJackStatus->setText("Jack ERROR", dontSendNotification);
     }else{
-        this->labelJackStatus->setText("Jack Ready", dontSendNotification);
+        this->labelJackStatus->setText("Jack Run", dontSendNotification);
     }
     this->labelJackRate->setText(String(this->jackClient->sampleRate)+ " Hz", dontSendNotification);
     this->labelJackBuffer->setText(String(this->jackClient->bufferSize)+ " spls", dontSendNotification);

@@ -25,6 +25,7 @@ Input::Input(MainContentComponent * parent, GrisLookAndFeel * feel,int id){
     this->mainParent = parent;
     this->grisFeel = feel;
     this->idChannel = id;
+    this->center = glm::vec3(10,0,10);
     
     this->vuMeter = new LevelComponent(this, this->grisFeel);
 }

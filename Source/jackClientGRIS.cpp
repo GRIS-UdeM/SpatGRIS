@@ -65,14 +65,16 @@ static void muteSoloVuMeterGainOut(jackClientGris & jackCli, jack_default_audio_
     fill(jackCli.levelsOut, jackCli.levelsOut+sizeOutputs, -60.0f);
     fill(sumsOut, sumsOut+sizeOutputs, 0.0f);
     
-    for(int nF = 0; nF < nframes; ++nF) {
-        for (int i = 0; i < sizeOutputs; ++i) {
+
+    for (int i = 0; i < sizeOutputs; ++i) {
+        for(int nF = 0; nF < nframes; ++nF) {
             //Gain volume
             outs[i][nF] *= mGain;
             //cout << outs[i][nF] << newLine;
             sumsOut[i] +=  outs[i][nF] * outs[i][nF];
         }
     }
+
     for (int i = 0; i < sizeOutputs; ++i) {
         jackCli.levelsOut[i] = sumsOut[i]/nframes;
     }
@@ -249,7 +251,7 @@ int xrun_callback ( void * arg)
 
 void jack_shutdown (void *arg)
 {
-    AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon, "FATAL ERROR", "Please check :\n - Buffer Size (1024)\n - Sample Rate(48000)\n - Inputs/Outputs");
+    AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon, "FATAL ERROR", "Please check :\n - Buffer Size\n - Sample Rate\n - Inputs/Outputs");
     printf("\n===================\nFATAL ERROR JACK\n===================\n\n");
     exit(1);
 }
@@ -419,7 +421,7 @@ jackClientGris::jackClientGris(unsigned int bufferS) {
     printf ("engine sample rate: %" PRIu32 "\n", sampleRate);
     printf ("engine buffer size: %" PRIu32 "\n", jack_get_buffer_size(this->client));
     
-
+    
     //--------------------------------------------------
     //fill wave table.
     //--------------------------------------------------
