@@ -502,8 +502,15 @@ void jackClientGris::addRemoveInput(int number){
     connectedGristoSystem();
 }
 
-bool jackClientGris::addOutput(){
+void jackClientGris::clearOutput(){
+    int outS = (int)this->outputsPort.size();
+    for(int i = 0; i < outS; i++){
+        jack_port_unregister(client, this->outputsPort.back());
+        this->outputsPort.pop_back();
+    }
+}
 
+bool jackClientGris::addOutput(){
     String nameOut = "output";
     nameOut+= String(this->outputsPort.size() +1);
     
@@ -513,13 +520,34 @@ bool jackClientGris::addOutput(){
     return true;
 }
 
+void jackClientGris::removeOutput(int number){
+    jack_port_unregister(client, this->outputsPort.at(number));
+    this->outputsPort.erase(this->outputsPort.begin()+number);
+}
+
 void jackClientGris::connectedGristoSystem(){
     const char ** portsOut = jack_get_ports (this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput);
     const char ** portsIn = jack_get_ports (this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput);
     
-    //Connect jackClientGris to system---------------------------------------------------
+    
     int i=0;
     int j=0;
+    //DisConnect jackClientGris to system---------------------------------------------------
+    while (portsOut[i]){
+        if(getClientName(portsOut[i]) == ClientName)    //jackClient
+        {
+            j=0;
+            while(portsIn[j]){
+                jack_disconnect(this->client, portsOut[i] ,portsIn[j]);
+                j+=1;
+            }
+        }
+        i+=1;
+    }
+    
+    i=0;
+    j=0;
+    //Connect jackClientGris to system---------------------------------------------------
     while (portsOut[i]){
         if(getClientName(portsOut[i]) == ClientName)    //jackClient
         {

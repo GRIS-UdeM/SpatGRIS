@@ -134,8 +134,10 @@ public:
     
     
     void addRemoveInput(int number);
+    void clearOutput();
     bool addOutput();
-    void removeOutput();
+    void removeOutput(int number);
+
     
     void autoConnectClient();
     void connectionClient(String name, bool connect = true);

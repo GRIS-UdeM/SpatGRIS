@@ -347,7 +347,7 @@ void MainContentComponent::addSpeaker(){
 }
 
 void MainContentComponent::removeSpeaker(int idSpeaker){
-
+    this->jackClient->removeOutput(idSpeaker);
     this->lockSpeakers->lock();
     int index = 0;
     for (auto&& it : this->listSpeaker)
@@ -492,7 +492,7 @@ void MainContentComponent::openXmlFileSpeaker(String path)
             nameConfig =  mainXmlElem->getStringAttribute("Name");
             cout << nameConfig << newLine;
             this->speakerView->setNameConfig(nameConfig);
-            
+            this->jackClient->clearOutput();
             forEachXmlChildElement (*mainXmlElem, ring)
             {
                 if (ring->hasTagName ("Ring"))
