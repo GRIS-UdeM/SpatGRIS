@@ -1,10 +1,20 @@
-//
-//  Speaker.h
-//  spatServerGRIS
-//
-//  Created by GRIS on 2017-03-02.
-//
-//
+/*
+ This file is part of spatServerGRIS.
+ 
+ spatServerGRIS is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ 
+ spatServerGRIS is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with spatServerGRIS.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 #ifndef Speaker_h
 #define Speaker_h
@@ -19,26 +29,26 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
-#include "../../GrisCommonFiles/GrisLookAndFeel.h"
+#include "GrisLookAndFeel.h"
 #include "ParentLevelComponent.h"
+
 
 class MainContentComponent;
 class LevelComponent;
 
+
+using namespace std;
 
 static const glm::vec3 colorSpeaker = glm::vec3(0.85, 0.86, 0.87);
 static const glm::vec3 colorSpeakerSelect = glm::vec3(1.0, 0.66, 0.67);
 static const glm::vec3 sizeSpeaker = glm::vec3(0.5, 0.5, 0.5);
 static const glm::vec3 defaultCenter = glm::vec3(0, 0, 0);
 
-using namespace std;
-
-
-
 static double GetFloatPrecision(double value, double precision)
 {
     return (floor((value * pow(10, precision) + 0.5)) / pow(10, precision));
 }
+
 
 class Speaker : 
                 public ParentLevelComponent

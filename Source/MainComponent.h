@@ -16,7 +16,6 @@
  */
 
 
-
 #ifndef MAINCOMPONENT_H_INCLUDED
 #define MAINCOMPONENT_H_INCLUDED
 
@@ -33,8 +32,7 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
-#include "../../GrisCommonFiles/GrisLookAndFeel.h"
-
+#include "GrisLookAndFeel.h"
 
 #include "jackClientGRIS.h"
 #include "jackServerGRIS.h"
@@ -46,16 +44,16 @@
 #include "Input.h"
 
 
+class spatServerGRISApplication;
 
 
 using namespace std;
-
 
 static const unsigned int SizeWidthLevelComp = 36;
 static const unsigned int HertzRefreshNormal = 24;
 static const unsigned int HertzRefreshLowCpu = 6;
 
-class spatServerGRISApplication;
+
 //==============================================================================
 /*
  This component lives inside our window, and this is where you should put all

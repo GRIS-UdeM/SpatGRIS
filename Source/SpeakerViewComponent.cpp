@@ -288,18 +288,18 @@ void SpeakerViewComponent::drawOriginGrid()
     //Grid-----------------------------
     glLineWidth(1);
     glColor3f(0.49, 0.49, 0.49);
-    for(int x = -nbrGridLines; x < nbrGridLines+1; x+=2){
+    for(int x = -NbrGridLines; x < NbrGridLines+1; x+=2){
         glBegin(GL_LINE_LOOP);
-        glVertex3f(x,0,-nbrGridLines);
-        glVertex3f(x,0,nbrGridLines);
+        glVertex3f(x,0,-NbrGridLines);
+        glVertex3f(x,0,NbrGridLines);
         glEnd();
 
     }
     
-    for(int z = -nbrGridLines; z < nbrGridLines+1; z+=2){
+    for(int z = -NbrGridLines; z < NbrGridLines+1; z+=2){
         glBegin(GL_LINE_LOOP);
-        glVertex3f(-nbrGridLines,0,z);
-        glVertex3f(nbrGridLines,0,z);
+        glVertex3f(-NbrGridLines,0,z);
+        glVertex3f(NbrGridLines,0,z);
         glEnd();
     }
     

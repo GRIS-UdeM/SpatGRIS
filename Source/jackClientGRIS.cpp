@@ -16,8 +16,6 @@
  */
 
 #include "jackClientGRIS.h"
-#include <cmath>
-
 
 
 //=========================================================================================
@@ -214,6 +212,9 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
 }
 
 
+//=========================================================================================
+//CALLBACK FUNCTION
+//=========================================================================================
 void session_callback (jack_session_event_t *event, void *arg)
 {
     jackClientGris* jackCli = (jackClientGris*)arg;
@@ -337,7 +338,7 @@ void port_connect_callback(jack_port_id_t a, jack_port_id_t b, int connect, void
 
 
 //=================================================================================================================
-//  jackClientGris
+// jackClientGris
 //=================================================================================================================
 jackClientGris::jackClientGris(unsigned int bufferS) {
     

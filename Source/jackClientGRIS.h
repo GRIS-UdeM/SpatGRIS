@@ -15,8 +15,9 @@
  along with spatServerGRIS.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __jackClientGris__
-#define __jackClientGris__
+
+#ifndef jackClientGris_h
+#define jackClientGris_h
 
 #include <stdlib.h>
 #include <vector>
@@ -27,13 +28,10 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
-
-#include "jack/jack.h"
-#include "jack/transport.h"
-#include "jack/types.h"
-#include "jack/session.h"
-
-
+#include <jack/jack.h>
+#include <jack/transport.h>
+#include <jack/types.h>
+#include <jack/session.h>
 
 
 using namespace std;
@@ -72,6 +70,7 @@ struct SourceIn {
     float gain;//Not Implemented
 };
 
+
 static const StringArray BufferSize = {"32", "64", "128", "256", "512", "1024", "2048"};
 static const StringArray RateValues = {"44100", "48000", "88200", "96000"};
 
@@ -81,6 +80,7 @@ static unsigned int const MaxOutputs = 256;
 static const char* ClientName =     "jackClientGris";
 static const char* DriverNameSys =  "coreaudio";
 static const char* ClientNameSys =  "system";
+
 
 class jackClientGris {
 public:

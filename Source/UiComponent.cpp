@@ -1,10 +1,21 @@
-//
-//  UiComponent.cpp
-//  spatServerGRIS
-//
-//  Created by GRIS on 2017-03-13.
-//
-//
+/*
+ This file is part of spatServerGRIS.
+ 
+ spatServerGRIS is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ 
+ spatServerGRIS is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with spatServerGRIS.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
 
 #include "UiComponent.h"
 #include "LevelComponent.h"
@@ -617,18 +628,18 @@ WindowJackSetting::WindowJackSetting(const String& name, Colour backgroundColour
     this->grisFeel = feel;
     
     this->labRate = new Label();
-    this->labRate->setText("Rate :", NotificationType::dontSendNotification);
+    this->labRate->setText("Rate (Hz) :", NotificationType::dontSendNotification);
     this->labRate->setJustificationType(Justification::right);
-    this->labRate->setBounds(10, 20, 60, 22);
+    this->labRate->setBounds(10, 20, 80, 22);
     this->labRate->setFont(this->grisFeel->getFont());
     this->labRate->setLookAndFeel(this->grisFeel);
     this->labRate->setColour(Label::textColourId, this->grisFeel->getFontColour());
     this->juce::Component::addAndMakeVisible(this->labRate);
     
     this->labBuff = new Label();
-    this->labBuff->setText("Buffer :", NotificationType::dontSendNotification);
+    this->labBuff->setText("Buffer (spls) :", NotificationType::dontSendNotification);
     this->labBuff->setJustificationType(Justification::right);
-    this->labBuff->setBounds(10, 60, 60, 22);
+    this->labBuff->setBounds(10, 50, 80, 22);
     this->labBuff->setFont(this->grisFeel->getFont());
     this->labBuff->setLookAndFeel(this->grisFeel);
     this->labBuff->setColour(Label::textColourId, this->grisFeel->getFontColour());
@@ -638,21 +649,21 @@ WindowJackSetting::WindowJackSetting(const String& name, Colour backgroundColour
     this->cobRate = new ComboBox();
     this->cobRate->addItemList(RateValues, 1);
     this->cobRate->setSelectedItemIndex(indR);
-    this->cobRate->setBounds(70, 20, 160, 22);
+    this->cobRate->setBounds(90, 20, 120, 22);
     this->cobRate->setLookAndFeel(this->grisFeel);
     this->juce::Component::addAndMakeVisible(this->cobRate);
     
     this->cobBuffer = new ComboBox();
     this->cobBuffer->addItemList(BufferSize, 1);
     this->cobBuffer->setSelectedItemIndex(indB);
-    this->cobBuffer->setBounds(70, 60, 160, 22);
+    this->cobBuffer->setBounds(90, 50, 120, 22);
     this->cobBuffer->setLookAndFeel(this->grisFeel);
     this->juce::Component::addAndMakeVisible(this->cobBuffer);
 
     
     this->butValidSettings = new TextButton();
     this->butValidSettings->setButtonText("Save");
-    this->butValidSettings->setBounds(70, 100, 88, 22);
+    this->butValidSettings->setBounds(122, 80, 88, 22);
     this->butValidSettings->addListener(this);
     this->butValidSettings->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
     this->butValidSettings->setLookAndFeel(this->grisFeel);

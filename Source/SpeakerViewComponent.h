@@ -18,17 +18,15 @@
 #ifndef SPEAKERVIEWCOMPONENT_H_INCLUDED
 #define SPEAKERVIEWCOMPONENT_H_INCLUDED
 
-#include "../JuceLibraryCode/JuceHeader.h"
-
+#include <math.h>
 #include <OpenGL/gl.h>
 #include <OpenGl/glu.h>
-#include "../glm/glm.hpp"
-
 #include <OpenGL/gl3.h>
-#define __gl_h_
 #include <GLUT/glut.h>
 
-#include <math.h>
+#include "../JuceLibraryCode/JuceHeader.h"
+
+#include "../glm/glm.hpp"
 
 #include "Ray.h"
 
@@ -36,11 +34,9 @@
 class MainContentComponent;
 class Speaker;
 
-
 using namespace std;
 
-
-static const int nbrGridLines = 16;
+static const int NbrGridLines = 16;
 
 
 class SpeakerViewComponent : public OpenGLAppComponent {

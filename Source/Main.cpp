@@ -16,7 +16,7 @@
  */
 
 #include "../JuceLibraryCode/JuceHeader.h"
-#include "../../GrisCommonFiles/GrisLookAndFeel.h"
+#include "GrisLookAndFeel.h"
 
 #define STRING2(x) #x
 #define STRING(x) STRING2(x)
