@@ -74,7 +74,7 @@ private:
     float zeniSpan;
     float gain;
     
-    float sizeT = 0.5f;
+    float sizeT = 0.4f;
     glm::vec3 center;
     glm::vec3 color;
     

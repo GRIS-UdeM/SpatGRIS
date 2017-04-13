@@ -237,7 +237,7 @@ void SpeakerViewComponent::drawBackground()
     glLoadIdentity();
     //draw 2D image
     glBegin(GL_QUADS);
-    glColor3f(0.48,0.55,0.63);
+    glColor3f(0.38,0.45,0.53);  //glColor3f(0.48,0.55,0.63);
     glVertex2f(1.0,1.0);
     glVertex2f(-1.0,1.0);
     
@@ -257,8 +257,8 @@ void SpeakerViewComponent::drawOriginGrid()
     //Draw circle------------------------
     glLineWidth(1.5f);
     
-    glColor3f(0, 0, 0);
-    
+    //glColor3f(0, 0, 0);
+    glColor3f(0.89, 0.89, 0.89);
     glBegin(GL_LINE_LOOP);
     for(int i =0; i <= 180; i++){
         double angle = (2 * M_PI * i / 180);
@@ -288,7 +288,49 @@ void SpeakerViewComponent::drawOriginGrid()
     //Grid-----------------------------
     glLineWidth(1);
     glColor3f(0.49, 0.49, 0.49);
-    for(int x = -NbrGridLines; x < NbrGridLines+1; x+=2){
+    
+    glBegin(GL_LINE_LOOP);
+    glVertex3f(0,0,-NbrGridLines);
+    glVertex3f(0,0,NbrGridLines);
+    glEnd();
+    
+    glBegin(GL_LINE_LOOP);
+    glVertex3f(-NbrGridLines,0,0);
+    glVertex3f(NbrGridLines,0,0);
+    glEnd();
+    
+    glBegin(GL_LINE_LOOP);
+    glVertex3f(cos(M_PI/4.0f)*14.0f, 0.0f, sin(M_PI/4.0f)*14.0f);
+    glVertex3f(-cos(M_PI/4.0f)*14.0f, 0.0f, -sin(M_PI/4.0f)*14.0f);
+    glEnd();
+    
+    glBegin(GL_LINE_LOOP);
+    glVertex3f(cos(2*M_PI/3.0f)*14.0f, 0.0f, sin(2*M_PI/3.0f)*14.0f);
+    glVertex3f(-cos(2*M_PI/3.0f)*14.0f, 0.0f, -sin(2*M_PI/3.0f)*14.0f);
+    glEnd();
+    
+    glBegin(GL_LINE_LOOP);
+    for(int i =0; i <= 180; i++){
+        double angle = (2 * M_PI * i / 180);
+        glVertex3f(cos(angle)*2.5f, 0.0f, sin(angle)*2.5f);
+    }
+    glEnd();
+    
+    glBegin(GL_LINE_LOOP);
+    for(int i =0; i <= 180; i++){
+        double angle = (2 * M_PI * i / 180);
+        glVertex3f(cos(angle)*7.5f, 0.0f, sin(angle)*7.5f);
+    }
+    glEnd();
+    
+    glBegin(GL_LINE_LOOP);
+    for(int i =0; i <= 180; i++){
+        double angle = (2 * M_PI * i / 180);
+        glVertex3f(cos(angle)*12.5f, 0.0f, sin(angle)*12.5f);
+    }
+    glEnd();
+    /*
+     for(int x = -NbrGridLines; x < NbrGridLines+1; x+=2){
         glBegin(GL_LINE_LOOP);
         glVertex3f(x,0,-NbrGridLines);
         glVertex3f(x,0,NbrGridLines);
@@ -301,7 +343,7 @@ void SpeakerViewComponent::drawOriginGrid()
         glVertex3f(-NbrGridLines,0,z);
         glVertex3f(NbrGridLines,0,z);
         glEnd();
-    }
+    }*/
     
     drawText("0",glm::vec3(0,0.1,0));
     drawText("X",glm::vec3(10,0.1,0));
