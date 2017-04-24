@@ -84,7 +84,7 @@ private:
     
     float camAngleX= 30.0f;
     float camAngleY= 25.0f;
-    float distance = 15.0f;
+    float distance = 18.0f;
     
     float deltaClickX;
     float deltaClickY;
@@ -95,7 +95,6 @@ private:
     Ray ray;
     MainContentComponent *mainParent;
     glm::vec3 camPos;
-    glm::vec4 perspectivCam;
 
     String nameConfig = "...";
     

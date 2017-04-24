@@ -25,13 +25,12 @@
 SpeakerViewComponent::SpeakerViewComponent(MainContentComponent *parent) {
     //openGLContext.setMultisamplingEnabled (true);
     this->mainParent = parent;
-    perspectivCam = glm::vec4(80.0, (16.0/9.0), 0.5, 75);
-    setSize(400, 400);
+    this->setSize(400, 400);
     
 }
 
 SpeakerViewComponent::~SpeakerViewComponent() {
-    shutdownOpenGL();
+    this->shutdownOpenGL();
 }
 
 void SpeakerViewComponent::initialise() {
@@ -41,7 +40,8 @@ void SpeakerViewComponent::initialise() {
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(perspectivCam.x, perspectivCam.y, perspectivCam.z, perspectivCam.w);
+    gluPerspective(80, (float)this->getWidth()/this->getHeight(), 0.5f, 75.0f);
+    //gluPerspective(80.0, (16.0/9.0), 0.5, 75);
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -76,31 +76,29 @@ void SpeakerViewComponent::render() {
         glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
     }
     
-    drawBackground();
-    
-    gluPerspective(perspectivCam.x, perspectivCam.y, perspectivCam.z, perspectivCam.w);
+    this->drawBackground();
+
+    gluPerspective(80, (float)this->getWidth()/this->getHeight(), 0.5f, 75.0f);
     glMatrixMode(GL_MODELVIEW);
 
-    
     float camX = distance * sinf(camAngleX*(M_PI/180.f)) * cosf((camAngleY)*(M_PI/180.f));
     float camY = distance * sinf((camAngleY)*(M_PI/180.f));
     float camZ = distance * cosf((camAngleX)*(M_PI/180.f)) * cosf((camAngleY)*(M_PI/180.f));
     
-    
     glLoadIdentity();
     gluLookAt(camX, camY, camZ, 0, 0, 0, 0,1,0);
-    camPos = glm::vec3(camX,camY,camZ);
+    this->camPos = glm::vec3(camX,camY,camZ);
     
 
-    drawOriginGrid();
+    this->drawOriginGrid();
     
     if(this->mainParent->getLockSpeakers()->try_lock()){
     for(int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
         this->mainParent->getListSpeaker()[i]->draw();
         if(this->showNumber){
             glm::vec3 posT = this->mainParent->getListSpeaker()[i]->getCenter();
-            posT.y +=sizeSpeaker.y+0.4f;
-            drawText(to_string(this->mainParent->getListSpeaker()[i]->getOutputPatch()),posT,0.002f);
+            posT.y += SizeSpeaker.y+0.4f;
+            this->drawText(to_string(this->mainParent->getListSpeaker()[i]->getOutputPatch()),posT,0.002f);
         }
     }
     this->mainParent->getLockSpeakers()->unlock();
@@ -111,8 +109,8 @@ void SpeakerViewComponent::render() {
         this->mainParent->getListSourceInput()[i]->draw();
         if(this->showNumber){
             glm::vec3 posT = this->mainParent->getListSourceInput()[i]->getCenter();
-            posT.y +=sizeSpeaker.y+0.4f;
-            drawText(to_string(this->mainParent->getListSourceInput()[i]->getId()),posT,0.002f);
+            posT.y += SizeSpeaker.y+0.4f;
+            this->drawText(to_string(this->mainParent->getListSourceInput()[i]->getId()),posT,0.002f);
         }
     }
     this->mainParent->getLockInputs()->unlock();
@@ -157,7 +155,7 @@ void SpeakerViewComponent::paint (Graphics& g) {
 //    
     g.setColour(Colours::white);
     g.setFont (16);
-    g.drawText (this->nameConfig, 25, 20, 300, 30, Justification::left);
+    g.drawText (this->nameConfig, 18, 18, 300, 30, Justification::left);
 //    g.drawLine (20, 20, 170, 20);
 }
 
@@ -205,8 +203,8 @@ void SpeakerViewComponent::clickRay(){
 
 void SpeakerViewComponent::mouseDown (const MouseEvent& e) {
     
-    deltaClickX = camAngleX - e.getPosition().x ;
-    deltaClickY = camAngleY - e.getPosition().y;
+    this->deltaClickX = this->camAngleX - e.getPosition().x ;
+    this->deltaClickY = this->camAngleY - e.getPosition().y;
 
     if(e.mods.isLeftButtonDown()){
         this->rayClickX = (double)e.getPosition().x;
@@ -217,13 +215,13 @@ void SpeakerViewComponent::mouseDown (const MouseEvent& e) {
 
 void SpeakerViewComponent::mouseDrag (const MouseEvent& e) {
     if(e.mods.isRightButtonDown()){
-        camAngleX = (e.getPosition().x + deltaClickX);
-        camAngleY = (e.getPosition().y + deltaClickY);
+        this->camAngleX = (e.getPosition().x + this->deltaClickX);
+        this->camAngleY = (e.getPosition().y + this->deltaClickY);
     }
 }
 
 void SpeakerViewComponent::mouseWheelMove(const MouseEvent& e,const MouseWheelDetails& wheel){
-    distance -= (wheel.deltaY*1.5f);
+    this->distance -= (wheel.deltaY*1.8f);
 }
 
 void SpeakerViewComponent::drawBackground()
@@ -237,7 +235,7 @@ void SpeakerViewComponent::drawBackground()
     glLoadIdentity();
     //draw 2D image
     glBegin(GL_QUADS);
-    glColor3f(0.38,0.45,0.53);  //glColor3f(0.48,0.55,0.63);
+    glColor3f(0.29,0.29,0.29);//(0.38,0.45,0.53);  //glColor3f(0.48,0.55,0.63);
     glVertex2f(1.0,1.0);
     glVertex2f(-1.0,1.0);
     

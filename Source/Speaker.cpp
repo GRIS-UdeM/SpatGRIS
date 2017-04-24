@@ -121,14 +121,14 @@ bool Speaker::isSelected(){
 
 void Speaker::selectSpeaker()
 {
-    this->color = colorSpeakerSelect;
+    this->color = ColorSpeakerSelect;
     this->selected = true;
     this->vuMeter->setSelected(this->selected);
 }
 
 void Speaker::unSelectSpeaker()
 {
-    this->color = colorSpeaker;
+    this->color = ColorSpeaker;
     this->selected = false;
     this->vuMeter->setSelected(this->selected);
 }
@@ -225,17 +225,15 @@ void Speaker::draw() {
     
     glEnd();
     
-    glLineWidth(2);
-    glBegin(GL_LINES);
-    
-    glColor3f(0, 0, 0);
-    glVertex3f(this->center.x+sizeSpeaker.x,this->center.y, this->center.z);
-    glVertex3f(this->center.x+ 1.2f,this->center.y, this->center.z);
-    glEnd();
-    
     if(this->selected){
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);  // this tells it to only render lines
+        glLineWidth(2);
+        glBegin(GL_LINES);
+        glColor3f(0, 0, 0);
+        glVertex3f(this->center.x+SizeSpeaker.x,this->center.y, this->center.z);
+        glVertex3f(this->center.x+ 1.2f,this->center.y, this->center.z);
+        glEnd();
         
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);  // this tells it to only render lines
         glLineWidth(4);
         glBegin(GL_LINES);
         float over = 0.02f;
@@ -281,6 +279,15 @@ void Speaker::draw() {
         
         glEnd();
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+    else{
+        glLineWidth(2);
+        glBegin(GL_LINES);
+        glColor3f(0.37, 0.37, 0.37);
+        glVertex3f(this->center.x+SizeSpeaker.x,this->center.y, this->center.z);
+        glVertex3f(this->center.x+ 1.2f,this->center.y, this->center.z);
+        glEnd();
+        
     }
 
     glPopMatrix();

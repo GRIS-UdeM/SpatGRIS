@@ -39,10 +39,10 @@ class LevelComponent;
 
 using namespace std;
 
-static const glm::vec3 colorSpeaker = glm::vec3(0.85, 0.86, 0.87);
-static const glm::vec3 colorSpeakerSelect = glm::vec3(1.0, 0.66, 0.67);
-static const glm::vec3 sizeSpeaker = glm::vec3(0.5, 0.5, 0.5);
-static const glm::vec3 defaultCenter = glm::vec3(0, 0, 0);
+static const glm::vec3 ColorSpeaker         = glm::vec3(0.87, 0.87, 0.87);
+static const glm::vec3 ColorSpeakerSelect   = glm::vec3(1.00, 0.64, 0.09);
+static const glm::vec3 SizeSpeaker          = glm::vec3(0.5, 0.5, 0.5);
+static const glm::vec3 DefaultCenter        = glm::vec3(0, 0, 0);
 
 static double GetFloatPrecision(double value, double precision)
 {
@@ -57,7 +57,7 @@ public:
     
     Speaker(MainContentComponent *parent = nullptr, int idS = 1);
     Speaker(MainContentComponent *parent = nullptr, int idS = -1,
-            int outP = -1, glm::vec3 center = defaultCenter, glm::vec3 extents = sizeSpeaker);
+            int outP = -1, glm::vec3 center = DefaultCenter, glm::vec3 extents = SizeSpeaker);
     ~Speaker();
     
     bool isSelected();
@@ -97,14 +97,14 @@ public:
     
 private :
 
-    void newPosition(glm::vec3 center, glm::vec3 extents = sizeSpeaker);
-    void newSpheriqueCoord(glm::vec3 aziZenRad, glm::vec3 extents = sizeSpeaker);
+    void newPosition(glm::vec3 center, glm::vec3 extents = SizeSpeaker);
+    void newSpheriqueCoord(glm::vec3 aziZenRad, glm::vec3 extents = SizeSpeaker);
     
     glm::vec3 min = glm::vec3(0,0,0);
     glm::vec3 max = glm::vec3(0,0,0);
     glm::vec3 center;
     glm::vec3 aziZenRad;
-    glm::vec3 color = colorSpeaker;
+    glm::vec3 color = ColorSpeaker;
     
     int idSpeaker = -1;
     int outputPatch = -1;
