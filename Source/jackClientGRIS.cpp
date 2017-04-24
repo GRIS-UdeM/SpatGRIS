@@ -351,10 +351,18 @@ jackClientGris::jackClientGris(unsigned int bufferS) {
     this->overload = false;
     this->masterGainOut = 1.0f;
     
-    this->listClient =  vector<Client>();
-    this->listSourceIn.resize(MaxInputs);
-    this->listSpeakerOut.resize(MaxOutputs);
-
+    this->listClient = vector<Client>();
+    this->listSourceIn = vector<SourceIn>();
+    this->listSpeakerOut = vector<SpeakerOut>();
+    
+    SourceIn si;
+    for(int i = 0; i < MaxInputs; ++i){
+        this->listSourceIn.push_back(si);
+    }
+    SpeakerOut so;
+    for(int i = 0; i < MaxOutputs; ++i){
+        this->listSpeakerOut.push_back(so);
+    }
     
     fill(this->muteIn, this->muteIn+MaxInputs, false);
     fill(this->soloIn, this->soloIn+MaxInputs+1, false);

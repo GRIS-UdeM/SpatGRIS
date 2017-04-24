@@ -365,7 +365,7 @@ void MainContentComponent::removeSpeaker(int idSpeaker){
 }
 
 void MainContentComponent::updateInputJack(int inInput, Input &inp){
-    SourceIn *si = &this->jackClient->listSourceIn.getReference(inInput);
+    SourceIn *si = &this->jackClient->listSourceIn.at(inInput); //.getReference(inInput);
     si->x = inp.getCenter().x/10.0f;
     si->y = inp.getCenter().y/10.0f;
     si->z = inp.getCenter().z/10.0f;
@@ -400,7 +400,7 @@ void MainContentComponent::updateLevelComp(){
         so.azimuth = it->getAziZenRad().x;
         so.zenith = it->getAziZenRad().y;
         so.radius = it->getAziZenRad().z;
-        this->jackClient->listSpeakerOut.setUnchecked(it->getOutputPatch()-1,so);
+        this->jackClient->listSpeakerOut[it->getOutputPatch()-1] = so;
         i++;
     }
     
@@ -425,7 +425,7 @@ void MainContentComponent::updateLevelComp(){
         si.zenith = it->getZenith();
         si.radius = it->getRad();
         
-        this->jackClient->listSourceIn.setUnchecked(i,si);
+        this->jackClient->listSourceIn[i] = si;
         i++;
     }
     if(this->winSpeakConfig != nullptr){

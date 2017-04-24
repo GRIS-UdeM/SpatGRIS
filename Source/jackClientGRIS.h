@@ -46,6 +46,18 @@ struct Client {
 };
 
 
+struct SourceIn {
+    unsigned int id;
+    float x = 1.0f;;
+    float y = 0.0f;;
+    float z = 0.0f;;//Not Implemented
+    
+    float azimuth = 0.0f;;
+    float zenith = 0.0f;;
+    float radius = 0.0f;;
+    float gain;//Not Implemented
+};
+
 struct SpeakerOut {
     unsigned int id;
     float x = 1.0f;
@@ -58,17 +70,7 @@ struct SpeakerOut {
     float gain;//Not Implemented
 };
 
-struct SourceIn {
-    unsigned int id;
-    float x = 1.0f;;
-    float y = 0.0f;;
-    float z = 0.0f;;//Not Implemented
-    
-    float azimuth = 0.0f;;
-    float zenith = 0.0f;;
-    float radius = 0.0f;;
-    float gain;//Not Implemented
-};
+
 
 
 static const StringArray BufferSize = {"32", "64", "128", "256", "512", "1024", "2048"};
@@ -109,8 +111,8 @@ public:
     float masterGainOut;
     //------------------------
     vector<Client> listClient;
-    Array<SourceIn> listSourceIn;
-    Array<SpeakerOut> listSpeakerOut;
+    vector<SourceIn> listSourceIn;
+    vector<SpeakerOut> listSpeakerOut;
     
     bool noiseSound;
     bool autoConnection;
