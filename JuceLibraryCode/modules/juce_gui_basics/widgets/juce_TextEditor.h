@@ -554,11 +554,11 @@ public:
         */
         LengthAndCharacterRestriction (int maxNumChars, const String& allowedCharacters);
 
+        String filterNewText (TextEditor&, const String&) override;
+
     private:
         String allowedCharacters;
         int maxLength;
-
-        String filterNewText (TextEditor&, const String&) override;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LengthAndCharacterRestriction)
     };
@@ -633,6 +633,8 @@ public:
     /** @internal */
     void lookAndFeelChanged() override;
     /** @internal */
+    void parentHierarchyChanged() override;
+    /** @internal */
     bool isTextInputActive() const override;
     /** @internal */
     void setTemporaryUnderlining (const Array<Range<int> >&) override;
@@ -684,6 +686,7 @@ private:
     bool menuActive;
     bool valueTextNeedsUpdating;
     bool consumeEscAndReturnKeys;
+    bool styleChanged;
 
     UndoManager undoManager;
     ScopedPointer<CaretComponent> caret;

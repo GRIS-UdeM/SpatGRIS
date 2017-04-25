@@ -1,27 +1,29 @@
 /*
   ==============================================================================
 
-   This file is part of the juce_core module of the JUCE library.
-   Copyright (c) 2015 - ROLI Ltd.
+   This file is part of the JUCE library.
+   Copyright (c) 2016 - ROLI Ltd.
 
-   Permission to use, copy, modify, and/or distribute this software for any purpose with
-   or without fee is hereby granted, provided that the above copyright notice and this
-   permission notice appear in all copies.
+   Permission is granted to use this software under the terms of the ISC license
+   http://www.isc.org/downloads/software-support-policy/isc-license/
 
-   THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD
-   TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN
-   NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
-   DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER
-   IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
-   CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+   Permission to use, copy, modify, and/or distribute this software for any
+   purpose with or without fee is hereby granted, provided that the above
+   copyright notice and this permission notice appear in all copies.
 
-   ------------------------------------------------------------------------------
+   THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH REGARD
+   TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+   FITNESS. IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT,
+   OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF
+   USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+   TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
+   OF THIS SOFTWARE.
 
-   NOTE! This permissive ISC license applies ONLY to files within the juce_core module!
-   All other JUCE modules are covered by a dual GPL/commercial license, so if you are
-   using any other modules, be sure to check that you also comply with their license.
+   -----------------------------------------------------------------------------
 
-   For more details, visit www.juce.com
+   To release a closed-source product which uses other parts of JUCE not
+   licensed under the ISC terms, commercial licenses are available: visit
+   www.juce.com for more information.
 
   ==============================================================================
 */
@@ -62,14 +64,9 @@ JUCE_API void JUCE_CALLTYPE Process::setPriority (ProcessPriority prior)
     pthread_setschedparam (pthread_self(), policy, &param);
 }
 
-JUCE_API bool JUCE_CALLTYPE juce_isRunningUnderDebugger()
+JUCE_API bool JUCE_CALLTYPE juce_isRunningUnderDebugger() noexcept
 {
     return false;
-}
-
-JUCE_API bool JUCE_CALLTYPE Process::isRunningUnderDebugger()
-{
-    return juce_isRunningUnderDebugger();
 }
 
 JUCE_API void JUCE_CALLTYPE Process::raisePrivilege() {}
@@ -89,10 +86,8 @@ struct AndroidThreadData
 
 void JUCE_API juce_threadEntryPoint (void*);
 
-extern "C" void* threadEntryProc (void*);
-extern "C" void* threadEntryProc (void* userData)
+void* threadEntryProc (AndroidThreadData* priv)
 {
-    ScopedPointer<AndroidThreadData> priv (reinterpret_cast<AndroidThreadData*> (userData));
     priv->tId = (Thread::ThreadID) pthread_self();
     priv->eventSet.signal();
     priv->eventGet.wait (-1);
@@ -105,12 +100,10 @@ extern "C" void* threadEntryProc (void* userData)
 JUCE_JNI_CALLBACK (JUCE_JOIN_MACRO (JUCE_ANDROID_ACTIVITY_CLASSNAME, _00024JuceThread), runThread,
                    void, (JNIEnv* env, jobject device, jlong host))
 {
-    // Java may create a Midi thread which JUCE doesn't know about and this callback may be
-    // received on this thread. Java will have already created a JNI Env for this new thread,
-    // which we need to tell Juce about
+    // This thread does not have a JNIEnv assigned to it yet. So assign it now.
     setEnv (env);
 
-    if (Thread* thread = reinterpret_cast<Thread*> (host))
+    if (AndroidThreadData* thread = reinterpret_cast<AndroidThreadData*> (host))
         threadEntryProc (thread);
 }
 
@@ -119,8 +112,11 @@ void Thread::launchThread()
     threadHandle = 0;
 
     ScopedPointer<AndroidThreadData> threadPrivateData = new AndroidThreadData (this);
+    const LocalRef<jstring> jName (javaString (threadName));
 
-    jobject juceNewThread = android.activity.callObjectMethod (JuceAppActivity.createNewThread, (jlong) threadPrivateData.get());
+    jobject juceNewThread = android.activity.callObjectMethod (JuceAppActivity.createNewThread,
+                                                               (jlong) threadPrivateData.get(),
+                                                               jName.get(), (jlong) threadStackSize);
 
     if (jobject juceThread = getEnv()->NewGlobalRef (juceNewThread))
     {

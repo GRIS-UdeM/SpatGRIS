@@ -4,14 +4,13 @@
 
   },
   "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
-    "96EC89DEBE3636402E273A627B647E9CF428E86E" : 9223372036854775807,
-    "D34FE009573910B13F167FB87C5E9503DDD49881" : 9223372036854775807
+    "EB5060301A45D5D6F316FE343F475AA86D669BAF" : 9223372036854775807,
+    "96EC89DEBE3636402E273A627B647E9CF428E86E" : 9223372036854775807
   },
-  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "94FF9B09-BA06-4195-AD02-B3380EBF53CA",
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "86C9E503-5463-4D57-912B-35CEB96D2D4A",
   "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
     "EB5060301A45D5D6F316FE343F475AA86D669BAF" : "GrisCommonFiles\/",
-    "96EC89DEBE3636402E273A627B647E9CF428E86E" : "spatServerGRIS\/",
-    "D34FE009573910B13F167FB87C5E9503DDD49881" : "jackGRIS\/"
+    "96EC89DEBE3636402E273A627B647E9CF428E86E" : "spatServerGRIS\/"
   },
   "DVTSourceControlWorkspaceBlueprintNameKey" : "spatServerGRIS",
   "DVTSourceControlWorkspaceBlueprintVersion" : 204,
@@ -23,9 +22,9 @@
       "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "96EC89DEBE3636402E273A627B647E9CF428E86E"
     },
     {
-      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/GRIS-UdeM\/jackGRIS.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/GRIS-UdeM\/GrisCommonFiles.git",
       "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
-      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "D34FE009573910B13F167FB87C5E9503DDD49881"
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "EB5060301A45D5D6F316FE343F475AA86D669BAF"
     }
   ]
 }

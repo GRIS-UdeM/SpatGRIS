@@ -25,8 +25,6 @@
 #ifndef JUCE_BLUETOOTHMIDIDEVICPAIRINGCOMPONENT_H_INCLUDED
 #define JUCE_BLUETOOTHMIDIDEVICPAIRINGCOMPONENT_H_INCLUDED
 
-class BluetoothMidiSelectorOverlay;
-
 //==============================================================================
 /**
     Opens a Bluetooth MIDI pairing dialogue that allows the user to view and
@@ -44,15 +42,19 @@ class BluetoothMidiSelectorOverlay;
     supported.
 */
 
-class BluetoothMidiDevicePairingDialogue
+class JUCE_API BluetoothMidiDevicePairingDialogue
 {
 public:
 
     /** Opens the Bluetooth MIDI pairing dialogue, if it is available.
 
+        @param  exitCallback A callback which will be called when the modal
+                bluetooth dialog is closed.
         @return true if the dialogue was opened, false on error.
+
+        @see ModalComponentManager::Callback
     */
-    static bool open();
+    static bool open (ModalComponentManager::Callback* exitCallback = nullptr);
 
     /** Checks if a Bluetooth MIDI pairing dialogue is available on this
         platform.

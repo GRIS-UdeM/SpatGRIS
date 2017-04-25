@@ -2,13 +2,28 @@
 
 <JUCERPROJECT id="MXmiSb" name="spatServerGRIS" projectType="guiapp" version="0.0.1"
               bundleIdentifier="com.UdeM.GRIS.spatServerGRIS" includeBinaryInAppConfig="1"
-              jucerVersion="4.1.0" companyName="GRIS - UdeM">
+              jucerVersion="4.3.1" companyName="GRIS - UdeM">
   <MAINGROUP id="lsxaKA" name="spatServerGRIS">
+    <GROUP id="{6EAF4FF6-A4F0-94E9-AA8A-98D9BF95CA11}" name="Resources">
+      <FILE id="G8JPcc" name="logo512.png" compile="0" resource="1" file="logo512.png"/>
+      <FILE id="b1pWMS" name="SinkinSans-400Regular.otf" compile="0" resource="1"
+            file="../GrisCommonFiles/Fonts/sinkin-sans/SinkinSans-400Regular.otf"/>
+    </GROUP>
     <GROUP id="{048E368A-4132-92B3-5696-FA2749D96397}" name="GrisCommonFiles">
       <FILE id="cvZwgD" name="GrisLookAndFeel.h" compile="0" resource="0"
             file="../GrisCommonFiles/GrisLookAndFeel.h"/>
     </GROUP>
     <GROUP id="{534A7161-2617-F3B1-0706-CC62D7A3FE71}" name="Source">
+      <FILE id="BVvOrd" name="Input.cpp" compile="1" resource="0" file="Source/Input.cpp"/>
+      <FILE id="BiDXCC" name="Input.h" compile="0" resource="0" file="Source/Input.h"/>
+      <FILE id="LMWJcl" name="jackServerGRIS.cpp" compile="1" resource="0"
+            file="Source/jackServerGRIS.cpp"/>
+      <FILE id="Dg7whn" name="jackServerGRIS.h" compile="0" resource="0"
+            file="Source/jackServerGRIS.h"/>
+      <FILE id="MSjj5i" name="OscInput.cpp" compile="1" resource="0" file="Source/OscInput.cpp"/>
+      <FILE id="oP6icJ" name="OscInput.h" compile="0" resource="0" file="Source/OscInput.h"/>
+      <FILE id="fIPWN2" name="ParentLevelComponent.h" compile="0" resource="0"
+            file="Source/ParentLevelComponent.h"/>
       <FILE id="KcFQB2" name="Speaker.cpp" compile="1" resource="0" file="Source/Speaker.cpp"/>
       <FILE id="i4Suin" name="Speaker.h" compile="0" resource="0" file="Source/Speaker.h"/>
       <FILE id="arLWJq" name="LevelComponent.cpp" compile="1" resource="0"
@@ -33,7 +48,8 @@
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>
-    <XCODE_MAC targetFolder="Builds/MacOSX" externalLibraries="" extraFrameworks="">
+    <XCODE_MAC targetFolder="Builds/MacOSX" externalLibraries="" extraFrameworks=""
+               customXcodeResourceFolders="" smallIcon="G8JPcc" bigIcon="G8JPcc">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" osxSDK="default" osxCompatibility="10.11 SDK" osxArchitecture="default"
                        isDebug="1" optimisation="1" targetName="spatServerGRIS" headerPath="../../jack&#10;../../glm"
@@ -43,21 +59,21 @@
                        headerPath="../../jack&#10;../../glm" libraryPath="../../jack/lib"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_core" path="../../sdks/JUCE-4.1.0/modules"/>
-        <MODULEPATH id="juce_events" path="../../sdks/JUCE-4.1.0/modules"/>
-        <MODULEPATH id="juce_graphics" path="../../sdks/JUCE-4.1.0/modules"/>
-        <MODULEPATH id="juce_data_structures" path="../../sdks/JUCE-4.1.0/modules"/>
-        <MODULEPATH id="juce_gui_basics" path="../../sdks/JUCE-4.1.0/modules"/>
-        <MODULEPATH id="juce_gui_extra" path="../../sdks/JUCE-4.1.0/modules"/>
-        <MODULEPATH id="juce_cryptography" path="../../sdks/JUCE-4.1.0/modules"/>
-        <MODULEPATH id="juce_video" path="../../sdks/JUCE-4.1.0/modules"/>
-        <MODULEPATH id="juce_opengl" path="../../sdks/JUCE-4.1.0/modules"/>
-        <MODULEPATH id="juce_audio_basics" path="../../sdks/JUCE-4.1.0/modules"/>
-        <MODULEPATH id="juce_audio_devices" path="../../sdks/JUCE-4.1.0/modules"/>
-        <MODULEPATH id="juce_audio_formats" path="../../sdks/JUCE-4.1.0/modules"/>
-        <MODULEPATH id="juce_audio_processors" path="../../sdks/JUCE-4.1.0/modules"/>
-        <MODULEPATH id="juce_audio_utils" path="../../sdks/JUCE-4.1.0/modules"/>
-        <MODULEPATH id="juce_osc" path="../../sdks/JUCE-4.1.0/modules"/>
+        <MODULEPATH id="juce_core" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_events" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_graphics" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_cryptography" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_video" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_opengl" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_audio_basics" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_osc" path="../../sdks/JUCE-4.3.1/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
     <VS2015 targetFolder="Builds/VisualStudio2015">
@@ -68,21 +84,21 @@
                        isDebug="0" optimisation="3" targetName="spatServerGRIS"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_core" path="../../sdks/JUCE-4.1.0/modules"/>
-        <MODULEPATH id="juce_events" path="../../sdks/JUCE-4.1.0/modules"/>
-        <MODULEPATH id="juce_graphics" path="../../sdks/JUCE-4.1.0/modules"/>
-        <MODULEPATH id="juce_data_structures" path="../../sdks/JUCE-4.1.0/modules"/>
-        <MODULEPATH id="juce_gui_basics" path="../../sdks/JUCE-4.1.0/modules"/>
-        <MODULEPATH id="juce_gui_extra" path="../../sdks/JUCE-4.1.0/modules"/>
-        <MODULEPATH id="juce_cryptography" path="../../sdks/JUCE-4.1.0/modules"/>
-        <MODULEPATH id="juce_video" path="../../sdks/JUCE-4.1.0/modules"/>
-        <MODULEPATH id="juce_opengl" path="../../sdks/JUCE-4.1.0/modules"/>
-        <MODULEPATH id="juce_audio_basics" path="../../sdks/JUCE-4.1.0/modules"/>
-        <MODULEPATH id="juce_audio_devices" path="../../sdks/JUCE-4.1.0/modules"/>
-        <MODULEPATH id="juce_audio_formats" path="../../sdks/JUCE-4.1.0/modules"/>
-        <MODULEPATH id="juce_audio_processors" path="../../sdks/JUCE-4.1.0/modules"/>
-        <MODULEPATH id="juce_audio_utils" path="../../sdks/JUCE-4.1.0/modules"/>
-        <MODULEPATH id="juce_osc" path="../../sdks/JUCE-4.1.0/modules"/>
+        <MODULEPATH id="juce_core" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_events" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_graphics" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_cryptography" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_video" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_opengl" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_audio_basics" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_osc" path="../../sdks/JUCE-4.3.1/modules"/>
       </MODULEPATHS>
     </VS2015>
   </EXPORTFORMATS>

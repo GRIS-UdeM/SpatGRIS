@@ -33,31 +33,6 @@
 
 #include <CoreAudioKit/CoreAudioKit.h>
 
-//==============================================================================
-@interface BluetoothSelectorView : NSObject
-
-@property CABTMIDICentralViewController *central;
-- (UIView*) getView;
-
-@end
-
-//==============================================================================
-@implementation BluetoothSelectorView
-
-- (instancetype) init
-{
-    self = [super init];
-    self.central = [[CABTMIDICentralViewController alloc] init];
-    return self;
-}
-
-- (UIView*) getView
-{
-    return self.central.view;
-}
-
-@end
-
 namespace juce
 {
 
@@ -65,18 +40,28 @@ namespace juce
 class BluetoothMidiSelectorOverlay  : public Component
 {
 public:
-    BluetoothMidiSelectorOverlay()
+    BluetoothMidiSelectorOverlay (ModalComponentManager::Callback* exitCallbackToUse)
     {
+        ScopedPointer<ModalComponentManager::Callback> exitCallback (exitCallbackToUse);
+
         setAlwaysOnTop (true);
         setVisible (true);
         addToDesktop (ComponentPeer::windowHasDropShadow);
         setBounds (0, 0, getParentWidth(), getParentHeight());
         toFront (true);
 
-        nativeSelectorComponent.setView ([[[BluetoothSelectorView alloc] init] getView]);
+        controller = [[CABTMIDICentralViewController alloc] init];
+        nativeSelectorComponent.setView ([controller view]);
+
         addAndMakeVisible (nativeSelectorComponent);
 
-        enterModalState (true, nullptr, true);
+        enterModalState (true, exitCallback.release(), true);
+    }
+
+    ~BluetoothMidiSelectorOverlay()
+    {
+        nativeSelectorComponent.setView (nullptr);
+        [controller release];
     }
 
     void paint (Graphics& g) override
@@ -87,7 +72,7 @@ public:
     void inputAttemptWhenModal() override           { close(); }
     void mouseDrag (const MouseEvent&) override     {}
     void mouseDown (const MouseEvent&) override     { close(); }
-    void resized () override                        { update(); }
+    void resized() override                         { update(); }
     void parentSizeChanged() override               { update(); }
 
 private:
@@ -97,8 +82,8 @@ private:
         const int ph = getParentHeight();
 
         nativeSelectorComponent.setBounds (Rectangle<int> (pw, ph)
-                                             .withSizeKeepingCentre (jmin (400, pw - 14),
-                                                                     jmin (500, ph - 40)));
+                                             .withSizeKeepingCentre (jmin (400, pw),
+                                                                     jmin (450, ph - 40)));
     }
 
     void close()
@@ -107,32 +92,38 @@ private:
         setVisible (false);
     }
 
+    CABTMIDICentralViewController* controller;
     UIViewComponent nativeSelectorComponent;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BluetoothMidiSelectorOverlay)
 };
 
-#endif // JUCE_MODULE_AVAILABLE_juce_gui_extra && ! TARGET_IPHONE_SIMULATOR
-
-//==============================================================================
-bool BluetoothMidiDevicePairingDialogue::open()
+bool BluetoothMidiDevicePairingDialogue::open (ModalComponentManager::Callback* exitCallback)
 {
-   #if JUCE_MODULE_AVAILABLE_juce_gui_extra && ! TARGET_IPHONE_SIMULATOR
+    ScopedPointer<ModalComponentManager::Callback> cb (exitCallback);
+
     if (isAvailable())
     {
-        new BluetoothMidiSelectorOverlay();
+        new BluetoothMidiSelectorOverlay (cb.release());
         return true;
     }
-   #endif
 
     return false;
 }
 
 bool BluetoothMidiDevicePairingDialogue::isAvailable()
 {
-   #if JUCE_MODULE_AVAILABLE_juce_gui_extra && ! TARGET_IPHONE_SIMULATOR
     return NSClassFromString ([NSString stringWithUTF8String: "CABTMIDICentralViewController"]) != nil;
-   #else
-    return false;
-   #endif
 }
+
+//==============================================================================
+#else
+
+bool BluetoothMidiDevicePairingDialogue::open (ModalComponentManager::Callback* exitCallback)
+{
+    ScopedPointer<ModalComponentManager::Callback> cb (exitCallback);
+    return false;
+}
+bool BluetoothMidiDevicePairingDialogue::isAvailable()                                         { return false; }
+
+#endif

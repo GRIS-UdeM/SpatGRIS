@@ -1,6 +1,8 @@
 /*
  This file is part of spatServerGRIS.
  
+ Developers: Nicolas Masson
+ 
  spatServerGRIS is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
@@ -14,7 +16,6 @@
  You should have received a copy of the GNU General Public License
  along with spatServerGRIS.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #include "SpeakerViewComponent.h"
 #include "MainComponent.h"
@@ -343,10 +344,15 @@ void SpeakerViewComponent::drawOriginGrid()
         glEnd();
     }*/
     
-    drawText("0",glm::vec3(0,0.1,0));
+    //drawText("0",glm::vec3(0,0.1,0));
     drawText("X",glm::vec3(10,0.1,0));
     drawText("Y",glm::vec3(0,0.1,10));
     drawText("Z",glm::vec3(0,10,0));
+    
+    drawTextOnGrid("0",     glm::vec3(9.2, 0,0),    0.005f);
+    drawTextOnGrid("90",    glm::vec3(-0.8, 0,8.8), 0.005f);
+    drawTextOnGrid("180",   glm::vec3(-9.8, 0,0),   0.005f);
+    drawTextOnGrid("270",   glm::vec3(-0.8, 0,-9.9),0.005f);
 }
 
 void SpeakerViewComponent::drawText(string val, glm::vec3 position,float scale, bool camLock){
@@ -355,12 +361,30 @@ void SpeakerViewComponent::drawText(string val, glm::vec3 position,float scale, 
 
     //glRotatef(-90.0f, 1, 1, 0);
     if(camLock){
-        glRotatef((camAngleX), 0, 1, 0);
-        if(camAngleY < 0  || camAngleY > 90.f){
-            glRotatef(-camAngleY, 0, 1, 0);
+        glRotatef((this->camAngleX), 0, 1, 0);
+        if(this->camAngleY < 0  || this->camAngleY > 90.f){
+            glRotatef(-this->camAngleY, 0, 1, 0);
         }
     }
 
+    glScalef( scale, scale, scale);
+    glColor3f( 1, 1, 1 );
+    for (char & c : val)
+    {
+        glutStrokeCharacter( GLUT_STROKE_MONO_ROMAN, c );
+    }
+    glTranslatef(-position.x, -position.y, -position.z);
+    glPopMatrix();
+}
+
+void SpeakerViewComponent::drawTextOnGrid(string val, glm::vec3 position,float scale){
+    glPushMatrix();
+    glTranslatef(position.x, position.y, position.z);
+    
+    glRotatef(-90.0, 1, 0, 0);
+    glRotatef(270.0, 0, 0, 10);
+    
+    
     glScalef( scale, scale, scale);
     glColor3f( 1, 1, 1 );
     for (char & c : val)

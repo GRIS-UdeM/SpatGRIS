@@ -668,13 +668,14 @@ public:
     //==============================================================================
     bool write (const int** data, int numSamples) override
     {
+        jassert (numSamples >= 0);
         jassert (data != nullptr && *data != nullptr); // the input must contain at least one channel!
 
         if (writeFailed)
             return false;
 
-        const size_t bytes = (size_t) numSamples * numChannels * bitsPerSample / 8;
-        tempBlock.ensureSize ((size_t) bytes, false);
+        const size_t bytes = numChannels * (size_t) numSamples * bitsPerSample / 8;
+        tempBlock.ensureSize (bytes, false);
 
         switch (bitsPerSample)
         {
@@ -695,13 +696,10 @@ public:
             writeFailed = true;
             return false;
         }
-        else
-        {
-            bytesWritten += bytes;
-            lengthInSamples += (uint64) numSamples;
 
-            return true;
-        }
+        bytesWritten += bytes;
+        lengthInSamples += (uint64) numSamples;
+        return true;
     }
 
 private:
@@ -715,7 +713,7 @@ private:
         using namespace AiffFileHelpers;
 
         const bool couldSeekOk = output->setPosition (headerPosition);
-        (void) couldSeekOk;
+        ignoreUnused (couldSeekOk);
 
         // if this fails, you've given it an output stream that can't seek! It needs
         // to be able to seek back to write the header
@@ -985,12 +983,17 @@ AudioFormatReader* AiffAudioFormat::createReaderFor (InputStream* sourceStream, 
 
 MemoryMappedAudioFormatReader* AiffAudioFormat::createMemoryMappedReader (const File& file)
 {
-    if (FileInputStream* fin = file.createInputStream())
+    return createMemoryMappedReader (file.createInputStream());
+}
+
+MemoryMappedAudioFormatReader* AiffAudioFormat::createMemoryMappedReader (FileInputStream* fin)
+{
+    if (fin != nullptr)
     {
         AiffAudioFormatReader reader (fin);
 
         if (reader.lengthInSamples > 0)
-            return new MemoryMappedAiffReader (file, reader);
+            return new MemoryMappedAiffReader (fin->getFile(), reader);
     }
 
     return nullptr;
@@ -1003,7 +1006,7 @@ AudioFormatWriter* AiffAudioFormat::createWriterFor (OutputStream* out,
                                                      const StringPairArray& metadataValues,
                                                      int /*qualityOptionIndex*/)
 {
-    if (getPossibleBitDepths().contains (bitsPerSample))
+    if (out != nullptr && getPossibleBitDepths().contains (bitsPerSample))
         return new AiffAudioFormatWriter (out, sampleRate, numberOfChannels, (unsigned int) bitsPerSample, metadataValues);
 
     return nullptr;

@@ -1,6 +1,8 @@
 /*
  This file is part of spatServerGRIS.
  
+ Developers: Nicolas Masson
+ 
  spatServerGRIS is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
@@ -75,6 +77,8 @@ private:
     void drawBackground();
     void drawOriginGrid();
     void drawText( string val, glm::vec3 position,float scale = 0.005f, bool camLock = true);
+    void drawTextOnGrid( string val, glm::vec3 position,float scale = 0.005f);
+    
     void drawCube(float x, float y, float z);
     
     bool showShpere = false;
@@ -84,7 +88,7 @@ private:
     
     float camAngleX= 30.0f;
     float camAngleY= 25.0f;
-    float distance = 18.0f;
+    float distance = 22.0f;
     
     float deltaClickX;
     float deltaClickY;

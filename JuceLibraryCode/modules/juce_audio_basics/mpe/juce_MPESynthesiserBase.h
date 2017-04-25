@@ -2,22 +2,28 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2015 - ROLI Ltd.
+   Copyright (c) 2016 - ROLI Ltd.
 
-   Permission is granted to use this software under the terms of either:
-   a) the GPL v2 (or any later version)
-   b) the Affero GPL v3
+   Permission is granted to use this software under the terms of the ISC license
+   http://www.isc.org/downloads/software-support-policy/isc-license/
 
-   Details of these licenses can be found at: www.gnu.org/licenses
+   Permission to use, copy, modify, and/or distribute this software for any
+   purpose with or without fee is hereby granted, provided that the above
+   copyright notice and this permission notice appear in all copies.
 
-   JUCE is distributed in the hope that it will be useful, but WITHOUT ANY
-   WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-   A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+   THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH REGARD
+   TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+   FITNESS. IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT,
+   OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF
+   USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+   TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
+   OF THIS SOFTWARE.
 
-   ------------------------------------------------------------------------------
+   -----------------------------------------------------------------------------
 
-   To release a closed-source product which uses JUCE, commercial licenses are
-   available: visit www.juce.com for more information.
+   To release a closed-source product which uses other parts of JUCE not
+   licensed under the ISC terms, commercial licenses are available: visit
+   www.juce.com for more information.
 
   ==============================================================================
 */
@@ -47,7 +53,7 @@
 struct JUCE_API  MPESynthesiserBase   : public MPEInstrument::Listener
 {
 public:
-    //==========================================================================
+    //==============================================================================
     /** Constructor. */
     MPESynthesiserBase();
 
@@ -61,7 +67,7 @@ public:
     */
     MPESynthesiserBase (MPEInstrument* instrument);
 
-    //==========================================================================
+    //==============================================================================
     /** Returns the synthesiser's internal MPE zone layout.
         This happens by value, to enforce thread-safety and class invariants.
     */
@@ -73,7 +79,7 @@ public:
     */
     void setZoneLayout (MPEZoneLayout newLayout);
 
-    //==========================================================================
+    //==============================================================================
     /** Tells the synthesiser what the sample rate is for the audio it's being
         used to render.
     */
@@ -84,7 +90,7 @@ public:
     */
     double getSampleRate() const noexcept          { return sampleRate; }
 
-    //==========================================================================
+    //==============================================================================
     /** Creates the next block of audio output.
 
         Call this to make sound. This will chop up the AudioBuffer into subBlock
@@ -99,7 +105,7 @@ public:
                           int startSample,
                           int numSamples);
 
-    //==========================================================================
+    //==============================================================================
     /** Handle incoming MIDI events (called from renderNextBlock).
 
         The default implementation provided here simply forwards everything
@@ -113,7 +119,7 @@ public:
     */
     virtual void handleMidiEvent (const MidiMessage&);
 
-    //==========================================================================
+    //==============================================================================
     /** Sets a minimum limit on the size to which audio sub-blocks will be divided when rendering.
 
         When rendering, the audio blocks that are passed into renderNextBlock() will be split up
@@ -127,10 +133,16 @@ public:
         The default setting is 32, which means that midi messages are accurate to about < 1ms
         accuracy, which is probably fine for most purposes, but you may want to increase or
         decrease this value for your synth.
-    */
-    void setMinimumRenderingSubdivisionSize (int numSamples) noexcept;
 
-    //==========================================================================
+        If shouldBeStrict is true, the audio sub-blocks will strictly never be smaller than numSamples.
+
+        If shouldBeStrict is false (default), the first audio sub-block in the buffer is allowed
+        to be smaller, to make sure that the first MIDI event in a buffer will always be sample-accurate
+        (this can sometimes help to avoid quantisation or phasing issues).
+    */
+    void setMinimumRenderingSubdivisionSize (int numSamples, bool shouldBeStrict = false) noexcept;
+
+    //==============================================================================
     /** Puts the synthesiser into legacy mode.
 
         @param pitchbendRange   The note pitchbend range in semitones to use when in legacy mode.
@@ -159,8 +171,20 @@ public:
     /** Re-sets the pitchbend range in semitones (0-96) to be used for notes when in legacy mode. */
     void setLegacyModePitchbendRange (int pitchbendRange);
 
+    //==============================================================================
+    typedef MPEInstrument::TrackingMode TrackingMode;
+
+    /** Set the MPE tracking mode for the pressure dimension. */
+    void setPressureTrackingMode (TrackingMode modeToUse);
+
+    /** Set the MPE tracking mode for the pitchbend dimension. */
+    void setPitchbendTrackingMode (TrackingMode modeToUse);
+
+    /** Set the MPE tracking mode for the timbre dimension. */
+    void setTimbreTrackingMode (TrackingMode modeToUse);
+
 protected:
-    //==========================================================================
+    //==============================================================================
     /** Implement this method to render your audio inside.
         @see renderNextBlock
     */
@@ -176,16 +200,16 @@ protected:
                                      int /*numSamples*/) {}
 
 protected:
-    //==========================================================================
+    //==============================================================================
     /** @internal */
     ScopedPointer<MPEInstrument> instrument;
-    /** @internal */
-    CriticalSection renderAudioLock;
 
 private:
-    //==========================================================================
+    //==============================================================================
+    CriticalSection noteStateLock;
     double sampleRate;
     int minimumSubBlockSize;
+    bool subBlockSubdivisionIsStrict;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MPESynthesiserBase)
 };

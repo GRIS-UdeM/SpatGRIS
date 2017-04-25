@@ -98,7 +98,18 @@ void AlertWindow::addButton (const String& name,
     b->addShortcut (shortcutKey1);
     b->addShortcut (shortcutKey2);
     b->addListener (this);
-    b->changeWidthToFitText (getLookAndFeel().getAlertWindowButtonHeight());
+
+    Array<TextButton*> buttonsArray (buttons.begin(), buttons.size());
+
+    const int buttonHeight        = getLookAndFeel().getAlertWindowButtonHeight();
+    const Array<int> buttonWidths = getLookAndFeel().getWidthsForTextButtons (*this, buttonsArray);
+
+    jassert (buttonWidths.size() == buttons.size());
+
+    const int n = buttonWidths.size();
+
+    for (int i = 0; i < n; ++i)
+        buttons.getUnchecked (i)->setSize (buttonWidths.getReference (i), buttonHeight);
 
     addAndMakeVisible (b, 0);
 
@@ -593,6 +604,8 @@ private:
 
         jassert (alertBox != nullptr); // you have to return one of these!
 
+        alertBox->setAlwaysOnTop (juce_areThereAnyAlwaysOnTopWindows());
+
        #if JUCE_MODAL_LOOPS_PERMITTED
         if (modal)
         {
@@ -601,7 +614,7 @@ private:
         else
        #endif
         {
-            (void) modal; // (to avoid an unused variable warning)
+            ignoreUnused (modal);
 
             alertBox->enterModalState (true, callback, true);
             alertBox.release();

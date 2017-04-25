@@ -2,7 +2,7 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2013 - Raw Material Software Ltd.
+   Copyright (c) 2015 - ROLI Ltd.
 
    Permission is granted to use this software under the terms of either:
    a) the GPL v2 (or any later version)
@@ -25,16 +25,24 @@
 // This file contains the implementations of the various AudioParameter[XYZ] classes..
 
 
-AudioProcessorParameterWithID::AudioProcessorParameterWithID (String pid, String nm)  : paramID (pid), name (nm) {}
+AudioProcessorParameterWithID::AudioProcessorParameterWithID (const String& idToUse,
+                                                              const String& nameToUse,
+                                                              const String& labelToUse,
+                                                              AudioProcessorParameter::Category categoryToUse)
+    : paramID (idToUse), name (nameToUse), label (labelToUse), category (categoryToUse) {}
 AudioProcessorParameterWithID::~AudioProcessorParameterWithID() {}
 
-String AudioProcessorParameterWithID::getName (int maximumStringLength) const     { return name.substring (0, maximumStringLength); }
-String AudioProcessorParameterWithID::getLabel() const                            { return label; }
+String AudioProcessorParameterWithID::getName (int maximumStringLength) const        { return name.substring (0, maximumStringLength); }
+String AudioProcessorParameterWithID::getLabel() const                               { return label; }
+AudioProcessorParameter::Category AudioProcessorParameterWithID::getCategory() const { return category; }
 
 
 //==============================================================================
-AudioParameterFloat::AudioParameterFloat (String pid, String nm, NormalisableRange<float> r, float def)
-   : AudioProcessorParameterWithID (pid, nm), range (r), value (def), defaultValue (def)
+AudioParameterFloat::AudioParameterFloat (const String& idToUse, const String& nameToUse,
+                                          NormalisableRange<float> r, float def,
+                                          const String& labelToUse, Category categoryToUse)
+   : AudioProcessorParameterWithID (idToUse, nameToUse, labelToUse, categoryToUse),
+     range (r), value (def), defaultValue (def)
 {
 }
 
@@ -50,21 +58,26 @@ void AudioParameterFloat::setValue (float newValue)                      { value
 float AudioParameterFloat::getDefaultValue() const                       { return range.convertTo0to1 (defaultValue); }
 int AudioParameterFloat::getNumSteps() const                             { return AudioProcessorParameterWithID::getNumSteps(); }
 float AudioParameterFloat::getValueForText (const String& text) const    { return range.convertTo0to1 (text.getFloatValue()); }
-String AudioParameterFloat::getText (float v, int length) const          { return String (range.convertFrom0to1 (v), 2).substring (0, length); }
+
+String AudioParameterFloat::getText (float v, int length) const
+{
+    String asText (range.convertFrom0to1 (v), 2);
+    return length > 0 ? asText.substring (0, length) : asText;
+}
 
 AudioParameterFloat& AudioParameterFloat::operator= (float newValue)
 {
-    const float normalisedValue = range.convertTo0to1 (newValue);
-
-    if (value != normalisedValue)
-        setValueNotifyingHost (normalisedValue);
+    if (value != newValue)
+        setValueNotifyingHost (range.convertTo0to1 (newValue));
 
     return *this;
 }
 
 //==============================================================================
-AudioParameterInt::AudioParameterInt (String pid, String nm, int mn, int mx, int def)
-   : AudioProcessorParameterWithID (pid, nm),
+AudioParameterInt::AudioParameterInt (const String& idToUse, const String& nameToUse,
+                                      int mn, int mx, int def,
+                                      const String& labelToUse)
+   : AudioProcessorParameterWithID (idToUse, nameToUse, labelToUse),
      minValue (mn), maxValue (mx),
      value ((float) def),
      defaultValue (convertTo0to1 (def))
@@ -87,18 +100,17 @@ String AudioParameterInt::getText (float v, int /*length*/) const        { retur
 
 AudioParameterInt& AudioParameterInt::operator= (int newValue)
 {
-    const float normalisedValue = convertTo0to1 (newValue);
-
-    if (value != normalisedValue)
-        setValueNotifyingHost (normalisedValue);
+    if (get() != newValue)
+        setValueNotifyingHost (convertTo0to1 (newValue));
 
     return *this;
 }
 
 
 //==============================================================================
-AudioParameterBool::AudioParameterBool (String pid, String nm, bool def)
-   : AudioProcessorParameterWithID (pid, nm),
+AudioParameterBool::AudioParameterBool (const String& idToUse, const String& nameToUse,
+                                        bool def, const String& labelToUse)
+   : AudioProcessorParameterWithID (idToUse, nameToUse, labelToUse),
      value (def ? 1.0f : 0.0f),
      defaultValue (value)
 {
@@ -115,18 +127,17 @@ String AudioParameterBool::getText (float v, int /*length*/) const       { retur
 
 AudioParameterBool& AudioParameterBool::operator= (bool newValue)
 {
-    const float normalisedValue = newValue ? 1.0f : 0.0f;
-
-    if (value != normalisedValue)
-        setValueNotifyingHost (normalisedValue);
+    if (get() != newValue)
+        setValueNotifyingHost (newValue ? 1.0f : 0.0f);
 
     return *this;
 }
 
 
 //==============================================================================
-AudioParameterChoice::AudioParameterChoice (String pid, String nm, const StringArray& c, int def)
-   : AudioProcessorParameterWithID (pid, nm), choices (c),
+AudioParameterChoice::AudioParameterChoice (const String& idToUse, const String& nameToUse,
+                                            const StringArray& c, int def, const String& labelToUse)
+   : AudioProcessorParameterWithID (idToUse, nameToUse, labelToUse), choices (c),
      value ((float) def),
      defaultValue (convertTo0to1 (def))
 {
@@ -148,10 +159,8 @@ String AudioParameterChoice::getText (float v, int /*length*/) const     { retur
 
 AudioParameterChoice& AudioParameterChoice::operator= (int newValue)
 {
-    const float normalisedValue = convertTo0to1 (newValue);
-
-    if (value != normalisedValue)
-        setValueNotifyingHost (normalisedValue);
+    if (getIndex() != newValue)
+        setValueNotifyingHost (convertTo0to1 (newValue));
 
     return *this;
 }
