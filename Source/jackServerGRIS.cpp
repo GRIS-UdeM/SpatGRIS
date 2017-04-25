@@ -42,7 +42,7 @@ jackServerGRIS::jackServerGRIS(unsigned int rateV){
     const JSList * internals;
     const JSList * node_ptr;
 
-    server = jackctl_server_create(on_device_acquire, on_device_release);
+    this->server = jackctl_server_create(on_device_acquire, on_device_release);
     parameters = jackctl_server_get_parameters(server);
     
     /*jackctl_parameter_t* param;
@@ -81,7 +81,7 @@ jackServerGRIS::jackServerGRIS(unsigned int rateV){
     printf("========================== \n");
     #endif
     
-    drivers = jackctl_server_get_drivers_list(server);
+    drivers = jackctl_server_get_drivers_list(this->server);
     node_ptr = drivers;
     while (node_ptr != NULL) {
         print_driver((jackctl_driver_t *)node_ptr->data);
@@ -94,7 +94,7 @@ jackServerGRIS::jackServerGRIS(unsigned int rateV){
     printf("========================== \n");
     #endif
     
-    internals = jackctl_server_get_internals_list(server);
+    internals = jackctl_server_get_internals_list(this->server);
     node_ptr = internals;
     while (node_ptr != NULL) {
         print_internal((jackctl_internal_t *)node_ptr->data);
@@ -105,9 +105,9 @@ jackServerGRIS::jackServerGRIS(unsigned int rateV){
     printf("Start Jack Server \n");
     printf("========================== \n");
 
-    jackctl_server_open(server, jackctl_server_get_driver(server, DriverNameSys));
-    jackctl_server_start(server);
-    jackctl_server_load_internal(server, jackctl_server_get_internal(server, ClientNameSys));
+    jackctl_server_open(this->server, jackctl_server_get_driver(this->server, DriverNameSys));
+    jackctl_server_start(this->server);
+    jackctl_server_load_internal(this->server, jackctl_server_get_internal(this->server, ClientNameSys));
     
     #if PRINT_SERVER
     const JSList * parameters2 = jackctl_server_get_parameters(server);
@@ -122,7 +122,7 @@ jackServerGRIS::jackServerGRIS(unsigned int rateV){
 }
 
 jackServerGRIS::~jackServerGRIS(){
-    jackctl_server_stop(server);
-    jackctl_server_close(server);
-    jackctl_server_destroy(server);
+    jackctl_server_stop(this->server);
+    jackctl_server_close(this->server);
+    jackctl_server_destroy(this->server);
 }

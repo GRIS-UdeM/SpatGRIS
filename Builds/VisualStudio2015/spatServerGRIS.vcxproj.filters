@@ -379,25 +379,13 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\Input.cpp">
-      <Filter>spatServerGRIS\Source</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Source\jackServerGRIS.cpp">
       <Filter>spatServerGRIS\Source</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\OscInput.cpp">
-      <Filter>spatServerGRIS\Source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Speaker.cpp">
-      <Filter>spatServerGRIS\Source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\LevelComponent.cpp">
-      <Filter>spatServerGRIS\Source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\UiComponent.cpp">
-      <Filter>spatServerGRIS\Source</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Source\jackClientGRIS.cpp">
+      <Filter>spatServerGRIS\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Main.cpp">
       <Filter>spatServerGRIS\Source</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\MainComponent.cpp">
@@ -406,7 +394,19 @@
     <ClCompile Include="..\..\Source\SpeakerViewComponent.cpp">
       <Filter>spatServerGRIS\Source</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Main.cpp">
+    <ClCompile Include="..\..\Source\Input.cpp">
+      <Filter>spatServerGRIS\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Speaker.cpp">
+      <Filter>spatServerGRIS\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\OscInput.cpp">
+      <Filter>spatServerGRIS\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\LevelComponent.cpp">
+      <Filter>spatServerGRIS\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\UiComponent.cpp">
       <Filter>spatServerGRIS\Source</Filter>
     </ClCompile>
     <ClCompile Include="..\..\JuceLibraryCode\modules\juce_audio_basics\buffers\juce_AudioChannelSet.cpp">
@@ -2178,28 +2178,7 @@
     <ClInclude Include="..\..\..\GrisCommonFiles\GrisLookAndFeel.h">
       <Filter>spatServerGRIS\GrisCommonFiles</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Input.h">
-      <Filter>spatServerGRIS\Source</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\jackServerGRIS.h">
-      <Filter>spatServerGRIS\Source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\OscInput.h">
-      <Filter>spatServerGRIS\Source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\ParentLevelComponent.h">
-      <Filter>spatServerGRIS\Source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Speaker.h">
-      <Filter>spatServerGRIS\Source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\LevelComponent.h">
-      <Filter>spatServerGRIS\Source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Ray.h">
-      <Filter>spatServerGRIS\Source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\UiComponent.h">
       <Filter>spatServerGRIS\Source</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\jackClientGRIS.h">
@@ -2209,6 +2188,27 @@
       <Filter>spatServerGRIS\Source</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\SpeakerViewComponent.h">
+      <Filter>spatServerGRIS\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Input.h">
+      <Filter>spatServerGRIS\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Speaker.h">
+      <Filter>spatServerGRIS\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\OscInput.h">
+      <Filter>spatServerGRIS\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\LevelComponent.h">
+      <Filter>spatServerGRIS\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\ParentLevelComponent.h">
+      <Filter>spatServerGRIS\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\UiComponent.h">
+      <Filter>spatServerGRIS\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Ray.h">
       <Filter>spatServerGRIS\Source</Filter>
     </ClInclude>
     <ClInclude Include="..\..\JuceLibraryCode\modules\juce_audio_basics\buffers\juce_AudioChannelSet.h">

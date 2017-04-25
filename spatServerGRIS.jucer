@@ -14,37 +14,37 @@
             file="../GrisCommonFiles/GrisLookAndFeel.h"/>
     </GROUP>
     <GROUP id="{534A7161-2617-F3B1-0706-CC62D7A3FE71}" name="Source">
-      <FILE id="BVvOrd" name="Input.cpp" compile="1" resource="0" file="Source/Input.cpp"/>
-      <FILE id="BiDXCC" name="Input.h" compile="0" resource="0" file="Source/Input.h"/>
       <FILE id="LMWJcl" name="jackServerGRIS.cpp" compile="1" resource="0"
             file="Source/jackServerGRIS.cpp"/>
       <FILE id="Dg7whn" name="jackServerGRIS.h" compile="0" resource="0"
             file="Source/jackServerGRIS.h"/>
-      <FILE id="MSjj5i" name="OscInput.cpp" compile="1" resource="0" file="Source/OscInput.cpp"/>
-      <FILE id="oP6icJ" name="OscInput.h" compile="0" resource="0" file="Source/OscInput.h"/>
-      <FILE id="fIPWN2" name="ParentLevelComponent.h" compile="0" resource="0"
-            file="Source/ParentLevelComponent.h"/>
+      <FILE id="A5skyB" name="jackClientGRIS.cpp" compile="1" resource="0"
+            file="Source/jackClientGRIS.cpp"/>
+      <FILE id="kACxoj" name="jackClientGRIS.h" compile="0" resource="0"
+            file="Source/jackClientGRIS.h"/>
+      <FILE id="UmWQ55" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
+      <FILE id="IoOl9R" name="MainComponent.cpp" compile="1" resource="0"
+            file="Source/MainComponent.cpp"/>
+      <FILE id="eDgSPm" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
+      <FILE id="Tz4yI1" name="SpeakerViewComponent.cpp" compile="1" resource="0"
+            file="Source/SpeakerViewComponent.cpp"/>
+      <FILE id="ItaT5M" name="SpeakerViewComponent.h" compile="0" resource="0"
+            file="Source/SpeakerViewComponent.h"/>
+      <FILE id="BVvOrd" name="Input.cpp" compile="1" resource="0" file="Source/Input.cpp"/>
+      <FILE id="BiDXCC" name="Input.h" compile="0" resource="0" file="Source/Input.h"/>
       <FILE id="KcFQB2" name="Speaker.cpp" compile="1" resource="0" file="Source/Speaker.cpp"/>
       <FILE id="i4Suin" name="Speaker.h" compile="0" resource="0" file="Source/Speaker.h"/>
+      <FILE id="MSjj5i" name="OscInput.cpp" compile="1" resource="0" file="Source/OscInput.cpp"/>
+      <FILE id="oP6icJ" name="OscInput.h" compile="0" resource="0" file="Source/OscInput.h"/>
       <FILE id="arLWJq" name="LevelComponent.cpp" compile="1" resource="0"
             file="Source/LevelComponent.cpp"/>
       <FILE id="Fv8Faz" name="LevelComponent.h" compile="0" resource="0"
             file="Source/LevelComponent.h"/>
-      <FILE id="oaSq5k" name="Ray.h" compile="0" resource="0" file="Source/Ray.h"/>
+      <FILE id="fIPWN2" name="ParentLevelComponent.h" compile="0" resource="0"
+            file="Source/ParentLevelComponent.h"/>
       <FILE id="MW5ESG" name="UiComponent.cpp" compile="1" resource="0" file="Source/UiComponent.cpp"/>
       <FILE id="RG3FbE" name="UiComponent.h" compile="0" resource="0" file="Source/UiComponent.h"/>
-      <FILE id="kACxoj" name="jackClientGRIS.h" compile="0" resource="0"
-            file="Source/jackClientGRIS.h"/>
-      <FILE id="A5skyB" name="jackClientGRIS.cpp" compile="1" resource="0"
-            file="Source/jackClientGRIS.cpp"/>
-      <FILE id="IoOl9R" name="MainComponent.cpp" compile="1" resource="0"
-            file="Source/MainComponent.cpp"/>
-      <FILE id="eDgSPm" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
-      <FILE id="ItaT5M" name="SpeakerViewComponent.h" compile="0" resource="0"
-            file="Source/SpeakerViewComponent.h"/>
-      <FILE id="Tz4yI1" name="SpeakerViewComponent.cpp" compile="1" resource="0"
-            file="Source/SpeakerViewComponent.cpp"/>
-      <FILE id="UmWQ55" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
+      <FILE id="oaSq5k" name="Ray.h" compile="0" resource="0" file="Source/Ray.h"/>
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>

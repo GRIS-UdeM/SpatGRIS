@@ -13,9 +13,9 @@
 		083608DE849F7E27B9DE0162 /* Speaker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A6E8384CEB071AC4366E3D23 /* Speaker.cpp */; };
 		0C73D37DE849B35C4D59E3B9 /* juce_gui_basics.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7DD01A8771D09207AE6C9801 /* juce_gui_basics.mm */; };
 		0D76540CEB135C65E2C77E42 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A49E2EA8DC00B3CFBC3B8FC /* Cocoa.framework */; };
-		0DD53D4E1EAFA9AB001BA166 /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DD53D4D1EAFA9AB001BA166 /* GLUT.framework */; };
-		0DD53D511EAFA9BA001BA166 /* Jackmp in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DD53D4F1EAFA9BA001BA166 /* Jackmp */; };
-		0DD53D521EAFA9BA001BA166 /* Jackservermp in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DD53D501EAFA9BA001BA166 /* Jackservermp */; };
+		0DD53D541EAFABFA001BA166 /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DD53D531EAFABFA001BA166 /* GLUT.framework */; };
+		0DD53D571EAFAC07001BA166 /* Jackmp in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DD53D551EAFAC07001BA166 /* Jackmp */; };
+		0DD53D581EAFAC07001BA166 /* Jackservermp in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DD53D561EAFAC07001BA166 /* Jackservermp */; };
 		0F18ADC55E833D69E5746DFD /* juce_cryptography.mm in Sources */ = {isa = PBXBuildFile; fileRef = BAEE328DB2C9494397445A21 /* juce_cryptography.mm */; };
 		14E1864F61765881437B2AF8 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A290A4B264C78F0C18D6F058 /* Accelerate.framework */; };
 		153A81E76FB9CF6A837E1C6B /* juce_audio_formats.mm in Sources */ = {isa = PBXBuildFile; fileRef = 745CB09F74C41621B1678240 /* juce_audio_formats.mm */; };
@@ -118,9 +118,9 @@
 		0D56949D35266C830BCCACD8 /* floor_books.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = floor_books.h; path = "../../JuceLibraryCode/modules/juce_audio_formats/codecs/oggvorbis/libvorbis-1.3.2/lib/books/floor/floor_books.h"; sourceTree = SOURCE_ROOT; };
 		0DAEE47D7405B9E5383EA97F /* juce_RelativePointPath.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_RelativePointPath.h; path = ../../JuceLibraryCode/modules/juce_gui_basics/positioning/juce_RelativePointPath.h; sourceTree = SOURCE_ROOT; };
 		0DC88B16521DF51B488590F4 /* OscInput.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = OscInput.h; path = ../../Source/OscInput.h; sourceTree = SOURCE_ROOT; };
-		0DD53D4D1EAFA9AB001BA166 /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = System/Library/Frameworks/GLUT.framework; sourceTree = SDKROOT; };
-		0DD53D4F1EAFA9BA001BA166 /* Jackmp */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = Jackmp; path = ../../jack/lib/Jackmp; sourceTree = "<group>"; };
-		0DD53D501EAFA9BA001BA166 /* Jackservermp */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = Jackservermp; path = ../../jack/lib/Jackservermp; sourceTree = "<group>"; };
+		0DD53D531EAFABFA001BA166 /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = System/Library/Frameworks/GLUT.framework; sourceTree = SDKROOT; };
+		0DD53D551EAFAC07001BA166 /* Jackmp */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = Jackmp; path = ../../jack/lib/Jackmp; sourceTree = "<group>"; };
+		0DD53D561EAFAC07001BA166 /* Jackservermp */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = Jackservermp; path = ../../jack/lib/Jackservermp; sourceTree = "<group>"; };
 		0E1684DFB4EB8971A5F1D1DA /* juce_Uuid.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = juce_Uuid.cpp; path = ../../JuceLibraryCode/modules/juce_core/misc/juce_Uuid.cpp; sourceTree = SOURCE_ROOT; };
 		0E45BAC07192E20F20B98922 /* juce_MidiMessageCollector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_MidiMessageCollector.h; path = ../../JuceLibraryCode/modules/juce_audio_devices/midi_io/juce_MidiMessageCollector.h; sourceTree = SOURCE_ROOT; };
 		0E4DB5D765565118296212AB /* juce_TextDiff.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = juce_TextDiff.cpp; path = ../../JuceLibraryCode/modules/juce_core/text/juce_TextDiff.cpp; sourceTree = SOURCE_ROOT; };
@@ -1320,9 +1320,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0DD53D511EAFA9BA001BA166 /* Jackmp in Frameworks */,
-				0DD53D521EAFA9BA001BA166 /* Jackservermp in Frameworks */,
-				0DD53D4E1EAFA9AB001BA166 /* GLUT.framework in Frameworks */,
+				0DD53D571EAFAC07001BA166 /* Jackmp in Frameworks */,
+				0DD53D581EAFAC07001BA166 /* Jackservermp in Frameworks */,
+				0DD53D541EAFABFA001BA166 /* GLUT.framework in Frameworks */,
 				14E1864F61765881437B2AF8 /* Accelerate.framework in Frameworks */,
 				83E8051A98159BCED1FB14B4 /* AudioToolbox.framework in Frameworks */,
 				E18CF09FF07DD460A2179190 /* Carbon.framework in Frameworks */,
@@ -3479,9 +3479,9 @@
 		F5A12AB396B85DBC74140D9B /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				0DD53D4F1EAFA9BA001BA166 /* Jackmp */,
-				0DD53D501EAFA9BA001BA166 /* Jackservermp */,
-				0DD53D4D1EAFA9AB001BA166 /* GLUT.framework */,
+				0DD53D551EAFAC07001BA166 /* Jackmp */,
+				0DD53D561EAFAC07001BA166 /* Jackservermp */,
+				0DD53D531EAFABFA001BA166 /* GLUT.framework */,
 				A290A4B264C78F0C18D6F058 /* Accelerate.framework */,
 				0FD279E88FD45389728A9CB4 /* AudioToolbox.framework */,
 				AFD30D83137E514A4002A681 /* Carbon.framework */,
@@ -3543,27 +3543,27 @@
 		FAA16A21521DD35AC3040C00 /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				C4B887E79BCC3DECA6DDC85E /* Input.cpp */,
-				D81BA5E082FFFADEF1B3CB0E /* Input.h */,
 				9CEB1A4032DC38548D41C6D6 /* jackServerGRIS.cpp */,
 				FFC425F6EF25356729A7FCB3 /* jackServerGRIS.h */,
-				9721279EBED9AF21D68B4439 /* OscInput.cpp */,
-				0DC88B16521DF51B488590F4 /* OscInput.h */,
-				C1500C767E639DF91B71F7D0 /* ParentLevelComponent.h */,
-				A6E8384CEB071AC4366E3D23 /* Speaker.cpp */,
-				50F6C49866F867BDFE6702BE /* Speaker.h */,
-				398324E32BBA60ABF86B6141 /* LevelComponent.cpp */,
-				69F20C00ECEE6015BB389EB3 /* LevelComponent.h */,
-				834CB57ED195C1BA7C386FDF /* Ray.h */,
-				35C03003C40C3297F3378D00 /* UiComponent.cpp */,
-				48C1385A1A3455CABEC9B2DD /* UiComponent.h */,
-				47C54DB943C2526DBA8D5C7D /* jackClientGRIS.h */,
 				CB166B04AB89B0476A24CE28 /* jackClientGRIS.cpp */,
+				47C54DB943C2526DBA8D5C7D /* jackClientGRIS.h */,
+				2116513B99CFF9F0DCC85055 /* Main.cpp */,
 				E3B6A6FA18247E8D6D6B7876 /* MainComponent.cpp */,
 				B80010A17A8017CEFFF4C8A0 /* MainComponent.h */,
-				8280A25BF8F41A8E7ED31EE6 /* SpeakerViewComponent.h */,
 				E1D7954498022C0D9253C924 /* SpeakerViewComponent.cpp */,
-				2116513B99CFF9F0DCC85055 /* Main.cpp */,
+				8280A25BF8F41A8E7ED31EE6 /* SpeakerViewComponent.h */,
+				C4B887E79BCC3DECA6DDC85E /* Input.cpp */,
+				D81BA5E082FFFADEF1B3CB0E /* Input.h */,
+				A6E8384CEB071AC4366E3D23 /* Speaker.cpp */,
+				50F6C49866F867BDFE6702BE /* Speaker.h */,
+				9721279EBED9AF21D68B4439 /* OscInput.cpp */,
+				0DC88B16521DF51B488590F4 /* OscInput.h */,
+				398324E32BBA60ABF86B6141 /* LevelComponent.cpp */,
+				69F20C00ECEE6015BB389EB3 /* LevelComponent.h */,
+				C1500C767E639DF91B71F7D0 /* ParentLevelComponent.h */,
+				35C03003C40C3297F3378D00 /* UiComponent.cpp */,
+				48C1385A1A3455CABEC9B2DD /* UiComponent.h */,
+				834CB57ED195C1BA7C386FDF /* Ray.h */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -3705,16 +3705,16 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AD4CE3E8CB241DF2AA50E7DA /* Input.cpp in Sources */,
 				F366310BF90DB2A204DD1363 /* jackServerGRIS.cpp in Sources */,
-				9475597EE9522DB93B78DF18 /* OscInput.cpp in Sources */,
-				083608DE849F7E27B9DE0162 /* Speaker.cpp in Sources */,
-				ACD3FA443393EEF11E03DDAA /* LevelComponent.cpp in Sources */,
-				8684CFBF4BCCAD3FC8F21130 /* UiComponent.cpp in Sources */,
 				D9ABB7BC8BFB59D392B6C505 /* jackClientGRIS.cpp in Sources */,
+				04CF901E6DCE0A68232B9454 /* Main.cpp in Sources */,
 				55024BBBD9BD507767A097E2 /* MainComponent.cpp in Sources */,
 				73F1AE184D3099A045FE8A3C /* SpeakerViewComponent.cpp in Sources */,
-				04CF901E6DCE0A68232B9454 /* Main.cpp in Sources */,
+				AD4CE3E8CB241DF2AA50E7DA /* Input.cpp in Sources */,
+				083608DE849F7E27B9DE0162 /* Speaker.cpp in Sources */,
+				9475597EE9522DB93B78DF18 /* OscInput.cpp in Sources */,
+				ACD3FA443393EEF11E03DDAA /* LevelComponent.cpp in Sources */,
+				8684CFBF4BCCAD3FC8F21130 /* UiComponent.cpp in Sources */,
 				E66BF49B899FAA4750F25B9A /* BinaryData.cpp in Sources */,
 				9D5B3C0E1D93E4F73A96BCEB /* juce_audio_basics.mm in Sources */,
 				21FA967C928A77502F65C3FC /* juce_audio_devices.mm in Sources */,

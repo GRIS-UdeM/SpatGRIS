@@ -131,16 +131,16 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\Input.cpp"/>
     <ClCompile Include="..\..\Source\jackServerGRIS.cpp"/>
-    <ClCompile Include="..\..\Source\OscInput.cpp"/>
-    <ClCompile Include="..\..\Source\Speaker.cpp"/>
-    <ClCompile Include="..\..\Source\LevelComponent.cpp"/>
-    <ClCompile Include="..\..\Source\UiComponent.cpp"/>
     <ClCompile Include="..\..\Source\jackClientGRIS.cpp"/>
+    <ClCompile Include="..\..\Source\Main.cpp"/>
     <ClCompile Include="..\..\Source\MainComponent.cpp"/>
     <ClCompile Include="..\..\Source\SpeakerViewComponent.cpp"/>
-    <ClCompile Include="..\..\Source\Main.cpp"/>
+    <ClCompile Include="..\..\Source\Input.cpp"/>
+    <ClCompile Include="..\..\Source\Speaker.cpp"/>
+    <ClCompile Include="..\..\Source\OscInput.cpp"/>
+    <ClCompile Include="..\..\Source\LevelComponent.cpp"/>
+    <ClCompile Include="..\..\Source\UiComponent.cpp"/>
     <ClCompile Include="..\..\JuceLibraryCode\modules\juce_audio_basics\buffers\juce_AudioChannelSet.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
@@ -1753,17 +1753,17 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\GrisCommonFiles\GrisLookAndFeel.h"/>
-    <ClInclude Include="..\..\Source\Input.h"/>
     <ClInclude Include="..\..\Source\jackServerGRIS.h"/>
-    <ClInclude Include="..\..\Source\OscInput.h"/>
-    <ClInclude Include="..\..\Source\ParentLevelComponent.h"/>
-    <ClInclude Include="..\..\Source\Speaker.h"/>
-    <ClInclude Include="..\..\Source\LevelComponent.h"/>
-    <ClInclude Include="..\..\Source\Ray.h"/>
-    <ClInclude Include="..\..\Source\UiComponent.h"/>
     <ClInclude Include="..\..\Source\jackClientGRIS.h"/>
     <ClInclude Include="..\..\Source\MainComponent.h"/>
     <ClInclude Include="..\..\Source\SpeakerViewComponent.h"/>
+    <ClInclude Include="..\..\Source\Input.h"/>
+    <ClInclude Include="..\..\Source\Speaker.h"/>
+    <ClInclude Include="..\..\Source\OscInput.h"/>
+    <ClInclude Include="..\..\Source\LevelComponent.h"/>
+    <ClInclude Include="..\..\Source\ParentLevelComponent.h"/>
+    <ClInclude Include="..\..\Source\UiComponent.h"/>
+    <ClInclude Include="..\..\Source\Ray.h"/>
     <ClInclude Include="..\..\JuceLibraryCode\modules\juce_audio_basics\buffers\juce_AudioChannelSet.h"/>
     <ClInclude Include="..\..\JuceLibraryCode\modules\juce_audio_basics\buffers\juce_AudioDataConverters.h"/>
     <ClInclude Include="..\..\JuceLibraryCode\modules\juce_audio_basics\buffers\juce_AudioSampleBuffer.h"/>

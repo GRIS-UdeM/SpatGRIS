@@ -41,6 +41,7 @@
 class jackServerGRIS {
 public:
     jackctl_server_t *server;
+    
     jackServerGRIS(unsigned int rateV = 48000);
     ~jackServerGRIS();
     

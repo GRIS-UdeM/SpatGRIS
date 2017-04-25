@@ -86,7 +86,7 @@ private:
     bool highPerf   = false;
     bool clickLeft  = false;
     
-    float camAngleX= 30.0f;
+    float camAngleX= -30.0f;
     float camAngleY= 25.0f;
     float distance = 22.0f;
     
