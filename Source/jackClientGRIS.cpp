@@ -185,9 +185,27 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
     
     
     //================ PROCESS ==============================================
-
-    //Basix Free volume Spat---------------------------------------
-    processFreeVolume(*jackCli, ins, outs, nframes, sizeInputs, sizeOutputs);
+    
+    switch ((ModeSpatEnum)jackCli->modeSelected){
+        case FreeBasic:
+            //Basix Free volume Spat---------------------------------------
+            processFreeVolume(*jackCli, ins, outs, nframes, sizeInputs, sizeOutputs);
+            break;
+            
+        case VBap:
+            break;
+            
+        case DBap:
+            break;
+            
+        case HRTF:
+            break;
+        
+        default:
+            jassertfalse;
+            break;
+    }
+    
     
 
     //cout << fOldValuesPortion<< newLine;
@@ -304,7 +322,7 @@ void latency_callback(jack_latency_callback_mode_t  mode, void *arg)
     }
 }
 
-void port_registration_callback ( jack_port_id_t a, int regist, void * arg)
+void port_registration_callback (jack_port_id_t a, int regist, void * arg)
 {
     //jackClientGris* jackCli = (jackClientGris*)arg;
     printf("client_registration_callback : %" PRIu32 " : " ,a);
@@ -352,6 +370,7 @@ jackClientGris::jackClientGris(unsigned int bufferS) {
     this->autoConnection = false;
     this->overload = false;
     this->masterGainOut = 1.0f;
+    this->modeSelected = FreeBasic;
     
     this->listClient = vector<Client>();
     this->listSourceIn = vector<SourceIn>();
@@ -540,7 +559,6 @@ void jackClientGris::removeOutput(int number){
 void jackClientGris::connectedGristoSystem(){
     const char ** portsOut = jack_get_ports (this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput);
     const char ** portsIn = jack_get_ports (this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput);
-    
     
     int i=0;
     int j=0;

@@ -77,7 +77,7 @@ private:
     void drawBackground();
     void drawOriginGrid();
     void drawText( string val, glm::vec3 position,float scale = 0.005f, bool camLock = true);
-    void drawTextOnGrid( string val, glm::vec3 position,float scale = 0.005f);
+    void drawTextOnGrid( string val, glm::vec3 position,float scale = 0.003f);
     
     void drawCube(float x, float y, float z);
     

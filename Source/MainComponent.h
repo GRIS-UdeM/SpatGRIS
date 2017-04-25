@@ -56,6 +56,7 @@ static const unsigned int HertzRefreshNormal = 24;
 static const unsigned int HertzRefreshLowCpu = 6;
 
 
+
 //==============================================================================
 /*
  This component lives inside our window, and this is where you should put all
@@ -65,6 +66,7 @@ class MainContentComponent   :  public Component,
                                 public Button::Listener,
                                 public TextEditor::Listener,
                                 public Slider::Listener,
+                                public ComboBox::Listener,
                                 private Timer
 {
 public:
@@ -114,6 +116,7 @@ public:
     void sliderValueChanged (Slider *slider) override;
     void textEditorFocusLost (TextEditor &textEditor) override;
     void textEditorReturnKeyPressed (TextEditor &textEditor) override;
+    void comboBoxChanged (ComboBox *comboBox) override;
     
     
 private:
@@ -124,6 +127,8 @@ private:
     ToggleButton*   addToggleButton(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into, bool toggle = false);
     TextEditor*     addTextEditor(const String &s, const String &emptyS, const String &stooltip, int x, int y, int w, int h, Component *into, int wLab = 80);
     Slider*         addSlider(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into);
+    ComboBox*       addComboBox(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into);
+    
     
     void openXmlFileSpeaker(String path);
     void openPreset(String path);
@@ -170,6 +175,8 @@ private:
     Label *         labelJackRate;
     Label *         labelJackBuffer;
     Label *         labelJackInfo;
+    
+    ComboBox *      comBoxModeSpat;
     
     TextButton *    butLoadXMLSpeakers;
     TextButton *    butEditableSpeakers;

@@ -94,47 +94,47 @@ void SpeakerViewComponent::render() {
     this->drawOriginGrid();
     
     if(this->mainParent->getLockSpeakers()->try_lock()){
-    for(int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
-        this->mainParent->getListSpeaker()[i]->draw();
-        if(this->showNumber){
-            glm::vec3 posT = this->mainParent->getListSpeaker()[i]->getCenter();
-            posT.y += SizeSpeaker.y+0.4f;
-            this->drawText(to_string(this->mainParent->getListSpeaker()[i]->getOutputPatch()),posT,0.002f);
+        for(int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
+            this->mainParent->getListSpeaker()[i]->draw();
+            if(this->showNumber){
+                glm::vec3 posT = this->mainParent->getListSpeaker()[i]->getCenter();
+                posT.y += SizeSpeaker.y+0.4f;
+                this->drawText(to_string(this->mainParent->getListSpeaker()[i]->getOutputPatch()),posT,0.002f);
+            }
         }
-    }
-    this->mainParent->getLockSpeakers()->unlock();
+        this->mainParent->getLockSpeakers()->unlock();
     }
     
     if(this->mainParent->getLockInputs()->try_lock()){
-    for(int i = 0; i < this->mainParent->getListSourceInput().size(); ++i) {
-        this->mainParent->getListSourceInput()[i]->draw();
-        if(this->showNumber){
-            glm::vec3 posT = this->mainParent->getListSourceInput()[i]->getCenter();
-            posT.y += SizeSpeaker.y+0.4f;
-            this->drawText(to_string(this->mainParent->getListSourceInput()[i]->getId()),posT,0.002f);
+        for(int i = 0; i < this->mainParent->getListSourceInput().size(); ++i) {
+            this->mainParent->getListSourceInput()[i]->draw();
+            if(this->showNumber){
+                glm::vec3 posT = this->mainParent->getListSourceInput()[i]->getCenter();
+                posT.y += SizeSpeaker.y+0.4f;
+                this->drawText(to_string(this->mainParent->getListSourceInput()[i]->getId()),posT,0.002f);
+            }
         }
-    }
-    this->mainParent->getLockInputs()->unlock();
+        this->mainParent->getLockInputs()->unlock();
     }
     
     //Draw Sphere : Use many CPU
     if(this->showShpere){
         if(this->mainParent->getLockSpeakers()->try_lock()){
-        float maxRadius = 0.0f;;
-        for(int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
-            if(abs(this->mainParent->getListSpeaker()[i]->getAziZenRad().z*10.f) > maxRadius){
-                maxRadius = abs(this->mainParent->getListSpeaker()[i]->getAziZenRad().z*10.0f) ;
+            float maxRadius = 0.0f;;
+            for(int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
+                if(abs(this->mainParent->getListSpeaker()[i]->getAziZenRad().z*10.f) > maxRadius){
+                    maxRadius = abs(this->mainParent->getListSpeaker()[i]->getAziZenRad().z*10.0f) ;
+                }
             }
-        }
-        glPushMatrix();
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        glLineWidth(1);
-        glRotatef(90, 1, 0, 0);
-        glColor3f(0.8, 0.2, 0.1);
-        glutSolidSphere(max(maxRadius,1.0f) ,50,50);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        glPopMatrix();
-        this->mainParent->getLockSpeakers()->unlock();
+            glPushMatrix();
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            glLineWidth(1);
+            glRotatef(90, 1, 0, 0);
+            glColor3f(0.8, 0.2, 0.1);
+            glutSolidSphere(max(maxRadius,1.0f) ,50,50);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            glPopMatrix();
+            this->mainParent->getLockSpeakers()->unlock();
         }
     }
     
@@ -155,7 +155,7 @@ void SpeakerViewComponent::paint (Graphics& g) {
 //    // This will draw over the top of the openGL background.
 //    
     g.setColour(Colours::white);
-    g.setFont (16);
+    g.setFont  (16);
     g.drawText (this->nameConfig, 18, 18, 300, 30, Justification::left);
 //    g.drawLine (20, 20, 170, 20);
 }
@@ -349,10 +349,10 @@ void SpeakerViewComponent::drawOriginGrid()
     drawText("Y",glm::vec3(0,0.1,10));
     drawText("Z",glm::vec3(0,10,0));
     
-    drawTextOnGrid("0",     glm::vec3(9.2, 0,0),    0.005f);
-    drawTextOnGrid("90",    glm::vec3(-0.8, 0,8.8), 0.005f);
-    drawTextOnGrid("180",   glm::vec3(-9.8, 0,0),   0.005f);
-    drawTextOnGrid("270",   glm::vec3(-0.8, 0,-9.9),0.005f);
+    drawTextOnGrid("0",     glm::vec3(9.4, 0, 0.1));
+    drawTextOnGrid("90",    glm::vec3(-0.8, 0,9.0));
+    drawTextOnGrid("180",   glm::vec3(-9.8, 0, 0.1));
+    drawTextOnGrid("270",   glm::vec3(-0.8, 0,-9.8));
 }
 
 void SpeakerViewComponent::drawText(string val, glm::vec3 position,float scale, bool camLock){

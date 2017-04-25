@@ -89,16 +89,16 @@ MainContentComponent::MainContentComponent(){
     this->butJackParam = addButton("Jack settings","Change jack settings",400,0,80,28,this->boxControlUI->getContent());
     
     this->butLoadXMLSpeakers = addButton("XML Speakers","Load Xml File Configuration",4,36,124,24,this->boxControlUI->getContent());
-    
     this->butEditableSpeakers = addButton("Edit Speakers","Edit position of spkeakers",4,66,124,24,this->boxControlUI->getContent());
+    this->butLoadPreset = addButton("Open","Open preset",4,96,124,24,this->boxControlUI->getContent());
+    this->butSavePreset = addButton("Save","Save preset",4,126,124,24,this->boxControlUI->getContent());
+
     
-    this->butShowSpeakerNumber = addToggleButton("Show numbers", "Show numbers skeapers", 4, 100, 124, 24, this->boxControlUI->getContent());
-    this->butHighPerformance = addToggleButton("High performance", "Enable Low CPU Usage", 4, 130, 124, 24, this->boxControlUI->getContent());
-    this->butNoiseSound = addToggleButton("Noise Sound", "Enable bip noise", 4, 160, 124, 24, this->boxControlUI->getContent());
+    this->butShowSpeakerNumber = addToggleButton("Show numbers", "Show numbers skeapers", 140, 100, 124, 24, this->boxControlUI->getContent());
+    this->butHighPerformance = addToggleButton("High performance", "Enable Low CPU Usage", 140, 124, 124, 24, this->boxControlUI->getContent());
+    this->butNoiseSound = addToggleButton("Noise Sound", "Enable bip noise", 140, 148, 124, 24, this->boxControlUI->getContent());
     
-    this->butLoadPreset = addButton("Open","Open preset",4,200,124,24,this->boxControlUI->getContent());
-    
-    this->butSavePreset = addButton("Save","Save preset",4,230,124,24,this->boxControlUI->getContent());
+
     
     this->tedOSCInPort = addTextEditor("Port OSC In :", "Port Socket", "Port Socket OSC Input", 140, 36, 50, 24, this->boxControlUI->getContent());
     this->tedOSCInPort->setText("18032");
@@ -107,15 +107,23 @@ MainContentComponent::MainContentComponent(){
     this->tedAddInputs= addTextEditor("Inputs :", "0", "Numbers of Inputs", 140, 70, 50, 24, this->boxControlUI->getContent());
     this->butDefaultColorIn= addButton("C","Set Default color Inputs",276,70,24,24,this->boxControlUI->getContent());
     
-    this->butAutoConnectJack= addButton("Auto Connect","Auto connection with jack",140,104,130,24,this->boxControlUI->getContent());
-    
-    this->sliderMasterGainOut = addSlider("Master Gain", "Master Gain Outputs", 320, 36, 80, 80, this->boxControlUI->getContent());
+    addLabel("Gain :","Master Gain Outputs",320, 36, 120, 20,this->boxControlUI->getContent());
+    this->sliderMasterGainOut = addSlider("Master Gain", "Master Gain Outputs", 360, 26, 80, 80, this->boxControlUI->getContent());
     this->sliderMasterGainOut->setRange(0.0, 1.0, 0.001);
-
+    
+    addLabel("Mode :","Mode of spatilization",320, 110, 120, 20,this->boxControlUI->getContent());
+    this->comBoxModeSpat    = addComboBox("", "Mode of spatilization", 320, 128, 150, 22, this->boxControlUI->getContent());
+    for(int i = 0; i < ModeSpatString.size(); i++){
+         this->comBoxModeSpat->addItem(ModeSpatString[i], i+1);
+    }
+    
+   
     //this->labelAllClients= addLabel("...","Clients Connected",140, 130, 120, 80,this->boxControlUI->getContent());
     
+    this->butAutoConnectJack= addButton("Auto Connect","Auto connection with jack",480,120,130,24,this->boxControlUI->getContent());
+    
     this->boxClientJack = new BoxClient(this, &mGrisFeel);
-    this->boxClientJack->setBounds(140, 134, 260, 120);
+    this->boxClientJack->setBounds(480, 0, 260, 120);
     this->boxControlUI->getContent()->addAndMakeVisible(this->boxClientJack);
     
     // set up the layout and resizer bars
@@ -125,7 +133,7 @@ MainContentComponent::MainContentComponent(){
     this->verticalDividerBar = new StretchableLayoutResizerBar (&verticalLayout, 1, true);
     this->addAndMakeVisible (verticalDividerBar);
 
-    this->setSize (1360, 760);
+    this->setSize (1360, 670);
     
     
 
@@ -149,7 +157,7 @@ MainContentComponent::MainContentComponent(){
     this->sliderMasterGainOut->setValue(1.0);
 #endif
 
-    
+    this->comBoxModeSpat->setSelectedId(1);
 
     
     //OSC Receiver----------------------------------------------------------------------------
@@ -253,6 +261,19 @@ Slider* MainContentComponent::addSlider(const String &s, const String &stooltip,
     return sd;
 }
 
+ComboBox* MainContentComponent::addComboBox(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into)
+{
+    ComboBox *cb = new ComboBox();
+    cb->setTooltip(stooltip);
+    cb->setSize(w, h);
+    cb->setTopLeftPosition(x, y);
+    cb->setLookAndFeel(&mGrisFeel);
+    cb->addListener(this);
+    into->addAndMakeVisible(cb);
+    return cb;
+}
+
+//=====================================================
 bool MainContentComponent::exitApp(){
     ScopedPointer<AlertWindow> alert = new AlertWindow ("Exit SpatServerGRIS !","Do you want to save preset ?", AlertWindow::InfoIcon);
     alert->addButton ("Save", 1);
@@ -696,7 +717,8 @@ void MainContentComponent::textEditorReturnKeyPressed (TextEditor & textEditor){
             this->labOSCStatus->setColour(Label::textColourId, Colours::red);
         }
         
-    }else if(&textEditor == this->tedAddInputs){
+    }
+    else if(&textEditor == this->tedAddInputs){
         if(this->tedAddInputs->getTextValue().toString().getIntValue() < 0){
             this->tedAddInputs->setText("0");
         }
@@ -831,12 +853,21 @@ void MainContentComponent::buttonClicked (Button *button)
     
 }
 
-void MainContentComponent::sliderValueChanged (Slider* slider){
+void MainContentComponent::sliderValueChanged (Slider* slider)
+{
     if(slider == this->sliderMasterGainOut){
         this->jackClient->masterGainOut = this->sliderMasterGainOut->getValue();
     }
 }
-void MainContentComponent::resized() {
+
+void MainContentComponent::comboBoxChanged (ComboBox *comboBox)
+{
+    if(this->comBoxModeSpat == comboBox){
+        this->jackClient->modeSelected = (ModeSpatEnum)(this->comBoxModeSpat->getSelectedId()-1);
+    }
+}
+void MainContentComponent::resized()
+{
     
     Rectangle<int> r (getLocalBounds().reduced (2));
     
@@ -854,7 +885,7 @@ void MainContentComponent::resized() {
     this->boxOutputsUI->correctSize(((unsigned int )this->listSpeaker.size()*(SizeWidthLevelComp))+4, 210);
     
     this->boxControlUI->setBounds(this->speakerView->getWidth()+6, 488, getWidth()-(this->speakerView->getWidth()+10), getHeight()-490);
-    this->boxControlUI->correctSize(700, 270);
+    this->boxControlUI->correctSize(750, 180);
     
 
 }

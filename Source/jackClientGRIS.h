@@ -73,10 +73,18 @@ struct SpeakerOut {
 };
 
 
+typedef enum {
+    FreeBasic = 0,
+    VBap,
+    DBap,
+    HRTF
+} ModeSpatEnum;
 
+static const StringArray ModeSpatString = {"Free basic", "VBap", "DBap", "HRTF"};
 
 static const StringArray BufferSize = {"32", "64", "128", "256", "512", "1024", "2048"};
 static const StringArray RateValues = {"44100", "48000", "88200", "96000"};
+
 
 static unsigned int const MaxInputs = 256;
 static unsigned int const MaxOutputs = 256;
@@ -116,6 +124,8 @@ public:
     vector<SourceIn> listSourceIn;
     vector<SpeakerOut> listSpeakerOut;
     
+    ModeSpatEnum modeSelected;
+    
     bool noiseSound;
     bool autoConnection;
     bool overload;
@@ -126,7 +136,6 @@ public:
     unsigned int numberOutputs;
 
     
-
     //---------------------------------
     jackClientGris(unsigned int bufferS = 1024);
     virtual ~jackClientGris();
