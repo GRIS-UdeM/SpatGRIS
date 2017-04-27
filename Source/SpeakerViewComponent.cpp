@@ -304,8 +304,8 @@ void SpeakerViewComponent::drawOriginGrid()
     glEnd();
     
     glBegin(GL_LINE_LOOP);
-    glVertex3f(cos(2*M_PI/3.0f)*14.0f, 0.0f, sin(2*M_PI/3.0f)*14.0f);
-    glVertex3f(-cos(2*M_PI/3.0f)*14.0f, 0.0f, -sin(2*M_PI/3.0f)*14.0f);
+    glVertex3f(cos((M_PI/4.0f)*3.0f)*14.0f, 0.0f, sin((M_PI/4.0f)*3.0f)*14.0f);
+    glVertex3f(-cos((M_PI/4.0f)*3.0f)*14.0f, 0.0f, -sin((M_PI/4.0f)*3.0f)*14.0f);
     glEnd();
     
     glBegin(GL_LINE_LOOP);

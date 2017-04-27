@@ -845,11 +845,12 @@ void MainContentComponent::buttonClicked (Button *button)
     }
     else if(button == this->butDefaultColorIn){
         
-        float hue = 0;
+        float hue = 0.0f;
         for (auto&& it : listSourceInput)
         {
             it->setColor(Colour::fromHSV(hue, 1, 0.85, 1), true);
             hue+=0.01f;
+            if(hue >= 0.98f){ hue = 0.0f; }
         }
     }
     
