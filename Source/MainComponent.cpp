@@ -36,8 +36,8 @@ MainContentComponent::MainContentComponent(){
     options.storageFormat = PropertiesFile::storeAsXML;
     options.ignoreCaseOfKeyNames = true;
     options.osxLibrarySubFolder = "Application Support";
-    applicationProperties.setStorageParameters(options);
-    applicationProperties.getCommonSettings(true);
+    this->applicationProperties.setStorageParameters(options);
+    this->applicationProperties.getCommonSettings(true);
     
    
 
@@ -75,10 +75,10 @@ MainContentComponent::MainContentComponent(){
     
     //Components in BOX 3 ------------------------------------------------------------------
     this->labelJackStatus = addLabel("Jack Unknown","Jack Status",0, 0, 80, 28,this->boxControlUI->getContent());
-    this->labelJackLoad = addLabel("0.000000 %","Load Jack CPU",80, 0, 80, 28,this->boxControlUI->getContent());
-    this->labelJackRate = addLabel("00000 Hz","Rate",160, 0, 80, 28,this->boxControlUI->getContent());
+    this->labelJackLoad =   addLabel("0.000000 %","Load Jack CPU",80, 0, 80, 28,this->boxControlUI->getContent());
+    this->labelJackRate =   addLabel("00000 Hz","Rate",160, 0, 80, 28,this->boxControlUI->getContent());
     this->labelJackBuffer = addLabel("0000 spls","Buffer Size",240, 0, 80, 28,this->boxControlUI->getContent());
-    this->labelJackInfo = addLabel("...","Jack Inputs/Outputs system",320, 0, 80, 28,this->boxControlUI->getContent());
+    this->labelJackInfo =   addLabel("...","Jack Inputs/Outputs system",320, 0, 80, 28,this->boxControlUI->getContent());
     
     this->labelJackStatus->setColour(Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
     this->labelJackLoad->setColour(Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
@@ -94,9 +94,9 @@ MainContentComponent::MainContentComponent(){
     this->butSavePreset = addButton("Save","Save preset",4,126,124,24,this->boxControlUI->getContent());
 
     
-    this->butShowSpeakerNumber = addToggleButton("Show numbers", "Show numbers skeapers", 140, 100, 124, 24, this->boxControlUI->getContent());
-    this->butHighPerformance = addToggleButton("High performance", "Enable Low CPU Usage", 140, 124, 124, 24, this->boxControlUI->getContent());
-    this->butNoiseSound = addToggleButton("Noise Sound", "Enable bip noise", 140, 148, 124, 24, this->boxControlUI->getContent());
+    this->butShowSpeakerNumber =    addToggleButton("Show numbers", "Show numbers skeapers", 140, 100, 124, 24, this->boxControlUI->getContent());
+    this->butHighPerformance =      addToggleButton("High performance", "Enable Low CPU Usage", 140, 124, 124, 24, this->boxControlUI->getContent());
+    this->butNoiseSound =           addToggleButton("Noise Sound", "Enable bip noise", 140, 148, 124, 24, this->boxControlUI->getContent());
     
 
     
@@ -104,15 +104,15 @@ MainContentComponent::MainContentComponent(){
     this->tedOSCInPort->setText("18032");
     this->labOSCStatus= addLabel("...","OSC Receiver status",276, 36, 50, 24,this->boxControlUI->getContent());
     
-    this->tedAddInputs= addTextEditor("Inputs :", "0", "Numbers of Inputs", 140, 70, 50, 24, this->boxControlUI->getContent());
-    this->butDefaultColorIn= addButton("C","Set Default color Inputs",276,70,24,24,this->boxControlUI->getContent());
+    this->tedAddInputs =        addTextEditor("Inputs :", "0", "Numbers of Inputs", 140, 70, 50, 24, this->boxControlUI->getContent());
+    this->butDefaultColorIn =   addButton("C","Set Default color Inputs",276,70,24,24,this->boxControlUI->getContent());
     
     addLabel("Gain :","Master Gain Outputs",320, 36, 120, 20,this->boxControlUI->getContent());
     this->sliderMasterGainOut = addSlider("Master Gain", "Master Gain Outputs", 360, 26, 80, 80, this->boxControlUI->getContent());
     this->sliderMasterGainOut->setRange(0.0, 1.0, 0.001);
     
     addLabel("Mode :","Mode of spatilization",320, 110, 120, 20,this->boxControlUI->getContent());
-    this->comBoxModeSpat    = addComboBox("", "Mode of spatilization", 320, 128, 150, 22, this->boxControlUI->getContent());
+    this->comBoxModeSpat = addComboBox("", "Mode of spatilization", 320, 128, 150, 22, this->boxControlUI->getContent());
     for(int i = 0; i < ModeSpatString.size(); i++){
          this->comBoxModeSpat->addItem(ModeSpatString[i], i+1);
     }
@@ -120,7 +120,7 @@ MainContentComponent::MainContentComponent(){
    
     //this->labelAllClients= addLabel("...","Clients Connected",140, 130, 120, 80,this->boxControlUI->getContent());
     
-    this->butAutoConnectJack= addButton("Auto Connect","Auto connection with jack",480,120,130,24,this->boxControlUI->getContent());
+    this->butAutoConnectJack = addButton("Auto Connect","Auto connection with jack",480,120,130,24,this->boxControlUI->getContent());
     
     this->boxClientJack = new BoxClient(this, &mGrisFeel);
     this->boxClientJack->setBounds(480, 0, 260, 120);
@@ -299,9 +299,9 @@ bool MainContentComponent::exitApp(){
 }
 MainContentComponent::~MainContentComponent() {
 
-    applicationProperties.getUserSettings()->setValue("lastOpentPreset", this->pathCurrentPreset);
-    applicationProperties.saveIfNeeded();
-    applicationProperties.closeFiles();
+    this->applicationProperties.getUserSettings()->setValue("lastOpentPreset", this->pathCurrentPreset);
+    this->applicationProperties.saveIfNeeded();
+    this->applicationProperties.closeFiles();
 
     delete this->oscReceiver;
     
@@ -315,21 +315,21 @@ MainContentComponent::~MainContentComponent() {
     delete this->speakerView;
     
     this->lockSpeakers->lock();
-    for (auto&& it : listSpeaker)
+    for (auto&& it : this->listSpeaker)
     {
         delete (it);
     }
-    listSpeaker.clear();
+    this->listSpeaker.clear();
     this->lockSpeakers->unlock();
     delete this->lockSpeakers;
 
     
     this->lockInputs->lock();
-    for (auto&& it : listSourceInput)
+    for (auto&& it : this->listSourceInput)
     {
         delete (it);
     }
-    listSourceInput.clear();
+    this->listSourceInput.clear();
     this->lockInputs->unlock();
     delete this->lockInputs;
     
@@ -725,17 +725,19 @@ void MainContentComponent::textEditorReturnKeyPressed (TextEditor & textEditor){
         if(this->tedAddInputs->getTextValue().toString().getIntValue() > MaxInputs){
             this->tedAddInputs->setText(String(MaxInputs));
         }
-        this->jackClient->addRemoveInput(this->tedAddInputs->getTextValue().toString().getIntValue());
-        this->lockInputs->lock();
-        for (auto&& it : listSourceInput)
-        {
-            delete (it);
+        if(this->jackClient->inputsPort.size() != this->tedAddInputs->getTextValue().toString().getIntValue()){
+            this->jackClient->addRemoveInput(this->tedAddInputs->getTextValue().toString().getIntValue());
+            this->lockInputs->lock();
+            for (auto&& it : listSourceInput)
+            {
+                delete (it);
+            }
+            listSourceInput.clear();
+            for(int i = 0 ; i< this->jackClient->inputsPort.size();i++){
+                this->listSourceInput.push_back(new Input(this, &mGrisFeel,i+1));
+            }
+            this->lockInputs->unlock();
         }
-        listSourceInput.clear();
-        for(int i = 0 ; i< this->jackClient->inputsPort.size();i++){
-            this->listSourceInput.push_back(new Input(this, &mGrisFeel,i+1));
-        }
-        this->lockInputs->unlock();
         updateLevelComp();
     }
 }
@@ -810,7 +812,7 @@ void MainContentComponent::buttonClicked (Button *button)
             unsigned int RateValue = applicationProperties.getUserSettings()->getValue("RateValue").getIntValue();
 
             this->winJackSetting = new WindowJackSetting("Jack Settings", this->mGrisFeel.getWinBackgroundColour(),DocumentWindow::allButtons, this, &this->mGrisFeel, RateValues.indexOf(String(RateValue)), BufferSize.indexOf(String(BufferValue)));
-            Rectangle<int> result (this->getScreenX()+ (this->speakerView->getWidth()/2)-150,this->getScreenY()+(this->speakerView->getHeight()/2)-75,300,150);
+            Rectangle<int> result (this->getScreenX()+ (this->speakerView->getWidth()/2)-150, this->getScreenY()+(this->speakerView->getHeight()/2)-75, 250, 120);
             this->winJackSetting->setBounds (result);
             this->winJackSetting->setResizable (false, false);
             this->winJackSetting->setUsingNativeTitleBar (true);
