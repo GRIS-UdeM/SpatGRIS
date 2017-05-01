@@ -87,9 +87,10 @@ void Input::drawSpan()
     ang = ((ang* 180.0f)/M_PI) ;
 
     glRotatef((360.0f-ang) + (this->azimSpan* 90), 0, 1, 0);
-
+    glPointSize(8);
     glBegin(GL_POINTS);
-    for(int i = 0; i <= this->azimSpan * 90 ; ++i){
+    for(int i = 0; i <= this->azimSpan * 90 ; i+=6){
+    
         double angle = (M2_PI * i / 180);
         glVertex3f(cos(angle)*radCir, 0.0f, sin(angle)*radCir);
     }
@@ -119,7 +120,7 @@ void Input::updateValuesOld(float az, float ze, float azS, float zeS, float g){
     this->azimuth = fmod(((az/M_PI)-M_PI)*-10.0f,(M2_PI));
     this->zenith  = (M_PI2) - (M_PI * ze);     //((ze-0.5f)/M_PI)*-10.0f;
     
-    this->azimSpan = (azS * M_PI);
+    this->azimSpan = (azS );
     this->zeniSpan = zeS;
     
     //cout << this->azimSpan << " <> "<< zeS<< endl;
