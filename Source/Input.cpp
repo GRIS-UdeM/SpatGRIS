@@ -88,7 +88,7 @@ void Input::updateValues(float az, float ze, float azS, float zeS, float heS, fl
     this->center.x = (10.0f * sinf(this->zenith)*cosf(this->azimuth));
     this->center.z = (10.0f * sinf(this->zenith)*sinf(this->azimuth));
     this->center.y = ((10.0f * cosf(this->zenith)) + (sizeT/2.0f )) * heS;
-    
+
 }
 
 void Input::updateValuesOld(float az, float ze, float azS, float zeS, float g){

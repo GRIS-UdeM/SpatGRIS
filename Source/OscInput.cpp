@@ -45,34 +45,37 @@ bool OscInput::closeConnection(){
 void OscInput::oscMessageReceived(const OSCMessage& message) {
     string address = message.getAddressPattern().toString().toStdString();
     
-    if(address == OscPanAZ && message[0].isInt32()){
-        //id, azim, elev, azimSpan, elevSpan, gain... see Zirkonium
-        int idS = message[0].getInt32();
-        this->mainParent->getLockInputs()->lock();
-        if(this->mainParent->getListSourceInput().size() > idS){
-            this->mainParent->getListSourceInput()[idS]->updateValuesOld(message[1].getFloat32(),
-                                                                      message[2].getFloat32(),
-                                                                      message[3].getFloat32(),
-                                                                      message[4].getFloat32(),
-                                                                      message[5].getFloat32());
-            this->mainParent->updateInputJack(idS, *this->mainParent->getListSourceInput()[idS]);
+    if(message[0].isInt32()){
+        if(address == OscSpatServ){
+            //id, ... see with spatOSCGRis
+            int idS = message[0].getInt32();
+            this->mainParent->getLockInputs()->lock();
+            if(this->mainParent->getListSourceInput().size() > idS){
+                this->mainParent->getListSourceInput()[idS]->updateValues(message[1].getFloat32(),
+                                                                          message[2].getFloat32(),
+                                                                          message[3].getFloat32(),
+                                                                          message[4].getFloat32(),
+                                                                          message[5].getFloat32(),
+                                                                          message[6].getFloat32());
+                this->mainParent->updateInputJack(idS, *this->mainParent->getListSourceInput()[idS]);
+            }
+            this->mainParent->getLockInputs()->unlock();
         }
-        this->mainParent->getLockInputs()->unlock();
-    }
-    
-    else if(address == OscSpatServ && message[0].isInt32()){
-        //id, ... see with spatOSCGRis
-        int idS = message[0].getInt32();
-        this->mainParent->getLockInputs()->lock();
-        if(this->mainParent->getListSourceInput().size() > idS){
-            this->mainParent->getListSourceInput()[idS]->updateValues(message[1].getFloat32(),
-                                                                      message[2].getFloat32(),
-                                                                      message[3].getFloat32(),
-                                                                      message[4].getFloat32(),
-                                                                      message[5].getFloat32(),
-                                                                      message[6].getFloat32());
-            this->mainParent->updateInputJack(idS, *this->mainParent->getListSourceInput()[idS]);
+        
+        else if(address == OscPanAZ){
+            //id, azim, elev, azimSpan, elevSpan, gain... see Zirkonium
+            int idS = message[0].getInt32();
+            this->mainParent->getLockInputs()->lock();
+            if(this->mainParent->getListSourceInput().size() > idS){
+                this->mainParent->getListSourceInput()[idS]->updateValuesOld(message[1].getFloat32(),
+                                                                             message[2].getFloat32(),
+                                                                             message[3].getFloat32(),
+                                                                             message[4].getFloat32(),
+                                                                             message[5].getFloat32());
+                this->mainParent->updateInputJack(idS, *this->mainParent->getListSourceInput()[idS]);
+            }
+            this->mainParent->getLockInputs()->unlock();
         }
-        this->mainParent->getLockInputs()->unlock();
+        
     }
 }
