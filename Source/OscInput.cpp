@@ -33,7 +33,8 @@ OscInput::~OscInput(){
 
 bool OscInput::startConnection(int port){
     bool b = this->connect(port);
-    this->addListener(this, "/pan/az");
+    this->addListener(this, OscPanAZ.c_str());
+    this->addListener(this, OscSpatServ.c_str());
     return b;
 }
 
@@ -49,7 +50,7 @@ void OscInput::oscMessageReceived(const OSCMessage& message) {
         int idS = message[0].getInt32();
         this->mainParent->getLockInputs()->lock();
         if(this->mainParent->getListSourceInput().size() > idS){
-            this->mainParent->getListSourceInput()[idS]->updateValues(message[1].getFloat32(),
+            this->mainParent->getListSourceInput()[idS]->updateValuesOld(message[1].getFloat32(),
                                                                       message[2].getFloat32(),
                                                                       message[3].getFloat32(),
                                                                       message[4].getFloat32(),
@@ -68,7 +69,8 @@ void OscInput::oscMessageReceived(const OSCMessage& message) {
                                                                       message[2].getFloat32(),
                                                                       message[3].getFloat32(),
                                                                       message[4].getFloat32(),
-                                                                      message[5].getFloat32());
+                                                                      message[5].getFloat32(),
+                                                                      message[6].getFloat32());
             this->mainParent->updateInputJack(idS, *this->mainParent->getListSourceInput()[idS]);
         }
         this->mainParent->getLockInputs()->unlock();

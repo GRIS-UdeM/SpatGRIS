@@ -65,7 +65,8 @@ public :
     float getRad(){ return 10.0f; }
     
     void draw();
-    void updateValues(float az, float ze, float azS, float zeS, float g);
+    void updateValues(float az, float ze, float azS, float zeS, float heS, float g);
+    void updateValuesOld(float az, float ze, float azS, float zeS, float g);
     
 private:
     int idChannel;

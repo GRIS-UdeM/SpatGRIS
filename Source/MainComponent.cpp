@@ -857,7 +857,7 @@ void MainContentComponent::buttonClicked (Button *button)
         float hue = 0.0f;
         for (auto&& it : listSourceInput)
         {
-            it->setColor(Colour::fromHSV(hue, 1, 0.85, 1), true);
+            it->setColor(Colour::fromHSV(hue, 1, 0.75, 1), true);
             hue+=0.01f;
             if(hue >= 0.98f){ hue = 0.0f; }
         }

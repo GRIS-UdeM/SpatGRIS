@@ -74,9 +74,24 @@ void Input::draw(){
     
     glPopMatrix();
 }
+void Input::updateValues(float az, float ze, float azS, float zeS, float heS, float g){
+    
+    this->azimuth = az; //fmod(((az/M_PI)-M_PI)*-10.0f,(M2_PI));
+    this->zenith  = ze; //(M_PI2) - (M_PI * ze);     //((ze-0.5f)/M_PI)*-10.0f;
+    
+    this->azimSpan = azS;
+    this->zeniSpan = zeS;
+    
+    //cout << this->azimSpan << " <> "<< zeS<< endl;
+    this->gain = g;
+    
+    this->center.x = (10.0f * sinf(this->zenith)*cosf(this->azimuth));
+    this->center.z = (10.0f * sinf(this->zenith)*sinf(this->azimuth));
+    this->center.y = ((10.0f * cosf(this->zenith)) + (sizeT/2.0f )) * heS;
+    
+}
 
-
-void Input::updateValues(float az, float ze, float azS, float zeS, float g){
+void Input::updateValuesOld(float az, float ze, float azS, float zeS, float g){
 
     this->azimuth = fmod(((az/M_PI)-M_PI)*-10.0f,(M2_PI));
     this->zenith  = (M_PI2) - (M_PI * ze);     //((ze-0.5f)/M_PI)*-10.0f;
