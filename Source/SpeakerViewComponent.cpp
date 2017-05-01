@@ -260,14 +260,14 @@ void SpeakerViewComponent::drawOriginGrid()
     glColor3f(0.89, 0.89, 0.89);
     glBegin(GL_LINE_LOOP);
     for(int i =0; i <= 180; i++){
-        double angle = (2 * M_PI * i / 180);
+        double angle = (M2_PI * i / 180);
         glVertex3f(cos(angle)*5.0f, 0.0f, sin(angle)*5.0f);
     }
     glEnd();
     
     glBegin(GL_LINE_LOOP);
     for(int i =0; i <= 180; i++){
-        double angle = (2 * M_PI * i / 180);
+        double angle = (M2_PI * i / 180);
         glVertex3f(cos(angle)*10.0f, 0.0f, sin(angle)*10.0f);
     }
     glEnd();
@@ -299,32 +299,32 @@ void SpeakerViewComponent::drawOriginGrid()
     glEnd();
     
     glBegin(GL_LINE_LOOP);
-    glVertex3f(cos(M_PI/4.0f)*14.0f, 0.0f, sin(M_PI/4.0f)*14.0f);
-    glVertex3f(-cos(M_PI/4.0f)*14.0f, 0.0f, -sin(M_PI/4.0f)*14.0f);
+    glVertex3f(cos(M_PI4)*14.0f, 0.0f, sin(M_PI4)*14.0f);
+    glVertex3f(-cos(M_PI4)*14.0f, 0.0f, -sin(M_PI4)*14.0f);
     glEnd();
     
     glBegin(GL_LINE_LOOP);
-    glVertex3f(cos((M_PI/4.0f)*3.0f)*14.0f, 0.0f, sin((M_PI/4.0f)*3.0f)*14.0f);
-    glVertex3f(-cos((M_PI/4.0f)*3.0f)*14.0f, 0.0f, -sin((M_PI/4.0f)*3.0f)*14.0f);
+    glVertex3f(cos((M_PI4)*3.0f)*14.0f, 0.0f, sin((M_PI4)*3.0f)*14.0f);
+    glVertex3f(-cos((M_PI4)*3.0f)*14.0f, 0.0f, -sin((M_PI4)*3.0f)*14.0f);
     glEnd();
     
     glBegin(GL_LINE_LOOP);
     for(int i =0; i <= 180; i++){
-        double angle = (2 * M_PI * i / 180);
+        double angle = (M2_PI * i / 180);
         glVertex3f(cos(angle)*2.5f, 0.0f, sin(angle)*2.5f);
     }
     glEnd();
     
     glBegin(GL_LINE_LOOP);
     for(int i =0; i <= 180; i++){
-        double angle = (2 * M_PI * i / 180);
+        double angle = (M2_PI * i / 180);
         glVertex3f(cos(angle)*7.5f, 0.0f, sin(angle)*7.5f);
     }
     glEnd();
     
     glBegin(GL_LINE_LOOP);
     for(int i =0; i <= 180; i++){
-        double angle = (2 * M_PI * i / 180);
+        double angle = (M2_PI * i / 180);
         glVertex3f(cos(angle)*12.5f, 0.0f, sin(angle)*12.5f);
     }
     glEnd();

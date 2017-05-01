@@ -24,6 +24,7 @@
 //MUTE SOLO MasterGainOut and NOISE
 //=========================================================================================
 static void muteSoloVuMeterIn(jackClientGris & jackCli, jack_default_audio_sample_t ** ins, const jack_nframes_t &nframes, const unsigned int &sizeInputs){
+    //Mute & solo --------------------------------
     for (int i = 0; i < sizeInputs; ++i) {
         if(jackCli.muteIn[i]){
             memset (ins[i], 0, sizeof (jack_default_audio_sample_t) * nframes);
@@ -40,17 +41,17 @@ static void muteSoloVuMeterIn(jackClientGris & jackCli, jack_default_audio_sampl
     fill(jackCli.levelsIn, jackCli.levelsIn+sizeInputs, -60.0f);
     fill(sumsIn, sumsIn+sizeInputs, 0.0f);
     
-    for(int nF = 0; nF < nframes; ++nF) {
-        for (int i = 0; i < sizeInputs; ++i) {
+    for (int i = 0; i < sizeInputs; ++i) {
+        for(int nF = 0; nF < nframes; ++nF) {
             sumsIn[i] +=  ins[i][nF] * ins[i][nF];
         }
-    }
-    for (int i = 0; i < sizeInputs; ++i) {
         jackCli.levelsIn[i] = sumsIn[i]/nframes;
     }
+    
 }
 
 static void muteSoloVuMeterGainOut(jackClientGris & jackCli, jack_default_audio_sample_t ** outs, const jack_nframes_t &nframes, const unsigned int &sizeOutputs, const float mGain = 1.0f){
+    //Mute & solo --------------------------------
     for (int i = 0; i < sizeOutputs; ++i) {
         if(jackCli.muteOut[i]){
             memset (outs[i], 0, sizeof (jack_default_audio_sample_t) * nframes);
@@ -75,11 +76,9 @@ static void muteSoloVuMeterGainOut(jackClientGris & jackCli, jack_default_audio_
             //cout << outs[i][nF] << newLine;
             sumsOut[i] +=  outs[i][nF] * outs[i][nF];
         }
-    }
-
-    for (int i = 0; i < sizeOutputs; ++i) {
         jackCli.levelsOut[i] = sumsOut[i]/nframes;
     }
+
 }
 
 static void addNoiseSound(jackClientGris & jackCli, jack_default_audio_sample_t ** ins, const jack_nframes_t &nframes, const unsigned int &sizeInputs){
@@ -132,6 +131,7 @@ static void processFreeVolume(jackClientGris & jackCli, jack_default_audio_sampl
         //Process Other Input -----------------------------------
         for (i = 1; i < sizeInputs; ++i) {
             
+            cout << jackCli.listSourceIn[i].azimuth << " // " << jackCli.listSourceIn[i].zenith << newLine;
             dx = jackCli.listSourceIn[i].x - outputX;
             dy = jackCli.listSourceIn[i].z - outputY;
             da = sqrtf(dx*dx + dy*dy);

@@ -141,6 +141,10 @@ MainContentComponent::MainContentComponent(){
     unsigned int BufferValue = applicationProperties.getUserSettings()->getValue("BufferValue").getIntValue();
     unsigned int RateValue = applicationProperties.getUserSettings()->getValue("RateValue").getIntValue();
     
+    if(isnan(BufferValue) || BufferValue == 0 || isnan(RateValue) || RateValue == 0){
+        BufferValue = 1024;
+        RateValue = 48000;
+    }
     //Start JACK Server and client
     this->jackServer = new jackServerGRIS(RateValue);
     this->jackClient = new jackClientGris(BufferValue);
@@ -394,8 +398,8 @@ void MainContentComponent::updateInputJack(int inInput, Input &inp){
     si->z = inp.getCenter().z/10.0f;
 
     si->azimuth = inp.getAziMuth();
-    si->zenith = inp.getZenith();
-    si->radius = inp.getRad();
+    si->zenith  = inp.getZenith();
+    si->radius  = inp.getRad();
 }
 
 void MainContentComponent::updateLevelComp(){
@@ -411,6 +415,7 @@ void MainContentComponent::updateLevelComp(){
         it->getVuMeter()->setBounds(level);
         this->boxOutputsUI->getContent()->addAndMakeVisible(it->getVuMeter());
         it->getVuMeter()->repaint();
+        
         x+=SizeWidthLevelComp;
         indexS+=1;
         SpeakerOut so;
@@ -421,8 +426,9 @@ void MainContentComponent::updateLevelComp(){
         so.z = it->getCoordinate().z;
 
         so.azimuth = it->getAziZenRad().x;
-        so.zenith = it->getAziZenRad().y;
-        so.radius = it->getAziZenRad().z;
+        so.zenith  = it->getAziZenRad().y;
+        so.radius  = it->getAziZenRad().z;
+        
         this->jackClient->listSpeakerOut[it->getOutputPatch()-1] = so;
         i++;
     }
@@ -437,16 +443,19 @@ void MainContentComponent::updateLevelComp(){
         it->getVuMeter()->setBounds(level);
         this->boxInputsUI->getContent()->addAndMakeVisible(it->getVuMeter());
         it->getVuMeter()->repaint();
+        
         x+=SizeWidthLevelComp;
         indexS+=1;
         SourceIn si;
         si.id = it->getId();
+        
         si.x = it->getCenter().x/10.0f;
         si.y = it->getCenter().y/10.0f;
         si.z = it->getCenter().z/10.0f;
+        
         si.azimuth = it->getAziMuth();
-        si.zenith = it->getZenith();
-        si.radius = it->getRad();
+        si.zenith  = it->getZenith();
+        si.radius  = it->getRad();
         
         this->jackClient->listSourceIn[i] = si;
         i++;
