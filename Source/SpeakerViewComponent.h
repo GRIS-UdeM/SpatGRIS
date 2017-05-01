@@ -38,7 +38,8 @@ class Speaker;
 
 using namespace std;
 
-static const int NbrGridLines = 16;
+static const int    NbrGridLines = 16;
+static const float  ScroolWheelSpeedMouse = 1.8f;
 
 
 class SpeakerViewComponent : public OpenGLAppComponent {
@@ -71,7 +72,7 @@ public:
 private:
     
     float raycast(Speaker *speaker);
-    bool speakerNearCam(glm::vec3 speak1, glm::vec3 speak2, glm::vec3 cam);
+    bool speakerNearCam(glm::vec3 speak1, glm::vec3 speak2);
     
     void clickRay();
     void drawBackground();

@@ -131,7 +131,6 @@ static void processFreeVolume(jackClientGris & jackCli, jack_default_audio_sampl
         //Process Other Input -----------------------------------
         for (i = 1; i < sizeInputs; ++i) {
             
-            cout << jackCli.listSourceIn[i].azimuth << " // " << jackCli.listSourceIn[i].zenith << newLine;
             dx = jackCli.listSourceIn[i].x - outputX;
             dy = jackCli.listSourceIn[i].z - outputY;
             da = sqrtf(dx*dx + dy*dy);

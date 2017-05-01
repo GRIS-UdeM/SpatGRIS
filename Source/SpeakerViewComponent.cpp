@@ -23,18 +23,21 @@
 //==========================================================================================
 // ACTUAL SPEAKER VIEW CLASS DEFS
 //==========================================================================================
-SpeakerViewComponent::SpeakerViewComponent(MainContentComponent *parent) {
+SpeakerViewComponent::SpeakerViewComponent(MainContentComponent *parent)
+{
     //openGLContext.setMultisamplingEnabled (true);
     this->mainParent = parent;
     this->setSize(400, 400);
     
 }
 
-SpeakerViewComponent::~SpeakerViewComponent() {
+SpeakerViewComponent::~SpeakerViewComponent()
+{
     this->shutdownOpenGL();
 }
 
-void SpeakerViewComponent::initialise() {
+void SpeakerViewComponent::initialise()
+{
    
     glClearColor(0.0, 0.0, 0.0, 1.0);
     glColor3f(1.0, 1.0, 1.0);
@@ -49,13 +52,15 @@ void SpeakerViewComponent::initialise() {
     gluLookAt(4, 6, 5, 0, 0, 0, 0, 1, 0);
 }
 
-void SpeakerViewComponent::shutdown() {
+void SpeakerViewComponent::shutdown()
+{
     
 }
 
 
 
-void SpeakerViewComponent::render() {
+void SpeakerViewComponent::render()
+{
     
     glEnable(GL_DEPTH_TEST);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -150,7 +155,8 @@ void SpeakerViewComponent::render() {
     glFlush();
 }
 
-void SpeakerViewComponent::paint (Graphics& g) {
+void SpeakerViewComponent::paint (Graphics& g)
+{
 //    // You can add your component specific drawing code here!
 //    // This will draw over the top of the openGL background.
 //    
@@ -160,11 +166,13 @@ void SpeakerViewComponent::paint (Graphics& g) {
 //    g.drawLine (20, 20, 170, 20);
 }
 
-void SpeakerViewComponent::resized() {
+void SpeakerViewComponent::resized()
+{
     //draggableOrientation.setViewport (getLocalBounds());
 }
 
-void SpeakerViewComponent::clickRay(){
+void SpeakerViewComponent::clickRay()
+{
     this->clickLeft = false;
     double matModelView[16], matProjection[16];
     int viewport[4];
@@ -192,7 +200,7 @@ void SpeakerViewComponent::clickRay(){
             if(iBestSpeaker == -1){
                 iBestSpeaker = i;
             }else{
-                if(speakerNearCam(this->mainParent->getListSpeaker()[i]->getCenter(), this->mainParent->getListSpeaker()[iBestSpeaker]->getCenter(), camPos)){
+                if(speakerNearCam(this->mainParent->getListSpeaker()[i]->getCenter(), this->mainParent->getListSpeaker()[iBestSpeaker]->getCenter())){
                     iBestSpeaker = i;
                 }
             }
@@ -202,8 +210,8 @@ void SpeakerViewComponent::clickRay(){
     this->mainParent->getLockSpeakers()->unlock();
 }
 
-void SpeakerViewComponent::mouseDown (const MouseEvent& e) {
-    
+void SpeakerViewComponent::mouseDown (const MouseEvent& e)
+{
     this->deltaClickX = this->camAngleX - e.getPosition().x ;
     this->deltaClickY = this->camAngleY - e.getPosition().y;
 
@@ -214,15 +222,17 @@ void SpeakerViewComponent::mouseDown (const MouseEvent& e) {
     }
 }
 
-void SpeakerViewComponent::mouseDrag (const MouseEvent& e) {
+void SpeakerViewComponent::mouseDrag (const MouseEvent& e)
+{
     if(e.mods.isRightButtonDown()){
         this->camAngleX = (e.getPosition().x + this->deltaClickX);
         this->camAngleY = (e.getPosition().y + this->deltaClickY);
     }
 }
 
-void SpeakerViewComponent::mouseWheelMove(const MouseEvent& e,const MouseWheelDetails& wheel){
-    this->distance -= (wheel.deltaY*1.8f);
+void SpeakerViewComponent::mouseWheelMove(const MouseEvent& e,const MouseWheelDetails& wheel)
+{
+    this->distance -= (wheel.deltaY * ScroolWheelSpeedMouse);
 }
 
 void SpeakerViewComponent::drawBackground()
@@ -252,22 +262,23 @@ void SpeakerViewComponent::drawBackground()
 
 void SpeakerViewComponent::drawOriginGrid()
 {
-    
+    int     i;
+    double  angle;
     //Draw circle------------------------
     glLineWidth(1.5f);
     
     //glColor3f(0, 0, 0);
     glColor3f(0.89, 0.89, 0.89);
     glBegin(GL_LINE_LOOP);
-    for(int i =0; i <= 180; i++){
-        double angle = (M2_PI * i / 180);
+    for(i = 0; i <= 180; ++i){
+        angle = (M2_PI * i / 180);
         glVertex3f(cos(angle)*5.0f, 0.0f, sin(angle)*5.0f);
     }
     glEnd();
     
     glBegin(GL_LINE_LOOP);
-    for(int i =0; i <= 180; i++){
-        double angle = (M2_PI * i / 180);
+    for(i = 0; i <= 180; ++i){
+        angle = (M2_PI * i / 180);
         glVertex3f(cos(angle)*10.0f, 0.0f, sin(angle)*10.0f);
     }
     glEnd();
@@ -304,27 +315,27 @@ void SpeakerViewComponent::drawOriginGrid()
     glEnd();
     
     glBegin(GL_LINE_LOOP);
-    glVertex3f(cos((M_PI4)*3.0f)*14.0f, 0.0f, sin((M_PI4)*3.0f)*14.0f);
-    glVertex3f(-cos((M_PI4)*3.0f)*14.0f, 0.0f, -sin((M_PI4)*3.0f)*14.0f);
+    glVertex3f(cos(M_PI4*3.0f)*14.0f, 0.0f, sin(M_PI4*3.0f)*14.0f);
+    glVertex3f(-cos(M_PI4*3.0f)*14.0f, 0.0f, -sin(M_PI4*3.0f)*14.0f);
     glEnd();
     
     glBegin(GL_LINE_LOOP);
-    for(int i =0; i <= 180; i++){
-        double angle = (M2_PI * i / 180);
+    for(i = 0; i <= 180; ++i){
+        angle = (M2_PI * i / 180);
         glVertex3f(cos(angle)*2.5f, 0.0f, sin(angle)*2.5f);
     }
     glEnd();
     
     glBegin(GL_LINE_LOOP);
-    for(int i =0; i <= 180; i++){
-        double angle = (M2_PI * i / 180);
+    for(i = 0; i <= 180; ++i){
+        angle = (M2_PI * i / 180);
         glVertex3f(cos(angle)*7.5f, 0.0f, sin(angle)*7.5f);
     }
     glEnd();
     
     glBegin(GL_LINE_LOOP);
-    for(int i =0; i <= 180; i++){
-        double angle = (M2_PI * i / 180);
+    for(i = 0; i <= 180; ++i){
+        angle = (M2_PI * i / 180);
         glVertex3f(cos(angle)*12.5f, 0.0f, sin(angle)*12.5f);
     }
     glEnd();
@@ -345,12 +356,12 @@ void SpeakerViewComponent::drawOriginGrid()
     }*/
     
     //drawText("0",glm::vec3(0,0.1,0));
-    drawText("X",glm::vec3(10,0.1,0));
-    drawText("Y",glm::vec3(0,0.1,10));
-    drawText("Z",glm::vec3(0,10,0));
+    drawText("X",   glm::vec3(10, 0.1, 0));
+    drawText("Y",   glm::vec3(0,  0.1, 10));
+    drawText("Z",   glm::vec3(0,  10,  0));
     
-    drawTextOnGrid("0",     glm::vec3(9.4, 0, 0.1));
-    drawTextOnGrid("90",    glm::vec3(-0.8, 0,9.0));
+    drawTextOnGrid("0",     glm::vec3(9.4,  0, 0.1));
+    drawTextOnGrid("90",    glm::vec3(-0.8, 0, 9.0));
     drawTextOnGrid("180",   glm::vec3(-9.8, 0, 0.1));
     drawTextOnGrid("270",   glm::vec3(-0.8, 0,-9.8));
 }
@@ -395,7 +406,7 @@ void SpeakerViewComponent::drawTextOnGrid(string val, glm::vec3 position,float s
     glPopMatrix();
 }
 
-
+//Not used !!!
 void SpeakerViewComponent::drawCube(float x, float y, float z)
 
 {
@@ -480,8 +491,8 @@ float SpeakerViewComponent::raycast(Speaker *speaker) {
 
 
 
-bool SpeakerViewComponent::speakerNearCam(glm::vec3 speak1, glm::vec3 speak2, glm::vec3 cam){
-    return (sqrt( exp2(speak1.x - cam.x) + exp2(speak1.y - cam.y) +exp2(speak1.z - cam.z) ) <=
-            sqrt( exp2(speak2.x - cam.x) + exp2(speak2.y - cam.y) +exp2(speak2.z - cam.z) ));
+bool SpeakerViewComponent::speakerNearCam(glm::vec3 speak1, glm::vec3 speak2){
+    return (sqrt( exp2(speak1.x - this->camPos.x) + exp2(speak1.y - this->camPos.y) +exp2(speak1.z - this->camPos.z) ) <=
+            sqrt( exp2(speak2.x - this->camPos.x) + exp2(speak2.y - this->camPos.y) +exp2(speak2.z - this->camPos.z) ));
 }
 

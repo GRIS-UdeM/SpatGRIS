@@ -175,15 +175,15 @@ bool LevelComponent::isMuted(){
 
 void LevelComponent::setSelected(bool value){
     const MessageManagerLock mmLock;
-     if(value){
-         this->idBut->setColour(TextButton::textColourOnId, this->grisFeel->getWinBackgroundColour());
-         this->idBut->setColour(TextButton::textColourOffId, this->grisFeel->getWinBackgroundColour());
-         this->idBut->setColour(TextButton::buttonColourId, this->grisFeel->getOnColour());
-     }else{
-         this->idBut->setColour(TextButton::textColourOnId, this->grisFeel->getFontColour());
-         this->idBut->setColour(TextButton::textColourOffId, this->grisFeel->getFontColour());
-         this->idBut->setColour(TextButton::buttonColourId, this->grisFeel->getBackgroundColour());
-     }
+    if(value){
+        this->idBut->setColour(TextButton::textColourOnId,  this->grisFeel->getWinBackgroundColour());
+        this->idBut->setColour(TextButton::textColourOffId, this->grisFeel->getWinBackgroundColour());
+        this->idBut->setColour(TextButton::buttonColourId,  this->grisFeel->getOnColour());
+    }else{
+        this->idBut->setColour(TextButton::textColourOnId,  this->grisFeel->getFontColour());
+        this->idBut->setColour(TextButton::textColourOffId, this->grisFeel->getFontColour());
+        this->idBut->setColour(TextButton::buttonColourId,  this->grisFeel->getBackgroundColour());
+    }
 }
 
 void LevelComponent::setBounds(const Rectangle<int> &newBounds){
@@ -193,7 +193,7 @@ void LevelComponent::setBounds(const Rectangle<int> &newBounds){
     this->idBut->setBounds(labRect);
     //this->labId->setSize(newBounds.getWidth(), 22);
     this->muteToggleBut->setBounds((newBounds.getWidth()/2)-16, getHeight()-22, this->muteToggleBut->getWidth(), this->muteToggleBut->getHeight());
-    this->soloToggleBut->setBounds((newBounds.getWidth()/2), getHeight()-22, this->muteToggleBut->getWidth(), this->muteToggleBut->getHeight());
+    this->soloToggleBut->setBounds((newBounds.getWidth()/2),    getHeight()-22, this->muteToggleBut->getWidth(), this->muteToggleBut->getHeight());
 
     juce::Rectangle<int> level(WidthRect/2, 18, newBounds.getWidth()-WidthRect, getHeight()-40 );
     this->levelBox->setBounds(level);
