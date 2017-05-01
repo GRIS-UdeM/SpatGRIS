@@ -64,16 +64,39 @@ void Input::draw(){
     // Draw 3D sphere.
     glPushMatrix();
     glTranslatef(this->center.x, this->center.y, this->center.z);
-    glRotatef(90, 1, 0, 0);
+    //glRotatef(90, 1, 0, 0);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);  //GL_LINE
     glLineWidth(2);
     glColor3f(this->color.x, this->color.y, this->color.z);
     glutSolidSphere(sizeT, 8, 8);
+    
+    drawSpan();
+    
     glTranslatef(-this->center.x, -this->center.y, -this->center.z);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    
     glPopMatrix();
 }
+
+void Input::drawSpan()
+{
+
+    float radCir = sqrt((this->center.x*this->center.x)+(this->center.z*this->center.z));
+    float ang = -atan2(( - this->center.z * 10.0f), (this->center.x * 10.0f ));
+    
+    glTranslatef(-(cos(ang) * radCir) , 0, -(sin(ang) * radCir));
+    ang = ((ang* 180.0f)/M_PI) ;
+
+    glRotatef((360.0f-ang) + (this->azimSpan* 90), 0, 1, 0);
+
+    glBegin(GL_POINTS);
+    for(int i = 0; i <= this->azimSpan * 90 ; ++i){
+        double angle = (M2_PI * i / 180);
+        glVertex3f(cos(angle)*radCir, 0.0f, sin(angle)*radCir);
+    }
+    glEnd();
+
+}
+
 void Input::updateValues(float az, float ze, float azS, float zeS, float heS, float g){
     
     this->azimuth = az; //fmod(((az/M_PI)-M_PI)*-10.0f,(M2_PI));
@@ -88,7 +111,7 @@ void Input::updateValues(float az, float ze, float azS, float zeS, float heS, fl
     this->center.x = (10.0f * sinf(this->zenith)*cosf(this->azimuth));
     this->center.z = (10.0f * sinf(this->zenith)*sinf(this->azimuth));
     this->center.y = ((10.0f * cosf(this->zenith)) + (sizeT/2.0f )) * heS;
-
+    
 }
 
 void Input::updateValuesOld(float az, float ze, float azS, float zeS, float g){

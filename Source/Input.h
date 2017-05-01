@@ -69,10 +69,14 @@ public :
     void updateValuesOld(float az, float ze, float azS, float zeS, float g);
     
 private:
+    void drawSpan();
+    
     int idChannel;
     
     float azimuth;
     float zenith;
+    float radius;
+    
     float azimSpan;
     float zeniSpan;
     float gain;
@@ -84,5 +88,6 @@ private:
     LevelComponent *vuMeter;
     MainContentComponent * mainParent;
     GrisLookAndFeel * grisFeel;
+
 };
 #endif /* Input_h */
