@@ -847,6 +847,7 @@ void MainContentComponent::buttonClicked (Button *button)
             this->winControlSource->setVisible (true);
             this->winControlSource->setAlwaysOnTop(true);
             this->winControlSource->repaint();
+            this->winControlSource->setTimerHz(this->butHighPerformance->getToggleState() ? 10 : HertzRefreshNormal);
         }
 
     }else if(button == butShowSpeakerNumber){
@@ -862,8 +863,15 @@ void MainContentComponent::buttonClicked (Button *button)
         stopTimer();
         if(this->butHighPerformance->getToggleState()){
             startTimerHz(HertzRefreshLowCpu);
+            if(this->winControlSource != nullptr){
+                this->winControlSource->setTimerHz(10);
+            }
+            
         }else{
             startTimerHz(HertzRefreshNormal);
+            if(this->winControlSource != nullptr){
+                this->winControlSource->setTimerHz(HertzRefreshNormal);
+            }
         }
         this->speakerView->setHighPerfor(this->butHighPerformance->getToggleState());
         

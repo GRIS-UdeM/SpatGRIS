@@ -15,8 +15,6 @@ DocumentWindow (name, backgroundColour, buttonsNeeded)
 {
     this->mainParent = parent;
     this->grisFeel = feel;
-    
-    this->startTimerHz(10);
 }
 
 WinControl::~WinControl()
@@ -24,7 +22,11 @@ WinControl::~WinControl()
     this->mainParent->destroyWinControl();
 }
 
-
+void WinControl::setTimerHz(int hz)
+{
+    this->stopTimer();
+    this->startTimerHz(hz);
+}
 void WinControl::timerCallback()
 {
     this->repaint();
@@ -104,7 +106,6 @@ void WinControl::paint (Graphics& g)
         sourceP.x = ((w/2.0f) + ((w/4.0f)*sourceP.x));
         sourceP.y = ((w/2.0f) - ((w/4.0f)*sourceP.y));
         
-        //
         g.setColour(Colour::fromFloatRGBA(it->getColor().x, it->getColor().y, it->getColor().z, 1.0f));
         g.fillEllipse(sourceP.x , sourceP.y , SourceDiameter, SourceDiameter);
         
@@ -112,7 +113,6 @@ void WinControl::paint (Graphics& g)
         stringVal << it->getId();
         
         g.setColour(Colours::black);
-        
         int tx = sourceP.x;
         int ty = sourceP.y;
         g.drawText(stringVal, tx+1 , ty+1, SourceDiameter, SourceDiameter, Justification(Justification::centred), false);
@@ -145,6 +145,10 @@ void WinControl::drawAzimElevSource(Graphics &g, Input * it, const int fieldWH, 
     
     float HRAzimSpan = 180.0f *(it->getAziMuthSpan());  //in zirkosc, this is [0,360]
     float HRElevSpan = 180.0f *(it->getZenithSpan());  //in zirkosc, this is [0,90]
+    if(HRAzimSpan == 0.0f && HRElevSpan == 0.0f)
+    {
+        return;
+    }
     
     float HRAzim = azimElev.x * 180.0f;    //in zirkosc [-180,180]
     float HRElev = azimElev.y * 180.0f;    //in zirkosc [0,89.9999]

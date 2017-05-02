@@ -66,6 +66,8 @@ public:
     WinControl(const String& name, Colour backgroundColour, int buttonsNeeded,MainContentComponent * parent, GrisLookAndFeel * feel);
     ~WinControl();
     
+    void setTimerHz(int hz);
+    
     void timerCallback() override;
     void paint (Graphics& g) override;
     void resized() override;
