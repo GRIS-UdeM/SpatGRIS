@@ -55,6 +55,7 @@ MainContentComponent::MainContentComponent(){
     
     this->winSpeakConfig = nullptr;
     this->winJackSetting = nullptr;
+    this->winControlSource = nullptr;
     //SpeakerViewComponent 3D VIEW------------------------------
     this->speakerView= new SpeakerViewComponent(this);
     this->addAndMakeVisible (speakerView);
@@ -88,11 +89,12 @@ MainContentComponent::MainContentComponent(){
     
     this->butJackParam = addButton("Jack settings","Change jack settings",400,0,80,28,this->boxControlUI->getContent());
     
-    this->butLoadXMLSpeakers = addButton("XML Speakers","Load Xml File Configuration",4,36,124,24,this->boxControlUI->getContent());
-    this->butEditableSpeakers = addButton("Edit Speakers","Edit position of spkeakers",4,66,124,24,this->boxControlUI->getContent());
-    this->butLoadPreset = addButton("Open","Open preset",4,96,124,24,this->boxControlUI->getContent());
-    this->butSavePreset = addButton("Save","Save preset",4,126,124,24,this->boxControlUI->getContent());
-
+    this->butLoadXMLSpeakers    = addButton("XML Speakers","Load Xml File Configuration",4,36,124,24,this->boxControlUI->getContent());
+    this->butEditableSpeakers   = addButton("Edit Speakers","Edit position of spkeakers",4,66,124,24,this->boxControlUI->getContent());
+    this->butLoadPreset         = addButton("Open","Open preset",4,96,124,24,this->boxControlUI->getContent());
+    this->butSavePreset         = addButton("Save","Save preset",4,126,124,24,this->boxControlUI->getContent());
+    this->butShowWinControl     = addButton("Show 2D","Show 2D Scene",4,156,124,24,this->boxControlUI->getContent());
+    
     
     this->butShowSpeakerNumber =    addToggleButton("Show numbers", "Show numbers skeapers", 140, 100, 124, 24, this->boxControlUI->getContent());
     this->butHighPerformance =      addToggleButton("High performance", "Enable Low CPU Usage", 140, 124, 124, 24, this->boxControlUI->getContent());
@@ -177,6 +179,7 @@ MainContentComponent::MainContentComponent(){
 
     this->resized();
     startTimerHz(HertzRefreshNormal);
+    
     
     if(fs.exists()){
         this->splash->deleteAfterDelay(RelativeTime::seconds (1), false);
@@ -314,6 +317,9 @@ MainContentComponent::~MainContentComponent() {
     }
     if(this->winJackSetting != nullptr){
         delete this->winJackSetting;
+    }
+    if(this->winControlSource != nullptr){
+        delete this->winControlSource;
     }
     
     delete this->speakerView;
@@ -830,6 +836,19 @@ void MainContentComponent::buttonClicked (Button *button)
             this->winJackSetting->repaint();
         }
         
+    }else if(button == this->butShowWinControl){
+        
+        if(this->winControlSource == nullptr){
+            this->winControlSource = new WinControl("2D View", this->mGrisFeel.getWinBackgroundColour(), DocumentWindow::allButtons, this, &this->mGrisFeel);
+            Rectangle<int> result (this->getScreenX()+ this->speakerView->getWidth()+22,this->getScreenY()+100,500,500);
+            this->winControlSource->setBounds (result);
+            this->winControlSource->setResizable (true, true);
+            this->winControlSource->setUsingNativeTitleBar (true);
+            this->winControlSource->setVisible (true);
+            this->winControlSource->setAlwaysOnTop(true);
+            this->winControlSource->repaint();
+        }
+
     }else if(button == butShowSpeakerNumber){
         
         this->speakerView->setShowNumber(this->butShowSpeakerNumber->getToggleState());

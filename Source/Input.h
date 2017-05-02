@@ -64,6 +64,9 @@ public :
     float getZenith(){ return this->zenith; }
     float getRad(){ return 10.0f; }
     
+    float getAziMuthSpan(){ return this->azimSpan; }
+    float getZenithSpan(){ return this->zeniSpan; }
+    
     void draw();
     void updateValues(float az, float ze, float azS, float zeS, float heS, float g);
     void updateValuesOld(float az, float ze, float azS, float zeS, float g);

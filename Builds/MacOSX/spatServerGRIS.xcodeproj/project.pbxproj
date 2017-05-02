@@ -12,6 +12,7 @@
 		04CF901E6DCE0A68232B9454 /* Main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2116513B99CFF9F0DCC85055 /* Main.cpp */; };
 		083608DE849F7E27B9DE0162 /* Speaker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A6E8384CEB071AC4366E3D23 /* Speaker.cpp */; };
 		0C73D37DE849B35C4D59E3B9 /* juce_gui_basics.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7DD01A8771D09207AE6C9801 /* juce_gui_basics.mm */; };
+		0D3519AD1EB8CD0100E22AD0 /* WinControl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D3519AB1EB8CD0100E22AD0 /* WinControl.cpp */; };
 		0D76540CEB135C65E2C77E42 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A49E2EA8DC00B3CFBC3B8FC /* Cocoa.framework */; };
 		0DD53D541EAFABFA001BA166 /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DD53D531EAFABFA001BA166 /* GLUT.framework */; };
 		0DD53D571EAFAC07001BA166 /* Jackmp in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DD53D551EAFAC07001BA166 /* Jackmp */; };
@@ -115,6 +116,8 @@
 		0C99699A22FA40ABA7EA5A37 /* juce_DynamicObject.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_DynamicObject.h; path = ../../JuceLibraryCode/modules/juce_core/containers/juce_DynamicObject.h; sourceTree = SOURCE_ROOT; };
 		0CA183E0BD935F99C9D13006 /* juce_TextDiff.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_TextDiff.h; path = ../../JuceLibraryCode/modules/juce_core/text/juce_TextDiff.h; sourceTree = SOURCE_ROOT; };
 		0D0F144A717EB80B8FC0AF66 /* juce_QuickTimeMovieComponent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_QuickTimeMovieComponent.h; path = ../../JuceLibraryCode/modules/juce_video/playback/juce_QuickTimeMovieComponent.h; sourceTree = SOURCE_ROOT; };
+		0D3519AB1EB8CD0100E22AD0 /* WinControl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = WinControl.cpp; path = ../../Source/WinControl.cpp; sourceTree = "<group>"; };
+		0D3519AC1EB8CD0100E22AD0 /* WinControl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = WinControl.h; path = ../../Source/WinControl.h; sourceTree = "<group>"; };
 		0D56949D35266C830BCCACD8 /* floor_books.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = floor_books.h; path = "../../JuceLibraryCode/modules/juce_audio_formats/codecs/oggvorbis/libvorbis-1.3.2/lib/books/floor/floor_books.h"; sourceTree = SOURCE_ROOT; };
 		0DAEE47D7405B9E5383EA97F /* juce_RelativePointPath.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_RelativePointPath.h; path = ../../JuceLibraryCode/modules/juce_gui_basics/positioning/juce_RelativePointPath.h; sourceTree = SOURCE_ROOT; };
 		0DC88B16521DF51B488590F4 /* OscInput.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = OscInput.h; path = ../../Source/OscInput.h; sourceTree = SOURCE_ROOT; };
@@ -3564,6 +3567,8 @@
 				35C03003C40C3297F3378D00 /* UiComponent.cpp */,
 				48C1385A1A3455CABEC9B2DD /* UiComponent.h */,
 				834CB57ED195C1BA7C386FDF /* Ray.h */,
+				0D3519AB1EB8CD0100E22AD0 /* WinControl.cpp */,
+				0D3519AC1EB8CD0100E22AD0 /* WinControl.h */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -3723,6 +3728,7 @@
 				81EE84C1D6A7ACA79005862F /* juce_audio_utils.mm in Sources */,
 				72DD6B68901EBADA60F0543F /* juce_core.mm in Sources */,
 				0F18ADC55E833D69E5746DFD /* juce_cryptography.mm in Sources */,
+				0D3519AD1EB8CD0100E22AD0 /* WinControl.cpp in Sources */,
 				F020F381A806CFBDAB300959 /* juce_data_structures.mm in Sources */,
 				2678C7B68750D5F4705E4912 /* juce_events.mm in Sources */,
 				04C1EDF29F91549946A3B3D0 /* juce_graphics.mm in Sources */,

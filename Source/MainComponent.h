@@ -57,7 +57,7 @@
 #include "LevelComponent.h"
 #include "OscInput.h"
 #include "Input.h"
-
+#include "WinControl.h"
 
 class spatServerGRISApplication;
 
@@ -120,6 +120,7 @@ public:
 
     void destroyWinSpeakConf() { this->winSpeakConfig = nullptr; }
     void destroyWinJackSetting() { this->winJackSetting = nullptr; }
+    void destroyWinControl() { this->winControlSource = nullptr; }
     //=======================================================================
     void timerCallback() override;
     void paint (Graphics& g) override;
@@ -175,8 +176,9 @@ private:
     GrisLookAndFeel mGrisFeel;
     SpeakerViewComponent *speakerView;
     
-    WindowEditSpeaker* winSpeakConfig;
-    WindowJackSetting* winJackSetting;
+    WindowEditSpeaker * winSpeakConfig;
+    WindowJackSetting * winJackSetting;
+    WinControl *        winControlSource;
     //3 Main Box---------------------
     Box * boxInputsUI;
     Box * boxOutputsUI;
@@ -195,6 +197,7 @@ private:
     TextButton *    butEditableSpeakers;
     TextButton *    butLoadPreset;
     TextButton *    butSavePreset;
+    TextButton *    butShowWinControl;
     TextButton *    butDefaultColorIn;
     TextButton *    butJackParam;
     
