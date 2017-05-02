@@ -79,7 +79,6 @@ void Input::draw(){
 
 void Input::drawSpan()
 {
-
     float radCir = sqrt((this->center.x*this->center.x)+(this->center.z*this->center.z));
     float ang = -atan2(( - this->center.z * 10.0f), (this->center.x * 10.0f ));
     
@@ -90,7 +89,6 @@ void Input::drawSpan()
     glPointSize(8);
     glBegin(GL_POINTS);
     for(int i = 0; i <= this->azimSpan * 90 ; i+=6){
-    
         double angle = (M2_PI * i / 180);
         glVertex3f(cos(angle)*radCir, 0.0f, sin(angle)*radCir);
     }
@@ -106,7 +104,6 @@ void Input::updateValues(float az, float ze, float azS, float zeS, float heS, fl
     this->azimSpan = azS;
     this->zeniSpan = zeS;
     
-    //cout << this->azimSpan << " <> "<< zeS<< endl;
     this->gain = g;
     
     this->center.x = (10.0f * sinf(this->zenith)*cosf(this->azimuth));
@@ -120,10 +117,9 @@ void Input::updateValuesOld(float az, float ze, float azS, float zeS, float g){
     this->azimuth = fmod(((az/M_PI)-M_PI)*-10.0f,(M2_PI));
     this->zenith  = (M_PI2) - (M_PI * ze);     //((ze-0.5f)/M_PI)*-10.0f;
     
-    this->azimSpan = (azS );
+    this->azimSpan = azS;
     this->zeniSpan = zeS;
     
-    //cout << this->azimSpan << " <> "<< zeS<< endl;
     this->gain = g;
     
     this->center.x = (10.0f * sinf(this->zenith)*cosf(this->azimuth));
