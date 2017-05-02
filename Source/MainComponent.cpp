@@ -104,9 +104,11 @@ MainContentComponent::MainContentComponent(){
     
     this->tedOSCInPort = addTextEditor("Port OSC In :", "Port Socket", "Port Socket OSC Input", 140, 36, 50, 24, this->boxControlUI->getContent());
     this->tedOSCInPort->setText("18032");
+    this->tedOSCInPort->setInputRestrictions(5,"0123456789");
     this->labOSCStatus= addLabel("...","OSC Receiver status",276, 36, 50, 24,this->boxControlUI->getContent());
     
     this->tedAddInputs =        addTextEditor("Inputs :", "0", "Numbers of Inputs", 140, 70, 50, 24, this->boxControlUI->getContent());
+    this->tedAddInputs->setInputRestrictions(3,"0123456789");
     this->butDefaultColorIn =   addButton("C","Set Default color Inputs",276,70,24,24,this->boxControlUI->getContent());
     
     addLabel("Gain :","Master Gain Outputs",320, 36, 120, 20,this->boxControlUI->getContent());
@@ -118,11 +120,8 @@ MainContentComponent::MainContentComponent(){
     for(int i = 0; i < ModeSpatString.size(); i++){
          this->comBoxModeSpat->addItem(ModeSpatString[i], i+1);
     }
-    
-   
-    //this->labelAllClients= addLabel("...","Clients Connected",140, 130, 120, 80,this->boxControlUI->getContent());
-    
-    this->butAutoConnectJack = addButton("Auto Connect","Auto connection with jack",480,120,130,24,this->boxControlUI->getContent());
+
+    this->butAutoConnectJack = addButton("Auto Connect","Auto connection with jack",610,120,130,24,this->boxControlUI->getContent());
     
     this->boxClientJack = new BoxClient(this, &mGrisFeel);
     this->boxClientJack->setBounds(480, 0, 260, 120);
@@ -724,6 +723,9 @@ void MainContentComponent::textEditorFocusLost (TextEditor &textEditor)
 
 void MainContentComponent::textEditorReturnKeyPressed (TextEditor & textEditor){
     if(&textEditor == this->tedOSCInPort){
+        if(this->tedOSCInPort->getTextValue().toString().getIntValue() > 65535){
+            this->tedOSCInPort->setText("65535");
+        }
         if(this->oscReceiver->startConnection(this->tedOSCInPort->getTextValue().toString().getIntValue())){
             this->labOSCStatus->setText("OK", dontSendNotification);
             this->labOSCStatus->setColour(Label::textColourId, mGrisFeel.getFontColour());
@@ -734,12 +736,14 @@ void MainContentComponent::textEditorReturnKeyPressed (TextEditor & textEditor){
         
     }
     else if(&textEditor == this->tedAddInputs){
-        if(this->tedAddInputs->getTextValue().toString().getIntValue() < 0){
-            this->tedAddInputs->setText("0");
+        if(this->tedAddInputs->getTextValue().toString().getIntValue() < 1){
+            this->tedAddInputs->setText("1");
         }
         if(this->tedAddInputs->getTextValue().toString().getIntValue() > MaxInputs){
             this->tedAddInputs->setText(String(MaxInputs));
         }
+        
+        
         if(this->jackClient->inputsPort.size() != this->tedAddInputs->getTextValue().toString().getIntValue()){
             this->jackClient->addRemoveInput(this->tedAddInputs->getTextValue().toString().getIntValue());
             this->lockInputs->lock();
@@ -905,6 +909,7 @@ void MainContentComponent::comboBoxChanged (ComboBox *comboBox)
         this->jackClient->modeSelected = (ModeSpatEnum)(this->comBoxModeSpat->getSelectedId()-1);
     }
 }
+
 void MainContentComponent::resized()
 {
     
@@ -925,7 +930,6 @@ void MainContentComponent::resized()
     
     this->boxControlUI->setBounds(this->speakerView->getWidth()+6, 488, getWidth()-(this->speakerView->getWidth()+10), getHeight()-490);
     this->boxControlUI->correctSize(750, 180);
-    
 
 }
 
