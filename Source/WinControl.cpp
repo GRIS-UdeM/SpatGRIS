@@ -93,20 +93,24 @@ void WinControl::paint (Graphics& g)
     // - - - - - - - - - - - -
     // draw translucid circles (mode)
     // - - - - - - - - - - - -
-    for (auto&& it : this->mainParent->getListSourceInput()) {
-        drawAzimElevSource(g, it, fieldWH, fieldCenter);
+    const int maxDrawSource = this->mainParent->getListSourceInput().size();
+
+    for(int i = 0; i < maxDrawSource; ++i)
+    {
+        drawAzimElevSource(g, this->mainParent->getListSourceInput().at(i), fieldWH, fieldCenter);
     }
+
     
     String stringVal;
     w = (fieldWH - SourceDiameter);
-    for (auto&& it : this->mainParent->getListSourceInput())
+    for(int i = 0; i < maxDrawSource; ++i)
     {
-        
+        Input * it = this->mainParent->getListSourceInput().at(i);
         FPoint sourceP = FPoint(it->getCenter().z, it->getCenter().x)/5.0f;
         sourceP.x = ((w/2.0f) + ((w/4.0f)*sourceP.x));
         sourceP.y = ((w/2.0f) - ((w/4.0f)*sourceP.y));
         
-        g.setColour(Colour::fromFloatRGBA(it->getColor().x, it->getColor().y, it->getColor().z, 1.0f));
+        g.setColour(it->getColorJ());
         g.fillEllipse(sourceP.x , sourceP.y , SourceDiameter, SourceDiameter);
         
         stringVal.clear();
@@ -115,9 +119,9 @@ void WinControl::paint (Graphics& g)
         g.setColour(Colours::black);
         int tx = sourceP.x;
         int ty = sourceP.y;
-        g.drawText(stringVal, tx+1 , ty+1, SourceDiameter, SourceDiameter, Justification(Justification::centred), false);
+        g.drawText(stringVal, tx+6 , ty+1, SourceDiameter+10, SourceDiameter, Justification(Justification::centredLeft), false);
         g.setColour(Colours::white);
-        g.drawText(stringVal, tx, ty, SourceDiameter, SourceDiameter, Justification(Justification::centred), false);
+        g.drawText(stringVal, tx+5, ty, SourceDiameter+10, SourceDiameter, Justification(Justification::centredLeft), false);
     }
     
 }
@@ -137,18 +141,19 @@ void WinControl::closeButtonPressed()
 //=============================================================
 
 void WinControl::drawAzimElevSource(Graphics &g, Input * it, const int fieldWH, const int fieldCenter){
-    Colour colorS = Colour::fromFloatRGBA(it->getColor().x, it->getColor().y, it->getColor().z, 1.0f);
+
+    float HRAzimSpan = 180.0f *(it->getAziMuthSpan());  //in zirkosc, this is [0,360]
+    float HRElevSpan = 180.0f *(it->getZenithSpan());  //in zirkosc, this is [0,90]
+    if(HRAzimSpan < 0.002f && HRElevSpan < 0.002f)
+    {
+        return;
+    }
+    
+    Colour colorS = it->getColorJ();//Colour::fromFloatRGBA(it->getColor().x, it->getColor().y, it->getColor().z, 1.0f);
     g.setColour(colorS);
     
     FPoint sourceP = FPoint(it->getCenter().z, it->getCenter().x)/5.0f;
     FPoint azimElev = GetSourceAzimElev(sourceP, true);
-    
-    float HRAzimSpan = 180.0f *(it->getAziMuthSpan());  //in zirkosc, this is [0,360]
-    float HRElevSpan = 180.0f *(it->getZenithSpan());  //in zirkosc, this is [0,90]
-    if(HRAzimSpan == 0.0f && HRElevSpan == 0.0f)
-    {
-        return;
-    }
     
     float HRAzim = azimElev.x * 180.0f;    //in zirkosc [-180,180]
     float HRElev = azimElev.y * 180.0f;    //in zirkosc [0,89.9999]

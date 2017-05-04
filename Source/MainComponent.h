@@ -64,9 +64,10 @@ class spatServerGRISApplication;
 
 using namespace std;
 
-static const unsigned int SizeWidthLevelComp = 36;
-static const unsigned int HertzRefreshNormal = 24;
-static const unsigned int HertzRefreshLowCpu = 6;
+static const unsigned int SizeWidthLevelComp   = 36;
+static const unsigned int HertzRefreshNormal   = 24;
+static const unsigned int HertzRefreshLowCpu   = 6;
+static const unsigned int HertzRefresh2DLowCpu = 10;
 
 
 

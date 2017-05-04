@@ -27,10 +27,24 @@ Input::Input(MainContentComponent * parent, GrisLookAndFeel * feel,int id){
     this->mainParent = parent;
     this->grisFeel = feel;
     this->idChannel = id;
-    this->center = glm::vec3(10,0,10);
+    
+
+    this->azimuth = M_PI4;
+    this->zenith  = M_PI2;
+    
+    this->azimSpan = 0.0f;
+    this->zeniSpan = 0.0f;;
+    
+    this->gain = 1.0f;
+    
+    this->center.x = (13.0f * sinf(this->zenith) * cosf(this->azimuth));
+    this->center.z = (13.0f * sinf(this->zenith) * sinf(this->azimuth));
+    this->center.y = (13.0f * cosf(this->zenith) + (sizeT/2.0f));
+    this->radius = sqrt((this->center.x*this->center.x)+(this->center.y*this->center.y)+(this->center.z*this->center.z));
     
     this->vuMeter = new LevelComponent(this, this->grisFeel);
 }
+
 Input::~Input(){
     delete this->vuMeter;
 }
@@ -49,15 +63,20 @@ void Input::setSolo(bool solo){
     this->mainParent->soloInput(this->idChannel, solo);
 }
 void Input::setColor(Colour color, bool updateLevel){
-    this->color.x = color.getFloatRed();
-    this->color.y = color.getFloatGreen();
-    this->color.z = color.getFloatBlue();
+    this->colorJ = color;
+    this->color.x = this->colorJ.getFloatRed();
+    this->color.y = this->colorJ.getFloatGreen();
+    this->color.z = this->colorJ.getFloatBlue();
+    
     if(updateLevel){
-        this->vuMeter->setColor(color);
+        this->vuMeter->setColor(this->colorJ);
     }
 }
 glm::vec3 Input::getColor(){
     return this->color;
+}
+Colour Input::getColorJ(){
+    return this->colorJ;
 }
 
 void Input::draw(){
@@ -172,7 +191,6 @@ void Input::updateValues(float az, float ze, float azS, float zeS, float heS, fl
     this->center.y = ((10.0f * cosf(this->zenith)) + (sizeT/2.0f )) * heS;
     
     this->radius = sqrt((this->center.x*this->center.x)+(this->center.y*this->center.y)+(this->center.z*this->center.z));
-    
 }
 
 void Input::updateValuesOld(float az, float ze, float azS, float zeS, float g){

@@ -147,10 +147,11 @@ void SpeakerViewComponent::render()
         this->clickRay();
     }
     
-    glLineWidth(2);
+    //Draw Click Ray----
+    /*glLineWidth(2);
     glBegin(GL_LINES);
     glColor3f(0.8, 0, 0); glVertex3f(xS, yS, zS); glVertex3f(xE, yE, zE);
-    glEnd();
+    glEnd();*/
     
     glFlush();
 }

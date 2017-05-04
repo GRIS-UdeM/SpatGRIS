@@ -60,6 +60,7 @@ public :
     
     glm::vec3 getCenter();
     glm::vec3 getColor();
+    Colour    getColorJ();
     float getAziMuth(){ return this->azimuth; }
     float getZenith(){ return this->zenith; }
     float getRad(){ return this->radius; }
@@ -87,6 +88,7 @@ private:
     float sizeT = 0.4f;
     glm::vec3 center;
     glm::vec3 color;
+    Colour    colorJ;
     
     LevelComponent *vuMeter;
     MainContentComponent * mainParent;
