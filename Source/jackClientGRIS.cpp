@@ -154,7 +154,14 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
 
     jackClientGris* jackCli = (jackClientGris*)arg;
     
-    if(!jackCli->processBlockOn){ return 0; }
+    //================ Return if user edit speaker ==============================
+    if(!jackCli->processBlockOn){
+        for (int i = 0; i < jackCli->outputsPort.size(); ++i) {
+            memset (((jack_default_audio_sample_t*)jack_port_get_buffer (jackCli->outputsPort[i], nframes)), 0, sizeof (jack_default_audio_sample_t) * nframes);
+            jackCli->levelsOut[i] = -60.0f;
+        }
+        return 0;
+    }
     
     //================ LOAD BUFFER ============================================
     const unsigned int sizeInputs = (unsigned int)jackCli->inputsPort.size() ;
@@ -164,7 +171,6 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
     //Get all buffer from all input - output
     jack_default_audio_sample_t * ins[sizeInputs];
     jack_default_audio_sample_t * outs[sizeOutputs];
-    
     
     for (int i = 0; i < sizeInputs; i++) {
         ins[i] = (jack_default_audio_sample_t*)jack_port_get_buffer (jackCli->inputsPort[i], nframes);
@@ -206,19 +212,9 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
             jassertfalse;
             break;
     }
-    
-    
 
-    //cout << fOldValuesPortion<< newLine;
-    /*for (int i = 0; i < sizeOutputs; i++) {
-        for (int f = 0; f < nframes; ++f){
-            if(outs[i][f] != (outsLast[i][f]) ){
-                outs[i][f] -= (outsLast[i][f]*0.9);
-            }
-               //Other input
-        }
-    }*/
-    //Basic Sound Transfert------------------(I -> O)
+    
+    //Basic Sound Transfert (I -> O) --------------------------------
     /*for (int iSpeaker = 0; iSpeaker < sizeInputs; iSpeaker++) {
         if(iSpeaker < sizeOutputs){
             memcpy (outs[iSpeaker], ins[iSpeaker] , sizeof (jack_default_audio_sample_t) * nframes);
@@ -226,10 +222,11 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
     }*/
     
     
-    
     //================ OUTPUTS ==============================================
     muteSoloVuMeterGainOut(*jackCli, outs, nframes, sizeOutputs, jackCli->masterGainOut);
     //-----------------------------------------
+    
+    
     jackCli->overload = false;
     return 0;
 }
