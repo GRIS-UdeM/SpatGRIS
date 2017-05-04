@@ -22,10 +22,6 @@
 #define MAINCOMPONENT_H_INCLUDED
 
 //Macro-----------------------
-#ifndef USE_JACK
-#define USE_JACK 1
-#endif
-//-----------
 #ifndef M_PI
 #define M_PI    (3.14159265358979323846264338327950288)
 #endif
@@ -68,8 +64,6 @@ static const unsigned int SizeWidthLevelComp   = 36;
 static const unsigned int HertzRefreshNormal   = 24;
 static const unsigned int HertzRefreshLowCpu   = 6;
 static const unsigned int HertzRefresh2DLowCpu = 10;
-
-
 
 //==============================================================================
 /*
@@ -153,23 +147,20 @@ private:
     
     ApplicationProperties applicationProperties;
     //==============================================================================
-    #if USE_JACK
-    jackClientGris *jackClient;
-    jackServerGRIS *jackServer;
-    #endif
+    jackClientGris *    jackClient;
+    jackServerGRIS *    jackServer;
     
+    vector<Speaker *>   listSpeaker;
+    mutex *             lockSpeakers;
     
-    vector<Speaker *> listSpeaker;
-    mutex *lockSpeakers;
-
+    vector<Input *>     listSourceInput;
+    mutex *             lockInputs;
+    OscInput *          oscReceiver;
+    
     String nameConfig;
     String pathCurrentFileSpeaker;
     String pathCurrentPreset;
     
-    OscInput * oscReceiver;
-    vector<Input *> listSourceInput;
-    mutex *lockInputs;
-
     //UI Components---------------------------
     TooltipWindow tooltipWindow;
     StretchableLayoutManager verticalLayout;
@@ -205,6 +196,7 @@ private:
     ToggleButton *  butShowSpeakerNumber;
     ToggleButton *  butHighPerformance;
     ToggleButton *  butNoiseSound;
+    ToggleButton *  butHideSpeaker;
     
     Slider *        sliderMasterGainOut;
     

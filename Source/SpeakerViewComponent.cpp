@@ -98,16 +98,18 @@ void SpeakerViewComponent::render()
 
     this->drawOriginGrid();
     
-    if(this->mainParent->getLockSpeakers()->try_lock()){
-        for(int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
-            this->mainParent->getListSpeaker()[i]->draw();
-            if(this->showNumber){
-                glm::vec3 posT = this->mainParent->getListSpeaker()[i]->getCenter();
-                posT.y += SizeSpeaker.y+0.4f;
-                this->drawText(to_string(this->mainParent->getListSpeaker()[i]->getOutputPatch()),posT,0.002f);
+    if(!this->hideSpeaker){
+        if(this->mainParent->getLockSpeakers()->try_lock()){
+            for(int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
+                this->mainParent->getListSpeaker()[i]->draw();
+                if(this->showNumber){
+                    glm::vec3 posT = this->mainParent->getListSpeaker()[i]->getCenter();
+                    posT.y += SizeSpeaker.y+0.4f;
+                    this->drawText(to_string(this->mainParent->getListSpeaker()[i]->getOutputPatch()),posT,0.002f);
+                }
             }
+            this->mainParent->getLockSpeakers()->unlock();
         }
-        this->mainParent->getLockSpeakers()->unlock();
     }
     
     if(this->mainParent->getLockInputs()->try_lock()){

@@ -22,12 +22,13 @@
 
 MainContentComponent::MainContentComponent(){
 
-
+    //Splash Screen (Only for Mac)
     File fs = File ( File::getCurrentWorkingDirectory().getFullPathName()+("/spatServerGRIS.app/Contents/Resources/splash.png"));
     if(fs.exists()){
         this->splash = new SplashScreen ("SpatServerGRIS",ImageFileFormat::loadFrom (fs),true);
     }
     
+    //Local save (Last xml file open)
     PropertiesFile::Options options;
     options.applicationName = "SpatServerGRIS";
     options.commonToAllUsers = false;
@@ -40,8 +41,7 @@ MainContentComponent::MainContentComponent(){
     this->applicationProperties.getCommonSettings(true);
     
    
-
-
+    
     LookAndFeel::setDefaultLookAndFeel(&mGrisFeel);
     
     this->listSpeaker = vector<Speaker *>();
@@ -96,11 +96,11 @@ MainContentComponent::MainContentComponent(){
     this->butShowWinControl     = addButton("Show 2D","Show 2D Scene",4,156,124,24,this->boxControlUI->getContent());
     
     
-    this->butShowSpeakerNumber =    addToggleButton("Show numbers", "Show numbers skeapers", 140, 100, 124, 24, this->boxControlUI->getContent());
-    this->butHighPerformance =      addToggleButton("High performance", "Enable Low CPU Usage", 140, 124, 124, 24, this->boxControlUI->getContent());
-    this->butNoiseSound =           addToggleButton("Noise Sound", "Enable bip noise", 140, 148, 124, 24, this->boxControlUI->getContent());
+    this->butShowSpeakerNumber =    addToggleButton("Show numbers", "Show numbers skeapers",    140, 100, 124, 18, this->boxControlUI->getContent());
+    this->butHighPerformance =      addToggleButton("High performance", "Enable Low CPU Usage", 140, 120, 124, 18, this->boxControlUI->getContent());
+    this->butNoiseSound =           addToggleButton("Noise Sound", "Enable bip noise",          140, 140, 124, 18, this->boxControlUI->getContent());
+    this->butHideSpeaker =          addToggleButton("Hide Speakers", "Hide Output Speakers",    140, 160, 124, 18, this->boxControlUI->getContent());
     
-
     
     this->tedOSCInPort = addTextEditor("Port OSC In :", "Port Socket", "Port Socket OSC Input", 140, 36, 50, 24, this->boxControlUI->getContent());
     this->tedOSCInPort->setText("18032");
@@ -138,7 +138,6 @@ MainContentComponent::MainContentComponent(){
     
     
 
-#if USE_JACK
     unsigned int BufferValue = applicationProperties.getUserSettings()->getValue("BufferValue").getIntValue();
     unsigned int RateValue = applicationProperties.getUserSettings()->getValue("RateValue").getIntValue();
     
@@ -160,7 +159,6 @@ MainContentComponent::MainContentComponent(){
     this->labelJackBuffer->setText(String(this->jackClient->bufferSize)+ " spls", dontSendNotification);
     this->labelJackInfo->setText("I : "+String(this->jackClient->numberInputs)+ " - O : "+String(this->jackClient->numberOutputs), dontSendNotification);
     this->sliderMasterGainOut->setValue(1.0);
-#endif
 
     this->comBoxModeSpat->setSelectedId(1);
 
@@ -347,11 +345,9 @@ MainContentComponent::~MainContentComponent() {
     delete this->boxOutputsUI;
     delete this->boxControlUI;
 
-
-#if USE_JACK
     delete  this->jackClient;
     delete this->jackServer;
-#endif
+
 }
 
 
@@ -763,7 +759,6 @@ void MainContentComponent::textEditorReturnKeyPressed (TextEditor & textEditor){
                 {
                     delete *it;
                     it = this->listSourceInput.erase(it);
-                   
                 }
             }
             this->lockInputs->unlock();
@@ -889,6 +884,9 @@ void MainContentComponent::buttonClicked (Button *button)
     }else if(button == this->butNoiseSound){
         
         this->jackClient->noiseSound = butNoiseSound->getToggleState();
+    }else if(button == this->butHideSpeaker){
+        
+        this->speakerView->setHideSpeaker(butHideSpeaker->getToggleState());
     }
     else if(button == this->butDefaultColorIn){
         
@@ -919,7 +917,6 @@ void MainContentComponent::comboBoxChanged (ComboBox *comboBox)
 
 void MainContentComponent::resized()
 {
-    
     Rectangle<int> r (getLocalBounds().reduced (2));
     
     // lay out the list box and vertical divider..

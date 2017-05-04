@@ -56,6 +56,7 @@ public:
     void setShowSphere(bool value){ this->showShpere = value; }
     void setShowNumber(bool value){ this->showNumber = value; }
     void setHighPerfor(bool value){ this->highPerf = value; }
+    void setHideSpeaker(bool value){ this->hideSpeaker = value; }
     
     void setNameConfig(String name){ this->nameConfig = name; this->repaint(); }
     void render() override;
@@ -86,6 +87,7 @@ private:
     bool showNumber = false;
     bool highPerf   = false;
     bool clickLeft  = false;
+    bool hideSpeaker = false;
     
     float camAngleX= -30.0f;
     float camAngleY= 25.0f;
