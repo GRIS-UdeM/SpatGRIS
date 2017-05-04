@@ -405,6 +405,9 @@ void MainContentComponent::updateInputJack(int inInput, Input &inp){
     si->azimuth = inp.getAziMuth();
     si->zenith  = inp.getZenith();
     si->radius  = inp.getRad();
+    
+    si->aziSpan = inp.getAziMuthSpan();
+    si->zenSpan = inp.getZenithSpan();
 }
 
 void MainContentComponent::updateLevelComp(){

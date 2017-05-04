@@ -62,7 +62,7 @@ public :
     glm::vec3 getColor();
     float getAziMuth(){ return this->azimuth; }
     float getZenith(){ return this->zenith; }
-    float getRad(){ return 10.0f; }
+    float getRad(){ return this->radius; }
     
     float getAziMuthSpan(){ return this->azimSpan; }
     float getZenithSpan(){ return this->zeniSpan; }
