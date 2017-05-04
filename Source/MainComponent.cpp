@@ -848,14 +848,15 @@ void MainContentComponent::buttonClicked (Button *button)
         
         if(this->winControlSource == nullptr){
             this->winControlSource = new WinControl("2D View", this->mGrisFeel.getWinBackgroundColour(), DocumentWindow::allButtons, this, &this->mGrisFeel);
-            Rectangle<int> result (this->getScreenX()+ this->speakerView->getWidth()+22,this->getScreenY()+100,500,500);
-            this->winControlSource->setBounds (result);
-            this->winControlSource->setResizable (true, true);
-            this->winControlSource->setUsingNativeTitleBar (true);
-            this->winControlSource->setVisible (true);
-            this->winControlSource->setAlwaysOnTop(true);
             this->winControlSource->setTimerHz(this->butHighPerformance->getToggleState() ? HertzRefresh2DLowCpu : HertzRefreshNormal);
         }
+        
+        Rectangle<int> result (this->getScreenX()+ this->speakerView->getWidth()+22,this->getScreenY()+100,500,500);
+        this->winControlSource->setBounds (result);
+        this->winControlSource->setResizable (true, true);
+        this->winControlSource->setUsingNativeTitleBar (true);
+        this->winControlSource->setVisible (true);
+        this->winControlSource->setAlwaysOnTop(true);
 
     }else if(button == butShowSpeakerNumber){
         

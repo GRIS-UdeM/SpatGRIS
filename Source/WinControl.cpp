@@ -129,7 +129,7 @@ void WinControl::paint (Graphics& g)
 void WinControl::resized()
 {
     //this->juce::DocumentWindow::resized();
-    const int fieldWH = max(getWidth(), getHeight());
+    const int fieldWH = min(getWidth(), getHeight());
     this->setSize(fieldWH, fieldWH);
 }
 void WinControl::closeButtonPressed()
@@ -139,7 +139,6 @@ void WinControl::closeButtonPressed()
 
 
 //=============================================================
-
 void WinControl::drawAzimElevSource(Graphics &g, Input * it, const int fieldWH, const int fieldCenter){
 
     float HRAzimSpan = 180.0f *(it->getAziMuthSpan());  //in zirkosc, this is [0,360]

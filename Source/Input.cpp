@@ -28,7 +28,6 @@ Input::Input(MainContentComponent * parent, GrisLookAndFeel * feel,int id){
     this->grisFeel = feel;
     this->idChannel = id;
     
-
     this->azimuth = M_PI4;
     this->zenith  = M_PI2;
     
@@ -37,9 +36,9 @@ Input::Input(MainContentComponent * parent, GrisLookAndFeel * feel,int id){
     
     this->gain = 1.0f;
     
-    this->center.x = (13.0f * sinf(this->zenith) * cosf(this->azimuth));
-    this->center.z = (13.0f * sinf(this->zenith) * sinf(this->azimuth));
-    this->center.y = (13.0f * cosf(this->zenith) + (sizeT/2.0f));
+    this->center.x = (14.0f * sinf(this->zenith) * cosf(this->azimuth));
+    this->center.z = (14.0f * sinf(this->zenith) * sinf(this->azimuth));
+    this->center.y = (14.0f * cosf(this->zenith) + (sizeT/2.0f));
     this->radius = sqrt((this->center.x*this->center.x)+(this->center.y*this->center.y)+(this->center.z*this->center.z));
     
     this->vuMeter = new LevelComponent(this, this->grisFeel);
@@ -90,7 +89,7 @@ void Input::draw(){
     glutSolidSphere(sizeT, 8, 8);
     glTranslatef(-this->center.x, -this->center.y, -this->center.z);
     
-    //drawSpan();
+    drawSpan();
     
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glPopMatrix();
@@ -98,7 +97,7 @@ void Input::draw(){
 
 void Input::drawSpan()
 {
-    if(this->azimSpan == 0 && this->zeniSpan == 0){
+    if(this->azimSpan == 0.0f && this->zeniSpan == 0.0f){
         return;
     }
     
@@ -122,7 +121,7 @@ void Input::drawSpan()
     glTranslatef(0, -this->center.y, 0);
     
 
-    int y = 0;
+    /*int y = 0;
     for(int i = 1; i <= this->zeniSpan*20; ++i){
         
         float radC = sqrt((this->center.x*this->center.x)+(this->center.z*this->center.z)+(-y*y));//radCir -  (sinf((M_PI * (i*9.0f) / 180)))*10.0f ;
@@ -172,8 +171,7 @@ void Input::drawSpan()
         glRotatef(-((360.0f-angDeg) + (this->azimSpan* 90)), 0, 1, 0);
         glTranslatef(0, -yH, 0);
         
-    }
-
+    }*/
 }
 
 void Input::updateValues(float az, float ze, float azS, float zeS, float heS, float g){
@@ -208,5 +206,4 @@ void Input::updateValuesOld(float az, float ze, float azS, float zeS, float g){
     this->center.y = (10.0f * cosf(this->zenith)) + (sizeT/2.0f );
     
     this->radius = sqrt((this->center.x*this->center.x)+(this->center.y*this->center.y)+(this->center.z*this->center.z));
-
 }
