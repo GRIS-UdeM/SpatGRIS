@@ -749,14 +749,22 @@ void MainContentComponent::textEditorReturnKeyPressed (TextEditor & textEditor){
         
         if(this->jackClient->inputsPort.size() != this->tedAddInputs->getTextValue().toString().getIntValue()){
             this->jackClient->addRemoveInput(this->tedAddInputs->getTextValue().toString().getIntValue());
+            
             this->lockInputs->lock();
-            for (auto&& it : listSourceInput)
-            {
-                delete (it);
-            }
-            listSourceInput.clear();
+            bool addInput = false;
             for(int i = 0 ; i< this->jackClient->inputsPort.size();i++){
-                this->listSourceInput.push_back(new Input(this, &mGrisFeel,i+1));
+                if(i >= this->listSourceInput.size()){
+                    this->listSourceInput.push_back(new Input(this, &mGrisFeel,i+1));
+                    addInput = true;
+                }
+            }
+            if(!addInput){
+                for (auto it = this->listSourceInput.begin()+(this->jackClient->inputsPort.size()) ; it != this->listSourceInput.end();)
+                {
+                    delete *it;
+                    it = this->listSourceInput.erase(it);
+                   
+                }
             }
             this->lockInputs->unlock();
         }
