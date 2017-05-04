@@ -153,7 +153,9 @@ static void processFreeVolume(jackClientGris & jackCli, jack_default_audio_sampl
 static int process_audio (jack_nframes_t nframes, void* arg) {
 
     jackClientGris* jackCli = (jackClientGris*)arg;
-
+    
+    if(!jackCli->processBlockOn){ return 0; }
+    
     //================ LOAD BUFFER ============================================
     const unsigned int sizeInputs = (unsigned int)jackCli->inputsPort.size() ;
     const unsigned int sizeOutputs = (unsigned int)jackCli->outputsPort.size() ;
@@ -369,10 +371,11 @@ jackClientGris::jackClientGris(unsigned int bufferS) {
     this->autoConnection = false;
     this->overload = false;
     this->masterGainOut = 1.0f;
+    this->processBlockOn = true;
     this->modeSelected = FreeBasic;
     
     this->listClient = vector<Client>();
-    this->listSourceIn = vector<SourceIn>();
+    /*this->listSourceIn = vector<SourceIn>();
     this->listSpeakerOut = vector<SpeakerOut>();
     
     SourceIn si;
@@ -382,7 +385,7 @@ jackClientGris::jackClientGris(unsigned int bufferS) {
     SpeakerOut so;
     for(int i = 0; i < MaxOutputs; ++i){
         this->listSpeakerOut.push_back(so);
-    }
+    }*/
     
     fill(this->muteIn, this->muteIn+MaxInputs, false);
     fill(this->soloIn, this->soloIn+MaxInputs+1, false);

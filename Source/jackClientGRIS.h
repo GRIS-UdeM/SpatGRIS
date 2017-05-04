@@ -35,16 +35,14 @@
 #include <jack/types.h>
 #include <jack/session.h>
 
-
 using namespace std;
 
-
 struct Client {
-    String name;
-    unsigned int portStart = 1;
-    unsigned int portEnd = 32;
-    bool connected = false;
-    unsigned int portAvailable = 0;
+    String          name;
+    unsigned int    portStart     = 1;
+    unsigned int    portEnd       = 32;
+    unsigned int    portAvailable = 0;
+    bool            connected     = false;
 };
 
 
@@ -77,26 +75,26 @@ struct SpeakerOut {
     float gain;//Not Implemented
 };
 
-
+//Mode Spat
 typedef enum {
     FreeBasic = 0,
     VBap,
     DBap,
     HRTF
 } ModeSpatEnum;
-
 static const StringArray ModeSpatString = {"Free basic", "VBap", "DBap", "HRTF"};
 
+//Settings Jack Server
 static const StringArray BufferSize = {"32", "64", "128", "256", "512", "1024", "2048"};
 static const StringArray RateValues = {"44100", "48000", "88200", "96000"};
-
-
-static unsigned int const MaxInputs = 256;
-static unsigned int const MaxOutputs = 256;
 
 static const char* ClientName =     "jackClientGris";
 static const char* DriverNameSys =  "coreaudio";
 static const char* ClientNameSys =  "system";
+
+//Limit SpatServer In/Out
+static unsigned int const MaxInputs  = 256;
+static unsigned int const MaxOutputs = 256;
 
 
 class jackClientGris {
@@ -126,9 +124,10 @@ public:
     float masterGainOut;
     //------------------------
     vector<Client> listClient;
-    vector<SourceIn> listSourceIn;
-    vector<SpeakerOut> listSpeakerOut;
+    SourceIn   listSourceIn   [MaxInputs];
+    SpeakerOut listSpeakerOut [MaxOutputs];
     
+    bool         processBlockOn;
     ModeSpatEnum modeSelected;
     
     bool noiseSound;

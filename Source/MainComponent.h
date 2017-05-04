@@ -118,7 +118,7 @@ public:
     float getLevelsIn(int indexLevel){return (20.0f * log10f(sqrtf(this->jackClient->getLevelsIn(indexLevel)))); }
     
 
-    void destroyWinSpeakConf() { this->winSpeakConfig = nullptr; }
+    void destroyWinSpeakConf() { this->winSpeakConfig = nullptr; this->jackClient->processBlockOn = true; }
     void destroyWinJackSetting() { this->winJackSetting = nullptr; }
     void destroyWinControl() { this->winControlSource = nullptr; }
     //=======================================================================

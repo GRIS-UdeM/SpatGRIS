@@ -397,7 +397,7 @@ void MainContentComponent::removeSpeaker(int idSpeaker){
 }
 
 void MainContentComponent::updateInputJack(int inInput, Input &inp){
-    SourceIn *si = &this->jackClient->listSourceIn.at(inInput); //.getReference(inInput);
+    SourceIn *si = &this->jackClient->listSourceIn[inInput]; //.getReference(inInput);
     si->x = inp.getCenter().x/10.0f;
     si->y = inp.getCenter().y/10.0f;
     si->z = inp.getCenter().z/10.0f;
@@ -814,6 +814,7 @@ void MainContentComponent::buttonClicked (Button *button)
     else if(button == this->butEditableSpeakers){
     
         if(this->winSpeakConfig == nullptr){
+            this->jackClient->processBlockOn = false;
             this->winSpeakConfig = new WindowEditSpeaker("Speakers config", this->nameConfig, this->mGrisFeel.getWinBackgroundColour(),DocumentWindow::allButtons, this, &this->mGrisFeel);
             
             Rectangle<int> result (this->getScreenX()+ this->speakerView->getWidth()+22,this->getScreenY(),600,500);

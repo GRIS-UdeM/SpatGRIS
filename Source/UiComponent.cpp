@@ -543,6 +543,7 @@ void WindowEditSpeaker::setText (const int columnNumber, const int rowNumber, co
                 break;
                 
         }
+        this->mainParent->updateLevelComp();
     }
     
     this->mainParent->getLockSpeakers()->unlock();
