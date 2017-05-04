@@ -816,33 +816,34 @@ void MainContentComponent::buttonClicked (Button *button)
         if(this->winSpeakConfig == nullptr){
             this->jackClient->processBlockOn = false;
             this->winSpeakConfig = new WindowEditSpeaker("Speakers config", this->nameConfig, this->mGrisFeel.getWinBackgroundColour(),DocumentWindow::allButtons, this, &this->mGrisFeel);
-            
             Rectangle<int> result (this->getScreenX()+ this->speakerView->getWidth()+22,this->getScreenY(),600,500);
             this->winSpeakConfig->setBounds (result);
             this->winSpeakConfig->setResizable (true, true);
             this->winSpeakConfig->setUsingNativeTitleBar (true);
             this->winSpeakConfig->setVisible (true);
-            this->winSpeakConfig->setAlwaysOnTop(true);
-            
             this->winSpeakConfig->initComp();
             this->winSpeakConfig->repaint();
         }
+        Rectangle<int> result (this->getScreenX()+ this->speakerView->getWidth()+22,this->getScreenY(),600,500);
+        this->winSpeakConfig->setBounds (result);
+        this->winSpeakConfig->setResizable (true, true);
+        this->winSpeakConfig->setUsingNativeTitleBar (true);
+        this->winSpeakConfig->setVisible (true);
+        this->winSpeakConfig->repaint();
         
     }else if(button == this->butJackParam){
         
         if(this->winJackSetting == nullptr){
             unsigned int BufferValue = applicationProperties.getUserSettings()->getValue("BufferValue").getIntValue();
             unsigned int RateValue = applicationProperties.getUserSettings()->getValue("RateValue").getIntValue();
-
             this->winJackSetting = new WindowJackSetting("Jack Settings", this->mGrisFeel.getWinBackgroundColour(),DocumentWindow::allButtons, this, &this->mGrisFeel, RateValues.indexOf(String(RateValue)), BufferSize.indexOf(String(BufferValue)));
-            Rectangle<int> result (this->getScreenX()+ (this->speakerView->getWidth()/2)-150, this->getScreenY()+(this->speakerView->getHeight()/2)-75, 250, 120);
-            this->winJackSetting->setBounds (result);
-            this->winJackSetting->setResizable (false, false);
-            this->winJackSetting->setUsingNativeTitleBar (true);
-            this->winJackSetting->setVisible (true);
-            this->winJackSetting->setAlwaysOnTop(true);
-            this->winJackSetting->repaint();
         }
+        Rectangle<int> result (this->getScreenX()+ (this->speakerView->getWidth()/2)-150, this->getScreenY()+(this->speakerView->getHeight()/2)-75, 250, 120);
+        this->winJackSetting->setBounds (result);
+        this->winJackSetting->setResizable (false, false);
+        this->winJackSetting->setUsingNativeTitleBar (true);
+        this->winJackSetting->setVisible (true);
+        this->winJackSetting->repaint();
         
     }else if(button == this->butShowWinControl){
         
@@ -850,13 +851,12 @@ void MainContentComponent::buttonClicked (Button *button)
             this->winControlSource = new WinControl("2D View", this->mGrisFeel.getWinBackgroundColour(), DocumentWindow::allButtons, this, &this->mGrisFeel);
             this->winControlSource->setTimerHz(this->butHighPerformance->getToggleState() ? HertzRefresh2DLowCpu : HertzRefreshNormal);
         }
-        
         Rectangle<int> result (this->getScreenX()+ this->speakerView->getWidth()+22,this->getScreenY()+100,500,500);
         this->winControlSource->setBounds (result);
         this->winControlSource->setResizable (true, true);
         this->winControlSource->setUsingNativeTitleBar (true);
         this->winControlSource->setVisible (true);
-        this->winControlSource->setAlwaysOnTop(true);
+
 
     }else if(button == butShowSpeakerNumber){
         
