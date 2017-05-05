@@ -141,6 +141,7 @@
     <ClCompile Include="..\..\Source\OscInput.cpp"/>
     <ClCompile Include="..\..\Source\LevelComponent.cpp"/>
     <ClCompile Include="..\..\Source\UiComponent.cpp"/>
+    <ClCompile Include="..\..\Source\WinControl.cpp"/>
     <ClCompile Include="..\..\JuceLibraryCode\modules\juce_audio_basics\buffers\juce_AudioChannelSet.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
@@ -1764,6 +1765,7 @@
     <ClInclude Include="..\..\Source\ParentLevelComponent.h"/>
     <ClInclude Include="..\..\Source\UiComponent.h"/>
     <ClInclude Include="..\..\Source\Ray.h"/>
+    <ClInclude Include="..\..\Source\WinControl.h"/>
     <ClInclude Include="..\..\JuceLibraryCode\modules\juce_audio_basics\buffers\juce_AudioChannelSet.h"/>
     <ClInclude Include="..\..\JuceLibraryCode\modules\juce_audio_basics\buffers\juce_AudioDataConverters.h"/>
     <ClInclude Include="..\..\JuceLibraryCode\modules\juce_audio_basics\buffers\juce_AudioSampleBuffer.h"/>

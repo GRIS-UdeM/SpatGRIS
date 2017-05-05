@@ -45,6 +45,8 @@
       <FILE id="MW5ESG" name="UiComponent.cpp" compile="1" resource="0" file="Source/UiComponent.cpp"/>
       <FILE id="RG3FbE" name="UiComponent.h" compile="0" resource="0" file="Source/UiComponent.h"/>
       <FILE id="oaSq5k" name="Ray.h" compile="0" resource="0" file="Source/Ray.h"/>
+      <FILE id="CvWdkk" name="WinControl.cpp" compile="1" resource="0" file="Source/WinControl.cpp"/>
+      <FILE id="wOKsHM" name="WinControl.h" compile="0" resource="0" file="Source/WinControl.h"/>
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>
@@ -101,6 +103,29 @@
         <MODULEPATH id="juce_osc" path="../../sdks/JUCE-4.3.1/modules"/>
       </MODULEPATHS>
     </VS2015>
+    <LINUX_MAKE targetFolder="Builds/LinuxMakefile" smallIcon="G8JPcc" bigIcon="G8JPcc">
+      <CONFIGURATIONS>
+        <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="spatServerGRIS"/>
+        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="spatServerGRIS"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_video" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_osc" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_opengl" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_graphics" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_events" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_cryptography" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_core" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_audio_basics" path="../../sdks/JUCE-4.3.1/modules"/>
+      </MODULEPATHS>
+    </LINUX_MAKE>
   </EXPORTFORMATS>
   <MODULES>
     <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="1"/>
