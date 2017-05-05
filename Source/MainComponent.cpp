@@ -137,7 +137,7 @@ MainContentComponent::MainContentComponent(){
     this->setSize (1360, 670);
     
     
-
+    //-------------------------------------------------------------------------------
     unsigned int BufferValue = applicationProperties.getUserSettings()->getValue("BufferValue").getIntValue();
     unsigned int RateValue = applicationProperties.getUserSettings()->getValue("RateValue").getIntValue();
     
@@ -155,6 +155,7 @@ MainContentComponent::MainContentComponent(){
     }else{
         this->labelJackStatus->setText("Jack Run", dontSendNotification);
     }
+    //--------------------------------------------------------------------------------
     this->labelJackRate->setText(String(this->jackClient->sampleRate)+ " Hz", dontSendNotification);
     this->labelJackBuffer->setText(String(this->jackClient->bufferSize)+ " spls", dontSendNotification);
     this->labelJackInfo->setText("I : "+String(this->jackClient->numberInputs)+ " - O : "+String(this->jackClient->numberOutputs), dontSendNotification);
@@ -404,6 +405,8 @@ void MainContentComponent::updateInputJack(int inInput, Input &inp){
     
     si->aziSpan = inp.getAziMuthSpan();
     si->zenSpan = inp.getZenithSpan();
+    
+    //cout << si->azimuth << " // " << si->zenith << " // " << si->radius << " // " << si->aziSpan << " // " << si->zenSpan << newLine;
 }
 
 void MainContentComponent::updateLevelComp(){
@@ -480,12 +483,15 @@ void MainContentComponent::setNameConfig(String name){
 
 void MainContentComponent::muteInput(int id, bool mute){
     this->jackClient->muteIn[id-1] = mute;
+    (&this->jackClient->listSourceIn[id-1])->isMuted = mute;
 }
 void MainContentComponent::muteOutput(int id, bool mute){
     this->jackClient->muteOut[id-1] = mute;
+    (&this->jackClient->listSpeakerOut[id-1])->isMuted = mute;
 }
 void MainContentComponent::soloInput(int id, bool solo){
     this->jackClient->soloIn[id-1] = solo;
+    (&this->jackClient->listSourceIn[id-1])->isSolo = solo;
     this->jackClient->soloIn[MaxInputs] = false;
     for (int i = 0; i < MaxInputs; i++) {
         if(this->jackClient->soloIn[i]){
@@ -495,6 +501,7 @@ void MainContentComponent::soloInput(int id, bool solo){
 }
 void MainContentComponent::soloOutput(int id, bool solo){
     this->jackClient->soloOut[id-1] = solo;
+    (&this->jackClient->listSpeakerOut[id-1])->isSolo = solo;
     this->jackClient->soloOut[MaxOutputs] = false;
     for (int i = 0; i < MaxOutputs; i++) {
         if(this->jackClient->soloOut[i]){
@@ -572,12 +579,13 @@ void MainContentComponent::openPreset(String path){
         if(mainXmlElem->hasTagName("SpatServerGRIS_Preset")){
             this->tedOSCInPort->setText(mainXmlElem->getStringAttribute("OSC_Input_Port"));
             this->tedAddInputs->setText(mainXmlElem->getStringAttribute("Number_Of_Inputs"));
-            this->sliderMasterGainOut->setValue(mainXmlElem->getDoubleAttribute("Master_Gain_Out"));
+            this->sliderMasterGainOut->setValue(mainXmlElem->getDoubleAttribute("Master_Gain_Out"), sendNotification);
+            this->comBoxModeSpat->setSelectedItemIndex(mainXmlElem->getIntAttribute("Mode_Process"),sendNotification);
             this->butShowSpeakerNumber->setToggleState(mainXmlElem->getBoolAttribute("Show_Numbers"),sendNotification);
             this->butHighPerformance->setToggleState(mainXmlElem->getBoolAttribute("High_Performance"),sendNotification);
             this->pathCurrentFileSpeaker = mainXmlElem->getStringAttribute("Speaker_Setup_File");
-            
-            
+
+
             //Update----------------------------------
             this->textEditorReturnKeyPressed(*this->tedOSCInPort);
             this->textEditorReturnKeyPressed(*this->tedAddInputs);
@@ -613,6 +621,7 @@ void MainContentComponent::savePreset(String path){
     xml->setAttribute ("OSC_Input_Port",     this->tedOSCInPort->getTextValue().toString());
     xml->setAttribute ("Number_Of_Inputs",   this->tedAddInputs->getTextValue().toString());
     xml->setAttribute ("Master_Gain_Out",    this->sliderMasterGainOut->getValue());
+    xml->setAttribute ("Mode_Process",       this->comBoxModeSpat->getSelectedItemIndex());
     xml->setAttribute ("Show_Numbers",       this->butShowSpeakerNumber->getToggleState());
     xml->setAttribute ("High_Performance",   this->butHighPerformance->getToggleState());
     xml->setAttribute ("Speaker_Setup_File", this->pathCurrentFileSpeaker);

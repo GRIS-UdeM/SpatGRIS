@@ -319,8 +319,6 @@ WindowEditSpeaker::WindowEditSpeaker(const String& name, String& nameC,Colour ba
     this->texEditNameConf->setLookAndFeel(this->grisFeel);
     this->boxListSpeaker->getContent()->addAndMakeVisible(this->texEditNameConf);
 
-    
-    
     this->setContentComponent(this->boxListSpeaker);
     this->boxListSpeaker->getContent()->addAndMakeVisible(tableListSpeakers);
 
@@ -328,6 +326,7 @@ WindowEditSpeaker::WindowEditSpeaker(const String& name, String& nameC,Colour ba
     this->boxListSpeaker->resized();
     
 }
+
 WindowEditSpeaker::~WindowEditSpeaker(){
     this->mainParent->setShowShepre(false);
     //delete this->boxListSpeaker;

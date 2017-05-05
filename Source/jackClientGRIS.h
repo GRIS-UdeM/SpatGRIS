@@ -59,6 +59,8 @@ struct SourceIn {
     float aziSpan = 0.0f;
     float zenSpan = 0.0f;
     
+    bool  isMuted = false;
+    bool  isSolo = false;
     float gain;//Not Implemented
 };
 
@@ -72,6 +74,8 @@ struct SpeakerOut {
     float zenith = 0.0f;
     float radius = 0.0f;
     
+    bool  isMuted = false;
+    bool  isSolo = false;
     float gain;//Not Implemented
 };
 

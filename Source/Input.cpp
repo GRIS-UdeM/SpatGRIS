@@ -189,12 +189,17 @@ void Input::updateValues(float az, float ze, float azS, float zeS, float heS, fl
     this->center.y = ((10.0f * cosf(this->zenith)) + (sizeT/2.0f )) * heS;
     
     this->radius = sqrt((this->center.x*this->center.x)+(this->center.y*this->center.y)+(this->center.z*this->center.z));
+
+    //re - compute
+    //this->azimuth = ( (atan2(this->center.x, this->center.z) * 180.0f) / M_PI) +90.0f;
+    //this->zenith = ( atan2(this->center.y, sqrt(this->center.x*this->center.x + this->center.z*this->center.z)) * 180.0f) / M_PI;
+    
 }
 
 void Input::updateValuesOld(float az, float ze, float azS, float zeS, float g){
 
-    this->azimuth = fmod(((az/M_PI)-M_PI)*-10.0f,(M2_PI));
-    this->zenith  = (M_PI2) - (M_PI * ze);     //((ze-0.5f)/M_PI)*-10.0f;
+    this->azimuth = fmod(((az/M_PI)-M_PI)*-10.0f,(M2_PI));  //0 - 2_PI
+    this->zenith  = (M_PI2) - (M_PI * ze); //0 - (PI/2)    //((ze-0.5f)/M_PI)*-10.0f;
     
     this->azimSpan = azS;
     this->zeniSpan = zeS;
