@@ -120,6 +120,13 @@ MainContentComponent::MainContentComponent(){
     for(int i = 0; i < ModeSpatString.size(); i++){
          this->comBoxModeSpat->addItem(ModeSpatString[i], i+1);
     }
+    
+    this->tedMinRecord      = addTextEditor("Min :", "Time of record (min)", "Time of record (min)", 300, 156, 40, 24, this->boxControlUI->getContent());
+    this->tedMinRecord->setText("0");
+    this->tedMinRecord->setInputRestrictions(2,"0123456789");
+    this->butStartRecord    = addButton("R","Start/Stop Record",320,156,24,24,this->boxControlUI->getContent());
+    
+    this->labelTimeRecorded = addLabel("00:00","Record time",430, 156, 50, 24,this->boxControlUI->getContent());
 
     this->butAutoConnectJack = addButton("Auto Connect","Auto connection with jack",610,120,130,24,this->boxControlUI->getContent());
     
@@ -159,8 +166,10 @@ MainContentComponent::MainContentComponent(){
     this->labelJackRate->setText(String(this->jackClient->sampleRate)+ " Hz", dontSendNotification);
     this->labelJackBuffer->setText(String(this->jackClient->bufferSize)+ " spls", dontSendNotification);
     this->labelJackInfo->setText("I : "+String(this->jackClient->numberInputs)+ " - O : "+String(this->jackClient->numberOutputs), dontSendNotification);
+    
+    this->fileWriter = new FileWriter(this);
+    
     this->sliderMasterGainOut->setValue(1.0);
-
     this->comBoxModeSpat->setSelectedId(1);
 
     
@@ -309,6 +318,7 @@ MainContentComponent::~MainContentComponent() {
     this->applicationProperties.closeFiles();
 
     delete this->oscReceiver;
+    delete this->fileWriter;
     
     if(this->winSpeakConfig != nullptr){
         delete this->winSpeakConfig;
@@ -473,6 +483,8 @@ void MainContentComponent::updateLevelComp(){
 
     this->boxOutputsUI->repaint();
     this->resized();
+    
+    this->jackClient->prepareToRecord(0);
 }
 
 
@@ -641,7 +653,6 @@ void MainContentComponent::savePreset(String path){
 
 
 void MainContentComponent::savePresetSpeakers(String path){
-    
     this->pathCurrentFileSpeaker = path;
     File xmlFile = File (path.toStdString());
     XmlDocument xmlDoc (xmlFile);
@@ -701,6 +712,22 @@ void MainContentComponent::saveJackSettings(unsigned int rate, unsigned int buff
 
 void MainContentComponent::timerCallback(){
     this->labelJackLoad->setText(String(this->jackClient->getCpuUsed(),4)+ " %", dontSendNotification);
+    this->labelTimeRecorded->setText(String(this->jackClient->indexRecord), dontSendNotification);
+    
+    if(this->butStartRecord->getToggleState()
+       && (this->jackClient->indexRecord+this->jackClient->bufferSize) >= this->jackClient->endIndexRecord)
+    {
+        this->butStartRecord->setToggleState(false, sendNotification);
+    }
+    
+    if(this->fileWriter->isSavingRun()){
+        this->butStartRecord->setEnabled(false);
+        this->tedMinRecord->setEnabled(false);
+    }else{
+        this->butStartRecord->setEnabled(true);
+        this->tedMinRecord->setEnabled(true);
+    } 
+    
     if(this->jackClient->overload){
         this->labelJackLoad->setColour(Label::backgroundColourId, Colours::darkred);
     }else{
@@ -773,6 +800,9 @@ void MainContentComponent::textEditorReturnKeyPressed (TextEditor & textEditor){
             this->lockInputs->unlock();
         }
         updateLevelComp();
+    }
+    else if(&textEditor == this->tedMinRecord){
+        this->jackClient->prepareToRecord(this->tedMinRecord->getTextValue().toString().getIntValue());
     }
 }
 
@@ -894,7 +924,6 @@ void MainContentComponent::buttonClicked (Button *button)
         
         this->jackClient->noiseSound = butNoiseSound->getToggleState();
     }else if(button == this->butHideSpeaker){
-        
         this->speakerView->setHideSpeaker(butHideSpeaker->getToggleState());
     }
     else if(button == this->butDefaultColorIn){
@@ -906,6 +935,17 @@ void MainContentComponent::buttonClicked (Button *button)
             hue+=0.01f;
             if(hue >= 0.98f){ hue = 0.0f; }
         }
+    }else if(button == this->butStartRecord){
+        if(this->jackClient->recording)
+        {
+            this->jackClient->stopRecort();
+            this->fileWriter->recording(this->listSpeaker.size());
+        }
+        else{
+            this->jackClient->startRecord();
+        }
+        this->butStartRecord->setToggleState(this->jackClient->recording, dontSendNotification);
+        
     }
     
 }

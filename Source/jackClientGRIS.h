@@ -167,8 +167,17 @@ public:
     string getClientName(const char * port);
     unsigned int getPortStartClient(String nameClient);
     
+    //Recording param =========================
+    void prepareToRecord(int minuteR = 1);
+    void startRecord(){ this->recording = true; }
+    void stopRecort(){ this->recording = false; }
+    vector<jack_default_audio_sample_t> buffersToRecord [MaxOutputs];
+    unsigned int indexRecord = 1;
+    unsigned int endIndexRecord = 1;
+    bool recording;
     
 private:
+    
     
     bool clientReady;
     void connectedGristoSystem();

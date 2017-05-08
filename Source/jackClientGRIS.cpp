@@ -75,10 +75,21 @@ static void muteSoloVuMeterGainOut(jackClientGris & jackCli, jack_default_audio_
             outs[i][nF] *= mGain;
             //cout << outs[i][nF] << newLine;
             sumsOut[i] +=  outs[i][nF] * outs[i][nF];
+            
         }
         jackCli.levelsOut[i] = sumsOut[i]/nframes;
+        
+        /*size_t old_size(jackCli.buffersToRecord[i].size());
+        jackCli.buffersToRecord[i].resize(old_size + nframes, 0);
+        memcpy(&jackCli.buffersToRecord[i][old_size], outs[i], nframes * sizeof(jack_default_audio_sample_t));*/
+        
+        if(jackCli.recording && jackCli.indexRecord+nframes < jackCli.endIndexRecord){
+            memcpy(&jackCli.buffersToRecord[i][jackCli.indexRecord], outs[i], nframes * sizeof(jack_default_audio_sample_t));
+        }
     }
-
+    if(jackCli.recording && jackCli.indexRecord+nframes < jackCli.endIndexRecord){
+        jackCli.indexRecord += nframes;
+    }
 }
 
 static void addNoiseSound(jackClientGris & jackCli, jack_default_audio_sample_t ** ins, const jack_nframes_t &nframes, const unsigned int &sizeInputs){
@@ -370,8 +381,10 @@ jackClientGris::jackClientGris(unsigned int bufferS) {
     this->masterGainOut = 1.0f;
     this->processBlockOn = true;
     this->modeSelected = FreeBasic;
+    this->recording = false;
     
     this->listClient = vector<Client>();
+    
     /*this->listSourceIn = vector<SourceIn>();
     this->listSpeakerOut = vector<SpeakerOut>();
     
@@ -511,6 +524,20 @@ jackClientGris::jackClientGris(unsigned int bufferS) {
     printf("========================== \n");
     
     this->clientReady = true;
+}
+
+void jackClientGris::prepareToRecord(int minuteR )
+{
+    if(this->outputsPort.size() < 1 || minuteR < 1){
+        return ;
+    }
+    this->recording = false;
+    this->endIndexRecord = (minuteR * 60 * 1000 * this->bufferSize)/20;
+    for(int i = 0; i < this->outputsPort.size(); ++i){
+        this->buffersToRecord[i].resize(this->endIndexRecord, 0);
+    }
+    this->indexRecord = 1;
+
 }
 
 void jackClientGris::addRemoveInput(int number){
@@ -729,9 +756,12 @@ void jackClientGris::connectionClient(String name, bool connect){
 string jackClientGris::getClientName(const char * port)
 {
     if(port){
-        string nameClient = jack_port_name(jack_port_by_name(this->client, port));
-        string tempN = jack_port_short_name(jack_port_by_name(this->client, port));
-        return  nameClient.substr(0,nameClient.size()-(tempN.size()+1));
+        jack_port_t *  tt = jack_port_by_name(this->client, port);
+        if(tt){
+            string nameClient = jack_port_name(tt);
+            string tempN = jack_port_short_name(tt);
+            return  nameClient.substr(0,nameClient.size()-(tempN.size()+1));
+        }
     }return "";
 }
 

@@ -54,6 +54,7 @@
 #include "OscInput.h"
 #include "Input.h"
 #include "WinControl.h"
+#include "FileWriter.h"
 
 class spatServerGRISApplication;
 
@@ -91,6 +92,7 @@ public:
     mutex* getLockInputs(){ return this->lockInputs; }
     void updateInputJack(int inInput, Input &inp);
     
+    vector<float>  getBufferToRecord(int i){ return this->jackClient->buffersToRecord[i]; }
     vector<Client> *getListClientjack(){ return &this->jackClient->listClient; }
     void connectionClientJack(String nameCli, bool conn = true) {this->jackClient->connectionClient(nameCli, conn); }
     
@@ -150,6 +152,8 @@ private:
     jackClientGris *    jackClient;
     jackServerGRIS *    jackServer;
     
+    FileWriter     *    fileWriter;
+    
     vector<Speaker *>   listSpeaker;
     mutex *             lockSpeakers;
     
@@ -177,6 +181,7 @@ private:
     Box * boxControlUI;
     
     //Component in Box 3 -----------
+    //Jack
     Label *         labelJackStatus;
     Label *         labelJackLoad;
     Label *         labelJackRate;
@@ -208,6 +213,11 @@ private:
     
     Label *         labelAllClients;
     BoxClient *     boxClientJack;
+    
+    //Record
+    TextButton *    butStartRecord;
+    TextEditor *    tedMinRecord;
+    Label *         labelTimeRecorded;
     
     SplashScreen *  splash;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
