@@ -126,7 +126,7 @@ MainContentComponent::MainContentComponent(){
     this->tedMinRecord->setInputRestrictions(2,"0123456789");
     this->butStartRecord    = addButton("R","Start/Stop Record",320,156,24,24,this->boxControlUI->getContent());
     
-    this->labelTimeRecorded = addLabel("00:00","Record time",430, 156, 50, 24,this->boxControlUI->getContent());
+    this->labelTimeRecorded = addLabel("00:00","Record time",420, 156, 50, 24,this->boxControlUI->getContent());
 
     this->butAutoConnectJack = addButton("Auto Connect","Auto connection with jack",610,120,130,24,this->boxControlUI->getContent());
     
@@ -712,7 +712,12 @@ void MainContentComponent::saveJackSettings(unsigned int rate, unsigned int buff
 
 void MainContentComponent::timerCallback(){
     this->labelJackLoad->setText(String(this->jackClient->getCpuUsed(),4)+ " %", dontSendNotification);
-    this->labelTimeRecorded->setText(String(this->jackClient->indexRecord), dontSendNotification);
+    int seconds = this->jackClient->indexRecord/this->jackClient->sampleRate;
+    int minute = (int(seconds / 60)%60);
+    seconds = int(seconds%60);
+    String timeRecorded =   ((minute < 10) ? "0"+String(minute) : String(minute)) +" : "+
+                            ((seconds < 10) ? "0"+String(seconds) : String(seconds));///(this->jackClient->sampleRate* this->jackClient->bufferSize);
+    this->labelTimeRecorded->setText(timeRecorded, dontSendNotification);
     
     if(this->butStartRecord->getToggleState()
        && (this->jackClient->indexRecord+this->jackClient->bufferSize) >= this->jackClient->endIndexRecord)
@@ -940,9 +945,11 @@ void MainContentComponent::buttonClicked (Button *button)
         {
             this->jackClient->stopRecort();
             this->fileWriter->recording(this->listSpeaker.size(), this->jackClient->sampleRate);
+            this->labelTimeRecorded->setColour(Label::textColourId, mGrisFeel.getFontColour());
         }
         else{
             this->jackClient->startRecord();
+            this->labelTimeRecorded->setColour(Label::textColourId, Colours::red);
         }
         this->butStartRecord->setToggleState(this->jackClient->recording, dontSendNotification);
         

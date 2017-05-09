@@ -532,7 +532,7 @@ void jackClientGris::prepareToRecord(int minuteR )
         return ;
     }
     this->recording = false;
-    this->endIndexRecord = (minuteR * 60 * 1000 * this->bufferSize)/20;
+    this->endIndexRecord = (minuteR * 60 * this->sampleRate);
     for(int i = 0; i < this->outputsPort.size(); ++i){
         this->buffersToRecord[i].resize(this->endIndexRecord, 0);
     }
