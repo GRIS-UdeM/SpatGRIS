@@ -92,7 +92,7 @@ public:
     mutex* getLockInputs(){ return this->lockInputs; }
     void updateInputJack(int inInput, Input &inp);
     
-    vector<float>  getBufferToRecord(int i){ return this->jackClient->buffersToRecord[i]; }
+    vector<float>   getBufferToRecord(int i){ return this->jackClient->buffersToRecord[i]; }
     vector<Client> *getListClientjack(){ return &this->jackClient->listClient; }
     void connectionClientJack(String nameCli, bool conn = true) {this->jackClient->connectionClient(nameCli, conn); }
     

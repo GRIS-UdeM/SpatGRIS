@@ -22,18 +22,21 @@ public:
     ~FileWriter();
     
     //==============================================================================
-    void recording (int numOutputs = 1);
+    void recording (int numOutputs = 1, int sampleRate = 48000);
     bool isSavingRun(){ return this->inSave; }
+    
+    
+    
+private:
     
     //Tread=============
     void run() override;
     
-private:
-    
     MainContentComponent * mainParent;
-    int numOutputs = 0;
-    bool inSave = false;
-    String filePath ;
+    int     numOutputs;
+    float   sampleRate;
+    bool    inSave = false;
+    String  filePath ;
 };
 
 

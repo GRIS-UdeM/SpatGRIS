@@ -19,13 +19,14 @@ FileWriter::~FileWriter()
 {
 }
 
-void FileWriter::recording(int numOutputs)
+void FileWriter::recording(int numOutputs, int sampleRate)
 {
     FileChooser fc ("Choose a file to save...",File::getCurrentWorkingDirectory(), "*.wav,*.aif", true);
     if (fc.browseForFileToSave (true))
     {
         this->filePath = fc.getResults().getReference(0).getFullPathName();
         this->numOutputs = numOutputs;
+        this->sampleRate = sampleRate;
         this->inSave = true;
         this->startThread();
     }
@@ -49,28 +50,27 @@ void FileWriter::run()
     
     File fileS = File(this->filePath);
     fileS.deleteFile();
-    FileOutputStream* outputTo = fileS.createOutputStream();
+    FileOutputStream * outputTo = fileS.createOutputStream();
+    AudioFormatWriter* writer;
     
     String extF = fileS.getFileExtension();
     if(extF == ".wav")
     {
         WavAudioFormat* waveAudioF = new WavAudioFormat();
-        AudioFormatWriter* writer = waveAudioF->createWriterFor(outputTo, 48000, this->numOutputs, 24, NULL, 0);
+        writer = waveAudioF->createWriterFor(outputTo, this->sampleRate, this->numOutputs, 24, NULL, 0);
         writer->writeFromAudioSampleBuffer(*buffers, 0, size);
         
-        delete writer;
         delete waveAudioF;
     }
     else if(extF == ".aif")
     {
         AiffAudioFormat* aiffAudioF = new AiffAudioFormat();
-        AudioFormatWriter* writer = aiffAudioF->createWriterFor(outputTo, 48000, this->numOutputs, 24, NULL, 0);
+        writer = aiffAudioF->createWriterFor(outputTo,this->sampleRate, this->numOutputs, 24, NULL, 0);
         writer->writeFromAudioSampleBuffer(*buffers, 0, size);
         
-        delete writer;
         delete aiffAudioF;
     }
-    
+    delete writer;
     /*else if(extF == ".flac")
     {
         FlacAudioFormat* flacAudioF = new FlacAudioFormat();

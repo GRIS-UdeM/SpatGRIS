@@ -760,7 +760,7 @@ string jackClientGris::getClientName(const char * port)
         if(tt){
             string nameClient = jack_port_name(tt);
             string tempN = jack_port_short_name(tt);
-            return  nameClient.substr(0,nameClient.size()-(tempN.size()+1));
+            return nameClient.substr(0,nameClient.size()-(tempN.size()+1));
         }
     }return "";
 }

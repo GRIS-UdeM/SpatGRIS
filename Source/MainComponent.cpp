@@ -939,7 +939,7 @@ void MainContentComponent::buttonClicked (Button *button)
         if(this->jackClient->recording)
         {
             this->jackClient->stopRecort();
-            this->fileWriter->recording(this->listSpeaker.size());
+            this->fileWriter->recording(this->listSpeaker.size(), this->jackClient->sampleRate);
         }
         else{
             this->jackClient->startRecord();
