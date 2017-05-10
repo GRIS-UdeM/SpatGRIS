@@ -12,10 +12,9 @@
 		04CF901E6DCE0A68232B9454 /* Main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2116513B99CFF9F0DCC85055 /* Main.cpp */; };
 		083608DE849F7E27B9DE0162 /* Speaker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A6E8384CEB071AC4366E3D23 /* Speaker.cpp */; };
 		0C73D37DE849B35C4D59E3B9 /* juce_gui_basics.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7DD01A8771D09207AE6C9801 /* juce_gui_basics.mm */; };
-		0D1A805E1EBD25B90082FA89 /* FileWriter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D1A805C1EBD25B90082FA89 /* FileWriter.cpp */; };
-		0D22DB0A1EBD06E700328FB3 /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D22DB091EBD06E700328FB3 /* GLUT.framework */; };
-		0D22DB0D1EBD06F900328FB3 /* Jackmp in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D22DB0B1EBD06F900328FB3 /* Jackmp */; };
-		0D22DB0E1EBD06F900328FB3 /* Jackservermp in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D22DB0C1EBD06F900328FB3 /* Jackservermp */; };
+		0D573AD51EC38A05007605B1 /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D573AD41EC38A05007605B1 /* GLUT.framework */; };
+		0D573AD81EC38A12007605B1 /* Jackmp in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D573AD61EC38A12007605B1 /* Jackmp */; };
+		0D573AD91EC38A12007605B1 /* Jackservermp in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D573AD71EC38A12007605B1 /* Jackservermp */; };
 		0D76540CEB135C65E2C77E42 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A49E2EA8DC00B3CFBC3B8FC /* Cocoa.framework */; };
 		0F18ADC55E833D69E5746DFD /* juce_cryptography.mm in Sources */ = {isa = PBXBuildFile; fileRef = BAEE328DB2C9494397445A21 /* juce_cryptography.mm */; };
 		14E1864F61765881437B2AF8 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A290A4B264C78F0C18D6F058 /* Accelerate.framework */; };
@@ -25,6 +24,7 @@
 		21FA967C928A77502F65C3FC /* juce_audio_devices.mm in Sources */ = {isa = PBXBuildFile; fileRef = 4560D30FE3B1C654BDF079E6 /* juce_audio_devices.mm */; };
 		2678C7B68750D5F4705E4912 /* juce_events.mm in Sources */ = {isa = PBXBuildFile; fileRef = E5244A25518AD230DAD6B71A /* juce_events.mm */; };
 		35906963C034D4F8C6ED9A21 /* juce_gui_extra.mm in Sources */ = {isa = PBXBuildFile; fileRef = E5AF9D1B855C732BA3F85C91 /* juce_gui_extra.mm */; };
+		3F69502778F301BD90778B1D /* FileWriter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 867AC1364EA09B3BC33A59DF /* FileWriter.cpp */; };
 		4721295DAD8D43098FDDA315 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9FA97F5D6FA38CD87020FFB4 /* QuartzCore.framework */; };
 		47CCFF42970696CEC5CE59F5 /* QTKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DE2366DF3960DADCA8F95EC4 /* QTKit.framework */; };
 		5164909C37A573656995DBE2 /* juce_opengl.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1B03246B2EBD4022D6907CB1 /* juce_opengl.mm */; };
@@ -117,12 +117,10 @@
 		0C99699A22FA40ABA7EA5A37 /* juce_DynamicObject.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_DynamicObject.h; path = ../../JuceLibraryCode/modules/juce_core/containers/juce_DynamicObject.h; sourceTree = SOURCE_ROOT; };
 		0CA183E0BD935F99C9D13006 /* juce_TextDiff.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_TextDiff.h; path = ../../JuceLibraryCode/modules/juce_core/text/juce_TextDiff.h; sourceTree = SOURCE_ROOT; };
 		0D0F144A717EB80B8FC0AF66 /* juce_QuickTimeMovieComponent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_QuickTimeMovieComponent.h; path = ../../JuceLibraryCode/modules/juce_video/playback/juce_QuickTimeMovieComponent.h; sourceTree = SOURCE_ROOT; };
-		0D1A805C1EBD25B90082FA89 /* FileWriter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FileWriter.cpp; path = ../../Source/FileWriter.cpp; sourceTree = "<group>"; };
-		0D1A805D1EBD25B90082FA89 /* FileWriter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FileWriter.h; path = ../../Source/FileWriter.h; sourceTree = "<group>"; };
-		0D22DB091EBD06E700328FB3 /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = System/Library/Frameworks/GLUT.framework; sourceTree = SDKROOT; };
-		0D22DB0B1EBD06F900328FB3 /* Jackmp */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = Jackmp; path = ../../jack/lib/Jackmp; sourceTree = "<group>"; };
-		0D22DB0C1EBD06F900328FB3 /* Jackservermp */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = Jackservermp; path = ../../jack/lib/Jackservermp; sourceTree = "<group>"; };
 		0D56949D35266C830BCCACD8 /* floor_books.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = floor_books.h; path = "../../JuceLibraryCode/modules/juce_audio_formats/codecs/oggvorbis/libvorbis-1.3.2/lib/books/floor/floor_books.h"; sourceTree = SOURCE_ROOT; };
+		0D573AD41EC38A05007605B1 /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = System/Library/Frameworks/GLUT.framework; sourceTree = SDKROOT; };
+		0D573AD61EC38A12007605B1 /* Jackmp */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = Jackmp; path = ../../jack/lib/Jackmp; sourceTree = "<group>"; };
+		0D573AD71EC38A12007605B1 /* Jackservermp */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = Jackservermp; path = ../../jack/lib/Jackservermp; sourceTree = "<group>"; };
 		0DAEE47D7405B9E5383EA97F /* juce_RelativePointPath.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_RelativePointPath.h; path = ../../JuceLibraryCode/modules/juce_gui_basics/positioning/juce_RelativePointPath.h; sourceTree = SOURCE_ROOT; };
 		0DC88B16521DF51B488590F4 /* OscInput.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = OscInput.h; path = ../../Source/OscInput.h; sourceTree = SOURCE_ROOT; };
 		0E1684DFB4EB8971A5F1D1DA /* juce_Uuid.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = juce_Uuid.cpp; path = ../../JuceLibraryCode/modules/juce_core/misc/juce_Uuid.cpp; sourceTree = SOURCE_ROOT; };
@@ -725,6 +723,7 @@
 		863D98B818301ED2E3DE38FF /* juce_win_BluetoothMidiDevicePairingDialogue.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = juce_win_BluetoothMidiDevicePairingDialogue.cpp; path = ../../JuceLibraryCode/modules/juce_audio_utils/native/juce_win_BluetoothMidiDevicePairingDialogue.cpp; sourceTree = SOURCE_ROOT; };
 		865B38FE6927F3366E66ED48 /* all.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = all.h; path = ../../JuceLibraryCode/modules/juce_audio_formats/codecs/flac/all.h; sourceTree = SOURCE_ROOT; };
 		86710D25799CE4B657870064 /* bitreader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = bitreader.h; path = ../../JuceLibraryCode/modules/juce_audio_formats/codecs/flac/libFLAC/include/private/bitreader.h; sourceTree = SOURCE_ROOT; };
+		867AC1364EA09B3BC33A59DF /* FileWriter.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = FileWriter.cpp; path = ../../Source/FileWriter.cpp; sourceTree = SOURCE_ROOT; };
 		86C513C51AC63F3EFCF7E3F0 /* juce_OpenGLImage.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_OpenGLImage.h; path = ../../JuceLibraryCode/modules/juce_opengl/opengl/juce_OpenGLImage.h; sourceTree = SOURCE_ROOT; };
 		86E2529FADA8674A79A8E1CB /* juce_mac_CoreAudio.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = juce_mac_CoreAudio.cpp; path = ../../JuceLibraryCode/modules/juce_audio_devices/native/juce_mac_CoreAudio.cpp; sourceTree = SOURCE_ROOT; };
 		873230DDD057005ECF06D90C /* juce_FileBasedDocument.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_FileBasedDocument.h; path = ../../JuceLibraryCode/modules/juce_gui_extra/documents/juce_FileBasedDocument.h; sourceTree = SOURCE_ROOT; };
@@ -1312,6 +1311,7 @@
 		FEDC7D757C7F429C064C60D7 /* juce_ComponentBoundsConstrainer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = juce_ComponentBoundsConstrainer.cpp; path = ../../JuceLibraryCode/modules/juce_gui_basics/layout/juce_ComponentBoundsConstrainer.cpp; sourceTree = SOURCE_ROOT; };
 		FEF71E06BE0899967C2FB07B /* juce_android_Files.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = juce_android_Files.cpp; path = ../../JuceLibraryCode/modules/juce_core/native/juce_android_Files.cpp; sourceTree = SOURCE_ROOT; };
 		FF05A796E8F9F15C80DA1F42 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
+		FF5ADF8A6BD3C4F13613F610 /* FileWriter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = FileWriter.h; path = ../../Source/FileWriter.h; sourceTree = SOURCE_ROOT; };
 		FF97833AF8D3B67AF13ED8BF /* vorbisfile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = vorbisfile.h; path = ../../JuceLibraryCode/modules/juce_audio_formats/codecs/oggvorbis/vorbisfile.h; sourceTree = SOURCE_ROOT; };
 		FFAA196422DE4A1C66478136 /* juce_ScopedPointer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_ScopedPointer.h; path = ../../JuceLibraryCode/modules/juce_core/memory/juce_ScopedPointer.h; sourceTree = SOURCE_ROOT; };
 		FFC425F6EF25356729A7FCB3 /* jackServerGRIS.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = jackServerGRIS.h; path = ../../Source/jackServerGRIS.h; sourceTree = SOURCE_ROOT; };
@@ -1326,9 +1326,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0D22DB0D1EBD06F900328FB3 /* Jackmp in Frameworks */,
-				0D22DB0E1EBD06F900328FB3 /* Jackservermp in Frameworks */,
-				0D22DB0A1EBD06E700328FB3 /* GLUT.framework in Frameworks */,
+				0D573AD81EC38A12007605B1 /* Jackmp in Frameworks */,
+				0D573AD91EC38A12007605B1 /* Jackservermp in Frameworks */,
+				0D573AD51EC38A05007605B1 /* GLUT.framework in Frameworks */,
 				14E1864F61765881437B2AF8 /* Accelerate.framework in Frameworks */,
 				83E8051A98159BCED1FB14B4 /* AudioToolbox.framework in Frameworks */,
 				E18CF09FF07DD460A2179190 /* Carbon.framework in Frameworks */,
@@ -3485,9 +3485,9 @@
 		F5A12AB396B85DBC74140D9B /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				0D22DB0B1EBD06F900328FB3 /* Jackmp */,
-				0D22DB0C1EBD06F900328FB3 /* Jackservermp */,
-				0D22DB091EBD06E700328FB3 /* GLUT.framework */,
+				0D573AD61EC38A12007605B1 /* Jackmp */,
+				0D573AD71EC38A12007605B1 /* Jackservermp */,
+				0D573AD41EC38A05007605B1 /* GLUT.framework */,
 				A290A4B264C78F0C18D6F058 /* Accelerate.framework */,
 				0FD279E88FD45389728A9CB4 /* AudioToolbox.framework */,
 				AFD30D83137E514A4002A681 /* Carbon.framework */,
@@ -3549,6 +3549,8 @@
 		FAA16A21521DD35AC3040C00 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				867AC1364EA09B3BC33A59DF /* FileWriter.cpp */,
+				FF5ADF8A6BD3C4F13613F610 /* FileWriter.h */,
 				9CEB1A4032DC38548D41C6D6 /* jackServerGRIS.cpp */,
 				FFC425F6EF25356729A7FCB3 /* jackServerGRIS.h */,
 				CB166B04AB89B0476A24CE28 /* jackClientGRIS.cpp */,
@@ -3572,8 +3574,6 @@
 				834CB57ED195C1BA7C386FDF /* Ray.h */,
 				D3CD7489347727C67DC690C5 /* WinControl.cpp */,
 				341D1E6B116AEB4C9BB592AF /* WinControl.h */,
-				0D1A805C1EBD25B90082FA89 /* FileWriter.cpp */,
-				0D1A805D1EBD25B90082FA89 /* FileWriter.h */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -3715,6 +3715,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3F69502778F301BD90778B1D /* FileWriter.cpp in Sources */,
 				F366310BF90DB2A204DD1363 /* jackServerGRIS.cpp in Sources */,
 				D9ABB7BC8BFB59D392B6C505 /* jackClientGRIS.cpp in Sources */,
 				04CF901E6DCE0A68232B9454 /* Main.cpp in Sources */,
@@ -3739,7 +3740,6 @@
 				04C1EDF29F91549946A3B3D0 /* juce_graphics.mm in Sources */,
 				0C73D37DE849B35C4D59E3B9 /* juce_gui_basics.mm in Sources */,
 				35906963C034D4F8C6ED9A21 /* juce_gui_extra.mm in Sources */,
-				0D1A805E1EBD25B90082FA89 /* FileWriter.cpp in Sources */,
 				5164909C37A573656995DBE2 /* juce_opengl.mm in Sources */,
 				A01CD20EAB70418A720BEB08 /* juce_osc.cpp in Sources */,
 				1911144E085F5384FBC74D63 /* juce_video.mm in Sources */,

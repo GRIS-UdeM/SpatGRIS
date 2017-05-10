@@ -73,20 +73,17 @@ static void muteSoloVuMeterGainOut(jackClientGris & jackCli, jack_default_audio_
         for(int nF = 0; nF < nframes; ++nF) {
             //Gain volume
             outs[i][nF] *= mGain;
-            //cout << outs[i][nF] << newLine;
             sumsOut[i] +=  outs[i][nF] * outs[i][nF];
             
         }
         jackCli.levelsOut[i] = sumsOut[i]/nframes;
         
-        /*size_t old_size(jackCli.buffersToRecord[i].size());
-        jackCli.buffersToRecord[i].resize(old_size + nframes, 0);
-        memcpy(&jackCli.buffersToRecord[i][old_size], outs[i], nframes * sizeof(jack_default_audio_sample_t));*/
-        
+        //Record buffer
         if(jackCli.recording && jackCli.indexRecord+nframes < jackCli.endIndexRecord){
             memcpy(&jackCli.buffersToRecord[i][jackCli.indexRecord], outs[i], nframes * sizeof(jack_default_audio_sample_t));
         }
     }
+    //Record
     if(jackCli.recording && jackCli.indexRecord+nframes < jackCli.endIndexRecord){
         jackCli.indexRecord += nframes;
     }
@@ -534,6 +531,7 @@ void jackClientGris::prepareToRecord(int minuteR )
     this->recording = false;
     this->endIndexRecord = (minuteR * 60 * this->sampleRate);
     for(int i = 0; i < this->outputsPort.size(); ++i){
+        this->buffersToRecord[i].clear();
         this->buffersToRecord[i].resize(this->endIndexRecord, 0);
     }
     this->indexRecord = 1;

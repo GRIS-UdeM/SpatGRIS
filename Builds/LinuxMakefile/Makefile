@@ -64,6 +64,7 @@ ifeq ($(CONFIG),Release)
 endif
 
 OBJECTS := \
+  $(JUCE_OBJDIR)/FileWriter_d7bbef18.o \
   $(JUCE_OBJDIR)/jackServerGRIS_20451e40.o \
   $(JUCE_OBJDIR)/jackClientGRIS_1eacdac8.o \
   $(JUCE_OBJDIR)/Main_90ebc5c2.o \
@@ -112,6 +113,11 @@ clean:
 strip:
 	@echo Stripping spatServerGRIS
 	-@$(STRIP) --strip-unneeded $(JUCE_OUTDIR)/$(TARGET)
+
+$(JUCE_OBJDIR)/FileWriter_d7bbef18.o: ../../Source/FileWriter.cpp
+	-@mkdir -p $(JUCE_OBJDIR)
+	@echo "Compiling FileWriter.cpp"
+	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) -o "$@" -c "$<"
 
 $(JUCE_OBJDIR)/jackServerGRIS_20451e40.o: ../../Source/jackServerGRIS.cpp
 	-@mkdir -p $(JUCE_OBJDIR)

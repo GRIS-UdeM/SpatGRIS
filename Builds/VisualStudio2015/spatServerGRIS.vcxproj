@@ -131,6 +131,7 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Source\FileWriter.cpp"/>
     <ClCompile Include="..\..\Source\jackServerGRIS.cpp"/>
     <ClCompile Include="..\..\Source\jackClientGRIS.cpp"/>
     <ClCompile Include="..\..\Source\Main.cpp"/>
@@ -1754,6 +1755,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\GrisCommonFiles\GrisLookAndFeel.h"/>
+    <ClInclude Include="..\..\Source\FileWriter.h"/>
     <ClInclude Include="..\..\Source\jackServerGRIS.h"/>
     <ClInclude Include="..\..\Source\jackClientGRIS.h"/>
     <ClInclude Include="..\..\Source\MainComponent.h"/>

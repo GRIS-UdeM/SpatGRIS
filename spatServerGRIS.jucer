@@ -14,6 +14,8 @@
             file="../GrisCommonFiles/GrisLookAndFeel.h"/>
     </GROUP>
     <GROUP id="{534A7161-2617-F3B1-0706-CC62D7A3FE71}" name="Source">
+      <FILE id="orpI2a" name="FileWriter.cpp" compile="1" resource="0" file="Source/FileWriter.cpp"/>
+      <FILE id="rY6hWS" name="FileWriter.h" compile="0" resource="0" file="Source/FileWriter.h"/>
       <FILE id="LMWJcl" name="jackServerGRIS.cpp" compile="1" resource="0"
             file="Source/jackServerGRIS.cpp"/>
       <FILE id="Dg7whn" name="jackServerGRIS.h" compile="0" resource="0"

@@ -379,6 +379,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Source\FileWriter.cpp">
+      <Filter>spatServerGRIS\Source</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\jackServerGRIS.cpp">
       <Filter>spatServerGRIS\Source</Filter>
     </ClCompile>
@@ -2180,6 +2183,9 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\GrisCommonFiles\GrisLookAndFeel.h">
       <Filter>spatServerGRIS\GrisCommonFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\FileWriter.h">
+      <Filter>spatServerGRIS\Source</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\jackServerGRIS.h">
       <Filter>spatServerGRIS\Source</Filter>
