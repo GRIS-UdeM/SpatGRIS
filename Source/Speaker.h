@@ -45,6 +45,7 @@ static const glm::vec3 ColorSpeaker         = glm::vec3(0.87, 0.87, 0.87);
 static const glm::vec3 ColorSpeakerSelect   = glm::vec3(1.00, 0.64, 0.09);
 static const glm::vec3 SizeSpeaker          = glm::vec3(0.5, 0.5, 0.5);
 static const glm::vec3 DefaultCenter        = glm::vec3(0, 0, 0);
+static const float     Over                 = 0.02f;
 
 static double GetFloatPrecision(double value, double precision)
 {

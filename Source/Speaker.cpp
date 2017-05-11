@@ -238,45 +238,44 @@ void Speaker::draw() {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);  // this tells it to only render lines
         glLineWidth(4);
         glBegin(GL_LINES);
-        float over = 0.02f;
         
-        glVertex3f(this->min.x-over, this->min.y-over, this->min.z-over);
-        glVertex3f(this->min.x-over, this->min.y-over, this->max.z+over);
+        glVertex3f(this->min.x-Over, this->min.y-Over, this->min.z-Over);
+        glVertex3f(this->min.x-Over, this->min.y-Over, this->max.z+Over);
         
-        glVertex3f(this->max.x+over, this->min.y-over, this->min.z-over);
-        glVertex3f(this->max.x+over, this->min.y-over, this->max.z+over);
+        glVertex3f(this->max.x+Over, this->min.y-Over, this->min.z-Over);
+        glVertex3f(this->max.x+Over, this->min.y-Over, this->max.z+Over);
         
-        glVertex3f(this->max.x+over, this->max.y+over, this->min.z-over);
-        glVertex3f(this->max.x+over, this->max.y+over, this->max.z+over);
+        glVertex3f(this->max.x+Over, this->max.y+Over, this->min.z-Over);
+        glVertex3f(this->max.x+Over, this->max.y+Over, this->max.z+Over);
         
-        glVertex3f(this->min.x-over, this->max.y+over, this->min.z-over);
-        glVertex3f(this->min.x-over, this->max.y+over, this->max.z+over);
+        glVertex3f(this->min.x-Over, this->max.y+Over, this->min.z-Over);
+        glVertex3f(this->min.x-Over, this->max.y+Over, this->max.z+Over);
         
 
-        glVertex3f(this->min.x-over, this->min.y-over, this->min.z-over);
-        glVertex3f(this->max.x+over, this->min.y-over, this->min.z-over);
+        glVertex3f(this->min.x-Over, this->min.y-Over, this->min.z-Over);
+        glVertex3f(this->max.x+Over, this->min.y-Over, this->min.z-Over);
         
-        glVertex3f(this->min.x-over, this->min.y-over, this->max.z+over);
-        glVertex3f(this->max.x+over, this->min.y-over, this->max.z+over);
+        glVertex3f(this->min.x-Over, this->min.y-Over, this->max.z+Over);
+        glVertex3f(this->max.x+Over, this->min.y-Over, this->max.z+Over);
         
-        glVertex3f(this->min.x-over, this->max.y+over, this->min.z-over);
-        glVertex3f(this->max.x+over, this->max.y+over, this->min.z-over);
+        glVertex3f(this->min.x-Over, this->max.y+Over, this->min.z-Over);
+        glVertex3f(this->max.x+Over, this->max.y+Over, this->min.z-Over);
         
-        glVertex3f(this->min.x-over, this->max.y+over, this->max.z+over);
-        glVertex3f(this->max.x+over, this->max.y+over, this->max.z+over);
+        glVertex3f(this->min.x-Over, this->max.y+Over, this->max.z+Over);
+        glVertex3f(this->max.x+Over, this->max.y+Over, this->max.z+Over);
         
         
-        glVertex3f(this->min.x-over, this->min.y-over, this->min.z-over);
-        glVertex3f(this->min.x-over, this->max.y+over, this->min.z-over);
+        glVertex3f(this->min.x-Over, this->min.y-Over, this->min.z-Over);
+        glVertex3f(this->min.x-Over, this->max.y+Over, this->min.z-Over);
         
-        glVertex3f(this->min.x-over, this->min.y-over, this->max.z+over);
-        glVertex3f(this->min.x-over, this->max.y+over, this->max.z+over);
+        glVertex3f(this->min.x-Over, this->min.y-Over, this->max.z+Over);
+        glVertex3f(this->min.x-Over, this->max.y+Over, this->max.z+Over);
         
-        glVertex3f(this->max.x+over, this->min.y-over, this->min.z-over);
-        glVertex3f(this->max.x+over, this->max.y+over, this->min.z-over);
+        glVertex3f(this->max.x+Over, this->min.y-Over, this->min.z-Over);
+        glVertex3f(this->max.x+Over, this->max.y+Over, this->min.z-Over);
         
-        glVertex3f(this->max.x+over, this->min.y-over, this->max.z+over);
-        glVertex3f(this->max.x+over, this->max.y+over, this->max.z+over);
+        glVertex3f(this->max.x+Over, this->min.y-Over, this->max.z+Over);
+        glVertex3f(this->max.x+Over, this->max.y+Over, this->max.z+Over);
 
         
         glEnd();
