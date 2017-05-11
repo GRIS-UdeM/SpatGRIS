@@ -24,68 +24,71 @@
 //MUTE SOLO MasterGainOut and NOISE
 //=========================================================================================
 static void muteSoloVuMeterIn(jackClientGris & jackCli, jack_default_audio_sample_t ** ins, const jack_nframes_t &nframes, const unsigned int &sizeInputs){
-    //Mute & solo --------------------------------
+    
+    float sumsIn[sizeInputs];
+    fill(jackCli.levelsIn, jackCli.levelsIn+sizeInputs, -60.0f);
+    fill(sumsIn, sumsIn+sizeInputs, 0.0f);
+    
+    //Mute, solo & Vu meter ---------------
     for (int i = 0; i < sizeInputs; ++i) {
+        //Mute ----------------
         if(jackCli.muteIn[i]){
             memset (ins[i], 0, sizeof (jack_default_audio_sample_t) * nframes);
         }
+        //Solo ----------------
         if(jackCli.soloIn[MaxInputs]){
             if(!jackCli.soloIn[i]){
                 memset (ins[i], 0, sizeof (jack_default_audio_sample_t) * nframes);
             }
         }
-    }
-    
-    //Vu meter-----------------------------------
-    float sumsIn[sizeInputs];
-    fill(jackCli.levelsIn, jackCli.levelsIn+sizeInputs, -60.0f);
-    fill(sumsIn, sumsIn+sizeInputs, 0.0f);
-    
-    for (int i = 0; i < sizeInputs; ++i) {
+        //Vu Meter ----------------
         for(int nF = 0; nF < nframes; ++nF) {
             sumsIn[i] +=  ins[i][nF] * ins[i][nF];
         }
         jackCli.levelsIn[i] = sumsIn[i]/nframes;
     }
     
+    
 }
 
 static void muteSoloVuMeterGainOut(jackClientGris & jackCli, jack_default_audio_sample_t ** outs, const jack_nframes_t &nframes, const unsigned int &sizeOutputs, const float mGain = 1.0f){
-    //Mute & solo --------------------------------
+    
+    float sumsOut[sizeOutputs];
+    fill(jackCli.levelsOut, jackCli.levelsOut+sizeOutputs, -60.0f);
+    fill(sumsOut, sumsOut+sizeOutputs, 0.0f);
+    
+    //Var for Record 
+    const unsigned int sizeMenCpy = nframes * sizeof(jack_default_audio_sample_t);
+    const unsigned int bufferIndexNext = jackCli.indexRecord + nframes;
+    
+    //Mute, solo & Vu meter && Record -------------
     for (int i = 0; i < sizeOutputs; ++i) {
+        //Mute ----------------
         if(jackCli.muteOut[i]){
             memset (outs[i], 0, sizeof (jack_default_audio_sample_t) * nframes);
         }
+        //Solo ----------------
         if(jackCli.soloOut[MaxOutputs]){
             if(!jackCli.soloOut[i]){
                 memset (outs[i], 0, sizeof (jack_default_audio_sample_t) * nframes);
             }
         }
-    }
-    
-    //Vu meter-----------------------------------
-    float sumsOut[sizeOutputs];
-    const unsigned int sizeMenCpy = nframes * sizeof(jack_default_audio_sample_t);
-    fill(jackCli.levelsOut, jackCli.levelsOut+sizeOutputs, -60.0f);
-    fill(sumsOut, sumsOut+sizeOutputs, 0.0f);
-    
-    
-    for (int i = 0; i < sizeOutputs; ++i) {
+        //Vu Meter ----------------
         for(int nF = 0; nF < nframes; ++nF) {
             //Gain volume
             outs[i][nF] *= mGain;
             sumsOut[i] +=  outs[i][nF] * outs[i][nF];
-            
         }
         jackCli.levelsOut[i] = sumsOut[i]/nframes;
         
-        //Record buffer
-        if(jackCli.recording && jackCli.indexRecord+nframes < jackCli.endIndexRecord){
+        //Record buffer ---------------
+        if(jackCli.recording && bufferIndexNext < jackCli.endIndexRecord){
             memcpy(&jackCli.buffersToRecord[i][jackCli.indexRecord], outs[i], sizeMenCpy);
         }
     }
-    //Record
-    if(jackCli.recording && jackCli.indexRecord+nframes < jackCli.endIndexRecord){
+    
+    //Record - Up index ----------
+    if(jackCli.recording && bufferIndexNext < jackCli.endIndexRecord){
         jackCli.indexRecord += nframes;
     }
 }
