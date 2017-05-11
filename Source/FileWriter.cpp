@@ -38,7 +38,7 @@ void FileWriter::run()
         this->inSave = false;
         return;
     }
-    int size= this->mainParent->getBufferToRecord(0).size();
+    unsigned int size = this->mainParent->getBufferCurentIndex();
     AudioSampleBuffer* buffers=new AudioSampleBuffer(this->numOutputs,size);
     buffers->clear();
     

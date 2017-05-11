@@ -65,10 +65,11 @@ static void muteSoloVuMeterGainOut(jackClientGris & jackCli, jack_default_audio_
     
     //Vu meter-----------------------------------
     float sumsOut[sizeOutputs];
+    const unsigned int sizeMenCpy = nframes * sizeof(jack_default_audio_sample_t);
     fill(jackCli.levelsOut, jackCli.levelsOut+sizeOutputs, -60.0f);
     fill(sumsOut, sumsOut+sizeOutputs, 0.0f);
     
-
+    
     for (int i = 0; i < sizeOutputs; ++i) {
         for(int nF = 0; nF < nframes; ++nF) {
             //Gain volume
@@ -80,7 +81,7 @@ static void muteSoloVuMeterGainOut(jackClientGris & jackCli, jack_default_audio_
         
         //Record buffer
         if(jackCli.recording && jackCli.indexRecord+nframes < jackCli.endIndexRecord){
-            memcpy(&jackCli.buffersToRecord[i][jackCli.indexRecord], outs[i], nframes * sizeof(jack_default_audio_sample_t));
+            memcpy(&jackCli.buffersToRecord[i][jackCli.indexRecord], outs[i], sizeMenCpy);
         }
     }
     //Record

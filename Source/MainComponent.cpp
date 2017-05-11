@@ -940,7 +940,9 @@ void MainContentComponent::buttonClicked (Button *button)
             hue+=0.01f;
             if(hue >= 0.98f){ hue = 0.0f; }
         }
-    }else if(button == this->butStartRecord){
+    }
+    else if(button == this->butStartRecord){
+        //Record sound
         if(this->jackClient->recording)
         {
             this->jackClient->stopRecort();

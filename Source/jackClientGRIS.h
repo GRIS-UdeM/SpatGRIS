@@ -169,7 +169,7 @@ public:
     
     //Recording param =========================
     void prepareToRecord(int minuteR = 1);
-    void startRecord(){ this->recording = true; }
+    void startRecord(){ this->indexRecord = 1; this->recording = true; }
     void stopRecort(){ this->recording = false; }
     vector<jack_default_audio_sample_t> buffersToRecord [MaxOutputs];
     unsigned int indexRecord = 1;
