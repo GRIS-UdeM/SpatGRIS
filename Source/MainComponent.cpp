@@ -172,16 +172,17 @@ MainContentComponent::MainContentComponent(){
     this->sliderMasterGainOut->setValue(1.0);
     this->comBoxModeSpat->setSelectedId(1);
 
-    
     //OSC Receiver----------------------------------------------------------------------------
     this->oscReceiver = new OscInput(this);
     textEditorReturnKeyPressed(*this->tedOSCInPort);
     
-    this->tedAddInputs->setText("16",dontSendNotification);
-    textEditorReturnKeyPressed(*this->tedAddInputs);
+    this->openPreset(applicationProperties.getUserSettings()->getValue("lastOpentPreset"));
+
 
     
-    this->openPreset(applicationProperties.getUserSettings()->getValue("lastOpentPreset"));
+    this->tedAddInputs->setText("16",dontSendNotification);
+    textEditorReturnKeyPressed(*this->tedAddInputs);
+    
 
 
     this->resized();
@@ -405,16 +406,22 @@ void MainContentComponent::removeSpeaker(int idSpeaker){
 
 void MainContentComponent::updateInputJack(int inInput, Input &inp){
     SourceIn *si = &this->jackClient->listSourceIn[inInput]; //.getReference(inInput);
+
     si->x = inp.getCenter().x/10.0f;
     si->y = inp.getCenter().y/10.0f;
     si->z = inp.getCenter().z/10.0f;
-
+    
     si->azimuth = inp.getAziMuth();
     si->zenith  = inp.getZenith();
     si->radius  = inp.getRad();
     
     si->aziSpan = inp.getAziMuthSpan();
     si->zenSpan = inp.getZenithSpan();
+    
+    if(this->jackClient->modeSelected == VBap)
+    {
+        this->jackClient->updateSourceVbap(inInput);
+    }
     
     //cout << si->azimuth << " // " << si->zenith << " // " << si->radius << " // " << si->aziSpan << " // " << si->zenSpan << newLine;
 }
@@ -454,6 +461,7 @@ void MainContentComponent::updateLevelComp(){
     indexS = 0;
     //this->jackClient->listSourceIn.clear();
     i=0;
+    this->lockInputs->lock();
     for (auto&& it : this->listSourceInput)
     {
         juce::Rectangle<int> level(x, 4, SizeWidthLevelComp, 200);
@@ -477,6 +485,7 @@ void MainContentComponent::updateLevelComp(){
         this->jackClient->listSourceIn[i] = si;
         i++;
     }
+    this->lockInputs->unlock();
     if(this->winSpeakConfig != nullptr){
         this->winSpeakConfig->updateWinContent();
     }
@@ -485,6 +494,7 @@ void MainContentComponent::updateLevelComp(){
     this->resized();
     
     this->jackClient->prepareToRecord(0);
+    
 }
 
 
@@ -970,6 +980,12 @@ void MainContentComponent::comboBoxChanged (ComboBox *comboBox)
 {
     if(this->comBoxModeSpat == comboBox){
         this->jackClient->modeSelected = (ModeSpatEnum)(this->comBoxModeSpat->getSelectedId()-1);
+        
+        if(this->jackClient->modeSelected == VBap){
+            if(this->listSpeaker.size()>0){
+                this->jackClient->initSpeakersTripplet(this->listSpeaker.size());
+            }
+        }
     }
 }
 

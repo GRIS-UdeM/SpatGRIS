@@ -26,7 +26,8 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdio.h>
-#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
@@ -35,7 +36,13 @@
 #include <jack/types.h>
 #include <jack/session.h>
 
+#include "vbap.h"
+
 using namespace std;
+
+//Limit SpatServer In/Out
+static unsigned int const MaxInputs  = 256;
+static unsigned int const MaxOutputs = 256;
 
 struct Client {
     String          name;
@@ -43,6 +50,13 @@ struct Client {
     unsigned int    portEnd       = 32;
     unsigned int    portAvailable = 0;
     bool            connected     = false;
+};
+
+struct audioSetting {
+    int nchnls;     // number of channels.
+    double g[3];    // amplitude values for the speaker triplet.
+    int ls[3];      // triplet speaker numbers.
+    double y[MaxOutputs];    // lowpass memories.
 };
 
 
@@ -62,7 +76,10 @@ struct SourceIn {
     bool  isMuted = false;
     bool  isSolo = false;
     float gain;//Not Implemented
+    
+    audioSetting * paramVBap;
 };
+
 
 struct SpeakerOut {
     unsigned int id;
@@ -77,7 +94,16 @@ struct SpeakerOut {
     bool  isMuted = false;
     bool  isSolo = false;
     float gain;//Not Implemented
+    
 };
+
+
+typedef struct _audio_settings {
+    int nchnls;     // number of channels.
+    double g[3];    // amplitude values for the speaker triplet.
+    int ls[3];      // triplet speaker numbers.
+    double y[128];    // lowpass memories.
+} audio_settings;
 
 //Mode Spat
 typedef enum {
@@ -96,9 +122,7 @@ static const char* ClientName =     "jackClientGris";
 static const char* DriverNameSys =  "coreaudio";
 static const char* ClientNameSys =  "system";
 
-//Limit SpatServer In/Out
-static unsigned int const MaxInputs  = 256;
-static unsigned int const MaxOutputs = 256;
+
 
 
 class jackClientGris {
@@ -106,7 +130,9 @@ public:
 
     //Jack var
     jack_client_t *client;
-
+    DATA  data;
+    //audio_settings * audio;
+    
     vector<jack_port_t *> inputsPort;
     vector<jack_port_t *> outputsPort;
 
@@ -175,6 +201,11 @@ public:
     unsigned int indexRecord = 1;
     unsigned int endIndexRecord = 1;
     bool recording;
+    
+    
+    //SpeakerLoad
+    void initSpeakersTripplet(int sizeInput);
+    void updateSourceVbap(int idS);
     
 private:
     
