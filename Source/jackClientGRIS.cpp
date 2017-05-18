@@ -434,7 +434,7 @@ jackClientGris::jackClientGris(unsigned int bufferS) {
     
     this->listClient = vector<Client>();
     
-    /*this->listSourceIn = vector<SourceIn>();
+        /*this->listSourceIn = vector<SourceIn>();
     this->listSpeakerOut = vector<SpeakerOut>();
     
     SourceIn si;
@@ -675,13 +675,18 @@ void jackClientGris::connectedGristoSystem(){
 
 }
 
-void jackClientGris::initSpeakersTripplet(int sizeInput)
+void jackClientGris::initSpeakersTripplet(int sizeOutput)
 {
+    if(sizeOutput <= 0){
+        return;
+    }
+    
+    this->processBlockOn = false;
     long i, j;
     ls lss[MAX_LS_AMOUNT];
     struct ls_triplet_chain *ls_ptr, *ls_triplets = NULL;
     
-    for(int i = 0; i < sizeInput ; i++){
+    for(int i = 0; i < sizeOutput ; i++){
         lss[i].coords.x = listSpeakerOut[i].x;
         lss[i].coords.y = listSpeakerOut[i].y;
         lss[i].coords.z = listSpeakerOut[i].z;
@@ -691,8 +696,8 @@ void jackClientGris::initSpeakersTripplet(int sizeInput)
         lss[i].angles.length = listSpeakerOut[i].radius;
     }
  
-    choose_ls_triplets(lss, &ls_triplets, sizeInput);
-    calculate_3x3_matrixes(ls_triplets, lss, sizeInput);
+    choose_ls_triplets(lss, &ls_triplets, sizeOutput);
+    calculate_3x3_matrixes(ls_triplets, lss, sizeOutput);
     
     // = malloc(sizeof(DATA));
     data.dimension = 3;
@@ -711,18 +716,18 @@ void jackClientGris::initSpeakersTripplet(int sizeInput)
     data.triplet_count = i;
     
     for(int i = 0; i < MaxInputs ; i++){
-
-        listSourceIn[i].paramVBap  = new audioSetting;
-        listSourceIn[i].paramVBap->nchnls = sizeInput;
+        listSourceIn[i].paramVBap->nchnls = MaxInputs;
         fill(listSourceIn[i].paramVBap->y, listSourceIn[i].paramVBap->y+MaxOutputs, 0);
-
     }
+    this->processBlockOn = true;
 }
 
 void jackClientGris::updateSourceVbap(int idS)
 {
+    if(listSourceIn[idS].paramVBap != nullptr){
     vbap(listSourceIn[idS].paramVBap->g, listSourceIn[idS].paramVBap->ls, listSourceIn[idS].x, listSourceIn[idS].y,listSourceIn[idS].z, data.dimension,
          data.matrices, data.numbers, data.triplet_count);
+    }
 }
 
 

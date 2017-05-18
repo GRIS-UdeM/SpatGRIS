@@ -77,7 +77,7 @@ struct SourceIn {
     bool  isSolo = false;
     float gain;//Not Implemented
     
-    audioSetting * paramVBap;
+    audioSetting * paramVBap = new audioSetting();
 };
 
 
@@ -97,13 +97,6 @@ struct SpeakerOut {
     
 };
 
-
-typedef struct _audio_settings {
-    int nchnls;     // number of channels.
-    double g[3];    // amplitude values for the speaker triplet.
-    int ls[3];      // triplet speaker numbers.
-    double y[128];    // lowpass memories.
-} audio_settings;
 
 //Mode Spat
 typedef enum {
@@ -204,7 +197,7 @@ public:
     
     
     //SpeakerLoad
-    void initSpeakersTripplet(int sizeInput);
+    void initSpeakersTripplet(int sizeOutput);
     void updateSourceVbap(int idS);
     
 private:

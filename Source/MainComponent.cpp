@@ -176,14 +176,12 @@ MainContentComponent::MainContentComponent(){
     this->oscReceiver = new OscInput(this);
     textEditorReturnKeyPressed(*this->tedOSCInPort);
     
-    this->openPreset(applicationProperties.getUserSettings()->getValue("lastOpentPreset"));
-
-
     
     this->tedAddInputs->setText("16",dontSendNotification);
     textEditorReturnKeyPressed(*this->tedAddInputs);
     
-
+    
+    this->openPreset(applicationProperties.getUserSettings()->getValue("lastOpentPreset"));
 
     this->resized();
     startTimerHz(HertzRefreshNormal);
@@ -494,7 +492,8 @@ void MainContentComponent::updateLevelComp(){
     this->resized();
     
     this->jackClient->prepareToRecord(0);
-    
+    this->jackClient->initSpeakersTripplet(listSpeaker.size());
+
 }
 
 
@@ -799,7 +798,7 @@ void MainContentComponent::textEditorReturnKeyPressed (TextEditor & textEditor){
             
             this->lockInputs->lock();
             bool addInput = false;
-            for(int i = 0 ; i< this->jackClient->inputsPort.size();i++){
+            for(int i = 0 ; i < this->jackClient->inputsPort.size(); i++){
                 if(i >= this->listSourceInput.size()){
                     this->listSourceInput.push_back(new Input(this, &mGrisFeel,i+1));
                     addInput = true;
@@ -982,9 +981,9 @@ void MainContentComponent::comboBoxChanged (ComboBox *comboBox)
         this->jackClient->modeSelected = (ModeSpatEnum)(this->comBoxModeSpat->getSelectedId()-1);
         
         if(this->jackClient->modeSelected == VBap){
-            if(this->listSpeaker.size()>0){
-                this->jackClient->initSpeakersTripplet(this->listSpeaker.size());
-            }
+            
+            this->jackClient->initSpeakersTripplet(this->listSpeaker.size());
+            
         }
     }
 }
