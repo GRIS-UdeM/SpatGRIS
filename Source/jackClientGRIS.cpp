@@ -264,9 +264,6 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
             
         case DBap:
             break;
-            
-        case HRTF:
-            break;
         
         default:
             jassertfalse;
@@ -431,6 +428,7 @@ jackClientGris::jackClientGris(unsigned int bufferS) {
     this->processBlockOn = true;
     this->modeSelected = FreeBasic;
     this->recording = false;
+    this->hrtfOn = false;
     
     this->listClient = vector<Client>();
     

@@ -102,10 +102,9 @@ struct SpeakerOut {
 typedef enum {
     FreeBasic = 0,
     VBap,
-    DBap,
-    HRTF
+    DBap
 } ModeSpatEnum;
-static const StringArray ModeSpatString = {"Free basic", "VBap", "DBap", "HRTF"};
+static const StringArray ModeSpatString = {"Free basic", "VBap", "DBap"};
 
 //Settings Jack Server
 static const StringArray BufferSize = {"32", "64", "128", "256", "512", "1024", "2048"};
@@ -152,6 +151,7 @@ public:
     
     bool         processBlockOn;
     ModeSpatEnum modeSelected;
+    bool         hrtfOn;
     
     bool noiseSound;
     bool autoConnection;

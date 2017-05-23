@@ -120,13 +120,15 @@ MainContentComponent::MainContentComponent(){
     for(int i = 0; i < ModeSpatString.size(); i++){
          this->comBoxModeSpat->addItem(ModeSpatString[i], i+1);
     }
+    this->butHRTF        = addToggleButton("HRTF", "Binaural",    315, 160, 124, 18, this->boxControlUI->getContent());
     
-    this->tedMinRecord      = addTextEditor("Min :", "Time of record (min)", "Time of record (min)", 300, 156, 40, 24, this->boxControlUI->getContent());
+    
+    this->tedMinRecord      = addTextEditor("Min :", "Time of record (min)", "Time of record (min)", 460, 156, 40, 24, this->boxControlUI->getContent());
     this->tedMinRecord->setText("0");
     this->tedMinRecord->setInputRestrictions(2,"0123456789");
-    this->butStartRecord    = addButton("R","Start/Stop Record",320,156,24,24,this->boxControlUI->getContent());
+    this->butStartRecord    = addButton("R","Start/Stop Record",480,156,24,24,this->boxControlUI->getContent());
     
-    this->labelTimeRecorded = addLabel("00:00","Record time",420, 156, 50, 24,this->boxControlUI->getContent());
+    this->labelTimeRecorded = addLabel("00:00","Record time",580, 156, 50, 24,this->boxControlUI->getContent());
 
     this->butDisconnectAllJack  = addButton("X All","Disconnect all Jack",480,120,40,24,this->boxControlUI->getContent());
     this->butDisconnectAllJack->setColour(TextButton::buttonColourId, juce::Colours::darkred);
@@ -925,6 +927,10 @@ void MainContentComponent::buttonClicked (Button *button)
         
         this->jackClient->disconnectAllClient();
         
+    }else if(button == this->butHRTF){
+        
+        this->jackClient->hrtfOn = this->butHRTF->getToggleState();
+        
     }
     else if(button == this->butHighPerformance){
         
@@ -946,6 +952,7 @@ void MainContentComponent::buttonClicked (Button *button)
     }else if(button == this->butNoiseSound){
         
         this->jackClient->noiseSound = butNoiseSound->getToggleState();
+        
     }else if(button == this->butHideSpeaker){
         this->speakerView->setHideSpeaker(butHideSpeaker->getToggleState());
     }
