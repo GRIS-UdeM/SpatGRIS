@@ -113,7 +113,13 @@ jackServerGRIS::jackServerGRIS(unsigned int rateV){
     #if PRINT_SERVER
     const JSList * parameters2 = jackctl_server_get_parameters(server);
     print_parameters(parameters2);
+    free(&parameters2);
     #endif
+    
+    free(&parameters);
+    free(&drivers);
+    free(&internals);
+    free(&node_ptr);
     
     printf("\n========================== \n");
     printf("Jack Server Run \n");
