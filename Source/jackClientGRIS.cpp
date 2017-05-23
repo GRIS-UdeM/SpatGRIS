@@ -733,7 +733,6 @@ void jackClientGris::updateSourceVbap(int idS)
 
 void jackClientGris::autoConnectClient()
 {
-    connectedGristoSystem();
     
     const char ** portsOut = jack_get_ports (this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput);
     const char ** portsIn = jack_get_ports (this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput);
@@ -742,6 +741,20 @@ void jackClientGris::autoConnectClient()
     int j=0;
     int startJ = 0;
     int endJ = 0;
+    
+    //Disconencted ALL ------------------------------------------------
+    while (portsOut[i]){
+        j = 0;
+        while(portsIn[j]){
+            jack_disconnect(this->client, portsOut[i] ,portsIn[j]);
+            j+=1;
+        }
+        i+=1;
+    }
+    i = 0;
+    j = 0;
+    
+    connectedGristoSystem();
     
     //Connect other client to jackClientGris------------------------------------------
     this->autoConnection = true;

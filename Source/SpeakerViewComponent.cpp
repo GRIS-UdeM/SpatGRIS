@@ -194,7 +194,7 @@ void SpeakerViewComponent::clickRay()
     this->ray.setRay(glm::vec3(xS, yS, zS),glm::vec3(xE, yE, zE));
     
     int iBestSpeaker = -1;
-    this->mainParent->getLockSpeakers()->lock();
+    if(this->mainParent->getLockSpeakers()->try_lock()){
     for(int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
         if (raycast( this->mainParent->getListSpeaker()[i]) != -1 ) {
             if(iBestSpeaker == -1){
@@ -208,6 +208,7 @@ void SpeakerViewComponent::clickRay()
     }
     this->mainParent->selectSpeaker(iBestSpeaker);
     this->mainParent->getLockSpeakers()->unlock();
+    }
 }
 
 void SpeakerViewComponent::mouseDown (const MouseEvent& e)

@@ -112,8 +112,8 @@ public:
     
     void saveJackSettings(unsigned int rate, unsigned int buff);
     //=======================================================================
-    float getLevelsOut(int indexLevel){return (20.0f * log10f(sqrtf(this->jackClient->getLevelsOut(indexLevel))));}
-    float getLevelsIn(int indexLevel){return (20.0f * log10f(sqrtf(this->jackClient->getLevelsIn(indexLevel)))); }
+    float getLevelsOut(int indexLevel){return (15.0f * log10f(sqrtf(this->jackClient->getLevelsOut(indexLevel))));}
+    float getLevelsIn(int indexLevel){return (15.0f * log10f(sqrtf(this->jackClient->getLevelsIn(indexLevel)))); }
     
 
     void destroyWinSpeakConf() { this->winSpeakConfig = nullptr; this->jackClient->processBlockOn = true; }

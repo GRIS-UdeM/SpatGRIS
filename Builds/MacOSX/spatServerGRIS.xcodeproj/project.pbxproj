@@ -17,6 +17,7 @@
 		0D573AD91EC38A12007605B1 /* Jackservermp in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D573AD71EC38A12007605B1 /* Jackservermp */; };
 		0D76540CEB135C65E2C77E42 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A49E2EA8DC00B3CFBC3B8FC /* Cocoa.framework */; };
 		0DE3ABB01ECDE28A00EACF5B /* vbap.c in Sources */ = {isa = PBXBuildFile; fileRef = 0DE3ABAE1ECDE28A00EACF5B /* vbap.c */; };
+		0DF1F1CA1ED3700400CE7189 /* splash.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0DF1F1C91ED3700400CE7189 /* splash.png */; };
 		0F18ADC55E833D69E5746DFD /* juce_cryptography.mm in Sources */ = {isa = PBXBuildFile; fileRef = BAEE328DB2C9494397445A21 /* juce_cryptography.mm */; };
 		14E1864F61765881437B2AF8 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A290A4B264C78F0C18D6F058 /* Accelerate.framework */; };
 		153A81E76FB9CF6A837E1C6B /* juce_audio_formats.mm in Sources */ = {isa = PBXBuildFile; fileRef = 745CB09F74C41621B1678240 /* juce_audio_formats.mm */; };
@@ -55,6 +56,19 @@
 		F366310BF90DB2A204DD1363 /* jackServerGRIS.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9CEB1A4032DC38548D41C6D6 /* jackServerGRIS.cpp */; };
 		FF7EF70A8DC74036D54CAEEF /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 273B4E60A76257954AA14A13 /* OpenGL.framework */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		0DF1F1C81ED36FEC00CE7189 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 7;
+			files = (
+				0DF1F1CA1ED3700400CE7189 /* splash.png in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		00C96C5513829F8D810D559C /* juce_events.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_events.h; path = "../../../../sdks/JUCE-4.3.1/modules/juce_events/juce_events.h"; sourceTree = SOURCE_ROOT; };
@@ -126,6 +140,7 @@
 		0DC88B16521DF51B488590F4 /* OscInput.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = OscInput.h; path = ../../Source/OscInput.h; sourceTree = SOURCE_ROOT; };
 		0DE3ABAE1ECDE28A00EACF5B /* vbap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = vbap.c; path = ../../Source/vbap.c; sourceTree = "<group>"; };
 		0DE3ABAF1ECDE28A00EACF5B /* vbap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vbap.h; path = ../../Source/vbap.h; sourceTree = "<group>"; };
+		0DF1F1C91ED3700400CE7189 /* splash.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = splash.png; path = ../../splash.png; sourceTree = "<group>"; };
 		0E1684DFB4EB8971A5F1D1DA /* juce_Uuid.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = juce_Uuid.cpp; path = ../../JuceLibraryCode/modules/juce_core/misc/juce_Uuid.cpp; sourceTree = SOURCE_ROOT; };
 		0E45BAC07192E20F20B98922 /* juce_MidiMessageCollector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_MidiMessageCollector.h; path = ../../JuceLibraryCode/modules/juce_audio_devices/midi_io/juce_MidiMessageCollector.h; sourceTree = SOURCE_ROOT; };
 		0E4DB5D765565118296212AB /* juce_TextDiff.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = juce_TextDiff.cpp; path = ../../JuceLibraryCode/modules/juce_core/text/juce_TextDiff.cpp; sourceTree = SOURCE_ROOT; };
@@ -3231,6 +3246,7 @@
 		D197AC8A7278BF19DF69D425 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				0DF1F1C91ED3700400CE7189 /* splash.png */,
 				415CDF7CC3930A66F88F88C6 /* spatServerGRIS */,
 				16FAB0AD2349A989040A29E8 /* Juce Modules */,
 				8C248ABFB6C52E1FC3AC34EC /* Juce Library Code */,
@@ -3657,6 +3673,7 @@
 				94B32BC0E672EE1965E675A3 /* Resources */,
 				B0EE919E5883212051A44D3E /* Sources */,
 				05F4B69E0D66EF6E0301255B /* Frameworks */,
+				0DF1F1C81ED36FEC00CE7189 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -3673,7 +3690,7 @@
 		88451C71E2510D7D7C202625 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0440;
+				LastUpgradeCheck = 0830;
 				TargetAttributes = {
 					E07307A954C73D294F3A432D = {
 						SystemCapabilities = {
@@ -3798,15 +3815,30 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = YES;
 				GCC_MODEL_TUNING = G5;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
 				GCC_WARN_MISSING_PARENTHESES = YES;
 				GCC_WARN_NON_VIRTUAL_DESTRUCTOR = YES;
 				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				PRODUCT_NAME = spatServerGRIS;
 				WARNING_CFLAGS = "-Wreorder";
@@ -3856,16 +3888,31 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = YES;
 				GCC_MODEL_TUNING = G5;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
 				GCC_WARN_MISSING_PARENTHESES = YES;
 				GCC_WARN_NON_VIRTUAL_DESTRUCTOR = YES;
 				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = spatServerGRIS;

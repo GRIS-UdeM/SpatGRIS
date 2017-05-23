@@ -497,7 +497,7 @@ String WindowEditSpeaker::getText (const int columnNumber, const int rowNumber) 
 
 void WindowEditSpeaker::setText (const int columnNumber, const int rowNumber, const String& newText)
 {
-    this->mainParent->getLockSpeakers()->lock();
+    if(this->mainParent->getLockSpeakers()->try_lock()){
     if (this->mainParent->getListSpeaker().size()> rowNumber)
     {
         glm::vec3 newP;
@@ -546,6 +546,7 @@ void WindowEditSpeaker::setText (const int columnNumber, const int rowNumber, co
     }
     
     this->mainParent->getLockSpeakers()->unlock();
+    }
 }
 
 int WindowEditSpeaker::getNumRows()
@@ -557,15 +558,17 @@ int WindowEditSpeaker::getNumRows()
 void WindowEditSpeaker::paintRowBackground (Graphics& g, int rowNumber, int /*width*/, int /*height*/, bool rowIsSelected)
 {
     if (rowIsSelected){
-        this->mainParent->getLockSpeakers()->lock();
+        if(this->mainParent->getLockSpeakers()->try_lock()){
         this->mainParent->getListSpeaker()[rowNumber]->selectSpeaker();
         this->mainParent->getLockSpeakers()->unlock();
+        }
         g.fillAll (this->grisFeel->getOnColour());
     }
     else{
-        this->mainParent->getLockSpeakers()->lock();
+        if(this->mainParent->getLockSpeakers()->try_lock()){
         this->mainParent->getListSpeaker()[rowNumber]->unSelectSpeaker();
         this->mainParent->getLockSpeakers()->unlock();
+        }
         if (rowNumber % 2){
             g.fillAll (this->grisFeel->getBackgroundColour().withBrightness(0.6));
         }else{
@@ -581,7 +584,7 @@ void WindowEditSpeaker::paintCell (Graphics& g, int rowNumber, int columnId, int
     g.setColour (Colours::black);
     g.setFont (font);
     
-    this->mainParent->getLockSpeakers()->lock();
+    if(this->mainParent->getLockSpeakers()->try_lock()){
     if (this->mainParent->getListSpeaker().size()> rowNumber)
     {
         String text = getText(columnId, rowNumber);
@@ -589,6 +592,7 @@ void WindowEditSpeaker::paintCell (Graphics& g, int rowNumber, int columnId, int
         
     }
     this->mainParent->getLockSpeakers()->unlock();
+    }
     g.setColour (Colours::black.withAlpha (0.2f));
     g.fillRect (width - 1, 0, 1, height);
 }
