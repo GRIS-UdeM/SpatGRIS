@@ -111,7 +111,7 @@ static const StringArray ModeSpatString = {"Free basic", "VBap", "DBap", "HRTF"}
 static const StringArray BufferSize = {"32", "64", "128", "256", "512", "1024", "2048"};
 static const StringArray RateValues = {"44100", "48000", "88200", "96000"};
 
-static const char* ClientName =     "jackClientGris";
+static const char* ClientName =     "SpatServerGRIS";
 static const char* DriverNameSys =  "coreaudio";
 static const char* ClientNameSys =  "system";
 
@@ -178,7 +178,7 @@ public:
     bool addOutput();
     void removeOutput(int number);
 
-    
+    void disconnectAllClient();
     void autoConnectClient();
     void connectionClient(String name, bool connect = true);
     void updateClientPortAvailable();

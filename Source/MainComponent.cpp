@@ -128,7 +128,11 @@ MainContentComponent::MainContentComponent(){
     
     this->labelTimeRecorded = addLabel("00:00","Record time",420, 156, 50, 24,this->boxControlUI->getContent());
 
-    this->butAutoConnectJack = addButton("Auto Connect","Auto connection with jack",610,120,130,24,this->boxControlUI->getContent());
+    this->butDisconnectAllJack  = addButton("X All","Disconnect all Jack",480,120,40,24,this->boxControlUI->getContent());
+    this->butDisconnectAllJack->setColour(TextButton::buttonColourId, juce::Colours::darkred);
+    this->butAutoConnectJack    = addButton("Auto Connect","Auto connection with jack",610,120,130,24,this->boxControlUI->getContent());
+    
+    
     
     this->boxClientJack = new BoxClient(this, &mGrisFeel);
     this->boxClientJack->setBounds(480, 0, 260, 120);
@@ -917,7 +921,12 @@ void MainContentComponent::buttonClicked (Button *button)
         
         this->jackClient->autoConnectClient();
         
-    }else if(button == this->butHighPerformance){
+    }else if(button == this->butDisconnectAllJack){
+        
+        this->jackClient->disconnectAllClient();
+        
+    }
+    else if(button == this->butHighPerformance){
         
         stopTimer();
         if(this->butHighPerformance->getToggleState()){

@@ -730,17 +730,13 @@ void jackClientGris::updateSourceVbap(int idS)
     }
 }
 
-
-void jackClientGris::autoConnectClient()
+void jackClientGris::disconnectAllClient()
 {
-    
     const char ** portsOut = jack_get_ports (this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput);
     const char ** portsIn = jack_get_ports (this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput);
     
     int i=0;
     int j=0;
-    int startJ = 0;
-    int endJ = 0;
     
     //Disconencted ALL ------------------------------------------------
     while (portsOut[i]){
@@ -751,10 +747,31 @@ void jackClientGris::autoConnectClient()
         }
         i+=1;
     }
-    i = 0;
-    j = 0;
     
+    for (auto&& cli : this->listClient)
+    {
+        cli.connected = false;
+    }
+    
+    jack_free(portsIn);
+    jack_free(portsOut);
+}
+
+void jackClientGris::autoConnectClient()
+{
+    
+    disconnectAllClient();
     connectedGristoSystem();
+    
+    
+    const char ** portsOut = jack_get_ports (this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput);
+    const char ** portsIn = jack_get_ports (this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput);
+    
+    int i=0;
+    int j=0;
+    int startJ = 0;
+    int endJ = 0;
+    
     
     //Connect other client to jackClientGris------------------------------------------
     this->autoConnection = true;
@@ -798,7 +815,9 @@ void jackClientGris::autoConnectClient()
     jack_free(portsOut);
 }
 
-void jackClientGris::connectionClient(String name, bool connect){
+void jackClientGris::connectionClient(String name, bool connect)
+{
+    
     const char ** portsOut = jack_get_ports (this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput);
     const char ** portsIn = jack_get_ports (this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput);
 
@@ -828,6 +847,8 @@ void jackClientGris::connectionClient(String name, bool connect){
             cli.connected = false;
         }
     }
+    
+    connectedGristoSystem();
     if(!connect){ return ; }
     //Connect other client to jackClientGris------------------------------------------
     this->autoConnection = true;

@@ -198,6 +198,8 @@ private:
     TextButton *    butShowWinControl;
     TextButton *    butDefaultColorIn;
     TextButton *    butJackParam;
+    TextButton *    butAutoConnectJack;
+    TextButton *    butDisconnectAllJack;
     
     ToggleButton *  butShowSpeakerNumber;
     ToggleButton *  butHighPerformance;
@@ -210,7 +212,7 @@ private:
     Label *         labOSCStatus;
     
     TextEditor *    tedAddInputs;
-    TextButton *    butAutoConnectJack;
+    
     
     Label *         labelAllClients;
     BoxClient *     boxClientJack;
