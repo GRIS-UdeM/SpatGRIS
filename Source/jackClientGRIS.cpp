@@ -251,20 +251,20 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
     //================ PROCESS ==============================================
     
     switch ((ModeSpatEnum)jackCli->modeSelected){
-        case FreeBasic:
-            //Basix Free volume Spat ---------------------------------------
-            processFreeVolume(*jackCli, ins, outs, nframes, sizeInputs, sizeOutputs);
-            break;
-            
+        
         case VBap:
             //VBAP Spat ----------------------------------------------------
             processVBAP(*jackCli, ins, outs, nframes, sizeInputs, sizeOutputs);
             break;
         
-            
         case DBap:
             break;
         
+        case FreeBasic:
+            //Basix Free volume Spat ---------------------------------------
+            processFreeVolume(*jackCli, ins, outs, nframes, sizeInputs, sizeOutputs);
+            break;
+            
         default:
             jassertfalse;
             break;

@@ -100,11 +100,11 @@ struct SpeakerOut {
 
 //Mode Spat
 typedef enum {
-    FreeBasic = 0,
-    VBap,
-    DBap
+    VBap = 0,
+    DBap,
+    FreeBasic
 } ModeSpatEnum;
-static const StringArray ModeSpatString = {"Free basic", "VBap", "DBap"};
+static const StringArray ModeSpatString = {"VBap",  "DBap", "Free basic"};
 
 //Settings Jack Server
 static const StringArray BufferSize = {"32", "64", "128", "256", "512", "1024", "2048"};
