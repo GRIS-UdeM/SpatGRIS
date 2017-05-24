@@ -110,6 +110,7 @@ static const StringArray ModeSpatString = {"VBap",  "DBap", "Free basic"};
 static const StringArray BufferSize = {"32", "64", "128", "256", "512", "1024", "2048"};
 static const StringArray RateValues = {"44100", "48000", "88200", "96000"};
 
+static const char* DeviceName =     "GRIS";
 static const char* ClientName =     "SpatServerGRIS";
 static const char* DriverNameSys =  "coreaudio";
 static const char* ClientNameSys =  "system";
@@ -145,7 +146,9 @@ public:
     
     float masterGainOut;
     //------------------------
+    
     vector<Client> listClient;
+    mutex          lockListClient;
     SourceIn   listSourceIn   [MaxInputs];
     SpeakerOut listSpeakerOut [MaxOutputs];
     
@@ -197,7 +200,7 @@ public:
     
     
     //SpeakerLoad
-    void initSpeakersTripplet(int sizeOutput);
+    bool initSpeakersTripplet(unsigned int sizeOutput);
     void updateSourceVbap(int idS);
     
 private:

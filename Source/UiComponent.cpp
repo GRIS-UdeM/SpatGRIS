@@ -119,9 +119,11 @@ BoxClient::~BoxClient(){
 }
 
 void BoxClient::buttonClicked(Button *button){
+    this->mainParent->getLockClients()->lock();
     bool connectedCli = !this->mainParent->getListClientjack()->at(button->getName().getIntValue()).connected;
     this->mainParent->connectionClientJack(this->mainParent->getListClientjack()->at(button->getName().getIntValue()).name, connectedCli);
     updateContentCli();
+    this->mainParent->getLockClients()->unlock();
 }
 
 void BoxClient::setBounds(int x, int y, int width, int height)
@@ -138,6 +140,7 @@ void BoxClient::updateContentCli(){
 
 void BoxClient::setValue (const int rowNumber, const int columnNumber,const int newRating)
 {
+    this->mainParent->getLockClients()->lock();
     if (this->mainParent->getListClientjack()->size()> rowNumber)
     {
         switch(columnNumber){
@@ -149,6 +152,7 @@ void BoxClient::setValue (const int rowNumber, const int columnNumber,const int 
                 break;
         }
     }
+    this->mainParent->getLockClients()->unlock();
 }
 
 int BoxClient::getValue (const int rowNumber,const int columnNumber) const{
@@ -157,6 +161,7 @@ int BoxClient::getValue (const int rowNumber,const int columnNumber) const{
         switch(columnNumber){
                 
             case 2 :
+                
                 return this->mainParent->getListClientjack()->at(rowNumber).portStart;
                 break;
             case 3 :
@@ -165,12 +170,14 @@ int BoxClient::getValue (const int rowNumber,const int columnNumber) const{
                 
         }
     }
+    
     return -1;
 }
 
 String BoxClient::getText (const int columnNumber, const int rowNumber) const
 {
-    String text;
+    String text = "?";
+
     if (this->mainParent->getListClientjack()->size()> rowNumber)
     {
         
@@ -181,11 +188,10 @@ String BoxClient::getText (const int columnNumber, const int rowNumber) const
             case 4 :
                 text =String(this->mainParent->getListClientjack()->at(rowNumber).portAvailable);
                 break;
-            
-            default:
-                text ="?";
+                
         }
     }
+
     return text;
 }
 
@@ -216,7 +222,7 @@ void BoxClient::paintCell (Graphics& g, int rowNumber, int columnId, int width, 
 {
     g.setColour (Colours::black);
     g.setFont (12.0f);
-    
+    if(this->mainParent->getLockClients()->try_lock()){
     if (this->mainParent->getListClientjack()->size()> rowNumber)
     {
         if(columnId==1){
@@ -228,7 +234,8 @@ void BoxClient::paintCell (Graphics& g, int rowNumber, int columnId, int width, 
             g.drawText (text, 2, 0, width - 4, height, Justification::centred, true);
         }
     }
-
+    this->mainParent->getLockClients()->unlock();
+    }
     g.setColour (Colours::black.withAlpha (0.2f));
     g.fillRect (width - 1, 0, 1, height);
 }
@@ -250,12 +257,13 @@ Component* BoxClient::refreshComponentForCell (int rowNumber, int columnId, bool
             tbRemove->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
             tbRemove->setLookAndFeel(this->grisFeel);
         }
+
         if(this->mainParent->getListClientjack()->at(rowNumber).connected){
             tbRemove->setButtonText("<->");
         }else{
             tbRemove->setButtonText("<X>");
         }
-        
+
                 //tbRemove->getContent()->addAndMakeVisible(this->butAddSpeaker);
         return tbRemove;
     }

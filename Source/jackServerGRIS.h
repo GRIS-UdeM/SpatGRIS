@@ -33,8 +33,10 @@
 #include <jack/session.h>
 #include <jack/control.h>
 
+#include "jackClientGRIS.h"
+
 #ifndef PRINT_SERVER
-#define PRINT_SERVER 0
+#define PRINT_SERVER 1
 #endif
 
 
@@ -141,9 +143,47 @@ public:
                 value.i = rateValue;
                 int i = jackctl_parameter_set_value(parameter, &value);
                 #if PRINT_SERVER
-                printf("%s ",i? "true" : "false");
+                printf("> %s \n",i? "true" : "false");
                 #endif
             }
+            
+            if(!strcmp(jackctl_parameter_get_name(parameter), "capture")){
+                union jackctl_parameter_value value;
+                strncpy(value.str, DeviceName, JACK_PARAM_STRING_MAX);
+                int i = jackctl_parameter_set_value(parameter, &value);
+                #if PRINT_SERVER
+                printf("> %s \n",i? "true" : "false");
+                #endif
+            }
+            
+            if(!strcmp(jackctl_parameter_get_name(parameter), "playback")){
+                union jackctl_parameter_value value;
+                strncpy(value.str, DeviceName, JACK_PARAM_STRING_MAX);
+                int i = jackctl_parameter_set_value(parameter, &value);
+                #if PRINT_SERVER
+                printf("> %s \n",i? "true" : "false");
+                #endif
+            }
+            
+            if(!strcmp(jackctl_parameter_get_name(parameter), "device")){
+                union jackctl_parameter_value value;
+                strncpy(value.str, DeviceName, JACK_PARAM_STRING_MAX);
+                int i = jackctl_parameter_set_value(parameter, &value);
+                #if PRINT_SERVER
+                printf("> %s \n",i? "true" : "false");
+                #endif
+            }
+            
+            /*
+             WARINING
+            if(!strcmp(jackctl_parameter_get_name(parameter), "hog")){
+                union jackctl_parameter_value value;
+                value.b = false;
+                int i = jackctl_parameter_set_value(parameter, &value);
+                #if PRINT_SERVER
+                printf("> %s \n",i? "true" : "false");
+                #endif
+            }*/
             
             /*if(!strcmp(jackctl_parameter_get_name(parameter), "audio-ins")){
              union jackctl_parameter_value value;

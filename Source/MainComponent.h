@@ -94,6 +94,8 @@ public:
     
     unsigned int    getBufferCurentIndex(){ return this->jackClient->indexRecord; }
     vector<float>   getBufferToRecord(int i){ return this->jackClient->buffersToRecord[i]; }
+    
+    mutex* getLockClients(){ return &this->jackClient->lockListClient; }
     vector<Client> *getListClientjack(){ return &this->jackClient->listClient; }
     void connectionClientJack(String nameCli, bool conn = true) {this->jackClient->connectionClient(nameCli, conn); }
     
@@ -188,6 +190,7 @@ private:
     Label *         labelJackRate;
     Label *         labelJackBuffer;
     Label *         labelJackInfo;
+    Label *         labelModeInfo;
     
     ComboBox *      comBoxModeSpat;
     

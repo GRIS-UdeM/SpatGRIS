@@ -341,6 +341,7 @@ void client_registration_callback(const char *name, int regist, void *arg)
 {
     jackClientGris* jackCli = (jackClientGris*)arg;
     printf("client_registration_callback : %s : " ,name);
+    jackCli->lockListClient.lock();
     if(regist){
         Client cli;
         cli.name = name;
@@ -358,6 +359,7 @@ void client_registration_callback(const char *name, int regist, void *arg)
             }
         }
     }
+    jackCli->lockListClient.unlock();
 }
 
 void latency_callback(jack_latency_callback_mode_t  mode, void *arg)
@@ -673,10 +675,10 @@ void jackClientGris::connectedGristoSystem(){
 
 }
 
-void jackClientGris::initSpeakersTripplet(int sizeOutput)
+bool jackClientGris::initSpeakersTripplet(unsigned int sizeOutput)
 {
     if(sizeOutput <= 0){
-        return;
+        return false;
     }
     
     this->processBlockOn = false;
@@ -718,6 +720,7 @@ void jackClientGris::initSpeakersTripplet(int sizeOutput)
         fill(listSourceIn[i].paramVBap->y, listSourceIn[i].paramVBap->y+MaxOutputs, 0);
     }
     this->processBlockOn = true;
+    return true;
 }
 
 void jackClientGris::updateSourceVbap(int idS)
@@ -745,12 +748,12 @@ void jackClientGris::disconnectAllClient()
         }
         i+=1;
     }
-    
+    this->lockListClient.lock();
     for (auto&& cli : this->listClient)
     {
         cli.connected = false;
     }
-    
+    this->lockListClient.unlock();
     jack_free(portsIn);
     jack_free(portsOut);
 }
@@ -773,7 +776,7 @@ void jackClientGris::autoConnectClient()
     
     //Connect other client to jackClientGris------------------------------------------
     this->autoConnection = true;
-    
+    this->lockListClient.lock();
     for (auto&& cli : this->listClient)
     {
         i=0;
@@ -806,7 +809,7 @@ void jackClientGris::autoConnectClient()
             i+=1;
         }
     }
-    
+    this->lockListClient.unlock();
     this->autoConnection = false;
     
     jack_free(portsIn);
@@ -839,17 +842,20 @@ void jackClientGris::connectionClient(String name, bool connect)
         }
         i+=1;
     }
+
     for (auto&& cli : this->listClient)
     {
         if(cli.name == name){
             cli.connected = false;
         }
     }
+
     
     connectedGristoSystem();
     if(!connect){ return ; }
     //Connect other client to jackClientGris------------------------------------------
     this->autoConnection = true;
+
     for (auto&& cli : this->listClient)
     {
         i=0;
@@ -882,7 +888,7 @@ void jackClientGris::connectionClient(String name, bool connect)
             i+=1;
         }
     }
-    
+
     this->autoConnection = false;
     
     jack_free(portsIn);
@@ -905,10 +911,12 @@ string jackClientGris::getClientName(const char * port)
 void jackClientGris::updateClientPortAvailable(){
     const char ** portsOut = jack_get_ports (this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput);
     int i = 0;
+
     for (auto&& cli : this->listClient)
     {
         cli.portAvailable = 0;
     }
+    
     while (portsOut[i]){
         string nameCli = getClientName(portsOut[i]);
         if(nameCli != ClientName &&  nameCli != ClientNameSys){
@@ -921,6 +929,7 @@ void jackClientGris::updateClientPortAvailable(){
         }
         i++;
     }
+
     jack_free(portsOut);
 }
 

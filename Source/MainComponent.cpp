@@ -115,7 +115,8 @@ MainContentComponent::MainContentComponent(){
     this->sliderMasterGainOut = addSlider("Master Gain", "Master Gain Outputs", 360, 26, 80, 80, this->boxControlUI->getContent());
     this->sliderMasterGainOut->setRange(0.0, 1.0, 0.001);
     
-    addLabel("Mode :","Mode of spatilization",320, 110, 120, 20,this->boxControlUI->getContent());
+    addLabel("Mode :","Mode of spatilization",320, 110, 60, 20,this->boxControlUI->getContent());
+    this->labelModeInfo = addLabel("...","Status of spatilization",360, 110, 120, 20,this->boxControlUI->getContent());
     this->comBoxModeSpat = addComboBox("", "Mode of spatilization", 320, 128, 150, 22, this->boxControlUI->getContent());
     for(int i = 0; i < ModeSpatString.size(); i++){
          this->comBoxModeSpat->addItem(ModeSpatString[i], i+1);
@@ -131,7 +132,7 @@ MainContentComponent::MainContentComponent(){
     this->labelTimeRecorded = addLabel("00:00","Record time",580, 156, 50, 24,this->boxControlUI->getContent());
 
     this->butDisconnectAllJack  = addButton("X All","Disconnect all Jack",480,120,40,24,this->boxControlUI->getContent());
-    this->butDisconnectAllJack->setColour(TextButton::buttonColourId, juce::Colours::darkred);
+    this->butDisconnectAllJack->setColour(TextButton::buttonColourId, mGrisFeel.getRedColour());
     this->butAutoConnectJack    = addButton("Auto Connect","Auto connection with jack",610,120,130,24,this->boxControlUI->getContent());
     
     
@@ -783,10 +784,10 @@ void MainContentComponent::textEditorReturnKeyPressed (TextEditor & textEditor){
         }
         if(this->oscReceiver->startConnection(this->tedOSCInPort->getTextValue().toString().getIntValue())){
             this->labOSCStatus->setText("OK", dontSendNotification);
-            this->labOSCStatus->setColour(Label::textColourId, mGrisFeel.getFontColour());
+            this->labOSCStatus->setColour(Label::textColourId, mGrisFeel.getGreenColour());
         }else{
             this->labOSCStatus->setText("Error", dontSendNotification);
-            this->labOSCStatus->setColour(Label::textColourId, Colours::red);
+            this->labOSCStatus->setColour(Label::textColourId, mGrisFeel.getRedColour());
         }
         
     }
@@ -976,7 +977,7 @@ void MainContentComponent::buttonClicked (Button *button)
         }
         else{
             this->jackClient->startRecord();
-            this->labelTimeRecorded->setColour(Label::textColourId, Colours::red);
+            this->labelTimeRecorded->setColour(Label::textColourId, mGrisFeel.getRedColour());
         }
         this->butStartRecord->setToggleState(this->jackClient->recording, dontSendNotification);
         
@@ -996,11 +997,23 @@ void MainContentComponent::comboBoxChanged (ComboBox *comboBox)
     if(this->comBoxModeSpat == comboBox){
         this->jackClient->modeSelected = (ModeSpatEnum)(this->comBoxModeSpat->getSelectedId()-1);
         
-        if(this->jackClient->modeSelected == VBap){
-            
-            this->jackClient->initSpeakersTripplet(this->listSpeaker.size());
-            
+        switch (this->jackClient->modeSelected) {
+            case VBap:
+                if( this->jackClient->initSpeakersTripplet(this->listSpeaker.size()) ){
+                    this->labelModeInfo->setText("Ready", dontSendNotification);
+                    this->labelModeInfo->setColour(Label::textColourId, mGrisFeel.getGreenColour());
+                }else{
+                    this->labelModeInfo->setText("ERROR", dontSendNotification);
+                    this->labelModeInfo->setColour(Label::textColourId, mGrisFeel.getRedColour());
+                }
+                break;
+                
+            default:
+                this->labelModeInfo->setText("Ready", dontSendNotification);
+                this->labelModeInfo->setColour(Label::textColourId, mGrisFeel.getGreenColour());
+                break;
         }
+        
     }
 }
 
