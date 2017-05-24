@@ -49,11 +49,11 @@ jackServerGRIS::jackServerGRIS(unsigned int rateV){
     union jackctl_parameter_value value;
     
     
-    param = jackctl_get_parameter(parameters, "verbose");
+    /*param = jackctl_get_parameter(parameters, "verbose");
     if (param != NULL) {
         value.b = true;
         jackctl_parameter_set_value(param, &value);
-    }
+    }*/
     
     /*jackctl_parameter_t* param;
     union jackctl_parameter_value value;
@@ -69,7 +69,7 @@ jackServerGRIS::jackServerGRIS(unsigned int rateV){
         jackctl_parameter_set_value(param, &value);
     }
     
-    free(param);
+    
     #if PRINT_SERVER
     printf("\n========================== \n");
     printf("List of server parameters \n");
@@ -113,13 +113,7 @@ jackServerGRIS::jackServerGRIS(unsigned int rateV){
     #if PRINT_SERVER
     const JSList * parameters2 = jackctl_server_get_parameters(server);
     print_parameters(parameters2);
-    free(&parameters2);
     #endif
-    
-    free(&parameters);
-    free(&drivers);
-    free(&internals);
-    free(&node_ptr);
     
     printf("\n========================== \n");
     printf("Jack Server Run \n");

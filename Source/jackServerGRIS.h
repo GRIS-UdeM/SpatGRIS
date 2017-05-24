@@ -55,7 +55,6 @@ public:
             }
             node_ptr = jack_slist_next(node_ptr);
         }
-        free(&node_ptr);
         return NULL;
     }
     
@@ -68,7 +67,6 @@ public:
             }
             node_ptr = jack_slist_next(node_ptr);
         }
-        free(&node_ptr);
         return NULL;
     }
     
@@ -81,7 +79,6 @@ public:
             }
             node_ptr = jack_slist_next(node_ptr);
         }
-        free(&node_ptr);
         return NULL;
     }
     
@@ -186,7 +183,6 @@ public:
             print_value(jackctl_parameter_get_default_value(parameter), jackctl_parameter_get_type(parameter));
             #endif
             node_ptr = jack_slist_next(node_ptr);
-            free(&parameter);
         }
     }
     
