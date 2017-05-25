@@ -311,8 +311,9 @@ void session_callback (jack_session_event_t *event, void *arg)
 int graph_order_callback ( void * arg)
 {
     jackClientGris* jackCli = (jackClientGris*)arg;
+    printf ("graph_order_callback : ");
     jackCli->updateClientPortAvailable();
-    printf ("graph_order_callback \n");
+    printf ("done \n");
     return 0;
 }
 
@@ -382,7 +383,7 @@ void latency_callback(jack_latency_callback_mode_t  mode, void *arg)
 void port_registration_callback (jack_port_id_t a, int regist, void * arg)
 {
     //jackClientGris* jackCli = (jackClientGris*)arg;
-    printf("client_registration_callback : %" PRIu32 " : " ,a);
+    printf("port_registration_callback : %" PRIu32 " : " ,a);
     if(regist){
         printf("saved \n");
     }else{

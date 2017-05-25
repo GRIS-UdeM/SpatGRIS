@@ -36,7 +36,7 @@
 #include "jackClientGRIS.h"
 
 #ifndef PRINT_SERVER
-#define PRINT_SERVER 1
+#define PRINT_SERVER 0
 #endif
 
 
@@ -147,7 +147,7 @@ public:
                 #endif
             }
             
-            if(!strcmp(jackctl_parameter_get_name(parameter), "capture")){
+            /*if(!strcmp(jackctl_parameter_get_name(parameter), "capture")){
                 union jackctl_parameter_value value;
                 strncpy(value.str, DeviceName, JACK_PARAM_STRING_MAX);
                 int i = jackctl_parameter_set_value(parameter, &value);
@@ -172,7 +172,7 @@ public:
                 #if PRINT_SERVER
                 printf("> %s \n",i? "true" : "false");
                 #endif
-            }
+            }*/
             
             /*
              WARINING
