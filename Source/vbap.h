@@ -87,7 +87,7 @@ void free_speakers_setup(SPEAKERS_SETUP *setup);
  */
 VBAP_DATA * init_vbap_data2(SPEAKERS_SETUP *setup, int **triplets);
 
-VBAP_DATA * init_vbap_from_speakers(ls lss[MAX_LS_AMOUNT], int **triplets);
+VBAP_DATA * init_vbap_from_speakers(ls lss[MAX_LS_AMOUNT], int count, int **triplets);
 
 /* Properly free a previously allocated VBAP_DATA structure.
  */

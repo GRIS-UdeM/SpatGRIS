@@ -416,11 +416,15 @@ void MainContentComponent::updateInputJack(int inInput, Input &inp){
     si->y = inp.getCenter().y/10.0f;
     si->z = inp.getCenter().z/10.0f;
     
-    si->azimuth = inp.getAziMuth();
-    si->zenith  = inp.getZenith();
+    
+    si->azimuth = ((inp.getAziMuth()/M2_PI)*360.0f);
+    if(si->azimuth > 180.0f){
+        si->azimuth = si->azimuth-360.0f;
+    }
+    si->zenith  = 90.0f-(inp.getZenith()/M2_PI)*360.0f;//inp.getZenith();
     si->radius  = inp.getRad();
     
-    si->aziSpan = inp.getAziMuthSpan();
+    si->aziSpan = inp.getAziMuthSpan()*50.0f;
     si->zenSpan = inp.getZenithSpan();
     
     if(this->jackClient->modeSelected == VBap)
@@ -499,7 +503,8 @@ void MainContentComponent::updateLevelComp(){
     this->resized();
     
     this->jackClient->prepareToRecord(0);
-    this->jackClient->initSpeakersTripplet(listSpeaker.size());
+    
+    //this->jackClient->initSpeakersTripplet(listSpeaker.size());
 
 }
 
@@ -999,7 +1004,7 @@ void MainContentComponent::comboBoxChanged (ComboBox *comboBox)
         
         switch (this->jackClient->modeSelected) {
             case VBap:
-                if( this->jackClient->initSpeakersTripplet(this->listSpeaker.size()) ){
+                if( this->jackClient->initSpeakersTripplet(this->listSpeaker) ){
                     this->labelModeInfo->setText("Ready", dontSendNotification);
                     this->labelModeInfo->setColour(Label::textColourId, mGrisFeel.getGreenColour());
                 }else{

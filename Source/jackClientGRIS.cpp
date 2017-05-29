@@ -23,6 +23,8 @@
 #include "vbap.h"
 #endif
 
+#include "Speaker.h"
+
 //=========================================================================================
 //MUTE SOLO MasterGainOut and NOISE
 //=========================================================================================
@@ -167,15 +169,19 @@ static void processFreeVolume(jackClientGris & jackCli, jack_default_audio_sampl
 //=========================================================================================
 static void processVBAP(jackClientGris & jackCli, jack_default_audio_sample_t ** ins, jack_default_audio_sample_t ** outs, const jack_nframes_t &nframes, const unsigned int &sizeInputs, const unsigned int &sizeOutputs)
 {
-    unsigned int k, i, o, f;
+    unsigned int k, i,  f;
     float amp;
     bool found;
     
-    for (o = 0; o < sizeOutputs; ++o) {
+    for (int so = 0; so < sizeOutputs; ++so) {
+        int o = so;//jackCli.listSpeakerOut[so].id-1;
+        
         memset (outs[o], 0, sizeof (jack_default_audio_sample_t) * nframes);
         
+        
+        
         for (i = 0; i < sizeInputs; ++i) {
-            found = false;
+            /*found = false;
             for (k=0; k<3; k++) {
                 if (o == (jackCli.listSourceIn[i].paramVBap->ls[k] - 1)) {
                     amp = jackCli.listSourceIn[i].paramVBap->g[k];
@@ -185,9 +191,12 @@ static void processVBAP(jackClientGris & jackCli, jack_default_audio_sample_t **
             }
             if (!found){
                 amp = 0.0f;
-            }
+            }*/
             
-            jackCli.listSourceIn[i].paramVBap->y[o] = amp + ( jackCli.listSourceIn[i].paramVBap->y[o] - amp) * 0.75;
+            
+            
+            jackCli.listSourceIn[i].paramVBap->y[o] = jackCli.listSourceIn[i].paramVBap->gains[o] +
+                                                    ( jackCli.listSourceIn[i].paramVBap->y[o] - jackCli.listSourceIn[i].paramVBap->gains[o]) * 0.75;
             
             if ( jackCli.listSourceIn[i].paramVBap->y[o] < 0.000001) {
                 jackCli.listSourceIn[i].paramVBap->y[o] = 0.0;
@@ -676,28 +685,46 @@ void jackClientGris::connectedGristoSystem(){
 
 }
 
-bool jackClientGris::initSpeakersTripplet(unsigned int sizeOutput)
+bool jackClientGris::initSpeakersTripplet(vector<Speaker *>  listSpk)
 {
-    if(sizeOutput <= 0){
+    if(listSpk.size() <= 0){
         return false;
     }
     
     this->processBlockOn = false;
-    long i, j;
-    ls lss[MAX_LS_AMOUNT];
-    struct ls_triplet_chain *ls_ptr, *ls_triplets = NULL;
+
     
-    for(int i = 0; i < sizeOutput ; i++){
+    ls lss[MAX_LS_AMOUNT];
+    
+    for(int i = 0; i < listSpk.size() ; i++){
+        
+        
+        /*listSpeakerOut[i].id = listSpk[i]->getOutputPatch();
+        lss[i].coords.x = listSpk[i]->getCoordinate().x;
+        lss[i].coords.y = listSpk[i]->getCoordinate().y;
+        lss[i].coords.z = listSpk[i]->getCoordinate().z;
+        
+        lss[i].angles.azi = listSpk[i]->getAziZenRad().x;
+        lss[i].angles.ele  = listSpk[i]->getAziZenRad().y;
+        lss[i].angles.length = listSpk[i]->getAziZenRad().z;*/
+        
         lss[i].coords.x = listSpeakerOut[i].x;
         lss[i].coords.y = listSpeakerOut[i].y;
         lss[i].coords.z = listSpeakerOut[i].z;
         
-        lss[i].angles.azi = listSpeakerOut[i].azimuth-90.0f;
+        lss[i].angles.azi = listSpeakerOut[i].azimuth;
         lss[i].angles.ele = listSpeakerOut[i].zenith;
         lss[i].angles.length = listSpeakerOut[i].radius;
+        
     }
- 
-    choose_ls_triplets(lss, &ls_triplets, sizeOutput);
+    
+    //WARNING !!!!
+    for(int i = 0; i < MaxInputs ; i++){
+        listSourceIn[i].paramVBap = init_vbap_from_speakers(lss, listSpk.size(), NULL);;
+    }
+    
+    
+    /*choose_ls_triplets(lss, &ls_triplets, sizeOutput);
     calculate_3x3_matrixes(ls_triplets, lss, sizeOutput);
     
     // = malloc(sizeof(DATA));
@@ -719,7 +746,8 @@ bool jackClientGris::initSpeakersTripplet(unsigned int sizeOutput)
     for(int i = 0; i < MaxInputs ; i++){
         listSourceIn[i].paramVBap->nchnls = MaxInputs;
         fill(listSourceIn[i].paramVBap->y, listSourceIn[i].paramVBap->y+MaxOutputs, 0);
-    }
+    }*/
+    
     this->processBlockOn = true;
     return true;
 }
@@ -727,8 +755,12 @@ bool jackClientGris::initSpeakersTripplet(unsigned int sizeOutput)
 void jackClientGris::updateSourceVbap(int idS)
 {
     if(listSourceIn[idS].paramVBap != nullptr){
-    vbap(listSourceIn[idS].paramVBap->g, listSourceIn[idS].paramVBap->ls, listSourceIn[idS].x, listSourceIn[idS].y,listSourceIn[idS].z, data.dimension,
-         data.matrices, data.numbers, data.triplet_count);
+    
+        //cout << listSourceIn[idS].azimuth << " // " << listSourceIn[idS].zenith << endl;
+        vbap_angle(listSourceIn[idS].azimuth, listSourceIn[idS].zenith, listSourceIn[idS].aziSpan, listSourceIn[idS].paramVBap);
+        
+        /*vbap(listSourceIn[idS].paramVBap->g, listSourceIn[idS].paramVBap->ls, listSourceIn[idS].x, listSourceIn[idS].y,listSourceIn[idS].z, data->dimension,
+         data.matrices, data.numbers, data.triplet_count);*/
     }
 }
 

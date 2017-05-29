@@ -575,6 +575,7 @@ void calculate_3x3_matrixes(ls_triplet_chain *ls_triplets,
 
      /* Calculations and data storage. */
     while(tr_ptr != NULL) {
+        printf("%d, %d, %d \n", tr_ptr->ls_nos[0], tr_ptr->ls_nos[1],tr_ptr->ls_nos[2]);
         lp1 = &(lss[tr_ptr->ls_nos[0]].coords);
         lp2 = &(lss[tr_ptr->ls_nos[1]].coords);
         lp3 = &(lss[tr_ptr->ls_nos[2]].coords);
@@ -701,21 +702,21 @@ VBAP_DATA * init_vbap_data2(SPEAKERS_SETUP *setup, int **triplets) {
     return data;
 }
 
-VBAP_DATA * init_vbap_from_speakers(ls lss[MAX_LS_AMOUNT], int **triplets) {
+VBAP_DATA * init_vbap_from_speakers(ls lss[MAX_LS_AMOUNT], int count, int **triplets) {
     int i, j;
     ls_triplet_chain *ls_triplets = NULL;
     ls_triplet_chain *ls_ptr;
     VBAP_DATA *data = malloc(sizeof(VBAP_DATA));
 
     if (triplets == NULL)
-        choose_ls_triplets(lss, &ls_triplets, setup->count);
+        choose_ls_triplets(lss, &ls_triplets, count);
     else
-        load_ls_triplets(lss, &ls_triplets, setup->count, "filename");
+        load_ls_triplets(lss, &ls_triplets, count, "filename");
 
-    calculate_3x3_matrixes(ls_triplets, lss, setup->count);
+    calculate_3x3_matrixes(ls_triplets, lss, count);
 
-    data->dimension = setup->dimension;
-    data->ls_am = setup->count;
+    data->dimension = 3;//setup->dimension;
+    data->ls_am = count;
     for (i=0; i<MAX_LS_AMOUNT; i++) {
         data->gains[i] = data->y[i] = 0.0;
     }
@@ -758,6 +759,9 @@ void vbap_angle(float azi, float ele, float spread, VBAP_DATA *data) {
     data->ang_dir.ele = ele;
     data->ang_dir.length = 1.0;
     vec_angle_to_cart(&data->ang_dir, &data->cart_dir);
+    float zz = data->cart_dir.z;
+    data->cart_dir.z = data->cart_dir.y;
+    data->cart_dir.y = zz;
     data->spread_base.x = data->cart_dir.x;
     data->spread_base.y = data->cart_dir.y;
     data->spread_base.z = data->cart_dir.z;
