@@ -45,6 +45,12 @@ typedef struct {
     int neg_g_am;
 } LS_SET;
 
+/* A struct for a loudspeaker instance. */
+typedef struct { 
+    CART_VEC coords;
+    ANG_VEC angles;
+} ls;
+
 /* VBAP structure of n loudspeaker panning */
 typedef struct {
   float gains[MAX_LS_AMOUNT];       /* Loudspeaker gains. */
@@ -80,6 +86,8 @@ void free_speakers_setup(SPEAKERS_SETUP *setup);
  * an optional matrix of user-defined triplets.
  */
 VBAP_DATA * init_vbap_data2(SPEAKERS_SETUP *setup, int **triplets);
+
+VBAP_DATA * init_vbap_from_speakers(ls lss[MAX_LS_AMOUNT], int **triplets);
 
 /* Properly free a previously allocated VBAP_DATA structure.
  */

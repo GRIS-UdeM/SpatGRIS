@@ -12,12 +12,6 @@
 
 #define PIx2 (M_PI * 2.0)
 
-/* A struct for a loudspeaker instance. */
-typedef struct { 
-    CART_VEC coords;
-    ANG_VEC angles;
-} ls;
-
 
 /* Linked-list of all loudspeakers. */
 typedef struct ls_triplet_chain {
@@ -666,6 +660,52 @@ VBAP_DATA * init_vbap_data2(SPEAKERS_SETUP *setup, int **triplets) {
     VBAP_DATA *data = malloc(sizeof(VBAP_DATA));
 
     build_speakers_list(setup, lss);
+
+    if (triplets == NULL)
+        choose_ls_triplets(lss, &ls_triplets, setup->count);
+    else
+        load_ls_triplets(lss, &ls_triplets, setup->count, "filename");
+
+    calculate_3x3_matrixes(ls_triplets, lss, setup->count);
+
+    data->dimension = setup->dimension;
+    data->ls_am = setup->count;
+    for (i=0; i<MAX_LS_AMOUNT; i++) {
+        data->gains[i] = data->y[i] = 0.0;
+    }
+
+    i = 0;
+    ls_ptr = ls_triplets;
+    while (ls_ptr != NULL) {
+        ls_ptr = ls_ptr->next;
+        i++;
+    }
+    data->ls_set_am = i;
+    data->ls_sets = malloc(sizeof(LS_SET) * i);
+
+    i = 0;
+    ls_ptr = ls_triplets;
+    while (ls_ptr != NULL) {
+        for (j=0; j<data->dimension; j++) {
+            data->ls_sets[i].ls_nos[j] = ls_ptr->ls_nos[j] + 1;
+        }
+        for (j=0; j<(data->dimension*data->dimension); j++) {
+            data->ls_sets[i].inv_mx[j] = ls_ptr->inv_mx[j];
+        }
+        ls_ptr = ls_ptr->next;
+        i++;
+    }
+
+    free_ls_triplet_chain(ls_triplets);
+
+    return data;
+}
+
+VBAP_DATA * init_vbap_from_speakers(ls lss[MAX_LS_AMOUNT], int **triplets) {
+    int i, j;
+    ls_triplet_chain *ls_triplets = NULL;
+    ls_triplet_chain *ls_ptr;
+    VBAP_DATA *data = malloc(sizeof(VBAP_DATA));
 
     if (triplets == NULL)
         choose_ls_triplets(lss, &ls_triplets, setup->count);
