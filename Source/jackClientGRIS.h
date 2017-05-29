@@ -38,6 +38,7 @@
 
 #include "vbap.h"
 
+class Speaker;
 using namespace std;
 
 //Limit SpatServer In/Out
@@ -77,7 +78,7 @@ struct SourceIn {
     bool  isSolo = false;
     float gain;//Not Implemented
     
-    audioSetting * paramVBap = new audioSetting();
+    VBAP_DATA * paramVBap;// = new audioSetting();
 };
 
 
@@ -123,7 +124,7 @@ public:
 
     //Jack var
     jack_client_t *client;
-    DATA  data;
+
     //audio_settings * audio;
     
     vector<jack_port_t *> inputsPort;
@@ -200,7 +201,7 @@ public:
     
     
     //SpeakerLoad
-    bool initSpeakersTripplet(unsigned int sizeOutput);
+    bool initSpeakersTripplet(vector<Speaker *>  listSpk);
     void updateSourceVbap(int idS);
     
 private:
