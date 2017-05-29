@@ -41,6 +41,12 @@ class LevelComponent;
 
 using namespace std;
 
+struct Triplet {
+    int id1;
+    int id2;
+    int id3;
+};
+
 static const glm::vec3 ColorSpeaker         = glm::vec3(0.87, 0.87, 0.87);
 static const glm::vec3 ColorSpeakerSelect   = glm::vec3(1.00, 0.64, 0.09);
 static const glm::vec3 SizeSpeaker          = glm::vec3(0.5, 0.5, 0.5);

@@ -99,7 +99,9 @@ public:
     vector<Client> *getListClientjack(){ return &this->jackClient->listClient; }
     void connectionClientJack(String nameCli, bool conn = true) {this->jackClient->connectionClient(nameCli, conn); }
     
+    vector<Triplet> getListTriplet(){ return this->listTriplet; }
     void selectSpeaker(int idS);
+    void selectTripletSpeaker(int idS);
     void setNameConfig(String name);
     void setShowShepre(bool value){ this->speakerView->setShowSphere(value); }
     void addSpeaker();
@@ -157,6 +159,7 @@ private:
     
     FileWriter     *    fileWriter;
     
+    vector<Triplet>     listTriplet;
     vector<Speaker *>   listSpeaker;
     mutex *             lockSpeakers;
     

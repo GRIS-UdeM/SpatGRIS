@@ -382,6 +382,55 @@ void MainContentComponent::selectSpeaker(int idS)
         this->winSpeakConfig->selectedRow(idS);
     }
 }
+
+void MainContentComponent::selectTripletSpeaker(int idS)
+{
+    int countS = 0;
+    for(int i = 0; i < this->listSpeaker.size(); ++i) {
+        if(this->listSpeaker[i]->isSelected()){
+            countS+=1;
+        }
+    }
+
+    if(!this->listSpeaker[idS]->isSelected() && countS < 3){
+        this->listSpeaker[idS]->selectSpeaker();
+        countS+=1;
+    }else{
+        this->listSpeaker[idS]->unSelectSpeaker();
+    }
+
+    if(countS == 3){
+        int i1 = -1, i2= -1, i3 = -1;
+        for(int i = 0; i < this->listSpeaker.size(); ++i) {
+            if(this->listSpeaker[i]->isSelected()){
+                if(i1 == -1){
+                    i1=i;
+                }else{
+                    if(i2 == -1){
+                        i2=i;
+                    }else{
+                        if(i3 == -1){
+                            i3=i;
+                        }
+                    }
+                }
+            }
+        }
+        if(i1 != -1 && i2 != -1 && i3 != -1){
+            Triplet tri;
+            tri.id1 = i1;
+            tri.id2 = i2;
+            tri.id3 = i3;
+            
+            this->listTriplet.push_back(tri);
+        }
+
+    }
+    /*if(this->winSpeakConfig != nullptr){
+        this->winSpeakConfig->selectedRow(idS);
+    }*/
+}
+
 void MainContentComponent::addSpeaker(){
     this->lockSpeakers->lock();
     unsigned int idNewSpeaker = (unsigned int)listSpeaker.size()+1;
@@ -588,6 +637,15 @@ void MainContentComponent::openXmlFileSpeaker(String path)
                     }
                     
                 }
+                if (ring->hasTagName ("triplet"))
+                {
+                    Triplet tri;
+                    tri.id1 = ring->getIntAttribute("id1");
+                    tri.id2 = ring->getIntAttribute("id2");
+                    tri.id3 = ring->getIntAttribute("id3");
+                    this->listTriplet.push_back(tri);
+                
+                }
             }
             
         }else{
@@ -684,7 +742,6 @@ void MainContentComponent::savePresetSpeakers(String path){
     
     XmlElement * xmlRing = new  XmlElement("Ring");
     
-
     for (auto&& it : listSpeaker)
     {
         XmlElement * xmlInput = new  XmlElement("Speaker");
@@ -701,6 +758,16 @@ void MainContentComponent::savePresetSpeakers(String path){
         xmlRing->addChildElement(xmlInput);
     }
     xml->addChildElement(xmlRing);
+
+    for (auto&& it : listTriplet)
+    {
+        XmlElement * xmlInput = new  XmlElement("triplet");
+        xmlInput->setAttribute("id1", it.id1);
+        xmlInput->setAttribute("id2", it.id2);
+        xmlInput->setAttribute("id3", it.id3);
+        xml->addChildElement(xmlInput);
+    }
+    
     xml->writeToFile(xmlFile,"");
     xmlFile.create();
 }

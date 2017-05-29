@@ -81,12 +81,14 @@ private:
     void drawText( string val, glm::vec3 position,float scale = 0.005f, bool camLock = true);
     void drawTextOnGrid( string val, glm::vec3 position,float scale = 0.003f);
     
+    void drawTrippletConn();
     void drawCube(float x, float y, float z);
     
     bool showShpere = false;
     bool showNumber = false;
     bool highPerf   = false;
     bool clickLeft  = false;
+    bool controlOn  = false;
     bool hideSpeaker = false;
     
     float camAngleX= -30.0f;

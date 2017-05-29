@@ -98,8 +98,9 @@ void SpeakerViewComponent::render()
 
     this->drawOriginGrid();
     
-    if(!this->hideSpeaker){
-        if(this->mainParent->getLockSpeakers()->try_lock()){
+    
+    if(this->mainParent->getLockSpeakers()->try_lock()){
+        if(!this->hideSpeaker){
             for(int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
                 this->mainParent->getListSpeaker()[i]->draw();
                 if(this->showNumber){
@@ -108,9 +109,11 @@ void SpeakerViewComponent::render()
                     this->drawText(to_string(this->mainParent->getListSpeaker()[i]->getOutputPatch()),posT,0.002f);
                 }
             }
-            this->mainParent->getLockSpeakers()->unlock();
         }
+        this->drawTrippletConn();
+        this->mainParent->getLockSpeakers()->unlock();
     }
+
     
     if(this->mainParent->getLockInputs()->try_lock()){
         for(int i = 0; i < this->mainParent->getListSourceInput().size(); ++i) {
@@ -195,20 +198,28 @@ void SpeakerViewComponent::clickRay()
     
     int iBestSpeaker = -1;
     if(this->mainParent->getLockSpeakers()->try_lock()){
-    for(int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
-        if (raycast( this->mainParent->getListSpeaker()[i]) != -1 ) {
-            if(iBestSpeaker == -1){
-                iBestSpeaker = i;
-            }else{
-                if(speakerNearCam(this->mainParent->getListSpeaker()[i]->getCenter(), this->mainParent->getListSpeaker()[iBestSpeaker]->getCenter())){
+        for(int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
+            if (raycast( this->mainParent->getListSpeaker()[i]) != -1 ) {
+                if(iBestSpeaker == -1){
                     iBestSpeaker = i;
+                }else{
+                    if(speakerNearCam(this->mainParent->getListSpeaker()[i]->getCenter(), this->mainParent->getListSpeaker()[iBestSpeaker]->getCenter())){
+                        iBestSpeaker = i;
+                    }
                 }
             }
         }
+        
+        if(this->controlOn && iBestSpeaker >= 0 ){
+            this->mainParent->selectTripletSpeaker(iBestSpeaker);
+        }
+        else{
+            this->mainParent->selectSpeaker(iBestSpeaker);
+        }
+        this->mainParent->getLockSpeakers()->unlock();
     }
-    this->mainParent->selectSpeaker(iBestSpeaker);
-    this->mainParent->getLockSpeakers()->unlock();
-    }
+    
+    this->controlOn = false;
 }
 
 void SpeakerViewComponent::mouseDown (const MouseEvent& e)
@@ -220,6 +231,7 @@ void SpeakerViewComponent::mouseDown (const MouseEvent& e)
         this->rayClickX = (double)e.getPosition().x;
         this->rayClickY = (double)e.getPosition().y;
         this->clickLeft = true;
+        this->controlOn = e.mods.isCtrlDown();
     }
 }
 
@@ -364,7 +376,7 @@ void SpeakerViewComponent::drawOriginGrid()
     drawTextOnGrid("0",     glm::vec3(9.4,  0, 0.1));
     drawTextOnGrid("90",    glm::vec3(-0.8, 0, 9.0));
     drawTextOnGrid("180",   glm::vec3(-9.8, 0, 0.1));
-    drawTextOnGrid("270",   glm::vec3(-0.8, 0,-9.8));
+    drawTextOnGrid("-90",   glm::vec3(-0.8, 0,-9.8));
 }
 
 void SpeakerViewComponent::drawText(string val, glm::vec3 position,float scale, bool camLock){
@@ -405,6 +417,28 @@ void SpeakerViewComponent::drawTextOnGrid(string val, glm::vec3 position,float s
     }
     glTranslatef(-position.x, -position.y, -position.z);
     glPopMatrix();
+}
+
+void SpeakerViewComponent::drawTrippletConn()
+{
+    for(int i = 0; i < this->mainParent->getListTriplet().size(); ++i) {
+        
+        glLineWidth(1);
+        glBegin(GL_LINES);
+        glColor3f(0.65, 0.65, 0.65);
+        
+        glVertex3f(this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id1]->getCenter().x, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id1]->getCenter().y, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id1]->getCenter().z);
+        glVertex3f(this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id2]->getCenter().x, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id2]->getCenter().y, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id2]->getCenter().z);
+        
+        glVertex3f(this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id1]->getCenter().x, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id1]->getCenter().y, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id1]->getCenter().z);
+        glVertex3f(this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id3]->getCenter().x, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id3]->getCenter().y, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id3]->getCenter().z);
+        
+        glVertex3f(this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id2]->getCenter().x, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id2]->getCenter().y, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id2]->getCenter().z);
+        glVertex3f(this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id3]->getCenter().x, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id3]->getCenter().y, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id3]->getCenter().z);
+        
+        
+        glEnd();
+    }
 }
 
 //Not used !!!
