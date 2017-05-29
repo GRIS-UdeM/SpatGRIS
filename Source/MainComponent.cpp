@@ -553,6 +553,16 @@ void MainContentComponent::updateLevelComp(){
     
     this->jackClient->prepareToRecord(0);
     
+    //Clear useless triplet
+    for(int i = 0; i < this->listTriplet.size(); ++i) {
+        
+        if(this->listTriplet[i].id1+1 > this->listSpeaker.size() ||
+           this->listTriplet[i].id2+1 > this->listSpeaker.size() ||
+           this->listTriplet[i].id3+1 > this->listSpeaker.size()){
+            
+            this->listTriplet.erase(this->listTriplet.begin() + i);
+        }
+    }
     //this->jackClient->initSpeakersTripplet(listSpeaker.size());
 
 }
@@ -955,6 +965,7 @@ void MainContentComponent::buttonClicked (Button *button)
             this->winSpeakConfig->setBounds (result);
             this->winSpeakConfig->initComp();
         }
+        this->winSpeakConfig->settop
         this->winSpeakConfig->setBounds (result);
         this->winSpeakConfig->setResizable (true, true);
         this->winSpeakConfig->setUsingNativeTitleBar (true);

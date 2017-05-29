@@ -423,21 +423,26 @@ void SpeakerViewComponent::drawTrippletConn()
 {
     for(int i = 0; i < this->mainParent->getListTriplet().size(); ++i) {
         
-        glLineWidth(1);
-        glBegin(GL_LINES);
-        glColor3f(0.65, 0.65, 0.65);
+        if(this->mainParent->getListTriplet()[i].id1 < this->mainParent->getListSpeaker().size() &&
+           this->mainParent->getListTriplet()[i].id2 < this->mainParent->getListSpeaker().size() &&
+           this->mainParent->getListTriplet()[i].id3 < this->mainParent->getListSpeaker().size()   ){
         
-        glVertex3f(this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id1]->getCenter().x, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id1]->getCenter().y, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id1]->getCenter().z);
-        glVertex3f(this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id2]->getCenter().x, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id2]->getCenter().y, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id2]->getCenter().z);
-        
-        glVertex3f(this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id1]->getCenter().x, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id1]->getCenter().y, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id1]->getCenter().z);
-        glVertex3f(this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id3]->getCenter().x, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id3]->getCenter().y, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id3]->getCenter().z);
-        
-        glVertex3f(this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id2]->getCenter().x, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id2]->getCenter().y, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id2]->getCenter().z);
-        glVertex3f(this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id3]->getCenter().x, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id3]->getCenter().y, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id3]->getCenter().z);
-        
-        
-        glEnd();
+            glLineWidth(1);
+            glBegin(GL_LINES);
+            glColor3f(0.65, 0.65, 0.65);
+            
+            glVertex3f(this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id1]->getCenter().x, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id1]->getCenter().y, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id1]->getCenter().z);
+            glVertex3f(this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id2]->getCenter().x, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id2]->getCenter().y, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id2]->getCenter().z);
+            
+            glVertex3f(this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id1]->getCenter().x, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id1]->getCenter().y, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id1]->getCenter().z);
+            glVertex3f(this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id3]->getCenter().x, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id3]->getCenter().y, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id3]->getCenter().z);
+            
+            glVertex3f(this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id2]->getCenter().x, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id2]->getCenter().y, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id2]->getCenter().z);
+            glVertex3f(this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id3]->getCenter().x, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id3]->getCenter().y, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id3]->getCenter().z);
+            
+            
+            glEnd();
+        }
     }
 }
 
