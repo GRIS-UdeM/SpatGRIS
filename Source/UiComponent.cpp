@@ -319,6 +319,7 @@ WindowEditSpeaker::WindowEditSpeaker(const String& name, String& nameC,Colour ba
     this->butsaveSpeakers->setLookAndFeel(this->grisFeel);
     this->boxListSpeaker->getContent()->addAndMakeVisible(this->butsaveSpeakers);
     
+
     this->texEditNameConf = new TextEditor();
     this->texEditNameConf->setText(nameC);
     this->texEditNameConf->setBounds(190, 404, 160, 22);
@@ -326,6 +327,16 @@ WindowEditSpeaker::WindowEditSpeaker(const String& name, String& nameC,Colour ba
     this->texEditNameConf->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
     this->texEditNameConf->setLookAndFeel(this->grisFeel);
     this->boxListSpeaker->getContent()->addAndMakeVisible(this->texEditNameConf);
+    
+    
+    this->butClearTriplet = new TextButton();
+    this->butClearTriplet->setButtonText("Clear Triangle");
+    this->butClearTriplet->setBounds(4, 442, 120, 22);
+    this->butClearTriplet->addListener(this);
+    this->butClearTriplet->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
+    this->butClearTriplet->setLookAndFeel(this->grisFeel);
+    this->boxListSpeaker->getContent()->addAndMakeVisible(this->butClearTriplet);
+    
 
     this->setContentComponent(this->boxListSpeaker);
     this->boxListSpeaker->getContent()->addAndMakeVisible(tableListSpeakers);
@@ -342,6 +353,7 @@ WindowEditSpeaker::~WindowEditSpeaker(){
     delete this->butAddSpeaker;
     delete this->butsaveSpeakers;
     delete this->texEditNameConf;
+    delete this->butClearTriplet;
     this->mainParent->destroyWinSpeakConf();
 }
 void WindowEditSpeaker::initComp(){
@@ -410,6 +422,9 @@ void WindowEditSpeaker::buttonClicked(Button *button){
                 this->mainParent->savePresetSpeakers(chosen);
             }
         }
+    }
+    else if (button == this->butClearTriplet) {
+        this->mainParent->clearListTriplet();
     }
     
     if( button->getName() != "" && (button->getName().getIntValue()>=0 && button->getName().getIntValue()<= this->mainParent->getListSpeaker().size())){

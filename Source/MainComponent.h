@@ -100,6 +100,7 @@ public:
     void connectionClientJack(String nameCli, bool conn = true) {this->jackClient->connectionClient(nameCli, conn); }
     
     vector<Triplet> getListTriplet(){ return this->listTriplet; }
+    void clearListTriplet(){ this->listTriplet.clear(); }
     void selectSpeaker(int idS);
     void selectTripletSpeaker(int idS);
     void setNameConfig(String name);

@@ -173,6 +173,7 @@ private:
     TextButton *butAddSpeaker;
     TextButton *butsaveSpeakers;
     TextEditor *texEditNameConf;
+    TextButton *butClearTriplet;
     
     TableListBox tableListSpeakers;
     Font font;

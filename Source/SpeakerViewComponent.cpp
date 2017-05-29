@@ -141,7 +141,7 @@ void SpeakerViewComponent::render()
             glLineWidth(1);
             glRotatef(90, 1, 0, 0);
             glColor3f(0.8, 0.2, 0.1);
-            glutSolidSphere(max(maxRadius,1.0f) ,50,50);
+            glutSolidSphere(max(maxRadius,1.0f) ,36,36);
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             glPopMatrix();
             this->mainParent->getLockSpeakers()->unlock();
