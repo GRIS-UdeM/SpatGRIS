@@ -1008,9 +1008,19 @@ void MainContentComponent::comboBoxChanged (ComboBox *comboBox)
                 }
                 break;
                 
-            default:
+            case DBap:
+                this->labelModeInfo->setText("Not ready yet", dontSendNotification);
+                this->labelModeInfo->setColour(Label::textColourId, mGrisFeel.getRedColour());
+                break;
+                
+            case FreeBasic:
                 this->labelModeInfo->setText("Ready", dontSendNotification);
                 this->labelModeInfo->setColour(Label::textColourId, mGrisFeel.getGreenColour());
+                break;
+                
+            default:
+                this->labelModeInfo->setText("ERROR UNK", dontSendNotification);
+                this->labelModeInfo->setColour(Label::textColourId, mGrisFeel.getRedColour());
                 break;
         }
         
