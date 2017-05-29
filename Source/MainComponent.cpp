@@ -965,7 +965,6 @@ void MainContentComponent::buttonClicked (Button *button)
             this->winSpeakConfig->setBounds (result);
             this->winSpeakConfig->initComp();
         }
-        this->winSpeakConfig->settop
         this->winSpeakConfig->setBounds (result);
         this->winSpeakConfig->setResizable (true, true);
         this->winSpeakConfig->setUsingNativeTitleBar (true);
