@@ -152,6 +152,7 @@ private:
     void savePreset(String path);
     
     void updateSkeapersConf();
+    bool tripletExist(Triplet tri, int &pos);
     
     ApplicationProperties applicationProperties;
     //==============================================================================

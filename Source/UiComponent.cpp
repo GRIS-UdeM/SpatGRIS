@@ -330,7 +330,7 @@ WindowEditSpeaker::WindowEditSpeaker(const String& name, String& nameC,Colour ba
     
     
     this->butClearTriplet = new TextButton();
-    this->butClearTriplet->setButtonText("Clear Triangle");
+    this->butClearTriplet->setButtonText("Clear Triplets");
     this->butClearTriplet->setBounds(4, 442, 120, 22);
     this->butClearTriplet->addListener(this);
     this->butClearTriplet->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
@@ -468,6 +468,7 @@ void WindowEditSpeaker::resized(){
 
     this->butAddSpeaker->setBounds(4, getHeight()-110, 88, 22);
     this->toggleShowSphere->setBounds(4, getHeight()-86, 120, 22);
+    this->butClearTriplet->setBounds(4, getHeight()-60, 88, 22);
     this->butsaveSpeakers->setBounds(100, getHeight()-110, 88, 22);
     this->texEditNameConf->setBounds(190, getHeight()-110, 160, 22);
     

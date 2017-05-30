@@ -421,14 +421,39 @@ void MainContentComponent::selectTripletSpeaker(int idS)
             tri.id1 = i1;
             tri.id2 = i2;
             tri.id3 = i3;
-            
-            this->listTriplet.push_back(tri);
+            int posDel = -1;
+            if(this->tripletExist(tri, posDel)){
+                this->listTriplet.erase(this->listTriplet.begin() + posDel);
+            }else{
+                
+                this->listTriplet.push_back(tri);
+            }
         }
 
     }
     /*if(this->winSpeakConfig != nullptr){
         this->winSpeakConfig->selectedRow(idS);
     }*/
+}
+
+bool MainContentComponent::tripletExist(Triplet tri, int &pos)
+{
+    pos = 0;
+    for (auto&& ti : this->listTriplet)
+    {
+        if((ti.id1 == tri.id1 && ti.id2 == tri.id2 && ti.id3 == tri.id3) ||
+           (ti.id1 == tri.id1 && ti.id2 == tri.id3 && ti.id3 == tri.id2) ||
+           (ti.id1 == tri.id2 && ti.id2 == tri.id1 && ti.id3 == tri.id3) ||
+           (ti.id1 == tri.id2 && ti.id2 == tri.id3 && ti.id3 == tri.id1) ||
+           (ti.id1 == tri.id3 && ti.id2 == tri.id2 && ti.id3 == tri.id1) ||
+           (ti.id1 == tri.id3 && ti.id2 == tri.id1 && ti.id3 == tri.id2)
+           ){
+            return true;
+        }
+        pos += 1;
+    }
+    
+    return false;
 }
 
 void MainContentComponent::addSpeaker(){
