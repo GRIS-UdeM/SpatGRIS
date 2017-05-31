@@ -49,7 +49,7 @@ typedef struct {
 typedef struct { 
     CART_VEC coords;
     ANG_VEC angles;
-} ls;
+} ls; // TODO: rename this struct.
 
 /* VBAP structure of n loudspeaker panning */
 typedef struct {
@@ -85,9 +85,12 @@ void free_speakers_setup(SPEAKERS_SETUP *setup);
 /* Initialize a VBAP_DATA structure from a loudspeakers setup and
  * an optional matrix of user-defined triplets.
  */
-VBAP_DATA * init_vbap_data2(SPEAKERS_SETUP *setup, int **triplets);
+VBAP_DATA * init_vbap_data(SPEAKERS_SETUP *setup, int **triplets);
 
-VBAP_DATA * init_vbap_from_speakers(ls lss[MAX_LS_AMOUNT], int count, int **triplets);
+VBAP_DATA * init_vbap_from_speakers(ls lss[MAX_LS_AMOUNT], int count,
+                                    int **triplets);
+
+VBAP_DATA * copy_vbap_data(VBAP_DATA *data);
 
 /* Properly free a previously allocated VBAP_DATA structure.
  */
@@ -95,7 +98,8 @@ void free_vbap_data(VBAP_DATA *data);
 
 /* Calculates gain factors using loudspeaker setup and angle direction. 
  */
-void vbap_angle(float azi, float ele, float spread, VBAP_DATA *data);
+void vbap(float azi, float ele, float spread, VBAP_DATA *data);
+void vbap_flip_y_z(float azi, float ele, float spread, VBAP_DATA *data);
 
 #ifdef __cplusplus 
 }

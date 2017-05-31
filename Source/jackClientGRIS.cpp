@@ -757,7 +757,7 @@ void jackClientGris::updateSourceVbap(int idS)
     if(listSourceIn[idS].paramVBap != nullptr){
     
         //cout << listSourceIn[idS].azimuth << " // " << listSourceIn[idS].zenith << endl;
-        vbap_angle(listSourceIn[idS].azimuth, listSourceIn[idS].zenith, listSourceIn[idS].aziSpan, listSourceIn[idS].paramVBap);
+        vbap_flip_y_z(listSourceIn[idS].azimuth, listSourceIn[idS].zenith, listSourceIn[idS].aziSpan, listSourceIn[idS].paramVBap);
         
         /*vbap(listSourceIn[idS].paramVBap->g, listSourceIn[idS].paramVBap->ls, listSourceIn[idS].x, listSourceIn[idS].y,listSourceIn[idS].z, data->dimension,
          data.matrices, data.numbers, data.triplet_count);*/

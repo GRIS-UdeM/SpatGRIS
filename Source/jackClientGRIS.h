@@ -29,6 +29,10 @@
 #include <string.h>
 #include <unistd.h>
 
+#ifdef __linux__
+#include <mutex>
+#endif
+
 #include "../JuceLibraryCode/JuceHeader.h"
 
 #include <jack/jack.h>
