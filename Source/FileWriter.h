@@ -21,10 +21,9 @@ public:
     FileWriter(MainContentComponent * parent) ;
     ~FileWriter();
     
-    //==============================================================================
+    //===================================================================
     void recording (int numOutputs = 1, int sampleRate = 48000);
     bool isSavingRun(){ return this->inSave; }
-    
     
     
 private:
@@ -33,10 +32,11 @@ private:
     void run() override;
     
     MainContentComponent * mainParent;
+    String  filePath ;
     int     numOutputs;
     float   sampleRate;
-    bool    inSave = false;
-    String  filePath ;
+    bool    inSave;
+    
 };
 
 

@@ -196,7 +196,6 @@ public:
     
 private:
     
-    
     bool clientReady;
     void connectedGristoSystem();
     

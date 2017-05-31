@@ -27,7 +27,7 @@ class MainContentComponent;
 
 using namespace std;
 
-static const string OscPanAZ = "/pan/az";
+static const string OscPanAZ    = "/pan/az";
 static const string OscSpatServ = "/spat/serv";
 
 class OscInput  :   private OSCReceiver,

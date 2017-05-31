@@ -93,7 +93,6 @@ public:
     void setOutputPatch(int value);
 
     
-    
     //OpenGL ==============================================
     glm::vec3 getMin();
     glm::vec3 getMax();
@@ -120,7 +119,6 @@ private :
     
     bool selected = false;
 
-    
     MainContentComponent *mainParent;
     LevelComponent *vuMeter;
     

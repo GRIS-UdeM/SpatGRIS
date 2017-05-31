@@ -13,10 +13,12 @@
 FileWriter::FileWriter(MainContentComponent * parent) : Thread ("FileWriter")
 {
     this->mainParent = parent;
+    this->inSave     = false;
 }
 
 FileWriter::~FileWriter()
 {
+    
 }
 
 void FileWriter::recording(int numOutputs, int sampleRate)
@@ -38,6 +40,7 @@ void FileWriter::run()
         this->inSave = false;
         return;
     }
+    
     unsigned int size = this->mainParent->getBufferCurentIndex();
     AudioSampleBuffer* buffers=new AudioSampleBuffer(this->numOutputs,size);
     buffers->clear();
@@ -51,26 +54,29 @@ void FileWriter::run()
     File fileS = File(this->filePath);
     fileS.deleteFile();
     FileOutputStream * outputTo = fileS.createOutputStream();
-    AudioFormatWriter* writer;
     
     String extF = fileS.getFileExtension();
     if(extF == ".wav")
     {
+        AudioFormatWriter* writer;
         WavAudioFormat* waveAudioF = new WavAudioFormat();
         writer = waveAudioF->createWriterFor(outputTo, this->sampleRate, this->numOutputs, 24, NULL, 0);
         writer->writeFromAudioSampleBuffer(*buffers, 0, size);
         
         delete waveAudioF;
+        delete writer;
     }
     else if(extF == ".aif")
     {
+        AudioFormatWriter* writer;
         AiffAudioFormat* aiffAudioF = new AiffAudioFormat();
         writer = aiffAudioF->createWriterFor(outputTo,this->sampleRate, this->numOutputs, 24, NULL, 0);
         writer->writeFromAudioSampleBuffer(*buffers, 0, size);
         
         delete aiffAudioF;
+        delete writer;
     }
-    delete writer;
+    
     /*else if(extF == ".flac")
     {
         FlacAudioFormat* flacAudioF = new FlacAudioFormat();
@@ -81,7 +87,6 @@ void FileWriter::run()
         delete flacAudioF;
     }*/
     
-    
-    
+
     this->inSave = false;
 }

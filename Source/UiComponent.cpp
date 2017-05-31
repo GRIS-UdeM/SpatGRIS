@@ -24,8 +24,8 @@
 #include "MainComponent.h"
 
 //======================================= BOX ===========================================================================
-Box::Box(GrisLookAndFeel *feel, String title) {
-    
+Box::Box(GrisLookAndFeel *feel, String title)
+{
     this->title = title;
     this->grisFeel = feel;
     this->bgColour = this->grisFeel->getBackgroundColour();
@@ -42,24 +42,28 @@ Box::Box(GrisLookAndFeel *feel, String title) {
     addAndMakeVisible(this->viewport);
 }
 
-Box::~Box(){
+Box::~Box()
+{
     this->content->deleteAllChildren();
     delete this->viewport;
     delete this->content;
 }
 
-Component * Box::getContent() {
+Component * Box::getContent()
+{
     return this->content ? this->content : this;
 }
 
 
-void Box::resized() {
+void Box::resized()
+{
     if (this->viewport){
         this->viewport->setSize(getWidth(), getHeight());
     }
 }
 
-void Box::correctSize(unsigned int width, unsigned int height){
+void Box::correctSize(unsigned int width, unsigned int height)
+{
     if(this->title!=""){
         this->viewport->setTopLeftPosition(0, 20);
         this->viewport->setSize(getWidth(), getHeight()-20);
@@ -73,7 +77,8 @@ void Box::correctSize(unsigned int width, unsigned int height){
 }
 
 
-void Box::paint(Graphics &g) {
+void Box::paint(Graphics &g)
+{
     g.setColour(this->bgColour);
     g.fillRect(getLocalBounds());
     if(this->title!=""){
@@ -89,7 +94,8 @@ void Box::paint(Graphics &g) {
 
 
 //======================================= BOX CLIENT ===========================================================================
-BoxClient::BoxClient(MainContentComponent * parent, GrisLookAndFeel *feel){
+BoxClient::BoxClient(MainContentComponent * parent, GrisLookAndFeel *feel)
+{
     this->mainParent= parent;
     this->grisFeel = feel;
     
@@ -114,11 +120,13 @@ BoxClient::BoxClient(MainContentComponent * parent, GrisLookAndFeel *feel){
     
     this->addAndMakeVisible(tableListClient);
 }
+
 BoxClient::~BoxClient(){
 
 }
 
-void BoxClient::buttonClicked(Button *button){
+void BoxClient::buttonClicked(Button *button)
+{
     this->mainParent->getLockClients()->lock();
     bool connectedCli = !this->mainParent->getListClientjack()->at(button->getName().getIntValue()).connected;
     this->mainParent->connectionClientJack(this->mainParent->getListClientjack()->at(button->getName().getIntValue()).name, connectedCli);
@@ -132,7 +140,8 @@ void BoxClient::setBounds(int x, int y, int width, int height)
     tableListClient.setSize(width, height);
 }
 
-void BoxClient::updateContentCli(){
+void BoxClient::updateContentCli()
+{
     numRows = (unsigned int)this->mainParent->getListClientjack()->size();
     tableListClient.updateContent();
     tableListClient.repaint();
@@ -194,9 +203,6 @@ String BoxClient::getText (const int columnNumber, const int rowNumber) const
 
     return text;
 }
-
-
-
 
 int BoxClient::getNumRows()
 {
@@ -346,7 +352,8 @@ WindowEditSpeaker::WindowEditSpeaker(const String& name, String& nameC,Colour ba
     
 }
 
-WindowEditSpeaker::~WindowEditSpeaker(){
+WindowEditSpeaker::~WindowEditSpeaker()
+{
     this->mainParent->setShowShepre(false);
     //delete this->boxListSpeaker;
     delete this->toggleShowSphere;
@@ -356,9 +363,9 @@ WindowEditSpeaker::~WindowEditSpeaker(){
     delete this->butClearTriplet;
     this->mainParent->destroyWinSpeakConf();
 }
-void WindowEditSpeaker::initComp(){
 
-    
+void WindowEditSpeaker::initComp()
+{
     tableListSpeakers.setModel(this);
     
     tableListSpeakers.setColour (ListBox::outlineColourId, this->grisFeel->getWinBackgroundColour());
@@ -386,24 +393,19 @@ void WindowEditSpeaker::initComp(){
     
     numRows = (unsigned int)this->mainParent->getListSpeaker().size();
 
-
     this->boxListSpeaker->setBounds(0, 0, getWidth(),getHeight());
     this->boxListSpeaker->correctSize(getWidth()-8, getHeight());
     tableListSpeakers.setSize(getWidth(), 400);
     
     tableListSpeakers.updateContent();
     
-    
-    
-
-    
     this->boxListSpeaker->repaint();
     this->boxListSpeaker->resized();
     this->resized();
 }
 
-void WindowEditSpeaker::buttonClicked(Button *button){
-    
+void WindowEditSpeaker::buttonClicked(Button *button)
+{
     if (button == this->toggleShowSphere) {
         this->mainParent->setShowShepre(this->toggleShowSphere->getToggleState());
     }
@@ -435,30 +437,38 @@ void WindowEditSpeaker::buttonClicked(Button *button){
     
 }
 
-void WindowEditSpeaker::updateWinContent(){
+void WindowEditSpeaker::updateWinContent()
+{
     numRows = (unsigned int)this->mainParent->getListSpeaker().size();
     tableListSpeakers.updateContent();
 }
-void WindowEditSpeaker::selectedRow(int value){
+
+void WindowEditSpeaker::selectedRow(int value)
+{
     MessageManagerLock mmlock;
     this->tableListSpeakers.selectRow(value);
     this->repaint();
 }
+
 void WindowEditSpeaker::closeButtonPressed()
 {
     delete this;
 }
 
-void WindowEditSpeaker::textEditorFocusLost (TextEditor &textEditor){
+void WindowEditSpeaker::textEditorFocusLost (TextEditor &textEditor)
+{
     textEditorReturnKeyPressed(textEditor);
 }
-void WindowEditSpeaker::textEditorReturnKeyPressed (TextEditor &textEditor){
+
+void WindowEditSpeaker::textEditorReturnKeyPressed (TextEditor &textEditor)
+{
     if(&textEditor == this->texEditNameConf){
         this->mainParent->setNameConfig(this->texEditNameConf->getTextValue().toString());
     }
 }
 
-void WindowEditSpeaker::resized(){
+void WindowEditSpeaker::resized()
+{
     this->juce::DocumentWindow::resized();
     
     tableListSpeakers.setSize(getWidth(), getHeight()-120);

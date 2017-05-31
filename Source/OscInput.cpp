@@ -18,31 +18,36 @@
  */
 
 
-
 #include "OscInput.h"
 #include "MainComponent.h"
 #include "Input.h"
 
-OscInput::OscInput(MainContentComponent* parent){
+
+OscInput::OscInput(MainContentComponent* parent)
+{
     this->mainParent = parent;
 }
 
-OscInput::~OscInput(){
+OscInput::~OscInput()
+{
     this->disconnect();
 }
 
-bool OscInput::startConnection(int port){
+bool OscInput::startConnection(int port)
+{
     bool b = this->connect(port);
     this->addListener(this, OscPanAZ.c_str());
     this->addListener(this, OscSpatServ.c_str());
     return b;
 }
 
-bool OscInput::closeConnection(){
+bool OscInput::closeConnection()
+{
     return this->disconnect();
 }
 
-void OscInput::oscMessageReceived(const OSCMessage& message) {
+void OscInput::oscMessageReceived(const OSCMessage& message)
+{
     string address = message.getAddressPattern().toString().toStdString();
     
     if(message[0].isInt32()){

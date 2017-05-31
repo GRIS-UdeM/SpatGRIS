@@ -23,7 +23,8 @@
 #include "MainComponent.h"
 #include "LevelComponent.h"
 
-Input::Input(MainContentComponent * parent, GrisLookAndFeel * feel,int id){
+Input::Input(MainContentComponent * parent, GrisLookAndFeel * feel,int id)
+{
     this->mainParent = parent;
     this->grisFeel = feel;
     this->idChannel = id;
@@ -44,24 +45,32 @@ Input::Input(MainContentComponent * parent, GrisLookAndFeel * feel,int id){
     this->vuMeter = new LevelComponent(this, this->grisFeel);
 }
 
-Input::~Input(){
+Input::~Input()
+{
     delete this->vuMeter;
 }
 
-glm::vec3 Input::getCenter(){
+glm::vec3 Input::getCenter()
+{
     return this->center;
 }
 
-float Input::getLevel(){
+float Input::getLevel()
+{
     return this->mainParent->getLevelsIn(this->idChannel-1);
 }
-void Input::setMuted(bool mute){
+
+void Input::setMuted(bool mute)
+{
     this->mainParent->muteInput(this->idChannel, mute);
 }
-void Input::setSolo(bool solo){
+void Input::setSolo(bool solo)
+{
     this->mainParent->soloInput(this->idChannel, solo);
 }
-void Input::setColor(Colour color, bool updateLevel){
+
+void Input::setColor(Colour color, bool updateLevel)
+{
     this->colorJ = color;
     this->color.x = this->colorJ.getFloatRed();
     this->color.y = this->colorJ.getFloatGreen();
@@ -71,14 +80,17 @@ void Input::setColor(Colour color, bool updateLevel){
         this->vuMeter->setColor(this->colorJ);
     }
 }
-glm::vec3 Input::getColor(){
+glm::vec3 Input::getColor()
+{
     return this->color;
 }
-Colour Input::getColorJ(){
+Colour Input::getColorJ()
+{
     return this->colorJ;
 }
 
-void Input::draw(){
+void Input::draw()
+{
     // Draw 3D sphere.
     glPushMatrix();
     glTranslatef(this->center.x, this->center.y, this->center.z);
@@ -174,8 +186,8 @@ void Input::drawSpan()
     }*/
 }
 
-void Input::updateValues(float az, float ze, float azS, float zeS, float heS, float g){
-    
+void Input::updateValues(float az, float ze, float azS, float zeS, float heS, float g)
+{
     this->azimuth = az; //fmod(((az/M_PI)-M_PI)*-10.0f,(M2_PI));
     this->zenith  = ze; //(M_PI2) - (M_PI * ze);     //((ze-0.5f)/M_PI)*-10.0f;
     
@@ -196,8 +208,8 @@ void Input::updateValues(float az, float ze, float azS, float zeS, float heS, fl
     
 }
 
-void Input::updateValuesOld(float az, float ze, float azS, float zeS, float g){
-
+void Input::updateValuesOld(float az, float ze, float azS, float zeS, float g)
+{
     this->azimuth = fmod(((az/M_PI)-M_PI)*-10.0f,(M2_PI));  //0 - 2_PI
     this->zenith  = (M_PI2) - (M_PI * ze); //0 - (PI/2)    //((ze-0.5f)/M_PI)*-10.0f;
     

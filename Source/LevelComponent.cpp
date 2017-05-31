@@ -30,18 +30,21 @@ grisFeel(feel)
     
 }
 
-LevelBox::~LevelBox(){
+LevelBox::~LevelBox()
+{
     
 }
 
 
-void LevelBox::setBounds(const Rectangle<int> &newBounds){
+void LevelBox::setBounds(const Rectangle<int> &newBounds)
+{
     this->juce::Component::setBounds(newBounds);
     colorGrad = ColourGradient(Colours::red, 0.f, 0.f, Colour::fromRGB(17, 255, 159), 0.f, getHeight(), false);
     colorGrad.addColour(0.1, Colours::yellow);
 }
 
-void LevelBox::paint (Graphics& g){
+void LevelBox::paint (Graphics& g)
+{
     if(this->mainParent->isMuted()){
         g.fillAll (grisFeel->getWinBackgroundColour());
     }
@@ -63,7 +66,8 @@ void LevelBox::paint (Graphics& g){
 
 
 //======================================================================================================================
-LevelComponent::LevelComponent(ParentLevelComponent* parent, GrisLookAndFeel *feel, bool colorful){
+LevelComponent::LevelComponent(ParentLevelComponent* parent, GrisLookAndFeel *feel, bool colorful)
+{
     this->mainParent = parent;
     this->grisFeel = feel;
     this->isColorful = colorful;
@@ -109,22 +113,20 @@ LevelComponent::LevelComponent(ParentLevelComponent* parent, GrisLookAndFeel *fe
     //Level BOX============================================================
     this->levelBox = new LevelBox(this, this->grisFeel);
     this->addAndMakeVisible(this->levelBox);
-    
 
-    /*if(!this->isColorful){
-        this->setSelected(false);
-    }*/
 }
 
 
-LevelComponent::~LevelComponent(){
+LevelComponent::~LevelComponent()
+{
     delete this->muteToggleBut;
     delete this->soloToggleBut;
     delete this->idBut;
     delete this->levelBox;
 }
 
-void LevelComponent::buttonClicked(Button *button){
+void LevelComponent::buttonClicked(Button *button)
+{
     if (button == this->muteToggleBut) {
         this->mainParent->setMuted(this->muteToggleBut->getToggleState());
         this->levelBox->repaint();
@@ -155,11 +157,13 @@ void LevelComponent::changeListenerCallback (ChangeBroadcaster* source)
     }
 }
 
-float LevelComponent::getLevel(){
+float LevelComponent::getLevel()
+{
     return level;
 }
 
-void LevelComponent::update(){
+void LevelComponent::update()
+{
     float l = this->mainParent->getLevel();
     if(isnan(l)){ return; }
     if(!this->muteToggleBut->getToggleState() && this->level != l){
@@ -169,7 +173,8 @@ void LevelComponent::update(){
 }
 
 
-bool LevelComponent::isMuted(){
+bool LevelComponent::isMuted()
+{
     return this->muteToggleBut->getToggleState();
 }
 
@@ -186,7 +191,8 @@ void LevelComponent::setSelected(bool value){
     }
 }
 
-void LevelComponent::setBounds(const Rectangle<int> &newBounds){
+void LevelComponent::setBounds(const Rectangle<int> &newBounds)
+{
     this->juce::Component::setBounds(newBounds);
 
     juce::Rectangle<int> labRect(WidthRect/2, 0, newBounds.getWidth()-WidthRect, this->idBut->getHeight() );

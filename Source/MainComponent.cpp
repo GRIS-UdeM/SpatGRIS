@@ -20,8 +20,8 @@
 
 #include "MainComponent.h"
 
-MainContentComponent::MainContentComponent(){
-
+MainContentComponent::MainContentComponent()
+{
     //Splash Screen (Only for Mac)
     File fs = File ( File::getCurrentWorkingDirectory().getFullPathName()+("/spatServerGRIS.app/Contents/Resources/splash.png"));
     if(fs.exists()){
@@ -293,7 +293,8 @@ ComboBox* MainContentComponent::addComboBox(const String &s, const String &stool
 }
 
 //=====================================================
-bool MainContentComponent::exitApp(){
+bool MainContentComponent::exitApp()
+{
     ScopedPointer<AlertWindow> alert = new AlertWindow ("Exit SpatServerGRIS !","Do you want to save preset ?", AlertWindow::InfoIcon);
     alert->addButton ("Save", 1);
     alert->addButton ("Cancel", 0);
@@ -316,8 +317,9 @@ bool MainContentComponent::exitApp(){
     return (exitV != 0);
  
 }
-MainContentComponent::~MainContentComponent() {
 
+MainContentComponent::~MainContentComponent()
+{
     this->applicationProperties.getUserSettings()->setValue("lastOpentPreset", this->pathCurrentPreset);
     this->applicationProperties.saveIfNeeded();
     this->applicationProperties.closeFiles();
@@ -455,7 +457,8 @@ bool MainContentComponent::tripletExist(Triplet tri, int &pos)
     return false;
 }
 
-void MainContentComponent::addSpeaker(){
+void MainContentComponent::addSpeaker()
+{
     this->lockSpeakers->lock();
     unsigned int idNewSpeaker = (unsigned int)listSpeaker.size()+1;
     this->listSpeaker.push_back(new Speaker(this, idNewSpeaker, idNewSpeaker, glm::vec3(0.0f, 0.0f, 0.0f)));
@@ -464,7 +467,8 @@ void MainContentComponent::addSpeaker(){
     updateLevelComp();
 }
 
-void MainContentComponent::removeSpeaker(int idSpeaker){
+void MainContentComponent::removeSpeaker(int idSpeaker)
+{
     this->jackClient->removeOutput(idSpeaker);
     this->lockSpeakers->lock();
     int index = 0;
@@ -479,10 +483,10 @@ void MainContentComponent::removeSpeaker(int idSpeaker){
 
     this->lockSpeakers->unlock();
     updateLevelComp();
-
 }
 
-void MainContentComponent::updateInputJack(int inInput, Input &inp){
+void MainContentComponent::updateInputJack(int inInput, Input &inp)
+{
     SourceIn *si = &this->jackClient->listSourceIn[inInput]; //.getReference(inInput);
 
     si->x = inp.getCenter().x/10.0f;
@@ -508,7 +512,8 @@ void MainContentComponent::updateInputJack(int inInput, Input &inp){
     //cout << si->azimuth << " // " << si->zenith << " // " << si->radius << " // " << si->aziSpan << " // " << si->zenSpan << newLine;
 }
 
-void MainContentComponent::updateLevelComp(){
+void MainContentComponent::updateLevelComp()
+{
     this->jackClient->processBlockOn = false;
     int x = 2;
     int indexS = 0;
@@ -593,18 +598,22 @@ void MainContentComponent::updateLevelComp(){
 }
 
 
-void MainContentComponent::setNameConfig(String name){
+void MainContentComponent::setNameConfig(String name)
+{
     this->nameConfig = name;
     this->speakerView->setNameConfig(nameConfig);
 }
 
-void MainContentComponent::muteInput(int id, bool mute){
+void MainContentComponent::muteInput(int id, bool mute)
+{
     (&this->jackClient->listSourceIn[id-1])->isMuted = mute;
 }
-void MainContentComponent::muteOutput(int id, bool mute){
+void MainContentComponent::muteOutput(int id, bool mute)
+{
     (&this->jackClient->listSpeakerOut[id-1])->isMuted = mute;
 }
-void MainContentComponent::soloInput(int id, bool solo){
+void MainContentComponent::soloInput(int id, bool solo)
+{
     (&this->jackClient->listSourceIn[id-1])->isSolo = solo;
 
     this->jackClient->soloIn = false;
@@ -614,7 +623,8 @@ void MainContentComponent::soloInput(int id, bool solo){
         }
     }
 }
-void MainContentComponent::soloOutput(int id, bool solo){
+void MainContentComponent::soloOutput(int id, bool solo)
+{
     (&this->jackClient->listSpeakerOut[id-1])->isSolo = solo;
     
     this->jackClient->soloOut = false;
@@ -741,7 +751,8 @@ void MainContentComponent::openPreset(String path)
     this->jackClient->processBlockOn = true;
 }
 
-void MainContentComponent::savePreset(String path){
+void MainContentComponent::savePreset(String path)
+{
     File xmlFile = File (path.toStdString());
     XmlDocument xmlDoc (xmlFile);
     ScopedPointer<XmlElement>  xml = new XmlElement("SpatServerGRIS_Preset");
@@ -768,7 +779,8 @@ void MainContentComponent::savePreset(String path){
 }
 
 
-void MainContentComponent::savePresetSpeakers(String path){
+void MainContentComponent::savePresetSpeakers(String path)
+{
     this->pathCurrentFileSpeaker = path;
     File xmlFile = File (path.toStdString());
     XmlDocument xmlDoc (xmlFile);
@@ -810,7 +822,8 @@ void MainContentComponent::savePresetSpeakers(String path){
 }
 
 
-void MainContentComponent::saveJackSettings(unsigned int rate, unsigned int buff){
+void MainContentComponent::saveJackSettings(unsigned int rate, unsigned int buff)
+{
     unsigned int BufferValue = applicationProperties.getUserSettings()->getValue("BufferValue").getIntValue();
     unsigned int RateValue = applicationProperties.getUserSettings()->getValue("RateValue").getIntValue();
 
@@ -835,7 +848,8 @@ void MainContentComponent::saveJackSettings(unsigned int rate, unsigned int buff
     }
 }
 
-void MainContentComponent::timerCallback(){
+void MainContentComponent::timerCallback()
+{
     this->labelJackLoad->setText(String(this->jackClient->getCpuUsed(),4)+ " %", dontSendNotification);
     int seconds = this->jackClient->indexRecord/this->jackClient->sampleRate;
     int minute = (int(seconds / 60)%60);
@@ -876,7 +890,8 @@ void MainContentComponent::timerCallback(){
     this->boxClientJack->updateContentCli();
 }
 
-void MainContentComponent::paint (Graphics& g) {
+void MainContentComponent::paint (Graphics& g)
+{
     g.fillAll (mGrisFeel.getWinBackgroundColour());
 }
 
@@ -886,7 +901,8 @@ void MainContentComponent::textEditorFocusLost (TextEditor &textEditor)
     textEditorReturnKeyPressed(textEditor);
 }
 
-void MainContentComponent::textEditorReturnKeyPressed (TextEditor & textEditor){
+void MainContentComponent::textEditorReturnKeyPressed (TextEditor & textEditor)
+{
     if(&textEditor == this->tedOSCInPort){
         if(this->tedOSCInPort->getTextValue().toString().getIntValue() > 65535){
             this->tedOSCInPort->setText("65535");

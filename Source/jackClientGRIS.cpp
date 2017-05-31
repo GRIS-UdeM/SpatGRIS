@@ -447,9 +447,9 @@ jackClientGris::jackClientGris(unsigned int bufferS) {
     this->soloIn = false;
     this->soloOut = false;
 
-    
     this->inputsPort = vector<jack_port_t *>();
     this->outputsPort = vector<jack_port_t *>();
+    
     //--------------------------------------------------
     //open a client connection to the JACK server. Start server if it is not running.
     //--------------------------------------------------
@@ -586,8 +586,8 @@ void jackClientGris::prepareToRecord(int minuteR )
 
 }
 
-void jackClientGris::addRemoveInput(int number){
-    
+void jackClientGris::addRemoveInput(int number)
+{
     if(number < this->inputsPort.size()){
         while(number < this->inputsPort.size()){
             jack_port_unregister(client, this->inputsPort.back());
@@ -605,7 +605,8 @@ void jackClientGris::addRemoveInput(int number){
     connectedGristoSystem();
 }
 
-void jackClientGris::clearOutput(){
+void jackClientGris::clearOutput()
+{
     int outS = (int)this->outputsPort.size();
     for(int i = 0; i < outS; i++){
         jack_port_unregister(client, this->outputsPort.back());
@@ -613,7 +614,8 @@ void jackClientGris::clearOutput(){
     }
 }
 
-bool jackClientGris::addOutput(){
+bool jackClientGris::addOutput()
+{
     String nameOut = "output";
     nameOut+= String(this->outputsPort.size() +1);
     
@@ -623,12 +625,14 @@ bool jackClientGris::addOutput(){
     return true;
 }
 
-void jackClientGris::removeOutput(int number){
+void jackClientGris::removeOutput(int number)
+{
     jack_port_unregister(client, this->outputsPort.at(number));
     this->outputsPort.erase(this->outputsPort.begin()+number);
 }
 
-void jackClientGris::connectedGristoSystem(){
+void jackClientGris::connectedGristoSystem()
+{
     const char ** portsOut = jack_get_ports (this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput);
     const char ** portsIn = jack_get_ports (this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput);
     
@@ -783,7 +787,6 @@ void jackClientGris::autoConnectClient()
     disconnectAllClient();
     connectedGristoSystem();
     
-    
     const char ** portsOut = jack_get_ports (this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput);
     const char ** portsIn = jack_get_ports (this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput);
     
@@ -791,7 +794,6 @@ void jackClientGris::autoConnectClient()
     int j=0;
     int startJ = 0;
     int endJ = 0;
-    
     
     //Connect other client to jackClientGris------------------------------------------
     this->autoConnection = true;
@@ -837,7 +839,6 @@ void jackClientGris::autoConnectClient()
 
 void jackClientGris::connectionClient(String name, bool connect)
 {
-    
     const char ** portsOut = jack_get_ports (this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput);
     const char ** portsIn = jack_get_ports (this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput);
 
@@ -927,7 +928,8 @@ string jackClientGris::getClientName(const char * port)
     }return "";
 }
 
-void jackClientGris::updateClientPortAvailable(){
+void jackClientGris::updateClientPortAvailable()
+{
     const char ** portsOut = jack_get_ports (this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput);
     int i = 0;
 
@@ -962,6 +964,7 @@ unsigned int jackClientGris::getPortStartClient(String nameClient)
     }
     return 0;
 }
+
 jackClientGris::~jackClientGris() {
     jack_deactivate(this->client);
     for(int i = 0 ; i < this->inputsPort.size() ; i++){

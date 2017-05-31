@@ -27,6 +27,7 @@ void WinControl::setTimerHz(int hz)
     this->stopTimer();
     this->startTimerHz(hz);
 }
+
 void WinControl::timerCallback()
 {
     this->repaint();
@@ -132,6 +133,7 @@ void WinControl::resized()
     const int fieldWH = min(getWidth(), getHeight());
     this->setSize(fieldWH, fieldWH);
 }
+
 void WinControl::closeButtonPressed()
 {
     delete this;
@@ -139,8 +141,8 @@ void WinControl::closeButtonPressed()
 
 
 //=============================================================
-void WinControl::drawAzimElevSource(Graphics &g, Input * it, const int fieldWH, const int fieldCenter){
-
+void WinControl::drawAzimElevSource(Graphics &g, Input * it, const int fieldWH, const int fieldCenter)
+{
     float HRAzimSpan = 180.0f *(it->getAziMuthSpan());  //in zirkosc, this is [0,360]
     float HRElevSpan = 180.0f *(it->getZenithSpan());  //in zirkosc, this is [0,90]
     if(HRAzimSpan < 0.002f && HRElevSpan < 0.002f)
