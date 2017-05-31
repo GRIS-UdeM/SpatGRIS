@@ -599,30 +599,28 @@ void MainContentComponent::setNameConfig(String name){
 }
 
 void MainContentComponent::muteInput(int id, bool mute){
-    this->jackClient->muteIn[id-1] = mute;
     (&this->jackClient->listSourceIn[id-1])->isMuted = mute;
 }
 void MainContentComponent::muteOutput(int id, bool mute){
-    this->jackClient->muteOut[id-1] = mute;
     (&this->jackClient->listSpeakerOut[id-1])->isMuted = mute;
 }
 void MainContentComponent::soloInput(int id, bool solo){
-    this->jackClient->soloIn[id-1] = solo;
     (&this->jackClient->listSourceIn[id-1])->isSolo = solo;
-    this->jackClient->soloIn[MaxInputs] = false;
+
+    this->jackClient->soloIn = false;
     for (int i = 0; i < MaxInputs; i++) {
-        if(this->jackClient->soloIn[i]){
-            this->jackClient->soloIn[MaxInputs] = true;
+        if((&this->jackClient->listSourceIn[i])->isSolo){
+            this->jackClient->soloIn = true;
         }
     }
 }
 void MainContentComponent::soloOutput(int id, bool solo){
-    this->jackClient->soloOut[id-1] = solo;
     (&this->jackClient->listSpeakerOut[id-1])->isSolo = solo;
-    this->jackClient->soloOut[MaxOutputs] = false;
+    
+    this->jackClient->soloOut = false;
     for (int i = 0; i < MaxOutputs; i++) {
-        if(this->jackClient->soloOut[i]){
-            this->jackClient->soloOut[MaxOutputs] = true;
+        if((&this->jackClient->listSpeakerOut[id-1])->isSolo){
+            this->jackClient->soloOut = true;
         }
     }
 }

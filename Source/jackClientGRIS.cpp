@@ -37,12 +37,12 @@ static void muteSoloVuMeterIn(jackClientGris & jackCli, jack_default_audio_sampl
     //Mute, solo & Vu meter ---------------
     for (int i = 0; i < sizeInputs; ++i) {
         //Mute ----------------
-        if(jackCli.muteIn[i]){
+        if(jackCli.listSourceIn[i].isMuted){
             memset (ins[i], 0, sizeof (jack_default_audio_sample_t) * nframes);
         }
         //Solo ----------------
-        if(jackCli.soloIn[MaxInputs]){
-            if(!jackCli.soloIn[i]){
+        if(jackCli.soloIn){
+            if(!jackCli.listSourceIn[i].isSolo){
                 memset (ins[i], 0, sizeof (jack_default_audio_sample_t) * nframes);
             }
         }
@@ -69,12 +69,12 @@ static void muteSoloVuMeterGainOut(jackClientGris & jackCli, jack_default_audio_
     //Mute, solo & Vu meter && Record -------------
     for (int i = 0; i < sizeOutputs; ++i) {
         //Mute ----------------
-        if(jackCli.muteOut[i]){
+        if(jackCli.listSpeakerOut[i].isMuted){
             memset (outs[i], 0, sizeof (jack_default_audio_sample_t) * nframes);
         }
         //Solo ----------------
-        if(jackCli.soloOut[MaxOutputs]){
-            if(!jackCli.soloOut[i]){
+        if(jackCli.soloOut){
+            if(!jackCli.listSpeakerOut[i].isSolo){
                 memset (outs[i], 0, sizeof (jack_default_audio_sample_t) * nframes);
             }
         }
@@ -444,23 +444,9 @@ jackClientGris::jackClientGris(unsigned int bufferS) {
     
     this->listClient = vector<Client>();
     
-        /*this->listSourceIn = vector<SourceIn>();
-    this->listSpeakerOut = vector<SpeakerOut>();
-    
-    SourceIn si;
-    for(int i = 0; i < MaxInputs; ++i){
-        this->listSourceIn.push_back(si);
-    }
-    SpeakerOut so;
-    for(int i = 0; i < MaxOutputs; ++i){
-        this->listSpeakerOut.push_back(so);
-    }*/
-    
-    fill(this->muteIn, this->muteIn+MaxInputs, false);
-    fill(this->soloIn, this->soloIn+MaxInputs+1, false);
-    fill(this->muteOut, this->muteOut+MaxOutputs, false);
-    fill(this->soloOut, this->soloOut+MaxOutputs+1, false);
-    
+    this->soloIn = false;
+    this->soloOut = false;
+
     
     this->inputsPort = vector<jack_port_t *>();
     this->outputsPort = vector<jack_port_t *>();

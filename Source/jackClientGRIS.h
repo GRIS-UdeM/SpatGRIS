@@ -53,13 +53,6 @@ struct Client {
     bool            connected     = false;
 };
 
-struct audioSetting {
-    int nchnls;     // number of channels.
-    double g[3];    // amplitude values for the speaker triplet.
-    int ls[3];      // triplet speaker numbers.
-    double y[MaxOutputs];    // lowpass memories.
-};
-
 
 struct SourceIn {
     unsigned int id;
@@ -78,7 +71,7 @@ struct SourceIn {
     bool  isSolo = false;
     float gain;//Not Implemented
     
-    VBAP_DATA * paramVBap;// = new audioSetting();
+    VBAP_DATA * paramVBap;
 };
 
 
@@ -139,11 +132,8 @@ public:
     float levelsIn[MaxInputs];
     float levelsOut[MaxOutputs];
     
-    bool muteIn[MaxInputs];
-    bool muteOut[MaxOutputs];
-    
-    bool soloIn[MaxInputs+1];
-    bool soloOut[MaxOutputs+1];
+    bool soloIn;
+    bool soloOut;
     
     float masterGainOut;
     //------------------------
