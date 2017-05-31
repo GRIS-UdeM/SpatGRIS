@@ -45,20 +45,18 @@ MainContentComponent::MainContentComponent(){
     LookAndFeel::setDefaultLookAndFeel(&mGrisFeel);
     
     this->listSpeaker = vector<Speaker *>();
-    //this->listLevelComp = vector<LevelComponent *>();
     this->listSourceInput = vector<Input *>();
     
     this->lockSpeakers = new mutex();
-    //this->lockLevelComp = new mutex();
     this->lockInputs = new mutex();
-    
     
     this->winSpeakConfig = nullptr;
     this->winJackSetting = nullptr;
     this->winControlSource = nullptr;
+    
     //SpeakerViewComponent 3D VIEW------------------------------
-    this->speakerView= new SpeakerViewComponent(this);
-    this->addAndMakeVisible (speakerView);
+    this->speakerView = new SpeakerViewComponent(this);
+    this->addAndMakeVisible(this->speakerView);
     
     //BOX Inputs------------------------------------------------
     this->boxInputsUI = new Box(&mGrisFeel, "Inputs~");
@@ -74,7 +72,7 @@ MainContentComponent::MainContentComponent(){
 
     
     
-    //Components in BOX 3 ------------------------------------------------------------------
+    //Components in BOX Control ------------------------------------------------------------------
     this->labelJackStatus = addLabel("Jack Unknown","Jack Status",0, 0, 80, 28,this->boxControlUI->getContent());
     this->labelJackLoad =   addLabel("0.000000 %","Load Jack CPU",80, 0, 80, 28,this->boxControlUI->getContent());
     this->labelJackRate =   addLabel("00000 Hz","Rate",160, 0, 80, 28,this->boxControlUI->getContent());
@@ -151,7 +149,8 @@ MainContentComponent::MainContentComponent(){
     this->setSize (1360, 670);
     
     
-    //-------------------------------------------------------------------------------
+    
+    // Jack Init and Param -------------------------------------------------------------------------------
     unsigned int BufferValue = applicationProperties.getUserSettings()->getValue("BufferValue").getIntValue();
     unsigned int RateValue = applicationProperties.getUserSettings()->getValue("RateValue").getIntValue();
     
@@ -193,7 +192,7 @@ MainContentComponent::MainContentComponent(){
     this->resized();
     startTimerHz(HertzRefreshNormal);
     
-    
+    //End Splash
     if(fs.exists()){
         this->splash->deleteAfterDelay(RelativeTime::seconds (1), false);
     }
@@ -510,7 +509,7 @@ void MainContentComponent::updateInputJack(int inInput, Input &inp){
 }
 
 void MainContentComponent::updateLevelComp(){
-
+    this->jackClient->processBlockOn = false;
     int x = 2;
     int indexS = 0;
     
@@ -588,8 +587,9 @@ void MainContentComponent::updateLevelComp(){
             this->listTriplet.erase(this->listTriplet.begin() + i);
         }
     }
-    //this->jackClient->initSpeakersTripplet(listSpeaker.size());
-
+    
+    this->jackClient->initSpeakersTripplet(listSpeaker);
+    this->jackClient->processBlockOn = true;
 }
 
 
@@ -629,6 +629,7 @@ void MainContentComponent::soloOutput(int id, bool solo){
 
 void MainContentComponent::openXmlFileSpeaker(String path)
 {
+    this->jackClient->processBlockOn = false;
     this->pathCurrentFileSpeaker = path.toStdString();
     XmlDocument xmlDoc (File (this->pathCurrentFileSpeaker));
     ScopedPointer<XmlElement> mainXmlElem (xmlDoc.getDocumentElement());
@@ -692,7 +693,9 @@ void MainContentComponent::openXmlFileSpeaker(String path)
     updateLevelComp();
 }
 
-void MainContentComponent::openPreset(String path){
+void MainContentComponent::openPreset(String path)
+{
+    this->jackClient->processBlockOn = false;
     this->pathCurrentPreset = path;
     File xmlFile = File (path.toStdString());
     XmlDocument xmlDoc (xmlFile);
@@ -737,6 +740,7 @@ void MainContentComponent::openPreset(String path){
             
         }
     }
+    this->jackClient->processBlockOn = true;
 }
 
 void MainContentComponent::savePreset(String path){

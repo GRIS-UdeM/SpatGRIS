@@ -27,8 +27,6 @@ SpeakerViewComponent::SpeakerViewComponent(MainContentComponent *parent)
 {
     //openGLContext.setMultisamplingEnabled (true);
     this->mainParent = parent;
-    this->setSize(400, 400);
-    
 }
 
 SpeakerViewComponent::~SpeakerViewComponent()
@@ -38,7 +36,6 @@ SpeakerViewComponent::~SpeakerViewComponent()
 
 void SpeakerViewComponent::initialise()
 {
-   
     glClearColor(0.0, 0.0, 0.0, 1.0);
     glColor3f(1.0, 1.0, 1.0);
 
@@ -56,7 +53,6 @@ void SpeakerViewComponent::shutdown()
 {
     
 }
-
 
 
 void SpeakerViewComponent::render()
@@ -160,19 +156,11 @@ void SpeakerViewComponent::render()
 
 void SpeakerViewComponent::paint (Graphics& g)
 {
-//    // You can add your component specific drawing code here!
-//    // This will draw over the top of the openGL background.
-//    
     g.setColour(Colours::white);
     g.setFont  (16);
     g.drawText (this->nameConfig, 18, 18, 300, 30, Justification::left);
-//    g.drawLine (20, 20, 170, 20);
 }
 
-void SpeakerViewComponent::resized()
-{
-    //draggableOrientation.setViewport (getLocalBounds());
-}
 
 void SpeakerViewComponent::clickRay()
 {
@@ -379,7 +367,8 @@ void SpeakerViewComponent::drawOriginGrid()
     drawTextOnGrid("-90",   glm::vec3(-0.8, 0,-9.8));
 }
 
-void SpeakerViewComponent::drawText(string val, glm::vec3 position,float scale, bool camLock){
+void SpeakerViewComponent::drawText(string val, glm::vec3 position,float scale, bool camLock)
+{
     glPushMatrix();
     glTranslatef(position.x, position.y, position.z);
 
@@ -401,7 +390,8 @@ void SpeakerViewComponent::drawText(string val, glm::vec3 position,float scale, 
     glPopMatrix();
 }
 
-void SpeakerViewComponent::drawTextOnGrid(string val, glm::vec3 position,float scale){
+void SpeakerViewComponent::drawTextOnGrid(string val, glm::vec3 position,float scale)
+{
     glPushMatrix();
     glTranslatef(position.x, position.y, position.z);
     

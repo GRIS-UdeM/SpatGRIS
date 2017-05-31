@@ -46,11 +46,9 @@ class SpeakerViewComponent : public OpenGLAppComponent {
 public:
     //==============================================================================
     SpeakerViewComponent(MainContentComponent *parent = nullptr);
-    
     ~SpeakerViewComponent();
     
     void initialise() override;
-    
     void shutdown() override;
     
     void setShowSphere(bool value){ this->showShpere = value; }
@@ -59,14 +57,12 @@ public:
     void setHideSpeaker(bool value){ this->hideSpeaker = value; }
     
     void setNameConfig(String name){ this->nameConfig = name; this->repaint(); }
-    void render() override;
     
-    void paint (Graphics& g) override;
-    void resized() override;
+    void render() override;
+    void paint(Graphics& g) override;
     
     void mouseDown(const MouseEvent& e)override;
-    void mouseDrag (const MouseEvent& e)override;
-    
+    void mouseDrag(const MouseEvent& e)override;
     void mouseWheelMove(const MouseEvent& e,const MouseWheelDetails& wheel)override;
     
     
