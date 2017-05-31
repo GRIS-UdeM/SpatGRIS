@@ -22,10 +22,15 @@
 #ifndef RAY_h
 #define RAY_h
 
-
+#ifdef __linux__
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include <GL/glut.h>
+#else
 #include <OpenGL/gl.h>
 #include <OpenGl/glu.h>
 #include <GLUT/glut.h>
+#endif
 
 #include "../glm/glm.hpp"
 
