@@ -351,6 +351,11 @@ void client_registration_callback(const char *name, int regist, void *arg)
 {
     jackClientGris* jackCli = (jackClientGris*)arg;
     printf("client_registration_callback : %s : " ,name);
+    if(!strcmp(name, ClientNameIgnor)){
+        printf("ignored\n");
+        return;
+    }
+    
     jackCli->lockListClient.lock();
     if(regist){
         Client cli;

@@ -109,7 +109,7 @@ static const char* ClientName =     "SpatServerGRIS";
 static const char* DriverNameSys =  "coreaudio";
 static const char* ClientNameSys =  "system";
 
-
+static const char* ClientNameIgnor =  "JAR::57";
 
 
 class jackClientGris {
