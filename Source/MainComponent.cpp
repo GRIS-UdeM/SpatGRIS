@@ -424,8 +424,8 @@ void MainContentComponent::updateInputJack(int inInput, Input &inp){
     si->zenith  = 90.0f-(inp.getZenith()/M2_PI)*360.0f;//inp.getZenith();
     si->radius  = inp.getRad();
     
-    si->aziSpan = inp.getAziMuthSpan()*50.0f;
-    si->zenSpan = inp.getZenithSpan();
+    si->aziSpan = inp.getAziMuthSpan() * 0.5f;
+    si->zenSpan = inp.getZenithSpan() * 2.0f;
     
     if(this->jackClient->modeSelected == VBap)
     {

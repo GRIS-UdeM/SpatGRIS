@@ -18,11 +18,7 @@
  */
 
 #include "jackClientGRIS.h"
-
-#ifndef VBAP
 #include "vbap.h"
-#endif
-
 #include "Speaker.h"
 
 //=========================================================================================
@@ -719,48 +715,20 @@ bool jackClientGris::initSpeakersTripplet(vector<Speaker *>  listSpk)
     }
     
     //WARNING !!!!
-    for(int i = 0; i < MaxInputs ; i++){
-        listSourceIn[i].paramVBap = init_vbap_from_speakers(lss, listSpk.size(), NULL);;
+    listSourceIn[0].paramVBap = init_vbap_from_speakers(lss, listSpk.size(), NULL);
+    for(int i = 1; i < MaxInputs ; i++){
+        listSourceIn[i].paramVBap = copy_vbap_data(listSourceIn[0].paramVBap);
     }
-    
-    
-    /*choose_ls_triplets(lss, &ls_triplets, sizeOutput);
-    calculate_3x3_matrixes(ls_triplets, lss, sizeOutput);
-    
-    // = malloc(sizeof(DATA));
-    data.dimension = 3;
-    ls_ptr = ls_triplets;
-    i = 0;
-    while (ls_ptr != NULL) {
-        for (j=0; j<data.dimension; j++) {
-            data.numbers[i][j] = ls_ptr->ls_nos[j] + 1;
-        }
-        for (j=0; j<(data.dimension*data.dimension); j++) {
-            data.matrices[i][j] = ls_ptr->inv_mx[j];
-        }
-        ls_ptr = ls_ptr->next;
-        i++;
-    }
-    data.triplet_count = i;
-    
-    for(int i = 0; i < MaxInputs ; i++){
-        listSourceIn[i].paramVBap->nchnls = MaxInputs;
-        fill(listSourceIn[i].paramVBap->y, listSourceIn[i].paramVBap->y+MaxOutputs, 0);
-    }*/
-    
+
     this->processBlockOn = true;
     return true;
 }
 
 void jackClientGris::updateSourceVbap(int idS)
 {
-    if(listSourceIn[idS].paramVBap != nullptr){
-    
-        //cout << listSourceIn[idS].azimuth << " // " << listSourceIn[idS].zenith << endl;
-        vbap_flip_y_z(listSourceIn[idS].azimuth, listSourceIn[idS].zenith, listSourceIn[idS].aziSpan, listSourceIn[idS].paramVBap);
-        
-        /*vbap(listSourceIn[idS].paramVBap->g, listSourceIn[idS].paramVBap->ls, listSourceIn[idS].x, listSourceIn[idS].y,listSourceIn[idS].z, data->dimension,
-         data.matrices, data.numbers, data.triplet_count);*/
+    if(listSourceIn[idS].paramVBap != nullptr) {
+        vbap2_flip_y_z(listSourceIn[idS].azimuth, listSourceIn[idS].zenith, listSourceIn[idS].aziSpan,
+                       listSourceIn[idS].zenSpan, listSourceIn[idS].paramVBap);
     }
 }
 

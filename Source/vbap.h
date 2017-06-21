@@ -99,7 +99,11 @@ void free_vbap_data(VBAP_DATA *data);
 /* Calculates gain factors using loudspeaker setup and angle direction. 
  */
 void vbap(float azi, float ele, float spread, VBAP_DATA *data);
+void vbap2(float azi, float ele, float sp_azi,
+           float sp_ele, VBAP_DATA *data);
 void vbap_flip_y_z(float azi, float ele, float spread, VBAP_DATA *data);
+void vbap2_flip_y_z(float azi, float ele, float sp_azi,
+                    float sp_ele, VBAP_DATA *data);
 
 #ifdef __cplusplus 
 }

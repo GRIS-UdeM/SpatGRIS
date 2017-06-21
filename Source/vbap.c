@@ -343,6 +343,137 @@ static void spreadit(float azi, float spread, VBAP_DATA *data) {
 	}
 }	
 
+static void spreadit_azi_ele(float azi, float ele, float sp_azi,
+                             float sp_ele, VBAP_DATA *data) {
+	int i, j, k, num = 4;
+    float azidev, eledev, newazi, newele, comp;
+	ANG_VEC spreadang;
+	CART_VEC spreadcart;
+    int cnt = data->ls_am;
+    float tmp_gains[cnt];
+    for (i=0; i<cnt; i++) {
+        tmp_gains[i] = 0.0;
+    }
+	float sum = 0.0;
+
+    if (sp_azi < 0.0) { sp_azi = 0.0; }
+    else if (sp_azi > 1.0) { sp_azi = 1.0; }
+    if (sp_ele < 0.0) { sp_ele = 0.0; }
+    else if (sp_ele > 1.0) { sp_ele = 1.0; }
+
+    for (i=0; i<num; i++) {
+        comp = powf(10.0f, (i+1) * -3.0f * 0.05f);
+        azidev = (i+1) * sp_azi * 45.0;
+        eledev = (i+1) * sp_ele * 15.0;
+        for (k=0; k<4; k++) {
+            if (k == 0) {
+                newazi = data->ang_dir.azi + azidev;
+                newele = data->ang_dir.ele + eledev;
+            }
+            else if (k == 1) {
+                newazi = data->ang_dir.azi - azidev;
+                newele = data->ang_dir.ele - eledev;
+            }
+            else if (k == 2) {
+                newazi = data->ang_dir.azi + azidev;
+                newele = data->ang_dir.ele - eledev;
+            }
+            else if (k == 3) {
+                newazi = data->ang_dir.azi - azidev;
+                newele = data->ang_dir.ele + eledev;
+            }
+            if (newazi > 180) { newazi -= 360; }
+            else if (newazi < -180) { newazi += 360; }
+            if (newele > 90) { newele = 90; }
+            else if (newele < 0) { newele = 0; }
+            spreadang.azi = newazi;
+            spreadang.ele = newele;
+            spreadang.length = 1.0;
+            vec_angle_to_cart(&spreadang, &spreadcart);
+            compute_gains(data->ls_set_am, data->ls_sets, tmp_gains,
+                          data->ls_am, spreadcart);
+            for (j=0; j<cnt; j++) {
+                data->gains[j] += (tmp_gains[j] * comp);
+            }
+	    }
+    }
+
+	for (i=0; i<cnt; i++) {
+		sum += (data->gains[i] * data->gains[i]);
+    }
+    sum = sqrtf(sum);
+	for (i=0; i<cnt; i++) {
+		data->gains[i] /= sum;
+	}
+}	
+
+static void spreadit_azi_ele_flip_y_z(float azi, float ele, float sp_azi,
+                                      float sp_ele, VBAP_DATA *data) {
+	int i, j, k, num = 4;
+    float azidev, eledev, newazi, newele, comp, tmp;
+	ANG_VEC spreadang;
+	CART_VEC spreadcart;
+    int cnt = data->ls_am;
+    float tmp_gains[cnt];
+    for (i=0; i<cnt; i++) {
+        tmp_gains[i] = 0.0;
+    }
+	float sum = 0.0;
+
+    if (sp_azi < 0.0) { sp_azi = 0.0; }
+    else if (sp_azi > 1.0) { sp_azi = 1.0; }
+    if (sp_ele < 0.0) { sp_ele = 0.0; }
+    else if (sp_ele > 1.0) { sp_ele = 1.0; }
+
+    for (i=0; i<num; i++) {
+        comp = powf(10.0f, (i+1) * -3.0f * 0.05f);
+        azidev = (i+1) * sp_azi * 45.0;
+        eledev = (i+1) * sp_ele * 15.0;
+        for (k=0; k<4; k++) {
+            if (k == 0) {
+                newazi = data->ang_dir.azi + azidev;
+                newele = data->ang_dir.ele + eledev;
+            }
+            else if (k == 1) {
+                newazi = data->ang_dir.azi - azidev;
+                newele = data->ang_dir.ele - eledev;
+            }
+            else if (k == 2) {
+                newazi = data->ang_dir.azi + azidev;
+                newele = data->ang_dir.ele - eledev;
+            }
+            else if (k == 3) {
+                newazi = data->ang_dir.azi - azidev;
+                newele = data->ang_dir.ele + eledev;
+            }
+            if (newazi > 180) { newazi -= 360; }
+            else if (newazi < -180) { newazi += 360; }
+            if (newele > 90) { newele = 90; }
+            else if (newele < 0) { newele = 0; }
+            spreadang.azi = newazi;
+            spreadang.ele = newele;
+            spreadang.length = 1.0;
+            vec_angle_to_cart(&spreadang, &spreadcart);
+            tmp = spreadcart.z;
+            spreadcart.z = spreadcart.y;
+            spreadcart.y = tmp;
+            compute_gains(data->ls_set_am, data->ls_sets, tmp_gains,
+                          data->ls_am, spreadcart);
+            for (j=0; j<cnt; j++) {
+                data->gains[j] += (tmp_gains[j] * comp);
+            }
+	    }
+    }
+
+	for (i=0; i<cnt; i++) {
+		sum += (data->gains[i] * data->gains[i]);
+    }
+    sum = sqrtf(sum);
+	for (i=0; i<cnt; i++) {
+		data->gains[i] /= sum;
+	}
+}	
+
 void free_speakers_setup(SPEAKERS_SETUP *setup) {
     free(setup->azimuth);
     free(setup->elevation);
@@ -803,6 +934,23 @@ void vbap(float azi, float ele, float spread, VBAP_DATA *data) {
     }
 }
 
+void vbap2(float azi, float ele, float sp_azi,
+           float sp_ele, VBAP_DATA *data) {
+    int i;
+    data->ang_dir.azi = azi;
+    data->ang_dir.ele = ele;
+    data->ang_dir.length = 1.0;
+    vec_angle_to_cart(&data->ang_dir, &data->cart_dir);
+    for (i=0; i<data->ls_am; i++) {
+        data->gains[i] = 0.0;
+    }
+    compute_gains(data->ls_set_am, data->ls_sets, data->gains,
+                  data->ls_am, data->cart_dir);
+    if (sp_azi > 0 || sp_ele > 0) {
+        spreadit_azi_ele(azi, ele, sp_azi, sp_ele, data);
+    }
+}
+
 void vbap_flip_y_z(float azi, float ele, float spread, VBAP_DATA *data) {
     int i;
     float tmp;
@@ -823,6 +971,27 @@ void vbap_flip_y_z(float azi, float ele, float spread, VBAP_DATA *data) {
                   data->ls_am, data->cart_dir);
     if (spread > 0) {
         spreadit(azi, spread, data);
+    }
+}
+
+void vbap2_flip_y_z(float azi, float ele, float sp_azi,
+                    float sp_ele, VBAP_DATA *data) {
+    int i;
+    float tmp;
+    data->ang_dir.azi = azi;
+    data->ang_dir.ele = ele;
+    data->ang_dir.length = 1.0;
+    vec_angle_to_cart(&data->ang_dir, &data->cart_dir);
+    tmp = data->cart_dir.z;
+    data->cart_dir.z = data->cart_dir.y;
+    data->cart_dir.y = tmp;
+    for (i=0; i<data->ls_am; i++) {
+        data->gains[i] = 0.0;
+    }
+    compute_gains(data->ls_set_am, data->ls_sets, data->gains,
+                  data->ls_am, data->cart_dir);
+    if (sp_azi > 0 || sp_ele > 0) {
+        spreadit_azi_ele_flip_y_z(azi, ele, sp_azi, sp_ele, data);
     }
 }
 
