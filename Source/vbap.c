@@ -575,7 +575,6 @@ void calculate_3x3_matrixes(ls_triplet_chain *ls_triplets,
 
      /* Calculations and data storage. */
     while(tr_ptr != NULL) {
-        printf("%d, %d, %d \n", tr_ptr->ls_nos[0], tr_ptr->ls_nos[1],tr_ptr->ls_nos[2]);
         lp1 = &(lss[tr_ptr->ls_nos[0]].coords);
         lp2 = &(lss[tr_ptr->ls_nos[1]].coords);
         lp3 = &(lss[tr_ptr->ls_nos[2]].coords);

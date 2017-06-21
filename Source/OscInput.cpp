@@ -44,7 +44,6 @@ bool OscInput::closeConnection(){
 
 void OscInput::oscMessageReceived(const OSCMessage& message) {
     string address = message.getAddressPattern().toString().toStdString();
-    
     if(message[0].isInt32()){
         if(address == OscSpatServ){
             //id, ... see with spatOSCGRis

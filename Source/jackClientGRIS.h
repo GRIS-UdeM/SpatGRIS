@@ -117,10 +117,12 @@ static const StringArray RateValues = {"44100", "48000", "88200", "96000"};
 
 static const char* DeviceName =     "GRIS";
 static const char* ClientName =     "SpatServerGRIS";
+#ifdef __linux__
+static const char* DriverNameSys = "alsa";
+#else
 static const char* DriverNameSys =  "coreaudio";
+#endif
 static const char* ClientNameSys =  "system";
-
-
 
 
 class jackClientGris {

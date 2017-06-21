@@ -58,7 +58,7 @@ MainContentComponent::MainContentComponent(){
     this->winControlSource = nullptr;
     //SpeakerViewComponent 3D VIEW------------------------------
     this->speakerView= new SpeakerViewComponent(this);
-    this->addAndMakeVisible (speakerView);
+    this->addAndMakeVisible (speakerView); // addAndMakeVisible(this->speakerView); ?
     
     //BOX Inputs------------------------------------------------
     this->boxInputsUI = new Box(&mGrisFeel, "Inputs~");
@@ -567,7 +567,8 @@ void MainContentComponent::openXmlFileSpeaker(String path)
     
             nameConfig =  mainXmlElem->getStringAttribute("Name");
             cout << nameConfig << newLine;
-            this->speakerView->setNameConfig(nameConfig);
+            // This line segfaults on linux. -belangeo
+            //this->speakerView->setNameConfig(nameConfig);
             this->jackClient->clearOutput();
             forEachXmlChildElement (*mainXmlElem, ring)
             {
@@ -589,7 +590,6 @@ void MainContentComponent::openXmlFileSpeaker(String path)
                     
                 }
             }
-            
         }else{
             AlertWindow::showMessageBoxAsync (AlertWindow::AlertIconType::WarningIcon,"Error XML !",
                                               "SpeakerSetup not found !",String(),0);
@@ -836,7 +836,11 @@ void MainContentComponent::buttonClicked (Button *button)
 {
     if(button == this->butLoadXMLSpeakers){
         
+#ifdef __linux__
+        FileChooser fc ("Choose a file to open...",File::getCurrentWorkingDirectory(),"*.xml",false);
+#else
         FileChooser fc ("Choose a file to open...",File::getCurrentWorkingDirectory(),"*.xml",true);
+#endif
         if (fc.browseForFileToOpen())
         {
             String chosen = fc.getResults().getReference(0).getFullPathName();

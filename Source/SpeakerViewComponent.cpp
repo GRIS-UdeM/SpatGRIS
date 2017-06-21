@@ -27,7 +27,7 @@ SpeakerViewComponent::SpeakerViewComponent(MainContentComponent *parent)
 {
     //openGLContext.setMultisamplingEnabled (true);
     this->mainParent = parent;
-    this->setSize(400, 400);
+    //this->setSize(400, 400);
     
 }
 
