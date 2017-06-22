@@ -29,6 +29,10 @@
 #include <string.h>
 #include <unistd.h>
 
+#ifdef __linux__
+#include <mutex>
+#endif
+
 #include "../JuceLibraryCode/JuceHeader.h"
 
 #include <jack/jack.h>
@@ -106,7 +110,11 @@ static const StringArray RateValues = {"44100", "48000", "88200", "96000"};
 
 static const char* DeviceName =     "GRIS";
 static const char* ClientName =     "SpatServerGRIS";
+#ifdef __linux__
+static const char* DriverNameSys = "alsa";
+#else
 static const char* DriverNameSys =  "coreaudio";
+#endif
 static const char* ClientNameSys =  "system";
 
 static const char* ClientNameIgnor =  "JAR::57";

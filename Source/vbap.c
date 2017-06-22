@@ -343,6 +343,137 @@ static void spreadit(float azi, float spread, VBAP_DATA *data) {
 	}
 }	
 
+static void spreadit_azi_ele(float azi, float ele, float sp_azi,
+                             float sp_ele, VBAP_DATA *data) {
+	int i, j, k, num = 4;
+    float azidev, eledev, newazi, newele, comp;
+	ANG_VEC spreadang;
+	CART_VEC spreadcart;
+    int cnt = data->ls_am;
+    float tmp_gains[cnt];
+    for (i=0; i<cnt; i++) {
+        tmp_gains[i] = 0.0;
+    }
+	float sum = 0.0;
+
+    if (sp_azi < 0.0) { sp_azi = 0.0; }
+    else if (sp_azi > 1.0) { sp_azi = 1.0; }
+    if (sp_ele < 0.0) { sp_ele = 0.0; }
+    else if (sp_ele > 1.0) { sp_ele = 1.0; }
+
+    for (i=0; i<num; i++) {
+        comp = powf(10.0f, (i+1) * -3.0f * 0.05f);
+        azidev = (i+1) * sp_azi * 45.0;
+        eledev = (i+1) * sp_ele * 15.0;
+        for (k=0; k<4; k++) {
+            if (k == 0) {
+                newazi = data->ang_dir.azi + azidev;
+                newele = data->ang_dir.ele + eledev;
+            }
+            else if (k == 1) {
+                newazi = data->ang_dir.azi - azidev;
+                newele = data->ang_dir.ele - eledev;
+            }
+            else if (k == 2) {
+                newazi = data->ang_dir.azi + azidev;
+                newele = data->ang_dir.ele - eledev;
+            }
+            else if (k == 3) {
+                newazi = data->ang_dir.azi - azidev;
+                newele = data->ang_dir.ele + eledev;
+            }
+            if (newazi > 180) { newazi -= 360; }
+            else if (newazi < -180) { newazi += 360; }
+            if (newele > 90) { newele = 90; }
+            else if (newele < 0) { newele = 0; }
+            spreadang.azi = newazi;
+            spreadang.ele = newele;
+            spreadang.length = 1.0;
+            vec_angle_to_cart(&spreadang, &spreadcart);
+            compute_gains(data->ls_set_am, data->ls_sets, tmp_gains,
+                          data->ls_am, spreadcart);
+            for (j=0; j<cnt; j++) {
+                data->gains[j] += (tmp_gains[j] * comp);
+            }
+	    }
+    }
+
+	for (i=0; i<cnt; i++) {
+		sum += (data->gains[i] * data->gains[i]);
+    }
+    sum = sqrtf(sum);
+	for (i=0; i<cnt; i++) {
+		data->gains[i] /= sum;
+	}
+}	
+
+static void spreadit_azi_ele_flip_y_z(float azi, float ele, float sp_azi,
+                                      float sp_ele, VBAP_DATA *data) {
+	int i, j, k, num = 4;
+    float azidev, eledev, newazi, newele, comp, tmp;
+	ANG_VEC spreadang;
+	CART_VEC spreadcart;
+    int cnt = data->ls_am;
+    float tmp_gains[cnt];
+    for (i=0; i<cnt; i++) {
+        tmp_gains[i] = 0.0;
+    }
+	float sum = 0.0;
+
+    if (sp_azi < 0.0) { sp_azi = 0.0; }
+    else if (sp_azi > 1.0) { sp_azi = 1.0; }
+    if (sp_ele < 0.0) { sp_ele = 0.0; }
+    else if (sp_ele > 1.0) { sp_ele = 1.0; }
+
+    for (i=0; i<num; i++) {
+        comp = powf(10.0f, (i+1) * -3.0f * 0.05f);
+        azidev = (i+1) * sp_azi * 45.0;
+        eledev = (i+1) * sp_ele * 15.0;
+        for (k=0; k<4; k++) {
+            if (k == 0) {
+                newazi = data->ang_dir.azi + azidev;
+                newele = data->ang_dir.ele + eledev;
+            }
+            else if (k == 1) {
+                newazi = data->ang_dir.azi - azidev;
+                newele = data->ang_dir.ele - eledev;
+            }
+            else if (k == 2) {
+                newazi = data->ang_dir.azi + azidev;
+                newele = data->ang_dir.ele - eledev;
+            }
+            else if (k == 3) {
+                newazi = data->ang_dir.azi - azidev;
+                newele = data->ang_dir.ele + eledev;
+            }
+            if (newazi > 180) { newazi -= 360; }
+            else if (newazi < -180) { newazi += 360; }
+            if (newele > 90) { newele = 90; }
+            else if (newele < 0) { newele = 0; }
+            spreadang.azi = newazi;
+            spreadang.ele = newele;
+            spreadang.length = 1.0;
+            vec_angle_to_cart(&spreadang, &spreadcart);
+            tmp = spreadcart.z;
+            spreadcart.z = spreadcart.y;
+            spreadcart.y = tmp;
+            compute_gains(data->ls_set_am, data->ls_sets, tmp_gains,
+                          data->ls_am, spreadcart);
+            for (j=0; j<cnt; j++) {
+                data->gains[j] += (tmp_gains[j] * comp);
+            }
+	    }
+    }
+
+	for (i=0; i<cnt; i++) {
+		sum += (data->gains[i] * data->gains[i]);
+    }
+    sum = sqrtf(sum);
+	for (i=0; i<cnt; i++) {
+		data->gains[i] /= sum;
+	}
+}	
+
 void free_speakers_setup(SPEAKERS_SETUP *setup) {
     free(setup->azimuth);
     free(setup->elevation);
@@ -353,7 +484,7 @@ SPEAKERS_SETUP *
 load_speakers_setup(int count, float *azi, float *ele) {
     int i;
     SPEAKERS_SETUP *setup;
-    setup = malloc(sizeof(SPEAKERS_SETUP));
+    setup = (SPEAKERS_SETUP *)malloc(sizeof(SPEAKERS_SETUP));
 
     if (count < 3) {
         fprintf(stderr, "Too few loudspeakers %d\n", count);
@@ -361,8 +492,8 @@ load_speakers_setup(int count, float *azi, float *ele) {
         exit(-1);
     }
 
-    setup->azimuth = calloc(count, sizeof(float));
-    setup->elevation = calloc(count, sizeof(float));
+    setup->azimuth = (float *)calloc(count, sizeof(float));
+    setup->elevation = (float *)calloc(count, sizeof(float));
     for (i=0; i<count; i++) {
         setup->azimuth[i] = azi[i];
         setup->elevation[i] = ele[i];
@@ -380,7 +511,7 @@ load_speakers_setup_from_file(const char *filename) {
     char c[10000];
     FILE *fp;
     SPEAKERS_SETUP *setup;
-    setup = malloc(sizeof(SPEAKERS_SETUP));
+    setup = (SPEAKERS_SETUP *)malloc(sizeof(SPEAKERS_SETUP));
 
     if ((fp = fopen(filename, "r")) == NULL) {
         fprintf(stderr, "Could not open loudspeaker setup file.\n");
@@ -397,8 +528,8 @@ load_speakers_setup_from_file(const char *filename) {
         exit(-1);
     }
 
-    setup->azimuth = calloc(count, sizeof(float));
-    setup->elevation = calloc(count, sizeof(float));
+    setup->azimuth = (float *)calloc(count, sizeof(float));
+    setup->elevation = (float *)calloc(count, sizeof(float));
     while (1) {
         if (fgets(c, 10000, fp) == NULL)
             break;
@@ -575,7 +706,6 @@ void calculate_3x3_matrixes(ls_triplet_chain *ls_triplets,
 
      /* Calculations and data storage. */
     while(tr_ptr != NULL) {
-        printf("%d, %d, %d \n", tr_ptr->ls_nos[0], tr_ptr->ls_nos[1],tr_ptr->ls_nos[2]);
         lp1 = &(lss[tr_ptr->ls_nos[0]].coords);
         lp2 = &(lss[tr_ptr->ls_nos[1]].coords);
         lp3 = &(lss[tr_ptr->ls_nos[2]].coords);
@@ -604,7 +734,7 @@ void calculate_3x3_matrixes(ls_triplet_chain *ls_triplets,
  */
 void load_ls_triplets(ls lss[MAX_LS_AMOUNT], 
                       ls_triplet_chain **ls_triplets, 
-                      int ls_amount, char *filename) 
+                      int ls_amount, const char *filename) 
 {
     ls_triplet_chain *trip_ptr, *prev;
     int i, j, k;
@@ -653,12 +783,12 @@ void load_ls_triplets(ls lss[MAX_LS_AMOUNT],
     }
 }
 
-VBAP_DATA * init_vbap_data2(SPEAKERS_SETUP *setup, int **triplets) {
+VBAP_DATA * init_vbap_data(SPEAKERS_SETUP *setup, int **triplets) {
     int i, j;
     ls lss[MAX_LS_AMOUNT];
     ls_triplet_chain *ls_triplets = NULL;
     ls_triplet_chain *ls_ptr;
-    VBAP_DATA *data = malloc(sizeof(VBAP_DATA));
+    VBAP_DATA *data = (VBAP_DATA *)malloc(sizeof(VBAP_DATA));
 
     build_speakers_list(setup, lss);
 
@@ -682,7 +812,7 @@ VBAP_DATA * init_vbap_data2(SPEAKERS_SETUP *setup, int **triplets) {
         i++;
     }
     data->ls_set_am = i;
-    data->ls_sets = malloc(sizeof(LS_SET) * i);
+    data->ls_sets = (LS_SET *)malloc(sizeof(LS_SET) * i);
 
     i = 0;
     ls_ptr = ls_triplets;
@@ -702,11 +832,12 @@ VBAP_DATA * init_vbap_data2(SPEAKERS_SETUP *setup, int **triplets) {
     return data;
 }
 
-VBAP_DATA * init_vbap_from_speakers(ls lss[MAX_LS_AMOUNT], int count, int **triplets) {
+VBAP_DATA * init_vbap_from_speakers(ls lss[MAX_LS_AMOUNT], int count,
+                                    int **triplets) {
     int i, j;
     ls_triplet_chain *ls_triplets = NULL;
     ls_triplet_chain *ls_ptr;
-    VBAP_DATA *data = malloc(sizeof(VBAP_DATA));
+    VBAP_DATA *data = (VBAP_DATA *)malloc(sizeof(VBAP_DATA));
 
     if (triplets == NULL)
         choose_ls_triplets(lss, &ls_triplets, count);
@@ -715,7 +846,7 @@ VBAP_DATA * init_vbap_from_speakers(ls lss[MAX_LS_AMOUNT], int count, int **trip
 
     calculate_3x3_matrixes(ls_triplets, lss, count);
 
-    data->dimension = 3;//setup->dimension;
+    data->dimension = 3;
     data->ls_am = count;
     for (i=0; i<MAX_LS_AMOUNT; i++) {
         data->gains[i] = data->y[i] = 0.0;
@@ -728,7 +859,7 @@ VBAP_DATA * init_vbap_from_speakers(ls lss[MAX_LS_AMOUNT], int count, int **trip
         i++;
     }
     data->ls_set_am = i;
-    data->ls_sets = malloc(sizeof(LS_SET) * i);
+    data->ls_sets = (LS_SET *)malloc(sizeof(LS_SET) * i);
 
     i = 0;
     ls_ptr = ls_triplets;
@@ -748,20 +879,48 @@ VBAP_DATA * init_vbap_from_speakers(ls lss[MAX_LS_AMOUNT], int count, int **trip
     return data;
 }
 
+VBAP_DATA * copy_vbap_data(VBAP_DATA *data) {
+    int i, j;
+    VBAP_DATA *nw = (VBAP_DATA *)malloc(sizeof(VBAP_DATA));
+    nw->dimension = data->dimension;
+    nw->ls_am = data->ls_am;
+    nw->ls_set_am = data->ls_set_am;
+    for (i=0; i<MAX_LS_AMOUNT; i++) {
+        nw->gains[i] = data->gains[i];
+        nw->y[i] = data->y[i];
+    }
+    nw->ls_sets = (LS_SET *)malloc(sizeof(LS_SET) * nw->ls_set_am);
+    for (i=0; i<nw->ls_set_am; i++) {
+        for (j=0; j<nw->dimension; j++) {
+            nw->ls_sets[i].ls_nos[j] = data->ls_sets[i].ls_nos[j];
+        }
+        for (j=0; j<nw->dimension*nw->dimension; j++) {
+            nw->ls_sets[i].inv_mx[j] = data->ls_sets[i].inv_mx[j];
+        }
+    }
+    nw->ang_dir.azi = data->ang_dir.azi;
+    nw->ang_dir.ele = data->ang_dir.ele;
+    nw->ang_dir.length = data->ang_dir.length;
+    nw->cart_dir.x = data->cart_dir.x;
+    nw->cart_dir.y = data->cart_dir.y;
+    nw->cart_dir.z = data->cart_dir.z;
+    nw->spread_base.x = data->spread_base.x;
+    nw->spread_base.y = data->spread_base.y;
+    nw->spread_base.z = data->spread_base.z;
+    return nw;
+}
+
 void free_vbap_data(VBAP_DATA *data) {
     free(data->ls_sets);
     free(data);
 }
 
-void vbap_angle(float azi, float ele, float spread, VBAP_DATA *data) {
+void vbap(float azi, float ele, float spread, VBAP_DATA *data) {
     int i;
     data->ang_dir.azi = azi;
     data->ang_dir.ele = ele;
     data->ang_dir.length = 1.0;
     vec_angle_to_cart(&data->ang_dir, &data->cart_dir);
-    float zz = data->cart_dir.z;
-    data->cart_dir.z = data->cart_dir.y;
-    data->cart_dir.y = zz;
     data->spread_base.x = data->cart_dir.x;
     data->spread_base.y = data->cart_dir.y;
     data->spread_base.z = data->cart_dir.z;
@@ -772,6 +931,67 @@ void vbap_angle(float azi, float ele, float spread, VBAP_DATA *data) {
                   data->ls_am, data->cart_dir);
     if (spread > 0) {
         spreadit(azi, spread, data);
+    }
+}
+
+void vbap2(float azi, float ele, float sp_azi,
+           float sp_ele, VBAP_DATA *data) {
+    int i;
+    data->ang_dir.azi = azi;
+    data->ang_dir.ele = ele;
+    data->ang_dir.length = 1.0;
+    vec_angle_to_cart(&data->ang_dir, &data->cart_dir);
+    for (i=0; i<data->ls_am; i++) {
+        data->gains[i] = 0.0;
+    }
+    compute_gains(data->ls_set_am, data->ls_sets, data->gains,
+                  data->ls_am, data->cart_dir);
+    if (sp_azi > 0 || sp_ele > 0) {
+        spreadit_azi_ele(azi, ele, sp_azi, sp_ele, data);
+    }
+}
+
+void vbap_flip_y_z(float azi, float ele, float spread, VBAP_DATA *data) {
+    int i;
+    float tmp;
+    data->ang_dir.azi = azi;
+    data->ang_dir.ele = ele;
+    data->ang_dir.length = 1.0;
+    vec_angle_to_cart(&data->ang_dir, &data->cart_dir);
+    tmp = data->cart_dir.z;
+    data->cart_dir.z = data->cart_dir.y;
+    data->cart_dir.y = tmp;
+    data->spread_base.x = data->cart_dir.x;
+    data->spread_base.y = data->cart_dir.y;
+    data->spread_base.z = data->cart_dir.z;
+    for (i=0; i<data->ls_am; i++) {
+        data->gains[i] = 0.0;
+    }
+    compute_gains(data->ls_set_am, data->ls_sets, data->gains,
+                  data->ls_am, data->cart_dir);
+    if (spread > 0) {
+        spreadit(azi, spread, data);
+    }
+}
+
+void vbap2_flip_y_z(float azi, float ele, float sp_azi,
+                    float sp_ele, VBAP_DATA *data) {
+    int i;
+    float tmp;
+    data->ang_dir.azi = azi;
+    data->ang_dir.ele = ele;
+    data->ang_dir.length = 1.0;
+    vec_angle_to_cart(&data->ang_dir, &data->cart_dir);
+    tmp = data->cart_dir.z;
+    data->cart_dir.z = data->cart_dir.y;
+    data->cart_dir.y = tmp;
+    for (i=0; i<data->ls_am; i++) {
+        data->gains[i] = 0.0;
+    }
+    compute_gains(data->ls_set_am, data->ls_sets, data->gains,
+                  data->ls_am, data->cart_dir);
+    if (sp_azi > 0 || sp_ele > 0) {
+        spreadit_azi_ele_flip_y_z(azi, ele, sp_azi, sp_ele, data);
     }
 }
 

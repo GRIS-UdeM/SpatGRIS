@@ -21,10 +21,17 @@
 #define SPEAKERVIEWCOMPONENT_H_INCLUDED
 
 #include <math.h>
+#ifdef __linux__
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include <GLES3/gl3.h>
+#include <GL/glut.h>
+#else
 #include <OpenGL/gl.h>
 #include <OpenGl/glu.h>
 #include <OpenGL/gl3.h>
 #include <GLUT/glut.h>
+#endif
 
 #include "../JuceLibraryCode/JuceHeader.h"
 

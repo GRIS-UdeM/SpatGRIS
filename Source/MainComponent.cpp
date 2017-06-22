@@ -501,8 +501,8 @@ void MainContentComponent::updateInputJack(int inInput, Input &inp)
     si->zenith  = 90.0f-(inp.getZenith()/M2_PI)*360.0f;//inp.getZenith();
     si->radius  = inp.getRad();
     
-    si->aziSpan = inp.getAziMuthSpan()*50.0f;
-    si->zenSpan = inp.getZenithSpan();
+    si->aziSpan = inp.getAziMuthSpan() * 0.5f;
+    si->zenSpan = inp.getZenithSpan() * 2.0f;
     
     if(this->jackClient->modeSelected == VBap)
     {
@@ -660,7 +660,8 @@ void MainContentComponent::openXmlFileSpeaker(String path)
     
             nameConfig =  mainXmlElem->getStringAttribute("Name");
             cout << nameConfig << newLine;
-            this->speakerView->setNameConfig(nameConfig);
+            // This line segfaults on linux. -belangeo
+            //this->speakerView->setNameConfig(nameConfig);
             this->jackClient->clearOutput();
             forEachXmlChildElement (*mainXmlElem, ring)
             {
@@ -691,7 +692,6 @@ void MainContentComponent::openXmlFileSpeaker(String path)
                 
                 }
             }
-            
         }else{
             AlertWindow::showMessageBoxAsync (AlertWindow::AlertIconType::WarningIcon,"Error XML !",
                                               "SpeakerSetup not found !",String(),0);
@@ -956,7 +956,11 @@ void MainContentComponent::buttonClicked (Button *button)
 {
     if(button == this->butLoadXMLSpeakers){
         
+#ifdef __linux__
+        FileChooser fc ("Choose a file to open...",File::getCurrentWorkingDirectory(),"*.xml",false);
+#else
         FileChooser fc ("Choose a file to open...",File::getCurrentWorkingDirectory(),"*.xml",true);
+#endif
         if (fc.browseForFileToOpen())
         {
             String chosen = fc.getResults().getReference(0).getFullPathName();
