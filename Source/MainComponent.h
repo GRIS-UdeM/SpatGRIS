@@ -213,9 +213,9 @@ private:
     ToggleButton *  butHighPerformance;
     ToggleButton *  butNoiseSound;
     ToggleButton *  butHideSpeaker;
-    ToggleButton *  butHRTF;
     
     Slider *        sliderMasterGainOut;
+    Slider *        sliderInterpolation;
     
     TextEditor *    tedOSCInPort;
     Label *         labOSCStatus;

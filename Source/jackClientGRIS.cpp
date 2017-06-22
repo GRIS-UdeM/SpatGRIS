@@ -165,41 +165,29 @@ static void processFreeVolume(jackClientGris & jackCli, jack_default_audio_sampl
 //=========================================================================================
 static void processVBAP(jackClientGris & jackCli, jack_default_audio_sample_t ** ins, jack_default_audio_sample_t ** outs, const jack_nframes_t &nframes, const unsigned int &sizeInputs, const unsigned int &sizeOutputs)
 {
-    unsigned int k, i,  f;
-    float amp;
-    bool found;
+    int f, i, o;
     
-    for (int so = 0; so < sizeOutputs; ++so) {
-        int o = so;//jackCli.listSpeakerOut[so].id-1;
-        
+    float gains[sizeInputs][sizeOutputs];
+    float interpG = jackCli.interMaster;
+    
+    for (o = 0; o < sizeOutputs; ++o) {
+        for (i = 0; i < sizeInputs; ++i) {
+            gains[i][o] = jackCli.listSourceIn[i].paramVBap->gains[o];
+        }
+    }
+
+    
+    for (o = 0; o < sizeOutputs; ++o) {
         memset (outs[o], 0, sizeof (jack_default_audio_sample_t) * nframes);
         
-        
-        
         for (i = 0; i < sizeInputs; ++i) {
-            /*found = false;
-            for (k=0; k<3; k++) {
-                if (o == (jackCli.listSourceIn[i].paramVBap->ls[k] - 1)) {
-                    amp = jackCli.listSourceIn[i].paramVBap->g[k];
-                    found = true;
-                    break;
-                }
-            }
-            if (!found){
-                amp = 0.0f;
-            }*/
+
+            jackCli.listSourceIn[i].paramVBap->y[o] = gains[i][o] + ( jackCli.listSourceIn[i].paramVBap->y[o] - gains[i][o]) * interpG;
             
-            
-            
-            jackCli.listSourceIn[i].paramVBap->y[o] = jackCli.listSourceIn[i].paramVBap->gains[o] +
-                                                    ( jackCli.listSourceIn[i].paramVBap->y[o] - jackCli.listSourceIn[i].paramVBap->gains[o]) * 0.75;
-            
-            if ( jackCli.listSourceIn[i].paramVBap->y[o] < 0.000001) {
+            if ( jackCli.listSourceIn[i].paramVBap->y[o] < 0.0000000000001f) {
                 jackCli.listSourceIn[i].paramVBap->y[o] = 0.0;
-                /*for (f=0; f<nframes; f++) {
-                    outs[o][f] += ins[i][f] * 0.0;
-                }*/
             }
+            
             else {
                 for (f = 0; f < nframes; ++f) {
                     outs[o][f] += ins[i][f] *  jackCli.listSourceIn[i].paramVBap->y[o];
@@ -263,6 +251,9 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
             break;
         
         case DBap:
+            break;
+            
+        case HRTF:
             break;
         
         case FreeBasic:
@@ -450,6 +441,8 @@ jackClientGris::jackClientGris(unsigned int bufferS) {
 
     this->inputsPort = vector<jack_port_t *>();
     this->outputsPort = vector<jack_port_t *>();
+    this->interMaster = 0.8f;
+    
     
     //--------------------------------------------------
     //open a client connection to the JACK server. Start server if it is not running.

@@ -110,17 +110,21 @@ MainContentComponent::MainContentComponent()
     this->butDefaultColorIn =   addButton("C","Set Default color Inputs",276,70,24,24,this->boxControlUI->getContent());
     
     addLabel("Gain :","Master Gain Outputs",320, 36, 120, 20,this->boxControlUI->getContent());
-    this->sliderMasterGainOut = addSlider("Master Gain", "Master Gain Outputs", 360, 26, 80, 80, this->boxControlUI->getContent());
+    this->sliderMasterGainOut = addSlider("Master Gain", "Master Gain Outputs", 360, 26, 60, 60, this->boxControlUI->getContent());
     this->sliderMasterGainOut->setRange(0.0, 1.0, 0.001);
     
-    addLabel("Mode :","Mode of spatilization",320, 110, 60, 20,this->boxControlUI->getContent());
-    this->labelModeInfo = addLabel("...","Status of spatilization",360, 110, 120, 20,this->boxControlUI->getContent());
-    this->comBoxModeSpat = addComboBox("", "Mode of spatilization", 320, 128, 150, 22, this->boxControlUI->getContent());
+    addLabel("Inter :","Master Interpolation",320, 86, 120, 20,this->boxControlUI->getContent());
+    this->sliderInterpolation = addSlider("Inter", "Interpolation", 360, 80, 60, 60, this->boxControlUI->getContent());
+    this->sliderInterpolation->setRange(0.7, 0.99, 0.001);
+    
+    
+    addLabel("Mode :","Mode of spatilization",320, 140, 60, 20,this->boxControlUI->getContent());
+    this->labelModeInfo = addLabel("...","Status of spatilization",360, 140, 120, 20,this->boxControlUI->getContent());
+    this->comBoxModeSpat = addComboBox("", "Mode of spatilization", 320, 158, 150, 22, this->boxControlUI->getContent());
     for(int i = 0; i < ModeSpatString.size(); i++){
          this->comBoxModeSpat->addItem(ModeSpatString[i], i+1);
     }
-    this->butHRTF        = addToggleButton("HRTF", "Binaural",    315, 160, 124, 18, this->boxControlUI->getContent());
-    
+
     
     this->tedMinRecord      = addTextEditor("Min :", "Time of record (min)", "Time of record (min)", 460, 156, 40, 24, this->boxControlUI->getContent());
     this->tedMinRecord->setText("0");
@@ -132,8 +136,7 @@ MainContentComponent::MainContentComponent()
     this->butDisconnectAllJack  = addButton("X All","Disconnect all Jack",480,120,40,24,this->boxControlUI->getContent());
     this->butDisconnectAllJack->setColour(TextButton::buttonColourId, mGrisFeel.getRedColour());
     this->butAutoConnectJack    = addButton("Auto Connect","Auto connection with jack",610,120,130,24,this->boxControlUI->getContent());
-    
-    
+
     
     this->boxClientJack = new BoxClient(this, &mGrisFeel);
     this->boxClientJack->setBounds(480, 0, 260, 120);
@@ -176,6 +179,7 @@ MainContentComponent::MainContentComponent()
     this->fileWriter = new FileWriter(this);
     
     this->sliderMasterGainOut->setValue(1.0);
+    this->sliderInterpolation->setValue(0.8);
     this->comBoxModeSpat->setSelectedId(1);
 
     //OSC Receiver----------------------------------------------------------------------------
@@ -716,7 +720,8 @@ void MainContentComponent::openPreset(String path)
         if(mainXmlElem->hasTagName("SpatServerGRIS_Preset")){
             this->tedOSCInPort->setText(mainXmlElem->getStringAttribute("OSC_Input_Port"));
             this->tedAddInputs->setText(mainXmlElem->getStringAttribute("Number_Of_Inputs"));
-            this->sliderMasterGainOut->setValue(mainXmlElem->getDoubleAttribute("Master_Gain_Out"), sendNotification);
+            this->sliderMasterGainOut->setValue(mainXmlElem->getDoubleAttribute("Master_Gain_Out", 1.0), sendNotification);
+            this->sliderInterpolation->setValue(mainXmlElem->getDoubleAttribute("Master_Interpolation", 0.8), sendNotification);
             this->comBoxModeSpat->setSelectedItemIndex(mainXmlElem->getIntAttribute("Mode_Process"),sendNotification);
             this->butShowSpeakerNumber->setToggleState(mainXmlElem->getBoolAttribute("Show_Numbers"),sendNotification);
             this->butHighPerformance->setToggleState(mainXmlElem->getBoolAttribute("High_Performance"),sendNotification);
@@ -727,6 +732,8 @@ void MainContentComponent::openPreset(String path)
             this->textEditorReturnKeyPressed(*this->tedOSCInPort);
             this->textEditorReturnKeyPressed(*this->tedAddInputs);
             this->sliderValueChanged(this->sliderMasterGainOut);
+            this->sliderValueChanged(this->sliderInterpolation);
+
             
             /*this->buttonClicked(this->butShowSpeakerNumber);
             this->buttonClicked(this->butHighPerformance);*/
@@ -760,6 +767,7 @@ void MainContentComponent::savePreset(String path)
     xml->setAttribute ("OSC_Input_Port",     this->tedOSCInPort->getTextValue().toString());
     xml->setAttribute ("Number_Of_Inputs",   this->tedAddInputs->getTextValue().toString());
     xml->setAttribute ("Master_Gain_Out",    this->sliderMasterGainOut->getValue());
+    xml->setAttribute ("Master_Interpolation",    this->sliderInterpolation->getValue());
     xml->setAttribute ("Mode_Process",       this->comBoxModeSpat->getSelectedItemIndex());
     xml->setAttribute ("Show_Numbers",       this->butShowSpeakerNumber->getToggleState());
     xml->setAttribute ("High_Performance",   this->butHighPerformance->getToggleState());
@@ -1057,12 +1065,7 @@ void MainContentComponent::buttonClicked (Button *button)
         
         this->jackClient->disconnectAllClient();
         
-    }else if(button == this->butHRTF){
-        
-        this->jackClient->hrtfOn = this->butHRTF->getToggleState();
-        
-    }
-    else if(button == this->butHighPerformance){
+    }else if(button == this->butHighPerformance){
         
         stopTimer();
         if(this->butHighPerformance->getToggleState()){
@@ -1118,6 +1121,10 @@ void MainContentComponent::sliderValueChanged (Slider* slider)
 {
     if(slider == this->sliderMasterGainOut){
         this->jackClient->masterGainOut = this->sliderMasterGainOut->getValue();
+    }
+    
+    else if(slider == this->sliderInterpolation){
+        this->jackClient->interMaster = this->sliderInterpolation->getValue();
     }
 }
 

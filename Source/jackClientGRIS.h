@@ -100,9 +100,10 @@ struct SpeakerOut {
 typedef enum {
     VBap = 0,
     DBap,
+    HRTF,
     FreeBasic
 } ModeSpatEnum;
-static const StringArray ModeSpatString = {"VBap",  "DBap", "Free basic"};
+static const StringArray ModeSpatString = {"VBap",  "DBap", "HRTF", "Free basic"};
 
 //Settings Jack Server
 static const StringArray BufferSize = {"32", "64", "128", "256", "512", "1024", "2048"};
@@ -130,6 +131,8 @@ public:
     
     vector<jack_port_t *> inputsPort;
     vector<jack_port_t *> outputsPort;
+    
+    float interMaster;
 
     //Noise Sound
     vector<double> sineNoise;

@@ -17,6 +17,13 @@
 		0D573AD91EC38A12007605B1 /* Jackservermp in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D573AD71EC38A12007605B1 /* Jackservermp */; };
 		0D76540CEB135C65E2C77E42 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A49E2EA8DC00B3CFBC3B8FC /* Cocoa.framework */; };
 		0DE3ABB01ECDE28A00EACF5B /* vbap.c in Sources */ = {isa = PBXBuildFile; fileRef = 0DE3ABAE1ECDE28A00EACF5B /* vbap.c */; };
+		0DEA64C61EFC1A6E006562C4 /* Jackmp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DEA64BE1EFC18E1006562C4 /* Jackmp.framework */; };
+		0DEA64C71EFC1A6E006562C4 /* Jacknet.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DEA64BF1EFC18E1006562C4 /* Jacknet.framework */; };
+		0DEA64C81EFC1A6E006562C4 /* Jackservermp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DEA64C01EFC18E1006562C4 /* Jackservermp.framework */; };
+		0DEA64CA1EFC1AF3006562C4 /* Jackmp in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0DEA64BD1EFC18E1006562C4 /* Jackmp */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		0DEA64CB1EFC1AF3006562C4 /* Jackmp.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0DEA64BE1EFC18E1006562C4 /* Jackmp.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		0DEA64CC1EFC1AF3006562C4 /* Jacknet.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0DEA64BF1EFC18E1006562C4 /* Jacknet.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		0DEA64CD1EFC1AF3006562C4 /* Jackservermp.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0DEA64C01EFC18E1006562C4 /* Jackservermp.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		0DF1F1CA1ED3700400CE7189 /* splash.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0DF1F1C91ED3700400CE7189 /* splash.png */; };
 		0F18ADC55E833D69E5746DFD /* juce_cryptography.mm in Sources */ = {isa = PBXBuildFile; fileRef = BAEE328DB2C9494397445A21 /* juce_cryptography.mm */; };
 		14E1864F61765881437B2AF8 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A290A4B264C78F0C18D6F058 /* Accelerate.framework */; };
@@ -58,6 +65,19 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		0DEA64C91EFC1AD0006562C4 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				0DEA64CA1EFC1AF3006562C4 /* Jackmp in CopyFiles */,
+				0DEA64CB1EFC1AF3006562C4 /* Jackmp.framework in CopyFiles */,
+				0DEA64CC1EFC1AF3006562C4 /* Jacknet.framework in CopyFiles */,
+				0DEA64CD1EFC1AF3006562C4 /* Jackservermp.framework in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		0DF1F1C81ED36FEC00CE7189 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -140,6 +160,10 @@
 		0DC88B16521DF51B488590F4 /* OscInput.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = OscInput.h; path = ../../Source/OscInput.h; sourceTree = SOURCE_ROOT; };
 		0DE3ABAE1ECDE28A00EACF5B /* vbap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = vbap.c; path = ../../Source/vbap.c; sourceTree = "<group>"; };
 		0DE3ABAF1ECDE28A00EACF5B /* vbap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vbap.h; path = ../../Source/vbap.h; sourceTree = "<group>"; };
+		0DEA64BD1EFC18E1006562C4 /* Jackmp */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = Jackmp; path = ../../../../../../../Library/Frameworks/Jackmp; sourceTree = "<group>"; };
+		0DEA64BE1EFC18E1006562C4 /* Jackmp.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Jackmp.framework; path = ../../../../../../../Library/Frameworks/Jackmp.framework; sourceTree = "<group>"; };
+		0DEA64BF1EFC18E1006562C4 /* Jacknet.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Jacknet.framework; path = ../../../../../../../Library/Frameworks/Jacknet.framework; sourceTree = "<group>"; };
+		0DEA64C01EFC18E1006562C4 /* Jackservermp.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Jackservermp.framework; path = ../../../../../../../Library/Frameworks/Jackservermp.framework; sourceTree = "<group>"; };
 		0DF1F1C91ED3700400CE7189 /* splash.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = splash.png; path = ../../splash.png; sourceTree = "<group>"; };
 		0E1684DFB4EB8971A5F1D1DA /* juce_Uuid.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = juce_Uuid.cpp; path = ../../JuceLibraryCode/modules/juce_core/misc/juce_Uuid.cpp; sourceTree = SOURCE_ROOT; };
 		0E45BAC07192E20F20B98922 /* juce_MidiMessageCollector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_MidiMessageCollector.h; path = ../../JuceLibraryCode/modules/juce_audio_devices/midi_io/juce_MidiMessageCollector.h; sourceTree = SOURCE_ROOT; };
@@ -1344,6 +1368,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0DEA64C61EFC1A6E006562C4 /* Jackmp.framework in Frameworks */,
+				0DEA64C71EFC1A6E006562C4 /* Jacknet.framework in Frameworks */,
+				0DEA64C81EFC1A6E006562C4 /* Jackservermp.framework in Frameworks */,
 				0D573AD81EC38A12007605B1 /* Jackmp in Frameworks */,
 				0D573AD91EC38A12007605B1 /* Jackservermp in Frameworks */,
 				0D573AD51EC38A05007605B1 /* GLUT.framework in Frameworks */,
@@ -3246,6 +3273,10 @@
 		D197AC8A7278BF19DF69D425 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				0DEA64BD1EFC18E1006562C4 /* Jackmp */,
+				0DEA64BE1EFC18E1006562C4 /* Jackmp.framework */,
+				0DEA64BF1EFC18E1006562C4 /* Jacknet.framework */,
+				0DEA64C01EFC18E1006562C4 /* Jackservermp.framework */,
 				0DF1F1C91ED3700400CE7189 /* splash.png */,
 				415CDF7CC3930A66F88F88C6 /* spatServerGRIS */,
 				16FAB0AD2349A989040A29E8 /* Juce Modules */,
@@ -3674,6 +3705,7 @@
 				B0EE919E5883212051A44D3E /* Sources */,
 				05F4B69E0D66EF6E0301255B /* Frameworks */,
 				0DF1F1C81ED36FEC00CE7189 /* CopyFiles */,
+				0DEA64C91EFC1AD0006562C4 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -3780,6 +3812,10 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CONFIGURATION_BUILD_DIR = "$(PROJECT_DIR)/build/$(CONFIGURATION)";
 				DEAD_CODE_STRIPPING = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(LOCAL_LIBRARY_DIR)/Frameworks",
+				);
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -3802,9 +3838,10 @@
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"../../jack/lib\"",
+					../../jack/lib,
+					"$(LOCAL_LIBRARY_DIR)/Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MACOSX_DEPLOYMENT_TARGET_ppc = 10.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.UdeM.GRIS.spatServerGRIS;
 				SDKROOT_ppc = macosx10.5;
@@ -3855,6 +3892,10 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CONFIGURATION_BUILD_DIR = "$(PROJECT_DIR)/build/$(CONFIGURATION)";
 				COPY_PHASE_STRIP = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(LOCAL_LIBRARY_DIR)/Frameworks",
+				);
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -3876,9 +3917,10 @@
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"../../jack/lib\"",
+					../../jack/lib,
+					"$(LOCAL_LIBRARY_DIR)/Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MACOSX_DEPLOYMENT_TARGET_ppc = 10.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.UdeM.GRIS.spatServerGRIS;
 				SDKROOT_ppc = macosx10.5;
