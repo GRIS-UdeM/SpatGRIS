@@ -45,7 +45,7 @@ jackServerGRIS::jackServerGRIS(unsigned int rateV){
     this->server = jackctl_server_create(on_device_acquire, on_device_release);
     parameters = jackctl_server_get_parameters(server);
     
-    jackctl_parameter_t* param;
+    /*jackctl_parameter_t* param;
     union jackctl_parameter_value value;
     
     
@@ -63,11 +63,11 @@ jackServerGRIS::jackServerGRIS(unsigned int rateV){
         jackctl_parameter_set_value(param, &value);
     }*/
 
-    param = jackctl_get_parameter(parameters, "sync");
+    /*param = jackctl_get_parameter(parameters, "sync");
     if (param != NULL) {
         value.b = true;
         jackctl_parameter_set_value(param, &value);
-    }
+    }*/
     
     
     #if PRINT_SERVER
