@@ -43,6 +43,7 @@ Input::Input(MainContentComponent * parent, GrisLookAndFeel * feel,int id)
     this->radius = sqrt((this->center.x*this->center.x)+(this->center.y*this->center.y)+(this->center.z*this->center.z));
     
     this->vuMeter = new LevelComponent(this, this->grisFeel);
+    this->setColor(Colour::fromHSV(0, 1, 0.75, 1), true);
 }
 
 Input::~Input()
