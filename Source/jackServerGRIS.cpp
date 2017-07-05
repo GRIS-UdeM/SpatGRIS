@@ -43,15 +43,19 @@ jackServerGRIS::jackServerGRIS(unsigned int rateV){
     const JSList * node_ptr;
 
     this->server = jackctl_server_create(on_device_acquire, on_device_release);
-    parameters = jackctl_server_get_parameters(server);
+    //this->server = jackctl_server_create(NULL, NULL);
+    parameters = jackctl_server_get_parameters(this->server);
     
+    /* FIXME
+     * How to set jack's verbose mode to off?
+     */
     /*jackctl_parameter_t* param;
     union jackctl_parameter_value value;
     
     
-    /*param = jackctl_get_parameter(parameters, "verbose");
+    param = jackctl_get_parameter(parameters, "verbose");
     if (param != NULL) {
-        value.b = true;
+        value.b = false;
         jackctl_parameter_set_value(param, &value);
     }*/
     
@@ -70,7 +74,6 @@ jackServerGRIS::jackServerGRIS(unsigned int rateV){
     }*/
     
     
-    #if PRINT_SERVER
     printf("\n========================== \n");
     printf("List of server parameters \n");
     printf("========================== \n");
@@ -80,7 +83,6 @@ jackServerGRIS::jackServerGRIS(unsigned int rateV){
     printf("\n========================== \n");
     printf("List of drivers \n");
     printf("========================== \n");
-    #endif
     
     drivers = jackctl_server_get_drivers_list(this->server);
     node_ptr = drivers;

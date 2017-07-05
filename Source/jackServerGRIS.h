@@ -216,6 +216,9 @@ public:
              
              }*/
             
+            /* FIXME
+             * There must be parameters to control the number of virtual inputs/outputs/
+             */
             #if PRINT_SERVER
             printf("parameter id = %c\n", jackctl_parameter_get_id(parameter));
             printf("parameter short decs = %s\n", jackctl_parameter_get_short_description(parameter));
