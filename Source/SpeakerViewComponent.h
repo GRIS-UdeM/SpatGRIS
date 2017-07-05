@@ -22,10 +22,10 @@
 
 #include <math.h>
 #ifdef __linux__
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GLES3/gl3.h>
-#include <GL/glut.h>
+//#include <GL/gl.h>
+//#include <GL/glu.h>
+//#include <GLES3/gl3.h>
+//#include <GL/glut.h>
 #else
 #include <OpenGL/gl.h>
 #include <OpenGl/glu.h>

@@ -25,7 +25,6 @@
 //==========================================================================================
 SpeakerViewComponent::SpeakerViewComponent(MainContentComponent *parent)
 {
-    //openGLContext.setMultisamplingEnabled (true);
     this->mainParent = parent;
 }
 
@@ -47,6 +46,10 @@ void SpeakerViewComponent::initialise()
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     gluLookAt(4, 6, 5, 0, 0, 0, 0, 1, 0);
+
+      int argc = 1;
+      char *argv[1] = {(char*)"Something"};
+      glutInit(&argc, argv);
 }
 
 void SpeakerViewComponent::shutdown()
@@ -54,13 +57,11 @@ void SpeakerViewComponent::shutdown()
     
 }
 
-
 void SpeakerViewComponent::render()
 {
-    
     glEnable(GL_DEPTH_TEST);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    
+
     //Smooth
     if(!this->highPerf){
         glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH | GLUT_MULTISAMPLE);
@@ -225,7 +226,7 @@ void SpeakerViewComponent::mouseDown (const MouseEvent& e)
 
 void SpeakerViewComponent::mouseDrag (const MouseEvent& e)
 {
-    if(e.mods.isRightButtonDown()){
+    if(e.mods.isLeftButtonDown()){
         this->camAngleX = (e.getPosition().x + this->deltaClickX);
         this->camAngleY = (e.getPosition().y + this->deltaClickY);
     }
