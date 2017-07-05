@@ -20,10 +20,17 @@
 
 #include "MainComponent.h"
 
+/* FIXME
+ * Resources path should be set only once, based on the system, in a config.h header.
+ */
+
 MainContentComponent::MainContentComponent()
 {
-    //Splash Screen (Only for Mac)
+#ifdef __linux__
+    File fs = File ( File::getCurrentWorkingDirectory().getFullPathName()+("/../../Resources/splash.png"));
+#else
     File fs = File ( File::getCurrentWorkingDirectory().getFullPathName()+("/spatServerGRIS.app/Contents/Resources/splash.png"));
+#endif
     if(fs.exists()){
         this->splash = new SplashScreen ("SpatServerGRIS",ImageFileFormat::loadFrom (fs),true);
     }
@@ -39,9 +46,7 @@ MainContentComponent::MainContentComponent()
     options.osxLibrarySubFolder = "Application Support";
     this->applicationProperties.setStorageParameters(options);
     this->applicationProperties.getCommonSettings(true);
-    
-   
-    
+
     LookAndFeel::setDefaultLookAndFeel(&mGrisFeel);
     
     this->listSpeaker = vector<Speaker *>();
@@ -56,7 +61,7 @@ MainContentComponent::MainContentComponent()
     
     //SpeakerViewComponent 3D VIEW------------------------------
     this->speakerView = new SpeakerViewComponent(this);
-    this->addAndMakeVisible(this->speakerView);
+    addAndMakeVisible(this->speakerView);
     
     //BOX Inputs------------------------------------------------
     this->boxInputsUI = new Box(&mGrisFeel, "Inputs~");
@@ -70,8 +75,6 @@ MainContentComponent::MainContentComponent()
     this->boxControlUI = new Box(&mGrisFeel);
     addAndMakeVisible(this->boxControlUI);
 
-    
-    
     //Components in BOX Control ------------------------------------------------------------------
     this->labelJackStatus = addLabel("Jack Unknown","Jack Status",0, 0, 80, 28,this->boxControlUI->getContent());
     this->labelJackLoad =   addLabel("0.000000 %","Load Jack CPU",80, 0, 80, 28,this->boxControlUI->getContent());
@@ -92,14 +95,12 @@ MainContentComponent::MainContentComponent()
     this->butLoadPreset         = addButton("Open","Open preset",4,96,124,24,this->boxControlUI->getContent());
     this->butSavePreset         = addButton("Save","Save preset",4,126,124,24,this->boxControlUI->getContent());
     this->butShowWinControl     = addButton("Show 2D","Show 2D Scene",4,156,124,24,this->boxControlUI->getContent());
-    
-    
+
     this->butShowSpeakerNumber =    addToggleButton("Show numbers", "Show numbers skeapers",    140, 100, 124, 18, this->boxControlUI->getContent());
     this->butHighPerformance =      addToggleButton("High performance", "Enable Low CPU Usage", 140, 120, 124, 18, this->boxControlUI->getContent());
     this->butNoiseSound =           addToggleButton("Noise Sound", "Enable bip noise",          140, 140, 124, 18, this->boxControlUI->getContent());
     this->butHideSpeaker =          addToggleButton("Hide Speakers", "Hide Output Speakers",    140, 160, 124, 18, this->boxControlUI->getContent());
-    
-    
+
     this->tedOSCInPort = addTextEditor("Port OSC In :", "Port Socket", "Port Socket OSC Input", 140, 36, 50, 24, this->boxControlUI->getContent());
     this->tedOSCInPort->setText("18032");
     this->tedOSCInPort->setInputRestrictions(5,"0123456789");
@@ -116,8 +117,7 @@ MainContentComponent::MainContentComponent()
     addLabel("Inter :","Master Interpolation",320, 86, 120, 20,this->boxControlUI->getContent());
     this->sliderInterpolation = addSlider("Inter", "Interpolation", 360, 80, 60, 60, this->boxControlUI->getContent());
     this->sliderInterpolation->setRange(0.7, 0.99, 0.001);
-    
-    
+
     addLabel("Mode :","Mode of spatilization",320, 140, 60, 20,this->boxControlUI->getContent());
     this->labelModeInfo = addLabel("...","Status of spatilization",360, 140, 120, 20,this->boxControlUI->getContent());
     this->comBoxModeSpat = addComboBox("", "Mode of spatilization", 320, 158, 150, 22, this->boxControlUI->getContent());
@@ -125,7 +125,6 @@ MainContentComponent::MainContentComponent()
          this->comBoxModeSpat->addItem(ModeSpatString[i], i+1);
     }
 
-    
     this->tedMinRecord      = addTextEditor("Min :", "Time of record (min)", "Time of record (min)", 460, 156, 40, 24, this->boxControlUI->getContent());
     this->tedMinRecord->setText("0");
     this->tedMinRecord->setInputRestrictions(2,"0123456789");
@@ -137,7 +136,6 @@ MainContentComponent::MainContentComponent()
     this->butDisconnectAllJack->setColour(TextButton::buttonColourId, mGrisFeel.getRedColour());
     this->butAutoConnectJack    = addButton("Auto Connect","Auto connection with jack",610,120,130,24,this->boxControlUI->getContent());
 
-    
     this->boxClientJack = new BoxClient(this, &mGrisFeel);
     this->boxClientJack->setBounds(480, 0, 260, 120);
     this->boxControlUI->getContent()->addAndMakeVisible(this->boxClientJack);
@@ -150,12 +148,15 @@ MainContentComponent::MainContentComponent()
     this->addAndMakeVisible (verticalDividerBar);
 
     this->setSize (1360, 670);
-    
-    
-    
+
     // Jack Init and Param -------------------------------------------------------------------------------
-    unsigned int BufferValue = applicationProperties.getUserSettings()->getValue("BufferValue").getIntValue();
-    unsigned int RateValue = applicationProperties.getUserSettings()->getValue("RateValue").getIntValue();
+    unsigned int BufferValue = this->applicationProperties.getUserSettings()->getValue("BufferValue").getIntValue();
+    unsigned int RateValue = this->applicationProperties.getUserSettings()->getValue("RateValue").getIntValue();
+
+    /* FIXME
+     * this->applicationProperties.getUserSettings() does not semm to hold anything...
+     */
+    //cout << "Buffer Rate: " << BufferValue << ", Sampling Rate: " << RateValue << endl;
     
     if(isnan(BufferValue) || BufferValue == 0 || isnan(RateValue) || RateValue == 0){
         BufferValue = 1024;
@@ -164,8 +165,7 @@ MainContentComponent::MainContentComponent()
     //Start JACK Server and client
     this->jackServer = new jackServerGRIS(RateValue);
     this->jackClient = new jackClientGris(BufferValue);
-    
-    
+
     if(!jackClient->isReady()){
         this->labelJackStatus->setText("Jack ERROR", dontSendNotification);
     }else{
@@ -185,23 +185,31 @@ MainContentComponent::MainContentComponent()
     //OSC Receiver----------------------------------------------------------------------------
     this->oscReceiver = new OscInput(this);
     textEditorReturnKeyPressed(*this->tedOSCInPort);
-    
-    
+
     this->tedAddInputs->setText("16",dontSendNotification);
     textEditorReturnKeyPressed(*this->tedAddInputs);
-    
-    
-    this->openPreset(applicationProperties.getUserSettings()->getValue("lastOpentPreset"));
 
+    // Opens the default preset if lastOpenPreset is not a valid file.
+    File preset = File(this->applicationProperties.getUserSettings()->getValue("lastOpenPreset"));
+    if (!preset.existsAsFile()) {
+        String cwd = File::getCurrentWorkingDirectory().getFullPathName();
+#ifdef __linux__
+        this->openPreset(cwd + ("/../../Resources/default_preset/default_preset.xml"));
+#else
+        this->openPreset(cwd + ("/spatServerGRIS.app/Contents/Resources/default_preset/default_preset.xml"));
+#endif
+    }
+    else {
+        this->openPreset(this->applicationProperties.getUserSettings()->getValue("lastOpenPreset"));
+    }
     this->resized();
     startTimerHz(HertzRefreshNormal);
     
     //End Splash
     if(fs.exists()){
-        this->splash->deleteAfterDelay(RelativeTime::seconds (1), false);
+        this->splash->deleteAfterDelay(RelativeTime::seconds (2), false);
     }
 }
-
 
 Label* MainContentComponent::addLabel(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into)
 {
@@ -340,9 +348,14 @@ MainContentComponent::~MainContentComponent()
     if(this->winControlSource != nullptr){
         delete this->winControlSource;
     }
-    
+
+/* FIXME
+ * This call segfaults on linux.
+ */
+#ifndef __linux__
     delete this->speakerView;
-    
+#endif
+
     this->lockSpeakers->lock();
     for (auto&& it : this->listSpeaker)
     {
@@ -352,7 +365,6 @@ MainContentComponent::~MainContentComponent()
     this->lockSpeakers->unlock();
     delete this->lockSpeakers;
 
-    
     this->lockInputs->lock();
     for (auto&& it : this->listSourceInput)
     {
@@ -361,7 +373,6 @@ MainContentComponent::~MainContentComponent()
     this->listSourceInput.clear();
     this->lockInputs->unlock();
     delete this->lockInputs;
-    
    
     delete this->boxInputsUI;
     delete this->boxOutputsUI;
@@ -369,7 +380,6 @@ MainContentComponent::~MainContentComponent()
 
     delete  this->jackClient;
     delete this->jackServer;
-
 }
 
 
@@ -502,7 +512,7 @@ void MainContentComponent::updateInputJack(int inInput, Input &inp)
     if(si->azimuth > 180.0f){
         si->azimuth = si->azimuth-360.0f;
     }
-    si->zenith  = 90.0f-(inp.getZenith()/M2_PI)*360.0f;//inp.getZenith();
+    si->zenith  = 90.0f-(inp.getZenith()/M2_PI)*360.0f;
     si->radius  = inp.getRad();
     
     si->aziSpan = inp.getAziMuthSpan() * 0.5f;
@@ -513,7 +523,6 @@ void MainContentComponent::updateInputJack(int inInput, Input &inp)
         this->jackClient->updateSourceVbap(inInput);
     }
     
-    //cout << si->azimuth << " // " << si->zenith << " // " << si->radius << " // " << si->aziSpan << " // " << si->zenSpan << newLine;
 }
 
 void MainContentComponent::updateLevelComp()
@@ -605,7 +614,7 @@ void MainContentComponent::updateLevelComp()
 void MainContentComponent::setNameConfig(String name)
 {
     this->nameConfig = name;
-    this->speakerView->setNameConfig(nameConfig);
+    this->speakerView->setNameConfig(this->nameConfig);
 }
 
 void MainContentComponent::muteInput(int id, bool mute)
@@ -647,7 +656,7 @@ void MainContentComponent::openXmlFileSpeaker(String path)
     ScopedPointer<XmlElement> mainXmlElem (xmlDoc.getDocumentElement());
     if (mainXmlElem == nullptr)
     {
-        AlertWindow::showMessageBoxAsync (AlertWindow::AlertIconType::WarningIcon,"Error XML !",
+        AlertWindow::showMessageBoxAsync (AlertWindow::AlertIconType::WarningIcon,"Error  openXmlFileSpeaker !",
                                           "Your file is corrupted !\n"+xmlDoc.getLastParseError(),String(),0);
     }
     else
@@ -663,9 +672,7 @@ void MainContentComponent::openXmlFileSpeaker(String path)
             this->lockSpeakers->unlock();
     
             nameConfig =  mainXmlElem->getStringAttribute("Name");
-            cout << nameConfig << newLine;
-            // This line segfaults on linux. -belangeo
-            //this->speakerView->setNameConfig(nameConfig);
+            this->speakerView->setNameConfig(nameConfig);
             this->jackClient->clearOutput();
             forEachXmlChildElement (*mainXmlElem, ring)
             {
@@ -714,7 +721,7 @@ void MainContentComponent::openPreset(String path)
     ScopedPointer<XmlElement> mainXmlElem (xmlDoc.getDocumentElement());
     if (mainXmlElem == nullptr)
     {
-        AlertWindow::showMessageBoxAsync (AlertWindow::AlertIconType::WarningIcon,"Error XML !",
+        AlertWindow::showMessageBoxAsync (AlertWindow::AlertIconType::WarningIcon,"Error in openPreset !",
                                           "Your file is corrupted !\n"+xmlDoc.getLastParseError(),String(),0);
     }else{
         if(mainXmlElem->hasTagName("SpatServerGRIS_Preset")){
@@ -750,7 +757,18 @@ void MainContentComponent::openPreset(String path)
                     }
                 }
             }
-            
+            //cout << "pathCurrentPreset: " << this->pathCurrentPreset << endl;
+            //cout << "pathCurrentFileSpeaker: " << this->pathCurrentFileSpeaker << endl;
+
+            File speakerSetup = File(this->pathCurrentFileSpeaker.toStdString());
+            if (!speakerSetup.isRoot()) {
+                String cwd = File::getCurrentWorkingDirectory().getFullPathName();
+#ifdef __linux__
+                this->pathCurrentFileSpeaker = cwd + ("/../../Resources/default_preset/") + this->pathCurrentFileSpeaker;
+#else
+                this->pathCurrentFileSpeaker = cwd + ("/spatServerGRIS.app/Contents/Resources/default_preset/") + this->pathCurrentFileSpeaker;
+#endif
+            }
             this->openXmlFileSpeaker(this->pathCurrentFileSpeaker);
             
         }
@@ -850,7 +868,7 @@ void MainContentComponent::saveJackSettings(unsigned int rate, unsigned int buff
             ScopedPointer<ChildProcess> scriptProcess = new ChildProcess();
             
             JUCEApplication::getInstance()->systemRequestedQuit();
-            cout << relaunchCommand << newLine;
+            //cout << relaunchCommand << newLine;
             scriptProcess->start(relaunchCommand, (!ChildProcess::wantStdErr | !ChildProcess::wantStdOut));
         }
     }
