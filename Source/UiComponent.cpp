@@ -300,7 +300,7 @@ WindowEditSpeaker::WindowEditSpeaker(const String& name, String& nameC,Colour ba
     
     this->butAddSpeaker = new TextButton();
     this->butAddSpeaker->setButtonText("Add Speaker");
-    this->butAddSpeaker->setBounds(4, 404, 88, 22);
+    this->butAddSpeaker->setBounds(5, 404, 100, 22);
     this->butAddSpeaker->addListener(this);
     this->butAddSpeaker->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
     this->butAddSpeaker->setLookAndFeel(this->grisFeel);
@@ -309,17 +309,25 @@ WindowEditSpeaker::WindowEditSpeaker(const String& name, String& nameC,Colour ba
     
     this->toggleShowSphere = new ToggleButton();
     this->toggleShowSphere->setButtonText("Show Sphere");
-    this->toggleShowSphere->setBounds(4, 430, 120, 22);
+    this->toggleShowSphere->setBounds(5, 430, 120, 22);
     this->toggleShowSphere->addListener(this);
     this->toggleShowSphere->setToggleState(false, dontSendNotification);
     this->toggleShowSphere->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
     this->toggleShowSphere->setLookAndFeel(this->grisFeel);
     this->boxListSpeaker->getContent()->addAndMakeVisible(this->toggleShowSphere);
     
+
+    this->butcompSpeakers = new TextButton();
+    this->butcompSpeakers->setButtonText("Compute");
+    this->butcompSpeakers->setBounds(110, 404, 100, 22);
+    this->butcompSpeakers->addListener(this);
+    this->butcompSpeakers->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
+    this->butcompSpeakers->setLookAndFeel(this->grisFeel);
+    this->boxListSpeaker->getContent()->addAndMakeVisible(this->butcompSpeakers);
     
     this->butsaveSpeakers = new TextButton();
     this->butsaveSpeakers->setButtonText("Save");
-    this->butsaveSpeakers->setBounds(100, 404, 88, 22);
+    this->butsaveSpeakers->setBounds(215, 404, 100, 22);
     this->butsaveSpeakers->addListener(this);
     this->butsaveSpeakers->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
     this->butsaveSpeakers->setLookAndFeel(this->grisFeel);
@@ -328,7 +336,7 @@ WindowEditSpeaker::WindowEditSpeaker(const String& name, String& nameC,Colour ba
 
     this->texEditNameConf = new TextEditor();
     this->texEditNameConf->setText(nameC);
-    this->texEditNameConf->setBounds(190, 404, 160, 22);
+    this->texEditNameConf->setBounds(320, 404, 160, 22);
     this->texEditNameConf->addListener(this);
     this->texEditNameConf->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
     this->texEditNameConf->setLookAndFeel(this->grisFeel);
@@ -337,19 +345,18 @@ WindowEditSpeaker::WindowEditSpeaker(const String& name, String& nameC,Colour ba
     
     this->butClearTriplet = new TextButton();
     this->butClearTriplet->setButtonText("Clear Triplets");
-    this->butClearTriplet->setBounds(4, 442, 120, 22);
+    this->butClearTriplet->setBounds(5, 442, 120, 22);
     this->butClearTriplet->addListener(this);
     this->butClearTriplet->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
     this->butClearTriplet->setLookAndFeel(this->grisFeel);
     this->boxListSpeaker->getContent()->addAndMakeVisible(this->butClearTriplet);
     
 
-    this->setContentComponent(this->boxListSpeaker);
+    this->setContentOwned(this->boxListSpeaker, false);
     this->boxListSpeaker->getContent()->addAndMakeVisible(tableListSpeakers);
 
     this->boxListSpeaker->repaint();
     this->boxListSpeaker->resized();
-    
 }
 
 WindowEditSpeaker::~WindowEditSpeaker()
@@ -358,6 +365,7 @@ WindowEditSpeaker::~WindowEditSpeaker()
     //delete this->boxListSpeaker;
     delete this->toggleShowSphere;
     delete this->butAddSpeaker;
+    delete this->butcompSpeakers;
     delete this->butsaveSpeakers;
     delete this->texEditNameConf;
     delete this->butClearTriplet;
@@ -413,7 +421,13 @@ void WindowEditSpeaker::buttonClicked(Button *button)
         this->mainParent->addSpeaker();
         updateWinContent();
     }
+    else if (button == this->butcompSpeakers) {
+        // TODO: Should return a value to tell if there is an error or not.
+        this->mainParent->updateLevelComp();
+    }
     else if (button == this->butsaveSpeakers) {
+        this->mainParent->updateLevelComp();
+        // TODO: We save a xml file only if the previous call passed.
         FileChooser fc ("Choose a file to save...",File::getCurrentWorkingDirectory(), "*.xml", true);
         if (fc.browseForFileToSave (true))
         {
@@ -476,11 +490,12 @@ void WindowEditSpeaker::resized()
     this->boxListSpeaker->setSize(getWidth(), getHeight());
     this->boxListSpeaker->correctSize(getWidth()-10, getHeight()-30);
 
-    this->butAddSpeaker->setBounds(4, getHeight()-110, 88, 22);
-    this->toggleShowSphere->setBounds(4, getHeight()-86, 120, 22);
-    this->butClearTriplet->setBounds(4, getHeight()-60, 88, 22);
-    this->butsaveSpeakers->setBounds(100, getHeight()-110, 88, 22);
-    this->texEditNameConf->setBounds(190, getHeight()-110, 160, 22);
+    this->butAddSpeaker->setBounds(5, getHeight()-110, 100, 22);
+    this->toggleShowSphere->setBounds(5, getHeight()-86, 120, 22);
+    this->butClearTriplet->setBounds(5, getHeight()-60, 100, 22);
+    this->butcompSpeakers->setBounds(110, getHeight()-110, 100, 22);
+    this->butsaveSpeakers->setBounds(215, getHeight()-110, 100, 22);
+    this->texEditNameConf->setBounds(320, getHeight()-110, 160, 22);
     
     //this->boxListSpeaker->correctSize((this->listSourceInput.size()*(SizeWidthLevelComp))+4, 210);
 }
@@ -572,11 +587,10 @@ void WindowEditSpeaker::setText (const int columnNumber, const int rowNumber, co
                 
             case 8 :
                 this->mainParent->getListSpeaker()[rowNumber]->setOutputPatch(newText.getIntValue());
-                this->mainParent->updateLevelComp();
                 break;
                 
         }
-        this->mainParent->updateLevelComp();
+        //this->mainParent->updateLevelComp();
     }
     
     this->mainParent->getLockSpeakers()->unlock();

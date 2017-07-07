@@ -202,7 +202,8 @@ public:
     
     
     //SpeakerLoad
-    bool initSpeakersTripplet(vector<Speaker *>  listSpk);
+    unsigned int vbapDimensions;
+    bool initSpeakersTripplet(vector<Speaker *>  listSpk, int dimensions);
     void updateSourceVbap(int idS);
     
 private:

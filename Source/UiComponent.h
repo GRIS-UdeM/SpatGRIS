@@ -171,6 +171,7 @@ private:
     
     ToggleButton *toggleShowSphere;
     TextButton *butAddSpeaker;
+    TextButton *butcompSpeakers;
     TextButton *butsaveSpeakers;
     TextEditor *texEditNameConf;
     TextButton *butClearTriplet;

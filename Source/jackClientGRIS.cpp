@@ -669,41 +669,28 @@ void jackClientGris::connectedGristoSystem()
 
 }
 
-bool jackClientGris::initSpeakersTripplet(vector<Speaker *>  listSpk)
+bool jackClientGris::initSpeakersTripplet(vector<Speaker *>  listSpk,
+                                          int dimensions)
 {
-    if(listSpk.size() <= 0){
+    if(listSpk.size() <= 0) {
         return false;
     }
-    
+
     this->processBlockOn = false;
 
-    
     ls lss[MAX_LS_AMOUNT];
     
-    for(int i = 0; i < listSpk.size() ; i++){
-        
-        
-        /*listSpeakerOut[i].id = listSpk[i]->getOutputPatch();
-        lss[i].coords.x = listSpk[i]->getCoordinate().x;
-        lss[i].coords.y = listSpk[i]->getCoordinate().y;
-        lss[i].coords.z = listSpk[i]->getCoordinate().z;
-        
-        lss[i].angles.azi = listSpk[i]->getAziZenRad().x;
-        lss[i].angles.ele  = listSpk[i]->getAziZenRad().y;
-        lss[i].angles.length = listSpk[i]->getAziZenRad().z;*/
-        
+    for(int i = 0; i < listSpk.size() ; i++) {
         lss[i].coords.x = listSpeakerOut[i].x;
         lss[i].coords.y = listSpeakerOut[i].y;
         lss[i].coords.z = listSpeakerOut[i].z;
-        
         lss[i].angles.azi = listSpeakerOut[i].azimuth;
         lss[i].angles.ele = listSpeakerOut[i].zenith;
         lss[i].angles.length = listSpeakerOut[i].radius;
-        
     }
     
-    //WARNING !!!!
-    listSourceIn[0].paramVBap = init_vbap_from_speakers(lss, listSpk.size(), NULL);
+    listSourceIn[0].paramVBap = init_vbap_from_speakers(lss, listSpk.size(),
+                                                        dimensions, NULL);
     for(int i = 1; i < MaxInputs ; i++){
         listSourceIn[i].paramVBap = copy_vbap_data(listSourceIn[0].paramVBap);
     }
@@ -714,9 +701,18 @@ bool jackClientGris::initSpeakersTripplet(vector<Speaker *>  listSpk)
 
 void jackClientGris::updateSourceVbap(int idS)
 {
-    if(listSourceIn[idS].paramVBap != nullptr) {
-        vbap2_flip_y_z(listSourceIn[idS].azimuth, listSourceIn[idS].zenith, listSourceIn[idS].aziSpan,
-                       listSourceIn[idS].zenSpan, listSourceIn[idS].paramVBap);
+    if (this->vbapDimensions == 3) {
+        if (listSourceIn[idS].paramVBap != nullptr) {
+            vbap2_flip_y_z(listSourceIn[idS].azimuth, listSourceIn[idS].zenith,
+                           listSourceIn[idS].aziSpan, listSourceIn[idS].zenSpan,
+                           listSourceIn[idS].paramVBap);
+        }
+    } else if (this->vbapDimensions == 2) {
+        if (listSourceIn[idS].paramVBap != nullptr) {
+            vbap2(listSourceIn[idS].azimuth, listSourceIn[idS].zenith,
+                  listSourceIn[idS].aziSpan, listSourceIn[idS].zenSpan,
+                  listSourceIn[idS].paramVBap);
+        }
     }
 }
 

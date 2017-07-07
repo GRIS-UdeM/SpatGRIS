@@ -55,7 +55,7 @@ typedef struct {
 typedef struct {
   float gains[MAX_LS_AMOUNT];       /* Loudspeaker gains. */
   float y[MAX_LS_AMOUNT];           /* Loudspeaker gains smoothing. */
-  int dimension;                    /* Dimensions, always 3. */
+  int dimension;                    /* Dimensions, 2 or 3. */
   LS_SET *ls_sets;                  /* Loudspeaker triplet structure. */
   int ls_am;                        /* Number of loudspeakers. */
   int ls_set_am;                    /* Number of triplets. */
@@ -88,7 +88,7 @@ void free_speakers_setup(SPEAKERS_SETUP *setup);
 VBAP_DATA * init_vbap_data(SPEAKERS_SETUP *setup, int **triplets);
 
 VBAP_DATA * init_vbap_from_speakers(ls lss[MAX_LS_AMOUNT], int count,
-                                    int **triplets);
+                                    int dim, int **triplets);
 
 VBAP_DATA * copy_vbap_data(VBAP_DATA *data);
 

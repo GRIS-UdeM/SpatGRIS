@@ -475,10 +475,9 @@ void MainContentComponent::addSpeaker()
 {
     this->lockSpeakers->lock();
     unsigned int idNewSpeaker = (unsigned int)listSpeaker.size()+1;
-    this->listSpeaker.push_back(new Speaker(this, idNewSpeaker, idNewSpeaker, glm::vec3(0.0f, 0.0f, 0.0f)));
+    this->listSpeaker.push_back(new Speaker(this, idNewSpeaker, idNewSpeaker, glm::vec3(0.0f, 0.0f, 10.0f)));
     this->lockSpeakers->unlock();
     this->jackClient->addOutput();
-    updateLevelComp();
 }
 
 void MainContentComponent::removeSpeaker(int idSpeaker)
@@ -496,7 +495,6 @@ void MainContentComponent::removeSpeaker(int idSpeaker)
     }
 
     this->lockSpeakers->unlock();
-    updateLevelComp();
 }
 
 void MainContentComponent::updateInputJack(int inInput, Input &inp)
@@ -525,12 +523,41 @@ void MainContentComponent::updateInputJack(int inInput, Input &inp)
     
 }
 
-void MainContentComponent::updateLevelComp()
-{
-    this->jackClient->processBlockOn = false;
+void MainContentComponent::updateLevelComp() {
+    int dimensions = 2;
     int x = 2;
     int indexS = 0;
-    
+
+    if (this->listSpeaker.size() == 0)
+        return;
+
+    // Test for a 2-D or 3-D configuration
+    float zenith = -1.0f;
+    for (auto&& it : this->listSpeaker) {
+        if (zenith == -1.0f) {
+            zenith = it->getAziZenRad().y;
+        }
+        else if (it->getAziZenRad().y < (zenith - 4.9) || it->getAziZenRad().y > (zenith + 4.9)) {
+            dimensions = 3;
+            break;
+        }
+    }
+
+    if (this->listSpeaker.size() < dimensions) {
+        ScopedPointer<AlertWindow> alert = new AlertWindow ("Not enough speakers!    ",
+                                                            "Do you want to reload previous config?    ", 
+                                                            AlertWindow::WarningIcon);
+        alert->addButton ("No", 0);
+        alert->addButton ("Yes", 1);
+        int ret = alert->runModalLoop();
+        if (ret == 1) {
+            this->openXmlFileSpeaker(this->pathCurrentFileSpeaker);
+        }
+        return;
+    }
+
+    this->jackClient->processBlockOn = false;
+
     //this->jackClient->listSpeakerOut.clear();
     int i = 0;
     for (auto&& it : this->listSpeaker)
@@ -597,16 +624,17 @@ void MainContentComponent::updateLevelComp()
     
     //Clear useless triplet
     for(int i = 0; i < this->listTriplet.size(); ++i) {
-        
         if(this->listTriplet[i].id1+1 > this->listSpeaker.size() ||
            this->listTriplet[i].id2+1 > this->listSpeaker.size() ||
-           this->listTriplet[i].id3+1 > this->listSpeaker.size()){
-            
+           this->listTriplet[i].id3+1 > this->listSpeaker.size()) {
             this->listTriplet.erase(this->listTriplet.begin() + i);
         }
     }
+
+    this->jackClient->vbapDimensions = dimensions;
+
+    this->jackClient->initSpeakersTripplet(this->listSpeaker, dimensions);
     
-    this->jackClient->initSpeakersTripplet(listSpeaker);
     this->jackClient->processBlockOn = true;
 }
 
@@ -1153,7 +1181,7 @@ void MainContentComponent::comboBoxChanged (ComboBox *comboBox)
         
         switch (this->jackClient->modeSelected) {
             case VBap:
-                if( this->jackClient->initSpeakersTripplet(this->listSpeaker) ){
+                if( this->jackClient->initSpeakersTripplet(this->listSpeaker, this->jackClient->vbapDimensions) ){
                     this->labelModeInfo->setText("Ready", dontSendNotification);
                     this->labelModeInfo->setColour(Label::textColourId, mGrisFeel.getGreenColour());
                 }else{

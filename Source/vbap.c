@@ -22,7 +22,7 @@ typedef struct ls_triplet_chain {
 
 /* Fast-forward declarations. */
 void compute_gains(int ls_set_am, LS_SET *sets, float *gains,
-                   int ls_amount, CART_VEC cart_dir);
+                   int ls_amount, CART_VEC cart_dir, int dim);
 
 /* Returns 1 if there is loudspeaker(s) inside given ls triplet. */
 static int any_ls_inside_triplet(int a, int b, int c, 
@@ -322,7 +322,7 @@ static void spreadit(float azi, float spread, VBAP_DATA *data) {
 	    new_spread_dir(&spreaddir[i], data->cart_dir, spreadbase[i],
                        azi, spread);
         compute_gains(data->ls_set_am, data->ls_sets, tmp_gains,
-                      data->ls_am, spreaddir[i]);
+                      data->ls_am, spreaddir[i], data->dimension);
         for (j=0; j<cnt; j++) {
             data->gains[j] += tmp_gains[j];
         }
@@ -391,7 +391,7 @@ static void spreadit_azi_ele(float azi, float ele, float sp_azi,
             spreadang.length = 1.0;
             vec_angle_to_cart(&spreadang, &spreadcart);
             compute_gains(data->ls_set_am, data->ls_sets, tmp_gains,
-                          data->ls_am, spreadcart);
+                          data->ls_am, spreadcart, data->dimension);
             for (j=0; j<cnt; j++) {
                 data->gains[j] += (tmp_gains[j] * comp);
             }
@@ -458,7 +458,106 @@ static void spreadit_azi_ele_flip_y_z(float azi, float ele, float sp_azi,
             spreadcart.z = spreadcart.y;
             spreadcart.y = tmp;
             compute_gains(data->ls_set_am, data->ls_sets, tmp_gains,
-                          data->ls_am, spreadcart);
+                          data->ls_am, spreadcart, data->dimension);
+            for (j=0; j<cnt; j++) {
+                data->gains[j] += (tmp_gains[j] * comp);
+            }
+	    }
+    }
+
+	for (i=0; i<cnt; i++) {
+		sum += (data->gains[i] * data->gains[i]);
+    }
+    sum = sqrtf(sum);
+	for (i=0; i<cnt; i++) {
+		data->gains[i] /= sum;
+	}
+}
+
+static void spreadit_azi(float azi, float sp_azi, VBAP_DATA *data) {
+	int i, j, k, num = 4;
+    float azidev, newazi, comp;
+	ANG_VEC spreadang;
+	CART_VEC spreadcart;
+    int cnt = data->ls_am;
+    float tmp_gains[cnt];
+    for (i=0; i<cnt; i++) {
+        tmp_gains[i] = 0.0;
+    }
+	float sum = 0.0;
+
+    if (sp_azi < 0.0) { sp_azi = 0.0; }
+    else if (sp_azi > 1.0) { sp_azi = 1.0; }
+
+    for (i=0; i<num; i++) {
+        comp = powf(10.0f, (i+1) * -3.0f * 0.05f);
+        azidev = (i+1) * sp_azi * 45.0;
+        for (k=0; k<2; k++) {
+            if (k == 0) {
+                newazi = data->ang_dir.azi + azidev;
+            }
+            else if (k == 1) {
+                newazi = data->ang_dir.azi - azidev;
+            }
+            if (newazi > 180) { newazi -= 360; }
+            else if (newazi < -180) { newazi += 360; }
+            spreadang.azi = newazi;
+            spreadang.ele = 0.0;
+            spreadang.length = 1.0;
+            vec_angle_to_cart(&spreadang, &spreadcart);
+            compute_gains(data->ls_set_am, data->ls_sets, tmp_gains,
+                          data->ls_am, spreadcart, data->dimension);
+            for (j=0; j<cnt; j++) {
+                data->gains[j] += (tmp_gains[j] * comp);
+            }
+	    }
+    }
+
+	for (i=0; i<cnt; i++) {
+		sum += (data->gains[i] * data->gains[i]);
+    }
+    sum = sqrtf(sum);
+	for (i=0; i<cnt; i++) {
+		data->gains[i] /= sum;
+	}
+}
+
+static void spreadit_azi_flip_y_z(float azi, float sp_azi, VBAP_DATA *data) {
+	int i, j, k, num = 4;
+    float azidev, newazi, comp, tmp;
+	ANG_VEC spreadang;
+	CART_VEC spreadcart;
+    int cnt = data->ls_am;
+    float tmp_gains[cnt];
+    for (i=0; i<cnt; i++) {
+        tmp_gains[i] = 0.0;
+    }
+	float sum = 0.0;
+
+    if (sp_azi < 0.0) { sp_azi = 0.0; }
+    else if (sp_azi > 1.0) { sp_azi = 1.0; }
+
+    for (i=0; i<num; i++) {
+        comp = powf(10.0f, (i+1) * -3.0f * 0.05f);
+        azidev = (i+1) * sp_azi * 45.0;
+        for (k=0; k<2; k++) {
+            if (k == 0) {
+                newazi = data->ang_dir.azi + azidev;
+            }
+            else if (k == 1) {
+                newazi = data->ang_dir.azi - azidev;
+            }
+            if (newazi > 180) { newazi -= 360; }
+            else if (newazi < -180) { newazi += 360; }
+            spreadang.azi = newazi;
+            spreadang.ele = 0.0;
+            spreadang.length = 1.0;
+            vec_angle_to_cart(&spreadang, &spreadcart);
+            tmp = spreadcart.z;
+            spreadcart.z = spreadcart.y;
+            spreadcart.y = tmp;
+            compute_gains(data->ls_set_am, data->ls_sets, tmp_gains,
+                          data->ls_am, spreadcart, data->dimension);
             for (j=0; j<cnt; j++) {
                 data->gains[j] += (tmp_gains[j] * comp);
             }
@@ -568,6 +667,155 @@ void build_speakers_list(SPEAKERS_SETUP *setup, ls lss[MAX_LS_AMOUNT]) {
         lss[i].angles.azi = a_vector.azi;
         lss[i].angles.ele = a_vector.ele;
         lss[i].angles.length = 1.0;
+    }
+}
+
+/*
+ * No external use.
+ */
+void sort_2D_lss(ls lss[MAX_LS_AMOUNT],
+                 int sorted_lss[MAX_LS_AMOUNT],
+                 int ls_amount) {
+    int i, j, index;
+    float x, y, tmp, tmp_azi;
+    float rad2ang = (float)(360.0 / ( 2 * M_PI));
+
+    /* Transforming angles between -180 and 180. */
+    for (i=0; i<ls_amount; i++) {
+        vec_angle_to_cart(&lss[i].angles, &lss[i].coords);
+        lss[i].angles.azi = acosf(lss[i].coords.x);
+        if (fabsf(lss[i].coords.y) <= 0.001)
+            tmp = 1.0;
+        else
+            tmp = lss[i].coords.y / fabsf(lss[i].coords.y);
+        lss[i].angles.azi *= tmp;
+    }
+    for (i=0; i<ls_amount; i++) {
+        tmp = 2000;
+        for (j=0 ; j<ls_amount; j++) {
+            if (lss[j].angles.azi <= tmp) {
+                tmp=lss[j].angles.azi;
+                index = j;
+            }
+        }
+        sorted_lss[i]=index;
+        tmp_azi = lss[index].angles.azi;
+        lss[index].angles.azi = (tmp_azi + 4000.0);
+    }
+    for (i=0; i<ls_amount; i++) {
+        tmp_azi = lss[i].angles.azi;
+        lss[i].angles.azi = (tmp_azi - 4000.0);
+    }
+}
+
+/*
+ * No external use.
+ */
+int calc_2D_inv_tmatrix(float azi1, float azi2, float inv_mat[4]) {
+    float x1, x2, x3, x4; /* x1 x3 */
+    float y1, y2, y3, y4; /* x2 x4 */
+    float det;
+    x1 = cosf(azi1);
+    x2 = sinf(azi1);
+    x3 = cosf(azi2);
+    x4 = sinf(azi2);
+    det = (x1 * x4) - (x3 * x2);
+    if (fabsf(det) <= 0.001) {
+        inv_mat[0] = 0.0;
+        inv_mat[1] = 0.0;
+        inv_mat[2] = 0.0;
+        inv_mat[3] = 0.0;
+        return 0;
+    } else {
+        inv_mat[0] = x4 / det;
+        inv_mat[1] = -x3 / det;
+        inv_mat[2] = -x2 / det;
+        inv_mat[3] = x1 / det;
+        return 1;
+    }
+}
+
+/* Selects the loudspeaker pairs, calculates the inversion
+ * matrices and stores the data to a global array.
+ */
+void choose_ls_tuplets(ls lss[MAX_LS_AMOUNT],
+                       ls_triplet_chain **ls_triplets,
+                       int ls_amount) {
+    float atorad = (float)(2 * M_PI / 360);
+    int i, j, k, amount = 0;
+    float w1, w2, p1, p2;
+    int sorted_lss[MAX_LS_AMOUNT];
+    int exist[MAX_LS_AMOUNT];
+    float inv_mat[MAX_LS_AMOUNT][4];
+    struct ls_triplet_chain *prev, *tr_ptr = *ls_triplets;
+    prev = NULL;
+
+    for(i=0; i<MAX_LS_AMOUNT; i++) {
+        exist[i]=0;
+    }
+
+    /* Sort loudspeakers according their azimuth angle. */
+    sort_2D_lss(lss, sorted_lss, ls_amount);
+
+    /* Adjacent loudspeakers are the loudspeaker pairs to be used. */
+    for(i=0; i<(ls_amount-1); i++) {
+        if ((lss[sorted_lss[i+1]].angles.azi -
+             lss[sorted_lss[i]].angles.azi) <= (M_PI - 0.175f)) {
+            if (calc_2D_inv_tmatrix(lss[sorted_lss[i]].angles.azi,
+                                    lss[sorted_lss[i+1]].angles.azi,
+                                    inv_mat[i]) != 0) {
+                exist[i] = 1;
+                amount++;
+            }
+        }
+    }
+
+    if (((PIx2 - lss[sorted_lss[ls_amount-1]].angles.azi) +
+         lss[sorted_lss[0]].angles.azi) <= (M_PI - 0.175f)) {
+        if (calc_2D_inv_tmatrix(lss[sorted_lss[ls_amount-1]].angles.azi,
+                                lss[sorted_lss[0]].angles.azi,
+                                inv_mat[ls_amount-1]) != 0) {
+            exist[ls_amount-1] = 1;
+            amount++;
+        }
+    }
+
+    for (i=0; i<ls_amount - 1; i++) {
+        if(exist[i] == 1) {
+            while (tr_ptr != NULL) {
+                prev = tr_ptr;
+                tr_ptr = tr_ptr->next;
+            }
+            tr_ptr = (struct ls_triplet_chain *)malloc(sizeof(struct ls_triplet_chain));
+            if (prev == NULL)
+                *ls_triplets = tr_ptr;
+            else
+                prev->next = tr_ptr;
+            tr_ptr->next = NULL;
+            tr_ptr->ls_nos[0] = sorted_lss[i] + 1;
+            tr_ptr->ls_nos[1] = sorted_lss[i+1] + 1;
+            for(j=0; j<4; j++) {
+                tr_ptr->inv_mx[j] = inv_mat[i][j];
+            }
+        }
+    }
+
+    if(exist[ls_amount-1] == 1) {
+        while (tr_ptr != NULL) {
+            prev = tr_ptr;
+            tr_ptr = tr_ptr->next;
+        }
+        tr_ptr = (struct ls_triplet_chain *)malloc(sizeof(struct ls_triplet_chain));
+        if (prev == NULL)
+            *ls_triplets = tr_ptr;
+        else
+            prev->next = tr_ptr;
+        tr_ptr->next = NULL;
+        tr_ptr->ls_nos[0] = sorted_lss[ls_amount - 1] + 1;
+        tr_ptr->ls_nos[1] = sorted_lss[0] + 1;
+        for(j=0; j<4; j++) {
+            tr_ptr->inv_mx[j] = inv_mat[ls_amount-1][j];
+        }
     }
 }
 
@@ -833,20 +1081,24 @@ VBAP_DATA * init_vbap_data(SPEAKERS_SETUP *setup, int **triplets) {
 }
 
 VBAP_DATA * init_vbap_from_speakers(ls lss[MAX_LS_AMOUNT], int count,
-                                    int **triplets) {
-    int i, j;
+                                    int dim, int **triplets) {
+    int i, j, k, offset = 0;
     ls_triplet_chain *ls_triplets = NULL;
     ls_triplet_chain *ls_ptr;
     VBAP_DATA *data = (VBAP_DATA *)malloc(sizeof(VBAP_DATA));
 
-    if (triplets == NULL)
-        choose_ls_triplets(lss, &ls_triplets, count);
-    else
-        load_ls_triplets(lss, &ls_triplets, count, "filename");
+    if (dim == 3) {
+        if (triplets == NULL)
+            choose_ls_triplets(lss, &ls_triplets, count);
+        else
+            load_ls_triplets(lss, &ls_triplets, count, "filename");
+        calculate_3x3_matrixes(ls_triplets, lss, count);
+        offset = 1;
+    } else if (dim == 2) {
+        choose_ls_tuplets(lss, &ls_triplets, count);
+    }
 
-    calculate_3x3_matrixes(ls_triplets, lss, count);
-
-    data->dimension = 3;
+    data->dimension = dim;
     data->ls_am = count;
     for (i=0; i<MAX_LS_AMOUNT; i++) {
         data->gains[i] = data->y[i] = 0.0;
@@ -861,18 +1113,18 @@ VBAP_DATA * init_vbap_from_speakers(ls lss[MAX_LS_AMOUNT], int count,
     data->ls_set_am = i;
     data->ls_sets = (LS_SET *)malloc(sizeof(LS_SET) * i);
 
-    i = 0;
-    ls_ptr = ls_triplets;
-    while (ls_ptr != NULL) {
-        for (j=0; j<data->dimension; j++) {
-            data->ls_sets[i].ls_nos[j] = ls_ptr->ls_nos[j] + 1;
+        i = 0;
+        ls_ptr = ls_triplets;
+        while (ls_ptr != NULL) {
+            for (j=0; j<data->dimension; j++) {
+                data->ls_sets[i].ls_nos[j] = ls_ptr->ls_nos[j] + offset;
+            }
+            for (j=0; j<(data->dimension*data->dimension); j++) {
+                data->ls_sets[i].inv_mx[j] = ls_ptr->inv_mx[j];
+            }
+            ls_ptr = ls_ptr->next;
+            i++;
         }
-        for (j=0; j<(data->dimension*data->dimension); j++) {
-            data->ls_sets[i].inv_mx[j] = ls_ptr->inv_mx[j];
-        }
-        ls_ptr = ls_ptr->next;
-        i++;
-    }
 
     free_ls_triplet_chain(ls_triplets);
 
@@ -928,7 +1180,7 @@ void vbap(float azi, float ele, float spread, VBAP_DATA *data) {
         data->gains[i] = 0.0;
     }
     compute_gains(data->ls_set_am, data->ls_sets, data->gains,
-                  data->ls_am, data->cart_dir);
+                  data->ls_am, data->cart_dir, data->dimension);
     if (spread > 0) {
         spreadit(azi, spread, data);
     }
@@ -945,9 +1197,15 @@ void vbap2(float azi, float ele, float sp_azi,
         data->gains[i] = 0.0;
     }
     compute_gains(data->ls_set_am, data->ls_sets, data->gains,
-                  data->ls_am, data->cart_dir);
-    if (sp_azi > 0 || sp_ele > 0) {
-        spreadit_azi_ele(azi, ele, sp_azi, sp_ele, data);
+                  data->ls_am, data->cart_dir, data->dimension);
+    if (data->dimension == 3) {
+        if (sp_azi > 0 || sp_ele > 0) {
+            spreadit_azi_ele(azi, ele, sp_azi, sp_ele, data);
+        }
+    } else {
+        if (sp_azi > 0) {
+            spreadit_azi(azi, sp_azi, data);
+        }
     }
 }
 
@@ -968,7 +1226,7 @@ void vbap_flip_y_z(float azi, float ele, float spread, VBAP_DATA *data) {
         data->gains[i] = 0.0;
     }
     compute_gains(data->ls_set_am, data->ls_sets, data->gains,
-                  data->ls_am, data->cart_dir);
+                  data->ls_am, data->cart_dir, data->dimension);
     if (spread > 0) {
         spreadit(azi, spread, data);
     }
@@ -989,16 +1247,22 @@ void vbap2_flip_y_z(float azi, float ele, float sp_azi,
         data->gains[i] = 0.0;
     }
     compute_gains(data->ls_set_am, data->ls_sets, data->gains,
-                  data->ls_am, data->cart_dir);
-    if (sp_azi > 0 || sp_ele > 0) {
-        spreadit_azi_ele_flip_y_z(azi, ele, sp_azi, sp_ele, data);
+                  data->ls_am, data->cart_dir, data->dimension);
+    if (data->dimension == 3) {
+        if (sp_azi > 0 || sp_ele > 0) {
+            spreadit_azi_ele_flip_y_z(azi, ele, sp_azi, sp_ele, data);
+        }
+    } else {
+        if (sp_azi > 0) {
+            spreadit_azi_flip_y_z(azi, sp_azi, data);
+        }
     }
 }
 
 /* Selects a vector base of a virtual source.
  * Calculates gain factors in that base. */
 void compute_gains(int ls_set_am, LS_SET *sets, float *gains,
-                   int ls_amount, CART_VEC cart_dir) {
+                   int ls_amount, CART_VEC cart_dir, int dim) {
     int i, j, k, tmp2;
     float vec[3], tmp;
     /* Direction of the virtual source in cartesian coordinates. */
@@ -1015,9 +1279,9 @@ void compute_gains(int ls_set_am, LS_SET *sets, float *gains,
     }
 
     for (i=0; i<ls_set_am; i++) {
-        for (j=0; j<3; j++) {
-            for (k=0; k<3; k++) {
-                sets[i].set_gains[j] += vec[k] * sets[i].inv_mx[((3*j)+k)];
+        for (j=0; j<dim; j++) {
+            for (k=0; k<dim; k++) {
+                sets[i].set_gains[j] += vec[k] * sets[i].inv_mx[((dim*j)+k)];
             }
             if (sets[i].smallest_wt > sets[i].set_gains[j])
                 sets[i].smallest_wt = sets[i].set_gains[j];
@@ -1057,7 +1321,8 @@ void compute_gains(int ls_set_am, LS_SET *sets, float *gains,
 
     gains[sets[j].ls_nos[0]-1] = sets[j].set_gains[0];
     gains[sets[j].ls_nos[1]-1] = sets[j].set_gains[1];
-    gains[sets[j].ls_nos[2]-1] = sets[j].set_gains[2];
+    if (dim == 3)
+        gains[sets[j].ls_nos[2]-1] = sets[j].set_gains[2];
 
     for (i=0; i<ls_amount; i++) {
         if (gains[i] < 0.0)
