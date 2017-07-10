@@ -100,7 +100,12 @@ public:
     int getOutputPatch();
     void setOutputPatch(int value);
 
-    
+    bool isInput() { return false; }
+
+    void setDirectOutChannel(int chn) {};
+    int getDirectOutChannel() { return 0; };
+    void sendDirectOutToClient(int id, int chn) {};
+
     //OpenGL ==============================================
     glm::vec3 getMin();
     glm::vec3 getMax();
@@ -131,6 +136,8 @@ private :
     LevelComponent *vuMeter;
     
     GrisLookAndFeel mGrisFeel;
+
+    int directOutChannel; // not used for output.
     
 };
 

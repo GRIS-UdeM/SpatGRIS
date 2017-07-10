@@ -28,6 +28,7 @@ Input::Input(MainContentComponent * parent, GrisLookAndFeel * feel,int id)
     this->mainParent = parent;
     this->grisFeel = feel;
     this->idChannel = id;
+    this->directOutChannel = 0;
     
     this->azimuth = M_PI4;
     this->zenith  = M_PI2;
@@ -224,4 +225,13 @@ void Input::updateValuesOld(float az, float ze, float azS, float zeS, float g)
     this->center.y = (10.0f * cosf(this->zenith)) + (sizeT/2.0f );
     
     this->radius = sqrt((this->center.x*this->center.x)+(this->center.y*this->center.y)+(this->center.z*this->center.z));
+}
+
+void Input::sendDirectOutToClient(int id, int chn) {
+    this->mainParent->setDirectOut(id, chn);
+}
+
+void Input::setDirectOutChannel(int chn) {
+    this->directOutChannel = chn;
+    this->vuMeter->directOut->setSelectedId(chn);
 }

@@ -114,7 +114,8 @@ public:
     
     void soloInput(int id, bool solo);
     void soloOutput(int id, bool solo);
-    
+    void setDirectOut(int id, int chn);
+
     void saveJackSettings(unsigned int rate, unsigned int buff);
     //=======================================================================
     float getLevelsOut(int indexLevel){return (15.0f * log10f(sqrtf(this->jackClient->getLevelsOut(indexLevel))));}

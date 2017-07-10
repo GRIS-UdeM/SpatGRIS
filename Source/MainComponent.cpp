@@ -676,6 +676,11 @@ void MainContentComponent::soloOutput(int id, bool solo)
     }
 }
 
+void MainContentComponent::setDirectOut(int id, int chn)
+{
+    (&this->jackClient->listSourceIn[id-1])->directOut = chn;
+}
+
 void MainContentComponent::openXmlFileSpeaker(String path)
 {
     this->jackClient->processBlockOn = false;
@@ -751,7 +756,7 @@ void MainContentComponent::openPreset(String path)
     {
         AlertWindow::showMessageBoxAsync (AlertWindow::AlertIconType::WarningIcon,"Error in openPreset !",
                                           "Your file is corrupted !\n"+xmlDoc.getLastParseError(),String(),0);
-    }else{
+    } else {
         if(mainXmlElem->hasTagName("SpatServerGRIS_Preset")){
             this->tedOSCInPort->setText(mainXmlElem->getStringAttribute("OSC_Input_Port"));
             this->tedAddInputs->setText(mainXmlElem->getStringAttribute("Number_Of_Inputs"));
@@ -768,10 +773,6 @@ void MainContentComponent::openPreset(String path)
             this->textEditorReturnKeyPressed(*this->tedAddInputs);
             this->sliderValueChanged(this->sliderMasterGainOut);
             this->sliderValueChanged(this->sliderInterpolation);
-
-            
-            /*this->buttonClicked(this->butShowSpeakerNumber);
-            this->buttonClicked(this->butHighPerformance);*/
             
             forEachXmlChildElement (*mainXmlElem, input)
             {
@@ -779,8 +780,17 @@ void MainContentComponent::openPreset(String path)
                 {
                     for (auto&& it : listSourceInput)
                     {
-                        if(it->getId() == input->getIntAttribute("Index")){
-                            it->setColor(Colour::fromFloatRGBA((float)input->getDoubleAttribute("R"), (float)input->getDoubleAttribute("G"), (float)input->getDoubleAttribute("B"), 1.0f),true);
+                        if(it->getId() == input->getIntAttribute("Index")) {
+                            it->setColor(Colour::fromFloatRGBA((float)input->getDoubleAttribute("R"),
+                                                               (float)input->getDoubleAttribute("G"),
+                                                               (float)input->getDoubleAttribute("B"), 1.0f), true);
+                            if (input->hasAttribute("DirectOut")) {
+                                it->setDirectOutChannel(input->getIntAttribute("DirectOut")+1);
+                                this->setDirectOut(it->getId(), input->getIntAttribute("DirectOut"));
+                            } else {
+                                it->setDirectOutChannel(1);
+                                this->setDirectOut(it->getId(), 0);
+                            }
                         }
                     }
                 }
@@ -789,7 +799,7 @@ void MainContentComponent::openPreset(String path)
             //cout << "pathCurrentFileSpeaker: " << this->pathCurrentFileSpeaker << endl;
 
             File speakerSetup = File(this->pathCurrentFileSpeaker.toStdString());
-            if (!speakerSetup.isRoot()) {
+            if (!speakerSetup.isRoot() && !this->pathCurrentFileSpeaker.startsWith("/")) {
                 String cwd = File::getCurrentWorkingDirectory().getFullPathName();
 #ifdef __linux__
                 this->pathCurrentFileSpeaker = cwd + ("/../../Resources/default_preset/") + this->pathCurrentFileSpeaker;
@@ -826,6 +836,7 @@ void MainContentComponent::savePreset(String path)
         xmlInput->setAttribute("R", it->getColor().x);
         xmlInput->setAttribute("G", it->getColor().y);
         xmlInput->setAttribute("B", it->getColor().z);
+        xmlInput->setAttribute("DirectOut", String(it->getDirectOutChannel()));
         xml->addChildElement(xmlInput);
     }
     xml->writeToFile(xmlFile,"");
@@ -1220,7 +1231,7 @@ void MainContentComponent::resized()
     this->verticalLayout.layOutComponents (vcomps, 3, r.getX(), r.getY(), r.getWidth(), r.getHeight(), false, true);
     
 
-    this->boxInputsUI->setBounds(this->speakerView->getWidth()+6, 2, getWidth()-(this->speakerView->getWidth()+10),240);
+    this->boxInputsUI->setBounds(this->speakerView->getWidth()+6, 2, getWidth()-(this->speakerView->getWidth()+10),260);
     this->boxInputsUI->correctSize(((unsigned int )this->listSourceInput.size()*(SizeWidthLevelComp))+4, 210);
 
     this->boxOutputsUI->setBounds(this->speakerView->getWidth()+6, 244, getWidth()-(this->speakerView->getWidth()+10),240);

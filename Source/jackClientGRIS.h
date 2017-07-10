@@ -73,7 +73,9 @@ struct SourceIn {
     
     bool  isMuted = false;
     bool  isSolo = false;
-    float gain;//Not Implemented
+    float gain; //Not Implemented
+
+    int directOut = 0;
     
     VBAP_DATA * paramVBap;
 };

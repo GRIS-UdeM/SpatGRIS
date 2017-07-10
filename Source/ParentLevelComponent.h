@@ -26,13 +26,19 @@ class LevelComponent;
 class ParentLevelComponent{
 public:
     virtual int getId() = 0;
+    virtual bool isInput() = 0;
     virtual float getLevel() = 0;
     virtual void setMuted(bool mute) = 0;
     virtual void setSolo(bool solo) = 0;
     virtual void setColor(Colour color, bool updateLevel = false) = 0;
     virtual void selectClick() = 0;
     virtual LevelComponent * getVuMeter() = 0;
+    virtual void setDirectOutChannel(int chn) = 0;
+    virtual int getDirectOutChannel() = 0;
+    virtual void sendDirectOutToClient(int id, int chn) = 0;
     virtual ~ParentLevelComponent(){}
+
+    int directOutChannel = 0;
 };
 
 #endif /* ParentLevelComponent_h */

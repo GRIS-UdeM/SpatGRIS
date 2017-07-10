@@ -52,6 +52,7 @@ private:
 //====================================================================================
 class LevelComponent :  public Component,
                         public ToggleButton::Listener,
+                        public ComboBox::Listener,
                         public ChangeListener
 {
 public:
@@ -65,9 +66,11 @@ public:
     bool isMuted();
     void setSelected(bool value);
     void buttonClicked(Button *button) override;
+    void comboBoxChanged(ComboBox *combo) override;
     void setBounds(const Rectangle<int> &newBounds);
     void changeListenerCallback (ChangeBroadcaster* source) override;
     
+    ComboBox * directOut;
     
 private:
     ParentLevelComponent* mainParent;

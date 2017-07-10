@@ -109,13 +109,27 @@ LevelComponent::LevelComponent(ParentLevelComponent* parent, GrisLookAndFeel *fe
     this->soloToggleBut->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
     this->soloToggleBut->setLookAndFeel(this->grisFeel);
     this->addAndMakeVisible(this->soloToggleBut);
-    
+
+    //ComboBox=========================================================
+    if (this->mainParent->isInput()) {
+        this->directOut = new ComboBox();
+        this->directOut->setTooltip("Select a direct output channel.");
+        this->directOut->setSize(36, 20);
+        this->directOut->setLookAndFeel(this->grisFeel);
+        this->directOut->addListener(this);
+        this->addAndMakeVisible(this->directOut);
+        this->directOut->addItem("nil", 1);
+        for(int i = 1; i <= 32; i++) {
+             this->directOut->addItem(String(i), i+1);
+        }
+        this->directOut->setSelectedId(1);
+    }
+
     //Level BOX============================================================
     this->levelBox = new LevelBox(this, this->grisFeel);
     this->addAndMakeVisible(this->levelBox);
 
 }
-
 
 LevelComponent::~LevelComponent()
 {
@@ -123,6 +137,9 @@ LevelComponent::~LevelComponent()
     delete this->soloToggleBut;
     delete this->idBut;
     delete this->levelBox;
+    if (this->mainParent->isInput()) {
+        delete this->directOut;
+    }
 }
 
 void LevelComponent::buttonClicked(Button *button)
@@ -147,6 +164,12 @@ void LevelComponent::buttonClicked(Button *button)
             this->mainParent->selectClick();
         }
     }
+}
+
+void LevelComponent::comboBoxChanged(ComboBox *combo)
+{
+    this->mainParent->directOutChannel = combo->getSelectedItemIndex();
+    this->mainParent->sendDirectOutToClient(this->mainParent->getId(), combo->getSelectedItemIndex());
 }
 
 void LevelComponent::changeListenerCallback (ChangeBroadcaster* source)
@@ -193,15 +216,25 @@ void LevelComponent::setSelected(bool value){
 
 void LevelComponent::setBounds(const Rectangle<int> &newBounds)
 {
+    int offset = 0;
+    if (this->mainParent->isInput()) {
+        offset = 20;
+    }
+
     this->juce::Component::setBounds(newBounds);
 
-    juce::Rectangle<int> labRect(WidthRect/2, 0, newBounds.getWidth()-WidthRect, this->idBut->getHeight() );
+    juce::Rectangle<int> labRect(WidthRect/2, 0, newBounds.getWidth()-WidthRect, this->idBut->getHeight());
     this->idBut->setBounds(labRect);
-    //this->labId->setSize(newBounds.getWidth(), 22);
-    this->muteToggleBut->setBounds((newBounds.getWidth()/2)-16, getHeight()-22, this->muteToggleBut->getWidth(), this->muteToggleBut->getHeight());
-    this->soloToggleBut->setBounds((newBounds.getWidth()/2),    getHeight()-22, this->muteToggleBut->getWidth(), this->muteToggleBut->getHeight());
+    this->muteToggleBut->setBounds((newBounds.getWidth()/2)-16, getHeight()-22-offset,
+                                    this->muteToggleBut->getWidth(), this->muteToggleBut->getHeight());
+    this->soloToggleBut->setBounds((newBounds.getWidth()/2),    getHeight()-22-offset,
+                                    this->muteToggleBut->getWidth(), this->muteToggleBut->getHeight());
+    if (this->mainParent->isInput()) {
+        this->directOut->setBounds(((newBounds.getWidth()/2)-16),    getHeight()-22,
+                                    this->directOut->getWidth(), this->directOut->getHeight());
+    }
 
-    juce::Rectangle<int> level(WidthRect/2, 18, newBounds.getWidth()-WidthRect, getHeight()-40 );
+    juce::Rectangle<int> level(WidthRect/2, 18, newBounds.getWidth()-WidthRect, getHeight()-40-offset);
     this->levelBox->setBounds(level);
 }
 

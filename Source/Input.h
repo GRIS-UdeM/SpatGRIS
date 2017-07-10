@@ -77,11 +77,17 @@ public :
     void draw();
     void updateValues(float az, float ze, float azS, float zeS, float heS, float g);
     void updateValuesOld(float az, float ze, float azS, float zeS, float g);
+
+    bool isInput() { return true; }
+    void setDirectOutChannel(int chn);
+    int getDirectOutChannel() { return this->directOutChannel; };
+    void sendDirectOutToClient(int id, int chn);
     
 private:
     void drawSpan();
     
     int idChannel;
+    int directOutChannel;
     
     float azimuth;
     float zenith;
