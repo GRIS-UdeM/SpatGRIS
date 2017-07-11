@@ -84,6 +84,15 @@ public:
             String version = STRING(JUCE_APP_VERSION);
             version = "SpatServer GRIS : "+version;
             setName(version);
+            
+            // Copy JackRouter ini file to preferences folder if not already done.
+#ifndef __linux__
+            File target = File("~/Library/Preferences/JAS.jpil");
+            File source = File(File::getCurrentWorkingDirectory().getFullPathName()+("/spatServerGRIS.app/Contents/Resources/JAS.jpil"));
+            if (target.existsAsFile() == false) {
+                source.copyFileTo(target);
+            }
+#endif
             mcc = new MainContentComponent();
             setContentOwned (mcc, true);
             setResizable (true, true);

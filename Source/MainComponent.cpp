@@ -749,6 +749,7 @@ void MainContentComponent::openPreset(String path)
 {
     this->jackClient->processBlockOn = false;
     this->pathCurrentPreset = path;
+    cout << "pathCurrentPreset: " << this->pathCurrentPreset << endl;
     File xmlFile = File (path.toStdString());
     XmlDocument xmlDoc (xmlFile);
     ScopedPointer<XmlElement> mainXmlElem (xmlDoc.getDocumentElement());
@@ -795,11 +796,11 @@ void MainContentComponent::openPreset(String path)
                     }
                 }
             }
-            //cout << "pathCurrentPreset: " << this->pathCurrentPreset << endl;
-            //cout << "pathCurrentFileSpeaker: " << this->pathCurrentFileSpeaker << endl;
+            cout << "pathCurrentFileSpeaker: " << this->pathCurrentFileSpeaker << endl;
 
             File speakerSetup = File(this->pathCurrentFileSpeaker.toStdString());
-            if (!speakerSetup.isRoot() && !this->pathCurrentFileSpeaker.startsWith("/")) {
+            //if (!speakerSetup.isRoot() && !this->pathCurrentFileSpeaker.startsWith("/")) {
+            if (!this->pathCurrentFileSpeaker.startsWith("/")) {
                 String cwd = File::getCurrentWorkingDirectory().getFullPathName();
 #ifdef __linux__
                 this->pathCurrentFileSpeaker = cwd + ("/../../Resources/default_preset/") + this->pathCurrentFileSpeaker;
