@@ -163,7 +163,8 @@ static void processFreeVolume(jackClientGris & jackCli, jack_default_audio_sampl
 //=========================================================================================
 //VBAP
 //=========================================================================================
-static void processVBAP(jackClientGris & jackCli, jack_default_audio_sample_t ** ins, jack_default_audio_sample_t ** outs, const jack_nframes_t &nframes, const unsigned int &sizeInputs, const unsigned int &sizeOutputs)
+static void processVBAP(jackClientGris & jackCli, jack_default_audio_sample_t ** ins, jack_default_audio_sample_t ** outs,
+                        const jack_nframes_t &nframes, const unsigned int &sizeInputs, const unsigned int &sizeOutputs)
 {
     int f, i, o;
     

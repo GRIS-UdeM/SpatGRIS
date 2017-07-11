@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<installer-gui-script minSpecVersion="1">
+
+    <title>SpatServerGris</title>
+    <options customize="both" allow-external-scripts="no"/>
+    <domains enable_anywhere="true" enable_localSystem="true"/>
+    <welcome file="Welcome.rtf" />
+    <readme file="ReadMe.rtf" />
+    <license file="License.rtf" />
+    
+    <pkg-ref id="com.gris.umontreal.ca.spatServerGris.app.pkg"/>
+    <pkg-ref id="com.gris.umontreal.ca.spatServerGris.libs.pkg"/>
+    <choices-outline>
+        <line choice="com.gris.umontreal.ca.spatServerGris.app.pkg"/>
+        <line choice="com.gris.umontreal.ca.spatServerGris.libs.pkg"/>
+    </choices-outline>
+    
+    <choice id="com.gris.umontreal.ca.spatServerGris.app.pkg"
+    visible="true"
+    title="SpatServerGris">
+        <pkg-ref id="com.gris.umontreal.ca.spatServerGris.app.pkg"/>
+    </choice>
+    <choice id="com.gris.umontreal.ca.spatServerGris.libs.pkg"
+    visible="true"
+    title="Support Libraries">
+        <pkg-ref id="com.gris.umontreal.ca.spatServerGris.libs.pkg"/>
+    </choice>
+    
+<pkg-ref id="com.gris.umontreal.ca.spatServerGris.app.pkg" version="1" onConclusion="none" auth="root">Application.pkg</pkg-ref>
+<pkg-ref id="com.gris.umontreal.ca.spatServerGris.libs.pkg" version="1" onConclusion="none" auth="root">SupportLibs.pkg</pkg-ref>
+</installer-gui-script>
