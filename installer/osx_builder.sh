@@ -56,9 +56,9 @@ sudo cp /usr/local/lib/libjacknet.dylib $SUPPORT_LIBS_DIR/lib/
 cd $INSTALLER_DIR
 
 echo "setting permissions..."
-sudo chgrp -R wheel Application/Package_Contents/
-sudo chown -R root Application/Package_Contents/
-sudo chmod -R 755 Application/Package_Contents/
+#sudo chgrp -R wheel Application/Package_Contents/
+#sudo chown -R root Application/Package_Contents/
+#sudo chmod -R 755 Application/Package_Contents/
 
 sudo chgrp -R wheel SupportLibs/Package_Contents/usr
 sudo chown -R root SupportLibs/Package_Contents/usr

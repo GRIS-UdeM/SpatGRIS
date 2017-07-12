@@ -15,11 +15,7 @@
 		0D0EEB5B1F151F05009E8D7E /* splash.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D0EEB5A1F151F05009E8D7E /* splash.png */; };
 		0D0EEB5D1F152084009E8D7E /* default_preset in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D0EEB5C1F152084009E8D7E /* default_preset */; };
 		0D573AD51EC38A05007605B1 /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D573AD41EC38A05007605B1 /* GLUT.framework */; };
-		0D573AD81EC38A12007605B1 /* Jackmp in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D573AD61EC38A12007605B1 /* Jackmp */; };
-		0D573AD91EC38A12007605B1 /* Jackservermp in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D573AD71EC38A12007605B1 /* Jackservermp */; };
 		0D76540CEB135C65E2C77E42 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A49E2EA8DC00B3CFBC3B8FC /* Cocoa.framework */; };
-		0D947C9D1F1545C1000F9133 /* Jackmp in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D947C9B1F1545C0000F9133 /* Jackmp */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		0D947C9E1F1545C1000F9133 /* Jackservermp in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D947C9C1F1545C0000F9133 /* Jackservermp */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		0DC163381F15427700CD15DD /* JAS.jpil in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0DC163371F15427700CD15DD /* JAS.jpil */; };
 		0DE3ABB01ECDE28A00EACF5B /* vbap.c in Sources */ = {isa = PBXBuildFile; fileRef = 0DE3ABAE1ECDE28A00EACF5B /* vbap.c */; };
 		0DEA64C61EFC1A6E006562C4 /* Jackmp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DEA64BE1EFC18E1006562C4 /* Jackmp.framework */; };
@@ -74,8 +70,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 6;
 			files = (
-				0D947C9D1F1545C1000F9133 /* Jackmp in CopyFiles */,
-				0D947C9E1F1545C1000F9133 /* Jackservermp in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -184,7 +178,6 @@
 		0DEA64BE1EFC18E1006562C4 /* Jackmp.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Jackmp.framework; path = ../../../../../../../Library/Frameworks/Jackmp.framework; sourceTree = "<group>"; };
 		0DEA64BF1EFC18E1006562C4 /* Jacknet.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Jacknet.framework; path = ../../../../../../../Library/Frameworks/Jacknet.framework; sourceTree = "<group>"; };
 		0DEA64C01EFC18E1006562C4 /* Jackservermp.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Jackservermp.framework; path = ../../../../../../../Library/Frameworks/Jackservermp.framework; sourceTree = "<group>"; };
-		0DF1F1C91ED3700400CE7189 /* splash.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = splash.png; path = ../../splash.png; sourceTree = "<group>"; };
 		0E1684DFB4EB8971A5F1D1DA /* juce_Uuid.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = juce_Uuid.cpp; path = ../../JuceLibraryCode/modules/juce_core/misc/juce_Uuid.cpp; sourceTree = SOURCE_ROOT; };
 		0E45BAC07192E20F20B98922 /* juce_MidiMessageCollector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_MidiMessageCollector.h; path = ../../JuceLibraryCode/modules/juce_audio_devices/midi_io/juce_MidiMessageCollector.h; sourceTree = SOURCE_ROOT; };
 		0E4DB5D765565118296212AB /* juce_TextDiff.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = juce_TextDiff.cpp; path = ../../JuceLibraryCode/modules/juce_core/text/juce_TextDiff.cpp; sourceTree = SOURCE_ROOT; };
@@ -1391,8 +1384,6 @@
 				0DEA64C61EFC1A6E006562C4 /* Jackmp.framework in Frameworks */,
 				0DEA64C71EFC1A6E006562C4 /* Jacknet.framework in Frameworks */,
 				0DEA64C81EFC1A6E006562C4 /* Jackservermp.framework in Frameworks */,
-				0D573AD81EC38A12007605B1 /* Jackmp in Frameworks */,
-				0D573AD91EC38A12007605B1 /* Jackservermp in Frameworks */,
 				0D573AD51EC38A05007605B1 /* GLUT.framework in Frameworks */,
 				14E1864F61765881437B2AF8 /* Accelerate.framework in Frameworks */,
 				83E8051A98159BCED1FB14B4 /* AudioToolbox.framework in Frameworks */,
@@ -3302,7 +3293,6 @@
 				0DEA64BE1EFC18E1006562C4 /* Jackmp.framework */,
 				0DEA64BF1EFC18E1006562C4 /* Jacknet.framework */,
 				0DEA64C01EFC18E1006562C4 /* Jackservermp.framework */,
-				0DF1F1C91ED3700400CE7189 /* splash.png */,
 				415CDF7CC3930A66F88F88C6 /* spatServerGRIS */,
 				16FAB0AD2349A989040A29E8 /* Juce Modules */,
 				8C248ABFB6C52E1FC3AC34EC /* Juce Library Code */,

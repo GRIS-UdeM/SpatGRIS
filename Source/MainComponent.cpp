@@ -26,12 +26,14 @@
 
 MainContentComponent::MainContentComponent()
 {
+    File fs;
 #ifdef __linux__
-    File fs = File ( File::getCurrentWorkingDirectory().getFullPathName()+("/../../Resources/splash.png"));
+    fs = File ( File::getCurrentWorkingDirectory().getFullPathName() + ("/../../Resources/splash.png"));
 #else
-    File fs = File ( File::getCurrentWorkingDirectory().getFullPathName()+("/spatServerGRIS.app/Contents/Resources/splash.png"));
+    String cwd = File::getSpecialLocation(File::currentApplicationFile).getFullPathName();
+    fs = File (cwd + ("/Contents/Resources/splash.png"));
 #endif
-    if(fs.exists()){
+    if(fs.exists()) {
         this->splash = new SplashScreen ("SpatServerGRIS",ImageFileFormat::loadFrom (fs),true);
     }
     
@@ -192,11 +194,12 @@ MainContentComponent::MainContentComponent()
     // Opens the default preset if lastOpenPreset is not a valid file.
     File preset = File(this->applicationProperties.getUserSettings()->getValue("lastOpenPreset"));
     if (!preset.existsAsFile()) {
-        String cwd = File::getCurrentWorkingDirectory().getFullPathName();
 #ifdef __linux__
+        String cwd = File::getCurrentWorkingDirectory().getFullPathName();
         this->openPreset(cwd + ("/../../Resources/default_preset/default_preset.xml"));
 #else
-        this->openPreset(cwd + ("/spatServerGRIS.app/Contents/Resources/default_preset/default_preset.xml"));
+        String cwd = File::getSpecialLocation(File::currentApplicationFile).getFullPathName();
+        this->openPreset(cwd + ("/Contents/Resources/default_preset/default_preset.xml"));
 #endif
     }
     else {
@@ -749,14 +752,14 @@ void MainContentComponent::openPreset(String path)
 {
     this->jackClient->processBlockOn = false;
     this->pathCurrentPreset = path;
-    cout << "pathCurrentPreset: " << this->pathCurrentPreset << endl;
+    //cout << "pathCurrentPreset: " << this->pathCurrentPreset << endl;
     File xmlFile = File (path.toStdString());
     XmlDocument xmlDoc (xmlFile);
     ScopedPointer<XmlElement> mainXmlElem (xmlDoc.getDocumentElement());
     if (mainXmlElem == nullptr)
     {
         AlertWindow::showMessageBoxAsync (AlertWindow::AlertIconType::WarningIcon,"Error in openPreset !",
-                                          "Your file is corrupted !\n"+xmlDoc.getLastParseError(),String(),0);
+                                          "Your file is corrupted !\n"+ File::getSpecialLocation(File::currentApplicationFile).getFullPathName() + "\n" + xmlDoc.getLastParseError(),String(),0);
     } else {
         if(mainXmlElem->hasTagName("SpatServerGRIS_Preset")){
             this->tedOSCInPort->setText(mainXmlElem->getStringAttribute("OSC_Input_Port"));
@@ -796,16 +799,17 @@ void MainContentComponent::openPreset(String path)
                     }
                 }
             }
-            cout << "pathCurrentFileSpeaker: " << this->pathCurrentFileSpeaker << endl;
+            //cout << "pathCurrentFileSpeaker: " << this->pathCurrentFileSpeaker << endl;
 
             File speakerSetup = File(this->pathCurrentFileSpeaker.toStdString());
             //if (!speakerSetup.isRoot() && !this->pathCurrentFileSpeaker.startsWith("/")) {
             if (!this->pathCurrentFileSpeaker.startsWith("/")) {
-                String cwd = File::getCurrentWorkingDirectory().getFullPathName();
 #ifdef __linux__
+                String cwd = File::getCurrentWorkingDirectory().getFullPathName();
                 this->pathCurrentFileSpeaker = cwd + ("/../../Resources/default_preset/") + this->pathCurrentFileSpeaker;
 #else
-                this->pathCurrentFileSpeaker = cwd + ("/spatServerGRIS.app/Contents/Resources/default_preset/") + this->pathCurrentFileSpeaker;
+                String cwd = File::getSpecialLocation(File::currentApplicationFile).getFullPathName();
+                this->pathCurrentFileSpeaker = cwd + ("/Contents/Resources/default_preset/") + this->pathCurrentFileSpeaker;
 #endif
             }
             this->openXmlFileSpeaker(this->pathCurrentFileSpeaker);
