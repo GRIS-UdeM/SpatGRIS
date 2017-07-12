@@ -169,7 +169,7 @@ static void processVBAP(jackClientGris & jackCli, jack_default_audio_sample_t **
     int f, i, o;
     
     float gains[sizeInputs][sizeOutputs];
-    float interpG = jackCli.interMaster;
+    float interpG = jackCli.interMaster * 0.29 + 0.7;
     
     for (o = 0; o < sizeOutputs; ++o) {
         for (i = 0; i < sizeInputs; ++i) {

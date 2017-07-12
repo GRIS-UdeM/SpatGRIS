@@ -114,9 +114,9 @@ MainContentComponent::MainContentComponent()
     this->sliderMasterGainOut = addSlider("Master Gain", "Master Gain Outputs", 360, 26, 60, 60, this->boxControlUI->getContent());
     this->sliderMasterGainOut->setRange(0.0, 1.0, 0.001);
     
-    addLabel("Inter :","Master Interpolation",320, 86, 120, 20,this->boxControlUI->getContent());
+    addLabel("Inter :", "Master Interpolation", 320, 86, 120, 20, this->boxControlUI->getContent());
     this->sliderInterpolation = addSlider("Inter", "Interpolation", 360, 80, 60, 60, this->boxControlUI->getContent());
-    this->sliderInterpolation->setRange(0.7, 0.99, 0.001);
+    this->sliderInterpolation->setRange(0.0, 1.0, 0.001); // val * 0.29 + 0.7
 
     addLabel("Mode :","Mode of spatilization",320, 140, 60, 20,this->boxControlUI->getContent());
     this->labelModeInfo = addLabel("...","Status of spatilization",360, 140, 120, 20,this->boxControlUI->getContent());
@@ -179,7 +179,7 @@ MainContentComponent::MainContentComponent()
     this->fileWriter = new FileWriter(this);
     
     this->sliderMasterGainOut->setValue(1.0);
-    this->sliderInterpolation->setValue(0.8);
+    this->sliderInterpolation->setValue(0.33);
     this->comBoxModeSpat->setSelectedId(1);
 
     //OSC Receiver----------------------------------------------------------------------------
@@ -762,7 +762,7 @@ void MainContentComponent::openPreset(String path)
             this->tedOSCInPort->setText(mainXmlElem->getStringAttribute("OSC_Input_Port"));
             this->tedAddInputs->setText(mainXmlElem->getStringAttribute("Number_Of_Inputs"));
             this->sliderMasterGainOut->setValue(mainXmlElem->getDoubleAttribute("Master_Gain_Out", 1.0), sendNotification);
-            this->sliderInterpolation->setValue(mainXmlElem->getDoubleAttribute("Master_Interpolation", 0.8), sendNotification);
+            this->sliderInterpolation->setValue(mainXmlElem->getDoubleAttribute("Master_Interpolation", 0.33), sendNotification);
             this->comBoxModeSpat->setSelectedItemIndex(mainXmlElem->getIntAttribute("Mode_Process"),sendNotification);
             this->butShowSpeakerNumber->setToggleState(mainXmlElem->getBoolAttribute("Show_Numbers"),sendNotification);
             this->butHighPerformance->setToggleState(mainXmlElem->getBoolAttribute("High_Performance"),sendNotification);
