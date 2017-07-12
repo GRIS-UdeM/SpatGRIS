@@ -1,17 +1,12 @@
 #!/bin/sh
 
-# Need Xcode 3.2.6 or later (pkgbuild and productbuild)
-# with python 2.7.12 (32/64-bit) and wxpython 3.0.2.0 (classic) installed
-
-# 1. update pyo sources
-# 2. compile and install pyo float and double for python2
-# 3. cd utils and build E-Pyo for python2
-# 4. cd installers/osx and build the release for python2
+# To build the installer for OSX, compile SpatServerGris in Release mode
+# and run this shell script from the installer folder.
 
 export PACKAGE_NAME=SpatServerGris_v0.0.2.pkg
 export DMG_DIR="SpatServerGris v0.0.2"
 export DMG_NAME="SpatServerGris_v0.0.2.dmg"
-export INSTALLER_DIR=`pwd`/installer
+export INSTALLER_DIR=`pwd`/installerdir
 export APPLICATIONS_DIR=$INSTALLER_DIR/Application/Package_Contents/Applications
 export SUPPORT_LIBS_DIR=$INSTALLER_DIR/SupportLibs/Package_Contents/usr/local
 export BUILD_RESOURCES=$INSTALLER_DIR/PkgResources/English.lproj
@@ -58,14 +53,6 @@ sudo cp /usr/local/lib/libjackserver.dylib $SUPPORT_LIBS_DIR/lib/
 sudo cp /usr/local/lib/libjacknet.0.dylib $SUPPORT_LIBS_DIR/lib/
 sudo cp /usr/local/lib/libjacknet.dylib $SUPPORT_LIBS_DIR/lib/
 
-#sudo install_name_tool -change /usr/local/opt/flac/lib/libFLAC.8.dylib /usr/local/lib/libFLAC.8.dylib $SUPPORT_LIBS_DIR/libsndfile.1.dylib
-#sudo install_name_tool -change /usr/local/opt/libogg/lib/libogg.0.dylib /usr/local/lib/libogg.0.dylib $SUPPORT_LIBS_DIR/libsndfile.1.dylib
-#sudo install_name_tool -change /usr/local/opt/libvorbis/lib/libvorbis.0.dylib /usr/local/lib/libvorbis.0.dylib $SUPPORT_LIBS_DIR/libsndfile.1.dylib
-#sudo install_name_tool -change /usr/local/opt/libvorbis/lib/libvorbisenc.2.dylib /usr/local/lib/libvorbisenc.2.dylib $SUPPORT_LIBS_DIR/libsndfile.1.dylib
-#sudo install_name_tool -change /usr/local/opt/libogg/lib/libogg.0.dylib /usr/local/lib/libogg.0.dylib $SUPPORT_LIBS_DIR/libvorbis.0.dylib
-#sudo install_name_tool -change /usr/local/opt/libogg/lib/libogg.0.dylib /usr/local/lib/libogg.0.dylib $SUPPORT_LIBS_DIR/libvorbisenc.2.dylib
-#sudo install_name_tool -change /usr/local/Cellar/libvorbis/1.3.5/lib/libvorbis.0.dylib /usr/local/lib/libvorbis.0.dylib $SUPPORT_LIBS_DIR/libvorbisenc.2.dylib
-
 cd $INSTALLER_DIR
 
 echo "setting permissions..."
@@ -98,14 +85,13 @@ echo "assembling DMG..."
 mkdir "$DMG_DIR"
 cd "$DMG_DIR"
 cp ../$PACKAGE_NAME .
-#cp -R ../../../../utils/E-Pyo_OSX_py2/E-Pyo.app .
-#ln -s /Applications .
+
 cd ..
 
 hdiutil create "$DMG_NAME" -srcfolder "$DMG_DIR"
 
 cd ..
-mv installer/$DMG_NAME .
+mv $INSTALLER_DIR/$DMG_NAME .
 
 echo "clean up resources..."
-#sudo rm -rf installer
+sudo rm -rf $INSTALLER_DIR
