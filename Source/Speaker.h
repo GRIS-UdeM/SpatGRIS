@@ -100,6 +100,9 @@ public:
     int getOutputPatch();
     void setOutputPatch(int value);
 
+    bool getDirectOut();
+    void setDirectOut(bool value);
+
     bool isInput() { return false; }
 
     void setDirectOutChannel(int chn) {};
@@ -129,6 +132,7 @@ private :
     
     int idSpeaker = -1;
     int outputPatch = -1;
+    bool directOut = false;
     
     bool selected = false;
 

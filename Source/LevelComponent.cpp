@@ -142,6 +142,20 @@ LevelComponent::~LevelComponent()
     }
 }
 
+void LevelComponent::updateDirectOutMenu(vector<Speaker *> spkList)
+{
+    if (this->mainParent->isInput()) {
+        this->directOut->clear();
+        this->directOut->addItem("nil", 1);
+        int i = 2;
+        for (auto&& it : spkList) {
+            if (it->getDirectOut())
+                this->directOut->addItem(String(it->getOutputPatch()), i++);
+        }
+        this->directOut->setSelectedId(1);
+    }
+}
+
 void LevelComponent::buttonClicked(Button *button)
 {
     if (button == this->muteToggleBut) {
@@ -168,8 +182,12 @@ void LevelComponent::buttonClicked(Button *button)
 
 void LevelComponent::comboBoxChanged(ComboBox *combo)
 {
-    this->mainParent->directOutChannel = combo->getSelectedItemIndex();
-    this->mainParent->sendDirectOutToClient(this->mainParent->getId(), combo->getSelectedItemIndex());
+    int value = 0;
+    if (combo->getSelectedItemIndex() > 0) {
+        value = combo->getItemText(combo->getSelectedItemIndex()).getIntValue();
+    }
+    this->mainParent->directOutChannel = value;
+    this->mainParent->sendDirectOutToClient(this->mainParent->getId(), value);
 }
 
 void LevelComponent::changeListenerCallback (ChangeBroadcaster* source)

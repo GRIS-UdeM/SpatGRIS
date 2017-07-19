@@ -391,11 +391,12 @@ void WindowEditSpeaker::initComp()
     tableListSpeakers.getHeader().addColumn("Radius", 7, 70, 50, 120,TableHeaderComponent::defaultFlags);
     
     tableListSpeakers.getHeader().addColumn("Output", 8, 40, 40, 60,TableHeaderComponent::defaultFlags);
+
+    tableListSpeakers.getHeader().addColumn("Direct", 9, 40, 40, 60,TableHeaderComponent::defaultFlags);
     
-    tableListSpeakers.getHeader().addColumn("delete", 9, 40, 40, 60,TableHeaderComponent::defaultFlags);
+    tableListSpeakers.getHeader().addColumn("delete", 10, 40, 40, 60,TableHeaderComponent::defaultFlags);
     
     tableListSpeakers.getHeader().setSortColumnId (1, true); // sort forwards by the ID column
-    //tableListSpeakers.getHeader().setColumnVisible (7, false);
     
     tableListSpeakers.setMultipleSelectionEnabled (false);
     
@@ -442,19 +443,27 @@ void WindowEditSpeaker::buttonClicked(Button *button)
     else if (button == this->butClearTriplet) {
         this->mainParent->clearListTriplet();
     }
-    
-    if( button->getName() != "" && (button->getName().getIntValue()>=0 && button->getName().getIntValue()<= this->mainParent->getListSpeaker().size())){
-
+    else if (button->getName() != "" && (button->getName().getIntValue() >= 0 &&
+        button->getName().getIntValue() <= this->mainParent->getListSpeaker().size())) {
         this->mainParent->removeSpeaker(button->getName().getIntValue());
         updateWinContent();
     }
-    
+    else {
+        int row = button->getName().getIntValue() - 1000;
+        if (button->getToggleState()) {
+            this->mainParent->getListSpeaker()[row]->setDirectOut(true);
+        }
+        else {
+            this->mainParent->getListSpeaker()[row]->setDirectOut(false);
+        }
+        updateWinContent();
+    }
 }
 
 void WindowEditSpeaker::updateWinContent()
 {
-    numRows = (unsigned int)this->mainParent->getListSpeaker().size();
-    tableListSpeakers.updateContent();
+    this->numRows = (unsigned int)this->mainParent->getListSpeaker().size();
+    this->tableListSpeakers.updateContent();
 }
 
 void WindowEditSpeaker::selectedRow(int value)
@@ -504,14 +513,11 @@ String WindowEditSpeaker::getText (const int columnNumber, const int rowNumber) 
 {
     String text = "";
     //this->mainParent->getLockSpeakers()->lock();
-    if (this->mainParent->getListSpeaker().size()> rowNumber)
-    {
-        
+    if (this->mainParent->getListSpeaker().size() > rowNumber) {
         switch(columnNumber){
             case 1 :
                 text =String(this->mainParent->getListSpeaker()[rowNumber]->getIdSpeaker());
                 break;
-                
             case 2 :
                 text =String(this->mainParent->getListSpeaker()[rowNumber]->getCoordinate().x);
                 break;
@@ -521,7 +527,6 @@ String WindowEditSpeaker::getText (const int columnNumber, const int rowNumber) 
             case 4 :
                 text =String(this->mainParent->getListSpeaker()[rowNumber]->getCoordinate().y);
                 break;
-                
             case 5 :
                 text =String(this->mainParent->getListSpeaker()[rowNumber]->getAziZenRad().x);
                 break;
@@ -531,9 +536,11 @@ String WindowEditSpeaker::getText (const int columnNumber, const int rowNumber) 
             case 7 :
                 text =String(this->mainParent->getListSpeaker()[rowNumber]->getAziZenRad().z);
                 break;
-                
             case 8 :
                 text =String(this->mainParent->getListSpeaker()[rowNumber]->getOutputPatch());
+                break;
+            case 9:
+                text =String(this->mainParent->getListSpeaker()[rowNumber]->getDirectOut());
                 break;
             default:
                 text ="?";
@@ -544,56 +551,51 @@ String WindowEditSpeaker::getText (const int columnNumber, const int rowNumber) 
     return text;
 }
 
-void WindowEditSpeaker::setText (const int columnNumber, const int rowNumber, const String& newText)
+void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, const String& newText)
 {
-    if(this->mainParent->getLockSpeakers()->try_lock()){
-    if (this->mainParent->getListSpeaker().size()> rowNumber)
-    {
-        glm::vec3 newP;
-        switch(columnNumber){
-                
-            case 2 :
-                newP = this->mainParent->getListSpeaker()[rowNumber]->getCoordinate();
-                newP.x = newText.getFloatValue();
-                this->mainParent->getListSpeaker()[rowNumber]->setCoordinate(newP);
-
-                break;
-            case 3 :
-                newP = this->mainParent->getListSpeaker()[rowNumber]->getCoordinate();
-                newP.z = newText.getFloatValue();
-                this->mainParent->getListSpeaker()[rowNumber]->setCoordinate(newP);
-                break;
-            case 4 :
-                newP = this->mainParent->getListSpeaker()[rowNumber]->getCoordinate();
-                newP.y = newText.getFloatValue();
-                this->mainParent->getListSpeaker()[rowNumber]->setCoordinate(newP);
-                break;
-                
-            case 5 :
-                newP = this->mainParent->getListSpeaker()[rowNumber]->getAziZenRad();
-                newP.x = newText.getFloatValue();
-                this->mainParent->getListSpeaker()[rowNumber]->setAziZenRad(newP);
-                break;
-            case 6 :
-                newP = this->mainParent->getListSpeaker()[rowNumber]->getAziZenRad();
-                newP.y = newText.getFloatValue();
-                this->mainParent->getListSpeaker()[rowNumber]->setAziZenRad(newP);
-                break;
-            case 7 :
-                newP = this->mainParent->getListSpeaker()[rowNumber]->getAziZenRad();
-                newP.z = newText.getFloatValue();
-                this->mainParent->getListSpeaker()[rowNumber]->setAziZenRad(newP);
-                break;
-                
-            case 8 :
-                this->mainParent->getListSpeaker()[rowNumber]->setOutputPatch(newText.getIntValue());
-                break;
-                
+    if(this->mainParent->getLockSpeakers()->try_lock()) {
+        if (this->mainParent->getListSpeaker().size() > rowNumber) {
+            glm::vec3 newP;
+            switch(columnNumber) {
+                case 2 :
+                    newP = this->mainParent->getListSpeaker()[rowNumber]->getCoordinate();
+                    newP.x = newText.getFloatValue();
+                    this->mainParent->getListSpeaker()[rowNumber]->setCoordinate(newP);
+                    break;
+                case 3 :
+                    newP = this->mainParent->getListSpeaker()[rowNumber]->getCoordinate();
+                    newP.z = newText.getFloatValue();
+                    this->mainParent->getListSpeaker()[rowNumber]->setCoordinate(newP);
+                    break;
+                case 4 :
+                    newP = this->mainParent->getListSpeaker()[rowNumber]->getCoordinate();
+                    newP.y = newText.getFloatValue();
+                    this->mainParent->getListSpeaker()[rowNumber]->setCoordinate(newP);
+                    break;
+                case 5 :
+                    newP = this->mainParent->getListSpeaker()[rowNumber]->getAziZenRad();
+                    newP.x = newText.getFloatValue();
+                    this->mainParent->getListSpeaker()[rowNumber]->setAziZenRad(newP);
+                    break;
+                case 6 :
+                    newP = this->mainParent->getListSpeaker()[rowNumber]->getAziZenRad();
+                    newP.y = newText.getFloatValue();
+                    this->mainParent->getListSpeaker()[rowNumber]->setAziZenRad(newP);
+                    break;
+                case 7 :
+                    newP = this->mainParent->getListSpeaker()[rowNumber]->getAziZenRad();
+                    newP.z = newText.getFloatValue();
+                    this->mainParent->getListSpeaker()[rowNumber]->setAziZenRad(newP);
+                    break;
+                case 8:
+                    this->mainParent->getListSpeaker()[rowNumber]->setOutputPatch(newText.getIntValue());
+                    break;
+                case 9 :
+                    this->mainParent->getListSpeaker()[rowNumber]->setDirectOut(newText.getIntValue());
+                    break;
+            }
         }
-        //this->mainParent->updateLevelComp();
-    }
-    
-    this->mainParent->getLockSpeakers()->unlock();
+        this->mainParent->getLockSpeakers()->unlock();
     }
 }
 
@@ -627,28 +629,40 @@ void WindowEditSpeaker::paintRowBackground (Graphics& g, int rowNumber, int /*wi
 
 // This is overloaded from TableListBoxModel, and must paint any cells that aren't using custom
 // components.
-void WindowEditSpeaker::paintCell (Graphics& g, int rowNumber, int columnId, int width, int height, bool /*rowIsSelected*/)
+void WindowEditSpeaker::paintCell(Graphics& g, int rowNumber, int columnId, int width, int height, bool /*rowIsSelected*/)
 {
     g.setColour (Colours::black);
     g.setFont (font);
     
-    if(this->mainParent->getLockSpeakers()->try_lock()){
-    if (this->mainParent->getListSpeaker().size()> rowNumber)
-    {
-        String text = getText(columnId, rowNumber);
-        g.drawText (text, 2, 0, width - 4, height, Justification::centredLeft, true);
-        
-    }
-    this->mainParent->getLockSpeakers()->unlock();
+    if (this->mainParent->getLockSpeakers()->try_lock()) {
+        if (this->mainParent->getListSpeaker().size() > rowNumber) {
+            String text = getText(columnId, rowNumber);
+            g.drawText(text, 2, 0, width - 4, height, Justification::centredLeft, true);
+        }
+        this->mainParent->getLockSpeakers()->unlock();
     }
     g.setColour (Colours::black.withAlpha (0.2f));
     g.fillRect (width - 1, 0, 1, height);
 }
 
-Component* WindowEditSpeaker::refreshComponentForCell (int rowNumber, int columnId, bool /*isRowSelected*/,
-                                    Component* existingComponentToUpdate)
+Component* WindowEditSpeaker::refreshComponentForCell(int rowNumber, int columnId, bool /*isRowSelected*/,
+                                                      Component* existingComponentToUpdate)
 {
-    if(columnId==9){
+    if (columnId == 9){
+        ToggleButton* tbDirect = static_cast<ToggleButton*> (existingComponentToUpdate);
+        if (tbDirect == nullptr)
+            tbDirect = new ToggleButton ();
+        tbDirect->setName(String(rowNumber  + 1000));
+        tbDirect->setClickingTogglesState(true);
+        tbDirect->setBounds(4, 404, 88, 22);
+        tbDirect->addListener(this);
+        // TODO: ToggleButton->setToggleState is deprecated, need an alternative.
+        tbDirect->setToggleState(this->mainParent->getListSpeaker()[rowNumber]->getDirectOut(), false);
+        tbDirect->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
+        tbDirect->setLookAndFeel(this->grisFeel);
+        return tbDirect;
+    }
+    if (columnId == 10){
         TextButton* tbRemove = static_cast<TextButton*> (existingComponentToUpdate);
         if (tbRemove == nullptr)
             tbRemove = new TextButton ();
@@ -658,13 +672,10 @@ Component* WindowEditSpeaker::refreshComponentForCell (int rowNumber, int column
         tbRemove->addListener(this);
         tbRemove->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
         tbRemove->setLookAndFeel(this->grisFeel);
-        //tbRemove->getContent()->addAndMakeVisible(this->butAddSpeaker);
         return tbRemove;
     }
     // The other columns are editable text columns, for which we use the custom Label component
     EditableTextCustomComponent* textLabel = static_cast<EditableTextCustomComponent*> (existingComponentToUpdate);
-    
-    // same as above...
     if (textLabel == nullptr)
         textLabel = new EditableTextCustomComponent (*this);
     

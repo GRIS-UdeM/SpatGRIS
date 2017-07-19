@@ -33,6 +33,7 @@ Speaker::Speaker(MainContentComponent *parent, int idS,int outP, glm::vec3 cente
     this->mainParent = parent;
     this->idSpeaker = idS;
     this->outputPatch = outP;
+    this->directOut = false;
     LookAndFeel::setDefaultLookAndFeel(&mGrisFeel);
     
     //Load position
@@ -94,6 +95,14 @@ void Speaker::setOutputPatch(int value)
 {
     this->outputPatch = value;
     this->vuMeter->setOutputLab(String(this->outputPatch));
+}
+
+bool Speaker::getDirectOut() {
+    return this->directOut;
+}
+
+void Speaker::setDirectOut(bool value) {
+    this->directOut = value;
 }
 
 glm::vec3 Speaker::getMin()

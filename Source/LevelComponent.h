@@ -25,6 +25,7 @@
 #include "GrisLookAndFeel.h"
 #include "UiComponent.h"
 #include "ParentLevelComponent.h"
+#include "Speaker.h"
 
 static const float MinLevelComp  = -60.f;
 static const float MaxLevelComp  = 1.f;
@@ -69,6 +70,7 @@ public:
     void comboBoxChanged(ComboBox *combo) override;
     void setBounds(const Rectangle<int> &newBounds);
     void changeListenerCallback (ChangeBroadcaster* source) override;
+    void updateDirectOutMenu(vector<Speaker *> spkList);
     
     ComboBox * directOut;
     

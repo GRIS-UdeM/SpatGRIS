@@ -530,6 +530,7 @@ void MainContentComponent::updateLevelComp() {
     int dimensions = 2;
     int x = 2;
     int indexS = 0;
+    int directOutSpeakers = 0;
 
     if (this->listSpeaker.size() == 0)
         return;
@@ -537,6 +538,10 @@ void MainContentComponent::updateLevelComp() {
     // Test for a 2-D or 3-D configuration
     float zenith = -1.0f;
     for (auto&& it : this->listSpeaker) {
+        if (it->getDirectOut()) {
+            directOutSpeakers++;
+            continue;
+        }
         if (zenith == -1.0f) {
             zenith = it->getAziZenRad().y;
         }
@@ -546,7 +551,7 @@ void MainContentComponent::updateLevelComp() {
         }
     }
 
-    if (this->listSpeaker.size() < dimensions) {
+    if ((this->listSpeaker.size() - directOutSpeakers) < dimensions) {
         ScopedPointer<AlertWindow> alert = new AlertWindow ("Not enough speakers!    ",
                                                             "Do you want to reload previous config?    ", 
                                                             AlertWindow::WarningIcon);
@@ -561,7 +566,6 @@ void MainContentComponent::updateLevelComp() {
 
     this->jackClient->processBlockOn = false;
 
-    //this->jackClient->listSpeakerOut.clear();
     int i = 0;
     for (auto&& it : this->listSpeaker)
     {
@@ -589,13 +593,13 @@ void MainContentComponent::updateLevelComp() {
     
     x = 2;
     indexS = 0;
-    //this->jackClient->listSourceIn.clear();
     i=0;
     this->lockInputs->lock();
     for (auto&& it : this->listSourceInput)
     {
         juce::Rectangle<int> level(x, 4, SizeWidthLevelComp, 200);
         it->getVuMeter()->setBounds(level);
+        it->getVuMeter()->updateDirectOutMenu(this->listSpeaker);
         this->boxInputsUI->getContent()->addAndMakeVisible(it->getVuMeter());
         it->getVuMeter()->repaint();
         
@@ -636,7 +640,17 @@ void MainContentComponent::updateLevelComp() {
 
     this->jackClient->vbapDimensions = dimensions;
 
-    this->jackClient->initSpeakersTripplet(this->listSpeaker, dimensions);
+    i = 0;
+    vector<Speaker *> tempListSpeaker;
+    tempListSpeaker.resize(this->listSpeaker.size());
+    for (auto&& it : this->listSpeaker) {
+        if (! it->getDirectOut()) {
+            tempListSpeaker[i++] = it;
+        }
+    }
+    tempListSpeaker.resize(i);
+
+    this->jackClient->initSpeakersTripplet(tempListSpeaker, dimensions);
     
     this->jackClient->processBlockOn = true;
 }
@@ -700,11 +714,11 @@ void MainContentComponent::openXmlFileSpeaker(String path)
         if(mainXmlElem->hasTagName("SpeakerSetup")){
             
             this->lockSpeakers->lock();
-            for (auto&& it : listSpeaker)
+            for (auto&& it : this->listSpeaker)
             {
                 delete (it);
             }
-            listSpeaker.clear();
+            this->listSpeaker.clear();
             this->lockSpeakers->unlock();
     
             nameConfig =  mainXmlElem->getStringAttribute("Name");
@@ -719,11 +733,15 @@ void MainContentComponent::openXmlFileSpeaker(String path)
                         if (spk->hasTagName ("Speaker"))
                         {
                             
-                            this->listSpeaker.push_back(new Speaker(this, spk->getIntAttribute("LayoutIndex"),
-                                                              spk->getIntAttribute("OutputPatch"),
-                                                              glm::vec3(spk->getDoubleAttribute("PositionX")*10.0f,
-                                                                        spk->getDoubleAttribute("PositionZ")*10.0f,
-                                                                        spk->getDoubleAttribute("PositionY")*10.0f)));
+                            this->listSpeaker.push_back(new Speaker(this,
+                                                                    spk->getIntAttribute("LayoutIndex"),
+                                                                    spk->getIntAttribute("OutputPatch"),
+                                                                    glm::vec3(spk->getDoubleAttribute("PositionX")*10.0f,
+                                                                              spk->getDoubleAttribute("PositionZ")*10.0f,
+                                                                              spk->getDoubleAttribute("PositionY")*10.0f)));
+                            if (spk->hasAttribute("DirectOut")) {
+                                this->listSpeaker.back()->setDirectOut(spk->getIntAttribute("DirectOut"));
+                            }
                             this->jackClient->addOutput();
                         }
                     }
@@ -874,6 +892,7 @@ void MainContentComponent::savePresetSpeakers(String path)
 
         xmlInput->setAttribute("LayoutIndex", it->getIdSpeaker());
         xmlInput->setAttribute("OutputPatch", it->getOutputPatch());
+        xmlInput->setAttribute("DirectOut", it->getDirectOut());
         xmlRing->addChildElement(xmlInput);
     }
     xml->addChildElement(xmlRing);
@@ -1078,7 +1097,9 @@ void MainContentComponent::buttonClicked (Button *button)
         Rectangle<int> result (this->getScreenX()+ this->speakerView->getWidth()+22,this->getScreenY(),600,500);
         if(this->winSpeakConfig == nullptr){
             this->jackClient->processBlockOn = false;
-            this->winSpeakConfig = new WindowEditSpeaker("Speakers config", this->nameConfig, this->mGrisFeel.getWinBackgroundColour(),DocumentWindow::allButtons, this, &this->mGrisFeel);
+            this->winSpeakConfig = new WindowEditSpeaker("Speakers config", this->nameConfig,
+                                                         this->mGrisFeel.getWinBackgroundColour(),
+                                                         DocumentWindow::allButtons, this, &this->mGrisFeel);
             this->winSpeakConfig->setBounds (result);
             this->winSpeakConfig->initComp();
         }
