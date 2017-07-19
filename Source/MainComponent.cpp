@@ -1094,7 +1094,7 @@ void MainContentComponent::buttonClicked (Button *button)
     }
     else if(button == this->butEditableSpeakers){
         
-        Rectangle<int> result (this->getScreenX()+ this->speakerView->getWidth()+22,this->getScreenY(),600,500);
+        Rectangle<int> result (this->getScreenX()+ this->speakerView->getWidth()+22,this->getScreenY(),650,500);
         if(this->winSpeakConfig == nullptr){
             this->jackClient->processBlockOn = false;
             this->winSpeakConfig = new WindowEditSpeaker("Speakers config", this->nameConfig,
@@ -1173,13 +1173,11 @@ void MainContentComponent::buttonClicked (Button *button)
         this->speakerView->setHideSpeaker(butHideSpeaker->getToggleState());
     }
     else if(button == this->butDefaultColorIn){
-        
         float hue = 0.0f;
-        for (auto&& it : listSourceInput)
-        {
+        float inc = 1.0 / (listSourceInput.size() + 1);
+        for (auto&& it : listSourceInput) {
             it->setColor(Colour::fromHSV(hue, 1, 0.75, 1), true);
-            hue+=0.01f;
-            if(hue >= 0.98f){ hue = 0.0f; }
+            hue += inc;
         }
     }
     else if(button == this->butStartRecord){
