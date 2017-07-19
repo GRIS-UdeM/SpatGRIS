@@ -54,7 +54,6 @@ void SpeakerViewComponent::initialise()
 
 void SpeakerViewComponent::shutdown()
 {
-    
 }
 
 void SpeakerViewComponent::render()
@@ -91,20 +90,19 @@ void SpeakerViewComponent::render()
     glLoadIdentity();
     gluLookAt(camX, camY, camZ, 0, 0, 0, 0,1,0);
     this->camPos = glm::vec3(camX,camY,camZ);
-    
 
     this->drawOriginGrid();
-    
-    
-    if(this->mainParent->getLockSpeakers()->try_lock()){
-        if(!this->hideSpeaker){
-            for(int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
+
+    if (this->mainParent->getLockSpeakers()->try_lock()) {
+        if (!this->hideSpeaker) {
+            for (int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
                 if (! this->mainParent->getListSpeaker()[i]->getDirectOut()) {
                     this->mainParent->getListSpeaker()[i]->draw();
-                    if(this->showNumber){
+                    if (this->showNumber) {
                         glm::vec3 posT = this->mainParent->getListSpeaker()[i]->getCenter();
                         posT.y += SizeSpeaker.y+0.4f;
-                        this->drawText(to_string(this->mainParent->getListSpeaker()[i]->getOutputPatch()),posT,0.002f);
+                        this->drawText(to_string(this->mainParent->getListSpeaker()[i]->getOutputPatch()),
+                                       posT, glm::vec3(0, 0, 0), 0.0025f);
                     }
                 }
             }
@@ -113,14 +111,14 @@ void SpeakerViewComponent::render()
         this->mainParent->getLockSpeakers()->unlock();
     }
 
-    
-    if(this->mainParent->getLockInputs()->try_lock()){
-        for(int i = 0; i < this->mainParent->getListSourceInput().size(); ++i) {
-            this->mainParent->getListSourceInput()[i]->draw();
-            if(this->showNumber){
-                glm::vec3 posT = this->mainParent->getListSourceInput()[i]->getCenter();
-                posT.y += SizeSpeaker.y+0.4f;
-                this->drawText(to_string(this->mainParent->getListSourceInput()[i]->getId()),posT,0.002f);
+    if (this->mainParent->getLockInputs()->try_lock()) {
+        for (int i = 0; i < this->mainParent->getListSourceInput().size(); ++i) {
+            Input *input = this->mainParent->getListSourceInput()[i];
+            input->draw();
+            if (this->showNumber) {
+                glm::vec3 posT = input->getCenter();
+                posT.y += SizeSpeaker.y + 0.4f;
+                this->drawText(to_string(input->getId()), posT, input->getNumberColor(), 0.0025f);
             }
         }
         this->mainParent->getLockInputs()->unlock();
@@ -250,11 +248,11 @@ void SpeakerViewComponent::drawBackground()
     glLoadIdentity();
     //draw 2D image
     glBegin(GL_QUADS);
-    glColor3f(0.29,0.29,0.29);//(0.38,0.45,0.53);  //glColor3f(0.48,0.55,0.63);
+    glColor3f(0.6,0.6,0.6); //(0.38,0.45,0.53);  //glColor3f(0.48,0.55,0.63);
     glVertex2f(1.0,1.0);
     glVertex2f(-1.0,1.0);
     
-    glColor3f(0.0,0.0,0.0);
+    glColor3f(0.3,0.3,0.3);
     glVertex2f(0.0, 0.0);
     glVertex2f(1.0, 0.0);
     glEnd();
@@ -359,18 +357,18 @@ void SpeakerViewComponent::drawOriginGrid()
         glEnd();
     }*/
     
-    //drawText("0",glm::vec3(0,0.1,0));
-    drawText("X",   glm::vec3(10, 0.1, 0));
-    drawText("Y",   glm::vec3(0,  0.1, 10));
-    drawText("Z",   glm::vec3(0,  10,  0));
+    drawText("X", glm::vec3(10, 0.1, 0), glm::vec3(1, 1, 1));
+    drawText("Y", glm::vec3(0,  0.1, 10), glm::vec3(1, 1, 1));
+    drawText("Z", glm::vec3(0,  10,  0), glm::vec3(1, 1, 1));
     
     drawTextOnGrid("0",     glm::vec3(9.4,  0, 0.1));
     drawTextOnGrid("90",    glm::vec3(-0.8, 0, 9.0));
     drawTextOnGrid("180",   glm::vec3(-9.8, 0, 0.1));
-    drawTextOnGrid("-90",   glm::vec3(-0.8, 0,-9.8));
+    drawTextOnGrid("270",   glm::vec3(-0.8, 0,-9.8));
 }
 
-void SpeakerViewComponent::drawText(string val, glm::vec3 position,float scale, bool camLock)
+void SpeakerViewComponent::drawText(string val, glm::vec3 position, glm::vec3 color,
+                                    float scale, bool camLock)
 {
     glPushMatrix();
     glTranslatef(position.x, position.y, position.z);
@@ -384,7 +382,7 @@ void SpeakerViewComponent::drawText(string val, glm::vec3 position,float scale, 
     }
 
     glScalef( scale, scale, scale);
-    glColor3f( 1, 1, 1 );
+    glColor3f(color.x, color.y, color.z);
     for (char & c : val)
     {
         glutStrokeCharacter( GLUT_STROKE_MONO_ROMAN, c );

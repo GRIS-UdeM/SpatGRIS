@@ -82,10 +82,17 @@ void Input::setColor(Colour color, bool updateLevel)
         this->vuMeter->setColor(this->colorJ);
     }
 }
+
 glm::vec3 Input::getColor()
 {
     return this->color;
 }
+
+glm::vec3 Input::getNumberColor()
+{
+    return glm::vec3(this->color.x * 0.3, this->color.y * 0.3, this->color.z * 0.3);
+}
+
 Colour Input::getColorJ()
 {
     return this->colorJ;

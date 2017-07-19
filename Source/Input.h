@@ -66,6 +66,7 @@ public :
     
     glm::vec3 getCenter();
     glm::vec3 getColor();
+    glm::vec3 getNumberColor();
     Colour    getColorJ();
     float getAziMuth(){ return this->azimuth; }
     float getZenith(){ return this->zenith; }
