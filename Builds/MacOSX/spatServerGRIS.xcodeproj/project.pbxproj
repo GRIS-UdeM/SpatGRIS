@@ -21,9 +21,6 @@
 		0DEA64C61EFC1A6E006562C4 /* Jackmp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DEA64BE1EFC18E1006562C4 /* Jackmp.framework */; };
 		0DEA64C71EFC1A6E006562C4 /* Jacknet.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DEA64BF1EFC18E1006562C4 /* Jacknet.framework */; };
 		0DEA64C81EFC1A6E006562C4 /* Jackservermp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DEA64C01EFC18E1006562C4 /* Jackservermp.framework */; };
-		0DEA64CB1EFC1AF3006562C4 /* Jackmp.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0DEA64BE1EFC18E1006562C4 /* Jackmp.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		0DEA64CC1EFC1AF3006562C4 /* Jacknet.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0DEA64BF1EFC18E1006562C4 /* Jacknet.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		0DEA64CD1EFC1AF3006562C4 /* Jackservermp.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0DEA64C01EFC18E1006562C4 /* Jackservermp.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		0F18ADC55E833D69E5746DFD /* juce_cryptography.mm in Sources */ = {isa = PBXBuildFile; fileRef = BAEE328DB2C9494397445A21 /* juce_cryptography.mm */; };
 		14E1864F61765881437B2AF8 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A290A4B264C78F0C18D6F058 /* Accelerate.framework */; };
 		153A81E76FB9CF6A837E1C6B /* juce_audio_formats.mm in Sources */ = {isa = PBXBuildFile; fileRef = 745CB09F74C41621B1678240 /* juce_audio_formats.mm */; };
@@ -79,9 +76,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				0DEA64CB1EFC1AF3006562C4 /* Jackmp.framework in CopyFiles */,
-				0DEA64CC1EFC1AF3006562C4 /* Jacknet.framework in CopyFiles */,
-				0DEA64CD1EFC1AF3006562C4 /* Jackservermp.framework in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
