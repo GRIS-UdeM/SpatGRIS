@@ -289,7 +289,7 @@ Component* BoxClient::refreshComponentForCell (int rowNumber, int columnId, bool
 
 //======================================= Window Edit Speaker============================================================
 
-WindowEditSpeaker::WindowEditSpeaker(const String& name, String& nameC,Colour backgroundColour, int buttonsNeeded,
+WindowEditSpeaker::WindowEditSpeaker(const String& name, String& nameC, Colour backgroundColour, int buttonsNeeded,
                                      MainContentComponent * parent, GrisLookAndFeel * feel):
     DocumentWindow (name, backgroundColour, buttonsNeeded), font (14.0f)
 {
@@ -336,8 +336,8 @@ WindowEditSpeaker::WindowEditSpeaker(const String& name, String& nameC,Colour ba
 
     this->texEditNameConf = new TextEditor();
     this->texEditNameConf->setText(nameC);
-    this->texEditNameConf->setBounds(320, 404, 160, 22);
-    this->texEditNameConf->addListener(this);
+    this->texEditNameConf->setBounds(330, 404, 240, 22);
+    this->texEditNameConf->setReadOnly(true);
     this->texEditNameConf->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
     this->texEditNameConf->setLookAndFeel(this->grisFeel);
     this->boxListSpeaker->getContent()->addAndMakeVisible(this->texEditNameConf);
@@ -372,6 +372,10 @@ WindowEditSpeaker::~WindowEditSpeaker()
     this->mainParent->destroyWinSpeakConf();
 }
 
+void WindowEditSpeaker::setNameConfig(String name) {
+    this->texEditNameConf->setText(name);
+}
+
 void WindowEditSpeaker::initComp()
 {
     tableListSpeakers.setModel(this);
@@ -390,7 +394,7 @@ void WindowEditSpeaker::initComp()
     tableListSpeakers.getHeader().addColumn("Zenith", 6, 70, 50, 120,TableHeaderComponent::defaultFlags);
     tableListSpeakers.getHeader().addColumn("Radius", 7, 70, 50, 120,TableHeaderComponent::defaultFlags);
     
-    tableListSpeakers.getHeader().addColumn("Output", 8, 40, 40, 60,TableHeaderComponent::defaultFlags);
+    tableListSpeakers.getHeader().addColumn("Output", 8, 70, 50, 120,TableHeaderComponent::defaultFlags);
 
     tableListSpeakers.getHeader().addColumn("Direct", 9, 40, 40, 60,TableHeaderComponent::defaultFlags);
     
@@ -412,6 +416,12 @@ void WindowEditSpeaker::initComp()
     this->boxListSpeaker->resized();
     this->resized();
 }
+
+//void WindowEditSpeaker::sortOrderChanged(int newSortColumnId, bool isForwards) {
+//    tableListSpeakers.getHeader().setSortColumnId(newSortColumnId, isForwards);
+//   tableListSpeakers.getHeader().reSortTable();
+    //tableListSpeakers.updateContent();
+//}
 
 void WindowEditSpeaker::buttonClicked(Button *button)
 {
@@ -478,18 +488,6 @@ void WindowEditSpeaker::closeButtonPressed()
     delete this;
 }
 
-void WindowEditSpeaker::textEditorFocusLost (TextEditor &textEditor)
-{
-    textEditorReturnKeyPressed(textEditor);
-}
-
-void WindowEditSpeaker::textEditorReturnKeyPressed (TextEditor &textEditor)
-{
-    if(&textEditor == this->texEditNameConf){
-        this->mainParent->setNameConfig(this->texEditNameConf->getTextValue().toString());
-    }
-}
-
 void WindowEditSpeaker::resized()
 {
     this->juce::DocumentWindow::resized();
@@ -504,7 +502,7 @@ void WindowEditSpeaker::resized()
     this->butClearTriplet->setBounds(5, getHeight()-60, 100, 22);
     this->butcompSpeakers->setBounds(110, getHeight()-110, 100, 22);
     this->butsaveSpeakers->setBounds(215, getHeight()-110, 100, 22);
-    this->texEditNameConf->setBounds(320, getHeight()-110, 160, 22);
+    this->texEditNameConf->setBounds(330, getHeight()-110, 240, 22);
     
     //this->boxListSpeaker->correctSize((this->listSourceInput.size()*(SizeWidthLevelComp))+4, 210);
 }

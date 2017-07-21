@@ -103,7 +103,7 @@ public:
     void clearListTriplet(){ this->listTriplet.clear(); }
     void selectSpeaker(int idS);
     void selectTripletSpeaker(int idS);
-    void setNameConfig(String name);
+    void setNameConfig();
     void setShowShepre(bool value){ this->speakerView->setShowSphere(value); }
     void addSpeaker();
     void savePresetSpeakers(String path);

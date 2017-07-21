@@ -656,10 +656,12 @@ void MainContentComponent::updateLevelComp() {
 }
 
 
-void MainContentComponent::setNameConfig(String name)
+void MainContentComponent::setNameConfig()
 {
-    this->nameConfig = name;
+    this->nameConfig = this->pathCurrentFileSpeaker.fromLastOccurrenceOf("/", false, false);
     this->speakerView->setNameConfig(this->nameConfig);
+    if (this->winSpeakConfig != nullptr)
+        this->winSpeakConfig->setNameConfig(this->nameConfig);
 }
 
 void MainContentComponent::muteInput(int id, bool mute)
@@ -721,8 +723,8 @@ void MainContentComponent::openXmlFileSpeaker(String path)
             this->listSpeaker.clear();
             this->lockSpeakers->unlock();
     
-            nameConfig =  mainXmlElem->getStringAttribute("Name");
-            this->speakerView->setNameConfig(nameConfig);
+            this->setNameConfig();
+
             this->jackClient->clearOutput();
             forEachXmlChildElement (*mainXmlElem, ring)
             {
@@ -908,6 +910,8 @@ void MainContentComponent::savePresetSpeakers(String path)
     
     xml->writeToFile(xmlFile,"");
     xmlFile.create();
+
+    this->setNameConfig();
 }
 
 
@@ -1109,7 +1113,7 @@ void MainContentComponent::buttonClicked (Button *button)
         this->winSpeakConfig->setVisible (true);
         this->winSpeakConfig->setAlwaysOnTop(true);
         this->winSpeakConfig->repaint();
-        
+
     }else if(button == this->butJackParam){
         
         if(this->winJackSetting == nullptr){
