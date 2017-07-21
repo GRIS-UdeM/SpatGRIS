@@ -586,7 +586,7 @@ void MainContentComponent::updateLevelComp() {
         so.azimuth = it->getAziZenRad().x;
         so.zenith  = it->getAziZenRad().y;
         so.radius  = it->getAziZenRad().z;
-        
+
         this->jackClient->listSpeakerOut[it->getOutputPatch()-1] = so;
         i++;
     }
@@ -1094,7 +1094,7 @@ void MainContentComponent::buttonClicked (Button *button)
     }
     else if(button == this->butEditableSpeakers){
         
-        Rectangle<int> result (this->getScreenX()+ this->speakerView->getWidth()+22,this->getScreenY(),650,500);
+        Rectangle<int> result (this->getScreenX() + this->speakerView->getWidth() + 20, this->getScreenY() + 20, 650, 500);
         if(this->winSpeakConfig == nullptr){
             this->jackClient->processBlockOn = false;
             this->winSpeakConfig = new WindowEditSpeaker("Speakers config", this->nameConfig,
@@ -1107,6 +1107,7 @@ void MainContentComponent::buttonClicked (Button *button)
         this->winSpeakConfig->setResizable (true, true);
         this->winSpeakConfig->setUsingNativeTitleBar (true);
         this->winSpeakConfig->setVisible (true);
+        this->winSpeakConfig->setAlwaysOnTop(true);
         this->winSpeakConfig->repaint();
         
     }else if(button == this->butJackParam){
