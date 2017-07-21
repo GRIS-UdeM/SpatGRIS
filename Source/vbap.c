@@ -1081,7 +1081,8 @@ VBAP_DATA * init_vbap_data(SPEAKERS_SETUP *setup, int **triplets) {
 }
 
 VBAP_DATA * init_vbap_from_speakers(ls lss[MAX_LS_AMOUNT], int count,
-                                    int dim, int **triplets) {
+                                    int dim, int outputPatches[MAX_LS_AMOUNT],
+                                    int maxOutputPatch, int **triplets) {
     int i, j, k, offset = 0;
     ls_triplet_chain *ls_triplets = NULL;
     ls_triplet_chain *ls_ptr;
@@ -1099,7 +1100,7 @@ VBAP_DATA * init_vbap_from_speakers(ls lss[MAX_LS_AMOUNT], int count,
     }
 
     data->dimension = dim;
-    data->ls_am = count;
+    data->ls_am = maxOutputPatch;
     for (i=0; i<MAX_LS_AMOUNT; i++) {
         data->gains[i] = data->y[i] = 0.0;
     }
@@ -1117,7 +1118,8 @@ VBAP_DATA * init_vbap_from_speakers(ls lss[MAX_LS_AMOUNT], int count,
         ls_ptr = ls_triplets;
         while (ls_ptr != NULL) {
             for (j=0; j<data->dimension; j++) {
-                data->ls_sets[i].ls_nos[j] = ls_ptr->ls_nos[j] + offset;
+                //data->ls_sets[i].ls_nos[j] = ls_ptr->ls_nos[j] + offset;
+                data->ls_sets[i].ls_nos[j] = outputPatches[ls_ptr->ls_nos[j] + offset - 1];
             }
             for (j=0; j<(data->dimension*data->dimension); j++) {
                 data->ls_sets[i].inv_mx[j] = ls_ptr->inv_mx[j];

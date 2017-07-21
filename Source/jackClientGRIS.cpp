@@ -166,7 +166,7 @@ static void processFreeVolume(jackClientGris & jackCli, jack_default_audio_sampl
 static void processVBAP(jackClientGris & jackCli, jack_default_audio_sample_t ** ins, jack_default_audio_sample_t ** outs,
                         const jack_nframes_t &nframes, const unsigned int &sizeInputs, const unsigned int &sizeOutputs)
 {
-    int f, i, o;
+    int f, i, o, output;
     
     float gains[sizeInputs][sizeOutputs];
     float interpG = jackCli.interMaster * 0.29 + 0.7;
@@ -177,12 +177,16 @@ static void processVBAP(jackClientGris & jackCli, jack_default_audio_sample_t **
         }
     }
 
-    
     for (o = 0; o < sizeOutputs; ++o) {
         memset (outs[o], 0, sizeof (jack_default_audio_sample_t) * nframes);
+        //output = jackCli.listSpeakerOut[o].outputPatch - 1;
+        //printf("o = %i, outputPatch = %i\n", o, output);
+        if (output == -1)
+            continue;
 
         for (i = 0; i < sizeInputs; ++i) {
             if (jackCli.listSourceIn[i].directOut == 0) {
+                output = jackCli.listSpeakerOut[o].outputPatch - 1;
                 jackCli.listSourceIn[i].paramVBap->y[o] = gains[i][o] + (jackCli.listSourceIn[i].paramVBap->y[o] - gains[i][o]) * interpG;
 
                 if (jackCli.listSourceIn[i].paramVBap->y[o] < 0.0000000000001f) {
@@ -193,7 +197,7 @@ static void processVBAP(jackClientGris & jackCli, jack_default_audio_sample_t **
                     }
                 }
             } else {
-                int output = jackCli.listSourceIn[i].directOut - 1;
+                output = jackCli.listSourceIn[i].directOut - 1;
                 for (f = 0; f < nframes; ++f) {
                     outs[output][f] += ins[i][f];
                 }
@@ -447,6 +451,7 @@ jackClientGris::jackClientGris(unsigned int bufferS) {
     this->inputsPort = vector<jack_port_t *>();
     this->outputsPort = vector<jack_port_t *>();
     this->interMaster = 0.8f;
+    this->maxOutputPatch = 0;
     
     
     //--------------------------------------------------
@@ -613,8 +618,10 @@ void jackClientGris::clearOutput()
     }
 }
 
-bool jackClientGris::addOutput()
+bool jackClientGris::addOutput(int outputPatch)
 {
+    if (outputPatch > this->maxOutputPatch)
+        this->maxOutputPatch = outputPatch;
     String nameOut = "output";
     nameOut+= String(this->outputsPort.size() +1);
     
@@ -632,6 +639,15 @@ void jackClientGris::removeOutput(int number)
 
 void jackClientGris::connectedGristoSystem()
 {
+    String nameOut;
+    this->clearOutput();
+    for (int i = 0; i < this->maxOutputPatch; i++) {
+        nameOut = "output";
+        nameOut += String(this->outputsPort.size() + 1);
+        jack_port_t* newPort = jack_port_register(this->client,  nameOut.toUTF8(), JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput,  0);
+        this->outputsPort.push_back(newPort);
+    }
+
     const char ** portsOut = jack_get_ports (this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput);
     const char ** portsIn = jack_get_ports (this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput);
     
@@ -669,6 +685,7 @@ void jackClientGris::connectedGristoSystem()
         }
         i+=1;
     }
+    printf("%i, %i\n", i, j);
     jack_free(portsIn);
     jack_free(portsOut);
 
@@ -684,7 +701,8 @@ bool jackClientGris::initSpeakersTripplet(vector<Speaker *>  listSpk,
     this->processBlockOn = false;
 
     ls lss[MAX_LS_AMOUNT];
-    
+    int outputPatches[MAX_LS_AMOUNT];
+
     for(int i = 0; i < listSpk.size() ; i++) {
         lss[i].coords.x = listSpeakerOut[i].x;
         lss[i].coords.y = listSpeakerOut[i].y;
@@ -692,13 +710,17 @@ bool jackClientGris::initSpeakersTripplet(vector<Speaker *>  listSpk,
         lss[i].angles.azi = listSpeakerOut[i].azimuth;
         lss[i].angles.ele = listSpeakerOut[i].zenith;
         lss[i].angles.length = listSpeakerOut[i].radius;
+        outputPatches[i] = listSpeakerOut[i].outputPatch;
     }
     
     listSourceIn[0].paramVBap = init_vbap_from_speakers(lss, listSpk.size(),
-                                                        dimensions, NULL);
+                                                        dimensions, outputPatches,
+                                                        this->maxOutputPatch, NULL);
     for(int i = 1; i < MaxInputs ; i++){
         listSourceIn[i].paramVBap = copy_vbap_data(listSourceIn[0].paramVBap);
     }
+
+    this->connectedGristoSystem();
 
     this->processBlockOn = true;
     return true;

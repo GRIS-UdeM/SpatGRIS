@@ -93,6 +93,9 @@ struct SpeakerOut {
     
     bool  isMuted = false;
     bool  isSolo = false;
+
+    int outputPatch = 0;
+    
     float gain;//Not Implemented
     
 };
@@ -168,7 +171,7 @@ public:
     unsigned int bufferSize;
     unsigned int numberInputs;
     unsigned int numberOutputs;
-
+    unsigned int maxOutputPatch;
     
     //---------------------------------
     jackClientGris(unsigned int bufferS = 1024);
@@ -182,7 +185,7 @@ public:
     
     void addRemoveInput(int number);
     void clearOutput();
-    bool addOutput();
+    bool addOutput(int outputPatch);
     void removeOutput(int number);
 
     void disconnectAllClient();

@@ -480,7 +480,7 @@ void MainContentComponent::addSpeaker()
     unsigned int idNewSpeaker = (unsigned int)listSpeaker.size()+1;
     this->listSpeaker.push_back(new Speaker(this, idNewSpeaker, idNewSpeaker, glm::vec3(0.0f, 0.0f, 10.0f)));
     this->lockSpeakers->unlock();
-    this->jackClient->addOutput();
+    this->jackClient->addOutput(idNewSpeaker);
 }
 
 void MainContentComponent::removeSpeaker(int idSpeaker)
@@ -565,6 +565,7 @@ void MainContentComponent::updateLevelComp() {
     }
 
     this->jackClient->processBlockOn = false;
+    this->jackClient->maxOutputPatch = 0;
 
     int i = 0;
     for (auto&& it : this->listSpeaker)
@@ -587,8 +588,14 @@ void MainContentComponent::updateLevelComp() {
         so.zenith  = it->getAziZenRad().y;
         so.radius  = it->getAziZenRad().z;
 
-        this->jackClient->listSpeakerOut[it->getOutputPatch()-1] = so;
+        so.outputPatch = it->getOutputPatch();
+        
+        //this->jackClient->listSpeakerOut[it->getOutputPatch()-1] = so;
+        this->jackClient->listSpeakerOut[i] = so;
         i++;
+
+        if (it->getOutputPatch() > this->jackClient->maxOutputPatch)
+            this->jackClient->maxOutputPatch = it->getOutputPatch();
     }
     
     x = 2;
@@ -644,14 +651,14 @@ void MainContentComponent::updateLevelComp() {
     vector<Speaker *> tempListSpeaker;
     tempListSpeaker.resize(this->listSpeaker.size());
     for (auto&& it : this->listSpeaker) {
-        if (! it->getDirectOut()) {
+        if (! it->getDirectOut()) { // FIXME: Direct out speakers must be the last ones... for now!
             tempListSpeaker[i++] = it;
         }
     }
     tempListSpeaker.resize(i);
 
     this->jackClient->initSpeakersTripplet(tempListSpeaker, dimensions);
-    
+
     this->jackClient->processBlockOn = true;
 }
 
@@ -726,6 +733,7 @@ void MainContentComponent::openXmlFileSpeaker(String path)
             this->setNameConfig();
 
             this->jackClient->clearOutput();
+            this->jackClient->maxOutputPatch = 0;
             forEachXmlChildElement (*mainXmlElem, ring)
             {
                 if (ring->hasTagName ("Ring"))
@@ -744,7 +752,7 @@ void MainContentComponent::openXmlFileSpeaker(String path)
                             if (spk->hasAttribute("DirectOut")) {
                                 this->listSpeaker.back()->setDirectOut(spk->getIntAttribute("DirectOut"));
                             }
-                            this->jackClient->addOutput();
+                            this->jackClient->addOutput(spk->getIntAttribute("OutputPatch"));
                         }
                     }
                     
