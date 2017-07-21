@@ -17,8 +17,6 @@
  along with spatServerGRIS.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #include "Input.h"
 #include "MainComponent.h"
 #include "LevelComponent.h"
@@ -62,6 +60,15 @@ float Input::getLevel()
     return this->mainParent->getLevelsIn(this->idChannel-1);
 }
 
+glm::vec3 Input::polToCar(float azimuth, float zenith)
+{
+    glm::vec3 cart;
+    cart.x = (10.0f * sinf(zenith) * cosf(azimuth));
+    cart.z = (10.0f * sinf(zenith) * sinf(azimuth));
+    cart.y = ((10.0f * cosf(zenith)) + (sizeT/2.0f)) * 0.75; //heS;
+    return cart;
+}
+
 void Input::setMuted(bool mute)
 {
     this->mainParent->muteInput(this->idChannel, mute);
@@ -103,96 +110,58 @@ void Input::draw()
     // Draw 3D sphere.
     glPushMatrix();
     glTranslatef(this->center.x, this->center.y, this->center.z);
-    //glRotatef(90, 1, 0, 0);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);  //GL_LINE
     glLineWidth(2);
     glColor3f(this->color.x, this->color.y, this->color.z);
-    glutSolidSphere(sizeT, 8, 8);
+    glutSolidSphere(this->sizeT, 8, 8);
     glTranslatef(-this->center.x, -this->center.y, -this->center.z);
-    
-    drawSpan();
-    
+
+    if (this->azimSpan != 0.0f || this->zeniSpan != 0.0f) {
+        drawSpan();
+    }
+
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glPopMatrix();
 }
 
-void Input::drawSpan()
-{
-    if(this->azimSpan == 0.0f && this->zeniSpan == 0.0f){
-        return;
+void Input::drawSpan() {
+	int num = 8;
+    float newazi, newele;
+    glm::vec3 cart;
+
+    for (int i=0; i<num; i++) {
+        float azidev = i * this->azimSpan * 0.5f * 0.42f;
+        for (int j=0; j<2; j++) {
+            if (j)
+                newazi = this->azimuth + azidev;
+            else
+                newazi = this->azimuth - azidev;
+            if (newazi > M_PI) { newazi -= (M_PI * 2.0f); }
+            else if (newazi < -M_PI) { newazi += (M_PI * 2.0f); }
+
+            cart = this->polToCar(newazi, this->zenith);
+            glTranslatef(cart.x, cart.y, cart.z);
+            glutSolidSphere(this->sizeT / 4, 8, 8);
+            glTranslatef(-cart.x, -cart.y, -cart.z);
+
+            for (int k=0; k<3; k++) {
+                float eledev = (k+1) * this->zeniSpan * 2.0f * 0.25f;
+                for (int l=0; l<2; l++) {
+                    if (l)
+                        newele = this->zenith + eledev;
+                    else
+                        newele = this->zenith - eledev;
+                    if (newele > (M_PI * 0.5f)) { newele = (M_PI * 0.5f); }
+                    else if (newele < 0) { newele = 0; }
+
+                    cart = this->polToCar(newazi, newele);
+                    glTranslatef(cart.x, cart.y, cart.z);
+                    glutSolidSphere(this->sizeT / 4, 8, 8);
+                    glTranslatef(-cart.x, -cart.y, -cart.z);
+                }
+            }
+        }
     }
-    
-    float radCir = sqrt((this->center.x*this->center.x)+(this->center.z*this->center.z));
-    float angRad = -atan2(( - this->center.z * 10.0f), (this->center.x * 10.0f ));
-    float angDeg = (angRad* 180.0f)/M_PI ;
-
-    
-    glTranslatef(0, this->center.y, 0);
-    glRotatef((360.0f-angDeg) + (this->azimSpan* 90), 0, 1, 0);
-    
-    glPointSize(8);
-    glBegin(GL_POINTS);
-    for(int i = 0; i <= this->azimSpan * 90 ; i+=6){
-        double angle = (M2_PI * i / 180);
-        glVertex3f(radCir * cos(angle), 0.0f, radCir * sin(angle));
-    }
-    glEnd();
-    
-    glRotatef(-((360.0f-angDeg) + (this->azimSpan* 90)), 0, 1, 0);
-    glTranslatef(0, -this->center.y, 0);
-    
-
-    /*int y = 0;
-    for(int i = 1; i <= this->zeniSpan*20; ++i){
-        
-        float radC = sqrt((this->center.x*this->center.x)+(this->center.z*this->center.z)+(-y*y));//radCir -  (sinf((M_PI * (i*9.0f) / 180)))*10.0f ;
-        float yH = (this->center.y  + y); //(sinf((M_PI * (i*9.0f) / 180)))*10.0f);
-
-        if(yH > 11.0f || radC < 0.0f){
-            //break;
-            //yH = (this->center.y +  (sinf((M_PI * (-i*9.0f) / 180)))*10.0f);
-        }
-        glTranslatef(0, yH, 0);
-        glRotatef((360.0f-angDeg) + (this->azimSpan* 90), 0, 1, 0);
-
-        glPointSize(8);
-        glBegin(GL_POINTS);
-        for(int i = 0; i <= this->azimSpan * 90 ; i+=6){
-            double angle = (M2_PI * i / 180);
-            glVertex3f(radC * cos(angle), 0.0f, radC * sin(angle));
-        }
-        glEnd();
-
-        glRotatef(-((360.0f-angDeg) + (this->azimSpan* 90)), 0, 1, 0);
-        glTranslatef(0, -yH, 0);
-        y+=1;
-        
-    }
-    
-    for(int i = 1; i  <= (this->zeniSpan*20) ; i++){
-        
-        float radC = sqrt((this->center.x*this->center.x)+(this->center.z*this->center.z)+(i*i)); //radCir + (i);
-        float yH = (this->center.y - i);//  (sinf((M_PI * ((i)*9.0f) / 180)))*10.0f);
-        
-        if(yH < 0.0f || radC > 11.0f){
-            break;
-            //yH = (this->center.y +  (sinf((M_PI * (-i*9.0f) / 180)))*10.0f);
-        }
-        glTranslatef(0, yH, 0);
-        glRotatef((360.0f-angDeg) + (this->azimSpan* 90), 0, 1, 0);
-        
-        glPointSize(8);
-        glBegin(GL_POINTS);
-        for(int i = 0; i <= this->azimSpan * 90 ; i+=6){
-            double angle = (M2_PI * i / 180);
-            glVertex3f(radC * cos(angle), 0.0f, radC * sin(angle));
-        }
-        glEnd();
-        
-        glRotatef(-((360.0f-angDeg) + (this->azimSpan* 90)), 0, 1, 0);
-        glTranslatef(0, -yH, 0);
-        
-    }*/
 }
 
 void Input::updateValues(float az, float ze, float azS, float zeS, float heS, float g)
@@ -207,14 +176,13 @@ void Input::updateValues(float az, float ze, float azS, float zeS, float heS, fl
     
     this->center.x = (10.0f * sinf(this->zenith)*cosf(this->azimuth));
     this->center.z = (10.0f * sinf(this->zenith)*sinf(this->azimuth));
-    this->center.y = ((10.0f * cosf(this->zenith)) + (sizeT/2.0f )) * heS;
+    this->center.y = ((10.0f * cosf(this->zenith)) + (sizeT/2.0f )) * 0.75; //heS;
     
     this->radius = sqrt((this->center.x*this->center.x)+(this->center.y*this->center.y)+(this->center.z*this->center.z));
 
     //re - compute
     //this->azimuth = ( (atan2(this->center.x, this->center.z) * 180.0f) / M_PI) +90.0f;
     //this->zenith = ( atan2(this->center.y, sqrt(this->center.x*this->center.x + this->center.z*this->center.z)) * 180.0f) / M_PI;
-    
 }
 
 void Input::updateValuesOld(float az, float ze, float azS, float zeS, float g)
@@ -229,7 +197,7 @@ void Input::updateValuesOld(float az, float ze, float azS, float zeS, float g)
     
     this->center.x = (10.0f * sinf(this->zenith)*cosf(this->azimuth));
     this->center.z = (10.0f * sinf(this->zenith)*sinf(this->azimuth));
-    this->center.y = (10.0f * cosf(this->zenith)) + (sizeT/2.0f );
+    this->center.y = (10.0f * cosf(this->zenith)) + (this->sizeT/2.0f);
     
     this->radius = sqrt((this->center.x*this->center.x)+(this->center.y*this->center.y)+(this->center.z*this->center.z));
 }
