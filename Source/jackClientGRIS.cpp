@@ -179,14 +179,9 @@ static void processVBAP(jackClientGris & jackCli, jack_default_audio_sample_t **
 
     for (o = 0; o < sizeOutputs; ++o) {
         memset (outs[o], 0, sizeof (jack_default_audio_sample_t) * nframes);
-        //output = jackCli.listSpeakerOut[o].outputPatch - 1;
-        //printf("o = %i, outputPatch = %i\n", o, output);
-        if (output == -1)
-            continue;
 
         for (i = 0; i < sizeInputs; ++i) {
             if (jackCli.listSourceIn[i].directOut == 0) {
-                output = jackCli.listSpeakerOut[o].outputPatch - 1;
                 jackCli.listSourceIn[i].paramVBap->y[o] = gains[i][o] + (jackCli.listSourceIn[i].paramVBap->y[o] - gains[i][o]) * interpG;
 
                 if (jackCli.listSourceIn[i].paramVBap->y[o] < 0.0000000000001f) {
@@ -624,7 +619,7 @@ bool jackClientGris::addOutput(int outputPatch)
         this->maxOutputPatch = outputPatch;
     String nameOut = "output";
     nameOut+= String(this->outputsPort.size() +1);
-    
+
     jack_port_t* newPort = jack_port_register(this->client,  nameOut.toUTF8(), JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput,  0);
     this->outputsPort.push_back(newPort);
     connectedGristoSystem();
