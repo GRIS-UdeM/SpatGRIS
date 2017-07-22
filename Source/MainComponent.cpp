@@ -567,6 +567,24 @@ void MainContentComponent::updateLevelComp() {
     this->jackClient->processBlockOn = false;
     this->jackClient->maxOutputPatch = 0;
 
+    // Save mute/solo states (only for inputs)
+    bool inputsIsMuted[MaxInputs];
+    bool inputsIsSolo[MaxInputs];
+    bool soloIn = this->jackClient->soloIn;
+    for (int i = 0; i < MaxInputs; i++) {
+        inputsIsMuted[i] = (&this->jackClient->listSourceIn[i])->isMuted;
+        inputsIsSolo[i] = (&this->jackClient->listSourceIn[i])->isSolo;
+    }
+    /*
+    bool outputsIsMuted[MaxInputs];
+    bool outputsIsSolo[MaxInputs];
+    bool soloOut = this->jackClient->soloOut;
+    for (int i = 0; i < MaxOutputs; i++) {
+        outputsIsMuted[i] = (&this->jackClient->listSpeakerOut[i])->isMuted;
+        outputsIsSolo[i] = (&this->jackClient->listSpeakerOut[i])->isSolo;
+    }
+    */
+
     int i = 0;
     for (auto&& it : this->listSpeaker)
     {
@@ -651,13 +669,27 @@ void MainContentComponent::updateLevelComp() {
     vector<Speaker *> tempListSpeaker;
     tempListSpeaker.resize(this->listSpeaker.size());
     for (auto&& it : this->listSpeaker) {
-        if (! it->getDirectOut()) { // FIXME: Direct out speakers must be the last ones... for now!
-            tempListSpeaker[i++] = it;
+        if (! it->getDirectOut()) {     // FIXME: Direct out speakers must be
+            tempListSpeaker[i++] = it;  // the last ones in the list... for now!
         }
     }
     tempListSpeaker.resize(i);
 
     this->jackClient->initSpeakersTripplet(tempListSpeaker, dimensions);
+
+    // Restore mute/solo states (only for inputs)
+    this->jackClient->soloIn = soloIn;
+    for (int i = 0; i < MaxInputs; i++) {
+        (&this->jackClient->listSourceIn[i])->isMuted = inputsIsMuted[i];
+        (&this->jackClient->listSourceIn[i])->isSolo = inputsIsSolo[i];
+    }
+    /*
+    this->jackClient->soloOut = soloOut;
+    for (int i = 0; i < MaxOutputs; i++) {
+        (&this->jackClient->listSpeakerOut[i])->isMuted = outputsIsMuted[i];
+        (&this->jackClient->listSpeakerOut[i])->isSolo = outputsIsSolo[i];
+    }
+    */
 
     this->jackClient->processBlockOn = true;
 }
