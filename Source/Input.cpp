@@ -97,7 +97,7 @@ glm::vec3 Input::getColor()
 
 glm::vec3 Input::getNumberColor()
 {
-    return glm::vec3(this->color.x * 0.3, this->color.y * 0.3, this->color.z * 0.3);
+    return glm::vec3(this->color.x * 0.5, this->color.y * 0.5, this->color.z * 0.5);
 }
 
 Colour Input::getColorJ()

@@ -102,7 +102,7 @@ void SpeakerViewComponent::render()
                         glm::vec3 posT = this->mainParent->getListSpeaker()[i]->getCenter();
                         posT.y += SizeSpeaker.y+0.4f;
                         this->drawText(to_string(this->mainParent->getListSpeaker()[i]->getOutputPatch()),
-                                       posT, glm::vec3(0, 0, 0), 0.0025f);
+                                       posT, glm::vec3(0, 0, 0), 0.003f);
                     }
                 }
             }
@@ -118,7 +118,7 @@ void SpeakerViewComponent::render()
             if (this->showNumber) {
                 glm::vec3 posT = input->getCenter();
                 posT.y += SizeSpeaker.y + 0.4f;
-                this->drawText(to_string(input->getId()), posT, input->getNumberColor(), 0.0025f);
+                this->drawText(to_string(input->getId()), posT, input->getNumberColor(), 0.003f);
             }
         }
         this->mainParent->getLockInputs()->unlock();
