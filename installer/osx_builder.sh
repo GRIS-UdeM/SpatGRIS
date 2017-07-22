@@ -4,9 +4,9 @@
 # compile SpatServerGris in Release mode
 # and run this shell script from the installer folder.
 
-export PACKAGE_NAME=SpatServerGris_v0.0.2.pkg
-export DMG_DIR="SpatServerGris v0.0.2"
-export DMG_NAME="SpatServerGris_v0.0.2.dmg"
+export PACKAGE_NAME=SpatServerGris_v0.0.3.pkg
+export DMG_DIR="SpatServerGris v0.0.3"
+export DMG_NAME="SpatServerGris_v0.0.3.dmg"
 
 export INSTALLER_DIR=`pwd`/installerdir
 export APPLICATIONS_DIR=$INSTALLER_DIR/Application/Package_Contents/Applications
