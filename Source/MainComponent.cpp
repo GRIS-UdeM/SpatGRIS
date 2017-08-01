@@ -149,14 +149,14 @@ MainContentComponent::MainContentComponent()
     this->verticalDividerBar = new StretchableLayoutResizerBar (&verticalLayout, 1, true);
     this->addAndMakeVisible (verticalDividerBar);
 
-    this->setSize (1360, 670);
+    this->setSize (1360, 680);
 
     // Jack Init and Param -------------------------------------------------------------------------------
     unsigned int BufferValue = this->applicationProperties.getUserSettings()->getValue("BufferValue").getIntValue();
     unsigned int RateValue = this->applicationProperties.getUserSettings()->getValue("RateValue").getIntValue();
 
     /* FIXME
-     * this->applicationProperties.getUserSettings() does not semm to hold anything...
+     * this->applicationProperties.getUserSettings() does not semm to hold anything at this moment...
      */
     //cout << "Buffer Rate: " << BufferValue << ", Sampling Rate: " << RateValue << endl;
     
@@ -1300,13 +1300,13 @@ void MainContentComponent::resized()
     this->verticalLayout.layOutComponents (vcomps, 3, r.getX(), r.getY(), r.getWidth(), r.getHeight(), false, true);
     
 
-    this->boxInputsUI->setBounds(this->speakerView->getWidth()+6, 2, getWidth()-(this->speakerView->getWidth()+10),260);
+    this->boxInputsUI->setBounds(this->speakerView->getWidth()+6, 2, getWidth()-(this->speakerView->getWidth()+10), 245);
     this->boxInputsUI->correctSize(((unsigned int )this->listSourceInput.size()*(SizeWidthLevelComp))+4, 210);
 
-    this->boxOutputsUI->setBounds(this->speakerView->getWidth()+6, 244, getWidth()-(this->speakerView->getWidth()+10),240);
+    this->boxOutputsUI->setBounds(this->speakerView->getWidth()+6, 247, getWidth()-(this->speakerView->getWidth()+10), 240);
     this->boxOutputsUI->correctSize(((unsigned int )this->listSpeaker.size()*(SizeWidthLevelComp))+4, 210);
     
-    this->boxControlUI->setBounds(this->speakerView->getWidth()+6, 488, getWidth()-(this->speakerView->getWidth()+10), getHeight()-490);
+    this->boxControlUI->setBounds(this->speakerView->getWidth()+6, 487, getWidth()-(this->speakerView->getWidth()+10), getHeight()-487);
     this->boxControlUI->correctSize(750, 180);
 
 }
