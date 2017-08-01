@@ -1308,13 +1308,13 @@ void MainContentComponent::resized()
     this->verticalLayout.layOutComponents (vcomps, 3, r.getX(), r.getY(), r.getWidth(), r.getHeight(), false, true);
     
 
-    this->boxInputsUI->setBounds(this->speakerView->getWidth()+6, 2, getWidth()-(this->speakerView->getWidth()+10), 245);
+    this->boxInputsUI->setBounds(this->speakerView->getWidth()+6, 2, getWidth()-(this->speakerView->getWidth()+10), 241);
     this->boxInputsUI->correctSize(((unsigned int )this->listSourceInput.size()*(SizeWidthLevelComp))+4, 210);
 
-    this->boxOutputsUI->setBounds(this->speakerView->getWidth()+6, 247, getWidth()-(this->speakerView->getWidth()+10), 240);
+    this->boxOutputsUI->setBounds(this->speakerView->getWidth()+6, 243, getWidth()-(this->speakerView->getWidth()+10), 240);
     this->boxOutputsUI->correctSize(((unsigned int )this->listSpeaker.size()*(SizeWidthLevelComp))+4, 210);
     
-    this->boxControlUI->setBounds(this->speakerView->getWidth()+6, 487, getWidth()-(this->speakerView->getWidth()+10), getHeight()-487);
+    this->boxControlUI->setBounds(this->speakerView->getWidth()+6, 483, getWidth()-(this->speakerView->getWidth()+10), getHeight()-483);
     this->boxControlUI->correctSize(750, 180);
 
 }

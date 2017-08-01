@@ -114,7 +114,7 @@ LevelComponent::LevelComponent(ParentLevelComponent* parent, GrisLookAndFeel *fe
     if (this->mainParent->isInput()) {
         this->directOut = new ComboBox();
         this->directOut->setTooltip("Select a direct output channel.");
-        this->directOut->setSize(36, 20);
+        this->directOut->setSize(36, 16);
         this->directOut->setLookAndFeel(this->grisFeel);
         this->directOut->addListener(this);
         this->addAndMakeVisible(this->directOut);
