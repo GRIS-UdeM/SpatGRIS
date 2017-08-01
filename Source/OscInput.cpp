@@ -80,6 +80,11 @@ void OscInput::oscMessageReceived(const OSCMessage& message)
             }
             this->mainParent->getLockInputs()->unlock();
         }
-        
+    }
+    else if (message[0].isString()) {
+        // ["reset", voice_to_reset_as_int]
+        if (message[0].getString().compare("reset") == 0) {
+            this->mainParent->getListSourceInput()[message[1].getInt32()]->resetPosition();
+        }
     }
 }

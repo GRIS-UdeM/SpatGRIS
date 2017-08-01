@@ -680,7 +680,7 @@ void jackClientGris::connectedGristoSystem()
         }
         i+=1;
     }
-    printf("%i, %i\n", i, j);
+    //printf("%i, %i\n", i, j);
     jack_free(portsIn);
     jack_free(portsOut);
 

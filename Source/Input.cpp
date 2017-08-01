@@ -28,6 +28,19 @@ Input::Input(MainContentComponent * parent, GrisLookAndFeel * feel,int id)
     this->idChannel = id;
     this->directOutChannel = 0;
     
+    this->resetPosition();
+
+    this->vuMeter = new LevelComponent(this, this->grisFeel);
+    this->setColor(Colour::fromHSV(0, 1, 0.75, 1), true);
+}
+
+Input::~Input()
+{
+    delete this->vuMeter;
+}
+
+void Input::resetPosition()
+{
     this->azimuth = M_PI4;
     this->zenith  = M_PI2;
     
@@ -40,14 +53,6 @@ Input::Input(MainContentComponent * parent, GrisLookAndFeel * feel,int id)
     this->center.z = (14.0f * sinf(this->zenith) * sinf(this->azimuth));
     this->center.y = (14.0f * cosf(this->zenith) + (sizeT/2.0f));
     this->radius = sqrt((this->center.x*this->center.x)+(this->center.y*this->center.y)+(this->center.z*this->center.z));
-    
-    this->vuMeter = new LevelComponent(this, this->grisFeel);
-    this->setColor(Colour::fromHSV(0, 1, 0.75, 1), true);
-}
-
-Input::~Input()
-{
-    delete this->vuMeter;
 }
 
 glm::vec3 Input::getCenter()

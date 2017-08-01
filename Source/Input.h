@@ -63,7 +63,9 @@ public :
     void setColor(Colour color, bool updateLevel = false);
     void selectClick(){};
     LevelComponent * getVuMeter(){ return this->vuMeter; }
-    
+
+    void resetPosition();
+
     glm::vec3 getCenter();
     glm::vec3 getColor();
     glm::vec3 getNumberColor();

@@ -91,7 +91,9 @@ public:
     vector<Input *> getListSourceInput(){ return this->listSourceInput; }
     mutex* getLockInputs(){ return this->lockInputs; }
     void updateInputJack(int inInput, Input &inp);
-    
+
+    jackClientGris * getJackClient() { return this->jackClient; }
+
     unsigned int    getBufferCurentIndex(){ return this->jackClient->indexRecord; }
     vector<float>   getBufferToRecord(int i){ return this->jackClient->buffersToRecord[i]; }
     
@@ -209,6 +211,7 @@ private:
     TextButton *    butJackParam;
     TextButton *    butAutoConnectJack;
     TextButton *    butDisconnectAllJack;
+    TextButton *    resetInputPositions;
     
     ToggleButton *  butShowSpeakerNumber;
     ToggleButton *  butHighPerformance;

@@ -111,7 +111,10 @@ MainContentComponent::MainContentComponent()
     this->tedAddInputs =        addTextEditor("Inputs :", "0", "Numbers of Inputs", 140, 70, 50, 24, this->boxControlUI->getContent());
     this->tedAddInputs->setInputRestrictions(3,"0123456789");
     this->butDefaultColorIn =   addButton("C","Set Default color Inputs",276,70,24,24,this->boxControlUI->getContent());
-    
+
+    this->resetInputPositions = addButton("X","Reset input positions", 276, 95, 24, 24, this->boxControlUI->getContent());
+    this->resetInputPositions->setColour(TextButton::buttonColourId, mGrisFeel.getRedColour());
+
     addLabel("Gain :","Master Gain Outputs",320, 36, 120, 20,this->boxControlUI->getContent());
     this->sliderMasterGainOut = addSlider("Master Gain", "Master Gain Outputs", 360, 26, 60, 60, this->boxControlUI->getContent());
     this->sliderMasterGainOut->setRange(0.0, 1.0, 0.001);
@@ -1223,6 +1226,11 @@ void MainContentComponent::buttonClicked (Button *button)
         for (auto&& it : listSourceInput) {
             it->setColor(Colour::fromHSV(hue, 1, 0.75, 1), true);
             hue += inc;
+        }
+    }
+    else if(button == this->resetInputPositions){
+        for (auto&& it : listSourceInput) {
+            it->resetPosition();
         }
     }
     else if(button == this->butStartRecord){
