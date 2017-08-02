@@ -824,7 +824,7 @@ void MainContentComponent::openPreset(String path)
         AlertWindow::showMessageBoxAsync (AlertWindow::AlertIconType::WarningIcon,"Error in openPreset !",
                                           "Your file is corrupted !\n"+ File::getSpecialLocation(File::currentApplicationFile).getFullPathName() + "\n" + xmlDoc.getLastParseError(),String(),0);
     } else {
-        if(mainXmlElem->hasTagName("SpatServerGRIS_Preset")){
+        if (mainXmlElem->hasTagName("SpatServerGRIS_Preset")) {
             this->tedOSCInPort->setText(mainXmlElem->getStringAttribute("OSC_Input_Port"));
             this->tedAddInputs->setText(mainXmlElem->getStringAttribute("Number_Of_Inputs"));
             this->sliderMasterGainOut->setValue(mainXmlElem->getDoubleAttribute("Master_Gain_Out", 1.0), sendNotification);
@@ -840,7 +840,19 @@ void MainContentComponent::openPreset(String path)
             this->textEditorReturnKeyPressed(*this->tedAddInputs);
             this->sliderValueChanged(this->sliderMasterGainOut);
             this->sliderValueChanged(this->sliderInterpolation);
-            
+
+            File speakerSetup = File(this->pathCurrentFileSpeaker.toStdString());
+            if (!this->pathCurrentFileSpeaker.startsWith("/")) {
+#ifdef __linux__
+                String cwd = File::getCurrentWorkingDirectory().getFullPathName();
+                this->pathCurrentFileSpeaker = cwd + ("/../../Resources/default_preset/") + this->pathCurrentFileSpeaker;
+#else
+                String cwd = File::getSpecialLocation(File::currentApplicationFile).getFullPathName();
+                this->pathCurrentFileSpeaker = cwd + ("/Contents/Resources/default_preset/") + this->pathCurrentFileSpeaker;
+#endif
+            }
+            this->openXmlFileSpeaker(this->pathCurrentFileSpeaker);
+
             forEachXmlChildElement (*mainXmlElem, input)
             {
                 if (input->hasTagName ("Input"))
@@ -852,31 +864,16 @@ void MainContentComponent::openPreset(String path)
                                                                (float)input->getDoubleAttribute("G"),
                                                                (float)input->getDoubleAttribute("B"), 1.0f), true);
                             if (input->hasAttribute("DirectOut")) {
-                                it->setDirectOutChannel(input->getIntAttribute("DirectOut")+1);
+                                it->setDirectOutChannel(input->getIntAttribute("DirectOut"));
                                 this->setDirectOut(it->getId(), input->getIntAttribute("DirectOut"));
                             } else {
-                                it->setDirectOutChannel(1);
+                                it->setDirectOutChannel(0);
                                 this->setDirectOut(it->getId(), 0);
                             }
                         }
                     }
                 }
             }
-            //cout << "pathCurrentFileSpeaker: " << this->pathCurrentFileSpeaker << endl;
-
-            File speakerSetup = File(this->pathCurrentFileSpeaker.toStdString());
-            //if (!speakerSetup.isRoot() && !this->pathCurrentFileSpeaker.startsWith("/")) {
-            if (!this->pathCurrentFileSpeaker.startsWith("/")) {
-#ifdef __linux__
-                String cwd = File::getCurrentWorkingDirectory().getFullPathName();
-                this->pathCurrentFileSpeaker = cwd + ("/../../Resources/default_preset/") + this->pathCurrentFileSpeaker;
-#else
-                String cwd = File::getSpecialLocation(File::currentApplicationFile).getFullPathName();
-                this->pathCurrentFileSpeaker = cwd + ("/Contents/Resources/default_preset/") + this->pathCurrentFileSpeaker;
-#endif
-            }
-            this->openXmlFileSpeaker(this->pathCurrentFileSpeaker);
-            
         }
     }
     this->jackClient->processBlockOn = true;

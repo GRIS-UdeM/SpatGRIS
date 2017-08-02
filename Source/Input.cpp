@@ -211,7 +211,20 @@ void Input::sendDirectOutToClient(int id, int chn) {
     this->mainParent->setDirectOut(id, chn);
 }
 
+void Input::changeDirectOutChannel(int chn) {
+    this->directOutChannel = chn;
+}
+
 void Input::setDirectOutChannel(int chn) {
     this->directOutChannel = chn;
-    this->vuMeter->directOut->setSelectedId(chn);
+    int nitems = this->vuMeter->directOut->getNumItems();
+    if (chn == 0) {
+        this->vuMeter->directOut->setSelectedItemIndex(0);
+        return;
+    }
+    for (int i = 1; i < nitems; i++) {
+        if (this->vuMeter->directOut->getItemText(i).compare(String(chn)) == 0) {
+            this->vuMeter->directOut->setSelectedItemIndex(i);
+        }
+    }
 }

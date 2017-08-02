@@ -105,6 +105,7 @@ public:
 
     bool isInput() { return false; }
 
+    void changeDirectOutChannel(int chn) {};
     void setDirectOutChannel(int chn) {};
     int getDirectOutChannel() { return 0; };
     void sendDirectOutToClient(int id, int chn) {};

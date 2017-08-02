@@ -84,6 +84,7 @@ public :
     void updateValuesOld(float az, float ze, float azS, float zeS, float g);
 
     bool isInput() { return true; }
+    void changeDirectOutChannel(int chn);
     void setDirectOutChannel(int chn);
     int getDirectOutChannel() { return this->directOutChannel; };
     void sendDirectOutToClient(int id, int chn);

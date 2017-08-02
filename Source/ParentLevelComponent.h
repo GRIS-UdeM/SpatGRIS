@@ -33,6 +33,7 @@ public:
     virtual void setColor(Colour color, bool updateLevel = false) = 0;
     virtual void selectClick() = 0;
     virtual LevelComponent * getVuMeter() = 0;
+    virtual void changeDirectOutChannel(int chn) = 0;
     virtual void setDirectOutChannel(int chn) = 0;
     virtual int getDirectOutChannel() = 0;
     virtual void sendDirectOutToClient(int id, int chn) = 0;

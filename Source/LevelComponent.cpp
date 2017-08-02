@@ -186,7 +186,7 @@ void LevelComponent::comboBoxChanged(ComboBox *combo)
     if (combo->getSelectedItemIndex() > 0) {
         value = combo->getItemText(combo->getSelectedItemIndex()).getIntValue();
     }
-    this->mainParent->directOutChannel = value;
+    this->mainParent->changeDirectOutChannel(value);
     this->mainParent->sendDirectOutToClient(this->mainParent->getId(), value);
 }
 
