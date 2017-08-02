@@ -36,7 +36,62 @@ void FileWriter::recording(int numOutputs, int sampleRate)
 
 void FileWriter::run()
 {
-    if(this->numOutputs < 1){
+    if (this->numOutputs < 1) {
+        this->inSave = false;
+        return;
+    }
+
+    unsigned int size = this->mainParent->getBufferCurentIndex();
+
+    String channelName;
+    File fileS = File(this->filePath);
+    String fname = fileS.getFileNameWithoutExtension();
+    String extF = fileS.getFileExtension();
+    String parent = fileS.getParentDirectory().getFullPathName();
+
+    if (extF == ".wav") {
+        for (int i  = 0; i < this->numOutputs; ++i) {
+            channelName = parent + "/" + fname + "_" + String(i).paddedLeft('0', 3) + extF;
+            cout << channelName << endl;
+            File fileC = File(channelName);
+            fileC.deleteFile();
+            FileOutputStream * outputTo = fileC.createOutputStream();
+            AudioFormatWriter* writer;
+            WavAudioFormat* waveAudioF = new WavAudioFormat();
+            writer = waveAudioF->createWriterFor(outputTo, this->sampleRate, 1, 24, NULL, 0);
+            AudioSampleBuffer* buffer = new AudioSampleBuffer(1, size);
+            buffer->clear();
+            buffer->addFrom(0, 0, &(this->mainParent->getBufferToRecord(i)[0]), size);
+            writer->writeFromAudioSampleBuffer(*buffer, 0, size);
+            delete waveAudioF;
+            delete writer;
+        }
+    }
+    else if (extF == ".aif") {
+        AudioSampleBuffer* buffers = new AudioSampleBuffer(this->numOutputs, size);
+        buffers->clear();
+
+        for (int i  = 0; i < this->numOutputs; ++i) {
+            buffers->addFrom(i, 0, &(this->mainParent->getBufferToRecord(i)[0]), size);
+        }
+        fileS.deleteFile();
+        FileOutputStream * outputTo = fileS.createOutputStream();
+        AudioFormatWriter* writer;
+        AiffAudioFormat* aiffAudioF = new AiffAudioFormat();
+        writer = aiffAudioF->createWriterFor(outputTo, this->sampleRate, this->numOutputs, 24, NULL, 0);
+        writer->writeFromAudioSampleBuffer(*buffers, 0, size);
+        
+        delete aiffAudioF;
+        delete writer;
+    }
+
+    this->inSave = false;
+}
+
+/*
+void FileWriter::run_backup()
+{
+    if (this->numOutputs < 1) {
         this->inSave = false;
         return;
     }
@@ -45,8 +100,7 @@ void FileWriter::run()
     AudioSampleBuffer* buffers=new AudioSampleBuffer(this->numOutputs,size);
     buffers->clear();
     
-    for(int i  = 0; i < this->numOutputs; ++i)
-    {
+    for(int i  = 0; i < this->numOutputs; ++i) {
         buffers->addFrom(i, 0, &(this->mainParent->getBufferToRecord(i)[0]), size);
     }
     
@@ -56,8 +110,7 @@ void FileWriter::run()
     FileOutputStream * outputTo = fileS.createOutputStream();
     
     String extF = fileS.getFileExtension();
-    if(extF == ".wav")
-    {
+    if (extF == ".wav") {
         AudioFormatWriter* writer;
         WavAudioFormat* waveAudioF = new WavAudioFormat();
         writer = waveAudioF->createWriterFor(outputTo, this->sampleRate, this->numOutputs, 24, NULL, 0);
@@ -66,8 +119,7 @@ void FileWriter::run()
         delete waveAudioF;
         delete writer;
     }
-    else if(extF == ".aif")
-    {
+    else if (extF == ".aif") {
         AudioFormatWriter* writer;
         AiffAudioFormat* aiffAudioF = new AiffAudioFormat();
         writer = aiffAudioF->createWriterFor(outputTo,this->sampleRate, this->numOutputs, 24, NULL, 0);
@@ -76,17 +128,17 @@ void FileWriter::run()
         delete aiffAudioF;
         delete writer;
     }
-    
-    /*else if(extF == ".flac")
-    {
-        FlacAudioFormat* flacAudioF = new FlacAudioFormat();
-        AudioFormatWriter* writer = flacAudioF->createWriterFor(outputTo, 48000, this->numOutputs, 24, NULL, 0);
-        writer->writeFromAudioSampleBuffer(*buffers, 0, size);
-        
-        delete writer;
-        delete flacAudioF;
-    }*/
-    
+
+    else if(extF == ".flac")
+     {
+     FlacAudioFormat* flacAudioF = new FlacAudioFormat();
+     AudioFormatWriter* writer = flacAudioF->createWriterFor(outputTo, 48000, this->numOutputs, 24, NULL, 0);
+     writer->writeFromAudioSampleBuffer(*buffers, 0, size);
+
+     delete writer;
+     delete flacAudioF;
+     }
 
     this->inSave = false;
 }
+*/
