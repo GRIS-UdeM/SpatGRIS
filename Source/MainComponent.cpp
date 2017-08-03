@@ -159,7 +159,7 @@ MainContentComponent::MainContentComponent()
     unsigned int RateValue = this->applicationProperties.getUserSettings()->getValue("RateValue").getIntValue();
 
     /* FIXME
-     * this->applicationProperties.getUserSettings() does not semm to hold anything at this moment...
+     * this->applicationProperties.getUserSettings() does not seem to hold anything at this moment...
      */
     //cout << "Buffer Rate: " << BufferValue << ", Sampling Rate: " << RateValue << endl;
     
@@ -319,7 +319,12 @@ bool MainContentComponent::exitApp()
     alert->addButton ("Exit", 2);
     int exitV = alert->runModalLoop();
     if (exitV == 1) {
-        FileChooser fc ("Choose a file to save...",File::getCurrentWorkingDirectory(), "*.xml", true);
+        String dir = this->applicationProperties.getUserSettings()->getValue("lastPresetDirectory");
+        if (! File(dir).isDirectory()) {
+            dir = File("~").getFullPathName();
+        }
+        String filename = File(this->pathCurrentPreset).getFileName();
+        FileChooser fc ("Choose a file to save...", dir + "/" + filename, "*.xml", true);
         if (fc.browseForFileToSave (true))
         {
             String chosen = fc.getResults().getReference(0).getFullPathName();
@@ -815,7 +820,6 @@ void MainContentComponent::openPreset(String path)
 {
     this->jackClient->processBlockOn = false;
     this->pathCurrentPreset = path;
-    //cout << "pathCurrentPreset: " << this->pathCurrentPreset << endl;
     File xmlFile = File (path.toStdString());
     XmlDocument xmlDoc (xmlFile);
     ScopedPointer<XmlElement> mainXmlElem (xmlDoc.getDocumentElement());
@@ -904,10 +908,16 @@ void MainContentComponent::savePreset(String path)
         xmlInput->setAttribute("DirectOut", String(it->getDirectOutChannel()));
         xml->addChildElement(xmlInput);
     }
-    xml->writeToFile(xmlFile,"");
+    xml->writeToFile(xmlFile, "");
     xmlFile.create();
+    this->pathCurrentPreset = path;
+    this->applicationProperties.getUserSettings()->setValue("lastPresetDirectory", 
+                                                            File(this->pathCurrentPreset).getParentDirectory().getFullPathName());
 }
 
+String MainContentComponent::getCurrentFileSpeakerPath() {
+    return this->pathCurrentFileSpeaker;
+}
 
 void MainContentComponent::savePresetSpeakers(String path)
 {
@@ -950,6 +960,9 @@ void MainContentComponent::savePresetSpeakers(String path)
     
     xml->writeToFile(xmlFile,"");
     xmlFile.create();
+
+    this->applicationProperties.getUserSettings()->setValue("lastSpeakerPresetDirectory", 
+                                                            File(this->pathCurrentFileSpeaker).getParentDirectory().getFullPathName());
 
     this->setNameConfig();
 }
@@ -1088,11 +1101,15 @@ void MainContentComponent::textEditorReturnKeyPressed (TextEditor & textEditor)
 void MainContentComponent::buttonClicked (Button *button)
 {
     if(button == this->butLoadXMLSpeakers){
-        
+        String dir = this->applicationProperties.getUserSettings()->getValue("lastSpeakerPresetDirectory");
+        if (! File(dir).isDirectory()) {
+            dir = File("~").getFullPathName();
+        }
+        String filename = File(this->pathCurrentFileSpeaker).getFileName();
 #ifdef __linux__
-        FileChooser fc ("Choose a file to open...",File::getCurrentWorkingDirectory(),"*.xml",false);
+        FileChooser fc ("Choose a file to open...", dir + "/" + filename, "*.xml", false);
 #else
-        FileChooser fc ("Choose a file to open...",File::getCurrentWorkingDirectory(),"*.xml",true);
+        FileChooser fc ("Choose a file to open...", dir + "/" + filename, "*.xml", true);
 #endif
         if (fc.browseForFileToOpen())
         {
@@ -1108,8 +1125,13 @@ void MainContentComponent::buttonClicked (Button *button)
         
     }
     else if(button == this->butLoadPreset){
+        String dir = this->applicationProperties.getUserSettings()->getValue("lastPresetDirectory");
+        if (! File(dir).isDirectory()) {
+            dir = File("~").getFullPathName();
+        }
+        String filename = File(this->pathCurrentPreset).getFileName();
         
-        FileChooser fc ("Choose a file to open...",File::getCurrentWorkingDirectory(),"*.xml",true);
+        FileChooser fc ("Choose a file to open...", dir + "/" + filename, "*.xml", true);
         if (fc.browseForFileToOpen())
         {
             String chosen = fc.getResults().getReference(0).getFullPathName();
@@ -1121,11 +1143,14 @@ void MainContentComponent::buttonClicked (Button *button)
                 this->openPreset(chosen);
             }
         }
-        
     }
     else if(button == this->butSavePreset){
-        
-        FileChooser fc ("Choose a file to save...",File::getCurrentWorkingDirectory(), "*.xml", true);
+        String dir = this->applicationProperties.getUserSettings()->getValue("lastPresetDirectory");
+        if (! File(dir).isDirectory()) {
+            dir = File("~").getFullPathName();
+        }
+        String filename = File(this->pathCurrentPreset).getFileName();
+        FileChooser fc ("Choose a file to save...", dir + "/" + filename, "*.xml", true);
         if (fc.browseForFileToSave (true))
         {
             String chosen = fc.getResults().getReference(0).getFullPathName();

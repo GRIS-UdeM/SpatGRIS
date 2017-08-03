@@ -21,12 +21,16 @@ FileWriter::~FileWriter()
     
 }
 
-void FileWriter::recording(int numOutputs, int sampleRate)
-{
-    FileChooser fc ("Choose a file to save...",File::getCurrentWorkingDirectory(), "*.wav,*.aif", true);
-    if (fc.browseForFileToSave (true))
-    {
+void FileWriter::recording(int numOutputs, int sampleRate) {
+    String dir = this->mainParent->applicationProperties.getUserSettings()->getValue("lastRecordingDirectory");
+    if (! File(dir).isDirectory()) {
+        dir = File("~").getFullPathName();
+    }
+    FileChooser fc ("Choose a file to save...", dir + "/recording.wav" , "*.wav,*.aif", true);
+    if (fc.browseForFileToSave (true)) {
         this->filePath = fc.getResults().getReference(0).getFullPathName();
+        this->mainParent->applicationProperties.getUserSettings()->setValue("lastRecordingDirectory", 
+                                                                            File(this->filePath).getParentDirectory().getFullPathName());
         this->numOutputs = numOutputs;
         this->sampleRate = sampleRate;
         this->inSave = true;

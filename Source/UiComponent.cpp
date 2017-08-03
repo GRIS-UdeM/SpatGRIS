@@ -438,8 +438,13 @@ void WindowEditSpeaker::buttonClicked(Button *button)
     }
     else if (button == this->butsaveSpeakers) {
         this->mainParent->updateLevelComp();
-        // TODO: We save a xml file only if the previous call passed.
-        FileChooser fc ("Choose a file to save...",File::getCurrentWorkingDirectory(), "*.xml", true);
+        // TODO: We should save a xml file only if the previous call passed.
+        String dir = this->mainParent->applicationProperties.getUserSettings()->getValue("lastSpeakerPresetDirectory");
+        if (! File(dir).isDirectory()) {
+            dir = File("~").getFullPathName();
+        }
+        String filename = File(this->mainParent->getCurrentFileSpeakerPath()).getFileName();
+        FileChooser fc ("Choose a file to save...", dir + "/" + filename, "*.xml", true);
         if (fc.browseForFileToSave (true))
         {
             String chosen = fc.getResults().getReference(0).getFullPathName();

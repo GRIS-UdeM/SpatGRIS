@@ -138,7 +138,10 @@ public:
     void textEditorReturnKeyPressed (TextEditor &textEditor) override;
     void comboBoxChanged (ComboBox *comboBox) override;
     
-    
+    String getCurrentFileSpeakerPath();
+
+    ApplicationProperties applicationProperties;
+
 private:
 
     
@@ -157,7 +160,6 @@ private:
     void updateSkeapersConf();
     bool tripletExist(Triplet tri, int &pos);
     
-    ApplicationProperties applicationProperties;
     //==============================================================================
     jackClientGris *    jackClient;
     jackServerGRIS *    jackServer;
