@@ -179,15 +179,15 @@ void SpeakerViewComponent::clickRay()
     gluUnProject(winX, winY, 0.0, matModelView, matProjection,viewport, &xS, &yS,&zS);
     gluUnProject(winX, winY, 1.0, matModelView, matProjection, viewport, &xE, &yE, &zE);
     
-    /*cout << winX << " - " << winY << newLine;
-     cout << (double)e.getPosition().x << " <> " << (double)e.getPosition().y << newLine;
-     cout << xS << " * " << yS << " * " << zS << xE << " * " << yE << " * " << zE << newLine;*/
-    
     this->ray.setRay(glm::vec3(xS, yS, zS),glm::vec3(xE, yE, zE));
     
     int iBestSpeaker = -1;
-    if(this->mainParent->getLockSpeakers()->try_lock()){
-        for(int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
+    int selected = -1;
+    if (this->mainParent->getLockSpeakers()->try_lock()) {
+        for (int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
+            if (this->mainParent->getListSpeaker()[i]->isSelected()) {
+                selected = i;
+            }
             if (raycast( this->mainParent->getListSpeaker()[i]) != -1 ) {
                 if(iBestSpeaker == -1){
                     iBestSpeaker = i;
@@ -202,7 +202,10 @@ void SpeakerViewComponent::clickRay()
         if(this->controlOn && iBestSpeaker >= 0 ){
             this->mainParent->selectTripletSpeaker(iBestSpeaker);
         }
-        else{
+        else {
+            if (iBestSpeaker == -1) {
+                iBestSpeaker = selected;
+            }
             this->mainParent->selectSpeaker(iBestSpeaker);
         }
         this->mainParent->getLockSpeakers()->unlock();
@@ -216,11 +219,13 @@ void SpeakerViewComponent::mouseDown (const MouseEvent& e)
     this->deltaClickX = this->camAngleX - e.getPosition().x ;
     this->deltaClickY = this->camAngleY - e.getPosition().y;
 
-    if(e.mods.isLeftButtonDown()){
+    if (e.mods.isLeftButtonDown()) {
         this->rayClickX = (double)e.getPosition().x;
         this->rayClickY = (double)e.getPosition().y;
         this->clickLeft = true;
         this->controlOn = e.mods.isCtrlDown();
+    } else if (e.mods.isRightButtonDown()) {
+        this->mainParent->selectSpeaker(-1);
     }
 }
 

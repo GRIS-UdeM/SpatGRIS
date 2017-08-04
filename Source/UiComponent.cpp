@@ -431,6 +431,7 @@ void WindowEditSpeaker::buttonClicked(Button *button)
     else if (button == this->butAddSpeaker) {
         this->mainParent->addSpeaker();
         updateWinContent();
+        this->tableListSpeakers.selectRow(this->getNumRows()-1);
     }
     else if (button == this->butcompSpeakers) {
         // TODO: Should return a value to tell if there is an error or not.
