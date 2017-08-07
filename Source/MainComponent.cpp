@@ -24,8 +24,10 @@
  * Resources path should be set only once, based on the system, in a config.h header.
  */
 
-MainContentComponent::MainContentComponent()
+MainContentComponent::MainContentComponent(DocumentWindow *parent)
 {
+    this->parent = parent;
+
     File fs;
 #ifdef __linux__
     fs = File ( File::getCurrentWorkingDirectory().getFullPathName() + ("/../../Resources/splash.png"));
@@ -826,6 +828,12 @@ void MainContentComponent::openXmlFileSpeaker(String path)
     updateLevelComp();
 }
 
+void MainContentComponent::setTitle() {
+    String version = STRING(JUCE_APP_VERSION);
+    version = "SpatServer GRIS v" + version + " - ";
+    this->parent->setName(version + File(this->pathCurrentPreset).getFileName());
+}
+
 void MainContentComponent::openPreset(String path)
 {
     this->jackClient->processBlockOn = false;
@@ -891,6 +899,7 @@ void MainContentComponent::openPreset(String path)
         }
     }
     this->jackClient->processBlockOn = true;
+    this->setTitle();
 }
 
 void MainContentComponent::savePreset(String path)
@@ -923,6 +932,7 @@ void MainContentComponent::savePreset(String path)
     this->pathCurrentPreset = path;
     this->applicationProperties.getUserSettings()->setValue("lastPresetDirectory", 
                                                             File(this->pathCurrentPreset).getParentDirectory().getFullPathName());
+    this->setTitle();
 }
 
 String MainContentComponent::getCurrentFileSpeakerPath() {

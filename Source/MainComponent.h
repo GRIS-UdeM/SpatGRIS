@@ -38,6 +38,9 @@
 #define M_PI4   (0.785398163397448309615660845819875720)
 #endif
 
+#define STRING2(x) #x
+#define STRING(x) STRING2(x)
+
 //============================
 
 
@@ -80,7 +83,7 @@ class MainContentComponent   :  public Component,
 {
 public:
     //==============================================================================
-    MainContentComponent();
+    MainContentComponent(DocumentWindow *parent);
     ~MainContentComponent();
     bool exitApp();
     
@@ -137,14 +140,17 @@ public:
     void textEditorFocusLost (TextEditor &textEditor) override;
     void textEditorReturnKeyPressed (TextEditor &textEditor) override;
     void comboBoxChanged (ComboBox *comboBox) override;
-    
+
+    void setTitle();
+
     String getCurrentFileSpeakerPath();
 
     ApplicationProperties applicationProperties;
 
 private:
 
-    
+    DocumentWindow *parent;
+
     Label*          addLabel(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into);
     TextButton*     addButton(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into);
     ToggleButton*   addToggleButton(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into, bool toggle = false);

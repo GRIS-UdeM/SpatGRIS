@@ -21,9 +21,6 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "GrisLookAndFeel.h"
 
-#define STRING2(x) #x
-#define STRING(x) STRING2(x)
-
 #include "MainComponent.h"
 
 
@@ -82,9 +79,6 @@ public:
         MainWindow (String name)  : DocumentWindow (name,Colours::lightgrey,DocumentWindow::allButtons)
         {
             setUsingNativeTitleBar (true);
-            String version = STRING(JUCE_APP_VERSION);
-            version = "SpatServer GRIS : "+version;
-            setName(version);
             
             // Copy JackRouter ini file to preferences folder if not already done.
 #ifndef __linux__
@@ -94,7 +88,7 @@ public:
                 source.copyFileTo(target);
             }
 #endif
-            mcc = new MainContentComponent();
+            mcc = new MainContentComponent(this);
             setContentOwned (mcc, true);
             setResizable (true, true);
 
