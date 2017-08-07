@@ -47,9 +47,9 @@ void SpeakerViewComponent::initialise()
     glLoadIdentity();
     gluLookAt(4, 6, 5, 0, 0, 0, 0, 1, 0);
 
-      int argc = 1;
-      char *argv[1] = {(char*)"Something"};
-      glutInit(&argc, argv);
+    int argc = 1;
+    char *argv[1] = {(char*)"Something"};
+    glutInit(&argc, argv);
 }
 
 void SpeakerViewComponent::shutdown()
@@ -111,7 +111,12 @@ void SpeakerViewComponent::render()
         this->mainParent->getLockSpeakers()->unlock();
     }
 
-    if (this->mainParent->getLockInputs()->try_lock()) {
+    // NOTE: For the moment, we are just using input values to draw, we aren't
+    // changing them, so it's safe to go without the lock. When the function
+    // this->mainParent->getLockInputs()->try_lock() returns false, this causes
+    // a flicker in the 3D drawing. -belangeo
+
+    if (true) { //(this->mainParent->getLockInputs()->try_lock()) {
         for (int i = 0; i < this->mainParent->getListSourceInput().size(); ++i) {
             Input *input = this->mainParent->getListSourceInput()[i];
             input->draw();
@@ -121,7 +126,7 @@ void SpeakerViewComponent::render()
                 this->drawText(to_string(input->getId()), posT, input->getNumberColor(), 0.003f);
             }
         }
-        this->mainParent->getLockInputs()->unlock();
+        //this->mainParent->getLockInputs()->unlock();
     }
     
     //Draw Sphere : Use many CPU
@@ -151,7 +156,7 @@ void SpeakerViewComponent::render()
 
     //Draw Click Ray----
     //this->ray.draw();
-    
+
     glFlush();
 }
 

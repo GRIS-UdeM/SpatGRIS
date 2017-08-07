@@ -133,7 +133,8 @@ void Input::drawSpan() {
 	int num = 8;
     float newazi, newele;
     glm::vec3 cart;
-
+    glPointSize(4);
+    glBegin(GL_POINTS);
     for (int i=0; i<num; i++) {
         float azidev = i * this->azimSpan * 0.5f * 0.42f;
         for (int j=0; j<2; j++) {
@@ -145,9 +146,10 @@ void Input::drawSpan() {
             else if (newazi < -M_PI) { newazi += (M_PI * 2.0f); }
 
             cart = this->polToCar(newazi, this->zenith);
-            glTranslatef(cart.x, cart.y, cart.z);
-            glutSolidSphere(this->sizeT / 4, 8, 8);
-            glTranslatef(-cart.x, -cart.y, -cart.z);
+            glVertex3f(cart.x, cart.y, cart.z);
+            //glTranslatef(cart.x, cart.y, cart.z);
+            //glutSolidSphere(this->sizeT / 4, 8, 8);
+            //glTranslatef(-cart.x, -cart.y, -cart.z);
 
             for (int k=0; k<3; k++) {
                 float eledev = (k+1) * this->zeniSpan * 2.0f * 0.25f;
@@ -160,13 +162,16 @@ void Input::drawSpan() {
                     else if (newele < 0) { newele = 0; }
 
                     cart = this->polToCar(newazi, newele);
-                    glTranslatef(cart.x, cart.y, cart.z);
-                    glutSolidSphere(this->sizeT / 4, 8, 8);
-                    glTranslatef(-cart.x, -cart.y, -cart.z);
+                    glVertex3f(cart.x, cart.y, cart.z);
+                    //glTranslatef(cart.x, cart.y, cart.z);
+                    //glutSolidSphere(this->sizeT / 4, 8, 8);
+                    //glTranslatef(-cart.x, -cart.y, -cart.z);
                 }
             }
         }
     }
+    glEnd();
+    glPointSize(1);
 }
 
 void Input::updateValues(float az, float ze, float azS, float zeS, float heS, float g)

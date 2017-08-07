@@ -103,7 +103,7 @@ private:
     float zeniSpan;
     float gain;
     
-    float sizeT = 0.4f;
+    float sizeT = 0.3f;
     glm::vec3 center;
     glm::vec3 color;
     Colour    colorJ;
