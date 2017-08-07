@@ -575,13 +575,15 @@ void MainContentComponent::updateLevelComp() {
     this->jackClient->processBlockOn = false;
     this->jackClient->maxOutputPatch = 0;
 
-    // Save mute/solo states (only for inputs)
+    // Save mute/solo/directout states (only for inputs)
     bool inputsIsMuted[MaxInputs];
     bool inputsIsSolo[MaxInputs];
     bool soloIn = this->jackClient->soloIn;
+    int directOuts[MaxInputs];
     for (int i = 0; i < MaxInputs; i++) {
         inputsIsMuted[i] = (&this->jackClient->listSourceIn[i])->isMuted;
         inputsIsSolo[i] = (&this->jackClient->listSourceIn[i])->isSolo;
+        directOuts[i] = (&this->jackClient->listSourceIn[i])->directOut;
     }
     /*
     bool outputsIsMuted[MaxInputs];
@@ -685,12 +687,20 @@ void MainContentComponent::updateLevelComp() {
 
     this->jackClient->initSpeakersTripplet(tempListSpeaker, dimensions);
 
-    // Restore mute/solo states (only for inputs)
+    // Restore mute/solo/directout states (only for inputs)
     this->jackClient->soloIn = soloIn;
     for (int i = 0; i < MaxInputs; i++) {
         (&this->jackClient->listSourceIn[i])->isMuted = inputsIsMuted[i];
         (&this->jackClient->listSourceIn[i])->isSolo = inputsIsSolo[i];
+        (&this->jackClient->listSourceIn[i])->directOut = directOuts[i];
     }
+    i = 0;
+    this->lockInputs->lock();
+    for (auto&& it : this->listSourceInput) {
+        this->listSourceInput[i]->setDirectOutChannel(directOuts[i]);
+        i++;
+    }
+    this->lockInputs->unlock();
     /*
     this->jackClient->soloOut = soloOut;
     for (int i = 0; i < MaxOutputs; i++) {
