@@ -166,7 +166,7 @@ static void processFreeVolume(jackClientGris & jackCli, jack_default_audio_sampl
 static void processVBAP(jackClientGris & jackCli, jack_default_audio_sample_t ** ins, jack_default_audio_sample_t ** outs,
                         const jack_nframes_t &nframes, const unsigned int &sizeInputs, const unsigned int &sizeOutputs)
 {
-    int f, i, o, output;
+    int f, i, o;
     
     float gains[sizeInputs][sizeOutputs];
     float interpG = jackCli.interMaster * 0.29 + 0.7;
@@ -191,10 +191,9 @@ static void processVBAP(jackClientGris & jackCli, jack_default_audio_sample_t **
                         outs[o][f] += ins[i][f] * jackCli.listSourceIn[i].paramVBap->y[o];
                     }
                 }
-            } else {
-                output = jackCli.listSourceIn[i].directOut - 1;
+            } else if ((jackCli.listSourceIn[i].directOut - 1) == o) {
                 for (f = 0; f < nframes; ++f) {
-                    outs[output][f] += ins[i][f];
+                    outs[o][f] += ins[i][f];
                 }
             }
         }
