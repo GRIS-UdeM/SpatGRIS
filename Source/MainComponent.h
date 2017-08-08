@@ -195,6 +195,7 @@ private:
     WindowJackSetting * winJackSetting;
     WinControl *        winControlSource;
     //3 Main Box---------------------
+    Box * boxMainUI;
     Box * boxInputsUI;
     Box * boxOutputsUI;
     Box * boxControlUI;

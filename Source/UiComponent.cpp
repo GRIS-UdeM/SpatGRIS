@@ -24,7 +24,7 @@
 #include "MainComponent.h"
 
 //======================================= BOX ===========================================================================
-Box::Box(GrisLookAndFeel *feel, String title)
+Box::Box(GrisLookAndFeel *feel, String title, bool verticalScrollbar, bool horizontalScrollbar)
 {
     this->title = title;
     this->grisFeel = feel;
@@ -33,7 +33,7 @@ Box::Box(GrisLookAndFeel *feel, String title)
     this->content = new Component();
     this->viewport = new Viewport();
     this->viewport->setViewedComponent(this->content, false);
-    this->viewport->setScrollBarsShown(true, true);
+    this->viewport->setScrollBarsShown(verticalScrollbar, horizontalScrollbar);
     this->viewport->setScrollBarThickness(6);
     this->viewport->getVerticalScrollBar()->setColour(ScrollBar::ColourIds::thumbColourId, feel->getScrollBarColour());
     this->viewport->getHorizontalScrollBar()->setColour(ScrollBar::ColourIds::thumbColourId, feel->getScrollBarColour());

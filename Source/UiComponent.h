@@ -36,7 +36,7 @@ using namespace std;
 class Box : public Component
 {
 public:
-    Box(GrisLookAndFeel *feel, String title="");
+    Box(GrisLookAndFeel *feel, String title="", bool verticalScrollbar=false, bool horizontalScrollbar=true);
     ~Box();
     
     Component * getContent();

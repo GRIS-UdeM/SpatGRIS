@@ -66,7 +66,11 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     //SpeakerViewComponent 3D VIEW------------------------------
     this->speakerView = new SpeakerViewComponent(this);
     addAndMakeVisible(this->speakerView);
-    
+
+    //BOX Main--------------------------------------------------
+    this->boxMainUI = new Box(&mGrisFeel, "", true, false);
+    addAndMakeVisible(this->boxMainUI);
+
     //BOX Inputs------------------------------------------------
     this->boxInputsUI = new Box(&mGrisFeel, "Inputs~");
     addAndMakeVisible(this->boxInputsUI);
@@ -78,6 +82,10 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     //BOX Control-----------------------------------------------
     this->boxControlUI = new Box(&mGrisFeel);
     addAndMakeVisible(this->boxControlUI);
+
+    this->boxMainUI->getContent()->addAndMakeVisible(this->boxInputsUI);
+    this->boxMainUI->getContent()->addAndMakeVisible(this->boxOutputsUI);
+    this->boxMainUI->getContent()->addAndMakeVisible(this->boxControlUI);
 
     //Components in BOX Control ------------------------------------------------------------------
     this->labelJackStatus = addLabel("Jack Unknown","Jack Status",0, 0, 80, 28,this->boxControlUI->getContent());
@@ -390,6 +398,7 @@ MainContentComponent::~MainContentComponent()
     delete this->boxInputsUI;
     delete this->boxOutputsUI;
     delete this->boxControlUI;
+    delete this->boxMainUI;
 
     delete  this->jackClient;
     delete this->jackServer;
@@ -1349,15 +1358,17 @@ void MainContentComponent::resized()
     // lay out side-by-side and resize the components' heights as well as widths
     this->verticalLayout.layOutComponents (vcomps, 3, r.getX(), r.getY(), r.getWidth(), r.getHeight(), false, true);
     
+    this->boxMainUI->setBounds(this->speakerView->getWidth()+6, 2, getWidth()-(this->speakerView->getWidth()+10), getHeight());
+    this->boxMainUI->correctSize(getWidth()-this->speakerView->getWidth()-6, 680);
 
-    this->boxInputsUI->setBounds(this->speakerView->getWidth()+6, 2, getWidth()-(this->speakerView->getWidth()+10), 241);
+    this->boxInputsUI->setBounds(0, 2, getWidth()-(this->speakerView->getWidth()+10), 241);
     this->boxInputsUI->correctSize(((unsigned int )this->listSourceInput.size()*(SizeWidthLevelComp))+4, 210);
 
-    this->boxOutputsUI->setBounds(this->speakerView->getWidth()+6, 243, getWidth()-(this->speakerView->getWidth()+10), 240);
+    this->boxOutputsUI->setBounds(0, 243, getWidth()-(this->speakerView->getWidth()+10), 240);
     this->boxOutputsUI->correctSize(((unsigned int )this->listSpeaker.size()*(SizeWidthLevelComp))+4, 210);
     
-    this->boxControlUI->setBounds(this->speakerView->getWidth()+6, 483, getWidth()-(this->speakerView->getWidth()+10), getHeight()-483);
-    this->boxControlUI->correctSize(750, 180);
+    this->boxControlUI->setBounds(0, 483, getWidth()-(this->speakerView->getWidth()+10), 190);
+    this->boxControlUI->correctSize(740, 190);
 
 }
 
