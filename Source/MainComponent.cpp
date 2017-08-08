@@ -52,7 +52,9 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     this->applicationProperties.getCommonSettings(true);
 
     LookAndFeel::setDefaultLookAndFeel(&mGrisFeel);
-    
+
+    this->isProcessForeground = true;
+
     this->listSpeaker = vector<Speaker *>();
     this->listSourceInput = vector<Input *>();
     
@@ -1063,6 +1065,18 @@ void MainContentComponent::timerCallback()
     }
     
     this->boxClientJack->updateContentCli();
+
+    if (this->isProcessForeground != Process::isForegroundProcess()) {
+        this->isProcessForeground = Process::isForegroundProcess();
+        if (this->winSpeakConfig != nullptr && this->isProcessForeground) {
+            this->winSpeakConfig->setVisible(true);
+            this->winSpeakConfig->setAlwaysOnTop(true);
+        }
+        else if (this->winSpeakConfig != nullptr && !this->isProcessForeground) {
+            this->winSpeakConfig->setVisible(false);
+            this->winSpeakConfig->setAlwaysOnTop(false);
+        }
+    }
 }
 
 void MainContentComponent::paint (Graphics& g)

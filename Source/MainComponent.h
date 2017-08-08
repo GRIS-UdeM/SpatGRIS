@@ -245,6 +245,9 @@ private:
     Label *         labelTimeRecorded;
     
     SplashScreen *  splash;
+
+    bool isProcessForeground;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
 };
 
