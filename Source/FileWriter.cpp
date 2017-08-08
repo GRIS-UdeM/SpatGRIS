@@ -55,8 +55,7 @@ void FileWriter::run()
 
     if (extF == ".wav") {
         for (int i  = 0; i < this->numOutputs; ++i) {
-            channelName = parent + "/" + fname + "_" + String(i).paddedLeft('0', 3) + extF;
-            cout << channelName << endl;
+            channelName = parent + "/" + fname + "_" + String(i+1).paddedLeft('0', 3) + extF;
             File fileC = File(channelName);
             fileC.deleteFile();
             FileOutputStream * outputTo = fileC.createOutputStream();
