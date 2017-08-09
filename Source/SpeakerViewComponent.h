@@ -97,7 +97,8 @@ private:
     float camAngleX= -30.0f;
     float camAngleY= 25.0f;
     float distance = 22.0f;
-    
+
+    float slowDownFactor = 3.0f; // Reduce the angle changing speed.
     float deltaClickX;
     float deltaClickY;
     

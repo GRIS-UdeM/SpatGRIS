@@ -83,13 +83,14 @@ void SpeakerViewComponent::render()
     gluPerspective(80, (float)this->getWidth()/this->getHeight(), 0.5f, 75.0f);
     glMatrixMode(GL_MODELVIEW);
 
-    float camX = distance * sinf(camAngleX*(M_PI/180.f)) * cosf((camAngleY)*(M_PI/180.f));
-    float camY = distance * sinf((camAngleY)*(M_PI/180.f));
-    float camZ = distance * cosf((camAngleX)*(M_PI/180.f)) * cosf((camAngleY)*(M_PI/180.f));
-    
+    float degToRad = M_PI / 180.0f;
+    float camX = -distance * sinf(camAngleX*degToRad) * cosf(camAngleY*degToRad);
+    float camY = distance * sinf(camAngleY*degToRad);
+    float camZ = distance * cosf(camAngleX*degToRad) * cosf(camAngleY*degToRad);
+
     glLoadIdentity();
-    gluLookAt(camX, camY, camZ, 0, 0, 0, 0,1,0);
-    this->camPos = glm::vec3(camX,camY,camZ);
+    gluLookAt(camX, camY, camZ, 0, 0, 0, 0, 1, 0);
+    this->camPos = glm::vec3(camX, camY, camZ);
 
     this->drawOriginGrid();
 
@@ -221,8 +222,8 @@ void SpeakerViewComponent::clickRay()
 
 void SpeakerViewComponent::mouseDown (const MouseEvent& e)
 {
-    this->deltaClickX = this->camAngleX - e.getPosition().x ;
-    this->deltaClickY = this->camAngleY - e.getPosition().y;
+    this->deltaClickX = this->camAngleX - e.getPosition().x / this->slowDownFactor;
+    this->deltaClickY = this->camAngleY - e.getPosition().y / this->slowDownFactor;
 
     if (e.mods.isLeftButtonDown()) {
         this->rayClickX = (double)e.getPosition().x;
@@ -236,9 +237,10 @@ void SpeakerViewComponent::mouseDown (const MouseEvent& e)
 
 void SpeakerViewComponent::mouseDrag (const MouseEvent& e)
 {
-    if(e.mods.isLeftButtonDown()){
-        this->camAngleX = (e.getPosition().x + this->deltaClickX);
-        this->camAngleY = (e.getPosition().y + this->deltaClickY);
+    if(e.mods.isLeftButtonDown()) {
+        this->camAngleX = e.getPosition().x / this->slowDownFactor + this->deltaClickX;
+        this->camAngleY = e.getPosition().y / this->slowDownFactor + this->deltaClickY;
+        this->camAngleY = this->camAngleY < -89.99f ? -89.99f : this->camAngleY > 89.99f ? 89.99f : this->camAngleY;
     }
 }
 
