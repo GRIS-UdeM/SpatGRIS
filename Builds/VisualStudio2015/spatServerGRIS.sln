@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2015
-Project("{AB84307A-3311-A3EA-BC72-530F5B1EA51F}") = "spatServerGRIS", "spatServerGRIS.vcxproj", "{2BD45EC6-F795-38E9-D12F-739BB84D7151}"
+Project("{AB84307A-3311-A3EA-BC72-530F5B1EA51F}") = "ServerGRIS", "ServerGRIS.vcxproj", "{2BD45EC6-F795-38E9-D12F-739BB84D7151}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

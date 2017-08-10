@@ -14,9 +14,9 @@ BEGIN
     BLOCK "040904E4"
     BEGIN
       VALUE "CompanyName",  "GRIS - UdeM\0"
-      VALUE "FileDescription",  "spatServerGRIS\0"
+      VALUE "FileDescription",  "ServerGRIS\0"
       VALUE "FileVersion",  "0.0.1\0"
-      VALUE "ProductName",  "spatServerGRIS\0"
+      VALUE "ProductName",  "ServerGRIS\0"
       VALUE "ProductVersion",  "0.0.1\0"
     END
   END

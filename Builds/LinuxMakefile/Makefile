@@ -38,7 +38,7 @@ ifeq ($(CONFIG),Debug)
   JUCE_CXXFLAGS += $(JUCE_CFLAGS) -std=c++11 $(CXXFLAGS)
   JUCE_LDFLAGS += $(TARGET_ARCH) -L$(JUCE_BINDIR) -L$(JUCE_LIBDIR) -L/usr/lib/x86_64-linux-gnu $(shell pkg-config --libs alsa freetype2 libcurl x11 xext xinerama jack gtk+-3.0 webkit2gtk-4.0) -lGL -lGLU -lglut -ldl -lpthread -lrt -ljackserver  $(LDFLAGS)
 
-  TARGET := spatServerGRIS
+  TARGET := ServerGRIS
   BLDCMD = $(CXX) -o $(JUCE_OUTDIR)/$(TARGET) $(OBJECTS) $(JUCE_LDFLAGS) $(RESOURCES) $(TARGET_ARCH)
   CLEANCMD = rm -rf $(JUCE_OUTDIR)/$(TARGET) $(JUCE_OBJDIR)
 endif
@@ -58,7 +58,7 @@ JUCE_CPPFLAGS := $(DEPFLAGS) -DLINUX=1 -DNDEBUG=1 -DJUCER_LINUX_MAKE_6D53C8B4=1 
   JUCE_CXXFLAGS += $(JUCE_CFLAGS) -std=c++11 $(CXXFLAGS)
   JUCE_LDFLAGS += $(TARGET_ARCH) -L$(JUCE_BINDIR) -L$(JUCE_LIBDIR) -fvisibility=hidden -L/usr/lib/x86_64-linux-gnu $(shell pkg-config --libs alsa freetype2 libcurl x11 xext xinerama jack gtk+-3.0 webkit2gtk-4.0) -lGL -lGLU -lglut -ldl -lpthread -lrt -ljackserver  $(LDFLAGS)
 
-  TARGET := spatServerGRIS
+  TARGET := ServerGRIS
   BLDCMD = $(CXX) -o $(JUCE_OUTDIR)/$(TARGET) $(OBJECTS) $(JUCE_LDFLAGS) $(RESOURCES) $(TARGET_ARCH)
   CLEANCMD = rm -rf $(JUCE_OUTDIR)/$(TARGET) $(JUCE_OBJDIR)
 endif
@@ -97,7 +97,7 @@ OBJECTS := \
 .PHONY: clean
 
 $(JUCE_OUTDIR)/$(TARGET): check-pkg-config $(OBJECTS) $(RESOURCES)
-	@echo Linking spatServerGRIS
+	@echo Linking ServerGRIS
 	-@mkdir -p $(JUCE_BINDIR)
 	-@mkdir -p $(JUCE_LIBDIR)
 	-@mkdir -p $(JUCE_OUTDIR)
@@ -108,11 +108,11 @@ check-pkg-config:
 	@pkg-config --print-errors alsa freetype2 libcurl x11 xext xinerama
 
 clean:
-	@echo Cleaning spatServerGRIS
+	@echo Cleaning ServerGRIS
 	$(V_AT)$(CLEANCMD)
 
 strip:
-	@echo Stripping spatServerGRIS
+	@echo Stripping ServerGRIS
 	-@$(STRIP) --strip-unneeded $(JUCE_OUTDIR)/$(TARGET)
 
 $(JUCE_OBJDIR)/FileWriter_d7bbef18.o: ../../Source/FileWriter.cpp

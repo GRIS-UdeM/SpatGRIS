@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="MXmiSb" name="spatServerGRIS" projectType="guiapp" version="0.0.1"
-              bundleIdentifier="com.UdeM.GRIS.spatServerGRIS" includeBinaryInAppConfig="1"
+<JUCERPROJECT id="MXmiSb" name="ServerGRIS" projectType="guiapp" version="0.0.1"
+              bundleIdentifier="com.UdeM.GRIS.ServerGRIS" includeBinaryInAppConfig="1"
               jucerVersion="4.3.1" companyName="GRIS - UdeM">
-  <MAINGROUP id="lsxaKA" name="spatServerGRIS">
+  <MAINGROUP id="lsxaKA" name="ServerGRIS">
     <GROUP id="{6EAF4FF6-A4F0-94E9-AA8A-98D9BF95CA11}" name="Resources">
       <FILE id="G8JPcc" name="logo512.png" compile="0" resource="1" file="logo512.png"/>
       <FILE id="b1pWMS" name="SinkinSans-400Regular.otf" compile="0" resource="1"
@@ -56,10 +56,10 @@
                customXcodeResourceFolders="" smallIcon="G8JPcc" bigIcon="G8JPcc">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" osxSDK="default" osxCompatibility="10.11 SDK" osxArchitecture="default"
-                       isDebug="1" optimisation="1" targetName="spatServerGRIS" headerPath="../../jack&#10;../../glm"
+                       isDebug="1" optimisation="1" targetName="ServerGRIS" headerPath="../../jack&#10;../../glm"
                        libraryPath="../../jack/lib"/>
         <CONFIGURATION name="Release" osxSDK="default" osxCompatibility="10.10 SDK"
-                       osxArchitecture="default" isDebug="0" optimisation="3" targetName="spatServerGRIS"
+                       osxArchitecture="default" isDebug="0" optimisation="3" targetName="ServerGRIS"
                        headerPath="../../jack&#10;../../glm" libraryPath="../../jack/lib"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
@@ -83,9 +83,9 @@
     <VS2015 targetFolder="Builds/VisualStudio2015">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" winWarningLevel="4" generateManifest="1" winArchitecture="32-bit"
-                       isDebug="1" optimisation="1" targetName="spatServerGRIS"/>
+                       isDebug="1" optimisation="1" targetName="ServerGRIS"/>
         <CONFIGURATION name="Release" winWarningLevel="4" generateManifest="1" winArchitecture="32-bit"
-                       isDebug="0" optimisation="3" targetName="spatServerGRIS"/>
+                       isDebug="0" optimisation="3" targetName="ServerGRIS"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_core" path="../../sdks/JUCE-4.3.1/modules"/>
@@ -107,8 +107,8 @@
     </VS2015>
     <LINUX_MAKE targetFolder="Builds/LinuxMakefile" smallIcon="G8JPcc" bigIcon="G8JPcc">
       <CONFIGURATIONS>
-        <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="spatServerGRIS"/>
-        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="spatServerGRIS"/>
+        <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="ServerGRIS"/>
+        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="ServerGRIS"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_video" path="../../sdks/JUCE-4.3.1/modules"/>

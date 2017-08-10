@@ -1,22 +1,21 @@
 /*
- This file is part of spatServerGRIS.
+ This file is part of ServerGris.
  
  Developers: Nicolas Masson
  
- spatServerGRIS is free software: you can redistribute it and/or modify
+ ServerGris is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
  
- spatServerGRIS is distributed in the hope that it will be useful,
+ ServerGris is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
  
  You should have received a copy of the GNU General Public License
- along with spatServerGRIS.  If not, see <http://www.gnu.org/licenses/>.
+ along with ServerGris.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "GrisLookAndFeel.h"
@@ -25,11 +24,11 @@
 
 
 //==============================================================================
-class spatServerGRISApplication  : public JUCEApplication
+class ServerGRISApplication  : public JUCEApplication
 {
 public:
     //==============================================================================
-    spatServerGRISApplication() {}
+    ServerGRISApplication() {}
 
     const String getApplicationName() override       { return ProjectInfo::projectName; }
     const String getApplicationVersion() override    { return ProjectInfo::versionString; }
@@ -83,7 +82,7 @@ public:
             // Copy JackRouter ini file to preferences folder if not already done.
 #ifndef __linux__
             File target = File("~/Library/Preferences/JAS.jpil");
-            File source = File(File::getCurrentWorkingDirectory().getFullPathName()+("/spatServerGRIS.app/Contents/Resources/JAS.jpil"));
+            File source = File(File::getCurrentWorkingDirectory().getFullPathName()+("/ServerGRIS.app/Contents/Resources/JAS.jpil"));
             if (target.existsAsFile() == false) {
                 source.copyFileTo(target);
             }
@@ -129,4 +128,4 @@ private:
 
 //==============================================================================
 // This macro generates the main() routine that launches the app.
-START_JUCE_APPLICATION (spatServerGRISApplication)
+START_JUCE_APPLICATION (ServerGRISApplication)

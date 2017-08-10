@@ -1,22 +1,21 @@
 /*
- This file is part of spatServerGRIS.
+ This file is part of ServerGris.
  
  Developers: Nicolas Masson
  
- spatServerGRIS is free software: you can redistribute it and/or modify
+ ServerGris is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
  
- spatServerGRIS is distributed in the hope that it will be useful,
+ ServerGris is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
  
  You should have received a copy of the GNU General Public License
- along with spatServerGRIS.  If not, see <http://www.gnu.org/licenses/>.
+ along with ServerGris.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #ifndef jackClientGris_h
 #define jackClientGris_h
@@ -115,7 +114,7 @@ static const StringArray BufferSize = {"32", "64", "128", "256", "512", "1024", 
 static const StringArray RateValues = {"44100", "48000", "88200", "96000"};
 
 static const char* DeviceName =     "GRIS";
-static const char* ClientName =     "SpatServerGRIS";
+static const char* ClientName =     "ServerGRIS";
 #ifdef __linux__
 static const char* DriverNameSys = "alsa";
 #else

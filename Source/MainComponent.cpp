@@ -1,22 +1,21 @@
 /*
- This file is part of spatServerGRIS.
+ This file is part of ServerGris.
  
  Developers: Nicolas Masson
  
- spatServerGRIS is free software: you can redistribute it and/or modify
+ ServerGris is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
  
- spatServerGRIS is distributed in the hope that it will be useful,
+ ServerGris is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
  
  You should have received a copy of the GNU General Public License
- along with spatServerGRIS.  If not, see <http://www.gnu.org/licenses/>.
+ along with ServerGris.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #include "MainComponent.h"
 
@@ -36,12 +35,12 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     fs = File (cwd + ("/Contents/Resources/splash.png"));
 #endif
     if(fs.exists()) {
-        this->splash = new SplashScreen ("SpatServerGRIS",ImageFileFormat::loadFrom (fs),true);
+        this->splash = new SplashScreen ("ServerGRIS",ImageFileFormat::loadFrom (fs),true);
     }
     
     //Local save (Last xml file open)
     PropertiesFile::Options options;
-    options.applicationName = "SpatServerGRIS";
+    options.applicationName = "ServerGRIS";
     options.commonToAllUsers = false;
     options.filenameSuffix = "xml";
     options.folderName = "GRIS";
@@ -325,7 +324,7 @@ ComboBox* MainContentComponent::addComboBox(const String &s, const String &stool
 //=====================================================
 bool MainContentComponent::exitApp()
 {
-    ScopedPointer<AlertWindow> alert = new AlertWindow ("Exit SpatServerGRIS !","Do you want to save preset ?", AlertWindow::InfoIcon);
+    ScopedPointer<AlertWindow> alert = new AlertWindow ("Exit ServerGRIS !","Do you want to save preset ?", AlertWindow::InfoIcon);
     alert->addButton ("Save", 1);
     alert->addButton ("Cancel", 0);
     alert->addButton ("Exit", 2);
@@ -841,7 +840,7 @@ void MainContentComponent::openXmlFileSpeaker(String path)
 
 void MainContentComponent::setTitle() {
     String version = STRING(JUCE_APP_VERSION);
-    version = "SpatServer GRIS v" + version + " - ";
+    version = "Server GRIS v" + version + " - ";
     this->parent->setName(version + File(this->pathCurrentPreset).getFileName());
 }
 
@@ -857,7 +856,7 @@ void MainContentComponent::openPreset(String path)
         AlertWindow::showMessageBoxAsync (AlertWindow::AlertIconType::WarningIcon,"Error in openPreset !",
                                           "Your file is corrupted !\n"+ File::getSpecialLocation(File::currentApplicationFile).getFullPathName() + "\n" + xmlDoc.getLastParseError(),String(),0);
     } else {
-        if (mainXmlElem->hasTagName("SpatServerGRIS_Preset")) {
+        if (mainXmlElem->hasTagName("SpatServerGRIS_Preset") || mainXmlElem->hasTagName("ServerGRIS_Preset")) {
             this->tedOSCInPort->setText(mainXmlElem->getStringAttribute("OSC_Input_Port"));
             this->tedAddInputs->setText(mainXmlElem->getStringAttribute("Number_Of_Inputs"));
             this->sliderMasterGainOut->setValue(mainXmlElem->getDoubleAttribute("Master_Gain_Out", 1.0), sendNotification);
@@ -917,7 +916,7 @@ void MainContentComponent::savePreset(String path)
 {
     File xmlFile = File (path.toStdString());
     XmlDocument xmlDoc (xmlFile);
-    ScopedPointer<XmlElement>  xml = new XmlElement("SpatServerGRIS_Preset");
+    ScopedPointer<XmlElement>  xml = new XmlElement("ServerGRIS_Preset");
     
     xml->setAttribute ("OSC_Input_Port",     this->tedOSCInPort->getTextValue().toString());
     xml->setAttribute ("Number_Of_Inputs",   this->tedAddInputs->getTextValue().toString());
@@ -1005,8 +1004,8 @@ void MainContentComponent::saveJackSettings(unsigned int rate, unsigned int buff
     unsigned int RateValue = applicationProperties.getUserSettings()->getValue("RateValue").getIntValue();
 
     if(rate != RateValue || buff != BufferValue){
-        bool r = AlertWindow::showOkCancelBox(AlertWindow::AlertIconType::WarningIcon,"Restart SpatServerGRIS",
-                                               "Need to restart SpatServerGRIS for apply new settings !");
+        bool r = AlertWindow::showOkCancelBox(AlertWindow::AlertIconType::WarningIcon,"Restart ServerGRIS",
+                                               "Need to restart ServerGRIS for apply new settings !");
         //Click OK -> Open xml
         if(r){
             applicationProperties.getUserSettings()->setValue("BufferValue", (int)buff);
