@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<SpatServerGRIS_Preset OSC_Input_Port="18032" Number_Of_Inputs="16" Master_Gain_Out="1"
+                       Master_Interpolation="0.33" Mode_Process="0"
+                       Show_Numbers="0" High_Performance="0" Speaker_Setup_File="default_speaker_setup.xml">
+  <Input Index="1" R="0.749019622802734375" G="0" B="0"/>
+  <Input Index="2" R="0.749019622802734375" G="0" B="0"/>
+  <Input Index="3" R="0.749019622802734375" G="0" B="0"/>
+  <Input Index="4" R="0.749019622802734375" G="0" B="0"/>
+  <Input Index="5" R="0.749019622802734375" G="0" B="0"/>
+  <Input Index="6" R="0.749019622802734375" G="0" B="0"/>
+  <Input Index="7" R="0.749019622802734375" G="0" B="0"/>
+  <Input Index="8" R="0.749019622802734375" G="0" B="0"/>
+  <Input Index="9" R="0.749019622802734375" G="0" B="0"/>
+  <Input Index="10" R="0.749019622802734375" G="0" B="0"/>
+  <Input Index="11" R="0.749019622802734375" G="0" B="0"/>
+  <Input Index="12" R="0.749019622802734375" G="0" B="0"/>
+  <Input Index="13" R="0.749019622802734375" G="0" B="0"/>
+  <Input Index="14" R="0.749019622802734375" G="0" B="0"/>
+  <Input Index="15" R="0.749019622802734375" G="0" B="0"/>
+  <Input Index="16" R="0.749019622802734375" G="0" B="0"/>
+</SpatServerGRIS_Preset>
