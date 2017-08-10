@@ -840,7 +840,7 @@ void MainContentComponent::openXmlFileSpeaker(String path)
 
 void MainContentComponent::setTitle() {
     String version = STRING(JUCE_APP_VERSION);
-    version = "Server GRIS v" + version + " - ";
+    version = "ServerGRIS v" + version + " - ";
     this->parent->setName(version + File(this->pathCurrentPreset).getFileName());
 }
 
