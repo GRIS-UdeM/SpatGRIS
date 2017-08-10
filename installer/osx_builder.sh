@@ -4,9 +4,9 @@
 # compile SpatServerGris in Release mode
 # and run this shell script from the installer folder.
 
-export PACKAGE_NAME=SpatServerGris_v0.0.5.pkg
-export DMG_DIR="SpatServerGris v0.0.5"
-export DMG_NAME="SpatServerGris_v0.0.5.dmg"
+export PACKAGE_NAME=ServerGris_v0.0.5.pkg
+export DMG_DIR="ServerGris v0.0.5"
+export DMG_NAME="ServerGris_v0.0.5.dmg"
 
 export INSTALLER_DIR=`pwd`/installerdir
 export APPLICATIONS_DIR=$INSTALLER_DIR/Application/Package_Contents/Applications
@@ -36,7 +36,7 @@ cp $PKG_RESOURCES/Welcome.rtf $BUILD_RESOURCES/Welcome.rtf
 cp $PKG_RESOURCES/ReadMe.rtf $BUILD_RESOURCES/ReadMe.rtf
 
 echo "copying application..."
-cp -r ../Builds/MacOSX/build/Release/spatServerGris.app $APPLICATIONS_DIR/
+cp -r ../Builds/MacOSX/build/Release/ServerGris.app $APPLICATIONS_DIR/
 cp -r /Applications/Jack $APPLICATIONS_DIR/
 
 echo "copying support libs..."
@@ -87,24 +87,24 @@ sudo chown -R root SupportLibs/Package_Contents/usr
 sudo chmod -R 755 SupportLibs/Package_Contents/usr
 
 echo "building packages..."
-pkgbuild    --identifier com.gris.umontreal.ca.spatServerGris.app.pkg \
+pkgbuild    --identifier com.gris.umontreal.ca.ServerGris.app.pkg \
             --root Application/Package_Contents/ \
             --version 1.0 \
             --scripts $PKG_RESOURCES \
             --component-plist ../Application.plist \
             Application.pkg
 
-pkgbuild    --identifier com.gris.umontreal.ca.spatServerGris.libs.pkg \
+pkgbuild    --identifier com.gris.umontreal.ca.ServerGris.libs.pkg \
             --root SupportLibs/Package_Contents/ \
             --version 1.0 \
             SupportLibs.pkg
 
-pkgbuild    --identifier com.gris.umontreal.ca.spatServerGris.frameworks.pkg \
+pkgbuild    --identifier com.gris.umontreal.ca.ServerGris.frameworks.pkg \
             --root Frameworks/Package_Contents/ \
             --version 1.0 \
             Frameworks.pkg
 
-pkgbuild    --identifier com.gris.umontreal.ca.spatServerGris.plugins.pkg \
+pkgbuild    --identifier com.gris.umontreal.ca.ServerGris.plugins.pkg \
             --root Plugins/Package_Contents/ \
             --version 1.0 \
             Plugins.pkg

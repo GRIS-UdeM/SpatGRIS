@@ -12,7 +12,7 @@
         <key>BundleOverwriteAction</key>
         <string>install</string>
         <key>RootRelativeBundlePath</key>
-        <string>Applications/spatServerGris.app</string>
+        <string>Applications/ServerGris.app</string>
     </dict>
 </array>
 </plist>
