@@ -97,14 +97,12 @@ void SpeakerViewComponent::render()
     if (this->mainParent->getLockSpeakers()->try_lock()) {
         if (!this->hideSpeaker) {
             for (int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
-                if (! this->mainParent->getListSpeaker()[i]->getDirectOut()) {
-                    this->mainParent->getListSpeaker()[i]->draw();
-                    if (this->showNumber) {
-                        glm::vec3 posT = this->mainParent->getListSpeaker()[i]->getCenter();
-                        posT.y += SizeSpeaker.y+0.4f;
-                        this->drawText(to_string(this->mainParent->getListSpeaker()[i]->getOutputPatch()),
-                                       posT, glm::vec3(0, 0, 0), 0.003f);
-                    }
+                this->mainParent->getListSpeaker()[i]->draw();
+                if (this->showNumber) {
+                    glm::vec3 posT = this->mainParent->getListSpeaker()[i]->getCenter();
+                    posT.y += SizeSpeaker.y+0.4f;
+                    this->drawText(to_string(this->mainParent->getListSpeaker()[i]->getOutputPatch()),
+                                   posT, glm::vec3(0, 0, 0), 0.003f);
                 }
             }
         }

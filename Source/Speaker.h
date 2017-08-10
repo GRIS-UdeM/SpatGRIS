@@ -55,6 +55,7 @@ struct Triplet {
 };
 
 static const glm::vec3 ColorSpeaker         = glm::vec3(0.87, 0.87, 0.87);
+static const glm::vec3 ColorDirectOutSpeaker = glm::vec3(0.25, 0.25, 0.25);
 static const glm::vec3 ColorSpeakerSelect   = glm::vec3(1.00, 0.64, 0.09);
 static const glm::vec3 SizeSpeaker          = glm::vec3(0.5, 0.5, 0.5);
 static const glm::vec3 DefaultCenter        = glm::vec3(0, 0, 0);

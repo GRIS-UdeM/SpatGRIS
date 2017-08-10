@@ -46,7 +46,7 @@ private:
     Font  font = Font(juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf, (size_t) BinaryData::SinkinSans400Regular_otfSize));
 
     Colour backGroundAndFieldColour, winBackGroundAndFieldColour;
-    Colour lightColour, darkColour, greyColour, editBgcolor;
+    Colour lightColour, darkColour, greyColour, editBgcolor, hlBgcolor;
     Colour onColor, onColorOver, onColorDown, offColor, greenColor, redColor;
     
 public:
@@ -59,6 +59,7 @@ public:
         this->darkColour                = Colour::fromRGB(15,  10,  5);       //Colours::black;
         this->greyColour                = Colour::fromRGB(120, 120, 120);   //Colours::grey;
         this->editBgcolor               = Colour::fromRGB(172, 172, 172);
+        this->hlBgcolor                 = Colour::fromRGB(190, 125, 18);
         
         this->onColor                   = Colour::fromRGB(255, 165, 25);
         this->onColorOver               = Colour::fromRGB(255, 184, 75);
@@ -70,7 +71,7 @@ public:
         
         setColour(PopupMenu::highlightedBackgroundColourId, this->onColor);
         setColour(TextEditor::backgroundColourId, this->editBgcolor);
-        setColour(TextEditor::highlightColourId, this->onColor);
+        setColour(TextEditor::highlightColourId, this->hlBgcolor);
         setColour(TextEditor::shadowColourId, this->editBgcolor);
         
         setColour(TextButton::buttonColourId, this->editBgcolor);
@@ -144,6 +145,9 @@ public:
         return this->lightColour;
     }
     
+    Colour getHighlightColour(){
+        return this->hlBgcolor;
+    }
     Colour getOnColour(){
         return this->onColor;
     }

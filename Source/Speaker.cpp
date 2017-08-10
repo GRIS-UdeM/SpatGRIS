@@ -101,6 +101,11 @@ bool Speaker::getDirectOut() {
 
 void Speaker::setDirectOut(bool value) {
     this->directOut = value;
+    if (this->directOut) {
+        this->color = ColorDirectOutSpeaker;
+    } else {
+        this->color = ColorSpeaker;
+    }
 }
 
 glm::vec3 Speaker::getMin()
@@ -159,7 +164,11 @@ void Speaker::selectSpeaker()
 
 void Speaker::unSelectSpeaker()
 {
-    this->color = ColorSpeaker;
+    if (this->directOut) {
+        this->color = ColorDirectOutSpeaker;
+    } else {
+        this->color = ColorSpeaker;
+    }
     this->selected = false;
     this->vuMeter->setSelected(this->selected);
 }
@@ -257,7 +266,7 @@ void Speaker::draw()
     
     glEnd();
     
-    if(this->selected){
+    if (this->selected) {
         glLineWidth(2);
         glBegin(GL_LINES);
         glColor3f(0, 0, 0);
@@ -310,15 +319,13 @@ void Speaker::draw()
         
         glEnd();
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    }
-    else{
+    } else {
         glLineWidth(2);
         glBegin(GL_LINES);
         glColor3f(0.37, 0.37, 0.37);
-        glVertex3f(this->center.x+SizeSpeaker.x,this->center.y, this->center.z);
-        glVertex3f(this->center.x+ 1.2f,this->center.y, this->center.z);
+        glVertex3f(this->center.x+SizeSpeaker.x, this->center.y, this->center.z);
+        glVertex3f(this->center.x+1.2f, this->center.y, this->center.z);
         glEnd();
-        
     }
 
     glPopMatrix();

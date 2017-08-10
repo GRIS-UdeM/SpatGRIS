@@ -614,7 +614,7 @@ void WindowEditSpeaker::paintRowBackground (Graphics& g, int rowNumber, int /*wi
         this->mainParent->getListSpeaker()[rowNumber]->selectSpeaker();
         this->mainParent->getLockSpeakers()->unlock();
         }
-        g.fillAll (this->grisFeel->getOnColour());
+        g.fillAll (this->grisFeel->getHighlightColour());
     }
     else{
         if(this->mainParent->getLockSpeakers()->try_lock()){
@@ -660,7 +660,6 @@ Component* WindowEditSpeaker::refreshComponentForCell(int rowNumber, int columnI
         tbDirect->addListener(this);
         // TODO: ToggleButton->setToggleState is deprecated, need an alternative.
         tbDirect->setToggleState(this->mainParent->getListSpeaker()[rowNumber]->getDirectOut(), false);
-        tbDirect->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
         tbDirect->setLookAndFeel(this->grisFeel);
         return tbDirect;
     }
