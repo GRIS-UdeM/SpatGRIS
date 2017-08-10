@@ -51,7 +51,7 @@ static unsigned int const MaxOutputs = 256;
 struct Client {
     String          name;
     unsigned int    portStart     = 1;
-    unsigned int    portEnd       = 32;
+    unsigned int    portEnd       = 64;
     unsigned int    portAvailable = 0;
     bool            connected     = false;
 };

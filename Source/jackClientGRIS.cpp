@@ -934,6 +934,13 @@ void jackClientGris::updateClientPortAvailable()
         i++;
     }
 
+    unsigned int start = 1;
+    for (auto&& cli : this->listClient) {
+        cli.portStart = start;
+        cli.portEnd = start + cli.portAvailable - 1;
+        start += cli.portAvailable;
+    }
+
     jack_free(portsOut);
 }
 
