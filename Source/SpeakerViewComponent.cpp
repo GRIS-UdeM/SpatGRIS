@@ -385,7 +385,7 @@ void SpeakerViewComponent::drawText(string val, glm::vec3 position, glm::vec3 co
 
     //glRotatef(-90.0f, 1, 1, 0);
     if(camLock){
-        glRotatef((this->camAngleX), 0, 1, 0);
+        glRotatef((-this->camAngleX), 0, 1, 0);
         if(this->camAngleY < 0  || this->camAngleY > 90.f){
             glRotatef(-this->camAngleY, 0, 1, 0);
         }
