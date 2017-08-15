@@ -124,6 +124,8 @@ public:
     //=======================================================================
     float getLevelsOut(int indexLevel){return (15.0f * log10f(sqrtf(this->jackClient->getLevelsOut(indexLevel))));}
     float getLevelsIn(int indexLevel){return (15.0f * log10f(sqrtf(this->jackClient->getLevelsIn(indexLevel)))); }
+    // TODO: We need a better curve from level to alpha.
+    float getLevelsAlpha(int indexLevel){return sqrtf(sqrtf(this->jackClient->getLevelsIn(indexLevel))); }
     
 
     void destroyWinSpeakConf() { this->winSpeakConfig = nullptr; this->jackClient->processBlockOn = true; }
@@ -145,6 +147,8 @@ public:
     String getCurrentFileSpeakerPath();
 
     ApplicationProperties applicationProperties;
+
+    bool useAlpha;
 
 private:
 
@@ -225,6 +229,7 @@ private:
     ToggleButton *  butHighPerformance;
     ToggleButton *  butNoiseSound;
     ToggleButton *  butHideSpeaker;
+    ToggleButton *  butUseAlpha;
     
     Slider *        sliderMasterGainOut;
     Slider *        sliderInterpolation;

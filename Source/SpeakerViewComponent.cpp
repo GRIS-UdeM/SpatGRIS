@@ -122,7 +122,7 @@ void SpeakerViewComponent::render()
             if (this->showNumber) {
                 glm::vec3 posT = input->getCenter();
                 posT.y += SizeSpeaker.y + 0.4f;
-                this->drawText(to_string(input->getId()), posT, input->getNumberColor(), 0.003f);
+                this->drawText(to_string(input->getId()), posT, input->getNumberColor(), 0.003f, true, input->getAlpha());
             }
         }
         //this->mainParent->getLockInputs()->unlock();
@@ -378,7 +378,7 @@ void SpeakerViewComponent::drawOriginGrid()
 }
 
 void SpeakerViewComponent::drawText(string val, glm::vec3 position, glm::vec3 color,
-                                    float scale, bool camLock)
+                                    float scale, bool camLock, float alpha)
 {
     glPushMatrix();
     glTranslatef(position.x, position.y, position.z);
@@ -392,7 +392,7 @@ void SpeakerViewComponent::drawText(string val, glm::vec3 position, glm::vec3 co
     }
 
     glScalef( scale, scale, scale);
-    glColor3f(color.x, color.y, color.z);
+    glColor4f(color.x, color.y, color.z, alpha);
     for (char & c : val)
     {
         glutStrokeCharacter( GLUT_STROKE_MONO_ROMAN, c );

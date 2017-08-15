@@ -86,6 +86,7 @@ void Input::setSolo(bool solo)
 void Input::setColor(Colour color, bool updateLevel)
 {
     this->colorJ = color;
+
     this->color.x = this->colorJ.getFloatRed();
     this->color.y = this->colorJ.getFloatGreen();
     this->color.z = this->colorJ.getFloatBlue();
@@ -110,6 +111,23 @@ Colour Input::getColorJ()
     return this->colorJ;
 }
 
+Colour Input::getColorJWithAlpha()
+{
+    if (this->mainParent->useAlpha) {
+        return this->colorJ.withMultipliedAlpha(this->getAlpha());
+    } else {
+        return this->colorJ;
+    }
+}
+
+float Input::getAlpha() {
+    if (this->mainParent->useAlpha) {
+        return this->mainParent->getLevelsAlpha(this->idChannel-1);
+    } else {
+        return 1.0f;
+    }
+}
+
 void Input::draw()
 {
     // Draw 3D sphere.
@@ -117,7 +135,11 @@ void Input::draw()
     glTranslatef(this->center.x, this->center.y, this->center.z);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);  //GL_LINE
     glLineWidth(2);
-    glColor3f(this->color.x, this->color.y, this->color.z);
+    if (this->mainParent->useAlpha) {
+        glColor4f(this->color.x, this->color.y, this->color.z, this->getAlpha());
+    } else {
+        glColor3f(this->color.x, this->color.y, this->color.z);
+    }
     glutSolidSphere(this->sizeT, 8, 8);
     glTranslatef(-this->center.x, -this->center.y, -this->center.z);
 

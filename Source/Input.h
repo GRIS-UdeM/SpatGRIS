@@ -69,6 +69,8 @@ public :
     glm::vec3 getColor();
     glm::vec3 getNumberColor();
     Colour    getColorJ();
+    Colour    getColorJWithAlpha();
+    float getAlpha();
     float getAziMuth(){ return this->azimuth; }
     float getZenith(){ return this->zenith; }
     float getRad(){ return this->radius; }
@@ -101,7 +103,7 @@ private:
     float azimSpan;
     float zeniSpan;
     float gain;
-    
+
     float sizeT = 0.3f;
     glm::vec3 center;
     glm::vec3 color;

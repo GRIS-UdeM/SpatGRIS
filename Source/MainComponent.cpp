@@ -113,6 +113,7 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     this->butHighPerformance =      addToggleButton("High performance", "Enable Low CPU Usage", 140, 120, 124, 18, this->boxControlUI->getContent());
     this->butNoiseSound =           addToggleButton("Noise Sound", "Enable bip noise",          140, 140, 124, 18, this->boxControlUI->getContent());
     this->butHideSpeaker =          addToggleButton("Hide Speakers", "Hide Output Speakers",    140, 160, 124, 18, this->boxControlUI->getContent());
+    this->butUseAlpha =    addToggleButton("Use Alpha", "Use Alpha on Sources",    140, 180, 124, 18, this->boxControlUI->getContent());
 
     this->tedOSCInPort = addTextEditor("Port OSC In :", "Port Socket", "Port Socket OSC Input", 140, 36, 50, 24, this->boxControlUI->getContent());
     this->tedOSCInPort->setText("18032");
@@ -163,7 +164,7 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     this->verticalDividerBar = new StretchableLayoutResizerBar (&verticalLayout, 1, true);
     this->addAndMakeVisible (verticalDividerBar);
 
-    this->setSize (1360, 680);
+    this->setSize (1360, 695);
 
     // Jack Init and Param -------------------------------------------------------------------------------
     unsigned int BufferValue = this->applicationProperties.getUserSettings()->getValue("BufferValue").getIntValue();
@@ -864,6 +865,11 @@ void MainContentComponent::openPreset(String path)
             this->comBoxModeSpat->setSelectedItemIndex(mainXmlElem->getIntAttribute("Mode_Process"),sendNotification);
             this->butShowSpeakerNumber->setToggleState(mainXmlElem->getBoolAttribute("Show_Numbers"),sendNotification);
             this->butHighPerformance->setToggleState(mainXmlElem->getBoolAttribute("High_Performance"),sendNotification);
+            if (mainXmlElem->hasAttribute("Use_Alpha")) {
+                this->butUseAlpha->setToggleState(mainXmlElem->getBoolAttribute("Use_Alpha"),sendNotification);
+            } else {
+                this->butUseAlpha->setToggleState(false,sendNotification);
+            }
             this->pathCurrentFileSpeaker = mainXmlElem->getStringAttribute("Speaker_Setup_File");
 
 
@@ -925,6 +931,7 @@ void MainContentComponent::savePreset(String path)
     xml->setAttribute ("Mode_Process",       this->comBoxModeSpat->getSelectedItemIndex());
     xml->setAttribute ("Show_Numbers",       this->butShowSpeakerNumber->getToggleState());
     xml->setAttribute ("High_Performance",   this->butHighPerformance->getToggleState());
+    xml->setAttribute ("Use_Alpha",       this->butUseAlpha->getToggleState());
     xml->setAttribute ("Speaker_Setup_File", this->pathCurrentFileSpeaker);
     
     for (auto&& it : listSourceInput)
@@ -1277,6 +1284,10 @@ void MainContentComponent::buttonClicked (Button *button)
         }
         this->speakerView->setHighPerfor(this->butHighPerformance->getToggleState());
         
+    }else if(button == this->butUseAlpha){
+
+        this->useAlpha = this->butUseAlpha->getToggleState();
+
     }else if(button == this->butNoiseSound){
         
         this->jackClient->noiseSound = butNoiseSound->getToggleState();
@@ -1372,7 +1383,7 @@ void MainContentComponent::resized()
     this->verticalLayout.layOutComponents (vcomps, 3, r.getX(), r.getY(), r.getWidth(), r.getHeight(), false, true);
     
     this->boxMainUI->setBounds(this->speakerView->getWidth()+6, 2, getWidth()-(this->speakerView->getWidth()+10), getHeight());
-    this->boxMainUI->correctSize(getWidth()-this->speakerView->getWidth()-6, 680);
+    this->boxMainUI->correctSize(getWidth()-this->speakerView->getWidth()-6, 690);
 
     this->boxInputsUI->setBounds(0, 2, getWidth()-(this->speakerView->getWidth()+10), 241);
     this->boxInputsUI->correctSize(((unsigned int )this->listSourceInput.size()*(SizeWidthLevelComp))+4, 210);
@@ -1380,8 +1391,8 @@ void MainContentComponent::resized()
     this->boxOutputsUI->setBounds(0, 243, getWidth()-(this->speakerView->getWidth()+10), 240);
     this->boxOutputsUI->correctSize(((unsigned int )this->listSpeaker.size()*(SizeWidthLevelComp))+4, 210);
     
-    this->boxControlUI->setBounds(0, 483, getWidth()-(this->speakerView->getWidth()+10), 190);
-    this->boxControlUI->correctSize(740, 190);
+    this->boxControlUI->setBounds(0, 483, getWidth()-(this->speakerView->getWidth()+10), 205);
+    this->boxControlUI->correctSize(740, 205);
 
 }
 

@@ -112,7 +112,6 @@ void WinControl::paint (Graphics& g)
         drawAzimElevSource(g, this->mainParent->getListSourceInput().at(i), fieldWH, fieldCenter);
     }
 
-    
     String stringVal;
     w = (fieldWH - SourceDiameter);
     for(int i = 0; i < maxDrawSource; ++i)
@@ -122,17 +121,17 @@ void WinControl::paint (Graphics& g)
         sourceP.x = ((w/2.0f) + ((w/4.0f)*sourceP.x));
         sourceP.y = ((w/2.0f) - ((w/4.0f)*sourceP.y));
         
-        g.setColour(it->getColorJ());
+        g.setColour(it->getColorJWithAlpha());
         g.fillEllipse(sourceP.x , sourceP.y , SourceDiameter, SourceDiameter);
         
         stringVal.clear();
         stringVal << it->getId();
         
-        g.setColour(Colours::black);
+        g.setColour(Colours::black.withAlpha(it->getAlpha()));
         int tx = sourceP.x;
         int ty = sourceP.y;
         g.drawText(stringVal, tx+6 , ty+1, SourceDiameter+10, SourceDiameter, Justification(Justification::centredLeft), false);
-        g.setColour(Colours::white);
+        g.setColour(Colours::white.withAlpha(it->getAlpha()));
         g.drawText(stringVal, tx+5, ty, SourceDiameter+10, SourceDiameter, Justification(Justification::centredLeft), false);
     }
     
@@ -162,7 +161,7 @@ void WinControl::drawAzimElevSource(Graphics &g, Input * it, const int fieldWH, 
     }
     
     Colour colorS = it->getColorJ();//Colour::fromFloatRGBA(it->getColor().x, it->getColor().y, it->getColor().z, 1.0f);
-    g.setColour(colorS);
+    g.setColour(it->getColorJWithAlpha());
     
     FPoint sourceP = FPoint(it->getCenter().z, it->getCenter().x)/5.0f;
     FPoint azimElev = GetSourceAzimElev(sourceP, true);
@@ -192,7 +191,7 @@ void WinControl::drawAzimElevSource(Graphics &g, Input * it, const int fieldWH, 
     Path myPath;
     myPath.startNewSubPath(fieldCenter+screenMaxElev.x, fieldCenter+screenMaxElev.y);
     //half first arc center
-    myPath.addCentredArc(fieldCenter, fieldCenter, minRadius, minRadius, 0.0, DegreeToRadian(-HRAzim),             DegreeToRadian(-HRAzim + HRAzimSpan/2 ));
+    myPath.addCentredArc(fieldCenter, fieldCenter, minRadius, minRadius, 0.0, DegreeToRadian(-HRAzim), DegreeToRadian(-HRAzim + HRAzimSpan/2 ));
     
     if (maxElev.getY() > 90.f) { // if we are over the top of the dome we draw the adjacent angle
         myPath.addCentredArc(fieldCenter, fieldCenter, maxRadius, maxRadius, 0.0,   M_PI+DegreeToRadian(-HRAzim + HRAzimSpan/2),  M_PI+DegreeToRadian(-HRAzim - HRAzimSpan/2));
@@ -203,9 +202,9 @@ void WinControl::drawAzimElevSource(Graphics &g, Input * it, const int fieldWH, 
     
     myPath.closeSubPath();
     
-    g.setColour(colorS.withAlpha(0.2f));
+    g.setColour(colorS.withAlpha(it->getAlpha() * 0.2f));
     g.fillPath(myPath);
     
-    g.setColour(colorS.withAlpha(0.6f));
+    g.setColour(colorS.withAlpha(it->getAlpha() * 0.6f));
     g.strokePath(myPath, PathStrokeType(0.5));
 }
