@@ -1212,7 +1212,7 @@ void MainContentComponent::buttonClicked (Button *button)
     }
     else if(button == this->butEditableSpeakers){
         
-        Rectangle<int> result (this->getScreenX() + this->speakerView->getWidth() + 20, this->getScreenY() + 20, 650, 500);
+        Rectangle<int> result (this->getScreenX() + this->speakerView->getWidth() + 20, this->getScreenY() + 20, 650, 530);
         if(this->winSpeakConfig == nullptr){
             this->jackClient->processBlockOn = false;
             this->winSpeakConfig = new WindowEditSpeaker("Speakers config", this->nameConfig,

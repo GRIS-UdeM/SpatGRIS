@@ -303,17 +303,6 @@ WindowEditSpeaker::WindowEditSpeaker(const String& name, String& nameC, Colour b
     this->butAddSpeaker->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
     this->butAddSpeaker->setLookAndFeel(this->grisFeel);
     this->boxListSpeaker->getContent()->addAndMakeVisible(this->butAddSpeaker);
-    
-    
-    this->toggleShowSphere = new ToggleButton();
-    this->toggleShowSphere->setButtonText("Show Sphere");
-    this->toggleShowSphere->setBounds(5, 430, 120, 22);
-    this->toggleShowSphere->addListener(this);
-    this->toggleShowSphere->setToggleState(false, dontSendNotification);
-    this->toggleShowSphere->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
-    this->toggleShowSphere->setLookAndFeel(this->grisFeel);
-    this->boxListSpeaker->getContent()->addAndMakeVisible(this->toggleShowSphere);
-    
 
     this->butcompSpeakers = new TextButton();
     this->butcompSpeakers->setButtonText("Compute");
@@ -339,16 +328,113 @@ WindowEditSpeaker::WindowEditSpeaker(const String& name, String& nameC, Colour b
     this->texEditNameConf->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
     this->texEditNameConf->setLookAndFeel(this->grisFeel);
     this->boxListSpeaker->getContent()->addAndMakeVisible(this->texEditNameConf);
+
+    /* Generate ring of speakers */
+    int wlab = 80;
+
+    this->rNumOfSpeakersLabel = new Label();
+    this->rNumOfSpeakersLabel->setText("# of speakers", NotificationType::dontSendNotification);
+    this->rNumOfSpeakersLabel->setJustificationType(Justification::right);
+    this->rNumOfSpeakersLabel->setFont(this->grisFeel->getFont());
+    this->rNumOfSpeakersLabel->setLookAndFeel(this->grisFeel);
+    this->rNumOfSpeakersLabel->setColour(Label::textColourId, this->grisFeel->getFontColour());
+    this->rNumOfSpeakersLabel->setBounds(5, 435, 40, 24);
+    this->boxListSpeaker->getContent()->addAndMakeVisible(this->rNumOfSpeakersLabel);
+
+    this->rNumOfSpeakers = new TextEditor();
+    this->rNumOfSpeakers->setTooltip("Number of speakers in the ring");
+    this->rNumOfSpeakers->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
+    this->rNumOfSpeakers->setLookAndFeel(this->grisFeel);
+    this->rNumOfSpeakers->setBounds(5+wlab, 435, 40, 24);
+    this->rNumOfSpeakers->addListener(this->mainParent);
+    this->boxListSpeaker->getContent()->addAndMakeVisible(this->rNumOfSpeakers);
+    this->rNumOfSpeakers->setText("8");
+    this->rNumOfSpeakers->setInputRestrictions(3, "0123456789");
     
-    
+
+    this->rZenithLabel = new Label();
+    this->rZenithLabel->setText("Zenith", NotificationType::dontSendNotification);
+    this->rZenithLabel->setJustificationType(Justification::right);
+    this->rZenithLabel->setFont(this->grisFeel->getFont());
+    this->rZenithLabel->setLookAndFeel(this->grisFeel);
+    this->rZenithLabel->setColour(Label::textColourId, this->grisFeel->getFontColour());
+    this->rZenithLabel->setBounds(105, 435, 80, 24);
+    this->boxListSpeaker->getContent()->addAndMakeVisible(this->rZenithLabel);
+
+    this->rZenith = new TextEditor();
+    this->rZenith->setTooltip("Elevation angle of the ring");
+    this->rZenith->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
+    this->rZenith->setLookAndFeel(this->grisFeel);
+    this->rZenith->setBounds(105+wlab, 435, 60, 24);
+    this->rZenith->addListener(this->mainParent);
+    this->boxListSpeaker->getContent()->addAndMakeVisible(this->rZenith);
+    this->rZenith->setText("0.0");
+    this->rZenith->setInputRestrictions(6, "-0123456789.");
+
+    this->rRadiusLabel = new Label();
+    this->rRadiusLabel->setText("Radius", NotificationType::dontSendNotification);
+    this->rRadiusLabel->setJustificationType(Justification::right);
+    this->rRadiusLabel->setFont(this->grisFeel->getFont());
+    this->rRadiusLabel->setLookAndFeel(this->grisFeel);
+    this->rRadiusLabel->setColour(Label::textColourId, this->grisFeel->getFontColour());
+    this->rRadiusLabel->setBounds(230, 435, 80, 24);
+    this->boxListSpeaker->getContent()->addAndMakeVisible(this->rRadiusLabel);
+
+    this->rRadius = new TextEditor();
+    this->rRadius->setTooltip("Distance of the speakers from the center.");
+    this->rRadius->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
+    this->rRadius->setLookAndFeel(this->grisFeel);
+    this->rRadius->setBounds(230+wlab, 435, 60, 24);
+    this->rRadius->addListener(this->mainParent);
+    this->boxListSpeaker->getContent()->addAndMakeVisible(this->rRadius);
+    this->rRadius->setText("0.0");
+    this->rRadius->setInputRestrictions(6, "-0123456789.");
+
+    this->rOffsetAngleLabel = new Label();
+    this->rOffsetAngleLabel->setText("Offset Angle", NotificationType::dontSendNotification);
+    this->rOffsetAngleLabel->setJustificationType(Justification::right);
+    this->rOffsetAngleLabel->setFont(this->grisFeel->getFont());
+    this->rOffsetAngleLabel->setLookAndFeel(this->grisFeel);
+    this->rOffsetAngleLabel->setColour(Label::textColourId, this->grisFeel->getFontColour());
+    this->rOffsetAngleLabel->setBounds(375, 435, 80, 24);
+    this->boxListSpeaker->getContent()->addAndMakeVisible(this->rOffsetAngleLabel);
+
+    this->rOffsetAngle = new TextEditor();
+    this->rOffsetAngle->setTooltip("Offset angle of the first speaker.");
+    this->rOffsetAngle->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
+    this->rOffsetAngle->setLookAndFeel(this->grisFeel);
+    this->rOffsetAngle->setBounds(375+wlab, 435, 60, 24);
+    this->rOffsetAngle->addListener(this->mainParent);
+    this->boxListSpeaker->getContent()->addAndMakeVisible(this->rOffsetAngle);
+    this->rOffsetAngle->setText("0.0");
+    this->rOffsetAngle->setInputRestrictions(6, "-0123456789.");
+
+    this->butAddRing = new TextButton();
+    this->butAddRing->setButtonText("Add Ring");
+    this->butAddRing->setBounds(530, 435, 80, 24);
+    this->butAddRing->addListener(this);
+    this->butAddRing->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
+    this->butAddRing->setLookAndFeel(this->grisFeel);
+    this->boxListSpeaker->getContent()->addAndMakeVisible(this->butAddRing);
+
+    /* End generate ring of speakers */
+
     this->butClearTriplet = new TextButton();
     this->butClearTriplet->setButtonText("Clear Triplets");
-    this->butClearTriplet->setBounds(5, 442, 120, 22);
+    this->butClearTriplet->setBounds(5, 455, 120, 22);
     this->butClearTriplet->addListener(this);
     this->butClearTriplet->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
     this->butClearTriplet->setLookAndFeel(this->grisFeel);
     this->boxListSpeaker->getContent()->addAndMakeVisible(this->butClearTriplet);
     
+    this->toggleShowSphere = new ToggleButton();
+    this->toggleShowSphere->setButtonText("Show Sphere");
+    this->toggleShowSphere->setBounds(110, 455, 120, 22);
+    this->toggleShowSphere->addListener(this);
+    this->toggleShowSphere->setToggleState(false, dontSendNotification);
+    this->toggleShowSphere->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
+    this->toggleShowSphere->setLookAndFeel(this->grisFeel);
+    this->boxListSpeaker->getContent()->addAndMakeVisible(this->toggleShowSphere);
 
     this->setContentOwned(this->boxListSpeaker, false);
     this->boxListSpeaker->getContent()->addAndMakeVisible(tableListSpeakers);
@@ -367,6 +453,15 @@ WindowEditSpeaker::~WindowEditSpeaker()
     delete this->butsaveSpeakers;
     delete this->texEditNameConf;
     delete this->butClearTriplet;
+    delete this->rNumOfSpeakers;
+    delete this->rNumOfSpeakersLabel;
+    delete this->rZenith;
+    delete this->rZenithLabel;
+    delete this->rRadius;
+    delete this->rRadiusLabel;
+    delete this->rOffsetAngle;
+    delete this->rOffsetAngleLabel;
+    delete this->butAddRing;
     this->mainParent->destroyWinSpeakConf();
 }
 
@@ -454,6 +549,24 @@ void WindowEditSpeaker::buttonClicked(Button *button)
             }
         }
     }
+    else if (button == this->butAddRing) {
+        for (int i = 0; i < this->rNumOfSpeakers->getText().getIntValue(); i++) {
+            this->mainParent->addSpeaker();
+            float azimuth = 360.0f / this->rNumOfSpeakers->getText().getIntValue() * i + this->rOffsetAngle->getText().getFloatValue();
+            if (azimuth > 360.0f) {
+                azimuth -= 360.0f;
+            } else if (azimuth < 0.0f) {
+                azimuth += 360.0f;
+            }
+            float zenith = this->rZenith->getText().getFloatValue();
+            float radius = this->rRadius->getText().getFloatValue();
+            this->mainParent->getListSpeaker().back()->setAziZenRad(glm::vec3(azimuth, zenith, radius));
+            
+        }
+        updateWinContent();
+        this->tableListSpeakers.selectRow(this->getNumRows()-1);
+
+    }
     else if (button == this->butClearTriplet) {
         this->mainParent->clearListTriplet();
     }
@@ -496,19 +609,27 @@ void WindowEditSpeaker::resized()
 {
     this->juce::DocumentWindow::resized();
     
-    tableListSpeakers.setSize(getWidth(), getHeight()-120);
+    tableListSpeakers.setSize(getWidth(), getHeight()-145);
     
     this->boxListSpeaker->setSize(getWidth(), getHeight());
     this->boxListSpeaker->correctSize(getWidth()-10, getHeight()-30);
 
-    this->butAddSpeaker->setBounds(5, getHeight()-110, 100, 22);
-    this->toggleShowSphere->setBounds(5, getHeight()-86, 120, 22);
-    this->butClearTriplet->setBounds(5, getHeight()-60, 100, 22);
-    this->butcompSpeakers->setBounds(110, getHeight()-110, 100, 22);
-    this->butsaveSpeakers->setBounds(215, getHeight()-110, 100, 22);
-    this->texEditNameConf->setBounds(330, getHeight()-110, 240, 22);
-    
-    //this->boxListSpeaker->correctSize((this->listSourceInput.size()*(SizeWidthLevelComp))+4, 210);
+    this->butAddSpeaker->setBounds(5, getHeight()-130, 100, 22);
+    this->butClearTriplet->setBounds(5, getHeight()-55, 100, 22);
+    this->toggleShowSphere->setBounds(110, getHeight()-55, 120, 22);
+    this->butcompSpeakers->setBounds(110, getHeight()-130, 100, 22);
+    this->butsaveSpeakers->setBounds(215, getHeight()-130, 100, 22);
+    this->texEditNameConf->setBounds(330, getHeight()-130, 240, 22);
+
+    this->rNumOfSpeakersLabel->setBounds(5, getHeight()-95, 80, 24);
+    this->rNumOfSpeakers->setBounds(5+80, getHeight()-95, 40, 24);
+    this->rZenithLabel->setBounds(100, getHeight()-95, 80, 24);
+    this->rZenith->setBounds(100+80, getHeight()-95, 60, 24);
+    this->rRadiusLabel->setBounds(215, getHeight()-95, 80, 24);
+    this->rRadius->setBounds(215+80, getHeight()-95, 60, 24);
+    this->rOffsetAngleLabel->setBounds(360, getHeight()-95, 80, 24);
+    this->rOffsetAngle->setBounds(360+80, getHeight()-95, 60, 24);
+    this->butAddRing->setBounds(530, getHeight()-95, 80, 24);
 }
 
 String WindowEditSpeaker::getText (const int columnNumber, const int rowNumber) const

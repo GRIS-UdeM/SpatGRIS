@@ -172,6 +172,16 @@ private:
     TextButton *butsaveSpeakers;
     TextEditor *texEditNameConf;
     TextButton *butClearTriplet;
+
+    Label      *    rNumOfSpeakersLabel;
+    TextEditor *    rNumOfSpeakers;
+    Label      *    rZenithLabel;
+    TextEditor *    rZenith;
+    Label      *    rRadiusLabel;
+    TextEditor *    rRadius;
+    Label      *    rOffsetAngleLabel;
+    TextEditor *    rOffsetAngle;
+    TextButton *    butAddRing;
     
     TableListBox tableListSpeakers;
     Font font;
