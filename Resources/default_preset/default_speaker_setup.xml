@@ -44,13 +44,13 @@
     <Speaker PositionX="-0.32999998331069946289" PositionY="-0.5" PositionZ="0.5"
              Azimuth="236.5751953125" Zenith="39.84869384765625" Radius="0.7803204655647277832"
              LayoutIndex="14" OutputPatch="11"/>
-    <Speaker PositionX="0.00093199906405061483383" PositionY="0.094572998583316802979"
-             PositionZ="0.80000001192092895508" Azimuth="89.4353790283203125"
-             Zenith="83.2576751708984375" Radius="0.80557119846343994141"
+    <Speaker PositionX="0.0" PositionY="0.2"
+             PositionZ="1.0" Azimuth="90.0"
+             Zenith="78.69" Radius="1.0198"
              LayoutIndex="15" OutputPatch="16"/>
-    <Speaker PositionX="0.0022159994114190340042" PositionY="-0.10000000149011611938"
-             PositionZ="0.80000001192092895508" Azimuth="271.26947021484375"
-             Zenith="82.87325286865234375" Radius="0.80622881650924682617"
+    <Speaker PositionX="0.0" PositionY="-0.2"
+             PositionZ="1.0" Azimuth="270.0"
+             Zenith="78.69" Radius="1.0198"
              LayoutIndex="16" OutputPatch="15"/>
   </Ring>
 </SpeakerSetup>
