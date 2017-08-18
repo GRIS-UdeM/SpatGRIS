@@ -387,7 +387,7 @@ WindowEditSpeaker::WindowEditSpeaker(const String& name, String& nameC, Colour b
     this->rRadius->setBounds(230+wlab, 435, 60, 24);
     this->rRadius->addListener(this->mainParent);
     this->boxListSpeaker->getContent()->addAndMakeVisible(this->rRadius);
-    this->rRadius->setText("0.0");
+    this->rRadius->setText("1.0");
     this->rRadius->setInputRestrictions(6, "-0123456789.");
 
     this->rOffsetAngleLabel = new Label();
@@ -411,7 +411,7 @@ WindowEditSpeaker::WindowEditSpeaker(const String& name, String& nameC, Colour b
 
     this->butAddRing = new TextButton();
     this->butAddRing->setButtonText("Add Ring");
-    this->butAddRing->setBounds(530, 435, 80, 24);
+    this->butAddRing->setBounds(520, 435, 100, 24);
     this->butAddRing->addListener(this);
     this->butAddRing->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
     this->butAddRing->setLookAndFeel(this->grisFeel);
@@ -629,7 +629,7 @@ void WindowEditSpeaker::resized()
     this->rRadius->setBounds(215+80, getHeight()-95, 60, 24);
     this->rOffsetAngleLabel->setBounds(360, getHeight()-95, 80, 24);
     this->rOffsetAngle->setBounds(360+80, getHeight()-95, 60, 24);
-    this->butAddRing->setBounds(530, getHeight()-95, 80, 24);
+    this->butAddRing->setBounds(520, getHeight()-95, 100, 24);
 }
 
 String WindowEditSpeaker::getText (const int columnNumber, const int rowNumber) const
