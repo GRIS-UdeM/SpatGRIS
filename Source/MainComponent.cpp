@@ -142,12 +142,22 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
          this->comBoxModeSpat->addItem(ModeSpatString[i], i+1);
     }
 
-    this->tedMinRecord      = addTextEditor("Min :", "Time of record (min)", "Time of record (min)", 460, 156, 40, 24, this->boxControlUI->getContent());
-    this->tedMinRecord->setText("0");
-    this->tedMinRecord->setInputRestrictions(2,"0123456789");
-    this->butStartRecord    = addButton("R","Start/Stop Record",480,156,24,24,this->boxControlUI->getContent());
-    
-    this->labelTimeRecorded = addLabel("00:00","Record time",580, 156, 50, 24,this->boxControlUI->getContent());
+    this->butStartRecord = addButton("R","Start/Stop Record",480,157,24,24,this->boxControlUI->getContent());
+    this->butStartRecord->setEnabled(false);
+
+    this->labelTimeRecorded = addLabel("00:00","Record time",502, 157, 50, 24,this->boxControlUI->getContent());
+
+    this->tedMinRecord = addTextEditor("Min :", "Time of record (min)", "Time of record (min)", 510, 157, 40, 24, this->boxControlUI->getContent());
+    this->tedMinRecord->setText("1.0");
+    this->tedMinRecord->setInputRestrictions(5,"0123456789.");
+
+    this->butInitRecord = addButton("Initialize Recording", "Initialize Recording", 589, 182, 150, 24, this->boxControlUI->getContent());
+
+    addLabel("Format :","Recording file format", 632, 157, 50, 24, this->boxControlUI->getContent());
+    this->recordFormat = addComboBox("", "Recording file format", 683, 158, 55, 22, this->boxControlUI->getContent());
+    this->recordFormat->addItem("WAV", 1);
+    this->recordFormat->addItem("AIFF", 2);
+    this->recordFormat->setSelectedItemIndex(0, dontSendNotification);
 
     this->butDisconnectAllJack  = addButton("X All","Disconnect all Jack",480,120,40,24,this->boxControlUI->getContent());
     this->butDisconnectAllJack->setColour(TextButton::buttonColourId, mGrisFeel.getRedColour());
@@ -192,9 +202,7 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     this->labelJackRate->setText(String(this->jackClient->sampleRate)+ " Hz", dontSendNotification);
     this->labelJackBuffer->setText(String(this->jackClient->bufferSize)+ " spls", dontSendNotification);
     this->labelJackInfo->setText("I : "+String(this->jackClient->numberInputs)+ " - O : "+String(this->jackClient->numberOutputs), dontSendNotification);
-    
-    this->fileWriter = new FileWriter(this);
-    
+
     this->sliderMasterGainOut->setValue(1.0);
     this->sliderInterpolation->setValue(0.33);
     this->comBoxModeSpat->setSelectedId(1);
@@ -360,7 +368,6 @@ MainContentComponent::~MainContentComponent()
     this->applicationProperties.closeFiles();
 
     delete this->oscReceiver;
-    delete this->fileWriter;
     
     if(this->winSpeakConfig != nullptr){
         delete this->winSpeakConfig;
@@ -674,9 +681,7 @@ void MainContentComponent::updateLevelComp() {
 
     this->boxOutputsUI->repaint();
     this->resized();
-    
-    this->jackClient->prepareToRecord(0);
-    
+
     //Clear useless triplet
     for(int i = 0; i < this->listTriplet.size(); ++i) {
         if(this->listTriplet[i].id1+1 > this->listSpeaker.size() ||
@@ -870,6 +875,12 @@ void MainContentComponent::openPreset(String path)
             } else {
                 this->butUseAlpha->setToggleState(false,sendNotification);
             }
+            if (mainXmlElem->hasAttribute("Record_Format")) {
+                this->recordFormat->setSelectedItemIndex(mainXmlElem->getIntAttribute("Record_Format"),sendNotification);
+            } else {
+                this->recordFormat->setSelectedItemIndex(0, sendNotification);
+            }
+
             this->pathCurrentFileSpeaker = mainXmlElem->getStringAttribute("Speaker_Setup_File");
 
 
@@ -932,6 +943,7 @@ void MainContentComponent::savePreset(String path)
     xml->setAttribute ("Show_Numbers",       this->butShowSpeakerNumber->getToggleState());
     xml->setAttribute ("High_Performance",   this->butHighPerformance->getToggleState());
     xml->setAttribute ("Use_Alpha",       this->butUseAlpha->getToggleState());
+    xml->setAttribute ("Record_Format",       this->recordFormat->getSelectedItemIndex());
     xml->setAttribute ("Speaker_Setup_File", this->pathCurrentFileSpeaker);
     
     for (auto&& it : listSourceInput)
@@ -1044,13 +1056,16 @@ void MainContentComponent::timerCallback()
     if(this->butStartRecord->getToggleState()
        && (this->jackClient->indexRecord+this->jackClient->bufferSize) >= this->jackClient->endIndexRecord)
     {
-        this->butStartRecord->setToggleState(false, sendNotification);
+        this->butStartRecord->setToggleState(false, dontSendNotification);
     }
     
-    if(this->fileWriter->isSavingRun()){
+    if (this->jackClient->isSavingRun()) {
         this->butStartRecord->setEnabled(false);
         this->tedMinRecord->setEnabled(false);
-    }else{
+    } else if (this->jackClient->getRecordingPath() == "") {
+        this->butStartRecord->setEnabled(false);
+        this->tedMinRecord->setEnabled(true);
+    } else {
         this->butStartRecord->setEnabled(true);
         this->tedMinRecord->setEnabled(true);
     } 
@@ -1143,7 +1158,7 @@ void MainContentComponent::textEditorReturnKeyPressed (TextEditor & textEditor)
         updateLevelComp();
     }
     else if(&textEditor == this->tedMinRecord){
-        this->jackClient->prepareToRecord(this->tedMinRecord->getTextValue().toString().getIntValue());
+        this->jackClient->setRecordTime(this->tedMinRecord->getTextValue().toString().getFloatValue());
     }
 }
 
@@ -1310,20 +1325,19 @@ void MainContentComponent::buttonClicked (Button *button)
     }
     else if(button == this->butStartRecord){
         //Record sound
-        if(this->jackClient->recording)
-        {
-            this->jackClient->stopRecort();
-            this->fileWriter->recording(this->listSpeaker.size(), this->jackClient->sampleRate);
+        if (this->jackClient->recording) {
+            this->jackClient->stopRecord();
             this->labelTimeRecorded->setColour(Label::textColourId, mGrisFeel.getFontColour());
-        }
-        else{
+        } else {
             this->jackClient->startRecord();
             this->labelTimeRecorded->setColour(Label::textColourId, mGrisFeel.getRedColour());
         }
         this->butStartRecord->setToggleState(this->jackClient->recording, dontSendNotification);
-        
     }
-    
+    else if (button == this->butInitRecord) {
+        this->chooseRecordingPath();
+        this->butStartRecord->setEnabled(true);
+    }
 }
 
 void MainContentComponent::sliderValueChanged (Slider* slider)
@@ -1367,9 +1381,32 @@ void MainContentComponent::comboBoxChanged (ComboBox *comboBox)
                 this->labelModeInfo->setText("ERROR UNK", dontSendNotification);
                 this->labelModeInfo->setColour(Label::textColourId, mGrisFeel.getRedColour());
                 break;
-        }
-        
+        }        
     }
+    if (this->recordFormat == comboBox) {
+        this->jackClient->setRecordFormat(this->recordFormat->getSelectedItemIndex());
+    }
+}
+
+void MainContentComponent::chooseRecordingPath() {
+    String dir = this->applicationProperties.getUserSettings()->getValue("lastRecordingDirectory");
+    if (! File(dir).isDirectory()) {
+        dir = File("~").getFullPathName();
+    }
+    String extF;
+    if (this->recordFormat->getSelectedItemIndex() == 0) {
+        extF = ".wav";
+    } else {
+        extF = ".aif";
+    }
+    FileChooser fc ("Choose a file to save...", dir + "/recording" + extF, "*.wav,*.aif", true);
+    if (fc.browseForFileToSave (true)) {
+        String filePath = fc.getResults().getReference(0).getFullPathName();
+        this->applicationProperties.getUserSettings()->setValue("lastRecordingDirectory", 
+                                                                File(filePath).getParentDirectory().getFullPathName());
+        this->jackClient->setRecordingPath(filePath);
+    }
+    this->jackClient->prepareToRecord();
 }
 
 void MainContentComponent::resized()

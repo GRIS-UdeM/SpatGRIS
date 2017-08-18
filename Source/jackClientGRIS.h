@@ -56,7 +56,6 @@ struct Client {
     bool            connected     = false;
 };
 
-
 struct SourceIn {
     unsigned int id;
     float x = 0.0f;
@@ -79,7 +78,6 @@ struct SourceIn {
     VBAP_DATA * paramVBap;
 };
 
-
 struct SpeakerOut {
     unsigned int id;
     float x = 0.0f;
@@ -98,7 +96,6 @@ struct SpeakerOut {
     float gain;//Not Implemented
     
 };
-
 
 //Mode Spat
 typedef enum {
@@ -123,6 +120,86 @@ static const char* DriverNameSys =  "coreaudio";
 static const char* ClientNameSys =  "system";
 
 static const char* ClientNameIgnor =  "JAR::57";
+
+
+class AudioRecorder
+{
+public:
+    AudioRecorder() : backgroundThread ("Audio Recorder Thread"), activeWriter (nullptr)
+    {
+        backgroundThread.startThread();
+    }
+
+    ~AudioRecorder()
+    {
+        stop();
+    }
+
+    //==============================================================================
+    void startRecording (const File& file, unsigned int sampleRate, String extF)
+    {
+        stop();
+
+        // Create an OutputStream to write to our destination file...
+        file.deleteFile();
+        ScopedPointer<FileOutputStream> fileStream(file.createOutputStream());
+
+        AudioFormatWriter *writer;
+
+        if (fileStream != nullptr)
+        {
+            // Now create a writer object that writes to our output stream...
+            if (extF == ".wav") {
+                WavAudioFormat wavFormat;
+                writer = wavFormat.createWriterFor(fileStream, sampleRate, 1, 24, NULL, 0);
+            } else {
+                AiffAudioFormat aiffFormat;
+                writer = aiffFormat.createWriterFor(fileStream, sampleRate, 1, 24, NULL, 0);
+            }
+
+            if (writer != nullptr)
+            {
+                fileStream.release(); // (passes responsibility for deleting the stream to the writer object that is now using it)
+
+                // Now we'll create one of these helper objects which will act as a FIFO buffer, and will
+                // write the data to disk on our background thread.
+                threadedWriter = new AudioFormatWriter::ThreadedWriter (writer, backgroundThread, 32768);
+
+                // And now, swap over our active writer pointer so that the audio callback will start using it..
+                const ScopedLock sl (writerLock);
+                activeWriter = threadedWriter;
+            }
+        }
+    }
+
+    void stop()
+    {
+        if (activeWriter == nullptr) { return; }
+
+        // First, clear this pointer to stop the audio callback from using our writer object..
+        {
+            const ScopedLock sl (writerLock);
+            activeWriter = nullptr;
+        }
+
+        // Now we can delete the writer object. It's done in this order because the deletion could
+        // take a little time while remaining data gets flushed to disk, so it's best to avoid blocking
+        // the audio callback while this happens.
+        threadedWriter = nullptr;
+    }
+
+    void recordSamples(float **samples, int numSamples)
+    {
+        const ScopedLock sl (writerLock);
+        activeWriter->write (samples, numSamples);
+    }
+
+private:
+    TimeSliceThread backgroundThread; // the thread that will write our audio data to disk
+    ScopedPointer<AudioFormatWriter::ThreadedWriter> threadedWriter; // the FIFO used to buffer the incoming data
+    CriticalSection writerLock;
+    AudioFormatWriter::ThreadedWriter* volatile activeWriter;
+};
 
 
 class jackClientGris {
@@ -196,15 +273,25 @@ public:
     unsigned int getPortStartClient(String nameClient);
     
     //Recording param =========================
-    void prepareToRecord(int minuteR = 1);
-    void startRecord(){ this->indexRecord = 1; this->recording = true; }
-    void stopRecort(){ this->recording = false; }
-    vector<jack_default_audio_sample_t> buffersToRecord [MaxOutputs];
-    unsigned int indexRecord = 1;
+    void prepareToRecord();
+    void startRecord() { this->indexRecord = 0; this->recording = true; }
+    void stopRecord() { 
+        for (int i = 0; i < (unsigned int)this->outputsPort.size(); ++i) {
+            this->recorder[i].stop();
+        }
+        this->recording = false; 
+    }
+
+    AudioRecorder recorder[MaxOutputs];
+    unsigned int indexRecord = 0;
     unsigned int endIndexRecord = 1;
     bool recording;
-    
-    
+    void setRecordFormat(int format) { this->recordFormat = format; };
+    void setRecordTime(float minutes) { this->recordTime = minutes; };
+    void setRecordingPath(String filePath) { this->recordPath = filePath; }
+    String getRecordingPath() { return this->recordPath; }
+    bool isSavingRun() { return this->recording; };
+
     //SpeakerLoad
     unsigned int vbapDimensions;
     bool initSpeakersTripplet(vector<Speaker *>  listSpk, int dimensions);
@@ -213,6 +300,10 @@ public:
 private:
     
     bool clientReady;
+    float recordTime = 1.0; // minutes
+    int recordFormat = 0; // 0 = WAV, 1 = AIFF
+    String recordPath = "";
+
     void connectedGristoSystem();
     
 };

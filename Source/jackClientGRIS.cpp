@@ -83,14 +83,19 @@ static void muteSoloVuMeterGainOut(jackClientGris & jackCli, jack_default_audio_
         jackCli.levelsOut[i] = sumsOut[i]/nframes;
         
         //Record buffer ---------------
-        if(jackCli.recording && bufferIndexNext < jackCli.endIndexRecord){
-            memcpy(&jackCli.buffersToRecord[i][jackCli.indexRecord], outs[i], sizeMenCpy);
+        if (jackCli.recording && bufferIndexNext < jackCli.endIndexRecord) {
+            jackCli.recorder[i].recordSamples(&outs[i], (int)nframes);
         }
     }
     
     //Record - Up index ----------
-    if(jackCli.recording && bufferIndexNext < jackCli.endIndexRecord){
+    if (jackCli.recording && bufferIndexNext < jackCli.endIndexRecord) {
         jackCli.indexRecord += nframes;
+    } else if (jackCli.recording) {
+        for (int i = 0; i < sizeOutputs; ++i) {
+            jackCli.recorder[i].stop();
+        }
+        jackCli.recording = false;
     }
 }
 
@@ -446,8 +451,7 @@ jackClientGris::jackClientGris(unsigned int bufferS) {
     this->outputsPort = vector<jack_port_t *>();
     this->interMaster = 0.8f;
     this->maxOutputPatch = 0;
-    
-    
+
     //--------------------------------------------------
     //open a client connection to the JACK server. Start server if it is not running.
     //--------------------------------------------------
@@ -569,19 +573,28 @@ jackClientGris::jackClientGris(unsigned int bufferS) {
     this->clientReady = true;
 }
 
-void jackClientGris::prepareToRecord(int minuteR )
+void jackClientGris::prepareToRecord()
 {
-    if(this->outputsPort.size() < 1 || minuteR < 1){
-        return ;
+    if (this->outputsPort.size() < 1 || this->recordTime < 1) {
+        return;
     }
-    this->recording = false;
-    this->endIndexRecord = (minuteR * 60 * this->sampleRate);
-    for(int i = 0; i < this->outputsPort.size(); ++i){
-        this->buffersToRecord[i].clear();
-        this->buffersToRecord[i].resize(this->endIndexRecord, 0);
-    }
-    this->indexRecord = 1;
 
+    this->recording = false;
+    this->endIndexRecord = (unsigned int)ceilf(this->recordTime * 60.0f * this->sampleRate);
+
+    String channelName;
+    File fileS = File(this->recordPath);
+    String fname = fileS.getFileNameWithoutExtension();
+    String extF = fileS.getFileExtension();
+    String parent = fileS.getParentDirectory().getFullPathName();
+
+    for (int i  = 0; i < this->outputsPort.size(); ++i) {
+        channelName = parent + "/" + fname + "_" + String(i+1).paddedLeft('0', 3) + extF;
+        File fileC = File(channelName);
+        this->recorder[i].startRecording(fileC, this->sampleRate, extF);
+    }
+
+    this->indexRecord = 0;
 }
 
 void jackClientGris::addRemoveInput(int number)

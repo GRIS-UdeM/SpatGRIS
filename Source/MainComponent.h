@@ -56,7 +56,6 @@
 #include "OscInput.h"
 #include "Input.h"
 #include "WinControl.h"
-#include "FileWriter.h"
 
 class ServerGRISApplication;
 
@@ -95,9 +94,6 @@ public:
     void updateInputJack(int inInput, Input &inp);
 
     jackClientGris * getJackClient() { return this->jackClient; }
-
-    unsigned int    getBufferCurentIndex(){ return this->jackClient->indexRecord; }
-    vector<float>   getBufferToRecord(int i){ return this->jackClient->buffersToRecord[i]; }
     
     mutex* getLockClients(){ return &this->jackClient->lockListClient; }
     vector<Client> *getListClientjack(){ return &this->jackClient->listClient; }
@@ -127,6 +123,7 @@ public:
     // TODO: We need a better curve from level to alpha.
     float getLevelsAlpha(int indexLevel){return sqrtf(sqrtf(this->jackClient->getLevelsIn(indexLevel))); }
     
+    void chooseRecordingPath();
 
     void destroyWinSpeakConf() { this->winSpeakConfig = nullptr; this->jackClient->processBlockOn = true; }
     void destroyWinJackSetting() { this->winJackSetting = nullptr; }
@@ -148,7 +145,7 @@ public:
 
     ApplicationProperties applicationProperties;
 
-    bool useAlpha;
+    bool useAlpha = false;
 
     TextEditor*     addTextEditor(const String &s, const String &emptyS, const String &stooltip, int x, int y, int w, int h, Component *into, int wLab = 80);
 
@@ -173,9 +170,7 @@ private:
     //==============================================================================
     jackClientGris *    jackClient;
     jackServerGRIS *    jackServer;
-    
-    FileWriter     *    fileWriter;
-    
+
     vector<Triplet>     listTriplet;
     vector<Speaker *>   listSpeaker;
     mutex *             lockSpeakers;
@@ -248,6 +243,9 @@ private:
     TextButton *    butStartRecord;
     TextEditor *    tedMinRecord;
     Label *         labelTimeRecorded;
+    ComboBox *      recordFormat;
+    TextButton *    butInitRecord;
+
     
     SplashScreen *  splash;
 
