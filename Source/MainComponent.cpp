@@ -1060,12 +1060,15 @@ void MainContentComponent::timerCallback()
     }
     
     if (this->jackClient->isSavingRun()) {
-        this->butStartRecord->setEnabled(false);
+        this->butStartRecord->setButtonText("C");
+        this->butStartRecord->setEnabled(true);
         this->tedMinRecord->setEnabled(false);
     } else if (this->jackClient->getRecordingPath() == "") {
+        this->butStartRecord->setButtonText("R");
         this->butStartRecord->setEnabled(false);
         this->tedMinRecord->setEnabled(true);
     } else {
+        this->butStartRecord->setButtonText("R");
         this->butStartRecord->setEnabled(true);
         this->tedMinRecord->setEnabled(true);
     } 
@@ -1394,12 +1397,15 @@ void MainContentComponent::chooseRecordingPath() {
         dir = File("~").getFullPathName();
     }
     String extF;
+    String extChoice;
     if (this->recordFormat->getSelectedItemIndex() == 0) {
         extF = ".wav";
+        extChoice = "*.wav,*.aif";
     } else {
         extF = ".aif";
+        extChoice = "*.aif,*.wav";
     }
-    FileChooser fc ("Choose a file to save...", dir + "/recording" + extF, "*.wav,*.aif", true);
+    FileChooser fc ("Choose a file to save...", dir + "/recording" + extF, extChoice, true);
     if (fc.browseForFileToSave (true)) {
         String filePath = fc.getResults().getReference(0).getFullPathName();
         this->applicationProperties.getUserSettings()->setValue("lastRecordingDirectory", 

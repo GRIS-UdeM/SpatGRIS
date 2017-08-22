@@ -22,6 +22,13 @@
 #include "Speaker.h"
 
 //=========================================================================================
+//Utilities
+//=========================================================================================
+static bool int_vector_contains(vector<int> vec, int value) {
+    return (std::find(vec.begin(), vec.end(), value) != vec.end());
+}
+
+//=========================================================================================
 //MUTE SOLO MasterGainOut and NOISE
 //=========================================================================================
 static void muteSoloVuMeterIn(jackClientGris & jackCli, jack_default_audio_sample_t ** ins, const jack_nframes_t &nframes, const unsigned int &sizeInputs){
@@ -48,8 +55,6 @@ static void muteSoloVuMeterIn(jackClientGris & jackCli, jack_default_audio_sampl
         }
         jackCli.levelsIn[i] = sumsIn[i]/nframes;
     }
-    
-    
 }
 
 static void muteSoloVuMeterGainOut(jackClientGris & jackCli, jack_default_audio_sample_t ** outs, const jack_nframes_t &nframes, const unsigned int &sizeOutputs, const float mGain = 1.0f){
@@ -84,7 +89,9 @@ static void muteSoloVuMeterGainOut(jackClientGris & jackCli, jack_default_audio_
         
         //Record buffer ---------------
         if (jackCli.recording && bufferIndexNext < jackCli.endIndexRecord) {
-            jackCli.recorder[i].recordSamples(&outs[i], (int)nframes);
+            if (int_vector_contains(jackCli.outputPatches, i+1)) {
+                jackCli.recorder[i].recordSamples(&outs[i], (int)nframes);
+            }
         }
     }
     
@@ -93,7 +100,9 @@ static void muteSoloVuMeterGainOut(jackClientGris & jackCli, jack_default_audio_
         jackCli.indexRecord += nframes;
     } else if (jackCli.recording) {
         for (int i = 0; i < sizeOutputs; ++i) {
-            jackCli.recorder[i].stop();
+            if (int_vector_contains(jackCli.outputPatches, i+1)) {
+                jackCli.recorder[i].stop();
+            }
         }
         jackCli.recording = false;
     }
@@ -589,12 +598,18 @@ void jackClientGris::prepareToRecord()
     String parent = fileS.getParentDirectory().getFullPathName();
 
     for (int i  = 0; i < this->outputsPort.size(); ++i) {
-        channelName = parent + "/" + fname + "_" + String(i+1).paddedLeft('0', 3) + extF;
-        File fileC = File(channelName);
-        this->recorder[i].startRecording(fileC, this->sampleRate, extF);
+        if (int_vector_contains(this->outputPatches, i+1)) {
+            channelName = parent + "/" + fname + "_" + String(i+1).paddedLeft('0', 3) + extF;
+            File fileC = File(channelName);
+            this->recorder[i].startRecording(fileC, this->sampleRate, extF);
+        }
     }
 
     this->indexRecord = 0;
+}
+
+void jackClientGris::stopRecord() { 
+    this->indexRecord = this->endIndexRecord + 1;
 }
 
 void jackClientGris::addRemoveInput(int number)
@@ -693,6 +708,15 @@ void jackClientGris::connectedGristoSystem()
         i+=1;
     }
     //printf("%i, %i\n", i, j);
+
+    // Build output patch list
+    this->outputPatches.clear();
+    for (int i = 0; i < this->outputsPort.size(); i++) {
+        if (this->listSpeakerOut[i].outputPatch != 0) {
+            this->outputPatches.push_back(this->listSpeakerOut[i].outputPatch);
+        }
+    }
+
     jack_free(portsIn);
     jack_free(portsOut);
 
