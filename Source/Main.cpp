@@ -78,15 +78,6 @@ public:
         MainWindow (String name)  : DocumentWindow (name,Colours::lightgrey,DocumentWindow::allButtons)
         {
             setUsingNativeTitleBar (true);
-            
-            // Copy JackRouter ini file to preferences folder if not already done.
-#ifndef __linux__
-            File target = File("~/Library/Preferences/JAS.jpil");
-            File source = File(File::getCurrentWorkingDirectory().getFullPathName()+("/ServerGRIS.app/Contents/Resources/JAS.jpil"));
-            if (target.existsAsFile() == false) {
-                source.copyFileTo(target);
-            }
-#endif
             mcc = new MainContentComponent(this);
             setContentOwned (mcc, true);
             setResizable (true, true);

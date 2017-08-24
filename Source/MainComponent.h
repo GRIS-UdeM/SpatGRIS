@@ -121,7 +121,14 @@ public:
     float getLevelsOut(int indexLevel){return (15.0f * log10f(sqrtf(this->jackClient->getLevelsOut(indexLevel))));}
     float getLevelsIn(int indexLevel){return (15.0f * log10f(sqrtf(this->jackClient->getLevelsIn(indexLevel)))); }
     // TODO: We need a better curve from level to alpha.
-    float getLevelsAlpha(int indexLevel){return sqrtf(sqrtf(this->jackClient->getLevelsIn(indexLevel))); }
+    float getLevelsAlpha(int indexLevel) {
+        float level = this->jackClient->getLevelsIn(indexLevel);
+        if (level > 0.01) { // -40 dB
+            return 1.0;
+        } else {
+            return sqrtf(level * 100.0f);
+        }
+    }
     
     void chooseRecordingPath();
 

@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+sudo cp /Applications/ServerGRIS.app/Contents/Resources/JAS.jpil $HOME/Library/Preferences/JAS.jpil
+
+exit 0
