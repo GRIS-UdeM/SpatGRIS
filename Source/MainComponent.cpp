@@ -103,10 +103,10 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     
     this->butJackParam = addButton("Jack settings","Change jack settings",400,0,80,28,this->boxControlUI->getContent());
     
-    this->butLoadXMLSpeakers    = addButton("XML Speakers","Load Xml File Configuration",4,36,124,24,this->boxControlUI->getContent());
+    this->butLoadXMLSpeakers    = addButton("Open Speakers","Load Xml File Configuration",4,36,124,24,this->boxControlUI->getContent());
     this->butEditableSpeakers   = addButton("Edit Speakers","Edit position of spkeakers",4,66,124,24,this->boxControlUI->getContent());
-    this->butLoadPreset         = addButton("Open","Open preset",4,96,124,24,this->boxControlUI->getContent());
-    this->butSavePreset         = addButton("Save","Save preset",4,126,124,24,this->boxControlUI->getContent());
+    this->butLoadPreset         = addButton("Open Preset","Open preset",4,96,124,24,this->boxControlUI->getContent());
+    this->butSavePreset         = addButton("Save Preset","Save preset",4,126,124,24,this->boxControlUI->getContent());
     this->butShowWinControl     = addButton("Show 2D","Show 2D Scene",4,156,124,24,this->boxControlUI->getContent());
 
     this->butShowSpeakerNumber =    addToggleButton("Show numbers", "Show numbers skeapers",    140, 100, 124, 18, this->boxControlUI->getContent());
