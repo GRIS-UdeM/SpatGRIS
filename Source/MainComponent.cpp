@@ -159,9 +159,10 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     this->recordFormat->addItem("AIFF", 2);
     this->recordFormat->setSelectedItemIndex(0, dontSendNotification);
 
-    this->butDisconnectAllJack  = addButton("X All","Disconnect all Jack",480,120,40,24,this->boxControlUI->getContent());
-    this->butDisconnectAllJack->setColour(TextButton::buttonColourId, mGrisFeel.getRedColour());
-    this->butAutoConnectJack    = addButton("Auto Connect","Auto connection with jack",610,120,130,24,this->boxControlUI->getContent());
+    /* Are these functions really necessary? Just hidding them for the time being... */
+    //this->butDisconnectAllJack  = addButton("X All","Disconnect all Jack",480,120,40,24,this->boxControlUI->getContent());
+    //this->butDisconnectAllJack->setColour(TextButton::buttonColourId, mGrisFeel.getRedColour());
+    //this->butAutoConnectJack    = addButton("Auto Connect","Auto connection with jack",610,120,130,24,this->boxControlUI->getContent());
 
     this->boxClientJack = new BoxClient(this, &mGrisFeel);
     this->boxClientJack->setBounds(480, 0, 260, 120);
@@ -1277,13 +1278,13 @@ void MainContentComponent::buttonClicked (Button *button)
         
         this->speakerView->setShowNumber(this->butShowSpeakerNumber->getToggleState());
         
-    }else if(button == this->butAutoConnectJack){
+    //}else if(button == this->butAutoConnectJack){
+    //    
+    //    this->jackClient->autoConnectClient();
         
-        this->jackClient->autoConnectClient();
-        
-    }else if(button == this->butDisconnectAllJack){
-        
-        this->jackClient->disconnectAllClient();
+    //}else if(button == this->butDisconnectAllJack){
+    //    
+    //    this->jackClient->disconnectAllClient();
         
     }else if(button == this->butHighPerformance){
         
