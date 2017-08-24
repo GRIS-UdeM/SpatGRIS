@@ -154,7 +154,7 @@ void SpeakerViewComponent::render()
     }
 
     //Draw Click Ray----
-    //this->ray.draw();
+    this->ray.draw();
 
     glFlush();
 }
@@ -187,17 +187,22 @@ void SpeakerViewComponent::clickRay()
     
     int iBestSpeaker = -1;
     int selected = -1;
+    cout << "====================" << endl;
     if (this->mainParent->getLockSpeakers()->try_lock()) {
         for (int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
             if (this->mainParent->getListSpeaker()[i]->isSelected()) {
                 selected = i;
+                cout << "Aleary selected: " << i << endl;
             }
             if (raycast( this->mainParent->getListSpeaker()[i]) != -1 ) {
                 if(iBestSpeaker == -1){
                     iBestSpeaker = i;
+                    cout << "Best speaker from raycast(): " << i << endl;
                 }else{
-                    if(speakerNearCam(this->mainParent->getListSpeaker()[i]->getCenter(), this->mainParent->getListSpeaker()[iBestSpeaker]->getCenter())){
+                    if (speakerNearCam(this->mainParent->getListSpeaker()[i]->getCenter(),
+                                       this->mainParent->getListSpeaker()[iBestSpeaker]->getCenter())) {
                         iBestSpeaker = i;
+                        cout << "Best speaker from speakerNearCam(): " << i << endl;
                     }
                 }
             }
