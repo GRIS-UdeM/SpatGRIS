@@ -135,7 +135,8 @@ private:
 //======================================= Window Edit Speaker===========================
 class WindowEditSpeaker :   public DocumentWindow,
                             public TableListBoxModel,
-                            public ToggleButton::Listener
+                            public ToggleButton::Listener,
+                            public TextEditor::Listener
 {
 public:
     WindowEditSpeaker(const String& name,String& nameC, Colour backgroundColour, int buttonsNeeded, MainContentComponent * parent, GrisLookAndFeel * feel);
@@ -146,6 +147,7 @@ public:
     
     void initComp();
     void buttonClicked(Button *button) override;
+    void textEditorTextChanged(TextEditor &editor) override;
     void closeButtonPressed() override;
     //void sortOrderChanged(int newSortColumnId, bool isForwards) override;
     void resized() override;

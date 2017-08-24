@@ -350,6 +350,7 @@ WindowEditSpeaker::WindowEditSpeaker(const String& name, String& nameC, Colour b
     this->boxListSpeaker->getContent()->addAndMakeVisible(this->rNumOfSpeakers);
     this->rNumOfSpeakers->setText("8");
     this->rNumOfSpeakers->setInputRestrictions(3, "0123456789");
+    this->rNumOfSpeakers->addListener(this);
     
 
     this->rZenithLabel = new Label();
@@ -369,7 +370,8 @@ WindowEditSpeaker::WindowEditSpeaker(const String& name, String& nameC, Colour b
     this->rZenith->addListener(this->mainParent);
     this->boxListSpeaker->getContent()->addAndMakeVisible(this->rZenith);
     this->rZenith->setText("0.0");
-    this->rZenith->setInputRestrictions(6, "-0123456789.");
+    this->rZenith->setInputRestrictions(6, "0123456789.");
+    this->rZenith->addListener(this);
 
     this->rRadiusLabel = new Label();
     this->rRadiusLabel->setText("Radius", NotificationType::dontSendNotification);
@@ -388,7 +390,8 @@ WindowEditSpeaker::WindowEditSpeaker(const String& name, String& nameC, Colour b
     this->rRadius->addListener(this->mainParent);
     this->boxListSpeaker->getContent()->addAndMakeVisible(this->rRadius);
     this->rRadius->setText("1.0");
-    this->rRadius->setInputRestrictions(6, "-0123456789.");
+    this->rRadius->setInputRestrictions(6, "0123456789.");
+    this->rRadius->addListener(this);
 
     this->rOffsetAngleLabel = new Label();
     this->rOffsetAngleLabel->setText("Offset Angle", NotificationType::dontSendNotification);
@@ -408,6 +411,7 @@ WindowEditSpeaker::WindowEditSpeaker(const String& name, String& nameC, Colour b
     this->boxListSpeaker->getContent()->addAndMakeVisible(this->rOffsetAngle);
     this->rOffsetAngle->setText("0.0");
     this->rOffsetAngle->setInputRestrictions(6, "-0123456789.");
+    this->rOffsetAngle->addListener(this);
 
     this->butAddRing = new TextButton();
     this->butAddRing->setButtonText("Add Ring");
@@ -584,6 +588,42 @@ void WindowEditSpeaker::buttonClicked(Button *button)
             this->mainParent->getListSpeaker()[row]->setDirectOut(false);
         }
         updateWinContent();
+    }
+}
+
+void WindowEditSpeaker::textEditorTextChanged(TextEditor& editor) {
+    float value;
+    String test;
+    if (&editor == this->rNumOfSpeakers) {} 
+    else if (&editor == this->rZenith) {
+        test = this->rZenith->getText().retainCharacters(".");
+        if (test.length() > 1) {
+            this->rZenith->setText(this->rZenith->getText().dropLastCharacters(1), false);
+        }
+        value = this->rZenith->getText().getFloatValue();
+        if (value > 90.0f) {
+            this->rZenith->setText(String(90.0f), false);
+        }
+    } else if (&editor == this->rRadius) {
+        test = this->rRadius->getText().retainCharacters(".");
+        if (test.length() > 1) {
+            this->rRadius->setText(this->rRadius->getText().dropLastCharacters(1), false);
+        }
+        value = this->rRadius->getText().getFloatValue();
+        if (value > 1.0f) {
+            this->rRadius->setText(String(1.0f), false);
+        }
+    } else if (&editor == this->rOffsetAngle) {
+        test = this->rOffsetAngle->getText().retainCharacters(".");
+        if (test.length() > 1) {
+            this->rOffsetAngle->setText(this->rOffsetAngle->getText().dropLastCharacters(1), false);
+        }
+        value = this->rOffsetAngle->getText().getFloatValue();
+        if (value < -180.0f) {
+            this->rOffsetAngle->setText(String(-180.0f), false);
+        } else if (value > 180.0f) {
+            this->rOffsetAngle->setText(String(180.0f), false);
+        }
     }
 }
 
