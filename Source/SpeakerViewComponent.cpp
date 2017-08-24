@@ -26,6 +26,7 @@
 SpeakerViewComponent::SpeakerViewComponent(MainContentComponent *parent)
 {
     this->mainParent = parent;
+    this->displayScaling = Desktop::getInstance().getDisplays().getMainDisplay().scale;
 }
 
 SpeakerViewComponent::~SpeakerViewComponent()
@@ -153,8 +154,8 @@ void SpeakerViewComponent::render()
         this->clickRay();
     }
 
-    //Draw Click Ray----
-    this->ray.draw();
+    // Draw Click Ray----
+    //this->ray.draw();
 
     glFlush();
 }
@@ -176,9 +177,9 @@ void SpeakerViewComponent::clickRay()
     glGetDoublev( GL_MODELVIEW_MATRIX, matModelView );
     glGetDoublev( GL_PROJECTION_MATRIX, matProjection );
     glGetIntegerv( GL_VIEWPORT, viewport );
-    
-    double winX = this->rayClickX;
-    double winY = viewport[3] - this->rayClickY;
+
+    double winX = this->rayClickX * this->displayScaling;
+    double winY = viewport[3] - this->rayClickY * this->displayScaling;
     
     gluUnProject(winX, winY, 0.0, matModelView, matProjection,viewport, &xS, &yS,&zS);
     gluUnProject(winX, winY, 1.0, matModelView, matProjection, viewport, &xE, &yE, &zE);
@@ -187,22 +188,18 @@ void SpeakerViewComponent::clickRay()
     
     int iBestSpeaker = -1;
     int selected = -1;
-    cout << "====================" << endl;
     if (this->mainParent->getLockSpeakers()->try_lock()) {
         for (int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
             if (this->mainParent->getListSpeaker()[i]->isSelected()) {
                 selected = i;
-                cout << "Aleary selected: " << i << endl;
             }
             if (raycast( this->mainParent->getListSpeaker()[i]) != -1 ) {
                 if(iBestSpeaker == -1){
                     iBestSpeaker = i;
-                    cout << "Best speaker from raycast(): " << i << endl;
                 }else{
                     if (speakerNearCam(this->mainParent->getListSpeaker()[i]->getCenter(),
                                        this->mainParent->getListSpeaker()[iBestSpeaker]->getCenter())) {
                         iBestSpeaker = i;
-                        cout << "Best speaker from speakerNearCam(): " << i << endl;
                     }
                 }
             }
