@@ -776,71 +776,62 @@ void MainContentComponent::setDirectOut(int id, int chn)
     (&this->jackClient->listSourceIn[id-1])->directOut = chn;
 }
 
-void MainContentComponent::openXmlFileSpeaker(String path)
-{
-    this->jackClient->processBlockOn = false;
-    this->pathCurrentFileSpeaker = path.toStdString();
-    XmlDocument xmlDoc (File (this->pathCurrentFileSpeaker));
-    ScopedPointer<XmlElement> mainXmlElem (xmlDoc.getDocumentElement());
-    if (mainXmlElem == nullptr)
-    {
-        AlertWindow::showMessageBoxAsync (AlertWindow::AlertIconType::WarningIcon,"Error  openXmlFileSpeaker !",
-                                          "Your file is corrupted !\n"+xmlDoc.getLastParseError(),String(),0);
-    }
-    else
-    {
-        if(mainXmlElem->hasTagName("SpeakerSetup")){
-            
-            this->lockSpeakers->lock();
-            for (auto&& it : this->listSpeaker)
-            {
-                delete (it);
-            }
-            this->listSpeaker.clear();
-            this->lockSpeakers->unlock();
-    
-            this->setNameConfig();
-
-            this->jackClient->clearOutput();
-            this->jackClient->maxOutputPatch = 0;
-            forEachXmlChildElement (*mainXmlElem, ring)
-            {
-                if (ring->hasTagName ("Ring"))
-                {
-                    forEachXmlChildElement (*ring, spk)
-                    {
-                        if (spk->hasTagName ("Speaker"))
-                        {
-                            
-                            this->listSpeaker.push_back(new Speaker(this,
-                                                                    spk->getIntAttribute("LayoutIndex"),
-                                                                    spk->getIntAttribute("OutputPatch"),
-                                                                    glm::vec3(spk->getDoubleAttribute("PositionX")*10.0f,
-                                                                              spk->getDoubleAttribute("PositionZ")*10.0f,
-                                                                              spk->getDoubleAttribute("PositionY")*10.0f)));
-                            if (spk->hasAttribute("DirectOut")) {
-                                this->listSpeaker.back()->setDirectOut(spk->getIntAttribute("DirectOut"));
+void MainContentComponent::openXmlFileSpeaker(String path) {
+    if (! File(path.toStdString()).existsAsFile()) {
+        AlertWindow::showMessageBoxAsync (AlertWindow::AlertIconType::WarningIcon,"Error in Open Speaker Setup !",
+                                          "Can't found file " + path.toStdString() + ", the current setup will be kept.", String(), 0);
+    } else {
+        String oldPath = this->pathCurrentFileSpeaker;
+        this->pathCurrentFileSpeaker = path.toStdString();
+        this->jackClient->processBlockOn = false;
+        XmlDocument xmlDoc (File (this->pathCurrentFileSpeaker));
+        ScopedPointer<XmlElement> mainXmlElem (xmlDoc.getDocumentElement());
+        if (mainXmlElem == nullptr) {
+            AlertWindow::showMessageBoxAsync (AlertWindow::AlertIconType::WarningIcon,"Error in Open Speaker Setup !",
+                                              "Your file is corrupted !\n"+xmlDoc.getLastParseError(),String(),0);
+            this->pathCurrentFileSpeaker = oldPath;
+        } else {
+            if (mainXmlElem->hasTagName("SpeakerSetup")) {
+                this->lockSpeakers->lock();
+                for (auto&& it : this->listSpeaker) {
+                    delete (it);
+                }
+                this->listSpeaker.clear();
+                this->lockSpeakers->unlock();
+                this->setNameConfig();
+                this->jackClient->clearOutput();
+                this->jackClient->maxOutputPatch = 0;
+                forEachXmlChildElement (*mainXmlElem, ring) {
+                    if (ring->hasTagName ("Ring")) {
+                        forEachXmlChildElement (*ring, spk) {
+                            if (spk->hasTagName ("Speaker")) {
+                                this->listSpeaker.push_back(new Speaker(this,
+                                                                        spk->getIntAttribute("LayoutIndex"),
+                                                                        spk->getIntAttribute("OutputPatch"),
+                                                                        glm::vec3(spk->getDoubleAttribute("PositionX")*10.0f,
+                                                                                  spk->getDoubleAttribute("PositionZ")*10.0f,
+                                                                                  spk->getDoubleAttribute("PositionY")*10.0f)));
+                                if (spk->hasAttribute("DirectOut")) {
+                                    this->listSpeaker.back()->setDirectOut(spk->getIntAttribute("DirectOut"));
+                                }
+                                this->jackClient->addOutput(spk->getIntAttribute("OutputPatch"));
                             }
-                            this->jackClient->addOutput(spk->getIntAttribute("OutputPatch"));
                         }
                     }
-                    
+                    if (ring->hasTagName ("triplet")) {
+                        Triplet tri;
+                        tri.id1 = ring->getIntAttribute("id1");
+                        tri.id2 = ring->getIntAttribute("id2");
+                        tri.id3 = ring->getIntAttribute("id3");
+                        this->listTriplet.push_back(tri);
+                    }
                 }
-                if (ring->hasTagName ("triplet"))
-                {
-                    Triplet tri;
-                    tri.id1 = ring->getIntAttribute("id1");
-                    tri.id2 = ring->getIntAttribute("id2");
-                    tri.id3 = ring->getIntAttribute("id3");
-                    this->listTriplet.push_back(tri);
-                
-                }
+            } else {
+                AlertWindow::showMessageBoxAsync (AlertWindow::AlertIconType::WarningIcon,"Error in Open Speaker Setup !",
+                                                  "SpeakerSetup not found !",String(),0);
+                this->pathCurrentFileSpeaker = oldPath;
             }
-        }else{
-            AlertWindow::showMessageBoxAsync (AlertWindow::AlertIconType::WarningIcon,"Error XML !",
-                                              "SpeakerSetup not found !",String(),0);
         }
-        
     }
     updateLevelComp();
 }
@@ -854,16 +845,15 @@ void MainContentComponent::setTitle() {
 void MainContentComponent::openPreset(String path)
 {
     this->jackClient->processBlockOn = false;
-    this->pathCurrentPreset = path;
-    File xmlFile = File (path.toStdString());
+    File xmlFile = File(path.toStdString());
     XmlDocument xmlDoc (xmlFile);
     ScopedPointer<XmlElement> mainXmlElem (xmlDoc.getDocumentElement());
-    if (mainXmlElem == nullptr)
-    {
-        AlertWindow::showMessageBoxAsync (AlertWindow::AlertIconType::WarningIcon,"Error in openPreset !",
-                                          "Your file is corrupted !\n"+ File::getSpecialLocation(File::currentApplicationFile).getFullPathName() + "\n" + xmlDoc.getLastParseError(),String(),0);
+    if (mainXmlElem == nullptr) {
+        AlertWindow::showMessageBoxAsync (AlertWindow::AlertIconType::WarningIcon,"Error in Open Preset !",
+                                          "Your file is corrupted !\n"+ path.toStdString() + "\n" + xmlDoc.getLastParseError(),String(),0);
     } else {
         if (mainXmlElem->hasTagName("SpatServerGRIS_Preset") || mainXmlElem->hasTagName("ServerGRIS_Preset")) {
+            this->pathCurrentPreset = path;
             this->tedOSCInPort->setText(mainXmlElem->getStringAttribute("OSC_Input_Port"));
             this->tedAddInputs->setText(mainXmlElem->getStringAttribute("Number_Of_Inputs"));
             this->sliderMasterGainOut->setValue(mainXmlElem->getDoubleAttribute("Master_Gain_Out", 1.0), sendNotification);
@@ -884,7 +874,6 @@ void MainContentComponent::openPreset(String path)
 
             this->pathCurrentFileSpeaker = mainXmlElem->getStringAttribute("Speaker_Setup_File");
 
-
             //Update----------------------------------
             this->textEditorReturnKeyPressed(*this->tedOSCInPort);
             this->textEditorReturnKeyPressed(*this->tedAddInputs);
@@ -903,13 +892,10 @@ void MainContentComponent::openPreset(String path)
             }
             this->openXmlFileSpeaker(this->pathCurrentFileSpeaker);
 
-            forEachXmlChildElement (*mainXmlElem, input)
-            {
-                if (input->hasTagName ("Input"))
-                {
-                    for (auto&& it : listSourceInput)
-                    {
-                        if(it->getId() == input->getIntAttribute("Index")) {
+            forEachXmlChildElement (*mainXmlElem, input) {
+                if (input->hasTagName ("Input")) {
+                    for (auto&& it : listSourceInput) {
+                        if (it->getId() == input->getIntAttribute("Index")) {
                             it->setColor(Colour::fromFloatRGBA((float)input->getDoubleAttribute("R"),
                                                                (float)input->getDoubleAttribute("G"),
                                                                (float)input->getDoubleAttribute("B"), 1.0f), true);
@@ -927,6 +913,8 @@ void MainContentComponent::openPreset(String path)
         }
     }
     this->jackClient->processBlockOn = true;
+    this->applicationProperties.getUserSettings()->setValue("lastPresetDirectory", 
+                                                            File(this->pathCurrentPreset).getParentDirectory().getFullPathName());
     this->setTitle();
 }
 
