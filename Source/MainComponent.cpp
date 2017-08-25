@@ -142,19 +142,19 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
          this->comBoxModeSpat->addItem(ModeSpatString[i], i+1);
     }
 
-    this->butStartRecord = addButton("R","Start/Stop Record",480,157,24,24,this->boxControlUI->getContent());
+    this->butStartRecord = addButton("R","Start/Stop Record",480,133,24,24,this->boxControlUI->getContent());
     this->butStartRecord->setEnabled(false);
 
-    this->labelTimeRecorded = addLabel("00:00","Record time",502, 157, 50, 24,this->boxControlUI->getContent());
+    this->labelTimeRecorded = addLabel("00:00","Record time",502, 133, 50, 24,this->boxControlUI->getContent());
 
-    this->tedMinRecord = addTextEditor("Min :", "Time of record (min)", "Time of record (min)", 510, 157, 40, 24, this->boxControlUI->getContent());
+    this->tedMinRecord = addTextEditor("Min :", "Time of record (min)", "Time of record (min)", 510, 133, 40, 24, this->boxControlUI->getContent());
     this->tedMinRecord->setText("1.0");
     this->tedMinRecord->setInputRestrictions(5,"0123456789.");
 
-    this->butInitRecord = addButton("Initialize Recording", "Initialize Recording", 589, 182, 150, 24, this->boxControlUI->getContent());
+    this->butInitRecord = addButton("Initialize Recording", "Initialize Recording", 589, 158, 150, 24, this->boxControlUI->getContent());
 
-    addLabel("Format :","Recording file format", 632, 157, 50, 24, this->boxControlUI->getContent());
-    this->recordFormat = addComboBox("", "Recording file format", 683, 158, 55, 22, this->boxControlUI->getContent());
+    addLabel("Format :","Recording file format", 632, 133, 50, 24, this->boxControlUI->getContent());
+    this->recordFormat = addComboBox("", "Recording file format", 683, 134, 55, 22, this->boxControlUI->getContent());
     this->recordFormat->addItem("WAV", 1);
     this->recordFormat->addItem("AIFF", 2);
     this->recordFormat->setSelectedItemIndex(0, dontSendNotification);
