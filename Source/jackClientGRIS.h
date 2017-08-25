@@ -248,7 +248,8 @@ public:
     unsigned int numberInputs;
     unsigned int numberOutputs;
     unsigned int maxOutputPatch;
-    
+    vector<int> outputPatches;
+
     //---------------------------------
     jackClientGris(unsigned int bufferS = 1024);
     virtual ~jackClientGris();
@@ -275,12 +276,7 @@ public:
     //Recording param =========================
     void prepareToRecord();
     void startRecord() { this->indexRecord = 0; this->recording = true; }
-    void stopRecord() { 
-        for (int i = 0; i < (unsigned int)this->outputsPort.size(); ++i) {
-            this->recorder[i].stop();
-        }
-        this->recording = false; 
-    }
+    void stopRecord();
 
     AudioRecorder recorder[MaxOutputs];
     unsigned int indexRecord = 0;

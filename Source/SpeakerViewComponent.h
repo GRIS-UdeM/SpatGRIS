@@ -104,6 +104,8 @@ private:
     
     double rayClickX;
     double rayClickY;
+
+    double displayScaling = 1.0;
     
     Ray ray;
     MainContentComponent *mainParent;
