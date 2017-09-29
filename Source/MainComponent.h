@@ -123,10 +123,10 @@ public:
     // TODO: We need a better curve from level to alpha.
     float getLevelsAlpha(int indexLevel) {
         float level = this->jackClient->getLevelsIn(indexLevel);
-        if (level > 0.01) { // -40 dB
+        if (level > 0.001) { // -60 dB
             return 1.0;
         } else {
-            return sqrtf(level * 100.0f);
+            return sqrtf(level * 1000.0f);
         }
     }
     
