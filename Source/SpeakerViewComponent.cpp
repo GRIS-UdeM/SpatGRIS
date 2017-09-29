@@ -26,7 +26,6 @@
 SpeakerViewComponent::SpeakerViewComponent(MainContentComponent *parent)
 {
     this->mainParent = parent;
-    this->displayScaling = Desktop::getInstance().getDisplays().getMainDisplay().scale;
 }
 
 SpeakerViewComponent::~SpeakerViewComponent()
@@ -224,6 +223,9 @@ void SpeakerViewComponent::mouseDown (const MouseEvent& e)
 {
     this->deltaClickX = this->camAngleX - e.getPosition().x / this->slowDownFactor;
     this->deltaClickY = this->camAngleY - e.getPosition().y / this->slowDownFactor;
+
+    // Always check on which display the speaker view component is.
+    this->displayScaling = Desktop::getInstance().getDisplays().getDisplayContaining(Point<int>(e.getPosition().x, e.getPosition().y)).scale;
 
     if (e.mods.isLeftButtonDown()) {
         this->rayClickX = (double)e.getPosition().x;

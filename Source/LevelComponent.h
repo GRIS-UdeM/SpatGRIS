@@ -66,6 +66,7 @@ public:
     bool isMuted();
     void setSelected(bool value);
     void buttonClicked(Button *button) override;
+    void mouseDown(const MouseEvent& e) override;
     void comboBoxChanged(ComboBox *combo) override;
     void setBounds(const Rectangle<int> &newBounds);
     void changeListenerCallback (ChangeBroadcaster* source) override;
@@ -82,6 +83,7 @@ private:
     ToggleButton * soloToggleBut;
     GrisLookAndFeel * grisFeel;
     float level = MinLevelComp;
+    int lastMouseButton = 1; // 1 means left, 0 means right
     bool isColorful;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LevelComponent)
 };

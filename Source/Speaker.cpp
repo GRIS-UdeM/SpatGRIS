@@ -146,9 +146,13 @@ void Speaker::fix()
     }
 }
 
-void Speaker::selectClick()
+void Speaker::selectClick(bool select)
 {
-    this->mainParent->selectSpeaker(this->idSpeaker-1);
+    if (select) {
+        this->mainParent->selectSpeaker(this->idSpeaker-1);
+    } else {
+        this->mainParent->selectSpeaker(-1);
+    }
 }
 bool Speaker::isSelected()
 {

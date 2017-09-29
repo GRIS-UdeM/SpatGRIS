@@ -87,7 +87,7 @@ public:
     void setMuted(bool mute);
     void setSolo(bool solo);
     void setColor(Colour color, bool updateLevel = false);
-    void selectClick();
+    void selectClick(bool select = true);
     LevelComponent * getVuMeter(){ return this->vuMeter; }
 
     //Normalise for user =================================

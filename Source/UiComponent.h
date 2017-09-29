@@ -200,7 +200,11 @@ private:
         }
         void mouseDown (const MouseEvent& event) override
         {
-            owner.tableListSpeakers.selectRowsBasedOnModifierKeys (row, event.mods, false);
+            if (event.mods.isRightButtonDown()) {
+                owner.tableListSpeakers.deselectAllRows();
+            } else {
+                owner.tableListSpeakers.selectRowsBasedOnModifierKeys (row, event.mods, false);
+            }
             Label::mouseDown (event);
         }
         void textWasEdited() override

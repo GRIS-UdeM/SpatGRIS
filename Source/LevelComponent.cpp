@@ -84,6 +84,7 @@ LevelComponent::LevelComponent(ParentLevelComponent* parent, GrisLookAndFeel *fe
     this->idBut->setColour(TextButton::textColourOffId, this->grisFeel->getFontColour());
     this->idBut->setColour(TextButton::buttonColourId, this->grisFeel->getBackgroundColour());
     this->idBut->addListener(this);
+    this->idBut->addMouseListener(this, true);
     this->addAndMakeVisible(this->idBut);
     
     //ToggleButton=========================================================
@@ -172,9 +173,18 @@ void LevelComponent::buttonClicked(Button *button)
             colourSelector->setColour (ColourSelector::backgroundColourId, Colours::transparentBlack);
             colourSelector->setSize (300, 400);
             CallOutBox::launchAsynchronously (colourSelector, getScreenBounds(), nullptr);
-        }else{      //Output
-            this->mainParent->selectClick();
+        }else {      //Output
+            this->mainParent->selectClick(this->lastMouseButton);
         }
+    }
+}
+
+void LevelComponent::mouseDown(const MouseEvent& e)
+{
+    if (e.mods.isRightButtonDown()) {
+        this->lastMouseButton = 0;
+    } else {
+        this->lastMouseButton = 1;
     }
 }
 
