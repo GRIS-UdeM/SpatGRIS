@@ -913,8 +913,13 @@ void MainContentComponent::openPreset(String path)
         }
     }
     this->jackClient->processBlockOn = true;
-    this->applicationProperties.getUserSettings()->setValue("lastPresetDirectory", 
-                                                            File(this->pathCurrentPreset).getParentDirectory().getFullPathName());
+    if (this->pathCurrentPreset.endsWith("default_preset/default_preset.xml")) {
+        this->applicationProperties.getUserSettings()->setValue("lastPresetDirectory", 
+                                                                File::getSpecialLocation(File::userHomeDirectory).getFullPathName());
+    } else {
+        this->applicationProperties.getUserSettings()->setValue("lastPresetDirectory", 
+                                                                File(this->pathCurrentPreset).getParentDirectory().getFullPathName());
+    }
     this->setTitle();
 }
 

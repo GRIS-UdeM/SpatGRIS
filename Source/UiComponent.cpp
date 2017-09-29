@@ -539,7 +539,7 @@ void WindowEditSpeaker::buttonClicked(Button *button)
         // TODO: We should save a xml file only if the previous call passed.
         String dir = this->mainParent->applicationProperties.getUserSettings()->getValue("lastSpeakerPresetDirectory");
         if (! File(dir).isDirectory()) {
-            dir = File("~").getFullPathName();
+            dir = File::getSpecialLocation(File::userHomeDirectory).getFullPathName();
         }
         String filename = File(this->mainParent->getCurrentFileSpeakerPath()).getFileName();
         FileChooser fc ("Choose a file to save...", dir + "/" + filename, "*.xml", true);
