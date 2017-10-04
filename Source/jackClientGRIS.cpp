@@ -129,52 +129,6 @@ static void addNoiseSound(jackClientGris & jackCli, jack_default_audio_sample_t 
 }
 
 //=========================================================================================
-//FREE VOLUME PROCESS (Basic)
-//=========================================================================================
-static void processFreeVolume(jackClientGris & jackCli, jack_default_audio_sample_t ** ins, jack_default_audio_sample_t ** outs, const jack_nframes_t &nframes, const unsigned int &sizeInputs, const unsigned int &sizeOutputs){
-    
-    float outputX, outputY, dx, dy, da;
-    unsigned int i,o,f;
-    
-    //Basix Free volume Spat---------------------------------------
-    for (o = 0; o < sizeOutputs; ++o) {
-        
-        outputX = jackCli.listSpeakerOut[o].x;
-        outputY = jackCli.listSpeakerOut[o].z;
-        
-        //Process Input 1-------------------------------------
-        dx = jackCli.listSourceIn[0].x - outputX;
-        dy = jackCli.listSourceIn[0].z - outputY;
-        da = sqrtf(dx*dx + dy*dy);
-        
-        if (da > 1.0f) da = 1.0f;
-        if (da < 0.1f) da = 0.1f;
-        
-        da = -log10f(da);
-        for (f = 0; f < nframes; ++f){
-            outs[o][f] = da * ins[0][f];        //Diff Input 1
-        }
-        
-        //Process Other Input -----------------------------------
-        for (i = 1; i < sizeInputs; ++i) {
-            
-            dx = jackCli.listSourceIn[i].x - outputX;
-            dy = jackCli.listSourceIn[i].z - outputY;
-            da = sqrtf(dx*dx + dy*dy);
-            
-            if (da > 1.0f) da = 1.0f;
-            if (da < 0.1f) da = 0.1f;
-            
-            da = -log10f(da);
-            for (f = 0; f < nframes; ++f){
-                outs[o][f] += da * ins[i][f];   //Other input
-            }
-        }
-    }
-}
-
-
-//=========================================================================================
 //VBAP
 //=========================================================================================
 static void processVBAP(jackClientGris & jackCli, jack_default_audio_sample_t ** ins, jack_default_audio_sample_t ** outs,
@@ -272,12 +226,7 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
             
         case HRTF:
             break;
-        
-        case FreeBasic:
-            //Basix Free volume Spat ---------------------------------------
-            processFreeVolume(*jackCli, ins, outs, nframes, sizeInputs, sizeOutputs);
-            break;
-            
+
         default:
             jassertfalse;
             break;
@@ -447,7 +396,7 @@ jackClientGris::jackClientGris(unsigned int bufferS) {
     this->overload = false;
     this->masterGainOut = 1.0f;
     this->processBlockOn = true;
-    this->modeSelected = FreeBasic;
+    this->modeSelected = VBap;
     this->recording = false;
     this->hrtfOn = false;
     

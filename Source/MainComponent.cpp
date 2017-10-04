@@ -128,8 +128,13 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     // TODO: labelModeInfo should be removed.
     this->labelModeInfo = addLabel("...","Status of spatilization", 195, 30, 120, 20,this->boxControlUI->getContent());
     this->comBoxModeSpat = addComboBox("", "Mode of spatilization", 155, 48, 90, 22, this->boxControlUI->getContent());
-    for(int i = 0; i < ModeSpatString.size(); i++){
-         this->comBoxModeSpat->addItem(ModeSpatString[i], i+1);
+    for (int i = 0; i < ModeSpatString.size(); i++) {
+        this->comBoxModeSpat->addItem(ModeSpatString[i], i+1);
+        if (i == 0) {
+            this->comBoxModeSpat->setItemEnabled(i+1, true);
+        } else {
+            this->comBoxModeSpat->setItemEnabled(i+1, false);
+        }
     }
 
     this->tedAddInputs = addTextEditor("Inputs :", "0", "Numbers of Inputs", 122, 83, 43, 22, this->boxControlUI->getContent());
@@ -1621,12 +1626,7 @@ void MainContentComponent::comboBoxChanged (ComboBox *comboBox)
                 this->labelModeInfo->setText("Not ready yet", dontSendNotification);
                 this->labelModeInfo->setColour(Label::textColourId, mGrisFeel.getRedColour());
                 break;
-                
-            case FreeBasic:
-                this->labelModeInfo->setText("Ready", dontSendNotification);
-                this->labelModeInfo->setColour(Label::textColourId, mGrisFeel.getGreenColour());
-                break;
-                
+
             default:
                 this->labelModeInfo->setText("ERROR UNK", dontSendNotification);
                 this->labelModeInfo->setColour(Label::textColourId, mGrisFeel.getRedColour());
