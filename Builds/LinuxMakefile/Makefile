@@ -54,7 +54,7 @@ ifeq ($(CONFIG),Release)
   endif
 
 JUCE_CPPFLAGS := $(DEPFLAGS) -DLINUX=1 -DNDEBUG=1 -DJUCER_LINUX_MAKE_6D53C8B4=1 -DJUCE_APP_VERSION=0.0.7 -DJUCE_APP_VERSION_HEX=0x7 $(shell pkg-config --cflags alsa freetype2 libcurl x11 xext xinerama jack gtk+-3.0 webkit2gtk-4.0) -pthread -I../../JuceLibraryCode -I/usr/include/libsoup-2.4 -I$(HOME)/git/JUCE/modules $(CPPFLAGS)
-  JUCE_CFLAGS += $(JUCE_CPPFLAGS) $(TARGET_ARCH) -O3 -Wall $(CFLAGS)
+  JUCE_CFLAGS += $(JUCE_CPPFLAGS) $(TARGET_ARCH) -O3 $(CFLAGS)
   JUCE_CXXFLAGS += $(JUCE_CFLAGS) -std=c++11 $(CXXFLAGS)
   JUCE_LDFLAGS += $(TARGET_ARCH) -L$(JUCE_BINDIR) -L$(JUCE_LIBDIR) -fvisibility=hidden -L/usr/lib/x86_64-linux-gnu $(shell pkg-config --libs alsa freetype2 libcurl x11 xext xinerama jack gtk+-3.0 webkit2gtk-4.0) -lGL -lGLU -lglut -ldl -lpthread -lrt -ljackserver  $(LDFLAGS)
 
@@ -67,6 +67,7 @@ OBJECTS := \
   $(JUCE_OBJDIR)/jackServerGRIS_20451e40.o \
   $(JUCE_OBJDIR)/jackClientGRIS_1eacdac8.o \
   $(JUCE_OBJDIR)/Main_90ebc5c2.o \
+  $(JUCE_OBJDIR)/MainWindow_45fe3211.o \
   $(JUCE_OBJDIR)/MainComponent_a6ffb4a5.o \
   $(JUCE_OBJDIR)/SpeakerViewComponent_671b9a22.o \
   $(JUCE_OBJDIR)/Input_3ea2e2b.o \
@@ -128,6 +129,12 @@ $(JUCE_OBJDIR)/Main_90ebc5c2.o: ../../Source/Main.cpp
 	-@mkdir -p $(JUCE_OBJDIR)
 	@echo "Compiling Main.cpp"
 	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) -o "$@" -c "$<"
+
+$(JUCE_OBJDIR)/MainWindow_45fe3211.o: ../../Source/MainWindow.cpp
+	-@mkdir -p $(JUCE_OBJDIR)
+	@echo "Compiling MainWindow.cpp"
+	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) -o "$@" -c "$<"
+
 
 $(JUCE_OBJDIR)/MainComponent_a6ffb4a5.o: ../../Source/MainComponent.cpp
 	-@mkdir -p $(JUCE_OBJDIR)

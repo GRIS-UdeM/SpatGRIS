@@ -113,7 +113,7 @@ Colour Input::getColorJ()
 
 Colour Input::getColorJWithAlpha()
 {
-    if (this->mainParent->useAlpha) {
+    if (this->mainParent->isSourceLevelShown) {
         return this->colorJ.withMultipliedAlpha(this->getAlpha());
     } else {
         return this->colorJ;
@@ -121,7 +121,7 @@ Colour Input::getColorJWithAlpha()
 }
 
 float Input::getAlpha() {
-    if (this->mainParent->useAlpha) {
+    if (this->mainParent->isSourceLevelShown) {
         return this->mainParent->getLevelsAlpha(this->idChannel-1);
     } else {
         return 1.0f;
@@ -135,7 +135,7 @@ void Input::draw()
     glTranslatef(this->center.x, this->center.y, this->center.z);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);  //GL_LINE
     glLineWidth(2);
-    if (this->mainParent->useAlpha) {
+    if (this->mainParent->isSourceLevelShown) {
         glColor4f(this->color.x, this->color.y, this->color.z, this->getAlpha());
     } else {
         glColor3f(this->color.x, this->color.y, this->color.z);

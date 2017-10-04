@@ -56,9 +56,7 @@
 #include "OscInput.h"
 #include "Input.h"
 #include "WinControl.h"
-
-class ServerGRISApplication;
-
+#include "MainWindow.h"
 
 using namespace std;
 
@@ -73,6 +71,8 @@ static const unsigned int HertzRefresh2DLowCpu = 10;
  your controls and content.
  */
 class MainContentComponent   :  public Component,
+                                public MenuBarModel,
+                                public ApplicationCommandTarget,
                                 public Button::Listener,
                                 public TextEditor::Listener,
                                 public Slider::Listener,
@@ -82,13 +82,45 @@ class MainContentComponent   :  public Component,
 public:
     //==============================================================================
     MainContentComponent(DocumentWindow *parent);
-    ~MainContentComponent();
+    ~MainContentComponent(
+        #if JUCE_MAC
+        MenuBarModel::setMacMainMenu(nullptr);
+       #endif
+    );
     bool exitApp();
-    
+
+    //==============================================================================
+    void handleNew();
+    void handleOpenPreset();
+    void handleSavePreset();
+    void handleSaveAsPreset();
+    void handleOpenSpeakerSetup();
+    void handleShowSpeakerEditWindow();
+    void handleShowPreferences();
+    void handleShow2DView();
+    void handleShowNumbers();
+    void setShowNumbers(bool state);
+    void handleShowSpeakers();
+    void setShowSpeakers(bool state);
+    void handleShowSourceLevel();
+    void handleHighPerformance();
+    void setHighPerformance(bool state);
+    void handleTestSound();
+    void handleResetInputPositions();
+    void handleInputColours();
+
+    //==============================================================================
+    StringArray getMenuBarNames() override {
+        const char* const names[] = { "File", "View", nullptr };
+        return StringArray (names);
+    }
+
+    PopupMenu getMenuForIndex (int menuIndex, const String& /*menuName*/) override;
+    void menuItemSelected (int menuItemID, int /*topLevelMenuIndex*/) override;
+
     vector<Speaker *> getListSpeaker() { return this->listSpeaker; }
     mutex* getLockSpeakers(){ return this->lockSpeakers; }
-    
-    
+        
     vector<Input *> getListSourceInput(){ return this->listSourceInput; }
     mutex* getLockInputs(){ return this->lockInputs; }
     void updateInputJack(int inInput, Input &inp);
@@ -117,10 +149,10 @@ public:
     void setDirectOut(int id, int chn);
 
     void saveJackSettings(unsigned int rate, unsigned int buff);
+
     //=======================================================================
     float getLevelsOut(int indexLevel){return (15.0f * log10f(sqrtf(this->jackClient->getLevelsOut(indexLevel))));}
     float getLevelsIn(int indexLevel){return (15.0f * log10f(sqrtf(this->jackClient->getLevelsIn(indexLevel)))); }
-    // TODO: We need a better curve from level to alpha.
     float getLevelsAlpha(int indexLevel) {
         float level = this->jackClient->getLevelsIn(indexLevel);
         if (level > 0.001) { // -60 dB
@@ -135,6 +167,7 @@ public:
     void destroyWinSpeakConf() { this->winSpeakConfig = nullptr; this->jackClient->processBlockOn = true; }
     void destroyWinJackSetting() { this->winJackSetting = nullptr; }
     void destroyWinControl() { this->winControlSource = nullptr; }
+
     //=======================================================================
     void timerCallback() override;
     void paint (Graphics& g) override;
@@ -152,13 +185,18 @@ public:
 
     ApplicationProperties applicationProperties;
 
-    bool useAlpha = false;
+    bool isSourceLevelShown = false;
+    bool isSpeakerLevelShown = false;
 
-    TextEditor*     addTextEditor(const String &s, const String &emptyS, const String &stooltip, int x, int y, int w, int h, Component *into, int wLab = 80);
+    int oscInputPort = 18032;
+
+    TextEditor* addTextEditor(const String &s, const String &emptyS, const String &stooltip, int x, int y, int w, int h, Component *into, int wLab = 80);
 
 private:
 
     DocumentWindow *parent;
+
+    ScopedPointer<MenuBarComponent> menuBar;
 
     Label*          addLabel(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into);
     TextButton*     addButton(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into);
@@ -166,7 +204,8 @@ private:
     Slider*         addSlider(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into);
     ComboBox*       addComboBox(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into);
     
-    
+
+    void onOpenPreset();
     void openXmlFileSpeaker(String path);
     void openPreset(String path);
     void savePreset(String path);
@@ -200,6 +239,7 @@ private:
     WindowEditSpeaker * winSpeakConfig;
     WindowJackSetting * winJackSetting;
     WinControl *        winControlSource;
+
     //3 Main Box---------------------
     Box * boxMainUI;
     Box * boxInputsUI;
@@ -217,29 +257,16 @@ private:
     
     ComboBox *      comBoxModeSpat;
     
-    TextButton *    butLoadXMLSpeakers;
-    TextButton *    butEditableSpeakers;
-    TextButton *    butLoadPreset;
-    TextButton *    butSavePreset;
-    TextButton *    butShowWinControl;
-    TextButton *    butDefaultColorIn;
-    TextButton *    butJackParam;
     TextButton *    butAutoConnectJack;
     TextButton *    butDisconnectAllJack;
-    TextButton *    resetInputPositions;
-    
-    ToggleButton *  butShowSpeakerNumber;
-    ToggleButton *  butHighPerformance;
-    ToggleButton *  butNoiseSound;
-    ToggleButton *  butHideSpeaker;
-    ToggleButton *  butUseAlpha;
-    
+
     Slider *        sliderMasterGainOut;
     Slider *        sliderInterpolation;
     
+    /* PREFERENCES 
     TextEditor *    tedOSCInPort;
     Label *         labOSCStatus;
-    
+    */
     TextEditor *    tedAddInputs;
     
     
@@ -253,10 +280,32 @@ private:
     ComboBox *      recordFormat;
     TextButton *    butInitRecord;
 
-    
     SplashScreen *  splash;
 
     bool isProcessForeground;
+
+    bool isNumbersShown;
+    bool isSpeakersShown;
+    bool isHighPerformance;
+    bool isTestSound;
+
+    //==============================================================================
+    // The following methods implement the ApplicationCommandTarget interface, allowing
+    // this window to publish a set of actions it can perform, and which can be mapped
+    // onto menus, keypresses, etc.
+
+    ApplicationCommandTarget* getNextCommandTarget() override
+    {
+        // this will return the next parent component that is an ApplicationCommandTarget (in this
+        // case, there probably isn't one, but it's best to use this method in your own apps).
+        return findFirstTargetParentComponent();
+    }
+
+    void getAllCommands (Array<CommandID>& commands) override;
+
+    void getCommandInfo (CommandID commandID, ApplicationCommandInfo& result) override;
+
+    bool perform (const InvocationInfo& info) override;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
 };
