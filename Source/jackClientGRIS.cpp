@@ -88,7 +88,7 @@ static void muteSoloVuMeterGainOut(jackClientGris & jackCli, jack_default_audio_
         jackCli.levelsOut[i] = sumsOut[i]/nframes;
         
         //Record buffer ---------------
-        if (jackCli.recording && bufferIndexNext < jackCli.endIndexRecord) {
+        if (jackCli.recording) {
             if (int_vector_contains(jackCli.outputPatches, i+1)) {
                 jackCli.recorder[i].recordSamples(&outs[i], (int)nframes);
             }
@@ -96,16 +96,17 @@ static void muteSoloVuMeterGainOut(jackClientGris & jackCli, jack_default_audio_
     }
     
     //Record - Up index ----------
-    if (jackCli.recording && bufferIndexNext < jackCli.endIndexRecord) {
-        jackCli.indexRecord += nframes;
-    } else if (jackCli.recording) {
+    if (!jackCli.recording && jackCli.indexRecord > 0) {
         for (int i = 0; i < sizeOutputs; ++i) {
             if (int_vector_contains(jackCli.outputPatches, i+1)) {
                 jackCli.recorder[i].stop();
             }
+            jackCli.indexRecord = 0;
         }
-        jackCli.recording = false;
+    } else if (jackCli.recording) {
+        jackCli.indexRecord += nframes;
     }
+
 }
 
 static void addNoiseSound(jackClientGris & jackCli, jack_default_audio_sample_t ** ins, const jack_nframes_t &nframes, const unsigned int &sizeInputs){
@@ -533,12 +534,12 @@ jackClientGris::jackClientGris(unsigned int bufferS) {
 
 void jackClientGris::prepareToRecord()
 {
-    if (this->outputsPort.size() < 1 || this->recordTime < 1) {
+    if (this->outputsPort.size() < 1) {
         return;
     }
 
     this->recording = false;
-    this->endIndexRecord = (unsigned int)ceilf(this->recordTime * 60.0f * this->sampleRate);
+    this->indexRecord = 0;
 
     String channelName;
     File fileS = File(this->recordPath);
@@ -553,12 +554,6 @@ void jackClientGris::prepareToRecord()
             this->recorder[i].startRecording(fileC, this->sampleRate, extF);
         }
     }
-
-    this->indexRecord = 0;
-}
-
-void jackClientGris::stopRecord() { 
-    this->indexRecord = this->endIndexRecord + 1;
 }
 
 void jackClientGris::addRemoveInput(int number)

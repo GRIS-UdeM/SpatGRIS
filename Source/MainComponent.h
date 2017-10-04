@@ -148,7 +148,7 @@ public:
     void soloOutput(int id, bool solo);
     void setDirectOut(int id, int chn);
 
-    void saveJackSettings(unsigned int rate, unsigned int buff);
+    void saveJackSettings(unsigned int rate, unsigned int buff, int fileformat);
 
     //=======================================================================
     float getLevelsOut(int indexLevel){return (15.0f * log10f(sqrtf(this->jackClient->getLevelsOut(indexLevel))));}
@@ -277,7 +277,6 @@ private:
     TextButton *    butStartRecord;
     TextEditor *    tedMinRecord;
     Label *         labelTimeRecorded;
-    ComboBox *      recordFormat;
     TextButton *    butInitRecord;
 
     SplashScreen *  splash;

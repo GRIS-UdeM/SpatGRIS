@@ -233,7 +233,9 @@ class WindowJackSetting :   public DocumentWindow,
 
 {
 public:
-    WindowJackSetting(const String& name, Colour backgroundColour, int buttonsNeeded,MainContentComponent * parent, GrisLookAndFeel * feel, int indR=0, int indB=0);
+    WindowJackSetting(const String& name, Colour backgroundColour, int buttonsNeeded,
+                      MainContentComponent * parent, GrisLookAndFeel * feel, int indR=0,
+                      int indB=0, int indFF=0);
     ~WindowJackSetting();
 
     void buttonClicked(Button *button);
@@ -246,8 +248,10 @@ private:
     
     Label *labRate;
     Label *labBuff;
+    Label *labRecFormat;
     ComboBox *cobRate;
     ComboBox *cobBuffer;
+    ComboBox *recordFormat;
     TextButton *butValidSettings;
 
 };

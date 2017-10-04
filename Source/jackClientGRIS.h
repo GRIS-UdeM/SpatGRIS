@@ -109,6 +109,7 @@ static const StringArray ModeSpatString = {"VBAP",  "DBAP", "HRTF"};
 //Settings Jack Server
 static const StringArray BufferSize = {"32", "64", "128", "256", "512", "1024", "2048"};
 static const StringArray RateValues = {"44100", "48000", "88200", "96000"};
+static const StringArray FileFormats = {"WAV", "AIFF"};
 
 static const char* DeviceName =     "GRIS";
 static const char* ClientName =     "ServerGRIS";
@@ -276,14 +277,13 @@ public:
     //Recording param =========================
     void prepareToRecord();
     void startRecord() { this->indexRecord = 0; this->recording = true; }
-    void stopRecord();
+    void stopRecord() { this->recording = false; };
 
     AudioRecorder recorder[MaxOutputs];
     unsigned int indexRecord = 0;
-    unsigned int endIndexRecord = 1;
     bool recording;
     void setRecordFormat(int format) { this->recordFormat = format; };
-    void setRecordTime(float minutes) { this->recordTime = minutes; };
+    int getRecordFormat() { return this->recordFormat; };
     void setRecordingPath(String filePath) { this->recordPath = filePath; }
     String getRecordingPath() { return this->recordPath; }
     bool isSavingRun() { return this->recording; };
@@ -296,7 +296,6 @@ public:
 private:
     
     bool clientReady;
-    float recordTime = 1.0; // minutes
     int recordFormat = 0; // 0 = WAV, 1 = AIFF
     String recordPath = "";
 

@@ -140,23 +140,12 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     this->tedAddInputs = addTextEditor("Inputs :", "0", "Numbers of Inputs", 122, 83, 43, 22, this->boxControlUI->getContent());
     this->tedAddInputs->setInputRestrictions(3,"0123456789");
 
-
-    this->tedMinRecord = addTextEditor("Dur :", "Time of record (min)", "Time of record (min)", 235, 35, 55, 22, this->boxControlUI->getContent());
-    this->tedMinRecord->setText("1.0");
-    this->tedMinRecord->setInputRestrictions(5,"0123456789.");
-
-    addLabel("Format :","Recording file format", 265, 60, 50, 24, this->boxControlUI->getContent());
-    this->recordFormat = addComboBox("", "Recording file format", 315, 60, 55, 22, this->boxControlUI->getContent());
-    this->recordFormat->addItem("WAV", 1);
-    this->recordFormat->addItem("AIFF", 2);
-    this->recordFormat->setSelectedItemIndex(0, dontSendNotification);
-
-    this->butInitRecord = addButton("Init Recording", "Init Recording", 268, 85, 103, 24, this->boxControlUI->getContent());
+    this->butInitRecord = addButton("Init Recording", "Init Recording", 268, 48, 103, 24, this->boxControlUI->getContent());
     
-    this->butStartRecord = addButton("Record", "Start/Stop Record", 268, 110, 60, 24, this->boxControlUI->getContent());
+    this->butStartRecord = addButton("Record", "Start/Stop Record", 268, 83, 60, 24, this->boxControlUI->getContent());
     this->butStartRecord->setEnabled(false);
 
-    this->labelTimeRecorded = addLabel("00:00","Record time", 327, 110, 50, 24,this->boxControlUI->getContent());
+    this->labelTimeRecorded = addLabel("00:00","Record time", 327, 83, 50, 24,this->boxControlUI->getContent());
 
     /* Are these functions really necessary? Just hidding them for the time being... */
     //this->butDisconnectAllJack  = addButton("X All","Disconnect all Jack",480,120,40,24,this->boxControlUI->getContent());
@@ -179,15 +168,18 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     // Jack Init and Param -------------------------------------------------------------------------------
     unsigned int BufferValue = this->applicationProperties.getUserSettings()->getValue("BufferValue").getIntValue();
     unsigned int RateValue = this->applicationProperties.getUserSettings()->getValue("RateValue").getIntValue();
+    unsigned int FileFormat = this->applicationProperties.getUserSettings()->getValue("FileFormat").getIntValue();
 
     /* FIXME
      * this->applicationProperties.getUserSettings() does not seem to hold anything at this moment...
+     * Is preferences ever saved ?
      */
     //cout << "Buffer Rate: " << BufferValue << ", Sampling Rate: " << RateValue << endl;
     
     if(isnan(BufferValue) || BufferValue == 0 || isnan(RateValue) || RateValue == 0){
         BufferValue = 1024;
         RateValue = 48000;
+        // Record applicationProperties here.
     }
     //Start JACK Server and client
     this->jackServer = new jackServerGRIS(RateValue);
@@ -462,9 +454,23 @@ void MainContentComponent::handleShowPreferences() {
     if (this->winJackSetting == nullptr) {
         unsigned int BufferValue = applicationProperties.getUserSettings()->getValue("BufferValue").getIntValue();
         unsigned int RateValue = applicationProperties.getUserSettings()->getValue("RateValue").getIntValue();
-        this->winJackSetting = new WindowJackSetting("Jack Settings", this->mGrisFeel.getWinBackgroundColour(),DocumentWindow::allButtons, this, &this->mGrisFeel, RateValues.indexOf(String(RateValue)), BufferSize.indexOf(String(BufferValue)));
+        unsigned int FileFormat = applicationProperties.getUserSettings()->getValue("FileFormat").getIntValue();
+        if (isnan(BufferValue) || BufferValue == 0) {
+            BufferValue = 1024;
+        }
+        if (isnan(RateValue) || RateValue == 0) {
+            RateValue = 48000;
+        }
+        if (isnan(FileFormat)) {
+            FileFormat = 0;
+        }
+        this->winJackSetting = new WindowJackSetting("Jack Settings", this->mGrisFeel.getWinBackgroundColour(),
+                                                     DocumentWindow::allButtons, this, &this->mGrisFeel, 
+                                                     RateValues.indexOf(String(RateValue)), 
+                                                     BufferSize.indexOf(String(BufferValue)),
+                                                     FileFormat);
     }
-    Rectangle<int> result (this->getScreenX()+ (this->speakerView->getWidth()/2)-150, this->getScreenY()+(this->speakerView->getHeight()/2)-75, 250, 120);
+    Rectangle<int> result (this->getScreenX()+ (this->speakerView->getWidth()/2)-150, this->getScreenY()+(this->speakerView->getHeight()/2)-75, 250, 150);
     this->winJackSetting->setBounds(result);
     this->winJackSetting->setResizable(false, false);
     this->winJackSetting->setUsingNativeTitleBar(true);
@@ -1271,9 +1277,9 @@ void MainContentComponent::openPreset(String path)
                 this->isSourceLevelShown = false;
             }
             if (mainXmlElem->hasAttribute("Record_Format")) {
-                this->recordFormat->setSelectedItemIndex(mainXmlElem->getIntAttribute("Record_Format"),sendNotification);
+                this->jackClient->setRecordFormat(mainXmlElem->getIntAttribute("Record_Format")); // app preferences instead of project setting?
             } else {
-                this->recordFormat->setSelectedItemIndex(0, sendNotification);
+                this->jackClient->setRecordFormat(0);
             }
 
             this->pathCurrentFileSpeaker = mainXmlElem->getStringAttribute("Speaker_Setup_File");
@@ -1345,7 +1351,7 @@ void MainContentComponent::savePreset(String path)
     xml->setAttribute ("Show_Speakers",       this->isSpeakersShown);
     xml->setAttribute ("High_Performance",   this->isHighPerformance);
     xml->setAttribute ("Use_Alpha",       this->isSourceLevelShown);
-    xml->setAttribute ("Record_Format",       this->recordFormat->getSelectedItemIndex());
+    xml->setAttribute ("Record_Format",       this->jackClient->getRecordFormat());
     xml->setAttribute ("Speaker_Setup_File", this->pathCurrentFileSpeaker);
     
     for (auto&& it : listSourceInput)
@@ -1418,19 +1424,30 @@ void MainContentComponent::savePresetSpeakers(String path)
     this->setNameConfig();
 }
 
-
-void MainContentComponent::saveJackSettings(unsigned int rate, unsigned int buff)
+void MainContentComponent::saveJackSettings(unsigned int rate, unsigned int buff, int fileformat)
 {
     unsigned int BufferValue = applicationProperties.getUserSettings()->getValue("BufferValue").getIntValue();
     unsigned int RateValue = applicationProperties.getUserSettings()->getValue("RateValue").getIntValue();
 
-    if(rate != RateValue || buff != BufferValue){
+    this->jackClient->setRecordFormat(fileformat);
+    cout << fileformat << endl;
+    applicationProperties.getUserSettings()->setValue("FileFormat", (int)fileformat);
+    applicationProperties.saveIfNeeded();
+
+        if (isnan(BufferValue) || BufferValue == 0) {
+            BufferValue = 1024;
+        }
+        if (isnan(RateValue) || RateValue == 0) {
+            RateValue = 48000;
+        }
+
+    if(rate != RateValue || buff != BufferValue) {
         bool r = AlertWindow::showOkCancelBox(AlertWindow::AlertIconType::WarningIcon,"Restart ServerGRIS",
                                                "Need to restart ServerGRIS for apply new settings !");
         //Click OK -> Open xml
         if(r){
             applicationProperties.getUserSettings()->setValue("BufferValue", (int)buff);
-            applicationProperties.getUserSettings()->setValue("RateValue", (int)rate );
+            applicationProperties.getUserSettings()->setValue("RateValue", (int)rate);
             applicationProperties.saveIfNeeded();
             
             //Restart APP
@@ -1455,24 +1472,19 @@ void MainContentComponent::timerCallback()
                             ((seconds < 10) ? "0"+String(seconds) : String(seconds));///(this->jackClient->sampleRate* this->jackClient->bufferSize);
     this->labelTimeRecorded->setText(timeRecorded, dontSendNotification);
     
-    if(this->butStartRecord->getToggleState()
-       && (this->jackClient->indexRecord+this->jackClient->bufferSize) >= this->jackClient->endIndexRecord)
-    {
+    if (this->butStartRecord->getToggleState()) {
         this->butStartRecord->setToggleState(false, dontSendNotification);
     }
     
     if (this->jackClient->isSavingRun()) {
         this->butStartRecord->setButtonText("Stop");
         this->butStartRecord->setEnabled(true);
-        this->tedMinRecord->setEnabled(false);
     } else if (this->jackClient->getRecordingPath() == "") {
         this->butStartRecord->setButtonText("Record");
         this->butStartRecord->setEnabled(false);
-        this->tedMinRecord->setEnabled(true);
     } else {
         this->butStartRecord->setButtonText("Record");
         this->butStartRecord->setEnabled(true);
-        this->tedMinRecord->setEnabled(true);
     } 
     
     if(this->jackClient->overload){
@@ -1563,9 +1575,6 @@ void MainContentComponent::textEditorReturnKeyPressed (TextEditor & textEditor)
         }
         updateLevelComp();
     }
-    else if(&textEditor == this->tedMinRecord){
-        this->jackClient->setRecordTime(this->tedMinRecord->getTextValue().toString().getFloatValue());
-    }
 }
 
 void MainContentComponent::buttonClicked (Button *button)
@@ -1633,9 +1642,6 @@ void MainContentComponent::comboBoxChanged (ComboBox *comboBox)
                 break;
         }        
     }
-    if (this->recordFormat == comboBox) {
-        this->jackClient->setRecordFormat(this->recordFormat->getSelectedItemIndex());
-    }
 }
 
 void MainContentComponent::chooseRecordingPath() {
@@ -1645,7 +1651,7 @@ void MainContentComponent::chooseRecordingPath() {
     }
     String extF;
     String extChoice;
-    if (this->recordFormat->getSelectedItemIndex() == 0) {
+    if (this->jackClient->getRecordFormat() == 0) {
         extF = ".wav";
         extChoice = "*.wav,*.aif";
     } else {
