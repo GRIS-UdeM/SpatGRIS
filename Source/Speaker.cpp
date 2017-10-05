@@ -48,21 +48,31 @@ float Speaker::getLevel()
 {
     return this->mainParent->getLevelsOut(outputPatch-1);
 }
-void Speaker::setMuted(bool mute){
-    
+
+float Speaker::getAlpha() {
+    float alpha;
+    if (this->mainParent->isSpeakerLevelShown) {
+        alpha = this->mainParent->getSpeakerLevelsAlpha(this->outputPatch-1);
+    } else {
+        alpha = 1.0f;
+    }
+    if (isnan(alpha)) {
+        alpha = 0.6f;
+    }
+    return alpha;
+}
+
+void Speaker::setMuted(bool mute) {
     this->mainParent->muteOutput(this->outputPatch, mute);
 }
-void Speaker::setSolo(bool solo)
-{
+
+void Speaker::setSolo(bool solo) {
     this->mainParent->soloOutput(this->outputPatch, solo);
 }
-void Speaker::setColor(Colour color, bool updateLevel)
-{
 
-}
+void Speaker::setColor(Colour color, bool updateLevel) {}
 
-int Speaker::getIdSpeaker()
-{
+int Speaker::getIdSpeaker() {
     return this->idSpeaker;
 }
 
@@ -235,9 +245,14 @@ void Speaker::draw()
     glTranslatef(-1*this->center.x, -1*this->center.y, -1*this->center.z);
     
     glBegin(GL_QUADS);
-    
-    glColor3f(this->color.x, this->color.y, this->color.z);
-    
+
+    if (this->mainParent->isSpeakerLevelShown) {
+        float val = this->getAlpha();
+        this->levelColour = val + (this->levelColour - val) * 0.5;
+        glColor3f(this->levelColour, this->levelColour, this->levelColour);
+    } else {
+        glColor3f(this->color.x, this->color.y, this->color.z);
+    }
     glVertex3f(this->min.x, this->min.y, this->max.z);
     glVertex3f(this->max.x, this->min.y, this->max.z);
     glVertex3f(this->max.x, this->max.y, this->max.z);

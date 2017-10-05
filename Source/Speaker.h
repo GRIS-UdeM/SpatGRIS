@@ -84,6 +84,7 @@ public:
     //ParentLevelComponent ===============================
     int getId(){ return this->outputPatch ;};
     float getLevel();
+    float getAlpha();
     void setMuted(bool mute);
     void setSolo(bool solo);
     void setColor(Colour color, bool updateLevel = false);
@@ -136,6 +137,8 @@ private :
     bool directOut = false;
     
     bool selected = false;
+
+    float levelColour = 1.0;
 
     MainContentComponent *mainParent;
     LevelComponent *vuMeter;

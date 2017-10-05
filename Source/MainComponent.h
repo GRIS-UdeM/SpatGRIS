@@ -103,6 +103,7 @@ public:
     void handleShowSpeakers();
     void setShowSpeakers(bool state);
     void handleShowSourceLevel();
+    void handleShowSpeakerLevel();
     void handleHighPerformance();
     void setHighPerformance(bool state);
     void handleTestSound();
@@ -155,13 +156,26 @@ public:
     float getLevelsIn(int indexLevel){return (15.0f * log10f(sqrtf(this->jackClient->getLevelsIn(indexLevel)))); }
     float getLevelsAlpha(int indexLevel) {
         float level = this->jackClient->getLevelsIn(indexLevel);
-        if (level > 0.001) { // -60 dB
+        if (level > 0.0001) { // -80 dB
             return 1.0;
         } else {
-            return sqrtf(level * 1000.0f);
+            return sqrtf(level * 10000.0f);
         }
     }
-    
+    float getSpeakerLevelsAlpha(int indexLevel) {
+        float level = this->jackClient->getLevelsOut(indexLevel);
+        float alpha = 1.0;
+        if (level > 0.001) { // -60 dB
+            alpha = 1.0;
+        } else {
+            alpha = sqrtf(level * 1000.0f);
+        }
+        if (alpha < 0.6) {
+            alpha = 0.6;
+        }
+        return alpha;
+    }
+
     void chooseRecordingPath();
 
     void destroyWinSpeakConf() { this->winSpeakConfig = nullptr; this->jackClient->processBlockOn = true; }

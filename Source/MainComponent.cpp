@@ -512,6 +512,10 @@ void MainContentComponent::handleShowSourceLevel() {
     this->isSourceLevelShown = !this->isSourceLevelShown;
 }
 
+void MainContentComponent::handleShowSpeakerLevel() {
+    this->isSpeakerLevelShown = !this->isSpeakerLevelShown;
+}
+
 void MainContentComponent::handleHighPerformance() {
     this->setHighPerformance(!this->isHighPerformance);
 }
@@ -680,7 +684,7 @@ bool MainContentComponent::perform (const InvocationInfo& info)
             case MainWindow::ShowNumbersID: this->handleShowNumbers(); break;
             case MainWindow::ShowSpeakersID: this->handleShowSpeakers(); break;
             case MainWindow::ShowSourceLevelID: this->handleShowSourceLevel(); break;
-            case MainWindow::ShowSpeakerLevelID: cout << "Activate speaker level!" << endl; break;
+            case MainWindow::ShowSpeakerLevelID: this->handleShowSpeakerLevel(); break;
             case MainWindow::HighPerformanceID: this->handleHighPerformance(); break;
             case MainWindow::ColorizeInputsID: this->handleInputColours(); break;
             case MainWindow::ResetInputPosID: this->handleResetInputPositions(); break;
@@ -720,7 +724,7 @@ PopupMenu MainContentComponent::getMenuForIndex (int menuIndex, const String& me
         menu.addCommandItem(commandManager, MainWindow::ShowNumbersID);
         menu.addCommandItem(commandManager, MainWindow::ShowSpeakersID);
         menu.addCommandItem(commandManager, MainWindow::ShowSourceLevelID);
-        //menu.addCommandItem(commandManager, MainWindow::ShowSpeakerLevelID);
+        menu.addCommandItem(commandManager, MainWindow::ShowSpeakerLevelID);
         menu.addCommandItem(commandManager, MainWindow::HighPerformanceID);
         menu.addSeparator();
         menu.addCommandItem(commandManager, MainWindow::ColorizeInputsID);
