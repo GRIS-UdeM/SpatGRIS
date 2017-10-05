@@ -212,7 +212,7 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     textEditorReturnKeyPressed(*this->tedAddInputs);
 
     // Opens the default preset if lastOpenPreset is not a valid file.
-    File preset = File(this->applicationProperties.getUserSettings()->getValue("lastOpenPreset"));
+    File preset = File(this->applicationProperties.getUserSettings()->getValue("lastOpenPreset")); // NEVER SAVED!?!?!
     if (!preset.existsAsFile()) {
 #ifdef __linux__
         String cwd = File::getCurrentWorkingDirectory().getFullPathName();
@@ -535,6 +535,9 @@ void MainContentComponent::setHighPerformance(bool state) {
         }
     }
     this->speakerView->setHighPerfor(state);
+
+    this->isSourceLevelShown = false;
+    this->isSpeakerLevelShown = false;
 }
 
 void MainContentComponent::handleTestSound() {
