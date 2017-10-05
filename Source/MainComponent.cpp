@@ -50,7 +50,8 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     options.ignoreCaseOfKeyNames = true;
     options.osxLibrarySubFolder = "Application Support";
     this->applicationProperties.setStorageParameters(options);
-    this->applicationProperties.getCommonSettings(true);
+
+    PropertiesFile *props = this->applicationProperties.getUserSettings();
 
     LookAndFeel::setDefaultLookAndFeel(&mGrisFeel);
 
@@ -166,20 +167,15 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     this->setSize (1285, 650);
 
     // Jack Init and Param -------------------------------------------------------------------------------
-    unsigned int BufferValue = this->applicationProperties.getUserSettings()->getValue("BufferValue").getIntValue();
-    unsigned int RateValue = this->applicationProperties.getUserSettings()->getValue("RateValue").getIntValue();
-    unsigned int FileFormat = this->applicationProperties.getUserSettings()->getValue("FileFormat").getIntValue();
+    unsigned int BufferValue = props->getIntValue("BufferValue", 1024);
+    unsigned int RateValue = props->getIntValue("RateValue", 48000);
+    unsigned int FileFormat = props->getIntValue("FileFormat", 0);
 
-    /* FIXME
-     * this->applicationProperties.getUserSettings() does not seem to hold anything at this moment...
-     * Is preferences ever saved ?
-     */
-    //cout << "Buffer Rate: " << BufferValue << ", Sampling Rate: " << RateValue << endl;
+    #cout << "Buffer Rate: " << BufferValue << ", Sampling Rate: " << RateValue << ", File Format: " << FileFormat << endl;
     
     if(isnan(BufferValue) || BufferValue == 0 || isnan(RateValue) || RateValue == 0){
         BufferValue = 1024;
         RateValue = 48000;
-        // Record applicationProperties here.
     }
     //Start JACK Server and client
     this->jackServer = new jackServerGRIS(RateValue);
@@ -212,7 +208,7 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     textEditorReturnKeyPressed(*this->tedAddInputs);
 
     // Opens the default preset if lastOpenPreset is not a valid file.
-    File preset = File(this->applicationProperties.getUserSettings()->getValue("lastOpenPreset")); // NEVER SAVED!?!?!
+    File preset = File(props->getValue("lastOpenPreset", "not_saved_yet"));
     if (!preset.existsAsFile()) {
 #ifdef __linux__
         String cwd = File::getCurrentWorkingDirectory().getFullPathName();
@@ -223,7 +219,7 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
 #endif
     }
     else {
-        this->openPreset(this->applicationProperties.getUserSettings()->getValue("lastOpenPreset"));
+        this->openPreset(props->getValue("lastOpenPreset"));
     }
     this->resized();
     startTimerHz(HertzRefreshNormal);
@@ -776,7 +772,7 @@ bool MainContentComponent::exitApp()
 
 MainContentComponent::~MainContentComponent()
 {
-    this->applicationProperties.getUserSettings()->setValue("lastOpentPreset", this->pathCurrentPreset);
+    this->applicationProperties.getUserSettings()->setValue("lastOpenPreset", this->pathCurrentPreset);
     this->applicationProperties.saveIfNeeded();
     this->applicationProperties.closeFiles();
 
@@ -1437,7 +1433,6 @@ void MainContentComponent::saveJackSettings(unsigned int rate, unsigned int buff
     unsigned int RateValue = applicationProperties.getUserSettings()->getValue("RateValue").getIntValue();
 
     this->jackClient->setRecordFormat(fileformat);
-    cout << fileformat << endl;
     applicationProperties.getUserSettings()->setValue("FileFormat", (int)fileformat);
     applicationProperties.saveIfNeeded();
 
