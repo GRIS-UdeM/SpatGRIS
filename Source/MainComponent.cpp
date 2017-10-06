@@ -70,7 +70,7 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     this->lockInputs = new mutex();
     
     this->winSpeakConfig = nullptr;
-    this->winJackSetting = nullptr;
+    this->windowProperties = nullptr;
     this->winControlSource = nullptr;
     
     //SpeakerViewComponent 3D VIEW------------------------------
@@ -171,7 +171,7 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     unsigned int RateValue = props->getIntValue("RateValue", 48000);
     unsigned int FileFormat = props->getIntValue("FileFormat", 0);
 
-    #cout << "Buffer Rate: " << BufferValue << ", Sampling Rate: " << RateValue << ", File Format: " << FileFormat << endl;
+    //cout << "Buffer Rate: " << BufferValue << ", Sampling Rate: " << RateValue << ", File Format: " << FileFormat << endl;
     
     if(isnan(BufferValue) || BufferValue == 0 || isnan(RateValue) || RateValue == 0){
         BufferValue = 1024;
@@ -447,7 +447,7 @@ void MainContentComponent::handleShowSpeakerEditWindow() {
 
 void MainContentComponent::handleShowPreferences() {
     // Use the jack settings window as the preferences window for the time being.
-    if (this->winJackSetting == nullptr) {
+    if (this->windowProperties == nullptr) {
         unsigned int BufferValue = applicationProperties.getUserSettings()->getValue("BufferValue").getIntValue();
         unsigned int RateValue = applicationProperties.getUserSettings()->getValue("RateValue").getIntValue();
         unsigned int FileFormat = applicationProperties.getUserSettings()->getValue("FileFormat").getIntValue();
@@ -460,18 +460,18 @@ void MainContentComponent::handleShowPreferences() {
         if (isnan(FileFormat)) {
             FileFormat = 0;
         }
-        this->winJackSetting = new WindowJackSetting("Jack Settings", this->mGrisFeel.getWinBackgroundColour(),
+        this->windowProperties = new WindowProperties("Preferences", this->mGrisFeel.getWinBackgroundColour(),
                                                      DocumentWindow::allButtons, this, &this->mGrisFeel, 
                                                      RateValues.indexOf(String(RateValue)), 
                                                      BufferSize.indexOf(String(BufferValue)),
                                                      FileFormat);
     }
     Rectangle<int> result (this->getScreenX()+ (this->speakerView->getWidth()/2)-150, this->getScreenY()+(this->speakerView->getHeight()/2)-75, 250, 150);
-    this->winJackSetting->setBounds(result);
-    this->winJackSetting->setResizable(false, false);
-    this->winJackSetting->setUsingNativeTitleBar(true);
-    this->winJackSetting->setVisible(true);
-    this->winJackSetting->repaint();
+    this->windowProperties->setBounds(result);
+    this->windowProperties->setResizable(false, false);
+    this->windowProperties->setUsingNativeTitleBar(true);
+    this->windowProperties->setVisible(true);
+    this->windowProperties->repaint();
 }
 
 void MainContentComponent::handleShow2DView() {
@@ -781,8 +781,8 @@ MainContentComponent::~MainContentComponent()
     if(this->winSpeakConfig != nullptr){
         delete this->winSpeakConfig;
     }
-    if(this->winJackSetting != nullptr){
-        delete this->winJackSetting;
+    if(this->windowProperties != nullptr){
+        delete this->windowProperties;
     }
     if(this->winControlSource != nullptr){
         delete this->winControlSource;

@@ -855,9 +855,9 @@ Component* WindowEditSpeaker::refreshComponentForCell(int rowNumber, int columnI
 
 
 
-//======================================= WinJackSettings ===========================
+//======================================= WindowProperties ===========================
 
-WindowJackSetting::WindowJackSetting(const String& name, Colour backgroundColour, int buttonsNeeded,
+WindowProperties::WindowProperties(const String& name, Colour backgroundColour, int buttonsNeeded,
                                      MainContentComponent * parent, GrisLookAndFeel * feel, int indR, 
                                     int indB, int indFF):
     DocumentWindow (name, backgroundColour, buttonsNeeded)
@@ -922,7 +922,7 @@ WindowJackSetting::WindowJackSetting(const String& name, Colour backgroundColour
     this->juce::Component::addAndMakeVisible(this->butValidSettings);
 }
 
-WindowJackSetting::~WindowJackSetting() {
+WindowProperties::~WindowProperties() {
     delete this->labRate;
     delete this->labBuff;
     delete this->labRecFormat;
@@ -930,16 +930,16 @@ WindowJackSetting::~WindowJackSetting() {
     delete this->cobBuffer;
     delete this->recordFormat;
     delete this->butValidSettings;
-    this->mainParent->destroyWinJackSetting();
+    this->mainParent->destroyWindowProperties();
 }
 
-void WindowJackSetting::closeButtonPressed()
+void WindowProperties::closeButtonPressed()
 {
     delete this;
 }
 
 
-void WindowJackSetting::buttonClicked(Button *button)
+void WindowProperties::buttonClicked(Button *button)
 {
     if( button == this->butValidSettings) {
         this->mainParent->saveJackSettings(this->cobRate->getText().getIntValue(), this->cobBuffer->getText().getIntValue(),

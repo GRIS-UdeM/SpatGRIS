@@ -226,17 +226,17 @@ private:
 };
 
 
-//======================================= WinJackSettings ===========================
+//======================================= WindowProperties ===========================
 
-class WindowJackSetting :   public DocumentWindow,
+class WindowProperties :   public DocumentWindow,
                             public TextButton::Listener
 
 {
 public:
-    WindowJackSetting(const String& name, Colour backgroundColour, int buttonsNeeded,
+    WindowProperties(const String& name, Colour backgroundColour, int buttonsNeeded,
                       MainContentComponent * parent, GrisLookAndFeel * feel, int indR=0,
                       int indB=0, int indFF=0);
-    ~WindowJackSetting();
+    ~WindowProperties();
 
     void buttonClicked(Button *button);
     void closeButtonPressed();

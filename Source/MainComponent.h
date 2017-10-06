@@ -179,7 +179,7 @@ public:
     void chooseRecordingPath();
 
     void destroyWinSpeakConf() { this->winSpeakConfig = nullptr; this->jackClient->processBlockOn = true; }
-    void destroyWinJackSetting() { this->winJackSetting = nullptr; }
+    void destroyWindowProperties() { this->windowProperties = nullptr; }
     void destroyWinControl() { this->winControlSource = nullptr; }
 
     //=======================================================================
@@ -251,7 +251,7 @@ private:
     SpeakerViewComponent *speakerView;
     
     WindowEditSpeaker * winSpeakConfig;
-    WindowJackSetting * winJackSetting;
+    WindowProperties * windowProperties;
     WinControl *        winControlSource;
 
     //3 Main Box---------------------
