@@ -82,11 +82,7 @@ class MainContentComponent   :  public Component,
 public:
     //==============================================================================
     MainContentComponent(DocumentWindow *parent);
-    ~MainContentComponent(
-        #if JUCE_MAC
-        MenuBarModel::setMacMainMenu(nullptr);
-       #endif
-    );
+    ~MainContentComponent();
     bool exitApp();
 
     //==============================================================================

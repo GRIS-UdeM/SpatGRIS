@@ -17,6 +17,7 @@
 		0D573AD51EC38A05007605B1 /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D573AD41EC38A05007605B1 /* GLUT.framework */; };
 		0D76540CEB135C65E2C77E42 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A49E2EA8DC00B3CFBC3B8FC /* Cocoa.framework */; };
 		0DC163381F15427700CD15DD /* JAS.jpil in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0DC163371F15427700CD15DD /* JAS.jpil */; };
+		0DCEB0611F87E88F00916109 /* MainWindow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0DCEB05F1F87E88F00916109 /* MainWindow.cpp */; };
 		0DE3ABB01ECDE28A00EACF5B /* vbap.c in Sources */ = {isa = PBXBuildFile; fileRef = 0DE3ABAE1ECDE28A00EACF5B /* vbap.c */; };
 		0DEA64C61EFC1A6E006562C4 /* Jackmp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DEA64BE1EFC18E1006562C4 /* Jackmp.framework */; };
 		0DEA64C71EFC1A6E006562C4 /* Jacknet.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DEA64BF1EFC18E1006562C4 /* Jacknet.framework */; };
@@ -165,6 +166,8 @@
 		0DAEE47D7405B9E5383EA97F /* juce_RelativePointPath.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_RelativePointPath.h; path = ../../JuceLibraryCode/modules/juce_gui_basics/positioning/juce_RelativePointPath.h; sourceTree = SOURCE_ROOT; };
 		0DC163371F15427700CD15DD /* JAS.jpil */ = {isa = PBXFileReference; lastKnownFileType = text; path = JAS.jpil; sourceTree = "<group>"; };
 		0DC88B16521DF51B488590F4 /* OscInput.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = OscInput.h; path = ../../Source/OscInput.h; sourceTree = SOURCE_ROOT; };
+		0DCEB05F1F87E88F00916109 /* MainWindow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MainWindow.cpp; sourceTree = "<group>"; };
+		0DCEB0601F87E88F00916109 /* MainWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MainWindow.h; sourceTree = "<group>"; };
 		0DE3ABAE1ECDE28A00EACF5B /* vbap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = vbap.c; path = ../../Source/vbap.c; sourceTree = "<group>"; };
 		0DE3ABAF1ECDE28A00EACF5B /* vbap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vbap.h; path = ../../Source/vbap.h; sourceTree = "<group>"; };
 		0DEA64BD1EFC18E1006562C4 /* Jackmp */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = Jackmp; path = ../../../../../../../Library/Frameworks/Jackmp; sourceTree = "<group>"; };
@@ -3605,6 +3608,8 @@
 		FAA16A21521DD35AC3040C00 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				0DCEB05F1F87E88F00916109 /* MainWindow.cpp */,
+				0DCEB0601F87E88F00916109 /* MainWindow.h */,
 				0DE3ABAE1ECDE28A00EACF5B /* vbap.c */,
 				0DE3ABAF1ECDE28A00EACF5B /* vbap.h */,
 				9CEB1A4032DC38548D41C6D6 /* jackServerGRIS.cpp */,
@@ -3791,6 +3796,7 @@
 				21FA967C928A77502F65C3FC /* juce_audio_devices.mm in Sources */,
 				153A81E76FB9CF6A837E1C6B /* juce_audio_formats.mm in Sources */,
 				1C224AAD28C84E3D4A9625EE /* juce_audio_processors.mm in Sources */,
+				0DCEB0611F87E88F00916109 /* MainWindow.cpp in Sources */,
 				81EE84C1D6A7ACA79005862F /* juce_audio_utils.mm in Sources */,
 				72DD6B68901EBADA60F0543F /* juce_core.mm in Sources */,
 				0F18ADC55E833D69E5746DFD /* juce_cryptography.mm in Sources */,

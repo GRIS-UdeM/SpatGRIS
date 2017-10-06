@@ -710,8 +710,10 @@ PopupMenu MainContentComponent::getMenuForIndex (int menuIndex, const String& me
         menu.addCommandItem(commandManager, MainWindow::ShowSpeakerEditID);
         menu.addSeparator();
         menu.addCommandItem (commandManager, MainWindow::PrefsID);
+#if ! JUCE_MAC
         menu.addSeparator();
         menu.addCommandItem(commandManager, MainWindow::QuitID);
+#endif
     }
     else if (menuName == "View")
     {
