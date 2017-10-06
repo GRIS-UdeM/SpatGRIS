@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # To build the installer for OSX, install JackOSX.0.92_b3.pkg,
-# compile SpatServerGris in Release mode
+# compile ServerGris in Release mode
 # and run this shell script from the installer folder.
 
 export PACKAGE_NAME=ServerGris_v0.0.8.pkg
