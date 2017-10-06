@@ -446,27 +446,23 @@ void MainContentComponent::handleShowSpeakerEditWindow() {
 }
 
 void MainContentComponent::handleShowPreferences() {
-    // Use the jack settings window as the preferences window for the time being.
+    PropertiesFile *props = this->applicationProperties.getUserSettings();
     if (this->windowProperties == nullptr) {
-        unsigned int BufferValue = applicationProperties.getUserSettings()->getValue("BufferValue").getIntValue();
-        unsigned int RateValue = applicationProperties.getUserSettings()->getValue("RateValue").getIntValue();
-        unsigned int FileFormat = applicationProperties.getUserSettings()->getValue("FileFormat").getIntValue();
-        if (isnan(BufferValue) || BufferValue == 0) {
-            BufferValue = 1024;
-        }
-        if (isnan(RateValue) || RateValue == 0) {
-            RateValue = 48000;
-        }
-        if (isnan(FileFormat)) {
-            FileFormat = 0;
-        }
+        unsigned int BufferValue = props->getIntValue("BufferValue", 1024);
+        unsigned int RateValue = props->getIntValue("RateValue", 48000);
+        unsigned int FileFormat = props->getIntValue("FileFormat", 0);
+        unsigned int OscInputPort = props->getIntValue("OscInputPort", 18032);
+        if (isnan(BufferValue) || BufferValue == 0) { BufferValue = 1024; }
+        if (isnan(RateValue) || RateValue == 0) { RateValue = 48000; }
+        if (isnan(FileFormat)) { FileFormat = 0; }
+        if (isnan(OscInputPort)) { OscInputPort = 18032; }
         this->windowProperties = new WindowProperties("Preferences", this->mGrisFeel.getWinBackgroundColour(),
                                                      DocumentWindow::allButtons, this, &this->mGrisFeel, 
                                                      RateValues.indexOf(String(RateValue)), 
                                                      BufferSize.indexOf(String(BufferValue)),
-                                                     FileFormat);
+                                                     FileFormat, OscInputPort);
     }
-    Rectangle<int> result (this->getScreenX()+ (this->speakerView->getWidth()/2)-150, this->getScreenY()+(this->speakerView->getHeight()/2)-75, 250, 150);
+    Rectangle<int> result (this->getScreenX()+ (this->speakerView->getWidth()/2)-150, this->getScreenY()+(this->speakerView->getHeight()/2)-75, 270, 290);
     this->windowProperties->setBounds(result);
     this->windowProperties->setResizable(false, false);
     this->windowProperties->setUsingNativeTitleBar(true);
@@ -1427,41 +1423,56 @@ void MainContentComponent::savePresetSpeakers(String path)
     this->setNameConfig();
 }
 
-void MainContentComponent::saveJackSettings(unsigned int rate, unsigned int buff, int fileformat)
-{
-    unsigned int BufferValue = applicationProperties.getUserSettings()->getValue("BufferValue").getIntValue();
-    unsigned int RateValue = applicationProperties.getUserSettings()->getValue("RateValue").getIntValue();
+void MainContentComponent::saveProperties(unsigned int rate, unsigned int buff, int fileformat, int oscPort) {
 
-    this->jackClient->setRecordFormat(fileformat);
-    applicationProperties.getUserSettings()->setValue("FileFormat", (int)fileformat);
-    applicationProperties.saveIfNeeded();
+    PropertiesFile *props = this->applicationProperties.getUserSettings();
 
-        if (isnan(BufferValue) || BufferValue == 0) {
-            BufferValue = 1024;
-        }
-        if (isnan(RateValue) || RateValue == 0) {
-            RateValue = 48000;
-        }
+    unsigned int BufferValue = props->getIntValue("BufferValue", 1024);
+    unsigned int RateValue = props->getIntValue("RateValue", 48000);
+    unsigned int OscInputPort = props->getIntValue("OscInputPort", 18032);
+
+    // ======== handle Jack settings ===============
+    if (isnan(BufferValue) || BufferValue == 0) { BufferValue = 1024; }
+    if (isnan(RateValue) || RateValue == 0) { RateValue = 48000; }
 
     if(rate != RateValue || buff != BufferValue) {
         bool r = AlertWindow::showOkCancelBox(AlertWindow::AlertIconType::WarningIcon,"Restart ServerGRIS",
-                                               "Need to restart ServerGRIS for apply new settings !");
+                                               "Need to restart ServerGRIS to apply new settings !");
         //Click OK -> Open xml
         if(r){
-            applicationProperties.getUserSettings()->setValue("BufferValue", (int)buff);
-            applicationProperties.getUserSettings()->setValue("RateValue", (int)rate);
-            applicationProperties.saveIfNeeded();
-            
+            props->setValue("BufferValue", (int)buff);
+            props->setValue("RateValue", (int)rate);
+
+            /* FIXME: This does not work under linux (not sure about OSX). It should be possible to just shutdown
+                      and restart the Jack server instead of the application, as in qjackctl.
+            */
             //Restart APP
             String applicationPath = File::getSpecialLocation(File::currentApplicationFile).getFullPathName();
             String relaunchCommand = "open " + applicationPath;
-            ScopedPointer<ChildProcess> scriptProcess = new ChildProcess();
-            
+            ScopedPointer<ChildProcess> scriptProcess = new ChildProcess();            
             JUCEApplication::getInstance()->systemRequestedQuit();
-            //cout << relaunchCommand << newLine;
             scriptProcess->start(relaunchCommand, (!ChildProcess::wantStdErr | !ChildProcess::wantStdOut));
         }
     }
+
+    // ======== handle OSC Input Port ===============
+    if (oscPort < 0 || oscPort > 65535) { oscPort = 18032; }
+    if (oscPort != OscInputPort) {
+        this->oscInputPort = oscPort;
+        props->setValue("OscInputPort", oscPort);
+        this->oscReceiver->closeConnection();
+        if (this->oscReceiver->startConnection(this->oscInputPort)) {
+            cout << "OSC receiver connected to port " << oscPort << endl;
+        } else {
+            cout << "OSC receiver connection to port " << oscPort << " failed... Should popup an alert window." << endl;
+        }
+    }
+
+    // ======== handle recording settings ===============
+    this->jackClient->setRecordFormat(fileformat);
+    props->setValue("FileFormat", fileformat);
+
+    applicationProperties.saveIfNeeded();
 }
 
 void MainContentComponent::timerCallback()

@@ -856,66 +856,76 @@ Component* WindowEditSpeaker::refreshComponentForCell(int rowNumber, int columnI
 
 
 //======================================= WindowProperties ===========================
+Label *
+WindowProperties::createPropLabel(String lab, Justification::Flags just, int ypos) {
+    Label *label = new Label();
+    label->setText(lab, NotificationType::dontSendNotification);
+    label->setJustificationType(just);
+    label->setBounds(10, ypos, 100, 22);
+    label->setFont(this->grisFeel->getFont());
+    label->setLookAndFeel(this->grisFeel);
+    label->setColour(Label::textColourId, this->grisFeel->getFontColour());
+    this->juce::Component::addAndMakeVisible(label);
+    return label;
+}
+
+TextEditor *
+WindowProperties::createPropIntTextEditor(String tooltip, int ypos, int init) {
+    TextEditor *editor = new TextEditor();
+    editor->setTooltip(tooltip);
+    editor->setTextToShowWhenEmpty("", this->grisFeel->getOffColour());
+    editor->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
+    editor->setLookAndFeel(this->grisFeel);
+    editor->setBounds(130, ypos, 120, 22);
+    editor->setInputRestrictions(5, "0123456789");
+    editor->setText(String(init));
+    /* Implemented but not yet in current Juce release. */
+    //this->tedOSCInPort->setJustification(Justification::right);
+    this->juce::Component::addAndMakeVisible(editor);
+    return editor;
+}
+
+ComboBox *
+WindowProperties::createPropComboBox(const StringArray choices, int selected, int ypos) {
+    ComboBox *combo = new ComboBox();
+    combo->addItemList(choices, 1);
+    combo->setSelectedItemIndex(selected);
+    combo->setBounds(130, ypos, 120, 22);
+    combo->setLookAndFeel(this->grisFeel);
+    this->juce::Component::addAndMakeVisible(combo);
+    return combo;
+}
 
 WindowProperties::WindowProperties(const String& name, Colour backgroundColour, int buttonsNeeded,
                                      MainContentComponent * parent, GrisLookAndFeel * feel, int indR, 
-                                    int indB, int indFF):
+                                    int indB, int indFF, int oscPort):
     DocumentWindow (name, backgroundColour, buttonsNeeded)
 {
     this->mainParent = parent;
     this->grisFeel = feel;
-    
-    this->labRate = new Label();
-    this->labRate->setText("Rate (Hz) :", NotificationType::dontSendNotification);
-    this->labRate->setJustificationType(Justification::right);
-    this->labRate->setBounds(10, 20, 80, 22);
-    this->labRate->setFont(this->grisFeel->getFont());
-    this->labRate->setLookAndFeel(this->grisFeel);
-    this->labRate->setColour(Label::textColourId, this->grisFeel->getFontColour());
-    this->juce::Component::addAndMakeVisible(this->labRate);
-    
-    this->labBuff = new Label();
-    this->labBuff->setText("Buffer (spls) :", NotificationType::dontSendNotification);
-    this->labBuff->setJustificationType(Justification::right);
-    this->labBuff->setBounds(10, 50, 80, 22);
-    this->labBuff->setFont(this->grisFeel->getFont());
-    this->labBuff->setLookAndFeel(this->grisFeel);
-    this->labBuff->setColour(Label::textColourId, this->grisFeel->getFontColour());
-    this->juce::Component::addAndMakeVisible(this->labBuff);
 
-    this->labRecFormat = new Label();
-    this->labRecFormat->setText("File Format :", NotificationType::dontSendNotification);
-    this->labRecFormat->setJustificationType(Justification::right);
-    this->labRecFormat->setBounds(10, 80, 80, 22);
-    this->labRecFormat->setFont(this->grisFeel->getFont());
-    this->labRecFormat->setLookAndFeel(this->grisFeel);
-    this->labRecFormat->setColour(Label::textColourId, this->grisFeel->getFontColour());
-    this->juce::Component::addAndMakeVisible(this->labRecFormat);
-    
-    this->cobRate = new ComboBox();
-    this->cobRate->addItemList(RateValues, 1);
-    this->cobRate->setSelectedItemIndex(indR);
-    this->cobRate->setBounds(90, 20, 120, 22);
-    this->cobRate->setLookAndFeel(this->grisFeel);
-    this->juce::Component::addAndMakeVisible(this->cobRate);
-    
-    this->cobBuffer = new ComboBox();
-    this->cobBuffer->addItemList(BufferSize, 1);
-    this->cobBuffer->setSelectedItemIndex(indB);
-    this->cobBuffer->setBounds(90, 50, 120, 22);
-    this->cobBuffer->setLookAndFeel(this->grisFeel);
-    this->juce::Component::addAndMakeVisible(this->cobBuffer);
+    this->generalLabel = this->createPropLabel("General Settings", Justification::left, 20);
 
-    this->recordFormat = new ComboBox();
-    this->recordFormat->addItemList(FileFormats, 1);
-    this->recordFormat->setSelectedItemIndex(indFF, dontSendNotification);
-    this->recordFormat->setBounds(90, 80, 120, 22);
-    this->recordFormat->setLookAndFeel(this->grisFeel);
-    this->juce::Component::addAndMakeVisible(this->recordFormat);
-    
+    this->labOSCInPort = this->createPropLabel("OSC Input Port :", Justification::left, 50);
+    this->tedOSCInPort = this->createPropIntTextEditor("Port Socket OSC Input", 50, oscPort);
+
+    this->jackSettingsLabel = this->createPropLabel("Jack Settings", Justification::left, 90);
+
+    this->labRate = this->createPropLabel("Sampling Rate (hz) :", Justification::left, 120);
+    this->cobRate = this->createPropComboBox(RateValues, indR, 120);
+
+    this->labBuff = this->createPropLabel("Buffer Size (spls) :", Justification::left, 150);
+    this->cobBuffer = this->createPropComboBox(BufferSize, indB, 150);
+
+    this->recordingLabel = this->createPropLabel("Recording Settings", Justification::left, 190);
+
+    this->labRecFormat = this->createPropLabel("File Format :", Justification::left, 220);
+    this->recordFormat = this->createPropComboBox(FileFormats, indFF, 220);
+
+    // -------------- Save button -------------
     this->butValidSettings = new TextButton();
     this->butValidSettings->setButtonText("Save");
-    this->butValidSettings->setBounds(122, 110, 88, 22);
+    this->butValidSettings->setBounds(163, 260, 88, 22);
     this->butValidSettings->addListener(this);
     this->butValidSettings->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
     this->butValidSettings->setLookAndFeel(this->grisFeel);
@@ -923,9 +933,14 @@ WindowProperties::WindowProperties(const String& name, Colour backgroundColour, 
 }
 
 WindowProperties::~WindowProperties() {
+    delete this->generalLabel;
+    delete this->jackSettingsLabel;
+    delete this->recordingLabel;
+    delete this->labOSCInPort;
     delete this->labRate;
     delete this->labBuff;
     delete this->labRecFormat;
+    delete this->tedOSCInPort;
     delete this->cobRate;
     delete this->cobBuffer;
     delete this->recordFormat;
@@ -942,8 +957,10 @@ void WindowProperties::closeButtonPressed()
 void WindowProperties::buttonClicked(Button *button)
 {
     if( button == this->butValidSettings) {
-        this->mainParent->saveJackSettings(this->cobRate->getText().getIntValue(), this->cobBuffer->getText().getIntValue(),
-                                           this->recordFormat->getSelectedItemIndex());
+        this->mainParent->saveProperties(this->cobRate->getText().getIntValue(),
+                                           this->cobBuffer->getText().getIntValue(),
+                                           this->recordFormat->getSelectedItemIndex(),
+                                           this->tedOSCInPort->getTextValue().toString().getIntValue());
         delete this;
     }
 }

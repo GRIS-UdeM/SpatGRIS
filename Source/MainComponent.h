@@ -149,7 +149,7 @@ public:
     void soloOutput(int id, bool solo);
     void setDirectOut(int id, int chn);
 
-    void saveJackSettings(unsigned int rate, unsigned int buff, int fileformat);
+    void saveProperties(unsigned int rate, unsigned int buff, int fileformat, int oscPort);
 
     //=======================================================================
     float getLevelsOut(int indexLevel){return (15.0f * log10f(sqrtf(this->jackClient->getLevelsOut(indexLevel))));}
@@ -277,13 +277,8 @@ private:
     Slider *        sliderMasterGainOut;
     Slider *        sliderInterpolation;
     
-    /* PREFERENCES 
-    TextEditor *    tedOSCInPort;
-    Label *         labOSCStatus;
-    */
     TextEditor *    tedAddInputs;
-    
-    
+        
     Label *         labelAllClients;
     BoxClient *     boxClientJack;
     

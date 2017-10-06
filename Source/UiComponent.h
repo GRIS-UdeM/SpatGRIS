@@ -235,8 +235,12 @@ class WindowProperties :   public DocumentWindow,
 public:
     WindowProperties(const String& name, Colour backgroundColour, int buttonsNeeded,
                       MainContentComponent * parent, GrisLookAndFeel * feel, int indR=0,
-                      int indB=0, int indFF=0);
+                      int indB=0, int indFF=0, int oscPort=18032);
     ~WindowProperties();
+
+    Label * createPropLabel(String lab, Justification::Flags just, int ypos);
+    TextEditor * createPropIntTextEditor(String tooltip, int ypos, int init);
+    ComboBox * createPropComboBox(const StringArray choices, int selected, int ypos);
 
     void buttonClicked(Button *button);
     void closeButtonPressed();
@@ -245,13 +249,23 @@ public:
 private:
     MainContentComponent *mainParent;
     GrisLookAndFeel *grisFeel;
+
+    Label *generalLabel;
+    Label *jackSettingsLabel;
+    Label *recordingLabel;
+
+    Label *labOSCInPort;
+    TextEditor *tedOSCInPort;
     
     Label *labRate;
-    Label *labBuff;
-    Label *labRecFormat;
     ComboBox *cobRate;
+
+    Label *labBuff;
     ComboBox *cobBuffer;
+
+    Label *labRecFormat;
     ComboBox *recordFormat;
+
     TextButton *butValidSettings;
 
 };
