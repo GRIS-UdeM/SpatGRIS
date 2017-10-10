@@ -1202,6 +1202,7 @@ void MainContentComponent::soloInput(int id, bool solo)
     for (int i = 0; i < MaxInputs; i++) {
         if((&this->jackClient->listSourceIn[i])->isSolo){
             this->jackClient->soloIn = true;
+            break;
         }
     }
 }
@@ -1211,8 +1212,9 @@ void MainContentComponent::soloOutput(int id, bool solo)
     
     this->jackClient->soloOut = false;
     for (int i = 0; i < MaxOutputs; i++) {
-        if((&this->jackClient->listSpeakerOut[id-1])->isSolo){
+        if((&this->jackClient->listSpeakerOut[i])->isSolo){
             this->jackClient->soloOut = true;
+            break;
         }
     }
 }
