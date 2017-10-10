@@ -251,6 +251,8 @@ public:
     unsigned int maxOutputPatch;
     vector<int> outputPatches;
 
+    vector<vector<int>> vbap_triplets;
+
     //---------------------------------
     jackClientGris(unsigned int bufferS = 1024);
     virtual ~jackClientGris();

@@ -500,6 +500,15 @@ void MainContentComponent::setShowSpeakers(bool state) {
     this->speakerView->setHideSpeaker(!state);
 }
 
+void MainContentComponent::handleShowTriplets() {
+    this->setShowTriplets(!this->isTripletsShown);
+}
+
+void MainContentComponent::setShowTriplets(bool state) {
+    this->isTripletsShown = state;
+    this->speakerView->setShowTriplets(state);
+}
+
 void MainContentComponent::handleShowSourceLevel() {
     this->isSourceLevelShown = !this->isSourceLevelShown;
 }
@@ -565,6 +574,7 @@ void MainContentComponent::getAllCommands (Array<CommandID>& commands)
                               MainWindow::Show2DViewID,
                               MainWindow::ShowNumbersID,
                               MainWindow::ShowSpeakersID,
+                              MainWindow::ShowTripletsID,
                               MainWindow::ShowSourceLevelID,
                               MainWindow::ShowSpeakerLevelID,
                               MainWindow::HighPerformanceID,
@@ -610,31 +620,36 @@ void MainContentComponent::getCommandInfo (CommandID commandID, ApplicationComma
             break;
         case MainWindow::Show2DViewID:
             result.setInfo ("Show 2D View", "Show the 2D action window.", generalCategory, 0);
-            result.addDefaultKeypress ('2', ModifierKeys::commandModifier);
+            result.addDefaultKeypress ('V', ModifierKeys::commandModifier);
             break;
         case MainWindow::ShowNumbersID:
             result.setInfo ("Show Numbers", "Show source and speaker numbers on the 3D view.", generalCategory, 0);
-            result.addDefaultKeypress ('3', ModifierKeys::commandModifier);
+            result.addDefaultKeypress ('X', ModifierKeys::commandModifier);
             result.setTicked(this->isNumbersShown);
             break;
         case MainWindow::ShowSpeakersID:
             result.setInfo ("Show Speakers", "Show speakers on the 3D view.", generalCategory, 0);
-            result.addDefaultKeypress ('4', ModifierKeys::commandModifier);
+            result.addDefaultKeypress ('Z', ModifierKeys::commandModifier);
             result.setTicked(this->isSpeakersShown);
+            break;
+        case MainWindow::ShowTripletsID:
+            result.setInfo ("Show Speaker Triplets", "Show speaker triplets on the 3D view.", generalCategory, 0);
+            result.addDefaultKeypress ('T', ModifierKeys::commandModifier);
+            result.setTicked(this->isTripletsShown);
             break;
         case MainWindow::ShowSourceLevelID:
             result.setInfo ("Show Source Level", "Activate brightness on sources on the 3D view.", generalCategory, 0);
-            result.addDefaultKeypress ('5', ModifierKeys::commandModifier);
+            result.addDefaultKeypress ('I', ModifierKeys::commandModifier);
             result.setTicked(this->isSourceLevelShown);
             break;
         case MainWindow::ShowSpeakerLevelID:
             result.setInfo ("Show Speaker Level", "Activate brightness on speakers on the 3D view.", generalCategory, 0);
-            result.addDefaultKeypress ('6', ModifierKeys::commandModifier);
+            result.addDefaultKeypress ('U', ModifierKeys::commandModifier);
             result.setTicked(this->isSpeakerLevelShown);
             break;
         case MainWindow::HighPerformanceID:
             result.setInfo ("High Performance", "Lower the CPU usage on the graphical display.", generalCategory, 0);
-            result.addDefaultKeypress ('7', ModifierKeys::commandModifier);
+            result.addDefaultKeypress ('H', ModifierKeys::shiftModifier|ModifierKeys::commandModifier);
             result.setTicked(this->isHighPerformance);
             break;
         case MainWindow::ColorizeInputsID:
@@ -647,7 +662,7 @@ void MainContentComponent::getCommandInfo (CommandID commandID, ApplicationComma
             break;
         case MainWindow::TestSoundID:
             result.setInfo ("Test Sound", "Send a test sound to all inputs.", generalCategory, 0);
-            result.addDefaultKeypress ('0', ModifierKeys::commandModifier);
+            //result.addDefaultKeypress ('0', ModifierKeys::commandModifier);
             result.setTicked(this->isTestSound);
             break;
         case MainWindow::PrefsID:
@@ -678,6 +693,7 @@ bool MainContentComponent::perform (const InvocationInfo& info)
             case MainWindow::Show2DViewID: this->handleShow2DView(); break;
             case MainWindow::ShowNumbersID: this->handleShowNumbers(); break;
             case MainWindow::ShowSpeakersID: this->handleShowSpeakers(); break;
+            case MainWindow::ShowTripletsID: this->handleShowTriplets(); break;
             case MainWindow::ShowSourceLevelID: this->handleShowSourceLevel(); break;
             case MainWindow::ShowSpeakerLevelID: this->handleShowSpeakerLevel(); break;
             case MainWindow::HighPerformanceID: this->handleHighPerformance(); break;
@@ -720,6 +736,7 @@ PopupMenu MainContentComponent::getMenuForIndex (int menuIndex, const String& me
         menu.addCommandItem(commandManager, MainWindow::Show2DViewID);
         menu.addCommandItem(commandManager, MainWindow::ShowNumbersID);
         menu.addCommandItem(commandManager, MainWindow::ShowSpeakersID);
+        menu.addCommandItem(commandManager, MainWindow::ShowTripletsID);
         menu.addCommandItem(commandManager, MainWindow::ShowSourceLevelID);
         menu.addCommandItem(commandManager, MainWindow::ShowSpeakerLevelID);
         menu.addCommandItem(commandManager, MainWindow::HighPerformanceID);
@@ -961,6 +978,27 @@ void MainContentComponent::updateInputJack(int inInput, Input &inp)
     
 }
 
+void MainContentComponent::setListTripletFromVbap() {
+    this->clearListTriplet();
+    for (int i=0; i<this->jackClient->vbap_triplets.size(); i++) {
+        Triplet tri;
+        tri.id1 = this->jackClient->vbap_triplets[i][0];
+        tri.id2 = this->jackClient->vbap_triplets[i][1];
+        tri.id3 = this->jackClient->vbap_triplets[i][2];
+        this->listTriplet.push_back(tri);
+    }
+}
+
+Speaker *
+MainContentComponent::getSpeakerFromOutputPatch(int out) {
+    for (auto&& it : this->listSpeaker) {
+        if (it->getOutputPatch() == out) {
+            return it;
+        }
+    }
+    return nullptr;
+}
+
 void MainContentComponent::updateLevelComp() {
     int dimensions = 2;
     int x = 2;
@@ -1111,6 +1149,8 @@ void MainContentComponent::updateLevelComp() {
     tempListSpeaker.resize(i);
 
     this->jackClient->initSpeakersTripplet(tempListSpeaker, dimensions);
+
+    this->setListTripletFromVbap();
 
     // Restore mute/solo/directout states (only for inputs)
     this->jackClient->soloIn = soloIn;

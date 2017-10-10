@@ -106,6 +106,8 @@ void vbap_flip_y_z(float azi, float ele, float spread, VBAP_DATA *data);
 void vbap2_flip_y_z(float azi, float ele, float sp_azi,
                     float sp_ele, VBAP_DATA *data);
 
+int vbap_get_triplets(VBAP_DATA *data, int ***triplets);
+
 #ifdef __cplusplus 
 }
 #endif

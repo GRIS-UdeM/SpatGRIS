@@ -695,6 +695,22 @@ bool jackClientGris::initSpeakersTripplet(vector<Speaker *>  listSpk,
         listSourceIn[i].paramVBap = copy_vbap_data(listSourceIn[0].paramVBap);
     }
 
+    int **triplets;
+    int num = vbap_get_triplets(listSourceIn[0].paramVBap, &triplets);
+    vbap_triplets.clear();
+    for (int i=0; i<num; i++) {
+        vector <int> row;
+        for (int j=0; j<3; j++) {
+            row.push_back(triplets[i][j]);
+        }
+        vbap_triplets.push_back(row);
+    }
+
+    for (int i=0; i<num; i++) {
+        free(triplets[i]);
+    }
+    free(triplets);
+
     this->connectedGristoSystem();
 
     this->processBlockOn = true;

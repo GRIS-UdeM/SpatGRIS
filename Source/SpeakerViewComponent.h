@@ -62,7 +62,7 @@ public:
     void setShowNumber(bool value){ this->showNumber = value; }
     void setHighPerfor(bool value){ this->highPerf = value; }
     void setHideSpeaker(bool value){ this->hideSpeaker = value; }
-    
+    void setShowTriplets(bool value) { this->showTriplets = value; }
     void setNameConfig(String name){ this->nameConfig = name; this->repaint(); }
     
     void render() override;
@@ -93,6 +93,7 @@ private:
     bool clickLeft  = false;
     bool controlOn  = false;
     bool hideSpeaker = false;
+    bool showTriplets = false;
     
     float camAngleX= -30.0f;
     float camAngleY= 25.0f;

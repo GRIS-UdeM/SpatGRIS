@@ -106,7 +106,9 @@ void SpeakerViewComponent::render()
                 }
             }
         }
-        this->drawTrippletConn();
+        if (this->showTriplets) {
+            this->drawTrippletConn();
+        }
         this->mainParent->getLockSpeakers()->unlock();
     }
 
@@ -284,7 +286,7 @@ void SpeakerViewComponent::drawOriginGrid()
     glLineWidth(1.5f);
     
     //glColor3f(0, 0, 0);
-    glColor3f(0.89, 0.89, 0.89);
+    glColor3f(0.59, 0.59, 0.59);
     glBegin(GL_LINE_LOOP);
     for(i = 0; i <= 180; ++i){
         angle = (M2_PI * i / 180);
@@ -424,28 +426,25 @@ void SpeakerViewComponent::drawTextOnGrid(string val, glm::vec3 position,float s
     glPopMatrix();
 }
 
-void SpeakerViewComponent::drawTrippletConn()
-{
+void SpeakerViewComponent::drawTrippletConn() {
     for(int i = 0; i < this->mainParent->getListTriplet().size(); ++i) {
-        
-        if(this->mainParent->getListTriplet()[i].id1 < this->mainParent->getListSpeaker().size() &&
-           this->mainParent->getListTriplet()[i].id2 < this->mainParent->getListSpeaker().size() &&
-           this->mainParent->getListTriplet()[i].id3 < this->mainParent->getListSpeaker().size()   ){
+        if(this->mainParent->getListTriplet()[i].id1 <= this->mainParent->getListSpeaker().size() &&
+           this->mainParent->getListTriplet()[i].id2 <= this->mainParent->getListSpeaker().size() &&
+           this->mainParent->getListTriplet()[i].id3 <= this->mainParent->getListSpeaker().size()) {
         
             glLineWidth(1);
             glBegin(GL_LINES);
-            glColor3f(0.65, 0.65, 0.65);
-            
-            glVertex3f(this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id1]->getCenter().x, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id1]->getCenter().y, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id1]->getCenter().z);
-            glVertex3f(this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id2]->getCenter().x, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id2]->getCenter().y, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id2]->getCenter().z);
-            
-            glVertex3f(this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id1]->getCenter().x, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id1]->getCenter().y, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id1]->getCenter().z);
-            glVertex3f(this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id3]->getCenter().x, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id3]->getCenter().y, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id3]->getCenter().z);
-            
-            glVertex3f(this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id2]->getCenter().x, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id2]->getCenter().y, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id2]->getCenter().z);
-            glVertex3f(this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id3]->getCenter().x, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id3]->getCenter().y, this->mainParent->getListSpeaker()[this->mainParent->getListTriplet()[i].id3]->getCenter().z);
-            
-            
+            glColor3f(0.8, 0.8, 0.8);
+
+            Speaker *spk1 = this->mainParent->getSpeakerFromOutputPatch(this->mainParent->getListTriplet()[i].id1);
+            Speaker *spk2 = this->mainParent->getSpeakerFromOutputPatch(this->mainParent->getListTriplet()[i].id2);
+            Speaker *spk3 = this->mainParent->getSpeakerFromOutputPatch(this->mainParent->getListTriplet()[i].id3);
+            glVertex3f(spk1->getCenter().x, spk1->getCenter().y, spk1->getCenter().z);
+            glVertex3f(spk2->getCenter().x, spk2->getCenter().y, spk2->getCenter().z);
+            glVertex3f(spk1->getCenter().x, spk1->getCenter().y, spk1->getCenter().z);
+            glVertex3f(spk3->getCenter().x, spk3->getCenter().y, spk3->getCenter().z);
+            glVertex3f(spk2->getCenter().x, spk2->getCenter().y, spk2->getCenter().z);
+            glVertex3f(spk3->getCenter().x, spk3->getCenter().y, spk3->getCenter().z);
             glEnd();
         }
     }

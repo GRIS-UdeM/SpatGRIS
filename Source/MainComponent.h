@@ -98,6 +98,8 @@ public:
     void setShowNumbers(bool state);
     void handleShowSpeakers();
     void setShowSpeakers(bool state);
+    void handleShowTriplets();
+    void setShowTriplets(bool state);
     void handleShowSourceLevel();
     void handleShowSpeakerLevel();
     void handleHighPerformance();
@@ -115,6 +117,7 @@ public:
     PopupMenu getMenuForIndex (int menuIndex, const String& /*menuName*/) override;
     void menuItemSelected (int menuItemID, int /*topLevelMenuIndex*/) override;
 
+    Speaker * getSpeakerFromOutputPatch(int out);
     vector<Speaker *> getListSpeaker() { return this->listSpeaker; }
     mutex* getLockSpeakers(){ return this->lockSpeakers; }
         
@@ -127,7 +130,8 @@ public:
     mutex* getLockClients(){ return &this->jackClient->lockListClient; }
     vector<Client> *getListClientjack(){ return &this->jackClient->listClient; }
     void connectionClientJack(String nameCli, bool conn = true) {this->jackClient->connectionClient(nameCli, conn); }
-    
+
+    void setListTripletFromVbap();
     vector<Triplet> getListTriplet(){ return this->listTriplet; }
     void clearListTriplet(){ this->listTriplet.clear(); }
     void selectSpeaker(int idS);
@@ -290,6 +294,7 @@ private:
 
     bool isNumbersShown;
     bool isSpeakersShown;
+    bool isTripletsShown;
     bool isHighPerformance;
     bool isTestSound;
 

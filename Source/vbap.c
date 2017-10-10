@@ -1332,3 +1332,14 @@ void compute_gains(int ls_set_am, LS_SET *sets, float *gains,
     }
 }
 
+int vbap_get_triplets(VBAP_DATA *data, int ***triplets) {
+    int i, num = data->ls_set_am;
+    (*triplets) = (int **)malloc(num * sizeof(int *));
+    for (i=0; i<num; i++) {
+        (*triplets)[i] = (int *)malloc(3 * sizeof(int));
+        (*triplets)[i][0] = data->ls_sets[i].ls_nos[0];
+        (*triplets)[i][1] = data->ls_sets[i].ls_nos[1];
+        (*triplets)[i][2] = data->ls_sets[i].ls_nos[2];
+    }
+    return num;
+}

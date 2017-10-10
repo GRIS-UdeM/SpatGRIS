@@ -86,9 +86,10 @@ public:
         Show2DViewID        =   3000,
         ShowNumbersID       =   3001,
         ShowSpeakersID      =   3002,
-        ShowSourceLevelID   =   3003,
-        ShowSpeakerLevelID  =   3004, // not implemented yet.
-        HighPerformanceID   =   3005,
+        ShowTripletsID      =   3003,
+        ShowSourceLevelID   =   3004,
+        ShowSpeakerLevelID  =   3005, // not implemented yet.
+        HighPerformanceID   =   3006,
         ColorizeInputsID    =   3010,
         ResetInputPosID     =   3011,
         TestSoundID         =   3100,
