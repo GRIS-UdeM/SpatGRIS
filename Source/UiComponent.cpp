@@ -631,6 +631,10 @@ void WindowEditSpeaker::textEditorTextChanged(TextEditor& editor) {
     }
 }
 
+void WindowEditSpeaker::textEditorReturnKeyPressed(TextEditor& editor) {
+    this->unfocusAllComponents();
+}
+
 void WindowEditSpeaker::updateWinContent()
 {
     this->numRows = (unsigned int)this->mainParent->getListSpeaker().size();

@@ -148,6 +148,7 @@ public:
     void initComp();
     void buttonClicked(Button *button) override;
     void textEditorTextChanged(TextEditor &editor) override;
+    void textEditorReturnKeyPressed (TextEditor &textEditor) override;
     void closeButtonPressed() override;
     //void sortOrderChanged(int newSortColumnId, bool isForwards) override;
     void resized() override;

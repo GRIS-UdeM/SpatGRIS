@@ -110,13 +110,6 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     this->labelJackBuffer->setColour(Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
     this->labelJackInfo->setColour(Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
 
-    /* PREFERENCES 
-    this->tedOSCInPort = addTextEditor("Port OSC In :", "Port Socket", "Port Socket OSC Input", 140, 36, 50, 24, this->boxControlUI->getContent());
-    this->tedOSCInPort->setText("18032");
-    this->tedOSCInPort->setInputRestrictions(5,"0123456789");
-    this->labOSCStatus= addLabel("...","OSC Receiver status",276, 36, 50, 24,this->boxControlUI->getContent());
-    */
-
     addLabel("Gain","Master Gain Outputs",15, 30, 120, 20,this->boxControlUI->getContent());
     this->sliderMasterGainOut = addSlider("Master Gain", "Master Gain Outputs", 5, 45, 60, 60, this->boxControlUI->getContent());
     this->sliderMasterGainOut->setRange(0.0, 1.0, 0.001);
@@ -197,10 +190,6 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
 
     //OSC Receiver----------------------------------------------------------------------------
     this->oscReceiver = new OscInput(this);
-
-    /* PREFERENCES 
-    textEditorReturnKeyPressed(*this->tedOSCInPort);
-    */
 
     this->oscReceiver->startConnection(this->oscInputPort);
 
@@ -1328,9 +1317,6 @@ void MainContentComponent::openPreset(String path)
             this->pathCurrentFileSpeaker = mainXmlElem->getStringAttribute("Speaker_Setup_File");
 
             //Update----------------------------------
-    /* PREFERENCES 
-            this->textEditorReturnKeyPressed(*this->tedOSCInPort);
-    */
             this->textEditorReturnKeyPressed(*this->tedAddInputs);
             this->sliderValueChanged(this->sliderMasterGainOut);
             this->sliderValueChanged(this->sliderInterpolation);
@@ -1587,49 +1573,34 @@ void MainContentComponent::textEditorFocusLost (TextEditor &textEditor)
 
 void MainContentComponent::textEditorReturnKeyPressed (TextEditor & textEditor)
 {
-    /* PREFERENCES 
-    if(&textEditor == this->tedOSCInPort){
-        if(this->tedOSCInPort->getTextValue().toString().getIntValue() > 65535){
-            this->tedOSCInPort->setText("65535");
-        }
-        if(this->oscReceiver->startConnection(this->oscInputPort)){ // Hard-coded in the initializer.
-            this->labOSCStatus->setText("OK", dontSendNotification);
-            this->labOSCStatus->setColour(Label::textColourId, mGrisFeel.getGreenColour());
-        }else{
-            this->labOSCStatus->setText("Error", dontSendNotification);
-            this->labOSCStatus->setColour(Label::textColourId, mGrisFeel.getRedColour());
-        }
-        
-    }
-    else */if(&textEditor == this->tedAddInputs){
-        if(this->tedAddInputs->getTextValue().toString().getIntValue() < 1){
+    if (&textEditor == this->tedAddInputs) {
+        if (this->tedAddInputs->getTextValue().toString().getIntValue() < 1) {
             this->tedAddInputs->setText("1");
         }
-        if(this->tedAddInputs->getTextValue().toString().getIntValue() > MaxInputs){
+        if (this->tedAddInputs->getTextValue().toString().getIntValue() > MaxInputs) {
             this->tedAddInputs->setText(String(MaxInputs));
         }
-        
-        
-        if(this->jackClient->inputsPort.size() != this->tedAddInputs->getTextValue().toString().getIntValue()){
+
+        if (this->jackClient->inputsPort.size() != this->tedAddInputs->getTextValue().toString().getIntValue()) {
             this->jackClient->addRemoveInput(this->tedAddInputs->getTextValue().toString().getIntValue());
             
             this->lockInputs->lock();
             bool addInput = false;
-            for(int i = 0 ; i < this->jackClient->inputsPort.size(); i++){
-                if(i >= this->listSourceInput.size()){
+            for (int i = 0 ; i < this->jackClient->inputsPort.size(); i++) {
+                if (i >= this->listSourceInput.size()) {
                     this->listSourceInput.push_back(new Input(this, &mGrisFeel,i+1));
                     addInput = true;
                 }
             }
-            if(!addInput){
-                for (auto it = this->listSourceInput.begin()+(this->jackClient->inputsPort.size()) ; it != this->listSourceInput.end();)
-                {
+            if (!addInput) {
+                for (auto it = this->listSourceInput.begin()+(this->jackClient->inputsPort.size()) ; it != this->listSourceInput.end();) {
                     delete *it;
                     it = this->listSourceInput.erase(it);
                 }
             }
             this->lockInputs->unlock();
         }
+        this->unfocusAllComponents();
         updateLevelComp();
     }
 }
