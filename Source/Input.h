@@ -79,6 +79,8 @@ public :
     
     float getAziMuthSpan(){ return this->azimSpan; }
     float getZenithSpan(){ return this->zeniSpan; }
+
+    float getGain() { return this->gain; }
     
     void draw();
     void updateValues(float az, float ze, float azS, float zeS, float heS, float g);

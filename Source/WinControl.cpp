@@ -114,9 +114,11 @@ void WinControl::paint (Graphics& g)
 
     String stringVal;
     w = (fieldWH - SourceDiameter);
-    for(int i = 0; i < maxDrawSource; ++i)
-    {
+    for (int i = 0; i < maxDrawSource; ++i) {
         Input * it = this->mainParent->getListSourceInput().at(i);
+
+        if (it->getGain() == -1.0) { continue; }
+
         FPoint sourceP = FPoint(it->getCenter().z, it->getCenter().x)/5.0f;
         sourceP.x = ((w/2.0f) + ((w/4.0f)*sourceP.x));
         sourceP.y = ((w/2.0f) - ((w/4.0f)*sourceP.y));

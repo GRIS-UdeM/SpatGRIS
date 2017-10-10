@@ -47,7 +47,7 @@ void Input::resetPosition()
     this->azimSpan = 0.0f;
     this->zeniSpan = 0.0f;;
     
-    this->gain = 1.0f;
+    this->gain = -1.0f;
     
     this->center.x = (14.0f * sinf(this->zenith) * cosf(this->azimuth));
     this->center.z = (14.0f * sinf(this->zenith) * sinf(this->azimuth));
@@ -130,6 +130,8 @@ float Input::getAlpha() {
 
 void Input::draw()
 {
+    if (this->gain == -1.0) { return; }
+
     // Draw 3D sphere.
     glPushMatrix();
     glTranslatef(this->center.x, this->center.y, this->center.z);
@@ -205,7 +207,7 @@ void Input::updateValues(float az, float ze, float azS, float zeS, float heS, fl
     this->zeniSpan = zeS;
     
     this->gain = g;
-    
+
     this->center.x = (10.0f * sinf(this->zenith)*cosf(this->azimuth));
     this->center.z = (10.0f * sinf(this->zenith)*sinf(this->azimuth));
     this->center.y = ((10.0f * cosf(this->zenith)) + (sizeT/2.0f )) * 0.75; //heS;
