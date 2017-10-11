@@ -109,22 +109,25 @@ static void muteSoloVuMeterGainOut(jackClientGris & jackCli, jack_default_audio_
 
 }
 
-static void addNoiseSound(jackClientGris & jackCli, jack_default_audio_sample_t ** ins, const jack_nframes_t &nframes, const unsigned int &sizeInputs){
+static void addNoiseSound(jackClientGris & jackCli, jack_default_audio_sample_t ** outs,
+                          const jack_nframes_t &nframes, const unsigned int &sizeOutputs) {
+    float rnd, val;
+    float fac = 1.0f / (RAND_MAX / 2.0f);
     for(int nF = 0; nF < nframes; ++nF) {
-        for (int i = 0; i < sizeInputs; i++) {
-            if(i%2==0){
-                ins[i][nF] += jackCli.sineNoise[jackCli.left_phase];
-            }else{
-                ins[i][nF] += jackCli.sineNoise[jackCli.right_phase];
-            }
-        }
-        jackCli.left_phase += 1;
-        if (jackCli.left_phase >= jackCli.sineNoise.size()){
-            jackCli.left_phase -= jackCli.sineNoise.size();
-        }
-        jackCli.right_phase += 2; // higher pitch so we can distinguish left and right.
-        if(jackCli.right_phase >= jackCli.sineNoise.size()){
-            jackCli.right_phase -= jackCli.sineNoise.size();
+        rnd = rand() * fac - 1.0f;
+        jackCli.c0 = jackCli.c0 * 0.99886f + rnd * 0.0555179f;
+        jackCli.c1 = jackCli.c1 * 0.99332f + rnd * 0.0750759f;
+        jackCli.c2 = jackCli.c2 * 0.96900f + rnd * 0.1538520f;
+        jackCli.c3 = jackCli.c3 * 0.86650f + rnd * 0.3104856f;
+        jackCli.c4 = jackCli.c4 * 0.55000f + rnd * 0.5329522f;
+        jackCli.c5 = jackCli.c5 * -0.7616f - rnd * 0.0168980f;
+        val = jackCli.c0 + jackCli.c1 + jackCli.c2 + jackCli.c3 + jackCli.c4 + jackCli.c5 + jackCli.c6 + rnd * 0.5362f;
+        val *= 0.2f;
+        val *= 0.1f; // -20 dB
+        jackCli.c6 = rnd * 0.115926f;
+
+        for (int i = 0; i < sizeOutputs; i++) {
+            outs[i][nF] += val;
         }
     }
 }
@@ -200,21 +203,11 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
     for (int i = 0; i < sizeOutputs; i++) {
         outs[i] = (jack_default_audio_sample_t*)jack_port_get_buffer (jackCli->outputsPort[i], nframes);
     }
-    
-    
-    //NoiseSound-----------------------------------------------
-    if(jackCli->noiseSound){
-        addNoiseSound(*jackCli, ins, nframes, sizeInputs);
-    }
 
     //================ INPUTS ===============================================
     muteSoloVuMeterIn(*jackCli, ins, nframes, sizeInputs);
-    //---------------------------------------------
 
-    
-    
-    //================ PROCESS ==============================================
-    
+    //================ PROCESS ==============================================    
     switch ((ModeSpatEnum)jackCli->modeSelected){
         
         case VBap:
@@ -233,20 +226,14 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
             break;
     }
 
-    
-    //Basic Sound Transfert (I -> O) --------------------------------
-    /*for (int iSpeaker = 0; iSpeaker < sizeInputs; iSpeaker++) {
-        if(iSpeaker < sizeOutputs){
-            memcpy (outs[iSpeaker], ins[iSpeaker] , sizeof (jack_default_audio_sample_t) * nframes);
-        }
-    }*/
-    
-    
+    //NoiseSound-----------------------------------------------
+    if(jackCli->noiseSound){
+        addNoiseSound(*jackCli, outs, nframes, sizeOutputs);
+    }
+
     //================ OUTPUTS ==============================================
     muteSoloVuMeterGainOut(*jackCli, outs, nframes, sizeOutputs, jackCli->masterGainOut);
-    //-----------------------------------------
-    
-    
+        
     jackCli->overload = false;
     return 0;
 }
@@ -470,16 +457,10 @@ jackClientGris::jackClientGris(unsigned int bufferS) {
     
     
     //--------------------------------------------------
-    //fill wave table.
+    //Prepare pink noise
     //--------------------------------------------------
-    float fs = jack_get_sample_rate (this->client);
-    float f  = 400.f / fs;
-    float T  = 1/f;
-    for(int i = 0; i < 10*T; ++i) {
-        this->sineNoise.push_back(0.2 * sin( i * M_PI * 2. * f ));
-    }
-    this->left_phase = this->right_phase = 0;
-
+    srand(time(NULL));
+    this->c0 = this->c1 = this->c2 = this->c3 = this->c4 = this->c5 = this->c6 = 0.0;
     
     //--------------------------------------------------
     //Print Inputs Ports available

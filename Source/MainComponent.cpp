@@ -62,7 +62,7 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     this->isSourceLevelShown = false;
     this->isSphereShown = false;
     this->isHighPerformance = false;
-    this->isTestSound = false;
+    this->isRefSound = false;
 
     this->listSpeaker = vector<Speaker *>();
     this->listSourceInput = vector<Input *>();
@@ -536,9 +536,9 @@ void MainContentComponent::setHighPerformance(bool state) {
     this->isSpeakerLevelShown = false;
 }
 
-void MainContentComponent::handleTestSound() {
-    this->isTestSound = !this->isTestSound;
-    this->jackClient->noiseSound = this->isTestSound;
+void MainContentComponent::handleRefSound() {
+    this->isRefSound = !this->isRefSound;
+    this->jackClient->noiseSound = this->isRefSound;
 }
 
 void MainContentComponent::handleResetInputPositions() {
@@ -576,7 +576,7 @@ void MainContentComponent::getAllCommands (Array<CommandID>& commands)
                               MainWindow::HighPerformanceID,
                               MainWindow::ColorizeInputsID,
                               MainWindow::ResetInputPosID,
-                              MainWindow::TestSoundID,
+                              MainWindow::RefSoundID,
                               MainWindow::PrefsID,
                               MainWindow::QuitID,
                             };
@@ -661,10 +661,10 @@ void MainContentComponent::getCommandInfo (CommandID commandID, ApplicationComma
             result.setInfo ("Reset Input Position", "Reset the position of the input sources.", generalCategory, 0);
             result.addDefaultKeypress ('R', ModifierKeys::commandModifier);
             break;
-        case MainWindow::TestSoundID:
-            result.setInfo ("Test Sound", "Send a test sound to all inputs.", generalCategory, 0);
+        case MainWindow::RefSoundID:
+            result.setInfo ("Reference Sound (pink noise -20 dB)", "Send a test sound to all inputs.", generalCategory, 0);
             //result.addDefaultKeypress ('0', ModifierKeys::commandModifier);
-            result.setTicked(this->isTestSound);
+            result.setTicked(this->isRefSound);
             break;
         case MainWindow::PrefsID:
             result.setInfo ("Preferences...", "Open the preferences window.", generalCategory, 0);
@@ -701,7 +701,7 @@ bool MainContentComponent::perform (const InvocationInfo& info)
             case MainWindow::HighPerformanceID: this->handleHighPerformance(); break;
             case MainWindow::ColorizeInputsID: this->handleInputColours(); break;
             case MainWindow::ResetInputPosID: this->handleResetInputPositions(); break;
-            case MainWindow::TestSoundID: this->handleTestSound(); break;
+            case MainWindow::RefSoundID: this->handleRefSound(); break;
             case MainWindow::PrefsID: this->handleShowPreferences(); break;
             case MainWindow::QuitID: dynamic_cast<MainWindow*>(this->parent)->closeButtonPressed(); break;
             default:
@@ -748,7 +748,7 @@ PopupMenu MainContentComponent::getMenuForIndex (int menuIndex, const String& me
         menu.addCommandItem(commandManager, MainWindow::ColorizeInputsID);
         menu.addCommandItem(commandManager, MainWindow::ResetInputPosID);
         menu.addSeparator();
-        menu.addCommandItem(commandManager, MainWindow::TestSoundID);
+        menu.addCommandItem(commandManager, MainWindow::RefSoundID);
     }
 
     return menu;
@@ -1368,7 +1368,7 @@ void MainContentComponent::openPreset(String path)
             }
         }
     }
-    this->jackClient->noiseSound = this->isTestSound = false;
+    this->jackClient->noiseSound = this->isRefSound = false;
     this->jackClient->processBlockOn = true;
     if (this->pathCurrentPreset.endsWith("default_preset/default_preset.xml")) {
         this->applicationProperties.getUserSettings()->setValue("lastPresetDirectory", 

@@ -93,7 +93,7 @@ public:
         HighPerformanceID   =   3007,
         ColorizeInputsID    =   3010,
         ResetInputPosID     =   3011,
-        TestSoundID         =   3100,
+        RefSoundID          =   3100,
 
     };
 

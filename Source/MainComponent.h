@@ -105,7 +105,7 @@ public:
     void handleShowSphere();
     void handleHighPerformance();
     void setHighPerformance(bool state);
-    void handleTestSound();
+    void handleRefSound();
     void handleResetInputPositions();
     void handleInputColours();
 
@@ -297,7 +297,7 @@ private:
     bool isTripletsShown;
     bool isSphereShown;
     bool isHighPerformance;
-    bool isTestSound;
+    bool isRefSound;
 
     //==============================================================================
     // The following methods implement the ApplicationCommandTarget interface, allowing

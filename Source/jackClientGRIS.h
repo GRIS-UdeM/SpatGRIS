@@ -216,10 +216,14 @@ public:
     
     float interMaster;
 
-    //Noise Sound
-    vector<double> sineNoise;
-    int left_phase;
-    int right_phase;
+    //Pink Noise Sound
+    float c0;
+    float c1;
+    float c2;
+    float c3;
+    float c4;
+    float c5;
+    float c6;
     
     //Mute Solo Vu meter
     float levelsIn[MaxInputs];
