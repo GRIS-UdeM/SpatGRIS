@@ -88,8 +88,9 @@ public:
         ShowSpeakersID      =   3002,
         ShowTripletsID      =   3003,
         ShowSourceLevelID   =   3004,
-        ShowSpeakerLevelID  =   3005, // not implemented yet.
-        HighPerformanceID   =   3006,
+        ShowSpeakerLevelID  =   3005,
+        ShowSphereID        =   3006,
+        HighPerformanceID   =   3007,
         ColorizeInputsID    =   3010,
         ResetInputPosID     =   3011,
         TestSoundID         =   3100,

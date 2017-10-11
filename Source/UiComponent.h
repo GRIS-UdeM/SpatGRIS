@@ -169,7 +169,6 @@ private:
     GrisLookAndFeel *grisFeel;
     Box * boxListSpeaker;
     
-    ToggleButton *toggleShowSphere;
     TextButton *butAddSpeaker;
     TextButton *butcompSpeakers;
     TextButton *butsaveSpeakers;

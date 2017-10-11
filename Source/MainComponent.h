@@ -102,6 +102,7 @@ public:
     void setShowTriplets(bool state);
     void handleShowSourceLevel();
     void handleShowSpeakerLevel();
+    void handleShowSphere();
     void handleHighPerformance();
     void setHighPerformance(bool state);
     void handleTestSound();
@@ -137,7 +138,6 @@ public:
     void selectSpeaker(int idS);
     void selectTripletSpeaker(int idS);
     void setNameConfig();
-    void setShowShepre(bool value){ this->speakerView->setShowSphere(value); }
     void addSpeaker();
     void savePresetSpeakers(String path);
     void removeSpeaker(int idSpeaker);
@@ -295,6 +295,7 @@ private:
     bool isNumbersShown;
     bool isSpeakersShown;
     bool isTripletsShown;
+    bool isSphereShown;
     bool isHighPerformance;
     bool isTestSound;
 

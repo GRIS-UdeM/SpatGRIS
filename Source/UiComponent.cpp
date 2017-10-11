@@ -429,15 +429,6 @@ WindowEditSpeaker::WindowEditSpeaker(const String& name, String& nameC, Colour b
     this->butClearTriplet->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
     this->butClearTriplet->setLookAndFeel(this->grisFeel);
     this->boxListSpeaker->getContent()->addAndMakeVisible(this->butClearTriplet);
-    
-    this->toggleShowSphere = new ToggleButton();
-    this->toggleShowSphere->setButtonText("Show Sphere");
-    this->toggleShowSphere->setBounds(110, 455, 120, 22);
-    this->toggleShowSphere->addListener(this);
-    this->toggleShowSphere->setToggleState(false, dontSendNotification);
-    this->toggleShowSphere->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
-    this->toggleShowSphere->setLookAndFeel(this->grisFeel);
-    this->boxListSpeaker->getContent()->addAndMakeVisible(this->toggleShowSphere);
 
     this->setContentOwned(this->boxListSpeaker, false);
     this->boxListSpeaker->getContent()->addAndMakeVisible(tableListSpeakers);
@@ -448,9 +439,6 @@ WindowEditSpeaker::WindowEditSpeaker(const String& name, String& nameC, Colour b
 
 WindowEditSpeaker::~WindowEditSpeaker()
 {
-    this->mainParent->setShowShepre(false);
-    //delete this->boxListSpeaker;
-    delete this->toggleShowSphere;
     delete this->butAddSpeaker;
     delete this->butcompSpeakers;
     delete this->butsaveSpeakers;
@@ -521,10 +509,7 @@ void WindowEditSpeaker::initComp()
 
 void WindowEditSpeaker::buttonClicked(Button *button)
 {
-    if (button == this->toggleShowSphere) {
-        this->mainParent->setShowShepre(this->toggleShowSphere->getToggleState());
-    }
-    else if (button == this->butAddSpeaker) {
+    if (button == this->butAddSpeaker) {
         this->mainParent->addSpeaker();
         updateWinContent();
         this->tableListSpeakers.selectRow(this->getNumRows()-1);
@@ -664,7 +649,6 @@ void WindowEditSpeaker::resized()
 
     this->butAddSpeaker->setBounds(5, getHeight()-130, 100, 22);
     this->butClearTriplet->setBounds(5, getHeight()-55, 100, 22);
-    this->toggleShowSphere->setBounds(110, getHeight()-55, 120, 22);
     this->butcompSpeakers->setBounds(110, getHeight()-130, 100, 22);
     this->butsaveSpeakers->setBounds(215, getHeight()-130, 100, 22);
     this->texEditNameConf->setBounds(330, getHeight()-130, 240, 22);

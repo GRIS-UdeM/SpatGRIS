@@ -60,6 +60,7 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     this->isNumbersShown = false;
     this->isSpeakersShown = true;
     this->isSourceLevelShown = false;
+    this->isSphereShown = false;
     this->isHighPerformance = false;
     this->isTestSound = false;
 
@@ -506,6 +507,11 @@ void MainContentComponent::handleShowSpeakerLevel() {
     this->isSpeakerLevelShown = !this->isSpeakerLevelShown;
 }
 
+void MainContentComponent::handleShowSphere() {
+    this->isSphereShown = !this->isSphereShown;
+    this->speakerView->setShowSphere(this->isSphereShown);
+}
+
 void MainContentComponent::handleHighPerformance() {
     this->setHighPerformance(!this->isHighPerformance);
 }
@@ -566,6 +572,7 @@ void MainContentComponent::getAllCommands (Array<CommandID>& commands)
                               MainWindow::ShowTripletsID,
                               MainWindow::ShowSourceLevelID,
                               MainWindow::ShowSpeakerLevelID,
+                              MainWindow::ShowSphereID,
                               MainWindow::HighPerformanceID,
                               MainWindow::ColorizeInputsID,
                               MainWindow::ResetInputPosID,
@@ -636,6 +643,11 @@ void MainContentComponent::getCommandInfo (CommandID commandID, ApplicationComma
             result.addDefaultKeypress ('U', ModifierKeys::commandModifier);
             result.setTicked(this->isSpeakerLevelShown);
             break;
+        case MainWindow::ShowSphereID:
+            result.setInfo ("Show Sphere", "Show the sphere on the 3D view.", generalCategory, 0);
+            result.addDefaultKeypress ('P', ModifierKeys::commandModifier);
+            result.setTicked(this->isSphereShown);
+            break;
         case MainWindow::HighPerformanceID:
             result.setInfo ("High Performance", "Lower the CPU usage on the graphical display.", generalCategory, 0);
             result.addDefaultKeypress ('H', ModifierKeys::shiftModifier|ModifierKeys::commandModifier);
@@ -685,6 +697,7 @@ bool MainContentComponent::perform (const InvocationInfo& info)
             case MainWindow::ShowTripletsID: this->handleShowTriplets(); break;
             case MainWindow::ShowSourceLevelID: this->handleShowSourceLevel(); break;
             case MainWindow::ShowSpeakerLevelID: this->handleShowSpeakerLevel(); break;
+            case MainWindow::ShowSphereID: this->handleShowSphere(); break;
             case MainWindow::HighPerformanceID: this->handleHighPerformance(); break;
             case MainWindow::ColorizeInputsID: this->handleInputColours(); break;
             case MainWindow::ResetInputPosID: this->handleResetInputPositions(); break;
@@ -723,11 +736,13 @@ PopupMenu MainContentComponent::getMenuForIndex (int menuIndex, const String& me
     else if (menuName == "View")
     {
         menu.addCommandItem(commandManager, MainWindow::Show2DViewID);
+        menu.addSeparator();
         menu.addCommandItem(commandManager, MainWindow::ShowNumbersID);
         menu.addCommandItem(commandManager, MainWindow::ShowSpeakersID);
         menu.addCommandItem(commandManager, MainWindow::ShowTripletsID);
         menu.addCommandItem(commandManager, MainWindow::ShowSourceLevelID);
         menu.addCommandItem(commandManager, MainWindow::ShowSpeakerLevelID);
+        menu.addCommandItem(commandManager, MainWindow::ShowSphereID);
         menu.addCommandItem(commandManager, MainWindow::HighPerformanceID);
         menu.addSeparator();
         menu.addCommandItem(commandManager, MainWindow::ColorizeInputsID);
