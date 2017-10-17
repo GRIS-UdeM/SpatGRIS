@@ -139,9 +139,9 @@ static void processVBAP(jackClientGris & jackCli, jack_default_audio_sample_t **
                         const jack_nframes_t &nframes, const unsigned int &sizeInputs, const unsigned int &sizeOutputs)
 {
     int f, i, o;
-    
+    float y;
     float gains[sizeInputs][sizeOutputs];
-    float interpG = jackCli.interMaster * 0.29 + 0.7;
+    float interpG = powf(jackCli.interMaster, 0.1) * 0.0099 + 0.99;
 
     for (i = 0; i < sizeInputs; ++i) {
         if (jackCli.vbapSourcesToUpdate[i] == 1) {
@@ -160,15 +160,17 @@ static void processVBAP(jackClientGris & jackCli, jack_default_audio_sample_t **
 
         for (i = 0; i < sizeInputs; ++i) {
             if (jackCli.listSourceIn[i].directOut == 0) {
-                jackCli.listSourceIn[i].paramVBap->y[o] = gains[i][o] + (jackCli.listSourceIn[i].paramVBap->y[o] - gains[i][o]) * interpG;
+                y = jackCli.listSourceIn[i].paramVBap->y[o];
+                for (f = 0; f < nframes; ++f) {
+                    y = gains[i][o] + (y - gains[i][o]) * interpG;
 
-                if (jackCli.listSourceIn[i].paramVBap->y[o] < 0.0000000000001f) {
-                    jackCli.listSourceIn[i].paramVBap->y[o] = 0.0;
-                } else {
-                    for (f = 0; f < nframes; ++f) {
-                        outs[o][f] += ins[i][f] * jackCli.listSourceIn[i].paramVBap->y[o];
+                    if (y < 0.0000000000001f) {
+                        y = 0.0;
+                    } else {
+                        outs[o][f] += ins[i][f] * y;
                     }
                 }
+                jackCli.listSourceIn[i].paramVBap->y[o] = y;
             } else if ((jackCli.listSourceIn[i].directOut - 1) == o) {
                 for (f = 0; f < nframes; ++f) {
                     outs[o][f] += ins[i][f];
