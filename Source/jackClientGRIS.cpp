@@ -142,13 +142,19 @@ static void processVBAP(jackClientGris & jackCli, jack_default_audio_sample_t **
     
     float gains[sizeInputs][sizeOutputs];
     float interpG = jackCli.interMaster * 0.29 + 0.7;
-    
+
+    for (i = 0; i < sizeInputs; ++i) {
+        if (jackCli.vbapSourcesToUpdate[i] == 1) {
+            jackCli.updateSourceVbap(i);
+            jackCli.vbapSourcesToUpdate[i] = 0;
+        }
+    }
+
     for (o = 0; o < sizeOutputs; ++o) {
         for (i = 0; i < sizeInputs; ++i) {
             gains[i][o] = jackCli.listSourceIn[i].paramVBap->gains[o];
         }
     }
-
     for (o = 0; o < sizeOutputs; ++o) {
         memset (outs[o], 0, sizeof (jack_default_audio_sample_t) * nframes);
 
@@ -387,7 +393,11 @@ jackClientGris::jackClientGris(unsigned int bufferS) {
     this->modeSelected = VBap;
     this->recording = false;
     this->hrtfOn = false;
-    
+
+    for (int i; i < MaxInputs; ++i) {
+        this->vbapSourcesToUpdate[i] = 0;
+    }
+
     this->listClient = vector<Client>();
     
     this->soloIn = false;

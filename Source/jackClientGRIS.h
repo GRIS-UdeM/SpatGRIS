@@ -298,6 +298,7 @@ public:
     unsigned int vbapDimensions;
     bool initSpeakersTripplet(vector<Speaker *>  listSpk, int dimensions);
     void updateSourceVbap(int idS);
+    int vbapSourcesToUpdate[MaxInputs];
     
 private:
     

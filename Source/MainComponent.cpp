@@ -963,10 +963,9 @@ void MainContentComponent::updateInputJack(int inInput, Input &inp)
     si->x = inp.getCenter().x/10.0f;
     si->y = inp.getCenter().y/10.0f;
     si->z = inp.getCenter().z/10.0f;
-    
-    
+
     si->azimuth = ((inp.getAziMuth()/M2_PI)*360.0f);
-    if(si->azimuth > 180.0f){
+    if (si->azimuth > 180.0f) {
         si->azimuth = si->azimuth-360.0f;
     }
     si->zenith  = 90.0f-(inp.getZenith()/M2_PI)*360.0f;
@@ -975,11 +974,9 @@ void MainContentComponent::updateInputJack(int inInput, Input &inp)
     si->aziSpan = inp.getAziMuthSpan() * 0.5f;
     si->zenSpan = inp.getZenithSpan() * 2.0f;
     
-    if(this->jackClient->modeSelected == VBap)
-    {
-        this->jackClient->updateSourceVbap(inInput);
+    if (this->jackClient->modeSelected == VBap) {
+        this->jackClient->vbapSourcesToUpdate[inInput] = 1;
     }
-    
 }
 
 void MainContentComponent::setListTripletFromVbap() {
