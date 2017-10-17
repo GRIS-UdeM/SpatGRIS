@@ -345,7 +345,7 @@ static void spreadit(float azi, float spread, VBAP_DATA *data) {
 
 static void spreadit_azi_ele(float azi, float ele, float sp_azi,
                              float sp_ele, VBAP_DATA *data) {
-	int i, j, k, num = 4;
+	int i, j, k, num = 4, knum = 4;
     float azidev, eledev, newazi, newele, comp;
 	ANG_VEC spreadang;
 	CART_VEC spreadcart;
@@ -361,11 +361,19 @@ static void spreadit_azi_ele(float azi, float ele, float sp_azi,
     if (sp_ele < 0.0) { sp_ele = 0.0; }
     else if (sp_ele > 1.0) { sp_ele = 1.0; }
 
+    // If both sp_azi and sp_ele are active, we want to put a virtual source at
+    // (azi, ele +/- eledev) and (azi +/- azidev, ele) locations.
+    if (sp_azi > 0.0 && sp_ele > 0.0) {
+        knum = 8;
+    } else {
+        knum = 4;
+    }
+
     for (i=0; i<num; i++) {
         comp = powf(10.0f, (i+1) * -3.0f * 0.05f);
         azidev = (i+1) * sp_azi * 45.0;
-        eledev = (i+1) * sp_ele * 15.0;
-        for (k=0; k<4; k++) {
+        eledev = (i+1) * sp_ele * 22.5;
+        for (k=0; k<knum; k++) {
             if (k == 0) {
                 newazi = data->ang_dir.azi + azidev;
                 newele = data->ang_dir.ele + eledev;
@@ -381,6 +389,22 @@ static void spreadit_azi_ele(float azi, float ele, float sp_azi,
             else if (k == 3) {
                 newazi = data->ang_dir.azi - azidev;
                 newele = data->ang_dir.ele + eledev;
+            }
+            else if (k == 4) {
+                newazi = data->ang_dir.azi;
+                newele = data->ang_dir.ele + eledev;
+            }
+            else if (k == 5) {
+                newazi = data->ang_dir.azi;
+                newele = data->ang_dir.ele - eledev;
+            }
+            else if (k == 6) {
+                newazi = data->ang_dir.azi + azidev;
+                newele = data->ang_dir.ele;
+            }
+            else if (k == 7) {
+                newazi = data->ang_dir.azi - azidev;
+                newele = data->ang_dir.ele;
             }
             if (newazi > 180) { newazi -= 360; }
             else if (newazi < -180) { newazi += 360; }
@@ -398,6 +422,13 @@ static void spreadit_azi_ele(float azi, float ele, float sp_azi,
 	    }
     }
 
+	if (sp_azi > 0.8 && sp_ele > 0.8) {
+        comp = (sp_azi - 0.8) / 0.2 * (sp_ele - 0.8) / 0.2 * 10.0;
+        for (i=0; i<cnt; i++) {
+            data->gains[i] += comp;
+        }
+    }
+
 	for (i=0; i<cnt; i++) {
 		sum += (data->gains[i] * data->gains[i]);
     }
@@ -409,7 +440,7 @@ static void spreadit_azi_ele(float azi, float ele, float sp_azi,
 
 static void spreadit_azi_ele_flip_y_z(float azi, float ele, float sp_azi,
                                       float sp_ele, VBAP_DATA *data) {
-	int i, j, k, num = 4;
+	int i, j, k, num = 4, knum = 4;
     float azidev, eledev, newazi, newele, comp, tmp;
 	ANG_VEC spreadang;
 	CART_VEC spreadcart;
@@ -425,11 +456,19 @@ static void spreadit_azi_ele_flip_y_z(float azi, float ele, float sp_azi,
     if (sp_ele < 0.0) { sp_ele = 0.0; }
     else if (sp_ele > 1.0) { sp_ele = 1.0; }
 
+    // If both sp_azi and sp_ele are active, we want to put a virtual source at
+    // (azi, ele +/- eledev) and (azi +/- azidev, ele) locations.
+    if (sp_azi > 0.0 && sp_ele > 0.0) {
+        knum = 8;
+    } else {
+        knum = 4;
+    }
+
     for (i=0; i<num; i++) {
         comp = powf(10.0f, (i+1) * -3.0f * 0.05f);
         azidev = (i+1) * sp_azi * 45.0;
-        eledev = (i+1) * sp_ele * 15.0;
-        for (k=0; k<4; k++) {
+        eledev = (i+1) * sp_ele * 22.5;
+        for (k=0; k<knum; k++) {
             if (k == 0) {
                 newazi = data->ang_dir.azi + azidev;
                 newele = data->ang_dir.ele + eledev;
@@ -445,6 +484,22 @@ static void spreadit_azi_ele_flip_y_z(float azi, float ele, float sp_azi,
             else if (k == 3) {
                 newazi = data->ang_dir.azi - azidev;
                 newele = data->ang_dir.ele + eledev;
+            }
+            else if (k == 4) {
+                newazi = data->ang_dir.azi;
+                newele = data->ang_dir.ele + eledev;
+            }
+            else if (k == 5) {
+                newazi = data->ang_dir.azi;
+                newele = data->ang_dir.ele - eledev;
+            }
+            else if (k == 6) {
+                newazi = data->ang_dir.azi + azidev;
+                newele = data->ang_dir.ele;
+            }
+            else if (k == 7) {
+                newazi = data->ang_dir.azi - azidev;
+                newele = data->ang_dir.ele;
             }
             if (newazi > 180) { newazi -= 360; }
             else if (newazi < -180) { newazi += 360; }
@@ -463,6 +518,13 @@ static void spreadit_azi_ele_flip_y_z(float azi, float ele, float sp_azi,
                 data->gains[j] += (tmp_gains[j] * comp);
             }
 	    }
+    }
+
+	if (sp_azi > 0.8 && sp_ele > 0.8) {
+        comp = (sp_azi - 0.8) / 0.2 * (sp_ele - 0.8) / 0.2 * 10.0;
+        for (i=0; i<cnt; i++) {
+            data->gains[i] += comp;
+        }
     }
 
 	for (i=0; i<cnt; i++) {
