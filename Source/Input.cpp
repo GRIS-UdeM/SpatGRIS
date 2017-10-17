@@ -70,7 +70,7 @@ glm::vec3 Input::polToCar(float azimuth, float zenith)
     glm::vec3 cart;
     cart.x = (10.0f * sinf(zenith) * cosf(azimuth));
     cart.z = (10.0f * sinf(zenith) * sinf(azimuth));
-    cart.y = ((10.0f * cosf(zenith)) + (sizeT/2.0f)) * 0.75; //heS;
+    cart.y = ((10.0f * cosf(zenith)) + (sizeT/2.0f)); // * 0.75; //heS;
     return cart;
 }
 
@@ -171,12 +171,8 @@ void Input::drawSpan() {
 
             cart = this->polToCar(newazi, this->zenith);
             glVertex3f(cart.x, cart.y, cart.z);
-            //glTranslatef(cart.x, cart.y, cart.z);
-            //glutSolidSphere(this->sizeT / 4, 8, 8);
-            //glTranslatef(-cart.x, -cart.y, -cart.z);
-
-            for (int k=0; k<3; k++) {
-                float eledev = (k+1) * this->zeniSpan * 2.0f * 0.25f;
+            for (int k=0; k<4; k++) {
+                float eledev = (k+1) * this->zeniSpan * 2.0f * 0.38f;
                 for (int l=0; l<2; l++) {
                     if (l)
                         newele = this->zenith + eledev;
@@ -187,9 +183,6 @@ void Input::drawSpan() {
 
                     cart = this->polToCar(newazi, newele);
                     glVertex3f(cart.x, cart.y, cart.z);
-                    //glTranslatef(cart.x, cart.y, cart.z);
-                    //glutSolidSphere(this->sizeT / 4, 8, 8);
-                    //glTranslatef(-cart.x, -cart.y, -cart.z);
                 }
             }
         }
@@ -210,7 +203,7 @@ void Input::updateValues(float az, float ze, float azS, float zeS, float heS, fl
 
     this->center.x = (10.0f * sinf(this->zenith)*cosf(this->azimuth));
     this->center.z = (10.0f * sinf(this->zenith)*sinf(this->azimuth));
-    this->center.y = ((10.0f * cosf(this->zenith)) + (sizeT/2.0f )) * 0.75; //heS;
+    this->center.y = ((10.0f * cosf(this->zenith)) + (sizeT/2.0f)); // * 0.75; //heS;
     
     this->radius = sqrt((this->center.x*this->center.x)+(this->center.y*this->center.y)+(this->center.z*this->center.z));
 
