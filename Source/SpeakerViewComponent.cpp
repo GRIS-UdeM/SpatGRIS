@@ -121,7 +121,7 @@ void SpeakerViewComponent::render()
         for (int i = 0; i < this->mainParent->getListSourceInput().size(); ++i) {
             Input *input = this->mainParent->getListSourceInput()[i];
             input->draw();
-            if (this->showNumber) {
+            if (this->showNumber && input->getGain() != -1.0) {
                 glm::vec3 posT = input->getCenter();
                 posT.y += SizeSpeaker.y + 0.4f;
                 this->drawText(to_string(input->getId()), posT, input->getNumberColor(), 0.003f, true, input->getAlpha());
