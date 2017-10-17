@@ -517,6 +517,8 @@ void MainContentComponent::handleHighPerformance() {
 }
 
 void MainContentComponent::setHighPerformance(bool state) {
+    // HighPerformance removed until proof that we need it.
+    return; // Just in case HighPerformance is set in a saved project.
     this->isHighPerformance = state;
     this->stopTimer();
     if (state) {
@@ -616,54 +618,53 @@ void MainContentComponent::getCommandInfo (CommandID commandID, ApplicationComma
             break;
         case MainWindow::Show2DViewID:
             result.setInfo ("Show 2D View", "Show the 2D action window.", generalCategory, 0);
-            result.addDefaultKeypress ('V', ModifierKeys::commandModifier);
+            result.addDefaultKeypress ('D', ModifierKeys::altModifier);
             break;
         case MainWindow::ShowNumbersID:
             result.setInfo ("Show Numbers", "Show source and speaker numbers on the 3D view.", generalCategory, 0);
-            result.addDefaultKeypress ('X', ModifierKeys::commandModifier);
+            result.addDefaultKeypress ('N', ModifierKeys::altModifier);
             result.setTicked(this->isNumbersShown);
             break;
         case MainWindow::ShowSpeakersID:
             result.setInfo ("Show Speakers", "Show speakers on the 3D view.", generalCategory, 0);
-            result.addDefaultKeypress ('Z', ModifierKeys::commandModifier);
+            result.addDefaultKeypress ('S', ModifierKeys::altModifier);
             result.setTicked(this->isSpeakersShown);
             break;
         case MainWindow::ShowTripletsID:
             result.setInfo ("Show Speaker Triplets", "Show speaker triplets on the 3D view.", generalCategory, 0);
-            result.addDefaultKeypress ('T', ModifierKeys::commandModifier);
+            result.addDefaultKeypress ('T', ModifierKeys::altModifier);
             result.setTicked(this->isTripletsShown);
             break;
         case MainWindow::ShowSourceLevelID:
-            result.setInfo ("Show Source Level", "Activate brightness on sources on the 3D view.", generalCategory, 0);
-            result.addDefaultKeypress ('I', ModifierKeys::commandModifier);
+            result.setInfo ("Show Source Activity", "Activate brightness on sources on the 3D view.", generalCategory, 0);
+            result.addDefaultKeypress ('A', ModifierKeys::altModifier);
             result.setTicked(this->isSourceLevelShown);
             break;
         case MainWindow::ShowSpeakerLevelID:
             result.setInfo ("Show Speaker Level", "Activate brightness on speakers on the 3D view.", generalCategory, 0);
-            result.addDefaultKeypress ('U', ModifierKeys::commandModifier);
+            result.addDefaultKeypress ('L', ModifierKeys::altModifier);
             result.setTicked(this->isSpeakerLevelShown);
             break;
         case MainWindow::ShowSphereID:
             result.setInfo ("Show Sphere", "Show the sphere on the 3D view.", generalCategory, 0);
-            result.addDefaultKeypress ('P', ModifierKeys::commandModifier);
+            result.addDefaultKeypress ('O', ModifierKeys::altModifier);
             result.setTicked(this->isSphereShown);
             break;
         case MainWindow::HighPerformanceID:
             result.setInfo ("High Performance", "Lower the CPU usage on the graphical display.", generalCategory, 0);
-            result.addDefaultKeypress ('H', ModifierKeys::shiftModifier|ModifierKeys::commandModifier);
+            result.addDefaultKeypress ('H', ModifierKeys::altModifier);
             result.setTicked(this->isHighPerformance);
             break;
         case MainWindow::ColorizeInputsID:
             result.setInfo ("Colorize Inputs", "Spread the colour of the inputs over the colour range.", generalCategory, 0);
-            result.addDefaultKeypress ('C', ModifierKeys::commandModifier);
+            result.addDefaultKeypress ('C', ModifierKeys::altModifier);
             break;
         case MainWindow::ResetInputPosID:
             result.setInfo ("Reset Input Position", "Reset the position of the input sources.", generalCategory, 0);
-            result.addDefaultKeypress ('R', ModifierKeys::commandModifier);
+            result.addDefaultKeypress ('R', ModifierKeys::altModifier);
             break;
         case MainWindow::RefSoundID:
             result.setInfo ("Reference Sound (pink noise -20 dB)", "Send a test sound to all inputs.", generalCategory, 0);
-            //result.addDefaultKeypress ('0', ModifierKeys::commandModifier);
             result.setTicked(this->isRefSound);
             break;
         case MainWindow::PrefsID:
@@ -743,7 +744,8 @@ PopupMenu MainContentComponent::getMenuForIndex (int menuIndex, const String& me
         menu.addCommandItem(commandManager, MainWindow::ShowSourceLevelID);
         menu.addCommandItem(commandManager, MainWindow::ShowSpeakerLevelID);
         menu.addCommandItem(commandManager, MainWindow::ShowSphereID);
-        menu.addCommandItem(commandManager, MainWindow::HighPerformanceID);
+        // HighPerformance removed until proof that we need it.
+        //menu.addCommandItem(commandManager, MainWindow::HighPerformanceID);
         menu.addSeparator();
         menu.addCommandItem(commandManager, MainWindow::ColorizeInputsID);
         menu.addCommandItem(commandManager, MainWindow::ResetInputPosID);
