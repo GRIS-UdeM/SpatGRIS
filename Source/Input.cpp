@@ -77,10 +77,16 @@ glm::vec3 Input::polToCar(float azimuth, float zenith)
 void Input::setMuted(bool mute)
 {
     this->mainParent->muteInput(this->idChannel, mute);
+    if (mute) {
+        this->mainParent->soloInput(this->idChannel, false);
+    }
 }
 void Input::setSolo(bool solo)
 {
     this->mainParent->soloInput(this->idChannel, solo);
+    if (solo) {
+        this->mainParent->muteInput(this->idChannel, false);
+    }
 }
 
 void Input::setColor(Colour color, bool updateLevel)

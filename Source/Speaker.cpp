@@ -64,10 +64,16 @@ float Speaker::getAlpha() {
 
 void Speaker::setMuted(bool mute) {
     this->mainParent->muteOutput(this->outputPatch, mute);
+    if (mute) {
+        this->mainParent->soloOutput(this->outputPatch, false);
+    }
 }
 
 void Speaker::setSolo(bool solo) {
     this->mainParent->soloOutput(this->outputPatch, solo);
+    if (solo) {
+        this->mainParent->muteOutput(this->outputPatch, false);
+    }
 }
 
 void Speaker::setColor(Colour color, bool updateLevel) {}

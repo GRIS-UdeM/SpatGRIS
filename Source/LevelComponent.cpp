@@ -159,10 +159,17 @@ void LevelComponent::buttonClicked(Button *button)
 {
     if (button == this->muteToggleBut) {
         this->mainParent->setMuted(this->muteToggleBut->getToggleState());
+        if (this->muteToggleBut->getToggleState()) {
+            this->soloToggleBut->setToggleState(false, dontSendNotification);
+        }
         this->levelBox->repaint();
         
     }else if (button == this->soloToggleBut) {
         this->mainParent->setSolo(this->soloToggleBut->getToggleState());
+        if (this->soloToggleBut->getToggleState()) {
+            this->muteToggleBut->setToggleState(false, dontSendNotification);
+        }
+        this->levelBox->repaint();
         
     }else if (button == this->idBut) {
         if( this->isColorful){  //Input
