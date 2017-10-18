@@ -668,7 +668,7 @@ void MainContentComponent::getCommandInfo (CommandID commandID, ApplicationComma
             break;
         case MainWindow::ShowSpeakerEditID:
             result.setInfo ("Show Speaker Setup Edition Window", "Edit the current speaker setup.", generalCategory, 0);
-            result.addDefaultKeypress ('E', ModifierKeys::altModifier);
+            result.addDefaultKeypress ('W', ModifierKeys::altModifier);
             break;
         case MainWindow::Show2DViewID:
             result.setInfo ("Show 2D View", "Show the 2D action window.", generalCategory, 0);
