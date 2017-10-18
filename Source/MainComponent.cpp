@@ -1343,6 +1343,13 @@ void MainContentComponent::openXmlFileSpeaker(String path) {
         }
     }
     if (ok) {
+        if (this->pathCurrentFileSpeaker.endsWith("default_preset/default_speaker_setup.xml")) {
+            this->applicationProperties.getUserSettings()->setValue("lastSpeakerSetupDirectory", 
+                                                                    File::getSpecialLocation(File::userHomeDirectory).getFullPathName());
+        } else {
+            this->applicationProperties.getUserSettings()->setValue("lastSpeakerSetupDirectory", 
+                                                                    File(this->pathCurrentFileSpeaker).getParentDirectory().getFullPathName());
+        }
         updateLevelComp();
     } else {
         if (isNewSameAsOld == 0) {
