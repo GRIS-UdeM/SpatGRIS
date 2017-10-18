@@ -76,8 +76,9 @@ public:
         SaveAsPresetID      =   1003,
 
         OpenSpeakerSetupID  =   2000,
-        SaveSpeakerSetupID  =   2001, // not implemented yet.
-        ShowSpeakerEditID   =   2002,
+        SaveSpeakerSetupID  =   2001,
+        SaveAsSpeakerSetupID =  2002,
+        ShowSpeakerEditID   =   2003,
 
         PrefsID             =   9998,
         QuitID              =   9999,

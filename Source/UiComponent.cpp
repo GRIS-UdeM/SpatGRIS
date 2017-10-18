@@ -310,23 +310,6 @@ WindowEditSpeaker::WindowEditSpeaker(const String& name, String& nameC, Colour b
     this->butcompSpeakers->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
     this->butcompSpeakers->setLookAndFeel(this->grisFeel);
     this->boxListSpeaker->getContent()->addAndMakeVisible(this->butcompSpeakers);
-    
-    this->butsaveSpeakers = new TextButton();
-    this->butsaveSpeakers->setButtonText("Save");
-    this->butsaveSpeakers->setBounds(215, 404, 100, 22);
-    this->butsaveSpeakers->addListener(this);
-    this->butsaveSpeakers->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
-    this->butsaveSpeakers->setLookAndFeel(this->grisFeel);
-    this->boxListSpeaker->getContent()->addAndMakeVisible(this->butsaveSpeakers);
-    
-
-    this->texEditNameConf = new TextEditor();
-    this->texEditNameConf->setText(nameC);
-    this->texEditNameConf->setBounds(330, 404, 240, 22);
-    this->texEditNameConf->setReadOnly(true);
-    this->texEditNameConf->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
-    this->texEditNameConf->setLookAndFeel(this->grisFeel);
-    this->boxListSpeaker->getContent()->addAndMakeVisible(this->texEditNameConf);
 
     /* Generate ring of speakers */
     int wlab = 80;
@@ -350,7 +333,6 @@ WindowEditSpeaker::WindowEditSpeaker(const String& name, String& nameC, Colour b
     this->rNumOfSpeakers->setText("8");
     this->rNumOfSpeakers->setInputRestrictions(3, "0123456789");
     this->rNumOfSpeakers->addListener(this);
-    
 
     this->rZenithLabel = new Label();
     this->rZenithLabel->setText("Zenith", NotificationType::dontSendNotification);
@@ -422,14 +404,6 @@ WindowEditSpeaker::WindowEditSpeaker(const String& name, String& nameC, Colour b
 
     /* End generate ring of speakers */
 
-    this->butClearTriplet = new TextButton();
-    this->butClearTriplet->setButtonText("Clear Triplets");
-    this->butClearTriplet->setBounds(5, 455, 120, 22);
-    this->butClearTriplet->addListener(this);
-    this->butClearTriplet->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
-    this->butClearTriplet->setLookAndFeel(this->grisFeel);
-    this->boxListSpeaker->getContent()->addAndMakeVisible(this->butClearTriplet);
-
     this->setContentOwned(this->boxListSpeaker, false);
     this->boxListSpeaker->getContent()->addAndMakeVisible(tableListSpeakers);
 
@@ -441,9 +415,6 @@ WindowEditSpeaker::~WindowEditSpeaker()
 {
     delete this->butAddSpeaker;
     delete this->butcompSpeakers;
-    delete this->butsaveSpeakers;
-    delete this->texEditNameConf;
-    delete this->butClearTriplet;
     delete this->rNumOfSpeakers;
     delete this->rNumOfSpeakersLabel;
     delete this->rZenith;
@@ -454,10 +425,6 @@ WindowEditSpeaker::~WindowEditSpeaker()
     delete this->rOffsetAngleLabel;
     delete this->butAddRing;
     this->mainParent->destroyWinSpeakConf();
-}
-
-void WindowEditSpeaker::setNameConfig(String name) {
-    this->texEditNameConf->setText(name);
 }
 
 void WindowEditSpeaker::initComp()
@@ -518,30 +485,6 @@ void WindowEditSpeaker::buttonClicked(Button *button)
         // TODO: Should return a value to tell if there is an error or not.
         this->mainParent->updateLevelComp();
     }
-    else if (button == this->butsaveSpeakers) {
-        this->mainParent->updateLevelComp();
-        // TODO: We should save a xml file only if the previous call passed.
-        String dir = this->mainParent->applicationProperties.getUserSettings()->getValue("lastSpeakerPresetDirectory");
-        if (! File(dir).isDirectory()) {
-            dir = File::getSpecialLocation(File::userHomeDirectory).getFullPathName();
-        }
-        String filename = File(this->mainParent->getCurrentFileSpeakerPath()).getFileName();
-
-#ifdef __linux__
-        FileChooser fc ("Choose a file to save...", dir + "/" + filename, "*.xml", false);
-#else
-        FileChooser fc ("Choose a file to save...", dir + "/" + filename, "*.xml", true);
-#endif
-        if (fc.browseForFileToSave (true))
-        {
-            String chosen = fc.getResults().getReference(0).getFullPathName();
-            bool r = AlertWindow::showOkCancelBox (AlertWindow::InfoIcon,"Save preset","Save to : " + chosen);
-            //Save preset speaker
-            if(r){
-                this->mainParent->savePresetSpeakers(chosen);
-            }
-        }
-    }
     else if (button == this->butAddRing) {
         for (int i = 0; i < this->rNumOfSpeakers->getText().getIntValue(); i++) {
             this->mainParent->addSpeaker();
@@ -559,9 +502,6 @@ void WindowEditSpeaker::buttonClicked(Button *button)
         updateWinContent();
         this->tableListSpeakers.selectRow(this->getNumRows()-1);
 
-    }
-    else if (button == this->butClearTriplet) {
-        this->mainParent->clearListTriplet();
     }
     else if (button->getName() != "" && (button->getName().getIntValue() >= 0 &&
         button->getName().getIntValue() <= this->mainParent->getListSpeaker().size())) {
@@ -648,20 +588,17 @@ void WindowEditSpeaker::resized()
     this->boxListSpeaker->correctSize(getWidth()-10, getHeight()-30);
 
     this->butAddSpeaker->setBounds(5, getHeight()-130, 100, 22);
-    this->butClearTriplet->setBounds(5, getHeight()-55, 100, 22);
-    this->butcompSpeakers->setBounds(110, getHeight()-130, 100, 22);
-    this->butsaveSpeakers->setBounds(215, getHeight()-130, 100, 22);
-    this->texEditNameConf->setBounds(330, getHeight()-130, 240, 22);
+    this->butcompSpeakers->setBounds(getWidth()-105, getHeight()-130, 100, 22);
 
-    this->rNumOfSpeakersLabel->setBounds(5, getHeight()-95, 80, 24);
-    this->rNumOfSpeakers->setBounds(5+80, getHeight()-95, 40, 24);
-    this->rZenithLabel->setBounds(100, getHeight()-95, 80, 24);
-    this->rZenith->setBounds(100+80, getHeight()-95, 60, 24);
-    this->rRadiusLabel->setBounds(215, getHeight()-95, 80, 24);
-    this->rRadius->setBounds(215+80, getHeight()-95, 60, 24);
-    this->rOffsetAngleLabel->setBounds(360, getHeight()-95, 80, 24);
-    this->rOffsetAngle->setBounds(360+80, getHeight()-95, 60, 24);
-    this->butAddRing->setBounds(520, getHeight()-95, 100, 24);
+    this->rNumOfSpeakersLabel->setBounds(5, getHeight()-90, 80, 24);
+    this->rNumOfSpeakers->setBounds(5+80, getHeight()-90, 40, 24);
+    this->rZenithLabel->setBounds(100, getHeight()-90, 80, 24);
+    this->rZenith->setBounds(100+80, getHeight()-90, 60, 24);
+    this->rRadiusLabel->setBounds(215, getHeight()-90, 80, 24);
+    this->rRadius->setBounds(215+80, getHeight()-90, 60, 24);
+    this->rOffsetAngleLabel->setBounds(360, getHeight()-90, 80, 24);
+    this->rOffsetAngle->setBounds(360+80, getHeight()-90, 60, 24);
+    this->butAddRing->setBounds(getWidth()-105, getHeight()-90, 100, 24);
 }
 
 String WindowEditSpeaker::getText (const int columnNumber, const int rowNumber) const

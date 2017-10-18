@@ -211,6 +211,22 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     else {
         this->openPreset(props->getValue("lastOpenPreset"));
     }
+
+    // Do the same with speaker setup.
+    File setup = File(props->getValue("lastOpenSpeakerSetup", "not_saved_yet"));
+    if (!setup.existsAsFile()) {
+#ifdef __linux__
+        String cwd = File::getCurrentWorkingDirectory().getFullPathName();
+        this->openXmlFileSpeaker(cwd + ("/../../Resources/default_preset/default_speaker_setup.xml"));
+#else
+        String cwd = File::getSpecialLocation(File::currentApplicationFile).getFullPathName();
+        this->openXmlFileSpeaker(cwd + ("/Contents/Resources/default_preset/default_speaker_setup.xml"));
+#endif
+    }
+    else {
+        this->openXmlFileSpeaker(props->getValue("lastOpenSpeakerSetup"));
+    }
+
     this->resized();
     startTimerHz(HertzRefreshNormal);
     
@@ -364,7 +380,6 @@ void MainContentComponent::handleOpenPreset() {
 }
 
 void MainContentComponent::handleSavePreset() {
-    String filename = File(this->pathCurrentPreset).getFileName();
     if (! File(this->pathCurrentPreset).existsAsFile() || this->pathCurrentPreset.endsWith("default_preset/default_preset.xml")) {
         this->handleSaveAsPreset();
     }
@@ -394,7 +409,7 @@ void MainContentComponent::handleSaveAsPreset() {
 }
 
 void MainContentComponent::handleOpenSpeakerSetup() {
-    String dir = this->applicationProperties.getUserSettings()->getValue("lastSpeakerPresetDirectory");
+    String dir = this->applicationProperties.getUserSettings()->getValue("lastSpeakerSetupDirectory");
     if (! File(dir).isDirectory()) {
         dir = File("~").getFullPathName();
     }
@@ -417,12 +432,41 @@ void MainContentComponent::handleOpenSpeakerSetup() {
     }
 }
 
+// Should we call "this->updateLevelComp(); before saving to validate that the setup is legal?"
+void MainContentComponent::handleSaveSpeakerSetup() {
+    if (! File(this->pathCurrentFileSpeaker).existsAsFile() || this->pathCurrentFileSpeaker.endsWith("default_preset/default_speaker_setup.xml")) {
+        this->handleSaveAsSpeakerSetup();
+    }
+    this->saveSpeakerSetup(this->pathCurrentFileSpeaker);
+}
+
+void MainContentComponent::handleSaveAsSpeakerSetup() {
+    String dir = this->applicationProperties.getUserSettings()->getValue("lastSpeakerSetupDirectory");
+    if (! File(dir).isDirectory()) {
+        dir = File("~").getFullPathName();
+    }
+    String filename = File(this->pathCurrentFileSpeaker).getFileName();
+
+#ifdef __linux__
+    FileChooser fc ("Choose a file to save...", dir + "/" + filename, "*.xml", false);
+#else
+    FileChooser fc ("Choose a file to save...", dir + "/" + filename, "*.xml", true);
+#endif
+    if (fc.browseForFileToSave (true)) {
+        String chosen = fc.getResults().getReference(0).getFullPathName();
+        bool r = AlertWindow::showOkCancelBox (AlertWindow::InfoIcon,"Save speaker setup","Save to : " + chosen);
+        if (r) {
+            this->saveSpeakerSetup(chosen);
+        }
+    }
+}
+
 void MainContentComponent::handleShowSpeakerEditWindow() {
     Rectangle<int> result (this->getScreenX() + this->speakerView->getWidth() + 20, this->getScreenY() + 20, 650, 530);
     if (this->winSpeakConfig == nullptr) {
         this->jackClient->processBlockOn = false;
-        this->winSpeakConfig = new WindowEditSpeaker("Speakers config", this->nameConfig,
-                                                     this->mGrisFeel.getWinBackgroundColour(),
+        this->winSpeakConfig = new WindowEditSpeaker("Speakers config - " + File(this->pathCurrentFileSpeaker).getFileName(),
+                                                     this->nameConfig, this->mGrisFeel.getWinBackgroundColour(),
                                                      DocumentWindow::allButtons, this, &this->mGrisFeel);
         this->winSpeakConfig->setBounds(result);
         this->winSpeakConfig->initComp();
@@ -567,6 +611,8 @@ void MainContentComponent::getAllCommands (Array<CommandID>& commands)
                               MainWindow::SavePresetID,
                               MainWindow::SaveAsPresetID,
                               MainWindow::OpenSpeakerSetupID,
+                              MainWindow::SaveSpeakerSetupID,
+                              MainWindow::SaveAsSpeakerSetupID,
                               MainWindow::ShowSpeakerEditID,
                               MainWindow::Show2DViewID,
                               MainWindow::ShowNumbersID,
@@ -593,28 +639,36 @@ void MainContentComponent::getCommandInfo (CommandID commandID, ApplicationComma
     switch (commandID)
     {
         case MainWindow::NewPresetID:
-            result.setInfo ("New", "Close the current preset and open the default.", generalCategory, 0);
+            result.setInfo ("New Project", "Close the current preset and open the default.", generalCategory, 0);
             result.addDefaultKeypress ('N', ModifierKeys::commandModifier);
             break;
         case MainWindow::OpenPresetID:
-            result.setInfo ("Open", "Choose a new preset on disk.", generalCategory, 0);
+            result.setInfo ("Open Project", "Choose a new preset on disk.", generalCategory, 0);
             result.addDefaultKeypress ('O', ModifierKeys::commandModifier);
             break;
         case MainWindow::SavePresetID:
-            result.setInfo ("Save", "Save the current preset on disk.", generalCategory, 0);
+            result.setInfo ("Save Project", "Save the current preset on disk.", generalCategory, 0);
             result.addDefaultKeypress ('S', ModifierKeys::commandModifier);
             break;
         case MainWindow::SaveAsPresetID:
-            result.setInfo ("Save As...", "Save the current preset under a new name on disk.", generalCategory, 0);
+            result.setInfo ("Save Project As...", "Save the current preset under a new name on disk.", generalCategory, 0);
             result.addDefaultKeypress ('S', ModifierKeys::shiftModifier|ModifierKeys::commandModifier);
             break;
         case MainWindow::OpenSpeakerSetupID:
-            result.setInfo ("Open Speaker Setup", "Choose a new speaker setup on disk.", generalCategory, 0);
+            result.setInfo ("Load Speaker Setup", "Choose a new speaker setup on disk.", generalCategory, 0);
             result.addDefaultKeypress ('L', ModifierKeys::commandModifier);
+            break;
+        case MainWindow::SaveSpeakerSetupID:
+            result.setInfo ("Export Speaker Setup", "Save the current speaker setup on disk.", generalCategory, 0);
+            result.addDefaultKeypress ('E', ModifierKeys::commandModifier);
+            break;
+        case MainWindow::SaveAsSpeakerSetupID:
+            result.setInfo ("Export Speaker Setup As...", "Save the current speaker setup under a new name on disk.", generalCategory, 0);
+            result.addDefaultKeypress ('E', ModifierKeys::shiftModifier|ModifierKeys::commandModifier);
             break;
         case MainWindow::ShowSpeakerEditID:
             result.setInfo ("Show Speaker Setup Edition Window", "Edit the current speaker setup.", generalCategory, 0);
-            result.addDefaultKeypress ('E', ModifierKeys::commandModifier);
+            result.addDefaultKeypress ('E', ModifierKeys::altModifier);
             break;
         case MainWindow::Show2DViewID:
             result.setInfo ("Show 2D View", "Show the 2D action window.", generalCategory, 0);
@@ -691,6 +745,8 @@ bool MainContentComponent::perform (const InvocationInfo& info)
             case MainWindow::SavePresetID: this->handleSavePreset(); break;
             case MainWindow::SaveAsPresetID: this->handleSaveAsPreset(); break;
             case MainWindow::OpenSpeakerSetupID: this->handleOpenSpeakerSetup(); break;
+            case MainWindow::SaveSpeakerSetupID: this->handleSaveSpeakerSetup(); break;
+            case MainWindow::SaveAsSpeakerSetupID: this->handleSaveAsSpeakerSetup(); break;
             case MainWindow::ShowSpeakerEditID: this->handleShowSpeakerEditWindow(); break;
             case MainWindow::Show2DViewID: this->handleShow2DView(); break;
             case MainWindow::ShowNumbersID: this->handleShowNumbers(); break;
@@ -726,7 +782,8 @@ PopupMenu MainContentComponent::getMenuForIndex (int menuIndex, const String& me
         menu.addCommandItem(commandManager, MainWindow::SaveAsPresetID);
         menu.addSeparator();
         menu.addCommandItem(commandManager, MainWindow::OpenSpeakerSetupID);
-        menu.addCommandItem(commandManager, MainWindow::ShowSpeakerEditID);
+        menu.addCommandItem(commandManager, MainWindow::SaveSpeakerSetupID);
+        menu.addCommandItem(commandManager, MainWindow::SaveAsSpeakerSetupID);
         menu.addSeparator();
         menu.addCommandItem (commandManager, MainWindow::PrefsID);
 #if ! JUCE_MAC
@@ -737,6 +794,7 @@ PopupMenu MainContentComponent::getMenuForIndex (int menuIndex, const String& me
     else if (menuName == "View")
     {
         menu.addCommandItem(commandManager, MainWindow::Show2DViewID);
+        menu.addCommandItem(commandManager, MainWindow::ShowSpeakerEditID);
         menu.addSeparator();
         menu.addCommandItem(commandManager, MainWindow::ShowNumbersID);
         menu.addCommandItem(commandManager, MainWindow::ShowSpeakersID);
@@ -794,6 +852,7 @@ bool MainContentComponent::exitApp()
 MainContentComponent::~MainContentComponent()
 {
     this->applicationProperties.getUserSettings()->setValue("lastOpenPreset", this->pathCurrentPreset);
+    this->applicationProperties.getUserSettings()->setValue("lastOpenSpeakerSetup", this->pathCurrentFileSpeaker);
     this->applicationProperties.saveIfNeeded();
     this->applicationProperties.closeFiles();
 
@@ -1185,8 +1244,6 @@ void MainContentComponent::setNameConfig()
 {
     this->nameConfig = this->pathCurrentFileSpeaker.fromLastOccurrenceOf("/", false, false);
     this->speakerView->setNameConfig(this->nameConfig);
-    if (this->winSpeakConfig != nullptr)
-        this->winSpeakConfig->setNameConfig(this->nameConfig);
 }
 
 void MainContentComponent::muteInput(int id, bool mute)
@@ -1228,11 +1285,13 @@ void MainContentComponent::setDirectOut(int id, int chn)
 }
 
 void MainContentComponent::openXmlFileSpeaker(String path) {
+    String oldPath = this->pathCurrentFileSpeaker;
+    int isNewSameAsOld = oldPath.compare(path);
+    bool ok = false;
     if (! File(path.toStdString()).existsAsFile()) {
         AlertWindow::showMessageBoxAsync (AlertWindow::AlertIconType::WarningIcon,"Error in Open Speaker Setup !",
                                           "Can't found file " + path.toStdString() + ", the current setup will be kept.", String(), 0);
     } else {
-        String oldPath = this->pathCurrentFileSpeaker;
         this->pathCurrentFileSpeaker = path.toStdString();
         this->jackClient->processBlockOn = false;
         XmlDocument xmlDoc (File (this->pathCurrentFileSpeaker));
@@ -1240,7 +1299,6 @@ void MainContentComponent::openXmlFileSpeaker(String path) {
         if (mainXmlElem == nullptr) {
             AlertWindow::showMessageBoxAsync (AlertWindow::AlertIconType::WarningIcon,"Error in Open Speaker Setup !",
                                               "Your file is corrupted !\n"+xmlDoc.getLastParseError(),String(),0);
-            this->pathCurrentFileSpeaker = oldPath;
         } else {
             if (mainXmlElem->hasTagName("SpeakerSetup")) {
                 this->lockSpeakers->lock();
@@ -1277,14 +1335,28 @@ void MainContentComponent::openXmlFileSpeaker(String path) {
                         this->listTriplet.push_back(tri);
                     }
                 }
+                ok = true;
             } else {
                 AlertWindow::showMessageBoxAsync (AlertWindow::AlertIconType::WarningIcon,"Error in Open Speaker Setup !",
                                                   "SpeakerSetup not found !",String(),0);
-                this->pathCurrentFileSpeaker = oldPath;
             }
         }
     }
-    updateLevelComp();
+    if (ok) {
+        updateLevelComp();
+    } else {
+        if (isNewSameAsOld == 0) {
+#ifdef __linux__
+            String cwd = File::getCurrentWorkingDirectory().getFullPathName();
+            this->openXmlFileSpeaker(cwd + ("/../../Resources/default_preset/default_speaker_setup.xml"));
+#else
+            String cwd = File::getSpecialLocation(File::currentApplicationFile).getFullPathName();
+            this->openXmlFileSpeaker(cwd + ("/Contents/Resources/default_preset/default_speaker_setup.xml"));
+#endif
+        } else {
+            this->openXmlFileSpeaker(oldPath);
+        }
+    }
 }
 
 void MainContentComponent::setTitle() {
@@ -1328,8 +1400,6 @@ void MainContentComponent::openPreset(String path)
                 this->jackClient->setRecordFormat(0);
             }
 
-            this->pathCurrentFileSpeaker = mainXmlElem->getStringAttribute("Speaker_Setup_File");
-
             //Update----------------------------------
             this->textEditorReturnKeyPressed(*this->tedAddInputs);
             this->sliderValueChanged(this->sliderMasterGainOut);
@@ -1345,7 +1415,6 @@ void MainContentComponent::openPreset(String path)
                 this->pathCurrentFileSpeaker = cwd + ("/Contents/Resources/default_preset/") + this->pathCurrentFileSpeaker;
 #endif
             }
-            this->openXmlFileSpeaker(this->pathCurrentFileSpeaker);
 
             forEachXmlChildElement (*mainXmlElem, input) {
                 if (input->hasTagName ("Input")) {
@@ -1395,7 +1464,6 @@ void MainContentComponent::savePreset(String path)
     xml->setAttribute ("High_Performance",   this->isHighPerformance);
     xml->setAttribute ("Use_Alpha",       this->isSourceLevelShown);
     xml->setAttribute ("Record_Format",       this->jackClient->getRecordFormat());
-    xml->setAttribute ("Speaker_Setup_File", this->pathCurrentFileSpeaker);
     
     for (auto&& it : listSourceInput)
     {
@@ -1419,7 +1487,7 @@ String MainContentComponent::getCurrentFileSpeakerPath() {
     return this->pathCurrentFileSpeaker;
 }
 
-void MainContentComponent::savePresetSpeakers(String path)
+void MainContentComponent::saveSpeakerSetup(String path)
 {
     this->pathCurrentFileSpeaker = path;
     File xmlFile = File (path.toStdString());
@@ -1461,7 +1529,7 @@ void MainContentComponent::savePresetSpeakers(String path)
     xml->writeToFile(xmlFile,"");
     xmlFile.create();
 
-    this->applicationProperties.getUserSettings()->setValue("lastSpeakerPresetDirectory", 
+    this->applicationProperties.getUserSettings()->setValue("lastSpeakerSetupDirectory", 
                                                             File(this->pathCurrentFileSpeaker).getParentDirectory().getFullPathName());
 
     this->setNameConfig();

@@ -91,6 +91,8 @@ public:
     void handleSavePreset();
     void handleSaveAsPreset();
     void handleOpenSpeakerSetup();
+    void handleSaveSpeakerSetup();
+    void handleSaveAsSpeakerSetup();
     void handleShowSpeakerEditWindow();
     void handleShowPreferences();
     void handleShow2DView();
@@ -139,7 +141,7 @@ public:
     void selectTripletSpeaker(int idS);
     void setNameConfig();
     void addSpeaker();
-    void savePresetSpeakers(String path);
+    void saveSpeakerSetup(String path);
     void removeSpeaker(int idSpeaker);
     void updateLevelComp();
     void muteInput(int id, bool mute);

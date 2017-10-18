@@ -152,7 +152,6 @@ public:
     void closeButtonPressed() override;
     //void sortOrderChanged(int newSortColumnId, bool isForwards) override;
     void resized() override;
-    void setNameConfig(String name);
 
     String getText (const int columnNumber, const int rowNumber) const;
     void setText (const int columnNumber, const int rowNumber, const String& newText);
@@ -171,9 +170,6 @@ private:
     
     TextButton *butAddSpeaker;
     TextButton *butcompSpeakers;
-    TextButton *butsaveSpeakers;
-    TextEditor *texEditNameConf;
-    TextButton *butClearTriplet;
 
     Label      *    rNumOfSpeakersLabel;
     TextEditor *    rNumOfSpeakers;
