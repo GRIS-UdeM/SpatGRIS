@@ -48,6 +48,9 @@ using namespace std;
 static unsigned int const MaxInputs  = 256;
 static unsigned int const MaxOutputs = 256;
 
+// HRTF impulse responses length in samples (75 <=> 128)
+static unsigned int const HrtfImpulseLength = 80;
+
 struct Client {
     String          name;
     unsigned int    portStart     = 1;
@@ -257,8 +260,18 @@ public:
 
     vector<vector<int>> vbap_triplets;
 
+    float ***hrtf_left;
+    float ***hrtf_right;
+    vector<float> hrtf_diff = {5.0f, 5.0f, 5.0f, 5.0f, 5.0f, 6.0f, 6.0f, 6.5f, 6.5f, 8.0f, 8.0f, 10.0f, 10.0f, 15.0f, 15.0f, 30.0f, 30.0f, 60.0f, 0.0f};
+    unsigned int hrtf_count[MaxInputs];
+    float hrtf_input_tmp[MaxInputs][HrtfImpulseLength];
+    float hrtf_last_azi[MaxInputs];
+    float hrtf_last_ele[MaxInputs];
+
     //---------------------------------
     jackClientGris(unsigned int bufferS = 1024);
+
+    // TODO: Release memory allocated for the HRTF impulse responses.
     virtual ~jackClientGris();
     
     bool  isReady() { return clientReady; }

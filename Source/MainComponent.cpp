@@ -125,7 +125,7 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     this->comBoxModeSpat = addComboBox("", "Mode of spatilization", 155, 48, 90, 22, this->boxControlUI->getContent());
     for (int i = 0; i < ModeSpatString.size(); i++) {
         this->comBoxModeSpat->addItem(ModeSpatString[i], i+1);
-        if (i == 0) {
+        if (i == 0 || i == 2) {
             this->comBoxModeSpat->setItemEnabled(i+1, true);
         } else {
             this->comBoxModeSpat->setItemEnabled(i+1, false);
@@ -1037,6 +1037,8 @@ void MainContentComponent::updateInputJack(int inInput, Input &inp)
     
     if (this->jackClient->modeSelected == VBap) {
         this->jackClient->vbapSourcesToUpdate[inInput] = 1;
+    } else if (this->jackClient->modeSelected == HRTF) {
+        // nothing to do yet.
     }
 }
 
@@ -1747,10 +1749,13 @@ void MainContentComponent::comboBoxChanged (ComboBox *comboBox)
                     this->labelModeInfo->setColour(Label::textColourId, mGrisFeel.getRedColour());
                 }
                 break;
-                
             case DBap:
                 this->labelModeInfo->setText("Not ready yet", dontSendNotification);
                 this->labelModeInfo->setColour(Label::textColourId, mGrisFeel.getRedColour());
+                break;
+            case HRTF:
+                this->labelModeInfo->setText("Ready", dontSendNotification);
+                this->labelModeInfo->setColour(Label::textColourId, mGrisFeel.getGreenColour());
                 break;
 
             default:

@@ -181,6 +181,69 @@ static void processVBAP(jackClientGris & jackCli, jack_default_audio_sample_t **
 }
 
 //=========================================================================================
+//HRTF
+//=========================================================================================
+static void 
+processHRTF(jackClientGris & jackCli, jack_default_audio_sample_t ** ins, jack_default_audio_sample_t ** outs,
+            const jack_nframes_t &nframes, const unsigned int &sizeInputs, const unsigned int &sizeOutputs) {
+    int f, i, k, elev, tmp_count, imp;
+    float azi, ele, sig, azi_step, ele_step;
+
+    for (int o = 0; o < sizeOutputs; ++o) {
+        memset(outs[o], 0, sizeof(jack_default_audio_sample_t) * nframes);
+    }
+
+    for (i = 0; i < sizeInputs; ++i) {
+        if (jackCli.listSourceIn[i].directOut == 0) {
+            azi = jackCli.listSourceIn[i].azimuth;
+            if (azi < 0) { azi = 360.0f + azi; }
+            ele = jackCli.listSourceIn[i].zenith;
+            azi_step = (azi - jackCli.hrtf_last_azi[i]) / (float)nframes;
+            ele_step = (ele - jackCli.hrtf_last_ele[i]) / (float)nframes;
+            if (abs(azi - jackCli.hrtf_last_azi[i]) > 300.0f) {
+                azi_step = 0.0f;
+            } else {
+                azi = jackCli.hrtf_last_azi[i];
+            }
+            ele = jackCli.hrtf_last_ele[i];
+            for (f = 0; f < nframes; ++f) {
+                azi += azi_step;
+                ele += ele_step;
+                elev = (int)(ele / 5.0f);
+                if (azi > 359.999999f) { azi = 359.999999f; }
+                if (jackCli.hrtf_diff[elev] == 0) { imp = 0; } 
+                else { imp = (int)(azi / jackCli.hrtf_diff[elev]); }
+                tmp_count = jackCli.hrtf_count[i];
+                for (k=0; k<HrtfImpulseLength; ++k) {
+                    if (tmp_count < 0) {
+                        tmp_count += HrtfImpulseLength;
+                    }
+                    sig = jackCli.hrtf_input_tmp[i][tmp_count];
+                    outs[0][f] += sig * jackCli.hrtf_left[elev][imp][k];
+                    outs[1][f] += sig * jackCli.hrtf_right[elev][imp][k];
+                    tmp_count--;
+                }
+                jackCli.hrtf_count[i]++;
+                if (jackCli.hrtf_count[i] == HrtfImpulseLength) {
+                    jackCli.hrtf_count[i] = 0;
+                }
+                jackCli.hrtf_input_tmp[i][jackCli.hrtf_count[i]] = ins[i][f];
+            }
+            jackCli.hrtf_last_azi[i] = azi;
+            jackCli.hrtf_last_ele[i] = ele;
+        } else if ((jackCli.listSourceIn[i].directOut) == 1) {
+            for (f = 0; f < nframes; ++f) {
+                outs[0][f] += ins[i][f];
+            }
+        } else if ((jackCli.listSourceIn[i].directOut) == 2) {
+            for (f = 0; f < nframes; ++f) {
+                outs[1][f] += ins[i][f];
+            }
+        }
+    }
+}
+
+//=========================================================================================
 //MASTER PROCESS
 //=========================================================================================
 static int process_audio (jack_nframes_t nframes, void* arg) {
@@ -216,7 +279,7 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
     muteSoloVuMeterIn(*jackCli, ins, nframes, sizeInputs);
 
     //================ PROCESS ==============================================    
-    switch ((ModeSpatEnum)jackCli->modeSelected){
+    switch ((ModeSpatEnum)jackCli->modeSelected) {
         
         case VBap:
             //VBAP Spat ----------------------------------------------------
@@ -227,6 +290,7 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
             break;
             
         case HRTF:
+            processHRTF(*jackCli, ins, outs, nframes, sizeInputs, sizeOutputs);
             break;
 
         default:
@@ -378,7 +442,28 @@ void port_connect_callback(jack_port_id_t a, jack_port_id_t b, int connect, void
 }
 
 
-
+static float **
+getSamplesFromWavFile(String filename) {
+    int** wavData;
+    float factor = powf(2.0f, 32.0f);
+    AudioFormat *wavAudioFormat;
+    File file = File(filename); 
+    wavAudioFormat = new WavAudioFormat(); 
+    AudioFormatReader *audioFormatReader = wavAudioFormat->createReaderFor(file.createInputStream(), true); 
+    wavData = new int* [3]; 
+    wavData[0] = new int[audioFormatReader->lengthInSamples];
+    wavData[1] = new int[audioFormatReader->lengthInSamples];
+    wavData[2] = 0; 
+    audioFormatReader->read(wavData, 2, 0, audioFormatReader->lengthInSamples, false); 
+    float **samples = (float **)malloc(2 * sizeof(float *));
+    for (int i = 0; i < 2; i++) {
+        samples[i] = (float *)malloc(audioFormatReader->lengthInSamples * sizeof(float));
+        for (int j=0; j<audioFormatReader->lengthInSamples; j++) {
+            samples[i][j] = wavData[i][j] / factor;
+        }
+    }
+    return samples;
+}
 
 //=================================================================================================================
 // jackClientGris
@@ -394,11 +479,58 @@ jackClientGris::jackClientGris(unsigned int bufferS) {
     this->processBlockOn = true;
     this->modeSelected = VBap;
     this->recording = false;
-    this->hrtfOn = false;
+    this->hrtfOn = false; // Do we need this var?
 
     for (int i; i < MaxInputs; ++i) {
         this->vbapSourcesToUpdate[i] = 0;
     }
+
+    //---------------------------------------------------
+    // Initialize impulse responses for HRTF
+    //---------------------------------------------------
+    this->hrtf_left = (float ***)malloc(19 * sizeof(float **));
+    this->hrtf_right = (float ***)malloc(19 * sizeof(float **));
+    for (int i=0; i<19; i++) {
+        // TODO: Fix impulse paths for OSX.
+        String folder = "../../Resources/hrtf_compact/elev" + String(i*5);
+        cout << folder << endl;
+        if (File(folder).isDirectory()) {
+            Array<File> result;
+            int howmany = File(folder).findChildFiles(result,
+                                                      File::findFiles|File::ignoreHiddenFiles,
+                                                      false,
+                                                      "*.wav");
+            result.sort();
+            this->hrtf_left[i] = (float **)malloc((howmany*2-1) * sizeof(float *));
+            this->hrtf_right[i] = (float **)malloc((howmany*2-1) * sizeof(float *));
+            for (int j=0; j<howmany; j++) {
+                float **stbuf = getSamplesFromWavFile(result[j].getFullPathName());
+                this->hrtf_left[i][j] = (float *)malloc(HrtfImpulseLength * sizeof(float));
+                this->hrtf_right[i][j] = (float *)malloc(HrtfImpulseLength * sizeof(float));
+                for (int k=0; k<HrtfImpulseLength; k++) {
+                    this->hrtf_left[i][j][k] = stbuf[0][k];
+                    this->hrtf_right[i][j][k] = stbuf[1][k];
+                }
+            }
+            for (int j=0; j<(howmany-1); j++) {
+                this->hrtf_left[i][howmany+j] = (float *)malloc(HrtfImpulseLength * sizeof(float));
+                this->hrtf_right[i][howmany+j] = (float *)malloc(HrtfImpulseLength * sizeof(float));
+                for (int k=0; k<HrtfImpulseLength; k++) {
+                    this->hrtf_left[i][howmany+j][k] = this->hrtf_right[i][howmany-2-j][k];
+                    this->hrtf_right[i][howmany+j][k] = this->hrtf_left[i][howmany-2-j][k];
+                }
+            }
+        }
+    }
+    for (int i=0; i<MaxInputs; i++) {
+        this->hrtf_count[i] = 0;
+        this->hrtf_last_azi[i] = 0.0f;
+        this->hrtf_last_ele[i] = 0.0f;
+        for (int j = 0; j<HrtfImpulseLength; j++) {
+            this->hrtf_input_tmp[i][j] = 0.0f;
+        }
+    }
+    //---------------------------------------------------
 
     this->listClient = vector<Client>();
     
