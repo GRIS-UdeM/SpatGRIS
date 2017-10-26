@@ -539,8 +539,32 @@ void MainContentComponent::handleShowTriplets() {
 }
 
 void MainContentComponent::setShowTriplets(bool state) {
-    this->isTripletsShown = state;
-    this->speakerView->setShowTriplets(state);
+    if (this->validateShowTriplets() || state == false) {
+        this->isTripletsShown = state;
+        this->speakerView->setShowTriplets(state);
+    } else {
+        ScopedPointer<AlertWindow> alert = new AlertWindow("Can't draw all triplets !",
+                                                           "Maybe you didn't compute your current speaker setup ?",
+                                                           AlertWindow::InfoIcon);
+        alert->addButton("Close", 0);
+        int status = alert->runModalLoop();
+        this->setShowTriplets(false);
+    }
+}
+
+bool MainContentComponent::validateShowTriplets() {
+    int success = true;
+    for (int i = 0; i < this->getListTriplet().size(); ++i) {
+        Speaker *spk1 = this->getSpeakerFromOutputPatch(this->getListTriplet()[i].id1);
+        Speaker *spk2 = this->getSpeakerFromOutputPatch(this->getListTriplet()[i].id2);
+        Speaker *spk3 = this->getSpeakerFromOutputPatch(this->getListTriplet()[i].id3);
+
+        if (spk1 == nullptr || spk2 == nullptr || spk3 == nullptr) {
+            success = false;
+            break;
+        }
+    }
+    return success;
 }
 
 void MainContentComponent::handleShowSourceLevel() {

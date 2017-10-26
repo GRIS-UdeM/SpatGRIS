@@ -102,6 +102,7 @@ public:
     void setShowSpeakers(bool state);
     void handleShowTriplets();
     void setShowTriplets(bool state);
+    bool validateShowTriplets();
     void handleShowSourceLevel();
     void handleShowSpeakerLevel();
     void handleShowSphere();
@@ -203,6 +204,7 @@ public:
 
     bool isSourceLevelShown = false;
     bool isSpeakerLevelShown = false;
+    bool isTripletsShown = false;
 
     int oscInputPort = 18032;
 
@@ -296,7 +298,6 @@ private:
 
     bool isNumbersShown;
     bool isSpeakersShown;
-    bool isTripletsShown;
     bool isSphereShown;
     bool isHighPerformance;
     bool isRefSound;

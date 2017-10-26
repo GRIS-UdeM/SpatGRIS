@@ -476,6 +476,8 @@ void WindowEditSpeaker::initComp()
 
 void WindowEditSpeaker::buttonClicked(Button *button)
 {
+    bool tripletState = this->mainParent->isTripletsShown;
+    this->mainParent->setShowTriplets(false);
     if (button == this->butAddSpeaker) {
         this->mainParent->addSpeaker();
         updateWinContent();
@@ -484,6 +486,9 @@ void WindowEditSpeaker::buttonClicked(Button *button)
     else if (button == this->butcompSpeakers) {
         // TODO: Should return a value to tell if there is an error or not.
         this->mainParent->updateLevelComp();
+        if (tripletState) {
+            this->mainParent->setShowTriplets(true);
+        }
     }
     else if (button == this->butAddRing) {
         for (int i = 0; i < this->rNumOfSpeakers->getText().getIntValue(); i++) {
@@ -680,9 +685,11 @@ void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, con
                     this->mainParent->getListSpeaker()[rowNumber]->setAziZenRad(newP);
                     break;
                 case 8:
+                    this->mainParent->setShowTriplets(false);
                     this->mainParent->getListSpeaker()[rowNumber]->setOutputPatch(newText.getIntValue());
                     break;
                 case 9 :
+                    this->mainParent->setShowTriplets(false);
                     this->mainParent->getListSpeaker()[rowNumber]->setDirectOut(newText.getIntValue());
                     break;
             }

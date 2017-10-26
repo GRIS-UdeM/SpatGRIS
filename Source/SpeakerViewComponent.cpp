@@ -427,18 +427,15 @@ void SpeakerViewComponent::drawTextOnGrid(string val, glm::vec3 position,float s
 }
 
 void SpeakerViewComponent::drawTrippletConn() {
-    for(int i = 0; i < this->mainParent->getListTriplet().size(); ++i) {
-        if(this->mainParent->getListTriplet()[i].id1 <= this->mainParent->getListSpeaker().size() &&
-           this->mainParent->getListTriplet()[i].id2 <= this->mainParent->getListSpeaker().size() &&
-           this->mainParent->getListTriplet()[i].id3 <= this->mainParent->getListSpeaker().size()) {
-        
+    for (int i = 0; i < this->mainParent->getListTriplet().size(); ++i) {
+        Speaker *spk1 = this->mainParent->getSpeakerFromOutputPatch(this->mainParent->getListTriplet()[i].id1);
+        Speaker *spk2 = this->mainParent->getSpeakerFromOutputPatch(this->mainParent->getListTriplet()[i].id2);
+        Speaker *spk3 = this->mainParent->getSpeakerFromOutputPatch(this->mainParent->getListTriplet()[i].id3);
+
+        if (spk1 != nullptr && spk2 != nullptr && spk3 != nullptr) {
             glLineWidth(1);
             glBegin(GL_LINES);
             glColor3f(0.8, 0.8, 0.8);
-
-            Speaker *spk1 = this->mainParent->getSpeakerFromOutputPatch(this->mainParent->getListTriplet()[i].id1);
-            Speaker *spk2 = this->mainParent->getSpeakerFromOutputPatch(this->mainParent->getListTriplet()[i].id2);
-            Speaker *spk3 = this->mainParent->getSpeakerFromOutputPatch(this->mainParent->getListTriplet()[i].id3);
             glVertex3f(spk1->getCenter().x, spk1->getCenter().y, spk1->getCenter().z);
             glVertex3f(spk2->getCenter().x, spk2->getCenter().y, spk2->getCenter().z);
             glVertex3f(spk1->getCenter().x, spk1->getCenter().y, spk1->getCenter().z);
