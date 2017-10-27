@@ -351,7 +351,7 @@ WindowEditSpeaker::WindowEditSpeaker(const String& name, String& nameC, Colour b
     this->rZenith->addListener(this->mainParent);
     this->boxListSpeaker->getContent()->addAndMakeVisible(this->rZenith);
     this->rZenith->setText("0.0");
-    this->rZenith->setInputRestrictions(6, "0123456789.");
+    this->rZenith->setInputRestrictions(6, "-0123456789.");
     this->rZenith->addListener(this);
 
     this->rRadiusLabel = new Label();
@@ -537,6 +537,8 @@ void WindowEditSpeaker::textEditorTextChanged(TextEditor& editor) {
         value = this->rZenith->getText().getFloatValue();
         if (value > 90.0f) {
             this->rZenith->setText(String(90.0f), false);
+        } else if (value < -90.0f) {
+            this->rZenith->setText(String(-90.0f), false);
         }
     } else if (&editor == this->rRadius) {
         test = this->rRadius->getText().retainCharacters(".");
@@ -650,6 +652,7 @@ String WindowEditSpeaker::getText (const int columnNumber, const int rowNumber) 
 
 void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, const String& newText)
 {
+    float val;
     if(this->mainParent->getLockSpeakers()->try_lock()) {
         if (this->mainParent->getListSpeaker().size() > rowNumber) {
             glm::vec3 newP;
@@ -676,7 +679,10 @@ void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, con
                     break;
                 case 6 :
                     newP = this->mainParent->getListSpeaker()[rowNumber]->getAziZenRad();
-                    newP.y = newText.getFloatValue();
+                    val = newText.getFloatValue();
+                    if (val < -90.0f) { val = -90.0f; }
+                    else if (val > 90.0f) { val = 90.0f; }
+                    newP.y = val;
                     this->mainParent->getListSpeaker()[rowNumber]->setAziZenRad(newP);
                     break;
                 case 7 :
@@ -694,6 +700,7 @@ void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, con
                     break;
             }
         }
+        this->updateWinContent();
         this->mainParent->getLockSpeakers()->unlock();
     }
 }

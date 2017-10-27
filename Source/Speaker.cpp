@@ -216,11 +216,11 @@ void Speaker::newPosition(glm::vec3 center, glm::vec3 extents)
     if(azimuth < 0.0f){
         azimuth+=360.0f;
     }
-    if(zenith < 0.0f){
-        zenith+=360.0f;
+    if(zenith < -90.0f){
+        zenith = -90.0f;
     }
-    if(zenith >= 360.0f){
-        zenith=0.0f;
+    if(zenith > 90.0f){
+        zenith = 90.0f;
     }
     this->aziZenRad = glm::vec3(azimuth, zenith, radius);
 }
