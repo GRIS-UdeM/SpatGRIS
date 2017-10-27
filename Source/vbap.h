@@ -53,15 +53,17 @@ typedef struct {
 
 /* VBAP structure of n loudspeaker panning */
 typedef struct {
-  float gains[MAX_LS_AMOUNT];       /* Loudspeaker gains. */
-  float y[MAX_LS_AMOUNT];           /* Loudspeaker gains smoothing. */
-  int dimension;                    /* Dimensions, 2 or 3. */
-  LS_SET *ls_sets;                  /* Loudspeaker triplet structure. */
-  int ls_am;                        /* Number of loudspeakers. */
-  int ls_set_am;                    /* Number of triplets. */
-  ANG_VEC ang_dir;                  /* Angular direction. */
-  CART_VEC cart_dir;                /* Cartesian direction. */
-  CART_VEC spread_base;             /* Spreading vector. */
+    int out_patches[MAX_LS_AMOUNT];     /* Physical outputs (starts at 1). */
+    float gains[MAX_LS_AMOUNT];         /* Loudspeaker gains. */
+    float y[MAX_LS_AMOUNT];             /* Loudspeaker gains smoothing. */
+    int dimension;                      /* Dimensions, 2 or 3. */
+    LS_SET *ls_sets;                    /* Loudspeaker triplet structure. */
+    int ls_out;                         /* Number of output patches. */
+    int ls_am;                          /* Number of loudspeakers. */
+    int ls_set_am;                      /* Number of triplets. */
+    ANG_VEC ang_dir;                    /* Angular direction. */
+    CART_VEC cart_dir;                  /* Cartesian direction. */
+    CART_VEC spread_base;               /* Spreading vector. */
 } VBAP_DATA;
 
 /* Fill a SPEAKERS_SETUP structure from values.

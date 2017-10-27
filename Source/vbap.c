@@ -345,7 +345,7 @@ static void spreadit(float azi, float spread, VBAP_DATA *data) {
 
 static void spreadit_azi_ele(float azi, float ele, float sp_azi,
                              float sp_ele, VBAP_DATA *data) {
-	int i, j, k, num = 4, knum = 4;
+	int i, j, k, ind, num = 4, knum = 4;
     float azidev, eledev, newazi, newele, comp;
 	ANG_VEC spreadang;
 	CART_VEC spreadcart;
@@ -424,23 +424,25 @@ static void spreadit_azi_ele(float azi, float ele, float sp_azi,
 
 	if (sp_azi > 0.8 && sp_ele > 0.8) {
         comp = (sp_azi - 0.8) / 0.2 * (sp_ele - 0.8) / 0.2 * 10.0;
-        for (i=0; i<cnt; i++) {
-            data->gains[i] += comp;
+        for (i=0; i<data->ls_out; i++) {
+            data->gains[data->out_patches[i]-1] += comp;
         }
     }
 
-	for (i=0; i<cnt; i++) {
-		sum += (data->gains[i] * data->gains[i]);
+	for (i=0; i<data->ls_out; i++) {
+        ind = data->out_patches[i]-1;
+		sum += (data->gains[ind] * data->gains[ind]);
     }
     sum = sqrtf(sum);
-	for (i=0; i<cnt; i++) {
-		data->gains[i] /= sum;
+	for (i=0; i<data->ls_out; i++) {
+        ind = data->out_patches[i]-1;
+		data->gains[ind] /= sum;
 	}
 }	
 
 static void spreadit_azi_ele_flip_y_z(float azi, float ele, float sp_azi,
                                       float sp_ele, VBAP_DATA *data) {
-	int i, j, k, num = 4, knum = 4;
+	int i, j, k, ind, num = 4, knum = 4;
     float azidev, eledev, newazi, newele, comp, tmp;
 	ANG_VEC spreadang;
 	CART_VEC spreadcart;
@@ -522,17 +524,19 @@ static void spreadit_azi_ele_flip_y_z(float azi, float ele, float sp_azi,
 
 	if (sp_azi > 0.8 && sp_ele > 0.8) {
         comp = (sp_azi - 0.8) / 0.2 * (sp_ele - 0.8) / 0.2 * 10.0;
-        for (i=0; i<cnt; i++) {
-            data->gains[i] += comp;
+        for (i=0; i<data->ls_out; i++) {
+            data->gains[data->out_patches[i]-1] += comp;
         }
     }
 
-	for (i=0; i<cnt; i++) {
-		sum += (data->gains[i] * data->gains[i]);
+	for (i=0; i<data->ls_out; i++) {
+        ind = data->out_patches[i]-1;
+		sum += (data->gains[ind] * data->gains[ind]);
     }
     sum = sqrtf(sum);
-	for (i=0; i<cnt; i++) {
-		data->gains[i] /= sum;
+	for (i=0; i<data->ls_out; i++) {
+        ind = data->out_patches[i]-1;
+		data->gains[ind] /= sum;
 	}
 }
 
@@ -1161,6 +1165,11 @@ VBAP_DATA * init_vbap_from_speakers(ls lss[MAX_LS_AMOUNT], int count,
         choose_ls_tuplets(lss, &ls_triplets, count);
     }
 
+    data->ls_out = count;
+    for (i=0; i<count; i++) {
+        data->out_patches[i] = outputPatches[i];
+    }
+
     data->dimension = dim;
     data->ls_am = maxOutputPatch;
     for (i=0; i<MAX_LS_AMOUNT; i++) {
@@ -1199,6 +1208,10 @@ VBAP_DATA * copy_vbap_data(VBAP_DATA *data) {
     int i, j;
     VBAP_DATA *nw = (VBAP_DATA *)malloc(sizeof(VBAP_DATA));
     nw->dimension = data->dimension;
+    nw->ls_out = data->ls_out;
+    for (i=0; i<data->ls_out; i++) {
+        nw->out_patches[i] = data->out_patches[i];
+    }
     nw->ls_am = data->ls_am;
     nw->ls_set_am = data->ls_set_am;
     for (i=0; i<MAX_LS_AMOUNT; i++) {

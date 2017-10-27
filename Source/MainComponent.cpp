@@ -237,7 +237,6 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
 
     ApplicationCommandManager* commandManager = &MainWindow::getApplicationCommandManager();
     commandManager->registerAllCommandsForTarget(this);
-
 }
 
 // ====================== builder utilities ==========================
@@ -1087,14 +1086,14 @@ MainContentComponent::getSpeakerFromOutputPatch(int out) {
     return nullptr;
 }
 
-void MainContentComponent::updateLevelComp() {
+bool MainContentComponent::updateLevelComp() {
     int dimensions = 2;
     int x = 2;
     int indexS = 0;
     int directOutSpeakers = 0;
 
     if (this->listSpeaker.size() == 0)
-        return;
+        return false;
 
     // Test for a 2-D or 3-D configuration
     float zenith = -1.0f;
@@ -1108,7 +1107,6 @@ void MainContentComponent::updateLevelComp() {
         }
         else if (it->getAziZenRad().y < (zenith - 4.9) || it->getAziZenRad().y > (zenith + 4.9)) {
             dimensions = 3;
-            break;
         }
     }
 
@@ -1122,7 +1120,7 @@ void MainContentComponent::updateLevelComp() {
         if (ret == 1) {
             this->openXmlFileSpeaker(this->pathCurrentFileSpeaker);
         }
-        return;
+        return false;
     }
 
     this->jackClient->processBlockOn = false;
@@ -1216,13 +1214,13 @@ void MainContentComponent::updateLevelComp() {
     this->resized();
 
     //Clear useless triplet
-    for(int i = 0; i < this->listTriplet.size(); ++i) {
-        if(this->listTriplet[i].id1+1 > this->listSpeaker.size() ||
-           this->listTriplet[i].id2+1 > this->listSpeaker.size() ||
-           this->listTriplet[i].id3+1 > this->listSpeaker.size()) {
-            this->listTriplet.erase(this->listTriplet.begin() + i);
-        }
-    }
+    //for(int i = 0; i < this->listTriplet.size(); ++i) {
+    //    if(this->listTriplet[i].id1+1 > this->listSpeaker.size() ||
+    //       this->listTriplet[i].id2+1 > this->listSpeaker.size() ||
+    //       this->listTriplet[i].id3+1 > this->listSpeaker.size()) {
+    //        this->listTriplet.erase(this->listTriplet.begin() + i);
+    //    }
+    //}
 
     this->jackClient->vbapDimensions = dimensions;
 
@@ -1235,8 +1233,7 @@ void MainContentComponent::updateLevelComp() {
         }
     }
     tempListSpeaker.resize(i);
-
-    this->jackClient->initSpeakersTripplet(tempListSpeaker, dimensions);
+    bool retval = this->jackClient->initSpeakersTripplet(tempListSpeaker, dimensions);
 
     this->setListTripletFromVbap();
 
@@ -1263,6 +1260,7 @@ void MainContentComponent::updateLevelComp() {
     */
 
     this->jackClient->processBlockOn = true;
+    return retval;
 }
 
 
@@ -1347,7 +1345,7 @@ void MainContentComponent::openXmlFileSpeaker(String path) {
                                                                                   spk->getDoubleAttribute("PositionZ")*10.0f,
                                                                                   spk->getDoubleAttribute("PositionY")*10.0f)));
                                 if (spk->hasAttribute("DirectOut")) {
-                                    this->listSpeaker.back()->setDirectOut(spk->getIntAttribute("DirectOut"));
+                                    this->listSpeaker.back()->setDirectOut(spk->getBoolAttribute("DirectOut"));
                                 }
                                 this->jackClient->addOutput(spk->getIntAttribute("OutputPatch"));
                             }
@@ -1765,7 +1763,7 @@ void MainContentComponent::comboBoxChanged (ComboBox *comboBox)
         
         switch (this->jackClient->modeSelected) {
             case VBap:
-                if( this->jackClient->initSpeakersTripplet(this->listSpeaker, this->jackClient->vbapDimensions) ){
+                if(this->updateLevelComp()){
                     this->labelModeInfo->setText("Ready", dontSendNotification);
                     this->labelModeInfo->setColour(Label::textColourId, mGrisFeel.getGreenColour());
                 }else{

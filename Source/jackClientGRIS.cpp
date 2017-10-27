@@ -159,7 +159,7 @@ static void processVBAP(jackClientGris & jackCli, jack_default_audio_sample_t **
         memset (outs[o], 0, sizeof (jack_default_audio_sample_t) * nframes);
 
         for (i = 0; i < sizeInputs; ++i) {
-            if (jackCli.listSourceIn[i].directOut == 0) {
+            if (!jackCli.listSourceIn[i].directOut) {
                 y = jackCli.listSourceIn[i].paramVBap->y[o];
                 for (f = 0; f < nframes; ++f) {
                     y = gains[i][o] + (y - gains[i][o]) * interpG;
@@ -493,7 +493,6 @@ jackClientGris::jackClientGris(unsigned int bufferS) {
     for (int i=0; i<19; i++) {
         // TODO: Fix impulse paths for OSX.
         String folder = "../../Resources/hrtf_compact/elev" + String(i*5);
-        cout << folder << endl;
         if (File(folder).isDirectory()) {
             Array<File> result;
             int howmany = File(folder).findChildFiles(result,

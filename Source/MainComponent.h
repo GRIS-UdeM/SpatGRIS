@@ -144,7 +144,7 @@ public:
     void addSpeaker();
     void saveSpeakerSetup(String path);
     void removeSpeaker(int idSpeaker);
-    void updateLevelComp();
+    bool updateLevelComp();
     void muteInput(int id, bool mute);
     void muteOutput(int id, bool mute);
     
