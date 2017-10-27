@@ -368,7 +368,7 @@ void MainContentComponent::handleOpenPreset() {
 #endif
     if (fc.browseForFileToOpen()) {
         String chosen = fc.getResults().getReference(0).getFullPathName();
-        bool r = AlertWindow::showOkCancelBox (AlertWindow::AlertIconType::WarningIcon,"Open Preset !",
+        bool r = AlertWindow::showOkCancelBox (AlertWindow::AlertIconType::WarningIcon,"Open Project !",
                                                "You want to load : "+chosen+"\nEverything not saved will be lost !",
                                                String(),String(),0);
         //Click OK -> Open
@@ -399,11 +399,7 @@ void MainContentComponent::handleSaveAsPreset() {
 #endif
     if (fc.browseForFileToSave (true)) {
         String chosen = fc.getResults().getReference(0).getFullPathName();
-        bool r = AlertWindow::showOkCancelBox (AlertWindow::InfoIcon,"Save preset","Save to : " + chosen);
-        //Save preset
-        if (r) {
-            this->savePreset(chosen);
-        }
+        this->savePreset(chosen);
     }
 }
 
@@ -418,14 +414,13 @@ void MainContentComponent::handleOpenSpeakerSetup() {
 #else
     FileChooser fc ("Choose a file to open...", dir + "/" + filename, "*.xml", true);
 #endif
-    if (fc.browseForFileToOpen())
-    {
+    if (fc.browseForFileToOpen()) {
         String chosen = fc.getResults().getReference(0).getFullPathName();
-        bool r = AlertWindow::showOkCancelBox (AlertWindow::AlertIconType::WarningIcon,"Open XML !",
-                                      "You want to load : "+chosen+"\nEverything not saved will be lost !",
+        bool r = AlertWindow::showOkCancelBox(AlertWindow::AlertIconType::WarningIcon,"Open Speaker Setup !",
+                                              "You want to load : " + chosen + "\nEverything not saved will be lost !",
                                               String(),String(),0);
         //Click OK -> Open xml
-        if(r){
+        if (r) {
             this->openXmlFileSpeaker(chosen);
         }
     }
@@ -453,10 +448,7 @@ void MainContentComponent::handleSaveAsSpeakerSetup() {
 #endif
     if (fc.browseForFileToSave (true)) {
         String chosen = fc.getResults().getReference(0).getFullPathName();
-        bool r = AlertWindow::showOkCancelBox (AlertWindow::InfoIcon,"Save speaker setup","Save to : " + chosen);
-        if (r) {
-            this->saveSpeakerSetup(chosen);
-        }
+        this->saveSpeakerSetup(chosen);
     }
 }
 
@@ -464,7 +456,7 @@ void MainContentComponent::handleShowSpeakerEditWindow() {
     Rectangle<int> result (this->getScreenX() + this->speakerView->getWidth() + 20, this->getScreenY() + 20, 650, 530);
     if (this->winSpeakConfig == nullptr) {
         this->jackClient->processBlockOn = false;
-        this->winSpeakConfig = new WindowEditSpeaker("Speakers config - " + File(this->pathCurrentFileSpeaker).getFileName(),
+        this->winSpeakConfig = new WindowEditSpeaker("Speakers Setup Edition - " + File(this->pathCurrentFileSpeaker).getFileName(),
                                                      this->nameConfig, this->mGrisFeel.getWinBackgroundColour(),
                                                      DocumentWindow::allButtons, this, &this->mGrisFeel);
         this->winSpeakConfig->setBounds(result);
@@ -805,8 +797,9 @@ PopupMenu MainContentComponent::getMenuForIndex (int menuIndex, const String& me
         menu.addCommandItem(commandManager, MainWindow::SaveAsPresetID);
         menu.addSeparator();
         menu.addCommandItem(commandManager, MainWindow::OpenSpeakerSetupID);
-        menu.addCommandItem(commandManager, MainWindow::SaveSpeakerSetupID);
-        menu.addCommandItem(commandManager, MainWindow::SaveAsSpeakerSetupID);
+        // Speaker Setup saving is handled when we close the Speaker Setup window.
+        //menu.addCommandItem(commandManager, MainWindow::SaveSpeakerSetupID);
+        //menu.addCommandItem(commandManager, MainWindow::SaveAsSpeakerSetupID);
         menu.addSeparator();
         menu.addCommandItem (commandManager, MainWindow::PrefsID);
 #if ! JUCE_MAC
@@ -845,7 +838,9 @@ void MainContentComponent::menuItemSelected (int menuItemID, int /*topLevelMenuI
 //=====================================================
 bool MainContentComponent::exitApp()
 {
-    ScopedPointer<AlertWindow> alert = new AlertWindow ("Exit ServerGRIS !","Do you want to save preset ?", AlertWindow::InfoIcon);
+    ScopedPointer<AlertWindow> alert = new AlertWindow("Exit ServerGRIS !",
+                                                       "Do you want to save the current project ?",
+                                                       AlertWindow::InfoIcon);
     alert->addButton ("Save", 1);
     alert->addButton ("Cancel", 0);
     alert->addButton ("Exit", 2);
@@ -857,16 +852,9 @@ bool MainContentComponent::exitApp()
         }
         String filename = File(this->pathCurrentPreset).getFileName();
         FileChooser fc ("Choose a file to save...", dir + "/" + filename, "*.xml", true);
-        if (fc.browseForFileToSave (true))
-        {
+        if (fc.browseForFileToSave(true)) {
             String chosen = fc.getResults().getReference(0).getFullPathName();
-            bool r = AlertWindow::showOkCancelBox (AlertWindow::InfoIcon,"Save preset","Save to : " + chosen);
-            //Save preset
-            if(r){
-                this->savePreset(chosen);
-            }else {
-                return 2;
-            }
+            this->savePreset(chosen);
         }
     }
     return (exitV != 0); 
@@ -1562,6 +1550,8 @@ void MainContentComponent::saveSpeakerSetup(String path)
 
     this->applicationProperties.getUserSettings()->setValue("lastSpeakerSetupDirectory", 
                                                             File(this->pathCurrentFileSpeaker).getParentDirectory().getFullPathName());
+
+    this->needToSaveSpeakerSetup = false;
 
     this->setNameConfig();
 }

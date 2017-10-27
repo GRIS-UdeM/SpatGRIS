@@ -154,6 +154,14 @@ public:
 
     void saveProperties(unsigned int rate, unsigned int buff, int fileformat, int oscPort);
 
+    void handleTimer(bool state) {
+        if (state) {
+            startTimerHz(HertzRefreshNormal);
+        } else {
+            stopTimer();
+        }
+    }
+
     //=======================================================================
     float getLevelsOut(int indexLevel){return (15.0f * log10f(sqrtf(this->jackClient->getLevelsOut(indexLevel))));}
     float getLevelsIn(int indexLevel){return (15.0f * log10f(sqrtf(this->jackClient->getLevelsIn(indexLevel)))); }
@@ -205,6 +213,8 @@ public:
     bool isSourceLevelShown = false;
     bool isSpeakerLevelShown = false;
     bool isTripletsShown = false;
+
+    bool needToSaveSpeakerSetup = false;
 
     int oscInputPort = 18032;
 

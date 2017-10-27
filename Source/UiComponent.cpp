@@ -571,6 +571,7 @@ void WindowEditSpeaker::updateWinContent()
 {
     this->numRows = (unsigned int)this->mainParent->getListSpeaker().size();
     this->tableListSpeakers.updateContent();
+    this->mainParent->needToSaveSpeakerSetup = true;
 }
 
 void WindowEditSpeaker::selectedRow(int value)
@@ -582,7 +583,20 @@ void WindowEditSpeaker::selectedRow(int value)
 
 void WindowEditSpeaker::closeButtonPressed()
 {
-    delete this;
+    int exitV = 1;
+    if (this->mainParent->needToSaveSpeakerSetup) {
+        exitV = AlertWindow::showYesNoCancelBox(AlertWindow::WarningIcon, "Closing Speaker Setup Window !", "Do you want to compute and save the current setup ?");
+        if (exitV == 1) {
+            this->mainParent->updateLevelComp();
+            this->mainParent->handleTimer(false);
+            this->setAlwaysOnTop(false);
+            this->mainParent->handleSaveAsSpeakerSetup();
+            this->mainParent->handleTimer(true);
+        }
+    }
+    if (exitV) {
+        delete this;
+    }
 }
 
 void WindowEditSpeaker::resized()
@@ -762,8 +776,7 @@ Component* WindowEditSpeaker::refreshComponentForCell(int rowNumber, int columnI
         tbDirect->setClickingTogglesState(true);
         tbDirect->setBounds(4, 404, 88, 22);
         tbDirect->addListener(this);
-        // TODO: ToggleButton->setToggleState is deprecated, need an alternative.
-        tbDirect->setToggleState(this->mainParent->getListSpeaker()[rowNumber]->getDirectOut(), false);
+        tbDirect->setToggleState(this->mainParent->getListSpeaker()[rowNumber]->getDirectOut(), dontSendNotification);
         tbDirect->setLookAndFeel(this->grisFeel);
         return tbDirect;
     }
