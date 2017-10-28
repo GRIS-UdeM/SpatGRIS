@@ -210,6 +210,8 @@ processHRTF(jackClientGris & jackCli, jack_default_audio_sample_t ** ins, jack_d
                 azi += azi_step;
                 ele += ele_step;
                 elev = (int)(ele / 5.0f);
+                if (elev < 0) { elev = 0; }
+                else if (elev > 18) { elev = 18; }
                 if (azi > 359.999999f) { azi = 359.999999f; }
                 if (jackCli.hrtf_diff[elev] == 0) { imp = 0; } 
                 else { imp = (int)(azi / jackCli.hrtf_diff[elev]); }
@@ -491,8 +493,13 @@ jackClientGris::jackClientGris(unsigned int bufferS) {
     this->hrtf_left = (float ***)malloc(19 * sizeof(float **));
     this->hrtf_right = (float ***)malloc(19 * sizeof(float **));
     for (int i=0; i<19; i++) {
-        // TODO: Fix impulse paths for OSX.
-        String folder = "../../Resources/hrtf_compact/elev" + String(i*5);
+#ifdef __linux__
+        String cwd = File::getCurrentWorkingDirectory().getFullPathName();
+        String folder = cwd + "/../../Resources/hrtf_compact/elev" + String(i*5);
+#else
+        String cwd = File::getSpecialLocation(File::currentApplicationFile).getFullPathName();
+        String folder = cwd + "/Contents/Resources/hrtf_compact/elev" + String(i*5);
+#endif
         if (File(folder).isDirectory()) {
             Array<File> result;
             int howmany = File(folder).findChildFiles(result,
