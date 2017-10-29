@@ -465,12 +465,13 @@ getSamplesFromWavFile(String filename) {
     AudioFormat *wavAudioFormat;
     File file = File(filename); 
     wavAudioFormat = new WavAudioFormat(); 
-    AudioFormatReader *audioFormatReader = wavAudioFormat->createReaderFor(file.createInputStream(), true); 
+    FileInputStream *stream = file.createInputStream();
+    AudioFormatReader *audioFormatReader = wavAudioFormat->createReaderFor(stream, true);
     wavData = new int* [3]; 
     wavData[0] = new int[audioFormatReader->lengthInSamples];
     wavData[1] = new int[audioFormatReader->lengthInSamples];
     wavData[2] = 0; 
-    audioFormatReader->read(wavData, 2, 0, audioFormatReader->lengthInSamples, false); 
+    audioFormatReader->read(wavData, 2, 0, (int)audioFormatReader->lengthInSamples, false);
     float **samples = (float **)malloc(2 * sizeof(float *));
     for (int i = 0; i < 2; i++) {
         samples[i] = (float *)malloc(audioFormatReader->lengthInSamples * sizeof(float));
@@ -478,6 +479,8 @@ getSamplesFromWavFile(String filename) {
             samples[i][j] = wavData[i][j] / factor;
         }
     }
+    delete wavAudioFormat;
+    delete stream;
     return samples;
 }
 
@@ -497,7 +500,7 @@ jackClientGris::jackClientGris(unsigned int bufferS) {
     this->recording = false;
     this->hrtfOn = false; // Do we need this var?
 
-    for (int i; i < MaxInputs; ++i) {
+    for (int i=0; i < MaxInputs; ++i) {
         this->vbapSourcesToUpdate[i] = 0;
     }
 
