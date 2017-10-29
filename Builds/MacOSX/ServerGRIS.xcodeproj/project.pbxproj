@@ -22,6 +22,7 @@
 		0DEA64C61EFC1A6E006562C4 /* Jackmp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DEA64BE1EFC18E1006562C4 /* Jackmp.framework */; };
 		0DEA64C71EFC1A6E006562C4 /* Jacknet.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DEA64BF1EFC18E1006562C4 /* Jacknet.framework */; };
 		0DEA64C81EFC1A6E006562C4 /* Jackservermp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DEA64C01EFC18E1006562C4 /* Jackservermp.framework */; };
+		0DFD1B901FA65106008000F3 /* hrtf_compact in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0DFD1B8F1FA65106008000F3 /* hrtf_compact */; };
 		0F18ADC55E833D69E5746DFD /* juce_cryptography.mm in Sources */ = {isa = PBXBuildFile; fileRef = BAEE328DB2C9494397445A21 /* juce_cryptography.mm */; };
 		14E1864F61765881437B2AF8 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A290A4B264C78F0C18D6F058 /* Accelerate.framework */; };
 		153A81E76FB9CF6A837E1C6B /* juce_audio_formats.mm in Sources */ = {isa = PBXBuildFile; fileRef = 745CB09F74C41621B1678240 /* juce_audio_formats.mm */; };
@@ -85,6 +86,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 7;
 			files = (
+				0DFD1B901FA65106008000F3 /* hrtf_compact in CopyFiles */,
 				0DC163381F15427700CD15DD /* JAS.jpil in CopyFiles */,
 				0D0EEB5D1F152084009E8D7E /* default_preset in CopyFiles */,
 				0D0EEB5B1F151F05009E8D7E /* splash.png in CopyFiles */,
@@ -174,6 +176,7 @@
 		0DEA64BE1EFC18E1006562C4 /* Jackmp.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Jackmp.framework; path = ../../../../../../../Library/Frameworks/Jackmp.framework; sourceTree = "<group>"; };
 		0DEA64BF1EFC18E1006562C4 /* Jacknet.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Jacknet.framework; path = ../../../../../../../Library/Frameworks/Jacknet.framework; sourceTree = "<group>"; };
 		0DEA64C01EFC18E1006562C4 /* Jackservermp.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Jackservermp.framework; path = ../../../../../../../Library/Frameworks/Jackservermp.framework; sourceTree = "<group>"; };
+		0DFD1B8F1FA65106008000F3 /* hrtf_compact */ = {isa = PBXFileReference; lastKnownFileType = folder; name = hrtf_compact; path = ../../Resources/hrtf_compact; sourceTree = "<group>"; };
 		0E1684DFB4EB8971A5F1D1DA /* juce_Uuid.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = juce_Uuid.cpp; path = ../../JuceLibraryCode/modules/juce_core/misc/juce_Uuid.cpp; sourceTree = SOURCE_ROOT; };
 		0E45BAC07192E20F20B98922 /* juce_MidiMessageCollector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_MidiMessageCollector.h; path = ../../JuceLibraryCode/modules/juce_audio_devices/midi_io/juce_MidiMessageCollector.h; sourceTree = SOURCE_ROOT; };
 		0E4DB5D765565118296212AB /* juce_TextDiff.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = juce_TextDiff.cpp; path = ../../JuceLibraryCode/modules/juce_core/text/juce_TextDiff.cpp; sourceTree = SOURCE_ROOT; };
@@ -3278,6 +3281,7 @@
 		D197AC8A7278BF19DF69D425 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				0DFD1B8F1FA65106008000F3 /* hrtf_compact */,
 				0D947C9B1F1545C0000F9133 /* Jackmp */,
 				0D947C9C1F1545C0000F9133 /* Jackservermp */,
 				0DC163371F15427700CD15DD /* JAS.jpil */,
