@@ -95,6 +95,8 @@ struct SpeakerOut {
     bool  isSolo = false;
 
     int outputPatch = 0;
+
+    bool directOut = false;
     
     float gain;//Not Implemented
     

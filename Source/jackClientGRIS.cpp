@@ -816,6 +816,7 @@ void jackClientGris::connectedGristoSystem()
 bool jackClientGris::initSpeakersTripplet(vector<Speaker *>  listSpk,
                                           int dimensions)
 {
+    int j;
     if(listSpk.size() <= 0) {
         return false;
     }
@@ -826,13 +827,18 @@ bool jackClientGris::initSpeakersTripplet(vector<Speaker *>  listSpk,
     int outputPatches[MAX_LS_AMOUNT];
 
     for(int i = 0; i < listSpk.size() ; i++) {
-        lss[i].coords.x = listSpeakerOut[i].x;
-        lss[i].coords.y = listSpeakerOut[i].y;
-        lss[i].coords.z = listSpeakerOut[i].z;
-        lss[i].angles.azi = listSpeakerOut[i].azimuth;
-        lss[i].angles.ele = listSpeakerOut[i].zenith;
-        lss[i].angles.length = listSpeakerOut[i].radius;
-        outputPatches[i] = listSpeakerOut[i].outputPatch;
+        for (j = 0; j < MAX_LS_AMOUNT; j++) {
+            if (listSpk[i]->getOutputPatch() == listSpeakerOut[j].outputPatch && !listSpeakerOut[j].directOut) {
+                break;
+            }
+        }
+        lss[i].coords.x = listSpeakerOut[j].x;
+        lss[i].coords.y = listSpeakerOut[j].y;
+        lss[i].coords.z = listSpeakerOut[j].z;
+        lss[i].angles.azi = listSpeakerOut[j].azimuth;
+        lss[i].angles.ele = listSpeakerOut[j].zenith;
+        lss[i].angles.length = listSpeakerOut[j].radius;
+        outputPatches[i] = listSpeakerOut[j].outputPatch;
     }
     
     listSourceIn[0].paramVBap = init_vbap_from_speakers(lss, listSpk.size(),

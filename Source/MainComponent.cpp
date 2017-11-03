@@ -1067,7 +1067,7 @@ void MainContentComponent::setListTripletFromVbap() {
 Speaker *
 MainContentComponent::getSpeakerFromOutputPatch(int out) {
     for (auto&& it : this->listSpeaker) {
-        if (it->getOutputPatch() == out) {
+        if (it->getOutputPatch() == out && !it->getDirectOut()) {
             return it;
         }
     }
@@ -1156,6 +1156,8 @@ bool MainContentComponent::updateLevelComp() {
         so.radius  = it->getAziZenRad().z;
 
         so.outputPatch = it->getOutputPatch();
+
+        so.directOut = it->getDirectOut();
         
         //this->jackClient->listSpeakerOut[it->getOutputPatch()-1] = so;
         this->jackClient->listSpeakerOut[i] = so;
@@ -1216,8 +1218,8 @@ bool MainContentComponent::updateLevelComp() {
     vector<Speaker *> tempListSpeaker;
     tempListSpeaker.resize(this->listSpeaker.size());
     for (auto&& it : this->listSpeaker) {
-        if (! it->getDirectOut()) {     // FIXME: Direct out speakers must be
-            tempListSpeaker[i++] = it;  // the last ones in the list... for now!
+        if (! it->getDirectOut()) {
+            tempListSpeaker[i++] = it;
         }
     }
     tempListSpeaker.resize(i);
