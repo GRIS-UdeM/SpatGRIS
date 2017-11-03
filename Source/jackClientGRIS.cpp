@@ -71,11 +71,19 @@ static void muteSoloVuMeterIn(jackClientGris & jackCli, jack_default_audio_sampl
     }
 }
 
-static void muteSoloVuMeterGainOut(jackClientGris & jackCli, jack_default_audio_sample_t ** outs, const jack_nframes_t &nframes, const unsigned int &sizeOutputs, const float mGain = 1.0f){
-    
+static void muteSoloVuMeterGainOut(jackClientGris & jackCli, jack_default_audio_sample_t ** outs,
+                                   const jack_nframes_t &nframes, const unsigned int &sizeOutputs,
+                                   const float mGain = 1.0f) {
+    int num_of_channels;
     float sumsOut[sizeOutputs];
     fill(jackCli.levelsOut, jackCli.levelsOut+sizeOutputs, -60.0f);
     fill(sumsOut, sumsOut+sizeOutputs, 0.0f);
+
+    if (jackCli.modeSelected == VBap) {
+        num_of_channels = sizeOutputs;
+    } else if (jackCli.modeSelected == HRTF) {
+        num_of_channels = 2;
+    }
     
     //Var for Record 
     const unsigned int sizeMenCpy = nframes * sizeof(jack_default_audio_sample_t);
@@ -102,7 +110,7 @@ static void muteSoloVuMeterGainOut(jackClientGris & jackCli, jack_default_audio_
         jackCli.levelsOut[i] = sumsOut[i]/nframes;
         
         //Record buffer ---------------
-        if (jackCli.recording) {
+        if (jackCli.recording && i < num_of_channels) {
             if (int_vector_contains(jackCli.outputPatches, i+1)) {
                 jackCli.recorder[i].recordSamples(&outs[i], (int)nframes);
             }
@@ -112,7 +120,7 @@ static void muteSoloVuMeterGainOut(jackClientGris & jackCli, jack_default_audio_
     //Record - Up index ----------
     if (!jackCli.recording && jackCli.indexRecord > 0) {
         for (int i = 0; i < sizeOutputs; ++i) {
-            if (int_vector_contains(jackCli.outputPatches, i+1)) {
+            if (int_vector_contains(jackCli.outputPatches, i+1) && i < num_of_channels) {
                 jackCli.recorder[i].stop();
             }
             jackCli.indexRecord = 0;
@@ -682,6 +690,7 @@ jackClientGris::jackClientGris(unsigned int bufferS) {
 
 void jackClientGris::prepareToRecord()
 {
+    int num_of_channels;
     if (this->outputsPort.size() < 1) {
         return;
     }
@@ -695,7 +704,13 @@ void jackClientGris::prepareToRecord()
     String extF = fileS.getFileExtension();
     String parent = fileS.getParentDirectory().getFullPathName();
 
-    for (int i  = 0; i < this->outputsPort.size(); ++i) {
+    if (this->modeSelected == VBap) {
+        num_of_channels = this->outputsPort.size();
+    } else if (this->modeSelected == HRTF) {
+        num_of_channels = 2;
+    }
+
+    for (int i  = 0; i < num_of_channels; ++i) {
         if (int_vector_contains(this->outputPatches, i+1)) {
             channelName = parent + "/" + fname + "_" + String(i+1).paddedLeft('0', 3) + extF;
             File fileC = File(channelName);
