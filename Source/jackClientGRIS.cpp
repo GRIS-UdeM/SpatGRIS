@@ -81,7 +81,7 @@ static void muteSoloVuMeterGainOut(jackClientGris & jackCli, jack_default_audio_
 
     if (jackCli.modeSelected == VBap) {
         num_of_channels = sizeOutputs;
-    } else if (jackCli.modeSelected == HRTF) {
+    } else if (jackCli.modeSelected == HRTF_LOW || jackCli.modeSelected == HRTF_HIGH) {
         num_of_channels = 2;
     }
     
@@ -208,53 +208,123 @@ static void processVBAP(jackClientGris & jackCli, jack_default_audio_sample_t **
 static void 
 processHRTF(jackClientGris & jackCli, jack_default_audio_sample_t ** ins, jack_default_audio_sample_t ** outs,
             const jack_nframes_t &nframes, const unsigned int &sizeInputs, const unsigned int &sizeOutputs) {
-    int f, i, k, elev, tmp_count, imp;
-    float azi, ele, sig, azi_step, ele_step;
+    int f, i, k, tmp_count, azim_index_down, azim_index_up, elev_index, elev_index_array;
+    float azi, ele, norm_elev, sig, elev_frac, elev_frac_inv;
+    float azim_frac_down, azim_frac_inv_down, azim_frac_up, azim_frac_inv_up, cross_coeff, cross_coeff_inv;
+    float *interp_rise, *interp_down;
 
     for (int o = 0; o < sizeOutputs; ++o) {
         memset(outs[o], 0, sizeof(jack_default_audio_sample_t) * nframes);
     }
 
+    if (jackCli.HrtfImpulseLength == 75) {
+        interp_rise = jackCli.hrtf_interp_rise_low;
+        interp_down = jackCli.hrtf_interp_down_low;
+    } else {
+        interp_rise = jackCli.hrtf_interp_rise_high;
+        interp_down = jackCli.hrtf_interp_down_high;
+    }
+
     for (i = 0; i < sizeInputs; ++i) {
         if (jackCli.listSourceIn[i].directOut == 0) {
             azi = jackCli.listSourceIn[i].azimuth;
-            if (azi < 0) { azi = 360.0f + azi; }
             ele = jackCli.listSourceIn[i].zenith;
-            azi_step = (azi - jackCli.hrtf_last_azi[i]) / (float)nframes;
-            ele_step = (ele - jackCli.hrtf_last_ele[i]) / (float)nframes;
-            if (abs(azi - jackCli.hrtf_last_azi[i]) > 300.0f) {
-                azi_step = 0.0f;
-            } else {
-                azi = jackCli.hrtf_last_azi[i];
+
+            if (azi < 0.0f) {
+                azi += 360.0f;
             }
-            ele = jackCli.hrtf_last_ele[i];
+            if (azi >= 359.9999f) {
+                azi = 359.9999f;
+            }
+
+            if (ele < -39.9999f) { 
+                ele = -39.9999f;
+            } else if (ele >= 89.9999f) {
+                ele = 89.9999f;
+            }
+
             for (f = 0; f < nframes; ++f) {
-                azi += azi_step;
-                ele += ele_step;
-                elev = (int)(ele / 5.0f);
-                if (elev < 0) { elev = 0; }
-                else if (elev > 18) { elev = 18; }
-                if (azi > 359.999999f) { azi = 359.999999f; }
-                if (jackCli.hrtf_diff[elev] == 0) { imp = 0; } 
-                else { imp = (int)(azi / jackCli.hrtf_diff[elev]); }
+                if (jackCli.hrtf_sample_count == 0) {
+                    /* Removes the chirp at 360->0 degrees azimuth boundary. */
+                    if (abs(jackCli.hrtf_last_azi[i] - azi) > 300.0f) {
+                        jackCli.hrtf_last_azi[i] = azi;
+                    }
+
+                    jackCli.hrtf_last_azi[i] = azi + (jackCli.hrtf_last_azi[i] - azi) * 0.5;
+                    jackCli.hrtf_last_ele[i] = ele + (jackCli.hrtf_last_ele[i] - ele) * 0.5;
+
+                    norm_elev = jackCli.hrtf_last_ele[i] * 0.1f;
+                    elev_index = (int)floor(norm_elev);
+                    elev_index_array = elev_index + 4;
+                    elev_frac = norm_elev - elev_index;
+                    elev_frac_inv = 1.0f - elev_frac;
+
+                    // If elevation is less than 80 degrees.
+                    if (norm_elev < 8.0f) {
+                        azim_index_down = (int)(jackCli.hrtf_last_azi[i] / jackCli.hrtf_diff[elev_index_array]);
+                        azim_frac_down = (jackCli.hrtf_last_azi[i] / jackCli.hrtf_diff[elev_index_array]) - azim_index_down;
+                        azim_frac_inv_down = 1.0f - azim_frac_down;
+                        azim_index_up = (int)(jackCli.hrtf_last_azi[i] / jackCli.hrtf_diff[elev_index_array+1]);
+                        azim_frac_up = (jackCli.hrtf_last_azi[i] / jackCli.hrtf_diff[elev_index_array+1]) - azim_index_up;
+                        azim_frac_inv_up = 1.0f - azim_frac_up;
+                        for (k=0; k<jackCli.HrtfImpulseLength; k++) {
+                            jackCli.previous_impulses[i][0][k] = jackCli.current_impulses[i][0][k];
+                            jackCli.previous_impulses[i][1][k] = jackCli.current_impulses[i][1][k];
+                            jackCli.current_impulses[i][0][k] = elev_frac *
+                                                (azim_frac_down * jackCli.hrtf_left[elev_index_array][azim_index_down][k] +
+                                                azim_frac_inv_down * jackCli.hrtf_left[elev_index_array][azim_index_down+1][k]) +
+                                                elev_frac_inv *
+                                                (azim_frac_up * jackCli.hrtf_left[elev_index_array+1][azim_index_up][k] +
+                                                azim_frac_inv_up * jackCli.hrtf_left[elev_index_array+1][azim_index_up+1][k]);
+                            jackCli.current_impulses[i][1][k] = elev_frac *
+                                                (azim_frac_down * jackCli.hrtf_right[elev_index_array][azim_index_down][k] +
+                                                azim_frac_inv_down * jackCli.hrtf_right[elev_index_array][azim_index_down+1][k]) +
+                                                elev_frac_inv *
+                                                (azim_frac_up * jackCli.hrtf_right[elev_index_array+1][azim_index_up][k] +
+                                                azim_frac_inv_up * jackCli.hrtf_right[elev_index_array+1][azim_index_up+1][k]);
+                        }
+                    // if elevation is 80 degrees or more, interpolation requires only three points (there's only one HRIR at 90 deg).
+                    } else {
+                        azim_index_down = (int)(jackCli.hrtf_last_azi[i] / jackCli.hrtf_diff[elev_index_array]);
+                        azim_frac_down = (jackCli.hrtf_last_azi[i] / jackCli.hrtf_diff[elev_index_array]) - azim_index_down;
+                        azim_frac_inv_down = 1.0f - azim_frac_down;
+                        for (k=0; k<jackCli.HrtfImpulseLength; k++) {
+                            jackCli.previous_impulses[i][0][k] = jackCli.current_impulses[i][0][k];
+                            jackCli.previous_impulses[i][1][k] = jackCli.current_impulses[i][1][k];
+                            jackCli.current_impulses[i][0][k] = elev_frac *
+                                                (azim_frac_down * jackCli.hrtf_left[elev_index_array][azim_index_down][k] +
+                                                azim_frac_inv_down * jackCli.hrtf_left[elev_index_array][azim_index_down+1][k]) +
+                                                elev_frac_inv * jackCli.hrtf_left[13][0][k];
+                            jackCli.current_impulses[i][1][k] = elev_frac *
+                                                (azim_frac_down * jackCli.hrtf_right[elev_index_array][azim_index_down][k] +
+                                                azim_frac_inv_down * jackCli.hrtf_right[elev_index_array][azim_index_down+1][k]) +
+                                                elev_frac_inv * jackCli.hrtf_right[13][0][k];
+                        }
+                    }
+                }
                 tmp_count = jackCli.hrtf_count[i];
-                for (k=0; k<HrtfImpulseLength; ++k) {
+                cross_coeff = interp_rise[jackCli.hrtf_sample_count];
+                cross_coeff_inv = interp_down[jackCli.hrtf_sample_count];
+                for (k=0; k<jackCli.HrtfImpulseLength; ++k) {
                     if (tmp_count < 0) {
-                        tmp_count += HrtfImpulseLength;
+                        tmp_count += jackCli.HrtfImpulseLength;
                     }
                     sig = jackCli.hrtf_input_tmp[i][tmp_count];
-                    outs[0][f] += sig * jackCli.hrtf_left[elev][imp][k];
-                    outs[1][f] += sig * jackCli.hrtf_right[elev][imp][k];
+                    outs[0][f] += sig * (cross_coeff * jackCli.current_impulses[i][0][k] + cross_coeff_inv * jackCli.previous_impulses[i][0][k]);
+                    outs[1][f] += sig * (cross_coeff * jackCli.current_impulses[i][1][k] + cross_coeff_inv * jackCli.previous_impulses[i][1][k]);
                     tmp_count--;
                 }
                 jackCli.hrtf_count[i]++;
-                if (jackCli.hrtf_count[i] == HrtfImpulseLength) {
+                if (jackCli.hrtf_count[i] == jackCli.HrtfImpulseLength) {
                     jackCli.hrtf_count[i] = 0;
                 }
                 jackCli.hrtf_input_tmp[i][jackCli.hrtf_count[i]] = ins[i][f];
+
+                jackCli.hrtf_sample_count += 1;
+                if (jackCli.hrtf_sample_count == jackCli.HrtfImpulseLength) {
+                    jackCli.hrtf_sample_count = 0;
+                }
             }
-            jackCli.hrtf_last_azi[i] = azi;
-            jackCli.hrtf_last_ele[i] = ele;
         } else if ((jackCli.listSourceIn[i].directOut) == 1) {
             for (f = 0; f < nframes; ++f) {
                 outs[0][f] += ins[i][f];
@@ -313,7 +383,8 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
         case DBap:
             break;
             
-        case HRTF:
+        case HRTF_LOW:
+        case HRTF_HIGH:
             processHRTF(*jackCli, ins, outs, nframes, sizeInputs, sizeOutputs);
             break;
 
@@ -515,15 +586,15 @@ jackClientGris::jackClientGris(unsigned int bufferS) {
     //---------------------------------------------------
     // Initialize impulse responses for HRTF
     //---------------------------------------------------
-    this->hrtf_left = (float ***)malloc(19 * sizeof(float **));
-    this->hrtf_right = (float ***)malloc(19 * sizeof(float **));
-    for (int i=0; i<19; i++) {
+    this->hrtf_left = (float ***)malloc(14 * sizeof(float **));
+    this->hrtf_right = (float ***)malloc(14 * sizeof(float **));
+    for (int i=0; i<14; i++) {
 #ifdef __linux__
         String cwd = File::getCurrentWorkingDirectory().getFullPathName();
-        String folder = cwd + "/../../Resources/hrtf_compact/elev" + String(i*5);
+        String folder = cwd + "/../../Resources/hrtf_compact/elev" + String((i-4)*10);
 #else
         String cwd = File::getSpecialLocation(File::currentApplicationFile).getFullPathName();
-        String folder = cwd + "/Contents/Resources/hrtf_compact/elev" + String(i*5);
+        String folder = cwd + "/Contents/Resources/hrtf_compact/elev" + String((i-4)*10);
 #endif
         if (File(folder).isDirectory()) {
             Array<File> result;
@@ -536,31 +607,35 @@ jackClientGris::jackClientGris(unsigned int bufferS) {
             this->hrtf_right[i] = (float **)malloc((howmany*2-1) * sizeof(float *));
             for (int j=0; j<howmany; j++) {
                 float **stbuf = getSamplesFromWavFile(result[j].getFullPathName());
-                this->hrtf_left[i][j] = (float *)malloc(HrtfImpulseLength * sizeof(float));
-                this->hrtf_right[i][j] = (float *)malloc(HrtfImpulseLength * sizeof(float));
-                for (int k=0; k<HrtfImpulseLength; k++) {
+                this->hrtf_left[i][j] = (float *)malloc(128 * sizeof(float));
+                this->hrtf_right[i][j] = (float *)malloc(128 * sizeof(float));
+                for (int k=0; k<128; k++) {
                     this->hrtf_left[i][j][k] = stbuf[0][k];
                     this->hrtf_right[i][j][k] = stbuf[1][k];
                 }
             }
             for (int j=0; j<(howmany-1); j++) {
-                this->hrtf_left[i][howmany+j] = (float *)malloc(HrtfImpulseLength * sizeof(float));
-                this->hrtf_right[i][howmany+j] = (float *)malloc(HrtfImpulseLength * sizeof(float));
-                for (int k=0; k<HrtfImpulseLength; k++) {
+                this->hrtf_left[i][howmany+j] = (float *)malloc(128 * sizeof(float));
+                this->hrtf_right[i][howmany+j] = (float *)malloc(128 * sizeof(float));
+                for (int k=0; k<128; k++) {
                     this->hrtf_left[i][howmany+j][k] = this->hrtf_right[i][howmany-2-j][k];
                     this->hrtf_right[i][howmany+j][k] = this->hrtf_left[i][howmany-2-j][k];
                 }
             }
         }
     }
-    for (int i=0; i<MaxInputs; i++) {
-        this->hrtf_count[i] = 0;
-        this->hrtf_last_azi[i] = 0.0f;
-        this->hrtf_last_ele[i] = 0.0f;
-        for (int j = 0; j<HrtfImpulseLength; j++) {
-            this->hrtf_input_tmp[i][j] = 0.0f;
-        }
+
+    for (int j=0; j<75; j++) {
+            this->hrtf_interp_rise_low[j] = 0.5f * cosf((float)j / 74.0f * M_PI - M_PI) + 0.5f;
+            this->hrtf_interp_down_low[j] = 0.5f * cosf((float)j / 74.0f * M_PI) + 0.5f;
     }
+    for (int j=0; j<128; j++) {
+            this->hrtf_interp_rise_high[j] = 0.5f * cosf((float)j / 127.0f * M_PI - M_PI) + 0.5f;
+            this->hrtf_interp_down_high[j] = 0.5f * cosf((float)j / 127.0f * M_PI) + 0.5f;
+    }
+
+    this->setHrtfImpulseLength(128);
+
     //---------------------------------------------------
 
     this->listClient = vector<Client>();
@@ -688,6 +763,23 @@ jackClientGris::jackClientGris(unsigned int bufferS) {
     this->clientReady = true;
 }
 
+void jackClientGris::setHrtfImpulseLength(int length) {
+    this->HrtfImpulseLength = length;
+    this->hrtf_sample_count = 0;
+    for (int i=0; i<MaxInputs; i++) {
+        this->hrtf_count[i] = 0;
+        this->hrtf_last_azi[i] = 0.0f;
+        this->hrtf_last_ele[i] = 0.0f;
+        for (int j = 0; j<128; j++) {
+            this->hrtf_input_tmp[i][j] = 0.0f;
+            this->previous_impulses[i][0][j] = 0.0f;
+            this->previous_impulses[i][1][j] = 0.0f;
+            this->current_impulses[i][0][j] = 0.0f;
+            this->current_impulses[i][1][j] = 0.0f;
+        }
+    }
+}
+
 void jackClientGris::prepareToRecord()
 {
     int num_of_channels;
@@ -706,7 +798,7 @@ void jackClientGris::prepareToRecord()
 
     if (this->modeSelected == VBap) {
         num_of_channels = this->outputsPort.size();
-    } else if (this->modeSelected == HRTF) {
+    } else if (this->modeSelected == HRTF_LOW || this->modeSelected == HRTF_HIGH) {
         num_of_channels = 2;
     }
 
@@ -1128,4 +1220,17 @@ jackClientGris::~jackClientGris() {
         jack_port_unregister(this->client, this->outputsPort[i]);
     }
     jack_client_close(this->client);
+
+    // Free memory used by the HRTF algorithm.
+    for (int i=0; i<14; i++) {
+        int howmany = this->hrtf_how_many_files_per_folder[i] * 2 - 1;
+        for (int j=0; j<howmany; j++) {
+            free(this->hrtf_left[i][j]);
+            free(this->hrtf_right[i][j]);
+        }
+        free(this->hrtf_left[i]);
+        free(this->hrtf_right[i]);
+    }
+    free(this->hrtf_left);
+    free(this->hrtf_right);
 }

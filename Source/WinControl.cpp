@@ -157,8 +157,8 @@ void WinControl::drawAzimElevSource(Graphics &g, Input * it, const int fieldWH, 
 {
     float HRAzimSpan = 180.0f *(it->getAziMuthSpan());  //in zirkosc, this is [0,360]
     float HRElevSpan = 180.0f *(it->getZenithSpan());  //in zirkosc, this is [0,90]
-    if(HRAzimSpan < 0.002f && HRElevSpan < 0.002f)
-    {
+
+    if ((HRAzimSpan < 0.002f && HRElevSpan < 0.002f) || !this->mainParent->isSpanShown) {
         return;
     }
     

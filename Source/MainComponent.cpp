@@ -63,6 +63,7 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     this->isSphereShown = false;
     this->isHighPerformance = false;
     this->isRefSound = false;
+    this->isSpanShown = true;
 
     this->listSpeaker = vector<Speaker *>();
     this->listSourceInput = vector<Input *>();
@@ -125,7 +126,7 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     this->comBoxModeSpat = addComboBox("", "Mode of spatilization", 155, 48, 90, 22, this->boxControlUI->getContent());
     for (int i = 0; i < ModeSpatString.size(); i++) {
         this->comBoxModeSpat->addItem(ModeSpatString[i], i+1);
-        if (i == 0 || i == 2) {
+        if (i == 0 || i >= 2) {
             this->comBoxModeSpat->setItemEnabled(i+1, true);
         } else {
             this->comBoxModeSpat->setItemEnabled(i+1, false);
@@ -1048,7 +1049,7 @@ void MainContentComponent::updateInputJack(int inInput, Input &inp)
     
     if (this->jackClient->modeSelected == VBap) {
         this->jackClient->vbapSourcesToUpdate[inInput] = 1;
-    } else if (this->jackClient->modeSelected == HRTF) {
+    } else if (this->jackClient->modeSelected == HRTF_LOW || this->jackClient->modeSelected == HRTF_HIGH) {
         // nothing to do yet.
     }
 }
@@ -1758,6 +1759,8 @@ void MainContentComponent::comboBoxChanged (ComboBox *comboBox)
                 if(this->updateLevelComp()){
                     this->labelModeInfo->setText("Ready", dontSendNotification);
                     this->labelModeInfo->setColour(Label::textColourId, mGrisFeel.getGreenColour());
+                    this->isSpanShown = true;
+                    this->sliderInterpolation->setEnabled(true);
                 }else{
                     this->labelModeInfo->setText("ERROR", dontSendNotification);
                     this->labelModeInfo->setColour(Label::textColourId, mGrisFeel.getRedColour());
@@ -1767,11 +1770,20 @@ void MainContentComponent::comboBoxChanged (ComboBox *comboBox)
                 this->labelModeInfo->setText("Not ready yet", dontSendNotification);
                 this->labelModeInfo->setColour(Label::textColourId, mGrisFeel.getRedColour());
                 break;
-            case HRTF:
+            case HRTF_LOW:
+                this->jackClient->setHrtfImpulseLength(75);
                 this->labelModeInfo->setText("Ready", dontSendNotification);
                 this->labelModeInfo->setColour(Label::textColourId, mGrisFeel.getGreenColour());
+                this->sliderInterpolation->setEnabled(false);
+                this->isSpanShown = false;
                 break;
-
+            case HRTF_HIGH:
+                this->jackClient->setHrtfImpulseLength(128);
+                this->labelModeInfo->setText("Ready", dontSendNotification);
+                this->labelModeInfo->setColour(Label::textColourId, mGrisFeel.getGreenColour());
+                this->sliderInterpolation->setEnabled(false);
+                this->isSpanShown = false;
+                break;
             default:
                 this->labelModeInfo->setText("ERROR UNK", dontSendNotification);
                 this->labelModeInfo->setColour(Label::textColourId, mGrisFeel.getRedColour());

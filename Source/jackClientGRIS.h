@@ -48,9 +48,6 @@ using namespace std;
 static unsigned int const MaxInputs  = 256;
 static unsigned int const MaxOutputs = 256;
 
-// HRTF impulse responses length in samples (75 <=> 128)
-static unsigned int const HrtfImpulseLength = 80;
-
 struct Client {
     String          name;
     unsigned int    portStart     = 1;
@@ -106,10 +103,11 @@ struct SpeakerOut {
 typedef enum {
     VBap = 0,
     DBap,
-    HRTF
+    HRTF_LOW,
+    HRTF_HIGH
 } ModeSpatEnum;
 
-static const StringArray ModeSpatString = {"VBAP",  "DBAP", "HRTF"};
+static const StringArray ModeSpatString = {"VBAP",  "DBAP", "HRTF LOW", "HRTF HIGH"};
 
 //Settings Jack Server
 static const StringArray BufferSize = {"32", "64", "128", "256", "512", "1024", "2048"};
@@ -262,13 +260,23 @@ public:
 
     vector<vector<int>> vbap_triplets;
 
+    //-------- HRTF data ------------------------
     float ***hrtf_left;
     float ***hrtf_right;
-    vector<float> hrtf_diff = {5.0f, 5.0f, 5.0f, 5.0f, 5.0f, 6.0f, 6.0f, 6.5f, 6.5f, 8.0f, 8.0f, 10.0f, 10.0f, 15.0f, 15.0f, 30.0f, 30.0f, 60.0f, 0.0f};
+    vector<float> hrtf_diff = {6.5f, 6.0f, 5.0f, 5.0f, 5.0f, 5.0f, 5.0f, 6.0f, 6.5f, 8.185f, 10.0f, 15.0f, 30.0f, 0.0f};
+    vector<int> hrtf_how_many_files_per_folder = {29, 31, 37, 37, 37, 37, 37, 31, 29, 23, 19, 13, 7, 1};
     unsigned int hrtf_count[MaxInputs];
-    float hrtf_input_tmp[MaxInputs][HrtfImpulseLength];
+    float hrtf_input_tmp[MaxInputs][128];
     float hrtf_last_azi[MaxInputs];
     float hrtf_last_ele[MaxInputs];
+    float current_impulses[MaxInputs][2][128];
+    float previous_impulses[MaxInputs][2][128];
+    float hrtf_interp_rise_low[75];
+    float hrtf_interp_down_low[75];
+    float hrtf_interp_rise_high[128];
+    float hrtf_interp_down_high[128];
+    unsigned int hrtf_sample_count;
+    unsigned int HrtfImpulseLength;
 
     //---------------------------------
     jackClientGris(unsigned int bufferS = 1024);
@@ -281,7 +289,8 @@ public:
     float getLevelsIn(int index) const { return levelsIn[index]; }
     float getLevelsOut(int index) const { return levelsOut[index]; }
     
-    
+    void setHrtfImpulseLength(int length);
+
     void addRemoveInput(int number);
     void clearOutput();
     bool addOutput(int outputPatch);

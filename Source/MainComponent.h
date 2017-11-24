@@ -213,6 +213,7 @@ public:
     bool isSourceLevelShown = false;
     bool isSpeakerLevelShown = false;
     bool isTripletsShown = false;
+    bool isSpanShown;
 
     bool needToSaveSpeakerSetup = false;
 

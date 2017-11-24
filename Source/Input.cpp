@@ -151,7 +151,7 @@ void Input::draw()
     glutSolidSphere(this->sizeT, 8, 8);
     glTranslatef(-this->center.x, -this->center.y, -this->center.z);
 
-    if (this->azimSpan != 0.0f || this->zeniSpan != 0.0f) {
+    if ((this->azimSpan != 0.0f || this->zeniSpan != 0.0f) && this->mainParent->isSpanShown) {
         drawSpan();
     }
 
