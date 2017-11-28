@@ -454,7 +454,7 @@ void MainContentComponent::handleSaveAsSpeakerSetup() {
 }
 
 void MainContentComponent::handleShowSpeakerEditWindow() {
-    Rectangle<int> result (this->getScreenX() + this->speakerView->getWidth() + 20, this->getScreenY() + 20, 650, 530);
+    Rectangle<int> result (this->getScreenX() + this->speakerView->getWidth() + 20, this->getScreenY() + 20, 770, 530);
     if (this->winSpeakConfig == nullptr) {
         this->jackClient->processBlockOn = false;
         this->winSpeakConfig = new WindowEditSpeaker("Speakers Setup Edition - " + File(this->pathCurrentFileSpeaker).getFileName(),
@@ -1160,12 +1160,18 @@ bool MainContentComponent::updateLevelComp() {
 
         so.directOut = it->getDirectOut();
         
-        //this->jackClient->listSpeakerOut[it->getOutputPatch()-1] = so;
         this->jackClient->listSpeakerOut[i] = so;
         i++;
 
         if (it->getOutputPatch() > this->jackClient->maxOutputPatch)
             this->jackClient->maxOutputPatch = it->getOutputPatch();
+    }
+
+    // Set user gain for each speaker.
+    i = 0;
+    for (auto&& it : this->listSpeaker) {
+        this->jackClient->listSpeakerOut[it->outputPatch-1].gain = pow(10.0, it->getGain() * 0.05);
+    i++;
     }
     
     x = 2;
@@ -1335,6 +1341,9 @@ void MainContentComponent::openXmlFileSpeaker(String path) {
                                                                         glm::vec3(spk->getDoubleAttribute("PositionX")*10.0f,
                                                                                   spk->getDoubleAttribute("PositionZ")*10.0f,
                                                                                   spk->getDoubleAttribute("PositionY")*10.0f)));
+                                if (spk->hasAttribute("Gain")) {
+                                    this->listSpeaker.back()->setGain(spk->getDoubleAttribute("Gain"));
+                                }
                                 if (spk->hasAttribute("DirectOut")) {
                                     this->listSpeaker.back()->setDirectOut(spk->getBoolAttribute("DirectOut"));
                                 }
@@ -1534,6 +1543,7 @@ void MainContentComponent::saveSpeakerSetup(String path)
 
         xmlInput->setAttribute("LayoutIndex", it->getIdSpeaker());
         xmlInput->setAttribute("OutputPatch", it->getOutputPatch());
+        xmlInput->setAttribute("Gain", it->getGain());
         xmlInput->setAttribute("DirectOut", it->getDirectOut());
         xmlRing->addChildElement(xmlInput);
     }

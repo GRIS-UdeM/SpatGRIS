@@ -436,20 +436,16 @@ void WindowEditSpeaker::initComp()
     tableListSpeakers.setOutlineThickness (1);
     
     tableListSpeakers.getHeader().addColumn("ID", 1, 40, 40, 60,TableHeaderComponent::defaultFlags);
-    
     tableListSpeakers.getHeader().addColumn("X", 2, 70, 50, 120,TableHeaderComponent::defaultFlags);
     tableListSpeakers.getHeader().addColumn("Y", 3, 70, 50, 120,TableHeaderComponent::defaultFlags);
     tableListSpeakers.getHeader().addColumn("Z", 4, 70, 50, 120,TableHeaderComponent::defaultFlags);
-    
     tableListSpeakers.getHeader().addColumn("Azimuth", 5, 70, 50, 120,TableHeaderComponent::defaultFlags);
     tableListSpeakers.getHeader().addColumn("Zenith", 6, 70, 50, 120,TableHeaderComponent::defaultFlags);
     tableListSpeakers.getHeader().addColumn("Radius", 7, 70, 50, 120,TableHeaderComponent::defaultFlags);
-    
     tableListSpeakers.getHeader().addColumn("Output", 8, 70, 50, 120,TableHeaderComponent::defaultFlags);
-
-    tableListSpeakers.getHeader().addColumn("Direct", 9, 40, 40, 60,TableHeaderComponent::defaultFlags);
-    
-    tableListSpeakers.getHeader().addColumn("delete", 10, 40, 40, 60,TableHeaderComponent::defaultFlags);
+    tableListSpeakers.getHeader().addColumn("Gain (dB)", 9, 70, 50, 120,TableHeaderComponent::defaultFlags);
+    tableListSpeakers.getHeader().addColumn("Direct", 10, 70, 50, 120,TableHeaderComponent::defaultFlags);
+    tableListSpeakers.getHeader().addColumn("delete", 11, 70, 50, 120,TableHeaderComponent::defaultFlags);
     
     tableListSpeakers.getHeader().setSortColumnId (1, true); // sort forwards by the ID column
     
@@ -585,7 +581,9 @@ void WindowEditSpeaker::closeButtonPressed()
 {
     int exitV = 1;
     if (this->mainParent->needToSaveSpeakerSetup) {
-        exitV = AlertWindow::showYesNoCancelBox(AlertWindow::WarningIcon, "Closing Speaker Setup Window !", "Do you want to compute and save the current setup ?");
+        exitV = AlertWindow::showYesNoCancelBox(AlertWindow::WarningIcon,
+                                                "Closing Speaker Setup Window !",
+                                                "Do you want to compute and save the current setup ?");
         if (exitV == 1) {
             this->mainParent->updateLevelComp();
             this->mainParent->handleTimer(false);
@@ -653,6 +651,9 @@ String WindowEditSpeaker::getText (const int columnNumber, const int rowNumber) 
                 text =String(this->mainParent->getListSpeaker()[rowNumber]->getOutputPatch());
                 break;
             case 9:
+                text =String(this->mainParent->getListSpeaker()[rowNumber]->getGain());
+                break;
+            case 10:
                 text =String(this->mainParent->getListSpeaker()[rowNumber]->getDirectOut());
                 break;
             default:
@@ -709,6 +710,12 @@ void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, con
                     this->mainParent->getListSpeaker()[rowNumber]->setOutputPatch(newText.getIntValue());
                     break;
                 case 9 :
+                    val = newText.getFloatValue();
+                    if (val < -18.0f) { val = -18.0f; }
+                    else if (val > 6.0f) { val = 6.0f; }
+                    this->mainParent->getListSpeaker()[rowNumber]->setGain(val);
+                    break;
+                case 10 :
                     this->mainParent->setShowTriplets(false);
                     this->mainParent->getListSpeaker()[rowNumber]->setDirectOut(newText.getIntValue());
                     break;
@@ -768,7 +775,7 @@ void WindowEditSpeaker::paintCell(Graphics& g, int rowNumber, int columnId, int 
 Component* WindowEditSpeaker::refreshComponentForCell(int rowNumber, int columnId, bool /*isRowSelected*/,
                                                       Component* existingComponentToUpdate)
 {
-    if (columnId == 9){
+    if (columnId == 10){
         ToggleButton* tbDirect = static_cast<ToggleButton*> (existingComponentToUpdate);
         if (tbDirect == nullptr)
             tbDirect = new ToggleButton ();
@@ -780,7 +787,7 @@ Component* WindowEditSpeaker::refreshComponentForCell(int rowNumber, int columnI
         tbDirect->setLookAndFeel(this->grisFeel);
         return tbDirect;
     }
-    if (columnId == 10){
+    if (columnId == 11){
         TextButton* tbRemove = static_cast<TextButton*> (existingComponentToUpdate);
         if (tbRemove == nullptr)
             tbRemove = new TextButton ();

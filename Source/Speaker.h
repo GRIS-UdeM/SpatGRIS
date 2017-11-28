@@ -100,7 +100,8 @@ public:
     void setAziZenRad(glm::vec3 value);
     int getOutputPatch();
     void setOutputPatch(int value);
-
+    void setGain(float value);
+    float getGain();
     bool getDirectOut();
     void setDirectOut(bool value);
 
@@ -120,6 +121,8 @@ public:
     void fix();
     void draw() ;
     
+    int idSpeaker = -1;
+    int outputPatch = -1;
     
 private :
 
@@ -132,13 +135,13 @@ private :
     glm::vec3 aziZenRad;
     glm::vec3 color = ColorSpeaker;
     
-    int idSpeaker = -1;
-    int outputPatch = -1;
     bool directOut = false;
     
     bool selected = false;
 
-    float levelColour = 1.0;
+    float levelColour = 1.0f;
+
+    float gain = 0.0f;
 
     MainContentComponent *mainParent;
     LevelComponent *vuMeter;

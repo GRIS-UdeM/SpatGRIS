@@ -161,7 +161,7 @@ static void processVBAP(jackClientGris & jackCli, jack_default_audio_sample_t **
                         const jack_nframes_t &nframes, const unsigned int &sizeInputs, const unsigned int &sizeOutputs)
 {
     int f, i, o;
-    float y;
+    float y, gain;
     float gains[sizeInputs][sizeOutputs];
     float interpG = powf(jackCli.interMaster, 0.1) * 0.0099 + 0.99;
 
@@ -177,9 +177,10 @@ static void processVBAP(jackClientGris & jackCli, jack_default_audio_sample_t **
             gains[i][o] = jackCli.listSourceIn[i].paramVBap->gains[o];
         }
     }
+
     for (o = 0; o < sizeOutputs; ++o) {
         memset (outs[o], 0, sizeof (jack_default_audio_sample_t) * nframes);
-
+        gain = jackCli.listSpeakerOut[o].gain;
         for (i = 0; i < sizeInputs; ++i) {
             if (!jackCli.listSourceIn[i].directOut) {
                 y = jackCli.listSourceIn[i].paramVBap->y[o];
@@ -189,13 +190,13 @@ static void processVBAP(jackClientGris & jackCli, jack_default_audio_sample_t **
                     if (y < 0.0000000000001f) {
                         y = 0.0;
                     } else {
-                        outs[o][f] += ins[i][f] * y;
+                        outs[o][f] += ins[i][f] * y * gain;
                     }
                 }
                 jackCli.listSourceIn[i].paramVBap->y[o] = y;
             } else if ((jackCli.listSourceIn[i].directOut - 1) == o) {
                 for (f = 0; f < nframes; ++f) {
-                    outs[o][f] += ins[i][f];
+                    outs[o][f] += ins[i][f] * gain;
                 }
             }
         }

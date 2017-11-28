@@ -111,6 +111,14 @@ void Speaker::setOutputPatch(int value)
     this->vuMeter->setOutputLab(String(this->outputPatch));
 }
 
+float Speaker::getGain() {
+    return this->gain;
+}
+
+void Speaker::setGain(float value) {
+    this->gain = value;
+}
+
 bool Speaker::getDirectOut() {
     return this->directOut;
 }

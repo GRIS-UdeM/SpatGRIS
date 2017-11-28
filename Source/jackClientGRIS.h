@@ -87,6 +87,8 @@ struct SpeakerOut {
     float azimuth = 0.0f;
     float zenith = 0.0f;
     float radius = 0.0f;
+
+    float gain = 1.0f;
     
     bool  isMuted = false;
     bool  isSolo = false;
@@ -94,9 +96,6 @@ struct SpeakerOut {
     int outputPatch = 0;
 
     bool directOut = false;
-    
-    float gain;//Not Implemented
-    
 };
 
 //Mode Spat
