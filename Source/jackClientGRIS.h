@@ -89,7 +89,24 @@ struct SpeakerOut {
     float radius = 0.0f;
 
     float gain = 1.0f;
-    
+
+    bool hpActive = false;
+    double b1 = 0.0;
+    double b2 = 0.0;
+    double b3 = 0.0;
+    double b4 = 0.0;
+    double ha0 = 0.0;
+    double ha1 = 0.0;
+    double ha2 = 0.0;
+    double x1 = 0.0;
+    double x2 = 0.0;
+    double x3 = 0.0;
+    double x4 = 0.0;
+    double y1 = 0.0;
+    double y2 = 0.0;
+    double y3 = 0.0;
+    double y4 = 0.0;
+
     bool  isMuted = false;
     bool  isSolo = false;
 

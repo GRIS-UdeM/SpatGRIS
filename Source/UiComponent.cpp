@@ -444,8 +444,9 @@ void WindowEditSpeaker::initComp()
     tableListSpeakers.getHeader().addColumn("Radius", 7, 70, 50, 120,TableHeaderComponent::defaultFlags);
     tableListSpeakers.getHeader().addColumn("Output", 8, 70, 50, 120,TableHeaderComponent::defaultFlags);
     tableListSpeakers.getHeader().addColumn("Gain (dB)", 9, 70, 50, 120,TableHeaderComponent::defaultFlags);
-    tableListSpeakers.getHeader().addColumn("Direct", 10, 70, 50, 120,TableHeaderComponent::defaultFlags);
-    tableListSpeakers.getHeader().addColumn("delete", 11, 70, 50, 120,TableHeaderComponent::defaultFlags);
+    tableListSpeakers.getHeader().addColumn("Highpass", 10, 70, 50, 120,TableHeaderComponent::defaultFlags);
+    tableListSpeakers.getHeader().addColumn("Direct", 11, 70, 50, 120,TableHeaderComponent::defaultFlags);
+    tableListSpeakers.getHeader().addColumn("delete", 12, 70, 50, 120,TableHeaderComponent::defaultFlags);
     
     tableListSpeakers.getHeader().setSortColumnId (1, true); // sort forwards by the ID column
     
@@ -654,6 +655,9 @@ String WindowEditSpeaker::getText (const int columnNumber, const int rowNumber) 
                 text =String(this->mainParent->getListSpeaker()[rowNumber]->getGain());
                 break;
             case 10:
+                text =String(this->mainParent->getListSpeaker()[rowNumber]->getHighPassCutoff());
+                break;
+            case 11:
                 text =String(this->mainParent->getListSpeaker()[rowNumber]->getDirectOut());
                 break;
             default:
@@ -716,6 +720,12 @@ void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, con
                     this->mainParent->getListSpeaker()[rowNumber]->setGain(val);
                     break;
                 case 10 :
+                    val = newText.getFloatValue();
+                    if (val < 0.0f) { val = 0.0f; }
+                    else if (val > 150.0f) { val = 150.0f; }
+                    this->mainParent->getListSpeaker()[rowNumber]->setHighPassCutoff(val);
+                    break;
+                case 11 :
                     this->mainParent->setShowTriplets(false);
                     this->mainParent->getListSpeaker()[rowNumber]->setDirectOut(newText.getIntValue());
                     break;
@@ -775,7 +785,7 @@ void WindowEditSpeaker::paintCell(Graphics& g, int rowNumber, int columnId, int 
 Component* WindowEditSpeaker::refreshComponentForCell(int rowNumber, int columnId, bool /*isRowSelected*/,
                                                       Component* existingComponentToUpdate)
 {
-    if (columnId == 10){
+    if (columnId == 11){
         ToggleButton* tbDirect = static_cast<ToggleButton*> (existingComponentToUpdate);
         if (tbDirect == nullptr)
             tbDirect = new ToggleButton ();
@@ -787,7 +797,7 @@ Component* WindowEditSpeaker::refreshComponentForCell(int rowNumber, int columnI
         tbDirect->setLookAndFeel(this->grisFeel);
         return tbDirect;
     }
-    if (columnId == 11){
+    if (columnId == 12){
         TextButton* tbRemove = static_cast<TextButton*> (existingComponentToUpdate);
         if (tbRemove == nullptr)
             tbRemove = new TextButton ();

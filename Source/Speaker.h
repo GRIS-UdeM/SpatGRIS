@@ -102,6 +102,8 @@ public:
     void setOutputPatch(int value);
     void setGain(float value);
     float getGain();
+    void setHighPassCutoff(float value);
+    float getHighPassCutoff();
     bool getDirectOut();
     void setDirectOut(bool value);
 
@@ -142,6 +144,7 @@ private :
     float levelColour = 1.0f;
 
     float gain = 0.0f;
+    float hpCutoff = 0.0f;
 
     MainContentComponent *mainParent;
     LevelComponent *vuMeter;

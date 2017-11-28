@@ -162,6 +162,7 @@ static void processVBAP(jackClientGris & jackCli, jack_default_audio_sample_t **
 {
     int f, i, o;
     float y, gain;
+    double val = 0.0f;
     float gains[sizeInputs][sizeOutputs];
     float interpG = powf(jackCli.interMaster, 0.1) * 0.0099 + 0.99;
 
@@ -198,6 +199,22 @@ static void processVBAP(jackClientGris & jackCli, jack_default_audio_sample_t **
                 for (f = 0; f < nframes; ++f) {
                     outs[o][f] += ins[i][f] * gain;
                 }
+            }
+        }
+        if (jackCli.listSpeakerOut[o].hpActive) {
+            SpeakerOut so = jackCli.listSpeakerOut[o];
+            for (f = 0; f < nframes; ++f) {
+                val = so.ha0 * outs[o][f] + so.ha1 * so.x1 + so.ha2 * so.x2 + so.ha1 * so.x3 + so.ha0 * so.x4 -
+                      so.b1 * so.y1 - so.b2 * so.y2 - so.b3 * so.y3 - so.b4 * so.y4;
+                so.y4 = so.y3;
+                so.y3 = so.y2;
+                so.y2 = so.y1;
+                so.y1 = val;
+                so.x4 = so.x3;
+                so.x3 = so.x2;
+                so.x2 = so.x1;
+                so.x1 = outs[o][f];
+                outs[o][f] = (float)val;
             }
         }
     }

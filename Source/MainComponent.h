@@ -218,6 +218,7 @@ public:
     bool needToSaveSpeakerSetup = false;
 
     int oscInputPort = 18032;
+    unsigned int samplingRate = 48000;
 
     TextEditor* addTextEditor(const String &s, const String &emptyS, const String &stooltip, int x, int y, int w, int h, Component *into, int wLab = 80);
 

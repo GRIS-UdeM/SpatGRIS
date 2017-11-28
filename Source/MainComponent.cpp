@@ -176,6 +176,8 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     this->jackServer = new jackServerGRIS(RateValue);
     this->jackClient = new jackClientGris(BufferValue);
 
+    this->samplingRate = RateValue;
+
     if(!jackClient->isReady()){
         this->labelJackStatus->setText("Jack ERROR", dontSendNotification);
     }else{
@@ -454,7 +456,7 @@ void MainContentComponent::handleSaveAsSpeakerSetup() {
 }
 
 void MainContentComponent::handleShowSpeakerEditWindow() {
-    Rectangle<int> result (this->getScreenX() + this->speakerView->getWidth() + 20, this->getScreenY() + 20, 770, 530);
+    Rectangle<int> result (this->getScreenX() + this->speakerView->getWidth() + 20, this->getScreenY() + 20, 890, 530);
     if (this->winSpeakConfig == nullptr) {
         this->jackClient->processBlockOn = false;
         this->winSpeakConfig = new WindowEditSpeaker("Speakers Setup Edition - " + File(this->pathCurrentFileSpeaker).getFileName(),
@@ -1075,6 +1077,41 @@ MainContentComponent::getSpeakerFromOutputPatch(int out) {
     return nullptr;
 }
 
+static void
+Linkwitz_Riley_compute_variables(double freq, double sr, double **coeffs, int length) {
+
+    double wc = 2 * M_PI * freq;
+    double wc2 = wc * wc;
+    double wc3 = wc2 * wc;
+    double wc4 = wc2 * wc2;
+    double k = wc / tan(M_PI * freq / sr);
+    double k2 = k * k;
+    double k3 = k2 * k;
+    double k4 = k2 * k2;
+    double sqrt2 = sqrt(2.0);
+    double sq_tmp1 = sqrt2 * wc3 * k;
+    double sq_tmp2 = sqrt2 * wc * k3;
+    double a_tmp = 4.0 * wc2 * k2 + 2.0 * sq_tmp1 + k4 + 2.0 * sq_tmp2 + wc4;
+    double wc4_a_tmp = wc4 / a_tmp;
+    double k4_a_tmp = k4 / a_tmp;
+
+    *coeffs = (double *)malloc(length * sizeof(double));
+
+    /* common */
+    double b1 = (4.0 * (wc4 + sq_tmp1 - k4 - sq_tmp2)) / a_tmp;
+    double b2 = (6.0 * wc4 - 8.0 * wc2 * k2 + 6.0 * k4) / a_tmp;
+    double b3 = (4.0 * (wc4 - sq_tmp1 + sq_tmp2 - k4)) / a_tmp;
+    double b4 = (k4 - 2.0 * sq_tmp1 + wc4 - 2.0 * sq_tmp2 + 4.0 * wc2 * k2) / a_tmp;
+
+    /* highpass */
+    double ha0 = k4_a_tmp;
+    double ha1 = -4.0 * k4_a_tmp;
+    double ha2 = 6.0 * k4_a_tmp;
+
+    (*coeffs)[0] = b1; (*coeffs)[1] = b2; (*coeffs)[2] = b3; (*coeffs)[3] = b4;
+    (*coeffs)[4] = ha0; (*coeffs)[5] = ha1; (*coeffs)[6] = ha2; 
+}
+
 bool MainContentComponent::updateLevelComp() {
     int dimensions = 2;
     int x = 2;
@@ -1167,10 +1204,23 @@ bool MainContentComponent::updateLevelComp() {
             this->jackClient->maxOutputPatch = it->getOutputPatch();
     }
 
-    // Set user gain for each speaker.
+    // Set user gain and highpass filter cutoff frequency for each speaker.
     i = 0;
     for (auto&& it : this->listSpeaker) {
         this->jackClient->listSpeakerOut[it->outputPatch-1].gain = pow(10.0, it->getGain() * 0.05);
+        if (it->getHighPassCutoff() > 0.0f) {
+            double *coeffs;
+            Linkwitz_Riley_compute_variables(it->getHighPassCutoff(), (double)this->samplingRate, &coeffs, 7);
+            this->jackClient->listSpeakerOut[it->outputPatch-1].b1 = coeffs[0];
+            this->jackClient->listSpeakerOut[it->outputPatch-1].b2 = coeffs[1];
+            this->jackClient->listSpeakerOut[it->outputPatch-1].b3 = coeffs[2];
+            this->jackClient->listSpeakerOut[it->outputPatch-1].b4 = coeffs[3];
+            this->jackClient->listSpeakerOut[it->outputPatch-1].ha0 = coeffs[4];
+            this->jackClient->listSpeakerOut[it->outputPatch-1].ha1 = coeffs[5];
+            this->jackClient->listSpeakerOut[it->outputPatch-1].ha2 = coeffs[6];
+            this->jackClient->listSpeakerOut[it->outputPatch-1].hpActive = true;
+            free(coeffs);
+        }
     i++;
     }
     
@@ -1343,6 +1393,9 @@ void MainContentComponent::openXmlFileSpeaker(String path) {
                                                                                   spk->getDoubleAttribute("PositionY")*10.0f)));
                                 if (spk->hasAttribute("Gain")) {
                                     this->listSpeaker.back()->setGain(spk->getDoubleAttribute("Gain"));
+                                }
+                                if (spk->hasAttribute("HighPassCutoff")) {
+                                    this->listSpeaker.back()->setHighPassCutoff(spk->getDoubleAttribute("HighPassCutoff"));
                                 }
                                 if (spk->hasAttribute("DirectOut")) {
                                     this->listSpeaker.back()->setDirectOut(spk->getBoolAttribute("DirectOut"));
@@ -1544,6 +1597,7 @@ void MainContentComponent::saveSpeakerSetup(String path)
         xmlInput->setAttribute("LayoutIndex", it->getIdSpeaker());
         xmlInput->setAttribute("OutputPatch", it->getOutputPatch());
         xmlInput->setAttribute("Gain", it->getGain());
+        xmlInput->setAttribute("HighPassCutoff", it->getHighPassCutoff());
         xmlInput->setAttribute("DirectOut", it->getDirectOut());
         xmlRing->addChildElement(xmlInput);
     }

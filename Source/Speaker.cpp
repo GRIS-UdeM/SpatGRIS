@@ -119,6 +119,14 @@ void Speaker::setGain(float value) {
     this->gain = value;
 }
 
+float Speaker::getHighPassCutoff() {
+    return this->hpCutoff;
+}
+
+void Speaker::setHighPassCutoff(float value) {
+    this->hpCutoff = value;
+}
+
 bool Speaker::getDirectOut() {
     return this->directOut;
 }
