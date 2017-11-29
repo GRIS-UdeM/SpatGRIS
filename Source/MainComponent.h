@@ -163,8 +163,8 @@ public:
     }
 
     //=======================================================================
-    float getLevelsOut(int indexLevel){return (15.0f * log10f(sqrtf(this->jackClient->getLevelsOut(indexLevel))));}
-    float getLevelsIn(int indexLevel){return (15.0f * log10f(sqrtf(this->jackClient->getLevelsIn(indexLevel)))); }
+    float getLevelsOut(int indexLevel) { return (20.0f * log10f(this->jackClient->getLevelsOut(indexLevel))); }
+    float getLevelsIn(int indexLevel) { return (20.0f * log10f(this->jackClient->getLevelsIn(indexLevel))); }
     float getLevelsAlpha(int indexLevel) {
         float level = this->jackClient->getLevelsIn(indexLevel);
         if (level > 0.0001) { // -80 dB
@@ -173,6 +173,7 @@ public:
             return sqrtf(level * 10000.0f);
         }
     }
+
     float getSpeakerLevelsAlpha(int indexLevel) {
         float level = this->jackClient->getLevelsOut(indexLevel);
         float alpha = 1.0;

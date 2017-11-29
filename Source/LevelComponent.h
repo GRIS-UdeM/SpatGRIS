@@ -27,7 +27,7 @@
 #include "Speaker.h"
 
 static const float MinLevelComp  = -60.f;
-static const float MaxLevelComp  = 1.f;
+static const float MaxLevelComp  = 0.f;
 static const float MaxMinLevComp = MaxLevelComp - MinLevelComp;
 static const int   WidthRect     = 1;
 

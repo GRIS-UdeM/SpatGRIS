@@ -41,27 +41,42 @@ void LevelBox::setBounds(const Rectangle<int> &newBounds)
     colorGrad.addColour(0.1, Colours::yellow);
 }
 
-void LevelBox::paint (Graphics& g)
+void LevelBox::paint(Graphics& g)
 {
-    if(this->mainParent->isMuted()){
-        g.fillAll (grisFeel->getWinBackgroundColour());
-    }
-    else{
+    bool toDraw = true;
+    if (this->mainParent->isMuted()) {
+        g.fillAll(grisFeel->getWinBackgroundColour());
+        toDraw = false;
+    } else {
         float level = this->mainParent->getLevel();
         g.setGradientFill(colorGrad);
         g.fillRect(0, 0, getWidth(), getHeight());
         
-        if (level < MinLevelComp){
+        if (level < MinLevelComp) {
             level = MinLevelComp;
+            toDraw = false;
+        } else if (level > MaxLevelComp) {
+            level = MaxLevelComp;
         }
-        if (level < 0.9f){
-            level = -abs(level);
-            g.setColour(grisFeel->getDarkColour());
-            g.fillRect(0, 0, getWidth(), (int)(getHeight()*(level/MinLevelComp)));
+
+        g.setColour(grisFeel->getDarkColour());
+        g.fillRect(0, 0, getWidth(), (int)(level * -2.33333334));
+    }
+
+    if (toDraw) {
+        g.setColour(this->grisFeel->getBackgroundColour());
+        g.setFont(10.0f);
+        int start = getWidth() - 5;
+        int y = 0;
+        for (int i=1; i<10; i++) {
+            y = i * 14;
+            g.drawLine(start, y, getWidth(), y, 1);
+            if (i % 2 == 1) {
+                g.drawText(String(i*-6), start-15, y-5, 15, 10, Justification::centred, false);
+            }
         }
     }
 }
-
 
 //======================================================================================================================
 LevelComponent::LevelComponent(ParentLevelComponent* parent, GrisLookAndFeel *feel, bool colorful)
@@ -90,7 +105,7 @@ LevelComponent::LevelComponent(ParentLevelComponent* parent, GrisLookAndFeel *fe
     //ToggleButton=========================================================
     this->muteToggleBut = new ToggleButton();
     this->muteToggleBut->setButtonText("m");
-    this->muteToggleBut->setSize(18, 15);
+    this->muteToggleBut->setSize(17, 15);
     this->muteToggleBut->setTooltip ("Mute "+String(this->mainParent->getId()));
     this->muteToggleBut->addListener(this);
     this->muteToggleBut->setToggleState(false, dontSendNotification);
@@ -101,7 +116,7 @@ LevelComponent::LevelComponent(ParentLevelComponent* parent, GrisLookAndFeel *fe
     //ToggleButton=========================================================
     this->soloToggleBut = new ToggleButton();
     this->soloToggleBut->setButtonText("s");
-    this->soloToggleBut->setSize(18, 15);
+    this->soloToggleBut->setSize(17, 15);
     this->soloToggleBut->setTooltip ("Solo "+String(this->mainParent->getId()));
     this->soloToggleBut->addListener(this);
     this->soloToggleBut->setToggleState(false, dontSendNotification);
@@ -260,7 +275,7 @@ void LevelComponent::setSelected(bool value){
 
 void LevelComponent::setBounds(const Rectangle<int> &newBounds)
 {
-    int offset = 0;
+    int levelSize = 140, offset = 0;
     if (this->mainParent->isInput()) {
         offset = 20;
     }
@@ -269,15 +284,14 @@ void LevelComponent::setBounds(const Rectangle<int> &newBounds)
 
     juce::Rectangle<int> labRect(0, 0, newBounds.getWidth(), this->idBut->getHeight());
     this->idBut->setBounds(labRect);
-    this->muteToggleBut->setBounds(0, getHeight()-24-offset, this->muteToggleBut->getWidth(),
-                                   this->muteToggleBut->getHeight());
-    this->soloToggleBut->setBounds(this->muteToggleBut->getWidth()-4, getHeight()-24-offset,
+    this->muteToggleBut->setBounds(0, 158, this->muteToggleBut->getWidth(), this->muteToggleBut->getHeight());
+    this->soloToggleBut->setBounds(this->muteToggleBut->getWidth()-4, 158,
                                    this->muteToggleBut->getWidth(), this->muteToggleBut->getHeight());
     if (this->mainParent->isInput()) {
         this->directOut->setBounds(0, getHeight()-27, newBounds.getWidth(), this->directOut->getHeight());
     }
 
-    juce::Rectangle<int> level(0, 18, newBounds.getWidth()-WidthRect, getHeight()-40-offset);
+    juce::Rectangle<int> level(0, 18, newBounds.getWidth()-WidthRect, levelSize);
     this->levelBox->setBounds(level);
 }
 

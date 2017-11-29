@@ -159,7 +159,7 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     this->verticalDividerBar = new StretchableLayoutResizerBar (&verticalLayout, 1, true);
     this->addAndMakeVisible (verticalDividerBar);
 
-    this->setSize (1285, 650);
+    this->setSize (1285, 610);
 
     // Jack Init and Param -------------------------------------------------------------------------------
     unsigned int BufferValue = props->getIntValue("BufferValue", 1024);
@@ -980,9 +980,6 @@ void MainContentComponent::selectTripletSpeaker(int idS)
         }
 
     }
-    /*if(this->winSpeakConfig != nullptr){
-        this->winSpeakConfig->selectedRow(idS);
-    }*/
 }
 
 bool MainContentComponent::tripletExist(Triplet tri, int &pos)
@@ -1900,15 +1897,15 @@ void MainContentComponent::resized()
     this->verticalLayout.layOutComponents (vcomps, 3, r.getX(), r.getY(), r.getWidth(), r.getHeight(), false, true);
     
     this->boxMainUI->setBounds(this->speakerView->getWidth()+6, 20, getWidth()-(this->speakerView->getWidth()+10), getHeight());
-    this->boxMainUI->correctSize(getWidth()-this->speakerView->getWidth()-6, 650);
+    this->boxMainUI->correctSize(getWidth()-this->speakerView->getWidth()-6, 610);
 
-    this->boxInputsUI->setBounds(0, 2, getWidth()-(this->speakerView->getWidth()+10), 241);
-    this->boxInputsUI->correctSize(((unsigned int )this->listSourceInput.size()*(SizeWidthLevelComp))+4, 210);
+    this->boxInputsUI->setBounds(0, 2, getWidth()-(this->speakerView->getWidth()+10), 231);
+    this->boxInputsUI->correctSize(((unsigned int )this->listSourceInput.size()*(SizeWidthLevelComp))+4, 200);
 
-    this->boxOutputsUI->setBounds(0, 243, getWidth()-(this->speakerView->getWidth()+10), 240);
-    this->boxOutputsUI->correctSize(((unsigned int )this->listSpeaker.size()*(SizeWidthLevelComp))+4, 210);
+    this->boxOutputsUI->setBounds(0, 233, getWidth()-(this->speakerView->getWidth()+10), 210);
+    this->boxOutputsUI->correctSize(((unsigned int )this->listSpeaker.size()*(SizeWidthLevelComp))+4, 180);
     
-    this->boxControlUI->setBounds(0, 483, getWidth()-(this->speakerView->getWidth()+10), 145);
+    this->boxControlUI->setBounds(0, 443, getWidth()-(this->speakerView->getWidth()+10), 145);
     this->boxControlUI->correctSize(720, 145);
 
 }

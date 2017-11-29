@@ -67,7 +67,7 @@ static void muteSoloVuMeterIn(jackClientGris & jackCli, jack_default_audio_sampl
         for(int nF = 0; nF < nframes; ++nF) {
             sumsIn[i] +=  ins[i][nF] * ins[i][nF];
         }
-        jackCli.levelsIn[i] = sumsIn[i]/nframes;
+        jackCli.levelsIn[i] = sqrtf(sumsIn[i] / nframes);
     }
 }
 
@@ -107,7 +107,7 @@ static void muteSoloVuMeterGainOut(jackClientGris & jackCli, jack_default_audio_
             outs[i][nF] *= mGain;
             sumsOut[i] +=  outs[i][nF] * outs[i][nF];
         }
-        jackCli.levelsOut[i] = sumsOut[i]/nframes;
+        jackCli.levelsOut[i] = sqrtf(sumsOut[i] / nframes);
         
         //Record buffer ---------------
         if (jackCli.recording && i < num_of_channels) {
