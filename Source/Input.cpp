@@ -245,14 +245,10 @@ void Input::changeDirectOutChannel(int chn) {
 
 void Input::setDirectOutChannel(int chn) {
     this->directOutChannel = chn;
-    int nitems = this->vuMeter->directOut->getNumItems();
     if (chn == 0) {
-        this->vuMeter->directOut->setSelectedItemIndex(0);
+        this->vuMeter->directOut->setButtonText("-");
         return;
-    }
-    for (int i = 1; i < nitems; i++) {
-        if (this->vuMeter->directOut->getItemText(i).compare(String(chn)) == 0) {
-            this->vuMeter->directOut->setSelectedItemIndex(i);
-        }
+    } else {
+        this->vuMeter->directOut->setButtonText(String(chn));
     }
 }

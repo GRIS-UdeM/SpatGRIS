@@ -49,7 +49,7 @@ void LevelBox::paint (Graphics& g)
     else{
         float level = this->mainParent->getLevel();
         g.setGradientFill(colorGrad);
-        g.fillRect(0, 0, getWidth() ,getHeight());
+        g.fillRect(0, 0, getWidth(), getHeight());
         
         if (level < MinLevelComp){
             level = MinLevelComp;
@@ -57,7 +57,7 @@ void LevelBox::paint (Graphics& g)
         if (level < 0.9f){
             level = -abs(level);
             g.setColour(grisFeel->getDarkColour());
-            g.fillRect(0, 0, getWidth() ,(int)(getHeight()*(level/MinLevelComp)));
+            g.fillRect(0, 0, getWidth(), (int)(getHeight()*(level/MinLevelComp)));
         }
     }
 }
@@ -72,9 +72,9 @@ LevelComponent::LevelComponent(ParentLevelComponent* parent, GrisLookAndFeel *fe
     
     //Label================================================================
     this->idBut = new TextButton();
-    this->idBut->setButtonText(String(this->mainParent->getId()));//this->mainParent->getOutputPatch()
+    this->idBut->setButtonText(String(this->mainParent->getId()));
     this->idBut->setTooltip(String(this->mainParent->getId()));
-    this->idBut->setSize(36, 22);
+    this->idBut->setSize(28, 17);
     //this->idBut->setJustificationType(Justification::centred);
     //this->idBut->setMinimumHorizontalScale(1);
     this->idBut->setTopLeftPosition(0, 0);
@@ -89,8 +89,8 @@ LevelComponent::LevelComponent(ParentLevelComponent* parent, GrisLookAndFeel *fe
     
     //ToggleButton=========================================================
     this->muteToggleBut = new ToggleButton();
-    this->muteToggleBut->setButtonText("M");
-    this->muteToggleBut->setSize(18, 18);
+    this->muteToggleBut->setButtonText("m");
+    this->muteToggleBut->setSize(18, 15);
     this->muteToggleBut->setTooltip ("Mute "+String(this->mainParent->getId()));
     this->muteToggleBut->addListener(this);
     this->muteToggleBut->setToggleState(false, dontSendNotification);
@@ -100,28 +100,30 @@ LevelComponent::LevelComponent(ParentLevelComponent* parent, GrisLookAndFeel *fe
     
     //ToggleButton=========================================================
     this->soloToggleBut = new ToggleButton();
-    this->soloToggleBut->setButtonText("S");
-    this->soloToggleBut->setSize(18, 18);
+    this->soloToggleBut->setButtonText("s");
+    this->soloToggleBut->setSize(18, 15);
     this->soloToggleBut->setTooltip ("Solo "+String(this->mainParent->getId()));
     this->soloToggleBut->addListener(this);
     this->soloToggleBut->setToggleState(false, dontSendNotification);
     this->soloToggleBut->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
+    this->soloToggleBut->setColour(TextButton::buttonColourId, this->grisFeel->getBackgroundColour());
     this->soloToggleBut->setLookAndFeel(this->grisFeel);
     this->addAndMakeVisible(this->soloToggleBut);
 
     //ComboBox=========================================================
     if (this->mainParent->isInput()) {
-        this->directOut = new ComboBox();
+        this->directOut = new TextButton();
+        this->directOut->setButtonText("-");
         this->directOut->setTooltip("Select a direct output channel.");
-        this->directOut->setSize(36, 16);
+        this->directOut->setSize(28, 17);
+        //this->directOut->setJustificationType(Justification::centred);
+        //this->directOut->setMinimumHorizontalScale(1);
+        this->directOut->setColour(Label::textColourId, this->grisFeel->getFontColour());
         this->directOut->setLookAndFeel(this->grisFeel);
+        //this->directOut->setColour(TextButton::buttonColourId, this->grisFeel->getBackgroundColour());
         this->directOut->addListener(this);
+        this->directOut->addMouseListener(this, true);
         this->addAndMakeVisible(this->directOut);
-        this->directOut->addItem("nil", 1);
-        for(int i = 1; i <= 32; i++) {
-             this->directOut->addItem(String(i), i+1);
-        }
-        this->directOut->setSelectedId(1);
     }
 
     //Level BOX============================================================
@@ -144,14 +146,12 @@ LevelComponent::~LevelComponent()
 void LevelComponent::updateDirectOutMenu(vector<Speaker *> spkList)
 {
     if (this->mainParent->isInput()) {
-        this->directOut->clear();
-        this->directOut->addItem("nil", 1);
-        int i = 2;
+        this->directOutSpeakers.clear();
         for (auto&& it : spkList) {
-            if (it->getDirectOut())
-                this->directOut->addItem(String(it->getOutputPatch()), i++);
+            if (it->getDirectOut()) {
+                this->directOutSpeakers.push_back(it->getOutputPatch());
+            }
         }
-        this->directOut->setSelectedId(1);
     }
 }
 
@@ -183,6 +183,27 @@ void LevelComponent::buttonClicked(Button *button)
         }else {      //Output
             this->mainParent->selectClick(this->lastMouseButton);
         }
+    } else if (button == this->directOut) {
+        PopupMenu menu;
+        menu.addItem(1, "-");
+        for (int j=0, i=2; j<this->directOutSpeakers.size(); j++, i++) {
+            menu.addItem(i, String(this->directOutSpeakers[j]));
+        }
+
+        auto result = menu.show();
+
+        int value = 0;
+        if (result == 0) {
+            return;
+        } else if (result == 1) {
+            this->directOut->setButtonText("-");
+        } else {
+            value = this->directOutSpeakers[result-2];
+            this->directOut->setButtonText(String(value));
+        }
+
+        this->mainParent->changeDirectOutChannel(value);
+        this->mainParent->sendDirectOutToClient(this->mainParent->getId(), value);
     }
 }
 
@@ -193,16 +214,6 @@ void LevelComponent::mouseDown(const MouseEvent& e)
     } else {
         this->lastMouseButton = 1;
     }
-}
-
-void LevelComponent::comboBoxChanged(ComboBox *combo)
-{
-    int value = 0;
-    if (combo->getSelectedItemIndex() > 0) {
-        value = combo->getItemText(combo->getSelectedItemIndex()).getIntValue();
-    }
-    this->mainParent->changeDirectOutChannel(value);
-    this->mainParent->sendDirectOutToClient(this->mainParent->getId(), value);
 }
 
 void LevelComponent::changeListenerCallback (ChangeBroadcaster* source)
@@ -256,18 +267,17 @@ void LevelComponent::setBounds(const Rectangle<int> &newBounds)
 
     this->juce::Component::setBounds(newBounds);
 
-    juce::Rectangle<int> labRect(WidthRect/2, 0, newBounds.getWidth()-WidthRect, this->idBut->getHeight());
+    juce::Rectangle<int> labRect(0, 0, newBounds.getWidth(), this->idBut->getHeight());
     this->idBut->setBounds(labRect);
-    this->muteToggleBut->setBounds((newBounds.getWidth()/2)-16, getHeight()-22-offset,
-                                    this->muteToggleBut->getWidth(), this->muteToggleBut->getHeight());
-    this->soloToggleBut->setBounds((newBounds.getWidth()/2),    getHeight()-22-offset,
-                                    this->muteToggleBut->getWidth(), this->muteToggleBut->getHeight());
+    this->muteToggleBut->setBounds(0, getHeight()-24-offset, this->muteToggleBut->getWidth(),
+                                   this->muteToggleBut->getHeight());
+    this->soloToggleBut->setBounds(this->muteToggleBut->getWidth()-4, getHeight()-24-offset,
+                                   this->muteToggleBut->getWidth(), this->muteToggleBut->getHeight());
     if (this->mainParent->isInput()) {
-        this->directOut->setBounds(((newBounds.getWidth()/2)-16),    getHeight()-22,
-                                    this->directOut->getWidth(), this->directOut->getHeight());
+        this->directOut->setBounds(0, getHeight()-27, newBounds.getWidth(), this->directOut->getHeight());
     }
 
-    juce::Rectangle<int> level(WidthRect/2, 18, newBounds.getWidth()-WidthRect, getHeight()-40-offset);
+    juce::Rectangle<int> level(0, 18, newBounds.getWidth()-WidthRect, getHeight()-40-offset);
     this->levelBox->setBounds(level);
 }
 

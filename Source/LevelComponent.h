@@ -29,7 +29,7 @@
 static const float MinLevelComp  = -60.f;
 static const float MaxLevelComp  = 1.f;
 static const float MaxMinLevComp = MaxLevelComp - MinLevelComp;
-static const int   WidthRect     = 2;
+static const int   WidthRect     = 1;
 
 //======================================= LevelBox ===================================
 class LevelBox : public Component
@@ -52,7 +52,6 @@ private:
 //====================================================================================
 class LevelComponent :  public Component,
                         public ToggleButton::Listener,
-                        public ComboBox::Listener,
                         public ChangeListener
 {
 public:
@@ -67,12 +66,12 @@ public:
     void setSelected(bool value);
     void buttonClicked(Button *button) override;
     void mouseDown(const MouseEvent& e) override;
-    void comboBoxChanged(ComboBox *combo) override;
     void setBounds(const Rectangle<int> &newBounds);
     void changeListenerCallback (ChangeBroadcaster* source) override;
     void updateDirectOutMenu(vector<Speaker *> spkList);
-    
-    ComboBox * directOut;
+
+    vector<int> directOutSpeakers;
+    TextButton * directOut;
     
 private:
     ParentLevelComponent* mainParent;
