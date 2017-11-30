@@ -98,14 +98,6 @@ struct SpeakerOut {
     double ha0 = 0.0;
     double ha1 = 0.0;
     double ha2 = 0.0;
-    double x1 = 0.0;
-    double x2 = 0.0;
-    double x3 = 0.0;
-    double x4 = 0.0;
-    double y1 = 0.0;
-    double y2 = 0.0;
-    double y3 = 0.0;
-    double y4 = 0.0;
 
     bool  isMuted = false;
     bool  isSolo = false;
@@ -243,7 +235,17 @@ public:
     float c4;
     float c5;
     float c6;
-    
+
+    // Highpass filter
+    double x1[MaxOutputs];
+    double x2[MaxOutputs];
+    double x3[MaxOutputs];
+    double x4[MaxOutputs];
+    double y1[MaxOutputs];
+    double y2[MaxOutputs];
+    double y3[MaxOutputs];
+    double y4[MaxOutputs];
+
     //Mute Solo Vu meter
     float levelsIn[MaxInputs];
     float levelsOut[MaxOutputs];

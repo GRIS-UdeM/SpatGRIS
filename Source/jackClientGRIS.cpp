@@ -162,7 +162,7 @@ static void processVBAP(jackClientGris & jackCli, jack_default_audio_sample_t **
 {
     int f, i, o;
     float y, gain;
-    double val = 0.0f;
+    double inval = 0.0, val = 0.0;
     float gains[sizeInputs][sizeOutputs];
     float interpG = powf(jackCli.interMaster, 0.1) * 0.0099 + 0.99;
 
@@ -204,17 +204,18 @@ static void processVBAP(jackClientGris & jackCli, jack_default_audio_sample_t **
         if (jackCli.listSpeakerOut[o].hpActive) {
             SpeakerOut so = jackCli.listSpeakerOut[o];
             for (f = 0; f < nframes; ++f) {
-                val = so.ha0 * outs[o][f] + so.ha1 * so.x1 + so.ha2 * so.x2 + so.ha1 * so.x3 + so.ha0 * so.x4 -
-                      so.b1 * so.y1 - so.b2 * so.y2 - so.b3 * so.y3 - so.b4 * so.y4;
-                so.y4 = so.y3;
-                so.y3 = so.y2;
-                so.y2 = so.y1;
-                so.y1 = val;
-                so.x4 = so.x3;
-                so.x3 = so.x2;
-                so.x2 = so.x1;
-                so.x1 = outs[o][f];
-                outs[o][f] = (float)val;
+                inval = (double)outs[o][f];
+                val = so.ha0 * inval + so.ha1 * jackCli.x1[o] + so.ha2 * jackCli.x2[o] + so.ha1 * jackCli.x3[o] + so.ha0 * jackCli.x4[o] -
+                      so.b1 * jackCli.y1[o] - so.b2 * jackCli.y2[o] - so.b3 * jackCli.y3[o] - so.b4 * jackCli.y4[o];
+                jackCli.y4[o] = jackCli.y3[o];
+                jackCli.y3[o] = jackCli.y2[o];
+                jackCli.y2[o] = jackCli.y1[o];
+                jackCli.y1[o] = val;
+                jackCli.x4[o] = jackCli.x3[o];
+                jackCli.x3[o] = jackCli.x2[o];
+                jackCli.x2[o] = jackCli.x1[o];
+                jackCli.x1[o] = inval;
+                outs[o][f] = (jack_default_audio_sample_t)val;
             }
         }
     }
@@ -655,6 +656,20 @@ jackClientGris::jackClientGris(unsigned int bufferS) {
     this->setHrtfImpulseLength(128);
 
     //---------------------------------------------------
+
+    //---------------------------------------------------
+    // Initialize highpass filter delay samples
+    //---------------------------------------------------
+    for (int i=0; i<MaxOutputs; i++) {
+        this->x1[i] = 0.0;
+        this->x2[i] = 0.0;
+        this->x3[i] = 0.0;
+        this->x4[i] = 0.0;
+        this->y1[i] = 0.0;
+        this->y2[i] = 0.0;
+        this->y3[i] = 0.0;
+        this->y4[i] = 0.0;
+    }
 
     this->listClient = vector<Client>();
     

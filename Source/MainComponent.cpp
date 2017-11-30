@@ -1207,7 +1207,7 @@ bool MainContentComponent::updateLevelComp() {
         this->jackClient->listSpeakerOut[it->outputPatch-1].gain = pow(10.0, it->getGain() * 0.05);
         if (it->getHighPassCutoff() > 0.0f) {
             double *coeffs;
-            Linkwitz_Riley_compute_variables(it->getHighPassCutoff(), (double)this->samplingRate, &coeffs, 7);
+            Linkwitz_Riley_compute_variables((double)it->getHighPassCutoff(), (double)this->samplingRate, &coeffs, 7);
             this->jackClient->listSpeakerOut[it->outputPatch-1].b1 = coeffs[0];
             this->jackClient->listSpeakerOut[it->outputPatch-1].b2 = coeffs[1];
             this->jackClient->listSpeakerOut[it->outputPatch-1].b3 = coeffs[2];
