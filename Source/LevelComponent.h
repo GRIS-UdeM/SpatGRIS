@@ -45,7 +45,10 @@ private:
     LevelComponent *mainParent;
     GrisLookAndFeel *grisFeel;
     ColourGradient colorGrad;
-    
+    Image vumeterBit;
+    Image vumeterBackBit;
+    Image vumeterMutedBit;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LevelBox)
 };
 

@@ -33,48 +33,70 @@ LevelBox::~LevelBox()
     
 }
 
-
 void LevelBox::setBounds(const Rectangle<int> &newBounds)
 {
+    // LevelBox size is (27, 140)
     this->juce::Component::setBounds(newBounds);
+
     colorGrad = ColourGradient(Colours::red, 0.f, 0.f, Colour::fromRGB(17, 255, 159), 0.f, getHeight(), false);
     colorGrad.addColour(0.1, Colours::yellow);
+
+    // Create vu-meter foreground image.
+    this->vumeterBit = Image(Image::RGB, 27, 140, true);
+    Graphics gf (this->vumeterBit);
+    gf.setGradientFill(colorGrad);
+    gf.fillRect(0, 0, getWidth(), getHeight());
+
+    // Create vu-meter background image.
+    this->vumeterBackBit = Image(Image::RGB, 27, 140, true);
+    Graphics gb (this->vumeterBackBit);
+    gb.setColour(grisFeel->getDarkColour());
+    gb.fillRect(0, 0, getWidth(), getHeight());
+
+    // Create vu-meter muted image.
+    this->vumeterMutedBit = Image(Image::RGB, 27, 140, true);
+    Graphics gm (this->vumeterMutedBit);
+    gm.setColour(grisFeel->getWinBackgroundColour());
+    gm.fillRect(0, 0, getWidth(), getHeight());
+
+    // Draw ticks on images.
+    gf.setColour(this->grisFeel->getDarkColour());
+    gf.setFont(10.0f);
+    gb.setColour(this->grisFeel->getEditBackgroundColour());
+    gb.setFont(10.0f);
+    gm.setColour(this->grisFeel->getScrollBarColour());
+    gm.setFont(10.0f);
+    int start = getWidth() - 5;
+    int y = 0;
+    for (int i=1; i<10; i++) {
+        y = i * 14;
+        gf.drawLine(start, y, getWidth(), y, 1);
+        gb.drawLine(start, y, getWidth(), y, 1);
+        gm.drawLine(start, y, getWidth(), y, 1);
+        if (i % 2 == 1) {
+            gf.drawText(String(i*-6), start-15, y-5, 15, 10, Justification::centred, false);
+            gb.drawText(String(i*-6), start-15, y-5, 15, 10, Justification::centred, false);
+            gm.drawText(String(i*-6), start-15, y-5, 15, 10, Justification::centred, false);
+        }
+    }
 }
 
 void LevelBox::paint(Graphics& g)
 {
-    bool toDraw = true;
     if (this->mainParent->isMuted()) {
-        g.fillAll(grisFeel->getWinBackgroundColour());
-        toDraw = false;
+        g.drawImage(this->vumeterMutedBit, 0, 0, 27, 140, 0, 0, 27, 140);
     } else {
         float level = this->mainParent->getLevel();
-        g.setGradientFill(colorGrad);
-        g.fillRect(0, 0, getWidth(), getHeight());
-        
         if (level < MinLevelComp) {
             level = MinLevelComp;
-            toDraw = false;
         } else if (level > MaxLevelComp) {
             level = MaxLevelComp;
         }
 
-        g.setColour(grisFeel->getDarkColour());
-        g.fillRect(0, 0, getWidth(), (int)(level * -2.33333334));
-    }
-
-    if (toDraw) {
-        g.setColour(this->grisFeel->getBackgroundColour());
-        g.setFont(10.0f);
-        int start = getWidth() - 5;
-        int y = 0;
-        for (int i=1; i<10; i++) {
-            y = i * 14;
-            g.drawLine(start, y, getWidth(), y, 1);
-            if (i % 2 == 1) {
-                g.drawText(String(i*-6), start-15, y-5, 15, 10, Justification::centred, false);
-            }
-        }
+        int h = (int)(level * -2.33333334);
+        int rel = 140 - h;
+        g.drawImage(this->vumeterBit, 0, h, 27, rel, 0, h, 27, rel);
+        g.drawImage(this->vumeterBackBit, 0, 0, 27, h, 0, 0, 27, h);
     }
 }
 

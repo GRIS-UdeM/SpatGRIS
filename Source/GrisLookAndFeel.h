@@ -144,6 +144,10 @@ public:
     Colour getLightColour(){
         return this->lightColour;
     }
+
+    Colour getEditBackgroundColour(){
+        return this->editBgcolor;
+    }
     
     Colour getHighlightColour(){
         return this->hlBgcolor;
