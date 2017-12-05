@@ -161,9 +161,8 @@ static void processVBAP(jackClientGris & jackCli, jack_default_audio_sample_t **
                         const jack_nframes_t &nframes, const unsigned int &sizeInputs, const unsigned int &sizeOutputs)
 {
     int f, i, o;
-    float y, gain;
+    float y, gain, iogain = 0.0;
     double inval = 0.0, val = 0.0;
-    float gains[sizeInputs][sizeOutputs];
     float interpG = powf(jackCli.interMaster, 0.1) * 0.0099 + 0.99;
 
     for (i = 0; i < sizeInputs; ++i) {
@@ -174,39 +173,37 @@ static void processVBAP(jackClientGris & jackCli, jack_default_audio_sample_t **
     }
 
     for (o = 0; o < sizeOutputs; ++o) {
-        for (i = 0; i < sizeInputs; ++i) {
-            gains[i][o] = jackCli.listSourceIn[i].paramVBap->gains[o];
-        }
-    }
-
-    for (o = 0; o < sizeOutputs; ++o) {
         memset (outs[o], 0, sizeof (jack_default_audio_sample_t) * nframes);
-        gain = jackCli.listSpeakerOut[o].gain;
         for (i = 0; i < sizeInputs; ++i) {
             if (!jackCli.listSourceIn[i].directOut) {
+                iogain = jackCli.listSourceIn[i].paramVBap->gains[o];
                 y = jackCli.listSourceIn[i].paramVBap->y[o];
                 for (f = 0; f < nframes; ++f) {
-                    y = gains[i][o] + (y - gains[i][o]) * interpG;
-
+                    y = iogain + (y - iogain) * interpG;
                     if (y < 0.0000000000001f) {
                         y = 0.0;
                     } else {
-                        outs[o][f] += ins[i][f] * y * gain;
+                        outs[o][f] += ins[i][f] * y;
                     }
                 }
                 jackCli.listSourceIn[i].paramVBap->y[o] = y;
             } else if ((jackCli.listSourceIn[i].directOut - 1) == o) {
                 for (f = 0; f < nframes; ++f) {
-                    outs[o][f] += ins[i][f] * gain;
+                    outs[o][f] += ins[i][f];
                 }
             }
+        }
+        gain = jackCli.listSpeakerOut[o].gain;
+        for (f = 0; f < nframes; ++f) {
+            outs[o][f] *= gain;
         }
         if (jackCli.listSpeakerOut[o].hpActive) {
             SpeakerOut so = jackCli.listSpeakerOut[o];
             for (f = 0; f < nframes; ++f) {
                 inval = (double)outs[o][f];
-                val = so.ha0 * inval + so.ha1 * jackCli.x1[o] + so.ha2 * jackCli.x2[o] + so.ha1 * jackCli.x3[o] + so.ha0 * jackCli.x4[o] -
-                      so.b1 * jackCli.y1[o] - so.b2 * jackCli.y2[o] - so.b3 * jackCli.y3[o] - so.b4 * jackCli.y4[o];
+                val = so.ha0 * inval + so.ha1 * jackCli.x1[o] + so.ha2 * jackCli.x2[o] +
+                      so.ha1 * jackCli.x3[o] + so.ha0 * jackCli.x4[o] - so.b1 * jackCli.y1[o] -
+                      so.b2 * jackCli.y2[o] - so.b3 * jackCli.y3[o] - so.b4 * jackCli.y4[o];
                 jackCli.y4[o] = jackCli.y3[o];
                 jackCli.y3[o] = jackCli.y2[o];
                 jackCli.y2[o] = jackCli.y1[o];

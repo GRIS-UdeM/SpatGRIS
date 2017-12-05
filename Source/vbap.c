@@ -12,6 +12,7 @@
 
 #define PIx2 (M_PI * 2.0)
 
+static float ang_to_rad = (float)(2.0 * M_PI / 360.0);
 
 /* Linked-list of all loudspeakers. */
 typedef struct ls_triplet_chain {
@@ -165,10 +166,10 @@ static double * angle_to_cart(float azi, float ele) {
 
 /* Converts a vector from angular to cartesian coordinates. */
 static void vec_angle_to_cart(ANG_VEC *from, CART_VEC *to) {
-    float ang2rad = (float)(PIx2 / 360.0);
-    to->x = cosf(from->azi * ang2rad) * cosf(from->ele * ang2rad);
-    to->y = sinf(from->azi * ang2rad) * cosf(from->ele * ang2rad);
-    to->z = sinf(from->ele * ang2rad);
+    float cele = cosf(from->ele * ang_to_rad);
+    to->x = cosf(from->azi * ang_to_rad) * cele;
+    to->y = sinf(from->azi * ang_to_rad) * cele;
+    to->z = sinf(from->ele * ang_to_rad);
 }
 
 /* Calculate volume of the parallelepiped defined by the loudspeaker
