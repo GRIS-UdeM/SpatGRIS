@@ -217,6 +217,7 @@ public:
     bool isSpanShown;
 
     bool needToSaveSpeakerSetup = false;
+    bool needToComputeVbap = true;
 
     int oscInputPort = 18032;
     unsigned int samplingRate = 48000;

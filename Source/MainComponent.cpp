@@ -1257,15 +1257,6 @@ bool MainContentComponent::updateLevelComp() {
     this->boxOutputsUI->repaint();
     this->resized();
 
-    //Clear useless triplet
-    //for(int i = 0; i < this->listTriplet.size(); ++i) {
-    //    if(this->listTriplet[i].id1+1 > this->listSpeaker.size() ||
-    //       this->listTriplet[i].id2+1 > this->listSpeaker.size() ||
-    //       this->listTriplet[i].id3+1 > this->listSpeaker.size()) {
-    //        this->listTriplet.erase(this->listTriplet.begin() + i);
-    //    }
-    //}
-
     this->jackClient->vbapDimensions = dimensions;
 
     i = 0;
@@ -1277,9 +1268,12 @@ bool MainContentComponent::updateLevelComp() {
         }
     }
     tempListSpeaker.resize(i);
-    bool retval = this->jackClient->initSpeakersTripplet(tempListSpeaker, dimensions);
+    bool retval = this->jackClient->initSpeakersTripplet(tempListSpeaker, dimensions, this->needToComputeVbap);
 
-    this->setListTripletFromVbap();
+    if (retval) {
+        this->setListTripletFromVbap();
+        this->needToComputeVbap = false;
+    }
 
     // Restore mute/solo/directout states (only for inputs)
     this->jackClient->soloIn = soloIn;
@@ -1424,7 +1418,8 @@ void MainContentComponent::openXmlFileSpeaker(String path) {
             this->applicationProperties.getUserSettings()->setValue("lastSpeakerSetupDirectory", 
                                                                     File(this->pathCurrentFileSpeaker).getParentDirectory().getFullPathName());
         }
-        updateLevelComp();
+        this->needToComputeVbap = true;
+        this->updateLevelComp();
     } else {
         if (isNewSameAsOld == 0) {
 #ifdef __linux__

@@ -954,7 +954,7 @@ void jackClientGris::connectedGristoSystem()
 }
 
 bool jackClientGris::initSpeakersTripplet(vector<Speaker *>  listSpk,
-                                          int dimensions)
+                                          int dimensions, bool needToComputeVbap)
 {
     int j;
     if(listSpk.size() <= 0) {
@@ -980,12 +980,15 @@ bool jackClientGris::initSpeakersTripplet(vector<Speaker *>  listSpk,
         lss[i].angles.length = listSpeakerOut[j].radius;
         outputPatches[i] = listSpeakerOut[j].outputPatch;
     }
-    
-    listSourceIn[0].paramVBap = init_vbap_from_speakers(lss, listSpk.size(),
-                                                        dimensions, outputPatches,
-                                                        this->maxOutputPatch, NULL);
-    for(int i = 1; i < MaxInputs ; i++){
-        listSourceIn[i].paramVBap = copy_vbap_data(listSourceIn[0].paramVBap);
+
+    if (needToComputeVbap) {
+        this->paramVBap = init_vbap_from_speakers(lss, listSpk.size(),
+                                                  dimensions, outputPatches,
+                                                  this->maxOutputPatch, NULL);
+    }
+
+    for(int i = 0; i < MaxInputs ; i++){
+        listSourceIn[i].paramVBap = copy_vbap_data(this->paramVBap);
     }
 
     int **triplets;

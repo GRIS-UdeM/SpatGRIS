@@ -478,13 +478,14 @@ void WindowEditSpeaker::buttonClicked(Button *button)
     if (button == this->butAddSpeaker) {
         this->mainParent->addSpeaker();
         updateWinContent();
+        this->mainParent->needToComputeVbap = true;
         this->tableListSpeakers.selectRow(this->getNumRows()-1);
     }
     else if (button == this->butcompSpeakers) {
-        // TODO: Should return a value to tell if there is an error or not.
-        this->mainParent->updateLevelComp();
-        if (tripletState) {
-            this->mainParent->setShowTriplets(true);
+        if (this->mainParent->updateLevelComp()) {
+            if (tripletState) {
+                this->mainParent->setShowTriplets(true);
+            }
         }
     }
     else if (button == this->butAddRing) {
@@ -502,13 +503,14 @@ void WindowEditSpeaker::buttonClicked(Button *button)
             
         }
         updateWinContent();
+        this->mainParent->needToComputeVbap = true;
         this->tableListSpeakers.selectRow(this->getNumRows()-1);
-
     }
     else if (button->getName() != "" && (button->getName().getIntValue() >= 0 &&
         button->getName().getIntValue() <= this->mainParent->getListSpeaker().size())) {
         this->mainParent->removeSpeaker(button->getName().getIntValue());
         updateWinContent();
+        this->mainParent->needToComputeVbap = true;
     }
     else {
         int row = button->getName().getIntValue() - 1000;
@@ -519,6 +521,7 @@ void WindowEditSpeaker::buttonClicked(Button *button)
             this->mainParent->getListSpeaker()[row]->setDirectOut(false);
         }
         updateWinContent();
+        this->mainParent->needToComputeVbap = true;
     }
 }
 
@@ -732,6 +735,7 @@ void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, con
             }
         }
         this->updateWinContent();
+        this->mainParent->needToComputeVbap = true;
         this->mainParent->getLockSpeakers()->unlock();
     }
 }

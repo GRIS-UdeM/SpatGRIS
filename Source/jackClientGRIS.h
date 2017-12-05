@@ -338,7 +338,7 @@ public:
 
     //SpeakerLoad
     unsigned int vbapDimensions;
-    bool initSpeakersTripplet(vector<Speaker *>  listSpk, int dimensions);
+    bool initSpeakersTripplet(vector<Speaker *>  listSpk, int dimensions, bool needToComputeVbap);
     void updateSourceVbap(int idS);
     int vbapSourcesToUpdate[MaxInputs];
     
@@ -347,6 +347,7 @@ private:
     bool clientReady;
     int recordFormat = 0; // 0 = WAV, 1 = AIFF
     String recordPath = "";
+    VBAP_DATA * paramVBap;
 
     void connectedGristoSystem();
     

@@ -109,6 +109,11 @@ static float clip(float val, float min, float max) {
     else { return val; }
 }
 
+/* Returns the vector length without the sqrt. */
+static float vec_long_length(CART_VEC v1) {
+    return v1.x * v1.x + v1.y * v1.y + v1.z * v1.z;
+}
+
 /* Returns the vector length. */
 static float vec_length(CART_VEC v1) {
     return sqrtf(v1.x * v1.x + v1.y * v1.y + v1.z * v1.z);
@@ -128,7 +133,8 @@ static float vec_prod(CART_VEC v1, CART_VEC v2) {
 
 static float vec_angle(CART_VEC v1, CART_VEC v2) {
     float inner;
-    inner = (vec_prod(v1, v2) / (vec_length(v1) * vec_length(v2)));
+    //inner = (vec_prod(v1, v2) / (vec_length(v1) * vec_length(v2)));
+    inner = (vec_prod(v1, v2) / sqrtf(vec_long_length(v1) * vec_long_length(v2)));
     inner = clip(inner, -1.0, 1.0);
     return fabsf(acosf(inner));
 }
@@ -173,9 +179,9 @@ static float vol_p_side_lgth(int i, int j, int k, ls lss[MAX_LS_AMOUNT]) {
     CART_VEC xprod;
     cross_prod(lss[i].coords, lss[j].coords, &xprod);
     volper = fabsf(vec_prod(xprod, lss[k].coords));
-    lgth = (fabsf(vec_angle(lss[i].coords,lss[j].coords)) +
-            fabsf(vec_angle(lss[i].coords,lss[k].coords)) +
-            fabsf(vec_angle(lss[j].coords,lss[k].coords)));
+    lgth = (fabsf(vec_angle(lss[i].coords, lss[j].coords)) +
+            fabsf(vec_angle(lss[i].coords, lss[k].coords)) +
+            fabsf(vec_angle(lss[j].coords, lss[k].coords)));
     if (lgth > 0.00001)
         return volper / lgth;
     else
@@ -907,6 +913,7 @@ void choose_ls_triplets(ls lss[MAX_LS_AMOUNT],
         fprintf(stderr, "Number of loudspeakers is zero.\nExiting!\n");
         exit(-1);
     }
+
     for(i=0; i<ls_amount; i++) {
         for(j=i+1; j<ls_amount; j++) {
             for(k=j+1; k<ls_amount; k++) {
@@ -928,6 +935,7 @@ void choose_ls_triplets(ls lss[MAX_LS_AMOUNT],
     for(i=0; i<table_size; i++) {
         distance_table[i] = 100000.0;
     }
+
     for(i=0; i<ls_amount; i++) { 
         for(j=(i+1); j<ls_amount; j++) { 
             if(connections[i][j] == 1) {
@@ -1185,19 +1193,19 @@ VBAP_DATA * init_vbap_from_speakers(ls lss[MAX_LS_AMOUNT], int count,
     data->ls_set_am = i;
     data->ls_sets = (LS_SET *)malloc(sizeof(LS_SET) * i);
 
-        i = 0;
-        ls_ptr = ls_triplets;
-        while (ls_ptr != NULL) {
-            for (j=0; j<data->dimension; j++) {
-                //data->ls_sets[i].ls_nos[j] = ls_ptr->ls_nos[j] + offset;
-                data->ls_sets[i].ls_nos[j] = outputPatches[ls_ptr->ls_nos[j] + offset - 1];
-            }
-            for (j=0; j<(data->dimension*data->dimension); j++) {
-                data->ls_sets[i].inv_mx[j] = ls_ptr->inv_mx[j];
-            }
-            ls_ptr = ls_ptr->next;
-            i++;
+    i = 0;
+    ls_ptr = ls_triplets;
+    while (ls_ptr != NULL) {
+        for (j=0; j<data->dimension; j++) {
+            //data->ls_sets[i].ls_nos[j] = ls_ptr->ls_nos[j] + offset;
+            data->ls_sets[i].ls_nos[j] = outputPatches[ls_ptr->ls_nos[j] + offset - 1];
         }
+        for (j=0; j<(data->dimension*data->dimension); j++) {
+            data->ls_sets[i].inv_mx[j] = ls_ptr->inv_mx[j];
+        }
+        ls_ptr = ls_ptr->next;
+        i++;
+    }
 
     free_ls_triplet_chain(ls_triplets);
 
