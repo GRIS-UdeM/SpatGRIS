@@ -48,23 +48,21 @@ static void jack_client_log(const char* format, ...) {
 static void muteSoloVuMeterIn(jackClientGris & jackCli, jack_default_audio_sample_t ** ins, const jack_nframes_t &nframes, const unsigned int &sizeInputs){
     
     float sumsIn[sizeInputs];
-    fill(jackCli.levelsIn, jackCli.levelsIn+sizeInputs, -60.0f);
-    fill(sumsIn, sumsIn+sizeInputs, 0.0f);
     
-    //Mute, solo & Vu meter ---------------
     for (int i = 0; i < sizeInputs; ++i) {
-        //Mute ----------------
-        if(jackCli.listSourceIn[i].isMuted){
-            memset (ins[i], 0, sizeof (jack_default_audio_sample_t) * nframes);
+        // Mute ----------------
+        if (jackCli.listSourceIn[i].isMuted) {
+            memset(ins[i], 0, sizeof(jack_default_audio_sample_t) * nframes);
         }
-        //Solo ----------------
-        if(jackCli.soloIn){
-            if(!jackCli.listSourceIn[i].isSolo){
-                memset (ins[i], 0, sizeof (jack_default_audio_sample_t) * nframes);
+        // Solo ----------------
+        else if (jackCli.soloIn) {
+            if (!jackCli.listSourceIn[i].isSolo) {
+                memset (ins[i], 0, sizeof(jack_default_audio_sample_t) * nframes);
             }
         }
-        //Vu Meter ----------------
-        for(int nF = 0; nF < nframes; ++nF) {
+        // Vu Meter ----------------
+        sumsIn[i] = ins[i][0] * ins[i][0];
+        for(int nF = 1; nF < nframes; ++nF) {
             sumsIn[i] +=  ins[i][nF] * ins[i][nF];
         }
         jackCli.levelsIn[i] = sqrtf(sumsIn[i] / nframes);
@@ -76,8 +74,6 @@ static void muteSoloVuMeterGainOut(jackClientGris & jackCli, jack_default_audio_
                                    const float mGain = 1.0f) {
     int num_of_channels;
     float sumsOut[sizeOutputs];
-    fill(jackCli.levelsOut, jackCli.levelsOut+sizeOutputs, -60.0f);
-    fill(sumsOut, sumsOut+sizeOutputs, 0.0f);
 
     if (jackCli.modeSelected == VBap) {
         num_of_channels = sizeOutputs;
@@ -85,31 +81,27 @@ static void muteSoloVuMeterGainOut(jackClientGris & jackCli, jack_default_audio_
         num_of_channels = 2;
     }
     
-    //Var for Record 
-    const unsigned int sizeMenCpy = nframes * sizeof(jack_default_audio_sample_t);
-    const unsigned int bufferIndexNext = jackCli.indexRecord + nframes;
-    
-    //Mute, solo & Vu meter && Record -------------
     for (int i = 0; i < sizeOutputs; ++i) {
-        //Mute ----------------
-        if(jackCli.listSpeakerOut[i].isMuted){
-            memset (outs[i], 0, sizeof (jack_default_audio_sample_t) * nframes);
+        // Mute ----------------
+        if (jackCli.listSpeakerOut[i].isMuted) {
+            memset(outs[i], 0, sizeof(jack_default_audio_sample_t) * nframes);
         }
-        //Solo ----------------
-        if(jackCli.soloOut){
-            if(!jackCli.listSpeakerOut[i].isSolo){
-                memset (outs[i], 0, sizeof (jack_default_audio_sample_t) * nframes);
+        // Solo ----------------
+        else if (jackCli.soloOut) {
+            if (!jackCli.listSpeakerOut[i].isSolo) {
+                memset(outs[i], 0, sizeof(jack_default_audio_sample_t) * nframes);
             }
         }
-        //Vu Meter ----------------
-        for(int nF = 0; nF < nframes; ++nF) {
-            //Gain volume
+        // Vu Meter ----------------
+        outs[i][0] *= mGain; // Master volume
+        sumsOut[i] = outs[i][0] * outs[i][0];
+        for (int nF = 1; nF < nframes; ++nF) {
             outs[i][nF] *= mGain;
             sumsOut[i] +=  outs[i][nF] * outs[i][nF];
         }
         jackCli.levelsOut[i] = sqrtf(sumsOut[i] / nframes);
         
-        //Record buffer ---------------
+        // Record buffer ---------------
         if (jackCli.recording && i < num_of_channels) {
             if (int_vector_contains(jackCli.outputPatches, i+1)) {
                 jackCli.recorder[i].recordSamples(&outs[i], (int)nframes);
@@ -117,7 +109,7 @@ static void muteSoloVuMeterGainOut(jackClientGris & jackCli, jack_default_audio_
         }
     }
     
-    //Record - Up index ----------
+    // Record - Up index ----------
     if (!jackCli.recording && jackCli.indexRecord > 0) {
         for (int i = 0; i < sizeOutputs; ++i) {
             if (int_vector_contains(jackCli.outputPatches, i+1) && i < num_of_channels) {
@@ -160,10 +152,16 @@ static void addNoiseSound(jackClientGris & jackCli, jack_default_audio_sample_t 
 static void processVBAP(jackClientGris & jackCli, jack_default_audio_sample_t ** ins, jack_default_audio_sample_t ** outs,
                         const jack_nframes_t &nframes, const unsigned int &sizeInputs, const unsigned int &sizeOutputs)
 {
-    int f, i, o;
-    float y, gain, iogain = 0.0;
+    int f, i, o, ilinear;
+    float y, interpG, gain, iogain = 0.0;
     double inval = 0.0, val = 0.0;
-    float interpG = powf(jackCli.interMaster, 0.1) * 0.0099 + 0.99;
+
+    if (jackCli.interMaster == 0.0) {
+        ilinear = 1;
+    } else {
+        ilinear = 0;
+        interpG = powf(jackCli.interMaster, 0.1) * 0.0099 + 0.99;
+    }
 
     for (i = 0; i < sizeInputs; ++i) {
         if (jackCli.vbapSourcesToUpdate[i] == 1) {
@@ -173,17 +171,25 @@ static void processVBAP(jackClientGris & jackCli, jack_default_audio_sample_t **
     }
 
     for (o = 0; o < sizeOutputs; ++o) {
-        memset (outs[o], 0, sizeof (jack_default_audio_sample_t) * nframes);
+        memset(outs[o], 0, sizeof(jack_default_audio_sample_t) * nframes);
         for (i = 0; i < sizeInputs; ++i) {
             if (!jackCli.listSourceIn[i].directOut) {
                 iogain = jackCli.listSourceIn[i].paramVBap->gains[o];
                 y = jackCli.listSourceIn[i].paramVBap->y[o];
-                for (f = 0; f < nframes; ++f) {
-                    y = iogain + (y - iogain) * interpG;
-                    if (y < 0.0000000000001f) {
-                        y = 0.0;
-                    } else {
+                if (ilinear) {
+                    interpG = (iogain - y) / nframes;
+                    for (f = 0; f < nframes; ++f) {
+                        y += interpG;
                         outs[o][f] += ins[i][f] * y;
+                    }
+                } else {
+                    for (f = 0; f < nframes; ++f) {
+                        y = iogain + (y - iogain) * interpG;
+                        if (y < 0.0000000000001f) {
+                            y = 0.0;
+                        } else {
+                            outs[o][f] += ins[i][f] * y;
+                        }
                     }
                 }
                 jackCli.listSourceIn[i].paramVBap->y[o] = y;
@@ -361,28 +367,28 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
     jackClientGris* jackCli = (jackClientGris*)arg;
     
     //================ Return if user edit speaker ==============================
-    if(!jackCli->processBlockOn){
+    if (!jackCli->processBlockOn) {
         for (int i = 0; i < jackCli->outputsPort.size(); ++i) {
-            memset (((jack_default_audio_sample_t*)jack_port_get_buffer (jackCli->outputsPort[i], nframes)), 0, sizeof (jack_default_audio_sample_t) * nframes);
-            jackCli->levelsOut[i] = -60.0f;
+            memset(((jack_default_audio_sample_t*)jack_port_get_buffer(jackCli->outputsPort[i], nframes)),
+                   0, sizeof(jack_default_audio_sample_t) * nframes);
+            jackCli->levelsOut[i] = 0.0f;
         }
         return 0;
     }
     
     //================ LOAD BUFFER ============================================
-    const unsigned int sizeInputs = (unsigned int)jackCli->inputsPort.size() ;
-    const unsigned int sizeOutputs = (unsigned int)jackCli->outputsPort.size() ;
+    const unsigned int sizeInputs = (unsigned int)jackCli->inputsPort.size();
+    const unsigned int sizeOutputs = (unsigned int)jackCli->outputsPort.size();
     
-    
-    //Get all buffer from all input - output
+    // Get all buffer from all input - output
     jack_default_audio_sample_t * ins[sizeInputs];
     jack_default_audio_sample_t * outs[sizeOutputs];
     
     for (int i = 0; i < sizeInputs; i++) {
-        ins[i] = (jack_default_audio_sample_t*)jack_port_get_buffer (jackCli->inputsPort[i], nframes);
+        ins[i] = (jack_default_audio_sample_t *)jack_port_get_buffer(jackCli->inputsPort[i], nframes);
     }
     for (int i = 0; i < sizeOutputs; i++) {
-        outs[i] = (jack_default_audio_sample_t*)jack_port_get_buffer (jackCli->outputsPort[i], nframes);
+        outs[i] = (jack_default_audio_sample_t *)jack_port_get_buffer(jackCli->outputsPort[i], nframes);
     }
 
     //================ INPUTS ===============================================
@@ -390,27 +396,23 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
 
     //================ PROCESS ==============================================    
     switch ((ModeSpatEnum)jackCli->modeSelected) {
-        
         case VBap:
-            //VBAP Spat ----------------------------------------------------
+            //VBAP ----------------------------------------------------
             processVBAP(*jackCli, ins, outs, nframes, sizeInputs, sizeOutputs);
             break;
-        
         case DBap:
             break;
-            
         case HRTF_LOW:
         case HRTF_HIGH:
             processHRTF(*jackCli, ins, outs, nframes, sizeInputs, sizeOutputs);
             break;
-
         default:
             jassertfalse;
             break;
     }
 
-    //NoiseSound-----------------------------------------------
-    if(jackCli->noiseSound){
+    // Noise Sound-----------------------------------------------
+    if (jackCli->noiseSound) {
         addNoiseSound(*jackCli, outs, nframes, sizeOutputs);
     }
 
