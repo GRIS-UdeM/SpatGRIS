@@ -749,9 +749,8 @@ void build_speakers_list(SPEAKERS_SETUP *setup, ls lss[MAX_LS_AMOUNT]) {
 void sort_2D_lss(ls lss[MAX_LS_AMOUNT],
                  int sorted_lss[MAX_LS_AMOUNT],
                  int ls_amount) {
-    int i, j, index;
-    float x, y, tmp, tmp_azi;
-    float rad2ang = (float)(360.0 / ( 2 * M_PI));
+    int i, j, index = 0;
+    float tmp, tmp_azi;
 
     /* Transforming angles between -180 and 180. */
     for (i=0; i<ls_amount; i++) {
@@ -786,7 +785,6 @@ void sort_2D_lss(ls lss[MAX_LS_AMOUNT],
  */
 int calc_2D_inv_tmatrix(float azi1, float azi2, float inv_mat[4]) {
     float x1, x2, x3, x4; /* x1 x3 */
-    float y1, y2, y3, y4; /* x2 x4 */
     float det;
     x1 = cosf(azi1);
     x2 = sinf(azi1);
@@ -814,9 +812,7 @@ int calc_2D_inv_tmatrix(float azi1, float azi2, float inv_mat[4]) {
 void choose_ls_tuplets(ls lss[MAX_LS_AMOUNT],
                        ls_triplet_chain **ls_triplets,
                        int ls_amount) {
-    float atorad = (float)(2 * M_PI / 360);
-    int i, j, k, amount = 0;
-    float w1, w2, p1, p2;
+    int i, j, amount = 0;
     int sorted_lss[MAX_LS_AMOUNT];
     int exist[MAX_LS_AMOUNT];
     float inv_mat[MAX_LS_AMOUNT][4];
@@ -1158,7 +1154,7 @@ VBAP_DATA * init_vbap_data(SPEAKERS_SETUP *setup, int **triplets) {
 VBAP_DATA * init_vbap_from_speakers(ls lss[MAX_LS_AMOUNT], int count,
                                     int dim, int outputPatches[MAX_LS_AMOUNT],
                                     int maxOutputPatch, int **triplets) {
-    int i, j, k, offset = 0;
+    int i, j, offset = 0;
     ls_triplet_chain *ls_triplets = NULL;
     ls_triplet_chain *ls_ptr;
     VBAP_DATA *data = (VBAP_DATA *)malloc(sizeof(VBAP_DATA));

@@ -83,10 +83,11 @@ void SpeakerViewComponent::render()
     gluPerspective(80, (float)this->getWidth()/this->getHeight(), 0.5f, 75.0f);
     glMatrixMode(GL_MODELVIEW);
 
-    float degToRad = M_PI / 180.0f;
-    float camX = -distance * sinf(camAngleX*degToRad) * cosf(camAngleY*degToRad);
+    float degToRad = 0.017453292519943295; // M_PI / 180.0f;
+    float cosY = cosf(camAngleY*degToRad);
+    float camX = -distance * sinf(camAngleX*degToRad) * cosY;
     float camY = distance * sinf(camAngleY*degToRad);
-    float camZ = distance * cosf(camAngleX*degToRad) * cosf(camAngleY*degToRad);
+    float camZ = distance * cosf(camAngleX*degToRad) * cosY;
 
     glLoadIdentity();
     gluLookAt(camX, camY, camZ, 0, 0, 0, 0, 1, 0);
@@ -96,7 +97,7 @@ void SpeakerViewComponent::render()
 
     if (this->mainParent->getLockSpeakers()->try_lock()) {
         if (!this->hideSpeaker) {
-            for (int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
+            for (unsigned int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
                 this->mainParent->getListSpeaker()[i]->draw();
                 if (this->showNumber) {
                     glm::vec3 posT = this->mainParent->getListSpeaker()[i]->getCenter();
@@ -118,7 +119,7 @@ void SpeakerViewComponent::render()
     // a flicker in the 3D drawing. -belangeo
 
     if (true) { //(this->mainParent->getLockInputs()->try_lock()) {
-        for (int i = 0; i < this->mainParent->getListSourceInput().size(); ++i) {
+        for (unsigned int i = 0; i < this->mainParent->getListSourceInput().size(); ++i) {
             Input *input = this->mainParent->getListSourceInput()[i];
             input->draw();
             if (this->showNumber && input->getGain() != -1.0) {
@@ -134,7 +135,7 @@ void SpeakerViewComponent::render()
     if(this->showShpere){
         if(this->mainParent->getLockSpeakers()->try_lock()){
             float maxRadius = 0.0f;;
-            for(int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
+            for(unsigned int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
                 if(abs(this->mainParent->getListSpeaker()[i]->getAziZenRad().z*10.f) > maxRadius){
                     maxRadius = abs(this->mainParent->getListSpeaker()[i]->getAziZenRad().z*10.0f) ;
                 }
@@ -164,8 +165,8 @@ void SpeakerViewComponent::render()
 void SpeakerViewComponent::paint (Graphics& g)
 {
     g.setColour(Colours::white);
-    g.setFont  (16);
-    g.drawText (this->nameConfig, 18, 18, 300, 30, Justification::left);
+    g.setFont(16);
+    g.drawText(this->nameConfig, 18, 18, 300, 30, Justification::left);
 }
 
 
@@ -190,7 +191,7 @@ void SpeakerViewComponent::clickRay()
     int iBestSpeaker = -1;
     int selected = -1;
     if (this->mainParent->getLockSpeakers()->try_lock()) {
-        for (int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
+        for (unsigned int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
             if (this->mainParent->getListSpeaker()[i]->isSelected()) {
                 selected = i;
             }
@@ -280,29 +281,28 @@ void SpeakerViewComponent::drawBackground()
 
 void SpeakerViewComponent::drawOriginGrid()
 {
-    int     i;
-    double  angle;
-    //Draw circle------------------------
+    int i;
+    double angle;
+    // Draw circle ------------------------
     glLineWidth(1.5f);
     
-    //glColor3f(0, 0, 0);
     glColor3f(0.59, 0.59, 0.59);
     glBegin(GL_LINE_LOOP);
-    for(i = 0; i <= 180; ++i){
+    for (i = 0; i <= 180; ++i) {
         angle = (M2_PI * i / 180);
         glVertex3f(cos(angle)*5.0f, 0.0f, sin(angle)*5.0f);
     }
     glEnd();
     
     glBegin(GL_LINE_LOOP);
-    for(i = 0; i <= 180; ++i){
+    for (i = 0; i <= 180; ++i) {
         angle = (M2_PI * i / 180);
         glVertex3f(cos(angle)*10.0f, 0.0f, sin(angle)*10.0f);
     }
     glEnd();
     
     
-    //3D RGB line----------------------
+    // 3D RGB line ----------------------
     glLineWidth(2);
     glBegin(GL_LINES);
     glColor3f(0.4, 0, 0); glVertex3f(-10, 0, 0); glVertex3f(0, 0, 0);
@@ -313,7 +313,7 @@ void SpeakerViewComponent::drawOriginGrid()
     glEnd();
 
     
-    //Grid-----------------------------
+    // Grid -----------------------------
     glLineWidth(1);
     glColor3f(0.49, 0.49, 0.49);
     
@@ -427,7 +427,7 @@ void SpeakerViewComponent::drawTextOnGrid(string val, glm::vec3 position,float s
 }
 
 void SpeakerViewComponent::drawTrippletConn() {
-    for (int i = 0; i < this->mainParent->getListTriplet().size(); ++i) {
+    for (unsigned int i = 0; i < this->mainParent->getListTriplet().size(); ++i) {
         Speaker *spk1 = this->mainParent->getSpeakerFromOutputPatch(this->mainParent->getListTriplet()[i].id1);
         Speaker *spk2 = this->mainParent->getSpeakerFromOutputPatch(this->mainParent->getListTriplet()[i].id2);
         Speaker *spk3 = this->mainParent->getSpeakerFromOutputPatch(this->mainParent->getListTriplet()[i].id3);

@@ -61,12 +61,6 @@ static const glm::vec3 SizeSpeaker          = glm::vec3(0.5, 0.5, 0.5);
 static const glm::vec3 DefaultCenter        = glm::vec3(0, 0, 0);
 static const float     Over                 = 0.02f;
 
-static double GetFloatPrecision(double value, double precision)
-{
-    return (floor((value * pow(10, precision) + 0.5)) / pow(10, precision));
-}
-
-
 class Speaker : 
                 public ParentLevelComponent
 {

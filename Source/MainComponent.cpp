@@ -548,7 +548,7 @@ void MainContentComponent::setShowTriplets(bool state) {
 
 bool MainContentComponent::validateShowTriplets() {
     int success = true;
-    for (int i = 0; i < this->getListTriplet().size(); ++i) {
+    for (unsigned int i = 0; i < this->getListTriplet().size(); ++i) {
         Speaker *spk1 = this->getSpeakerFromOutputPatch(this->getListTriplet()[i].id1);
         Speaker *spk2 = this->getSpeakerFromOutputPatch(this->getListTriplet()[i].id2);
         Speaker *spk3 = this->getSpeakerFromOutputPatch(this->getListTriplet()[i].id3);
@@ -919,7 +919,7 @@ MainContentComponent::~MainContentComponent()
 
 void MainContentComponent::selectSpeaker(int idS)
 {
-    for(int i = 0; i < this->listSpeaker.size(); ++i) {
+    for(unsigned int i = 0; i < this->listSpeaker.size(); ++i) {
         if(i!=idS)
         {
             this->listSpeaker[i]->unSelectSpeaker();
@@ -935,7 +935,7 @@ void MainContentComponent::selectSpeaker(int idS)
 void MainContentComponent::selectTripletSpeaker(int idS)
 {
     int countS = 0;
-    for(int i = 0; i < this->listSpeaker.size(); ++i) {
+    for(unsigned int i = 0; i < this->listSpeaker.size(); ++i) {
         if(this->listSpeaker[i]->isSelected()){
             countS+=1;
         }
@@ -950,7 +950,7 @@ void MainContentComponent::selectTripletSpeaker(int idS)
 
     if(countS == 3){
         int i1 = -1, i2= -1, i3 = -1;
-        for(int i = 0; i < this->listSpeaker.size(); ++i) {
+        for(unsigned int i = 0; i < this->listSpeaker.size(); ++i) {
             if(this->listSpeaker[i]->isSelected()){
                 if(i1 == -1){
                     i1=i;
@@ -1055,7 +1055,7 @@ void MainContentComponent::updateInputJack(int inInput, Input &inp)
 
 void MainContentComponent::setListTripletFromVbap() {
     this->clearListTriplet();
-    for (int i=0; i<this->jackClient->vbap_triplets.size(); i++) {
+    for (unsigned int i=0; i<this->jackClient->vbap_triplets.size(); i++) {
         Triplet tri;
         tri.id1 = this->jackClient->vbap_triplets[i][0];
         tri.id2 = this->jackClient->vbap_triplets[i][1];
@@ -1089,7 +1089,6 @@ Linkwitz_Riley_compute_variables(double freq, double sr, double **coeffs, int le
     double sq_tmp1 = sqrt2 * wc3 * k;
     double sq_tmp2 = sqrt2 * wc * k3;
     double a_tmp = 4.0 * wc2 * k2 + 2.0 * sq_tmp1 + k4 + 2.0 * sq_tmp2 + wc4;
-    double wc4_a_tmp = wc4 / a_tmp;
     double k4_a_tmp = k4 / a_tmp;
 
     *coeffs = (double *)malloc(length * sizeof(double));
@@ -1154,7 +1153,7 @@ bool MainContentComponent::updateLevelComp() {
     bool inputsIsSolo[MaxInputs];
     bool soloIn = this->jackClient->soloIn;
     int directOuts[MaxInputs];
-    for (int i = 0; i < MaxInputs; i++) {
+    for (unsigned int i = 0; i < MaxInputs; i++) {
         inputsIsMuted[i] = (&this->jackClient->listSourceIn[i])->isMuted;
         inputsIsSolo[i] = (&this->jackClient->listSourceIn[i])->isSolo;
         directOuts[i] = (&this->jackClient->listSourceIn[i])->directOut;
@@ -1277,7 +1276,7 @@ bool MainContentComponent::updateLevelComp() {
 
     // Restore mute/solo/directout states (only for inputs)
     this->jackClient->soloIn = soloIn;
-    for (int i = 0; i < MaxInputs; i++) {
+    for (unsigned int i = 0; i < MaxInputs; i++) {
         (&this->jackClient->listSourceIn[i])->isMuted = inputsIsMuted[i];
         (&this->jackClient->listSourceIn[i])->isSolo = inputsIsSolo[i];
         (&this->jackClient->listSourceIn[i])->directOut = directOuts[i];
@@ -1321,7 +1320,7 @@ void MainContentComponent::soloInput(int id, bool solo)
     (&this->jackClient->listSourceIn[id-1])->isSolo = solo;
 
     this->jackClient->soloIn = false;
-    for (int i = 0; i < MaxInputs; i++) {
+    for (unsigned int i = 0; i < MaxInputs; i++) {
         if((&this->jackClient->listSourceIn[i])->isSolo){
             this->jackClient->soloIn = true;
             break;
@@ -1333,7 +1332,7 @@ void MainContentComponent::soloOutput(int id, bool solo)
     (&this->jackClient->listSpeakerOut[id-1])->isSolo = solo;
     
     this->jackClient->soloOut = false;
-    for (int i = 0; i < MaxOutputs; i++) {
+    for (unsigned int i = 0; i < MaxOutputs; i++) {
         if((&this->jackClient->listSpeakerOut[i])->isSolo){
             this->jackClient->soloOut = true;
             break;
@@ -1748,7 +1747,7 @@ void MainContentComponent::textEditorReturnKeyPressed (TextEditor & textEditor)
             
             this->lockInputs->lock();
             bool addInput = false;
-            for (int i = 0 ; i < this->jackClient->inputsPort.size(); i++) {
+            for (unsigned int i = 0 ; i < this->jackClient->inputsPort.size(); i++) {
                 if (i >= this->listSourceInput.size()) {
                     this->listSourceInput.push_back(new Input(this, &mGrisFeel,i+1));
                     addInput = true;

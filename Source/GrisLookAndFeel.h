@@ -383,7 +383,7 @@ public:
             if (! button.isEnabled())
                 g.setOpacity (0.5f);
                 
-                const int textX = (int) tickWidth + 5;
+            const int textX = (int) tickWidth + 5;
             
             g.drawFittedText (button.getButtonText(),
                               textX, 0,

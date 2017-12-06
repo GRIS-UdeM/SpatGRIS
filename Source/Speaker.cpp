@@ -21,6 +21,11 @@
 #include "MainComponent.h"
 #include "LevelComponent.h"
 
+static double GetFloatPrecision(double value, double precision)
+{
+    return (floor((value * pow(10, precision) + 0.5)) / pow(10, precision));
+}
+
 Speaker::Speaker(MainContentComponent *parent, int idS)
 {
     Speaker(parent, idS, idS, glm::vec3(0,0,0));

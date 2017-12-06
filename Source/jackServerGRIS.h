@@ -140,7 +140,8 @@ public:
                 union jackctl_parameter_value value;
                 value.ui = rateValue;
                 value.i = rateValue;
-                int i = jackctl_parameter_set_value(parameter, &value);
+                jackctl_parameter_set_value(parameter, &value);
+                //int i = jackctl_parameter_set_value(parameter, &value);
                 #if PRINT_SERVER
                 printf("> %s \n",i? "true" : "false");
                 #endif

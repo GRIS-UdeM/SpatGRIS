@@ -45,11 +45,12 @@ static void jack_client_log(const char* format, ...) {
 //=========================================================================================
 //MUTE SOLO MasterGainOut and NOISE
 //=========================================================================================
-static void muteSoloVuMeterIn(jackClientGris & jackCli, jack_default_audio_sample_t ** ins, const jack_nframes_t &nframes, const unsigned int &sizeInputs){
+static void muteSoloVuMeterIn(jackClientGris & jackCli, jack_default_audio_sample_t ** ins,
+                              const jack_nframes_t &nframes, const unsigned int &sizeInputs) {
     
     float sumsIn[sizeInputs];
     
-    for (int i = 0; i < sizeInputs; ++i) {
+    for (unsigned int i = 0; i < sizeInputs; ++i) {
         // Mute ----------------
         if (jackCli.listSourceIn[i].isMuted) {
             memset(ins[i], 0, sizeof(jack_default_audio_sample_t) * nframes);
@@ -62,7 +63,7 @@ static void muteSoloVuMeterIn(jackClientGris & jackCli, jack_default_audio_sampl
         }
         // Vu Meter ----------------
         sumsIn[i] = ins[i][0] * ins[i][0];
-        for(int nF = 1; nF < nframes; ++nF) {
+        for(unsigned int nF = 1; nF < nframes; ++nF) {
             sumsIn[i] +=  ins[i][nF] * ins[i][nF];
         }
         jackCli.levelsIn[i] = sqrtf(sumsIn[i] / nframes);
@@ -72,7 +73,7 @@ static void muteSoloVuMeterIn(jackClientGris & jackCli, jack_default_audio_sampl
 static void muteSoloVuMeterGainOut(jackClientGris & jackCli, jack_default_audio_sample_t ** outs,
                                    const jack_nframes_t &nframes, const unsigned int &sizeOutputs,
                                    const float mGain = 1.0f) {
-    int num_of_channels;
+    unsigned int num_of_channels;
     float sumsOut[sizeOutputs];
 
     if (jackCli.modeSelected == VBap) {
@@ -81,7 +82,7 @@ static void muteSoloVuMeterGainOut(jackClientGris & jackCli, jack_default_audio_
         num_of_channels = 2;
     }
     
-    for (int i = 0; i < sizeOutputs; ++i) {
+    for (unsigned int i = 0; i < sizeOutputs; ++i) {
         // Mute ----------------
         if (jackCli.listSpeakerOut[i].isMuted) {
             memset(outs[i], 0, sizeof(jack_default_audio_sample_t) * nframes);
@@ -95,7 +96,7 @@ static void muteSoloVuMeterGainOut(jackClientGris & jackCli, jack_default_audio_
         // Vu Meter ----------------
         outs[i][0] *= mGain; // Master volume
         sumsOut[i] = outs[i][0] * outs[i][0];
-        for (int nF = 1; nF < nframes; ++nF) {
+        for (unsigned int nF = 1; nF < nframes; ++nF) {
             outs[i][nF] *= mGain;
             sumsOut[i] +=  outs[i][nF] * outs[i][nF];
         }
@@ -111,7 +112,7 @@ static void muteSoloVuMeterGainOut(jackClientGris & jackCli, jack_default_audio_
     
     // Record - Up index ----------
     if (!jackCli.recording && jackCli.indexRecord > 0) {
-        for (int i = 0; i < sizeOutputs; ++i) {
+        for (unsigned int i = 0; i < sizeOutputs; ++i) {
             if (int_vector_contains(jackCli.outputPatches, i+1) && i < num_of_channels) {
                 jackCli.recorder[i].stop();
             }
@@ -127,7 +128,7 @@ static void addNoiseSound(jackClientGris & jackCli, jack_default_audio_sample_t 
                           const jack_nframes_t &nframes, const unsigned int &sizeOutputs) {
     float rnd, val;
     float fac = 1.0f / (RAND_MAX / 2.0f);
-    for(int nF = 0; nF < nframes; ++nF) {
+    for(unsigned int nF = 0; nF < nframes; ++nF) {
         rnd = rand() * fac - 1.0f;
         jackCli.c0 = jackCli.c0 * 0.99886f + rnd * 0.0555179f;
         jackCli.c1 = jackCli.c1 * 0.99332f + rnd * 0.0750759f;
@@ -140,7 +141,7 @@ static void addNoiseSound(jackClientGris & jackCli, jack_default_audio_sample_t 
         val *= 0.1f; // -20 dB
         jackCli.c6 = rnd * 0.115926f;
 
-        for (int i = 0; i < sizeOutputs; i++) {
+        for (unsigned int i = 0; i < sizeOutputs; i++) {
             outs[i][nF] += val;
         }
     }
@@ -152,7 +153,7 @@ static void addNoiseSound(jackClientGris & jackCli, jack_default_audio_sample_t 
 static void processVBAP(jackClientGris & jackCli, jack_default_audio_sample_t ** ins, jack_default_audio_sample_t ** outs,
                         const jack_nframes_t &nframes, const unsigned int &sizeInputs, const unsigned int &sizeOutputs)
 {
-    int f, i, o, ilinear;
+    unsigned int f, i, o, ilinear;
     float y, interpG, gain, iogain = 0.0;
     double inval = 0.0, val = 0.0;
 
@@ -193,7 +194,7 @@ static void processVBAP(jackClientGris & jackCli, jack_default_audio_sample_t **
                     }
                 }
                 jackCli.listSourceIn[i].paramVBap->y[o] = y;
-            } else if ((jackCli.listSourceIn[i].directOut - 1) == o) {
+            } else if ((unsigned int)(jackCli.listSourceIn[i].directOut - 1) == o) {
                 for (f = 0; f < nframes; ++f) {
                     outs[o][f] += ins[i][f];
                 }
@@ -230,12 +231,13 @@ static void processVBAP(jackClientGris & jackCli, jack_default_audio_sample_t **
 static void 
 processHRTF(jackClientGris & jackCli, jack_default_audio_sample_t ** ins, jack_default_audio_sample_t ** outs,
             const jack_nframes_t &nframes, const unsigned int &sizeInputs, const unsigned int &sizeOutputs) {
-    int f, i, k, tmp_count, azim_index_down, azim_index_up, elev_index, elev_index_array;
+    unsigned int f, i, k, o;
+    int tmp_count, azim_index_down, azim_index_up, elev_index, elev_index_array;
     float azi, ele, norm_elev, sig, elev_frac, elev_frac_inv;
     float azim_frac_down, azim_frac_inv_down, azim_frac_up, azim_frac_inv_up, cross_coeff, cross_coeff_inv;
     float *interp_rise, *interp_down;
 
-    for (int o = 0; o < sizeOutputs; ++o) {
+    for (o = 0; o < sizeOutputs; ++o) {
         memset(outs[o], 0, sizeof(jack_default_audio_sample_t) * nframes);
     }
 
@@ -368,7 +370,7 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
     
     //================ Return if user edit speaker ==============================
     if (!jackCli->processBlockOn) {
-        for (int i = 0; i < jackCli->outputsPort.size(); ++i) {
+        for (unsigned int i = 0; i < jackCli->outputsPort.size(); ++i) {
             memset(((jack_default_audio_sample_t*)jack_port_get_buffer(jackCli->outputsPort[i], nframes)),
                    0, sizeof(jack_default_audio_sample_t) * nframes);
             jackCli->levelsOut[i] = 0.0f;
@@ -384,10 +386,10 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
     jack_default_audio_sample_t * ins[sizeInputs];
     jack_default_audio_sample_t * outs[sizeOutputs];
     
-    for (int i = 0; i < sizeInputs; i++) {
+    for (unsigned int i = 0; i < sizeInputs; i++) {
         ins[i] = (jack_default_audio_sample_t *)jack_port_get_buffer(jackCli->inputsPort[i], nframes);
     }
-    for (int i = 0; i < sizeOutputs; i++) {
+    for (unsigned int i = 0; i < sizeOutputs; i++) {
         outs[i] = (jack_default_audio_sample_t *)jack_port_get_buffer(jackCli->outputsPort[i], nframes);
     }
 
@@ -597,7 +599,7 @@ jackClientGris::jackClientGris(unsigned int bufferS) {
     this->recording = false;
     this->hrtfOn = false; // Do we need this var?
 
-    for (int i=0; i < MaxInputs; ++i) {
+    for (unsigned int i=0; i < MaxInputs; ++i) {
         this->vbapSourcesToUpdate[i] = 0;
     }
 
@@ -659,7 +661,7 @@ jackClientGris::jackClientGris(unsigned int bufferS) {
     //---------------------------------------------------
     // Initialize highpass filter delay samples
     //---------------------------------------------------
-    for (int i=0; i<MaxOutputs; i++) {
+    for (unsigned int i=0; i<MaxOutputs; i++) {
         this->x1[i] = 0.0;
         this->x2[i] = 0.0;
         this->x3[i] = 0.0;
@@ -798,7 +800,7 @@ jackClientGris::jackClientGris(unsigned int bufferS) {
 void jackClientGris::setHrtfImpulseLength(int length) {
     this->HrtfImpulseLength = length;
     this->hrtf_sample_count = 0;
-    for (int i=0; i<MaxInputs; i++) {
+    for (unsigned int i=0; i<MaxInputs; i++) {
         this->hrtf_count[i] = 0;
         this->hrtf_last_azi[i] = 0.0f;
         this->hrtf_last_ele[i] = 0.0f;
@@ -894,7 +896,7 @@ void jackClientGris::connectedGristoSystem()
 {
     String nameOut;
     this->clearOutput();
-    for (int i = 0; i < this->maxOutputPatch; i++) {
+    for (unsigned int i = 0; i < this->maxOutputPatch; i++) {
         nameOut = "output";
         nameOut += String(this->outputsPort.size() + 1);
         jack_port_t* newPort = jack_port_register(this->client,  nameOut.toUTF8(), JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput,  0);
@@ -941,7 +943,7 @@ void jackClientGris::connectedGristoSystem()
 
     // Build output patch list
     this->outputPatches.clear();
-    for (int i = 0; i < this->outputsPort.size(); i++) {
+    for (unsigned int i = 0; i < this->outputsPort.size(); i++) {
         if (this->listSpeakerOut[i].outputPatch != 0) {
             this->outputPatches.push_back(this->listSpeakerOut[i].outputPatch);
         }
@@ -965,7 +967,7 @@ bool jackClientGris::initSpeakersTripplet(vector<Speaker *>  listSpk,
     ls lss[MAX_LS_AMOUNT];
     int outputPatches[MAX_LS_AMOUNT];
 
-    for(int i = 0; i < listSpk.size() ; i++) {
+    for(unsigned int i = 0; i < listSpk.size() ; i++) {
         for (j = 0; j < MAX_LS_AMOUNT; j++) {
             if (listSpk[i]->getOutputPatch() == listSpeakerOut[j].outputPatch && !listSpeakerOut[j].directOut) {
                 break;
@@ -986,7 +988,7 @@ bool jackClientGris::initSpeakersTripplet(vector<Speaker *>  listSpk,
                                                   this->maxOutputPatch, NULL);
     }
 
-    for(int i = 0; i < MaxInputs ; i++){
+    for(unsigned int i = 0; i < MaxInputs ; i++){
         listSourceIn[i].paramVBap = copy_vbap_data(this->paramVBap);
     }
 
@@ -1247,11 +1249,11 @@ unsigned int jackClientGris::getPortStartClient(String nameClient)
 
 jackClientGris::~jackClientGris() {
     jack_deactivate(this->client);
-    for(int i = 0 ; i < this->inputsPort.size() ; i++){
+    for(unsigned int i = 0 ; i < this->inputsPort.size() ; i++){
         jack_port_unregister(this->client, this->inputsPort[i]);
     }
     
-    for(int i = 0 ; i < this->outputsPort.size()  ; i++){
+    for(unsigned int i = 0 ; i < this->outputsPort.size()  ; i++){
         jack_port_unregister(this->client, this->outputsPort[i]);
     }
     jack_client_close(this->client);
