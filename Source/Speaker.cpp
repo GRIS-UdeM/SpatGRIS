@@ -233,15 +233,23 @@ void Speaker::newPosition(glm::vec3 center, glm::vec3 extents)
     float azimuth = ( (atan2(this->center.x, this->center.z) * 180.0f) / M_PI) +90.0f;
     float zenith = ( atan2(this->center.y, sqrt(this->center.x*this->center.x + this->center.z*this->center.z)) * 180.0f) / M_PI;
     float radius = sqrt((this->center.x*this->center.x)+(this->center.y*this->center.y)+(this->center.z*this->center.z));
-    azimuth = 180.0f-azimuth;
-    if(azimuth < 0.0f){
-        azimuth+=360.0f;
+    azimuth = 180.0f - azimuth;
+
+    if (azimuth < 0.0f) {
+        azimuth += 360.0f;
     }
-    if(zenith < -90.0f){
+    if (zenith < -90.0f) {
         zenith = -90.0f;
-    }
-    if(zenith > 90.0f){
+    } else if (zenith > 90.0f) {
         zenith = 90.0f;
+    }
+    azimuth = roundf(azimuth);
+    if (azimuth == -0.0f) {
+        azimuth = 0.0f;
+    }
+    zenith = roundf(zenith);
+    if (zenith == -0.0f) {
+        zenith = 0.0f;
     }
     this->aziZenRad = glm::vec3(azimuth, zenith, radius);
 }

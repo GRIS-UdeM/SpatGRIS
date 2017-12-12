@@ -631,40 +631,40 @@ String WindowEditSpeaker::getText (const int columnNumber, const int rowNumber) 
     if (this->mainParent->getListSpeaker().size() > rowNumber) {
         switch(columnNumber){
             case 1 :
-                text =String(this->mainParent->getListSpeaker()[rowNumber]->getIdSpeaker());
+                text = String(this->mainParent->getListSpeaker()[rowNumber]->getIdSpeaker());
                 break;
             case 2 :
-                text =String(this->mainParent->getListSpeaker()[rowNumber]->getCoordinate().x);
+                text = String(this->mainParent->getListSpeaker()[rowNumber]->getCoordinate().x);
                 break;
             case 3 :
-                text =String(this->mainParent->getListSpeaker()[rowNumber]->getCoordinate().z);
+                text = String(this->mainParent->getListSpeaker()[rowNumber]->getCoordinate().z);
                 break;
             case 4 :
-                text =String(this->mainParent->getListSpeaker()[rowNumber]->getCoordinate().y);
+                text = String(this->mainParent->getListSpeaker()[rowNumber]->getCoordinate().y);
                 break;
             case 5 :
-                text =String(this->mainParent->getListSpeaker()[rowNumber]->getAziZenRad().x);
+                text = String(this->mainParent->getListSpeaker()[rowNumber]->getAziZenRad().x);
                 break;
             case 6 :
-                text =String(this->mainParent->getListSpeaker()[rowNumber]->getAziZenRad().y);
+                text = String(this->mainParent->getListSpeaker()[rowNumber]->getAziZenRad().y);
                 break;
             case 7 :
-                text =String(this->mainParent->getListSpeaker()[rowNumber]->getAziZenRad().z);
+                text = String(this->mainParent->getListSpeaker()[rowNumber]->getAziZenRad().z);
                 break;
             case 8 :
-                text =String(this->mainParent->getListSpeaker()[rowNumber]->getOutputPatch());
+                text = String(this->mainParent->getListSpeaker()[rowNumber]->getOutputPatch());
                 break;
             case 9:
-                text =String(this->mainParent->getListSpeaker()[rowNumber]->getGain());
+                text = String(this->mainParent->getListSpeaker()[rowNumber]->getGain());
                 break;
             case 10:
-                text =String(this->mainParent->getListSpeaker()[rowNumber]->getHighPassCutoff());
+                text = String(this->mainParent->getListSpeaker()[rowNumber]->getHighPassCutoff());
                 break;
             case 11:
-                text =String(this->mainParent->getListSpeaker()[rowNumber]->getDirectOut());
+                text = String(this->mainParent->getListSpeaker()[rowNumber]->getDirectOut());
                 break;
             default:
-                text ="?";
+                text = "?";
         }
     }
 
@@ -674,6 +674,7 @@ String WindowEditSpeaker::getText (const int columnNumber, const int rowNumber) 
 
 void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, const String& newText)
 {
+    int ival;
     float val;
     if(this->mainParent->getLockSpeakers()->try_lock()) {
         if (this->mainParent->getListSpeaker().size() > rowNumber) {
@@ -696,15 +697,15 @@ void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, con
                     break;
                 case 5 :
                     newP = this->mainParent->getListSpeaker()[rowNumber]->getAziZenRad();
-                    newP.x = newText.getFloatValue();
+                    newP.x = (int)roundf(newText.getFloatValue());
                     this->mainParent->getListSpeaker()[rowNumber]->setAziZenRad(newP);
                     break;
                 case 6 :
                     newP = this->mainParent->getListSpeaker()[rowNumber]->getAziZenRad();
-                    val = newText.getFloatValue();
-                    if (val < -90.0f) { val = -90.0f; }
-                    else if (val > 90.0f) { val = 90.0f; }
-                    newP.y = val;
+                    ival = (int)roundf(newText.getFloatValue());
+                    if (ival < -90) { ival = -90; }
+                    else if (ival > 90) { ival = 90; }
+                    newP.y = ival;
                     this->mainParent->getListSpeaker()[rowNumber]->setAziZenRad(newP);
                     break;
                 case 7 :
