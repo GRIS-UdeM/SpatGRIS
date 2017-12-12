@@ -715,7 +715,13 @@ void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, con
                     break;
                 case 8:
                     this->mainParent->setShowTriplets(false);
-                    this->mainParent->getListSpeaker()[rowNumber]->setOutputPatch(newText.getIntValue());
+                    ival = newText.getIntValue();
+                    if (ival < 0) {
+                        ival = 0;
+                    } else if (ival > 256) {
+                        ival = 256;
+                    }
+                    this->mainParent->getListSpeaker()[rowNumber]->setOutputPatch(ival);
                     break;
                 case 9 :
                     val = newText.getFloatValue();
