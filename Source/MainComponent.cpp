@@ -1050,6 +1050,8 @@ void MainContentComponent::updateInputJack(int inInput, Input &inp)
         this->jackClient->vbapSourcesToUpdate[inInput] = 1;
     } else if (this->jackClient->modeSelected == HRTF_LOW || this->jackClient->modeSelected == HRTF_HIGH) {
         // nothing to do yet.
+    } else if (this->jackClient->modeSelected == STEREO) {
+        // nothing to do yet.
     }
 }
 
@@ -1837,6 +1839,12 @@ void MainContentComponent::comboBoxChanged (ComboBox *comboBox)
                 this->labelModeInfo->setText("Ready", dontSendNotification);
                 this->labelModeInfo->setColour(Label::textColourId, mGrisFeel.getGreenColour());
                 this->sliderInterpolation->setEnabled(false);
+                this->isSpanShown = false;
+                break;
+            case STEREO:
+                this->labelModeInfo->setText("Ready", dontSendNotification);
+                this->labelModeInfo->setColour(Label::textColourId, mGrisFeel.getGreenColour());
+                this->sliderInterpolation->setEnabled(true);
                 this->isSpanShown = false;
                 break;
             default:

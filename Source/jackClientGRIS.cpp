@@ -21,6 +21,7 @@
 #include "jackClientGRIS.h"
 #include "vbap.h"
 #include "Speaker.h"
+#include "MainComponent.h"
 
 static bool jack_client_log_print = false;
 
@@ -78,7 +79,7 @@ static void muteSoloVuMeterGainOut(jackClientGris & jackCli, jack_default_audio_
 
     if (jackCli.modeSelected == VBap) {
         num_of_channels = sizeOutputs;
-    } else if (jackCli.modeSelected == HRTF_LOW || jackCli.modeSelected == HRTF_HIGH) {
+    } else if (jackCli.modeSelected == HRTF_LOW || jackCli.modeSelected == HRTF_HIGH || jackCli.modeSelected == STEREO) {
         num_of_channels = 2;
     }
     
@@ -362,6 +363,62 @@ processHRTF(jackClientGris & jackCli, jack_default_audio_sample_t ** ins, jack_d
 }
 
 //=========================================================================================
+// STEREO
+//=========================================================================================
+static void processSTEREO(jackClientGris & jackCli, jack_default_audio_sample_t ** ins, jack_default_audio_sample_t ** outs,
+                        const jack_nframes_t &nframes, const unsigned int &sizeInputs, const unsigned int &sizeOutputs)
+{
+    unsigned int f, i;
+    float azi, last_azi, scaled;
+    float factor = M_PI2 / 180.0f;
+    float interpG = powf(jackCli.interMaster, 0.1) * 0.0099 + 0.99;
+    float gain = powf(10.0f, (sizeInputs - 1) * -0.1f * 0.05f);
+
+    for (i = 0; i < sizeOutputs; ++i) {
+        memset(outs[i], 0, sizeof(jack_default_audio_sample_t) * nframes);
+    }
+
+    for (i = 0; i < sizeInputs; ++i) {
+        if (!jackCli.listSourceIn[i].directOut) {
+            azi = jackCli.listSourceIn[i].azimuth;
+            last_azi = jackCli.last_azi[i];
+            for (f = 0; f < nframes; ++f) {
+                /* Removes the chirp at 180->-180 degrees azimuth boundary. */
+                if (abs(last_azi - azi) > 300.0f) {
+                    last_azi = azi;
+                }
+                last_azi = azi + (last_azi - azi) * interpG;
+                if (last_azi < -90.0f) {
+                    scaled = -90.0f - (last_azi + 90.0f);
+                } else if (last_azi > 90) {
+                    scaled = 90.0f - (last_azi - 90.0f);
+                } else {
+                    scaled = last_azi;
+                }
+                scaled = (scaled + 90) * factor;
+                outs[0][f] += ins[i][f] * cosf(scaled);
+                outs[1][f] += ins[i][f] * sinf(scaled);
+            }
+            jackCli.last_azi[i] = last_azi;
+
+        } else if ((jackCli.listSourceIn[i].directOut) == 1) {
+            for (f = 0; f < nframes; ++f) {
+                outs[0][f] += ins[i][f];
+            }
+        } else if ((jackCli.listSourceIn[i].directOut) == 2) {
+            for (f = 0; f < nframes; ++f) {
+                outs[1][f] += ins[i][f];
+            }
+        }
+    }
+    /* Apply gain compensation. */
+    for (f = 0; f < nframes; ++f) {
+        outs[0][f] *= gain;
+        outs[1][f] *= gain;
+    }
+}
+
+//=========================================================================================
 //MASTER PROCESS
 //=========================================================================================
 static int process_audio (jack_nframes_t nframes, void* arg) {
@@ -407,6 +464,9 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
         case HRTF_LOW:
         case HRTF_HIGH:
             processHRTF(*jackCli, ins, outs, nframes, sizeInputs, sizeOutputs);
+            break;
+        case STEREO:
+            processSTEREO(*jackCli, ins, outs, nframes, sizeInputs, sizeOutputs);
             break;
         default:
             jassertfalse;
@@ -655,8 +715,14 @@ jackClientGris::jackClientGris(unsigned int bufferS) {
     }
 
     this->setHrtfImpulseLength(128);
+    //---------------------------------------------------
 
     //---------------------------------------------------
+    // Initialize STEREO data
+    //---------------------------------------------------
+    for (unsigned int i=0; i < MaxInputs; ++i) {
+        this->last_azi[i] = 0.0f;
+    }
 
     //---------------------------------------------------
     // Initialize highpass filter delay samples
@@ -832,7 +898,7 @@ void jackClientGris::prepareToRecord()
 
     if (this->modeSelected == VBap) {
         num_of_channels = this->outputsPort.size();
-    } else if (this->modeSelected == HRTF_LOW || this->modeSelected == HRTF_HIGH) {
+    } else if (this->modeSelected == HRTF_LOW || this->modeSelected == HRTF_HIGH || this->modeSelected == STEREO) {
         num_of_channels = 2;
     }
 
