@@ -37,7 +37,7 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
-#include "GrisLookAndFeel.h"
+#include "SmallTextGrisLookAndFeel.h"
 #include "ParentLevelComponent.h"
 
 
@@ -51,7 +51,7 @@ class Input :   public ParentLevelComponent
 {
 
 public :
-    Input(MainContentComponent * parent, GrisLookAndFeel * feel, int id = 0);
+    Input(MainContentComponent * parent, SmallTextGrisLookAndFeel * feel, int id = 0);
     ~Input();
     
     //ParentLevelComponent ===============================
@@ -113,7 +113,7 @@ private:
     
     LevelComponent *vuMeter;
     MainContentComponent * mainParent;
-    GrisLookAndFeel * grisFeel;
+    SmallTextGrisLookAndFeel * grisFeel;
 
 };
 #endif /* Input_h */

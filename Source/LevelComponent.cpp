@@ -21,7 +21,7 @@
 #include "Speaker.h"
 
 //======================================= LevelBox =====================================================================
-LevelBox::LevelBox(LevelComponent * parent, GrisLookAndFeel *feel):
+LevelBox::LevelBox(LevelComponent * parent, SmallTextGrisLookAndFeel *feel):
 mainParent(parent),
 grisFeel(feel)
 {
@@ -35,26 +35,26 @@ LevelBox::~LevelBox()
 
 void LevelBox::setBounds(const Rectangle<int> &newBounds)
 {
-    // LevelBox size is (27, 140)
+    // LevelBox size is (22, 140)
     this->juce::Component::setBounds(newBounds);
 
     colorGrad = ColourGradient(Colours::red, 0.f, 0.f, Colour::fromRGB(17, 255, 159), 0.f, getHeight(), false);
     colorGrad.addColour(0.1, Colours::yellow);
 
     // Create vu-meter foreground image.
-    this->vumeterBit = Image(Image::RGB, 27, 140, true);
+    this->vumeterBit = Image(Image::RGB, 21, 140, true);
     Graphics gf (this->vumeterBit);
     gf.setGradientFill(colorGrad);
     gf.fillRect(0, 0, getWidth(), getHeight());
 
     // Create vu-meter background image.
-    this->vumeterBackBit = Image(Image::RGB, 27, 140, true);
+    this->vumeterBackBit = Image(Image::RGB, 21, 140, true);
     Graphics gb (this->vumeterBackBit);
     gb.setColour(grisFeel->getDarkColour());
     gb.fillRect(0, 0, getWidth(), getHeight());
 
     // Create vu-meter muted image.
-    this->vumeterMutedBit = Image(Image::RGB, 27, 140, true);
+    this->vumeterMutedBit = Image(Image::RGB, 21, 140, true);
     Graphics gm (this->vumeterMutedBit);
     gm.setColour(grisFeel->getWinBackgroundColour());
     gm.fillRect(0, 0, getWidth(), getHeight());
@@ -62,11 +62,11 @@ void LevelBox::setBounds(const Rectangle<int> &newBounds)
     // Draw ticks on images.
     gf.setColour(this->grisFeel->getDarkColour());
     gf.setFont(10.0f);
-    gb.setColour(this->grisFeel->getEditBackgroundColour());
+    gb.setColour(this->grisFeel->getScrollBarColour());
     gb.setFont(10.0f);
     gm.setColour(this->grisFeel->getScrollBarColour());
     gm.setFont(10.0f);
-    int start = getWidth() - 5;
+    int start = getWidth() - 3;
     int y = 0;
     for (int i=1; i<10; i++) {
         y = i * 14;
@@ -84,7 +84,7 @@ void LevelBox::setBounds(const Rectangle<int> &newBounds)
 void LevelBox::paint(Graphics& g)
 {
     if (this->mainParent->isMuted()) {
-        g.drawImage(this->vumeterMutedBit, 0, 0, 27, 140, 0, 0, 27, 140);
+        g.drawImage(this->vumeterMutedBit, 0, 0, 22, 140, 0, 0, 22, 140);
     } else {
         float level = this->mainParent->getLevel();
         if (level < MinLevelComp) {
@@ -95,13 +95,13 @@ void LevelBox::paint(Graphics& g)
 
         int h = (int)(level * -2.33333334);
         int rel = 140 - h;
-        g.drawImage(this->vumeterBit, 0, h, 27, rel, 0, h, 27, rel);
-        g.drawImage(this->vumeterBackBit, 0, 0, 27, h, 0, 0, 27, h);
+        g.drawImage(this->vumeterBit, 0, h, 22, rel, 0, h, 22, rel);
+        g.drawImage(this->vumeterBackBit, 0, 0, 22, h, 0, 0, 22, h);
     }
 }
 
 //======================================================================================================================
-LevelComponent::LevelComponent(ParentLevelComponent* parent, GrisLookAndFeel *feel, bool colorful)
+LevelComponent::LevelComponent(ParentLevelComponent* parent, SmallTextGrisLookAndFeel *feel, bool colorful)
 {
     this->mainParent = parent;
     this->grisFeel = feel;
@@ -111,7 +111,7 @@ LevelComponent::LevelComponent(ParentLevelComponent* parent, GrisLookAndFeel *fe
     this->idBut = new TextButton();
     this->idBut->setButtonText(String(this->mainParent->getId()));
     this->idBut->setTooltip(String(this->mainParent->getId()));
-    this->idBut->setSize(28, 17);
+    this->idBut->setSize(22, 17);
     //this->idBut->setJustificationType(Justification::centred);
     //this->idBut->setMinimumHorizontalScale(1);
     this->idBut->setTopLeftPosition(0, 0);
@@ -127,7 +127,7 @@ LevelComponent::LevelComponent(ParentLevelComponent* parent, GrisLookAndFeel *fe
     //ToggleButton=========================================================
     this->muteToggleBut = new ToggleButton();
     this->muteToggleBut->setButtonText("m");
-    this->muteToggleBut->setSize(17, 15);
+    this->muteToggleBut->setSize(13, 15);
     this->muteToggleBut->setTooltip ("Mute "+String(this->mainParent->getId()));
     this->muteToggleBut->addListener(this);
     this->muteToggleBut->setToggleState(false, dontSendNotification);
@@ -138,7 +138,7 @@ LevelComponent::LevelComponent(ParentLevelComponent* parent, GrisLookAndFeel *fe
     //ToggleButton=========================================================
     this->soloToggleBut = new ToggleButton();
     this->soloToggleBut->setButtonText("s");
-    this->soloToggleBut->setSize(17, 15);
+    this->soloToggleBut->setSize(13, 15);
     this->soloToggleBut->setTooltip ("Solo "+String(this->mainParent->getId()));
     this->soloToggleBut->addListener(this);
     this->soloToggleBut->setToggleState(false, dontSendNotification);
@@ -152,7 +152,7 @@ LevelComponent::LevelComponent(ParentLevelComponent* parent, GrisLookAndFeel *fe
         this->directOut = new TextButton();
         this->directOut->setButtonText("-");
         this->directOut->setTooltip("Select a direct output channel.");
-        this->directOut->setSize(28, 17);
+        this->directOut->setSize(22, 17);
         //this->directOut->setJustificationType(Justification::centred);
         //this->directOut->setMinimumHorizontalScale(1);
         this->directOut->setColour(Label::textColourId, this->grisFeel->getFontColour());
@@ -307,7 +307,7 @@ void LevelComponent::setBounds(const Rectangle<int> &newBounds)
     juce::Rectangle<int> labRect(0, 0, newBounds.getWidth(), this->idBut->getHeight());
     this->idBut->setBounds(labRect);
     this->muteToggleBut->setBounds(0, 158, this->muteToggleBut->getWidth(), this->muteToggleBut->getHeight());
-    this->soloToggleBut->setBounds(this->muteToggleBut->getWidth()-4, 158,
+    this->soloToggleBut->setBounds(this->muteToggleBut->getWidth()-2, 158,
                                    this->muteToggleBut->getWidth(), this->muteToggleBut->getHeight());
     if (this->mainParent->isInput()) {
         this->directOut->setBounds(0, getHeight()-27, newBounds.getWidth(), this->directOut->getHeight());

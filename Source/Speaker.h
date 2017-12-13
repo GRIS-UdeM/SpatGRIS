@@ -38,7 +38,7 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
-#include "GrisLookAndFeel.h"
+#include "SmallTextGrisLookAndFeel.h"
 #include "ParentLevelComponent.h"
 
 
@@ -143,7 +143,7 @@ private :
     MainContentComponent *mainParent;
     LevelComponent *vuMeter;
     
-    GrisLookAndFeel mGrisFeel;
+    SmallTextGrisLookAndFeel mGrisFeel;
 
     int directOutChannel; // not used for output.
     
