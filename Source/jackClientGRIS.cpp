@@ -340,13 +340,13 @@ processHRTF(jackClientGris & jackCli, jack_default_audio_sample_t ** ins, jack_d
                     tmp_count--;
                 }
                 jackCli.hrtf_count[i]++;
-                if (jackCli.hrtf_count[i] == jackCli.HrtfImpulseLength) {
+                if (jackCli.hrtf_count[i] >= jackCli.HrtfImpulseLength) {
                     jackCli.hrtf_count[i] = 0;
                 }
                 jackCli.hrtf_input_tmp[i][jackCli.hrtf_count[i]] = ins[i][f];
 
                 jackCli.hrtf_sample_count += 1;
-                if (jackCli.hrtf_sample_count == jackCli.HrtfImpulseLength) {
+                if (jackCli.hrtf_sample_count >= jackCli.HrtfImpulseLength) {
                     jackCli.hrtf_sample_count = 0;
                 }
             }
