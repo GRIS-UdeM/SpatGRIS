@@ -43,8 +43,10 @@ class SmallTextGrisLookAndFeel    : public LookAndFeel_V3 {
 private:
     
     float fontSize;
+    float menubarFontSize;
 
     Font  font = Font(juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf, (size_t) BinaryData::SinkinSans400Regular_otfSize));
+    Font  menubarFont = Font(juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf, (size_t) BinaryData::SinkinSans400Regular_otfSize));
 
     Colour backGroundAndFieldColour, winBackGroundAndFieldColour;
     Colour lightColour, darkColour, greyColour, editBgcolor, hlBgcolor;
@@ -96,9 +98,11 @@ public:
 #if WIN32
         this->fontSize = 18.f;
 #else
-        this->fontSize = 8.0f; /* Only this is different from the official LookAndFeel. */
+        this->fontSize = 8.0f;
+        this->menubarFontSize = 10.0f;
 #endif
-        this->font.setHeight(this->fontSize);       
+        this->font.setHeight(this->fontSize);
+        this->menubarFont.setHeight(this->menubarFontSize);
     }
     
     Font getFont(){
@@ -114,7 +118,7 @@ public:
         return this->font;
     }
     Font getMenuBarFont	(MenuBarComponent &, int itemIndex, const String & itemText) override{
-        return this->font;
+        return this->menubarFont;
     }
     
     Colour getWinBackgroundColour(){
