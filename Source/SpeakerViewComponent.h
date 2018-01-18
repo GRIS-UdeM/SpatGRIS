@@ -71,7 +71,12 @@ public:
     void mouseDown(const MouseEvent& e)override;
     void mouseDrag(const MouseEvent& e)override;
     void mouseWheelMove(const MouseEvent& e,const MouseWheelDetails& wheel)override;
-    
+
+    float getCamAngleX() { return this->camAngleX; };
+    float getCamAngleY() { return this->camAngleY; };
+    float getCamDistance() { return this->distance; };
+
+    void setCamPosition(float angleX, float angleY, float distance);
     
 private:
     

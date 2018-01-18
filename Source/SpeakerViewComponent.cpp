@@ -56,6 +56,12 @@ void SpeakerViewComponent::shutdown()
 {
 }
 
+void SpeakerViewComponent::setCamPosition(float angleX, float angleY, float distance) {
+    this->camAngleX = angleX;
+    this->camAngleY = angleY;
+    this->distance = distance;
+}
+
 void SpeakerViewComponent::render()
 {
     glEnable(GL_DEPTH_TEST);

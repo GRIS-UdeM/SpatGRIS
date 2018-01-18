@@ -1460,17 +1460,48 @@ void MainContentComponent::openPreset(String path)
             this->sliderInterpolation->setValue(mainXmlElem->getDoubleAttribute("Master_Interpolation", 0.33), sendNotification);
             this->comBoxModeSpat->setSelectedItemIndex(mainXmlElem->getIntAttribute("Mode_Process"),sendNotification);
             this->setShowNumbers(mainXmlElem->getBoolAttribute("Show_Numbers"));
+            this->setHighPerformance(mainXmlElem->getBoolAttribute("High_Performance"));
             if (mainXmlElem->hasAttribute("Show_Speakers")) {
                 this->setShowSpeakers(mainXmlElem->getBoolAttribute("Show_Speakers"));
             } else {
                 this->setShowSpeakers(true);
             }
-            this->setHighPerformance(mainXmlElem->getBoolAttribute("High_Performance"));
+            if (mainXmlElem->hasAttribute("Show_Triplets")) {
+                this->setShowTriplets(mainXmlElem->getBoolAttribute("Show_Triplets"));
+            } else {
+                this->setShowTriplets(false);
+            }
             if (mainXmlElem->hasAttribute("Use_Alpha")) {
                 this->isSourceLevelShown = mainXmlElem->getBoolAttribute("Use_Alpha");
             } else {
                 this->isSourceLevelShown = false;
             }
+            if (mainXmlElem->hasAttribute("Use_Alpha")) {
+                this->isSourceLevelShown = mainXmlElem->getBoolAttribute("Use_Alpha");
+            } else {
+                this->isSourceLevelShown = false;
+            }
+            if (mainXmlElem->hasAttribute("Show_Speaker_Level")) {
+                this->isSpeakerLevelShown = mainXmlElem->getBoolAttribute("Show_Speaker_Level");
+            } else {
+                this->isSpeakerLevelShown = false;
+            }
+            if (mainXmlElem->hasAttribute("Show_Sphere")) {
+                this->isSphereShown = mainXmlElem->getBoolAttribute("Show_Sphere");
+            } else {
+                this->isSphereShown = false;
+            }
+            this->speakerView->setShowSphere(this->isSphereShown);
+
+            if (mainXmlElem->hasAttribute("CamAngleX")) {
+                float angleX = mainXmlElem->getDoubleAttribute("CamAngleX");
+                float angleY = mainXmlElem->getDoubleAttribute("CamAngleY");
+                float distance = mainXmlElem->getDoubleAttribute("CamDistance");
+                this->speakerView->setCamPosition(angleX, angleY, distance);
+            } else {
+                this->speakerView->setCamPosition(80.0f, 25.0f, 22.0f);
+            }
+
             if (mainXmlElem->hasAttribute("Record_Format")) {
                 this->jackClient->setRecordFormat(mainXmlElem->getIntAttribute("Record_Format")); // app preferences instead of project setting?
             } else {
@@ -1531,16 +1562,22 @@ void MainContentComponent::savePreset(String path)
     XmlDocument xmlDoc (xmlFile);
     ScopedPointer<XmlElement>  xml = new XmlElement("ServerGRIS_Preset");
     
-    xml->setAttribute ("OSC_Input_Port",     String(this->oscInputPort));
-    xml->setAttribute ("Number_Of_Inputs",   this->tedAddInputs->getTextValue().toString());
-    xml->setAttribute ("Master_Gain_Out",    this->sliderMasterGainOut->getValue());
-    xml->setAttribute ("Master_Interpolation",    this->sliderInterpolation->getValue());
-    xml->setAttribute ("Mode_Process",       this->comBoxModeSpat->getSelectedItemIndex());
-    xml->setAttribute ("Show_Numbers",       this->isNumbersShown);
-    xml->setAttribute ("Show_Speakers",       this->isSpeakersShown);
-    xml->setAttribute ("High_Performance",   this->isHighPerformance);
-    xml->setAttribute ("Use_Alpha",       this->isSourceLevelShown);
-    xml->setAttribute ("Record_Format",       this->jackClient->getRecordFormat());
+    xml->setAttribute("OSC_Input_Port", String(this->oscInputPort));
+    xml->setAttribute("Number_Of_Inputs", this->tedAddInputs->getTextValue().toString());
+    xml->setAttribute("Master_Gain_Out", this->sliderMasterGainOut->getValue());
+    xml->setAttribute("Master_Interpolation", this->sliderInterpolation->getValue());
+    xml->setAttribute("Mode_Process", this->comBoxModeSpat->getSelectedItemIndex());
+    xml->setAttribute("Show_Numbers", this->isNumbersShown);
+    xml->setAttribute("Show_Speakers", this->isSpeakersShown);
+    xml->setAttribute("Show_Triplets", this->isTripletsShown);
+    xml->setAttribute("High_Performance", this->isHighPerformance);
+    xml->setAttribute("Use_Alpha", this->isSourceLevelShown);
+    xml->setAttribute("Show_Speaker_Level", this->isSpeakerLevelShown);
+    xml->setAttribute("Show_Sphere", this->isSphereShown);
+    xml->setAttribute("Record_Format", this->jackClient->getRecordFormat());
+    xml->setAttribute("CamAngleX", this->speakerView->getCamAngleX());
+    xml->setAttribute("CamAngleY", this->speakerView->getCamAngleY());
+    xml->setAttribute("CamDistance", this->speakerView->getCamDistance());
     
     for (auto&& it : listSourceInput)
     {
