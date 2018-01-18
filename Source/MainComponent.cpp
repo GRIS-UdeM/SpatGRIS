@@ -84,11 +84,11 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     addAndMakeVisible(this->boxMainUI);
 
     //BOX Inputs------------------------------------------------
-    this->boxInputsUI = new Box(&mGrisFeel, "Inputs~");
+    this->boxInputsUI = new Box(&mGrisFeel, "Inputs");
     addAndMakeVisible(this->boxInputsUI);
     
     //BOX Outputs-----------------------------------------------
-    this->boxOutputsUI = new Box(&mGrisFeel, "Outputs~");
+    this->boxOutputsUI = new Box(&mGrisFeel, "Outputs");
     addAndMakeVisible(this->boxOutputsUI);
     
     //BOX Control-----------------------------------------------
