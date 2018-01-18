@@ -21,6 +21,11 @@
 #include "LevelComponent.h"
 #include "MainComponent.h"
 
+static double GetFloatPrecision(double value, double precision)
+{
+    return (floor((value * pow(10, precision) + 0.5)) / pow(10, precision));
+}
+
 //======================================= BOX ===========================================================================
 Box::Box(GrisLookAndFeel *feel, String title, bool verticalScrollbar, bool horizontalScrollbar)
 {
@@ -682,35 +687,35 @@ void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, con
             switch(columnNumber) {
                 case 2 :
                     newP = this->mainParent->getListSpeaker()[rowNumber]->getCoordinate();
-                    newP.x = newText.getFloatValue();
+                    newP.x = GetFloatPrecision(newText.getFloatValue(), 3);
                     this->mainParent->getListSpeaker()[rowNumber]->setCoordinate(newP);
                     break;
                 case 3 :
                     newP = this->mainParent->getListSpeaker()[rowNumber]->getCoordinate();
-                    newP.z = newText.getFloatValue();
+                    newP.z = GetFloatPrecision(newText.getFloatValue(), 3);
                     this->mainParent->getListSpeaker()[rowNumber]->setCoordinate(newP);
                     break;
                 case 4 :
                     newP = this->mainParent->getListSpeaker()[rowNumber]->getCoordinate();
-                    newP.y = newText.getFloatValue();
+                    newP.y = GetFloatPrecision(newText.getFloatValue(), 3);
                     this->mainParent->getListSpeaker()[rowNumber]->setCoordinate(newP);
                     break;
                 case 5 :
                     newP = this->mainParent->getListSpeaker()[rowNumber]->getAziZenRad();
-                    newP.x = (int)roundf(newText.getFloatValue());
+                    newP.x = GetFloatPrecision(newText.getFloatValue(), 2);
                     this->mainParent->getListSpeaker()[rowNumber]->setAziZenRad(newP);
                     break;
                 case 6 :
                     newP = this->mainParent->getListSpeaker()[rowNumber]->getAziZenRad();
-                    ival = (int)roundf(newText.getFloatValue());
-                    if (ival < -90) { ival = -90; }
-                    else if (ival > 90) { ival = 90; }
-                    newP.y = ival;
+                    val = GetFloatPrecision(newText.getFloatValue(), 2);
+                    if (val < -90.0f) { val = -90.0f; }
+                    else if (val > 90.0f) { val = 90.0f; }
+                    newP.y = val;
                     this->mainParent->getListSpeaker()[rowNumber]->setAziZenRad(newP);
                     break;
                 case 7 :
                     newP = this->mainParent->getListSpeaker()[rowNumber]->getAziZenRad();
-                    newP.z = newText.getFloatValue();
+                    newP.z = GetFloatPrecision(newText.getFloatValue(), 2);
                     this->mainParent->getListSpeaker()[rowNumber]->setAziZenRad(newP);
                     break;
                 case 8:

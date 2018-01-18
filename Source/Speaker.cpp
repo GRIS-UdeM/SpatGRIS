@@ -102,7 +102,7 @@ void Speaker::setCoordinate(glm::vec3 value)
 }
 void Speaker::setAziZenRad(glm::vec3 value)
 {
-    value.z = value.z*10.0f;
+    value.z = value.z * 10.0f;
     this->newSpheriqueCoord(value);
 }
 
@@ -243,14 +243,17 @@ void Speaker::newPosition(glm::vec3 center, glm::vec3 extents)
     } else if (zenith > 90.0f) {
         zenith = 90.0f;
     }
-    azimuth = roundf(azimuth);
+    azimuth = GetFloatPrecision(azimuth, 2);
     if (azimuth == -0.0f) {
         azimuth = 0.0f;
     }
-    zenith = roundf(zenith);
+    zenith = GetFloatPrecision(zenith, 2);
     if (zenith == -0.0f) {
         zenith = 0.0f;
     }
+
+    radius = GetFloatPrecision(radius, 2);
+
     this->aziZenRad = glm::vec3(azimuth, zenith, radius);
 }
 
@@ -261,9 +264,9 @@ void Speaker::newSpheriqueCoord(glm::vec3 aziZenRad, glm::vec3 extents)
     aziZenRad.x = abs( (aziZenRad.x * M_PI ) / 180.0f) ;
     aziZenRad.y = abs( ((-90.0f+aziZenRad.y) * M_PI ) / 180.0f);
     
-    nCenter.x = GetFloatPrecision(aziZenRad.z * sinf(aziZenRad.y)*cosf(aziZenRad.x), 6);
-    nCenter.z = GetFloatPrecision(aziZenRad.z * sinf(aziZenRad.y)*sinf(aziZenRad.x), 6);
-    nCenter.y = GetFloatPrecision(aziZenRad.z * cosf(aziZenRad.y), 6);
+    nCenter.x = GetFloatPrecision(aziZenRad.z * sinf(aziZenRad.y) * cosf(aziZenRad.x), 3);
+    nCenter.z = GetFloatPrecision(aziZenRad.z * sinf(aziZenRad.y) * sinf(aziZenRad.x), 3);
+    nCenter.y = GetFloatPrecision(aziZenRad.z * cosf(aziZenRad.y), 3);
     
     this->newPosition(nCenter);
 }
