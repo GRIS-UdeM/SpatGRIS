@@ -265,5 +265,28 @@ private:
     TextButton *butValidSettings;
 
 };
+
+//======================================= About Window ===========================
+class AboutWindow : public DocumentWindow,
+                    public TextButton::Listener
+{
+public:
+    AboutWindow(const String& name, Colour backgroundColour, int buttonsNeeded,
+                MainContentComponent * parent, GrisLookAndFeel * feel);
+    ~AboutWindow();
+    void buttonClicked(Button *button);
+
+
+private:
+    MainContentComponent *mainParent;
+    GrisLookAndFeel *grisFeel;
+    ImageComponent * imageComponent;
+    Label *title;
+    Label *version;
+    Label *label;
+    TextButton *close;
+
+};
+
 #endif /* UiComponent_h */
 

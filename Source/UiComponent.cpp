@@ -951,3 +951,88 @@ void WindowProperties::buttonClicked(Button *button)
 }
 
 
+//======================================= About Window ===========================
+AboutWindow::AboutWindow(const String& name, Colour backgroundColour, int buttonsNeeded,
+                              MainContentComponent * parent, GrisLookAndFeel * feel):
+    DocumentWindow(name, backgroundColour, buttonsNeeded)
+{
+    this->mainParent = parent;
+    this->grisFeel = feel;
+
+    File fs;
+#ifdef __linux__
+    fs = File ( File::getCurrentWorkingDirectory().getFullPathName() + ("/../../Resources/ServerGRIS_icon_small.png"));
+#else
+    String cwd = File::getSpecialLocation(File::currentApplicationFile).getFullPathName();
+    fs = File (cwd + ("/Contents/Resources/ServerGRIS_icon_small.png"));
+#endif
+    if(fs.exists()) {
+        Image img = ImageFileFormat::loadFrom(fs);
+        this->imageComponent = new ImageComponent("");
+        this->imageComponent->setImage(img);
+        this->imageComponent->setBounds(136, 5, 128, 127);
+        this->juce::Component::addAndMakeVisible(this->imageComponent);
+    }
+
+    this->title = new Label("AboutBox_title");
+    this->title->setText("ServerGRIS - Sound Spatialization Tool\n\n",
+                         NotificationType::dontSendNotification);
+    this->title->setJustificationType(Justification::horizontallyCentred);
+    this->title->setBounds(5, 150, 390, 50);
+    this->title->setLookAndFeel(this->grisFeel);
+    this->title->setColour(Label::textColourId, this->grisFeel->getFontColour());
+    this->juce::Component::addAndMakeVisible(this->title);
+
+    this->version = new Label("AboutBox_version");
+    this->version->setText("Version 1.0\n\n\n",
+                           NotificationType::dontSendNotification);
+    this->version->setJustificationType(Justification::horizontallyCentred);
+    this->version->setBounds(5, 180, 390, 50);
+    this->version->setLookAndFeel(this->grisFeel);
+    this->version->setColour(Label::textColourId, this->grisFeel->getFontColour());
+    this->juce::Component::addAndMakeVisible(this->version);
+
+    String infos;
+    //infos << "ServerGRIS - Sound Spatialization Tool\n\n";
+    //infos << "Version 1.0\n\n\n";
+    infos << "Developed by the G.R.I.S. at Université de Montréal\n\n";
+    infos << "(Groupe de Recherche en Immersion Spatiale)\n\n\n";
+    infos << "Director:\n\n";
+    infos << "Robert NORMANDEAU\n\n\n";
+    infos << "Programmers:\n\n";
+    infos << "Actual: Olivier BÉLANGER\n\n";
+    infos << "Former: Vincent BERTHIAUME, Nicolas MASSON, Antoine MISSOUT\n\n\n";
+    infos << "Assistants:\n\n";
+    infos << "David LEDOUX, Christophe LENGELÉ, Vincent MONASTESSE\n\n";
+
+    this->label = new Label();
+    this->label->setText(infos, NotificationType::dontSendNotification);
+    this->label->setJustificationType(Justification::left);
+    this->label->setBounds(5, 230, 390, 250);
+    this->label->setFont(this->grisFeel->getFont());
+    this->label->setLookAndFeel(this->grisFeel);
+    this->label->setColour(Label::textColourId, this->grisFeel->getFontColour());
+    this->juce::Component::addAndMakeVisible(this->label);
+
+    // -------------- Save button -------------
+    this->close = new TextButton();
+    this->close->setButtonText("Close");
+    this->close->setBounds(150, 470, 100, 22);
+    this->close->addListener(this);
+    this->close->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
+    this->close->setLookAndFeel(this->grisFeel);
+    this->juce::Component::addAndMakeVisible(this->close);
+}
+
+AboutWindow::~AboutWindow() {
+    delete this->imageComponent;
+    delete this->title;
+    delete this->version;
+    delete this->label;
+    delete this->close;
+    this->mainParent->destroyAboutWindow();
+}
+
+void AboutWindow::buttonClicked(Button *button) {
+    delete this;
+}

@@ -44,6 +44,8 @@ private:
     float fontSize;
 
     Font  font = Font(juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf, (size_t) BinaryData::SinkinSans400Regular_otfSize));
+    Font  bigFont = Font(juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf, (size_t) BinaryData::SinkinSans400Regular_otfSize));
+    Font  biggerFont = Font(juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf, (size_t) BinaryData::SinkinSans400Regular_otfSize));
 
     Colour backGroundAndFieldColour, winBackGroundAndFieldColour;
     Colour lightColour, darkColour, greyColour, editBgcolor, hlBgcolor;
@@ -98,14 +100,21 @@ public:
         this->fontSize = 10.f;
 #endif
         this->font.setHeight(this->fontSize);
+        this->bigFont.setHeight(this->fontSize + 3);
+        this->biggerFont.setHeight(this->fontSize + 6);
        
     }
     
     Font getFont(){
         return this->font;
     }
-    Font getLabelFont (Label & label) override{
-        return this->font;
+    Font getLabelFont (Label & label) override {
+        if (label.getName() == "AboutBox_title")
+            return this->biggerFont;
+        else if (label.getName() == "AboutBox_version")
+            return this->bigFont;
+        else
+            return this->font;
     }
     Font getComboBoxFont (ComboBox & comboBox) override{
         return this->font;

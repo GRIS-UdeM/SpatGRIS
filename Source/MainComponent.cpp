@@ -74,7 +74,8 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     this->winSpeakConfig = nullptr;
     this->windowProperties = nullptr;
     this->winControlSource = nullptr;
-    
+    this->aboutWindow = nullptr;
+
     //SpeakerViewComponent 3D VIEW------------------------------
     this->speakerView = new SpeakerViewComponent(this);
     addAndMakeVisible(this->speakerView);
@@ -510,6 +511,18 @@ void MainContentComponent::handleShow2DView() {
     this->winControlSource->setVisible(true);
 }
 
+void MainContentComponent::handleShowAbout() {
+    if (this->aboutWindow == nullptr) {
+        this->aboutWindow = new AboutWindow("About ServerGRIS", this->mGrisFeel.getWinBackgroundColour(),
+                                            DocumentWindow::allButtons, this, &this->mGrisFeel);
+    }
+    this->aboutWindow->centreWithSize(400, 500);
+    this->aboutWindow->setResizable(false, false);
+    this->aboutWindow->setUsingNativeTitleBar(true);
+    this->aboutWindow->setVisible(true);
+    this->aboutWindow->repaint();
+}
+
 void MainContentComponent::handleShowNumbers() {
     this->setShowNumbers(!this->isNumbersShown);
 }
@@ -645,6 +658,7 @@ void MainContentComponent::getAllCommands (Array<CommandID>& commands)
                               MainWindow::RefSoundID,
                               MainWindow::PrefsID,
                               MainWindow::QuitID,
+                              MainWindow::AboutID,
                             };
 
     commands.addArray (ids, numElementsInArray(ids));
@@ -747,6 +761,9 @@ void MainContentComponent::getCommandInfo (CommandID commandID, ApplicationComma
             result.setInfo ("Quit", "Quit the ServerGris.", generalCategory, 0);
             result.addDefaultKeypress ('Q', ModifierKeys::commandModifier);
             break;
+        case MainWindow::AboutID:
+            result.setInfo ("About ServerGRIS", "Open the about window.", generalCategory, 0);
+            break;
         default:
             break;
     }
@@ -779,6 +796,7 @@ bool MainContentComponent::perform (const InvocationInfo& info)
             case MainWindow::RefSoundID: this->handleRefSound(); break;
             case MainWindow::PrefsID: this->handleShowPreferences(); break;
             case MainWindow::QuitID: dynamic_cast<MainWindow*>(this->parent)->closeButtonPressed(); break;
+            case MainWindow::AboutID: this->handleShowAbout(); break;
             default:
                 return false;
         }
@@ -829,7 +847,10 @@ PopupMenu MainContentComponent::getMenuForIndex (int menuIndex, const String& me
         menu.addSeparator();
         menu.addCommandItem(commandManager, MainWindow::RefSoundID);
     }
-
+    else if (menuName == "Help")
+    {
+        menu.addCommandItem(commandManager, MainWindow::AboutID);
+    }
     return menu;
 }
 

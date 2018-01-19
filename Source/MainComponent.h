@@ -96,6 +96,7 @@ public:
     void handleSaveAsSpeakerSetup();
     void handleShowSpeakerEditWindow();
     void handleShowPreferences();
+    void handleShowAbout();
     void handleShow2DView();
     void handleShowNumbers();
     void setShowNumbers(bool state);
@@ -115,7 +116,7 @@ public:
 
     //==============================================================================
     StringArray getMenuBarNames() override {
-        const char* const names[] = { "File", "View", nullptr };
+        const char* const names[] = { "File", "View", "Help", nullptr };
         return StringArray (names);
     }
 
@@ -194,6 +195,7 @@ public:
     void destroyWinSpeakConf() { this->winSpeakConfig = nullptr; this->jackClient->processBlockOn = true; }
     void destroyWindowProperties() { this->windowProperties = nullptr; }
     void destroyWinControl() { this->winControlSource = nullptr; }
+    void destroyAboutWindow() { this->aboutWindow = nullptr; }
 
     //=======================================================================
     void timerCallback() override;
@@ -272,7 +274,8 @@ private:
     
     WindowEditSpeaker * winSpeakConfig;
     WindowProperties * windowProperties;
-    WinControl *        winControlSource;
+    WinControl * winControlSource;
+    AboutWindow * aboutWindow;
 
     //3 Main Box---------------------
     Box * boxMainUI;

@@ -96,6 +96,8 @@ public:
         ResetInputPosID     =   3011,
         RefSoundID          =   3100,
 
+        // Help menu
+        AboutID             =   4000,
     };
 
 private:
