@@ -31,13 +31,13 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
 
     File fs;
 #ifdef __linux__
-    fs = File ( File::getCurrentWorkingDirectory().getFullPathName() + ("/../../Resources/splash.png"));
+    fs = File ( File::getCurrentWorkingDirectory().getFullPathName() + ("/../../Resources/splash_screen.png"));
 #else
     String cwd = File::getSpecialLocation(File::currentApplicationFile).getFullPathName();
-    fs = File (cwd + ("/Contents/Resources/splash.png"));
+    fs = File (cwd + ("/Contents/Resources/splash_screen.png"));
 #endif
     if(fs.exists()) {
-        this->splash = new SplashScreen ("ServerGRIS",ImageFileFormat::loadFrom (fs),true);
+        this->splash = new SplashScreen("ServerGRIS", ImageFileFormat::loadFrom(fs), true);
     }
     
     //Local save (Last xml file open)
@@ -236,7 +236,7 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     
     //End Splash
     if(fs.exists()){
-        this->splash->deleteAfterDelay(RelativeTime::seconds (2), false);
+        this->splash->deleteAfterDelay(RelativeTime::seconds(3), false);
     }
 
     ApplicationCommandManager* commandManager = &MainWindow::getApplicationCommandManager();
