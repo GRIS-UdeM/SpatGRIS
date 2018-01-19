@@ -275,7 +275,7 @@ public:
                 MainContentComponent * parent, GrisLookAndFeel * feel);
     ~AboutWindow();
     void buttonClicked(Button *button);
-
+    void closeButtonPressed();
 
 private:
     MainContentComponent *mainParent;

@@ -984,7 +984,8 @@ AboutWindow::AboutWindow(const String& name, Colour backgroundColour, int button
     this->juce::Component::addAndMakeVisible(this->title);
 
     this->version = new Label("AboutBox_version");
-    this->version->setText("Version 1.0\n\n\n",
+    String version_num = STRING(JUCE_APP_VERSION);
+    this->version->setText("Version " + version_num + "\n\n\n",
                            NotificationType::dontSendNotification);
     this->version->setJustificationType(Justification::horizontallyCentred);
     this->version->setBounds(5, 180, 390, 50);
@@ -993,8 +994,6 @@ AboutWindow::AboutWindow(const String& name, Colour backgroundColour, int button
     this->juce::Component::addAndMakeVisible(this->version);
 
     String infos;
-    //infos << "ServerGRIS - Sound Spatialization Tool\n\n";
-    //infos << "Version 1.0\n\n\n";
     infos << "Developed by the G.R.I.S. at Université de Montréal\n\n";
     infos << "(Groupe de Recherche en Immersion Spatiale)\n\n\n";
     infos << "Director:\n\n";
@@ -1031,6 +1030,11 @@ AboutWindow::~AboutWindow() {
     delete this->label;
     delete this->close;
     this->mainParent->destroyAboutWindow();
+}
+
+void AboutWindow::closeButtonPressed()
+{
+    delete this;
 }
 
 void AboutWindow::buttonClicked(Button *button) {
