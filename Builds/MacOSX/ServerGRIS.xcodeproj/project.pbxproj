@@ -12,12 +12,14 @@
 		04CF901E6DCE0A68232B9454 /* Main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2116513B99CFF9F0DCC85055 /* Main.cpp */; };
 		083608DE849F7E27B9DE0162 /* Speaker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A6E8384CEB071AC4366E3D23 /* Speaker.cpp */; };
 		0C73D37DE849B35C4D59E3B9 /* juce_gui_basics.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7DD01A8771D09207AE6C9801 /* juce_gui_basics.mm */; };
-		0D0EEB5B1F151F05009E8D7E /* splash.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D0EEB5A1F151F05009E8D7E /* splash.png */; };
 		0D0EEB5D1F152084009E8D7E /* default_preset in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D0EEB5C1F152084009E8D7E /* default_preset */; };
 		0D573AD51EC38A05007605B1 /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D573AD41EC38A05007605B1 /* GLUT.framework */; };
 		0D76540CEB135C65E2C77E42 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A49E2EA8DC00B3CFBC3B8FC /* Cocoa.framework */; };
 		0DC163381F15427700CD15DD /* JAS.jpil in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0DC163371F15427700CD15DD /* JAS.jpil */; };
-		0DCEB0611F87E88F00916109 /* MainWindow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0DCEB05F1F87E88F00916109 /* MainWindow.cpp */; };
+		0DD0D0112019070800484DDD /* ServerGRIS_icon_doc.icns in Resources */ = {isa = PBXBuildFile; fileRef = 0DD0D0102019070800484DDD /* ServerGRIS_icon_doc.icns */; };
+		0DD0D01420190B7700484DDD /* MainWindow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0DD0D01320190B7700484DDD /* MainWindow.cpp */; };
+		0DDB8C442019052A00B9EE76 /* splash_screen.png in Resources */ = {isa = PBXBuildFile; fileRef = 0DDB8C432019052900B9EE76 /* splash_screen.png */; };
+		0DDB8C462019057400B9EE76 /* ServerGRIS_icon_small.png in Resources */ = {isa = PBXBuildFile; fileRef = 0DDB8C452019057400B9EE76 /* ServerGRIS_icon_small.png */; };
 		0DE3ABB01ECDE28A00EACF5B /* vbap.c in Sources */ = {isa = PBXBuildFile; fileRef = 0DE3ABAE1ECDE28A00EACF5B /* vbap.c */; };
 		0DEA64C61EFC1A6E006562C4 /* Jackmp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DEA64BE1EFC18E1006562C4 /* Jackmp.framework */; };
 		0DEA64C71EFC1A6E006562C4 /* Jacknet.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DEA64BF1EFC18E1006562C4 /* Jacknet.framework */; };
@@ -50,7 +52,6 @@
 		AD4CE3E8CB241DF2AA50E7DA /* Input.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C4B887E79BCC3DECA6DDC85E /* Input.cpp */; };
 		C7BFE17001C2225525200226 /* DiscRecording.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2FDE0D27014A24EC92E45384 /* DiscRecording.framework */; };
 		CA6BF64D3FC6434ED810D014 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A60FA43FC2F9E9146A8A5E6 /* WebKit.framework */; };
-		CC6D5326E884EFE5EFA23111 /* Icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = E98AD5116C9BCB24BE427D9D /* Icon.icns */; };
 		CC991455799A452BB31707A0 /* RecentFilesMenuTemplate.nib in Resources */ = {isa = PBXBuildFile; fileRef = 2CA0A4D7330606BE3B4DE319 /* RecentFilesMenuTemplate.nib */; };
 		D9ABB7BC8BFB59D392B6C505 /* jackClientGRIS.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CB166B04AB89B0476A24CE28 /* jackClientGRIS.cpp */; };
 		E18CF09FF07DD460A2179190 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AFD30D83137E514A4002A681 /* Carbon.framework */; };
@@ -89,7 +90,6 @@
 				0DFD1B901FA65106008000F3 /* hrtf_compact in CopyFiles */,
 				0DC163381F15427700CD15DD /* JAS.jpil in CopyFiles */,
 				0D0EEB5D1F152084009E8D7E /* default_preset in CopyFiles */,
-				0D0EEB5B1F151F05009E8D7E /* splash.png in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -156,20 +156,20 @@
 		0C98F79E910F67B37F53F54C /* juce_MidiBuffer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_MidiBuffer.h; path = ../../JuceLibraryCode/modules/juce_audio_basics/midi/juce_MidiBuffer.h; sourceTree = SOURCE_ROOT; };
 		0C99699A22FA40ABA7EA5A37 /* juce_DynamicObject.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_DynamicObject.h; path = ../../JuceLibraryCode/modules/juce_core/containers/juce_DynamicObject.h; sourceTree = SOURCE_ROOT; };
 		0CA183E0BD935F99C9D13006 /* juce_TextDiff.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_TextDiff.h; path = ../../JuceLibraryCode/modules/juce_core/text/juce_TextDiff.h; sourceTree = SOURCE_ROOT; };
-		0D0EEB5A1F151F05009E8D7E /* splash.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = splash.png; sourceTree = "<group>"; };
 		0D0EEB5C1F152084009E8D7E /* default_preset */ = {isa = PBXFileReference; lastKnownFileType = folder; path = default_preset; sourceTree = "<group>"; };
 		0D0F144A717EB80B8FC0AF66 /* juce_QuickTimeMovieComponent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_QuickTimeMovieComponent.h; path = ../../JuceLibraryCode/modules/juce_video/playback/juce_QuickTimeMovieComponent.h; sourceTree = SOURCE_ROOT; };
 		0D56949D35266C830BCCACD8 /* floor_books.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = floor_books.h; path = "../../JuceLibraryCode/modules/juce_audio_formats/codecs/oggvorbis/libvorbis-1.3.2/lib/books/floor/floor_books.h"; sourceTree = SOURCE_ROOT; };
 		0D573AD41EC38A05007605B1 /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = System/Library/Frameworks/GLUT.framework; sourceTree = SDKROOT; };
 		0D573AD61EC38A12007605B1 /* Jackmp */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = Jackmp; path = ../../jack/lib/Jackmp; sourceTree = "<group>"; };
 		0D573AD71EC38A12007605B1 /* Jackservermp */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = Jackservermp; path = ../../jack/lib/Jackservermp; sourceTree = "<group>"; };
-		0D947C9B1F1545C0000F9133 /* Jackmp */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = Jackmp; sourceTree = "<group>"; };
-		0D947C9C1F1545C0000F9133 /* Jackservermp */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = Jackservermp; sourceTree = "<group>"; };
 		0DAEE47D7405B9E5383EA97F /* juce_RelativePointPath.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_RelativePointPath.h; path = ../../JuceLibraryCode/modules/juce_gui_basics/positioning/juce_RelativePointPath.h; sourceTree = SOURCE_ROOT; };
 		0DC163371F15427700CD15DD /* JAS.jpil */ = {isa = PBXFileReference; lastKnownFileType = text; path = JAS.jpil; sourceTree = "<group>"; };
 		0DC88B16521DF51B488590F4 /* OscInput.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = OscInput.h; path = ../../Source/OscInput.h; sourceTree = SOURCE_ROOT; };
-		0DCEB05F1F87E88F00916109 /* MainWindow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MainWindow.cpp; sourceTree = "<group>"; };
-		0DCEB0601F87E88F00916109 /* MainWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MainWindow.h; sourceTree = "<group>"; };
+		0DD0D0102019070800484DDD /* ServerGRIS_icon_doc.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = ServerGRIS_icon_doc.icns; path = ../../Resources/ServerGRIS_icon_doc.icns; sourceTree = "<group>"; };
+		0DD0D01320190B7700484DDD /* MainWindow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MainWindow.cpp; path = ../../Source/MainWindow.cpp; sourceTree = "<group>"; };
+		0DD0D01520190B8D00484DDD /* MainWindow.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = MainWindow.h; path = ../../Source/MainWindow.h; sourceTree = "<group>"; };
+		0DDB8C432019052900B9EE76 /* splash_screen.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = splash_screen.png; path = ../../Resources/splash_screen.png; sourceTree = "<group>"; };
+		0DDB8C452019057400B9EE76 /* ServerGRIS_icon_small.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = ServerGRIS_icon_small.png; path = ../../Resources/ServerGRIS_icon_small.png; sourceTree = "<group>"; };
 		0DE3ABAE1ECDE28A00EACF5B /* vbap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = vbap.c; path = ../../Source/vbap.c; sourceTree = "<group>"; };
 		0DE3ABAF1ECDE28A00EACF5B /* vbap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vbap.h; path = ../../Source/vbap.h; sourceTree = "<group>"; };
 		0DEA64BD1EFC18E1006562C4 /* Jackmp */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = Jackmp; path = ../../../../../../../Library/Frameworks/Jackmp; sourceTree = "<group>"; };
@@ -1179,7 +1179,6 @@
 		D8F5944B82D69F7C8EA25716 /* juce_MidiKeyboardComponent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_MidiKeyboardComponent.h; path = ../../JuceLibraryCode/modules/juce_audio_utils/gui/juce_MidiKeyboardComponent.h; sourceTree = SOURCE_ROOT; };
 		D920B0361A1DB4BF66D981A1 /* jerror.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = jerror.h; path = ../../JuceLibraryCode/modules/juce_graphics/image_formats/jpglib/jerror.h; sourceTree = SOURCE_ROOT; };
 		D92852EA3747B8E8B1B7E3EC /* juce_SharedResourcePointer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_SharedResourcePointer.h; path = ../../JuceLibraryCode/modules/juce_core/memory/juce_SharedResourcePointer.h; sourceTree = SOURCE_ROOT; };
-		D9353AFA35D39D06FA39BED6 /* logo512.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = logo512.png; path = ../../logo512.png; sourceTree = SOURCE_ROOT; };
 		D9A26C7D18D88AF234ADBE5B /* juce_StretchableLayoutManager.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = juce_StretchableLayoutManager.cpp; path = ../../JuceLibraryCode/modules/juce_gui_basics/layout/juce_StretchableLayoutManager.cpp; sourceTree = SOURCE_ROOT; };
 		D9A35FB892E4B92E931372DD /* juce_CharPointer_ASCII.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_CharPointer_ASCII.h; path = ../../JuceLibraryCode/modules/juce_core/text/juce_CharPointer_ASCII.h; sourceTree = SOURCE_ROOT; };
 		D9B2BD052086E7F899AEBC9F /* crc32.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = crc32.h; path = ../../JuceLibraryCode/modules/juce_core/zip/zlib/crc32.h; sourceTree = SOURCE_ROOT; };
@@ -2455,7 +2454,9 @@
 		6C1926E1E13932609313F7CC /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				D9353AFA35D39D06FA39BED6 /* logo512.png */,
+				0DD0D0102019070800484DDD /* ServerGRIS_icon_doc.icns */,
+				0DDB8C452019057400B9EE76 /* ServerGRIS_icon_small.png */,
+				0DDB8C432019052900B9EE76 /* splash_screen.png */,
 				D4CE3CFAA7FDF957A10AF564 /* SinkinSans-400Regular.otf */,
 			);
 			name = Resources;
@@ -3282,11 +3283,8 @@
 			isa = PBXGroup;
 			children = (
 				0DFD1B8F1FA65106008000F3 /* hrtf_compact */,
-				0D947C9B1F1545C0000F9133 /* Jackmp */,
-				0D947C9C1F1545C0000F9133 /* Jackservermp */,
 				0DC163371F15427700CD15DD /* JAS.jpil */,
 				0D0EEB5C1F152084009E8D7E /* default_preset */,
-				0D0EEB5A1F151F05009E8D7E /* splash.png */,
 				0DEA64BD1EFC18E1006562C4 /* Jackmp */,
 				0DEA64BE1EFC18E1006562C4 /* Jackmp.framework */,
 				0DEA64BF1EFC18E1006562C4 /* Jacknet.framework */,
@@ -3612,8 +3610,8 @@
 		FAA16A21521DD35AC3040C00 /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				0DCEB05F1F87E88F00916109 /* MainWindow.cpp */,
-				0DCEB0601F87E88F00916109 /* MainWindow.h */,
+				0DD0D01520190B8D00484DDD /* MainWindow.h */,
+				0DD0D01320190B7700484DDD /* MainWindow.cpp */,
 				0DE3ABAE1ECDE28A00EACF5B /* vbap.c */,
 				0DE3ABAF1ECDE28A00EACF5B /* vbap.h */,
 				9CEB1A4032DC38548D41C6D6 /* jackServerGRIS.cpp */,
@@ -3771,8 +3769,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0DDB8C462019057400B9EE76 /* ServerGRIS_icon_small.png in Resources */,
 				CC991455799A452BB31707A0 /* RecentFilesMenuTemplate.nib in Resources */,
-				CC6D5326E884EFE5EFA23111 /* Icon.icns in Resources */,
+				0DDB8C442019052A00B9EE76 /* splash_screen.png in Resources */,
+				0DD0D0112019070800484DDD /* ServerGRIS_icon_doc.icns in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3799,8 +3799,8 @@
 				9D5B3C0E1D93E4F73A96BCEB /* juce_audio_basics.mm in Sources */,
 				21FA967C928A77502F65C3FC /* juce_audio_devices.mm in Sources */,
 				153A81E76FB9CF6A837E1C6B /* juce_audio_formats.mm in Sources */,
+				0DD0D01420190B7700484DDD /* MainWindow.cpp in Sources */,
 				1C224AAD28C84E3D4A9625EE /* juce_audio_processors.mm in Sources */,
-				0DCEB0611F87E88F00916109 /* MainWindow.cpp in Sources */,
 				81EE84C1D6A7ACA79005862F /* juce_audio_utils.mm in Sources */,
 				72DD6B68901EBADA60F0543F /* juce_core.mm in Sources */,
 				0F18ADC55E833D69E5746DFD /* juce_cryptography.mm in Sources */,
