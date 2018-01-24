@@ -1,0 +1,35 @@
+Informations OSC du ServerGRIS
+==============================
+
+OSC numéro de port: 18032 par défaut (peut être changé dans les préférences du ServerGRIS)
+OSC addresse du serveur: "/spat/serv"
+
+Messages de contrôle de position des sources
+--------------------------------------------
+
+- Le serveur attend une liste du type iffffff (un entier et six nombres à virgules flotantes)
+
+Les éléments de la liste:
+
+1. (i) Le numéro de la source en commençant à 0.
+2. (f) La valeur d'azimuth entre 0 et pi*2.
+3. (f) La valeur d'élévation entre 0 et pi.
+    - 0 = sommet supérieur du dôme.
+    - pi/2 = centre de la sphère (la hauteur du cercle inférieur d'une demi-sphère).
+    - pi = sommet inférieur du dôme (sous le plancher).
+4. (f) Le span en azimuth entre 0 et 2.
+5. (f) Le span en élévation entre 0 et 0.5.
+6. (f) Le radius (1 est la surface du dôme)
+    - N'est pas utilisé avec le VBAP.
+7. (f) Le gain de la source.
+    - N'est pas utilisé pour le moment.
+
+Messages de reset de la position d'une source
+---------------------------------------------
+
+- Le serveur attend une liste du type si (une chaîne de caractères et un entier)
+
+Les éléments de la liste:
+
+1. (s) Le string "reset"
+2. (i) Le numéro de la source à réinitialiser en commençant à 0.
