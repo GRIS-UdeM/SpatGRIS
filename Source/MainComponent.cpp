@@ -835,7 +835,12 @@ PopupMenu MainContentComponent::getMenuForIndex (int menuIndex, const String& me
         menu.addSeparator();
         menu.addCommandItem(commandManager, MainWindow::ShowNumbersID);
         menu.addCommandItem(commandManager, MainWindow::ShowSpeakersID);
-        menu.addCommandItem(commandManager, MainWindow::ShowTripletsID);
+        if (this->jackClient->vbapDimensions == 3) {
+            menu.addCommandItem(commandManager, MainWindow::ShowTripletsID);
+        } else {
+            menu.addItem(MainWindow::ShowTripletsID, "Show Speaker Triplets",
+                         false, false);
+        }
         menu.addCommandItem(commandManager, MainWindow::ShowSourceLevelID);
         menu.addCommandItem(commandManager, MainWindow::ShowSpeakerLevelID);
         menu.addCommandItem(commandManager, MainWindow::ShowSphereID);
@@ -1280,6 +1285,9 @@ bool MainContentComponent::updateLevelComp() {
     this->resized();
 
     this->jackClient->vbapDimensions = dimensions;
+    if (dimensions == 2) {
+        this->setShowTriplets(false);
+    }
 
     i = 0;
     vector<Speaker *> tempListSpeaker;
