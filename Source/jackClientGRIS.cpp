@@ -104,8 +104,12 @@ static void muteSoloVuMeterGainOut(jackClientGris & jackCli, jack_default_audio_
         jackCli.levelsOut[i] = sqrtf(sumsOut[i] / nframes);
         
         // Record buffer ---------------
-        if (jackCli.recording && i < num_of_channels) {
-            if (int_vector_contains(jackCli.outputPatches, i+1)) {
+        if (jackCli.recording) {
+            if (num_of_channels == sizeOutputs && i < num_of_channels) {
+                if (int_vector_contains(jackCli.outputPatches, i+1)) {
+                    jackCli.recorder[i].recordSamples(&outs[i], (int)nframes);
+                }
+            } else if (num_of_channels == 2 && i < num_of_channels) {
                 jackCli.recorder[i].recordSamples(&outs[i], (int)nframes);
             }
         }
@@ -113,12 +117,17 @@ static void muteSoloVuMeterGainOut(jackClientGris & jackCli, jack_default_audio_
     
     // Record - Up index ----------
     if (!jackCli.recording && jackCli.indexRecord > 0) {
-        for (unsigned int i = 0; i < sizeOutputs; ++i) {
-            if (int_vector_contains(jackCli.outputPatches, i+1) && i < num_of_channels) {
-                jackCli.recorder[i].stop();
+        if (num_of_channels == sizeOutputs) {
+            for (unsigned int i = 0; i < sizeOutputs; ++i) {
+                if (int_vector_contains(jackCli.outputPatches, i+1) && i < num_of_channels) {
+                    jackCli.recorder[i].stop();
+                }
             }
-            jackCli.indexRecord = 0;
+        } else if (num_of_channels == 2) {
+            jackCli.recorder[0].stop();
+            jackCli.recorder[1].stop();
         }
+        jackCli.indexRecord = 0;
     } else if (jackCli.recording) {
         jackCli.indexRecord += nframes;
     }
@@ -898,12 +907,16 @@ void jackClientGris::prepareToRecord()
 
     if (this->modeSelected == VBap) {
         num_of_channels = this->outputsPort.size();
+        for (int i  = 0; i < num_of_channels; ++i) {
+            if (int_vector_contains(this->outputPatches, i+1)) {
+                channelName = parent + "/" + fname + "_" + String(i+1).paddedLeft('0', 3) + extF;
+                File fileC = File(channelName);
+                this->recorder[i].startRecording(fileC, this->sampleRate, extF);
+            }
+        }
     } else if (this->modeSelected == HRTF_LOW || this->modeSelected == HRTF_HIGH || this->modeSelected == STEREO) {
         num_of_channels = 2;
-    }
-
-    for (int i  = 0; i < num_of_channels; ++i) {
-        if (int_vector_contains(this->outputPatches, i+1)) {
+        for (int i  = 0; i < num_of_channels; ++i) {
             channelName = parent + "/" + fname + "_" + String(i+1).paddedLeft('0', 3) + extF;
             File fileC = File(channelName);
             this->recorder[i].startRecording(fileC, this->sampleRate, extF);
