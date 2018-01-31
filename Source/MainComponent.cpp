@@ -889,6 +889,7 @@ bool MainContentComponent::exitApp()
     ScopedPointer<AlertWindow> alert = new AlertWindow("Exit ServerGRIS !",
                                                        "Do you want to save the current project ?",
                                                        AlertWindow::InfoIcon);
+    alert->setLookAndFeel(&mGrisFeel);
     alert->addButton ("Save", 1);
     alert->addButton ("Cancel", 0);
     alert->addButton ("Exit", 2);
