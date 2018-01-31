@@ -459,7 +459,6 @@ void MainContentComponent::handleSaveAsSpeakerSetup() {
 void MainContentComponent::handleShowSpeakerEditWindow() {
     Rectangle<int> result (this->getScreenX() + this->speakerView->getWidth() + 20, this->getScreenY() + 20, 890, 530);
     if (this->winSpeakConfig == nullptr) {
-        this->jackClient->processBlockOn = false;
         this->winSpeakConfig = new WindowEditSpeaker("Speakers Setup Edition - " + File(this->pathCurrentFileSpeaker).getFileName(),
                                                      this->nameConfig, this->mGrisFeel.getWinBackgroundColour(),
                                                      DocumentWindow::allButtons, this, &this->mGrisFeel);
