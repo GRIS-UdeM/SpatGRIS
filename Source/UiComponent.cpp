@@ -409,6 +409,30 @@ WindowEditSpeaker::WindowEditSpeaker(const String& name, String& nameC, Colour b
 
     /* End generate ring of speakers */
 
+    /* Pink noise controls */
+    this->pinkNoise = new ToggleButton();
+    this->pinkNoise->setButtonText("Reference Pink Noise");
+    this->pinkNoise->setBounds(5, 500, 150, 24);
+    this->pinkNoise->addListener(this);
+    this->pinkNoise->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
+    this->pinkNoise->setLookAndFeel(this->grisFeel);
+    this->boxListSpeaker->getContent()->addAndMakeVisible(this->pinkNoise);
+
+    this->pinkNoiseGain = new Slider();
+    this->pinkNoiseGain->setTextValueSuffix(" dB");
+    this->pinkNoiseGain->setBounds(200, 500, 60, 60);
+    this->pinkNoiseGain->setSliderStyle(Slider::Rotary);
+    this->pinkNoiseGain->setRotaryParameters(M_PI * 1.3f, M_PI * 2.7f, true);
+    this->pinkNoiseGain->setRange(-60, -3, 1);
+    this->pinkNoiseGain->setValue(-20);
+    this->pinkNoiseGain->setTextBoxStyle (Slider::TextBoxBelow, false, 60, 20);
+    this->pinkNoiseGain->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
+    this->pinkNoiseGain->setLookAndFeel(this->grisFeel);
+    this->pinkNoiseGain->addListener(this);
+    this->boxListSpeaker->getContent()->addAndMakeVisible(this->pinkNoiseGain);
+
+    /* End pink noise controls */
+
     this->setContentOwned(this->boxListSpeaker, false);
     this->boxListSpeaker->getContent()->addAndMakeVisible(tableListSpeakers);
 
@@ -429,6 +453,8 @@ WindowEditSpeaker::~WindowEditSpeaker()
     delete this->rOffsetAngle;
     delete this->rOffsetAngleLabel;
     delete this->butAddRing;
+    delete this->pinkNoise;
+    delete this->pinkNoiseGain;
     this->mainParent->destroyWinSpeakConf();
 }
 
@@ -476,6 +502,14 @@ void WindowEditSpeaker::initComp()
     //tableListSpeakers.updateContent();
 //}
 
+void WindowEditSpeaker::sliderValueChanged (Slider *slider) {
+    float gain;
+    if (slider == this->pinkNoiseGain) {
+        gain = powf(10.0f, this->pinkNoiseGain->getValue() / 20.0f);
+        this->mainParent->getJackClient()->pinkNoiseGain = gain;
+    }
+}
+
 void WindowEditSpeaker::buttonClicked(Button *button)
 {
     bool tripletState = this->mainParent->isTripletsShown;
@@ -510,6 +544,9 @@ void WindowEditSpeaker::buttonClicked(Button *button)
         updateWinContent();
         this->mainParent->needToComputeVbap = true;
         this->tableListSpeakers.selectRow(this->getNumRows()-1);
+    }
+    else if (button == this->pinkNoise) {
+        this->mainParent->getJackClient()->noiseSound = this->pinkNoise->getToggleState();
     }
     else if (button->getName() != "" && (button->getName().getIntValue() >= 0 &&
         button->getName().getIntValue() <= this->mainParent->getListSpeaker().size())) {
@@ -602,6 +639,7 @@ void WindowEditSpeaker::closeButtonPressed()
         }
     }
     if (exitV) {
+        this->mainParent->getJackClient()->noiseSound = false;
         delete this;
     }
 }
@@ -609,24 +647,27 @@ void WindowEditSpeaker::closeButtonPressed()
 void WindowEditSpeaker::resized()
 {
     this->juce::DocumentWindow::resized();
-    
-    tableListSpeakers.setSize(getWidth(), getHeight()-145);
+
+    tableListSpeakers.setSize(getWidth(), getHeight()-195);
     
     this->boxListSpeaker->setSize(getWidth(), getHeight());
     this->boxListSpeaker->correctSize(getWidth()-10, getHeight()-30);
 
-    this->butAddSpeaker->setBounds(5, getHeight()-130, 100, 22);
-    this->butcompSpeakers->setBounds(getWidth()-105, getHeight()-130, 100, 22);
+    this->butAddSpeaker->setBounds(5, getHeight()-180, 100, 22);
+    this->butcompSpeakers->setBounds(getWidth()-105, getHeight()-180, 100, 22);
 
-    this->rNumOfSpeakersLabel->setBounds(5, getHeight()-90, 80, 24);
-    this->rNumOfSpeakers->setBounds(5+80, getHeight()-90, 40, 24);
-    this->rZenithLabel->setBounds(100, getHeight()-90, 80, 24);
-    this->rZenith->setBounds(100+80, getHeight()-90, 60, 24);
-    this->rRadiusLabel->setBounds(215, getHeight()-90, 80, 24);
-    this->rRadius->setBounds(215+80, getHeight()-90, 60, 24);
-    this->rOffsetAngleLabel->setBounds(360, getHeight()-90, 80, 24);
-    this->rOffsetAngle->setBounds(360+80, getHeight()-90, 60, 24);
-    this->butAddRing->setBounds(getWidth()-105, getHeight()-90, 100, 24);
+    this->rNumOfSpeakersLabel->setBounds(5, getHeight()-140, 80, 24);
+    this->rNumOfSpeakers->setBounds(5+80, getHeight()-140, 40, 24);
+    this->rZenithLabel->setBounds(100, getHeight()-140, 80, 24);
+    this->rZenith->setBounds(100+80, getHeight()-140, 60, 24);
+    this->rRadiusLabel->setBounds(215, getHeight()-140, 80, 24);
+    this->rRadius->setBounds(215+80, getHeight()-140, 60, 24);
+    this->rOffsetAngleLabel->setBounds(360, getHeight()-140, 80, 24);
+    this->rOffsetAngle->setBounds(360+80, getHeight()-140, 60, 24);
+    this->butAddRing->setBounds(getWidth()-105, getHeight()-140, 100, 24);
+
+    this->pinkNoise->setBounds(5, getHeight()-75, 150, 24);
+    this->pinkNoiseGain->setBounds(180, getHeight()-100, 60, 60);
 }
 
 String WindowEditSpeaker::getText (const int columnNumber, const int rowNumber) const

@@ -136,7 +136,8 @@ private:
 class WindowEditSpeaker :   public DocumentWindow,
                             public TableListBoxModel,
                             public ToggleButton::Listener,
-                            public TextEditor::Listener
+                            public TextEditor::Listener,
+                            public Slider::Listener
 {
 public:
     WindowEditSpeaker(const String& name,String& nameC, Colour backgroundColour, int buttonsNeeded, MainContentComponent * parent, GrisLookAndFeel * feel);
@@ -150,6 +151,7 @@ public:
     void textEditorTextChanged(TextEditor &editor) override;
     void textEditorReturnKeyPressed (TextEditor &textEditor) override;
     void closeButtonPressed() override;
+    void sliderValueChanged (Slider *slider) override;
     //void sortOrderChanged(int newSortColumnId, bool isForwards) override;
     void resized() override;
 
@@ -180,7 +182,10 @@ private:
     Label      *    rOffsetAngleLabel;
     TextEditor *    rOffsetAngle;
     TextButton *    butAddRing;
-    
+
+    ToggleButton *  pinkNoise;
+    Slider       *  pinkNoiseGain;
+
     TableListBox tableListSpeakers;
     Font font;
     int numRows;

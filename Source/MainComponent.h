@@ -111,7 +111,6 @@ public:
     void handleShowSphere();
     void handleHighPerformance();
     void setHighPerformance(bool state);
-    void handleRefSound();
     void handleResetInputPositions();
     void handleInputColours();
 
@@ -320,7 +319,6 @@ private:
     bool isSpeakersShown;
     bool isSphereShown;
     bool isHighPerformance;
-    bool isRefSound;
 
     //==============================================================================
     // The following methods implement the ApplicationCommandTarget interface, allowing

@@ -236,6 +236,7 @@ public:
     float c4;
     float c5;
     float c6;
+    float pinkNoiseGain;
 
     // Highpass filter
     double x1[MaxOutputs];

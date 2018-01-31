@@ -76,6 +76,8 @@ static void muteSoloVuMeterGainOut(jackClientGris & jackCli, jack_default_audio_
                                    const float mGain = 1.0f) {
     unsigned int num_of_channels;
     float sumsOut[sizeOutputs];
+    float gain;
+    double inval = 0.0, val = 0.0;
 
     if (jackCli.modeSelected == VBap) {
         num_of_channels = sizeOutputs;
@@ -92,6 +94,30 @@ static void muteSoloVuMeterGainOut(jackClientGris & jackCli, jack_default_audio_
         else if (jackCli.soloOut) {
             if (!jackCli.listSpeakerOut[i].isSolo) {
                 memset(outs[i], 0, sizeof(jack_default_audio_sample_t) * nframes);
+            }
+        }
+        // Speaker independent gain
+        gain = jackCli.listSpeakerOut[i].gain;
+        for (unsigned int f = 0; f < nframes; ++f) {
+            outs[i][f] *= gain;
+        }
+        // Speaker independent crossover filter
+        if (jackCli.listSpeakerOut[i].hpActive) {
+            SpeakerOut so = jackCli.listSpeakerOut[i];
+            for (unsigned int f = 0; f < nframes; ++f) {
+                inval = (double)outs[i][f];
+                val = so.ha0 * inval + so.ha1 * jackCli.x1[i] + so.ha2 * jackCli.x2[i] +
+                      so.ha1 * jackCli.x3[i] + so.ha0 * jackCli.x4[i] - so.b1 * jackCli.y1[i] -
+                      so.b2 * jackCli.y2[i] - so.b3 * jackCli.y3[i] - so.b4 * jackCli.y4[i];
+                jackCli.y4[i] = jackCli.y3[i];
+                jackCli.y3[i] = jackCli.y2[i];
+                jackCli.y2[i] = jackCli.y1[i];
+                jackCli.y1[i] = val;
+                jackCli.x4[i] = jackCli.x3[i];
+                jackCli.x3[i] = jackCli.x2[i];
+                jackCli.x2[i] = jackCli.x1[i];
+                jackCli.x1[i] = inval;
+                outs[i][f] = (jack_default_audio_sample_t)val;
             }
         }
         // Vu Meter ----------------
@@ -148,7 +174,7 @@ static void addNoiseSound(jackClientGris & jackCli, jack_default_audio_sample_t 
         jackCli.c5 = jackCli.c5 * -0.7616f - rnd * 0.0168980f;
         val = jackCli.c0 + jackCli.c1 + jackCli.c2 + jackCli.c3 + jackCli.c4 + jackCli.c5 + jackCli.c6 + rnd * 0.5362f;
         val *= 0.2f;
-        val *= 0.1f; // -20 dB
+        val *= jackCli.pinkNoiseGain;
         jackCli.c6 = rnd * 0.115926f;
 
         for (unsigned int i = 0; i < sizeOutputs; i++) {
@@ -164,8 +190,7 @@ static void processVBAP(jackClientGris & jackCli, jack_default_audio_sample_t **
                         const jack_nframes_t &nframes, const unsigned int &sizeInputs, const unsigned int &sizeOutputs)
 {
     unsigned int f, i, o, ilinear;
-    float y, interpG, gain, iogain = 0.0;
-    double inval = 0.0, val = 0.0;
+    float y, interpG, iogain = 0.0;
 
     if (jackCli.interMaster == 0.0) {
         ilinear = 1;
@@ -208,28 +233,6 @@ static void processVBAP(jackClientGris & jackCli, jack_default_audio_sample_t **
                 for (f = 0; f < nframes; ++f) {
                     outs[o][f] += ins[i][f];
                 }
-            }
-        }
-        gain = jackCli.listSpeakerOut[o].gain;
-        for (f = 0; f < nframes; ++f) {
-            outs[o][f] *= gain;
-        }
-        if (jackCli.listSpeakerOut[o].hpActive) {
-            SpeakerOut so = jackCli.listSpeakerOut[o];
-            for (f = 0; f < nframes; ++f) {
-                inval = (double)outs[o][f];
-                val = so.ha0 * inval + so.ha1 * jackCli.x1[o] + so.ha2 * jackCli.x2[o] +
-                      so.ha1 * jackCli.x3[o] + so.ha0 * jackCli.x4[o] - so.b1 * jackCli.y1[o] -
-                      so.b2 * jackCli.y2[o] - so.b3 * jackCli.y3[o] - so.b4 * jackCli.y4[o];
-                jackCli.y4[o] = jackCli.y3[o];
-                jackCli.y3[o] = jackCli.y2[o];
-                jackCli.y2[o] = jackCli.y1[o];
-                jackCli.y1[o] = val;
-                jackCli.x4[o] = jackCli.x3[o];
-                jackCli.x3[o] = jackCli.x2[o];
-                jackCli.x2[o] = jackCli.x1[o];
-                jackCli.x1[o] = inval;
-                outs[o][f] = (jack_default_audio_sample_t)val;
             }
         }
     }
@@ -663,6 +666,7 @@ jackClientGris::jackClientGris(unsigned int bufferS) {
     this->autoConnection = false;
     this->overload = false;
     this->masterGainOut = 1.0f;
+    this->pinkNoiseGain = 0.1f;
     this->processBlockOn = true;
     this->modeSelected = VBap;
     this->recording = false;

@@ -62,7 +62,6 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     this->isSourceLevelShown = false;
     this->isSphereShown = false;
     this->isHighPerformance = false;
-    this->isRefSound = false;
     this->isSpanShown = true;
 
     this->listSpeaker = vector<Speaker *>();
@@ -457,7 +456,7 @@ void MainContentComponent::handleSaveAsSpeakerSetup() {
 }
 
 void MainContentComponent::handleShowSpeakerEditWindow() {
-    Rectangle<int> result (this->getScreenX() + this->speakerView->getWidth() + 20, this->getScreenY() + 20, 890, 530);
+    Rectangle<int> result (this->getScreenX() + this->speakerView->getWidth() + 20, this->getScreenY() + 20, 850, 600);
     if (this->winSpeakConfig == nullptr) {
         this->winSpeakConfig = new WindowEditSpeaker("Speakers Setup Edition - " + File(this->pathCurrentFileSpeaker).getFileName(),
                                                      this->nameConfig, this->mGrisFeel.getWinBackgroundColour(),
@@ -625,11 +624,6 @@ void MainContentComponent::setHighPerformance(bool state) {
     this->isSpeakerLevelShown = false;
 }
 
-void MainContentComponent::handleRefSound() {
-    this->isRefSound = !this->isRefSound;
-    this->jackClient->noiseSound = this->isRefSound;
-}
-
 void MainContentComponent::handleResetInputPositions() {
     for (auto&& it : this->listSourceInput) {
         it->resetPosition();
@@ -667,7 +661,6 @@ void MainContentComponent::getAllCommands (Array<CommandID>& commands)
                               MainWindow::HighPerformanceID,
                               MainWindow::ColorizeInputsID,
                               MainWindow::ResetInputPosID,
-                              MainWindow::RefSoundID,
                               MainWindow::PrefsID,
                               MainWindow::QuitID,
                               MainWindow::AboutID,
@@ -762,10 +755,6 @@ void MainContentComponent::getCommandInfo (CommandID commandID, ApplicationComma
             result.setInfo ("Reset Input Position", "Reset the position of the input sources.", generalCategory, 0);
             result.addDefaultKeypress ('R', ModifierKeys::altModifier);
             break;
-        case MainWindow::RefSoundID:
-            result.setInfo ("Reference Sound (pink noise -20 dB)", "Send a test sound to all inputs.", generalCategory, 0);
-            result.setTicked(this->isRefSound);
-            break;
         case MainWindow::PrefsID:
             result.setInfo ("Preferences...", "Open the preferences window.", generalCategory, 0);
             result.addDefaultKeypress (';', ModifierKeys::commandModifier);
@@ -809,7 +798,6 @@ bool MainContentComponent::perform (const InvocationInfo& info)
             case MainWindow::HighPerformanceID: this->handleHighPerformance(); break;
             case MainWindow::ColorizeInputsID: this->handleInputColours(); break;
             case MainWindow::ResetInputPosID: this->handleResetInputPositions(); break;
-            case MainWindow::RefSoundID: this->handleRefSound(); break;
             case MainWindow::PrefsID: this->handleShowPreferences(); break;
             case MainWindow::QuitID: dynamic_cast<MainWindow*>(this->parent)->closeButtonPressed(); break;
             case MainWindow::AboutID: this->handleShowAbout(); break;
@@ -866,8 +854,6 @@ PopupMenu MainContentComponent::getMenuForIndex (int menuIndex, const String& me
         menu.addSeparator();
         menu.addCommandItem(commandManager, MainWindow::ColorizeInputsID);
         menu.addCommandItem(commandManager, MainWindow::ResetInputPosID);
-        menu.addSeparator();
-        menu.addCommandItem(commandManager, MainWindow::RefSoundID);
     }
     else if (menuName == "Help")
     {
@@ -1195,7 +1181,7 @@ bool MainContentComponent::updateLevelComp() {
     this->jackClient->processBlockOn = false;
     this->jackClient->maxOutputPatch = 0;
 
-    // Save mute/solo/directout states (only for inputs)
+    // Save mute/solo/directout states
     bool inputsIsMuted[MaxInputs];
     bool inputsIsSolo[MaxInputs];
     bool soloIn = this->jackClient->soloIn;
@@ -1205,7 +1191,7 @@ bool MainContentComponent::updateLevelComp() {
         inputsIsSolo[i] = (&this->jackClient->listSourceIn[i])->isSolo;
         directOuts[i] = (&this->jackClient->listSourceIn[i])->directOut;
     }
-    /*
+
     bool outputsIsMuted[MaxInputs];
     bool outputsIsSolo[MaxInputs];
     bool soloOut = this->jackClient->soloOut;
@@ -1213,7 +1199,7 @@ bool MainContentComponent::updateLevelComp() {
         outputsIsMuted[i] = (&this->jackClient->listSpeakerOut[i])->isMuted;
         outputsIsSolo[i] = (&this->jackClient->listSpeakerOut[i])->isSolo;
     }
-    */
+
 
     int i = 0;
     for (auto&& it : this->listSpeaker)
@@ -1324,7 +1310,7 @@ bool MainContentComponent::updateLevelComp() {
         this->needToComputeVbap = false;
     }
 
-    // Restore mute/solo/directout states (only for inputs)
+    // Restore mute/solo/directout states
     this->jackClient->soloIn = soloIn;
     for (unsigned int i = 0; i < MaxInputs; i++) {
         (&this->jackClient->listSourceIn[i])->isMuted = inputsIsMuted[i];
@@ -1338,13 +1324,13 @@ bool MainContentComponent::updateLevelComp() {
         i++;
     }
     this->lockInputs->unlock();
-    /*
+
     this->jackClient->soloOut = soloOut;
     for (int i = 0; i < MaxOutputs; i++) {
         (&this->jackClient->listSpeakerOut[i])->isMuted = outputsIsMuted[i];
         (&this->jackClient->listSpeakerOut[i])->isSolo = outputsIsSolo[i];
     }
-    */
+
 
     this->jackClient->processBlockOn = true;
     return retval;
@@ -1592,7 +1578,7 @@ void MainContentComponent::openPreset(String path)
             }
         }
     }
-    this->jackClient->noiseSound = this->isRefSound = false;
+    this->jackClient->noiseSound = false;
     this->jackClient->processBlockOn = true;
     if (this->pathCurrentPreset.endsWith("default_preset/default_preset.xml")) {
         this->applicationProperties.getUserSettings()->setValue("lastPresetDirectory", 

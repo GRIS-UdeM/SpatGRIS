@@ -94,7 +94,6 @@ public:
         HighPerformanceID   =   3007,
         ColorizeInputsID    =   3010,
         ResetInputPosID     =   3011,
-        RefSoundID          =   3100,
 
         // Help menu
         AboutID             =   4000,
