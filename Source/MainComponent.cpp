@@ -521,7 +521,9 @@ void MainContentComponent::handleShowAbout() {
     this->aboutWindow->setUsingNativeTitleBar(true);
     this->aboutWindow->setVisible(true);
     this->aboutWindow->repaint();
+}
 
+void MainContentComponent::handleOpenManual() {
     File fs;
 #ifdef __linux__
     fs = File ( File::getCurrentWorkingDirectory().getFullPathName() + ("/../../Resources/ServerGRIS_1.0_Manual.pdf"));
@@ -532,7 +534,6 @@ void MainContentComponent::handleShowAbout() {
     if(fs.exists()) {
         juce::Process::openDocument("file:" + fs.getFullPathName(), juce::String::empty);
     }
-
 }
 
 void MainContentComponent::handleShowNumbers() {
@@ -671,6 +672,7 @@ void MainContentComponent::getAllCommands (Array<CommandID>& commands)
                               MainWindow::PrefsID,
                               MainWindow::QuitID,
                               MainWindow::AboutID,
+                              MainWindow::OpenManualID,
                             };
 
     commands.addArray (ids, numElementsInArray(ids));
@@ -776,6 +778,9 @@ void MainContentComponent::getCommandInfo (CommandID commandID, ApplicationComma
         case MainWindow::AboutID:
             result.setInfo ("About ServerGRIS", "Open the about window.", generalCategory, 0);
             break;
+        case MainWindow::OpenManualID:
+            result.setInfo ("Open Documentation", "Open the manual in pdf viewer.", generalCategory, 0);
+            break;
         default:
             break;
     }
@@ -809,6 +814,7 @@ bool MainContentComponent::perform (const InvocationInfo& info)
             case MainWindow::PrefsID: this->handleShowPreferences(); break;
             case MainWindow::QuitID: dynamic_cast<MainWindow*>(this->parent)->closeButtonPressed(); break;
             case MainWindow::AboutID: this->handleShowAbout(); break;
+            case MainWindow::OpenManualID: this->handleOpenManual(); break;
             default:
                 return false;
         }
@@ -867,6 +873,7 @@ PopupMenu MainContentComponent::getMenuForIndex (int menuIndex, const String& me
     else if (menuName == "Help")
     {
         menu.addCommandItem(commandManager, MainWindow::AboutID);
+        menu.addCommandItem(commandManager, MainWindow::OpenManualID);
     }
     return menu;
 }

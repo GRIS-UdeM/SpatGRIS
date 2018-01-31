@@ -98,6 +98,7 @@ public:
 
         // Help menu
         AboutID             =   4000,
+        OpenManualID        =   4001,
     };
 
 private:

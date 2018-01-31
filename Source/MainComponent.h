@@ -97,6 +97,7 @@ public:
     void handleShowSpeakerEditWindow();
     void handleShowPreferences();
     void handleShowAbout();
+    void handleOpenManual();
     void handleShow2DView();
     void handleShowNumbers();
     void setShowNumbers(bool state);
