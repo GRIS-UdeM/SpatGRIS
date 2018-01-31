@@ -21,6 +21,7 @@
 		0DDB8C442019052A00B9EE76 /* splash_screen.png in Resources */ = {isa = PBXBuildFile; fileRef = 0DDB8C432019052900B9EE76 /* splash_screen.png */; };
 		0DDB8C462019057400B9EE76 /* ServerGRIS_icon_small.png in Resources */ = {isa = PBXBuildFile; fileRef = 0DDB8C452019057400B9EE76 /* ServerGRIS_icon_small.png */; };
 		0DE3ABB01ECDE28A00EACF5B /* vbap.c in Sources */ = {isa = PBXBuildFile; fileRef = 0DE3ABAE1ECDE28A00EACF5B /* vbap.c */; };
+		0DE71CF920224E3300C377E0 /* ServerGRIS_1.0_Manual.pdf in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0DE71CF820224E3300C377E0 /* ServerGRIS_1.0_Manual.pdf */; };
 		0DEA64C61EFC1A6E006562C4 /* Jackmp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DEA64BE1EFC18E1006562C4 /* Jackmp.framework */; };
 		0DEA64C71EFC1A6E006562C4 /* Jacknet.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DEA64BF1EFC18E1006562C4 /* Jacknet.framework */; };
 		0DEA64C81EFC1A6E006562C4 /* Jackservermp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DEA64C01EFC18E1006562C4 /* Jackservermp.framework */; };
@@ -87,6 +88,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 7;
 			files = (
+				0DE71CF920224E3300C377E0 /* ServerGRIS_1.0_Manual.pdf in CopyFiles */,
 				0DFD1B901FA65106008000F3 /* hrtf_compact in CopyFiles */,
 				0DC163381F15427700CD15DD /* JAS.jpil in CopyFiles */,
 				0D0EEB5D1F152084009E8D7E /* default_preset in CopyFiles */,
@@ -172,6 +174,7 @@
 		0DDB8C452019057400B9EE76 /* ServerGRIS_icon_small.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = ServerGRIS_icon_small.png; path = ../../Resources/ServerGRIS_icon_small.png; sourceTree = "<group>"; };
 		0DE3ABAE1ECDE28A00EACF5B /* vbap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = vbap.c; path = ../../Source/vbap.c; sourceTree = "<group>"; };
 		0DE3ABAF1ECDE28A00EACF5B /* vbap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vbap.h; path = ../../Source/vbap.h; sourceTree = "<group>"; };
+		0DE71CF820224E3300C377E0 /* ServerGRIS_1.0_Manual.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; name = ServerGRIS_1.0_Manual.pdf; path = ../../Resources/ServerGRIS_1.0_Manual.pdf; sourceTree = "<group>"; };
 		0DEA64BD1EFC18E1006562C4 /* Jackmp */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = Jackmp; path = ../../../../../../../Library/Frameworks/Jackmp; sourceTree = "<group>"; };
 		0DEA64BE1EFC18E1006562C4 /* Jackmp.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Jackmp.framework; path = ../../../../../../../Library/Frameworks/Jackmp.framework; sourceTree = "<group>"; };
 		0DEA64BF1EFC18E1006562C4 /* Jacknet.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Jacknet.framework; path = ../../../../../../../Library/Frameworks/Jacknet.framework; sourceTree = "<group>"; };
@@ -3282,6 +3285,7 @@
 		D197AC8A7278BF19DF69D425 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				0DE71CF820224E3300C377E0 /* ServerGRIS_1.0_Manual.pdf */,
 				0DFD1B8F1FA65106008000F3 /* hrtf_compact */,
 				0DC163371F15427700CD15DD /* JAS.jpil */,
 				0D0EEB5C1F152084009E8D7E /* default_preset */,
