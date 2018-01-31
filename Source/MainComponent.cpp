@@ -236,7 +236,7 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     
     //End Splash
     if(fs.exists()){
-        this->splash->deleteAfterDelay(RelativeTime::seconds(3), false);
+        this->splash->deleteAfterDelay(RelativeTime::seconds(4), false);
     }
 
     ApplicationCommandManager* commandManager = &MainWindow::getApplicationCommandManager();
@@ -521,6 +521,18 @@ void MainContentComponent::handleShowAbout() {
     this->aboutWindow->setUsingNativeTitleBar(true);
     this->aboutWindow->setVisible(true);
     this->aboutWindow->repaint();
+
+    File fs;
+#ifdef __linux__
+    fs = File ( File::getCurrentWorkingDirectory().getFullPathName() + ("/../../Resources/ServerGRIS_1.0_Manual.pdf"));
+#else
+    String cwd = File::getSpecialLocation(File::currentApplicationFile).getFullPathName();
+    fs = File (cwd + ("/Contents/Resources/ServerGRIS_1.0_Manual.pdf"));
+#endif
+    if(fs.exists()) {
+        juce::Process::openDocument("file:" + fs.getFullPathName(), juce::String::empty);
+    }
+
 }
 
 void MainContentComponent::handleShowNumbers() {
