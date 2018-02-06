@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<SpeakerSetup Name="GRISpeaker Dome32Sub2UdeM.xml" Dimension="3">
+  <Ring>
+    <Speaker PositionX="0.70710676908493041992" PositionY="0.70710676908493041992"
+             PositionZ="0" Azimuth="45" Zenith="0" Radius="1" LayoutIndex="1"
+             OutputPatch="1" DirectOut="0"/>
+    <Speaker PositionX="0.25881910324096679688" PositionY="0.96592581272125244141"
+             PositionZ="0" Azimuth="75" Zenith="0" Radius="1" LayoutIndex="2"
+             OutputPatch="2" DirectOut="0"/>
+    <Speaker PositionX="-0.25881910324096679688" PositionY="0.96592581272125244141"
+             PositionZ="0" Azimuth="105" Zenith="0" Radius="1" LayoutIndex="3"
+             OutputPatch="3" DirectOut="0"/>
+    <Speaker PositionX="-0.70710676908493041992" PositionY="0.70710676908493041992"
+             PositionZ="0" Azimuth="135" Zenith="0" Radius="1" LayoutIndex="4"
+             OutputPatch="4" DirectOut="0"/>
+    <Speaker PositionX="-0.96592581272125244141" PositionY="0.25881910324096679688"
+             PositionZ="0" Azimuth="165" Zenith="0" Radius="1" LayoutIndex="5"
+             OutputPatch="5" DirectOut="0"/>
+    <Speaker PositionX="-0.96592581272125244141" PositionY="-0.25881910324096679688"
+             PositionZ="0" Azimuth="195" Zenith="0" Radius="1" LayoutIndex="6"
+             OutputPatch="6" DirectOut="0"/>
+    <Speaker PositionX="-0.70710676908493041992" PositionY="-0.70710670948028564453"
+             PositionZ="0" Azimuth="225" Zenith="0" Radius="0.99999988079071044922"
+             LayoutIndex="7" OutputPatch="7" DirectOut="0"/>
+    <Speaker PositionX="-0.25881901383399963379" PositionY="-0.9659258723258972168"
+             PositionZ="0" Azimuth="255" Zenith="0" Radius="1.0000001192092895508"
+             LayoutIndex="8" OutputPatch="8" DirectOut="0"/>
+    <Speaker PositionX="0.25881901383399963379" PositionY="-0.96592581272125244141"
+             PositionZ="0" Azimuth="285" Zenith="0" Radius="1" LayoutIndex="9"
+             OutputPatch="9" DirectOut="0"/>
+    <Speaker PositionX="0.70710659027099609375" PositionY="-0.7071068882942199707"
+             PositionZ="0" Azimuth="315" Zenith="0" Radius="0.99999988079071044922"
+             LayoutIndex="10" OutputPatch="10" DirectOut="0"/>
+    <Speaker PositionX="0.9659258723258972168" PositionY="-0.25881880521774291992"
+             PositionZ="0" Azimuth="345" Zenith="0" Radius="1" LayoutIndex="11"
+             OutputPatch="11" DirectOut="0"/>
+    <Speaker PositionX="0.96592581272125244141" PositionY="0.25881910324096679688"
+             PositionZ="0" Azimuth="15" Zenith="0" Radius="1" LayoutIndex="12"
+             OutputPatch="12" DirectOut="0"/>
+    <Speaker PositionX="0.53271442651748657227" PositionY="0.73321837186813354492"
+             PositionZ="0.4226182103157043457" Azimuth="53.99999237060546875"
+             Zenith="24.999996185302734375" Radius="1" LayoutIndex="13" OutputPatch="13"
+             DirectOut="0"/>
+    <Speaker PositionX="0" PositionY="0.90630781650543212891" PositionZ="0.4226182103157043457"
+             Azimuth="90" Zenith="24.999996185302734375" Radius="1" LayoutIndex="14"
+             OutputPatch="14" DirectOut="0"/>
+    <Speaker PositionX="-0.53271430730819702148" PositionY="0.73321837186813354492"
+             PositionZ="0.4226182103157043457" Azimuth="126" Zenith="24.999996185302734375"
+             Radius="0.99999988079071044922" LayoutIndex="15" OutputPatch="15"
+             DirectOut="0"/>
+    <Speaker PositionX="-0.861949920654296875" PositionY="0.28006452322006225586"
+             PositionZ="0.4226182103157043457" Azimuth="162" Zenith="24.999996185302734375"
+             Radius="1" LayoutIndex="16" OutputPatch="16" DirectOut="0"/>
+    <Speaker PositionX="-0.861949920654296875" PositionY="-0.28006452322006225586"
+             PositionZ="0.4226182103157043457" Azimuth="198" Zenith="24.999996185302734375"
+             Radius="1" LayoutIndex="17" OutputPatch="17" DirectOut="0"/>
+    <Speaker PositionX="-0.5327141880989074707" PositionY="-0.7332184910774230957"
+             PositionZ="0.4226182103157043457" Azimuth="234.0000152587890625"
+             Zenith="24.999996185302734375" Radius="0.99999988079071044922"
+             LayoutIndex="18" OutputPatch="18" DirectOut="0"/>
+    <Speaker PositionX="0" PositionY="-0.90630781650543212891" PositionZ="0.4226182103157043457"
+             Azimuth="270" Zenith="24.999996185302734375" Radius="1" LayoutIndex="19"
+             OutputPatch="19" DirectOut="0"/>
+    <Speaker PositionX="0.5327141880989074707" PositionY="-0.7332184910774230957"
+             PositionZ="0.4226182103157043457" Azimuth="306" Zenith="24.999996185302734375"
+             Radius="0.99999988079071044922" LayoutIndex="20" OutputPatch="20"
+             DirectOut="0"/>
+    <Speaker PositionX="0.861949920654296875" PositionY="-0.28006452322006225586"
+             PositionZ="0.4226182103157043457" Azimuth="342" Zenith="24.999996185302734375"
+             Radius="1" LayoutIndex="21" OutputPatch="21" DirectOut="0"/>
+    <Speaker PositionX="0.861949920654296875" PositionY="0.28006452322006225586"
+             PositionZ="0.4226182103157043457" Azimuth="18" Zenith="24.999996185302734375"
+             Radius="1" LayoutIndex="22" OutputPatch="22" DirectOut="0"/>
+    <Speaker PositionX="0.59385830163955688477" PositionY="-0.24598410725593566895"
+             PositionZ="0.76604443788528442383" Azimuth="337.5" Zenith="50.00000762939453125"
+             Radius="1" LayoutIndex="23" OutputPatch="25" DirectOut="0"/>
+    <Speaker PositionX="0.59385818243026733398" PositionY="0.24598419666290283203"
+             PositionZ="0.76604443788528442383" Azimuth="22.5000152587890625"
+             Zenith="50.00000762939453125" Radius="0.99999988079071044922"
+             LayoutIndex="24" OutputPatch="26" DirectOut="0"/>
+    <Speaker PositionX="0.24598410725593566895" PositionY="0.59385818243026733398"
+             PositionZ="0.76604443788528442383" Azimuth="67.5" Zenith="50.00000762939453125"
+             Radius="0.99999988079071044922" LayoutIndex="25" OutputPatch="27"
+             DirectOut="0"/>
+    <Speaker PositionX="-0.24598410725593566895" PositionY="0.59385830163955688477"
+             PositionZ="0.76604443788528442383" Azimuth="112.49999237060546875"
+             Zenith="50.00000762939453125" Radius="0.99999988079071044922"
+             LayoutIndex="26" OutputPatch="28" DirectOut="0"/>
+    <Speaker PositionX="-0.59385818243026733398" PositionY="0.24598419666290283203"
+             PositionZ="0.76604443788528442383" Azimuth="157.5" Zenith="50.00000762939453125"
+             Radius="0.99999988079071044922" LayoutIndex="27" OutputPatch="29"
+             DirectOut="0"/>
+    <Speaker PositionX="-0.59385818243026733398" PositionY="-0.24598410725593566895"
+             PositionZ="0.76604443788528442383" Azimuth="202.5" Zenith="50.00000762939453125"
+             Radius="0.99999988079071044922" LayoutIndex="28" OutputPatch="30"
+             DirectOut="0"/>
+    <Speaker PositionX="-0.24598419666290283203" PositionY="-0.59385818243026733398"
+             PositionZ="0.76604443788528442383" Azimuth="247.5" Zenith="50.00000762939453125"
+             Radius="0.99999988079071044922" LayoutIndex="29" OutputPatch="31"
+             DirectOut="0"/>
+    <Speaker PositionX="0.24598428606986999512" PositionY="-0.59385818243026733398"
+             PositionZ="0.76604443788528442383" Azimuth="292.5" Zenith="50.00000762939453125"
+             Radius="0.99999988079071044922" LayoutIndex="30" OutputPatch="32"
+             DirectOut="0"/>
+    <Speaker PositionX="0" PositionY="-0.25881910324096679688" PositionZ="0.96592581272125244141"
+             Azimuth="270" Zenith="75" Radius="1" LayoutIndex="31" OutputPatch="23"
+             DirectOut="0"/>
+    <Speaker PositionX="0" PositionY="0.25881910324096679688" PositionZ="0.96592581272125244141"
+             Azimuth="90" Zenith="75" Radius="1" LayoutIndex="32" OutputPatch="24"
+             DirectOut="0"/>
+    <Speaker PositionX="1" PositionY="-1" PositionZ="0" Azimuth="315" Zenith="0"
+             Radius="1.4142135381698608398" LayoutIndex="33" OutputPatch="5"
+             DirectOut="1"/>
+    <Speaker PositionX="1" PositionY="1" PositionZ="0" Azimuth="45" Zenith="0"
+             Radius="1.4142135381698608398" LayoutIndex="34" OutputPatch="6"
+             DirectOut="1"/>
+  </Ring>
+</SpeakerSetup>
