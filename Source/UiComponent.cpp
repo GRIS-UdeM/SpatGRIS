@@ -720,7 +720,7 @@ String WindowEditSpeaker::getText (const int columnNumber, const int rowNumber) 
 
 void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, const String& newText)
 {
-    int ival;
+    int ival, oldval;
     float val;
     if(this->mainParent->getLockSpeakers()->try_lock()) {
         if (this->mainParent->getListSpeaker().size() > rowNumber) {
@@ -761,11 +761,23 @@ void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, con
                     break;
                 case 8:
                     this->mainParent->setShowTriplets(false);
+                    oldval = this->mainParent->getListSpeaker()[rowNumber]->getOutputPatch();
                     ival = newText.getIntValue();
                     if (ival < 0) {
                         ival = 0;
                     } else if (ival > 256) {
                         ival = 256;
+                    }
+                    for (auto&& it : this->mainParent->getListSpeaker()) {
+                        if (it->getOutputPatch() == ival) {
+                            ScopedPointer<AlertWindow> alert = new AlertWindow ("Wrong output patch!    ",
+                                                                                "Sorry! Output patch number " + String(ival) + " is already used.", 
+                                                                                AlertWindow::WarningIcon);
+                            alert->setLookAndFeel(this->grisFeel);
+                            alert->addButton ("OK", 0);
+                            alert->runModalLoop();
+                            ival = oldval;
+                        }
                     }
                     this->mainParent->getListSpeaker()[rowNumber]->setOutputPatch(ival);
                     break;
