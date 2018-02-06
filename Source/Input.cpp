@@ -220,8 +220,12 @@ void Input::updateValues(float az, float ze, float azS, float zeS, float heS, fl
 
 void Input::updateValuesOld(float az, float ze, float azS, float zeS, float g)
 {
-    this->azimuth = fmod(((az/M_PI)-M_PI)*-10.0f,(M2_PI));  //0 - 2_PI
-    this->zenith  = (M_PI2) - (M_PI * ze); //0 - (PI/2)    //((ze-0.5f)/M_PI)*-10.0f;
+    if (az < 0) {
+        this->azimuth = fabsf(az) * M_PI;
+    } else {
+        this->azimuth = (1.0f - az) * M_PI + M_PI;
+    }
+    this->zenith  = (M_PI2) - (M_PI * ze);
     
     this->azimSpan = azS;
     this->zeniSpan = zeS;
