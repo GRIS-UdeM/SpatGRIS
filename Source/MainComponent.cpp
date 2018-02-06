@@ -338,15 +338,16 @@ ComboBox* MainContentComponent::addComboBox(const String &s, const String &stool
 //================ Menu item actions =====================================
 void MainContentComponent::handleNew() {
     ScopedPointer<AlertWindow> alert = new AlertWindow ("Closing current preset !","Do you want to save ?", AlertWindow::InfoIcon);
+    alert->setLookAndFeel(&mGrisFeel);
     alert->addButton ("Cancel", 0);
     alert->addButton ("yes", 1);
     alert->addButton ("No", 2);
     int status = alert->runModalLoop();
     if (status == 1) {
         this->handleSavePreset();
-    }
-    if (status == 0)
+    } else if (status == 0) {
         return;
+    }
 
 #ifdef __linux__
     String cwd = File::getCurrentWorkingDirectory().getFullPathName();
@@ -371,11 +372,14 @@ void MainContentComponent::handleOpenPreset() {
 #endif
     if (fc.browseForFileToOpen()) {
         String chosen = fc.getResults().getReference(0).getFullPathName();
-        bool r = AlertWindow::showOkCancelBox (AlertWindow::AlertIconType::WarningIcon,"Open Project !",
-                                               "You want to load : "+chosen+"\nEverything not saved will be lost !",
-                                               String(),String(),0);
-        //Click OK -> Open
-        if (r) {
+        ScopedPointer<AlertWindow> alert = new AlertWindow ("Open Project !", 
+                                                            "You want to load : " + chosen + "\nEverything not saved will be lost !", 
+                                                            AlertWindow::WarningIcon);
+        alert->setLookAndFeel(&mGrisFeel);
+        alert->addButton ("Cancel", 0);
+        alert->addButton ("Ok", 1);
+        int status = alert->runModalLoop();
+        if (status == 1) {
             this->openPreset(chosen);
         }
     }
@@ -419,11 +423,14 @@ void MainContentComponent::handleOpenSpeakerSetup() {
 #endif
     if (fc.browseForFileToOpen()) {
         String chosen = fc.getResults().getReference(0).getFullPathName();
-        bool r = AlertWindow::showOkCancelBox(AlertWindow::AlertIconType::WarningIcon,"Open Speaker Setup !",
-                                              "You want to load : " + chosen + "\nEverything not saved will be lost !",
-                                              String(),String(),0);
-        //Click OK -> Open xml
-        if (r) {
+        ScopedPointer<AlertWindow> alert = new AlertWindow ("Open Speaker Setup !", 
+                                                            "You want to load : " + chosen + "\nEverything not saved will be lost !", 
+                                                            AlertWindow::WarningIcon);
+        alert->setLookAndFeel(&mGrisFeel);
+        alert->addButton ("Cancel", 0);
+        alert->addButton ("Ok", 1);
+        int status = alert->runModalLoop();
+        if (status == 1) {
             this->openXmlFileSpeaker(chosen);
         }
     }
@@ -565,7 +572,7 @@ void MainContentComponent::setShowTriplets(bool state) {
                                                            "Maybe you didn't compute your current speaker setup ?",
                                                            AlertWindow::InfoIcon);
         alert->addButton("Close", 0);
-        int status = alert->runModalLoop();
+        alert->runModalLoop();
         this->setShowTriplets(false);
     }
 }
@@ -1169,6 +1176,7 @@ bool MainContentComponent::updateLevelComp() {
         ScopedPointer<AlertWindow> alert = new AlertWindow ("Not enough speakers!    ",
                                                             "Do you want to reload previous config?    ", 
                                                             AlertWindow::WarningIcon);
+        alert->setLookAndFeel(&mGrisFeel);
         alert->addButton ("No", 0);
         alert->addButton ("Yes", 1);
         int ret = alert->runModalLoop();
@@ -1386,16 +1394,24 @@ void MainContentComponent::openXmlFileSpeaker(String path) {
     int isNewSameAsOld = oldPath.compare(path);
     bool ok = false;
     if (! File(path.toStdString()).existsAsFile()) {
-        AlertWindow::showMessageBoxAsync (AlertWindow::AlertIconType::WarningIcon,"Error in Open Speaker Setup !",
-                                          "Can't found file " + path.toStdString() + ", the current setup will be kept.", String(), 0);
+        ScopedPointer<AlertWindow> alert = new AlertWindow ("Error in Open Speaker Setup !", 
+                                                            "Can't found file " + path.toStdString() + ", the current setup will be kept.", 
+                                                            AlertWindow::WarningIcon);
+        alert->setLookAndFeel(&mGrisFeel);
+        alert->addButton ("Ok", 0);
+        alert->runModalLoop();
     } else {
         this->pathCurrentFileSpeaker = path.toStdString();
         this->jackClient->processBlockOn = false;
         XmlDocument xmlDoc (File (this->pathCurrentFileSpeaker));
         ScopedPointer<XmlElement> mainXmlElem (xmlDoc.getDocumentElement());
         if (mainXmlElem == nullptr) {
-            AlertWindow::showMessageBoxAsync (AlertWindow::AlertIconType::WarningIcon,"Error in Open Speaker Setup !",
-                                              "Your file is corrupted !\n"+xmlDoc.getLastParseError(),String(),0);
+            ScopedPointer<AlertWindow> alert = new AlertWindow ("Error in Open Speaker Setup !", 
+                                                                "Your file is corrupted !\n" + xmlDoc.getLastParseError(), 
+                                                                AlertWindow::WarningIcon);
+            alert->setLookAndFeel(&mGrisFeel);
+            alert->addButton ("Ok", 0);
+            alert->runModalLoop();
         } else {
             if (mainXmlElem->hasTagName("SpeakerSetup")) {
                 this->lockSpeakers->lock();
@@ -1440,8 +1456,12 @@ void MainContentComponent::openXmlFileSpeaker(String path) {
                 }
                 ok = true;
             } else {
-                AlertWindow::showMessageBoxAsync (AlertWindow::AlertIconType::WarningIcon,"Error in Open Speaker Setup !",
-                                                  "SpeakerSetup not found !",String(),0);
+                ScopedPointer<AlertWindow> alert = new AlertWindow ("Error in Open Speaker Setup !", 
+                                                                    "Your file is corrupted !\n" + xmlDoc.getLastParseError(), 
+                                                                    AlertWindow::WarningIcon);
+                alert->setLookAndFeel(&mGrisFeel);
+                alert->addButton ("Ok", 0);
+                alert->runModalLoop();
             }
         }
     }
@@ -1483,8 +1503,12 @@ void MainContentComponent::openPreset(String path)
     XmlDocument xmlDoc (xmlFile);
     ScopedPointer<XmlElement> mainXmlElem (xmlDoc.getDocumentElement());
     if (mainXmlElem == nullptr) {
-        AlertWindow::showMessageBoxAsync (AlertWindow::AlertIconType::WarningIcon,"Error in Open Preset !",
-                                          "Your file is corrupted !\n"+ path.toStdString() + "\n" + xmlDoc.getLastParseError(),String(),0);
+        ScopedPointer<AlertWindow> alert = new AlertWindow ("Error in Open Preset !", 
+                                                            "Your file is corrupted !\n"+ path.toStdString() + "\n" + xmlDoc.getLastParseError(), 
+                                                            AlertWindow::WarningIcon);
+        alert->setLookAndFeel(&mGrisFeel);
+        alert->addButton ("Ok", 1);
+        alert->runModalLoop();
     } else {
         if (mainXmlElem->hasTagName("SpatServerGRIS_Preset") || mainXmlElem->hasTagName("ServerGRIS_Preset")) {
             this->pathCurrentPreset = path;
@@ -1700,10 +1724,15 @@ void MainContentComponent::saveProperties(unsigned int rate, unsigned int buff, 
     if (isnan(RateValue) || RateValue == 0) { RateValue = 48000; }
 
     if(rate != RateValue || buff != BufferValue) {
-        bool r = AlertWindow::showOkCancelBox(AlertWindow::AlertIconType::WarningIcon,"Restart ServerGRIS",
-                                               "Need to restart ServerGRIS to apply new settings !");
+        ScopedPointer<AlertWindow> alert = new AlertWindow ("Restart ServerGRIS",
+                                                            "Need to restart ServerGRIS to apply new settings !", 
+                                                            AlertWindow::InfoIcon);
+        alert->setLookAndFeel(&mGrisFeel);
+        alert->addButton ("Cancel", 0);
+        alert->addButton ("Ok", 1);
+        int status = alert->runModalLoop();
         //Click OK -> Open xml
-        if(r){
+        if (status) {
             props->setValue("BufferValue", (int)buff);
             props->setValue("RateValue", (int)rate);
 
