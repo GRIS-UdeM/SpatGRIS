@@ -1107,8 +1107,8 @@ void jackClientGris::updateSourceVbap(int idS)
         }
     } else if (this->vbapDimensions == 2) {
         if (listSourceIn[idS].paramVBap != nullptr) {
-            vbap2(listSourceIn[idS].azimuth, listSourceIn[idS].zenith,
-                  listSourceIn[idS].aziSpan, listSourceIn[idS].zenSpan,
+            vbap2(listSourceIn[idS].azimuth, 0.0,
+                  listSourceIn[idS].aziSpan, 0.0,
                   listSourceIn[idS].paramVBap);
         }
     }
