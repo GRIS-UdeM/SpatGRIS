@@ -116,6 +116,7 @@ echo "assembling DMG..."
 mkdir "$DMG_DIR"
 cd "$DMG_DIR"
 cp ../$PACKAGE_NAME .
+cp -r "../../../Resources/ServerGRIS Templates" .
 
 cd ..
 
