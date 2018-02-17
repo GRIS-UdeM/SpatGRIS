@@ -20,6 +20,7 @@
 #include <stdarg.h>
 #include "jackClientGRIS.h"
 #include "vbap.h"
+#include "fft.h"
 #include "Speaker.h"
 #include "MainComponent.h"
 
@@ -244,22 +245,16 @@ static void processVBAP(jackClientGris & jackCli, jack_default_audio_sample_t **
 static void 
 processHRTF(jackClientGris & jackCli, jack_default_audio_sample_t ** ins, jack_default_audio_sample_t ** outs,
             const jack_nframes_t &nframes, const unsigned int &sizeInputs, const unsigned int &sizeOutputs) {
-    unsigned int f, i, k, o;
+    unsigned int f, i, k, o, hsize = 64;
     int tmp_count, azim_index_down, azim_index_up, elev_index, elev_index_array;
     float azi, ele, norm_elev, sig, elev_frac, elev_frac_inv;
     float azim_frac_down, azim_frac_inv_down, azim_frac_up, azim_frac_inv_up, cross_coeff, cross_coeff_inv;
-    float *interp_rise, *interp_down;
+    float magL, angL, magR, angR;
+    float inframeL[128], inframeR[128];
+    float realL[64], imagL[64], realR[64], imagR[64];
 
     for (o = 0; o < sizeOutputs; ++o) {
         memset(outs[o], 0, sizeof(jack_default_audio_sample_t) * nframes);
-    }
-
-    if (jackCli.HrtfImpulseLength == 75) {
-        interp_rise = jackCli.hrtf_interp_rise_low;
-        interp_down = jackCli.hrtf_interp_down_low;
-    } else {
-        interp_rise = jackCli.hrtf_interp_rise_high;
-        interp_down = jackCli.hrtf_interp_down_high;
     }
 
     for (i = 0; i < sizeInputs; ++i) {
@@ -290,6 +285,11 @@ processHRTF(jackClientGris & jackCli, jack_default_audio_sample_t ** ins, jack_d
                     jackCli.hrtf_last_azi[i] = azi + (jackCli.hrtf_last_azi[i] - azi) * 0.5;
                     jackCli.hrtf_last_ele[i] = ele + (jackCli.hrtf_last_ele[i] - ele) * 0.5;
 
+                    for (k=0; k<jackCli.HrtfImpulseLength; k++) {
+                        jackCli.previous_impulses[i][0][k] = jackCli.current_impulses[i][0][k];
+                        jackCli.previous_impulses[i][1][k] = jackCli.current_impulses[i][1][k];
+                    }
+
                     norm_elev = jackCli.hrtf_last_ele[i] * 0.1f;
                     elev_index = (int)floor(norm_elev);
                     elev_index_array = elev_index + 4;
@@ -304,44 +304,80 @@ processHRTF(jackClientGris & jackCli, jack_default_audio_sample_t ** ins, jack_d
                         azim_index_up = (int)(jackCli.hrtf_last_azi[i] / jackCli.hrtf_diff[elev_index_array+1]);
                         azim_frac_up = (jackCli.hrtf_last_azi[i] / jackCli.hrtf_diff[elev_index_array+1]) - azim_index_up;
                         azim_frac_inv_up = 1.0f - azim_frac_up;
-                        for (k=0; k<jackCli.HrtfImpulseLength; k++) {
-                            jackCli.previous_impulses[i][0][k] = jackCli.current_impulses[i][0][k];
-                            jackCli.previous_impulses[i][1][k] = jackCli.current_impulses[i][1][k];
-                            jackCli.current_impulses[i][0][k] = elev_frac *
-                                                (azim_frac_down * jackCli.hrtf_left[elev_index_array][azim_index_down][k] +
-                                                azim_frac_inv_down * jackCli.hrtf_left[elev_index_array][azim_index_down+1][k]) +
-                                                elev_frac_inv *
-                                                (azim_frac_up * jackCli.hrtf_left[elev_index_array+1][azim_index_up][k] +
-                                                azim_frac_inv_up * jackCli.hrtf_left[elev_index_array+1][azim_index_up+1][k]);
-                            jackCli.current_impulses[i][1][k] = elev_frac *
-                                                (azim_frac_down * jackCli.hrtf_right[elev_index_array][azim_index_down][k] +
-                                                azim_frac_inv_down * jackCli.hrtf_right[elev_index_array][azim_index_down+1][k]) +
-                                                elev_frac_inv *
-                                                (azim_frac_up * jackCli.hrtf_right[elev_index_array+1][azim_index_up][k] +
-                                                azim_frac_inv_up * jackCli.hrtf_right[elev_index_array+1][azim_index_up+1][k]);
-                        }
+                        for (k=0; k<hsize; k++) {
+                            magL = elev_frac_inv *
+                                                (azim_frac_inv_down * jackCli.mag_left[elev_index_array][azim_index_down][k] +
+                                                azim_frac_down * jackCli.mag_left[elev_index_array][azim_index_down+1][k]) +
+                                                elev_frac *
+                                                (azim_frac_inv_up * jackCli.mag_left[elev_index_array+1][azim_index_up][k] +
+                                                azim_frac_up * jackCli.mag_left[elev_index_array+1][azim_index_up+1][k]);
+                            angL = elev_frac_inv *
+                                                (azim_frac_inv_down * jackCli.ang_left[elev_index_array][azim_index_down][k] +
+                                                azim_frac_down * jackCli.ang_left[elev_index_array][azim_index_down+1][k]) +
+                                                elev_frac *
+                                                (azim_frac_inv_up * jackCli.ang_left[elev_index_array+1][azim_index_up][k] +
+                                                azim_frac_up * jackCli.ang_left[elev_index_array+1][azim_index_up+1][k]);
+                            magR = elev_frac_inv *
+                                                (azim_frac_inv_down * jackCli.mag_right[elev_index_array][azim_index_down][k] +
+                                                azim_frac_down * jackCli.mag_right[elev_index_array][azim_index_down+1][k]) +
+                                                elev_frac *
+                                                (azim_frac_inv_up * jackCli.mag_right[elev_index_array+1][azim_index_up][k] +
+                                                azim_frac_up * jackCli.mag_right[elev_index_array+1][azim_index_up+1][k]);
+                            angR = elev_frac_inv *
+                                                (azim_frac_inv_down * jackCli.ang_right[elev_index_array][azim_index_down][k] +
+                                                azim_frac_down * jackCli.ang_right[elev_index_array][azim_index_down+1][k]) +
+                                                elev_frac *
+                                                (azim_frac_inv_up * jackCli.ang_right[elev_index_array+1][azim_index_up][k] +
+                                                azim_frac_up * jackCli.ang_right[elev_index_array+1][azim_index_up+1][k]);
+                            realL[k] = magL * cosf(angL);
+                            imagL[k] = magL * sinf(angL);
+                            realR[k] = magR * cosf(angR);
+                            imagR[k] = magR * sinf(angR);
+                       }
                     // if elevation is 80 degrees or more, interpolation requires only three points (there's only one HRIR at 90 deg).
                     } else {
                         azim_index_down = (int)(jackCli.hrtf_last_azi[i] / jackCli.hrtf_diff[elev_index_array]);
                         azim_frac_down = (jackCli.hrtf_last_azi[i] / jackCli.hrtf_diff[elev_index_array]) - azim_index_down;
                         azim_frac_inv_down = 1.0f - azim_frac_down;
-                        for (k=0; k<jackCli.HrtfImpulseLength; k++) {
-                            jackCli.previous_impulses[i][0][k] = jackCli.current_impulses[i][0][k];
-                            jackCli.previous_impulses[i][1][k] = jackCli.current_impulses[i][1][k];
-                            jackCli.current_impulses[i][0][k] = elev_frac *
-                                                (azim_frac_down * jackCli.hrtf_left[elev_index_array][azim_index_down][k] +
-                                                azim_frac_inv_down * jackCli.hrtf_left[elev_index_array][azim_index_down+1][k]) +
-                                                elev_frac_inv * jackCli.hrtf_left[13][0][k];
-                            jackCli.current_impulses[i][1][k] = elev_frac *
-                                                (azim_frac_down * jackCli.hrtf_right[elev_index_array][azim_index_down][k] +
-                                                azim_frac_inv_down * jackCli.hrtf_right[elev_index_array][azim_index_down+1][k]) +
-                                                elev_frac_inv * jackCli.hrtf_right[13][0][k];
+                        for (k=0; k<hsize; k++) {
+                            magL = elev_frac_inv *
+                                                (azim_frac_inv_down * jackCli.mag_left[elev_index_array][azim_index_down][k] +
+                                                azim_frac_down * jackCli.mag_left[elev_index_array][azim_index_down+1][k]) +
+                                                elev_frac * jackCli.mag_left[13][0][k];
+                            angL = elev_frac_inv *
+                                                (azim_frac_inv_down * jackCli.ang_left[elev_index_array][azim_index_down][k] +
+                                                azim_frac_down * jackCli.ang_left[elev_index_array][azim_index_down+1][k]) +
+                                                elev_frac * jackCli.ang_left[13][0][k];
+                            magR = elev_frac_inv *
+                                                (azim_frac_inv_down * jackCli.mag_right[elev_index_array][azim_index_down][k] +
+                                                azim_frac_down * jackCli.mag_right[elev_index_array][azim_index_down+1][k]) +
+                                                elev_frac * jackCli.mag_right[13][0][k];
+                            angR = elev_frac_inv *
+                                                (azim_frac_inv_down * jackCli.ang_right[elev_index_array][azim_index_down][k] +
+                                                azim_frac_down * jackCli.ang_right[elev_index_array][azim_index_down+1][k]) +
+                                                elev_frac * jackCli.ang_right[13][0][k];
+                            realL[k] = magL * cosf(angL);
+                            imagL[k] = magL * sinf(angL);
+                            realR[k] = magR * cosf(angR);
+                            imagR[k] = magR * sinf(angR);
                         }
                     }
+                    inframeL[0] = realL[0];
+                    inframeR[0] = realR[0];
+                    inframeL[hsize] = 0.0;
+                    inframeR[hsize] = 0.0;
+                    for (k=1; k<hsize; k++) {
+                        inframeL[k] = realL[k];
+                        inframeL[128 - k] = imagL[k];
+                        inframeR[k] = realR[k];
+                        inframeR[128 - k] = imagR[k];
+                    }
+                    irealfft_split(inframeL, jackCli.current_impulses[i][0], 128, jackCli.twiddle);
+                    irealfft_split(inframeR, jackCli.current_impulses[i][1], 128, jackCli.twiddle);
                 }
                 tmp_count = jackCli.hrtf_count[i];
-                cross_coeff = interp_rise[jackCli.hrtf_sample_count];
-                cross_coeff_inv = interp_down[jackCli.hrtf_sample_count];
+                cross_coeff = (float)jackCli.hrtf_sample_count / (float)jackCli.HrtfImpulseLength;
+                cross_coeff_inv = 1.0f - cross_coeff;
                 for (k=0; k<jackCli.HrtfImpulseLength; ++k) {
                     if (tmp_count < 0) {
                         tmp_count += jackCli.HrtfImpulseLength;
@@ -679,6 +715,7 @@ jackClientGris::jackClientGris(unsigned int bufferS) {
     //---------------------------------------------------
     // Initialize impulse responses for HRTF
     //---------------------------------------------------
+    int files_per_folder[14];
     this->hrtf_left = (float ***)malloc(14 * sizeof(float **));
     this->hrtf_right = (float ***)malloc(14 * sizeof(float **));
     for (int i=0; i<14; i++) {
@@ -696,6 +733,7 @@ jackClientGris::jackClientGris(unsigned int bufferS) {
                                                       false,
                                                       "*.wav");
             result.sort();
+            files_per_folder[i] = howmany;
             this->hrtf_left[i] = (float **)malloc((howmany*2-1) * sizeof(float *));
             this->hrtf_right[i] = (float **)malloc((howmany*2-1) * sizeof(float *));
             for (int j=0; j<howmany; j++) {
@@ -718,13 +756,76 @@ jackClientGris::jackClientGris(unsigned int bufferS) {
         }
     }
 
-    for (int j=0; j<75; j++) {
-            this->hrtf_interp_rise_low[j] = 0.5f * cosf((float)j / 74.0f * M_PI - M_PI) + 0.5f;
-            this->hrtf_interp_down_low[j] = 0.5f * cosf((float)j / 74.0f * M_PI) + 0.5f;
+    /* Compute magnitudes and unwrapped phase for each impulse response. */
+    float re, im, ma, ph;
+    int hsize = 64;
+    int n8 = 128 >> 3;
+    float outframe[128];
+    for (int i=0; i<128; i++) {
+        outframe[i] = 0.0;
     }
-    for (int j=0; j<128; j++) {
-            this->hrtf_interp_rise_high[j] = 0.5f * cosf((float)j / 127.0f * M_PI - M_PI) + 0.5f;
-            this->hrtf_interp_down_high[j] = 0.5f * cosf((float)j / 127.0f * M_PI) + 0.5f;
+    float real[hsize], imag[hsize], magn[hsize], freq[hsize];
+    for (int i=0; i<hsize; i++) {
+        real[i] = imag[i] = magn[i] = freq[i] = 0.0;
+    }
+    this->twiddle = (float **)malloc(4 * sizeof(float *));
+    for(int i=0; i<4; i++)
+        this->twiddle[i] = (float *)malloc(n8 * sizeof(float));
+    fft_compute_split_twiddle(this->twiddle, 128);
+
+    this->mag_left = (float ***)realloc(this->mag_left, 14 * sizeof(float **));
+    this->ang_left = (float ***)realloc(this->ang_left, 14 * sizeof(float **));
+    this->mag_right = (float ***)realloc(this->mag_right, 14 * sizeof(float **));
+    this->ang_right = (float ***)realloc(this->ang_right, 14 * sizeof(float **));
+    for (int i=0; i<14; i++) {
+        int howmany = files_per_folder[i];
+        this->mag_left[i] = (float **)malloc((howmany*2-1) * sizeof(float *));
+        this->ang_left[i] = (float **)malloc((howmany*2-1) * sizeof(float *));
+        this->mag_right[i] = (float **)malloc((howmany*2-1) * sizeof(float *));
+        this->ang_right[i] = (float **)malloc((howmany*2-1) * sizeof(float *));
+        for (int j=0; j<(howmany*2-1); j++) {
+            this->mag_left[i][j] = (float *)malloc(hsize * sizeof(float));
+            this->ang_left[i][j] = (float *)malloc(hsize * sizeof(float));
+            this->mag_right[i][j] = (float *)malloc(hsize * sizeof(float));
+            this->ang_right[i][j] = (float *)malloc(hsize * sizeof(float));
+
+            /* Left channel */
+            realfft_split(this->hrtf_left[i][j], outframe, 128, this->twiddle);
+            real[0] = outframe[0];
+            imag[0] = 0.0;
+            for (int k=1; k<hsize; k++) {
+                real[k] = outframe[k];
+                imag[k] = outframe[128 - k];
+            }
+            for (int k=0; k<hsize; k++) {
+                re = real[k];
+                im = imag[k];
+                ma = sqrtf(re*re + im*im);
+                ph = atan2f(im, re);
+                while (ph > M_PI) ph -= (M_PI * 2.0f);
+                while (ph < -M_PI) ph += (M_PI * 2.0f);
+                this->mag_left[i][j][k] = ma;
+                this->ang_left[i][j][k] = ph;
+            }
+            /* Right channel */
+            realfft_split(this->hrtf_right[i][j], outframe, 128, this->twiddle);
+            real[0] = outframe[0];
+            imag[0] = 0.0;
+            for (int k=1; k<hsize; k++) {
+                real[k] = outframe[k];
+                imag[k] = outframe[128 - k];
+            }
+            for (int k=0; k<hsize; k++) {
+                re = real[k];
+                im = imag[k];
+                ma = sqrtf(re*re + im*im);
+                ph = atan2f(im, re);
+                while (ph > M_PI) ph -= (M_PI * 2.0f);
+                while (ph < -M_PI) ph += (M_PI * 2.0f);
+                this->mag_right[i][j][k] = ma;
+                this->ang_right[i][j][k] = ph;
+            }
+        }
     }
 
     this->setHrtfImpulseLength(128);
@@ -1347,10 +1448,22 @@ jackClientGris::~jackClientGris() {
         for (int j=0; j<howmany; j++) {
             free(this->hrtf_left[i][j]);
             free(this->hrtf_right[i][j]);
+            free(this->mag_left[i][j]);
+            free(this->ang_left[i][j]);
+            free(this->mag_right[i][j]);
+            free(this->ang_right[i][j]);
         }
         free(this->hrtf_left[i]);
         free(this->hrtf_right[i]);
+        free(this->mag_left[i]);
+        free(this->ang_left[i]);
+        free(this->mag_right[i]);
+        free(this->ang_right[i]);
     }
     free(this->hrtf_left);
     free(this->hrtf_right);
+    free(this->mag_left);
+    free(this->ang_left);
+    free(this->mag_right);
+    free(this->ang_right);
 }

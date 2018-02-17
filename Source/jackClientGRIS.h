@@ -283,6 +283,11 @@ public:
     //-------- HRTF data ------------------------
     float ***hrtf_left;
     float ***hrtf_right;
+    float ***mag_left;
+    float ***ang_left;
+    float ***mag_right;
+    float ***ang_right;
+    float **twiddle;
     vector<float> hrtf_diff = {6.5f, 6.0f, 5.0f, 5.0f, 5.0f, 5.0f, 5.0f, 6.0f, 6.5f, 8.185f, 10.0f, 15.0f, 30.0f, 0.0f};
     vector<int> hrtf_how_many_files_per_folder = {29, 31, 37, 37, 37, 37, 37, 31, 29, 23, 19, 13, 7, 1};
     unsigned int hrtf_count[MaxInputs];
@@ -291,10 +296,6 @@ public:
     float hrtf_last_ele[MaxInputs];
     float current_impulses[MaxInputs][2][128];
     float previous_impulses[MaxInputs][2][128];
-    float hrtf_interp_rise_low[75];
-    float hrtf_interp_down_low[75];
-    float hrtf_interp_rise_high[128];
-    float hrtf_interp_down_high[128];
     unsigned int hrtf_sample_count;
     unsigned int HrtfImpulseLength;
 
