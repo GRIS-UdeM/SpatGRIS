@@ -16,6 +16,7 @@
 		0D573AD51EC38A05007605B1 /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D573AD41EC38A05007605B1 /* GLUT.framework */; };
 		0D76540CEB135C65E2C77E42 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A49E2EA8DC00B3CFBC3B8FC /* Cocoa.framework */; };
 		0DC163381F15427700CD15DD /* JAS.jpil in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0DC163371F15427700CD15DD /* JAS.jpil */; };
+		0DC4F35C203DD5C8009864C5 /* fft.c in Sources */ = {isa = PBXBuildFile; fileRef = 0DC4F35B203DD5C8009864C5 /* fft.c */; };
 		0DD0D0112019070800484DDD /* ServerGRIS_icon_doc.icns in Resources */ = {isa = PBXBuildFile; fileRef = 0DD0D0102019070800484DDD /* ServerGRIS_icon_doc.icns */; };
 		0DD0D01420190B7700484DDD /* MainWindow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0DD0D01320190B7700484DDD /* MainWindow.cpp */; };
 		0DDB8C442019052A00B9EE76 /* splash_screen.png in Resources */ = {isa = PBXBuildFile; fileRef = 0DDB8C432019052900B9EE76 /* splash_screen.png */; };
@@ -166,6 +167,8 @@
 		0D573AD71EC38A12007605B1 /* Jackservermp */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = Jackservermp; path = ../../jack/lib/Jackservermp; sourceTree = "<group>"; };
 		0DAEE47D7405B9E5383EA97F /* juce_RelativePointPath.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_RelativePointPath.h; path = ../../JuceLibraryCode/modules/juce_gui_basics/positioning/juce_RelativePointPath.h; sourceTree = SOURCE_ROOT; };
 		0DC163371F15427700CD15DD /* JAS.jpil */ = {isa = PBXFileReference; lastKnownFileType = text; path = JAS.jpil; sourceTree = "<group>"; };
+		0DC4F35A203DD5C8009864C5 /* fft.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fft.h; path = ../../Source/fft.h; sourceTree = "<group>"; };
+		0DC4F35B203DD5C8009864C5 /* fft.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fft.c; path = ../../Source/fft.c; sourceTree = "<group>"; };
 		0DC88B16521DF51B488590F4 /* OscInput.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = OscInput.h; path = ../../Source/OscInput.h; sourceTree = SOURCE_ROOT; };
 		0DD0D0102019070800484DDD /* ServerGRIS_icon_doc.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = ServerGRIS_icon_doc.icns; path = ../../Resources/ServerGRIS_icon_doc.icns; sourceTree = "<group>"; };
 		0DD0D01320190B7700484DDD /* MainWindow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MainWindow.cpp; path = ../../Source/MainWindow.cpp; sourceTree = "<group>"; };
@@ -3614,6 +3617,8 @@
 		FAA16A21521DD35AC3040C00 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				0DC4F35B203DD5C8009864C5 /* fft.c */,
+				0DC4F35A203DD5C8009864C5 /* fft.h */,
 				0DD0D01520190B8D00484DDD /* MainWindow.h */,
 				0DD0D01320190B7700484DDD /* MainWindow.cpp */,
 				0DE3ABAE1ECDE28A00EACF5B /* vbap.c */,
@@ -3811,6 +3816,7 @@
 				F020F381A806CFBDAB300959 /* juce_data_structures.mm in Sources */,
 				2678C7B68750D5F4705E4912 /* juce_events.mm in Sources */,
 				04C1EDF29F91549946A3B3D0 /* juce_graphics.mm in Sources */,
+				0DC4F35C203DD5C8009864C5 /* fft.c in Sources */,
 				0C73D37DE849B35C4D59E3B9 /* juce_gui_basics.mm in Sources */,
 				35906963C034D4F8C6ED9A21 /* juce_gui_extra.mm in Sources */,
 				5164909C37A573656995DBE2 /* juce_opengl.mm in Sources */,

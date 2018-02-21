@@ -20,6 +20,11 @@
 
 #ifndef _FFT_
 #define _FFT_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* in-place split-radix real fft */
 void realfft_split(float *data, float *outdata, int n, float **twiddle);
 void irealfft_split(float *data, float *outdata, int n, float **twiddle);
@@ -31,4 +36,9 @@ void irealfft_packed(float *data, float *outdata, int size, float *twiddle);
 /* Prototype for array generation of twiddle factors */
 void fft_compute_split_twiddle(float **twiddle, int size);
 void fft_compute_radix2_twiddle(float *twiddle, int size);
+    
+#ifdef __cplusplus
+}
+#endif
+
 #endif
