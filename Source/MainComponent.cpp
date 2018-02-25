@@ -186,7 +186,7 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     //--------------------------------------------------------------------------------
     this->labelJackRate->setText(String(this->jackClient->sampleRate)+ " Hz", dontSendNotification);
     this->labelJackBuffer->setText(String(this->jackClient->bufferSize)+ " spls", dontSendNotification);
-    this->labelJackInfo->setText("I : "+String(this->jackClient->numberInputs)+ " - O : "+String(this->jackClient->numberOutputs), dontSendNotification);
+    this->labelJackInfo->setText("I : "+String(this->jackClient->numberOutputs)+ " - O : "+String(this->jackClient->numberInputs), dontSendNotification);
 
     this->sliderMasterGainOut->setValue(1.0);
     this->sliderInterpolation->setValue(0.33);
