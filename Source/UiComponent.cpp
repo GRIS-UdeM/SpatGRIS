@@ -157,9 +157,11 @@ void BoxClient::setValue (const int rowNumber, const int columnNumber,const int 
         switch(columnNumber){
             case 2 :
                 this->mainParent->getListClientjack()->at(rowNumber).portStart = newRating;
+                this->mainParent->getListClientjack()->at(rowNumber).initialized = true;
                 break;
             case 3 :
                 this->mainParent->getListClientjack()->at(rowNumber).portEnd= newRating;
+                this->mainParent->getListClientjack()->at(rowNumber).initialized = true;
                 break;
         }
     }

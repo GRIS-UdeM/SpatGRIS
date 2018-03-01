@@ -557,7 +557,7 @@ int graph_order_callback ( void * arg)
 {
     jackClientGris* jackCli = (jackClientGris*)arg;
     jack_client_log("graph_order_callback : ");
-    jackCli->updateClientPortAvailable();
+    jackCli->updateClientPortAvailable(true);
     jack_client_log("done \n");
     return 0;
 }
@@ -1307,7 +1307,7 @@ void jackClientGris::connectionClient(String name, bool connect)
     int startJ = 0;
     int endJ = 0;
     bool conn = false;
-    this->updateClientPortAvailable();
+    this->updateClientPortAvailable(false);
     //Disconencted Client------------------------------------------------
     while (portsOut[i]){
         if(getClientName(portsOut[i]) == name)
@@ -1343,6 +1343,7 @@ void jackClientGris::connectionClient(String name, bool connect)
         String nameClient = cli.name;
         startJ = cli.portStart-1;
         endJ = cli.portEnd;
+
         while (portsOut[i]){
             if(nameClient == name && nameClient == getClientName(portsOut[i]))
             {
@@ -1387,7 +1388,7 @@ string jackClientGris::getClientName(const char * port)
     }return "";
 }
 
-void jackClientGris::updateClientPortAvailable()
+void jackClientGris::updateClientPortAvailable(bool fromJack)
 {
     const char ** portsOut = jack_get_ports (this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput);
     int i = 0;
@@ -1412,9 +1413,56 @@ void jackClientGris::updateClientPortAvailable()
 
     unsigned int start = 1;
     for (auto&& cli : this->listClient) {
-        cli.portStart = start;
-        cli.portEnd = start + cli.portAvailable - 1;
-        start += cli.portAvailable;
+        if (!fromJack) {
+            cli.initialized = true;
+        }
+        if (cli.portStart == 0 || cli.portEnd == 0 || !cli.initialized) { // ports not initialized.
+            cli.portStart = start;
+            cli.portEnd = start + cli.portAvailable - 1;
+            start += cli.portAvailable;
+        } else if ((cli.portStart >= cli.portEnd) || (cli.portEnd - cli.portStart > cli.portAvailable)) { // portStart bigger than portEnd.
+            cli.portStart = start;
+            cli.portEnd = start + cli.portAvailable - 1;
+            start += cli.portAvailable;
+        } else {
+            if (this->listClient.size() > 1) {
+                int pos = 0;
+                bool somethingBad = false;
+                for (unsigned int c=0; c<this->listClient.size(); c++) {
+                    if (this->listClient[c].name == cli.name) {
+                        pos = c;
+                        break;
+                    }
+                }
+                if (pos == 0) {
+                    somethingBad = false;
+                } else if (pos >= this->listClient.size()) {
+                    somethingBad = true; // Never supposed to get here.
+                } else {
+                    for (int k=0; k<pos; k++) {
+                        struct Client clicmp = this->listClient[k];
+                        if (clicmp.name != cli.name && cli.portStart > clicmp.portStart && cli.portStart < clicmp.portEnd) {
+                            somethingBad = true;
+                        } else if (clicmp.name != cli.name && cli.portEnd > clicmp.portStart && cli.portEnd < clicmp.portEnd) {
+                            somethingBad = true;
+                        }
+                    }
+
+                }
+
+                if (somethingBad) {  // ports overlap other client ports.
+                    cli.portStart = start;
+                    cli.portEnd = start + cli.portAvailable - 1;
+                    start += cli.portAvailable;
+                } else {
+                    // If everything goes right, we keep portStart and portEnd for this client.
+                    start += cli.portEnd;
+                }
+            }
+        }
+        if (cli.portStart > this->inputsPort.size()) {
+            //cout << "Not enough inputs, client can't connect!" << " " << cli.portStart << " " << this->inputsPort.size() << endl;
+        }
     }
 
     jack_free(portsOut);

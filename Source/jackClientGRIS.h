@@ -50,9 +50,10 @@ static unsigned int const MaxOutputs = 256;
 
 struct Client {
     String          name;
-    unsigned int    portStart     = 1;
-    unsigned int    portEnd       = 64;
+    unsigned int    portStart     = 0;
+    unsigned int    portEnd       = 0;
     unsigned int    portAvailable = 0;
+    bool            initialized   = false;
     bool            connected     = false;
 };
 
@@ -323,7 +324,7 @@ public:
     void disconnectAllClient();
     void autoConnectClient();
     void connectionClient(String name, bool connect = true);
-    void updateClientPortAvailable();
+    void updateClientPortAvailable(bool fromJack);
     
     string getClientName(const char * port);
     unsigned int getPortStartClient(String nameClient);
