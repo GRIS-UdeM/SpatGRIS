@@ -423,7 +423,7 @@ void MainContentComponent::handleOpenSpeakerSetup() {
 #endif
     if (fc.browseForFileToOpen()) {
         String chosen = fc.getResults().getReference(0).getFullPathName();
-        ScopedPointer<AlertWindow> alert = new AlertWindow ("Open Speaker Setup !", 
+        ScopedPointer<AlertWindow> alert = new AlertWindow ("Load Speaker Setup !", 
                                                             "You want to load : " + chosen + "\nEverything not saved will be lost !", 
                                                             AlertWindow::WarningIcon);
         alert->setLookAndFeel(&mGrisFeel);
@@ -1398,11 +1398,12 @@ void MainContentComponent::setDirectOut(int id, int chn)
 }
 
 void MainContentComponent::openXmlFileSpeaker(String path) {
+    String msg;
     String oldPath = this->pathCurrentFileSpeaker;
     int isNewSameAsOld = oldPath.compare(path);
     bool ok = false;
     if (! File(path.toStdString()).existsAsFile()) {
-        ScopedPointer<AlertWindow> alert = new AlertWindow ("Error in Open Speaker Setup !", 
+        ScopedPointer<AlertWindow> alert = new AlertWindow ("Error in Load Speaker Setup !", 
                                                             "Can't found file " + path.toStdString() + ", the current setup will be kept.", 
                                                             AlertWindow::WarningIcon);
         alert->setLookAndFeel(&mGrisFeel);
@@ -1414,7 +1415,7 @@ void MainContentComponent::openXmlFileSpeaker(String path) {
         XmlDocument xmlDoc (File (this->pathCurrentFileSpeaker));
         ScopedPointer<XmlElement> mainXmlElem (xmlDoc.getDocumentElement());
         if (mainXmlElem == nullptr) {
-            ScopedPointer<AlertWindow> alert = new AlertWindow ("Error in Open Speaker Setup !", 
+            ScopedPointer<AlertWindow> alert = new AlertWindow ("Error in Load Speaker Setup !", 
                                                                 "Your file is corrupted !\n" + xmlDoc.getLastParseError(), 
                                                                 AlertWindow::WarningIcon);
             alert->setLookAndFeel(&mGrisFeel);
@@ -1464,8 +1465,13 @@ void MainContentComponent::openXmlFileSpeaker(String path) {
                 }
                 ok = true;
             } else {
-                ScopedPointer<AlertWindow> alert = new AlertWindow ("Error in Open Speaker Setup !", 
-                                                                    "Your file is corrupted !\n" + xmlDoc.getLastParseError(), 
+                if (mainXmlElem->hasTagName("ServerGRIS_Preset")) {
+                    msg = "You are trying to open a Server document, and not a Speaker Setup !";
+                } else {
+                    msg = "Your file is corrupted !\n" + xmlDoc.getLastParseError();
+                }
+                ScopedPointer<AlertWindow> alert = new AlertWindow ("Error in Load Speaker Setup !", 
+                                                                    msg, 
                                                                     AlertWindow::WarningIcon);
                 alert->setLookAndFeel(&mGrisFeel);
                 alert->addButton ("Ok", 0);
@@ -1506,6 +1512,7 @@ void MainContentComponent::setTitle() {
 
 void MainContentComponent::openPreset(String path)
 {
+    String msg;
     this->jackClient->processBlockOn = false;
     File xmlFile = File(path.toStdString());
     XmlDocument xmlDoc (xmlFile);
@@ -1608,6 +1615,18 @@ void MainContentComponent::openPreset(String path)
                     }
                 }
             }
+        } else {
+            if (mainXmlElem->hasTagName("SpeakerSetup")) {
+                msg = "You are trying to open a Speaker Setup, and not a Server document !";
+            } else {
+                msg = "Your file is corrupted !\n" + xmlDoc.getLastParseError();
+            }
+            ScopedPointer<AlertWindow> alert = new AlertWindow ("Error in Open Preset !", 
+                                                                msg, 
+                                                                AlertWindow::WarningIcon);
+            alert->setLookAndFeel(&mGrisFeel);
+            alert->addButton ("Ok", 0);
+            alert->runModalLoop();
         }
     }
     this->jackClient->noiseSound = false;
