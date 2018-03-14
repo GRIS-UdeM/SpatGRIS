@@ -136,6 +136,8 @@ float Input::getAlpha() {
 
 void Input::draw()
 {
+    float transpa = 0.75;
+
     if (this->gain == -1.0) { return; }
 
     // Draw 3D sphere.
@@ -146,7 +148,7 @@ void Input::draw()
     if (this->mainParent->isSourceLevelShown) {
         glColor4f(this->color.x, this->color.y, this->color.z, this->getAlpha());
     } else {
-        glColor3f(this->color.x, this->color.y, this->color.z);
+        glColor4f(this->color.x, this->color.y, this->color.z, transpa);
     }
     glutSolidSphere(this->sizeT, 8, 8);
     glTranslatef(-this->center.x, -this->center.y, -this->center.z);

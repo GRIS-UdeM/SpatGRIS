@@ -273,6 +273,8 @@ void Speaker::newSpheriqueCoord(glm::vec3 aziZenRad, glm::vec3 extents)
 
 void Speaker::draw()
 {
+    float transpa = 0.75;
+
     glPushMatrix();
 
     glTranslatef(this->center.x, this->center.y, this->center.z);
@@ -287,9 +289,9 @@ void Speaker::draw()
     if (this->mainParent->isSpeakerLevelShown) {
         float val = this->getAlpha();
         this->levelColour = val + (this->levelColour - val) * 0.5;
-        glColor3f(this->levelColour, this->levelColour, this->levelColour);
+        glColor4f(this->levelColour, this->levelColour, this->levelColour, transpa);
     } else {
-        glColor3f(this->color.x, this->color.y, this->color.z);
+        glColor4f(this->color.x, this->color.y, this->color.z, transpa);
     }
     glVertex3f(this->min.x, this->min.y, this->max.z);
     glVertex3f(this->max.x, this->min.y, this->max.z);
@@ -326,7 +328,7 @@ void Speaker::draw()
     if (this->selected) {
         glLineWidth(2);
         glBegin(GL_LINES);
-        glColor3f(0, 0, 0);
+        glColor4f(0, 0, 0, transpa);
         glVertex3f(this->center.x+SizeSpeaker.x,this->center.y, this->center.z);
         glVertex3f(this->center.x+ 1.2f,this->center.y, this->center.z);
         glEnd();
@@ -379,7 +381,7 @@ void Speaker::draw()
     } else {
         glLineWidth(2);
         glBegin(GL_LINES);
-        glColor3f(0.37, 0.37, 0.37);
+        glColor4f(0.37, 0.37, 0.37, transpa);
         glVertex3f(this->center.x+SizeSpeaker.x, this->center.y, this->center.z);
         glVertex3f(this->center.x+1.2f, this->center.y, this->center.z);
         glEnd();

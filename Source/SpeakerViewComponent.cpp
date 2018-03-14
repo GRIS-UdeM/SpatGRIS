@@ -101,24 +101,6 @@ void SpeakerViewComponent::render()
 
     this->drawOriginGrid();
 
-    if (this->mainParent->getLockSpeakers()->try_lock()) {
-        if (!this->hideSpeaker) {
-            for (unsigned int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
-                this->mainParent->getListSpeaker()[i]->draw();
-                if (this->showNumber) {
-                    glm::vec3 posT = this->mainParent->getListSpeaker()[i]->getCenter();
-                    posT.y += SizeSpeaker.y+0.4f;
-                    this->drawText(to_string(this->mainParent->getListSpeaker()[i]->getOutputPatch()),
-                                   posT, glm::vec3(0, 0, 0), 0.003f);
-                }
-            }
-        }
-        if (this->showTriplets) {
-            this->drawTrippletConn();
-        }
-        this->mainParent->getLockSpeakers()->unlock();
-    }
-
     // NOTE: For the moment, we are just using input values to draw, we aren't
     // changing them, so it's safe to go without the lock. When the function
     // this->mainParent->getLockInputs()->try_lock() returns false, this causes
@@ -135,6 +117,24 @@ void SpeakerViewComponent::render()
             }
         }
         //this->mainParent->getLockInputs()->unlock();
+    }
+
+    if (this->mainParent->getLockSpeakers()->try_lock()) {
+        if (!this->hideSpeaker) {
+            for (unsigned int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
+                this->mainParent->getListSpeaker()[i]->draw();
+                if (this->showNumber) {
+                    glm::vec3 posT = this->mainParent->getListSpeaker()[i]->getCenter();
+                    posT.y += SizeSpeaker.y+0.4f;
+                    this->drawText(to_string(this->mainParent->getListSpeaker()[i]->getOutputPatch()),
+                                   posT, glm::vec3(0, 0, 0), 0.003f);
+                }
+            }
+        }
+        if (this->showTriplets) {
+            this->drawTrippletConn();
+        }
+        this->mainParent->getLockSpeakers()->unlock();
     }
     
     //Draw Sphere : Use many CPU
