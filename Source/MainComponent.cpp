@@ -887,15 +887,23 @@ bool MainContentComponent::exitApp()
     alert->addButton ("Exit", 2);
     int exitV = alert->runModalLoop();
     if (exitV == 1) {
+        alert->setVisible(false);
+        ModalComponentManager::getInstance()->cancelAllModalComponents();
         String dir = this->applicationProperties.getUserSettings()->getValue("lastPresetDirectory");
         if (! File(dir).isDirectory()) {
             dir = File("~").getFullPathName();
         }
         String filename = File(this->pathCurrentPreset).getFileName();
+#ifdef __linux__
+        FileChooser fc ("Choose a file to save...", dir + "/" + filename, "*.xml", false);
+#else
         FileChooser fc ("Choose a file to save...", dir + "/" + filename, "*.xml", true);
+#endif
         if (fc.browseForFileToSave(true)) {
             String chosen = fc.getResults().getReference(0).getFullPathName();
             this->savePreset(chosen);
+        } else {
+            exitV = 0;
         }
     }
     return (exitV != 0); 
