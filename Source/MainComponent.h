@@ -210,6 +210,8 @@ public:
 
     void setTitle();
 
+    void loadVbapHrtfSpeakerSetup();
+
     String getCurrentFileSpeakerPath();
 
     ApplicationProperties applicationProperties;

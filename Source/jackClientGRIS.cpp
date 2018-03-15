@@ -411,6 +411,81 @@ processHRTF(jackClientGris & jackCli, jack_default_audio_sample_t ** ins, jack_d
 }
 
 //=========================================================================================
+//VBAP+HRTF
+//=========================================================================================
+static void processVBapHRTF(jackClientGris & jackCli, jack_default_audio_sample_t ** ins, jack_default_audio_sample_t ** outs,
+                            const jack_nframes_t &nframes, const unsigned int &sizeInputs, const unsigned int &sizeOutputs)
+{
+    int tmp_count;
+    unsigned int f, i, o, k, ilinear;
+    float sig, y, interpG, iogain = 0.0;
+    float vbapouts[16][nframes];
+
+    for (o = 0; o < sizeOutputs; ++o) {
+        memset(outs[o], 0, sizeof(jack_default_audio_sample_t) * nframes);
+    }
+
+    if (jackCli.interMaster == 0.0) {
+        ilinear = 1;
+    } else {
+        ilinear = 0;
+        interpG = powf(jackCli.interMaster, 0.1) * 0.0099 + 0.99;
+    }
+
+    for (i = 0; i < sizeInputs; ++i) {
+        if (jackCli.vbapSourcesToUpdate[i] == 1) {
+            jackCli.updateSourceVbap(i);
+            jackCli.vbapSourcesToUpdate[i] = 0;
+        }
+    }
+
+    for (o = 0; o < 16; ++o) {
+        memset(vbapouts[o], 0, sizeof(jack_default_audio_sample_t) * nframes);
+        for (i = 0; i < sizeInputs; ++i) {
+            if (!jackCli.listSourceIn[i].directOut) {
+                iogain = jackCli.listSourceIn[i].paramVBap->gains[o];
+                y = jackCli.listSourceIn[i].paramVBap->y[o];
+                if (ilinear) {
+                    interpG = (iogain - y) / nframes;
+                    for (f = 0; f < nframes; ++f) {
+                        y += interpG;
+                        vbapouts[o][f] += ins[i][f] * y;
+                    }
+                } else {
+                    for (f = 0; f < nframes; ++f) {
+                        y = iogain + (y - iogain) * interpG;
+                        if (y < 0.0000000000001f) {
+                            y = 0.0;
+                        } else {
+                            vbapouts[o][f] += ins[i][f] * y;
+                        }
+                    }
+                }
+                jackCli.listSourceIn[i].paramVBap->y[o] = y;
+            }
+        }
+
+        for (f=0; f<nframes; f++) {
+            tmp_count = jackCli.hrtf_count[o];
+            for (k=0; k<128; ++k) {
+                if (tmp_count < 0) {
+                    tmp_count += 128;
+                }
+                sig = jackCli.hrtf_input_tmp[o][tmp_count];
+                outs[0][f] += sig * jackCli.vbap_hrtf_left_impulses[o][k];
+                outs[1][f] += sig * jackCli.vbap_hrtf_right_impulses[o][k];
+                tmp_count--;
+            }
+            jackCli.hrtf_count[o]++;
+            if (jackCli.hrtf_count[o] >= 128) {
+                jackCli.hrtf_count[o] = 0;
+            }
+            jackCli.hrtf_input_tmp[o][jackCli.hrtf_count[o]] = vbapouts[o][f];
+        }
+    }
+}
+
+//=========================================================================================
 // STEREO
 //=========================================================================================
 static void processSTEREO(jackClientGris & jackCli, jack_default_audio_sample_t ** ins, jack_default_audio_sample_t ** outs,
@@ -504,7 +579,6 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
     //================ PROCESS ==============================================    
     switch ((ModeSpatEnum)jackCli->modeSelected) {
         case VBap:
-            //VBAP ----------------------------------------------------
             processVBAP(*jackCli, ins, outs, nframes, sizeInputs, sizeOutputs);
             break;
         case DBap:
@@ -515,6 +589,9 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
             break;
         case STEREO:
             processSTEREO(*jackCli, ins, outs, nframes, sizeInputs, sizeOutputs);
+            break;
+        case VBap_HRTF:
+            processVBapHRTF(*jackCli, ins, outs, nframes, sizeInputs, sizeOutputs);
             break;
         default:
             jassertfalse;
@@ -829,6 +906,53 @@ jackClientGris::jackClientGris(unsigned int bufferS) {
     }
 
     this->setHrtfImpulseLength(128);
+    //---------------------------------------------------
+
+    //---------------------------------------------------
+    // Initialize impulse responses for VBAP+HRTF
+    //---------------------------------------------------
+#ifdef __linux__
+    String cwd = File::getCurrentWorkingDirectory().getFullPathName();
+    String folder0 = cwd + "/../../Resources/hrtf_compact/elev" + String(0) + "/";
+    String folder40 = cwd + "/../../Resources/hrtf_compact/elev" + String(40) + "/";
+    String folder80 = cwd + "/../../Resources/hrtf_compact/elev" + String(80) + "/";
+#else
+    String cwd = File::getSpecialLocation(File::currentApplicationFile).getFullPathName();
+    String folder0 = cwd + "/Contents/Resources/hrtf_compact/elev" + String(0) + "/";
+    String folder40 = cwd + "/Contents/Resources/hrtf_compact/elev" + String(40) + "/";
+    String folder80 = cwd + "/Contents/Resources/hrtf_compact/elev" + String(80) + "/";
+#endif
+    float **stbuf;
+    /* Azimuth = 0 */
+    String names0[8] = {"H0e025a.wav", "H0e020a.wav", "H0e065a.wav", "H0e110a.wav",
+                       "H0e155a.wav", "H0e160a.wav", "H0e115a.wav", "H0e070a.wav"};
+    int reverse0[8] = {1, 0, 0, 0, 0, 1, 1, 1};
+    for (int i=0; i<8; i++) {
+        stbuf = getSamplesFromWavFile(folder0 + names0[i]);
+        for (int k=0; k<128; k++) {
+            this->vbap_hrtf_left_impulses[i][k] = stbuf[reverse0[i]][k];
+            this->vbap_hrtf_right_impulses[i][k] = stbuf[1-reverse0[i]][k];
+        }
+    }
+    /* Azimuth = 40 */
+    String names40[6] = {"H40e032a.wav", "H40e026a.wav", "H40e084a.wav", "H40e148a.wav",
+                         "H40e154a.wav", "H40e090a.wav"};
+    int reverse40[6] = {1, 0, 0, 0, 1, 1};
+    for (int i=0; i<6; i++) {
+        stbuf = getSamplesFromWavFile(folder40 + names40[i]);
+        for (int k=0; k<128; k++) {
+            this->vbap_hrtf_left_impulses[i+8][k] = stbuf[reverse40[i]][k];
+            this->vbap_hrtf_right_impulses[i+8][k] = stbuf[1-reverse40[i]][k];
+        }
+    }
+    /* Azimuth = 80 */
+    for (int i=0; i<2; i++) {
+        stbuf = getSamplesFromWavFile(folder80 + "H80e090a.wav");
+        for (int k=0; k<128; k++) {
+            this->vbap_hrtf_left_impulses[i+14][k] = stbuf[1-i][k];
+            this->vbap_hrtf_right_impulses[i+14][k] = stbuf[i][k];
+        }
+    }
     //---------------------------------------------------
 
     //---------------------------------------------------

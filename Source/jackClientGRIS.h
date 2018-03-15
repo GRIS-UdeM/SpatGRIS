@@ -114,10 +114,12 @@ typedef enum {
     DBap,
     HRTF_LOW,
     HRTF_HIGH,
-    STEREO
+    STEREO,
+    VBap_HRTF
 } ModeSpatEnum;
 
-static const StringArray ModeSpatString = {"VBAP",  "DBAP", "HRTF LOW", "HRTF HIGH", "STEREO"};
+static const StringArray ModeSpatString = {"VBAP",  "DBAP", "HRTF LOW",
+                                           "HRTF HIGH", "STEREO", "VBAP+HRTF"};
 
 //Settings Jack Server
 static const StringArray BufferSize = {"32", "64", "128", "256", "512", "1024", "2048"};
@@ -299,6 +301,10 @@ public:
     float previous_impulses[MaxInputs][2][128];
     unsigned int hrtf_sample_count;
     unsigned int HrtfImpulseLength;
+
+    //-------- VBAP+HRTF data ------------------------
+    float vbap_hrtf_left_impulses[16][128];
+    float vbap_hrtf_right_impulses[16][128];
 
     //-------- STEREO data ------------------------
     float last_azi[MaxInputs];

@@ -962,6 +962,15 @@ MainContentComponent::~MainContentComponent()
     delete this->jackServer;
 }
 
+void MainContentComponent::loadVbapHrtfSpeakerSetup() {
+#ifdef __linux__
+    String cwd = File::getCurrentWorkingDirectory().getFullPathName();
+    this->openXmlFileSpeaker(cwd + ("/../../Resources/default_preset/vbap_hrtf_speaker_setup.xml"));
+#else
+    String cwd = File::getSpecialLocation(File::currentApplicationFile).getFullPathName();
+    this->openXmlFileSpeaker(cwd + ("/Contents/Resources/default_preset/vbap_hrtf_speaker_setup.xml"));
+#endif
+}
 
 void MainContentComponent::selectSpeaker(int idS)
 {
@@ -1098,6 +1107,8 @@ void MainContentComponent::updateInputJack(int inInput, Input &inp)
         // nothing to do yet.
     } else if (this->jackClient->modeSelected == STEREO) {
         // nothing to do yet.
+    } else if (this->jackClient->modeSelected == VBap_HRTF) {
+        this->jackClient->vbapSourcesToUpdate[inInput] = 1;
     }
 }
 
@@ -1973,6 +1984,19 @@ void MainContentComponent::comboBoxChanged (ComboBox *comboBox)
                 this->labelModeInfo->setColour(Label::textColourId, mGrisFeel.getGreenColour());
                 this->sliderInterpolation->setEnabled(true);
                 this->isSpanShown = false;
+                break;
+            case VBap_HRTF:
+                this->loadVbapHrtfSpeakerSetup();
+                this->jackClient->setHrtfImpulseLength(128);
+                if (this->updateLevelComp()) {
+                    this->labelModeInfo->setText("Ready", dontSendNotification);
+                    this->labelModeInfo->setColour(Label::textColourId, mGrisFeel.getGreenColour());
+                    this->isSpanShown = false;
+                    this->sliderInterpolation->setEnabled(true);
+                } else {
+                    this->labelModeInfo->setText("ERROR", dontSendNotification);
+                    this->labelModeInfo->setColour(Label::textColourId, mGrisFeel.getRedColour());
+                }
                 break;
             default:
                 this->labelModeInfo->setText("ERROR UNK", dontSendNotification);
