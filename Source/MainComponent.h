@@ -263,6 +263,7 @@ private:
     OscInput *          oscReceiver;
     
     String nameConfig;
+    String pathLastVbapSpeakerSetup;
     String pathCurrentFileSpeaker;
     String pathCurrentPreset;
     

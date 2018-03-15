@@ -112,14 +112,11 @@ struct SpeakerOut {
 typedef enum {
     VBap = 0,
     DBap,
-    HRTF_LOW,
-    HRTF_HIGH,
-    STEREO,
-    VBap_HRTF
+    VBap_HRTF,
+    STEREO
 } ModeSpatEnum;
 
-static const StringArray ModeSpatString = {"VBAP",  "DBAP", "HRTF LOW",
-                                           "HRTF HIGH", "STEREO", "VBAP+HRTF"};
+static const StringArray ModeSpatString = {"VBAP",  "DBAP", "BINAURAL", "STEREO"};
 
 //Settings Jack Server
 static const StringArray BufferSize = {"32", "64", "128", "256", "512", "1024", "2048"};
@@ -268,7 +265,6 @@ public:
     
     bool         processBlockOn;
     ModeSpatEnum modeSelected;
-    bool         hrtfOn;
     
     bool noiseSound;
     bool autoConnection;
@@ -283,26 +279,9 @@ public:
 
     vector<vector<int>> vbap_triplets;
 
-    //-------- HRTF data ------------------------
-    float ***hrtf_left;
-    float ***hrtf_right;
-    float ***mag_left;
-    float ***ang_left;
-    float ***mag_right;
-    float ***ang_right;
-    float **twiddle;
-    vector<float> hrtf_diff = {6.5f, 6.0f, 5.0f, 5.0f, 5.0f, 5.0f, 5.0f, 6.0f, 6.5f, 8.185f, 10.0f, 15.0f, 30.0f, 0.0f};
-    vector<int> hrtf_how_many_files_per_folder = {29, 31, 37, 37, 37, 37, 37, 31, 29, 23, 19, 13, 7, 1};
-    unsigned int hrtf_count[MaxInputs];
-    float hrtf_input_tmp[MaxInputs][128];
-    float hrtf_last_azi[MaxInputs];
-    float hrtf_last_ele[MaxInputs];
-    float current_impulses[MaxInputs][2][128];
-    float previous_impulses[MaxInputs][2][128];
-    unsigned int hrtf_sample_count;
-    unsigned int HrtfImpulseLength;
-
     //-------- VBAP+HRTF data ------------------------
+    unsigned int hrtf_count[16];
+    float hrtf_input_tmp[16][128];
     float vbap_hrtf_left_impulses[16][128];
     float vbap_hrtf_right_impulses[16][128];
 
@@ -312,7 +291,6 @@ public:
     //---------------------------------
     jackClientGris(unsigned int bufferS = 1024);
 
-    // TODO: Release memory allocated for the HRTF impulse responses.
     virtual ~jackClientGris();
     
     bool  isReady() { return clientReady; }
@@ -320,7 +298,7 @@ public:
     float getLevelsIn(int index) const { return levelsIn[index]; }
     float getLevelsOut(int index) const { return levelsOut[index]; }
     
-    void setHrtfImpulseLength(int length);
+    void resetHRTF();
 
     void addRemoveInput(int number);
     void clearOutput();
