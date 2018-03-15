@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# Developers: Olivier Belanger
+
 # To build the installer for OSX, install JackOSX.0.92_b3.pkg,
 # compile ServerGris in Release mode
 # and run this shell script from the installer folder.
