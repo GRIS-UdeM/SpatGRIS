@@ -172,10 +172,19 @@ static void vec_angle_to_cart(ANG_VEC *from, CART_VEC *to) {
     to->z = sinf(from->ele * ang_to_rad);
 }
 
+/* Check if two angle elevation coordinates are within a range of +/- 5 deg. */
+static int vec_angles_are_on_same_ele(ANG_VEC v1, ANG_VEC v2) {
+    if (v1.ele > (v2.ele - 5) && v1.ele < (v2.ele + 5))
+        return 1;
+    else
+        return 0;
+}
+
 /* Calculate volume of the parallelepiped defined by the loudspeaker
  * direction vectors and divide it with total length of the triangle sides. 
  * This is used when removing too narrow triangles. */
 static float vol_p_side_lgth(int i, int j, int k, ls lss[MAX_LS_AMOUNT]) {
+    int same_ele;
     float volper, lgth;
     CART_VEC xprod;
     cross_prod(lss[i].coords, lss[j].coords, &xprod);
@@ -183,7 +192,12 @@ static float vol_p_side_lgth(int i, int j, int k, ls lss[MAX_LS_AMOUNT]) {
     lgth = (fabsf(vec_angle(lss[i].coords, lss[j].coords)) +
             fabsf(vec_angle(lss[i].coords, lss[k].coords)) +
             fabsf(vec_angle(lss[j].coords, lss[k].coords)));
-    if (lgth > 0.00001)
+    /* At least, two speakers should be on the same elevation plane.
+       This fix wrong triplet in the Dome32Sub2UdeM template. */
+    same_ele = vec_angles_are_on_same_ele(lss[i].angles, lss[j].angles) +
+               vec_angles_are_on_same_ele(lss[i].angles, lss[k].angles) +
+               vec_angles_are_on_same_ele(lss[j].angles, lss[k].angles);
+    if (lgth > 0.00001 && same_ele > 0)
         return volper / lgth;
     else
         return 0.0;
