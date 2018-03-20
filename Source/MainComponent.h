@@ -135,7 +135,7 @@ public:
     
     mutex* getLockClients(){ return &this->jackClient->lockListClient; }
     vector<Client> *getListClientjack(){ return &this->jackClient->listClient; }
-    void connectionClientJack(String nameCli, bool conn = true) {this->jackClient->connectionClient(nameCli, conn); }
+    void connectionClientJack(String nameCli, bool conn = true);
 
     void setListTripletFromVbap();
     vector<Triplet> getListTriplet(){ return this->listTriplet; }

@@ -244,6 +244,20 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     commandManager->registerAllCommandsForTarget(this);
 }
 
+void MainContentComponent::connectionClientJack(String nameCli, bool conn) {
+    int maxport = 0;
+    for (auto&& cli : this->jackClient->listClient) {
+        if (cli.portEnd > maxport) {
+            maxport = cli.portEnd;
+        }
+    }
+    if (maxport > this->tedAddInputs->getTextValue().toString().getIntValue()) {
+        this->tedAddInputs->setText(String(maxport), dontSendNotification);
+        textEditorReturnKeyPressed(*this->tedAddInputs);
+    }
+    this->jackClient->connectionClient(nameCli, conn);
+}
+
 // ====================== builder utilities ==========================
 Label* MainContentComponent::addLabel(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into)
 {
