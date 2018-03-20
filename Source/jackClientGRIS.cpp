@@ -1238,7 +1238,11 @@ void jackClientGris::updateClientPortAvailable(bool fromJack)
         if (!fromJack) {
             cli.initialized = true;
         }
-        if (cli.portStart == 0 || cli.portEnd == 0 || !cli.initialized) { // ports not initialized.
+        if (String(cli.name).startsWith(String("Digital "))) {
+            cli.portStart = start;
+            cli.portEnd = start + cli.portAvailable - 1;
+            start += cli.portAvailable;
+        } else if (cli.portStart == 0 || cli.portEnd == 0 || !cli.initialized) { // ports not initialized.
             cli.portStart = start;
             cli.portEnd = start + cli.portAvailable - 1;
             start += cli.portAvailable;
@@ -1261,6 +1265,11 @@ void jackClientGris::updateClientPortAvailable(bool fromJack)
                 } else if (pos >= this->listClient.size()) {
                     somethingBad = true; // Never supposed to get here.
                 } else {
+                    if ((cli.portStart-1) != this->listClient[pos-1].portEnd) {
+                        int numPorts = cli.portEnd - cli.portStart;
+                        cli.portStart = this->listClient[pos-1].portEnd + 1;
+                        cli.portEnd = cli.portStart + numPorts;
+                    }
                     for (int k=0; k<pos; k++) {
                         struct Client clicmp = this->listClient[k];
                         if (clicmp.name != cli.name && cli.portStart > clicmp.portStart && cli.portStart < clicmp.portEnd) {
@@ -1269,7 +1278,6 @@ void jackClientGris::updateClientPortAvailable(bool fromJack)
                             somethingBad = true;
                         }
                     }
-
                 }
 
                 if (somethingBad) {  // ports overlap other client ports.
@@ -1278,7 +1286,7 @@ void jackClientGris::updateClientPortAvailable(bool fromJack)
                     start += cli.portAvailable;
                 } else {
                     // If everything goes right, we keep portStart and portEnd for this client.
-                    start += cli.portEnd;
+                    start = cli.portEnd + 1;
                 }
             }
         }

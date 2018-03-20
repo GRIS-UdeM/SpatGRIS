@@ -142,9 +142,9 @@ public:
                 value.i = rateValue;
                 jackctl_parameter_set_value(parameter, &value);
                 //int i = jackctl_parameter_set_value(parameter, &value);
-                #if PRINT_SERVER
-                printf("> %s \n",i? "true" : "false");
-                #endif
+                //#if PRINT_SERVER
+                //printf("> %s \n",i ? "true" : "false");
+                //#endif
             }
             
             /*if(!strcmp(jackctl_parameter_get_name(parameter), "capture")){
