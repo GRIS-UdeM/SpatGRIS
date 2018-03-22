@@ -454,7 +454,9 @@ void MainContentComponent::handleOpenSpeakerSetup() {
 
 // Should we call "this->updateLevelComp(); before saving to validate that the setup is legal?"
 void MainContentComponent::handleSaveSpeakerSetup() {
-    if (! File(this->pathCurrentFileSpeaker).existsAsFile() || this->pathCurrentFileSpeaker.endsWith("default_preset/default_speaker_setup.xml")) {
+    if (! File(this->pathCurrentFileSpeaker).existsAsFile() || 
+        this->pathCurrentFileSpeaker.endsWith("default_preset/default_speaker_setup.xml") ||
+        this->pathCurrentFileSpeaker.endsWith("default_preset/BINAURAL_SPEAKER_SETUP.xml")) {
         this->handleSaveAsSpeakerSetup();
     }
     this->saveSpeakerSetup(this->pathCurrentFileSpeaker);
@@ -462,7 +464,7 @@ void MainContentComponent::handleSaveSpeakerSetup() {
 
 void MainContentComponent::handleSaveAsSpeakerSetup() {
     String dir = this->applicationProperties.getUserSettings()->getValue("lastSpeakerSetupDirectory");
-    if (! File(dir).isDirectory()) {
+    if (! File(dir).isDirectory() || dir.endsWith("/default_preset")) {
         dir = File("~").getFullPathName();
     }
     String filename = File(this->pathCurrentFileSpeaker).getFileName();
@@ -981,10 +983,10 @@ MainContentComponent::~MainContentComponent()
 void MainContentComponent::loadVbapHrtfSpeakerSetup() {
 #ifdef __linux__
     String cwd = File::getCurrentWorkingDirectory().getFullPathName();
-    this->openXmlFileSpeaker(cwd + ("/../../Resources/default_preset/vbap_hrtf_speaker_setup.xml"));
+    this->openXmlFileSpeaker(cwd + ("/../../Resources/default_preset/BINAURAL_SPEAKER_SETUP.xml"));
 #else
     String cwd = File::getSpecialLocation(File::currentApplicationFile).getFullPathName();
-    this->openXmlFileSpeaker(cwd + ("/Contents/Resources/default_preset/vbap_hrtf_speaker_setup.xml"));
+    this->openXmlFileSpeaker(cwd + ("/Contents/Resources/default_preset/BINAURAL_SPEAKER_SETUP.xml"));
 #endif
 }
 
@@ -1763,6 +1765,10 @@ void MainContentComponent::saveSpeakerSetup(String path)
 
     this->needToSaveSpeakerSetup = false;
 
+    if (this->getJackClient()->modeSelected != VBap_HRTF) {
+        this->pathLastVbapSpeakerSetup = this->pathCurrentFileSpeaker;
+    }
+
     this->setNameConfig();
 }
 
@@ -2003,6 +2009,9 @@ void MainContentComponent::comboBoxChanged (ComboBox *comboBox)
                 }
                 break;
             case STEREO:
+                if (this->pathLastVbapSpeakerSetup != this->pathCurrentFileSpeaker) {
+                    this->openXmlFileSpeaker(this->pathLastVbapSpeakerSetup);
+                }
                 this->labelModeInfo->setText("Ready", dontSendNotification);
                 this->labelModeInfo->setColour(Label::textColourId, mGrisFeel.getGreenColour());
                 this->sliderInterpolation->setEnabled(true);
