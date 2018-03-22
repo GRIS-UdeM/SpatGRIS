@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<ServerGRIS_Preset OSC_Input_Port="18032" Number_Of_Inputs="16" Master_Gain_Out="1"
+                   Master_Interpolation="0.28700000000000003286" Mode_Process="2"
+                   Show_Numbers="1" Show_Speakers="1" Show_Triplets="0" High_Performance="0"
+                   Use_Alpha="0" Show_Speaker_Level="0" Show_Sphere="0" Record_Format="0"
+                   CamAngleX="82.3333282470703125" CamAngleY="23.999998092651367188"
+                   CamDistance="21.992967605590820312">
+  <Input Index="1" R="1" G="0" B="0" DirectOut="0"/>
+  <Input Index="2" R="0.57254904508590698242" G="1" B="0" DirectOut="0"/>
+  <Input Index="3" R="0" G="0.035294119268655776978" B="0.749019622802734375"
+         DirectOut="0"/>
+  <Input Index="4" R="0.749019622802734375" G="0.48235294222831726074"
+         B="0" DirectOut="0"/>
+  <Input Index="5" R="0.41176471114158630371" G="0.749019622802734375"
+         B="0" DirectOut="0"/>
+  <Input Index="6" R="0.55294120311737060547" G="0" B="0.749019622802734375"
+         DirectOut="0"/>
+  <Input Index="7" R="0" G="0.71372550725936889648" B="0.749019622802734375"
+         DirectOut="0"/>
+  <Input Index="8" R="0.67843139171600341797" G="0" B="0.749019622802734375"
+         DirectOut="0"/>
+  <Input Index="9" R="0" G="1" B="0.95294117927551269531" DirectOut="0"/>
+  <Input Index="10" R="1" G="0" B="0.42745098471641540527" DirectOut="0"/>
+  <Input Index="11" R="0" G="0.65882354974746704102" B="0.062745101749897003174"
+         DirectOut="0"/>
+  <Input Index="12" R="0.44705882668495178223" G="0.30980393290519714355"
+         B="0.0039215688593685626984" DirectOut="0"/>
+  <Input Index="13" R="0.7921568751335144043" G="0" B="0.87843137979507446289"
+         DirectOut="0"/>
+  <Input Index="14" R="0" G="0.019607843831181526184" B="0.87058824300765991211"
+         DirectOut="0"/>
+  <Input Index="15" R="0" G="0.6666666865348815918" B="1" DirectOut="0"/>
+  <Input Index="16" R="1" G="0.97647058963775634766" B="0.027450980618596076965"
+         DirectOut="0"/>
+</ServerGRIS_Preset>

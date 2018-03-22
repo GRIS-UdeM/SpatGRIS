@@ -26,13 +26,21 @@
     <Speaker PositionX="0.38268360495567321777" PositionY="-0.92387944459915161133"
              PositionZ="0" Azimuth="292.5" Zenith="0" Radius="1" LayoutIndex="8"
              OutputPatch="3" Gain="0" HighPassCutoff="0" DirectOut="0"/>
+    <Speaker PositionX="0.8485266566276550293" PositionY="-0.84852695465087890625"
+             PositionZ="0.0020943998824805021286" Azimuth="315" Zenith="0.10000000149011611938"
+             Radius="1.2000000476837158203" LayoutIndex="9" OutputPatch="9"
+             Gain="0" HighPassCutoff="0" DirectOut="1"/>
+    <Speaker PositionX="0.84852677583694458008" PositionY="0.84852677583694458008"
+             PositionZ="0.0020943998824805021286" Azimuth="45" Zenith="0.10000000149011611938"
+             Radius="1.2000000476837158203" LayoutIndex="10" OutputPatch="10"
+             Gain="0" HighPassCutoff="0" DirectOut="1"/>
   </Ring>
   <triplet id1="7" id2="5" id3="0"/>
-  <triplet id1="5" id2="3" id3="1065353216"/>
-  <triplet id1="3" id2="1" id3="1065353216"/>
-  <triplet id1="1" id2="2" id3="1065353216"/>
-  <triplet id1="2" id2="4" id3="1065353216"/>
-  <triplet id1="4" id2="6" id3="1065353216"/>
-  <triplet id1="6" id2="8" id3="1065353216"/>
-  <triplet id1="8" id2="7" id3="1065353216"/>
+  <triplet id1="5" id2="3" id3="1536"/>
+  <triplet id1="3" id2="1" id3="1295"/>
+  <triplet id1="1" id2="2" id3="1295"/>
+  <triplet id1="2" id2="4" id3="1098"/>
+  <triplet id1="4" id2="6" id3="1752"/>
+  <triplet id1="6" id2="8" id3="1271"/>
+  <triplet id1="8" id2="7" id3="1070"/>
 </SpeakerSetup>
