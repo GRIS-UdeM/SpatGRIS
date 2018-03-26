@@ -191,7 +191,7 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     this->labelJackInfo->setText("I : "+String(this->jackClient->numberOutputs)+ " - O : "+String(this->jackClient->numberInputs), dontSendNotification);
 
     this->sliderMasterGainOut->setValue(1.0);
-    this->sliderInterpolation->setValue(0.33);
+    this->sliderInterpolation->setValue(0.1);
     this->comBoxModeSpat->setSelectedId(1);
 
     //OSC Receiver----------------------------------------------------------------------------
@@ -1560,7 +1560,7 @@ void MainContentComponent::openPreset(String path)
             this->oscInputPort = mainXmlElem->getIntAttribute("OSC_Input_Port"); // app preferences instead of project setting?
             this->tedAddInputs->setText(mainXmlElem->getStringAttribute("Number_Of_Inputs"));
             this->sliderMasterGainOut->setValue(mainXmlElem->getDoubleAttribute("Master_Gain_Out", 1.0), sendNotification);
-            this->sliderInterpolation->setValue(mainXmlElem->getDoubleAttribute("Master_Interpolation", 0.33), sendNotification);
+            this->sliderInterpolation->setValue(mainXmlElem->getDoubleAttribute("Master_Interpolation", 0.1), sendNotification);
             this->comBoxModeSpat->setSelectedItemIndex(mainXmlElem->getIntAttribute("Mode_Process"),sendNotification);
             this->setShowNumbers(mainXmlElem->getBoolAttribute("Show_Numbers"));
             this->setHighPerformance(mainXmlElem->getBoolAttribute("High_Performance"));
