@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <ServerGRIS_Preset OSC_Input_Port="18032" Number_Of_Inputs="24" Master_Gain_Out="1"
-                   Master_Interpolation="0.33000000000000001554" Mode_Process="0"
+                   Master_Interpolation="0.1" Mode_Process="0"
                    Show_Numbers="1" High_Performance="0" Use_Alpha="0" Record_Format="0"
                    Speaker_Setup_File="/Users/robertnormandeau/Documents/ServerGRIS Documents/Server Speakers/GRISpeaker Dome16Subs2UdeM.xml">
   <Input Index="1" R="0.749019622802734375" G="0" B="0" DirectOut="0"/>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <ServerGRIS_Preset OSC_Input_Port="18032" Number_Of_Inputs="72" Master_Gain_Out="1"
-                   Master_Interpolation="0.35000000000000003331" Mode_Process="0"
+                   Master_Interpolation="0.1" Mode_Process="0"
                    Show_Numbers="0" Show_Speakers="1" High_Performance="0" Use_Alpha="1"
                    Record_Format="0">
   <Input Index="1" R="1" G="0" B="0" DirectOut="0"/>

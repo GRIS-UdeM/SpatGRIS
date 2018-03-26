@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <ServerGRIS_Preset OSC_Input_Port="18032" Number_Of_Inputs="42" Master_Gain_Out="1"
-                   Master_Interpolation="0.35000000000000003331" Mode_Process="0"
+                   Master_Interpolation="0.1" Mode_Process="0"
                    Show_Numbers="1" Show_Speakers="1" Show_Triplets="0" High_Performance="0"
                    Use_Alpha="0" Show_Speaker_Level="0" Show_Sphere="0" Record_Format="0"
                    CamAngleX="80" CamAngleY="25" CamDistance="22">
