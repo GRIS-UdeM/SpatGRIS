@@ -116,24 +116,10 @@ typedef enum {
     STEREO
 } ModeSpatEnum;
 
-static const StringArray ModeSpatString = {"VBAP",  "DBAP", "BINAURAL", "STEREO"};
-
 //Settings Jack Server
 static const StringArray BufferSize = {"32", "64", "128", "256", "512", "1024", "2048"};
 static const StringArray RateValues = {"44100", "48000", "88200", "96000"};
 static const StringArray FileFormats = {"WAV", "AIFF"};
-
-static const char* DeviceName =     "GRIS";
-static const char* ClientName =     "ServerGRIS";
-#ifdef __linux__
-static const char* DriverNameSys = "alsa";
-#else
-static const char* DriverNameSys =  "coreaudio";
-#endif
-static const char* ClientNameSys =  "system";
-
-static const char* ClientNameIgnor =  "JAR::57";
-
 
 class AudioRecorder
 {
@@ -220,8 +206,6 @@ public:
 
     //Jack var
     jack_client_t *client;
-
-    //audio_settings * audio;
     
     vector<jack_port_t *> inputsPort;
     vector<jack_port_t *> outputsPort;
@@ -300,9 +284,9 @@ public:
     
     void resetHRTF();
 
-    void addRemoveInput(int number);
+    void addRemoveInput(unsigned int number);
     void clearOutput();
-    bool addOutput(int outputPatch);
+    bool addOutput(unsigned int outputPatch);
     void removeOutput(int number);
 
     void disconnectAllClient();
@@ -343,6 +327,5 @@ private:
     void connectedGristoSystem();
     
 };
-
 
 #endif

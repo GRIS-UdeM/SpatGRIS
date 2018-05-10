@@ -38,8 +38,8 @@ Box::Box(GrisLookAndFeel *feel, String title, bool verticalScrollbar, bool horiz
     this->viewport->setViewedComponent(this->content, false);
     this->viewport->setScrollBarsShown(verticalScrollbar, horizontalScrollbar);
     this->viewport->setScrollBarThickness(6);
-    this->viewport->getVerticalScrollBar()->setColour(ScrollBar::ColourIds::thumbColourId, feel->getScrollBarColour());
-    this->viewport->getHorizontalScrollBar()->setColour(ScrollBar::ColourIds::thumbColourId, feel->getScrollBarColour());
+    this->viewport->getVerticalScrollBar().setColour(ScrollBar::ColourIds::thumbColourId, feel->getScrollBarColour());
+    this->viewport->getHorizontalScrollBar().setColour(ScrollBar::ColourIds::thumbColourId, feel->getScrollBarColour());
     
     this->viewport->setLookAndFeel(this->grisFeel);
     addAndMakeVisible(this->viewport);
@@ -149,17 +149,16 @@ void BoxClient::updateContentCli()
     tableListClient.repaint();
 }
 
-void BoxClient::setValue (const int rowNumber, const int columnNumber,const int newRating)
+void BoxClient::setValue(const int rowNumber, const int columnNumber, const int newRating)
 {
     this->mainParent->getLockClients()->lock();
-    if (this->mainParent->getListClientjack()->size()> rowNumber)
-    {
-        switch(columnNumber){
-            case 2 :
+    if (this->mainParent->getListClientjack()->size() > (unsigned int)rowNumber) {
+        switch (columnNumber) {
+            case 2:
                 this->mainParent->getListClientjack()->at(rowNumber).portStart = newRating;
                 this->mainParent->getListClientjack()->at(rowNumber).initialized = true;
                 break;
-            case 3 :
+            case 3:
                 this->mainParent->getListClientjack()->at(rowNumber).portEnd= newRating;
                 this->mainParent->getListClientjack()->at(rowNumber).initialized = true;
                 break;
@@ -168,86 +167,66 @@ void BoxClient::setValue (const int rowNumber, const int columnNumber,const int 
     this->mainParent->getLockClients()->unlock();
 }
 
-int BoxClient::getValue (const int rowNumber,const int columnNumber) const{
-    if (this->mainParent->getListClientjack()->size()> rowNumber)
-    {
-        switch(columnNumber){
-                
-            case 2 :
-                
+int BoxClient::getValue(const int rowNumber, const int columnNumber) const {
+    if (this->mainParent->getListClientjack()->size() > (unsigned int)rowNumber) {
+        switch (columnNumber) {
+            case 2:
                 return this->mainParent->getListClientjack()->at(rowNumber).portStart;
-                break;
-            case 3 :
+            case 3:
                 return this->mainParent->getListClientjack()->at(rowNumber).portEnd;
-                break;
-                
         }
     }
-    
     return -1;
 }
 
-String BoxClient::getText (const int columnNumber, const int rowNumber) const
-{
+String BoxClient::getText(const int columnNumber, const int rowNumber) const {
     String text = "?";
 
-    if (this->mainParent->getListClientjack()->size()> rowNumber)
-    {
-        
-        switch(columnNumber){
-            case 1 :
-                text =String(this->mainParent->getListClientjack()->at(rowNumber).name);
+    if (this->mainParent->getListClientjack()->size() > (unsigned int)rowNumber) {
+        switch (columnNumber) {
+            case 1:
+                text = String(this->mainParent->getListClientjack()->at(rowNumber).name);
                 break;
-            case 4 :
-                text =String(this->mainParent->getListClientjack()->at(rowNumber).portAvailable);
+            case 4:
+                text = String(this->mainParent->getListClientjack()->at(rowNumber).portAvailable);
                 break;
-                
         }
     }
 
     return text;
 }
 
-int BoxClient::getNumRows()
-{
+int BoxClient::getNumRows() {
     return numRows;
 }
 
-void BoxClient::paintRowBackground (Graphics& g, int rowNumber, int /*width*/, int /*height*/, bool rowIsSelected)
-{
-    /*if (rowIsSelected){
-        g.fillAll (this->grisFeel->getOnColour());
+void BoxClient::paintRowBackground (Graphics& g, int rowNumber, int /*width*/, int /*height*/, bool rowIsSelected) {
+    if (rowNumber % 2) {
+        g.fillAll(this->grisFeel->getBackgroundColour().withBrightness(0.6));
+    } else {
+        g.fillAll(this->grisFeel->getBackgroundColour().withBrightness(0.7));
     }
-    else{*/
-        if (rowNumber % 2){
-            g.fillAll (this->grisFeel->getBackgroundColour().withBrightness(0.6));
-        }else{
-            g.fillAll (this->grisFeel->getBackgroundColour().withBrightness(0.7));
-        }
-    //}
 }
 
 
-void BoxClient::paintCell (Graphics& g, int rowNumber, int columnId, int width, int height, bool /*rowIsSelected*/)
-{
-    g.setColour (Colours::black);
-    g.setFont (12.0f);
-    if(this->mainParent->getLockClients()->try_lock()){
-    if (this->mainParent->getListClientjack()->size()> rowNumber)
-    {
-        if(columnId==1){
-            String text = getText(columnId, rowNumber);
-            g.drawText (text, 2, 0, width - 4, height, Justification::centredLeft, true);
+void BoxClient::paintCell(Graphics& g, int rowNumber, int columnId, int width, int height, bool /*rowIsSelected*/) {
+    g.setColour(Colours::black);
+    g.setFont(12.0f);
+    if (this->mainParent->getLockClients()->try_lock()) {
+        if (this->mainParent->getListClientjack()->size() > (unsigned int)rowNumber) {
+            if (columnId == 1) {
+                String text = getText(columnId, rowNumber);
+                g.drawText(text, 2, 0, width - 4, height, Justification::centredLeft, true);
+            }
+            if (columnId == 4) {
+                String text = getText(columnId, rowNumber);
+                g.drawText(text, 2, 0, width - 4, height, Justification::centred, true);
+            }
         }
-        if(columnId==4){
-            String text = getText(columnId, rowNumber);
-            g.drawText (text, 2, 0, width - 4, height, Justification::centred, true);
-        }
+        this->mainParent->getLockClients()->unlock();
     }
-    this->mainParent->getLockClients()->unlock();
-    }
-    g.setColour (Colours::black.withAlpha (0.2f));
-    g.fillRect (width - 1, 0, 1, height);
+    g.setColour(Colours::black.withAlpha (0.2f));
+    g.fillRect(width - 1, 0, 1, height);
 }
 
 Component* BoxClient::refreshComponentForCell (int rowNumber, int columnId, bool /*isRowSelected*/,
@@ -551,7 +530,7 @@ void WindowEditSpeaker::buttonClicked(Button *button)
         this->mainParent->getJackClient()->noiseSound = this->pinkNoise->getToggleState();
     }
     else if (button->getName() != "" && (button->getName().getIntValue() >= 0 &&
-        button->getName().getIntValue() <= this->mainParent->getListSpeaker().size())) {
+        (unsigned int)button->getName().getIntValue() <= this->mainParent->getListSpeaker().size())) {
         this->mainParent->removeSpeaker(button->getName().getIntValue());
         updateWinContent();
         this->mainParent->needToComputeVbap = true;
@@ -672,34 +651,32 @@ void WindowEditSpeaker::resized()
     this->pinkNoiseGain->setBounds(180, getHeight()-100, 60, 60);
 }
 
-String WindowEditSpeaker::getText (const int columnNumber, const int rowNumber) const
-{
+String WindowEditSpeaker::getText(const int columnNumber, const int rowNumber) const {
     String text = "";
-    //this->mainParent->getLockSpeakers()->lock();
-    if (this->mainParent->getListSpeaker().size() > rowNumber) {
-        switch(columnNumber){
-            case 1 :
+    if (this->mainParent->getListSpeaker().size() > (unsigned int)rowNumber) {
+        switch (columnNumber) {
+            case 1:
                 text = String(this->mainParent->getListSpeaker()[rowNumber]->getIdSpeaker());
                 break;
-            case 2 :
+            case 2:
                 text = String(this->mainParent->getListSpeaker()[rowNumber]->getCoordinate().x);
                 break;
-            case 3 :
+            case 3:
                 text = String(this->mainParent->getListSpeaker()[rowNumber]->getCoordinate().z);
                 break;
-            case 4 :
+            case 4:
                 text = String(this->mainParent->getListSpeaker()[rowNumber]->getCoordinate().y);
                 break;
-            case 5 :
+            case 5:
                 text = String(this->mainParent->getListSpeaker()[rowNumber]->getAziZenRad().x);
                 break;
-            case 6 :
+            case 6:
                 text = String(this->mainParent->getListSpeaker()[rowNumber]->getAziZenRad().y);
                 break;
-            case 7 :
+            case 7:
                 text = String(this->mainParent->getListSpeaker()[rowNumber]->getAziZenRad().z);
                 break;
-            case 8 :
+            case 8:
                 text = String(this->mainParent->getListSpeaker()[rowNumber]->getOutputPatch());
                 break;
             case 9:
@@ -709,46 +686,44 @@ String WindowEditSpeaker::getText (const int columnNumber, const int rowNumber) 
                 text = String(this->mainParent->getListSpeaker()[rowNumber]->getHighPassCutoff());
                 break;
             case 11:
-                text = String(this->mainParent->getListSpeaker()[rowNumber]->getDirectOut());
+                text = String((int)this->mainParent->getListSpeaker()[rowNumber]->getDirectOut());
                 break;
             default:
                 text = "?";
         }
     }
 
-    //this->mainParent->getLockSpeakers()->unlock();
     return text;
 }
 
-void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, const String& newText)
-{
+void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, const String& newText) {
     int ival, oldval;
     float val;
-    if(this->mainParent->getLockSpeakers()->try_lock()) {
-        if (this->mainParent->getListSpeaker().size() > rowNumber) {
+    if (this->mainParent->getLockSpeakers()->try_lock()) {
+        if (this->mainParent->getListSpeaker().size() > (unsigned int)rowNumber) {
             glm::vec3 newP;
-            switch(columnNumber) {
-                case 2 :
+            switch (columnNumber) {
+                case 2:
                     newP = this->mainParent->getListSpeaker()[rowNumber]->getCoordinate();
                     newP.x = GetFloatPrecision(newText.getFloatValue(), 3);
                     this->mainParent->getListSpeaker()[rowNumber]->setCoordinate(newP);
                     break;
-                case 3 :
+                case 3:
                     newP = this->mainParent->getListSpeaker()[rowNumber]->getCoordinate();
                     newP.z = GetFloatPrecision(newText.getFloatValue(), 3);
                     this->mainParent->getListSpeaker()[rowNumber]->setCoordinate(newP);
                     break;
-                case 4 :
+                case 4:
                     newP = this->mainParent->getListSpeaker()[rowNumber]->getCoordinate();
                     newP.y = GetFloatPrecision(newText.getFloatValue(), 3);
                     this->mainParent->getListSpeaker()[rowNumber]->setCoordinate(newP);
                     break;
-                case 5 :
+                case 5:
                     newP = this->mainParent->getListSpeaker()[rowNumber]->getAziZenRad();
                     newP.x = GetFloatPrecision(newText.getFloatValue(), 2);
                     this->mainParent->getListSpeaker()[rowNumber]->setAziZenRad(newP);
                     break;
-                case 6 :
+                case 6:
                     newP = this->mainParent->getListSpeaker()[rowNumber]->getAziZenRad();
                     val = GetFloatPrecision(newText.getFloatValue(), 2);
                     if (val < -90.0f) { val = -90.0f; }
@@ -756,7 +731,7 @@ void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, con
                     newP.y = val;
                     this->mainParent->getListSpeaker()[rowNumber]->setAziZenRad(newP);
                     break;
-                case 7 :
+                case 7:
                     newP = this->mainParent->getListSpeaker()[rowNumber]->getAziZenRad();
                     newP.z = GetFloatPrecision(newText.getFloatValue(), 2);
                     this->mainParent->getListSpeaker()[rowNumber]->setAziZenRad(newP);
@@ -783,19 +758,19 @@ void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, con
                     }
                     this->mainParent->getListSpeaker()[rowNumber]->setOutputPatch(ival);
                     break;
-                case 9 :
+                case 9:
                     val = newText.getFloatValue();
                     if (val < -18.0f) { val = -18.0f; }
                     else if (val > 6.0f) { val = 6.0f; }
                     this->mainParent->getListSpeaker()[rowNumber]->setGain(val);
                     break;
-                case 10 :
+                case 10:
                     val = newText.getFloatValue();
                     if (val < 0.0f) { val = 0.0f; }
                     else if (val > 150.0f) { val = 150.0f; }
                     this->mainParent->getListSpeaker()[rowNumber]->setHighPassCutoff(val);
                     break;
-                case 11 :
+                case 11:
                     this->mainParent->setShowTriplets(false);
                     this->mainParent->getListSpeaker()[rowNumber]->setDirectOut(newText.getIntValue());
                     break;
@@ -807,8 +782,7 @@ void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, con
     }
 }
 
-int WindowEditSpeaker::getNumRows()
-{
+int WindowEditSpeaker::getNumRows() {
     return numRows;
 }
 
@@ -837,20 +811,19 @@ void WindowEditSpeaker::paintRowBackground (Graphics& g, int rowNumber, int /*wi
 
 // This is overloaded from TableListBoxModel, and must paint any cells that aren't using custom
 // components.
-void WindowEditSpeaker::paintCell(Graphics& g, int rowNumber, int columnId, int width, int height, bool /*rowIsSelected*/)
-{
-    g.setColour (Colours::black);
-    g.setFont (font);
+void WindowEditSpeaker::paintCell(Graphics& g, int rowNumber, int columnId, int width, int height, bool /*rowIsSelected*/) {
+    g.setColour(Colours::black);
+    g.setFont(font);
     
     if (this->mainParent->getLockSpeakers()->try_lock()) {
-        if (this->mainParent->getListSpeaker().size() > rowNumber) {
+        if (this->mainParent->getListSpeaker().size() > (unsigned int)rowNumber) {
             String text = getText(columnId, rowNumber);
             g.drawText(text, 2, 0, width - 4, height, Justification::centredLeft, true);
         }
         this->mainParent->getLockSpeakers()->unlock();
     }
-    g.setColour (Colours::black.withAlpha (0.2f));
-    g.fillRect (width - 1, 0, 1, height);
+    g.setColour(Colours::black.withAlpha (0.2f));
+    g.fillRect(width - 1, 0, 1, height);
 }
 
 Component* WindowEditSpeaker::refreshComponentForCell(int rowNumber, int columnId, bool /*isRowSelected*/,

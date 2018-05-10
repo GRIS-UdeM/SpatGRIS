@@ -18,6 +18,7 @@
  */
 
 #include <stdarg.h>
+#include "ServerGrisConstants.h"
 #include "jackClientGRIS.h"
 #include "vbap.h"
 #include "fft.h"
@@ -75,15 +76,13 @@ static void muteSoloVuMeterIn(jackClientGris & jackCli, jack_default_audio_sampl
 static void muteSoloVuMeterGainOut(jackClientGris & jackCli, jack_default_audio_sample_t ** outs,
                                    const jack_nframes_t &nframes, const unsigned int &sizeOutputs,
                                    const float mGain = 1.0f) {
-    unsigned int num_of_channels;
+    unsigned int num_of_channels = 2;
     float sumsOut[sizeOutputs];
     float gain;
     double inval = 0.0, val = 0.0;
 
     if (jackCli.modeSelected == VBap) {
         num_of_channels = sizeOutputs;
-    } else if (jackCli.modeSelected == VBap_HRTF || jackCli.modeSelected == STEREO) {
-        num_of_channels = 2;
     }
     
     for (unsigned int i = 0; i < sizeOutputs; ++i) {
@@ -191,7 +190,7 @@ static void processVBAP(jackClientGris & jackCli, jack_default_audio_sample_t **
                         const jack_nframes_t &nframes, const unsigned int &sizeInputs, const unsigned int &sizeOutputs)
 {
     unsigned int f, i, o, ilinear;
-    float y, interpG, iogain = 0.0;
+    float y, interpG = 0.99, iogain = 0.0;
 
     if (jackCli.interMaster == 0.0) {
         ilinear = 1;
@@ -247,7 +246,7 @@ static void processVBapHRTF(jackClientGris & jackCli, jack_default_audio_sample_
 {
     int tmp_count;
     unsigned int f, i, o, k, ilinear;
-    float sig, y, interpG, iogain = 0.0;
+    float sig, y, interpG = 0.99, iogain = 0.0;
     float vbapouts[16][nframes];
 
     for (o = 0; o < sizeOutputs; ++o) {
@@ -851,22 +850,22 @@ void jackClientGris::prepareToRecord()
     }
 }
 
-void jackClientGris::addRemoveInput(int number)
+void jackClientGris::addRemoveInput(unsigned int number)
 {
-    if(number < this->inputsPort.size()){
-        while(number < this->inputsPort.size()){
+    if (number < this->inputsPort.size()) {
+        while (number < this->inputsPort.size()) {
             jack_port_unregister(client, this->inputsPort.back());
             this->inputsPort.pop_back();
         }
-    }else{
-        while(number > this->inputsPort.size()){
+    } else {
+        while (number > this->inputsPort.size()) {
             String nameIn = "input";
             nameIn+= String(this->inputsPort.size() +1);
-            jack_port_t* newPort = jack_port_register(this->client,  nameIn.toUTF8(), JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
+            jack_port_t* newPort = jack_port_register(this->client, nameIn.toUTF8(), JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
             this->inputsPort.push_back(newPort);
         }
     }
-    
+
     connectedGristoSystem();
 }
 
@@ -879,14 +878,14 @@ void jackClientGris::clearOutput()
     }
 }
 
-bool jackClientGris::addOutput(int outputPatch)
+bool jackClientGris::addOutput(unsigned int outputPatch)
 {
     if (outputPatch > this->maxOutputPatch)
         this->maxOutputPatch = outputPatch;
     String nameOut = "output";
-    nameOut+= String(this->outputsPort.size() +1);
+    nameOut += String(this->outputsPort.size() + 1);
 
-    jack_port_t* newPort = jack_port_register(this->client,  nameOut.toUTF8(), JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput,  0);
+    jack_port_t* newPort = jack_port_register(this->client, nameOut.toUTF8(), JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
     this->outputsPort.push_back(newPort);
     connectedGristoSystem();
     return true;
@@ -1252,7 +1251,7 @@ void jackClientGris::updateClientPortAvailable(bool fromJack)
             start += cli.portAvailable;
         } else {
             if (this->listClient.size() > 1) {
-                int pos = 0;
+                unsigned int pos = 0;
                 bool somethingBad = false;
                 for (unsigned int c=0; c<this->listClient.size(); c++) {
                     if (this->listClient[c].name == cli.name) {
@@ -1270,7 +1269,7 @@ void jackClientGris::updateClientPortAvailable(bool fromJack)
                         cli.portStart = this->listClient[pos-1].portEnd + 1;
                         cli.portEnd = cli.portStart + numPorts;
                     }
-                    for (int k=0; k<pos; k++) {
+                    for (unsigned int k=0; k<pos; k++) {
                         struct Client clicmp = this->listClient[k];
                         if (clicmp.name != cli.name && cli.portStart > clicmp.portStart && cli.portStart < clicmp.portEnd) {
                             somethingBad = true;

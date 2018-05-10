@@ -17,6 +17,7 @@
  along with ServerGris.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "ServerGrisConstants.h"
 #include "MainComponent.h"
 
 /* FIXME
@@ -166,9 +167,6 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     // Jack Init and Param -------------------------------------------------------------------------------
     unsigned int BufferValue = props->getIntValue("BufferValue", 1024);
     unsigned int RateValue = props->getIntValue("RateValue", 48000);
-    unsigned int FileFormat = props->getIntValue("FileFormat", 0);
-
-    //cout << "Buffer Rate: " << BufferValue << ", Sampling Rate: " << RateValue << ", File Format: " << FileFormat << endl;
     
     if(isnan(BufferValue) || BufferValue == 0 || isnan(RateValue) || RateValue == 0){
         BufferValue = 1024;
@@ -245,13 +243,13 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
 }
 
 void MainContentComponent::connectionClientJack(String nameCli, bool conn) {
-    int maxport = 0;
+    unsigned int maxport = 0;
     for (auto&& cli : this->jackClient->listClient) {
         if (cli.portEnd > maxport) {
             maxport = cli.portEnd;
         }
     }
-    if (maxport > this->tedAddInputs->getTextValue().toString().getIntValue()) {
+    if (maxport > (unsigned int)this->tedAddInputs->getTextValue().toString().getIntValue()) {
         this->tedAddInputs->setText(String(maxport), dontSendNotification);
         textEditorReturnKeyPressed(*this->tedAddInputs);
     }
@@ -799,12 +797,10 @@ void MainContentComponent::getCommandInfo (CommandID commandID, ApplicationComma
     }
 }
 
-bool MainContentComponent::perform (const InvocationInfo& info)
+bool MainContentComponent::perform(const InvocationInfo& info)
 {
-    if (auto* mainWindow = MainWindow::getMainAppWindow())
-    {
-        switch (info.commandID)
-        {
+    if (MainWindow::getMainAppWindow()) {
+        switch (info.commandID) {
             case MainWindow::NewPresetID: this->handleNew(); break;
             case MainWindow::OpenPresetID: this->handleOpenPreset(); break;
             case MainWindow::SavePresetID: this->handleSavePreset(); break;
@@ -990,17 +986,15 @@ void MainContentComponent::loadVbapHrtfSpeakerSetup() {
 #endif
 }
 
-void MainContentComponent::selectSpeaker(int idS)
-{
-    for(unsigned int i = 0; i < this->listSpeaker.size(); ++i) {
-        if(i!=idS)
-        {
+void MainContentComponent::selectSpeaker(unsigned int idS) {
+    for (unsigned int i = 0; i < this->listSpeaker.size(); ++i) {
+        if (i != idS) {
             this->listSpeaker[i]->unSelectSpeaker();
-        }else{
+        } else {
             this->listSpeaker[i]->selectSpeaker();
         }
     }
-    if(this->winSpeakConfig != nullptr){
+    if (this->winSpeakConfig != nullptr) {
         this->winSpeakConfig->selectedRow(idS);
     }
 }
@@ -1078,7 +1072,7 @@ bool MainContentComponent::tripletExist(Triplet tri, int &pos)
 void MainContentComponent::addSpeaker()
 {
     this->lockSpeakers->lock();
-    unsigned int idNewSpeaker = (unsigned int)listSpeaker.size()+1;
+    unsigned int idNewSpeaker = (unsigned int)listSpeaker.size() + 1;
     this->listSpeaker.push_back(new Speaker(this, idNewSpeaker, idNewSpeaker, glm::vec3(0.0f, 0.0f, 10.0f)));
     this->lockSpeakers->unlock();
     this->jackClient->addOutput(idNewSpeaker);
@@ -1184,10 +1178,10 @@ Linkwitz_Riley_compute_variables(double freq, double sr, double **coeffs, int le
 }
 
 bool MainContentComponent::updateLevelComp() {
-    int dimensions = 2;
+    unsigned int dimensions = 2;
     int x = 2;
     int indexS = 0;
-    int directOutSpeakers = 0;
+    unsigned int directOutSpeakers = 0;
 
     if (this->listSpeaker.size() == 0)
         return false;
@@ -1201,8 +1195,7 @@ bool MainContentComponent::updateLevelComp() {
         }
         if (zenith == -1.0f) {
             zenith = it->getAziZenRad().y;
-        }
-        else if (it->getAziZenRad().y < (zenith - 4.9) || it->getAziZenRad().y > (zenith + 4.9)) {
+        } else if (it->getAziZenRad().y < (zenith - 4.9) || it->getAziZenRad().y > (zenith + 4.9)) {
             dimensions = 3;
         }
     }
@@ -1238,7 +1231,7 @@ bool MainContentComponent::updateLevelComp() {
     bool outputsIsMuted[MaxInputs];
     bool outputsIsSolo[MaxInputs];
     bool soloOut = this->jackClient->soloOut;
-    for (int i = 0; i < MaxOutputs; i++) {
+    for (unsigned int i = 0; i < MaxOutputs; i++) {
         outputsIsMuted[i] = (&this->jackClient->listSpeakerOut[i])->isMuted;
         outputsIsSolo[i] = (&this->jackClient->listSpeakerOut[i])->isSolo;
     }
@@ -1272,7 +1265,7 @@ bool MainContentComponent::updateLevelComp() {
         this->jackClient->listSpeakerOut[i] = so;
         i++;
 
-        if (it->getOutputPatch() > this->jackClient->maxOutputPatch)
+        if ((unsigned int)it->getOutputPatch() > this->jackClient->maxOutputPatch)
             this->jackClient->maxOutputPatch = it->getOutputPatch();
     }
 
@@ -1360,20 +1353,17 @@ bool MainContentComponent::updateLevelComp() {
         (&this->jackClient->listSourceIn[i])->isSolo = inputsIsSolo[i];
         (&this->jackClient->listSourceIn[i])->directOut = directOuts[i];
     }
-    i = 0;
     this->lockInputs->lock();
-    for (auto&& it : this->listSourceInput) {
+    for (unsigned int i = 0; i < this->listSourceInput.size(); i++) {
         this->listSourceInput[i]->setDirectOutChannel(directOuts[i]);
-        i++;
     }
     this->lockInputs->unlock();
 
     this->jackClient->soloOut = soloOut;
-    for (int i = 0; i < MaxOutputs; i++) {
+    for (unsigned int i = 0; i < MaxOutputs; i++) {
         (&this->jackClient->listSpeakerOut[i])->isMuted = outputsIsMuted[i];
         (&this->jackClient->listSpeakerOut[i])->isSolo = outputsIsSolo[i];
     }
-
 
     this->jackClient->processBlockOn = true;
     return retval;
@@ -1478,7 +1468,7 @@ void MainContentComponent::openXmlFileSpeaker(String path) {
                                 if (spk->hasAttribute("DirectOut")) {
                                     this->listSpeaker.back()->setDirectOut(spk->getBoolAttribute("DirectOut"));
                                 }
-                                this->jackClient->addOutput(spk->getIntAttribute("OutputPatch"));
+                                this->jackClient->addOutput((unsigned int)spk->getIntAttribute("OutputPatch"));
                             }
                         }
                     }
@@ -1772,13 +1762,13 @@ void MainContentComponent::saveSpeakerSetup(String path)
     this->setNameConfig();
 }
 
-void MainContentComponent::saveProperties(unsigned int rate, unsigned int buff, int fileformat, int oscPort) {
+void MainContentComponent::saveProperties(int rate, int buff, int fileformat, int oscPort) {
 
     PropertiesFile *props = this->applicationProperties.getUserSettings();
 
-    unsigned int BufferValue = props->getIntValue("BufferValue", 1024);
-    unsigned int RateValue = props->getIntValue("RateValue", 48000);
-    unsigned int OscInputPort = props->getIntValue("OscInputPort", 18032);
+    int BufferValue = props->getIntValue("BufferValue", 1024);
+    int RateValue = props->getIntValue("RateValue", 48000);
+    int OscInputPort = props->getIntValue("OscInputPort", 18032);
 
     // ======== handle Jack settings ===============
     if (isnan(BufferValue) || BufferValue == 0) { BufferValue = 1024; }
@@ -1898,15 +1888,16 @@ void MainContentComponent::textEditorFocusLost (TextEditor &textEditor)
 void MainContentComponent::textEditorReturnKeyPressed (TextEditor & textEditor)
 {
     if (&textEditor == this->tedAddInputs) {
-        if (this->tedAddInputs->getTextValue().toString().getIntValue() < 1) {
+        unsigned int num_of_inputs = (unsigned int)this->tedAddInputs->getTextValue().toString().getIntValue();
+        if (num_of_inputs < 1) {
             this->tedAddInputs->setText("1");
         }
-        if (this->tedAddInputs->getTextValue().toString().getIntValue() > MaxInputs) {
+        if (num_of_inputs > MaxInputs) {
             this->tedAddInputs->setText(String(MaxInputs));
         }
 
-        if (this->jackClient->inputsPort.size() != this->tedAddInputs->getTextValue().toString().getIntValue()) {
-            this->jackClient->addRemoveInput(this->tedAddInputs->getTextValue().toString().getIntValue());
+        if (this->jackClient->inputsPort.size() != num_of_inputs) {
+            this->jackClient->addRemoveInput(num_of_inputs);
             
             this->lockInputs->lock();
             bool addInput = false;

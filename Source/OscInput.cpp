@@ -51,7 +51,7 @@ void OscInput::oscMessageReceived(const OSCMessage& message)
     if(message[0].isInt32()){
         if(address == OscSpatServ){
             //id, ... see with spatOSCGRis
-            int idS = message[0].getInt32();
+            unsigned int idS = message[0].getInt32();
             this->mainParent->getLockInputs()->lock();
             if(this->mainParent->getListSourceInput().size() > idS){
                 this->mainParent->getListSourceInput()[idS]->updateValues(message[1].getFloat32(),
@@ -67,7 +67,7 @@ void OscInput::oscMessageReceived(const OSCMessage& message)
         
         else if(address == OscPanAZ){
             //id, azim, elev, azimSpan, elevSpan, gain... see Zirkonium
-            int idS = message[0].getInt32();
+            unsigned int idS = message[0].getInt32();
             this->mainParent->getLockInputs()->lock();
             if(this->mainParent->getListSourceInput().size() > idS){
                 this->mainParent->getListSourceInput()[idS]->updateValuesOld(message[1].getFloat32(),
@@ -84,7 +84,7 @@ void OscInput::oscMessageReceived(const OSCMessage& message)
         // ["reset", voice_to_reset_as_int]
         this->mainParent->getLockInputs()->lock();
         if (message[0].getString().compare("reset") == 0) {
-            int idS = message[1].getInt32();
+            unsigned int idS = message[1].getInt32();
             if (this->mainParent->getListSourceInput().size() > idS) {
                 this->mainParent->getListSourceInput()[idS]->resetPosition();
             }

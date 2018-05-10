@@ -223,7 +223,7 @@ void LevelComponent::buttonClicked(Button *button)
     } else if (button == this->directOut) {
         PopupMenu menu;
         menu.addItem(1, "-");
-        for (int j=0, i=2; j<this->directOutSpeakers.size(); j++, i++) {
+        for (unsigned int j=0, i=2; j<this->directOutSpeakers.size(); j++, i++) {
             menu.addItem(i, String(this->directOutSpeakers[j]));
         }
 
@@ -297,10 +297,7 @@ void LevelComponent::setSelected(bool value){
 
 void LevelComponent::setBounds(const Rectangle<int> &newBounds)
 {
-    int levelSize = 140, offset = 0;
-    if (this->mainParent->isInput()) {
-        offset = 20;
-    }
+    int levelSize = 140;
 
     this->juce::Component::setBounds(newBounds);
 

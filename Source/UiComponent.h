@@ -87,8 +87,8 @@ private:
     TableListBox tableListClient;
     Box * box;
     
-    class ListIntOutComp    : public Component,
-    private ComboBoxListener
+    class ListIntOutComp : public Component, 
+                           public ComboBox::Listener
     {
     public:
         ListIntOutComp (BoxClient& td)  : owner (td)

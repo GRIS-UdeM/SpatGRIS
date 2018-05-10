@@ -140,7 +140,7 @@ public:
     void setListTripletFromVbap();
     vector<Triplet> getListTriplet(){ return this->listTriplet; }
     void clearListTriplet(){ this->listTriplet.clear(); }
-    void selectSpeaker(int idS);
+    void selectSpeaker(unsigned int idS);
     void selectTripletSpeaker(int idS);
     void setNameConfig();
     void addSpeaker();
@@ -154,7 +154,7 @@ public:
     void soloOutput(int id, bool solo);
     void setDirectOut(int id, int chn);
 
-    void saveProperties(unsigned int rate, unsigned int buff, int fileformat, int oscPort);
+    void saveProperties(int rate, int buff, int fileformat, int oscPort);
 
     void handleTimer(bool state) {
         if (state) {

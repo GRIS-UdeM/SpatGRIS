@@ -18,6 +18,7 @@
  */
 
 #include <stdarg.h>
+#include "ServerGrisConstants.h"
 #include "jackServerGRIS.h"
 #include "jackClientGRIS.h"
 
