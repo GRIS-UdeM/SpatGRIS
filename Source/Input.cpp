@@ -138,7 +138,11 @@ void Input::draw()
 {
     float transpa = 0.75;
 
+    // If not initalized, don't draw.
     if (this->gain == -1.0) { return; }
+
+    // If isSourceLevelShown is on and alpha below 0.01, don't draw.
+    if (this->mainParent->isSourceLevelShown && this->getAlpha() <= 0.01) { return; }
 
     // Draw 3D sphere.
     glPushMatrix();
