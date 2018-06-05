@@ -1539,7 +1539,7 @@ void MainContentComponent::openPreset(String path)
     ScopedPointer<XmlElement> mainXmlElem (xmlDoc.getDocumentElement());
     if (mainXmlElem == nullptr) {
         ScopedPointer<AlertWindow> alert = new AlertWindow ("Error in Open Preset !", 
-                                                            "Your file is corrupted !\n"+ path.toStdString() + "\n" + xmlDoc.getLastParseError(), 
+                                                            "Your file is corrupted !\n" + path.toStdString() + "\n" + xmlDoc.getLastParseError().toStdString(), 
                                                             AlertWindow::WarningIcon);
         alert->setLookAndFeel(&mGrisFeel);
         alert->addButton ("Ok", 1);

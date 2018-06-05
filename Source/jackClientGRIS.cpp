@@ -1089,7 +1089,7 @@ void jackClientGris::autoConnectClient()
         startJ = cli.portStart-1;
         endJ = cli.portEnd;
         while (portsOut[i]){
-            if(nameClient == getClientName(portsOut[i]))
+            if(nameClient.compare(getClientName(portsOut[i])) == 0)
             {
                 while(portsIn[j]){
                     if(getClientName(portsIn[j]) == ClientName){
@@ -1166,7 +1166,7 @@ void jackClientGris::connectionClient(String name, bool connect)
         endJ = cli.portEnd;
 
         while (portsOut[i]){
-            if(nameClient == name && nameClient == getClientName(portsOut[i]))
+            if(nameClient == name && nameClient.compare(getClientName(portsOut[i])) == 0)
             {
                 while(portsIn[j]){
                     if(getClientName(portsIn[j]) == ClientName){
@@ -1224,7 +1224,7 @@ void jackClientGris::updateClientPortAvailable(bool fromJack)
         if(nameCli != ClientName &&  nameCli != ClientNameSys){
             for (auto&& cli : this->listClient)
             {
-                if(cli.name == nameCli){
+                if(cli.name.compare(nameCli) == 0){
                     cli.portAvailable+=1;
                 }
             }
