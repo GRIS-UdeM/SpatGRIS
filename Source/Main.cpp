@@ -15,7 +15,7 @@
  
  You should have received a copy of the GNU General Public License
  along with ServerGris.  If not, see <http://www.gnu.org/licenses/>.
- */
+*/
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "GrisLookAndFeel.h"
@@ -38,7 +38,7 @@ public:
     {
         LookAndFeel::setDefaultLookAndFeel(&mGrisFeel);
         // This method is where you should put your application's initialisation code..
-        mainWindow = new MainWindow (getApplicationName());
+        mainWindow = new MainWindow(getApplicationName());
     }
 
     void shutdown() override
@@ -51,7 +51,7 @@ public:
     //==============================================================================
     void systemRequestedQuit() override
     {
-        if(mainWindow->exitWinApp()){
+        if (mainWindow->exitWinApp()) {
             quit();
         }
         // This is called when the app is being asked to quit: you can ignore this

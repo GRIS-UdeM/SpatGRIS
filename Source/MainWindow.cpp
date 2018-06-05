@@ -21,18 +21,18 @@
 
 static ScopedPointer<ApplicationCommandManager> applicationCommandManager;
 
-MainWindow::MainWindow(String name)  : DocumentWindow (name,Colours::lightgrey,DocumentWindow::allButtons)
+MainWindow::MainWindow(String name) : DocumentWindow (name, Colours::lightgrey, DocumentWindow::allButtons)
 {
-    setUsingNativeTitleBar (true);
+    setUsingNativeTitleBar(true);
     mcc = new MainContentComponent(this);
-    setContentOwned (mcc, true);
-    setResizable (true, true);
+    setContentOwned(mcc, true);
+    setResizable(true, true);
 
     // this lets the command manager use keypresses that arrive in our window to send out commands
-    addKeyListener (getApplicationCommandManager().getKeyMappings());
+    addKeyListener(getApplicationCommandManager().getKeyMappings());
 
-    centreWithSize (getWidth(), getHeight());
-    setVisible (true);
+    centreWithSize(getWidth(), getHeight());
+    setVisible(true);
 }
 
 bool MainWindow::exitWinApp() {
