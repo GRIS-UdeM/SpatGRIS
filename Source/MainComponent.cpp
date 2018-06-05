@@ -156,13 +156,13 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     this->boxControlUI->getContent()->addAndMakeVisible(this->boxClientJack);
     
     // set up the layout and resizer bars
-    this->verticalLayout.setItemLayout (0, -0.2, -0.8, -0.5); // width of the font list must be between 20% and 80%, preferably 50%
+    this->verticalLayout.setItemLayout (0, -0.2, -0.8, -0.5); // width of the speaker view must be between 20% and 80%, preferably 50%
     this->verticalLayout.setItemLayout (1, 8, 8, 8);           // the vertical divider drag-bar thing is always 8 pixels wide
-    this->verticalLayout.setItemLayout (2, 150, -1.0, -0.65);  // the components on the right must be at least 150 pixels wide, preferably 50% of the total width
+    this->verticalLayout.setItemLayout (2, 150, -1.0, -0.5);  // the components on the right must be at least 150 pixels wide, preferably 50% of the total width
     this->verticalDividerBar = new StretchableLayoutResizerBar (&verticalLayout, 1, true);
     this->addAndMakeVisible (verticalDividerBar);
 
-    this->setSize (1285, 610);
+    this->setSize(1285, 610);
 
     // Jack Init and Param -------------------------------------------------------------------------------
     unsigned int BufferValue = props->getIntValue("BufferValue", 1024);
@@ -240,6 +240,15 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
 
     ApplicationCommandManager* commandManager = &MainWindow::getApplicationCommandManager();
     commandManager->registerAllCommandsForTarget(this);
+
+    // Restore last vertical divider position and speaker view cam distance.
+    if (props->containsKey("sashPosition")) {
+        int trueSize = (int)round(this->getWidth() * abs(props->getDoubleValue("sashPosition")));
+        this->verticalLayout.setItemPosition(1, trueSize);
+        this->speakerView->setCamPosition(this->speakerView->getCamAngleX(),
+                                          this->speakerView->getCamAngleY(),
+                                          props->getIntValue("camDistance"));
+    }
 }
 
 void MainContentComponent::connectionClientJack(String nameCli, bool conn) {
@@ -927,6 +936,8 @@ MainContentComponent::~MainContentComponent()
 {
     this->applicationProperties.getUserSettings()->setValue("lastOpenPreset", this->pathCurrentPreset);
     this->applicationProperties.getUserSettings()->setValue("lastOpenSpeakerSetup", this->pathCurrentFileSpeaker);
+    this->applicationProperties.getUserSettings()->setValue("sashPosition", this->verticalLayout.getItemCurrentRelativeSize(0));
+    this->applicationProperties.getUserSettings()->setValue("camDistance", this->speakerView->getCamDistance());
     this->applicationProperties.saveIfNeeded();
     this->applicationProperties.closeFiles();
 
