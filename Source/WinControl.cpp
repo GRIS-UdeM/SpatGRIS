@@ -185,8 +185,8 @@ void WinControl::resized()
     this->setSize(fieldWH, fieldWH);
 }
 
-void WinControl::closeButtonPressed()
-{
+void WinControl::closeButtonPressed() {
+    this->mainParent->winControlRect.setBounds(getScreenX(), getScreenY(), getWidth(), getHeight());
     delete this;
 }
 

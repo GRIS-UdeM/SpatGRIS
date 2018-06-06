@@ -37,7 +37,7 @@ Box::Box(GrisLookAndFeel *feel, String title, bool verticalScrollbar, bool horiz
     this->viewport = new Viewport();
     this->viewport->setViewedComponent(this->content, false);
     this->viewport->setScrollBarsShown(verticalScrollbar, horizontalScrollbar);
-    this->viewport->setScrollBarThickness(6);
+    this->viewport->setScrollBarThickness(15);
     this->viewport->getVerticalScrollBar().setColour(ScrollBar::ColourIds::thumbColourId, feel->getScrollBarColour());
     this->viewport->getHorizontalScrollBar().setColour(ScrollBar::ColourIds::thumbColourId, feel->getScrollBarColour());
     

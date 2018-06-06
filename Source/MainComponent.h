@@ -229,6 +229,8 @@ public:
 
     TextEditor* addTextEditor(const String &s, const String &emptyS, const String &stooltip, int x, int y, int w, int h, Component *into, int wLab = 80);
 
+    Rectangle<int> winControlRect;
+
 private:
 
     DocumentWindow *parent;

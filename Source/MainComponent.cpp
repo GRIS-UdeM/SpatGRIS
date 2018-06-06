@@ -533,9 +533,16 @@ void MainContentComponent::handleShow2DView() {
     if (this->winControlSource == nullptr) {
         this->winControlSource = new WinControl("2D View", this->mGrisFeel.getWinBackgroundColour(), DocumentWindow::allButtons, this, &this->mGrisFeel);
         this->winControlSource->setTimerHz(this->isHighPerformance ? HertzRefresh2DLowCpu : HertzRefreshNormal);
+    } else {
+        this->winControlRect.setBounds(this->winControlSource->getScreenX(), this->winControlSource->getScreenY(),
+                                       this->winControlSource->getWidth(), this->winControlSource->getHeight());
     }
-    Rectangle<int> result (this->getScreenX()+ this->speakerView->getWidth()+22,this->getScreenY()+100,500,500);
-    this->winControlSource->setBounds(result);
+
+    if (this->winControlRect.getWidth() == 0) {
+        this->winControlRect.setBounds(this->getScreenX()+this->speakerView->getWidth()+22, this->getScreenY()+100, 500, 500);
+    }
+
+    this->winControlSource->setBounds(this->winControlRect);
     this->winControlSource->setResizable(true, true);
     this->winControlSource->setUsingNativeTitleBar(true);
     this->winControlSource->setVisible(true);
