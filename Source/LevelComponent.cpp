@@ -17,6 +17,7 @@
  along with ServerGris.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "MainComponent.h"
 #include "LevelComponent.h"
 #include "Speaker.h"
 
@@ -192,8 +193,7 @@ void LevelComponent::updateDirectOutMenu(vector<Speaker *> spkList)
     }
 }
 
-void LevelComponent::buttonClicked(Button *button)
-{
+void LevelComponent::buttonClicked(Button *button) {
     if (button == this->muteToggleBut) {
         this->mainParent->setMuted(this->muteToggleBut->getToggleState());
         if (this->muteToggleBut->getToggleState()) {
@@ -208,16 +208,16 @@ void LevelComponent::buttonClicked(Button *button)
         }
         this->levelBox->repaint();
         
-    }else if (button == this->idBut) {
-        if( this->isColorful){  //Input
+    } else if (button == this->idBut) {
+        if (this->isColorful) { //Input
             ColourSelector* colourSelector = new ColourSelector();
-            colourSelector->setName ("background");
-            colourSelector->setCurrentColour (this->idBut->findColour (TextButton::buttonColourId));
-            colourSelector->addChangeListener (this);
-            colourSelector->setColour (ColourSelector::backgroundColourId, Colours::transparentBlack);
-            colourSelector->setSize (300, 400);
-            CallOutBox::launchAsynchronously (colourSelector, getScreenBounds(), nullptr);
-        }else {      //Output
+            colourSelector->setName("background");
+            colourSelector->setCurrentColour(this->idBut->findColour(TextButton::buttonColourId));
+            colourSelector->addChangeListener(this);
+            colourSelector->setColour(ColourSelector::backgroundColourId, Colours::transparentBlack);
+            colourSelector->setSize(300, 400);
+            CallOutBox::launchAsynchronously(colourSelector, getScreenBounds(), nullptr);
+        } else { //Output
             this->mainParent->selectClick(this->lastMouseButton);
         }
     } else if (button == this->directOut) {
@@ -253,11 +253,18 @@ void LevelComponent::mouseDown(const MouseEvent& e)
     }
 }
 
-void LevelComponent::changeListenerCallback (ChangeBroadcaster* source)
-{
+void LevelComponent::changeListenerCallback (ChangeBroadcaster* source) {
     if (ColourSelector* cs = dynamic_cast<ColourSelector*> (source)){
         this->idBut->setColour(TextButton::buttonColourId, cs->getCurrentColour());
         this->mainParent->setColor(cs->getCurrentColour());
+        if (this->lastMouseButton == 0) {
+            Input * input = dynamic_cast<Input *>(this->mainParent);
+            for (auto&& it : input->mainParent->getListSourceInput()) {
+                if (it->getId() == (this->mainParent->getId()+1)) {
+                    it->setColor(cs->getCurrentColour(), true);
+                }
+            }
+        }
     }
 }
 

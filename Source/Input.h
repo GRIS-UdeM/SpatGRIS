@@ -91,6 +91,8 @@ public :
     void setDirectOutChannel(int chn);
     int getDirectOutChannel() { return this->directOutChannel; };
     void sendDirectOutToClient(int id, int chn);
+
+    MainContentComponent * mainParent;
     
 private:
     void drawSpan();
@@ -112,7 +114,6 @@ private:
     Colour    colorJ;
     
     LevelComponent *vuMeter;
-    MainContentComponent * mainParent;
     SmallTextGrisLookAndFeel * grisFeel;
 
 };
