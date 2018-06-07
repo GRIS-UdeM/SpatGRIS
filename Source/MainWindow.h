@@ -15,49 +15,41 @@
  
  You should have received a copy of the GNU General Public License
  along with ServerGris.  If not, see <http://www.gnu.org/licenses/>.
- */
+*/
 
 #ifndef MAINAPPWINDOW_H_INCLUDED
 #define MAINAPPWINDOW_H_INCLUDED
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "GrisLookAndFeel.h"
-
 #include "MainComponent.h"
 
-class MainContentComponent;
-
-//==============================================================================
-/*
-    This class implements the desktop window that contains an instance of
-    our MainContentComponent class.
+/* This class implements the desktop window that contains an instance of
+   our MainContentComponent class.
 */
-class MainWindow    : public DocumentWindow
+class MainWindow : public DocumentWindow
 {
 public:
-    MainWindow (String name);
+    MainWindow(String name);
 
     bool exitWinApp();
 
-    void closeButtonPressed() override
-    {            
-        JUCEApplication::getInstance()->systemRequestedQuit();
-        
-        // This is called when the user tries to close this window. Here, we'll just
-        // ask the app to quit when this happens, but you can change this to do
-        // whatever you need.
+    // This is called when the user tries to close this window. Here, we'll just ask the 
+    // app to quit when this happens, but you can change this to do whatever you need.
+    void closeButtonPressed() override {
+        JUCEApplication::getInstance()->systemRequestedQuit();        
     }
 
-    static MainWindow* getMainAppWindow() // returns the MainWindow if it exists.
-    {
-        for (int i = TopLevelWindow::getNumTopLevelWindows(); --i >= 0;)
-            if (auto* maw = dynamic_cast<MainWindow*> (TopLevelWindow::getTopLevelWindow (i)))
+    // returns the MainWindow if it exists.
+    static MainWindow* getMainAppWindow() {
+        for (int i = TopLevelWindow::getNumTopLevelWindows(); --i >= 0;) {
+            if (auto* maw = dynamic_cast<MainWindow*> (TopLevelWindow::getTopLevelWindow(i)))
                 return maw;
-
+        }
         return nullptr;
     }
 
-    // (return the command manager object used to dispatch command events)
+    // returns the command manager object used to dispatch command events.
     static ApplicationCommandManager& getApplicationCommandManager();
 
     /* Note: Be careful if you override any DocumentWindow methods - the base
@@ -67,8 +59,7 @@ public:
        subclass also calls the superclass's method.
     */
 
-    enum CommandIDs
-    {
+    enum CommandIDs {
         // File menu
         NewPresetID         =   1000,
         OpenPresetID        =   1001,

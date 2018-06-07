@@ -15,7 +15,7 @@
  
  You should have received a copy of the GNU General Public License
  along with ServerGris.  If not, see <http://www.gnu.org/licenses/>.
- */
+*/
 
 #ifndef Input_h
 #define Input_h
@@ -46,15 +46,13 @@ class LevelComponent;
 
 using namespace std;
 
-
-class Input :   public ParentLevelComponent
+class Input : public ParentLevelComponent
 {
-
 public :
     Input(MainContentComponent * parent, SmallTextGrisLookAndFeel * feel, int id = 0);
     ~Input();
     
-    //ParentLevelComponent ===============================
+    // ParentLevelComponent
     int getId(){ return this->idChannel ;};
     float getLevel();
     void setMuted(bool mute);
@@ -111,10 +109,10 @@ private:
     float sizeT = 0.3f;
     glm::vec3 center;
     glm::vec3 color;
-    Colour    colorJ;
+    Colour colorJ;
     
     LevelComponent *vuMeter;
     SmallTextGrisLookAndFeel * grisFeel;
-
 };
+
 #endif /* Input_h */

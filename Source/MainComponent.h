@@ -42,7 +42,6 @@
 
 //============================
 
-
 #include "../JuceLibraryCode/JuceHeader.h"
 
 #include "GrisLookAndFeel.h"
@@ -66,27 +65,24 @@ static const unsigned int HertzRefreshNormal   = 24;
 static const unsigned int HertzRefreshLowCpu   = 6;
 static const unsigned int HertzRefresh2DLowCpu = 10;
 
-//==============================================================================
 /*
  This component lives inside our window, and this is where you should put all
  your controls and content.
  */
-class MainContentComponent   :  public Component,
-                                public MenuBarModel,
-                                public ApplicationCommandTarget,
-                                public Button::Listener,
-                                public TextEditor::Listener,
-                                public Slider::Listener,
-                                public ComboBox::Listener,
-                                private Timer
+class MainContentComponent : public Component,
+                             public MenuBarModel,
+                             public ApplicationCommandTarget,
+                             public Button::Listener,
+                             public TextEditor::Listener,
+                             public Slider::Listener,
+                             public ComboBox::Listener,
+                             private Timer
 {
 public:
-    //==============================================================================
     MainContentComponent(DocumentWindow *parent);
     ~MainContentComponent();
     bool exitApp();
 
-    //==============================================================================
     void handleNew();
     void handleOpenPreset();
     void handleSavePreset();
@@ -114,7 +110,6 @@ public:
     void handleResetInputPositions();
     void handleInputColours();
 
-    //==============================================================================
     StringArray getMenuBarNames() override {
         const char* const names[] = { "File", "View", "Help", nullptr };
         return StringArray (names);
@@ -164,7 +159,6 @@ public:
         }
     }
 
-    //=======================================================================
     float getLevelsOut(int indexLevel) { return (20.0f * log10f(this->jackClient->getLevelsOut(indexLevel))); }
     float getLevelsIn(int indexLevel) { return (20.0f * log10f(this->jackClient->getLevelsIn(indexLevel))); }
     float getLevelsAlpha(int indexLevel) {
@@ -197,7 +191,6 @@ public:
     void destroyWinControl() { this->winControlSource = nullptr; }
     void destroyAboutWindow() { this->aboutWindow = nullptr; }
 
-    //=======================================================================
     void timerCallback() override;
     void paint (Graphics& g) override;
     
@@ -252,7 +245,6 @@ private:
     void updateSkeapersConf();
     bool tripletExist(Triplet tri, int &pos);
     
-    //==============================================================================
     jackClientGris *    jackClient;
     jackServerGRIS *    jackServer;
 
@@ -269,7 +261,7 @@ private:
     String pathCurrentFileSpeaker;
     String pathCurrentPreset;
     
-    //UI Components---------------------------
+    // UI Components
     TooltipWindow tooltipWindow;
     StretchableLayoutManager verticalLayout;
     ScopedPointer<StretchableLayoutResizerBar> verticalDividerBar;
@@ -282,14 +274,14 @@ private:
     WinControl * winControlSource;
     AboutWindow * aboutWindow;
 
-    //3 Main Box---------------------
+    // 3 Main Boxes
     Box * boxMainUI;
     Box * boxInputsUI;
     Box * boxOutputsUI;
     Box * boxControlUI;
     
-    //Component in Box 3 -----------
-    //Jack
+    // Component in Box 3
+    // Jack
     Label *         labelJackStatus;
     Label *         labelJackLoad;
     Label *         labelJackRate;
@@ -310,7 +302,7 @@ private:
     Label *         labelAllClients;
     BoxClient *     boxClientJack;
     
-    //Record
+    // Record
     TextButton *    butStartRecord;
     TextEditor *    tedMinRecord;
     Label *         labelTimeRecorded;
@@ -325,13 +317,10 @@ private:
     bool isSphereShown;
     bool isHighPerformance;
 
-    //==============================================================================
     // The following methods implement the ApplicationCommandTarget interface, allowing
     // this window to publish a set of actions it can perform, and which can be mapped
     // onto menus, keypresses, etc.
-
-    ApplicationCommandTarget* getNextCommandTarget() override
-    {
+    ApplicationCommandTarget* getNextCommandTarget() override {
         // this will return the next parent component that is an ApplicationCommandTarget (in this
         // case, there probably isn't one, but it's best to use this method in your own apps).
         return findFirstTargetParentComponent();
@@ -346,7 +335,4 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
 };
 
-
 #endif  // MAINCOMPONENT_H_INCLUDED
-
-

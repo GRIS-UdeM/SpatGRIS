@@ -22,8 +22,7 @@
 
 #include "MainWindow.h"
 
-//==============================================================================
-class ServerGRISApplication  : public JUCEApplication
+class ServerGRISApplication : public JUCEApplication 
 {
 public:
     //==============================================================================
@@ -34,33 +33,27 @@ public:
     bool moreThanOneInstanceAllowed() override       { return true; }
 
     //==============================================================================
-    void initialise (const String& commandLine) override
-    {
+    void initialise (const String& commandLine) override {
         LookAndFeel::setDefaultLookAndFeel(&mGrisFeel);
         // This method is where you should put your application's initialisation code..
         mainWindow = new MainWindow(getApplicationName());
     }
 
-    void shutdown() override
-    {
+    void shutdown() override {
         // Add your application's shutdown code here..
-
-        mainWindow = nullptr; // (deletes our window)
+        mainWindow = nullptr;
     }
 
     //==============================================================================
-    void systemRequestedQuit() override
-    {
-        if (mainWindow->exitWinApp()) {
-            quit();
-        }
+    void systemRequestedQuit() override {
         // This is called when the app is being asked to quit: you can ignore this
         // request and let the app carry on running, or call quit() to allow the app to close.
-        
+        if (mainWindow->exitWinApp()) {
+            quit();
+        }        
     }
 
-    void anotherInstanceStarted (const String& commandLine) override
-    {
+    void anotherInstanceStarted (const String& commandLine) override {
         // When another instance of the app is launched while this one is running,
         // this method is invoked, and the commandLine parameter tells you what
         // the other instance's command-line arguments were.

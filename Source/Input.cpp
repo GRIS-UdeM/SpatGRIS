@@ -15,14 +15,13 @@
  
  You should have received a copy of the GNU General Public License
  along with ServerGris.  If not, see <http://www.gnu.org/licenses/>.
- */
+*/
 
 #include "Input.h"
 #include "MainComponent.h"
 #include "LevelComponent.h"
 
-Input::Input(MainContentComponent * parent, SmallTextGrisLookAndFeel * feel,int id)
-{
+Input::Input(MainContentComponent * parent, SmallTextGrisLookAndFeel * feel,int id) {
     this->mainParent = parent;
     this->grisFeel = feel;
     this->idChannel = id;
@@ -34,13 +33,11 @@ Input::Input(MainContentComponent * parent, SmallTextGrisLookAndFeel * feel,int 
     this->setColor(Colour::fromHSV(0, 1, 0.75, 1), true);
 }
 
-Input::~Input()
-{
+Input::~Input() {
     delete this->vuMeter;
 }
 
-void Input::resetPosition()
-{
+void Input::resetPosition() {
     this->azimuth = M_PI4;
     this->zenith  = M_PI2;
     
@@ -52,73 +49,65 @@ void Input::resetPosition()
     this->center.x = (14.0f * sinf(this->zenith) * cosf(this->azimuth));
     this->center.z = (14.0f * sinf(this->zenith) * sinf(this->azimuth));
     this->center.y = (14.0f * cosf(this->zenith) + (sizeT/2.0f));
-    this->radius = sqrt((this->center.x*this->center.x)+(this->center.y*this->center.y)+(this->center.z*this->center.z));
+    this->radius = sqrt((this->center.x*this->center.x) +
+                        (this->center.y*this->center.y) +
+                        (this->center.z*this->center.z));
 }
 
-glm::vec3 Input::getCenter()
-{
+glm::vec3 Input::getCenter() {
     return this->center;
 }
 
-float Input::getLevel()
-{
+float Input::getLevel() {
     return this->mainParent->getLevelsIn(this->idChannel-1);
 }
 
-glm::vec3 Input::polToCar(float azimuth, float zenith)
-{
+glm::vec3 Input::polToCar(float azimuth, float zenith) {
     glm::vec3 cart;
     cart.x = (10.0f * sinf(zenith) * cosf(azimuth));
     cart.z = (10.0f * sinf(zenith) * sinf(azimuth));
-    cart.y = ((10.0f * cosf(zenith)) + (sizeT/2.0f)); // * 0.75; //heS;
+    cart.y = ((10.0f * cosf(zenith)) + (sizeT/2.0f));
     return cart;
 }
 
-void Input::setMuted(bool mute)
-{
+void Input::setMuted(bool mute) {
     this->mainParent->muteInput(this->idChannel, mute);
     if (mute) {
         this->mainParent->soloInput(this->idChannel, false);
     }
 }
-void Input::setSolo(bool solo)
-{
+
+void Input::setSolo(bool solo) {
     this->mainParent->soloInput(this->idChannel, solo);
     if (solo) {
         this->mainParent->muteInput(this->idChannel, false);
     }
 }
 
-void Input::setColor(Colour color, bool updateLevel)
-{
+void Input::setColor(Colour color, bool updateLevel) {
     this->colorJ = color;
-
     this->color.x = this->colorJ.getFloatRed();
     this->color.y = this->colorJ.getFloatGreen();
     this->color.z = this->colorJ.getFloatBlue();
     
-    if(updateLevel){
+    if (updateLevel) {
         this->vuMeter->setColor(this->colorJ);
     }
 }
 
-glm::vec3 Input::getColor()
-{
+glm::vec3 Input::getColor() {
     return this->color;
 }
 
-glm::vec3 Input::getNumberColor()
-{
+glm::vec3 Input::getNumberColor() {
     return glm::vec3(this->color.x * 0.5, this->color.y * 0.5, this->color.z * 0.5);
 }
 
-Colour Input::getColorJ()
-{
+Colour Input::getColorJ() {
     return this->colorJ;
 }
 
-Colour Input::getColorJWithAlpha()
-{
+Colour Input::getColorJWithAlpha() {
     if (this->mainParent->isSourceLevelShown) {
         return this->colorJ.withMultipliedAlpha(this->getAlpha());
     } else {
@@ -134,8 +123,7 @@ float Input::getAlpha() {
     }
 }
 
-void Input::draw()
-{
+void Input::draw() {
     float transpa = 0.75;
 
     // If not initalized, don't draw.
@@ -147,13 +135,15 @@ void Input::draw()
     // Draw 3D sphere.
     glPushMatrix();
     glTranslatef(this->center.x, this->center.y, this->center.z);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);  //GL_LINE
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glLineWidth(2);
+
     if (this->mainParent->isSourceLevelShown) {
         glColor4f(this->color.x, this->color.y, this->color.z, this->getAlpha());
     } else {
         glColor4f(this->color.x, this->color.y, this->color.z, transpa);
     }
+
     glutSolidSphere(this->sizeT, 8, 8);
     glTranslatef(-this->center.x, -this->center.y, -this->center.z);
 
@@ -169,8 +159,10 @@ void Input::drawSpan() {
 	int num = 8;
     float newazi, newele;
     glm::vec3 cart;
+
     glPointSize(4);
     glBegin(GL_POINTS);
+
     for (int i=0; i<num; i++) {
         float azidev = i * this->azimSpan * 0.5f * 0.42f;
         for (int j=0; j<2; j++) {
@@ -178,8 +170,11 @@ void Input::drawSpan() {
                 newazi = this->azimuth + azidev;
             else
                 newazi = this->azimuth - azidev;
-            if (newazi > M_PI) { newazi -= (M_PI * 2.0f); }
-            else if (newazi < -M_PI) { newazi += (M_PI * 2.0f); }
+
+            if (newazi > M_PI)
+                newazi -= (M_PI * 2.0f);
+            else if (newazi < -M_PI)
+                newazi += (M_PI * 2.0f);
 
             cart = this->polToCar(newazi, this->zenith);
             glVertex3f(cart.x, cart.y, cart.z);
@@ -190,8 +185,10 @@ void Input::drawSpan() {
                         newele = this->zenith + eledev;
                     else
                         newele = this->zenith - eledev;
-                    if (newele > (M_PI * 0.5f)) { newele = (M_PI * 0.5f); }
-                    else if (newele < 0) { newele = 0; }
+                    if (newele > (M_PI * 0.5f))
+                        newele = (M_PI * 0.5f);
+                    else if (newele < 0)
+                        newele = 0;
 
                     cart = this->polToCar(newazi, newele);
                     glVertex3f(cart.x, cart.y, cart.z);
@@ -199,33 +196,28 @@ void Input::drawSpan() {
             }
         }
     }
+
     glEnd();
     glPointSize(1);
 }
 
-void Input::updateValues(float az, float ze, float azS, float zeS, float heS, float g)
-{
+void Input::updateValues(float az, float ze, float azS, float zeS, float heS, float g) {
     this->azimuth = az;
     this->zenith  = ze;
-    
     this->azimSpan = azS;
     this->zeniSpan = zeS;
-    
     this->gain = g;
 
     this->center.x = (10.0f * sinf(this->zenith)*cosf(this->azimuth));
     this->center.z = (10.0f * sinf(this->zenith)*sinf(this->azimuth));
-    this->center.y = ((10.0f * cosf(this->zenith)) + (sizeT/2.0f)); // * 0.75; //heS;
-    
-    this->radius = sqrt((this->center.x*this->center.x)+(this->center.y*this->center.y)+(this->center.z*this->center.z));
+    this->center.y = ((10.0f * cosf(this->zenith)) + (sizeT/2.0f));
 
-    //re - compute
-    //this->azimuth = ( (atan2(this->center.x, this->center.z) * 180.0f) / M_PI) +90.0f;
-    //this->zenith = ( atan2(this->center.y, sqrt(this->center.x*this->center.x + this->center.z*this->center.z)) * 180.0f) / M_PI;
+    this->radius = sqrt((this->center.x*this->center.x) +
+                        (this->center.y*this->center.y) +
+                        (this->center.z*this->center.z));
 }
 
-void Input::updateValuesOld(float az, float ze, float azS, float zeS, float g)
-{
+void Input::updateValuesOld(float az, float ze, float azS, float zeS, float g) {
     if (az < 0) {
         this->azimuth = fabsf(az) * M_PI;
     } else {
@@ -235,14 +227,15 @@ void Input::updateValuesOld(float az, float ze, float azS, float zeS, float g)
     
     this->azimSpan = azS;
     this->zeniSpan = zeS;
-    
     this->gain = g;
     
-    this->center.x = (10.0f * sinf(this->zenith)*cosf(this->azimuth));
-    this->center.z = (10.0f * sinf(this->zenith)*sinf(this->azimuth));
-    this->center.y = (10.0f * cosf(this->zenith)) + (this->sizeT/2.0f);
+    this->center.x = (10.0f * sinf(this->zenith) * cosf(this->azimuth));
+    this->center.z = (10.0f * sinf(this->zenith) * sinf(this->azimuth));
+    this->center.y = (10.0f * cosf(this->zenith)) + (this->sizeT / 2.0f);
     
-    this->radius = sqrt((this->center.x*this->center.x)+(this->center.y*this->center.y)+(this->center.z*this->center.z));
+    this->radius = sqrt((this->center.x*this->center.x) +
+                        (this->center.y*this->center.y) +
+                        (this->center.z*this->center.z));
 }
 
 void Input::sendDirectOutToClient(int id, int chn) {
