@@ -17,8 +17,8 @@
  along with ServerGris.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef Input_h
-#define Input_h
+#ifndef INPUT_H
+#define INPUT_H
 
 #include <stdio.h>
 #include <iostream>
@@ -115,4 +115,4 @@ private:
     SmallTextGrisLookAndFeel * grisFeel;
 };
 
-#endif /* Input_h */
+#endif /* INPUT_H */

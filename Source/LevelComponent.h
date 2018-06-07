@@ -17,8 +17,8 @@
  along with ServerGris.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LevelComponent_h
-#define LevelComponent_h
+#ifndef LEVELCOMPONENT_H
+#define LEVELCOMPONENT_H
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "SmallTextGrisLookAndFeel.h"
@@ -28,10 +28,9 @@
 
 static const float MinLevelComp  = -60.f;
 static const float MaxLevelComp  = 0.f;
-static const float MaxMinLevComp = MaxLevelComp - MinLevelComp;
 static const int   WidthRect     = 1;
 
-//======================================= LevelBox ===================================
+//============================ LevelBox ================================
 class LevelBox : public Component
 {
 public:
@@ -39,7 +38,7 @@ public:
     ~LevelBox();
     
     void setBounds(const Rectangle<int> &newBounds);
-    void paint (Graphics& g);
+    void paint(Graphics& g);
     
 private:
     LevelComponent *mainParent;
@@ -52,17 +51,22 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LevelBox)
 };
 
-//====================================================================================
-class LevelComponent :  public Component,
-                        public ToggleButton::Listener,
-                        public ChangeListener
+//======================== LevelComponent ==============================
+class LevelComponent : public Component,
+                       public ToggleButton::Listener,
+                       public ChangeListener
 {
 public:
-    LevelComponent(ParentLevelComponent * parent, SmallTextGrisLookAndFeel *feel, bool colorful = true);
+    LevelComponent(ParentLevelComponent * parent,
+                   SmallTextGrisLookAndFeel *feel,
+                   bool colorful = true);
     ~LevelComponent();
     
     void setOutputLab(String value) { this->idBut->setButtonText(value); }
-    void setColor(Colour color){ this->idBut->setColour(TextButton::buttonColourId, color); this->repaint(); }
+    void setColor(Colour color) {
+        this->idBut->setColour(TextButton::buttonColourId, color);
+        this->repaint();
+    }
     float getLevel();
     void update();
     bool isMuted();
@@ -79,7 +83,6 @@ public:
 private:
     ParentLevelComponent* mainParent;
     LevelBox * levelBox;
-    //Label * labId;
     TextButton * idBut;
     ToggleButton * muteToggleBut;
     ToggleButton * soloToggleBut;
@@ -89,4 +92,5 @@ private:
     bool isColorful;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LevelComponent)
 };
-#endif /* LevelComponent_h */
+
+#endif /* LEVELCOMPONENT_H */

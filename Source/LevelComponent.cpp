@@ -15,31 +15,26 @@
  
  You should have received a copy of the GNU General Public License
  along with ServerGris.  If not, see <http://www.gnu.org/licenses/>.
- */
+*/
 
 #include "MainComponent.h"
 #include "LevelComponent.h"
 #include "Speaker.h"
 
-//======================================= LevelBox =====================================================================
-LevelBox::LevelBox(LevelComponent * parent, SmallTextGrisLookAndFeel *feel):
-mainParent(parent),
-grisFeel(feel)
-{
-    
-}
+//========================== LevelBox =============================
+LevelBox::LevelBox(LevelComponent * parent, SmallTextGrisLookAndFeel *feel) : mainParent(parent),
+                                                                              grisFeel(feel) 
+{}
 
-LevelBox::~LevelBox()
-{
-    
-}
+LevelBox::~LevelBox() {}
 
-void LevelBox::setBounds(const Rectangle<int> &newBounds)
-{
+void LevelBox::setBounds(const Rectangle<int> &newBounds) {
     // LevelBox size is (22, 140)
     this->juce::Component::setBounds(newBounds);
 
-    colorGrad = ColourGradient(Colours::red, 0.f, 0.f, Colour::fromRGB(17, 255, 159), 0.f, getHeight(), false);
+    colorGrad = ColourGradient(Colours::red, 0.f, 0.f,
+                               Colour::fromRGB(17, 255, 159),
+                               0.f, getHeight(), false);
     colorGrad.addColour(0.1, Colours::yellow);
 
     // Create vu-meter foreground image.
@@ -82,8 +77,7 @@ void LevelBox::setBounds(const Rectangle<int> &newBounds)
     }
 }
 
-void LevelBox::paint(Graphics& g)
-{
+void LevelBox::paint(Graphics& g) {
     if (this->mainParent->isMuted()) {
         g.drawImage(this->vumeterMutedBit, 0, 0, 22, 140, 0, 0, 22, 140);
     } else {
@@ -101,20 +95,18 @@ void LevelBox::paint(Graphics& g)
     }
 }
 
-//======================================================================================================================
+//======================== LevelComponent ===========================
 LevelComponent::LevelComponent(ParentLevelComponent* parent, SmallTextGrisLookAndFeel *feel, bool colorful)
 {
     this->mainParent = parent;
     this->grisFeel = feel;
     this->isColorful = colorful;
     
-    //Label================================================================
+    // Label
     this->idBut = new TextButton();
     this->idBut->setButtonText(String(this->mainParent->getId()));
     this->idBut->setTooltip(String(this->mainParent->getId()));
     this->idBut->setSize(22, 17);
-    //this->idBut->setJustificationType(Justification::centred);
-    //this->idBut->setMinimumHorizontalScale(1);
     this->idBut->setTopLeftPosition(0, 0);
     this->idBut->setColour(Label::textColourId, this->grisFeel->getFontColour());
     this->idBut->setLookAndFeel(this->grisFeel);
@@ -125,22 +117,22 @@ LevelComponent::LevelComponent(ParentLevelComponent* parent, SmallTextGrisLookAn
     this->idBut->addMouseListener(this, true);
     this->addAndMakeVisible(this->idBut);
     
-    //ToggleButton=========================================================
+    // ToggleButton (mute)
     this->muteToggleBut = new ToggleButton();
     this->muteToggleBut->setButtonText("m");
     this->muteToggleBut->setSize(13, 15);
-    this->muteToggleBut->setTooltip ("Mute "+String(this->mainParent->getId()));
+    this->muteToggleBut->setTooltip("Mute " + String(this->mainParent->getId()));
     this->muteToggleBut->addListener(this);
     this->muteToggleBut->setToggleState(false, dontSendNotification);
     this->muteToggleBut->setLookAndFeel(this->grisFeel);
     this->muteToggleBut->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
     this->addAndMakeVisible(this->muteToggleBut);
     
-    //ToggleButton=========================================================
+    // ToggleButton (solo)
     this->soloToggleBut = new ToggleButton();
     this->soloToggleBut->setButtonText("s");
     this->soloToggleBut->setSize(13, 15);
-    this->soloToggleBut->setTooltip ("Solo "+String(this->mainParent->getId()));
+    this->soloToggleBut->setTooltip("Solo " + String(this->mainParent->getId()));
     this->soloToggleBut->addListener(this);
     this->soloToggleBut->setToggleState(false, dontSendNotification);
     this->soloToggleBut->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
@@ -148,30 +140,25 @@ LevelComponent::LevelComponent(ParentLevelComponent* parent, SmallTextGrisLookAn
     this->soloToggleBut->setLookAndFeel(this->grisFeel);
     this->addAndMakeVisible(this->soloToggleBut);
 
-    //ComboBox=========================================================
+    // ComboBox (direct out)
     if (this->mainParent->isInput()) {
         this->directOut = new TextButton();
         this->directOut->setButtonText("-");
         this->directOut->setTooltip("Select a direct output channel.");
         this->directOut->setSize(22, 17);
-        //this->directOut->setJustificationType(Justification::centred);
-        //this->directOut->setMinimumHorizontalScale(1);
         this->directOut->setColour(Label::textColourId, this->grisFeel->getFontColour());
         this->directOut->setLookAndFeel(this->grisFeel);
-        //this->directOut->setColour(TextButton::buttonColourId, this->grisFeel->getBackgroundColour());
         this->directOut->addListener(this);
         this->directOut->addMouseListener(this, true);
         this->addAndMakeVisible(this->directOut);
     }
 
-    //Level BOX============================================================
+    // Level box
     this->levelBox = new LevelBox(this, this->grisFeel);
     this->addAndMakeVisible(this->levelBox);
-
 }
 
-LevelComponent::~LevelComponent()
-{
+LevelComponent::~LevelComponent() {
     delete this->muteToggleBut;
     delete this->soloToggleBut;
     delete this->idBut;
@@ -181,8 +168,7 @@ LevelComponent::~LevelComponent()
     }
 }
 
-void LevelComponent::updateDirectOutMenu(vector<Speaker *> spkList)
-{
+void LevelComponent::updateDirectOutMenu(vector<Speaker *> spkList) {
     if (this->mainParent->isInput()) {
         this->directOutSpeakers.clear();
         for (auto&& it : spkList) {
@@ -201,7 +187,7 @@ void LevelComponent::buttonClicked(Button *button) {
         }
         this->levelBox->repaint();
         
-    }else if (button == this->soloToggleBut) {
+    } else if (button == this->soloToggleBut) {
         this->mainParent->setSolo(this->soloToggleBut->getToggleState());
         if (this->soloToggleBut->getToggleState()) {
             this->muteToggleBut->setToggleState(false, dontSendNotification);
@@ -244,8 +230,7 @@ void LevelComponent::buttonClicked(Button *button) {
     }
 }
 
-void LevelComponent::mouseDown(const MouseEvent& e)
-{
+void LevelComponent::mouseDown(const MouseEvent& e) {
     if (e.mods.isRightButtonDown()) {
         this->lastMouseButton = 0;
     } else {
@@ -268,42 +253,42 @@ void LevelComponent::changeListenerCallback (ChangeBroadcaster* source) {
     }
 }
 
-float LevelComponent::getLevel()
-{
+float LevelComponent::getLevel() {
     return level;
 }
 
-void LevelComponent::update()
-{
+void LevelComponent::update() {
     float l = this->mainParent->getLevel();
-    if(isnan(l)){ return; }
-    if(!this->muteToggleBut->getToggleState() && this->level != l){
+
+    if (isnan(l)) { 
+        return;
+    }
+
+    if (!this->muteToggleBut->getToggleState() && this->level != l) {
         this->repaint();
     }
     this->level = l;
 }
 
 
-bool LevelComponent::isMuted()
-{
+bool LevelComponent::isMuted() {
     return this->muteToggleBut->getToggleState();
 }
 
-void LevelComponent::setSelected(bool value){
+void LevelComponent::setSelected(bool value) {
     const MessageManagerLock mmLock;
-    if(value){
-        this->idBut->setColour(TextButton::textColourOnId,  this->grisFeel->getWinBackgroundColour());
+    if (value) {
+        this->idBut->setColour(TextButton::textColourOnId, this->grisFeel->getWinBackgroundColour());
         this->idBut->setColour(TextButton::textColourOffId, this->grisFeel->getWinBackgroundColour());
-        this->idBut->setColour(TextButton::buttonColourId,  this->grisFeel->getOnColour());
-    }else{
-        this->idBut->setColour(TextButton::textColourOnId,  this->grisFeel->getFontColour());
+        this->idBut->setColour(TextButton::buttonColourId, this->grisFeel->getOnColour());
+    } else {
+        this->idBut->setColour(TextButton::textColourOnId, this->grisFeel->getFontColour());
         this->idBut->setColour(TextButton::textColourOffId, this->grisFeel->getFontColour());
-        this->idBut->setColour(TextButton::buttonColourId,  this->grisFeel->getBackgroundColour());
+        this->idBut->setColour(TextButton::buttonColourId, this->grisFeel->getBackgroundColour());
     }
 }
 
-void LevelComponent::setBounds(const Rectangle<int> &newBounds)
-{
+void LevelComponent::setBounds(const Rectangle<int> &newBounds) {
     int levelSize = 140;
 
     this->juce::Component::setBounds(newBounds);
@@ -320,4 +305,3 @@ void LevelComponent::setBounds(const Rectangle<int> &newBounds)
     juce::Rectangle<int> level(0, 18, newBounds.getWidth()-WidthRect, levelSize);
     this->levelBox->setBounds(level);
 }
-
