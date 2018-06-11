@@ -15,45 +15,40 @@
  
  You should have received a copy of the GNU General Public License
  along with ServerGris.  If not, see <http://www.gnu.org/licenses/>.
- */
+*/
 
 #include "OscInput.h"
 #include "MainComponent.h"
 #include "Input.h"
 
-
-OscInput::OscInput(MainContentComponent* parent)
-{
+OscInput::OscInput(MainContentComponent* parent) {
     this->mainParent = parent;
 }
 
-OscInput::~OscInput()
-{
+OscInput::~OscInput() {
     this->disconnect();
 }
 
-bool OscInput::startConnection(int port)
-{
+bool OscInput::startConnection(int port) {
     bool b = this->connect(port);
     this->addListener(this, OscPanAZ.c_str());
     this->addListener(this, OscSpatServ.c_str());
     return b;
 }
 
-bool OscInput::closeConnection()
-{
+bool OscInput::closeConnection() {
     return this->disconnect();
 }
 
-void OscInput::oscMessageReceived(const OSCMessage& message)
-{
+void OscInput::oscMessageReceived(const OSCMessage& message) {
     string address = message.getAddressPattern().toString().toStdString();
-    if(message[0].isInt32()){
-        if(address == OscSpatServ){
-            //id, ... see with spatOSCGRis
+    if (message[0].isInt32()) {
+        if (address == OscSpatServ) {
+            // int id, float azi [0, 2pi], float ele [0, pi], float azispan [0, 2],
+            // float elespan [0, 0.5], float radius [0, 1], float gain [0, 1].
             unsigned int idS = message[0].getInt32();
             this->mainParent->getLockInputs()->lock();
-            if(this->mainParent->getListSourceInput().size() > idS){
+            if (this->mainParent->getListSourceInput().size() > idS) {
                 this->mainParent->getListSourceInput()[idS]->updateValues(message[1].getFloat32(),
                                                                           message[2].getFloat32(),
                                                                           message[3].getFloat32(),
@@ -65,11 +60,11 @@ void OscInput::oscMessageReceived(const OSCMessage& message)
             this->mainParent->getLockInputs()->unlock();
         }
         
-        else if(address == OscPanAZ){
-            //id, azim, elev, azimSpan, elevSpan, gain... see Zirkonium
+        else if (address == OscPanAZ) {
+            //id, azim, elev, azimSpan, elevSpan, gain (Zirkonium artifact).
             unsigned int idS = message[0].getInt32();
             this->mainParent->getLockInputs()->lock();
-            if(this->mainParent->getListSourceInput().size() > idS){
+            if (this->mainParent->getListSourceInput().size() > idS) {
                 this->mainParent->getListSourceInput()[idS]->updateValuesOld(message[1].getFloat32(),
                                                                              message[2].getFloat32(),
                                                                              message[3].getFloat32(),
@@ -79,9 +74,8 @@ void OscInput::oscMessageReceived(const OSCMessage& message)
             }
             this->mainParent->getLockInputs()->unlock();
         }
-    }
-    else if (message[0].isString()) {
-        // ["reset", voice_to_reset_as_int]
+    } else if (message[0].isString()) {
+        // string "reset", int voice_to_reset.
         this->mainParent->getLockInputs()->lock();
         if (message[0].getString().compare("reset") == 0) {
             unsigned int idS = message[1].getInt32();

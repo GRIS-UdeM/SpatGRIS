@@ -1,5 +1,5 @@
-#ifndef ServerGrisConstants_h
-#define ServerGrisConstants_h
+#ifndef SERVERGRISCONSTANTS_H
+#define SERVERGRISCONSTANTS_H
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
@@ -11,4 +11,4 @@ extern const char *ClientNameIgnor;
 
 extern const StringArray ModeSpatString;
 
-#endif
+#endif /* SERVERGRISCONSTANTS_H */

@@ -15,24 +15,22 @@
  
  You should have received a copy of the GNU General Public License
  along with ServerGris.  If not, see <http://www.gnu.org/licenses/>.
- */
+*/
 
 #include "Speaker.h"
 #include "MainComponent.h"
 #include "LevelComponent.h"
 
-static double GetFloatPrecision(double value, double precision)
-{
-    return (floor((value * pow(10, precision) + 0.5)) / pow(10, precision));
+static double GetFloatPrecision(double value, double precision) {
+    return floor((value * pow(10, precision) + 0.5)) / pow(10, precision);
 }
 
-Speaker::Speaker(MainContentComponent *parent, int idS)
-{
+Speaker::Speaker(MainContentComponent *parent, int idS) {
     Speaker(parent, idS, idS, glm::vec3(0,0,0));
 }
 
-Speaker::Speaker(MainContentComponent *parent, int idS,int outP, glm::vec3 center, glm::vec3 extents)
-{
+Speaker::Speaker(MainContentComponent *parent, int idS, int outP,
+                 glm::vec3 center, glm::vec3 extents) {
     this->mainParent = parent;
     this->idSpeaker = idS;
     this->outputPatch = outP;
@@ -44,13 +42,11 @@ Speaker::Speaker(MainContentComponent *parent, int idS,int outP, glm::vec3 cente
     this->vuMeter = new LevelComponent(this, &mGrisFeel, false);
 }
 
-Speaker::~Speaker()
-{
+Speaker::~Speaker() {
     delete this->vuMeter;
 }
 
-float Speaker::getLevel()
-{
+float Speaker::getLevel() {
     return this->mainParent->getLevelsOut(outputPatch-1);
 }
 
@@ -87,31 +83,27 @@ int Speaker::getIdSpeaker() {
     return this->idSpeaker;
 }
 
-glm::vec3 Speaker::getCoordinate()
-{
+glm::vec3 Speaker::getCoordinate() {
     return this->center /10.0f ;
 }
-glm::vec3 Speaker::getAziZenRad()
-{
-    return glm::vec3(this->aziZenRad.x, this->aziZenRad.y, this->aziZenRad.z/10.0f);
+
+glm::vec3 Speaker::getAziZenRad() {
+    return glm::vec3(this->aziZenRad.x, this->aziZenRad.y, this->aziZenRad.z / 10.0f);
 }
 
-void Speaker::setCoordinate(glm::vec3 value)
-{
-    this->newPosition(value*10.0f);
+void Speaker::setCoordinate(glm::vec3 value) {
+    this->newPosition(value * 10.0f);
 }
-void Speaker::setAziZenRad(glm::vec3 value)
-{
+void Speaker::setAziZenRad(glm::vec3 value) {
     value.z = value.z * 10.0f;
     this->newSpheriqueCoord(value);
 }
 
-int Speaker::getOutputPatch()
-{
+int Speaker::getOutputPatch() {
     return this->outputPatch;
 }
-void Speaker::setOutputPatch(int value)
-{
+
+void Speaker::setOutputPatch(int value) {
     this->outputPatch = value;
     this->vuMeter->setOutputLab(String(this->outputPatch));
 }
@@ -145,28 +137,23 @@ void Speaker::setDirectOut(bool value) {
     }
 }
 
-glm::vec3 Speaker::getMin()
-{
+glm::vec3 Speaker::getMin() {
     return this->min;
 }
 
-glm::vec3 Speaker::getMax()
-{
+glm::vec3 Speaker::getMax() {
     return this->max;
 }
 
-glm::vec3 Speaker::getCenter()
-{
+glm::vec3 Speaker::getCenter() {
     return this->center;
 }
 
-bool Speaker::isValid()
-{
+bool Speaker::isValid() {
     return (this->min.x < this->max.x && this->min.y < this->max.y && this->min.z < this->max.z);
 }
 
-void Speaker::fix()
-{
+void Speaker::fix() {
     glm::vec3 _max = (this->max);
     //change new "min" to previous max
     if (this->min.x > this->max.x) {
@@ -183,28 +170,25 @@ void Speaker::fix()
     }
 }
 
-void Speaker::selectClick(bool select)
-{
+void Speaker::selectClick(bool select) {
     if (select) {
         this->mainParent->selectSpeaker(this->idSpeaker-1);
     } else {
         this->mainParent->selectSpeaker(-1);
     }
 }
-bool Speaker::isSelected()
-{
+
+bool Speaker::isSelected() {
     return this->selected;
 }
 
-void Speaker::selectSpeaker()
-{
+void Speaker::selectSpeaker() {
     this->color = ColorSpeakerSelect;
     this->selected = true;
     this->vuMeter->setSelected(this->selected);
 }
 
-void Speaker::unSelectSpeaker()
-{
+void Speaker::unSelectSpeaker() {
     if (this->directOut) {
         this->color = ColorDirectOutSpeaker;
     } else {
@@ -215,9 +199,8 @@ void Speaker::unSelectSpeaker()
 }
 
 
-void Speaker::newPosition(glm::vec3 center, glm::vec3 extents)
-{
-    //min == center - extents, max == c+e
+void Speaker::newPosition(glm::vec3 center, glm::vec3 extents) {
+    //min = center - extents, max = center + extents
     this->min.x = center.x - extents.x;
     this->min.y = center.y - extents.y;
     this->min.z = center.z - extents.z;
@@ -225,14 +208,21 @@ void Speaker::newPosition(glm::vec3 center, glm::vec3 extents)
     this->max.x = center.x + extents.x;
     this->max.y = center.y + extents.y;
     this->max.z = center.z + extents.z;
+
     if (!this->isValid()) {
         this->fix();
     }
-    this->center = glm::vec3(this->min.x+(this->max.x - this->min.x) / 2.0f, this->min.y+(this->max.y - this->min.y) / 2.0f, this->min.z+(this->max.z - this->min.z) / 2.0f);
+
+    this->center = glm::vec3(this->min.x + (this->max.x - this->min.x) / 2.0f,
+                             this->min.y + (this->max.y - this->min.y) / 2.0f,
+                             this->min.z + (this->max.z - this->min.z) / 2.0f);
     
-    float azimuth = ( (atan2(this->center.x, this->center.z) * 180.0f) / M_PI) +90.0f;
-    float zenith = ( atan2(this->center.y, sqrt(this->center.x*this->center.x + this->center.z*this->center.z)) * 180.0f) / M_PI;
-    float radius = sqrt((this->center.x*this->center.x)+(this->center.y*this->center.y)+(this->center.z*this->center.z));
+    float azimuth = ((atan2(this->center.x, this->center.z) * 180.0f) / M_PI) + 90.0f;
+    float plane = sqrt(this->center.x*this->center.x + this->center.z*this->center.z);
+    float zenith = atan2(this->center.y, plane) * 180.0f / M_PI;
+    float radius = sqrt(this->center.x * this->center.x +
+                        this->center.y * this->center.y +
+                        this->center.z * this->center.z);
     azimuth = 180.0f - azimuth;
 
     if (azimuth < 0.0f) {
@@ -257,13 +247,12 @@ void Speaker::newPosition(glm::vec3 center, glm::vec3 extents)
     this->aziZenRad = glm::vec3(azimuth, zenith, radius);
 }
 
-void Speaker::newSpheriqueCoord(glm::vec3 aziZenRad, glm::vec3 extents)
-{
+void Speaker::newSpheriqueCoord(glm::vec3 aziZenRad, glm::vec3 extents) {
     glm::vec3 nCenter;
 
-    aziZenRad.x = abs( (aziZenRad.x * M_PI ) / 180.0f) ;
-    aziZenRad.y = abs( ((-90.0f+aziZenRad.y) * M_PI ) / 180.0f);
-    
+    aziZenRad.x = abs((aziZenRad.x * M_PI) / 180.0f);
+    aziZenRad.y = abs(((-90.0f+aziZenRad.y) * M_PI) / 180.0f);
+
     nCenter.x = GetFloatPrecision(aziZenRad.z * sinf(aziZenRad.y) * cosf(aziZenRad.x), 3);
     nCenter.z = GetFloatPrecision(aziZenRad.z * sinf(aziZenRad.y) * sinf(aziZenRad.x), 3);
     nCenter.y = GetFloatPrecision(aziZenRad.z * cosf(aziZenRad.y), 3);
@@ -271,19 +260,17 @@ void Speaker::newSpheriqueCoord(glm::vec3 aziZenRad, glm::vec3 extents)
     this->newPosition(nCenter);
 }
 
-void Speaker::draw()
-{
+void Speaker::draw() {
     float transpa = 0.75;
 
     glPushMatrix();
 
     glTranslatef(this->center.x, this->center.y, this->center.z);
-    
+
     glRotatef(180.0f-this->aziZenRad.x, 0, 1.0, 0);
     glRotatef(-this->aziZenRad.y, 0, 0, 1.0);
-    //glRotatef(0, 1.0, 0, 0); Z useless
     glTranslatef(-1*this->center.x, -1*this->center.y, -1*this->center.z);
-    
+
     glBegin(GL_QUADS);
 
     if (this->mainParent->isSpeakerLevelShown) {
@@ -293,6 +280,7 @@ void Speaker::draw()
     } else {
         glColor4f(this->color.x, this->color.y, this->color.z, transpa);
     }
+
     glVertex3f(this->min.x, this->min.y, this->max.z);
     glVertex3f(this->max.x, this->min.y, this->max.z);
     glVertex3f(this->max.x, this->max.y, this->max.z);
@@ -329,14 +317,14 @@ void Speaker::draw()
         glLineWidth(2);
         glBegin(GL_LINES);
         glColor4f(0, 0, 0, transpa);
-        glVertex3f(this->center.x+SizeSpeaker.x,this->center.y, this->center.z);
-        glVertex3f(this->center.x+ 1.2f,this->center.y, this->center.z);
+        glVertex3f(this->center.x+SizeSpeaker.x, this->center.y, this->center.z);
+        glVertex3f(this->center.x+1.2f, this->center.y, this->center.z);
         glEnd();
-        
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);  // this tells it to only render lines
+
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         glLineWidth(4);
         glBegin(GL_LINES);
-        
+
         glVertex3f(this->min.x-Over, this->min.y-Over, this->min.z-Over);
         glVertex3f(this->min.x-Over, this->min.y-Over, this->max.z+Over);
         
@@ -348,7 +336,6 @@ void Speaker::draw()
         
         glVertex3f(this->min.x-Over, this->max.y+Over, this->min.z-Over);
         glVertex3f(this->min.x-Over, this->max.y+Over, this->max.z+Over);
-        
 
         glVertex3f(this->min.x-Over, this->min.y-Over, this->min.z-Over);
         glVertex3f(this->max.x+Over, this->min.y-Over, this->min.z-Over);
@@ -361,8 +348,7 @@ void Speaker::draw()
         
         glVertex3f(this->min.x-Over, this->max.y+Over, this->max.z+Over);
         glVertex3f(this->max.x+Over, this->max.y+Over, this->max.z+Over);
-        
-        
+
         glVertex3f(this->min.x-Over, this->min.y-Over, this->min.z-Over);
         glVertex3f(this->min.x-Over, this->max.y+Over, this->min.z-Over);
         
@@ -374,7 +360,6 @@ void Speaker::draw()
         
         glVertex3f(this->max.x+Over, this->min.y-Over, this->max.z+Over);
         glVertex3f(this->max.x+Over, this->max.y+Over, this->max.z+Over);
-
         
         glEnd();
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

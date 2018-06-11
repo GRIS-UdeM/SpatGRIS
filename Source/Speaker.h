@@ -15,10 +15,10 @@
  
  You should have received a copy of the GNU General Public License
  along with ServerGris.  If not, see <http://www.gnu.org/licenses/>.
- */
+*/
 
-#ifndef Speaker_h
-#define Speaker_h
+#ifndef SPEAKER_H
+#define SPEAKER_H
 
 #include <stdio.h>
 #include <iostream>
@@ -33,7 +33,6 @@
 #include <GLUT/glut.h>
 #endif
 
-
 #include "../glm/glm.hpp"
 
 #include "../JuceLibraryCode/JuceHeader.h"
@@ -41,10 +40,8 @@
 #include "SmallTextGrisLookAndFeel.h"
 #include "ParentLevelComponent.h"
 
-
 class MainContentComponent;
 class LevelComponent;
-
 
 using namespace std;
 
@@ -54,29 +51,30 @@ struct Triplet {
     int id3;
 };
 
-static const glm::vec3 ColorSpeaker         = glm::vec3(0.87, 0.87, 0.87);
+static const glm::vec3 ColorSpeaker          = glm::vec3(0.87, 0.87, 0.87);
 static const glm::vec3 ColorDirectOutSpeaker = glm::vec3(0.25, 0.25, 0.25);
-static const glm::vec3 ColorSpeakerSelect   = glm::vec3(1.00, 0.64, 0.09);
-static const glm::vec3 SizeSpeaker          = glm::vec3(0.5, 0.5, 0.5);
-static const glm::vec3 DefaultCenter        = glm::vec3(0, 0, 0);
-static const float     Over                 = 0.02f;
+static const glm::vec3 ColorSpeakerSelect    = glm::vec3(1.00, 0.64, 0.09);
+static const glm::vec3 SizeSpeaker           = glm::vec3(0.5, 0.5, 0.5);
+static const glm::vec3 DefaultCenter         = glm::vec3(0, 0, 0);
 
-class Speaker : 
-                public ParentLevelComponent
+static const float Over = 0.02f;
+
+class Speaker : public ParentLevelComponent
 {
 public:
     
     Speaker(MainContentComponent *parent = nullptr, int idS = 1);
     Speaker(MainContentComponent *parent = nullptr, int idS = -1,
-            int outP = -1, glm::vec3 center = DefaultCenter, glm::vec3 extents = SizeSpeaker);
+            int outP = -1, glm::vec3 center = DefaultCenter,
+            glm::vec3 extents = SizeSpeaker);
     ~Speaker();
     
     bool isSelected();
     void selectSpeaker();
     void unSelectSpeaker();
     
-    //ParentLevelComponent ===============================
-    int getId(){ return this->outputPatch ;};
+    // ParentLevelComponent
+    int getId(){ return this->outputPatch; };
     float getLevel();
     float getAlpha();
     void setMuted(bool mute);
@@ -85,7 +83,7 @@ public:
     void selectClick(bool select = true);
     LevelComponent * getVuMeter(){ return this->vuMeter; }
 
-    //Normalise for user =================================
+    // Normalise for user
     void setBounds(const Rectangle<int> &newBounds);
     int getIdSpeaker();
     glm::vec3 getCoordinate();
@@ -108,7 +106,7 @@ public:
     int getDirectOutChannel() { return 0; };
     void sendDirectOutToClient(int id, int chn) {};
 
-    //OpenGL ==============================================
+    // OpenGL
     glm::vec3 getMin();
     glm::vec3 getMax();
     glm::vec3 getCenter();
@@ -149,5 +147,4 @@ private :
     
 };
 
-
-#endif /* Speaker_h */
+#endif /* SPEAKER_H */

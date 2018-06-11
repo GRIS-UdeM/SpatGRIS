@@ -15,10 +15,10 @@
  
  You should have received a copy of the GNU General Public License
  along with ServerGris.  If not, see <http://www.gnu.org/licenses/>.
- */
+*/
 
-#ifndef RAY_h
-#define RAY_h
+#ifndef RAY_H
+#define RAY_H
 
 #ifdef __linux__
 #include <GL/gl.h>
@@ -32,8 +32,6 @@
 
 #include "../glm/glm.hpp"
 
-
-
 class Ray {
 public :
     Ray() {
@@ -45,13 +43,13 @@ public :
     void setRay(glm::vec3 p, glm::vec3 d) {
         this->position = glm::vec3(p);
         this->direction = glm::vec3(d);
-        this->normal = (this->direction - this->position)/5000.0f;//normalize(glm::vec3(d.x, d.y, d.z));
+        this->normal = (this->direction - this->position) / 5000.0f;
     }
-    
-    
+
     glm::vec3 getNormal() {
         return this->normal;
     }
+
     glm::vec3 getPosition() {
         return this->position;
     }
@@ -63,19 +61,15 @@ public :
     void draw() {
         glBegin(GL_LINES);
         glColor3f(1, 0, 0);
-        //glm::vec3 end = position + normal * 5000.0f;
         glVertex3f(this->position.x, this->position.y, this->position.z);
         glVertex3f(this->direction.x, this->direction.y, this->direction.z);
         glEnd();
     }
-    
-    
+
 private:
     glm::vec3 position;
     glm::vec3 direction;
-    glm::vec3 normal;
-    
+    glm::vec3 normal;    
 };
 
-
-#endif /* ToolsGL_h */
+#endif /* RAY_H */
