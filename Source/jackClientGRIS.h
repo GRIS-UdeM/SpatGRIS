@@ -40,14 +40,21 @@
 #include <jack/session.h>
 
 #include "vbap.h"
+#include "lbap.h"
 
 class Speaker;
 using namespace std;
 
-//Limit SpatServer In/Out
+//Limit ServerGris In/Out
 static unsigned int const MaxInputs  = 256;
 static unsigned int const MaxOutputs = 256;
 
+typedef struct {
+    lbap_pos pos;
+    float gains[MaxOutputs];
+    float y[MaxOutputs];
+} LBAP_DATA;
+ 
 struct Client {
     String          name;
     unsigned int    portStart     = 0;
@@ -66,10 +73,15 @@ struct SourceIn {
     float azimuth = 0.0f;
     float zenith = 0.0f;
     float radius = 0.0f;
+    float depth = 1.0f;
     
     float aziSpan = 0.0f;
     float zenSpan = 0.0f;
-    
+
+    float lbap_gains[MaxOutputs];
+    float lbap_y[MaxOutputs];
+    lbap_pos lbap_last_pos;
+
     bool  isMuted = false;
     bool  isSolo = false;
     float gain; //Not Implemented
@@ -111,7 +123,7 @@ struct SpeakerOut {
 //Mode Spat
 typedef enum {
     VBap = 0,
-    DBap,
+    LBap,
     VBap_HRTF,
     STEREO
 } ModeSpatEnum;
@@ -272,6 +284,9 @@ public:
     //-------- STEREO data ------------------------
     float last_azi[MaxInputs];
 
+    //-------- LBAP data ------------------------
+    lbap_field *lbap_speaker_field;
+
     //---------------------------------
     jackClientGris(unsigned int bufferS = 1024);
 
@@ -314,6 +329,7 @@ public:
     //SpeakerLoad
     unsigned int vbapDimensions;
     bool initSpeakersTripplet(vector<Speaker *>  listSpk, int dimensions, bool needToComputeVbap);
+    bool lbapSetupSpeakerField(vector<Speaker *>  listSpk);
     void updateSourceVbap(int idS);
     int vbapSourcesToUpdate[MaxInputs];
     

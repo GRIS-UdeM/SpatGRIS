@@ -209,7 +209,7 @@ static void processVBAP(jackClientGris & jackCli, jack_default_audio_sample_t **
     for (o = 0; o < sizeOutputs; ++o) {
         memset(outs[o], 0, sizeof(jack_default_audio_sample_t) * nframes);
         for (i = 0; i < sizeInputs; ++i) {
-            if (!jackCli.listSourceIn[i].directOut) {
+            if (!jackCli.listSourceIn[i].directOut && jackCli.listSourceIn[i].paramVBap != nullptr) {
                 iogain = jackCli.listSourceIn[i].paramVBap->gains[o];
                 y = jackCli.listSourceIn[i].paramVBap->y[o];
                 if (ilinear) {
@@ -232,6 +232,74 @@ static void processVBAP(jackClientGris & jackCli, jack_default_audio_sample_t **
             } else if ((unsigned int)(jackCli.listSourceIn[i].directOut - 1) == o) {
                 for (f = 0; f < nframes; ++f) {
                     outs[o][f] += ins[i][f];
+                }
+            }
+        }
+    }
+}
+
+//=========================================================================================
+//LBAP
+//=========================================================================================
+static void processLBAP(jackClientGris & jackCli, jack_default_audio_sample_t ** ins, jack_default_audio_sample_t ** outs,
+                        const jack_nframes_t &nframes, const unsigned int &sizeInputs, const unsigned int &sizeOutputs)
+{
+    unsigned int f, i, o, ilinear;
+    float y, gain, interpG = 0.99;
+    lbap_pos pos;
+
+    if (jackCli.interMaster == 0.0) {
+        ilinear = 1;
+    } else {
+        ilinear = 0;
+        interpG = powf(jackCli.interMaster, 0.1) * 0.0099 + 0.99;
+    }
+
+    for (o = 0; o < sizeOutputs; ++o) {
+        memset(outs[o], 0, sizeof(jack_default_audio_sample_t) * nframes);
+    }
+
+    for (i = 0; i < sizeInputs; ++i) {
+        if (!jackCli.listSourceIn[i].directOut) {
+            // MainContentComponent::updateInputJack() converts positions from radians to degrees
+            // and here we convert back from degrees to radians. It's a waste...
+            lbap_pos_init_from_degrees(&pos,
+                                       jackCli.listSourceIn[i].azimuth,
+                                       jackCli.listSourceIn[i].zenith,
+                                       jackCli.listSourceIn[i].depth);
+            pos.azispan = jackCli.listSourceIn[i].aziSpan;
+            if (!lbap_pos_compare(&pos, &jackCli.listSourceIn[i].lbap_last_pos)) {
+                lbap_field_compute(jackCli.lbap_speaker_field, &pos, jackCli.listSourceIn[i].lbap_gains);
+                lbap_pos_copy(&jackCli.listSourceIn[i].lbap_last_pos, &pos);
+            }
+
+            for (o = 0; o < sizeOutputs; ++o) {
+                gain = jackCli.listSourceIn[i].lbap_gains[o];
+                y = jackCli.listSourceIn[i].lbap_y[o];
+                if (ilinear) {
+                    interpG = (gain - y) / nframes;
+                    for (f = 0; f < nframes; ++f) {
+                        y += interpG;
+                        outs[o][f] += ins[i][f] * y;
+                    }
+                } else {
+                    for (f = 0; f < nframes; ++f) {
+                        y = gain + (y - gain) * interpG;
+                        if (y < 0.0000000000001f) {
+                            y = 0.0;
+                        } else {
+                            outs[o][f] += ins[i][f] * y;
+                        }
+                    }
+                }
+                jackCli.listSourceIn[i].lbap_y[o] = y;
+            }
+        } else {
+            for (o = 0; o < sizeOutputs; ++o) {
+                if ((unsigned int)(jackCli.listSourceIn[i].directOut - 1) == o) {
+                    for (f = 0; f < nframes; ++f) {
+                        outs[o][f] += ins[i][f];
+                    }
                 }
             }
         }
@@ -270,7 +338,7 @@ static void processVBapHRTF(jackClientGris & jackCli, jack_default_audio_sample_
     for (o = 0; o < 16; ++o) {
         memset(vbapouts[o], 0, sizeof(jack_default_audio_sample_t) * nframes);
         for (i = 0; i < sizeInputs; ++i) {
-            if (!jackCli.listSourceIn[i].directOut) {
+            if (!jackCli.listSourceIn[i].directOut && jackCli.listSourceIn[i].paramVBap != nullptr) {
                 iogain = jackCli.listSourceIn[i].paramVBap->gains[o];
                 y = jackCli.listSourceIn[i].paramVBap->y[o];
                 if (ilinear) {
@@ -409,7 +477,8 @@ static int process_audio (jack_nframes_t nframes, void* arg) {
         case VBap:
             processVBAP(*jackCli, ins, outs, nframes, sizeInputs, sizeOutputs);
             break;
-        case DBap:
+        case LBap:
+            processLBAP(*jackCli, ins, outs, nframes, sizeInputs, sizeOutputs);
             break;
         case VBap_HRTF:
             processVBapHRTF(*jackCli, ins, outs, nframes, sizeInputs, sizeOutputs);
@@ -668,6 +737,19 @@ jackClientGris::jackClientGris(unsigned int bufferS) {
     }
 
     //---------------------------------------------------
+    // Initialize LBAP data
+    //---------------------------------------------------
+    this->lbap_speaker_field = lbap_field_init();
+    for (unsigned int i=0; i<MaxInputs; i++) {
+        this->listSourceIn[i].lbap_last_pos.azi = -1;
+        this->listSourceIn[i].lbap_last_pos.ele = -1;
+        this->listSourceIn[i].lbap_last_pos.rad = -1;
+        for (unsigned int o=0; o<MaxOutputs; o++) {
+            this->listSourceIn[i].lbap_gains[o] = this->listSourceIn[i].lbap_y[o] = 0.0;
+        }
+    }
+
+    //---------------------------------------------------
     // Initialize highpass filter delay samples
     //---------------------------------------------------
     for (unsigned int i=0; i<MaxOutputs; i++) {
@@ -831,7 +913,7 @@ void jackClientGris::prepareToRecord()
     String extF = fileS.getFileExtension();
     String parent = fileS.getParentDirectory().getFullPathName();
 
-    if (this->modeSelected == VBap) {
+    if (this->modeSelected == VBap || this->modeSelected == LBap) {
         num_of_channels = this->outputsPort.size();
         for (int i  = 0; i < num_of_channels; ++i) {
             if (int_vector_contains(this->outputPatches, i+1)) {
@@ -899,12 +981,14 @@ void jackClientGris::removeOutput(int number)
 
 void jackClientGris::connectedGristoSystem()
 {
+    this->processBlockOn = false;
+
     String nameOut;
     this->clearOutput();
     for (unsigned int i = 0; i < this->maxOutputPatch; i++) {
         nameOut = "output";
         nameOut += String(this->outputsPort.size() + 1);
-        jack_port_t* newPort = jack_port_register(this->client,  nameOut.toUTF8(), JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput,  0);
+        jack_port_t* newPort = jack_port_register(this->client, nameOut.toUTF8(), JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
         this->outputsPort.push_back(newPort);
     }
 
@@ -957,6 +1041,7 @@ void jackClientGris::connectedGristoSystem()
     jack_free(portsIn);
     jack_free(portsOut);
 
+    this->processBlockOn = true;
 }
 
 bool jackClientGris::initSpeakersTripplet(vector<Speaker *>  listSpk,
@@ -1012,6 +1097,45 @@ bool jackClientGris::initSpeakersTripplet(vector<Speaker *>  listSpk,
         free(triplets[i]);
     }
     free(triplets);
+
+    this->connectedGristoSystem();
+
+    this->processBlockOn = true;
+    return true;
+}
+
+bool jackClientGris::lbapSetupSpeakerField(vector<Speaker *>  listSpk)
+{
+    int j;
+    if(listSpk.size() <= 0) {
+        return false;
+    }
+
+    this->processBlockOn = false;
+
+    float azimuth[listSpk.size()];
+    float elevation[listSpk.size()];
+    float radius[listSpk.size()];
+    int outputPatch[listSpk.size()];
+
+    for(unsigned int i = 0; i < listSpk.size() ; i++) {
+        for (j = 0; j < MAX_LS_AMOUNT; j++) {
+            if (listSpk[i]->getOutputPatch() == listSpeakerOut[j].outputPatch && !listSpeakerOut[j].directOut) {
+                break;
+            }
+        }
+        azimuth[i] = listSpeakerOut[j].azimuth;
+        elevation[i] = listSpeakerOut[j].zenith;
+        radius[i] = listSpeakerOut[j].radius;
+        outputPatch[i] = listSpeakerOut[j].outputPatch - 1;
+    }
+
+    lbap_speaker *speakers = lbap_speakers_from_positions(azimuth, elevation, radius, outputPatch, listSpk.size());
+
+    lbap_field_reset(this->lbap_speaker_field);
+    lbap_field_setup(this->lbap_speaker_field, speakers, listSpk.size());
+
+    free(speakers);
 
     this->connectedGristoSystem();
 
@@ -1129,6 +1253,7 @@ void jackClientGris::connectionClient(String name, bool connect)
     int endJ = 0;
     bool conn = false;
     this->updateClientPortAvailable(false);
+
     //Disconencted Client------------------------------------------------
     while (portsOut[i]){
         if(getClientName(portsOut[i]) == name)
@@ -1150,7 +1275,6 @@ void jackClientGris::connectionClient(String name, bool connect)
             cli.connected = false;
         }
     }
-
     
     connectedGristoSystem();
     if(!connect){ return ; }
@@ -1309,6 +1433,8 @@ unsigned int jackClientGris::getPortStartClient(String nameClient)
 }
 
 jackClientGris::~jackClientGris() {
+    lbap_field_free(this->lbap_speaker_field);
+
     jack_deactivate(this->client);
     for(unsigned int i = 0 ; i < this->inputsPort.size() ; i++){
         jack_port_unregister(this->client, this->inputsPort[i]);

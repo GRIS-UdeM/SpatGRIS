@@ -45,6 +45,7 @@ void Input::resetPosition() {
     this->zeniSpan = 0.0f;;
     
     this->gain = -1.0f;
+    this->depth = 1.0f;
     
     this->center.x = (14.0f * sinf(this->zenith) * cosf(this->azimuth));
     this->center.z = (14.0f * sinf(this->zenith) * sinf(this->azimuth));
@@ -201,15 +202,18 @@ void Input::drawSpan() {
     glPointSize(1);
 }
 
-void Input::updateValues(float az, float ze, float azS, float zeS, float heS, float g) {
+void Input::updateValues(float az, float ze, float azS, float zeS, float depth, float g) {
     this->azimuth = az;
     this->zenith  = ze;
     this->azimSpan = azS;
     this->zeniSpan = zeS;
+    this->depth = depth;
     this->gain = g;
 
-    this->center.x = (10.0f * sinf(this->zenith)*cosf(this->azimuth));
-    this->center.z = (10.0f * sinf(this->zenith)*sinf(this->azimuth));
+    float factor = depth * 10.0f;
+
+    this->center.x = (factor * sinf(this->zenith)*cosf(this->azimuth));
+    this->center.z = (factor * sinf(this->zenith)*sinf(this->azimuth));
     this->center.y = ((10.0f * cosf(this->zenith)) + (sizeT/2.0f));
 
     this->radius = sqrt((this->center.x*this->center.x) +

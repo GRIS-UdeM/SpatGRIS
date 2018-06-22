@@ -129,11 +129,6 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     this->comBoxModeSpat = addComboBox("", "Mode of spatilization", 155, 48, 90, 22, this->boxControlUI->getContent());
     for (int i = 0; i < ModeSpatString.size(); i++) {
         this->comBoxModeSpat->addItem(ModeSpatString[i], i+1);
-        if (i == 0 || i >= 2) {
-            this->comBoxModeSpat->setItemEnabled(i+1, true);
-        } else {
-            this->comBoxModeSpat->setItemEnabled(i+1, false);
-        }
     }
 
     this->tedAddInputs = addTextEditor("Inputs :", "0", "Numbers of Inputs", 122, 83, 43, 22, this->boxControlUI->getContent());
@@ -1117,6 +1112,7 @@ void MainContentComponent::updateInputJack(int inInput, Input &inp)
 {
     SourceIn *si = &this->jackClient->listSourceIn[inInput]; //.getReference(inInput);
 
+    // Do we really need to compute x, y, z ?
     si->x = inp.getCenter().x/10.0f;
     si->y = inp.getCenter().y/10.0f;
     si->z = inp.getCenter().z/10.0f;
@@ -1127,16 +1123,13 @@ void MainContentComponent::updateInputJack(int inInput, Input &inp)
     }
     si->zenith  = 90.0f-(inp.getZenith()/M2_PI)*360.0f;
     si->radius  = inp.getRad();
+    si->depth   = inp.getDepth();
     
     si->aziSpan = inp.getAziMuthSpan() * 0.5f;
     si->zenSpan = inp.getZenithSpan() * 2.0f;
     
-    if (this->jackClient->modeSelected == VBap) {
+    if (this->jackClient->modeSelected == VBap || this->jackClient->modeSelected == VBap_HRTF) {
         this->jackClient->vbapSourcesToUpdate[inInput] = 1;
-    } else if (this->jackClient->modeSelected == VBap_HRTF) {
-        this->jackClient->vbapSourcesToUpdate[inInput] = 1;
-    } else if (this->jackClient->modeSelected == STEREO) {
-        // nothing to do yet.
     }
 }
 
@@ -1343,11 +1336,6 @@ bool MainContentComponent::updateLevelComp() {
     this->boxOutputsUI->repaint();
     this->resized();
 
-    this->jackClient->vbapDimensions = dimensions;
-    if (dimensions == 2) {
-        this->setShowTriplets(false);
-    }
-
     i = 0;
     vector<Speaker *> tempListSpeaker;
     tempListSpeaker.resize(this->listSpeaker.size());
@@ -1357,12 +1345,24 @@ bool MainContentComponent::updateLevelComp() {
         }
     }
     tempListSpeaker.resize(i);
-    bool retval = this->jackClient->initSpeakersTripplet(tempListSpeaker, dimensions, this->needToComputeVbap);
 
-    if (retval) {
-        this->setListTripletFromVbap();
-        this->needToComputeVbap = false;
+    bool retval = false;
+    if (this->jackClient->modeSelected == VBap || this->jackClient->modeSelected == VBap_HRTF) {
+        this->jackClient->vbapDimensions = dimensions;
+        if (dimensions == 2) {
+            this->setShowTriplets(false);
+        }
+        retval = this->jackClient->initSpeakersTripplet(tempListSpeaker, dimensions, this->needToComputeVbap);
+
+        if (retval) {
+            this->setListTripletFromVbap();
+            this->needToComputeVbap = false;
+        }
+    } else if (this->jackClient->modeSelected == LBap) {
+        this->setShowTriplets(false);
+        retval = this->jackClient->lbapSetupSpeakerField(tempListSpeaker);
     }
+
 
     // Restore mute/solo/directout states
     this->jackClient->soloIn = soloIn;
@@ -2000,9 +2000,22 @@ void MainContentComponent::comboBoxChanged (ComboBox *comboBox)
                     this->labelModeInfo->setColour(Label::textColourId, mGrisFeel.getRedColour());
                 }
                 break;
-            case DBap:
-                this->labelModeInfo->setText("Not ready yet", dontSendNotification);
-                this->labelModeInfo->setColour(Label::textColourId, mGrisFeel.getRedColour());
+            case LBap:
+                if (this->pathLastVbapSpeakerSetup != this->pathCurrentFileSpeaker) {
+                    this->openXmlFileSpeaker(this->pathLastVbapSpeakerSetup);
+                    ret = 1;
+                } else {
+                    ret = this->updateLevelComp();
+                }
+                if (ret) {
+                    this->labelModeInfo->setText("Ready", dontSendNotification);
+                    this->labelModeInfo->setColour(Label::textColourId, mGrisFeel.getGreenColour());
+                    this->isSpanShown = false;
+                    this->sliderInterpolation->setEnabled(true);
+                } else {
+                    this->labelModeInfo->setText("ERROR", dontSendNotification);
+                    this->labelModeInfo->setColour(Label::textColourId, mGrisFeel.getRedColour());
+                }
                 break;
             case VBap_HRTF:
                 this->loadVbapHrtfSpeakerSetup();

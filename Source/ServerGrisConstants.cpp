@@ -13,4 +13,4 @@ const char *ClientNameSys = "system";
 
 const char *ClientNameIgnor = "JAR::57";
 
-const StringArray ModeSpatString = {"VBAP",  "DBAP", "BINAURAL", "STEREO"};
+const StringArray ModeSpatString = {"VBAP",  "LBAP", "BINAURAL", "STEREO"};

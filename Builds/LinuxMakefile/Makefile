@@ -78,6 +78,7 @@ OBJECTS := \
   $(JUCE_OBJDIR)/UiComponent_67e862aa.o \
   $(JUCE_OBJDIR)/WinControl_d3e71eea.o \
   $(JUCE_OBJDIR)/vbap_a3e71eea.o \
+  $(JUCE_OBJDIR)/lbap_a3e71ee0.o \
   $(JUCE_OBJDIR)/fft_a3e71eef.o \
   $(JUCE_OBJDIR)/BinaryData_ce4232d4.o \
   $(JUCE_OBJDIR)/juce_audio_basics_6b797ca1.o \
@@ -186,6 +187,11 @@ $(JUCE_OBJDIR)/WinControl_d3e71eea.o: ../../Source/WinControl.cpp
 $(JUCE_OBJDIR)/vbap_a3e71eea.o: ../../Source/vbap.c
 	-@mkdir -p $(JUCE_OBJDIR)
 	@echo "Compiling vbap.c"
+	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) -o "$@" -c "$<"
+
+$(JUCE_OBJDIR)/lbap_a3e71ee0.o: ../../Source/lbap.c
+	-@mkdir -p $(JUCE_OBJDIR)
+	@echo "Compiling lbap.c"
 	$(V_AT)$(CXX) $(JUCE_CXXFLAGS) -o "$@" -c "$<"
 
 $(JUCE_OBJDIR)/fft_a3e71eef.o: ../../Source/fft.c
