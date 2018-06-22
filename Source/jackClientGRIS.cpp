@@ -782,7 +782,7 @@ jackClientGris::jackClientGris(unsigned int bufferS) {
     jack_client_log("\n========================== \n");
     jack_client_log("Start Jack Client \n");
     jack_client_log("========================== \n");
-    
+
     this->client = jack_client_open (ClientName, options, &status, DriverNameSys);
     if (this->client == NULL) {
         
@@ -998,18 +998,18 @@ void jackClientGris::connectedGristoSystem()
     int i=0;
     int j=0;
     //DisConnect jackClientGris to system---------------------------------------------------
-    while (portsOut[i]){
-        if(getClientName(portsOut[i]) == ClientName)    //jackClient
-        {
-            j=0;
-            while(portsIn[j]){
-                if(getClientName(portsIn[j]) == ClientNameSys){ //system
-                    jack_disconnect(this->client, portsOut[i] ,portsIn[j]);
+    while (portsOut[i]) {
+        if (getClientName(portsOut[i]) == ClientName) { //jackClient
+            j = 0;
+            while (portsIn[j]) {
+                if (getClientName(portsIn[j]) == ClientNameSys && //system
+                   jack_port_connected_to(jack_port_by_name(this->client, portsOut[i]), portsIn[j])) {
+                    jack_disconnect(this->client, portsOut[i], portsIn[j]);
                 }
-                j+=1;
+                j += 1;
             }
         }
-        i+=1;
+        i += 1;
     }
     
     i=0;
@@ -1160,22 +1160,23 @@ void jackClientGris::updateSourceVbap(int idS)
     }
 }
 
-void jackClientGris::disconnectAllClient()
-{
-    const char ** portsOut = jack_get_ports (this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput);
-    const char ** portsIn = jack_get_ports (this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput);
+void jackClientGris::disconnectAllClient() {
+    const char **portsOut = jack_get_ports (this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput);
+    const char **portsIn = jack_get_ports (this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput);
     
-    int i=0;
-    int j=0;
+    int i = 0;
+    int j = 0;
     
-    //Disconencted ALL ------------------------------------------------
-    while (portsOut[i]){
+    //Disconected ALL ------------------------------------------------
+    while (portsOut[i]) {
         j = 0;
-        while(portsIn[j]){
-            jack_disconnect(this->client, portsOut[i] ,portsIn[j]);
-            j+=1;
+        while (portsIn[j]) {
+            if (jack_port_connected_to(jack_port_by_name(this->client, portsOut[i]), portsIn[j])) {
+                jack_disconnect(this->client, portsOut[i], portsIn[j]);
+            }
+            j += 1;
         }
-        i+=1;
+        i += 1;
     }
     this->lockListClient.lock();
     for (auto&& cli : this->listClient)
@@ -1255,18 +1256,18 @@ void jackClientGris::connectionClient(String name, bool connect)
     this->updateClientPortAvailable(false);
 
     //Disconencted Client------------------------------------------------
-    while (portsOut[i]){
-        if(getClientName(portsOut[i]) == name)
-        {
+    while (portsOut[i]) {
+        if (getClientName(portsOut[i]) == name) {
             j = 0;
-            while(portsIn[j]){
-                if(getClientName(portsIn[j]) == ClientName){ //jackClient
-                    jack_disconnect(this->client, portsOut[i] ,portsIn[j]);
+            while (portsIn[j]) {
+                if (getClientName(portsIn[j]) == ClientName && //jackClient
+                   jack_port_connected_to(jack_port_by_name(this->client, portsOut[i]), portsIn[j])) {
+                    jack_disconnect(this->client, portsOut[i], portsIn[j]);
                 }
-                j+=1;
+                j += 1;
             }
         }
-        i+=1;
+        i += 1;
     }
 
     for (auto&& cli : this->listClient)
