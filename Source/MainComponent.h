@@ -15,24 +15,24 @@
  
  You should have received a copy of the GNU General Public License
  along with ServerGris.  If not, see <http://www.gnu.org/licenses/>.
- */
+*/
 
 #ifndef MAINCOMPONENT_H_INCLUDED
 #define MAINCOMPONENT_H_INCLUDED
 
-//Macro-----------------------
+// Macros
 #ifndef M_PI
 #define M_PI    (3.14159265358979323846264338327950288)
 #endif
-//--
+
 #ifndef M2_PI
 #define M2_PI   (6.28318530717958647692528676655900577)
 #endif
-//--
+
 #ifndef M_PI2
 #define M_PI2   (1.57079632679489661923132169163975143)
 #endif
-//--
+
 #ifndef M_PI4
 #define M_PI4   (0.785398163397448309615660845819875720)
 #endif
@@ -68,7 +68,7 @@ static const unsigned int HertzRefresh2DLowCpu = 10;
 /*
  This component lives inside our window, and this is where you should put all
  your controls and content.
- */
+*/
 class MainContentComponent : public Component,
                              public MenuBarModel,
                              public ApplicationCommandTarget,
@@ -81,8 +81,10 @@ class MainContentComponent : public Component,
 public:
     MainContentComponent(DocumentWindow *parent);
     ~MainContentComponent();
+
     bool exitApp();
 
+    // Menubar handlers.
     void handleNew();
     void handleOpenPreset();
     void handleSavePreset();
@@ -110,55 +112,50 @@ public:
     void handleResetInputPositions();
     void handleInputColours();
 
+    // Menubar methods.
     StringArray getMenuBarNames() override {
         const char* const names[] = { "File", "View", "Help", nullptr };
         return StringArray (names);
     }
-
     PopupMenu getMenuForIndex (int menuIndex, const String& /*menuName*/) override;
     void menuItemSelected (int menuItemID, int /*topLevelMenuIndex*/) override;
 
-    Speaker * getSpeakerFromOutputPatch(int out);
+    // Speakers.
     vector<Speaker *> getListSpeaker() { return this->listSpeaker; }
-    mutex* getLockSpeakers(){ return this->lockSpeakers; }
-        
-    vector<Input *> getListSourceInput(){ return this->listSourceInput; }
-    mutex* getLockInputs(){ return this->lockInputs; }
-    void updateInputJack(int inInput, Input &inp);
-
-    jackClientGris * getJackClient() { return this->jackClient; }
-    
-    mutex* getLockClients(){ return &this->jackClient->lockListClient; }
-    vector<Client> *getListClientjack(){ return &this->jackClient->listClient; }
-    void connectionClientJack(String nameCli, bool conn = true);
-
-    void setListTripletFromVbap();
-    vector<Triplet> getListTriplet(){ return this->listTriplet; }
-    void clearListTriplet(){ this->listTriplet.clear(); }
-    void selectSpeaker(unsigned int idS);
-    void selectTripletSpeaker(int idS);
-    void setNameConfig();
+    mutex* getLockSpeakers() { return this->lockSpeakers; }
+    Speaker * getSpeakerFromOutputPatch(int out);
     void addSpeaker();
-    void saveSpeakerSetup(String path);
     void removeSpeaker(int idSpeaker);
-    bool updateLevelComp();
-    void muteInput(int id, bool mute);
-    void muteOutput(int id, bool mute);
-    
-    void soloInput(int id, bool solo);
-    void soloOutput(int id, bool solo);
     void setDirectOut(int id, int chn);
 
-    void saveProperties(int rate, int buff, int fileformat, int oscPort);
+    // Sources.
+    vector<Input *> getListSourceInput() { return this->listSourceInput; }
+    mutex* getLockInputs() { return this->lockInputs; }
+    void updateInputJack(int inInput, Input &inp);
 
-    void handleTimer(bool state) {
-        if (state) {
-            startTimerHz(HertzRefreshNormal);
-        } else {
-            stopTimer();
-        }
-    }
+    // Jack clients.
+    jackClientGris * getJackClient() { return this->jackClient; }
+    mutex* getLockClients() { return &this->jackClient->lockListClient; }
+    vector<Client> *getListClientjack() { return &this->jackClient->listClient; }
+    void connectionClientJack(String nameCli, bool conn = true);
 
+    // VBAP triplets.
+    void setListTripletFromVbap();
+    vector<Triplet> getListTriplet() { return this->listTriplet; }
+    void clearListTriplet() { this->listTriplet.clear(); }
+
+    // Speaker selections.
+    void selectSpeaker(unsigned int idS);
+    void selectTripletSpeaker(int idS);
+    bool tripletExist(Triplet tri, int &pos);
+
+    // Mute - solo.
+    void muteInput(int id, bool mute);
+    void muteOutput(int id, bool mute);
+    void soloInput(int id, bool solo);
+    void soloOutput(int id, bool solo);
+
+    // Input - output amplitude levels.
     float getLevelsOut(int indexLevel) { return (20.0f * log10f(this->jackClient->getLevelsOut(indexLevel))); }
     float getLevelsIn(int indexLevel) { return (20.0f * log10f(this->jackClient->getLevelsIn(indexLevel))); }
     float getLevelsAlpha(int indexLevel) {
@@ -169,7 +166,6 @@ public:
             return sqrtf(level * 10000.0f);
         }
     }
-
     float getSpeakerLevelsAlpha(int indexLevel) {
         float level = this->jackClient->getLevelsOut(indexLevel);
         float alpha = 1.0;
@@ -184,134 +180,153 @@ public:
         return alpha;
     }
 
-    void chooseRecordingPath();
+    // Called when the speaker setup has changed.
+    bool updateLevelComp();
 
+    // Open - save.
+    void onOpenPreset();
+    void openXmlFileSpeaker(String path);
+    void openPreset(String path);
+    void savePreset(String path);
+    void saveSpeakerSetup(String path);
+    void saveProperties(int rate, int buff, int fileformat, int oscPort);
+    void chooseRecordingPath();
+    void setNameConfig();
+    void setTitle();
+    String getCurrentFileSpeakerPath();
+
+    // Screen refresh timer.
+    void handleTimer(bool state) {
+        if (state) {
+            startTimerHz(HertzRefreshNormal);
+        } else {
+            stopTimer();
+        }
+    }
+
+    // Close windows other than the main one.
     void destroyWinSpeakConf() { this->winSpeakConfig = nullptr; this->jackClient->processBlockOn = true; }
     void destroyWindowProperties() { this->windowProperties = nullptr; }
     void destroyWinControl() { this->winControlSource = nullptr; }
     void destroyAboutWindow() { this->aboutWindow = nullptr; }
 
+    // Widget listener handlers.
     void timerCallback() override;
-    void paint (Graphics& g) override;
-    
+    void paint(Graphics& g) override;
     void resized() override;
-    void buttonClicked (Button *button) override;
-    void sliderValueChanged (Slider *slider) override;
-    void textEditorFocusLost (TextEditor &textEditor) override;
-    void textEditorReturnKeyPressed (TextEditor &textEditor) override;
-    void comboBoxChanged (ComboBox *comboBox) override;
+    void buttonClicked(Button *button) override;
+    void sliderValueChanged(Slider *slider) override;
+    void textEditorFocusLost(TextEditor &textEditor) override;
+    void textEditorReturnKeyPressed(TextEditor &textEditor) override;
+    void comboBoxChanged(ComboBox *comboBox) override;
 
-    void setTitle();
-
-    void loadVbapHrtfSpeakerSetup();
-
-    String getCurrentFileSpeakerPath();
-
+    // App user settings.
     ApplicationProperties applicationProperties;
+    int oscInputPort = 18032;
+    unsigned int samplingRate = 48000;
+    Rectangle<int> winControlRect;
 
-    bool isSourceLevelShown = false;
-    bool isSpeakerLevelShown = false;
-    bool isTripletsShown = false;
+    // Visual flags.
+    bool isSourceLevelShown;
+    bool isSpeakerLevelShown;
+    bool isTripletsShown;
     bool isSpanShown;
 
+    // App states.
     bool needToSaveSpeakerSetup = false;
     bool needToComputeVbap = true;
 
-    int oscInputPort = 18032;
-    unsigned int samplingRate = 48000;
-
-    TextEditor* addTextEditor(const String &s, const String &emptyS, const String &stooltip, int x, int y, int w, int h, Component *into, int wLab = 80);
-
-    Rectangle<int> winControlRect;
+    // Widget creation helper.
+    TextEditor* addTextEditor(const String &s, const String &emptyS, const String &stooltip,
+                              int x, int y, int w, int h, Component *into, int wLab = 80);
 
 private:
+
+    // Look-and-feel (TODO: merge all look-and-feel inside one class).
+    GrisLookAndFeel mGrisFeel;
+    SmallTextGrisLookAndFeel mSmallTextGrisFeel;
 
     DocumentWindow *parent;
 
     ScopedPointer<MenuBarComponent> menuBar;
 
-    Label*          addLabel(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into);
-    TextButton*     addButton(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into);
-    ToggleButton*   addToggleButton(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into, bool toggle = false);
-    Slider*         addSlider(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into);
-    ComboBox*       addComboBox(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into);
-    
+    // Widget creation helpers.
+    Label *        addLabel(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into);
+    TextButton *   addButton(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into);
+    ToggleButton * addToggleButton(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into, bool toggle = false);
+    Slider *       addSlider(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into);
+    ComboBox *     addComboBox(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into);
 
-    void onOpenPreset();
-    void openXmlFileSpeaker(String path);
-    void openPreset(String path);
-    void savePreset(String path);
-    
-    void updateSkeapersConf();
-    bool tripletExist(Triplet tri, int &pos);
-    
-    jackClientGris *    jackClient;
-    jackServerGRIS *    jackServer;
+    // Jack server - client.
+    jackServerGRIS *jackServer;
+    jackClientGris *jackClient;
 
-    vector<Triplet>     listTriplet;
-    vector<Speaker *>   listSpeaker;
-    mutex *             lockSpeakers;
-    
-    vector<Input *>     listSourceInput;
-    mutex *             lockInputs;
-    OscInput *          oscReceiver;
-    
+    // Speakers.
+    vector<Triplet>   listTriplet;
+    vector<Speaker *> listSpeaker;
+    mutex             *lockSpeakers;
+
+    // Sources.
+    vector<Input *> listSourceInput;
+    mutex           *lockInputs;
+
+    // Open Sound Control.
+    OscInput *oscReceiver;
+
+    // Paths.
     String nameConfig;
     String pathLastVbapSpeakerSetup;
     String pathCurrentFileSpeaker;
     String pathCurrentPreset;
     
-    // UI Components
-    TooltipWindow tooltipWindow;
+    // UI Components.
+    SpeakerViewComponent *speakerView;
     StretchableLayoutManager verticalLayout;
     ScopedPointer<StretchableLayoutResizerBar> verticalDividerBar;
-    GrisLookAndFeel mGrisFeel;
-    SmallTextGrisLookAndFeel mSmallTextGrisFeel;
-    SpeakerViewComponent *speakerView;
-    
-    WindowEditSpeaker * winSpeakConfig;
-    WindowProperties * windowProperties;
-    WinControl * winControlSource;
-    AboutWindow * aboutWindow;
 
-    // 3 Main Boxes
-    Box * boxMainUI;
-    Box * boxInputsUI;
-    Box * boxOutputsUI;
-    Box * boxControlUI;
-    
-    // Component in Box 3
-    // Jack
-    Label *         labelJackStatus;
-    Label *         labelJackLoad;
-    Label *         labelJackRate;
-    Label *         labelJackBuffer;
-    Label *         labelJackInfo;
-    Label *         labelModeInfo;
-    
-    ComboBox *      comBoxModeSpat;
-    
-    TextButton *    butAutoConnectJack;
-    TextButton *    butDisconnectAllJack;
+    // Windows.
+    WindowEditSpeaker *winSpeakConfig;
+    WindowProperties *windowProperties;
+    WinControl *winControlSource;
+    AboutWindow *aboutWindow;
 
-    Slider *        sliderMasterGainOut;
-    Slider *        sliderInterpolation;
+    // 3 Main Boxes.
+    Box *boxMainUI;
+    Box *boxInputsUI;
+    Box *boxOutputsUI;
+    Box *boxControlUI;
     
-    TextEditor *    tedAddInputs;
+    // Component in Box 3.
+    Label *labelJackStatus;
+    Label *labelJackLoad;
+    Label *labelJackRate;
+    Label *labelJackBuffer;
+    Label *labelJackInfo;
+    Label *labelModeInfo;
+
+    //TextButton *butAutoConnectJack;
+    //TextButton *butDisconnectAllJack;
+
+    ComboBox *comBoxModeSpat;
+
+    Slider *sliderMasterGainOut;
+    Slider *sliderInterpolation;
+    
+    TextEditor *tedAddInputs;
         
-    Label *         labelAllClients;
-    BoxClient *     boxClientJack;
+    Label *labelAllClients;
+    BoxClient *boxClientJack;
     
-    // Record
-    TextButton *    butStartRecord;
-    TextEditor *    tedMinRecord;
-    Label *         labelTimeRecorded;
-    TextButton *    butInitRecord;
+    TextButton *butStartRecord;
+    TextEditor *tedMinRecord;
+    Label *labelTimeRecorded;
+    TextButton *butInitRecord;
 
-    SplashScreen *  splash;
+    // App splash screen.
+    SplashScreen *splash;
 
+    // Flags.
     bool isProcessForeground;
-
     bool isNumbersShown;
     bool isSpeakersShown;
     bool isSphereShown;
@@ -320,17 +335,10 @@ private:
     // The following methods implement the ApplicationCommandTarget interface, allowing
     // this window to publish a set of actions it can perform, and which can be mapped
     // onto menus, keypresses, etc.
-    ApplicationCommandTarget* getNextCommandTarget() override {
-        // this will return the next parent component that is an ApplicationCommandTarget (in this
-        // case, there probably isn't one, but it's best to use this method in your own apps).
-        return findFirstTargetParentComponent();
-    }
-
-    void getAllCommands (Array<CommandID>& commands) override;
-
-    void getCommandInfo (CommandID commandID, ApplicationCommandInfo& result) override;
-
-    bool perform (const InvocationInfo& info) override;
+    ApplicationCommandTarget* getNextCommandTarget() override { return findFirstTargetParentComponent(); }
+    void getAllCommands(Array<CommandID>& commands) override;
+    void getCommandInfo(CommandID commandID, ApplicationCommandInfo& result) override;
+    bool perform(const InvocationInfo& info) override;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
 };

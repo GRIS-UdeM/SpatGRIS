@@ -212,8 +212,8 @@ void Input::updateValues(float az, float ze, float azS, float zeS, float depth, 
 
     float factor = depth * 10.0f;
 
-    this->center.x = (factor * sinf(this->zenith)*cosf(this->azimuth));
-    this->center.z = (factor * sinf(this->zenith)*sinf(this->azimuth));
+    this->center.x = (factor * sinf(this->zenith) * cosf(this->azimuth));
+    this->center.z = (factor * sinf(this->zenith) * sinf(this->azimuth));
     this->center.y = ((10.0f * cosf(this->zenith)) + (sizeT/2.0f));
 
     this->radius = sqrt((this->center.x*this->center.x) +
