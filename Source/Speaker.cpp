@@ -37,7 +37,7 @@ Speaker::Speaker(MainContentComponent *parent, int idS, int outP,
     this->directOut = false;
     LookAndFeel::setDefaultLookAndFeel(&mGrisFeel);
     
-    //Load position
+    // Load position
     this->newPosition(center, extents);
     this->vuMeter = new LevelComponent(this, &mGrisFeel, false);
 }
@@ -47,7 +47,7 @@ Speaker::~Speaker() {
 }
 
 float Speaker::getLevel() {
-    return this->mainParent->getLevelsOut(outputPatch-1);
+    return this->mainParent->getLevelsOut(this->outputPatch-1);
 }
 
 float Speaker::getAlpha() {
@@ -84,7 +84,7 @@ int Speaker::getIdSpeaker() {
 }
 
 glm::vec3 Speaker::getCoordinate() {
-    return this->center /10.0f ;
+    return this->center / 10.0f ;
 }
 
 glm::vec3 Speaker::getAziZenRad() {
@@ -155,7 +155,8 @@ bool Speaker::isValid() {
 
 void Speaker::fix() {
     glm::vec3 _max = (this->max);
-    //change new "min" to previous max
+
+    // Change new "min" to previous "max".
     if (this->min.x > this->max.x) {
         this->max.x = this->min.x;
         this->min.x = _max.x;
@@ -200,7 +201,7 @@ void Speaker::unSelectSpeaker() {
 
 
 void Speaker::newPosition(glm::vec3 center, glm::vec3 extents) {
-    //min = center - extents, max = center + extents
+    // min = center - extents, max = center + extents
     this->min.x = center.x - extents.x;
     this->min.y = center.y - extents.y;
     this->min.z = center.z - extents.z;
@@ -251,7 +252,7 @@ void Speaker::newSpheriqueCoord(glm::vec3 aziZenRad, glm::vec3 extents) {
     glm::vec3 nCenter;
 
     aziZenRad.x = abs((aziZenRad.x * M_PI) / 180.0f);
-    aziZenRad.y = abs(((-90.0f+aziZenRad.y) * M_PI) / 180.0f);
+    aziZenRad.y = abs(((-90.0f + aziZenRad.y) * M_PI) / 180.0f);
 
     nCenter.x = GetFloatPrecision(aziZenRad.z * sinf(aziZenRad.y) * cosf(aziZenRad.x), 3);
     nCenter.z = GetFloatPrecision(aziZenRad.z * sinf(aziZenRad.y) * sinf(aziZenRad.x), 3);
@@ -318,7 +319,7 @@ void Speaker::draw() {
         glBegin(GL_LINES);
         glColor4f(0, 0, 0, transpa);
         glVertex3f(this->center.x+SizeSpeaker.x, this->center.y, this->center.z);
-        glVertex3f(this->center.x+1.2f, this->center.y, this->center.z);
+        glVertex3f(this->center.x + 1.2f, this->center.y, this->center.z);
         glEnd();
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -368,7 +369,7 @@ void Speaker::draw() {
         glBegin(GL_LINES);
         glColor4f(0.37, 0.37, 0.37, transpa);
         glVertex3f(this->center.x+SizeSpeaker.x, this->center.y, this->center.z);
-        glVertex3f(this->center.x+1.2f, this->center.y, this->center.z);
+        glVertex3f(this->center.x + 1.2f, this->center.y, this->center.z);
         glEnd();
     }
 

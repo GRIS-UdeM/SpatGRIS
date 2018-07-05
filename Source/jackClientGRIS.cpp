@@ -21,7 +21,6 @@
 #include "ServerGrisConstants.h"
 #include "jackClientGRIS.h"
 #include "vbap.h"
-#include "fft.h"
 #include "Speaker.h"
 #include "MainComponent.h"
 

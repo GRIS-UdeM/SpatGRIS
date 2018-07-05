@@ -83,7 +83,7 @@ public:
     void selectClick(bool select = true);
     LevelComponent * getVuMeter(){ return this->vuMeter; }
 
-    // Normalise for user
+    // Normalize for user
     void setBounds(const Rectangle<int> &newBounds);
     int getIdSpeaker();
     glm::vec3 getCoordinate();
@@ -123,8 +123,8 @@ private :
     void newPosition(glm::vec3 center, glm::vec3 extents = SizeSpeaker);
     void newSpheriqueCoord(glm::vec3 aziZenRad, glm::vec3 extents = SizeSpeaker);
     
-    glm::vec3 min = glm::vec3(0,0,0);
-    glm::vec3 max = glm::vec3(0,0,0);
+    glm::vec3 min = glm::vec3(0, 0, 0);
+    glm::vec3 max = glm::vec3(0, 0, 0);
     glm::vec3 center;
     glm::vec3 aziZenRad;
     glm::vec3 color = ColorSpeaker;
@@ -143,8 +143,7 @@ private :
     
     SmallTextGrisLookAndFeel mGrisFeel;
 
-    int directOutChannel; // not used for output.
-    
+    int directOutChannel; // Not used for output.
 };
 
 #endif /* SPEAKER_H */
