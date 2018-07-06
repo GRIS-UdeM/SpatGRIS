@@ -15,10 +15,10 @@
  
  You should have received a copy of the GNU General Public License
  along with ServerGris.  If not, see <http://www.gnu.org/licenses/>.
- */
+*/
 
-#ifndef UiComponent_h
-#define UiComponent_h
+#ifndef UICOMPONENT_H
+#define UICOMPONENT_H
 
 #include <iostream>
 
@@ -29,7 +29,6 @@ class MainContentComponent;
 class LevelComponent;
 
 using namespace std;
-
 
 //======================================= BOX ========================================
 class Box : public Component
@@ -54,13 +53,10 @@ private:
 };
 
 
-
-//======================================= BoxClient ===========================
-
+//======================================= BoxClient ==================================
 class BoxClient :   public Component,
                     public TableListBoxModel,
                     public ToggleButton::Listener
-
 {
 public:
     BoxClient(MainContentComponent * parent, GrisLookAndFeel *feel);
@@ -69,16 +65,16 @@ public:
     void updateContentCli();
     void buttonClicked(Button *button) override;
     void setBounds(int x, int y, int width, int height);
-    String getText (const int columnNumber, const int rowNumber) const;
-    void setValue (const int rowNumber,const int columnNumber, const int newRating);
-    int getValue (const int rowNumber,const int columnNumber) const;
+    String getText(const int columnNumber, const int rowNumber) const;
+    void setValue(const int rowNumber,const int columnNumber, const int newRating);
+    int getValue(const int rowNumber,const int columnNumber) const;
     int getNumRows() override;
-    void paintRowBackground (Graphics& g, int rowNumber, int /*width*/, int /*height*/, bool rowIsSelected) override;
-    void paintCell (Graphics& g, int rowNumber, int columnId,
-                    int width, int height, bool /*rowIsSelected*/) override;
+    void paintRowBackground(Graphics& g, int rowNumber, int /*width*/, int /*height*/, bool rowIsSelected) override;
+    void paintCell(Graphics& g, int rowNumber, int columnId,
+                   int width, int height, bool /*rowIsSelected*/) override;
     
-    Component* refreshComponentForCell (int rowNumber, int columnId, bool /*isRowSelected*/,
-                                        Component* existingComponentToUpdate) override;
+    Component* refreshComponentForCell(int rowNumber, int columnId, bool /*isRowSelected*/,
+                                       Component* existingComponentToUpdate) override;
     
 private:
     MainContentComponent *mainParent;
@@ -91,36 +87,28 @@ private:
                            public ComboBox::Listener
     {
     public:
-        ListIntOutComp (BoxClient& td)  : owner (td)
-        {
-            // just put a combo box inside this component
+        ListIntOutComp (BoxClient& td) : owner (td) {
+            // Just put a combo box inside this component.
             addAndMakeVisible (comboBox);
-            for(int i = 1; i <= 256; i++){
-                comboBox.addItem (String(i), i);
+            for (int i = 1; i <= 256; i++) {
+                comboBox.addItem(String(i), i);
             }
-            
-            
-            // when the combo is changed, we'll get a callback.
-            comboBox.addListener (this);
-            comboBox.setWantsKeyboardFocus (false);
+            comboBox.addListener(this);
+            comboBox.setWantsKeyboardFocus(false);
         }
         
-        void resized() override
-        {
-            comboBox.setBoundsInset (BorderSize<int> (2));
+        void resized() override {
+            comboBox.setBoundsInset(BorderSize<int> (2));
         }
-        
-        // Our demo code will call this when we may need to update our contents
-        void setRowAndColumn (int newRow, int newColumn)
-        {
+
+        void setRowAndColumn(int newRow, int newColumn) {
             row = newRow;
             columnId = newColumn;
-            comboBox.setSelectedId (owner.getValue (row,columnId), dontSendNotification);
+            comboBox.setSelectedId(owner.getValue(row,columnId), dontSendNotification);
         }
         
-        void comboBoxChanged (ComboBox*) override
-        {
-            owner.setValue (row, columnId, comboBox.getSelectedId());
+        void comboBoxChanged (ComboBox*) override {
+            owner.setValue(row, columnId, comboBox.getSelectedId());
         }
         
     private:
@@ -130,8 +118,6 @@ private:
     };
 };
 
-
-
 //======================================= Window Edit Speaker===========================
 class WindowEditSpeaker :   public DocumentWindow,
                             public TableListBoxModel,
@@ -140,7 +126,8 @@ class WindowEditSpeaker :   public DocumentWindow,
                             public Slider::Listener
 {
 public:
-    WindowEditSpeaker(const String& name,String& nameC, Colour backgroundColour, int buttonsNeeded, MainContentComponent * parent, GrisLookAndFeel * feel);
+    WindowEditSpeaker(const String& name, String& nameC, Colour backgroundColour, int buttonsNeeded,
+                      MainContentComponent *parent, GrisLookAndFeel *feel);
     ~WindowEditSpeaker();
     
     void updateWinContent();
@@ -149,75 +136,74 @@ public:
     void initComp();
     void buttonClicked(Button *button) override;
     void textEditorTextChanged(TextEditor &editor) override;
-    void textEditorReturnKeyPressed (TextEditor &textEditor) override;
+    void textEditorReturnKeyPressed(TextEditor &textEditor) override;
     void closeButtonPressed() override;
     void sliderValueChanged (Slider *slider) override;
     //void sortOrderChanged(int newSortColumnId, bool isForwards) override;
     void resized() override;
 
-    String getText (const int columnNumber, const int rowNumber) const;
-    void setText (const int columnNumber, const int rowNumber, const String& newText);
+    String getText(const int columnNumber, const int rowNumber) const;
+    void setText(const int columnNumber, const int rowNumber, const String& newText);
     int getNumRows() override;
-    void paintRowBackground (Graphics& g, int rowNumber, int /*width*/, int /*height*/, bool rowIsSelected) override;
-    void paintCell (Graphics& g, int rowNumber, int columnId,
-                    int width, int height, bool /*rowIsSelected*/) override;
-    Component* refreshComponentForCell (int rowNumber, int columnId, bool /*isRowSelected*/,
-                                        Component* existingComponentToUpdate) override;
-    
+    void paintRowBackground(Graphics& g, int rowNumber, int /*width*/, int /*height*/, bool rowIsSelected) override;
+    void paintCell(Graphics& g, int rowNumber, int columnId,
+                   int width, int height, bool /*rowIsSelected*/) override;
+    Component* refreshComponentForCell(int rowNumber, int columnId, bool /*isRowSelected*/,
+                                       Component* existingComponentToUpdate) override;
+
 private:
     
     MainContentComponent *mainParent;
     GrisLookAndFeel *grisFeel;
-    Box * boxListSpeaker;
+    Box *boxListSpeaker;
     
     TextButton *butAddSpeaker;
     TextButton *butcompSpeakers;
 
-    Label      *    rNumOfSpeakersLabel;
-    TextEditor *    rNumOfSpeakers;
-    Label      *    rZenithLabel;
-    TextEditor *    rZenith;
-    Label      *    rRadiusLabel;
-    TextEditor *    rRadius;
-    Label      *    rOffsetAngleLabel;
-    TextEditor *    rOffsetAngle;
-    TextButton *    butAddRing;
+    Label      *rNumOfSpeakersLabel;
+    TextEditor *rNumOfSpeakers;
+    Label      *rZenithLabel;
+    TextEditor *rZenith;
+    Label      *rRadiusLabel;
+    TextEditor *rRadius;
+    Label      *rOffsetAngleLabel;
+    TextEditor *rOffsetAngle;
+    TextButton *butAddRing;
 
-    ToggleButton *  pinkNoise;
-    Slider       *  pinkNoiseGain;
+    ToggleButton *pinkNoise;
+    Slider       *pinkNoiseGain;
 
     TableListBox tableListSpeakers;
     Font font;
     int numRows;
-    
-    
+
     class EditableTextCustomComponent  : public Label
     {
     public:
-        EditableTextCustomComponent (WindowEditSpeaker& td)  : owner (td)
-        {
-            setEditable (false, true, false);
-            setColour (textColourId, Colours::black);
+        EditableTextCustomComponent(WindowEditSpeaker& td) : owner (td) {
+            setEditable(false, true, false);
+            setColour(textColourId, Colours::black);
         }
-        void mouseDown (const MouseEvent& event) override
-        {
+
+        void mouseDown (const MouseEvent& event) override {
             if (event.mods.isRightButtonDown()) {
                 owner.tableListSpeakers.deselectAllRows();
             } else {
-                owner.tableListSpeakers.selectRowsBasedOnModifierKeys (row, event.mods, false);
+                owner.tableListSpeakers.selectRowsBasedOnModifierKeys(row, event.mods, false);
             }
-            Label::mouseDown (event);
+            Label::mouseDown(event);
         }
-        void textWasEdited() override
-        {
-            owner.setText (columnId, row, getText());
+
+        void textWasEdited() override {
+            owner.setText(columnId, row, getText());
         }
-       void setRowAndColumn (const int newRow, const int newColumn)
-        {
+
+        void setRowAndColumn(const int newRow, const int newColumn) {
             row = newRow;
             columnId = newColumn;
-            setText (owner.getText(columnId, row), dontSendNotification);
+            setText(owner.getText(columnId, row), dontSendNotification);
         }
+
     private:
         WindowEditSpeaker& owner;
         int row, columnId;
@@ -226,16 +212,13 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (WindowEditSpeaker)
 };
 
-
 //======================================= WindowProperties ===========================
-
-class WindowProperties :   public DocumentWindow,
-                            public TextButton::Listener
-
+class WindowProperties : public DocumentWindow,
+                         public TextButton::Listener
 {
 public:
     WindowProperties(const String& name, Colour backgroundColour, int buttonsNeeded,
-                      MainContentComponent * parent, GrisLookAndFeel * feel, int indR=0,
+                      MainContentComponent *parent, GrisLookAndFeel *feel, int indR=0,
                       int indB=0, int indFF=0, int oscPort=18032);
     ~WindowProperties();
 
@@ -245,8 +228,7 @@ public:
 
     void buttonClicked(Button *button);
     void closeButtonPressed();
-    
-    
+
 private:
     MainContentComponent *mainParent;
     GrisLookAndFeel *grisFeel;
@@ -268,7 +250,6 @@ private:
     ComboBox *recordFormat;
 
     TextButton *butValidSettings;
-
 };
 
 //======================================= About Window ===========================
@@ -277,7 +258,7 @@ class AboutWindow : public DocumentWindow,
 {
 public:
     AboutWindow(const String& name, Colour backgroundColour, int buttonsNeeded,
-                MainContentComponent * parent, GrisLookAndFeel * feel);
+                MainContentComponent *parent, GrisLookAndFeel *feel);
     ~AboutWindow();
     void buttonClicked(Button *button);
     void closeButtonPressed();
@@ -285,13 +266,12 @@ public:
 private:
     MainContentComponent *mainParent;
     GrisLookAndFeel *grisFeel;
-    ImageComponent * imageComponent;
+    ImageComponent *imageComponent;
     Label *title;
     Label *version;
     Label *label;
     TextButton *close;
-
 };
 
-#endif /* UiComponent_h */
+#endif /* UICOMPONENT_H */
 

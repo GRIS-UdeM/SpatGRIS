@@ -15,7 +15,7 @@
  
  You should have received a copy of the GNU General Public License
  along with ServerGris.  If not, see <http://www.gnu.org/licenses/>.
- */
+*/
 
 #ifndef SPEAKERVIEWCOMPONENT_H_INCLUDED
 #define SPEAKERVIEWCOMPONENT_H_INCLUDED
@@ -39,7 +39,6 @@
 
 #include "Ray.h"
 
-
 class MainContentComponent;
 class Speaker;
 
@@ -48,29 +47,27 @@ using namespace std;
 static const int    NbrGridLines = 16;
 static const float  ScroolWheelSpeedMouse = 1.8f;
 
-
 class SpeakerViewComponent : public OpenGLAppComponent {
 public:
-    //==============================================================================
     SpeakerViewComponent(MainContentComponent *parent = nullptr);
     ~SpeakerViewComponent();
     
     void initialise() override;
     void shutdown() override;
     
-    void setShowSphere(bool value){ this->showShpere = value; }
-    void setShowNumber(bool value){ this->showNumber = value; }
-    void setHighPerfor(bool value){ this->highPerf = value; }
-    void setHideSpeaker(bool value){ this->hideSpeaker = value; }
+    void setShowSphere(bool value) { this->showShpere = value; }
+    void setShowNumber(bool value) { this->showNumber = value; }
+    void setHighPerfor(bool value) { this->highPerf = value; }
+    void setHideSpeaker(bool value) { this->hideSpeaker = value; }
     void setShowTriplets(bool value) { this->showTriplets = value; }
-    void setNameConfig(String name){ this->nameConfig = name; this->repaint(); }
+    void setNameConfig(String name) { this->nameConfig = name; this->repaint(); }
     
     void render() override;
     void paint(Graphics& g) override;
     
-    void mouseDown(const MouseEvent& e)override;
-    void mouseDrag(const MouseEvent& e)override;
-    void mouseWheelMove(const MouseEvent& e,const MouseWheelDetails& wheel)override;
+    void mouseDown(const MouseEvent& e) override;
+    void mouseDrag(const MouseEvent& e) override;
+    void mouseWheelMove(const MouseEvent& e, const MouseWheelDetails& wheel) override;
 
     float getCamAngleX() { return this->camAngleX; };
     float getCamAngleY() { return this->camAngleY; };
@@ -90,7 +87,6 @@ private:
     void drawTextOnGrid( string val, glm::vec3 position,float scale = 0.003f);
     
     void drawTrippletConn();
-    void drawCube(float x, float y, float z);
     
     bool showShpere = false;
     bool showNumber = false;

@@ -15,20 +15,18 @@
  
  You should have received a copy of the GNU General Public License
  along with ServerGris.  If not, see <http://www.gnu.org/licenses/>.
- */
+*/
 
 #include "UiComponent.h"
 #include "LevelComponent.h"
 #include "MainComponent.h"
 
-static double GetFloatPrecision(double value, double precision)
-{
+static double GetFloatPrecision(double value, double precision) {
     return (floor((value * pow(10, precision) + 0.5)) / pow(10, precision));
 }
 
 //======================================= BOX ===========================================================================
-Box::Box(GrisLookAndFeel *feel, String title, bool verticalScrollbar, bool horizontalScrollbar)
-{
+Box::Box(GrisLookAndFeel *feel, String title, bool verticalScrollbar, bool horizontalScrollbar) {
     this->title = title;
     this->grisFeel = feel;
     this->bgColour = this->grisFeel->getBackgroundColour();
@@ -45,75 +43,62 @@ Box::Box(GrisLookAndFeel *feel, String title, bool verticalScrollbar, bool horiz
     addAndMakeVisible(this->viewport);
 }
 
-Box::~Box()
-{
+Box::~Box() {
     this->content->deleteAllChildren();
     delete this->viewport;
     delete this->content;
 }
 
-Component * Box::getContent()
-{
+Component * Box::getContent() {
     return this->content ? this->content : this;
 }
 
-
-void Box::resized()
-{
-    if (this->viewport){
+void Box::resized() {
+    if (this->viewport) {
         this->viewport->setSize(getWidth(), getHeight());
     }
 }
 
-void Box::correctSize(unsigned int width, unsigned int height)
-{
-    if(this->title!=""){
+void Box::correctSize(unsigned int width, unsigned int height) {
+    if (this->title!="") {
         this->viewport->setTopLeftPosition(0, 20);
-        this->viewport->setSize(getWidth(), getHeight()-20);
-        if(width<80){
+        this->viewport->setSize(getWidth(), getHeight() - 20);
+        if (width < 80) {
             width = 80;
         }
-    }else{
+    } else {
         this->viewport->setTopLeftPosition(0, 0);
     }
     this->getContent()->setSize(width, height);
 }
 
-
-void Box::paint(Graphics &g)
-{
+void Box::paint(Graphics &g) {
     g.setColour(this->bgColour);
     g.fillRect(getLocalBounds());
-    if(this->title!=""){
-        g.setColour (this->grisFeel->getWinBackgroundColour());
-        g.fillRect(0,0,getWidth(),18);
-        
-        g.setColour (this->grisFeel->getFontColour());
+    if (this->title!="") {
+        g.setColour(this->grisFeel->getWinBackgroundColour());
+        g.fillRect(0, 0, getWidth(), 18);
+        g.setColour(this->grisFeel->getFontColour());
         g.drawText(title, 0, 0, this->content->getWidth(), 20, juce::Justification::left);
     }
 }
 
-
-
-
-//======================================= BOX CLIENT ===========================================================================
-BoxClient::BoxClient(MainContentComponent * parent, GrisLookAndFeel *feel)
-{
-    this->mainParent= parent;
+//======================================= BOX CLIENT ========================================
+BoxClient::BoxClient(MainContentComponent *parent, GrisLookAndFeel *feel) {
+    this->mainParent = parent;
     this->grisFeel = feel;
     
     tableListClient.setModel(this);
     
-    tableListClient.setColour (ListBox::outlineColourId, this->grisFeel->getWinBackgroundColour());
+    tableListClient.setColour(ListBox::outlineColourId, this->grisFeel->getWinBackgroundColour());
     tableListClient.setColour(ListBox::backgroundColourId, this->grisFeel->getWinBackgroundColour());
-    tableListClient.setOutlineThickness (1);
+    tableListClient.setOutlineThickness(1);
     
     tableListClient.getHeader().addColumn("Client",    1, 105, 70, 120, TableHeaderComponent::notSortable);
     tableListClient.getHeader().addColumn("Start",     2, 45, 35, 70, TableHeaderComponent::notSortable);
     tableListClient.getHeader().addColumn("End",       3, 45, 35, 70, TableHeaderComponent::notSortable);
     tableListClient.getHeader().addColumn("Available", 4, 62, 35, 70, TableHeaderComponent::notSortable);
     tableListClient.getHeader().addColumn("On/Off",    5, 41, 35, 70, TableHeaderComponent::notSortable);
-
 
     tableListClient.setMultipleSelectionEnabled (false);
     
@@ -123,12 +108,9 @@ BoxClient::BoxClient(MainContentComponent * parent, GrisLookAndFeel *feel)
     this->addAndMakeVisible(tableListClient);
 }
 
-BoxClient::~BoxClient(){
+BoxClient::~BoxClient() {}
 
-}
-
-void BoxClient::buttonClicked(Button *button)
-{
+void BoxClient::buttonClicked(Button *button) {
     this->mainParent->getLockClients()->lock();
     bool connectedCli = !this->mainParent->getListClientjack()->at(button->getName().getIntValue()).connected;
     this->mainParent->connectionClientJack(this->mainParent->getListClientjack()->at(button->getName().getIntValue()).name, connectedCli);
@@ -136,21 +118,18 @@ void BoxClient::buttonClicked(Button *button)
     this->mainParent->getLockClients()->unlock();
 }
 
-void BoxClient::setBounds(int x, int y, int width, int height)
-{
+void BoxClient::setBounds(int x, int y, int width, int height) {
     this->juce::Component::setBounds(x, y, width, height);
     tableListClient.setSize(width, height);
 }
 
-void BoxClient::updateContentCli()
-{
+void BoxClient::updateContentCli() {
     numRows = (unsigned int)this->mainParent->getListClientjack()->size();
     tableListClient.updateContent();
     tableListClient.repaint();
 }
 
-void BoxClient::setValue(const int rowNumber, const int columnNumber, const int newRating)
-{
+void BoxClient::setValue(const int rowNumber, const int columnNumber, const int newRating) {
     this->mainParent->getLockClients()->lock();
     if (this->mainParent->getListClientjack()->size() > (unsigned int)rowNumber) {
         switch (columnNumber) {
@@ -159,7 +138,7 @@ void BoxClient::setValue(const int rowNumber, const int columnNumber, const int 
                 this->mainParent->getListClientjack()->at(rowNumber).initialized = true;
                 break;
             case 3:
-                this->mainParent->getListClientjack()->at(rowNumber).portEnd= newRating;
+                this->mainParent->getListClientjack()->at(rowNumber).portEnd = newRating;
                 this->mainParent->getListClientjack()->at(rowNumber).initialized = true;
                 break;
         }
@@ -200,14 +179,13 @@ int BoxClient::getNumRows() {
     return numRows;
 }
 
-void BoxClient::paintRowBackground (Graphics& g, int rowNumber, int /*width*/, int /*height*/, bool rowIsSelected) {
+void BoxClient::paintRowBackground(Graphics& g, int rowNumber, int /*width*/, int /*height*/, bool rowIsSelected) {
     if (rowNumber % 2) {
         g.fillAll(this->grisFeel->getBackgroundColour().withBrightness(0.6));
     } else {
         g.fillAll(this->grisFeel->getBackgroundColour().withBrightness(0.7));
     }
 }
-
 
 void BoxClient::paintCell(Graphics& g, int rowNumber, int columnId, int width, int height, bool /*rowIsSelected*/) {
     g.setColour(Colours::black);
@@ -229,17 +207,16 @@ void BoxClient::paintCell(Graphics& g, int rowNumber, int columnId, int width, i
     g.fillRect(width - 1, 0, 1, height);
 }
 
-Component* BoxClient::refreshComponentForCell (int rowNumber, int columnId, bool /*isRowSelected*/,
-                                                       Component* existingComponentToUpdate)
-{
-     if(columnId==1|| columnId==4){
+Component* BoxClient::refreshComponentForCell(int rowNumber, int columnId, bool /*isRowSelected*/,
+                                              Component *existingComponentToUpdate) {
+     if (columnId == 1|| columnId == 4) {
          return existingComponentToUpdate;
      }
     
-    if(columnId==5){
+    if (columnId == 5) {
         TextButton* tbRemove = static_cast<TextButton*> (existingComponentToUpdate);
-        if (tbRemove == nullptr){
-            tbRemove = new TextButton ();
+        if (tbRemove == nullptr) {
+            tbRemove = new TextButton();
             tbRemove->setName(String(rowNumber));
             tbRemove->setBounds(4, 404, 88, 22);
             tbRemove->addListener(this);
@@ -247,33 +224,29 @@ Component* BoxClient::refreshComponentForCell (int rowNumber, int columnId, bool
             tbRemove->setLookAndFeel(this->grisFeel);
         }
 
-        if(this->mainParent->getListClientjack()->at(rowNumber).connected){
+        if (this->mainParent->getListClientjack()->at(rowNumber).connected) {
             tbRemove->setButtonText("<->");
-        }else{
+        } else {
             tbRemove->setButtonText("<X>");
         }
 
-                //tbRemove->getContent()->addAndMakeVisible(this->butAddSpeaker);
         return tbRemove;
     }
 
-    ListIntOutComp* textLabel = static_cast<ListIntOutComp*> (existingComponentToUpdate);
+    ListIntOutComp *textLabel = static_cast<ListIntOutComp*> (existingComponentToUpdate);
     
-    // same as above...
     if (textLabel == nullptr)
-        textLabel = new ListIntOutComp (*this);
+        textLabel = new ListIntOutComp(*this);
     
-    textLabel->setRowAndColumn (rowNumber, columnId);
+    textLabel->setRowAndColumn(rowNumber, columnId);
     
     return textLabel;
 }
 
-
-
-//======================================= Window Edit Speaker============================================================
+//======================================= Window Edit Speaker ======================================
 
 WindowEditSpeaker::WindowEditSpeaker(const String& name, String& nameC, Colour backgroundColour, int buttonsNeeded,
-                                     MainContentComponent * parent, GrisLookAndFeel * feel):
+                                     MainContentComponent *parent, GrisLookAndFeel *feel):
     DocumentWindow (name, backgroundColour, buttonsNeeded), font (14.0f)
 {
     this->mainParent = parent;
@@ -297,7 +270,7 @@ WindowEditSpeaker::WindowEditSpeaker(const String& name, String& nameC, Colour b
     this->butcompSpeakers->setLookAndFeel(this->grisFeel);
     this->boxListSpeaker->getContent()->addAndMakeVisible(this->butcompSpeakers);
 
-    /* Generate ring of speakers */
+    // Generate ring of speakers.
     int wlab = 80;
 
     this->rNumOfSpeakersLabel = new Label();
@@ -388,9 +361,7 @@ WindowEditSpeaker::WindowEditSpeaker(const String& name, String& nameC, Colour b
     this->butAddRing->setLookAndFeel(this->grisFeel);
     this->boxListSpeaker->getContent()->addAndMakeVisible(this->butAddRing);
 
-    /* End generate ring of speakers */
-
-    /* Pink noise controls */
+    // Pink noise controls.
     this->pinkNoise = new ToggleButton();
     this->pinkNoise->setButtonText("Reference Pink Noise");
     this->pinkNoise->setBounds(5, 500, 150, 24);
@@ -412,8 +383,6 @@ WindowEditSpeaker::WindowEditSpeaker(const String& name, String& nameC, Colour b
     this->pinkNoiseGain->addListener(this);
     this->boxListSpeaker->getContent()->addAndMakeVisible(this->pinkNoiseGain);
 
-    /* End pink noise controls */
-
     this->setContentOwned(this->boxListSpeaker, false);
     this->boxListSpeaker->getContent()->addAndMakeVisible(tableListSpeakers);
 
@@ -421,8 +390,7 @@ WindowEditSpeaker::WindowEditSpeaker(const String& name, String& nameC, Colour b
     this->boxListSpeaker->resized();
 }
 
-WindowEditSpeaker::~WindowEditSpeaker()
-{
+WindowEditSpeaker::~WindowEditSpeaker() {
     delete this->butAddSpeaker;
     delete this->butcompSpeakers;
     delete this->rNumOfSpeakers;
@@ -439,35 +407,34 @@ WindowEditSpeaker::~WindowEditSpeaker()
     this->mainParent->destroyWinSpeakConf();
 }
 
-void WindowEditSpeaker::initComp()
-{
+void WindowEditSpeaker::initComp() {
     tableListSpeakers.setModel(this);
     
-    tableListSpeakers.setColour (ListBox::outlineColourId, this->grisFeel->getWinBackgroundColour());
+    tableListSpeakers.setColour(ListBox::outlineColourId, this->grisFeel->getWinBackgroundColour());
     tableListSpeakers.setColour(ListBox::backgroundColourId, this->grisFeel->getWinBackgroundColour());
-    tableListSpeakers.setOutlineThickness (1);
+    tableListSpeakers.setOutlineThickness(1);
     
-    tableListSpeakers.getHeader().addColumn("ID", 1, 40, 40, 60,TableHeaderComponent::defaultFlags);
-    tableListSpeakers.getHeader().addColumn("X", 2, 70, 50, 120,TableHeaderComponent::defaultFlags);
-    tableListSpeakers.getHeader().addColumn("Y", 3, 70, 50, 120,TableHeaderComponent::defaultFlags);
-    tableListSpeakers.getHeader().addColumn("Z", 4, 70, 50, 120,TableHeaderComponent::defaultFlags);
-    tableListSpeakers.getHeader().addColumn("Azimuth", 5, 70, 50, 120,TableHeaderComponent::defaultFlags);
-    tableListSpeakers.getHeader().addColumn("Zenith", 6, 70, 50, 120,TableHeaderComponent::defaultFlags);
-    tableListSpeakers.getHeader().addColumn("Radius", 7, 70, 50, 120,TableHeaderComponent::defaultFlags);
-    tableListSpeakers.getHeader().addColumn("Output", 8, 70, 50, 120,TableHeaderComponent::defaultFlags);
-    tableListSpeakers.getHeader().addColumn("Gain (dB)", 9, 70, 50, 120,TableHeaderComponent::defaultFlags);
-    tableListSpeakers.getHeader().addColumn("Highpass", 10, 70, 50, 120,TableHeaderComponent::defaultFlags);
-    tableListSpeakers.getHeader().addColumn("Direct", 11, 70, 50, 120,TableHeaderComponent::defaultFlags);
-    tableListSpeakers.getHeader().addColumn("delete", 12, 70, 50, 120,TableHeaderComponent::defaultFlags);
+    tableListSpeakers.getHeader().addColumn("ID", 1, 40, 40, 60, TableHeaderComponent::defaultFlags);
+    tableListSpeakers.getHeader().addColumn("X", 2, 70, 50, 120, TableHeaderComponent::defaultFlags);
+    tableListSpeakers.getHeader().addColumn("Y", 3, 70, 50, 120, TableHeaderComponent::defaultFlags);
+    tableListSpeakers.getHeader().addColumn("Z", 4, 70, 50, 120, TableHeaderComponent::defaultFlags);
+    tableListSpeakers.getHeader().addColumn("Azimuth", 5, 70, 50, 120, TableHeaderComponent::defaultFlags);
+    tableListSpeakers.getHeader().addColumn("Zenith", 6, 70, 50, 120, TableHeaderComponent::defaultFlags);
+    tableListSpeakers.getHeader().addColumn("Radius", 7, 70, 50, 120, TableHeaderComponent::defaultFlags);
+    tableListSpeakers.getHeader().addColumn("Output", 8, 70, 50, 120, TableHeaderComponent::defaultFlags);
+    tableListSpeakers.getHeader().addColumn("Gain (dB)", 9, 70, 50, 120, TableHeaderComponent::defaultFlags);
+    tableListSpeakers.getHeader().addColumn("Highpass", 10, 70, 50, 120, TableHeaderComponent::defaultFlags);
+    tableListSpeakers.getHeader().addColumn("Direct", 11, 70, 50, 120, TableHeaderComponent::defaultFlags);
+    tableListSpeakers.getHeader().addColumn("delete", 12, 70, 50, 120, TableHeaderComponent::defaultFlags);
     
-    tableListSpeakers.getHeader().setSortColumnId (1, true); // sort forwards by the ID column
+    tableListSpeakers.getHeader().setSortColumnId(1, true); // Sort forwards by the ID column.
     
-    tableListSpeakers.setMultipleSelectionEnabled (false);
-    
+    tableListSpeakers.setMultipleSelectionEnabled(false);
+
     numRows = (unsigned int)this->mainParent->getListSpeaker().size();
 
-    this->boxListSpeaker->setBounds(0, 0, getWidth(),getHeight());
-    this->boxListSpeaker->correctSize(getWidth()-8, getHeight());
+    this->boxListSpeaker->setBounds(0, 0, getWidth(), getHeight());
+    this->boxListSpeaker->correctSize(getWidth() - 8, getHeight());
     tableListSpeakers.setSize(getWidth(), 400);
     
     tableListSpeakers.updateContent();
@@ -477,13 +444,15 @@ void WindowEditSpeaker::initComp()
     this->resized();
 }
 
-//void WindowEditSpeaker::sortOrderChanged(int newSortColumnId, bool isForwards) {
-//    tableListSpeakers.getHeader().setSortColumnId(newSortColumnId, isForwards);
-//   tableListSpeakers.getHeader().reSortTable();
-    //tableListSpeakers.updateContent();
-//}
+/*
+void WindowEditSpeaker::sortOrderChanged(int newSortColumnId, bool isForwards) {
+    tableListSpeakers.getHeader().setSortColumnId(newSortColumnId, isForwards);
+    tableListSpeakers.getHeader().reSortTable();
+    tableListSpeakers.updateContent();
+}
+*/
 
-void WindowEditSpeaker::sliderValueChanged (Slider *slider) {
+void WindowEditSpeaker::sliderValueChanged(Slider *slider) {
     float gain;
     if (slider == this->pinkNoiseGain) {
         gain = powf(10.0f, this->pinkNoiseGain->getValue() / 20.0f);
@@ -491,24 +460,21 @@ void WindowEditSpeaker::sliderValueChanged (Slider *slider) {
     }
 }
 
-void WindowEditSpeaker::buttonClicked(Button *button)
-{
+void WindowEditSpeaker::buttonClicked(Button *button) {
     bool tripletState = this->mainParent->isTripletsShown;
     this->mainParent->setShowTriplets(false);
     if (button == this->butAddSpeaker) {
         this->mainParent->addSpeaker();
         updateWinContent();
         this->mainParent->needToComputeVbap = true;
-        this->tableListSpeakers.selectRow(this->getNumRows()-1);
-    }
-    else if (button == this->butcompSpeakers) {
+        this->tableListSpeakers.selectRow(this->getNumRows() - 1);
+    } else if (button == this->butcompSpeakers) {
         if (this->mainParent->updateLevelComp()) {
             if (tripletState) {
                 this->mainParent->setShowTriplets(true);
             }
         }
-    }
-    else if (button == this->butAddRing) {
+    } else if (button == this->butAddRing) {
         for (int i = 0; i < this->rNumOfSpeakers->getText().getIntValue(); i++) {
             this->mainParent->addSpeaker();
             float azimuth = 360.0f / this->rNumOfSpeakers->getText().getIntValue() * i + this->rOffsetAngle->getText().getFloatValue();
@@ -525,17 +491,14 @@ void WindowEditSpeaker::buttonClicked(Button *button)
         updateWinContent();
         this->mainParent->needToComputeVbap = true;
         this->tableListSpeakers.selectRow(this->getNumRows()-1);
-    }
-    else if (button == this->pinkNoise) {
+    } else if (button == this->pinkNoise) {
         this->mainParent->getJackClient()->noiseSound = this->pinkNoise->getToggleState();
-    }
-    else if (button->getName() != "" && (button->getName().getIntValue() >= 0 &&
+    } else if (button->getName() != "" && (button->getName().getIntValue() >= 0 &&
         (unsigned int)button->getName().getIntValue() <= this->mainParent->getListSpeaker().size())) {
         this->mainParent->removeSpeaker(button->getName().getIntValue());
         updateWinContent();
         this->mainParent->needToComputeVbap = true;
-    }
-    else {
+    } else {
         int row = button->getName().getIntValue() - 1000;
         if (button->getToggleState()) {
             this->mainParent->getListSpeaker()[row]->setDirectOut(true);
@@ -551,8 +514,8 @@ void WindowEditSpeaker::buttonClicked(Button *button)
 void WindowEditSpeaker::textEditorTextChanged(TextEditor& editor) {
     float value;
     String test;
-    if (&editor == this->rNumOfSpeakers) {} 
-    else if (&editor == this->rZenith) {
+    if (&editor == this->rNumOfSpeakers) {
+    } else if (&editor == this->rZenith) {
         test = this->rZenith->getText().retainCharacters(".");
         if (test.length() > 1) {
             this->rZenith->setText(this->rZenith->getText().dropLastCharacters(1), false);
@@ -590,22 +553,19 @@ void WindowEditSpeaker::textEditorReturnKeyPressed(TextEditor& editor) {
     this->unfocusAllComponents();
 }
 
-void WindowEditSpeaker::updateWinContent()
-{
+void WindowEditSpeaker::updateWinContent() {
     this->numRows = (unsigned int)this->mainParent->getListSpeaker().size();
     this->tableListSpeakers.updateContent();
     this->mainParent->needToSaveSpeakerSetup = true;
 }
 
-void WindowEditSpeaker::selectedRow(int value)
-{
+void WindowEditSpeaker::selectedRow(int value) {
     MessageManagerLock mmlock;
     this->tableListSpeakers.selectRow(value);
     this->repaint();
 }
 
-void WindowEditSpeaker::closeButtonPressed()
-{
+void WindowEditSpeaker::closeButtonPressed() {
     int exitV = 1;
     if (this->mainParent->needToSaveSpeakerSetup) {
         exitV = AlertWindow::showYesNoCancelBox(AlertWindow::WarningIcon,
