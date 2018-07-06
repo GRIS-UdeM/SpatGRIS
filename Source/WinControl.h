@@ -15,10 +15,10 @@
  
  You should have received a copy of the GNU General Public License
  along with ServerGris.  If not, see <http://www.gnu.org/licenses/>.
- */
+*/
 
-#ifndef WinControl_h
-#define WinControl_h
+#ifndef WINCONTROL_H
+#define WINCONTROL_H
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "GrisLookAndFeel.h"
@@ -28,23 +28,23 @@ class Input;
 
 using namespace std;
 
-class WinControl :   public DocumentWindow,
-private Timer
-
+class WinControl : public DocumentWindow,
+                   private Timer
 {
 public:
-    WinControl(const String& name, Colour backgroundColour, int buttonsNeeded,MainContentComponent * parent, GrisLookAndFeel * feel);
+    WinControl(const String& name, Colour backgroundColour, int buttonsNeeded,
+               MainContentComponent *parent, GrisLookAndFeel *feel);
     ~WinControl();
     
     void setTimerHz(int hz);
     
     void timerCallback() override;
-    void paint (Graphics& g) override;
+    void paint(Graphics& g) override;
     void resized() override;
     void closeButtonPressed() override;
     
 private:
-    void drawAzimElevSource(Graphics &g,  Input *  it, const int fieldWH, const int fieldCenter);
+    void drawAzimElevSource(Graphics &g, Input *it, const int fieldWH, const int fieldCenter);
     
     MainContentComponent *mainParent;
     GrisLookAndFeel *grisFeel;
@@ -52,4 +52,4 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (WinControl)
 };
 
-#endif /* WinControl_h */
+#endif /* WINCONTROL_H */
