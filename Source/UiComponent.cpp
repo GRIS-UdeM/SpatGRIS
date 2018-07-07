@@ -921,19 +921,16 @@ WindowProperties::~WindowProperties() {
     this->mainParent->destroyWindowProperties();
 }
 
-void WindowProperties::closeButtonPressed()
-{
+void WindowProperties::closeButtonPressed() {
     delete this;
 }
 
-
-void WindowProperties::buttonClicked(Button *button)
-{
-    if( button == this->butValidSettings) {
+void WindowProperties::buttonClicked(Button *button) {
+    if (button == this->butValidSettings) {
         this->mainParent->saveProperties(this->cobRate->getText().getIntValue(),
-                                           this->cobBuffer->getText().getIntValue(),
-                                           this->recordFormat->getSelectedItemIndex(),
-                                           this->tedOSCInPort->getTextValue().toString().getIntValue());
+                                         this->cobBuffer->getText().getIntValue(),
+                                         this->recordFormat->getSelectedItemIndex(),
+                                         this->tedOSCInPort->getTextValue().toString().getIntValue());
         delete this;
     }
 }

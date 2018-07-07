@@ -440,7 +440,6 @@ static void processSTEREO(jackClientGris & jackCli, jack_default_audio_sample_t 
 //MASTER PROCESS
 //=========================================================================================
 static int process_audio (jack_nframes_t nframes, void* arg) {
-
     jackClientGris* jackCli = (jackClientGris*)arg;
     
     //================ Return if user edit speaker ==============================
@@ -662,7 +661,7 @@ getSamplesFromWavFile(String filename) {
 //=================================================================================================================
 // jackClientGris
 //=================================================================================================================
-jackClientGris::jackClientGris(unsigned int bufferS) {
+jackClientGris::jackClientGris() {
     
     //INIT variable and clear Array========================
     this->noiseSound = false;
@@ -819,17 +818,13 @@ jackClientGris::jackClientGris(unsigned int bufferS) {
     jack_set_graph_order_callback           (this->client, graph_order_callback, this);
     jack_set_xrun_callback                  (this->client, xrun_callback, this);
     jack_set_latency_callback               (this->client, latency_callback, this);
-    
-    //Default buffer size 1024
-    jack_set_buffer_size(this->client, bufferS);
-    
-    sampleRate = jack_get_sample_rate (this->client);
-    bufferSize = jack_get_buffer_size (this->client);
+
+    sampleRate = jack_get_sample_rate(this->client);
+    bufferSize = jack_get_buffer_size(this->client);
     
     jack_client_log("engine sample rate: %" PRIu32 "\n", sampleRate);
-    jack_client_log("engine buffer size: %" PRIu32 "\n", jack_get_buffer_size(this->client));
-    
-    
+    jack_client_log("engine buffer size: %" PRIu32 "\n", bufferSize);
+
     //--------------------------------------------------
     //Prepare pink noise
     //--------------------------------------------------

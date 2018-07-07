@@ -218,7 +218,7 @@ lbap_layer_compute_gains(lbap_layer *layer, float azi, float rad, float azispan,
     x = pos.x * (hsize - 1) + hsize;
     y = pos.y * (hsize - 1) + hsize;
     for (i=0; i<layer->num_of_speakers; i++) {
-        gains[i] = powf(lbap_lookup(layer->matrix[i], x, y), layer->expon); // *azispan*4 pour la diffusion/localisation
+        gains[i] = powf(lbap_lookup(layer->matrix[i], x, y), layer->expon); // * azispan*4 pour la diffusion/localisation
         sum += gains[i];
     }
     if (sum > 0.0) {
@@ -419,5 +419,3 @@ void lbap_pos_copy(lbap_pos *dest, lbap_pos *src) {
     dest->ele = src->ele;
     dest->rad = src->rad;
 }
-
-    

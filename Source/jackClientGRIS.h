@@ -288,7 +288,7 @@ public:
     lbap_field *lbap_speaker_field;
 
     //---------------------------------
-    jackClientGris(unsigned int bufferS = 1024);
+    jackClientGris();
 
     virtual ~jackClientGris();
     

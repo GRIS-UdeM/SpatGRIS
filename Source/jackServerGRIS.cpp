@@ -15,16 +15,19 @@
  
  You should have received a copy of the GNU General Public License
  along with ServerGris.  If not, see <http://www.gnu.org/licenses/>.
- */
+*/
 
 #include <stdarg.h>
+#include <stdio.h>
 #include "ServerGrisConstants.h"
 #include "jackServerGRIS.h"
 #include "jackClientGRIS.h"
 
-static bool jack_server_log_print = false;
+static bool jack_server_log_print = true;
 
-static void jack_server_log(const char* format, ...) {
+// Jack server utilities.
+
+static void jack_server_log(const char *format, ...) {
     if (jack_server_log_print) {
         char buffer[256];
         va_list args;
@@ -35,79 +38,148 @@ static void jack_server_log(const char* format, ...) {
     }
 }
 
-bool on_device_acquire(const char *device_name)
-{
+static void print_value(union jackctl_parameter_value value, jackctl_param_type_t type) {
+    switch (type) {
+        case JackParamInt:
+            jack_server_log("parameter value = %d\n", value.i);
+            break;
+        case JackParamUInt:
+            jack_server_log("parameter value = %u\n", value.ui);
+            break;
+        case JackParamChar:
+            jack_server_log("parameter value = %c\n", value.c);
+            break;
+        case JackParamString:
+            jack_server_log("parameter value = %s\n", value.str);
+            break;
+        case JackParamBool:
+            jack_server_log("parameter value = %d\n", value.b);
+            break;
+    }
+}
+
+static void print_parameters(const JSList *node_ptr) {
+    while (node_ptr != NULL) {
+        jackctl_parameter_t *parameter = (jackctl_parameter_t *)node_ptr->data;
+        jack_server_log("\nparameter name = %s\n", jackctl_parameter_get_name(parameter));
+        if (!jackctl_parameter_get_id(parameter))
+            jack_server_log("parameter id = \n");
+        else
+            jack_server_log("parameter id = %c\n", jackctl_parameter_get_id(parameter));
+        jack_server_log("parameter short decs = %s\n", jackctl_parameter_get_short_description(parameter));
+        jack_server_log("parameter long decs = %s\n", jackctl_parameter_get_long_description(parameter));
+        print_value(jackctl_parameter_get_default_value(parameter), jackctl_parameter_get_type(parameter));
+        node_ptr = jack_slist_next(node_ptr);
+    }
+}
+
+static void print_driver(jackctl_driver_t *driver) {
+    jack_server_log("Jack driver = %s\n", jackctl_driver_get_name(driver));
+    print_parameters(jackctl_driver_get_parameters(driver));
+}
+
+static void print_internal(jackctl_internal_t *internal) {
+    jack_server_log("Jack internal = %s\n", jackctl_internal_get_name(internal));
+    print_parameters(jackctl_internal_get_parameters(internal));
+}
+
+static bool on_device_acquire(const char *device_name) {
     jack_server_log("on_device_acquire %s \n", device_name);
     return true;
 }
 
-void on_device_release(const char *device_name)
-{
+static void on_device_release(const char *device_name) {
     jack_server_log("on_device_release %s \n", device_name);
 }
 
+static jackctl_parameter_t * jackctl_get_parameter(const JSList *parameters_list, const char *parameter_name) {
+    while (parameters_list) {
+        if (strcmp(jackctl_parameter_get_name((jackctl_parameter_t *)parameters_list->data), parameter_name) == 0) {
+            return (jackctl_parameter_t *)parameters_list->data;
+        }
+        parameters_list = jack_slist_next(parameters_list);
+    }
+    return NULL;
+}
 
-jackServerGRIS::jackServerGRIS(unsigned int rateV){
-    
+static jackctl_driver_t * jackctl_server_get_driver(jackctl_server_t *server, const char *driver_name) {
+    const JSList * node_ptr = jackctl_server_get_drivers_list(server);
+    while (node_ptr) {
+        if (strcmp(jackctl_driver_get_name((jackctl_driver_t *)node_ptr->data), driver_name) == 0) {
+            return (jackctl_driver_t *)node_ptr->data;
+        }
+        node_ptr = jack_slist_next(node_ptr);
+    }
+    return NULL;
+}
+
+static jackctl_internal_t * jackctl_server_get_internal(jackctl_server_t *server, const char *internal_name) {
+    const JSList * node_ptr = jackctl_server_get_internals_list(server);
+    while (node_ptr) {
+        if (strcmp(jackctl_internal_get_name((jackctl_internal_t *)node_ptr->data), internal_name) == 0) {
+            return (jackctl_internal_t *)node_ptr->data;
+        }
+        node_ptr = jack_slist_next(node_ptr);
+    }
+    return NULL;
+}
+
+// Jack server class definition.
+
+jackServerGRIS::jackServerGRIS(unsigned int rateV, unsigned int periodV) {
     this->rateValue = rateV;
-    const JSList * parameters;
-    const JSList * drivers;
-    const JSList * internals;
-    const JSList * node_ptr;
+    this->periodValue = periodV;
+    const JSList *parameters;
+    const JSList *driverParams;
+    const JSList *drivers;
+    const JSList *internals;
+    const JSList *node_ptr;
 
     this->server = jackctl_server_create(on_device_acquire, on_device_release);
     parameters = jackctl_server_get_parameters(this->server);
-    
-    /* FIXME
-     * How to set jack's verbose mode to off?
-     */
-    jackctl_parameter_t* param;
+
+    jackctl_parameter_t *param;
     union jackctl_parameter_value value;
-    
-    
+
+    // Turn off Jack verbose mode.
     param = jackctl_get_parameter(parameters, "verbose");
     if (param != NULL) {
         value.b = false;
         jackctl_parameter_set_value(param, &value);
     }
-    
-    /*jackctl_parameter_t* param;
-    union jackctl_parameter_value value;
-    param = jackctl_get_parameter(parameters, "self-connect-mode");
-    if (param != NULL) {
-        value.b = false;
-        jackctl_parameter_set_value(param, &value);
-    }*/
 
-    /*param = jackctl_get_parameter(parameters, "sync");
-    if (param != NULL) {
-        value.b = true;
-        jackctl_parameter_set_value(param, &value);
-    }*/
-    
-    
-    jack_server_log("\n========================== \n");
-    jack_server_log("List of server parameters \n");
-    jack_server_log("========================== \n");
+    jack_server_log("\nList of server parameters \n");
+    jack_server_log("========================= \n");
     
     print_parameters(parameters);
     
-    jack_server_log("\n========================== \n");
-    jack_server_log("List of drivers \n");
-    jack_server_log("========================== \n");
+    jack_server_log("\nList of drivers \n");
+    jack_server_log("=============== \n");
     
     drivers = jackctl_server_get_drivers_list(this->server);
     node_ptr = drivers;
     while (node_ptr != NULL) {
         print_driver((jackctl_driver_t *)node_ptr->data);
+
+        driverParams = jackctl_driver_get_parameters((jackctl_driver_t *)node_ptr->data);
+        // Set sampling rate.
+        param = jackctl_get_parameter(driverParams, "rate");
+        if (param != NULL) {
+            value.ui = value.i = this->rateValue;
+            jackctl_parameter_set_value(param, &value);
+        }
+        // Set buffer size.
+        param = jackctl_get_parameter(driverParams, "period");
+        if (param != NULL) {
+            value.ui = value.i = this->periodValue;
+            jackctl_parameter_set_value(param, &value);
+        }
+
         node_ptr = jack_slist_next(node_ptr);
     }
     
-    #if PRINT_SERVER
-    jack_server_log("\n========================== \n");
-    jack_server_log("List of internal clients \n");
-    jack_server_log("========================== \n");
-    #endif
+    jack_server_log("\nList of internal clients \n");
+    jack_server_log("======================== \n");
     
     internals = jackctl_server_get_internals_list(this->server);
     node_ptr = internals;
@@ -116,24 +188,12 @@ jackServerGRIS::jackServerGRIS(unsigned int rateV){
         node_ptr = jack_slist_next(node_ptr);
     }
     
-    jack_server_log("\n========================== \n");
-    jack_server_log("Start Jack Server \n");
-    jack_server_log("========================== \n");
+    jack_server_log("\nStart Jack Server \n");
+    jack_server_log("================= \n");
 
     jackctl_server_open(this->server, jackctl_server_get_driver(this->server, DriverNameSys));
     jackctl_server_start(this->server);
     jackctl_server_load_internal(this->server, jackctl_server_get_internal(this->server, ClientNameSys));
-    
-    #if PRINT_SERVER
-    const JSList * parameters2 = jackctl_server_get_parameters(server);
-    print_parameters(parameters2);
-    #endif
-    
-    jack_server_log("\n========================== \n");
-    jack_server_log("Jack Server Run \n");
-    jack_server_log("========================== \n");
-    
-
 }
 
 jackServerGRIS::~jackServerGRIS(){

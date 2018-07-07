@@ -170,8 +170,8 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     this->samplingRate = RateValue;
 
     // Start Jack Server and client.
-    this->jackServer = new jackServerGRIS(RateValue);
-    this->jackClient = new jackClientGris(BufferValue);
+    this->jackServer = new jackServerGRIS(RateValue, BufferValue);
+    this->jackClient = new jackClientGris();
 
     if (!jackClient->isReady()) {
         this->labelJackStatus->setText("Jack ERROR", dontSendNotification);
@@ -1681,8 +1681,8 @@ void MainContentComponent::saveProperties(int rate, int buff, int fileformat, in
     if (isnan(RateValue) || RateValue == 0) { RateValue = 48000; }
 
     if (rate != RateValue || buff != BufferValue) {
-        ScopedPointer<AlertWindow> alert = new AlertWindow("Restart ServerGRIS",
-                                                           "Need to restart ServerGRIS to apply new settings !", 
+        ScopedPointer<AlertWindow> alert = new AlertWindow("You Need to Restart ServerGRIS!",
+                                                           "New settings will be effective on next launch of the ServerGris.", 
                                                            AlertWindow::InfoIcon);
         alert->setLookAndFeel(&mGrisFeel);
         alert->addButton ("Cancel", 0);
@@ -1690,16 +1690,6 @@ void MainContentComponent::saveProperties(int rate, int buff, int fileformat, in
         if (alert->runModalLoop()) {
             props->setValue("BufferValue", (int)buff);
             props->setValue("RateValue", (int)rate);
-
-            /* FIXME: This does not work under linux (not sure about OSX). It should be possible to just shutdown
-                      and restart the Jack server instead of the application, as in qjackctl.
-            */
-            // Restart APP
-            String applicationPath = File::getSpecialLocation(File::currentApplicationFile).getFullPathName();
-            String relaunchCommand = "open " + applicationPath;
-            ScopedPointer<ChildProcess> scriptProcess = new ChildProcess();            
-            JUCEApplication::getInstance()->systemRequestedQuit();
-            scriptProcess->start(relaunchCommand, (!ChildProcess::wantStdErr | !ChildProcess::wantStdOut));
         }
     }
 

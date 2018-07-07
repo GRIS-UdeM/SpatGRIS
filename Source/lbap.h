@@ -166,7 +166,7 @@ int lbap_pos_compare(lbap_pos *p1, lbap_pos *p2);
 
 /** \brief Copy the content of a lbap_pos to another.
  *
- * This function copy the content of `srd` to `dest`. 
+ * This function copy the content of `src` to `dest`. 
  */
 void lbap_pos_copy(lbap_pos *dest, lbap_pos *src);
 
