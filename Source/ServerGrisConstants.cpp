@@ -17,6 +17,8 @@ const String BinauralSpeakerSetupFilePath = File::getCurrentWorkingDirectory().g
                                             ("/../../Resources/default_preset/BINAURAL_SPEAKER_SETUP.xml");
 const String ServerGrisManualFilePath = File::getCurrentWorkingDirectory().getFullPathName() +
                                         ("/../../Resources/ServerGRIS_1.0_Manual.pdf");
+const String ServerGrisIconSmallFilePath = File::getCurrentWorkingDirectory().getFullPathName() +
+                                           ("/../../Resources/ServerGRIS_icon_small.png");
 const bool UseOSNativeDialogBox = false;
 #else
 const char *DriverNameSys = "coreaudio";
@@ -32,6 +34,8 @@ const String BinauralSpeakerSetupFilePath = File::getSpecialLocation(File::curre
                                             ("/Contents/Resources/default_preset/BINAURAL_SPEAKER_SETUP.xml");
 const String ServerGrisManualFilePath = File::getSpecialLocation(File::currentApplicationFile).getFullPathName() +
                                         ("/Contents/Resources/ServerGRIS_1.0_Manual.pdf");
+const String ServerGrisIconSmallFilePath = File::getSpecialLocation(File::currentApplicationFile).getFullPathName() +
+                                           ("/Contents/Resources/ServerGRIS_icon_small.png");
 const bool UseOSNativeDialogBox = true;
 #endif
 

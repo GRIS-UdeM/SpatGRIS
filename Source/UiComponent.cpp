@@ -17,6 +17,7 @@
  along with ServerGris.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "ServerGrisConstants.h"
 #include "UiComponent.h"
 #include "LevelComponent.h"
 #include "MainComponent.h"
@@ -25,7 +26,7 @@ static double GetFloatPrecision(double value, double precision) {
     return (floor((value * pow(10, precision) + 0.5)) / pow(10, precision));
 }
 
-//======================================= BOX ===========================================================================
+// ====================================== BOX ======================================
 Box::Box(GrisLookAndFeel *feel, String title, bool verticalScrollbar, bool horizontalScrollbar) {
     this->title = title;
     this->grisFeel = feel;
@@ -60,7 +61,7 @@ void Box::resized() {
 }
 
 void Box::correctSize(unsigned int width, unsigned int height) {
-    if (this->title!="") {
+    if (this->title != "") {
         this->viewport->setTopLeftPosition(0, 20);
         this->viewport->setSize(getWidth(), getHeight() - 20);
         if (width < 80) {
@@ -75,7 +76,7 @@ void Box::correctSize(unsigned int width, unsigned int height) {
 void Box::paint(Graphics &g) {
     g.setColour(this->bgColour);
     g.fillRect(getLocalBounds());
-    if (this->title!="") {
+    if (this->title != "") {
         g.setColour(this->grisFeel->getWinBackgroundColour());
         g.fillRect(0, 0, getWidth(), 18);
         g.setColour(this->grisFeel->getFontColour());
@@ -83,7 +84,7 @@ void Box::paint(Graphics &g) {
     }
 }
 
-//======================================= BOX CLIENT ========================================
+// ====================================== BOX CLIENT ========================================
 BoxClient::BoxClient(MainContentComponent *parent, GrisLookAndFeel *feel) {
     this->mainParent = parent;
     this->grisFeel = feel;
@@ -207,9 +208,9 @@ void BoxClient::paintCell(Graphics& g, int rowNumber, int columnId, int width, i
     g.fillRect(width - 1, 0, 1, height);
 }
 
-Component* BoxClient::refreshComponentForCell(int rowNumber, int columnId, bool /*isRowSelected*/,
-                                              Component *existingComponentToUpdate) {
-     if (columnId == 1|| columnId == 4) {
+Component * BoxClient::refreshComponentForCell(int rowNumber, int columnId, bool /*isRowSelected*/,
+                                               Component *existingComponentToUpdate) {
+     if (columnId == 1 || columnId == 4) {
          return existingComponentToUpdate;
      }
     
@@ -243,8 +244,7 @@ Component* BoxClient::refreshComponentForCell(int rowNumber, int columnId, bool 
     return textLabel;
 }
 
-//======================================= Window Edit Speaker ======================================
-
+// ====================================== Window Edit Speaker ======================================
 WindowEditSpeaker::WindowEditSpeaker(const String& name, String& nameC, Colour backgroundColour, int buttonsNeeded,
                                      MainContentComponent *parent, GrisLookAndFeel *feel):
     DocumentWindow (name, backgroundColour, buttonsNeeded), font (14.0f)
@@ -490,11 +490,11 @@ void WindowEditSpeaker::buttonClicked(Button *button) {
         }
         updateWinContent();
         this->mainParent->needToComputeVbap = true;
-        this->tableListSpeakers.selectRow(this->getNumRows()-1);
+        this->tableListSpeakers.selectRow(this->getNumRows() - 1);
     } else if (button == this->pinkNoise) {
         this->mainParent->getJackClient()->noiseSound = this->pinkNoise->getToggleState();
     } else if (button->getName() != "" && (button->getName().getIntValue() >= 0 &&
-        (unsigned int)button->getName().getIntValue() <= this->mainParent->getListSpeaker().size())) {
+              (unsigned int)button->getName().getIntValue() <= this->mainParent->getListSpeaker().size())) {
         this->mainParent->removeSpeaker(button->getName().getIntValue());
         updateWinContent();
         this->mainParent->needToComputeVbap = true;
@@ -585,30 +585,29 @@ void WindowEditSpeaker::closeButtonPressed() {
     }
 }
 
-void WindowEditSpeaker::resized()
-{
+void WindowEditSpeaker::resized() {
     this->juce::DocumentWindow::resized();
 
-    tableListSpeakers.setSize(getWidth(), getHeight()-195);
+    tableListSpeakers.setSize(getWidth(), getHeight() - 195);
     
     this->boxListSpeaker->setSize(getWidth(), getHeight());
-    this->boxListSpeaker->correctSize(getWidth()-10, getHeight()-30);
+    this->boxListSpeaker->correctSize(getWidth() - 10, getHeight() - 30);
 
-    this->butAddSpeaker->setBounds(5, getHeight()-180, 100, 22);
-    this->butcompSpeakers->setBounds(getWidth()-105, getHeight()-180, 100, 22);
+    this->butAddSpeaker->setBounds(5, getHeight() - 180, 100, 22);
+    this->butcompSpeakers->setBounds(getWidth() - 105, getHeight() - 180, 100, 22);
 
-    this->rNumOfSpeakersLabel->setBounds(5, getHeight()-140, 80, 24);
-    this->rNumOfSpeakers->setBounds(5+80, getHeight()-140, 40, 24);
-    this->rZenithLabel->setBounds(100, getHeight()-140, 80, 24);
-    this->rZenith->setBounds(100+80, getHeight()-140, 60, 24);
-    this->rRadiusLabel->setBounds(215, getHeight()-140, 80, 24);
-    this->rRadius->setBounds(215+80, getHeight()-140, 60, 24);
-    this->rOffsetAngleLabel->setBounds(360, getHeight()-140, 80, 24);
-    this->rOffsetAngle->setBounds(360+80, getHeight()-140, 60, 24);
-    this->butAddRing->setBounds(getWidth()-105, getHeight()-140, 100, 24);
+    this->rNumOfSpeakersLabel->setBounds(5, getHeight() - 140, 80, 24);
+    this->rNumOfSpeakers->setBounds(5 + 80, getHeight() - 140, 40, 24);
+    this->rZenithLabel->setBounds(100, getHeight() - 140, 80, 24);
+    this->rZenith->setBounds(100 + 80, getHeight() - 140, 60, 24);
+    this->rRadiusLabel->setBounds(215, getHeight() - 140, 80, 24);
+    this->rRadius->setBounds(215 + 80, getHeight() - 140, 60, 24);
+    this->rOffsetAngleLabel->setBounds(360, getHeight() - 140, 80, 24);
+    this->rOffsetAngle->setBounds(360 + 80, getHeight() - 140, 60, 24);
+    this->butAddRing->setBounds(getWidth() - 105, getHeight() - 140, 100, 24);
 
-    this->pinkNoise->setBounds(5, getHeight()-75, 150, 24);
-    this->pinkNoiseGain->setBounds(180, getHeight()-100, 60, 60);
+    this->pinkNoise->setBounds(5, getHeight() - 75, 150, 24);
+    this->pinkNoiseGain->setBounds(180, getHeight() - 100, 60, 60);
 }
 
 String WindowEditSpeaker::getText(const int columnNumber, const int rowNumber) const {
@@ -707,11 +706,11 @@ void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, con
                     }
                     for (auto&& it : this->mainParent->getListSpeaker()) {
                         if (it->getOutputPatch() == ival) {
-                            ScopedPointer<AlertWindow> alert = new AlertWindow ("Wrong output patch!    ",
-                                                                                "Sorry! Output patch number " + String(ival) + " is already used.", 
-                                                                                AlertWindow::WarningIcon);
+                            ScopedPointer<AlertWindow> alert = new AlertWindow("Wrong output patch!    ",
+                                                                               "Sorry! Output patch number " + String(ival) + " is already used.", 
+                                                                               AlertWindow::WarningIcon);
                             alert->setLookAndFeel(this->grisFeel);
-                            alert->addButton ("OK", 0);
+                            alert->addButton("OK", 0);
                             alert->runModalLoop();
                             ival = oldval;
                         }
@@ -746,31 +745,28 @@ int WindowEditSpeaker::getNumRows() {
     return numRows;
 }
 
-// This is overloaded from TableListBoxModel, and should fill in the background of the whole row
-void WindowEditSpeaker::paintRowBackground (Graphics& g, int rowNumber, int /*width*/, int /*height*/, bool rowIsSelected)
-{
-    if (rowIsSelected){
-        if(this->mainParent->getLockSpeakers()->try_lock()){
-        this->mainParent->getListSpeaker()[rowNumber]->selectSpeaker();
-        this->mainParent->getLockSpeakers()->unlock();
+// This is overloaded from TableListBoxModel, and should fill in the background of the whole row.
+void WindowEditSpeaker::paintRowBackground (Graphics& g, int rowNumber, int /*width*/, int /*height*/, bool rowIsSelected) {
+    if (rowIsSelected) {
+        if (this->mainParent->getLockSpeakers()->try_lock()) {
+            this->mainParent->getListSpeaker()[rowNumber]->selectSpeaker();
+            this->mainParent->getLockSpeakers()->unlock();
         }
-        g.fillAll (this->grisFeel->getHighlightColour());
-    }
-    else{
-        if(this->mainParent->getLockSpeakers()->try_lock()){
-        this->mainParent->getListSpeaker()[rowNumber]->unSelectSpeaker();
-        this->mainParent->getLockSpeakers()->unlock();
+        g.fillAll(this->grisFeel->getHighlightColour());
+    } else {
+        if (this->mainParent->getLockSpeakers()->try_lock()) {
+            this->mainParent->getListSpeaker()[rowNumber]->unSelectSpeaker();
+            this->mainParent->getLockSpeakers()->unlock();
         }
-        if (rowNumber % 2){
-            g.fillAll (this->grisFeel->getBackgroundColour().withBrightness(0.6));
-        }else{
-            g.fillAll (this->grisFeel->getBackgroundColour().withBrightness(0.7));
+        if (rowNumber % 2) {
+            g.fillAll(this->grisFeel->getBackgroundColour().withBrightness(0.6));
+        } else {
+            g.fillAll(this->grisFeel->getBackgroundColour().withBrightness(0.7));
         }
     }
 }
 
-// This is overloaded from TableListBoxModel, and must paint any cells that aren't using custom
-// components.
+// This is overloaded from TableListBoxModel, and must paint any cells that aren't using custom components.
 void WindowEditSpeaker::paintCell(Graphics& g, int rowNumber, int columnId, int width, int height, bool /*rowIsSelected*/) {
     g.setColour(Colours::black);
     g.setFont(font);
@@ -786,13 +782,13 @@ void WindowEditSpeaker::paintCell(Graphics& g, int rowNumber, int columnId, int 
     g.fillRect(width - 1, 0, 1, height);
 }
 
-Component* WindowEditSpeaker::refreshComponentForCell(int rowNumber, int columnId, bool /*isRowSelected*/,
-                                                      Component* existingComponentToUpdate)
+Component * WindowEditSpeaker::refreshComponentForCell(int rowNumber, int columnId, bool /*isRowSelected*/,
+                                                       Component *existingComponentToUpdate)
 {
-    if (columnId == 11){
-        ToggleButton* tbDirect = static_cast<ToggleButton*> (existingComponentToUpdate);
+    if (columnId == 11) {
+        ToggleButton *tbDirect = static_cast<ToggleButton *> (existingComponentToUpdate);
         if (tbDirect == nullptr)
-            tbDirect = new ToggleButton ();
+            tbDirect = new ToggleButton();
         tbDirect->setName(String(rowNumber  + 1000));
         tbDirect->setClickingTogglesState(true);
         tbDirect->setBounds(4, 404, 88, 22);
@@ -801,10 +797,10 @@ Component* WindowEditSpeaker::refreshComponentForCell(int rowNumber, int columnI
         tbDirect->setLookAndFeel(this->grisFeel);
         return tbDirect;
     }
-    if (columnId == 12){
-        TextButton* tbRemove = static_cast<TextButton*> (existingComponentToUpdate);
+    if (columnId == 12) {
+        TextButton *tbRemove = static_cast<TextButton *> (existingComponentToUpdate);
         if (tbRemove == nullptr)
-            tbRemove = new TextButton ();
+            tbRemove = new TextButton();
         tbRemove->setButtonText("X");
         tbRemove->setName(String(rowNumber));
         tbRemove->setBounds(4, 404, 88, 22);
@@ -814,23 +810,19 @@ Component* WindowEditSpeaker::refreshComponentForCell(int rowNumber, int columnI
         return tbRemove;
     }
     // The other columns are editable text columns, for which we use the custom Label component
-    EditableTextCustomComponent* textLabel = static_cast<EditableTextCustomComponent*> (existingComponentToUpdate);
+    EditableTextCustomComponent *textLabel = static_cast<EditableTextCustomComponent *> (existingComponentToUpdate);
     if (textLabel == nullptr)
-        textLabel = new EditableTextCustomComponent (*this);
+        textLabel = new EditableTextCustomComponent(*this);
     
     textLabel->setRowAndColumn (rowNumber, columnId);
-    if(columnId==1){    //ID Speakers
+    if (columnId == 1) {
         textLabel->setEditable(false);
     }
     return textLabel;
 }
 
-
-
-
-//======================================= WindowProperties ===========================
-Label *
-WindowProperties::createPropLabel(String lab, Justification::Flags just, int ypos) {
+// ============================ WindowProperties ===========================
+Label * WindowProperties::createPropLabel(String lab, Justification::Flags just, int ypos) {
     Label *label = new Label();
     label->setText(lab, NotificationType::dontSendNotification);
     label->setJustificationType(just);
@@ -842,8 +834,7 @@ WindowProperties::createPropLabel(String lab, Justification::Flags just, int ypo
     return label;
 }
 
-TextEditor *
-WindowProperties::createPropIntTextEditor(String tooltip, int ypos, int init) {
+TextEditor * WindowProperties::createPropIntTextEditor(String tooltip, int ypos, int init) {
     TextEditor *editor = new TextEditor();
     editor->setTooltip(tooltip);
     editor->setTextToShowWhenEmpty("", this->grisFeel->getOffColour());
@@ -858,8 +849,7 @@ WindowProperties::createPropIntTextEditor(String tooltip, int ypos, int init) {
     return editor;
 }
 
-ComboBox *
-WindowProperties::createPropComboBox(const StringArray choices, int selected, int ypos) {
+ComboBox * WindowProperties::createPropComboBox(const StringArray choices, int selected, int ypos) {
     ComboBox *combo = new ComboBox();
     combo->addItemList(choices, 1);
     combo->setSelectedItemIndex(selected);
@@ -870,8 +860,8 @@ WindowProperties::createPropComboBox(const StringArray choices, int selected, in
 }
 
 WindowProperties::WindowProperties(const String& name, Colour backgroundColour, int buttonsNeeded,
-                                     MainContentComponent * parent, GrisLookAndFeel * feel, int indR, 
-                                    int indB, int indFF, int oscPort):
+                                   MainContentComponent *parent, GrisLookAndFeel *feel, int indR, 
+                                   int indB, int indFF, int oscPort): 
     DocumentWindow (name, backgroundColour, buttonsNeeded)
 {
     this->mainParent = parent;
@@ -895,7 +885,6 @@ WindowProperties::WindowProperties(const String& name, Colour backgroundColour, 
     this->labRecFormat = this->createPropLabel("File Format :", Justification::left, 220);
     this->recordFormat = this->createPropComboBox(FileFormats, indFF, 220);
 
-    // -------------- Save button -------------
     this->butValidSettings = new TextButton();
     this->butValidSettings->setButtonText("Save");
     this->butValidSettings->setBounds(163, 260, 88, 22);
@@ -938,20 +927,14 @@ void WindowProperties::buttonClicked(Button *button) {
 
 //======================================= About Window ===========================
 AboutWindow::AboutWindow(const String& name, Colour backgroundColour, int buttonsNeeded,
-                              MainContentComponent * parent, GrisLookAndFeel * feel):
+                         MainContentComponent *parent, GrisLookAndFeel *feel):
     DocumentWindow(name, backgroundColour, buttonsNeeded)
 {
     this->mainParent = parent;
     this->grisFeel = feel;
 
-    File fs;
-#ifdef __linux__
-    fs = File ( File::getCurrentWorkingDirectory().getFullPathName() + ("/../../Resources/ServerGRIS_icon_small.png"));
-#else
-    String cwd = File::getSpecialLocation(File::currentApplicationFile).getFullPathName();
-    fs = File (cwd + ("/Contents/Resources/ServerGRIS_icon_small.png"));
-#endif
-    if(fs.exists()) {
+    File fs = File(ServerGrisIconSmallFilePath);
+    if (fs.exists()) {
         Image img = ImageFileFormat::loadFrom(fs);
         this->imageComponent = new ImageComponent("");
         this->imageComponent->setImage(img);
@@ -998,7 +981,6 @@ AboutWindow::AboutWindow(const String& name, Colour backgroundColour, int button
     this->label->setColour(Label::textColourId, this->grisFeel->getFontColour());
     this->juce::Component::addAndMakeVisible(this->label);
 
-    // -------------- Save button -------------
     this->close = new TextButton();
     this->close->setButtonText("Close");
     this->close->setBounds(150, 470, 100, 22);
@@ -1017,8 +999,7 @@ AboutWindow::~AboutWindow() {
     this->mainParent->destroyAboutWindow();
 }
 
-void AboutWindow::closeButtonPressed()
-{
+void AboutWindow::closeButtonPressed() {
     delete this;
 }
 
