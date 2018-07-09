@@ -15,16 +15,15 @@
  
  You should have received a copy of the GNU General Public License
  along with ServerGris.  If not, see <http://www.gnu.org/licenses/>.
- */
+*/
 
-#ifndef jackClientGris_h
-#define jackClientGris_h
+#ifndef JACKCLIENTGRIS_H
+#define JACKCLIENTGRIS_H
 
 #include <stdlib.h>
 #include <vector>
 #include <stdio.h>
 #include <math.h>
-#include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -45,7 +44,7 @@
 class Speaker;
 using namespace std;
 
-//Limit ServerGris In/Out
+// Limits of ServerGris In/Out.
 static unsigned int const MaxInputs  = 256;
 static unsigned int const MaxOutputs = 256;
 
@@ -56,12 +55,12 @@ typedef struct {
 } LBAP_DATA;
  
 struct Client {
-    String          name;
-    unsigned int    portStart     = 0;
-    unsigned int    portEnd       = 0;
-    unsigned int    portAvailable = 0;
-    bool            initialized   = false;
-    bool            connected     = false;
+    String       name;
+    unsigned int portStart     = 0;
+    unsigned int portEnd       = 0;
+    unsigned int portAvailable = 0;
+    bool         initialized   = false;
+    bool         connected     = false;
 };
 
 struct SourceIn {
@@ -74,7 +73,6 @@ struct SourceIn {
     float zenith = 0.0f;
     float radius = 0.0f;
     float depth = 1.0f;
-    
     float aziSpan = 0.0f;
     float zenSpan = 0.0f;
 
@@ -84,7 +82,7 @@ struct SourceIn {
 
     bool  isMuted = false;
     bool  isSolo = false;
-    float gain; //Not Implemented
+    float gain;            // Not used yet.
 
     int directOut = 0;
     
@@ -120,45 +118,37 @@ struct SpeakerOut {
     bool directOut = false;
 };
 
-//Mode Spat
+// Spatialization modes.
 typedef enum {
-    VBap = 0,
-    LBap,
-    VBap_HRTF,
+    VBAP = 0,
+    LBAP,
+    VBAP_HRTF,
     STEREO
 } ModeSpatEnum;
 
-//Settings Jack Server
-static const StringArray BufferSize = {"32", "64", "128", "256", "512", "1024", "2048"};
-static const StringArray RateValues = {"44100", "48000", "88200", "96000"};
-static const StringArray FileFormats = {"WAV", "AIFF"};
-
+// Audio recorder class used to write a monophonic soundfile on disk.
 class AudioRecorder
 {
 public:
-    AudioRecorder() : backgroundThread ("Audio Recorder Thread"), activeWriter (nullptr)
-    {
+    AudioRecorder() : backgroundThread ("Audio Recorder Thread"), activeWriter (nullptr) {
         backgroundThread.startThread();
     }
 
-    ~AudioRecorder()
-    {
+    ~AudioRecorder() {
         stop();
     }
 
     //==============================================================================
-    void startRecording (const File& file, unsigned int sampleRate, String extF)
-    {
+    void startRecording(const File& file, unsigned int sampleRate, String extF) {
         stop();
 
-        // Create an OutputStream to write to our destination file...
+        // Create an OutputStream to write to our destination file.
         file.deleteFile();
         ScopedPointer<FileOutputStream> fileStream(file.createOutputStream());
 
         AudioFormatWriter *writer;
 
-        if (fileStream != nullptr)
-        {
+        if (fileStream != nullptr) {
             // Now create a writer object that writes to our output stream...
             if (extF == ".wav") {
                 WavAudioFormat wavFormat;
@@ -168,8 +158,7 @@ public:
                 writer = aiffFormat.createWriterFor(fileStream, sampleRate, 1, 24, NULL, 0);
             }
 
-            if (writer != nullptr)
-            {
+            if (writer != nullptr) {
                 fileStream.release(); // (passes responsibility for deleting the stream to the writer object that is now using it)
 
                 // Now we'll create one of these helper objects which will act as a FIFO buffer, and will
@@ -183,11 +172,10 @@ public:
         }
     }
 
-    void stop()
-    {
+    void stop() {
         if (activeWriter == nullptr) { return; }
 
-        // First, clear this pointer to stop the audio callback from using our writer object..
+        // First, clear this pointer to stop the audio callback from using our writer object.
         {
             const ScopedLock sl (writerLock);
             activeWriter = nullptr;
@@ -199,8 +187,7 @@ public:
         threadedWriter = nullptr;
     }
 
-    void recordSamples(float **samples, int numSamples)
-    {
+    void recordSamples(float **samples, int numSamples) {
         const ScopedLock sl (writerLock);
         activeWriter->write (samples, numSamples);
     }
@@ -215,16 +202,29 @@ private:
 
 class jackClientGris {
 public:
+    // class variables.
+    //-----------------
+    unsigned int sampleRate;
+    unsigned int bufferSize;
+    unsigned int numberInputs;
+    unsigned int numberOutputs;
+    unsigned int maxOutputPatch;
+    vector<int> outputPatches;
 
-    //Jack var
+    // Jack variables.
     jack_client_t *client;
-    
     vector<jack_port_t *> inputsPort;
     vector<jack_port_t *> outputsPort;
-    
-    float interMaster;
 
-    //Pink Noise Sound
+    // Interpolation and master gain values.
+    float interMaster;
+    float masterGainOut;
+
+    // Global solo states.
+    bool soloIn;
+    bool soloOut;
+
+    // Pink noise test sound.
     float c0;
     float c1;
     float c2;
@@ -233,8 +233,9 @@ public:
     float c5;
     float c6;
     float pinkNoiseGain;
+    bool pinkNoiseSound;
 
-    // Highpass filter
+    // Crossover highpass filter.
     double x1[MaxOutputs];
     double x2[MaxOutputs];
     double x3[MaxOutputs];
@@ -244,104 +245,112 @@ public:
     double y3[MaxOutputs];
     double y4[MaxOutputs];
 
-    //Mute Solo Vu meter
+    // Mute / Solo / VuMeter.
     float levelsIn[MaxInputs];
     float levelsOut[MaxOutputs];
     
-    bool soloIn;
-    bool soloOut;
-    
-    float masterGainOut;
-    //------------------------
-    
+    // Client list.
     vector<Client> listClient;
     mutex          lockListClient;
+
+    // Source and output lists.
     SourceIn   listSourceIn   [MaxInputs];
     SpeakerOut listSpeakerOut [MaxOutputs];
-    
+
+    // Enable/disable jack process callback.
     bool         processBlockOn;
+
+    // True when jack reports an xrun.
+    bool overload;
+
+    // Which spatialization mode is selected.
     ModeSpatEnum modeSelected;
     
-    bool noiseSound;
-    bool autoConnection;
-    bool overload;
-    
-    unsigned int sampleRate;
-    unsigned int bufferSize;
-    unsigned int numberInputs;
-    unsigned int numberOutputs;
-    unsigned int maxOutputPatch;
-    vector<int> outputPatches;
+    bool autoConnection; // not sure this one is necessary ?
 
+    // VBAL data.
+    unsigned int vbapDimensions;
     vector<vector<int>> vbap_triplets;
+    int vbapSourcesToUpdate[MaxInputs];
 
-    //-------- VBAP+HRTF data ------------------------
+    // BINAURAL data.
     unsigned int hrtf_count[16];
     float hrtf_input_tmp[16][128];
     float vbap_hrtf_left_impulses[16][128];
     float vbap_hrtf_right_impulses[16][128];
 
-    //-------- STEREO data ------------------------
+    // STEREO data.
     float last_azi[MaxInputs];
 
-    //-------- LBAP data ------------------------
+    // LBAP data.
     lbap_field *lbap_speaker_field;
 
-    //---------------------------------
-    jackClientGris();
+    // Recording parameters.
+    AudioRecorder recorder[MaxOutputs];
+    unsigned int indexRecord = 0;
+    bool recording;
 
+    // Class methods.
+    //---------------
+
+    jackClientGris();
     virtual ~jackClientGris();
-    
+
+    // Audio Status.
     bool  isReady() { return clientReady; }
     float getCpuUsed() const { return jack_cpu_load(client); }
     float getLevelsIn(int index) const { return levelsIn[index]; }
     float getLevelsOut(int index) const { return levelsOut[index]; }
-    
-    void resetHRTF();
 
+    // Manage Inputs / Outputs.
     void addRemoveInput(unsigned int number);
     void clearOutput();
     bool addOutput(unsigned int outputPatch);
     void removeOutput(int number);
 
+    // Manage clients.
     void disconnectAllClient();
     void autoConnectClient();
     void connectionClient(String name, bool connect = true);
     void updateClientPortAvailable(bool fromJack);
-    
-    string getClientName(const char * port);
+    string getClientName(const char *port);
     unsigned int getPortStartClient(String nameClient);
-    
-    //Recording param =========================
+
+    // Recording.
     void prepareToRecord();
     void startRecord() { this->indexRecord = 0; this->recording = true; }
     void stopRecord() { this->recording = false; };
-
-    AudioRecorder recorder[MaxOutputs];
-    unsigned int indexRecord = 0;
-    bool recording;
     void setRecordFormat(int format) { this->recordFormat = format; };
     int getRecordFormat() { return this->recordFormat; };
     void setRecordingPath(String filePath) { this->recordPath = filePath; }
     String getRecordingPath() { return this->recordPath; }
     bool isSavingRun() { return this->recording; };
 
-    //SpeakerLoad
-    unsigned int vbapDimensions;
+    // Initialize VBAP algorithm.
     bool initSpeakersTripplet(vector<Speaker *>  listSpk, int dimensions, bool needToComputeVbap);
+
+    // Initialize LBAP algorithm.
     bool lbapSetupSpeakerField(vector<Speaker *>  listSpk);
+
+    // Need to update a source VBAP data.
     void updateSourceVbap(int idS);
-    int vbapSourcesToUpdate[MaxInputs];
+
+    // Reinit HRTF delay lines.
+    void resetHRTF();
     
 private:
-    
+    // Tells if an error occured while setting up the client.
     bool clientReady;
-    int recordFormat = 0; // 0 = WAV, 1 = AIFF
-    String recordPath = "";
-    VBAP_DATA * paramVBap;
 
+    // Private recording parameters.
+    int recordFormat = 0;    // 0 = WAV, 1 = AIFF
+    String recordPath = "";
+
+    // This structure is used to compute the VBAP algorithm only once. Each source only gets a copy.
+    VBAP_DATA *paramVBap;
+
+    // Connect the server's outputs to the system's inputs.
     void connectedGristoSystem();
-    
 };
 
-#endif
+#endif /* JACKCLIENTGRIS_H */

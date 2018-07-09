@@ -23,7 +23,7 @@
 #include "jackServerGRIS.h"
 #include "jackClientGRIS.h"
 
-static bool jack_server_log_print = true;
+static bool jack_server_log_print = false;
 
 // Jack server utilities.
 

@@ -17,8 +17,16 @@ extern const String BinauralSpeakerSetupFilePath;
 extern const String ServerGrisManualFilePath;
 extern const String ServerGrisIconSmallFilePath;
 
+extern const String HRTFFolder0Path;
+extern const String HRTFFolder40Path;
+extern const String HRTFFolder80Path;
+
 extern const StringArray ModeSpatString;
 
 extern const bool UseOSNativeDialogBox;
+
+extern const StringArray BufferSizes;
+extern const StringArray RateValues;
+extern const StringArray FileFormats;
 
 #endif /* SERVERGRISCONSTANTS_H */

@@ -20,10 +20,6 @@
 #include "ServerGrisConstants.h"
 #include "MainComponent.h"
 
-/* FIXME
- * Resources path should be set only once, based on the system, in a config.h header.
- */
-
 MainContentComponent::MainContentComponent(DocumentWindow *parent)
 {
     this->parent = parent;
@@ -521,7 +517,7 @@ void MainContentComponent::handleShowPreferences() {
         this->windowProperties = new WindowProperties("Preferences", this->mGrisFeel.getWinBackgroundColour(),
                                                      DocumentWindow::allButtons, this, &this->mGrisFeel, 
                                                      RateValues.indexOf(String(RateValue)), 
-                                                     BufferSize.indexOf(String(BufferValue)),
+                                                     BufferSizes.indexOf(String(BufferValue)),
                                                      FileFormat, OscInputPort);
     }
     Rectangle<int> result (this->getScreenX()+ (this->speakerView->getWidth()/2)-150, this->getScreenY()+(this->speakerView->getHeight()/2)-75, 270, 290);
@@ -1057,7 +1053,7 @@ void MainContentComponent::updateInputJack(int inInput, Input &inp) {
     si->aziSpan = inp.getAziMuthSpan() * 0.5f;
     si->zenSpan = inp.getZenithSpan() * 2.0f;
     
-    if (this->jackClient->modeSelected == VBap || this->jackClient->modeSelected == VBap_HRTF) {
+    if (this->jackClient->modeSelected == VBAP || this->jackClient->modeSelected == VBAP_HRTF) {
         this->jackClient->vbapSourcesToUpdate[inInput] = 1;
     }
 }
@@ -1258,7 +1254,7 @@ bool MainContentComponent::updateLevelComp() {
     tempListSpeaker.resize(i);
 
     bool retval = false;
-    if (this->jackClient->modeSelected == VBap || this->jackClient->modeSelected == VBap_HRTF) {
+    if (this->jackClient->modeSelected == VBAP || this->jackClient->modeSelected == VBAP_HRTF) {
         this->jackClient->vbapDimensions = dimensions;
         if (dimensions == 2) {
             this->setShowTriplets(false);
@@ -1269,7 +1265,7 @@ bool MainContentComponent::updateLevelComp() {
             this->setListTripletFromVbap();
             this->needToComputeVbap = false;
         }
-    } else if (this->jackClient->modeSelected == LBap) {
+    } else if (this->jackClient->modeSelected == LBAP) {
         this->setShowTriplets(false);
         retval = this->jackClient->lbapSetupSpeakerField(tempListSpeaker);
     }
@@ -1428,7 +1424,7 @@ void MainContentComponent::openXmlFileSpeaker(String path) {
             this->applicationProperties.getUserSettings()->setValue("lastSpeakerSetupDirectory", 
                                                                     File(this->pathCurrentFileSpeaker).getParentDirectory().getFullPathName());
         }
-        if (this->getJackClient()->modeSelected != VBap_HRTF) {
+        if (this->getJackClient()->modeSelected != VBAP_HRTF) {
             this->pathLastVbapSpeakerSetup = this->pathCurrentFileSpeaker;
         }
         this->needToComputeVbap = true;
@@ -1561,7 +1557,7 @@ void MainContentComponent::openPreset(String path) {
         }
     }
 
-    this->jackClient->noiseSound = false;
+    this->jackClient->pinkNoiseSound = false;
     this->jackClient->processBlockOn = true;
 
     if (this->pathCurrentPreset.endsWith("default_preset/default_preset.xml")) {
@@ -1661,8 +1657,8 @@ void MainContentComponent::saveSpeakerSetup(String path) {
 
     this->needToSaveSpeakerSetup = false;
 
-    // TODO: What todo if modeSelected is LBap ?
-    if (this->getJackClient()->modeSelected != VBap_HRTF) {
+    // TODO: What todo if modeSelected is LBAP ?
+    if (this->getJackClient()->modeSelected != VBAP_HRTF) {
         this->pathLastVbapSpeakerSetup = this->pathCurrentFileSpeaker;
     }
 
@@ -1850,7 +1846,7 @@ void MainContentComponent::comboBoxChanged(ComboBox *comboBox) {
     if (this->comBoxModeSpat == comboBox) {
         this->jackClient->modeSelected = (ModeSpatEnum)(this->comBoxModeSpat->getSelectedId() - 1);
         switch (this->jackClient->modeSelected) {
-            case VBap:
+            case VBAP:
                 if (this->pathLastVbapSpeakerSetup != this->pathCurrentFileSpeaker) {
                     this->openXmlFileSpeaker(this->pathLastVbapSpeakerSetup);
                     result = 1;
@@ -1860,7 +1856,7 @@ void MainContentComponent::comboBoxChanged(ComboBox *comboBox) {
                 if (result)
                     this->isSpanShown = true;
                 break;
-            case LBap:
+            case LBAP:
                 if (this->pathLastVbapSpeakerSetup != this->pathCurrentFileSpeaker) {
                     this->openXmlFileSpeaker(this->pathLastVbapSpeakerSetup);
                     result = 1;
@@ -1870,7 +1866,7 @@ void MainContentComponent::comboBoxChanged(ComboBox *comboBox) {
                 if (result)
                     this->isSpanShown = false;
                 break;
-            case VBap_HRTF:
+            case VBAP_HRTF:
                 this->openXmlFileSpeaker(BinauralSpeakerSetupFilePath);
                 this->jackClient->resetHRTF();
                 result = this->updateLevelComp();

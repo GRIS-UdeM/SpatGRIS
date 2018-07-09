@@ -492,7 +492,7 @@ void WindowEditSpeaker::buttonClicked(Button *button) {
         this->mainParent->needToComputeVbap = true;
         this->tableListSpeakers.selectRow(this->getNumRows() - 1);
     } else if (button == this->pinkNoise) {
-        this->mainParent->getJackClient()->noiseSound = this->pinkNoise->getToggleState();
+        this->mainParent->getJackClient()->pinkNoiseSound = this->pinkNoise->getToggleState();
     } else if (button->getName() != "" && (button->getName().getIntValue() >= 0 &&
               (unsigned int)button->getName().getIntValue() <= this->mainParent->getListSpeaker().size())) {
         this->mainParent->removeSpeaker(button->getName().getIntValue());
@@ -580,7 +580,7 @@ void WindowEditSpeaker::closeButtonPressed() {
         }
     }
     if (exitV) {
-        this->mainParent->getJackClient()->noiseSound = false;
+        this->mainParent->getJackClient()->pinkNoiseSound = false;
         delete this;
     }
 }
@@ -878,7 +878,7 @@ WindowProperties::WindowProperties(const String& name, Colour backgroundColour, 
     this->cobRate = this->createPropComboBox(RateValues, indR, 120);
 
     this->labBuff = this->createPropLabel("Buffer Size (spls) :", Justification::left, 150);
-    this->cobBuffer = this->createPropComboBox(BufferSize, indB, 150);
+    this->cobBuffer = this->createPropComboBox(BufferSizes, indB, 150);
 
     this->recordingLabel = this->createPropLabel("Recording Settings", Justification::left, 190);
 
