@@ -215,7 +215,7 @@ Component * BoxClient::refreshComponentForCell(int rowNumber, int columnId, bool
      }
     
     if (columnId == 5) {
-        TextButton* tbRemove = static_cast<TextButton*> (existingComponentToUpdate);
+        TextButton *tbRemove = static_cast<TextButton*> (existingComponentToUpdate);
         if (tbRemove == nullptr) {
             tbRemove = new TextButton();
             tbRemove->setName(String(rowNumber));
@@ -746,7 +746,7 @@ int WindowEditSpeaker::getNumRows() {
 }
 
 // This is overloaded from TableListBoxModel, and should fill in the background of the whole row.
-void WindowEditSpeaker::paintRowBackground (Graphics& g, int rowNumber, int /*width*/, int /*height*/, bool rowIsSelected) {
+void WindowEditSpeaker::paintRowBackground(Graphics& g, int rowNumber, int /*width*/, int /*height*/, bool rowIsSelected) {
     if (rowIsSelected) {
         if (this->mainParent->getLockSpeakers()->try_lock()) {
             this->mainParent->getListSpeaker()[rowNumber]->selectSpeaker();
@@ -809,12 +809,14 @@ Component * WindowEditSpeaker::refreshComponentForCell(int rowNumber, int column
         tbRemove->setLookAndFeel(this->grisFeel);
         return tbRemove;
     }
+
     // The other columns are editable text columns, for which we use the custom Label component
     EditableTextCustomComponent *textLabel = static_cast<EditableTextCustomComponent *> (existingComponentToUpdate);
     if (textLabel == nullptr)
         textLabel = new EditableTextCustomComponent(*this);
     
-    textLabel->setRowAndColumn (rowNumber, columnId);
+    textLabel->setRowAndColumn(rowNumber, columnId);
+
     if (columnId == 1) {
         textLabel->setEditable(false);
     }
