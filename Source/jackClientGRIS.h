@@ -268,7 +268,7 @@ public:
     
     bool autoConnection; // not sure this one is necessary ?
 
-    // VBAL data.
+    // VBAP data.
     unsigned int vbapDimensions;
     vector<vector<int>> vbap_triplets;
     int vbapSourcesToUpdate[MaxInputs];

@@ -124,10 +124,12 @@ public:
     vector<Speaker *> getListSpeaker() { return this->listSpeaker; }
     mutex* getLockSpeakers() { return this->lockSpeakers; }
     Speaker * getSpeakerFromOutputPatch(int out);
-    void addSpeaker();
+    void addSpeaker(int sortColumnId = 1, bool isSortedForwards = true);
+    void insertSpeaker(int position, int sortColumnId, bool isSortedForwards);
     void removeSpeaker(int idSpeaker);
     void setDirectOut(int id, int chn);
     void reorderSpeakers(vector<int> newOrder);
+    int getMaxSpeakerId();
 
     // Sources.
     vector<Input *> getListSourceInput() { return this->listSourceInput; }

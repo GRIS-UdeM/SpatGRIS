@@ -450,17 +450,30 @@ void WindowEditSpeaker::initComp() {
 struct Sorter {
     int id;
     float value;
+    bool directout;
 };
 
 bool compareLessThan(const Sorter &a, const Sorter &b) {
-    if (a.value == b.value)
+    if (a.directout && b.directout)
+        return a.id < b.id;
+    else if (a.directout)
+        return false;
+    else if (b.directout)
+        return true;
+    else if (a.value == b.value)
         return a.id < b.id;
     else
         return a.value < b.value;
 }
 
 bool compareGreaterThan(const Sorter &a, const Sorter &b) {
-    if (a.value == b.value)
+    if (a.directout && b.directout)
+        return a.id > b.id;
+    else if (a.directout)
+        return false;
+    else if (b.directout)
+        return true;
+    else if (a.value == b.value)
         return a.id > b.id;
     else
         return a.value > b.value;
@@ -472,6 +485,7 @@ void WindowEditSpeaker::sortOrderChanged(int newSortColumnId, bool isForwards) {
 
     for (unsigned int i = 0; i < size; i++) {
         tosort[i].id = this->mainParent->getListSpeaker()[i]->getIdSpeaker();
+        tosort[i].directout = this->mainParent->getListSpeaker()[i]->getDirectOut();
         switch (newSortColumnId) {
             case 1:
                 tosort[i].value = (float)this->mainParent->getListSpeaker()[i]->getIdSpeaker();
@@ -523,21 +537,40 @@ void WindowEditSpeaker::sliderValueChanged(Slider *slider) {
 
 void WindowEditSpeaker::buttonClicked(Button *button) {
     bool tripletState = this->mainParent->isTripletsShown;
+    int selectedRow = this->tableListSpeakers.getSelectedRow();
+    int sortColumnId = this->tableListSpeakers.getHeader().getSortColumnId();
+    bool sortedForwards = this->tableListSpeakers.getHeader().isSortedForwards();
+
     this->mainParent->setShowTriplets(false);
+
     if (button == this->butAddSpeaker) {
-        this->mainParent->addSpeaker();
-        updateWinContent();
+        if (selectedRow == -1 || selectedRow == (this->numRows-1)) {
+            this->mainParent->addSpeaker(sortColumnId, sortedForwards);
+            this->tableListSpeakers.selectRow(this->getNumRows() - 1);
+        } else {
+            this->mainParent->insertSpeaker(selectedRow, sortColumnId, sortedForwards);
+            this->tableListSpeakers.selectRow(selectedRow + 1);
+        }
+        this->updateWinContent();
+        this->tableListSpeakers.getHeader().setSortColumnId(sortColumnId, sortedForwards);
         this->mainParent->needToComputeVbap = true;
-        this->tableListSpeakers.selectRow(this->getNumRows() - 1);
     } else if (button == this->butcompSpeakers) {
         if (this->mainParent->updateLevelComp()) {
-            if (tripletState) {
-                this->mainParent->setShowTriplets(true);
-            }
+            this->mainParent->setShowTriplets(tripletState);
         }
     } else if (button == this->butAddRing) {
         for (int i = 0; i < this->rNumOfSpeakers->getText().getIntValue(); i++) {
-            this->mainParent->addSpeaker();
+            if (selectedRow == -1 || selectedRow == (this->numRows-1)) {
+                this->mainParent->addSpeaker(sortColumnId, sortedForwards);
+                this->numRows = this->mainParent->getListSpeaker().size();
+                selectedRow = this->numRows - 1;
+            } else {
+                this->mainParent->insertSpeaker(selectedRow, sortColumnId, sortedForwards);
+                selectedRow += 1;
+                this->numRows = this->mainParent->getListSpeaker().size();
+
+            }
+
             float azimuth = 360.0f / this->rNumOfSpeakers->getText().getIntValue() * i + this->rOffsetAngle->getText().getFloatValue();
             if (azimuth > 360.0f) {
                 azimuth -= 360.0f;
@@ -546,12 +579,12 @@ void WindowEditSpeaker::buttonClicked(Button *button) {
             }
             float zenith = this->rZenith->getText().getFloatValue();
             float radius = this->rRadius->getText().getFloatValue();
-            this->mainParent->getListSpeaker().back()->setAziZenRad(glm::vec3(azimuth, zenith, radius));
-            
+            this->mainParent->getListSpeaker()[selectedRow]->setAziZenRad(glm::vec3(azimuth, zenith, radius));
         }
-        updateWinContent();
+        this->updateWinContent();
+        this->tableListSpeakers.getHeader().setSortColumnId(sortColumnId, sortedForwards); // FIXME: does not work ?
         this->mainParent->needToComputeVbap = true;
-        this->tableListSpeakers.selectRow(this->getNumRows() - 1);
+        this->tableListSpeakers.selectRow(selectedRow);
     } else if (button == this->pinkNoise) {
         this->mainParent->getJackClient()->pinkNoiseSound = this->pinkNoise->getToggleState();
     } else if (button->getName() != "" && (button->getName().getIntValue() >= 0 &&
@@ -717,7 +750,7 @@ String WindowEditSpeaker::getText(const int columnNumber, const int rowNumber) c
 }
 
 void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, const String& newText) {
-    int ival, oldval;
+    int ival;
     float val;
     if (this->mainParent->getLockSpeakers()->try_lock()) {
         if (this->mainParent->getListSpeaker().size() > (unsigned int)rowNumber) {
@@ -758,24 +791,9 @@ void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, con
                     break;
                 case 8:
                     this->mainParent->setShowTriplets(false);
-                    oldval = this->mainParent->getListSpeaker()[rowNumber]->getOutputPatch();
                     ival = newText.getIntValue();
-                    if (ival < 0) {
-                        ival = 0;
-                    } else if (ival > 256) {
-                        ival = 256;
-                    }
-                    for (auto&& it : this->mainParent->getListSpeaker()) {
-                        if (it->getOutputPatch() == ival) {
-                            ScopedPointer<AlertWindow> alert = new AlertWindow("Wrong output patch!    ",
-                                                                               "Sorry! Output patch number " + String(ival) + " is already used.", 
-                                                                               AlertWindow::WarningIcon);
-                            alert->setLookAndFeel(this->grisFeel);
-                            alert->addButton("OK", 0);
-                            alert->runModalLoop();
-                            ival = oldval;
-                        }
-                    }
+                    if (ival < 0) { ival = 0; } 
+                    else if (ival > 256) { ival = 256; }
                     this->mainParent->getListSpeaker()[rowNumber]->setOutputPatch(ival);
                     break;
                 case 9:

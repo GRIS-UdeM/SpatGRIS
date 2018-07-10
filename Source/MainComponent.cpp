@@ -1031,20 +1031,73 @@ void MainContentComponent::reorderSpeakers(vector<int> newOrder) {
     this->lockSpeakers->unlock();
 }
 
-void MainContentComponent::addSpeaker() {
+int MainContentComponent::getMaxSpeakerId() {
+    int maxId = 0;
+    for (auto&& it : this->listSpeaker) {
+        if (it->getIdSpeaker() > maxId)
+            maxId = it->getIdSpeaker();
+    }
+    return maxId;
+}
+
+void MainContentComponent::addSpeaker(int sortColumnId, bool isSortedForwards) {
+    int maxId = this->getMaxSpeakerId();
+    int newId = maxId + 1;
+
     this->lockSpeakers->lock();
-    unsigned int idNewSpeaker = (unsigned int)listSpeaker.size() + 1;
-    this->listSpeaker.push_back(new Speaker(this, idNewSpeaker, idNewSpeaker, glm::vec3(0.0f, 0.0f, 10.0f)));
+    this->listSpeaker.push_back(new Speaker(this, newId, newId, glm::vec3(0.0f, 0.0f, 10.0f)));
+
+    if (sortColumnId == 1 && isSortedForwards) {
+        for (unsigned int i = 0; i < this->listSpeaker.size(); i++) {
+            this->listSpeaker[i]->setSpeakerId(i + 1);
+        }
+    } else if (sortColumnId == 1 && ! isSortedForwards) {
+        for (unsigned int i = 0; i < this->listSpeaker.size(); i++) {
+            this->listSpeaker[i]->setSpeakerId(this->listSpeaker.size() - i);
+        }
+    }
     this->lockSpeakers->unlock();
-    this->jackClient->addOutput(idNewSpeaker);
+
+    this->jackClient->addOutput(this->listSpeaker.back()->getOutputPatch());
+}
+
+void MainContentComponent::insertSpeaker(int position, int sortColumnId, bool isSortedForwards) {
+    int newPosition = position + 1;
+    int maxId = this->getMaxSpeakerId();
+    int newId = maxId + 1;
+
+    this->lockSpeakers->lock();
+    if (sortColumnId == 1 && isSortedForwards) {
+        newId = this->listSpeaker[position]->getIdSpeaker() + 1;
+        this->listSpeaker.emplace(this->listSpeaker.begin() + newPosition,
+                                  new Speaker(this, newId, newId, glm::vec3(0.0f, 0.0f, 10.0f)));
+        for (unsigned int i = 0; i < this->listSpeaker.size(); i++) {
+            this->listSpeaker[i]->setSpeakerId(i + 1);
+        }
+    } else if (sortColumnId == 1 && ! isSortedForwards) {
+        newId = this->listSpeaker[position]->getIdSpeaker() - 1;;
+        this->listSpeaker.emplace(this->listSpeaker.begin() + newPosition,
+                                  new Speaker(this, newId, newId, glm::vec3(0.0f, 0.0f, 10.0f)));
+        for (unsigned int i = 0; i < this->listSpeaker.size(); i++) {
+            this->listSpeaker[i]->setSpeakerId(this->listSpeaker.size() - i);
+        }
+    } else {
+        this->listSpeaker.emplace(this->listSpeaker.begin() + newPosition,
+                                  new Speaker(this, newId, newId, glm::vec3(0.0f, 0.0f, 10.0f)));
+    }
+    this->lockSpeakers->unlock();
+
+    this->jackClient->clearOutput();
+    for (auto&& it : this->listSpeaker) {
+        this->jackClient->addOutput(it->getOutputPatch());
+    }
 }
 
 void MainContentComponent::removeSpeaker(int idSpeaker) {
     this->jackClient->removeOutput(idSpeaker);
     this->lockSpeakers->lock();
     int index = 0;
-    for (auto&& it : this->listSpeaker)
-    {
+    for (auto&& it : this->listSpeaker) {
         if (index == idSpeaker) {
             delete (it);
             this->listSpeaker.erase(this->listSpeaker.begin() + idSpeaker);
@@ -1057,7 +1110,7 @@ void MainContentComponent::removeSpeaker(int idSpeaker) {
 void MainContentComponent::updateInputJack(int inInput, Input &inp) {
     SourceIn *si = &this->jackClient->listSourceIn[inInput];
 
-    // Do we really need to compute x, y, z ?
+    // ASK: Do we really need to compute x, y, z ?
     si->x = inp.getCenter().x / 10.0f;
     si->y = inp.getCenter().y / 10.0f;
     si->z = inp.getCenter().z / 10.0f;
@@ -1136,7 +1189,7 @@ bool MainContentComponent::updateLevelComp() {
     if (this->listSpeaker.size() == 0)
         return false;
 
-    // Test for a 2-D or 3-D configuration
+    // Test for a 2-D or 3-D configuration.
     float zenith = -1.0f;
     for (auto&& it : this->listSpeaker) {
         if (it->getDirectOut()) {
@@ -1163,6 +1216,27 @@ bool MainContentComponent::updateLevelComp() {
             this->openXmlFileSpeaker(this->pathCurrentFileSpeaker);
         }
         return false;
+    }
+
+    // Test for duplicated output patch.
+    vector<int> tempout(this->listSpeaker.size());
+    for (unsigned int i = 0; i < this->listSpeaker.size(); i++) {
+        tempout[i] = this->listSpeaker[i]->getOutputPatch();
+    }
+    std::sort(tempout.begin(), tempout.end());
+    for (unsigned int i = 0; i < tempout.size() - 1; i++) {
+        if (tempout[i] == tempout[i + 1]) {
+            ScopedPointer<AlertWindow> alert = new AlertWindow ("Duplicated Output Numbers!    ",
+                                                                "Some output numbers are used more than once. Do you want to continue anyway?    ", 
+                                                                AlertWindow::WarningIcon);
+            alert->setLookAndFeel(&mGrisFeel);
+            alert->addButton ("No", 0);
+            alert->addButton ("Yes", 1);
+            if (! alert->runModalLoop()) {
+                return false;
+            }
+            break;
+        }
     }
 
     this->jackClient->processBlockOn = false;

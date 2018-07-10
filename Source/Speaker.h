@@ -86,6 +86,7 @@ public:
 
     // Normalized for user
     void setBounds(const Rectangle<int> &newBounds);
+    void setSpeakerId(int id) { this->idSpeaker = id; };
     int getIdSpeaker() const;
     glm::vec3 getCoordinate();
     glm::vec3 getAziZenRad();
