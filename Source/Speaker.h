@@ -74,7 +74,8 @@ public:
     void unSelectSpeaker();
     
     // ParentLevelComponent
-    int getId(){ return this->outputPatch; }; // FIXME: This is wrong...
+    int getId() { return -1; } // Should not be used, use getIdSpeaker() instead.
+    int getButtonInOutNumber() { return this->outputPatch; };
     float getLevel();
     float getAlpha();
     void setMuted(bool mute);
@@ -83,7 +84,7 @@ public:
     void selectClick(bool select = true);
     LevelComponent * getVuMeter(){ return this->vuMeter; }
 
-    // Normalize for user
+    // Normalized for user
     void setBounds(const Rectangle<int> &newBounds);
     int getIdSpeaker() const;
     glm::vec3 getCoordinate();

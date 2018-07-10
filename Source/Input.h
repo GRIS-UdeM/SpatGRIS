@@ -53,13 +53,14 @@ public :
     ~Input();
     
     // ParentLevelComponent
-    int getId(){ return this->idChannel ;};
+    int getId() { return this->idChannel; };
+    int getButtonInOutNumber() { return this->idChannel; };
     float getLevel();
     void setMuted(bool mute);
     void setSolo(bool solo);
     void setColor(Colour color, bool updateLevel = false);
     void selectClick(bool select = true){};
-    LevelComponent * getVuMeter(){ return this->vuMeter; }
+    LevelComponent * getVuMeter() { return this->vuMeter; }
 
     void resetPosition();
 
@@ -69,15 +70,15 @@ public :
     Colour    getColorJ();
     Colour    getColorJWithAlpha();
     float getAlpha();
-    float getAziMuth(){ return this->azimuth; }
-    float getZenith(){ return this->zenith; }
-    float getRad(){ return this->radius; }
-    float getDepth(){ return this->depth; }
+    float getAziMuth() { return this->azimuth; }
+    float getZenith() { return this->zenith; }
+    float getRad() { return this->radius; }
+    float getDepth() { return this->depth; }
 
     glm::vec3 polToCar(float azimuth, float zenith);
     
-    float getAziMuthSpan(){ return this->azimSpan; }
-    float getZenithSpan(){ return this->zeniSpan; }
+    float getAziMuthSpan() { return this->azimSpan; }
+    float getZenithSpan() { return this->zeniSpan; }
 
     float getGain() { return this->gain; }
     
@@ -114,7 +115,7 @@ private:
     Colour colorJ;
     
     LevelComponent *vuMeter;
-    SmallTextGrisLookAndFeel * grisFeel;
+    SmallTextGrisLookAndFeel *grisFeel;
 };
 
 #endif /* INPUT_H */

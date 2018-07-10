@@ -96,7 +96,7 @@ void LevelBox::paint(Graphics& g) {
 }
 
 //======================== LevelComponent ===========================
-LevelComponent::LevelComponent(ParentLevelComponent* parent, SmallTextGrisLookAndFeel *feel, bool colorful)
+LevelComponent::LevelComponent(ParentLevelComponent *parent, SmallTextGrisLookAndFeel *feel, bool colorful)
 {
     this->mainParent = parent;
     this->grisFeel = feel;
@@ -104,8 +104,7 @@ LevelComponent::LevelComponent(ParentLevelComponent* parent, SmallTextGrisLookAn
     
     // Label
     this->idBut = new TextButton();
-    this->idBut->setButtonText(String(this->mainParent->getId()));
-    this->idBut->setTooltip(String(this->mainParent->getId()));
+    this->idBut->setButtonText(String(this->mainParent->getButtonInOutNumber()));
     this->idBut->setSize(22, 17);
     this->idBut->setTopLeftPosition(0, 0);
     this->idBut->setColour(Label::textColourId, this->grisFeel->getFontColour());
@@ -121,7 +120,6 @@ LevelComponent::LevelComponent(ParentLevelComponent* parent, SmallTextGrisLookAn
     this->muteToggleBut = new ToggleButton();
     this->muteToggleBut->setButtonText("m");
     this->muteToggleBut->setSize(13, 15);
-    this->muteToggleBut->setTooltip("Mute " + String(this->mainParent->getId()));
     this->muteToggleBut->addListener(this);
     this->muteToggleBut->setToggleState(false, dontSendNotification);
     this->muteToggleBut->setLookAndFeel(this->grisFeel);
@@ -132,7 +130,6 @@ LevelComponent::LevelComponent(ParentLevelComponent* parent, SmallTextGrisLookAn
     this->soloToggleBut = new ToggleButton();
     this->soloToggleBut->setButtonText("s");
     this->soloToggleBut->setSize(13, 15);
-    this->soloToggleBut->setTooltip("Solo " + String(this->mainParent->getId()));
     this->soloToggleBut->addListener(this);
     this->soloToggleBut->setToggleState(false, dontSendNotification);
     this->soloToggleBut->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
@@ -144,7 +141,6 @@ LevelComponent::LevelComponent(ParentLevelComponent* parent, SmallTextGrisLookAn
     if (this->mainParent->isInput()) {
         this->directOut = new TextButton();
         this->directOut->setButtonText("-");
-        this->directOut->setTooltip("Select a direct output channel.");
         this->directOut->setSize(22, 17);
         this->directOut->setColour(Label::textColourId, this->grisFeel->getFontColour());
         this->directOut->setLookAndFeel(this->grisFeel);
@@ -238,14 +234,14 @@ void LevelComponent::mouseDown(const MouseEvent& e) {
     }
 }
 
-void LevelComponent::changeListenerCallback (ChangeBroadcaster* source) {
-    if (ColourSelector* cs = dynamic_cast<ColourSelector*> (source)){
+void LevelComponent::changeListenerCallback(ChangeBroadcaster* source) {
+    if (ColourSelector *cs = dynamic_cast<ColourSelector *> (source)) {
         this->idBut->setColour(TextButton::buttonColourId, cs->getCurrentColour());
         this->mainParent->setColor(cs->getCurrentColour());
         if (this->lastMouseButton == 0) {
-            Input * input = dynamic_cast<Input *>(this->mainParent);
+            Input *input = dynamic_cast<Input *> (this->mainParent);
             for (auto&& it : input->mainParent->getListSourceInput()) {
-                if (it->getId() == (this->mainParent->getId()+1)) {
+                if (it->getId() == (this->mainParent->getId() + 1)) {
                     it->setColor(cs->getCurrentColour(), true);
                 }
             }

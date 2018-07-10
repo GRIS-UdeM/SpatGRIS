@@ -25,6 +25,7 @@ class LevelComponent;
 class ParentLevelComponent {
 public:
     virtual int getId() = 0;
+    virtual int getButtonInOutNumber() = 0;
     virtual bool isInput() = 0;
     virtual float getLevel() = 0;
     virtual void setMuted(bool mute) = 0;
