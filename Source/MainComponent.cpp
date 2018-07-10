@@ -1011,6 +1011,26 @@ bool MainContentComponent::tripletExist(Triplet tri, int &pos) {
     return false;
 }
 
+void MainContentComponent::reorderSpeakers(vector<int> newOrder) {
+    unsigned int size = this->listSpeaker.size();
+
+    vector<Speaker *> tempListSpeaker(size);
+    for (unsigned int i = 0; i < size; i++) {
+        for (auto&& it : this->listSpeaker) {
+            if (it->getIdSpeaker() == newOrder[i]) {
+                tempListSpeaker[i] = it;
+                break;
+            }
+        }
+    }
+
+    this->lockSpeakers->lock();
+    for (unsigned int i = 0; i < size; i++) {
+        this->listSpeaker[i] = tempListSpeaker[i];
+    }
+    this->lockSpeakers->unlock();
+}
+
 void MainContentComponent::addSpeaker() {
     this->lockSpeakers->lock();
     unsigned int idNewSpeaker = (unsigned int)listSpeaker.size() + 1;

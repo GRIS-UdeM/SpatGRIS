@@ -79,7 +79,7 @@ void Speaker::setSolo(bool solo) {
 
 void Speaker::setColor(Colour color, bool updateLevel) {}
 
-int Speaker::getIdSpeaker() {
+int Speaker::getIdSpeaker() const {
     return this->idSpeaker;
 }
 
@@ -99,7 +99,7 @@ void Speaker::setAziZenRad(glm::vec3 value) {
     this->newSpheriqueCoord(value);
 }
 
-int Speaker::getOutputPatch() {
+int Speaker::getOutputPatch() const {
     return this->outputPatch;
 }
 

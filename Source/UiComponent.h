@@ -139,7 +139,7 @@ public:
     void textEditorReturnKeyPressed(TextEditor &textEditor) override;
     void closeButtonPressed() override;
     void sliderValueChanged (Slider *slider) override;
-    //void sortOrderChanged(int newSortColumnId, bool isForwards) override;
+    void sortOrderChanged(int newSortColumnId, bool isForwards) override;
     void resized() override;
 
     String getText(const int columnNumber, const int rowNumber) const;

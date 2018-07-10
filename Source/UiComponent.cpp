@@ -17,10 +17,13 @@
  along with ServerGris.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <algorithm>
+
 #include "ServerGrisConstants.h"
 #include "UiComponent.h"
 #include "LevelComponent.h"
 #include "MainComponent.h"
+#include "Speaker.h"
 
 static double GetFloatPrecision(double value, double precision) {
     return (floor((value * pow(10, precision) + 0.5)) / pow(10, precision));
@@ -422,10 +425,10 @@ void WindowEditSpeaker::initComp() {
     tableListSpeakers.getHeader().addColumn("Zenith", 6, 70, 50, 120, TableHeaderComponent::defaultFlags);
     tableListSpeakers.getHeader().addColumn("Radius", 7, 70, 50, 120, TableHeaderComponent::defaultFlags);
     tableListSpeakers.getHeader().addColumn("Output", 8, 70, 50, 120, TableHeaderComponent::defaultFlags);
-    tableListSpeakers.getHeader().addColumn("Gain (dB)", 9, 70, 50, 120, TableHeaderComponent::defaultFlags);
-    tableListSpeakers.getHeader().addColumn("Highpass", 10, 70, 50, 120, TableHeaderComponent::defaultFlags);
-    tableListSpeakers.getHeader().addColumn("Direct", 11, 70, 50, 120, TableHeaderComponent::defaultFlags);
-    tableListSpeakers.getHeader().addColumn("delete", 12, 70, 50, 120, TableHeaderComponent::defaultFlags);
+    tableListSpeakers.getHeader().addColumn("Gain (dB)", 9, 70, 50, 120, TableHeaderComponent::notSortable);
+    tableListSpeakers.getHeader().addColumn("Highpass", 10, 70, 50, 120, TableHeaderComponent::notSortable);
+    tableListSpeakers.getHeader().addColumn("Direct", 11, 70, 50, 120, TableHeaderComponent::notSortable);
+    tableListSpeakers.getHeader().addColumn("delete", 12, 70, 50, 120, TableHeaderComponent::notSortable);
     
     tableListSpeakers.getHeader().setSortColumnId(1, true); // Sort forwards by the ID column.
     
@@ -444,13 +447,71 @@ void WindowEditSpeaker::initComp() {
     this->resized();
 }
 
-/*
-void WindowEditSpeaker::sortOrderChanged(int newSortColumnId, bool isForwards) {
-    tableListSpeakers.getHeader().setSortColumnId(newSortColumnId, isForwards);
-    tableListSpeakers.getHeader().reSortTable();
-    tableListSpeakers.updateContent();
+struct Sorter {
+    int id;
+    float value;
+};
+
+bool compareLessThan(const Sorter &a, const Sorter &b) {
+    if (a.value == b.value)
+        return a.id < b.id;
+    else
+        return a.value < b.value;
 }
-*/
+
+bool compareGreaterThan(const Sorter &a, const Sorter &b) {
+    if (a.value == b.value)
+        return a.id > b.id;
+    else
+        return a.value > b.value;
+}
+
+void WindowEditSpeaker::sortOrderChanged(int newSortColumnId, bool isForwards) {
+    unsigned int size = this->mainParent->getListSpeaker().size();
+    struct Sorter tosort[size];
+
+    for (unsigned int i = 0; i < size; i++) {
+        tosort[i].id = this->mainParent->getListSpeaker()[i]->getIdSpeaker();
+        switch (newSortColumnId) {
+            case 1:
+                tosort[i].value = (float)this->mainParent->getListSpeaker()[i]->getIdSpeaker();
+                break;
+            case 2:
+                tosort[i].value = (float)this->mainParent->getListSpeaker()[i]->getCoordinate().x;
+                break;
+            case 3:
+                tosort[i].value = (float)this->mainParent->getListSpeaker()[i]->getCoordinate().z;
+                break;
+            case 4:
+                tosort[i].value = (float)this->mainParent->getListSpeaker()[i]->getCoordinate().y;
+                break;
+            case 5:
+                tosort[i].value = (float)this->mainParent->getListSpeaker()[i]->getAziZenRad().x;
+                break;
+            case 6:
+                tosort[i].value = (float)this->mainParent->getListSpeaker()[i]->getAziZenRad().y;
+                break;
+            case 7:
+                tosort[i].value = (float)this->mainParent->getListSpeaker()[i]->getAziZenRad().z;
+                break;
+            case 8:
+                tosort[i].value = (float)this->mainParent->getListSpeaker()[i]->getOutputPatch();
+                break;
+        }
+    }
+    if (isForwards) {
+        std::sort(tosort, tosort + size, compareLessThan);
+    } else {
+        std::sort(tosort, tosort + size, compareGreaterThan);
+    }
+
+    vector<int> newOrder(size);
+    for (unsigned int i = 0; i < size; i++) {
+        newOrder[i] = tosort[i].id;
+    }
+    this->mainParent->reorderSpeakers(newOrder);
+    updateWinContent();
+}
 
 void WindowEditSpeaker::sliderValueChanged(Slider *slider) {
     float gain;
@@ -783,8 +844,7 @@ void WindowEditSpeaker::paintCell(Graphics& g, int rowNumber, int columnId, int 
 }
 
 Component * WindowEditSpeaker::refreshComponentForCell(int rowNumber, int columnId, bool /*isRowSelected*/,
-                                                       Component *existingComponentToUpdate)
-{
+                                                       Component *existingComponentToUpdate) {
     if (columnId == 11) {
         ToggleButton *tbDirect = static_cast<ToggleButton *> (existingComponentToUpdate);
         if (tbDirect == nullptr)

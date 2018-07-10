@@ -74,7 +74,7 @@ public:
     void unSelectSpeaker();
     
     // ParentLevelComponent
-    int getId(){ return this->outputPatch; };
+    int getId(){ return this->outputPatch; }; // FIXME: This is wrong...
     float getLevel();
     float getAlpha();
     void setMuted(bool mute);
@@ -85,12 +85,12 @@ public:
 
     // Normalize for user
     void setBounds(const Rectangle<int> &newBounds);
-    int getIdSpeaker();
+    int getIdSpeaker() const;
     glm::vec3 getCoordinate();
     glm::vec3 getAziZenRad();
     void setCoordinate(glm::vec3 value);
     void setAziZenRad(glm::vec3 value);
-    int getOutputPatch();
+    int getOutputPatch() const;
     void setOutputPatch(int value);
     void setGain(float value);
     float getGain();

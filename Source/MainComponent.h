@@ -127,6 +127,7 @@ public:
     void addSpeaker();
     void removeSpeaker(int idSpeaker);
     void setDirectOut(int id, int chn);
+    void reorderSpeakers(vector<int> newOrder);
 
     // Sources.
     vector<Input *> getListSourceInput() { return this->listSourceInput; }
