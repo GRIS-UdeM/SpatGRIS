@@ -1108,10 +1108,8 @@ void MainContentComponent::insertSpeaker(int position, int sortColumnId, bool is
 }
 
 void MainContentComponent::removeSpeaker(int idSpeaker) {
-    cout << "isSpeaker: " << idSpeaker << endl;
     this->jackClient->removeOutput(idSpeaker);
     this->lockSpeakers->lock();
-    cout << "list size: " << this->listSpeaker.size() << endl;
     int index = 0;
     for (auto&& it : this->listSpeaker) {
         if (index == idSpeaker) {
