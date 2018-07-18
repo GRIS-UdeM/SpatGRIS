@@ -254,7 +254,7 @@ static void processLBAP(jackClientGris &jackCli, jack_default_audio_sample_t **i
             lbap_pos_init_from_degrees(&pos,
                                        jackCli.listSourceIn[i].azimuth,
                                        jackCli.listSourceIn[i].zenith,
-                                       jackCli.listSourceIn[i].depth);
+                                       jackCli.listSourceIn[i].radius);
             pos.azispan = jackCli.listSourceIn[i].aziSpan;
             if (!lbap_pos_compare(&pos, &jackCli.listSourceIn[i].lbap_last_pos)) {
                 lbap_field_compute(jackCli.lbap_speaker_field, &pos, jackCli.listSourceIn[i].lbap_gains);
@@ -869,8 +869,6 @@ void jackClientGris::removeOutput(int number) {
 }
 
 void jackClientGris::connectedGristoSystem() {
-    this->processBlockOn = false;
-
     String nameOut;
     this->clearOutput();
     for (unsigned int i = 0; i < this->maxOutputPatch; i++) {
@@ -929,8 +927,6 @@ void jackClientGris::connectedGristoSystem() {
 
     jack_free(portsIn);
     jack_free(portsOut);
-
-    this->processBlockOn = true;
 }
 
 bool jackClientGris::initSpeakersTripplet(vector<Speaker *>  listSpk,
@@ -939,8 +935,6 @@ bool jackClientGris::initSpeakersTripplet(vector<Speaker *>  listSpk,
     if (listSpk.size() <= 0) {
         return false;
     }
-
-    this->processBlockOn = false;
 
     ls lss[MAX_LS_AMOUNT];
     int outputPatches[MAX_LS_AMOUNT];
@@ -956,7 +950,7 @@ bool jackClientGris::initSpeakersTripplet(vector<Speaker *>  listSpk,
         lss[i].coords.z = listSpeakerOut[j].z;
         lss[i].angles.azi = listSpeakerOut[j].azimuth;
         lss[i].angles.ele = listSpeakerOut[j].zenith;
-        lss[i].angles.length = listSpeakerOut[j].radius;
+        lss[i].angles.length = listSpeakerOut[j].radius; // Always 1.0 for VBAP.
         outputPatches[i] = listSpeakerOut[j].outputPatch;
     }
 
@@ -988,7 +982,6 @@ bool jackClientGris::initSpeakersTripplet(vector<Speaker *>  listSpk,
 
     this->connectedGristoSystem();
 
-    this->processBlockOn = true;
     return true;
 }
 
@@ -997,8 +990,6 @@ bool jackClientGris::lbapSetupSpeakerField(vector<Speaker *>  listSpk) {
     if (listSpk.size() <= 0) {
         return false;
     }
-
-    this->processBlockOn = false;
 
     float azimuth[listSpk.size()];
     float elevation[listSpk.size()];
@@ -1026,7 +1017,6 @@ bool jackClientGris::lbapSetupSpeakerField(vector<Speaker *>  listSpk) {
 
     this->connectedGristoSystem();
 
-    this->processBlockOn = true;
     return true;
 }
 

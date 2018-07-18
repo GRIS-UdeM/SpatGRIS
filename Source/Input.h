@@ -72,8 +72,7 @@ public :
     float getAlpha();
     float getAziMuth() { return this->azimuth; }
     float getZenith() { return this->zenith; }
-    float getRad() { return this->radius; }
-    float getDepth() { return this->depth; }
+    float getRadius() { return this->radius; }
 
     glm::vec3 polToCar(float azimuth, float zenith);
     
@@ -83,7 +82,7 @@ public :
     float getGain() { return this->gain; }
     
     void draw();
-    void updateValues(float az, float ze, float azS, float zeS, float depth, float g);
+    void updateValues(float az, float ze, float azS, float zeS, float radius, float g);
     void updateValuesOld(float az, float ze, float azS, float zeS, float g);
 
     bool isInput() { return true; }
@@ -103,7 +102,6 @@ private:
     float azimuth;
     float zenith;
     float radius;
-    float depth;
     
     float azimSpan;
     float zeniSpan;

@@ -434,17 +434,27 @@ void WindowEditSpeaker::initComp() {
     
     tableListSpeakers.setMultipleSelectionEnabled(false);
 
+    if (this->mainParent->getJackClient()->modeSelected == VBAP || this->mainParent->getJackClient()->modeSelected == VBAP_HRTF) {
+        tableListSpeakers.getHeader().setColumnVisible(7, false);
+    } else {
+        tableListSpeakers.getHeader().setColumnVisible(7, true);
+    }
+
     numRows = (unsigned int)this->mainParent->getListSpeaker().size();
 
     this->boxListSpeaker->setBounds(0, 0, getWidth(), getHeight());
     this->boxListSpeaker->correctSize(getWidth() - 8, getHeight());
     tableListSpeakers.setSize(getWidth(), 400);
-    
+
     tableListSpeakers.updateContent();
     
     this->boxListSpeaker->repaint();
     this->boxListSpeaker->resized();
     this->resized();
+}
+
+void WindowEditSpeaker::setRadiusColumnVisible(bool visible) {
+    tableListSpeakers.getHeader().setColumnVisible(7, visible);
 }
 
 struct Sorter {
@@ -544,14 +554,15 @@ void WindowEditSpeaker::buttonClicked(Button *button) {
     this->mainParent->setShowTriplets(false);
 
     if (button == this->butAddSpeaker) {
-        if (selectedRow == -1 || selectedRow == (this->numRows-1)) {
+        if (selectedRow == -1 || selectedRow == (this->numRows - 1)) {
             this->mainParent->addSpeaker(sortColumnId, sortedForwards);
+            this->updateWinContent();
             this->tableListSpeakers.selectRow(this->getNumRows() - 1);
         } else {
             this->mainParent->insertSpeaker(selectedRow, sortColumnId, sortedForwards);
+            this->updateWinContent();
             this->tableListSpeakers.selectRow(selectedRow + 1);
         }
-        this->updateWinContent();
         this->tableListSpeakers.getHeader().setSortColumnId(sortColumnId, sortedForwards);
         this->mainParent->needToComputeVbap = true;
     } else if (button == this->butcompSpeakers) {
@@ -756,21 +767,6 @@ void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, con
         if (this->mainParent->getListSpeaker().size() > (unsigned int)rowNumber) {
             glm::vec3 newP;
             switch (columnNumber) {
-                case 2:
-                    newP = this->mainParent->getListSpeaker()[rowNumber]->getCoordinate();
-                    newP.x = GetFloatPrecision(newText.getFloatValue(), 3);
-                    this->mainParent->getListSpeaker()[rowNumber]->setCoordinate(newP);
-                    break;
-                case 3:
-                    newP = this->mainParent->getListSpeaker()[rowNumber]->getCoordinate();
-                    newP.z = GetFloatPrecision(newText.getFloatValue(), 3);
-                    this->mainParent->getListSpeaker()[rowNumber]->setCoordinate(newP);
-                    break;
-                case 4:
-                    newP = this->mainParent->getListSpeaker()[rowNumber]->getCoordinate();
-                    newP.y = GetFloatPrecision(newText.getFloatValue(), 3);
-                    this->mainParent->getListSpeaker()[rowNumber]->setCoordinate(newP);
-                    break;
                 case 5:
                     newP = this->mainParent->getListSpeaker()[rowNumber]->getAziZenRad();
                     newP.x = GetFloatPrecision(newText.getFloatValue(), 2);
@@ -867,7 +863,7 @@ Component * WindowEditSpeaker::refreshComponentForCell(int rowNumber, int column
         ToggleButton *tbDirect = static_cast<ToggleButton *> (existingComponentToUpdate);
         if (tbDirect == nullptr)
             tbDirect = new ToggleButton();
-        tbDirect->setName(String(rowNumber  + 1000));
+        tbDirect->setName(String(rowNumber + 1000));
         tbDirect->setClickingTogglesState(true);
         tbDirect->setBounds(4, 404, 88, 22);
         tbDirect->addListener(this);
@@ -895,7 +891,7 @@ Component * WindowEditSpeaker::refreshComponentForCell(int rowNumber, int column
     
     textLabel->setRowAndColumn(rowNumber, columnId);
 
-    if (columnId == 1) {
+    if (columnId < 5) {
         textLabel->setEditable(false);
     }
     return textLabel;

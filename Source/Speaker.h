@@ -62,11 +62,9 @@ static const float Over = 0.02f;
 class Speaker : public ParentLevelComponent
 {
 public:
-    
     Speaker(MainContentComponent *parent = nullptr, int idS = 1);
-    Speaker(MainContentComponent *parent = nullptr, int idS = -1,
-            int outP = -1, glm::vec3 center = DefaultCenter,
-            glm::vec3 extents = SizeSpeaker);
+    Speaker(MainContentComponent *parent = nullptr, int idS = -1, int outP = -1,
+            float azimuth = 0.0f, float zenith = 0.0f, float radius = 1.0f);
     ~Speaker();
     
     bool isSelected();
@@ -82,7 +80,7 @@ public:
     void setSolo(bool solo);
     void setColor(Colour color, bool updateLevel = false);
     void selectClick(bool select = true);
-    LevelComponent * getVuMeter(){ return this->vuMeter; }
+    LevelComponent * getVuMeter() { return this->vuMeter; }
 
     // Normalized for user
     void setBounds(const Rectangle<int> &newBounds);
@@ -90,7 +88,7 @@ public:
     int getIdSpeaker() const;
     glm::vec3 getCoordinate();
     glm::vec3 getAziZenRad();
-    void setCoordinate(glm::vec3 value);
+    void normalizeRadius();
     void setAziZenRad(glm::vec3 value);
     int getOutputPatch() const;
     void setOutputPatch(int value);
@@ -120,8 +118,7 @@ public:
     int idSpeaker = -1;
     int outputPatch = -1;
     
-private :
-
+private:
     void newPosition(glm::vec3 center, glm::vec3 extents = SizeSpeaker);
     void newSpheriqueCoord(glm::vec3 aziZenRad, glm::vec3 extents = SizeSpeaker);
     
@@ -132,11 +129,9 @@ private :
     glm::vec3 color = ColorSpeaker;
     
     bool directOut = false;
-    
     bool selected = false;
 
     float levelColour = 1.0f;
-
     float gain = 0.0f;
     float hpCutoff = 0.0f;
 

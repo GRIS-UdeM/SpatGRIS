@@ -132,6 +132,7 @@ public:
     
     void updateWinContent();
     void selectedRow(int value);
+    void setRadiusColumnVisible(bool visible);
     
     void initComp();
     void buttonClicked(Button *button) override;
@@ -177,7 +178,7 @@ private:
     Font font;
     int numRows;
 
-    class EditableTextCustomComponent  : public Label
+    class EditableTextCustomComponent : public Label
     {
     public:
         EditableTextCustomComponent(WindowEditSpeaker& td) : owner (td) {

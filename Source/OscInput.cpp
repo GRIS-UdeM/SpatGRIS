@@ -53,7 +53,7 @@ void OscInput::oscMessageReceived(const OSCMessage& message) {
                                                                           message[2].getFloat32(),
                                                                           message[3].getFloat32(),
                                                                           message[4].getFloat32(),
-                                                                          message[5].getFloat32(),
+                                                                          this->mainParent->isRadiusNormalized() ? 1.0 : message[5].getFloat32(),
                                                                           message[6].getFloat32());
                 this->mainParent->updateInputJack(idS, *this->mainParent->getListSourceInput()[idS]);
             }

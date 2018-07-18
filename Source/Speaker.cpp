@@ -26,19 +26,20 @@ static double GetFloatPrecision(double value, double precision) {
 }
 
 Speaker::Speaker(MainContentComponent *parent, int idS) {
-    Speaker(parent, idS, idS, glm::vec3(0,0,0));
+    Speaker(parent, idS, idS, 0.0f, 0.0f, 1.0f);
 }
 
 Speaker::Speaker(MainContentComponent *parent, int idS, int outP,
-                 glm::vec3 center, glm::vec3 extents) {
+                 float azimuth, float zenith, float radius) {
     this->mainParent = parent;
     this->idSpeaker = idS;
     this->outputPatch = outP;
     this->directOut = false;
     LookAndFeel::setDefaultLookAndFeel(&mGrisFeel);
-    
+
     // Load position
-    this->newPosition(center, extents);
+    this->setAziZenRad(glm::vec3(azimuth, zenith, radius));
+
     this->vuMeter = new LevelComponent(this, &mGrisFeel, false);
 }
 
@@ -91,11 +92,15 @@ glm::vec3 Speaker::getAziZenRad() {
     return glm::vec3(this->aziZenRad.x, this->aziZenRad.y, this->aziZenRad.z / 10.0f);
 }
 
-void Speaker::setCoordinate(glm::vec3 value) {
-    this->newPosition(value * 10.0f);
+void Speaker::normalizeRadius() {
+    glm::vec3 v = this->getAziZenRad();
+    v.z = 1.0f;
+    this->setAziZenRad(v);
 }
+
 void Speaker::setAziZenRad(glm::vec3 value) {
     value.z = value.z * 10.0f;
+    this->aziZenRad = value;
     this->newSpheriqueCoord(value);
 }
 
@@ -217,35 +222,6 @@ void Speaker::newPosition(glm::vec3 center, glm::vec3 extents) {
     this->center = glm::vec3(this->min.x + (this->max.x - this->min.x) / 2.0f,
                              this->min.y + (this->max.y - this->min.y) / 2.0f,
                              this->min.z + (this->max.z - this->min.z) / 2.0f);
-    
-    float azimuth = ((atan2(this->center.x, this->center.z) * 180.0f) / M_PI) + 90.0f;
-    float plane = sqrt(this->center.x*this->center.x + this->center.z*this->center.z);
-    float zenith = atan2(this->center.y, plane) * 180.0f / M_PI;
-    float radius = sqrt(this->center.x * this->center.x +
-                        this->center.y * this->center.y +
-                        this->center.z * this->center.z);
-    azimuth = 180.0f - azimuth;
-
-    if (azimuth < 0.0f) {
-        azimuth += 360.0f;
-    }
-    if (zenith < -90.0f) {
-        zenith = -90.0f;
-    } else if (zenith > 90.0f) {
-        zenith = 90.0f;
-    }
-    azimuth = GetFloatPrecision(azimuth, 2);
-    if (azimuth == -0.0f) {
-        azimuth = 0.0f;
-    }
-    zenith = GetFloatPrecision(zenith, 2);
-    if (zenith == -0.0f) {
-        zenith = 0.0f;
-    }
-
-    radius = GetFloatPrecision(radius, 2);
-
-    this->aziZenRad = glm::vec3(azimuth, zenith, radius);
 }
 
 void Speaker::newSpheriqueCoord(glm::vec3 aziZenRad, glm::vec3 extents) {
@@ -256,7 +232,7 @@ void Speaker::newSpheriqueCoord(glm::vec3 aziZenRad, glm::vec3 extents) {
 
     nCenter.x = GetFloatPrecision(aziZenRad.z * sinf(aziZenRad.y) * cosf(aziZenRad.x), 3);
     nCenter.z = GetFloatPrecision(aziZenRad.z * sinf(aziZenRad.y) * sinf(aziZenRad.x), 3);
-    nCenter.y = GetFloatPrecision(aziZenRad.z * cosf(aziZenRad.y), 3);
+    nCenter.y = GetFloatPrecision(10.f * cosf(aziZenRad.y), 3);
     
     this->newPosition(nCenter);
 }
@@ -268,9 +244,9 @@ void Speaker::draw() {
 
     glTranslatef(this->center.x, this->center.y, this->center.z);
 
-    glRotatef(180.0f-this->aziZenRad.x, 0, 1.0, 0);
+    glRotatef(180.0f - this->aziZenRad.x, 0, 1.0, 0);
     glRotatef(-this->aziZenRad.y, 0, 0, 1.0);
-    glTranslatef(-1*this->center.x, -1*this->center.y, -1*this->center.z);
+    glTranslatef(-1 * this->center.x, -1 * this->center.y, -1 * this->center.z);
 
     glBegin(GL_QUADS);
 

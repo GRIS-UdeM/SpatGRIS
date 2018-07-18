@@ -45,14 +45,11 @@ void Input::resetPosition() {
     this->zeniSpan = 0.0f;;
     
     this->gain = -1.0f;
-    this->depth = 1.0f;
+    this->radius = 1.0f;
     
     this->center.x = (14.0f * sinf(this->zenith) * cosf(this->azimuth));
     this->center.z = (14.0f * sinf(this->zenith) * sinf(this->azimuth));
-    this->center.y = (14.0f * cosf(this->zenith) + (sizeT/2.0f));
-    this->radius = sqrt((this->center.x*this->center.x) +
-                        (this->center.y*this->center.y) +
-                        (this->center.z*this->center.z));
+    this->center.y = (14.0f * cosf(this->zenith) + (sizeT / 2.0f));
 }
 
 glm::vec3 Input::getCenter() {
@@ -65,9 +62,10 @@ float Input::getLevel() {
 
 glm::vec3 Input::polToCar(float azimuth, float zenith) {
     glm::vec3 cart;
-    cart.x = (10.0f * sinf(zenith) * cosf(azimuth));
-    cart.z = (10.0f * sinf(zenith) * sinf(azimuth));
-    cart.y = ((10.0f * cosf(zenith)) + (sizeT/2.0f));
+    float factor = this->radius * 10.0f;
+    cart.x = (factor * sinf(zenith) * cosf(azimuth));
+    cart.z = (factor * sinf(zenith) * sinf(azimuth));
+    cart.y = ((10.0f * cosf(zenith)) + (sizeT / 2.0f));
     return cart;
 }
 
@@ -202,23 +200,19 @@ void Input::drawSpan() {
     glPointSize(1);
 }
 
-void Input::updateValues(float az, float ze, float azS, float zeS, float depth, float g) {
+void Input::updateValues(float az, float ze, float azS, float zeS, float radius, float g) {
     this->azimuth = az;
     this->zenith  = ze;
     this->azimSpan = azS;
     this->zeniSpan = zeS;
-    this->depth = depth;
+    this->radius = radius;
     this->gain = g;
 
-    float factor = depth * 10.0f;
+    float factor = radius * 10.0f;
 
     this->center.x = (factor * sinf(this->zenith) * cosf(this->azimuth));
     this->center.z = (factor * sinf(this->zenith) * sinf(this->azimuth));
-    this->center.y = ((10.0f * cosf(this->zenith)) + (sizeT/2.0f));
-
-    this->radius = sqrt((this->center.x*this->center.x) +
-                        (this->center.y*this->center.y) +
-                        (this->center.z*this->center.z));
+    this->center.y = ((10.0f * cosf(this->zenith)) + (sizeT / 2.0f));
 }
 
 void Input::updateValuesOld(float az, float ze, float azS, float zeS, float g) {
@@ -236,10 +230,6 @@ void Input::updateValuesOld(float az, float ze, float azS, float zeS, float g) {
     this->center.x = (10.0f * sinf(this->zenith) * cosf(this->azimuth));
     this->center.z = (10.0f * sinf(this->zenith) * sinf(this->azimuth));
     this->center.y = (10.0f * cosf(this->zenith)) + (this->sizeT / 2.0f);
-    
-    this->radius = sqrt((this->center.x*this->center.x) +
-                        (this->center.y*this->center.y) +
-                        (this->center.z*this->center.z));
 }
 
 void Input::sendDirectOutToClient(int id, int chn) {

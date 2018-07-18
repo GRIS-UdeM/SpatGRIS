@@ -130,7 +130,7 @@ void SpeakerViewComponent::render() {
     // Draw Sphere : Use many CPU
     if (this->showShpere) {
         if (this->mainParent->getLockSpeakers()->try_lock()) {
-            float maxRadius = 0.0f;;
+            float maxRadius = 0.0f;
             for (unsigned int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
                 if (abs(this->mainParent->getListSpeaker()[i]->getAziZenRad().z * 10.f) > maxRadius) {
                     maxRadius = abs(this->mainParent->getListSpeaker()[i]->getAziZenRad().z * 10.0f);

@@ -130,11 +130,13 @@ public:
     void setDirectOut(int id, int chn);
     void reorderSpeakers(vector<int> newOrder);
     int getMaxSpeakerId();
+    int getMaxSpeakerOutputPatch();
 
     // Sources.
     vector<Input *> getListSourceInput() { return this->listSourceInput; }
     mutex* getLockInputs() { return this->lockInputs; }
     void updateInputJack(int inInput, Input &inp);
+    bool isRadiusNormalized();
 
     // Jack clients.
     jackClientGris * getJackClient() { return this->jackClient; }

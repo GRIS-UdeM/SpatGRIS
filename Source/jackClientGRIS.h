@@ -71,8 +71,7 @@ struct SourceIn {
     
     float azimuth = 0.0f;
     float zenith = 0.0f;
-    float radius = 0.0f;
-    float depth = 1.0f;
+    float radius = 1.0f;
     float aziSpan = 0.0f;
     float zenSpan = 0.0f;
 

@@ -931,7 +931,9 @@ void MainContentComponent::connectionClientJack(String nameCli, bool conn) {
         this->tedAddInputs->setText(String(maxport), dontSendNotification);
         textEditorReturnKeyPressed(*this->tedAddInputs);
     }
+    this->jackClient->processBlockOn = false;
     this->jackClient->connectionClient(nameCli, conn);
+    this->jackClient->processBlockOn = true;
 }
 
 void MainContentComponent::selectSpeaker(unsigned int idS) {
@@ -1040,12 +1042,20 @@ int MainContentComponent::getMaxSpeakerId() {
     return maxId;
 }
 
+int MainContentComponent::getMaxSpeakerOutputPatch() {
+    int maxOut = 0;
+    for (auto&& it : this->listSpeaker) {
+        if (it->getOutputPatch() > maxOut)
+            maxOut = it->getOutputPatch();
+    }
+    return maxOut;
+}
+
 void MainContentComponent::addSpeaker(int sortColumnId, bool isSortedForwards) {
-    int maxId = this->getMaxSpeakerId();
-    int newId = maxId + 1;
+    int newId = this->getMaxSpeakerId() + 1;
 
     this->lockSpeakers->lock();
-    this->listSpeaker.push_back(new Speaker(this, newId, newId, glm::vec3(0.0f, 0.0f, 10.0f)));
+    this->listSpeaker.push_back(new Speaker(this, newId, newId, 0.0f, 0.0f, 1.0f));
 
     if (sortColumnId == 1 && isSortedForwards) {
         for (unsigned int i = 0; i < this->listSpeaker.size(); i++) {
@@ -1058,44 +1068,50 @@ void MainContentComponent::addSpeaker(int sortColumnId, bool isSortedForwards) {
     }
     this->lockSpeakers->unlock();
 
+    this->jackClient->processBlockOn = false;
     this->jackClient->addOutput(this->listSpeaker.back()->getOutputPatch());
+    this->jackClient->processBlockOn = true;
 }
 
 void MainContentComponent::insertSpeaker(int position, int sortColumnId, bool isSortedForwards) {
     int newPosition = position + 1;
-    int maxId = this->getMaxSpeakerId();
-    int newId = maxId + 1;
+    int newId = this->getMaxSpeakerId() + 1;
+    int newOut = this->getMaxSpeakerOutputPatch() + 1;
 
     this->lockSpeakers->lock();
     if (sortColumnId == 1 && isSortedForwards) {
         newId = this->listSpeaker[position]->getIdSpeaker() + 1;
         this->listSpeaker.emplace(this->listSpeaker.begin() + newPosition,
-                                  new Speaker(this, newId, newId, glm::vec3(0.0f, 0.0f, 10.0f)));
+                                  new Speaker(this, newId, newOut, 0.0f, 0.0f, 1.0f));
         for (unsigned int i = 0; i < this->listSpeaker.size(); i++) {
             this->listSpeaker[i]->setSpeakerId(i + 1);
         }
     } else if (sortColumnId == 1 && ! isSortedForwards) {
         newId = this->listSpeaker[position]->getIdSpeaker() - 1;;
         this->listSpeaker.emplace(this->listSpeaker.begin() + newPosition,
-                                  new Speaker(this, newId, newId, glm::vec3(0.0f, 0.0f, 10.0f)));
+                                  new Speaker(this, newId, newOut, 0.0f, 0.0f, 1.0f));
         for (unsigned int i = 0; i < this->listSpeaker.size(); i++) {
             this->listSpeaker[i]->setSpeakerId(this->listSpeaker.size() - i);
         }
     } else {
         this->listSpeaker.emplace(this->listSpeaker.begin() + newPosition,
-                                  new Speaker(this, newId, newId, glm::vec3(0.0f, 0.0f, 10.0f)));
+                                  new Speaker(this, newId, newOut, 0.0f, 0.0f, 1.0f));
     }
     this->lockSpeakers->unlock();
 
+    this->jackClient->processBlockOn = false;
     this->jackClient->clearOutput();
     for (auto&& it : this->listSpeaker) {
         this->jackClient->addOutput(it->getOutputPatch());
     }
+    this->jackClient->processBlockOn = true;
 }
 
 void MainContentComponent::removeSpeaker(int idSpeaker) {
+    cout << "isSpeaker: " << idSpeaker << endl;
     this->jackClient->removeOutput(idSpeaker);
     this->lockSpeakers->lock();
+    cout << "list size: " << this->listSpeaker.size() << endl;
     int index = 0;
     for (auto&& it : this->listSpeaker) {
         if (index == idSpeaker) {
@@ -1107,21 +1123,22 @@ void MainContentComponent::removeSpeaker(int idSpeaker) {
     this->lockSpeakers->unlock();
 }
 
+bool MainContentComponent::isRadiusNormalized() {
+    if (this->jackClient->modeSelected == VBAP || this->jackClient->modeSelected == VBAP_HRTF)
+        return true;
+    else
+        return false;
+}
+
 void MainContentComponent::updateInputJack(int inInput, Input &inp) {
     SourceIn *si = &this->jackClient->listSourceIn[inInput];
 
-    // ASK: Do we really need to compute x, y, z ?
-    si->x = inp.getCenter().x / 10.0f;
-    si->y = inp.getCenter().y / 10.0f;
-    si->z = inp.getCenter().z / 10.0f;
-
     si->azimuth = ((inp.getAziMuth() / M2_PI) * 360.0f);
     if (si->azimuth > 180.0f) {
-        si->azimuth = si->azimuth-360.0f;
+        si->azimuth = si->azimuth - 360.0f;
     }
     si->zenith  = 90.0f - (inp.getZenith() / M2_PI) * 360.0f;
-    si->radius  = inp.getRad();
-    si->depth   = inp.getDepth();
+    si->radius  = inp.getRadius();
     
     si->aziSpan = inp.getAziMuthSpan() * 0.5f;
     si->zenSpan = inp.getZenithSpan() * 2.0f;
@@ -1271,6 +1288,10 @@ bool MainContentComponent::updateLevelComp() {
         
         x += SizeWidthLevelComp;
 
+        if (this->jackClient->modeSelected == VBAP || this->jackClient->modeSelected == VBAP_HRTF) {
+            it->normalizeRadius();
+        }
+
         SpeakerOut so;
         so.id = it->getOutputPatch();        
         so.x = it->getCoordinate().x;
@@ -1318,17 +1339,15 @@ bool MainContentComponent::updateLevelComp() {
         x += SizeWidthLevelComp;
 
         SourceIn si;
-        si.id = it->getId();        
-        si.x = it->getCenter().x / 10.0f; // FIXME: This will not be true soon. The 10.0f constant is useful only for 
-        si.y = it->getCenter().y / 10.0f; // the drawing and is supposed to depend on the radius value ("depth" for now).
-        si.z = it->getCenter().z / 10.0f;
+        si.id = it->getId();
         si.azimuth = it->getAziMuth();
         si.zenith  = it->getZenith();
-        si.radius  = it->getRad();
+        si.radius  = it->getRadius();
         this->jackClient->listSourceIn[i++] = si;
     }
 
     this->lockInputs->unlock();
+
     if (this->winSpeakConfig != nullptr) {
         this->winSpeakConfig->updateWinContent();
     }
@@ -1442,7 +1461,6 @@ void MainContentComponent::openXmlFileSpeaker(String path) {
         alert->runModalLoop();
     } else {
         this->pathCurrentFileSpeaker = path.toStdString();
-        this->jackClient->processBlockOn = false;
         XmlDocument xmlDoc (File (this->pathCurrentFileSpeaker));
         ScopedPointer<XmlElement> mainXmlElem (xmlDoc.getDocumentElement());
         if (mainXmlElem == nullptr) {
@@ -1461,6 +1479,7 @@ void MainContentComponent::openXmlFileSpeaker(String path) {
                 this->listSpeaker.clear();
                 this->lockSpeakers->unlock();
                 this->setNameConfig();
+                this->jackClient->processBlockOn = false;
                 this->jackClient->clearOutput();
                 this->jackClient->maxOutputPatch = 0;
                 forEachXmlChildElement(*mainXmlElem, ring) {
@@ -1470,9 +1489,9 @@ void MainContentComponent::openXmlFileSpeaker(String path) {
                                 this->listSpeaker.push_back(new Speaker(this,
                                                                         spk->getIntAttribute("LayoutIndex"),
                                                                         spk->getIntAttribute("OutputPatch"),
-                                                                        glm::vec3(spk->getDoubleAttribute("PositionX")*10.0f,
-                                                                                  spk->getDoubleAttribute("PositionZ")*10.0f,
-                                                                                  spk->getDoubleAttribute("PositionY")*10.0f)));
+                                                                        spk->getDoubleAttribute("Azimuth"),
+                                                                        spk->getDoubleAttribute("Zenith"),
+                                                                        spk->getDoubleAttribute("Radius")));
                                 if (spk->hasAttribute("Gain")) {
                                     this->listSpeaker.back()->setGain(spk->getDoubleAttribute("Gain"));
                                 }
@@ -1494,6 +1513,7 @@ void MainContentComponent::openXmlFileSpeaker(String path) {
                         this->listTriplet.push_back(tri);
                     }
                 }
+                this->jackClient->processBlockOn = true;
                 ok = true;
             } else {
                 if (mainXmlElem->hasTagName("ServerGRIS_Preset")) {
@@ -1876,7 +1896,9 @@ void MainContentComponent::textEditorReturnKeyPressed (TextEditor & textEditor) 
         }
 
         if (this->jackClient->inputsPort.size() != num_of_inputs) {
+            this->jackClient->processBlockOn = false;
             this->jackClient->addRemoveInput(num_of_inputs);
+            this->jackClient->processBlockOn = true;
             
             this->lockInputs->lock();
             bool addInput = false;
@@ -1917,11 +1939,15 @@ void MainContentComponent::buttonClicked(Button *button) {
 
     //}else if(button == this->butAutoConnectJack){
     //    
+    //    this->jackClient->processBlockOn = false;
     //    this->jackClient->autoConnectClient();
+    //    this->jackClient->processBlockOn = true;
         
     //}else if(button == this->butDisconnectAllJack){
     //    
+    //    this->jackClient->processBlockOn = false;
     //    this->jackClient->disconnectAllClient();
+    //    this->jackClient->processBlockOn = true;
     //}
 }
 
@@ -1938,25 +1964,18 @@ void MainContentComponent::sliderValueChanged(Slider* slider) {
 void MainContentComponent::comboBoxChanged(ComboBox *comboBox) {
     int result;
     if (this->comBoxModeSpat == comboBox) {
+        this->jackClient->processBlockOn = false;
         this->jackClient->modeSelected = (ModeSpatEnum)(this->comBoxModeSpat->getSelectedId() - 1);
         switch (this->jackClient->modeSelected) {
             case VBAP:
-                if (this->pathLastVbapSpeakerSetup != this->pathCurrentFileSpeaker) {
-                    this->openXmlFileSpeaker(this->pathLastVbapSpeakerSetup);
-                    result = 1;
-                } else {
-                    result = this->updateLevelComp();
-                }
+                this->openXmlFileSpeaker(this->pathLastVbapSpeakerSetup);
+                result = 1;
                 if (result)
                     this->isSpanShown = true;
                 break;
             case LBAP:
-                if (this->pathLastVbapSpeakerSetup != this->pathCurrentFileSpeaker) {
-                    this->openXmlFileSpeaker(this->pathLastVbapSpeakerSetup);
-                    result = 1;
-                } else {
-                    result = this->updateLevelComp();
-                }
+                this->openXmlFileSpeaker(this->pathLastVbapSpeakerSetup);
+                result = 1;
                 if (result)
                     this->isSpanShown = false;
                 break;
@@ -1978,6 +1997,7 @@ void MainContentComponent::comboBoxChanged(ComboBox *comboBox) {
                 result = 0;
                 break;
         }
+        this->jackClient->processBlockOn = true;
 
         if (result) {
             this->labelModeInfo->setText("Ready", dontSendNotification);
@@ -1985,6 +2005,14 @@ void MainContentComponent::comboBoxChanged(ComboBox *comboBox) {
         } else {
             this->labelModeInfo->setText("ERROR", dontSendNotification);
             this->labelModeInfo->setColour(Label::textColourId, mGrisFeel.getRedColour());
+        }
+
+        if (this->winSpeakConfig != nullptr) {
+            if (this->jackClient->modeSelected == VBAP || this->jackClient->modeSelected == VBAP_HRTF) {
+                this->winSpeakConfig->setRadiusColumnVisible(false);
+            } else {
+                this->winSpeakConfig->setRadiusColumnVisible(true);
+            }
         }
     }
 }
