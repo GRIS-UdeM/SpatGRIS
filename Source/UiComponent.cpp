@@ -593,9 +593,12 @@ void WindowEditSpeaker::buttonClicked(Button *button) {
             this->mainParent->getListSpeaker()[selectedRow]->setAziZenRad(glm::vec3(azimuth, zenith, radius));
         }
         this->updateWinContent();
-        this->tableListSpeakers.getHeader().setSortColumnId(sortColumnId, sortedForwards); // FIXME: does not work ?
-        this->mainParent->needToComputeVbap = true;
         this->tableListSpeakers.selectRow(selectedRow);
+        // TableList needs different sorting parameters to trigger the sorting function.
+        this->tableListSpeakers.getHeader().setSortColumnId(sortColumnId, ! sortedForwards);
+        // This is the real sorting!
+        this->tableListSpeakers.getHeader().setSortColumnId(sortColumnId, sortedForwards);
+        this->mainParent->needToComputeVbap = true;
     } else if (button == this->pinkNoise) {
         this->mainParent->getJackClient()->pinkNoiseSound = this->pinkNoise->getToggleState();
     } else if (button->getName() != "" && (button->getName().getIntValue() >= 0 &&

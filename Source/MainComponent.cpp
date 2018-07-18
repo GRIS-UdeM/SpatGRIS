@@ -134,7 +134,7 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
 
     this->labelTimeRecorded = addLabel("00:00","Record time", 327, 83, 50, 24,this->boxControlUI->getContent());
 
-    /* FIXME: Are these functions really necessary? Just hidding them for the time being... */
+    // ASK: Are these functions really necessary? Just hidding them for the time being...
     //this->butDisconnectAllJack  = addButton("X All","Disconnect all Jack",480,120,40,24,this->boxControlUI->getContent());
     //this->butDisconnectAllJack->setColour(TextButton::buttonColourId, mGrisFeel.getRedColour());
     //this->butAutoConnectJack    = addButton("Auto Connect","Auto connection with jack",610,120,130,24,this->boxControlUI->getContent());
