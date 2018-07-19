@@ -2,35 +2,26 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2016 - ROLI Ltd.
+   Copyright (c) 2017 - ROLI Ltd.
 
-   Permission is granted to use this software under the terms of the ISC license
-   http://www.isc.org/downloads/software-support-policy/isc-license/
+   JUCE is an open source library subject to commercial or open-source
+   licensing.
 
-   Permission to use, copy, modify, and/or distribute this software for any
-   purpose with or without fee is hereby granted, provided that the above
-   copyright notice and this permission notice appear in all copies.
+   The code included in this file is provided under the terms of the ISC license
+   http://www.isc.org/downloads/software-support-policy/isc-license. Permission
+   To use, copy, modify, and/or distribute this software for any purpose with or
+   without fee is hereby granted provided that the above copyright notice and
+   this permission notice appear in all copies.
 
-   THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH REGARD
-   TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
-   FITNESS. IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT,
-   OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF
-   USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
-   TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
-   OF THIS SOFTWARE.
-
-   -----------------------------------------------------------------------------
-
-   To release a closed-source product which uses other parts of JUCE not
-   licensed under the ISC terms, commercial licenses are available: visit
-   www.juce.com for more information.
+   JUCE IS PROVIDED "AS IS" WITHOUT ANY WARRANTY, AND ALL WARRANTIES, WHETHER
+   EXPRESSED OR IMPLIED, INCLUDING MERCHANTABILITY AND FITNESS FOR PURPOSE, ARE
+   DISCLAIMED.
 
   ==============================================================================
 */
 
-#ifndef JUCE_OUTPUTSTREAM_H_INCLUDED
-#define JUCE_OUTPUTSTREAM_H_INCLUDED
-
+namespace juce
+{
 
 //==============================================================================
 /**
@@ -40,6 +31,8 @@
     some or all of the virtual functions to implement their behaviour.
 
     @see InputStream, MemoryOutputStream, FileOutputStream
+
+    @tags{Core}
 */
 class JUCE_API  OutputStream
 {
@@ -208,12 +201,15 @@ public:
         bytes (0xff, 0xfe) to indicate the endianness (these should only be used at the start
         of a file).
 
-        The method also replaces '\\n' characters in the text with '\\r\\n'.
+        If lineEndings is nullptr, then line endings in the text won't be modified. If you
+        pass "\\n" or "\\r\\n" then this function will replace any existing line feeds.
+
         @returns false if the write operation fails for some reason
     */
     virtual bool writeText (const String& text,
                             bool asUTF16,
-                            bool writeUTF16ByteOrderMark);
+                            bool writeUTF16ByteOrderMark,
+                            const char* lineEndings);
 
     /** Reads data from an input stream and writes it to this stream.
 
@@ -275,5 +271,4 @@ JUCE_API OutputStream& JUCE_CALLTYPE operator<< (OutputStream& stream, InputStre
 */
 JUCE_API OutputStream& JUCE_CALLTYPE operator<< (OutputStream& stream, const NewLine&);
 
-
-#endif   // JUCE_OUTPUTSTREAM_H_INCLUDED
+} // namespace juce

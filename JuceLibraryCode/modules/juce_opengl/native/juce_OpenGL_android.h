@@ -2,27 +2,31 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2015 - ROLI Ltd.
+   Copyright (c) 2017 - ROLI Ltd.
 
-   Permission is granted to use this software under the terms of either:
-   a) the GPL v2 (or any later version)
-   b) the Affero GPL v3
+   JUCE is an open source library subject to commercial or open-source
+   licensing.
 
-   Details of these licenses can be found at: www.gnu.org/licenses
+   By using JUCE, you agree to the terms of both the JUCE 5 End-User License
+   Agreement and JUCE 5 Privacy Policy (both updated and effective as of the
+   27th April 2017).
 
-   JUCE is distributed in the hope that it will be useful, but WITHOUT ANY
-   WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-   A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+   End User License Agreement: www.juce.com/juce-5-licence
+   Privacy Policy: www.juce.com/juce-5-privacy-policy
 
-   ------------------------------------------------------------------------------
+   Or: You may also use this code under the terms of the GPL v3 (see
+   www.gnu.org/licenses).
 
-   To release a closed-source product which uses JUCE, commercial licenses are
-   available: visit www.juce.com for more information.
+   JUCE IS PROVIDED "AS IS" WITHOUT ANY WARRANTY, AND ALL WARRANTIES, WHETHER
+   EXPRESSED OR IMPLIED, INCLUDING MERCHANTABILITY AND FITNESS FOR PURPOSE, ARE
+   DISCLAIMED.
 
   ==============================================================================
 */
 
-//==============================================================================
+namespace juce
+{
+
 #define JNI_CLASS_MEMBERS(METHOD, STATICMETHOD, FIELD, STATICFIELD) \
  METHOD (getParent, "getParent", "()Landroid/view/ViewParent;") \
  METHOD (layout, "layout", "(IIII)V" ) \
@@ -31,19 +35,12 @@
 DECLARE_JNI_CLASS (NativeSurfaceView, JUCE_ANDROID_ACTIVITY_CLASSPATH "$NativeSurfaceView")
 #undef JNI_CLASS_MEMBERS
 
-#define JNI_CLASS_MEMBERS(METHOD, STATICMETHOD, FIELD, STATICFIELD) \
- METHOD (addView,        "addView",        "(Landroid/view/View;)V") \
- METHOD (removeView,     "removeView",        "(Landroid/view/View;)V") \
-
-DECLARE_JNI_CLASS (AndroidViewGroup, "android/view/ViewGroup")
-#undef JNI_CLASS_MEMBERS
-
 //==============================================================================
 class OpenGLContext::NativeContext
 {
 public:
     NativeContext (Component& comp,
-                   const OpenGLPixelFormat& pixelFormat,
+                   const OpenGLPixelFormat& /*pixelFormat*/,
                    void* /*contextToShareWith*/,
                    bool /*useMultisampling*/,
                    OpenGLVersion)
@@ -91,7 +88,7 @@ public:
     }
 
     //==============================================================================
-    void initialiseOnRenderThread (OpenGLContext& aContext)
+    bool initialiseOnRenderThread (OpenGLContext& aContext)
     {
         jassert (hasInitialised);
 
@@ -103,9 +100,25 @@ public:
         // get a pointer to the native window
         ANativeWindow* window = nullptr;
         if (jobject jSurface = env->CallObjectMethod (surfaceView.get(), NativeSurfaceView.getNativeSurface))
-            window = ANativeWindow_fromSurface (env, jSurface);
+        {
+            window = ANativeWindow_fromSurface(env, jSurface);
 
-        jassert (window != nullptr);
+            // if we didn't succeed the first time, wait 25ms and try again
+            if (window == nullptr)
+            {
+                Thread::sleep (25);
+                window = ANativeWindow_fromSurface (env, jSurface);
+            }
+        }
+
+        if (window == nullptr)
+        {
+            // failed to get a pointer to the native window after second try so
+            // bail out
+            jassertfalse;
+
+            return false;
+        }
 
         // create the surface
         surface = eglCreateWindowSurface(display, config, window, 0);
@@ -119,6 +132,8 @@ public:
         jassert (context != EGL_NO_CONTEXT);
 
         juceContext = &aContext;
+
+        return true;
     }
 
     void shutdownOnRenderThread()
@@ -168,7 +183,7 @@ public:
     GLuint getFrameBufferID() const noexcept    { return 0; }
 
     //==============================================================================
-    void updateWindowPosition (const Rectangle<int>& bounds)
+    void updateWindowPosition (Rectangle<int> bounds)
     {
         if (lastBounds != bounds)
         {
@@ -304,3 +319,5 @@ bool OpenGLHelpers::isContextActive()
 {
     return eglGetCurrentContext() != EGL_NO_CONTEXT;
 }
+
+} // namespace juce

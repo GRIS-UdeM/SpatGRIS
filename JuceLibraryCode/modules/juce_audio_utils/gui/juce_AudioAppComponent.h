@@ -2,43 +2,56 @@
   ==============================================================================
 
    This file is part of the JUCE library.
-   Copyright (c) 2015 - ROLI Ltd.
+   Copyright (c) 2017 - ROLI Ltd.
 
-   Permission is granted to use this software under the terms of either:
-   a) the GPL v2 (or any later version)
-   b) the Affero GPL v3
+   JUCE is an open source library subject to commercial or open-source
+   licensing.
 
-   Details of these licenses can be found at: www.gnu.org/licenses
+   By using JUCE, you agree to the terms of both the JUCE 5 End-User License
+   Agreement and JUCE 5 Privacy Policy (both updated and effective as of the
+   27th April 2017).
 
-   JUCE is distributed in the hope that it will be useful, but WITHOUT ANY
-   WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-   A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+   End User License Agreement: www.juce.com/juce-5-licence
+   Privacy Policy: www.juce.com/juce-5-privacy-policy
 
-   ------------------------------------------------------------------------------
+   Or: You may also use this code under the terms of the GPL v3 (see
+   www.gnu.org/licenses).
 
-   To release a closed-source product which uses JUCE, commercial licenses are
-   available: visit www.juce.com for more information.
+   JUCE IS PROVIDED "AS IS" WITHOUT ANY WARRANTY, AND ALL WARRANTIES, WHETHER
+   EXPRESSED OR IMPLIED, INCLUDING MERCHANTABILITY AND FITNESS FOR PURPOSE, ARE
+   DISCLAIMED.
 
   ==============================================================================
 */
 
-#ifndef JUCE_AUDIOAPPCOMPONENT_H_INCLUDED
-#define JUCE_AUDIOAPPCOMPONENT_H_INCLUDED
-
+namespace juce
+{
 
 //==============================================================================
 /**
     A base class for writing audio apps that stream from the audio i/o devices.
+    Conveniently combines a Component with an AudioSource to provide a starting
+    point for your audio applications.
 
     A subclass can inherit from this and implement just a few methods such as
     getNextAudioBlock(). The base class provides a basic AudioDeviceManager object
     and runs audio through the default output device.
+
+    An application should only create one global instance of this object and multiple
+    classes should not inherit from this.
+
+    This class should not be inherited when creating a plug-in as the host will
+    handle audio streams from hardware devices.
+
+    @tags{Audio}
 */
 class JUCE_API AudioAppComponent   : public Component,
                                      public AudioSource
 {
 public:
     AudioAppComponent();
+    AudioAppComponent (AudioDeviceManager&);
+
     ~AudioAppComponent();
 
     /** A subclass should call this from their constructor, to set up the audio. */
@@ -101,17 +114,23 @@ public:
     */
     virtual void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) = 0;
 
+    /** Shuts down the audio device and clears the audio source.
+
+        This method should be called in the destructor of the derived class
+        otherwise an assertion will be triggered.
+    */
     void shutdownAudio();
 
 
-    AudioDeviceManager deviceManager;
+    AudioDeviceManager& deviceManager;
 
 private:
-    //==============================================================================
+    //=============================================================================
+    AudioDeviceManager defaultDeviceManager;
     AudioSourcePlayer audioSourcePlayer;
+    bool usingCustomDeviceManager;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioAppComponent)
 };
 
-
-#endif   // JUCE_AUDIOAPPCOMPONENT_H_INCLUDED
+} // namespace juce

@@ -10,8 +10,7 @@
 
 */
 
-#ifndef __APPHEADERFILE_MXMISB__
-#define __APPHEADERFILE_MXMISB__
+#pragma once
 
 #include "AppConfig.h"
 
@@ -43,9 +42,7 @@
 namespace ProjectInfo
 {
     const char* const  projectName    = "ServerGRIS";
-    const char* const  versionString  = "1.0.4";
-    const int          versionNumber  = 0x104;
+    const char* const  versionString  = "0.0.1";
+    const int          versionNumber  = 0x1;
 }
 #endif
-
-#endif   // __APPHEADERFILE_MXMISB__

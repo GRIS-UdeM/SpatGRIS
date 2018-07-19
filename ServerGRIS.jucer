@@ -2,20 +2,28 @@
 
 <JUCERPROJECT id="MXmiSb" name="ServerGRIS" projectType="guiapp" version="0.0.1"
               bundleIdentifier="com.UdeM.GRIS.ServerGRIS" includeBinaryInAppConfig="1"
-              jucerVersion="4.3.1" companyName="GRIS - UdeM">
+              jucerVersion="5.3.2" companyName="GRIS - UdeM">
   <MAINGROUP id="lsxaKA" name="ServerGRIS">
     <GROUP id="{6EAF4FF6-A4F0-94E9-AA8A-98D9BF95CA11}" name="Resources">
-      <FILE id="G8JPcc" name="logo512.png" compile="0" resource="1" file="logo512.png"/>
-      <FILE id="b1pWMS" name="SinkinSans-400Regular.otf" compile="0" resource="1"
-            file="../GrisCommonFiles/Fonts/sinkin-sans/SinkinSans-400Regular.otf"/>
-    </GROUP>
-    <GROUP id="{048E368A-4132-92B3-5696-FA2749D96397}" name="GrisCommonFiles">
-      <FILE id="cvZwgD" name="GrisLookAndFeel.h" compile="0" resource="0"
-            file="../GrisCommonFiles/GrisLookAndFeel.h"/>
+      <FILE id="hqPtoj" name="logoGris.png" compile="0" resource="1" file="Resources/logoGris.png"/>
     </GROUP>
     <GROUP id="{534A7161-2617-F3B1-0706-CC62D7A3FE71}" name="Source">
-      <FILE id="orpI2a" name="FileWriter.cpp" compile="1" resource="0" file="Source/FileWriter.cpp"/>
-      <FILE id="rY6hWS" name="FileWriter.h" compile="0" resource="0" file="Source/FileWriter.h"/>
+      <FILE id="cnTuuo" name="vbap.c" compile="1" resource="0" file="Source/vbap.c"/>
+      <FILE id="e8W3QF" name="vbap.h" compile="0" resource="0" file="Source/vbap.h"/>
+      <FILE id="wMpqbY" name="SmallTextGrisLookAndFeel.h" compile="0" resource="0"
+            file="Source/SmallTextGrisLookAndFeel.h"/>
+      <FILE id="e9Tcnv" name="ServerGrisConstants.cpp" compile="1" resource="0"
+            file="Source/ServerGrisConstants.cpp"/>
+      <FILE id="Ug97Mv" name="ServerGrisConstants.h" compile="0" resource="0"
+            file="Source/ServerGrisConstants.h"/>
+      <FILE id="xeds6R" name="MainWindow.cpp" compile="1" resource="0" file="Source/MainWindow.cpp"/>
+      <FILE id="MTyXJy" name="MainWindow.h" compile="0" resource="0" file="Source/MainWindow.h"/>
+      <FILE id="HOh1Xn" name="lbap.c" compile="1" resource="0" file="Source/lbap.c"/>
+      <FILE id="cmq6Gi" name="lbap.h" compile="0" resource="0" file="Source/lbap.h"/>
+      <FILE id="sL2wMU" name="SinkinSans-400Regular.otf" compile="0" resource="1"
+            file="Source/SinkinSans-400Regular.otf"/>
+      <FILE id="vyaPdB" name="GrisLookAndFeel.h" compile="0" resource="0"
+            file="Source/GrisLookAndFeel.h"/>
       <FILE id="LMWJcl" name="jackServerGRIS.cpp" compile="1" resource="0"
             file="Source/jackServerGRIS.cpp"/>
       <FILE id="Dg7whn" name="jackServerGRIS.h" compile="0" resource="0"
@@ -55,12 +63,12 @@
     <XCODE_MAC targetFolder="Builds/MacOSX" externalLibraries="" extraFrameworks=""
                customXcodeResourceFolders="" smallIcon="G8JPcc" bigIcon="G8JPcc">
       <CONFIGURATIONS>
-        <CONFIGURATION name="Debug" osxSDK="default" osxCompatibility="10.11 SDK" osxArchitecture="default"
-                       isDebug="1" optimisation="1" targetName="ServerGRIS" headerPath="../../jack&#10;../../glm"
+        <CONFIGURATION name="Debug" osxCompatibility="10.11 SDK" isDebug="1" optimisation="1"
+                       targetName="ServerGRIS" headerPath="../../jack&#10;../../glm"
                        libraryPath="../../jack/lib"/>
-        <CONFIGURATION name="Release" osxSDK="default" osxCompatibility="10.10 SDK"
-                       osxArchitecture="default" isDebug="0" optimisation="3" targetName="ServerGRIS"
-                       headerPath="../../jack&#10;../../glm" libraryPath="../../jack/lib"/>
+        <CONFIGURATION name="Release" osxCompatibility="10.10 SDK" isDebug="0" optimisation="3"
+                       targetName="ServerGRIS" headerPath="../../jack&#10;../../glm"
+                       libraryPath="../../jack/lib"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_core" path="../../sdks/JUCE-4.3.1/modules"/>
@@ -130,21 +138,24 @@
     </LINUX_MAKE>
   </EXPORTFORMATS>
   <MODULES>
-    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="1"/>
-    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="1"/>
-    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="1"/>
-    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="1"/>
-    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="1"/>
-    <MODULE id="juce_core" showAllCode="1" useLocalCopy="1"/>
-    <MODULE id="juce_cryptography" showAllCode="1" useLocalCopy="1"/>
-    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="1"/>
-    <MODULE id="juce_events" showAllCode="1" useLocalCopy="1"/>
-    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="1"/>
-    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="1"/>
-    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="1"/>
-    <MODULE id="juce_opengl" showAllCode="1" useLocalCopy="1"/>
-    <MODULE id="juce_osc" showAllCode="1" useLocalCopy="1"/>
-    <MODULE id="juce_video" showAllCode="1" useLocalCopy="1"/>
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
+    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
+    <MODULE id="juce_cryptography" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
+    <MODULE id="juce_opengl" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
+    <MODULE id="juce_osc" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
+    <MODULE id="juce_video" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
   </MODULES>
   <JUCEOPTIONS/>
+  <LIVE_SETTINGS>
+    <OSX/>
+  </LIVE_SETTINGS>
 </JUCERPROJECT>
