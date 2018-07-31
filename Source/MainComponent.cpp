@@ -169,6 +169,9 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     this->jackServer = new jackServerGRIS(RateValue, BufferValue);
     this->jackClient = new jackClientGris();
 
+    unsigned int fileformat = props->getIntValue("FileFormat", 0);
+    this->jackClient->setRecordFormat(fileformat);
+
     if (!jackClient->isReady()) {
         this->labelJackStatus->setText("Jack ERROR", dontSendNotification);
     } else {
@@ -1620,12 +1623,6 @@ void MainContentComponent::openPreset(String path) {
                 this->speakerView->setCamPosition(80.0f, 25.0f, 22.0f); // TODO: named constants ?
             }
 
-            if (mainXmlElem->hasAttribute("Record_Format")) {
-                this->jackClient->setRecordFormat(mainXmlElem->getIntAttribute("Record_Format")); // TODO: app preferences instead of project settings ?
-            } else {
-                this->jackClient->setRecordFormat(0);
-            }
-
             // Update
             this->textEditorReturnKeyPressed(*this->tedAddInputs);
             this->sliderValueChanged(this->sliderMasterGainOut);
@@ -1699,7 +1696,6 @@ void MainContentComponent::savePreset(String path) {
     xml->setAttribute("Use_Alpha", this->isSourceLevelShown);
     xml->setAttribute("Show_Speaker_Level", this->isSpeakerLevelShown);
     xml->setAttribute("Show_Sphere", this->isSphereShown);
-    xml->setAttribute("Record_Format", this->jackClient->getRecordFormat());
     xml->setAttribute("CamAngleX", this->speakerView->getCamAngleX());
     xml->setAttribute("CamAngleY", this->speakerView->getCamAngleY());
     xml->setAttribute("CamDistance", this->speakerView->getCamDistance());
