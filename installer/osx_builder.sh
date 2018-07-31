@@ -6,9 +6,9 @@
 # compile ServerGris in Release mode
 # and run this shell script from the installer folder.
 
-export PACKAGE_NAME=ServerGris_v1.0.4.pkg
-export DMG_DIR="ServerGris v1.0.4"
-export DMG_NAME="ServerGris_v1.0.4.dmg"
+export PACKAGE_NAME=ServerGris_v2.0.0.pkg
+export DMG_DIR="ServerGris v2.0.0"
+export DMG_NAME="ServerGris_v2.0.0.dmg"
 
 export INSTALLER_DIR=`pwd`/installerdir
 export APPLICATIONS_DIR=$INSTALLER_DIR/Application/Package_Contents/Applications

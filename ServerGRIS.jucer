@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="MXmiSb" name="ServerGRIS" projectType="guiapp" version="0.0.1"
+<JUCERPROJECT id="MXmiSb" name="ServerGRIS" projectType="guiapp" version="2.0.0"
               bundleIdentifier="com.UdeM.GRIS.ServerGRIS" includeBinaryInAppConfig="1"
               jucerVersion="5.3.2" companyName="GRIS - UdeM">
   <MAINGROUP id="lsxaKA" name="ServerGRIS">
@@ -113,10 +113,13 @@
         <MODULEPATH id="juce_osc" path="../../sdks/JUCE-4.3.1/modules"/>
       </MODULEPATHS>
     </VS2015>
-    <LINUX_MAKE targetFolder="Builds/LinuxMakefile" smallIcon="G8JPcc" bigIcon="G8JPcc">
+    <LINUX_MAKE targetFolder="Builds/LinuxMakefile" smallIcon="G8JPcc" bigIcon="G8JPcc"
+                extraLinkerFlags="-ljack -ljackserver -lGLU -lglut">
       <CONFIGURATIONS>
-        <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="ServerGRIS"/>
-        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="ServerGRIS"/>
+        <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="ServerGRIS"
+                       libraryPath="/usr/lib/x86_64-linux-gnu"/>
+        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="ServerGRIS"
+                       libraryPath="/usr/lib/x86_64-linux-gnu"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_video" path="../../sdks/JUCE-4.3.1/modules"/>
@@ -157,5 +160,6 @@
   <JUCEOPTIONS/>
   <LIVE_SETTINGS>
     <OSX/>
+    <LINUX/>
   </LIVE_SETTINGS>
 </JUCERPROJECT>
