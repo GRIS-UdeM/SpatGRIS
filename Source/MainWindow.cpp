@@ -36,8 +36,13 @@ MainWindow::MainWindow(String name) : DocumentWindow(name, Colours::lightgrey,
 
     // These offset values compensate for the title bar size.
     // TODO: it works on linux, need to be tested on MacOS.
+#ifdef __linux__
     int xOffset = 3;
     int yOffset = 29;
+#else
+    int xOffset = 0;
+    int yOffset = 0;
+#endif
 
     if (props->containsKey("xPosition")) {
         this->setBounds(props->getIntValue("xPosition")-xOffset,

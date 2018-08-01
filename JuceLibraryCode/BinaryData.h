@@ -8,14 +8,29 @@
 
 namespace BinaryData
 {
-    extern const char*   logoGris_png;
-    const int            logoGris_pngSize = 400483;
+    extern const char*   JAS_jpil;
+    const int            JAS_jpilSize = 175;
+
+    extern const char*   ServerGRIS_1_0_Manual_pdf;
+    const int            ServerGRIS_1_0_Manual_pdfSize = 14198125;
+
+    extern const char*   ServerGRIS_icon_doc_icns;
+    const int            ServerGRIS_icon_doc_icnsSize = 481666;
+
+    extern const char*   ServerGRIS_icon_doc_png;
+    const int            ServerGRIS_icon_doc_pngSize = 403691;
+
+    extern const char*   ServerGRIS_icon_small_png;
+    const int            ServerGRIS_icon_small_pngSize = 24399;
+
+    extern const char*   splash_screen_png;
+    const int            splash_screen_pngSize = 440164;
 
     extern const char*   SinkinSans400Regular_otf;
     const int            SinkinSans400Regular_otfSize = 35872;
 
     // Number of elements in the namedResourceList and originalFileNames arrays.
-    const int namedResourceListSize = 2;
+    const int namedResourceListSize = 7;
 
     // Points to the start of a list of resource names.
     extern const char* namedResourceList[];
