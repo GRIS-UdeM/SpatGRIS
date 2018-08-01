@@ -158,7 +158,7 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     unsigned int BufferValue = props->getIntValue("BufferValue", 1024);
     unsigned int RateValue = props->getIntValue("RateValue", 48000);
     
-    if (isnan(BufferValue) || BufferValue == 0 || isnan(RateValue) || RateValue == 0) {
+    if (std::isnan(float(BufferValue)) || BufferValue == 0 || std::isnan(float(RateValue)) || RateValue == 0) {
         BufferValue = 1024;
         RateValue = 48000;
     }
@@ -490,7 +490,7 @@ void MainContentComponent::handleSaveAsSpeakerSetup() {
 }
 
 void MainContentComponent::handleShowSpeakerEditWindow() {
-    Rectangle<int> result (this->getScreenX() + this->speakerView->getWidth() + 20, this->getScreenY() + 20, 850, 600);
+	juce::Rectangle<int> result (this->getScreenX() + this->speakerView->getWidth() + 20, this->getScreenY() + 20, 850, 600);
     if (this->winSpeakConfig == nullptr) {
         this->winSpeakConfig = new WindowEditSpeaker("Speakers Setup Edition - " + File(this->pathCurrentFileSpeaker).getFileName(),
                                                      this->nameConfig, this->mGrisFeel.getWinBackgroundColour(),
@@ -513,17 +513,17 @@ void MainContentComponent::handleShowPreferences() {
         unsigned int RateValue = props->getIntValue("RateValue", 48000);
         unsigned int FileFormat = props->getIntValue("FileFormat", 0);
         unsigned int OscInputPort = props->getIntValue("OscInputPort", 18032);
-        if (isnan(BufferValue) || BufferValue == 0) { BufferValue = 1024; }
-        if (isnan(RateValue) || RateValue == 0) { RateValue = 48000; }
-        if (isnan(FileFormat)) { FileFormat = 0; }
-        if (isnan(OscInputPort)) { OscInputPort = 18032; }
+        if (std::isnan(float(BufferValue)) || BufferValue == 0) { BufferValue = 1024; }
+        if (std::isnan(float(RateValue)) || RateValue == 0) { RateValue = 48000; }
+        if (std::isnan(float(FileFormat))) { FileFormat = 0; }
+        if (std::isnan(float(OscInputPort))) { OscInputPort = 18032; }
         this->windowProperties = new WindowProperties("Preferences", this->mGrisFeel.getWinBackgroundColour(),
                                                      DocumentWindow::allButtons, this, &this->mGrisFeel, 
                                                      RateValues.indexOf(String(RateValue)), 
                                                      BufferSizes.indexOf(String(BufferValue)),
                                                      FileFormat, OscInputPort);
     }
-    Rectangle<int> result (this->getScreenX()+ (this->speakerView->getWidth()/2)-150, this->getScreenY()+(this->speakerView->getHeight()/2)-75, 270, 290);
+	juce::Rectangle<int> result (this->getScreenX()+ (this->speakerView->getWidth()/2)-150, this->getScreenY()+(this->speakerView->getHeight()/2)-75, 270, 290);
     this->windowProperties->setBounds(result);
     this->windowProperties->setResizable(false, false);
     this->windowProperties->setUsingNativeTitleBar(true);
@@ -1781,8 +1781,8 @@ void MainContentComponent::saveProperties(int rate, int buff, int fileformat, in
     int RateValue = props->getIntValue("RateValue", 48000);
     int OscInputPort = props->getIntValue("OscInputPort", 18032);
 
-    if (isnan(BufferValue) || BufferValue == 0) { BufferValue = 1024; }
-    if (isnan(RateValue) || RateValue == 0) { RateValue = 48000; }
+    if (std::isnan(float(BufferValue)) || BufferValue == 0) { BufferValue = 1024; }
+    if (std::isnan(float(RateValue)) || RateValue == 0) { RateValue = 48000; }
 
     if (rate != RateValue || buff != BufferValue) {
         ScopedPointer<AlertWindow> alert = new AlertWindow("You Need to Restart ServerGRIS!",
@@ -2038,7 +2038,7 @@ void MainContentComponent::chooseRecordingPath() {
 }
 
 void MainContentComponent::resized() {
-    Rectangle<int> r (getLocalBounds().reduced (2));
+	juce::Rectangle<int> r (getLocalBounds().reduced (2));
 
     menuBar->setBounds(0, 0, this->getWidth(), 20);
     r.removeFromTop(20);
