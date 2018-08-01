@@ -228,7 +228,7 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
 
     // Restore last vertical divider position and speaker view cam distance.
     if (props->containsKey("sashPosition")) {
-        int trueSize = (int)round(this->getWidth() * abs(props->getDoubleValue("sashPosition")));
+        int trueSize = (int)round((this->getWidth() - 2) * abs(props->getDoubleValue("sashPosition")));
         this->verticalLayout.setItemPosition(1, trueSize);
         this->speakerView->setCamPosition(this->speakerView->getCamAngleX(),
                                           this->speakerView->getCamAngleY(),
