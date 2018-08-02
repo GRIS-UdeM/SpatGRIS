@@ -30,7 +30,6 @@
 		CC6D5326E884EFE5EFA23111 = {isa = PBXBuildFile; fileRef = E98AD5116C9BCB24BE427D9D; };
 		7054D4BF7FC92B99D11A27F2 = {isa = PBXBuildFile; fileRef = 254DAF3912747A12B2FA27F1; };
 		BCF297B0ADDB5526A3D1FA25 = {isa = PBXBuildFile; fileRef = CCC7905A7915A1F34CBFAD59; };
-		A9AE577F287EAEAF71FBC32A = {isa = PBXBuildFile; fileRef = 0D0330F6A9E097599E6E20F2; };
 		475F5EE6977EF63CDE342A3D = {isa = PBXBuildFile; fileRef = A883D3647CC96381F81F5832; };
 		1869803CB8DE99B218B1BE2B = {isa = PBXBuildFile; fileRef = AF42158C91F60CD11AB2715E; };
 		FD94D5E4B07CC13BD761402B = {isa = PBXBuildFile; fileRef = C3CCE88EB943DC223835F040; };
@@ -50,7 +49,6 @@
 		8684CFBF4BCCAD3FC8F21130 = {isa = PBXBuildFile; fileRef = 35C03003C40C3297F3378D00; };
 		867306218809DD92962E1B29 = {isa = PBXBuildFile; fileRef = D3CD7489347727C67DC690C5; };
 		E66BF49B899FAA4750F25B9A = {isa = PBXBuildFile; fileRef = C558A61143F2875B7F2540BA; };
-		278860B80F955463CF21C858 = {isa = PBXBuildFile; fileRef = 34F53E2232EB58DBD1D854CC; };
 		5E69F47C6B380640BEADECC4 = {isa = PBXBuildFile; fileRef = 5AD3EC81056823C382BDE84E; };
 		1694C28BDEA039DB19B644D0 = {isa = PBXBuildFile; fileRef = 6A04346466F9FB9997CAA074; };
 		0C62535E030898CADC29FC08 = {isa = PBXBuildFile; fileRef = F97B1DA7EC754436A09DABBA; };
@@ -68,7 +66,6 @@
 		6BE7E7DFE436D34172ADDA8E = {isa = PBXBuildFile; fileRef = E6842312EA47E40C559BEDCF; };
 		01B62C90ABDE31C27D1B2655 = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		0C8194C62F2DD60D6BBAA435 = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = "include_juce_gui_extra.mm"; path = "../../JuceLibraryCode/include_juce_gui_extra.mm"; sourceTree = "SOURCE_ROOT"; };
-		0D0330F6A9E097599E6E20F2 = {isa = PBXFileReference; lastKnownFileType = file.icns; name = "ServerGRIS_icon_doc.icns"; path = "../../Resources/ServerGRIS_icon_doc.icns"; sourceTree = "SOURCE_ROOT"; };
 		0DC88B16521DF51B488590F4 = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = OscInput.h; path = ../../Source/OscInput.h; sourceTree = "SOURCE_ROOT"; };
 		0FD279E88FD45389728A9CB4 = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		1053EE4F6ECDD81131FE4439 = {isa = PBXFileReference; lastKnownFileType = file; name = "juce_data_structures"; path = "../../JuceLibraryCode/modules/juce_data_structures"; sourceTree = "SOURCE_ROOT"; };
@@ -84,7 +81,6 @@
 		33D7F50D20C92470BFE3A6E1 = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = "include_juce_core.mm"; path = "../../JuceLibraryCode/include_juce_core.mm"; sourceTree = "SOURCE_ROOT"; };
 		341D1E6B116AEB4C9BB592AF = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = WinControl.h; path = ../../Source/WinControl.h; sourceTree = "SOURCE_ROOT"; };
 		345918A2CB569F98E04E8CEF = {isa = PBXFileReference; lastKnownFileType = file; name = "juce_video"; path = "../../JuceLibraryCode/modules/juce_video"; sourceTree = "SOURCE_ROOT"; };
-		34F53E2232EB58DBD1D854CC = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = BinaryData2.cpp; path = ../../JuceLibraryCode/BinaryData2.cpp; sourceTree = "SOURCE_ROOT"; };
 		35C03003C40C3297F3378D00 = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = UiComponent.cpp; path = ../../Source/UiComponent.cpp; sourceTree = "SOURCE_ROOT"; };
 		392735FD79A1FEDE3C8B1ED7 = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = System/Library/Frameworks/GLUT.framework; sourceTree = SDKROOT; };
 		398324E32BBA60ABF86B6141 = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = LevelComponent.cpp; path = ../../Source/LevelComponent.cpp; sourceTree = "SOURCE_ROOT"; };
@@ -221,7 +217,6 @@
 					AB189C449F894A346CC4CCA1,
 					C558A61143F2875B7F2540BA,
 					88C252E9D3E6777B36E03F8E,
-					34F53E2232EB58DBD1D854CC,
 					5AD3EC81056823C382BDE84E,
 					6A04346466F9FB9997CAA074,
 					F97B1DA7EC754436A09DABBA,
@@ -246,7 +241,6 @@
 					E98AD5116C9BCB24BE427D9D,
 					254DAF3912747A12B2FA27F1,
 					CCC7905A7915A1F34CBFAD59,
-					0D0330F6A9E097599E6E20F2,
 					A883D3647CC96381F81F5832,
 					AF42158C91F60CD11AB2715E,
 					C3CCE88EB943DC223835F040, ); name = Resources; sourceTree = "<group>"; };
@@ -434,7 +428,6 @@
 					CC6D5326E884EFE5EFA23111,
 					7054D4BF7FC92B99D11A27F2,
 					BCF297B0ADDB5526A3D1FA25,
-					A9AE577F287EAEAF71FBC32A,
 					475F5EE6977EF63CDE342A3D,
 					1869803CB8DE99B218B1BE2B,
 					FD94D5E4B07CC13BD761402B, ); runOnlyForDeploymentPostprocessing = 0; };
@@ -455,7 +448,6 @@
 					8684CFBF4BCCAD3FC8F21130,
 					867306218809DD92962E1B29,
 					E66BF49B899FAA4750F25B9A,
-					278860B80F955463CF21C858,
 					5E69F47C6B380640BEADECC4,
 					1694C28BDEA039DB19B644D0,
 					0C62535E030898CADC29FC08,

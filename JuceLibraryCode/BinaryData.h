@@ -11,12 +11,6 @@ namespace BinaryData
     extern const char*   JAS_jpil;
     const int            JAS_jpilSize = 175;
 
-    extern const char*   ServerGRIS_1_0_Manual_pdf;
-    const int            ServerGRIS_1_0_Manual_pdfSize = 14198125;
-
-    extern const char*   ServerGRIS_icon_doc_icns;
-    const int            ServerGRIS_icon_doc_icnsSize = 481666;
-
     extern const char*   ServerGRIS_icon_doc_png;
     const int            ServerGRIS_icon_doc_pngSize = 403691;
 
@@ -30,7 +24,7 @@ namespace BinaryData
     const int            SinkinSans400Regular_otfSize = 35872;
 
     // Number of elements in the namedResourceList and originalFileNames arrays.
-    const int namedResourceListSize = 7;
+    const int namedResourceListSize = 5;
 
     // Points to the start of a list of resource names.
     extern const char* namedResourceList[];
