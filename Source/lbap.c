@@ -218,7 +218,7 @@ lbap_layer_compute_gains(lbap_layer *layer, float azi, float rad, float azispan,
     x = pos.x * (hsize - 1) + hsize;
     y = pos.y * (hsize - 1) + hsize;
     for (i=0; i<layer->num_of_speakers; i++) {
-        gains[i] = powf(lbap_lookup(layer->matrix[i], x, y), layer->expon); // * azispan*4 pour la diffusion/localisation
+        gains[i] = powf(lbap_lookup(layer->matrix[i], x, y), layer->expon * (1.0 - azispan) * 2.0);
         sum += gains[i];
     }
     if (sum > 0.0) {
@@ -310,6 +310,54 @@ lbap_field_setup(lbap_field *field, lbap_speaker *speakers, int num) {
 void
 lbap_field_compute(lbap_field *field, lbap_pos *pos, float *gains) {
     int i, j, c;
+    float frac = 0.0, gain = 0.0, elespan = 0.0;
+    float gns[field->num_of_speakers];
+
+    lbap_layer *first = field->layers[0];
+    lbap_layer *second = field->layers[field->num_of_layers-1];
+    for (i=0; i<field->num_of_layers; i++) {
+        if (field->layers[i]->ele > pos->ele) {
+            second = field->layers[i];
+            break;
+        }
+        first = field->layers[i];
+    }
+
+    if (first->id != (field->num_of_layers-1))
+        frac = (pos->ele - first->ele) / (second->ele - first->ele);
+
+    if (pos->elespan != 0.0)
+        elespan = powf(pos->elespan, 2) * 6;
+
+    c = 0;
+    for (i=0; i<field->num_of_layers; i++) {
+        if (i < first->id) {
+            gain = elespan / ((first->id - i) * 2);
+        } else if (i == first->id) {
+            gain = (1 - frac) + elespan;
+        } else if (i == second->id && first->id != second->id) {
+            gain = frac + elespan;
+        } else if (i == second->id && first->id == second->id) {
+            gain = elespan;
+        } else {
+            gain = elespan / ((i - second->id) * 2);
+        }
+        gain = gain > 1.0 ? 1.0 : gain;
+        lbap_layer_compute_gains(field->layers[i], pos->azi, pos->rad, pos->azispan, &gns[c]);
+        for (j=0; j<field->layers[i]->num_of_speakers; j++) {
+            gns[c++] *= gain;
+        }
+    }
+
+    for (i=0; i<field->num_of_speakers; i++) {
+        gains[field->out_order[i]] = gns[i];
+    }
+}
+
+/*
+void
+lbap_field_compute(lbap_field *field, lbap_pos *pos, float *gains) {
+    int i, j, c;
     float frac, gns[field->num_of_speakers];
 
     lbap_layer *first = field->layers[0];
@@ -355,6 +403,7 @@ lbap_field_compute(lbap_field *field, lbap_pos *pos, float *gains) {
         gains[field->out_order[i]] = gns[i];
     }
 }
+*/
 
 lbap_speaker *
 lbap_speakers_from_positions(float *azi, float *ele, float *rad, int *spkid, int num) {
@@ -408,7 +457,8 @@ void lbap_pos_init_from_degrees(lbap_pos *pos, float azi, float ele, float rad) 
 }
 
 int lbap_pos_compare(lbap_pos *p1, lbap_pos *p2) {
-    if (p1->azi == p2->azi && p1->ele == p2->ele && p1->rad == p2->rad)
+    if (p1->azi == p2->azi && p1->ele == p2->ele && p1->rad == p2->rad && 
+       p1->azispan == p2->azispan && p1->elespan == p2->elespan)
         return 1;
     else
         return 0;

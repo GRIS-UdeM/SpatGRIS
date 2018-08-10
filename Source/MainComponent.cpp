@@ -1971,7 +1971,7 @@ void MainContentComponent::comboBoxChanged(ComboBox *comboBox) {
                 this->openXmlFileSpeaker(this->pathLastVbapSpeakerSetup);
                 result = 1;
                 if (result)
-                    this->isSpanShown = false;
+                    this->isSpanShown = true;
                 break;
             case VBAP_HRTF:
                 this->openXmlFileSpeaker(BinauralSpeakerSetupFilePath);

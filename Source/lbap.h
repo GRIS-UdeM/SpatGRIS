@@ -7,9 +7,6 @@
  * efficiently.
  */
 
-// TODO:
-// Add a localisation/diffusion parameter ?
-
 /** \mainpage Welcome to LBAP documentation
  *
  * LBAP (Layer-Based Amplitude Panning) is a framework written in C 
@@ -80,6 +77,7 @@ typedef struct {
     float y;
     float z;
     float azispan;
+    float elespan;
 } lbap_pos;
 
 /** \brief Initializes a new spatialization field.
