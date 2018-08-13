@@ -2003,9 +2003,9 @@ void MainContentComponent::comboBoxChanged(ComboBox *comboBox) {
 
         if (this->winSpeakConfig != nullptr) {
             if (this->jackClient->modeSelected == VBAP || this->jackClient->modeSelected == VBAP_HRTF) {
-                this->winSpeakConfig->setRadiusColumnVisible(false);
+                this->winSpeakConfig->setRadiusColumnName(String("Distance"));
             } else {
-                this->winSpeakConfig->setRadiusColumnVisible(true);
+                this->winSpeakConfig->setRadiusColumnName(String("Radius"));
             }
         }
     }

@@ -435,9 +435,9 @@ void WindowEditSpeaker::initComp() {
     tableListSpeakers.setMultipleSelectionEnabled(false);
 
     if (this->mainParent->getJackClient()->modeSelected == VBAP || this->mainParent->getJackClient()->modeSelected == VBAP_HRTF) {
-        tableListSpeakers.getHeader().setColumnVisible(7, false);
+        tableListSpeakers.getHeader().setColumnName(7, "Distance");
     } else {
-        tableListSpeakers.getHeader().setColumnVisible(7, true);
+        tableListSpeakers.getHeader().setColumnName(7, "Radius");
     }
 
     numRows = (unsigned int)this->mainParent->getListSpeaker().size();
@@ -453,8 +453,8 @@ void WindowEditSpeaker::initComp() {
     this->resized();
 }
 
-void WindowEditSpeaker::setRadiusColumnVisible(bool visible) {
-    tableListSpeakers.getHeader().setColumnVisible(7, visible);
+void WindowEditSpeaker::setRadiusColumnName(const String& name) {
+    tableListSpeakers.getHeader().setColumnName(7, name);
 }
 
 struct Sorter {
@@ -785,7 +785,11 @@ void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, con
                     break;
                 case 7:
                     newP = this->mainParent->getListSpeaker()[rowNumber]->getAziZenRad();
-                    newP.z = GetFloatPrecision(newText.getFloatValue(), 2);
+                    if (this->mainParent->isRadiusNormalized() && !this->mainParent->getListSpeaker()[rowNumber]->getDirectOut()) {
+                        newP.z = 1.0f;
+                    } else {
+                        newP.z = GetFloatPrecision(newText.getFloatValue(), 2);
+                    }
                     this->mainParent->getListSpeaker()[rowNumber]->setAziZenRad(newP);
                     break;
                 case 8:

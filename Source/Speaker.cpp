@@ -93,9 +93,11 @@ glm::vec3 Speaker::getAziZenRad() {
 }
 
 void Speaker::normalizeRadius() {
-    glm::vec3 v = this->getAziZenRad();
-    v.z = 1.0f;
-    this->setAziZenRad(v);
+    if (! getDirectOut()) {
+        glm::vec3 v = this->getAziZenRad();
+        v.z = 1.0f;
+        this->setAziZenRad(v);
+    }
 }
 
 void Speaker::setAziZenRad(glm::vec3 value) {

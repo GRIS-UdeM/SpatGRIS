@@ -132,7 +132,7 @@ public:
     
     void updateWinContent();
     void selectedRow(int value);
-    void setRadiusColumnVisible(bool visible);
+    void setRadiusColumnName(const String& name);
     
     void initComp();
     void buttonClicked(Button *button) override;
