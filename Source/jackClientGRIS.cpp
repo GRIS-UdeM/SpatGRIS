@@ -73,7 +73,7 @@ static void muteSoloVuMeterGainOut(jackClientGris &jackCli, jack_default_audio_s
     float gain;
     double inval = 0.0, val = 0.0;
 
-    if (jackCli.modeSelected == VBAP) {
+    if (jackCli.modeSelected == VBAP || jackCli.modeSelected == LBAP) {
         num_of_channels = sizeOutputs;
     }
     
@@ -132,7 +132,7 @@ static void muteSoloVuMeterGainOut(jackClientGris &jackCli, jack_default_audio_s
             }
         }
     }
-    
+
     // Recording index.
     if (!jackCli.recording && jackCli.indexRecord > 0) {
         if (num_of_channels == sizeOutputs) {
@@ -580,7 +580,7 @@ void port_connect_callback(jack_port_id_t a, jack_port_id_t b, int connect, void
 // Load samples from a wav file into a float array.
 static float ** getSamplesFromWavFile(String filename) {
     int **wavData;
-    float factor = powf(2.0f, 32.0f);
+    float factor = powf(2.0f, 31.0f);
     AudioFormat *wavAudioFormat;
     File file = File(filename); 
     wavAudioFormat = new WavAudioFormat(); 
@@ -598,6 +598,7 @@ static float ** getSamplesFromWavFile(String filename) {
             samples[i][j] = wavData[i][j] / factor;
         }
     }
+    // FIXME: wavData is leaking memory...
     delete wavAudioFormat;
     delete stream;
     return samples;
@@ -801,6 +802,7 @@ void jackClientGris::prepareToRecord() {
 
     this->recording = false;
     this->indexRecord = 0;
+    this->outputFilenames.clear();
 
     String channelName;
     File fileS = File(this->recordPath);
@@ -815,6 +817,7 @@ void jackClientGris::prepareToRecord() {
                 channelName = parent + "/" + fname + "_" + String(i+1).paddedLeft('0', 3) + extF;
                 File fileC = File(channelName);
                 this->recorder[i].startRecording(fileC, this->sampleRate, extF);
+                this->outputFilenames.add(fileC);
             }
         }
     } else if (this->modeSelected == VBAP_HRTF || this->modeSelected == STEREO) {
@@ -823,6 +826,7 @@ void jackClientGris::prepareToRecord() {
             channelName = parent + "/" + fname + "_" + String(i+1).paddedLeft('0', 3) + extF;
             File fileC = File(channelName);
             this->recorder[i].startRecording(fileC, this->sampleRate, extF);
+            this->outputFilenames.add(fileC);
         }
     }
 }

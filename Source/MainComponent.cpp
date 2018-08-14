@@ -20,6 +20,117 @@
 #include "ServerGrisConstants.h"
 #include "MainComponent.h"
 
+// Audio recorder class used to write an interleaved multi-channel soundfile on disk.
+class AudioRenderer : public ThreadWithProgressWindow
+{
+public:
+    AudioRenderer() : ThreadWithProgressWindow("Merging recorded mono files into an interleaved multi-channel file...", true, false) {
+        setStatusMessage("Initializing...");
+    }
+
+    ~AudioRenderer() {
+    }
+
+    //==============================================================================
+    void prepareRecording(const File& file, const Array<File> filenames, unsigned int sampleRate) {
+        this->fileToRecord = file;
+        this->filenames = filenames;
+        this->sampleRate = sampleRate;
+    }
+
+    void run() override {
+        unsigned int numberOfPasses = 0, blockSize = 2048;
+        float factor = powf(2.0f, 31.0f);
+        int numberOfChannels = this->filenames.size();
+        String extF = this->filenames[0].getFileExtension();
+
+        int **data = new int * [2]; 
+        data[0] = new int[blockSize];
+        data[1] = 0;
+
+        float **buffer = new float * [numberOfChannels];
+        for (int i = 0; i < numberOfChannels; i++) {
+            buffer[i] = new float[blockSize];
+        }
+
+        formatManager.registerBasicFormats();
+        AudioFormatReader *readers[numberOfChannels];
+        for (int i = 0; i < numberOfChannels; i++) {
+            readers[i] = formatManager.createReaderFor(filenames[i]);
+        }
+
+        unsigned int duration = readers[0]->lengthInSamples;
+        unsigned int howmanyPasses = duration / blockSize;
+
+        // Create an OutputStream to write to our destination file.
+        this->fileToRecord.deleteFile();
+        ScopedPointer<FileOutputStream> fileStream(this->fileToRecord.createOutputStream());
+
+        AudioFormatWriter *writer;
+
+        if (fileStream != nullptr) {
+            // Now create a writer object that writes to our output stream...
+            if (extF == ".wav") {
+                WavAudioFormat wavFormat;
+                writer = wavFormat.createWriterFor(fileStream, this->sampleRate, numberOfChannels, 24, NULL, 0);
+            } else {
+                AiffAudioFormat aiffFormat;
+                writer = aiffFormat.createWriterFor(fileStream, this->sampleRate, numberOfChannels, 24, NULL, 0);
+            }
+
+            if (writer != nullptr) {
+                fileStream.release(); // (passes responsibility for deleting the stream to the writer object that is now using it)
+            }
+        }
+
+        while ((numberOfPasses * blockSize) < duration) {
+            // this will update the progress bar on the dialog box
+            setProgress (numberOfPasses / (double)howmanyPasses);
+
+            setStatusMessage("Processing...");
+
+            for (int i = 0; i < numberOfChannels; i++) {
+                readers[i]->read(data, 1, numberOfPasses * blockSize, blockSize, false);
+                for (int j = 0; j < blockSize; j++) {
+                    buffer[i][j] = data[0][j] / factor;
+                }
+            }
+            writer->writeFromFloatArrays(buffer, numberOfChannels, blockSize);
+            numberOfPasses++;
+            wait(1);
+        }
+
+        delete writer;
+
+        setProgress(-1.0); // setting a value beyond the range 0 -> 1 will show a spinning bar.
+        setStatusMessage("Finishing the creation of the multi-channel file!");
+
+        // Delete the monophonic files.
+        for (auto&& it : this->filenames) {
+            it.deleteFile();
+            wait(50);
+        }
+        wait(1000);
+    }
+
+    // This method gets called on the message thread once our thread has finished..
+    void threadComplete (bool userPressedCancel) override {
+        // thread finished normally.
+        AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon,
+                                         "Multi-channel processing window",
+                                         "Merging files finished!");
+
+        // Clean up by deleting our thread object.
+        delete this;
+    }
+
+private:
+    AudioFormatManager formatManager;
+    File fileToRecord;
+    Array<File> filenames;
+    unsigned int sampleRate;
+};
+
 MainContentComponent::MainContentComponent(DocumentWindow *parent)
 {
     this->parent = parent;
@@ -57,6 +168,7 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     this->isSphereShown = false;
     this->isHighPerformance = false;
     this->isSpanShown = true;
+    this->isRecording = false;
 
     this->pathLastVbapSpeakerSetup = String("");
 
@@ -171,6 +283,8 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
 
     unsigned int fileformat = props->getIntValue("FileFormat", 0);
     this->jackClient->setRecordFormat(fileformat);
+    unsigned int fileconfig = props->getIntValue("FileConfig", 0);
+    this->jackClient->setRecordFileConfig(fileconfig);
 
     if (!jackClient->isReady()) {
         this->labelJackStatus->setText("Jack ERROR", dontSendNotification);
@@ -228,7 +342,7 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
 
     // Restore last vertical divider position and speaker view cam distance.
     if (props->containsKey("sashPosition")) {
-        int trueSize = (int)round((this->getWidth() - 2) * abs(props->getDoubleValue("sashPosition")));
+        int trueSize = (int)round((this->getWidth() - 3) * abs(props->getDoubleValue("sashPosition")));
         this->verticalLayout.setItemPosition(1, trueSize);
         this->speakerView->setCamPosition(this->speakerView->getCamAngleX(),
                                           this->speakerView->getCamAngleY(),
@@ -512,6 +626,7 @@ void MainContentComponent::handleShowPreferences() {
         unsigned int BufferValue = props->getIntValue("BufferValue", 1024);
         unsigned int RateValue = props->getIntValue("RateValue", 48000);
         unsigned int FileFormat = props->getIntValue("FileFormat", 0);
+        unsigned int FileConfig = props->getIntValue("FileConfig", 0);
         unsigned int OscInputPort = props->getIntValue("OscInputPort", 18032);
         if (std::isnan(float(BufferValue)) || BufferValue == 0) { BufferValue = 1024; }
         if (std::isnan(float(RateValue)) || RateValue == 0) { RateValue = 48000; }
@@ -521,9 +636,9 @@ void MainContentComponent::handleShowPreferences() {
                                                      DocumentWindow::allButtons, this, &this->mGrisFeel, 
                                                      RateValues.indexOf(String(RateValue)), 
                                                      BufferSizes.indexOf(String(BufferValue)),
-                                                     FileFormat, OscInputPort);
+                                                     FileFormat, FileConfig, OscInputPort);
     }
-	juce::Rectangle<int> result (this->getScreenX()+ (this->speakerView->getWidth()/2)-150, this->getScreenY()+(this->speakerView->getHeight()/2)-75, 270, 290);
+	juce::Rectangle<int> result (this->getScreenX()+ (this->speakerView->getWidth()/2)-150, this->getScreenY()+(this->speakerView->getHeight()/2)-75, 270, 320);
     this->windowProperties->setBounds(result);
     this->windowProperties->setResizable(false, false);
     this->windowProperties->setUsingNativeTitleBar(true);
@@ -1773,7 +1888,7 @@ void MainContentComponent::saveSpeakerSetup(String path) {
     this->setNameConfig();
 }
 
-void MainContentComponent::saveProperties(int rate, int buff, int fileformat, int oscPort) {
+void MainContentComponent::saveProperties(int rate, int buff, int fileformat, int fileconfig, int oscPort) {
 
     PropertiesFile *props = this->applicationProperties.getUserSettings();
 
@@ -1814,6 +1929,9 @@ void MainContentComponent::saveProperties(int rate, int buff, int fileformat, in
     this->jackClient->setRecordFormat(fileformat);
     props->setValue("FileFormat", fileformat);
 
+    this->jackClient->setRecordFileConfig(fileconfig);
+    props->setValue("FileConfig", fileconfig);
+
     applicationProperties.saveIfNeeded();
 }
 
@@ -1840,7 +1958,28 @@ void MainContentComponent::timerCallback() {
         this->butStartRecord->setButtonText("Record");
         this->butStartRecord->setEnabled(true);
     } 
-    
+
+    if (this->isRecording && !this->jackClient->recording) {
+        bool isReadyToMerge = true;
+        for (int i = 0; i < MaxOutputs; i++) {
+            if (this->jackClient->recorder[i].backgroundThread.isThreadRunning()) {
+                isReadyToMerge = false;
+            }
+        }
+        if (isReadyToMerge) {
+            this->isRecording = false;
+            if (this->jackClient->getRecordFileConfig()) {
+                this->jackClient->processBlockOn = false;
+                AudioRenderer *renderer = new AudioRenderer();
+                renderer->prepareRecording(this->jackClient->getRecordingPath(),
+                                           this->jackClient->outputFilenames,
+                                           this->jackClient->sampleRate);
+                renderer->runThread();
+                this->jackClient->processBlockOn = true;
+            }
+        }
+    }
+
     if (this->jackClient->overload) {
         this->labelJackLoad->setColour(Label::backgroundColourId, Colours::darkred);
     } else {
@@ -1921,6 +2060,7 @@ void MainContentComponent::buttonClicked(Button *button) {
             this->jackClient->stopRecord();
             this->labelTimeRecorded->setColour(Label::textColourId, mGrisFeel.getFontColour());
         } else {
+            this->isRecording = true;
             this->jackClient->startRecord();
             this->labelTimeRecorded->setColour(Label::textColourId, mGrisFeel.getRedColour());
         }

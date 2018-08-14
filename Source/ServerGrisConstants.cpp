@@ -34,4 +34,5 @@ const StringArray ModeSpatString = {"VBAP",  "LBAP", "BINAURAL", "STEREO"};
 const StringArray BufferSizes = {"32", "64", "128", "256", "512", "1024", "2048"};
 const StringArray RateValues = {"44100", "48000", "88200", "96000"};
 const StringArray FileFormats = {"WAV", "AIFF"};
+const StringArray FileConfigs = {"Multiple Mono Files", "Single Interleaved"};
 

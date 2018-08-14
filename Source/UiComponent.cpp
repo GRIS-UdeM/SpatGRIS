@@ -944,7 +944,7 @@ ComboBox * WindowProperties::createPropComboBox(const StringArray choices, int s
 
 WindowProperties::WindowProperties(const String& name, Colour backgroundColour, int buttonsNeeded,
                                    MainContentComponent *parent, GrisLookAndFeel *feel, int indR, 
-                                   int indB, int indFF, int oscPort): 
+                                   int indB, int indFF, int indFC, int oscPort): 
     DocumentWindow (name, backgroundColour, buttonsNeeded)
 {
     this->mainParent = parent;
@@ -968,9 +968,12 @@ WindowProperties::WindowProperties(const String& name, Colour backgroundColour, 
     this->labRecFormat = this->createPropLabel("File Format :", Justification::left, 220);
     this->recordFormat = this->createPropComboBox(FileFormats, indFF, 220);
 
+    this->labRecFileConfig = this->createPropLabel("Output Format :", Justification::left, 250);
+    this->recordFileConfig = this->createPropComboBox(FileConfigs, indFC, 250);
+
     this->butValidSettings = new TextButton();
     this->butValidSettings->setButtonText("Save");
-    this->butValidSettings->setBounds(163, 260, 88, 22);
+    this->butValidSettings->setBounds(163, 290, 88, 22);
     this->butValidSettings->addListener(this);
     this->butValidSettings->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
     this->butValidSettings->setLookAndFeel(this->grisFeel);
@@ -985,10 +988,12 @@ WindowProperties::~WindowProperties() {
     delete this->labRate;
     delete this->labBuff;
     delete this->labRecFormat;
+    delete this->labRecFileConfig;
     delete this->tedOSCInPort;
     delete this->cobRate;
     delete this->cobBuffer;
     delete this->recordFormat;
+    delete this->recordFileConfig;
     delete this->butValidSettings;
     this->mainParent->destroyWindowProperties();
 }
@@ -1002,6 +1007,7 @@ void WindowProperties::buttonClicked(Button *button) {
         this->mainParent->saveProperties(this->cobRate->getText().getIntValue(),
                                          this->cobBuffer->getText().getIntValue(),
                                          this->recordFormat->getSelectedItemIndex(),
+                                         this->recordFileConfig->getSelectedItemIndex(),
                                          this->tedOSCInPort->getTextValue().toString().getIntValue());
         delete this;
     }

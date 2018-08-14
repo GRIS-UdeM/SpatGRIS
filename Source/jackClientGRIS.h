@@ -130,7 +130,6 @@ class AudioRecorder
 {
 public:
     AudioRecorder() : backgroundThread ("Audio Recorder Thread"), activeWriter (nullptr) {
-        backgroundThread.startThread();
     }
 
     ~AudioRecorder() {
@@ -140,6 +139,8 @@ public:
     //==============================================================================
     void startRecording(const File& file, unsigned int sampleRate, String extF) {
         stop();
+
+        backgroundThread.startThread();
 
         // Create an OutputStream to write to our destination file.
         file.deleteFile();
@@ -184,6 +185,9 @@ public:
         // take a little time while remaining data gets flushed to disk, so it's best to avoid blocking
         // the audio callback while this happens.
         threadedWriter = nullptr;
+
+        // Stop the background thread.
+        backgroundThread.stopThread(100);
     }
 
     void recordSamples(float **samples, int numSamples) {
@@ -191,13 +195,13 @@ public:
         activeWriter->write (samples, numSamples);
     }
 
-private:
     TimeSliceThread backgroundThread; // the thread that will write our audio data to disk
+
+private:
     ScopedPointer<AudioFormatWriter::ThreadedWriter> threadedWriter; // the FIFO used to buffer the incoming data
     CriticalSection writerLock;
     AudioFormatWriter::ThreadedWriter* volatile activeWriter;
 };
-
 
 class jackClientGris {
 public:
@@ -288,6 +292,7 @@ public:
     AudioRecorder recorder[MaxOutputs];
     unsigned int indexRecord = 0;
     bool recording;
+    Array<File> outputFilenames;
 
     // Class methods.
     //---------------
@@ -321,6 +326,8 @@ public:
     void stopRecord() { this->recording = false; };
     void setRecordFormat(int format) { this->recordFormat = format; };
     int getRecordFormat() { return this->recordFormat; };
+    void setRecordFileConfig(int config) { this->recordFileConfig = config; };
+    int getRecordFileConfig() { return this->recordFileConfig; };
     void setRecordingPath(String filePath) { this->recordPath = filePath; }
     String getRecordingPath() { return this->recordPath; }
     bool isSavingRun() { return this->recording; };
@@ -342,7 +349,8 @@ private:
     bool clientReady;
 
     // Private recording parameters.
-    int recordFormat = 0;    // 0 = WAV, 1 = AIFF
+    int recordFormat = 0;       // 0 = WAV, 1 = AIFF
+    int recordFileConfig = 0;   // 0 = Multiple Mono Files, 1 = Single Interleaved
     String recordPath = "";
 
     // This structure is used to compute the VBAP algorithm only once. Each source only gets a copy.

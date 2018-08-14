@@ -28,5 +28,6 @@ extern const bool UseOSNativeDialogBox;
 extern const StringArray BufferSizes;
 extern const StringArray RateValues;
 extern const StringArray FileFormats;
+extern const StringArray FileConfigs;
 
 #endif /* SERVERGRISCONSTANTS_H */

@@ -220,7 +220,7 @@ class WindowProperties : public DocumentWindow,
 public:
     WindowProperties(const String& name, Colour backgroundColour, int buttonsNeeded,
                       MainContentComponent *parent, GrisLookAndFeel *feel, int indR=0,
-                      int indB=0, int indFF=0, int oscPort=18032);
+                      int indB=0, int indFF=0, int indFC=0, int oscPort=18032);
     ~WindowProperties();
 
     Label * createPropLabel(String lab, Justification::Flags just, int ypos);
@@ -249,6 +249,9 @@ private:
 
     Label *labRecFormat;
     ComboBox *recordFormat;
+
+    Label *labRecFileConfig;
+    ComboBox *recordFileConfig;
 
     TextButton *butValidSettings;
 };

@@ -194,7 +194,7 @@ public:
     void openPreset(String path);
     void savePreset(String path);
     void saveSpeakerSetup(String path);
-    void saveProperties(int rate, int buff, int fileformat, int oscPort);
+    void saveProperties(int rate, int buff, int fileformat, int fileconfig, int oscPort);
     void chooseRecordingPath();
     void setNameConfig();
     void setTitle();
@@ -336,6 +336,7 @@ private:
     bool isSpeakersShown;
     bool isSphereShown;
     bool isHighPerformance;
+    bool isRecording;
 
     // The following methods implement the ApplicationCommandTarget interface, allowing
     // this window to publish a set of actions it can perform, and which can be mapped
