@@ -310,7 +310,7 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     textEditorReturnKeyPressed(*this->tedAddInputs);
 
     // Open the default preset if lastOpenPreset is not a valid file.
-    File preset = File(props->getValue("lastOpenPreset", "not_saved_yet"));
+    File preset = File(props->getValue("lastOpenPreset", "./not_saved_yet"));
     if (!preset.existsAsFile()) {
         this->openPreset(DefaultPresetFilePath);
     }
@@ -319,7 +319,7 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     }
 
     // Open the default speaker setup if lastOpenSpeakerSetup is not a valid file.
-    File setup = File(props->getValue("lastOpenSpeakerSetup", "not_saved_yet"));
+    File setup = File(props->getValue("lastOpenSpeakerSetup", "./not_saved_yet"));
     if (!setup.existsAsFile()) {
         this->openXmlFileSpeaker(DefaultSpeakerSetupFilePath);
     }
