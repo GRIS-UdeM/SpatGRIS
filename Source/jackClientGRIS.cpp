@@ -405,11 +405,11 @@ static void processSTEREO(jackClientGris &jackCli, jack_default_audio_sample_t *
             }
             jackCli.last_azi[i] = last_azi;
 
-        } else if ((jackCli.listSourceIn[i].directOut) == 1) {
+        } else if ((jackCli.listSourceIn[i].directOut % 2) == 1) {
             for (f = 0; f < nframes; ++f) {
                 outs[0][f] += ins[i][f];
             }
-        } else if ((jackCli.listSourceIn[i].directOut) == 2) {
+        } else {
             for (f = 0; f < nframes; ++f) {
                 outs[1][f] += ins[i][f];
             }
