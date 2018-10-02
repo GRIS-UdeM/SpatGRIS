@@ -852,7 +852,7 @@ void MainContentComponent::getCommandInfo (CommandID commandID, ApplicationComma
             result.addDefaultKeypress ('E', ModifierKeys::shiftModifier|ModifierKeys::commandModifier);
             break;
         case MainWindow::ShowSpeakerEditID:
-            result.setInfo ("Show Speaker Setup Edition Window", "Edit the current speaker setup.", generalCategory, 0);
+            result.setInfo ("Speaker Setup Edition", "Edit the current speaker setup.", generalCategory, 0);
             result.addDefaultKeypress ('W', ModifierKeys::altModifier);
             break;
         case MainWindow::Show2DViewID:
@@ -1007,34 +1007,57 @@ void MainContentComponent::menuItemSelected (int menuItemID, int /*topLevelMenuI
     switch (menuItemID) {}
 }
 
-// Exit function.
+// Exit functions.
+bool MainContentComponent::isPresetModified() {
+    File xmlFile = File(this->pathCurrentPreset.toStdString());
+    XmlDocument xmlDoc(xmlFile);
+    ScopedPointer<XmlElement> savedState(xmlDoc.getDocumentElement());
+    if (savedState == nullptr) {
+        return true;
+    }
+
+    ScopedPointer<XmlElement> currentState = new XmlElement("ServerGRIS_Preset");
+    this->getPresetData(currentState);
+
+    if (! savedState->isEquivalentTo(currentState, true)) {
+        return true;
+    }
+
+    return false;
+}
+
 bool MainContentComponent::exitApp() {
-    ScopedPointer<AlertWindow> alert = new AlertWindow("Exit ServerGRIS !",
-                                                       "Do you want to save the current project ?",
-                                                       AlertWindow::InfoIcon);
-    alert->setLookAndFeel(&mGrisFeel);
-    alert->addButton ("Save", 1);
-    alert->addButton ("Cancel", 0);
-    alert->addButton ("Exit", 2);
-    int exitV = alert->runModalLoop();
-    if (exitV == 1) {
-        alert->setVisible(false);
-        ModalComponentManager::getInstance()->cancelAllModalComponents();
-        String dir = this->applicationProperties.getUserSettings()->getValue("lastPresetDirectory");
-        if (! File(dir).isDirectory()) {
-            dir = File("~").getFullPathName();
-        }
-        String filename = File(this->pathCurrentPreset).getFileName();
+    int exitV = 2;
 
-        FileChooser fc ("Choose a file to save...", dir + "/" + filename, "*.xml", UseOSNativeDialogBox);
+    if (this->isPresetModified()) {
+        ScopedPointer<AlertWindow> alert = new AlertWindow("Exit ServerGRIS !",
+                                                           "Do you want to save the current project ?",
+                                                           AlertWindow::InfoIcon);
+        alert->setLookAndFeel(&mGrisFeel);
+        alert->addButton ("Save", 1, KeyPress(KeyPress::returnKey));
+        alert->addButton ("Cancel", 0, KeyPress(KeyPress::escapeKey));
+        alert->addButton ("Exit", 2, KeyPress(KeyPress::deleteKey));
+        exitV = alert->runModalLoop();
+        if (exitV == 1) {
+            alert->setVisible(false);
+            ModalComponentManager::getInstance()->cancelAllModalComponents();
+            String dir = this->applicationProperties.getUserSettings()->getValue("lastPresetDirectory");
+            if (! File(dir).isDirectory()) {
+                dir = File("~").getFullPathName();
+            }
+            String filename = File(this->pathCurrentPreset).getFileName();
 
-        if (fc.browseForFileToSave(true)) {
-            String chosen = fc.getResults().getReference(0).getFullPathName();
-            this->savePreset(chosen);
-        } else {
-            exitV = 0;
+            FileChooser fc ("Choose a file to save...", dir + "/" + filename, "*.xml", UseOSNativeDialogBox);
+
+            if (fc.browseForFileToSave(true)) {
+                String chosen = fc.getResults().getReference(0).getFullPathName();
+                this->savePreset(chosen);
+            } else {
+                exitV = 0;
+            }
         }
     }
+
     return (exitV != 0); 
 }
 
@@ -1794,11 +1817,7 @@ void MainContentComponent::openPreset(String path) {
     this->setTitle();
 }
 
-void MainContentComponent::savePreset(String path) {
-    File xmlFile = File(path.toStdString());
-    XmlDocument xmlDoc(xmlFile);
-    ScopedPointer<XmlElement>  xml = new XmlElement("ServerGRIS_Preset");
-    
+void MainContentComponent::getPresetData(XmlElement *xml) {
     xml->setAttribute("OSC_Input_Port", String(this->oscInputPort));
     xml->setAttribute("Number_Of_Inputs", this->tedAddInputs->getTextValue().toString());
     xml->setAttribute("Master_Gain_Out", this->sliderMasterGainOut->getValue());
@@ -1816,7 +1835,7 @@ void MainContentComponent::savePreset(String path) {
     xml->setAttribute("CamDistance", this->speakerView->getCamDistance());
     
     for (auto&& it : listSourceInput) {
-        XmlElement * xmlInput = new  XmlElement("Input");
+        XmlElement *xmlInput = new XmlElement("Input");
         xmlInput->setAttribute("Index", it->getId());
         xmlInput->setAttribute("R", it->getColor().x);
         xmlInput->setAttribute("G", it->getColor().y);
@@ -1824,6 +1843,12 @@ void MainContentComponent::savePreset(String path) {
         xmlInput->setAttribute("DirectOut", String(it->getDirectOutChannel()));
         xml->addChildElement(xmlInput);
     }
+}
+
+void MainContentComponent::savePreset(String path) {
+    File xmlFile = File(path.toStdString());
+    ScopedPointer<XmlElement> xml = new XmlElement("ServerGRIS_Preset");
+    this->getPresetData(xml);
     xml->writeToFile(xmlFile, "");
     xmlFile.create();
     this->pathCurrentPreset = path;
@@ -1839,8 +1864,7 @@ String MainContentComponent::getCurrentFileSpeakerPath() {
 void MainContentComponent::saveSpeakerSetup(String path) {
     this->pathCurrentFileSpeaker = path;
     File xmlFile = File (path.toStdString());
-    XmlDocument xmlDoc (xmlFile);
-    ScopedPointer<XmlElement>  xml = new XmlElement("SpeakerSetup");
+    ScopedPointer<XmlElement> xml = new XmlElement("SpeakerSetup");
     
     xml->setAttribute ("Name", this->nameConfig);
     xml->setAttribute ("Dimension", 3);

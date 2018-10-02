@@ -177,6 +177,7 @@ private:
     TableListBox tableListSpeakers;
     Font font;
     int numRows;
+    bool initialized;
 
     class EditableTextCustomComponent : public Label
     {

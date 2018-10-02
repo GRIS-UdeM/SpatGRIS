@@ -82,6 +82,8 @@ public:
     MainContentComponent(DocumentWindow *parent);
     ~MainContentComponent();
 
+    // Exit application.
+    bool isPresetModified();
     bool exitApp();
 
     // Menubar handlers.
@@ -189,9 +191,9 @@ public:
     bool updateLevelComp();
 
     // Open - save.
-    void onOpenPreset();
     void openXmlFileSpeaker(String path);
     void openPreset(String path);
+    void getPresetData(XmlElement *xml);
     void savePreset(String path);
     void saveSpeakerSetup(String path);
     void saveProperties(int rate, int buff, int fileformat, int fileconfig, int oscPort);
@@ -238,6 +240,7 @@ public:
     bool isSpanShown;
 
     // App states.
+    bool needToSavePreset = false;
     bool needToSaveSpeakerSetup = false;
     bool needToComputeVbap = true;
 

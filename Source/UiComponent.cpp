@@ -391,6 +391,8 @@ WindowEditSpeaker::WindowEditSpeaker(const String& name, String& nameC, Colour b
 
     this->boxListSpeaker->repaint();
     this->boxListSpeaker->resized();
+
+    this->initialized = false;
 }
 
 WindowEditSpeaker::~WindowEditSpeaker() {
@@ -664,7 +666,10 @@ void WindowEditSpeaker::textEditorReturnKeyPressed(TextEditor& editor) {
 void WindowEditSpeaker::updateWinContent() {
     this->numRows = (unsigned int)this->mainParent->getListSpeaker().size();
     this->tableListSpeakers.updateContent();
-    this->mainParent->needToSaveSpeakerSetup = true;
+    if (this->initialized) {
+        this->mainParent->needToSaveSpeakerSetup = true;
+    }
+    this->initialized = true;
 }
 
 void WindowEditSpeaker::selectedRow(int value) {
@@ -676,10 +681,17 @@ void WindowEditSpeaker::selectedRow(int value) {
 void WindowEditSpeaker::closeButtonPressed() {
     int exitV = 1;
     if (this->mainParent->needToSaveSpeakerSetup) {
-        exitV = AlertWindow::showYesNoCancelBox(AlertWindow::WarningIcon,
-                                                "Closing Speaker Setup Window !",
-                                                "Do you want to compute and save the current setup ?");
+        ScopedPointer<AlertWindow> alert = new AlertWindow("Closing Speaker Setup Window !",
+                                                           "Do you want to compute and save the current setup ?",
+                                                           AlertWindow::WarningIcon);
+        alert->setLookAndFeel(grisFeel);
+        alert->addButton ("Save", 1, KeyPress(KeyPress::returnKey));
+        alert->addButton ("No", 2);
+        alert->addButton ("Cancel", 0, KeyPress(KeyPress::escapeKey));
+        exitV = alert->runModalLoop();
+
         if (exitV == 1) {
+            alert->setVisible(false);
             this->mainParent->updateLevelComp();
             this->mainParent->handleTimer(false);
             this->setAlwaysOnTop(false);
