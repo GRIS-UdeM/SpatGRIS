@@ -784,7 +784,14 @@ void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, con
             switch (columnNumber) {
                 case 5:
                     newP = this->mainParent->getListSpeaker()[rowNumber]->getAziZenRad();
-                    newP.x = GetFloatPrecision(newText.getFloatValue(), 2);
+                    val = GetFloatPrecision(newText.getFloatValue(), 2);
+                    while (val > 360.0f) {
+                        val -= 360.0f;
+                    }
+                    while (val < 0.0f) {
+                        val += 360.0f;
+                    }
+                    newP.x = val;
                     this->mainParent->getListSpeaker()[rowNumber]->setAziZenRad(newP);
                     break;
                 case 6:
