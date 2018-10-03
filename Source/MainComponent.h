@@ -131,6 +131,7 @@ public:
     void removeSpeaker(int idSpeaker);
     void setDirectOut(int id, int chn);
     void reorderSpeakers(vector<int> newOrder);
+    void resetSpeakerIds();
     int getMaxSpeakerId();
     int getMaxSpeakerOutputPatch();
 

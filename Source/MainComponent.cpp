@@ -1154,6 +1154,13 @@ bool MainContentComponent::tripletExist(Triplet tri, int &pos) {
     return false;
 }
 
+void MainContentComponent::resetSpeakerIds() {
+    int id = 1;
+    for (auto&& it : this->listSpeaker) {
+        it->setSpeakerId(id++);
+    }
+}
+
 void MainContentComponent::reorderSpeakers(vector<int> newOrder) {
     unsigned int size = this->listSpeaker.size();
 

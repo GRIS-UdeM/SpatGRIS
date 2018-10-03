@@ -606,6 +606,7 @@ void WindowEditSpeaker::buttonClicked(Button *button) {
     } else if (button->getName() != "" && (button->getName().getIntValue() >= 0 &&
               (unsigned int)button->getName().getIntValue() <= this->mainParent->getListSpeaker().size())) {
         this->mainParent->removeSpeaker(button->getName().getIntValue());
+        this->mainParent->resetSpeakerIds();
         updateWinContent();
         this->mainParent->needToComputeVbap = true;
     } else {
