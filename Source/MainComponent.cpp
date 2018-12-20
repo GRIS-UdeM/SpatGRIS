@@ -182,6 +182,7 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     this->windowProperties = nullptr;
     this->winControlSource = nullptr;
     this->aboutWindow = nullptr;
+    this->oscLogWindow = nullptr;
 
     // SpeakerViewComponent 3D view
     this->speakerView = new SpeakerViewComponent(this);
@@ -665,6 +666,18 @@ void MainContentComponent::handleShow2DView() {
     this->winControlSource->setVisible(true);
 }
 
+void MainContentComponent::handleShowOscLogView() {
+    if (this->oscLogWindow == nullptr) {
+        this->oscLogWindow = new OscLogWindow("OSC Logging Windows", this->mGrisFeel.getWinBackgroundColour(),
+                                               DocumentWindow::allButtons, this, &this->mGrisFeel);
+    }
+    this->oscLogWindow->centreWithSize(500, 500);
+    this->oscLogWindow->setResizable(false, false);
+    this->oscLogWindow->setUsingNativeTitleBar(true);
+    this->oscLogWindow->setVisible(true);
+    this->oscLogWindow->repaint();
+}
+
 void MainContentComponent::handleShowAbout() {
     if (this->aboutWindow == nullptr) {
         this->aboutWindow = new AboutWindow("About ServerGRIS", this->mGrisFeel.getWinBackgroundColour(),
@@ -810,6 +823,7 @@ void MainContentComponent::getAllCommands (Array<CommandID>& commands) {
                               MainWindow::HighPerformanceID,
                               MainWindow::ColorizeInputsID,
                               MainWindow::ResetInputPosID,
+                              MainWindow::ShowOscLogView,
                               MainWindow::PrefsID,
                               MainWindow::QuitID,
                               MainWindow::AboutID,
@@ -902,6 +916,9 @@ void MainContentComponent::getCommandInfo (CommandID commandID, ApplicationComma
             result.setInfo ("Reset Input Position", "Reset the position of the input sources.", generalCategory, 0);
             result.addDefaultKeypress ('R', ModifierKeys::altModifier);
             break;
+        case MainWindow::ShowOscLogView:
+            result.setInfo ("Show OSC Log Window", "Show the OSC logging window.", generalCategory, 0);
+            break;
         case MainWindow::PrefsID:
             result.setInfo ("Preferences...", "Open the preferences window.", generalCategory, 0);
             result.addDefaultKeypress (';', ModifierKeys::commandModifier);
@@ -942,6 +959,7 @@ bool MainContentComponent::perform(const InvocationInfo& info) {
             case MainWindow::HighPerformanceID: this->handleHighPerformance(); break;
             case MainWindow::ColorizeInputsID: this->handleInputColours(); break;
             case MainWindow::ResetInputPosID: this->handleResetInputPositions(); break;
+            case MainWindow::ShowOscLogView: this->handleShowOscLogView(); break;
             case MainWindow::PrefsID: this->handleShowPreferences(); break;
             case MainWindow::QuitID: dynamic_cast<MainWindow*>(this->parent)->closeButtonPressed(); break;
             case MainWindow::AboutID: this->handleShowAbout(); break;
@@ -995,6 +1013,8 @@ PopupMenu MainContentComponent::getMenuForIndex (int menuIndex, const String& me
         menu.addSeparator();
         menu.addCommandItem(commandManager, MainWindow::ColorizeInputsID);
         menu.addCommandItem(commandManager, MainWindow::ResetInputPosID);
+        menu.addSeparator();
+        menu.addCommandItem(commandManager, MainWindow::ShowOscLogView);
     }
     else if (menuName == "Help") {
         menu.addCommandItem(commandManager, MainWindow::AboutID);
@@ -2184,6 +2204,24 @@ void MainContentComponent::comboBoxChanged(ComboBox *comboBox) {
 
 int MainContentComponent::getModeSelected() {
     return this->comBoxModeSpat->getSelectedId() - 1;
+}
+
+void MainContentComponent::setOscLogging(const OSCMessage& message) {
+    if (this->oscLogWindow != nullptr) {
+        String address = message.getAddressPattern().toString();
+        this->oscLogWindow->addToLog(address + "\n");
+        String msg;
+        for (int i = 0; i < message.size(); i++) {
+            if (message[i].isInt32()) {
+                msg = msg + String(message[i].getInt32()) + " ";
+            } else if (message[i].isFloat32()) {
+                msg = msg + String(message[i].getFloat32()) + " ";
+            } else if (message[i].isString()) {
+                msg = msg + message[i].getString() + " ";
+            }
+        }
+        this->oscLogWindow->addToLog(msg + "\n");
+    }
 }
 
 void MainContentComponent::chooseRecordingPath() {

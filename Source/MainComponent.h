@@ -112,6 +112,7 @@ public:
     void handleHighPerformance();
     void setHighPerformance(bool state);
     void handleResetInputPositions();
+    void handleShowOscLogView();
     void handleInputColours();
 
     // Menubar methods.
@@ -217,6 +218,7 @@ public:
     void destroyWindowProperties() { this->windowProperties = nullptr; }
     void destroyWinControl() { this->winControlSource = nullptr; }
     void destroyAboutWindow() { this->aboutWindow = nullptr; }
+    void destroyOscLogWindow() { this->oscLogWindow = nullptr; }
 
     // Widget listener handlers.
     void timerCallback() override;
@@ -229,6 +231,8 @@ public:
     void comboBoxChanged(ComboBox *comboBox) override;
 
     int getModeSelected();
+
+    void setOscLogging(const OSCMessage& message);
 
     // App user settings.
     ApplicationProperties applicationProperties;
@@ -300,6 +304,7 @@ private:
     WindowProperties *windowProperties;
     WinControl *winControlSource;
     AboutWindow *aboutWindow;
+    OscLogWindow *oscLogWindow;
 
     // 3 Main Boxes.
     Box *boxMainUI;

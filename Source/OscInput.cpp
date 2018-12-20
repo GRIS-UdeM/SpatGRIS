@@ -41,6 +41,7 @@ bool OscInput::closeConnection() {
 }
 
 void OscInput::oscMessageReceived(const OSCMessage& message) {
+    this->mainParent->setOscLogging(message);
     string address = message.getAddressPattern().toString().toStdString();
     if (message[0].isInt32()) {
         if (address == OscSpatServ) {

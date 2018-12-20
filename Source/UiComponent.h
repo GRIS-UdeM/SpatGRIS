@@ -255,6 +255,8 @@ private:
     ComboBox *recordFileConfig;
 
     TextButton *butValidSettings;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (WindowProperties)
 };
 
 //======================================= About Window ===========================
@@ -276,6 +278,33 @@ private:
     Label *version;
     Label *label;
     TextButton *close;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AboutWindow)
+};
+
+//======================================= OSC Log Window ===========================
+class OscLogWindow : public DocumentWindow,
+                     public TextButton::Listener
+{
+public:
+    OscLogWindow(const String& name, Colour backgroundColour, int buttonsNeeded,
+                 MainContentComponent *parent, GrisLookAndFeel *feel);
+    ~OscLogWindow();
+    void buttonClicked(Button *button);
+    void closeButtonPressed();
+    void addToLog(String msg);
+
+private:
+    MainContentComponent *mainParent;
+    GrisLookAndFeel *grisFeel;
+    int index;
+    bool activated;
+    CodeDocument codeDocument;
+    CodeEditorComponent logger;
+    TextButton stop;
+    TextButton close;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (OscLogWindow)
 };
 
 #endif /* UICOMPONENT_H */
