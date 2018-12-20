@@ -200,7 +200,7 @@ void Input::drawSpan() {
     glPointSize(1);
 }
 
-void Input::updateValues(float az, float ze, float azS, float zeS, float radius, float g) {
+void Input::updateValues(float az, float ze, float azS, float zeS, float radius, float g, int mode) {
     this->azimuth = az;
     this->zenith  = ze;
     this->azimSpan = azS;
@@ -210,9 +210,15 @@ void Input::updateValues(float az, float ze, float azS, float zeS, float radius,
 
     float factor = radius * 10.0f;
 
-    this->center.x = (factor * sinf(this->zenith) * cosf(this->azimuth));
-    this->center.z = (factor * sinf(this->zenith) * sinf(this->azimuth));
-    this->center.y = ((10.0f * cosf(this->zenith)) + (sizeT / 2.0f));
+    if (mode == 1) {
+        this->center.x = (factor * cosf(this->azimuth));
+        this->center.z = (factor * sinf(this->azimuth));
+        this->center.y = ((10.0f * cosf(this->zenith)) + (sizeT / 2.0f));
+    } else {
+        this->center.x = (factor * sinf(this->zenith) * cosf(this->azimuth));
+        this->center.z = (factor * sinf(this->zenith) * sinf(this->azimuth));
+        this->center.y = ((10.0f * cosf(this->zenith)) + (sizeT / 2.0f));
+    }
 }
 
 void Input::updateValuesOld(float az, float ze, float azS, float zeS, float g) {

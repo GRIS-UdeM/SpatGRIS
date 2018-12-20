@@ -2182,6 +2182,10 @@ void MainContentComponent::comboBoxChanged(ComboBox *comboBox) {
     }
 }
 
+int MainContentComponent::getModeSelected() {
+    return this->comBoxModeSpat->getSelectedId() - 1;
+}
+
 void MainContentComponent::chooseRecordingPath() {
     String dir = this->applicationProperties.getUserSettings()->getValue("lastRecordingDirectory");
     if (! File(dir).isDirectory()) {

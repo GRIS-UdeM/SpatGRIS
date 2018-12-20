@@ -59,7 +59,7 @@ public :
     void setMuted(bool mute);
     void setSolo(bool solo);
     void setColor(Colour color, bool updateLevel = false);
-    void selectClick(bool select = true){};
+    void selectClick(bool select = true) {};
     LevelComponent * getVuMeter() { return this->vuMeter; }
 
     void resetPosition();
@@ -82,7 +82,7 @@ public :
     float getGain() { return this->gain; }
     
     void draw();
-    void updateValues(float az, float ze, float azS, float zeS, float radius, float g);
+    void updateValues(float az, float ze, float azS, float zeS, float radius, float g, int mode);
     void updateValuesOld(float az, float ze, float azS, float zeS, float g);
 
     bool isInput() { return true; }

@@ -228,6 +228,8 @@ public:
     void textEditorReturnKeyPressed(TextEditor &textEditor) override;
     void comboBoxChanged(ComboBox *comboBox) override;
 
+    int getModeSelected();
+
     // App user settings.
     ApplicationProperties applicationProperties;
     int oscInputPort = 18032;
