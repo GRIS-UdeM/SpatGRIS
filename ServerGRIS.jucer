@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="MXmiSb" name="ServerGRIS" projectType="guiapp" version="2.0.1"
+<JUCERPROJECT id="MXmiSb" name="ServerGRIS" projectType="guiapp" version="2.0.2"
               bundleIdentifier="com.UdeM.GRIS.ServerGRIS" includeBinaryInAppConfig="1"
-              jucerVersion="5.3.2" companyName="GRIS - UdeM">
+              jucerVersion="5.4.1" companyName="GRIS - UdeM">
   <MAINGROUP id="lsxaKA" name="ServerGRIS">
     <GROUP id="{6EAF4FF6-A4F0-94E9-AA8A-98D9BF95CA11}" name="Resources">
       <FILE id="HYWx0V" name="JAS.jpil" compile="0" resource="1" file="Resources/JAS.jpil"
