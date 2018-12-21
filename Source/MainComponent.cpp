@@ -720,7 +720,14 @@ void MainContentComponent::handleShowTriplets() {
 }
 
 void MainContentComponent::setShowTriplets(bool state) {
-    if (this->validateShowTriplets() || state == false) {
+    if (this->getModeSelected() == LBAP && state == true) {
+        ScopedPointer<AlertWindow> alert = new AlertWindow("Can't draw triplets !",
+                                                           "Triplets are not effective with the LBAP mode.",
+                                                           AlertWindow::InfoIcon);
+        alert->addButton("Close", 0);
+        alert->runModalLoop();
+        this->setShowTriplets(false);
+    } else if (this->validateShowTriplets() || state == false) {
         this->isTripletsShown = state;
         this->speakerView->setShowTriplets(state);
     } else {
