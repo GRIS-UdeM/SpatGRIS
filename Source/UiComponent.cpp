@@ -297,7 +297,7 @@ WindowEditSpeaker::WindowEditSpeaker(const String& name, String& nameC, Colour b
     this->rNumOfSpeakers->addListener(this);
 
     this->rZenithLabel = new Label();
-    this->rZenithLabel->setText("Zenith", NotificationType::dontSendNotification);
+    this->rZenithLabel->setText("Elevation", NotificationType::dontSendNotification);
     this->rZenithLabel->setJustificationType(Justification::right);
     this->rZenithLabel->setFont(this->grisFeel->getFont());
     this->rZenithLabel->setLookAndFeel(this->grisFeel);
@@ -424,8 +424,8 @@ void WindowEditSpeaker::initComp() {
     tableListSpeakers.getHeader().addColumn("Y", 3, 70, 50, 120, TableHeaderComponent::defaultFlags);
     tableListSpeakers.getHeader().addColumn("Z", 4, 70, 50, 120, TableHeaderComponent::defaultFlags);
     tableListSpeakers.getHeader().addColumn("Azimuth", 5, 70, 50, 120, TableHeaderComponent::defaultFlags);
-    tableListSpeakers.getHeader().addColumn("Zenith", 6, 70, 50, 120, TableHeaderComponent::defaultFlags);
-    tableListSpeakers.getHeader().addColumn("Radius", 7, 70, 50, 120, TableHeaderComponent::defaultFlags);
+    tableListSpeakers.getHeader().addColumn("Elevation", 6, 70, 50, 120, TableHeaderComponent::defaultFlags);
+    tableListSpeakers.getHeader().addColumn("Distance", 7, 70, 50, 120, TableHeaderComponent::defaultFlags);
     tableListSpeakers.getHeader().addColumn("Output", 8, 70, 50, 120, TableHeaderComponent::defaultFlags);
     tableListSpeakers.getHeader().addColumn("Gain (dB)", 9, 70, 50, 120, TableHeaderComponent::notSortable);
     tableListSpeakers.getHeader().addColumn("Highpass", 10, 70, 50, 120, TableHeaderComponent::notSortable);
@@ -435,12 +435,6 @@ void WindowEditSpeaker::initComp() {
     tableListSpeakers.getHeader().setSortColumnId(1, true); // Sort forwards by the ID column.
     
     tableListSpeakers.setMultipleSelectionEnabled(false);
-
-    if (this->mainParent->getJackClient()->modeSelected == VBAP || this->mainParent->getJackClient()->modeSelected == VBAP_HRTF) {
-        tableListSpeakers.getHeader().setColumnName(7, "Distance");
-    } else {
-        tableListSpeakers.getHeader().setColumnName(7, "Radius");
-    }
 
     numRows = (unsigned int)this->mainParent->getListSpeaker().size();
 
@@ -719,12 +713,12 @@ void WindowEditSpeaker::resized() {
 
     this->rNumOfSpeakersLabel->setBounds(5, getHeight() - 140, 80, 24);
     this->rNumOfSpeakers->setBounds(5 + 80, getHeight() - 140, 40, 24);
-    this->rZenithLabel->setBounds(100, getHeight() - 140, 80, 24);
-    this->rZenith->setBounds(100 + 80, getHeight() - 140, 60, 24);
-    this->rRadiusLabel->setBounds(215, getHeight() - 140, 80, 24);
-    this->rRadius->setBounds(215 + 80, getHeight() - 140, 60, 24);
-    this->rOffsetAngleLabel->setBounds(360, getHeight() - 140, 80, 24);
-    this->rOffsetAngle->setBounds(360 + 80, getHeight() - 140, 60, 24);
+    this->rZenithLabel->setBounds(120, getHeight() - 140, 80, 24);
+    this->rZenith->setBounds(120 + 80, getHeight() - 140, 60, 24);
+    this->rRadiusLabel->setBounds(255, getHeight() - 140, 80, 24);
+    this->rRadius->setBounds(255 + 80, getHeight() - 140, 60, 24);
+    this->rOffsetAngleLabel->setBounds(400, getHeight() - 140, 80, 24);
+    this->rOffsetAngle->setBounds(400 + 80, getHeight() - 140, 60, 24);
     this->butAddRing->setBounds(getWidth() - 105, getHeight() - 140, 100, 24);
 
     this->pinkNoise->setBounds(5, getHeight() - 75, 150, 24);

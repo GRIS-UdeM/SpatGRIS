@@ -2198,14 +2198,6 @@ void MainContentComponent::comboBoxChanged(ComboBox *comboBox) {
             this->labelModeInfo->setText("ERROR", dontSendNotification);
             this->labelModeInfo->setColour(Label::textColourId, mGrisFeel.getRedColour());
         }
-
-        if (this->winSpeakConfig != nullptr) {
-            if (this->jackClient->modeSelected == VBAP || this->jackClient->modeSelected == VBAP_HRTF) {
-                this->winSpeakConfig->setRadiusColumnName(String("Distance"));
-            } else {
-                this->winSpeakConfig->setRadiusColumnName(String("Radius"));
-            }
-        }
     }
 }
 
