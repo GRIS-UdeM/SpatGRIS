@@ -232,10 +232,15 @@ void Speaker::newSpheriqueCoord(glm::vec3 aziZenRad, glm::vec3 extents) {
     aziZenRad.x = abs((aziZenRad.x * M_PI) / 180.0f);
     aziZenRad.y = abs(((-90.0f + aziZenRad.y) * M_PI) / 180.0f);
 
-    nCenter.x = GetFloatPrecision(aziZenRad.z * sinf(aziZenRad.y) * cosf(aziZenRad.x), 3);
-    nCenter.z = GetFloatPrecision(aziZenRad.z * sinf(aziZenRad.y) * sinf(aziZenRad.x), 3);
-    nCenter.y = GetFloatPrecision(10.f * cosf(aziZenRad.y), 3);
-    
+    if (this->mainParent->getModeSelected() == 1) {
+        nCenter.x = GetFloatPrecision(aziZenRad.z * cosf(aziZenRad.x), 3);
+        nCenter.z = GetFloatPrecision(aziZenRad.z * sinf(aziZenRad.x), 3);
+        nCenter.y = GetFloatPrecision(10.f * cosf(aziZenRad.y), 3);
+    } else {
+        nCenter.x = GetFloatPrecision(aziZenRad.z * sinf(aziZenRad.y) * cosf(aziZenRad.x), 3);
+        nCenter.z = GetFloatPrecision(aziZenRad.z * sinf(aziZenRad.y) * sinf(aziZenRad.x), 3);
+        nCenter.y = GetFloatPrecision(10.f * cosf(aziZenRad.y), 3);
+    }
     this->newPosition(nCenter);
 }
 
