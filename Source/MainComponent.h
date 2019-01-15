@@ -194,6 +194,7 @@ public:
 
     // Open - save.
     void openXmlFileSpeaker(String path);
+    void reloadXmlFileSpeaker();
     void openPreset(String path);
     void getPresetData(XmlElement *xml);
     void savePreset(String path);

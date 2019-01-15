@@ -1620,6 +1620,12 @@ void MainContentComponent::setDirectOut(int id, int chn) {
     (&this->jackClient->listSourceIn[id-1])->directOut = chn;
 }
 
+void MainContentComponent::reloadXmlFileSpeaker() {
+    if (File(this->pathCurrentFileSpeaker).existsAsFile()) {
+        this->openXmlFileSpeaker(this->pathCurrentFileSpeaker);
+    }
+}
+
 void MainContentComponent::openXmlFileSpeaker(String path) {
     String msg;
     String oldPath = this->pathCurrentFileSpeaker;

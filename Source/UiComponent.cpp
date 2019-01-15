@@ -692,6 +692,10 @@ void WindowEditSpeaker::closeButtonPressed() {
             this->setAlwaysOnTop(false);
             this->mainParent->handleSaveAsSpeakerSetup();
             this->mainParent->handleTimer(true);
+        } else if (exitV == 2) {
+            alert->setVisible(false);
+            this->mainParent->reloadXmlFileSpeaker();
+            this->mainParent->updateLevelComp();
         }
     }
     if (exitV) {
