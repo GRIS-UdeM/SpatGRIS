@@ -252,7 +252,11 @@ void Speaker::draw() {
     glTranslatef(this->center.x, this->center.y, this->center.z);
 
     glRotatef(180.0f - this->aziZenRad.x, 0, 1.0, 0);
-    glRotatef(-this->aziZenRad.y, 0, 0, 1.0);
+    if (this->mainParent->getModeSelected() == 1) {
+        glRotatef(-this->aziZenRad.y + this->aziZenRad.y * this->aziZenRad.z / 20.0, 0, 0, 1.0);
+    } else {
+        glRotatef(-this->aziZenRad.y, 0, 0, 1.0);
+    }
     glTranslatef(-1 * this->center.x, -1 * this->center.y, -1 * this->center.z);
 
     glBegin(GL_QUADS);
