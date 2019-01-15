@@ -317,7 +317,7 @@ WindowEditSpeaker::WindowEditSpeaker(const String& name, String& nameC, Colour b
     this->rZenith->addListener(this);
 
     this->rRadiusLabel = new Label();
-    this->rRadiusLabel->setText("Radius", NotificationType::dontSendNotification);
+    this->rRadiusLabel->setText("Distance", NotificationType::dontSendNotification);
     this->rRadiusLabel->setJustificationType(Justification::right);
     this->rRadiusLabel->setFont(this->grisFeel->getFont());
     this->rRadiusLabel->setLookAndFeel(this->grisFeel);
