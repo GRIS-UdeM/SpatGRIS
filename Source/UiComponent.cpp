@@ -1,18 +1,18 @@
 /*
  This file is part of ServerGris.
- 
+
  Developers: Olivier Belanger, Nicolas Masson
- 
+
  ServerGris is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
- 
+
  ServerGris is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
- 
+
  You should have received a copy of the GNU General Public License
  along with ServerGris.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -34,7 +34,7 @@ Box::Box(GrisLookAndFeel *feel, String title, bool verticalScrollbar, bool horiz
     this->title = title;
     this->grisFeel = feel;
     this->bgColour = this->grisFeel->getBackgroundColour();
-    
+
     this->content = new Component();
     this->viewport = new Viewport();
     this->viewport->setViewedComponent(this->content, false);
@@ -42,7 +42,7 @@ Box::Box(GrisLookAndFeel *feel, String title, bool verticalScrollbar, bool horiz
     this->viewport->setScrollBarThickness(15);
     this->viewport->getVerticalScrollBar().setColour(ScrollBar::ColourIds::thumbColourId, feel->getScrollBarColour());
     this->viewport->getHorizontalScrollBar().setColour(ScrollBar::ColourIds::thumbColourId, feel->getScrollBarColour());
-    
+
     this->viewport->setLookAndFeel(this->grisFeel);
     addAndMakeVisible(this->viewport);
 }
@@ -91,13 +91,13 @@ void Box::paint(Graphics &g) {
 BoxClient::BoxClient(MainContentComponent *parent, GrisLookAndFeel *feel) {
     this->mainParent = parent;
     this->grisFeel = feel;
-    
+
     tableListClient.setModel(this);
-    
+
     tableListClient.setColour(ListBox::outlineColourId, this->grisFeel->getWinBackgroundColour());
     tableListClient.setColour(ListBox::backgroundColourId, this->grisFeel->getWinBackgroundColour());
     tableListClient.setOutlineThickness(1);
-    
+
     tableListClient.getHeader().addColumn("Client",    1, 105, 70, 120, TableHeaderComponent::notSortable);
     tableListClient.getHeader().addColumn("Start",     2, 45, 35, 70, TableHeaderComponent::notSortable);
     tableListClient.getHeader().addColumn("End",       3, 45, 35, 70, TableHeaderComponent::notSortable);
@@ -105,10 +105,10 @@ BoxClient::BoxClient(MainContentComponent *parent, GrisLookAndFeel *feel) {
     tableListClient.getHeader().addColumn("On/Off",    5, 41, 35, 70, TableHeaderComponent::notSortable);
 
     tableListClient.setMultipleSelectionEnabled (false);
-    
+
     numRows = 0;
     tableListClient.updateContent();
-    
+
     this->addAndMakeVisible(tableListClient);
 }
 
@@ -216,7 +216,7 @@ Component * BoxClient::refreshComponentForCell(int rowNumber, int columnId, bool
      if (columnId == 1 || columnId == 4) {
          return existingComponentToUpdate;
      }
-    
+
     if (columnId == 5) {
         TextButton *tbRemove = static_cast<TextButton*> (existingComponentToUpdate);
         if (tbRemove == nullptr) {
@@ -238,12 +238,12 @@ Component * BoxClient::refreshComponentForCell(int rowNumber, int columnId, bool
     }
 
     ListIntOutComp *textLabel = static_cast<ListIntOutComp*> (existingComponentToUpdate);
-    
+
     if (textLabel == nullptr)
         textLabel = new ListIntOutComp(*this);
-    
+
     textLabel->setRowAndColumn(rowNumber, columnId);
-    
+
     return textLabel;
 }
 
@@ -254,9 +254,9 @@ WindowEditSpeaker::WindowEditSpeaker(const String& name, String& nameC, Colour b
 {
     this->mainParent = parent;
     this->grisFeel = feel;
-    
+
     this->boxListSpeaker = new Box(this->grisFeel, "Configuration Speakers");
-    
+
     this->butAddSpeaker = new TextButton();
     this->butAddSpeaker->setButtonText("Add Speaker");
     this->butAddSpeaker->setBounds(5, 404, 100, 22);
@@ -414,11 +414,11 @@ WindowEditSpeaker::~WindowEditSpeaker() {
 
 void WindowEditSpeaker::initComp() {
     tableListSpeakers.setModel(this);
-    
+
     tableListSpeakers.setColour(ListBox::outlineColourId, this->grisFeel->getWinBackgroundColour());
     tableListSpeakers.setColour(ListBox::backgroundColourId, this->grisFeel->getWinBackgroundColour());
     tableListSpeakers.setOutlineThickness(1);
-    
+
     tableListSpeakers.getHeader().addColumn("ID", 1, 40, 40, 60, TableHeaderComponent::defaultFlags);
     tableListSpeakers.getHeader().addColumn("X", 2, 70, 50, 120, TableHeaderComponent::defaultFlags);
     tableListSpeakers.getHeader().addColumn("Y", 3, 70, 50, 120, TableHeaderComponent::defaultFlags);
@@ -431,9 +431,9 @@ void WindowEditSpeaker::initComp() {
     tableListSpeakers.getHeader().addColumn("Highpass", 10, 70, 50, 120, TableHeaderComponent::notSortable);
     tableListSpeakers.getHeader().addColumn("Direct", 11, 70, 50, 120, TableHeaderComponent::notSortable);
     tableListSpeakers.getHeader().addColumn("delete", 12, 70, 50, 120, TableHeaderComponent::notSortable);
-    
+
     tableListSpeakers.getHeader().setSortColumnId(1, true); // Sort forwards by the ID column.
-    
+
     tableListSpeakers.setMultipleSelectionEnabled(false);
 
     numRows = (unsigned int)this->mainParent->getListSpeaker().size();
@@ -443,7 +443,7 @@ void WindowEditSpeaker::initComp() {
     tableListSpeakers.setSize(getWidth(), 400);
 
     tableListSpeakers.updateContent();
-    
+
     this->boxListSpeaker->repaint();
     this->boxListSpeaker->resized();
     this->resized();
@@ -708,7 +708,7 @@ void WindowEditSpeaker::resized() {
     this->juce::DocumentWindow::resized();
 
     tableListSpeakers.setSize(getWidth(), getHeight() - 195);
-    
+
     this->boxListSpeaker->setSize(getWidth(), getHeight());
     this->boxListSpeaker->correctSize(getWidth() - 10, getHeight() - 30);
 
@@ -775,7 +775,7 @@ String WindowEditSpeaker::getText(const int columnNumber, const int rowNumber) c
 }
 
 void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, const String& newText) {
-    int ival;
+    int ival, oldval;
     float val;
     if (this->mainParent->getLockSpeakers()->try_lock()) {
         if (this->mainParent->getListSpeaker().size() > (unsigned int)rowNumber) {
@@ -812,9 +812,26 @@ void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, con
                     break;
                 case 8:
                     this->mainParent->setShowTriplets(false);
+                    oldval = this->mainParent->getListSpeaker()[rowNumber]->getOutputPatch();
                     ival = newText.getIntValue();
-                    if (ival < 0) { ival = 0; } 
+                    if (ival < 0) { ival = 0; }
                     else if (ival > 256) { ival = 256; }
+                    if (! this->mainParent->getListSpeaker()[rowNumber]->getDirectOut()) {
+                        for (auto&& it : this->mainParent->getListSpeaker()) {
+                            if (it == this->mainParent->getListSpeaker()[rowNumber] || it->getDirectOut()) {
+                                continue;
+                            }
+                            if (it->getOutputPatch() == ival) {
+                                ScopedPointer<AlertWindow> alert = new AlertWindow("Wrong output patch!    ",
+                                                                                   "Sorry! Output patch number " + String(ival) + " is already used.",
+                                                                                   AlertWindow::WarningIcon);
+                                alert->setLookAndFeel(this->grisFeel);
+                                alert->addButton("OK", 0);
+                                alert->runModalLoop();
+                                ival = oldval;
+                            }
+                        }
+                    }
                     this->mainParent->getListSpeaker()[rowNumber]->setOutputPatch(ival);
                     break;
                 case 9:
@@ -870,7 +887,7 @@ void WindowEditSpeaker::paintRowBackground(Graphics& g, int rowNumber, int /*wid
 void WindowEditSpeaker::paintCell(Graphics& g, int rowNumber, int columnId, int width, int height, bool /*rowIsSelected*/) {
     g.setColour(Colours::black);
     g.setFont(font);
-    
+
     if (this->mainParent->getLockSpeakers()->try_lock()) {
         if (this->mainParent->getListSpeaker().size() > (unsigned int)rowNumber) {
             String text = getText(columnId, rowNumber);
@@ -913,7 +930,7 @@ Component * WindowEditSpeaker::refreshComponentForCell(int rowNumber, int column
     EditableTextCustomComponent *textLabel = static_cast<EditableTextCustomComponent *> (existingComponentToUpdate);
     if (textLabel == nullptr)
         textLabel = new EditableTextCustomComponent(*this);
-    
+
     textLabel->setRowAndColumn(rowNumber, columnId);
 
     if (columnId < 5) {
@@ -961,8 +978,8 @@ ComboBox * WindowProperties::createPropComboBox(const StringArray choices, int s
 }
 
 WindowProperties::WindowProperties(const String& name, Colour backgroundColour, int buttonsNeeded,
-                                   MainContentComponent *parent, GrisLookAndFeel *feel, int indR, 
-                                   int indB, int indFF, int indFC, int oscPort): 
+                                   MainContentComponent *parent, GrisLookAndFeel *feel, int indR,
+                                   int indB, int indFF, int indFC, int oscPort):
     DocumentWindow (name, backgroundColour, buttonsNeeded)
 {
     this->mainParent = parent;
