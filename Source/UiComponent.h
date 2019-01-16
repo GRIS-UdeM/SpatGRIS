@@ -185,6 +185,7 @@ private:
         EditableTextCustomComponent(WindowEditSpeaker& td) : owner (td) {
             setEditable(false, true, false);
             setColour(textColourId, Colours::black);
+            lastOffset = 0;
         }
 
         void mouseDown (const MouseEvent& event) override {
@@ -194,6 +195,31 @@ private:
                 owner.tableListSpeakers.selectRowsBasedOnModifierKeys(row, event.mods, false);
             }
             Label::mouseDown(event);
+        }
+
+        void mouseDrag (const MouseEvent& event) override {
+            bool ok = false;
+            int offset = event.getDistanceFromDragStartY();
+            float val = getText().getFloatValue();
+            switch (columnId) {
+                case 5:
+                case 6:
+                case 10:
+                    if (offset < lastOffset) val += 1.0;  // up
+                    if (offset > lastOffset) val -= 1.0; // down
+                    ok = true;
+                    break;
+                case 7:
+                case 9:
+                    if (offset < lastOffset) val += 0.01;  // up
+                    if (offset > lastOffset) val -= 0.01; // down
+                    ok = true;
+                    break;
+            }
+            if (ok) {
+                owner.setText(columnId, row, String(val));
+            }
+            lastOffset = offset;
         }
 
         void textWasEdited() override {
@@ -208,7 +234,7 @@ private:
 
     private:
         WindowEditSpeaker& owner;
-        int row, columnId;
+        int row, columnId, lastOffset;
     };
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (WindowEditSpeaker)
