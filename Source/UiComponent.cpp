@@ -434,7 +434,7 @@ void WindowEditSpeaker::initComp() {
 
     tableListSpeakers.getHeader().setSortColumnId(1, true); // Sort forwards by the ID column.
 
-    tableListSpeakers.setMultipleSelectionEnabled(false);
+    tableListSpeakers.setMultipleSelectionEnabled(true);
 
     numRows = (unsigned int)this->mainParent->getListSpeaker().size();
 
@@ -599,17 +599,29 @@ void WindowEditSpeaker::buttonClicked(Button *button) {
         this->mainParent->getJackClient()->pinkNoiseSound = this->pinkNoise->getToggleState();
     } else if (button->getName() != "" && (button->getName().getIntValue() >= 0 &&
               (unsigned int)button->getName().getIntValue() <= this->mainParent->getListSpeaker().size())) {
-        this->mainParent->removeSpeaker(button->getName().getIntValue());
+        if (this->tableListSpeakers.getNumSelectedRows() > 1 &&
+                this->tableListSpeakers.getSelectedRows().contains(button->getName().getIntValue())) {
+            for (int i = this->tableListSpeakers.getSelectedRows().size() - 1; i >= 0 ; i--) {
+                int rownum = this->tableListSpeakers.getSelectedRows()[i];
+                this->mainParent->removeSpeaker(rownum);
+            }
+        } else {
+            this->mainParent->removeSpeaker(button->getName().getIntValue());
+        }
         this->mainParent->resetSpeakerIds();
         updateWinContent();
+        this->tableListSpeakers.deselectAllRows();
         this->mainParent->needToComputeVbap = true;
     } else {
         int row = button->getName().getIntValue() - 1000;
-        if (button->getToggleState()) {
-            this->mainParent->getListSpeaker()[row]->setDirectOut(true);
-        }
-        else {
-            this->mainParent->getListSpeaker()[row]->setDirectOut(false);
+        this->mainParent->getListSpeaker()[row]->setDirectOut(button->getToggleState());
+        if (this->tableListSpeakers.getNumSelectedRows() > 1) {
+            for (int i = 0; i < this->tableListSpeakers.getSelectedRows().size(); i++) {
+                int rownum = this->tableListSpeakers.getSelectedRows()[i];
+                this->mainParent->getListSpeaker()[rownum]->setDirectOut(button->getToggleState());
+                ToggleButton *tog = dynamic_cast<ToggleButton *>(this->tableListSpeakers.getCellComponent(11, rownum));
+                tog->setToggleState(button->getToggleState(), NotificationType::dontSendNotification);
+            }
         }
         updateWinContent();
         this->mainParent->needToComputeVbap = true;
@@ -774,9 +786,9 @@ String WindowEditSpeaker::getText(const int columnNumber, const int rowNumber) c
     return text;
 }
 
-void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, const String& newText) {
+void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, const String& newText, bool altDown) {
     int ival, oldval;
-    float val;
+    float val, diff;
     if (this->mainParent->getLockSpeakers()->try_lock()) {
         if (this->mainParent->getListSpeaker().size() > (unsigned int)rowNumber) {
             glm::vec3 newP;
@@ -784,31 +796,82 @@ void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, con
                 case 5:
                     newP = this->mainParent->getListSpeaker()[rowNumber]->getAziZenRad();
                     val = GetFloatPrecision(newText.getFloatValue(), 2);
-                    while (val > 360.0f) {
-                        val -= 360.0f;
-                    }
-                    while (val < 0.0f) {
-                        val += 360.0f;
-                    }
+                    diff = val - newP.x;
+                    while (val > 360.0f) { val -= 360.0f; }
+                    while (val < 0.0f) { val += 360.0f; }
                     newP.x = val;
                     this->mainParent->getListSpeaker()[rowNumber]->setAziZenRad(newP);
+                    if (this->tableListSpeakers.getNumSelectedRows() > 1) {
+                        for (int i = 0; i < this->tableListSpeakers.getSelectedRows().size(); i++) {
+                            int rownum = this->tableListSpeakers.getSelectedRows()[i];
+                            if (rownum == rowNumber) {
+                                continue;
+                            }
+                            newP = this->mainParent->getListSpeaker()[rownum]->getAziZenRad();
+                            if (altDown) {
+                                newP.x += diff;
+                                while (newP.x > 360.0f) { newP.x -= 360.0f; }
+                                while (newP.x < 0.0f) { newP.x += 360.0f; }
+                            } else {
+                                newP.x = val;
+                            }
+                            this->mainParent->getListSpeaker()[rownum]->setAziZenRad(newP);
+                        }
+                    }
                     break;
                 case 6:
                     newP = this->mainParent->getListSpeaker()[rowNumber]->getAziZenRad();
                     val = GetFloatPrecision(newText.getFloatValue(), 2);
+                    diff = val - newP.y;
                     if (val < -90.0f) { val = -90.0f; }
                     else if (val > 90.0f) { val = 90.0f; }
                     newP.y = val;
                     this->mainParent->getListSpeaker()[rowNumber]->setAziZenRad(newP);
+                    if (this->tableListSpeakers.getNumSelectedRows() > 1) {
+                        for (int i = 0; i < this->tableListSpeakers.getSelectedRows().size(); i++) {
+                            int rownum = this->tableListSpeakers.getSelectedRows()[i];
+                            if (rownum == rowNumber) {
+                                continue;
+                            }
+                            newP = this->mainParent->getListSpeaker()[rownum]->getAziZenRad();
+                            if (altDown) {
+                                newP.y += diff;
+                                if (newP.y < -90.0f) { newP.y = -90.0f; }
+                                else if (newP.y > 90.0f) { newP.y = 90.0f; }
+                            } else {
+                                newP.y = val;
+                            }
+                            this->mainParent->getListSpeaker()[rownum]->setAziZenRad(newP);
+                        }
+                    }
                     break;
                 case 7:
                     newP = this->mainParent->getListSpeaker()[rowNumber]->getAziZenRad();
                     if (this->mainParent->isRadiusNormalized() && !this->mainParent->getListSpeaker()[rowNumber]->getDirectOut()) {
-                        newP.z = 1.0f;
+                        val = 1.0;
                     } else {
-                        newP.z = GetFloatPrecision(newText.getFloatValue(), 2);
+                        val = GetFloatPrecision(newText.getFloatValue(), 2);
                     }
+                    diff = val - newP.z;
+                    if (val < 0.0f) { val = 0.0f; }
+                    newP.z = val;
                     this->mainParent->getListSpeaker()[rowNumber]->setAziZenRad(newP);
+                    if (this->tableListSpeakers.getNumSelectedRows() > 1) {
+                        for (int i = 0; i < this->tableListSpeakers.getSelectedRows().size(); i++) {
+                            int rownum = this->tableListSpeakers.getSelectedRows()[i];
+                            if (rownum == rowNumber) {
+                                continue;
+                            }
+                            newP = this->mainParent->getListSpeaker()[rownum]->getAziZenRad();
+                            if (altDown) {
+                                newP.z += diff;
+                                if (newP.z < 0.0f) { newP.z = 0.0f; }
+                            } else {
+                                newP.z = val;
+                            }
+                            this->mainParent->getListSpeaker()[rownum]->setAziZenRad(newP);
+                        }
+                    }
                     break;
                 case 8:
                     this->mainParent->setShowTriplets(false);
@@ -836,15 +899,49 @@ void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, con
                     break;
                 case 9:
                     val = newText.getFloatValue();
+                    diff = val - this->mainParent->getListSpeaker()[rowNumber]->getGain();
                     if (val < -18.0f) { val = -18.0f; }
                     else if (val > 6.0f) { val = 6.0f; }
                     this->mainParent->getListSpeaker()[rowNumber]->setGain(val);
+                    if (this->tableListSpeakers.getNumSelectedRows() > 1) {
+                        for (int i = 0; i < this->tableListSpeakers.getSelectedRows().size(); i++) {
+                            int rownum = this->tableListSpeakers.getSelectedRows()[i];
+                            if (rownum == rowNumber) {
+                                continue;
+                            }
+                            if (altDown) {
+                                float g = this->mainParent->getListSpeaker()[rownum]->getGain() + diff;
+                                if (g < -18.0f) { g = -18.0f; }
+                                else if (g > 6.0f) { g = 6.0f; }
+                                this->mainParent->getListSpeaker()[rownum]->setGain(g);
+                            } else {
+                                this->mainParent->getListSpeaker()[rownum]->setGain(val);
+                            }
+                        }
+                    }
                     break;
                 case 10:
                     val = newText.getFloatValue();
+                    diff = val - this->mainParent->getListSpeaker()[rowNumber]->getHighPassCutoff();
                     if (val < 0.0f) { val = 0.0f; }
                     else if (val > 150.0f) { val = 150.0f; }
                     this->mainParent->getListSpeaker()[rowNumber]->setHighPassCutoff(val);
+                    if (this->tableListSpeakers.getNumSelectedRows() > 1) {
+                        for (int i = 0; i < this->tableListSpeakers.getSelectedRows().size(); i++) {
+                            int rownum = this->tableListSpeakers.getSelectedRows()[i];
+                            if (rownum == rowNumber) {
+                                continue;
+                            }
+                            if (altDown) {
+                                float g = this->mainParent->getListSpeaker()[rownum]->getHighPassCutoff() + diff;
+                                if (g < 0.0f) { g = 0.0f; }
+                                else if (g > 150.0f) { g = 150.0f; }
+                                this->mainParent->getListSpeaker()[rownum]->setHighPassCutoff(g);
+                            } else {
+                                this->mainParent->getListSpeaker()[rownum]->setHighPassCutoff(val);
+                            }
+                        }
+                    }
                     break;
                 case 11:
                     this->mainParent->setShowTriplets(false);

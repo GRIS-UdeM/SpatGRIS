@@ -144,7 +144,7 @@ public:
     void resized() override;
 
     String getText(const int columnNumber, const int rowNumber) const;
-    void setText(const int columnNumber, const int rowNumber, const String& newText);
+    void setText(const int columnNumber, const int rowNumber, const String& newText, bool altDown=false);
     int getNumRows() override;
     void paintRowBackground(Graphics& g, int rowNumber, int /*width*/, int /*height*/, bool rowIsSelected) override;
     void paintCell(Graphics& g, int rowNumber, int columnId,
@@ -187,7 +187,13 @@ private:
             setColour(textColourId, Colours::black);
             lastOffset = 0;
         }
-
+        /*
+        virtual TextEditor* createEditorComponent() override {
+            TextEditor* const ed = Label::createEditorComponent();
+            ed->setInputRestrictions(6, String("-.0123456789"));
+            return ed;
+        }
+        */
         void mouseDown (const MouseEvent& event) override {
             if (event.mods.isRightButtonDown()) {
                 owner.tableListSpeakers.deselectAllRows();
@@ -210,14 +216,18 @@ private:
                     ok = true;
                     break;
                 case 7:
-                case 9:
                     if (offset < lastOffset) val += 0.01;  // up
                     if (offset > lastOffset) val -= 0.01; // down
                     ok = true;
                     break;
+                case 9:
+                    if (offset < lastOffset) val += 0.1;  // up
+                    if (offset > lastOffset) val -= 0.1; // down
+                    ok = true;
+                    break;
             }
             if (ok) {
-                owner.setText(columnId, row, String(val));
+                owner.setText(columnId, row, String(val), event.mods.isAltDown());
             }
             lastOffset = offset;
         }
