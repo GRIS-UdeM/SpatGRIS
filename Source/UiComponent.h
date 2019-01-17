@@ -208,6 +208,13 @@ private:
             int offset = event.getDistanceFromDragStartY();
             float val = getText().getFloatValue();
             switch (columnId) {
+                case 2:
+                case 3:
+                case 4:
+                    if (offset < lastOffset) val += 0.01;  // up
+                    if (offset > lastOffset) val -= 0.01; // down
+                    ok = true;
+                    break;
                 case 5:
                 case 6:
                 case 10:

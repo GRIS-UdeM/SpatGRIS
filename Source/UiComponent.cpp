@@ -793,9 +793,75 @@ void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, con
         if (this->mainParent->getListSpeaker().size() > (unsigned int)rowNumber) {
             glm::vec3 newP;
             switch (columnNumber) {
+                case 2:
+                    newP = this->mainParent->getListSpeaker()[rowNumber]->getCoordinate();
+                    val = GetFloatPrecision(newText.getFloatValue(), 3);
+                    diff = val - newP.x;
+                    newP.x = val;
+                    this->mainParent->getListSpeaker()[rowNumber]->setCoordinate(newP);
+                    if (this->tableListSpeakers.getNumSelectedRows() > 1) {
+                        for (int i = 0; i < this->tableListSpeakers.getSelectedRows().size(); i++) {
+                            int rownum = this->tableListSpeakers.getSelectedRows()[i];
+                            if (rownum == rowNumber) {
+                                continue;
+                            }
+                            newP = this->mainParent->getListSpeaker()[rownum]->getCoordinate();
+                            if (altDown) {
+                                newP.x += diff;
+                            } else {
+                                newP.x = val;
+                            }
+                            this->mainParent->getListSpeaker()[rownum]->setCoordinate(newP);
+                        }
+                    }
+                    break;
+                case 3:
+                    newP = this->mainParent->getListSpeaker()[rowNumber]->getCoordinate();
+                    val = GetFloatPrecision(newText.getFloatValue(), 3);
+                    diff = val - newP.z;
+                    newP.z = val;
+                    this->mainParent->getListSpeaker()[rowNumber]->setCoordinate(newP);
+                    if (this->tableListSpeakers.getNumSelectedRows() > 1) {
+                        for (int i = 0; i < this->tableListSpeakers.getSelectedRows().size(); i++) {
+                            int rownum = this->tableListSpeakers.getSelectedRows()[i];
+                            if (rownum == rowNumber) {
+                                continue;
+                            }
+                            newP = this->mainParent->getListSpeaker()[rownum]->getCoordinate();
+                            if (altDown) {
+                                newP.z += diff;
+                            } else {
+                                newP.z = val;
+                            }
+                            this->mainParent->getListSpeaker()[rownum]->setCoordinate(newP);
+                        }
+                    }
+                    break;
+                case 4:
+                    newP = this->mainParent->getListSpeaker()[rowNumber]->getCoordinate();
+                    val = GetFloatPrecision(newText.getFloatValue(), 3);
+                    diff = val - newP.y;
+                    newP.y = val;
+                    this->mainParent->getListSpeaker()[rowNumber]->setCoordinate(newP);
+                    if (this->tableListSpeakers.getNumSelectedRows() > 1) {
+                        for (int i = 0; i < this->tableListSpeakers.getSelectedRows().size(); i++) {
+                            int rownum = this->tableListSpeakers.getSelectedRows()[i];
+                            if (rownum == rowNumber) {
+                                continue;
+                            }
+                            newP = this->mainParent->getListSpeaker()[rownum]->getCoordinate();
+                            if (altDown) {
+                                newP.y += diff;
+                            } else {
+                                newP.y = val;
+                            }
+                            this->mainParent->getListSpeaker()[rownum]->setCoordinate(newP);
+                        }
+                    }
+                    break;
                 case 5:
                     newP = this->mainParent->getListSpeaker()[rowNumber]->getAziZenRad();
-                    val = GetFloatPrecision(newText.getFloatValue(), 2);
+                    val = GetFloatPrecision(newText.getFloatValue(), 3);
                     diff = val - newP.x;
                     while (val > 360.0f) { val -= 360.0f; }
                     while (val < 0.0f) { val += 360.0f; }
@@ -821,7 +887,7 @@ void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, con
                     break;
                 case 6:
                     newP = this->mainParent->getListSpeaker()[rowNumber]->getAziZenRad();
-                    val = GetFloatPrecision(newText.getFloatValue(), 2);
+                    val = GetFloatPrecision(newText.getFloatValue(), 3);
                     diff = val - newP.y;
                     if (val < -90.0f) { val = -90.0f; }
                     else if (val > 90.0f) { val = 90.0f; }
@@ -850,7 +916,7 @@ void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, con
                     if (this->mainParent->isRadiusNormalized() && !this->mainParent->getListSpeaker()[rowNumber]->getDirectOut()) {
                         val = 1.0;
                     } else {
-                        val = GetFloatPrecision(newText.getFloatValue(), 2);
+                        val = GetFloatPrecision(newText.getFloatValue(), 3);
                     }
                     diff = val - newP.z;
                     if (val < 0.0f) { val = 0.0f; }
@@ -1030,9 +1096,16 @@ Component * WindowEditSpeaker::refreshComponentForCell(int rowNumber, int column
 
     textLabel->setRowAndColumn(rowNumber, columnId);
 
-    if (columnId < 5) {
-        textLabel->setEditable(false);
+    if (this->mainParent->getModeSelected() == LBAP) {
+        if (columnId < 2) {
+            textLabel->setEditable(false);
+        }
+    } else {
+        if (columnId < 5) {
+            textLabel->setEditable(false);
+        }
     }
+
     return textLabel;
 }
 

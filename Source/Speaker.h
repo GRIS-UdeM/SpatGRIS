@@ -87,6 +87,7 @@ public:
     void setSpeakerId(int id) { this->idSpeaker = id; };
     int getIdSpeaker() const;
     glm::vec3 getCoordinate();
+    void setCoordinate(glm::vec3 value);
     glm::vec3 getAziZenRad();
     void normalizeRadius();
     void setAziZenRad(glm::vec3 value);
