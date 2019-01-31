@@ -2171,6 +2171,16 @@ void MainContentComponent::sliderValueChanged(Slider* slider) {
 }
 
 void MainContentComponent::comboBoxChanged(ComboBox *comboBox) {
+    if (this->winSpeakConfig != nullptr && this->needToSaveSpeakerSetup) {
+        ScopedPointer<AlertWindow> alert = new AlertWindow ("The speaker configuration has changed!    ",
+                                                            "Save your changes or close the speaker configuration window before switching mode...    ",
+                                                            AlertWindow::WarningIcon);
+        alert->setLookAndFeel(&mGrisFeel);
+        alert->addButton ("Ok", 0);
+        alert->runModalLoop();
+        this->comBoxModeSpat->setSelectedId(this->jackClient->modeSelected+1, NotificationType::dontSendNotification);
+        return;
+    }
     int result;
     if (this->comBoxModeSpat == comboBox) {
         this->jackClient->processBlockOn = false;
@@ -2178,18 +2188,21 @@ void MainContentComponent::comboBoxChanged(ComboBox *comboBox) {
         switch (this->jackClient->modeSelected) {
             case VBAP:
                 this->openXmlFileSpeaker(this->pathLastVbapSpeakerSetup);
+                this->needToSaveSpeakerSetup = false;
                 result = 1;
                 if (result)
                     this->isSpanShown = true;
                 break;
             case LBAP:
                 this->openXmlFileSpeaker(this->pathLastVbapSpeakerSetup);
+                this->needToSaveSpeakerSetup = false;
                 result = 1;
                 if (result)
                     this->isSpanShown = true;
                 break;
             case VBAP_HRTF:
                 this->openXmlFileSpeaker(BinauralSpeakerSetupFilePath);
+                this->needToSaveSpeakerSetup = false;
                 this->jackClient->resetHRTF();
                 result = this->updateLevelComp();
                 if (result)
@@ -2199,6 +2212,7 @@ void MainContentComponent::comboBoxChanged(ComboBox *comboBox) {
                 if (this->pathLastVbapSpeakerSetup != this->pathCurrentFileSpeaker) {
                     this->openXmlFileSpeaker(this->pathLastVbapSpeakerSetup);
                 }
+                this->needToSaveSpeakerSetup = false;
                 result = 1;
                 this->isSpanShown = false;
                 break;
