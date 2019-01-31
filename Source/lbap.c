@@ -313,6 +313,10 @@ lbap_field_compute(lbap_field *field, lbap_pos *pos, float *gains) {
     float frac = 0.0, gain = 0.0, elespan = 0.0;
     float gns[field->num_of_speakers];
 
+    if (field->layers == NULL) {
+        return;
+    }
+
     lbap_layer *first = field->layers[0];
     lbap_layer *second = field->layers[field->num_of_layers-1];
     for (i=0; i<field->num_of_layers; i++) {

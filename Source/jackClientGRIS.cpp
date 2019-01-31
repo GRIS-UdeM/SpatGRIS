@@ -960,9 +960,12 @@ bool jackClientGris::initSpeakersTripplet(vector<Speaker *>  listSpk,
     }
 
     if (needToComputeVbap) {
-        this->paramVBap = init_vbap_from_speakers(lss, listSpk.size(),
+        this->paramVBap = init_vbap_from_speakers(lss, (int)listSpk.size(),
                                                   dimensions, outputPatches,
                                                   this->maxOutputPatch, NULL);
+        if (this->paramVBap == NULL) {
+            return false;
+        }
     }
 
     for (unsigned int i = 0; i < MaxInputs; i++) {

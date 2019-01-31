@@ -574,6 +574,7 @@ void MainContentComponent::handleOpenSpeakerSetup() {
         alert->addButton ("Ok", 1);
         int status = alert->runModalLoop();
         if (status == 1) {
+            alert->setVisible(false);
             this->openXmlFileSpeaker(chosen);
         }
     }
@@ -1500,7 +1501,8 @@ bool MainContentComponent::updateLevelComp() {
         }
     }
     
-    i = 0, x = 2;
+    i = 0;
+    x = 2;
     this->lockInputs->lock();
     for (auto&& it : this->listSourceInput) {
         juce::Rectangle<int> level(x, 4, SizeWidthLevelComp, 200);
@@ -1550,6 +1552,15 @@ bool MainContentComponent::updateLevelComp() {
         if (retval) {
             this->setListTripletFromVbap();
             this->needToComputeVbap = false;
+        } else {
+            ScopedPointer<AlertWindow> alert = new AlertWindow ("Not a valid VBAP 3-D configuration!    ",
+                                                                "Maybe you want to open it in LBAP mode? Reload the default speaker setup...    ",
+                                                                AlertWindow::WarningIcon);
+            alert->setLookAndFeel(&mGrisFeel);
+            alert->addButton ("Ok", 0);
+            alert->runModalLoop();
+            this->openXmlFileSpeaker(DefaultSpeakerSetupFilePath);
+            return false;
         }
     } else if (this->jackClient->modeSelected == LBAP) {
         this->setShowTriplets(false);
@@ -1717,11 +1728,11 @@ void MainContentComponent::openXmlFileSpeaker(String path) {
             this->applicationProperties.getUserSettings()->setValue("lastSpeakerSetupDirectory", 
                                                                     File(this->pathCurrentFileSpeaker).getParentDirectory().getFullPathName());
         }
+        this->needToComputeVbap = true;
+        this->updateLevelComp();
         if (this->getJackClient()->modeSelected != VBAP_HRTF) {
             this->pathLastVbapSpeakerSetup = this->pathCurrentFileSpeaker;
         }
-        this->needToComputeVbap = true;
-        this->updateLevelComp();
     } else {
         if (isNewSameAsOld == 0) {
             this->openXmlFileSpeaker(DefaultSpeakerSetupFilePath);

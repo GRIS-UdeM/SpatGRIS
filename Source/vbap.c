@@ -1025,7 +1025,7 @@ void choose_ls_triplets(ls lss[MAX_LS_AMOUNT],
  * After this call, ls_triplets contains the speakers numbers
  * and the inverse matrix needed to compute channel gains.
  */
-void calculate_3x3_matrixes(ls_triplet_chain *ls_triplets, 
+int calculate_3x3_matrixes(ls_triplet_chain *ls_triplets,
                             ls lss[MAX_LS_AMOUNT], int ls_amount) {  
     float invdet;
     CART_VEC *lp1, *lp2, *lp3;
@@ -1034,7 +1034,7 @@ void calculate_3x3_matrixes(ls_triplet_chain *ls_triplets,
 
     if (tr_ptr == NULL) {
         fprintf(stderr,"Not valid 3-D configuration.\n");
-        exit(-1);
+        return 0;
     }
 
      /* Calculations and data storage. */
@@ -1060,6 +1060,7 @@ void calculate_3x3_matrixes(ls_triplet_chain *ls_triplets,
         invmx[8] = ((lp1->x * lp2->y) - (lp1->y * lp2->x)) * invdet;
         tr_ptr = tr_ptr->next;
     }
+    return 1;
 }
 
 /* To be implemented without file reading...
@@ -1117,7 +1118,7 @@ void load_ls_triplets(ls lss[MAX_LS_AMOUNT],
 }
 
 VBAP_DATA * init_vbap_data(SPEAKERS_SETUP *setup, int **triplets) {
-    int i, j;
+    int i, j, ret;
     ls lss[MAX_LS_AMOUNT];
     ls_triplet_chain *ls_triplets = NULL;
     ls_triplet_chain *ls_ptr;
@@ -1130,7 +1131,11 @@ VBAP_DATA * init_vbap_data(SPEAKERS_SETUP *setup, int **triplets) {
     else
         load_ls_triplets(lss, &ls_triplets, setup->count, "filename");
 
-    calculate_3x3_matrixes(ls_triplets, lss, setup->count);
+    ret = calculate_3x3_matrixes(ls_triplets, lss, setup->count);
+    if (ret == 0) {
+        free(data);
+        return NULL;
+    }
 
     data->dimension = setup->dimension;
     data->ls_am = setup->count;
@@ -1168,7 +1173,7 @@ VBAP_DATA * init_vbap_data(SPEAKERS_SETUP *setup, int **triplets) {
 VBAP_DATA * init_vbap_from_speakers(ls lss[MAX_LS_AMOUNT], int count,
                                     int dim, int outputPatches[MAX_LS_AMOUNT],
                                     int maxOutputPatch, int **triplets) {
-    int i, j, offset = 0;
+    int i, j, ret, offset = 0;
     ls_triplet_chain *ls_triplets = NULL;
     ls_triplet_chain *ls_ptr;
     VBAP_DATA *data = (VBAP_DATA *)malloc(sizeof(VBAP_DATA));
@@ -1178,7 +1183,11 @@ VBAP_DATA * init_vbap_from_speakers(ls lss[MAX_LS_AMOUNT], int count,
             choose_ls_triplets(lss, &ls_triplets, count);
         else
             load_ls_triplets(lss, &ls_triplets, count, "filename");
-        calculate_3x3_matrixes(ls_triplets, lss, count);
+        ret = calculate_3x3_matrixes(ls_triplets, lss, count);
+        if (ret == 0) {
+            free(data);
+            return NULL;
+        }
         offset = 1;
     } else if (dim == 2) {
         choose_ls_tuplets(lss, &ls_triplets, count);
