@@ -129,7 +129,7 @@ void WinControl::paint (Graphics& g) {
     g.drawText("270", 14,          (fieldWH-4)/2.0f, SourceDiameter, SourceDiameter, Justification(Justification::centred), false);
     
     // Draw translucid circles (mode).
-    const int maxDrawSource = this->mainParent->getListSourceInput().size();
+    int maxDrawSource = (int)this->mainParent->getListSourceInput().size();
 
     for(int i = 0; i < maxDrawSource; ++i) {
         drawAzimElevSource(g, this->mainParent->getListSourceInput().at(i), fieldWH, fieldCenter);

@@ -738,7 +738,7 @@ jackClientGris::jackClientGris() {
     jack_client_log("Jack engine buffer size: %" PRIu32 "\n", bufferSize);
 
     // Initialize pink noise
-    srand(time(NULL));
+    srand((unsigned int)time(NULL));
     this->c0 = this->c1 = this->c2 = this->c3 = this->c4 = this->c5 = this->c6 = 0.0;
     
     // Print available inputs ports.
@@ -811,7 +811,7 @@ void jackClientGris::prepareToRecord() {
     String parent = fileS.getParentDirectory().getFullPathName();
 
     if (this->modeSelected == VBAP || this->modeSelected == LBAP) {
-        num_of_channels = this->outputsPort.size();
+        num_of_channels = (int)this->outputsPort.size();
         for (int i  = 0; i < num_of_channels; ++i) {
             if (int_vector_contains(this->outputPatches, i+1)) {
                 channelName = parent + "/" + fname + "_" + String(i+1).paddedLeft('0', 3) + extF;
@@ -1016,10 +1016,10 @@ bool jackClientGris::lbapSetupSpeakerField(vector<Speaker *>  listSpk) {
         outputPatch[i] = listSpeakerOut[j].outputPatch - 1;
     }
 
-    lbap_speaker *speakers = lbap_speakers_from_positions(azimuth, elevation, radius, outputPatch, listSpk.size());
+    lbap_speaker *speakers = lbap_speakers_from_positions(azimuth, elevation, radius, outputPatch, (int)listSpk.size());
 
     lbap_field_reset(this->lbap_speaker_field);
-    lbap_field_setup(this->lbap_speaker_field, speakers, listSpk.size());
+    lbap_field_setup(this->lbap_speaker_field, speakers, (int)listSpk.size());
 
     free(speakers);
 

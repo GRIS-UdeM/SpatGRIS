@@ -89,7 +89,7 @@ typedef struct {
  *
  * \return lbap_field pointer.
  */
-lbap_field * lbap_field_init();
+lbap_field * lbap_field_init(void);
 
 /** \brief Frees memory used by a lbap_field.
  *

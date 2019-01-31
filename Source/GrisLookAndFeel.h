@@ -182,7 +182,6 @@ public:
     
         g.fillAll (this->editBgcolor);//box.findColour (ComboBox::backgroundColourId))
         
-        const Colour buttonColour (this->darkColour);//box.findColour (ComboBox::buttonColourId)
         const float arrowX = 0.3f;
         const float arrowH = 0.2f;
         

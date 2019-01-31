@@ -59,7 +59,7 @@ public:
             readers[i] = formatManager.createReaderFor(filenames[i]);
         }
 
-        unsigned int duration = readers[0]->lengthInSamples;
+        unsigned int duration = (unsigned int)readers[0]->lengthInSamples;
         unsigned int howmanyPasses = duration / blockSize;
 
         // Create an OutputStream to write to our destination file.
@@ -1190,10 +1190,10 @@ void MainContentComponent::resetSpeakerIds() {
 }
 
 void MainContentComponent::reorderSpeakers(vector<int> newOrder) {
-    unsigned int size = this->listSpeaker.size();
+    int size = (int)this->listSpeaker.size();
 
     vector<Speaker *> tempListSpeaker(size);
-    for (unsigned int i = 0; i < size; i++) {
+    for (int i = 0; i < size; i++) {
         for (auto&& it : this->listSpeaker) {
             if (it->getIdSpeaker() == newOrder[i]) {
                 tempListSpeaker[i] = it;
@@ -1203,7 +1203,7 @@ void MainContentComponent::reorderSpeakers(vector<int> newOrder) {
     }
 
     this->lockSpeakers->lock();
-    for (unsigned int i = 0; i < size; i++) {
+    for (int i = 0; i < size; i++) {
         this->listSpeaker[i] = tempListSpeaker[i];
     }
     this->lockSpeakers->unlock();
@@ -1239,7 +1239,7 @@ void MainContentComponent::addSpeaker(int sortColumnId, bool isSortedForwards) {
         }
     } else if (sortColumnId == 1 && ! isSortedForwards) {
         for (unsigned int i = 0; i < this->listSpeaker.size(); i++) {
-            this->listSpeaker[i]->setSpeakerId(this->listSpeaker.size() - i);
+            this->listSpeaker[i]->setSpeakerId((int)this->listSpeaker.size() - i);
         }
     }
     this->lockSpeakers->unlock();
@@ -1267,7 +1267,7 @@ void MainContentComponent::insertSpeaker(int position, int sortColumnId, bool is
         this->listSpeaker.emplace(this->listSpeaker.begin() + newPosition,
                                   new Speaker(this, newId, newOut, 0.0f, 0.0f, 1.0f));
         for (unsigned int i = 0; i < this->listSpeaker.size(); i++) {
-            this->listSpeaker[i]->setSpeakerId(this->listSpeaker.size() - i);
+            this->listSpeaker[i]->setSpeakerId((int)this->listSpeaker.size() - i);
         }
     } else {
         this->listSpeaker.emplace(this->listSpeaker.begin() + newPosition,

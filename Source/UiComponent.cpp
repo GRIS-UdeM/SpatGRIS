@@ -486,10 +486,10 @@ bool compareGreaterThan(const Sorter &a, const Sorter &b) {
 }
 
 void WindowEditSpeaker::sortOrderChanged(int newSortColumnId, bool isForwards) {
-    unsigned int size = this->mainParent->getListSpeaker().size();
+    int size = (int)this->mainParent->getListSpeaker().size();
     struct Sorter tosort[size];
 
-    for (unsigned int i = 0; i < size; i++) {
+    for (int i = 0; i < size; i++) {
         tosort[i].id = this->mainParent->getListSpeaker()[i]->getIdSpeaker();
         tosort[i].directout = this->mainParent->getListSpeaker()[i]->getDirectOut();
         switch (newSortColumnId) {
@@ -569,12 +569,12 @@ void WindowEditSpeaker::buttonClicked(Button *button) {
         for (int i = 0; i < this->rNumOfSpeakers->getText().getIntValue(); i++) {
             if (selectedRow == -1 || selectedRow == (this->numRows-1)) {
                 this->mainParent->addSpeaker(sortColumnId, sortedForwards);
-                this->numRows = this->mainParent->getListSpeaker().size();
+                this->numRows = (int)this->mainParent->getListSpeaker().size();
                 selectedRow = this->numRows - 1;
             } else {
                 this->mainParent->insertSpeaker(selectedRow, sortColumnId, sortedForwards);
                 selectedRow += 1;
-                this->numRows = this->mainParent->getListSpeaker().size();
+                this->numRows = (int)this->mainParent->getListSpeaker().size();
 
             }
 

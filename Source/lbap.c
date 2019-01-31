@@ -236,7 +236,7 @@ Layer-Based Amplitude Panning interface implementation.
 ================================================================================= */
 
 lbap_field * 
-lbap_field_init() {
+lbap_field_init(void) {
     lbap_field *field = (lbap_field *)malloc(sizeof(lbap_field));
     field->num_of_speakers = 0;
     field->num_of_layers = 0;
