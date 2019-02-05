@@ -204,6 +204,9 @@ private:
         }
 
         void mouseDrag (const MouseEvent& event) override {
+            if (event.mods.isShiftDown() || event.mods.isCtrlDown() || event.mods.isCommandDown()) {
+                return;
+            }
             bool ok = false;
             int offset = event.getDistanceFromDragStartY();
             float val = getText().getFloatValue();
