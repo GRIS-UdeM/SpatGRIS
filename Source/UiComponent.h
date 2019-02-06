@@ -24,6 +24,7 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "GrisLookAndFeel.h"
+#include "jackClientGRIS.h"
 
 class MainContentComponent;
 class LevelComponent;
@@ -143,6 +144,8 @@ public:
     void sortOrderChanged(int newSortColumnId, bool isForwards) override;
     void resized() override;
 
+    int getModeSelected();
+
     String getText(const int columnNumber, const int rowNumber) const;
     void setText(const int columnNumber, const int rowNumber, const String& newText, bool altDown=false);
     int getNumRows() override;
@@ -205,6 +208,9 @@ private:
 
         void mouseDrag (const MouseEvent& event) override {
             if (event.mods.isShiftDown() || event.mods.isCtrlDown() || event.mods.isCommandDown()) {
+                return;
+            }
+            if (columnId <= 4 && owner.getModeSelected() != LBAP) {
                 return;
             }
             bool ok = false;

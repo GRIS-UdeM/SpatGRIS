@@ -1109,6 +1109,10 @@ Component * WindowEditSpeaker::refreshComponentForCell(int rowNumber, int column
     return textLabel;
 }
 
+int WindowEditSpeaker::getModeSelected() {
+    return this->mainParent->getModeSelected();
+}
+
 // ============================ WindowProperties ===========================
 Label * WindowProperties::createPropLabel(String lab, Justification::Flags just, int ypos) {
     Label *label = new Label();
