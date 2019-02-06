@@ -694,7 +694,7 @@ void MainContentComponent::handleShowAbout() {
 void MainContentComponent::handleOpenManual() {
     File fs = File(ServerGrisManualFilePath);
     if (fs.exists()) {
-        juce::Process::openDocument("file:" + fs.getFullPathName(), juce::String::empty);
+        juce::Process::openDocument("file:" + fs.getFullPathName(), String());
     }
 }
 
