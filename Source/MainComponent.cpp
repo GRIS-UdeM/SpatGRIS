@@ -1668,6 +1668,8 @@ void MainContentComponent::openXmlFileSpeaker(String path) {
                 }
                 this->listSpeaker.clear();
                 this->lockSpeakers->unlock();
+                int spatMode = mainXmlElem->getIntAttribute("SpatMode");
+                this->comBoxModeSpat->setSelectedId(spatMode + 1, NotificationType::sendNotificationAsync);
                 this->setNameConfig();
                 this->jackClient->processBlockOn = false;
                 this->jackClient->clearOutput();
@@ -1919,6 +1921,7 @@ void MainContentComponent::saveSpeakerSetup(String path) {
     
     xml->setAttribute ("Name", this->nameConfig);
     xml->setAttribute ("Dimension", 3);
+    xml->setAttribute ("SpatMode", getModeSelected());
     
     XmlElement *xmlRing = new  XmlElement("Ring");
     
