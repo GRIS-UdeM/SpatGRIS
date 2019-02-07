@@ -1668,8 +1668,10 @@ void MainContentComponent::openXmlFileSpeaker(String path) {
                 }
                 this->listSpeaker.clear();
                 this->lockSpeakers->unlock();
-                int spatMode = mainXmlElem->getIntAttribute("SpatMode");
-                this->comBoxModeSpat->setSelectedId(spatMode + 1, NotificationType::sendNotificationAsync);
+                if (isNewSameAsOld != 0) {
+                    int spatMode = mainXmlElem->getIntAttribute("SpatMode");
+                    this->comBoxModeSpat->setSelectedId(spatMode + 1, NotificationType::sendNotificationAsync);
+                }
                 this->setNameConfig();
                 this->jackClient->processBlockOn = false;
                 this->jackClient->clearOutput();
