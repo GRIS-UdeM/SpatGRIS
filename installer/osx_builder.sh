@@ -6,9 +6,9 @@
 # compile ServerGris in Release mode
 # and run this shell script from the installer folder.
 
-export PACKAGE_NAME=ServerGris_v2.0.5.pkg
-export DMG_DIR="ServerGris v2.0.5"
-export DMG_NAME="ServerGris_v2.0.5.dmg"
+export PACKAGE_NAME=ServerGris_v2.0.6.pkg
+export DMG_DIR="ServerGris v2.0.6"
+export DMG_NAME="ServerGris_v2.0.6.dmg"
 
 # Replace app icon with a better version
 cp ../Resources/Icon.icns ../Builds/MacOSX/build/Release/ServerGris.app/Contents/Resources/Icon.icns
