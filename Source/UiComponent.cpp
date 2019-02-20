@@ -1268,7 +1268,7 @@ AboutWindow::AboutWindow(const String& name, Colour backgroundColour, int button
     infos << "Actual: Olivier BÉLANGER\n\n";
     infos << "Former: Vincent BERTHIAUME, Nicolas MASSON, Antoine MISSOUT\n\n\n";
     infos << "Assistants:\n\n";
-    infos << "David LEDOUX, Christophe LENGELÉ, Vincent MONASTESSE\n\n";
+    infos << "David LEDOUX, Christophe LENGELÉ, Nicola GIANNINI\n\n";
 
     this->label = new Label();
     this->label->setText(infos, NotificationType::dontSendNotification);
