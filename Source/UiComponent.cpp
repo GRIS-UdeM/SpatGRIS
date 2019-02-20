@@ -1358,6 +1358,9 @@ void OscLogWindow::addToLog(String msg) {
 }
 
 void OscLogWindow::closeButtonPressed() {
+    this->stop.setButtonText("Start");
+    this->activated = false;
+    this->mainParent->destroyOscLogWindow();
     delete this;
 }
 
@@ -1371,6 +1374,6 @@ void OscLogWindow::buttonClicked(Button *button) {
             this->activated = false;
         }
     } else {
-        delete this;
+        this->closeButtonPressed();
     }
 }
