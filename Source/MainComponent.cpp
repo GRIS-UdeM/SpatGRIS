@@ -1668,7 +1668,7 @@ void MainContentComponent::openXmlFileSpeaker(String path) {
                 }
                 this->listSpeaker.clear();
                 this->lockSpeakers->unlock();
-                if (isNewSameAsOld != 0) {
+                if (isNewSameAsOld != 0 && path.compare(BinauralSpeakerSetupFilePath) != 0) {
                     int spatMode = mainXmlElem->getIntAttribute("SpatMode");
                     this->comBoxModeSpat->setSelectedId(spatMode + 1, NotificationType::sendNotificationAsync);
                 }
