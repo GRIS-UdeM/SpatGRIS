@@ -10,6 +10,9 @@ export PACKAGE_NAME=ServerGris_v2.0.5.pkg
 export DMG_DIR="ServerGris v2.0.5"
 export DMG_NAME="ServerGris_v2.0.5.dmg"
 
+# Replace app icon with a better version
+cp ../Resources/Icon.icns ../Builds/MacOSX/build/Release/ServerGris.app/Contents/Resources/Icon.icns
+
 export INSTALLER_DIR=`pwd`/installerdir
 export APPLICATIONS_DIR=$INSTALLER_DIR/Application/Package_Contents/Applications
 export SUPPORT_LIBS_DIR=$INSTALLER_DIR/SupportLibs/Package_Contents/usr/local
