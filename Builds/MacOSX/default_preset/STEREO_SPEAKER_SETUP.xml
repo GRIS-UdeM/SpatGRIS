@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<SpeakerSetup Name="BINAURAL_SPEAKER_SETUP.xml" Dimension="3" SpatMode="3">
+  <Ring>
+    <Speaker PositionX="0.64279997348785400391" PositionY="-0.76599997282028198242"
+             PositionZ="0.0" Azimuth="310.0" Zenith="0.0" Radius="1.0" LayoutIndex="1"
+             OutputPatch="1" Gain="0.0" HighPassCutoff="0.0" DirectOut="0"/>
+    <Speaker PositionX="0.64279997348785400391" PositionY="0.76599997282028198242"
+             PositionZ="0.0" Azimuth="50.0" Zenith="0.0" Radius="1.0" LayoutIndex="2"
+             OutputPatch="2" Gain="0.0" HighPassCutoff="0.0" DirectOut="0"/>
+  </Ring>
+  <triplet id1="1" id2="2" id3="0"/>
+</SpeakerSetup>
