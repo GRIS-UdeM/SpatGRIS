@@ -14,6 +14,7 @@ extern const String DefaultPresetFilePath;
 extern const String DefaultPresetDirectoryPath;
 extern const String DefaultSpeakerSetupFilePath;
 extern const String BinauralSpeakerSetupFilePath;
+extern const String StereoSpeakerSetupFilePath;
 extern const String ServerGrisManualFilePath;
 extern const String ServerGrisIconSmallFilePath;
 

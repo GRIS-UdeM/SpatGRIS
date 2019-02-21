@@ -170,7 +170,7 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     this->isSpanShown = true;
     this->isRecording = false;
 
-    this->pathLastVbapSpeakerSetup = String("");
+    this->pathLastVbapSpeakerSetup = DefaultSpeakerSetupFilePath;
 
     this->listSpeaker = vector<Speaker *>();
     this->listSourceInput = vector<Input *>();
@@ -1668,7 +1668,11 @@ void MainContentComponent::openXmlFileSpeaker(String path) {
                 }
                 this->listSpeaker.clear();
                 this->lockSpeakers->unlock();
-                if (isNewSameAsOld != 0 && path.compare(BinauralSpeakerSetupFilePath) != 0) {
+                if (path.compare(BinauralSpeakerSetupFilePath) == 0) {
+                    this->comBoxModeSpat->setSelectedId(VBAP_HRTF + 1, NotificationType::sendNotificationAsync);
+                } else if (path.compare(StereoSpeakerSetupFilePath) == 0) {
+                    this->comBoxModeSpat->setSelectedId(STEREO + 1, NotificationType::sendNotificationAsync);
+                } else if (isNewSameAsOld != 0) {
                     int spatMode = mainXmlElem->getIntAttribute("SpatMode");
                     this->comBoxModeSpat->setSelectedId(spatMode + 1, NotificationType::sendNotificationAsync);
                 }
@@ -1734,8 +1738,10 @@ void MainContentComponent::openXmlFileSpeaker(String path) {
         }
         this->needToComputeVbap = true;
         this->updateLevelComp();
-        if (this->getJackClient()->modeSelected != VBAP_HRTF) {
-            this->pathLastVbapSpeakerSetup = this->pathCurrentFileSpeaker;
+        if (this->getJackClient()->modeSelected != VBAP_HRTF && this->getJackClient()->modeSelected != STEREO) {
+            if (this->pathCurrentFileSpeaker.compare(BinauralSpeakerSetupFilePath) != 0 && this->pathCurrentFileSpeaker.compare(StereoSpeakerSetupFilePath) != 0) {
+                this->pathLastVbapSpeakerSetup = this->pathCurrentFileSpeaker;
+            }
         }
     } else {
         if (isNewSameAsOld == 0) {
@@ -1960,9 +1966,10 @@ void MainContentComponent::saveSpeakerSetup(String path) {
 
     this->needToSaveSpeakerSetup = false;
 
-    // TODO: What todo if modeSelected is LBAP ?
-    if (this->getJackClient()->modeSelected != VBAP_HRTF) {
-        this->pathLastVbapSpeakerSetup = this->pathCurrentFileSpeaker;
+    if (this->getJackClient()->modeSelected != VBAP_HRTF && this->getJackClient()->modeSelected != STEREO) {
+        if (this->pathCurrentFileSpeaker.compare(BinauralSpeakerSetupFilePath) != 0 && this->pathCurrentFileSpeaker.compare(StereoSpeakerSetupFilePath) != 0) {
+            this->pathLastVbapSpeakerSetup = this->pathCurrentFileSpeaker;
+        }
     }
 
     this->setNameConfig();
@@ -2214,9 +2221,7 @@ void MainContentComponent::comboBoxChanged(ComboBox *comboBox) {
                     this->isSpanShown = false;
                 break;
             case STEREO:
-                if (this->pathLastVbapSpeakerSetup != this->pathCurrentFileSpeaker) {
-                    this->openXmlFileSpeaker(this->pathLastVbapSpeakerSetup);
-                }
+                this->openXmlFileSpeaker(StereoSpeakerSetupFilePath);
                 this->needToSaveSpeakerSetup = false;
                 result = 1;
                 this->isSpanShown = false;
