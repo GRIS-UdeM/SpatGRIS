@@ -273,25 +273,31 @@ void SpeakerViewComponent::drawOriginGrid() {
     int i;
     double angle;
 
-    // Draw circle.
     glLineWidth(1.5f);
-    
     glColor3f(0.59, 0.59, 0.59);
-    glBegin(GL_LINE_LOOP);
-    for (i = 0; i <= 180; ++i) {
-        angle = (M2_PI * i / 180);
-        glVertex3f(cos(angle) * 5.0f, 0.0f, sin(angle) * 5.0f);
+
+    if (this->mainParent->getModeSelected() == LBAP) {
+        // Draw light squares.
+        for (float j = 5.0; j < 11.f; j += 5.0f) {
+            glBegin(GL_LINES);
+            glVertex3f(-j, 0, j); glVertex3f(j, 0, j);
+            glVertex3f(j, 0, -j); glVertex3f(j, 0, j);
+            glVertex3f(j, 0, -j); glVertex3f(-j, 0, -j);
+            glVertex3f(-j, 0, -j); glVertex3f(-j, 0, j);
+            glEnd();
+        }
+    } else {
+        // Draw light circles.
+        for (float j = 5.0; j < 11.f; j += 5.0f) {
+            glBegin(GL_LINE_LOOP);
+            for (i = 0; i <= 180; ++i) {
+                angle = (M2_PI * i / 180);
+                glVertex3f(cos(angle) * j, 0.0f, sin(angle) * j);
+            }
+            glEnd();
+        }
     }
-    glEnd();
-    
-    glBegin(GL_LINE_LOOP);
-    for (i = 0; i <= 180; ++i) {
-        angle = (M2_PI * i / 180);
-        glVertex3f(cos(angle) * 10.0f, 0.0f, sin(angle) * 10.0f);
-    }
-    glEnd();
-    
-    
+
     // 3D RGB line.
     glLineWidth(2);
     glBegin(GL_LINES);
@@ -301,7 +307,6 @@ void SpeakerViewComponent::drawOriginGrid() {
     glColor3f(0, 0.4, 0); glVertex3f(0, 0, -10); glVertex3f(0, 0, 0);
     glColor3f(0, 1, 0);   glVertex3f(0, 0, 0);   glVertex3f(0, 0, 10);
     glEnd();
-
     
     // Grid.
     glLineWidth(1);
@@ -326,28 +331,29 @@ void SpeakerViewComponent::drawOriginGrid() {
     glVertex3f(cos(M_PI4 * 3.0f) * 14.0f, 0.0f, sin(M_PI4 * 3.0f) * 14.0f);
     glVertex3f(-cos(M_PI4 * 3.0f) * 14.0f, 0.0f, -sin(M_PI4 * 3.0f) * 14.0f);
     glEnd();
-    
-    glBegin(GL_LINE_LOOP);
-    for (i = 0; i <= 180; ++i) {
-        angle = (M2_PI * i / 180);
-        glVertex3f(cos(angle) * 2.5f, 0.0f, sin(angle) * 2.5f);
+
+    if (this->mainParent->getModeSelected() == LBAP) {
+        // Draw grey squares.
+        for (float j = 2.5; j < 13.f; j += 5.0f) {
+            glBegin(GL_LINES);
+            glVertex3f(-j, 0, j); glVertex3f(j, 0, j);
+            glVertex3f(j, 0, -j); glVertex3f(j, 0, j);
+            glVertex3f(j, 0, -j); glVertex3f(-j, 0, -j);
+            glVertex3f(-j, 0, -j); glVertex3f(-j, 0, j);
+            glEnd();
+        }
+    } else {
+        // Draw grey circles.
+        for (float j = 2.5; j < 13.f; j += 5.0f) {
+            glBegin(GL_LINE_LOOP);
+            for (i = 0; i <= 180; ++i) {
+                angle = (M2_PI * i / 180);
+                glVertex3f(cos(angle) * j, 0.0f, sin(angle) * j);
+            }
+            glEnd();
+        }
     }
-    glEnd();
-    
-    glBegin(GL_LINE_LOOP);
-    for (i = 0; i <= 180; ++i) {
-        angle = (M2_PI * i / 180);
-        glVertex3f(cos(angle) * 7.5f, 0.0f, sin(angle) * 7.5f);
-    }
-    glEnd();
-    
-    glBegin(GL_LINE_LOOP);
-    for (i = 0; i <= 180; ++i) {
-        angle = (M2_PI * i / 180);
-        glVertex3f(cos(angle) * 12.5f, 0.0f, sin(angle) * 12.5f);
-    }
-    glEnd();
-    
+
     drawText("X", glm::vec3(10, 0.1, 0), glm::vec3(1, 1, 1));
     drawText("Y", glm::vec3(0,  0.1, 10), glm::vec3(1, 1, 1));
     drawText("Z", glm::vec3(0,  10,  0), glm::vec3(1, 1, 1));
