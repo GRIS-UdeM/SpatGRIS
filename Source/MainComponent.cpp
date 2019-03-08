@@ -907,7 +907,7 @@ void MainContentComponent::getCommandInfo (CommandID commandID, ApplicationComma
             result.setTicked(this->isSpeakerLevelShown);
             break;
         case MainWindow::ShowSphereID:
-            result.setInfo ("Show Sphere", "Show the sphere on the 3D view.", generalCategory, 0);
+            result.setInfo ("Show Sphere/Cube", "Show the sphere on the 3D view.", generalCategory, 0);
             result.addDefaultKeypress ('O', ModifierKeys::altModifier);
             result.setTicked(this->isSphereShown);
             break;

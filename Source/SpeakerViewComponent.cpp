@@ -130,18 +130,42 @@ void SpeakerViewComponent::render() {
     // Draw Sphere : Use many CPU
     if (this->showShpere) {
         if (this->mainParent->getLockSpeakers()->try_lock()) {
-            float maxRadius = 0.0f;
-            for (unsigned int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
-                if (abs(this->mainParent->getListSpeaker()[i]->getAziZenRad().z * 10.f) > maxRadius) {
-                    maxRadius = abs(this->mainParent->getListSpeaker()[i]->getAziZenRad().z * 10.0f);
-                }
-            }
+            float maxRadius = 10.0f;
+
+            // Not sure why we used the farthest speaker to set the size of the sphere.
+            // Does not make much sense to me. -belangeo
+            //for (unsigned int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
+            //    if (abs(this->mainParent->getListSpeaker()[i]->getAziZenRad().z * 10.f) > maxRadius) {
+            //        maxRadius = abs(this->mainParent->getListSpeaker()[i]->getAziZenRad().z * 10.0f);
+            //    }
+            //}
+
             glPushMatrix();
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
             glLineWidth(1);
             glRotatef(90, 1, 0, 0);
             glColor3f(0.8, 0.2, 0.1);
-            glutSolidSphere(max(maxRadius, 1.0f), 36, 36);
+            if (this->mainParent->getModeSelected() == LBAP) {
+                // Draw a cube when in LBAP mode.
+                for (int i = -10; i <= 10; i += 2) {
+                    glBegin(GL_LINES);
+                    glVertex3f(i, 10, -10); glVertex3f(i, 10, 10);
+                    glVertex3f(i, -10, -10); glVertex3f(i, -10, 10);
+                    glVertex3f(10, -10, i); glVertex3f(10, 10, i);
+                    glVertex3f(-10, -10, i); glVertex3f(-10, 10, i);
+                    glVertex3f(10, i, -10); glVertex3f(10, i, 10);
+                    glVertex3f(-10, i, -10); glVertex3f(-10, i, 10);
+                    glVertex3f(-10, i, 10); glVertex3f(10, i, 10);
+                    glVertex3f(-10, i, -10); glVertex3f(10, i, -10);
+                    glVertex3f(-10, 10, i); glVertex3f(10, 10, i);
+                    glVertex3f(-10, -10, i); glVertex3f(10, -10, i);
+                    glVertex3f(i, -10, 10); glVertex3f(i, 10, 10);
+                    glVertex3f(i, -10, -10); glVertex3f(i, 10, -10);
+                    glEnd();
+                }
+            } else {
+                glutSolidSphere(max(maxRadius, 1.0f), 20, 20);
+            }
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             glPopMatrix();
             this->mainParent->getLockSpeakers()->unlock();
