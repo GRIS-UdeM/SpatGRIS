@@ -75,6 +75,7 @@ public :
     float getRadius() { return this->radius; }
 
     glm::vec3 polToCar(float azimuth, float zenith);
+    glm::vec3 polToCar3d(float azimuth, float zenith);
     
     float getAziMuthSpan() { return this->azimSpan; }
     float getZenithSpan() { return this->zeniSpan; }

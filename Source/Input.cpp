@@ -69,6 +69,15 @@ glm::vec3 Input::polToCar(float azimuth, float zenith) {
     return cart;
 }
 
+glm::vec3 Input::polToCar3d(float azimuth, float zenith) {
+    glm::vec3 cart;
+    float factor = this->radius * 10.0f;
+    cart.x = (factor * cosf(azimuth));
+    cart.z = (factor * sinf(azimuth));
+    cart.y = ((10.0f * cosf(zenith)) + (sizeT / 2.0f));
+    return cart;
+}
+
 void Input::setMuted(bool mute) {
     this->mainParent->muteInput(this->idChannel, mute);
     if (mute) {
@@ -175,7 +184,11 @@ void Input::drawSpan() {
             else if (newazi < -M_PI)
                 newazi += (M_PI * 2.0f);
 
-            cart = this->polToCar(newazi, this->zenith);
+            if (this->mainParent->getModeSelected() == 1) {
+                cart = this->polToCar3d(newazi, this->zenith);
+            } else {
+                cart = this->polToCar(newazi, this->zenith);
+            }
             glVertex3f(cart.x, cart.y, cart.z);
             for (int k=0; k<4; k++) {
                 float eledev = (k+1) * this->zeniSpan * 2.0f * 0.38f;
@@ -189,7 +202,11 @@ void Input::drawSpan() {
                     else if (newele < 0)
                         newele = 0;
 
-                    cart = this->polToCar(newazi, newele);
+                    if (this->mainParent->getModeSelected() == 1) {
+                        cart = this->polToCar3d(newazi, newele);
+                    } else {
+                        cart = this->polToCar(newazi, newele);
+                    }
                     glVertex3f(cart.x, cart.y, cart.z);
                 }
             }
