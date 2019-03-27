@@ -30,7 +30,7 @@ static const string OscPanAZ    = "/pan/az";
 static const string OscSpatServ = "/spat/serv";
 
 class OscInput : private OSCReceiver,
-                 private OSCReceiver::ListenerWithOSCAddress<OSCReceiver::RealtimeCallback>
+                 private OSCReceiver::Listener<OSCReceiver::RealtimeCallback>
 
 {
 public :
@@ -42,6 +42,8 @@ public :
     
 private :
     void oscMessageReceived(const OSCMessage& message) override;
+    void oscBundleReceived(const OSCBundle& bundle) override;
+
     MainContentComponent * mainParent;
     
 };

@@ -31,13 +31,21 @@ OscInput::~OscInput() {
 
 bool OscInput::startConnection(int port) {
     bool b = this->connect(port);
-    this->addListener(this, OscPanAZ.c_str());
-    this->addListener(this, OscSpatServ.c_str());
+    this->addListener(this);
     return b;
 }
 
 bool OscInput::closeConnection() {
     return this->disconnect();
+}
+
+void OscInput::oscBundleReceived(const OSCBundle& bundle) {
+    for (auto& element : bundle) {
+        if (element.isMessage())
+            oscMessageReceived(element.getMessage());
+        else if (element.isBundle())
+            oscBundleReceived(element.getBundle());
+    }
 }
 
 void OscInput::oscMessageReceived(const OSCMessage& message) {
@@ -46,7 +54,7 @@ void OscInput::oscMessageReceived(const OSCMessage& message) {
     if (message[0].isInt32()) {
         if (address == OscSpatServ) {
             // int id, float azi [0, 2pi], float ele [0, pi], float azispan [0, 2],
-            // float elespan [0, 0.5], float radius [0, 1], float gain [0, 1].
+            // float elespan [0, 0.5], float distance [0, 1], float gain [0, 1].
             unsigned int idS = message[0].getInt32();
             this->mainParent->getLockInputs()->lock();
             if (this->mainParent->getListSourceInput().size() > idS) {
