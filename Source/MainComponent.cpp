@@ -1649,6 +1649,7 @@ void MainContentComponent::openXmlFileSpeaker(String path) {
     String msg;
     String oldPath = this->pathCurrentFileSpeaker;
     int isNewSameAsOld = oldPath.compare(path);
+    int isNewSameAsLastSetup = this->pathLastVbapSpeakerSetup.compare(path);
     bool ok = false;
     if (! File(path.toStdString()).existsAsFile()) {
         ScopedPointer<AlertWindow> alert = new AlertWindow ("Error in Load Speaker Setup !", 
@@ -1677,13 +1678,21 @@ void MainContentComponent::openXmlFileSpeaker(String path) {
                 this->listSpeaker.clear();
                 this->lockSpeakers->unlock();
                 if (path.compare(BinauralSpeakerSetupFilePath) == 0) {
-                    this->comBoxModeSpat->setSelectedId(VBAP_HRTF + 1, NotificationType::sendNotificationAsync);
+                    this->jackClient->modeSelected = (ModeSpatEnum)(VBAP_HRTF);
+                    this->comBoxModeSpat->setSelectedId(VBAP_HRTF + 1, NotificationType::dontSendNotification);
                 } else if (path.compare(StereoSpeakerSetupFilePath) == 0) {
-                    this->comBoxModeSpat->setSelectedId(STEREO + 1, NotificationType::sendNotificationAsync);
-                } else if (isNewSameAsOld != 0) {
+                    this->jackClient->modeSelected = (ModeSpatEnum)(STEREO);
+                    this->comBoxModeSpat->setSelectedId(STEREO + 1, NotificationType::dontSendNotification);
+               } else if (isNewSameAsOld != 0 && oldPath.compare(BinauralSpeakerSetupFilePath) != 0 &&
+                           oldPath.compare(StereoSpeakerSetupFilePath) != 0) {
                     int spatMode = mainXmlElem->getIntAttribute("SpatMode");
-                    this->comBoxModeSpat->setSelectedId(spatMode + 1, NotificationType::sendNotificationAsync);
-                }
+                    this->jackClient->modeSelected = (ModeSpatEnum)(spatMode);
+                    this->comBoxModeSpat->setSelectedId(spatMode + 1, NotificationType::dontSendNotification);
+                } else if (isNewSameAsLastSetup != 0) {
+                    int spatMode = mainXmlElem->getIntAttribute("SpatMode");
+                    this->jackClient->modeSelected = (ModeSpatEnum)(spatMode);
+                    this->comBoxModeSpat->setSelectedId(spatMode + 1, NotificationType::dontSendNotification);
+                 }
                 this->setNameConfig();
                 this->jackClient->processBlockOn = false;
                 this->jackClient->clearOutput();
