@@ -1411,10 +1411,17 @@ bool MainContentComponent::updateLevelComp() {
     }
 
     // Test for duplicated output patch.
-    vector<int> tempout(this->listSpeaker.size());
+    //vector<int> tempout(this->listSpeaker.size());
+    //for (unsigned int i = 0; i < this->listSpeaker.size(); i++) {
+    //    tempout[i] = this->listSpeaker[i]->getOutputPatch();
+    //}
+    vector<int> tempout;
     for (unsigned int i = 0; i < this->listSpeaker.size(); i++) {
-        tempout[i] = this->listSpeaker[i]->getOutputPatch();
+        if (!this->listSpeaker[i]->getDirectOut()) {
+            tempout.push_back(this->listSpeaker[i]->getOutputPatch());
+        }
     }
+
     std::sort(tempout.begin(), tempout.end());
     for (unsigned int i = 0; i < tempout.size() - 1; i++) {
         if (tempout[i] == tempout[i + 1]) {
