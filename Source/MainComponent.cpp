@@ -1411,10 +1411,6 @@ bool MainContentComponent::updateLevelComp() {
     }
 
     // Test for duplicated output patch.
-    //vector<int> tempout(this->listSpeaker.size());
-    //for (unsigned int i = 0; i < this->listSpeaker.size(); i++) {
-    //    tempout[i] = this->listSpeaker[i]->getOutputPatch();
-    //}
     vector<int> tempout;
     for (unsigned int i = 0; i < this->listSpeaker.size(); i++) {
         if (!this->listSpeaker[i]->getDirectOut()) {
@@ -1426,15 +1422,20 @@ bool MainContentComponent::updateLevelComp() {
     for (unsigned int i = 0; i < tempout.size() - 1; i++) {
         if (tempout[i] == tempout[i + 1]) {
             ScopedPointer<AlertWindow> alert = new AlertWindow ("Duplicated Output Numbers!    ",
-                                                                "Some output numbers are used more than once. Do you want to continue anyway?    ", 
+                                                                "Some output numbers are used more than once. Do you want to continue anyway?    "
+                                                                "\nIf you continue, you may have to fix your speaker setup before using it!   ", 
                                                                 AlertWindow::WarningIcon);
             alert->setLookAndFeel(&mGrisFeel);
             alert->addButton ("No", 0);
             alert->addButton ("Yes", 1);
             if (! alert->runModalLoop()) {
-                return false;
+                if (this->pathCurrentFileSpeaker.compare(this->pathLastVbapSpeakerSetup) == 0) {
+                    this->openXmlFileSpeaker(DefaultSpeakerSetupFilePath);
+                } else {
+                    this->openXmlFileSpeaker(this->pathLastVbapSpeakerSetup);
+                }
             }
-            break;
+            return false;
         }
     }
 
