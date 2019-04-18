@@ -255,7 +255,7 @@ static void processLBAP(jackClientGris &jackCli, jack_default_audio_sample_t **i
                                        jackCli.listSourceIn[i].azimuth,
                                        jackCli.listSourceIn[i].zenith,
                                        jackCli.listSourceIn[i].radius);
-            pos.azispan = jackCli.listSourceIn[i].aziSpan;
+            pos.radspan = jackCli.listSourceIn[i].aziSpan;
             pos.elespan = jackCli.listSourceIn[i].zenSpan;
             if (!lbap_pos_compare(&pos, &jackCli.listSourceIn[i].lbap_last_pos)) {
                 lbap_field_compute(jackCli.lbap_speaker_field, &pos, jackCli.listSourceIn[i].lbap_gains);

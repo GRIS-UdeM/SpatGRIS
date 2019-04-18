@@ -208,8 +208,8 @@ lbap_layer_free(lbap_layer *layer) {
  * the result in the `gains` array.
  */
 static void
-lbap_layer_compute_gains(lbap_layer *layer, float azi, float rad, float azispan, float *gains) {
-    int i, hsize = LBAP_MATRIX_SIZE / 2;
+lbap_layer_compute_gains(lbap_layer *layer, float azi, float rad, float radspan, float *gains) {
+    int i, hsize = LBAP_MATRIX_SIZE / 2, sizeMinusOne = LBAP_MATRIX_SIZE - 1;
     float x, y, norm, sum = 0.0;
     lbap_pos pos;
     pos.azi = azi;
@@ -217,8 +217,10 @@ lbap_layer_compute_gains(lbap_layer *layer, float azi, float rad, float azispan,
     lbap_poltocar(&pos);
     x = pos.x * (hsize - 1) + hsize;
     y = pos.y * (hsize - 1) + hsize;
+    x = x < 0 ? 0 : x > sizeMinusOne ? sizeMinusOne : x;
+    y = y < 0 ? 0 : y > sizeMinusOne ? sizeMinusOne : y;
     for (i=0; i<layer->num_of_speakers; i++) {
-        gains[i] = powf(lbap_lookup(layer->matrix[i], x, y), layer->expon * (1.0 - azispan) * 2.0);
+        gains[i] = powf(lbap_lookup(layer->matrix[i], x, y), layer->expon * (1.0 - radspan) * 2.0);
         sum += gains[i];
     }
     if (sum > 0.0) {
@@ -331,7 +333,7 @@ lbap_field_compute(lbap_field *field, lbap_pos *pos, float *gains) {
         frac = (pos->ele - first->ele) / (second->ele - first->ele);
 
     if (pos->elespan != 0.0)
-        elespan = powf(pos->elespan, 2) * 6;
+        elespan = powf(pos->elespan, 4) * 6;
 
     c = 0;
     for (i=0; i<field->num_of_layers; i++) {
@@ -347,7 +349,7 @@ lbap_field_compute(lbap_field *field, lbap_pos *pos, float *gains) {
             gain = elespan / ((i - second->id) * 2);
         }
         gain = gain > 1.0 ? 1.0 : gain;
-        lbap_layer_compute_gains(field->layers[i], pos->azi, pos->rad, pos->azispan, &gns[c]);
+        lbap_layer_compute_gains(field->layers[i], pos->azi, pos->rad, pos->radspan, &gns[c]);
         for (j=0; j<field->layers[i]->num_of_speakers; j++) {
             gns[c++] *= gain;
         }
@@ -357,57 +359,6 @@ lbap_field_compute(lbap_field *field, lbap_pos *pos, float *gains) {
         gains[field->out_order[i]] = gns[i];
     }
 }
-
-/*
-void
-lbap_field_compute(lbap_field *field, lbap_pos *pos, float *gains) {
-    int i, j, c;
-    float frac, gns[field->num_of_speakers];
-
-    lbap_layer *first = field->layers[0];
-    lbap_layer *second = field->layers[field->num_of_layers-1];
-    for (i=0; i<field->num_of_layers; i++) {
-        if (field->layers[i]->ele > pos->ele) {
-            second = field->layers[i];
-            break;
-        }
-        first = field->layers[i];
-    }
-
-    c = 0;
-    if (first->id == second->id) {
-        for (i=0; i<field->num_of_layers; i++) {
-            if (i != first->id)
-                memset(&gns[c], 0, sizeof(float) * field->layers[i]->num_of_speakers);
-            else
-                lbap_layer_compute_gains(first, pos->azi, pos->rad, pos->azispan, &gns[c]);
-            c += field->layers[i]->num_of_speakers;
-        }
-    } else {
-        frac = (pos->ele - first->ele) / (second->ele - first->ele);
-        for (i=0; i<field->num_of_layers; i++) {
-            if (i == first->id) {
-                 lbap_layer_compute_gains(first, pos->azi, pos->rad, pos->azispan, &gns[c]);
-                 for (j=0; j<first->num_of_speakers; j++) {
-                    gns[c++] *= (1 - frac);
-                 }
-            } else if (i == second->id) {
-                 lbap_layer_compute_gains(second, pos->azi, pos->rad, pos->azispan, &gns[c]);
-                 for (j=0; j<second->num_of_speakers; j++) {
-                    gns[c++] *= frac;
-                 }
-            } else {
-                memset(&gns[c], 0, sizeof(float) * field->layers[i]->num_of_speakers);
-                c += field->layers[i]->num_of_speakers;
-            }
-        }
-    }
-
-    for (i=0; i<field->num_of_speakers; i++) {
-        gains[field->out_order[i]] = gns[i];
-    }
-}
-*/
 
 lbap_speaker *
 lbap_speakers_from_positions(float *azi, float *ele, float *rad, int *spkid, int num) {
@@ -423,6 +374,8 @@ lbap_speakers_from_positions(float *azi, float *ele, float *rad, int *spkid, int
 }
 
 void lbap_pos_init_from_radians(lbap_pos *pos, float azi, float ele, float rad) {
+    pos->radspan = 0.0f;
+    pos->elespan = 0.0f;
     while (azi < -M_PI) {
         azi += M_PI * 2;
     }
@@ -441,6 +394,9 @@ void lbap_pos_init_from_radians(lbap_pos *pos, float azi, float ele, float rad) 
 }
 
 void lbap_pos_init_from_degrees(lbap_pos *pos, float azi, float ele, float rad) {
+    pos->radspan = 0.0f;
+    pos->elespan = 0.0f;
+
     float deg2rad = 1.0f / 360.0f * M_PI * 2.0f;
 
     while (azi < -180) {
@@ -457,12 +413,12 @@ void lbap_pos_init_from_degrees(lbap_pos *pos, float azi, float ele, float rad) 
 
     pos->azi = azi * deg2rad;
     pos->ele = ele * deg2rad;
-    pos->rad = rad < 0.0f ? 0.0f : rad > 1.0f ? 1.0f : rad;
+    pos->rad = rad < 0.0f ? 0.0f : rad > 2.0f ? 2.0f : rad;
 }
 
 int lbap_pos_compare(lbap_pos *p1, lbap_pos *p2) {
     if (p1->azi == p2->azi && p1->ele == p2->ele && p1->rad == p2->rad && 
-       p1->azispan == p2->azispan && p1->elespan == p2->elespan)
+       p1->radspan == p2->radspan && p1->elespan == p2->elespan)
         return 1;
     else
         return 0;
@@ -472,4 +428,6 @@ void lbap_pos_copy(lbap_pos *dest, lbap_pos *src) {
     dest->azi = src->azi;
     dest->ele = src->ele;
     dest->rad = src->rad;
+    dest->radspan = src->radspan;
+    dest->elespan = src->elespan;
 }

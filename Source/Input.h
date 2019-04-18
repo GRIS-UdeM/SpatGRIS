@@ -96,7 +96,8 @@ public :
     
 private:
     void drawSpan();
-    
+    void drawSpanLBAP(float x, float y, float z);
+
     int idChannel;
     int directOutChannel;
     

@@ -76,7 +76,7 @@ typedef struct {
     float x;
     float y;
     float z;
-    float azispan;
+    float radspan;
     float elespan;
 } lbap_pos;
 

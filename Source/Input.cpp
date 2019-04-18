@@ -156,7 +156,11 @@ void Input::draw() {
     glTranslatef(-this->center.x, -this->center.y, -this->center.z);
 
     if ((this->azimSpan != 0.0f || this->zeniSpan != 0.0f) && this->mainParent->isSpanShown) {
-        drawSpan();
+        if (this->mainParent->getModeSelected() == 1) {
+            drawSpanLBAP(this->center.x, this->center.y, this->center.z);
+        } else {
+            drawSpan();
+        }
     }
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -164,7 +168,7 @@ void Input::draw() {
 }
 
 void Input::drawSpan() {
-	int num = 8;
+    int num = 8;
     float newazi, newele;
     glm::vec3 cart;
 
@@ -209,6 +213,55 @@ void Input::drawSpan() {
                     }
                     glVertex3f(cart.x, cart.y, cart.z);
                 }
+            }
+        }
+    }
+
+    glEnd();
+    glPointSize(1);
+}
+
+void Input::drawSpanLBAP(float x, float y, float z) {
+    int num = 4;
+    float ytmp;
+
+    glPointSize(4);
+    glBegin(GL_POINTS);
+
+    // For the same elevation as the source position.
+    for (int i=1; i<=num; i++) {
+        float raddev = i / 4.f * this->azimSpan * 6.f;
+        if (i < num) {
+            glVertex3f(x + raddev, y, z + raddev);
+            glVertex3f(x + raddev, y, z - raddev);
+            glVertex3f(x - raddev, y, z + raddev);
+            glVertex3f(x - raddev, y, z - raddev);
+        }
+        glVertex3f(x + raddev, y, z);
+        glVertex3f(x - raddev, y, z);
+        glVertex3f(x, y, z + raddev);
+        glVertex3f(x, y, z - raddev);
+    }
+    // For all other elevation levels.
+    for (int j=0; j<num; j++) {
+        float eledev = (j+1) / 2.f * this->zeniSpan * 10.f;
+        for (int k=0; k<2; k++) {
+            if (k)
+                ytmp = y + eledev;
+            else
+                ytmp = y - eledev;
+            for (int i=1; i<=num; i++) {
+                float raddev = i / 4.f * this->azimSpan * 6.f;
+                if (i < num) {
+                    glVertex3f(x + raddev, ytmp, z + raddev);
+                    glVertex3f(x + raddev, ytmp, z - raddev);
+                    glVertex3f(x - raddev, ytmp, z + raddev);
+                    glVertex3f(x - raddev, ytmp, z - raddev);
+                }
+                glVertex3f(x + raddev, ytmp, z);
+                glVertex3f(x - raddev, ytmp, z);
+                glVertex3f(x, ytmp, z + raddev);
+                glVertex3f(x, ytmp, z - raddev);
             }
         }
     }
