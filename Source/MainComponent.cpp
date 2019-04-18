@@ -1022,8 +1022,8 @@ PopupMenu MainContentComponent::getMenuForIndex (int menuIndex, const String& me
         menu.addCommandItem(commandManager, MainWindow::ColorizeInputsID);
         menu.addCommandItem(commandManager, MainWindow::ResetInputPosID);
         // TODO: Osc log window still crashes on MacOS. Useful only in debugging process.
-        menu.addSeparator();
-        menu.addCommandItem(commandManager, MainWindow::ShowOscLogView);
+        //menu.addSeparator();
+        //menu.addCommandItem(commandManager, MainWindow::ShowOscLogView);
     }
     else if (menuName == "Help") {
         menu.addCommandItem(commandManager, MainWindow::AboutID);
