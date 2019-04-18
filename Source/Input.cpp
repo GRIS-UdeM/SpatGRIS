@@ -244,12 +244,16 @@ void Input::drawSpanLBAP(float x, float y, float z) {
     }
     // For all other elevation levels.
     for (int j=0; j<num; j++) {
-        float eledev = (j+1) / 2.f * this->zeniSpan * 10.f;
+        float eledev = (j+1) / 2.f * this->zeniSpan * 15.f;
         for (int k=0; k<2; k++) {
-            if (k)
+            if (k) {
                 ytmp = y + eledev;
-            else
+                ytmp = ytmp > 10.f ? 10.f : ytmp;
+            }
+            else {
                 ytmp = y - eledev;
+                ytmp = ytmp < -10.f ? -10.f : ytmp;
+            }
             for (int i=1; i<=num; i++) {
                 float raddev = i / 4.f * this->azimSpan * 6.f;
                 if (i < num) {
