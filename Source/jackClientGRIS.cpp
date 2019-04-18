@@ -366,6 +366,19 @@ static void processVBapHRTF(jackClientGris &jackCli, jack_default_audio_sample_t
             jackCli.hrtf_input_tmp[o][jackCli.hrtf_count[o]] = vbapouts[o][f];
         }
     }
+
+    // Add direct outs to the now stereo signal.
+    for (i = 0; i < sizeInputs; ++i) {
+        if ((jackCli.listSourceIn[i].directOut % 2) == 1) {
+            for (f = 0; f < nframes; ++f) {
+                outs[0][f] += ins[i][f];
+            }
+        } else {
+            for (f = 0; f < nframes; ++f) {
+                outs[1][f] += ins[i][f];
+            }
+        }
+    }
 }
 
 // STEREO processing function.
