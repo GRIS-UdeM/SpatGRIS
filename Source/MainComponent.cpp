@@ -345,9 +345,6 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     if (props->containsKey("sashPosition")) {
         int trueSize = (int)round((this->getWidth() - 3) * abs(props->getDoubleValue("sashPosition")));
         this->verticalLayout.setItemPosition(1, trueSize);
-        this->speakerView->setCamPosition(this->speakerView->getCamAngleX(),
-                                          this->speakerView->getCamAngleY(),
-                                          props->getIntValue("camDistance"));
     }
 }
 
@@ -356,7 +353,6 @@ MainContentComponent::~MainContentComponent() {
     props->setValue("lastOpenPreset", this->pathCurrentPreset);
     props->setValue("lastOpenSpeakerSetup", this->pathCurrentFileSpeaker);
     props->setValue("sashPosition", this->verticalLayout.getItemCurrentRelativeSize(0));
-    props->setValue("camDistance", this->speakerView->getCamDistance());
     this->applicationProperties.saveIfNeeded();
     this->applicationProperties.closeFiles();
 
