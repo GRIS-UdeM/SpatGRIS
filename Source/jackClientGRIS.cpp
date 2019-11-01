@@ -369,13 +369,15 @@ static void processVBapHRTF(jackClientGris &jackCli, jack_default_audio_sample_t
 
     // Add direct outs to the now stereo signal.
     for (i = 0; i < sizeInputs; ++i) {
-        if ((jackCli.listSourceIn[i].directOut % 2) == 1) {
-            for (f = 0; f < nframes; ++f) {
-                outs[0][f] += ins[i][f];
-            }
-        } else {
-            for (f = 0; f < nframes; ++f) {
-                outs[1][f] += ins[i][f];
+        if (jackCli.listSourceIn[i].directOut != 0) {
+            if ((jackCli.listSourceIn[i].directOut % 2) == 1) {
+                for (f = 0; f < nframes; ++f) {
+                    outs[0][f] += ins[i][f];
+                }
+            } else {
+                for (f = 0; f < nframes; ++f) {
+                    outs[1][f] += ins[i][f];
+                }
             }
         }
     }
@@ -636,7 +638,7 @@ jackClientGris::jackClientGris() {
 
     // Initialize impulse responses for VBAP+HRTF (BINAURAL mode).
     float **stbuf;
-    /* Azimuth = 0 */
+    // Azimuth = 0
     String names0[8] = {"H0e025a.wav", "H0e020a.wav", "H0e065a.wav", "H0e110a.wav",
                        "H0e155a.wav", "H0e160a.wav", "H0e115a.wav", "H0e070a.wav"};
     int reverse0[8] = {1, 0, 0, 0, 0, 1, 1, 1};
@@ -647,7 +649,7 @@ jackClientGris::jackClientGris() {
             this->vbap_hrtf_right_impulses[i][k] = stbuf[1-reverse0[i]][k];
         }
     }
-    /* Azimuth = 40 */
+    // Azimuth = 40
     String names40[6] = {"H40e032a.wav", "H40e026a.wav", "H40e084a.wav", "H40e148a.wav",
                          "H40e154a.wav", "H40e090a.wav"};
     int reverse40[6] = {1, 0, 0, 0, 1, 1};
@@ -658,7 +660,7 @@ jackClientGris::jackClientGris() {
             this->vbap_hrtf_right_impulses[i+8][k] = stbuf[1-reverse40[i]][k];
         }
     }
-    /* Azimuth = 80 */
+    // Azimuth = 80
     for (int i=0; i<2; i++) {
         stbuf = getSamplesFromWavFile(HRTFFolder80Path + "H80e090a.wav");
         for (int k=0; k<128; k++) {
