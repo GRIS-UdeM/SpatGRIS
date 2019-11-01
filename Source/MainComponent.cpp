@@ -1793,7 +1793,6 @@ void MainContentComponent::openPreset(String path) {
             this->tedAddInputs->setText(mainXmlElem->getStringAttribute("Number_Of_Inputs"));
             this->sliderMasterGainOut->setValue(mainXmlElem->getDoubleAttribute("Master_Gain_Out", 0.0), sendNotification);
             this->sliderInterpolation->setValue(mainXmlElem->getDoubleAttribute("Master_Interpolation", 0.1), sendNotification);
-            this->comBoxModeSpat->setSelectedItemIndex(mainXmlElem->getIntAttribute("Mode_Process"),sendNotification);
             this->setShowNumbers(mainXmlElem->getBoolAttribute("Show_Numbers"));
             this->setHighPerformance(mainXmlElem->getBoolAttribute("High_Performance"));
             if (mainXmlElem->hasAttribute("Show_Speakers")) {
@@ -1898,7 +1897,6 @@ void MainContentComponent::getPresetData(XmlElement *xml) {
     xml->setAttribute("Number_Of_Inputs", this->tedAddInputs->getTextValue().toString());
     xml->setAttribute("Master_Gain_Out", this->sliderMasterGainOut->getValue());
     xml->setAttribute("Master_Interpolation", this->sliderInterpolation->getValue());
-    xml->setAttribute("Mode_Process", this->comBoxModeSpat->getSelectedItemIndex());
     xml->setAttribute("Show_Numbers", this->isNumbersShown);
     xml->setAttribute("Show_Speakers", this->isSpeakersShown);
     xml->setAttribute("Show_Triplets", this->isTripletsShown);
