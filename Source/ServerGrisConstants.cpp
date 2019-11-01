@@ -29,7 +29,7 @@ const String HRTFFolder0Path = CURRENT_WORKING_DIR + RESOURCES_DIR + "hrtf_compa
 const String HRTFFolder40Path = CURRENT_WORKING_DIR + RESOURCES_DIR + "hrtf_compact/elev" + String(40) + "/";
 const String HRTFFolder80Path = CURRENT_WORKING_DIR + RESOURCES_DIR + "hrtf_compact/elev" + String(80) + "/";
 
-const StringArray ModeSpatString = {"VBAP",  "LBAP", "BINAURAL", "STEREO"};
+const StringArray ModeSpatString = {"DOME",  "CUBE", "BINAURAL", "STEREO"};
 
 // Settings Jack Server
 const StringArray BufferSizes = {"32", "64", "128", "256", "512", "1024", "2048"};
