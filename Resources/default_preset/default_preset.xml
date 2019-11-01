@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<SpatServerGRIS_Preset OSC_Input_Port="18032" Number_Of_Inputs="16" Master_Gain_Out="1"
+<SpatServerGRIS_Preset OSC_Input_Port="18032" Number_Of_Inputs="16" Master_Gain_Out="0"
                        Master_Interpolation="0.1" Mode_Process="0"
                        Show_Numbers="0" High_Performance="0">
   <Input Index="1" R="0.749019622802734375" G="0" B="0"/>

@@ -223,7 +223,8 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
 
     addLabel("Gain", "Master Gain Outputs", 15, 30, 120, 20, this->boxControlUI->getContent());
     this->sliderMasterGainOut = addSlider("Master Gain", "Master Gain Outputs", 5, 45, 60, 60, this->boxControlUI->getContent());
-    this->sliderMasterGainOut->setRange(0.0, 1.0, 0.001);
+    this->sliderMasterGainOut->setRange(-60.0, 18.0, 0.01);
+    this->sliderMasterGainOut->setTextValueSuffix(" dB");
     
     addLabel("Interpolation", "Master Interpolation", 60, 30, 120, 20, this->boxControlUI->getContent());
     this->sliderInterpolation = addSlider("Inter", "Interpolation", 70, 45, 60, 60, this->boxControlUI->getContent());
@@ -303,7 +304,7 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     this->oscReceiver->startConnection(this->oscInputPort);
 
     // Default widget values.
-    this->sliderMasterGainOut->setValue(1.0);
+    this->sliderMasterGainOut->setValue(0.0);
     this->sliderInterpolation->setValue(0.1);
     this->comBoxModeSpat->setSelectedId(1);
 
@@ -1790,7 +1791,7 @@ void MainContentComponent::openPreset(String path) {
             this->pathCurrentPreset = path;
             this->oscInputPort = mainXmlElem->getIntAttribute("OSC_Input_Port"); // TODO: app preferences instead of project settings ?
             this->tedAddInputs->setText(mainXmlElem->getStringAttribute("Number_Of_Inputs"));
-            this->sliderMasterGainOut->setValue(mainXmlElem->getDoubleAttribute("Master_Gain_Out", 1.0), sendNotification);
+            this->sliderMasterGainOut->setValue(mainXmlElem->getDoubleAttribute("Master_Gain_Out", 0.0), sendNotification);
             this->sliderInterpolation->setValue(mainXmlElem->getDoubleAttribute("Master_Interpolation", 0.1), sendNotification);
             this->comBoxModeSpat->setSelectedItemIndex(mainXmlElem->getIntAttribute("Mode_Process"),sendNotification);
             this->setShowNumbers(mainXmlElem->getBoolAttribute("Show_Numbers"));
@@ -2188,7 +2189,7 @@ void MainContentComponent::buttonClicked(Button *button) {
 
 void MainContentComponent::sliderValueChanged(Slider* slider) {
     if (slider == this->sliderMasterGainOut) {
-        this->jackClient->masterGainOut = this->sliderMasterGainOut->getValue();
+        this->jackClient->masterGainOut = pow(10.0, this->sliderMasterGainOut->getValue() * 0.05);
     }
 
     else if (slider == this->sliderInterpolation) {
