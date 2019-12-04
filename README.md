@@ -14,7 +14,7 @@ sudo apt-get install clang git ladspa-sdk freeglut3-dev g++ libasound2-dev libcu
 
 ### Download Juce
 
-To build the ServerGRIS, you'll need Juce 5, download it from the [download](from https://shop.juce.com/get-juce/download) page at juce.com.
+To build the ServerGRIS, you'll need Juce 5, download it from https://shop.juce.com/get-juce/download page.
 
 ### Clone ServerGris sources
 
