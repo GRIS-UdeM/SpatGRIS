@@ -24,14 +24,16 @@ git clone https://github.com/GRIS-UdeM/ServerGRIS.git
 
 ### Build the app
 
-1. Start the Projucer app, open the ServerGRIS.jucer file and save the project. This step must be done each time the structure of the project changes.
+1. Start the Projucer app, open the ServerGRIS.jucer file and save the project. This step must be done each time the structure of the project changes (new files, new JUCE version, etc.).
 
 ```
 cd /path/to/JUCE/folder
 ./Projucer
 ```
 
-2. Go to the ServerGRIS Builds folder and compile the app
+After saving the project, you can quit the Projucer.
+
+2. Go to the ServerGRIS Builds folder and compile the app.
 
 ```
 cd ServerGRIS/Builds/LinuxMakeFile
