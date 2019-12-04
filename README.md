@@ -18,7 +18,9 @@ To build the ServerGRIS, you'll need Juce 5, download it from https://shop.juce.
 
 ### Clone ServerGris sources
 
+```
 git clone https://github.com/GRIS-UdeM/ServerGRIS.git
+```
 
 ### Build the app
 
