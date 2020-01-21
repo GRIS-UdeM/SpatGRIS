@@ -613,7 +613,9 @@ void MainContentComponent::handleSaveAsSpeakerSetup() {
 void MainContentComponent::handleShowSpeakerEditWindow() {
 	juce::Rectangle<int> result (this->getScreenX() + this->speakerView->getWidth() + 20, this->getScreenY() + 20, 850, 600);
     if (this->winSpeakConfig == nullptr) {
-        this->winSpeakConfig = new WindowEditSpeaker("Speakers Setup Edition - " + File(this->pathCurrentFileSpeaker).getFileName(),
+        String windowName = String("Speakers Setup Edition - ") + String(ModeSpatString[this->jackClient->modeSelected]) + \
+                            String(" - ") + File(this->pathCurrentFileSpeaker).getFileName();
+        this->winSpeakConfig = new WindowEditSpeaker(windowName,
                                                      this->nameConfig, this->mGrisFeel.getWinBackgroundColour(),
                                                      DocumentWindow::allButtons, this, &this->mGrisFeel);
         this->winSpeakConfig->setBounds(result);
@@ -2291,6 +2293,12 @@ void MainContentComponent::comboBoxChanged(ComboBox *comboBox) {
                 break;
         }
         this->jackClient->processBlockOn = true;
+
+        if (this->winSpeakConfig != nullptr) {
+            String windowName = String("Speakers Setup Edition - ") + String(ModeSpatString[this->jackClient->modeSelected]) + \
+                                String(" - ") + File(this->pathCurrentFileSpeaker).getFileName();
+            this->winSpeakConfig->setName(windowName);
+        }
 
         if (result) {
             this->labelModeInfo->setText("Ready", dontSendNotification);
