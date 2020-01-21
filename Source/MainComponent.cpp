@@ -170,7 +170,14 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     this->isSpanShown = true;
     this->isRecording = false;
 
-    this->pathLastVbapSpeakerSetup = DefaultSpeakerSetupFilePath;
+    // Get a reference to the last opened VBAP speaker setup.
+    File lastVbap = File(props->getValue("lastVbapSpeakerSetup", "./not_saved_yet"));
+    if (!lastVbap.existsAsFile()) {
+        this->pathLastVbapSpeakerSetup = DefaultSpeakerSetupFilePath;
+    }
+    else {
+        this->pathLastVbapSpeakerSetup = props->getValue("lastVbapSpeakerSetup");
+    }
 
     this->listSpeaker = vector<Speaker *>();
     this->listSourceInput = vector<Input *>();
@@ -353,6 +360,7 @@ MainContentComponent::~MainContentComponent() {
     PropertiesFile *props = this->applicationProperties.getUserSettings();
     props->setValue("lastOpenPreset", this->pathCurrentPreset);
     props->setValue("lastOpenSpeakerSetup", this->pathCurrentFileSpeaker);
+    props->setValue("lastVbapSpeakerSetup", this->pathLastVbapSpeakerSetup);
     props->setValue("sashPosition", this->verticalLayout.getItemCurrentRelativeSize(0));
     this->applicationProperties.saveIfNeeded();
     this->applicationProperties.closeFiles();
