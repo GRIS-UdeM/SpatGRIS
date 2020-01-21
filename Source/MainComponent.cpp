@@ -1655,8 +1655,8 @@ void MainContentComponent::reloadXmlFileSpeaker() {
 void MainContentComponent::openXmlFileSpeaker(String path) {
     String msg;
     String oldPath = this->pathCurrentFileSpeaker;
-    int isNewSameAsOld = oldPath.compare(path);
-    int isNewSameAsLastSetup = this->pathLastVbapSpeakerSetup.compare(path);
+    bool isNewSameAsOld = oldPath.compare(path) == 0;
+    bool isNewSameAsLastSetup = this->pathLastVbapSpeakerSetup.compare(path) == 0;
     bool ok = false;
     if (! File(path.toStdString()).existsAsFile()) {
         ScopedPointer<AlertWindow> alert = new AlertWindow ("Error in Load Speaker Setup !", 
@@ -1690,16 +1690,21 @@ void MainContentComponent::openXmlFileSpeaker(String path) {
                 } else if (path.compare(StereoSpeakerSetupFilePath) == 0) {
                     this->jackClient->modeSelected = (ModeSpatEnum)(STEREO);
                     this->comBoxModeSpat->setSelectedId(STEREO + 1, NotificationType::dontSendNotification);
-               } else if (isNewSameAsOld != 0 && oldPath.compare(BinauralSpeakerSetupFilePath) != 0 &&
+               } else if (!isNewSameAsOld && oldPath.compare(BinauralSpeakerSetupFilePath) != 0 &&
                            oldPath.compare(StereoSpeakerSetupFilePath) != 0) {
                     int spatMode = mainXmlElem->getIntAttribute("SpatMode");
                     this->jackClient->modeSelected = (ModeSpatEnum)(spatMode);
                     this->comBoxModeSpat->setSelectedId(spatMode + 1, NotificationType::dontSendNotification);
-                } else if (isNewSameAsLastSetup != 0) {
+                } else if (!isNewSameAsLastSetup) {
                     int spatMode = mainXmlElem->getIntAttribute("SpatMode");
                     this->jackClient->modeSelected = (ModeSpatEnum)(spatMode);
                     this->comBoxModeSpat->setSelectedId(spatMode + 1, NotificationType::dontSendNotification);
-                 }
+                }
+
+                bool loadSetupFromXYZ = false;
+                if (isNewSameAsOld && this->jackClient->modeSelected == LBAP)
+                    loadSetupFromXYZ = true;
+
                 this->setNameConfig();
                 this->jackClient->processBlockOn = false;
                 this->jackClient->clearOutput();
@@ -1727,6 +1732,11 @@ void MainContentComponent::openXmlFileSpeaker(String path) {
                                                                         spk->getDoubleAttribute("Azimuth"),
                                                                         spk->getDoubleAttribute("Zenith"),
                                                                         spk->getDoubleAttribute("Radius")));
+                                if (loadSetupFromXYZ) {
+                                    this->listSpeaker.back()->setCoordinate(glm::vec3(spk->getDoubleAttribute("PositionX"),
+                                                                                      spk->getDoubleAttribute("PositionZ"),
+                                                                                      spk->getDoubleAttribute("PositionY")));
+                                }
                                 if (spk->hasAttribute("Gain")) {
                                     this->listSpeaker.back()->setGain(spk->getDoubleAttribute("Gain"));
                                 }
@@ -1781,7 +1791,7 @@ void MainContentComponent::openXmlFileSpeaker(String path) {
             }
         }
     } else {
-        if (isNewSameAsOld == 0) {
+        if (isNewSameAsOld) {
             this->openXmlFileSpeaker(DefaultSpeakerSetupFilePath);
         } else {
             this->openXmlFileSpeaker(oldPath);
