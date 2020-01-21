@@ -1704,12 +1704,25 @@ void MainContentComponent::openXmlFileSpeaker(String path) {
                 this->jackClient->processBlockOn = false;
                 this->jackClient->clearOutput();
                 this->jackClient->maxOutputPatch = 0;
+                Array<int> layoutIndexes;
+                int maxLayoutIndex = 0;
                 forEachXmlChildElement(*mainXmlElem, ring) {
                     if (ring->hasTagName("Ring")) {
                         forEachXmlChildElement(*ring, spk) {
                             if (spk->hasTagName ("Speaker")) {
+
+                                // Safety against layoutIndex doubles in the speaker setup.
+                                int layoutIndex = spk->getIntAttribute("LayoutIndex");
+                                if (layoutIndexes.contains(layoutIndex)) {
+                                    layoutIndex = ++maxLayoutIndex;
+                                }
+                                layoutIndexes.add(layoutIndex);
+                                if (layoutIndex > maxLayoutIndex) {
+                                    maxLayoutIndex = layoutIndex;
+                                }
+
                                 this->listSpeaker.push_back(new Speaker(this,
-                                                                        spk->getIntAttribute("LayoutIndex"),
+                                                                        layoutIndex,
                                                                         spk->getIntAttribute("OutputPatch"),
                                                                         spk->getDoubleAttribute("Azimuth"),
                                                                         spk->getDoubleAttribute("Zenith"),
