@@ -210,7 +210,7 @@ lbap_layer_free(lbap_layer *layer) {
 static void
 lbap_layer_compute_gains(lbap_layer *layer, float azi, float rad, float radspan, float *gains) {
     int i, hsize = LBAP_MATRIX_SIZE / 2, sizeMinusOne = LBAP_MATRIX_SIZE - 1;
-    float x, y, norm, sum = 0.0;
+    float x, y, norm, comp, sum = 0.0;
     lbap_pos pos;
     pos.azi = azi;
     pos.rad = rad;
@@ -224,9 +224,11 @@ lbap_layer_compute_gains(lbap_layer *layer, float azi, float rad, float radspan,
         sum += gains[i];
     }
     if (sum > 0.0) {
-        norm = 1.0 / sum;
+        norm = 1.0 / sum;               // normalization.
+        comp = (1.0 - radspan) * 2.0;   // compensation for energy spreading when moving toward the center.
         for (i=0; i<layer->num_of_speakers; i++) {
             gains[i] *= norm;
+            gains[i] *= comp;
         }
     }
 }
