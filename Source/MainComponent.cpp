@@ -661,6 +661,7 @@ void MainContentComponent::handleShow2DView() {
     this->winControlSource->setBounds(this->winControlRect);
     this->winControlSource->setResizable(true, true);
     this->winControlSource->setUsingNativeTitleBar(true);
+    this->winControlSource->setAlwaysOnTop(true);
     this->winControlSource->setVisible(true);
 }
 
@@ -2105,6 +2106,14 @@ void MainContentComponent::timerCallback() {
         else if (this->winSpeakConfig != nullptr && !this->isProcessForeground) {
             this->winSpeakConfig->setVisible(false);
             this->winSpeakConfig->setAlwaysOnTop(false);
+        }
+        if (this->winControlSource != nullptr && this->isProcessForeground) {
+            this->winControlSource->setVisible(true);
+            this->winControlSource->setAlwaysOnTop(true);
+        }
+        else if (this->winControlSource != nullptr && !this->isProcessForeground) {
+            this->winControlSource->setVisible(false);
+            this->winControlSource->setAlwaysOnTop(false);
         }
     }
 }
