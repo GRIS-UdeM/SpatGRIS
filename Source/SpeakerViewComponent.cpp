@@ -266,6 +266,7 @@ void SpeakerViewComponent::mouseDrag (const MouseEvent& e) {
 
 void SpeakerViewComponent::mouseWheelMove(const MouseEvent& e,const MouseWheelDetails& wheel) {
     this->distance -= (wheel.deltaY * ScroolWheelSpeedMouse);
+    this->distance = this->distance < 1.0 ? 1.0 : this->distance > 70.0 ? 70.0 : this->distance;
 }
 
 void SpeakerViewComponent::drawBackground() {
