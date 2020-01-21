@@ -68,7 +68,9 @@ struct SourceIn {
     float x = 0.0f;
     float y = 0.0f;
     float z = 0.0f;
-    
+
+    float radazi = 0.0f;
+    float radele = 0.0;
     float azimuth = 0.0f;
     float zenith = 0.0f;
     float radius = 1.0f;

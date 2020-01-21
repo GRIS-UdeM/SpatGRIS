@@ -40,14 +40,14 @@ lbap_lookup(float **matrix, float x, float y) {
     int xi = (int)x;
     int yi = (int)y;
     float xf = x - xi;
-    float x1 = 1.0f - xf;
     float yf = y - yi;
-    float y1 = 1.0f - yf;
-    float v1 = matrix[xi][yi] * x1 * y1;
-    float v2 = matrix[xi+1][yi] * xf * y1;
-    float v3 = matrix[xi][yi+1] * x1 * yf;
-    float v4 = matrix[xi+1][yi+1] * xf * yf;
-    return (v1 + v2 + v3 + v4);
+    float v1 = matrix[xi][yi];
+    float v2 = matrix[xi+1][yi];
+    float v3 = matrix[xi][yi+1];
+    float v4 = matrix[xi+1][yi+1];
+    float xv1 = v1 + (v2 - v1) * xf;
+    float xv2 = v3 + (v4 - v3) * xf;
+    return xv1 + (xv2 - xv1) * yf;
 }
 
 /* Compare two speaker positions based on elevation. */
@@ -210,7 +210,8 @@ lbap_layer_free(lbap_layer *layer) {
 static void
 lbap_layer_compute_gains(lbap_layer *layer, float azi, float rad, float radspan, float *gains) {
     int i, hsize = LBAP_MATRIX_SIZE / 2, sizeMinusOne = LBAP_MATRIX_SIZE - 1;
-    float x, y, norm, comp, sum = 0.0;
+    float x, y, norm, sum = 0.0;
+    float exponent = layer->expon * (1.0 - radspan) * 2.0;
     lbap_pos pos;
     pos.azi = azi;
     pos.rad = rad;
@@ -220,15 +221,13 @@ lbap_layer_compute_gains(lbap_layer *layer, float azi, float rad, float radspan,
     x = x < 0 ? 0 : x > sizeMinusOne ? sizeMinusOne : x;
     y = y < 0 ? 0 : y > sizeMinusOne ? sizeMinusOne : y;
     for (i=0; i<layer->num_of_speakers; i++) {
-        gains[i] = powf(lbap_lookup(layer->matrix[i], x, y), layer->expon * (1.0 - radspan) * 2.0);
+        gains[i] = powf(lbap_lookup(layer->matrix[i], x, y), exponent);
         sum += gains[i];
     }
     if (sum > 0.0) {
-        norm = 1.0 / sum;               // normalization.
-        comp = (1.0 - radspan) * 2.0;   // compensation for energy spreading when moving toward the center.
-        for (i=0; i<layer->num_of_speakers; i++) {
-            gains[i] *= norm;
-            gains[i] *= comp;
+        norm = 1.0 / sum * (1.0 - radspan) * 2.0;   // normalization (1.0 / sum) and compensation
+        for (i=0; i<layer->num_of_speakers; i++) {  // ((1.0 - radspan) * 2.0) for energy spreading
+            gains[i] *= norm;                       // when moving toward the center.
         }
     }
 }
@@ -392,7 +391,7 @@ void lbap_pos_init_from_radians(lbap_pos *pos, float azi, float ele, float rad) 
 
     pos->azi = azi;
     pos->ele = ele;
-    pos->rad = rad < 0.0f ? 0.0f : rad > 1.0f ? 1.0f : rad;
+    pos->rad = rad < 0.0f ? 0.0f : rad > 2.0f ? 2.0f : rad;
 }
 
 void lbap_pos_init_from_degrees(lbap_pos *pos, float azi, float ele, float rad) {

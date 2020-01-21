@@ -248,12 +248,9 @@ static void processLBAP(jackClientGris &jackCli, jack_default_audio_sample_t **i
 
     for (i = 0; i < sizeInputs; ++i) {
         if (!jackCli.listSourceIn[i].directOut) {
-            // FIXME
-            // MainContentComponent::updateInputJack() converts positions from radians to degrees
-            // and here we convert back from degrees to radians. It's a waste...
-            lbap_pos_init_from_degrees(&pos,
-                                       jackCli.listSourceIn[i].azimuth,
-                                       jackCli.listSourceIn[i].zenith,
+            lbap_pos_init_from_radians(&pos,
+                                       jackCli.listSourceIn[i].radazi,
+                                       jackCli.listSourceIn[i].radele,
                                        jackCli.listSourceIn[i].radius);
             pos.radspan = jackCli.listSourceIn[i].aziSpan;
             pos.elespan = jackCli.listSourceIn[i].zenSpan;
