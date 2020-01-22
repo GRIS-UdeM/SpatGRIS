@@ -44,11 +44,18 @@ MainWindow::MainWindow(String name) : DocumentWindow(name, Colours::lightgrey,
     int yOffset = 0;
 #endif
 
+    Rectangle<int> totalScreen = Desktop::getInstance().getDisplays().getTotalBounds(true);
+
     if (props->containsKey("xPosition")) {
-        this->setBounds(props->getIntValue("xPosition")-xOffset,
-                        props->getIntValue("yPosition")-yOffset,
-                        props->getIntValue("winWidth"),
-                        props->getIntValue("winHeight"));
+        bool fitInside = (props->getIntValue("xPosition") + props->getIntValue("winWidth")) <= totalScreen.getWidth();
+        if (fitInside) {
+            this->setBounds(props->getIntValue("xPosition")-xOffset,
+                            props->getIntValue("yPosition")-yOffset,
+                            props->getIntValue("winWidth"),
+                            props->getIntValue("winHeight"));
+        } else {
+            centreWithSize(getWidth(), getHeight());
+        }
     } else {
         centreWithSize(getWidth(), getHeight());
     }
