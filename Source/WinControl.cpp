@@ -61,7 +61,9 @@ static FPoint GetSourceAzimElev(FPoint pXY, bool bUseCosElev = false) {
 }
 
 WinControl::WinControl(const String& name, Colour backgroundColour, int buttonsNeeded,
-                       MainContentComponent *parent, GrisLookAndFeel *feel) : DocumentWindow (name, backgroundColour, buttonsNeeded) {
+                       MainContentComponent *parent, GrisLookAndFeel *feel)
+    : DocumentWindow (name, backgroundColour, buttonsNeeded)
+{
     this->mainParent = parent;
     this->grisFeel = feel;
 }
@@ -79,48 +81,81 @@ void WinControl::timerCallback() {
     this->repaint();
 }
 
+void WinControl::drawFieldBackground(Graphics& g, const int fieldWH) {
+    const int realW = (fieldWH - SourceDiameter);
+
+    if (this->mainParent->getModeSelected() == LBAP) {
+        float offset, size;
+        // Draw light background squares.
+        g.setColour(this->grisFeel->getLightColour());
+        offset = fieldWH * 0.4;
+        size = fieldWH * 0.2;
+        g.drawRect(offset, offset, size, size);
+        offset = fieldWH * 0.2;
+        size = fieldWH * 0.6;
+        g.drawRect(offset, offset, size, size);
+        g.drawRect(10, 10, fieldWH - 20, fieldWH - 20);
+        // Draw shaded background squares.
+        g.setColour(this->grisFeel->getLightColour().withBrightness(0.5));
+        offset = fieldWH * 0.3;
+        size = fieldWH * 0.4;
+        g.drawRect(offset, offset, size, size);
+        offset = fieldWH * 0.1;
+        size = fieldWH * 0.8;
+        g.drawRect(offset, offset, size, size);
+        // Draw lines.
+        float center = (fieldWH - realW) / 2.0f;
+        g.drawLine(fieldWH * 0.2, fieldWH * 0.2, fieldWH - fieldWH * 0.2, fieldWH - fieldWH * 0.2);
+        g.drawLine(fieldWH * 0.2, fieldWH - fieldWH * 0.2, fieldWH - fieldWH * 0.2, fieldWH * 0.2);
+        g.drawLine(center, fieldWH / 2, realW + center , fieldWH / 2);
+        g.drawLine(fieldWH / 2, center, fieldWH / 2 , realW + center);
+    } else {
+        float w, x;
+        // Draw line and light circle.
+        g.setColour(this->grisFeel->getLightColour().withBrightness(0.5));
+        w = realW / 1.3f;
+        x = (fieldWH - w) / 2.0f;
+        g.drawEllipse(x, x, w, w, 1);
+        w = realW / 4.0f;
+        x = (fieldWH - w) / 2.0f;
+        g.drawEllipse(x, x, w, w, 1);
+
+        w = realW;
+        x = (fieldWH - w) / 2.0f;
+        float r = (w / 2) * 0.296f;
+
+        g.drawLine(x+r, x+r, (w+x)-r, (w+x)-r);
+        g.drawLine(x+r, (w+x)-r, (w+x)-r , x+r);
+        g.drawLine(x, fieldWH/2, w+x , fieldWH/2);
+        g.drawLine(fieldWH/2, x, fieldWH/2 , w+x);
+
+        // Draw big background circle.
+        g.setColour(this->grisFeel->getLightColour());
+        g.drawEllipse(x, x, w, w, 1);
+
+        // Draw little background circle.
+        w = realW / 2.0f;
+        x = (fieldWH - w) / 2.0f;
+        g.drawEllipse(x, x, w, w, 1);
+
+        // Draw fill center cirlce.
+        g.setColour(this->grisFeel->getWinBackgroundColour());
+        w = realW / 4.0f;
+        w -= 2;
+        x = (fieldWH - w) / 2.0f;
+        g.fillEllipse(x, x, w, w);
+    }
+}
+
 void WinControl::paint (Graphics& g) {
     const int fieldWH = getWidth();     // Same as getHeight()
     const int fieldCenter = fieldWH / 2;
     const int realW = (fieldWH - SourceDiameter);
-    float w, x;
 
     g.fillAll(this->grisFeel->getWinBackgroundColour());
 
-    // Draw line and light circle.
-    g.setColour(this->grisFeel->getLightColour().withBrightness(0.5));
-    w = realW / 1.3f;
-    x = (fieldWH - w) / 2.0f;
-    g.drawEllipse(x, x, w, w, 1);
-    w = realW / 4.0f;
-    x = (fieldWH - w) / 2.0f;
-    g.drawEllipse(x, x, w, w, 1);
-    
-    w = realW;
-    x = (fieldWH - w) / 2.0f;
-    float r = (w / 2) * 0.296f;
+    drawFieldBackground(g, fieldWH);
 
-    g.drawLine(x+r, x+r, (w+x)-r, (w+x)-r);
-    g.drawLine(x+r, (w+x)-r, (w+x)-r , x+r);
-    g.drawLine(x, fieldWH/2, w+x , fieldWH/2);
-    g.drawLine(fieldWH/2, x, fieldWH/2 , w+x);
-        
-    // Draw big background circle.
-    g.setColour(this->grisFeel->getLightColour());
-    g.drawEllipse(x, x, w, w, 1);
-    
-    // Draw little background circle.
-    w = realW / 2.0f;
-    x = (fieldWH - w) / 2.0f;
-    g.drawEllipse(x, x, w, w, 1);
-    
-    // Draw fill center cirlce.
-    g.setColour(this->grisFeel->getWinBackgroundColour());
-    w = realW / 4.0f;
-    w -= 2;
-    x = (fieldWH - w) / 2.0f;
-    g.fillEllipse(x, x, w, w);
-    
     g.setFont(this->grisFeel->getFont());
     g.setColour(this->grisFeel->getLightColour());
     g.drawText("0",   fieldCenter, 10,               SourceDiameter, SourceDiameter, Justification(Justification::centred), false);
@@ -128,36 +163,124 @@ void WinControl::paint (Graphics& g) {
     g.drawText("180", fieldCenter, realW-6,          SourceDiameter, SourceDiameter, Justification(Justification::centred), false);
     g.drawText("270", 14,          (fieldWH-4)/2.0f, SourceDiameter, SourceDiameter, Justification(Justification::centred), false);
     
-    // Draw translucid circles (mode).
+    // Draw sources.
     int maxDrawSource = (int)this->mainParent->getListSourceInput().size();
-
-    for(int i = 0; i < maxDrawSource; ++i) {
-        drawAzimElevSource(g, this->mainParent->getListSourceInput().at(i), fieldWH, fieldCenter);
-    }
-
-    String stringVal;
-    w = (fieldWH - SourceDiameter);
     for (int i = 0; i < maxDrawSource; ++i) {
         Input *it = this->mainParent->getListSourceInput().at(i);
-
         if (it->getGain() == -1.0) { continue; }
+        drawSource(g, this->mainParent->getListSourceInput().at(i), fieldWH);
+        drawSourceSpan(g, this->mainParent->getListSourceInput().at(i), fieldWH, fieldCenter);
+    }
+}
 
-        FPoint sourceP = FPoint(it->getCenter().z, it->getCenter().x) / 5.0f;
-        sourceP.x = ((w / 2.0f) + ((w / 4.0f) * sourceP.x));
-        sourceP.y = ((w / 2.0f) - ((w / 4.0f) * sourceP.y));
+void WinControl::drawSource(Graphics &g, Input *it, const int fieldWH) {
+    const int realW = (fieldWH - SourceDiameter);
+    String stringVal;
+    FPoint sourceP;
+    if (this->mainParent->getModeSelected() == LBAP) {
+        sourceP = FPoint(it->getCenter().z * 0.6f, it->getCenter().x * 0.6f) / 5.0f;
+    } else {
+        sourceP = FPoint(it->getCenter().z, it->getCenter().x) / 5.0f;
+    }
+    sourceP.x = ((realW / 2.0f) + ((realW / 4.0f) * sourceP.x));
+    sourceP.y = ((realW / 2.0f) - ((realW / 4.0f) * sourceP.y));
+    sourceP.x = sourceP.x < 0 ? 0 : sourceP.x > fieldWH - SourceDiameter? fieldWH - SourceDiameter: sourceP.x;
+    sourceP.y = sourceP.y < 0 ? 0 : sourceP.y > fieldWH - SourceDiameter? fieldWH - SourceDiameter: sourceP.y;
+
+    g.setColour(it->getColorJWithAlpha());
+    g.fillEllipse(sourceP.x , sourceP.y , SourceDiameter, SourceDiameter);
+
+    stringVal.clear();
+    stringVal << it->getId();
+
+    g.setColour(Colours::black.withAlpha(it->getAlpha()));
+    int tx = sourceP.x;
+    int ty = sourceP.y;
+    g.drawText(stringVal, tx+6 , ty+1, SourceDiameter+10, SourceDiameter, Justification(Justification::centredLeft), false);
+    g.setColour(Colours::white.withAlpha(it->getAlpha()));
+    g.drawText(stringVal, tx+5, ty, SourceDiameter+10, SourceDiameter, Justification(Justification::centredLeft), false);
+}
+
+void WinControl::drawSourceSpan(Graphics &g, Input *it, const int fieldWH, const int fieldCenter) {
+    Colour colorS = it->getColorJ();
+
+    FPoint sourceP;
+    if (this->mainParent->getModeSelected() == LBAP) {
+        sourceP = FPoint(it->getCenter().z * 0.6f, it->getCenter().x * 0.6f) / 5.0f;
+    } else {
+        sourceP = FPoint(it->getCenter().z, it->getCenter().x) / 5.0f;
+    }
+
+    if (this->mainParent->getModeSelected() == LBAP) {
+        int realW = (fieldWH - SourceDiameter);
+        float azimuthSpan = fieldWH * (it->getAziMuthSpan() * 0.5f);
+        float halfAzimuthSpan = azimuthSpan / 2.0f - SourceRadius;
+
+        sourceP.x = ((realW / 2.0f) + ((realW / 4.0f) * sourceP.x));
+        sourceP.y = ((realW / 2.0f) - ((realW / 4.0f) * sourceP.y));
+        sourceP.x = sourceP.x < 0 ? 0 : sourceP.x > fieldWH - SourceDiameter? fieldWH - SourceDiameter: sourceP.x;
+        sourceP.y = sourceP.y < 0 ? 0 : sourceP.y > fieldWH - SourceDiameter? fieldWH - SourceDiameter: sourceP.y;
+
+        g.setColour(colorS.withAlpha(it->getAlpha() * 0.6f));
+        g.drawEllipse(sourceP.x - halfAzimuthSpan, sourceP.y - halfAzimuthSpan, azimuthSpan, azimuthSpan, 1.5f);
+        g.setColour(colorS.withAlpha(it->getAlpha() * 0.2f));
+        g.fillEllipse(sourceP.x - halfAzimuthSpan, sourceP.y - halfAzimuthSpan, azimuthSpan, azimuthSpan);
+    } else {
+        float HRAzimSpan = 180.0f * (it->getAziMuthSpan());  // In zirkosc, this is [0,360]
+        float HRElevSpan = 180.0f * (it->getZenithSpan());  // In zirkosc, this is [0,90]
+
+        if ((HRAzimSpan < 0.002f && HRElevSpan < 0.002f) || !this->mainParent->isSpanShown) {
+            return;
+        }
+
+        FPoint azimElev = GetSourceAzimElev(sourceP, true);
+
+        float HRAzim = azimElev.x * 180.0f;    // In zirkosc [-180,180]
+        float HRElev = azimElev.y * 180.0f;    // In zirkosc [0,89.9999]
+
+        // Calculate max and min elevation in degrees.
+        FPoint maxElev = {HRAzim, HRElev + HRElevSpan / 2.0f};
+        FPoint minElev = {HRAzim, HRElev - HRElevSpan / 2.0f};
         
-        g.setColour(it->getColorJWithAlpha());
-        g.fillEllipse(sourceP.x , sourceP.y , SourceDiameter, SourceDiameter);
-        
-        stringVal.clear();
-        stringVal << it->getId();
-        
-        g.setColour(Colours::black.withAlpha(it->getAlpha()));
-        int tx = sourceP.x;
-        int ty = sourceP.y;
-        g.drawText(stringVal, tx+6 , ty+1, SourceDiameter+10, SourceDiameter, Justification(Justification::centredLeft), false);
-        g.setColour(Colours::white.withAlpha(it->getAlpha()));
-        g.drawText(stringVal, tx+5, ty, SourceDiameter+10, SourceDiameter, Justification(Justification::centredLeft), false);
+        if (minElev.y < 0) {
+            maxElev.y = (maxElev.y - minElev.y);
+            minElev.y = 0.0f;
+        }
+
+        // Convert max min elev to xy.
+        FPoint screenMaxElev = DegreeToXy(maxElev, fieldWH);
+        FPoint screenMinElev = DegreeToXy(minElev, fieldWH);
+
+        // Form minmax elev, calculate minmax radius.
+        float maxRadius = sqrtf(screenMaxElev.x * screenMaxElev.x + screenMaxElev.y * screenMaxElev.y);
+        float minRadius = sqrtf(screenMinElev.x * screenMinElev.x + screenMinElev.y * screenMinElev.y);
+
+        // Drawing the path for spanning.
+        Path myPath;
+        myPath.startNewSubPath(fieldCenter+screenMaxElev.x, fieldCenter+screenMaxElev.y);
+        // Half first arc center.
+        myPath.addCentredArc(fieldCenter, fieldCenter, minRadius, minRadius, 0.0, DegreeToRadian(-HRAzim), DegreeToRadian(-HRAzim + HRAzimSpan / 2));
+
+        // If we are over the top of the dome we draw the adjacent angle.
+        if (maxElev.getY() > 90.f) {
+            myPath.addCentredArc(fieldCenter, fieldCenter, maxRadius, maxRadius, 0.0,
+                                 M_PI + DegreeToRadian(-HRAzim + HRAzimSpan / 2),
+                                 M_PI + DegreeToRadian(-HRAzim - HRAzimSpan / 2));
+        } else {
+            myPath.addCentredArc(fieldCenter, fieldCenter, maxRadius, maxRadius, 0.0,
+                                 DegreeToRadian(-HRAzim + HRAzimSpan / 2),
+                                 DegreeToRadian(-HRAzim - HRAzimSpan / 2));
+        }
+        myPath.addCentredArc(fieldCenter, fieldCenter, minRadius, minRadius, 0.0, 
+                             DegreeToRadian(-HRAzim - HRAzimSpan / 2), DegreeToRadian(-HRAzim));
+
+        myPath.closeSubPath();
+
+        g.setColour(colorS.withAlpha(it->getAlpha() * 0.2f));
+        g.fillPath(myPath);
+
+        g.setColour(colorS.withAlpha(it->getAlpha() * 0.6f));
+        g.strokePath(myPath, PathStrokeType(0.5));
     }
 }
 
@@ -169,67 +292,4 @@ void WinControl::resized() {
 void WinControl::closeButtonPressed() {
     this->mainParent->winControlRect.setBounds(getScreenX(), getScreenY(), getWidth(), getHeight());
     delete this;
-}
-
-void WinControl::drawAzimElevSource(Graphics &g, Input *it, const int fieldWH, const int fieldCenter) {
-    float HRAzimSpan = 180.0f *(it->getAziMuthSpan());  // In zirkosc, this is [0,360]
-    float HRElevSpan = 180.0f *(it->getZenithSpan());  // In zirkosc, this is [0,90]
-
-    if ((HRAzimSpan < 0.002f && HRElevSpan < 0.002f) || !this->mainParent->isSpanShown) {
-        return;
-    }
-    
-    Colour colorS = it->getColorJ();
-    g.setColour(it->getColorJWithAlpha());
-    
-    FPoint sourceP = FPoint(it->getCenter().z, it->getCenter().x) / 5.0f;
-    FPoint azimElev = GetSourceAzimElev(sourceP, true);
-    
-    float HRAzim = azimElev.x * 180.0f;    // In zirkosc [-180,180]
-    float HRElev = azimElev.y * 180.0f;    // In zirkosc [0,89.9999]
-    
-    
-    // Calculate max and min elevation in degrees.
-    FPoint maxElev = {HRAzim, HRElev + HRElevSpan / 2.0f};
-    FPoint minElev = {HRAzim, HRElev - HRElevSpan / 2.0f};
-    
-    if (minElev.y < 0) {
-        maxElev.y = (maxElev.y - minElev.y);
-        minElev.y = 0.0f;
-    }
-    
-    // Convert max min elev to xy.
-    FPoint screenMaxElev = DegreeToXy(maxElev, fieldWH);
-    FPoint screenMinElev = DegreeToXy(minElev, fieldWH);
-    
-    // Form minmax elev, calculate minmax radius.
-    float maxRadius = sqrtf(screenMaxElev.x * screenMaxElev.x + screenMaxElev.y * screenMaxElev.y);
-    float minRadius = sqrtf(screenMinElev.x * screenMinElev.x + screenMinElev.y * screenMinElev.y);
-    
-    // Drawing the path for spanning.
-    Path myPath;
-    myPath.startNewSubPath(fieldCenter+screenMaxElev.x, fieldCenter+screenMaxElev.y);
-    // Half first arc center.
-    myPath.addCentredArc(fieldCenter, fieldCenter, minRadius, minRadius, 0.0, DegreeToRadian(-HRAzim), DegreeToRadian(-HRAzim + HRAzimSpan / 2));
-
-    // If we are over the top of the dome we draw the adjacent angle.
-    if (maxElev.getY() > 90.f) {
-        myPath.addCentredArc(fieldCenter, fieldCenter, maxRadius, maxRadius, 0.0,
-                             M_PI + DegreeToRadian(-HRAzim + HRAzimSpan / 2),
-                             M_PI + DegreeToRadian(-HRAzim - HRAzimSpan / 2));
-    } else {
-        myPath.addCentredArc(fieldCenter, fieldCenter, maxRadius, maxRadius, 0.0,
-                             DegreeToRadian(-HRAzim + HRAzimSpan / 2),
-                             DegreeToRadian(-HRAzim - HRAzimSpan / 2));
-    }
-    myPath.addCentredArc(fieldCenter, fieldCenter, minRadius, minRadius, 0.0, 
-                         DegreeToRadian(-HRAzim - HRAzimSpan / 2), DegreeToRadian(-HRAzim));
-    
-    myPath.closeSubPath();
-    
-    g.setColour(colorS.withAlpha(it->getAlpha() * 0.2f));
-    g.fillPath(myPath);
-    
-    g.setColour(colorS.withAlpha(it->getAlpha() * 0.6f));
-    g.strokePath(myPath, PathStrokeType(0.5));
 }

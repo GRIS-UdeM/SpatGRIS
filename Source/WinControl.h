@@ -44,7 +44,9 @@ public:
     void closeButtonPressed() override;
     
 private:
-    void drawAzimElevSource(Graphics &g, Input *it, const int fieldWH, const int fieldCenter);
+    void drawFieldBackground(Graphics &g, const int fieldWH);
+    void drawSource(Graphics &g, Input *it, const int fieldWH);
+    void drawSourceSpan(Graphics &g, Input *it, const int fieldWH, const int fieldCenter);
     
     MainContentComponent *mainParent;
     GrisLookAndFeel *grisFeel;
