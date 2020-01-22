@@ -2147,7 +2147,8 @@ void MainContentComponent::timerCallback() {
             this->winSpeakConfig->setAlwaysOnTop(false);
         }
         if (this->winControlSource != nullptr && this->isProcessForeground) {
-            this->winControlSource->toFront(true);
+            this->winControlSource->toFront(false);
+            this->toFront(true);
         }
     }
 }
