@@ -232,8 +232,11 @@ static void processLBAP(jackClientGris &jackCli, jack_default_audio_sample_t **i
                         const jack_nframes_t &nframes, const unsigned int &sizeInputs, const unsigned int &sizeOutputs)
 {
     unsigned int f, i, o, ilinear;
-    float y, gain, interpG = 0.99;
+    float y, gain, distance, distgain, lastgain, distcoef, lastcoef, interpG = 0.99;
     lbap_pos pos;
+
+    float filteredInputSignal[nframes];
+    memset(filteredInputSignal, 0, sizeof(float) * nframes);
 
     if (jackCli.interMaster == 0.0) {
         ilinear = 1;
@@ -254,10 +257,43 @@ static void processLBAP(jackClientGris &jackCli, jack_default_audio_sample_t **i
                                        jackCli.listSourceIn[i].radius);
             pos.radspan = jackCli.listSourceIn[i].aziSpan;
             pos.elespan = jackCli.listSourceIn[i].zenSpan;
+            distance = jackCli.listSourceIn[i].radius;
             if (!lbap_pos_compare(&pos, &jackCli.listSourceIn[i].lbap_last_pos)) {
                 lbap_field_compute(jackCli.lbap_speaker_field, &pos, jackCli.listSourceIn[i].lbap_gains);
                 lbap_pos_copy(&jackCli.listSourceIn[i].lbap_last_pos, &pos);
             }
+
+            // Energy lost with distance, radius is in the range 0 - 2.6 (>1 is beyond HP circle).
+            if (distance < 1.0f) {
+                distgain = 1.0f;
+                distcoef = 0.0f;
+            } else {
+                distance -= 1.0f;
+                distance *= 1.25f;
+                if (distance > 1.0f) {
+                    distance = 1.0f;
+                }
+                distgain = (1.0f - distance) * (1.0f - jackCli.attenuationLinearGain[0]) + jackCli.attenuationLinearGain[0];
+                distcoef = distance * jackCli.attenuationLowpassCoeff[0];
+            }
+            float diffgain = (distgain - jackCli.lastAttenuationGain[i]) / nframes;
+            float diffcoef = (distcoef - jackCli.lastAttenuationCoef[i]) / nframes;
+            float filtInY = jackCli.attenuationLowpassY[i];
+            float filtInZ = jackCli.attenuationLowpassZ[i];
+            float lastcoef = jackCli.lastAttenuationCoef[i];
+            float lastgain = jackCli.lastAttenuationGain[i];
+            for (int k =0; k < nframes; k++) {
+                lastcoef += diffcoef;
+                lastgain += diffgain;
+                filtInY = ins[i][k] + (filtInY - ins[i][k]) * lastcoef;
+                filtInZ = filtInY + (filtInZ - filtInY) * lastcoef;
+                filteredInputSignal[k] = filtInZ * lastgain;
+            }
+            jackCli.attenuationLowpassY[i] = filtInY;
+            jackCli.attenuationLowpassZ[i] = filtInZ;
+            jackCli.lastAttenuationGain[i] = distgain;
+            jackCli.lastAttenuationCoef[i] = distcoef;
+            //----------------------------------------------------------------------------------------
 
             for (o = 0; o < sizeOutputs; ++o) {
                 gain = jackCli.listSourceIn[i].lbap_gains[o];
@@ -266,7 +302,7 @@ static void processLBAP(jackClientGris &jackCli, jack_default_audio_sample_t **i
                     interpG = (gain - y) / nframes;
                     for (f = 0; f < nframes; ++f) {
                         y += interpG;
-                        outs[o][f] += ins[i][f] * y;
+                        outs[o][f] += filteredInputSignal[f] * y;
                     }
                 } else {
                     for (f = 0; f < nframes; ++f) {
@@ -274,7 +310,7 @@ static void processLBAP(jackClientGris &jackCli, jack_default_audio_sample_t **i
                         if (y < 0.0000000000001f) {
                             y = 0.0;
                         } else {
-                            outs[o][f] += ins[i][f] * y;
+                            outs[o][f] += filteredInputSignal[f] * y;
                         }
                     }
                 }
@@ -629,8 +665,14 @@ jackClientGris::jackClientGris() {
     this->modeSelected = VBAP;
     this->recording = false;
 
+    this->attenuationLinearGain[0] = 0.01584893;    // -36 dB
+    this->attenuationLowpassCoeff[0] = 0.867208;   // 1000 Hz
     for (unsigned int i=0; i < MaxInputs; ++i) {
         this->vbapSourcesToUpdate[i] = 0;
+        this->attenuationLowpassY[i] = 0.0f;
+        this->attenuationLowpassZ[i] = 0.0f;
+        this->lastAttenuationGain[i] = 0.0f;
+        this->lastAttenuationCoef[i] = 0.0f;
     }
 
     // Initialize impulse responses for VBAP+HRTF (BINAURAL mode).
@@ -752,7 +794,7 @@ jackClientGris::jackClientGris() {
     // Initialize pink noise
     srand((unsigned int)time(NULL));
     this->c0 = this->c1 = this->c2 = this->c3 = this->c4 = this->c5 = this->c6 = 0.0;
-    
+
     // Print available inputs ports.
     const char **ports = jack_get_ports(this->client, NULL, NULL, JackPortIsInput);
     if (ports == NULL) {
@@ -1038,6 +1080,14 @@ bool jackClientGris::lbapSetupSpeakerField(vector<Speaker *>  listSpk) {
     this->connectedGristoSystem();
 
     return true;
+}
+
+void jackClientGris::setAttenuationDB(float value) {
+    this->attenuationLinearGain[0] = value;
+}
+
+void jackClientGris::setAttenuationHz(float value) {
+    this->attenuationLowpassCoeff[0] = value;
 }
 
 void jackClientGris::updateSourceVbap(int idS) {

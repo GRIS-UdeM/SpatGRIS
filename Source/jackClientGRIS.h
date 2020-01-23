@@ -296,6 +296,14 @@ public:
     bool recording;
     Array<File> outputFilenames;
 
+    // LBAP distance attenuation values.
+    float attenuationLinearGain[1];
+    float attenuationLowpassCoeff[1];
+    float lastAttenuationGain[MaxInputs];
+    float lastAttenuationCoef[MaxInputs];
+    float attenuationLowpassY[MaxInputs];
+    float attenuationLowpassZ[MaxInputs];
+
     // Class methods.
     //---------------
 
@@ -339,6 +347,10 @@ public:
 
     // Initialize LBAP algorithm.
     bool lbapSetupSpeakerField(vector<Speaker *>  listSpk);
+
+    // LBAP distance attenuation functions.
+    void setAttenuationDB(float value);
+    void setAttenuationHz(float value);
 
     // Need to update a source VBAP data.
     void updateSourceVbap(int idS);

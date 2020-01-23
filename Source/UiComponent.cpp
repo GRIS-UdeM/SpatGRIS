@@ -1114,11 +1114,11 @@ int WindowEditSpeaker::getModeSelected() {
 }
 
 // ============================ WindowProperties ===========================
-Label * WindowProperties::createPropLabel(String lab, Justification::Flags just, int ypos) {
+Label * WindowProperties::createPropLabel(String lab, Justification::Flags just, int ypos, int width) {
     Label *label = new Label();
     label->setText(lab, NotificationType::dontSendNotification);
     label->setJustificationType(just);
-    label->setBounds(10, ypos, 100, 22);
+    label->setBounds(10, ypos, width, 22);
     label->setFont(this->grisFeel->getFont());
     label->setLookAndFeel(this->grisFeel);
     label->setColour(Label::textColourId, this->grisFeel->getFontColour());
@@ -1153,7 +1153,7 @@ ComboBox * WindowProperties::createPropComboBox(const StringArray choices, int s
 
 WindowProperties::WindowProperties(const String& name, Colour backgroundColour, int buttonsNeeded,
                                    MainContentComponent *parent, GrisLookAndFeel *feel, int indR,
-                                   int indB, int indFF, int indFC, int oscPort):
+                                   int indB, int indFF, int indFC, int indAttDB, int indAttHz, int oscPort):
     DocumentWindow (name, backgroundColour, buttonsNeeded)
 {
     this->mainParent = parent;
@@ -1180,9 +1180,17 @@ WindowProperties::WindowProperties(const String& name, Colour backgroundColour, 
     this->labRecFileConfig = this->createPropLabel("Output Format :", Justification::left, 250);
     this->recordFileConfig = this->createPropComboBox(FileConfigs, indFC, 250);
 
+    this->cubeDistanceLabel = this->createPropLabel("CUBE Distance Settings", Justification::left, 290, 250);
+
+    this->labDistanceDB = this->createPropLabel("Attenuation (dB) :", Justification::left, 320);
+    this->cobDistanceDB= this->createPropComboBox(AttenuationDBs, indAttDB, 320);
+
+    this->labDistanceCutoff = this->createPropLabel("Attenuation (Hz) :", Justification::left, 350);
+    this->cobDistanceCutoff = this->createPropComboBox(AttenuationCutoffs, indAttHz, 350);
+
     this->butValidSettings = new TextButton();
     this->butValidSettings->setButtonText("Save");
-    this->butValidSettings->setBounds(163, 290, 88, 22);
+    this->butValidSettings->setBounds(163, 390, 88, 22);
     this->butValidSettings->addListener(this);
     this->butValidSettings->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
     this->butValidSettings->setLookAndFeel(this->grisFeel);
@@ -1217,6 +1225,8 @@ void WindowProperties::buttonClicked(Button *button) {
                                          this->cobBuffer->getText().getIntValue(),
                                          this->recordFormat->getSelectedItemIndex(),
                                          this->recordFileConfig->getSelectedItemIndex(),
+                                         this->cobDistanceDB->getSelectedItemIndex(),
+                                         this->cobDistanceCutoff->getSelectedItemIndex(),
                                          this->tedOSCInPort->getTextValue().toString().getIntValue());
         delete this;
     }

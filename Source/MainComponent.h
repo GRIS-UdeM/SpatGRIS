@@ -199,7 +199,7 @@ public:
     void getPresetData(XmlElement *xml);
     void savePreset(String path);
     void saveSpeakerSetup(String path);
-    void saveProperties(int rate, int buff, int fileformat, int fileconfig, int oscPort);
+    void saveProperties(int rate, int buff, int fileformat, int fileconfig, int attenuationDB, int attenuationHz, int oscPort);
     void chooseRecordingPath();
     void setNameConfig();
     void setTitle();

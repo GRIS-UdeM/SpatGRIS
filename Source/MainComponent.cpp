@@ -636,18 +636,23 @@ void MainContentComponent::handleShowPreferences() {
         unsigned int RateValue = props->getIntValue("RateValue", 48000);
         unsigned int FileFormat = props->getIntValue("FileFormat", 0);
         unsigned int FileConfig = props->getIntValue("FileConfig", 0);
+        unsigned int AttenuationDB = props->getIntValue("AttenuationDB", 2);
+        unsigned int AttenuationHz = props->getIntValue("AttenuationHz", 3);
         unsigned int OscInputPort = props->getIntValue("OscInputPort", 18032);
         if (std::isnan(float(BufferValue)) || BufferValue == 0) { BufferValue = 1024; }
         if (std::isnan(float(RateValue)) || RateValue == 0) { RateValue = 48000; }
         if (std::isnan(float(FileFormat))) { FileFormat = 0; }
+        if (std::isnan(float(FileConfig))) { FileConfig = 0; }
+        if (std::isnan(float(AttenuationDB))) { AttenuationDB = 2; }
+        if (std::isnan(float(AttenuationHz))) { AttenuationHz = 3; }
         if (std::isnan(float(OscInputPort))) { OscInputPort = 18032; }
         this->windowProperties = new WindowProperties("Preferences", this->mGrisFeel.getWinBackgroundColour(),
                                                      DocumentWindow::allButtons, this, &this->mGrisFeel, 
                                                      RateValues.indexOf(String(RateValue)), 
                                                      BufferSizes.indexOf(String(BufferValue)),
-                                                     FileFormat, FileConfig, OscInputPort);
+                                                     FileFormat, FileConfig, AttenuationDB, AttenuationHz, OscInputPort);
     }
-	juce::Rectangle<int> result (this->getScreenX()+ (this->speakerView->getWidth()/2)-150, this->getScreenY()+(this->speakerView->getHeight()/2)-75, 270, 320);
+	juce::Rectangle<int> result (this->getScreenX()+ (this->speakerView->getWidth()/2)-150, this->getScreenY()+(this->speakerView->getHeight()/2)-75, 270, 420);
     this->windowProperties->setBounds(result);
     this->windowProperties->setResizable(false, false);
     this->windowProperties->setUsingNativeTitleBar(true);
@@ -2028,7 +2033,8 @@ void MainContentComponent::saveSpeakerSetup(String path) {
     this->setNameConfig();
 }
 
-void MainContentComponent::saveProperties(int rate, int buff, int fileformat, int fileconfig, int oscPort) {
+void MainContentComponent::saveProperties(int rate, int buff, int fileformat, int fileconfig,
+                                          int attenuationDB, int attenuationHz, int oscPort) {
 
     PropertiesFile *props = this->applicationProperties.getUserSettings();
 
@@ -2071,6 +2077,15 @@ void MainContentComponent::saveProperties(int rate, int buff, int fileformat, in
 
     this->jackClient->setRecordFileConfig(fileconfig);
     props->setValue("FileConfig", fileconfig);
+
+    // Handle CUBE distance attenuation
+    float linGain = powf(10.0f, AttenuationDBs[attenuationDB].getFloatValue() * 0.05f);
+    this->jackClient->setAttenuationDB(linGain);
+    props->setValue("AttenuationDB", attenuationDB);
+
+    float coeff = expf(-M2_PI * AttenuationCutoffs[attenuationHz].getFloatValue() / this->jackClient->sampleRate);
+    this->jackClient->setAttenuationHz(coeff);
+    props->setValue("AttenuationHz", attenuationHz);
 
     applicationProperties.saveIfNeeded();
 }

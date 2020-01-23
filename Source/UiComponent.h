@@ -273,10 +273,11 @@ class WindowProperties : public DocumentWindow,
 public:
     WindowProperties(const String& name, Colour backgroundColour, int buttonsNeeded,
                       MainContentComponent *parent, GrisLookAndFeel *feel, int indR=0,
-                      int indB=0, int indFF=0, int indFC=0, int oscPort=18032);
+                      int indB=0, int indFF=0, int indFC=0, int indAttDB=2, int indAttHz=3,
+                      int oscPort=18032);
     ~WindowProperties();
 
-    Label * createPropLabel(String lab, Justification::Flags just, int ypos);
+    Label * createPropLabel(String lab, Justification::Flags just, int ypos, int width=100);
     TextEditor * createPropIntTextEditor(String tooltip, int ypos, int init);
     ComboBox * createPropComboBox(const StringArray choices, int selected, int ypos);
 
@@ -290,6 +291,7 @@ private:
     Label *generalLabel;
     Label *jackSettingsLabel;
     Label *recordingLabel;
+    Label *cubeDistanceLabel;
 
     Label *labOSCInPort;
     TextEditor *tedOSCInPort;
@@ -305,6 +307,12 @@ private:
 
     Label *labRecFileConfig;
     ComboBox *recordFileConfig;
+
+    Label *labDistanceDB;
+    ComboBox *cobDistanceDB;
+
+    Label *labDistanceCutoff;
+    ComboBox *cobDistanceCutoff;
 
     TextButton *butValidSettings;
 

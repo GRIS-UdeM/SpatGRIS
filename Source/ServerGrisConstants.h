@@ -30,5 +30,7 @@ extern const StringArray BufferSizes;
 extern const StringArray RateValues;
 extern const StringArray FileFormats;
 extern const StringArray FileConfigs;
+extern const StringArray AttenuationDBs;
+extern const StringArray AttenuationCutoffs;
 
 #endif /* SERVERGRISCONSTANTS_H */
