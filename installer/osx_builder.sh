@@ -1,14 +1,14 @@
 #!/bin/sh
 
-# Developers: Olivier Belanger
+# Developer: Olivier Belanger
 
 # To build the installer for OSX, install JackOSX.0.92_b3.pkg,
 # compile ServerGris in Release mode
 # and run this shell script from the installer folder.
 
-export PACKAGE_NAME=ServerGris_v2.0.7.pkg
-export DMG_DIR="ServerGris v2.0.7"
-export DMG_NAME="ServerGris_v2.0.7.dmg"
+export PACKAGE_NAME=ServerGris_v2.0.8.pkg
+export DMG_DIR="ServerGris v2.0.8"
+export DMG_NAME="ServerGris_v2.0.8.dmg"
 
 # Replace app icon with a better version
 cp ../Resources/Icon.icns ../Builds/MacOSX/build/Release/ServerGris.app/Contents/Resources/Icon.icns

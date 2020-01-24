@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="MXmiSb" name="ServerGRIS" projectType="guiapp" version="2.0.7"
+<JUCERPROJECT id="MXmiSb" name="ServerGRIS" projectType="guiapp" version="2.0.8"
               bundleIdentifier="com.UdeM.GRIS.ServerGRIS" includeBinaryInAppConfig="1"
               jucerVersion="5.4.5" companyName="GRIS - UdeM">
   <MAINGROUP id="lsxaKA" name="ServerGRIS">
