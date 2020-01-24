@@ -841,6 +841,7 @@ void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, con
                     newP = this->mainParent->getListSpeaker()[rowNumber]->getCoordinate();
                     val = GetFloatPrecision(newText.getFloatValue(), 3);
                     diff = val - newP.y;
+                    val = val < -1.0f ? -1.0f : val > 1.0f ? 1.0f : val;
                     newP.y = val;
                     this->mainParent->getListSpeaker()[rowNumber]->setCoordinate(newP);
                     if (this->tableListSpeakers.getNumSelectedRows() > 1) {
@@ -852,6 +853,7 @@ void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, con
                             newP = this->mainParent->getListSpeaker()[rownum]->getCoordinate();
                             if (altDown) {
                                 newP.y += diff;
+                                newP.y = newP.y < -1.0f ? -1.0f : newP.y > 1.0f ? 1.0f : newP.y;
                             } else {
                                 newP.y = val;
                             }
