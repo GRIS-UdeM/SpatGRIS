@@ -22,8 +22,8 @@
 #include "Speaker.h"
 
 //========================== LevelBox =============================
-LevelBox::LevelBox(LevelComponent * parent, SmallTextGrisLookAndFeel *feel) : mainParent(parent),
-                                                                              grisFeel(feel) 
+LevelBox::LevelBox(LevelComponent * parent, SmallGrisLookAndFeel *feel) : mainParent(parent),
+                                                                          grisFeel(feel) 
 {}
 
 LevelBox::~LevelBox() {}
@@ -96,7 +96,7 @@ void LevelBox::paint(Graphics& g) {
 }
 
 //======================== LevelComponent ===========================
-LevelComponent::LevelComponent(ParentLevelComponent *parent, SmallTextGrisLookAndFeel *feel, bool colorful)
+LevelComponent::LevelComponent(ParentLevelComponent *parent, SmallGrisLookAndFeel *feel, bool colorful)
 {
     this->mainParent = parent;
     this->grisFeel = feel;

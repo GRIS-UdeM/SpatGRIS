@@ -45,7 +45,6 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 
 #include "GrisLookAndFeel.h"
-#include "SmallTextGrisLookAndFeel.h"
 
 #include "jackClientGRIS.h"
 #include "jackServerGRIS.h"
@@ -258,9 +257,9 @@ public:
 
 private:
 
-    // Look-and-feel (TODO: merge all look-and-feel inside one class).
+    // Look-and-feel.
     GrisLookAndFeel mGrisFeel;
-    SmallTextGrisLookAndFeel mSmallTextGrisFeel;
+    SmallGrisLookAndFeel mSmallTextGrisFeel;
 
     DocumentWindow *parent;
 

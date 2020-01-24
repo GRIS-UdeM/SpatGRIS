@@ -21,7 +21,7 @@
 #define LEVELCOMPONENT_H
 
 #include "../JuceLibraryCode/JuceHeader.h"
-#include "SmallTextGrisLookAndFeel.h"
+#include "GrisLookAndFeel.h"
 #include "UiComponent.h"
 #include "ParentLevelComponent.h"
 #include "Speaker.h"
@@ -34,7 +34,7 @@ static const int   WidthRect     = 1;
 class LevelBox : public Component
 {
 public:
-    LevelBox(LevelComponent* parent, SmallTextGrisLookAndFeel *feel);
+    LevelBox(LevelComponent* parent, SmallGrisLookAndFeel *feel);
     ~LevelBox();
     
     void setBounds(const Rectangle<int> &newBounds);
@@ -42,7 +42,7 @@ public:
     
 private:
     LevelComponent *mainParent;
-    SmallTextGrisLookAndFeel *grisFeel;
+    SmallGrisLookAndFeel *grisFeel;
     ColourGradient colorGrad;
     Image vumeterBit;
     Image vumeterBackBit;
@@ -58,7 +58,7 @@ class LevelComponent : public Component,
 {
 public:
     LevelComponent(ParentLevelComponent * parent,
-                   SmallTextGrisLookAndFeel *feel,
+                   SmallGrisLookAndFeel *feel,
                    bool colorful = true);
     ~LevelComponent();
     
@@ -86,7 +86,7 @@ private:
     TextButton * idBut;
     ToggleButton * muteToggleBut;
     ToggleButton * soloToggleBut;
-    SmallTextGrisLookAndFeel * grisFeel;
+    SmallGrisLookAndFeel * grisFeel;
     float level = MinLevelComp;
     int lastMouseButton = 1; // 1 means left, 0 means right
     bool isColorful;

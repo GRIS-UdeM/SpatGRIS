@@ -1052,7 +1052,7 @@ void MainContentComponent::menuItemSelected (int menuItemID, int /*topLevelMenuI
 bool MainContentComponent::isPresetModified() {
     File xmlFile = File(this->pathCurrentPreset.toStdString());
     XmlDocument xmlDoc(xmlFile);
-    ScopedPointer<XmlElement> savedState(xmlDoc.getDocumentElement());
+    std::unique_ptr<XmlElement> savedState(xmlDoc.getDocumentElement());
     if (savedState == nullptr) {
         return true;
     }
@@ -1681,7 +1681,7 @@ void MainContentComponent::openXmlFileSpeaker(String path) {
     } else {
         this->pathCurrentFileSpeaker = path.toStdString();
         XmlDocument xmlDoc (File (this->pathCurrentFileSpeaker));
-        ScopedPointer<XmlElement> mainXmlElem (xmlDoc.getDocumentElement());
+        std::unique_ptr<XmlElement> mainXmlElem (xmlDoc.getDocumentElement());
         if (mainXmlElem == nullptr) {
             ScopedPointer<AlertWindow> alert = new AlertWindow ("Error in Load Speaker Setup !", 
                                                                 "Your file is corrupted !\n" + xmlDoc.getLastParseError(), 
@@ -1823,7 +1823,7 @@ void MainContentComponent::openPreset(String path) {
     this->jackClient->processBlockOn = false;
     File xmlFile = File(path.toStdString());
     XmlDocument xmlDoc(xmlFile);
-    ScopedPointer<XmlElement> mainXmlElem(xmlDoc.getDocumentElement());
+    std::unique_ptr<XmlElement> mainXmlElem(xmlDoc.getDocumentElement());
     if (mainXmlElem == nullptr) {
         ScopedPointer<AlertWindow> alert = new AlertWindow("Error in Open Preset !", 
                                                            "Your file is corrupted !\n" + path.toStdString() + "\n" + xmlDoc.getLastParseError().toStdString(), 

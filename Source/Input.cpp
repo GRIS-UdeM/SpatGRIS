@@ -21,7 +21,7 @@
 #include "MainComponent.h"
 #include "LevelComponent.h"
 
-Input::Input(MainContentComponent * parent, SmallTextGrisLookAndFeel * feel,int id) {
+Input::Input(MainContentComponent * parent, SmallGrisLookAndFeel * feel, int id) {
     this->mainParent = parent;
     this->grisFeel = feel;
     this->idChannel = id;

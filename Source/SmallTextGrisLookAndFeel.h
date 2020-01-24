@@ -35,10 +35,6 @@
  ColourIds so you can set these on a per-component basis.
  */
 
-/* This is an awful hack to set smaller text on some TextButton because I don't have time
-   to do it the right way. To be corrected! -belangeo */
-
-
 class SmallTextGrisLookAndFeel    : public LookAndFeel_V3 {
 private:
     

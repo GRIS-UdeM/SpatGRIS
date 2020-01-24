@@ -37,6 +37,10 @@
 			isa = PBXBuildFile;
 			fileRef = 9A51C6F164468C9BE632A221;
 		};
+		07A5ADC826572372DFCA2094 = {
+			isa = PBXBuildFile;
+			fileRef = 2EB4A4891FEBBB0CC91A1E74;
+		};
 		D8040597C47D4E149A6DB302 = {
 			isa = PBXBuildFile;
 			fileRef = 99C17DB53D6015DE648C1D79;
@@ -328,6 +332,13 @@
 			path = System/Library/Frameworks/Jackmp.framework;
 			sourceTree = SDKROOT;
 		};
+		2EB4A4891FEBBB0CC91A1E74 = {
+			isa = PBXFileReference;
+			lastKnownFileType = wrapper.framework;
+			name = CoreAudioKit.framework;
+			path = System/Library/Frameworks/CoreAudioKit.framework;
+			sourceTree = SDKROOT;
+		};
 		2FDE0D27014A24EC92E45384 = {
 			isa = PBXFileReference;
 			lastKnownFileType = wrapper.framework;
@@ -396,6 +407,13 @@
 			lastKnownFileType = sourcecode.cpp.objcpp;
 			name = "include_juce_gui_basics.mm";
 			path = "../../JuceLibraryCode/include_juce_gui_basics.mm";
+			sourceTree = "SOURCE_ROOT";
+		};
+		420F7B1158D0DC9CAF928E1D = {
+			isa = PBXFileReference;
+			lastKnownFileType = text.plist.xml;
+			name = ServerGRIS.entitlements;
+			path = ServerGRIS.entitlements;
 			sourceTree = "SOURCE_ROOT";
 		};
 		45FF04666AEA88A78CC447F9 = {
@@ -790,13 +808,6 @@
 			path = "../../JuceLibraryCode/include_juce_events.mm";
 			sourceTree = "SOURCE_ROOT";
 		};
-		D47AFC53DCE48D7242AF96DC = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.c.h;
-			name = SmallTextGrisLookAndFeel.h;
-			path = ../../Source/SmallTextGrisLookAndFeel.h;
-			sourceTree = "SOURCE_ROOT";
-		};
 		D81BA5E082FFFADEF1B3CB0E = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.h;
@@ -914,7 +925,6 @@
 			children = (
 				C5ED32F596804203AF8EDB72,
 				D0B0A1EFCDC376DA0BA7834C,
-				D47AFC53DCE48D7242AF96DC,
 				B54F66DB5C30589BC1F12174,
 				54593F036F6CCC6229A44AB5,
 				5AC2837288DA556ACAA967D2,
@@ -1033,6 +1043,7 @@
 				AFD30D83137E514A4002A681,
 				4A49E2EA8DC00B3CFBC3B8FC,
 				9A51C6F164468C9BE632A221,
+				2EB4A4891FEBBB0CC91A1E74,
 				99C17DB53D6015DE648C1D79,
 				A31CCC7D74E3E04DB8A5C1EB,
 				2FDE0D27014A24EC92E45384,
@@ -1074,6 +1085,7 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "c++14";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_LINK_OBJC_RUNTIME = NO;
+				CODE_SIGN_IDENTITY = "";
 				COMBINE_HIDPI_IMAGES = YES;
 				CONFIGURATION_BUILD_DIR = "$(PROJECT_DIR)/build/$(CONFIGURATION)";
 				COPY_PHASE_STRIP = NO;
@@ -1120,6 +1132,7 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "c++14";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_LINK_OBJC_RUNTIME = NO;
+				CODE_SIGN_IDENTITY = "";
 				COMBINE_HIDPI_IMAGES = YES;
 				CONFIGURATION_BUILD_DIR = "$(PROJECT_DIR)/build/$(CONFIGURATION)";
 				DEAD_CODE_STRIPPING = YES;
@@ -1183,6 +1196,7 @@
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "";
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -1229,6 +1243,7 @@
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "";
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = c11;
@@ -1338,6 +1353,7 @@
 				E18CF09FF07DD460A2179190,
 				0D76540CEB135C65E2C77E42,
 				EC39E4256C821DE761E81770,
+				07A5ADC826572372DFCA2094,
 				D8040597C47D4E149A6DB302,
 				8B73D6A042471F47F597D406,
 				C7BFE17001C2225525200226,
@@ -1369,7 +1385,7 @@
 		88451C71E2510D7D7C202625 = {
 			isa = PBXProject;
 			buildConfigurationList = BB2815A8747174DBEFB47ACC;
-			attributes = { LastUpgradeCheck = 0930; ORGANIZATIONNAME = "GRIS - UdeM"; TargetAttributes = { E07307A954C73D294F3A432D = { SystemCapabilities = {com.apple.ApplicationGroups.iOS = { enabled = 0; }; com.apple.InAppPurchase = { enabled = 0; }; com.apple.InterAppAudio = { enabled = 0; }; com.apple.Push = { enabled = 0; }; com.apple.Sandbox = { enabled = 0; }; com.apple.HardenedRuntime = { enabled = 0; }; }; }; }; };
+			attributes = { LastUpgradeCheck = 1100; ORGANIZATIONNAME = "GRIS - UdeM"; TargetAttributes = { E07307A954C73D294F3A432D = { SystemCapabilities = {com.apple.ApplicationGroups.iOS = { enabled = 0; }; com.apple.InAppPurchase = { enabled = 0; }; com.apple.InterAppAudio = { enabled = 0; }; com.apple.Push = { enabled = 0; }; com.apple.Sandbox = { enabled = 0; }; com.apple.HardenedRuntime = { enabled = 0; }; }; }; }; };
 			compatibilityVersion = "Xcode 3.2";
 			hasScannedForEncodings = 0;
 			mainGroup = D197AC8A7278BF19DF69D425;

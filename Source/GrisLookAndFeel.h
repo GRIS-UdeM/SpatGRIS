@@ -28,19 +28,11 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 
 //==============================================================================
-/** Custom Look And Feel subclasss.
- 
- Simply override the methods you need to, anything else will be inherited from the base class.
- It's a good idea not to hard code your colours, use the findColour method along with appropriate
- ColourIds so you can set these on a per-component basis.
- */
-
-
-
+/** Custom Look And Feel subclasss. */
 
 class GrisLookAndFeel    : public LookAndFeel_V3 {
 private:
-    
+
     float fontSize;
 
     Font  font = Font(juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf, (size_t) BinaryData::SinkinSans400Regular_otfSize));
@@ -52,7 +44,11 @@ private:
     Colour onColor, onColorOver, onColorDown, offColor, greenColor, redColor;
     
 public:
-    GrisLookAndFeel(){
+
+    Font  smallFont = Font(juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf, (size_t) BinaryData::SinkinSans400Regular_otfSize));
+    Font  smallerFont = Font(juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf, (size_t) BinaryData::SinkinSans400Regular_otfSize));
+
+    GrisLookAndFeel() {
         
         this->backGroundAndFieldColour      = Colour::fromRGB(75, 75, 75);  //Colours::darkgrey;
         this->winBackGroundAndFieldColour   = Colour::fromRGB(46, 46, 46);
@@ -99,15 +95,18 @@ public:
 #else
         this->fontSize = 10.f;
 #endif
+
         this->font.setHeight(this->fontSize);
+        this->smallFont.setHeight(this->fontSize - 1);
+        this->smallerFont.setHeight(this->fontSize - 2);
         this->bigFont.setHeight(this->fontSize + 3);
         this->biggerFont.setHeight(this->fontSize + 6);
-       
     }
     
-    Font getFont(){
+    Font getFont() {
         return this->font;
     }
+
     Font getLabelFont (Label & label) override {
         if (label.getName() == "AboutBox_title")
             return this->biggerFont;
@@ -116,64 +115,71 @@ public:
         else
             return this->font;
     }
-    Font getComboBoxFont (ComboBox & comboBox) override{
+
+    Font getComboBoxFont (ComboBox & comboBox) override {
         return this->font;
     }
-    Font getTextButtonFont (TextButton &, int buttonHeight) override{
+
+    Font getTextButtonFont (TextButton &, int buttonHeight) override {
         return this->font;
     }
-    Font getMenuBarFont	(MenuBarComponent &, int itemIndex, const String & itemText) override{
+
+    Font getMenuBarFont	(MenuBarComponent &, int itemIndex, const String & itemText) override {
         return this->font;
     }
-    
-    Colour getWinBackgroundColour(){
+
+    Colour getWinBackgroundColour() {
         return this->winBackGroundAndFieldColour;
     }
 
-    Colour getBackgroundColour(){
+    Colour getBackgroundColour() {
         return this->backGroundAndFieldColour;
     }
-    
-    Colour getFieldColour(){
+
+    Colour getFieldColour() {
         return this->backGroundAndFieldColour;
     }
-    
-    Colour getFontColour(){
-        return this->lightColour;
-    }
-    
-    Colour getScrollBarColour(){
-        return this->greyColour;
-    }
-    
-    Colour getDarkColour(){
-        return this->darkColour;
-    }
-    
-    Colour getLightColour(){
+
+    Colour getFontColour() {
         return this->lightColour;
     }
 
-    Colour getEditBackgroundColour(){
+    Colour getScrollBarColour() {
+        return this->greyColour;
+    }
+
+    Colour getDarkColour() {
+        return this->darkColour;
+    }
+
+    Colour getLightColour() {
+        return this->lightColour;
+    }
+
+    Colour getEditBackgroundColour() {
         return this->editBgcolor;
     }
-    
-    Colour getHighlightColour(){
+
+    Colour getHighlightColour() {
         return this->hlBgcolor;
     }
-    Colour getOnColour(){
+
+    Colour getOnColour() {
         return this->onColor;
     }
-    Colour getOffColour(){
+
+    Colour getOffColour() {
         return this->offColor;
     }
-    Colour getGreenColour(){
+
+    Colour getGreenColour() {
         return this->greenColor;
     }
-    Colour getRedColour(){
+
+    Colour getRedColour() {
         return this->redColor;
     }
-    
+
     //https://github.com/audioplastic/Juce-look-and-feel-examples/blob/master/JuceLibraryCode/modules/juce_gui_basics/lookandfeel/juce_LookAndFeel.cpp
     
     void drawComboBox(Graphics& g,int width, int height,bool isButtonDown,int buttonX,int buttonY,int buttonW,int buttonH,ComboBox & box) override
@@ -352,47 +358,45 @@ public:
         
        
     }
-    
+
     void drawToggleButton (Graphics& g, ToggleButton& button, bool isMouseOverButton, bool isButtonDown) override {
-        if (button.hasKeyboardFocus (true))
-        {
+        if (button.hasKeyboardFocus (true)) {
             g.setColour (button.findColour (TextEditor::focusedOutlineColourId));
-            //g.drawRect (0, 0, button.getWidth(), button.getHeight());
         }
 
-        if(button.getButtonText().length()==1){
+        if (button.getButtonText().length() == 1) {
             drawTickBox (g, button, 0, 0, button.getWidth(), button.getHeight(),
                          button.getToggleState(), button.isEnabled(),isMouseOverButton,isButtonDown);
             g.setColour(button.findColour (ToggleButton::textColourId));
             g.setFont(this->font);
-            
+
             if (! button.isEnabled())
                 g.setOpacity (0.5f);
-                
-            
+
+
             g.drawFittedText (button.getButtonText(),-2, 1,button.getWidth() , button.getHeight(),
                               Justification::centred, 10);
-            
-            
-        }else{
+
+
+        } else {
             float fontSize = jmin (15.0f, button.getHeight() * 0.75f);
             const float tickWidth = fontSize * 1.1f;
-            
+
             drawTickBox (g, button, 4.0f, (button.getHeight() - tickWidth) * 0.5f,
                          tickWidth, tickWidth,
                          button.getToggleState(),
                          button.isEnabled(),
                          isMouseOverButton,
                          isButtonDown);
-            
+
             g.setColour(button.findColour (ToggleButton::textColourId));
             g.setFont(this->font);
-            
+
             if (! button.isEnabled())
                 g.setOpacity (0.5f);
-                
+
             const int textX = (int) tickWidth + 5;
-            
+
             g.drawFittedText (button.getButtonText(),
                               textX, 0,
                               button.getWidth() - (textX-5) , button.getHeight(),
@@ -579,6 +583,62 @@ public:
         outlineArc.addPieSegment (rx, ry, rw, rw, rotaryStartAngle, rotaryEndAngle, 0.0);
         g.strokePath (outlineArc, PathStrokeType (lineThickness));
     }
+};
+
+//==============================================================================
+class SmallGrisLookAndFeel : public GrisLookAndFeel
+{
+public:
+
+    Font getTextButtonFont (TextButton &, int buttonHeight) override{
+        return this->smallerFont;
+    }
+
+    void drawToggleButton (Graphics& g, ToggleButton& button, bool isMouseOverButton, bool isButtonDown) override {
+        if (button.hasKeyboardFocus (true)) {
+            g.setColour (button.findColour (TextEditor::focusedOutlineColourId));
+        }
+
+        if (button.getButtonText().length() == 1) {
+            drawTickBox (g, button, 0, 0, button.getWidth(), button.getHeight(),
+                         button.getToggleState(), button.isEnabled(),isMouseOverButton,isButtonDown);
+            g.setColour(button.findColour (ToggleButton::textColourId));
+            g.setFont(this->smallFont);
+
+            if (! button.isEnabled())
+                g.setOpacity (0.5f);
+
+
+            g.drawFittedText (button.getButtonText(),-2, 1,button.getWidth() , button.getHeight(),
+                              Justification::centred, 10);
+
+
+        } else {
+            float fontSize = jmin (15.0f, button.getHeight() * 0.75f);
+            const float tickWidth = fontSize * 1.1f;
+
+            drawTickBox (g, button, 4.0f, (button.getHeight() - tickWidth) * 0.5f,
+                         tickWidth, tickWidth,
+                         button.getToggleState(),
+                         button.isEnabled(),
+                         isMouseOverButton,
+                         isButtonDown);
+
+            g.setColour(button.findColour (ToggleButton::textColourId));
+            g.setFont(this->smallFont);
+
+            if (! button.isEnabled())
+                g.setOpacity (0.5f);
+
+            const int textX = (int) tickWidth + 5;
+
+            g.drawFittedText (button.getButtonText(),
+                              textX, 0,
+                              button.getWidth() - (textX-5) , button.getHeight(),
+                              Justification::centredLeft, 10);
+        }
+    }
+
 };
 
 #endif

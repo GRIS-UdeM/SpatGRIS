@@ -2,7 +2,7 @@
 
 <JUCERPROJECT id="MXmiSb" name="ServerGRIS" projectType="guiapp" version="2.0.7"
               bundleIdentifier="com.UdeM.GRIS.ServerGRIS" includeBinaryInAppConfig="1"
-              jucerVersion="5.4.3" companyName="GRIS - UdeM">
+              jucerVersion="5.4.5" companyName="GRIS - UdeM">
   <MAINGROUP id="lsxaKA" name="ServerGRIS">
     <GROUP id="{6EAF4FF6-A4F0-94E9-AA8A-98D9BF95CA11}" name="Resources">
       <FILE id="HYWx0V" name="JAS.jpil" compile="0" resource="1" file="Resources/JAS.jpil"
@@ -19,8 +19,6 @@
     <GROUP id="{534A7161-2617-F3B1-0706-CC62D7A3FE71}" name="Source">
       <FILE id="cnTuuo" name="vbap.c" compile="1" resource="0" file="Source/vbap.c"/>
       <FILE id="e8W3QF" name="vbap.h" compile="0" resource="0" file="Source/vbap.h"/>
-      <FILE id="wMpqbY" name="SmallTextGrisLookAndFeel.h" compile="0" resource="0"
-            file="Source/SmallTextGrisLookAndFeel.h"/>
       <FILE id="e9Tcnv" name="ServerGrisConstants.cpp" compile="1" resource="0"
             file="Source/ServerGrisConstants.cpp"/>
       <FILE id="Ug97Mv" name="ServerGrisConstants.h" compile="0" resource="0"
