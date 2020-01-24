@@ -19,7 +19,7 @@
 
 #include "MainWindow.h"
 
-static ScopedPointer<ApplicationCommandManager> applicationCommandManager;
+static std::unique_ptr<ApplicationCommandManager> applicationCommandManager;
 
 MainWindow::MainWindow(String name) : DocumentWindow(name, Colours::lightgrey,
                                                      DocumentWindow::allButtons)
@@ -74,7 +74,7 @@ bool MainWindow::exitWinApp() {
 
 ApplicationCommandManager& MainWindow::getApplicationCommandManager() {
     if (applicationCommandManager == nullptr)
-        applicationCommandManager = new ApplicationCommandManager();
+        applicationCommandManager.reset( new ApplicationCommandManager());
 
-    return *applicationCommandManager;
+    return *(applicationCommandManager.get());
 }

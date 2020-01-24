@@ -64,7 +64,7 @@ public:
 
         // Create an OutputStream to write to our destination file.
         this->fileToRecord.deleteFile();
-        ScopedPointer<FileOutputStream> fileStream(this->fileToRecord.createOutputStream());
+        std::unique_ptr<FileOutputStream> fileStream (this->fileToRecord.createOutputStream());
 
         AudioFormatWriter *writer;
 
@@ -72,10 +72,10 @@ public:
             // Now create a writer object that writes to our output stream...
             if (extF == ".wav") {
                 WavAudioFormat wavFormat;
-                writer = wavFormat.createWriterFor(fileStream, this->sampleRate, numberOfChannels, 24, NULL, 0);
+                writer = wavFormat.createWriterFor(fileStream.get(), this->sampleRate, numberOfChannels, 24, NULL, 0);
             } else {
                 AiffAudioFormat aiffFormat;
-                writer = aiffFormat.createWriterFor(fileStream, this->sampleRate, numberOfChannels, 24, NULL, 0);
+                writer = aiffFormat.createWriterFor(fileStream.get(), this->sampleRate, numberOfChannels, 24, NULL, 0);
             }
 
             if (writer != nullptr) {
@@ -138,7 +138,8 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     LookAndFeel::setDefaultLookAndFeel(&mGrisFeel);
 
     // Create the menubar.
-    this->addAndMakeVisible (menuBar = new MenuBarComponent (this));
+    menuBar.reset( new MenuBarComponent (this));
+    this->addAndMakeVisible(menuBar.get());
 
     // Start the Splash screen.
     File fs = File(SplashScreenFilePath);
@@ -269,8 +270,8 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     this->verticalLayout.setItemLayout(0, -0.2, -0.8, -0.5); // width of the speaker view must be between 20% and 80%, preferably 50%
     this->verticalLayout.setItemLayout(1, 8, 8, 8);          // the vertical divider drag-bar thing is always 8 pixels wide
     this->verticalLayout.setItemLayout(2, 150, -1.0, -0.5);  // right panes must be at least 150 pixels wide, preferably 50% of the total width
-    this->verticalDividerBar = new StretchableLayoutResizerBar (&verticalLayout, 1, true);
-    this->addAndMakeVisible (verticalDividerBar);
+    this->verticalDividerBar.reset( new StretchableLayoutResizerBar (&verticalLayout, 1, true));
+    this->addAndMakeVisible (verticalDividerBar.get());
 
     // Default application window size.
     this->setSize(1285, 610);
@@ -499,12 +500,13 @@ ComboBox* MainContentComponent::addComboBox(const String &s, const String &stool
 
 // Menu item action handlers.
 void MainContentComponent::handleNew() {
-    ScopedPointer<AlertWindow> alert = new AlertWindow("Closing current preset !", "Do you want to save ?", AlertWindow::InfoIcon);
-    alert->setLookAndFeel(&mGrisFeel);
-    alert->addButton ("Cancel", 0);
-    alert->addButton ("yes", 1);
-    alert->addButton ("No", 2);
-    int status = alert->runModalLoop();
+    AlertWindow alert ("Closing current preset !", "Do you want to save ?", AlertWindow::InfoIcon);
+    alert.setLookAndFeel(&mGrisFeel);
+    alert.addButton ("Cancel", 0, KeyPress(KeyPress::deleteKey));
+    alert.addButton ("yes", 1, KeyPress(KeyPress::returnKey));
+    alert.addButton ("No", 2, KeyPress(KeyPress::escapeKey));
+
+    int status = alert.runModalLoop();
     if (status == 1) {
         this->handleSavePreset();
     } else if (status == 0) {
@@ -525,14 +527,13 @@ void MainContentComponent::handleOpenPreset() {
 
     if (fc.browseForFileToOpen()) {
         String chosen = fc.getResults().getReference(0).getFullPathName();
-        ScopedPointer<AlertWindow> alert = new AlertWindow ("Open Project !", 
-                                                            "You want to load : " + chosen + "\nEverything not saved will be lost !", 
-                                                            AlertWindow::WarningIcon);
-        alert->setLookAndFeel(&mGrisFeel);
-        alert->addButton ("Cancel", 0);
-        alert->addButton ("Ok", 1);
-        int status = alert->runModalLoop();
-        if (status == 1) {
+        AlertWindow alert ("Open Project !", 
+                           "You want to load : " + chosen + "\nEverything not saved will be lost !", 
+                           AlertWindow::WarningIcon);
+        alert.setLookAndFeel(&mGrisFeel);
+        alert.addButton ("Cancel", 0, KeyPress(KeyPress::escapeKey));
+        alert.addButton ("Ok", 1, KeyPress(KeyPress::returnKey));
+        if (alert.runModalLoop() != 0) {
             this->openPreset(chosen);
         }
     }
@@ -571,15 +572,14 @@ void MainContentComponent::handleOpenSpeakerSetup() {
 
     if (fc.browseForFileToOpen()) {
         String chosen = fc.getResults().getReference(0).getFullPathName();
-        ScopedPointer<AlertWindow> alert = new AlertWindow ("Load Speaker Setup !", 
-                                                            "You want to load : " + chosen + "\nEverything not saved will be lost !", 
-                                                            AlertWindow::WarningIcon);
-        alert->setLookAndFeel(&mGrisFeel);
-        alert->addButton ("Cancel", 0);
-        alert->addButton ("Ok", 1);
-        int status = alert->runModalLoop();
-        if (status == 1) {
-            alert->setVisible(false);
+        AlertWindow alert ("Load Speaker Setup !", 
+                           "You want to load : " + chosen + "\nEverything not saved will be lost !", 
+                           AlertWindow::WarningIcon);
+        alert.setLookAndFeel(&mGrisFeel);
+        alert.addButton ("Cancel", 0, KeyPress(KeyPress::escapeKey));
+        alert.addButton ("Ok", 1, KeyPress(KeyPress::returnKey));
+        if (alert.runModalLoop() != 0) {
+            alert.setVisible(false);
             this->openXmlFileSpeaker(chosen);
         }
     }
@@ -734,21 +734,23 @@ void MainContentComponent::handleShowTriplets() {
 
 void MainContentComponent::setShowTriplets(bool state) {
     if (this->getModeSelected() == LBAP && state == true) {
-        ScopedPointer<AlertWindow> alert = new AlertWindow("Can't draw triplets !",
-                                                           "Triplets are not effective with the LBAP mode.",
-                                                           AlertWindow::InfoIcon);
-        alert->addButton("Close", 0);
-        alert->runModalLoop();
+        AlertWindow alert ("Can't draw triplets !",
+                           "Triplets are not effective with the LBAP mode.",
+                           AlertWindow::InfoIcon);
+        alert.setLookAndFeel(&mGrisFeel);
+        alert.addButton("Close", 0, KeyPress(KeyPress::returnKey));
+        alert.runModalLoop();
         this->setShowTriplets(false);
     } else if (this->validateShowTriplets() || state == false) {
         this->isTripletsShown = state;
         this->speakerView->setShowTriplets(state);
     } else {
-        ScopedPointer<AlertWindow> alert = new AlertWindow("Can't draw all triplets !",
-                                                           "Maybe you didn't compute your current speaker setup ?",
-                                                           AlertWindow::InfoIcon);
-        alert->addButton("Close", 0);
-        alert->runModalLoop();
+        AlertWindow alert ("Can't draw all triplets !",
+                           "Maybe you didn't compute your current speaker setup ?",
+                           AlertWindow::InfoIcon);
+        alert.setLookAndFeel(&mGrisFeel);
+        alert.addButton("Close", 0, KeyPress(KeyPress::returnKey));
+        alert.runModalLoop();
         this->setShowTriplets(false);
     }
 }
@@ -1052,15 +1054,15 @@ void MainContentComponent::menuItemSelected (int menuItemID, int /*topLevelMenuI
 bool MainContentComponent::isPresetModified() {
     File xmlFile = File(this->pathCurrentPreset.toStdString());
     XmlDocument xmlDoc(xmlFile);
-    std::unique_ptr<XmlElement> savedState(xmlDoc.getDocumentElement());
+    std::unique_ptr<XmlElement> savedState (xmlDoc.getDocumentElement());
     if (savedState == nullptr) {
         return true;
     }
 
-    ScopedPointer<XmlElement> currentState = new XmlElement("ServerGRIS_Preset");
-    this->getPresetData(currentState);
+    auto currentState = std::make_unique<XmlElement>("ServerGRIS_Preset");
+    this->getPresetData(currentState.get());
 
-    if (! savedState->isEquivalentTo(currentState, true)) {
+    if (! savedState->isEquivalentTo(currentState.get(), true)) {
         return true;
     }
 
@@ -1071,16 +1073,16 @@ bool MainContentComponent::exitApp() {
     int exitV = 2;
 
     if (this->isPresetModified()) {
-        ScopedPointer<AlertWindow> alert = new AlertWindow("Exit ServerGRIS !",
-                                                           "Do you want to save the current project ?",
-                                                           AlertWindow::InfoIcon);
-        alert->setLookAndFeel(&mGrisFeel);
-        alert->addButton ("Save", 1, KeyPress(KeyPress::returnKey));
-        alert->addButton ("Cancel", 0, KeyPress(KeyPress::escapeKey));
-        alert->addButton ("Exit", 2, KeyPress(KeyPress::deleteKey));
-        exitV = alert->runModalLoop();
+        AlertWindow alert ("Exit ServerGRIS !",
+                           "Do you want to save the current project ?",
+                           AlertWindow::InfoIcon);
+        alert.setLookAndFeel(&mGrisFeel);
+        alert.addButton ("Save", 1, KeyPress(KeyPress::returnKey));
+        alert.addButton ("Cancel", 0, KeyPress(KeyPress::escapeKey));
+        alert.addButton ("Exit", 2, KeyPress(KeyPress::deleteKey));
+        exitV = alert.runModalLoop();
         if (exitV == 1) {
-            alert->setVisible(false);
+            alert.setVisible(false);
             ModalComponentManager::getInstance()->cancelAllModalComponents();
             String dir = this->applicationProperties.getUserSettings()->getValue("lastPresetDirectory");
             if (! File(dir).isDirectory()) {
@@ -1414,14 +1416,13 @@ bool MainContentComponent::updateLevelComp() {
 
     // Too few speakers...
     if ((this->listSpeaker.size() - directOutSpeakers) < dimensions) {
-        ScopedPointer<AlertWindow> alert = new AlertWindow ("Not enough speakers!    ",
-                                                            "Do you want to reload previous config?    ", 
-                                                            AlertWindow::WarningIcon);
-        alert->setLookAndFeel(&mGrisFeel);
-        alert->addButton ("No", 0);
-        alert->addButton ("Yes", 1);
-        int ret = alert->runModalLoop();
-        if (ret == 1) {
+        AlertWindow alert ("Not enough speakers!    ",
+                           "Do you want to reload previous config?    ", 
+                           AlertWindow::WarningIcon);
+        alert.setLookAndFeel(&mGrisFeel);
+        alert.addButton ("No", 0);
+        alert.addButton ("Yes", 1, KeyPress(KeyPress::returnKey));
+        if (alert.runModalLoop() != 0) {
             this->openXmlFileSpeaker(this->pathCurrentFileSpeaker);
         }
         return false;
@@ -1438,14 +1439,14 @@ bool MainContentComponent::updateLevelComp() {
     std::sort(tempout.begin(), tempout.end());
     for (unsigned int i = 0; i < tempout.size() - 1; i++) {
         if (tempout[i] == tempout[i + 1]) {
-            ScopedPointer<AlertWindow> alert = new AlertWindow ("Duplicated Output Numbers!    ",
-                                                                "Some output numbers are used more than once. Do you want to continue anyway?    "
-                                                                "\nIf you continue, you may have to fix your speaker setup before using it!   ", 
-                                                                AlertWindow::WarningIcon);
-            alert->setLookAndFeel(&mGrisFeel);
-            alert->addButton ("No", 0);
-            alert->addButton ("Yes", 1);
-            if (! alert->runModalLoop()) {
+            AlertWindow alert ("Duplicated Output Numbers!    ",
+                               "Some output numbers are used more than once. Do you want to continue anyway?    "
+                               "\nIf you continue, you may have to fix your speaker setup before using it!   ", 
+                               AlertWindow::WarningIcon);
+            alert.setLookAndFeel(&mGrisFeel);
+            alert.addButton ("No", 0);
+            alert.addButton ("Yes", 1);
+            if (alert.runModalLoop() != 0) {
                 if (this->pathCurrentFileSpeaker.compare(this->pathLastVbapSpeakerSetup) == 0) {
                     this->openXmlFileSpeaker(DefaultSpeakerSetupFilePath);
                 } else {
@@ -1581,12 +1582,12 @@ bool MainContentComponent::updateLevelComp() {
             this->setListTripletFromVbap();
             this->needToComputeVbap = false;
         } else {
-            ScopedPointer<AlertWindow> alert = new AlertWindow ("Not a valid VBAP 3-D configuration!    ",
-                                                                "Maybe you want to open it in LBAP mode? Reload the default speaker setup...    ",
-                                                                AlertWindow::WarningIcon);
-            alert->setLookAndFeel(&mGrisFeel);
-            alert->addButton ("Ok", 0);
-            alert->runModalLoop();
+            AlertWindow alert ("Not a valid VBAP 3-D configuration!    ",
+                               "Maybe you want to open it in LBAP mode? Reload the default speaker setup...    ",
+                               AlertWindow::WarningIcon);
+            alert.setLookAndFeel(&mGrisFeel);
+            alert.addButton ("Ok", 0, KeyPress(KeyPress::returnKey));
+            alert.runModalLoop();
             this->openXmlFileSpeaker(DefaultSpeakerSetupFilePath);
             return false;
         }
@@ -1672,23 +1673,23 @@ void MainContentComponent::openXmlFileSpeaker(String path) {
     bool isNewSameAsLastSetup = this->pathLastVbapSpeakerSetup.compare(path) == 0;
     bool ok = false;
     if (! File(path.toStdString()).existsAsFile()) {
-        ScopedPointer<AlertWindow> alert = new AlertWindow ("Error in Load Speaker Setup !", 
-                                                            "Can't found file " + path.toStdString() + ", the current setup will be kept.", 
-                                                            AlertWindow::WarningIcon);
-        alert->setLookAndFeel(&mGrisFeel);
-        alert->addButton ("Ok", 0);
-        alert->runModalLoop();
+        AlertWindow alert ("Error in Load Speaker Setup !", 
+                           "Can't found file " + path.toStdString() + ", the current setup will be kept.", 
+                           AlertWindow::WarningIcon);
+        alert.setLookAndFeel(&mGrisFeel);
+        alert.addButton ("Ok", 0), KeyPress(KeyPress::returnKey);
+        alert.runModalLoop();
     } else {
         this->pathCurrentFileSpeaker = path.toStdString();
         XmlDocument xmlDoc (File (this->pathCurrentFileSpeaker));
         std::unique_ptr<XmlElement> mainXmlElem (xmlDoc.getDocumentElement());
         if (mainXmlElem == nullptr) {
-            ScopedPointer<AlertWindow> alert = new AlertWindow ("Error in Load Speaker Setup !", 
-                                                                "Your file is corrupted !\n" + xmlDoc.getLastParseError(), 
-                                                                AlertWindow::WarningIcon);
-            alert->setLookAndFeel(&mGrisFeel);
-            alert->addButton ("Ok", 0);
-            alert->runModalLoop();
+            AlertWindow alert ("Error in Load Speaker Setup !", 
+                               "Your file is corrupted !\n" + xmlDoc.getLastParseError(), 
+                               AlertWindow::WarningIcon);
+            alert.setLookAndFeel(&mGrisFeel);
+            alert.addButton ("Ok", 0);
+            alert.runModalLoop();
         } else {
             if (mainXmlElem->hasTagName("SpeakerSetup")) {
                 this->lockSpeakers->lock();
@@ -1779,12 +1780,10 @@ void MainContentComponent::openXmlFileSpeaker(String path) {
                 } else {
                     msg = "Your file is corrupted !\n" + xmlDoc.getLastParseError();
                 }
-                ScopedPointer<AlertWindow> alert = new AlertWindow ("Error in Load Speaker Setup !", 
-                                                                    msg, 
-                                                                    AlertWindow::WarningIcon);
-                alert->setLookAndFeel(&mGrisFeel);
-                alert->addButton ("Ok", 0);
-                alert->runModalLoop();
+                AlertWindow alert ("Error in Load Speaker Setup !", msg, AlertWindow::WarningIcon);
+                alert.setLookAndFeel(&mGrisFeel);
+                alert.addButton ("Ok", 0, KeyPress(KeyPress::returnKey));
+                alert.runModalLoop();
             }
         }
     }
@@ -1825,12 +1824,12 @@ void MainContentComponent::openPreset(String path) {
     XmlDocument xmlDoc(xmlFile);
     std::unique_ptr<XmlElement> mainXmlElem(xmlDoc.getDocumentElement());
     if (mainXmlElem == nullptr) {
-        ScopedPointer<AlertWindow> alert = new AlertWindow("Error in Open Preset !", 
-                                                           "Your file is corrupted !\n" + path.toStdString() + "\n" + xmlDoc.getLastParseError().toStdString(), 
-                                                           AlertWindow::WarningIcon);
-        alert->setLookAndFeel(&mGrisFeel);
-        alert->addButton ("Ok", 1);
-        alert->runModalLoop();
+        AlertWindow alert ("Error in Open Preset !", 
+                           "Your file is corrupted !\n" + path.toStdString() + "\n" + xmlDoc.getLastParseError().toStdString(), 
+                           AlertWindow::WarningIcon);
+        alert.setLookAndFeel(&mGrisFeel);
+        alert.addButton ("Ok", 1, KeyPress(KeyPress::returnKey));
+        alert.runModalLoop();
     } else {
         if (mainXmlElem->hasTagName("SpatServerGRIS_Preset") || mainXmlElem->hasTagName("ServerGRIS_Preset")) {
             this->pathCurrentPreset = path;
@@ -1915,12 +1914,10 @@ void MainContentComponent::openPreset(String path) {
             } else {
                 msg = "Your file is corrupted !\n" + xmlDoc.getLastParseError();
             }
-            ScopedPointer<AlertWindow> alert = new AlertWindow ("Error in Open Preset !", 
-                                                                msg, 
-                                                                AlertWindow::WarningIcon);
-            alert->setLookAndFeel(&mGrisFeel);
-            alert->addButton ("Ok", 0);
-            alert->runModalLoop();
+            AlertWindow alert ("Error in Open Preset !", msg, AlertWindow::WarningIcon);
+            alert.setLookAndFeel(&mGrisFeel);
+            alert.addButton ("Ok", 0, KeyPress(KeyPress::returnKey));
+            alert.runModalLoop();
         }
     }
 
@@ -1966,9 +1963,9 @@ void MainContentComponent::getPresetData(XmlElement *xml) {
 
 void MainContentComponent::savePreset(String path) {
     File xmlFile = File(path.toStdString());
-    ScopedPointer<XmlElement> xml = new XmlElement("ServerGRIS_Preset");
-    this->getPresetData(xml);
-    xml->writeToFile(xmlFile, "");
+    auto xml = std::make_unique<XmlElement>("ServerGRIS_Preset");
+    this->getPresetData(xml.get());
+    xml->writeTo(xmlFile);
     xmlFile.create();
     this->pathCurrentPreset = path;
     this->applicationProperties.getUserSettings()->setValue("lastPresetDirectory", 
@@ -1983,7 +1980,7 @@ String MainContentComponent::getCurrentFileSpeakerPath() {
 void MainContentComponent::saveSpeakerSetup(String path) {
     this->pathCurrentFileSpeaker = path;
     File xmlFile = File (path.toStdString());
-    ScopedPointer<XmlElement> xml = new XmlElement("SpeakerSetup");
+    auto xml = std::make_unique<XmlElement>("SpeakerSetup");
     
     xml->setAttribute ("Name", this->nameConfig);
     xml->setAttribute ("Dimension", 3);
@@ -2016,7 +2013,7 @@ void MainContentComponent::saveSpeakerSetup(String path) {
         xml->addChildElement(xmlInput);
     }
     
-    xml->writeToFile(xmlFile, "");
+    xml->writeTo(xmlFile);
     xmlFile.create();
 
     this->applicationProperties.getUserSettings()->setValue("lastSpeakerSetupDirectory", 
@@ -2046,13 +2043,13 @@ void MainContentComponent::saveProperties(int rate, int buff, int fileformat, in
     if (std::isnan(float(RateValue)) || RateValue == 0) { RateValue = 48000; }
 
     if (rate != RateValue || buff != BufferValue) {
-        ScopedPointer<AlertWindow> alert = new AlertWindow("You Need to Restart ServerGRIS!",
-                                                           "New settings will be effective on next launch of the ServerGris.", 
-                                                           AlertWindow::InfoIcon);
-        alert->setLookAndFeel(&mGrisFeel);
-        alert->addButton ("Cancel", 0);
-        alert->addButton ("Ok", 1);
-        if (alert->runModalLoop()) {
+        AlertWindow alert ("You Need to Restart ServerGRIS!",
+                           "New settings will be effective on next launch of the ServerGris.", 
+                           AlertWindow::InfoIcon);
+        alert.setLookAndFeel(&mGrisFeel);
+        alert.addButton ("Cancel", 0);
+        alert.addButton ("Ok", 1, KeyPress(KeyPress::returnKey));
+        if (alert.runModalLoop() != 0) {
             props->setValue("BufferValue", (int)buff);
             props->setValue("RateValue", (int)rate);
         }
@@ -2256,12 +2253,12 @@ void MainContentComponent::sliderValueChanged(Slider* slider) {
 
 void MainContentComponent::comboBoxChanged(ComboBox *comboBox) {
     if (this->winSpeakConfig != nullptr && this->needToSaveSpeakerSetup) {
-        ScopedPointer<AlertWindow> alert = new AlertWindow ("The speaker configuration has changed!    ",
-                                                            "Save your changes or close the speaker configuration window before switching mode...    ",
-                                                            AlertWindow::WarningIcon);
-        alert->setLookAndFeel(&mGrisFeel);
-        alert->addButton ("Ok", 0);
-        alert->runModalLoop();
+        AlertWindow alert ("The speaker configuration has changed!    ",
+                           "Save your changes or close the speaker configuration window before switching mode...    ",
+                           AlertWindow::WarningIcon);
+        alert.setLookAndFeel(&mGrisFeel);
+        alert.addButton ("Ok", 0, KeyPress(KeyPress::returnKey));
+        alert.runModalLoop();
         this->comBoxModeSpat->setSelectedId(this->jackClient->modeSelected+1, NotificationType::dontSendNotification);
         return;
     }
@@ -2375,7 +2372,7 @@ void MainContentComponent::resized() {
     r.removeFromTop(20);
     
     // Lay out the speaker view and the vertical divider.
-    Component* vcomps[] = { this->speakerView, this->verticalDividerBar, nullptr };
+    Component* vcomps[] = { this->speakerView, this->verticalDividerBar.get(), nullptr };
     
     // Lay out side-by-side and resize the components' heights as well as widths.
     this->verticalLayout.layOutComponents(vcomps, 3, r.getX(), r.getY(), r.getWidth(), r.getHeight(), false, true);

@@ -688,24 +688,24 @@ void WindowEditSpeaker::selectedRow(int value) {
 void WindowEditSpeaker::closeButtonPressed() {
     int exitV = 1;
     if (this->mainParent->needToSaveSpeakerSetup) {
-        ScopedPointer<AlertWindow> alert = new AlertWindow("Closing Speaker Setup Window !",
-                                                           "Do you want to compute and save the current setup ?",
-                                                           AlertWindow::WarningIcon);
-        alert->setLookAndFeel(grisFeel);
-        alert->addButton ("Save", 1, KeyPress(KeyPress::returnKey));
-        alert->addButton ("No", 2);
-        alert->addButton ("Cancel", 0, KeyPress(KeyPress::escapeKey));
-        exitV = alert->runModalLoop();
+        AlertWindow alert ("Closing Speaker Setup Window !",
+                           "Do you want to compute and save the current setup ?",
+                           AlertWindow::WarningIcon);
+        alert.setLookAndFeel(grisFeel);
+        alert.addButton ("Save", 1, KeyPress(KeyPress::returnKey));
+        alert.addButton ("No", 2);
+        alert.addButton ("Cancel", 0, KeyPress(KeyPress::escapeKey));
+        exitV = alert.runModalLoop();
 
         if (exitV == 1) {
-            alert->setVisible(false);
+            alert.setVisible(false);
             this->mainParent->updateLevelComp();
             this->mainParent->handleTimer(false);
             this->setAlwaysOnTop(false);
             this->mainParent->handleSaveAsSpeakerSetup();
             this->mainParent->handleTimer(true);
         } else if (exitV == 2) {
-            alert->setVisible(false);
+            alert.setVisible(false);
             this->mainParent->reloadXmlFileSpeaker();
             this->mainParent->updateLevelComp();
         }
@@ -951,12 +951,12 @@ void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, con
                                 continue;
                             }
                             if (it->getOutputPatch() == ival) {
-                                ScopedPointer<AlertWindow> alert = new AlertWindow("Wrong output patch!    ",
-                                                                                   "Sorry! Output patch number " + String(ival) + " is already used.",
-                                                                                   AlertWindow::WarningIcon);
-                                alert->setLookAndFeel(this->grisFeel);
-                                alert->addButton("OK", 0);
-                                alert->runModalLoop();
+                                AlertWindow alert ("Wrong output patch!    ",
+                                                   "Sorry! Output patch number " + String(ival) + " is already used.",
+                                                   AlertWindow::WarningIcon);
+                                alert.setLookAndFeel(this->grisFeel);
+                                alert.addButton("OK", 0, KeyPress(KeyPress::returnKey));
+                                alert.runModalLoop();
                                 ival = oldval;
                             }
                         }

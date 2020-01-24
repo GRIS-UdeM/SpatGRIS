@@ -146,7 +146,7 @@ public:
 
         // Create an OutputStream to write to our destination file.
         file.deleteFile();
-        ScopedPointer<FileOutputStream> fileStream(file.createOutputStream());
+        std::unique_ptr<FileOutputStream> fileStream (file.createOutputStream());
 
         AudioFormatWriter *writer;
 
@@ -154,10 +154,10 @@ public:
             // Now create a writer object that writes to our output stream...
             if (extF == ".wav") {
                 WavAudioFormat wavFormat;
-                writer = wavFormat.createWriterFor(fileStream, sampleRate, 1, 24, NULL, 0);
+                writer = wavFormat.createWriterFor(fileStream.get(), sampleRate, 1, 24, NULL, 0);
             } else {
                 AiffAudioFormat aiffFormat;
-                writer = aiffFormat.createWriterFor(fileStream, sampleRate, 1, 24, NULL, 0);
+                writer = aiffFormat.createWriterFor(fileStream.get(), sampleRate, 1, 24, NULL, 0);
             }
 
             if (writer != nullptr) {
@@ -165,11 +165,11 @@ public:
 
                 // Now we'll create one of these helper objects which will act as a FIFO buffer, and will
                 // write the data to disk on our background thread.
-                threadedWriter = new AudioFormatWriter::ThreadedWriter (writer, backgroundThread, 32768);
+                threadedWriter.reset (new AudioFormatWriter::ThreadedWriter (writer, backgroundThread, 32768));
 
                 // And now, swap over our active writer pointer so that the audio callback will start using it..
                 const ScopedLock sl (writerLock);
-                activeWriter = threadedWriter;
+                activeWriter = threadedWriter.get();
             }
         }
     }
@@ -186,7 +186,7 @@ public:
         // Now we can delete the writer object. It's done in this order because the deletion could
         // take a little time while remaining data gets flushed to disk, so it's best to avoid blocking
         // the audio callback while this happens.
-        threadedWriter = nullptr;
+        threadedWriter.reset();
 
         // Stop the background thread.
         backgroundThread.stopThread(100);
@@ -194,15 +194,15 @@ public:
 
     void recordSamples(float **samples, int numSamples) {
         const ScopedLock sl (writerLock);
-        activeWriter->write (samples, numSamples);
+        activeWriter.load()->write (samples, numSamples);
     }
 
     TimeSliceThread backgroundThread; // the thread that will write our audio data to disk
 
 private:
-    ScopedPointer<AudioFormatWriter::ThreadedWriter> threadedWriter; // the FIFO used to buffer the incoming data
+    std::unique_ptr<AudioFormatWriter::ThreadedWriter> threadedWriter; // the FIFO used to buffer the incoming data
     CriticalSection writerLock;
-    AudioFormatWriter::ThreadedWriter* volatile activeWriter;
+    std::atomic<AudioFormatWriter::ThreadedWriter*> activeWriter { nullptr };
 };
 
 class jackClientGris {

@@ -36,7 +36,7 @@ public:
     void initialise (const String& commandLine) override {
         LookAndFeel::setDefaultLookAndFeel(&mGrisFeel);
         // This method is where you should put your application's initialisation code..
-        mainWindow = new MainWindow(getApplicationName());
+        mainWindow.reset(new MainWindow(getApplicationName()));
     }
 
     void shutdown() override {
@@ -61,7 +61,7 @@ public:
 
 private:
     GrisLookAndFeel mGrisFeel;
-    ScopedPointer<MainWindow> mainWindow;
+    std::unique_ptr<MainWindow> mainWindow;
 };
 
 //==============================================================================

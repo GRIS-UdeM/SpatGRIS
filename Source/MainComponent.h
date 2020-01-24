@@ -263,7 +263,7 @@ private:
 
     DocumentWindow *parent;
 
-    ScopedPointer<MenuBarComponent> menuBar;
+    std::unique_ptr<MenuBarComponent> menuBar;
 
     // Widget creation helpers.
     Label *        addLabel(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into);
@@ -297,7 +297,7 @@ private:
     // UI Components.
     SpeakerViewComponent *speakerView;
     StretchableLayoutManager verticalLayout;
-    ScopedPointer<StretchableLayoutResizerBar> verticalDividerBar;
+    std::unique_ptr<StretchableLayoutResizerBar> verticalDividerBar;
 
     // Windows.
     WindowEditSpeaker *winSpeakConfig;
