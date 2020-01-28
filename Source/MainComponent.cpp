@@ -231,7 +231,7 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
 
     addLabel("Gain", "Master Gain Outputs", 15, 30, 120, 20, this->boxControlUI->getContent());
     this->sliderMasterGainOut = addSlider("Master Gain", "Master Gain Outputs", 5, 45, 60, 60, this->boxControlUI->getContent());
-    this->sliderMasterGainOut->setRange(-60.0, 18.0, 0.01);
+    this->sliderMasterGainOut->setRange(-60.0, 12.0, 0.01);
     this->sliderMasterGainOut->setTextValueSuffix(" dB");
     
     addLabel("Interpolation", "Master Interpolation", 60, 30, 120, 20, this->boxControlUI->getContent());
