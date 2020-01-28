@@ -45,8 +45,6 @@ static void jack_client_log(const char* format, ...) {
 // Mute - solo / Meter In - Meter Out.
 static void muteSoloVuMeterIn(jackClientGris &jackCli, jack_default_audio_sample_t **ins,
                               const jack_nframes_t &nframes, const unsigned int &sizeInputs) {
-    float sumsIn[sizeInputs];
-    
     for (unsigned int i = 0; i < sizeInputs; ++i) {
         if (jackCli.listSourceIn[i].isMuted) { // Mute
             memset(ins[i], 0, sizeof(jack_default_audio_sample_t) * nframes);
@@ -55,13 +53,15 @@ static void muteSoloVuMeterIn(jackClientGris &jackCli, jack_default_audio_sample
                 memset (ins[i], 0, sizeof(jack_default_audio_sample_t) * nframes);
             }
         }
-        
+
         // VuMeter
-        sumsIn[i] = ins[i][0] * ins[i][0];
-        for (unsigned int nF = 1; nF < nframes; ++nF) {
-            sumsIn[i] +=  ins[i][nF] * ins[i][nF];
+        float maxGain = 0.0f;
+        for (unsigned int j = 1; j < nframes; j++) {
+            float absGain = fabsf(ins[i][j]);
+            if (absGain > maxGain)
+                maxGain = absGain;
         }
-        jackCli.levelsIn[i] = sqrtf(sumsIn[i] / nframes);
+        jackCli.levelsIn[i] = maxGain;
     }
 }
 
@@ -69,7 +69,6 @@ static void muteSoloVuMeterGainOut(jackClientGris &jackCli, jack_default_audio_s
                                    const jack_nframes_t &nframes, const unsigned int &sizeOutputs,
                                    const float mGain = 1.0f) {
     unsigned int num_of_channels = 2;
-    float sumsOut[sizeOutputs];
     float gain;
     double inval = 0.0, val = 0.0;
 
@@ -113,13 +112,13 @@ static void muteSoloVuMeterGainOut(jackClientGris &jackCli, jack_default_audio_s
         }
 
         // VuMeter
-        outs[i][0] *= mGain; // Master volume
-        sumsOut[i] = outs[i][0] * outs[i][0];
-        for (unsigned int nF = 1; nF < nframes; ++nF) {
-            outs[i][nF] *= mGain;
-            sumsOut[i] +=  outs[i][nF] * outs[i][nF];
+        float maxGain = 0.0f;
+        for (unsigned int j = 1; j < nframes; j++) {
+            float absGain = fabsf(outs[i][j]) * mGain;
+            if (absGain > maxGain)
+                maxGain = absGain;
         }
-        jackCli.levelsOut[i] = sqrtf(sumsOut[i] / nframes);
+        jackCli.levelsOut[i] = maxGain;
         
         // Record buffer.
         if (jackCli.recording) {
