@@ -231,7 +231,7 @@ static void processLBAP(jackClientGris &jackCli, jack_default_audio_sample_t **i
                         const jack_nframes_t &nframes, const unsigned int &sizeInputs, const unsigned int &sizeOutputs)
 {
     unsigned int f, i, o, ilinear;
-    float y, gain, distance, distgain, lastgain, distcoef, lastcoef, interpG = 0.99;
+    float y, gain, distance, distgain , distcoef, interpG = 0.99;
     lbap_pos pos;
 
     float filteredInputSignal[nframes];
