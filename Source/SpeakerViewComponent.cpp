@@ -303,7 +303,7 @@ void SpeakerViewComponent::drawOriginGrid() {
 
     if (this->mainParent->getModeSelected() == LBAP) {
         // Draw light squares.
-        for (float j = 5.0; j < 11.f; j += 5.0f) {
+        for (float j = 3.5; j < 19.f; j += 6.75f) {
             glBegin(GL_LINES);
             glVertex3f(-j, 0, j); glVertex3f(j, 0, j);
             glVertex3f(j, 0, -j); glVertex3f(j, 0, j);
@@ -348,18 +348,18 @@ void SpeakerViewComponent::drawOriginGrid() {
     glEnd();
     
     glBegin(GL_LINE_LOOP);
-    glVertex3f(cos(M_PI4) * 14.0f, 0.0f, sin(M_PI4) * 14.0f);
-    glVertex3f(-cos(M_PI4) * 14.0f, 0.0f, -sin(M_PI4) * 14.0f);
+    glVertex3f(cos(M_PI4) * 14.5f, 0.0f, sin(M_PI4) * 14.5f);
+    glVertex3f(-cos(M_PI4) * 14.5f, 0.0f, -sin(M_PI4) * 14.5f);
     glEnd();
     
     glBegin(GL_LINE_LOOP);
-    glVertex3f(cos(M_PI4 * 3.0f) * 14.0f, 0.0f, sin(M_PI4 * 3.0f) * 14.0f);
-    glVertex3f(-cos(M_PI4 * 3.0f) * 14.0f, 0.0f, -sin(M_PI4 * 3.0f) * 14.0f);
+    glVertex3f(cos(M_PI4 * 3.0f) * 14.5f, 0.0f, sin(M_PI4 * 3.0f) * 14.5f);
+    glVertex3f(-cos(M_PI4 * 3.0f) * 14.5f, 0.0f, -sin(M_PI4 * 3.0f) * 14.5f);
     glEnd();
 
     if (this->mainParent->getModeSelected() == LBAP) {
         // Draw grey squares.
-        for (float j = 2.5; j < 13.f; j += 5.0f) {
+        for (float j = 6.875; j < 15.f; j += 6.75f) {
             glBegin(GL_LINES);
             glVertex3f(-j, 0, j); glVertex3f(j, 0, j);
             glVertex3f(j, 0, -j); glVertex3f(j, 0, j);

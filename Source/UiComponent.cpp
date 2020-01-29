@@ -922,6 +922,7 @@ void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, con
                     }
                     diff = val - newP.z;
                     if (val < 0.0f) { val = 0.0f; }
+                    else if (val > 2.5f) { val = 2.5f; }
                     newP.z = val;
                     this->mainParent->getListSpeaker()[rowNumber]->setAziZenRad(newP);
                     if (this->tableListSpeakers.getNumSelectedRows() > 1) {
@@ -934,6 +935,7 @@ void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, con
                             if (altDown) {
                                 newP.z += diff;
                                 if (newP.z < 0.0f) { newP.z = 0.0f; }
+                                else if (newP.z > 2.5f) { newP.z = 2.5f; }
                             } else {
                                 newP.z = val;
                             }

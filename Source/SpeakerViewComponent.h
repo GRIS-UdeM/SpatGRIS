@@ -44,7 +44,7 @@ class Speaker;
 
 using namespace std;
 
-static const int    NbrGridLines = 16;
+static const int    NbrGridLines = 17;
 static const float  ScroolWheelSpeedMouse = 1.8f;
 
 class SpeakerViewComponent : public OpenGLAppComponent {
