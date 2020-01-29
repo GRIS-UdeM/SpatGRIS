@@ -28,7 +28,7 @@
 
 class jackServerGRIS {
 public:    
-    jackServerGRIS(unsigned int rateV = 48000, unsigned int periodV = 1024);
+    jackServerGRIS(unsigned int rateV = 48000, unsigned int periodV = 1024, int *errorCode = nullptr);
     ~jackServerGRIS();
 
     jackctl_server_t *server;

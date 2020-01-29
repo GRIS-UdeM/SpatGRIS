@@ -126,7 +126,7 @@ static jackctl_internal_t * jackctl_server_get_internal(jackctl_server_t *server
 
 // Jack server class definition.
 
-jackServerGRIS::jackServerGRIS(unsigned int rateV, unsigned int periodV) {
+jackServerGRIS::jackServerGRIS(unsigned int rateV, unsigned int periodV, int *errorCode) {
     this->rateValue = rateV;
     this->periodValue = periodV;
     const JSList *parameters;
@@ -136,68 +136,81 @@ jackServerGRIS::jackServerGRIS(unsigned int rateV, unsigned int periodV) {
     const JSList *node_ptr;
 
     this->server = jackctl_server_create(on_device_acquire, on_device_release);
-    parameters = jackctl_server_get_parameters(this->server);
 
-    jackctl_parameter_t *param;
-    union jackctl_parameter_value value;
+    if (this->server) {
+        parameters = jackctl_server_get_parameters(this->server);
 
-    // Turn off Jack verbose mode.
-    param = jackctl_get_parameter(parameters, "verbose");
-    if (param != NULL) {
-        value.b = false;
-        jackctl_parameter_set_value(param, &value);
-    }
+        jackctl_parameter_t *param;
+        union jackctl_parameter_value value;
 
-    jack_server_log("\nList of server parameters \n");
-    jack_server_log("========================= \n");
-    
-    print_parameters(parameters);
-    
-    jack_server_log("\nList of drivers \n");
-    jack_server_log("=============== \n");
-    
-    drivers = jackctl_server_get_drivers_list(this->server);
-    node_ptr = drivers;
-    while (node_ptr != NULL) {
-        print_driver((jackctl_driver_t *)node_ptr->data);
-
-        driverParams = jackctl_driver_get_parameters((jackctl_driver_t *)node_ptr->data);
-        // Set sampling rate.
-        param = jackctl_get_parameter(driverParams, "rate");
+        // Turn off Jack verbose mode.
+        param = jackctl_get_parameter(parameters, "verbose");
         if (param != NULL) {
-            value.ui = value.i = this->rateValue;
-            jackctl_parameter_set_value(param, &value);
-        }
-        // Set buffer size.
-        param = jackctl_get_parameter(driverParams, "period");
-        if (param != NULL) {
-            value.ui = value.i = this->periodValue;
+            value.b = false;
             jackctl_parameter_set_value(param, &value);
         }
 
-        node_ptr = jack_slist_next(node_ptr);
-    }
-    
-    jack_server_log("\nList of internal clients \n");
-    jack_server_log("======================== \n");
-    
-    internals = jackctl_server_get_internals_list(this->server);
-    node_ptr = internals;
-    while (node_ptr != NULL) {
-        print_internal((jackctl_internal_t *)node_ptr->data);
-        node_ptr = jack_slist_next(node_ptr);
-    }
-    
-    jack_server_log("\nStart Jack Server \n");
-    jack_server_log("================= \n");
+        jack_server_log("\nList of server parameters \n");
+        jack_server_log("========================= \n");
+        
+        print_parameters(parameters);
+        
+        jack_server_log("\nList of drivers \n");
+        jack_server_log("=============== \n");
+        
+        drivers = jackctl_server_get_drivers_list(this->server);
+        node_ptr = drivers;
+        while (node_ptr != NULL) {
+            print_driver((jackctl_driver_t *)node_ptr->data);
 
-    jackctl_server_open(this->server, jackctl_server_get_driver(this->server, DriverNameSys));
-    jackctl_server_start(this->server);
-    jackctl_server_load_internal(this->server, jackctl_server_get_internal(this->server, ClientNameSys));
+            driverParams = jackctl_driver_get_parameters((jackctl_driver_t *)node_ptr->data);
+            // Set sampling rate.
+            param = jackctl_get_parameter(driverParams, "rate");
+            if (param != NULL) {
+                value.ui = value.i = this->rateValue;
+                jackctl_parameter_set_value(param, &value);
+            }
+            // Set buffer size.
+            param = jackctl_get_parameter(driverParams, "period");
+            if (param != NULL) {
+                value.ui = value.i = this->periodValue;
+                jackctl_parameter_set_value(param, &value);
+            }
+
+            node_ptr = jack_slist_next(node_ptr);
+        }
+        
+        jack_server_log("\nList of internal clients \n");
+        jack_server_log("======================== \n");
+        
+        internals = jackctl_server_get_internals_list(this->server);
+        node_ptr = internals;
+        while (node_ptr != NULL) {
+            print_internal((jackctl_internal_t *)node_ptr->data);
+            node_ptr = jack_slist_next(node_ptr);
+        }
+        
+        jack_server_log("\nStart Jack Server \n");
+        jack_server_log("================= \n");
+
+        if (jackctl_server_open(this->server, jackctl_server_get_driver(this->server, DriverNameSys))) {
+            if (jackctl_server_start(this->server)) {
+                jackctl_server_load_internal(this->server, jackctl_server_get_internal(this->server, ClientNameSys));
+            } else {
+                *errorCode = 3;
+            }
+        } else {
+            *errorCode = 2;
+        }
+    } else {
+        *errorCode = 1;
+    }
 }
 
 jackServerGRIS::~jackServerGRIS(){
-    jackctl_server_stop(this->server);
-    jackctl_server_close(this->server);
-    jackctl_server_destroy(this->server);
+    if (this->server != nullptr) {
+        jackctl_server_stop(this->server);
+        jackctl_server_close(this->server);
+        jackctl_server_destroy(this->server);
+    }
 }

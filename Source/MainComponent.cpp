@@ -288,7 +288,17 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     this->samplingRate = RateValue;
 
     // Start Jack Server and client.
-    this->jackServer = new jackServerGRIS(RateValue, BufferValue);
+    int errorCode = 0;
+    this->jackServer = new jackServerGRIS(RateValue, BufferValue, &errorCode);
+    if (errorCode > 0) {
+        String msg;
+        if (errorCode == 1) { msg = "Failed to create Jack server..."; }
+        else if (errorCode == 2) { msg = "Failed to open Jack server..."; }
+        else if (errorCode == 3) { msg = "Failed to start Jack server..."; }
+        AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon,
+                                         "Jack Server Failure",
+                                         msg + String("\nYou should check for any mismatch between the server and your device\n(Sampling Rate, Input/Ouput Channels, etc.)"));
+    }
     this->jackClient = new jackClientGris();
 
     unsigned int fileformat = props->getIntValue("FileFormat", 0);
