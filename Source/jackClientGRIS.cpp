@@ -1291,22 +1291,23 @@ void jackClientGris::updateClientPortAvailable(bool fromJack) {
     }
 
     unsigned int start = 1;
+    unsigned int end = 2;
+    unsigned int defaultActivePorts = 32;
     for (auto&& cli : this->listClient) {
         if (!fromJack) {
             cli.initialized = true;
+            end = cli.activePorts;
+        } else {
+            end = cli.portAvailable < defaultActivePorts ? cli.portAvailable : defaultActivePorts;
         }
-        if (String(cli.name).startsWith(String("Digital "))) {
+        if (cli.portStart == 0 || cli.portEnd == 0 || !cli.initialized) { // ports not initialized.
             cli.portStart = start;
-            cli.portEnd = start + cli.portAvailable - 1;
-            start += cli.portAvailable;
-        } else if (cli.portStart == 0 || cli.portEnd == 0 || !cli.initialized) { // ports not initialized.
-            cli.portStart = start;
-            cli.portEnd = start + cli.portAvailable - 1;
-            start += cli.portAvailable;
+            cli.portEnd = start + end - 1;
+            start += end;
         } else if ((cli.portStart >= cli.portEnd) || (cli.portEnd - cli.portStart > cli.portAvailable)) { // portStart bigger than portEnd.
             cli.portStart = start;
-            cli.portEnd = start + cli.portAvailable - 1;
-            start += cli.portAvailable;
+            cli.portEnd = start + cli.activePorts - 1;
+            start += cli.activePorts;
         } else {
             if (this->listClient.size() > 1) {
                 unsigned int pos = 0;
@@ -1339,14 +1340,15 @@ void jackClientGris::updateClientPortAvailable(bool fromJack) {
 
                 if (somethingBad) {  // ports overlap other client ports.
                     cli.portStart = start;
-                    cli.portEnd = start + cli.portAvailable - 1;
-                    start += cli.portAvailable;
+                    cli.portEnd = start + defaultActivePorts - 1;
+                    start += defaultActivePorts;
                 } else {
                     // If everything goes right, we keep portStart and portEnd for this client.
                     start = cli.portEnd + 1;
                 }
             }
         }
+        cli.activePorts = cli.portEnd - cli.portStart + 1;
         if (cli.portStart > this->inputsPort.size()) {
             //cout << "Not enough inputs, client can't connect!" << " " << cli.portStart << " " << this->inputsPort.size() << endl;
         }

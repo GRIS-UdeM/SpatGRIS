@@ -59,6 +59,7 @@ struct Client {
     unsigned int portStart     = 0;
     unsigned int portEnd       = 0;
     unsigned int portAvailable = 0;
+    unsigned int activePorts   = 0;
     bool         initialized   = false;
     bool         connected     = false;
 };
