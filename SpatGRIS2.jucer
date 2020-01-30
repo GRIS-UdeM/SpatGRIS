@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="MXmiSb" name="ServerGRIS" projectType="guiapp" version="2.0.8"
-              bundleIdentifier="com.UdeM.GRIS.ServerGRIS" includeBinaryInAppConfig="1"
+<JUCERPROJECT id="MXmiSb" name="SpatGRIS2" projectType="guiapp" version="2.0.8"
+              bundleIdentifier="com.UdeM.GRIS.SpatGRIS2" includeBinaryInAppConfig="1"
               jucerVersion="5.4.5" companyName="GRIS - UdeM">
-  <MAINGROUP id="lsxaKA" name="ServerGRIS">
+  <MAINGROUP id="lsxaKA" name="SpatGRIS2">
     <GROUP id="{6EAF4FF6-A4F0-94E9-AA8A-98D9BF95CA11}" name="Resources">
       <FILE id="HYWx0V" name="JAS.jpil" compile="0" resource="1" file="Resources/JAS.jpil"
             xcodeResource="1"/>
@@ -72,8 +72,8 @@
                smallIcon="bC6POS" bigIcon="TMAuh7" extraLinkerFlags="-F/Library/Frameworks">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" osxCompatibility="10.11 SDK" isDebug="1" optimisation="1"
-                       targetName="ServerGRIS" headerPath="../../jack&#10;../../glm"/>
-        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="ServerGRIS"
+                       targetName="SpatGRIS2" headerPath="../../jack&#10;../../glm"/>
+        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="SpatGRIS2"
                        headerPath="../../jack&#10;../../glm" osxArchitecture="Native"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
@@ -97,9 +97,9 @@
     <LINUX_MAKE targetFolder="Builds/LinuxMakefile" smallIcon="G8JPcc" bigIcon="G8JPcc"
                 extraLinkerFlags="-ljack -ljackserver -lGLU -lglut">
       <CONFIGURATIONS>
-        <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="ServerGRIS"
+        <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="SpatGRIS2"
                        libraryPath="/usr/lib/x86_64-linux-gnu"/>
-        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="ServerGRIS"
+        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="SpatGRIS2"
                        libraryPath="/usr/lib/x86_64-linux-gnu"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
@@ -124,10 +124,10 @@
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="..\..\jack&#10;..\..\glm&#10;..\..\freeglut\include"
                        libraryPath="&quot;C:\Program Files (x86)\Jack\lib&quot;&#10;..\..\freeglut\lib&#10;..\..\freeglut\bin"
-                       winArchitecture="Win32"/>
+                       winArchitecture="Win32" targetName="SpatGRIS2"/>
         <CONFIGURATION isDebug="0" name="Release" headerPath="..\..\jack&#10;..\..\glm&#10;..\..\freeglut\include"
                        libraryPath="&quot;C:\Program Files (x86)\Jack\lib&quot;&#10;..\..\freeglut\lib&#10;..\..\freeglut\bin"
-                       winArchitecture="Win32"/>
+                       winArchitecture="Win32" targetName="SpatGRIS2"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_video" path="../../juce"/>
