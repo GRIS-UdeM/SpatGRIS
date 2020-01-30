@@ -1,20 +1,20 @@
 /*
- This file is part of ServerGris.
+ This file is part of SpatGRIS2.
  
  Developers: Olivier Belanger, Nicolas Masson
  
- ServerGris is free software: you can redistribute it and/or modify
+ SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
  
- ServerGris is distributed in the hope that it will be useful,
+ SpatGRIS2 is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
  
  You should have received a copy of the GNU General Public License
- along with ServerGris.  If not, see <http://www.gnu.org/licenses/>.
+ along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "ServerGrisConstants.h"
@@ -144,12 +144,12 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     // Start the Splash screen.
     File fs = File(SplashScreenFilePath);
     if (fs.exists()) {
-        this->splash = new SplashScreen("ServerGRIS", ImageFileFormat::loadFrom(fs), true);
+        this->splash = new SplashScreen("SpatGRIS2", ImageFileFormat::loadFrom(fs), true);
     }
     
     // App user settings storage file.
     PropertiesFile::Options options;
-    options.applicationName = "ServerGRIS";
+    options.applicationName = "SpatGRIS2";
     options.commonToAllUsers = false;
     options.filenameSuffix = "xml";
     options.folderName = "GRIS";
@@ -703,7 +703,7 @@ void MainContentComponent::handleShowOscLogView() {
 
 void MainContentComponent::handleShowAbout() {
     if (this->aboutWindow == nullptr) {
-        this->aboutWindow = new AboutWindow("About ServerGRIS", this->mGrisFeel.getWinBackgroundColour(),
+        this->aboutWindow = new AboutWindow("About SpatGRIS", this->mGrisFeel.getWinBackgroundColour(),
                                             DocumentWindow::allButtons, this, &this->mGrisFeel);
     }
     this->aboutWindow->centreWithSize(400, 500);
@@ -956,11 +956,11 @@ void MainContentComponent::getCommandInfo (CommandID commandID, ApplicationComma
             result.addDefaultKeypress (';', ModifierKeys::commandModifier);
             break;
         case MainWindow::QuitID:
-            result.setInfo ("Quit", "Quit the ServerGris.", generalCategory, 0);
+            result.setInfo ("Quit", "Quit the SpatGRIS.", generalCategory, 0);
             result.addDefaultKeypress ('Q', ModifierKeys::commandModifier);
             break;
         case MainWindow::AboutID:
-            result.setInfo ("About ServerGRIS", "Open the about window.", generalCategory, 0);
+            result.setInfo ("About SpatGRIS", "Open the about window.", generalCategory, 0);
             break;
         case MainWindow::OpenManualID:
             result.setInfo ("Open Documentation", "Open the manual in pdf viewer.", generalCategory, 0);
@@ -1083,7 +1083,7 @@ bool MainContentComponent::exitApp() {
     int exitV = 2;
 
     if (this->isPresetModified()) {
-        AlertWindow alert ("Exit ServerGRIS !",
+        AlertWindow alert ("Exit SpatGRIS !",
                            "Do you want to save the current project ?",
                            AlertWindow::InfoIcon);
         alert.setLookAndFeel(&mGrisFeel);
@@ -1823,7 +1823,7 @@ void MainContentComponent::openXmlFileSpeaker(String path) {
 
 void MainContentComponent::setTitle() {
     String version = STRING(JUCE_APP_VERSION);
-    version = "ServerGRIS v" + version + " - ";
+    version = "SpatGRIS v" + version + " - ";
     this->parent->setName(version + File(this->pathCurrentPreset).getFileName());
 }
 
@@ -2053,8 +2053,8 @@ void MainContentComponent::saveProperties(int rate, int buff, int fileformat, in
     if (std::isnan(float(RateValue)) || RateValue == 0) { RateValue = 48000; }
 
     if (rate != RateValue || buff != BufferValue) {
-        AlertWindow alert ("You Need to Restart ServerGRIS!",
-                           "New settings will be effective on next launch of the ServerGris.", 
+        AlertWindow alert ("You Need to Restart SpatGRIS!",
+                           "New settings will be effective on next launch of the SpatGRIS.", 
                            AlertWindow::InfoIcon);
         alert.setLookAndFeel(&mGrisFeel);
         alert.addButton ("Cancel", 0);

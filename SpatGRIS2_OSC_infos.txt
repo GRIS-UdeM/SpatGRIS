@@ -1,7 +1,7 @@
-Informations OSC du ServerGRIS
-==============================
+Informations OSC du SpatGRIS2
+=============================
 
-OSC numéro de port: 18032 par défaut (peut être changé dans les préférences du ServerGRIS)
+OSC numéro de port: 18032 par défaut (peut être changé dans les préférences du SpatGRIS2)
 OSC addresse du serveur: "/spat/serv"
 
 Messages de contrôle de position des sources
