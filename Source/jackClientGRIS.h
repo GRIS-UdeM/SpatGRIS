@@ -26,7 +26,7 @@
 #include <math.h>
 #include <string.h>
 
-#if defined(WIN32) || defined(_Win64)
+#if defined(WIN32) || defined(_WIN64)
 #include <stdint.h>
 #include <mutex>
 #else

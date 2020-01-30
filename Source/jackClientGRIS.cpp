@@ -334,7 +334,7 @@ static void processVBapHRTF(jackClientGris &jackCli, jack_default_audio_sample_t
     int tmp_count;
     unsigned int f, i, o, k, ilinear;
     float sig, y, interpG = 0.99, iogain = 0.0;
-    float vbapouts[16][8192];
+    float vbapouts[16][2048];
 
     for (o = 0; o < sizeOutputs; ++o) {
         memset(outs[o], 0, sizeof(jack_default_audio_sample_t) * nframes);
