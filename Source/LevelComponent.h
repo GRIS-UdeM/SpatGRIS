@@ -37,7 +37,7 @@ public:
     LevelBox(LevelComponent* parent, SmallGrisLookAndFeel *feel);
     ~LevelBox();
     
-    void setBounds(const Rectangle<int> &newBounds);
+    void setBounds(const juce::Rectangle<int> &newBounds);
     void paint(Graphics& g);
     
 private:
@@ -73,7 +73,7 @@ public:
     void setSelected(bool value);
     void buttonClicked(Button *button) override;
     void mouseDown(const MouseEvent& e) override;
-    void setBounds(const Rectangle<int> &newBounds);
+    void setBounds(const juce::Rectangle<int> &newBounds);
     void changeListenerCallback (ChangeBroadcaster* source) override;
     void updateDirectOutMenu(vector<Speaker *> spkList);
 

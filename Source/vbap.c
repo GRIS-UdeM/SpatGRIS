@@ -10,6 +10,10 @@
 #include <math.h>
 #include "vbap.h"
 
+#ifndef M_PI
+#define M_PI    (3.14159265358979323846264338327950288)
+#endif
+
 #define PIx2 (M_PI * 2.0)
 
 static float ang_to_rad = (float)(2.0 * M_PI / 360.0);
@@ -306,7 +310,7 @@ static void spreadit(float azi, float spread, VBAP_DATA *data) {
 	CART_VEC spreadbase[16];
 	int i, spreaddirnum = 16;
     int cnt = data->ls_am;
-    float tmp_gains[cnt];
+    float tmp_gains[MAX_LS_AMOUNT];
     for (i=0; i<cnt; i++) {
         tmp_gains[i] = 0.0;
     }
@@ -371,7 +375,7 @@ static void spreadit_azi_ele(float azi, float ele, float sp_azi,
 	ANG_VEC spreadang;
 	CART_VEC spreadcart;
     int cnt = data->ls_am;
-    float tmp_gains[cnt];
+    float tmp_gains[MAX_LS_AMOUNT];
     for (i=0; i<cnt; i++) {
         tmp_gains[i] = 0.0;
     }
@@ -468,7 +472,7 @@ static void spreadit_azi_ele_flip_y_z(float azi, float ele, float sp_azi,
 	ANG_VEC spreadang;
 	CART_VEC spreadcart;
     int cnt = data->ls_am;
-    float tmp_gains[cnt];
+    float tmp_gains[MAX_LS_AMOUNT];
     for (i=0; i<cnt; i++) {
         tmp_gains[i] = 0.0;
     }
@@ -567,7 +571,7 @@ static void spreadit_azi(float azi, float sp_azi, VBAP_DATA *data) {
 	ANG_VEC spreadang;
 	CART_VEC spreadcart;
     int cnt = data->ls_am;
-    float tmp_gains[cnt];
+    float tmp_gains[MAX_LS_AMOUNT];
     for (i=0; i<cnt; i++) {
         tmp_gains[i] = 0.0;
     }
@@ -615,7 +619,7 @@ static void spreadit_azi_flip_y_z(float azi, float sp_azi, VBAP_DATA *data) {
 	ANG_VEC spreadang;
 	CART_VEC spreadcart;
     int cnt = data->ls_am;
-    float tmp_gains[cnt];
+    float tmp_gains[MAX_LS_AMOUNT];
     for (i=0; i<cnt; i++) {
         tmp_gains[i] = 0.0;
     }

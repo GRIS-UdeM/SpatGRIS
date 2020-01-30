@@ -3,6 +3,10 @@
 #include <math.h>
 #include "lbap.h"
 
+#ifndef M_PI
+#define M_PI    (3.14159265358979323846264338327950288)
+#endif
+
 /* =================================================================================
 Opaque data type declarations.
 ================================================================================= */
@@ -315,7 +319,7 @@ void
 lbap_field_compute(lbap_field *field, lbap_pos *pos, float *gains) {
     int i, j, c;
     float frac = 0.0, gain = 0.0, elespan = 0.0;
-    float gns[field->num_of_speakers];
+    float gns[LBAP_MAX_NUMBER_OF_SPEAKERS];
 
     if (field->layers == NULL) {
         return;

@@ -487,7 +487,7 @@ bool compareGreaterThan(const Sorter &a, const Sorter &b) {
 
 void WindowEditSpeaker::sortOrderChanged(int newSortColumnId, bool isForwards) {
     int size = (int)this->mainParent->getListSpeaker().size();
-    struct Sorter tosort[size];
+    struct Sorter tosort[MaxOutputs];
 
     for (int i = 0; i < size; i++) {
         tosort[i].id = this->mainParent->getListSpeaker()[i]->getIdSpeaker();

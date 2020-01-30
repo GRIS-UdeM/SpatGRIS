@@ -334,7 +334,7 @@ static void processVBapHRTF(jackClientGris &jackCli, jack_default_audio_sample_t
     int tmp_count;
     unsigned int f, i, o, k, ilinear;
     float sig, y, interpG = 0.99, iogain = 0.0;
-    float vbapouts[16][nframes];
+    float vbapouts[16][8192];
 
     for (o = 0; o < sizeOutputs; ++o) {
         memset(outs[o], 0, sizeof(jack_default_audio_sample_t) * nframes);
@@ -486,8 +486,8 @@ static int process_audio(jack_nframes_t nframes, void *arg) {
     const unsigned int sizeInputs = (unsigned int)jackCli->inputsPort.size();
     const unsigned int sizeOutputs = (unsigned int)jackCli->outputsPort.size();
     
-    jack_default_audio_sample_t *ins[sizeInputs];
-    jack_default_audio_sample_t *outs[sizeOutputs];
+    jack_default_audio_sample_t *ins[MaxInputs];
+    jack_default_audio_sample_t *outs[MaxOutputs];
     
     for (unsigned int i = 0; i < sizeInputs; i++) {
         ins[i] = (jack_default_audio_sample_t *)jack_port_get_buffer(jackCli->inputsPort[i], nframes);
@@ -594,7 +594,7 @@ void client_registration_callback(const char *name, int regist, void *arg) {
 }
 
 void port_registration_callback(jack_port_id_t a, int regist, void *arg) {
-    jack_client_log("Jack port : %" PRIu32 " : " , a);
+    jack_client_log("Jack port : % : " , a);
     if (regist) {
         jack_client_log("registered\n");
     } else {
@@ -621,7 +621,7 @@ void port_connect_callback(jack_port_id_t a, jack_port_id_t b, int connect, void
     } else {
         jack_client_log("Disconnect ");
     }
-    jack_client_log("%" PRIu32 " <> %" PRIu32 "\n", a, b);
+    jack_client_log("% <> % \n", a, b);
 }
 
 // Load samples from a wav file into a float array.
@@ -748,7 +748,7 @@ jackClientGris::jackClientGris() {
     this->maxOutputPatch = 0;
 
     //open a client connection to the JACK server. Start server if it is not running.
-    jack_options_t options = JackUseExactName;
+    jack_options_t options = JackNullOption;
     jack_status_t status;
     
     jack_client_log("\nStart Jack Client\n");
@@ -787,8 +787,8 @@ jackClientGris::jackClientGris() {
     sampleRate = jack_get_sample_rate(this->client);
     bufferSize = jack_get_buffer_size(this->client);
     
-    jack_client_log("\nJack engine sample rate: %" PRIu32 "\n", sampleRate);
-    jack_client_log("Jack engine buffer size: %" PRIu32 "\n", bufferSize);
+    jack_client_log("\nJack engine sample rate: % \n", sampleRate);
+    jack_client_log("Jack engine buffer size: % \n", bufferSize);
 
     // Initialize pink noise
     srand((unsigned int)time(NULL));
@@ -1052,10 +1052,10 @@ bool jackClientGris::lbapSetupSpeakerField(vector<Speaker *>  listSpk) {
         return false;
     }
 
-    float azimuth[listSpk.size()];
-    float elevation[listSpk.size()];
-    float radius[listSpk.size()];
-    int outputPatch[listSpk.size()];
+    float azimuth[MaxOutputs];
+    float elevation[MaxOutputs];
+    float radius[MaxOutputs];
+    int outputPatch[MaxOutputs];
 
     for (unsigned int i = 0; i < listSpk.size(); i++) {
         for (j = 0; j < MAX_LS_AMOUNT; j++) {

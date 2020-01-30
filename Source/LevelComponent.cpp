@@ -28,7 +28,7 @@ LevelBox::LevelBox(LevelComponent * parent, SmallGrisLookAndFeel *feel) : mainPa
 
 LevelBox::~LevelBox() {}
 
-void LevelBox::setBounds(const Rectangle<int> &newBounds) {
+void LevelBox::setBounds(const juce::Rectangle<int> &newBounds) {
     // LevelBox size is (22, 140)
     this->juce::Component::setBounds(newBounds);
 
@@ -284,7 +284,7 @@ void LevelComponent::setSelected(bool value) {
     }
 }
 
-void LevelComponent::setBounds(const Rectangle<int> &newBounds) {
+void LevelComponent::setBounds(const juce::Rectangle<int> &newBounds) {
     int levelSize = 140;
 
     this->juce::Component::setBounds(newBounds);

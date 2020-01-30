@@ -238,7 +238,7 @@ public:
     ApplicationProperties applicationProperties;
     int oscInputPort = 18032;
     unsigned int samplingRate = 48000;
-    Rectangle<int> winControlRect;
+    juce::Rectangle<int> winControlRect;
 
     // Visual flags.
     bool isSourceLevelShown;

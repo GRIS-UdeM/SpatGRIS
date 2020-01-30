@@ -69,9 +69,13 @@ void SpeakerViewComponent::render() {
         
         glEnable(GL_POINT_SMOOTH);
         glHint(GL_POINT_SMOOTH, GL_NICEST);
-        
+
+#if defined(WIN32) || defined(_WIN64)
+
+#else
         glEnable(GL_MULTISAMPLE_ARB);
         glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
+#endif
     }
     
     this->drawBackground();
@@ -103,7 +107,7 @@ void SpeakerViewComponent::render() {
             if (this->showNumber && input->getGain() != -1.0) {
                 glm::vec3 posT = input->getCenter();
                 posT.y += SizeSpeaker.y + 0.4f;
-                this->drawText(to_string(input->getId()), posT, input->getNumberColor(), 0.003f, true, input->getAlpha());
+                this->drawText(std::to_string(input->getId()), posT, input->getNumberColor(), 0.003f, true, input->getAlpha());
             }
         }
         //this->mainParent->getLockInputs()->unlock();
@@ -116,7 +120,7 @@ void SpeakerViewComponent::render() {
                 if (this->showNumber) {
                     glm::vec3 posT = this->mainParent->getListSpeaker()[i]->getCenter();
                     posT.y += SizeSpeaker.y + 0.4f;
-                    this->drawText(to_string(this->mainParent->getListSpeaker()[i]->getOutputPatch()),
+                    this->drawText(std::to_string(this->mainParent->getListSpeaker()[i]->getOutputPatch()),
                                    posT, glm::vec3(0, 0, 0), 0.003f);
                 }
             }

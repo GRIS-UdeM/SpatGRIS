@@ -241,7 +241,7 @@ public:
     
     void drawTickBox (Graphics& g, Component& component, float x, float y, float w, float h, bool ticked, bool isEnabled, bool isMouseOverButton, bool isButtonDown) override {
         const float boxSize = w * 0.8f;
-        const Rectangle<float> r (x, y + (h - boxSize) * 0.5f, boxSize, boxSize);
+        const juce::Rectangle<float> r (x, y + (h - boxSize) * 0.5f, boxSize, boxSize);
 
         if (ticked) {
             Colour colour = this->onColor;
@@ -283,7 +283,7 @@ public:
             kx = sliderPos;
             ky = y + height * 0.5f;
         }
-        const Rectangle<float> r (kx - (sliderRadius/2.0f), ky- sliderRadius , 6, height*2.0f);
+        const juce::Rectangle<float> r (kx - (sliderRadius/2.0f), ky- sliderRadius , 6, height*2.0f);
 
         if(slider.isEnabled()){
             Colour colour = this->onColor;
@@ -400,7 +400,7 @@ public:
     }
     
     void drawTabButton (TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown) override{
-        const Rectangle<int> activeArea (button.getActiveArea());
+        const juce::Rectangle<int> activeArea (button.getActiveArea());
         activeArea.withHeight(18);
         const TabbedButtonBar::Orientation o = button.getTabbedButtonBar().getOrientation();
         const Colour bkg (button.getTabBackgroundColour());
@@ -418,14 +418,14 @@ public:
         
         g.setColour (this->winBackGroundAndFieldColour);
         
-        Rectangle<int> r (activeArea);
+        juce::Rectangle<int> r (activeArea);
         if (o != TabbedButtonBar::TabsAtTop)      g.fillRect (r.removeFromBottom (1));
             if (o != TabbedButtonBar::TabsAtRight)    g.fillRect (r.removeFromLeft (1));
                 if (o != TabbedButtonBar::TabsAtLeft)     g.fillRect (r.removeFromRight (1));
         
         const float alpha = button.isEnabled() ? ((isMouseOver || isMouseDown) ? 1.0f : 0.8f) : 0.3f;
         Colour col = (bkg.contrasting().withMultipliedAlpha (alpha));
-        const Rectangle<float> area (button.getTextArea().toFloat());
+        const juce::Rectangle<float> area (button.getTextArea().toFloat());
         
         float length = area.getWidth();
         float depth  = area.getHeight();
@@ -435,9 +435,9 @@ public:
             
         TextLayout textLayout;
         createTabTextLayout (button, length, depth, col, textLayout);
-        textLayout.draw (g, Rectangle<float> (length, depth));
+        textLayout.draw (g, juce::Rectangle<float> (length, depth));
         /*
-        Rectangle<int> activeArea (button.getActiveArea());
+        juce::Rectangle<int> activeArea (button.getActiveArea());
 
         //const TabbedButtonBar::Orientation o = button.getTabbedButtonBar().getOrientation();
         const Colour bkg (button.getTabBackgroundColour());
@@ -454,12 +454,12 @@ public:
         g.fillRect (activeArea);
         g.setColour (this->winBackGroundAndFieldColour);
         
-        Rectangle<int> r (activeArea);
+        juce::Rectangle<int> r (activeArea);
         const float alpha = button.isEnabled() ? ((isMouseOver || isMouseDown) ? 1.0f : 0.8f) : 0.3f;
         Colour col = (bkg.contrasting().withMultipliedAlpha (alpha));
         
        
-        const Rectangle<float> area (button.getTextArea().toFloat());
+        const juce::Rectangle<float> area (button.getTextArea().toFloat());
         
         float length = area.getWidth();
         float depth  = area.getHeight();
@@ -472,7 +472,7 @@ public:
         
         AffineTransform t;
         g.addTransform (t);
-        textLayout.draw (g, Rectangle<float> (length, depth));*/
+        textLayout.draw (g, juce::Rectangle<float> (length, depth));*/
     }
     
     void createTabTextLayout (const TabBarButton& button, float length, float depth, Colour colour, TextLayout& textLayout)
@@ -497,7 +497,7 @@ public:
     
 //    void drawTabButtonText (TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown) override
 //    {
-//        const Rectangle<float> area (button.getTextArea().toFloat());
+//        const juce::Rectangle<float> area (button.getTextArea().toFloat());
 //        
 //        float length = area.getWidth();
 //        float depth  = area.getHeight();

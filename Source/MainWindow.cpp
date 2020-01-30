@@ -44,7 +44,7 @@ MainWindow::MainWindow(String name) : DocumentWindow(name, Colours::lightgrey,
     int yOffset = 0;
 #endif
 
-    Rectangle<int> totalScreen = Desktop::getInstance().getDisplays().getTotalBounds(true);
+    juce::Rectangle<int> totalScreen = Desktop::getInstance().getDisplays().getTotalBounds(true);
 
     if (props->containsKey("xPosition")) {
         bool fitInside = (props->getIntValue("xPosition") + props->getIntValue("winWidth")) <= totalScreen.getWidth();

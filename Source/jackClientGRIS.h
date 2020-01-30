@@ -25,7 +25,13 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
+
+#if defined(WIN32) || defined(_Win64)
+#include <stdint.h>
+#include <mutex>
+#else
 #include <unistd.h>
+#endif
 
 #ifdef __linux__
 #include <mutex>

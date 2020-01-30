@@ -30,6 +30,7 @@
 extern "C" {
 #endif
 
+#define LBAP_MAX_NUMBER_OF_SPEAKERS 256
 #define LBAP_MATRIX_SIZE 64
 
 /* Opaque data types. */

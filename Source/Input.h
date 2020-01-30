@@ -23,7 +23,12 @@
 #include <stdio.h>
 #include <iostream>
 
-#ifdef __linux__
+#if defined(__linux__)
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include <GL/glut.h>
+#elif defined(WIN32) || defined(_WIN64)
+#include <windows.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glut.h>

@@ -23,7 +23,12 @@
 #include <stdio.h>
 #include <iostream>
 
-#ifdef __linux__
+#if defined(__linux__)
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include <GL/glut.h>
+#elif defined(WIN32) || defined(_WIN64)
+#include <windows.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glut.h>
@@ -83,7 +88,7 @@ public:
     LevelComponent * getVuMeter() { return this->vuMeter; }
 
     // Normalized for user
-    void setBounds(const Rectangle<int> &newBounds);
+    void setBounds(const juce::Rectangle<int> &newBounds);
     void setSpeakerId(int id) { this->idSpeaker = id; };
     int getIdSpeaker() const;
     glm::vec3 getCoordinate();
