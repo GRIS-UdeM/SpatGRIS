@@ -72,8 +72,8 @@
                smallIcon="bC6POS" bigIcon="TMAuh7" extraLinkerFlags="-F/Library/Frameworks">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" osxCompatibility="10.11 SDK" isDebug="1" optimisation="1"
-                       targetName="SpatGRIS2" headerPath="../../jack&#10;../../glm"/>
-        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="SpatGRIS2"
+                       targetName="SpatGRIS" headerPath="../../jack&#10;../../glm"/>
+        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="SpatGRIS"
                        headerPath="../../jack&#10;../../glm" osxArchitecture="Native"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
@@ -97,9 +97,9 @@
     <LINUX_MAKE targetFolder="Builds/LinuxMakefile" smallIcon="G8JPcc" bigIcon="G8JPcc"
                 extraLinkerFlags="-ljack -ljackserver -lGLU -lglut">
       <CONFIGURATIONS>
-        <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="SpatGRIS2"
+        <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="SpatGRIS"
                        libraryPath="/usr/lib/x86_64-linux-gnu"/>
-        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="SpatGRIS2"
+        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="SpatGRIS"
                        libraryPath="/usr/lib/x86_64-linux-gnu"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
@@ -124,10 +124,10 @@
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="..\..\jack&#10;..\..\glm&#10;..\..\freeglut\include"
                        libraryPath="&quot;C:\Program Files (x86)\Jack\lib&quot;&#10;..\..\freeglut\lib&#10;..\..\freeglut\bin"
-                       winArchitecture="Win32" targetName="SpatGRIS2"/>
+                       winArchitecture="Win32" targetName="SpatGRIS"/>
         <CONFIGURATION isDebug="0" name="Release" headerPath="..\..\jack&#10;..\..\glm&#10;..\..\freeglut\include"
                        libraryPath="&quot;C:\Program Files (x86)\Jack\lib&quot;&#10;..\..\freeglut\lib&#10;..\..\freeglut\bin"
-                       winArchitecture="Win32" targetName="SpatGRIS2"/>
+                       winArchitecture="Win32" targetName="SpatGRIS"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_video" path="../../juce"/>
