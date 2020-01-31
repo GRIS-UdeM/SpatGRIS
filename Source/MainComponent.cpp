@@ -1688,7 +1688,7 @@ void MainContentComponent::openXmlFileSpeaker(String path) {
                            "Can't found file " + path.toStdString() + ", the current setup will be kept.", 
                            AlertWindow::WarningIcon);
         alert.setLookAndFeel(&mGrisFeel);
-        alert.addButton ("Ok", 0), KeyPress(KeyPress::returnKey);
+        alert.addButton ("Ok", 0, KeyPress(KeyPress::returnKey));
         alert.runModalLoop();
     } else {
         this->pathCurrentFileSpeaker = path.toStdString();

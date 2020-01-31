@@ -38,9 +38,9 @@ public:
     ~LevelBox();
     
     void setBounds(const juce::Rectangle<int> &newBounds);
-    void paint(Graphics& g);
+    void paint(Graphics& g) override;
     void mouseDown(const MouseEvent& e) override;
-    
+
 private:
     LevelComponent *mainParent;
     SmallGrisLookAndFeel *grisFeel;
