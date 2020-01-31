@@ -646,14 +646,14 @@ void MainContentComponent::handleShowPreferences() {
         unsigned int RateValue = props->getIntValue("RateValue", 48000);
         unsigned int FileFormat = props->getIntValue("FileFormat", 0);
         unsigned int FileConfig = props->getIntValue("FileConfig", 0);
-        unsigned int AttenuationDB = props->getIntValue("AttenuationDB", 2);
+        unsigned int AttenuationDB = props->getIntValue("AttenuationDB", 3);
         unsigned int AttenuationHz = props->getIntValue("AttenuationHz", 3);
         unsigned int OscInputPort = props->getIntValue("OscInputPort", 18032);
         if (std::isnan(float(BufferValue)) || BufferValue == 0) { BufferValue = 1024; }
         if (std::isnan(float(RateValue)) || RateValue == 0) { RateValue = 48000; }
         if (std::isnan(float(FileFormat))) { FileFormat = 0; }
         if (std::isnan(float(FileConfig))) { FileConfig = 0; }
-        if (std::isnan(float(AttenuationDB))) { AttenuationDB = 2; }
+        if (std::isnan(float(AttenuationDB))) { AttenuationDB = 3; }
         if (std::isnan(float(AttenuationHz))) { AttenuationHz = 3; }
         if (std::isnan(float(OscInputPort))) { OscInputPort = 18032; }
         this->windowProperties = new WindowProperties("Preferences", this->mGrisFeel.getWinBackgroundColour(),
