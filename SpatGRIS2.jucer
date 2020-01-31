@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="MXmiSb" name="SpatGRIS2" projectType="guiapp" version="2.0.8"
+<JUCERPROJECT id="MXmiSb" name="SpatGRIS" projectType="guiapp" version="2.0.8"
               bundleIdentifier="com.UdeM.GRIS.SpatGRIS2" includeBinaryInAppConfig="1"
               jucerVersion="5.4.5" companyName="GRIS - UdeM">
-  <MAINGROUP id="lsxaKA" name="SpatGRIS2">
+  <MAINGROUP id="lsxaKA" name="SpatGRIS">
     <GROUP id="{6EAF4FF6-A4F0-94E9-AA8A-98D9BF95CA11}" name="Resources">
       <FILE id="HYWx0V" name="JAS.jpil" compile="0" resource="1" file="Resources/JAS.jpil"
             xcodeResource="1"/>
