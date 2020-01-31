@@ -1,47 +1,47 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <installer-gui-script minSpecVersion="1">
 
-    <title>ServerGris</title>
+    <title>SpatGRIS</title>
     <options customize="both" allow-external-scripts="no"/>
     <domains enable_anywhere="true" enable_localSystem="true"/>
     <welcome file="Welcome.rtf" />
     <readme file="ReadMe.rtf" />
     <license file="License.rtf" />
 
-    <pkg-ref id="com.gris.umontreal.ca.ServerGris.app.pkg"/>
-    <pkg-ref id="com.gris.umontreal.ca.ServerGris.libs.pkg"/>
-    <pkg-ref id="com.gris.umontreal.ca.ServerGris.frameworks.pkg"/>
-    <pkg-ref id="com.gris.umontreal.ca.ServerGris.plugins.pkg"/>
+    <pkg-ref id="com.gris.umontreal.ca.SpatGRIS.app.pkg"/>
+    <pkg-ref id="com.gris.umontreal.ca.SpatGRIS.libs.pkg"/>
+    <pkg-ref id="com.gris.umontreal.ca.SpatGRIS.frameworks.pkg"/>
+    <pkg-ref id="com.gris.umontreal.ca.SpatGRIS.plugins.pkg"/>
     <choices-outline>
-        <line choice="com.gris.umontreal.ca.ServerGris.app.pkg"/>
-        <line choice="com.gris.umontreal.ca.ServerGris.libs.pkg"/>
-        <line choice="com.gris.umontreal.ca.ServerGris.frameworks.pkg"/>
-        <line choice="com.gris.umontreal.ca.ServerGris.plugins.pkg"/>
+        <line choice="com.gris.umontreal.ca.SpatGRIS.app.pkg"/>
+        <line choice="com.gris.umontreal.ca.SpatGRIS.libs.pkg"/>
+        <line choice="com.gris.umontreal.ca.SpatGRIS.frameworks.pkg"/>
+        <line choice="com.gris.umontreal.ca.SpatGRIS.plugins.pkg"/>
     </choices-outline>
     
-    <choice id="com.gris.umontreal.ca.ServerGris.app.pkg"
+    <choice id="com.gris.umontreal.ca.SpatGRIS.app.pkg"
     visible="true"
-    title="ServerGris">
-        <pkg-ref id="com.gris.umontreal.ca.ServerGris.app.pkg"/>
+    title="SpatGRIS">
+        <pkg-ref id="com.gris.umontreal.ca.SpatGRIS.app.pkg"/>
     </choice>
-    <choice id="com.gris.umontreal.ca.ServerGris.libs.pkg"
+    <choice id="com.gris.umontreal.ca.SpatGRIS.libs.pkg"
     visible="true"
     title="Support Libraries">
-        <pkg-ref id="com.gris.umontreal.ca.ServerGris.libs.pkg"/>
+        <pkg-ref id="com.gris.umontreal.ca.SpatGRIS.libs.pkg"/>
     </choice>
-    <choice id="com.gris.umontreal.ca.ServerGris.frameworks.pkg"
+    <choice id="com.gris.umontreal.ca.SpatGRIS.frameworks.pkg"
     visible="true"
     title="Frameworks">
-        <pkg-ref id="com.gris.umontreal.ca.ServerGris.frameworks.pkg"/>
+        <pkg-ref id="com.gris.umontreal.ca.SpatGRIS.frameworks.pkg"/>
     </choice>
-    <choice id="com.gris.umontreal.ca.ServerGris.plugins.pkg"
+    <choice id="com.gris.umontreal.ca.SpatGRIS.plugins.pkg"
     visible="true"
     title="Plugins">
-        <pkg-ref id="com.gris.umontreal.ca.ServerGris.plugins.pkg"/>
+        <pkg-ref id="com.gris.umontreal.ca.SpatGRIS.plugins.pkg"/>
     </choice>
     
-<pkg-ref id="com.gris.umontreal.ca.ServerGris.app.pkg" version="1" onConclusion="none" auth="root">Application.pkg</pkg-ref>
-<pkg-ref id="com.gris.umontreal.ca.ServerGris.libs.pkg" version="1" onConclusion="none" auth="root">SupportLibs.pkg</pkg-ref>
-<pkg-ref id="com.gris.umontreal.ca.ServerGris.frameworks.pkg" version="1" onConclusion="none" auth="root">Frameworks.pkg</pkg-ref>
-<pkg-ref id="com.gris.umontreal.ca.ServerGris.plugins.pkg" version="1" onConclusion="none" auth="root">Plugins.pkg</pkg-ref>
+<pkg-ref id="com.gris.umontreal.ca.SpatGRIS.app.pkg" version="1" onConclusion="none" auth="root">Application.pkg</pkg-ref>
+<pkg-ref id="com.gris.umontreal.ca.SpatGRIS.libs.pkg" version="1" onConclusion="none" auth="root">SupportLibs.pkg</pkg-ref>
+<pkg-ref id="com.gris.umontreal.ca.SpatGRIS.frameworks.pkg" version="1" onConclusion="none" auth="root">Frameworks.pkg</pkg-ref>
+<pkg-ref id="com.gris.umontreal.ca.SpatGRIS.plugins.pkg" version="1" onConclusion="none" auth="root">Plugins.pkg</pkg-ref>
 </installer-gui-script>
