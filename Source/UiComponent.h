@@ -145,6 +145,7 @@ public:
     void resized() override;
 
     int getModeSelected();
+    bool getDirectOutForSpeakerRow(int row);
 
     String getText(const int columnNumber, const int rowNumber) const;
     void setText(const int columnNumber, const int rowNumber, const String& newText, bool altDown=false);
@@ -210,9 +211,17 @@ private:
             if (event.mods.isShiftDown() || event.mods.isCtrlDown() || event.mods.isCommandDown()) {
                 return;
             }
-            if (columnId <= 4 && owner.getModeSelected() != LBAP) {
-                return;
+
+            if (owner.getModeSelected() == LBAP || owner.getDirectOutForSpeakerRow(row)) {
+                if (columnId < 2) {
+                    return;
+                }
+            } else {
+                if (columnId < 5) {
+                    return;
+                }
             }
+
             bool ok = false;
             int offset = event.getDistanceFromDragStartY();
             float val = getText().getFloatValue();

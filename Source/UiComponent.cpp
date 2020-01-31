@@ -793,7 +793,7 @@ void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, con
         if (this->mainParent->getListSpeaker().size() > (unsigned int)rowNumber) {
             glm::vec3 newP;
             switch (columnNumber) {
-                case 2:
+                case 2: // X
                     newP = this->mainParent->getListSpeaker()[rowNumber]->getCoordinate();
                     val = GetFloatPrecision(newText.getFloatValue(), 3);
                     diff = val - newP.x;
@@ -815,7 +815,7 @@ void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, con
                         }
                     }
                     break;
-                case 3:
+                case 3: // Y
                     newP = this->mainParent->getListSpeaker()[rowNumber]->getCoordinate();
                     val = GetFloatPrecision(newText.getFloatValue(), 3);
                     diff = val - newP.z;
@@ -837,7 +837,7 @@ void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, con
                         }
                     }
                     break;
-                case 4:
+                case 4: // Z
                     newP = this->mainParent->getListSpeaker()[rowNumber]->getCoordinate();
                     val = GetFloatPrecision(newText.getFloatValue(), 3);
                     diff = val - newP.y;
@@ -861,7 +861,7 @@ void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, con
                         }
                     }
                     break;
-                case 5:
+                case 5: // Azimuth
                     newP = this->mainParent->getListSpeaker()[rowNumber]->getAziZenRad();
                     val = GetFloatPrecision(newText.getFloatValue(), 3);
                     diff = val - newP.x;
@@ -887,7 +887,7 @@ void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, con
                         }
                     }
                     break;
-                case 6:
+                case 6: // Elevation
                     newP = this->mainParent->getListSpeaker()[rowNumber]->getAziZenRad();
                     val = GetFloatPrecision(newText.getFloatValue(), 3);
                     diff = val - newP.y;
@@ -913,7 +913,7 @@ void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, con
                         }
                     }
                     break;
-                case 7:
+                case 7: // Distance
                     newP = this->mainParent->getListSpeaker()[rowNumber]->getAziZenRad();
                     if (this->mainParent->isRadiusNormalized() && !this->mainParent->getListSpeaker()[rowNumber]->getDirectOut()) {
                         val = 1.0;
@@ -943,7 +943,7 @@ void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, con
                         }
                     }
                     break;
-                case 8:
+                case 8: // Output patch
                     this->mainParent->setShowTriplets(false);
                     oldval = this->mainParent->getListSpeaker()[rowNumber]->getOutputPatch();
                     ival = newText.getIntValue();
@@ -967,7 +967,7 @@ void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, con
                     }
                     this->mainParent->getListSpeaker()[rowNumber]->setOutputPatch(ival);
                     break;
-                case 9:
+                case 9: // Gain
                     val = newText.getFloatValue();
                     diff = val - this->mainParent->getListSpeaker()[rowNumber]->getGain();
                     if (val < -18.0f) { val = -18.0f; }
@@ -990,7 +990,7 @@ void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, con
                         }
                     }
                     break;
-                case 10:
+                case 10: // Filter Cutoff
                     val = newText.getFloatValue();
                     diff = val - this->mainParent->getListSpeaker()[rowNumber]->getHighPassCutoff();
                     if (val < 0.0f) { val = 0.0f; }
@@ -1013,7 +1013,7 @@ void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, con
                         }
                     }
                     break;
-                case 11:
+                case 11: // Direct Out
                     this->mainParent->setShowTriplets(false);
                     this->mainParent->getListSpeaker()[rowNumber]->setDirectOut(newText.getIntValue());
                     break;
@@ -1100,7 +1100,7 @@ Component * WindowEditSpeaker::refreshComponentForCell(int rowNumber, int column
 
     textLabel->setRowAndColumn(rowNumber, columnId);
 
-    if (this->mainParent->getModeSelected() == LBAP) {
+    if (this->mainParent->getModeSelected() == LBAP || this->mainParent->getListSpeaker()[rowNumber]->getDirectOut()) {
         if (columnId < 2) {
             textLabel->setEditable(false);
         }
@@ -1115,6 +1115,10 @@ Component * WindowEditSpeaker::refreshComponentForCell(int rowNumber, int column
 
 int WindowEditSpeaker::getModeSelected() {
     return this->mainParent->getModeSelected();
+}
+
+bool WindowEditSpeaker::getDirectOutForSpeakerRow(int row) {
+    return this->mainParent->getListSpeaker()[row]->getDirectOut();
 }
 
 // ============================ WindowProperties ===========================
