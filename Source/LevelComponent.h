@@ -39,6 +39,7 @@ public:
     
     void setBounds(const juce::Rectangle<int> &newBounds);
     void paint(Graphics& g);
+    void mouseDown(const MouseEvent& e) override;
     
 private:
     LevelComponent *mainParent;
@@ -47,6 +48,7 @@ private:
     Image vumeterBit;
     Image vumeterBackBit;
     Image vumeterMutedBit;
+    bool isClipping = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LevelBox)
 };

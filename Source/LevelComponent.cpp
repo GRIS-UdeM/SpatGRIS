@@ -32,9 +32,8 @@ void LevelBox::setBounds(const juce::Rectangle<int> &newBounds) {
     // LevelBox size is (22, 140)
     this->juce::Component::setBounds(newBounds);
 
-    colorGrad = ColourGradient(Colours::red, 0.f, 0.f,
-                               Colour::fromRGB(17, 255, 159),
-                               0.f, getHeight(), false);
+    colorGrad = ColourGradient(Colour::fromRGB(255, 94, 69), 0.f, 0.f,
+                               Colour::fromRGB(17, 255, 159), 0.f, getHeight(), false);
     colorGrad.addColour(0.1, Colours::yellow);
 
     // Create vu-meter foreground image.
@@ -85,6 +84,7 @@ void LevelBox::paint(Graphics& g) {
         if (level < MinLevelComp) {
             level = MinLevelComp;
         } else if (level > MaxLevelComp) {
+            isClipping = true;
             level = MaxLevelComp;
         }
 
@@ -92,6 +92,19 @@ void LevelBox::paint(Graphics& g) {
         int rel = 140 - h;
         g.drawImage(this->vumeterBit, 0, h, 22, rel, 0, h, 22, rel);
         g.drawImage(this->vumeterBackBit, 0, 0, 22, h, 0, 0, 22, h);
+        if (isClipping) {
+            g.setColour(Colour::fromHSV(0.0, 1, 0.75, 1));
+            juce::Rectangle<float> clipRect (0.5, 0.5, getWidth()-1, 5);
+            g.fillRect(clipRect);
+        }
+    }
+}
+
+void LevelBox::mouseDown(const MouseEvent& e) {
+    juce::Rectangle<int> hitBox (0, 0, getWidth(), 20);
+    if (hitBox.contains(e.getPosition())) {
+        isClipping = false;
+        repaint();
     }
 }
 
