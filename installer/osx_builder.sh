@@ -3,15 +3,15 @@
 # Developer: Olivier Belanger
 
 # To build the installer for OSX, install JackOSX.0.92_b3.pkg,
-# compile ServerGris in Release mode
+# compile SpatGRIS in Release mode
 # and run this shell script from the installer folder.
 
-export PACKAGE_NAME=ServerGris_v2.0.8.pkg
-export DMG_DIR="ServerGris v2.0.8"
-export DMG_NAME="ServerGris_v2.0.8.dmg"
+export PACKAGE_NAME=SpatGRIS_v2.0.9.pkg
+export DMG_DIR="SpatGRIS v2.0.9"
+export DMG_NAME="SpatGRIS_v2.0.9.dmg"
 
 # Replace app icon with a better version
-cp ../Resources/Icon.icns ../Builds/MacOSX/build/Release/ServerGris.app/Contents/Resources/Icon.icns
+cp ../Resources/Icon.icns ../Builds/MacOSX/build/Release/SpatGRIS.app/Contents/Resources/Icon.icns
 
 export INSTALLER_DIR=`pwd`/installerdir
 export APPLICATIONS_DIR=$INSTALLER_DIR/Application/Package_Contents/Applications
@@ -41,7 +41,7 @@ cp $PKG_RESOURCES/Welcome.rtf $BUILD_RESOURCES/Welcome.rtf
 cp $PKG_RESOURCES/ReadMe.rtf $BUILD_RESOURCES/ReadMe.rtf
 
 echo "copying application..."
-cp -r ../Builds/MacOSX/build/Release/ServerGris.app $APPLICATIONS_DIR/
+cp -r ../Builds/MacOSX/build/Release/SpatGRIS.app $APPLICATIONS_DIR/
 cp -r /Applications/Jack $APPLICATIONS_DIR/
 
 echo "copying support libs..."
@@ -92,24 +92,24 @@ sudo chown -R root SupportLibs/Package_Contents/usr
 sudo chmod -R 755 SupportLibs/Package_Contents/usr
 
 echo "building packages..."
-pkgbuild    --identifier com.gris.umontreal.ca.ServerGris.app.pkg \
+pkgbuild    --identifier com.gris.umontreal.ca.SpatGRIS.app.pkg \
             --root Application/Package_Contents/ \
             --version 1.0 \
             --scripts $PKG_RESOURCES \
             --component-plist ../Application.plist \
             Application.pkg
 
-pkgbuild    --identifier com.gris.umontreal.ca.ServerGris.libs.pkg \
+pkgbuild    --identifier com.gris.umontreal.ca.SpatGRIS.libs.pkg \
             --root SupportLibs/Package_Contents/ \
             --version 1.0 \
             SupportLibs.pkg
 
-pkgbuild    --identifier com.gris.umontreal.ca.ServerGris.frameworks.pkg \
+pkgbuild    --identifier com.gris.umontreal.ca.SpatGRIS.frameworks.pkg \
             --root Frameworks/Package_Contents/ \
             --version 1.0 \
             Frameworks.pkg
 
-pkgbuild    --identifier com.gris.umontreal.ca.ServerGris.plugins.pkg \
+pkgbuild    --identifier com.gris.umontreal.ca.SpatGRIS.plugins.pkg \
             --root Plugins/Package_Contents/ \
             --version 1.0 \
             Plugins.pkg
