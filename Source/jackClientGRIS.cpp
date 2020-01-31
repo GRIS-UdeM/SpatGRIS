@@ -234,7 +234,7 @@ static void processLBAP(jackClientGris &jackCli, jack_default_audio_sample_t **i
     float y, gain, distance, distgain , distcoef, interpG = 0.99;
     lbap_pos pos;
 
-    float filteredInputSignal[nframes];
+    float filteredInputSignal[2048];
     memset(filteredInputSignal, 0, sizeof(float) * nframes);
 
     if (jackCli.interMaster == 0.0) {

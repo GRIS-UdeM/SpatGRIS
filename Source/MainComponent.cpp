@@ -54,7 +54,7 @@ public:
         }
 
         formatManager.registerBasicFormats();
-        AudioFormatReader *readers[numberOfChannels];
+        AudioFormatReader *readers[MaxOutputs];
         for (int i = 0; i < numberOfChannels; i++) {
             readers[i] = formatManager.createReaderFor(filenames[i]);
         }
