@@ -88,7 +88,7 @@ static void muteSoloVuMeterGainOut(jackClientGris &jackCli, jack_default_audio_s
         // Speaker independent gain.
         gain = jackCli.listSpeakerOut[i].gain;
         for (unsigned int f = 0; f < nframes; ++f) {
-            outs[i][f] *= gain;
+            outs[i][f] *= gain * mGain;
         }
 
         // Speaker independent crossover filter.
@@ -114,7 +114,7 @@ static void muteSoloVuMeterGainOut(jackClientGris &jackCli, jack_default_audio_s
         // VuMeter
         float maxGain = 0.0f;
         for (unsigned int j = 1; j < nframes; j++) {
-            float absGain = fabsf(outs[i][j]) * mGain;
+            float absGain = fabsf(outs[i][j]);
             if (absGain > maxGain)
                 maxGain = absGain;
         }
