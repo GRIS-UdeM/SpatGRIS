@@ -281,8 +281,8 @@ class WindowProperties : public DocumentWindow,
 {
 public:
     WindowProperties(const String& name, Colour backgroundColour, int buttonsNeeded,
-                      MainContentComponent *parent, GrisLookAndFeel *feel, int indR=0,
-                      int indB=0, int indFF=0, int indFC=0, int indAttDB=2, int indAttHz=3,
+                      MainContentComponent *parent, GrisLookAndFeel *feel, Array<String> devices,
+                      String currentDevice, int indR=0, int indB=0, int indFF=0, int indFC=0, int indAttDB=2, int indAttHz=3,
                       int oscPort=18032);
     ~WindowProperties();
 
@@ -304,7 +304,10 @@ private:
 
     Label *labOSCInPort;
     TextEditor *tedOSCInPort;
-    
+
+    Label *labDevice;
+    ComboBox *cobDevice;
+
     Label *labRate;
     ComboBox *cobRate;
 

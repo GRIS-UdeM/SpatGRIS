@@ -289,7 +289,8 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
 
     // Start Jack Server and client.
     int errorCode = 0;
-    this->jackServer = new jackServerGRIS(RateValue, BufferValue, &errorCode);
+    alsaOutputDevice = props->getValue("AlsaOutputDevice", "");
+    this->jackServer = new jackServerGRIS(RateValue, BufferValue, alsaOutputDevice, &errorCode);
     if (errorCode > 0) {
         String msg;
         if (errorCode == 1) { msg = "Failed to create Jack server..."; }
@@ -300,6 +301,8 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
                                          msg + String("\nYou should check for any mismatch between the server and your device\n(Sampling Rate, Input/Ouput Channels, etc.)"));
     }
     this->jackClient = new jackClientGris();
+
+    alsaAvailableOutputDevices = this->jackServer->getAvailableOutputDevices();
 
     unsigned int fileformat = props->getIntValue("FileFormat", 0);
     this->jackClient->setRecordFormat(fileformat);
@@ -658,11 +661,16 @@ void MainContentComponent::handleShowPreferences() {
         if (std::isnan(float(OscInputPort))) { OscInputPort = 18032; }
         this->windowProperties = new WindowProperties("Preferences", this->mGrisFeel.getWinBackgroundColour(),
                                                      DocumentWindow::allButtons, this, &this->mGrisFeel, 
+                                                     alsaAvailableOutputDevices, alsaOutputDevice,
                                                      RateValues.indexOf(String(RateValue)), 
                                                      BufferSizes.indexOf(String(BufferValue)),
                                                      FileFormat, FileConfig, AttenuationDB, AttenuationHz, OscInputPort);
     }
-	juce::Rectangle<int> result (this->getScreenX()+ (this->speakerView->getWidth()/2)-150, this->getScreenY()+(this->speakerView->getHeight()/2)-75, 270, 420);
+    int height = 450;
+    if (alsaAvailableOutputDevices.isEmpty()) {
+        height = 420;
+    }
+    juce::Rectangle<int> result (this->getScreenX()+ (this->speakerView->getWidth()/2)-150, this->getScreenY()+(this->speakerView->getHeight()/2)-75, 270, height);
     this->windowProperties->setBounds(result);
     this->windowProperties->setResizable(false, false);
     this->windowProperties->setUsingNativeTitleBar(true);
@@ -2058,11 +2066,12 @@ void MainContentComponent::saveSpeakerSetup(String path) {
     this->setNameConfig();
 }
 
-void MainContentComponent::saveProperties(int rate, int buff, int fileformat, int fileconfig,
+void MainContentComponent::saveProperties(String device, int rate, int buff, int fileformat, int fileconfig,
                                           int attenuationDB, int attenuationHz, int oscPort) {
 
     PropertiesFile *props = this->applicationProperties.getUserSettings();
 
+    String DeviceValue = props->getValue("AlsaOutputDevice", "");
     int BufferValue = props->getIntValue("BufferValue", 1024);
     int RateValue = props->getIntValue("RateValue", 48000);
     int OscInputPort = props->getIntValue("OscInputPort", 18032);
@@ -2070,7 +2079,7 @@ void MainContentComponent::saveProperties(int rate, int buff, int fileformat, in
     if (std::isnan(float(BufferValue)) || BufferValue == 0) { BufferValue = 1024; }
     if (std::isnan(float(RateValue)) || RateValue == 0) { RateValue = 48000; }
 
-    if (rate != RateValue || buff != BufferValue) {
+    if (device.compare(DeviceValue) != 0 || rate != RateValue || buff != BufferValue) {
         AlertWindow alert ("You Need to Restart SpatGRIS!",
                            "New settings will be effective on next launch of the SpatGRIS.", 
                            AlertWindow::InfoIcon);
@@ -2078,6 +2087,7 @@ void MainContentComponent::saveProperties(int rate, int buff, int fileformat, in
         alert.addButton ("Cancel", 0);
         alert.addButton ("Ok", 1, KeyPress(KeyPress::returnKey));
         if (alert.runModalLoop() != 0) {
+            props->setValue("AlsaOutputDevice", device);
             props->setValue("BufferValue", (int)buff);
             props->setValue("RateValue", (int)rate);
         }

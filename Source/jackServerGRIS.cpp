@@ -23,6 +23,10 @@
 #include "jackServerGRIS.h"
 #include "jackClientGRIS.h"
 
+#ifdef __linux__
+#include <alsa/asoundlib.h>
+#endif
+
 static bool jack_server_log_print = false;
 
 // Jack server utilities.
@@ -126,7 +130,7 @@ static jackctl_internal_t * jackctl_server_get_internal(jackctl_server_t *server
 
 // Jack server class definition.
 
-jackServerGRIS::jackServerGRIS(unsigned int rateV, unsigned int periodV, int *errorCode) {
+jackServerGRIS::jackServerGRIS(unsigned int rateV, unsigned int periodV, String alsaOutputDevice, int *errorCode) {
     this->rateValue = rateV;
     this->periodValue = periodV;
     const JSList *parameters;
@@ -164,6 +168,26 @@ jackServerGRIS::jackServerGRIS(unsigned int rateV, unsigned int periodV, int *er
             print_driver((jackctl_driver_t *)node_ptr->data);
 
             driverParams = jackctl_driver_get_parameters((jackctl_driver_t *)node_ptr->data);
+
+#ifdef __linux__
+            // Set output device.
+            if (alsaOutputDevice.isNotEmpty() && getAvailableOutputDevices().contains(alsaOutputDevice)) {
+                const char *dev = alsaOutputDevice.upToFirstOccurrenceOf(" - ", false, false).toRawUTF8();
+                param = jackctl_get_parameter(driverParams, "playback");
+                if (param != NULL) {
+                    strncpy(value.str, dev, JACK_PARAM_STRING_MAX);
+                    jackctl_parameter_set_value(param, &value);
+                }
+            }
+#endif
+
+            // Force duplex mode.
+            param = jackctl_get_parameter(driverParams, "duplex");
+            if (param != NULL) {
+                value.b = true;
+                jackctl_parameter_set_value(param, &value);
+            }
+
             // Set sampling rate.
             param = jackctl_get_parameter(driverParams, "rate");
             if (param != NULL) {
@@ -213,4 +237,48 @@ jackServerGRIS::~jackServerGRIS(){
         jackctl_server_close(this->server);
         jackctl_server_destroy(this->server);
     }
+}
+
+Array<String> jackServerGRIS::getAvailableOutputDevices() {
+    Array<String> devices;
+
+#ifdef __linux__
+    snd_ctl_card_info_t *info;
+    snd_pcm_info_t *pcminfo;
+    snd_ctl_card_info_alloca(&info);
+    snd_pcm_info_alloca(&pcminfo);
+
+    int card = -1;
+    while (snd_card_next(&card) >= 0 && card >= 0) {
+        int err = 0;
+        snd_ctl_t *handle;
+        char name[20];
+        snprintf(name, sizeof(name), "hw:%d", card);
+        if ((err = snd_ctl_open(&handle, name, 0)) < 0) {
+            continue;
+        }
+
+        if ((err = snd_ctl_card_info(handle, info)) < 0) {
+            snd_ctl_close(handle);
+            continue;
+        }
+
+        int dev = -1;
+        while (snd_ctl_pcm_next_device(handle, &dev) >= 0 && dev >= 0) {
+            snd_pcm_info_set_device(pcminfo, dev);
+            snd_pcm_info_set_subdevice(pcminfo, 0);
+            snd_pcm_info_set_stream(pcminfo, SND_PCM_STREAM_PLAYBACK);
+            if ((err = snd_ctl_pcm_info(handle, pcminfo)) < 0) {
+                continue;
+            }
+
+            char device[128];
+            snprintf(device, sizeof(device), "hw:%d,%d - %s", card, dev, snd_pcm_info_get_name(pcminfo));
+            devices.add(String(device));
+        }
+        snd_ctl_close(handle);
+    }
+#endif
+
+    return devices;
 }

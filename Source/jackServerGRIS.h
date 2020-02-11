@@ -20,6 +20,8 @@
 #ifndef JACKSERVERGRIS_H
 #define JACKSERVERGRIS_H
 
+#include "../JuceLibraryCode/JuceHeader.h"
+
 #include <jack/jack.h>
 #include <jack/transport.h>
 #include <jack/types.h>
@@ -28,8 +30,11 @@
 
 class jackServerGRIS {
 public:    
-    jackServerGRIS(unsigned int rateV = 48000, unsigned int periodV = 1024, int *errorCode = nullptr);
+    jackServerGRIS(unsigned int rateV = 48000, unsigned int periodV = 1024, String alsaOutputDevice = String(), int *errorCode = nullptr);
     ~jackServerGRIS();
+
+    // Only effective with alsa driver.
+    Array<String> getAvailableOutputDevices();
 
     jackctl_server_t *server;
 

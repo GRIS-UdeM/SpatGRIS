@@ -198,7 +198,7 @@ public:
     void getPresetData(XmlElement *xml);
     void savePreset(String path);
     void saveSpeakerSetup(String path);
-    void saveProperties(int rate, int buff, int fileformat, int fileconfig, int attenuationDB, int attenuationHz, int oscPort);
+    void saveProperties(String device, int rate, int buff, int fileformat, int fileconfig, int attenuationDB, int attenuationHz, int oscPort);
     void chooseRecordingPath();
     void setNameConfig();
     void setTitle();
@@ -293,7 +293,11 @@ private:
     String pathLastVbapSpeakerSetup;
     String pathCurrentFileSpeaker;
     String pathCurrentPreset;
-    
+
+    // Alsa output device
+    String alsaOutputDevice;
+    Array<String> alsaAvailableOutputDevices;
+
     // UI Components.
     SpeakerViewComponent *speakerView;
     StretchableLayoutManager verticalLayout;

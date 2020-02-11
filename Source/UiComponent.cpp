@@ -1150,45 +1150,68 @@ ComboBox * WindowProperties::createPropComboBox(const StringArray choices, int s
 }
 
 WindowProperties::WindowProperties(const String& name, Colour backgroundColour, int buttonsNeeded,
-                                   MainContentComponent *parent, GrisLookAndFeel *feel, int indR,
-                                   int indB, int indFF, int indFC, int indAttDB, int indAttHz, int oscPort):
+                                   MainContentComponent *parent, GrisLookAndFeel *feel, Array<String> devices,
+                                   String currentDevice, int indR, int indB, int indFF, int indFC, int indAttDB, int indAttHz, int oscPort):
     DocumentWindow (name, backgroundColour, buttonsNeeded)
 {
     this->mainParent = parent;
     this->grisFeel = feel;
 
-    this->generalLabel = this->createPropLabel("General Settings", Justification::left, 20);
+    int ypos = 20;
 
-    this->labOSCInPort = this->createPropLabel("OSC Input Port :", Justification::left, 50);
-    this->tedOSCInPort = this->createPropIntTextEditor("Port Socket OSC Input", 50, oscPort);
+    this->generalLabel = this->createPropLabel("General Settings", Justification::left, ypos);
+    ypos += 30;
 
-    this->jackSettingsLabel = this->createPropLabel("Jack Settings", Justification::left, 90);
+    this->labOSCInPort = this->createPropLabel("OSC Input Port :", Justification::left, ypos);
+    this->tedOSCInPort = this->createPropIntTextEditor("Port Socket OSC Input", ypos, oscPort);
+    ypos += 40;
 
-    this->labRate = this->createPropLabel("Sampling Rate (hz) :", Justification::left, 120);
-    this->cobRate = this->createPropComboBox(RateValues, indR, 120);
+    this->jackSettingsLabel = this->createPropLabel("Jack Settings", Justification::left, ypos);
+    ypos += 30;
 
-    this->labBuff = this->createPropLabel("Buffer Size (spls) :", Justification::left, 150);
-    this->cobBuffer = this->createPropComboBox(BufferSizes, indB, 150);
+    if (! devices.isEmpty()) {
+        int deviceIndex = 0;
+        if (devices.contains(currentDevice)) {
+            deviceIndex = devices.indexOf(currentDevice);
+        }
+        this->labDevice = this->createPropLabel("Output Device :", Justification::left, ypos);
+        this->cobDevice = this->createPropComboBox(devices, deviceIndex, ypos);
+        ypos += 30;
+    }
 
-    this->recordingLabel = this->createPropLabel("Recording Settings", Justification::left, 190);
+    this->labRate = this->createPropLabel("Sampling Rate (hz) :", Justification::left, ypos);
+    this->cobRate = this->createPropComboBox(RateValues, indR, ypos);
+    ypos += 30;
 
-    this->labRecFormat = this->createPropLabel("File Format :", Justification::left, 220);
-    this->recordFormat = this->createPropComboBox(FileFormats, indFF, 220);
+    this->labBuff = this->createPropLabel("Buffer Size (spls) :", Justification::left, ypos);
+    this->cobBuffer = this->createPropComboBox(BufferSizes, indB, ypos);
+    ypos += 40;
 
-    this->labRecFileConfig = this->createPropLabel("Output Format :", Justification::left, 250);
-    this->recordFileConfig = this->createPropComboBox(FileConfigs, indFC, 250);
+    this->recordingLabel = this->createPropLabel("Recording Settings", Justification::left, ypos);
+    ypos += 30;
 
-    this->cubeDistanceLabel = this->createPropLabel("CUBE Distance Settings", Justification::left, 290, 250);
+    this->labRecFormat = this->createPropLabel("File Format :", Justification::left, ypos);
+    this->recordFormat = this->createPropComboBox(FileFormats, indFF, ypos);
+    ypos += 30;
 
-    this->labDistanceDB = this->createPropLabel("Attenuation (dB) :", Justification::left, 320);
-    this->cobDistanceDB= this->createPropComboBox(AttenuationDBs, indAttDB, 320);
+    this->labRecFileConfig = this->createPropLabel("Output Format :", Justification::left, ypos);
+    this->recordFileConfig = this->createPropComboBox(FileConfigs, indFC, ypos);
+    ypos += 40;
 
-    this->labDistanceCutoff = this->createPropLabel("Attenuation (Hz) :", Justification::left, 350);
-    this->cobDistanceCutoff = this->createPropComboBox(AttenuationCutoffs, indAttHz, 350);
+    this->cubeDistanceLabel = this->createPropLabel("CUBE Distance Settings", Justification::left, ypos, 250);
+    ypos += 30;
+
+    this->labDistanceDB = this->createPropLabel("Attenuation (dB) :", Justification::left, ypos);
+    this->cobDistanceDB = this->createPropComboBox(AttenuationDBs, indAttDB, ypos);
+    ypos += 30;
+
+    this->labDistanceCutoff = this->createPropLabel("Attenuation (Hz) :", Justification::left, ypos);
+    this->cobDistanceCutoff = this->createPropComboBox(AttenuationCutoffs, indAttHz, ypos);
+    ypos += 40;
 
     this->butValidSettings = new TextButton();
     this->butValidSettings->setButtonText("Save");
-    this->butValidSettings->setBounds(163, 390, 88, 22);
+    this->butValidSettings->setBounds(163, ypos, 88, 22);
     this->butValidSettings->addListener(this);
     this->butValidSettings->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
     this->butValidSettings->setLookAndFeel(this->grisFeel);
@@ -1200,11 +1223,13 @@ WindowProperties::~WindowProperties() {
     delete this->jackSettingsLabel;
     delete this->recordingLabel;
     delete this->labOSCInPort;
+    delete this->labDevice;
     delete this->labRate;
     delete this->labBuff;
     delete this->labRecFormat;
     delete this->labRecFileConfig;
     delete this->tedOSCInPort;
+    delete this->cobDevice;
     delete this->cobRate;
     delete this->cobBuffer;
     delete this->recordFormat;
@@ -1219,7 +1244,8 @@ void WindowProperties::closeButtonPressed() {
 
 void WindowProperties::buttonClicked(Button *button) {
     if (button == this->butValidSettings) {
-        this->mainParent->saveProperties(this->cobRate->getText().getIntValue(),
+        this->mainParent->saveProperties(this->cobDevice->getText(),
+                                         this->cobRate->getText().getIntValue(),
                                          this->cobBuffer->getText().getIntValue(),
                                          this->recordFormat->getSelectedItemIndex(),
                                          this->recordFileConfig->getSelectedItemIndex(),
