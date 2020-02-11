@@ -1292,7 +1292,7 @@ void jackClientGris::updateClientPortAvailable(bool fromJack) {
 
     unsigned int start = 1;
     unsigned int end = 2;
-    unsigned int defaultActivePorts = 32;
+    unsigned int defaultActivePorts = 64;
     for (auto&& cli : this->listClient) {
         if (!fromJack) {
             cli.initialized = true;
