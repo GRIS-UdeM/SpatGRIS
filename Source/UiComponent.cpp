@@ -147,6 +147,8 @@ void BoxClient::setValue(const int rowNumber, const int columnNumber, const int 
                 break;
         }
     }
+    bool connectedCli = this->mainParent->getListClientjack()->at(rowNumber).connected;
+    this->mainParent->connectionClientJack(this->mainParent->getListClientjack()->at(rowNumber).name, connectedCli);
     this->mainParent->getLockClients()->unlock();
 }
 
