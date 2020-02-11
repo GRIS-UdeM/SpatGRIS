@@ -98,11 +98,10 @@ BoxClient::BoxClient(MainContentComponent *parent, GrisLookAndFeel *feel) {
     tableListClient.setColour(ListBox::backgroundColourId, this->grisFeel->getWinBackgroundColour());
     tableListClient.setOutlineThickness(1);
 
-    tableListClient.getHeader().addColumn("Client",    1, 105, 70, 120, TableHeaderComponent::notSortable);
-    tableListClient.getHeader().addColumn("Start",     2, 45, 35, 70, TableHeaderComponent::notSortable);
-    tableListClient.getHeader().addColumn("End",       3, 45, 35, 70, TableHeaderComponent::notSortable);
-    tableListClient.getHeader().addColumn("Available", 4, 62, 35, 70, TableHeaderComponent::notSortable);
-    tableListClient.getHeader().addColumn("On/Off",    5, 41, 35, 70, TableHeaderComponent::notSortable);
+    tableListClient.getHeader().addColumn("Client",    1, 120, 70, 120, TableHeaderComponent::notSortable);
+    tableListClient.getHeader().addColumn("Start",     2, 60, 35, 70, TableHeaderComponent::notSortable);
+    tableListClient.getHeader().addColumn("End",       3, 60, 35, 70, TableHeaderComponent::notSortable);
+    tableListClient.getHeader().addColumn("On/Off",    4, 62, 35, 70, TableHeaderComponent::notSortable);
 
     tableListClient.setMultipleSelectionEnabled (false);
 
@@ -153,7 +152,7 @@ void BoxClient::setValue(const int rowNumber, const int columnNumber, const int 
 }
 
 int BoxClient::getValue(const int rowNumber, const int columnNumber) const {
-    if (this->mainParent->getListClientjack()->size() > (unsigned int)rowNumber) {
+    if ((unsigned int)rowNumber < this->mainParent->getListClientjack()->size()) {
         switch (columnNumber) {
             case 2:
                 return this->mainParent->getListClientjack()->at(rowNumber).portStart;
@@ -166,18 +165,11 @@ int BoxClient::getValue(const int rowNumber, const int columnNumber) const {
 
 String BoxClient::getText(const int columnNumber, const int rowNumber) const {
     String text = "?";
-
-    if (this->mainParent->getListClientjack()->size() > (unsigned int)rowNumber) {
-        switch (columnNumber) {
-            case 1:
-                text = String(this->mainParent->getListClientjack()->at(rowNumber).name);
-                break;
-            case 4:
-                text = String(this->mainParent->getListClientjack()->at(rowNumber).portAvailable);
-                break;
+    if ((unsigned int)rowNumber < this->mainParent->getListClientjack()->size()) {
+        if (columnNumber == 1) {
+            text = String(this->mainParent->getListClientjack()->at(rowNumber).name);
         }
     }
-
     return text;
 }
 
@@ -197,14 +189,10 @@ void BoxClient::paintCell(Graphics& g, int rowNumber, int columnId, int width, i
     g.setColour(Colours::black);
     g.setFont(12.0f);
     if (this->mainParent->getLockClients()->try_lock()) {
-        if (this->mainParent->getListClientjack()->size() > (unsigned int)rowNumber) {
+        if ((unsigned int)rowNumber < this->mainParent->getListClientjack()->size()) {
             if (columnId == 1) {
                 String text = getText(columnId, rowNumber);
                 g.drawText(text, 2, 0, width - 4, height, Justification::centredLeft, true);
-            }
-            if (columnId == 4) {
-                String text = getText(columnId, rowNumber);
-                g.drawText(text, 2, 0, width - 4, height, Justification::centred, true);
             }
         }
         this->mainParent->getLockClients()->unlock();
@@ -215,11 +203,11 @@ void BoxClient::paintCell(Graphics& g, int rowNumber, int columnId, int width, i
 
 Component * BoxClient::refreshComponentForCell(int rowNumber, int columnId, bool /*isRowSelected*/,
                                                Component *existingComponentToUpdate) {
-     if (columnId == 1 || columnId == 4) {
-         return existingComponentToUpdate;
-     }
+    if (columnId == 1) {
+        return existingComponentToUpdate;
+    }
 
-    if (columnId == 5) {
+    if (columnId == 4) {
         TextButton *tbRemove = static_cast<TextButton*> (existingComponentToUpdate);
         if (tbRemove == nullptr) {
             tbRemove = new TextButton();
