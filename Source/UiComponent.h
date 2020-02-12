@@ -306,7 +306,7 @@ private:
     TextEditor *tedOSCInPort;
 
     Label *labDevice;
-    ComboBox *cobDevice;
+    ComboBox *cobDevice = nullptr;
 
     Label *labRate;
     ComboBox *cobRate;

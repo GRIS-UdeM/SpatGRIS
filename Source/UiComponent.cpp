@@ -1223,13 +1223,15 @@ WindowProperties::~WindowProperties() {
     delete this->jackSettingsLabel;
     delete this->recordingLabel;
     delete this->labOSCInPort;
-    delete this->labDevice;
+    if (this->cobDevice != nullptr) {
+        delete this->labDevice;
+        delete this->cobDevice;
+    }
     delete this->labRate;
     delete this->labBuff;
     delete this->labRecFormat;
     delete this->labRecFileConfig;
     delete this->tedOSCInPort;
-    delete this->cobDevice;
     delete this->cobRate;
     delete this->cobBuffer;
     delete this->recordFormat;
@@ -1244,7 +1246,7 @@ void WindowProperties::closeButtonPressed() {
 
 void WindowProperties::buttonClicked(Button *button) {
     if (button == this->butValidSettings) {
-        this->mainParent->saveProperties(this->cobDevice->getText(),
+        this->mainParent->saveProperties(this->cobDevice != nullptr ? this->cobDevice->getText() : String(),
                                          this->cobRate->getText().getIntValue(),
                                          this->cobBuffer->getText().getIntValue(),
                                          this->recordFormat->getSelectedItemIndex(),
