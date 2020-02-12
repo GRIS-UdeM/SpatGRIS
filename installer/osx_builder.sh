@@ -6,9 +6,9 @@
 # compile SpatGRIS in Release mode
 # and run this shell script from the installer folder.
 
-export PACKAGE_NAME=SpatGRIS_v2.0.9.pkg
-export DMG_DIR="SpatGRIS v2.0.9"
-export DMG_NAME="SpatGRIS_v2.0.9.dmg"
+export PACKAGE_NAME=SpatGRIS_v2.1.0.pkg
+export DMG_DIR="SpatGRIS v2.1.0"
+export DMG_NAME="SpatGRIS_v2.1.0.dmg"
 
 # Replace app icon with a better version
 cp ../Resources/Icon.icns ../Builds/MacOSX/build/Release/SpatGRIS.app/Contents/Resources/Icon.icns
