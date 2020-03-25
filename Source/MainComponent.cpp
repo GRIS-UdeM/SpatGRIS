@@ -753,7 +753,7 @@ void MainContentComponent::handleShowTriplets() {
 void MainContentComponent::setShowTriplets(bool state) {
     if (this->getModeSelected() == LBAP && state == true) {
         AlertWindow alert ("Can't draw triplets !",
-                           "Triplets are not effective with the LBAP mode.",
+                           "Triplets are not effective with the CUBE mode.",
                            AlertWindow::InfoIcon);
         alert.setLookAndFeel(&mGrisFeel);
         alert.addButton("Close", 0, KeyPress(KeyPress::returnKey));
@@ -1600,8 +1600,8 @@ bool MainContentComponent::updateLevelComp() {
             this->setListTripletFromVbap();
             this->needToComputeVbap = false;
         } else {
-            AlertWindow alert ("Not a valid VBAP 3-D configuration!    ",
-                               "Maybe you want to open it in LBAP mode? Reload the default speaker setup...    ",
+            AlertWindow alert ("Not a valid DOME 3-D configuration!    ",
+                               "Maybe you want to open it in CUBE mode? Reload the default speaker setup...    ",
                                AlertWindow::WarningIcon);
             alert.setLookAndFeel(&mGrisFeel);
             alert.addButton ("Ok", 0, KeyPress(KeyPress::returnKey));
