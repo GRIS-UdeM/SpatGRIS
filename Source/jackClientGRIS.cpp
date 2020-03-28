@@ -926,6 +926,15 @@ void jackClientGris::removeOutput(int number) {
     this->outputsPort.erase(this->outputsPort.begin() + number);
 }
 
+vector<int> jackClientGris::getDirectOutOutputPatches() {
+    vector<int> directOutOutputPatches;
+    for (auto&& it : listSpeakerOut) {
+        if (it.directOut && it.outputPatch != 0)
+            directOutOutputPatches.push_back(it.outputPatch);
+    }
+    return directOutOutputPatches;
+}
+
 void jackClientGris::connectedGristoSystem() {
     String nameOut;
     this->clearOutput();

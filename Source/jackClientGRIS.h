@@ -328,6 +328,7 @@ public:
     void clearOutput();
     bool addOutput(unsigned int outputPatch);
     void removeOutput(int number);
+    vector<int> getDirectOutOutputPatches();
 
     // Manage clients.
     void disconnectAllClient();

@@ -556,9 +556,10 @@ void MainContentComponent::handleOpenPreset() {
     if (loaded) { // Check for direct out OutputPatch mismatch.
         for (auto&& it : listSourceInput) {
             if (it->getDirectOutChannel() != 0) {
-                if (std::find(this->jackClient->outputPatches.begin(),
-                              this->jackClient->outputPatches.end(),
-                              it->getDirectOutChannel()) == this->jackClient->outputPatches.end())
+                vector<int> directOutOutputPatches = this->jackClient->getDirectOutOutputPatches();
+                if (std::find(directOutOutputPatches.begin(),
+                              directOutOutputPatches.end(),
+                              it->getDirectOutChannel()) == directOutOutputPatches.end())
                 {
                     AlertWindow alert ("Direct Out Mismatch!",
                                         "Some of the direct out channels of this project don't exist in the current speaker setup.\n",
