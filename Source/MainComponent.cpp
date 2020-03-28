@@ -1518,6 +1518,11 @@ bool MainContentComponent::updateLevelComp() {
         outputsIsSolo[i] = (&this->jackClient->listSpeakerOut[i])->isSolo;
     }
 
+    // Cleanup speakers output patch
+    for (auto&& it : this->jackClient->listSpeakerOut) {
+        it.outputPatch = 0;
+    }
+
     // Create outputs.
     int i = 0, x = 2;
     for (auto&& it : this->listSpeaker) {
