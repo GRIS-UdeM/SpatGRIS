@@ -538,6 +538,7 @@ void MainContentComponent::handleOpenPreset() {
     
     FileChooser fc ("Choose a file to open...", dir + "/" + filename, "*.xml", UseOSNativeDialogBox);
 
+    bool loaded = false;
     if (fc.browseForFileToOpen()) {
         String chosen = fc.getResults().getReference(0).getFullPathName();
         AlertWindow alert ("Open Project !", 
@@ -548,6 +549,26 @@ void MainContentComponent::handleOpenPreset() {
         alert.addButton ("Ok", 1, KeyPress(KeyPress::returnKey));
         if (alert.runModalLoop() != 0) {
             this->openPreset(chosen);
+            loaded = true;
+        }
+    }
+
+    if (loaded) { // Check for direct out OutputPatch mismatch.
+        for (auto&& it : listSourceInput) {
+            if (it->getDirectOutChannel() != 0) {
+                if (std::find(this->jackClient->outputPatches.begin(),
+                              this->jackClient->outputPatches.end(),
+                              it->getDirectOutChannel()) == this->jackClient->outputPatches.end())
+                {
+                    AlertWindow alert ("Direct Out Mismatch!",
+                                        "Some of the direct out channels of this project don't exist in the current speaker setup.\n",
+                                        AlertWindow::WarningIcon);
+                    alert.setLookAndFeel(&mGrisFeel);
+                    alert.addButton ("Ok", 1, KeyPress(KeyPress::returnKey));
+                    alert.runModalLoop();
+                    break;
+                }
+            }
         }
     }
 }
@@ -1689,7 +1710,6 @@ void MainContentComponent::openXmlFileSpeaker(String path) {
     String oldPath = this->pathCurrentFileSpeaker;
     bool isNewSameAsOld = oldPath.compare(path) == 0;
     bool isNewSameAsLastSetup = this->pathLastVbapSpeakerSetup.compare(path) == 0;
-    Array<int> directOutputPatches;
     bool ok = false;
     if (! File(path.toStdString()).existsAsFile()) {
         AlertWindow alert ("Error in Load Speaker Setup !", 
@@ -1778,9 +1798,6 @@ void MainContentComponent::openXmlFileSpeaker(String path) {
                                 }
                                 if (spk->hasAttribute("DirectOut")) {
                                     this->listSpeaker.back()->setDirectOut(spk->getBoolAttribute("DirectOut"));
-                                    if (spk->getBoolAttribute("DirectOut")) {
-                                        directOutputPatches.add(spk->getIntAttribute("OutputPatch"));
-                                    }
                                 }
                                 this->jackClient->addOutput((unsigned int)spk->getIntAttribute("OutputPatch"));
                             }
@@ -1822,20 +1839,6 @@ void MainContentComponent::openXmlFileSpeaker(String path) {
         if (this->getJackClient()->modeSelected != VBAP_HRTF && this->getJackClient()->modeSelected != STEREO) {
             if (this->pathCurrentFileSpeaker.compare(BinauralSpeakerSetupFilePath) != 0 && this->pathCurrentFileSpeaker.compare(StereoSpeakerSetupFilePath) != 0) {
                 this->pathLastVbapSpeakerSetup = this->pathCurrentFileSpeaker;
-            }
-        }
-        // Check for direct out OutputPatch mismatch.
-        for (auto&& it : listSourceInput) {
-            if (it->getDirectOutChannel() != 0) {
-                if (!directOutputPatches.contains(it->getDirectOutChannel())) {
-                    AlertWindow alert ("Direct Out Mismatch!",
-                                       "Some of your selected direct out channels don't exist in the current speaker setup.\n",
-                                       AlertWindow::WarningIcon);
-                    alert.setLookAndFeel(&mGrisFeel);
-                    alert.addButton ("Ok", 1, KeyPress(KeyPress::returnKey));
-                    alert.runModalLoop();
-                    break;
-                }
             }
         }
     } else {
