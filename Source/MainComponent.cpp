@@ -91,7 +91,7 @@ public:
 
             for (int i = 0; i < numberOfChannels; i++) {
                 readers[i]->read(data, 1, numberOfPasses * blockSize, blockSize, false);
-                for (int j = 0; j < blockSize; j++) {
+                for (unsigned int j = 0; j < blockSize; j++) {
                     buffer[i][j] = data[0][j] / factor;
                 }
             }
@@ -2153,7 +2153,7 @@ void MainContentComponent::timerCallback() {
 
     if (this->isRecording && !this->jackClient->recording) {
         bool isReadyToMerge = true;
-        for (int i = 0; i < MaxOutputs; i++) {
+        for (unsigned int i = 0; i < MaxOutputs; i++) {
             if (this->jackClient->recorder[i].backgroundThread.isThreadRunning()) {
                 isReadyToMerge = false;
             }

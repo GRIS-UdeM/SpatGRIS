@@ -512,7 +512,7 @@ void WindowEditSpeaker::sortOrderChanged(int newSortColumnId, bool isForwards) {
     }
 
     vector<int> newOrder(size);
-    for (unsigned int i = 0; i < size; i++) {
+    for (int i = 0; i < size; i++) {
         newOrder[i] = tosort[i].id;
     }
     this->mainParent->reorderSpeakers(newOrder);

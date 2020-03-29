@@ -281,7 +281,7 @@ static void processLBAP(jackClientGris &jackCli, jack_default_audio_sample_t **i
             float filtInZ = jackCli.attenuationLowpassZ[i];
             float lastcoef = jackCli.lastAttenuationCoef[i];
             float lastgain = jackCli.lastAttenuationGain[i];
-            for (int k =0; k < nframes; k++) {
+            for (unsigned int k =0; k < nframes; k++) {
                 lastcoef += diffcoef;
                 lastgain += diffgain;
                 filtInY = ins[i][k] + (filtInY - ins[i][k]) * lastcoef;
