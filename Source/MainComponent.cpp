@@ -100,7 +100,8 @@ public:
             wait(1);
         }
 
-        delete writer;
+        if (writer != nullptr)
+            delete writer;
 
         setProgress(-1.0); // setting a value beyond the range 0 -> 1 will show a spinning bar.
         setStatusMessage("Finishing the creation of the multi-channel file!");
@@ -255,11 +256,6 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     this->butStartRecord->setEnabled(false);
 
     this->labelTimeRecorded = addLabel("00:00","Record time", 327, 83, 50, 24,this->boxControlUI->getContent());
-
-    // ASK: Are these functions really necessary? Just hidding them for the time being...
-    //this->butDisconnectAllJack  = addButton("X All","Disconnect all Jack",480,120,40,24,this->boxControlUI->getContent());
-    //this->butDisconnectAllJack->setColour(TextButton::buttonColourId, mGrisFeel.getRedColour());
-    //this->butAutoConnectJack    = addButton("Auto Connect","Auto connection with jack",610,120,130,24,this->boxControlUI->getContent());
 
     // Jack client box.
     this->boxClientJack = new BoxClient(this, &mGrisFeel);
@@ -1592,6 +1588,7 @@ bool MainContentComponent::updateLevelComp() {
         si.azimuth = it->getAziMuth();
         si.zenith  = it->getZenith();
         si.radius  = it->getRadius();
+        si.gain = 0.0f;
         this->jackClient->listSourceIn[i++] = si;
     }
 
@@ -2273,19 +2270,6 @@ void MainContentComponent::buttonClicked(Button *button) {
         this->chooseRecordingPath();
         this->butStartRecord->setEnabled(true);
     }
-
-    //}else if(button == this->butAutoConnectJack){
-    //    
-    //    this->jackClient->processBlockOn = false;
-    //    this->jackClient->autoConnectClient();
-    //    this->jackClient->processBlockOn = true;
-        
-    //}else if(button == this->butDisconnectAllJack){
-    //    
-    //    this->jackClient->processBlockOn = false;
-    //    this->jackClient->disconnectAllClient();
-    //    this->jackClient->processBlockOn = true;
-    //}
 }
 
 void MainContentComponent::sliderValueChanged(Slider* slider) {

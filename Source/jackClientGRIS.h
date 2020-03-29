@@ -331,8 +331,6 @@ public:
     vector<int> getDirectOutOutputPatches();
 
     // Manage clients.
-    void disconnectAllClient();
-    void autoConnectClient();
     void connectionClient(String name, bool connect = true);
     void updateClientPortAvailable(bool fromJack);
     string getClientName(const char *port);

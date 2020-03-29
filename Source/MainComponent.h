@@ -324,9 +324,6 @@ private:
     Label *labelJackInfo;
     Label *labelModeInfo;
 
-    //TextButton *butAutoConnectJack;
-    //TextButton *butDisconnectAllJack;
-
     ComboBox *comBoxModeSpat;
 
     Slider *sliderMasterGainOut;
