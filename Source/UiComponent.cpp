@@ -439,10 +439,6 @@ void WindowEditSpeaker::initComp() {
     this->resized();
 }
 
-void WindowEditSpeaker::setRadiusColumnName(const String& name) {
-    tableListSpeakers.getHeader().setColumnName(7, name);
-}
-
 struct Sorter {
     int id;
     float value;

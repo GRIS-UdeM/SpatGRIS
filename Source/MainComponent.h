@@ -202,7 +202,6 @@ public:
     void chooseRecordingPath();
     void setNameConfig();
     void setTitle();
-    String getCurrentFileSpeakerPath();
 
     // Screen refresh timer.
     void handleTimer(bool state) {

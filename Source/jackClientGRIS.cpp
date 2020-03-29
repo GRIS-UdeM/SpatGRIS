@@ -1289,16 +1289,9 @@ void jackClientGris::updateClientPortAvailable(bool fromJack) {
     jack_free(portsOut);
 }
 
-unsigned int jackClientGris::getPortStartClient(String nameClient) {
-    for (auto&& it : this->listClient) {
-        if (it.name == nameClient) {
-            return it.portStart;
-        }
-    }
-    return 0;
-}
-
 jackClientGris::~jackClientGris() {
+    // TOFIX: this->paramVBap and this->listSourceIn->paramVBap are never deallocated.
+
     lbap_field_free(this->lbap_speaker_field);
 
     jack_deactivate(this->client);

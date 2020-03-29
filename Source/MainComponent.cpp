@@ -2015,10 +2015,6 @@ void MainContentComponent::savePreset(String path) {
     this->setTitle();
 }
 
-String MainContentComponent::getCurrentFileSpeakerPath() {
-    return this->pathCurrentFileSpeaker;
-}
-
 void MainContentComponent::saveSpeakerSetup(String path) {
     this->pathCurrentFileSpeaker = path;
     File xmlFile = File (path.toStdString());

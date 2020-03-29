@@ -334,7 +334,6 @@ public:
     void connectionClient(String name, bool connect = true);
     void updateClientPortAvailable(bool fromJack);
     string getClientName(const char *port);
-    unsigned int getPortStartClient(String nameClient);
 
     // Recording.
     void prepareToRecord();
