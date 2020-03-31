@@ -1482,7 +1482,7 @@ bool MainContentComponent::updateLevelComp() {
             alert.setLookAndFeel(&mGrisFeel);
             alert.addButton ("No", 0);
             alert.addButton ("Yes", 1);
-            if (alert.runModalLoop() != 0) {
+            if (alert.runModalLoop() == 0) {
                 if (this->pathCurrentFileSpeaker.compare(this->pathLastVbapSpeakerSetup) == 0) {
                     this->openXmlFileSpeaker(DefaultSpeakerSetupFilePath);
                 } else {
