@@ -25,10 +25,6 @@ static double GetFloatPrecision(double value, double precision) {
     return floor((value * pow(10, precision) + 0.5)) / pow(10, precision);
 }
 
-Speaker::Speaker(MainContentComponent *parent, int idS) {
-    Speaker(parent, idS, idS, 0.0f, 0.0f, 1.0f);
-}
-
 Speaker::Speaker(MainContentComponent *parent, int idS, int outP,
                  float azimuth, float zenith, float radius) {
     this->mainParent = parent;

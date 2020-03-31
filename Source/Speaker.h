@@ -67,7 +67,6 @@ static const float Over = 0.02f;
 class Speaker : public ParentLevelComponent
 {
 public:
-    Speaker(MainContentComponent *parent = nullptr, int idS = 1);
     Speaker(MainContentComponent *parent = nullptr, int idS = -1, int outP = -1,
             float azimuth = 0.0f, float zenith = 0.0f, float radius = 1.0f);
     ~Speaker();
