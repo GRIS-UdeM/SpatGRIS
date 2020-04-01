@@ -17,7 +17,6 @@
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "ServerGrisConstants.h"
 #include "MainComponent.h"
 
 // Audio recorder class used to write an interleaved multi-channel soundfile on disk.
@@ -168,7 +167,6 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     this->isTripletsShown = false;
     this->isSourceLevelShown = false;
     this->isSphereShown = false;
-    this->isHighPerformance = false;
     this->isSpanShown = true;
     this->isRecording = false;
 
@@ -348,7 +346,7 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
 
     // End layout and start refresh timer.
     this->resized();
-    startTimerHz(HertzRefreshNormal);
+    startTimerHz(24);
     
     //End Splash screen.
     if (this->splash) {
@@ -699,7 +697,6 @@ void MainContentComponent::handleShowPreferences() {
 void MainContentComponent::handleShow2DView() {
     if (this->winControlSource == nullptr) {
         this->winControlSource = new WinControl("2D View", this->mGrisFeel.getWinBackgroundColour(), DocumentWindow::allButtons, this, &this->mGrisFeel);
-        this->winControlSource->setTimerHz(this->isHighPerformance ? HertzRefresh2DLowCpu : HertzRefreshNormal);
     } else {
         this->winControlRect.setBounds(this->winControlSource->getScreenX(), this->winControlSource->getScreenY(),
                                        this->winControlSource->getWidth(), this->winControlSource->getHeight());
@@ -819,32 +816,6 @@ void MainContentComponent::handleShowSphere() {
     this->speakerView->setShowSphere(this->isSphereShown);
 }
 
-void MainContentComponent::handleHighPerformance() {
-    this->setHighPerformance(!this->isHighPerformance);
-}
-
-void MainContentComponent::setHighPerformance(bool state) {
-    // TODO: HighPerformance removed until proof that we need it.
-    return; // Just in case HighPerformance is set in a saved project.
-    this->isHighPerformance = state;
-    this->stopTimer();
-    if (state) {
-        startTimerHz(HertzRefreshLowCpu);
-        if (this->winControlSource != nullptr) {
-            this->winControlSource->setTimerHz(HertzRefresh2DLowCpu);
-        }
-    } else {
-        startTimerHz(HertzRefreshNormal);
-        if (this->winControlSource != nullptr) {
-            this->winControlSource->setTimerHz(HertzRefreshNormal);
-        }
-    }
-    this->speakerView->setHighPerfor(state);
-
-    this->isSourceLevelShown = false;
-    this->isSpeakerLevelShown = false;
-}
-
 void MainContentComponent::handleResetInputPositions() {
     for (auto&& it : this->listSourceInput) {
         it->resetPosition();
@@ -878,7 +849,6 @@ void MainContentComponent::getAllCommands (Array<CommandID>& commands) {
                               MainWindow::ShowSourceLevelID,
                               MainWindow::ShowSpeakerLevelID,
                               MainWindow::ShowSphereID,
-                              MainWindow::HighPerformanceID,
                               MainWindow::ColorizeInputsID,
                               MainWindow::ResetInputPosID,
                               MainWindow::ShowOscLogView,
@@ -961,11 +931,6 @@ void MainContentComponent::getCommandInfo (CommandID commandID, ApplicationComma
             result.addDefaultKeypress ('O', ModifierKeys::altModifier);
             result.setTicked(this->isSphereShown);
             break;
-        case MainWindow::HighPerformanceID:
-            result.setInfo ("High Performance", "Lower the CPU usage on the graphical display.", generalCategory, 0);
-            result.addDefaultKeypress ('H', ModifierKeys::altModifier);
-            result.setTicked(this->isHighPerformance);
-            break;
         case MainWindow::ColorizeInputsID:
             result.setInfo ("Colorize Inputs", "Spread the colour of the inputs over the colour range.", generalCategory, 0);
             result.addDefaultKeypress ('C', ModifierKeys::altModifier);
@@ -1014,7 +979,6 @@ bool MainContentComponent::perform(const InvocationInfo& info) {
             case MainWindow::ShowSourceLevelID: this->handleShowSourceLevel(); break;
             case MainWindow::ShowSpeakerLevelID: this->handleShowSpeakerLevel(); break;
             case MainWindow::ShowSphereID: this->handleShowSphere(); break;
-            case MainWindow::HighPerformanceID: this->handleHighPerformance(); break;
             case MainWindow::ColorizeInputsID: this->handleInputColours(); break;
             case MainWindow::ResetInputPosID: this->handleResetInputPositions(); break;
             case MainWindow::ShowOscLogView: this->handleShowOscLogView(); break;
@@ -1066,8 +1030,6 @@ PopupMenu MainContentComponent::getMenuForIndex (int menuIndex, const String& me
         menu.addCommandItem(commandManager, MainWindow::ShowSourceLevelID);
         menu.addCommandItem(commandManager, MainWindow::ShowSpeakerLevelID);
         menu.addCommandItem(commandManager, MainWindow::ShowSphereID);
-        // TODO: HighPerformance removed until proof that we need it.
-        //menu.addCommandItem(commandManager, MainWindow::HighPerformanceID);
         menu.addSeparator();
         menu.addCommandItem(commandManager, MainWindow::ColorizeInputsID);
         menu.addCommandItem(commandManager, MainWindow::ResetInputPosID);
@@ -1523,12 +1485,12 @@ bool MainContentComponent::updateLevelComp() {
     // Create outputs.
     int i = 0, x = 2;
     for (auto&& it : this->listSpeaker) {
-        juce::Rectangle<int> level(x, 4, SizeWidthLevelComp, 200);
+        juce::Rectangle<int> level(x, 4, VuMeterWidthInPixels, 200);
         it->getVuMeter()->setBounds(level);
         this->boxOutputsUI->getContent()->addAndMakeVisible(it->getVuMeter());
         it->getVuMeter()->repaint();
         
-        x += SizeWidthLevelComp;
+        x += VuMeterWidthInPixels;
 
         if (this->jackClient->modeSelected == VBAP || this->jackClient->modeSelected == VBAP_HRTF) {
             it->normalizeRadius();
@@ -1573,13 +1535,13 @@ bool MainContentComponent::updateLevelComp() {
     x = 2;
     this->lockInputs->lock();
     for (auto&& it : this->listSourceInput) {
-        juce::Rectangle<int> level(x, 4, SizeWidthLevelComp, 200);
+        juce::Rectangle<int> level(x, 4, VuMeterWidthInPixels, 200);
         it->getVuMeter()->setBounds(level);
         it->getVuMeter()->updateDirectOutMenu(this->listSpeaker);
         this->boxInputsUI->getContent()->addAndMakeVisible(it->getVuMeter());
         it->getVuMeter()->repaint();
         
-        x += SizeWidthLevelComp;
+        x += VuMeterWidthInPixels;
 
         SourceIn si;
         si.id = it->getId();
@@ -1880,7 +1842,6 @@ void MainContentComponent::openPreset(String path) {
             this->sliderMasterGainOut->setValue(mainXmlElem->getDoubleAttribute("Master_Gain_Out", 0.0), sendNotification);
             this->sliderInterpolation->setValue(mainXmlElem->getDoubleAttribute("Master_Interpolation", 0.1), sendNotification);
             this->setShowNumbers(mainXmlElem->getBoolAttribute("Show_Numbers"));
-            this->setHighPerformance(mainXmlElem->getBoolAttribute("High_Performance"));
             if (mainXmlElem->hasAttribute("Show_Speakers")) {
                 this->setShowSpeakers(mainXmlElem->getBoolAttribute("Show_Speakers"));
             } else {
@@ -1984,7 +1945,6 @@ void MainContentComponent::getPresetData(XmlElement *xml) {
     xml->setAttribute("Show_Numbers", this->isNumbersShown);
     xml->setAttribute("Show_Speakers", this->isSpeakersShown);
     xml->setAttribute("Show_Triplets", this->isTripletsShown);
-    xml->setAttribute("High_Performance", this->isHighPerformance);
     xml->setAttribute("Use_Alpha", this->isSourceLevelShown);
     xml->setAttribute("Show_Speaker_Level", this->isSpeakerLevelShown);
     xml->setAttribute("Show_Sphere", this->isSphereShown);
@@ -2408,10 +2368,10 @@ void MainContentComponent::resized() {
     this->boxMainUI->correctSize(getWidth()-this->speakerView->getWidth()-6, 610);
 
     this->boxInputsUI->setBounds(0, 2, getWidth()-(this->speakerView->getWidth()+10), 231);
-    this->boxInputsUI->correctSize(((unsigned int)this->listSourceInput.size()*(SizeWidthLevelComp))+4, 200);
+    this->boxInputsUI->correctSize(((unsigned int)this->listSourceInput.size()*(VuMeterWidthInPixels))+4, 200);
 
     this->boxOutputsUI->setBounds(0, 233, getWidth()-(this->speakerView->getWidth()+10), 210);
-    this->boxOutputsUI->correctSize(((unsigned int)this->listSpeaker.size()*(SizeWidthLevelComp))+4, 180);
+    this->boxOutputsUI->correctSize(((unsigned int)this->listSpeaker.size()*(VuMeterWidthInPixels))+4, 180);
     
     this->boxControlUI->setBounds(0, 443, getWidth()-(this->speakerView->getWidth()+10), 145);
     this->boxControlUI->correctSize(720, 145);

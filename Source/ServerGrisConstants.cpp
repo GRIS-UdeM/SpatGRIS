@@ -58,3 +58,4 @@ const StringArray FileConfigs = {"Multiple Mono Files", "Single Interleaved"};
 const StringArray AttenuationDBs = {"0", "-12", "-24", "-36", "-48", "-60", "-72"};
 const StringArray AttenuationCutoffs = {"125", "250", "500", "1000", "2000", "4000", "8000", "16000"};
 
+const unsigned int VuMeterWidthInPixels = 22;

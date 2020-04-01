@@ -57,26 +57,23 @@ void SpeakerViewComponent::render() {
     glEnable(GL_DEPTH_TEST);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    //Smooth
-    if (!this->highPerf) {
-        glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH | GLUT_MULTISAMPLE);
-        
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        
-        glEnable(GL_LINE_SMOOTH);
-        glHint(GL_LINE_SMOOTH, GL_NICEST);
-        
-        glEnable(GL_POINT_SMOOTH);
-        glHint(GL_POINT_SMOOTH, GL_NICEST);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH | GLUT_MULTISAMPLE);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glEnable(GL_LINE_SMOOTH);
+    glHint(GL_LINE_SMOOTH, GL_NICEST);
+
+    glEnable(GL_POINT_SMOOTH);
+    glHint(GL_POINT_SMOOTH, GL_NICEST);
 
 #if defined(WIN32) || defined(_WIN64)
 
 #else
-        glEnable(GL_MULTISAMPLE_ARB);
-        glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
+    glEnable(GL_MULTISAMPLE_ARB);
+    glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
 #endif
-    }
     
     this->drawBackground();
 

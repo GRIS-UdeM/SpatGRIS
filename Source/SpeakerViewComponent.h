@@ -63,7 +63,6 @@ public:
     
     void setShowSphere(bool value) { this->showShpere = value; }
     void setShowNumber(bool value) { this->showNumber = value; }
-    void setHighPerfor(bool value) { this->highPerf = value; }
     void setHideSpeaker(bool value) { this->hideSpeaker = value; }
     void setShowTriplets(bool value) { this->showTriplets = value; }
     void setNameConfig(String name) { this->nameConfig = name; this->repaint(); }
@@ -96,7 +95,6 @@ private:
     
     bool showShpere = false;
     bool showNumber = false;
-    bool highPerf   = false;
     bool clickLeft  = false;
     bool controlOn  = false;
     bool hideSpeaker = false;

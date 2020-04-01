@@ -36,8 +36,6 @@ public:
                MainContentComponent *parent, GrisLookAndFeel *feel);
     ~WinControl();
     
-    void setTimerHz(int hz);
-    
     void timerCallback() override;
     void paint(Graphics& g) override;
     void resized() override;

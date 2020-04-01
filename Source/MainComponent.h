@@ -45,7 +45,7 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 
 #include "GrisLookAndFeel.h"
-
+#include "ServerGrisConstants.h"
 #include "jackClientGRIS.h"
 #include "jackServerGRIS.h"
 #include "Speaker.h"
@@ -59,15 +59,7 @@
 
 using namespace std;
 
-static const unsigned int SizeWidthLevelComp   = 22;
-static const unsigned int HertzRefreshNormal   = 24;
-static const unsigned int HertzRefreshLowCpu   = 6;
-static const unsigned int HertzRefresh2DLowCpu = 10;
-
-/*
- This component lives inside our window, and this is where you should put all
- your controls and content.
-*/
+// This component lives inside our window, and this is where you should put all your controls and content.
 class MainContentComponent : public Component,
                              public MenuBarModel,
                              public ApplicationCommandTarget,
@@ -108,8 +100,6 @@ public:
     void handleShowSourceLevel();
     void handleShowSpeakerLevel();
     void handleShowSphere();
-    void handleHighPerformance();
-    void setHighPerformance(bool state);
     void handleResetInputPositions();
     void handleShowOscLogView();
     void handleInputColours();
@@ -206,7 +196,7 @@ public:
     // Screen refresh timer.
     void handleTimer(bool state) {
         if (state) {
-            startTimerHz(HertzRefreshNormal);
+            startTimerHz(24);
         } else {
             stopTimer();
         }
@@ -346,7 +336,6 @@ private:
     bool isNumbersShown;
     bool isSpeakersShown;
     bool isSphereShown;
-    bool isHighPerformance;
     bool isRecording;
 
     // The following methods implement the ApplicationCommandTarget interface, allowing

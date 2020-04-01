@@ -66,15 +66,11 @@ WinControl::WinControl(const String& name, Colour backgroundColour, int buttonsN
 {
     this->mainParent = parent;
     this->grisFeel = feel;
+    this->startTimerHz(24);
 }
 
 WinControl::~WinControl() {
     this->mainParent->destroyWinControl();
-}
-
-void WinControl::setTimerHz(int hz) {
-    this->stopTimer();
-    this->startTimerHz(hz);
 }
 
 void WinControl::timerCallback() {

@@ -82,7 +82,6 @@ public:
         ShowSourceLevelID   =   3004,
         ShowSpeakerLevelID  =   3005,
         ShowSphereID        =   3006,
-        HighPerformanceID   =   3007,
         ColorizeInputsID    =   3010,
         ResetInputPosID     =   3011,
         ShowOscLogView      =   3100,

@@ -52,4 +52,6 @@ extern const StringArray FileConfigs;
 extern const StringArray AttenuationDBs;
 extern const StringArray AttenuationCutoffs;
 
+extern const unsigned int VuMeterWidthInPixels;
+
 #endif /* SERVERGRISCONSTANTS_H */
