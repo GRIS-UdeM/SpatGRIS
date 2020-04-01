@@ -614,16 +614,6 @@ void MainContentComponent::handleOpenSpeakerSetup() {
     }
 }
 
-// Should we call "this->updateLevelComp(); before saving to validate that the setup is legal?"
-void MainContentComponent::handleSaveSpeakerSetup() {
-    if (! File(this->pathCurrentFileSpeaker).existsAsFile() || 
-       this->pathCurrentFileSpeaker.endsWith("default_preset/default_speaker_setup.xml") ||
-       this->pathCurrentFileSpeaker.endsWith("default_preset/BINAURAL_SPEAKER_SETUP.xml")) {
-        this->handleSaveAsSpeakerSetup();
-    }
-    this->saveSpeakerSetup(this->pathCurrentFileSpeaker);
-}
-
 void MainContentComponent::handleSaveAsSpeakerSetup() {
     String dir = this->applicationProperties.getUserSettings()->getValue("lastSpeakerSetupDirectory");
     if (! File(dir).isDirectory() || dir.endsWith("/default_preset")) {
@@ -839,8 +829,6 @@ void MainContentComponent::getAllCommands (Array<CommandID>& commands) {
                               MainWindow::SavePresetID,
                               MainWindow::SaveAsPresetID,
                               MainWindow::OpenSpeakerSetupID,
-                              MainWindow::SaveSpeakerSetupID,
-                              MainWindow::SaveAsSpeakerSetupID,
                               MainWindow::ShowSpeakerEditID,
                               MainWindow::Show2DViewID,
                               MainWindow::ShowNumbersID,
@@ -884,14 +872,6 @@ void MainContentComponent::getCommandInfo (CommandID commandID, ApplicationComma
         case MainWindow::OpenSpeakerSetupID:
             result.setInfo ("Load Speaker Setup", "Choose a new speaker setup on disk.", generalCategory, 0);
             result.addDefaultKeypress ('L', ModifierKeys::commandModifier);
-            break;
-        case MainWindow::SaveSpeakerSetupID:
-            result.setInfo ("Export Speaker Setup", "Save the current speaker setup on disk.", generalCategory, 0);
-            result.addDefaultKeypress ('E', ModifierKeys::commandModifier);
-            break;
-        case MainWindow::SaveAsSpeakerSetupID:
-            result.setInfo ("Export Speaker Setup As...", "Save the current speaker setup under a new name on disk.", generalCategory, 0);
-            result.addDefaultKeypress ('E', ModifierKeys::shiftModifier|ModifierKeys::commandModifier);
             break;
         case MainWindow::ShowSpeakerEditID:
             result.setInfo ("Speaker Setup Edition", "Edit the current speaker setup.", generalCategory, 0);
@@ -969,8 +949,6 @@ bool MainContentComponent::perform(const InvocationInfo& info) {
             case MainWindow::SavePresetID: this->handleSavePreset(); break;
             case MainWindow::SaveAsPresetID: this->handleSaveAsPreset(); break;
             case MainWindow::OpenSpeakerSetupID: this->handleOpenSpeakerSetup(); break;
-            case MainWindow::SaveSpeakerSetupID: this->handleSaveSpeakerSetup(); break;
-            case MainWindow::SaveAsSpeakerSetupID: this->handleSaveAsSpeakerSetup(); break;
             case MainWindow::ShowSpeakerEditID: this->handleShowSpeakerEditWindow(); break;
             case MainWindow::Show2DViewID: this->handleShow2DView(); break;
             case MainWindow::ShowNumbersID: this->handleShowNumbers(); break;
@@ -1006,9 +984,6 @@ PopupMenu MainContentComponent::getMenuForIndex (int menuIndex, const String& me
         menu.addCommandItem(commandManager, MainWindow::SaveAsPresetID);
         menu.addSeparator();
         menu.addCommandItem(commandManager, MainWindow::OpenSpeakerSetupID);
-        // TODO: Speaker Setup saving is handled when we close the Speaker Setup window.
-        //menu.addCommandItem(commandManager, MainWindow::SaveSpeakerSetupID);
-        //menu.addCommandItem(commandManager, MainWindow::SaveAsSpeakerSetupID);
         menu.addSeparator();
         menu.addCommandItem (commandManager, MainWindow::PrefsID);
 #if ! JUCE_MAC

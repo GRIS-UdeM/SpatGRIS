@@ -83,8 +83,7 @@ public:
     void handleSavePreset();
     void handleSaveAsPreset();
     void handleOpenSpeakerSetup();
-    void handleSaveSpeakerSetup();
-    void handleSaveAsSpeakerSetup();
+    void handleSaveAsSpeakerSetup(); // Called when closing the Speaker Setup Edition window.
     void handleShowSpeakerEditWindow();
     void handleShowPreferences();
     void handleShowAbout();
