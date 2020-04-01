@@ -238,8 +238,6 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     this->sliderInterpolation->setRange(0.0, 1.0, 0.001);
 
     addLabel("Mode :", "Mode of spatilization", 150, 30, 60, 20, this->boxControlUI->getContent());
-    // TODO: labelModeInfo should be removed.
-    this->labelModeInfo = addLabel("...", "Status of spatilization", 195, 30, 120, 20, this->boxControlUI->getContent());
     this->comBoxModeSpat = addComboBox("", "Mode of spatilization", 155, 48, 90, 22, this->boxControlUI->getContent());
     for (int i = 0; i < ModeSpatString.size(); i++) {
         this->comBoxModeSpat->addItem(ModeSpatString[i], i+1);
@@ -2224,7 +2222,7 @@ void MainContentComponent::comboBoxChanged(ComboBox *comboBox) {
         this->comBoxModeSpat->setSelectedId(this->jackClient->modeSelected+1, NotificationType::dontSendNotification);
         return;
     }
-    int result;
+
     if (this->comBoxModeSpat == comboBox) {
         this->jackClient->processBlockOn = false;
         this->jackClient->modeSelected = (ModeSpatEnum)(this->comBoxModeSpat->getSelectedId() - 1);
@@ -2232,33 +2230,25 @@ void MainContentComponent::comboBoxChanged(ComboBox *comboBox) {
             case VBAP:
                 this->openXmlFileSpeaker(this->pathLastVbapSpeakerSetup);
                 this->needToSaveSpeakerSetup = false;
-                result = 1;
-                if (result)
-                    this->isSpanShown = true;
+                this->isSpanShown = true;
                 break;
             case LBAP:
                 this->openXmlFileSpeaker(this->pathLastVbapSpeakerSetup);
                 this->needToSaveSpeakerSetup = false;
-                result = 1;
-                if (result)
-                    this->isSpanShown = true;
+                this->isSpanShown = true;
                 break;
             case VBAP_HRTF:
                 this->openXmlFileSpeaker(BinauralSpeakerSetupFilePath);
                 this->needToSaveSpeakerSetup = false;
                 this->jackClient->resetHRTF();
-                result = this->updateLevelComp();
-                if (result)
-                    this->isSpanShown = false;
+                this->isSpanShown = false;
                 break;
             case STEREO:
                 this->openXmlFileSpeaker(StereoSpeakerSetupFilePath);
                 this->needToSaveSpeakerSetup = false;
-                result = 1;
                 this->isSpanShown = false;
                 break;
             default:
-                result = 0;
                 break;
         }
         this->jackClient->processBlockOn = true;
@@ -2267,14 +2257,6 @@ void MainContentComponent::comboBoxChanged(ComboBox *comboBox) {
             String windowName = String("Speakers Setup Edition - ") + String(ModeSpatString[this->jackClient->modeSelected]) + \
                                 String(" - ") + File(this->pathCurrentFileSpeaker).getFileName();
             this->winSpeakConfig->setName(windowName);
-        }
-
-        if (result) {
-            this->labelModeInfo->setText("Ready", dontSendNotification);
-            this->labelModeInfo->setColour(Label::textColourId, mGrisFeel.getGreenColour());
-        } else {
-            this->labelModeInfo->setText("ERROR", dontSendNotification);
-            this->labelModeInfo->setColour(Label::textColourId, mGrisFeel.getRedColour());
         }
     }
 }

@@ -310,7 +310,6 @@ private:
     Label *labelJackRate;
     Label *labelJackBuffer;
     Label *labelJackInfo;
-    Label *labelModeInfo;
 
     ComboBox *comBoxModeSpat;
 
