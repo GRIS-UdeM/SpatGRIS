@@ -2075,13 +2075,10 @@ void MainContentComponent::timerCallback() {
     
     if (this->jackClient->isSavingRun()) {
         this->butStartRecord->setButtonText("Stop");
-        this->butStartRecord->setEnabled(true);
     } else if (this->jackClient->getRecordingPath() == "") {
         this->butStartRecord->setButtonText("Record");
-        this->butStartRecord->setEnabled(false);
     } else {
         this->butStartRecord->setButtonText("Record");
-        this->butStartRecord->setEnabled(true);
     } 
 
     if (this->isRecording && !this->jackClient->recording) {
@@ -2187,6 +2184,7 @@ void MainContentComponent::buttonClicked(Button *button) {
     if (button == this->butStartRecord) {
         if (this->jackClient->recording) {
             this->jackClient->stopRecord();
+            this->butStartRecord->setEnabled(false);
             this->labelTimeRecorded->setColour(Label::textColourId, mGrisFeel.getFontColour());
         } else {
             this->isRecording = true;
