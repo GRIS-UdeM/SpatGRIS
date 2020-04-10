@@ -1312,6 +1312,7 @@ AboutWindow::AboutWindow(const String& name, Colour backgroundColour, int button
     this->juce::Component::addAndMakeVisible(this->label);
 
     this->website = new HyperlinkButton("GRIS Web Site", {"http://gris.musique.umontreal.ca/"});
+    this->website->setColour(HyperlinkButton::textColourId, this->grisFeel->getFontColour());
     this->website->setBounds(20, 470, 150, 22);
     this->website->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
     this->website->setLookAndFeel(this->grisFeel);
