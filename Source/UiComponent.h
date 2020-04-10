@@ -348,6 +348,7 @@ private:
     Label *title;
     Label *version;
     Label *label;
+    HyperlinkButton *website;
     TextButton *close;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AboutWindow)

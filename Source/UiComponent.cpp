@@ -1311,9 +1311,15 @@ AboutWindow::AboutWindow(const String& name, Colour backgroundColour, int button
     this->label->setColour(Label::textColourId, this->grisFeel->getFontColour());
     this->juce::Component::addAndMakeVisible(this->label);
 
+    this->website = new HyperlinkButton("GRIS Web Site", {"http://gris.musique.umontreal.ca/"});
+    this->website->setBounds(20, 470, 150, 22);
+    this->website->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
+    this->website->setLookAndFeel(this->grisFeel);
+    this->juce::Component::addAndMakeVisible(this->website);
+
     this->close = new TextButton();
     this->close->setButtonText("Close");
-    this->close->setBounds(150, 470, 100, 22);
+    this->close->setBounds(250, 470, 100, 22);
     this->close->addListener(this);
     this->close->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
     this->close->setLookAndFeel(this->grisFeel);
@@ -1325,6 +1331,7 @@ AboutWindow::~AboutWindow() {
     delete this->title;
     delete this->version;
     delete this->label;
+    delete this->website;
     delete this->close;
     this->mainParent->destroyAboutWindow();
 }
