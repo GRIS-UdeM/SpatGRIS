@@ -41,6 +41,8 @@ public:
     void paint(Graphics& g) override;
     void mouseDown(const MouseEvent& e) override;
 
+    void resetClipping();
+
 private:
     LevelComponent *mainParent;
     SmallGrisLookAndFeel *grisFeel;
@@ -78,6 +80,7 @@ public:
     void setBounds(const juce::Rectangle<int> &newBounds);
     void changeListenerCallback (ChangeBroadcaster* source) override;
     void updateDirectOutMenu(vector<Speaker *> spkList);
+    void resetClipping();
 
     vector<int> directOutSpeakers;
     TextButton * directOut;

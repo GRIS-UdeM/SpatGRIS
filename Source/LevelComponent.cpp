@@ -103,9 +103,13 @@ void LevelBox::paint(Graphics& g) {
 void LevelBox::mouseDown(const MouseEvent& e) {
     juce::Rectangle<int> hitBox (0, 0, getWidth(), 20);
     if (hitBox.contains(e.getPosition())) {
-        isClipping = false;
-        repaint();
+        resetClipping();
     }
+}
+
+void LevelBox::resetClipping() {
+    isClipping = false;
+    repaint(); 
 }
 
 //======================== LevelComponent ===========================
@@ -260,6 +264,10 @@ void LevelComponent::changeListenerCallback(ChangeBroadcaster* source) {
             }
         }
     }
+}
+
+void LevelComponent::resetClipping() {
+    this->levelBox->resetClipping();
 }
 
 float LevelComponent::getLevel() {

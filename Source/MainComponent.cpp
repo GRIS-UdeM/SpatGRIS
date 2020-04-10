@@ -810,6 +810,15 @@ void MainContentComponent::handleResetInputPositions() {
     }
 }
 
+void MainContentComponent::handleResetMeterClipping() {
+    for (auto&& it : this->listSourceInput) {
+        it->getVuMeter()->resetClipping();
+    }
+    for (auto&& it : this->listSpeaker) {
+        it->getVuMeter()->resetClipping();
+    }
+}
+
 void MainContentComponent::handleInputColours() {
     float hue = 0.0f;
     float inc = 1.0 / (this->listSourceInput.size() + 1);
@@ -837,6 +846,7 @@ void MainContentComponent::getAllCommands (Array<CommandID>& commands) {
                               MainWindow::ShowSphereID,
                               MainWindow::ColorizeInputsID,
                               MainWindow::ResetInputPosID,
+                              MainWindow::ResetMeterClipping,
                               MainWindow::ShowOscLogView,
                               MainWindow::PrefsID,
                               MainWindow::QuitID,
@@ -917,6 +927,10 @@ void MainContentComponent::getCommandInfo (CommandID commandID, ApplicationComma
             result.setInfo ("Reset Input Position", "Reset the position of the input sources.", generalCategory, 0);
             result.addDefaultKeypress ('R', ModifierKeys::altModifier);
             break;
+        case MainWindow::ResetMeterClipping:
+            result.setInfo ("Reset Meter Clipping", "Reset clipping for all meters.", generalCategory, 0);
+            result.addDefaultKeypress ('M', ModifierKeys::altModifier);
+            break;
         case MainWindow::ShowOscLogView:
             result.setInfo ("Show OSC Log Window", "Show the OSC logging window.", generalCategory, 0);
             break;
@@ -957,6 +971,7 @@ bool MainContentComponent::perform(const InvocationInfo& info) {
             case MainWindow::ShowSphereID: this->handleShowSphere(); break;
             case MainWindow::ColorizeInputsID: this->handleInputColours(); break;
             case MainWindow::ResetInputPosID: this->handleResetInputPositions(); break;
+            case MainWindow::ResetMeterClipping: this->handleResetMeterClipping(); break;
             case MainWindow::ShowOscLogView: this->handleShowOscLogView(); break;
             case MainWindow::PrefsID: this->handleShowPreferences(); break;
             case MainWindow::QuitID: dynamic_cast<MainWindow*>(this->parent)->closeButtonPressed(); break;
@@ -1006,6 +1021,7 @@ PopupMenu MainContentComponent::getMenuForIndex (int menuIndex, const String& me
         menu.addSeparator();
         menu.addCommandItem(commandManager, MainWindow::ColorizeInputsID);
         menu.addCommandItem(commandManager, MainWindow::ResetInputPosID);
+        menu.addCommandItem(commandManager, MainWindow::ResetMeterClipping);
         // TODO: Osc log window still crashes on MacOS. Useful only in debugging process.
         //menu.addSeparator();
         //menu.addCommandItem(commandManager, MainWindow::ShowOscLogView);
@@ -1460,6 +1476,7 @@ bool MainContentComponent::updateLevelComp() {
     for (auto&& it : this->listSpeaker) {
         juce::Rectangle<int> level(x, 4, VuMeterWidthInPixels, 200);
         it->getVuMeter()->setBounds(level);
+        it->getVuMeter()->resetClipping();
         this->boxOutputsUI->getContent()->addAndMakeVisible(it->getVuMeter());
         it->getVuMeter()->repaint();
         
@@ -1511,6 +1528,7 @@ bool MainContentComponent::updateLevelComp() {
         juce::Rectangle<int> level(x, 4, VuMeterWidthInPixels, 200);
         it->getVuMeter()->setBounds(level);
         it->getVuMeter()->updateDirectOutMenu(this->listSpeaker);
+        it->getVuMeter()->resetClipping();
         this->boxInputsUI->getContent()->addAndMakeVisible(it->getVuMeter());
         it->getVuMeter()->repaint();
         

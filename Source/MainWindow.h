@@ -82,6 +82,7 @@ public:
         ShowSphereID        =   3006,
         ColorizeInputsID    =   3010,
         ResetInputPosID     =   3011,
+        ResetMeterClipping  =   3012,
         ShowOscLogView      =   3100,
 
         // Help menu

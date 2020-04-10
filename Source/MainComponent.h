@@ -100,6 +100,7 @@ public:
     void handleShowSpeakerLevel();
     void handleShowSphere();
     void handleResetInputPositions();
+    void handleResetMeterClipping();
     void handleShowOscLogView();
     void handleInputColours();
 
