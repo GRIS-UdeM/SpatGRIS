@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<SpeakerSetup Name="GRISpeaker Dome43 ZKM Narrow_front Speakers.xml" Dimension="3"
+              SpatMode="0">
+  <Ring>
+    <Speaker PositionX="-1" PositionY="0" PositionZ="0" Azimuth="1.8e2" Zenith="0"
+             Radius="1" LayoutIndex="1" OutputPatch="1" Gain="0" HighPassCutoff="0"
+             DirectOut="0"/>
+    <Speaker PositionX="-8.345999717712402e-1" PositionY="5.507999658584595e-1"
+             PositionZ="0" Azimuth="1.465751953125e2" Zenith="0" Radius="1"
+             LayoutIndex="2" OutputPatch="14" Gain="0" HighPassCutoff="0"
+             DirectOut="0"/>
+    <Speaker PositionX="-5.735000371932983e-1" PositionY="8.192000389099121e-1"
+             PositionZ="0" Azimuth="1.249920120239258e2" Zenith="0" Radius="1"
+             LayoutIndex="3" OutputPatch="13" Gain="0" HighPassCutoff="0"
+             DirectOut="0"/>
+    <Speaker PositionX="-2.872999906539917e-1" PositionY="9.57800030708313e-1"
+             PositionZ="0" Azimuth="1.066992416381836e2" Zenith="0" Radius="1"
+             LayoutIndex="4" OutputPatch="12" Gain="0" HighPassCutoff="0"
+             DirectOut="0"/>
+    <Speaker PositionX="2.872999906539917e-1" PositionY="9.57800030708313e-1"
+             PositionZ="0" Azimuth="7.330075073242188e1" Zenith="0" Radius="1"
+             LayoutIndex="5" OutputPatch="11" Gain="0" HighPassCutoff="0"
+             DirectOut="0"/>
+    <Speaker PositionX="5.735000371932983e-1" PositionY="8.192000389099121e-1"
+             PositionZ="0" Azimuth="5.500798034667969e1" Zenith="0" Radius="1"
+             LayoutIndex="6" OutputPatch="10" Gain="0" HighPassCutoff="0"
+             DirectOut="0"/>
+    <Speaker PositionX="8.345999717712402e-1" PositionY="5.507999658584595e-1"
+             PositionZ="0" Azimuth="3.342481231689453e1" Zenith="0" Radius="1"
+             LayoutIndex="7" OutputPatch="9" Gain="0" HighPassCutoff="0" DirectOut="0"/>
+    <Speaker PositionX="1" PositionY="0" PositionZ="0" Azimuth="0" Zenith="0"
+             Radius="1" LayoutIndex="8" OutputPatch="8" Gain="0" HighPassCutoff="0"
+             DirectOut="0"/>
+    <Speaker PositionX="8.345999717712402e-1" PositionY="-5.507999658584595e-1"
+             PositionZ="0" Azimuth="-3.342481231689453e1" Zenith="0" Radius="1"
+             LayoutIndex="9" OutputPatch="7" Gain="0" HighPassCutoff="0" DirectOut="0"/>
+    <Speaker PositionX="5.735000371932983e-1" PositionY="-8.192000389099121e-1"
+             PositionZ="0" Azimuth="-5.500798034667969e1" Zenith="0" Radius="1"
+             LayoutIndex="10" OutputPatch="6" Gain="0" HighPassCutoff="0"
+             DirectOut="0"/>
+    <Speaker PositionX="2.872999906539917e-1" PositionY="-9.57800030708313e-1"
+             PositionZ="0" Azimuth="-7.330075073242188e1" Zenith="0" Radius="1"
+             LayoutIndex="11" OutputPatch="5" Gain="0" HighPassCutoff="0"
+             DirectOut="0"/>
+    <Speaker PositionX="-2.872999906539917e-1" PositionY="-9.57800030708313e-1"
+             PositionZ="0" Azimuth="-1.066992416381836e2" Zenith="0" Radius="1"
+             LayoutIndex="12" OutputPatch="4" Gain="0" HighPassCutoff="0"
+             DirectOut="0"/>
+    <Speaker PositionX="-5.735000371932983e-1" PositionY="-8.192000389099121e-1"
+             PositionZ="0" Azimuth="-1.249920120239258e2" Zenith="0" Radius="1"
+             LayoutIndex="13" OutputPatch="3" Gain="0" HighPassCutoff="0"
+             DirectOut="0"/>
+    <Speaker PositionX="-8.345999717712402e-1" PositionY="-5.507999658584595e-1"
+             PositionZ="0" Azimuth="-1.465751953125e2" Zenith="0" Radius="1"
+             LayoutIndex="14" OutputPatch="2" Gain="0" HighPassCutoff="0"
+             DirectOut="0"/>
+    <Speaker PositionX="-8.159000277519226e-1" PositionY="2.147000133991241e-1"
+             PositionZ="5.368000268936157e-1" Azimuth="1.652559967041016e2"
+             Zenith="3.246587371826172e1" Radius="1" LayoutIndex="15" OutputPatch="28"
+             Gain="0" HighPassCutoff="0" DirectOut="0"/>
+    <Speaker PositionX="-6.492000222206116e-1" PositionY="6.02899968624115e-1"
+             PositionZ="4.63699996471405e-1" Azimuth="1.3712109375e2" Zenith="2.762863922119141e1"
+             Radius="1" LayoutIndex="16" OutputPatch="27" Gain="0" HighPassCutoff="0"
+             DirectOut="0"/>
+    <Speaker PositionX="-5.205999612808228e-1" PositionY="6.76800012588501e-1"
+             PositionZ="5.205999612808228e-1" Azimuth="1.275685882568359e2"
+             Zenith="3.137111473083496e1" Radius="1" LayoutIndex="17" OutputPatch="26"
+             Gain="0" HighPassCutoff="0" DirectOut="0"/>
+    <Speaker PositionX="0" PositionY="7.926000356674194e-1" PositionZ="6.097000241279602e-1"
+             Azimuth="8.999999237060547e1" Zenith="3.75685920715332e1" Radius="1"
+             LayoutIndex="18" OutputPatch="25" Gain="0" HighPassCutoff="0"
+             DirectOut="0"/>
+    <Speaker PositionX="5.205999612808228e-1" PositionY="6.76800012588501e-1"
+             PositionZ="5.205999612808228e-1" Azimuth="5.24314079284668e1"
+             Zenith="3.137111473083496e1" Radius="1" LayoutIndex="19" OutputPatch="24"
+             Gain="0" HighPassCutoff="0" DirectOut="0"/>
+    <Speaker PositionX="6.492000222206116e-1" PositionY="6.02899968624115e-1"
+             PositionZ="4.63699996471405e-1" Azimuth="4.287890243530273e1"
+             Zenith="2.762863922119141e1" Radius="1" LayoutIndex="20" OutputPatch="23"
+             Gain="0" HighPassCutoff="0" DirectOut="0"/>
+    <Speaker PositionX="8.140000104904175e-1" PositionY="2.17600017786026e-1"
+             PositionZ="5.386000275611877e-1" Azimuth="1.496881484985352e1"
+             Zenith="3.25904655456543e1" Radius="1" LayoutIndex="21" OutputPatch="22"
+             Gain="0" HighPassCutoff="0" DirectOut="0"/>
+    <Speaker PositionX="8.140000104904175e-1" PositionY="-2.17600017786026e-1"
+             PositionZ="5.386000275611877e-1" Azimuth="-1.496881484985352e1"
+             Zenith="3.25904655456543e1" Radius="1" LayoutIndex="22" OutputPatch="21"
+             Gain="0" HighPassCutoff="0" DirectOut="0"/>
+    <Speaker PositionX="6.492000222206116e-1" PositionY="-6.02899968624115e-1"
+             PositionZ="4.63699996471405e-1" Azimuth="-4.287890243530273e1"
+             Zenith="2.762863922119141e1" Radius="1" LayoutIndex="23" OutputPatch="20"
+             Gain="0" HighPassCutoff="0" DirectOut="0"/>
+    <Speaker PositionX="5.205999612808228e-1" PositionY="-6.76800012588501e-1"
+             PositionZ="5.205999612808228e-1" Azimuth="-5.24314079284668e1"
+             Zenith="3.137111473083496e1" Radius="1" LayoutIndex="24" OutputPatch="19"
+             Gain="0" HighPassCutoff="0" DirectOut="0"/>
+    <Speaker PositionX="0" PositionY="-7.926000356674194e-1" PositionZ="6.097000241279602e-1"
+             Azimuth="-8.999999237060547e1" Zenith="3.75685920715332e1" Radius="1"
+             LayoutIndex="25" OutputPatch="18" Gain="0" HighPassCutoff="0"
+             DirectOut="0"/>
+    <Speaker PositionX="-5.205999612808228e-1" PositionY="-6.76800012588501e-1"
+             PositionZ="5.205999612808228e-1" Azimuth="-1.275685882568359e2"
+             Zenith="3.137111473083496e1" Radius="1" LayoutIndex="26" OutputPatch="17"
+             Gain="0" HighPassCutoff="0" DirectOut="0"/>
+    <Speaker PositionX="-6.492000222206116e-1" PositionY="-6.02899968624115e-1"
+             PositionZ="4.63699996471405e-1" Azimuth="-1.3712109375e2" Zenith="2.762863922119141e1"
+             Radius="1" LayoutIndex="27" OutputPatch="16" Gain="0" HighPassCutoff="0"
+             DirectOut="0"/>
+    <Speaker PositionX="-8.159000277519226e-1" PositionY="-2.147000133991241e-1"
+             PositionZ="5.368000268936157e-1" Azimuth="-1.652564392089844e2"
+             Zenith="3.246587371826172e1" Radius="1" LayoutIndex="28" OutputPatch="15"
+             Gain="0" HighPassCutoff="0" DirectOut="0"/>
+    <Speaker PositionX="-5.263000130653381e-1" PositionY="3.158000111579895e-1"
+             PositionZ="7.895000576972961e-1" Azimuth="1.490362396240234e2"
+             Zenith="5.213635635375977e1" Radius="1" LayoutIndex="29" OutputPatch="36"
+             Gain="0" HighPassCutoff="0" DirectOut="0"/>
+    <Speaker PositionX="-2.67300009727478e-1" PositionY="5.345000028610229e-1"
+             PositionZ="8.017999529838562e-1" Azimuth="1.165650482177734e2"
+             Zenith="5.330077362060547e1" Radius="1" LayoutIndex="30" OutputPatch="35"
+             Gain="0" HighPassCutoff="0" DirectOut="0"/>
+    <Speaker PositionX="2.67300009727478e-1" PositionY="5.345000028610229e-1"
+             PositionZ="8.017999529838562e-1" Azimuth="6.343495178222656e1"
+             Zenith="5.330077362060547e1" Radius="1" LayoutIndex="31" OutputPatch="34"
+             Gain="0" HighPassCutoff="0" DirectOut="0"/>
+    <Speaker PositionX="5.263000130653381e-1" PositionY="3.158000111579895e-1"
+             PositionZ="7.895000576972961e-1" Azimuth="3.096375846862793e1"
+             Zenith="5.213635635375977e1" Radius="1" LayoutIndex="32" OutputPatch="33"
+             Gain="0" HighPassCutoff="0" DirectOut="0"/>
+    <Speaker PositionX="5.263000130653381e-1" PositionY="-3.158000111579895e-1"
+             PositionZ="7.895000576972961e-1" Azimuth="-3.096375846862793e1"
+             Zenith="5.213635635375977e1" Radius="1" LayoutIndex="33" OutputPatch="32"
+             Gain="0" HighPassCutoff="0" DirectOut="0"/>
+    <Speaker PositionX="2.67300009727478e-1" PositionY="-5.345000028610229e-1"
+             PositionZ="8.017999529838562e-1" Azimuth="-6.343495178222656e1"
+             Zenith="5.330077362060547e1" Radius="1" LayoutIndex="34" OutputPatch="31"
+             Gain="0" HighPassCutoff="0" DirectOut="0"/>
+    <Speaker PositionX="-2.67300009727478e-1" PositionY="-5.345000028610229e-1"
+             PositionZ="8.017999529838562e-1" Azimuth="-1.165650482177734e2"
+             Zenith="5.330077362060547e1" Radius="1" LayoutIndex="35" OutputPatch="30"
+             Gain="0" HighPassCutoff="0" DirectOut="0"/>
+    <Speaker PositionX="-5.263000130653381e-1" PositionY="-3.158000111579895e-1"
+             PositionZ="7.895000576972961e-1" Azimuth="-1.490362396240234e2"
+             Zenith="5.213635635375977e1" Radius="1" LayoutIndex="36" OutputPatch="29"
+             Gain="0" HighPassCutoff="0" DirectOut="0"/>
+    <Speaker PositionX="-2.233000099658966e-1" PositionY="2.233000099658966e-1"
+             PositionZ="9.487999677658081e-1" Azimuth="1.35e2" Zenith="7.159481811523438e1"
+             Radius="1" LayoutIndex="37" OutputPatch="42" Gain="0" HighPassCutoff="0"
+             DirectOut="0"/>
+    <Speaker PositionX="0" PositionY="3.328000009059906e-1" PositionZ="9.430000185966492e-1"
+             Azimuth="8.999999237060547e1" Zenith="7.055997467041016e1" Radius="1"
+             LayoutIndex="38" OutputPatch="41" Gain="0" HighPassCutoff="0"
+             DirectOut="0"/>
+    <Speaker PositionX="2.233000099658966e-1" PositionY="2.233000099658966e-1"
+             PositionZ="9.487999677658081e-1" Azimuth="4.5e1" Zenith="7.159481811523438e1"
+             Radius="1" LayoutIndex="39" OutputPatch="40" Gain="0" HighPassCutoff="0"
+             DirectOut="0"/>
+    <Speaker PositionX="2.233000099658966e-1" PositionY="-2.233000099658966e-1"
+             PositionZ="9.487999677658081e-1" Azimuth="-4.5e1" Zenith="7.159481811523438e1"
+             Radius="1" LayoutIndex="40" OutputPatch="39" Gain="0" HighPassCutoff="0"
+             DirectOut="0"/>
+    <Speaker PositionX="0" PositionY="-3.328000009059906e-1" PositionZ="9.430000185966492e-1"
+             Azimuth="-8.999999237060547e1" Zenith="7.055997467041016e1" Radius="1"
+             LayoutIndex="41" OutputPatch="38" Gain="0" HighPassCutoff="0"
+             DirectOut="0"/>
+    <Speaker PositionX="-2.233000099658966e-1" PositionY="-2.233000099658966e-1"
+             PositionZ="9.487999677658081e-1" Azimuth="-1.35e2" Zenith="7.159481811523438e1"
+             Radius="1" LayoutIndex="42" OutputPatch="37" Gain="0" HighPassCutoff="0"
+             DirectOut="0"/>
+    <Speaker PositionX="0" PositionY="0" PositionZ="1" Azimuth="0" Zenith="8.999999237060547e1"
+             Radius="1" LayoutIndex="43" OutputPatch="43" Gain="0" HighPassCutoff="0"
+             DirectOut="0"/>
+    <Speaker PositionX="9.898999929428101e-1" PositionY="-9.898999929428101e-1"
+             PositionZ="0" Azimuth="3.15e2" Zenith="0" Radius="1.399999976158142"
+             LayoutIndex="44" OutputPatch="48" Gain="0" HighPassCutoff="0"
+             DirectOut="1"/>
+    <Speaker PositionX="9.898999929428101e-1" PositionY="9.898999929428101e-1"
+             PositionZ="0" Azimuth="4.5e1" Zenith="0" Radius="1.399999976158142"
+             LayoutIndex="45" OutputPatch="49" Gain="0" HighPassCutoff="0"
+             DirectOut="1"/>
+    <Speaker PositionX="-9.898999929428101e-1" PositionY="9.898999929428101e-1"
+             PositionZ="0" Azimuth="1.35e2" Zenith="0" Radius="1.399999976158142"
+             LayoutIndex="46" OutputPatch="50" Gain="0" HighPassCutoff="0"
+             DirectOut="1"/>
+    <Speaker PositionX="-9.898999929428101e-1" PositionY="-9.898999929428101e-1"
+             PositionZ="0" Azimuth="2.25e2" Zenith="0" Radius="1.399999976158142"
+             LayoutIndex="47" OutputPatch="51" Gain="0" HighPassCutoff="0"
+             DirectOut="1"/>
+  </Ring>
+  <triplet id1="1" id2="14" id3="28"/>
+  <triplet id1="1" id2="2" id3="15"/>
+  <triplet id1="1" id2="28" id3="15"/>
+  <triplet id1="14" id2="13" id3="27"/>
+  <triplet id1="14" id2="28" id3="27"/>
+  <triplet id1="13" id2="12" id3="26"/>
+  <triplet id1="13" id2="27" id3="26"/>
+  <triplet id1="12" id2="11" id3="25"/>
+  <triplet id1="11" id2="10" id3="24"/>
+  <triplet id1="10" id2="9" id3="23"/>
+  <triplet id1="10" id2="24" id3="23"/>
+  <triplet id1="9" id2="8" id3="22"/>
+  <triplet id1="9" id2="23" id3="22"/>
+  <triplet id1="8" id2="7" id3="21"/>
+  <triplet id1="8" id2="22" id3="21"/>
+  <triplet id1="8" id2="33" id3="32"/>
+  <triplet id1="7" id2="6" id3="20"/>
+  <triplet id1="7" id2="21" id3="20"/>
+  <triplet id1="6" id2="5" id3="19"/>
+  <triplet id1="6" id2="20" id3="19"/>
+  <triplet id1="5" id2="4" id3="18"/>
+  <triplet id1="4" id2="3" id3="17"/>
+  <triplet id1="3" id2="2" id3="16"/>
+  <triplet id1="3" id2="17" id3="16"/>
+  <triplet id1="2" id2="16" id3="15"/>
+  <triplet id1="28" id2="27" id3="36"/>
+  <triplet id1="28" id2="15" id3="36"/>
+  <triplet id1="27" id2="26" id3="36"/>
+  <triplet id1="26" id2="36" id3="35"/>
+  <triplet id1="25" id2="35" id3="34"/>
+  <triplet id1="24" id2="23" id3="33"/>
+  <triplet id1="24" id2="34" id3="33"/>
+  <triplet id1="23" id2="22" id3="33"/>
+  <triplet id1="22" id2="21" id3="33"/>
+  <triplet id1="21" id2="20" id3="32"/>
+  <triplet id1="21" id2="33" id3="32"/>
+  <triplet id1="20" id2="19" id3="32"/>
+  <triplet id1="19" id2="32" id3="31"/>
+  <triplet id1="18" id2="31" id3="30"/>
+  <triplet id1="17" id2="16" id3="29"/>
+  <triplet id1="17" id2="30" id3="29"/>
+  <triplet id1="16" id2="15" id3="29"/>
+  <triplet id1="15" id2="36" id3="29"/>
+  <triplet id1="36" id2="35" id3="42"/>
+  <triplet id1="36" id2="29" id3="42"/>
+  <triplet id1="35" id2="34" id3="41"/>
+  <triplet id1="35" id2="42" id3="41"/>
+  <triplet id1="34" id2="33" id3="40"/>
+  <triplet id1="34" id2="41" id3="40"/>
+  <triplet id1="33" id2="32" id3="40"/>
+  <triplet id1="32" id2="31" id3="39"/>
+  <triplet id1="32" id2="40" id3="39"/>
+  <triplet id1="31" id2="30" id3="38"/>
+  <triplet id1="31" id2="39" id3="38"/>
+  <triplet id1="30" id2="29" id3="37"/>
+  <triplet id1="30" id2="38" id3="37"/>
+  <triplet id1="29" id2="42" id3="37"/>
+  <triplet id1="42" id2="41" id3="43"/>
+  <triplet id1="42" id2="37" id3="43"/>
+  <triplet id1="41" id2="40" id3="43"/>
+  <triplet id1="40" id2="39" id3="43"/>
+  <triplet id1="39" id2="38" id3="43"/>
+  <triplet id1="38" id2="37" id3="43"/>
+</SpeakerSetup>
