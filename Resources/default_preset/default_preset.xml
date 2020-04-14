@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<ServerGRIS_Preset OSC_Input_Port="18032" Number_Of_Inputs="18" Master_Gain_Out="1.0"
+<ServerGRIS_Preset OSC_Input_Port="18032" Number_Of_Inputs="18" Master_Gain_Out="0.0"
                    Master_Interpolation="0.1" Show_Numbers="0" Show_Speakers="1"
                    Show_Triplets="0" Use_Alpha="0" Show_Speaker_Level="0"
                    Show_Sphere="0" CamAngleX="89.66667938232422" CamAngleY="20.66667175292969"
