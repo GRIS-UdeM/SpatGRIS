@@ -1,0 +1,212 @@
+#N canvas 3 83 1889 975 10;
+#X obj 9 317 osc~ 500;
+#X obj 9 361 *~;
+#X obj 23 340 phasor~ 4;
+#X obj 95 361 *~;
+#X obj 95 317 osc~ 600;
+#X obj 109 340 phasor~ 5;
+#X obj 183 361 *~;
+#X obj 269 361 *~;
+#X obj 183 317 osc~ 700;
+#X obj 197 340 phasor~ 6;
+#X obj 269 317 osc~ 800;
+#X obj 283 340 phasor~ 7;
+#X obj 9 382 *~ 0.25;
+#X obj 95 382 *~ 0.25;
+#X obj 183 382 *~ 0.25;
+#X obj 269 382 *~ 0.25;
+#X obj 96 409 dac~ 1 2 3 4;
+#X obj 463 330 udpsend;
+#X msg 514 330 disconnect;
+#X obj 412 308 packOSC;
+#X msg 463 307 connect 127.0.0.1 18032;
+#X obj 463 287 loadbang;
+#X obj 4 38 phasor~ 0.1;
+#X obj 4 79 snapshot~;
+#X obj 412 393 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 1
+1;
+#X obj 412 412 metro 60;
+#X obj 4 100 * 6.2832;
+#X obj 412 432 s go;
+#X obj 32 58 r go;
+#X msg 4 246 sendtyped /spat/serv iffffff 0 \$1 \$2 \$3 \$4 \$5 0,
+f 29;
+#X obj 4 225 pack f 1.57 0.25 0.02 1;
+#X obj 37 147 vsl 15 50 0 1 0 0 empty empty empty 0 -9 0 10 -262144
+-1 -1 1700 0;
+#X obj 37 204 expr (1 - $f1) * 1.57;
+#X obj 71 147 vsl 15 50 0 2 0 0 empty empty empty 0 -9 0 10 -262144
+-1 -1 400 0;
+#X obj 105 147 vsl 15 50 0 0.5 0 0 empty empty empty 0 -9 0 10 -262144
+-1 -1 300 0;
+#X obj 139 147 vsl 15 50 0 1 0 0 empty empty empty 0 -9 0 10 -262144
+-1 -1 4900 0;
+#X obj 208 79 snapshot~;
+#X obj 208 100 * 6.2832;
+#X obj 236 57 r go;
+#X obj 208 225 pack f 1.57 0.25 0.02 1;
+#X obj 241 147 vsl 15 50 0 1 0 0 empty empty empty 0 -9 0 10 -262144
+-1 -1 0 0;
+#X obj 241 204 expr (1 - $f1) * 1.57;
+#X obj 275 147 vsl 15 50 0 2 0 0 empty empty empty 0 -9 0 10 -262144
+-1 -1 500 0;
+#X obj 309 147 vsl 15 50 0 0.5 0 0 empty empty empty 0 -9 0 10 -262144
+-1 -1 1500 0;
+#X obj 343 147 vsl 15 50 0 1 0 0 empty empty empty 0 -9 0 10 -262144
+-1 -1 4900 0;
+#X obj 208 37 phasor~ 0.13;
+#X msg 208 246 sendtyped /spat/serv iffffff 1 \$1 \$2 \$3 \$4 \$5 0
+, f 29;
+#X obj 413 79 snapshot~;
+#X obj 413 100 * 6.2832;
+#X obj 440 56 r go;
+#X obj 413 225 pack f 1.57 0.25 0.02 1;
+#X obj 446 147 vsl 15 50 0 1 0 0 empty empty empty 0 -9 0 10 -262144
+-1 -1 0 0;
+#X obj 446 204 expr (1 - $f1) * 1.57;
+#X obj 480 147 vsl 15 50 0 2 0 0 empty empty empty 0 -9 0 10 -262144
+-1 -1 900 0;
+#X obj 514 147 vsl 15 50 0 0.5 0 0 empty empty empty 0 -9 0 10 -262144
+-1 -1 1500 0;
+#X obj 548 147 vsl 15 50 0 1 0 0 empty empty empty 0 -9 0 10 -262144
+-1 -1 4900 0;
+#X obj 413 36 phasor~ 0.15;
+#X msg 413 246 sendtyped /spat/serv iffffff 2 \$1 \$2 \$3 \$4 \$5 0
+, f 29;
+#X obj 616 78 snapshot~;
+#X obj 616 99 * 6.2832;
+#X obj 643 55 r go;
+#X obj 616 224 pack f 1.57 0.25 0.02 1;
+#X obj 649 146 vsl 15 50 0 1 0 0 empty empty empty 0 -9 0 10 -262144
+-1 -1 0 0;
+#X obj 649 203 expr (1 - $f1) * 1.57;
+#X obj 683 146 vsl 15 50 0 2 0 0 empty empty empty 0 -9 0 10 -262144
+-1 -1 1000 0;
+#X obj 717 146 vsl 15 50 0 0.5 0 0 empty empty empty 0 -9 0 10 -262144
+-1 -1 1000 0;
+#X obj 751 146 vsl 15 50 0 1 0 0 empty empty empty 0 -9 0 10 -262144
+-1 -1 4900 0;
+#X obj 616 35 phasor~ 0.17;
+#X msg 616 245 sendtyped /spat/serv iffffff 3 \$1 \$2 \$3 \$4 \$5 0
+, f 29;
+#X text 87 62 Contrôle source 1;
+#X text 287 63 Contrôle source 2;
+#X text 488 62 Contrôle source 3;
+#X text 691 61 Contrôle source 4;
+#X text 3 20 azim;
+#X text 31 128 elev;
+#X text 67 117 azim;
+#X text 67 128 span;
+#X text 101 128 span;
+#X text 101 118 elev;
+#X text 137 116 distance;
+#X text 136 128 (LBAP);
+#X text 2 3 Exemple d'utilisation du ServerGris avec Pd (4 sources).
+;
+#X text 207 20 azim;
+#X text 235 128 elev;
+#X text 271 117 azim;
+#X text 271 128 span;
+#X text 305 128 span;
+#X text 305 118 elev;
+#X text 341 116 distance;
+#X text 340 128 (LBAP);
+#X text 411 20 azim;
+#X text 439 128 elev;
+#X text 475 117 azim;
+#X text 475 128 span;
+#X text 509 128 span;
+#X text 509 118 elev;
+#X text 545 116 distance;
+#X text 544 128 (LBAP);
+#X text 615 19 azim;
+#X text 643 127 elev;
+#X text 679 116 azim;
+#X text 679 127 span;
+#X text 713 127 span;
+#X text 713 117 elev;
+#X text 749 115 distance;
+#X text 748 127 (LBAP);
+#X text 616 288 Structure des messages OSC:;
+#X text 628 305 int : Numéro de la source (en commencant à 0);
+#X text 627 320 float : azimuth entre 0 et 2pi;
+#X text 627 336 float : élévation entre pi/2 et 0 (0 est en haut)
+;
+#X text 627 352 float : Azimuth span entre 0 et 2;
+#X text 627 368 float : Élévation span entre 0 et 0.5;
+#X text 627 397 float : Gain \, non-utilisé (donner simplement 0)
+;
+#X text 429 392 Active les automations;
+#X obj 412 373 loadbang;
+#X text 66 295 Les 4 sources audio à spatialiser!;
+#X text 7 434 * N'oubliez pas de sélectionner jack ou JackRouter comme
+pilote audio et assurez-vous d'avoir au moins 4 sorties de configurées.
+;
+#X text 627 382 float : Distance entre 0 et 1 (en mode LBAP);
+#X connect 0 0 1 0;
+#X connect 1 0 12 0;
+#X connect 2 0 1 1;
+#X connect 3 0 13 0;
+#X connect 4 0 3 0;
+#X connect 5 0 3 1;
+#X connect 6 0 14 0;
+#X connect 7 0 15 0;
+#X connect 8 0 6 0;
+#X connect 9 0 6 1;
+#X connect 10 0 7 0;
+#X connect 11 0 7 1;
+#X connect 12 0 16 0;
+#X connect 13 0 16 1;
+#X connect 14 0 16 2;
+#X connect 15 0 16 3;
+#X connect 18 0 17 0;
+#X connect 19 0 17 0;
+#X connect 20 0 17 0;
+#X connect 21 0 20 0;
+#X connect 22 0 23 0;
+#X connect 23 0 26 0;
+#X connect 24 0 25 0;
+#X connect 25 0 27 0;
+#X connect 26 0 30 0;
+#X connect 28 0 23 0;
+#X connect 29 0 19 0;
+#X connect 30 0 29 0;
+#X connect 31 0 32 0;
+#X connect 32 0 30 1;
+#X connect 33 0 30 2;
+#X connect 34 0 30 3;
+#X connect 35 0 30 4;
+#X connect 36 0 37 0;
+#X connect 37 0 39 0;
+#X connect 38 0 36 0;
+#X connect 39 0 46 0;
+#X connect 40 0 41 0;
+#X connect 41 0 39 1;
+#X connect 42 0 39 2;
+#X connect 43 0 39 3;
+#X connect 44 0 39 4;
+#X connect 45 0 36 0;
+#X connect 46 0 19 0;
+#X connect 47 0 48 0;
+#X connect 48 0 50 0;
+#X connect 49 0 47 0;
+#X connect 50 0 57 0;
+#X connect 51 0 52 0;
+#X connect 52 0 50 1;
+#X connect 53 0 50 2;
+#X connect 54 0 50 3;
+#X connect 55 0 50 4;
+#X connect 56 0 47 0;
+#X connect 57 0 19 0;
+#X connect 58 0 59 0;
+#X connect 59 0 61 0;
+#X connect 60 0 58 0;
+#X connect 61 0 68 0;
+#X connect 62 0 63 0;
+#X connect 63 0 61 1;
+#X connect 64 0 61 2;
+#X connect 65 0 61 3;
+#X connect 66 0 61 4;
+#X connect 67 0 58 0;
+#X connect 68 0 19 0;
+#X connect 114 0 24 0;
