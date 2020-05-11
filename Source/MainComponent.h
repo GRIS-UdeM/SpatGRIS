@@ -57,8 +57,6 @@
 #include "WinControl.h"
 #include "MainWindow.h"
 
-using namespace std;
-
 // This component lives inside our window, and this is where you should put all your controls and content.
 class MainContentComponent : public Component,
                              public MenuBarModel,
@@ -113,8 +111,8 @@ public:
     void menuItemSelected (int menuItemID, int /*topLevelMenuIndex*/) override;
 
     // Speakers.
-    vector<Speaker *> getListSpeaker() { return this->listSpeaker; }
-    mutex* getLockSpeakers() { return this->lockSpeakers; }
+    juce::OwnedArray<Speaker> & getListSpeaker() { return this->listSpeaker; }
+    mutex & getLockSpeakers() { return this->lockSpeakers; }
     Speaker * getSpeakerFromOutputPatch(int out);
     void addSpeaker(int sortColumnId = 1, bool isSortedForwards = true);
     void insertSpeaker(int position, int sortColumnId, bool isSortedForwards);
@@ -126,20 +124,20 @@ public:
     int getMaxSpeakerOutputPatch();
 
     // Sources.
-    vector<Input *> getListSourceInput() { return this->listSourceInput; }
-    mutex* getLockInputs() { return this->lockInputs; }
+    juce::OwnedArray<Input> & getListSourceInput() { return this->listSourceInput; }
+    mutex & getLockInputs() { return this->lockInputs; }
     void updateInputJack(int inInput, Input &inp);
     bool isRadiusNormalized();
 
     // Jack clients.
-    jackClientGris * getJackClient() { return this->jackClient; }
-    mutex* getLockClients() { return &this->jackClient->lockListClient; }
-    vector<Client> *getListClientjack() { return &this->jackClient->listClient; }
+    jackClientGris * getJackClient() { return this->jackClient.get(); }
+    mutex & getLockClients() { return this->jackClient->lockListClient; }
+    vector<Client> & getListClientjack() { return this->jackClient->listClient; }
     void connectionClientJack(String nameCli, bool conn = true);
 
     // VBAP triplets.
     void setListTripletFromVbap();
-    vector<Triplet> getListTriplet() { return this->listTriplet; }
+    std::vector<Triplet> & getListTriplet() { return this->listTriplet; }
     void clearListTriplet() { this->listTriplet.clear(); }
 
     // Speaker selections.
@@ -250,7 +248,7 @@ private:
     GrisLookAndFeel mGrisFeel;
     SmallGrisLookAndFeel mSmallTextGrisFeel;
 
-    DocumentWindow *parent;
+    DocumentWindow& parent;
 
     std::unique_ptr<MenuBarComponent> menuBar;
 
@@ -262,20 +260,20 @@ private:
     ComboBox *     addComboBox(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into);
 
     // Jack server - client.
-    jackServerGRIS *jackServer;
-    jackClientGris *jackClient;
+    std::unique_ptr<jackServerGRIS> jackServer;
+    std::unique_ptr<jackClientGris> jackClient;
 
     // Speakers.
-    vector<Triplet>   listTriplet;
-    vector<Speaker *> listSpeaker;
-    mutex             *lockSpeakers;
+    std::vector<Triplet>      listTriplet{};
+    juce::OwnedArray<Speaker> listSpeaker{};
+    mutex                     lockSpeakers{};
 
     // Sources.
-    vector<Input *> listSourceInput;
-    mutex           *lockInputs;
+    juce::OwnedArray<Input> listSourceInput{};
+    mutex                   lockInputs{};
 
     // Open Sound Control.
-    OscInput *oscReceiver;
+    std::unique_ptr<OscInput> oscReceiver{};
 
     // Paths.
     String nameConfig;
@@ -287,48 +285,48 @@ private:
     String alsaOutputDevice;
     Array<String> alsaAvailableOutputDevices;
 
-    // UI Components.
-    SpeakerViewComponent *speakerView;
-    StretchableLayoutManager verticalLayout;
-    std::unique_ptr<StretchableLayoutResizerBar> verticalDividerBar;
-
     // Windows.
-    WindowEditSpeaker *winSpeakConfig;
-    WindowProperties *windowProperties;
-    WinControl *winControlSource;
+    std::unique_ptr<WindowEditSpeaker> winSpeakConfig;
+    std::unique_ptr<WindowProperties> windowProperties;
+    std::unique_ptr<WinControl> winControlSource;
     AboutWindow *aboutWindow;
     OscLogWindow *oscLogWindow;
 
     // 3 Main Boxes.
-    Box *boxMainUI;
-    Box *boxInputsUI;
-    Box *boxOutputsUI;
-    Box *boxControlUI;
+    std::unique_ptr<Box> boxMainUI;
+    std::unique_ptr<Box> boxInputsUI;
+    std::unique_ptr<Box> boxOutputsUI;
+    std::unique_ptr<Box> boxControlUI;
     
     // Component in Box 3.
-    Label *labelJackStatus;
-    Label *labelJackLoad;
-    Label *labelJackRate;
-    Label *labelJackBuffer;
-    Label *labelJackInfo;
+    std::unique_ptr<Label> labelJackStatus;
+    std::unique_ptr<Label> labelJackLoad;
+    std::unique_ptr<Label> labelJackRate;
+    std::unique_ptr<Label> labelJackBuffer;
+    std::unique_ptr<Label> labelJackInfo;
 
-    ComboBox *comBoxModeSpat;
+    std::unique_ptr<ComboBox> comBoxModeSpat;
 
-    Slider *sliderMasterGainOut;
-    Slider *sliderInterpolation;
-    
-    TextEditor *tedAddInputs;
-        
-    Label *labelAllClients;
-    BoxClient *boxClientJack;
-    
-    TextButton *butStartRecord;
-    TextEditor *tedMinRecord;
-    Label *labelTimeRecorded;
-    TextButton *butInitRecord;
+    std::unique_ptr<Slider> sliderMasterGainOut;
+    std::unique_ptr<Slider> sliderInterpolation;
+
+    std::unique_ptr<TextEditor> tedAddInputs;
+
+    std::unique_ptr<Label> labelAllClients;
+    std::unique_ptr<BoxClient> boxClientJack;
+
+    std::unique_ptr<TextButton> butStartRecord;
+    std::unique_ptr<TextEditor> tedMinRecord;
+    std::unique_ptr<Label> labelTimeRecorded;
+    std::unique_ptr<TextButton> butInitRecord;
+
+    // UI Components.
+    std::unique_ptr<SpeakerViewComponent> speakerView;
+    StretchableLayoutManager verticalLayout;
+    std::unique_ptr<StretchableLayoutResizerBar> verticalDividerBar;
 
     // App splash screen.
-    SplashScreen *splash;
+    std::unique_ptr<SplashScreen> splash;
 
     // Flags.
     bool isProcessForeground;

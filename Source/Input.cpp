@@ -29,12 +29,8 @@ Input::Input(MainContentComponent * parent, SmallGrisLookAndFeel * feel, int id)
     
     this->resetPosition();
 
-    this->vuMeter = new LevelComponent(this, this->grisFeel);
+    this->vuMeter.reset(new LevelComponent(this, this->grisFeel));
     this->setColor(Colour::fromHSV(0, 1, 0.75, 1), true);
-}
-
-Input::~Input() {
-    delete this->vuMeter;
 }
 
 void Input::resetPosition() {

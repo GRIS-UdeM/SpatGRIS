@@ -55,7 +55,7 @@ class Input : public ParentLevelComponent
 {
 public :
     Input(MainContentComponent * parent, SmallGrisLookAndFeel * feel, int id = 0);
-    ~Input();
+    ~Input() = default;
     
     // ParentLevelComponent
     int getId() { return this->idChannel; };
@@ -65,7 +65,7 @@ public :
     void setSolo(bool solo);
     void setColor(Colour color, bool updateLevel = false);
     void selectClick(bool select = true) {};
-    LevelComponent * getVuMeter() { return this->vuMeter; }
+    LevelComponent * getVuMeter() { return this->vuMeter.get(); }
 
     void resetPosition();
 
@@ -119,7 +119,7 @@ private:
     glm::vec3 color;
     Colour colorJ;
     
-    LevelComponent *vuMeter;
+    std::unique_ptr<LevelComponent> vuMeter{};
     SmallGrisLookAndFeel *grisFeel;
 };
 

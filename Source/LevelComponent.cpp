@@ -120,7 +120,7 @@ LevelComponent::LevelComponent(ParentLevelComponent *parent, SmallGrisLookAndFee
     this->isColorful = colorful;
     
     // Label
-    this->idBut = new TextButton();
+    this->idBut.reset(new TextButton());
     this->idBut->setButtonText(String(this->mainParent->getButtonInOutNumber()));
     this->idBut->setSize(22, 17);
     this->idBut->setTopLeftPosition(0, 0);
@@ -131,20 +131,20 @@ LevelComponent::LevelComponent(ParentLevelComponent *parent, SmallGrisLookAndFee
     this->idBut->setColour(TextButton::buttonColourId, this->grisFeel->getBackgroundColour());
     this->idBut->addListener(this);
     this->idBut->addMouseListener(this, true);
-    this->addAndMakeVisible(this->idBut);
+    this->addAndMakeVisible(this->idBut.get());
     
     // ToggleButton (mute)
-    this->muteToggleBut = new ToggleButton();
+    this->muteToggleBut.reset(new ToggleButton());
     this->muteToggleBut->setButtonText("m");
     this->muteToggleBut->setSize(13, 15);
     this->muteToggleBut->addListener(this);
     this->muteToggleBut->setToggleState(false, dontSendNotification);
     this->muteToggleBut->setLookAndFeel(this->grisFeel);
     this->muteToggleBut->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
-    this->addAndMakeVisible(this->muteToggleBut);
+    this->addAndMakeVisible(this->muteToggleBut.get());
     
     // ToggleButton (solo)
-    this->soloToggleBut = new ToggleButton();
+    this->soloToggleBut.reset(new ToggleButton());
     this->soloToggleBut->setButtonText("s");
     this->soloToggleBut->setSize(13, 15);
     this->soloToggleBut->addListener(this);
@@ -152,39 +152,29 @@ LevelComponent::LevelComponent(ParentLevelComponent *parent, SmallGrisLookAndFee
     this->soloToggleBut->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
     this->soloToggleBut->setColour(TextButton::buttonColourId, this->grisFeel->getBackgroundColour());
     this->soloToggleBut->setLookAndFeel(this->grisFeel);
-    this->addAndMakeVisible(this->soloToggleBut);
+    this->addAndMakeVisible(this->soloToggleBut.get());
 
     // ComboBox (direct out)
     if (this->mainParent->isInput()) {
-        this->directOut = new TextButton();
+        this->directOut.reset(new TextButton());
         this->directOut->setButtonText("-");
         this->directOut->setSize(22, 17);
         this->directOut->setColour(Label::textColourId, this->grisFeel->getFontColour());
         this->directOut->setLookAndFeel(this->grisFeel);
         this->directOut->addListener(this);
         this->directOut->addMouseListener(this, true);
-        this->addAndMakeVisible(this->directOut);
+        this->addAndMakeVisible(this->directOut.get());
     }
 
     // Level box
-    this->levelBox = new LevelBox(this, this->grisFeel);
-    this->addAndMakeVisible(this->levelBox);
+    this->levelBox.reset(new LevelBox(this, this->grisFeel));
+    this->addAndMakeVisible(this->levelBox.get());
 }
 
-LevelComponent::~LevelComponent() {
-    delete this->muteToggleBut;
-    delete this->soloToggleBut;
-    delete this->idBut;
-    delete this->levelBox;
-    if (this->mainParent->isInput()) {
-        delete this->directOut;
-    }
-}
-
-void LevelComponent::updateDirectOutMenu(vector<Speaker *> spkList) {
+void LevelComponent::updateDirectOutMenu(juce::OwnedArray<Speaker> & spkList) {
     if (this->mainParent->isInput()) {
         this->directOutSpeakers.clear();
-        for (auto&& it : spkList) {
+        for (auto & it : spkList) {
             if (it->getDirectOut()) {
                 this->directOutSpeakers.push_back(it->getOutputPatch());
             }
@@ -193,21 +183,21 @@ void LevelComponent::updateDirectOutMenu(vector<Speaker *> spkList) {
 }
 
 void LevelComponent::buttonClicked(Button *button) {
-    if (button == this->muteToggleBut) {
+    if (button == this->muteToggleBut.get()) {
         this->mainParent->setMuted(this->muteToggleBut->getToggleState());
         if (this->muteToggleBut->getToggleState()) {
             this->soloToggleBut->setToggleState(false, dontSendNotification);
         }
         this->levelBox->repaint();
         
-    } else if (button == this->soloToggleBut) {
+    } else if (button == this->soloToggleBut.get()) {
         this->mainParent->setSolo(this->soloToggleBut->getToggleState());
         if (this->soloToggleBut->getToggleState()) {
             this->muteToggleBut->setToggleState(false, dontSendNotification);
         }
         this->levelBox->repaint();
         
-    } else if (button == this->idBut) {
+    } else if (button == this->idBut.get()) {
         if (this->isColorful) { //Input
             ColourSelector* colourSelector = new ColourSelector();
             colourSelector->setName("background");
@@ -219,7 +209,7 @@ void LevelComponent::buttonClicked(Button *button) {
         } else { //Output
             this->mainParent->selectClick(this->lastMouseButton);
         }
-    } else if (button == this->directOut) {
+    } else if (button == this->directOut.get()) {
         PopupMenu menu;
         menu.addItem(1, "-");
         for (unsigned int j=0, i=2; j<this->directOutSpeakers.size(); j++, i++) {

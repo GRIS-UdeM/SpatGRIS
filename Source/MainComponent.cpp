@@ -38,10 +38,11 @@ public:
     }
 
     void run() override {
-        unsigned int numberOfPasses = 0, blockSize = 2048;
-        float factor = powf(2.0f, 31.0f);
-        int numberOfChannels = this->filenames.size();
-        String extF = this->filenames[0].getFileExtension();
+        unsigned int numberOfPasses = 0;
+        unsigned int const blockSize = 2048;
+        float const factor = powf(2.0f, 31.0f);
+        int const numberOfChannels = this->filenames.size();
+        juce::String const extF = this->filenames[0].getFileExtension();
 
         int **data = new int * [2]; 
         data[0] = new int[blockSize];
@@ -58,8 +59,8 @@ public:
             readers[i] = formatManager.createReaderFor(filenames[i]);
         }
 
-        unsigned int duration = (unsigned int)readers[0]->lengthInSamples;
-        unsigned int howmanyPasses = duration / blockSize;
+        unsigned int const duration = (unsigned int)readers[0]->lengthInSamples;
+        unsigned int const howmanyPasses = duration / blockSize;
 
         // Create an OutputStream to write to our destination file.
         this->fileToRecord.deleteFile();
@@ -132,9 +133,8 @@ private:
 };
 
 MainContentComponent::MainContentComponent(DocumentWindow *parent)
+    : parent(*parent)
 {
-    this->parent = parent;
-
     LookAndFeel::setDefaultLookAndFeel(&mGrisFeel);
 
     // Create the menubar.
@@ -144,7 +144,7 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     // Start the Splash screen.
     File fs = File(SplashScreenFilePath);
     if (fs.exists()) {
-        this->splash = new SplashScreen("SpatGRIS2", ImageFileFormat::loadFrom(fs), true);
+        this->splash.reset(new SplashScreen("SpatGRIS2", ImageFileFormat::loadFrom(fs), true));
     }
     
     // App user settings storage file.
@@ -178,12 +178,6 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     else {
         this->pathLastVbapSpeakerSetup = props->getValue("lastVbapSpeakerSetup");
     }
-
-    this->listSpeaker = vector<Speaker *>();
-    this->listSourceInput = vector<Input *>();
-    
-    this->lockSpeakers = new mutex();
-    this->lockInputs = new mutex();
     
     this->winSpeakConfig = nullptr;
     this->windowProperties = nullptr;
@@ -192,35 +186,35 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     this->oscLogWindow = nullptr;
 
     // SpeakerViewComponent 3D view
-    this->speakerView = new SpeakerViewComponent(this);
-    addAndMakeVisible(this->speakerView);
+    this->speakerView.reset(new SpeakerViewComponent(this));
+    addAndMakeVisible(this->speakerView.get());
 
     // Box Main
-    this->boxMainUI = new Box(&mGrisFeel, "", true, false);
-    addAndMakeVisible(this->boxMainUI);
+    this->boxMainUI.reset(new Box(&mGrisFeel, "", true, false));
+    addAndMakeVisible(this->boxMainUI.get());
 
     // Box Inputs
-    this->boxInputsUI = new Box(&mGrisFeel, "Inputs");
-    addAndMakeVisible(this->boxInputsUI);
+    this->boxInputsUI.reset(new Box(&mGrisFeel, "Inputs"));
+    addAndMakeVisible(this->boxInputsUI.get());
     
     // Box Outputs
-    this->boxOutputsUI = new Box(&mGrisFeel, "Outputs");
-    addAndMakeVisible(this->boxOutputsUI);
+    this->boxOutputsUI.reset(new Box(&mGrisFeel, "Outputs"));
+    addAndMakeVisible(this->boxOutputsUI.get());
     
     // Box Control
-    this->boxControlUI = new Box(&mGrisFeel);
-    addAndMakeVisible(this->boxControlUI);
+    this->boxControlUI.reset(new Box(&mGrisFeel));
+    addAndMakeVisible(this->boxControlUI.get());
 
-    this->boxMainUI->getContent()->addAndMakeVisible(this->boxInputsUI);
-    this->boxMainUI->getContent()->addAndMakeVisible(this->boxOutputsUI);
-    this->boxMainUI->getContent()->addAndMakeVisible(this->boxControlUI);
+    this->boxMainUI->getContent()->addAndMakeVisible(this->boxInputsUI.get());
+    this->boxMainUI->getContent()->addAndMakeVisible(this->boxOutputsUI.get());
+    this->boxMainUI->getContent()->addAndMakeVisible(this->boxControlUI.get());
 
     // Components in Box Control
-    this->labelJackStatus = addLabel("Jack Unknown", "Jack Status", 0, 0, 80, 28, this->boxControlUI->getContent());
-    this->labelJackLoad = addLabel("0.000000 %", "Load Jack CPU", 80, 0, 80, 28, this->boxControlUI->getContent());
-    this->labelJackRate = addLabel("00000 Hz", "Rate", 160, 0, 80, 28, this->boxControlUI->getContent());
-    this->labelJackBuffer = addLabel("0000 spls", "Buffer Size", 240, 0, 80, 28, this->boxControlUI->getContent());
-    this->labelJackInfo = addLabel("...", "Jack Inputs/Outputs system", 320, 0, 90, 28, this->boxControlUI->getContent());
+    this->labelJackStatus.reset(addLabel("Jack Unknown", "Jack Status", 0, 0, 80, 28, this->boxControlUI->getContent()));
+    this->labelJackLoad.reset(addLabel("0.000000 %", "Load Jack CPU", 80, 0, 80, 28, this->boxControlUI->getContent()));
+    this->labelJackRate.reset(addLabel("00000 Hz", "Rate", 160, 0, 80, 28, this->boxControlUI->getContent()));
+    this->labelJackBuffer.reset(addLabel("0000 spls", "Buffer Size", 240, 0, 80, 28, this->boxControlUI->getContent()));
+    this->labelJackInfo.reset(addLabel("...", "Jack Inputs/Outputs system", 320, 0, 90, 28, this->boxControlUI->getContent()));
     
     this->labelJackStatus->setColour(Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
     this->labelJackLoad->setColour(Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
@@ -229,34 +223,34 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     this->labelJackInfo->setColour(Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
 
     addLabel("Gain", "Master Gain Outputs", 15, 30, 120, 20, this->boxControlUI->getContent());
-    this->sliderMasterGainOut = addSlider("Master Gain", "Master Gain Outputs", 5, 45, 60, 60, this->boxControlUI->getContent());
+    this->sliderMasterGainOut.reset(addSlider("Master Gain", "Master Gain Outputs", 5, 45, 60, 60, this->boxControlUI->getContent()));
     this->sliderMasterGainOut->setRange(-60.0, 12.0, 0.01);
     this->sliderMasterGainOut->setTextValueSuffix(" dB");
     
     addLabel("Interpolation", "Master Interpolation", 60, 30, 120, 20, this->boxControlUI->getContent());
-    this->sliderInterpolation = addSlider("Inter", "Interpolation", 70, 45, 60, 60, this->boxControlUI->getContent());
+    this->sliderInterpolation.reset(addSlider("Inter", "Interpolation", 70, 45, 60, 60, this->boxControlUI->getContent()));
     this->sliderInterpolation->setRange(0.0, 1.0, 0.001);
 
     addLabel("Mode :", "Mode of spatilization", 150, 30, 60, 20, this->boxControlUI->getContent());
-    this->comBoxModeSpat = addComboBox("", "Mode of spatilization", 155, 48, 90, 22, this->boxControlUI->getContent());
+    this->comBoxModeSpat.reset(addComboBox("", "Mode of spatilization", 155, 48, 90, 22, this->boxControlUI->getContent()));
     for (int i = 0; i < ModeSpatString.size(); i++) {
         this->comBoxModeSpat->addItem(ModeSpatString[i], i+1);
     }
 
-    this->tedAddInputs = addTextEditor("Inputs :", "0", "Numbers of Inputs", 122, 83, 43, 22, this->boxControlUI->getContent());
+    this->tedAddInputs.reset(addTextEditor("Inputs :", "0", "Numbers of Inputs", 122, 83, 43, 22, this->boxControlUI->getContent()));
     this->tedAddInputs->setInputRestrictions(3, "0123456789");
 
-    this->butInitRecord = addButton("Init Recording", "Init Recording", 268, 48, 103, 24, this->boxControlUI->getContent());
+    this->butInitRecord.reset(addButton("Init Recording", "Init Recording", 268, 48, 103, 24, this->boxControlUI->getContent()));
     
-    this->butStartRecord = addButton("Record", "Start/Stop Record", 268, 83, 60, 24, this->boxControlUI->getContent());
+    this->butStartRecord.reset(addButton("Record", "Start/Stop Record", 268, 83, 60, 24, this->boxControlUI->getContent()));
     this->butStartRecord->setEnabled(false);
 
-    this->labelTimeRecorded = addLabel("00:00","Record time", 327, 83, 50, 24,this->boxControlUI->getContent());
+    this->labelTimeRecorded.reset(addLabel("00:00","Record time", 327, 83, 50, 24,this->boxControlUI->getContent()));
 
     // Jack client box.
-    this->boxClientJack = new BoxClient(this, &mGrisFeel);
+    this->boxClientJack.reset(new BoxClient(this, &mGrisFeel));
     this->boxClientJack->setBounds(410, 0, 304, 138);
-    this->boxControlUI->getContent()->addAndMakeVisible(this->boxClientJack);
+    this->boxControlUI->getContent()->addAndMakeVisible(this->boxClientJack.get());
     
     // Set up the layout and resizer bars.
     this->verticalLayout.setItemLayout(0, -0.2, -0.8, -0.435); // width of the speaker view must be between 20% and 80%, preferably 50%
@@ -282,7 +276,7 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     // Start Jack Server and client.
     int errorCode = 0;
     alsaOutputDevice = props->getValue("AlsaOutputDevice", "");
-    this->jackServer = new jackServerGRIS(RateValue, BufferValue, alsaOutputDevice, &errorCode);
+    this->jackServer.reset(new jackServerGRIS(RateValue, BufferValue, alsaOutputDevice, &errorCode));
     if (errorCode > 0) {
         String msg;
         if (errorCode == 1) { msg = "Failed to create Jack server..."; }
@@ -292,7 +286,7 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
                                          "Jack Server Failure",
                                          msg + String("\nYou should check for any mismatch between the server and your device\n(Sampling Rate, Input/Ouput Channels, etc.)"));
     }
-    this->jackClient = new jackClientGris();
+    this->jackClient.reset(new jackClientGris());
 
     alsaAvailableOutputDevices = this->jackServer->getAvailableOutputDevices();
 
@@ -313,7 +307,7 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
                                  " - O : " + String(this->jackClient->numberInputs), dontSendNotification);
 
     //Start the OSC Receiver.
-    this->oscReceiver = new OscInput(this);
+    this->oscReceiver.reset(new OscInput(this));
     this->oscReceiver->startConnection(this->oscInputPort);
 
     // Default widget values.
@@ -349,6 +343,7 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     //End Splash screen.
     if (this->splash) {
         this->splash->deleteAfterDelay(RelativeTime::seconds(4), false);
+        this->splash.release();
     }
 
     // Initialize the command manager for the menubar items.
@@ -371,43 +366,13 @@ MainContentComponent::~MainContentComponent() {
     this->applicationProperties.saveIfNeeded();
     this->applicationProperties.closeFiles();
 
-    delete this->oscReceiver;
-    
-    if (this->winSpeakConfig != nullptr) {
-        delete this->winSpeakConfig;
-    }
-    if (this->windowProperties != nullptr) {
-        delete this->windowProperties;
-    }
-    if (this->winControlSource != nullptr) {
-        delete this->winControlSource;
-    }
-
-    delete this->speakerView;
-
-    this->lockSpeakers->lock();
-    for (auto&& it : this->listSpeaker) {
-        delete (it);
-    }
+    this->lockSpeakers.lock();
     this->listSpeaker.clear();
-    this->lockSpeakers->unlock();
-    delete this->lockSpeakers;
+    this->lockSpeakers.unlock();
 
-    this->lockInputs->lock();
-    for (auto&& it : this->listSourceInput) {
-        delete (it);
-    }
+    this->lockInputs.lock();
     this->listSourceInput.clear();
-    this->lockInputs->unlock();
-    delete this->lockInputs;
-   
-    delete this->boxInputsUI;
-    delete this->boxOutputsUI;
-    delete this->boxControlUI;
-    delete this->boxMainUI;
-
-    delete this->jackClient;
-    delete this->jackServer;
+    this->lockInputs.unlock();
 }
 
 // Widget builder utilities.
@@ -632,9 +597,9 @@ void MainContentComponent::handleShowSpeakerEditWindow() {
     if (this->winSpeakConfig == nullptr) {
         String windowName = String("Speakers Setup Edition - ") + String(ModeSpatString[this->jackClient->modeSelected]) + \
                             String(" - ") + File(this->pathCurrentFileSpeaker).getFileName();
-        this->winSpeakConfig = new WindowEditSpeaker(windowName,
+        this->winSpeakConfig.reset(new WindowEditSpeaker(windowName,
                                                      this->nameConfig, this->mGrisFeel.getWinBackgroundColour(),
-                                                     DocumentWindow::allButtons, this, &this->mGrisFeel);
+                                                     DocumentWindow::allButtons, this, &this->mGrisFeel));
         this->winSpeakConfig->setBounds(result);
         this->winSpeakConfig->initComp();
     }
@@ -663,12 +628,12 @@ void MainContentComponent::handleShowPreferences() {
         if (std::isnan(float(AttenuationDB))) { AttenuationDB = 3; }
         if (std::isnan(float(AttenuationHz))) { AttenuationHz = 3; }
         if (std::isnan(float(OscInputPort))) { OscInputPort = 18032; }
-        this->windowProperties = new WindowProperties("Preferences", this->mGrisFeel.getWinBackgroundColour(),
+        this->windowProperties.reset( new WindowProperties("Preferences", this->mGrisFeel.getWinBackgroundColour(),
                                                      DocumentWindow::allButtons, this, &this->mGrisFeel, 
                                                      alsaAvailableOutputDevices, alsaOutputDevice,
                                                      RateValues.indexOf(String(RateValue)), 
                                                      BufferSizes.indexOf(String(BufferValue)),
-                                                     FileFormat, FileConfig, AttenuationDB, AttenuationHz, OscInputPort);
+                                                     FileFormat, FileConfig, AttenuationDB, AttenuationHz, OscInputPort));
     }
     int height = 450;
     if (alsaAvailableOutputDevices.isEmpty()) {
@@ -684,7 +649,7 @@ void MainContentComponent::handleShowPreferences() {
 
 void MainContentComponent::handleShow2DView() {
     if (this->winControlSource == nullptr) {
-        this->winControlSource = new WinControl("2D View", this->mGrisFeel.getWinBackgroundColour(), DocumentWindow::allButtons, this, &this->mGrisFeel);
+        this->winControlSource.reset(new WinControl("2D View", this->mGrisFeel.getWinBackgroundColour(), DocumentWindow::allButtons, this, &this->mGrisFeel));
     } else {
         this->winControlRect.setBounds(this->winControlSource->getScreenX(), this->winControlSource->getScreenY(),
                                        this->winControlSource->getWidth(), this->winControlSource->getHeight());
@@ -974,7 +939,7 @@ bool MainContentComponent::perform(const InvocationInfo& info) {
             case MainWindow::ResetMeterClipping: this->handleResetMeterClipping(); break;
             case MainWindow::ShowOscLogView: this->handleShowOscLogView(); break;
             case MainWindow::PrefsID: this->handleShowPreferences(); break;
-            case MainWindow::QuitID: dynamic_cast<MainWindow*>(this->parent)->closeButtonPressed(); break;
+            case MainWindow::QuitID: dynamic_cast<MainWindow*>(&this->parent)->closeButtonPressed(); break;
             case MainWindow::AboutID: this->handleShowAbout(); break;
             case MainWindow::OpenManualID: this->handleOpenManual(); break;
             default:
@@ -1192,23 +1157,24 @@ void MainContentComponent::resetSpeakerIds() {
 }
 
 void MainContentComponent::reorderSpeakers(vector<int> newOrder) {
-    int size = (int)this->listSpeaker.size();
+    auto const size = this->listSpeaker.size();
 
-    vector<Speaker *> tempListSpeaker(size);
+    juce::Array<Speaker *> tempListSpeaker{};
+    tempListSpeaker.resize(size);
+
     for (int i = 0; i < size; i++) {
         for (auto&& it : this->listSpeaker) {
             if (it->getIdSpeaker() == newOrder[i]) {
-                tempListSpeaker[i] = it;
+                tempListSpeaker.setUnchecked(i, it);
                 break;
             }
         }
     }
 
-    this->lockSpeakers->lock();
-    for (int i = 0; i < size; i++) {
-        this->listSpeaker[i] = tempListSpeaker[i];
-    }
-    this->lockSpeakers->unlock();
+    this->lockSpeakers.lock();
+    this->listSpeaker.clearQuick(false);
+    this->listSpeaker.addArray(tempListSpeaker);
+    this->lockSpeakers.unlock();
 }
 
 int MainContentComponent::getMaxSpeakerId() {
@@ -1232,8 +1198,8 @@ int MainContentComponent::getMaxSpeakerOutputPatch() {
 void MainContentComponent::addSpeaker(int sortColumnId, bool isSortedForwards) {
     int newId = this->getMaxSpeakerId() + 1;
 
-    this->lockSpeakers->lock();
-    this->listSpeaker.push_back(new Speaker(this, newId, newId, 0.0f, 0.0f, 1.0f));
+    this->lockSpeakers.lock();
+    this->listSpeaker.add(new Speaker(this, newId, newId, 0.0f, 0.0f, 1.0f));
 
     if (sortColumnId == 1 && isSortedForwards) {
         for (unsigned int i = 0; i < this->listSpeaker.size(); i++) {
@@ -1244,10 +1210,10 @@ void MainContentComponent::addSpeaker(int sortColumnId, bool isSortedForwards) {
             this->listSpeaker[i]->setSpeakerId((int)this->listSpeaker.size() - i);
         }
     }
-    this->lockSpeakers->unlock();
+    this->lockSpeakers.unlock();
 
     this->jackClient->processBlockOn = false;
-    this->jackClient->addOutput(this->listSpeaker.back()->getOutputPatch());
+    this->jackClient->addOutput(this->listSpeaker.getLast()->getOutputPatch());
     this->jackClient->processBlockOn = true;
 }
 
@@ -1256,26 +1222,23 @@ void MainContentComponent::insertSpeaker(int position, int sortColumnId, bool is
     int newId = this->getMaxSpeakerId() + 1;
     int newOut = this->getMaxSpeakerOutputPatch() + 1;
 
-    this->lockSpeakers->lock();
+    this->lockSpeakers.lock();
     if (sortColumnId == 1 && isSortedForwards) {
         newId = this->listSpeaker[position]->getIdSpeaker() + 1;
-        this->listSpeaker.emplace(this->listSpeaker.begin() + newPosition,
-                                  new Speaker(this, newId, newOut, 0.0f, 0.0f, 1.0f));
+        this->listSpeaker.insert(newPosition, new Speaker(this, newId, newOut, 0.0f, 0.0f, 1.0f));
         for (unsigned int i = 0; i < this->listSpeaker.size(); i++) {
-            this->listSpeaker[i]->setSpeakerId(i + 1);
+            this->listSpeaker.getUnchecked(i)->setSpeakerId(i + 1);
         }
     } else if (sortColumnId == 1 && ! isSortedForwards) {
         newId = this->listSpeaker[position]->getIdSpeaker() - 1;;
-        this->listSpeaker.emplace(this->listSpeaker.begin() + newPosition,
-                                  new Speaker(this, newId, newOut, 0.0f, 0.0f, 1.0f));
+        this->listSpeaker.insert(newPosition, new Speaker(this, newId, newOut, 0.0f, 0.0f, 1.0f));
         for (unsigned int i = 0; i < this->listSpeaker.size(); i++) {
-            this->listSpeaker[i]->setSpeakerId((int)this->listSpeaker.size() - i);
+            this->listSpeaker.getUnchecked(i)->setSpeakerId(this->listSpeaker.size() - i);
         }
     } else {
-        this->listSpeaker.emplace(this->listSpeaker.begin() + newPosition,
-                                  new Speaker(this, newId, newOut, 0.0f, 0.0f, 1.0f));
+        this->listSpeaker.insert(newPosition, new Speaker(this, newId, newOut, 0.0f, 0.0f, 1.0f));
     }
-    this->lockSpeakers->unlock();
+    this->lockSpeakers.unlock();
 
     this->jackClient->processBlockOn = false;
     this->jackClient->clearOutput();
@@ -1287,16 +1250,9 @@ void MainContentComponent::insertSpeaker(int position, int sortColumnId, bool is
 
 void MainContentComponent::removeSpeaker(int idSpeaker) {
     this->jackClient->removeOutput(idSpeaker);
-    this->lockSpeakers->lock();
-    int index = 0;
-    for (auto&& it : this->listSpeaker) {
-        if (index == idSpeaker) {
-            delete (it);
-            this->listSpeaker.erase(this->listSpeaker.begin() + idSpeaker);
-        }
-        index += 1;
-    }
-    this->lockSpeakers->unlock();
+    this->lockSpeakers.lock();
+    this->listSpeaker.remove(idSpeaker, true);
+    this->lockSpeakers.unlock();
 }
 
 bool MainContentComponent::isRadiusNormalized() {
@@ -1523,7 +1479,7 @@ bool MainContentComponent::updateLevelComp() {
     
     i = 0;
     x = 2;
-    this->lockInputs->lock();
+    this->lockInputs.lock();
     for (auto&& it : this->listSourceInput) {
         juce::Rectangle<int> level(x, 4, VuMeterWidthInPixels, 200);
         it->getVuMeter()->setBounds(level);
@@ -1545,7 +1501,7 @@ bool MainContentComponent::updateLevelComp() {
         this->jackClient->listSourceIn[i++] = si;
     }
 
-    this->lockInputs->unlock();
+    this->lockInputs.unlock();
 
     if (this->winSpeakConfig != nullptr) {
         this->winSpeakConfig->updateWinContent();
@@ -1598,11 +1554,11 @@ bool MainContentComponent::updateLevelComp() {
         (&this->jackClient->listSourceIn[i])->isSolo = inputsIsSolo[i];
         (&this->jackClient->listSourceIn[i])->directOut = directOuts[i];
     }
-    this->lockInputs->lock();
+    this->lockInputs.lock();
     for (unsigned int i = 0; i < this->listSourceInput.size(); i++) {
         this->listSourceInput[i]->setDirectOutChannel(directOuts[i]);
     }
-    this->lockInputs->unlock();
+    this->lockInputs.unlock();
 
     this->jackClient->soloOut = soloOut;
     for (unsigned int i = 0; i < MaxOutputs; i++) {
@@ -1687,12 +1643,9 @@ void MainContentComponent::openXmlFileSpeaker(String path) {
             alert.runModalLoop();
         } else {
             if (mainXmlElem->hasTagName("SpeakerSetup")) {
-                this->lockSpeakers->lock();
-                for (auto&& it : this->listSpeaker) {
-                    delete (it);
-                }
+                this->lockSpeakers.lock();
                 this->listSpeaker.clear();
-                this->lockSpeakers->unlock();
+                this->lockSpeakers.unlock();
                 if (path.compare(BinauralSpeakerSetupFilePath) == 0) {
                     this->jackClient->modeSelected = (ModeSpatEnum)(VBAP_HRTF);
                     this->comBoxModeSpat->setSelectedId(VBAP_HRTF + 1, NotificationType::dontSendNotification);
@@ -1735,25 +1688,25 @@ void MainContentComponent::openXmlFileSpeaker(String path) {
                                     maxLayoutIndex = layoutIndex;
                                 }
 
-                                this->listSpeaker.push_back(new Speaker(this,
+                                this->listSpeaker.add(new Speaker(this,
                                                                         layoutIndex,
                                                                         spk->getIntAttribute("OutputPatch"),
                                                                         spk->getDoubleAttribute("Azimuth"),
                                                                         spk->getDoubleAttribute("Zenith"),
                                                                         spk->getDoubleAttribute("Radius")));
                                 if (loadSetupFromXYZ) {
-                                    this->listSpeaker.back()->setCoordinate(glm::vec3(spk->getDoubleAttribute("PositionX"),
+                                    this->listSpeaker.getLast()->setCoordinate(glm::vec3(spk->getDoubleAttribute("PositionX"),
                                                                                       spk->getDoubleAttribute("PositionZ"),
                                                                                       spk->getDoubleAttribute("PositionY")));
                                 }
                                 if (spk->hasAttribute("Gain")) {
-                                    this->listSpeaker.back()->setGain(spk->getDoubleAttribute("Gain"));
+                                    this->listSpeaker.getLast()->setGain(spk->getDoubleAttribute("Gain"));
                                 }
                                 if (spk->hasAttribute("HighPassCutoff")) {
-                                    this->listSpeaker.back()->setHighPassCutoff(spk->getDoubleAttribute("HighPassCutoff"));
+                                    this->listSpeaker.getLast()->setHighPassCutoff(spk->getDoubleAttribute("HighPassCutoff"));
                                 }
                                 if (spk->hasAttribute("DirectOut")) {
-                                    this->listSpeaker.back()->setDirectOut(spk->getBoolAttribute("DirectOut"));
+                                    this->listSpeaker.getLast()->setDirectOut(spk->getBoolAttribute("DirectOut"));
                                 }
                                 this->jackClient->addOutput((unsigned int)spk->getIntAttribute("OutputPatch"));
                             }
@@ -1809,7 +1762,7 @@ void MainContentComponent::openXmlFileSpeaker(String path) {
 void MainContentComponent::setTitle() {
     String version = STRING(JUCE_APP_VERSION);
     version = "SpatGRIS v" + version + " - ";
-    this->parent->setName(version + File(this->pathCurrentPreset).getFileName());
+    this->parent.setName(version + File(this->pathCurrentPreset).getFileName());
 }
 
 void MainContentComponent::openPreset(String path) {
@@ -1876,8 +1829,8 @@ void MainContentComponent::openPreset(String path) {
 
             // Update
             this->textEditorReturnKeyPressed(*this->tedAddInputs);
-            this->sliderValueChanged(this->sliderMasterGainOut);
-            this->sliderValueChanged(this->sliderInterpolation);
+            this->sliderValueChanged(this->sliderMasterGainOut.get());
+            this->sliderValueChanged(this->sliderInterpolation.get());
 
             File speakerSetup = File(this->pathCurrentFileSpeaker.toStdString());
             if (! this->pathCurrentFileSpeaker.startsWith("/")) {
@@ -1969,18 +1922,18 @@ void MainContentComponent::savePreset(String path) {
 void MainContentComponent::saveSpeakerSetup(String path) {
     this->pathCurrentFileSpeaker = path;
     File xmlFile = File (path.toStdString());
-    auto xml = std::make_unique<XmlElement>("SpeakerSetup");
+    XmlElement xml{ "SpeakerSetup" };
     
-    xml->setAttribute ("Name", this->nameConfig);
-    xml->setAttribute ("Dimension", 3);
-    xml->setAttribute ("SpatMode", getModeSelected());
+    xml.setAttribute ("Name", this->nameConfig);
+    xml.setAttribute ("Dimension", 3);
+    xml.setAttribute ("SpatMode", getModeSelected());
     
-    XmlElement *xmlRing = new  XmlElement("Ring");
+    XmlElement * xmlRing{ new XmlElement("Ring") };
     
-    for (auto&& it : listSpeaker) {
-        XmlElement *xmlInput = new XmlElement("Speaker");
-        xmlInput->setAttribute("PositionX", it->getCoordinate().x);
+    for (auto const & it : listSpeaker) {
+        XmlElement * xmlInput{ new XmlElement{ "Speaker"} };
         xmlInput->setAttribute("PositionY", it->getCoordinate().z);
+        xmlInput->setAttribute("PositionX", it->getCoordinate().x);
         xmlInput->setAttribute("PositionZ", it->getCoordinate().y);
         xmlInput->setAttribute("Azimuth", it->getAziZenRad().x);
         xmlInput->setAttribute("Zenith", it->getAziZenRad().y);
@@ -1992,17 +1945,17 @@ void MainContentComponent::saveSpeakerSetup(String path) {
         xmlInput->setAttribute("DirectOut", it->getDirectOut());
         xmlRing->addChildElement(xmlInput);
     }
-    xml->addChildElement(xmlRing);
+    xml.addChildElement(xmlRing);
 
-    for (auto&& it : listTriplet) {
-        XmlElement *xmlInput = new XmlElement("triplet");
+    for (auto const & it : listTriplet) {
+        XmlElement * xmlInput{ new XmlElement{ "triplet" } };
         xmlInput->setAttribute("id1", it.id1);
         xmlInput->setAttribute("id2", it.id2);
         xmlInput->setAttribute("id3", it.id3);
-        xml->addChildElement(xmlInput);
+        xml.addChildElement(xmlInput);
     }
     
-    xml->writeTo(xmlFile);
+    xml.writeTo(xmlFile);
     xmlFile.create();
 
     this->applicationProperties.getUserSettings()->setValue("lastSpeakerSetupDirectory", 
@@ -2163,7 +2116,7 @@ void MainContentComponent::textEditorFocusLost(TextEditor &textEditor) {
 }
 
 void MainContentComponent::textEditorReturnKeyPressed (TextEditor & textEditor) {
-    if (&textEditor == this->tedAddInputs) {
+    if (&textEditor == this->tedAddInputs.get()) {
         unsigned int num_of_inputs = (unsigned int)this->tedAddInputs->getTextValue().toString().getIntValue();
         if (num_of_inputs < 1) {
             this->tedAddInputs->setText("1");
@@ -2177,21 +2130,23 @@ void MainContentComponent::textEditorReturnKeyPressed (TextEditor & textEditor) 
             this->jackClient->addRemoveInput(num_of_inputs);
             this->jackClient->processBlockOn = true;
             
-            this->lockInputs->lock();
+            this->lockInputs.lock();
             bool addInput = false;
             for (unsigned int i = 0 ; i < this->jackClient->inputsPort.size(); i++) {
                 if (i >= this->listSourceInput.size()) {
-                    this->listSourceInput.push_back(new Input(this, &mSmallTextGrisFeel, i+1));
+                    this->listSourceInput.add(new Input(this, &mSmallTextGrisFeel, i+1));
                     addInput = true;
                 }
             }
             if (!addInput) {
-                for (auto it = this->listSourceInput.begin() + this->jackClient->inputsPort.size(); it != this->listSourceInput.end(); ) {
-                    delete *it;
-                    it = this->listSourceInput.erase(it);
+                auto const listSourceInputSize{ this->listSourceInput.size() };
+                auto const jackClientInputPortSize{ this->jackClient->inputsPort.size() };
+                if (listSourceInputSize > jackClientInputPortSize) {
+                    this->listSourceInput.removeRange(jackClientInputPortSize,
+                                                      listSourceInputSize - jackClientInputPortSize);
                 }
             }
-            this->lockInputs->unlock();
+            this->lockInputs.unlock();
         }
         this->unfocusAllComponents();
         updateLevelComp();
@@ -2199,7 +2154,7 @@ void MainContentComponent::textEditorReturnKeyPressed (TextEditor & textEditor) 
 }
 
 void MainContentComponent::buttonClicked(Button *button) {
-    if (button == this->butStartRecord) {
+    if (button == this->butStartRecord.get()) {
         if (this->jackClient->recording) {
             this->jackClient->stopRecord();
             this->butStartRecord->setEnabled(false);
@@ -2211,18 +2166,18 @@ void MainContentComponent::buttonClicked(Button *button) {
         }
         this->butStartRecord->setToggleState(this->jackClient->recording, dontSendNotification);
     }
-    else if (button == this->butInitRecord) {
+    else if (button == this->butInitRecord.get()) {
         this->chooseRecordingPath();
         this->butStartRecord->setEnabled(true);
     }
 }
 
 void MainContentComponent::sliderValueChanged(Slider* slider) {
-    if (slider == this->sliderMasterGainOut) {
+    if (slider == this->sliderMasterGainOut.get()) {
         this->jackClient->masterGainOut = pow(10.0, this->sliderMasterGainOut->getValue() * 0.05);
     }
 
-    else if (slider == this->sliderInterpolation) {
+    else if (slider == this->sliderInterpolation.get()) {
         this->jackClient->interMaster = this->sliderInterpolation->getValue();
     }
 }
@@ -2239,7 +2194,7 @@ void MainContentComponent::comboBoxChanged(ComboBox *comboBox) {
         return;
     }
 
-    if (this->comBoxModeSpat == comboBox) {
+    if (this->comBoxModeSpat.get() == comboBox) {
         this->jackClient->processBlockOn = false;
         this->jackClient->modeSelected = (ModeSpatEnum)(this->comBoxModeSpat->getSelectedId() - 1);
         switch (this->jackClient->modeSelected) {
@@ -2332,7 +2287,7 @@ void MainContentComponent::resized() {
     r.removeFromTop(20);
     
     // Lay out the speaker view and the vertical divider.
-    Component* vcomps[] = { this->speakerView, this->verticalDividerBar.get(), nullptr };
+    Component* vcomps[] = { this->speakerView.get(), this->verticalDividerBar.get(), nullptr };
     
     // Lay out side-by-side and resize the components' heights as well as widths.
     this->verticalLayout.layOutComponents(vcomps, 3, r.getX(), r.getY(), r.getWidth(), r.getHeight(), false, true);

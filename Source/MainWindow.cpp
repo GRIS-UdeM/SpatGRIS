@@ -25,8 +25,8 @@ MainWindow::MainWindow(String name) : DocumentWindow(name, Colours::lightgrey,
                                                      DocumentWindow::allButtons)
 {
     setUsingNativeTitleBar(true);
-    mcc = new MainContentComponent(this);
-    setContentOwned(mcc, true);
+    mcc.reset(new MainContentComponent(this));
+    setContentOwned(mcc.get(), true);
     setResizable(true, true);
 
     // this lets the command manager use keypresses that arrive in our window.
@@ -73,7 +73,7 @@ bool MainWindow::exitWinApp() {
 }
 
 ApplicationCommandManager& MainWindow::getApplicationCommandManager() {
-    if (applicationCommandManager == nullptr)
+    if (applicationCommandManager.get() == nullptr)
         applicationCommandManager.reset( new ApplicationCommandManager());
 
     return *(applicationCommandManager.get());

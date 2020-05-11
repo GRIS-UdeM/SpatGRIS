@@ -162,10 +162,10 @@ void WinControl::paint (Graphics& g) {
     // Draw sources.
     int maxDrawSource = (int)this->mainParent->getListSourceInput().size();
     for (int i = 0; i < maxDrawSource; ++i) {
-        Input *it = this->mainParent->getListSourceInput().at(i);
+        Input *it = this->mainParent->getListSourceInput().getUnchecked(i);
         if (it->getGain() == -1.0) { continue; }
-        drawSource(g, this->mainParent->getListSourceInput().at(i), fieldWH);
-        drawSourceSpan(g, this->mainParent->getListSourceInput().at(i), fieldWH, fieldCenter);
+        drawSource(g, this->mainParent->getListSourceInput().getUnchecked(i), fieldWH);
+        drawSourceSpan(g, this->mainParent->getListSourceInput().getUnchecked(i), fieldWH, fieldCenter);
     }
 }
 

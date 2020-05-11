@@ -110,7 +110,7 @@ void SpeakerViewComponent::render() {
         //this->mainParent->getLockInputs()->unlock();
     }
 
-    if (this->mainParent->getLockSpeakers()->try_lock()) {
+    if (this->mainParent->getLockSpeakers().try_lock()) {
         if (!this->hideSpeaker) {
             for (unsigned int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
                 this->mainParent->getListSpeaker()[i]->draw();
@@ -125,12 +125,12 @@ void SpeakerViewComponent::render() {
         if (this->showTriplets) {
             this->drawTrippletConn();
         }
-        this->mainParent->getLockSpeakers()->unlock();
+        this->mainParent->getLockSpeakers().unlock();
     }
     
     // Draw Sphere : Use many CPU
     if (this->showShpere) {
-        if (this->mainParent->getLockSpeakers()->try_lock()) {
+        if (this->mainParent->getLockSpeakers().try_lock()) {
             float maxRadius = 10.0f;
 
             // Not sure why we used the farthest speaker to set the size of the sphere.
@@ -169,7 +169,7 @@ void SpeakerViewComponent::render() {
             }
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             glPopMatrix();
-            this->mainParent->getLockSpeakers()->unlock();
+            this->mainParent->getLockSpeakers().unlock();
         }
     }
     
@@ -209,7 +209,7 @@ void SpeakerViewComponent::clickRay() {
     
     int iBestSpeaker = -1;
     int selected = -1;
-    if (this->mainParent->getLockSpeakers()->try_lock()) {
+    if (this->mainParent->getLockSpeakers().try_lock()) {
         for (unsigned int i = 0; i < this->mainParent->getListSpeaker().size(); ++i) {
             if (this->mainParent->getListSpeaker()[i]->isSelected()) {
                 selected = i;
@@ -234,7 +234,7 @@ void SpeakerViewComponent::clickRay() {
             }
             this->mainParent->selectSpeaker(iBestSpeaker);
         }
-        this->mainParent->getLockSpeakers()->unlock();
+        this->mainParent->getLockSpeakers().unlock();
     }
     
     this->controlOn = false;

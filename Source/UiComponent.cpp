@@ -114,11 +114,11 @@ BoxClient::BoxClient(MainContentComponent *parent, GrisLookAndFeel *feel) {
 BoxClient::~BoxClient() {}
 
 void BoxClient::buttonClicked(Button *button) {
-    this->mainParent->getLockClients()->lock();
-    bool connectedCli = !this->mainParent->getListClientjack()->at(button->getName().getIntValue()).connected;
-    this->mainParent->connectionClientJack(this->mainParent->getListClientjack()->at(button->getName().getIntValue()).name, connectedCli);
+    this->mainParent->getLockClients().lock();
+    bool connectedCli = !this->mainParent->getListClientjack().at(button->getName().getIntValue()).connected;
+    this->mainParent->connectionClientJack(this->mainParent->getListClientjack().at(button->getName().getIntValue()).name, connectedCli);
     updateContentCli();
-    this->mainParent->getLockClients()->unlock();
+    this->mainParent->getLockClients().unlock();
 }
 
 void BoxClient::setBounds(int x, int y, int width, int height) {
@@ -127,37 +127,37 @@ void BoxClient::setBounds(int x, int y, int width, int height) {
 }
 
 void BoxClient::updateContentCli() {
-    numRows = (unsigned int)this->mainParent->getListClientjack()->size();
+    numRows = (unsigned int)this->mainParent->getListClientjack().size();
     tableListClient.updateContent();
     tableListClient.repaint();
 }
 
 void BoxClient::setValue(const int rowNumber, const int columnNumber, const int newRating) {
-    this->mainParent->getLockClients()->lock();
-    if (this->mainParent->getListClientjack()->size() > (unsigned int)rowNumber) {
+    this->mainParent->getLockClients().lock();
+    if (this->mainParent->getListClientjack().size() > (unsigned int)rowNumber) {
         switch (columnNumber) {
             case 2:
-                this->mainParent->getListClientjack()->at(rowNumber).portStart = newRating;
-                this->mainParent->getListClientjack()->at(rowNumber).initialized = true;
+                this->mainParent->getListClientjack().at(rowNumber).portStart = newRating;
+                this->mainParent->getListClientjack().at(rowNumber).initialized = true;
                 break;
             case 3:
-                this->mainParent->getListClientjack()->at(rowNumber).portEnd = newRating;
-                this->mainParent->getListClientjack()->at(rowNumber).initialized = true;
+                this->mainParent->getListClientjack().at(rowNumber).portEnd = newRating;
+                this->mainParent->getListClientjack().at(rowNumber).initialized = true;
                 break;
         }
     }
-    bool connectedCli = this->mainParent->getListClientjack()->at(rowNumber).connected;
-    this->mainParent->connectionClientJack(this->mainParent->getListClientjack()->at(rowNumber).name, connectedCli);
-    this->mainParent->getLockClients()->unlock();
+    bool connectedCli = this->mainParent->getListClientjack().at(rowNumber).connected;
+    this->mainParent->connectionClientJack(this->mainParent->getListClientjack().at(rowNumber).name, connectedCli);
+    this->mainParent->getLockClients().unlock();
 }
 
 int BoxClient::getValue(const int rowNumber, const int columnNumber) const {
-    if ((unsigned int)rowNumber < this->mainParent->getListClientjack()->size()) {
+    if ((unsigned int)rowNumber < this->mainParent->getListClientjack().size()) {
         switch (columnNumber) {
             case 2:
-                return this->mainParent->getListClientjack()->at(rowNumber).portStart;
+                return this->mainParent->getListClientjack().at(rowNumber).portStart;
             case 3:
-                return this->mainParent->getListClientjack()->at(rowNumber).portEnd;
+                return this->mainParent->getListClientjack().at(rowNumber).portEnd;
         }
     }
     return -1;
@@ -165,9 +165,9 @@ int BoxClient::getValue(const int rowNumber, const int columnNumber) const {
 
 String BoxClient::getText(const int columnNumber, const int rowNumber) const {
     String text = "?";
-    if ((unsigned int)rowNumber < this->mainParent->getListClientjack()->size()) {
+    if ((unsigned int)rowNumber < this->mainParent->getListClientjack().size()) {
         if (columnNumber == 1) {
-            text = String(this->mainParent->getListClientjack()->at(rowNumber).name);
+            text = String(this->mainParent->getListClientjack().at(rowNumber).name);
         }
     }
     return text;
@@ -188,14 +188,14 @@ void BoxClient::paintRowBackground(Graphics& g, int rowNumber, int /*width*/, in
 void BoxClient::paintCell(Graphics& g, int rowNumber, int columnId, int width, int height, bool /*rowIsSelected*/) {
     g.setColour(Colours::black);
     g.setFont(12.0f);
-    if (this->mainParent->getLockClients()->try_lock()) {
-        if ((unsigned int)rowNumber < this->mainParent->getListClientjack()->size()) {
+    if (this->mainParent->getLockClients().try_lock()) {
+        if ((unsigned int)rowNumber < this->mainParent->getListClientjack().size()) {
             if (columnId == 1) {
                 String text = getText(columnId, rowNumber);
                 g.drawText(text, 2, 0, width - 4, height, Justification::centredLeft, true);
             }
         }
-        this->mainParent->getLockClients()->unlock();
+        this->mainParent->getLockClients().unlock();
     }
     g.setColour(Colours::black.withAlpha (0.2f));
     g.fillRect(width - 1, 0, 1, height);
@@ -218,7 +218,7 @@ Component * BoxClient::refreshComponentForCell(int rowNumber, int columnId, bool
             tbRemove->setLookAndFeel(this->grisFeel);
         }
 
-        if (this->mainParent->getListClientjack()->at(rowNumber).connected) {
+        if (this->mainParent->getListClientjack().at(rowNumber).connected) {
             tbRemove->setButtonText("<->");
         } else {
             tbRemove->setButtonText("<X>");
@@ -775,7 +775,7 @@ String WindowEditSpeaker::getText(const int columnNumber, const int rowNumber) c
 void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, const String& newText, bool altDown) {
     int ival, oldval;
     float val, diff;
-    if (this->mainParent->getLockSpeakers()->try_lock()) {
+    if (this->mainParent->getLockSpeakers().try_lock()) {
         if (this->mainParent->getListSpeaker().size() > (unsigned int)rowNumber) {
             glm::vec3 newP;
             switch (columnNumber) {
@@ -1007,7 +1007,7 @@ void WindowEditSpeaker::setText(const int columnNumber, const int rowNumber, con
         }
         this->updateWinContent();
         this->mainParent->needToComputeVbap = true;
-        this->mainParent->getLockSpeakers()->unlock();
+        this->mainParent->getLockSpeakers().unlock();
     }
 }
 
@@ -1018,15 +1018,15 @@ int WindowEditSpeaker::getNumRows() {
 // This is overloaded from TableListBoxModel, and should fill in the background of the whole row.
 void WindowEditSpeaker::paintRowBackground(Graphics& g, int rowNumber, int /*width*/, int /*height*/, bool rowIsSelected) {
     if (rowIsSelected) {
-        if (this->mainParent->getLockSpeakers()->try_lock()) {
+        if (this->mainParent->getLockSpeakers().try_lock()) {
             this->mainParent->getListSpeaker()[rowNumber]->selectSpeaker();
-            this->mainParent->getLockSpeakers()->unlock();
+            this->mainParent->getLockSpeakers().unlock();
         }
         g.fillAll(this->grisFeel->getHighlightColour());
     } else {
-        if (this->mainParent->getLockSpeakers()->try_lock()) {
+        if (this->mainParent->getLockSpeakers().try_lock()) {
             this->mainParent->getListSpeaker()[rowNumber]->unSelectSpeaker();
-            this->mainParent->getLockSpeakers()->unlock();
+            this->mainParent->getLockSpeakers().unlock();
         }
         if (rowNumber % 2) {
             g.fillAll(this->grisFeel->getBackgroundColour().withBrightness(0.6));
@@ -1041,12 +1041,12 @@ void WindowEditSpeaker::paintCell(Graphics& g, int rowNumber, int columnId, int 
     g.setColour(Colours::black);
     g.setFont(font);
 
-    if (this->mainParent->getLockSpeakers()->try_lock()) {
+    if (this->mainParent->getLockSpeakers().try_lock()) {
         if (this->mainParent->getListSpeaker().size() > (unsigned int)rowNumber) {
             String text = getText(columnId, rowNumber);
             g.drawText(text, 2, 0, width - 4, height, Justification::centredLeft, true);
         }
-        this->mainParent->getLockSpeakers()->unlock();
+        this->mainParent->getLockSpeakers().unlock();
     }
     g.setColour(Colours::black.withAlpha (0.2f));
     g.fillRect(width - 1, 0, 1, height);
@@ -1211,7 +1211,7 @@ WindowProperties::WindowProperties(const String& name, Colour backgroundColour, 
     this->butValidSettings->addListener(this);
     this->butValidSettings->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
     this->butValidSettings->setLookAndFeel(this->grisFeel);
-    this->juce::Component::addAndMakeVisible(this->butValidSettings);
+    this->setContentOwned(this->butValidSettings, false);
 }
 
 WindowProperties::~WindowProperties() {
@@ -1233,7 +1233,7 @@ WindowProperties::~WindowProperties() {
     delete this->recordFormat;
     delete this->recordFileConfig;
     delete this->butValidSettings;
-    this->mainParent->destroyWindowProperties();
+//    this->mainParent->destroyWindowProperties();
 }
 
 void WindowProperties::closeButtonPressed() {

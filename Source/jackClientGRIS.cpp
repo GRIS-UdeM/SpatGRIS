@@ -626,18 +626,16 @@ void port_connect_callback(jack_port_id_t a, jack_port_id_t b, int connect, void
 
 // Load samples from a wav file into a float array.
 static float ** getSamplesFromWavFile(String filename) {
-    int **wavData;
-    float factor = powf(2.0f, 31.0f);
-    AudioFormat *wavAudioFormat;
-    File file = File(filename); 
-    wavAudioFormat = new WavAudioFormat(); 
-    FileInputStream *stream = file.createInputStream();
-    AudioFormatReader *audioFormatReader = wavAudioFormat->createReaderFor(stream, true);
-    wavData = new int * [3]; 
+    float const factor = powf(2.0f, 31.0f);
+
+    WavAudioFormat wavAudioFormat{};
+    File const file = File(filename);
+    std::unique_ptr<FileInputStream> stream{ file.createInputStream() };
+    AudioFormatReader *audioFormatReader = wavAudioFormat.createReaderFor(stream.get(), false);
+    std::array<int *, 2> wavData{};
     wavData[0] = new int[audioFormatReader->lengthInSamples];
     wavData[1] = new int[audioFormatReader->lengthInSamples];
-    wavData[2] = 0; 
-    audioFormatReader->read(wavData, 2, 0, (int)audioFormatReader->lengthInSamples, false);
+    audioFormatReader->read(wavData.data(), 2, 0, (int)audioFormatReader->lengthInSamples, false);
     float **samples = (float **)malloc(2 * sizeof(float *));
     for (int i = 0; i < 2; i++) {
         samples[i] = (float *)malloc(audioFormatReader->lengthInSamples * sizeof(float));
@@ -645,9 +643,11 @@ static float ** getSamplesFromWavFile(String filename) {
             samples[i][j] = wavData[i][j] / factor;
         }
     }
-    // FIXME: wavData is leaking memory...
-    delete wavAudioFormat;
-    delete stream;
+
+    for (auto it : wavData)
+    {
+        delete[] it;
+    }
     return samples;
 }
 

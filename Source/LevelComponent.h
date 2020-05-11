@@ -64,7 +64,7 @@ public:
     LevelComponent(ParentLevelComponent * parent,
                    SmallGrisLookAndFeel *feel,
                    bool colorful = true);
-    ~LevelComponent();
+    ~LevelComponent() = default;
     
     void setOutputLab(String value) { this->idBut->setButtonText(value); }
     void setColor(Colour color) {
@@ -79,18 +79,18 @@ public:
     void mouseDown(const MouseEvent& e) override;
     void setBounds(const juce::Rectangle<int> &newBounds);
     void changeListenerCallback (ChangeBroadcaster* source) override;
-    void updateDirectOutMenu(vector<Speaker *> spkList);
+    void updateDirectOutMenu(juce::OwnedArray<Speaker> & spkList);
     void resetClipping();
 
     vector<int> directOutSpeakers;
-    TextButton * directOut;
+    std::unique_ptr<TextButton> directOut;
     
 private:
     ParentLevelComponent* mainParent;
-    LevelBox * levelBox;
-    TextButton * idBut;
-    ToggleButton * muteToggleBut;
-    ToggleButton * soloToggleBut;
+    std::unique_ptr<LevelBox> levelBox;
+    std::unique_ptr<TextButton> idBut;
+    std::unique_ptr<ToggleButton> muteToggleBut;
+    std::unique_ptr<ToggleButton> soloToggleBut;
     SmallGrisLookAndFeel * grisFeel;
     float level = MinLevelComp;
     int lastMouseButton = 1; // 1 means left, 0 means right
