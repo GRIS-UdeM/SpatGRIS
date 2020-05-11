@@ -630,8 +630,7 @@ static float ** getSamplesFromWavFile(String filename) {
 
     WavAudioFormat wavAudioFormat{};
     File const file = File(filename);
-    std::unique_ptr<FileInputStream> stream{ file.createInputStream() };
-    AudioFormatReader *audioFormatReader = wavAudioFormat.createReaderFor(stream.get(), false);
+    std::unique_ptr<AudioFormatReader> audioFormatReader{ wavAudioFormat.createReaderFor(file.createInputStream(), true) };
     std::array<int *, 2> wavData{};
     wavData[0] = new int[audioFormatReader->lengthInSamples];
     wavData[1] = new int[audioFormatReader->lengthInSamples];
