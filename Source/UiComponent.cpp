@@ -1233,7 +1233,7 @@ WindowProperties::~WindowProperties() {
     delete this->recordFormat;
     delete this->recordFileConfig;
     delete this->butValidSettings;
-//    this->mainParent->destroyWindowProperties();
+    this->mainParent->destroyWindowProperties();
 }
 
 void WindowProperties::closeButtonPressed() {

@@ -49,7 +49,7 @@ private:
     MainContentComponent *mainParent;
     GrisLookAndFeel *grisFeel;
     
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (WinControl)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (WinControl);
 };
 
 #endif /* WINCONTROL_H */

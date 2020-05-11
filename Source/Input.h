@@ -121,6 +121,8 @@ private:
     
     std::unique_ptr<LevelComponent> vuMeter{};
     SmallGrisLookAndFeel *grisFeel;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Input);
 };
 
 #endif /* INPUT_H */

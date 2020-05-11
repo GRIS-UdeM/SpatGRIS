@@ -210,6 +210,8 @@ private:
     std::unique_ptr<AudioFormatWriter::ThreadedWriter> threadedWriter; // the FIFO used to buffer the incoming data
     CriticalSection writerLock;
     std::atomic<AudioFormatWriter::ThreadedWriter*> activeWriter { nullptr };
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioRecorder);
 };
 
 class jackClientGris {
@@ -377,6 +379,8 @@ private:
 
     // Connect the server's outputs to the system's inputs.
     void connectedGristoSystem();
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(jackClientGris);
 };
 
 #endif /* JACKCLIENTGRIS_H */

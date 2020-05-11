@@ -24,6 +24,8 @@ class LevelComponent;
 
 class ParentLevelComponent {
 public:
+    ParentLevelComponent() = default;
+
     virtual int getId() = 0;
     virtual int getButtonInOutNumber() = 0;
     virtual bool isInput() = 0;
@@ -40,6 +42,9 @@ public:
     virtual ~ParentLevelComponent(){}
 
     int directOutChannel = 0;
+
+private:
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ParentLevelComponent);
 };
 
 #endif /* PARENTLEVELCOMPONENT_H */

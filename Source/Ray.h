@@ -74,7 +74,9 @@ public :
 private:
     glm::vec3 position;
     glm::vec3 direction;
-    glm::vec3 normal;    
+    glm::vec3 normal;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Ray);
 };
 
 #endif /* RAY_H */

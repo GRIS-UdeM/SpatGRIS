@@ -146,6 +146,8 @@ private:
     SmallGrisLookAndFeel mGrisFeel;
 
     int directOutChannel; // Not used for output.
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Speaker);
 };
 
 #endif /* SPEAKER_H */

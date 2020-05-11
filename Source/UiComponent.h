@@ -269,9 +269,11 @@ private:
     private:
         WindowEditSpeaker& owner;
         int row, columnId, lastOffset;
+
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EditableTextCustomComponent);
     };
     
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (WindowEditSpeaker)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (WindowEditSpeaker);
 };
 
 //======================================= WindowProperties ===========================
@@ -327,7 +329,7 @@ private:
 
     TextButton *butValidSettings;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (WindowProperties)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (WindowProperties);
 };
 
 //======================================= About Window ===========================
@@ -351,7 +353,7 @@ private:
     HyperlinkButton *website;
     TextButton *close;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AboutWindow)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AboutWindow);
 };
 
 //======================================= OSC Log Window ===========================
@@ -376,7 +378,7 @@ private:
     TextButton stop;
     TextButton close;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (OscLogWindow)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (OscLogWindow);
 };
 
 #endif /* UICOMPONENT_H */

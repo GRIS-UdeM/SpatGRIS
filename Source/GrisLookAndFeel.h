@@ -578,12 +578,15 @@ public:
         outlineArc.addPieSegment (rx, ry, rw, rw, rotaryStartAngle, rotaryEndAngle, 0.0);
         g.strokePath (outlineArc, PathStrokeType (lineThickness));
     }
+private:
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GrisLookAndFeel);
 };
 
 //==============================================================================
 class SmallGrisLookAndFeel : public GrisLookAndFeel
 {
 public:
+    SmallGrisLookAndFeel() = default;
 
     Font getTextButtonFont (TextButton &, int buttonHeight) override{
         return this->smallerFont;
@@ -633,7 +636,8 @@ public:
                               Justification::centredLeft, 10);
         }
     }
-
+private:
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SmallGrisLookAndFeel);
 };
 
 #endif
