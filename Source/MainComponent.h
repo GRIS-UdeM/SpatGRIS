@@ -57,6 +57,8 @@
 #include "WinControl.h"
 #include "MainWindow.h"
 
+class MainWindow;
+
 // This component lives inside our window, and this is where you should put all your controls and content.
 class MainContentComponent : public Component,
                              public MenuBarModel,
@@ -68,7 +70,7 @@ class MainContentComponent : public Component,
                              private Timer
 {
 public:
-    MainContentComponent(DocumentWindow *parent);
+    MainContentComponent(MainWindow &parent);
     ~MainContentComponent();
 
     // Exit application.
@@ -248,7 +250,7 @@ private:
     GrisLookAndFeel mGrisFeel;
     SmallGrisLookAndFeel mSmallTextGrisFeel;
 
-    DocumentWindow& parent;
+    MainWindow& parent;
 
     std::unique_ptr<MenuBarComponent> menuBar;
 

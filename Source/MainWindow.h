@@ -50,7 +50,7 @@ public:
     }
 
     // returns the command manager object used to dispatch command events.
-    static ApplicationCommandManager& getApplicationCommandManager();
+    ApplicationCommandManager& getApplicationCommandManager();
 
     /* Note: Be careful if you override any DocumentWindow methods - the base
        class uses a lot of them, so by overriding you might break its functionality.
@@ -92,6 +92,7 @@ public:
 
 private:
     std::unique_ptr<MainContentComponent> mcc{};
+    juce::ApplicationCommandManager applicationCommandManager{};
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainWindow)
 };
 

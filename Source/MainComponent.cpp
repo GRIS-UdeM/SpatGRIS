@@ -19,6 +19,8 @@
 
 #include "MainComponent.h"
 
+#include "MainWindow.h"
+
 // Audio recorder class used to write an interleaved multi-channel soundfile on disk.
 class AudioRenderer : public ThreadWithProgressWindow
 {
@@ -132,8 +134,8 @@ private:
     unsigned int sampleRate;
 };
 
-MainContentComponent::MainContentComponent(DocumentWindow *parent)
-    : parent(*parent)
+MainContentComponent::MainContentComponent(MainWindow& parent)
+    : parent(parent)
 {
     LookAndFeel::setDefaultLookAndFeel(&mGrisFeel);
 
@@ -347,8 +349,8 @@ MainContentComponent::MainContentComponent(DocumentWindow *parent)
     }
 
     // Initialize the command manager for the menubar items.
-    ApplicationCommandManager* commandManager = &MainWindow::getApplicationCommandManager();
-    commandManager->registerAllCommandsForTarget(this);
+    ApplicationCommandManager& commandManager = this->parent.getApplicationCommandManager();
+    commandManager.registerAllCommandsForTarget(this);
 
     // Restore last vertical divider position and speaker view cam distance.
     if (props->containsKey("sashPosition")) {
@@ -951,7 +953,7 @@ bool MainContentComponent::perform(const InvocationInfo& info) {
 
 PopupMenu MainContentComponent::getMenuForIndex (int menuIndex, const String& menuName) {
 
-    ApplicationCommandManager* commandManager = &MainWindow::getApplicationCommandManager();
+    ApplicationCommandManager* commandManager = &this->parent.getApplicationCommandManager();
 
     PopupMenu menu;
 

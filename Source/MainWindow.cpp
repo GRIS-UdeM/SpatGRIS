@@ -19,13 +19,11 @@
 
 #include "MainWindow.h"
 
-static std::unique_ptr<ApplicationCommandManager> applicationCommandManager;
-
 MainWindow::MainWindow(String name) : DocumentWindow(name, Colours::lightgrey,
                                                      DocumentWindow::allButtons)
 {
     setUsingNativeTitleBar(true);
-    mcc.reset(new MainContentComponent(this));
+    mcc.reset(new MainContentComponent(*this));
     setContentOwned(mcc.get(), true);
     setResizable(true, true);
 
@@ -73,8 +71,5 @@ bool MainWindow::exitWinApp() {
 }
 
 ApplicationCommandManager& MainWindow::getApplicationCommandManager() {
-    if (applicationCommandManager.get() == nullptr)
-        applicationCommandManager.reset( new ApplicationCommandManager());
-
-    return *(applicationCommandManager.get());
+    return applicationCommandManager;
 }
