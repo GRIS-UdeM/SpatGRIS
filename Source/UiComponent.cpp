@@ -1145,10 +1145,8 @@ ComboBox * WindowProperties::createPropComboBox(const StringArray choices, int s
     return combo;
 }
 
-WindowProperties::WindowProperties(const String& name, Colour backgroundColour, int buttonsNeeded,
-                                   MainContentComponent *parent, GrisLookAndFeel *feel, Array<String> devices,
-                                   String currentDevice, int indR, int indB, int indFF, int indFC, int indAttDB, int indAttHz, int oscPort):
-    DocumentWindow (name, backgroundColour, buttonsNeeded)
+WindowProperties::WindowProperties( MainContentComponent *parent, GrisLookAndFeel *feel, Array<String> devices,
+                                   String currentDevice, int indR, int indB, int indFF, int indFC, int indAttDB, int indAttHz, int oscPort)
 {
     this->mainParent = parent;
     this->grisFeel = feel;
@@ -1211,7 +1209,7 @@ WindowProperties::WindowProperties(const String& name, Colour backgroundColour, 
     this->butValidSettings->addListener(this);
     this->butValidSettings->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
     this->butValidSettings->setLookAndFeel(this->grisFeel);
-    this->setContentOwned(this->butValidSettings, false);
+    this->addAndMakeVisible(this->butValidSettings, false);
 }
 
 WindowProperties::~WindowProperties() {

@@ -277,12 +277,11 @@ private:
 };
 
 //======================================= WindowProperties ===========================
-class WindowProperties : public DocumentWindow,
+class WindowProperties : public juce::Component,
                          public TextButton::Listener
 {
 public:
-    WindowProperties(const String& name, Colour backgroundColour, int buttonsNeeded,
-                      MainContentComponent *parent, GrisLookAndFeel *feel, Array<String> devices,
+    WindowProperties( MainContentComponent *parent, GrisLookAndFeel *feel, Array<String> devices,
                       String currentDevice, int indR=0, int indB=0, int indFF=0, int indFC=0, int indAttDB=2, int indAttHz=3,
                       int oscPort=18032);
     ~WindowProperties();

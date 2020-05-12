@@ -630,12 +630,12 @@ void MainContentComponent::handleShowPreferences() {
         if (std::isnan(float(AttenuationDB))) { AttenuationDB = 3; }
         if (std::isnan(float(AttenuationHz))) { AttenuationHz = 3; }
         if (std::isnan(float(OscInputPort))) { OscInputPort = 18032; }
-        this->windowProperties.reset( new WindowProperties("Preferences", this->mGrisFeel.getWinBackgroundColour(),
-                                                     DocumentWindow::allButtons, this, &this->mGrisFeel, 
-                                                     alsaAvailableOutputDevices, alsaOutputDevice,
-                                                     RateValues.indexOf(String(RateValue)), 
-                                                     BufferSizes.indexOf(String(BufferValue)),
-                                                     FileFormat, FileConfig, AttenuationDB, AttenuationHz, OscInputPort));
+        this->windowProperties.reset(new juce::DocumentWindow{ "Preferences", this->mGrisFeel.getWinBackgroundColour(), DocumentWindow::allButtons, true } );
+        this->windowProperties->setContentOwned(new WindowProperties( this, &this->mGrisFeel,
+                                                                      alsaAvailableOutputDevices, alsaOutputDevice,
+                                                                      RateValues.indexOf(String(RateValue)),
+                                                                      BufferSizes.indexOf(String(BufferValue)),
+                                                                      FileFormat, FileConfig, AttenuationDB, AttenuationHz, OscInputPort), false);
     }
     int height = 450;
     if (alsaAvailableOutputDevices.isEmpty()) {

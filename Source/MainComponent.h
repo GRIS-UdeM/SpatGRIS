@@ -289,7 +289,7 @@ private:
 
     // Windows.
     std::unique_ptr<WindowEditSpeaker> winSpeakConfig;
-    std::unique_ptr<WindowProperties> windowProperties;
+    std::unique_ptr<DocumentWindow> windowProperties;
     std::unique_ptr<WinControl> winControlSource;
     AboutWindow *aboutWindow;
     OscLogWindow *oscLogWindow;
