@@ -237,152 +237,6 @@ Component * BoxClient::refreshComponentForCell(int rowNumber, int columnId, bool
     return textLabel;
 }
 
-// ============================ WindowProperties ===========================
-Label * WindowProperties::createPropLabel(String lab, Justification::Flags just, int ypos, int width) {
-    Label *label = new Label();
-    label->setText(lab, NotificationType::dontSendNotification);
-    label->setJustificationType(just);
-    label->setBounds(10, ypos, width, 22);
-    label->setFont(this->grisFeel->getFont());
-    label->setLookAndFeel(this->grisFeel);
-    label->setColour(Label::textColourId, this->grisFeel->getFontColour());
-    this->juce::Component::addAndMakeVisible(label);
-    return label;
-}
-
-TextEditor * WindowProperties::createPropIntTextEditor(String tooltip, int ypos, int init) {
-    TextEditor *editor = new TextEditor();
-    editor->setTooltip(tooltip);
-    editor->setTextToShowWhenEmpty("", this->grisFeel->getOffColour());
-    editor->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
-    editor->setLookAndFeel(this->grisFeel);
-    editor->setBounds(130, ypos, 120, 22);
-    editor->setInputRestrictions(5, "0123456789");
-    editor->setText(String(init));
-    /* Implemented but not yet in current Juce release. */
-    //this->tedOSCInPort->setJustification(Justification::right);
-    this->juce::Component::addAndMakeVisible(editor);
-    return editor;
-}
-
-ComboBox * WindowProperties::createPropComboBox(const StringArray choices, int selected, int ypos) {
-    ComboBox *combo = new ComboBox();
-    combo->addItemList(choices, 1);
-    combo->setSelectedItemIndex(selected);
-    combo->setBounds(130, ypos, 120, 22);
-    combo->setLookAndFeel(this->grisFeel);
-    this->juce::Component::addAndMakeVisible(combo);
-    return combo;
-}
-
-WindowProperties::WindowProperties( MainContentComponent *parent, GrisLookAndFeel *feel, Array<String> devices,
-                                   String currentDevice, int indR, int indB, int indFF, int indFC, int indAttDB, int indAttHz, int oscPort)
-{
-    this->mainParent = parent;
-    this->grisFeel = feel;
-
-    int ypos = 20;
-
-    this->generalLabel = this->createPropLabel("General Settings", Justification::left, ypos);
-    ypos += 30;
-
-    this->labOSCInPort = this->createPropLabel("OSC Input Port :", Justification::left, ypos);
-    this->tedOSCInPort = this->createPropIntTextEditor("Port Socket OSC Input", ypos, oscPort);
-    ypos += 40;
-
-    this->jackSettingsLabel = this->createPropLabel("Jack Settings", Justification::left, ypos);
-    ypos += 30;
-
-    if (! devices.isEmpty()) {
-        int deviceIndex = 0;
-        if (devices.contains(currentDevice)) {
-            deviceIndex = devices.indexOf(currentDevice);
-        }
-        this->labDevice = this->createPropLabel("Output Device :", Justification::left, ypos);
-        this->cobDevice = this->createPropComboBox(devices, deviceIndex, ypos);
-        ypos += 30;
-    }
-
-    this->labRate = this->createPropLabel("Sampling Rate (hz) :", Justification::left, ypos);
-    this->cobRate = this->createPropComboBox(RateValues, indR, ypos);
-    ypos += 30;
-
-    this->labBuff = this->createPropLabel("Buffer Size (spls) :", Justification::left, ypos);
-    this->cobBuffer = this->createPropComboBox(BufferSizes, indB, ypos);
-    ypos += 40;
-
-    this->recordingLabel = this->createPropLabel("Recording Settings", Justification::left, ypos);
-    ypos += 30;
-
-    this->labRecFormat = this->createPropLabel("File Format :", Justification::left, ypos);
-    this->recordFormat = this->createPropComboBox(FileFormats, indFF, ypos);
-    ypos += 30;
-
-    this->labRecFileConfig = this->createPropLabel("Output Format :", Justification::left, ypos);
-    this->recordFileConfig = this->createPropComboBox(FileConfigs, indFC, ypos);
-    ypos += 40;
-
-    this->cubeDistanceLabel = this->createPropLabel("CUBE Distance Settings", Justification::left, ypos, 250);
-    ypos += 30;
-
-    this->labDistanceDB = this->createPropLabel("Attenuation (dB) :", Justification::left, ypos);
-    this->cobDistanceDB = this->createPropComboBox(AttenuationDBs, indAttDB, ypos);
-    ypos += 30;
-
-    this->labDistanceCutoff = this->createPropLabel("Attenuation (Hz) :", Justification::left, ypos);
-    this->cobDistanceCutoff = this->createPropComboBox(AttenuationCutoffs, indAttHz, ypos);
-    ypos += 40;
-
-    this->butValidSettings = new TextButton();
-    this->butValidSettings->setButtonText("Save");
-    this->butValidSettings->setBounds(163, ypos, 88, 22);
-    this->butValidSettings->addListener(this);
-    this->butValidSettings->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
-    this->butValidSettings->setLookAndFeel(this->grisFeel);
-    this->addAndMakeVisible(this->butValidSettings, false);
-}
-
-WindowProperties::~WindowProperties() {
-    delete this->generalLabel;
-    delete this->jackSettingsLabel;
-    delete this->recordingLabel;
-    delete this->labOSCInPort;
-    if (this->cobDevice != nullptr) {
-        delete this->labDevice;
-        delete this->cobDevice;
-    }
-    delete this->labRate;
-    delete this->labBuff;
-    delete this->labRecFormat;
-    delete this->labRecFileConfig;
-    delete this->tedOSCInPort;
-    delete this->cobRate;
-    delete this->cobBuffer;
-    delete this->recordFormat;
-    delete this->recordFileConfig;
-    delete this->butValidSettings;
-    this->mainParent->destroyWindowProperties();
-}
-
-void WindowProperties::closeButtonPressed() {
-    delete this;
-}
-
-void WindowProperties::buttonClicked(Button *button) {
-    if (button == this->butValidSettings) {
-        this->mainParent->saveProperties(this->cobDevice != nullptr ? this->cobDevice->getText() : String(),
-                                         this->cobRate->getText().getIntValue(),
-                                         this->cobBuffer->getText().getIntValue(),
-                                         this->recordFormat->getSelectedItemIndex(),
-                                         this->recordFileConfig->getSelectedItemIndex(),
-                                         this->cobDistanceDB->getSelectedItemIndex(),
-                                         this->cobDistanceCutoff->getSelectedItemIndex(),
-                                         this->tedOSCInPort->getTextValue().toString().getIntValue());
-        delete this;
-    }
-}
-
-
 //======================================= About Window ===========================
 AboutWindow::AboutWindow(const String& name, Colour backgroundColour, int buttonsNeeded,
                          MainContentComponent *parent, GrisLookAndFeel *feel):
@@ -462,7 +316,7 @@ AboutWindow::~AboutWindow() {
     delete this->label;
     delete this->website;
     delete this->close;
-    this->mainParent->destroyAboutWindow();
+    this->mainParent->closeAboutWindow();
 }
 
 void AboutWindow::closeButtonPressed() {
@@ -507,7 +361,7 @@ OscLogWindow::OscLogWindow(const String& name, Colour backgroundColour, int butt
 }
 
 OscLogWindow::~OscLogWindow() {
-    this->mainParent->destroyOscLogWindow();
+    this->mainParent->closeOscLogWindow();
 }
 
 void OscLogWindow::addToLog(String msg) {
@@ -528,7 +382,7 @@ void OscLogWindow::addToLog(String msg) {
 void OscLogWindow::closeButtonPressed() {
     this->stop.setButtonText("Start");
     this->activated = false;
-    this->mainParent->destroyOscLogWindow();
+    this->mainParent->closeOscLogWindow();
     delete this;
 }
 

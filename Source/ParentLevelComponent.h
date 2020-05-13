@@ -20,6 +20,8 @@
 #ifndef PARENTLEVELCOMPONENT_H
 #define PARENTLEVELCOMPONENT_H
 
+#include "../JuceLibraryCode/JuceHeader.h"
+
 class LevelComponent;
 
 class ParentLevelComponent {

@@ -119,61 +119,6 @@ private:
     };
 };
 
-//======================================= WindowProperties ===========================
-class WindowProperties : public juce::Component,
-                         public TextButton::Listener
-{
-public:
-    WindowProperties( MainContentComponent *parent, GrisLookAndFeel *feel, Array<String> devices,
-                      String currentDevice, int indR=0, int indB=0, int indFF=0, int indFC=0, int indAttDB=2, int indAttHz=3,
-                      int oscPort=18032);
-    ~WindowProperties();
-
-    Label * createPropLabel(String lab, Justification::Flags just, int ypos, int width=100);
-    TextEditor * createPropIntTextEditor(String tooltip, int ypos, int init);
-    ComboBox * createPropComboBox(const StringArray choices, int selected, int ypos);
-
-    void buttonClicked(Button *button);
-    void closeButtonPressed();
-
-private:
-    MainContentComponent *mainParent;
-    GrisLookAndFeel *grisFeel;
-
-    Label *generalLabel;
-    Label *jackSettingsLabel;
-    Label *recordingLabel;
-    Label *cubeDistanceLabel;
-
-    Label *labOSCInPort;
-    TextEditor *tedOSCInPort;
-
-    Label *labDevice;
-    ComboBox *cobDevice = nullptr;
-
-    Label *labRate;
-    ComboBox *cobRate;
-
-    Label *labBuff;
-    ComboBox *cobBuffer;
-
-    Label *labRecFormat;
-    ComboBox *recordFormat;
-
-    Label *labRecFileConfig;
-    ComboBox *recordFileConfig;
-
-    Label *labDistanceDB;
-    ComboBox *cobDistanceDB;
-
-    Label *labDistanceCutoff;
-    ComboBox *cobDistanceCutoff;
-
-    TextButton *butValidSettings;
-
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (WindowProperties);
-};
-
 //======================================= About Window ===========================
 class AboutWindow : public DocumentWindow,
                     public TextButton::Listener

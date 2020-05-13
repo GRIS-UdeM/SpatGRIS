@@ -58,6 +58,7 @@
 #include "MainWindow.h"
 #include "SecondaryWindow.h"
 #include "EditSpeakersWindow.h"
+#include "PropertiesWindow.h"
 
 class MainWindow;
 
@@ -205,11 +206,11 @@ public:
     }
 
     // Close windows other than the main one.
-    void destroyWinSpeakConf() { this->winSpeakConfig = nullptr; this->jackClient->processBlockOn = true; }
-    void destroyWindowProperties() { this->windowProperties = nullptr; }
-    void destroyWinControl() { this->winControlSource = nullptr; }
-    void destroyAboutWindow() { this->aboutWindow = nullptr; }
-    void destroyOscLogWindow() { this->oscLogWindow = nullptr; }
+    void closeSpeakersConfigurationWindow() { this->winSpeakConfig.reset(); this->jackClient->processBlockOn = true; }
+    void closePropertiesWindow() { this->windowProperties.reset(); }
+    void closeWinControl() { this->winControlSource = nullptr; }
+    void closeAboutWindow() { this->aboutWindow = nullptr; }
+    void closeOscLogWindow() { this->oscLogWindow = nullptr; }
 
     // Widget listener handlers.
     void timerCallback() override;
@@ -291,7 +292,7 @@ private:
 
     // Windows.
     std::unique_ptr<EditSpeakersWindow> winSpeakConfig;
-    std::unique_ptr<SecondaryWindow> windowProperties;
+    std::unique_ptr<PropertiesWindow> windowProperties;
     std::unique_ptr<WinControl> winControlSource;
     AboutWindow *aboutWindow;
     OscLogWindow *oscLogWindow;

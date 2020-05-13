@@ -70,7 +70,7 @@ WinControl::WinControl(const String& name, Colour backgroundColour, int buttonsN
 }
 
 WinControl::~WinControl() {
-    this->mainParent->destroyWinControl();
+    this->mainParent->closeWinControl();
 }
 
 void WinControl::timerCallback() {

@@ -20,6 +20,7 @@
 #include "MainComponent.h"
 
 #include "MainWindow.h"
+#include "PropertiesWindow.h"
 
 // Audio recorder class used to write an interleaved multi-channel soundfile on disk.
 class AudioRenderer : public ThreadWithProgressWindow
@@ -628,12 +629,17 @@ void MainContentComponent::handleShowPreferences() {
         if (std::isnan(float(AttenuationDB))) { AttenuationDB = 3; }
         if (std::isnan(float(AttenuationHz))) { AttenuationHz = 3; }
         if (std::isnan(float(OscInputPort))) { OscInputPort = 18032; }
-        this->windowProperties.reset(new SecondaryWindow{ "Preferences", this->mGrisFeel.getWinBackgroundColour(), DocumentWindow::allButtons, true } );
-        this->windowProperties->setContentOwned(new WindowProperties( this, &this->mGrisFeel,
-                                                                      alsaAvailableOutputDevices, alsaOutputDevice,
-                                                                      RateValues.indexOf(String(RateValue)),
-                                                                      BufferSizes.indexOf(String(BufferValue)),
-                                                                      FileFormat, FileConfig, AttenuationDB, AttenuationHz, OscInputPort), false);
+        this->windowProperties.reset(new PropertiesWindow{ *this,
+                                                           this->mGrisFeel,
+                                                           alsaAvailableOutputDevices,
+                                                           alsaOutputDevice,
+                                                           RateValues.indexOf(String(RateValue)),
+                                                           BufferSizes.indexOf(String(BufferValue)),
+                                                           static_cast<int>(FileFormat),
+                                                           static_cast<int>(FileConfig),
+                                                           static_cast<int>(AttenuationDB),
+                                                           static_cast<int>(AttenuationHz),
+                                                           static_cast<int>(OscInputPort)});
     }
     int height = 450;
     if (alsaAvailableOutputDevices.isEmpty()) {

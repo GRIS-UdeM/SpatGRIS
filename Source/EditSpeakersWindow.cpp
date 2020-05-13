@@ -478,7 +478,7 @@ void EditSpeakersWindow::closeButtonPressed() {
     }
     if (exitV) {
         this->mainContentComponent.getJackClient()->pinkNoiseSound = false;
-        this->mainContentComponent.destroyWinSpeakConf();
+        this->mainContentComponent.closeSpeakersConfigurationWindow();
     }
 }
 
