@@ -2,6 +2,9 @@
 Builds/
 JuceLibraryCode
 
+# VS code dir
+.vscode
+
 # Mac OS Desktop Services Store files
 *.DS_Store
 

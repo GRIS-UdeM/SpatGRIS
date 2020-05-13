@@ -599,9 +599,7 @@ void MainContentComponent::handleShowSpeakerEditWindow() {
     if (this->winSpeakConfig == nullptr) {
         String windowName = String("Speakers Setup Edition - ") + String(ModeSpatString[this->jackClient->modeSelected]) + \
                             String(" - ") + File(this->pathCurrentFileSpeaker).getFileName();
-        this->winSpeakConfig.reset(new EditSpeakersWindow(windowName,
-                                                     this->nameConfig, this->mGrisFeel.getWinBackgroundColour(),
-                                                     DocumentWindow::allButtons, this, &this->mGrisFeel));
+        this->winSpeakConfig.reset(new EditSpeakersWindow(windowName, this->mGrisFeel, *this, this->nameConfig));
         this->winSpeakConfig->setBounds(result);
         this->winSpeakConfig->initComp();
     }
