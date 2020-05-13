@@ -56,6 +56,8 @@
 #include "Input.h"
 #include "WinControl.h"
 #include "MainWindow.h"
+#include "SecondaryWindow.h"
+#include "EditSpeakersWindow.h"
 
 class MainWindow;
 
@@ -288,8 +290,8 @@ private:
     Array<String> alsaAvailableOutputDevices;
 
     // Windows.
-    std::unique_ptr<WindowEditSpeaker> winSpeakConfig;
-    std::unique_ptr<DocumentWindow> windowProperties;
+    std::unique_ptr<EditSpeakersWindow> winSpeakConfig;
+    std::unique_ptr<SecondaryWindow> windowProperties;
     std::unique_ptr<WinControl> winControlSource;
     AboutWindow *aboutWindow;
     OscLogWindow *oscLogWindow;

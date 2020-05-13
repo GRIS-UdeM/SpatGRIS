@@ -599,7 +599,7 @@ void MainContentComponent::handleShowSpeakerEditWindow() {
     if (this->winSpeakConfig == nullptr) {
         String windowName = String("Speakers Setup Edition - ") + String(ModeSpatString[this->jackClient->modeSelected]) + \
                             String(" - ") + File(this->pathCurrentFileSpeaker).getFileName();
-        this->winSpeakConfig.reset(new WindowEditSpeaker(windowName,
+        this->winSpeakConfig.reset(new EditSpeakersWindow(windowName,
                                                      this->nameConfig, this->mGrisFeel.getWinBackgroundColour(),
                                                      DocumentWindow::allButtons, this, &this->mGrisFeel));
         this->winSpeakConfig->setBounds(result);
@@ -630,7 +630,7 @@ void MainContentComponent::handleShowPreferences() {
         if (std::isnan(float(AttenuationDB))) { AttenuationDB = 3; }
         if (std::isnan(float(AttenuationHz))) { AttenuationHz = 3; }
         if (std::isnan(float(OscInputPort))) { OscInputPort = 18032; }
-        this->windowProperties.reset(new juce::DocumentWindow{ "Preferences", this->mGrisFeel.getWinBackgroundColour(), DocumentWindow::allButtons, true } );
+        this->windowProperties.reset(new SecondaryWindow{ "Preferences", this->mGrisFeel.getWinBackgroundColour(), DocumentWindow::allButtons, true } );
         this->windowProperties->setContentOwned(new WindowProperties( this, &this->mGrisFeel,
                                                                       alsaAvailableOutputDevices, alsaOutputDevice,
                                                                       RateValues.indexOf(String(RateValue)),
