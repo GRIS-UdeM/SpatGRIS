@@ -143,13 +143,8 @@ typedef enum {
 class AudioRecorder
 {
 public:
-    AudioRecorder() : backgroundThread ("Audio Recorder Thread"), activeWriter (nullptr) {
-    }
-
-    ~AudioRecorder() {
-        stop();
-    }
-
+    AudioRecorder() : backgroundThread("Audio Recorder Thread"), activeWriter(nullptr) {}
+    ~AudioRecorder() { stop(); }
     //==============================================================================
     void startRecording(const File& file, unsigned int sampleRate, String extF) {
         stop();
@@ -206,7 +201,7 @@ public:
     //==============================================================================
     void recordSamples(float **samples, int numSamples) {
         const ScopedLock sl (writerLock);
-        activeWriter.load()->write (samples, numSamples);
+        activeWriter.load()->write(samples, numSamples);
     }
     //==============================================================================
     TimeSliceThread backgroundThread; // the thread that will write our audio data to disk
@@ -323,10 +318,10 @@ public:
     //==============================================================================
     // Class methods.
     JackClientGris();
-    virtual ~JackClientGris();
+    ~JackClientGris();
 
     // Audio Status.
-    bool  isReady() { return clientReady; }
+    bool  isReady() const { return clientReady; }
     float getCpuUsed() const { return jack_cpu_load(client); }
     float getLevelsIn(int index) const { return levelsIn[index]; }
     float getLevelsOut(int index) const { return levelsOut[index]; }
@@ -336,24 +331,24 @@ public:
     void clearOutput();
     bool addOutput(unsigned int outputPatch);
     void removeOutput(int number);
-    std::vector<int> getDirectOutOutputPatches();
+    std::vector<int> getDirectOutOutputPatches() const;
 
     // Manage clients.
     void connectionClient(String name, bool connect = true);
     void updateClientPortAvailable(bool fromJack);
-    std::string getClientName(const char *port);
+    std::string getClientName(char const* port) const;
 
     // Recording.
     void prepareToRecord();
     void startRecord() { this->indexRecord = 0; this->recording = true; }
-    void stopRecord() { this->recording = false; };
-    void setRecordFormat(int format) { this->recordFormat = format; };
-    int getRecordFormat() { return this->recordFormat; };
-    void setRecordFileConfig(int config) { this->recordFileConfig = config; };
-    int getRecordFileConfig() { return this->recordFileConfig; };
+    void stopRecord() { this->recording = false; }
+    void setRecordFormat(int format) { this->recordFormat = format; }
+    int getRecordFormat() const { return this->recordFormat; }
+    void setRecordFileConfig(int config) { this->recordFileConfig = config; }
+    int getRecordFileConfig() const { return this->recordFileConfig; }
     void setRecordingPath(String filePath) { this->recordPath = filePath; }
-    juce::String getRecordingPath() { return this->recordPath; }
-    bool isSavingRun() { return this->recording; };
+    juce::String const& getRecordingPath() const { return this->recordPath; }
+    bool isSavingRun() const { return this->recording; }
 
     // Initialize VBAP algorithm.
     bool initSpeakersTripplet(std::vector<Speaker*> const& listSpk, int dimensions, bool needToComputeVbap);

@@ -60,21 +60,22 @@ class MainWindow;
 
 //==============================================================================
 // This component lives inside our window, and this is where you should put all your controls and content.
-class MainContentComponent : public juce::Component,
-                             public juce::MenuBarModel,
-                             public juce::ApplicationCommandTarget,
-                             public juce::Button::Listener,
-                             public juce::TextEditor::Listener,
-                             public juce::Slider::Listener,
-                             public juce::ComboBox::Listener,
-                             private juce::Timer
+class MainContentComponent final
+    : public juce::Component
+    , public juce::MenuBarModel
+    , public juce::ApplicationCommandTarget
+    , public juce::Button::Listener
+    , public juce::TextEditor::Listener
+    , public juce::Slider::Listener
+    , public juce::ComboBox::Listener
+    , private juce::Timer
 {
 public:
     MainContentComponent(MainWindow &parent);
-    ~MainContentComponent();
+    ~MainContentComponent() final;
     //==============================================================================
     // Exit application.
-    bool isPresetModified();
+    bool isPresetModified() const;
     bool exitApp();
 
     // Menubar handlers.
@@ -95,7 +96,7 @@ public:
     void setShowSpeakers(bool state);
     void handleShowTriplets();
     void setShowTriplets(bool state);
-    bool validateShowTriplets();
+    bool validateShowTriplets() const;
     void handleShowSourceLevel();
     void handleShowSpeakerLevel();
     void handleShowSphere();
@@ -105,48 +106,50 @@ public:
     void handleInputColours();
 
     // Menubar methods.
-    StringArray getMenuBarNames() override {
-        const char* const names[] = { "File", "View", "Help", nullptr };
-        return StringArray (names);
-    }
-    PopupMenu getMenuForIndex (int menuIndex, const String& /*menuName*/) override;
-    void menuItemSelected (int menuItemID, int /*topLevelMenuIndex*/) override;
+    juce::StringArray getMenuBarNames() final;
+    PopupMenu getMenuForIndex (int menuIndex, const String& /*menuName*/) final;
+    void menuItemSelected (int menuItemID, int /*topLevelMenuIndex*/) final;
 
     // Speakers.
-    juce::OwnedArray<Speaker> & getListSpeaker() { return this->listSpeaker; }
-    std::mutex & getLockSpeakers() { return this->lockSpeakers; }
-    Speaker * getSpeakerFromOutputPatch(int out);
+    juce::OwnedArray<Speaker>      & getListSpeaker()       { return this->listSpeaker; }
+    juce::OwnedArray<Speaker> const& getListSpeaker() const { return this->listSpeaker; }
+    std::mutex& getLockSpeakers() { return this->lockSpeakers; }
+    Speaker       * getSpeakerFromOutputPatch(int out);
+    Speaker const * getSpeakerFromOutputPatch(int out) const;
     void addSpeaker(int sortColumnId = 1, bool isSortedForwards = true);
     void insertSpeaker(int position, int sortColumnId, bool isSortedForwards);
     void removeSpeaker(int idSpeaker);
     void setDirectOut(int id, int chn);
     void reorderSpeakers(std::vector<int> const& newOrder);
     void resetSpeakerIds();
-    int getMaxSpeakerId();
-    int getMaxSpeakerOutputPatch();
+    int getMaxSpeakerId() const;
+    int getMaxSpeakerOutputPatch() const;
 
     // Sources.
-    juce::OwnedArray<Input> & getListSourceInput() { return this->listSourceInput; }
+    juce::OwnedArray<Input>       & getListSourceInput()       { return this->listSourceInput; }
     juce::OwnedArray<Input> const & getListSourceInput() const { return this->listSourceInput; }
-    std::mutex & getLockInputs() { return this->lockInputs; }
+    std::mutex& getLockInputs() { return this->lockInputs; }
     void updateInputJack(int inInput, Input &inp);
-    bool isRadiusNormalized();
+    bool isRadiusNormalized() const;
 
     // Jack clients.
     JackClientGris * getJackClient() { return this->jackClient.get(); }
-    std::mutex & getLockClients() { return this->jackClient->lockListClient; }
+    JackClientGris const * getJackClient() const { return this->jackClient.get(); }
+    std::mutex& getLockClients() { return this->jackClient->lockListClient; }
     std::vector<Client> & getListClientjack() { return this->jackClient->listClient; }
+    std::vector<Client> const& getListClientjack() const { return this->jackClient->listClient; }
     void connectionClientJack(juce::String nameCli, bool conn = true);
 
     // VBAP triplets.
     void setListTripletFromVbap();
-    std::vector<Triplet> & getListTriplet() { return this->listTriplet; }
+    std::vector<Triplet>      & getListTriplet()       { return this->listTriplet; }
+    std::vector<Triplet> const& getListTriplet() const { return this->listTriplet; }
     void clearListTriplet() { this->listTriplet.clear(); }
 
     // Speaker selections.
     void selectSpeaker(unsigned int idS);
     void selectTripletSpeaker(int idS);
-    bool tripletExist(Triplet tri, int &pos);
+    bool tripletExist(Triplet tri, int &pos) const;
 
     // Mute - solo.
     void muteInput(int id, bool mute);
@@ -183,12 +186,12 @@ public:
     bool updateLevelComp();
 
     // Open - save.
-    void openXmlFileSpeaker(String path);
+    void openXmlFileSpeaker(juce::String path);
     void reloadXmlFileSpeaker();
     void openPreset(String path);
-    void getPresetData(XmlElement *xml);
-    void savePreset(String path);
-    void saveSpeakerSetup(String path);
+    void getPresetData(XmlElement *xml) const;
+    void savePreset(juce::String path);
+    void saveSpeakerSetup(juce::String path);
     void saveProperties(String device, int rate, int buff, int fileformat, int fileconfig, int attenuationDB, int attenuationHz, int oscPort);
     void chooseRecordingPath();
     void setNameConfig();
@@ -211,16 +214,16 @@ public:
     void closeOscLogWindow() { this->oscLogWindow = nullptr; }
 
     // Widget listener handlers.
-    void timerCallback() override;
-    void paint(Graphics& g) override;
-    void resized() override;
-    void buttonClicked(Button *button) override;
-    void sliderValueChanged(Slider *slider) override;
-    void textEditorFocusLost(TextEditor &textEditor) override;
-    void textEditorReturnKeyPressed(TextEditor &textEditor) override;
-    void comboBoxChanged(ComboBox *comboBox) override;
+    void timerCallback() final;
+    void paint(Graphics& g) final;
+    void resized() final;
+    void buttonClicked(Button *button) final;
+    void sliderValueChanged(Slider *slider) final;
+    void textEditorFocusLost(TextEditor &textEditor) final;
+    void textEditorReturnKeyPressed(TextEditor &textEditor) final;
+    void comboBoxChanged(ComboBox *comboBox) final;
 
-    int getModeSelected();
+    int getModeSelected() const { return this->comBoxModeSpat->getSelectedId() - 1; }
 
     void setOscLogging(const OSCMessage& message);
     //==============================================================================
@@ -341,10 +344,10 @@ private:
     // The following methods implement the ApplicationCommandTarget interface, allowing
     // this window to publish a set of actions it can perform, and which can be mapped
     // onto menus, keypresses, etc.
-    juce::ApplicationCommandTarget* getNextCommandTarget() override { return findFirstTargetParentComponent(); }
-    void getAllCommands(juce::Array<juce::CommandID>& commands) override;
-    void getCommandInfo(juce::CommandID commandID, juce::ApplicationCommandInfo& result) override;
-    bool perform(juce::ApplicationCommandTarget::InvocationInfo const& info) override;
+    juce::ApplicationCommandTarget* getNextCommandTarget() final { return findFirstTargetParentComponent(); }
+    void getAllCommands(juce::Array<juce::CommandID>& commands) final;
+    void getCommandInfo(juce::CommandID commandID, juce::ApplicationCommandInfo& result) final;
+    bool perform(juce::ApplicationCommandTarget::InvocationInfo const& info) final;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainContentComponent)
 };

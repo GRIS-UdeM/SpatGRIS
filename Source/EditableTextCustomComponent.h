@@ -25,19 +25,20 @@
 class EditSpeakersWindow;
 
 //==============================================================================
-class EditableTextCustomComponent : public juce::Label
+class EditableTextCustomComponent final : public juce::Label
 {
 public:
     //==============================================================================
     // DEFAULTS
     EditableTextCustomComponent(EditSpeakersWindow &editSpeakersWindow);
+    ~EditableTextCustomComponent() final = default;
     //==============================================================================
     void setRowAndColumn(const int newRow, const int newColumn);
     //==============================================================================
     // VIRTUALS
-    void mouseDown(const juce::MouseEvent &event) override;
-    void mouseDrag(const juce::MouseEvent &event) override;
-    void textWasEdited() override;
+    void mouseDown(const juce::MouseEvent &event) final;
+    void mouseDrag(const juce::MouseEvent &event) final;
+    void textWasEdited() final;
 private:
     //==============================================================================
     EditSpeakersWindow &owner;

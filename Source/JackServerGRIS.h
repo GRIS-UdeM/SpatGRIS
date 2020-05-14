@@ -35,7 +35,7 @@ public:
     ~JackServerGris();
     //==============================================================================
     // Only effective with alsa driver.
-    Array<String> getAvailableOutputDevices();
+    juce::Array<juce::String> getAvailableOutputDevices() const;
     //==============================================================================
     jackctl_server_t *server;
 private :

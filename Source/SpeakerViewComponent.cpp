@@ -22,16 +22,6 @@
 #include "MainComponent.h"
 
 //==============================================================================
-SpeakerViewComponent::SpeakerViewComponent(MainContentComponent *parent) {
-    this->mainParent = parent;
-}
-
-//==============================================================================
-SpeakerViewComponent::~SpeakerViewComponent() {
-    this->shutdownOpenGL();
-}
-
-//==============================================================================
 void SpeakerViewComponent::initialise() {
     glClearColor(0.0, 0.0, 0.0, 1.0);
     glColor3f(1.0, 1.0, 1.0);
@@ -48,9 +38,6 @@ void SpeakerViewComponent::initialise() {
     char *argv[1] = {(char*)"Something"};
     glutInit(&argc, argv);
 }
-
-//==============================================================================
-void SpeakerViewComponent::shutdown() {}
 
 //==============================================================================
 void SpeakerViewComponent::setCamPosition(float angleX, float angleY, float distance) {
@@ -282,7 +269,7 @@ void SpeakerViewComponent::mouseWheelMove(const MouseEvent& e,const MouseWheelDe
 }
 
 //==============================================================================
-void SpeakerViewComponent::drawBackground() {
+void SpeakerViewComponent::drawBackground() const {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(0, 1, 0, 1, -1, 1);
@@ -308,7 +295,7 @@ void SpeakerViewComponent::drawBackground() {
 }
 
 //==============================================================================
-void SpeakerViewComponent::drawOriginGrid() {
+void SpeakerViewComponent::drawOriginGrid() const {
     int i;
     double angle;
 
@@ -405,7 +392,7 @@ void SpeakerViewComponent::drawOriginGrid() {
 
 //==============================================================================
 void SpeakerViewComponent::drawText(std::string val, glm::vec3 position, glm::vec3 color,
-                                    float scale, bool camLock, float alpha) {
+                                    float scale, bool camLock, float alpha) const {
     glPushMatrix();
     glTranslatef(position.x, position.y, position.z);
 
@@ -426,7 +413,7 @@ void SpeakerViewComponent::drawText(std::string val, glm::vec3 position, glm::ve
 }
 
 //==============================================================================
-void SpeakerViewComponent::drawTextOnGrid(std::string val, glm::vec3 position, float scale) {
+void SpeakerViewComponent::drawTextOnGrid(std::string val, glm::vec3 position, float scale) const {
     glPushMatrix();
     glTranslatef(position.x, position.y, position.z);
     
@@ -444,7 +431,7 @@ void SpeakerViewComponent::drawTextOnGrid(std::string val, glm::vec3 position, f
 }
 
 //==============================================================================
-void SpeakerViewComponent::drawTrippletConn() {
+void SpeakerViewComponent::drawTrippletConn() const {
     for (unsigned int i = 0; i < this->mainParent->getListTriplet().size(); ++i) {
         Speaker *spk1 = this->mainParent->getSpeakerFromOutputPatch(this->mainParent->getListTriplet()[i].id1);
         Speaker *spk2 = this->mainParent->getSpeakerFromOutputPatch(this->mainParent->getListTriplet()[i].id2);
@@ -466,7 +453,7 @@ void SpeakerViewComponent::drawTrippletConn() {
 }
 
 //==============================================================================
-float SpeakerViewComponent::raycast(Speaker *speaker) {
+float SpeakerViewComponent::raycast(Speaker *speaker) const {
     float t1 = (speaker->getMin().x - this->ray.getPosition().x) / this->ray.getNormal().x;
     float t2 = (speaker->getMax().x - this->ray.getPosition().x) / this->ray.getNormal().x;
     float t3 = (speaker->getMin().y - this->ray.getPosition().y) / this->ray.getNormal().y;
@@ -494,7 +481,7 @@ float SpeakerViewComponent::raycast(Speaker *speaker) {
 }
 
 //==============================================================================
-bool SpeakerViewComponent::speakerNearCam(glm::vec3 speak1, glm::vec3 speak2) {
+bool SpeakerViewComponent::speakerNearCam(glm::vec3 speak1, glm::vec3 speak2) const {
     return (sqrt( exp2(speak1.x - this->camPos.x) + exp2(speak1.y - this->camPos.y) +exp2(speak1.z - this->camPos.z) ) <=
             sqrt( exp2(speak2.x - this->camPos.x) + exp2(speak2.y - this->camPos.y) +exp2(speak2.z - this->camPos.z) ));
 }

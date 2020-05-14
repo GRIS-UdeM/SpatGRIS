@@ -312,7 +312,7 @@ MainContentComponent::MainContentComponent(MainWindow& parent)
                                  " - O : " + String(this->jackClient->numberInputs), dontSendNotification);
 
     //Start the OSC Receiver.
-    this->oscReceiver.reset(new OscInput(this));
+    this->oscReceiver.reset(new OscInput(*this));
     this->oscReceiver->startConnection(this->oscInputPort);
 
     // Default widget values.
@@ -775,12 +775,12 @@ void MainContentComponent::setShowTriplets(bool state) {
 }
 
 //==============================================================================
-bool MainContentComponent::validateShowTriplets() {
+bool MainContentComponent::validateShowTriplets() const {
     int success = true;
     for (unsigned int i = 0; i < this->getListTriplet().size(); ++i) {
-        Speaker *spk1 = this->getSpeakerFromOutputPatch(this->getListTriplet()[i].id1);
-        Speaker *spk2 = this->getSpeakerFromOutputPatch(this->getListTriplet()[i].id2);
-        Speaker *spk3 = this->getSpeakerFromOutputPatch(this->getListTriplet()[i].id3);
+        Speaker const*spk1 = this->getSpeakerFromOutputPatch(this->getListTriplet()[i].id1);
+        Speaker const*spk2 = this->getSpeakerFromOutputPatch(this->getListTriplet()[i].id2);
+        Speaker const*spk3 = this->getSpeakerFromOutputPatch(this->getListTriplet()[i].id3);
 
         if (spk1 == nullptr || spk2 == nullptr || spk3 == nullptr) {
             success = false;
@@ -1049,7 +1049,7 @@ void MainContentComponent::menuItemSelected (int menuItemID, int /*topLevelMenuI
 
 //==============================================================================
 // Exit functions.
-bool MainContentComponent::isPresetModified() {
+bool MainContentComponent::isPresetModified() const {
     File xmlFile = File(this->pathCurrentPreset.toStdString());
     XmlDocument xmlDoc(xmlFile);
     std::unique_ptr<XmlElement> savedState (xmlDoc.getDocumentElement());
@@ -1183,9 +1183,9 @@ void MainContentComponent::selectTripletSpeaker(int idS) {
 }
 
 //==============================================================================
-bool MainContentComponent::tripletExist(Triplet tri, int &pos) {
+bool MainContentComponent::tripletExist(Triplet tri, int &pos) const {
     pos = 0;
-    for (auto&& ti : this->listTriplet) {
+    for (auto const& ti : this->listTriplet) {
         if ((ti.id1 == tri.id1 && ti.id2 == tri.id2 && ti.id3 == tri.id3) ||
            (ti.id1 == tri.id1 && ti.id2 == tri.id3 && ti.id3 == tri.id2) ||
            (ti.id1 == tri.id2 && ti.id2 == tri.id1 && ti.id3 == tri.id3) ||
@@ -1231,7 +1231,7 @@ void MainContentComponent::reorderSpeakers(std::vector<int> const& newOrder) {
 }
 
 //==============================================================================
-int MainContentComponent::getMaxSpeakerId() {
+int MainContentComponent::getMaxSpeakerId() const {
     int maxId = 0;
     for (auto&& it : this->listSpeaker) {
         if (it->getIdSpeaker() > maxId)
@@ -1241,7 +1241,7 @@ int MainContentComponent::getMaxSpeakerId() {
 }
 
 //==============================================================================
-int MainContentComponent::getMaxSpeakerOutputPatch() {
+int MainContentComponent::getMaxSpeakerOutputPatch() const {
     int maxOut = 0;
     for (auto&& it : this->listSpeaker) {
         if (it->getOutputPatch() > maxOut)
@@ -1314,7 +1314,7 @@ void MainContentComponent::removeSpeaker(int idSpeaker) {
 }
 
 //==============================================================================
-bool MainContentComponent::isRadiusNormalized() {
+bool MainContentComponent::isRadiusNormalized() const {
     if (this->jackClient->modeSelected == VBAP || this->jackClient->modeSelected == VBAP_HRTF)
         return true;
     else
@@ -1358,8 +1358,18 @@ void MainContentComponent::setListTripletFromVbap() {
 }
 
 //==============================================================================
-Speaker * MainContentComponent::getSpeakerFromOutputPatch(int out) {
-    for (auto&& it : this->listSpeaker) {
+Speaker const* MainContentComponent::getSpeakerFromOutputPatch(int out) const {
+    for (auto const it : this->listSpeaker) {
+        if (it->getOutputPatch() == out && !it->getDirectOut()) {
+            return it;
+        }
+    }
+    return nullptr;
+}
+
+//==============================================================================
+Speaker* MainContentComponent::getSpeakerFromOutputPatch(int out) {
+    for (auto it : this->listSpeaker) {
         if (it->getOutputPatch() == out && !it->getDirectOut()) {
             return it;
         }
@@ -1957,7 +1967,7 @@ void MainContentComponent::openPreset(String path) {
 }
 
 //==============================================================================
-void MainContentComponent::getPresetData(XmlElement *xml) {
+void MainContentComponent::getPresetData(XmlElement *xml) const {
     xml->setAttribute("OSC_Input_Port", String(this->oscInputPort));
     xml->setAttribute("Number_Of_Inputs", this->tedAddInputs->getTextValue().toString());
     xml->setAttribute("Master_Gain_Out", this->sliderMasterGainOut->getValue());
@@ -1972,7 +1982,7 @@ void MainContentComponent::getPresetData(XmlElement *xml) {
     xml->setAttribute("CamAngleY", this->speakerView->getCamAngleY());
     xml->setAttribute("CamDistance", this->speakerView->getCamDistance());
     
-    for (auto&& it : listSourceInput) {
+    for (auto const it : listSourceInput) {
         XmlElement *xmlInput = new XmlElement("Input");
         xmlInput->setAttribute("Index", it->getId());
         xmlInput->setAttribute("R", it->getColor().x);
@@ -2318,8 +2328,9 @@ void MainContentComponent::comboBoxChanged(ComboBox *comboBox) {
 }
 
 //==============================================================================
-int MainContentComponent::getModeSelected() {
-    return this->comBoxModeSpat->getSelectedId() - 1;
+juce::StringArray MainContentComponent::getMenuBarNames() {
+    char const * names[] = { "File", "View", "Help", nullptr };
+    return juce::StringArray{ names };
 }
 
 //==============================================================================

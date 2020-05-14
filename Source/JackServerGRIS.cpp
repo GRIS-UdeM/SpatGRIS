@@ -252,8 +252,8 @@ JackServerGris::~JackServerGris(){
 }
 
 //==============================================================================
-Array<String> JackServerGris::getAvailableOutputDevices() {
-    Array<String> devices;
+Array<String> JackServerGris::getAvailableOutputDevices() const {
+    juce::Array<String> devices;
 
 #ifdef __linux__
     snd_ctl_card_info_t *info;

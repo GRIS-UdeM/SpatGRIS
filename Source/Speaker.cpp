@@ -83,19 +83,6 @@ void Speaker::setSolo(bool solo) {
 }
 
 //==============================================================================
-void Speaker::setColor(Colour color, bool updateLevel) {}
-
-//==============================================================================
-int Speaker::getIdSpeaker() const {
-    return this->idSpeaker;
-}
-
-//==============================================================================
-glm::vec3 Speaker::getCoordinate() {
-    return this->center / 10.0f ;
-}
-
-//==============================================================================
 void Speaker::setCoordinate(glm::vec3 value) {
     glm::vec3 newP;
     newP.x = atan2(value.z, value.x) / M_PI * 180.0f;
@@ -105,11 +92,6 @@ void Speaker::setCoordinate(glm::vec3 value) {
     newP.y = value.y * 90.0f;
     newP.z = sqrt(value.x*value.x + value.z*value.z);
     this->setAziZenRad(newP);
-}
-
-//==============================================================================
-glm::vec3 Speaker::getAziZenRad() {
-    return glm::vec3(this->aziZenRad.x, this->aziZenRad.y, this->aziZenRad.z / 10.0f);
 }
 
 //==============================================================================
@@ -129,39 +111,9 @@ void Speaker::setAziZenRad(glm::vec3 value) {
 }
 
 //==============================================================================
-int Speaker::getOutputPatch() const {
-    return this->outputPatch;
-}
-
-//==============================================================================
 void Speaker::setOutputPatch(int value) {
     this->outputPatch = value;
     this->vuMeter->setOutputLab(String(this->outputPatch));
-}
-
-//==============================================================================
-float Speaker::getGain() {
-    return this->gain;
-}
-
-//==============================================================================
-void Speaker::setGain(float value) {
-    this->gain = value;
-}
-
-//==============================================================================
-float Speaker::getHighPassCutoff() {
-    return this->hpCutoff;
-}
-
-//==============================================================================
-void Speaker::setHighPassCutoff(float value) {
-    this->hpCutoff = value;
-}
-
-//==============================================================================
-bool Speaker::getDirectOut() {
-    return this->directOut;
 }
 
 //==============================================================================
@@ -172,26 +124,6 @@ void Speaker::setDirectOut(bool value) {
     } else {
         this->color = ColorSpeaker;
     }
-}
-
-//==============================================================================
-glm::vec3 Speaker::getMin() {
-    return this->min;
-}
-
-//==============================================================================
-glm::vec3 Speaker::getMax() {
-    return this->max;
-}
-
-//==============================================================================
-glm::vec3 Speaker::getCenter() {
-    return this->center;
-}
-
-//==============================================================================
-bool Speaker::isValid() {
-    return (this->min.x < this->max.x && this->min.y < this->max.y && this->min.z < this->max.z);
 }
 
 //==============================================================================
@@ -220,11 +152,6 @@ void Speaker::selectClick(bool select) {
     } else {
         this->mainParent->selectSpeaker(-1);
     }
-}
-
-//==============================================================================
-bool Speaker::isSelected() {
-    return this->selected;
 }
 
 //==============================================================================

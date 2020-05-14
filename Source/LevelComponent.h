@@ -33,15 +33,15 @@ static const int   WidthRect     = 1;
 
 //==============================================================================
 //============================ LevelBox ================================
-class LevelBox : public Component
+class LevelBox final : public Component
 {
 public:
     LevelBox(LevelComponent* parent, SmallGrisLookAndFeel *feel);
-    ~LevelBox() override = default;
+    ~LevelBox() final = default;
     //==============================================================================
     void setBounds(const juce::Rectangle<int> &newBounds);
-    void paint(Graphics& g) override;
-    void mouseDown(const MouseEvent& e) override;
+    void paint(Graphics& g) final;
+    void mouseDown(const MouseEvent& e) final;
     void resetClipping();
 private:
     //==============================================================================
@@ -53,36 +53,37 @@ private:
     Image vumeterMutedBit;
     bool isClipping = false;
     //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LevelBox)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LevelBox);
 };
 
 //==============================================================================
 //======================== LevelComponent ==============================
-class LevelComponent : public Component,
-                       public ToggleButton::Listener,
-                       public ChangeListener
+class LevelComponent final
+    : public Component
+    , public ToggleButton::Listener
+    , public ChangeListener
 {
 public:
     LevelComponent(ParentLevelComponent * parent,
                    SmallGrisLookAndFeel *feel,
                    bool colorful = true);
-    ~LevelComponent() = default;
+    ~LevelComponent() final = default;
     //==============================================================================
     void setOutputLab(String value) { this->idBut->setButtonText(value); }
     void setColor(Colour color) {
         this->idBut->setColour(TextButton::buttonColourId, color);
         this->repaint();
     }
-    float getLevel();
+    float getLevel() const { return level; }
     void update();
-    bool isMuted();
+    bool isMuted() const { return this->muteToggleBut->getToggleState(); }
     void setSelected(bool value);
-    void buttonClicked(Button *button) override;
-    void mouseDown(const MouseEvent& e) override;
+    void buttonClicked(Button *button) final;
+    void mouseDown(const MouseEvent& e) final;
     void setBounds(const juce::Rectangle<int> &newBounds);
-    void changeListenerCallback (ChangeBroadcaster* source) override;
+    void changeListenerCallback (ChangeBroadcaster* source) final;
     void updateDirectOutMenu(juce::OwnedArray<Speaker> & spkList);
-    void resetClipping();
+    void resetClipping() { this->levelBox->resetClipping(); }
     //==============================================================================
     std::vector<int> directOutSpeakers;
     std::unique_ptr<TextButton> directOut;

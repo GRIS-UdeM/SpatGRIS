@@ -24,12 +24,13 @@
 
 //==============================================================================
 //========================== LevelBox =============================
-LevelBox::LevelBox(LevelComponent * parent, SmallGrisLookAndFeel *feel) : mainParent(parent),
-                                                                          grisFeel(feel) 
+LevelBox::LevelBox(LevelComponent* parent, SmallGrisLookAndFeel* feel)
+    : mainParent(parent)
+    , grisFeel(feel) 
 {}
 
 //==============================================================================
-void LevelBox::setBounds(const juce::Rectangle<int> &newBounds) {
+void LevelBox::setBounds(juce::Rectangle<int> const& newBounds) {
     // LevelBox size is (22, 140)
     this->juce::Component::setBounds(newBounds);
 
@@ -266,16 +267,6 @@ void LevelComponent::changeListenerCallback(ChangeBroadcaster* source) {
 }
 
 //==============================================================================
-void LevelComponent::resetClipping() {
-    this->levelBox->resetClipping();
-}
-
-//==============================================================================
-float LevelComponent::getLevel() {
-    return level;
-}
-
-//==============================================================================
 void LevelComponent::update() {
     float l = this->mainParent->getLevel();
 
@@ -287,11 +278,6 @@ void LevelComponent::update() {
         this->repaint();
     }
     this->level = l;
-}
-
-//==============================================================================
-bool LevelComponent::isMuted() {
-    return this->muteToggleBut->getToggleState();
 }
 
 //==============================================================================

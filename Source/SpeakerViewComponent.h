@@ -52,13 +52,13 @@ static const int    NbrGridLines = 17;
 static const float  ScroolWheelSpeedMouse = 1.8f;
 
 //==============================================================================
-class SpeakerViewComponent : public OpenGLAppComponent {
+class SpeakerViewComponent final : public OpenGLAppComponent {
 public:
-    SpeakerViewComponent(MainContentComponent *parent = nullptr);
-    ~SpeakerViewComponent();
+    SpeakerViewComponent(MainContentComponent *parent = nullptr) : mainParent(parent) {}
+    ~SpeakerViewComponent() final { this->shutdown(); }
     //==============================================================================
-    void initialise() override;
-    void shutdown() override;
+    void initialise() final;
+    void shutdown() final {}
     
     void setShowSphere(bool value) { this->showShpere = value; }
     void setShowNumber(bool value) { this->showNumber = value; }
@@ -66,30 +66,30 @@ public:
     void setShowTriplets(bool value) { this->showTriplets = value; }
     void setNameConfig(String name) { this->nameConfig = name; this->repaint(); }
     
-    void render() override;
-    void paint(Graphics& g) override;
+    void render() final;
+    void paint(Graphics& g) final;
     
-    void mouseDown(const MouseEvent& e) override;
-    void mouseDrag(const MouseEvent& e) override;
-    void mouseWheelMove(const MouseEvent& e, const MouseWheelDetails& wheel) override;
+    void mouseDown(const MouseEvent& e) final;
+    void mouseDrag(const MouseEvent& e) final;
+    void mouseWheelMove(const MouseEvent& e, const MouseWheelDetails& wheel) final;
 
-    float getCamAngleX() { return this->camAngleX; };
-    float getCamAngleY() { return this->camAngleY; };
-    float getCamDistance() { return this->distance; };
+    float getCamAngleX() const { return this->camAngleX; };
+    float getCamAngleY() const { return this->camAngleY; };
+    float getCamDistance() const { return this->distance; };
 
     void setCamPosition(float angleX, float angleY, float distance);
 private:
     //==============================================================================
-    float raycast(Speaker *speaker);
-    bool speakerNearCam(glm::vec3 speak1, glm::vec3 speak2);
+    float raycast(Speaker *speaker) const;
+    bool speakerNearCam(glm::vec3 speak1, glm::vec3 speak2) const;
     
     void clickRay();
-    void drawBackground();
-    void drawOriginGrid();
-    void drawText(std::string val, glm::vec3 position, glm::vec3 color, float scale = 0.005f, bool camLock = true, float alpha = 1.0f);
-    void drawTextOnGrid(std::string val, glm::vec3 position,float scale = 0.003f);
+    void drawBackground() const;
+    void drawOriginGrid() const;
+    void drawText(std::string val, glm::vec3 position, glm::vec3 color, float scale = 0.005f, bool camLock = true, float alpha = 1.0f) const;
+    void drawTextOnGrid(std::string val, glm::vec3 position,float scale = 0.003f) const;
     
-    void drawTrippletConn();
+    void drawTrippletConn() const;
     //==============================================================================
     bool showShpere = false;
     bool showNumber = false;

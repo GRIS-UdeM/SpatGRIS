@@ -27,23 +27,24 @@ class GrisLookAndFeel;
 class Input;
 
 //==============================================================================
-class WinControl : public DocumentWindow,
-                   private Timer
+class WinControl final 
+    : public DocumentWindow
+    , private Timer
 {
 public:
     WinControl(const String& name, Colour backgroundColour, int buttonsNeeded,
                MainContentComponent *parent, GrisLookAndFeel *feel);
-    ~WinControl();
+    ~WinControl() final;
     //==============================================================================
-    void timerCallback() override;
-    void paint(Graphics& g) override;
-    void resized() override;
-    void closeButtonPressed() override;
+    void timerCallback() final;
+    void paint(Graphics& g) final;
+    void resized() final;
+    void closeButtonPressed() final;
 private:
     //==============================================================================
-    void drawFieldBackground(Graphics &g, const int fieldWH);
-    void drawSource(Graphics &g, Input *it, const int fieldWH);
-    void drawSourceSpan(Graphics &g, Input *it, const int fieldWH, const int fieldCenter);
+    void drawFieldBackground(Graphics &g, const int fieldWH) const;
+    void drawSource(Graphics &g, Input *it, const int fieldWH) const;
+    void drawSourceSpan(Graphics &g, Input *it, const int fieldWH, const int fieldCenter) const;
     //==============================================================================
     MainContentComponent *mainParent;
     GrisLookAndFeel *grisFeel;

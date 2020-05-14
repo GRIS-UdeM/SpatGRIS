@@ -40,11 +40,7 @@
 //==============================================================================
 class Ray {
 public :
-    Ray() {
-        this->position = glm::vec3(0,0,0);
-        this->direction = glm::vec3(0,0,0);
-        this->normal = glm::vec3(0,0,0);
-    }
+    Ray() : position(glm::vec3(0,0,0)), direction(glm::vec3(0,0,0)), normal(glm::vec3(0,0,0)) {}
     //==============================================================================
     void setRay(glm::vec3 p, glm::vec3 d) {
         this->position = glm::vec3(p);
@@ -52,19 +48,13 @@ public :
         this->normal = (this->direction - this->position) / 5000.0f;
     }
     //==============================================================================
-    glm::vec3 getNormal() {
-        return this->normal;
-    }
+    glm::vec3 getNormal() const { return this->normal; }
     //==============================================================================
-    glm::vec3 getPosition() {
-        return this->position;
-    }
+    glm::vec3 getPosition() const { return this->position; }
     //==============================================================================
-    glm::vec3 getDirection() {
-        return this->direction;
-    }
+    glm::vec3 getDirection() const { return this->direction; }
     //==============================================================================
-    void draw() {
+    void draw() const {
         glBegin(GL_LINES);
         glColor3f(1, 0, 0);
         glVertex3f(this->position.x, this->position.y, this->position.z);

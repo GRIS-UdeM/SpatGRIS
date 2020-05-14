@@ -29,7 +29,7 @@
 /* This class implements the desktop window that contains an instance of
    our MainContentComponent class.
 */
-class MainWindow : public DocumentWindow
+class MainWindow final : public DocumentWindow
 {
 public:
     enum CommandIDs {
@@ -70,7 +70,7 @@ public:
 
     // This is called when the user tries to close this window. Here, we'll just ask the 
     // app to quit when this happens, but you can change this to do whatever you need.
-    void closeButtonPressed() override {
+    void closeButtonPressed() final {
         JUCEApplication::getInstance()->systemRequestedQuit();        
     }
 

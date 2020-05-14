@@ -84,7 +84,7 @@ void WinControl::timerCallback() {
 }
 
 //==============================================================================
-void WinControl::drawFieldBackground(Graphics& g, const int fieldWH) {
+void WinControl::drawFieldBackground(Graphics& g, const int fieldWH) const {
     const int realW = (fieldWH - SourceDiameter);
 
     if (this->mainParent->getModeSelected() == LBAP) {
@@ -178,7 +178,7 @@ void WinControl::paint (Graphics& g) {
 }
 
 //==============================================================================
-void WinControl::drawSource(Graphics &g, Input *it, const int fieldWH) {
+void WinControl::drawSource(Graphics &g, Input *it, const int fieldWH) const {
     const int realW = (fieldWH - SourceDiameter);
     String stringVal;
     FPoint sourceP;
@@ -207,7 +207,7 @@ void WinControl::drawSource(Graphics &g, Input *it, const int fieldWH) {
 }
 
 //==============================================================================
-void WinControl::drawSourceSpan(Graphics &g, Input *it, const int fieldWH, const int fieldCenter) {
+void WinControl::drawSourceSpan(Graphics &g, Input *it, const int fieldWH, const int fieldCenter) const {
     Colour colorS = it->getColorJ();
 
     FPoint sourceP;

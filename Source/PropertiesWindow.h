@@ -26,8 +26,8 @@ class MainContentComponent;
 class GrisLookAndFeel;
 
 //==============================================================================
-class PropertiesComponent : public juce::Component,
-                            public TextButton::Listener
+class PropertiesComponent final : public juce::Component,
+                                  public TextButton::Listener
 {
 public:
     PropertiesComponent( MainContentComponent& parent,
@@ -41,7 +41,7 @@ public:
                          int indAttDB,
                          int indAttHz,
                          int oscPort );
-    ~PropertiesComponent() = default;
+    ~PropertiesComponent() final = default;
     //==============================================================================
     Label * createPropLabel(juce::String const& lab, Justification::Flags just, int ypos, int width = 100);
     TextEditor * createPropIntTextEditor(juce::String const& tooltip, int ypos, int init);
@@ -89,7 +89,7 @@ private:
 };
 
 //==============================================================================
-class PropertiesWindow : public juce::DocumentWindow
+class PropertiesWindow final : public juce::DocumentWindow
 {
     MainContentComponent& mainContentComponent;
     PropertiesComponent propertiesComponent;
@@ -105,9 +105,9 @@ public:
                       int indAttDB = 2,
                       int indAttHz = 3,
                       int oscPort  = 18032 );
-    ~PropertiesWindow() = default;
+    ~PropertiesWindow() final = default;
     //==============================================================================
-    void closeButtonPressed() override;
+    void closeButtonPressed() final;
 private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PropertiesWindow);

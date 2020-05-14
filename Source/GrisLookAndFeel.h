@@ -33,9 +33,9 @@ private:
     Font  bigFont = Font(juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf, (size_t) BinaryData::SinkinSans400Regular_otfSize));
     Font  biggerFont = Font(juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf, (size_t) BinaryData::SinkinSans400Regular_otfSize));
 
-    Colour backGroundAndFieldColour, winBackGroundAndFieldColour;
-    Colour lightColour, darkColour, greyColour, editBgcolor, hlBgcolor;
-    Colour onColor, onColorOver, onColorDown, offColor, greenColor, redColor;
+    juce::Colour backGroundAndFieldColour, winBackGroundAndFieldColour;
+    juce::Colour lightColour, darkColour, greyColour, editBgcolor, hlBgcolor;
+    juce::Colour onColor, onColorOver, onColorDown, offColor, greenColor, redColor;
     
 public:
     //==============================================================================
@@ -44,22 +44,22 @@ public:
     //==============================================================================
     GrisLookAndFeel() {
         
-        this->backGroundAndFieldColour      = Colour::fromRGB(75, 75, 75);  //Colours::darkgrey;
-        this->winBackGroundAndFieldColour   = Colour::fromRGB(46, 46, 46);
+        this->backGroundAndFieldColour      = juce::Colour::fromRGB(75, 75, 75);  //Colours::darkgrey;
+        this->winBackGroundAndFieldColour   = juce::Colour::fromRGB(46, 46, 46);
         
-        this->lightColour               = Colour::fromRGB(235, 245, 250);   //Colours::whitesmoke;
-        this->darkColour                = Colour::fromRGB(15,  10,  5);       //Colours::black;
-        this->greyColour                = Colour::fromRGB(120, 120, 120);   //Colours::grey;
-        this->editBgcolor               = Colour::fromRGB(172, 172, 172);
-        this->hlBgcolor                 = Colour::fromRGB(190, 125, 18);
+        this->lightColour               = juce::Colour::fromRGB(235, 245, 250);   //Colours::whitesmoke;
+        this->darkColour                = juce::Colour::fromRGB(15,  10,  5);       //Colours::black;
+        this->greyColour                = juce::Colour::fromRGB(120, 120, 120);   //Colours::grey;
+        this->editBgcolor               = juce::Colour::fromRGB(172, 172, 172);
+        this->hlBgcolor                 = juce::Colour::fromRGB(190, 125, 18);
         
-        this->onColor                   = Colour::fromRGB(255, 165, 25);
-        this->onColorOver               = Colour::fromRGB(255, 184, 75);
-        this->onColorDown               = Colour::fromRGB(222, 144, 22);
-        this->offColor                  = Colour::fromRGB(56,  56,  56);
+        this->onColor                   = juce::Colour::fromRGB(255, 165, 25);
+        this->onColorOver               = juce::Colour::fromRGB(255, 184, 75);
+        this->onColorDown               = juce::Colour::fromRGB(222, 144, 22);
+        this->offColor                  = juce::Colour::fromRGB(56,  56,  56);
        
-        this->greenColor                = Colour::fromRGB(56,  156,  56);
-        this->redColor                  = Colour::fromRGB(220,  48,  35);
+        this->greenColor                = juce::Colour::fromRGB(56,  156,  56);
+        this->redColor                  = juce::Colour::fromRGB(220,  48,  35);
         
         setColour(PopupMenu::highlightedBackgroundColourId, this->onColor);
         setColour(TextEditor::backgroundColourId, this->editBgcolor);
@@ -75,7 +75,7 @@ public:
         setColour(Slider::rotarySliderFillColourId, this->onColor);
         setColour(Slider::trackColourId, this->darkColour);
         setColour(Slider::textBoxBackgroundColourId, this->editBgcolor);
-        setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
+        setColour(Slider::textBoxOutlineColourId, juce::Colours::transparentBlack);
         
         setColour(TooltipWindow::ColourIds::backgroundColourId,this->backGroundAndFieldColour.withBrightness(0.8));
         setColour(TooltipWindow::ColourIds::outlineColourId, this->backGroundAndFieldColour.withBrightness(0.8));
@@ -97,11 +97,13 @@ public:
         this->biggerFont.setHeight(this->fontSize + 6);
     }
     //==============================================================================
-    Font getFont() {
+    ~GrisLookAndFeel() override = default;
+    //==============================================================================
+    Font getFont() const {
         return this->font;
     }
     //==============================================================================
-    Font getLabelFont (Label & label) override {
+    Font getLabelFont (Label & label) final {
         if (label.getName() == "AboutBox_title")
             return this->biggerFont;
         else if (label.getName() == "AboutBox_version")
@@ -110,7 +112,7 @@ public:
             return this->font;
     }
     //==============================================================================
-    Font getComboBoxFont (ComboBox & comboBox) override {
+    Font getComboBoxFont (ComboBox & comboBox) final {
         return this->font;
     }
     //==============================================================================
@@ -118,64 +120,64 @@ public:
         return this->font;
     }
     //==============================================================================
-    Font getMenuBarFont	(MenuBarComponent &, int itemIndex, const String & itemText) override {
+    Font getMenuBarFont	(MenuBarComponent &, int itemIndex, const String & itemText) final {
         return this->font;
     }
     //==============================================================================
-    Colour getWinBackgroundColour() {
+    juce::Colour getWinBackgroundColour() const {
         return this->winBackGroundAndFieldColour;
     }
     //==============================================================================
-    Colour getBackgroundColour() {
+    juce::Colour getBackgroundColour() const {
         return this->backGroundAndFieldColour;
     }
     //==============================================================================
-    Colour getFieldColour() {
+    juce::Colour getFieldColour() const {
         return this->backGroundAndFieldColour;
     }
     //==============================================================================
-    Colour getFontColour() {
+    juce::Colour getFontColour() const {
         return this->lightColour;
     }
     //==============================================================================
-    Colour getScrollBarColour() {
+    juce::Colour getScrollBarColour() const {
         return this->greyColour;
     }
     //==============================================================================
-    Colour getDarkColour() {
+    juce::Colour getDarkColour() const {
         return this->darkColour;
     }
     //==============================================================================
-    Colour getLightColour() {
+    juce::Colour getLightColour() const {
         return this->lightColour;
     }
     //==============================================================================
-    Colour getEditBackgroundColour() {
+    juce::Colour getEditBackgroundColour() const {
         return this->editBgcolor;
     }
     //==============================================================================
-    Colour getHighlightColour() {
+    juce::Colour getHighlightColour() const {
         return this->hlBgcolor;
     }
     //==============================================================================
-    Colour getOnColour() {
+    juce::Colour getOnColour() const {
         return this->onColor;
     }
     //==============================================================================
-    Colour getOffColour() {
+    juce::Colour getOffColour() const {
         return this->offColor;
     }
     //==============================================================================
-    Colour getGreenColour() {
+    juce::Colour getGreenColour() const {
         return this->greenColor;
     }
     //==============================================================================
-    Colour getRedColour() {
+    juce::Colour getRedColour() const {
         return this->redColor;
     }
     //==============================================================================
     //https://github.com/audioplastic/Juce-look-and-feel-examples/blob/master/JuceLibraryCode/modules/juce_gui_basics/lookandfeel/juce_LookAndFeel.cpp
-    void drawComboBox(Graphics& g,int width, int height,bool isButtonDown,int buttonX,int buttonY,int buttonW,int buttonH,ComboBox & box) override
+    void drawComboBox(Graphics& g,int width, int height,bool isButtonDown,int buttonX,int buttonY,int buttonW,int buttonH,ComboBox & box) final
     {
         box.setColour(ColourSelector::backgroundColourId, this->onColor);
     
@@ -197,14 +199,14 @@ public:
         g.fillPath (p);
     }
     //==============================================================================
-    void drawRoundThumb (Graphics& g, const float x, const float y, const float diameter, const Colour& colour, float outlineThickness) {
-        const juce::Rectangle<float> a (x, y, diameter, diameter);
-        const float halfThickness = outlineThickness * 0.5f;
+    void drawRoundThumb (Graphics& g, float const x, float const y, float const diameter, juce::Colour const& colour, float const outlineThickness) const {
+        juce::Rectangle<float> const a (x, y, diameter, diameter);
+        float const halfThickness = outlineThickness * 0.5f;
         
-        Path p;
+        Path p{};
         p.addEllipse (x + halfThickness, y + halfThickness, diameter - outlineThickness, diameter - outlineThickness);
         
-        const DropShadow ds (this->darkColour, 1, Point<int> (0, 0));
+        DropShadow const ds (this->darkColour, 1, Point<int> (0, 0));
         ds.drawForPath (g, p);
         
         g.setColour (colour);
@@ -214,7 +216,7 @@ public:
         g.strokePath (p, PathStrokeType (outlineThickness));
     }
     //==============================================================================
-    void drawButtonBackground (Graphics& g, Button& button, const Colour& backgroundColour, bool isMouseOverButton, bool isButtonDown) override {
+    void drawButtonBackground (Graphics& g, Button& button, const juce::Colour& backgroundColour, bool isMouseOverButton, bool isButtonDown) final {
         
         const float width  = button.getWidth() - 1.0f;
         const float height = button.getHeight() - 1.0f;
@@ -236,12 +238,12 @@ public:
         g.fillPath (outline);
     }
     //==============================================================================
-    void drawTickBox (Graphics& g, Component& component, float x, float y, float w, float h, bool ticked, bool isEnabled, bool isMouseOverButton, bool isButtonDown) override {
+    void drawTickBox (Graphics& g, Component& component, float x, float y, float w, float h, bool ticked, bool isEnabled, bool isMouseOverButton, bool isButtonDown) final {
         const float boxSize = w * 0.8f;
         const juce::Rectangle<float> r (x, y + (h - boxSize) * 0.5f, boxSize, boxSize);
 
         if (ticked) {
-            Colour colour = this->onColor;
+            juce::Colour colour = this->onColor;
             
             if(component.isMouseOver()){
                 colour = this->onColorOver;
@@ -254,7 +256,7 @@ public:
             g.fillRect (r);
 
         }else{
-            Colour colour = this->offColor;
+            juce::Colour colour = this->offColor;
             if(!component.isEnabled()){
                 colour = this->offColor.withBrightness(0.3f);
             }
@@ -268,7 +270,7 @@ public:
         }
     }
     //==============================================================================
-    void drawLinearSliderThumb (Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, const Slider::SliderStyle style, Slider& slider) override {
+    void drawLinearSliderThumb (Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, const Slider::SliderStyle style, Slider& slider) final {
         const float sliderRadius = (float) (getSliderThumbRadius (slider) - 2);
         float kx, ky;
         
@@ -282,7 +284,7 @@ public:
         const juce::Rectangle<float> r (kx - (sliderRadius/2.0f), ky- sliderRadius , 6, height*2.0f);
 
         if(slider.isEnabled()){
-            Colour colour = this->onColor;
+            juce::Colour colour = this->onColor;
             
             if(slider.isMouseOver()){
                 colour = this->onColorOver;
@@ -299,12 +301,12 @@ public:
         
     }
     //==============================================================================
-    void drawLinearSlider (Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, const Slider::SliderStyle style, Slider& slider) override {
+    void drawLinearSlider (Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, const Slider::SliderStyle style, Slider& slider) final {
         drawLinearSliderBackground (g, x, y, width, height+2, sliderPos, minSliderPos, maxSliderPos, style, slider);
         drawLinearSliderThumb (g, x, y, width, height+2, sliderPos, minSliderPos, maxSliderPos, style, slider);
     }
     //==============================================================================
-    void drawLinearSliderBackground (Graphics& g, int x, int y, int width, int height, float /*sliderPos*/, float /*minSliderPos*/, float /*maxSliderPos*/, const Slider::SliderStyle /*style*/, Slider& slider) override {
+    void drawLinearSliderBackground (Graphics& g, int x, int y, int width, int height, float /*sliderPos*/, float /*minSliderPos*/, float /*maxSliderPos*/, const Slider::SliderStyle /*style*/, Slider& slider) final {
         const float sliderRadius = getSliderThumbRadius (slider) - 5.0f;
         Path on, off;
 
@@ -335,12 +337,12 @@ public:
        
     }
     //==============================================================================
-    void fillTextEditorBackground(Graphics& g, int width, int height, TextEditor& t) override {
+    void fillTextEditorBackground(Graphics& g, int width, int height, TextEditor& t) final {
         g.setColour(this->editBgcolor);
         g.fillAll();
     }
     //==============================================================================
-    void drawTextEditorOutline(Graphics& g, int width, int height, TextEditor& t) override {
+    void drawTextEditorOutline(Graphics& g, int width, int height, TextEditor& t) final {
         if(t.hasKeyboardFocus(true))
         {
             g.setColour(this->onColor);
@@ -395,11 +397,11 @@ public:
         }
     }
     //==============================================================================
-    void drawTabButton (TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown) override{
+    void drawTabButton (TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown) final {
         const juce::Rectangle<int> activeArea (button.getActiveArea());
         activeArea.withHeight(18);
         const TabbedButtonBar::Orientation o = button.getTabbedButtonBar().getOrientation();
-        const Colour bkg (button.getTabBackgroundColour());
+        const juce::Colour bkg (button.getTabBackgroundColour());
         
         if (button.getToggleState())
         {
@@ -420,7 +422,7 @@ public:
                 if (o != TabbedButtonBar::TabsAtLeft)     g.fillRect (r.removeFromRight (1));
         
         const float alpha = button.isEnabled() ? ((isMouseOver || isMouseDown) ? 1.0f : 0.8f) : 0.3f;
-        Colour col = (bkg.contrasting().withMultipliedAlpha (alpha));
+        juce::Colour col = (bkg.contrasting().withMultipliedAlpha (alpha));
         const juce::Rectangle<float> area (button.getTextArea().toFloat());
         
         float length = area.getWidth();
@@ -434,7 +436,7 @@ public:
         textLayout.draw (g, juce::Rectangle<float> (length, depth));
     }
     //==============================================================================
-    void createTabTextLayout (const TabBarButton& button, float length, float depth, Colour colour, TextLayout& textLayout)
+    void createTabTextLayout (const TabBarButton& button, float length, float depth, juce::Colour const colour, TextLayout& textLayout) const
     {
         Font font (this->font);
 #if WIN32
@@ -447,13 +449,13 @@ public:
         
         AttributedString s;
         s.setJustification (Justification::centred);
-        s.append (button.getButtonText().trim(), font, colour);
+        s.append(button.getButtonText().trim(), font, colour);
         
         textLayout.createLayout (s, length);
     }
     //==============================================================================
     void drawRotarySlider (Graphics& g, int x, int y, int width, int height, float sliderPos,
-                           float rotaryStartAngle, float rotaryEndAngle, Slider& slider) override
+                           float rotaryStartAngle, float rotaryEndAngle, Slider& slider) final
     {
         const float radius = jmin (width / 2, height / 2) - 2.0f;
         const float centreX = x + width * 0.5f;
@@ -489,16 +491,17 @@ private:
 };
 
 //==============================================================================
-class SmallGrisLookAndFeel : public GrisLookAndFeel
+class SmallGrisLookAndFeel final : public GrisLookAndFeel
 {
 public:
     SmallGrisLookAndFeel() = default;
+    ~SmallGrisLookAndFeel() final = default;
     //==============================================================================
-    Font getTextButtonFont (TextButton &, int buttonHeight) override{
+    juce::Font getTextButtonFont (TextButton &, int buttonHeight) final {
         return this->smallerFont;
     }
     //==============================================================================
-    void drawToggleButton (Graphics& g, ToggleButton& button, bool isMouseOverButton, bool isButtonDown) override {
+    void drawToggleButton (Graphics& g, ToggleButton& button, bool isMouseOverButton, bool isButtonDown) final {
         if (button.hasKeyboardFocus (true)) {
             g.setColour (button.findColour (TextEditor::focusedOutlineColourId));
         }

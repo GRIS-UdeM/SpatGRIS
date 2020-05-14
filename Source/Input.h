@@ -49,11 +49,11 @@ class MainContentComponent;
 class LevelComponent;
 
 //==============================================================================
-class Input : public ParentLevelComponent
+class Input final : public ParentLevelComponent
 {
 public :
     Input(MainContentComponent * parent, SmallGrisLookAndFeel * feel, int id = 0);
-    ~Input() = default;
+    ~Input() final = default;
     //==============================================================================
     void setMuted(bool mute);
     void setSolo(bool solo);

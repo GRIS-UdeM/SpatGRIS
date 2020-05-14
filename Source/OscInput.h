@@ -28,22 +28,22 @@ static const std::string OscPanAZ    = "/pan/az";
 static const std::string OscSpatServ = "/spat/serv";
 
 //==============================================================================
-class OscInput : private juce::OSCReceiver,
-                 private juce::OSCReceiver::Listener<juce::OSCReceiver::RealtimeCallback>
+class OscInput final : private juce::OSCReceiver,
+                       private juce::OSCReceiver::Listener<juce::OSCReceiver::RealtimeCallback>
 
 {
 public :
-    OscInput(MainContentComponent* parent);
-    ~OscInput();
+    OscInput(MainContentComponent& parent) : mainContentComponent(parent) {}
+    ~OscInput() final;
     //==============================================================================
     bool startConnection(int port);
-    bool closeConnection();
+    bool closeConnection() { return this->disconnect(); }
 private :
     //==============================================================================
-    void oscMessageReceived(const OSCMessage& message) override;
-    void oscBundleReceived(const OSCBundle& bundle) override;
+    void oscMessageReceived(OSCMessage const& message) final;
+    void oscBundleReceived(OSCBundle const& bundle) final;
     //==============================================================================
-    MainContentComponent * mainParent;
+    MainContentComponent& mainContentComponent;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OscInput);
 };

@@ -32,16 +32,17 @@ class MainContentComponent;
 
 //==============================================================================
 //======================================= BOX ========================================
-class Box : public Component
+class Box final : public Component
 {
 public:
     Box(GrisLookAndFeel *feel, String title="", bool verticalScrollbar=false, bool horizontalScrollbar=true);
     ~Box();
     //==============================================================================
-    Component * getContent();
-    void resized();
+    Component       * getContent()       { return this->content ? this->content : this; }
+    Component const * getContent() const { return this->content ? this->content : this; }
+    void resized() final;
     void correctSize(unsigned int width, unsigned int height);
-    void paint(Graphics &g);
+    void paint(Graphics &g) final;
 private:
     //==============================================================================
     juce::Component *content;
@@ -55,27 +56,28 @@ private:
 
 //==============================================================================
 //======================================= BoxClient ==================================
-class BoxClient :   public Component,
-                    public TableListBoxModel,
-                    public ToggleButton::Listener
+class BoxClient final 
+    : public Component
+    , public TableListBoxModel
+    , public ToggleButton::Listener
 {
 public:
     BoxClient(MainContentComponent * parent, GrisLookAndFeel *feel);
-    ~BoxClient();
+    ~BoxClient() final = default;
     //==============================================================================
     void updateContentCli();
-    void buttonClicked(Button *button) override;
+    void buttonClicked(Button *button) final;
     void setBounds(int x, int y, int width, int height);
     String getText(const int columnNumber, const int rowNumber) const;
     void setValue(const int rowNumber,const int columnNumber, const int newRating);
     int getValue(const int rowNumber,const int columnNumber) const;
-    int getNumRows() override;
-    void paintRowBackground(Graphics& g, int rowNumber, int /*width*/, int /*height*/, bool rowIsSelected) override;
+    int getNumRows() final { return numRows; }
+    void paintRowBackground(Graphics& g, int rowNumber, int /*width*/, int /*height*/, bool rowIsSelected) final;
     void paintCell(Graphics& g, int rowNumber, int columnId,
-                   int width, int height, bool /*rowIsSelected*/) override;
+                   int width, int height, bool /*rowIsSelected*/) final;
     
     Component* refreshComponentForCell(int rowNumber, int columnId, bool /*isRowSelected*/,
-                                       Component* existingComponentToUpdate) override;
+                                       Component* existingComponentToUpdate) final;
 private:
     //==============================================================================
     MainContentComponent *mainParent;
@@ -84,13 +86,14 @@ private:
     TableListBox tableListClient;
     Box * box;
     //==============================================================================
-    class ListIntOutComp : public Component, 
-                           public ComboBox::Listener
+    class ListIntOutComp final 
+        : public Component
+        , public ComboBox::Listener
     {
     public:
         ListIntOutComp (BoxClient& td) : owner (td) {
             // Just put a combo box inside this component.
-            addAndMakeVisible (comboBox);
+            this->addAndMakeVisible(comboBox);
             for (int i = 1; i <= 256; i++) {
                 comboBox.addItem(String(i), i);
             }
@@ -98,7 +101,7 @@ private:
             comboBox.setWantsKeyboardFocus(false);
         }
         //==============================================================================
-        void resized() override {
+        void resized() final {
             comboBox.setBoundsInset(BorderSize<int> (2));
         }
 
@@ -108,29 +111,31 @@ private:
             comboBox.setSelectedId(owner.getValue(row,columnId), dontSendNotification);
         }
         
-        void comboBoxChanged (ComboBox*) override {
+        void comboBoxChanged (ComboBox*) final {
             owner.setValue(row, columnId, comboBox.getSelectedId());
         }
     private:
         //==============================================================================
         BoxClient& owner;
         ComboBox comboBox;
-        int row, columnId;
+        int row;
+        int columnId;
     };
 };
 
 //==============================================================================
 //======================================= About Window ===========================
-class AboutWindow : public DocumentWindow,
-                    public TextButton::Listener
+class AboutWindow final 
+    : public DocumentWindow
+    , public TextButton::Listener
 {
 public:
     AboutWindow(const String& name, Colour backgroundColour, int buttonsNeeded,
                 MainContentComponent *parent, GrisLookAndFeel *feel);
-    ~AboutWindow();
+    ~AboutWindow() final;
     //==============================================================================
-    void buttonClicked(Button *button);
-    void closeButtonPressed();
+    void buttonClicked(Button *button) { delete this; }
+    void closeButtonPressed() { delete this; }
 private:
     //==============================================================================
     MainContentComponent *mainParent;
@@ -147,16 +152,17 @@ private:
 
 //==============================================================================
 //======================================= OSC Log Window ===========================
-class OscLogWindow : public DocumentWindow,
-                     public TextButton::Listener
+class OscLogWindow final
+    : public DocumentWindow
+    , public TextButton::Listener
 {
 public:
     OscLogWindow(const String& name, Colour backgroundColour, int buttonsNeeded,
                  MainContentComponent *parent, GrisLookAndFeel *feel);
-    ~OscLogWindow();
+    ~OscLogWindow() final;
     //==============================================================================
-    void buttonClicked(Button *button);
-    void closeButtonPressed();
+    void buttonClicked(Button *button) final;
+    void closeButtonPressed() final;
     void addToLog(String msg);
 private:
     //==============================================================================

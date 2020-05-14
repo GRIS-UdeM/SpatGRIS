@@ -340,48 +340,55 @@ static void processLBAP(JackClientGris &jackCli, jack_default_audio_sample_t **i
 //==============================================================================
 // BINAURAL processing function.
 static void processVBapHRTF(JackClientGris &jackCli, jack_default_audio_sample_t **ins, jack_default_audio_sample_t **outs,
-                            const jack_nframes_t &nframes, const unsigned int &sizeInputs, const unsigned int &sizeOutputs)
+                            jack_nframes_t const nframes, unsigned int const sizeInputs, unsigned int const sizeOutputs)
 {
-    int tmp_count;
-    unsigned int f, i, o, k, ilinear;
-    float sig, y, interpG = 0.99, iogain = 0.0;
-    float vbapouts[16][2048];
-
-    for (o = 0; o < sizeOutputs; ++o) {
+    for (unsigned int o = 0; o < sizeOutputs; ++o) {
         memset(outs[o], 0, sizeof(jack_default_audio_sample_t) * nframes);
     }
 
+    unsigned int ilinear;
+    float interpG = 0.99f;
     if (jackCli.interMaster == 0.0) {
         ilinear = 1;
     } else {
         ilinear = 0;
-        interpG = powf(jackCli.interMaster, 0.1) * 0.0099 + 0.99;
+        interpG = powf(jackCli.interMaster, 0.1f) * 0.0099f + 0.99f;
     }
 
-    for (i = 0; i < sizeInputs; ++i) {
+    for (unsigned int i = 0; i < sizeInputs; ++i) {
         if (jackCli.vbapSourcesToUpdate[i] == 1) {
             jackCli.updateSourceVbap(i);
             jackCli.vbapSourcesToUpdate[i] = 0;
         }
     }
 
-    for (o = 0; o < 16; ++o) {
-        memset(vbapouts[o], 0, sizeof(jack_default_audio_sample_t) * nframes);
-        for (i = 0; i < sizeInputs; ++i) {
+    constexpr unsigned int MAX_FRAME_COUNT = 2048;
+    constexpr unsigned int MAX_OUTPUTS_COUNT = 16;
+    std::array<std::array<float, MAX_FRAME_COUNT>, MAX_OUTPUTS_COUNT> vbapouts{};
+
+    jassert(sizeOutputs == MAX_OUTPUTS_COUNT);
+
+    // zero mem
+    std::for_each(std::begin(vbapouts), std::end(vbapouts), [=](auto& buffer){
+       std::fill(std::begin(buffer), std::begin(buffer) + nframes, 0.0f);
+    });
+    
+    for (unsigned int o{}; o < MAX_OUTPUTS_COUNT; ++o) {
+        for (unsigned int i{}; i < sizeInputs; ++i) {
             if (!jackCli.listSourceIn[i].directOut && jackCli.listSourceIn[i].paramVBap != nullptr) {
-                iogain = jackCli.listSourceIn[i].paramVBap->gains[o];
-                y = jackCli.listSourceIn[i].paramVBap->y[o];
+                float iogain = jackCli.listSourceIn[i].paramVBap->gains[o];
+                float y = jackCli.listSourceIn[i].paramVBap->y[o];
                 if (ilinear) {
                     interpG = (iogain - y) / nframes;
-                    for (f = 0; f < nframes; ++f) {
+                    for (unsigned int f{}; f < nframes; ++f) {
                         y += interpG;
                         vbapouts[o][f] += ins[i][f] * y;
                     }
                 } else {
-                    for (f = 0; f < nframes; ++f) {
+                    for (unsigned int f{}; f < nframes; ++f) {
                         y = iogain + (y - iogain) * interpG;
                         if (y < 0.0000000000001f) {
-                            y = 0.0;
+                            y = 0.0f;
                         } else {
                             vbapouts[o][f] += ins[i][f] * y;
                         }
@@ -391,18 +398,19 @@ static void processVBapHRTF(JackClientGris &jackCli, jack_default_audio_sample_t
             }
         }
 
-        for (f=0; f<nframes; f++) {
+        int tmp_count;
+        for (unsigned int f = 0; f < nframes; ++f) {
             tmp_count = jackCli.hrtf_count[o];
-            for (k=0; k<128; ++k) {
+            for (unsigned int k = 0; k < 128; ++k) {
                 if (tmp_count < 0) {
                     tmp_count += 128;
                 }
-                sig = jackCli.hrtf_input_tmp[o][tmp_count];
+                float const sig = jackCli.hrtf_input_tmp[o][tmp_count];
                 outs[0][f] += sig * jackCli.vbap_hrtf_left_impulses[o][k];
                 outs[1][f] += sig * jackCli.vbap_hrtf_right_impulses[o][k];
-                tmp_count--;
+                --tmp_count;
             }
-            jackCli.hrtf_count[o]++;
+            ++jackCli.hrtf_count[o];
             if (jackCli.hrtf_count[o] >= 128) {
                 jackCli.hrtf_count[o] = 0;
             }
@@ -411,20 +419,109 @@ static void processVBapHRTF(JackClientGris &jackCli, jack_default_audio_sample_t
     }
 
     // Add direct outs to the now stereo signal.
-    for (i = 0; i < sizeInputs; ++i) {
+    for (unsigned int i = 0; i < sizeInputs; ++i) {
         if (jackCli.listSourceIn[i].directOut != 0) {
             if ((jackCli.listSourceIn[i].directOut % 2) == 1) {
-                for (f = 0; f < nframes; ++f) {
+                for (unsigned int f = 0; f < nframes; ++f) {
                     outs[0][f] += ins[i][f];
                 }
             } else {
-                for (f = 0; f < nframes; ++f) {
+                for (unsigned int f = 0; f < nframes; ++f) {
                     outs[1][f] += ins[i][f];
                 }
             }
         }
     }
 }
+
+/// old BINAURAL processing function.
+/// kept aside while I make sure that I did not break anything with the optimized function
+//static void processVBapHRTF(JackClientGris &jackCli, jack_default_audio_sample_t **ins, jack_default_audio_sample_t **outs,
+//                            const jack_nframes_t &nframes, const unsigned int &sizeInputs, const unsigned int &sizeOutputs)
+//{
+//    int tmp_count;
+//    unsigned int f, i, o, k, ilinear;
+//    float sig, y, interpG = 0.99f, iogain = 0.0f;
+//    float vbapouts[16][2048];
+//
+//    for (o = 0; o < sizeOutputs; ++o) {
+//        memset(outs[o], 0, sizeof(jack_default_audio_sample_t) * nframes);
+//    }
+//
+//    if (jackCli.interMaster == 0.0) {
+//        ilinear = 1;
+//    } else {
+//        ilinear = 0;
+//        interpG = powf(jackCli.interMaster, 0.1f) * 0.0099f + 0.99f;
+//    }
+//
+//    for (i = 0; i < sizeInputs; ++i) {
+//        if (jackCli.vbapSourcesToUpdate[i] == 1) {
+//            jackCli.updateSourceVbap(i);
+//            jackCli.vbapSourcesToUpdate[i] = 0;
+//        }
+//    }
+//
+//    for (o = 0; o < 16; ++o) {
+//        memset(vbapouts[o], 0, sizeof(jack_default_audio_sample_t) * nframes);
+//        for (i = 0; i < sizeInputs; ++i) {
+//            if (!jackCli.listSourceIn[i].directOut && jackCli.listSourceIn[i].paramVBap != nullptr) {
+//                iogain = jackCli.listSourceIn[i].paramVBap->gains[o];
+//                y = jackCli.listSourceIn[i].paramVBap->y[o];
+//                if (ilinear) {
+//                    interpG = (iogain - y) / nframes;
+//                    for (f = 0; f < nframes; ++f) {
+//                        y += interpG;
+//                        vbapouts[o][f] += ins[i][f] * y;
+//                    }
+//                } else {
+//                    for (f = 0; f < nframes; ++f) {
+//                        y = iogain + (y - iogain) * interpG;
+//                        if (y < 0.0000000000001f) {
+//                            y = 0.0f;
+//                        } else {
+//                            vbapouts[o][f] += ins[i][f] * y;
+//                        }
+//                    }
+//                }
+//                jackCli.listSourceIn[i].paramVBap->y[o] = y;
+//            }
+//        }
+//
+//        for (f=0; f<nframes; ++f) {
+//            tmp_count = jackCli.hrtf_count[o];
+//            for (k=0; k<128; ++k) {
+//                if (tmp_count < 0) {
+//                    tmp_count += 128;
+//                }
+//                sig = jackCli.hrtf_input_tmp[o][tmp_count];
+//                outs[0][f] += sig * jackCli.vbap_hrtf_left_impulses[o][k];
+//                outs[1][f] += sig * jackCli.vbap_hrtf_right_impulses[o][k];
+//                tmp_count--;
+//            }
+//            jackCli.hrtf_count[o]++;
+//            if (jackCli.hrtf_count[o] >= 128) {
+//                jackCli.hrtf_count[o] = 0;
+//            }
+//            jackCli.hrtf_input_tmp[o][jackCli.hrtf_count[o]] = vbapouts[o][f];
+//        }
+//    }
+//
+//    // Add direct outs to the now stereo signal.
+//    for (i = 0; i < sizeInputs; ++i) {
+//        if (jackCli.listSourceIn[i].directOut != 0) {
+//            if ((jackCli.listSourceIn[i].directOut % 2) == 1) {
+//                for (f = 0; f < nframes; ++f) {
+//                    outs[0][f] += ins[i][f];
+//                }
+//            } else {
+//                for (f = 0; f < nframes; ++f) {
+//                    outs[1][f] += ins[i][f];
+//                }
+//            }
+//        }
+//    }
+//}
 
 //==============================================================================
 // STEREO processing function.
@@ -952,9 +1049,9 @@ void JackClientGris::removeOutput(int number) {
 }
 
 //==============================================================================
-std::vector<int> JackClientGris::getDirectOutOutputPatches() {
+std::vector<int> JackClientGris::getDirectOutOutputPatches() const {
     std::vector<int> directOutOutputPatches;
-    for (auto&& it : listSpeakerOut) {
+    for (auto const& it : listSpeakerOut) {
         if (it.directOut && it.outputPatch != 0)
             directOutOutputPatches.push_back(it.outputPatch);
     }
@@ -1224,7 +1321,7 @@ void JackClientGris::connectionClient(String name, bool connect) {
 }
 
 //==============================================================================
-std::string JackClientGris::getClientName(const char *port) {
+std::string JackClientGris::getClientName(const char *port) const {
     if (port) {
         jack_port_t *tt = jack_port_by_name(this->client, port);
         if (tt) {

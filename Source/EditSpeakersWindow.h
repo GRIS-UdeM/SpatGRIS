@@ -28,44 +28,42 @@ class MainContentComponent;
 class GrisLookAndFeel;
 
 //==============================================================================
-class EditSpeakersWindow : public juce::DocumentWindow,
-                           public juce::TableListBoxModel,
-                           public juce::ToggleButton::Listener,
-                           public juce::TextEditor::Listener,
-                           public juce::Slider::Listener
+class EditSpeakersWindow final : public juce::DocumentWindow,
+                                 public juce::TableListBoxModel,
+                                 public juce::ToggleButton::Listener,
+                                 public juce::TextEditor::Listener,
+                                 public juce::Slider::Listener
 {
 public:
     friend EditableTextCustomComponent; // TODO: temporary solution whiling refactoring is going on...
     //==============================================================================
     // DEFAULTS
     EditSpeakersWindow(juce::String const& name, GrisLookAndFeel& lookAndFeel, MainContentComponent& mainContentComponent, juce::String const& configName);
-    ~EditSpeakersWindow() = default;
+    ~EditSpeakersWindow() final = default;
     
     void initComp();
     void selectedRow(int value);
     void updateWinContent();
-    //==============================================================================
-    // VIRTUALS
 private:
     //==============================================================================
     int getModeSelected() const;
     bool getDirectOutForSpeakerRow(int row) const;
-    String getText(int columnNumber, int rowNumber) const;
+    juce::String getText(int columnNumber, int rowNumber) const;
 
     void setText(int columnNumber, int rowNumber, String const& newText, bool altDown = false);
     //==============================================================================
     // VIRTUALS
-    int getNumRows() override { return this->numRows; };
-    void buttonClicked(Button *button) override;
-    void textEditorTextChanged(juce::TextEditor& editor) override;
-    void textEditorReturnKeyPressed(juce::TextEditor& textEditor) override;
-    void closeButtonPressed() override;
-    void sliderValueChanged (juce::Slider* slider) override;
-    void sortOrderChanged(int newSortColumnId, bool isForwards) override;
-    void resized() override;
-    void paintRowBackground(Graphics& g, int rowNumber, int width, int height, bool rowIsSelected) override;
-    void paintCell(Graphics& g, int rowNumber, int columnId, int width, int height, bool rowIsSelected) override;
-    Component * refreshComponentForCell(int rowNumber, int columnId, bool isRowSelected, Component *existingComponentToUpdate) override;
+    int getNumRows() final { return this->numRows; }
+    void buttonClicked(Button *button) final;
+    void textEditorTextChanged(juce::TextEditor& editor) final;
+    void textEditorReturnKeyPressed(juce::TextEditor& textEditor) final;
+    void closeButtonPressed() final;
+    void sliderValueChanged (juce::Slider* slider) final;
+    void sortOrderChanged(int newSortColumnId, bool isForwards) final;
+    void resized() final;
+    void paintRowBackground(Graphics& g, int rowNumber, int width, int height, bool rowIsSelected) final;
+    void paintCell(Graphics& g, int rowNumber, int columnId, int width, int height, bool rowIsSelected) final;
+    Component * refreshComponentForCell(int rowNumber, int columnId, bool isRowSelected, Component *existingComponentToUpdate) final;
 private:
     //==============================================================================
     MainContentComponent& mainContentComponent;

@@ -57,11 +57,6 @@ Box::~Box() {
 }
 
 //==============================================================================
-Component * Box::getContent() {
-    return this->content ? this->content : this;
-}
-
-//==============================================================================
 void Box::resized() {
     if (this->viewport) {
         this->viewport->setSize(getWidth(), getHeight());
@@ -118,9 +113,6 @@ BoxClient::BoxClient(MainContentComponent *parent, GrisLookAndFeel *feel) {
 
     this->addAndMakeVisible(tableListClient);
 }
-
-//==============================================================================
-BoxClient::~BoxClient() {}
 
 //==============================================================================
 void BoxClient::buttonClicked(Button *button) {
@@ -186,11 +178,6 @@ String BoxClient::getText(const int columnNumber, const int rowNumber) const {
         }
     }
     return text;
-}
-
-//==============================================================================
-int BoxClient::getNumRows() {
-    return numRows;
 }
 
 //==============================================================================
@@ -340,16 +327,6 @@ AboutWindow::~AboutWindow() {
     this->mainParent->closeAboutWindow();
 }
 
-//==============================================================================
-void AboutWindow::closeButtonPressed() {
-    delete this;
-}
-
-//==============================================================================
-void AboutWindow::buttonClicked(Button *button) {
-    delete this;
-}
-
 //======================================= OSC Log Window ===========================
 OscLogWindow::OscLogWindow(const String& name, Colour backgroundColour, int buttonsNeeded,
                            MainContentComponent *parent, GrisLookAndFeel *feel):
@@ -383,7 +360,6 @@ OscLogWindow::OscLogWindow(const String& name, Colour backgroundColour, int butt
     this->juce::Component::addAndMakeVisible(this->close);
 }
 
-//==============================================================================
 OscLogWindow::~OscLogWindow() {
     this->mainParent->closeOscLogWindow();
 }

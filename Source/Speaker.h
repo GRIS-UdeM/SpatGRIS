@@ -56,13 +56,13 @@ struct Triplet {
 };
 
 //==============================================================================
-static const glm::vec3 ColorSpeaker          = glm::vec3(0.87, 0.87, 0.87);
-static const glm::vec3 ColorDirectOutSpeaker = glm::vec3(0.25, 0.25, 0.25);
-static const glm::vec3 ColorSpeakerSelect    = glm::vec3(1.00, 0.64, 0.09);
-static const glm::vec3 SizeSpeaker           = glm::vec3(0.5, 0.5, 0.5);
-static const glm::vec3 DefaultCenter         = glm::vec3(0, 0, 0);
+constexpr glm::vec3 ColorSpeaker          = glm::vec3(0.87, 0.87, 0.87);
+constexpr glm::vec3 ColorDirectOutSpeaker = glm::vec3(0.25, 0.25, 0.25);
+constexpr glm::vec3 ColorSpeakerSelect    = glm::vec3(1.00, 0.64, 0.09);
+constexpr glm::vec3 SizeSpeaker           = glm::vec3(0.5, 0.5, 0.5);
+constexpr glm::vec3 DefaultCenter         = glm::vec3(0, 0, 0);
 
-static const float Over = 0.02f;
+constexpr float Over = 0.02f;
 
 //==============================================================================
 class Speaker final : public ParentLevelComponent
@@ -72,7 +72,7 @@ public:
             float azimuth = 0.0f, float zenith = 0.0f, float radius = 1.0f);
     ~Speaker() final;
     //==============================================================================
-    bool isSelected();
+    bool isSelected() const { return this->selected; }
     void selectSpeaker();
     void unSelectSpeaker();
     
@@ -83,7 +83,7 @@ public:
     float getAlpha();
     void setMuted(bool mute) final;
     void setSolo(bool solo) final;
-    void setColor(Colour color, bool updateLevel = false) final;
+    void setColor(Colour color, bool updateLevel = false) final {}
     void selectClick(bool select = true) final;
     LevelComponent const * getVuMeter() const final { return this->vuMeter; }
     LevelComponent * getVuMeter() final { return this->vuMeter; }
@@ -91,19 +91,19 @@ public:
     // Normalized for user
     void setBounds(const juce::Rectangle<int> &newBounds);
     void setSpeakerId(int id) { this->idSpeaker = id; };
-    int getIdSpeaker() const;
-    glm::vec3 getCoordinate();
+    int getIdSpeaker() const { return this->idSpeaker; }
+    glm::vec3 getCoordinate() const { return this->center / 10.0f; }
     void setCoordinate(glm::vec3 value);
-    glm::vec3 getAziZenRad();
+    glm::vec3 getAziZenRad() const { return glm::vec3(this->aziZenRad.x, this->aziZenRad.y, this->aziZenRad.z / 10.0f); }
     void normalizeRadius();
     void setAziZenRad(glm::vec3 value);
-    int getOutputPatch() const;
+    int getOutputPatch() const { return this->outputPatch; }
     void setOutputPatch(int value);
-    void setGain(float value);
-    float getGain();
-    void setHighPassCutoff(float value);
-    float getHighPassCutoff();
-    bool getDirectOut();
+    void setGain(float value) { this->gain = value; }
+    float getGain() const { return this->gain; }
+    void setHighPassCutoff(float value) { this->hpCutoff = value; }
+    float getHighPassCutoff() const { return this->hpCutoff; }
+    bool getDirectOut() const { return this->directOut; }
     void setDirectOut(bool value);
 
     bool isInput() const final { return false; }
@@ -114,11 +114,11 @@ public:
     void sendDirectOutToClient(int id, int chn) final {};
 
     // OpenGL
-    glm::vec3 getMin();
-    glm::vec3 getMax();
-    glm::vec3 getCenter();
+    glm::vec3 getMin() const { return this->min; }
+    glm::vec3 getMax() const { return this->max; }
+    glm::vec3 getCenter() const { return this->center; }
 
-    bool isValid();
+    bool isValid() const { return (this->min.x < this->max.x && this->min.y < this->max.y && this->min.z < this->max.z); }
     void fix();
     void draw() ;
     //==============================================================================

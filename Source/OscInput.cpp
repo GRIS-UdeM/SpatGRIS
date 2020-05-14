@@ -23,11 +23,6 @@
 #include "Input.h"
 
 //==============================================================================
-OscInput::OscInput(MainContentComponent* parent) {
-    this->mainParent = parent;
-}
-
-//==============================================================================
 OscInput::~OscInput() {
     this->disconnect();
 }
@@ -37,11 +32,6 @@ bool OscInput::startConnection(int port) {
     bool b = this->connect(port);
     this->addListener(this);
     return b;
-}
-
-//==============================================================================
-bool OscInput::closeConnection() {
-    return this->disconnect();
 }
 
 //==============================================================================
@@ -56,50 +46,50 @@ void OscInput::oscBundleReceived(const OSCBundle& bundle) {
 
 //==============================================================================
 void OscInput::oscMessageReceived(const OSCMessage& message) {
-    this->mainParent->setOscLogging(message);
+    this->mainContentComponent.setOscLogging(message);
     std::string address = message.getAddressPattern().toString().toStdString();
     if (message[0].isInt32()) {
         if (address == OscSpatServ) {
             // int id, float azi [0, 2pi], float ele [0, pi], float azispan [0, 2],
             // float elespan [0, 0.5], float distance [0, 1], float gain [0, 1].
             unsigned int idS = message[0].getInt32();
-            this->mainParent->getLockInputs().lock();
-            if (this->mainParent->getListSourceInput().size() > idS) {
-                this->mainParent->getListSourceInput()[idS]->updateValues(message[1].getFloat32(),
+            this->mainContentComponent.getLockInputs().lock();
+            if (this->mainContentComponent.getListSourceInput().size() > idS) {
+                this->mainContentComponent.getListSourceInput()[idS]->updateValues(message[1].getFloat32(),
                                                                           message[2].getFloat32(),
                                                                           message[3].getFloat32(),
                                                                           message[4].getFloat32(),
-                                                                          this->mainParent->isRadiusNormalized() ? 1.0 : message[5].getFloat32(),
+                                                                          this->mainContentComponent.isRadiusNormalized() ? 1.0 : message[5].getFloat32(),
                                                                           message[6].getFloat32(),
-                                                                          this->mainParent->getModeSelected());
-                this->mainParent->updateInputJack(idS, *this->mainParent->getListSourceInput()[idS]);
+                                                                          this->mainContentComponent.getModeSelected());
+                this->mainContentComponent.updateInputJack(idS, *this->mainContentComponent.getListSourceInput()[idS]);
             }
-            this->mainParent->getLockInputs().unlock();
+            this->mainContentComponent.getLockInputs().unlock();
         }
         
         else if (address == OscPanAZ) {
             //id, azim, elev, azimSpan, elevSpan, gain (Zirkonium artifact).
             unsigned int idS = message[0].getInt32();
-            this->mainParent->getLockInputs().lock();
-            if (this->mainParent->getListSourceInput().size() > idS) {
-                this->mainParent->getListSourceInput()[idS]->updateValuesOld(message[1].getFloat32(),
+            this->mainContentComponent.getLockInputs().lock();
+            if (this->mainContentComponent.getListSourceInput().size() > idS) {
+                this->mainContentComponent.getListSourceInput()[idS]->updateValuesOld(message[1].getFloat32(),
                                                                              message[2].getFloat32(),
                                                                              message[3].getFloat32(),
                                                                              message[4].getFloat32(),
                                                                              message[5].getFloat32());
-                this->mainParent->updateInputJack(idS, *this->mainParent->getListSourceInput()[idS]);
+                this->mainContentComponent.updateInputJack(idS, *this->mainContentComponent.getListSourceInput()[idS]);
             }
-            this->mainParent->getLockInputs().unlock();
+            this->mainContentComponent.getLockInputs().unlock();
         }
     } else if (message[0].isString()) {
         // string "reset", int voice_to_reset.
-        this->mainParent->getLockInputs().lock();
+        this->mainContentComponent.getLockInputs().lock();
         if (message[0].getString().compare("reset") == 0) {
             unsigned int idS = message[1].getInt32();
-            if (this->mainParent->getListSourceInput().size() > idS) {
-                this->mainParent->getListSourceInput()[idS]->resetPosition();
+            if (this->mainContentComponent.getListSourceInput().size() > idS) {
+                this->mainContentComponent.getListSourceInput()[idS]->resetPosition();
             }
         }
-        this->mainParent->getLockInputs().unlock();
+        this->mainContentComponent.getLockInputs().unlock();
     }
 }
