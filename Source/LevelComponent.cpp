@@ -247,7 +247,7 @@ void LevelComponent::changeListenerCallback(ChangeBroadcaster* source) {
         this->mainParent->setColor(cs->getCurrentColour());
         if (this->lastMouseButton == 0) {
             Input *input = dynamic_cast<Input *> (this->mainParent);
-            for (auto&& it : input->mainParent->getListSourceInput()) {
+            for (auto&& it : input->getMainContentComponent().getListSourceInput()) {
                 if (it->getId() == (this->mainParent->getId() + 1)) {
                     it->setColor(cs->getCurrentColour(), true);
                 }

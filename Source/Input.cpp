@@ -48,15 +48,7 @@ void Input::resetPosition() {
     this->center.y = (14.0f * cosf(this->zenith) + (sizeT / 2.0f));
 }
 
-glm::vec3 Input::getCenter() {
-    return this->center;
-}
-
-float Input::getLevel() {
-    return this->mainParent->getLevelsIn(this->idChannel-1);
-}
-
-glm::vec3 Input::polToCar(float azimuth, float zenith) {
+glm::vec3 Input::polToCar(float azimuth, float zenith) const {
     glm::vec3 cart;
     float factor = this->radius * 10.0f;
     cart.x = (factor * sinf(zenith) * cosf(azimuth));
@@ -65,7 +57,7 @@ glm::vec3 Input::polToCar(float azimuth, float zenith) {
     return cart;
 }
 
-glm::vec3 Input::polToCar3d(float azimuth, float zenith) {
+glm::vec3 Input::polToCar3d(float azimuth, float zenith) const {
     glm::vec3 cart;
     float factor = this->radius * 10.0f;
     cart.x = (factor * cosf(azimuth));
@@ -99,19 +91,7 @@ void Input::setColor(Colour color, bool updateLevel) {
     }
 }
 
-glm::vec3 Input::getColor() {
-    return this->color;
-}
-
-glm::vec3 Input::getNumberColor() {
-    return glm::vec3(this->color.x * 0.5, this->color.y * 0.5, this->color.z * 0.5);
-}
-
-Colour Input::getColorJ() {
-    return this->colorJ;
-}
-
-Colour Input::getColorJWithAlpha() {
+Colour Input::getColorJWithAlpha() const {
     if (this->mainParent->isSourceLevelShown) {
         return this->colorJ.withMultipliedAlpha(this->getAlpha());
     } else {
@@ -119,9 +99,9 @@ Colour Input::getColorJWithAlpha() {
     }
 }
 
-float Input::getAlpha() {
+float Input::getAlpha() const {
     if (this->mainParent->isSourceLevelShown) {
-        return this->mainParent->getLevelsAlpha(this->idChannel-1);
+        return this->mainParent->getLevelsAlpha(this->idChannel - 1);
     } else {
         return 1.0f;
     }
@@ -215,6 +195,10 @@ void Input::drawSpan() {
 
     glEnd();
     glPointSize(1);
+}
+
+float Input::getLevel() const {
+    return this->mainParent->getLevelsIn(this->idChannel-1);
 }
 
 void Input::drawSpanLBAP(float x, float y, float z) {

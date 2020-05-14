@@ -19,8 +19,8 @@
 
 #include "MainComponent.h"
 
+#include "LevelComponent.h"
 #include "MainWindow.h"
-#include "PropertiesWindow.h"
 
 // Audio recorder class used to write an interleaved multi-channel soundfile on disk.
 class AudioRenderer : public ThreadWithProgressWindow
@@ -279,7 +279,7 @@ MainContentComponent::MainContentComponent(MainWindow& parent)
     // Start Jack Server and client.
     int errorCode = 0;
     alsaOutputDevice = props->getValue("AlsaOutputDevice", "");
-    this->jackServer.reset(new JackServerGRIS(RateValue, BufferValue, alsaOutputDevice, &errorCode));
+    this->jackServer.reset(new JackServerGris(RateValue, BufferValue, alsaOutputDevice, &errorCode));
     if (errorCode > 0) {
         String msg;
         if (errorCode == 1) { msg = "Failed to create Jack server..."; }

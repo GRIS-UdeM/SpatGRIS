@@ -64,27 +64,28 @@ static const glm::vec3 DefaultCenter         = glm::vec3(0, 0, 0);
 
 static const float Over = 0.02f;
 
-class Speaker : public ParentLevelComponent
+class Speaker final : public ParentLevelComponent
 {
 public:
     Speaker(MainContentComponent *parent = nullptr, int idS = -1, int outP = -1,
             float azimuth = 0.0f, float zenith = 0.0f, float radius = 1.0f);
-    ~Speaker();
+    ~Speaker() final;
     
     bool isSelected();
     void selectSpeaker();
     void unSelectSpeaker();
     
     // ParentLevelComponent
-    int getId() { return -1; } // Should not be used, use getIdSpeaker() instead.
-    int getButtonInOutNumber() { return this->outputPatch; };
-    float getLevel();
+    int getId() const final { return -1; } // Should not be used, use getIdSpeaker() instead.
+    int getButtonInOutNumber() const final { return this->outputPatch; };
+    float getLevel() const final;
     float getAlpha();
-    void setMuted(bool mute);
-    void setSolo(bool solo);
-    void setColor(Colour color, bool updateLevel = false);
-    void selectClick(bool select = true);
-    LevelComponent * getVuMeter() { return this->vuMeter; }
+    void setMuted(bool mute) final;
+    void setSolo(bool solo) final;
+    void setColor(Colour color, bool updateLevel = false) final;
+    void selectClick(bool select = true) final;
+    LevelComponent const * getVuMeter() const final { return this->vuMeter; }
+    LevelComponent * getVuMeter() final { return this->vuMeter; }
 
     // Normalized for user
     void setBounds(const juce::Rectangle<int> &newBounds);
@@ -104,12 +105,12 @@ public:
     bool getDirectOut();
     void setDirectOut(bool value);
 
-    bool isInput() { return false; }
+    bool isInput() const final { return false; }
 
-    void changeDirectOutChannel(int chn) {};
-    void setDirectOutChannel(int chn) {};
-    int getDirectOutChannel() { return 0; };
-    void sendDirectOutToClient(int id, int chn) {};
+    void changeDirectOutChannel(int chn) final {};
+    void setDirectOutChannel(int chn) final {};
+    int getDirectOutChannel() const final { return 0; };
+    void sendDirectOutToClient(int id, int chn) final {};
 
     // OpenGL
     glm::vec3 getMin();

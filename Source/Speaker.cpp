@@ -43,7 +43,7 @@ Speaker::~Speaker() {
     delete this->vuMeter;
 }
 
-float Speaker::getLevel() {
+float Speaker::getLevel() const {
     return this->mainParent->getLevelsOut(this->outputPatch-1);
 }
 

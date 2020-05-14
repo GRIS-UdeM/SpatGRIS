@@ -44,33 +44,29 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
-#include "GrisLookAndFeel.h"
-#include "ServerGrisConstants.h"
+#include "EditSpeakersWindow.h"
+#include "Input.h"
 #include "JackClientGRIS.h"
 #include "JackServerGRIS.h"
+#include "OscInput.h"
+#include "PropertiesWindow.h"
+#include "ServerGrisConstants.h"
 #include "Speaker.h"
 #include "SpeakerViewComponent.h"
 #include "UiComponent.h"
-#include "LevelComponent.h"
-#include "OscInput.h"
-#include "Input.h"
 #include "WinControl.h"
-#include "MainWindow.h"
-#include "SecondaryWindow.h"
-#include "EditSpeakersWindow.h"
-#include "PropertiesWindow.h"
 
 class MainWindow;
 
 // This component lives inside our window, and this is where you should put all your controls and content.
-class MainContentComponent : public Component,
-                             public MenuBarModel,
-                             public ApplicationCommandTarget,
-                             public Button::Listener,
-                             public TextEditor::Listener,
-                             public Slider::Listener,
-                             public ComboBox::Listener,
-                             private Timer
+class MainContentComponent : public juce::Component,
+                             public juce::MenuBarModel,
+                             public juce::ApplicationCommandTarget,
+                             public juce::Button::Listener,
+                             public juce::TextEditor::Listener,
+                             public juce::Slider::Listener,
+                             public juce::ComboBox::Listener,
+                             private juce::Timer
 {
 public:
     MainContentComponent(MainWindow &parent);
@@ -157,9 +153,9 @@ public:
     void soloOutput(int id, bool solo);
 
     // Input - output amplitude levels.
-    float getLevelsOut(int indexLevel) { return (20.0f * log10f(this->jackClient->getLevelsOut(indexLevel))); }
-    float getLevelsIn(int indexLevel) { return (20.0f * log10f(this->jackClient->getLevelsIn(indexLevel))); }
-    float getLevelsAlpha(int indexLevel) {
+    float getLevelsOut(int indexLevel) const { return (20.0f * log10f(this->jackClient->getLevelsOut(indexLevel))); }
+    float getLevelsIn(int indexLevel) const { return (20.0f * log10f(this->jackClient->getLevelsIn(indexLevel))); }
+    float getLevelsAlpha(int indexLevel) const {
         float level = this->jackClient->getLevelsIn(indexLevel);
         if (level > 0.0001) { // -80 dB
             return 1.0;
@@ -167,7 +163,7 @@ public:
             return sqrtf(level * 10000.0f);
         }
     }
-    float getSpeakerLevelsAlpha(int indexLevel) {
+    float getSpeakerLevelsAlpha(int indexLevel) const {
         float level = this->jackClient->getLevelsOut(indexLevel);
         float alpha = 1.0;
         if (level > 0.001) { // -60 dB
@@ -265,7 +261,7 @@ private:
     ComboBox *     addComboBox(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into);
 
     // Jack server - client.
-    std::unique_ptr<JackServerGRIS> jackServer;
+    std::unique_ptr<JackServerGris> jackServer;
     std::unique_ptr<JackClientGris> jackClient;
 
     // Speakers.

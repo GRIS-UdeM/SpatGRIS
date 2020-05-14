@@ -130,7 +130,7 @@ static jackctl_internal_t * jackctl_server_get_internal(jackctl_server_t *server
 
 // Jack server class definition.
 
-JackServerGRIS::JackServerGRIS(unsigned int rateV, unsigned int periodV, String alsaOutputDevice, int *errorCode) {
+JackServerGris::JackServerGris(unsigned int rateV, unsigned int periodV, String alsaOutputDevice, int *errorCode) {
     this->rateValue = rateV;
     this->periodValue = periodV;
     const JSList *parameters;
@@ -231,7 +231,7 @@ JackServerGRIS::JackServerGRIS(unsigned int rateV, unsigned int periodV, String 
     }
 }
 
-JackServerGRIS::~JackServerGRIS(){
+JackServerGris::~JackServerGris(){
     if (this->server != nullptr) {
         jackctl_server_stop(this->server);
         jackctl_server_close(this->server);
@@ -239,7 +239,7 @@ JackServerGRIS::~JackServerGRIS(){
     }
 }
 
-Array<String> JackServerGRIS::getAvailableOutputDevices() {
+Array<String> JackServerGris::getAvailableOutputDevices() {
     Array<String> devices;
 
 #ifdef __linux__

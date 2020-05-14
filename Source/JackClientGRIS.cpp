@@ -19,7 +19,7 @@
 
 #include "JackClientGRIS.h"
 
-#include <stdarg.h>
+#include <cstdarg>
 
 #include "ServerGrisConstants.h"
 #include "vbap.h"
@@ -154,8 +154,9 @@ static void muteSoloVuMeterGainOut(JackClientGris &jackCli, jack_default_audio_s
 
 static void addNoiseSound(JackClientGris &jackCli, jack_default_audio_sample_t **outs,
                           const jack_nframes_t &nframes, const unsigned int &sizeOutputs) {
-    float rnd, val;
-    float fac = 1.0f / (RAND_MAX / 2.0f);
+    float rnd;
+    float val;
+    float const fac = 1.0f / (static_cast<float>(RAND_MAX) / 2.0f);
     for(unsigned int nF = 0; nF < nframes; ++nF) {
         rnd = rand() * fac - 1.0f;
         jackCli.c0 = jackCli.c0 * 0.99886f + rnd * 0.0555179f;
