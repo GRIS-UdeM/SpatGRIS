@@ -48,8 +48,6 @@
 class MainContentComponent;
 class Speaker;
 
-using namespace std;
-
 static const int    NbrGridLines = 17;
 static const float  ScroolWheelSpeedMouse = 1.8f;
 
@@ -88,8 +86,8 @@ private:
     void clickRay();
     void drawBackground();
     void drawOriginGrid();
-    void drawText( string val, glm::vec3 position, glm::vec3 color, float scale = 0.005f, bool camLock = true, float alpha = 1.0f);
-    void drawTextOnGrid( string val, glm::vec3 position,float scale = 0.003f);
+    void drawText(std::string val, glm::vec3 position, glm::vec3 color, float scale = 0.005f, bool camLock = true, float alpha = 1.0f);
+    void drawTextOnGrid(std::string val, glm::vec3 position,float scale = 0.003f);
     
     void drawTrippletConn();
     

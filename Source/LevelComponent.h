@@ -82,7 +82,7 @@ public:
     void updateDirectOutMenu(juce::OwnedArray<Speaker> & spkList);
     void resetClipping();
 
-    vector<int> directOutSpeakers;
+    std::vector<int> directOutSpeakers;
     std::unique_ptr<TextButton> directOut;
     
 private:

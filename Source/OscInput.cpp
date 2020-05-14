@@ -50,7 +50,7 @@ void OscInput::oscBundleReceived(const OSCBundle& bundle) {
 
 void OscInput::oscMessageReceived(const OSCMessage& message) {
     this->mainParent->setOscLogging(message);
-    string address = message.getAddressPattern().toString().toStdString();
+    std::string address = message.getAddressPattern().toString().toStdString();
     if (message[0].isInt32()) {
         if (address == OscSpatServ) {
             // int id, float azi [0, 2pi], float ele [0, pi], float azispan [0, 2],

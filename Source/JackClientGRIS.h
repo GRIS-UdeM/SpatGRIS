@@ -48,7 +48,6 @@
 #include "lbap.h"
 
 class Speaker;
-using namespace std;
 
 // Limits of SpatGRIS2 In/Out.
 static unsigned int const MaxInputs  = 256;
@@ -223,12 +222,12 @@ public:
     unsigned int numberInputs;
     unsigned int numberOutputs;
     unsigned int maxOutputPatch;
-    vector<int> outputPatches;
+    std::vector<int> outputPatches;
 
     // Jack variables.
     jack_client_t *client;
-    vector<jack_port_t *> inputsPort;
-    vector<jack_port_t *> outputsPort;
+    std::vector<jack_port_t *> inputsPort;
+    std::vector<jack_port_t *> outputsPort;
 
     // Interpolation and master gain values.
     float interMaster;
@@ -264,8 +263,8 @@ public:
     float levelsOut[MaxOutputs];
     
     // Client list.
-    vector<Client> listClient;
-    mutex          lockListClient;
+    std::vector<Client> listClient;
+    std::mutex          lockListClient;
 
     // Source and output lists.
     SourceIn   listSourceIn   [MaxInputs];
@@ -284,7 +283,7 @@ public:
 
     // VBAP data.
     unsigned int vbapDimensions;
-    vector<vector<int>> vbap_triplets;
+    std::vector<std::vector<int>> vbap_triplets;
     int vbapSourcesToUpdate[MaxInputs];
 
     // BINAURAL data.
@@ -330,12 +329,12 @@ public:
     void clearOutput();
     bool addOutput(unsigned int outputPatch);
     void removeOutput(int number);
-    vector<int> getDirectOutOutputPatches();
+    std::vector<int> getDirectOutOutputPatches();
 
     // Manage clients.
     void connectionClient(String name, bool connect = true);
     void updateClientPortAvailable(bool fromJack);
-    string getClientName(const char *port);
+    std::string getClientName(const char *port);
 
     // Recording.
     void prepareToRecord();
@@ -346,14 +345,14 @@ public:
     void setRecordFileConfig(int config) { this->recordFileConfig = config; };
     int getRecordFileConfig() { return this->recordFileConfig; };
     void setRecordingPath(String filePath) { this->recordPath = filePath; }
-    String getRecordingPath() { return this->recordPath; }
+    juce::String getRecordingPath() { return this->recordPath; }
     bool isSavingRun() { return this->recording; };
 
     // Initialize VBAP algorithm.
-    bool initSpeakersTripplet(vector<Speaker *>  listSpk, int dimensions, bool needToComputeVbap);
+    bool initSpeakersTripplet(std::vector<Speaker*> const& listSpk, int dimensions, bool needToComputeVbap);
 
     // Initialize LBAP algorithm.
-    bool lbapSetupSpeakerField(vector<Speaker *>  listSpk);
+    bool lbapSetupSpeakerField(std::vector<Speaker*> const& listSpk);
 
     // LBAP distance attenuation functions.
     void setAttenuationDB(float value);
@@ -372,7 +371,7 @@ private:
     // Private recording parameters.
     int recordFormat = 0;       // 0 = WAV, 1 = AIFF
     int recordFileConfig = 0;   // 0 = Multiple Mono Files, 1 = Single Interleaved
-    String recordPath = "";
+    juce::String recordPath = "";
 
     // This structure is used to compute the VBAP algorithm only once. Each source only gets a copy.
     VBAP_DATA *paramVBap;

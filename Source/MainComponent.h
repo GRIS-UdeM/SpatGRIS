@@ -113,28 +113,29 @@ public:
 
     // Speakers.
     juce::OwnedArray<Speaker> & getListSpeaker() { return this->listSpeaker; }
-    mutex & getLockSpeakers() { return this->lockSpeakers; }
+    std::mutex & getLockSpeakers() { return this->lockSpeakers; }
     Speaker * getSpeakerFromOutputPatch(int out);
     void addSpeaker(int sortColumnId = 1, bool isSortedForwards = true);
     void insertSpeaker(int position, int sortColumnId, bool isSortedForwards);
     void removeSpeaker(int idSpeaker);
     void setDirectOut(int id, int chn);
-    void reorderSpeakers(vector<int> newOrder);
+    void reorderSpeakers(std::vector<int> const& newOrder);
     void resetSpeakerIds();
     int getMaxSpeakerId();
     int getMaxSpeakerOutputPatch();
 
     // Sources.
     juce::OwnedArray<Input> & getListSourceInput() { return this->listSourceInput; }
-    mutex & getLockInputs() { return this->lockInputs; }
+    juce::OwnedArray<Input> const & getListSourceInput() const { return this->listSourceInput; }
+    std::mutex & getLockInputs() { return this->lockInputs; }
     void updateInputJack(int inInput, Input &inp);
     bool isRadiusNormalized();
 
     // Jack clients.
     JackClientGris * getJackClient() { return this->jackClient.get(); }
-    mutex & getLockClients() { return this->jackClient->lockListClient; }
-    vector<Client> & getListClientjack() { return this->jackClient->listClient; }
-    void connectionClientJack(String nameCli, bool conn = true);
+    std::mutex & getLockClients() { return this->jackClient->lockListClient; }
+    std::vector<Client> & getListClientjack() { return this->jackClient->listClient; }
+    void connectionClientJack(juce::String nameCli, bool conn = true);
 
     // VBAP triplets.
     void setListTripletFromVbap();
@@ -240,9 +241,8 @@ public:
     bool needToComputeVbap = true;
 
     // Widget creation helper.
-    TextEditor* addTextEditor(const String &s, const String &emptyS, const String &stooltip,
-                              int x, int y, int w, int h, Component *into, int wLab = 80);
-
+    juce::TextEditor* addTextEditor(String const& s, juce::String const& emptyS, juce::String const& stooltip,
+                              int x, int y, int w, int h, juce::Component* into, int wLab = 80);
 private:
 
     // Look-and-feel.
@@ -267,31 +267,31 @@ private:
     // Speakers.
     std::vector<Triplet>      listTriplet{};
     juce::OwnedArray<Speaker> listSpeaker{};
-    mutex                     lockSpeakers{};
+    std::mutex                     lockSpeakers{};
 
     // Sources.
     juce::OwnedArray<Input> listSourceInput{};
-    mutex                   lockInputs{};
+    std::mutex                   lockInputs{};
 
     // Open Sound Control.
     std::unique_ptr<OscInput> oscReceiver{};
 
     // Paths.
-    String nameConfig;
-    String pathLastVbapSpeakerSetup;
-    String pathCurrentFileSpeaker;
-    String pathCurrentPreset;
+    juce::String nameConfig;
+    juce::String pathLastVbapSpeakerSetup;
+    juce::String pathCurrentFileSpeaker;
+    juce::String pathCurrentPreset;
 
     // Alsa output device
-    String alsaOutputDevice;
-    Array<String> alsaAvailableOutputDevices;
+    juce::String alsaOutputDevice;
+    juce::Array<String> alsaAvailableOutputDevices;
 
     // Windows.
     std::unique_ptr<EditSpeakersWindow> winSpeakConfig;
     std::unique_ptr<PropertiesWindow> windowProperties;
     std::unique_ptr<WinControl> winControlSource;
-    AboutWindow *aboutWindow;
-    OscLogWindow *oscLogWindow;
+    AboutWindow *aboutWindow; //TODO: raw pointer
+    OscLogWindow *oscLogWindow; //TODO: raw pointer
 
     // 3 Main Boxes.
     std::unique_ptr<Box> boxMainUI;
@@ -323,7 +323,7 @@ private:
 
     // UI Components.
     std::unique_ptr<SpeakerViewComponent> speakerView;
-    StretchableLayoutManager verticalLayout;
+    juce::StretchableLayoutManager verticalLayout;
     std::unique_ptr<StretchableLayoutResizerBar> verticalDividerBar;
 
     // App splash screen.
@@ -339,12 +339,12 @@ private:
     // The following methods implement the ApplicationCommandTarget interface, allowing
     // this window to publish a set of actions it can perform, and which can be mapped
     // onto menus, keypresses, etc.
-    ApplicationCommandTarget* getNextCommandTarget() override { return findFirstTargetParentComponent(); }
-    void getAllCommands(Array<CommandID>& commands) override;
-    void getCommandInfo(CommandID commandID, ApplicationCommandInfo& result) override;
-    bool perform(const InvocationInfo& info) override;
+    juce::ApplicationCommandTarget* getNextCommandTarget() override { return findFirstTargetParentComponent(); }
+    void getAllCommands(juce::Array<juce::CommandID>& commands) override;
+    void getCommandInfo(juce::CommandID commandID, juce::ApplicationCommandInfo& result) override;
+    bool perform(juce::ApplicationCommandTarget::InvocationInfo const& info) override;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainContentComponent)
 };
 
 #endif  // MAINCOMPONENT_H_INCLUDED

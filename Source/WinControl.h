@@ -21,12 +21,10 @@
 #define WINCONTROL_H
 
 #include "../JuceLibraryCode/JuceHeader.h"
-#include "GrisLookAndFeel.h"
 
 class MainContentComponent;
+class GrisLookAndFeel;
 class Input;
-
-using namespace std;
 
 class WinControl : public DocumentWindow,
                    private Timer

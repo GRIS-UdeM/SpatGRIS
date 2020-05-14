@@ -281,7 +281,7 @@ void WinControl::drawSourceSpan(Graphics &g, Input *it, const int fieldWH, const
 }
 
 void WinControl::resized() {
-    const int fieldWH = min(getWidth(), getHeight());
+    const int fieldWH = std::min(getWidth(), getHeight());
     this->setSize(fieldWH, fieldWH);
 }
 

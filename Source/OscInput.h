@@ -24,13 +24,11 @@
 
 class MainContentComponent;
 
-using namespace std;
+static const std::string OscPanAZ    = "/pan/az";
+static const std::string OscSpatServ = "/spat/serv";
 
-static const string OscPanAZ    = "/pan/az";
-static const string OscSpatServ = "/spat/serv";
-
-class OscInput : private OSCReceiver,
-                 private OSCReceiver::Listener<OSCReceiver::RealtimeCallback>
+class OscInput : private juce::OSCReceiver,
+                 private juce::OSCReceiver::Listener<juce::OSCReceiver::RealtimeCallback>
 
 {
 public :

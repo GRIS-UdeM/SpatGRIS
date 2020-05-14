@@ -29,8 +29,6 @@
 class MainContentComponent;
 class LevelComponent;
 
-using namespace std;
-
 //======================================= BOX ========================================
 class Box : public Component
 {

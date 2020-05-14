@@ -165,7 +165,7 @@ void SpeakerViewComponent::render() {
                     glEnd();
                 }
             } else {
-                glutSolidSphere(max(maxRadius, 1.0f), 20, 20);
+                glutSolidSphere(std::max(maxRadius, 1.0f), 20, 20);
             }
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             glPopMatrix();
@@ -390,7 +390,7 @@ void SpeakerViewComponent::drawOriginGrid() {
     drawTextOnGrid("270", glm::vec3(-0.8, 0,-9.8));
 }
 
-void SpeakerViewComponent::drawText(string val, glm::vec3 position, glm::vec3 color,
+void SpeakerViewComponent::drawText(std::string val, glm::vec3 position, glm::vec3 color,
                                     float scale, bool camLock, float alpha) {
     glPushMatrix();
     glTranslatef(position.x, position.y, position.z);
@@ -411,7 +411,7 @@ void SpeakerViewComponent::drawText(string val, glm::vec3 position, glm::vec3 co
     glPopMatrix();
 }
 
-void SpeakerViewComponent::drawTextOnGrid(string val, glm::vec3 position, float scale) {
+void SpeakerViewComponent::drawTextOnGrid(std::string val, glm::vec3 position, float scale) {
     glPushMatrix();
     glTranslatef(position.x, position.y, position.z);
     

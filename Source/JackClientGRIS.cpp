@@ -29,7 +29,7 @@
 static bool jack_client_log_print = false;
 
 // Utilities.
-static bool int_vector_contains(vector<int> vec, int value) {
+static bool int_vector_contains(std::vector<int> vec, int value) {
     return (std::find(vec.begin(), vec.end(), value) != vec.end());
 }
 
@@ -585,8 +585,8 @@ void client_registration_callback(const char *name, int regist, void *arg) {
         jackCli->listClient.push_back(cli);
         jack_client_log("registered\n");
     } else {
-        for (vector<Client>::iterator iter = jackCli->listClient.begin(); iter != jackCli->listClient.end(); ++iter) {
-            if (iter->name == String(name)) {
+        for (std::vector<Client>::iterator iter = jackCli->listClient.begin(); iter != jackCli->listClient.end(); ++iter) {
+            if (iter->name == juce::String(name)) {
                 jackCli->listClient.erase(iter);
                 jack_client_log("deleted\n");
                 break;
@@ -611,8 +611,8 @@ void port_connect_callback(jack_port_id_t a, jack_port_id_t b, int connect, void
     if (connect) {
         // Stop Auto connection with system.
         if (!jackCli->autoConnection) {
-            string nameClient = jack_port_name(jack_port_by_id(jackCli->client, a));
-            string tempN = jack_port_short_name(jack_port_by_id(jackCli->client, a));
+            std::string nameClient = jack_port_name(jack_port_by_id(jackCli->client, a));
+            std::string tempN = jack_port_short_name(jack_port_by_id(jackCli->client, a));
             nameClient = nameClient.substr(0, nameClient.size() - (tempN.size() + 1));
             if ((nameClient != ClientName && nameClient != ClientNameSys) || nameClient == ClientNameSys) {
                 jack_disconnect(jackCli->client,
@@ -739,13 +739,13 @@ JackClientGris::JackClientGris() {
         this->y4[i] = 0.0;
     }
 
-    this->listClient = vector<Client>();
+    this->listClient = std::vector<Client>();
     
     this->soloIn = false;
     this->soloOut = false;
 
-    this->inputsPort = vector<jack_port_t *>();
-    this->outputsPort = vector<jack_port_t *>();
+    this->inputsPort = std::vector<jack_port_t *>();
+    this->outputsPort = std::vector<jack_port_t *>();
     this->interMaster = 0.8f;
     this->maxOutputPatch = 0;
 
@@ -928,8 +928,8 @@ void JackClientGris::removeOutput(int number) {
     this->outputsPort.erase(this->outputsPort.begin() + number);
 }
 
-vector<int> JackClientGris::getDirectOutOutputPatches() {
-    vector<int> directOutOutputPatches;
+std::vector<int> JackClientGris::getDirectOutOutputPatches() {
+    std::vector<int> directOutOutputPatches;
     for (auto&& it : listSpeakerOut) {
         if (it.directOut && it.outputPatch != 0)
             directOutOutputPatches.push_back(it.outputPatch);
@@ -998,7 +998,7 @@ void JackClientGris::connectedGristoSystem() {
     jack_free(portsOut);
 }
 
-bool JackClientGris::initSpeakersTripplet(vector<Speaker *>  listSpk,
+bool JackClientGris::initSpeakersTripplet(std::vector<Speaker*> const& listSpk,
                                           int dimensions, bool needToComputeVbap) {
     int j;
     if (listSpk.size() <= 0) {
@@ -1040,7 +1040,7 @@ bool JackClientGris::initSpeakersTripplet(vector<Speaker *>  listSpk,
     int num = vbap_get_triplets(listSourceIn[0].paramVBap, &triplets);
     vbap_triplets.clear();
     for (int i=0; i<num; i++) {
-        vector <int> row;
+        std::vector <int> row;
         for (int j=0; j<3; j++) {
             row.push_back(triplets[i][j]);
         }
@@ -1057,7 +1057,7 @@ bool JackClientGris::initSpeakersTripplet(vector<Speaker *>  listSpk,
     return true;
 }
 
-bool JackClientGris::lbapSetupSpeakerField(vector<Speaker *>  listSpk) {
+bool JackClientGris::lbapSetupSpeakerField(std::vector<Speaker*> const& listSpk) {
     int j;
     if (listSpk.size() <= 0) {
         return false;
@@ -1192,12 +1192,12 @@ void JackClientGris::connectionClient(String name, bool connect) {
     jack_free(portsOut);
 }
 
-string JackClientGris::getClientName(const char *port) {
+std::string JackClientGris::getClientName(const char *port) {
     if (port) {
         jack_port_t *tt = jack_port_by_name(this->client, port);
         if (tt) {
-            string nameClient = jack_port_name(tt);
-            string tempN = jack_port_short_name(tt);
+            std::string nameClient = jack_port_name(tt);
+            std::string tempN = jack_port_short_name(tt);
             return nameClient.substr(0, nameClient.size() - (tempN.size() + 1));
         }
     }
@@ -1213,7 +1213,7 @@ void JackClientGris::updateClientPortAvailable(bool fromJack) {
     }
     
     while (portsOut[i]) {
-        string nameCli = getClientName(portsOut[i]);
+        std::string nameCli = getClientName(portsOut[i]);
         if (nameCli != ClientName &&  nameCli != ClientNameSys) {
             for (auto&& cli : this->listClient) {
                 if (cli.name.compare(nameCli) == 0) {

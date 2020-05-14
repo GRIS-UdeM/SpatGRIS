@@ -283,7 +283,7 @@ void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const 
         std::sort(tosort, tosort + size, compareGreaterThan);
     }
 
-    vector<int> newOrder(size);
+    std::vector<int> newOrder(size);
     for (int i = 0; i < size; i++) {
         newOrder[i] = tosort[i].id;
     }

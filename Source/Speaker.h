@@ -48,8 +48,6 @@
 class MainContentComponent;
 class LevelComponent;
 
-using namespace std;
-
 struct Triplet {
     int id1;
     int id2;

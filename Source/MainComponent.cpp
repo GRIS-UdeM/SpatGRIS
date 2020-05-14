@@ -516,16 +516,16 @@ void MainContentComponent::handleOpenPreset() {
     if (loaded) { // Check for direct out OutputPatch mismatch.
         for (auto&& it : listSourceInput) {
             if (it->getDirectOutChannel() != 0) {
-                vector<int> directOutOutputPatches = this->jackClient->getDirectOutOutputPatches();
+                std::vector<int> directOutOutputPatches = this->jackClient->getDirectOutOutputPatches();
                 if (std::find(directOutOutputPatches.begin(),
                               directOutOutputPatches.end(),
                               it->getDirectOutChannel()) == directOutOutputPatches.end())
                 {
-                    AlertWindow alert ("Direct Out Mismatch!",
+                    juce::AlertWindow alert ("Direct Out Mismatch!",
                                         "Some of the direct out channels of this project don't exist in the current speaker setup.\n",
-                                        AlertWindow::WarningIcon);
+                                        juce::AlertWindow::WarningIcon);
                     alert.setLookAndFeel(&mGrisFeel);
-                    alert.addButton ("Ok", 1, KeyPress(KeyPress::returnKey));
+                    alert.addButton ("Ok", 1, juce::KeyPress(juce::KeyPress::returnKey));
                     alert.runModalLoop();
                     break;
                 }
@@ -1162,7 +1162,7 @@ void MainContentComponent::resetSpeakerIds() {
     }
 }
 
-void MainContentComponent::reorderSpeakers(vector<int> newOrder) {
+void MainContentComponent::reorderSpeakers(std::vector<int> const& newOrder) {
     auto const size = this->listSpeaker.size();
 
     juce::Array<Speaker *> tempListSpeaker{};
@@ -1378,7 +1378,7 @@ bool MainContentComponent::updateLevelComp() {
     }
 
     // Test for duplicated output patch.
-    vector<int> tempout;
+    std::vector<int> tempout;
     for (unsigned int i = 0; i < this->listSpeaker.size(); i++) {
         if (!this->listSpeaker[i]->getDirectOut()) {
             tempout.push_back(this->listSpeaker[i]->getOutputPatch());
@@ -1518,7 +1518,7 @@ bool MainContentComponent::updateLevelComp() {
 
     // Temporarily remove direct out speakers to construct vbap or lbap algorithm. 
     i = 0;
-    vector<Speaker *> tempListSpeaker;
+    std::vector<Speaker *> tempListSpeaker;
     tempListSpeaker.resize(this->listSpeaker.size());
     for (auto&& it : this->listSpeaker) {
         if (! it->getDirectOut()) {
@@ -2012,9 +2012,9 @@ void MainContentComponent::saveProperties(String device, int rate, int buff, int
         props->setValue("OscInputPort", oscPort);
         this->oscReceiver->closeConnection();
         if (this->oscReceiver->startConnection(this->oscInputPort)) {
-            cout << "OSC receiver connected to port " << oscPort << endl;
+            std::cout << "OSC receiver connected to port " << oscPort << '\n';
         } else {
-            cout << "OSC receiver connection to port " << oscPort << " failed... Should popup an alert window." << endl;
+            std::cout << "OSC receiver connection to port " << oscPort << " failed... Should popup an alert window." << '\n';
         }
     }
 
