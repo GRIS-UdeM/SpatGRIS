@@ -32,8 +32,6 @@
                 file="Source/PropertiesWindow.cpp"/>
           <FILE id="mzs9KD" name="PropertiesWindow.h" compile="0" resource="0"
                 file="Source/PropertiesWindow.h"/>
-          <FILE id="injLaI" name="SecondaryWindow.h" compile="0" resource="0"
-                file="Source/SecondaryWindow.h"/>
         </GROUP>
         <FILE id="AYI1c0" name="EditableTextCustomComponent.cpp" compile="1"
               resource="0" file="Source/EditableTextCustomComponent.cpp"/>

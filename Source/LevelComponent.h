@@ -31,20 +31,20 @@ static const float MinLevelComp  = -60.f;
 static const float MaxLevelComp  = 0.f;
 static const int   WidthRect     = 1;
 
+//==============================================================================
 //============================ LevelBox ================================
 class LevelBox : public Component
 {
 public:
     LevelBox(LevelComponent* parent, SmallGrisLookAndFeel *feel);
-    ~LevelBox();
-    
+    ~LevelBox() override = default;
+    //==============================================================================
     void setBounds(const juce::Rectangle<int> &newBounds);
     void paint(Graphics& g) override;
     void mouseDown(const MouseEvent& e) override;
-
     void resetClipping();
-
 private:
+    //==============================================================================
     LevelComponent *mainParent;
     SmallGrisLookAndFeel *grisFeel;
     ColourGradient colorGrad;
@@ -52,10 +52,11 @@ private:
     Image vumeterBackBit;
     Image vumeterMutedBit;
     bool isClipping = false;
-
+    //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LevelBox)
 };
 
+//==============================================================================
 //======================== LevelComponent ==============================
 class LevelComponent : public Component,
                        public ToggleButton::Listener,
@@ -66,7 +67,7 @@ public:
                    SmallGrisLookAndFeel *feel,
                    bool colorful = true);
     ~LevelComponent() = default;
-    
+    //==============================================================================
     void setOutputLab(String value) { this->idBut->setButtonText(value); }
     void setColor(Colour color) {
         this->idBut->setColour(TextButton::buttonColourId, color);
@@ -82,11 +83,11 @@ public:
     void changeListenerCallback (ChangeBroadcaster* source) override;
     void updateDirectOutMenu(juce::OwnedArray<Speaker> & spkList);
     void resetClipping();
-
+    //==============================================================================
     std::vector<int> directOutSpeakers;
     std::unique_ptr<TextButton> directOut;
-    
 private:
+    //==============================================================================
     ParentLevelComponent* mainParent;
     std::unique_ptr<LevelBox> levelBox;
     std::unique_ptr<TextButton> idBut;
@@ -96,7 +97,8 @@ private:
     float level = MinLevelComp;
     int lastMouseButton = 1; // 1 means left, 0 means right
     bool isColorful;
+    //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LevelComponent)
 };
 
-#endif /* LEVELCOMPONENT_H */
+#endif // LEVELCOMPONENT_H

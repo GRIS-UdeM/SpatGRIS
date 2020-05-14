@@ -22,6 +22,7 @@
 #include "MainComponent.h"
 #include "LevelComponent.h"
 
+//==============================================================================
 Input::Input(MainContentComponent * parent, SmallGrisLookAndFeel * feel, int id) {
     this->mainParent = parent;
     this->grisFeel = feel;
@@ -34,6 +35,7 @@ Input::Input(MainContentComponent * parent, SmallGrisLookAndFeel * feel, int id)
     this->setColor(Colour::fromHSV(0, 1, 0.75, 1), true);
 }
 
+//==============================================================================
 void Input::resetPosition() {
     this->azimuth = M_PI4;
     this->zenith  = M_PI2;
@@ -49,6 +51,7 @@ void Input::resetPosition() {
     this->center.y = (14.0f * cosf(this->zenith) + (sizeT / 2.0f));
 }
 
+//==============================================================================
 glm::vec3 Input::polToCar(float azimuth, float zenith) const {
     glm::vec3 cart;
     float factor = this->radius * 10.0f;
@@ -58,6 +61,7 @@ glm::vec3 Input::polToCar(float azimuth, float zenith) const {
     return cart;
 }
 
+//==============================================================================
 glm::vec3 Input::polToCar3d(float azimuth, float zenith) const {
     glm::vec3 cart;
     float factor = this->radius * 10.0f;
@@ -67,6 +71,7 @@ glm::vec3 Input::polToCar3d(float azimuth, float zenith) const {
     return cart;
 }
 
+//==============================================================================
 void Input::setMuted(bool mute) {
     this->mainParent->muteInput(this->idChannel, mute);
     if (mute) {
@@ -74,6 +79,7 @@ void Input::setMuted(bool mute) {
     }
 }
 
+//==============================================================================
 void Input::setSolo(bool solo) {
     this->mainParent->soloInput(this->idChannel, solo);
     if (solo) {
@@ -81,6 +87,7 @@ void Input::setSolo(bool solo) {
     }
 }
 
+//==============================================================================
 void Input::setColor(Colour color, bool updateLevel) {
     this->colorJ = color;
     this->color.x = this->colorJ.getFloatRed();
@@ -92,6 +99,7 @@ void Input::setColor(Colour color, bool updateLevel) {
     }
 }
 
+//==============================================================================
 Colour Input::getColorJWithAlpha() const {
     if (this->mainParent->isSourceLevelShown) {
         return this->colorJ.withMultipliedAlpha(this->getAlpha());
@@ -100,6 +108,7 @@ Colour Input::getColorJWithAlpha() const {
     }
 }
 
+//==============================================================================
 float Input::getAlpha() const {
     if (this->mainParent->isSourceLevelShown) {
         return this->mainParent->getLevelsAlpha(this->idChannel - 1);
@@ -108,6 +117,7 @@ float Input::getAlpha() const {
     }
 }
 
+//==============================================================================
 void Input::draw() {
     float transpa = 0.75;
 
@@ -144,6 +154,7 @@ void Input::draw() {
     glPopMatrix();
 }
 
+//==============================================================================
 void Input::drawSpan() {
     int num = 8;
     float newazi, newele;
@@ -198,10 +209,12 @@ void Input::drawSpan() {
     glPointSize(1);
 }
 
+//==============================================================================
 float Input::getLevel() const {
     return this->mainParent->getLevelsIn(this->idChannel-1);
 }
 
+//==============================================================================
 void Input::drawSpanLBAP(float x, float y, float z) {
     int num = 4;
     float ytmp;
@@ -255,6 +268,7 @@ void Input::drawSpanLBAP(float x, float y, float z) {
     glPointSize(1);
 }
 
+//==============================================================================
 void Input::updateValues(float az, float ze, float azS, float zeS, float radius, float g, int mode) {
     this->azimuth = az;
     this->zenith  = ze;
@@ -276,6 +290,7 @@ void Input::updateValues(float az, float ze, float azS, float zeS, float radius,
     }
 }
 
+//==============================================================================
 void Input::updateValuesOld(float az, float ze, float azS, float zeS, float g) {
     if (az < 0) {
         this->azimuth = fabsf(az) * M_PI;
@@ -293,14 +308,17 @@ void Input::updateValuesOld(float az, float ze, float azS, float zeS, float g) {
     this->center.y = (10.0f * cosf(this->zenith)) + (this->sizeT / 2.0f);
 }
 
+//==============================================================================
 void Input::sendDirectOutToClient(int id, int chn) {
     this->mainParent->setDirectOut(id, chn);
 }
 
+//==============================================================================
 void Input::changeDirectOutChannel(int chn) {
     this->directOutChannel = chn;
 }
 
+//==============================================================================
 void Input::setDirectOutChannel(int chn) {
     this->directOutChannel = chn;
     if (chn == 0) {

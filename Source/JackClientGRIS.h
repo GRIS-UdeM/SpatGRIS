@@ -53,12 +53,14 @@ class Speaker;
 static unsigned int const MaxInputs  = 256;
 static unsigned int const MaxOutputs = 256;
 
+//==============================================================================
 typedef struct {
     lbap_pos pos;
     float gains[MaxOutputs];
     float y[MaxOutputs];
 } LBAP_DATA;
  
+ //==============================================================================
 struct Client {
     String       name;
     unsigned int portStart     = 0;
@@ -69,6 +71,7 @@ struct Client {
     bool         connected     = false;
 };
 
+//==============================================================================
 struct SourceIn {
     unsigned int id;
     float x = 0.0f;
@@ -96,6 +99,7 @@ struct SourceIn {
     VBAP_DATA * paramVBap;
 };
 
+//==============================================================================
 struct SpeakerOut {
     unsigned int id;
     float x = 0.0f;
@@ -125,6 +129,7 @@ struct SpeakerOut {
     bool directOut = false;
 };
 
+//==============================================================================
 // Spatialization modes.
 typedef enum {
     VBAP = 0,
@@ -133,6 +138,7 @@ typedef enum {
     STEREO
 } ModeSpatEnum;
 
+//==============================================================================
 // Audio recorder class used to write a monophonic soundfile on disk.
 class AudioRecorder
 {
@@ -179,7 +185,7 @@ public:
             }
         }
     }
-
+    //==============================================================================
     void stop() {
         if (activeWriter == nullptr) { return; }
 
@@ -197,22 +203,24 @@ public:
         // Stop the background thread.
         backgroundThread.stopThread(100);
     }
-
+    //==============================================================================
     void recordSamples(float **samples, int numSamples) {
         const ScopedLock sl (writerLock);
         activeWriter.load()->write (samples, numSamples);
     }
-
+    //==============================================================================
     TimeSliceThread backgroundThread; // the thread that will write our audio data to disk
 
 private:
+    //==============================================================================
     std::unique_ptr<AudioFormatWriter::ThreadedWriter> threadedWriter; // the FIFO used to buffer the incoming data
     CriticalSection writerLock;
     std::atomic<AudioFormatWriter::ThreadedWriter*> activeWriter { nullptr };
-
+    //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioRecorder);
 };
 
+//==============================================================================
 class JackClientGris {
 public:
     // class variables.
@@ -312,9 +320,8 @@ public:
     float attenuationLowpassY[MaxInputs];
     float attenuationLowpassZ[MaxInputs];
 
+    //==============================================================================
     // Class methods.
-    //---------------
-
     JackClientGris();
     virtual ~JackClientGris();
 
@@ -365,6 +372,7 @@ public:
     void resetHRTF();
     
 private:
+    //==============================================================================
     // Tells if an error occured while setting up the client.
     bool clientReady;
 
@@ -375,10 +383,10 @@ private:
 
     // This structure is used to compute the VBAP algorithm only once. Each source only gets a copy.
     VBAP_DATA *paramVBap;
-
+    //==============================================================================
     // Connect the server's outputs to the system's inputs.
     void connectedGristoSystem();
-
+    //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(JackClientGris);
 };
 

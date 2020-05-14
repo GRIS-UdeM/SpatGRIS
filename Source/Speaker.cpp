@@ -22,10 +22,12 @@
 #include "MainComponent.h"
 #include "LevelComponent.h"
 
+//==============================================================================
 static double GetFloatPrecision(double value, double precision) {
     return floor((value * pow(10, precision) + 0.5)) / pow(10, precision);
 }
 
+//==============================================================================
 Speaker::Speaker(MainContentComponent *parent, int idS, int outP,
                  float azimuth, float zenith, float radius) {
     this->mainParent = parent;
@@ -40,14 +42,17 @@ Speaker::Speaker(MainContentComponent *parent, int idS, int outP,
     this->vuMeter = new LevelComponent(this, &mGrisFeel, false);
 }
 
+//==============================================================================
 Speaker::~Speaker() {
     delete this->vuMeter;
 }
 
+//==============================================================================
 float Speaker::getLevel() const {
     return this->mainParent->getLevelsOut(this->outputPatch-1);
 }
 
+//==============================================================================
 float Speaker::getAlpha() {
     float alpha;
     if (this->mainParent->isSpeakerLevelShown) {
@@ -55,12 +60,13 @@ float Speaker::getAlpha() {
     } else {
         alpha = 1.0f;
     }
-    if (isnan(alpha)) {
+    if (std::isnan(alpha)) {
         alpha = 0.6f;
     }
     return alpha;
 }
 
+//==============================================================================
 void Speaker::setMuted(bool mute) {
     this->mainParent->muteOutput(this->outputPatch, mute);
     if (mute) {
@@ -68,6 +74,7 @@ void Speaker::setMuted(bool mute) {
     }
 }
 
+//==============================================================================
 void Speaker::setSolo(bool solo) {
     this->mainParent->soloOutput(this->outputPatch, solo);
     if (solo) {
@@ -75,16 +82,20 @@ void Speaker::setSolo(bool solo) {
     }
 }
 
+//==============================================================================
 void Speaker::setColor(Colour color, bool updateLevel) {}
 
+//==============================================================================
 int Speaker::getIdSpeaker() const {
     return this->idSpeaker;
 }
 
+//==============================================================================
 glm::vec3 Speaker::getCoordinate() {
     return this->center / 10.0f ;
 }
 
+//==============================================================================
 void Speaker::setCoordinate(glm::vec3 value) {
     glm::vec3 newP;
     newP.x = atan2(value.z, value.x) / M_PI * 180.0f;
@@ -96,10 +107,12 @@ void Speaker::setCoordinate(glm::vec3 value) {
     this->setAziZenRad(newP);
 }
 
+//==============================================================================
 glm::vec3 Speaker::getAziZenRad() {
     return glm::vec3(this->aziZenRad.x, this->aziZenRad.y, this->aziZenRad.z / 10.0f);
 }
 
+//==============================================================================
 void Speaker::normalizeRadius() {
     if (! getDirectOut()) {
         glm::vec3 v = this->getAziZenRad();
@@ -108,41 +121,50 @@ void Speaker::normalizeRadius() {
     }
 }
 
+//==============================================================================
 void Speaker::setAziZenRad(glm::vec3 value) {
     value.z = value.z * 10.0f;
     this->aziZenRad = value;
     this->newSpheriqueCoord(value);
 }
 
+//==============================================================================
 int Speaker::getOutputPatch() const {
     return this->outputPatch;
 }
 
+//==============================================================================
 void Speaker::setOutputPatch(int value) {
     this->outputPatch = value;
     this->vuMeter->setOutputLab(String(this->outputPatch));
 }
 
+//==============================================================================
 float Speaker::getGain() {
     return this->gain;
 }
 
+//==============================================================================
 void Speaker::setGain(float value) {
     this->gain = value;
 }
 
+//==============================================================================
 float Speaker::getHighPassCutoff() {
     return this->hpCutoff;
 }
 
+//==============================================================================
 void Speaker::setHighPassCutoff(float value) {
     this->hpCutoff = value;
 }
 
+//==============================================================================
 bool Speaker::getDirectOut() {
     return this->directOut;
 }
 
+//==============================================================================
 void Speaker::setDirectOut(bool value) {
     this->directOut = value;
     if (this->directOut) {
@@ -152,22 +174,27 @@ void Speaker::setDirectOut(bool value) {
     }
 }
 
+//==============================================================================
 glm::vec3 Speaker::getMin() {
     return this->min;
 }
 
+//==============================================================================
 glm::vec3 Speaker::getMax() {
     return this->max;
 }
 
+//==============================================================================
 glm::vec3 Speaker::getCenter() {
     return this->center;
 }
 
+//==============================================================================
 bool Speaker::isValid() {
     return (this->min.x < this->max.x && this->min.y < this->max.y && this->min.z < this->max.z);
 }
 
+//==============================================================================
 void Speaker::fix() {
     glm::vec3 _max = (this->max);
 
@@ -186,6 +213,7 @@ void Speaker::fix() {
     }
 }
 
+//==============================================================================
 void Speaker::selectClick(bool select) {
     if (select) {
         this->mainParent->selectSpeaker(this->idSpeaker-1);
@@ -194,16 +222,19 @@ void Speaker::selectClick(bool select) {
     }
 }
 
+//==============================================================================
 bool Speaker::isSelected() {
     return this->selected;
 }
 
+//==============================================================================
 void Speaker::selectSpeaker() {
     this->color = ColorSpeakerSelect;
     this->selected = true;
     this->vuMeter->setSelected(this->selected);
 }
 
+//==============================================================================
 void Speaker::unSelectSpeaker() {
     if (this->directOut) {
         this->color = ColorDirectOutSpeaker;
@@ -214,7 +245,7 @@ void Speaker::unSelectSpeaker() {
     this->vuMeter->setSelected(this->selected);
 }
 
-
+//==============================================================================
 void Speaker::newPosition(glm::vec3 center, glm::vec3 extents) {
     // min = center - extents, max = center + extents
     this->min.x = center.x - extents.x;
@@ -234,6 +265,7 @@ void Speaker::newPosition(glm::vec3 center, glm::vec3 extents) {
                              this->min.z + (this->max.z - this->min.z) / 2.0f);
 }
 
+//==============================================================================
 void Speaker::newSpheriqueCoord(glm::vec3 aziZenRad, glm::vec3 extents) {
     glm::vec3 nCenter;
 
@@ -252,6 +284,7 @@ void Speaker::newSpheriqueCoord(glm::vec3 aziZenRad, glm::vec3 extents) {
     this->newPosition(nCenter);
 }
 
+//==============================================================================
 void Speaker::draw() {
     float transpa = 0.75;
 

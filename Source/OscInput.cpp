@@ -22,24 +22,29 @@
 #include "MainComponent.h"
 #include "Input.h"
 
+//==============================================================================
 OscInput::OscInput(MainContentComponent* parent) {
     this->mainParent = parent;
 }
 
+//==============================================================================
 OscInput::~OscInput() {
     this->disconnect();
 }
 
+//==============================================================================
 bool OscInput::startConnection(int port) {
     bool b = this->connect(port);
     this->addListener(this);
     return b;
 }
 
+//==============================================================================
 bool OscInput::closeConnection() {
     return this->disconnect();
 }
 
+//==============================================================================
 void OscInput::oscBundleReceived(const OSCBundle& bundle) {
     for (auto& element : bundle) {
         if (element.isMessage())
@@ -49,6 +54,7 @@ void OscInput::oscBundleReceived(const OSCBundle& bundle) {
     }
 }
 
+//==============================================================================
 void OscInput::oscMessageReceived(const OSCMessage& message) {
     this->mainParent->setOscLogging(message);
     std::string address = message.getAddressPattern().toString().toStdString();

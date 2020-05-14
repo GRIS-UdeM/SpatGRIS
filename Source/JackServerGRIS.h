@@ -28,20 +28,21 @@
 #include <jack/session.h>
 #include <jack/control.h>
 
+//==============================================================================
 class JackServerGris {
 public:    
     JackServerGris(unsigned int rateV = 48000, unsigned int periodV = 1024, String alsaOutputDevice = String(), int *errorCode = nullptr);
     ~JackServerGris();
-
+    //==============================================================================
     // Only effective with alsa driver.
     Array<String> getAvailableOutputDevices();
-
+    //==============================================================================
     jackctl_server_t *server;
-
 private :
+    //==============================================================================
     unsigned int rateValue;
     unsigned int periodValue;
-
+    //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(JackServerGris);
 };
 

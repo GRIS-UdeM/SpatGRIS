@@ -22,4 +22,6 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
+//==============================================================================
+
 #endif // OSCLOGWINDOW_H

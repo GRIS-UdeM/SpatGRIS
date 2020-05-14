@@ -21,14 +21,17 @@
 
 #include "MainComponent.h"
 
+//==============================================================================
 SpeakerViewComponent::SpeakerViewComponent(MainContentComponent *parent) {
     this->mainParent = parent;
 }
 
+//==============================================================================
 SpeakerViewComponent::~SpeakerViewComponent() {
     this->shutdownOpenGL();
 }
 
+//==============================================================================
 void SpeakerViewComponent::initialise() {
     glClearColor(0.0, 0.0, 0.0, 1.0);
     glColor3f(1.0, 1.0, 1.0);
@@ -46,14 +49,17 @@ void SpeakerViewComponent::initialise() {
     glutInit(&argc, argv);
 }
 
+//==============================================================================
 void SpeakerViewComponent::shutdown() {}
 
+//==============================================================================
 void SpeakerViewComponent::setCamPosition(float angleX, float angleY, float distance) {
     this->camAngleX = angleX;
     this->camAngleY = angleY;
     this->distance = distance;
 }
 
+//==============================================================================
 void SpeakerViewComponent::render() {
     glEnable(GL_DEPTH_TEST);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -184,13 +190,14 @@ void SpeakerViewComponent::render() {
     glFlush();
 }
 
+//==============================================================================
 void SpeakerViewComponent::paint (Graphics& g) {
     g.setColour(Colours::white);
     g.setFont(16);
     g.drawText(this->nameConfig, 18, 18, 300, 30, Justification::left);
 }
 
-
+//==============================================================================
 void SpeakerViewComponent::clickRay() {
     this->clickLeft = false;
     double matModelView[16], matProjection[16];
@@ -241,6 +248,7 @@ void SpeakerViewComponent::clickRay() {
     this->controlOn = false;
 }
 
+//==============================================================================
 void SpeakerViewComponent::mouseDown (const MouseEvent& e) {
     this->deltaClickX = this->camAngleX - e.getPosition().x / this->slowDownFactor;
     this->deltaClickY = this->camAngleY - e.getPosition().y / this->slowDownFactor;
@@ -258,6 +266,7 @@ void SpeakerViewComponent::mouseDown (const MouseEvent& e) {
     }
 }
 
+//==============================================================================
 void SpeakerViewComponent::mouseDrag (const MouseEvent& e) {
     if (e.mods.isLeftButtonDown()) {
         this->camAngleX = e.getPosition().x / this->slowDownFactor + this->deltaClickX;
@@ -266,11 +275,13 @@ void SpeakerViewComponent::mouseDrag (const MouseEvent& e) {
     }
 }
 
+//==============================================================================
 void SpeakerViewComponent::mouseWheelMove(const MouseEvent& e,const MouseWheelDetails& wheel) {
     this->distance -= (wheel.deltaY * ScroolWheelSpeedMouse);
     this->distance = this->distance < 1.0 ? 1.0 : this->distance > 70.0 ? 70.0 : this->distance;
 }
 
+//==============================================================================
 void SpeakerViewComponent::drawBackground() {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -296,6 +307,7 @@ void SpeakerViewComponent::drawBackground() {
     glLoadIdentity();
 }
 
+//==============================================================================
 void SpeakerViewComponent::drawOriginGrid() {
     int i;
     double angle;
@@ -391,6 +403,7 @@ void SpeakerViewComponent::drawOriginGrid() {
     drawTextOnGrid("270", glm::vec3(-0.8, 0,-9.8));
 }
 
+//==============================================================================
 void SpeakerViewComponent::drawText(std::string val, glm::vec3 position, glm::vec3 color,
                                     float scale, bool camLock, float alpha) {
     glPushMatrix();
@@ -412,6 +425,7 @@ void SpeakerViewComponent::drawText(std::string val, glm::vec3 position, glm::ve
     glPopMatrix();
 }
 
+//==============================================================================
 void SpeakerViewComponent::drawTextOnGrid(std::string val, glm::vec3 position, float scale) {
     glPushMatrix();
     glTranslatef(position.x, position.y, position.z);
@@ -429,6 +443,7 @@ void SpeakerViewComponent::drawTextOnGrid(std::string val, glm::vec3 position, f
     glPopMatrix();
 }
 
+//==============================================================================
 void SpeakerViewComponent::drawTrippletConn() {
     for (unsigned int i = 0; i < this->mainParent->getListTriplet().size(); ++i) {
         Speaker *spk1 = this->mainParent->getSpeakerFromOutputPatch(this->mainParent->getListTriplet()[i].id1);
@@ -450,6 +465,7 @@ void SpeakerViewComponent::drawTrippletConn() {
     }
 }
 
+//==============================================================================
 float SpeakerViewComponent::raycast(Speaker *speaker) {
     float t1 = (speaker->getMin().x - this->ray.getPosition().x) / this->ray.getNormal().x;
     float t2 = (speaker->getMax().x - this->ray.getPosition().x) / this->ray.getNormal().x;
@@ -477,8 +493,7 @@ float SpeakerViewComponent::raycast(Speaker *speaker) {
     return tmin;
 }
 
-
-
+//==============================================================================
 bool SpeakerViewComponent::speakerNearCam(glm::vec3 speak1, glm::vec3 speak2) {
     return (sqrt( exp2(speak1.x - this->camPos.x) + exp2(speak1.y - this->camPos.y) +exp2(speak1.z - this->camPos.z) ) <=
             sqrt( exp2(speak2.x - this->camPos.x) + exp2(speak2.y - this->camPos.y) +exp2(speak2.z - this->camPos.z) ));

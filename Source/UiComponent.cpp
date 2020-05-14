@@ -26,11 +26,12 @@
 #include "ServerGrisConstants.h"
 #include "Speaker.h"
 
+//==============================================================================
 static double GetFloatPrecision(double value, double precision) {
     return (floor((value * pow(10, precision) + 0.5)) / pow(10, precision));
 }
 
-// ====================================== BOX ======================================
+//==============================================================================
 Box::Box(GrisLookAndFeel *feel, String title, bool verticalScrollbar, bool horizontalScrollbar) {
     this->title = title;
     this->grisFeel = feel;
@@ -48,22 +49,26 @@ Box::Box(GrisLookAndFeel *feel, String title, bool verticalScrollbar, bool horiz
     addAndMakeVisible(this->viewport);
 }
 
+//==============================================================================
 Box::~Box() {
     this->content->deleteAllChildren();
     delete this->viewport;
     delete this->content;
 }
 
+//==============================================================================
 Component * Box::getContent() {
     return this->content ? this->content : this;
 }
 
+//==============================================================================
 void Box::resized() {
     if (this->viewport) {
         this->viewport->setSize(getWidth(), getHeight());
     }
 }
 
+//==============================================================================
 void Box::correctSize(unsigned int width, unsigned int height) {
     if (this->title != "") {
         this->viewport->setTopLeftPosition(0, 20);
@@ -77,6 +82,7 @@ void Box::correctSize(unsigned int width, unsigned int height) {
     this->getContent()->setSize(width, height);
 }
 
+//==============================================================================
 void Box::paint(Graphics &g) {
     g.setColour(this->bgColour);
     g.fillRect(getLocalBounds());
@@ -88,6 +94,7 @@ void Box::paint(Graphics &g) {
     }
 }
 
+//==============================================================================
 // ====================================== BOX CLIENT ========================================
 BoxClient::BoxClient(MainContentComponent *parent, GrisLookAndFeel *feel) {
     this->mainParent = parent;
@@ -112,8 +119,10 @@ BoxClient::BoxClient(MainContentComponent *parent, GrisLookAndFeel *feel) {
     this->addAndMakeVisible(tableListClient);
 }
 
+//==============================================================================
 BoxClient::~BoxClient() {}
 
+//==============================================================================
 void BoxClient::buttonClicked(Button *button) {
     this->mainParent->getLockClients().lock();
     bool connectedCli = !this->mainParent->getListClientjack().at(button->getName().getIntValue()).connected;
@@ -122,17 +131,20 @@ void BoxClient::buttonClicked(Button *button) {
     this->mainParent->getLockClients().unlock();
 }
 
+//==============================================================================
 void BoxClient::setBounds(int x, int y, int width, int height) {
     this->juce::Component::setBounds(x, y, width, height);
     tableListClient.setSize(width, height);
 }
 
+//==============================================================================
 void BoxClient::updateContentCli() {
     numRows = (unsigned int)this->mainParent->getListClientjack().size();
     tableListClient.updateContent();
     tableListClient.repaint();
 }
 
+//==============================================================================
 void BoxClient::setValue(const int rowNumber, const int columnNumber, const int newRating) {
     this->mainParent->getLockClients().lock();
     if (this->mainParent->getListClientjack().size() > (unsigned int)rowNumber) {
@@ -152,6 +164,7 @@ void BoxClient::setValue(const int rowNumber, const int columnNumber, const int 
     this->mainParent->getLockClients().unlock();
 }
 
+//==============================================================================
 int BoxClient::getValue(const int rowNumber, const int columnNumber) const {
     if ((unsigned int)rowNumber < this->mainParent->getListClientjack().size()) {
         switch (columnNumber) {
@@ -164,6 +177,7 @@ int BoxClient::getValue(const int rowNumber, const int columnNumber) const {
     return -1;
 }
 
+//==============================================================================
 String BoxClient::getText(const int columnNumber, const int rowNumber) const {
     String text = "?";
     if ((unsigned int)rowNumber < this->mainParent->getListClientjack().size()) {
@@ -174,10 +188,12 @@ String BoxClient::getText(const int columnNumber, const int rowNumber) const {
     return text;
 }
 
+//==============================================================================
 int BoxClient::getNumRows() {
     return numRows;
 }
 
+//==============================================================================
 void BoxClient::paintRowBackground(Graphics& g, int rowNumber, int /*width*/, int /*height*/, bool rowIsSelected) {
     if (rowNumber % 2) {
         g.fillAll(this->grisFeel->getBackgroundColour().withBrightness(0.6));
@@ -186,6 +202,7 @@ void BoxClient::paintRowBackground(Graphics& g, int rowNumber, int /*width*/, in
     }
 }
 
+//==============================================================================
 void BoxClient::paintCell(Graphics& g, int rowNumber, int columnId, int width, int height, bool /*rowIsSelected*/) {
     g.setColour(Colours::black);
     g.setFont(12.0f);
@@ -202,6 +219,7 @@ void BoxClient::paintCell(Graphics& g, int rowNumber, int columnId, int width, i
     g.fillRect(width - 1, 0, 1, height);
 }
 
+//==============================================================================
 Component * BoxClient::refreshComponentForCell(int rowNumber, int columnId, bool /*isRowSelected*/,
                                                Component *existingComponentToUpdate) {
     if (columnId == 1) {
@@ -238,6 +256,7 @@ Component * BoxClient::refreshComponentForCell(int rowNumber, int columnId, bool
     return textLabel;
 }
 
+//==============================================================================
 //======================================= About Window ===========================
 AboutWindow::AboutWindow(const String& name, Colour backgroundColour, int buttonsNeeded,
                          MainContentComponent *parent, GrisLookAndFeel *feel):
@@ -310,6 +329,7 @@ AboutWindow::AboutWindow(const String& name, Colour backgroundColour, int button
     this->juce::Component::addAndMakeVisible(this->close);
 }
 
+//==============================================================================
 AboutWindow::~AboutWindow() {
     delete this->imageComponent;
     delete this->title;
@@ -320,10 +340,12 @@ AboutWindow::~AboutWindow() {
     this->mainParent->closeAboutWindow();
 }
 
+//==============================================================================
 void AboutWindow::closeButtonPressed() {
     delete this;
 }
 
+//==============================================================================
 void AboutWindow::buttonClicked(Button *button) {
     delete this;
 }
@@ -361,10 +383,12 @@ OscLogWindow::OscLogWindow(const String& name, Colour backgroundColour, int butt
     this->juce::Component::addAndMakeVisible(this->close);
 }
 
+//==============================================================================
 OscLogWindow::~OscLogWindow() {
     this->mainParent->closeOscLogWindow();
 }
 
+//==============================================================================
 void OscLogWindow::addToLog(String msg) {
     if (this->activated) {
         this->index++;
@@ -380,6 +404,7 @@ void OscLogWindow::addToLog(String msg) {
     }
 }
 
+//==============================================================================
 void OscLogWindow::closeButtonPressed() {
     this->stop.setButtonText("Start");
     this->activated = false;
@@ -387,6 +412,7 @@ void OscLogWindow::closeButtonPressed() {
     delete this;
 }
 
+//==============================================================================
 void OscLogWindow::buttonClicked(Button *button) {
     if (button == &this->stop) {
         if (button->getToggleState()) {

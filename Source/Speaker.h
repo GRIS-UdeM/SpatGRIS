@@ -48,12 +48,14 @@
 class LevelComponent;
 class MainContentComponent;
 
+//==============================================================================
 struct Triplet {
     int id1;
     int id2;
     int id3;
 };
 
+//==============================================================================
 static const glm::vec3 ColorSpeaker          = glm::vec3(0.87, 0.87, 0.87);
 static const glm::vec3 ColorDirectOutSpeaker = glm::vec3(0.25, 0.25, 0.25);
 static const glm::vec3 ColorSpeakerSelect    = glm::vec3(1.00, 0.64, 0.09);
@@ -62,13 +64,14 @@ static const glm::vec3 DefaultCenter         = glm::vec3(0, 0, 0);
 
 static const float Over = 0.02f;
 
+//==============================================================================
 class Speaker final : public ParentLevelComponent
 {
 public:
     Speaker(MainContentComponent *parent = nullptr, int idS = -1, int outP = -1,
             float azimuth = 0.0f, float zenith = 0.0f, float radius = 1.0f);
     ~Speaker() final;
-    
+    //==============================================================================
     bool isSelected();
     void selectSpeaker();
     void unSelectSpeaker();
@@ -118,14 +121,14 @@ public:
     bool isValid();
     void fix();
     void draw() ;
-    
+    //==============================================================================
     int idSpeaker = -1;
     int outputPatch = -1;
-    
 private:
+    //==============================================================================
     void newPosition(glm::vec3 center, glm::vec3 extents = SizeSpeaker);
     void newSpheriqueCoord(glm::vec3 aziZenRad, glm::vec3 extents = SizeSpeaker);
-    
+    //==============================================================================
     glm::vec3 min = glm::vec3(0, 0, 0);
     glm::vec3 max = glm::vec3(0, 0, 0);
     glm::vec3 center;
@@ -145,7 +148,7 @@ private:
     SmallGrisLookAndFeel mGrisFeel;
 
     int directOutChannel; // Not used for output.
-
+    //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Speaker);
 };
 

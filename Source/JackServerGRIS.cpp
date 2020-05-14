@@ -31,8 +31,8 @@
 
 static bool jack_server_log_print = false;
 
+//==============================================================================
 // Jack server utilities.
-
 static void jack_server_log(const char *format, ...) {
     if (jack_server_log_print) {
         char buffer[256];
@@ -44,6 +44,7 @@ static void jack_server_log(const char *format, ...) {
     }
 }
 
+//==============================================================================
 static void print_value(union jackctl_parameter_value value, jackctl_param_type_t type) {
     switch (type) {
         case JackParamInt:
@@ -64,6 +65,7 @@ static void print_value(union jackctl_parameter_value value, jackctl_param_type_
     }
 }
 
+//==============================================================================
 static void print_parameters(const JSList *node_ptr) {
     while (node_ptr != NULL) {
         jackctl_parameter_t *parameter = (jackctl_parameter_t *)node_ptr->data;
@@ -79,25 +81,30 @@ static void print_parameters(const JSList *node_ptr) {
     }
 }
 
+//==============================================================================
 static void print_driver(jackctl_driver_t *driver) {
     jack_server_log("Jack driver = %s\n", jackctl_driver_get_name(driver));
     print_parameters(jackctl_driver_get_parameters(driver));
 }
 
+//==============================================================================
 static void print_internal(jackctl_internal_t *internal) {
     jack_server_log("Jack internal = %s\n", jackctl_internal_get_name(internal));
     print_parameters(jackctl_internal_get_parameters(internal));
 }
 
+//==============================================================================
 static bool on_device_acquire(const char *device_name) {
     jack_server_log("on_device_acquire %s \n", device_name);
     return true;
 }
 
+//==============================================================================
 static void on_device_release(const char *device_name) {
     jack_server_log("on_device_release %s \n", device_name);
 }
 
+//==============================================================================
 static jackctl_parameter_t * jackctl_get_parameter(const JSList *parameters_list, const char *parameter_name) {
     while (parameters_list) {
         if (strcmp(jackctl_parameter_get_name((jackctl_parameter_t *)parameters_list->data), parameter_name) == 0) {
@@ -108,6 +115,7 @@ static jackctl_parameter_t * jackctl_get_parameter(const JSList *parameters_list
     return NULL;
 }
 
+//==============================================================================
 static jackctl_driver_t * jackctl_server_get_driver(jackctl_server_t *server, const char *driver_name) {
     const JSList * node_ptr = jackctl_server_get_drivers_list(server);
     while (node_ptr) {
@@ -119,6 +127,7 @@ static jackctl_driver_t * jackctl_server_get_driver(jackctl_server_t *server, co
     return NULL;
 }
 
+//==============================================================================
 static jackctl_internal_t * jackctl_server_get_internal(jackctl_server_t *server, const char *internal_name) {
     const JSList * node_ptr = jackctl_server_get_internals_list(server);
     while (node_ptr) {
@@ -130,8 +139,8 @@ static jackctl_internal_t * jackctl_server_get_internal(jackctl_server_t *server
     return NULL;
 }
 
+//==============================================================================
 // Jack server class definition.
-
 JackServerGris::JackServerGris(unsigned int rateV, unsigned int periodV, String alsaOutputDevice, int *errorCode) {
     this->rateValue = rateV;
     this->periodValue = periodV;
@@ -233,6 +242,7 @@ JackServerGris::JackServerGris(unsigned int rateV, unsigned int periodV, String 
     }
 }
 
+//==============================================================================
 JackServerGris::~JackServerGris(){
     if (this->server != nullptr) {
         jackctl_server_stop(this->server);
@@ -241,6 +251,7 @@ JackServerGris::~JackServerGris(){
     }
 }
 
+//==============================================================================
 Array<String> JackServerGris::getAvailableOutputDevices() {
     Array<String> devices;
 

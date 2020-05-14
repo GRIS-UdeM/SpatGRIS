@@ -19,6 +19,7 @@
 
 #include "MainWindow.h"
 
+//==============================================================================
 MainWindow::MainWindow(String name) : DocumentWindow(name, Colours::lightgrey,
                                                      DocumentWindow::allButtons)
 {
@@ -61,6 +62,7 @@ MainWindow::MainWindow(String name) : DocumentWindow(name, Colours::lightgrey,
     setVisible(true);
 }
 
+//==============================================================================
 bool MainWindow::exitWinApp() {
     PropertiesFile *props = mcc->applicationProperties.getUserSettings();
     props->setValue("xPosition", this->getScreenX());
@@ -70,6 +72,7 @@ bool MainWindow::exitWinApp() {
     return mcc->exitApp();
 }
 
+//==============================================================================
 ApplicationCommandManager& MainWindow::getApplicationCommandManager() {
     return applicationCommandManager;
 }

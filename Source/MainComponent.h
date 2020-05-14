@@ -40,7 +40,7 @@
 #define STRING2(x) #x
 #define STRING(x) STRING2(x)
 
-//============================
+//==============================================================================
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
@@ -58,6 +58,7 @@
 
 class MainWindow;
 
+//==============================================================================
 // This component lives inside our window, and this is where you should put all your controls and content.
 class MainContentComponent : public juce::Component,
                              public juce::MenuBarModel,
@@ -71,7 +72,7 @@ class MainContentComponent : public juce::Component,
 public:
     MainContentComponent(MainWindow &parent);
     ~MainContentComponent();
-
+    //==============================================================================
     // Exit application.
     bool isPresetModified();
     bool exitApp();
@@ -222,7 +223,7 @@ public:
     int getModeSelected();
 
     void setOscLogging(const OSCMessage& message);
-
+    //==============================================================================
     // App user settings.
     ApplicationProperties applicationProperties;
     int oscInputPort = 18032;
@@ -239,12 +240,12 @@ public:
     bool needToSavePreset = false;
     bool needToSaveSpeakerSetup = false;
     bool needToComputeVbap = true;
-
+    //==============================================================================
     // Widget creation helper.
     juce::TextEditor* addTextEditor(String const& s, juce::String const& emptyS, juce::String const& stooltip,
                               int x, int y, int w, int h, juce::Component* into, int wLab = 80);
 private:
-
+    //==============================================================================
     // Look-and-feel.
     GrisLookAndFeel mGrisFeel;
     SmallGrisLookAndFeel mSmallTextGrisFeel;
@@ -336,6 +337,7 @@ private:
     bool isSphereShown;
     bool isRecording;
 
+    //==============================================================================
     // The following methods implement the ApplicationCommandTarget interface, allowing
     // this window to publish a set of actions it can perform, and which can be mapped
     // onto menus, keypresses, etc.
@@ -343,7 +345,7 @@ private:
     void getAllCommands(juce::Array<juce::CommandID>& commands) override;
     void getCommandInfo(juce::CommandID commandID, juce::ApplicationCommandInfo& result) override;
     bool perform(juce::ApplicationCommandTarget::InvocationInfo const& info) override;
-
+    //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainContentComponent)
 };
 

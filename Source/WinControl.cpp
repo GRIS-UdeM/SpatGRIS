@@ -27,10 +27,12 @@ static const float SourceDiameter = SourceRadius * 2.f;
 
 typedef Point<float> FPoint;
 
+//==============================================================================
 static float DegreeToRadian(float degree) {
     return ((degree * M_PI ) / 180.0f);
 }
 
+//==============================================================================
 static FPoint DegreeToXy(FPoint p, int FieldWidth) {
     float x,y;
     x = -((FieldWidth - SourceDiameter) / 2) * sinf(DegreeToRadian(p.x)) * cosf(DegreeToRadian(p.y));
@@ -38,6 +40,7 @@ static FPoint DegreeToXy(FPoint p, int FieldWidth) {
     return FPoint(x, y);
 }
 
+//==============================================================================
 static FPoint GetSourceAzimElev(FPoint pXY, bool bUseCosElev = false) {
     // Calculate azim in range [0,1], and negate it because zirkonium wants -1 on right side.
     float fAzim = -atan2f(pXY.x, pXY.y) / M_PI;
@@ -60,6 +63,7 @@ static FPoint GetSourceAzimElev(FPoint pXY, bool bUseCosElev = false) {
     return FPoint(fAzim, fElev);
 }
 
+//==============================================================================
 WinControl::WinControl(const String& name, Colour backgroundColour, int buttonsNeeded,
                        MainContentComponent *parent, GrisLookAndFeel *feel)
     : DocumentWindow (name, backgroundColour, buttonsNeeded)
@@ -69,14 +73,17 @@ WinControl::WinControl(const String& name, Colour backgroundColour, int buttonsN
     this->startTimerHz(24);
 }
 
+//==============================================================================
 WinControl::~WinControl() {
     this->mainParent->closeWinControl();
 }
 
+//==============================================================================
 void WinControl::timerCallback() {
     this->repaint();
 }
 
+//==============================================================================
 void WinControl::drawFieldBackground(Graphics& g, const int fieldWH) {
     const int realW = (fieldWH - SourceDiameter);
 
@@ -143,6 +150,7 @@ void WinControl::drawFieldBackground(Graphics& g, const int fieldWH) {
     }
 }
 
+//==============================================================================
 void WinControl::paint (Graphics& g) {
     const int fieldWH = getWidth();     // Same as getHeight()
     const int fieldCenter = fieldWH / 2;
@@ -169,6 +177,7 @@ void WinControl::paint (Graphics& g) {
     }
 }
 
+//==============================================================================
 void WinControl::drawSource(Graphics &g, Input *it, const int fieldWH) {
     const int realW = (fieldWH - SourceDiameter);
     String stringVal;
@@ -197,6 +206,7 @@ void WinControl::drawSource(Graphics &g, Input *it, const int fieldWH) {
     g.drawText(stringVal, tx+5, ty, SourceDiameter+10, SourceDiameter, Justification(Justification::centredLeft), false);
 }
 
+//==============================================================================
 void WinControl::drawSourceSpan(Graphics &g, Input *it, const int fieldWH, const int fieldCenter) {
     Colour colorS = it->getColorJ();
 
@@ -280,11 +290,13 @@ void WinControl::drawSourceSpan(Graphics &g, Input *it, const int fieldWH, const
     }
 }
 
+//==============================================================================
 void WinControl::resized() {
     const int fieldWH = std::min(getWidth(), getHeight());
     this->setSize(fieldWH, fieldWH);
 }
 
+//==============================================================================
 void WinControl::closeButtonPressed() {
     this->mainParent->winControlRect.setBounds(getScreenX(), getScreenY(), getWidth(), getHeight());
     delete this;

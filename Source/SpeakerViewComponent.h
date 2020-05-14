@@ -51,11 +51,12 @@ class Speaker;
 static const int    NbrGridLines = 17;
 static const float  ScroolWheelSpeedMouse = 1.8f;
 
+//==============================================================================
 class SpeakerViewComponent : public OpenGLAppComponent {
 public:
     SpeakerViewComponent(MainContentComponent *parent = nullptr);
     ~SpeakerViewComponent();
-    
+    //==============================================================================
     void initialise() override;
     void shutdown() override;
     
@@ -77,9 +78,8 @@ public:
     float getCamDistance() { return this->distance; };
 
     void setCamPosition(float angleX, float angleY, float distance);
-    
 private:
-    
+    //==============================================================================
     float raycast(Speaker *speaker);
     bool speakerNearCam(glm::vec3 speak1, glm::vec3 speak2);
     
@@ -90,7 +90,7 @@ private:
     void drawTextOnGrid(std::string val, glm::vec3 position,float scale = 0.003f);
     
     void drawTrippletConn();
-    
+    //==============================================================================
     bool showShpere = false;
     bool showNumber = false;
     bool clickLeft  = false;
@@ -115,11 +115,11 @@ private:
     MainContentComponent *mainParent;
     glm::vec3 camPos;
 
-    String nameConfig = "...";
+    juce::String nameConfig = "...";
     
     GLdouble xS, yS, zS = 0;
     GLdouble xE, yE, zE = 0;
-
+    //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SpeakerViewComponent)
 };
 

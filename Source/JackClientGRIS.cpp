@@ -28,11 +28,13 @@
 
 static bool jack_client_log_print = false;
 
+//==============================================================================
 // Utilities.
 static bool int_vector_contains(std::vector<int> vec, int value) {
     return (std::find(vec.begin(), vec.end(), value) != vec.end());
 }
 
+//==============================================================================
 static void jack_client_log(const char* format, ...) {
     if (jack_client_log_print) {
         char buffer[256];
@@ -44,6 +46,7 @@ static void jack_client_log(const char* format, ...) {
     }
 }
 
+//==============================================================================
 // Mute - solo / Meter In - Meter Out.
 static void muteSoloVuMeterIn(JackClientGris &jackCli, jack_default_audio_sample_t **ins,
                               const jack_nframes_t &nframes, const unsigned int &sizeInputs) {
@@ -67,6 +70,7 @@ static void muteSoloVuMeterIn(JackClientGris &jackCli, jack_default_audio_sample
     }
 }
 
+//==============================================================================
 static void muteSoloVuMeterGainOut(JackClientGris &jackCli, jack_default_audio_sample_t **outs,
                                    const jack_nframes_t &nframes, const unsigned int &sizeOutputs,
                                    const float mGain = 1.0f) {
@@ -152,6 +156,7 @@ static void muteSoloVuMeterGainOut(JackClientGris &jackCli, jack_default_audio_s
     }
 }
 
+//==============================================================================
 static void addNoiseSound(JackClientGris &jackCli, jack_default_audio_sample_t **outs,
                           const jack_nframes_t &nframes, const unsigned int &sizeOutputs) {
     float rnd;
@@ -176,6 +181,7 @@ static void addNoiseSound(JackClientGris &jackCli, jack_default_audio_sample_t *
     }
 }
 
+//==============================================================================
 // VBAP processing function.
 static void processVBAP(JackClientGris &jackCli, jack_default_audio_sample_t **ins, jack_default_audio_sample_t **outs,
                         const jack_nframes_t &nframes, const unsigned int &sizeInputs, const unsigned int &sizeOutputs)
@@ -229,6 +235,7 @@ static void processVBAP(JackClientGris &jackCli, jack_default_audio_sample_t **i
     }
 }
 
+//==============================================================================
 // LBAP processing function.
 static void processLBAP(JackClientGris &jackCli, jack_default_audio_sample_t **ins, jack_default_audio_sample_t **outs,
                         const jack_nframes_t &nframes, const unsigned int &sizeInputs, const unsigned int &sizeOutputs)
@@ -295,7 +302,7 @@ static void processLBAP(JackClientGris &jackCli, jack_default_audio_sample_t **i
             jackCli.attenuationLowpassZ[i] = filtInZ;
             jackCli.lastAttenuationGain[i] = distgain;
             jackCli.lastAttenuationCoef[i] = distcoef;
-            //----------------------------------------------------------------------------------------
+            //==============================================================================
 
             for (o = 0; o < sizeOutputs; ++o) {
                 gain = jackCli.listSourceIn[i].lbap_gains[o];
@@ -330,6 +337,7 @@ static void processLBAP(JackClientGris &jackCli, jack_default_audio_sample_t **i
     }
 }
 
+//==============================================================================
 // BINAURAL processing function.
 static void processVBapHRTF(JackClientGris &jackCli, jack_default_audio_sample_t **ins, jack_default_audio_sample_t **outs,
                             const jack_nframes_t &nframes, const unsigned int &sizeInputs, const unsigned int &sizeOutputs)
@@ -418,6 +426,7 @@ static void processVBapHRTF(JackClientGris &jackCli, jack_default_audio_sample_t
     }
 }
 
+//==============================================================================
 // STEREO processing function.
 static void processSTEREO(JackClientGris &jackCli, jack_default_audio_sample_t **ins, jack_default_audio_sample_t **outs,
                         const jack_nframes_t &nframes, const unsigned int &sizeInputs, const unsigned int &sizeOutputs)
@@ -530,7 +539,7 @@ static int process_audio(jack_nframes_t nframes, void *arg) {
     return 0;
 }
 
-
+//==============================================================================
 // Jack callback functions.
 void session_callback(jack_session_event_t *event, void *arg) {
     JackClientGris *jackCli = (JackClientGris *)arg;
@@ -548,6 +557,7 @@ void session_callback(jack_session_event_t *event, void *arg) {
     jack_session_event_free(event);
 }
 
+//==============================================================================
 int graph_order_callback(void *arg) {
     JackClientGris *jackCli = (JackClientGris *)arg;
     jack_client_log("graph_order_callback...\n");
@@ -556,6 +566,7 @@ int graph_order_callback(void *arg) {
     return 0;
 }
 
+//==============================================================================
 int xrun_callback(void * arg) {
     JackClientGris *jackCli = (JackClientGris *)arg;
     jackCli->overload = true;
@@ -563,6 +574,7 @@ int xrun_callback(void * arg) {
     return 0;
 }
 
+//==============================================================================
 void jack_shutdown(void *arg) {
     AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon, "FATAL ERROR",
                                      "Please check :\n - Buffer Size\n - Sample Rate\n - Inputs/Outputs");
@@ -570,6 +582,7 @@ void jack_shutdown(void *arg) {
     exit(1);
 }
 
+//==============================================================================
 void client_registration_callback(const char *name, int regist, void *arg) {
     JackClientGris *jackCli = (JackClientGris *)arg;
     jack_client_log("Jack client registration : %s : " , name);
@@ -596,6 +609,7 @@ void client_registration_callback(const char *name, int regist, void *arg) {
     jackCli->lockListClient.unlock();
 }
 
+//==============================================================================
 void port_registration_callback(jack_port_id_t a, int regist, void *arg) {
     jack_client_log("Jack port : % : " , a);
     if (regist) {
@@ -605,6 +619,7 @@ void port_registration_callback(jack_port_id_t a, int regist, void *arg) {
     }
 }
 
+//==============================================================================
 void port_connect_callback(jack_port_id_t a, jack_port_id_t b, int connect, void *arg) {
     JackClientGris *jackCli = (JackClientGris *)arg;
     jack_client_log("Jack port : ");
@@ -627,6 +642,7 @@ void port_connect_callback(jack_port_id_t a, jack_port_id_t b, int connect, void
     jack_client_log("% <> % \n", a, b);
 }
 
+//==============================================================================
 // Load samples from a wav file into a float array.
 static float ** getSamplesFromWavFile(String filename) {
     float const factor = powf(2.0f, 31.0f);
@@ -653,6 +669,7 @@ static float ** getSamplesFromWavFile(String filename) {
     return samples;
 }
 
+//==============================================================================
 // JackClientGris class definition.
 JackClientGris::JackClientGris() {
     // Initialize variables.
@@ -840,6 +857,7 @@ JackClientGris::JackClientGris() {
     this->clientReady = true;
 }
 
+//==============================================================================
 void JackClientGris::resetHRTF() {
     for (unsigned int i=0; i<16; i++) {
         this->hrtf_count[i] = 0;
@@ -849,6 +867,7 @@ void JackClientGris::resetHRTF() {
     }
 }
 
+//==============================================================================
 void JackClientGris::prepareToRecord() {
     int num_of_channels;
     if (this->outputsPort.size() < 1) {
@@ -886,6 +905,7 @@ void JackClientGris::prepareToRecord() {
     }
 }
 
+//==============================================================================
 void JackClientGris::addRemoveInput(unsigned int number) {
     if (number < this->inputsPort.size()) {
         while (number < this->inputsPort.size()) {
@@ -903,6 +923,7 @@ void JackClientGris::addRemoveInput(unsigned int number) {
     connectedGristoSystem();
 }
 
+//==============================================================================
 void JackClientGris::clearOutput() {
     int outS = (int)this->outputsPort.size();
     for (int i = 0; i < outS; i++) {
@@ -911,6 +932,7 @@ void JackClientGris::clearOutput() {
     }
 }
 
+//==============================================================================
 bool JackClientGris::addOutput(unsigned int outputPatch) {
     if (outputPatch > this->maxOutputPatch)
         this->maxOutputPatch = outputPatch;
@@ -923,11 +945,13 @@ bool JackClientGris::addOutput(unsigned int outputPatch) {
     return true;
 }
 
+//==============================================================================
 void JackClientGris::removeOutput(int number) {
     jack_port_unregister(client, this->outputsPort.at(number));
     this->outputsPort.erase(this->outputsPort.begin() + number);
 }
 
+//==============================================================================
 std::vector<int> JackClientGris::getDirectOutOutputPatches() {
     std::vector<int> directOutOutputPatches;
     for (auto&& it : listSpeakerOut) {
@@ -937,6 +961,7 @@ std::vector<int> JackClientGris::getDirectOutOutputPatches() {
     return directOutOutputPatches;
 }
 
+//==============================================================================
 void JackClientGris::connectedGristoSystem() {
     String nameOut;
     this->clearOutput();
@@ -998,6 +1023,7 @@ void JackClientGris::connectedGristoSystem() {
     jack_free(portsOut);
 }
 
+//==============================================================================
 bool JackClientGris::initSpeakersTripplet(std::vector<Speaker*> const& listSpk,
                                           int dimensions, bool needToComputeVbap) {
     int j;
@@ -1057,6 +1083,7 @@ bool JackClientGris::initSpeakersTripplet(std::vector<Speaker*> const& listSpk,
     return true;
 }
 
+//==============================================================================
 bool JackClientGris::lbapSetupSpeakerField(std::vector<Speaker*> const& listSpk) {
     int j;
     if (listSpk.size() <= 0) {
@@ -1092,14 +1119,17 @@ bool JackClientGris::lbapSetupSpeakerField(std::vector<Speaker*> const& listSpk)
     return true;
 }
 
+//==============================================================================
 void JackClientGris::setAttenuationDB(float value) {
     this->attenuationLinearGain[0] = value;
 }
 
+//==============================================================================
 void JackClientGris::setAttenuationHz(float value) {
     this->attenuationLowpassCoeff[0] = value;
 }
 
+//==============================================================================
 void JackClientGris::updateSourceVbap(int idS) {
     if (this->vbapDimensions == 3) {
         if (listSourceIn[idS].paramVBap != nullptr) {
@@ -1116,6 +1146,7 @@ void JackClientGris::updateSourceVbap(int idS) {
     }
 }
 
+//==============================================================================
 void JackClientGris::connectionClient(String name, bool connect) {
     const char **portsOut = jack_get_ports(this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput);
     const char **portsIn = jack_get_ports(this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput);
@@ -1192,6 +1223,7 @@ void JackClientGris::connectionClient(String name, bool connect) {
     jack_free(portsOut);
 }
 
+//==============================================================================
 std::string JackClientGris::getClientName(const char *port) {
     if (port) {
         jack_port_t *tt = jack_port_by_name(this->client, port);
@@ -1204,6 +1236,7 @@ std::string JackClientGris::getClientName(const char *port) {
     return "";
 }
 
+//==============================================================================
 void JackClientGris::updateClientPortAvailable(bool fromJack) {
     const char **portsOut = jack_get_ports(this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput);
     int i = 0;
@@ -1291,8 +1324,9 @@ void JackClientGris::updateClientPortAvailable(bool fromJack) {
     jack_free(portsOut);
 }
 
+//==============================================================================
 JackClientGris::~JackClientGris() {
-    // TOFIX: this->paramVBap and this->listSourceIn->paramVBap are never deallocated.
+    // TODO: this->paramVBap and this->listSourceIn->paramVBap are never deallocated.
 
     lbap_field_free(this->lbap_speaker_field);
 

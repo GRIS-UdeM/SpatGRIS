@@ -38,7 +38,7 @@ public:
         // This method is where you should put your application's initialisation code..
         mainWindow.reset(new MainWindow(getApplicationName()));
     }
-
+    //==============================================================================
     void shutdown() override {
         // Add your application's shutdown code here..
         mainWindow = nullptr;
@@ -52,7 +52,7 @@ public:
             quit();
         }        
     }
-
+    //==============================================================================
     void anotherInstanceStarted (const String& commandLine) override {
         // When another instance of the app is launched while this one is running,
         // this method is invoked, and the commandLine parameter tells you what
@@ -60,8 +60,11 @@ public:
     }
 
 private:
+    //==============================================================================
     GrisLookAndFeel mGrisFeel;
     std::unique_ptr<MainWindow> mainWindow;
+    //==============================================================================
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SpatGRIS2Application);
 };
 
 //==============================================================================

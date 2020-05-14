@@ -25,6 +25,7 @@
 class MainContentComponent;
 class GrisLookAndFeel;
 
+//==============================================================================
 class PropertiesComponent : public juce::Component,
                             public TextButton::Listener
 {
@@ -41,15 +42,15 @@ public:
                          int indAttHz,
                          int oscPort );
     ~PropertiesComponent() = default;
-
+    //==============================================================================
     Label * createPropLabel(juce::String const& lab, Justification::Flags just, int ypos, int width = 100);
     TextEditor * createPropIntTextEditor(juce::String const& tooltip, int ypos, int init);
     ComboBox * createPropComboBox(juce::StringArray const& choices, int selected, int ypos);
 
     void buttonClicked(Button *button);
     void closeButtonPressed();
-
 private:
+    //==============================================================================
     MainContentComponent& mainContentComponent;
     GrisLookAndFeel& grisFeel;
 
@@ -83,15 +84,17 @@ private:
     std::unique_ptr<ComboBox> cobDistanceCutoff;
 
     std::unique_ptr<TextButton> butValidSettings;
-
+    //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PropertiesComponent);
 };
 
+//==============================================================================
 class PropertiesWindow : public juce::DocumentWindow
 {
     MainContentComponent& mainContentComponent;
     PropertiesComponent propertiesComponent;
 public:
+    //==============================================================================
     PropertiesWindow( MainContentComponent& parent,
                       GrisLookAndFeel& feel, Array<String> const & devices,
                       String const & currentDevice,
@@ -103,9 +106,10 @@ public:
                       int indAttHz = 3,
                       int oscPort  = 18032 );
     ~PropertiesWindow() = default;
-
+    //==============================================================================
     void closeButtonPressed() override;
 private:
+    //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PropertiesWindow);
 };
 

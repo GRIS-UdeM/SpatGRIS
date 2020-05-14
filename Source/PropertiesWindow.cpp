@@ -21,7 +21,7 @@
 #include "MainComponent.h"
 #include "GrisLookAndFeel.h"
 
-// ============================ PropertiesComponent ===========================
+//==============================================================================
 Label * PropertiesComponent::createPropLabel(juce::String const& lab, Justification::Flags const just, int const ypos, int const width) {
     Label *label = new Label();
     label->setText(lab, NotificationType::dontSendNotification);
@@ -34,6 +34,7 @@ Label * PropertiesComponent::createPropLabel(juce::String const& lab, Justificat
     return label;
 }
 
+//==============================================================================
 TextEditor * PropertiesComponent::createPropIntTextEditor(juce::String const& tooltip, int ypos, int init) {
     TextEditor *editor = new TextEditor();
     editor->setTooltip(tooltip);
@@ -49,6 +50,7 @@ TextEditor * PropertiesComponent::createPropIntTextEditor(juce::String const& to
     return editor;
 }
 
+//==============================================================================
 ComboBox * PropertiesComponent::createPropComboBox(juce::StringArray const& choices, int const selected, int const ypos) {
     ComboBox *combo = new ComboBox();
     combo->addItemList(choices, 1);
@@ -59,6 +61,7 @@ ComboBox * PropertiesComponent::createPropComboBox(juce::StringArray const& choi
     return combo;
 }
 
+//==============================================================================
 PropertiesComponent::PropertiesComponent( MainContentComponent& parent,
                                           GrisLookAndFeel& lookAndFeel,
                                           Array<String> const& devices,
@@ -134,10 +137,12 @@ PropertiesComponent::PropertiesComponent( MainContentComponent& parent,
     this->addAndMakeVisible(this->butValidSettings.get());
 }
 
+//==============================================================================
 void PropertiesWindow::closeButtonPressed() {
     this->mainContentComponent.closePropertiesWindow();
 }
 
+//==============================================================================
 void PropertiesComponent::buttonClicked(Button *button) {
     if (button == this->butValidSettings.get()) {
         this->mainContentComponent.saveProperties(this->cobDevice.get() != nullptr ? this->cobDevice->getText() : juce::String{},
@@ -152,6 +157,7 @@ void PropertiesComponent::buttonClicked(Button *button) {
     }
 }
 
+//==============================================================================
 PropertiesWindow::PropertiesWindow( MainContentComponent& parent,
                                     GrisLookAndFeel& lookAndFeel,
                                     Array<String> const & devices,

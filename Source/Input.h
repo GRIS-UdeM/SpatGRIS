@@ -48,17 +48,18 @@
 class MainContentComponent;
 class LevelComponent;
 
+//==============================================================================
 class Input : public ParentLevelComponent
 {
 public :
     Input(MainContentComponent * parent, SmallGrisLookAndFeel * feel, int id = 0);
     ~Input() = default;
-
+    //==============================================================================
     void setMuted(bool mute);
     void setSolo(bool solo);
     void selectClick(bool select = true) {};
     void setColor(Colour color, bool updateLevel = false);
-
+    //==============================================================================
     MainContentComponent const& getMainContentComponent() const { return *this->mainParent; }
     MainContentComponent& getMainContentComponent() { return *this->mainParent; }
     LevelComponent const * getVuMeter() const { return this->vuMeter.get(); }
@@ -75,20 +76,18 @@ public :
     float getAziMuth() const { return this->azimuth; }
     float getZenith() const { return this->zenith; }
     float getRadius() const { return this->radius; }
-
-    glm::vec3 polToCar(float azimuth, float zenith) const;
-    glm::vec3 polToCar3d(float azimuth, float zenith) const;
-    
     float getAziMuthSpan() const { return this->azimSpan; }
     float getZenithSpan()  const { return this->zeniSpan; }
-
     float getGain() const { return this->gain; }
-
+    //==============================================================================
+    glm::vec3 polToCar(float azimuth, float zenith) const;
+    glm::vec3 polToCar3d(float azimuth, float zenith) const;
+    //==============================================================================
     void resetPosition();
     void draw();
     void updateValues(float az, float ze, float azS, float zeS, float radius, float g, int mode);
     void updateValuesOld(float az, float ze, float azS, float zeS, float g);
-
+    //==============================================================================
     bool isInput() const final { return true; }
     void changeDirectOutChannel(int chn) final;
     void setDirectOutChannel(int chn) final;
@@ -98,6 +97,7 @@ public :
     void drawSpan();
     void drawSpanLBAP(float x, float y, float z);
 private:
+    //==============================================================================
     MainContentComponent * mainParent;
 
     int idChannel;
@@ -118,7 +118,7 @@ private:
     
     std::unique_ptr<LevelComponent> vuMeter{};
     SmallGrisLookAndFeel *grisFeel;
-
+    //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Input);
 };
 

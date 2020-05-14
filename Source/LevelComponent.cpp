@@ -22,13 +22,13 @@
 #include "MainComponent.h"
 #include "Speaker.h"
 
+//==============================================================================
 //========================== LevelBox =============================
 LevelBox::LevelBox(LevelComponent * parent, SmallGrisLookAndFeel *feel) : mainParent(parent),
                                                                           grisFeel(feel) 
 {}
 
-LevelBox::~LevelBox() {}
-
+//==============================================================================
 void LevelBox::setBounds(const juce::Rectangle<int> &newBounds) {
     // LevelBox size is (22, 140)
     this->juce::Component::setBounds(newBounds);
@@ -77,6 +77,7 @@ void LevelBox::setBounds(const juce::Rectangle<int> &newBounds) {
     }
 }
 
+//==============================================================================
 void LevelBox::paint(Graphics& g) {
     if (this->mainParent->isMuted()) {
         g.drawImage(this->vumeterMutedBit, 0, 0, 22, 140, 0, 0, 22, 140);
@@ -101,6 +102,7 @@ void LevelBox::paint(Graphics& g) {
     }
 }
 
+//==============================================================================
 void LevelBox::mouseDown(const MouseEvent& e) {
     juce::Rectangle<int> hitBox (0, 0, getWidth(), 20);
     if (hitBox.contains(e.getPosition())) {
@@ -108,11 +110,13 @@ void LevelBox::mouseDown(const MouseEvent& e) {
     }
 }
 
+//==============================================================================
 void LevelBox::resetClipping() {
     isClipping = false;
     repaint(); 
 }
 
+//==============================================================================
 //======================== LevelComponent ===========================
 LevelComponent::LevelComponent(ParentLevelComponent *parent, SmallGrisLookAndFeel *feel, bool colorful)
 {
@@ -172,6 +176,7 @@ LevelComponent::LevelComponent(ParentLevelComponent *parent, SmallGrisLookAndFee
     this->addAndMakeVisible(this->levelBox.get());
 }
 
+//==============================================================================
 void LevelComponent::updateDirectOutMenu(juce::OwnedArray<Speaker> & spkList) {
     if (this->mainParent->isInput()) {
         this->directOutSpeakers.clear();
@@ -183,6 +188,7 @@ void LevelComponent::updateDirectOutMenu(juce::OwnedArray<Speaker> & spkList) {
     }
 }
 
+//==============================================================================
 void LevelComponent::buttonClicked(Button *button) {
     if (button == this->muteToggleBut.get()) {
         this->mainParent->setMuted(this->muteToggleBut->getToggleState());
@@ -234,6 +240,7 @@ void LevelComponent::buttonClicked(Button *button) {
     }
 }
 
+//==============================================================================
 void LevelComponent::mouseDown(const MouseEvent& e) {
     if (e.mods.isRightButtonDown()) {
         this->lastMouseButton = 0;
@@ -242,6 +249,7 @@ void LevelComponent::mouseDown(const MouseEvent& e) {
     }
 }
 
+//==============================================================================
 void LevelComponent::changeListenerCallback(ChangeBroadcaster* source) {
     if (ColourSelector *cs = dynamic_cast<ColourSelector *> (source)) {
         this->idBut->setColour(TextButton::buttonColourId, cs->getCurrentColour());
@@ -257,18 +265,21 @@ void LevelComponent::changeListenerCallback(ChangeBroadcaster* source) {
     }
 }
 
+//==============================================================================
 void LevelComponent::resetClipping() {
     this->levelBox->resetClipping();
 }
 
+//==============================================================================
 float LevelComponent::getLevel() {
     return level;
 }
 
+//==============================================================================
 void LevelComponent::update() {
     float l = this->mainParent->getLevel();
 
-    if (isnan(l)) { 
+    if (std::isnan(l)) {
         return;
     }
 
@@ -278,11 +289,12 @@ void LevelComponent::update() {
     this->level = l;
 }
 
-
+//==============================================================================
 bool LevelComponent::isMuted() {
     return this->muteToggleBut->getToggleState();
 }
 
+//==============================================================================
 void LevelComponent::setSelected(bool value) {
     const MessageManagerLock mmLock;
     if (value) {
@@ -296,6 +308,7 @@ void LevelComponent::setSelected(bool value) {
     }
 }
 
+//==============================================================================
 void LevelComponent::setBounds(const juce::Rectangle<int> &newBounds) {
     int levelSize = 140;
 

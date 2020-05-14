@@ -22,6 +22,7 @@
 #include "LevelComponent.h"
 #include "MainWindow.h"
 
+//==============================================================================
 // Audio recorder class used to write an interleaved multi-channel soundfile on disk.
 class AudioRenderer : public ThreadWithProgressWindow
 {
@@ -30,16 +31,14 @@ public:
         setStatusMessage("Initializing...");
     }
 
-    ~AudioRenderer() {
-    }
-
+    ~AudioRenderer() override = default;
     //==============================================================================
     void prepareRecording(const File& file, const Array<File> filenames, unsigned int sampleRate) {
         this->fileToRecord = file;
         this->filenames = filenames;
         this->sampleRate = sampleRate;
     }
-
+    //==============================================================================
     void run() override {
         unsigned int numberOfPasses = 0;
         unsigned int const blockSize = 2048;
@@ -127,14 +126,17 @@ public:
         // Clean up by deleting our thread object.
         delete this;
     }
-
 private:
+    //==============================================================================
     AudioFormatManager formatManager;
     File fileToRecord;
     Array<File> filenames;
     unsigned int sampleRate;
+    //==============================================================================
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioRenderer);
 };
 
+//==============================================================================
 MainContentComponent::MainContentComponent(MainWindow& parent)
     : parent(parent)
 {
@@ -360,6 +362,7 @@ MainContentComponent::MainContentComponent(MainWindow& parent)
     }
 }
 
+//==============================================================================
 MainContentComponent::~MainContentComponent() {
     PropertiesFile *props = this->applicationProperties.getUserSettings();
     props->setValue("lastOpenPreset", this->pathCurrentPreset);
@@ -378,6 +381,7 @@ MainContentComponent::~MainContentComponent() {
     this->lockInputs.unlock();
 }
 
+//==============================================================================
 // Widget builder utilities.
 Label* MainContentComponent::addLabel(const String &s, const String &stooltip,
                                       int x, int y, int w, int h, Component *into) {
@@ -393,6 +397,7 @@ Label* MainContentComponent::addLabel(const String &s, const String &stooltip,
     return lb;
 }
 
+//==============================================================================
 TextButton* MainContentComponent::addButton(const String &s, const String &stooltip,
                                             int x, int y, int w, int h, Component *into) {
     TextButton *tb = new TextButton();
@@ -407,6 +412,7 @@ TextButton* MainContentComponent::addButton(const String &s, const String &stool
     return tb;
 }
 
+//==============================================================================
 ToggleButton* MainContentComponent::addToggleButton(const String &s, const String &stooltip,
                                                     int x, int y, int w, int h, Component *into, bool toggle) {
     ToggleButton *tb = new ToggleButton();
@@ -422,6 +428,7 @@ ToggleButton* MainContentComponent::addToggleButton(const String &s, const Strin
     return tb;
 }
 
+//==============================================================================
 TextEditor* MainContentComponent::addTextEditor(const String &s, const String &emptyS, const String &stooltip,
                                                 int x, int y, int w, int h, Component *into, int wLab) {
     TextEditor *te = new TextEditor();
@@ -443,6 +450,7 @@ TextEditor* MainContentComponent::addTextEditor(const String &s, const String &e
     return te;
 }
 
+//==============================================================================
 Slider* MainContentComponent::addSlider(const String &s, const String &stooltip,
                                         int x, int y, int w, int h, Component *into) {
     Slider *sd = new Slider();
@@ -459,6 +467,7 @@ Slider* MainContentComponent::addSlider(const String &s, const String &stooltip,
     return sd;
 }
 
+//==============================================================================
 ComboBox* MainContentComponent::addComboBox(const String &s, const String &stooltip,
                                             int x, int y, int w, int h, Component *into) {
     ComboBox *cb = new ComboBox();
@@ -471,6 +480,7 @@ ComboBox* MainContentComponent::addComboBox(const String &s, const String &stool
     return cb;
 }
 
+//==============================================================================
 // Menu item action handlers.
 void MainContentComponent::handleNew() {
     AlertWindow alert ("Closing current preset !", "Do you want to save ?", AlertWindow::InfoIcon);
@@ -489,6 +499,7 @@ void MainContentComponent::handleNew() {
     this->openPreset(DefaultPresetFilePath);
 }
 
+//==============================================================================
 void MainContentComponent::handleOpenPreset() {
     String dir = this->applicationProperties.getUserSettings()->getValue("lastPresetDirectory");
     if (! File(dir).isDirectory()) {
@@ -534,6 +545,7 @@ void MainContentComponent::handleOpenPreset() {
     }
 }
 
+//==============================================================================
 void MainContentComponent::handleSavePreset() {
     if (! File(this->pathCurrentPreset).existsAsFile() || this->pathCurrentPreset.endsWith("default_preset/default_preset.xml")) {
         this->handleSaveAsPreset();
@@ -541,6 +553,7 @@ void MainContentComponent::handleSavePreset() {
     this->savePreset(this->pathCurrentPreset);
 }
 
+//==============================================================================
 void MainContentComponent::handleSaveAsPreset() {
     String dir = this->applicationProperties.getUserSettings()->getValue("lastPresetDirectory");
     if (! File(dir).isDirectory()) {
@@ -556,6 +569,7 @@ void MainContentComponent::handleSaveAsPreset() {
     }
 }
 
+//==============================================================================
 void MainContentComponent::handleOpenSpeakerSetup() {
     String dir = this->applicationProperties.getUserSettings()->getValue("lastSpeakerSetupDirectory");
     if (! File(dir).isDirectory()) {
@@ -580,6 +594,7 @@ void MainContentComponent::handleOpenSpeakerSetup() {
     }
 }
 
+//==============================================================================
 void MainContentComponent::handleSaveAsSpeakerSetup() {
     String dir = this->applicationProperties.getUserSettings()->getValue("lastSpeakerSetupDirectory");
     if (! File(dir).isDirectory() || dir.endsWith("/default_preset")) {
@@ -595,6 +610,7 @@ void MainContentComponent::handleSaveAsSpeakerSetup() {
     }
 }
 
+//==============================================================================
 void MainContentComponent::handleShowSpeakerEditWindow() {
 	juce::Rectangle<int> result (this->getScreenX() + this->speakerView->getWidth() + 20, this->getScreenY() + 20, 850, 600);
     if (this->winSpeakConfig == nullptr) {
@@ -612,6 +628,7 @@ void MainContentComponent::handleShowSpeakerEditWindow() {
     this->winSpeakConfig->repaint();
 }
 
+//==============================================================================
 void MainContentComponent::handleShowPreferences() {
     PropertiesFile *props = this->applicationProperties.getUserSettings();
     if (this->windowProperties == nullptr) {
@@ -653,6 +670,7 @@ void MainContentComponent::handleShowPreferences() {
     this->windowProperties->repaint();
 }
 
+//==============================================================================
 void MainContentComponent::handleShow2DView() {
     if (this->winControlSource == nullptr) {
         this->winControlSource.reset(new WinControl("2D View", this->mGrisFeel.getWinBackgroundColour(), DocumentWindow::allButtons, this, &this->mGrisFeel));
@@ -671,6 +689,7 @@ void MainContentComponent::handleShow2DView() {
     this->winControlSource->setVisible(true);
 }
 
+//==============================================================================
 void MainContentComponent::handleShowOscLogView() {
     if (this->oscLogWindow == nullptr) {
         this->oscLogWindow = new OscLogWindow("OSC Logging Windows", this->mGrisFeel.getWinBackgroundColour(),
@@ -683,6 +702,7 @@ void MainContentComponent::handleShowOscLogView() {
     this->oscLogWindow->repaint();
 }
 
+//==============================================================================
 void MainContentComponent::handleShowAbout() {
     if (this->aboutWindow == nullptr) {
         this->aboutWindow = new AboutWindow("About SpatGRIS", this->mGrisFeel.getWinBackgroundColour(),
@@ -695,6 +715,7 @@ void MainContentComponent::handleShowAbout() {
     this->aboutWindow->repaint();
 }
 
+//==============================================================================
 void MainContentComponent::handleOpenManual() {
     File fs = File(ServerGrisManualFilePath);
     if (fs.exists()) {
@@ -702,28 +723,34 @@ void MainContentComponent::handleOpenManual() {
     }
 }
 
+//==============================================================================
 void MainContentComponent::handleShowNumbers() {
     this->setShowNumbers(!this->isNumbersShown);
 }
 
+//==============================================================================
 void MainContentComponent::setShowNumbers(bool state) {
     this->isNumbersShown = state;
     this->speakerView->setShowNumber(state);
 }
 
+//==============================================================================
 void MainContentComponent::handleShowSpeakers() {
     this->setShowSpeakers(!this->isSpeakersShown);
 }
 
+//==============================================================================
 void MainContentComponent::setShowSpeakers(bool state) {
     this->isSpeakersShown = state;
     this->speakerView->setHideSpeaker(!state);
 }
 
+//==============================================================================
 void MainContentComponent::handleShowTriplets() {
     this->setShowTriplets(!this->isTripletsShown);
 }
 
+//==============================================================================
 void MainContentComponent::setShowTriplets(bool state) {
     if (this->getModeSelected() == LBAP && state == true) {
         AlertWindow alert ("Can't draw triplets !",
@@ -747,6 +774,7 @@ void MainContentComponent::setShowTriplets(bool state) {
     }
 }
 
+//==============================================================================
 bool MainContentComponent::validateShowTriplets() {
     int success = true;
     for (unsigned int i = 0; i < this->getListTriplet().size(); ++i) {
@@ -762,25 +790,30 @@ bool MainContentComponent::validateShowTriplets() {
     return success;
 }
 
+//==============================================================================
 void MainContentComponent::handleShowSourceLevel() {
     this->isSourceLevelShown = !this->isSourceLevelShown;
 }
 
+//==============================================================================
 void MainContentComponent::handleShowSpeakerLevel() {
     this->isSpeakerLevelShown = !this->isSpeakerLevelShown;
 }
 
+//==============================================================================
 void MainContentComponent::handleShowSphere() {
     this->isSphereShown = !this->isSphereShown;
     this->speakerView->setShowSphere(this->isSphereShown);
 }
 
+//==============================================================================
 void MainContentComponent::handleResetInputPositions() {
     for (auto&& it : this->listSourceInput) {
         it->resetPosition();
     }
 }
 
+//==============================================================================
 void MainContentComponent::handleResetMeterClipping() {
     for (auto&& it : this->listSourceInput) {
         it->getVuMeter()->resetClipping();
@@ -790,6 +823,7 @@ void MainContentComponent::handleResetMeterClipping() {
     }
 }
 
+//==============================================================================
 void MainContentComponent::handleInputColours() {
     float hue = 0.0f;
     float inc = 1.0 / (this->listSourceInput.size() + 1);
@@ -799,6 +833,7 @@ void MainContentComponent::handleInputColours() {
     }
 }
 
+//==============================================================================
 // Command manager methods.
 void MainContentComponent::getAllCommands (Array<CommandID>& commands) {
     // this returns the set of all commands that this target can perform.
@@ -828,6 +863,7 @@ void MainContentComponent::getAllCommands (Array<CommandID>& commands) {
     commands.addArray (ids, numElementsInArray(ids));
 }
 
+//==============================================================================
 void MainContentComponent::getCommandInfo (CommandID commandID, ApplicationCommandInfo& result) {
     const String generalCategory ("General");
 
@@ -924,6 +960,7 @@ void MainContentComponent::getCommandInfo (CommandID commandID, ApplicationComma
     }
 }
 
+//==============================================================================
 bool MainContentComponent::perform(const InvocationInfo& info) {
     if (MainWindow::getMainAppWindow()) {
         switch (info.commandID) {
@@ -955,6 +992,7 @@ bool MainContentComponent::perform(const InvocationInfo& info) {
     return true;
 }
 
+//==============================================================================
 PopupMenu MainContentComponent::getMenuForIndex (int menuIndex, const String& menuName) {
 
     ApplicationCommandManager* commandManager = &this->parent.getApplicationCommandManager();
@@ -1004,10 +1042,12 @@ PopupMenu MainContentComponent::getMenuForIndex (int menuIndex, const String& me
     return menu;
 }
 
+//==============================================================================
 void MainContentComponent::menuItemSelected (int menuItemID, int /*topLevelMenuIndex*/) {
     switch (menuItemID) {}
 }
 
+//==============================================================================
 // Exit functions.
 bool MainContentComponent::isPresetModified() {
     File xmlFile = File(this->pathCurrentPreset.toStdString());
@@ -1027,6 +1067,7 @@ bool MainContentComponent::isPresetModified() {
     return false;
 }
 
+//==============================================================================
 bool MainContentComponent::exitApp() {
     int exitV = 2;
 
@@ -1062,6 +1103,7 @@ bool MainContentComponent::exitApp() {
     return (exitV != 0); 
 }
 
+//==============================================================================
 void MainContentComponent::connectionClientJack(String nameCli, bool conn) {
     unsigned int maxport = 0;
     for (auto&& cli : this->jackClient->listClient) {
@@ -1078,6 +1120,7 @@ void MainContentComponent::connectionClientJack(String nameCli, bool conn) {
     this->jackClient->processBlockOn = true;
 }
 
+//==============================================================================
 void MainContentComponent::selectSpeaker(unsigned int idS) {
     for (unsigned int i = 0; i < this->listSpeaker.size(); ++i) {
         if (i != idS) {
@@ -1091,6 +1134,7 @@ void MainContentComponent::selectSpeaker(unsigned int idS) {
     }
 }
 
+//==============================================================================
 void MainContentComponent::selectTripletSpeaker(int idS) {
     int countS = 0;
     for(unsigned int i = 0; i < this->listSpeaker.size(); ++i) {
@@ -1138,6 +1182,7 @@ void MainContentComponent::selectTripletSpeaker(int idS) {
     }
 }
 
+//==============================================================================
 bool MainContentComponent::tripletExist(Triplet tri, int &pos) {
     pos = 0;
     for (auto&& ti : this->listTriplet) {
@@ -1155,6 +1200,7 @@ bool MainContentComponent::tripletExist(Triplet tri, int &pos) {
     return false;
 }
 
+//==============================================================================
 void MainContentComponent::resetSpeakerIds() {
     int id = 1;
     for (auto&& it : this->listSpeaker) {
@@ -1162,6 +1208,7 @@ void MainContentComponent::resetSpeakerIds() {
     }
 }
 
+//==============================================================================
 void MainContentComponent::reorderSpeakers(std::vector<int> const& newOrder) {
     auto const size = this->listSpeaker.size();
 
@@ -1183,6 +1230,7 @@ void MainContentComponent::reorderSpeakers(std::vector<int> const& newOrder) {
     this->lockSpeakers.unlock();
 }
 
+//==============================================================================
 int MainContentComponent::getMaxSpeakerId() {
     int maxId = 0;
     for (auto&& it : this->listSpeaker) {
@@ -1192,6 +1240,7 @@ int MainContentComponent::getMaxSpeakerId() {
     return maxId;
 }
 
+//==============================================================================
 int MainContentComponent::getMaxSpeakerOutputPatch() {
     int maxOut = 0;
     for (auto&& it : this->listSpeaker) {
@@ -1201,6 +1250,7 @@ int MainContentComponent::getMaxSpeakerOutputPatch() {
     return maxOut;
 }
 
+//==============================================================================
 void MainContentComponent::addSpeaker(int sortColumnId, bool isSortedForwards) {
     int newId = this->getMaxSpeakerId() + 1;
 
@@ -1223,6 +1273,7 @@ void MainContentComponent::addSpeaker(int sortColumnId, bool isSortedForwards) {
     this->jackClient->processBlockOn = true;
 }
 
+//==============================================================================
 void MainContentComponent::insertSpeaker(int position, int sortColumnId, bool isSortedForwards) {
     int newPosition = position + 1;
     int newId = this->getMaxSpeakerId() + 1;
@@ -1254,6 +1305,7 @@ void MainContentComponent::insertSpeaker(int position, int sortColumnId, bool is
     this->jackClient->processBlockOn = true;
 }
 
+//==============================================================================
 void MainContentComponent::removeSpeaker(int idSpeaker) {
     this->jackClient->removeOutput(idSpeaker);
     this->lockSpeakers.lock();
@@ -1261,6 +1313,7 @@ void MainContentComponent::removeSpeaker(int idSpeaker) {
     this->lockSpeakers.unlock();
 }
 
+//==============================================================================
 bool MainContentComponent::isRadiusNormalized() {
     if (this->jackClient->modeSelected == VBAP || this->jackClient->modeSelected == VBAP_HRTF)
         return true;
@@ -1268,6 +1321,7 @@ bool MainContentComponent::isRadiusNormalized() {
         return false;
 }
 
+//==============================================================================
 void MainContentComponent::updateInputJack(int inInput, Input &inp) {
     SourceIn *si = &this->jackClient->listSourceIn[inInput];
 
@@ -1291,6 +1345,7 @@ void MainContentComponent::updateInputJack(int inInput, Input &inp) {
     }
 }
 
+//==============================================================================
 void MainContentComponent::setListTripletFromVbap() {
     this->clearListTriplet();
     for (unsigned int i=0; i<this->jackClient->vbap_triplets.size(); i++) {
@@ -1302,6 +1357,7 @@ void MainContentComponent::setListTripletFromVbap() {
     }
 }
 
+//==============================================================================
 Speaker * MainContentComponent::getSpeakerFromOutputPatch(int out) {
     for (auto&& it : this->listSpeaker) {
         if (it->getOutputPatch() == out && !it->getDirectOut()) {
@@ -1311,6 +1367,7 @@ Speaker * MainContentComponent::getSpeakerFromOutputPatch(int out) {
     return nullptr;
 }
 
+//==============================================================================
 static void Linkwitz_Riley_compute_variables(double freq, double sr, double **coeffs, int length) {
     double wc = 2 * M_PI * freq;
     double wc2 = wc * wc;
@@ -1343,6 +1400,7 @@ static void Linkwitz_Riley_compute_variables(double freq, double sr, double **co
     (*coeffs)[4] = ha0; (*coeffs)[5] = ha1; (*coeffs)[6] = ha2; 
 }
 
+//==============================================================================
 bool MainContentComponent::updateLevelComp() {
     unsigned int dimensions = 2, directOutSpeakers = 0;
 
@@ -1577,19 +1635,23 @@ bool MainContentComponent::updateLevelComp() {
     return retval;
 }
 
+//==============================================================================
 void MainContentComponent::setNameConfig() {
     this->nameConfig = this->pathCurrentFileSpeaker.fromLastOccurrenceOf("/", false, false);
     this->speakerView->setNameConfig(this->nameConfig);
 }
 
+//==============================================================================
 void MainContentComponent::muteInput(int id, bool mute) {
     (&this->jackClient->listSourceIn[id-1])->isMuted = mute;
 }
 
+//==============================================================================
 void MainContentComponent::muteOutput(int id, bool mute) {
     (&this->jackClient->listSpeakerOut[id-1])->isMuted = mute;
 }
 
+//==============================================================================
 void MainContentComponent::soloInput(int id, bool solo) {
     (&this->jackClient->listSourceIn[id-1])->isSolo = solo;
 
@@ -1601,6 +1663,8 @@ void MainContentComponent::soloInput(int id, bool solo) {
         }
     }
 }
+
+//==============================================================================
 void MainContentComponent::soloOutput(int id, bool solo) {
     (&this->jackClient->listSpeakerOut[id-1])->isSolo = solo;
     
@@ -1613,16 +1677,19 @@ void MainContentComponent::soloOutput(int id, bool solo) {
     }
 }
 
+//==============================================================================
 void MainContentComponent::setDirectOut(int id, int chn) {
     (&this->jackClient->listSourceIn[id-1])->directOut = chn;
 }
 
+//==============================================================================
 void MainContentComponent::reloadXmlFileSpeaker() {
     if (File(this->pathCurrentFileSpeaker).existsAsFile()) {
         this->openXmlFileSpeaker(this->pathCurrentFileSpeaker);
     }
 }
 
+//==============================================================================
 void MainContentComponent::openXmlFileSpeaker(String path) {
     String msg;
     String oldPath = this->pathCurrentFileSpeaker;
@@ -1765,12 +1832,14 @@ void MainContentComponent::openXmlFileSpeaker(String path) {
     }
 }
 
+//==============================================================================
 void MainContentComponent::setTitle() {
     String version = STRING(JUCE_APP_VERSION);
     version = "SpatGRIS v" + version + " - ";
     this->parent.setName(version + File(this->pathCurrentPreset).getFileName());
 }
 
+//==============================================================================
 void MainContentComponent::openPreset(String path) {
     String msg;
     this->jackClient->processBlockOn = false;
@@ -1887,6 +1956,7 @@ void MainContentComponent::openPreset(String path) {
     this->setTitle();
 }
 
+//==============================================================================
 void MainContentComponent::getPresetData(XmlElement *xml) {
     xml->setAttribute("OSC_Input_Port", String(this->oscInputPort));
     xml->setAttribute("Number_Of_Inputs", this->tedAddInputs->getTextValue().toString());
@@ -1913,6 +1983,7 @@ void MainContentComponent::getPresetData(XmlElement *xml) {
     }
 }
 
+//==============================================================================
 void MainContentComponent::savePreset(String path) {
     File xmlFile = File(path.toStdString());
     auto xml = std::make_unique<XmlElement>("ServerGRIS_Preset");
@@ -1925,6 +1996,7 @@ void MainContentComponent::savePreset(String path) {
     this->setTitle();
 }
 
+//==============================================================================
 void MainContentComponent::saveSpeakerSetup(String path) {
     this->pathCurrentFileSpeaker = path;
     File xmlFile = File (path.toStdString());
@@ -1978,6 +2050,7 @@ void MainContentComponent::saveSpeakerSetup(String path) {
     this->setNameConfig();
 }
 
+//==============================================================================
 void MainContentComponent::saveProperties(String device, int rate, int buff, int fileformat, int fileconfig,
                                           int attenuationDB, int attenuationHz, int oscPort) {
 
@@ -2037,6 +2110,7 @@ void MainContentComponent::saveProperties(String device, int rate, int buff, int
     applicationProperties.saveIfNeeded();
 }
 
+//==============================================================================
 void MainContentComponent::timerCallback() {
     this->labelJackLoad->setText(String(this->jackClient->getCpuUsed(), 4)+ " %", dontSendNotification);
     int seconds = this->jackClient->indexRecord/this->jackClient->sampleRate;
@@ -2112,15 +2186,17 @@ void MainContentComponent::timerCallback() {
     }
 }
 
+//==============================================================================
 void MainContentComponent::paint(Graphics& g) {
     g.fillAll(mGrisFeel.getWinBackgroundColour());
 }
 
-
+//==============================================================================
 void MainContentComponent::textEditorFocusLost(TextEditor &textEditor) {
     textEditorReturnKeyPressed(textEditor);
 }
 
+//==============================================================================
 void MainContentComponent::textEditorReturnKeyPressed (TextEditor & textEditor) {
     if (&textEditor == this->tedAddInputs.get()) {
         unsigned int num_of_inputs = (unsigned int)this->tedAddInputs->getTextValue().toString().getIntValue();
@@ -2159,6 +2235,7 @@ void MainContentComponent::textEditorReturnKeyPressed (TextEditor & textEditor) 
     }
 }
 
+//==============================================================================
 void MainContentComponent::buttonClicked(Button *button) {
     if (button == this->butStartRecord.get()) {
         if (this->jackClient->recording) {
@@ -2178,6 +2255,7 @@ void MainContentComponent::buttonClicked(Button *button) {
     }
 }
 
+//==============================================================================
 void MainContentComponent::sliderValueChanged(Slider* slider) {
     if (slider == this->sliderMasterGainOut.get()) {
         this->jackClient->masterGainOut = pow(10.0, this->sliderMasterGainOut->getValue() * 0.05);
@@ -2188,6 +2266,7 @@ void MainContentComponent::sliderValueChanged(Slider* slider) {
     }
 }
 
+//==============================================================================
 void MainContentComponent::comboBoxChanged(ComboBox *comboBox) {
     if (this->winSpeakConfig != nullptr && this->needToSaveSpeakerSetup) {
         AlertWindow alert ("The speaker configuration has changed!    ",
@@ -2238,10 +2317,12 @@ void MainContentComponent::comboBoxChanged(ComboBox *comboBox) {
     }
 }
 
+//==============================================================================
 int MainContentComponent::getModeSelected() {
     return this->comBoxModeSpat->getSelectedId() - 1;
 }
 
+//==============================================================================
 void MainContentComponent::setOscLogging(const OSCMessage& message) {
     if (this->oscLogWindow != nullptr) {
         String address = message.getAddressPattern().toString();
@@ -2260,6 +2341,7 @@ void MainContentComponent::setOscLogging(const OSCMessage& message) {
     }
 }
 
+//==============================================================================
 void MainContentComponent::chooseRecordingPath() {
     String dir = this->applicationProperties.getUserSettings()->getValue("lastRecordingDirectory");
     if (! File(dir).isDirectory()) {
@@ -2286,6 +2368,7 @@ void MainContentComponent::chooseRecordingPath() {
     this->jackClient->prepareToRecord();
 }
 
+//==============================================================================
 void MainContentComponent::resized() {
 	juce::Rectangle<int> r (getLocalBounds().reduced (2));
 

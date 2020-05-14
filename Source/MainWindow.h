@@ -17,49 +17,21 @@
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef MAINAPPWINDOW_H_INCLUDED
-#define MAINAPPWINDOW_H_INCLUDED
+#ifndef MAINWINDOW_H
+#define MAINWINDOW_H
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
 #include "GrisLookAndFeel.h"
 #include "MainComponent.h"
 
+//==============================================================================
 /* This class implements the desktop window that contains an instance of
    our MainContentComponent class.
 */
 class MainWindow : public DocumentWindow
 {
 public:
-    MainWindow(String name);
-
-    bool exitWinApp();
-
-    // This is called when the user tries to close this window. Here, we'll just ask the 
-    // app to quit when this happens, but you can change this to do whatever you need.
-    void closeButtonPressed() override {
-        JUCEApplication::getInstance()->systemRequestedQuit();        
-    }
-
-    // returns the MainWindow if it exists.
-    static MainWindow* getMainAppWindow() {
-        for (int i = TopLevelWindow::getNumTopLevelWindows(); --i >= 0;) {
-            if (auto* maw = dynamic_cast<MainWindow*> (TopLevelWindow::getTopLevelWindow(i)))
-                return maw;
-        }
-        return nullptr;
-    }
-
-    // returns the command manager object used to dispatch command events.
-    ApplicationCommandManager& getApplicationCommandManager();
-
-    /* Note: Be careful if you override any DocumentWindow methods - the base
-       class uses a lot of them, so by overriding you might break its functionality.
-       It's best to do all your work in your content component instead, but if
-       you really have to override any DocumentWindow methods, make sure your
-       subclass also calls the superclass's method.
-    */
-
     enum CommandIDs {
         // File menu
         NewPresetID         =   1000,
@@ -90,12 +62,35 @@ public:
         AboutID             =   4000,
         OpenManualID        =   4001,
     };
+    //==============================================================================
+    MainWindow(String name);
+    ~MainWindow() = default;
+    //==============================================================================
+    bool exitWinApp();
 
+    // This is called when the user tries to close this window. Here, we'll just ask the 
+    // app to quit when this happens, but you can change this to do whatever you need.
+    void closeButtonPressed() override {
+        JUCEApplication::getInstance()->systemRequestedQuit();        
+    }
+
+    // returns the MainWindow if it exists.
+    static MainWindow* getMainAppWindow() {
+        for (int i = TopLevelWindow::getNumTopLevelWindows(); --i >= 0;) {
+            if (auto* maw = dynamic_cast<MainWindow*> (TopLevelWindow::getTopLevelWindow(i)))
+                return maw;
+        }
+        return nullptr;
+    }
+
+    // returns the command manager object used to dispatch command events.
+    ApplicationCommandManager& getApplicationCommandManager();
 private:
+    //==============================================================================
     std::unique_ptr<MainContentComponent> mcc{};
     juce::ApplicationCommandManager applicationCommandManager{};
     //=============================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainWindow)
 };
 
-#endif  // MAINAPPWINDOW_H_INCLUDED
+#endif  // MAINWINDOW_H

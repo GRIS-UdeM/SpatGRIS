@@ -30,29 +30,30 @@
 class LevelComponent;
 class MainContentComponent;
 
+//==============================================================================
 //======================================= BOX ========================================
 class Box : public Component
 {
 public:
     Box(GrisLookAndFeel *feel, String title="", bool verticalScrollbar=false, bool horizontalScrollbar=true);
     ~Box();
-    
+    //==============================================================================
     Component * getContent();
     void resized();
     void correctSize(unsigned int width, unsigned int height);
-    void paint(Graphics &g) ;
-    
+    void paint(Graphics &g);
 private:
-    Component *content;
-    Viewport *viewport;
+    //==============================================================================
+    juce::Component *content;
+    juce::Viewport *viewport;
     GrisLookAndFeel *grisFeel;
-    Colour bgColour;
-    String title;
-    
+    juce::Colour bgColour;
+    juce::String title;
+    //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Box)
 };
 
-
+//==============================================================================
 //======================================= BoxClient ==================================
 class BoxClient :   public Component,
                     public TableListBoxModel,
@@ -61,7 +62,7 @@ class BoxClient :   public Component,
 public:
     BoxClient(MainContentComponent * parent, GrisLookAndFeel *feel);
     ~BoxClient();
-    
+    //==============================================================================
     void updateContentCli();
     void buttonClicked(Button *button) override;
     void setBounds(int x, int y, int width, int height);
@@ -75,14 +76,14 @@ public:
     
     Component* refreshComponentForCell(int rowNumber, int columnId, bool /*isRowSelected*/,
                                        Component* existingComponentToUpdate) override;
-    
 private:
+    //==============================================================================
     MainContentComponent *mainParent;
     GrisLookAndFeel *grisFeel;
     unsigned int numRows;
     TableListBox tableListClient;
     Box * box;
-    
+    //==============================================================================
     class ListIntOutComp : public Component, 
                            public ComboBox::Listener
     {
@@ -96,7 +97,7 @@ private:
             comboBox.addListener(this);
             comboBox.setWantsKeyboardFocus(false);
         }
-        
+        //==============================================================================
         void resized() override {
             comboBox.setBoundsInset(BorderSize<int> (2));
         }
@@ -110,14 +111,15 @@ private:
         void comboBoxChanged (ComboBox*) override {
             owner.setValue(row, columnId, comboBox.getSelectedId());
         }
-        
     private:
+        //==============================================================================
         BoxClient& owner;
         ComboBox comboBox;
         int row, columnId;
     };
 };
 
+//==============================================================================
 //======================================= About Window ===========================
 class AboutWindow : public DocumentWindow,
                     public TextButton::Listener
@@ -126,10 +128,11 @@ public:
     AboutWindow(const String& name, Colour backgroundColour, int buttonsNeeded,
                 MainContentComponent *parent, GrisLookAndFeel *feel);
     ~AboutWindow();
+    //==============================================================================
     void buttonClicked(Button *button);
     void closeButtonPressed();
-
 private:
+    //==============================================================================
     MainContentComponent *mainParent;
     GrisLookAndFeel *grisFeel;
     ImageComponent *imageComponent;
@@ -138,10 +141,11 @@ private:
     Label *label;
     HyperlinkButton *website;
     TextButton *close;
-
+    //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AboutWindow);
 };
 
+//==============================================================================
 //======================================= OSC Log Window ===========================
 class OscLogWindow : public DocumentWindow,
                      public TextButton::Listener
@@ -150,11 +154,12 @@ public:
     OscLogWindow(const String& name, Colour backgroundColour, int buttonsNeeded,
                  MainContentComponent *parent, GrisLookAndFeel *feel);
     ~OscLogWindow();
+    //==============================================================================
     void buttonClicked(Button *button);
     void closeButtonPressed();
     void addToLog(String msg);
-
 private:
+    //==============================================================================
     MainContentComponent *mainParent;
     GrisLookAndFeel *grisFeel;
     int index;
@@ -163,7 +168,7 @@ private:
     CodeEditorComponent logger;
     TextButton stop;
     TextButton close;
-
+    //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (OscLogWindow);
 };
 
