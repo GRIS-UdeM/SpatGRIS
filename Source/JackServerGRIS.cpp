@@ -17,15 +17,17 @@
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdarg.h>
-#include <stdio.h>
-#include "ServerGrisConstants.h"
 #include "JackServerGRIS.h"
-#include "JackClientGRIS.h"
+
+#include <cstdarg>
+#include <cstdio>
 
 #ifdef __linux__
 #include <alsa/asoundlib.h>
 #endif
+
+#include "ServerGrisConstants.h"
+#include "JackClientGRIS.h"
 
 static bool jack_server_log_print = false;
 

@@ -20,14 +20,14 @@
 #ifndef JACKCLIENTGRIS_H
 #define JACKCLIENTGRIS_H
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <vector>
-#include <stdio.h>
-#include <math.h>
-#include <string.h>
+#include <cstdio>
+#include <cmath>
+#include <cstring>
 
 #if defined(WIN32) || defined(_WIN64)
-#include <stdint.h>
+#include <cstdint>
 #include <mutex>
 #else
 #include <unistd.h>

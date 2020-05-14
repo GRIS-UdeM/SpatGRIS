@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS2.
  
- Developers: Olivier Belanger, Nicolas Masson
+ Developers: Samuel Béland, Olivier Belanger, Nicolas Masson
  
  SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@
 */
 
 #include "Input.h"
+
 #include "MainComponent.h"
 #include "LevelComponent.h"
 

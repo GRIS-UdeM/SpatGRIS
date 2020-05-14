@@ -17,8 +17,9 @@
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "MainComponent.h"
 #include "LevelComponent.h"
+
+#include "MainComponent.h"
 #include "Speaker.h"
 
 //========================== LevelBox =============================

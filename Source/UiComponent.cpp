@@ -17,12 +17,13 @@
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "UiComponent.h"
+
 #include <algorithm>
 
-#include "ServerGrisConstants.h"
-#include "UiComponent.h"
 #include "LevelComponent.h"
 #include "MainComponent.h"
+#include "ServerGrisConstants.h"
 #include "Speaker.h"
 
 static double GetFloatPrecision(double value, double precision) {
@@ -279,8 +280,8 @@ AboutWindow::AboutWindow(const String& name, Colour backgroundColour, int button
     infos << "Director:\n\n";
     infos << "Robert NORMANDEAU\n\n\n";
     infos << "Programmers:\n\n";
-    infos << "Actual: Olivier BÉLANGER\n\n";
-    infos << "Former: Vincent BERTHIAUME, Nicolas MASSON, Antoine MISSOUT\n\n\n";
+    infos << "Actual: Samuel Béland\n\n";
+    infos << "Former: Olivier BÉLANGER, Vincent BERTHIAUME, Nicolas MASSON, Antoine MISSOUT\n\n\n";
     infos << "Assistants:\n\n";
     infos << "David LEDOUX, Christophe LENGELÉ, Nicola GIANNINI\n\n";
 

@@ -21,6 +21,7 @@
 #define MAINAPPWINDOW_H_INCLUDED
 
 #include "../JuceLibraryCode/JuceHeader.h"
+
 #include "GrisLookAndFeel.h"
 #include "MainComponent.h"
 

@@ -20,7 +20,7 @@
 #ifndef SPEAKER_H
 #define SPEAKER_H
 
-#include <stdio.h>
+#include <cstdio>
 #include <iostream>
 
 #if defined(__linux__)
@@ -45,8 +45,8 @@
 #include "GrisLookAndFeel.h"
 #include "ParentLevelComponent.h"
 
-class MainContentComponent;
 class LevelComponent;
+class MainContentComponent;
 
 struct Triplet {
     int id1;

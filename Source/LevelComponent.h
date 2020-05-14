@@ -21,10 +21,11 @@
 #define LEVELCOMPONENT_H
 
 #include "../JuceLibraryCode/JuceHeader.h"
+
 #include "GrisLookAndFeel.h"
-#include "UiComponent.h"
 #include "ParentLevelComponent.h"
 #include "Speaker.h"
+#include "UiComponent.h"
 
 static const float MinLevelComp  = -60.f;
 static const float MaxLevelComp  = 0.f;

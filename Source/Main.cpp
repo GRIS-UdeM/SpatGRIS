@@ -18,8 +18,8 @@
 */
 
 #include "../JuceLibraryCode/JuceHeader.h"
-#include "GrisLookAndFeel.h"
 
+#include "GrisLookAndFeel.h"
 #include "MainWindow.h"
 
 class SpatGRIS2Application : public JUCEApplication 

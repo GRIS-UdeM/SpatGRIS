@@ -23,11 +23,12 @@
 #include <iostream>
 
 #include "../JuceLibraryCode/JuceHeader.h"
+
 #include "GrisLookAndFeel.h"
 #include "JackClientGRIS.h"
 
-class MainContentComponent;
 class LevelComponent;
+class MainContentComponent;
 
 //======================================= BOX ========================================
 class Box : public Component

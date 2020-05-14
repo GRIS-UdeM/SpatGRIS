@@ -20,7 +20,7 @@
 #ifndef SPEAKERVIEWCOMPONENT_H_INCLUDED
 #define SPEAKERVIEWCOMPONENT_H_INCLUDED
 
-#include <math.h>
+#include <cmath>
 
 #if defined(__linux__)
 //#include <GL/gl.h>

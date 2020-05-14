@@ -18,6 +18,7 @@
 */
 
 #include "SpeakerViewComponent.h"
+
 #include "MainComponent.h"
 
 SpeakerViewComponent::SpeakerViewComponent(MainContentComponent *parent) {
