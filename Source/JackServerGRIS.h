@@ -28,10 +28,10 @@
 #include <jack/session.h>
 #include <jack/control.h>
 
-class jackServerGRIS {
+class JackServerGRIS {
 public:    
-    jackServerGRIS(unsigned int rateV = 48000, unsigned int periodV = 1024, String alsaOutputDevice = String(), int *errorCode = nullptr);
-    ~jackServerGRIS();
+    JackServerGRIS(unsigned int rateV = 48000, unsigned int periodV = 1024, String alsaOutputDevice = String(), int *errorCode = nullptr);
+    ~JackServerGRIS();
 
     // Only effective with alsa driver.
     Array<String> getAvailableOutputDevices();
@@ -42,7 +42,7 @@ private :
     unsigned int rateValue;
     unsigned int periodValue;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(jackServerGRIS);
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(JackServerGRIS);
 };
 
 #endif /* JACKSERVERGRIS_H */

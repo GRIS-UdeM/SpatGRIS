@@ -46,8 +46,8 @@
 
 #include "GrisLookAndFeel.h"
 #include "ServerGrisConstants.h"
-#include "jackClientGRIS.h"
-#include "jackServerGRIS.h"
+#include "JackClientGRIS.h"
+#include "JackServerGRIS.h"
 #include "Speaker.h"
 #include "SpeakerViewComponent.h"
 #include "UiComponent.h"
@@ -135,7 +135,7 @@ public:
     bool isRadiusNormalized();
 
     // Jack clients.
-    jackClientGris * getJackClient() { return this->jackClient.get(); }
+    JackClientGris * getJackClient() { return this->jackClient.get(); }
     mutex & getLockClients() { return this->jackClient->lockListClient; }
     vector<Client> & getListClientjack() { return this->jackClient->listClient; }
     void connectionClientJack(String nameCli, bool conn = true);
@@ -265,8 +265,8 @@ private:
     ComboBox *     addComboBox(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into);
 
     // Jack server - client.
-    std::unique_ptr<jackServerGRIS> jackServer;
-    std::unique_ptr<jackClientGris> jackClient;
+    std::unique_ptr<JackServerGRIS> jackServer;
+    std::unique_ptr<JackClientGris> jackClient;
 
     // Speakers.
     std::vector<Triplet>      listTriplet{};

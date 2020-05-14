@@ -24,7 +24,7 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "GrisLookAndFeel.h"
-#include "jackClientGRIS.h"
+#include "JackClientGRIS.h"
 
 class MainContentComponent;
 class LevelComponent;

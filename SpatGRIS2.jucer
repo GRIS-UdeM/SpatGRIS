@@ -46,14 +46,14 @@
       </GROUP>
       <FILE id="BVvOrd" name="Input.cpp" compile="1" resource="0" file="Source/Input.cpp"/>
       <FILE id="BiDXCC" name="Input.h" compile="0" resource="0" file="Source/Input.h"/>
-      <FILE id="A5skyB" name="jackClientGRIS.cpp" compile="1" resource="0"
-            file="Source/jackClientGRIS.cpp"/>
-      <FILE id="kACxoj" name="jackClientGRIS.h" compile="0" resource="0"
-            file="Source/jackClientGRIS.h"/>
-      <FILE id="LMWJcl" name="jackServerGRIS.cpp" compile="1" resource="0"
-            file="Source/jackServerGRIS.cpp"/>
-      <FILE id="Dg7whn" name="jackServerGRIS.h" compile="0" resource="0"
-            file="Source/jackServerGRIS.h"/>
+      <FILE id="A5skyB" name="JackClientGRIS.cpp" compile="1" resource="0"
+            file="Source/JackClientGRIS.cpp"/>
+      <FILE id="kACxoj" name="JackClientGRIS.h" compile="0" resource="0"
+            file="Source/JackClientGRIS.h"/>
+      <FILE id="LMWJcl" name="JackServerGRIS.cpp" compile="1" resource="0"
+            file="Source/JackServerGRIS.cpp"/>
+      <FILE id="Dg7whn" name="JackServerGRIS.h" compile="0" resource="0"
+            file="Source/JackServerGRIS.h"/>
       <FILE id="HOh1Xn" name="lbap.c" compile="1" resource="0" file="Source/lbap.c"/>
       <FILE id="cmq6Gi" name="lbap.h" compile="0" resource="0" file="Source/lbap.h"/>
       <FILE id="arLWJq" name="LevelComponent.cpp" compile="1" resource="0"

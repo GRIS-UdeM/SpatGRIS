@@ -214,7 +214,7 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioRecorder);
 };
 
-class jackClientGris {
+class JackClientGris {
 public:
     // class variables.
     //-----------------
@@ -316,8 +316,8 @@ public:
     // Class methods.
     //---------------
 
-    jackClientGris();
-    virtual ~jackClientGris();
+    JackClientGris();
+    virtual ~JackClientGris();
 
     // Audio Status.
     bool  isReady() { return clientReady; }
@@ -380,7 +380,7 @@ private:
     // Connect the server's outputs to the system's inputs.
     void connectedGristoSystem();
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(jackClientGris);
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(JackClientGris);
 };
 
 #endif /* JACKCLIENTGRIS_H */

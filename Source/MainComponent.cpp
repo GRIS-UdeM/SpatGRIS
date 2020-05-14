@@ -279,7 +279,7 @@ MainContentComponent::MainContentComponent(MainWindow& parent)
     // Start Jack Server and client.
     int errorCode = 0;
     alsaOutputDevice = props->getValue("AlsaOutputDevice", "");
-    this->jackServer.reset(new jackServerGRIS(RateValue, BufferValue, alsaOutputDevice, &errorCode));
+    this->jackServer.reset(new JackServerGRIS(RateValue, BufferValue, alsaOutputDevice, &errorCode));
     if (errorCode > 0) {
         String msg;
         if (errorCode == 1) { msg = "Failed to create Jack server..."; }
@@ -289,7 +289,7 @@ MainContentComponent::MainContentComponent(MainWindow& parent)
                                          "Jack Server Failure",
                                          msg + String("\nYou should check for any mismatch between the server and your device\n(Sampling Rate, Input/Ouput Channels, etc.)"));
     }
-    this->jackClient.reset(new jackClientGris());
+    this->jackClient.reset(new JackClientGris());
 
     alsaAvailableOutputDevices = this->jackServer->getAvailableOutputDevices();
 

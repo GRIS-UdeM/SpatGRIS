@@ -1,25 +1,27 @@
 /*
  This file is part of SpatGRIS2.
- 
+
  Developers: Olivier Belanger, Nicolas Masson
- 
+
  SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
- 
+
  SpatGRIS2 is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
- 
+
  You should have received a copy of the GNU General Public License
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "JackClientGRIS.h"
+
 #include <stdarg.h>
+
 #include "ServerGrisConstants.h"
-#include "jackClientGRIS.h"
 #include "vbap.h"
 #include "Speaker.h"
 #include "MainComponent.h"
@@ -43,7 +45,7 @@ static void jack_client_log(const char* format, ...) {
 }
 
 // Mute - solo / Meter In - Meter Out.
-static void muteSoloVuMeterIn(jackClientGris &jackCli, jack_default_audio_sample_t **ins,
+static void muteSoloVuMeterIn(JackClientGris &jackCli, jack_default_audio_sample_t **ins,
                               const jack_nframes_t &nframes, const unsigned int &sizeInputs) {
     for (unsigned int i = 0; i < sizeInputs; ++i) {
         if (jackCli.listSourceIn[i].isMuted) { // Mute
@@ -65,7 +67,7 @@ static void muteSoloVuMeterIn(jackClientGris &jackCli, jack_default_audio_sample
     }
 }
 
-static void muteSoloVuMeterGainOut(jackClientGris &jackCli, jack_default_audio_sample_t **outs,
+static void muteSoloVuMeterGainOut(JackClientGris &jackCli, jack_default_audio_sample_t **outs,
                                    const jack_nframes_t &nframes, const unsigned int &sizeOutputs,
                                    const float mGain = 1.0f) {
     unsigned int num_of_channels = 2;
@@ -150,7 +152,7 @@ static void muteSoloVuMeterGainOut(jackClientGris &jackCli, jack_default_audio_s
     }
 }
 
-static void addNoiseSound(jackClientGris &jackCli, jack_default_audio_sample_t **outs,
+static void addNoiseSound(JackClientGris &jackCli, jack_default_audio_sample_t **outs,
                           const jack_nframes_t &nframes, const unsigned int &sizeOutputs) {
     float rnd, val;
     float fac = 1.0f / (RAND_MAX / 2.0f);
@@ -174,7 +176,7 @@ static void addNoiseSound(jackClientGris &jackCli, jack_default_audio_sample_t *
 }
 
 // VBAP processing function.
-static void processVBAP(jackClientGris &jackCli, jack_default_audio_sample_t **ins, jack_default_audio_sample_t **outs,
+static void processVBAP(JackClientGris &jackCli, jack_default_audio_sample_t **ins, jack_default_audio_sample_t **outs,
                         const jack_nframes_t &nframes, const unsigned int &sizeInputs, const unsigned int &sizeOutputs)
 {
     unsigned int f, i, o, ilinear;
@@ -227,7 +229,7 @@ static void processVBAP(jackClientGris &jackCli, jack_default_audio_sample_t **i
 }
 
 // LBAP processing function.
-static void processLBAP(jackClientGris &jackCli, jack_default_audio_sample_t **ins, jack_default_audio_sample_t **outs,
+static void processLBAP(JackClientGris &jackCli, jack_default_audio_sample_t **ins, jack_default_audio_sample_t **outs,
                         const jack_nframes_t &nframes, const unsigned int &sizeInputs, const unsigned int &sizeOutputs)
 {
     unsigned int f, i, o, ilinear;
@@ -328,7 +330,7 @@ static void processLBAP(jackClientGris &jackCli, jack_default_audio_sample_t **i
 }
 
 // BINAURAL processing function.
-static void processVBapHRTF(jackClientGris &jackCli, jack_default_audio_sample_t **ins, jack_default_audio_sample_t **outs,
+static void processVBapHRTF(JackClientGris &jackCli, jack_default_audio_sample_t **ins, jack_default_audio_sample_t **outs,
                             const jack_nframes_t &nframes, const unsigned int &sizeInputs, const unsigned int &sizeOutputs)
 {
     int tmp_count;
@@ -416,7 +418,7 @@ static void processVBapHRTF(jackClientGris &jackCli, jack_default_audio_sample_t
 }
 
 // STEREO processing function.
-static void processSTEREO(jackClientGris &jackCli, jack_default_audio_sample_t **ins, jack_default_audio_sample_t **outs,
+static void processSTEREO(JackClientGris &jackCli, jack_default_audio_sample_t **ins, jack_default_audio_sample_t **outs,
                         const jack_nframes_t &nframes, const unsigned int &sizeInputs, const unsigned int &sizeOutputs)
 {
     unsigned int f, i;
@@ -471,7 +473,7 @@ static void processSTEREO(jackClientGris &jackCli, jack_default_audio_sample_t *
 
 // Jack processing callback.
 static int process_audio(jack_nframes_t nframes, void *arg) {
-    jackClientGris *jackCli = (jackClientGris *)arg;
+    JackClientGris *jackCli = (JackClientGris *)arg;
     
     // Return if the user is editing the speaker setup.
     if (!jackCli->processBlockOn) {
@@ -530,7 +532,7 @@ static int process_audio(jack_nframes_t nframes, void *arg) {
 
 // Jack callback functions.
 void session_callback(jack_session_event_t *event, void *arg) {
-    jackClientGris *jackCli = (jackClientGris *)arg;
+    JackClientGris *jackCli = (JackClientGris *)arg;
     
     char retval[100];
     jack_client_log("session notification\n");
@@ -546,7 +548,7 @@ void session_callback(jack_session_event_t *event, void *arg) {
 }
 
 int graph_order_callback(void *arg) {
-    jackClientGris *jackCli = (jackClientGris *)arg;
+    JackClientGris *jackCli = (JackClientGris *)arg;
     jack_client_log("graph_order_callback...\n");
     jackCli->updateClientPortAvailable(true);
     jack_client_log("... done!\n");
@@ -554,7 +556,7 @@ int graph_order_callback(void *arg) {
 }
 
 int xrun_callback(void * arg) {
-    jackClientGris *jackCli = (jackClientGris *)arg;
+    JackClientGris *jackCli = (JackClientGris *)arg;
     jackCli->overload = true;
     jack_client_log("Jack buffer overrun!!!\n");
     return 0;
@@ -568,7 +570,7 @@ void jack_shutdown(void *arg) {
 }
 
 void client_registration_callback(const char *name, int regist, void *arg) {
-    jackClientGris *jackCli = (jackClientGris *)arg;
+    JackClientGris *jackCli = (JackClientGris *)arg;
     jack_client_log("Jack client registration : %s : " , name);
     if (!strcmp(name, ClientNameIgnor)) {
         jack_client_log("ignored\n");
@@ -603,7 +605,7 @@ void port_registration_callback(jack_port_id_t a, int regist, void *arg) {
 }
 
 void port_connect_callback(jack_port_id_t a, jack_port_id_t b, int connect, void *arg) {
-    jackClientGris *jackCli = (jackClientGris *)arg;
+    JackClientGris *jackCli = (JackClientGris *)arg;
     jack_client_log("Jack port : ");
     if (connect) {
         // Stop Auto connection with system.
@@ -650,8 +652,8 @@ static float ** getSamplesFromWavFile(String filename) {
     return samples;
 }
 
-// jackClientGris class definition.
-jackClientGris::jackClientGris() {
+// JackClientGris class definition.
+JackClientGris::JackClientGris() {
     // Initialize variables.
     this->pinkNoiseSound = false;
     this->clientReady = false;
@@ -837,7 +839,7 @@ jackClientGris::jackClientGris() {
     this->clientReady = true;
 }
 
-void jackClientGris::resetHRTF() {
+void JackClientGris::resetHRTF() {
     for (unsigned int i=0; i<16; i++) {
         this->hrtf_count[i] = 0;
         for (int j = 0; j<128; j++) {
@@ -846,7 +848,7 @@ void jackClientGris::resetHRTF() {
     }
 }
 
-void jackClientGris::prepareToRecord() {
+void JackClientGris::prepareToRecord() {
     int num_of_channels;
     if (this->outputsPort.size() < 1) {
         return;
@@ -883,7 +885,7 @@ void jackClientGris::prepareToRecord() {
     }
 }
 
-void jackClientGris::addRemoveInput(unsigned int number) {
+void JackClientGris::addRemoveInput(unsigned int number) {
     if (number < this->inputsPort.size()) {
         while (number < this->inputsPort.size()) {
             jack_port_unregister(client, this->inputsPort.back());
@@ -900,7 +902,7 @@ void jackClientGris::addRemoveInput(unsigned int number) {
     connectedGristoSystem();
 }
 
-void jackClientGris::clearOutput() {
+void JackClientGris::clearOutput() {
     int outS = (int)this->outputsPort.size();
     for (int i = 0; i < outS; i++) {
         jack_port_unregister(client, this->outputsPort.back());
@@ -908,7 +910,7 @@ void jackClientGris::clearOutput() {
     }
 }
 
-bool jackClientGris::addOutput(unsigned int outputPatch) {
+bool JackClientGris::addOutput(unsigned int outputPatch) {
     if (outputPatch > this->maxOutputPatch)
         this->maxOutputPatch = outputPatch;
     String nameOut = "output";
@@ -920,12 +922,12 @@ bool jackClientGris::addOutput(unsigned int outputPatch) {
     return true;
 }
 
-void jackClientGris::removeOutput(int number) {
+void JackClientGris::removeOutput(int number) {
     jack_port_unregister(client, this->outputsPort.at(number));
     this->outputsPort.erase(this->outputsPort.begin() + number);
 }
 
-vector<int> jackClientGris::getDirectOutOutputPatches() {
+vector<int> JackClientGris::getDirectOutOutputPatches() {
     vector<int> directOutOutputPatches;
     for (auto&& it : listSpeakerOut) {
         if (it.directOut && it.outputPatch != 0)
@@ -934,7 +936,7 @@ vector<int> jackClientGris::getDirectOutOutputPatches() {
     return directOutOutputPatches;
 }
 
-void jackClientGris::connectedGristoSystem() {
+void JackClientGris::connectedGristoSystem() {
     String nameOut;
     this->clearOutput();
     for (unsigned int i = 0; i < this->maxOutputPatch; i++) {
@@ -950,7 +952,7 @@ void jackClientGris::connectedGristoSystem() {
     int i=0;
     int j=0;
 
-    // DisConnect jackClientGris to system.
+    // DisConnect JackClientGris to system.
     while (portsOut[i]) {
         if (getClientName(portsOut[i]) == ClientName) { // jackClient
             j = 0;
@@ -968,7 +970,7 @@ void jackClientGris::connectedGristoSystem() {
     i=0;
     j=0;
 
-    // Connect jackClientGris to system.
+    // Connect JackClientGris to system.
     while (portsOut[i]) {
         if (getClientName(portsOut[i]) == ClientName) { // jackClient
             while (portsIn[j]) {
@@ -995,7 +997,7 @@ void jackClientGris::connectedGristoSystem() {
     jack_free(portsOut);
 }
 
-bool jackClientGris::initSpeakersTripplet(vector<Speaker *>  listSpk,
+bool JackClientGris::initSpeakersTripplet(vector<Speaker *>  listSpk,
                                           int dimensions, bool needToComputeVbap) {
     int j;
     if (listSpk.size() <= 0) {
@@ -1054,7 +1056,7 @@ bool jackClientGris::initSpeakersTripplet(vector<Speaker *>  listSpk,
     return true;
 }
 
-bool jackClientGris::lbapSetupSpeakerField(vector<Speaker *>  listSpk) {
+bool JackClientGris::lbapSetupSpeakerField(vector<Speaker *>  listSpk) {
     int j;
     if (listSpk.size() <= 0) {
         return false;
@@ -1089,15 +1091,15 @@ bool jackClientGris::lbapSetupSpeakerField(vector<Speaker *>  listSpk) {
     return true;
 }
 
-void jackClientGris::setAttenuationDB(float value) {
+void JackClientGris::setAttenuationDB(float value) {
     this->attenuationLinearGain[0] = value;
 }
 
-void jackClientGris::setAttenuationHz(float value) {
+void JackClientGris::setAttenuationHz(float value) {
     this->attenuationLowpassCoeff[0] = value;
 }
 
-void jackClientGris::updateSourceVbap(int idS) {
+void JackClientGris::updateSourceVbap(int idS) {
     if (this->vbapDimensions == 3) {
         if (listSourceIn[idS].paramVBap != nullptr) {
             vbap2_flip_y_z(listSourceIn[idS].azimuth, listSourceIn[idS].zenith,
@@ -1113,7 +1115,7 @@ void jackClientGris::updateSourceVbap(int idS) {
     }
 }
 
-void jackClientGris::connectionClient(String name, bool connect) {
+void JackClientGris::connectionClient(String name, bool connect) {
     const char **portsOut = jack_get_ports(this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput);
     const char **portsIn = jack_get_ports(this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput);
 
@@ -1149,7 +1151,7 @@ void jackClientGris::connectionClient(String name, bool connect) {
 
     if (!connect) { return; }
 
-    // Connect other client to jackClientGris
+    // Connect other client to JackClientGris
     this->autoConnection = true;
 
     for (auto&& cli : this->listClient) {
@@ -1189,7 +1191,7 @@ void jackClientGris::connectionClient(String name, bool connect) {
     jack_free(portsOut);
 }
 
-string jackClientGris::getClientName(const char *port) {
+string JackClientGris::getClientName(const char *port) {
     if (port) {
         jack_port_t *tt = jack_port_by_name(this->client, port);
         if (tt) {
@@ -1201,7 +1203,7 @@ string jackClientGris::getClientName(const char *port) {
     return "";
 }
 
-void jackClientGris::updateClientPortAvailable(bool fromJack) {
+void JackClientGris::updateClientPortAvailable(bool fromJack) {
     const char **portsOut = jack_get_ports(this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput);
     int i = 0;
 
@@ -1288,7 +1290,7 @@ void jackClientGris::updateClientPortAvailable(bool fromJack) {
     jack_free(portsOut);
 }
 
-jackClientGris::~jackClientGris() {
+JackClientGris::~JackClientGris() {
     // TOFIX: this->paramVBap and this->listSourceIn->paramVBap are never deallocated.
 
     lbap_field_free(this->lbap_speaker_field);

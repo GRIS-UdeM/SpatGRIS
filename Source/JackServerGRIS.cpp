@@ -20,8 +20,8 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include "ServerGrisConstants.h"
-#include "jackServerGRIS.h"
-#include "jackClientGRIS.h"
+#include "JackServerGRIS.h"
+#include "JackClientGRIS.h"
 
 #ifdef __linux__
 #include <alsa/asoundlib.h>
@@ -130,7 +130,7 @@ static jackctl_internal_t * jackctl_server_get_internal(jackctl_server_t *server
 
 // Jack server class definition.
 
-jackServerGRIS::jackServerGRIS(unsigned int rateV, unsigned int periodV, String alsaOutputDevice, int *errorCode) {
+JackServerGRIS::JackServerGRIS(unsigned int rateV, unsigned int periodV, String alsaOutputDevice, int *errorCode) {
     this->rateValue = rateV;
     this->periodValue = periodV;
     const JSList *parameters;
@@ -231,7 +231,7 @@ jackServerGRIS::jackServerGRIS(unsigned int rateV, unsigned int periodV, String 
     }
 }
 
-jackServerGRIS::~jackServerGRIS(){
+JackServerGRIS::~JackServerGRIS(){
     if (this->server != nullptr) {
         jackctl_server_stop(this->server);
         jackctl_server_close(this->server);
@@ -239,7 +239,7 @@ jackServerGRIS::~jackServerGRIS(){
     }
 }
 
-Array<String> jackServerGRIS::getAvailableOutputDevices() {
+Array<String> JackServerGRIS::getAvailableOutputDevices() {
     Array<String> devices;
 
 #ifdef __linux__

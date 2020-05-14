@@ -20,7 +20,7 @@
 #include "EditableTextCustomComponent.h"
 
 #include "EditSpeakersWindow.h"
-#include "jackClientGRIS.h"
+#include "JackClientGRIS.h"
 
 //==============================================================================
 EditableTextCustomComponent::EditableTextCustomComponent(EditSpeakersWindow &editSpeakersWindow)
