@@ -44,6 +44,7 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
+#include "AboutWindow.h"
 #include "EditSpeakersWindow.h"
 #include "Input.h"
 #include "JackClientGRIS.h"

@@ -18,3 +18,38 @@
 */
 
 //==============================================================================
+
+#ifndef ABOUTWINDOW_H
+#define ABOUTWINDOW_H
+
+#include "../JuceLibraryCode/JuceHeader.h"
+
+class MainContentComponent;
+class GrisLookAndFeel;
+
+class AboutWindow final 
+    : public juce::DocumentWindow
+    , public juce::TextButton::Listener
+{
+public:
+    AboutWindow(const String& name, Colour backgroundColour, int buttonsNeeded,
+                MainContentComponent *parent, GrisLookAndFeel *feel);
+    ~AboutWindow() final;
+    //==============================================================================
+    void buttonClicked(Button *button) { delete this; }
+    void closeButtonPressed() { delete this; }
+private:
+    //==============================================================================
+    MainContentComponent *mainParent;
+    GrisLookAndFeel *grisFeel;
+    ImageComponent *imageComponent;
+    Label *title;
+    Label *version;
+    Label *label;
+    HyperlinkButton *website;
+    TextButton *close;
+    //==============================================================================
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AboutWindow);
+};
+
+#endif // ABOUTWINDOW_H

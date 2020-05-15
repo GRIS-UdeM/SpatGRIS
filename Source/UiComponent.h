@@ -124,33 +124,6 @@ private:
 };
 
 //==============================================================================
-//======================================= About Window ===========================
-class AboutWindow final 
-    : public DocumentWindow
-    , public TextButton::Listener
-{
-public:
-    AboutWindow(const String& name, Colour backgroundColour, int buttonsNeeded,
-                MainContentComponent *parent, GrisLookAndFeel *feel);
-    ~AboutWindow() final;
-    //==============================================================================
-    void buttonClicked(Button *button) { delete this; }
-    void closeButtonPressed() { delete this; }
-private:
-    //==============================================================================
-    MainContentComponent *mainParent;
-    GrisLookAndFeel *grisFeel;
-    ImageComponent *imageComponent;
-    Label *title;
-    Label *version;
-    Label *label;
-    HyperlinkButton *website;
-    TextButton *close;
-    //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AboutWindow);
-};
-
-//==============================================================================
 //======================================= OSC Log Window ===========================
 class OscLogWindow final
     : public DocumentWindow
