@@ -50,6 +50,7 @@
 #include "JackClientGRIS.h"
 #include "JackServerGRIS.h"
 #include "OscInput.h"
+#include "OscLogWindow.h"
 #include "PropertiesWindow.h"
 #include "ServerGrisConstants.h"
 #include "Speaker.h"

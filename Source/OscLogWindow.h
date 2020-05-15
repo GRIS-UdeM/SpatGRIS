@@ -22,6 +22,34 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
+class GrisLookAndFeel;
+class MainContentComponent;
+
 //==============================================================================
+class OscLogWindow final
+    : public juce::DocumentWindow
+    , public juce::TextButton::Listener
+{
+public:
+    OscLogWindow(juce::String const& name, juce::Colour backgroundColour, int buttonsNeeded,
+                 MainContentComponent *parent, GrisLookAndFeel *feel);
+    ~OscLogWindow() final;
+    //==============================================================================
+    void buttonClicked(Button *button) final;
+    void closeButtonPressed() final;
+    void addToLog(String msg);
+private:
+    //==============================================================================
+    MainContentComponent *mainParent;
+    GrisLookAndFeel *grisFeel;
+    int index;
+    bool activated;
+    juce::CodeDocument codeDocument;
+    juce::CodeEditorComponent logger;
+    juce::TextButton stop;
+    juce::TextButton close;
+    //==============================================================================
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (OscLogWindow);
+};
 
 #endif // OSCLOGWINDOW_H

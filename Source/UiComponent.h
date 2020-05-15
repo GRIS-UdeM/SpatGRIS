@@ -123,33 +123,5 @@ private:
     };
 };
 
-//==============================================================================
-//======================================= OSC Log Window ===========================
-class OscLogWindow final
-    : public DocumentWindow
-    , public TextButton::Listener
-{
-public:
-    OscLogWindow(const String& name, Colour backgroundColour, int buttonsNeeded,
-                 MainContentComponent *parent, GrisLookAndFeel *feel);
-    ~OscLogWindow() final;
-    //==============================================================================
-    void buttonClicked(Button *button) final;
-    void closeButtonPressed() final;
-    void addToLog(String msg);
-private:
-    //==============================================================================
-    MainContentComponent *mainParent;
-    GrisLookAndFeel *grisFeel;
-    int index;
-    bool activated;
-    CodeDocument codeDocument;
-    CodeEditorComponent logger;
-    TextButton stop;
-    TextButton close;
-    //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (OscLogWindow);
-};
-
 #endif /* UICOMPONENT_H */
 
