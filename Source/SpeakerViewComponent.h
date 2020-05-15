@@ -55,7 +55,7 @@ static const float  ScroolWheelSpeedMouse = 1.8f;
 class SpeakerViewComponent final : public OpenGLAppComponent {
 public:
     SpeakerViewComponent(MainContentComponent *parent = nullptr) : mainParent(parent) {}
-    ~SpeakerViewComponent() final { this->shutdown(); }
+    ~SpeakerViewComponent() final { this->shutdownOpenGL(); }
     //==============================================================================
     void initialise() final;
     void shutdown() final {}
