@@ -34,24 +34,27 @@ class MainContentComponent;
 class Box final : public Component
 {
 public:
-    Box(GrisLookAndFeel * feel, String title = "", bool verticalScrollbar = false, bool horizontalScrollbar = true);
-    ~Box();
+    Box(GrisLookAndFeel &    feel,
+        juce::String const & title = "",
+        bool                 verticalScrollbar = false,
+        bool                 horizontalScrollbar = true);
+    ~Box() final { this->content.deleteAllChildren(); }
     //==============================================================================
-    Component *       getContent() { return this->content ? this->content : this; }
-    Component const * getContent() const { return this->content ? this->content : this; }
+    Component *       getContent() { return &this->content; }
+    Component const * getContent() const { return &this->content; }
 
-    void resized() final;
+    void resized() final { this->viewport.setSize(this->getWidth(), this->getHeight()); }
     void correctSize(unsigned int width, unsigned int height);
     void paint(Graphics & g) final;
 
 private:
     //==============================================================================
-    GrisLookAndFeel * grisFeel;
+    GrisLookAndFeel & grisFeel;
 
-    juce::Component * content;
-    juce::Viewport *  viewport;
-    juce::Colour      bgColour;
-    juce::String      title;
+    juce::Component content;
+    juce::Viewport  viewport;
+    // juce::Colour      bgColour;
+    juce::String title;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Box)
 };

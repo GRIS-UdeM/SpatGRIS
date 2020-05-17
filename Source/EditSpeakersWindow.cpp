@@ -40,7 +40,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const &   name,
     , mainContentComponent(mainContentComponent)
     , font(14.0f)
 {
-    this->boxListSpeaker.reset(new Box(&this->grisFeel, "Configuration Speakers"));
+    this->boxListSpeaker.reset(new Box(this->grisFeel, "Configuration Speakers"));
 
     this->butAddSpeaker.setButtonText("Add Speaker");
     this->butAddSpeaker.setBounds(5, 404, 100, 22);

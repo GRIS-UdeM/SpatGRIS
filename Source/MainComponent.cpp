@@ -199,19 +199,19 @@ MainContentComponent::MainContentComponent(MainWindow & parent) : parent(parent)
     addAndMakeVisible(this->speakerView.get());
 
     // Box Main
-    this->boxMainUI.reset(new Box(&mGrisFeel, "", true, false));
+    this->boxMainUI.reset(new Box(mGrisFeel, "", true, false));
     addAndMakeVisible(this->boxMainUI.get());
 
     // Box Inputs
-    this->boxInputsUI.reset(new Box(&mGrisFeel, "Inputs"));
+    this->boxInputsUI.reset(new Box(mGrisFeel, "Inputs"));
     addAndMakeVisible(this->boxInputsUI.get());
 
     // Box Outputs
-    this->boxOutputsUI.reset(new Box(&mGrisFeel, "Outputs"));
+    this->boxOutputsUI.reset(new Box(mGrisFeel, "Outputs"));
     addAndMakeVisible(this->boxOutputsUI.get());
 
     // Box Control
-    this->boxControlUI.reset(new Box(&mGrisFeel));
+    this->boxControlUI.reset(new Box(mGrisFeel));
     addAndMakeVisible(this->boxControlUI.get());
 
     this->boxMainUI->getContent()->addAndMakeVisible(this->boxInputsUI.get());
