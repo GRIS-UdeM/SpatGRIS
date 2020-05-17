@@ -748,8 +748,7 @@ void MainContentComponent::handleShowPreferences()
 void MainContentComponent::handleShow2DView()
 {
     if (this->flatViewWindowSource == nullptr) {
-        this->flatViewWindowSource.reset(new FlatViewWindow("2D View", this->mGrisFeel.getWinBackgroundColour(),
-                                                            DocumentWindow::allButtons, this, &this->mGrisFeel));
+        this->flatViewWindowSource.reset(new FlatViewWindow{ *this, this->mGrisFeel });
     } else {
         this->flatViewWindowRect.setBounds(
             this->flatViewWindowSource->getScreenX(), this->flatViewWindowSource->getScreenY(),

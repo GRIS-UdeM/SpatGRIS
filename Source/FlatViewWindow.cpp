@@ -68,28 +68,18 @@ static FPoint GetSourceAzimElev(FPoint pXY, bool bUseCosElev = false)
 }
 
 //==============================================================================
-FlatViewWindow::FlatViewWindow(const String &         name,
-                               Colour                 backgroundColour,
-                               int                    buttonsNeeded,
-                               MainContentComponent * parent,
-                               GrisLookAndFeel *      feel)
-    : DocumentWindow(name, backgroundColour, buttonsNeeded)
+FlatViewWindow::FlatViewWindow(MainContentComponent & parent, GrisLookAndFeel & feel)
+    : DocumentWindow("2D View", feel.getBackgroundColour(), juce::DocumentWindow::allButtons)
+    , mainParent(parent)
+    , grisFeel(feel)
 {
-    this->mainParent = parent;
-    this->grisFeel = feel;
     this->startTimerHz(24);
 }
 
 //==============================================================================
 FlatViewWindow::~FlatViewWindow()
 {
-    this->mainParent->closeFlatViewWindow();
-}
-
-//==============================================================================
-void FlatViewWindow::timerCallback()
-{
-    this->repaint();
+    this->mainParent.closeFlatViewWindow();
 }
 
 //==============================================================================
@@ -97,10 +87,10 @@ void FlatViewWindow::drawFieldBackground(Graphics & g, const int fieldWH) const
 {
     const int realW = (fieldWH - SourceDiameter);
 
-    if (this->mainParent->getModeSelected() == LBAP) {
+    if (this->mainParent.getModeSelected() == LBAP) {
         float offset, size;
         // Draw light background squares.
-        g.setColour(this->grisFeel->getLightColour());
+        g.setColour(this->grisFeel.getLightColour());
         offset = fieldWH * 0.4;
         size = fieldWH * 0.2;
         g.drawRect(offset, offset, size, size);
@@ -109,7 +99,7 @@ void FlatViewWindow::drawFieldBackground(Graphics & g, const int fieldWH) const
         g.drawRect(offset, offset, size, size);
         g.drawRect(10, 10, fieldWH - 20, fieldWH - 20);
         // Draw shaded background squares.
-        g.setColour(this->grisFeel->getLightColour().withBrightness(0.5));
+        g.setColour(this->grisFeel.getLightColour().withBrightness(0.5));
         offset = fieldWH * 0.3;
         size = fieldWH * 0.4;
         g.drawRect(offset, offset, size, size);
@@ -125,7 +115,7 @@ void FlatViewWindow::drawFieldBackground(Graphics & g, const int fieldWH) const
     } else {
         float w, x;
         // Draw line and light circle.
-        g.setColour(this->grisFeel->getLightColour().withBrightness(0.5));
+        g.setColour(this->grisFeel.getLightColour().withBrightness(0.5));
         w = realW / 1.3f;
         x = (fieldWH - w) / 2.0f;
         g.drawEllipse(x, x, w, w, 1);
@@ -143,7 +133,7 @@ void FlatViewWindow::drawFieldBackground(Graphics & g, const int fieldWH) const
         g.drawLine(fieldWH / 2, x, fieldWH / 2, w + x);
 
         // Draw big background circle.
-        g.setColour(this->grisFeel->getLightColour());
+        g.setColour(this->grisFeel.getLightColour());
         g.drawEllipse(x, x, w, w, 1);
 
         // Draw little background circle.
@@ -152,7 +142,7 @@ void FlatViewWindow::drawFieldBackground(Graphics & g, const int fieldWH) const
         g.drawEllipse(x, x, w, w, 1);
 
         // Draw fill center cirlce.
-        g.setColour(this->grisFeel->getWinBackgroundColour());
+        g.setColour(this->grisFeel.getWinBackgroundColour());
         w = realW / 4.0f;
         w -= 2;
         x = (fieldWH - w) / 2.0f;
@@ -167,12 +157,12 @@ void FlatViewWindow::paint(Graphics & g)
     const int fieldCenter = fieldWH / 2;
     const int realW = (fieldWH - SourceDiameter);
 
-    g.fillAll(this->grisFeel->getWinBackgroundColour());
+    g.fillAll(this->grisFeel.getWinBackgroundColour());
 
     drawFieldBackground(g, fieldWH);
 
-    g.setFont(this->grisFeel->getFont());
-    g.setColour(this->grisFeel->getLightColour());
+    g.setFont(this->grisFeel.getFont());
+    g.setColour(this->grisFeel.getLightColour());
     g.drawText("0", fieldCenter, 10, SourceDiameter, SourceDiameter, Justification(Justification::centred), false);
     g.drawText("90", realW - 10, (fieldWH - 4) / 2.0f, SourceDiameter, SourceDiameter,
                Justification(Justification::centred), false);
@@ -182,14 +172,14 @@ void FlatViewWindow::paint(Graphics & g)
                false);
 
     // Draw sources.
-    int maxDrawSource = (int)this->mainParent->getListSourceInput().size();
+    int maxDrawSource = (int)this->mainParent.getListSourceInput().size();
     for (int i = 0; i < maxDrawSource; ++i) {
-        Input * it = this->mainParent->getListSourceInput().getUnchecked(i);
+        Input * it = this->mainParent.getListSourceInput().getUnchecked(i);
         if (it->getGain() == -1.0) {
             continue;
         }
-        drawSource(g, this->mainParent->getListSourceInput().getUnchecked(i), fieldWH);
-        drawSourceSpan(g, this->mainParent->getListSourceInput().getUnchecked(i), fieldWH, fieldCenter);
+        drawSource(g, this->mainParent.getListSourceInput().getUnchecked(i), fieldWH);
+        drawSourceSpan(g, this->mainParent.getListSourceInput().getUnchecked(i), fieldWH, fieldCenter);
     }
 }
 
@@ -199,7 +189,7 @@ void FlatViewWindow::drawSource(Graphics & g, Input * it, const int fieldWH) con
     const int realW = (fieldWH - SourceDiameter);
     String    stringVal;
     FPoint    sourceP;
-    if (this->mainParent->getModeSelected() == LBAP) {
+    if (this->mainParent.getModeSelected() == LBAP) {
         sourceP = FPoint(it->getCenter().z * 0.6f, it->getCenter().x * 0.6f) / 5.0f;
     } else {
         sourceP = FPoint(it->getCenter().z, it->getCenter().x) / 5.0f;
@@ -231,13 +221,13 @@ void FlatViewWindow::drawSourceSpan(Graphics & g, Input * it, const int fieldWH,
     Colour colorS = it->getColorJ();
 
     FPoint sourceP;
-    if (this->mainParent->getModeSelected() == LBAP) {
+    if (this->mainParent.getModeSelected() == LBAP) {
         sourceP = FPoint(it->getCenter().z * 0.6f, it->getCenter().x * 0.6f) / 5.0f;
     } else {
         sourceP = FPoint(it->getCenter().z, it->getCenter().x) / 5.0f;
     }
 
-    if (this->mainParent->getModeSelected() == LBAP) {
+    if (this->mainParent.getModeSelected() == LBAP) {
         int   realW = (fieldWH - SourceDiameter);
         float azimuthSpan = fieldWH * (it->getAziMuthSpan() * 0.5f);
         float halfAzimuthSpan = azimuthSpan / 2.0f - SourceRadius;
@@ -255,7 +245,7 @@ void FlatViewWindow::drawSourceSpan(Graphics & g, Input * it, const int fieldWH,
         float HRAzimSpan = 180.0f * (it->getAziMuthSpan()); // In zirkosc, this is [0,360]
         float HRElevSpan = 180.0f * (it->getZenithSpan());  // In zirkosc, this is [0,90]
 
-        if ((HRAzimSpan < 0.002f && HRElevSpan < 0.002f) || !this->mainParent->isSpanShown) {
+        if ((HRAzimSpan < 0.002f && HRElevSpan < 0.002f) || !this->mainParent.isSpanShown) {
             return;
         }
 
@@ -320,5 +310,5 @@ void FlatViewWindow::resized()
 //==============================================================================
 void FlatViewWindow::closeButtonPressed()
 {
-    this->mainParent->closeFlatViewWindow();
+    this->mainParent.closeFlatViewWindow();
 }

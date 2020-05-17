@@ -32,14 +32,10 @@ class FlatViewWindow final
     , private Timer
 {
 public:
-    FlatViewWindow(const String &         name,
-                   Colour                 backgroundColour,
-                   int                    buttonsNeeded,
-                   MainContentComponent * parent,
-                   GrisLookAndFeel *      feel);
+    FlatViewWindow(MainContentComponent & parent, GrisLookAndFeel & feel);
     ~FlatViewWindow() final;
     //==============================================================================
-    void timerCallback() final;
+    void timerCallback() final { this->repaint(); }
     void paint(Graphics & g) final;
     void resized() final;
     void closeButtonPressed() final;
@@ -50,8 +46,8 @@ private:
     void drawSource(Graphics & g, Input * it, const int fieldWH) const;
     void drawSourceSpan(Graphics & g, Input * it, const int fieldWH, const int fieldCenter) const;
     //==============================================================================
-    MainContentComponent * mainParent;
-    GrisLookAndFeel *      grisFeel;
+    MainContentComponent & mainParent;
+    GrisLookAndFeel &      grisFeel;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FlatViewWindow);
 };
