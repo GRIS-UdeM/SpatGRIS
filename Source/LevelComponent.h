@@ -22,10 +22,10 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
+#include "Box.h"
 #include "GrisLookAndFeel.h"
 #include "ParentLevelComponent.h"
 #include "Speaker.h"
-#include "UiComponent.h"
 
 static const float MinLevelComp = -60.f;
 static const float MaxLevelComp = 0.f;

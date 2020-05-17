@@ -45,6 +45,7 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 
 #include "AboutWindow.h"
+#include "Box.h"
 #include "EditSpeakersWindow.h"
 #include "FlatViewWindow.h"
 #include "Input.h"
@@ -57,7 +58,6 @@
 #include "ServerGrisConstants.h"
 #include "Speaker.h"
 #include "SpeakerViewComponent.h"
-#include "UiComponent.h"
 
 class MainWindow;
 

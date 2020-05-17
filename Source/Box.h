@@ -31,7 +31,6 @@ class LevelComponent;
 class MainContentComponent;
 
 //==============================================================================
-//======================================= BOX ========================================
 class Box final : public Component
 {
 public:

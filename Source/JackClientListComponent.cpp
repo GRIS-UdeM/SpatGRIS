@@ -19,9 +19,9 @@
 
 #include "JackClientListComponent.h"
 
+#include "Box.h"
 #include "GrisLookAndFeel.h"
 #include "MainComponent.h"
-#include "UiComponent.h"
 
 //==============================================================================
 JackClientListComponent::JackClientListComponent(MainContentComponent * parent, GrisLookAndFeel * feel)

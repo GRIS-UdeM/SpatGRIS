@@ -54,8 +54,8 @@
               file="Source/JackClientListComponent.cpp"/>
         <FILE id="FqxvCu" name="JackClientListComponent.h" compile="0" resource="0"
               file="Source/JackClientListComponent.h"/>
-        <FILE id="MW5ESG" name="UiComponent.cpp" compile="1" resource="0" file="Source/UiComponent.cpp"/>
-        <FILE id="RG3FbE" name="UiComponent.h" compile="0" resource="0" file="Source/UiComponent.h"/>
+        <FILE id="MW5ESG" name="Box.cpp" compile="1" resource="0" file="Source/Box.cpp"/>
+        <FILE id="RG3FbE" name="Box.h" compile="0" resource="0" file="Source/Box.h"/>
       </GROUP>
       <FILE id="uYO3os" name="GrisLookAndFeel.cpp" compile="1" resource="0"
             file="Source/GrisLookAndFeel.cpp"/>

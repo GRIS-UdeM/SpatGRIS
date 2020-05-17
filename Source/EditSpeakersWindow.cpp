@@ -19,10 +19,10 @@
 
 #include "EditSpeakersWindow.h"
 
+#include "Box.h"
 #include "EditableTextCustomComponent.h"
 #include "GrisLookAndFeel.h"
 #include "MainComponent.h"
-#include "UiComponent.h"
 
 //==============================================================================
 static double GetFloatPrecision(double value, double precision)

@@ -17,7 +17,7 @@
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "UiComponent.h"
+#include "Box.h"
 
 #include <algorithm>
 
