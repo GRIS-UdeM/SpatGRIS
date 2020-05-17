@@ -32,6 +32,13 @@ class JackClientListComponent final
     , public juce::TableListBoxModel
     , public juce::ToggleButton::Listener
 {
+    struct ColumnIds
+    {
+        static constexpr int CLIENT_NAME = 1;
+        static constexpr int START = 2;
+        static constexpr int END = 3;
+        static constexpr int ON_OFF_TOGGLE = 4;
+    };
     //==============================================================================
     class ListIntOutComp final
         : public juce::Component
