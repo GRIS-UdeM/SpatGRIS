@@ -2413,7 +2413,7 @@ void MainContentComponent::textEditorReturnKeyPressed(TextEditor & textEditor)
             bool addInput = false;
             for (unsigned int i = 0; i < this->jackClient->inputsPort.size(); i++) {
                 if (i >= this->listSourceInput.size()) {
-                    this->listSourceInput.add(new Input(this, &mSmallTextGrisFeel, i + 1));
+                    this->listSourceInput.add(new Input(*this, mSmallTextGrisFeel, i + 1));
                     addInput = true;
                 }
             }

@@ -19,20 +19,17 @@
 
 #include "Input.h"
 
-#include "LevelComponent.h"
 #include "MainComponent.h"
 
 //==============================================================================
-Input::Input(MainContentComponent * parent, SmallGrisLookAndFeel * feel, int id)
+Input::Input(MainContentComponent & mainContentComponent, SmallGrisLookAndFeel & lookAndFeel, int const id)
+    : mainContentComponent(mainContentComponent)
+    , lookAndFeel(lookAndFeel)
+    , idChannel(id)
+    , directOutChannel(0)
+    , vuMeter(this, &lookAndFeel)
 {
-    this->mainParent = parent;
-    this->grisFeel = feel;
-    this->idChannel = id;
-    this->directOutChannel = 0;
-
     this->resetPosition();
-
-    this->vuMeter.reset(new LevelComponent(this, this->grisFeel));
     this->setColor(Colour::fromHSV(0, 1, 0.75, 1), true);
 }
 
@@ -79,18 +76,18 @@ glm::vec3 Input::polToCar3d(float azimuth, float zenith) const
 //==============================================================================
 void Input::setMuted(bool mute)
 {
-    this->mainParent->muteInput(this->idChannel, mute);
+    this->mainContentComponent.muteInput(this->idChannel, mute);
     if (mute) {
-        this->mainParent->soloInput(this->idChannel, false);
+        this->mainContentComponent.soloInput(this->idChannel, false);
     }
 }
 
 //==============================================================================
 void Input::setSolo(bool solo)
 {
-    this->mainParent->soloInput(this->idChannel, solo);
+    this->mainContentComponent.soloInput(this->idChannel, solo);
     if (solo) {
-        this->mainParent->muteInput(this->idChannel, false);
+        this->mainContentComponent.muteInput(this->idChannel, false);
     }
 }
 
@@ -103,14 +100,14 @@ void Input::setColor(Colour color, bool updateLevel)
     this->color.z = this->colorJ.getFloatBlue();
 
     if (updateLevel) {
-        this->vuMeter->setColor(this->colorJ);
+        this->vuMeter.setColor(this->colorJ);
     }
 }
 
 //==============================================================================
 Colour Input::getColorJWithAlpha() const
 {
-    if (this->mainParent->isSourceLevelShown) {
+    if (this->mainContentComponent.isSourceLevelShown) {
         return this->colorJ.withMultipliedAlpha(this->getAlpha());
     } else {
         return this->colorJ;
@@ -120,8 +117,8 @@ Colour Input::getColorJWithAlpha() const
 //==============================================================================
 float Input::getAlpha() const
 {
-    if (this->mainParent->isSourceLevelShown) {
-        return this->mainParent->getLevelsAlpha(this->idChannel - 1);
+    if (this->mainContentComponent.isSourceLevelShown) {
+        return this->mainContentComponent.getLevelsAlpha(this->idChannel - 1);
     } else {
         return 1.0f;
     }
@@ -138,7 +135,7 @@ void Input::draw()
     }
 
     // If isSourceLevelShown is on and alpha below 0.01, don't draw.
-    if (this->mainParent->isSourceLevelShown && this->getAlpha() <= 0.01) {
+    if (this->mainContentComponent.isSourceLevelShown && this->getAlpha() <= 0.01) {
         return;
     }
 
@@ -148,7 +145,7 @@ void Input::draw()
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glLineWidth(2);
 
-    if (this->mainParent->isSourceLevelShown) {
+    if (this->mainContentComponent.isSourceLevelShown) {
         glColor4f(this->color.x, this->color.y, this->color.z, this->getAlpha());
     } else {
         glColor4f(this->color.x, this->color.y, this->color.z, transpa);
@@ -157,8 +154,8 @@ void Input::draw()
     glutSolidSphere(this->sizeT, 8, 8);
     glTranslatef(-this->center.x, -this->center.y, -this->center.z);
 
-    if ((this->azimSpan != 0.0f || this->zeniSpan != 0.0f) && this->mainParent->isSpanShown) {
-        if (this->mainParent->getModeSelected() == 1) {
+    if ((this->azimSpan != 0.0f || this->zeniSpan != 0.0f) && this->mainContentComponent.isSpanShown) {
+        if (this->mainContentComponent.getModeSelected() == 1) {
             drawSpanLBAP(this->center.x, this->center.y, this->center.z);
         } else {
             drawSpan();
@@ -192,7 +189,7 @@ void Input::drawSpan()
             else if (newazi < -M_PI)
                 newazi += (M_PI * 2.0f);
 
-            if (this->mainParent->getModeSelected() == 1) {
+            if (this->mainContentComponent.getModeSelected() == 1) {
                 cart = this->polToCar3d(newazi, this->zenith);
             } else {
                 cart = this->polToCar(newazi, this->zenith);
@@ -210,7 +207,7 @@ void Input::drawSpan()
                     else if (newele < 0)
                         newele = 0;
 
-                    if (this->mainParent->getModeSelected() == 1) {
+                    if (this->mainContentComponent.getModeSelected() == 1) {
                         cart = this->polToCar3d(newazi, newele);
                     } else {
                         cart = this->polToCar(newazi, newele);
@@ -228,7 +225,7 @@ void Input::drawSpan()
 //==============================================================================
 float Input::getLevel() const
 {
-    return this->mainParent->getLevelsIn(this->idChannel - 1);
+    return this->mainContentComponent.getLevelsIn(this->idChannel - 1);
 }
 
 //==============================================================================
@@ -330,13 +327,7 @@ void Input::updateValuesOld(float az, float ze, float azS, float zeS, float g)
 //==============================================================================
 void Input::sendDirectOutToClient(int id, int chn)
 {
-    this->mainParent->setDirectOut(id, chn);
-}
-
-//==============================================================================
-void Input::changeDirectOutChannel(int chn)
-{
-    this->directOutChannel = chn;
+    this->mainContentComponent.setDirectOut(id, chn);
 }
 
 //==============================================================================
@@ -344,9 +335,9 @@ void Input::setDirectOutChannel(int chn)
 {
     this->directOutChannel = chn;
     if (chn == 0) {
-        this->vuMeter->directOut->setButtonText("-");
+        this->vuMeter.directOut->setButtonText("-");
         return;
     } else {
-        this->vuMeter->directOut->setButtonText(String(chn));
+        this->vuMeter.directOut->setButtonText(String(chn));
     }
 }

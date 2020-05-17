@@ -43,16 +43,16 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 
 #include "GrisLookAndFeel.h"
+#include "LevelComponent.h"
 #include "ParentLevelComponent.h"
 
 class MainContentComponent;
-class LevelComponent;
 
 //==============================================================================
 class Input final : public ParentLevelComponent
 {
 public:
-    Input(MainContentComponent * parent, SmallGrisLookAndFeel * feel, int id = 0);
+    Input(MainContentComponent & mainContentComponent, SmallGrisLookAndFeel & lookAndFeel, int id = 0);
     ~Input() final = default;
     //==============================================================================
     void setMuted(bool mute);
@@ -60,11 +60,11 @@ public:
     void selectClick(bool select = true){};
     void setColor(Colour color, bool updateLevel = false);
     //==============================================================================
-    MainContentComponent const & getMainContentComponent() const { return *this->mainParent; }
-    MainContentComponent &       getMainContentComponent() { return *this->mainParent; }
+    MainContentComponent const & getMainContentComponent() const { return this->mainContentComponent; }
+    MainContentComponent &       getMainContentComponent() { return this->mainContentComponent; }
 
-    LevelComponent const * getVuMeter() const { return this->vuMeter.get(); }
-    LevelComponent *       getVuMeter() { return this->vuMeter.get(); }
+    LevelComponent const * getVuMeter() const { return &this->vuMeter; }
+    LevelComponent *       getVuMeter() { return &this->vuMeter; }
 
     int   getId() const final { return this->idChannel; }
     int   getButtonInOutNumber() const { return this->idChannel; }
@@ -95,7 +95,7 @@ public:
     void updateValuesOld(float az, float ze, float azS, float zeS, float g);
     //==============================================================================
     bool isInput() const final { return true; }
-    void changeDirectOutChannel(int chn) final;
+    void changeDirectOutChannel(int const chn) final { this->directOutChannel = chn; }
     void setDirectOutChannel(int chn) final;
     int  getDirectOutChannel() const final { return this->directOutChannel; };
     void sendDirectOutToClient(int id, int chn) final;
@@ -105,8 +105,8 @@ public:
 
 private:
     //==============================================================================
-    MainContentComponent * mainParent;
-    SmallGrisLookAndFeel * grisFeel;
+    MainContentComponent & mainContentComponent;
+    SmallGrisLookAndFeel & lookAndFeel;
 
     int idChannel;
     int directOutChannel;
@@ -124,7 +124,7 @@ private:
     glm::vec3 color;
     Colour    colorJ;
 
-    std::unique_ptr<LevelComponent> vuMeter{};
+    LevelComponent vuMeter;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Input);
 };
