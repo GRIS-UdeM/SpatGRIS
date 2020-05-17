@@ -22,7 +22,8 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
-class Box;
+#include "Box.h"
+
 class EditableTextCustomComponent;
 class MainContentComponent;
 class GrisLookAndFeel;
@@ -80,7 +81,7 @@ private:
     MainContentComponent & mainContentComponent;
     GrisLookAndFeel &      grisFeel;
 
-    std::unique_ptr<Box> boxListSpeaker;
+    Box boxListSpeaker;
 
     juce::TextButton butAddSpeaker;
     juce::TextButton butcompSpeakers;

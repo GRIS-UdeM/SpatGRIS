@@ -19,7 +19,6 @@
 
 #include "EditSpeakersWindow.h"
 
-#include "Box.h"
 #include "EditableTextCustomComponent.h"
 #include "GrisLookAndFeel.h"
 #include "MainComponent.h"
@@ -39,22 +38,21 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const &   name,
     , grisFeel(lookAndFeel)
     , mainContentComponent(mainContentComponent)
     , font(14.0f)
+    , boxListSpeaker(lookAndFeel, "Configuration Speakers")
 {
-    this->boxListSpeaker.reset(new Box(this->grisFeel, "Configuration Speakers"));
-
     this->butAddSpeaker.setButtonText("Add Speaker");
     this->butAddSpeaker.setBounds(5, 404, 100, 22);
     this->butAddSpeaker.addListener(this);
     this->butAddSpeaker.setColour(ToggleButton::textColourId, this->grisFeel.getFontColour());
     this->butAddSpeaker.setLookAndFeel(&this->grisFeel);
-    this->boxListSpeaker->getContent()->addAndMakeVisible(this->butAddSpeaker);
+    this->boxListSpeaker.getContent()->addAndMakeVisible(this->butAddSpeaker);
 
     this->butcompSpeakers.setButtonText("Compute");
     this->butcompSpeakers.setBounds(110, 404, 100, 22);
     this->butcompSpeakers.addListener(this);
     this->butcompSpeakers.setColour(ToggleButton::textColourId, this->grisFeel.getFontColour());
     this->butcompSpeakers.setLookAndFeel(&this->grisFeel);
-    this->boxListSpeaker->getContent()->addAndMakeVisible(this->butcompSpeakers);
+    this->boxListSpeaker.getContent()->addAndMakeVisible(this->butcompSpeakers);
 
     // Generate ring of speakers.
     int wlab = 80;
@@ -65,14 +63,14 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const &   name,
     this->rNumOfSpeakersLabel.setLookAndFeel(&this->grisFeel);
     this->rNumOfSpeakersLabel.setColour(Label::textColourId, this->grisFeel.getFontColour());
     this->rNumOfSpeakersLabel.setBounds(5, 435, 40, 24);
-    this->boxListSpeaker->getContent()->addAndMakeVisible(this->rNumOfSpeakersLabel);
+    this->boxListSpeaker.getContent()->addAndMakeVisible(this->rNumOfSpeakersLabel);
 
     this->rNumOfSpeakers.setTooltip("Number of speakers in the ring");
     this->rNumOfSpeakers.setColour(ToggleButton::textColourId, this->grisFeel.getFontColour());
     this->rNumOfSpeakers.setLookAndFeel(&this->grisFeel);
     this->rNumOfSpeakers.setBounds(5 + wlab, 435, 40, 24);
     this->rNumOfSpeakers.addListener(&this->mainContentComponent);
-    this->boxListSpeaker->getContent()->addAndMakeVisible(this->rNumOfSpeakers);
+    this->boxListSpeaker.getContent()->addAndMakeVisible(this->rNumOfSpeakers);
 
     this->rNumOfSpeakers.setText("8");
     this->rNumOfSpeakers.setInputRestrictions(3, "0123456789");
@@ -84,14 +82,14 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const &   name,
     this->rZenithLabel.setLookAndFeel(&this->grisFeel);
     this->rZenithLabel.setColour(Label::textColourId, this->grisFeel.getFontColour());
     this->rZenithLabel.setBounds(105, 435, 80, 24);
-    this->boxListSpeaker->getContent()->addAndMakeVisible(this->rZenithLabel);
+    this->boxListSpeaker.getContent()->addAndMakeVisible(this->rZenithLabel);
 
     this->rZenith.setTooltip("Elevation angle of the ring");
     this->rZenith.setColour(ToggleButton::textColourId, this->grisFeel.getFontColour());
     this->rZenith.setLookAndFeel(&this->grisFeel);
     this->rZenith.setBounds(105 + wlab, 435, 60, 24);
     this->rZenith.addListener(&this->mainContentComponent);
-    this->boxListSpeaker->getContent()->addAndMakeVisible(this->rZenith);
+    this->boxListSpeaker.getContent()->addAndMakeVisible(this->rZenith);
 
     this->rZenith.setText("0.0");
     this->rZenith.setInputRestrictions(6, "-0123456789.");
@@ -103,14 +101,14 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const &   name,
     this->rRadiusLabel.setLookAndFeel(&this->grisFeel);
     this->rRadiusLabel.setColour(Label::textColourId, this->grisFeel.getFontColour());
     this->rRadiusLabel.setBounds(230, 435, 80, 24);
-    this->boxListSpeaker->getContent()->addAndMakeVisible(this->rRadiusLabel);
+    this->boxListSpeaker.getContent()->addAndMakeVisible(this->rRadiusLabel);
 
     this->rRadius.setTooltip("Distance of the speakers from the center.");
     this->rRadius.setColour(ToggleButton::textColourId, this->grisFeel.getFontColour());
     this->rRadius.setLookAndFeel(&this->grisFeel);
     this->rRadius.setBounds(230 + wlab, 435, 60, 24);
     this->rRadius.addListener(&this->mainContentComponent);
-    this->boxListSpeaker->getContent()->addAndMakeVisible(this->rRadius);
+    this->boxListSpeaker.getContent()->addAndMakeVisible(this->rRadius);
 
     this->rRadius.setText("1.0");
     this->rRadius.setInputRestrictions(6, "0123456789.");
@@ -122,14 +120,14 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const &   name,
     this->rOffsetAngleLabel.setLookAndFeel(&this->grisFeel);
     this->rOffsetAngleLabel.setColour(Label::textColourId, this->grisFeel.getFontColour());
     this->rOffsetAngleLabel.setBounds(375, 435, 80, 24);
-    this->boxListSpeaker->getContent()->addAndMakeVisible(this->rOffsetAngleLabel);
+    this->boxListSpeaker.getContent()->addAndMakeVisible(this->rOffsetAngleLabel);
 
     this->rOffsetAngle.setTooltip("Offset angle of the first speaker.");
     this->rOffsetAngle.setColour(ToggleButton::textColourId, this->grisFeel.getFontColour());
     this->rOffsetAngle.setLookAndFeel(&this->grisFeel);
     this->rOffsetAngle.setBounds(375 + wlab, 435, 60, 24);
     this->rOffsetAngle.addListener(&this->mainContentComponent);
-    this->boxListSpeaker->getContent()->addAndMakeVisible(this->rOffsetAngle);
+    this->boxListSpeaker.getContent()->addAndMakeVisible(this->rOffsetAngle);
 
     this->rOffsetAngle.setText("0.0");
     this->rOffsetAngle.setInputRestrictions(6, "-0123456789.");
@@ -140,7 +138,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const &   name,
     this->butAddRing.addListener(this);
     this->butAddRing.setColour(ToggleButton::textColourId, this->grisFeel.getFontColour());
     this->butAddRing.setLookAndFeel(&this->grisFeel);
-    this->boxListSpeaker->getContent()->addAndMakeVisible(this->butAddRing);
+    this->boxListSpeaker.getContent()->addAndMakeVisible(this->butAddRing);
 
     // Pink noise controls.
     this->pinkNoise.setButtonText("Reference Pink Noise");
@@ -148,7 +146,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const &   name,
     this->pinkNoise.addListener(this);
     this->pinkNoise.setColour(ToggleButton::textColourId, this->grisFeel.getFontColour());
     this->pinkNoise.setLookAndFeel(&this->grisFeel);
-    this->boxListSpeaker->getContent()->addAndMakeVisible(this->pinkNoise);
+    this->boxListSpeaker.getContent()->addAndMakeVisible(this->pinkNoise);
 
     this->pinkNoiseGain.setTextValueSuffix(" dB");
     this->pinkNoiseGain.setBounds(200, 500, 60, 60);
@@ -160,14 +158,14 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const &   name,
     this->pinkNoiseGain.setColour(ToggleButton::textColourId, this->grisFeel.getFontColour());
     this->pinkNoiseGain.setLookAndFeel(&this->grisFeel);
     this->pinkNoiseGain.addListener(this);
-    this->boxListSpeaker->getContent()->addAndMakeVisible(this->pinkNoiseGain);
+    this->boxListSpeaker.getContent()->addAndMakeVisible(this->pinkNoiseGain);
 
-    this->boxListSpeaker->getContent()->addAndMakeVisible(this->tableListSpeakers);
+    this->boxListSpeaker.getContent()->addAndMakeVisible(this->tableListSpeakers);
 
-    this->boxListSpeaker->repaint();
-    this->boxListSpeaker->resized();
+    this->boxListSpeaker.repaint();
+    this->boxListSpeaker.resized();
 
-    this->setContentNonOwned(this->boxListSpeaker.get(), false);
+    this->setContentNonOwned(&this->boxListSpeaker, false);
 }
 
 //==============================================================================
@@ -198,14 +196,14 @@ void EditSpeakersWindow::initComp()
 
     numRows = (unsigned int)this->mainContentComponent.getListSpeaker().size();
 
-    this->boxListSpeaker->setBounds(0, 0, getWidth(), getHeight());
-    this->boxListSpeaker->correctSize(getWidth() - 8, getHeight());
+    this->boxListSpeaker.setBounds(0, 0, getWidth(), getHeight());
+    this->boxListSpeaker.correctSize(getWidth() - 8, getHeight());
     tableListSpeakers.setSize(getWidth(), 400);
 
     tableListSpeakers.updateContent();
 
-    this->boxListSpeaker->repaint();
-    this->boxListSpeaker->resized();
+    this->boxListSpeaker.repaint();
+    this->boxListSpeaker.resized();
     this->resized();
 }
 
@@ -503,8 +501,8 @@ void EditSpeakersWindow::resized()
 
     tableListSpeakers.setSize(getWidth(), getHeight() - 195);
 
-    this->boxListSpeaker->setSize(getWidth(), getHeight());
-    this->boxListSpeaker->correctSize(getWidth() - 10, getHeight() - 30);
+    this->boxListSpeaker.setSize(getWidth(), getHeight());
+    this->boxListSpeaker.correctSize(getWidth() - 10, getHeight() - 30);
 
     this->butAddSpeaker.setBounds(5, getHeight() - 180, 100, 22);
     this->butcompSpeakers.setBounds(getWidth() - 105, getHeight() - 180, 100, 22);
