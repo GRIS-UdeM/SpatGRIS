@@ -253,7 +253,7 @@ void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const 
 
     for (int i = 0; i < size; i++) {
         tosort[i].id = this->mainContentComponent.getListSpeaker()[i]->getIdSpeaker();
-        tosort[i].directout = this->mainContentComponent.getListSpeaker()[i]->getDirectOut();
+        tosort[i].directout = this->mainContentComponent.getListSpeaker()[i]->isDirectOut();
         switch (newSortColumnId) {
         case 1:
             tosort[i].value = (float)this->mainContentComponent.getListSpeaker()[i]->getIdSpeaker();
@@ -558,7 +558,7 @@ juce::String EditSpeakersWindow::getText(int const columnNumber, int const rowNu
             text = String(this->mainContentComponent.getListSpeaker()[rowNumber]->getHighPassCutoff());
             break;
         case 11:
-            text = String((int)this->mainContentComponent.getListSpeaker()[rowNumber]->getDirectOut());
+            text = String(static_cast<int>(this->mainContentComponent.getListSpeaker()[rowNumber]->isDirectOut()));
             break;
         default:
             text = "?";
@@ -719,7 +719,7 @@ void EditSpeakersWindow::setText(int const      columnNumber,
             case 7: // Distance
                 newP = this->mainContentComponent.getListSpeaker()[rowNumber]->getAziZenRad();
                 if (this->mainContentComponent.isRadiusNormalized()
-                    && !this->mainContentComponent.getListSpeaker()[rowNumber]->getDirectOut()) {
+                    && !this->mainContentComponent.getListSpeaker()[rowNumber]->isDirectOut()) {
                     val = 1.0;
                 } else {
                     val = GetFloatPrecision(newText.getFloatValue(), 3);
@@ -762,9 +762,9 @@ void EditSpeakersWindow::setText(int const      columnNumber,
                 } else if (ival > 256) {
                     ival = 256;
                 }
-                if (!this->mainContentComponent.getListSpeaker()[rowNumber]->getDirectOut()) {
+                if (!this->mainContentComponent.getListSpeaker()[rowNumber]->isDirectOut()) {
                     for (auto && it : this->mainContentComponent.getListSpeaker()) {
-                        if (it == this->mainContentComponent.getListSpeaker()[rowNumber] || it->getDirectOut()) {
+                        if (it == this->mainContentComponent.getListSpeaker()[rowNumber] || it->isDirectOut()) {
                             continue;
                         }
                         if (it->getOutputPatch() == ival) {
@@ -919,7 +919,7 @@ Component * EditSpeakersWindow::refreshComponentForCell(int const   rowNumber,
         tbDirect->setClickingTogglesState(true);
         tbDirect->setBounds(4, 404, 88, 22);
         tbDirect->addListener(this);
-        tbDirect->setToggleState(this->mainContentComponent.getListSpeaker()[rowNumber]->getDirectOut(),
+        tbDirect->setToggleState(this->mainContentComponent.getListSpeaker()[rowNumber]->isDirectOut(),
                                  dontSendNotification);
         tbDirect->setLookAndFeel(&this->grisFeel);
         return tbDirect;
@@ -945,7 +945,7 @@ Component * EditSpeakersWindow::refreshComponentForCell(int const   rowNumber,
     textLabel->setRowAndColumn(rowNumber, columnId);
 
     if (this->mainContentComponent.getModeSelected() == LBAP
-        || this->mainContentComponent.getListSpeaker()[rowNumber]->getDirectOut()) {
+        || this->mainContentComponent.getListSpeaker()[rowNumber]->isDirectOut()) {
         if (columnId < 2) {
             textLabel->setEditable(false);
         }
@@ -967,5 +967,5 @@ int EditSpeakersWindow::getModeSelected() const
 //==============================================================================
 bool EditSpeakersWindow::getDirectOutForSpeakerRow(int const row) const
 {
-    return this->mainContentComponent.getListSpeaker()[row]->getDirectOut();
+    return this->mainContentComponent.getListSpeaker()[row]->isDirectOut();
 }

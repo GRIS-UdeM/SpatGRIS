@@ -33,10 +33,10 @@ void LevelBox::setBounds(juce::Rectangle<int> const & newBounds)
     // TODO: this function should not be drawing or loading images.
 
     // LevelBox size is (22, 140)
-    this->setBounds(newBounds);
+    this->juce::Component::setBounds(newBounds); // TODO: this does not look ok!
 
     this->colorGrad = juce::ColourGradient{
-        juce::Colour::fromRGB(255, 94, 69), 0.f, 0.f, juce::Colour::fromRGB(17, 255, 159), 0.f, this->getHeight(), false
+        juce::Colour::fromRGB(255, 94, 69), 0.f, 0.f, juce::Colour::fromRGB(17, 255, 159), 0.f, static_cast<float>(this->getHeight()), false
     };
     this->colorGrad.addColour(0.1, juce::Colours::yellow);
 
@@ -100,7 +100,7 @@ void LevelBox::paint(juce::Graphics & g)
         g.drawImage(this->vumeterBackBit, 0, 0, 22, h, 0, 0, 22, h);
         if (this->isClipping) {
             g.setColour(juce::Colour::fromHSV(0.0, 1, 0.75, 1));
-            juce::Rectangle<float> const clipRect{ 0.5, 0.5, this->getWidth() - 1, 5 };
+            juce::Rectangle<float> const clipRect{ 0.5, 0.5, static_cast<float>(this->getWidth() - 1), 5 };
             g.fillRect(clipRect);
         }
     }
@@ -306,7 +306,7 @@ void LevelComponent::setBounds(juce::Rectangle<int> const & newBounds)
 {
     int const levelSize{ 140 };
 
-    this->setBounds(newBounds);
+    this->juce::Component::setBounds(newBounds); // TODO: this does not look ok!
 
     juce::Rectangle<int> const labRect{ 0, 0, newBounds.getWidth(), this->idBut.getHeight() };
     this->idBut.setBounds(labRect);

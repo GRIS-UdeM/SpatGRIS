@@ -24,18 +24,17 @@
 
 //==============================================================================
 // Audio recorder class used to write an interleaved multi-channel soundfile on disk.
-class AudioRenderer : public ThreadWithProgressWindow
+class AudioRenderer : public juce::ThreadWithProgressWindow
 {
 public:
     AudioRenderer()
-        : ThreadWithProgressWindow("Merging recorded mono files into an interleaved multi-channel file...", true, false)
+        : juce::ThreadWithProgressWindow("Merging recorded mono files into an interleaved multi-channel file...", true, false)
     {
         setStatusMessage("Initializing...");
     }
-
     ~AudioRenderer() override = default;
     //==============================================================================
-    void prepareRecording(const File & file, const Array<File> filenames, unsigned int sampleRate)
+    void prepareRecording(juce::File const & file, juce::Array<juce::File> const & filenames, unsigned int const sampleRate)
     {
         this->fileToRecord = file;
         this->filenames = filenames;
@@ -44,10 +43,10 @@ public:
     //==============================================================================
     void run() override
     {
-        unsigned int       numberOfPasses = 0;
-        unsigned int const blockSize = 2048;
-        float const        factor = powf(2.0f, 31.0f);
-        int const          numberOfChannels = this->filenames.size();
+        unsigned int numberOfPasses{};
+        unsigned int const blockSize{ 2048};
+        float const        factor{powf(2.0f, 31.0f)};
+        int const          numberOfChannels{this->filenames.size()};
         juce::String const extF = this->filenames[0].getFileExtension();
 
         int ** data = new int *[2];
@@ -103,7 +102,7 @@ public:
                 }
             }
             writer->writeFromFloatArrays(buffer, numberOfChannels, blockSize);
-            numberOfPasses++;
+            ++numberOfPasses;
             wait(1);
         }
 
@@ -1506,7 +1505,7 @@ void MainContentComponent::setListTripletFromVbap()
 Speaker const * MainContentComponent::getSpeakerFromOutputPatch(int out) const
 {
     for (auto const it : this->listSpeaker) {
-        if (it->getOutputPatch() == out && !it->getDirectOut()) {
+        if (it->getOutputPatch() == out && !it->isDirectOut()) {
             return it;
         }
     }
@@ -1517,7 +1516,7 @@ Speaker const * MainContentComponent::getSpeakerFromOutputPatch(int out) const
 Speaker * MainContentComponent::getSpeakerFromOutputPatch(int out)
 {
     for (auto it : this->listSpeaker) {
-        if (it->getOutputPatch() == out && !it->getDirectOut()) {
+        if (it->getOutputPatch() == out && !it->isDirectOut()) {
             return it;
         }
     }
@@ -1574,7 +1573,7 @@ bool MainContentComponent::updateLevelComp()
     // Test for a 2-D or 3-D configuration.
     float zenith = -1.0f;
     for (auto && it : this->listSpeaker) {
-        if (it->getDirectOut()) {
+        if (it->isDirectOut()) {
             directOutSpeakers++;
             continue;
         }
@@ -1601,7 +1600,7 @@ bool MainContentComponent::updateLevelComp()
     // Test for duplicated output patch.
     std::vector<int> tempout;
     for (unsigned int i = 0; i < this->listSpeaker.size(); i++) {
-        if (!this->listSpeaker[i]->getDirectOut()) {
+        if (!this->listSpeaker[i]->isDirectOut()) {
             tempout.push_back(this->listSpeaker[i]->getOutputPatch());
         }
     }
@@ -1678,7 +1677,7 @@ bool MainContentComponent::updateLevelComp()
         so.zenith = it->getAziZenRad().y;
         so.radius = it->getAziZenRad().z;
         so.outputPatch = it->getOutputPatch();
-        so.directOut = it->getDirectOut();
+        so.directOut = it->isDirectOut();
 
         this->jackClient->listSpeakerOut[i++] = so;
 
@@ -1742,7 +1741,7 @@ bool MainContentComponent::updateLevelComp()
     std::vector<Speaker *> tempListSpeaker;
     tempListSpeaker.resize(this->listSpeaker.size());
     for (auto && it : this->listSpeaker) {
-        if (!it->getDirectOut()) {
+        if (!it->isDirectOut()) {
             tempListSpeaker[i++] = it;
         }
     }
@@ -2202,7 +2201,7 @@ void MainContentComponent::saveSpeakerSetup(String path)
         xmlInput->setAttribute("OutputPatch", it->getOutputPatch());
         xmlInput->setAttribute("Gain", it->getGain());
         xmlInput->setAttribute("HighPassCutoff", it->getHighPassCutoff());
-        xmlInput->setAttribute("DirectOut", it->getDirectOut());
+        xmlInput->setAttribute("DirectOut", it->isDirectOut());
         xmlRing->addChildElement(xmlInput);
     }
     xml.addChildElement(xmlRing);
