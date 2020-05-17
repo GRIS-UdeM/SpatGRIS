@@ -17,6 +17,12 @@
             file="Resources/splash_screen.png" xcodeResource="1"/>
     </GROUP>
     <GROUP id="{534A7161-2617-F3B1-0706-CC62D7A3FE71}" name="Source">
+      <GROUP id="{FB6EEEB4-BE6B-EB4A-201D-755A3CFACAAC}" name="spat">
+        <FILE id="m3KtvU" name="lbap.c" compile="1" resource="0" file="Source/spat/lbap.c"/>
+        <FILE id="XmhH3Q" name="lbap.h" compile="0" resource="0" file="Source/spat/lbap.h"/>
+        <FILE id="tKmZ05" name="vbap.c" compile="1" resource="0" file="Source/spat/vbap.c"/>
+        <FILE id="agZMLe" name="vbap.h" compile="0" resource="0" file="Source/spat/vbap.h"/>
+      </GROUP>
       <GROUP id="{45A32A71-2629-205C-304E-C1093B6D3F59}" name="UI">
         <GROUP id="{202AE941-C78E-5F46-CB31-EA8A544A343C}" name="Secondary Windows">
           <FILE id="abLCw0" name="AboutWindow.cpp" compile="1" resource="0" file="Source/AboutWindow.cpp"/>
@@ -60,8 +66,6 @@
             file="Source/JackServerGRIS.cpp"/>
       <FILE id="Dg7whn" name="JackServerGRIS.h" compile="0" resource="0"
             file="Source/JackServerGRIS.h"/>
-      <FILE id="HOh1Xn" name="lbap.c" compile="1" resource="0" file="Source/lbap.c"/>
-      <FILE id="cmq6Gi" name="lbap.h" compile="0" resource="0" file="Source/lbap.h"/>
       <FILE id="arLWJq" name="LevelComponent.cpp" compile="1" resource="0"
             file="Source/LevelComponent.cpp"/>
       <FILE id="Fv8Faz" name="LevelComponent.h" compile="0" resource="0"
@@ -89,8 +93,6 @@
             file="Source/SpeakerViewComponent.cpp"/>
       <FILE id="ItaT5M" name="SpeakerViewComponent.h" compile="0" resource="0"
             file="Source/SpeakerViewComponent.h"/>
-      <FILE id="cnTuuo" name="vbap.c" compile="1" resource="0" file="Source/vbap.c"/>
-      <FILE id="e8W3QF" name="vbap.h" compile="0" resource="0" file="Source/vbap.h"/>
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>

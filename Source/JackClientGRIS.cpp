@@ -22,7 +22,7 @@
 #include <cstdarg>
 
 #include "ServerGrisConstants.h"
-#include "vbap.h"
+#include "spat/vbap.h"
 #include "Speaker.h"
 #include "MainComponent.h"
 

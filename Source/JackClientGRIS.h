@@ -44,8 +44,8 @@
 #include <jack/types.h>
 #include <jack/session.h>
 
-#include "vbap.h"
-#include "lbap.h"
+#include "spat/vbap.h"
+#include "spat/lbap.h"
 
 class Speaker;
 
