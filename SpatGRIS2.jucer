@@ -43,6 +43,10 @@
               resource="0" file="Source/EditableTextCustomComponent.h"/>
         <FILE id="vyaPdB" name="GrisLookAndFeel.h" compile="0" resource="0"
               file="Source/GrisLookAndFeel.h"/>
+        <FILE id="cJ5sH5" name="JackClientListComponent.cpp" compile="1" resource="0"
+              file="Source/JackClientListComponent.cpp"/>
+        <FILE id="FqxvCu" name="JackClientListComponent.h" compile="0" resource="0"
+              file="Source/JackClientListComponent.h"/>
         <FILE id="MW5ESG" name="UiComponent.cpp" compile="1" resource="0" file="Source/UiComponent.cpp"/>
         <FILE id="RG3FbE" name="UiComponent.h" compile="0" resource="0" file="Source/UiComponent.h"/>
       </GROUP>

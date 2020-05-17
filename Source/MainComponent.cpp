@@ -253,9 +253,9 @@ MainContentComponent::MainContentComponent(MainWindow& parent)
     this->labelTimeRecorded.reset(addLabel("00:00","Record time", 327, 83, 50, 24,this->boxControlUI->getContent()));
 
     // Jack client box.
-    this->boxClientJack.reset(new BoxClient(this, &mGrisFeel));
-    this->boxClientJack->setBounds(410, 0, 304, 138);
-    this->boxControlUI->getContent()->addAndMakeVisible(this->boxClientJack.get());
+    this->jackClientListComponentJack.reset(new JackClientListComponent(this, &mGrisFeel));
+    this->jackClientListComponentJack->setBounds(410, 0, 304, 138);
+    this->boxControlUI->getContent()->addAndMakeVisible(this->jackClientListComponentJack.get());
     
     // Set up the layout and resizer bars.
     this->verticalLayout.setItemLayout(0, -0.2, -0.8, -0.435); // width of the speaker view must be between 20% and 80%, preferably 50%
@@ -2177,7 +2177,7 @@ void MainContentComponent::timerCallback() {
         it->getVuMeter()->update();
     }
     
-    this->boxClientJack->updateContentCli();
+    this->jackClientListComponentJack->updateContentCli();
 
     if (this->isProcessForeground != Process::isForegroundProcess()) {
         this->isProcessForeground = Process::isForegroundProcess();

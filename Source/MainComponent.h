@@ -49,6 +49,7 @@
 #include "FlatViewWindow.h"
 #include "Input.h"
 #include "JackClientGRIS.h"
+#include "JackClientListComponent.h"
 #include "JackServerGRIS.h"
 #include "OscInput.h"
 #include "OscLogWindow.h"
@@ -320,7 +321,7 @@ private:
     std::unique_ptr<TextEditor> tedAddInputs;
 
     std::unique_ptr<Label> labelAllClients;
-    std::unique_ptr<BoxClient> boxClientJack;
+    std::unique_ptr<JackClientListComponent> jackClientListComponentJack;
 
     std::unique_ptr<TextButton> butStartRecord;
     std::unique_ptr<TextEditor> tedMinRecord;
