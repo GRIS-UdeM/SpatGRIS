@@ -36,7 +36,7 @@ static const int   WidthRect = 1;
 class LevelBox final : public juce::Component
 {
 public:
-    LevelBox(LevelComponent * parent, SmallGrisLookAndFeel * feel);
+    LevelBox(LevelComponent & levelComponent, SmallGrisLookAndFeel & lookAndFeel);
     ~LevelBox() final = default;
     //==============================================================================
     void setBounds(const juce::Rectangle<int> & newBounds);
@@ -46,8 +46,8 @@ public:
 
 private:
     //==============================================================================
-    LevelComponent *       mainParent;
-    SmallGrisLookAndFeel * grisFeel;
+    LevelComponent &       levelComponent;
+    SmallGrisLookAndFeel & lookAndFeel;
 
     juce::ColourGradient colorGrad;
     juce::Image          vumeterBit;
@@ -67,39 +67,41 @@ class LevelComponent final
     , public juce::ChangeListener
 {
 public:
-    LevelComponent(ParentLevelComponent * parent, SmallGrisLookAndFeel * feel, bool colorful = true);
+    LevelComponent(ParentLevelComponent & parentLevelComponent,
+                   SmallGrisLookAndFeel & lookAndFeel,
+                   bool                   colorful = true);
     ~LevelComponent() final = default;
     //==============================================================================
-    void setOutputLab(juce::String value) { this->idBut->setButtonText(value); }
+    void setOutputLab(juce::String value) { this->idBut.setButtonText(value); }
     void setColor(juce::Colour color)
     {
-        this->idBut->setColour(TextButton::buttonColourId, color);
+        this->idBut.setColour(TextButton::buttonColourId, color);
         this->repaint();
     }
     float getLevel() const { return level; }
     void  update();
-    bool  isMuted() const { return this->muteToggleBut->getToggleState(); }
+    bool  isMuted() const { return this->muteToggleBut.getToggleState(); }
     void  setSelected(bool value);
     void  buttonClicked(Button * button) final;
     void  mouseDown(const MouseEvent & e) final;
     void  setBounds(const juce::Rectangle<int> & newBounds);
     void  changeListenerCallback(ChangeBroadcaster * source) final;
     void  updateDirectOutMenu(juce::OwnedArray<Speaker> & spkList);
-    void  resetClipping() { this->levelBox->resetClipping(); }
+    void  resetClipping() { this->levelBox.resetClipping(); }
     //==============================================================================
-    std::vector<int>                  directOutSpeakers;
-    std::unique_ptr<juce::TextButton> directOut;
+    std::vector<int> directOutSpeakers;
+    juce::TextButton directOut;
 
 private:
     //==============================================================================
-    ParentLevelComponent * mainParent;
-    SmallGrisLookAndFeel * grisFeel;
+    ParentLevelComponent & parentLevelComponent;
+    SmallGrisLookAndFeel & lookAndFeel;
 
-    std::unique_ptr<LevelBox> levelBox;
+    LevelBox levelBox;
 
-    std::unique_ptr<juce::TextButton>   idBut;
-    std::unique_ptr<juce::ToggleButton> muteToggleBut;
-    std::unique_ptr<juce::ToggleButton> soloToggleBut;
+    juce::TextButton   idBut;
+    juce::ToggleButton muteToggleBut;
+    juce::ToggleButton soloToggleBut;
 
     float level = MinLevelComp;
     int   lastMouseButton = 1; // 1 means left, 0 means right

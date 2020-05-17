@@ -40,7 +40,7 @@ Speaker::Speaker(MainContentComponent * parent, int idS, int outP, float azimuth
     // Load position
     this->setAziZenRad(glm::vec3(azimuth, zenith, radius));
 
-    this->vuMeter = new LevelComponent(this, &mGrisFeel, false);
+    this->vuMeter = new LevelComponent(*this, mGrisFeel, false);
 }
 
 //==============================================================================

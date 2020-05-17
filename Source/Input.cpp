@@ -27,7 +27,7 @@ Input::Input(MainContentComponent & mainContentComponent, SmallGrisLookAndFeel &
     , lookAndFeel(lookAndFeel)
     , idChannel(id)
     , directOutChannel(0)
-    , vuMeter(this, &lookAndFeel)
+    , vuMeter(*this, lookAndFeel)
 {
     this->resetPosition();
     this->setColor(Colour::fromHSV(0, 1, 0.75, 1), true);
@@ -335,9 +335,9 @@ void Input::setDirectOutChannel(int chn)
 {
     this->directOutChannel = chn;
     if (chn == 0) {
-        this->vuMeter.directOut->setButtonText("-");
+        this->vuMeter.directOut.setButtonText("-");
         return;
     } else {
-        this->vuMeter.directOut->setButtonText(String(chn));
+        this->vuMeter.directOut.setButtonText(String(chn));
     }
 }
