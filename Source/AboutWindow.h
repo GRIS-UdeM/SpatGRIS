@@ -27,29 +27,42 @@
 class MainContentComponent;
 class GrisLookAndFeel;
 
-class AboutWindow final 
-    : public juce::DocumentWindow
+//==============================================================================
+class AboutWindow final : public juce::DocumentWindow
+{
+public:
+    AboutWindow(juce::String const& name, GrisLookAndFeel& lookAndFeel, MainContentComponent& mainContentComponent);
+    ~AboutWindow() final = default;
+    //==============================================================================
+    void closeButtonPressed() final;
+private:
+    //==============================================================================
+    MainContentComponent& mMainContentComponent;
+    //==============================================================================
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AboutWindow);
+};
+
+//==============================================================================
+class AboutComponent final 
+    : public juce::Component
     , public juce::TextButton::Listener
 {
 public:
-    AboutWindow(const String& name, Colour backgroundColour, int buttonsNeeded,
-                MainContentComponent *parent, GrisLookAndFeel *feel);
-    ~AboutWindow() final;
+    AboutComponent(AboutWindow& parentWindow, GrisLookAndFeel& lookAndFeel);
+    ~AboutComponent() final = default;
     //==============================================================================
-    void buttonClicked(Button *button) { delete this; }
-    void closeButtonPressed() { delete this; }
+    void buttonClicked([[maybe_unused]] juce::Button* button) final { mParentWindow.closeButtonPressed(); }
 private:
     //==============================================================================
-    MainContentComponent *mainParent;
-    GrisLookAndFeel *grisFeel;
-    ImageComponent *imageComponent;
-    Label *title;
-    Label *version;
-    Label *label;
-    HyperlinkButton *website;
-    TextButton *close;
+    AboutWindow& mParentWindow;
+    juce::ImageComponent mLogoImage;
+    juce::Label mTitleLabel;
+    juce::Label mVersionLabel;
+    juce::Label mInfosLabel;
+    juce::HyperlinkButton mWebsiteHyperlink;
+    juce::TextButton mCloseButton;
     //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AboutWindow);
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AboutComponent);
 };
 
 #endif // ABOUTWINDOW_H

@@ -692,8 +692,8 @@ void MainContentComponent::handleShow2DView() {
 //==============================================================================
 void MainContentComponent::handleShowOscLogView() {
     if (this->oscLogWindow == nullptr) {
-        this->oscLogWindow = new OscLogWindow("OSC Logging Windows", this->mGrisFeel.getWinBackgroundColour(),
-                                               DocumentWindow::allButtons, this, &this->mGrisFeel);
+        this->oscLogWindow.reset( new OscLogWindow("OSC Logging Windows", this->mGrisFeel.getWinBackgroundColour(),
+                                               DocumentWindow::allButtons, this, &this->mGrisFeel) );
     }
     this->oscLogWindow->centreWithSize(500, 500);
     this->oscLogWindow->setResizable(false, false);
@@ -704,15 +704,9 @@ void MainContentComponent::handleShowOscLogView() {
 
 //==============================================================================
 void MainContentComponent::handleShowAbout() {
-    if (this->aboutWindow == nullptr) {
-        this->aboutWindow = new AboutWindow("About SpatGRIS", this->mGrisFeel.getWinBackgroundColour(),
-                                            DocumentWindow::allButtons, this, &this->mGrisFeel);
+    if (this->aboutWindow.get() == nullptr) {
+        this->aboutWindow.reset(new AboutWindow{ "About SpatGRIS", this->mGrisFeel, *this });
     }
-    this->aboutWindow->centreWithSize(400, 500);
-    this->aboutWindow->setResizable(false, false);
-    this->aboutWindow->setUsingNativeTitleBar(true);
-    this->aboutWindow->setVisible(true);
-    this->aboutWindow->repaint();
 }
 
 //==============================================================================

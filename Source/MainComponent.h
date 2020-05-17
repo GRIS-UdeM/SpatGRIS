@@ -297,8 +297,8 @@ private:
     std::unique_ptr<EditSpeakersWindow> winSpeakConfig;
     std::unique_ptr<PropertiesWindow> windowProperties;
     std::unique_ptr<FlatViewWindow> flatViewWindowSource;
-    AboutWindow *aboutWindow; //TODO: raw pointer
-    OscLogWindow *oscLogWindow; //TODO: raw pointer
+    std::unique_ptr<AboutWindow> aboutWindow;
+    std::unique_ptr<OscLogWindow> oscLogWindow;
 
     // 3 Main Boxes.
     std::unique_ptr<Box> boxMainUI;
