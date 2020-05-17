@@ -86,7 +86,7 @@ public:
     void  mouseDown(const MouseEvent & e) final;
     void  setBounds(const juce::Rectangle<int> & newBounds);
     void  changeListenerCallback(ChangeBroadcaster * source) final;
-    void  updateDirectOutMenu(juce::OwnedArray<Speaker> & spkList);
+    void  updateDirectOutMenu(juce::OwnedArray<Speaker> const & spkList);
     void  resetClipping() { this->levelBox.resetClipping(); }
     //==============================================================================
     std::vector<int> directOutSpeakers;

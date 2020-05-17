@@ -107,7 +107,7 @@ public:
     float getGain() const { return this->gain; }
     void  setHighPassCutoff(float value) { this->hpCutoff = value; }
     float getHighPassCutoff() const { return this->hpCutoff; }
-    bool  getDirectOut() const { return this->directOut; }
+    bool  isDirectOut() const { return this->directOut; }
     void  setDirectOut(bool value);
 
     glm::vec3 getCoordinate() const { return this->center / 10.0f; }
