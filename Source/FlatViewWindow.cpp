@@ -17,7 +17,8 @@
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "WinControl.h"
+#include "FlatViewWindow.h"
+
 #include "MainComponent.h"
 #include "Input.h"
 
@@ -64,7 +65,7 @@ static FPoint GetSourceAzimElev(FPoint pXY, bool bUseCosElev = false) {
 }
 
 //==============================================================================
-WinControl::WinControl(const String& name, Colour backgroundColour, int buttonsNeeded,
+FlatViewWindow::FlatViewWindow(const String& name, Colour backgroundColour, int buttonsNeeded,
                        MainContentComponent *parent, GrisLookAndFeel *feel)
     : DocumentWindow (name, backgroundColour, buttonsNeeded)
 {
@@ -74,17 +75,17 @@ WinControl::WinControl(const String& name, Colour backgroundColour, int buttonsN
 }
 
 //==============================================================================
-WinControl::~WinControl() {
-    this->mainParent->closeWinControl();
+FlatViewWindow::~FlatViewWindow() {
+    this->mainParent->closeFlatViewWindow();
 }
 
 //==============================================================================
-void WinControl::timerCallback() {
+void FlatViewWindow::timerCallback() {
     this->repaint();
 }
 
 //==============================================================================
-void WinControl::drawFieldBackground(Graphics& g, const int fieldWH) const {
+void FlatViewWindow::drawFieldBackground(Graphics& g, const int fieldWH) const {
     const int realW = (fieldWH - SourceDiameter);
 
     if (this->mainParent->getModeSelected() == LBAP) {
@@ -151,7 +152,7 @@ void WinControl::drawFieldBackground(Graphics& g, const int fieldWH) const {
 }
 
 //==============================================================================
-void WinControl::paint (Graphics& g) {
+void FlatViewWindow::paint (Graphics& g) {
     const int fieldWH = getWidth();     // Same as getHeight()
     const int fieldCenter = fieldWH / 2;
     const int realW = (fieldWH - SourceDiameter);
@@ -178,7 +179,7 @@ void WinControl::paint (Graphics& g) {
 }
 
 //==============================================================================
-void WinControl::drawSource(Graphics &g, Input *it, const int fieldWH) const {
+void FlatViewWindow::drawSource(Graphics &g, Input *it, const int fieldWH) const {
     const int realW = (fieldWH - SourceDiameter);
     String stringVal;
     FPoint sourceP;
@@ -207,7 +208,7 @@ void WinControl::drawSource(Graphics &g, Input *it, const int fieldWH) const {
 }
 
 //==============================================================================
-void WinControl::drawSourceSpan(Graphics &g, Input *it, const int fieldWH, const int fieldCenter) const {
+void FlatViewWindow::drawSourceSpan(Graphics &g, Input *it, const int fieldWH, const int fieldCenter) const {
     Colour colorS = it->getColorJ();
 
     FPoint sourceP;
@@ -291,13 +292,13 @@ void WinControl::drawSourceSpan(Graphics &g, Input *it, const int fieldWH, const
 }
 
 //==============================================================================
-void WinControl::resized() {
+void FlatViewWindow::resized() {
     const int fieldWH = std::min(getWidth(), getHeight());
     this->setSize(fieldWH, fieldWH);
 }
 
 //==============================================================================
-void WinControl::closeButtonPressed() {
-    this->mainParent->winControlRect.setBounds(getScreenX(), getScreenY(), getWidth(), getHeight());
+void FlatViewWindow::closeButtonPressed() {
+    this->mainParent->flatViewWindowRect.setBounds(getScreenX(), getScreenY(), getWidth(), getHeight());
     delete this;
 }

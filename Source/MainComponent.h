@@ -46,6 +46,7 @@
 
 #include "AboutWindow.h"
 #include "EditSpeakersWindow.h"
+#include "FlatViewWindow.h"
 #include "Input.h"
 #include "JackClientGRIS.h"
 #include "JackServerGRIS.h"
@@ -56,7 +57,6 @@
 #include "Speaker.h"
 #include "SpeakerViewComponent.h"
 #include "UiComponent.h"
-#include "WinControl.h"
 
 class MainWindow;
 
@@ -211,7 +211,7 @@ public:
     // Close windows other than the main one.
     void closeSpeakersConfigurationWindow() { this->winSpeakConfig.reset(); this->jackClient->processBlockOn = true; }
     void closePropertiesWindow() { this->windowProperties.reset(); }
-    void closeWinControl() { this->winControlSource = nullptr; }
+    void closeFlatViewWindow() { this->flatViewWindowSource = nullptr; }
     void closeAboutWindow() { this->aboutWindow = nullptr; }
     void closeOscLogWindow() { this->oscLogWindow = nullptr; }
 
@@ -233,7 +233,7 @@ public:
     ApplicationProperties applicationProperties;
     int oscInputPort = 18032;
     unsigned int samplingRate = 48000;
-    juce::Rectangle<int> winControlRect;
+    juce::Rectangle<int> flatViewWindowRect;
 
     // Visual flags.
     bool isSourceLevelShown;
@@ -295,7 +295,7 @@ private:
     // Windows.
     std::unique_ptr<EditSpeakersWindow> winSpeakConfig;
     std::unique_ptr<PropertiesWindow> windowProperties;
-    std::unique_ptr<WinControl> winControlSource;
+    std::unique_ptr<FlatViewWindow> flatViewWindowSource;
     AboutWindow *aboutWindow; //TODO: raw pointer
     OscLogWindow *oscLogWindow; //TODO: raw pointer
 

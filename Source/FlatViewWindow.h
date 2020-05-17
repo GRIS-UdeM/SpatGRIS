@@ -17,8 +17,8 @@
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef WINCONTROL_H
-#define WINCONTROL_H
+#ifndef FLATVIEWWINDOW_H
+#define FLATVIEWWINDOW_H
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
@@ -27,14 +27,14 @@ class GrisLookAndFeel;
 class Input;
 
 //==============================================================================
-class WinControl final 
+class FlatViewWindow final 
     : public DocumentWindow
     , private Timer
 {
 public:
-    WinControl(const String& name, Colour backgroundColour, int buttonsNeeded,
+    FlatViewWindow(const String& name, Colour backgroundColour, int buttonsNeeded,
                MainContentComponent *parent, GrisLookAndFeel *feel);
-    ~WinControl() final;
+    ~FlatViewWindow() final;
     //==============================================================================
     void timerCallback() final;
     void paint(Graphics& g) final;
@@ -49,7 +49,7 @@ private:
     MainContentComponent *mainParent;
     GrisLookAndFeel *grisFeel;
     //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (WinControl);
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FlatViewWindow);
 };
 
-#endif /* WINCONTROL_H */
+#endif /* FLATVIEWWINDOW_H */

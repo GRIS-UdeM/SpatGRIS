@@ -25,6 +25,10 @@
                 file="Source/EditSpeakersWindow.cpp"/>
           <FILE id="NSFdQD" name="EditSpeakersWindow.h" compile="0" resource="0"
                 file="Source/EditSpeakersWindow.h"/>
+          <FILE id="CvWdkk" name="FlatViewWindow.cpp" compile="1" resource="0"
+                file="Source/FlatViewWindow.cpp"/>
+          <FILE id="wOKsHM" name="FlatViewWindow.h" compile="0" resource="0"
+                file="Source/FlatViewWindow.h"/>
           <FILE id="skBbdl" name="OscLogWindow.cpp" compile="1" resource="0"
                 file="Source/OscLogWindow.cpp"/>
           <FILE id="GY7tUS" name="OscLogWindow.h" compile="0" resource="0" file="Source/OscLogWindow.h"/>
@@ -83,8 +87,6 @@
             file="Source/SpeakerViewComponent.h"/>
       <FILE id="cnTuuo" name="vbap.c" compile="1" resource="0" file="Source/vbap.c"/>
       <FILE id="e8W3QF" name="vbap.h" compile="0" resource="0" file="Source/vbap.h"/>
-      <FILE id="CvWdkk" name="WinControl.cpp" compile="1" resource="0" file="Source/WinControl.cpp"/>
-      <FILE id="wOKsHM" name="WinControl.h" compile="0" resource="0" file="Source/WinControl.h"/>
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>

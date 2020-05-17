@@ -186,7 +186,7 @@ MainContentComponent::MainContentComponent(MainWindow& parent)
     
     this->winSpeakConfig = nullptr;
     this->windowProperties = nullptr;
-    this->winControlSource = nullptr;
+    this->flatViewWindowSource = nullptr;
     this->aboutWindow = nullptr;
     this->oscLogWindow = nullptr;
 
@@ -672,21 +672,21 @@ void MainContentComponent::handleShowPreferences() {
 
 //==============================================================================
 void MainContentComponent::handleShow2DView() {
-    if (this->winControlSource == nullptr) {
-        this->winControlSource.reset(new WinControl("2D View", this->mGrisFeel.getWinBackgroundColour(), DocumentWindow::allButtons, this, &this->mGrisFeel));
+    if (this->flatViewWindowSource == nullptr) {
+        this->flatViewWindowSource.reset(new FlatViewWindow("2D View", this->mGrisFeel.getWinBackgroundColour(), DocumentWindow::allButtons, this, &this->mGrisFeel));
     } else {
-        this->winControlRect.setBounds(this->winControlSource->getScreenX(), this->winControlSource->getScreenY(),
-                                       this->winControlSource->getWidth(), this->winControlSource->getHeight());
+        this->flatViewWindowRect.setBounds(this->flatViewWindowSource->getScreenX(), this->flatViewWindowSource->getScreenY(),
+                                       this->flatViewWindowSource->getWidth(), this->flatViewWindowSource->getHeight());
     }
 
-    if (this->winControlRect.getWidth() == 0) {
-        this->winControlRect.setBounds(this->getScreenX()+this->speakerView->getWidth()+22, this->getScreenY()+100, 500, 500);
+    if (this->flatViewWindowRect.getWidth() == 0) {
+        this->flatViewWindowRect.setBounds(this->getScreenX()+this->speakerView->getWidth()+22, this->getScreenY()+100, 500, 500);
     }
 
-    this->winControlSource->setBounds(this->winControlRect);
-    this->winControlSource->setResizable(true, true);
-    this->winControlSource->setUsingNativeTitleBar(true);
-    this->winControlSource->setVisible(true);
+    this->flatViewWindowSource->setBounds(this->flatViewWindowRect);
+    this->flatViewWindowSource->setResizable(true, true);
+    this->flatViewWindowSource->setUsingNativeTitleBar(true);
+    this->flatViewWindowSource->setVisible(true);
 }
 
 //==============================================================================
@@ -2189,8 +2189,8 @@ void MainContentComponent::timerCallback() {
             this->winSpeakConfig->setVisible(false);
             this->winSpeakConfig->setAlwaysOnTop(false);
         }
-        if (this->winControlSource != nullptr && this->isProcessForeground) {
-            this->winControlSource->toFront(false);
+        if (this->flatViewWindowSource != nullptr && this->isProcessForeground) {
+            this->flatViewWindowSource->toFront(false);
             this->toFront(true);
         }
     }
