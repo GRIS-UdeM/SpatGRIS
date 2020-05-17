@@ -27,12 +27,14 @@
 #include "Speaker.h"
 
 //==============================================================================
-static double GetFloatPrecision(double value, double precision) {
+static double GetFloatPrecision(double value, double precision)
+{
     return (floor((value * pow(10, precision) + 0.5)) / pow(10, precision));
 }
 
 //==============================================================================
-Box::Box(GrisLookAndFeel *feel, String title, bool verticalScrollbar, bool horizontalScrollbar) {
+Box::Box(GrisLookAndFeel * feel, String title, bool verticalScrollbar, bool horizontalScrollbar)
+{
     this->title = title;
     this->grisFeel = feel;
     this->bgColour = this->grisFeel->getBackgroundColour();
@@ -50,21 +52,24 @@ Box::Box(GrisLookAndFeel *feel, String title, bool verticalScrollbar, bool horiz
 }
 
 //==============================================================================
-Box::~Box() {
+Box::~Box()
+{
     this->content->deleteAllChildren();
     delete this->viewport;
     delete this->content;
 }
 
 //==============================================================================
-void Box::resized() {
+void Box::resized()
+{
     if (this->viewport) {
         this->viewport->setSize(getWidth(), getHeight());
     }
 }
 
 //==============================================================================
-void Box::correctSize(unsigned int width, unsigned int height) {
+void Box::correctSize(unsigned int width, unsigned int height)
+{
     if (this->title != "") {
         this->viewport->setTopLeftPosition(0, 20);
         this->viewport->setSize(getWidth(), getHeight() - 20);
@@ -78,7 +83,8 @@ void Box::correctSize(unsigned int width, unsigned int height) {
 }
 
 //==============================================================================
-void Box::paint(Graphics &g) {
+void Box::paint(Graphics & g)
+{
     g.setColour(this->bgColour);
     g.fillRect(getLocalBounds());
     if (this->title != "") {

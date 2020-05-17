@@ -1,18 +1,18 @@
 /*
  This file is part of SpatGRIS2.
- 
+
  Developers: Samuel Béland, Nicolas Masson
- 
+
  SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
- 
+
  SpatGRIS2 is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
- 
+
  You should have received a copy of the GNU General Public License
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -23,7 +23,7 @@
 #include "JackClientGRIS.h"
 
 //==============================================================================
-EditableTextCustomComponent::EditableTextCustomComponent(EditSpeakersWindow &editSpeakersWindow)
+EditableTextCustomComponent::EditableTextCustomComponent(EditSpeakersWindow & editSpeakersWindow)
     : owner(editSpeakersWindow)
 {
     setEditable(false, true, false);
@@ -32,47 +32,37 @@ EditableTextCustomComponent::EditableTextCustomComponent(EditSpeakersWindow &edi
 }
 
 //==============================================================================
-void EditableTextCustomComponent::mouseDown(const juce::MouseEvent &event)
+void EditableTextCustomComponent::mouseDown(const juce::MouseEvent & event)
 {
-    if (event.mods.isRightButtonDown())
-    {
+    if (event.mods.isRightButtonDown()) {
         owner.tableListSpeakers.deselectAllRows();
-    }
-    else
-    {
+    } else {
         owner.tableListSpeakers.selectRowsBasedOnModifierKeys(row, event.mods, false);
     }
     Label::mouseDown(event);
 }
 
 //==============================================================================
-void EditableTextCustomComponent::mouseDrag(const juce::MouseEvent &event)
+void EditableTextCustomComponent::mouseDrag(const juce::MouseEvent & event)
 {
-    if (event.mods.isShiftDown() || event.mods.isCtrlDown() || event.mods.isCommandDown())
-    {
+    if (event.mods.isShiftDown() || event.mods.isCtrlDown() || event.mods.isCommandDown()) {
         return;
     }
 
-    if (owner.getModeSelected() == LBAP || owner.getDirectOutForSpeakerRow(row))
-    {
-        if (columnId < 2)
-        {
+    if (owner.getModeSelected() == LBAP || owner.getDirectOutForSpeakerRow(row)) {
+        if (columnId < 2) {
             return;
         }
-    }
-    else
-    {
-        if (columnId < 5)
-        {
+    } else {
+        if (columnId < 5) {
             return;
         }
     }
 
-    bool ok = false;
-    int offset = event.getDistanceFromDragStartY();
+    bool  ok = false;
+    int   offset = event.getDistanceFromDragStartY();
     float val = getText().getFloatValue();
-    switch (columnId)
-    {
+    switch (columnId) {
     case 2:
     case 3:
     case 4:
@@ -106,8 +96,7 @@ void EditableTextCustomComponent::mouseDrag(const juce::MouseEvent &event)
         ok = true;
         break;
     }
-    if (ok)
-    {
+    if (ok) {
         owner.setText(columnId, row, String(val), event.mods.isAltDown());
     }
     lastOffset = offset;

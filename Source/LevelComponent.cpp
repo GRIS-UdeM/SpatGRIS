@@ -1,18 +1,18 @@
 /*
  This file is part of SpatGRIS2.
- 
+
  Developers: Olivier Belanger, Nicolas Masson
- 
+
  SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
- 
+
  SpatGRIS2 is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
- 
+
  You should have received a copy of the GNU General Public License
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -24,35 +24,33 @@
 
 //==============================================================================
 //========================== LevelBox =============================
-LevelBox::LevelBox(LevelComponent* parent, SmallGrisLookAndFeel* feel)
-    : mainParent(parent)
-    , grisFeel(feel) 
-{}
+LevelBox::LevelBox(LevelComponent * parent, SmallGrisLookAndFeel * feel) : mainParent(parent), grisFeel(feel) {}
 
 //==============================================================================
-void LevelBox::setBounds(juce::Rectangle<int> const& newBounds) {
+void LevelBox::setBounds(juce::Rectangle<int> const & newBounds)
+{
     // LevelBox size is (22, 140)
     this->juce::Component::setBounds(newBounds);
 
-    colorGrad = ColourGradient(Colour::fromRGB(255, 94, 69), 0.f, 0.f,
-                               Colour::fromRGB(17, 255, 159), 0.f, getHeight(), false);
+    colorGrad = ColourGradient(Colour::fromRGB(255, 94, 69), 0.f, 0.f, Colour::fromRGB(17, 255, 159), 0.f, getHeight(),
+                               false);
     colorGrad.addColour(0.1, Colours::yellow);
 
     // Create vu-meter foreground image.
     this->vumeterBit = Image(Image::RGB, 21, 140, true);
-    Graphics gf (this->vumeterBit);
+    Graphics gf(this->vumeterBit);
     gf.setGradientFill(colorGrad);
     gf.fillRect(0, 0, getWidth(), getHeight());
 
     // Create vu-meter background image.
     this->vumeterBackBit = Image(Image::RGB, 21, 140, true);
-    Graphics gb (this->vumeterBackBit);
+    Graphics gb(this->vumeterBackBit);
     gb.setColour(grisFeel->getDarkColour());
     gb.fillRect(0, 0, getWidth(), getHeight());
 
     // Create vu-meter muted image.
     this->vumeterMutedBit = Image(Image::RGB, 21, 140, true);
-    Graphics gm (this->vumeterMutedBit);
+    Graphics gm(this->vumeterMutedBit);
     gm.setColour(grisFeel->getWinBackgroundColour());
     gm.fillRect(0, 0, getWidth(), getHeight());
 
@@ -65,21 +63,22 @@ void LevelBox::setBounds(juce::Rectangle<int> const& newBounds) {
     gm.setFont(10.0f);
     int start = getWidth() - 3;
     int y = 0;
-    for (int i=1; i<10; i++) {
+    for (int i = 1; i < 10; i++) {
         y = i * 14;
         gf.drawLine(start, y, getWidth(), y, 1);
         gb.drawLine(start, y, getWidth(), y, 1);
         gm.drawLine(start, y, getWidth(), y, 1);
         if (i % 2 == 1) {
-            gf.drawText(String(i*-6), start-15, y-5, 15, 10, Justification::centred, false);
-            gb.drawText(String(i*-6), start-15, y-5, 15, 10, Justification::centred, false);
-            gm.drawText(String(i*-6), start-15, y-5, 15, 10, Justification::centred, false);
+            gf.drawText(String(i * -6), start - 15, y - 5, 15, 10, Justification::centred, false);
+            gb.drawText(String(i * -6), start - 15, y - 5, 15, 10, Justification::centred, false);
+            gm.drawText(String(i * -6), start - 15, y - 5, 15, 10, Justification::centred, false);
         }
     }
 }
 
 //==============================================================================
-void LevelBox::paint(Graphics& g) {
+void LevelBox::paint(Graphics & g)
+{
     if (this->mainParent->isMuted()) {
         g.drawImage(this->vumeterMutedBit, 0, 0, 22, 140, 0, 0, 22, 140);
     } else {
@@ -97,34 +96,36 @@ void LevelBox::paint(Graphics& g) {
         g.drawImage(this->vumeterBackBit, 0, 0, 22, h, 0, 0, 22, h);
         if (isClipping) {
             g.setColour(Colour::fromHSV(0.0, 1, 0.75, 1));
-            juce::Rectangle<float> clipRect (0.5, 0.5, getWidth()-1, 5);
+            juce::Rectangle<float> clipRect(0.5, 0.5, getWidth() - 1, 5);
             g.fillRect(clipRect);
         }
     }
 }
 
 //==============================================================================
-void LevelBox::mouseDown(const MouseEvent& e) {
-    juce::Rectangle<int> hitBox (0, 0, getWidth(), 20);
+void LevelBox::mouseDown(const MouseEvent & e)
+{
+    juce::Rectangle<int> hitBox(0, 0, getWidth(), 20);
     if (hitBox.contains(e.getPosition())) {
         resetClipping();
     }
 }
 
 //==============================================================================
-void LevelBox::resetClipping() {
+void LevelBox::resetClipping()
+{
     isClipping = false;
-    repaint(); 
+    repaint();
 }
 
 //==============================================================================
 //======================== LevelComponent ===========================
-LevelComponent::LevelComponent(ParentLevelComponent *parent, SmallGrisLookAndFeel *feel, bool colorful)
+LevelComponent::LevelComponent(ParentLevelComponent * parent, SmallGrisLookAndFeel * feel, bool colorful)
 {
     this->mainParent = parent;
     this->grisFeel = feel;
     this->isColorful = colorful;
-    
+
     // Label
     this->idBut.reset(new TextButton());
     this->idBut->setButtonText(String(this->mainParent->getButtonInOutNumber()));
@@ -138,7 +139,7 @@ LevelComponent::LevelComponent(ParentLevelComponent *parent, SmallGrisLookAndFee
     this->idBut->addListener(this);
     this->idBut->addMouseListener(this, true);
     this->addAndMakeVisible(this->idBut.get());
-    
+
     // ToggleButton (mute)
     this->muteToggleBut.reset(new ToggleButton());
     this->muteToggleBut->setButtonText("m");
@@ -148,7 +149,7 @@ LevelComponent::LevelComponent(ParentLevelComponent *parent, SmallGrisLookAndFee
     this->muteToggleBut->setLookAndFeel(this->grisFeel);
     this->muteToggleBut->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
     this->addAndMakeVisible(this->muteToggleBut.get());
-    
+
     // ToggleButton (solo)
     this->soloToggleBut.reset(new ToggleButton());
     this->soloToggleBut->setButtonText("s");
@@ -178,7 +179,8 @@ LevelComponent::LevelComponent(ParentLevelComponent *parent, SmallGrisLookAndFee
 }
 
 //==============================================================================
-void LevelComponent::updateDirectOutMenu(juce::OwnedArray<Speaker> & spkList) {
+void LevelComponent::updateDirectOutMenu(juce::OwnedArray<Speaker> & spkList)
+{
     if (this->mainParent->isInput()) {
         this->directOutSpeakers.clear();
         for (auto & it : spkList) {
@@ -190,37 +192,38 @@ void LevelComponent::updateDirectOutMenu(juce::OwnedArray<Speaker> & spkList) {
 }
 
 //==============================================================================
-void LevelComponent::buttonClicked(Button *button) {
+void LevelComponent::buttonClicked(Button * button)
+{
     if (button == this->muteToggleBut.get()) {
         this->mainParent->setMuted(this->muteToggleBut->getToggleState());
         if (this->muteToggleBut->getToggleState()) {
             this->soloToggleBut->setToggleState(false, dontSendNotification);
         }
         this->levelBox->repaint();
-        
+
     } else if (button == this->soloToggleBut.get()) {
         this->mainParent->setSolo(this->soloToggleBut->getToggleState());
         if (this->soloToggleBut->getToggleState()) {
             this->muteToggleBut->setToggleState(false, dontSendNotification);
         }
         this->levelBox->repaint();
-        
+
     } else if (button == this->idBut.get()) {
-        if (this->isColorful) { //Input
-            ColourSelector* colourSelector = new ColourSelector();
+        if (this->isColorful) { // Input
+            ColourSelector * colourSelector = new ColourSelector();
             colourSelector->setName("background");
             colourSelector->setCurrentColour(this->idBut->findColour(TextButton::buttonColourId));
             colourSelector->addChangeListener(this);
             colourSelector->setColour(ColourSelector::backgroundColourId, Colours::transparentBlack);
             colourSelector->setSize(300, 400);
             CallOutBox::launchAsynchronously(colourSelector, getScreenBounds(), nullptr);
-        } else { //Output
+        } else { // Output
             this->mainParent->selectClick(this->lastMouseButton);
         }
     } else if (button == this->directOut.get()) {
         PopupMenu menu;
         menu.addItem(1, "-");
-        for (unsigned int j=0, i=2; j<this->directOutSpeakers.size(); j++, i++) {
+        for (unsigned int j = 0, i = 2; j < this->directOutSpeakers.size(); j++, i++) {
             menu.addItem(i, String(this->directOutSpeakers[j]));
         }
 
@@ -232,7 +235,7 @@ void LevelComponent::buttonClicked(Button *button) {
         } else if (result == 1) {
             this->directOut->setButtonText("-");
         } else {
-            value = this->directOutSpeakers[result-2];
+            value = this->directOutSpeakers[result - 2];
             this->directOut->setButtonText(String(value));
         }
 
@@ -242,7 +245,8 @@ void LevelComponent::buttonClicked(Button *button) {
 }
 
 //==============================================================================
-void LevelComponent::mouseDown(const MouseEvent& e) {
+void LevelComponent::mouseDown(const MouseEvent & e)
+{
     if (e.mods.isRightButtonDown()) {
         this->lastMouseButton = 0;
     } else {
@@ -251,13 +255,14 @@ void LevelComponent::mouseDown(const MouseEvent& e) {
 }
 
 //==============================================================================
-void LevelComponent::changeListenerCallback(ChangeBroadcaster* source) {
-    if (ColourSelector *cs = dynamic_cast<ColourSelector *> (source)) {
+void LevelComponent::changeListenerCallback(ChangeBroadcaster * source)
+{
+    if (ColourSelector * cs = dynamic_cast<ColourSelector *>(source)) {
         this->idBut->setColour(TextButton::buttonColourId, cs->getCurrentColour());
         this->mainParent->setColor(cs->getCurrentColour());
         if (this->lastMouseButton == 0) {
-            Input *input = dynamic_cast<Input *> (this->mainParent);
-            for (auto&& it : input->getMainContentComponent().getListSourceInput()) {
+            Input * input = dynamic_cast<Input *>(this->mainParent);
+            for (auto && it : input->getMainContentComponent().getListSourceInput()) {
                 if (it->getId() == (this->mainParent->getId() + 1)) {
                     it->setColor(cs->getCurrentColour(), true);
                 }
@@ -267,7 +272,8 @@ void LevelComponent::changeListenerCallback(ChangeBroadcaster* source) {
 }
 
 //==============================================================================
-void LevelComponent::update() {
+void LevelComponent::update()
+{
     float l = this->mainParent->getLevel();
 
     if (std::isnan(l)) {
@@ -281,7 +287,8 @@ void LevelComponent::update() {
 }
 
 //==============================================================================
-void LevelComponent::setSelected(bool value) {
+void LevelComponent::setSelected(bool value)
+{
     const MessageManagerLock mmLock;
     if (value) {
         this->idBut->setColour(TextButton::textColourOnId, this->grisFeel->getWinBackgroundColour());
@@ -295,7 +302,8 @@ void LevelComponent::setSelected(bool value) {
 }
 
 //==============================================================================
-void LevelComponent::setBounds(const juce::Rectangle<int> &newBounds) {
+void LevelComponent::setBounds(const juce::Rectangle<int> & newBounds)
+{
     int levelSize = 140;
 
     this->juce::Component::setBounds(newBounds);
@@ -303,12 +311,12 @@ void LevelComponent::setBounds(const juce::Rectangle<int> &newBounds) {
     juce::Rectangle<int> labRect(0, 0, newBounds.getWidth(), this->idBut->getHeight());
     this->idBut->setBounds(labRect);
     this->muteToggleBut->setBounds(0, 158, this->muteToggleBut->getWidth(), this->muteToggleBut->getHeight());
-    this->soloToggleBut->setBounds(this->muteToggleBut->getWidth()-2, 158,
-                                   this->muteToggleBut->getWidth(), this->muteToggleBut->getHeight());
+    this->soloToggleBut->setBounds(this->muteToggleBut->getWidth() - 2, 158, this->muteToggleBut->getWidth(),
+                                   this->muteToggleBut->getHeight());
     if (this->mainParent->isInput()) {
-        this->directOut->setBounds(0, getHeight()-27, newBounds.getWidth(), this->directOut->getHeight());
+        this->directOut->setBounds(0, getHeight() - 27, newBounds.getWidth(), this->directOut->getHeight());
     }
 
-    juce::Rectangle<int> level(0, 18, newBounds.getWidth()-WidthRect, levelSize);
+    juce::Rectangle<int> level(0, 18, newBounds.getWidth() - WidthRect, levelSize);
     this->levelBox->setBounds(level);
 }

@@ -1,29 +1,33 @@
 /*
  This file is part of SpatGRIS2.
- 
+
  Developers: Samuel Béland, Nicolas Masson
- 
+
  SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
- 
+
  SpatGRIS2 is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
- 
+
  You should have received a copy of the GNU General Public License
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "PropertiesWindow.h"
 
-#include "MainComponent.h"
 #include "GrisLookAndFeel.h"
+#include "MainComponent.h"
 
 //==============================================================================
-Label * PropertiesComponent::createPropLabel(juce::String const& lab, Justification::Flags const just, int const ypos, int const width) {
-    Label *label = new Label();
+Label * PropertiesComponent::createPropLabel(juce::String const &       lab,
+                                             Justification::Flags const just,
+                                             int const                  ypos,
+                                             int const                  width)
+{
+    Label * label = new Label();
     label->setText(lab, NotificationType::dontSendNotification);
     label->setJustificationType(just);
     label->setBounds(10, ypos, width, 22);
@@ -35,8 +39,9 @@ Label * PropertiesComponent::createPropLabel(juce::String const& lab, Justificat
 }
 
 //==============================================================================
-TextEditor * PropertiesComponent::createPropIntTextEditor(juce::String const& tooltip, int ypos, int init) {
-    TextEditor *editor = new TextEditor();
+TextEditor * PropertiesComponent::createPropIntTextEditor(juce::String const & tooltip, int ypos, int init)
+{
+    TextEditor * editor = new TextEditor();
     editor->setTooltip(tooltip);
     editor->setTextToShowWhenEmpty("", this->grisFeel.getOffColour());
     editor->setColour(ToggleButton::textColourId, this->grisFeel.getFontColour());
@@ -45,14 +50,16 @@ TextEditor * PropertiesComponent::createPropIntTextEditor(juce::String const& to
     editor->setInputRestrictions(5, "0123456789");
     editor->setText(String(init));
     /* Implemented but not yet in current Juce release. */
-    //this->tedOSCInPort->setJustification(Justification::right);
+    // this->tedOSCInPort->setJustification(Justification::right);
     this->juce::Component::addAndMakeVisible(editor);
     return editor;
 }
 
 //==============================================================================
-ComboBox * PropertiesComponent::createPropComboBox(juce::StringArray const& choices, int const selected, int const ypos) {
-    ComboBox *combo = new ComboBox();
+ComboBox *
+    PropertiesComponent::createPropComboBox(juce::StringArray const & choices, int const selected, int const ypos)
+{
+    ComboBox * combo = new ComboBox();
     combo->addItemList(choices, 1);
     combo->setSelectedItemIndex(selected);
     combo->setBounds(130, ypos, 120, 22);
@@ -62,19 +69,18 @@ ComboBox * PropertiesComponent::createPropComboBox(juce::StringArray const& choi
 }
 
 //==============================================================================
-PropertiesComponent::PropertiesComponent( MainContentComponent& parent,
-                                          GrisLookAndFeel& lookAndFeel,
-                                          Array<String> const& devices,
-                                          String const& currentDevice,
-                                          int const indR,
-                                          int const indB,
-                                          int const indFF,
-                                          int const indFC,
-                                          int const indAttDB,
-                                          int const indAttHz,
-                                          int const oscPort )
-    : mainContentComponent(parent)
-    , grisFeel(lookAndFeel)
+PropertiesComponent::PropertiesComponent(MainContentComponent & parent,
+                                         GrisLookAndFeel &      lookAndFeel,
+                                         Array<String> const &  devices,
+                                         String const &         currentDevice,
+                                         int const              indR,
+                                         int const              indB,
+                                         int const              indFF,
+                                         int const              indFC,
+                                         int const              indAttDB,
+                                         int const              indAttHz,
+                                         int const              oscPort)
+    : mainContentComponent(parent), grisFeel(lookAndFeel)
 {
     int ypos = 20;
 
@@ -88,7 +94,7 @@ PropertiesComponent::PropertiesComponent( MainContentComponent& parent,
     this->jackSettingsLabel.reset(this->createPropLabel("Jack Settings", Justification::left, ypos));
     ypos += 30;
 
-    if (! devices.isEmpty()) {
+    if (!devices.isEmpty()) {
         int deviceIndex = 0;
         if (devices.contains(currentDevice)) {
             deviceIndex = devices.indexOf(currentDevice);
@@ -138,40 +144,50 @@ PropertiesComponent::PropertiesComponent( MainContentComponent& parent,
 }
 
 //==============================================================================
-void PropertiesWindow::closeButtonPressed() {
+void PropertiesWindow::closeButtonPressed()
+{
     this->mainContentComponent.closePropertiesWindow();
 }
 
 //==============================================================================
-void PropertiesComponent::buttonClicked(Button *button) {
+void PropertiesComponent::buttonClicked(Button * button)
+{
     if (button == this->butValidSettings.get()) {
-        this->mainContentComponent.saveProperties(this->cobDevice.get() != nullptr ? this->cobDevice->getText() : juce::String{},
-                                                  this->cobRate->getText().getIntValue(),
-                                                  this->cobBuffer->getText().getIntValue(),
-                                                  this->recordFormat->getSelectedItemIndex(),
-                                                  this->recordFileConfig->getSelectedItemIndex(),
-                                                  this->cobDistanceDB->getSelectedItemIndex(),
-                                                  this->cobDistanceCutoff->getSelectedItemIndex(),
-                                                  this->tedOSCInPort->getTextValue().toString().getIntValue());
+        this->mainContentComponent.saveProperties(
+            this->cobDevice.get() != nullptr ? this->cobDevice->getText() : juce::String{},
+            this->cobRate->getText().getIntValue(), this->cobBuffer->getText().getIntValue(),
+            this->recordFormat->getSelectedItemIndex(), this->recordFileConfig->getSelectedItemIndex(),
+            this->cobDistanceDB->getSelectedItemIndex(), this->cobDistanceCutoff->getSelectedItemIndex(),
+            this->tedOSCInPort->getTextValue().toString().getIntValue());
         this->mainContentComponent.closePropertiesWindow();
     }
 }
 
 //==============================================================================
-PropertiesWindow::PropertiesWindow( MainContentComponent& parent,
-                                    GrisLookAndFeel& lookAndFeel,
-                                    Array<String> const & devices,
-                                    String const & currentDevice,
-                                    int indR,
-                                    int indB,
-                                    int indFF,
-                                    int indFC,
-                                    int indAttDB,
-                                    int indAttHz,
-                                    int oscPort )
+PropertiesWindow::PropertiesWindow(MainContentComponent & parent,
+                                   GrisLookAndFeel &      lookAndFeel,
+                                   Array<String> const &  devices,
+                                   String const &         currentDevice,
+                                   int                    indR,
+                                   int                    indB,
+                                   int                    indFF,
+                                   int                    indFC,
+                                   int                    indAttDB,
+                                   int                    indAttHz,
+                                   int                    oscPort)
     : juce::DocumentWindow("Properties", lookAndFeel.getBackgroundColour(), DocumentWindow::allButtons)
     , mainContentComponent(parent)
-    , propertiesComponent(parent, lookAndFeel, devices, currentDevice, indR, indB, indFF, indFC, indAttDB, indAttHz, oscPort)
+    , propertiesComponent(parent,
+                          lookAndFeel,
+                          devices,
+                          currentDevice,
+                          indR,
+                          indB,
+                          indFF,
+                          indFC,
+                          indAttDB,
+                          indAttHz,
+                          oscPort)
 {
     this->setContentNonOwned(&this->propertiesComponent, false);
 }

@@ -1,18 +1,18 @@
 /*
  This file is part of SpatGRIS2.
- 
+
  Developers: Samuel Béland, Nicolas Masson
- 
+
  SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
- 
+
  SpatGRIS2 is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
- 
+
  You should have received a copy of the GNU General Public License
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -23,15 +23,12 @@
 #include "MainComponent.h"
 
 //==============================================================================
-OscLogWindow::OscLogWindow( juce::String const& name,
-                            juce::Colour const backgroundColour,
-                            int const buttonsNeeded,
-                            MainContentComponent* parent,
-                            GrisLookAndFeel* feel )
-    : DocumentWindow(name, backgroundColour, buttonsNeeded)
-    , logger(codeDocument, 0)
-    , mainParent(parent)
-    , grisFeel(feel)
+OscLogWindow::OscLogWindow(juce::String const &   name,
+                           juce::Colour const     backgroundColour,
+                           int const              buttonsNeeded,
+                           MainContentComponent * parent,
+                           GrisLookAndFeel *      feel)
+    : DocumentWindow(name, backgroundColour, buttonsNeeded), logger(codeDocument, 0), mainParent(parent), grisFeel(feel)
 {
     this->index = 0;
     this->activated = true;
@@ -59,12 +56,14 @@ OscLogWindow::OscLogWindow( juce::String const& name,
 }
 
 //==============================================================================
-OscLogWindow::~OscLogWindow() {
+OscLogWindow::~OscLogWindow()
+{
     this->mainParent->closeOscLogWindow();
 }
 
 //==============================================================================
-void OscLogWindow::addToLog(String msg) {
+void OscLogWindow::addToLog(String msg)
+{
     if (this->activated) {
         this->index++;
 
@@ -80,7 +79,8 @@ void OscLogWindow::addToLog(String msg) {
 }
 
 //==============================================================================
-void OscLogWindow::closeButtonPressed() {
+void OscLogWindow::closeButtonPressed()
+{
     this->stop.setButtonText("Start");
     this->activated = false;
     this->mainParent->closeOscLogWindow();
@@ -88,7 +88,8 @@ void OscLogWindow::closeButtonPressed() {
 }
 
 //==============================================================================
-void OscLogWindow::buttonClicked(Button *button) {
+void OscLogWindow::buttonClicked(Button * button)
+{
     if (button == &this->stop) {
         if (button->getToggleState()) {
             this->stop.setButtonText("Stop");

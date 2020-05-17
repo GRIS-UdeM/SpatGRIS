@@ -1,42 +1,45 @@
 /*
  This file is part of SpatGRIS2.
- 
+
  Developers: Olivier Belanger, Nicolas Masson
- 
+
  SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
- 
+
  SpatGRIS2 is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
- 
+
  You should have received a copy of the GNU General Public License
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "OscInput.h"
 
-#include "MainComponent.h"
 #include "Input.h"
+#include "MainComponent.h"
 
 //==============================================================================
-OscInput::~OscInput() {
+OscInput::~OscInput()
+{
     this->disconnect();
 }
 
 //==============================================================================
-bool OscInput::startConnection(int port) {
+bool OscInput::startConnection(int port)
+{
     bool b = this->connect(port);
     this->addListener(this);
     return b;
 }
 
 //==============================================================================
-void OscInput::oscBundleReceived(const OSCBundle& bundle) {
-    for (auto& element : bundle) {
+void OscInput::oscBundleReceived(const OSCBundle & bundle)
+{
+    for (auto & element : bundle) {
         if (element.isMessage())
             oscMessageReceived(element.getMessage());
         else if (element.isBundle())
@@ -45,7 +48,8 @@ void OscInput::oscBundleReceived(const OSCBundle& bundle) {
 }
 
 //==============================================================================
-void OscInput::oscMessageReceived(const OSCMessage& message) {
+void OscInput::oscMessageReceived(const OSCMessage & message)
+{
     this->mainContentComponent.setOscLogging(message);
     std::string address = message.getAddressPattern().toString().toStdString();
     if (message[0].isInt32()) {
@@ -55,28 +59,23 @@ void OscInput::oscMessageReceived(const OSCMessage& message) {
             unsigned int idS = message[0].getInt32();
             this->mainContentComponent.getLockInputs().lock();
             if (this->mainContentComponent.getListSourceInput().size() > idS) {
-                this->mainContentComponent.getListSourceInput()[idS]->updateValues(message[1].getFloat32(),
-                                                                          message[2].getFloat32(),
-                                                                          message[3].getFloat32(),
-                                                                          message[4].getFloat32(),
-                                                                          this->mainContentComponent.isRadiusNormalized() ? 1.0 : message[5].getFloat32(),
-                                                                          message[6].getFloat32(),
-                                                                          this->mainContentComponent.getModeSelected());
+                this->mainContentComponent.getListSourceInput()[idS]->updateValues(
+                    message[1].getFloat32(), message[2].getFloat32(), message[3].getFloat32(), message[4].getFloat32(),
+                    this->mainContentComponent.isRadiusNormalized() ? 1.0 : message[5].getFloat32(),
+                    message[6].getFloat32(), this->mainContentComponent.getModeSelected());
                 this->mainContentComponent.updateInputJack(idS, *this->mainContentComponent.getListSourceInput()[idS]);
             }
             this->mainContentComponent.getLockInputs().unlock();
         }
-        
+
         else if (address == OscPanAZ) {
-            //id, azim, elev, azimSpan, elevSpan, gain (Zirkonium artifact).
+            // id, azim, elev, azimSpan, elevSpan, gain (Zirkonium artifact).
             unsigned int idS = message[0].getInt32();
             this->mainContentComponent.getLockInputs().lock();
             if (this->mainContentComponent.getListSourceInput().size() > idS) {
-                this->mainContentComponent.getListSourceInput()[idS]->updateValuesOld(message[1].getFloat32(),
-                                                                             message[2].getFloat32(),
-                                                                             message[3].getFloat32(),
-                                                                             message[4].getFloat32(),
-                                                                             message[5].getFloat32());
+                this->mainContentComponent.getListSourceInput()[idS]->updateValuesOld(
+                    message[1].getFloat32(), message[2].getFloat32(), message[3].getFloat32(), message[4].getFloat32(),
+                    message[5].getFloat32());
                 this->mainContentComponent.updateInputJack(idS, *this->mainContentComponent.getListSourceInput()[idS]);
             }
             this->mainContentComponent.getLockInputs().unlock();

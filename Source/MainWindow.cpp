@@ -1,18 +1,18 @@
 /*
  This file is part of SpatGRIS2.
- 
+
  Developers: Olivier Belanger, Nicolas Masson
- 
+
  SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
- 
+
  SpatGRIS2 is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
- 
+
  You should have received a copy of the GNU General Public License
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -20,8 +20,7 @@
 #include "MainWindow.h"
 
 //==============================================================================
-MainWindow::MainWindow(String name) : DocumentWindow(name, Colours::lightgrey,
-                                                     DocumentWindow::allButtons)
+MainWindow::MainWindow(String name) : DocumentWindow(name, Colours::lightgrey, DocumentWindow::allButtons)
 {
     setUsingNativeTitleBar(true);
     mcc.reset(new MainContentComponent(*this));
@@ -31,7 +30,7 @@ MainWindow::MainWindow(String name) : DocumentWindow(name, Colours::lightgrey,
     // this lets the command manager use keypresses that arrive in our window.
     addKeyListener(getApplicationCommandManager().getKeyMappings());
 
-    PropertiesFile *props = mcc->applicationProperties.getUserSettings();
+    PropertiesFile * props = mcc->applicationProperties.getUserSettings();
 
     // These offset values compensate for the title bar size.
     // TODO: it works on linux, need to be tested on MacOS.
@@ -48,10 +47,8 @@ MainWindow::MainWindow(String name) : DocumentWindow(name, Colours::lightgrey,
     if (props->containsKey("xPosition")) {
         bool fitInside = (props->getIntValue("xPosition") + props->getIntValue("winWidth")) <= totalScreen.getWidth();
         if (fitInside) {
-            this->setBounds(props->getIntValue("xPosition")-xOffset,
-                            props->getIntValue("yPosition")-yOffset,
-                            props->getIntValue("winWidth"),
-                            props->getIntValue("winHeight"));
+            this->setBounds(props->getIntValue("xPosition") - xOffset, props->getIntValue("yPosition") - yOffset,
+                            props->getIntValue("winWidth"), props->getIntValue("winHeight"));
         } else {
             centreWithSize(getWidth(), getHeight());
         }
@@ -63,8 +60,9 @@ MainWindow::MainWindow(String name) : DocumentWindow(name, Colours::lightgrey,
 }
 
 //==============================================================================
-bool MainWindow::exitWinApp() {
-    PropertiesFile *props = mcc->applicationProperties.getUserSettings();
+bool MainWindow::exitWinApp()
+{
+    PropertiesFile * props = mcc->applicationProperties.getUserSettings();
     props->setValue("xPosition", this->getScreenX());
     props->setValue("yPosition", this->getScreenY());
     props->setValue("winWidth", this->getWidth());
@@ -73,6 +71,7 @@ bool MainWindow::exitWinApp() {
 }
 
 //==============================================================================
-ApplicationCommandManager& MainWindow::getApplicationCommandManager() {
+ApplicationCommandManager & MainWindow::getApplicationCommandManager()
+{
     return applicationCommandManager;
 }

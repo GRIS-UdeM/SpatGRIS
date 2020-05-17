@@ -1,18 +1,18 @@
 /*
  This file is part of SpatGRIS2.
- 
+
  Developers: Samuel Béland, Nicolas Masson
- 
+
  SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
- 
+
  SpatGRIS2 is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
- 
+
  You should have received a copy of the GNU General Public License
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -23,8 +23,7 @@
 #include "MainComponent.h"
 
 //==============================================================================
-AboutComponent::AboutComponent(AboutWindow& aboutWindow, GrisLookAndFeel& lookAndFeel)
-    : mParentWindow(aboutWindow)
+AboutComponent::AboutComponent(AboutWindow & aboutWindow, GrisLookAndFeel & lookAndFeel) : mParentWindow(aboutWindow)
 {
     this->setSize(400, 500);
 
@@ -88,12 +87,14 @@ AboutComponent::AboutComponent(AboutWindow& aboutWindow, GrisLookAndFeel& lookAn
 }
 
 //==============================================================================
-AboutWindow::AboutWindow(juce::String const& name, GrisLookAndFeel& lookAndFeel, MainContentComponent& mainContentComponent)
+AboutWindow::AboutWindow(juce::String const &   name,
+                         GrisLookAndFeel &      lookAndFeel,
+                         MainContentComponent & mainContentComponent)
     : juce::DocumentWindow(name, lookAndFeel.getBackgroundColour(), DocumentWindow::closeButton)
     , mMainContentComponent(mainContentComponent)
 {
     this->setContentOwned(new AboutComponent{ *this, lookAndFeel }, true);
-    
+
     this->centreWithSize(this->getContentComponent()->getWidth(), this->getContentComponent()->getHeight());
     this->setUsingNativeTitleBar(true);
     this->setResizable(false, false);

@@ -2,7 +2,8 @@
 
 <JUCERPROJECT id="MXmiSb" name="SpatGRIS" projectType="guiapp" version="2.1.2"
               bundleIdentifier="com.UdeM.GRIS.SpatGRIS2" includeBinaryInAppConfig="1"
-              jucerVersion="5.4.7" companyName="GRIS - UdeM">
+              jucerVersion="5.4.7" companyName="GRIS - UdeM" projectLineFeed="&#10;"
+              cppLanguageStandard="14">
   <MAINGROUP id="lsxaKA" name="SpatGRIS">
     <GROUP id="{6EAF4FF6-A4F0-94E9-AA8A-98D9BF95CA11}" name="Resources">
       <FILE id="HYWx0V" name="JAS.jpil" compile="0" resource="1" file="Resources/JAS.jpil"
@@ -56,6 +57,8 @@
         <FILE id="MW5ESG" name="UiComponent.cpp" compile="1" resource="0" file="Source/UiComponent.cpp"/>
         <FILE id="RG3FbE" name="UiComponent.h" compile="0" resource="0" file="Source/UiComponent.h"/>
       </GROUP>
+      <FILE id="uYO3os" name="GrisLookAndFeel.cpp" compile="1" resource="0"
+            file="Source/GrisLookAndFeel.cpp"/>
       <FILE id="BVvOrd" name="Input.cpp" compile="1" resource="0" file="Source/Input.cpp"/>
       <FILE id="BiDXCC" name="Input.h" compile="0" resource="0" file="Source/Input.h"/>
       <FILE id="A5skyB" name="JackClientGRIS.cpp" compile="1" resource="0"
