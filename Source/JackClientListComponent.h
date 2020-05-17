@@ -32,6 +32,24 @@ class JackClientListComponent final
     , public juce::TableListBoxModel
     , public juce::ToggleButton::Listener
 {
+    //==============================================================================
+    class ListIntOutComp final
+        : public juce::Component
+        , public juce::ComboBox::Listener
+    {
+    public:
+        ListIntOutComp(JackClientListComponent& td);
+        //==============================================================================
+        void resized() final { comboBox.setBoundsInset(BorderSize<int> (2)); }
+        void setRowAndColumn(int newRow, int newColumn);
+        void comboBoxChanged (ComboBox*) final { owner.setValue(row, columnId, comboBox.getSelectedId()); }
+    private:
+        //==============================================================================
+        JackClientListComponent& owner;
+        juce::ComboBox comboBox;
+        int row;
+        int columnId;
+    };
 public:
     JackClientListComponent(MainContentComponent * parent, GrisLookAndFeel *feel);
     ~JackClientListComponent() final = default;
@@ -44,11 +62,8 @@ public:
     int getValue(const int rowNumber,const int columnNumber) const;
     int getNumRows() final { return numRows; }
     void paintRowBackground(Graphics& g, int rowNumber, int /*width*/, int /*height*/, bool rowIsSelected) final;
-    void paintCell(Graphics& g, int rowNumber, int columnId,
-                   int width, int height, bool /*rowIsSelected*/) final;
-    
-    Component* refreshComponentForCell(int rowNumber, int columnId, bool /*isRowSelected*/,
-                                       Component* existingComponentToUpdate) final;
+    void paintCell(Graphics& g, int rowNumber, int columnId, int width, int height, bool /*rowIsSelected*/) final;
+    Component* refreshComponentForCell(int rowNumber, int columnId, bool /*isRowSelected*/, Component* existingComponentToUpdate) final;
 private:
     //==============================================================================
     MainContentComponent *mainParent;
@@ -56,42 +71,6 @@ private:
     unsigned int numRows{};
     TableListBox tableListClient;
     Box * box;
-    //==============================================================================
-    class ListIntOutComp final
-        : public juce::Component
-        , public juce::ComboBox::Listener
-    {
-    public:
-        ListIntOutComp (JackClientListComponent& td) : owner (td) {
-            // Just put a combo box inside this component.
-            this->addAndMakeVisible(comboBox);
-            for (int i = 1; i <= 256; i++) {
-                comboBox.addItem(String(i), i);
-            }
-            comboBox.addListener(this);
-            comboBox.setWantsKeyboardFocus(false);
-        }
-        //==============================================================================
-        void resized() final {
-            comboBox.setBoundsInset(BorderSize<int> (2));
-        }
-
-        void setRowAndColumn(int newRow, int newColumn) {
-            row = newRow;
-            columnId = newColumn;
-            comboBox.setSelectedId(owner.getValue(row,columnId), dontSendNotification);
-        }
-        
-        void comboBoxChanged (ComboBox*) final {
-            owner.setValue(row, columnId, comboBox.getSelectedId());
-        }
-    private:
-        //==============================================================================
-        JackClientListComponent& owner;
-        juce::ComboBox comboBox;
-        int row;
-        int columnId;
-    };
 };
 
 #endif // JACKCLIENTLISTCOMPONENT_H

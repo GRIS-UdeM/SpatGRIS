@@ -122,31 +122,33 @@ void JackClientListComponent::paintRowBackground(Graphics& g, int rowNumber, int
 }
 
 //==============================================================================
-void JackClientListComponent::paintCell(Graphics& g, int rowNumber, int columnId, int width, int height, bool /*rowIsSelected*/) {
-    g.setColour(Colours::black);
-    g.setFont(12.0f);
+void JackClientListComponent::paintCell(Graphics& g, int const rowNumber, int const columnId, int const width, int const height, bool const /*rowIsSelected*/) {
     if (this->mainParent->getLockClients().try_lock()) {
-        if ((unsigned int)rowNumber < this->mainParent->getListClientjack().size()) {
+        auto const jackClientListSize{ this->mainParent->getListClientjack().size() };
+        if (static_cast<size_t>(rowNumber) < jackClientListSize) {
             if (columnId == 1) {
-                String text = getText(columnId, rowNumber);
-                g.drawText(text, 2, 0, width - 4, height, Justification::centredLeft, true);
+                juce::String text = getText(columnId, rowNumber);
+                g.setColour(Colours::black);
+                g.setFont(12.0f);
+                g.drawText(text, 2, 0, width - 4, height, juce::Justification::centredLeft, true);
             }
         }
         this->mainParent->getLockClients().unlock();
     }
-    g.setColour(Colours::black.withAlpha (0.2f));
+    g.setColour(Colours::black.withAlpha(0.2f));
     g.fillRect(width - 1, 0, 1, height);
 }
 
 //==============================================================================
-Component * JackClientListComponent::refreshComponentForCell(int rowNumber, int columnId, bool /*isRowSelected*/,
-                                               Component *existingComponentToUpdate) {
+juce::Component * JackClientListComponent::refreshComponentForCell(int const rowNumber, int const columnId, bool const /*isRowSelected*/,
+                                               juce::Component *existingComponentToUpdate)
+{
     if (columnId == 1) {
         return existingComponentToUpdate;
     }
 
     if (columnId == 4) {
-        TextButton *tbRemove = static_cast<TextButton*> (existingComponentToUpdate);
+        TextButton *tbRemove = static_cast<TextButton*>(existingComponentToUpdate);
         if (tbRemove == nullptr) {
             tbRemove = new TextButton();
             tbRemove->setName(String(rowNumber));
@@ -163,14 +165,36 @@ Component * JackClientListComponent::refreshComponentForCell(int rowNumber, int 
         }
 
         return tbRemove;
+    } else {
+        ListIntOutComp *textLabel = static_cast<ListIntOutComp*>(existingComponentToUpdate);
+
+        if (textLabel == nullptr) {
+            textLabel = new ListIntOutComp(*this);
+        }
+
+        textLabel->setRowAndColumn(rowNumber, columnId);
+
+        return textLabel;
     }
 
-    ListIntOutComp *textLabel = static_cast<ListIntOutComp*> (existingComponentToUpdate);
+}
 
-    if (textLabel == nullptr)
-        textLabel = new ListIntOutComp(*this);
+//==============================================================================
+void JackClientListComponent::ListIntOutComp::setRowAndColumn(int newRow, int newColumn) {
+    this->row = newRow;
+    this->columnId = newColumn;
+    this->comboBox.setSelectedId(this->owner.getValue(this->row, this->columnId), juce::dontSendNotification);
+}
 
-    textLabel->setRowAndColumn(rowNumber, columnId);
-
-    return textLabel;
+//==============================================================================
+JackClientListComponent::ListIntOutComp::ListIntOutComp(JackClientListComponent &td)
+    : owner(td)
+{
+    // Just put a combo box inside this component.
+    this->addAndMakeVisible(comboBox);
+    for (int i = 1; i <= 256; ++i) {
+        comboBox.addItem(juce::String(i), i);
+    }
+    comboBox.addListener(this);
+    comboBox.setWantsKeyboardFocus(false);
 }
