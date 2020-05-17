@@ -299,6 +299,5 @@ void FlatViewWindow::resized() {
 
 //==============================================================================
 void FlatViewWindow::closeButtonPressed() {
-    this->mainParent->flatViewWindowRect.setBounds(getScreenX(), getScreenY(), getWidth(), getHeight());
-    delete this;
+    this->mainParent->closeFlatViewWindow();
 }
