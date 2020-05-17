@@ -85,6 +85,7 @@ public:
     void setSolo(bool solo) final;
     void setColor(Colour color, bool updateLevel = false) final {}
     void selectClick(bool select = true) final;
+
     LevelComponent const * getVuMeter() const final { return this->vuMeter; }
     LevelComponent * getVuMeter() final { return this->vuMeter; }
 
@@ -92,9 +93,7 @@ public:
     void setBounds(const juce::Rectangle<int> &newBounds);
     void setSpeakerId(int id) { this->idSpeaker = id; };
     int getIdSpeaker() const { return this->idSpeaker; }
-    glm::vec3 getCoordinate() const { return this->center / 10.0f; }
     void setCoordinate(glm::vec3 value);
-    glm::vec3 getAziZenRad() const { return glm::vec3(this->aziZenRad.x, this->aziZenRad.y, this->aziZenRad.z / 10.0f); }
     void normalizeRadius();
     void setAziZenRad(glm::vec3 value);
     int getOutputPatch() const { return this->outputPatch; }
@@ -105,6 +104,9 @@ public:
     float getHighPassCutoff() const { return this->hpCutoff; }
     bool getDirectOut() const { return this->directOut; }
     void setDirectOut(bool value);
+    
+    glm::vec3 getCoordinate() const { return this->center / 10.0f; }
+    glm::vec3 getAziZenRad() const { return glm::vec3(this->aziZenRad.x, this->aziZenRad.y, this->aziZenRad.z / 10.0f); }
 
     bool isInput() const final { return false; }
 

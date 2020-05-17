@@ -29,18 +29,28 @@ class GrisLookAndFeel : public LookAndFeel_V3
 private:
     float fontSize;
 
-    Font  font = Font(juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf, (size_t) BinaryData::SinkinSans400Regular_otfSize));
-    Font  bigFont = Font(juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf, (size_t) BinaryData::SinkinSans400Regular_otfSize));
-    Font  biggerFont = Font(juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf, (size_t) BinaryData::SinkinSans400Regular_otfSize));
+    juce::Font font = juce::Font(juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf, (size_t) BinaryData::SinkinSans400Regular_otfSize));
+    juce::Font bigFont = juce::Font(juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf, (size_t) BinaryData::SinkinSans400Regular_otfSize));
+    juce::Font biggerFont = juce::Font(juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf, (size_t) BinaryData::SinkinSans400Regular_otfSize));
 
-    juce::Colour backGroundAndFieldColour, winBackGroundAndFieldColour;
-    juce::Colour lightColour, darkColour, greyColour, editBgcolor, hlBgcolor;
-    juce::Colour onColor, onColorOver, onColorDown, offColor, greenColor, redColor;
+    juce::Colour backGroundAndFieldColour;
+    juce::Colour winBackGroundAndFieldColour;
+    juce::Colour lightColour;
+    juce::Colour darkColour;
+    juce::Colour greyColour;
+    juce::Colour editBgcolor;
+    juce::Colour hlBgcolor;
+    juce::Colour onColor;
+    juce::Colour onColorOver;
+    juce::Colour onColorDown;
+    juce::Colour offColor;
+    juce::Colour greenColor;
+    juce::Colour redColor;
     
 public:
     //==============================================================================
-    Font  smallFont = Font(juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf, (size_t) BinaryData::SinkinSans400Regular_otfSize));
-    Font  smallerFont = Font(juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf, (size_t) BinaryData::SinkinSans400Regular_otfSize));
+    juce::Font  smallFont = Font(juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf, (size_t) BinaryData::SinkinSans400Regular_otfSize));
+    juce::Font  smallerFont = Font(juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf, (size_t) BinaryData::SinkinSans400Regular_otfSize));
     //==============================================================================
     GrisLookAndFeel() {
         
@@ -61,28 +71,28 @@ public:
         this->greenColor                = juce::Colour::fromRGB(56,  156,  56);
         this->redColor                  = juce::Colour::fromRGB(220,  48,  35);
         
-        setColour(PopupMenu::highlightedBackgroundColourId, this->onColor);
-        setColour(TextEditor::backgroundColourId, this->editBgcolor);
-        setColour(TextEditor::highlightColourId, this->hlBgcolor);
-        setColour(TextEditor::shadowColourId, this->editBgcolor);
+        this->setColour(PopupMenu::highlightedBackgroundColourId, this->onColor);
+        this->setColour(TextEditor::backgroundColourId, this->editBgcolor);
+        this->setColour(TextEditor::highlightColourId, this->hlBgcolor);
+        this->setColour(TextEditor::shadowColourId, this->editBgcolor);
         
-        setColour(TextButton::buttonColourId, this->editBgcolor);
+        this->setColour(TextButton::buttonColourId, this->editBgcolor);
         
-        setColour(ComboBox::backgroundColourId, this->editBgcolor);
-        setColour(ComboBox::outlineColourId, this->editBgcolor);
+        this->setColour(ComboBox::backgroundColourId, this->editBgcolor);
+        this->setColour(ComboBox::outlineColourId, this->editBgcolor);
         
-        setColour(Slider::thumbColourId, this->lightColour);
-        setColour(Slider::rotarySliderFillColourId, this->onColor);
-        setColour(Slider::trackColourId, this->darkColour);
-        setColour(Slider::textBoxBackgroundColourId, this->editBgcolor);
-        setColour(Slider::textBoxOutlineColourId, juce::Colours::transparentBlack);
+        this->setColour(Slider::thumbColourId, this->lightColour);
+        this->setColour(Slider::rotarySliderFillColourId, this->onColor);
+        this->setColour(Slider::trackColourId, this->darkColour);
+        this->setColour(Slider::textBoxBackgroundColourId, this->editBgcolor);
+        this->setColour(Slider::textBoxOutlineColourId, juce::Colours::transparentBlack);
         
-        setColour(TooltipWindow::ColourIds::backgroundColourId,this->backGroundAndFieldColour.withBrightness(0.8));
-        setColour(TooltipWindow::ColourIds::outlineColourId, this->backGroundAndFieldColour.withBrightness(0.8));
+        this->setColour(TooltipWindow::ColourIds::backgroundColourId,this->backGroundAndFieldColour.withBrightness(0.8));
+        this->setColour(TooltipWindow::ColourIds::outlineColourId, this->backGroundAndFieldColour.withBrightness(0.8));
         
-        setColour(AlertWindow::backgroundColourId, this->winBackGroundAndFieldColour);
-        setColour(AlertWindow::outlineColourId, this->onColor);
-        setColour(AlertWindow::textColourId, this->lightColour);
+        this->setColour(AlertWindow::backgroundColourId, this->winBackGroundAndFieldColour);
+        this->setColour(AlertWindow::outlineColourId, this->onColor);
+        this->setColour(AlertWindow::textColourId, this->lightColour);
         
 #if WIN32
         this->fontSize = 18.f;
@@ -99,10 +109,6 @@ public:
     //==============================================================================
     ~GrisLookAndFeel() override = default;
     //==============================================================================
-    Font getFont() const {
-        return this->font;
-    }
-    //==============================================================================
     Font getLabelFont (Label & label) final {
         if (label.getName() == "AboutBox_title")
             return this->biggerFont;
@@ -112,66 +118,54 @@ public:
             return this->font;
     }
     //==============================================================================
+    Font getFont() const {
+        return this->font;
+    }
     Font getComboBoxFont (ComboBox & comboBox) final {
         return this->font;
     }
-    //==============================================================================
     Font getTextButtonFont (TextButton &, int buttonHeight) override {
         return this->font;
     }
-    //==============================================================================
     Font getMenuBarFont	(MenuBarComponent &, int itemIndex, const String & itemText) final {
         return this->font;
     }
-    //==============================================================================
     juce::Colour getWinBackgroundColour() const {
         return this->winBackGroundAndFieldColour;
     }
-    //==============================================================================
     juce::Colour getBackgroundColour() const {
         return this->backGroundAndFieldColour;
     }
-    //==============================================================================
     juce::Colour getFieldColour() const {
         return this->backGroundAndFieldColour;
     }
-    //==============================================================================
     juce::Colour getFontColour() const {
         return this->lightColour;
     }
-    //==============================================================================
     juce::Colour getScrollBarColour() const {
         return this->greyColour;
     }
-    //==============================================================================
     juce::Colour getDarkColour() const {
         return this->darkColour;
     }
-    //==============================================================================
     juce::Colour getLightColour() const {
         return this->lightColour;
     }
-    //==============================================================================
     juce::Colour getEditBackgroundColour() const {
         return this->editBgcolor;
     }
-    //==============================================================================
     juce::Colour getHighlightColour() const {
         return this->hlBgcolor;
     }
-    //==============================================================================
     juce::Colour getOnColour() const {
         return this->onColor;
     }
-    //==============================================================================
     juce::Colour getOffColour() const {
         return this->offColor;
     }
-    //==============================================================================
     juce::Colour getGreenColour() const {
         return this->greenColor;
     }
-    //==============================================================================
     juce::Colour getRedColour() const {
         return this->redColor;
     }

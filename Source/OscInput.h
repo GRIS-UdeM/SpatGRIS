@@ -40,8 +40,8 @@ public :
     bool closeConnection() { return this->disconnect(); }
 private :
     //==============================================================================
-    void oscMessageReceived(OSCMessage const& message) final;
-    void oscBundleReceived(OSCBundle const& bundle) final;
+    void oscMessageReceived(juce::OSCMessage const& message) final;
+    void oscBundleReceived(juce::OSCBundle const& bundle) final;
     //==============================================================================
     MainContentComponent& mainContentComponent;
     //==============================================================================

@@ -35,15 +35,17 @@ public:
                  MainContentComponent *parent, GrisLookAndFeel *feel);
     ~OscLogWindow() final;
     //==============================================================================
-    void buttonClicked(Button *button) final;
+    void buttonClicked(juce::Button *button) final;
     void closeButtonPressed() final;
-    void addToLog(String msg);
+    void addToLog(juce::String msg);
 private:
     //==============================================================================
     MainContentComponent *mainParent;
     GrisLookAndFeel *grisFeel;
+
     int index;
     bool activated;
+    
     juce::CodeDocument codeDocument;
     juce::CodeEditorComponent logger;
     juce::TextButton stop;

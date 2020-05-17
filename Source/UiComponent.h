@@ -40,14 +40,16 @@ public:
     //==============================================================================
     Component       * getContent()       { return this->content ? this->content : this; }
     Component const * getContent() const { return this->content ? this->content : this; }
+
     void resized() final;
     void correctSize(unsigned int width, unsigned int height);
     void paint(Graphics &g) final;
 private:
     //==============================================================================
+    GrisLookAndFeel *grisFeel;
+    
     juce::Component *content;
     juce::Viewport *viewport;
-    GrisLookAndFeel *grisFeel;
     juce::Colour bgColour;
     juce::String title;
     //==============================================================================

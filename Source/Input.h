@@ -62,16 +62,13 @@ public :
     //==============================================================================
     MainContentComponent const& getMainContentComponent() const { return *this->mainParent; }
     MainContentComponent& getMainContentComponent() { return *this->mainParent; }
+
     LevelComponent const * getVuMeter() const { return this->vuMeter.get(); }
     LevelComponent * getVuMeter() { return this->vuMeter.get(); }
+
     int getId() const final { return this->idChannel; }
     int getButtonInOutNumber() const { return this->idChannel; }
     float getLevel() const;
-    glm::vec3 getCenter() const { return this->center; }
-    glm::vec3 getColor() const { return this->color; }
-    glm::vec3 getNumberColor() const { return glm::vec3(this->color.x * 0.5, this->color.y * 0.5, this->color.z * 0.5); }
-    Colour    getColorJ() const { return this->colorJ; }
-    Colour    getColorJWithAlpha() const;
     float getAlpha() const;
     float getAziMuth() const { return this->azimuth; }
     float getZenith() const { return this->zenith; }
@@ -79,6 +76,12 @@ public :
     float getAziMuthSpan() const { return this->azimSpan; }
     float getZenithSpan()  const { return this->zeniSpan; }
     float getGain() const { return this->gain; }
+
+    glm::vec3 getCenter() const { return this->center; }
+    glm::vec3 getColor() const { return this->color; }
+    glm::vec3 getNumberColor() const { return glm::vec3(this->color.x * 0.5, this->color.y * 0.5, this->color.z * 0.5); }
+    Colour    getColorJ() const { return this->colorJ; }
+    Colour    getColorJWithAlpha() const;
     //==============================================================================
     glm::vec3 polToCar(float azimuth, float zenith) const;
     glm::vec3 polToCar3d(float azimuth, float zenith) const;
@@ -99,6 +102,7 @@ public :
 private:
     //==============================================================================
     MainContentComponent * mainParent;
+    SmallGrisLookAndFeel *grisFeel;
 
     int idChannel;
     int directOutChannel;
@@ -110,14 +114,13 @@ private:
     float azimSpan;
     float zeniSpan;
     float gain;
-
     float sizeT = 0.3f;
+
     glm::vec3 center;
     glm::vec3 color;
     Colour colorJ;
     
     std::unique_ptr<LevelComponent> vuMeter{};
-    SmallGrisLookAndFeel *grisFeel;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Input);
 };

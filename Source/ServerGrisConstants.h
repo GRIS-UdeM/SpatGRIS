@@ -28,29 +28,29 @@ extern const char *DriverNameSys;
 extern const char *ClientNameSys;
 extern const char *ClientNameIgnor;
 
-extern const String SplashScreenFilePath;
-extern const String DefaultPresetFilePath;
-extern const String DefaultPresetDirectoryPath;
-extern const String DefaultSpeakerSetupFilePath;
-extern const String BinauralSpeakerSetupFilePath;
-extern const String StereoSpeakerSetupFilePath;
-extern const String ServerGrisManualFilePath;
-extern const String ServerGrisIconSmallFilePath;
+extern const juce::String SplashScreenFilePath;
+extern const juce::String DefaultPresetFilePath;
+extern const juce::String DefaultPresetDirectoryPath;
+extern const juce::String DefaultSpeakerSetupFilePath;
+extern const juce::String BinauralSpeakerSetupFilePath;
+extern const juce::String StereoSpeakerSetupFilePath;
+extern const juce::String ServerGrisManualFilePath;
+extern const juce::String ServerGrisIconSmallFilePath;
 
-extern const String HRTFFolder0Path;
-extern const String HRTFFolder40Path;
-extern const String HRTFFolder80Path;
+extern const juce::String HRTFFolder0Path;
+extern const juce::String HRTFFolder40Path;
+extern const juce::String HRTFFolder80Path;
 
-extern const StringArray ModeSpatString;
+extern const juce::StringArray ModeSpatString;
 
 extern const bool UseOSNativeDialogBox;
 
-extern const StringArray BufferSizes;
-extern const StringArray RateValues;
-extern const StringArray FileFormats;
-extern const StringArray FileConfigs;
-extern const StringArray AttenuationDBs;
-extern const StringArray AttenuationCutoffs;
+extern const juce::StringArray BufferSizes;
+extern const juce::StringArray RateValues;
+extern const juce::StringArray FileFormats;
+extern const juce::StringArray FileConfigs;
+extern const juce::StringArray AttenuationDBs;
+extern const juce::StringArray AttenuationCutoffs;
 
 extern const unsigned int VuMeterWidthInPixels;
 

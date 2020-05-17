@@ -38,8 +38,10 @@ public:
     virtual void setSolo(bool solo) = 0;
     virtual void setColor(Colour color, bool updateLevel = false) = 0;
     virtual void selectClick(bool select = true) = 0;
+
     virtual LevelComponent * getVuMeter() = 0;
     virtual LevelComponent const * getVuMeter() const = 0;
+    
     virtual void changeDirectOutChannel(int chn) = 0;
     virtual void setDirectOutChannel(int chn) = 0;
     virtual int getDirectOutChannel() const = 0;

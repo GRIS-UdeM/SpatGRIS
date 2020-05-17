@@ -91,6 +91,8 @@ private:
     
     void drawTrippletConn() const;
     //==============================================================================
+    MainContentComponent *mainParent;
+
     bool showShpere = false;
     bool showNumber = false;
     bool clickLeft  = false;
@@ -112,7 +114,7 @@ private:
     double displayScaling = 1.0;
     
     Ray ray;
-    MainContentComponent *mainParent;
+    
     glm::vec3 camPos;
 
     juce::String nameConfig = "...";

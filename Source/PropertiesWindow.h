@@ -54,36 +54,36 @@ private:
     MainContentComponent& mainContentComponent;
     GrisLookAndFeel& grisFeel;
 
-    std::unique_ptr<Label> generalLabel;
-    std::unique_ptr<Label> jackSettingsLabel;
-    std::unique_ptr<Label> recordingLabel;
-    std::unique_ptr<Label> cubeDistanceLabel;
+    std::unique_ptr<juce::Label> generalLabel;
+    std::unique_ptr<juce::Label> jackSettingsLabel;
+    std::unique_ptr<juce::Label> recordingLabel;
+    std::unique_ptr<juce::Label> cubeDistanceLabel;
 
-    std::unique_ptr<Label> labOSCInPort;
-    std::unique_ptr<TextEditor> tedOSCInPort;
+    std::unique_ptr<juce::Label> labOSCInPort;
+    std::unique_ptr<juce::TextEditor> tedOSCInPort;
 
-    std::unique_ptr<Label> labDevice;
-    std::unique_ptr<ComboBox> cobDevice;
+    std::unique_ptr<juce::Label> labDevice;
+    std::unique_ptr<juce::ComboBox> cobDevice;
 
-    std::unique_ptr<Label> labRate;
-    std::unique_ptr<ComboBox> cobRate;
+    std::unique_ptr<juce::Label> labRate;
+    std::unique_ptr<juce::ComboBox> cobRate;
 
-    std::unique_ptr<Label> labBuff;
-    std::unique_ptr<ComboBox> cobBuffer;
+    std::unique_ptr<juce::Label> labBuff;
+    std::unique_ptr<juce::ComboBox> cobBuffer;
 
-    std::unique_ptr<Label> labRecFormat;
-    std::unique_ptr<ComboBox> recordFormat;
+    std::unique_ptr<juce::Label> labRecFormat;
+    std::unique_ptr<juce::ComboBox> recordFormat;
 
-    std::unique_ptr<Label> labRecFileConfig;
-    std::unique_ptr<ComboBox> recordFileConfig;
+    std::unique_ptr<juce::Label> labRecFileConfig;
+    std::unique_ptr<juce::ComboBox> recordFileConfig;
 
-    std::unique_ptr<Label> labDistanceDB;
-    std::unique_ptr<ComboBox> cobDistanceDB;
+    std::unique_ptr<juce::Label> labDistanceDB;
+    std::unique_ptr<juce::ComboBox> cobDistanceDB;
 
-    std::unique_ptr<Label> labDistanceCutoff;
-    std::unique_ptr<ComboBox> cobDistanceCutoff;
+    std::unique_ptr<juce::Label> labDistanceCutoff;
+    std::unique_ptr<juce::ComboBox> cobDistanceCutoff;
 
-    std::unique_ptr<TextButton> butValidSettings;
+    std::unique_ptr<juce::TextButton> butValidSettings;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PropertiesComponent);
 };

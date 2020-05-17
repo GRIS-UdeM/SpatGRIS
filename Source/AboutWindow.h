@@ -55,6 +55,7 @@ public:
 private:
     //==============================================================================
     AboutWindow& mParentWindow;
+    
     juce::ImageComponent mLogoImage;
     juce::Label mTitleLabel;
     juce::Label mVersionLabel;

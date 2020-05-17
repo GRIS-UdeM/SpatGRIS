@@ -54,6 +54,7 @@ private:
     //==============================================================================
     // VIRTUALS
     int getNumRows() final { return this->numRows; }
+
     void buttonClicked(Button *button) final;
     void textEditorTextChanged(juce::TextEditor& editor) final;
     void textEditorReturnKeyPressed(juce::TextEditor& textEditor) final;
@@ -63,6 +64,7 @@ private:
     void resized() final;
     void paintRowBackground(Graphics& g, int rowNumber, int width, int height, bool rowIsSelected) final;
     void paintCell(Graphics& g, int rowNumber, int columnId, int width, int height, bool rowIsSelected) final;
+
     Component * refreshComponentForCell(int rowNumber, int columnId, bool isRowSelected, Component *existingComponentToUpdate) final;
 private:
     //==============================================================================
@@ -89,6 +91,7 @@ private:
 
     juce::TableListBox tableListSpeakers;
     juce::Font font;
+    
     int numRows;
     bool initialized{ false };
     //==============================================================================

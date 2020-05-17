@@ -42,6 +42,7 @@ public:
 private:
     //==============================================================================
     EditSpeakersWindow &owner;
+    
     int row;
     int columnId;
     int lastOffset;

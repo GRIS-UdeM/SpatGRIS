@@ -225,10 +225,12 @@ public:
     unsigned int numberInputs;
     unsigned int numberOutputs;
     unsigned int maxOutputPatch;
+
     std::vector<int> outputPatches;
 
     // Jack variables.
     jack_client_t *client;
+
     std::vector<jack_port_t *> inputsPort;
     std::vector<jack_port_t *> outputsPort;
 
@@ -286,8 +288,9 @@ public:
 
     // VBAP data.
     unsigned int vbapDimensions;
-    std::vector<std::vector<int>> vbap_triplets;
     int vbapSourcesToUpdate[MaxInputs];
+
+    std::vector<std::vector<int>> vbap_triplets;
 
     // BINAURAL data.
     unsigned int hrtf_count[16];
@@ -302,9 +305,10 @@ public:
     lbap_field *lbap_speaker_field;
 
     // Recording parameters.
-    AudioRecorder recorder[MaxOutputs];
     unsigned int indexRecord = 0;
     bool recording;
+
+    AudioRecorder recorder[MaxOutputs];
     Array<File> outputFilenames;
 
     // LBAP distance attenuation values.
@@ -331,11 +335,13 @@ public:
     void clearOutput();
     bool addOutput(unsigned int outputPatch);
     void removeOutput(int number);
+
     std::vector<int> getDirectOutOutputPatches() const;
 
     // Manage clients.
     void connectionClient(String name, bool connect = true);
     void updateClientPortAvailable(bool fromJack);
+
     std::string getClientName(char const* port) const;
 
     // Recording.
@@ -347,8 +353,9 @@ public:
     void setRecordFileConfig(int config) { this->recordFileConfig = config; }
     int getRecordFileConfig() const { return this->recordFileConfig; }
     void setRecordingPath(String filePath) { this->recordPath = filePath; }
-    juce::String const& getRecordingPath() const { return this->recordPath; }
     bool isSavingRun() const { return this->recording; }
+    
+    juce::String const& getRecordingPath() const { return this->recordPath; }
 
     // Initialize VBAP algorithm.
     bool initSpeakersTripplet(std::vector<Speaker*> const& listSpk, int dimensions, bool needToComputeVbap);
@@ -374,6 +381,7 @@ private:
     // Private recording parameters.
     int recordFormat = 0;       // 0 = WAV, 1 = AIFF
     int recordFileConfig = 0;   // 0 = Multiple Mono Files, 1 = Single Interleaved
+    
     juce::String recordPath = "";
 
     // This structure is used to compute the VBAP algorithm only once. Each source only gets a copy.

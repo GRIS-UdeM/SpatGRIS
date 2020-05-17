@@ -47,6 +47,7 @@ class JackClientListComponent final
         //==============================================================================
         JackClientListComponent& owner;
         juce::ComboBox comboBox;
+
         int row;
         int columnId;
     };
@@ -57,19 +58,22 @@ public:
     void updateContentCli();
     void buttonClicked(Button *button) final;
     void setBounds(int x, int y, int width, int height);
-    String getText(const int columnNumber, const int rowNumber) const;
     void setValue(const int rowNumber,const int columnNumber, const int newRating);
     int getValue(const int rowNumber,const int columnNumber) const;
     int getNumRows() final { return numRows; }
     void paintRowBackground(Graphics& g, int rowNumber, int /*width*/, int /*height*/, bool rowIsSelected) final;
     void paintCell(Graphics& g, int rowNumber, int columnId, int width, int height, bool /*rowIsSelected*/) final;
-    Component* refreshComponentForCell(int rowNumber, int columnId, bool /*isRowSelected*/, Component* existingComponentToUpdate) final;
+
+    juce::String getText(const int columnNumber, const int rowNumber) const;
+    juce::Component* refreshComponentForCell(int rowNumber, int columnId, bool /*isRowSelected*/, Component* existingComponentToUpdate) final;
 private:
     //==============================================================================
     MainContentComponent *mainParent;
     GrisLookAndFeel *grisFeel;
+
     unsigned int numRows{};
-    TableListBox tableListClient;
+
+    juce::TableListBox tableListClient;
     Box * box;
 };
 
