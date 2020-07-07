@@ -1,89 +1,96 @@
 /*
  This file is part of SpatGRIS2.
- 
+
  Developers: Nicolas Masson
- 
+
  SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
- 
+
  SpatGRIS2 is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
- 
+
  You should have received a copy of the GNU General Public License
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "WinControl.h"
-#include "MainComponent.h"
-#include "Input.h"
+#include "FlatViewWindow.h"
 
-static const float RadiusMax      = 2.f;
-static const float SourceRadius   = 10.f;
+#include "Input.h"
+#include "MainComponent.h"
+
+static const float RadiusMax = 2.f;
+static const float SourceRadius = 10.f;
 static const float SourceDiameter = SourceRadius * 2.f;
 
 typedef Point<float> FPoint;
 
-static float DegreeToRadian(float degree) {
-    return ((degree * M_PI ) / 180.0f);
+//==============================================================================
+static float DegreeToRadian(float degree)
+{
+    return ((degree * M_PI) / 180.0f);
 }
 
-static FPoint DegreeToXy(FPoint p, int FieldWidth) {
-    float x,y;
+//==============================================================================
+static FPoint DegreeToXy(FPoint p, int FieldWidth)
+{
+    float x, y;
     x = -((FieldWidth - SourceDiameter) / 2) * sinf(DegreeToRadian(p.x)) * cosf(DegreeToRadian(p.y));
     y = -((FieldWidth - SourceDiameter) / 2) * cosf(DegreeToRadian(p.x)) * cosf(DegreeToRadian(p.y));
     return FPoint(x, y);
 }
 
-static FPoint GetSourceAzimElev(FPoint pXY, bool bUseCosElev = false) {
+//==============================================================================
+static FPoint GetSourceAzimElev(FPoint pXY, bool bUseCosElev = false)
+{
     // Calculate azim in range [0,1], and negate it because zirkonium wants -1 on right side.
     float fAzim = -atan2f(pXY.x, pXY.y) / M_PI;
-    
+
     // Calculate xy distance from origin, and clamp it to 2 (ie ignore outside of circle).
     float hypo = hypotf(pXY.x, pXY.y);
     if (hypo > RadiusMax) {
         hypo = RadiusMax;
     }
-    
+
     float fElev;
     if (bUseCosElev) {
-        fElev = acosf(hypo/RadiusMax);   // fElev is elevation in radian, [0,pi/2)
-        fElev /= (M_PI/2.f);             // making range [0,1]
+        fElev = acosf(hypo / RadiusMax); // fElev is elevation in radian, [0,pi/2)
+        fElev /= (M_PI / 2.f);           // making range [0,1]
         fElev /= 2.f;                    // making range [0,.5] because that's what the zirkonium wants
     } else {
-        fElev = (RadiusMax-hypo)/4.0f;
+        fElev = (RadiusMax - hypo) / 4.0f;
     }
-    
+
     return FPoint(fAzim, fElev);
 }
 
-WinControl::WinControl(const String& name, Colour backgroundColour, int buttonsNeeded,
-                       MainContentComponent *parent, GrisLookAndFeel *feel)
-    : DocumentWindow (name, backgroundColour, buttonsNeeded)
+//==============================================================================
+FlatViewWindow::FlatViewWindow(MainContentComponent & parent, GrisLookAndFeel & feel)
+    : DocumentWindow("2D View", feel.getBackgroundColour(), juce::DocumentWindow::allButtons)
+    , mainParent(parent)
+    , grisFeel(feel)
 {
-    this->mainParent = parent;
-    this->grisFeel = feel;
     this->startTimerHz(24);
 }
 
-WinControl::~WinControl() {
-    this->mainParent->destroyWinControl();
+//==============================================================================
+FlatViewWindow::~FlatViewWindow()
+{
+    this->mainParent.closeFlatViewWindow();
 }
 
-void WinControl::timerCallback() {
-    this->repaint();
-}
-
-void WinControl::drawFieldBackground(Graphics& g, const int fieldWH) {
+//==============================================================================
+void FlatViewWindow::drawFieldBackground(Graphics & g, const int fieldWH) const
+{
     const int realW = (fieldWH - SourceDiameter);
 
-    if (this->mainParent->getModeSelected() == LBAP) {
+    if (this->mainParent.getModeSelected() == LBAP) {
         float offset, size;
         // Draw light background squares.
-        g.setColour(this->grisFeel->getLightColour());
+        g.setColour(this->grisFeel.getLightColour());
         offset = fieldWH * 0.4;
         size = fieldWH * 0.2;
         g.drawRect(offset, offset, size, size);
@@ -92,7 +99,7 @@ void WinControl::drawFieldBackground(Graphics& g, const int fieldWH) {
         g.drawRect(offset, offset, size, size);
         g.drawRect(10, 10, fieldWH - 20, fieldWH - 20);
         // Draw shaded background squares.
-        g.setColour(this->grisFeel->getLightColour().withBrightness(0.5));
+        g.setColour(this->grisFeel.getLightColour().withBrightness(0.5));
         offset = fieldWH * 0.3;
         size = fieldWH * 0.4;
         g.drawRect(offset, offset, size, size);
@@ -103,12 +110,12 @@ void WinControl::drawFieldBackground(Graphics& g, const int fieldWH) {
         float center = (fieldWH - realW) / 2.0f;
         g.drawLine(fieldWH * 0.2, fieldWH * 0.2, fieldWH - fieldWH * 0.2, fieldWH - fieldWH * 0.2);
         g.drawLine(fieldWH * 0.2, fieldWH - fieldWH * 0.2, fieldWH - fieldWH * 0.2, fieldWH * 0.2);
-        g.drawLine(center, fieldWH / 2, realW + center , fieldWH / 2);
-        g.drawLine(fieldWH / 2, center, fieldWH / 2 , realW + center);
+        g.drawLine(center, fieldWH / 2, realW + center, fieldWH / 2);
+        g.drawLine(fieldWH / 2, center, fieldWH / 2, realW + center);
     } else {
         float w, x;
         // Draw line and light circle.
-        g.setColour(this->grisFeel->getLightColour().withBrightness(0.5));
+        g.setColour(this->grisFeel.getLightColour().withBrightness(0.5));
         w = realW / 1.3f;
         x = (fieldWH - w) / 2.0f;
         g.drawEllipse(x, x, w, w, 1);
@@ -120,13 +127,13 @@ void WinControl::drawFieldBackground(Graphics& g, const int fieldWH) {
         x = (fieldWH - w) / 2.0f;
         float r = (w / 2) * 0.296f;
 
-        g.drawLine(x+r, x+r, (w+x)-r, (w+x)-r);
-        g.drawLine(x+r, (w+x)-r, (w+x)-r , x+r);
-        g.drawLine(x, fieldWH/2, w+x , fieldWH/2);
-        g.drawLine(fieldWH/2, x, fieldWH/2 , w+x);
+        g.drawLine(x + r, x + r, (w + x) - r, (w + x) - r);
+        g.drawLine(x + r, (w + x) - r, (w + x) - r, x + r);
+        g.drawLine(x, fieldWH / 2, w + x, fieldWH / 2);
+        g.drawLine(fieldWH / 2, x, fieldWH / 2, w + x);
 
         // Draw big background circle.
-        g.setColour(this->grisFeel->getLightColour());
+        g.setColour(this->grisFeel.getLightColour());
         g.drawEllipse(x, x, w, w, 1);
 
         // Draw little background circle.
@@ -135,7 +142,7 @@ void WinControl::drawFieldBackground(Graphics& g, const int fieldWH) {
         g.drawEllipse(x, x, w, w, 1);
 
         // Draw fill center cirlce.
-        g.setColour(this->grisFeel->getWinBackgroundColour());
+        g.setColour(this->grisFeel.getWinBackgroundColour());
         w = realW / 4.0f;
         w -= 2;
         x = (fieldWH - w) / 2.0f;
@@ -143,48 +150,57 @@ void WinControl::drawFieldBackground(Graphics& g, const int fieldWH) {
     }
 }
 
-void WinControl::paint (Graphics& g) {
-    const int fieldWH = getWidth();     // Same as getHeight()
+//==============================================================================
+void FlatViewWindow::paint(Graphics & g)
+{
+    const int fieldWH = getWidth(); // Same as getHeight()
     const int fieldCenter = fieldWH / 2;
     const int realW = (fieldWH - SourceDiameter);
 
-    g.fillAll(this->grisFeel->getWinBackgroundColour());
+    g.fillAll(this->grisFeel.getWinBackgroundColour());
 
     drawFieldBackground(g, fieldWH);
 
-    g.setFont(this->grisFeel->getFont());
-    g.setColour(this->grisFeel->getLightColour());
-    g.drawText("0",   fieldCenter, 10,               SourceDiameter, SourceDiameter, Justification(Justification::centred), false);
-    g.drawText("90",  realW-10,    (fieldWH-4)/2.0f, SourceDiameter, SourceDiameter, Justification(Justification::centred), false);
-    g.drawText("180", fieldCenter, realW-6,          SourceDiameter, SourceDiameter, Justification(Justification::centred), false);
-    g.drawText("270", 14,          (fieldWH-4)/2.0f, SourceDiameter, SourceDiameter, Justification(Justification::centred), false);
-    
+    g.setFont(this->grisFeel.getFont());
+    g.setColour(this->grisFeel.getLightColour());
+    g.drawText("0", fieldCenter, 10, SourceDiameter, SourceDiameter, Justification(Justification::centred), false);
+    g.drawText("90", realW - 10, (fieldWH - 4) / 2.0f, SourceDiameter, SourceDiameter,
+               Justification(Justification::centred), false);
+    g.drawText("180", fieldCenter, realW - 6, SourceDiameter, SourceDiameter, Justification(Justification::centred),
+               false);
+    g.drawText("270", 14, (fieldWH - 4) / 2.0f, SourceDiameter, SourceDiameter, Justification(Justification::centred),
+               false);
+
     // Draw sources.
-    int maxDrawSource = (int)this->mainParent->getListSourceInput().size();
+    int maxDrawSource = (int)this->mainParent.getListSourceInput().size();
     for (int i = 0; i < maxDrawSource; ++i) {
-        Input *it = this->mainParent->getListSourceInput().at(i);
-        if (it->getGain() == -1.0) { continue; }
-        drawSource(g, this->mainParent->getListSourceInput().at(i), fieldWH);
-        drawSourceSpan(g, this->mainParent->getListSourceInput().at(i), fieldWH, fieldCenter);
+        Input * it = this->mainParent.getListSourceInput().getUnchecked(i);
+        if (it->getGain() == -1.0) {
+            continue;
+        }
+        drawSource(g, this->mainParent.getListSourceInput().getUnchecked(i), fieldWH);
+        drawSourceSpan(g, this->mainParent.getListSourceInput().getUnchecked(i), fieldWH, fieldCenter);
     }
 }
 
-void WinControl::drawSource(Graphics &g, Input *it, const int fieldWH) {
+//==============================================================================
+void FlatViewWindow::drawSource(Graphics & g, Input * it, const int fieldWH) const
+{
     const int realW = (fieldWH - SourceDiameter);
-    String stringVal;
-    FPoint sourceP;
-    if (this->mainParent->getModeSelected() == LBAP) {
+    String    stringVal;
+    FPoint    sourceP;
+    if (this->mainParent.getModeSelected() == LBAP) {
         sourceP = FPoint(it->getCenter().z * 0.6f, it->getCenter().x * 0.6f) / 5.0f;
     } else {
         sourceP = FPoint(it->getCenter().z, it->getCenter().x) / 5.0f;
     }
     sourceP.x = ((realW / 2.0f) + ((realW / 4.0f) * sourceP.x));
     sourceP.y = ((realW / 2.0f) - ((realW / 4.0f) * sourceP.y));
-    sourceP.x = sourceP.x < 0 ? 0 : sourceP.x > fieldWH - SourceDiameter? fieldWH - SourceDiameter: sourceP.x;
-    sourceP.y = sourceP.y < 0 ? 0 : sourceP.y > fieldWH - SourceDiameter? fieldWH - SourceDiameter: sourceP.y;
+    sourceP.x = sourceP.x < 0 ? 0 : sourceP.x > fieldWH - SourceDiameter ? fieldWH - SourceDiameter : sourceP.x;
+    sourceP.y = sourceP.y < 0 ? 0 : sourceP.y > fieldWH - SourceDiameter ? fieldWH - SourceDiameter : sourceP.y;
 
     g.setColour(it->getColorJWithAlpha());
-    g.fillEllipse(sourceP.x , sourceP.y , SourceDiameter, SourceDiameter);
+    g.fillEllipse(sourceP.x, sourceP.y, SourceDiameter, SourceDiameter);
 
     stringVal.clear();
     stringVal << it->getId();
@@ -192,52 +208,56 @@ void WinControl::drawSource(Graphics &g, Input *it, const int fieldWH) {
     g.setColour(Colours::black.withAlpha(it->getAlpha()));
     int tx = sourceP.x;
     int ty = sourceP.y;
-    g.drawText(stringVal, tx+6 , ty+1, SourceDiameter+10, SourceDiameter, Justification(Justification::centredLeft), false);
+    g.drawText(stringVal, tx + 6, ty + 1, SourceDiameter + 10, SourceDiameter,
+               Justification(Justification::centredLeft), false);
     g.setColour(Colours::white.withAlpha(it->getAlpha()));
-    g.drawText(stringVal, tx+5, ty, SourceDiameter+10, SourceDiameter, Justification(Justification::centredLeft), false);
+    g.drawText(stringVal, tx + 5, ty, SourceDiameter + 10, SourceDiameter, Justification(Justification::centredLeft),
+               false);
 }
 
-void WinControl::drawSourceSpan(Graphics &g, Input *it, const int fieldWH, const int fieldCenter) {
+//==============================================================================
+void FlatViewWindow::drawSourceSpan(Graphics & g, Input * it, const int fieldWH, const int fieldCenter) const
+{
     Colour colorS = it->getColorJ();
 
     FPoint sourceP;
-    if (this->mainParent->getModeSelected() == LBAP) {
+    if (this->mainParent.getModeSelected() == LBAP) {
         sourceP = FPoint(it->getCenter().z * 0.6f, it->getCenter().x * 0.6f) / 5.0f;
     } else {
         sourceP = FPoint(it->getCenter().z, it->getCenter().x) / 5.0f;
     }
 
-    if (this->mainParent->getModeSelected() == LBAP) {
-        int realW = (fieldWH - SourceDiameter);
+    if (this->mainParent.getModeSelected() == LBAP) {
+        int   realW = (fieldWH - SourceDiameter);
         float azimuthSpan = fieldWH * (it->getAziMuthSpan() * 0.5f);
         float halfAzimuthSpan = azimuthSpan / 2.0f - SourceRadius;
 
         sourceP.x = ((realW / 2.0f) + ((realW / 4.0f) * sourceP.x));
         sourceP.y = ((realW / 2.0f) - ((realW / 4.0f) * sourceP.y));
-        sourceP.x = sourceP.x < 0 ? 0 : sourceP.x > fieldWH - SourceDiameter? fieldWH - SourceDiameter: sourceP.x;
-        sourceP.y = sourceP.y < 0 ? 0 : sourceP.y > fieldWH - SourceDiameter? fieldWH - SourceDiameter: sourceP.y;
+        sourceP.x = sourceP.x < 0 ? 0 : sourceP.x > fieldWH - SourceDiameter ? fieldWH - SourceDiameter : sourceP.x;
+        sourceP.y = sourceP.y < 0 ? 0 : sourceP.y > fieldWH - SourceDiameter ? fieldWH - SourceDiameter : sourceP.y;
 
         g.setColour(colorS.withAlpha(it->getAlpha() * 0.6f));
         g.drawEllipse(sourceP.x - halfAzimuthSpan, sourceP.y - halfAzimuthSpan, azimuthSpan, azimuthSpan, 1.5f);
         g.setColour(colorS.withAlpha(it->getAlpha() * 0.2f));
         g.fillEllipse(sourceP.x - halfAzimuthSpan, sourceP.y - halfAzimuthSpan, azimuthSpan, azimuthSpan);
     } else {
-        float HRAzimSpan = 180.0f * (it->getAziMuthSpan());  // In zirkosc, this is [0,360]
+        float HRAzimSpan = 180.0f * (it->getAziMuthSpan()); // In zirkosc, this is [0,360]
         float HRElevSpan = 180.0f * (it->getZenithSpan());  // In zirkosc, this is [0,90]
 
-        if ((HRAzimSpan < 0.002f && HRElevSpan < 0.002f) || !this->mainParent->isSpanShown) {
+        if ((HRAzimSpan < 0.002f && HRElevSpan < 0.002f) || !this->mainParent.isSpanShown) {
             return;
         }
 
         FPoint azimElev = GetSourceAzimElev(sourceP, true);
 
-        float HRAzim = azimElev.x * 180.0f;    // In zirkosc [-180,180]
-        float HRElev = azimElev.y * 180.0f;    // In zirkosc [0,89.9999]
+        float HRAzim = azimElev.x * 180.0f; // In zirkosc [-180,180]
+        float HRElev = azimElev.y * 180.0f; // In zirkosc [0,89.9999]
 
         // Calculate max and min elevation in degrees.
-        FPoint maxElev = {HRAzim, HRElev + HRElevSpan / 2.0f};
-        FPoint minElev = {HRAzim, HRElev - HRElevSpan / 2.0f};
-        
+        FPoint maxElev = { HRAzim, HRElev + HRElevSpan / 2.0f };
+        FPoint minElev = { HRAzim, HRElev - HRElevSpan / 2.0f };
+
         if (minElev.y < 0) {
             maxElev.y = (maxElev.y - minElev.y);
             minElev.y = 0.0f;
@@ -253,9 +273,10 @@ void WinControl::drawSourceSpan(Graphics &g, Input *it, const int fieldWH, const
 
         // Drawing the path for spanning.
         Path myPath;
-        myPath.startNewSubPath(fieldCenter+screenMaxElev.x, fieldCenter+screenMaxElev.y);
+        myPath.startNewSubPath(fieldCenter + screenMaxElev.x, fieldCenter + screenMaxElev.y);
         // Half first arc center.
-        myPath.addCentredArc(fieldCenter, fieldCenter, minRadius, minRadius, 0.0, DegreeToRadian(-HRAzim), DegreeToRadian(-HRAzim + HRAzimSpan / 2));
+        myPath.addCentredArc(fieldCenter, fieldCenter, minRadius, minRadius, 0.0, DegreeToRadian(-HRAzim),
+                             DegreeToRadian(-HRAzim + HRAzimSpan / 2));
 
         // If we are over the top of the dome we draw the adjacent angle.
         if (maxElev.getY() > 90.f) {
@@ -264,10 +285,9 @@ void WinControl::drawSourceSpan(Graphics &g, Input *it, const int fieldWH, const
                                  M_PI + DegreeToRadian(-HRAzim - HRAzimSpan / 2));
         } else {
             myPath.addCentredArc(fieldCenter, fieldCenter, maxRadius, maxRadius, 0.0,
-                                 DegreeToRadian(-HRAzim + HRAzimSpan / 2),
-                                 DegreeToRadian(-HRAzim - HRAzimSpan / 2));
+                                 DegreeToRadian(-HRAzim + HRAzimSpan / 2), DegreeToRadian(-HRAzim - HRAzimSpan / 2));
         }
-        myPath.addCentredArc(fieldCenter, fieldCenter, minRadius, minRadius, 0.0, 
+        myPath.addCentredArc(fieldCenter, fieldCenter, minRadius, minRadius, 0.0,
                              DegreeToRadian(-HRAzim - HRAzimSpan / 2), DegreeToRadian(-HRAzim));
 
         myPath.closeSubPath();
@@ -280,12 +300,15 @@ void WinControl::drawSourceSpan(Graphics &g, Input *it, const int fieldWH, const
     }
 }
 
-void WinControl::resized() {
-    const int fieldWH = min(getWidth(), getHeight());
+//==============================================================================
+void FlatViewWindow::resized()
+{
+    const int fieldWH = std::min(getWidth(), getHeight());
     this->setSize(fieldWH, fieldWH);
 }
 
-void WinControl::closeButtonPressed() {
-    this->mainParent->winControlRect.setBounds(getScreenX(), getScreenY(), getWidth(), getHeight());
-    delete this;
+//==============================================================================
+void FlatViewWindow::closeButtonPressed()
+{
+    this->mainParent.closeFlatViewWindow();
 }

@@ -17,37 +17,46 @@
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef OSCINPUT_H
-#define OSCINPUT_H
+#ifndef UICOMPONENT_H
+#define UICOMPONENT_H
+
+#include <iostream>
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
+#include "GrisLookAndFeel.h"
+#include "JackClientGRIS.h"
+
+class LevelComponent;
 class MainContentComponent;
 
-static const std::string OscPanAZ = "/pan/az";
-static const std::string OscSpatServ = "/spat/serv";
-
 //==============================================================================
-class OscInput final
-    : private juce::OSCReceiver
-    , private juce::OSCReceiver::Listener<juce::OSCReceiver::RealtimeCallback>
-
+class Box final : public Component
 {
 public:
-    OscInput(MainContentComponent & parent) : mainContentComponent(parent) {}
-    ~OscInput() final;
+    Box(GrisLookAndFeel &    feel,
+        juce::String const & title = "",
+        bool                 verticalScrollbar = false,
+        bool                 horizontalScrollbar = true);
+    ~Box() final { this->content.deleteAllChildren(); }
     //==============================================================================
-    bool startConnection(int port);
-    bool closeConnection() { return this->disconnect(); }
+    Component *       getContent() { return &this->content; }
+    Component const * getContent() const { return &this->content; }
+
+    void resized() final { this->viewport.setSize(this->getWidth(), this->getHeight()); }
+    void correctSize(unsigned int width, unsigned int height);
+    void paint(Graphics & g) final;
 
 private:
     //==============================================================================
-    void oscMessageReceived(juce::OSCMessage const & message) final;
-    void oscBundleReceived(juce::OSCBundle const & bundle) final;
+    GrisLookAndFeel & grisFeel;
+
+    juce::Component content;
+    juce::Viewport  viewport;
+    // juce::Colour      bgColour;
+    juce::String title;
     //==============================================================================
-    MainContentComponent & mainContentComponent;
-    //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OscInput);
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Box)
 };
 
-#endif /* OSCINPUT_H */
+#endif /* UICOMPONENT_H */

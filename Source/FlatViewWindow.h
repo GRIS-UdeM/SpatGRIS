@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS2.
 
- Developers: Olivier Belanger, Nicolas Masson
+ Developers: Nicolas Masson
 
  SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -17,37 +17,39 @@
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef OSCINPUT_H
-#define OSCINPUT_H
+#ifndef FLATVIEWWINDOW_H
+#define FLATVIEWWINDOW_H
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
 class MainContentComponent;
-
-static const std::string OscPanAZ = "/pan/az";
-static const std::string OscSpatServ = "/spat/serv";
+class GrisLookAndFeel;
+class Input;
 
 //==============================================================================
-class OscInput final
-    : private juce::OSCReceiver
-    , private juce::OSCReceiver::Listener<juce::OSCReceiver::RealtimeCallback>
-
+class FlatViewWindow final
+    : public DocumentWindow
+    , private Timer
 {
 public:
-    OscInput(MainContentComponent & parent) : mainContentComponent(parent) {}
-    ~OscInput() final;
+    FlatViewWindow(MainContentComponent & parent, GrisLookAndFeel & feel);
+    ~FlatViewWindow() final;
     //==============================================================================
-    bool startConnection(int port);
-    bool closeConnection() { return this->disconnect(); }
+    void timerCallback() final { this->repaint(); }
+    void paint(Graphics & g) final;
+    void resized() final;
+    void closeButtonPressed() final;
 
 private:
     //==============================================================================
-    void oscMessageReceived(juce::OSCMessage const & message) final;
-    void oscBundleReceived(juce::OSCBundle const & bundle) final;
+    void drawFieldBackground(Graphics & g, const int fieldWH) const;
+    void drawSource(Graphics & g, Input * it, const int fieldWH) const;
+    void drawSourceSpan(Graphics & g, Input * it, const int fieldWH, const int fieldCenter) const;
     //==============================================================================
-    MainContentComponent & mainContentComponent;
+    MainContentComponent & mainParent;
+    GrisLookAndFeel &      grisFeel;
     //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OscInput);
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FlatViewWindow);
 };
 
-#endif /* OSCINPUT_H */
+#endif /* FLATVIEWWINDOW_H */

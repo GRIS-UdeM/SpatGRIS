@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS2.
 
- Developers: Olivier Belanger, Nicolas Masson
+ Developers: Samuel Béland, Nicolas Masson
 
  SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -17,37 +17,38 @@
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef OSCINPUT_H
-#define OSCINPUT_H
+#ifndef EDITABLETEXTCUSTOMCOMPONENT_H
+#define EDITABLETEXTCUSTOMCOMPONENT_H
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
-class MainContentComponent;
-
-static const std::string OscPanAZ = "/pan/az";
-static const std::string OscSpatServ = "/spat/serv";
+class EditSpeakersWindow;
 
 //==============================================================================
-class OscInput final
-    : private juce::OSCReceiver
-    , private juce::OSCReceiver::Listener<juce::OSCReceiver::RealtimeCallback>
-
+class EditableTextCustomComponent final : public juce::Label
 {
 public:
-    OscInput(MainContentComponent & parent) : mainContentComponent(parent) {}
-    ~OscInput() final;
     //==============================================================================
-    bool startConnection(int port);
-    bool closeConnection() { return this->disconnect(); }
+    // DEFAULTS
+    EditableTextCustomComponent(EditSpeakersWindow & editSpeakersWindow);
+    ~EditableTextCustomComponent() final = default;
+    //==============================================================================
+    void setRowAndColumn(const int newRow, const int newColumn);
+    //==============================================================================
+    // VIRTUALS
+    void mouseDown(const juce::MouseEvent & event) final;
+    void mouseDrag(const juce::MouseEvent & event) final;
+    void textWasEdited() final;
 
 private:
     //==============================================================================
-    void oscMessageReceived(juce::OSCMessage const & message) final;
-    void oscBundleReceived(juce::OSCBundle const & bundle) final;
+    EditSpeakersWindow & owner;
+
+    int row;
+    int columnId;
+    int lastOffset;
     //==============================================================================
-    MainContentComponent & mainContentComponent;
-    //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OscInput);
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EditableTextCustomComponent);
 };
 
-#endif /* OSCINPUT_H */
+#endif // EDITABLETEXTCUSTOMCOMPONENT_H

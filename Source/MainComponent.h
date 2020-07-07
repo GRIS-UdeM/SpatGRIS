@@ -1,18 +1,18 @@
 /*
  This file is part of SpatGRIS2.
- 
+
  Developers: Olivier Belanger, Nicolas Masson
- 
+
  SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
- 
+
  SpatGRIS2 is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
- 
+
  You should have received a copy of the GNU General Public License
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -22,59 +22,63 @@
 
 // Macros
 #ifndef M_PI
-#define M_PI    (3.14159265358979323846264338327950288)
+#define M_PI (3.14159265358979323846264338327950288)
 #endif
 
 #ifndef M2_PI
-#define M2_PI   (6.28318530717958647692528676655900577)
+#define M2_PI (6.28318530717958647692528676655900577)
 #endif
 
 #ifndef M_PI2
-#define M_PI2   (1.57079632679489661923132169163975143)
+#define M_PI2 (1.57079632679489661923132169163975143)
 #endif
 
 #ifndef M_PI4
-#define M_PI4   (0.785398163397448309615660845819875720)
+#define M_PI4 (0.785398163397448309615660845819875720)
 #endif
 
 #define STRING2(x) #x
 #define STRING(x) STRING2(x)
 
-//============================
+//==============================================================================
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
-#include "GrisLookAndFeel.h"
+#include "AboutWindow.h"
+#include "Box.h"
+#include "EditSpeakersWindow.h"
+#include "FlatViewWindow.h"
+#include "Input.h"
+#include "JackClientGRIS.h"
+#include "JackClientListComponent.h"
+#include "JackServerGRIS.h"
+#include "OscInput.h"
+#include "OscLogWindow.h"
+#include "PropertiesWindow.h"
 #include "ServerGrisConstants.h"
-#include "jackClientGRIS.h"
-#include "jackServerGRIS.h"
 #include "Speaker.h"
 #include "SpeakerViewComponent.h"
-#include "UiComponent.h"
-#include "LevelComponent.h"
-#include "OscInput.h"
-#include "Input.h"
-#include "WinControl.h"
-#include "MainWindow.h"
 
-using namespace std;
+class MainWindow;
 
+//==============================================================================
 // This component lives inside our window, and this is where you should put all your controls and content.
-class MainContentComponent : public Component,
-                             public MenuBarModel,
-                             public ApplicationCommandTarget,
-                             public Button::Listener,
-                             public TextEditor::Listener,
-                             public Slider::Listener,
-                             public ComboBox::Listener,
-                             private Timer
+class MainContentComponent final
+    : public juce::Component
+    , public juce::MenuBarModel
+    , public juce::ApplicationCommandTarget
+    , public juce::Button::Listener
+    , public juce::TextEditor::Listener
+    , public juce::Slider::Listener
+    , public juce::ComboBox::Listener
+    , private juce::Timer
 {
 public:
-    MainContentComponent(DocumentWindow *parent);
-    ~MainContentComponent();
-
+    MainContentComponent(MainWindow & parent);
+    ~MainContentComponent() final;
+    //==============================================================================
     // Exit application.
-    bool isPresetModified();
+    bool isPresetModified() const;
     bool exitApp();
 
     // Menubar handlers.
@@ -95,7 +99,7 @@ public:
     void setShowSpeakers(bool state);
     void handleShowTriplets();
     void setShowTriplets(bool state);
-    bool validateShowTriplets();
+    bool validateShowTriplets() const;
     void handleShowSourceLevel();
     void handleShowSpeakerLevel();
     void handleShowSphere();
@@ -105,47 +109,60 @@ public:
     void handleInputColours();
 
     // Menubar methods.
-    StringArray getMenuBarNames() override {
-        const char* const names[] = { "File", "View", "Help", nullptr };
-        return StringArray (names);
-    }
-    PopupMenu getMenuForIndex (int menuIndex, const String& /*menuName*/) override;
-    void menuItemSelected (int menuItemID, int /*topLevelMenuIndex*/) override;
+    juce::StringArray getMenuBarNames() final;
+    juce::PopupMenu   getMenuForIndex(int menuIndex, const String & /*menuName*/) final;
+
+    void menuItemSelected(int menuItemID, int /*topLevelMenuIndex*/) final;
 
     // Speakers.
-    vector<Speaker *> getListSpeaker() { return this->listSpeaker; }
-    mutex* getLockSpeakers() { return this->lockSpeakers; }
-    Speaker * getSpeakerFromOutputPatch(int out);
+    juce::OwnedArray<Speaker> &       getListSpeaker() { return this->listSpeaker; }
+    juce::OwnedArray<Speaker> const & getListSpeaker() const { return this->listSpeaker; }
+
+    std::mutex & getLockSpeakers() { return this->lockSpeakers; }
+
+    Speaker *       getSpeakerFromOutputPatch(int out);
+    Speaker const * getSpeakerFromOutputPatch(int out) const;
+
     void addSpeaker(int sortColumnId = 1, bool isSortedForwards = true);
     void insertSpeaker(int position, int sortColumnId, bool isSortedForwards);
     void removeSpeaker(int idSpeaker);
     void setDirectOut(int id, int chn);
-    void reorderSpeakers(vector<int> newOrder);
+    void reorderSpeakers(std::vector<int> const & newOrder);
     void resetSpeakerIds();
-    int getMaxSpeakerId();
-    int getMaxSpeakerOutputPatch();
+    int  getMaxSpeakerId() const;
+    int  getMaxSpeakerOutputPatch() const;
 
     // Sources.
-    vector<Input *> getListSourceInput() { return this->listSourceInput; }
-    mutex* getLockInputs() { return this->lockInputs; }
-    void updateInputJack(int inInput, Input &inp);
-    bool isRadiusNormalized();
+    juce::OwnedArray<Input> &       getListSourceInput() { return this->listSourceInput; }
+    juce::OwnedArray<Input> const & getListSourceInput() const { return this->listSourceInput; }
+
+    std::mutex & getLockInputs() { return this->lockInputs; }
+
+    void updateInputJack(int inInput, Input & inp);
+    bool isRadiusNormalized() const;
 
     // Jack clients.
-    jackClientGris * getJackClient() { return this->jackClient; }
-    mutex* getLockClients() { return &this->jackClient->lockListClient; }
-    vector<Client> *getListClientjack() { return &this->jackClient->listClient; }
-    void connectionClientJack(String nameCli, bool conn = true);
+    JackClientGris *       getJackClient() { return this->jackClient.get(); }
+    JackClientGris const * getJackClient() const { return this->jackClient.get(); }
+
+    std::mutex & getLockClients() { return this->jackClient->lockListClient; }
+
+    std::vector<Client> &       getListClientjack() { return this->jackClient->listClient; }
+    std::vector<Client> const & getListClientjack() const { return this->jackClient->listClient; }
+
+    void connectionClientJack(juce::String nameCli, bool conn = true);
 
     // VBAP triplets.
     void setListTripletFromVbap();
-    vector<Triplet> getListTriplet() { return this->listTriplet; }
     void clearListTriplet() { this->listTriplet.clear(); }
+
+    std::vector<Triplet> &       getListTriplet() { return this->listTriplet; }
+    std::vector<Triplet> const & getListTriplet() const { return this->listTriplet; }
 
     // Speaker selections.
     void selectSpeaker(unsigned int idS);
     void selectTripletSpeaker(int idS);
-    bool tripletExist(Triplet tri, int &pos);
+    bool tripletExist(Triplet tri, int & pos) const;
 
     // Mute - solo.
     void muteInput(int id, bool mute);
@@ -154,9 +171,10 @@ public:
     void soloOutput(int id, bool solo);
 
     // Input - output amplitude levels.
-    float getLevelsOut(int indexLevel) { return (20.0f * log10f(this->jackClient->getLevelsOut(indexLevel))); }
-    float getLevelsIn(int indexLevel) { return (20.0f * log10f(this->jackClient->getLevelsIn(indexLevel))); }
-    float getLevelsAlpha(int indexLevel) {
+    float getLevelsOut(int indexLevel) const { return (20.0f * log10f(this->jackClient->getLevelsOut(indexLevel))); }
+    float getLevelsIn(int indexLevel) const { return (20.0f * log10f(this->jackClient->getLevelsIn(indexLevel))); }
+    float getLevelsAlpha(int indexLevel) const
+    {
         float level = this->jackClient->getLevelsIn(indexLevel);
         if (level > 0.0001) { // -80 dB
             return 1.0;
@@ -164,7 +182,8 @@ public:
             return sqrtf(level * 10000.0f);
         }
     }
-    float getSpeakerLevelsAlpha(int indexLevel) {
+    float getSpeakerLevelsAlpha(int indexLevel) const
+    {
         float level = this->jackClient->getLevelsOut(indexLevel);
         float alpha = 1.0;
         if (level > 0.001) { // -60 dB
@@ -182,19 +201,27 @@ public:
     bool updateLevelComp();
 
     // Open - save.
-    void openXmlFileSpeaker(String path);
+    void openXmlFileSpeaker(juce::String path);
     void reloadXmlFileSpeaker();
     void openPreset(String path);
-    void getPresetData(XmlElement *xml);
-    void savePreset(String path);
-    void saveSpeakerSetup(String path);
-    void saveProperties(String device, int rate, int buff, int fileformat, int fileconfig, int attenuationDB, int attenuationHz, int oscPort);
+    void getPresetData(XmlElement * xml) const;
+    void savePreset(juce::String path);
+    void saveSpeakerSetup(juce::String path);
+    void saveProperties(String device,
+                        int    rate,
+                        int    buff,
+                        int    fileformat,
+                        int    fileconfig,
+                        int    attenuationDB,
+                        int    attenuationHz,
+                        int    oscPort);
     void chooseRecordingPath();
     void setNameConfig();
     void setTitle();
 
     // Screen refresh timer.
-    void handleTimer(bool state) {
+    void handleTimer(bool state)
+    {
         if (state) {
             startTimerHz(24);
         } else {
@@ -203,31 +230,36 @@ public:
     }
 
     // Close windows other than the main one.
-    void destroyWinSpeakConf() { this->winSpeakConfig = nullptr; this->jackClient->processBlockOn = true; }
-    void destroyWindowProperties() { this->windowProperties = nullptr; }
-    void destroyWinControl() { this->winControlSource = nullptr; }
-    void destroyAboutWindow() { this->aboutWindow = nullptr; }
-    void destroyOscLogWindow() { this->oscLogWindow = nullptr; }
+    void closeSpeakersConfigurationWindow()
+    {
+        this->winSpeakConfig.reset();
+        this->jackClient->processBlockOn = true;
+    }
+    void closePropertiesWindow() { this->windowProperties.reset(); }
+    void closeFlatViewWindow() { this->flatViewWindowSource = nullptr; }
+    void closeAboutWindow() { this->aboutWindow = nullptr; }
+    void closeOscLogWindow() { this->oscLogWindow = nullptr; }
 
     // Widget listener handlers.
-    void timerCallback() override;
-    void paint(Graphics& g) override;
-    void resized() override;
-    void buttonClicked(Button *button) override;
-    void sliderValueChanged(Slider *slider) override;
-    void textEditorFocusLost(TextEditor &textEditor) override;
-    void textEditorReturnKeyPressed(TextEditor &textEditor) override;
-    void comboBoxChanged(ComboBox *comboBox) override;
+    void timerCallback() final;
+    void paint(Graphics & g) final;
+    void resized() final;
+    void buttonClicked(Button * button) final;
+    void sliderValueChanged(Slider * slider) final;
+    void textEditorFocusLost(TextEditor & textEditor) final;
+    void textEditorReturnKeyPressed(TextEditor & textEditor) final;
+    void comboBoxChanged(ComboBox * comboBox) final;
 
-    int getModeSelected();
+    int getModeSelected() const { return this->comBoxModeSpat->getSelectedId() - 1; }
 
-    void setOscLogging(const OSCMessage& message);
-
+    void setOscLogging(const OSCMessage & message);
+    //==============================================================================
     // App user settings.
-    ApplicationProperties applicationProperties;
-    int oscInputPort = 18032;
+    int          oscInputPort = 18032;
     unsigned int samplingRate = 48000;
-    juce::Rectangle<int> winControlRect;
+
+    ApplicationProperties applicationProperties;
+    juce::Rectangle<int>  flatViewWindowRect;
 
     // Visual flags.
     bool isSourceLevelShown;
@@ -239,96 +271,112 @@ public:
     bool needToSavePreset = false;
     bool needToSaveSpeakerSetup = false;
     bool needToComputeVbap = true;
-
+    //==============================================================================
     // Widget creation helper.
-    TextEditor* addTextEditor(const String &s, const String &emptyS, const String &stooltip,
-                              int x, int y, int w, int h, Component *into, int wLab = 80);
+    juce::TextEditor * addTextEditor(String const &       s,
+                                     juce::String const & emptyS,
+                                     juce::String const & stooltip,
+                                     int                  x,
+                                     int                  y,
+                                     int                  w,
+                                     int                  h,
+                                     juce::Component *    into,
+                                     int                  wLab = 80);
 
 private:
-
+    //==============================================================================
     // Look-and-feel.
-    GrisLookAndFeel mGrisFeel;
+    GrisLookAndFeel      mGrisFeel;
     SmallGrisLookAndFeel mSmallTextGrisFeel;
 
-    DocumentWindow *parent;
+    MainWindow & parent;
 
     std::unique_ptr<MenuBarComponent> menuBar;
 
     // Widget creation helpers.
-    Label *        addLabel(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into);
-    TextButton *   addButton(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into);
-    ToggleButton * addToggleButton(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into, bool toggle = false);
-    Slider *       addSlider(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into);
-    ComboBox *     addComboBox(const String &s, const String &stooltip, int x, int y, int w, int h, Component *into);
+    Label *        addLabel(const String & s, const String & stooltip, int x, int y, int w, int h, Component * into);
+    TextButton *   addButton(const String & s, const String & stooltip, int x, int y, int w, int h, Component * into);
+    ToggleButton * addToggleButton(const String & s,
+                                   const String & stooltip,
+                                   int            x,
+                                   int            y,
+                                   int            w,
+                                   int            h,
+                                   Component *    into,
+                                   bool           toggle = false);
+    Slider *       addSlider(const String & s, const String & stooltip, int x, int y, int w, int h, Component * into);
+    ComboBox *     addComboBox(const String & s, const String & stooltip, int x, int y, int w, int h, Component * into);
 
     // Jack server - client.
-    jackServerGRIS *jackServer;
-    jackClientGris *jackClient;
+    std::unique_ptr<JackServerGris> jackServer;
+    std::unique_ptr<JackClientGris> jackClient;
 
     // Speakers.
-    vector<Triplet>   listTriplet;
-    vector<Speaker *> listSpeaker;
-    mutex             *lockSpeakers;
+    std::vector<Triplet>      listTriplet{};
+    juce::OwnedArray<Speaker> listSpeaker{};
+
+    std::mutex lockSpeakers{};
 
     // Sources.
-    vector<Input *> listSourceInput;
-    mutex           *lockInputs;
+    juce::OwnedArray<Input> listSourceInput{};
+
+    std::mutex lockInputs{};
 
     // Open Sound Control.
-    OscInput *oscReceiver;
+    std::unique_ptr<OscInput> oscReceiver{};
 
     // Paths.
-    String nameConfig;
-    String pathLastVbapSpeakerSetup;
-    String pathCurrentFileSpeaker;
-    String pathCurrentPreset;
+    juce::String nameConfig;
+    juce::String pathLastVbapSpeakerSetup;
+    juce::String pathCurrentFileSpeaker;
+    juce::String pathCurrentPreset;
 
     // Alsa output device
-    String alsaOutputDevice;
-    Array<String> alsaAvailableOutputDevices;
-
-    // UI Components.
-    SpeakerViewComponent *speakerView;
-    StretchableLayoutManager verticalLayout;
-    std::unique_ptr<StretchableLayoutResizerBar> verticalDividerBar;
+    juce::String              alsaOutputDevice;
+    juce::Array<juce::String> alsaAvailableOutputDevices;
 
     // Windows.
-    WindowEditSpeaker *winSpeakConfig;
-    WindowProperties *windowProperties;
-    WinControl *winControlSource;
-    AboutWindow *aboutWindow;
-    OscLogWindow *oscLogWindow;
+    std::unique_ptr<EditSpeakersWindow> winSpeakConfig;
+    std::unique_ptr<PropertiesWindow>   windowProperties;
+    std::unique_ptr<FlatViewWindow>     flatViewWindowSource;
+    std::unique_ptr<AboutWindow>        aboutWindow;
+    std::unique_ptr<OscLogWindow>       oscLogWindow;
 
     // 3 Main Boxes.
-    Box *boxMainUI;
-    Box *boxInputsUI;
-    Box *boxOutputsUI;
-    Box *boxControlUI;
-    
+    std::unique_ptr<Box> boxMainUI;
+    std::unique_ptr<Box> boxInputsUI;
+    std::unique_ptr<Box> boxOutputsUI;
+    std::unique_ptr<Box> boxControlUI;
+
     // Component in Box 3.
-    Label *labelJackStatus;
-    Label *labelJackLoad;
-    Label *labelJackRate;
-    Label *labelJackBuffer;
-    Label *labelJackInfo;
+    std::unique_ptr<juce::Label> labelJackStatus;
+    std::unique_ptr<juce::Label> labelJackLoad;
+    std::unique_ptr<juce::Label> labelJackRate;
+    std::unique_ptr<juce::Label> labelJackBuffer;
+    std::unique_ptr<juce::Label> labelJackInfo;
 
-    ComboBox *comBoxModeSpat;
+    std::unique_ptr<juce::ComboBox> comBoxModeSpat;
 
-    Slider *sliderMasterGainOut;
-    Slider *sliderInterpolation;
-    
-    TextEditor *tedAddInputs;
-        
-    Label *labelAllClients;
-    BoxClient *boxClientJack;
-    
-    TextButton *butStartRecord;
-    TextEditor *tedMinRecord;
-    Label *labelTimeRecorded;
-    TextButton *butInitRecord;
+    std::unique_ptr<juce::Slider> sliderMasterGainOut;
+    std::unique_ptr<juce::Slider> sliderInterpolation;
+
+    std::unique_ptr<juce::TextEditor> tedAddInputs;
+
+    std::unique_ptr<juce::Label>             labelAllClients;
+    std::unique_ptr<JackClientListComponent> jackClientListComponentJack;
+
+    std::unique_ptr<juce::TextButton> butStartRecord;
+    std::unique_ptr<juce::TextEditor> tedMinRecord;
+    std::unique_ptr<juce::Label>      labelTimeRecorded;
+    std::unique_ptr<juce::TextButton> butInitRecord;
+
+    // UI Components.
+    std::unique_ptr<SpeakerViewComponent>              speakerView;
+    juce::StretchableLayoutManager                     verticalLayout;
+    std::unique_ptr<juce::StretchableLayoutResizerBar> verticalDividerBar;
 
     // App splash screen.
-    SplashScreen *splash;
+    std::unique_ptr<juce::SplashScreen> splash;
 
     // Flags.
     bool isProcessForeground;
@@ -337,15 +385,17 @@ private:
     bool isSphereShown;
     bool isRecording;
 
+    //==============================================================================
     // The following methods implement the ApplicationCommandTarget interface, allowing
     // this window to publish a set of actions it can perform, and which can be mapped
     // onto menus, keypresses, etc.
-    ApplicationCommandTarget* getNextCommandTarget() override { return findFirstTargetParentComponent(); }
-    void getAllCommands(Array<CommandID>& commands) override;
-    void getCommandInfo(CommandID commandID, ApplicationCommandInfo& result) override;
-    bool perform(const InvocationInfo& info) override;
+    juce::ApplicationCommandTarget * getNextCommandTarget() final { return findFirstTargetParentComponent(); }
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
+    void getAllCommands(juce::Array<juce::CommandID> & commands) final;
+    void getCommandInfo(juce::CommandID commandID, juce::ApplicationCommandInfo & result) final;
+    bool perform(juce::ApplicationCommandTarget::InvocationInfo const & info) final;
+    //==============================================================================
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainContentComponent)
 };
 
-#endif  // MAINCOMPONENT_H_INCLUDED
+#endif // MAINCOMPONENT_H_INCLUDED
