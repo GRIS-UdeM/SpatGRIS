@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <JUCERPROJECT id="MXmiSb" name="SpatGRIS" projectType="guiapp" version="2.1.2"
-              bundleIdentifier="com.UdeM.GRIS.SpatGRIS2" includeBinaryInAppConfig="1"
+              bundleIdentifier="com.UdeM.GRIS.SpatGRIS2" includeBinaryInAppConfig="0"
               companyName="GRIS - UdeM" projectLineFeed="&#10;" cppLanguageStandard="17"
-              jucerFormatVersion="1" displaySplashScreen="1" defines="USE_JACK=0">
+              jucerFormatVersion="1" displaySplashScreen="1" defines="USE_JACK=0"
+              maxBinaryFileSize="1048576">
   <MAINGROUP id="lsxaKA" name="SpatGRIS">
     <GROUP id="{6EAF4FF6-A4F0-94E9-AA8A-98D9BF95CA11}" name="Resources">
       <FILE id="HYWx0V" name="JAS.jpil" compile="0" resource="1" file="Resources/JAS.jpil"
@@ -12,7 +13,7 @@
             file="Resources/ServerGRIS_icon_doc.png" xcodeResource="1"/>
       <FILE id="bC6POS" name="ServerGRIS_icon_small.png" compile="0" resource="1"
             file="Resources/ServerGRIS_icon_small.png" xcodeResource="1"/>
-      <FILE id="skBwoU" name="SpatGRIS2_2.0_Manual.pdf" compile="0" resource="1"
+      <FILE id="skBwoU" name="SpatGRIS2_2.0_Manual.pdf" compile="0" resource="0"
             file="Resources/SpatGRIS2_2.0_Manual.pdf" xcodeResource="1"/>
       <FILE id="VMUncp" name="splash_screen.png" compile="0" resource="1"
             file="Resources/splash_screen.png" xcodeResource="1"/>

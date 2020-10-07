@@ -917,11 +917,11 @@ JackClientGris::JackClientGris()
     jack_client_log("\nStart Jack Client\n");
     jack_client_log("=================\n");
 
-    this->client = jack_client_open(ClientName, options, &status, DriverNameSys);
+    this->client = jackClientOpen(ClientName, options, &status, DriverNameSys);
     if (this->client == NULL) {
         jack_client_log("\nTry again...\n");
         options = JackServerName;
-        this->client = jack_client_open(ClientName, options, &status, DriverNameSys);
+        this->client = jackClientOpen(ClientName, options, &status, DriverNameSys);
         if (this->client == NULL) {
             jack_client_log("\n\n jack_client_open() failed, status = 0x%2.0x\n", status);
             if (status & JackServerFailed) {

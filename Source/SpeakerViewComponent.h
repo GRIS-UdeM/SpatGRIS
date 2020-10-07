@@ -17,20 +17,18 @@
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef SPEAKERVIEWCOMPONENT_H_INCLUDED
-#define SPEAKERVIEWCOMPONENT_H_INCLUDED
+#pragma once
 
 #include <cmath>
 
+#include "macros.h"
+
+DISABLE_WARNINGS
 #if defined(__linux__)
-//#include <GL/gl.h>
-//#include <GL/glu.h>
-//#include <GLES3/gl3.h>
-//#include <GL/glut.h>
+
 #elif defined(WIN32) || defined(_WIN64)
+    #include <GL/freeglut.h>
     #include <GL/gl.h>
-    #include <GL/glu.h>
-    #include <GL/glut.h>
     #include <windows.h>
 #else
     #include <GLUT/glut.h>
@@ -39,9 +37,10 @@
     #include <OpenGl/glu.h>
 #endif
 
-#include "../JuceLibraryCode/JuceHeader.h"
-
 #include "../glm/glm.hpp"
+
+#include <JuceHeader.h>
+ENABLE_WARNINGS
 
 #include "Ray.h"
 
@@ -135,5 +134,3 @@ private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SpeakerViewComponent)
 };
-
-#endif // SPEAKERVIEWCOMPONENT_H_INCLUDED

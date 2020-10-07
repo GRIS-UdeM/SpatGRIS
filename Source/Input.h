@@ -20,17 +20,17 @@
 #ifndef INPUT_H
 #define INPUT_H
 
-#include <cstdio>
 #include <iostream>
 
+#include "macros.h"
+
+DISABLE_WARNINGS
 #if defined(__linux__)
     #include <GL/gl.h>
     #include <GL/glu.h>
     #include <GL/glut.h>
 #elif defined(WIN32) || defined(_WIN64)
-    #include <GL/gl.h>
-    #include <GL/glu.h>
-    #include <GL/glut.h>
+    #include <GL/freeglut.h>
     #include <windows.h>
 #else
     #include <GLUT/glut.h>
@@ -40,7 +40,8 @@
 
 #include "../glm/glm.hpp"
 
-#include "../JuceLibraryCode/JuceHeader.h"
+#include <JuceHeader.h>
+ENABLE_WARNINGS
 
 #include "GrisLookAndFeel.h"
 #include "LevelComponent.h"

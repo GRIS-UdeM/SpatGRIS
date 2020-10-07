@@ -21,6 +21,7 @@
 #define GRISLOOKANDFEEL_H
 
 #include "../JuceLibraryCode/JuceHeader.h"
+#include "BinaryData.h"
 
 //==============================================================================
 /** Custom Look And Feel subclasss. */

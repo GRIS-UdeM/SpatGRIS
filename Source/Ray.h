@@ -23,15 +23,15 @@
 
 DISABLE_WARNINGS
 #if defined(__linux__)
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glut.h>
+    #include <GL/gl.h>
+    #include <GL/glu.h>
+    #include <GL/glut.h>
 #elif defined(WIN32) || defined(_WIN64)
 
 #else
-#include <GLUT/glut.h>
-#include <OpenGL/gl.h>
-#include <OpenGl/glu.h>
+    #include <GLUT/glut.h>
+    #include <OpenGL/gl.h>
+    #include <OpenGl/glu.h>
 #endif
 
 #include "../glm/glm.hpp"

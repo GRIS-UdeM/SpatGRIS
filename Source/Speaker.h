@@ -17,20 +17,17 @@
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef SPEAKER_H
-#define SPEAKER_H
+#pragma once
 
-#include <cstdio>
-#include <iostream>
+#include "macros.h"
 
+DISABLE_WARNINGS
 #if defined(__linux__)
     #include <GL/gl.h>
     #include <GL/glu.h>
     #include <GL/glut.h>
 #elif defined(WIN32) || defined(_WIN64)
-    #include <GL/gl.h>
-    #include <GL/glu.h>
-    #include <GL/glut.h>
+    #include <GL/freeglut.h>
     #include <windows.h>
 #else
     #include <GLUT/glut.h>
@@ -40,7 +37,8 @@
 
 #include "../glm/glm.hpp"
 
-#include "../JuceLibraryCode/JuceHeader.h"
+#include <JuceHeader.h>
+ENABLE_WARNINGS
 
 #include "GrisLookAndFeel.h"
 #include "ParentLevelComponent.h"
@@ -56,11 +54,11 @@ struct Triplet {
 };
 
 //==============================================================================
-constexpr glm::vec3 ColorSpeaker = glm::vec3(0.87, 0.87, 0.87);
-constexpr glm::vec3 ColorDirectOutSpeaker = glm::vec3(0.25, 0.25, 0.25);
-constexpr glm::vec3 ColorSpeakerSelect = glm::vec3(1.00, 0.64, 0.09);
-constexpr glm::vec3 SizeSpeaker = glm::vec3(0.5, 0.5, 0.5);
-constexpr glm::vec3 DefaultCenter = glm::vec3(0, 0, 0);
+glm::vec3 const ColorSpeaker = glm::vec3(0.87, 0.87, 0.87);
+glm::vec3 const ColorDirectOutSpeaker = glm::vec3(0.25, 0.25, 0.25);
+glm::vec3 const ColorSpeakerSelect = glm::vec3(1.00, 0.64, 0.09);
+glm::vec3 const SizeSpeaker = glm::vec3(0.5, 0.5, 0.5);
+glm::vec3 const DefaultCenter = glm::vec3(0, 0, 0);
 
 constexpr float Over = 0.02f;
 
@@ -164,5 +162,3 @@ private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Speaker);
 };
-
-#endif /* SPEAKER_H */
