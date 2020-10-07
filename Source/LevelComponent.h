@@ -29,7 +29,7 @@
 
 static const float MinLevelComp = -60.f;
 static const float MaxLevelComp = 0.f;
-static const int   WidthRect = 1;
+static const int WidthRect = 1;
 
 //==============================================================================
 //============================ LevelBox ================================
@@ -46,13 +46,13 @@ public:
 
 private:
     //==============================================================================
-    LevelComponent &       levelComponent;
+    LevelComponent & levelComponent;
     SmallGrisLookAndFeel & lookAndFeel;
 
     juce::ColourGradient colorGrad;
-    juce::Image          vumeterBit;
-    juce::Image          vumeterBackBit;
-    juce::Image          vumeterMutedBit;
+    juce::Image vumeterBit;
+    juce::Image vumeterBackBit;
+    juce::Image vumeterMutedBit;
 
     bool isClipping = false;
     //==============================================================================
@@ -69,7 +69,7 @@ class LevelComponent final
 public:
     LevelComponent(ParentLevelComponent & parentLevelComponent,
                    SmallGrisLookAndFeel & lookAndFeel,
-                   bool                   colorful = true);
+                   bool colorful = true);
     ~LevelComponent() final = default;
     //==============================================================================
     void setOutputLab(juce::String value) { this->idBut.setButtonText(value); }
@@ -79,15 +79,15 @@ public:
         this->repaint();
     }
     float getLevel() const { return level; }
-    void  update();
-    bool  isMuted() const { return this->muteToggleBut.getToggleState(); }
-    void  setSelected(bool value);
-    void  buttonClicked(Button * button) final;
-    void  mouseDown(const MouseEvent & e) final;
-    void  setBounds(const juce::Rectangle<int> & newBounds);
-    void  changeListenerCallback(ChangeBroadcaster * source) final;
-    void  updateDirectOutMenu(juce::OwnedArray<Speaker> const & spkList);
-    void  resetClipping() { this->levelBox.resetClipping(); }
+    void update();
+    bool isMuted() const { return this->muteToggleBut.getToggleState(); }
+    void setSelected(bool value);
+    void buttonClicked(Button * button) final;
+    void mouseDown(const MouseEvent & e) final;
+    void setBounds(const juce::Rectangle<int> & newBounds);
+    void changeListenerCallback(ChangeBroadcaster * source) final;
+    void updateDirectOutMenu(juce::OwnedArray<Speaker> const & spkList);
+    void resetClipping() { this->levelBox.resetClipping(); }
     //==============================================================================
     std::vector<int> directOutSpeakers;
     juce::TextButton directOut;
@@ -99,13 +99,13 @@ private:
 
     LevelBox levelBox;
 
-    juce::TextButton   idBut;
+    juce::TextButton idBut;
     juce::ToggleButton muteToggleBut;
     juce::ToggleButton soloToggleBut;
 
     float level = MinLevelComp;
-    int   lastMouseButton = 1; // 1 means left, 0 means right
-    bool  isColorful;
+    int lastMouseButton = 1; // 1 means left, 0 means right
+    bool isColorful;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LevelComponent)
 };

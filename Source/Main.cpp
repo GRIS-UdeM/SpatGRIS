@@ -30,7 +30,7 @@ public:
 
     const String getApplicationName() override { return ProjectInfo::projectName; }
     const String getApplicationVersion() override { return ProjectInfo::versionString; }
-    bool         moreThanOneInstanceAllowed() override { return true; }
+    bool moreThanOneInstanceAllowed() override { return true; }
 
     //==============================================================================
     void initialise(const String & commandLine) override
@@ -65,7 +65,7 @@ public:
 
 private:
     //==============================================================================
-    GrisLookAndFeel             mGrisFeel;
+    GrisLookAndFeel mGrisFeel;
     std::unique_ptr<MainWindow> mainWindow;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SpatGRIS2Application);

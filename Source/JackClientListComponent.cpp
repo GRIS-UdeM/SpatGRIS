@@ -25,7 +25,8 @@
 
 //==============================================================================
 JackClientListComponent::JackClientListComponent(MainContentComponent * parent, GrisLookAndFeel * feel)
-    : mainParent(parent), grisFeel(feel)
+    : mainParent(parent)
+    , grisFeel(feel)
 {
     tableListClient.setModel(this);
 
@@ -33,12 +34,12 @@ JackClientListComponent::JackClientListComponent(MainContentComponent * parent, 
     tableListClient.setColour(ListBox::backgroundColourId, this->grisFeel->getWinBackgroundColour());
     tableListClient.setOutlineThickness(1);
 
-    tableListClient.getHeader().addColumn("Client", ColumnIds::CLIENT_NAME, 120, 70, 120,
-                                          TableHeaderComponent::notSortable);
+    tableListClient.getHeader()
+        .addColumn("Client", ColumnIds::CLIENT_NAME, 120, 70, 120, TableHeaderComponent::notSortable);
     tableListClient.getHeader().addColumn("Start", ColumnIds::START, 60, 35, 70, TableHeaderComponent::notSortable);
     tableListClient.getHeader().addColumn("End", ColumnIds::END, 60, 35, 70, TableHeaderComponent::notSortable);
-    tableListClient.getHeader().addColumn("On/Off", ColumnIds::ON_OFF_TOGGLE, 62, 35, 70,
-                                          TableHeaderComponent::notSortable);
+    tableListClient.getHeader()
+        .addColumn("On/Off", ColumnIds::ON_OFF_TOGGLE, 62, 35, 70, TableHeaderComponent::notSortable);
 
     tableListClient.setMultipleSelectionEnabled(false);
 
@@ -53,7 +54,8 @@ void JackClientListComponent::buttonClicked(Button * button)
     this->mainParent->getLockClients().lock();
     bool connectedCli = !this->mainParent->getListClientjack().at(button->getName().getIntValue()).connected;
     this->mainParent->connectionClientJack(
-        this->mainParent->getListClientjack().at(button->getName().getIntValue()).name, connectedCli);
+        this->mainParent->getListClientjack().at(button->getName().getIntValue()).name,
+        connectedCli);
     updateContentCli();
     this->mainParent->getLockClients().unlock();
 }
@@ -122,7 +124,7 @@ String JackClientListComponent::getText(const int columnNumber, const int rowNum
 
 //==============================================================================
 void JackClientListComponent::paintRowBackground(Graphics & g,
-                                                 int        rowNumber,
+                                                 int rowNumber,
                                                  int /*width*/,
                                                  int /*height*/,
                                                  bool rowIsSelected)
@@ -136,10 +138,10 @@ void JackClientListComponent::paintRowBackground(Graphics & g,
 
 //==============================================================================
 void JackClientListComponent::paintCell(Graphics & g,
-                                        int const  rowNumber,
-                                        int const  columnId,
-                                        int const  width,
-                                        int const  height,
+                                        int const rowNumber,
+                                        int const columnId,
+                                        int const width,
+                                        int const height,
                                         bool const /*rowIsSelected*/)
 {
     if (this->mainParent->getLockClients().try_lock()) {

@@ -35,7 +35,7 @@ void SpeakerViewComponent::initialise()
     glLoadIdentity();
     gluLookAt(4, 6, 5, 0, 0, 0, 0, 1, 0);
 
-    int    argc = 1;
+    int argc = 1;
     char * argv[1] = { (char *)"Something" };
     glutInit(&argc, argv);
 }
@@ -101,7 +101,11 @@ void SpeakerViewComponent::render()
             if (this->showNumber && input->getGain() != -1.0) {
                 glm::vec3 posT = input->getCenter();
                 posT.y += SizeSpeaker.y + 0.4f;
-                this->drawText(std::to_string(input->getId()), posT, input->getNumberColor(), 0.003f, true,
+                this->drawText(std::to_string(input->getId()),
+                               posT,
+                               input->getNumberColor(),
+                               0.003f,
+                               true,
                                input->getAlpha());
             }
         }
@@ -115,8 +119,10 @@ void SpeakerViewComponent::render()
                 if (this->showNumber) {
                     glm::vec3 posT = this->mainParent->getListSpeaker()[i]->getCenter();
                     posT.y += SizeSpeaker.y + 0.4f;
-                    this->drawText(std::to_string(this->mainParent->getListSpeaker()[i]->getOutputPatch()), posT,
-                                   glm::vec3(0, 0, 0), 0.003f);
+                    this->drawText(std::to_string(this->mainParent->getListSpeaker()[i]->getOutputPatch()),
+                                   posT,
+                                   glm::vec3(0, 0, 0),
+                                   0.003f);
                 }
             }
         }
@@ -206,7 +212,7 @@ void SpeakerViewComponent::clickRay()
 {
     this->clickLeft = false;
     double matModelView[16], matProjection[16];
-    int    viewport[4];
+    int viewport[4];
 
     glGetDoublev(GL_MODELVIEW_MATRIX, matModelView);
     glGetDoublev(GL_PROJECTION_MATRIX, matProjection);
@@ -319,7 +325,7 @@ void SpeakerViewComponent::drawBackground() const
 //==============================================================================
 void SpeakerViewComponent::drawOriginGrid() const
 {
-    int    i;
+    int i;
     double angle;
 
     glLineWidth(1.5f);
@@ -433,11 +439,11 @@ void SpeakerViewComponent::drawOriginGrid() const
 
 //==============================================================================
 void SpeakerViewComponent::drawText(std::string val,
-                                    glm::vec3   position,
-                                    glm::vec3   color,
-                                    float       scale,
-                                    bool        camLock,
-                                    float       alpha) const
+                                    glm::vec3 position,
+                                    glm::vec3 color,
+                                    float scale,
+                                    bool camLock,
+                                    float alpha) const
 {
     glPushMatrix();
     glTranslatef(position.x, position.y, position.z);

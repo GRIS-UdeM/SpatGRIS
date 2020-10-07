@@ -22,10 +22,10 @@
 #include "MainComponent.h"
 
 //==============================================================================
-Label * PropertiesComponent::createPropLabel(juce::String const &       lab,
+Label * PropertiesComponent::createPropLabel(juce::String const & lab,
                                              Justification::Flags const just,
-                                             int const                  ypos,
-                                             int const                  width)
+                                             int const ypos,
+                                             int const width)
 {
     Label * label = new Label();
     label->setText(lab, NotificationType::dontSendNotification);
@@ -70,17 +70,18 @@ ComboBox *
 
 //==============================================================================
 PropertiesComponent::PropertiesComponent(MainContentComponent & parent,
-                                         GrisLookAndFeel &      lookAndFeel,
-                                         Array<String> const &  devices,
-                                         String const &         currentDevice,
-                                         int const              indR,
-                                         int const              indB,
-                                         int const              indFF,
-                                         int const              indFC,
-                                         int const              indAttDB,
-                                         int const              indAttHz,
-                                         int const              oscPort)
-    : mainContentComponent(parent), grisFeel(lookAndFeel)
+                                         GrisLookAndFeel & lookAndFeel,
+                                         Array<String> const & devices,
+                                         String const & currentDevice,
+                                         int const indR,
+                                         int const indB,
+                                         int const indFF,
+                                         int const indFC,
+                                         int const indAttDB,
+                                         int const indAttHz,
+                                         int const oscPort)
+    : mainContentComponent(parent)
+    , grisFeel(lookAndFeel)
 {
     int ypos = 20;
 
@@ -153,28 +154,31 @@ void PropertiesWindow::closeButtonPressed()
 void PropertiesComponent::buttonClicked(Button * button)
 {
     if (button == this->butValidSettings.get()) {
-        this->mainContentComponent.saveProperties(
-            this->cobDevice.get() != nullptr ? this->cobDevice->getText() : juce::String{},
-            this->cobRate->getText().getIntValue(), this->cobBuffer->getText().getIntValue(),
-            this->recordFormat->getSelectedItemIndex(), this->recordFileConfig->getSelectedItemIndex(),
-            this->cobDistanceDB->getSelectedItemIndex(), this->cobDistanceCutoff->getSelectedItemIndex(),
-            this->tedOSCInPort->getTextValue().toString().getIntValue());
+        this->mainContentComponent.saveProperties(this->cobDevice.get() != nullptr ? this->cobDevice->getText()
+                                                                                   : juce::String{},
+                                                  this->cobRate->getText().getIntValue(),
+                                                  this->cobBuffer->getText().getIntValue(),
+                                                  this->recordFormat->getSelectedItemIndex(),
+                                                  this->recordFileConfig->getSelectedItemIndex(),
+                                                  this->cobDistanceDB->getSelectedItemIndex(),
+                                                  this->cobDistanceCutoff->getSelectedItemIndex(),
+                                                  this->tedOSCInPort->getTextValue().toString().getIntValue());
         this->mainContentComponent.closePropertiesWindow();
     }
 }
 
 //==============================================================================
 PropertiesWindow::PropertiesWindow(MainContentComponent & parent,
-                                   GrisLookAndFeel &      lookAndFeel,
-                                   Array<String> const &  devices,
-                                   String const &         currentDevice,
-                                   int                    indR,
-                                   int                    indB,
-                                   int                    indFF,
-                                   int                    indFC,
-                                   int                    indAttDB,
-                                   int                    indAttHz,
-                                   int                    oscPort)
+                                   GrisLookAndFeel & lookAndFeel,
+                                   Array<String> const & devices,
+                                   String const & currentDevice,
+                                   int indR,
+                                   int indB,
+                                   int indFF,
+                                   int indFC,
+                                   int indAttDB,
+                                   int indAttHz,
+                                   int oscPort)
     : juce::DocumentWindow("Properties", lookAndFeel.getBackgroundColour(), DocumentWindow::allButtons)
     , mainContentComponent(parent)
     , propertiesComponent(parent,

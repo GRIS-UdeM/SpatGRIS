@@ -47,8 +47,10 @@ MainWindow::MainWindow(String name) : DocumentWindow(name, Colours::lightgrey, D
     if (props->containsKey("xPosition")) {
         bool fitInside = (props->getIntValue("xPosition") + props->getIntValue("winWidth")) <= totalScreen.getWidth();
         if (fitInside) {
-            this->setBounds(props->getIntValue("xPosition") - xOffset, props->getIntValue("yPosition") - yOffset,
-                            props->getIntValue("winWidth"), props->getIntValue("winHeight"));
+            this->setBounds(props->getIntValue("xPosition") - xOffset,
+                            props->getIntValue("yPosition") - yOffset,
+                            props->getIntValue("winWidth"),
+                            props->getIntValue("winHeight"));
         } else {
             centreWithSize(getWidth(), getHeight());
         }

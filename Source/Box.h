@@ -34,13 +34,13 @@ class MainContentComponent;
 class Box final : public Component
 {
 public:
-    Box(GrisLookAndFeel &    feel,
+    Box(GrisLookAndFeel & feel,
         juce::String const & title = "",
-        bool                 verticalScrollbar = false,
-        bool                 horizontalScrollbar = true);
+        bool verticalScrollbar = false,
+        bool horizontalScrollbar = true);
     ~Box() final { this->content.deleteAllChildren(); }
     //==============================================================================
-    Component *       getContent() { return &this->content; }
+    Component * getContent() { return &this->content; }
     Component const * getContent() const { return &this->content; }
 
     void resized() final { this->viewport.setSize(this->getWidth(), this->getHeight()); }
@@ -52,7 +52,7 @@ private:
     GrisLookAndFeel & grisFeel;
 
     juce::Component content;
-    juce::Viewport  viewport;
+    juce::Viewport viewport;
     // juce::Colour      bgColour;
     juce::String title;
     //==============================================================================

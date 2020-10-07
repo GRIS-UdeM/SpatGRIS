@@ -26,14 +26,14 @@ const char * ClientNameIgnor = "JAR::57";
 
 #ifdef __linux__
 const char * DriverNameSys = "alsa";
-const bool   UseOSNativeDialogBox = false;
+const bool UseOSNativeDialogBox = false;
 juce::String CURRENT_WORKING_DIR = juce::File::getCurrentWorkingDirectory().getFullPathName();
 juce::String RESOURCES_DIR = juce::String("/../../Resources/");
 #else
 const char * DriverNameSys = "coreaudio";
-const bool   UseOSNativeDialogBox = true;
-String       CURRENT_WORKING_DIR = File::getSpecialLocation(File::currentApplicationFile).getFullPathName();
-String       RESOURCES_DIR = String("/Contents/Resources/");
+const bool UseOSNativeDialogBox = true;
+String CURRENT_WORKING_DIR = File::getSpecialLocation(File::currentApplicationFile).getFullPathName();
+String RESOURCES_DIR = String("/Contents/Resources/");
 #endif
 
 const juce::String SplashScreenFilePath = CURRENT_WORKING_DIR + RESOURCES_DIR + "splash_screen.png";

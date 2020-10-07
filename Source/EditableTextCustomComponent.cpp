@@ -59,8 +59,8 @@ void EditableTextCustomComponent::mouseDrag(const juce::MouseEvent & event)
         }
     }
 
-    bool  ok = false;
-    int   offset = event.getDistanceFromDragStartY();
+    bool ok = false;
+    int offset = event.getDistanceFromDragStartY();
     float val = getText().getFloatValue();
     switch (columnId) {
     case 2:

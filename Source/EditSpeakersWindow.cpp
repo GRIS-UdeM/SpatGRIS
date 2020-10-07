@@ -30,10 +30,10 @@ static double GetFloatPrecision(double value, double precision)
 }
 
 //==============================================================================
-EditSpeakersWindow::EditSpeakersWindow(juce::String const &   name,
-                                       GrisLookAndFeel &      lookAndFeel,
+EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
+                                       GrisLookAndFeel & lookAndFeel,
                                        MainContentComponent & mainContentComponent,
-                                       juce::String const &   configName)
+                                       juce::String const & configName)
     : juce::DocumentWindow(name, lookAndFeel.getBackgroundColour(), DocumentWindow::allButtons)
     , grisFeel(lookAndFeel)
     , mainContentComponent(mainContentComponent)
@@ -208,11 +208,10 @@ void EditSpeakersWindow::initComp()
 }
 
 //==============================================================================
-struct Sorter
-{
-    int   id;
+struct Sorter {
+    int id;
     float value;
-    bool  directout;
+    bool directout;
 };
 
 //==============================================================================
@@ -248,7 +247,7 @@ bool compareGreaterThan(Sorter const & a, Sorter const & b)
 //==============================================================================
 void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const isForwards)
 {
-    int           size = (int)this->mainContentComponent.getListSpeaker().size();
+    int size = (int)this->mainContentComponent.getListSpeaker().size();
     struct Sorter tosort[MaxOutputs];
 
     for (int i = 0; i < size; i++) {
@@ -309,8 +308,8 @@ void EditSpeakersWindow::sliderValueChanged(juce::Slider * slider)
 void EditSpeakersWindow::buttonClicked(juce::Button * button)
 {
     bool tripletState = this->mainContentComponent.isTripletsShown;
-    int  selectedRow = this->tableListSpeakers.getSelectedRow();
-    int  sortColumnId = this->tableListSpeakers.getHeader().getSortColumnId();
+    int selectedRow = this->tableListSpeakers.getSelectedRow();
+    int sortColumnId = this->tableListSpeakers.getHeader().getSortColumnId();
     bool sortedForwards = this->tableListSpeakers.getHeader().isSortedForwards();
 
     this->mainContentComponent.setShowTriplets(false);
@@ -399,7 +398,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
 //==============================================================================
 void EditSpeakersWindow::textEditorTextChanged(juce::TextEditor & editor)
 {
-    float  value;
+    float value;
     String test;
     if (&editor == &this->rNumOfSpeakers) {
     } else if (&editor == &this->rZenith) {
@@ -467,7 +466,8 @@ void EditSpeakersWindow::closeButtonPressed()
 {
     int exitV = 1;
     if (this->mainContentComponent.needToSaveSpeakerSetup) {
-        AlertWindow alert("Closing Speaker Setup Window !", "Do you want to compute and save the current setup ?",
+        AlertWindow alert("Closing Speaker Setup Window !",
+                          "Do you want to compute and save the current setup ?",
                           AlertWindow::WarningIcon);
         alert.setLookAndFeel(&grisFeel);
         alert.addButton("Save", 1, KeyPress(KeyPress::returnKey));
@@ -569,13 +569,13 @@ juce::String EditSpeakersWindow::getText(int const columnNumber, int const rowNu
 }
 
 //==============================================================================
-void EditSpeakersWindow::setText(int const      columnNumber,
-                                 int const      rowNumber,
+void EditSpeakersWindow::setText(int const columnNumber,
+                                 int const rowNumber,
                                  String const & newText,
-                                 bool const     altDown)
+                                 bool const altDown)
 {
-    int   ival;
-    int   oldval;
+    int ival;
+    int oldval;
     float val;
     float diff;
     if (this->mainContentComponent.getLockSpeakers().try_lock()) {
@@ -853,9 +853,9 @@ void EditSpeakersWindow::setText(int const      columnNumber,
 //==============================================================================
 // This is overloaded from TableListBoxModel, and should fill in the background of the whole row.
 void EditSpeakersWindow::paintRowBackground(Graphics & g,
-                                            int const  rowNumber,
-                                            int const  width,
-                                            int const  height,
+                                            int const rowNumber,
+                                            int const width,
+                                            int const height,
                                             bool const rowIsSelected)
 {
     juce::ignoreUnused(width);
@@ -883,10 +883,10 @@ void EditSpeakersWindow::paintRowBackground(Graphics & g,
 //==============================================================================
 // This is overloaded from TableListBoxModel, and must paint any cells that aren't using custom components.
 void EditSpeakersWindow::paintCell(Graphics & g,
-                                   int        rowNumber,
-                                   int        columnId,
-                                   int        width,
-                                   int        height,
+                                   int rowNumber,
+                                   int columnId,
+                                   int width,
+                                   int height,
                                    bool /*rowIsSelected*/)
 {
     g.setColour(Colours::black);
@@ -904,9 +904,9 @@ void EditSpeakersWindow::paintCell(Graphics & g,
 }
 
 //==============================================================================
-Component * EditSpeakersWindow::refreshComponentForCell(int const   rowNumber,
-                                                        int const   columnId,
-                                                        bool const  isRowSelected,
+Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumber,
+                                                        int const columnId,
+                                                        bool const isRowSelected,
                                                         Component * existingComponentToUpdate)
 {
     juce::ignoreUnused(isRowSelected);

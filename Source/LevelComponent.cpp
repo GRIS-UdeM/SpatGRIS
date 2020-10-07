@@ -24,8 +24,10 @@
 
 //==============================================================================
 LevelBox::LevelBox(LevelComponent & levelComponent, SmallGrisLookAndFeel & lookAndFeel)
-    : levelComponent(levelComponent), lookAndFeel(lookAndFeel)
-{}
+    : levelComponent(levelComponent)
+    , lookAndFeel(lookAndFeel)
+{
+}
 
 //==============================================================================
 void LevelBox::setBounds(juce::Rectangle<int> const & newBounds)
@@ -36,7 +38,8 @@ void LevelBox::setBounds(juce::Rectangle<int> const & newBounds)
     this->juce::Component::setBounds(newBounds); // TODO: this does not look ok!
 
     this->colorGrad = juce::ColourGradient{
-        juce::Colour::fromRGB(255, 94, 69), 0.f, 0.f, juce::Colour::fromRGB(17, 255, 159), 0.f, static_cast<float>(this->getHeight()), false
+        juce::Colour::fromRGB(255, 94, 69),    0.f,  0.f, juce::Colour::fromRGB(17, 255, 159), 0.f,
+        static_cast<float>(this->getHeight()), false
     };
     this->colorGrad.addColour(0.1, juce::Colours::yellow);
 
@@ -66,7 +69,7 @@ void LevelBox::setBounds(juce::Rectangle<int> const & newBounds)
     gm.setColour(this->lookAndFeel.getScrollBarColour());
     gm.setFont(10.0f);
     int const start = this->getWidth() - 3;
-    int       y{};
+    int y{};
     for (int i{ 1 }; i < 10; i++) {
         y = i * 14;
         gf.drawLine(start, y, getWidth(), y, 1);
@@ -125,7 +128,7 @@ void LevelBox::resetClipping()
 //==============================================================================
 LevelComponent::LevelComponent(ParentLevelComponent & parentLevelComponent,
                                SmallGrisLookAndFeel & lookAndFeel,
-                               bool const             colorful)
+                               bool const colorful)
     : parentLevelComponent(parentLevelComponent)
     , lookAndFeel(lookAndFeel)
     , isColorful(colorful)
@@ -311,7 +314,9 @@ void LevelComponent::setBounds(juce::Rectangle<int> const & newBounds)
     juce::Rectangle<int> const labRect{ 0, 0, newBounds.getWidth(), this->idBut.getHeight() };
     this->idBut.setBounds(labRect);
     this->muteToggleBut.setBounds(0, 158, this->muteToggleBut.getWidth(), this->muteToggleBut.getHeight());
-    this->soloToggleBut.setBounds(this->muteToggleBut.getWidth() - 2, 158, this->muteToggleBut.getWidth(),
+    this->soloToggleBut.setBounds(this->muteToggleBut.getWidth() - 2,
+                                  158,
+                                  this->muteToggleBut.getWidth(),
                                   this->muteToggleBut.getHeight());
     if (this->parentLevelComponent.isInput()) {
         this->directOut.setBounds(0, getHeight() - 27, newBounds.getWidth(), this->directOut.getHeight());

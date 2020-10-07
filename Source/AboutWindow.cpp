@@ -87,8 +87,8 @@ AboutComponent::AboutComponent(AboutWindow & aboutWindow, GrisLookAndFeel & look
 }
 
 //==============================================================================
-AboutWindow::AboutWindow(juce::String const &   name,
-                         GrisLookAndFeel &      lookAndFeel,
+AboutWindow::AboutWindow(juce::String const & name,
+                         GrisLookAndFeel & lookAndFeel,
                          MainContentComponent & mainContentComponent)
     : juce::DocumentWindow(name, lookAndFeel.getBackgroundColour(), DocumentWindow::closeButton)
     , mMainContentComponent(mainContentComponent)

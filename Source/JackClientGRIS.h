@@ -27,22 +27,26 @@
 #include <vector>
 
 #if defined(WIN32) || defined(_WIN64)
-#include <cstdint>
-#include <mutex>
+    #include <cstdint>
+    #include <mutex>
 #else
-#include <unistd.h>
+    #include <unistd.h>
 #endif
 
 #ifdef __linux__
-#include <mutex>
+    #include <mutex>
 #endif
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
-#include <jack/jack.h>
-#include <jack/session.h>
-#include <jack/transport.h>
-#include <jack/types.h>
+#if USE_JACK
+    #include <jack/jack.h>
+    #include <jack/session.h>
+    #include <jack/transport.h>
+    #include <jack/types.h>
+#else
+    #include "JackMockup.h"
+#endif
 
 #include "spat/lbap.h"
 #include "spat/vbap.h"
@@ -54,32 +58,29 @@ static unsigned int const MaxInputs = 256;
 static unsigned int const MaxOutputs = 256;
 
 //==============================================================================
-typedef struct
-{
+typedef struct {
     lbap_pos pos;
-    float    gains[MaxOutputs];
-    float    y[MaxOutputs];
+    float gains[MaxOutputs];
+    float y[MaxOutputs];
 } LBAP_DATA;
 
 //==============================================================================
-struct Client
-{
-    String       name;
+struct Client {
+    String name;
     unsigned int portStart = 0;
     unsigned int portEnd = 0;
     unsigned int portAvailable = 0;
     unsigned int activePorts = 0;
-    bool         initialized = false;
-    bool         connected = false;
+    bool initialized = false;
+    bool connected = false;
 };
 
 //==============================================================================
-struct SourceIn
-{
+struct SourceIn {
     unsigned int id;
-    float        x = 0.0f;
-    float        y = 0.0f;
-    float        z = 0.0f;
+    float x = 0.0f;
+    float y = 0.0f;
+    float z = 0.0f;
 
     float radazi = 0.0f;
     float radele = 0.0;
@@ -89,12 +90,12 @@ struct SourceIn
     float aziSpan = 0.0f;
     float zenSpan = 0.0f;
 
-    float    lbap_gains[MaxOutputs];
-    float    lbap_y[MaxOutputs];
+    float lbap_gains[MaxOutputs];
+    float lbap_y[MaxOutputs];
     lbap_pos lbap_last_pos;
 
-    bool  isMuted = false;
-    bool  isSolo = false;
+    bool isMuted = false;
+    bool isSolo = false;
     float gain; // Not used yet.
 
     int directOut = 0;
@@ -103,12 +104,11 @@ struct SourceIn
 };
 
 //==============================================================================
-struct SpeakerOut
-{
+struct SpeakerOut {
     unsigned int id;
-    float        x = 0.0f;
-    float        y = 0.0f;
-    float        z = 0.0f;
+    float x = 0.0f;
+    float y = 0.0f;
+    float z = 0.0f;
 
     float azimuth = 0.0f;
     float zenith = 0.0f;
@@ -116,7 +116,7 @@ struct SpeakerOut
 
     float gain = 1.0f;
 
-    bool   hpActive = false;
+    bool hpActive = false;
     double b1 = 0.0;
     double b2 = 0.0;
     double b3 = 0.0;
@@ -135,13 +135,7 @@ struct SpeakerOut
 
 //==============================================================================
 // Spatialization modes.
-typedef enum
-{
-    VBAP = 0,
-    LBAP,
-    VBAP_HRTF,
-    STEREO
-} ModeSpatEnum;
+typedef enum { VBAP = 0, LBAP, VBAP_HRTF, STEREO } ModeSpatEnum;
 
 //==============================================================================
 // Audio recorder class used to write a monophonic soundfile on disk.
@@ -220,8 +214,8 @@ public:
 private:
     //==============================================================================
     std::unique_ptr<AudioFormatWriter::ThreadedWriter> threadedWriter; // the FIFO used to buffer the incoming data
-    CriticalSection                                    writerLock;
-    std::atomic<AudioFormatWriter::ThreadedWriter *>   activeWriter{ nullptr };
+    CriticalSection writerLock;
+    std::atomic<AudioFormatWriter::ThreadedWriter *> activeWriter{ nullptr };
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioRecorder);
 };
@@ -263,7 +257,7 @@ public:
     float c5;
     float c6;
     float pinkNoiseGain;
-    bool  pinkNoiseSound;
+    bool pinkNoiseSound;
 
     // Crossover highpass filter.
     double x1[MaxOutputs];
@@ -281,10 +275,10 @@ public:
 
     // Client list.
     std::vector<Client> listClient;
-    std::mutex          lockListClient;
+    std::mutex lockListClient;
 
     // Source and output lists.
-    SourceIn   listSourceIn[MaxInputs];
+    SourceIn listSourceIn[MaxInputs];
     SpeakerOut listSpeakerOut[MaxOutputs];
 
     // Enable/disable jack process callback.
@@ -300,15 +294,15 @@ public:
 
     // VBAP data.
     unsigned int vbapDimensions;
-    int          vbapSourcesToUpdate[MaxInputs];
+    int vbapSourcesToUpdate[MaxInputs];
 
     std::vector<std::vector<int>> vbap_triplets;
 
     // BINAURAL data.
     unsigned int hrtf_count[16];
-    float        hrtf_input_tmp[16][128];
-    float        vbap_hrtf_left_impulses[16][128];
-    float        vbap_hrtf_right_impulses[16][128];
+    float hrtf_input_tmp[16][128];
+    float vbap_hrtf_left_impulses[16][128];
+    float vbap_hrtf_right_impulses[16][128];
 
     // STEREO data.
     float last_azi[MaxInputs];
@@ -318,10 +312,10 @@ public:
 
     // Recording parameters.
     unsigned int indexRecord = 0;
-    bool         recording;
+    bool recording;
 
     AudioRecorder recorder[MaxOutputs];
-    Array<File>   outputFilenames;
+    Array<File> outputFilenames;
 
     // LBAP distance attenuation values.
     float attenuationLinearGain[1];
@@ -337,7 +331,7 @@ public:
     ~JackClientGris();
 
     // Audio Status.
-    bool  isReady() const { return clientReady; }
+    bool isReady() const { return clientReady; }
     float getCpuUsed() const { return jack_cpu_load(client); }
     float getLevelsIn(int index) const { return levelsIn[index]; }
     float getLevelsOut(int index) const { return levelsOut[index]; }
@@ -365,9 +359,9 @@ public:
     }
     void stopRecord() { this->recording = false; }
     void setRecordFormat(int format) { this->recordFormat = format; }
-    int  getRecordFormat() const { return this->recordFormat; }
+    int getRecordFormat() const { return this->recordFormat; }
     void setRecordFileConfig(int config) { this->recordFileConfig = config; }
-    int  getRecordFileConfig() const { return this->recordFileConfig; }
+    int getRecordFileConfig() const { return this->recordFileConfig; }
     void setRecordingPath(String filePath) { this->recordPath = filePath; }
     bool isSavingRun() const { return this->recording; }
 

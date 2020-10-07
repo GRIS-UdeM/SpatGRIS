@@ -28,15 +28,15 @@
 //#include <GLES3/gl3.h>
 //#include <GL/glut.h>
 #elif defined(WIN32) || defined(_WIN64)
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glut.h>
-#include <windows.h>
+    #include <GL/gl.h>
+    #include <GL/glu.h>
+    #include <GL/glut.h>
+    #include <windows.h>
 #else
-#include <GLUT/glut.h>
-#include <OpenGL/gl.h>
-#include <OpenGL/gl3.h>
-#include <OpenGl/glu.h>
+    #include <GLUT/glut.h>
+    #include <OpenGL/gl.h>
+    #include <OpenGL/gl3.h>
+    #include <OpenGl/glu.h>
 #endif
 
 #include "../JuceLibraryCode/JuceHeader.h"
@@ -48,7 +48,7 @@
 class MainContentComponent;
 class Speaker;
 
-static const int   NbrGridLines = 17;
+static const int NbrGridLines = 17;
 static const float ScroolWheelSpeedMouse = 1.8f;
 
 //==============================================================================
@@ -87,17 +87,17 @@ public:
 private:
     //==============================================================================
     float raycast(Speaker * speaker) const;
-    bool  speakerNearCam(glm::vec3 speak1, glm::vec3 speak2) const;
+    bool speakerNearCam(glm::vec3 speak1, glm::vec3 speak2) const;
 
     void clickRay();
     void drawBackground() const;
     void drawOriginGrid() const;
     void drawText(std::string val,
-                  glm::vec3   position,
-                  glm::vec3   color,
-                  float       scale = 0.005f,
-                  bool        camLock = true,
-                  float       alpha = 1.0f) const;
+                  glm::vec3 position,
+                  glm::vec3 color,
+                  float scale = 0.005f,
+                  bool camLock = true,
+                  float alpha = 1.0f) const;
     void drawTextOnGrid(std::string val, glm::vec3 position, float scale = 0.003f) const;
 
     void drawTrippletConn() const;

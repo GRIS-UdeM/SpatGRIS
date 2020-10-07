@@ -23,7 +23,7 @@
 #include <cstdio>
 
 #ifdef __linux__
-#include <alsa/asoundlib.h>
+    #include <alsa/asoundlib.h>
 #endif
 
 #include "JackClientGRIS.h"
@@ -36,7 +36,7 @@ static bool jack_server_log_print = false;
 static void jack_server_log(const char * format, ...)
 {
     if (jack_server_log_print) {
-        char    buffer[256];
+        char buffer[256];
         va_list args;
         va_start(args, format);
         vsprintf(buffer, format, args);
@@ -166,7 +166,7 @@ JackServerGris::JackServerGris(unsigned int rateV, unsigned int periodV, String 
     if (this->server) {
         parameters = jackctl_server_get_parameters(this->server);
 
-        jackctl_parameter_t *         param;
+        jackctl_parameter_t * param;
         union jackctl_parameter_value value;
 
         // Turn off Jack verbose mode.
@@ -270,15 +270,15 @@ Array<String> JackServerGris::getAvailableOutputDevices() const
 
 #ifdef __linux__
     snd_ctl_card_info_t * info;
-    snd_pcm_info_t *      pcminfo;
+    snd_pcm_info_t * pcminfo;
     snd_ctl_card_info_alloca(&info);
     snd_pcm_info_alloca(&pcminfo);
 
     int card = -1;
     while (snd_card_next(&card) >= 0 && card >= 0) {
-        int         err = 0;
+        int err = 0;
         snd_ctl_t * handle;
-        char        name[20];
+        char name[20];
         snprintf(name, sizeof(name), "hw:%d", card);
         if ((err = snd_ctl_open(&handle, name, 0)) < 0) {
             continue;

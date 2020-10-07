@@ -58,12 +58,12 @@ private:
     //==============================================================================
     AboutWindow & mParentWindow;
 
-    juce::ImageComponent  mLogoImage;
-    juce::Label           mTitleLabel;
-    juce::Label           mVersionLabel;
-    juce::Label           mInfosLabel;
+    juce::ImageComponent mLogoImage;
+    juce::Label mTitleLabel;
+    juce::Label mVersionLabel;
+    juce::Label mInfosLabel;
     juce::HyperlinkButton mWebsiteHyperlink;
-    juce::TextButton      mCloseButton;
+    juce::TextButton mCloseButton;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AboutComponent);
 };

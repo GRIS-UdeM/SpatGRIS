@@ -203,9 +203,9 @@ void Speaker::newPosition(glm::vec3 center, glm::vec3 extents)
         this->fix();
     }
 
-    this->center
-        = glm::vec3(this->min.x + (this->max.x - this->min.x) / 2.0f, this->min.y + (this->max.y - this->min.y) / 2.0f,
-                    this->min.z + (this->max.z - this->min.z) / 2.0f);
+    this->center = glm::vec3(this->min.x + (this->max.x - this->min.x) / 2.0f,
+                             this->min.y + (this->max.y - this->min.y) / 2.0f,
+                             this->min.z + (this->max.z - this->min.z) / 2.0f);
 }
 
 //==============================================================================

@@ -55,7 +55,7 @@ void Input::resetPosition()
 glm::vec3 Input::polToCar(float azimuth, float zenith) const
 {
     glm::vec3 cart;
-    float     factor = this->radius * 10.0f;
+    float factor = this->radius * 10.0f;
     cart.x = (factor * sinf(zenith) * cosf(azimuth));
     cart.z = (factor * sinf(zenith) * sinf(azimuth));
     cart.y = ((10.0f * cosf(zenith)) + (sizeT / 2.0f));
@@ -66,7 +66,7 @@ glm::vec3 Input::polToCar(float azimuth, float zenith) const
 glm::vec3 Input::polToCar3d(float azimuth, float zenith) const
 {
     glm::vec3 cart;
-    float     factor = this->radius * 10.0f;
+    float factor = this->radius * 10.0f;
     cart.x = (factor * cosf(azimuth));
     cart.z = (factor * sinf(azimuth));
     cart.y = ((10.0f * cosf(zenith)) + (sizeT / 2.0f));
@@ -169,8 +169,8 @@ void Input::draw()
 //==============================================================================
 void Input::drawSpan()
 {
-    int       num = 8;
-    float     newazi, newele;
+    int num = 8;
+    float newazi, newele;
     glm::vec3 cart;
 
     glPointSize(4);
@@ -231,7 +231,7 @@ float Input::getLevel() const
 //==============================================================================
 void Input::drawSpanLBAP(float x, float y, float z)
 {
-    int   num = 4;
+    int num = 4;
     float ytmp;
 
     glPointSize(4);

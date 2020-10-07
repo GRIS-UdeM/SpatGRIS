@@ -47,7 +47,7 @@ private:
     void drawSourceSpan(Graphics & g, Input * it, const int fieldWH, const int fieldCenter) const;
     //==============================================================================
     MainContentComponent & mainParent;
-    GrisLookAndFeel &      grisFeel;
+    GrisLookAndFeel & grisFeel;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FlatViewWindow);
 };

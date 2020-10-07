@@ -24,18 +24,18 @@
 #include <iostream>
 
 #if defined(__linux__)
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glut.h>
+    #include <GL/gl.h>
+    #include <GL/glu.h>
+    #include <GL/glut.h>
 #elif defined(WIN32) || defined(_WIN64)
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glut.h>
-#include <windows.h>
+    #include <GL/gl.h>
+    #include <GL/glu.h>
+    #include <GL/glut.h>
+    #include <windows.h>
 #else
-#include <GLUT/glut.h>
-#include <OpenGL/gl.h>
-#include <OpenGl/glu.h>
+    #include <GLUT/glut.h>
+    #include <OpenGL/gl.h>
+    #include <OpenGl/glu.h>
 #endif
 
 #include "../glm/glm.hpp"
@@ -61,13 +61,13 @@ public:
     void setColor(Colour color, bool updateLevel = false);
     //==============================================================================
     MainContentComponent const & getMainContentComponent() const { return this->mainContentComponent; }
-    MainContentComponent &       getMainContentComponent() { return this->mainContentComponent; }
+    MainContentComponent & getMainContentComponent() { return this->mainContentComponent; }
 
     LevelComponent const * getVuMeter() const { return &this->vuMeter; }
-    LevelComponent *       getVuMeter() { return &this->vuMeter; }
+    LevelComponent * getVuMeter() { return &this->vuMeter; }
 
-    int   getId() const final { return this->idChannel; }
-    int   getButtonInOutNumber() const { return this->idChannel; }
+    int getId() const final { return this->idChannel; }
+    int getButtonInOutNumber() const { return this->idChannel; }
     float getLevel() const;
     float getAlpha() const;
     float getAziMuth() const { return this->azimuth; }
@@ -97,7 +97,7 @@ public:
     bool isInput() const final { return true; }
     void changeDirectOutChannel(int const chn) final { this->directOutChannel = chn; }
     void setDirectOutChannel(int chn) final;
-    int  getDirectOutChannel() const final { return this->directOutChannel; };
+    int getDirectOutChannel() const final { return this->directOutChannel; };
     void sendDirectOutToClient(int id, int chn) final;
 
     void drawSpan();
@@ -122,7 +122,7 @@ private:
 
     glm::vec3 center;
     glm::vec3 color;
-    Colour    colorJ;
+    Colour colorJ;
 
     LevelComponent vuMeter;
     //==============================================================================

@@ -32,8 +32,7 @@ class JackClientListComponent final
     , public juce::TableListBoxModel
     , public juce::ToggleButton::Listener
 {
-    struct ColumnIds
-    {
+    struct ColumnIds {
         static constexpr int CLIENT_NAME = 1;
         static constexpr int START = 2;
         static constexpr int END = 3;
@@ -54,7 +53,7 @@ class JackClientListComponent final
     private:
         //==============================================================================
         JackClientListComponent & owner;
-        juce::ComboBox            comboBox;
+        juce::ComboBox comboBox;
 
         int row;
         int columnId;
@@ -68,12 +67,12 @@ public:
     void buttonClicked(Button * button) final;
     void setBounds(int x, int y, int width, int height);
     void setValue(const int rowNumber, const int columnNumber, const int newRating);
-    int  getValue(const int rowNumber, const int columnNumber) const;
-    int  getNumRows() final { return numRows; }
+    int getValue(const int rowNumber, const int columnNumber) const;
+    int getNumRows() final { return numRows; }
     void paintRowBackground(Graphics & g, int rowNumber, int /*width*/, int /*height*/, bool rowIsSelected) final;
     void paintCell(Graphics & g, int rowNumber, int columnId, int width, int height, bool /*rowIsSelected*/) final;
 
-    juce::String      getText(const int columnNumber, const int rowNumber) const;
+    juce::String getText(const int columnNumber, const int rowNumber) const;
     juce::Component * refreshComponentForCell(int rowNumber,
                                               int columnId,
                                               bool /*isRowSelected*/,
@@ -82,12 +81,12 @@ public:
 private:
     //==============================================================================
     MainContentComponent * mainParent;
-    GrisLookAndFeel *      grisFeel;
+    GrisLookAndFeel * grisFeel;
 
     unsigned int numRows{};
 
     juce::TableListBox tableListClient;
-    Box *              box;
+    Box * box;
 };
 
 #endif // JACKCLIENTLISTCOMPONENT_H

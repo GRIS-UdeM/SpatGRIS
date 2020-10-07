@@ -33,11 +33,12 @@ static double GetFloatPrecision(double value, double precision)
 }
 
 //==============================================================================
-Box::Box(GrisLookAndFeel &    feel,
+Box::Box(GrisLookAndFeel & feel,
          juce::String const & title,
-         bool const           verticalScrollbar,
-         bool const           horizontalScrollbar)
-    : title(title), grisFeel(feel)
+         bool const verticalScrollbar,
+         bool const horizontalScrollbar)
+    : title(title)
+    , grisFeel(feel)
 {
     this->viewport.setViewedComponent(&this->content, false);
     this->viewport.setScrollBarsShown(verticalScrollbar, horizontalScrollbar);

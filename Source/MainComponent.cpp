@@ -28,13 +28,17 @@ class AudioRenderer : public juce::ThreadWithProgressWindow
 {
 public:
     AudioRenderer()
-        : juce::ThreadWithProgressWindow("Merging recorded mono files into an interleaved multi-channel file...", true, false)
+        : juce::ThreadWithProgressWindow("Merging recorded mono files into an interleaved multi-channel file...",
+                                         true,
+                                         false)
     {
         setStatusMessage("Initializing...");
     }
     ~AudioRenderer() override = default;
     //==============================================================================
-    void prepareRecording(juce::File const & file, juce::Array<juce::File> const & filenames, unsigned int const sampleRate)
+    void prepareRecording(juce::File const & file,
+                          juce::Array<juce::File> const & filenames,
+                          unsigned int const sampleRate)
     {
         this->fileToRecord = file;
         this->filenames = filenames;
@@ -44,9 +48,9 @@ public:
     void run() override
     {
         unsigned int numberOfPasses{};
-        unsigned int const blockSize{ 2048};
-        float const        factor{powf(2.0f, 31.0f)};
-        int const          numberOfChannels{this->filenames.size()};
+        unsigned int const blockSize{ 2048 };
+        float const factor{ powf(2.0f, 31.0f) };
+        int const numberOfChannels{ this->filenames.size() };
         juce::String const extF = this->filenames[0].getFileExtension();
 
         int ** data = new int *[2];
@@ -124,7 +128,8 @@ public:
     void threadComplete(bool userPressedCancel) override
     {
         // thread finished normally.
-        AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon, "Multi-channel processing window",
+        AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon,
+                                         "Multi-channel processing window",
                                          "Merging files finished!");
 
         // Clean up by deleting our thread object.
@@ -134,9 +139,9 @@ public:
 private:
     //==============================================================================
     AudioFormatManager formatManager;
-    File               fileToRecord;
-    Array<File>        filenames;
-    unsigned int       sampleRate;
+    File fileToRecord;
+    Array<File> filenames;
+    unsigned int sampleRate;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioRenderer);
 };
@@ -269,11 +274,16 @@ MainContentComponent::MainContentComponent(MainWindow & parent) : parent(parent)
     this->boxControlUI->getContent()->addAndMakeVisible(this->jackClientListComponentJack.get());
 
     // Set up the layout and resizer bars.
-    this->verticalLayout.setItemLayout(0, -0.2, -0.8,
+    this->verticalLayout.setItemLayout(0,
+                                       -0.2,
+                                       -0.8,
                                        -0.435); // width of the speaker view must be between 20% and 80%, preferably 50%
     this->verticalLayout.setItemLayout(1, 8, 8, 8); // the vertical divider drag-bar thing is always 8 pixels wide
     this->verticalLayout.setItemLayout(
-        2, 150, -1.0, -0.565); // right panes must be at least 150 pixels wide, preferably 50% of the total width
+        2,
+        150,
+        -1.0,
+        -0.565); // right panes must be at least 150 pixels wide, preferably 50% of the total width
     this->verticalDividerBar.reset(new StretchableLayoutResizerBar(&verticalLayout, 1, true));
     this->addAndMakeVisible(verticalDividerBar.get());
 
@@ -304,7 +314,8 @@ MainContentComponent::MainContentComponent(MainWindow & parent) : parent(parent)
         } else if (errorCode == 3) {
             msg = "Failed to start Jack server...";
         }
-        AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon, "Jack Server Failure",
+        AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon,
+                                         "Jack Server Failure",
                                          msg
                                              + String("\nYou should check for any mismatch between the server and your "
                                                       "device\n(Sampling Rate, Input/Ouput Channels, etc.)"));
@@ -403,11 +414,11 @@ MainContentComponent::~MainContentComponent()
 // Widget builder utilities.
 Label * MainContentComponent::addLabel(const String & s,
                                        const String & stooltip,
-                                       int            x,
-                                       int            y,
-                                       int            w,
-                                       int            h,
-                                       Component *    into)
+                                       int x,
+                                       int y,
+                                       int w,
+                                       int h,
+                                       Component * into)
 {
     Label * lb = new Label();
     lb->setText(s, NotificationType::dontSendNotification);
@@ -424,11 +435,11 @@ Label * MainContentComponent::addLabel(const String & s,
 //==============================================================================
 TextButton * MainContentComponent::addButton(const String & s,
                                              const String & stooltip,
-                                             int            x,
-                                             int            y,
-                                             int            w,
-                                             int            h,
-                                             Component *    into)
+                                             int x,
+                                             int y,
+                                             int w,
+                                             int h,
+                                             Component * into)
 {
     TextButton * tb = new TextButton();
     tb->setTooltip(stooltip);
@@ -445,12 +456,12 @@ TextButton * MainContentComponent::addButton(const String & s,
 //==============================================================================
 ToggleButton * MainContentComponent::addToggleButton(const String & s,
                                                      const String & stooltip,
-                                                     int            x,
-                                                     int            y,
-                                                     int            w,
-                                                     int            h,
-                                                     Component *    into,
-                                                     bool           toggle)
+                                                     int x,
+                                                     int y,
+                                                     int w,
+                                                     int h,
+                                                     Component * into,
+                                                     bool toggle)
 {
     ToggleButton * tb = new ToggleButton();
     tb->setTooltip(stooltip);
@@ -469,12 +480,12 @@ ToggleButton * MainContentComponent::addToggleButton(const String & s,
 TextEditor * MainContentComponent::addTextEditor(const String & s,
                                                  const String & emptyS,
                                                  const String & stooltip,
-                                                 int            x,
-                                                 int            y,
-                                                 int            w,
-                                                 int            h,
-                                                 Component *    into,
-                                                 int            wLab)
+                                                 int x,
+                                                 int y,
+                                                 int w,
+                                                 int h,
+                                                 Component * into,
+                                                 int wLab)
 {
     TextEditor * te = new TextEditor();
     te->setTooltip(stooltip);
@@ -498,11 +509,11 @@ TextEditor * MainContentComponent::addTextEditor(const String & s,
 //==============================================================================
 Slider * MainContentComponent::addSlider(const String & s,
                                          const String & stooltip,
-                                         int            x,
-                                         int            y,
-                                         int            w,
-                                         int            h,
-                                         Component *    into)
+                                         int x,
+                                         int y,
+                                         int w,
+                                         int h,
+                                         Component * into)
 {
     Slider * sd = new Slider();
     sd->setTooltip(stooltip);
@@ -521,11 +532,11 @@ Slider * MainContentComponent::addSlider(const String & s,
 //==============================================================================
 ComboBox * MainContentComponent::addComboBox(const String & s,
                                              const String & stooltip,
-                                             int            x,
-                                             int            y,
-                                             int            w,
-                                             int            h,
-                                             Component *    into)
+                                             int x,
+                                             int y,
+                                             int w,
+                                             int h,
+                                             Component * into)
 {
     ComboBox * cb = new ComboBox();
     cb->setTooltip(stooltip);
@@ -570,8 +581,9 @@ void MainContentComponent::handleOpenPreset()
 
     bool loaded = false;
     if (fc.browseForFileToOpen()) {
-        String      chosen = fc.getResults().getReference(0).getFullPathName();
-        AlertWindow alert("Open Project !", "You want to load : " + chosen + "\nEverything not saved will be lost !",
+        String chosen = fc.getResults().getReference(0).getFullPathName();
+        AlertWindow alert("Open Project !",
+                          "You want to load : " + chosen + "\nEverything not saved will be lost !",
                           AlertWindow::WarningIcon);
         alert.setLookAndFeel(&mGrisFeel);
         alert.addButton("Cancel", 0, KeyPress(KeyPress::escapeKey));
@@ -641,7 +653,7 @@ void MainContentComponent::handleOpenSpeakerSetup()
     FileChooser fc("Choose a file to open...", dir + "/" + filename, "*.xml", UseOSNativeDialogBox);
 
     if (fc.browseForFileToOpen()) {
-        String      chosen = fc.getResults().getReference(0).getFullPathName();
+        String chosen = fc.getResults().getReference(0).getFullPathName();
         AlertWindow alert("Load Speaker Setup !",
                           "You want to load : " + chosen + "\nEverything not saved will be lost !",
                           AlertWindow::WarningIcon);
@@ -675,7 +687,9 @@ void MainContentComponent::handleSaveAsSpeakerSetup()
 //==============================================================================
 void MainContentComponent::handleShowSpeakerEditWindow()
 {
-    juce::Rectangle<int> result(this->getScreenX() + this->speakerView->getWidth() + 20, this->getScreenY() + 20, 850,
+    juce::Rectangle<int> result(this->getScreenX() + this->speakerView->getWidth() + 20,
+                                this->getScreenY() + 20,
+                                850,
                                 600);
     if (this->winSpeakConfig == nullptr) {
         String windowName = String("Speakers Setup Edition - ") + String(ModeSpatString[this->jackClient->modeSelected])
@@ -725,17 +739,26 @@ void MainContentComponent::handleShowPreferences()
         if (std::isnan(float(OscInputPort))) {
             OscInputPort = 18032;
         }
-        this->windowProperties.reset(new PropertiesWindow{
-            *this, this->mGrisFeel, alsaAvailableOutputDevices, alsaOutputDevice, RateValues.indexOf(String(RateValue)),
-            BufferSizes.indexOf(String(BufferValue)), static_cast<int>(FileFormat), static_cast<int>(FileConfig),
-            static_cast<int>(AttenuationDB), static_cast<int>(AttenuationHz), static_cast<int>(OscInputPort) });
+        this->windowProperties.reset(new PropertiesWindow{ *this,
+                                                           this->mGrisFeel,
+                                                           alsaAvailableOutputDevices,
+                                                           alsaOutputDevice,
+                                                           RateValues.indexOf(String(RateValue)),
+                                                           BufferSizes.indexOf(String(BufferValue)),
+                                                           static_cast<int>(FileFormat),
+                                                           static_cast<int>(FileConfig),
+                                                           static_cast<int>(AttenuationDB),
+                                                           static_cast<int>(AttenuationHz),
+                                                           static_cast<int>(OscInputPort) });
     }
     int height = 450;
     if (alsaAvailableOutputDevices.isEmpty()) {
         height = 420;
     }
     juce::Rectangle<int> result(this->getScreenX() + (this->speakerView->getWidth() / 2) - 150,
-                                this->getScreenY() + (this->speakerView->getHeight() / 2) - 75, 270, height);
+                                this->getScreenY() + (this->speakerView->getHeight() / 2) - 75,
+                                270,
+                                height);
     this->windowProperties->setBounds(result);
     this->windowProperties->setResizable(false, false);
     this->windowProperties->setUsingNativeTitleBar(true);
@@ -749,14 +772,17 @@ void MainContentComponent::handleShow2DView()
     if (this->flatViewWindowSource == nullptr) {
         this->flatViewWindowSource.reset(new FlatViewWindow{ *this, this->mGrisFeel });
     } else {
-        this->flatViewWindowRect.setBounds(
-            this->flatViewWindowSource->getScreenX(), this->flatViewWindowSource->getScreenY(),
-            this->flatViewWindowSource->getWidth(), this->flatViewWindowSource->getHeight());
+        this->flatViewWindowRect.setBounds(this->flatViewWindowSource->getScreenX(),
+                                           this->flatViewWindowSource->getScreenY(),
+                                           this->flatViewWindowSource->getWidth(),
+                                           this->flatViewWindowSource->getHeight());
     }
 
     if (this->flatViewWindowRect.getWidth() == 0) {
         this->flatViewWindowRect.setBounds(this->getScreenX() + this->speakerView->getWidth() + 22,
-                                           this->getScreenY() + 100, 500, 500);
+                                           this->getScreenY() + 100,
+                                           500,
+                                           500);
     }
 
     this->flatViewWindowSource->setBounds(this->flatViewWindowRect);
@@ -769,8 +795,11 @@ void MainContentComponent::handleShow2DView()
 void MainContentComponent::handleShowOscLogView()
 {
     if (this->oscLogWindow == nullptr) {
-        this->oscLogWindow.reset(new OscLogWindow("OSC Logging Windows", this->mGrisFeel.getWinBackgroundColour(),
-                                                  DocumentWindow::allButtons, this, &this->mGrisFeel));
+        this->oscLogWindow.reset(new OscLogWindow("OSC Logging Windows",
+                                                  this->mGrisFeel.getWinBackgroundColour(),
+                                                  DocumentWindow::allButtons,
+                                                  this,
+                                                  &this->mGrisFeel));
     }
     this->oscLogWindow->centreWithSize(500, 500);
     this->oscLogWindow->setResizable(false, false);
@@ -832,7 +861,8 @@ void MainContentComponent::handleShowTriplets()
 void MainContentComponent::setShowTriplets(bool state)
 {
     if (this->getModeSelected() == LBAP && state == true) {
-        AlertWindow alert("Can't draw triplets !", "Triplets are not effective with the CUBE mode.",
+        AlertWindow alert("Can't draw triplets !",
+                          "Triplets are not effective with the CUBE mode.",
                           AlertWindow::InfoIcon);
         alert.setLookAndFeel(&mGrisFeel);
         alert.addButton("Close", 0, KeyPress(KeyPress::returnKey));
@@ -842,7 +872,8 @@ void MainContentComponent::setShowTriplets(bool state)
         this->isTripletsShown = state;
         this->speakerView->setShowTriplets(state);
     } else {
-        AlertWindow alert("Can't draw all triplets !", "Maybe you didn't compute your current speaker setup ?",
+        AlertWindow alert("Can't draw all triplets !",
+                          "Maybe you didn't compute your current speaker setup ?",
                           AlertWindow::InfoIcon);
         alert.setLookAndFeel(&mGrisFeel);
         alert.addButton("Close", 0, KeyPress(KeyPress::returnKey));
@@ -1173,15 +1204,16 @@ PopupMenu MainContentComponent::getMenuForIndex(int menuIndex, const String & me
 //==============================================================================
 void MainContentComponent::menuItemSelected(int menuItemID, int /*topLevelMenuIndex*/)
 {
-    switch (menuItemID) {}
+    switch (menuItemID) {
+    }
 }
 
 //==============================================================================
 // Exit functions.
 bool MainContentComponent::isPresetModified() const
 {
-    File                        xmlFile = File(this->pathCurrentPreset.toStdString());
-    XmlDocument                 xmlDoc(xmlFile);
+    File xmlFile = File(this->pathCurrentPreset.toStdString());
+    XmlDocument xmlDoc(xmlFile);
     std::unique_ptr<XmlElement> savedState(xmlDoc.getDocumentElement());
     if (savedState == nullptr) {
         return true;
@@ -1586,7 +1618,8 @@ bool MainContentComponent::updateLevelComp()
 
     // Too few speakers...
     if ((this->listSpeaker.size() - directOutSpeakers) < dimensions) {
-        AlertWindow alert("Not enough speakers!    ", "Do you want to reload previous config?    ",
+        AlertWindow alert("Not enough speakers!    ",
+                          "Do you want to reload previous config?    ",
                           AlertWindow::WarningIcon);
         alert.setLookAndFeel(&mGrisFeel);
         alert.addButton("No", 0);
@@ -1633,7 +1666,7 @@ bool MainContentComponent::updateLevelComp()
     bool inputsIsMuted[MaxInputs];
     bool inputsIsSolo[MaxInputs];
     bool soloIn = this->jackClient->soloIn;
-    int  directOuts[MaxInputs];
+    int directOuts[MaxInputs];
     for (unsigned int i = 0; i < MaxInputs; i++) {
         inputsIsMuted[i] = (&this->jackClient->listSourceIn[i])->isMuted;
         inputsIsSolo[i] = (&this->jackClient->listSourceIn[i])->isSolo;
@@ -1863,9 +1896,9 @@ void MainContentComponent::openXmlFileSpeaker(String path)
 {
     String msg;
     String oldPath = this->pathCurrentFileSpeaker;
-    bool   isNewSameAsOld = oldPath.compare(path) == 0;
-    bool   isNewSameAsLastSetup = this->pathLastVbapSpeakerSetup.compare(path) == 0;
-    bool   ok = false;
+    bool isNewSameAsOld = oldPath.compare(path) == 0;
+    bool isNewSameAsLastSetup = this->pathLastVbapSpeakerSetup.compare(path) == 0;
+    bool ok = false;
     if (!File(path.toStdString()).existsAsFile()) {
         AlertWindow alert("Error in Load Speaker Setup !",
                           "Can't found file " + path.toStdString() + ", the current setup will be kept.",
@@ -1875,11 +1908,12 @@ void MainContentComponent::openXmlFileSpeaker(String path)
         alert.runModalLoop();
     } else {
         this->pathCurrentFileSpeaker = path.toStdString();
-        XmlDocument                 xmlDoc(File(this->pathCurrentFileSpeaker));
+        XmlDocument xmlDoc(File(this->pathCurrentFileSpeaker));
         std::unique_ptr<XmlElement> mainXmlElem(xmlDoc.getDocumentElement());
         if (mainXmlElem == nullptr) {
             AlertWindow alert("Error in Load Speaker Setup !",
-                              "Your file is corrupted !\n" + xmlDoc.getLastParseError(), AlertWindow::WarningIcon);
+                              "Your file is corrupted !\n" + xmlDoc.getLastParseError(),
+                              AlertWindow::WarningIcon);
             alert.setLookAndFeel(&mGrisFeel);
             alert.addButton("Ok", 0);
             alert.runModalLoop();
@@ -1914,7 +1948,7 @@ void MainContentComponent::openXmlFileSpeaker(String path)
                 this->jackClient->clearOutput();
                 this->jackClient->maxOutputPatch = 0;
                 Array<int> layoutIndexes;
-                int        maxLayoutIndex = 0;
+                int maxLayoutIndex = 0;
                 forEachXmlChildElement(*mainXmlElem, ring)
                 {
                     if (ring->hasTagName("Ring")) {
@@ -1931,14 +1965,17 @@ void MainContentComponent::openXmlFileSpeaker(String path)
                                     maxLayoutIndex = layoutIndex;
                                 }
 
-                                this->listSpeaker.add(
-                                    new Speaker(this, layoutIndex, spk->getIntAttribute("OutputPatch"),
-                                                spk->getDoubleAttribute("Azimuth"), spk->getDoubleAttribute("Zenith"),
-                                                spk->getDoubleAttribute("Radius")));
+                                this->listSpeaker.add(new Speaker(this,
+                                                                  layoutIndex,
+                                                                  spk->getIntAttribute("OutputPatch"),
+                                                                  spk->getDoubleAttribute("Azimuth"),
+                                                                  spk->getDoubleAttribute("Zenith"),
+                                                                  spk->getDoubleAttribute("Radius")));
                                 if (loadSetupFromXYZ) {
-                                    this->listSpeaker.getLast()->setCoordinate(glm::vec3(
-                                        spk->getDoubleAttribute("PositionX"), spk->getDoubleAttribute("PositionZ"),
-                                        spk->getDoubleAttribute("PositionY")));
+                                    this->listSpeaker.getLast()->setCoordinate(
+                                        glm::vec3(spk->getDoubleAttribute("PositionX"),
+                                                  spk->getDoubleAttribute("PositionZ"),
+                                                  spk->getDoubleAttribute("PositionY")));
                                 }
                                 if (spk->hasAttribute("Gain")) {
                                     this->listSpeaker.getLast()->setGain(spk->getDoubleAttribute("Gain"));
@@ -1980,10 +2017,12 @@ void MainContentComponent::openXmlFileSpeaker(String path)
     if (ok) {
         if (this->pathCurrentFileSpeaker.endsWith("default_preset/default_speaker_setup.xml")) {
             this->applicationProperties.getUserSettings()->setValue(
-                "lastSpeakerSetupDirectory", File::getSpecialLocation(File::userHomeDirectory).getFullPathName());
+                "lastSpeakerSetupDirectory",
+                File::getSpecialLocation(File::userHomeDirectory).getFullPathName());
         } else {
             this->applicationProperties.getUserSettings()->setValue(
-                "lastSpeakerSetupDirectory", File(this->pathCurrentFileSpeaker).getParentDirectory().getFullPathName());
+                "lastSpeakerSetupDirectory",
+                File(this->pathCurrentFileSpeaker).getParentDirectory().getFullPathName());
         }
         this->needToComputeVbap = true;
         this->updateLevelComp();
@@ -2015,8 +2054,8 @@ void MainContentComponent::openPreset(String path)
 {
     String msg;
     this->jackClient->processBlockOn = false;
-    File                        xmlFile = File(path.toStdString());
-    XmlDocument                 xmlDoc(xmlFile);
+    File xmlFile = File(path.toStdString());
+    XmlDocument xmlDoc(xmlFile);
     std::unique_ptr<XmlElement> mainXmlElem(xmlDoc.getDocumentElement());
     if (mainXmlElem == nullptr) {
         AlertWindow alert("Error in Open Preset !",
@@ -2095,7 +2134,8 @@ void MainContentComponent::openPreset(String path)
                         if (it->getId() == input->getIntAttribute("Index")) {
                             it->setColor(Colour::fromFloatRGBA((float)input->getDoubleAttribute("R"),
                                                                (float)input->getDoubleAttribute("G"),
-                                                               (float)input->getDoubleAttribute("B"), 1.0f),
+                                                               (float)input->getDoubleAttribute("B"),
+                                                               1.0f),
                                          true);
                             if (input->hasAttribute("DirectOut")) {
                                 it->setDirectOutChannel(input->getIntAttribute("DirectOut"));
@@ -2126,10 +2166,12 @@ void MainContentComponent::openPreset(String path)
 
     if (this->pathCurrentPreset.endsWith("default_preset/default_preset.xml")) {
         this->applicationProperties.getUserSettings()->setValue(
-            "lastPresetDirectory", File::getSpecialLocation(File::userHomeDirectory).getFullPathName());
+            "lastPresetDirectory",
+            File::getSpecialLocation(File::userHomeDirectory).getFullPathName());
     } else {
         this->applicationProperties.getUserSettings()->setValue(
-            "lastPresetDirectory", File(this->pathCurrentPreset).getParentDirectory().getFullPathName());
+            "lastPresetDirectory",
+            File(this->pathCurrentPreset).getParentDirectory().getFullPathName());
     }
     this->setTitle();
 }
@@ -2172,7 +2214,8 @@ void MainContentComponent::savePreset(String path)
     xmlFile.create();
     this->pathCurrentPreset = path;
     this->applicationProperties.getUserSettings()->setValue(
-        "lastPresetDirectory", File(this->pathCurrentPreset).getParentDirectory().getFullPathName());
+        "lastPresetDirectory",
+        File(this->pathCurrentPreset).getParentDirectory().getFullPathName());
     this->setTitle();
 }
 
@@ -2180,7 +2223,7 @@ void MainContentComponent::savePreset(String path)
 void MainContentComponent::saveSpeakerSetup(String path)
 {
     this->pathCurrentFileSpeaker = path;
-    File       xmlFile = File(path.toStdString());
+    File xmlFile = File(path.toStdString());
     XmlElement xml{ "SpeakerSetup" };
 
     xml.setAttribute("Name", this->nameConfig);
@@ -2218,7 +2261,8 @@ void MainContentComponent::saveSpeakerSetup(String path)
     xmlFile.create();
 
     this->applicationProperties.getUserSettings()->setValue(
-        "lastSpeakerSetupDirectory", File(this->pathCurrentFileSpeaker).getParentDirectory().getFullPathName());
+        "lastSpeakerSetupDirectory",
+        File(this->pathCurrentFileSpeaker).getParentDirectory().getFullPathName());
 
     this->needToSaveSpeakerSetup = false;
 
@@ -2234,20 +2278,20 @@ void MainContentComponent::saveSpeakerSetup(String path)
 
 //==============================================================================
 void MainContentComponent::saveProperties(String device,
-                                          int    rate,
-                                          int    buff,
-                                          int    fileformat,
-                                          int    fileconfig,
-                                          int    attenuationDB,
-                                          int    attenuationHz,
-                                          int    oscPort)
+                                          int rate,
+                                          int buff,
+                                          int fileformat,
+                                          int fileconfig,
+                                          int attenuationDB,
+                                          int attenuationHz,
+                                          int oscPort)
 {
     PropertiesFile * props = this->applicationProperties.getUserSettings();
 
     String DeviceValue = props->getValue("AlsaOutputDevice", "");
-    int    BufferValue = props->getIntValue("BufferValue", 1024);
-    int    RateValue = props->getIntValue("RateValue", 48000);
-    int    OscInputPort = props->getIntValue("OscInputPort", 18032);
+    int BufferValue = props->getIntValue("BufferValue", 1024);
+    int RateValue = props->getIntValue("RateValue", 48000);
+    int OscInputPort = props->getIntValue("OscInputPort", 18032);
 
     if (std::isnan(float(BufferValue)) || BufferValue == 0) {
         BufferValue = 1024;
@@ -2258,7 +2302,8 @@ void MainContentComponent::saveProperties(String device,
 
     if (device.compare(DeviceValue) != 0 || rate != RateValue || buff != BufferValue) {
         AlertWindow alert("You Need to Restart SpatGRIS!",
-                          "New settings will be effective on next launch of the SpatGRIS.", AlertWindow::InfoIcon);
+                          "New settings will be effective on next launch of the SpatGRIS.",
+                          AlertWindow::InfoIcon);
         alert.setLookAndFeel(&mGrisFeel);
         alert.addButton("Cancel", 0);
         alert.addButton("Ok", 1, KeyPress(KeyPress::returnKey));
@@ -2339,7 +2384,8 @@ void MainContentComponent::timerCallback()
             if (this->jackClient->getRecordFileConfig()) {
                 this->jackClient->processBlockOn = false;
                 AudioRenderer * renderer = new AudioRenderer();
-                renderer->prepareRecording(this->jackClient->getRecordingPath(), this->jackClient->outputFilenames,
+                renderer->prepareRecording(this->jackClient->getRecordingPath(),
+                                           this->jackClient->outputFilenames,
                                            this->jackClient->sampleRate);
                 renderer->runThread();
                 this->jackClient->processBlockOn = true;
@@ -2585,7 +2631,9 @@ void MainContentComponent::resized()
     // Lay out side-by-side and resize the components' heights as well as widths.
     this->verticalLayout.layOutComponents(vcomps, 3, r.getX(), r.getY(), r.getWidth(), r.getHeight(), false, true);
 
-    this->boxMainUI->setBounds(this->speakerView->getWidth() + 6, 20, getWidth() - (this->speakerView->getWidth() + 10),
+    this->boxMainUI->setBounds(this->speakerView->getWidth() + 6,
+                               20,
+                               getWidth() - (this->speakerView->getWidth() + 10),
                                getHeight());
     this->boxMainUI->correctSize(getWidth() - this->speakerView->getWidth() - 6, 610);
 

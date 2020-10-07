@@ -32,21 +32,21 @@ class PropertiesComponent final
 {
 public:
     PropertiesComponent(MainContentComponent & parent,
-                        GrisLookAndFeel &      lookAndFeel,
-                        Array<String> const &  devices,
-                        String const &         currentDevice,
-                        int                    indR,
-                        int                    indB,
-                        int                    indFF,
-                        int                    indFC,
-                        int                    indAttDB,
-                        int                    indAttHz,
-                        int                    oscPort);
+                        GrisLookAndFeel & lookAndFeel,
+                        Array<String> const & devices,
+                        String const & currentDevice,
+                        int indR,
+                        int indB,
+                        int indFF,
+                        int indFC,
+                        int indAttDB,
+                        int indAttHz,
+                        int oscPort);
     ~PropertiesComponent() final = default;
     //==============================================================================
-    Label *      createPropLabel(juce::String const & lab, Justification::Flags just, int ypos, int width = 100);
+    Label * createPropLabel(juce::String const & lab, Justification::Flags just, int ypos, int width = 100);
     TextEditor * createPropIntTextEditor(juce::String const & tooltip, int ypos, int init);
-    ComboBox *   createPropComboBox(juce::StringArray const & choices, int selected, int ypos);
+    ComboBox * createPropComboBox(juce::StringArray const & choices, int selected, int ypos);
 
     void buttonClicked(Button * button);
     void closeButtonPressed();
@@ -54,35 +54,35 @@ public:
 private:
     //==============================================================================
     MainContentComponent & mainContentComponent;
-    GrisLookAndFeel &      grisFeel;
+    GrisLookAndFeel & grisFeel;
 
     std::unique_ptr<juce::Label> generalLabel;
     std::unique_ptr<juce::Label> jackSettingsLabel;
     std::unique_ptr<juce::Label> recordingLabel;
     std::unique_ptr<juce::Label> cubeDistanceLabel;
 
-    std::unique_ptr<juce::Label>      labOSCInPort;
+    std::unique_ptr<juce::Label> labOSCInPort;
     std::unique_ptr<juce::TextEditor> tedOSCInPort;
 
-    std::unique_ptr<juce::Label>    labDevice;
+    std::unique_ptr<juce::Label> labDevice;
     std::unique_ptr<juce::ComboBox> cobDevice;
 
-    std::unique_ptr<juce::Label>    labRate;
+    std::unique_ptr<juce::Label> labRate;
     std::unique_ptr<juce::ComboBox> cobRate;
 
-    std::unique_ptr<juce::Label>    labBuff;
+    std::unique_ptr<juce::Label> labBuff;
     std::unique_ptr<juce::ComboBox> cobBuffer;
 
-    std::unique_ptr<juce::Label>    labRecFormat;
+    std::unique_ptr<juce::Label> labRecFormat;
     std::unique_ptr<juce::ComboBox> recordFormat;
 
-    std::unique_ptr<juce::Label>    labRecFileConfig;
+    std::unique_ptr<juce::Label> labRecFileConfig;
     std::unique_ptr<juce::ComboBox> recordFileConfig;
 
-    std::unique_ptr<juce::Label>    labDistanceDB;
+    std::unique_ptr<juce::Label> labDistanceDB;
     std::unique_ptr<juce::ComboBox> cobDistanceDB;
 
-    std::unique_ptr<juce::Label>    labDistanceCutoff;
+    std::unique_ptr<juce::Label> labDistanceCutoff;
     std::unique_ptr<juce::ComboBox> cobDistanceCutoff;
 
     std::unique_ptr<juce::TextButton> butValidSettings;
@@ -94,21 +94,21 @@ private:
 class PropertiesWindow final : public juce::DocumentWindow
 {
     MainContentComponent & mainContentComponent;
-    PropertiesComponent    propertiesComponent;
+    PropertiesComponent propertiesComponent;
 
 public:
     //==============================================================================
     PropertiesWindow(MainContentComponent & parent,
-                     GrisLookAndFeel &      feel,
-                     Array<String> const &  devices,
-                     String const &         currentDevice,
-                     int                    indR = 0,
-                     int                    indB = 0,
-                     int                    indFF = 0,
-                     int                    indFC = 0,
-                     int                    indAttDB = 2,
-                     int                    indAttHz = 3,
-                     int                    oscPort = 18032);
+                     GrisLookAndFeel & feel,
+                     Array<String> const & devices,
+                     String const & currentDevice,
+                     int indR = 0,
+                     int indB = 0,
+                     int indFF = 0,
+                     int indFC = 0,
+                     int indAttDB = 2,
+                     int indAttHz = 3,
+                     int oscPort = 18032);
     ~PropertiesWindow() final = default;
     //==============================================================================
     void closeButtonPressed() final;

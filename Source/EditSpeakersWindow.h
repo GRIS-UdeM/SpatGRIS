@@ -40,10 +40,10 @@ public:
     friend EditableTextCustomComponent; // TODO: temporary solution whiling refactoring is going on...
     //==============================================================================
     // DEFAULTS
-    EditSpeakersWindow(juce::String const &   name,
-                       GrisLookAndFeel &      lookAndFeel,
+    EditSpeakersWindow(juce::String const & name,
+                       GrisLookAndFeel & lookAndFeel,
                        MainContentComponent & mainContentComponent,
-                       juce::String const &   configName);
+                       juce::String const & configName);
     ~EditSpeakersWindow() final = default;
 
     void initComp();
@@ -52,8 +52,8 @@ public:
 
 private:
     //==============================================================================
-    int          getModeSelected() const;
-    bool         getDirectOutForSpeakerRow(int row) const;
+    int getModeSelected() const;
+    bool getDirectOutForSpeakerRow(int row) const;
     juce::String getText(int columnNumber, int rowNumber) const;
 
     void setText(int columnNumber, int rowNumber, String const & newText, bool altDown = false);
@@ -71,38 +71,38 @@ private:
     void paintRowBackground(Graphics & g, int rowNumber, int width, int height, bool rowIsSelected) final;
     void paintCell(Graphics & g, int rowNumber, int columnId, int width, int height, bool rowIsSelected) final;
 
-    Component * refreshComponentForCell(int         rowNumber,
-                                        int         columnId,
-                                        bool        isRowSelected,
+    Component * refreshComponentForCell(int rowNumber,
+                                        int columnId,
+                                        bool isRowSelected,
                                         Component * existingComponentToUpdate) final;
 
 private:
     //==============================================================================
     MainContentComponent & mainContentComponent;
-    GrisLookAndFeel &      grisFeel;
+    GrisLookAndFeel & grisFeel;
 
     Box boxListSpeaker;
 
     juce::TextButton butAddSpeaker;
     juce::TextButton butcompSpeakers;
 
-    juce::Label      rNumOfSpeakersLabel;
+    juce::Label rNumOfSpeakersLabel;
     juce::TextEditor rNumOfSpeakers;
-    juce::Label      rZenithLabel;
+    juce::Label rZenithLabel;
     juce::TextEditor rZenith;
-    juce::Label      rRadiusLabel;
+    juce::Label rRadiusLabel;
     juce::TextEditor rRadius;
-    juce::Label      rOffsetAngleLabel;
+    juce::Label rOffsetAngleLabel;
     juce::TextEditor rOffsetAngle;
     juce::TextButton butAddRing;
 
     juce::ToggleButton pinkNoise;
-    juce::Slider       pinkNoiseGain;
+    juce::Slider pinkNoiseGain;
 
     juce::TableListBox tableListSpeakers;
-    juce::Font         font;
+    juce::Font font;
 
-    int  numRows;
+    int numRows;
     bool initialized{ false };
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EditSpeakersWindow);

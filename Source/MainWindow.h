@@ -32,8 +32,7 @@
 class MainWindow final : public DocumentWindow
 {
 public:
-    enum CommandIDs
-    {
+    enum CommandIDs {
         // File menu
         NewPresetID = 1000,
         OpenPresetID = 1001,
@@ -89,7 +88,7 @@ public:
 private:
     //==============================================================================
     std::unique_ptr<MainContentComponent> mcc{};
-    juce::ApplicationCommandManager       applicationCommandManager{};
+    juce::ApplicationCommandManager applicationCommandManager{};
     //=============================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainWindow)
 };

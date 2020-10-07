@@ -22,19 +22,19 @@
 
 // Macros
 #ifndef M_PI
-#define M_PI (3.14159265358979323846264338327950288)
+    #define M_PI (3.14159265358979323846264338327950288)
 #endif
 
 #ifndef M2_PI
-#define M2_PI (6.28318530717958647692528676655900577)
+    #define M2_PI (6.28318530717958647692528676655900577)
 #endif
 
 #ifndef M_PI2
-#define M_PI2 (1.57079632679489661923132169163975143)
+    #define M_PI2 (1.57079632679489661923132169163975143)
 #endif
 
 #ifndef M_PI4
-#define M_PI4 (0.785398163397448309615660845819875720)
+    #define M_PI4 (0.785398163397448309615660845819875720)
 #endif
 
 #define STRING2(x) #x
@@ -110,17 +110,17 @@ public:
 
     // Menubar methods.
     juce::StringArray getMenuBarNames() final;
-    juce::PopupMenu   getMenuForIndex(int menuIndex, const String & /*menuName*/) final;
+    juce::PopupMenu getMenuForIndex(int menuIndex, const String & /*menuName*/) final;
 
     void menuItemSelected(int menuItemID, int /*topLevelMenuIndex*/) final;
 
     // Speakers.
-    juce::OwnedArray<Speaker> &       getListSpeaker() { return this->listSpeaker; }
+    juce::OwnedArray<Speaker> & getListSpeaker() { return this->listSpeaker; }
     juce::OwnedArray<Speaker> const & getListSpeaker() const { return this->listSpeaker; }
 
     std::mutex & getLockSpeakers() { return this->lockSpeakers; }
 
-    Speaker *       getSpeakerFromOutputPatch(int out);
+    Speaker * getSpeakerFromOutputPatch(int out);
     Speaker const * getSpeakerFromOutputPatch(int out) const;
 
     void addSpeaker(int sortColumnId = 1, bool isSortedForwards = true);
@@ -129,11 +129,11 @@ public:
     void setDirectOut(int id, int chn);
     void reorderSpeakers(std::vector<int> const & newOrder);
     void resetSpeakerIds();
-    int  getMaxSpeakerId() const;
-    int  getMaxSpeakerOutputPatch() const;
+    int getMaxSpeakerId() const;
+    int getMaxSpeakerOutputPatch() const;
 
     // Sources.
-    juce::OwnedArray<Input> &       getListSourceInput() { return this->listSourceInput; }
+    juce::OwnedArray<Input> & getListSourceInput() { return this->listSourceInput; }
     juce::OwnedArray<Input> const & getListSourceInput() const { return this->listSourceInput; }
 
     std::mutex & getLockInputs() { return this->lockInputs; }
@@ -142,12 +142,12 @@ public:
     bool isRadiusNormalized() const;
 
     // Jack clients.
-    JackClientGris *       getJackClient() { return this->jackClient.get(); }
+    JackClientGris * getJackClient() { return this->jackClient.get(); }
     JackClientGris const * getJackClient() const { return this->jackClient.get(); }
 
     std::mutex & getLockClients() { return this->jackClient->lockListClient; }
 
-    std::vector<Client> &       getListClientjack() { return this->jackClient->listClient; }
+    std::vector<Client> & getListClientjack() { return this->jackClient->listClient; }
     std::vector<Client> const & getListClientjack() const { return this->jackClient->listClient; }
 
     void connectionClientJack(juce::String nameCli, bool conn = true);
@@ -156,7 +156,7 @@ public:
     void setListTripletFromVbap();
     void clearListTriplet() { this->listTriplet.clear(); }
 
-    std::vector<Triplet> &       getListTriplet() { return this->listTriplet; }
+    std::vector<Triplet> & getListTriplet() { return this->listTriplet; }
     std::vector<Triplet> const & getListTriplet() const { return this->listTriplet; }
 
     // Speaker selections.
@@ -208,13 +208,13 @@ public:
     void savePreset(juce::String path);
     void saveSpeakerSetup(juce::String path);
     void saveProperties(String device,
-                        int    rate,
-                        int    buff,
-                        int    fileformat,
-                        int    fileconfig,
-                        int    attenuationDB,
-                        int    attenuationHz,
-                        int    oscPort);
+                        int rate,
+                        int buff,
+                        int fileformat,
+                        int fileconfig,
+                        int attenuationDB,
+                        int attenuationHz,
+                        int oscPort);
     void chooseRecordingPath();
     void setNameConfig();
     void setTitle();
@@ -255,11 +255,11 @@ public:
     void setOscLogging(const OSCMessage & message);
     //==============================================================================
     // App user settings.
-    int          oscInputPort = 18032;
+    int oscInputPort = 18032;
     unsigned int samplingRate = 48000;
 
     ApplicationProperties applicationProperties;
-    juce::Rectangle<int>  flatViewWindowRect;
+    juce::Rectangle<int> flatViewWindowRect;
 
     // Visual flags.
     bool isSourceLevelShown;
@@ -273,20 +273,20 @@ public:
     bool needToComputeVbap = true;
     //==============================================================================
     // Widget creation helper.
-    juce::TextEditor * addTextEditor(String const &       s,
+    juce::TextEditor * addTextEditor(String const & s,
                                      juce::String const & emptyS,
                                      juce::String const & stooltip,
-                                     int                  x,
-                                     int                  y,
-                                     int                  w,
-                                     int                  h,
-                                     juce::Component *    into,
-                                     int                  wLab = 80);
+                                     int x,
+                                     int y,
+                                     int w,
+                                     int h,
+                                     juce::Component * into,
+                                     int wLab = 80);
 
 private:
     //==============================================================================
     // Look-and-feel.
-    GrisLookAndFeel      mGrisFeel;
+    GrisLookAndFeel mGrisFeel;
     SmallGrisLookAndFeel mSmallTextGrisFeel;
 
     MainWindow & parent;
@@ -294,25 +294,25 @@ private:
     std::unique_ptr<MenuBarComponent> menuBar;
 
     // Widget creation helpers.
-    Label *        addLabel(const String & s, const String & stooltip, int x, int y, int w, int h, Component * into);
-    TextButton *   addButton(const String & s, const String & stooltip, int x, int y, int w, int h, Component * into);
+    Label * addLabel(const String & s, const String & stooltip, int x, int y, int w, int h, Component * into);
+    TextButton * addButton(const String & s, const String & stooltip, int x, int y, int w, int h, Component * into);
     ToggleButton * addToggleButton(const String & s,
                                    const String & stooltip,
-                                   int            x,
-                                   int            y,
-                                   int            w,
-                                   int            h,
-                                   Component *    into,
-                                   bool           toggle = false);
-    Slider *       addSlider(const String & s, const String & stooltip, int x, int y, int w, int h, Component * into);
-    ComboBox *     addComboBox(const String & s, const String & stooltip, int x, int y, int w, int h, Component * into);
+                                   int x,
+                                   int y,
+                                   int w,
+                                   int h,
+                                   Component * into,
+                                   bool toggle = false);
+    Slider * addSlider(const String & s, const String & stooltip, int x, int y, int w, int h, Component * into);
+    ComboBox * addComboBox(const String & s, const String & stooltip, int x, int y, int w, int h, Component * into);
 
     // Jack server - client.
     std::unique_ptr<JackServerGris> jackServer;
     std::unique_ptr<JackClientGris> jackClient;
 
     // Speakers.
-    std::vector<Triplet>      listTriplet{};
+    std::vector<Triplet> listTriplet{};
     juce::OwnedArray<Speaker> listSpeaker{};
 
     std::mutex lockSpeakers{};
@@ -332,15 +332,15 @@ private:
     juce::String pathCurrentPreset;
 
     // Alsa output device
-    juce::String              alsaOutputDevice;
+    juce::String alsaOutputDevice;
     juce::Array<juce::String> alsaAvailableOutputDevices;
 
     // Windows.
     std::unique_ptr<EditSpeakersWindow> winSpeakConfig;
-    std::unique_ptr<PropertiesWindow>   windowProperties;
-    std::unique_ptr<FlatViewWindow>     flatViewWindowSource;
-    std::unique_ptr<AboutWindow>        aboutWindow;
-    std::unique_ptr<OscLogWindow>       oscLogWindow;
+    std::unique_ptr<PropertiesWindow> windowProperties;
+    std::unique_ptr<FlatViewWindow> flatViewWindowSource;
+    std::unique_ptr<AboutWindow> aboutWindow;
+    std::unique_ptr<OscLogWindow> oscLogWindow;
 
     // 3 Main Boxes.
     std::unique_ptr<Box> boxMainUI;
@@ -362,17 +362,17 @@ private:
 
     std::unique_ptr<juce::TextEditor> tedAddInputs;
 
-    std::unique_ptr<juce::Label>             labelAllClients;
+    std::unique_ptr<juce::Label> labelAllClients;
     std::unique_ptr<JackClientListComponent> jackClientListComponentJack;
 
     std::unique_ptr<juce::TextButton> butStartRecord;
     std::unique_ptr<juce::TextEditor> tedMinRecord;
-    std::unique_ptr<juce::Label>      labelTimeRecorded;
+    std::unique_ptr<juce::Label> labelTimeRecorded;
     std::unique_ptr<juce::TextButton> butInitRecord;
 
     // UI Components.
-    std::unique_ptr<SpeakerViewComponent>              speakerView;
-    juce::StretchableLayoutManager                     verticalLayout;
+    std::unique_ptr<SpeakerViewComponent> speakerView;
+    juce::StretchableLayoutManager verticalLayout;
     std::unique_ptr<juce::StretchableLayoutResizerBar> verticalDividerBar;
 
     // App splash screen.

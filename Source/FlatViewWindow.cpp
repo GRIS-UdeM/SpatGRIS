@@ -164,11 +164,26 @@ void FlatViewWindow::paint(Graphics & g)
     g.setFont(this->grisFeel.getFont());
     g.setColour(this->grisFeel.getLightColour());
     g.drawText("0", fieldCenter, 10, SourceDiameter, SourceDiameter, Justification(Justification::centred), false);
-    g.drawText("90", realW - 10, (fieldWH - 4) / 2.0f, SourceDiameter, SourceDiameter,
-               Justification(Justification::centred), false);
-    g.drawText("180", fieldCenter, realW - 6, SourceDiameter, SourceDiameter, Justification(Justification::centred),
+    g.drawText("90",
+               realW - 10,
+               (fieldWH - 4) / 2.0f,
+               SourceDiameter,
+               SourceDiameter,
+               Justification(Justification::centred),
                false);
-    g.drawText("270", 14, (fieldWH - 4) / 2.0f, SourceDiameter, SourceDiameter, Justification(Justification::centred),
+    g.drawText("180",
+               fieldCenter,
+               realW - 6,
+               SourceDiameter,
+               SourceDiameter,
+               Justification(Justification::centred),
+               false);
+    g.drawText("270",
+               14,
+               (fieldWH - 4) / 2.0f,
+               SourceDiameter,
+               SourceDiameter,
+               Justification(Justification::centred),
                false);
 
     // Draw sources.
@@ -187,8 +202,8 @@ void FlatViewWindow::paint(Graphics & g)
 void FlatViewWindow::drawSource(Graphics & g, Input * it, const int fieldWH) const
 {
     const int realW = (fieldWH - SourceDiameter);
-    String    stringVal;
-    FPoint    sourceP;
+    String stringVal;
+    FPoint sourceP;
     if (this->mainParent.getModeSelected() == LBAP) {
         sourceP = FPoint(it->getCenter().z * 0.6f, it->getCenter().x * 0.6f) / 5.0f;
     } else {
@@ -208,10 +223,20 @@ void FlatViewWindow::drawSource(Graphics & g, Input * it, const int fieldWH) con
     g.setColour(Colours::black.withAlpha(it->getAlpha()));
     int tx = sourceP.x;
     int ty = sourceP.y;
-    g.drawText(stringVal, tx + 6, ty + 1, SourceDiameter + 10, SourceDiameter,
-               Justification(Justification::centredLeft), false);
+    g.drawText(stringVal,
+               tx + 6,
+               ty + 1,
+               SourceDiameter + 10,
+               SourceDiameter,
+               Justification(Justification::centredLeft),
+               false);
     g.setColour(Colours::white.withAlpha(it->getAlpha()));
-    g.drawText(stringVal, tx + 5, ty, SourceDiameter + 10, SourceDiameter, Justification(Justification::centredLeft),
+    g.drawText(stringVal,
+               tx + 5,
+               ty,
+               SourceDiameter + 10,
+               SourceDiameter,
+               Justification(Justification::centredLeft),
                false);
 }
 
@@ -228,7 +253,7 @@ void FlatViewWindow::drawSourceSpan(Graphics & g, Input * it, const int fieldWH,
     }
 
     if (this->mainParent.getModeSelected() == LBAP) {
-        int   realW = (fieldWH - SourceDiameter);
+        int realW = (fieldWH - SourceDiameter);
         float azimuthSpan = fieldWH * (it->getAziMuthSpan() * 0.5f);
         float halfAzimuthSpan = azimuthSpan / 2.0f - SourceRadius;
 
@@ -275,20 +300,39 @@ void FlatViewWindow::drawSourceSpan(Graphics & g, Input * it, const int fieldWH,
         Path myPath;
         myPath.startNewSubPath(fieldCenter + screenMaxElev.x, fieldCenter + screenMaxElev.y);
         // Half first arc center.
-        myPath.addCentredArc(fieldCenter, fieldCenter, minRadius, minRadius, 0.0, DegreeToRadian(-HRAzim),
+        myPath.addCentredArc(fieldCenter,
+                             fieldCenter,
+                             minRadius,
+                             minRadius,
+                             0.0,
+                             DegreeToRadian(-HRAzim),
                              DegreeToRadian(-HRAzim + HRAzimSpan / 2));
 
         // If we are over the top of the dome we draw the adjacent angle.
         if (maxElev.getY() > 90.f) {
-            myPath.addCentredArc(fieldCenter, fieldCenter, maxRadius, maxRadius, 0.0,
+            myPath.addCentredArc(fieldCenter,
+                                 fieldCenter,
+                                 maxRadius,
+                                 maxRadius,
+                                 0.0,
                                  M_PI + DegreeToRadian(-HRAzim + HRAzimSpan / 2),
                                  M_PI + DegreeToRadian(-HRAzim - HRAzimSpan / 2));
         } else {
-            myPath.addCentredArc(fieldCenter, fieldCenter, maxRadius, maxRadius, 0.0,
-                                 DegreeToRadian(-HRAzim + HRAzimSpan / 2), DegreeToRadian(-HRAzim - HRAzimSpan / 2));
+            myPath.addCentredArc(fieldCenter,
+                                 fieldCenter,
+                                 maxRadius,
+                                 maxRadius,
+                                 0.0,
+                                 DegreeToRadian(-HRAzim + HRAzimSpan / 2),
+                                 DegreeToRadian(-HRAzim - HRAzimSpan / 2));
         }
-        myPath.addCentredArc(fieldCenter, fieldCenter, minRadius, minRadius, 0.0,
-                             DegreeToRadian(-HRAzim - HRAzimSpan / 2), DegreeToRadian(-HRAzim));
+        myPath.addCentredArc(fieldCenter,
+                             fieldCenter,
+                             minRadius,
+                             minRadius,
+                             0.0,
+                             DegreeToRadian(-HRAzim - HRAzimSpan / 2),
+                             DegreeToRadian(-HRAzim));
 
         myPath.closeSubPath();
 

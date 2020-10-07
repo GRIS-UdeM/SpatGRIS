@@ -23,12 +23,15 @@
 #include "MainComponent.h"
 
 //==============================================================================
-OscLogWindow::OscLogWindow(juce::String const &   name,
-                           juce::Colour const     backgroundColour,
-                           int const              buttonsNeeded,
+OscLogWindow::OscLogWindow(juce::String const & name,
+                           juce::Colour const backgroundColour,
+                           int const buttonsNeeded,
                            MainContentComponent * parent,
-                           GrisLookAndFeel *      feel)
-    : DocumentWindow(name, backgroundColour, buttonsNeeded), logger(codeDocument, 0), mainParent(parent), grisFeel(feel)
+                           GrisLookAndFeel * feel)
+    : DocumentWindow(name, backgroundColour, buttonsNeeded)
+    , logger(codeDocument, 0)
+    , mainParent(parent)
+    , grisFeel(feel)
 {
     this->index = 0;
     this->activated = true;

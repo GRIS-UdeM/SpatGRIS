@@ -17,18 +17,17 @@
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef RAY_H
-#define RAY_H
+#pragma once
 
+#include "macros.h"
+
+DISABLE_WARNINGS
 #if defined(__linux__)
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glut.h>
 #elif defined(WIN32) || defined(_WIN64)
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glut.h>
-#include <windows.h>
+
 #else
 #include <GLUT/glut.h>
 #include <OpenGL/gl.h>
@@ -36,6 +35,7 @@
 #endif
 
 #include "../glm/glm.hpp"
+ENABLE_WARNINGS
 
 //==============================================================================
 class Ray
@@ -71,5 +71,3 @@ private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Ray);
 };
-
-#endif /* RAY_H */

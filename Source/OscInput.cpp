@@ -60,9 +60,13 @@ void OscInput::oscMessageReceived(const OSCMessage & message)
             this->mainContentComponent.getLockInputs().lock();
             if (this->mainContentComponent.getListSourceInput().size() > idS) {
                 this->mainContentComponent.getListSourceInput()[idS]->updateValues(
-                    message[1].getFloat32(), message[2].getFloat32(), message[3].getFloat32(), message[4].getFloat32(),
+                    message[1].getFloat32(),
+                    message[2].getFloat32(),
+                    message[3].getFloat32(),
+                    message[4].getFloat32(),
                     this->mainContentComponent.isRadiusNormalized() ? 1.0 : message[5].getFloat32(),
-                    message[6].getFloat32(), this->mainContentComponent.getModeSelected());
+                    message[6].getFloat32(),
+                    this->mainContentComponent.getModeSelected());
                 this->mainContentComponent.updateInputJack(idS, *this->mainContentComponent.getListSourceInput()[idS]);
             }
             this->mainContentComponent.getLockInputs().unlock();
@@ -73,9 +77,11 @@ void OscInput::oscMessageReceived(const OSCMessage & message)
             unsigned int idS = message[0].getInt32();
             this->mainContentComponent.getLockInputs().lock();
             if (this->mainContentComponent.getListSourceInput().size() > idS) {
-                this->mainContentComponent.getListSourceInput()[idS]->updateValuesOld(
-                    message[1].getFloat32(), message[2].getFloat32(), message[3].getFloat32(), message[4].getFloat32(),
-                    message[5].getFloat32());
+                this->mainContentComponent.getListSourceInput()[idS]->updateValuesOld(message[1].getFloat32(),
+                                                                                      message[2].getFloat32(),
+                                                                                      message[3].getFloat32(),
+                                                                                      message[4].getFloat32(),
+                                                                                      message[5].getFloat32());
                 this->mainContentComponent.updateInputJack(idS, *this->mainContentComponent.getListSourceInput()[idS]);
             }
             this->mainContentComponent.getLockInputs().unlock();

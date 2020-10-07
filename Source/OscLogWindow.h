@@ -31,11 +31,11 @@ class OscLogWindow final
     , public juce::TextButton::Listener
 {
 public:
-    OscLogWindow(juce::String const &   name,
-                 juce::Colour           backgroundColour,
-                 int                    buttonsNeeded,
+    OscLogWindow(juce::String const & name,
+                 juce::Colour backgroundColour,
+                 int buttonsNeeded,
                  MainContentComponent * parent,
-                 GrisLookAndFeel *      feel);
+                 GrisLookAndFeel * feel);
     ~OscLogWindow() final;
     //==============================================================================
     void buttonClicked(juce::Button * button) final;
@@ -45,15 +45,15 @@ public:
 private:
     //==============================================================================
     MainContentComponent * mainParent;
-    GrisLookAndFeel *      grisFeel;
+    GrisLookAndFeel * grisFeel;
 
-    int  index;
+    int index;
     bool activated;
 
-    juce::CodeDocument        codeDocument;
+    juce::CodeDocument codeDocument;
     juce::CodeEditorComponent logger;
-    juce::TextButton          stop;
-    juce::TextButton          close;
+    juce::TextButton stop;
+    juce::TextButton close;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OscLogWindow);
 };

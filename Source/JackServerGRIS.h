@@ -22,11 +22,15 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
-#include <jack/control.h>
-#include <jack/jack.h>
-#include <jack/session.h>
-#include <jack/transport.h>
-#include <jack/types.h>
+#if USE_JACK
+    #include <jack/control.h>
+    #include <jack/jack.h>
+    #include <jack/session.h>
+    #include <jack/transport.h>
+    #include <jack/types.h>
+#else
+    #include "JackMockup.h"
+#endif
 
 //==============================================================================
 class JackServerGris
@@ -34,8 +38,8 @@ class JackServerGris
 public:
     JackServerGris(unsigned int rateV = 48000,
                    unsigned int periodV = 1024,
-                   String       alsaOutputDevice = String(),
-                   int *        errorCode = nullptr);
+                   String alsaOutputDevice = String(),
+                   int * errorCode = nullptr);
     ~JackServerGris();
     //==============================================================================
     // Only effective with alsa driver.
