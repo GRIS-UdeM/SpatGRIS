@@ -24,26 +24,26 @@
 
 extern const char * DeviceName;
 extern const char * ClientName;
-extern const char * DriverNameSys;
+extern const char * driverNameSys;
 extern const char * ClientNameSys;
 extern const char * ClientNameIgnor;
 
-extern const juce::String SplashScreenFilePath;
-extern const juce::String DefaultPresetFilePath;
-extern const juce::String DefaultPresetDirectoryPath;
-extern const juce::String DefaultSpeakerSetupFilePath;
-extern const juce::String BinauralSpeakerSetupFilePath;
-extern const juce::String StereoSpeakerSetupFilePath;
-extern const juce::String ServerGrisManualFilePath;
-extern const juce::String ServerGrisIconSmallFilePath;
+extern const juce::File SPLASH_SCREEN_FILE;
+extern const juce::File DEFAULT_PRESET_FILE;
+extern const juce::File DEFAULT_PRESET_DIRECTORY;
+extern const juce::File DEFAULT_SPEAKER_SETUP_FILE;
+extern const juce::File BINAURAL_SPEAKER_SETUP_FILE;
+extern const juce::File STEREO_SPEAKER_SETUP_FILE;
+extern const juce::File SERVER_GRIS_MANUAL_FILE;
+extern const juce::File SERVER_GRIS_ICON_SMALL_FILE;
 
-extern const juce::String HRTFFolder0Path;
-extern const juce::String HRTFFolder40Path;
-extern const juce::String HRTFFolder80Path;
+extern const juce::File HRTF_FOLDER_0;
+extern const juce::File HRTF_FOLDER_40;
+extern const juce::File HRTF_FOLDER_80;
 
 extern const juce::StringArray ModeSpatString;
 
-extern const bool UseOSNativeDialogBox;
+extern const bool USE_OS_NATIVE_DIALOG_BOX;
 
 extern const juce::StringArray BufferSizes;
 extern const juce::StringArray RateValues;

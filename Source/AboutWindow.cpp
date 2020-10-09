@@ -27,7 +27,7 @@ AboutComponent::AboutComponent(AboutWindow & aboutWindow, GrisLookAndFeel & look
 {
     this->setSize(400, 500);
 
-    juce::File fs{ ServerGrisIconSmallFilePath };
+    juce::File fs{ SERVER_GRIS_ICON_SMALL_FILE };
     if (fs.exists()) {
         juce::Image img = juce::ImageFileFormat::loadFrom(fs);
         this->mLogoImage.setImage(img);

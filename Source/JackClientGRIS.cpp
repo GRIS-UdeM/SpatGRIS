@@ -785,12 +785,11 @@ void port_connect_callback(jack_port_id_t a, jack_port_id_t b, int connect, void
 
 //==============================================================================
 // Load samples from a wav file into a float array.
-static float ** getSamplesFromWavFile(String filename)
+static float ** getSamplesFromWavFile(File const & file)
 {
     float const factor = powf(2.0f, 31.0f);
 
     WavAudioFormat wavAudioFormat{};
-    File const file = File(filename);
     std::unique_ptr<AudioFormatReader> audioFormatReader{
         wavAudioFormat.createReaderFor(file.createInputStream().release(), true)
     };
@@ -844,7 +843,8 @@ JackClientGris::JackClientGris()
                          "H0e155a.wav", "H0e160a.wav", "H0e115a.wav", "H0e070a.wav" };
     int reverse0[8] = { 1, 0, 0, 0, 0, 1, 1, 1 };
     for (int i = 0; i < 8; i++) {
-        stbuf = getSamplesFromWavFile(HRTFFolder0Path + names0[i]);
+        auto const file{ HRTF_FOLDER_0.getChildFile(names0[i]) };
+        stbuf = getSamplesFromWavFile(file);
         for (int k = 0; k < 128; k++) {
             this->vbap_hrtf_left_impulses[i][k] = stbuf[reverse0[i]][k];
             this->vbap_hrtf_right_impulses[i][k] = stbuf[1 - reverse0[i]][k];
@@ -855,7 +855,8 @@ JackClientGris::JackClientGris()
         = { "H40e032a.wav", "H40e026a.wav", "H40e084a.wav", "H40e148a.wav", "H40e154a.wav", "H40e090a.wav" };
     int reverse40[6] = { 1, 0, 0, 0, 1, 1 };
     for (int i = 0; i < 6; i++) {
-        stbuf = getSamplesFromWavFile(HRTFFolder40Path + names40[i]);
+        auto const file{ HRTF_FOLDER_40.getChildFile(names40[i]) };
+        stbuf = getSamplesFromWavFile(file);
         for (int k = 0; k < 128; k++) {
             this->vbap_hrtf_left_impulses[i + 8][k] = stbuf[reverse40[i]][k];
             this->vbap_hrtf_right_impulses[i + 8][k] = stbuf[1 - reverse40[i]][k];
@@ -863,7 +864,8 @@ JackClientGris::JackClientGris()
     }
     // Azimuth = 80
     for (int i = 0; i < 2; i++) {
-        stbuf = getSamplesFromWavFile(HRTFFolder80Path + "H80e090a.wav");
+        auto const file{ HRTF_FOLDER_80.getChildFile("H80e090a.wav") };
+        stbuf = getSamplesFromWavFile(file);
         for (int k = 0; k < 128; k++) {
             this->vbap_hrtf_left_impulses[i + 14][k] = stbuf[1 - i][k];
             this->vbap_hrtf_right_impulses[i + 14][k] = stbuf[i][k];
@@ -917,11 +919,11 @@ JackClientGris::JackClientGris()
     jack_client_log("\nStart Jack Client\n");
     jack_client_log("=================\n");
 
-    this->client = jackClientOpen(ClientName, options, &status, DriverNameSys);
+    this->client = jackClientOpen(ClientName, options, &status, driverNameSys);
     if (this->client == NULL) {
         jack_client_log("\nTry again...\n");
         options = JackServerName;
-        this->client = jackClientOpen(ClientName, options, &status, DriverNameSys);
+        this->client = jackClientOpen(ClientName, options, &status, driverNameSys);
         if (this->client == NULL) {
             jack_client_log("\n\n jack_client_open() failed, status = 0x%2.0x\n", status);
             if (status & JackServerFailed) {

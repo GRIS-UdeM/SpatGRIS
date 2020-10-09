@@ -59,7 +59,6 @@ typedef uint32_t jack_nframes_t;
 typedef uint64_t jack_time_t;
 typedef jack_uuid_t jack_intclient_t;
 typedef struct _jack_port jack_port_t;
-typedef struct _jack_client jack_client_t;
 typedef uint32_t jack_port_id_t;
 typedef pthread_t jack_native_thread_t;
 typedef enum JackOptions jack_options_t;
@@ -90,6 +89,9 @@ typedef struct jackctl_internal jackctl_internal_t;
 typedef struct jackctl_parameter jackctl_parameter_t;
 
 struct jackctl_server_t {
+};
+
+struct jack_client_t {
 };
 
 struct jack_session_event_t {

@@ -156,7 +156,7 @@ MainContentComponent::MainContentComponent(MainWindow & parent) : parent(parent)
     this->addAndMakeVisible(menuBar.get());
 
     // Start the Splash screen.
-    File fs = File(SplashScreenFilePath);
+    File fs = File(SPLASH_SCREEN_FILE);
     if (fs.exists()) {
         this->splash.reset(new SplashScreen("SpatGRIS2", ImageFileFormat::loadFrom(fs), true));
     }
@@ -187,7 +187,7 @@ MainContentComponent::MainContentComponent(MainWindow & parent) : parent(parent)
     // Get a reference to the last opened VBAP speaker setup.
     File lastVbap = File(props->getValue("lastVbapSpeakerSetup", "./not_saved_yet"));
     if (!lastVbap.existsAsFile()) {
-        this->pathLastVbapSpeakerSetup = DefaultSpeakerSetupFilePath;
+        this->pathLastVbapSpeakerSetup = DEFAULT_SPEAKER_SETUP_FILE.getFullPathName();
     } else {
         this->pathLastVbapSpeakerSetup = props->getValue("lastVbapSpeakerSetup");
     }
@@ -356,7 +356,7 @@ MainContentComponent::MainContentComponent(MainWindow & parent) : parent(parent)
     // Open the default preset if lastOpenPreset is not a valid file.
     File preset = File(props->getValue("lastOpenPreset", "./not_saved_yet"));
     if (!preset.existsAsFile()) {
-        this->openPreset(DefaultPresetFilePath);
+        this->openPreset(DEFAULT_PRESET_FILE.getFullPathName());
     } else {
         this->openPreset(props->getValue("lastOpenPreset"));
     }
@@ -364,7 +364,7 @@ MainContentComponent::MainContentComponent(MainWindow & parent) : parent(parent)
     // Open the default speaker setup if lastOpenSpeakerSetup is not a valid file.
     File setup = File(props->getValue("lastOpenSpeakerSetup", "./not_saved_yet"));
     if (!setup.existsAsFile()) {
-        this->openXmlFileSpeaker(DefaultSpeakerSetupFilePath);
+        this->openXmlFileSpeaker(DEFAULT_SPEAKER_SETUP_FILE.getFullPathName());
     } else {
         this->openXmlFileSpeaker(props->getValue("lastOpenSpeakerSetup"));
     }
@@ -565,7 +565,7 @@ void MainContentComponent::handleNew()
         return;
     }
 
-    this->openPreset(DefaultPresetFilePath);
+    this->openPreset(DEFAULT_PRESET_FILE.getFullPathName());
 }
 
 //==============================================================================
@@ -577,7 +577,7 @@ void MainContentComponent::handleOpenPreset()
     }
     String filename = File(this->pathCurrentPreset).getFileName();
 
-    FileChooser fc("Choose a file to open...", dir + "/" + filename, "*.xml", UseOSNativeDialogBox);
+    FileChooser fc("Choose a file to open...", dir + "/" + filename, "*.xml", USE_OS_NATIVE_DIALOG_BOX);
 
     bool loaded = false;
     if (fc.browseForFileToOpen()) {
@@ -633,7 +633,7 @@ void MainContentComponent::handleSaveAsPreset()
     }
     String filename = File(this->pathCurrentPreset).getFileName();
 
-    FileChooser fc("Choose a file to save...", dir + "/" + filename, "*.xml", UseOSNativeDialogBox);
+    FileChooser fc("Choose a file to save...", dir + "/" + filename, "*.xml", USE_OS_NATIVE_DIALOG_BOX);
 
     if (fc.browseForFileToSave(true)) {
         String chosen = fc.getResults().getReference(0).getFullPathName();
@@ -650,7 +650,7 @@ void MainContentComponent::handleOpenSpeakerSetup()
     }
     String filename = File(this->pathCurrentFileSpeaker).getFileName();
 
-    FileChooser fc("Choose a file to open...", dir + "/" + filename, "*.xml", UseOSNativeDialogBox);
+    FileChooser fc("Choose a file to open...", dir + "/" + filename, "*.xml", USE_OS_NATIVE_DIALOG_BOX);
 
     if (fc.browseForFileToOpen()) {
         String chosen = fc.getResults().getReference(0).getFullPathName();
@@ -676,7 +676,7 @@ void MainContentComponent::handleSaveAsSpeakerSetup()
     }
     String filename = File(this->pathCurrentFileSpeaker).getFileName();
 
-    FileChooser fc("Choose a file to save...", dir + "/" + filename, "*.xml", UseOSNativeDialogBox);
+    FileChooser fc("Choose a file to save...", dir + "/" + filename, "*.xml", USE_OS_NATIVE_DIALOG_BOX);
 
     if (fc.browseForFileToSave(true)) {
         String chosen = fc.getResults().getReference(0).getFullPathName();
@@ -819,7 +819,7 @@ void MainContentComponent::handleShowAbout()
 //==============================================================================
 void MainContentComponent::handleOpenManual()
 {
-    File fs = File(ServerGrisManualFilePath);
+    File fs = File(SERVER_GRIS_MANUAL_FILE);
     if (fs.exists()) {
         juce::Process::openDocument("file:" + fs.getFullPathName(), String());
     }
@@ -1250,7 +1250,7 @@ bool MainContentComponent::exitApp()
             }
             String filename = File(this->pathCurrentPreset).getFileName();
 
-            FileChooser fc("Choose a file to save...", dir + "/" + filename, "*.xml", UseOSNativeDialogBox);
+            FileChooser fc("Choose a file to save...", dir + "/" + filename, "*.xml", USE_OS_NATIVE_DIALOG_BOX);
 
             if (fc.browseForFileToSave(true)) {
                 String chosen = fc.getResults().getReference(0).getFullPathName();
@@ -1650,7 +1650,7 @@ bool MainContentComponent::updateLevelComp()
             alert.addButton("Yes", 1);
             if (alert.runModalLoop() == 0) {
                 if (this->pathCurrentFileSpeaker.compare(this->pathLastVbapSpeakerSetup) == 0) {
-                    this->openXmlFileSpeaker(DefaultSpeakerSetupFilePath);
+                    this->openXmlFileSpeaker(DEFAULT_SPEAKER_SETUP_FILE.getFullPathName());
                 } else {
                     this->openXmlFileSpeaker(this->pathLastVbapSpeakerSetup);
                 }
@@ -1798,7 +1798,7 @@ bool MainContentComponent::updateLevelComp()
             alert.setLookAndFeel(&mGrisFeel);
             alert.addButton("Ok", 0, KeyPress(KeyPress::returnKey));
             alert.runModalLoop();
-            this->openXmlFileSpeaker(DefaultSpeakerSetupFilePath);
+            this->openXmlFileSpeaker(DEFAULT_SPEAKER_SETUP_FILE.getFullPathName());
             return false;
         }
     } else if (this->jackClient->modeSelected == LBAP) {
@@ -1922,14 +1922,14 @@ void MainContentComponent::openXmlFileSpeaker(String path)
                 this->lockSpeakers.lock();
                 this->listSpeaker.clear();
                 this->lockSpeakers.unlock();
-                if (path.compare(BinauralSpeakerSetupFilePath) == 0) {
+                if (path.compare(BINAURAL_SPEAKER_SETUP_FILE.getFullPathName()) == 0) {
                     this->jackClient->modeSelected = (ModeSpatEnum)(VBAP_HRTF);
                     this->comBoxModeSpat->setSelectedId(VBAP_HRTF + 1, NotificationType::dontSendNotification);
-                } else if (path.compare(StereoSpeakerSetupFilePath) == 0) {
+                } else if (path.compare(STEREO_SPEAKER_SETUP_FILE.getFullPathName()) == 0) {
                     this->jackClient->modeSelected = (ModeSpatEnum)(STEREO);
                     this->comBoxModeSpat->setSelectedId(STEREO + 1, NotificationType::dontSendNotification);
-                } else if (!isNewSameAsOld && oldPath.compare(BinauralSpeakerSetupFilePath) != 0
-                           && oldPath.compare(StereoSpeakerSetupFilePath) != 0) {
+                } else if (!isNewSameAsOld && oldPath.compare(BINAURAL_SPEAKER_SETUP_FILE.getFullPathName()) != 0
+                           && oldPath.compare(STEREO_SPEAKER_SETUP_FILE.getFullPathName()) != 0) {
                     int spatMode = mainXmlElem->getIntAttribute("SpatMode");
                     this->jackClient->modeSelected = (ModeSpatEnum)(spatMode);
                     this->comBoxModeSpat->setSelectedId(spatMode + 1, NotificationType::dontSendNotification);
@@ -2027,14 +2027,14 @@ void MainContentComponent::openXmlFileSpeaker(String path)
         this->needToComputeVbap = true;
         this->updateLevelComp();
         if (this->getJackClient()->modeSelected != VBAP_HRTF && this->getJackClient()->modeSelected != STEREO) {
-            if (this->pathCurrentFileSpeaker.compare(BinauralSpeakerSetupFilePath) != 0
-                && this->pathCurrentFileSpeaker.compare(StereoSpeakerSetupFilePath) != 0) {
+            if (this->pathCurrentFileSpeaker.compare(BINAURAL_SPEAKER_SETUP_FILE.getFullPathName()) != 0
+                && this->pathCurrentFileSpeaker.compare(STEREO_SPEAKER_SETUP_FILE.getFullPathName()) != 0) {
                 this->pathLastVbapSpeakerSetup = this->pathCurrentFileSpeaker;
             }
         }
     } else {
         if (isNewSameAsOld) {
-            this->openXmlFileSpeaker(DefaultSpeakerSetupFilePath);
+            this->openXmlFileSpeaker(DEFAULT_SPEAKER_SETUP_FILE.getFullPathName());
         } else {
             this->openXmlFileSpeaker(oldPath);
         }
@@ -2124,7 +2124,8 @@ void MainContentComponent::openPreset(String path)
 
             File speakerSetup = File(this->pathCurrentFileSpeaker.toStdString());
             if (!this->pathCurrentFileSpeaker.startsWith("/")) {
-                this->pathCurrentFileSpeaker = DefaultPresetDirectoryPath + this->pathCurrentFileSpeaker;
+                this->pathCurrentFileSpeaker
+                    = DEFAULT_PRESET_DIRECTORY.getChildFile(this->pathCurrentFileSpeaker).getFullPathName();
             }
 
             forEachXmlChildElement(*mainXmlElem, input)
@@ -2267,8 +2268,8 @@ void MainContentComponent::saveSpeakerSetup(String path)
     this->needToSaveSpeakerSetup = false;
 
     if (this->getJackClient()->modeSelected != VBAP_HRTF && this->getJackClient()->modeSelected != STEREO) {
-        if (this->pathCurrentFileSpeaker.compare(BinauralSpeakerSetupFilePath) != 0
-            && this->pathCurrentFileSpeaker.compare(StereoSpeakerSetupFilePath) != 0) {
+        if (this->pathCurrentFileSpeaker.compare(BINAURAL_SPEAKER_SETUP_FILE.getFullPathName()) != 0
+            && this->pathCurrentFileSpeaker.compare(STEREO_SPEAKER_SETUP_FILE.getFullPathName()) != 0) {
             this->pathLastVbapSpeakerSetup = this->pathCurrentFileSpeaker;
         }
     }
@@ -2538,13 +2539,13 @@ void MainContentComponent::comboBoxChanged(ComboBox * comboBox)
             this->isSpanShown = true;
             break;
         case VBAP_HRTF:
-            this->openXmlFileSpeaker(BinauralSpeakerSetupFilePath);
+            this->openXmlFileSpeaker(BINAURAL_SPEAKER_SETUP_FILE.getFullPathName());
             this->needToSaveSpeakerSetup = false;
             this->jackClient->resetHRTF();
             this->isSpanShown = false;
             break;
         case STEREO:
-            this->openXmlFileSpeaker(StereoSpeakerSetupFilePath);
+            this->openXmlFileSpeaker(STEREO_SPEAKER_SETUP_FILE.getFullPathName());
             this->needToSaveSpeakerSetup = false;
             this->isSpanShown = false;
             break;
@@ -2606,7 +2607,7 @@ void MainContentComponent::chooseRecordingPath()
         extChoice = "*.aif,*.wav";
     }
 
-    FileChooser fc("Choose a file to save...", dir + "/recording" + extF, extChoice, UseOSNativeDialogBox);
+    FileChooser fc("Choose a file to save...", dir + "/recording" + extF, extChoice, USE_OS_NATIVE_DIALOG_BOX);
 
     if (fc.browseForFileToSave(true)) {
         String filePath = fc.getResults().getReference(0).getFullPathName();

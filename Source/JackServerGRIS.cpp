@@ -155,23 +155,17 @@ JackServerGris::JackServerGris(unsigned int rateV, unsigned int periodV, String 
 {
     this->rateValue = rateV;
     this->periodValue = periodV;
-    const JSList * parameters;
-    const JSList * driverParams;
-    const JSList * drivers;
-    const JSList * internals;
-    const JSList * node_ptr;
 
     this->server = jackctl_server_create(on_device_acquire, on_device_release);
 
     if (this->server) {
-        parameters = jackctl_server_get_parameters(this->server);
+        auto const * parameters = jackctl_server_get_parameters(this->server);
 
-        jackctl_parameter_t * param;
         union jackctl_parameter_value value;
 
         // Turn off Jack verbose mode.
-        param = jackctl_get_parameter(parameters, "verbose");
-        if (param != NULL) {
+        jackctl_parameter_t * param = jackctl_get_parameter(parameters, "verbose");
+        if (param != nullptr) {
             value.b = false;
             jackctl_parameter_set_value(param, &value);
         }
@@ -184,12 +178,12 @@ JackServerGris::JackServerGris(unsigned int rateV, unsigned int periodV, String 
         jack_server_log("\nList of drivers \n");
         jack_server_log("=============== \n");
 
-        drivers = jackctl_server_get_drivers_list(this->server);
-        node_ptr = drivers;
-        while (node_ptr != NULL) {
-            print_driver((jackctl_driver_t *)node_ptr->data);
+        auto const * drivers = jackctl_server_get_drivers_list(this->server);
+        auto const * node_ptr = drivers;
+        while (node_ptr != nullptr) {
+            print_driver(static_cast<jackctl_driver_t *>(node_ptr->data));
 
-            driverParams = jackctl_driver_get_parameters((jackctl_driver_t *)node_ptr->data);
+            auto const * driverParams = jackctl_driver_get_parameters(static_cast<jackctl_driver_t *>(node_ptr->data));
 
 #ifdef __linux__
             // Set output device.
@@ -229,7 +223,7 @@ JackServerGris::JackServerGris(unsigned int rateV, unsigned int periodV, String 
         jack_server_log("\nList of internal clients \n");
         jack_server_log("======================== \n");
 
-        internals = jackctl_server_get_internals_list(this->server);
+        const JSList * internals = jackctl_server_get_internals_list(this->server);
         node_ptr = internals;
         while (node_ptr != NULL) {
             print_internal((jackctl_internal_t *)node_ptr->data);
@@ -239,7 +233,7 @@ JackServerGris::JackServerGris(unsigned int rateV, unsigned int periodV, String 
         jack_server_log("\nStart Jack Server \n");
         jack_server_log("================= \n");
 
-        if (jackctl_server_open(this->server, jackctl_server_get_driver(this->server, DriverNameSys))) {
+        if (jackctl_server_open(this->server, jackctl_server_get_driver(this->server, driverNameSys))) {
             if (jackctl_server_start(this->server)) {
                 jackctl_server_load_internal(this->server, jackctl_server_get_internal(this->server, ClientNameSys));
             } else {

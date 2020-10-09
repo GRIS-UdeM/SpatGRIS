@@ -29,8 +29,8 @@ void jack_session_event_free(jack_session_event_t * event)
 //==============================================================================
 jack_client_t * jackClientOpen(const char * client_name, jack_options_t options, jack_status_t * status, ...)
 {
-    jassertfalse;
-    return nullptr;
+    *status = jack_status_t::JackServerStarted;
+    return AudioManager::getInstance().getDummyJackClient();
 }
 
 //==============================================================================
@@ -43,8 +43,8 @@ int jack_client_close(jack_client_t * client)
 //==============================================================================
 char * jack_get_client_name(jack_client_t * client)
 {
-    jassertfalse;
-    return nullptr;
+    jassert(client == AudioManager::getInstance().getDummyJackClient());
+    return "SpatGRIS2";
 }
 
 //==============================================================================
@@ -223,7 +223,7 @@ void jack_free(void * ptr)
 jackctl_server_t * jackctl_server_create(bool (*on_device_acquire)(const char * device_name),
                                          void (*on_device_release)(const char * device_name))
 {
-    return nullptr;
+    return AudioManager::getInstance().getDummyJackCtlServer();
 }
 
 //==============================================================================
