@@ -203,10 +203,10 @@ int jack_disconnect(jack_client_t *, const char * source_port, const char * dest
 // size_t jack_port_type_get_buffer_size(jack_client_t * client, const char * port_type);
 // void jack_port_set_latency(jack_port_t *, jack_nframes_t);
 // void jack_port_get_latency_range(jack_port_t * port, jack_latency_callback_mode_t mode, jack_latency_range_t *
-// range); void jack_port_set_latency_range(jack_port_t * port, jack_latency_callback_mode_t mode, jack_latency_range_t *
-// range); int jack_recompute_total_latencies(jack_client_t *); jack_nframes_t jack_port_get_latency(jack_port_t * port);
-// jack_nframes_t jack_port_get_total_latency(jack_client_t *, jack_port_t * port);
-// int jack_recompute_total_latency(jack_client_t *, jack_port_t * port);
+// range); void jack_port_set_latency_range(jack_port_t * port, jack_latency_callback_mode_t mode, jack_latency_range_t
+// * range); int jack_recompute_total_latencies(jack_client_t *); jack_nframes_t jack_port_get_latency(jack_port_t *
+// port); jack_nframes_t jack_port_get_total_latency(jack_client_t *, jack_port_t * port); int
+// jack_recompute_total_latency(jack_client_t *, jack_port_t * port);
 const char ** jack_get_ports(jack_client_t *,
                              const char * port_name_pattern,
                              const char * type_name_pattern,

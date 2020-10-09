@@ -61,6 +61,9 @@
         <FILE id="MW5ESG" name="Box.cpp" compile="1" resource="0" file="Source/Box.cpp"/>
         <FILE id="RG3FbE" name="Box.h" compile="0" resource="0" file="Source/Box.h"/>
       </GROUP>
+      <FILE id="S7vdPe" name="AudioManager.cpp" compile="1" resource="0"
+            file="Source/AudioManager.cpp"/>
+      <FILE id="a7tJqo" name="AudioManager.h" compile="0" resource="0" file="Source/AudioManager.h"/>
       <FILE id="uYO3os" name="GrisLookAndFeel.cpp" compile="1" resource="0"
             file="Source/GrisLookAndFeel.cpp"/>
       <FILE id="BVvOrd" name="Input.cpp" compile="1" resource="0" file="Source/Input.cpp"/>

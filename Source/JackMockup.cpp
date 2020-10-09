@@ -1,16 +1,10 @@
-/*
-  ==============================================================================
+#if !USE_JACK
 
-    JackMockup.cpp
-    Created: 7 Oct 2020 1:19:34pm
-    Author:  samue
+    #include "JackMockup.h"
 
-  ==============================================================================
-*/
+    #include <JuceHeader.h>
 
-#include "JackMockup.h"
-
-#include <JuceHeader.h>
+    #include "AudioManager.h"
 
 //==============================================================================
 int jack_set_session_callback(jack_client_t * client, JackSessionCallback session_callback, void * arg)
@@ -229,7 +223,6 @@ void jack_free(void * ptr)
 jackctl_server_t * jackctl_server_create(bool (*on_device_acquire)(const char * device_name),
                                          void (*on_device_release)(const char * device_name))
 {
-    jassertfalse;
     return nullptr;
 }
 
@@ -377,3 +370,5 @@ JSList const * jack_slist_next(JSList const *)
     jassertfalse;
     return nullptr;
 }
+
+#endif
