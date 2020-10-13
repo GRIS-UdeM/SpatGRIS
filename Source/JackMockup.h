@@ -279,3 +279,6 @@ union jackctl_parameter_value jackctl_parameter_get_default_value(jackctl_parame
 
 // JSList / SList
 JSList const * jack_slist_next(JSList const *);
+jackctl_parameter_t * jackctl_get_parameter(const JSList * parameters_list, const char * parameter_name);
+jackctl_driver_t * jackctl_server_get_driver(jackctl_server_t * server, const char * driver_name);
+jackctl_internal_t * jackctl_server_get_internal(jackctl_server_t * server, const char * internal_name);

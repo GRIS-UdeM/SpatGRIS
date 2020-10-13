@@ -27,7 +27,7 @@
 #include "Speaker.h"
 #include "spat/vbap.h"
 
-static bool jack_client_log_print = false;
+static bool jack_client_log_print = true;
 
 //==============================================================================
 // Utilities.
@@ -952,8 +952,8 @@ JackClientGris::JackClientGris()
     sampleRate = jack_get_sample_rate(this->client);
     bufferSize = jack_get_buffer_size(this->client);
 
-    jack_client_log("\nJack engine sample rate: % \n", sampleRate);
-    jack_client_log("Jack engine buffer size: % \n", bufferSize);
+    jack_client_log("\nJack engine sample rate: %d \n", sampleRate);
+    jack_client_log("Jack engine buffer size: %d \n", bufferSize);
 
     // Initialize pink noise
     srand((unsigned int)time(NULL));
@@ -1064,8 +1064,11 @@ void JackClientGris::addRemoveInput(unsigned int number)
         while (number > this->inputsPort.size()) {
             String nameIn = "input";
             nameIn += String(this->inputsPort.size() + 1);
-            jack_port_t * newPort
-                = jack_port_register(this->client, nameIn.toUTF8(), JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
+            jack_port_t * newPort = jack_port_register(this->client,
+                                                       nameIn.toStdString().c_str(),
+                                                       JACK_DEFAULT_AUDIO_TYPE,
+                                                       JackPortIsInput,
+                                                       0);
             this->inputsPort.push_back(newPort);
         }
     }

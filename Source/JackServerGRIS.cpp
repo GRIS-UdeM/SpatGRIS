@@ -70,8 +70,8 @@ static void print_value(union jackctl_parameter_value value, jackctl_param_type_
 //==============================================================================
 static void print_parameters(const JSList * node_ptr)
 {
-    while (node_ptr != NULL) {
-        jackctl_parameter_t * parameter = (jackctl_parameter_t *)node_ptr->data;
+    while (node_ptr != nullptr) {
+        auto * parameter = static_cast<jackctl_parameter_t *>(node_ptr->data);
         jack_server_log("\nparameter name = %s\n", jackctl_parameter_get_name(parameter));
         if (!jackctl_parameter_get_id(parameter))
             jack_server_log("parameter id = \n");
@@ -111,6 +111,7 @@ static void on_device_release(const char * device_name)
     jack_server_log("on_device_release %s \n", device_name);
 }
 
+#if USE_JACK
 //==============================================================================
 static jackctl_parameter_t * jackctl_get_parameter(const JSList * parameters_list, const char * parameter_name)
 {
@@ -148,6 +149,7 @@ static jackctl_internal_t * jackctl_server_get_internal(jackctl_server_t * serve
     }
     return NULL;
 }
+#endif
 
 //==============================================================================
 // Jack server class definition.
@@ -225,8 +227,8 @@ JackServerGris::JackServerGris(unsigned int rateV, unsigned int periodV, String 
 
         const JSList * internals = jackctl_server_get_internals_list(this->server);
         node_ptr = internals;
-        while (node_ptr != NULL) {
-            print_internal((jackctl_internal_t *)node_ptr->data);
+        while (node_ptr != nullptr) {
+            print_internal(static_cast<jackctl_internal_t *>(node_ptr->data));
             node_ptr = jack_slist_next(node_ptr);
         }
 
