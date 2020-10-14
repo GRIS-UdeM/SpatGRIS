@@ -86,12 +86,12 @@ void jack_on_shutdown([[maybe_unused]] jack_client_t * const client, JackShutdow
 //==============================================================================
 int jack_set_process_callback([[maybe_unused]] jack_client_t * const client,
                               JackProcessCallback const process_callback,
-                              void * /*arg*/)
+                              void * arg)
 {
     auto & audioManager{ AudioManager::getInstance() };
     jassert(client == audioManager.getDummyJackClient());
 
-    audioManager.registerProcessCallback(process_callback);
+    audioManager.registerProcessCallback(process_callback, arg);
     return 0;
 }
 
@@ -237,8 +237,7 @@ int jack_port_unregister([[maybe_unused]] jack_client_t * client, jack_port_t * 
 //==============================================================================
 void * jack_port_get_buffer(jack_port_t * port, jack_nframes_t const nframes)
 {
-    jassertfalse;
-    return nullptr;
+    return AudioManager::getInstance().getBuffer(port, nframes);
 }
 
 //==============================================================================

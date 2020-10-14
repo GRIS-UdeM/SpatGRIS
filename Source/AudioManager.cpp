@@ -8,24 +8,40 @@ jack_port_t * AudioManager::registerPort(char const * const newShortName,
                                          PortType const newType,
                                          std::optional<int> newPhysicalPort)
 {
+    juce::ScopedLock sl{ mCriticalSection };
+
     auto newPort{
         std::make_unique<_jack_port>(++mLastGivePortId, newShortName, newClientName, newType, newPhysicalPort)
     };
 
+    jack_port_t * result{};
+
     switch (newType) {
     case PortType::input:
         jassert(!mInputPorts.contains(newPort.get()));
-        return mInputPorts.add(newPort.release());
+        result = mInputPorts.add(newPort.release());
+        break;
     case PortType::output:
         jassert(!mOutputPorts.contains(newPort.get()));
-        return mOutputPorts.add(newPort.release());
+        result = mOutputPorts.add(newPort.release());
+        break;
     }
-    jassertfalse;
+    jassert(result != nullptr);
+
+    auto * device{ mAudioDeviceManager.getCurrentAudioDevice() };
+    if (device != nullptr) {
+        if (device->isPlaying()) {
+            setBufferSizes(device->getCurrentBufferSizeSamples());
+        }
+    }
+    return result;
 }
 
 //==============================================================================
 void AudioManager::unregisterPort(jack_port_t * port)
 {
+    juce::ScopedLock sl{ mCriticalSection };
+
     if (mConnections.contains(port)) {
         mConnections.remove(port);
     }
@@ -45,16 +61,20 @@ void AudioManager::unregisterPort(jack_port_t * port)
 //==============================================================================
 bool AudioManager::isConnectedTo(jack_port_t const * port, char const * port_name) const
 {
+    juce::ScopedLock sl{ mCriticalSection };
+
     if (!mConnections.contains(port)) {
         return false;
     }
 
-    return strcmp(port->fullName, mConnections[port]->fullName) == 0;
+    return strcmp(port_name, mConnections[port]->fullName) == 0;
 }
 
 //==============================================================================
 jack_port_t * AudioManager::findPortByName(char const * name) const
 {
+    juce::ScopedLock sl{ mCriticalSection };
+
     for (auto const port : mInputPorts) {
         if (strcmp(port->fullName, name) == 0) {
             return port;
@@ -69,8 +89,36 @@ jack_port_t * AudioManager::findPortByName(char const * name) const
 }
 
 //==============================================================================
+void AudioManager::registerProcessCallback(JackProcessCallback const callback, void * arg)
+{
+    juce::ScopedLock sl{ mCriticalSection };
+
+    mProcessCallback = callback;
+    mProcessCallbackArg = arg;
+}
+
+//==============================================================================
+void * AudioManager::getBuffer(jack_port_t * port, [[maybe_unused]] jack_nframes_t const nFrames)
+{
+    juce::ScopedLock sl{ mCriticalSection };
+
+    switch (port->type) {
+    case PortType::input:
+        jassert(mInputBuffer.getNumSamples() >= nFrames);
+        return mInputBuffer.getWritePointer(mInputPorts.indexOf(port));
+    case PortType::output:
+        jassert(mOutputBuffer.getNumSamples() >= nFrames);
+        return mOutputBuffer.getWritePointer(mOutputPorts.indexOf(port));
+    }
+    jassertfalse;
+    return nullptr;
+}
+
+//==============================================================================
 std::optional<jack_port_t *> AudioManager::getPort(char const * name) const
 {
+    juce::ScopedLock sl{ mCriticalSection };
+
     for (auto * port : mInputPorts) {
         if (strcmp(name, port->fullName) == 0) {
             return port;
@@ -87,6 +135,8 @@ std::optional<jack_port_t *> AudioManager::getPort(char const * name) const
 //==============================================================================
 void AudioManager::connect(char const * sourcePortName, char const * destinationPortName)
 {
+    juce::ScopedLock sl{ mCriticalSection };
+
     auto const sourcePort{ getPort(sourcePortName) };
     auto const destinationPort{ getPort(destinationPortName) };
 
@@ -103,6 +153,8 @@ void AudioManager::connect(char const * sourcePortName, char const * destination
 //==============================================================================
 void AudioManager::disconnect(jack_port_t * source, jack_port_t * destination)
 {
+    juce::ScopedLock sl{ mCriticalSection };
+
     jassert(mConnections.contains(source));
     jassert(mConnections[source] == destination);
 
@@ -112,10 +164,69 @@ void AudioManager::disconnect(jack_port_t * source, jack_port_t * destination)
 }
 
 //==============================================================================
+void AudioManager::audioDeviceError(const String & errorMessage)
+{
+    jassertfalse;
+}
+
+//==============================================================================
+void AudioManager::audioDeviceIOCallback(const float ** inputChannelData,
+                                         int const totalNumInputChannels,
+                                         float ** const outputChannelData,
+                                         int const totalNumOutputChannels,
+                                         int const numSamples)
+{
+    juce::ScopedLock sl{ mCriticalSection };
+
+    jassert(totalNumInputChannels <= mInputBuffer.getNumChannels());
+    mInputBuffer.clear();
+    for (int i{}; i < totalNumInputChannels; ++i) {
+        mInputBuffer.copyFrom(i, 0, inputChannelData[i], numSamples);
+    }
+
+    if (mProcessCallback != nullptr) {
+        mProcessCallback(numSamples, mProcessCallbackArg);
+    }
+
+    jassert(totalNumOutputChannels <= mOutputBuffer.getNumChannels());
+    for (int i{}; i < totalNumInputChannels; ++i) {
+        std::memcpy(outputChannelData[i], mOutputBuffer.getReadPointer(i), sizeof(float) * numSamples);
+    }
+}
+
+//==============================================================================
+void AudioManager::audioDeviceAboutToStart(AudioIODevice * device)
+{
+    juce::ScopedLock sl{ mCriticalSection };
+
+    auto const bufferSize{ device->getCurrentBufferSizeSamples() };
+    setBufferSizes(bufferSize);
+
+    // TODO : call prepareToPlay
+}
+
+//==============================================================================
+void AudioManager::audioDeviceStopped()
+{
+    juce::ScopedLock sl{ mCriticalSection };
+
+    // TODO : call releaseResources
+}
+
+//==============================================================================
 AudioManager & AudioManager::getInstance()
 {
     static AudioManager instance{};
     return instance;
+}
+
+//==============================================================================
+void AudioManager::setBufferSizes(int const numSamples)
+{
+    juce::ScopedLock sl{ mCriticalSection };
+
+    mInputBuffer.setSize(mInputPorts.size(), numSamples, false, false, false);
+    mOutputBuffer.setSize(mOutputPorts.size(), numSamples, false, false, false);
 }
 
 //==============================================================================
@@ -135,6 +246,8 @@ AudioManager::AudioManager()
     for (auto const & outputChannelName : audioDevice->getOutputChannelNames()) {
         registerPort(outputChannelName.toStdString().c_str(), "system", PortType::output, channelIndex++);
     }
+
+    mAudioDeviceManager.addAudioCallback(this);
 }
 
 #endif

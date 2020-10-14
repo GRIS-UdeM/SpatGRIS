@@ -40,16 +40,21 @@ struct _jack_port {
 };
 
 //==============================================================================
-class AudioManager
+class AudioManager final : juce::AudioSourcePlayer
 {
     juce::AudioDeviceManager mAudioDeviceManager{};
     juce::OwnedArray<jack_port_t> mInputPorts{};
     juce::OwnedArray<jack_port_t> mOutputPorts{};
     juce::HashMap<jack_port_t const *, jack_port_t *> mConnections{};
     jack_port_id_t mLastGivePortId{};
+    juce::AudioBuffer<float> mInputBuffer{};
+    juce::AudioBuffer<float> mOutputBuffer{};
 
     JackProcessCallback mProcessCallback;
+    void * mProcessCallbackArg{};
     JackPortConnectCallback mPortConnectCallback;
+
+    juce::CriticalSection mCriticalSection{};
     //==============================================================================
     // Dummies
     jack_client_t mDummyJackClient{};
@@ -77,10 +82,11 @@ public:
     jack_port_t * findPortByName(char const * name) const;
 
     void registerPortConnectCallback(JackPortConnectCallback const callback) { mPortConnectCallback = callback; }
-    void registerProcessCallback(JackProcessCallback const callback) { mProcessCallback = callback; }
+    void registerProcessCallback(JackProcessCallback const callback, void * arg);
 
     auto const & getInputPorts() const { return mInputPorts; }
     auto const & getOutputPorts() const { return mOutputPorts; }
+    void * getBuffer(jack_port_t * port, jack_nframes_t nFrames);
 
     std::optional<jack_port_t *> getPort(char const * name) const;
 
@@ -92,10 +98,21 @@ public:
     auto * getDummyJackCtlServer() { return &mDummyJackCtlServer; }
     JSList * getDummyJackCtlParameters() const { return nullptr; }
     //==============================================================================
+    // AudioSourcePlayer overrides
+    void audioDeviceError(const String & errorMessage) override;
+    void audioDeviceIOCallback(const float ** inputChannelData,
+                               int totalNumInputChannels,
+                               float ** outputChannelData,
+                               int totalNumOutputChannels,
+                               int numSamples) override;
+    void audioDeviceAboutToStart(AudioIODevice * device) override;
+    void audioDeviceStopped() override;
+    //==============================================================================
     static AudioManager & getInstance();
 
 private:
     //==============================================================================
+    void setBufferSizes(int numSamples);
     AudioManager();
     //==============================================================================
     JUCE_LEAK_DETECTOR(AudioManager)
