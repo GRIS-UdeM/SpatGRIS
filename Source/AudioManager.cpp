@@ -137,17 +137,22 @@ void AudioManager::connect(char const * sourcePortName, char const * destination
 {
     juce::ScopedLock sl{ mCriticalSection };
 
-    auto const sourcePort{ getPort(sourcePortName) };
-    auto const destinationPort{ getPort(destinationPortName) };
+    auto const maybe_sourcePort{ getPort(sourcePortName) };
+    auto const maybe_destinationPort{ getPort(destinationPortName) };
 
-    jassert(sourcePort);
-    jassert(destinationPort);
+    jassert(maybe_sourcePort);
+    jassert(maybe_destinationPort);
 
-    jassert(!mConnections.contains(*sourcePort));
+    auto * sourcePort{ *maybe_sourcePort };
+    auto * destinationPort{ *maybe_destinationPort };
 
-    mConnections.set(*sourcePort, *destinationPort);
+    jassert(!mConnections.contains(sourcePort));
+    jassert(sourcePort->type == PortType::output);
+    jassert(destinationPort->type == PortType::input);
 
-    mPortConnectCallback((*sourcePort)->id, (*destinationPort)->id, 0, nullptr);
+    mConnections.set(sourcePort, destinationPort);
+
+    mPortConnectCallback(sourcePort->id, destinationPort->id, 0, nullptr);
 }
 
 //==============================================================================
@@ -189,8 +194,18 @@ void AudioManager::audioDeviceIOCallback(const float ** inputChannelData,
     }
 
     jassert(totalNumOutputChannels <= mOutputBuffer.getNumChannels());
-    for (int i{}; i < totalNumInputChannels; ++i) {
-        std::memcpy(outputChannelData[i], mOutputBuffer.getReadPointer(i), sizeof(float) * numSamples);
+
+    decltype(mConnections)::Iterator connection{ mConnections };
+    while (connection.next()) {
+        auto * source{ connection.getKey() };
+        auto const * destination{ connection.getValue() };
+        if (destination->physicalPort.has_value()) {
+            auto const sourceIndex{ mOutputPorts.indexOf(source) };
+            auto const destinationIndex{ *destination->physicalPort };
+            std::memcpy(outputChannelData[destinationIndex],
+                        mOutputBuffer.getReadPointer(sourceIndex),
+                        sizeof(float) * numSamples);
+        }
     }
 }
 
