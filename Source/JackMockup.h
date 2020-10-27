@@ -62,7 +62,7 @@ typedef uint64_t jack_time_t;
 typedef jack_uuid_t jack_intclient_t;
 typedef struct _jack_port jack_port_t;
 typedef uint32_t jack_port_id_t;
-//typedef pthread_t jack_native_thread_t;
+// typedef pthread_t jack_native_thread_t;
 typedef enum JackOptions jack_options_t;
 typedef enum JackStatus jack_status_t;
 typedef enum JackLatencyCallbackMode jack_latency_callback_mode_t;

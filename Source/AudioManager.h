@@ -55,12 +55,20 @@ class AudioManager final : juce::AudioSourcePlayer
     JackPortConnectCallback mPortConnectCallback;
 
     juce::CriticalSection mCriticalSection{};
+
+    // temp
+    juce::AudioDeviceSelectorComponent mAudioDeviceSelectorComponent{
+        mAudioDeviceManager, 2, 256, 2, 256, false, false, false, false
+    };
     //==============================================================================
     // Dummies
     jack_client_t mDummyJackClient{};
     jackctl_server_t mDummyJackCtlServer{};
 
 public:
+    //==============================================================================
+    // temp
+    auto & getSelectorComponent() { return mAudioDeviceSelectorComponent; }
     //==============================================================================
     ~AudioManager() = default;
 
