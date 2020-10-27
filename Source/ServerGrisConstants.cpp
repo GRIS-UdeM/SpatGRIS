@@ -35,10 +35,10 @@ const bool USE_OS_NATIVE_DIALOG_BOX{ true };
 auto const CURRENT_WORKING_DIR{ File::getCurrentWorkingDirectory() };
 auto const RESOURCES_DIR{ CURRENT_WORKING_DIR.getChildFile("Resources") };
 #elif defined __APPLE__
-const char * DriverNameSys = "coreaudio";
-const bool UseOSNativeDialogBox = true;
-String CURRENT_WORKING_DIR = File::getSpecialLocation(File::currentApplicationFile).getFullPathName();
-String RESOURCES_DIR = String("/Contents/Resources/");
+const char * driverNameSys = "coreaudio";
+const bool USE_OS_NATIVE_DIALOG_BOX = true;
+juce::File CURRENT_WORKING_DIR = File::getSpecialLocation(File::currentApplicationFile);
+juce::File RESOURCES_DIR{ CURRENT_WORKING_DIR.getChildFile("Contents").getChildFile("Resources") };
 #else
 static_assert(false, "What are you building this on?");
 #endif
