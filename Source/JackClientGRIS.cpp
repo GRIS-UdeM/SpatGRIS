@@ -787,6 +787,8 @@ void port_connect_callback(jack_port_id_t a, jack_port_id_t b, int connect, void
 // Load samples from a wav file into a float array.
 static float ** getSamplesFromWavFile(File const & file)
 {
+    jassert(file.existsAsFile());
+
     float const factor = powf(2.0f, 31.0f);
 
     WavAudioFormat wavAudioFormat{};
@@ -1341,7 +1343,8 @@ void JackClientGris::connectionClient(String name, bool connect)
 
     for (auto && cli : this->listClient) {
         if (cli.name == name) {
-            cli.connected = false;
+            // cli.connected = false;
+            cli.connected = true; // since there is no checkbox anymore, lets set this to true by default.
         }
     }
 
