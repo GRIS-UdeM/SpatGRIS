@@ -298,7 +298,7 @@ char const ** jack_get_ports([[maybe_unused]] jack_client_t * client,
     jassert(!(isInput && isOutput));
     jassert(flags - isInput - isOutput == 0u);
 
-    auto const & ports{ isInput ? audioManager.getInputPorts() : audioManager.getOutputPorts() };
+    auto const ports{ isInput ? audioManager.getInputPorts() : audioManager.getOutputPorts() };
 
     size_t currentInputChannelCount{};
     for (auto const & port : ports) {
@@ -332,7 +332,20 @@ jack_port_t * jack_port_by_name([[maybe_unused]] jack_client_t * client, const c
 //==============================================================================
 jack_port_t * jack_port_by_id(jack_client_t * client, jack_port_id_t port_id)
 {
-    jassertfalse;
+    auto & audioManager{ AudioManager::getInstance() };
+    //    jassert(client == audioManager.getDummyJackClient());
+
+    for (auto * port : audioManager.getInputPorts()) {
+        if (port->id == port_id) {
+            return port;
+        }
+    }
+    for (auto * port : audioManager.getOutputPorts()) {
+        if (port->id == port_id) {
+            return port;
+        }
+    }
+
     return nullptr;
 }
 

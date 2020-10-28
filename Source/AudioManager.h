@@ -21,6 +21,7 @@ struct _jack_port {
     char fullName[128]{};
     PortType type;
     std::optional<int> physicalPort;
+    juce::AudioBuffer<float> buffer{};
 
     _jack_port(jack_port_id_t const newId,
                char const * const newShortName,
@@ -43,12 +44,14 @@ struct _jack_port {
 class AudioManager final : juce::AudioSourcePlayer
 {
     juce::AudioDeviceManager mAudioDeviceManager{};
-    juce::OwnedArray<jack_port_t> mInputPorts{};
-    juce::OwnedArray<jack_port_t> mOutputPorts{};
-    juce::HashMap<jack_port_t const *, jack_port_t *> mConnections{};
+    juce::OwnedArray<jack_port_t> mVirtualInputPorts{};
+    juce::OwnedArray<jack_port_t> mPhysicalInputPorts{};
+    juce::OwnedArray<jack_port_t> mVirtualOutputPorts{};
+    juce::OwnedArray<jack_port_t> mPhysicalOutputPorts{};
+    juce::HashMap<jack_port_t *, jack_port_t *> mConnections{};
     jack_port_id_t mLastGivePortId{};
-    juce::AudioBuffer<float> mInputBuffer{};
-    juce::AudioBuffer<float> mOutputBuffer{};
+    juce::AudioBuffer<float> mInputPortsBuffer{};
+    juce::AudioBuffer<float> mOutputPortsBuffer{};
 
     JackProcessCallback mProcessCallback;
     void * mProcessCallbackArg{};
@@ -84,8 +87,8 @@ public:
     void registerPortConnectCallback(JackPortConnectCallback const callback) { mPortConnectCallback = callback; }
     void registerProcessCallback(JackProcessCallback const callback, void * arg);
 
-    auto const & getInputPorts() const { return mInputPorts; }
-    auto const & getOutputPorts() const { return mOutputPorts; }
+    juce::Array<jack_port_t *> getInputPorts() const;
+    juce::Array<jack_port_t *> getOutputPorts() const;
     void * getBuffer(jack_port_t * port, jack_nframes_t nFrames);
 
     std::optional<jack_port_t *> getPort(char const * name) const;
