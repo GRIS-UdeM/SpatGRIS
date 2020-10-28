@@ -751,7 +751,7 @@ void client_registration_callback(const char * name, int regist, void * arg)
 //==============================================================================
 void port_registration_callback(jack_port_id_t a, int regist, void * arg)
 {
-    jack_client_log("Jack port : % : ", a);
+    jack_client_log("Jack port : %d : ", a);
     if (regist) {
         jack_client_log("registered\n");
     } else {
@@ -780,7 +780,7 @@ void port_connect_callback(jack_port_id_t a, jack_port_id_t b, int connect, void
     } else {
         jack_client_log("Disconnect ");
     }
-    jack_client_log("% <> % \n", a, b);
+    jack_client_log("%d <> %d \n", a, b);
 }
 
 //==============================================================================

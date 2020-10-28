@@ -249,22 +249,21 @@ void AudioManager::setBufferSizes(int const numSamples)
 //==============================================================================
 AudioManager::AudioManager()
 {
-    // TODO: magic numbers
-    auto error{ mAudioDeviceManager.initialiseWithDefaultDevices(256, 256) };
-    jassert(error.isEmpty());
-
-    AudioDeviceManager::AudioDeviceSetup setup{};
-
+    // display devices info
     for (auto const deviceType : mAudioDeviceManager.getAvailableDeviceTypes()) {
         deviceType->scanForDevices();
         auto const hasSeparateInputsAndOutputs{ deviceType->hasSeparateInputsAndOutputs() };
         std::cout << "=======================================\n";
         std::cout << deviceType->getTypeName() << '\n';
-        std::cout << "Has seperate inputs and outputs : " << (hasSeparateInputsAndOutputs ? "YES" : "NO") << "\n\n";
+        std::cout << "Has separate inputs and outputs : " << (hasSeparateInputsAndOutputs ? "YES" : "NO") << "\n\n";
         for (auto const & deviceName : deviceType->getDeviceNames()) {
             std::cout << "\t" << deviceName << '\n';
         }
     }
+
+    // TODO: magic numbers
+    auto error{ mAudioDeviceManager.initialiseWithDefaultDevices(256, 256) };
+    jassert(error.isEmpty());
 
     auto * audioDevice{ mAudioDeviceManager.getCurrentAudioDevice() };
     jassert(audioDevice != nullptr);
