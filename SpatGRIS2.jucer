@@ -117,7 +117,8 @@
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX" externalLibraries="" extraFrameworks="Jackservermp, Jackmp, GLUT"
                customXcodeResourceFolders="Resources/default_preset&#10;Resources/hrtf_compact"
-               smallIcon="bC6POS" bigIcon="TMAuh7" extraLinkerFlags="-F/Library/Frameworks">
+               smallIcon="bC6POS" bigIcon="TMAuh7" extraLinkerFlags="-F/Library/Frameworks"
+               microphonePermissionNeeded="1">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" osxCompatibility="10.11 SDK" isDebug="1" optimisation="1"
                        targetName="SpatGRIS" headerPath="../../jack&#10;../../glm"/>
