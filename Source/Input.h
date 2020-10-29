@@ -17,8 +17,7 @@
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef INPUT_H
-#define INPUT_H
+#pragma once
 
 #include <iostream>
 
@@ -129,5 +128,3 @@ private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Input);
 };
-
-#endif /* INPUT_H */

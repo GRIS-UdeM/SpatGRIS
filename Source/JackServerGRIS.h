@@ -17,10 +17,13 @@
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef JACKSERVERGRIS_H
-#define JACKSERVERGRIS_H
+#pragma once
 
-#include "../JuceLibraryCode/JuceHeader.h"
+#include "macros.h"
+
+DISABLE_WARNINGS
+#include <JuceHeader.h>
+ENABLE_WARNINGS
 
 #if USE_JACK
     #include <jack/control.h>
@@ -54,5 +57,3 @@ private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(JackServerGris);
 };
-
-#endif /* JACKSERVERGRIS_H */

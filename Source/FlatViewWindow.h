@@ -17,10 +17,13 @@
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef FLATVIEWWINDOW_H
-#define FLATVIEWWINDOW_H
+#pragma once
 
-#include "../JuceLibraryCode/JuceHeader.h"
+#include "macros.h"
+
+DISABLE_WARNINGS
+#include <JuceHeader.h>
+ENABLE_WARNINGS
 
 class MainContentComponent;
 class GrisLookAndFeel;
@@ -51,5 +54,3 @@ private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FlatViewWindow);
 };
-
-#endif /* FLATVIEWWINDOW_H */

@@ -17,8 +17,13 @@
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef MAINCOMPONENT_H_INCLUDED
-#define MAINCOMPONENT_H_INCLUDED
+#pragma once
+
+#include "macros.h"
+
+DISABLE_WARNINGS
+#include <JuceHeader.h>
+ENABLE_WARNINGS
 
 // Macros
 #ifndef M_PI
@@ -39,10 +44,6 @@
 
 #define STRING2(x) #x
 #define STRING(x) STRING2(x)
-
-//==============================================================================
-
-#include "../JuceLibraryCode/JuceHeader.h"
 
 #include "AboutWindow.h"
 #include "Box.h"
@@ -397,5 +398,3 @@ private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainContentComponent)
 };
-
-#endif // MAINCOMPONENT_H_INCLUDED

@@ -17,10 +17,13 @@
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef SERVERGRISCONSTANTS_H
-#define SERVERGRISCONSTANTS_H
+#pragma once
 
-#include "../JuceLibraryCode/JuceHeader.h"
+#include "macros.h"
+
+DISABLE_WARNINGS
+#include <JuceHeader.h>
+ENABLE_WARNINGS
 
 extern const char * DeviceName;
 extern const char * ClientName;
@@ -53,5 +56,3 @@ extern const juce::StringArray AttenuationDBs;
 extern const juce::StringArray AttenuationCutoffs;
 
 extern const unsigned int VuMeterWidthInPixels;
-
-#endif /* SERVERGRISCONSTANTS_H */

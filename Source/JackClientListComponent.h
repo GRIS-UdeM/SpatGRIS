@@ -17,10 +17,13 @@
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef JACKCLIENTLISTCOMPONENT_H
-#define JACKCLIENTLISTCOMPONENT_H
+#pragma once
 
-#include "../JuceLibraryCode/JuceHeader.h"
+#include "macros.h"
+
+DISABLE_WARNINGS
+#include <JuceHeader.h>
+ENABLE_WARNINGS
 
 class Box;
 class GrisLookAndFeel;
@@ -88,5 +91,3 @@ private:
     juce::TableListBox tableListClient;
     Box * box;
 };
-
-#endif // JACKCLIENTLISTCOMPONENT_H

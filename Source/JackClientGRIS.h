@@ -17,8 +17,7 @@
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef JACKCLIENTGRIS_H
-#define JACKCLIENTGRIS_H
+#pragma once
 
 #include <cmath>
 #include <cstdio>
@@ -26,6 +25,9 @@
 #include <cstring>
 #include <vector>
 
+#include "macros.h"
+
+DISABLE_WARNINGS
 #if defined(WIN32) || defined(_WIN64)
     #include <cstdint>
     #include <mutex>
@@ -37,7 +39,7 @@
     #include <mutex>
 #endif
 
-#include "../JuceLibraryCode/JuceHeader.h"
+#include <JuceHeader.h>
 
 #if USE_JACK
     #include <jack/jack.h>
@@ -50,6 +52,7 @@
 
 #include "spat/lbap.h"
 #include "spat/vbap.h"
+ENABLE_WARNINGS
 
 class Speaker;
 
@@ -402,5 +405,3 @@ private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(JackClientGris);
 };
-
-#endif /* JACKCLIENTGRIS_H */

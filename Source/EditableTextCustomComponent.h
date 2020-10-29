@@ -17,10 +17,13 @@
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef EDITABLETEXTCUSTOMCOMPONENT_H
-#define EDITABLETEXTCUSTOMCOMPONENT_H
+#pragma once
 
-#include "../JuceLibraryCode/JuceHeader.h"
+#include "macros.h"
+
+DISABLE_WARNINGS
+#include <JuceHeader.h>
+ENABLE_WARNINGS
 
 class EditSpeakersWindow;
 
@@ -50,5 +53,3 @@ private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EditableTextCustomComponent);
 };
-
-#endif // EDITABLETEXTCUSTOMCOMPONENT_H

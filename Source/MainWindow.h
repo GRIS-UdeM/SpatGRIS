@@ -17,12 +17,14 @@
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#pragma once
 
-#include "../JuceLibraryCode/JuceHeader.h"
+#include "macros.h"
 
-#include "GrisLookAndFeel.h"
+DISABLE_WARNINGS
+#include <JuceHeader.h>
+ENABLE_WARNINGS
+
 #include "MainComponent.h"
 
 //==============================================================================
@@ -92,5 +94,3 @@ private:
     //=============================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainWindow)
 };
-
-#endif // MAINWINDOW_H
