@@ -22,85 +22,85 @@
 //==============================================================================
 GrisLookAndFeel::GrisLookAndFeel()
 {
-    this->backGroundAndFieldColour = juce::Colour::fromRGB(75, 75, 75); // Colours::darkgrey;
-    this->winBackGroundAndFieldColour = juce::Colour::fromRGB(46, 46, 46);
+    this->mBackGroundAndFieldColour = juce::Colour::fromRGB(75, 75, 75); // Colours::darkgrey;
+    this->mWinBackGroundAndFieldColour = juce::Colour::fromRGB(46, 46, 46);
 
-    this->lightColour = juce::Colour::fromRGB(235, 245, 250); // Colours::whitesmoke;
-    this->darkColour = juce::Colour::fromRGB(15, 10, 5);      // Colours::black;
-    this->greyColour = juce::Colour::fromRGB(120, 120, 120);  // Colours::grey;
-    this->editBgcolor = juce::Colour::fromRGB(172, 172, 172);
-    this->hlBgcolor = juce::Colour::fromRGB(190, 125, 18);
+    this->mLightColour = juce::Colour::fromRGB(235, 245, 250); // Colours::whitesmoke;
+    this->mDarkColour = juce::Colour::fromRGB(15, 10, 5);      // Colours::black;
+    this->mGreyColour = juce::Colour::fromRGB(120, 120, 120);  // Colours::grey;
+    this->mEditBgcolor = juce::Colour::fromRGB(172, 172, 172);
+    this->mHlBgcolor = juce::Colour::fromRGB(190, 125, 18);
 
-    this->onColor = juce::Colour::fromRGB(255, 165, 25);
-    this->onColorOver = juce::Colour::fromRGB(255, 184, 75);
-    this->onColorDown = juce::Colour::fromRGB(222, 144, 22);
-    this->offColor = juce::Colour::fromRGB(56, 56, 56);
+    this->mOnColor = juce::Colour::fromRGB(255, 165, 25);
+    this->mOnColorOver = juce::Colour::fromRGB(255, 184, 75);
+    this->mOnColorDown = juce::Colour::fromRGB(222, 144, 22);
+    this->mOffColor = juce::Colour::fromRGB(56, 56, 56);
 
-    this->greenColor = juce::Colour::fromRGB(56, 156, 56);
-    this->redColor = juce::Colour::fromRGB(220, 48, 35);
+    this->mGreenColor = juce::Colour::fromRGB(56, 156, 56);
+    this->mRedColor = juce::Colour::fromRGB(220, 48, 35);
 
-    this->setColour(PopupMenu::highlightedBackgroundColourId, this->onColor);
-    this->setColour(TextEditor::backgroundColourId, this->editBgcolor);
-    this->setColour(TextEditor::highlightColourId, this->hlBgcolor);
-    this->setColour(TextEditor::shadowColourId, this->editBgcolor);
+    this->setColour(PopupMenu::highlightedBackgroundColourId, this->mOnColor);
+    this->setColour(TextEditor::backgroundColourId, this->mEditBgcolor);
+    this->setColour(TextEditor::highlightColourId, this->mHlBgcolor);
+    this->setColour(TextEditor::shadowColourId, this->mEditBgcolor);
 
-    this->setColour(TextButton::buttonColourId, this->editBgcolor);
+    this->setColour(TextButton::buttonColourId, this->mEditBgcolor);
 
-    this->setColour(ComboBox::backgroundColourId, this->editBgcolor);
-    this->setColour(ComboBox::outlineColourId, this->editBgcolor);
+    this->setColour(ComboBox::backgroundColourId, this->mEditBgcolor);
+    this->setColour(ComboBox::outlineColourId, this->mEditBgcolor);
 
-    this->setColour(Slider::thumbColourId, this->lightColour);
-    this->setColour(Slider::rotarySliderFillColourId, this->onColor);
-    this->setColour(Slider::trackColourId, this->darkColour);
-    this->setColour(Slider::textBoxBackgroundColourId, this->editBgcolor);
+    this->setColour(Slider::thumbColourId, this->mLightColour);
+    this->setColour(Slider::rotarySliderFillColourId, this->mOnColor);
+    this->setColour(Slider::trackColourId, this->mDarkColour);
+    this->setColour(Slider::textBoxBackgroundColourId, this->mEditBgcolor);
     this->setColour(Slider::textBoxOutlineColourId, juce::Colours::transparentBlack);
 
-    this->setColour(TooltipWindow::ColourIds::backgroundColourId, this->backGroundAndFieldColour.withBrightness(0.8));
-    this->setColour(TooltipWindow::ColourIds::outlineColourId, this->backGroundAndFieldColour.withBrightness(0.8));
+    this->setColour(TooltipWindow::ColourIds::backgroundColourId, this->mBackGroundAndFieldColour.withBrightness(0.8f));
+    this->setColour(TooltipWindow::ColourIds::outlineColourId, this->mBackGroundAndFieldColour.withBrightness(0.8f));
 
-    this->setColour(AlertWindow::backgroundColourId, this->winBackGroundAndFieldColour);
-    this->setColour(AlertWindow::outlineColourId, this->onColor);
-    this->setColour(AlertWindow::textColourId, this->lightColour);
+    this->setColour(AlertWindow::backgroundColourId, this->mWinBackGroundAndFieldColour);
+    this->setColour(AlertWindow::outlineColourId, this->mOnColor);
+    this->setColour(AlertWindow::textColourId, this->mLightColour);
 
 #if WIN32
-    this->fontSize = 18.f;
+    this->mFontSize = 18.f;
 #else
-    this->fontSize = 10.f;
+    this->mFontSize = 10.f;
 #endif
 
-    this->font.setHeight(this->fontSize);
-    this->smallFont.setHeight(this->fontSize - 1);
-    this->smallerFont.setHeight(this->fontSize - 2);
-    this->bigFont.setHeight(this->fontSize + 3);
-    this->biggerFont.setHeight(this->fontSize + 6);
+    this->mFont.setHeight(this->mFontSize);
+    this->mSmallFont.setHeight(this->mFontSize - 1);
+    this->mSmallerFont.setHeight(this->mFontSize - 2);
+    this->mBigFont.setHeight(this->mFontSize + 3);
+    this->mBiggerFont.setHeight(this->mFontSize + 6);
 }
 
 //==============================================================================
 juce::Font GrisLookAndFeel::getLabelFont(Label & label)
 {
     if (label.getName() == "AboutBox_title")
-        return this->biggerFont;
+        return this->mBiggerFont;
     else if (label.getName() == "AboutBox_version")
-        return this->bigFont;
+        return this->mBigFont;
     else
-        return this->font;
+        return this->mFont;
 }
 
 //==============================================================================
 // https://github.com/audioplastic/Juce-look-and-feel-examples/blob/master/JuceLibraryCode/modules/juce_gui_basics/lookandfeel/juce_LookAndFeel.cpp
 void GrisLookAndFeel::drawComboBox(Graphics & g,
-                                   int width,
-                                   int height,
-                                   bool isButtonDown,
+                                   int /*width*/,
+                                   int /*height*/,
+                                   bool /*isButtonDown*/,
                                    int buttonX,
                                    int buttonY,
                                    int buttonW,
                                    int buttonH,
                                    ComboBox & box)
 {
-    box.setColour(ColourSelector::backgroundColourId, this->onColor);
+    box.setColour(ColourSelector::backgroundColourId, this->mOnColor);
 
-    g.fillAll(this->editBgcolor); // box.findColour (ComboBox::backgroundColourId))
+    g.fillAll(this->mEditBgcolor); // box.findColour (ComboBox::backgroundColourId))
 
     const float arrowX = 0.3f;
     const float arrowH = 0.2f;
@@ -120,7 +120,7 @@ void GrisLookAndFeel::drawComboBox(Graphics & g,
                   buttonX + buttonW * arrowX,
                   buttonY + buttonH * 0.55f);
 
-    g.setColour(this->darkColour.withMultipliedAlpha(
+    g.setColour(this->mDarkColour.withMultipliedAlpha(
         box.isEnabled() ? 1.0f : 0.3f)); // box.findColour (ComboBox::arrowColourId)
     g.fillPath(p);
 }
@@ -139,7 +139,7 @@ void GrisLookAndFeel::drawRoundThumb(Graphics & g,
     Path p{};
     p.addEllipse(x + halfThickness, y + halfThickness, diameter - outlineThickness, diameter - outlineThickness);
 
-    DropShadow const ds(this->darkColour, 1, Point<int>(0, 0));
+    DropShadow const ds(this->mDarkColour, 1, Point<int>(0, 0));
     ds.drawForPath(g, p);
 
     g.setColour(colour);
@@ -152,7 +152,7 @@ void GrisLookAndFeel::drawRoundThumb(Graphics & g,
 //==============================================================================
 void GrisLookAndFeel::drawButtonBackground(Graphics & g,
                                            Button & button,
-                                           const juce::Colour & backgroundColour,
+                                           const juce::Colour & /*backgroundColour*/,
                                            bool isMouseOverButton,
                                            bool isButtonDown)
 {
@@ -165,13 +165,13 @@ void GrisLookAndFeel::drawButtonBackground(Graphics & g,
     outline.addRectangle(0.5f + halfThickness, 0.5f + halfThickness, width - lineThickness, height - lineThickness);
     g.setColour(button.findColour(TextButton::buttonColourId));
     if (isButtonDown || isMouseOverButton) {
-        g.setColour(this->onColorOver);
+        g.setColour(this->mOnColorOver);
     }
     if (button.getToggleState()) {
-        g.setColour(this->onColor); // outlineColour
+        g.setColour(this->mOnColor); // outlineColour
     }
     if (button.isEnabled() && button.isMouseButtonDown()) {
-        g.setColour(this->onColorDown);
+        g.setColour(this->mOnColorDown);
     }
     g.fillPath(outline);
 }
@@ -184,37 +184,37 @@ void GrisLookAndFeel::drawTickBox(Graphics & g,
                                   float w,
                                   float h,
                                   bool ticked,
-                                  bool isEnabled,
-                                  bool isMouseOverButton,
-                                  bool isButtonDown)
+                                  bool /*isEnabled*/,
+                                  bool /*isMouseOverButton*/,
+                                  bool /*isButtonDown*/)
 {
     const float boxSize = w * 0.8f;
     const juce::Rectangle<float> r(x, y + (h - boxSize) * 0.5f, boxSize, boxSize);
 
     if (ticked) {
-        juce::Colour colour = this->onColor;
+        juce::Colour colour = this->mOnColor;
 
         if (component.isMouseOver()) {
-            colour = this->onColorOver;
+            colour = this->mOnColorOver;
         }
 
         if (!component.isEnabled()) {
-            colour = this->onColor.withBrightness(0.3f);
+            colour = this->mOnColor.withBrightness(0.3f);
         }
         g.setColour(colour);
         g.fillRect(r);
 
     } else {
-        juce::Colour colour = this->offColor;
+        juce::Colour colour = this->mOffColor;
         if (!component.isEnabled()) {
-            colour = this->offColor.withBrightness(0.3f);
+            colour = this->mOffColor.withBrightness(0.3f);
         }
         g.setColour(colour);
         g.fillRect(r);
     }
 
     if (component.isEnabled() && component.isMouseButtonDown()) {
-        g.setColour(this->onColorDown);
+        g.setColour(this->mOnColorDown);
         g.fillRect(r);
     }
 }
@@ -226,8 +226,8 @@ void GrisLookAndFeel::drawLinearSliderThumb(Graphics & g,
                                             int width,
                                             int height,
                                             float sliderPos,
-                                            float minSliderPos,
-                                            float maxSliderPos,
+                                            float /*minSliderPos*/,
+                                            float /*maxSliderPos*/,
                                             const Slider::SliderStyle style,
                                             Slider & slider)
 {
@@ -244,18 +244,18 @@ void GrisLookAndFeel::drawLinearSliderThumb(Graphics & g,
     const juce::Rectangle<float> r(kx - (sliderRadius / 2.0f), ky - sliderRadius, 6, height * 2.0f);
 
     if (slider.isEnabled()) {
-        juce::Colour colour = this->onColor;
+        juce::Colour colour = this->mOnColor;
 
         if (slider.isMouseOver()) {
-            colour = this->onColorOver;
+            colour = this->mOnColorOver;
         }
         if (slider.isMouseButtonDown()) {
-            colour = this->onColorDown;
+            colour = this->mOnColorDown;
         }
         g.setColour(colour);
         g.fillRect(r);
     } else {
-        g.setColour(this->offColor);
+        g.setColour(this->mOffColor);
         g.fillRect(r);
     }
 }
@@ -311,16 +311,16 @@ void GrisLookAndFeel::drawLinearSliderBackground(Graphics & g,
         g.setColour(slider.findColour(Slider::trackColourId));
         g.fillPath(off);
     } else {
-        g.setColour(this->offColor);
+        g.setColour(this->mOffColor);
         g.fillPath(on);
         g.fillPath(off);
     }
 }
 
 //==============================================================================
-void GrisLookAndFeel::fillTextEditorBackground(Graphics & g, int width, int height, TextEditor & t)
+void GrisLookAndFeel::fillTextEditorBackground(Graphics & g, int /*width*/, int /*height*/, TextEditor & /*t*/)
 {
-    g.setColour(this->editBgcolor);
+    g.setColour(this->mEditBgcolor);
     g.fillAll();
 }
 
@@ -328,7 +328,7 @@ void GrisLookAndFeel::fillTextEditorBackground(Graphics & g, int width, int heig
 void GrisLookAndFeel::drawTextEditorOutline(Graphics & g, int width, int height, TextEditor & t)
 {
     if (t.hasKeyboardFocus(true)) {
-        g.setColour(this->onColor);
+        g.setColour(this->mOnColor);
         g.drawRect(0, 0, width, height);
     }
 }
@@ -345,14 +345,14 @@ void GrisLookAndFeel::drawToggleButton(Graphics & g, ToggleButton & button, bool
                     button,
                     0,
                     0,
-                    button.getWidth(),
-                    button.getHeight(),
+                    static_cast<float>(button.getWidth()),
+                    static_cast<float>(button.getHeight()),
                     button.getToggleState(),
                     button.isEnabled(),
                     isMouseOverButton,
                     isButtonDown);
         g.setColour(button.findColour(ToggleButton::textColourId));
-        g.setFont(this->font);
+        g.setFont(this->mFont);
 
         if (!button.isEnabled())
             g.setOpacity(0.5f);
@@ -381,7 +381,7 @@ void GrisLookAndFeel::drawToggleButton(Graphics & g, ToggleButton & button, bool
                     isButtonDown);
 
         g.setColour(button.findColour(ToggleButton::textColourId));
-        g.setFont(this->font);
+        g.setFont(this->mFont);
 
         if (!button.isEnabled())
             g.setOpacity(0.5f);
@@ -414,7 +414,7 @@ void GrisLookAndFeel::drawTabButton(TabBarButton & button, Graphics & g, bool is
 
     g.fillRect(activeArea);
 
-    g.setColour(this->winBackGroundAndFieldColour);
+    g.setColour(this->mWinBackGroundAndFieldColour);
 
     juce::Rectangle<int> r(activeArea);
     if (o != TabbedButtonBar::TabsAtTop)
@@ -446,7 +446,7 @@ void GrisLookAndFeel::createTabTextLayout(const TabBarButton & button,
                                           juce::Colour const colour,
                                           TextLayout & textLayout) const
 {
-    Font font(this->font);
+    Font font(this->mFont);
 #if WIN32
     font.setHeight(depth * 0.60f);
 #else
@@ -485,12 +485,12 @@ void GrisLookAndFeel::drawRotarySlider(Graphics & g,
     if (slider.isEnabled()) {
         // slider.findColour (Slider::rotarySliderFillColourId).withAlpha (isMouseOver ? 0.7f : 1.0f)
         if (isMouseOver) {
-            g.setColour(this->onColorOver);
+            g.setColour(this->mOnColorOver);
         } else {
-            g.setColour(this->onColor);
+            g.setColour(this->mOnColor);
         }
     } else {
-        g.setColour(this->offColor);
+        g.setColour(this->mOffColor);
     }
     Path filledArc;
     filledArc.addPieSegment(rx, ry, rw, rw, rotaryStartAngle, angle, 0.0);
@@ -515,14 +515,14 @@ void SmallGrisLookAndFeel::drawToggleButton(Graphics & g,
                     button,
                     0,
                     0,
-                    button.getWidth(),
-                    button.getHeight(),
+                    static_cast<float>(button.getWidth()),
+                    static_cast<float>(button.getHeight()),
                     button.getToggleState(),
                     button.isEnabled(),
                     isMouseOverButton,
                     isButtonDown);
         g.setColour(button.findColour(ToggleButton::textColourId));
-        g.setFont(this->smallFont);
+        g.setFont(this->mSmallFont);
 
         if (!button.isEnabled())
             g.setOpacity(0.5f);
@@ -551,7 +551,7 @@ void SmallGrisLookAndFeel::drawToggleButton(Graphics & g,
                     isButtonDown);
 
         g.setColour(button.findColour(ToggleButton::textColourId));
-        g.setFont(this->smallFont);
+        g.setFont(this->mSmallFont);
 
         if (!button.isEnabled())
             g.setOpacity(0.5f);
