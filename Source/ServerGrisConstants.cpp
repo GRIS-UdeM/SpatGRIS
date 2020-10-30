@@ -32,12 +32,12 @@ juce::String RESOURCES_DIR = juce::String("/../../Resources/");
 #elif defined WIN32
 const char * driverNameSys = "coreaudio";
 const bool USE_OS_NATIVE_DIALOG_BOX{ true };
-auto const CURRENT_WORKING_DIR{ File::getCurrentWorkingDirectory() };
+auto const CURRENT_WORKING_DIR{ juce::File::getCurrentWorkingDirectory() };
 auto const RESOURCES_DIR{ CURRENT_WORKING_DIR.getChildFile("Resources") };
 #elif defined __APPLE__
 const char * driverNameSys = "coreaudio";
 const bool USE_OS_NATIVE_DIALOG_BOX = true;
-juce::File CURRENT_WORKING_DIR = File::getSpecialLocation(File::currentApplicationFile);
+juce::File CURRENT_WORKING_DIR = juce::File::getSpecialLocation(juce::File::currentApplicationFile);
 juce::File RESOURCES_DIR{ CURRENT_WORKING_DIR.getChildFile("Contents").getChildFile("Resources") };
 #else
 static_assert(false, "What are you building this on?");

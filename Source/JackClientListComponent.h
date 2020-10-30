@@ -49,9 +49,9 @@ class JackClientListComponent final
     public:
         ListIntOutComp(JackClientListComponent & td);
         //==============================================================================
-        void resized() final { comboBox.setBoundsInset(BorderSize<int>(2)); }
+        void resized() final { comboBox.setBoundsInset(juce::BorderSize<int>(2)); }
         void setRowAndColumn(int newRow, int newColumn);
-        void comboBoxChanged(ComboBox *) final { owner.setValue(row, columnId, comboBox.getSelectedId()); }
+        void comboBoxChanged(juce::ComboBox *) final { owner.setValue(row, columnId, comboBox.getSelectedId()); }
 
     private:
         //==============================================================================
@@ -67,13 +67,14 @@ public:
     ~JackClientListComponent() final = default;
     //==============================================================================
     void updateContentCli();
-    void buttonClicked(Button * button) final;
+    void buttonClicked(juce::Button * button) final;
     void setBounds(int x, int y, int width, int height);
     void setValue(const int rowNumber, const int columnNumber, const int newRating);
     int getValue(const int rowNumber, const int columnNumber) const;
     int getNumRows() final { return numRows; }
-    void paintRowBackground(Graphics & g, int rowNumber, int /*width*/, int /*height*/, bool rowIsSelected) final;
-    void paintCell(Graphics & g, int rowNumber, int columnId, int width, int height, bool /*rowIsSelected*/) final;
+    void paintRowBackground(juce::Graphics & g, int rowNumber, int /*width*/, int /*height*/, bool rowIsSelected) final;
+    void
+        paintCell(juce::Graphics & g, int rowNumber, int columnId, int width, int height, bool /*rowIsSelected*/) final;
 
     juce::String getText(const int columnNumber, const int rowNumber) const;
     juce::Component * refreshComponentForCell(int rowNumber,

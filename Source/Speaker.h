@@ -85,7 +85,7 @@ public:
     float getAlpha();
     void setMuted(bool mute) final;
     void setSolo(bool solo) final;
-    void setColor(Colour color, bool updateLevel = false) final {}
+    void setColor(juce::Colour color, bool updateLevel = false) final {}
     void selectClick(bool select = true) final;
 
     LevelComponent const * getVuMeter() const final { return this->vuMeter; }

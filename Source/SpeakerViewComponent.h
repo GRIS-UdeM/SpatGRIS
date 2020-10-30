@@ -51,7 +51,7 @@ static const int NbrGridLines = 17;
 static const float ScroolWheelSpeedMouse = 1.8f;
 
 //==============================================================================
-class SpeakerViewComponent final : public OpenGLAppComponent
+class SpeakerViewComponent final : public juce::OpenGLAppComponent
 {
 public:
     SpeakerViewComponent(MainContentComponent * parent = nullptr) : mainParent(parent) {}
@@ -64,18 +64,18 @@ public:
     void setShowNumber(bool value) { this->showNumber = value; }
     void setHideSpeaker(bool value) { this->hideSpeaker = value; }
     void setShowTriplets(bool value) { this->showTriplets = value; }
-    void setNameConfig(String name)
+    void setNameConfig(juce::String name)
     {
         this->nameConfig = name;
         this->repaint();
     }
 
     void render() final;
-    void paint(Graphics & g) final;
+    void paint(juce::Graphics & g) final;
 
-    void mouseDown(const MouseEvent & e) final;
-    void mouseDrag(const MouseEvent & e) final;
-    void mouseWheelMove(const MouseEvent & e, const MouseWheelDetails & wheel) final;
+    void mouseDown(const juce::MouseEvent & e) final;
+    void mouseDrag(const juce::MouseEvent & e) final;
+    void mouseWheelMove(const juce::MouseEvent & e, const juce::MouseWheelDetails & wheel) final;
 
     float getCamAngleX() const { return this->camAngleX; };
     float getCamAngleY() const { return this->camAngleY; };

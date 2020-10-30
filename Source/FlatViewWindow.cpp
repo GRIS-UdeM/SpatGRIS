@@ -26,7 +26,7 @@ static const float RadiusMax = 2.f;
 static const float SourceRadius = 10.f;
 static const float SourceDiameter = SourceRadius * 2.f;
 
-typedef Point<float> FPoint;
+typedef juce::Point<float> FPoint;
 
 //==============================================================================
 static float DegreeToRadian(float degree)
@@ -83,7 +83,7 @@ FlatViewWindow::~FlatViewWindow()
 }
 
 //==============================================================================
-void FlatViewWindow::drawFieldBackground(Graphics & g, const int fieldWH) const
+void FlatViewWindow::drawFieldBackground(juce::Graphics & g, const int fieldWH) const
 {
     const int realW = (fieldWH - SourceDiameter);
 
@@ -151,7 +151,7 @@ void FlatViewWindow::drawFieldBackground(Graphics & g, const int fieldWH) const
 }
 
 //==============================================================================
-void FlatViewWindow::paint(Graphics & g)
+void FlatViewWindow::paint(juce::Graphics & g)
 {
     const int fieldWH = getWidth(); // Same as getHeight()
     const int fieldCenter = fieldWH / 2;
@@ -163,27 +163,33 @@ void FlatViewWindow::paint(Graphics & g)
 
     g.setFont(this->grisFeel.getFont());
     g.setColour(this->grisFeel.getLightColour());
-    g.drawText("0", fieldCenter, 10, SourceDiameter, SourceDiameter, Justification(Justification::centred), false);
+    g.drawText("0",
+               fieldCenter,
+               10,
+               SourceDiameter,
+               SourceDiameter,
+               juce::Justification(juce::Justification::centred),
+               false);
     g.drawText("90",
                realW - 10,
                (fieldWH - 4) / 2.0f,
                SourceDiameter,
                SourceDiameter,
-               Justification(Justification::centred),
+               juce::Justification(juce::Justification::centred),
                false);
     g.drawText("180",
                fieldCenter,
                realW - 6,
                SourceDiameter,
                SourceDiameter,
-               Justification(Justification::centred),
+               juce::Justification(juce::Justification::centred),
                false);
     g.drawText("270",
                14,
                (fieldWH - 4) / 2.0f,
                SourceDiameter,
                SourceDiameter,
-               Justification(Justification::centred),
+               juce::Justification(juce::Justification::centred),
                false);
 
     // Draw sources.
@@ -199,10 +205,10 @@ void FlatViewWindow::paint(Graphics & g)
 }
 
 //==============================================================================
-void FlatViewWindow::drawSource(Graphics & g, Input * it, const int fieldWH) const
+void FlatViewWindow::drawSource(juce::Graphics & g, Input * it, const int fieldWH) const
 {
     const int realW = (fieldWH - SourceDiameter);
-    String stringVal;
+    juce::String stringVal;
     FPoint sourceP;
     if (this->mainParent.getModeSelected() == LBAP) {
         sourceP = FPoint(it->getCenter().z * 0.6f, it->getCenter().x * 0.6f) / 5.0f;
@@ -220,7 +226,7 @@ void FlatViewWindow::drawSource(Graphics & g, Input * it, const int fieldWH) con
     stringVal.clear();
     stringVal << it->getId();
 
-    g.setColour(Colours::black.withAlpha(it->getAlpha()));
+    g.setColour(juce::Colours::black.withAlpha(it->getAlpha()));
     int tx = sourceP.x;
     int ty = sourceP.y;
     g.drawText(stringVal,
@@ -228,22 +234,22 @@ void FlatViewWindow::drawSource(Graphics & g, Input * it, const int fieldWH) con
                ty + 1,
                SourceDiameter + 10,
                SourceDiameter,
-               Justification(Justification::centredLeft),
+               juce::Justification(juce::Justification::centredLeft),
                false);
-    g.setColour(Colours::white.withAlpha(it->getAlpha()));
+    g.setColour(juce::Colours::white.withAlpha(it->getAlpha()));
     g.drawText(stringVal,
                tx + 5,
                ty,
                SourceDiameter + 10,
                SourceDiameter,
-               Justification(Justification::centredLeft),
+               juce::Justification(juce::Justification::centredLeft),
                false);
 }
 
 //==============================================================================
-void FlatViewWindow::drawSourceSpan(Graphics & g, Input * it, const int fieldWH, const int fieldCenter) const
+void FlatViewWindow::drawSourceSpan(juce::Graphics & g, Input * it, const int fieldWH, const int fieldCenter) const
 {
-    Colour colorS = it->getColorJ();
+    juce::Colour colorS = it->getColorJ();
 
     FPoint sourceP;
     if (this->mainParent.getModeSelected() == LBAP) {
@@ -297,7 +303,7 @@ void FlatViewWindow::drawSourceSpan(Graphics & g, Input * it, const int fieldWH,
         float minRadius = sqrtf(screenMinElev.x * screenMinElev.x + screenMinElev.y * screenMinElev.y);
 
         // Drawing the path for spanning.
-        Path myPath;
+        juce::Path myPath;
         myPath.startNewSubPath(fieldCenter + screenMaxElev.x, fieldCenter + screenMaxElev.y);
         // Half first arc center.
         myPath.addCentredArc(fieldCenter,
@@ -340,7 +346,7 @@ void FlatViewWindow::drawSourceSpan(Graphics & g, Input * it, const int fieldWH,
         g.fillPath(myPath);
 
         g.setColour(colorS.withAlpha(it->getAlpha() * 0.6f));
-        g.strokePath(myPath, PathStrokeType(0.5));
+        g.strokePath(myPath, juce::PathStrokeType(0.5));
     }
 }
 

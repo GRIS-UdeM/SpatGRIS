@@ -35,19 +35,20 @@ AboutComponent::AboutComponent(AboutWindow & aboutWindow, GrisLookAndFeel & look
         this->addAndMakeVisible(this->mLogoImage);
     }
 
-    this->mTitleLabel.setText("SpatGRIS v2 - Sound Spatialization Tool\n\n", NotificationType::dontSendNotification);
-    this->mTitleLabel.setJustificationType(Justification::horizontallyCentred);
+    this->mTitleLabel.setText("SpatGRIS v2 - Sound Spatialization Tool\n\n",
+                              juce::NotificationType::dontSendNotification);
+    this->mTitleLabel.setJustificationType(juce::Justification::horizontallyCentred);
     this->mTitleLabel.setBounds(5, 150, 390, 50);
     this->mTitleLabel.setLookAndFeel(&lookAndFeel);
-    this->mTitleLabel.setColour(Label::textColourId, lookAndFeel.getFontColour());
+    this->mTitleLabel.setColour(juce::Label::textColourId, lookAndFeel.getFontColour());
     this->addAndMakeVisible(this->mTitleLabel);
 
-    String version_num = STRING(JUCE_APP_VERSION);
-    this->mVersionLabel.setText("Version " + version_num + "\n\n\n", NotificationType::dontSendNotification);
-    this->mVersionLabel.setJustificationType(Justification::horizontallyCentred);
+    juce::String version_num = STRING(JUCE_APP_VERSION);
+    this->mVersionLabel.setText("Version " + version_num + "\n\n\n", juce::NotificationType::dontSendNotification);
+    this->mVersionLabel.setJustificationType(juce::Justification::horizontallyCentred);
     this->mVersionLabel.setBounds(5, 180, 390, 50);
     this->mVersionLabel.setLookAndFeel(&lookAndFeel);
-    this->mVersionLabel.setColour(Label::textColourId, lookAndFeel.getFontColour());
+    this->mVersionLabel.setColour(juce::Label::textColourId, lookAndFeel.getFontColour());
     this->addAndMakeVisible(this->mVersionLabel);
 
     juce::String infos{};
@@ -61,26 +62,26 @@ AboutComponent::AboutComponent(AboutWindow & aboutWindow, GrisLookAndFeel & look
     infos << "Assistants:\n\n";
     infos << "David LEDOUX, Christophe LENGELÉ, Nicola GIANNINI\n\n";
 
-    this->mInfosLabel.setText(infos, NotificationType::dontSendNotification);
-    this->mInfosLabel.setJustificationType(Justification::left);
+    this->mInfosLabel.setText(infos, juce::NotificationType::dontSendNotification);
+    this->mInfosLabel.setJustificationType(juce::Justification::left);
     this->mInfosLabel.setBounds(5, 230, 390, 250);
     this->mInfosLabel.setFont(lookAndFeel.getFont());
     this->mInfosLabel.setLookAndFeel(&lookAndFeel);
-    this->mInfosLabel.setColour(Label::textColourId, lookAndFeel.getFontColour());
+    this->mInfosLabel.setColour(juce::Label::textColourId, lookAndFeel.getFontColour());
     this->addAndMakeVisible(this->mInfosLabel);
 
     this->mWebsiteHyperlink.setButtonText("GRIS Web Site");
     this->mWebsiteHyperlink.setURL(juce::URL{ "http://gris.musique.umontreal.ca/" });
-    this->mWebsiteHyperlink.setColour(HyperlinkButton::textColourId, lookAndFeel.getFontColour());
+    this->mWebsiteHyperlink.setColour(juce::HyperlinkButton::textColourId, lookAndFeel.getFontColour());
     this->mWebsiteHyperlink.setBounds(20, 470, 150, 22);
-    this->mWebsiteHyperlink.setColour(ToggleButton::textColourId, lookAndFeel.getFontColour());
+    this->mWebsiteHyperlink.setColour(juce::ToggleButton::textColourId, lookAndFeel.getFontColour());
     this->mWebsiteHyperlink.setLookAndFeel(&lookAndFeel);
     this->mWebsiteHyperlink.addListener(this);
     this->addAndMakeVisible(this->mWebsiteHyperlink);
 
     this->mCloseButton.setButtonText("Close");
     this->mCloseButton.setBounds(250, 470, 100, 22);
-    this->mCloseButton.setColour(ToggleButton::textColourId, lookAndFeel.getFontColour());
+    this->mCloseButton.setColour(juce::ToggleButton::textColourId, lookAndFeel.getFontColour());
     this->mCloseButton.setLookAndFeel(&lookAndFeel);
     this->mCloseButton.addListener(this);
     this->addAndMakeVisible(mCloseButton);

@@ -59,20 +59,20 @@ private:
     bool getDirectOutForSpeakerRow(int row) const;
     juce::String getText(int columnNumber, int rowNumber) const;
 
-    void setText(int columnNumber, int rowNumber, String const & newText, bool altDown = false);
+    void setText(int columnNumber, int rowNumber, juce::String const & newText, bool altDown = false);
     //==============================================================================
     // VIRTUALS
     int getNumRows() final { return this->numRows; }
 
-    void buttonClicked(Button * button) final;
+    void buttonClicked(juce::Button * button) final;
     void textEditorTextChanged(juce::TextEditor & editor) final;
     void textEditorReturnKeyPressed(juce::TextEditor & textEditor) final;
     void closeButtonPressed() final;
     void sliderValueChanged(juce::Slider * slider) final;
     void sortOrderChanged(int newSortColumnId, bool isForwards) final;
     void resized() final;
-    void paintRowBackground(Graphics & g, int rowNumber, int width, int height, bool rowIsSelected) final;
-    void paintCell(Graphics & g, int rowNumber, int columnId, int width, int height, bool rowIsSelected) final;
+    void paintRowBackground(juce::Graphics & g, int rowNumber, int width, int height, bool rowIsSelected) final;
+    void paintCell(juce::Graphics & g, int rowNumber, int columnId, int width, int height, bool rowIsSelected) final;
 
     Component * refreshComponentForCell(int rowNumber,
                                         int columnId,

@@ -31,23 +31,23 @@ class Input;
 
 //==============================================================================
 class FlatViewWindow final
-    : public DocumentWindow
-    , private Timer
+    : public juce::DocumentWindow
+    , private juce::Timer
 {
 public:
     FlatViewWindow(MainContentComponent & parent, GrisLookAndFeel & feel);
     ~FlatViewWindow() final;
     //==============================================================================
     void timerCallback() final { this->repaint(); }
-    void paint(Graphics & g) final;
+    void paint(juce::Graphics & g) final;
     void resized() final;
     void closeButtonPressed() final;
 
 private:
     //==============================================================================
-    void drawFieldBackground(Graphics & g, const int fieldWH) const;
-    void drawSource(Graphics & g, Input * it, const int fieldWH) const;
-    void drawSourceSpan(Graphics & g, Input * it, const int fieldWH, const int fieldCenter) const;
+    void drawFieldBackground(juce::Graphics & g, const int fieldWH) const;
+    void drawSource(juce::Graphics & g, Input * it, const int fieldWH) const;
+    void drawSourceSpan(juce::Graphics & g, Input * it, const int fieldWH, const int fieldCenter) const;
     //==============================================================================
     MainContentComponent & mainParent;
     GrisLookAndFeel & grisFeel;

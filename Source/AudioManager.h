@@ -102,13 +102,13 @@ public:
     JSList * getDummyJackCtlParameters() const { return nullptr; }
     //==============================================================================
     // AudioSourcePlayer overrides
-    void audioDeviceError(const String & errorMessage) override;
+    void audioDeviceError(const juce::String & errorMessage) override;
     void audioDeviceIOCallback(const float ** inputChannelData,
                                int totalNumInputChannels,
                                float ** outputChannelData,
                                int totalNumOutputChannels,
                                int numSamples) override;
-    void audioDeviceAboutToStart(AudioIODevice * device) override;
+    void audioDeviceAboutToStart(juce::AudioIODevice * device) override;
     void audioDeviceStopped() override;
     //==============================================================================
     static AudioManager & getInstance();

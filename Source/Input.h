@@ -58,7 +58,7 @@ public:
     void setMuted(bool mute);
     void setSolo(bool solo);
     void selectClick(bool select = true){};
-    void setColor(Colour color, bool updateLevel = false);
+    void setColor(juce::Colour color, bool updateLevel = false);
     //==============================================================================
     MainContentComponent const & getMainContentComponent() const { return this->mainContentComponent; }
     MainContentComponent & getMainContentComponent() { return this->mainContentComponent; }
@@ -83,8 +83,8 @@ public:
     {
         return glm::vec3(this->color.x * 0.5, this->color.y * 0.5, this->color.z * 0.5);
     }
-    Colour getColorJ() const { return this->colorJ; }
-    Colour getColorJWithAlpha() const;
+    juce::Colour getColorJ() const { return this->colorJ; }
+    juce::Colour getColorJWithAlpha() const;
     //==============================================================================
     glm::vec3 polToCar(float azimuth, float zenith) const;
     glm::vec3 polToCar3d(float azimuth, float zenith) const;
@@ -122,7 +122,7 @@ private:
 
     glm::vec3 center;
     glm::vec3 color;
-    Colour colorJ;
+    juce::Colour colorJ;
 
     LevelComponent vuMeter;
     //==============================================================================

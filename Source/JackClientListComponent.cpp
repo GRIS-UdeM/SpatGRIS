@@ -30,16 +30,17 @@ JackClientListComponent::JackClientListComponent(MainContentComponent * parent, 
 {
     tableListClient.setModel(this);
 
-    tableListClient.setColour(ListBox::outlineColourId, this->grisFeel->getWinBackgroundColour());
-    tableListClient.setColour(ListBox::backgroundColourId, this->grisFeel->getWinBackgroundColour());
+    tableListClient.setColour(juce::ListBox::outlineColourId, this->grisFeel->getWinBackgroundColour());
+    tableListClient.setColour(juce::ListBox::backgroundColourId, this->grisFeel->getWinBackgroundColour());
     tableListClient.setOutlineThickness(1);
 
     tableListClient.getHeader()
-        .addColumn("Client", ColumnIds::CLIENT_NAME, 120, 70, 120, TableHeaderComponent::notSortable);
-    tableListClient.getHeader().addColumn("Start", ColumnIds::START, 60, 35, 70, TableHeaderComponent::notSortable);
-    tableListClient.getHeader().addColumn("End", ColumnIds::END, 60, 35, 70, TableHeaderComponent::notSortable);
+        .addColumn("Client", ColumnIds::CLIENT_NAME, 120, 70, 120, juce::TableHeaderComponent::notSortable);
     tableListClient.getHeader()
-        .addColumn("On/Off", ColumnIds::ON_OFF_TOGGLE, 62, 35, 70, TableHeaderComponent::notSortable);
+        .addColumn("Start", ColumnIds::START, 60, 35, 70, juce::TableHeaderComponent::notSortable);
+    tableListClient.getHeader().addColumn("End", ColumnIds::END, 60, 35, 70, juce::TableHeaderComponent::notSortable);
+    tableListClient.getHeader()
+        .addColumn("On/Off", ColumnIds::ON_OFF_TOGGLE, 62, 35, 70, juce::TableHeaderComponent::notSortable);
 
     tableListClient.setMultipleSelectionEnabled(false);
 
@@ -49,7 +50,7 @@ JackClientListComponent::JackClientListComponent(MainContentComponent * parent, 
 }
 
 //==============================================================================
-void JackClientListComponent::buttonClicked(Button * button)
+void JackClientListComponent::buttonClicked(juce::Button * button)
 {
     this->mainParent->getLockClients().lock();
     bool connectedCli = !this->mainParent->getListClientjack().at(button->getName().getIntValue()).connected;
@@ -111,19 +112,19 @@ int JackClientListComponent::getValue(const int rowNumber, const int columnNumbe
 }
 
 //==============================================================================
-String JackClientListComponent::getText(const int columnNumber, const int rowNumber) const
+juce::String JackClientListComponent::getText(const int columnNumber, const int rowNumber) const
 {
-    String text = "?";
+    juce::String text = "?";
     if ((unsigned int)rowNumber < this->mainParent->getListClientjack().size()) {
         if (columnNumber == ColumnIds::CLIENT_NAME) {
-            text = String(this->mainParent->getListClientjack().at(rowNumber).name);
+            text = juce::String(this->mainParent->getListClientjack().at(rowNumber).name);
         }
     }
     return text;
 }
 
 //==============================================================================
-void JackClientListComponent::paintRowBackground(Graphics & g,
+void JackClientListComponent::paintRowBackground(juce::Graphics & g,
                                                  int rowNumber,
                                                  int /*width*/,
                                                  int /*height*/,
@@ -137,7 +138,7 @@ void JackClientListComponent::paintRowBackground(Graphics & g,
 }
 
 //==============================================================================
-void JackClientListComponent::paintCell(Graphics & g,
+void JackClientListComponent::paintCell(juce::Graphics & g,
                                         int const rowNumber,
                                         int const columnId,
                                         int const width,
@@ -149,14 +150,14 @@ void JackClientListComponent::paintCell(Graphics & g,
         if (static_cast<size_t>(rowNumber) < jackClientListSize) {
             if (columnId == ColumnIds::CLIENT_NAME) {
                 juce::String text = getText(columnId, rowNumber);
-                g.setColour(Colours::black);
+                g.setColour(juce::Colours::black);
                 g.setFont(12.0f);
                 g.drawText(text, 2, 0, width - 4, height, juce::Justification::centredLeft, true);
             }
         }
         this->mainParent->getLockClients().unlock();
     }
-    g.setColour(Colours::black.withAlpha(0.2f));
+    g.setColour(juce::Colours::black.withAlpha(0.2f));
     g.fillRect(width - 1, 0, 1, height);
 }
 
@@ -171,13 +172,13 @@ juce::Component * JackClientListComponent::refreshComponentForCell(int const row
     }
 
     if (columnId == ColumnIds::ON_OFF_TOGGLE) {
-        TextButton * tbRemove = static_cast<TextButton *>(existingComponentToUpdate);
+        juce::TextButton * tbRemove = static_cast<juce::TextButton *>(existingComponentToUpdate);
         if (tbRemove == nullptr) {
-            tbRemove = new TextButton();
-            tbRemove->setName(String(rowNumber));
+            tbRemove = new juce::TextButton();
+            tbRemove->setName(juce::String(rowNumber));
             tbRemove->setBounds(4, 404, 88, 22);
             tbRemove->addListener(this);
-            tbRemove->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
+            tbRemove->setColour(juce::ToggleButton::textColourId, this->grisFeel->getFontColour());
             tbRemove->setLookAndFeel(this->grisFeel);
         }
 

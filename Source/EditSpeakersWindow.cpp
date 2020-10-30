@@ -43,30 +43,30 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     this->butAddSpeaker.setButtonText("Add Speaker");
     this->butAddSpeaker.setBounds(5, 404, 100, 22);
     this->butAddSpeaker.addListener(this);
-    this->butAddSpeaker.setColour(ToggleButton::textColourId, this->grisFeel.getFontColour());
+    this->butAddSpeaker.setColour(juce::ToggleButton::textColourId, this->grisFeel.getFontColour());
     this->butAddSpeaker.setLookAndFeel(&this->grisFeel);
     this->boxListSpeaker.getContent()->addAndMakeVisible(this->butAddSpeaker);
 
     this->butcompSpeakers.setButtonText("Compute");
     this->butcompSpeakers.setBounds(110, 404, 100, 22);
     this->butcompSpeakers.addListener(this);
-    this->butcompSpeakers.setColour(ToggleButton::textColourId, this->grisFeel.getFontColour());
+    this->butcompSpeakers.setColour(juce::ToggleButton::textColourId, this->grisFeel.getFontColour());
     this->butcompSpeakers.setLookAndFeel(&this->grisFeel);
     this->boxListSpeaker.getContent()->addAndMakeVisible(this->butcompSpeakers);
 
     // Generate ring of speakers.
     int wlab = 80;
 
-    this->rNumOfSpeakersLabel.setText("# of speakers", NotificationType::dontSendNotification);
-    this->rNumOfSpeakersLabel.setJustificationType(Justification::right);
+    this->rNumOfSpeakersLabel.setText("# of speakers", juce::NotificationType::dontSendNotification);
+    this->rNumOfSpeakersLabel.setJustificationType(juce::Justification::right);
     this->rNumOfSpeakersLabel.setFont(this->grisFeel.getFont());
     this->rNumOfSpeakersLabel.setLookAndFeel(&this->grisFeel);
-    this->rNumOfSpeakersLabel.setColour(Label::textColourId, this->grisFeel.getFontColour());
+    this->rNumOfSpeakersLabel.setColour(juce::Label::textColourId, this->grisFeel.getFontColour());
     this->rNumOfSpeakersLabel.setBounds(5, 435, 40, 24);
     this->boxListSpeaker.getContent()->addAndMakeVisible(this->rNumOfSpeakersLabel);
 
     this->rNumOfSpeakers.setTooltip("Number of speakers in the ring");
-    this->rNumOfSpeakers.setColour(ToggleButton::textColourId, this->grisFeel.getFontColour());
+    this->rNumOfSpeakers.setColour(juce::ToggleButton::textColourId, this->grisFeel.getFontColour());
     this->rNumOfSpeakers.setLookAndFeel(&this->grisFeel);
     this->rNumOfSpeakers.setBounds(5 + wlab, 435, 40, 24);
     this->rNumOfSpeakers.addListener(&this->mainContentComponent);
@@ -76,16 +76,16 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     this->rNumOfSpeakers.setInputRestrictions(3, "0123456789");
     this->rNumOfSpeakers.addListener(this);
 
-    this->rZenithLabel.setText("Elevation", NotificationType::dontSendNotification);
-    this->rZenithLabel.setJustificationType(Justification::right);
+    this->rZenithLabel.setText("Elevation", juce::NotificationType::dontSendNotification);
+    this->rZenithLabel.setJustificationType(juce::Justification::right);
     this->rZenithLabel.setFont(this->grisFeel.getFont());
     this->rZenithLabel.setLookAndFeel(&this->grisFeel);
-    this->rZenithLabel.setColour(Label::textColourId, this->grisFeel.getFontColour());
+    this->rZenithLabel.setColour(juce::Label::textColourId, this->grisFeel.getFontColour());
     this->rZenithLabel.setBounds(105, 435, 80, 24);
     this->boxListSpeaker.getContent()->addAndMakeVisible(this->rZenithLabel);
 
     this->rZenith.setTooltip("Elevation angle of the ring");
-    this->rZenith.setColour(ToggleButton::textColourId, this->grisFeel.getFontColour());
+    this->rZenith.setColour(juce::ToggleButton::textColourId, this->grisFeel.getFontColour());
     this->rZenith.setLookAndFeel(&this->grisFeel);
     this->rZenith.setBounds(105 + wlab, 435, 60, 24);
     this->rZenith.addListener(&this->mainContentComponent);
@@ -95,16 +95,16 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     this->rZenith.setInputRestrictions(6, "-0123456789.");
     this->rZenith.addListener(this);
 
-    this->rRadiusLabel.setText("Distance", NotificationType::dontSendNotification);
-    this->rRadiusLabel.setJustificationType(Justification::right);
+    this->rRadiusLabel.setText("Distance", juce::NotificationType::dontSendNotification);
+    this->rRadiusLabel.setJustificationType(juce::Justification::right);
     this->rRadiusLabel.setFont(this->grisFeel.getFont());
     this->rRadiusLabel.setLookAndFeel(&this->grisFeel);
-    this->rRadiusLabel.setColour(Label::textColourId, this->grisFeel.getFontColour());
+    this->rRadiusLabel.setColour(juce::Label::textColourId, this->grisFeel.getFontColour());
     this->rRadiusLabel.setBounds(230, 435, 80, 24);
     this->boxListSpeaker.getContent()->addAndMakeVisible(this->rRadiusLabel);
 
     this->rRadius.setTooltip("Distance of the speakers from the center.");
-    this->rRadius.setColour(ToggleButton::textColourId, this->grisFeel.getFontColour());
+    this->rRadius.setColour(juce::ToggleButton::textColourId, this->grisFeel.getFontColour());
     this->rRadius.setLookAndFeel(&this->grisFeel);
     this->rRadius.setBounds(230 + wlab, 435, 60, 24);
     this->rRadius.addListener(&this->mainContentComponent);
@@ -114,16 +114,16 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     this->rRadius.setInputRestrictions(6, "0123456789.");
     this->rRadius.addListener(this);
 
-    this->rOffsetAngleLabel.setText("Offset Angle", NotificationType::dontSendNotification);
-    this->rOffsetAngleLabel.setJustificationType(Justification::right);
+    this->rOffsetAngleLabel.setText("Offset Angle", juce::NotificationType::dontSendNotification);
+    this->rOffsetAngleLabel.setJustificationType(juce::Justification::right);
     this->rOffsetAngleLabel.setFont(this->grisFeel.getFont());
     this->rOffsetAngleLabel.setLookAndFeel(&this->grisFeel);
-    this->rOffsetAngleLabel.setColour(Label::textColourId, this->grisFeel.getFontColour());
+    this->rOffsetAngleLabel.setColour(juce::Label::textColourId, this->grisFeel.getFontColour());
     this->rOffsetAngleLabel.setBounds(375, 435, 80, 24);
     this->boxListSpeaker.getContent()->addAndMakeVisible(this->rOffsetAngleLabel);
 
     this->rOffsetAngle.setTooltip("Offset angle of the first speaker.");
-    this->rOffsetAngle.setColour(ToggleButton::textColourId, this->grisFeel.getFontColour());
+    this->rOffsetAngle.setColour(juce::ToggleButton::textColourId, this->grisFeel.getFontColour());
     this->rOffsetAngle.setLookAndFeel(&this->grisFeel);
     this->rOffsetAngle.setBounds(375 + wlab, 435, 60, 24);
     this->rOffsetAngle.addListener(&this->mainContentComponent);
@@ -136,7 +136,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     this->butAddRing.setButtonText("Add Ring");
     this->butAddRing.setBounds(520, 435, 100, 24);
     this->butAddRing.addListener(this);
-    this->butAddRing.setColour(ToggleButton::textColourId, this->grisFeel.getFontColour());
+    this->butAddRing.setColour(juce::ToggleButton::textColourId, this->grisFeel.getFontColour());
     this->butAddRing.setLookAndFeel(&this->grisFeel);
     this->boxListSpeaker.getContent()->addAndMakeVisible(this->butAddRing);
 
@@ -144,18 +144,18 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     this->pinkNoise.setButtonText("Reference Pink Noise");
     this->pinkNoise.setBounds(5, 500, 150, 24);
     this->pinkNoise.addListener(this);
-    this->pinkNoise.setColour(ToggleButton::textColourId, this->grisFeel.getFontColour());
+    this->pinkNoise.setColour(juce::ToggleButton::textColourId, this->grisFeel.getFontColour());
     this->pinkNoise.setLookAndFeel(&this->grisFeel);
     this->boxListSpeaker.getContent()->addAndMakeVisible(this->pinkNoise);
 
     this->pinkNoiseGain.setTextValueSuffix(" dB");
     this->pinkNoiseGain.setBounds(200, 500, 60, 60);
-    this->pinkNoiseGain.setSliderStyle(Slider::Rotary);
+    this->pinkNoiseGain.setSliderStyle(juce::Slider::Rotary);
     this->pinkNoiseGain.setRotaryParameters(M_PI * 1.3f, M_PI * 2.7f, true);
     this->pinkNoiseGain.setRange(-60, -3, 1);
     this->pinkNoiseGain.setValue(-20);
-    this->pinkNoiseGain.setTextBoxStyle(Slider::TextBoxBelow, false, 60, 20);
-    this->pinkNoiseGain.setColour(ToggleButton::textColourId, this->grisFeel.getFontColour());
+    this->pinkNoiseGain.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 60, 20);
+    this->pinkNoiseGain.setColour(juce::ToggleButton::textColourId, this->grisFeel.getFontColour());
     this->pinkNoiseGain.setLookAndFeel(&this->grisFeel);
     this->pinkNoiseGain.addListener(this);
     this->boxListSpeaker.getContent()->addAndMakeVisible(this->pinkNoiseGain);
@@ -173,22 +173,22 @@ void EditSpeakersWindow::initComp()
 {
     tableListSpeakers.setModel(this);
 
-    tableListSpeakers.setColour(ListBox::outlineColourId, this->grisFeel.getWinBackgroundColour());
-    tableListSpeakers.setColour(ListBox::backgroundColourId, this->grisFeel.getWinBackgroundColour());
+    tableListSpeakers.setColour(juce::ListBox::outlineColourId, this->grisFeel.getWinBackgroundColour());
+    tableListSpeakers.setColour(juce::ListBox::backgroundColourId, this->grisFeel.getWinBackgroundColour());
     tableListSpeakers.setOutlineThickness(1);
 
-    tableListSpeakers.getHeader().addColumn("ID", 1, 40, 40, 60, TableHeaderComponent::defaultFlags);
-    tableListSpeakers.getHeader().addColumn("X", 2, 70, 50, 120, TableHeaderComponent::defaultFlags);
-    tableListSpeakers.getHeader().addColumn("Y", 3, 70, 50, 120, TableHeaderComponent::defaultFlags);
-    tableListSpeakers.getHeader().addColumn("Z", 4, 70, 50, 120, TableHeaderComponent::defaultFlags);
-    tableListSpeakers.getHeader().addColumn("Azimuth", 5, 70, 50, 120, TableHeaderComponent::defaultFlags);
-    tableListSpeakers.getHeader().addColumn("Elevation", 6, 70, 50, 120, TableHeaderComponent::defaultFlags);
-    tableListSpeakers.getHeader().addColumn("Distance", 7, 70, 50, 120, TableHeaderComponent::defaultFlags);
-    tableListSpeakers.getHeader().addColumn("Output", 8, 70, 50, 120, TableHeaderComponent::defaultFlags);
-    tableListSpeakers.getHeader().addColumn("Gain (dB)", 9, 70, 50, 120, TableHeaderComponent::notSortable);
-    tableListSpeakers.getHeader().addColumn("Highpass", 10, 70, 50, 120, TableHeaderComponent::notSortable);
-    tableListSpeakers.getHeader().addColumn("Direct", 11, 70, 50, 120, TableHeaderComponent::notSortable);
-    tableListSpeakers.getHeader().addColumn("delete", 12, 70, 50, 120, TableHeaderComponent::notSortable);
+    tableListSpeakers.getHeader().addColumn("ID", 1, 40, 40, 60, juce::TableHeaderComponent::defaultFlags);
+    tableListSpeakers.getHeader().addColumn("X", 2, 70, 50, 120, juce::TableHeaderComponent::defaultFlags);
+    tableListSpeakers.getHeader().addColumn("Y", 3, 70, 50, 120, juce::TableHeaderComponent::defaultFlags);
+    tableListSpeakers.getHeader().addColumn("Z", 4, 70, 50, 120, juce::TableHeaderComponent::defaultFlags);
+    tableListSpeakers.getHeader().addColumn("Azimuth", 5, 70, 50, 120, juce::TableHeaderComponent::defaultFlags);
+    tableListSpeakers.getHeader().addColumn("Elevation", 6, 70, 50, 120, juce::TableHeaderComponent::defaultFlags);
+    tableListSpeakers.getHeader().addColumn("Distance", 7, 70, 50, 120, juce::TableHeaderComponent::defaultFlags);
+    tableListSpeakers.getHeader().addColumn("Output", 8, 70, 50, 120, juce::TableHeaderComponent::defaultFlags);
+    tableListSpeakers.getHeader().addColumn("Gain (dB)", 9, 70, 50, 120, juce::TableHeaderComponent::notSortable);
+    tableListSpeakers.getHeader().addColumn("Highpass", 10, 70, 50, 120, juce::TableHeaderComponent::notSortable);
+    tableListSpeakers.getHeader().addColumn("Direct", 11, 70, 50, 120, juce::TableHeaderComponent::notSortable);
+    tableListSpeakers.getHeader().addColumn("delete", 12, 70, 50, 120, juce::TableHeaderComponent::notSortable);
 
     tableListSpeakers.getHeader().setSortColumnId(1, true); // Sort forwards by the ID column.
 
@@ -386,8 +386,9 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
             for (int i = 0; i < this->tableListSpeakers.getSelectedRows().size(); i++) {
                 int rownum = this->tableListSpeakers.getSelectedRows()[i];
                 this->mainContentComponent.getListSpeaker()[rownum]->setDirectOut(button->getToggleState());
-                ToggleButton * tog = dynamic_cast<ToggleButton *>(this->tableListSpeakers.getCellComponent(11, rownum));
-                tog->setToggleState(button->getToggleState(), NotificationType::dontSendNotification);
+                juce::ToggleButton * tog
+                    = dynamic_cast<juce::ToggleButton *>(this->tableListSpeakers.getCellComponent(11, rownum));
+                tog->setToggleState(button->getToggleState(), juce::NotificationType::dontSendNotification);
             }
         }
         updateWinContent();
@@ -399,7 +400,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
 void EditSpeakersWindow::textEditorTextChanged(juce::TextEditor & editor)
 {
     float value;
-    String test;
+    juce::String test;
     if (&editor == &this->rNumOfSpeakers) {
     } else if (&editor == &this->rZenith) {
         test = this->rZenith.getText().retainCharacters(".");
@@ -408,9 +409,9 @@ void EditSpeakersWindow::textEditorTextChanged(juce::TextEditor & editor)
         }
         value = this->rZenith.getText().getFloatValue();
         if (value > 90.0f) {
-            this->rZenith.setText(String(90.0f), false);
+            this->rZenith.setText(juce::String(90.0f), false);
         } else if (value < -90.0f) {
-            this->rZenith.setText(String(-90.0f), false);
+            this->rZenith.setText(juce::String(-90.0f), false);
         }
     } else if (&editor == &this->rRadius) {
         test = this->rRadius.getText().retainCharacters(".");
@@ -419,7 +420,7 @@ void EditSpeakersWindow::textEditorTextChanged(juce::TextEditor & editor)
         }
         value = this->rRadius.getText().getFloatValue();
         if (value > 1.0f) {
-            this->rRadius.setText(String(1.0f), false);
+            this->rRadius.setText(juce::String(1.0f), false);
         }
     } else if (&editor == &this->rOffsetAngle) {
         test = this->rOffsetAngle.getText().retainCharacters(".");
@@ -428,9 +429,9 @@ void EditSpeakersWindow::textEditorTextChanged(juce::TextEditor & editor)
         }
         value = this->rOffsetAngle.getText().getFloatValue();
         if (value < -180.0f) {
-            this->rOffsetAngle.setText(String(-180.0f), false);
+            this->rOffsetAngle.setText(juce::String(-180.0f), false);
         } else if (value > 180.0f) {
-            this->rOffsetAngle.setText(String(180.0f), false);
+            this->rOffsetAngle.setText(juce::String(180.0f), false);
         }
     }
 }
@@ -456,7 +457,7 @@ void EditSpeakersWindow::updateWinContent()
 //==============================================================================
 void EditSpeakersWindow::selectedRow(int const value)
 {
-    MessageManagerLock mmlock;
+    juce::MessageManagerLock mmlock;
     this->tableListSpeakers.selectRow(value);
     this->repaint();
 }
@@ -466,13 +467,13 @@ void EditSpeakersWindow::closeButtonPressed()
 {
     int exitV = 1;
     if (this->mainContentComponent.needToSaveSpeakerSetup) {
-        AlertWindow alert("Closing Speaker Setup Window !",
-                          "Do you want to compute and save the current setup ?",
-                          AlertWindow::WarningIcon);
+        juce::AlertWindow alert("Closing Speaker Setup Window !",
+                                "Do you want to compute and save the current setup ?",
+                                juce::AlertWindow::WarningIcon);
         alert.setLookAndFeel(&grisFeel);
-        alert.addButton("Save", 1, KeyPress(KeyPress::returnKey));
+        alert.addButton("Save", 1, juce::KeyPress(juce::KeyPress::returnKey));
         alert.addButton("No", 2);
-        alert.addButton("Cancel", 0, KeyPress(KeyPress::escapeKey));
+        alert.addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
         exitV = alert.runModalLoop();
 
         if (exitV == 1) {
@@ -528,37 +529,38 @@ juce::String EditSpeakersWindow::getText(int const columnNumber, int const rowNu
     if (this->mainContentComponent.getListSpeaker().size() > (unsigned int)rowNumber) {
         switch (columnNumber) {
         case 1:
-            text = String(this->mainContentComponent.getListSpeaker()[rowNumber]->getIdSpeaker());
+            text = juce::String(this->mainContentComponent.getListSpeaker()[rowNumber]->getIdSpeaker());
             break;
         case 2:
-            text = String(this->mainContentComponent.getListSpeaker()[rowNumber]->getCoordinate().x);
+            text = juce::String(this->mainContentComponent.getListSpeaker()[rowNumber]->getCoordinate().x);
             break;
         case 3:
-            text = String(this->mainContentComponent.getListSpeaker()[rowNumber]->getCoordinate().z);
+            text = juce::String(this->mainContentComponent.getListSpeaker()[rowNumber]->getCoordinate().z);
             break;
         case 4:
-            text = String(this->mainContentComponent.getListSpeaker()[rowNumber]->getCoordinate().y);
+            text = juce::String(this->mainContentComponent.getListSpeaker()[rowNumber]->getCoordinate().y);
             break;
         case 5:
-            text = String(this->mainContentComponent.getListSpeaker()[rowNumber]->getAziZenRad().x);
+            text = juce::String(this->mainContentComponent.getListSpeaker()[rowNumber]->getAziZenRad().x);
             break;
         case 6:
-            text = String(this->mainContentComponent.getListSpeaker()[rowNumber]->getAziZenRad().y);
+            text = juce::String(this->mainContentComponent.getListSpeaker()[rowNumber]->getAziZenRad().y);
             break;
         case 7:
-            text = String(this->mainContentComponent.getListSpeaker()[rowNumber]->getAziZenRad().z);
+            text = juce::String(this->mainContentComponent.getListSpeaker()[rowNumber]->getAziZenRad().z);
             break;
         case 8:
-            text = String(this->mainContentComponent.getListSpeaker()[rowNumber]->getOutputPatch());
+            text = juce::String(this->mainContentComponent.getListSpeaker()[rowNumber]->getOutputPatch());
             break;
         case 9:
-            text = String(this->mainContentComponent.getListSpeaker()[rowNumber]->getGain());
+            text = juce::String(this->mainContentComponent.getListSpeaker()[rowNumber]->getGain());
             break;
         case 10:
-            text = String(this->mainContentComponent.getListSpeaker()[rowNumber]->getHighPassCutoff());
+            text = juce::String(this->mainContentComponent.getListSpeaker()[rowNumber]->getHighPassCutoff());
             break;
         case 11:
-            text = String(static_cast<int>(this->mainContentComponent.getListSpeaker()[rowNumber]->isDirectOut()));
+            text
+                = juce::String(static_cast<int>(this->mainContentComponent.getListSpeaker()[rowNumber]->isDirectOut()));
             break;
         default:
             text = "?";
@@ -571,7 +573,7 @@ juce::String EditSpeakersWindow::getText(int const columnNumber, int const rowNu
 //==============================================================================
 void EditSpeakersWindow::setText(int const columnNumber,
                                  int const rowNumber,
-                                 String const & newText,
+                                 juce::String const & newText,
                                  bool const altDown)
 {
     int ival;
@@ -768,11 +770,12 @@ void EditSpeakersWindow::setText(int const columnNumber,
                             continue;
                         }
                         if (it->getOutputPatch() == ival) {
-                            AlertWindow alert("Wrong output patch!    ",
-                                              "Sorry! Output patch number " + String(ival) + " is already used.",
-                                              AlertWindow::WarningIcon);
+                            juce::AlertWindow alert("Wrong output patch!    ",
+                                                    "Sorry! Output patch number " + juce::String(ival)
+                                                        + " is already used.",
+                                                    juce::AlertWindow::WarningIcon);
                             alert.setLookAndFeel(&this->grisFeel);
-                            alert.addButton("OK", 0, KeyPress(KeyPress::returnKey));
+                            alert.addButton("OK", 0, juce::KeyPress(juce::KeyPress::returnKey));
                             alert.runModalLoop();
                             ival = oldval;
                         }
@@ -852,7 +855,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
 
 //==============================================================================
 // This is overloaded from TableListBoxModel, and should fill in the background of the whole row.
-void EditSpeakersWindow::paintRowBackground(Graphics & g,
+void EditSpeakersWindow::paintRowBackground(juce::Graphics & g,
                                             int const rowNumber,
                                             int const width,
                                             int const height,
@@ -882,62 +885,62 @@ void EditSpeakersWindow::paintRowBackground(Graphics & g,
 
 //==============================================================================
 // This is overloaded from TableListBoxModel, and must paint any cells that aren't using custom components.
-void EditSpeakersWindow::paintCell(Graphics & g,
+void EditSpeakersWindow::paintCell(juce::Graphics & g,
                                    int rowNumber,
                                    int columnId,
                                    int width,
                                    int height,
                                    bool /*rowIsSelected*/)
 {
-    g.setColour(Colours::black);
+    g.setColour(juce::Colours::black);
     g.setFont(font);
 
     if (this->mainContentComponent.getLockSpeakers().try_lock()) {
         if (this->mainContentComponent.getListSpeaker().size() > static_cast<unsigned int>(rowNumber)) {
-            String text = getText(columnId, rowNumber);
-            g.drawText(text, 2, 0, width - 4, height, Justification::centredLeft, true);
+            juce::String text = getText(columnId, rowNumber);
+            g.drawText(text, 2, 0, width - 4, height, juce::Justification::centredLeft, true);
         }
         this->mainContentComponent.getLockSpeakers().unlock();
     }
-    g.setColour(Colours::black.withAlpha(0.2f));
+    g.setColour(juce::Colours::black.withAlpha(0.2f));
     g.fillRect(width - 1, 0, 1, height);
 }
 
 //==============================================================================
-Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumber,
-                                                        int const columnId,
-                                                        bool const isRowSelected,
-                                                        Component * existingComponentToUpdate)
+juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumber,
+                                                              int const columnId,
+                                                              bool const isRowSelected,
+                                                              Component * existingComponentToUpdate)
 {
     juce::ignoreUnused(isRowSelected);
 
     if (columnId == 11) {
-        ToggleButton * tbDirect = static_cast<ToggleButton *>(existingComponentToUpdate);
+        juce::ToggleButton * tbDirect = static_cast<juce::ToggleButton *>(existingComponentToUpdate);
         if (tbDirect == nullptr)
-            tbDirect = new ToggleButton();
-        tbDirect->setName(String(rowNumber + 1000));
+            tbDirect = new juce::ToggleButton();
+        tbDirect->setName(juce::String(rowNumber + 1000));
         tbDirect->setClickingTogglesState(true);
         tbDirect->setBounds(4, 404, 88, 22);
         tbDirect->addListener(this);
         tbDirect->setToggleState(this->mainContentComponent.getListSpeaker()[rowNumber]->isDirectOut(),
-                                 dontSendNotification);
+                                 juce::dontSendNotification);
         tbDirect->setLookAndFeel(&this->grisFeel);
         return tbDirect;
     }
     if (columnId == 12) {
-        TextButton * tbRemove = static_cast<TextButton *>(existingComponentToUpdate);
+        juce::TextButton * tbRemove = static_cast<juce::TextButton *>(existingComponentToUpdate);
         if (tbRemove == nullptr)
-            tbRemove = new TextButton();
+            tbRemove = new juce::TextButton();
         tbRemove->setButtonText("X");
-        tbRemove->setName(String(rowNumber));
+        tbRemove->setName(juce::String(rowNumber));
         tbRemove->setBounds(4, 404, 88, 22);
         tbRemove->addListener(this);
-        tbRemove->setColour(ToggleButton::textColourId, this->grisFeel.getFontColour());
+        tbRemove->setColour(juce::ToggleButton::textColourId, this->grisFeel.getFontColour());
         tbRemove->setLookAndFeel(&this->grisFeel);
         return tbRemove;
     }
 
-    // The other columns are editable text columns, for which we use the custom Label component
+    // The other columns are editable text columns, for which we use the custom juce::Label component
     EditableTextCustomComponent * textLabel = static_cast<EditableTextCustomComponent *>(existingComponentToUpdate);
     if (textLabel == nullptr)
         textLabel = new EditableTextCustomComponent(*this);

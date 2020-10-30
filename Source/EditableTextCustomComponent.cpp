@@ -27,7 +27,7 @@ EditableTextCustomComponent::EditableTextCustomComponent(EditSpeakersWindow & ed
     : owner(editSpeakersWindow)
 {
     setEditable(false, true, false);
-    setColour(textColourId, Colours::black);
+    setColour(textColourId, juce::Colours::black);
     lastOffset = 0;
 }
 
@@ -97,7 +97,7 @@ void EditableTextCustomComponent::mouseDrag(const juce::MouseEvent & event)
         break;
     }
     if (ok) {
-        owner.setText(columnId, row, String(val), event.mods.isAltDown());
+        owner.setText(columnId, row, juce::String(val), event.mods.isAltDown());
     }
     lastOffset = offset;
 }
@@ -113,5 +113,5 @@ void EditableTextCustomComponent::setRowAndColumn(const int newRow, const int ne
 {
     row = newRow;
     columnId = newColumn;
-    setText(owner.getText(columnId, row), dontSendNotification);
+    setText(owner.getText(columnId, row), juce::dontSendNotification);
 }

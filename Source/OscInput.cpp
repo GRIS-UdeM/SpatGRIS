@@ -37,7 +37,7 @@ bool OscInput::startConnection(int port)
 }
 
 //==============================================================================
-void OscInput::oscBundleReceived(const OSCBundle & bundle)
+void OscInput::oscBundleReceived(const juce::OSCBundle & bundle)
 {
     for (auto & element : bundle) {
         if (element.isMessage())
@@ -48,7 +48,7 @@ void OscInput::oscBundleReceived(const OSCBundle & bundle)
 }
 
 //==============================================================================
-void OscInput::oscMessageReceived(const OSCMessage & message)
+void OscInput::oscMessageReceived(const juce::OSCMessage & message)
 {
     this->mainContentComponent.setOscLogging(message);
     std::string address = message.getAddressPattern().toString().toStdString();

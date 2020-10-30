@@ -43,17 +43,17 @@ OscLogWindow::OscLogWindow(juce::String const & name,
 
     this->stop.setButtonText("Stop");
     this->stop.setClickingTogglesState(true);
-    this->stop.setToggleState(true, NotificationType::dontSendNotification);
+    this->stop.setToggleState(true, juce::NotificationType::dontSendNotification);
     this->stop.setBounds(100, 470, 100, 22);
     this->stop.addListener(this);
-    this->stop.setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
+    this->stop.setColour(juce::ToggleButton::textColourId, this->grisFeel->getFontColour());
     this->stop.setLookAndFeel(this->grisFeel);
     this->juce::Component::addAndMakeVisible(this->stop);
 
     this->close.setButtonText("Close");
     this->close.setBounds(300, 470, 100, 22);
     this->close.addListener(this);
-    this->close.setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
+    this->close.setColour(juce::ToggleButton::textColourId, this->grisFeel->getFontColour());
     this->close.setLookAndFeel(this->grisFeel);
     this->juce::Component::addAndMakeVisible(this->close);
 }
@@ -65,18 +65,18 @@ OscLogWindow::~OscLogWindow()
 }
 
 //==============================================================================
-void OscLogWindow::addToLog(String msg)
+void OscLogWindow::addToLog(juce::String msg)
 {
     if (this->activated) {
         this->index++;
 
-        const MessageManagerLock mmLock;
+        const juce::MessageManagerLock mmLock;
 
         this->logger.insertTextAtCaret(msg);
 
         if (this->index == 500) {
             this->index = 0;
-            this->logger.loadContent(String(""));
+            this->logger.loadContent(juce::String(""));
         }
     }
 }
@@ -91,7 +91,7 @@ void OscLogWindow::closeButtonPressed()
 }
 
 //==============================================================================
-void OscLogWindow::buttonClicked(Button * button)
+void OscLogWindow::buttonClicked(juce::Button * button)
 {
     if (button == &this->stop) {
         if (button->getToggleState()) {

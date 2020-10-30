@@ -34,7 +34,7 @@ class LevelComponent;
 class MainContentComponent;
 
 //==============================================================================
-class Box final : public Component
+class Box final : public juce::Component
 {
 public:
     Box(GrisLookAndFeel & feel,
@@ -43,12 +43,12 @@ public:
         bool horizontalScrollbar = true);
     ~Box() final { this->content.deleteAllChildren(); }
     //==============================================================================
-    Component * getContent() { return &this->content; }
-    Component const * getContent() const { return &this->content; }
+    juce::Component * getContent() { return &this->content; }
+    juce::Component const * getContent() const { return &this->content; }
 
     void resized() final { this->viewport.setSize(this->getWidth(), this->getHeight()); }
     void correctSize(unsigned int width, unsigned int height);
-    void paint(Graphics & g) final;
+    void paint(juce::Graphics & g) final;
 
 private:
     //==============================================================================

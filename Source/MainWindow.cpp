@@ -20,7 +20,7 @@
 #include "MainWindow.h"
 
 //==============================================================================
-MainWindow::MainWindow(String name) : DocumentWindow(name, Colours::lightgrey, DocumentWindow::allButtons)
+MainWindow::MainWindow(juce::String name) : DocumentWindow(name, juce::Colours::lightgrey, DocumentWindow::allButtons)
 {
     setUsingNativeTitleBar(true);
     mcc.reset(new MainContentComponent(*this));
@@ -30,7 +30,7 @@ MainWindow::MainWindow(String name) : DocumentWindow(name, Colours::lightgrey, D
     // this lets the command manager use keypresses that arrive in our window.
     addKeyListener(getApplicationCommandManager().getKeyMappings());
 
-    PropertiesFile * props = mcc->applicationProperties.getUserSettings();
+    juce::PropertiesFile * props = mcc->applicationProperties.getUserSettings();
 
     // These offset values compensate for the title bar size.
     // TODO: it works on linux, need to be tested on MacOS.
@@ -42,7 +42,7 @@ MainWindow::MainWindow(String name) : DocumentWindow(name, Colours::lightgrey, D
     int yOffset = 0;
 #endif
 
-    juce::Rectangle<int> totalScreen = Desktop::getInstance().getDisplays().getTotalBounds(true);
+    juce::Rectangle<int> totalScreen = juce::Desktop::getInstance().getDisplays().getTotalBounds(true);
 
     if (props->containsKey("xPosition")) {
         bool fitInside = (props->getIntValue("xPosition") + props->getIntValue("winWidth")) <= totalScreen.getWidth();
@@ -64,7 +64,7 @@ MainWindow::MainWindow(String name) : DocumentWindow(name, Colours::lightgrey, D
 //==============================================================================
 bool MainWindow::exitWinApp()
 {
-    PropertiesFile * props = mcc->applicationProperties.getUserSettings();
+    juce::PropertiesFile * props = mcc->applicationProperties.getUserSettings();
     props->setValue("xPosition", this->getScreenX());
     props->setValue("yPosition", this->getScreenY());
     props->setValue("winWidth", this->getWidth());
@@ -73,7 +73,7 @@ bool MainWindow::exitWinApp()
 }
 
 //==============================================================================
-ApplicationCommandManager & MainWindow::getApplicationCommandManager()
+juce::ApplicationCommandManager & MainWindow::getApplicationCommandManager()
 {
     return applicationCommandManager;
 }

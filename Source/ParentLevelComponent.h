@@ -40,7 +40,7 @@ public:
     virtual float getLevel() const = 0;
     virtual void setMuted(bool mute) = 0;
     virtual void setSolo(bool solo) = 0;
-    virtual void setColor(Colour color, bool updateLevel = false) = 0;
+    virtual void setColor(juce::Colour color, bool updateLevel = false) = 0;
     virtual void selectClick(bool select = true) = 0;
 
     virtual LevelComponent * getVuMeter() = 0;

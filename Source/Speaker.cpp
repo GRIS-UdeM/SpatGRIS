@@ -35,7 +35,7 @@ Speaker::Speaker(MainContentComponent * parent, int idS, int outP, float azimuth
     this->idSpeaker = idS;
     this->outputPatch = outP;
     this->directOut = false;
-    LookAndFeel::setDefaultLookAndFeel(&mGrisFeel);
+    juce::LookAndFeel::setDefaultLookAndFeel(&mGrisFeel);
 
     // Load position
     this->setAziZenRad(glm::vec3(azimuth, zenith, radius));
@@ -123,7 +123,7 @@ void Speaker::setAziZenRad(glm::vec3 value)
 void Speaker::setOutputPatch(int value)
 {
     this->outputPatch = value;
-    this->vuMeter->setOutputLab(String(this->outputPatch));
+    this->vuMeter->setOutputLab(juce::String(this->outputPatch));
 }
 
 //==============================================================================

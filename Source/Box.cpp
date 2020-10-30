@@ -43,8 +43,10 @@ Box::Box(GrisLookAndFeel & feel,
     this->viewport.setViewedComponent(&this->content, false);
     this->viewport.setScrollBarsShown(verticalScrollbar, horizontalScrollbar);
     this->viewport.setScrollBarThickness(15);
-    this->viewport.getVerticalScrollBar().setColour(ScrollBar::ColourIds::thumbColourId, feel.getScrollBarColour());
-    this->viewport.getHorizontalScrollBar().setColour(ScrollBar::ColourIds::thumbColourId, feel.getScrollBarColour());
+    this->viewport.getVerticalScrollBar().setColour(juce::ScrollBar::ColourIds::thumbColourId,
+                                                    feel.getScrollBarColour());
+    this->viewport.getHorizontalScrollBar().setColour(juce::ScrollBar::ColourIds::thumbColourId,
+                                                      feel.getScrollBarColour());
 
     this->viewport.setLookAndFeel(&feel);
     addAndMakeVisible(this->viewport);
@@ -66,7 +68,7 @@ void Box::correctSize(unsigned int width, unsigned int height)
 }
 
 //==============================================================================
-void Box::paint(Graphics & g)
+void Box::paint(juce::Graphics & g)
 {
     g.setColour(this->grisFeel.getBackgroundColour());
     g.fillRect(getLocalBounds());

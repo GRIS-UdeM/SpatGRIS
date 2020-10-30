@@ -260,7 +260,7 @@ void LevelComponent::mouseDown(juce::MouseEvent const & e)
 //==============================================================================
 void LevelComponent::changeListenerCallback(juce::ChangeBroadcaster * source)
 {
-    juce::ColourSelector * cs{ dynamic_cast<ColourSelector *>(source) };
+    juce::ColourSelector * cs{ dynamic_cast<juce::ColourSelector *>(source) };
     if (cs != nullptr) {
         this->idBut.setColour(juce::TextButton::buttonColourId, cs->getCurrentColour());
         this->parentLevelComponent.setColor(cs->getCurrentColour());
@@ -292,7 +292,7 @@ void LevelComponent::update()
 //==============================================================================
 void LevelComponent::setSelected(bool const value)
 {
-    MessageManagerLock const mmLock{};
+    juce::MessageManagerLock const mmLock{};
     if (value) {
         this->idBut.setColour(juce::TextButton::textColourOnId, this->lookAndFeel.getWinBackgroundColour());
         this->idBut.setColour(juce::TextButton::textColourOffId, this->lookAndFeel.getWinBackgroundColour());

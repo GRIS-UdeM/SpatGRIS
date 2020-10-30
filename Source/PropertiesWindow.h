@@ -31,13 +31,13 @@ class GrisLookAndFeel;
 //==============================================================================
 class PropertiesComponent final
     : public juce::Component
-    , public TextButton::Listener
+    , public juce::TextButton::Listener
 {
 public:
     PropertiesComponent(MainContentComponent & parent,
                         GrisLookAndFeel & lookAndFeel,
-                        Array<String> const & devices,
-                        String const & currentDevice,
+                        juce::Array<juce::String> const & devices,
+                        juce::String const & currentDevice,
                         int indR,
                         int indB,
                         int indFF,
@@ -47,11 +47,11 @@ public:
                         int oscPort);
     ~PropertiesComponent() final = default;
     //==============================================================================
-    Label * createPropLabel(juce::String const & lab, Justification::Flags just, int ypos, int width = 100);
-    TextEditor * createPropIntTextEditor(juce::String const & tooltip, int ypos, int init);
-    ComboBox * createPropComboBox(juce::StringArray const & choices, int selected, int ypos);
+    juce::Label * createPropLabel(juce::String const & lab, juce::Justification::Flags just, int ypos, int width = 100);
+    juce::TextEditor * createPropIntTextEditor(juce::String const & tooltip, int ypos, int init);
+    juce::ComboBox * createPropComboBox(juce::StringArray const & choices, int selected, int ypos);
 
-    void buttonClicked(Button * button);
+    void buttonClicked(juce::Button * button);
     void closeButtonPressed();
 
 private:
@@ -103,8 +103,8 @@ public:
     //==============================================================================
     PropertiesWindow(MainContentComponent & parent,
                      GrisLookAndFeel & feel,
-                     Array<String> const & devices,
-                     String const & currentDevice,
+                     juce::Array<juce::String> const & devices,
+                     juce::String const & currentDevice,
                      int indR = 0,
                      int indB = 0,
                      int indFF = 0,

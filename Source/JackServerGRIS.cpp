@@ -153,7 +153,7 @@ static jackctl_internal_t * jackctl_server_get_internal(jackctl_server_t * serve
 
 //==============================================================================
 // Jack server class definition.
-JackServerGris::JackServerGris(unsigned int rateV, unsigned int periodV, String alsaOutputDevice, int * errorCode)
+JackServerGris::JackServerGris(unsigned int rateV, unsigned int periodV, juce::String alsaOutputDevice, int * errorCode)
 {
     this->rateValue = rateV;
     this->periodValue = periodV;
@@ -260,9 +260,9 @@ JackServerGris::~JackServerGris()
 }
 
 //==============================================================================
-Array<String> JackServerGris::getAvailableOutputDevices() const
+juce::Array<juce::String> JackServerGris::getAvailableOutputDevices() const
 {
-    juce::Array<String> devices;
+    juce::Array<juce::String> devices;
 
 #ifdef __linux__
     snd_ctl_card_info_t * info;

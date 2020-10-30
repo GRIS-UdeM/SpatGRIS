@@ -69,7 +69,7 @@ typedef struct {
 
 //==============================================================================
 struct Client {
-    String name;
+    juce::String name;
     unsigned int portStart = 0;
     unsigned int portEnd = 0;
     unsigned int portAvailable = 0;
@@ -148,7 +148,7 @@ public:
     AudioRecorder() : backgroundThread("Audio Recorder Thread"), activeWriter(nullptr) {}
     ~AudioRecorder() { stop(); }
     //==============================================================================
-    void startRecording(const File & file, unsigned int sampleRate, String extF)
+    void startRecording(const juce::File & file, unsigned int sampleRate, juce::String extF)
     {
         stop();
 
@@ -156,17 +156,17 @@ public:
 
         // Create an OutputStream to write to our destination file.
         file.deleteFile();
-        std::unique_ptr<FileOutputStream> fileStream(file.createOutputStream());
+        std::unique_ptr<juce::FileOutputStream> fileStream(file.createOutputStream());
 
-        AudioFormatWriter * writer;
+        juce::AudioFormatWriter * writer;
 
         if (fileStream != nullptr) {
             // Now create a writer object that writes to our output stream...
             if (extF == ".wav") {
-                WavAudioFormat wavFormat;
+                juce::WavAudioFormat wavFormat;
                 writer = wavFormat.createWriterFor(fileStream.get(), sampleRate, 1, 24, NULL, 0);
             } else {
-                AiffAudioFormat aiffFormat;
+                juce::AiffAudioFormat aiffFormat;
                 writer = aiffFormat.createWriterFor(fileStream.get(), sampleRate, 1, 24, NULL, 0);
             }
 
@@ -176,10 +176,10 @@ public:
 
                 // Now we'll create one of these helper objects which will act as a FIFO buffer, and will
                 // write the data to disk on our background thread.
-                threadedWriter.reset(new AudioFormatWriter::ThreadedWriter(writer, backgroundThread, 32768));
+                threadedWriter.reset(new juce::AudioFormatWriter::ThreadedWriter(writer, backgroundThread, 32768));
 
                 // And now, swap over our active writer pointer so that the audio callback will start using it..
-                const ScopedLock sl(writerLock);
+                const juce::ScopedLock sl(writerLock);
                 activeWriter = threadedWriter.get();
             }
         }
@@ -193,7 +193,7 @@ public:
 
         // First, clear this pointer to stop the audio callback from using our writer object.
         {
-            const ScopedLock sl(writerLock);
+            const juce::ScopedLock sl(writerLock);
             activeWriter = nullptr;
         }
 
@@ -208,17 +208,18 @@ public:
     //==============================================================================
     void recordSamples(float ** samples, int numSamples)
     {
-        const ScopedLock sl(writerLock);
+        const juce::ScopedLock sl(writerLock);
         activeWriter.load()->write(samples, numSamples);
     }
     //==============================================================================
-    TimeSliceThread backgroundThread; // the thread that will write our audio data to disk
+    juce::TimeSliceThread backgroundThread; // the thread that will write our audio data to disk
 
 private:
     //==============================================================================
-    std::unique_ptr<AudioFormatWriter::ThreadedWriter> threadedWriter; // the FIFO used to buffer the incoming data
-    CriticalSection writerLock;
-    std::atomic<AudioFormatWriter::ThreadedWriter *> activeWriter{ nullptr };
+    std::unique_ptr<juce::AudioFormatWriter::ThreadedWriter>
+        threadedWriter; // the FIFO used to buffer the incoming data
+    juce::CriticalSection writerLock;
+    std::atomic<juce::AudioFormatWriter::ThreadedWriter *> activeWriter{ nullptr };
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioRecorder);
 };
@@ -318,7 +319,7 @@ public:
     bool recording;
 
     AudioRecorder recorder[MaxOutputs];
-    Array<File> outputFilenames;
+    juce::Array<juce::File> outputFilenames;
 
     // LBAP distance attenuation values.
     float attenuationLinearGain[1];
@@ -348,7 +349,7 @@ public:
     std::vector<int> getDirectOutOutputPatches() const;
 
     // Manage clients.
-    void connectionClient(String name, bool connect = true);
+    void connectionClient(juce::String name, bool connect = true);
     void updateClientPortAvailable(bool fromJack);
 
     std::string getClientName(char const * port) const;
@@ -365,7 +366,7 @@ public:
     int getRecordFormat() const { return this->recordFormat; }
     void setRecordFileConfig(int config) { this->recordFileConfig = config; }
     int getRecordFileConfig() const { return this->recordFileConfig; }
-    void setRecordingPath(String filePath) { this->recordPath = filePath; }
+    void setRecordingPath(juce::String filePath) { this->recordPath = filePath; }
     bool isSavingRun() const { return this->recording; }
 
     juce::String const & getRecordingPath() const { return this->recordPath; }

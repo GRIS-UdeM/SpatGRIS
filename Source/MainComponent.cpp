@@ -63,7 +63,7 @@ public:
         }
 
         formatManager.registerBasicFormats();
-        AudioFormatReader * readers[MaxOutputs];
+        juce::AudioFormatReader * readers[MaxOutputs];
         for (int i = 0; i < numberOfChannels; i++) {
             readers[i] = formatManager.createReaderFor(filenames[i]);
         }
@@ -73,17 +73,17 @@ public:
 
         // Create an OutputStream to write to our destination file.
         this->fileToRecord.deleteFile();
-        std::unique_ptr<FileOutputStream> fileStream(this->fileToRecord.createOutputStream());
+        std::unique_ptr<juce::FileOutputStream> fileStream(this->fileToRecord.createOutputStream());
 
-        AudioFormatWriter * writer;
+        juce::AudioFormatWriter * writer;
 
         if (fileStream != nullptr) {
             // Now create a writer object that writes to our output stream...
             if (extF == ".wav") {
-                WavAudioFormat wavFormat;
+                juce::WavAudioFormat wavFormat;
                 writer = wavFormat.createWriterFor(fileStream.get(), this->sampleRate, numberOfChannels, 24, NULL, 0);
             } else {
-                AiffAudioFormat aiffFormat;
+                juce::AiffAudioFormat aiffFormat;
                 writer = aiffFormat.createWriterFor(fileStream.get(), this->sampleRate, numberOfChannels, 24, NULL, 0);
             }
 
@@ -128,9 +128,9 @@ public:
     void threadComplete(bool userPressedCancel) override
     {
         // thread finished normally.
-        AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon,
-                                         "Multi-channel processing window",
-                                         "Merging files finished!");
+        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+                                               "Multi-channel processing window",
+                                               "Merging files finished!");
 
         // Clean up by deleting our thread object.
         delete this;
@@ -138,9 +138,9 @@ public:
 
 private:
     //==============================================================================
-    AudioFormatManager formatManager;
-    File fileToRecord;
-    Array<File> filenames;
+    juce::AudioFormatManager formatManager;
+    juce::File fileToRecord;
+    juce::Array<juce::File> filenames;
     unsigned int sampleRate;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioRenderer);
@@ -149,30 +149,30 @@ private:
 //==============================================================================
 MainContentComponent::MainContentComponent(MainWindow & parent) : parent(parent)
 {
-    LookAndFeel::setDefaultLookAndFeel(&mGrisFeel);
+    juce::LookAndFeel::setDefaultLookAndFeel(&mGrisFeel);
 
     // Create the menubar.
-    menuBar.reset(new MenuBarComponent(this));
+    menuBar.reset(new juce::MenuBarComponent(this));
     this->addAndMakeVisible(menuBar.get());
 
     // Start the Splash screen.
-    File fs = File(SPLASH_SCREEN_FILE);
+    juce::File fs = juce::File(SPLASH_SCREEN_FILE);
     if (fs.exists()) {
-        this->splash.reset(new SplashScreen("SpatGRIS2", ImageFileFormat::loadFrom(fs), true));
+        this->splash.reset(new juce::SplashScreen("SpatGRIS2", juce::ImageFileFormat::loadFrom(fs), true));
     }
 
     // App user settings storage file.
-    PropertiesFile::Options options;
+    juce::PropertiesFile::Options options;
     options.applicationName = "SpatGRIS2";
     options.commonToAllUsers = false;
     options.filenameSuffix = "xml";
     options.folderName = "GRIS";
-    options.storageFormat = PropertiesFile::storeAsXML;
+    options.storageFormat = juce::PropertiesFile::storeAsXML;
     options.ignoreCaseOfKeyNames = true;
     options.osxLibrarySubFolder = "Application Support";
     this->applicationProperties.setStorageParameters(options);
 
-    PropertiesFile * props = this->applicationProperties.getUserSettings();
+    juce::PropertiesFile * props = this->applicationProperties.getUserSettings();
 
     // Initialize class variables.
     this->isProcessForeground = true;
@@ -185,7 +185,7 @@ MainContentComponent::MainContentComponent(MainWindow & parent) : parent(parent)
     this->isRecording = false;
 
     // Get a reference to the last opened VBAP speaker setup.
-    File lastVbap = File(props->getValue("lastVbapSpeakerSetup", "./not_saved_yet"));
+    juce::File lastVbap = juce::File(props->getValue("lastVbapSpeakerSetup", "./not_saved_yet"));
     if (!lastVbap.existsAsFile()) {
         this->pathLastVbapSpeakerSetup = DEFAULT_SPEAKER_SETUP_FILE.getFullPathName();
     } else {
@@ -231,11 +231,11 @@ MainContentComponent::MainContentComponent(MainWindow & parent) : parent(parent)
     this->labelJackInfo.reset(
         addLabel("...", "Jack Inputs/Outputs system", 320, 0, 90, 28, this->boxControlUI->getContent()));
 
-    this->labelJackStatus->setColour(Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
-    this->labelJackLoad->setColour(Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
-    this->labelJackRate->setColour(Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
-    this->labelJackBuffer->setColour(Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
-    this->labelJackInfo->setColour(Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
+    this->labelJackStatus->setColour(juce::Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
+    this->labelJackLoad->setColour(juce::Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
+    this->labelJackRate->setColour(juce::Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
+    this->labelJackBuffer->setColour(juce::Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
+    this->labelJackInfo->setColour(juce::Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
 
     addLabel("Gain", "Master Gain Outputs", 15, 30, 120, 20, this->boxControlUI->getContent());
     this->sliderMasterGainOut.reset(
@@ -284,7 +284,7 @@ MainContentComponent::MainContentComponent(MainWindow & parent) : parent(parent)
         150,
         -1.0,
         -0.565); // right panes must be at least 150 pixels wide, preferably 50% of the total width
-    this->verticalDividerBar.reset(new StretchableLayoutResizerBar(&verticalLayout, 1, true));
+    this->verticalDividerBar.reset(new juce::StretchableLayoutResizerBar(&verticalLayout, 1, true));
     this->addAndMakeVisible(verticalDividerBar.get());
 
     // Default application window size.
@@ -306,7 +306,7 @@ MainContentComponent::MainContentComponent(MainWindow & parent) : parent(parent)
     alsaOutputDevice = props->getValue("AlsaOutputDevice", "");
     this->jackServer.reset(new JackServerGris(RateValue, BufferValue, alsaOutputDevice, &errorCode));
     if (errorCode > 0) {
-        String msg;
+        juce::String msg;
         if (errorCode == 1) {
             msg = "Failed to create Jack server...";
         } else if (errorCode == 2) {
@@ -314,11 +314,12 @@ MainContentComponent::MainContentComponent(MainWindow & parent) : parent(parent)
         } else if (errorCode == 3) {
             msg = "Failed to start Jack server...";
         }
-        AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon,
-                                         "Jack Server Failure",
-                                         msg
-                                             + String("\nYou should check for any mismatch between the server and your "
-                                                      "device\n(Sampling Rate, Input/Ouput Channels, etc.)"));
+        juce::AlertWindow::showMessageBoxAsync(
+            juce::AlertWindow::WarningIcon,
+            "Jack Server Failure",
+            msg
+                + juce::String("\nYou should check for any mismatch between the server and your "
+                               "device\n(Sampling Rate, Input/Ouput Channels, etc.)"));
     }
     this->jackClient.reset(new JackClientGris());
 
@@ -330,16 +331,16 @@ MainContentComponent::MainContentComponent(MainWindow & parent) : parent(parent)
     this->jackClient->setRecordFileConfig(fileconfig);
 
     if (!jackClient->isReady()) {
-        this->labelJackStatus->setText("Jack ERROR", dontSendNotification);
+        this->labelJackStatus->setText("Jack ERROR", juce::dontSendNotification);
     } else {
-        this->labelJackStatus->setText("Jack Run", dontSendNotification);
+        this->labelJackStatus->setText("Jack Run", juce::dontSendNotification);
     }
 
-    this->labelJackRate->setText(String(this->jackClient->sampleRate) + " Hz", dontSendNotification);
-    this->labelJackBuffer->setText(String(this->jackClient->bufferSize) + " spls", dontSendNotification);
-    this->labelJackInfo->setText("I : " + String(this->jackClient->numberOutputs)
-                                     + " - O : " + String(this->jackClient->numberInputs),
-                                 dontSendNotification);
+    this->labelJackRate->setText(juce::String(this->jackClient->sampleRate) + " Hz", juce::dontSendNotification);
+    this->labelJackBuffer->setText(juce::String(this->jackClient->bufferSize) + " spls", juce::dontSendNotification);
+    this->labelJackInfo->setText("I : " + juce::String(this->jackClient->numberOutputs)
+                                     + " - O : " + juce::String(this->jackClient->numberInputs),
+                                 juce::dontSendNotification);
 
     // Start the OSC Receiver.
     this->oscReceiver.reset(new OscInput(*this));
@@ -350,11 +351,11 @@ MainContentComponent::MainContentComponent(MainWindow & parent) : parent(parent)
     this->sliderInterpolation->setValue(0.1);
     this->comBoxModeSpat->setSelectedId(1);
 
-    this->tedAddInputs->setText("16", dontSendNotification);
+    this->tedAddInputs->setText("16", juce::dontSendNotification);
     textEditorReturnKeyPressed(*this->tedAddInputs);
 
     // Open the default preset if lastOpenPreset is not a valid file.
-    File preset = File(props->getValue("lastOpenPreset", "./not_saved_yet"));
+    juce::File preset = juce::File(props->getValue("lastOpenPreset", "./not_saved_yet"));
     if (!preset.existsAsFile()) {
         this->openPreset(DEFAULT_PRESET_FILE.getFullPathName());
     } else {
@@ -362,7 +363,7 @@ MainContentComponent::MainContentComponent(MainWindow & parent) : parent(parent)
     }
 
     // Open the default speaker setup if lastOpenSpeakerSetup is not a valid file.
-    File setup = File(props->getValue("lastOpenSpeakerSetup", "./not_saved_yet"));
+    juce::File setup = juce::File(props->getValue("lastOpenSpeakerSetup", "./not_saved_yet"));
     if (!setup.existsAsFile()) {
         this->openXmlFileSpeaker(DEFAULT_SPEAKER_SETUP_FILE.getFullPathName());
     } else {
@@ -375,12 +376,12 @@ MainContentComponent::MainContentComponent(MainWindow & parent) : parent(parent)
 
     // End Splash screen.
     if (this->splash) {
-        this->splash->deleteAfterDelay(RelativeTime::seconds(4), false);
+        this->splash->deleteAfterDelay(juce::RelativeTime::seconds(4), false);
         this->splash.release();
     }
 
     // Initialize the command manager for the menubar items.
-    ApplicationCommandManager & commandManager = this->parent.getApplicationCommandManager();
+    juce::ApplicationCommandManager & commandManager = this->parent.getApplicationCommandManager();
     commandManager.registerAllCommandsForTarget(this);
 
     // Restore last vertical divider position and speaker view cam distance.
@@ -393,7 +394,7 @@ MainContentComponent::MainContentComponent(MainWindow & parent) : parent(parent)
 //==============================================================================
 MainContentComponent::~MainContentComponent()
 {
-    PropertiesFile * props = this->applicationProperties.getUserSettings();
+    juce::PropertiesFile * props = this->applicationProperties.getUserSettings();
     props->setValue("lastOpenPreset", this->pathCurrentPreset);
     props->setValue("lastOpenSpeakerSetup", this->pathCurrentFileSpeaker);
     props->setValue("lastVbapSpeakerSetup", this->pathLastVbapSpeakerSetup);
@@ -412,93 +413,93 @@ MainContentComponent::~MainContentComponent()
 
 //==============================================================================
 // Widget builder utilities.
-Label * MainContentComponent::addLabel(const String & s,
-                                       const String & stooltip,
-                                       int x,
-                                       int y,
-                                       int w,
-                                       int h,
-                                       Component * into)
-{
-    Label * lb = new Label();
-    lb->setText(s, NotificationType::dontSendNotification);
-    lb->setTooltip(stooltip);
-    lb->setJustificationType(Justification::left);
-    lb->setFont(mGrisFeel.getFont());
-    lb->setLookAndFeel(&mGrisFeel);
-    lb->setColour(Label::textColourId, mGrisFeel.getFontColour());
-    lb->setBounds(x, y, w, h);
-    into->addAndMakeVisible(lb);
-    return lb;
-}
-
-//==============================================================================
-TextButton * MainContentComponent::addButton(const String & s,
-                                             const String & stooltip,
+juce::Label * MainContentComponent::addLabel(const juce::String & s,
+                                             const juce::String & stooltip,
                                              int x,
                                              int y,
                                              int w,
                                              int h,
                                              Component * into)
 {
-    TextButton * tb = new TextButton();
+    juce::Label * lb = new juce::Label();
+    lb->setText(s, juce::NotificationType::dontSendNotification);
+    lb->setTooltip(stooltip);
+    lb->setJustificationType(juce::Justification::left);
+    lb->setFont(mGrisFeel.getFont());
+    lb->setLookAndFeel(&mGrisFeel);
+    lb->setColour(juce::Label::textColourId, mGrisFeel.getFontColour());
+    lb->setBounds(x, y, w, h);
+    into->addAndMakeVisible(lb);
+    return lb;
+}
+
+//==============================================================================
+juce::TextButton * MainContentComponent::addButton(const juce::String & s,
+                                                   const juce::String & stooltip,
+                                                   int x,
+                                                   int y,
+                                                   int w,
+                                                   int h,
+                                                   Component * into)
+{
+    juce::TextButton * tb = new juce::TextButton();
     tb->setTooltip(stooltip);
     tb->setButtonText(s);
     tb->setSize(w, h);
     tb->setTopLeftPosition(x, y);
     tb->addListener(this);
-    tb->setColour(ToggleButton::textColourId, mGrisFeel.getFontColour());
+    tb->setColour(juce::ToggleButton::textColourId, mGrisFeel.getFontColour());
     tb->setLookAndFeel(&mGrisFeel);
     into->addAndMakeVisible(tb);
     return tb;
 }
 
 //==============================================================================
-ToggleButton * MainContentComponent::addToggleButton(const String & s,
-                                                     const String & stooltip,
-                                                     int x,
-                                                     int y,
-                                                     int w,
-                                                     int h,
-                                                     Component * into,
-                                                     bool toggle)
+juce::ToggleButton * MainContentComponent::addToggleButton(const juce::String & s,
+                                                           const juce::String & stooltip,
+                                                           int x,
+                                                           int y,
+                                                           int w,
+                                                           int h,
+                                                           Component * into,
+                                                           bool toggle)
 {
-    ToggleButton * tb = new ToggleButton();
+    juce::ToggleButton * tb = new juce::ToggleButton();
     tb->setTooltip(stooltip);
     tb->setButtonText(s);
-    tb->setToggleState(toggle, dontSendNotification);
+    tb->setToggleState(toggle, juce::dontSendNotification);
     tb->setSize(w, h);
     tb->setTopLeftPosition(x, y);
     tb->addListener(this);
-    tb->setColour(ToggleButton::textColourId, mGrisFeel.getFontColour());
+    tb->setColour(juce::ToggleButton::textColourId, mGrisFeel.getFontColour());
     tb->setLookAndFeel(&mGrisFeel);
     into->addAndMakeVisible(tb);
     return tb;
 }
 
 //==============================================================================
-TextEditor * MainContentComponent::addTextEditor(const String & s,
-                                                 const String & emptyS,
-                                                 const String & stooltip,
-                                                 int x,
-                                                 int y,
-                                                 int w,
-                                                 int h,
-                                                 Component * into,
-                                                 int wLab)
+juce::TextEditor * MainContentComponent::addTextEditor(const juce::String & s,
+                                                       const juce::String & emptyS,
+                                                       const juce::String & stooltip,
+                                                       int x,
+                                                       int y,
+                                                       int w,
+                                                       int h,
+                                                       Component * into,
+                                                       int wLab)
 {
-    TextEditor * te = new TextEditor();
+    juce::TextEditor * te = new juce::TextEditor();
     te->setTooltip(stooltip);
     te->setTextToShowWhenEmpty(emptyS, mGrisFeel.getOffColour());
-    te->setColour(ToggleButton::textColourId, mGrisFeel.getFontColour());
+    te->setColour(juce::ToggleButton::textColourId, mGrisFeel.getFontColour());
     te->setLookAndFeel(&mGrisFeel);
 
     if (s.isEmpty()) {
         te->setBounds(x, y, w, h);
     } else {
         te->setBounds(x + wLab, y, w, h);
-        Label * lb = addLabel(s, "", x, y, wLab, h, into);
-        lb->setJustificationType(Justification::centredRight);
+        juce::Label * lb = addLabel(s, "", x, y, wLab, h, into);
+        lb->setJustificationType(juce::Justification::centredRight);
     }
 
     te->addListener(this);
@@ -507,22 +508,22 @@ TextEditor * MainContentComponent::addTextEditor(const String & s,
 }
 
 //==============================================================================
-Slider * MainContentComponent::addSlider(const String & s,
-                                         const String & stooltip,
-                                         int x,
-                                         int y,
-                                         int w,
-                                         int h,
-                                         Component * into)
+juce::Slider * MainContentComponent::addSlider(const juce::String & s,
+                                               const juce::String & stooltip,
+                                               int x,
+                                               int y,
+                                               int w,
+                                               int h,
+                                               Component * into)
 {
-    Slider * sd = new Slider();
+    juce::Slider * sd = new juce::Slider();
     sd->setTooltip(stooltip);
     sd->setSize(w, h);
     sd->setTopLeftPosition(x, y);
-    sd->setSliderStyle(Slider::Rotary);
+    sd->setSliderStyle(juce::Slider::Rotary);
     sd->setRotaryParameters(M_PI * 1.3f, M_PI * 2.7f, true);
-    sd->setTextBoxStyle(Slider::TextBoxBelow, false, 60, 20);
-    sd->setColour(ToggleButton::textColourId, mGrisFeel.getFontColour());
+    sd->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 60, 20);
+    sd->setColour(juce::ToggleButton::textColourId, mGrisFeel.getFontColour());
     sd->setLookAndFeel(&mGrisFeel);
     sd->addListener(this);
     into->addAndMakeVisible(sd);
@@ -530,15 +531,15 @@ Slider * MainContentComponent::addSlider(const String & s,
 }
 
 //==============================================================================
-ComboBox * MainContentComponent::addComboBox(const String & s,
-                                             const String & stooltip,
-                                             int x,
-                                             int y,
-                                             int w,
-                                             int h,
-                                             Component * into)
+juce::ComboBox * MainContentComponent::addComboBox(const juce::String & s,
+                                                   const juce::String & stooltip,
+                                                   int x,
+                                                   int y,
+                                                   int w,
+                                                   int h,
+                                                   Component * into)
 {
-    ComboBox * cb = new ComboBox();
+    juce::ComboBox * cb = new juce::ComboBox();
     cb->setTooltip(stooltip);
     cb->setSize(w, h);
     cb->setTopLeftPosition(x, y);
@@ -552,11 +553,11 @@ ComboBox * MainContentComponent::addComboBox(const String & s,
 // Menu item action handlers.
 void MainContentComponent::handleNew()
 {
-    AlertWindow alert("Closing current preset !", "Do you want to save ?", AlertWindow::InfoIcon);
+    juce::AlertWindow alert("Closing current preset !", "Do you want to save ?", juce::AlertWindow::InfoIcon);
     alert.setLookAndFeel(&mGrisFeel);
-    alert.addButton("Cancel", 0, KeyPress(KeyPress::deleteKey));
-    alert.addButton("yes", 1, KeyPress(KeyPress::returnKey));
-    alert.addButton("No", 2, KeyPress(KeyPress::escapeKey));
+    alert.addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::deleteKey));
+    alert.addButton("yes", 1, juce::KeyPress(juce::KeyPress::returnKey));
+    alert.addButton("No", 2, juce::KeyPress(juce::KeyPress::escapeKey));
 
     int status = alert.runModalLoop();
     if (status == 1) {
@@ -571,23 +572,23 @@ void MainContentComponent::handleNew()
 //==============================================================================
 void MainContentComponent::handleOpenPreset()
 {
-    String dir = this->applicationProperties.getUserSettings()->getValue("lastPresetDirectory");
-    if (!File(dir).isDirectory()) {
-        dir = File("~").getFullPathName();
+    juce::String dir = this->applicationProperties.getUserSettings()->getValue("lastPresetDirectory");
+    if (!juce::File(dir).isDirectory()) {
+        dir = juce::File("~").getFullPathName();
     }
-    String filename = File(this->pathCurrentPreset).getFileName();
+    juce::String filename = juce::File(this->pathCurrentPreset).getFileName();
 
-    FileChooser fc("Choose a file to open...", dir + "/" + filename, "*.xml", USE_OS_NATIVE_DIALOG_BOX);
+    juce::FileChooser fc("Choose a file to open...", dir + "/" + filename, "*.xml", USE_OS_NATIVE_DIALOG_BOX);
 
     bool loaded = false;
     if (fc.browseForFileToOpen()) {
-        String chosen = fc.getResults().getReference(0).getFullPathName();
-        AlertWindow alert("Open Project !",
-                          "You want to load : " + chosen + "\nEverything not saved will be lost !",
-                          AlertWindow::WarningIcon);
+        juce::String chosen = fc.getResults().getReference(0).getFullPathName();
+        juce::AlertWindow alert("Open Project !",
+                                "You want to load : " + chosen + "\nEverything not saved will be lost !",
+                                juce::AlertWindow::WarningIcon);
         alert.setLookAndFeel(&mGrisFeel);
-        alert.addButton("Cancel", 0, KeyPress(KeyPress::escapeKey));
-        alert.addButton("Ok", 1, KeyPress(KeyPress::returnKey));
+        alert.addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
+        alert.addButton("Ok", 1, juce::KeyPress(juce::KeyPress::returnKey));
         if (alert.runModalLoop() != 0) {
             this->openPreset(chosen);
             loaded = true;
@@ -617,7 +618,7 @@ void MainContentComponent::handleOpenPreset()
 //==============================================================================
 void MainContentComponent::handleSavePreset()
 {
-    if (!File(this->pathCurrentPreset).existsAsFile()
+    if (!juce::File(this->pathCurrentPreset).existsAsFile()
         || this->pathCurrentPreset.endsWith("default_preset/default_preset.xml")) {
         this->handleSaveAsPreset();
     }
@@ -627,16 +628,16 @@ void MainContentComponent::handleSavePreset()
 //==============================================================================
 void MainContentComponent::handleSaveAsPreset()
 {
-    String dir = this->applicationProperties.getUserSettings()->getValue("lastPresetDirectory");
-    if (!File(dir).isDirectory()) {
-        dir = File("~").getFullPathName();
+    juce::String dir = this->applicationProperties.getUserSettings()->getValue("lastPresetDirectory");
+    if (!juce::File(dir).isDirectory()) {
+        dir = juce::File("~").getFullPathName();
     }
-    String filename = File(this->pathCurrentPreset).getFileName();
+    juce::String filename = juce::File(this->pathCurrentPreset).getFileName();
 
-    FileChooser fc("Choose a file to save...", dir + "/" + filename, "*.xml", USE_OS_NATIVE_DIALOG_BOX);
+    juce::FileChooser fc("Choose a file to save...", dir + "/" + filename, "*.xml", USE_OS_NATIVE_DIALOG_BOX);
 
     if (fc.browseForFileToSave(true)) {
-        String chosen = fc.getResults().getReference(0).getFullPathName();
+        juce::String chosen = fc.getResults().getReference(0).getFullPathName();
         this->savePreset(chosen);
     }
 }
@@ -644,22 +645,22 @@ void MainContentComponent::handleSaveAsPreset()
 //==============================================================================
 void MainContentComponent::handleOpenSpeakerSetup()
 {
-    String dir = this->applicationProperties.getUserSettings()->getValue("lastSpeakerSetupDirectory");
-    if (!File(dir).isDirectory()) {
-        dir = File("~").getFullPathName();
+    juce::String dir = this->applicationProperties.getUserSettings()->getValue("lastSpeakerSetupDirectory");
+    if (!juce::File(dir).isDirectory()) {
+        dir = juce::File("~").getFullPathName();
     }
-    String filename = File(this->pathCurrentFileSpeaker).getFileName();
+    juce::String filename = juce::File(this->pathCurrentFileSpeaker).getFileName();
 
-    FileChooser fc("Choose a file to open...", dir + "/" + filename, "*.xml", USE_OS_NATIVE_DIALOG_BOX);
+    juce::FileChooser fc("Choose a file to open...", dir + "/" + filename, "*.xml", USE_OS_NATIVE_DIALOG_BOX);
 
     if (fc.browseForFileToOpen()) {
-        String chosen = fc.getResults().getReference(0).getFullPathName();
-        AlertWindow alert("Load Speaker Setup !",
-                          "You want to load : " + chosen + "\nEverything not saved will be lost !",
-                          AlertWindow::WarningIcon);
+        juce::String chosen = fc.getResults().getReference(0).getFullPathName();
+        juce::AlertWindow alert("Load Speaker Setup !",
+                                "You want to load : " + chosen + "\nEverything not saved will be lost !",
+                                juce::AlertWindow::WarningIcon);
         alert.setLookAndFeel(&mGrisFeel);
-        alert.addButton("Cancel", 0, KeyPress(KeyPress::escapeKey));
-        alert.addButton("Ok", 1, KeyPress(KeyPress::returnKey));
+        alert.addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
+        alert.addButton("Ok", 1, juce::KeyPress(juce::KeyPress::returnKey));
         if (alert.runModalLoop() != 0) {
             alert.setVisible(false);
             this->openXmlFileSpeaker(chosen);
@@ -670,16 +671,16 @@ void MainContentComponent::handleOpenSpeakerSetup()
 //==============================================================================
 void MainContentComponent::handleSaveAsSpeakerSetup()
 {
-    String dir = this->applicationProperties.getUserSettings()->getValue("lastSpeakerSetupDirectory");
-    if (!File(dir).isDirectory() || dir.endsWith("/default_preset")) {
-        dir = File("~").getFullPathName();
+    juce::String dir = this->applicationProperties.getUserSettings()->getValue("lastSpeakerSetupDirectory");
+    if (!juce::File(dir).isDirectory() || dir.endsWith("/default_preset")) {
+        dir = juce::File("~").getFullPathName();
     }
-    String filename = File(this->pathCurrentFileSpeaker).getFileName();
+    juce::String filename = juce::File(this->pathCurrentFileSpeaker).getFileName();
 
-    FileChooser fc("Choose a file to save...", dir + "/" + filename, "*.xml", USE_OS_NATIVE_DIALOG_BOX);
+    juce::FileChooser fc("Choose a file to save...", dir + "/" + filename, "*.xml", USE_OS_NATIVE_DIALOG_BOX);
 
     if (fc.browseForFileToSave(true)) {
-        String chosen = fc.getResults().getReference(0).getFullPathName();
+        juce::String chosen = fc.getResults().getReference(0).getFullPathName();
         this->saveSpeakerSetup(chosen);
     }
 }
@@ -692,8 +693,9 @@ void MainContentComponent::handleShowSpeakerEditWindow()
                                 850,
                                 600);
     if (this->winSpeakConfig == nullptr) {
-        String windowName = String("Speakers Setup Edition - ") + String(ModeSpatString[this->jackClient->modeSelected])
-                            + String(" - ") + File(this->pathCurrentFileSpeaker).getFileName();
+        juce::String windowName = juce::String("Speakers Setup Edition - ")
+                                  + juce::String(ModeSpatString[this->jackClient->modeSelected]) + juce::String(" - ")
+                                  + juce::File(this->pathCurrentFileSpeaker).getFileName();
         this->winSpeakConfig.reset(new EditSpeakersWindow(windowName, this->mGrisFeel, *this, this->nameConfig));
         this->winSpeakConfig->setBounds(result);
         this->winSpeakConfig->initComp();
@@ -709,7 +711,7 @@ void MainContentComponent::handleShowSpeakerEditWindow()
 //==============================================================================
 void MainContentComponent::handleShowPreferences()
 {
-    PropertiesFile * props = this->applicationProperties.getUserSettings();
+    juce::PropertiesFile * props = this->applicationProperties.getUserSettings();
     if (this->windowProperties == nullptr) {
         unsigned int BufferValue = props->getIntValue("BufferValue", 1024);
         unsigned int RateValue = props->getIntValue("RateValue", 48000);
@@ -743,8 +745,8 @@ void MainContentComponent::handleShowPreferences()
                                                            this->mGrisFeel,
                                                            alsaAvailableOutputDevices,
                                                            alsaOutputDevice,
-                                                           RateValues.indexOf(String(RateValue)),
-                                                           BufferSizes.indexOf(String(BufferValue)),
+                                                           RateValues.indexOf(juce::String(RateValue)),
+                                                           BufferSizes.indexOf(juce::String(BufferValue)),
                                                            static_cast<int>(FileFormat),
                                                            static_cast<int>(FileConfig),
                                                            static_cast<int>(AttenuationDB),
@@ -797,7 +799,7 @@ void MainContentComponent::handleShowOscLogView()
     if (this->oscLogWindow == nullptr) {
         this->oscLogWindow.reset(new OscLogWindow("OSC Logging Windows",
                                                   this->mGrisFeel.getWinBackgroundColour(),
-                                                  DocumentWindow::allButtons,
+                                                  juce::DocumentWindow::allButtons,
                                                   this,
                                                   &this->mGrisFeel));
     }
@@ -819,9 +821,9 @@ void MainContentComponent::handleShowAbout()
 //==============================================================================
 void MainContentComponent::handleOpenManual()
 {
-    File fs = File(SERVER_GRIS_MANUAL_FILE);
+    juce::File fs = juce::File(SERVER_GRIS_MANUAL_FILE);
     if (fs.exists()) {
-        juce::Process::openDocument("file:" + fs.getFullPathName(), String());
+        juce::Process::openDocument("file:" + fs.getFullPathName(), juce::String());
     }
 }
 
@@ -861,22 +863,22 @@ void MainContentComponent::handleShowTriplets()
 void MainContentComponent::setShowTriplets(bool state)
 {
     if (this->getModeSelected() == LBAP && state == true) {
-        AlertWindow alert("Can't draw triplets !",
-                          "Triplets are not effective with the CUBE mode.",
-                          AlertWindow::InfoIcon);
+        juce::AlertWindow alert("Can't draw triplets !",
+                                "Triplets are not effective with the CUBE mode.",
+                                juce::AlertWindow::InfoIcon);
         alert.setLookAndFeel(&mGrisFeel);
-        alert.addButton("Close", 0, KeyPress(KeyPress::returnKey));
+        alert.addButton("Close", 0, juce::KeyPress(juce::KeyPress::returnKey));
         alert.runModalLoop();
         this->setShowTriplets(false);
     } else if (this->validateShowTriplets() || state == false) {
         this->isTripletsShown = state;
         this->speakerView->setShowTriplets(state);
     } else {
-        AlertWindow alert("Can't draw all triplets !",
-                          "Maybe you didn't compute your current speaker setup ?",
-                          AlertWindow::InfoIcon);
+        juce::AlertWindow alert("Can't draw all triplets !",
+                                "Maybe you didn't compute your current speaker setup ?",
+                                juce::AlertWindow::InfoIcon);
         alert.setLookAndFeel(&mGrisFeel);
-        alert.addButton("Close", 0, KeyPress(KeyPress::returnKey));
+        alert.addButton("Close", 0, juce::KeyPress(juce::KeyPress::returnKey));
         alert.runModalLoop();
         this->setShowTriplets(false);
     }
@@ -943,17 +945,17 @@ void MainContentComponent::handleInputColours()
     float hue = 0.0f;
     float inc = 1.0 / (this->listSourceInput.size() + 1);
     for (auto && it : this->listSourceInput) {
-        it->setColor(Colour::fromHSV(hue, 1, 0.75, 1), true);
+        it->setColor(juce::Colour::fromHSV(hue, 1, 0.75, 1), true);
         hue += inc;
     }
 }
 
 //==============================================================================
 // Command manager methods.
-void MainContentComponent::getAllCommands(Array<CommandID> & commands)
+void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & commands)
 {
     // this returns the set of all commands that this target can perform.
-    const CommandID ids[] = {
+    const juce::CommandID ids[] = {
         MainWindow::NewPresetID,
         MainWindow::OpenPresetID,
         MainWindow::SavePresetID,
@@ -977,95 +979,95 @@ void MainContentComponent::getAllCommands(Array<CommandID> & commands)
         MainWindow::OpenManualID,
     };
 
-    commands.addArray(ids, numElementsInArray(ids));
+    commands.addArray(ids, juce::numElementsInArray(ids));
 }
 
 //==============================================================================
-void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationCommandInfo & result)
+void MainContentComponent::getCommandInfo(juce::CommandID commandID, juce::ApplicationCommandInfo & result)
 {
-    const String generalCategory("General");
+    const juce::String generalCategory("General");
 
     switch (commandID) {
     case MainWindow::NewPresetID:
         result.setInfo("New Project", "Close the current preset and open the default.", generalCategory, 0);
-        result.addDefaultKeypress('N', ModifierKeys::commandModifier);
+        result.addDefaultKeypress('N', juce::ModifierKeys::commandModifier);
         break;
     case MainWindow::OpenPresetID:
         result.setInfo("Open Project", "Choose a new preset on disk.", generalCategory, 0);
-        result.addDefaultKeypress('O', ModifierKeys::commandModifier);
+        result.addDefaultKeypress('O', juce::ModifierKeys::commandModifier);
         break;
     case MainWindow::SavePresetID:
         result.setInfo("Save Project", "Save the current preset on disk.", generalCategory, 0);
-        result.addDefaultKeypress('S', ModifierKeys::commandModifier);
+        result.addDefaultKeypress('S', juce::ModifierKeys::commandModifier);
         break;
     case MainWindow::SaveAsPresetID:
         result.setInfo("Save Project As...", "Save the current preset under a new name on disk.", generalCategory, 0);
-        result.addDefaultKeypress('S', ModifierKeys::shiftModifier | ModifierKeys::commandModifier);
+        result.addDefaultKeypress('S', juce::ModifierKeys::shiftModifier | juce::ModifierKeys::commandModifier);
         break;
     case MainWindow::OpenSpeakerSetupID:
         result.setInfo("Load Speaker Setup", "Choose a new speaker setup on disk.", generalCategory, 0);
-        result.addDefaultKeypress('L', ModifierKeys::commandModifier);
+        result.addDefaultKeypress('L', juce::ModifierKeys::commandModifier);
         break;
     case MainWindow::ShowSpeakerEditID:
         result.setInfo("Speaker Setup Edition", "Edit the current speaker setup.", generalCategory, 0);
-        result.addDefaultKeypress('W', ModifierKeys::altModifier);
+        result.addDefaultKeypress('W', juce::ModifierKeys::altModifier);
         break;
     case MainWindow::Show2DViewID:
         result.setInfo("Show 2D View", "Show the 2D action window.", generalCategory, 0);
-        result.addDefaultKeypress('D', ModifierKeys::altModifier);
+        result.addDefaultKeypress('D', juce::ModifierKeys::altModifier);
         break;
     case MainWindow::ShowNumbersID:
         result.setInfo("Show Numbers", "Show source and speaker numbers on the 3D view.", generalCategory, 0);
-        result.addDefaultKeypress('N', ModifierKeys::altModifier);
+        result.addDefaultKeypress('N', juce::ModifierKeys::altModifier);
         result.setTicked(this->isNumbersShown);
         break;
     case MainWindow::ShowSpeakersID:
         result.setInfo("Show Speakers", "Show speakers on the 3D view.", generalCategory, 0);
-        result.addDefaultKeypress('S', ModifierKeys::altModifier);
+        result.addDefaultKeypress('S', juce::ModifierKeys::altModifier);
         result.setTicked(this->isSpeakersShown);
         break;
     case MainWindow::ShowTripletsID:
         result.setInfo("Show Speaker Triplets", "Show speaker triplets on the 3D view.", generalCategory, 0);
-        result.addDefaultKeypress('T', ModifierKeys::altModifier);
+        result.addDefaultKeypress('T', juce::ModifierKeys::altModifier);
         result.setTicked(this->isTripletsShown);
         break;
     case MainWindow::ShowSourceLevelID:
         result.setInfo("Show Source Activity", "Activate brightness on sources on the 3D view.", generalCategory, 0);
-        result.addDefaultKeypress('A', ModifierKeys::altModifier);
+        result.addDefaultKeypress('A', juce::ModifierKeys::altModifier);
         result.setTicked(this->isSourceLevelShown);
         break;
     case MainWindow::ShowSpeakerLevelID:
         result.setInfo("Show Speaker Level", "Activate brightness on speakers on the 3D view.", generalCategory, 0);
-        result.addDefaultKeypress('L', ModifierKeys::altModifier);
+        result.addDefaultKeypress('L', juce::ModifierKeys::altModifier);
         result.setTicked(this->isSpeakerLevelShown);
         break;
     case MainWindow::ShowSphereID:
         result.setInfo("Show Sphere/Cube", "Show the sphere on the 3D view.", generalCategory, 0);
-        result.addDefaultKeypress('O', ModifierKeys::altModifier);
+        result.addDefaultKeypress('O', juce::ModifierKeys::altModifier);
         result.setTicked(this->isSphereShown);
         break;
     case MainWindow::ColorizeInputsID:
         result.setInfo("Colorize Inputs", "Spread the colour of the inputs over the colour range.", generalCategory, 0);
-        result.addDefaultKeypress('C', ModifierKeys::altModifier);
+        result.addDefaultKeypress('C', juce::ModifierKeys::altModifier);
         break;
     case MainWindow::ResetInputPosID:
         result.setInfo("Reset Input Position", "Reset the position of the input sources.", generalCategory, 0);
-        result.addDefaultKeypress('R', ModifierKeys::altModifier);
+        result.addDefaultKeypress('R', juce::ModifierKeys::altModifier);
         break;
     case MainWindow::ResetMeterClipping:
         result.setInfo("Reset Meter Clipping", "Reset clipping for all meters.", generalCategory, 0);
-        result.addDefaultKeypress('M', ModifierKeys::altModifier);
+        result.addDefaultKeypress('M', juce::ModifierKeys::altModifier);
         break;
     case MainWindow::ShowOscLogView:
         result.setInfo("Show OSC Log Window", "Show the OSC logging window.", generalCategory, 0);
         break;
     case MainWindow::PrefsID:
         result.setInfo("Preferences...", "Open the preferences window.", generalCategory, 0);
-        result.addDefaultKeypress(';', ModifierKeys::commandModifier);
+        result.addDefaultKeypress(';', juce::ModifierKeys::commandModifier);
         break;
     case MainWindow::QuitID:
         result.setInfo("Quit", "Quit the SpatGRIS.", generalCategory, 0);
-        result.addDefaultKeypress('Q', ModifierKeys::commandModifier);
+        result.addDefaultKeypress('Q', juce::ModifierKeys::commandModifier);
         break;
     case MainWindow::AboutID:
         result.setInfo("About SpatGRIS", "Open the about window.", generalCategory, 0);
@@ -1154,13 +1156,13 @@ bool MainContentComponent::perform(const InvocationInfo & info)
 }
 
 //==============================================================================
-PopupMenu MainContentComponent::getMenuForIndex(int menuIndex, const String & menuName)
+juce::PopupMenu MainContentComponent::getMenuForIndex(int menuIndex, const juce::String & menuName)
 {
-    ApplicationCommandManager * commandManager = &this->parent.getApplicationCommandManager();
+    juce::ApplicationCommandManager * commandManager = &this->parent.getApplicationCommandManager();
 
-    PopupMenu menu;
+    juce::PopupMenu menu;
 
-    if (menuName == "File") {
+    if (menuName == "juce::File") {
         menu.addCommandItem(commandManager, MainWindow::NewPresetID);
         menu.addCommandItem(commandManager, MainWindow::OpenPresetID);
         menu.addCommandItem(commandManager, MainWindow::SavePresetID);
@@ -1212,14 +1214,14 @@ void MainContentComponent::menuItemSelected(int menuItemID, int /*topLevelMenuIn
 // Exit functions.
 bool MainContentComponent::isPresetModified() const
 {
-    File xmlFile = File(this->pathCurrentPreset.toStdString());
-    XmlDocument xmlDoc(xmlFile);
-    std::unique_ptr<XmlElement> savedState(xmlDoc.getDocumentElement());
+    juce::File xmlFile = juce::File(this->pathCurrentPreset.toStdString());
+    juce::XmlDocument xmlDoc(xmlFile);
+    std::unique_ptr<juce::XmlElement> savedState(xmlDoc.getDocumentElement());
     if (savedState == nullptr) {
         return true;
     }
 
-    auto currentState = std::make_unique<XmlElement>("ServerGRIS_Preset");
+    auto currentState = std::make_unique<juce::XmlElement>("ServerGRIS_Preset");
     this->getPresetData(currentState.get());
 
     if (!savedState->isEquivalentTo(currentState.get(), true)) {
@@ -1235,25 +1237,27 @@ bool MainContentComponent::exitApp()
     int exitV = 2;
 
     if (this->isPresetModified()) {
-        AlertWindow alert("Exit SpatGRIS !", "Do you want to save the current project ?", AlertWindow::InfoIcon);
+        juce::AlertWindow alert("Exit SpatGRIS !",
+                                "Do you want to save the current project ?",
+                                juce::AlertWindow::InfoIcon);
         alert.setLookAndFeel(&mGrisFeel);
-        alert.addButton("Save", 1, KeyPress(KeyPress::returnKey));
-        alert.addButton("Cancel", 0, KeyPress(KeyPress::escapeKey));
-        alert.addButton("Exit", 2, KeyPress(KeyPress::deleteKey));
+        alert.addButton("Save", 1, juce::KeyPress(juce::KeyPress::returnKey));
+        alert.addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
+        alert.addButton("Exit", 2, juce::KeyPress(juce::KeyPress::deleteKey));
         exitV = alert.runModalLoop();
         if (exitV == 1) {
             alert.setVisible(false);
-            ModalComponentManager::getInstance()->cancelAllModalComponents();
-            String dir = this->applicationProperties.getUserSettings()->getValue("lastPresetDirectory");
-            if (!File(dir).isDirectory()) {
-                dir = File("~").getFullPathName();
+            juce::ModalComponentManager::getInstance()->cancelAllModalComponents();
+            juce::String dir = this->applicationProperties.getUserSettings()->getValue("lastPresetDirectory");
+            if (!juce::File(dir).isDirectory()) {
+                dir = juce::File("~").getFullPathName();
             }
-            String filename = File(this->pathCurrentPreset).getFileName();
+            juce::String filename = juce::File(this->pathCurrentPreset).getFileName();
 
-            FileChooser fc("Choose a file to save...", dir + "/" + filename, "*.xml", USE_OS_NATIVE_DIALOG_BOX);
+            juce::FileChooser fc("Choose a file to save...", dir + "/" + filename, "*.xml", USE_OS_NATIVE_DIALOG_BOX);
 
             if (fc.browseForFileToSave(true)) {
-                String chosen = fc.getResults().getReference(0).getFullPathName();
+                juce::String chosen = fc.getResults().getReference(0).getFullPathName();
                 this->savePreset(chosen);
             } else {
                 exitV = 0;
@@ -1265,7 +1269,7 @@ bool MainContentComponent::exitApp()
 }
 
 //==============================================================================
-void MainContentComponent::connectionClientJack(String nameCli, bool conn)
+void MainContentComponent::connectionClientJack(juce::String nameCli, bool conn)
 {
     unsigned int maxport = 0;
     for (auto && cli : this->jackClient->listClient) {
@@ -1274,7 +1278,7 @@ void MainContentComponent::connectionClientJack(String nameCli, bool conn)
         }
     }
     if (maxport > (unsigned int)this->tedAddInputs->getTextValue().toString().getIntValue()) {
-        this->tedAddInputs->setText(String(maxport), dontSendNotification);
+        this->tedAddInputs->setText(juce::String(maxport), juce::dontSendNotification);
         textEditorReturnKeyPressed(*this->tedAddInputs);
     }
     this->jackClient->processBlockOn = false;
@@ -1618,12 +1622,12 @@ bool MainContentComponent::updateLevelComp()
 
     // Too few speakers...
     if ((this->listSpeaker.size() - directOutSpeakers) < dimensions) {
-        AlertWindow alert("Not enough speakers!    ",
-                          "Do you want to reload previous config?    ",
-                          AlertWindow::WarningIcon);
+        juce::AlertWindow alert("Not enough speakers!    ",
+                                "Do you want to reload previous config?    ",
+                                juce::AlertWindow::WarningIcon);
         alert.setLookAndFeel(&mGrisFeel);
         alert.addButton("No", 0);
-        alert.addButton("Yes", 1, KeyPress(KeyPress::returnKey));
+        alert.addButton("Yes", 1, juce::KeyPress(juce::KeyPress::returnKey));
         if (alert.runModalLoop() != 0) {
             this->openXmlFileSpeaker(this->pathCurrentFileSpeaker);
         }
@@ -1641,10 +1645,10 @@ bool MainContentComponent::updateLevelComp()
     std::sort(tempout.begin(), tempout.end());
     for (unsigned int i = 0; i < tempout.size() - 1; i++) {
         if (tempout[i] == tempout[i + 1]) {
-            AlertWindow alert("Duplicated Output Numbers!    ",
-                              "Some output numbers are used more than once. Do you want to continue anyway?    "
-                              "\nIf you continue, you may have to fix your speaker setup before using it!   ",
-                              AlertWindow::WarningIcon);
+            juce::AlertWindow alert("Duplicated Output Numbers!    ",
+                                    "Some output numbers are used more than once. Do you want to continue anyway?    "
+                                    "\nIf you continue, you may have to fix your speaker setup before using it!   ",
+                                    juce::AlertWindow::WarningIcon);
             alert.setLookAndFeel(&mGrisFeel);
             alert.addButton("No", 0);
             alert.addButton("Yes", 1);
@@ -1792,11 +1796,11 @@ bool MainContentComponent::updateLevelComp()
             this->setListTripletFromVbap();
             this->needToComputeVbap = false;
         } else {
-            AlertWindow alert("Not a valid DOME 3-D configuration!    ",
-                              "Maybe you want to open it in CUBE mode? Reload the default speaker setup...    ",
-                              AlertWindow::WarningIcon);
+            juce::AlertWindow alert("Not a valid DOME 3-D configuration!    ",
+                                    "Maybe you want to open it in CUBE mode? Reload the default speaker setup...    ",
+                                    juce::AlertWindow::WarningIcon);
             alert.setLookAndFeel(&mGrisFeel);
-            alert.addButton("Ok", 0, KeyPress(KeyPress::returnKey));
+            alert.addButton("Ok", 0, juce::KeyPress(juce::KeyPress::returnKey));
             alert.runModalLoop();
             this->openXmlFileSpeaker(DEFAULT_SPEAKER_SETUP_FILE.getFullPathName());
             return false;
@@ -1886,34 +1890,34 @@ void MainContentComponent::setDirectOut(int id, int chn)
 //==============================================================================
 void MainContentComponent::reloadXmlFileSpeaker()
 {
-    if (File(this->pathCurrentFileSpeaker).existsAsFile()) {
+    if (juce::File(this->pathCurrentFileSpeaker).existsAsFile()) {
         this->openXmlFileSpeaker(this->pathCurrentFileSpeaker);
     }
 }
 
 //==============================================================================
-void MainContentComponent::openXmlFileSpeaker(String path)
+void MainContentComponent::openXmlFileSpeaker(juce::String path)
 {
-    String msg;
-    String oldPath = this->pathCurrentFileSpeaker;
+    juce::String msg;
+    juce::String oldPath = this->pathCurrentFileSpeaker;
     bool isNewSameAsOld = oldPath.compare(path) == 0;
     bool isNewSameAsLastSetup = this->pathLastVbapSpeakerSetup.compare(path) == 0;
     bool ok = false;
-    if (!File(path.toStdString()).existsAsFile()) {
-        AlertWindow alert("Error in Load Speaker Setup !",
-                          "Can't found file " + path.toStdString() + ", the current setup will be kept.",
-                          AlertWindow::WarningIcon);
+    if (!juce::File(path.toStdString()).existsAsFile()) {
+        juce::AlertWindow alert("Error in Load Speaker Setup !",
+                                "Can't found file " + path.toStdString() + ", the current setup will be kept.",
+                                juce::AlertWindow::WarningIcon);
         alert.setLookAndFeel(&mGrisFeel);
-        alert.addButton("Ok", 0, KeyPress(KeyPress::returnKey));
+        alert.addButton("Ok", 0, juce::KeyPress(juce::KeyPress::returnKey));
         alert.runModalLoop();
     } else {
         this->pathCurrentFileSpeaker = path.toStdString();
-        XmlDocument xmlDoc(File(this->pathCurrentFileSpeaker));
-        std::unique_ptr<XmlElement> mainXmlElem(xmlDoc.getDocumentElement());
+        juce::XmlDocument xmlDoc(juce::File(this->pathCurrentFileSpeaker));
+        std::unique_ptr<juce::XmlElement> mainXmlElem(xmlDoc.getDocumentElement());
         if (mainXmlElem == nullptr) {
-            AlertWindow alert("Error in Load Speaker Setup !",
-                              "Your file is corrupted !\n" + xmlDoc.getLastParseError(),
-                              AlertWindow::WarningIcon);
+            juce::AlertWindow alert("Error in Load Speaker Setup !",
+                                    "Your file is corrupted !\n" + xmlDoc.getLastParseError(),
+                                    juce::AlertWindow::WarningIcon);
             alert.setLookAndFeel(&mGrisFeel);
             alert.addButton("Ok", 0);
             alert.runModalLoop();
@@ -1924,19 +1928,19 @@ void MainContentComponent::openXmlFileSpeaker(String path)
                 this->lockSpeakers.unlock();
                 if (path.compare(BINAURAL_SPEAKER_SETUP_FILE.getFullPathName()) == 0) {
                     this->jackClient->modeSelected = (ModeSpatEnum)(VBAP_HRTF);
-                    this->comBoxModeSpat->setSelectedId(VBAP_HRTF + 1, NotificationType::dontSendNotification);
+                    this->comBoxModeSpat->setSelectedId(VBAP_HRTF + 1, juce::NotificationType::dontSendNotification);
                 } else if (path.compare(STEREO_SPEAKER_SETUP_FILE.getFullPathName()) == 0) {
                     this->jackClient->modeSelected = (ModeSpatEnum)(STEREO);
-                    this->comBoxModeSpat->setSelectedId(STEREO + 1, NotificationType::dontSendNotification);
+                    this->comBoxModeSpat->setSelectedId(STEREO + 1, juce::NotificationType::dontSendNotification);
                 } else if (!isNewSameAsOld && oldPath.compare(BINAURAL_SPEAKER_SETUP_FILE.getFullPathName()) != 0
                            && oldPath.compare(STEREO_SPEAKER_SETUP_FILE.getFullPathName()) != 0) {
                     int spatMode = mainXmlElem->getIntAttribute("SpatMode");
                     this->jackClient->modeSelected = (ModeSpatEnum)(spatMode);
-                    this->comBoxModeSpat->setSelectedId(spatMode + 1, NotificationType::dontSendNotification);
+                    this->comBoxModeSpat->setSelectedId(spatMode + 1, juce::NotificationType::dontSendNotification);
                 } else if (!isNewSameAsLastSetup) {
                     int spatMode = mainXmlElem->getIntAttribute("SpatMode");
                     this->jackClient->modeSelected = (ModeSpatEnum)(spatMode);
-                    this->comBoxModeSpat->setSelectedId(spatMode + 1, NotificationType::dontSendNotification);
+                    this->comBoxModeSpat->setSelectedId(spatMode + 1, juce::NotificationType::dontSendNotification);
                 }
 
                 bool loadSetupFromXYZ = false;
@@ -1947,7 +1951,7 @@ void MainContentComponent::openXmlFileSpeaker(String path)
                 this->jackClient->processBlockOn = false;
                 this->jackClient->clearOutput();
                 this->jackClient->maxOutputPatch = 0;
-                Array<int> layoutIndexes;
+                juce::Array<int> layoutIndexes;
                 int maxLayoutIndex = 0;
                 forEachXmlChildElement(*mainXmlElem, ring)
                 {
@@ -2007,9 +2011,9 @@ void MainContentComponent::openXmlFileSpeaker(String path)
                 } else {
                     msg = "Your file is corrupted !\n" + xmlDoc.getLastParseError();
                 }
-                AlertWindow alert("Error in Load Speaker Setup !", msg, AlertWindow::WarningIcon);
+                juce::AlertWindow alert("Error in Load Speaker Setup !", msg, juce::AlertWindow::WarningIcon);
                 alert.setLookAndFeel(&mGrisFeel);
-                alert.addButton("Ok", 0, KeyPress(KeyPress::returnKey));
+                alert.addButton("Ok", 0, juce::KeyPress(juce::KeyPress::returnKey));
                 alert.runModalLoop();
             }
         }
@@ -2018,11 +2022,11 @@ void MainContentComponent::openXmlFileSpeaker(String path)
         if (this->pathCurrentFileSpeaker.endsWith("default_preset/default_speaker_setup.xml")) {
             this->applicationProperties.getUserSettings()->setValue(
                 "lastSpeakerSetupDirectory",
-                File::getSpecialLocation(File::userHomeDirectory).getFullPathName());
+                juce::File::getSpecialLocation(juce::File::userHomeDirectory).getFullPathName());
         } else {
             this->applicationProperties.getUserSettings()->setValue(
                 "lastSpeakerSetupDirectory",
-                File(this->pathCurrentFileSpeaker).getParentDirectory().getFullPathName());
+                juce::File(this->pathCurrentFileSpeaker).getParentDirectory().getFullPathName());
         }
         this->needToComputeVbap = true;
         this->updateLevelComp();
@@ -2044,26 +2048,26 @@ void MainContentComponent::openXmlFileSpeaker(String path)
 //==============================================================================
 void MainContentComponent::setTitle()
 {
-    String version = STRING(JUCE_APP_VERSION);
+    juce::String version = STRING(JUCE_APP_VERSION);
     version = "SpatGRIS v" + version + " - ";
-    this->parent.setName(version + File(this->pathCurrentPreset).getFileName());
+    this->parent.setName(version + juce::File(this->pathCurrentPreset).getFileName());
 }
 
 //==============================================================================
-void MainContentComponent::openPreset(String path)
+void MainContentComponent::openPreset(juce::String path)
 {
-    String msg;
+    juce::String msg;
     this->jackClient->processBlockOn = false;
-    File xmlFile = File(path.toStdString());
-    XmlDocument xmlDoc(xmlFile);
-    std::unique_ptr<XmlElement> mainXmlElem(xmlDoc.getDocumentElement());
+    juce::File xmlFile = juce::File(path.toStdString());
+    juce::XmlDocument xmlDoc(xmlFile);
+    std::unique_ptr<juce::XmlElement> mainXmlElem(xmlDoc.getDocumentElement());
     if (mainXmlElem == nullptr) {
-        AlertWindow alert("Error in Open Preset !",
-                          "Your file is corrupted !\n" + path.toStdString() + "\n"
-                              + xmlDoc.getLastParseError().toStdString(),
-                          AlertWindow::WarningIcon);
+        juce::AlertWindow alert("Error in Open Preset !",
+                                "Your file is corrupted !\n" + path.toStdString() + "\n"
+                                    + xmlDoc.getLastParseError().toStdString(),
+                                juce::AlertWindow::WarningIcon);
         alert.setLookAndFeel(&mGrisFeel);
-        alert.addButton("Ok", 1, KeyPress(KeyPress::returnKey));
+        alert.addButton("Ok", 1, juce::KeyPress(juce::KeyPress::returnKey));
         alert.runModalLoop();
     } else {
         if (mainXmlElem->hasTagName("SpatServerGRIS_Preset") || mainXmlElem->hasTagName("ServerGRIS_Preset")) {
@@ -2072,9 +2076,9 @@ void MainContentComponent::openPreset(String path)
                 = mainXmlElem->getIntAttribute("OSC_Input_Port"); // TODO: app preferences instead of project settings ?
             this->tedAddInputs->setText(mainXmlElem->getStringAttribute("Number_Of_Inputs"));
             this->sliderMasterGainOut->setValue(mainXmlElem->getDoubleAttribute("Master_Gain_Out", 0.0),
-                                                sendNotification);
+                                                juce::sendNotification);
             this->sliderInterpolation->setValue(mainXmlElem->getDoubleAttribute("Master_Interpolation", 0.1),
-                                                sendNotification);
+                                                juce::sendNotification);
             this->setShowNumbers(mainXmlElem->getBoolAttribute("Show_Numbers"));
             if (mainXmlElem->hasAttribute("Show_Speakers")) {
                 this->setShowSpeakers(mainXmlElem->getBoolAttribute("Show_Speakers"));
@@ -2122,7 +2126,7 @@ void MainContentComponent::openPreset(String path)
             this->sliderValueChanged(this->sliderMasterGainOut.get());
             this->sliderValueChanged(this->sliderInterpolation.get());
 
-            File speakerSetup = File(this->pathCurrentFileSpeaker.toStdString());
+            juce::File speakerSetup = juce::File(this->pathCurrentFileSpeaker.toStdString());
             if (!this->pathCurrentFileSpeaker.startsWith("/")) {
                 this->pathCurrentFileSpeaker
                     = DEFAULT_PRESET_DIRECTORY.getChildFile(this->pathCurrentFileSpeaker).getFullPathName();
@@ -2133,10 +2137,10 @@ void MainContentComponent::openPreset(String path)
                 if (input->hasTagName("Input")) {
                     for (auto && it : listSourceInput) {
                         if (it->getId() == input->getIntAttribute("Index")) {
-                            it->setColor(Colour::fromFloatRGBA((float)input->getDoubleAttribute("R"),
-                                                               (float)input->getDoubleAttribute("G"),
-                                                               (float)input->getDoubleAttribute("B"),
-                                                               1.0f),
+                            it->setColor(juce::Colour::fromFloatRGBA((float)input->getDoubleAttribute("R"),
+                                                                     (float)input->getDoubleAttribute("G"),
+                                                                     (float)input->getDoubleAttribute("B"),
+                                                                     1.0f),
                                          true);
                             if (input->hasAttribute("DirectOut")) {
                                 it->setDirectOutChannel(input->getIntAttribute("DirectOut"));
@@ -2155,9 +2159,9 @@ void MainContentComponent::openPreset(String path)
             } else {
                 msg = "Your file is corrupted !\n" + xmlDoc.getLastParseError();
             }
-            AlertWindow alert("Error in Open Preset !", msg, AlertWindow::WarningIcon);
+            juce::AlertWindow alert("Error in Open Preset !", msg, juce::AlertWindow::WarningIcon);
             alert.setLookAndFeel(&mGrisFeel);
-            alert.addButton("Ok", 0, KeyPress(KeyPress::returnKey));
+            alert.addButton("Ok", 0, juce::KeyPress(juce::KeyPress::returnKey));
             alert.runModalLoop();
         }
     }
@@ -2168,19 +2172,19 @@ void MainContentComponent::openPreset(String path)
     if (this->pathCurrentPreset.endsWith("default_preset/default_preset.xml")) {
         this->applicationProperties.getUserSettings()->setValue(
             "lastPresetDirectory",
-            File::getSpecialLocation(File::userHomeDirectory).getFullPathName());
+            juce::File::getSpecialLocation(juce::File::userHomeDirectory).getFullPathName());
     } else {
         this->applicationProperties.getUserSettings()->setValue(
             "lastPresetDirectory",
-            File(this->pathCurrentPreset).getParentDirectory().getFullPathName());
+            juce::File(this->pathCurrentPreset).getParentDirectory().getFullPathName());
     }
     this->setTitle();
 }
 
 //==============================================================================
-void MainContentComponent::getPresetData(XmlElement * xml) const
+void MainContentComponent::getPresetData(juce::XmlElement * xml) const
 {
-    xml->setAttribute("OSC_Input_Port", String(this->oscInputPort));
+    xml->setAttribute("OSC_Input_Port", juce::String(this->oscInputPort));
     xml->setAttribute("Number_Of_Inputs", this->tedAddInputs->getTextValue().toString());
     xml->setAttribute("Master_Gain_Out", this->sliderMasterGainOut->getValue());
     xml->setAttribute("Master_Interpolation", this->sliderInterpolation->getValue());
@@ -2195,46 +2199,46 @@ void MainContentComponent::getPresetData(XmlElement * xml) const
     xml->setAttribute("CamDistance", this->speakerView->getCamDistance());
 
     for (auto const it : listSourceInput) {
-        XmlElement * xmlInput = new XmlElement("Input");
+        juce::XmlElement * xmlInput = new juce::XmlElement("Input");
         xmlInput->setAttribute("Index", it->getId());
         xmlInput->setAttribute("R", it->getColor().x);
         xmlInput->setAttribute("G", it->getColor().y);
         xmlInput->setAttribute("B", it->getColor().z);
-        xmlInput->setAttribute("DirectOut", String(it->getDirectOutChannel()));
+        xmlInput->setAttribute("DirectOut", juce::String(it->getDirectOutChannel()));
         xml->addChildElement(xmlInput);
     }
 }
 
 //==============================================================================
-void MainContentComponent::savePreset(String path)
+void MainContentComponent::savePreset(juce::String path)
 {
-    File xmlFile = File(path.toStdString());
-    auto xml = std::make_unique<XmlElement>("ServerGRIS_Preset");
+    juce::File xmlFile = juce::File(path.toStdString());
+    auto xml = std::make_unique<juce::XmlElement>("ServerGRIS_Preset");
     this->getPresetData(xml.get());
     xml->writeTo(xmlFile);
     xmlFile.create();
     this->pathCurrentPreset = path;
     this->applicationProperties.getUserSettings()->setValue(
         "lastPresetDirectory",
-        File(this->pathCurrentPreset).getParentDirectory().getFullPathName());
+        juce::File(this->pathCurrentPreset).getParentDirectory().getFullPathName());
     this->setTitle();
 }
 
 //==============================================================================
-void MainContentComponent::saveSpeakerSetup(String path)
+void MainContentComponent::saveSpeakerSetup(juce::String path)
 {
     this->pathCurrentFileSpeaker = path;
-    File xmlFile = File(path.toStdString());
-    XmlElement xml{ "SpeakerSetup" };
+    juce::File xmlFile = juce::File(path.toStdString());
+    juce::XmlElement xml{ "SpeakerSetup" };
 
     xml.setAttribute("Name", this->nameConfig);
     xml.setAttribute("Dimension", 3);
     xml.setAttribute("SpatMode", getModeSelected());
 
-    XmlElement * xmlRing{ new XmlElement("Ring") };
+    juce::XmlElement * xmlRing{ new juce::XmlElement("Ring") };
 
     for (auto const & it : listSpeaker) {
-        XmlElement * xmlInput{ new XmlElement{ "Speaker" } };
+        juce::XmlElement * xmlInput{ new juce::XmlElement{ "Speaker" } };
         xmlInput->setAttribute("PositionY", it->getCoordinate().z);
         xmlInput->setAttribute("PositionX", it->getCoordinate().x);
         xmlInput->setAttribute("PositionZ", it->getCoordinate().y);
@@ -2251,7 +2255,7 @@ void MainContentComponent::saveSpeakerSetup(String path)
     xml.addChildElement(xmlRing);
 
     for (auto const & it : listTriplet) {
-        XmlElement * xmlInput{ new XmlElement{ "triplet" } };
+        juce::XmlElement * xmlInput{ new juce::XmlElement{ "triplet" } };
         xmlInput->setAttribute("id1", it.id1);
         xmlInput->setAttribute("id2", it.id2);
         xmlInput->setAttribute("id3", it.id3);
@@ -2263,7 +2267,7 @@ void MainContentComponent::saveSpeakerSetup(String path)
 
     this->applicationProperties.getUserSettings()->setValue(
         "lastSpeakerSetupDirectory",
-        File(this->pathCurrentFileSpeaker).getParentDirectory().getFullPathName());
+        juce::File(this->pathCurrentFileSpeaker).getParentDirectory().getFullPathName());
 
     this->needToSaveSpeakerSetup = false;
 
@@ -2278,7 +2282,7 @@ void MainContentComponent::saveSpeakerSetup(String path)
 }
 
 //==============================================================================
-void MainContentComponent::saveProperties(String device,
+void MainContentComponent::saveProperties(juce::String device,
                                           int rate,
                                           int buff,
                                           int fileformat,
@@ -2287,9 +2291,9 @@ void MainContentComponent::saveProperties(String device,
                                           int attenuationHz,
                                           int oscPort)
 {
-    PropertiesFile * props = this->applicationProperties.getUserSettings();
+    juce::PropertiesFile * props = this->applicationProperties.getUserSettings();
 
-    String DeviceValue = props->getValue("AlsaOutputDevice", "");
+    juce::String DeviceValue = props->getValue("AlsaOutputDevice", "");
     int BufferValue = props->getIntValue("BufferValue", 1024);
     int RateValue = props->getIntValue("RateValue", 48000);
     int OscInputPort = props->getIntValue("OscInputPort", 18032);
@@ -2302,12 +2306,12 @@ void MainContentComponent::saveProperties(String device,
     }
 
     if (device.compare(DeviceValue) != 0 || rate != RateValue || buff != BufferValue) {
-        AlertWindow alert("You Need to Restart SpatGRIS!",
-                          "New settings will be effective on next launch of the SpatGRIS.",
-                          AlertWindow::InfoIcon);
+        juce::AlertWindow alert("You Need to Restart SpatGRIS!",
+                                "New settings will be effective on next launch of the SpatGRIS.",
+                                juce::AlertWindow::InfoIcon);
         alert.setLookAndFeel(&mGrisFeel);
         alert.addButton("Cancel", 0);
-        alert.addButton("Ok", 1, KeyPress(KeyPress::returnKey));
+        alert.addButton("Ok", 1, juce::KeyPress(juce::KeyPress::returnKey));
         if (alert.runModalLoop() != 0) {
             props->setValue("AlsaOutputDevice", device);
             props->setValue("BufferValue", (int)buff);
@@ -2353,16 +2357,16 @@ void MainContentComponent::saveProperties(String device,
 //==============================================================================
 void MainContentComponent::timerCallback()
 {
-    this->labelJackLoad->setText(String(this->jackClient->getCpuUsed(), 4) + " %", dontSendNotification);
+    this->labelJackLoad->setText(juce::String(this->jackClient->getCpuUsed(), 4) + " %", juce::dontSendNotification);
     int seconds = this->jackClient->indexRecord / this->jackClient->sampleRate;
     int minute = int(seconds / 60) % 60;
     seconds = int(seconds % 60);
-    String timeRecorded = ((minute < 10) ? "0" + String(minute) : String(minute)) + " : "
-                          + ((seconds < 10) ? "0" + String(seconds) : String(seconds));
-    this->labelTimeRecorded->setText(timeRecorded, dontSendNotification);
+    juce::String timeRecorded = ((minute < 10) ? "0" + juce::String(minute) : juce::String(minute)) + " : "
+                                + ((seconds < 10) ? "0" + juce::String(seconds) : juce::String(seconds));
+    this->labelTimeRecorded->setText(timeRecorded, juce::dontSendNotification);
 
     if (this->butStartRecord->getToggleState()) {
-        this->butStartRecord->setToggleState(false, dontSendNotification);
+        this->butStartRecord->setToggleState(false, juce::dontSendNotification);
     }
 
     if (this->jackClient->isSavingRun()) {
@@ -2395,9 +2399,9 @@ void MainContentComponent::timerCallback()
     }
 
     if (this->jackClient->overload) {
-        this->labelJackLoad->setColour(Label::backgroundColourId, Colours::darkred);
+        this->labelJackLoad->setColour(juce::Label::backgroundColourId, juce::Colours::darkred);
     } else {
-        this->labelJackLoad->setColour(Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
+        this->labelJackLoad->setColour(juce::Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
     }
 
     for (auto && it : listSourceInput) {
@@ -2410,8 +2414,8 @@ void MainContentComponent::timerCallback()
 
     this->jackClientListComponentJack->updateContentCli();
 
-    if (this->isProcessForeground != Process::isForegroundProcess()) {
-        this->isProcessForeground = Process::isForegroundProcess();
+    if (this->isProcessForeground != juce::Process::isForegroundProcess()) {
+        this->isProcessForeground = juce::Process::isForegroundProcess();
         if (this->winSpeakConfig != nullptr && this->isProcessForeground) {
             this->winSpeakConfig->setVisible(true);
             this->winSpeakConfig->setAlwaysOnTop(true);
@@ -2427,19 +2431,19 @@ void MainContentComponent::timerCallback()
 }
 
 //==============================================================================
-void MainContentComponent::paint(Graphics & g)
+void MainContentComponent::paint(juce::Graphics & g)
 {
     g.fillAll(mGrisFeel.getWinBackgroundColour());
 }
 
 //==============================================================================
-void MainContentComponent::textEditorFocusLost(TextEditor & textEditor)
+void MainContentComponent::textEditorFocusLost(juce::TextEditor & textEditor)
 {
     textEditorReturnKeyPressed(textEditor);
 }
 
 //==============================================================================
-void MainContentComponent::textEditorReturnKeyPressed(TextEditor & textEditor)
+void MainContentComponent::textEditorReturnKeyPressed(juce::TextEditor & textEditor)
 {
     if (&textEditor == this->tedAddInputs.get()) {
         unsigned int num_of_inputs = (unsigned int)this->tedAddInputs->getTextValue().toString().getIntValue();
@@ -2447,7 +2451,7 @@ void MainContentComponent::textEditorReturnKeyPressed(TextEditor & textEditor)
             this->tedAddInputs->setText("1");
         }
         if (num_of_inputs > MaxInputs) {
-            this->tedAddInputs->setText(String(MaxInputs));
+            this->tedAddInputs->setText(juce::String(MaxInputs));
         }
 
         if (this->jackClient->inputsPort.size() != num_of_inputs) {
@@ -2479,19 +2483,19 @@ void MainContentComponent::textEditorReturnKeyPressed(TextEditor & textEditor)
 }
 
 //==============================================================================
-void MainContentComponent::buttonClicked(Button * button)
+void MainContentComponent::buttonClicked(juce::Button * button)
 {
     if (button == this->butStartRecord.get()) {
         if (this->jackClient->recording) {
             this->jackClient->stopRecord();
             this->butStartRecord->setEnabled(false);
-            this->labelTimeRecorded->setColour(Label::textColourId, mGrisFeel.getFontColour());
+            this->labelTimeRecorded->setColour(juce::Label::textColourId, mGrisFeel.getFontColour());
         } else {
             this->isRecording = true;
             this->jackClient->startRecord();
-            this->labelTimeRecorded->setColour(Label::textColourId, mGrisFeel.getRedColour());
+            this->labelTimeRecorded->setColour(juce::Label::textColourId, mGrisFeel.getRedColour());
         }
-        this->butStartRecord->setToggleState(this->jackClient->recording, dontSendNotification);
+        this->butStartRecord->setToggleState(this->jackClient->recording, juce::dontSendNotification);
     } else if (button == this->butInitRecord.get()) {
         this->chooseRecordingPath();
         this->butStartRecord->setEnabled(true);
@@ -2499,7 +2503,7 @@ void MainContentComponent::buttonClicked(Button * button)
 }
 
 //==============================================================================
-void MainContentComponent::sliderValueChanged(Slider * slider)
+void MainContentComponent::sliderValueChanged(juce::Slider * slider)
 {
     if (slider == this->sliderMasterGainOut.get()) {
         this->jackClient->masterGainOut = pow(10.0, this->sliderMasterGainOut->getValue() * 0.05);
@@ -2511,16 +2515,18 @@ void MainContentComponent::sliderValueChanged(Slider * slider)
 }
 
 //==============================================================================
-void MainContentComponent::comboBoxChanged(ComboBox * comboBox)
+void MainContentComponent::comboBoxChanged(juce::ComboBox * comboBox)
 {
     if (this->winSpeakConfig != nullptr && this->needToSaveSpeakerSetup) {
-        AlertWindow alert("The speaker configuration has changed!    ",
-                          "Save your changes or close the speaker configuration window before switching mode...    ",
-                          AlertWindow::WarningIcon);
+        juce::AlertWindow alert(
+            "The speaker configuration has changed!    ",
+            "Save your changes or close the speaker configuration window before switching mode...    ",
+            juce::AlertWindow::WarningIcon);
         alert.setLookAndFeel(&mGrisFeel);
-        alert.addButton("Ok", 0, KeyPress(KeyPress::returnKey));
+        alert.addButton("Ok", 0, juce::KeyPress(juce::KeyPress::returnKey));
         alert.runModalLoop();
-        this->comBoxModeSpat->setSelectedId(this->jackClient->modeSelected + 1, NotificationType::dontSendNotification);
+        this->comBoxModeSpat->setSelectedId(this->jackClient->modeSelected + 1,
+                                            juce::NotificationType::dontSendNotification);
         return;
     }
 
@@ -2555,9 +2561,9 @@ void MainContentComponent::comboBoxChanged(ComboBox * comboBox)
         this->jackClient->processBlockOn = true;
 
         if (this->winSpeakConfig != nullptr) {
-            String windowName = String("Speakers Setup Edition - ")
-                                + String(ModeSpatString[this->jackClient->modeSelected]) + String(" - ")
-                                + File(this->pathCurrentFileSpeaker).getFileName();
+            juce::String windowName = juce::String("Speakers Setup Edition - ")
+                                      + juce::String(ModeSpatString[this->jackClient->modeSelected])
+                                      + juce::String(" - ") + juce::File(this->pathCurrentFileSpeaker).getFileName();
             this->winSpeakConfig->setName(windowName);
         }
     }
@@ -2566,22 +2572,22 @@ void MainContentComponent::comboBoxChanged(ComboBox * comboBox)
 //==============================================================================
 juce::StringArray MainContentComponent::getMenuBarNames()
 {
-    char const * names[] = { "File", "View", "Help", nullptr };
+    char const * names[] = { "juce::File", "View", "Help", nullptr };
     return juce::StringArray{ names };
 }
 
 //==============================================================================
-void MainContentComponent::setOscLogging(const OSCMessage & message)
+void MainContentComponent::setOscLogging(const juce::OSCMessage & message)
 {
     if (this->oscLogWindow != nullptr) {
-        String address = message.getAddressPattern().toString();
+        juce::String address = message.getAddressPattern().toString();
         this->oscLogWindow->addToLog(address + "\n");
-        String msg;
+        juce::String msg;
         for (int i = 0; i < message.size(); i++) {
             if (message[i].isInt32()) {
-                msg = msg + String(message[i].getInt32()) + " ";
+                msg = msg + juce::String(message[i].getInt32()) + " ";
             } else if (message[i].isFloat32()) {
-                msg = msg + String(message[i].getFloat32()) + " ";
+                msg = msg + juce::String(message[i].getFloat32()) + " ";
             } else if (message[i].isString()) {
                 msg = msg + message[i].getString() + " ";
             }
@@ -2593,12 +2599,12 @@ void MainContentComponent::setOscLogging(const OSCMessage & message)
 //==============================================================================
 void MainContentComponent::chooseRecordingPath()
 {
-    String dir = this->applicationProperties.getUserSettings()->getValue("lastRecordingDirectory");
-    if (!File(dir).isDirectory()) {
-        dir = File("~").getFullPathName();
+    juce::String dir = this->applicationProperties.getUserSettings()->getValue("lastRecordingDirectory");
+    if (!juce::File(dir).isDirectory()) {
+        dir = juce::File("~").getFullPathName();
     }
-    String extF;
-    String extChoice;
+    juce::String extF;
+    juce::String extChoice;
     if (this->jackClient->getRecordFormat() == 0) {
         extF = ".wav";
         extChoice = "*.wav,*.aif";
@@ -2607,12 +2613,13 @@ void MainContentComponent::chooseRecordingPath()
         extChoice = "*.aif,*.wav";
     }
 
-    FileChooser fc("Choose a file to save...", dir + "/recording" + extF, extChoice, USE_OS_NATIVE_DIALOG_BOX);
+    juce::FileChooser fc("Choose a file to save...", dir + "/recording" + extF, extChoice, USE_OS_NATIVE_DIALOG_BOX);
 
     if (fc.browseForFileToSave(true)) {
-        String filePath = fc.getResults().getReference(0).getFullPathName();
-        this->applicationProperties.getUserSettings()->setValue("lastRecordingDirectory",
-                                                                File(filePath).getParentDirectory().getFullPathName());
+        juce::String filePath = fc.getResults().getReference(0).getFullPathName();
+        this->applicationProperties.getUserSettings()->setValue(
+            "lastRecordingDirectory",
+            juce::File(filePath).getParentDirectory().getFullPathName());
         this->jackClient->setRecordingPath(filePath);
     }
     this->jackClient->prepareToRecord();

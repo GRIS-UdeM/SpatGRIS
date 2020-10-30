@@ -200,11 +200,11 @@ void SpeakerViewComponent::render()
 }
 
 //==============================================================================
-void SpeakerViewComponent::paint(Graphics & g)
+void SpeakerViewComponent::paint(juce::Graphics & g)
 {
-    g.setColour(Colours::white);
+    g.setColour(juce::Colours::white);
     g.setFont(16);
-    g.drawText(this->nameConfig, 18, 18, 300, 30, Justification::left);
+    g.drawText(this->nameConfig, 18, 18, 300, 30, juce::Justification::left);
 }
 
 //==============================================================================
@@ -260,13 +260,13 @@ void SpeakerViewComponent::clickRay()
 }
 
 //==============================================================================
-void SpeakerViewComponent::mouseDown(const MouseEvent & e)
+void SpeakerViewComponent::mouseDown(const juce::MouseEvent & e)
 {
     this->deltaClickX = this->camAngleX - e.getPosition().x / this->slowDownFactor;
     this->deltaClickY = this->camAngleY - e.getPosition().y / this->slowDownFactor;
 
     // Always check on which display the speaker view component is.
-    this->displayScaling = Desktop::getInstance().getDisplays().findDisplayForPoint(e.getScreenPosition()).scale;
+    this->displayScaling = juce::Desktop::getInstance().getDisplays().findDisplayForPoint(e.getScreenPosition()).scale;
 
     if (e.mods.isLeftButtonDown()) {
         this->rayClickX = (double)e.getPosition().x;
@@ -279,7 +279,7 @@ void SpeakerViewComponent::mouseDown(const MouseEvent & e)
 }
 
 //==============================================================================
-void SpeakerViewComponent::mouseDrag(const MouseEvent & e)
+void SpeakerViewComponent::mouseDrag(const juce::MouseEvent & e)
 {
     if (e.mods.isLeftButtonDown()) {
         this->camAngleX = e.getPosition().x / this->slowDownFactor + this->deltaClickX;
@@ -289,7 +289,7 @@ void SpeakerViewComponent::mouseDrag(const MouseEvent & e)
 }
 
 //==============================================================================
-void SpeakerViewComponent::mouseWheelMove(const MouseEvent & e, const MouseWheelDetails & wheel)
+void SpeakerViewComponent::mouseWheelMove(const juce::MouseEvent & e, const juce::MouseWheelDetails & wheel)
 {
     this->distance -= (wheel.deltaY * ScroolWheelSpeedMouse);
     this->distance = this->distance < 1.0 ? 1.0 : this->distance > 70.0 ? 70.0 : this->distance;

@@ -34,8 +34,9 @@ AudioManager::AudioManager()
     #else
     static_assert(false, "yo");
     #endif
-    AudioDeviceManager::AudioDeviceSetup const setup{ outputDevice, inputDevice, 48000.0,      512,
-                                                      BigInteger{}, true,        BigInteger{}, true };
+    juce::AudioDeviceManager::AudioDeviceSetup const setup{
+        outputDevice, inputDevice, 48000.0, 512, juce::BigInteger{}, true, juce::BigInteger{}, true
+    };
 
     auto error{ mAudioDeviceManager.initialise(128, 128, nullptr, false, setup.outputDeviceName, &setup) };
     jassert(error.isEmpty());
@@ -329,13 +330,13 @@ void AudioManager::disconnect(jack_port_t * source, jack_port_t * destination)
 }
 
 //==============================================================================
-void AudioManager::audioDeviceError(const String & errorMessage)
+void AudioManager::audioDeviceError(const juce::String & errorMessage)
 {
     jassertfalse;
 }
 
 //==============================================================================
-void AudioManager::audioDeviceAboutToStart(AudioIODevice * device)
+void AudioManager::audioDeviceAboutToStart(juce::AudioIODevice * device)
 {
     juce::ScopedLock sl{ mCriticalSection };
 

@@ -30,7 +30,7 @@ Input::Input(MainContentComponent & mainContentComponent, SmallGrisLookAndFeel &
     , vuMeter(*this, lookAndFeel)
 {
     this->resetPosition();
-    this->setColor(Colour::fromHSV(0, 1, 0.75, 1), true);
+    this->setColor(juce::Colour::fromHSV(0, 1, 0.75, 1), true);
 }
 
 //==============================================================================
@@ -92,7 +92,7 @@ void Input::setSolo(bool solo)
 }
 
 //==============================================================================
-void Input::setColor(Colour color, bool updateLevel)
+void Input::setColor(juce::Colour color, bool updateLevel)
 {
     this->colorJ = color;
     this->color.x = this->colorJ.getFloatRed();
@@ -105,7 +105,7 @@ void Input::setColor(Colour color, bool updateLevel)
 }
 
 //==============================================================================
-Colour Input::getColorJWithAlpha() const
+juce::Colour Input::getColorJWithAlpha() const
 {
     if (this->mainContentComponent.isSourceLevelShown) {
         return this->colorJ.withMultipliedAlpha(this->getAlpha());
@@ -338,6 +338,6 @@ void Input::setDirectOutChannel(int chn)
         this->vuMeter.directOut.setButtonText("-");
         return;
     } else {
-        this->vuMeter.directOut.setButtonText(String(chn));
+        this->vuMeter.directOut.setButtonText(juce::String(chn));
     }
 }

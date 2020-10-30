@@ -111,7 +111,7 @@ public:
 
     // Menubar methods.
     juce::StringArray getMenuBarNames() final;
-    juce::PopupMenu getMenuForIndex(int menuIndex, const String & /*menuName*/) final;
+    juce::PopupMenu getMenuForIndex(int menuIndex, const juce::String & /*menuName*/) final;
 
     void menuItemSelected(int menuItemID, int /*topLevelMenuIndex*/) final;
 
@@ -204,11 +204,11 @@ public:
     // Open - save.
     void openXmlFileSpeaker(juce::String path);
     void reloadXmlFileSpeaker();
-    void openPreset(String path);
-    void getPresetData(XmlElement * xml) const;
+    void openPreset(juce::String path);
+    void getPresetData(juce::XmlElement * xml) const;
     void savePreset(juce::String path);
     void saveSpeakerSetup(juce::String path);
-    void saveProperties(String device,
+    void saveProperties(juce::String device,
                         int rate,
                         int buff,
                         int fileformat,
@@ -243,23 +243,23 @@ public:
 
     // Widget listener handlers.
     void timerCallback() final;
-    void paint(Graphics & g) final;
+    void paint(juce::Graphics & g) final;
     void resized() final;
-    void buttonClicked(Button * button) final;
-    void sliderValueChanged(Slider * slider) final;
-    void textEditorFocusLost(TextEditor & textEditor) final;
-    void textEditorReturnKeyPressed(TextEditor & textEditor) final;
-    void comboBoxChanged(ComboBox * comboBox) final;
+    void buttonClicked(juce::Button * button) final;
+    void sliderValueChanged(juce::Slider * slider) final;
+    void textEditorFocusLost(juce::TextEditor & textEditor) final;
+    void textEditorReturnKeyPressed(juce::TextEditor & textEditor) final;
+    void comboBoxChanged(juce::ComboBox * comboBox) final;
 
     int getModeSelected() const { return this->comBoxModeSpat->getSelectedId() - 1; }
 
-    void setOscLogging(const OSCMessage & message);
+    void setOscLogging(const juce::OSCMessage & message);
     //==============================================================================
     // App user settings.
     int oscInputPort = 18032;
     unsigned int samplingRate = 48000;
 
-    ApplicationProperties applicationProperties;
+    juce::ApplicationProperties applicationProperties;
     juce::Rectangle<int> flatViewWindowRect;
 
     // Visual flags.
@@ -274,7 +274,7 @@ public:
     bool needToComputeVbap = true;
     //==============================================================================
     // Widget creation helper.
-    juce::TextEditor * addTextEditor(String const & s,
+    juce::TextEditor * addTextEditor(juce::String const & s,
                                      juce::String const & emptyS,
                                      juce::String const & stooltip,
                                      int x,
@@ -292,21 +292,30 @@ private:
 
     MainWindow & parent;
 
-    std::unique_ptr<MenuBarComponent> menuBar;
+    std::unique_ptr<juce::MenuBarComponent> menuBar;
 
     // Widget creation helpers.
-    Label * addLabel(const String & s, const String & stooltip, int x, int y, int w, int h, Component * into);
-    TextButton * addButton(const String & s, const String & stooltip, int x, int y, int w, int h, Component * into);
-    ToggleButton * addToggleButton(const String & s,
-                                   const String & stooltip,
-                                   int x,
-                                   int y,
-                                   int w,
-                                   int h,
-                                   Component * into,
-                                   bool toggle = false);
-    Slider * addSlider(const String & s, const String & stooltip, int x, int y, int w, int h, Component * into);
-    ComboBox * addComboBox(const String & s, const String & stooltip, int x, int y, int w, int h, Component * into);
+    juce::Label *
+        addLabel(const juce::String & s, const juce::String & stooltip, int x, int y, int w, int h, Component * into);
+    juce::TextButton *
+        addButton(const juce::String & s, const juce::String & stooltip, int x, int y, int w, int h, Component * into);
+    juce::ToggleButton * addToggleButton(const juce::String & s,
+                                         const juce::String & stooltip,
+                                         int x,
+                                         int y,
+                                         int w,
+                                         int h,
+                                         Component * into,
+                                         bool toggle = false);
+    juce::Slider *
+        addSlider(const juce::String & s, const juce::String & stooltip, int x, int y, int w, int h, Component * into);
+    juce::ComboBox * addComboBox(const juce::String & s,
+                                 const juce::String & stooltip,
+                                 int x,
+                                 int y,
+                                 int w,
+                                 int h,
+                                 Component * into);
 
     // Jack server - client.
     std::unique_ptr<JackServerGris> jackServer;

@@ -43,8 +43,8 @@ public:
     ~LevelBox() final = default;
     //==============================================================================
     void setBounds(const juce::Rectangle<int> & newBounds);
-    void paint(Graphics & g) final;
-    void mouseDown(const MouseEvent & e) final;
+    void paint(juce::Graphics & g) final;
+    void mouseDown(const juce::MouseEvent & e) final;
     void resetClipping();
 
 private:
@@ -78,17 +78,17 @@ public:
     void setOutputLab(juce::String value) { this->idBut.setButtonText(value); }
     void setColor(juce::Colour color)
     {
-        this->idBut.setColour(TextButton::buttonColourId, color);
+        this->idBut.setColour(juce::TextButton::buttonColourId, color);
         this->repaint();
     }
     float getLevel() const { return level; }
     void update();
     bool isMuted() const { return this->muteToggleBut.getToggleState(); }
     void setSelected(bool value);
-    void buttonClicked(Button * button) final;
-    void mouseDown(const MouseEvent & e) final;
+    void buttonClicked(juce::Button * button) final;
+    void mouseDown(const juce::MouseEvent & e) final;
     void setBounds(const juce::Rectangle<int> & newBounds);
-    void changeListenerCallback(ChangeBroadcaster * source) final;
+    void changeListenerCallback(juce::ChangeBroadcaster * source) final;
     void updateDirectOutMenu(juce::OwnedArray<Speaker> const & spkList);
     void resetClipping() { this->levelBox.resetClipping(); }
     //==============================================================================

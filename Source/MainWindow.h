@@ -31,7 +31,7 @@ ENABLE_WARNINGS
 /* This class implements the desktop window that contains an instance of
    our MainContentComponent class.
 */
-class MainWindow final : public DocumentWindow
+class MainWindow final : public juce::DocumentWindow
 {
 public:
     enum CommandIDs {
@@ -65,14 +65,14 @@ public:
         OpenManualID = 4001,
     };
     //==============================================================================
-    MainWindow(String name);
+    MainWindow(juce::String name);
     ~MainWindow() = default;
     //==============================================================================
     bool exitWinApp();
 
     // This is called when the user tries to close this window. Here, we'll just ask the
     // app to quit when this happens, but you can change this to do whatever you need.
-    void closeButtonPressed() final { JUCEApplication::getInstance()->systemRequestedQuit(); }
+    void closeButtonPressed() final { juce::JUCEApplication::getInstance()->systemRequestedQuit(); }
 
     // returns the MainWindow if it exists.
     static MainWindow * getMainAppWindow()
@@ -85,7 +85,7 @@ public:
     }
 
     // returns the command manager object used to dispatch command events.
-    ApplicationCommandManager & getApplicationCommandManager();
+    juce::ApplicationCommandManager & getApplicationCommandManager();
 
 private:
     //==============================================================================

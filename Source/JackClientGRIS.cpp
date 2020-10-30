@@ -712,9 +712,9 @@ int xrun_callback(void * arg)
 //==============================================================================
 void jack_shutdown(void * arg)
 {
-    AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon,
-                                     "FATAL ERROR",
-                                     "Please check :\n - Buffer Size\n - Sample Rate\n - Inputs/Outputs");
+    juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+                                           "FATAL ERROR",
+                                           "Please check :\n - Buffer Size\n - Sample Rate\n - Inputs/Outputs");
     jack_client_log("FATAL ERROR: Jack shutdown!\n");
     exit(1);
 }
@@ -785,14 +785,14 @@ void port_connect_callback(jack_port_id_t a, jack_port_id_t b, int connect, void
 
 //==============================================================================
 // Load samples from a wav file into a float array.
-static float ** getSamplesFromWavFile(File const & file)
+static float ** getSamplesFromWavFile(juce::File const & file)
 {
     jassert(file.existsAsFile());
 
     float const factor = powf(2.0f, 31.0f);
 
-    WavAudioFormat wavAudioFormat{};
-    std::unique_ptr<AudioFormatReader> audioFormatReader{
+    juce::WavAudioFormat wavAudioFormat{};
+    std::unique_ptr<juce::AudioFormatReader> audioFormatReader{
         wavAudioFormat.createReaderFor(file.createInputStream().release(), true)
     };
     std::array<int *, 2> wavData{};
@@ -841,8 +841,8 @@ JackClientGris::JackClientGris()
     // Initialize impulse responses for VBAP+HRTF (BINAURAL mode).
     float ** stbuf;
     // Azimuth = 0
-    String names0[8] = { "H0e025a.wav", "H0e020a.wav", "H0e065a.wav", "H0e110a.wav",
-                         "H0e155a.wav", "H0e160a.wav", "H0e115a.wav", "H0e070a.wav" };
+    juce::String names0[8] = { "H0e025a.wav", "H0e020a.wav", "H0e065a.wav", "H0e110a.wav",
+                               "H0e155a.wav", "H0e160a.wav", "H0e115a.wav", "H0e070a.wav" };
     int reverse0[8] = { 1, 0, 0, 0, 0, 1, 1, 1 };
     for (int i = 0; i < 8; i++) {
         auto const file{ HRTF_FOLDER_0.getChildFile(names0[i]) };
@@ -853,7 +853,7 @@ JackClientGris::JackClientGris()
         }
     }
     // Azimuth = 40
-    String names40[6]
+    juce::String names40[6]
         = { "H40e032a.wav", "H40e026a.wav", "H40e084a.wav", "H40e148a.wav", "H40e154a.wav", "H40e090a.wav" };
     int reverse40[6] = { 1, 0, 0, 0, 1, 1 };
     for (int i = 0; i < 6; i++) {
@@ -1027,18 +1027,18 @@ void JackClientGris::prepareToRecord()
     this->indexRecord = 0;
     this->outputFilenames.clear();
 
-    String channelName;
-    File fileS = File(this->recordPath);
-    String fname = fileS.getFileNameWithoutExtension();
-    String extF = fileS.getFileExtension();
-    String parent = fileS.getParentDirectory().getFullPathName();
+    juce::String channelName;
+    juce::File fileS = juce::File(this->recordPath);
+    juce::String fname = fileS.getFileNameWithoutExtension();
+    juce::String extF = fileS.getFileExtension();
+    juce::String parent = fileS.getParentDirectory().getFullPathName();
 
     if (this->modeSelected == VBAP || this->modeSelected == LBAP) {
         num_of_channels = (int)this->outputsPort.size();
         for (int i = 0; i < num_of_channels; ++i) {
             if (int_vector_contains(this->outputPatches, i + 1)) {
-                channelName = parent + "/" + fname + "_" + String(i + 1).paddedLeft('0', 3) + extF;
-                File fileC = File(channelName);
+                channelName = parent + "/" + fname + "_" + juce::String(i + 1).paddedLeft('0', 3) + extF;
+                juce::File fileC = juce::File(channelName);
                 this->recorder[i].startRecording(fileC, this->sampleRate, extF);
                 this->outputFilenames.add(fileC);
             }
@@ -1046,8 +1046,8 @@ void JackClientGris::prepareToRecord()
     } else if (this->modeSelected == VBAP_HRTF || this->modeSelected == STEREO) {
         num_of_channels = 2;
         for (int i = 0; i < num_of_channels; ++i) {
-            channelName = parent + "/" + fname + "_" + String(i + 1).paddedLeft('0', 3) + extF;
-            File fileC = File(channelName);
+            channelName = parent + "/" + fname + "_" + juce::String(i + 1).paddedLeft('0', 3) + extF;
+            juce::File fileC = juce::File(channelName);
             this->recorder[i].startRecording(fileC, this->sampleRate, extF);
             this->outputFilenames.add(fileC);
         }
@@ -1064,8 +1064,8 @@ void JackClientGris::addRemoveInput(unsigned int number)
         }
     } else {
         while (number > this->inputsPort.size()) {
-            String nameIn = "input";
-            nameIn += String(this->inputsPort.size() + 1);
+            juce::String nameIn = "input";
+            nameIn += juce::String(this->inputsPort.size() + 1);
             jack_port_t * newPort = jack_port_register(this->client,
                                                        nameIn.toStdString().c_str(),
                                                        JACK_DEFAULT_AUDIO_TYPE,
@@ -1092,8 +1092,8 @@ bool JackClientGris::addOutput(unsigned int outputPatch)
 {
     if (outputPatch > this->maxOutputPatch)
         this->maxOutputPatch = outputPatch;
-    String nameOut = "output";
-    nameOut += String(this->outputsPort.size() + 1);
+    juce::String nameOut = "output";
+    nameOut += juce::String(this->outputsPort.size() + 1);
 
     jack_port_t * newPort
         = jack_port_register(this->client, nameOut.toUTF8(), JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
@@ -1123,11 +1123,11 @@ std::vector<int> JackClientGris::getDirectOutOutputPatches() const
 //==============================================================================
 void JackClientGris::connectedGristoSystem()
 {
-    String nameOut;
+    juce::String nameOut;
     this->clearOutput();
     for (unsigned int i = 0; i < this->maxOutputPatch; i++) {
         nameOut = "output";
-        nameOut += String(this->outputsPort.size() + 1);
+        nameOut += juce::String(this->outputsPort.size() + 1);
         jack_port_t * newPort
             = jack_port_register(this->client, nameOut.toUTF8(), JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
         this->outputsPort.push_back(newPort);
@@ -1314,7 +1314,7 @@ void JackClientGris::updateSourceVbap(int idS)
 }
 
 //==============================================================================
-void JackClientGris::connectionClient(String name, bool connect)
+void JackClientGris::connectionClient(juce::String name, bool connect)
 {
     const char ** portsOut = jack_get_ports(this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput);
     const char ** portsIn = jack_get_ports(this->client, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput);
@@ -1360,7 +1360,7 @@ void JackClientGris::connectionClient(String name, bool connect)
     for (auto && cli : this->listClient) {
         i = 0;
         j = 0;
-        String nameClient = cli.name;
+        juce::String nameClient = cli.name;
         startJ = cli.portStart - 1;
         endJ = cli.portEnd;
 

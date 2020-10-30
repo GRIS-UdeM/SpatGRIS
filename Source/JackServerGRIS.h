@@ -41,7 +41,7 @@ class JackServerGris
 public:
     JackServerGris(unsigned int rateV = 48000,
                    unsigned int periodV = 1024,
-                   String alsaOutputDevice = String(),
+                   juce::String alsaOutputDevice = juce::String(),
                    int * errorCode = nullptr);
     ~JackServerGris();
     //==============================================================================
