@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS2.
 
- Developers: Olivier Belanger, Nicolas Masson
+ Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
 
  SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -19,12 +19,8 @@
 
 #include "Box.h"
 
-#include <algorithm>
-
 #include "LevelComponent.h"
 #include "MainComponent.h"
-#include "ServerGrisConstants.h"
-#include "Speaker.h"
 
 //==============================================================================
 static double GetFloatPrecision(double value, double precision)
