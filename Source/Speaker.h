@@ -72,37 +72,37 @@ public:
             float azimuth = 0.0f,
             float zenith = 0.0f,
             float radius = 1.0f);
-    ~Speaker() final;
+    ~Speaker() override;
     //==============================================================================
     bool isSelected() const { return this->selected; }
     void selectSpeaker();
     void unSelectSpeaker();
 
     // ParentLevelComponent
-    int getId() const final { return -1; } // Should not be used, use getIdSpeaker() instead.
-    int getButtonInOutNumber() const final { return this->outputPatch; };
-    float getLevel() const final;
+    int getId() const override { return -1; } // Should not be used, use getIdSpeaker() instead.
+    int getButtonInOutNumber() const override { return this->outputPatch; };
+    float getLevel() const override;
     float getAlpha();
-    void setMuted(bool mute) final;
-    void setSolo(bool solo) final;
-    void setColor(juce::Colour color, bool updateLevel = false) final {}
-    void selectClick(bool select = true) final;
+    void setMuted(bool mute) override;
+    void setSolo(bool solo) override;
+    void setColor(juce::Colour /*color*/, bool /*updateLevel = false*/) override {}
+    void selectClick(bool select = true) override;
 
-    LevelComponent const * getVuMeter() const final { return this->vuMeter; }
-    LevelComponent * getVuMeter() final { return this->vuMeter; }
+    LevelComponent const * getVuMeter() const override { return this->vuMeter; }
+    LevelComponent * getVuMeter() override { return this->vuMeter; }
 
     // Normalized for user
     void setBounds(const juce::Rectangle<int> & newBounds);
-    void setSpeakerId(int id) { this->idSpeaker = id; };
+    void setSpeakerId(int const id) { this->idSpeaker = id; };
     int getIdSpeaker() const { return this->idSpeaker; }
     void setCoordinate(glm::vec3 value);
     void normalizeRadius();
     void setAziZenRad(glm::vec3 value);
     int getOutputPatch() const { return this->outputPatch; }
     void setOutputPatch(int value);
-    void setGain(float value) { this->gain = value; }
+    void setGain(float const value) { this->gain = value; }
     float getGain() const { return this->gain; }
-    void setHighPassCutoff(float value) { this->hpCutoff = value; }
+    void setHighPassCutoff(float const value) { this->hpCutoff = value; }
     float getHighPassCutoff() const { return this->hpCutoff; }
     bool isDirectOut() const { return this->directOut; }
     void setDirectOut(bool value);
@@ -113,12 +113,12 @@ public:
         return glm::vec3(this->aziZenRad.x, this->aziZenRad.y, this->aziZenRad.z / 10.0f);
     }
 
-    bool isInput() const final { return false; }
+    bool isInput() const override { return false; }
 
-    void changeDirectOutChannel(int chn) final{};
-    void setDirectOutChannel(int chn) final{};
-    int getDirectOutChannel() const final { return 0; };
-    void sendDirectOutToClient(int id, int chn) final{};
+    void changeDirectOutChannel(int /*chn*/) override{};
+    void setDirectOutChannel(int /*chn*/) override{};
+    int getDirectOutChannel() const override { return 0; };
+    void sendDirectOutToClient(int /*id*/, int /*chn*/) override{};
 
     // OpenGL
     glm::vec3 getMin() const { return this->min; }

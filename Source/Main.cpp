@@ -26,55 +26,51 @@ ENABLE_WARNINGS
 #include "GrisLookAndFeel.h"
 #include "MainWindow.h"
 
-class SpatGRIS2Application : public juce::JUCEApplication
+class SpatGris2Application final : public juce::JUCEApplication
 {
+    GrisLookAndFeel mGrisFeel{};
+    std::unique_ptr<MainWindow> mMainWindow{};
+
 public:
     //==============================================================================
-    SpatGRIS2Application() {}
+    SpatGris2Application() = default;
+    ~SpatGris2Application() override = default;
 
+    SpatGris2Application(SpatGris2Application const &) = delete;
+    SpatGris2Application(SpatGris2Application &&) = delete;
+
+    SpatGris2Application & operator=(SpatGris2Application const &) = delete;
+    SpatGris2Application & operator=(SpatGris2Application &&) = delete;
+    //==============================================================================
     const juce::String getApplicationName() override { return ProjectInfo::projectName; }
     const juce::String getApplicationVersion() override { return ProjectInfo::versionString; }
     bool moreThanOneInstanceAllowed() override { return true; }
 
     //==============================================================================
-    void initialise(const juce::String & commandLine) override
+    void initialise(const juce::String & /*commandLine*/) override
     {
         juce::LookAndFeel::setDefaultLookAndFeel(&mGrisFeel);
-        // This method is where you should put your application's initialisation code..
-        mainWindow.reset(new MainWindow(getApplicationName()));
+
+        mMainWindow.reset(new MainWindow(getApplicationName()));
     }
     //==============================================================================
-    void shutdown() override
-    {
-        // Add your application's shutdown code here..
-        mainWindow = nullptr;
-    }
+    void shutdown() override { mMainWindow.reset(); }
 
     //==============================================================================
     void systemRequestedQuit() override
     {
-        // This is called when the app is being asked to quit: you can ignore this
-        // request and let the app carry on running, or call quit() to allow the app to close.
-        if (mainWindow->exitWinApp()) {
+        if (mMainWindow->exitWinApp()) {
             quit();
         }
     }
     //==============================================================================
-    void anotherInstanceStarted(const juce::String & commandLine) override
-    {
-        // When another instance of the app is launched while this one is running,
-        // this method is invoked, and the commandLine parameter tells you what
-        // the other instance's command-line arguments were.
-    }
+    void anotherInstanceStarted(const juce::String & /*commandLine*/) override {}
 
 private:
     //==============================================================================
-    GrisLookAndFeel mGrisFeel;
-    std::unique_ptr<MainWindow> mainWindow;
-    //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SpatGRIS2Application);
+    JUCE_LEAK_DETECTOR(SpatGris2Application)
 };
 
 //==============================================================================
 // This macro generates the main() routine that launches the app.
-START_JUCE_APPLICATION(SpatGRIS2Application)
+START_JUCE_APPLICATION(SpatGris2Application)

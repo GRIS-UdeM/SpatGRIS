@@ -295,10 +295,10 @@ int jack_disconnect(jack_client_t *, const char * source_port, const char * dest
 }
 
 //==============================================================================
-char const ** jack_get_ports([[maybe_unused]] jack_client_t * client,
-                             [[maybe_unused]] const char * port_name_pattern,
-                             [[maybe_unused]] const char * type_name_pattern,
-                             [[maybe_unused]] unsigned long flags)
+char const ** jack_get_ports([[maybe_unused]] jack_client_t * const client,
+                             [[maybe_unused]] const char * const port_name_pattern,
+                             [[maybe_unused]] const char * const type_name_pattern,
+                             [[maybe_unused]] unsigned long const flags)
 {
     auto & audioManager{ AudioManager::getInstance() };
     jassert(client == audioManager.getDummyJackClient());
@@ -338,18 +338,19 @@ char const ** jack_get_ports([[maybe_unused]] jack_client_t * client,
 }
 
 //==============================================================================
-jack_port_t * jack_port_by_name([[maybe_unused]] jack_client_t * client, const char * port_name)
+jack_port_t * jack_port_by_name([[maybe_unused]] jack_client_t * const client, const char * const port_name)
 {
     auto & audioManager{ AudioManager::getInstance() };
     jassert(client == audioManager.getDummyJackClient());
 
-    auto const result{ audioManager.getPort(port_name) };
-    jassert(result);
-    return *result;
+    auto const maybe_result{ audioManager.getPort(port_name) };
+    jassert(maybe_result);
+    auto * const result{ *maybe_result };
+    return result;
 }
 
 //==============================================================================
-jack_port_t * jack_port_by_id(jack_client_t * client, jack_port_id_t port_id)
+jack_port_t * jack_port_by_id(jack_client_t * /*client*/, jack_port_id_t const port_id)
 {
     auto & audioManager{ AudioManager::getInstance() };
     //    jassert(client == audioManager.getDummyJackClient());
@@ -446,77 +447,77 @@ bool jackctl_server_load_internal([[maybe_unused]] jackctl_server_t * server,
 }
 
 //==============================================================================
-const char * jackctl_driver_get_name(jackctl_driver_t * driver)
+const char * jackctl_driver_get_name(jackctl_driver_t * /*driver*/)
 {
     jassertfalse;
     return nullptr;
 }
 
 //==============================================================================
-const JSList * jackctl_driver_get_parameters(jackctl_driver_t * driver)
+const JSList * jackctl_driver_get_parameters(jackctl_driver_t * /*driver*/)
 {
     jassertfalse;
     return nullptr;
 }
 
 //==============================================================================
-const char * jackctl_internal_get_name(jackctl_internal_t * internal)
+const char * jackctl_internal_get_name(jackctl_internal_t * /*internal*/)
 {
     jassertfalse;
     return nullptr;
 }
 
 //==============================================================================
-const JSList * jackctl_internal_get_parameters(jackctl_internal_t * internal)
+const JSList * jackctl_internal_get_parameters(jackctl_internal_t * /*internal*/)
 {
     jassertfalse;
     return nullptr;
 }
 
 //==============================================================================
-const char * jackctl_parameter_get_name(jackctl_parameter_t * parameter)
+const char * jackctl_parameter_get_name(jackctl_parameter_t * /*parameter*/)
 {
     jassertfalse;
     return nullptr;
 }
 
 //==============================================================================
-const char * jackctl_parameter_get_short_description(jackctl_parameter_t * parameter)
+const char * jackctl_parameter_get_short_description(jackctl_parameter_t * /*parameter*/)
 {
     jassertfalse;
     return nullptr;
 }
 
 //==============================================================================
-const char * jackctl_parameter_get_long_description(jackctl_parameter_t * parameter)
+const char * jackctl_parameter_get_long_description(jackctl_parameter_t * /*parameter*/)
 {
     jassertfalse;
     return nullptr;
 }
 
 //==============================================================================
-jackctl_param_type_t jackctl_parameter_get_type(jackctl_parameter_t * parameter)
+jackctl_param_type_t jackctl_parameter_get_type(jackctl_parameter_t * /*parameter*/)
 {
     jassertfalse;
     return {};
 }
 
 //==============================================================================
-char jackctl_parameter_get_id(jackctl_parameter_t * parameter)
+char jackctl_parameter_get_id(jackctl_parameter_t * /*parameter*/)
 {
     jassertfalse;
     return {};
 }
 
 //==============================================================================
-bool jackctl_parameter_set_value(jackctl_parameter_t * parameter, const jackctl_parameter_value * value_ptr)
+bool jackctl_parameter_set_value(jackctl_parameter_t * /*parameter*/, const jackctl_parameter_value * /*value_ptr*/)
 {
     jassertfalse;
     return false;
 }
 
 //==============================================================================
-jackctl_parameter_value jackctl_parameter_get_default_value(jackctl_parameter_t * parameter)
+jackctl_parameter_value jackctl_parameter_get_default_value(jackctl_parameter_t * /*parameter*/)
 {
     jassertfalse;
     return {};
@@ -530,7 +531,8 @@ JSList const * jack_slist_next(JSList const *)
 }
 
 //==============================================================================
-jackctl_parameter_t * jackctl_get_parameter(const JSList * parameters_list, const char * parameter_name)
+jackctl_parameter_t * jackctl_get_parameter([[maybe_unused]] JSList const * const parameters_list,
+                                            char const * const parameter_name)
 {
     jassert(parameters_list == nullptr);
     juce::String const parameter{ parameter_name };
@@ -542,8 +544,8 @@ jackctl_parameter_t * jackctl_get_parameter(const JSList * parameters_list, cons
 }
 
 //==============================================================================
-jackctl_driver_t * jackctl_server_get_driver([[maybe_unused]] jackctl_server_t * server,
-                                             [[maybe_unused]] const char * driver_name)
+jackctl_driver_t * jackctl_server_get_driver([[maybe_unused]] jackctl_server_t * const server,
+                                             [[maybe_unused]] const char * const driver_name)
 {
     jassert(server == AudioManager::getInstance().getDummyJackCtlServer());
     jassert(juce::String{ driver_name } == driverNameSys);
@@ -551,7 +553,8 @@ jackctl_driver_t * jackctl_server_get_driver([[maybe_unused]] jackctl_server_t *
 }
 
 //==============================================================================
-jackctl_internal_t * jackctl_server_get_internal(jackctl_server_t * server, const char * internal_name)
+jackctl_internal_t * jackctl_server_get_internal([[maybe_unused]] jackctl_server_t * const server,
+                                                 [[maybe_unused]] const char * const internal_name)
 {
     jassert(server == AudioManager::getInstance().getDummyJackCtlServer());
     jassert(juce::String{ internal_name } == ClientNameSys);
