@@ -199,7 +199,7 @@ MainContentComponent::MainContentComponent(MainWindow & parent) : parent(parent)
     this->oscLogWindow = nullptr;
 
     // SpeakerViewComponent 3D view
-    this->speakerView.reset(new SpeakerViewComponent(this));
+    this->speakerView.reset(new SpeakerViewComponent(*this));
     addAndMakeVisible(this->speakerView.get());
 
     // Box Main

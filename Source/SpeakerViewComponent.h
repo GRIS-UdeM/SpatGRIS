@@ -19,8 +19,6 @@
 
 #pragma once
 
-#include <cmath>
-
 #include "macros.h"
 
 DISABLE_WARNINGS
@@ -47,90 +45,100 @@ ENABLE_WARNINGS
 class MainContentComponent;
 class Speaker;
 
-static const int NbrGridLines = 17;
-static const float ScroolWheelSpeedMouse = 1.8f;
+static int constexpr NUM_GRID_LINES{ 17 };
+static float constexpr SCROLL_WHEEL_SPEED_MOUSE{ 1.8f };
 
 //==============================================================================
 class SpeakerViewComponent final : public juce::OpenGLAppComponent
 {
+    MainContentComponent & mMainContentComponent;
+
+    bool mShowSphere = false;
+    bool mShowNumber = false;
+    bool mClickLeft = false;
+    bool mControlOn = false;
+    bool mHideSpeaker = false;
+    bool mShowTriplets = false;
+
+    float mCamAngleX = 80.0f;
+    float mCamAngleY = 25.0f;
+    float mDistance = 22.0f;
+
+    float mSlowDownFactor = 3.0f; // Reduce the angle changing speed.
+    float mDeltaClickX{};
+    float mDeltaClickY{};
+
+    double mRayClickX{};
+    double mRayClickY{};
+
+    double mDisplayScaling = 1.0;
+
+    Ray mRay;
+
+    glm::vec3 mCamPos;
+
+    juce::String mNameConfig = "...";
+
+    GLdouble mXs{};
+    GLdouble mYs{};
+    GLdouble mZs{};
+    GLdouble mXe{};
+    GLdouble mYe{};
+    GLdouble mZe{};
+
 public:
-    SpeakerViewComponent(MainContentComponent * parent = nullptr) : mainParent(parent) {}
-    ~SpeakerViewComponent() final { this->shutdownOpenGL(); }
     //==============================================================================
-    void initialise() final;
-    void shutdown() final {}
+    explicit SpeakerViewComponent(MainContentComponent & mainContentComponent);
+    //==============================================================================
+    SpeakerViewComponent() = delete;
+    ~SpeakerViewComponent() override { shutdownOpenGL(); }
 
-    void setShowSphere(bool value) { this->showShpere = value; }
-    void setShowNumber(bool value) { this->showNumber = value; }
-    void setHideSpeaker(bool value) { this->hideSpeaker = value; }
-    void setShowTriplets(bool value) { this->showTriplets = value; }
-    void setNameConfig(juce::String name)
-    {
-        this->nameConfig = name;
-        this->repaint();
-    }
+    SpeakerViewComponent(SpeakerViewComponent const &) = delete;
+    SpeakerViewComponent(SpeakerViewComponent &&) = delete;
 
-    void render() final;
-    void paint(juce::Graphics & g) final;
+    SpeakerViewComponent & operator=(SpeakerViewComponent const &) = delete;
+    SpeakerViewComponent & operator=(SpeakerViewComponent &&) = delete;
+    //==============================================================================
+    void setShowSphere(bool const value) { mShowSphere = value; }
+    void setShowNumber(bool const value) { mShowNumber = value; }
+    void setHideSpeaker(bool const value) { mHideSpeaker = value; }
+    void setShowTriplets(bool const value) { mShowTriplets = value; }
+    void setNameConfig(juce::String const & name);
 
-    void mouseDown(const juce::MouseEvent & e) final;
-    void mouseDrag(const juce::MouseEvent & e) final;
-    void mouseWheelMove(const juce::MouseEvent & e, const juce::MouseWheelDetails & wheel) final;
-
-    float getCamAngleX() const { return this->camAngleX; };
-    float getCamAngleY() const { return this->camAngleY; };
-    float getCamDistance() const { return this->distance; };
+    float getCamAngleX() const { return mCamAngleX; };
+    float getCamAngleY() const { return mCamAngleY; };
+    float getCamDistance() const { return mDistance; };
 
     void setCamPosition(float angleX, float angleY, float distance);
+    //==============================================================================
+    void initialise() override;
+    void shutdown() override {}
+
+    void render() override;
+    void paint(juce::Graphics & g) override;
+
+    void mouseDown(const juce::MouseEvent & e) override;
+    void mouseDrag(const juce::MouseEvent & e) override;
+    void mouseWheelMove(const juce::MouseEvent & e, const juce::MouseWheelDetails & wheel) override;
 
 private:
     //==============================================================================
-    float raycast(Speaker * speaker) const;
+    float rayCast(Speaker const * speaker) const;
     bool speakerNearCam(glm::vec3 speak1, glm::vec3 speak2) const;
 
     void clickRay();
-    void drawBackground() const;
+
     void drawOriginGrid() const;
-    void drawText(std::string val,
+    void drawText(std::string const & val,
                   glm::vec3 position,
                   glm::vec3 color,
                   float scale = 0.005f,
                   bool camLock = true,
                   float alpha = 1.0f) const;
-    void drawTextOnGrid(std::string val, glm::vec3 position, float scale = 0.003f) const;
-
-    void drawTrippletConn() const;
+    void drawTripletConnection() const;
     //==============================================================================
-    MainContentComponent * mainParent;
-
-    bool showShpere = false;
-    bool showNumber = false;
-    bool clickLeft = false;
-    bool controlOn = false;
-    bool hideSpeaker = false;
-    bool showTriplets = false;
-
-    float camAngleX = 80.0f;
-    float camAngleY = 25.0f;
-    float distance = 22.0f;
-
-    float slowDownFactor = 3.0f; // Reduce the angle changing speed.
-    float deltaClickX;
-    float deltaClickY;
-
-    double rayClickX;
-    double rayClickY;
-
-    double displayScaling = 1.0;
-
-    Ray ray;
-
-    glm::vec3 camPos;
-
-    juce::String nameConfig = "...";
-
-    GLdouble xS, yS, zS = 0;
-    GLdouble xE, yE, zE = 0;
+    static void drawBackground();
+    static void drawTextOnGrid(std::string const & val, glm::vec3 position, float scale = 0.003f);
     //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SpeakerViewComponent)
-};
+    JUCE_LEAK_DETECTOR(SpeakerViewComponent)
+}; // class SpeakerViewComponent
