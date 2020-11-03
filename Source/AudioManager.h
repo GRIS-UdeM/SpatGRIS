@@ -46,7 +46,7 @@ struct _jack_port {
                char const * const newShortName,
                char const * const newClientName,
                PortType const newType,
-               std::optional<int> newPhysicalPort = std::nullopt)
+               std::optional<int> const newPhysicalPort = std::nullopt)
         : id(newId)
         , type(newType)
         , physicalPort(newPhysicalPort)
@@ -72,9 +72,9 @@ class AudioManager final : juce::AudioSourcePlayer
     juce::AudioBuffer<float> mInputPortsBuffer{};
     juce::AudioBuffer<float> mOutputPortsBuffer{};
 
-    JackProcessCallback mProcessCallback;
+    JackProcessCallback mProcessCallback{};
     void * mProcessCallbackArg{};
-    JackPortConnectCallback mPortConnectCallback;
+    JackPortConnectCallback mPortConnectCallback{};
 
     juce::CriticalSection mCriticalSection{};
     //==============================================================================
@@ -90,6 +90,7 @@ public:
     AudioManager(AudioManager &&) = delete;
 
     AudioManager & operator=(AudioManager const &) = delete;
+    AudioManager & operator=(AudioManager &&) = delete;
     //==============================================================================
     juce::AudioDeviceManager const & getAudioDeviceManager() const { return mAudioDeviceManager; }
     juce::AudioDeviceManager & getAudioDeviceManager() { return mAudioDeviceManager; }
@@ -118,7 +119,7 @@ public:
     // Dummies
     auto * getDummyJackClient() { return &mDummyJackClient; }
     auto * getDummyJackCtlServer() { return &mDummyJackCtlServer; }
-    JSList * getDummyJackCtlParameters() const { return nullptr; }
+    static JSList * getDummyJackCtlParameters() { return nullptr; }
     //==============================================================================
     // AudioSourcePlayer overrides
     void audioDeviceError(const juce::String & errorMessage) override;
@@ -134,8 +135,9 @@ public:
 
 private:
     //==============================================================================
-    void setBufferSizes(int numSamples);
     AudioManager();
+    //==============================================================================
+    void setBufferSizes(int numSamples);
     //==============================================================================
     JUCE_LEAK_DETECTOR(AudioManager)
 }; // class AudioManager

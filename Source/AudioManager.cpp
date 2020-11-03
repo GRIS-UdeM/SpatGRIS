@@ -45,6 +45,9 @@ AudioManager::AudioManager()
 
     // TODO: magic numbers
     #ifdef WIN32
+
+    // choose device type
+
     mAudioDeviceManager.setCurrentAudioDeviceType("ASIO", true);
 
     juce::String const outputDevice{ "ASIO4ALL v2" };
@@ -95,12 +98,10 @@ void AudioManager::audioDeviceIOCallback(const float ** inputChannelData,
             mInputPortsBuffer.copyFrom(i, 0, dest, numSamples);
         }
     }
-    auto const inputPeak{ mOutputPortsBuffer.getMagnitude(0, numSamples) };
 
     if (mProcessCallback != nullptr) {
         mProcessCallback(numSamples, mProcessCallbackArg);
     }
-    auto const outputPeak{ mInputPortsBuffer.getMagnitude(0, numSamples) };
 
     // copy output ports to output channels
     auto const numOutputChannelsToCopy{ std::min(totalNumOutputChannels, mVirtualOutputPorts.size()) };
@@ -110,20 +111,6 @@ void AudioManager::audioDeviceIOCallback(const float ** inputChannelData,
             std::memcpy(dest, mOutputPortsBuffer.getReadPointer(i), sizeof(float) * numSamples);
         }
     }
-
-    /*jassert(totalNumOutputChannels <= mInputPortsBuffer.getNumChannels());
-    decltype(mConnections)::Iterator connection{ mConnections };
-    while (connection.next()) {
-        auto * source{ connection.getKey() };
-        auto const * destination{ connection.getValue() };
-        if (destination->physicalPort.has_value()) {
-            auto const sourceIndex{ mOutputPorts.indexOf(source) };
-            auto const destinationIndex{ *destination->physicalPort };
-            std::memcpy(outputChannelData[destinationIndex],
-                        mInputPortsBuffer.getReadPointer(sourceIndex),
-                        sizeof(float) * numSamples);
-        }
-    }*/
 }
 
 //==============================================================================
@@ -155,7 +142,7 @@ jack_port_t * AudioManager::registerPort(char const * const newShortName,
         std::cout << "Registered virtual " << type << " port : id=" << newPort->id << '\n';
     }
 
-    jack_port_t * result{};
+    jack_port_t * result;
 
     if (newType == PortType::input) {
         if (newPhysicalPort.has_value()) {
@@ -232,8 +219,7 @@ jack_port_t * AudioManager::findPortByName(char const * name) const
         return nullptr;
     };
 
-    jack_port_t * found;
-    found = find(mVirtualInputPorts);
+    auto * found{ find(mVirtualInputPorts) };
     if (found) {
         return found;
     }
