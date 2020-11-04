@@ -33,30 +33,40 @@ class OscLogWindow final
     : public juce::DocumentWindow
     , public juce::TextButton::Listener
 {
+    MainContentComponent * mMainContentComponent;
+    GrisLookAndFeel * mLookAndFeel;
+
+    int mIndex;
+    bool mActivated;
+
+    juce::CodeDocument mCodeDocument;
+    juce::CodeEditorComponent mLogger;
+    juce::TextButton mStopButton;
+    juce::TextButton mCloseButton;
+
 public:
+    //==============================================================================
     OscLogWindow(juce::String const & name,
                  juce::Colour backgroundColour,
                  int buttonsNeeded,
                  MainContentComponent * parent,
                  GrisLookAndFeel * feel);
-    ~OscLogWindow() final;
     //==============================================================================
-    void buttonClicked(juce::Button * button) final;
-    void closeButtonPressed() final;
+    OscLogWindow() = delete;
+    ~OscLogWindow() override;
+
+    OscLogWindow(OscLogWindow const &) = delete;
+    OscLogWindow(OscLogWindow &&) = delete;
+
+    OscLogWindow & operator=(OscLogWindow const &) = delete;
+    OscLogWindow & operator=(OscLogWindow &&) = delete;
+    //==============================================================================
     void addToLog(juce::String msg);
+    //==============================================================================
+    void buttonClicked(juce::Button * button) override;
+    void closeButtonPressed() override;
 
 private:
     //==============================================================================
-    MainContentComponent * mainParent;
-    GrisLookAndFeel * grisFeel;
-
-    int index;
-    bool activated;
-
-    juce::CodeDocument codeDocument;
-    juce::CodeEditorComponent logger;
-    juce::TextButton stop;
-    juce::TextButton close;
-    //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OscLogWindow);
+    JUCE_LEAK_DETECTOR(OscLogWindow)
 };

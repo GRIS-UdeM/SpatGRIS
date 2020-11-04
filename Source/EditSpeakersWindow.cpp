@@ -35,175 +35,175 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
                                        MainContentComponent & mainContentComponent,
                                        juce::String const & configName)
     : juce::DocumentWindow(name, lookAndFeel.getBackgroundColour(), DocumentWindow::allButtons)
-    , grisFeel(lookAndFeel)
-    , mainContentComponent(mainContentComponent)
-    , font(14.0f)
-    , boxListSpeaker(lookAndFeel, "Configuration Speakers")
+    , mLookAndFeel(lookAndFeel)
+    , mMainContentComponent(mainContentComponent)
+    , mFont(14.0f)
+    , mListSpeakerBox(lookAndFeel, "Configuration Speakers")
 {
-    this->butAddSpeaker.setButtonText("Add Speaker");
-    this->butAddSpeaker.setBounds(5, 404, 100, 22);
-    this->butAddSpeaker.addListener(this);
-    this->butAddSpeaker.setColour(juce::ToggleButton::textColourId, this->grisFeel.getFontColour());
-    this->butAddSpeaker.setLookAndFeel(&this->grisFeel);
-    this->boxListSpeaker.getContent()->addAndMakeVisible(this->butAddSpeaker);
+    this->mAddSpeakerButton.setButtonText("Add Speaker");
+    this->mAddSpeakerButton.setBounds(5, 404, 100, 22);
+    this->mAddSpeakerButton.addListener(this);
+    this->mAddSpeakerButton.setColour(juce::ToggleButton::textColourId, this->mLookAndFeel.getFontColour());
+    this->mAddSpeakerButton.setLookAndFeel(&this->mLookAndFeel);
+    this->mListSpeakerBox.getContent()->addAndMakeVisible(this->mAddSpeakerButton);
 
-    this->butcompSpeakers.setButtonText("Compute");
-    this->butcompSpeakers.setBounds(110, 404, 100, 22);
-    this->butcompSpeakers.addListener(this);
-    this->butcompSpeakers.setColour(juce::ToggleButton::textColourId, this->grisFeel.getFontColour());
-    this->butcompSpeakers.setLookAndFeel(&this->grisFeel);
-    this->boxListSpeaker.getContent()->addAndMakeVisible(this->butcompSpeakers);
+    this->mCompSpeakersButton.setButtonText("Compute");
+    this->mCompSpeakersButton.setBounds(110, 404, 100, 22);
+    this->mCompSpeakersButton.addListener(this);
+    this->mCompSpeakersButton.setColour(juce::ToggleButton::textColourId, this->mLookAndFeel.getFontColour());
+    this->mCompSpeakersButton.setLookAndFeel(&this->mLookAndFeel);
+    this->mListSpeakerBox.getContent()->addAndMakeVisible(this->mCompSpeakersButton);
 
     // Generate ring of speakers.
     int wlab = 80;
 
-    this->rNumOfSpeakersLabel.setText("# of speakers", juce::NotificationType::dontSendNotification);
-    this->rNumOfSpeakersLabel.setJustificationType(juce::Justification::right);
-    this->rNumOfSpeakersLabel.setFont(this->grisFeel.getFont());
-    this->rNumOfSpeakersLabel.setLookAndFeel(&this->grisFeel);
-    this->rNumOfSpeakersLabel.setColour(juce::Label::textColourId, this->grisFeel.getFontColour());
-    this->rNumOfSpeakersLabel.setBounds(5, 435, 40, 24);
-    this->boxListSpeaker.getContent()->addAndMakeVisible(this->rNumOfSpeakersLabel);
+    this->mNumOfSpeakersLabel.setText("# of speakers", juce::NotificationType::dontSendNotification);
+    this->mNumOfSpeakersLabel.setJustificationType(juce::Justification::right);
+    this->mNumOfSpeakersLabel.setFont(this->mLookAndFeel.getFont());
+    this->mNumOfSpeakersLabel.setLookAndFeel(&this->mLookAndFeel);
+    this->mNumOfSpeakersLabel.setColour(juce::Label::textColourId, this->mLookAndFeel.getFontColour());
+    this->mNumOfSpeakersLabel.setBounds(5, 435, 40, 24);
+    this->mListSpeakerBox.getContent()->addAndMakeVisible(this->mNumOfSpeakersLabel);
 
-    this->rNumOfSpeakers.setTooltip("Number of speakers in the ring");
-    this->rNumOfSpeakers.setColour(juce::ToggleButton::textColourId, this->grisFeel.getFontColour());
-    this->rNumOfSpeakers.setLookAndFeel(&this->grisFeel);
-    this->rNumOfSpeakers.setBounds(5 + wlab, 435, 40, 24);
-    this->rNumOfSpeakers.addListener(&this->mainContentComponent);
-    this->boxListSpeaker.getContent()->addAndMakeVisible(this->rNumOfSpeakers);
+    this->mNumOfSpeakersTextEditor.setTooltip("Number of speakers in the ring");
+    this->mNumOfSpeakersTextEditor.setColour(juce::ToggleButton::textColourId, this->mLookAndFeel.getFontColour());
+    this->mNumOfSpeakersTextEditor.setLookAndFeel(&this->mLookAndFeel);
+    this->mNumOfSpeakersTextEditor.setBounds(5 + wlab, 435, 40, 24);
+    this->mNumOfSpeakersTextEditor.addListener(&this->mMainContentComponent);
+    this->mListSpeakerBox.getContent()->addAndMakeVisible(this->mNumOfSpeakersTextEditor);
 
-    this->rNumOfSpeakers.setText("8");
-    this->rNumOfSpeakers.setInputRestrictions(3, "0123456789");
-    this->rNumOfSpeakers.addListener(this);
+    this->mNumOfSpeakersTextEditor.setText("8");
+    this->mNumOfSpeakersTextEditor.setInputRestrictions(3, "0123456789");
+    this->mNumOfSpeakersTextEditor.addListener(this);
 
-    this->rZenithLabel.setText("Elevation", juce::NotificationType::dontSendNotification);
-    this->rZenithLabel.setJustificationType(juce::Justification::right);
-    this->rZenithLabel.setFont(this->grisFeel.getFont());
-    this->rZenithLabel.setLookAndFeel(&this->grisFeel);
-    this->rZenithLabel.setColour(juce::Label::textColourId, this->grisFeel.getFontColour());
-    this->rZenithLabel.setBounds(105, 435, 80, 24);
-    this->boxListSpeaker.getContent()->addAndMakeVisible(this->rZenithLabel);
+    this->mZenithLabel.setText("Elevation", juce::NotificationType::dontSendNotification);
+    this->mZenithLabel.setJustificationType(juce::Justification::right);
+    this->mZenithLabel.setFont(this->mLookAndFeel.getFont());
+    this->mZenithLabel.setLookAndFeel(&this->mLookAndFeel);
+    this->mZenithLabel.setColour(juce::Label::textColourId, this->mLookAndFeel.getFontColour());
+    this->mZenithLabel.setBounds(105, 435, 80, 24);
+    this->mListSpeakerBox.getContent()->addAndMakeVisible(this->mZenithLabel);
 
-    this->rZenith.setTooltip("Elevation angle of the ring");
-    this->rZenith.setColour(juce::ToggleButton::textColourId, this->grisFeel.getFontColour());
-    this->rZenith.setLookAndFeel(&this->grisFeel);
-    this->rZenith.setBounds(105 + wlab, 435, 60, 24);
-    this->rZenith.addListener(&this->mainContentComponent);
-    this->boxListSpeaker.getContent()->addAndMakeVisible(this->rZenith);
+    this->mZenithTextEditor.setTooltip("Elevation angle of the ring");
+    this->mZenithTextEditor.setColour(juce::ToggleButton::textColourId, this->mLookAndFeel.getFontColour());
+    this->mZenithTextEditor.setLookAndFeel(&this->mLookAndFeel);
+    this->mZenithTextEditor.setBounds(105 + wlab, 435, 60, 24);
+    this->mZenithTextEditor.addListener(&this->mMainContentComponent);
+    this->mListSpeakerBox.getContent()->addAndMakeVisible(this->mZenithTextEditor);
 
-    this->rZenith.setText("0.0");
-    this->rZenith.setInputRestrictions(6, "-0123456789.");
-    this->rZenith.addListener(this);
+    this->mZenithTextEditor.setText("0.0");
+    this->mZenithTextEditor.setInputRestrictions(6, "-0123456789.");
+    this->mZenithTextEditor.addListener(this);
 
-    this->rRadiusLabel.setText("Distance", juce::NotificationType::dontSendNotification);
-    this->rRadiusLabel.setJustificationType(juce::Justification::right);
-    this->rRadiusLabel.setFont(this->grisFeel.getFont());
-    this->rRadiusLabel.setLookAndFeel(&this->grisFeel);
-    this->rRadiusLabel.setColour(juce::Label::textColourId, this->grisFeel.getFontColour());
-    this->rRadiusLabel.setBounds(230, 435, 80, 24);
-    this->boxListSpeaker.getContent()->addAndMakeVisible(this->rRadiusLabel);
+    this->mRadiusLabel.setText("Distance", juce::NotificationType::dontSendNotification);
+    this->mRadiusLabel.setJustificationType(juce::Justification::right);
+    this->mRadiusLabel.setFont(this->mLookAndFeel.getFont());
+    this->mRadiusLabel.setLookAndFeel(&this->mLookAndFeel);
+    this->mRadiusLabel.setColour(juce::Label::textColourId, this->mLookAndFeel.getFontColour());
+    this->mRadiusLabel.setBounds(230, 435, 80, 24);
+    this->mListSpeakerBox.getContent()->addAndMakeVisible(this->mRadiusLabel);
 
-    this->rRadius.setTooltip("Distance of the speakers from the center.");
-    this->rRadius.setColour(juce::ToggleButton::textColourId, this->grisFeel.getFontColour());
-    this->rRadius.setLookAndFeel(&this->grisFeel);
-    this->rRadius.setBounds(230 + wlab, 435, 60, 24);
-    this->rRadius.addListener(&this->mainContentComponent);
-    this->boxListSpeaker.getContent()->addAndMakeVisible(this->rRadius);
+    this->mRadiusTextEditor.setTooltip("Distance of the speakers from the center.");
+    this->mRadiusTextEditor.setColour(juce::ToggleButton::textColourId, this->mLookAndFeel.getFontColour());
+    this->mRadiusTextEditor.setLookAndFeel(&this->mLookAndFeel);
+    this->mRadiusTextEditor.setBounds(230 + wlab, 435, 60, 24);
+    this->mRadiusTextEditor.addListener(&this->mMainContentComponent);
+    this->mListSpeakerBox.getContent()->addAndMakeVisible(this->mRadiusTextEditor);
 
-    this->rRadius.setText("1.0");
-    this->rRadius.setInputRestrictions(6, "0123456789.");
-    this->rRadius.addListener(this);
+    this->mRadiusTextEditor.setText("1.0");
+    this->mRadiusTextEditor.setInputRestrictions(6, "0123456789.");
+    this->mRadiusTextEditor.addListener(this);
 
-    this->rOffsetAngleLabel.setText("Offset Angle", juce::NotificationType::dontSendNotification);
-    this->rOffsetAngleLabel.setJustificationType(juce::Justification::right);
-    this->rOffsetAngleLabel.setFont(this->grisFeel.getFont());
-    this->rOffsetAngleLabel.setLookAndFeel(&this->grisFeel);
-    this->rOffsetAngleLabel.setColour(juce::Label::textColourId, this->grisFeel.getFontColour());
-    this->rOffsetAngleLabel.setBounds(375, 435, 80, 24);
-    this->boxListSpeaker.getContent()->addAndMakeVisible(this->rOffsetAngleLabel);
+    this->mOffsetAngleLabel.setText("Offset Angle", juce::NotificationType::dontSendNotification);
+    this->mOffsetAngleLabel.setJustificationType(juce::Justification::right);
+    this->mOffsetAngleLabel.setFont(this->mLookAndFeel.getFont());
+    this->mOffsetAngleLabel.setLookAndFeel(&this->mLookAndFeel);
+    this->mOffsetAngleLabel.setColour(juce::Label::textColourId, this->mLookAndFeel.getFontColour());
+    this->mOffsetAngleLabel.setBounds(375, 435, 80, 24);
+    this->mListSpeakerBox.getContent()->addAndMakeVisible(this->mOffsetAngleLabel);
 
-    this->rOffsetAngle.setTooltip("Offset angle of the first speaker.");
-    this->rOffsetAngle.setColour(juce::ToggleButton::textColourId, this->grisFeel.getFontColour());
-    this->rOffsetAngle.setLookAndFeel(&this->grisFeel);
-    this->rOffsetAngle.setBounds(375 + wlab, 435, 60, 24);
-    this->rOffsetAngle.addListener(&this->mainContentComponent);
-    this->boxListSpeaker.getContent()->addAndMakeVisible(this->rOffsetAngle);
+    this->mOffsetAngleTextEditor.setTooltip("Offset angle of the first speaker.");
+    this->mOffsetAngleTextEditor.setColour(juce::ToggleButton::textColourId, this->mLookAndFeel.getFontColour());
+    this->mOffsetAngleTextEditor.setLookAndFeel(&this->mLookAndFeel);
+    this->mOffsetAngleTextEditor.setBounds(375 + wlab, 435, 60, 24);
+    this->mOffsetAngleTextEditor.addListener(&this->mMainContentComponent);
+    this->mListSpeakerBox.getContent()->addAndMakeVisible(this->mOffsetAngleTextEditor);
 
-    this->rOffsetAngle.setText("0.0");
-    this->rOffsetAngle.setInputRestrictions(6, "-0123456789.");
-    this->rOffsetAngle.addListener(this);
+    this->mOffsetAngleTextEditor.setText("0.0");
+    this->mOffsetAngleTextEditor.setInputRestrictions(6, "-0123456789.");
+    this->mOffsetAngleTextEditor.addListener(this);
 
-    this->butAddRing.setButtonText("Add Ring");
-    this->butAddRing.setBounds(520, 435, 100, 24);
-    this->butAddRing.addListener(this);
-    this->butAddRing.setColour(juce::ToggleButton::textColourId, this->grisFeel.getFontColour());
-    this->butAddRing.setLookAndFeel(&this->grisFeel);
-    this->boxListSpeaker.getContent()->addAndMakeVisible(this->butAddRing);
+    this->mAddRingButton.setButtonText("Add Ring");
+    this->mAddRingButton.setBounds(520, 435, 100, 24);
+    this->mAddRingButton.addListener(this);
+    this->mAddRingButton.setColour(juce::ToggleButton::textColourId, this->mLookAndFeel.getFontColour());
+    this->mAddRingButton.setLookAndFeel(&this->mLookAndFeel);
+    this->mListSpeakerBox.getContent()->addAndMakeVisible(this->mAddRingButton);
 
     // Pink noise controls.
-    this->pinkNoise.setButtonText("Reference Pink Noise");
-    this->pinkNoise.setBounds(5, 500, 150, 24);
-    this->pinkNoise.addListener(this);
-    this->pinkNoise.setColour(juce::ToggleButton::textColourId, this->grisFeel.getFontColour());
-    this->pinkNoise.setLookAndFeel(&this->grisFeel);
-    this->boxListSpeaker.getContent()->addAndMakeVisible(this->pinkNoise);
+    this->mPinkNoiseToggleButton.setButtonText("Reference Pink Noise");
+    this->mPinkNoiseToggleButton.setBounds(5, 500, 150, 24);
+    this->mPinkNoiseToggleButton.addListener(this);
+    this->mPinkNoiseToggleButton.setColour(juce::ToggleButton::textColourId, this->mLookAndFeel.getFontColour());
+    this->mPinkNoiseToggleButton.setLookAndFeel(&this->mLookAndFeel);
+    this->mListSpeakerBox.getContent()->addAndMakeVisible(this->mPinkNoiseToggleButton);
 
-    this->pinkNoiseGain.setTextValueSuffix(" dB");
-    this->pinkNoiseGain.setBounds(200, 500, 60, 60);
-    this->pinkNoiseGain.setSliderStyle(juce::Slider::Rotary);
-    this->pinkNoiseGain.setRotaryParameters(M_PI * 1.3f, M_PI * 2.7f, true);
-    this->pinkNoiseGain.setRange(-60, -3, 1);
-    this->pinkNoiseGain.setValue(-20);
-    this->pinkNoiseGain.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 60, 20);
-    this->pinkNoiseGain.setColour(juce::ToggleButton::textColourId, this->grisFeel.getFontColour());
-    this->pinkNoiseGain.setLookAndFeel(&this->grisFeel);
-    this->pinkNoiseGain.addListener(this);
-    this->boxListSpeaker.getContent()->addAndMakeVisible(this->pinkNoiseGain);
+    this->mPinkNoiseGainSlider.setTextValueSuffix(" dB");
+    this->mPinkNoiseGainSlider.setBounds(200, 500, 60, 60);
+    this->mPinkNoiseGainSlider.setSliderStyle(juce::Slider::Rotary);
+    this->mPinkNoiseGainSlider.setRotaryParameters(M_PI * 1.3f, M_PI * 2.7f, true);
+    this->mPinkNoiseGainSlider.setRange(-60, -3, 1);
+    this->mPinkNoiseGainSlider.setValue(-20);
+    this->mPinkNoiseGainSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 60, 20);
+    this->mPinkNoiseGainSlider.setColour(juce::ToggleButton::textColourId, this->mLookAndFeel.getFontColour());
+    this->mPinkNoiseGainSlider.setLookAndFeel(&this->mLookAndFeel);
+    this->mPinkNoiseGainSlider.addListener(this);
+    this->mListSpeakerBox.getContent()->addAndMakeVisible(this->mPinkNoiseGainSlider);
 
-    this->boxListSpeaker.getContent()->addAndMakeVisible(this->tableListSpeakers);
+    this->mListSpeakerBox.getContent()->addAndMakeVisible(this->mSpeakersTableListBox);
 
-    this->boxListSpeaker.repaint();
-    this->boxListSpeaker.resized();
+    this->mListSpeakerBox.repaint();
+    this->mListSpeakerBox.resized();
 
-    this->setContentNonOwned(&this->boxListSpeaker, false);
+    this->setContentNonOwned(&this->mListSpeakerBox, false);
 }
 
 //==============================================================================
 void EditSpeakersWindow::initComp()
 {
-    tableListSpeakers.setModel(this);
+    mSpeakersTableListBox.setModel(this);
 
-    tableListSpeakers.setColour(juce::ListBox::outlineColourId, this->grisFeel.getWinBackgroundColour());
-    tableListSpeakers.setColour(juce::ListBox::backgroundColourId, this->grisFeel.getWinBackgroundColour());
-    tableListSpeakers.setOutlineThickness(1);
+    mSpeakersTableListBox.setColour(juce::ListBox::outlineColourId, this->mLookAndFeel.getWinBackgroundColour());
+    mSpeakersTableListBox.setColour(juce::ListBox::backgroundColourId, this->mLookAndFeel.getWinBackgroundColour());
+    mSpeakersTableListBox.setOutlineThickness(1);
 
-    tableListSpeakers.getHeader().addColumn("ID", 1, 40, 40, 60, juce::TableHeaderComponent::defaultFlags);
-    tableListSpeakers.getHeader().addColumn("X", 2, 70, 50, 120, juce::TableHeaderComponent::defaultFlags);
-    tableListSpeakers.getHeader().addColumn("Y", 3, 70, 50, 120, juce::TableHeaderComponent::defaultFlags);
-    tableListSpeakers.getHeader().addColumn("Z", 4, 70, 50, 120, juce::TableHeaderComponent::defaultFlags);
-    tableListSpeakers.getHeader().addColumn("Azimuth", 5, 70, 50, 120, juce::TableHeaderComponent::defaultFlags);
-    tableListSpeakers.getHeader().addColumn("Elevation", 6, 70, 50, 120, juce::TableHeaderComponent::defaultFlags);
-    tableListSpeakers.getHeader().addColumn("Distance", 7, 70, 50, 120, juce::TableHeaderComponent::defaultFlags);
-    tableListSpeakers.getHeader().addColumn("Output", 8, 70, 50, 120, juce::TableHeaderComponent::defaultFlags);
-    tableListSpeakers.getHeader().addColumn("Gain (dB)", 9, 70, 50, 120, juce::TableHeaderComponent::notSortable);
-    tableListSpeakers.getHeader().addColumn("Highpass", 10, 70, 50, 120, juce::TableHeaderComponent::notSortable);
-    tableListSpeakers.getHeader().addColumn("Direct", 11, 70, 50, 120, juce::TableHeaderComponent::notSortable);
-    tableListSpeakers.getHeader().addColumn("delete", 12, 70, 50, 120, juce::TableHeaderComponent::notSortable);
+    mSpeakersTableListBox.getHeader().addColumn("ID", 1, 40, 40, 60, juce::TableHeaderComponent::defaultFlags);
+    mSpeakersTableListBox.getHeader().addColumn("X", 2, 70, 50, 120, juce::TableHeaderComponent::defaultFlags);
+    mSpeakersTableListBox.getHeader().addColumn("Y", 3, 70, 50, 120, juce::TableHeaderComponent::defaultFlags);
+    mSpeakersTableListBox.getHeader().addColumn("Z", 4, 70, 50, 120, juce::TableHeaderComponent::defaultFlags);
+    mSpeakersTableListBox.getHeader().addColumn("Azimuth", 5, 70, 50, 120, juce::TableHeaderComponent::defaultFlags);
+    mSpeakersTableListBox.getHeader().addColumn("Elevation", 6, 70, 50, 120, juce::TableHeaderComponent::defaultFlags);
+    mSpeakersTableListBox.getHeader().addColumn("Distance", 7, 70, 50, 120, juce::TableHeaderComponent::defaultFlags);
+    mSpeakersTableListBox.getHeader().addColumn("Output", 8, 70, 50, 120, juce::TableHeaderComponent::defaultFlags);
+    mSpeakersTableListBox.getHeader().addColumn("Gain (dB)", 9, 70, 50, 120, juce::TableHeaderComponent::notSortable);
+    mSpeakersTableListBox.getHeader().addColumn("Highpass", 10, 70, 50, 120, juce::TableHeaderComponent::notSortable);
+    mSpeakersTableListBox.getHeader().addColumn("Direct", 11, 70, 50, 120, juce::TableHeaderComponent::notSortable);
+    mSpeakersTableListBox.getHeader().addColumn("delete", 12, 70, 50, 120, juce::TableHeaderComponent::notSortable);
 
-    tableListSpeakers.getHeader().setSortColumnId(1, true); // Sort forwards by the ID column.
+    mSpeakersTableListBox.getHeader().setSortColumnId(1, true); // Sort forwards by the ID column.
 
-    tableListSpeakers.setMultipleSelectionEnabled(true);
+    mSpeakersTableListBox.setMultipleSelectionEnabled(true);
 
-    numRows = (unsigned int)this->mainContentComponent.getListSpeaker().size();
+    mNumRows = (unsigned int)this->mMainContentComponent.getListSpeaker().size();
 
-    this->boxListSpeaker.setBounds(0, 0, getWidth(), getHeight());
-    this->boxListSpeaker.correctSize(getWidth() - 8, getHeight());
-    tableListSpeakers.setSize(getWidth(), 400);
+    this->mListSpeakerBox.setBounds(0, 0, getWidth(), getHeight());
+    this->mListSpeakerBox.correctSize(getWidth() - 8, getHeight());
+    mSpeakersTableListBox.setSize(getWidth(), 400);
 
-    tableListSpeakers.updateContent();
+    mSpeakersTableListBox.updateContent();
 
-    this->boxListSpeaker.repaint();
-    this->boxListSpeaker.resized();
+    this->mListSpeakerBox.repaint();
+    this->mListSpeakerBox.resized();
     this->resized();
 }
 
@@ -247,36 +247,36 @@ bool compareGreaterThan(Sorter const & a, Sorter const & b)
 //==============================================================================
 void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const isForwards)
 {
-    int size = (int)this->mainContentComponent.getListSpeaker().size();
+    int size = (int)this->mMainContentComponent.getListSpeaker().size();
     struct Sorter tosort[MaxOutputs];
 
     for (int i = 0; i < size; i++) {
-        tosort[i].id = this->mainContentComponent.getListSpeaker()[i]->getIdSpeaker();
-        tosort[i].directout = this->mainContentComponent.getListSpeaker()[i]->isDirectOut();
+        tosort[i].id = this->mMainContentComponent.getListSpeaker()[i]->getIdSpeaker();
+        tosort[i].directout = this->mMainContentComponent.getListSpeaker()[i]->isDirectOut();
         switch (newSortColumnId) {
         case 1:
-            tosort[i].value = (float)this->mainContentComponent.getListSpeaker()[i]->getIdSpeaker();
+            tosort[i].value = (float)this->mMainContentComponent.getListSpeaker()[i]->getIdSpeaker();
             break;
         case 2:
-            tosort[i].value = (float)this->mainContentComponent.getListSpeaker()[i]->getCoordinate().x;
+            tosort[i].value = (float)this->mMainContentComponent.getListSpeaker()[i]->getCoordinate().x;
             break;
         case 3:
-            tosort[i].value = (float)this->mainContentComponent.getListSpeaker()[i]->getCoordinate().z;
+            tosort[i].value = (float)this->mMainContentComponent.getListSpeaker()[i]->getCoordinate().z;
             break;
         case 4:
-            tosort[i].value = (float)this->mainContentComponent.getListSpeaker()[i]->getCoordinate().y;
+            tosort[i].value = (float)this->mMainContentComponent.getListSpeaker()[i]->getCoordinate().y;
             break;
         case 5:
-            tosort[i].value = (float)this->mainContentComponent.getListSpeaker()[i]->getAziZenRad().x;
+            tosort[i].value = (float)this->mMainContentComponent.getListSpeaker()[i]->getAziZenRad().x;
             break;
         case 6:
-            tosort[i].value = (float)this->mainContentComponent.getListSpeaker()[i]->getAziZenRad().y;
+            tosort[i].value = (float)this->mMainContentComponent.getListSpeaker()[i]->getAziZenRad().y;
             break;
         case 7:
-            tosort[i].value = (float)this->mainContentComponent.getListSpeaker()[i]->getAziZenRad().z;
+            tosort[i].value = (float)this->mMainContentComponent.getListSpeaker()[i]->getAziZenRad().z;
             break;
         case 8:
-            tosort[i].value = (float)this->mainContentComponent.getListSpeaker()[i]->getOutputPatch();
+            tosort[i].value = (float)this->mMainContentComponent.getListSpeaker()[i]->getOutputPatch();
             break;
         }
     }
@@ -290,7 +290,7 @@ void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const 
     for (int i = 0; i < size; i++) {
         newOrder[i] = tosort[i].id;
     }
-    this->mainContentComponent.reorderSpeakers(newOrder);
+    this->mMainContentComponent.reorderSpeakers(newOrder);
     updateWinContent();
 }
 
@@ -298,101 +298,101 @@ void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const 
 void EditSpeakersWindow::sliderValueChanged(juce::Slider * slider)
 {
     float gain;
-    if (slider == &this->pinkNoiseGain) {
-        gain = powf(10.0f, this->pinkNoiseGain.getValue() / 20.0f);
-        this->mainContentComponent.getJackClient()->pinkNoiseGain = gain;
+    if (slider == &this->mPinkNoiseGainSlider) {
+        gain = powf(10.0f, this->mPinkNoiseGainSlider.getValue() / 20.0f);
+        this->mMainContentComponent.getJackClient()->pinkNoiseGain = gain;
     }
 }
 
 //==============================================================================
 void EditSpeakersWindow::buttonClicked(juce::Button * button)
 {
-    bool tripletState = this->mainContentComponent.isTripletsShown;
-    int selectedRow = this->tableListSpeakers.getSelectedRow();
-    int sortColumnId = this->tableListSpeakers.getHeader().getSortColumnId();
-    bool sortedForwards = this->tableListSpeakers.getHeader().isSortedForwards();
+    bool tripletState = this->mMainContentComponent.isTripletsShown;
+    int selectedRow = this->mSpeakersTableListBox.getSelectedRow();
+    int sortColumnId = this->mSpeakersTableListBox.getHeader().getSortColumnId();
+    bool sortedForwards = this->mSpeakersTableListBox.getHeader().isSortedForwards();
 
-    this->mainContentComponent.setShowTriplets(false);
+    this->mMainContentComponent.setShowTriplets(false);
 
-    if (button == &this->butAddSpeaker) {
-        if (selectedRow == -1 || selectedRow == (this->numRows - 1)) {
-            this->mainContentComponent.addSpeaker(sortColumnId, sortedForwards);
+    if (button == &this->mAddSpeakerButton) {
+        if (selectedRow == -1 || selectedRow == (this->mNumRows - 1)) {
+            this->mMainContentComponent.addSpeaker(sortColumnId, sortedForwards);
             this->updateWinContent();
-            this->tableListSpeakers.selectRow(this->getNumRows() - 1);
+            this->mSpeakersTableListBox.selectRow(this->getNumRows() - 1);
         } else {
-            this->mainContentComponent.insertSpeaker(selectedRow, sortColumnId, sortedForwards);
+            this->mMainContentComponent.insertSpeaker(selectedRow, sortColumnId, sortedForwards);
             this->updateWinContent();
-            this->tableListSpeakers.selectRow(selectedRow + 1);
+            this->mSpeakersTableListBox.selectRow(selectedRow + 1);
         }
-        this->tableListSpeakers.getHeader().setSortColumnId(sortColumnId, sortedForwards);
-        this->mainContentComponent.needToComputeVbap = true;
-    } else if (button == &this->butcompSpeakers) {
-        if (this->mainContentComponent.updateLevelComp()) {
-            this->mainContentComponent.setShowTriplets(tripletState);
+        this->mSpeakersTableListBox.getHeader().setSortColumnId(sortColumnId, sortedForwards);
+        this->mMainContentComponent.needToComputeVbap = true;
+    } else if (button == &this->mCompSpeakersButton) {
+        if (this->mMainContentComponent.updateLevelComp()) {
+            this->mMainContentComponent.setShowTriplets(tripletState);
         }
-    } else if (button == &this->butAddRing) {
-        for (int i = 0; i < this->rNumOfSpeakers.getText().getIntValue(); i++) {
-            if (selectedRow == -1 || selectedRow == (this->numRows - 1)) {
-                this->mainContentComponent.addSpeaker(sortColumnId, sortedForwards);
-                this->numRows = (int)this->mainContentComponent.getListSpeaker().size();
-                selectedRow = this->numRows - 1;
+    } else if (button == &this->mAddRingButton) {
+        for (int i = 0; i < this->mNumOfSpeakersTextEditor.getText().getIntValue(); i++) {
+            if (selectedRow == -1 || selectedRow == (this->mNumRows - 1)) {
+                this->mMainContentComponent.addSpeaker(sortColumnId, sortedForwards);
+                this->mNumRows = (int)this->mMainContentComponent.getListSpeaker().size();
+                selectedRow = this->mNumRows - 1;
             } else {
-                this->mainContentComponent.insertSpeaker(selectedRow, sortColumnId, sortedForwards);
+                this->mMainContentComponent.insertSpeaker(selectedRow, sortColumnId, sortedForwards);
                 selectedRow += 1;
-                this->numRows = (int)this->mainContentComponent.getListSpeaker().size();
+                this->mNumRows = (int)this->mMainContentComponent.getListSpeaker().size();
             }
 
-            float azimuth = 360.0f / this->rNumOfSpeakers.getText().getIntValue() * i
-                            + this->rOffsetAngle.getText().getFloatValue();
+            float azimuth = 360.0f / this->mNumOfSpeakersTextEditor.getText().getIntValue() * i
+                            + this->mOffsetAngleTextEditor.getText().getFloatValue();
             if (azimuth > 360.0f) {
                 azimuth -= 360.0f;
             } else if (azimuth < 0.0f) {
                 azimuth += 360.0f;
             }
-            float zenith = this->rZenith.getText().getFloatValue();
-            float radius = this->rRadius.getText().getFloatValue();
-            this->mainContentComponent.getListSpeaker()[selectedRow]->setAziZenRad(glm::vec3(azimuth, zenith, radius));
+            float zenith = this->mZenithTextEditor.getText().getFloatValue();
+            float radius = this->mRadiusTextEditor.getText().getFloatValue();
+            this->mMainContentComponent.getListSpeaker()[selectedRow]->setAziZenRad(glm::vec3(azimuth, zenith, radius));
         }
         this->updateWinContent();
-        this->tableListSpeakers.selectRow(selectedRow);
+        this->mSpeakersTableListBox.selectRow(selectedRow);
         // TableList needs different sorting parameters to trigger the sorting function.
-        this->tableListSpeakers.getHeader().setSortColumnId(sortColumnId, !sortedForwards);
+        this->mSpeakersTableListBox.getHeader().setSortColumnId(sortColumnId, !sortedForwards);
         // This is the real sorting!
-        this->tableListSpeakers.getHeader().setSortColumnId(sortColumnId, sortedForwards);
-        this->mainContentComponent.needToComputeVbap = true;
-    } else if (button == &this->pinkNoise) {
-        this->mainContentComponent.getJackClient()->pinkNoiseSound = this->pinkNoise.getToggleState();
+        this->mSpeakersTableListBox.getHeader().setSortColumnId(sortColumnId, sortedForwards);
+        this->mMainContentComponent.needToComputeVbap = true;
+    } else if (button == &this->mPinkNoiseToggleButton) {
+        this->mMainContentComponent.getJackClient()->pinkNoiseSound = this->mPinkNoiseToggleButton.getToggleState();
     } else if (button->getName() != ""
                && (button->getName().getIntValue() >= 0
                    && (unsigned int)button->getName().getIntValue()
-                          <= this->mainContentComponent.getListSpeaker().size())) {
-        if (this->tableListSpeakers.getNumSelectedRows() > 1
-            && this->tableListSpeakers.getSelectedRows().contains(button->getName().getIntValue())) {
-            for (int i = this->tableListSpeakers.getSelectedRows().size() - 1; i >= 0; i--) {
-                int rownum = this->tableListSpeakers.getSelectedRows()[i];
-                this->mainContentComponent.removeSpeaker(rownum);
+                          <= this->mMainContentComponent.getListSpeaker().size())) {
+        if (this->mSpeakersTableListBox.getNumSelectedRows() > 1
+            && this->mSpeakersTableListBox.getSelectedRows().contains(button->getName().getIntValue())) {
+            for (int i = this->mSpeakersTableListBox.getSelectedRows().size() - 1; i >= 0; i--) {
+                int rownum = this->mSpeakersTableListBox.getSelectedRows()[i];
+                this->mMainContentComponent.removeSpeaker(rownum);
             }
         } else {
-            this->mainContentComponent.removeSpeaker(button->getName().getIntValue());
+            this->mMainContentComponent.removeSpeaker(button->getName().getIntValue());
         }
-        this->mainContentComponent.resetSpeakerIds();
+        this->mMainContentComponent.resetSpeakerIds();
         updateWinContent();
-        this->tableListSpeakers.deselectAllRows();
-        this->mainContentComponent.needToComputeVbap = true;
+        this->mSpeakersTableListBox.deselectAllRows();
+        this->mMainContentComponent.needToComputeVbap = true;
     } else {
         int row = button->getName().getIntValue() - 1000;
-        this->mainContentComponent.getListSpeaker()[row]->setDirectOut(button->getToggleState());
-        if (this->tableListSpeakers.getNumSelectedRows() > 1) {
-            for (int i = 0; i < this->tableListSpeakers.getSelectedRows().size(); i++) {
-                int rownum = this->tableListSpeakers.getSelectedRows()[i];
-                this->mainContentComponent.getListSpeaker()[rownum]->setDirectOut(button->getToggleState());
+        this->mMainContentComponent.getListSpeaker()[row]->setDirectOut(button->getToggleState());
+        if (this->mSpeakersTableListBox.getNumSelectedRows() > 1) {
+            for (int i = 0; i < this->mSpeakersTableListBox.getSelectedRows().size(); i++) {
+                int rownum = this->mSpeakersTableListBox.getSelectedRows()[i];
+                this->mMainContentComponent.getListSpeaker()[rownum]->setDirectOut(button->getToggleState());
                 juce::ToggleButton * tog
-                    = dynamic_cast<juce::ToggleButton *>(this->tableListSpeakers.getCellComponent(11, rownum));
+                    = dynamic_cast<juce::ToggleButton *>(this->mSpeakersTableListBox.getCellComponent(11, rownum));
                 tog->setToggleState(button->getToggleState(), juce::NotificationType::dontSendNotification);
             }
         }
         updateWinContent();
-        this->mainContentComponent.needToComputeVbap = true;
+        this->mMainContentComponent.needToComputeVbap = true;
     }
 }
 
@@ -401,37 +401,37 @@ void EditSpeakersWindow::textEditorTextChanged(juce::TextEditor & editor)
 {
     float value;
     juce::String test;
-    if (&editor == &this->rNumOfSpeakers) {
-    } else if (&editor == &this->rZenith) {
-        test = this->rZenith.getText().retainCharacters(".");
+    if (&editor == &this->mNumOfSpeakersTextEditor) {
+    } else if (&editor == &this->mZenithTextEditor) {
+        test = this->mZenithTextEditor.getText().retainCharacters(".");
         if (test.length() > 1) {
-            this->rZenith.setText(this->rZenith.getText().dropLastCharacters(1), false);
+            this->mZenithTextEditor.setText(this->mZenithTextEditor.getText().dropLastCharacters(1), false);
         }
-        value = this->rZenith.getText().getFloatValue();
+        value = this->mZenithTextEditor.getText().getFloatValue();
         if (value > 90.0f) {
-            this->rZenith.setText(juce::String(90.0f), false);
+            this->mZenithTextEditor.setText(juce::String(90.0f), false);
         } else if (value < -90.0f) {
-            this->rZenith.setText(juce::String(-90.0f), false);
+            this->mZenithTextEditor.setText(juce::String(-90.0f), false);
         }
-    } else if (&editor == &this->rRadius) {
-        test = this->rRadius.getText().retainCharacters(".");
+    } else if (&editor == &this->mRadiusTextEditor) {
+        test = this->mRadiusTextEditor.getText().retainCharacters(".");
         if (test.length() > 1) {
-            this->rRadius.setText(this->rRadius.getText().dropLastCharacters(1), false);
+            this->mRadiusTextEditor.setText(this->mRadiusTextEditor.getText().dropLastCharacters(1), false);
         }
-        value = this->rRadius.getText().getFloatValue();
+        value = this->mRadiusTextEditor.getText().getFloatValue();
         if (value > 1.0f) {
-            this->rRadius.setText(juce::String(1.0f), false);
+            this->mRadiusTextEditor.setText(juce::String(1.0f), false);
         }
-    } else if (&editor == &this->rOffsetAngle) {
-        test = this->rOffsetAngle.getText().retainCharacters(".");
+    } else if (&editor == &this->mOffsetAngleTextEditor) {
+        test = this->mOffsetAngleTextEditor.getText().retainCharacters(".");
         if (test.length() > 1) {
-            this->rOffsetAngle.setText(this->rOffsetAngle.getText().dropLastCharacters(1), false);
+            this->mOffsetAngleTextEditor.setText(this->mOffsetAngleTextEditor.getText().dropLastCharacters(1), false);
         }
-        value = this->rOffsetAngle.getText().getFloatValue();
+        value = this->mOffsetAngleTextEditor.getText().getFloatValue();
         if (value < -180.0f) {
-            this->rOffsetAngle.setText(juce::String(-180.0f), false);
+            this->mOffsetAngleTextEditor.setText(juce::String(-180.0f), false);
         } else if (value > 180.0f) {
-            this->rOffsetAngle.setText(juce::String(180.0f), false);
+            this->mOffsetAngleTextEditor.setText(juce::String(180.0f), false);
         }
     }
 }
@@ -446,19 +446,19 @@ void EditSpeakersWindow::textEditorReturnKeyPressed(juce::TextEditor & editor)
 //==============================================================================
 void EditSpeakersWindow::updateWinContent()
 {
-    this->numRows = (unsigned int)this->mainContentComponent.getListSpeaker().size();
-    this->tableListSpeakers.updateContent();
-    if (this->initialized) {
-        this->mainContentComponent.needToSaveSpeakerSetup = true;
+    this->mNumRows = (unsigned int)this->mMainContentComponent.getListSpeaker().size();
+    this->mSpeakersTableListBox.updateContent();
+    if (this->mInitialized) {
+        this->mMainContentComponent.needToSaveSpeakerSetup = true;
     }
-    this->initialized = true;
+    this->mInitialized = true;
 }
 
 //==============================================================================
 void EditSpeakersWindow::selectedRow(int const value)
 {
     juce::MessageManagerLock mmlock;
-    this->tableListSpeakers.selectRow(value);
+    this->mSpeakersTableListBox.selectRow(value);
     this->repaint();
 }
 
@@ -466,11 +466,11 @@ void EditSpeakersWindow::selectedRow(int const value)
 void EditSpeakersWindow::closeButtonPressed()
 {
     int exitV = 1;
-    if (this->mainContentComponent.needToSaveSpeakerSetup) {
+    if (this->mMainContentComponent.needToSaveSpeakerSetup) {
         juce::AlertWindow alert("Closing Speaker Setup Window !",
                                 "Do you want to compute and save the current setup ?",
                                 juce::AlertWindow::WarningIcon);
-        alert.setLookAndFeel(&grisFeel);
+        alert.setLookAndFeel(&mLookAndFeel);
         alert.addButton("Save", 1, juce::KeyPress(juce::KeyPress::returnKey));
         alert.addButton("No", 2);
         alert.addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
@@ -478,20 +478,20 @@ void EditSpeakersWindow::closeButtonPressed()
 
         if (exitV == 1) {
             alert.setVisible(false);
-            this->mainContentComponent.updateLevelComp();
-            this->mainContentComponent.handleTimer(false);
+            this->mMainContentComponent.updateLevelComp();
+            this->mMainContentComponent.handleTimer(false);
             this->setAlwaysOnTop(false);
-            this->mainContentComponent.handleSaveAsSpeakerSetup();
-            this->mainContentComponent.handleTimer(true);
+            this->mMainContentComponent.handleSaveAsSpeakerSetup();
+            this->mMainContentComponent.handleTimer(true);
         } else if (exitV == 2) {
             alert.setVisible(false);
-            this->mainContentComponent.reloadXmlFileSpeaker();
-            this->mainContentComponent.updateLevelComp();
+            this->mMainContentComponent.reloadXmlFileSpeaker();
+            this->mMainContentComponent.updateLevelComp();
         }
     }
     if (exitV) {
-        this->mainContentComponent.getJackClient()->pinkNoiseSound = false;
-        this->mainContentComponent.closeSpeakersConfigurationWindow();
+        this->mMainContentComponent.getJackClient()->pinkNoiseSound = false;
+        this->mMainContentComponent.closeSpeakersConfigurationWindow();
     }
 }
 
@@ -500,67 +500,67 @@ void EditSpeakersWindow::resized()
 {
     this->juce::DocumentWindow::resized();
 
-    tableListSpeakers.setSize(getWidth(), getHeight() - 195);
+    mSpeakersTableListBox.setSize(getWidth(), getHeight() - 195);
 
-    this->boxListSpeaker.setSize(getWidth(), getHeight());
-    this->boxListSpeaker.correctSize(getWidth() - 10, getHeight() - 30);
+    this->mListSpeakerBox.setSize(getWidth(), getHeight());
+    this->mListSpeakerBox.correctSize(getWidth() - 10, getHeight() - 30);
 
-    this->butAddSpeaker.setBounds(5, getHeight() - 180, 100, 22);
-    this->butcompSpeakers.setBounds(getWidth() - 105, getHeight() - 180, 100, 22);
+    this->mAddSpeakerButton.setBounds(5, getHeight() - 180, 100, 22);
+    this->mCompSpeakersButton.setBounds(getWidth() - 105, getHeight() - 180, 100, 22);
 
-    this->rNumOfSpeakersLabel.setBounds(5, getHeight() - 140, 80, 24);
-    this->rNumOfSpeakers.setBounds(5 + 80, getHeight() - 140, 40, 24);
-    this->rZenithLabel.setBounds(120, getHeight() - 140, 80, 24);
-    this->rZenith.setBounds(120 + 80, getHeight() - 140, 60, 24);
-    this->rRadiusLabel.setBounds(255, getHeight() - 140, 80, 24);
-    this->rRadius.setBounds(255 + 80, getHeight() - 140, 60, 24);
-    this->rOffsetAngleLabel.setBounds(400, getHeight() - 140, 80, 24);
-    this->rOffsetAngle.setBounds(400 + 80, getHeight() - 140, 60, 24);
-    this->butAddRing.setBounds(getWidth() - 105, getHeight() - 140, 100, 24);
+    this->mNumOfSpeakersLabel.setBounds(5, getHeight() - 140, 80, 24);
+    this->mNumOfSpeakersTextEditor.setBounds(5 + 80, getHeight() - 140, 40, 24);
+    this->mZenithLabel.setBounds(120, getHeight() - 140, 80, 24);
+    this->mZenithTextEditor.setBounds(120 + 80, getHeight() - 140, 60, 24);
+    this->mRadiusLabel.setBounds(255, getHeight() - 140, 80, 24);
+    this->mRadiusTextEditor.setBounds(255 + 80, getHeight() - 140, 60, 24);
+    this->mOffsetAngleLabel.setBounds(400, getHeight() - 140, 80, 24);
+    this->mOffsetAngleTextEditor.setBounds(400 + 80, getHeight() - 140, 60, 24);
+    this->mAddRingButton.setBounds(getWidth() - 105, getHeight() - 140, 100, 24);
 
-    this->pinkNoise.setBounds(5, getHeight() - 75, 150, 24);
-    this->pinkNoiseGain.setBounds(180, getHeight() - 100, 60, 60);
+    this->mPinkNoiseToggleButton.setBounds(5, getHeight() - 75, 150, 24);
+    this->mPinkNoiseGainSlider.setBounds(180, getHeight() - 100, 60, 60);
 }
 
 //==============================================================================
 juce::String EditSpeakersWindow::getText(int const columnNumber, int const rowNumber) const
 {
     juce::String text = "";
-    if (this->mainContentComponent.getListSpeaker().size() > (unsigned int)rowNumber) {
+    if (this->mMainContentComponent.getListSpeaker().size() > (unsigned int)rowNumber) {
         switch (columnNumber) {
         case 1:
-            text = juce::String(this->mainContentComponent.getListSpeaker()[rowNumber]->getIdSpeaker());
+            text = juce::String(this->mMainContentComponent.getListSpeaker()[rowNumber]->getIdSpeaker());
             break;
         case 2:
-            text = juce::String(this->mainContentComponent.getListSpeaker()[rowNumber]->getCoordinate().x);
+            text = juce::String(this->mMainContentComponent.getListSpeaker()[rowNumber]->getCoordinate().x);
             break;
         case 3:
-            text = juce::String(this->mainContentComponent.getListSpeaker()[rowNumber]->getCoordinate().z);
+            text = juce::String(this->mMainContentComponent.getListSpeaker()[rowNumber]->getCoordinate().z);
             break;
         case 4:
-            text = juce::String(this->mainContentComponent.getListSpeaker()[rowNumber]->getCoordinate().y);
+            text = juce::String(this->mMainContentComponent.getListSpeaker()[rowNumber]->getCoordinate().y);
             break;
         case 5:
-            text = juce::String(this->mainContentComponent.getListSpeaker()[rowNumber]->getAziZenRad().x);
+            text = juce::String(this->mMainContentComponent.getListSpeaker()[rowNumber]->getAziZenRad().x);
             break;
         case 6:
-            text = juce::String(this->mainContentComponent.getListSpeaker()[rowNumber]->getAziZenRad().y);
+            text = juce::String(this->mMainContentComponent.getListSpeaker()[rowNumber]->getAziZenRad().y);
             break;
         case 7:
-            text = juce::String(this->mainContentComponent.getListSpeaker()[rowNumber]->getAziZenRad().z);
+            text = juce::String(this->mMainContentComponent.getListSpeaker()[rowNumber]->getAziZenRad().z);
             break;
         case 8:
-            text = juce::String(this->mainContentComponent.getListSpeaker()[rowNumber]->getOutputPatch());
+            text = juce::String(this->mMainContentComponent.getListSpeaker()[rowNumber]->getOutputPatch());
             break;
         case 9:
-            text = juce::String(this->mainContentComponent.getListSpeaker()[rowNumber]->getGain());
+            text = juce::String(this->mMainContentComponent.getListSpeaker()[rowNumber]->getGain());
             break;
         case 10:
-            text = juce::String(this->mainContentComponent.getListSpeaker()[rowNumber]->getHighPassCutoff());
+            text = juce::String(this->mMainContentComponent.getListSpeaker()[rowNumber]->getHighPassCutoff());
             break;
         case 11:
-            text
-                = juce::String(static_cast<int>(this->mainContentComponent.getListSpeaker()[rowNumber]->isDirectOut()));
+            text = juce::String(
+                static_cast<int>(this->mMainContentComponent.getListSpeaker()[rowNumber]->isDirectOut()));
             break;
         default:
             text = "?";
@@ -580,80 +580,80 @@ void EditSpeakersWindow::setText(int const columnNumber,
     int oldval;
     float val;
     float diff;
-    if (this->mainContentComponent.getLockSpeakers().try_lock()) {
-        if (this->mainContentComponent.getListSpeaker().size() > (unsigned int)rowNumber) {
+    if (this->mMainContentComponent.getLockSpeakers().try_lock()) {
+        if (this->mMainContentComponent.getListSpeaker().size() > (unsigned int)rowNumber) {
             glm::vec3 newP;
             switch (columnNumber) {
             case 2: // X
-                newP = this->mainContentComponent.getListSpeaker()[rowNumber]->getCoordinate();
+                newP = this->mMainContentComponent.getListSpeaker()[rowNumber]->getCoordinate();
                 val = GetFloatPrecision(newText.getFloatValue(), 3);
                 diff = val - newP.x;
                 newP.x = val;
-                this->mainContentComponent.getListSpeaker()[rowNumber]->setCoordinate(newP);
-                if (this->tableListSpeakers.getNumSelectedRows() > 1) {
-                    for (int i = 0; i < this->tableListSpeakers.getSelectedRows().size(); i++) {
-                        int rownum = this->tableListSpeakers.getSelectedRows()[i];
+                this->mMainContentComponent.getListSpeaker()[rowNumber]->setCoordinate(newP);
+                if (this->mSpeakersTableListBox.getNumSelectedRows() > 1) {
+                    for (int i = 0; i < this->mSpeakersTableListBox.getSelectedRows().size(); i++) {
+                        int rownum = this->mSpeakersTableListBox.getSelectedRows()[i];
                         if (rownum == rowNumber) {
                             continue;
                         }
-                        newP = this->mainContentComponent.getListSpeaker()[rownum]->getCoordinate();
+                        newP = this->mMainContentComponent.getListSpeaker()[rownum]->getCoordinate();
                         if (altDown) {
                             newP.x += diff;
                         } else {
                             newP.x = val;
                         }
-                        this->mainContentComponent.getListSpeaker()[rownum]->setCoordinate(newP);
+                        this->mMainContentComponent.getListSpeaker()[rownum]->setCoordinate(newP);
                     }
                 }
                 break;
             case 3: // Y
-                newP = this->mainContentComponent.getListSpeaker()[rowNumber]->getCoordinate();
+                newP = this->mMainContentComponent.getListSpeaker()[rowNumber]->getCoordinate();
                 val = GetFloatPrecision(newText.getFloatValue(), 3);
                 diff = val - newP.z;
                 newP.z = val;
-                this->mainContentComponent.getListSpeaker()[rowNumber]->setCoordinate(newP);
-                if (this->tableListSpeakers.getNumSelectedRows() > 1) {
-                    for (int i = 0; i < this->tableListSpeakers.getSelectedRows().size(); i++) {
-                        int rownum = this->tableListSpeakers.getSelectedRows()[i];
+                this->mMainContentComponent.getListSpeaker()[rowNumber]->setCoordinate(newP);
+                if (this->mSpeakersTableListBox.getNumSelectedRows() > 1) {
+                    for (int i = 0; i < this->mSpeakersTableListBox.getSelectedRows().size(); i++) {
+                        int rownum = this->mSpeakersTableListBox.getSelectedRows()[i];
                         if (rownum == rowNumber) {
                             continue;
                         }
-                        newP = this->mainContentComponent.getListSpeaker()[rownum]->getCoordinate();
+                        newP = this->mMainContentComponent.getListSpeaker()[rownum]->getCoordinate();
                         if (altDown) {
                             newP.z += diff;
                         } else {
                             newP.z = val;
                         }
-                        this->mainContentComponent.getListSpeaker()[rownum]->setCoordinate(newP);
+                        this->mMainContentComponent.getListSpeaker()[rownum]->setCoordinate(newP);
                     }
                 }
                 break;
             case 4: // Z
-                newP = this->mainContentComponent.getListSpeaker()[rowNumber]->getCoordinate();
+                newP = this->mMainContentComponent.getListSpeaker()[rowNumber]->getCoordinate();
                 val = GetFloatPrecision(newText.getFloatValue(), 3);
                 diff = val - newP.y;
                 val = val < -1.0f ? -1.0f : val > 1.0f ? 1.0f : val;
                 newP.y = val;
-                this->mainContentComponent.getListSpeaker()[rowNumber]->setCoordinate(newP);
-                if (this->tableListSpeakers.getNumSelectedRows() > 1) {
-                    for (int i = 0; i < this->tableListSpeakers.getSelectedRows().size(); i++) {
-                        int rownum = this->tableListSpeakers.getSelectedRows()[i];
+                this->mMainContentComponent.getListSpeaker()[rowNumber]->setCoordinate(newP);
+                if (this->mSpeakersTableListBox.getNumSelectedRows() > 1) {
+                    for (int i = 0; i < this->mSpeakersTableListBox.getSelectedRows().size(); i++) {
+                        int rownum = this->mSpeakersTableListBox.getSelectedRows()[i];
                         if (rownum == rowNumber) {
                             continue;
                         }
-                        newP = this->mainContentComponent.getListSpeaker()[rownum]->getCoordinate();
+                        newP = this->mMainContentComponent.getListSpeaker()[rownum]->getCoordinate();
                         if (altDown) {
                             newP.y += diff;
                             newP.y = newP.y < -1.0f ? -1.0f : newP.y > 1.0f ? 1.0f : newP.y;
                         } else {
                             newP.y = val;
                         }
-                        this->mainContentComponent.getListSpeaker()[rownum]->setCoordinate(newP);
+                        this->mMainContentComponent.getListSpeaker()[rownum]->setCoordinate(newP);
                     }
                 }
                 break;
             case 5: // Azimuth
-                newP = this->mainContentComponent.getListSpeaker()[rowNumber]->getAziZenRad();
+                newP = this->mMainContentComponent.getListSpeaker()[rowNumber]->getAziZenRad();
                 val = GetFloatPrecision(newText.getFloatValue(), 3);
                 diff = val - newP.x;
                 while (val > 360.0f) {
@@ -663,14 +663,14 @@ void EditSpeakersWindow::setText(int const columnNumber,
                     val += 360.0f;
                 }
                 newP.x = val;
-                this->mainContentComponent.getListSpeaker()[rowNumber]->setAziZenRad(newP);
-                if (this->tableListSpeakers.getNumSelectedRows() > 1) {
-                    for (int i = 0; i < this->tableListSpeakers.getSelectedRows().size(); i++) {
-                        int rownum = this->tableListSpeakers.getSelectedRows()[i];
+                this->mMainContentComponent.getListSpeaker()[rowNumber]->setAziZenRad(newP);
+                if (this->mSpeakersTableListBox.getNumSelectedRows() > 1) {
+                    for (int i = 0; i < this->mSpeakersTableListBox.getSelectedRows().size(); i++) {
+                        int rownum = this->mSpeakersTableListBox.getSelectedRows()[i];
                         if (rownum == rowNumber) {
                             continue;
                         }
-                        newP = this->mainContentComponent.getListSpeaker()[rownum]->getAziZenRad();
+                        newP = this->mMainContentComponent.getListSpeaker()[rownum]->getAziZenRad();
                         if (altDown) {
                             newP.x += diff;
                             while (newP.x > 360.0f) {
@@ -682,12 +682,12 @@ void EditSpeakersWindow::setText(int const columnNumber,
                         } else {
                             newP.x = val;
                         }
-                        this->mainContentComponent.getListSpeaker()[rownum]->setAziZenRad(newP);
+                        this->mMainContentComponent.getListSpeaker()[rownum]->setAziZenRad(newP);
                     }
                 }
                 break;
             case 6: // Elevation
-                newP = this->mainContentComponent.getListSpeaker()[rowNumber]->getAziZenRad();
+                newP = this->mMainContentComponent.getListSpeaker()[rowNumber]->getAziZenRad();
                 val = GetFloatPrecision(newText.getFloatValue(), 3);
                 diff = val - newP.y;
                 if (val < -90.0f) {
@@ -696,14 +696,14 @@ void EditSpeakersWindow::setText(int const columnNumber,
                     val = 90.0f;
                 }
                 newP.y = val;
-                this->mainContentComponent.getListSpeaker()[rowNumber]->setAziZenRad(newP);
-                if (this->tableListSpeakers.getNumSelectedRows() > 1) {
-                    for (int i = 0; i < this->tableListSpeakers.getSelectedRows().size(); i++) {
-                        int rownum = this->tableListSpeakers.getSelectedRows()[i];
+                this->mMainContentComponent.getListSpeaker()[rowNumber]->setAziZenRad(newP);
+                if (this->mSpeakersTableListBox.getNumSelectedRows() > 1) {
+                    for (int i = 0; i < this->mSpeakersTableListBox.getSelectedRows().size(); i++) {
+                        int rownum = this->mSpeakersTableListBox.getSelectedRows()[i];
                         if (rownum == rowNumber) {
                             continue;
                         }
-                        newP = this->mainContentComponent.getListSpeaker()[rownum]->getAziZenRad();
+                        newP = this->mMainContentComponent.getListSpeaker()[rownum]->getAziZenRad();
                         if (altDown) {
                             newP.y += diff;
                             if (newP.y < -90.0f) {
@@ -714,14 +714,14 @@ void EditSpeakersWindow::setText(int const columnNumber,
                         } else {
                             newP.y = val;
                         }
-                        this->mainContentComponent.getListSpeaker()[rownum]->setAziZenRad(newP);
+                        this->mMainContentComponent.getListSpeaker()[rownum]->setAziZenRad(newP);
                     }
                 }
                 break;
             case 7: // Distance
-                newP = this->mainContentComponent.getListSpeaker()[rowNumber]->getAziZenRad();
-                if (this->mainContentComponent.isRadiusNormalized()
-                    && !this->mainContentComponent.getListSpeaker()[rowNumber]->isDirectOut()) {
+                newP = this->mMainContentComponent.getListSpeaker()[rowNumber]->getAziZenRad();
+                if (this->mMainContentComponent.isRadiusNormalized()
+                    && !this->mMainContentComponent.getListSpeaker()[rowNumber]->isDirectOut()) {
                     val = 1.0;
                 } else {
                     val = GetFloatPrecision(newText.getFloatValue(), 3);
@@ -733,14 +733,14 @@ void EditSpeakersWindow::setText(int const columnNumber,
                     val = 2.5f;
                 }
                 newP.z = val;
-                this->mainContentComponent.getListSpeaker()[rowNumber]->setAziZenRad(newP);
-                if (this->tableListSpeakers.getNumSelectedRows() > 1) {
-                    for (int i = 0; i < this->tableListSpeakers.getSelectedRows().size(); i++) {
-                        int rownum = this->tableListSpeakers.getSelectedRows()[i];
+                this->mMainContentComponent.getListSpeaker()[rowNumber]->setAziZenRad(newP);
+                if (this->mSpeakersTableListBox.getNumSelectedRows() > 1) {
+                    for (int i = 0; i < this->mSpeakersTableListBox.getSelectedRows().size(); i++) {
+                        int rownum = this->mSpeakersTableListBox.getSelectedRows()[i];
                         if (rownum == rowNumber) {
                             continue;
                         }
-                        newP = this->mainContentComponent.getListSpeaker()[rownum]->getAziZenRad();
+                        newP = this->mMainContentComponent.getListSpeaker()[rownum]->getAziZenRad();
                         if (altDown) {
                             newP.z += diff;
                             if (newP.z < 0.0f) {
@@ -751,22 +751,22 @@ void EditSpeakersWindow::setText(int const columnNumber,
                         } else {
                             newP.z = val;
                         }
-                        this->mainContentComponent.getListSpeaker()[rownum]->setAziZenRad(newP);
+                        this->mMainContentComponent.getListSpeaker()[rownum]->setAziZenRad(newP);
                     }
                 }
                 break;
             case 8: // Output patch
-                this->mainContentComponent.setShowTriplets(false);
-                oldval = this->mainContentComponent.getListSpeaker()[rowNumber]->getOutputPatch();
+                this->mMainContentComponent.setShowTriplets(false);
+                oldval = this->mMainContentComponent.getListSpeaker()[rowNumber]->getOutputPatch();
                 ival = newText.getIntValue();
                 if (ival < 0) {
                     ival = 0;
                 } else if (ival > 256) {
                     ival = 256;
                 }
-                if (!this->mainContentComponent.getListSpeaker()[rowNumber]->isDirectOut()) {
-                    for (auto && it : this->mainContentComponent.getListSpeaker()) {
-                        if (it == this->mainContentComponent.getListSpeaker()[rowNumber] || it->isDirectOut()) {
+                if (!this->mMainContentComponent.getListSpeaker()[rowNumber]->isDirectOut()) {
+                    for (auto && it : this->mMainContentComponent.getListSpeaker()) {
+                        if (it == this->mMainContentComponent.getListSpeaker()[rowNumber] || it->isDirectOut()) {
                             continue;
                         }
                         if (it->getOutputPatch() == ival) {
@@ -774,82 +774,82 @@ void EditSpeakersWindow::setText(int const columnNumber,
                                                     "Sorry! Output patch number " + juce::String(ival)
                                                         + " is already used.",
                                                     juce::AlertWindow::WarningIcon);
-                            alert.setLookAndFeel(&this->grisFeel);
+                            alert.setLookAndFeel(&this->mLookAndFeel);
                             alert.addButton("OK", 0, juce::KeyPress(juce::KeyPress::returnKey));
                             alert.runModalLoop();
                             ival = oldval;
                         }
                     }
                 }
-                this->mainContentComponent.getListSpeaker()[rowNumber]->setOutputPatch(ival);
+                this->mMainContentComponent.getListSpeaker()[rowNumber]->setOutputPatch(ival);
                 break;
             case 9: // Gain
                 val = newText.getFloatValue();
-                diff = val - this->mainContentComponent.getListSpeaker()[rowNumber]->getGain();
+                diff = val - this->mMainContentComponent.getListSpeaker()[rowNumber]->getGain();
                 if (val < -18.0f) {
                     val = -18.0f;
                 } else if (val > 6.0f) {
                     val = 6.0f;
                 }
-                this->mainContentComponent.getListSpeaker()[rowNumber]->setGain(val);
-                if (this->tableListSpeakers.getNumSelectedRows() > 1) {
-                    for (int i = 0; i < this->tableListSpeakers.getSelectedRows().size(); i++) {
-                        int rownum = this->tableListSpeakers.getSelectedRows()[i];
+                this->mMainContentComponent.getListSpeaker()[rowNumber]->setGain(val);
+                if (this->mSpeakersTableListBox.getNumSelectedRows() > 1) {
+                    for (int i = 0; i < this->mSpeakersTableListBox.getSelectedRows().size(); i++) {
+                        int rownum = this->mSpeakersTableListBox.getSelectedRows()[i];
                         if (rownum == rowNumber) {
                             continue;
                         }
                         if (altDown) {
-                            float g = this->mainContentComponent.getListSpeaker()[rownum]->getGain() + diff;
+                            float g = this->mMainContentComponent.getListSpeaker()[rownum]->getGain() + diff;
                             if (g < -18.0f) {
                                 g = -18.0f;
                             } else if (g > 6.0f) {
                                 g = 6.0f;
                             }
-                            this->mainContentComponent.getListSpeaker()[rownum]->setGain(g);
+                            this->mMainContentComponent.getListSpeaker()[rownum]->setGain(g);
                         } else {
-                            this->mainContentComponent.getListSpeaker()[rownum]->setGain(val);
+                            this->mMainContentComponent.getListSpeaker()[rownum]->setGain(val);
                         }
                     }
                 }
                 break;
             case 10: // Filter Cutoff
                 val = newText.getFloatValue();
-                diff = val - this->mainContentComponent.getListSpeaker()[rowNumber]->getHighPassCutoff();
+                diff = val - this->mMainContentComponent.getListSpeaker()[rowNumber]->getHighPassCutoff();
                 if (val < 0.0f) {
                     val = 0.0f;
                 } else if (val > 150.0f) {
                     val = 150.0f;
                 }
-                this->mainContentComponent.getListSpeaker()[rowNumber]->setHighPassCutoff(val);
-                if (this->tableListSpeakers.getNumSelectedRows() > 1) {
-                    for (int i = 0; i < this->tableListSpeakers.getSelectedRows().size(); i++) {
-                        int rownum = this->tableListSpeakers.getSelectedRows()[i];
+                this->mMainContentComponent.getListSpeaker()[rowNumber]->setHighPassCutoff(val);
+                if (this->mSpeakersTableListBox.getNumSelectedRows() > 1) {
+                    for (int i = 0; i < this->mSpeakersTableListBox.getSelectedRows().size(); i++) {
+                        int rownum = this->mSpeakersTableListBox.getSelectedRows()[i];
                         if (rownum == rowNumber) {
                             continue;
                         }
                         if (altDown) {
-                            float g = this->mainContentComponent.getListSpeaker()[rownum]->getHighPassCutoff() + diff;
+                            float g = this->mMainContentComponent.getListSpeaker()[rownum]->getHighPassCutoff() + diff;
                             if (g < 0.0f) {
                                 g = 0.0f;
                             } else if (g > 150.0f) {
                                 g = 150.0f;
                             }
-                            this->mainContentComponent.getListSpeaker()[rownum]->setHighPassCutoff(g);
+                            this->mMainContentComponent.getListSpeaker()[rownum]->setHighPassCutoff(g);
                         } else {
-                            this->mainContentComponent.getListSpeaker()[rownum]->setHighPassCutoff(val);
+                            this->mMainContentComponent.getListSpeaker()[rownum]->setHighPassCutoff(val);
                         }
                     }
                 }
                 break;
             case 11: // Direct Out
-                this->mainContentComponent.setShowTriplets(false);
-                this->mainContentComponent.getListSpeaker()[rowNumber]->setDirectOut(newText.getIntValue());
+                this->mMainContentComponent.setShowTriplets(false);
+                this->mMainContentComponent.getListSpeaker()[rowNumber]->setDirectOut(newText.getIntValue());
                 break;
             }
         }
         this->updateWinContent();
-        this->mainContentComponent.needToComputeVbap = true;
-        this->mainContentComponent.getLockSpeakers().unlock();
+        this->mMainContentComponent.needToComputeVbap = true;
+        this->mMainContentComponent.getLockSpeakers().unlock();
     }
 }
 
@@ -865,20 +865,20 @@ void EditSpeakersWindow::paintRowBackground(juce::Graphics & g,
     juce::ignoreUnused(height);
 
     if (rowIsSelected) {
-        if (this->mainContentComponent.getLockSpeakers().try_lock()) {
-            this->mainContentComponent.getListSpeaker()[rowNumber]->selectSpeaker();
-            this->mainContentComponent.getLockSpeakers().unlock();
+        if (this->mMainContentComponent.getLockSpeakers().try_lock()) {
+            this->mMainContentComponent.getListSpeaker()[rowNumber]->selectSpeaker();
+            this->mMainContentComponent.getLockSpeakers().unlock();
         }
-        g.fillAll(this->grisFeel.getHighlightColour());
+        g.fillAll(this->mLookAndFeel.getHighlightColour());
     } else {
-        if (this->mainContentComponent.getLockSpeakers().try_lock()) {
-            this->mainContentComponent.getListSpeaker()[rowNumber]->unSelectSpeaker();
-            this->mainContentComponent.getLockSpeakers().unlock();
+        if (this->mMainContentComponent.getLockSpeakers().try_lock()) {
+            this->mMainContentComponent.getListSpeaker()[rowNumber]->unSelectSpeaker();
+            this->mMainContentComponent.getLockSpeakers().unlock();
         }
         if (rowNumber % 2) {
-            g.fillAll(this->grisFeel.getBackgroundColour().withBrightness(0.6));
+            g.fillAll(this->mLookAndFeel.getBackgroundColour().withBrightness(0.6));
         } else {
-            g.fillAll(this->grisFeel.getBackgroundColour().withBrightness(0.7));
+            g.fillAll(this->mLookAndFeel.getBackgroundColour().withBrightness(0.7));
         }
     }
 }
@@ -893,14 +893,14 @@ void EditSpeakersWindow::paintCell(juce::Graphics & g,
                                    bool /*rowIsSelected*/)
 {
     g.setColour(juce::Colours::black);
-    g.setFont(font);
+    g.setFont(mFont);
 
-    if (this->mainContentComponent.getLockSpeakers().try_lock()) {
-        if (this->mainContentComponent.getListSpeaker().size() > static_cast<unsigned int>(rowNumber)) {
+    if (this->mMainContentComponent.getLockSpeakers().try_lock()) {
+        if (this->mMainContentComponent.getListSpeaker().size() > static_cast<unsigned int>(rowNumber)) {
             juce::String text = getText(columnId, rowNumber);
             g.drawText(text, 2, 0, width - 4, height, juce::Justification::centredLeft, true);
         }
-        this->mainContentComponent.getLockSpeakers().unlock();
+        this->mMainContentComponent.getLockSpeakers().unlock();
     }
     g.setColour(juce::Colours::black.withAlpha(0.2f));
     g.fillRect(width - 1, 0, 1, height);
@@ -922,9 +922,9 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
         tbDirect->setClickingTogglesState(true);
         tbDirect->setBounds(4, 404, 88, 22);
         tbDirect->addListener(this);
-        tbDirect->setToggleState(this->mainContentComponent.getListSpeaker()[rowNumber]->isDirectOut(),
+        tbDirect->setToggleState(this->mMainContentComponent.getListSpeaker()[rowNumber]->isDirectOut(),
                                  juce::dontSendNotification);
-        tbDirect->setLookAndFeel(&this->grisFeel);
+        tbDirect->setLookAndFeel(&this->mLookAndFeel);
         return tbDirect;
     }
     if (columnId == 12) {
@@ -935,8 +935,8 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
         tbRemove->setName(juce::String(rowNumber));
         tbRemove->setBounds(4, 404, 88, 22);
         tbRemove->addListener(this);
-        tbRemove->setColour(juce::ToggleButton::textColourId, this->grisFeel.getFontColour());
-        tbRemove->setLookAndFeel(&this->grisFeel);
+        tbRemove->setColour(juce::ToggleButton::textColourId, this->mLookAndFeel.getFontColour());
+        tbRemove->setLookAndFeel(&this->mLookAndFeel);
         return tbRemove;
     }
 
@@ -947,8 +947,8 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
 
     textLabel->setRowAndColumn(rowNumber, columnId);
 
-    if (this->mainContentComponent.getModeSelected() == LBAP
-        || this->mainContentComponent.getListSpeaker()[rowNumber]->isDirectOut()) {
+    if (this->mMainContentComponent.getModeSelected() == LBAP
+        || this->mMainContentComponent.getListSpeaker()[rowNumber]->isDirectOut()) {
         if (columnId < 2) {
             textLabel->setEditable(false);
         }
@@ -964,11 +964,11 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
 //==============================================================================
 int EditSpeakersWindow::getModeSelected() const
 {
-    return this->mainContentComponent.getModeSelected();
+    return this->mMainContentComponent.getModeSelected();
 }
 
 //==============================================================================
 bool EditSpeakersWindow::getDirectOutForSpeakerRow(int const row) const
 {
-    return this->mainContentComponent.getListSpeaker()[row]->isDirectOut();
+    return this->mMainContentComponent.getListSpeaker()[row]->isDirectOut();
 }

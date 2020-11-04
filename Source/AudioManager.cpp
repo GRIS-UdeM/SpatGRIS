@@ -24,141 +24,26 @@
     #include <iostream>
 
 //==============================================================================
-class DeviceTypeChooser final
-    : public juce::Component
-    , public juce::Button::Listener
-{
-    juce::String & mChosenDeviceType;
-    juce::ComboBox mMenu{};
-    juce::TextButton mCloseButton{ "OK" };
-
-public:
-    DeviceTypeChooser(juce::StringArray const & devices, juce::String & chosenDeviceType)
-        : mChosenDeviceType(chosenDeviceType)
-    {
-        mMenu.addItemList(devices, 1);
-        mMenu.setSelectedItemIndex(0);
-
-        mCloseButton.addListener(this);
-
-        mMenu.setBounds(0, 0, 300, 40);
-        mCloseButton.setBounds(0, 40, 300, 40);
-
-        addAndMakeVisible(mMenu);
-        addAndMakeVisible(mCloseButton);
-
-        setSize(300, 80);
-    }
-    ~DeviceTypeChooser() override = default;
-
-    void buttonClicked(juce::Button *) override
-    {
-        mChosenDeviceType = mMenu.getText();
-        if (auto * dialogWindow = findParentComponentOfClass<juce::DialogWindow>()) {
-            dialogWindow->exitModalState(1234);
-        }
-    }
-};
+std::unique_ptr<AudioManager> AudioManager::mInstance{ nullptr };
 
 //==============================================================================
-class DeviceChooser final
-    : public juce::Component
-    , public juce::Button::Listener
+AudioManager::AudioManager(juce::String const & inputDevice,
+                           juce::String const & outputDevice,
+                           std::optional<juce::String> deviceType)
 {
-    juce::String & mChosenInputDevice;
-    juce::String & mChosenOutputDevice;
-
-    juce::Label mInputLabel{ "", "Input device" };
-    juce::Label mOutputLabel{ "", "Output device" };
-
-    juce::ComboBox mInputMenu{};
-    juce::ComboBox mOutputMenu{};
-
-    juce::TextButton mCloseButton{ "OK" };
-
-public:
-    DeviceChooser(juce::StringArray const & inputDevices,
-                  juce::StringArray const & outputDevices,
-                  juce::String & chosenInputDevice,
-                  juce::String & chosenOutputDevice)
-        : mChosenInputDevice(chosenInputDevice)
-        , mChosenOutputDevice(chosenOutputDevice)
-    {
-        mInputMenu.addItemList(inputDevices, 1);
-        mInputMenu.setSelectedItemIndex(0);
-
-        mOutputMenu.addItemList(outputDevices, 1);
-        mOutputMenu.setSelectedItemIndex(0);
-
-        mCloseButton.addListener(this);
-
-        mInputLabel.setBounds(0, 0, 150, 40);
-        mInputMenu.setBounds(150, 0, 150, 40);
-
-        mOutputLabel.setBounds(0, 40, 150, 40);
-        mOutputMenu.setBounds(150, 40, 150, 40);
-
-        mCloseButton.setBounds(0, 80, 300, 40);
-
-        addAndMakeVisible(mInputLabel);
-        addAndMakeVisible(mInputMenu);
-        addAndMakeVisible(mOutputLabel);
-        addAndMakeVisible(mOutputMenu);
-        addAndMakeVisible(mCloseButton);
-
-        setSize(300, 120);
+    if (deviceType) {
+        [[maybe_unused]] auto const & dummy{ mAudioDeviceManager.getAvailableDeviceTypes() };
+        mAudioDeviceManager.setCurrentAudioDeviceType(*deviceType, true);
+        auto * deviceTypeObject{ mAudioDeviceManager.getCurrentDeviceTypeObject() };
+        jassert(deviceTypeObject);
+        deviceTypeObject->scanForDevices();
     }
-    ~DeviceChooser() override = default;
-
-    void buttonClicked(juce::Button *) override
-    {
-        mChosenInputDevice = mInputMenu.getText();
-        mChosenOutputDevice = mOutputMenu.getText();
-        if (auto * dialogWindow = findParentComponentOfClass<juce::DialogWindow>()) {
-            dialogWindow->exitModalState(1234);
-        }
-    }
-};
-
-//==============================================================================
-AudioManager::AudioManager()
-{
-    // choose device type
-    #if defined(WIN32) || defined(__linux__)
-
-    juce::StringArray availableDeviceTypes{};
-    for (auto const * deviceType : mAudioDeviceManager.getAvailableDeviceTypes()) {
-        availableDeviceTypes.add(deviceType->getTypeName());
-    }
-    juce::String chosenDeviceType{};
-
-    {
-        juce::DialogWindow::LaunchOptions launchOptions{};
-        launchOptions.content.set(new DeviceTypeChooser{ availableDeviceTypes, chosenDeviceType }, true);
-        launchOptions.dialogTitle = "Choose audio driver";
-        launchOptions.runModal();
-    }
-
-    mAudioDeviceManager.setCurrentAudioDeviceType(chosenDeviceType, true);
-    #endif
-    auto & deviceType{ *mAudioDeviceManager.getCurrentDeviceTypeObject() };
-    deviceType.scanForDevices();
-    juce::StringArray const inputDevices{ deviceType.getDeviceNames(true) };
-    juce::StringArray const outputDevices{ deviceType.getDeviceNames(false) };
-
-    juce::String chosenInputDevice{};
-    juce::String chosenOutputDevice{};
-    juce::DialogWindow::LaunchOptions launchOptions{};
-    launchOptions.content.set(new DeviceChooser{ inputDevices, outputDevices, chosenInputDevice, chosenOutputDevice },
-                              true);
-    launchOptions.dialogTitle = "Choose audio devices";
-    launchOptions.runModal();
 
     juce::AudioDeviceManager::AudioDeviceSetup const setup{
-        chosenOutputDevice, chosenInputDevice, 48000.0, 512, juce::BigInteger{}, true, juce::BigInteger{}, true
+        outputDevice, inputDevice, 48000.0, 512, juce::BigInteger{}, true, juce::BigInteger{}, true
     };
 
-    auto error{ mAudioDeviceManager.initialise(128, 128, nullptr, false, setup.outputDeviceName, &setup) };
+    auto const error{ mAudioDeviceManager.initialise(128, 128, nullptr, false, setup.outputDeviceName, &setup) };
 
     if (error.isNotEmpty()) {
         // jassertfalse;
@@ -221,6 +106,14 @@ void AudioManager::setBufferSizes(int const numSamples)
 
     mInputPortsBuffer.setSize(mVirtualInputPorts.size(), numSamples, false, false, false);
     mOutputPortsBuffer.setSize(mVirtualOutputPorts.size(), numSamples, false, false, false);
+}
+
+//==============================================================================
+void AudioManager::init(juce::String const & inputDevice,
+                        juce::String const & outputDevice,
+                        std::optional<juce::String> deviceType)
+{
+    mInstance.reset(new AudioManager{ inputDevice, outputDevice, std::move(deviceType) });
 }
 
 //==============================================================================
@@ -465,8 +358,14 @@ void AudioManager::audioDeviceStopped()
 //==============================================================================
 AudioManager & AudioManager::getInstance()
 {
-    static AudioManager instance{};
-    return instance;
+    jassert(mInstance);
+    return *mInstance;
+}
+
+//==============================================================================
+void AudioManager::free()
+{
+    mInstance.reset();
 }
 
 #endif

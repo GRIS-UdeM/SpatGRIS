@@ -33,32 +33,33 @@ class GrisLookAndFeel;
 //==============================================================================
 class AboutWindow final : public juce::DocumentWindow
 {
+    MainContentComponent & mMainContentComponent;
+
 public:
-    AboutWindow(juce::String const & name, GrisLookAndFeel & lookAndFeel, MainContentComponent & mainContentComponent);
-    ~AboutWindow() final = default;
     //==============================================================================
-    void closeButtonPressed() final;
+    AboutWindow(juce::String const & name, GrisLookAndFeel & lookAndFeel, MainContentComponent & mainContentComponent);
+    //==============================================================================
+    AboutWindow() = delete;
+    ~AboutWindow() override = default;
+
+    AboutWindow(AboutWindow const &) = delete;
+    AboutWindow(AboutWindow &&) = delete;
+
+    AboutWindow & operator=(AboutWindow const &) = delete;
+    AboutWindow & operator=(AboutWindow &&) = delete;
+    //==============================================================================
+    void closeButtonPressed() override;
 
 private:
     //==============================================================================
-    MainContentComponent & mMainContentComponent;
-    //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AboutWindow);
-};
+    JUCE_LEAK_DETECTOR(AboutWindow)
+}; // class AboutWindow
 
 //==============================================================================
 class AboutComponent final
     : public juce::Component
     , public juce::TextButton::Listener
 {
-public:
-    AboutComponent(AboutWindow & parentWindow, GrisLookAndFeel & lookAndFeel);
-    ~AboutComponent() final = default;
-    //==============================================================================
-    void buttonClicked([[maybe_unused]] juce::Button * button) final { mParentWindow.closeButtonPressed(); }
-
-private:
-    //==============================================================================
     AboutWindow & mParentWindow;
 
     juce::ImageComponent mLogoImage;
@@ -67,6 +68,23 @@ private:
     juce::Label mInfosLabel;
     juce::HyperlinkButton mWebsiteHyperlink;
     juce::TextButton mCloseButton;
+
+public:
     //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AboutComponent);
-};
+    AboutComponent(AboutWindow & parentWindow, GrisLookAndFeel & lookAndFeel);
+    //==============================================================================
+    AboutComponent() = delete;
+    ~AboutComponent() override = default;
+
+    AboutComponent(AboutComponent const &) = delete;
+    AboutComponent(AboutComponent &&) = delete;
+
+    AboutComponent & operator=(AboutComponent const &) = delete;
+    AboutComponent & operator=(AboutComponent &&) = delete;
+    //==============================================================================
+    void buttonClicked([[maybe_unused]] juce::Button * button) override { mParentWindow.closeButtonPressed(); }
+
+private:
+    //==============================================================================
+    JUCE_LEAK_DETECTOR(AboutComponent)
+}; // class AboutComponent

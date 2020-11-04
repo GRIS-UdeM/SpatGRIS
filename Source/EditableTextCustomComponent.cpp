@@ -35,9 +35,9 @@ EditableTextCustomComponent::EditableTextCustomComponent(EditSpeakersWindow & ed
 void EditableTextCustomComponent::mouseDown(const juce::MouseEvent & event)
 {
     if (event.mods.isRightButtonDown()) {
-        owner.tableListSpeakers.deselectAllRows();
+        owner.mSpeakersTableListBox.deselectAllRows();
     } else {
-        owner.tableListSpeakers.selectRowsBasedOnModifierKeys(row, event.mods, false);
+        owner.mSpeakersTableListBox.selectRowsBasedOnModifierKeys(row, event.mods, false);
     }
     Label::mouseDown(event);
 }

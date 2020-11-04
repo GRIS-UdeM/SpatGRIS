@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS2.
 
- Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
+ Developers: Samuel BÃ©land, Olivier BÃ©langer, Nicolas Masson
 
  SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -65,32 +65,28 @@ public:
         OpenManualID = 4001,
     };
     //==============================================================================
-    MainWindow(juce::String name);
+    explicit MainWindow(juce::String const & name);
+    //==============================================================================
+    MainWindow() = delete;
     ~MainWindow() = default;
+
+    MainWindow(MainWindow const &) = delete;
+    MainWindow(MainWindow &&) = delete;
+
+    MainWindow & operator=(MainWindow const &) = delete;
+    MainWindow & operator=(MainWindow &&) = delete;
     //==============================================================================
     bool exitWinApp();
-
-    // This is called when the user tries to close this window. Here, we'll just ask the
-    // app to quit when this happens, but you can change this to do whatever you need.
-    void closeButtonPressed() final { juce::JUCEApplication::getInstance()->systemRequestedQuit(); }
-
-    // returns the MainWindow if it exists.
-    static MainWindow * getMainAppWindow()
-    {
-        for (int i = TopLevelWindow::getNumTopLevelWindows(); --i >= 0;) {
-            if (auto * maw = dynamic_cast<MainWindow *>(TopLevelWindow::getTopLevelWindow(i)))
-                return maw;
-        }
-        return nullptr;
-    }
-
-    // returns the command manager object used to dispatch command events.
     juce::ApplicationCommandManager & getApplicationCommandManager();
+    //==============================================================================
+    void closeButtonPressed() override;
+    //==============================================================================
+    static MainWindow * getMainAppWindow();
 
 private:
     //==============================================================================
     std::unique_ptr<MainContentComponent> mcc{};
     juce::ApplicationCommandManager applicationCommandManager{};
     //=============================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainWindow)
+    JUCE_LEAK_DETECTOR(MainWindow)
 };

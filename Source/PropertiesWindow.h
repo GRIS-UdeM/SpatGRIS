@@ -33,7 +33,42 @@ class PropertiesComponent final
     : public juce::Component
     , public juce::TextButton::Listener
 {
+    MainContentComponent & mMainContentComponent;
+    GrisLookAndFeel & mLookAndFeel;
+
+    std::unique_ptr<juce::Label> mGeneralLabel;
+    std::unique_ptr<juce::Label> mJackSettingsLabel;
+    std::unique_ptr<juce::Label> mRecordingLabel;
+    std::unique_ptr<juce::Label> mCubeDistanceLabel;
+
+    std::unique_ptr<juce::Label> mOscInputPortLabel;
+    std::unique_ptr<juce::TextEditor> mOscInputPortTextEditor;
+
+    std::unique_ptr<juce::Label> mDeviceLabel;
+    std::unique_ptr<juce::ComboBox> mDeviceCombo;
+
+    std::unique_ptr<juce::Label> mRateLabel;
+    std::unique_ptr<juce::ComboBox> mRateCombo;
+
+    std::unique_ptr<juce::Label> mBufferLabel;
+    std::unique_ptr<juce::ComboBox> mBufferCombo;
+
+    std::unique_ptr<juce::Label> mRecFormatLabel;
+    std::unique_ptr<juce::ComboBox> mRecFormatCombo;
+
+    std::unique_ptr<juce::Label> mRecFileConfigLabel;
+    std::unique_ptr<juce::ComboBox> mRecFileConfigCombo;
+
+    std::unique_ptr<juce::Label> mDistanceDbLabel;
+    std::unique_ptr<juce::ComboBox> mDistanceDbCombo;
+
+    std::unique_ptr<juce::Label> mDistanceCutoffLabel;
+    std::unique_ptr<juce::ComboBox> mDistanceCutoffCombo;
+
+    std::unique_ptr<juce::TextButton> mValidSettingsButton;
+
 public:
+    //==============================================================================
     PropertiesComponent(MainContentComponent & parent,
                         GrisLookAndFeel & lookAndFeel,
                         juce::Array<juce::String> const & devices,
@@ -45,7 +80,15 @@ public:
                         int indAttDB,
                         int indAttHz,
                         int oscPort);
-    ~PropertiesComponent() final = default;
+    //==============================================================================
+    PropertiesComponent() = delete;
+    ~PropertiesComponent() override = default;
+
+    PropertiesComponent(PropertiesComponent const &) = delete;
+    PropertiesComponent(PropertiesComponent &&) = delete;
+
+    PropertiesComponent & operator=(PropertiesComponent const &) = delete;
+    PropertiesComponent & operator=(PropertiesComponent &&) = delete;
     //==============================================================================
     juce::Label * createPropLabel(juce::String const & lab, juce::Justification::Flags just, int ypos, int width = 100);
     juce::TextEditor * createPropIntTextEditor(juce::String const & tooltip, int ypos, int init);
@@ -56,42 +99,8 @@ public:
 
 private:
     //==============================================================================
-    MainContentComponent & mainContentComponent;
-    GrisLookAndFeel & grisFeel;
-
-    std::unique_ptr<juce::Label> generalLabel;
-    std::unique_ptr<juce::Label> jackSettingsLabel;
-    std::unique_ptr<juce::Label> recordingLabel;
-    std::unique_ptr<juce::Label> cubeDistanceLabel;
-
-    std::unique_ptr<juce::Label> labOSCInPort;
-    std::unique_ptr<juce::TextEditor> tedOSCInPort;
-
-    std::unique_ptr<juce::Label> labDevice;
-    std::unique_ptr<juce::ComboBox> cobDevice;
-
-    std::unique_ptr<juce::Label> labRate;
-    std::unique_ptr<juce::ComboBox> cobRate;
-
-    std::unique_ptr<juce::Label> labBuff;
-    std::unique_ptr<juce::ComboBox> cobBuffer;
-
-    std::unique_ptr<juce::Label> labRecFormat;
-    std::unique_ptr<juce::ComboBox> recordFormat;
-
-    std::unique_ptr<juce::Label> labRecFileConfig;
-    std::unique_ptr<juce::ComboBox> recordFileConfig;
-
-    std::unique_ptr<juce::Label> labDistanceDB;
-    std::unique_ptr<juce::ComboBox> cobDistanceDB;
-
-    std::unique_ptr<juce::Label> labDistanceCutoff;
-    std::unique_ptr<juce::ComboBox> cobDistanceCutoff;
-
-    std::unique_ptr<juce::TextButton> butValidSettings;
-    //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PropertiesComponent);
-};
+    JUCE_LEAK_DETECTOR(PropertiesComponent)
+}; // class PropertiesComponent
 
 //==============================================================================
 class PropertiesWindow final : public juce::DocumentWindow
@@ -112,11 +121,19 @@ public:
                      int indAttDB = 2,
                      int indAttHz = 3,
                      int oscPort = 18032);
-    ~PropertiesWindow() final = default;
     //==============================================================================
-    void closeButtonPressed() final;
+    PropertiesWindow() = delete;
+    ~PropertiesWindow() override = default;
+
+    PropertiesWindow(PropertiesWindow const &) = delete;
+    PropertiesWindow(PropertiesWindow &&) = delete;
+
+    PropertiesWindow & operator=(PropertiesWindow const &) = delete;
+    PropertiesWindow & operator=(PropertiesWindow &&) = delete;
+    //==============================================================================
+    void closeButtonPressed() override;
 
 private:
     //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PropertiesWindow);
-};
+    JUCE_LEAK_DETECTOR(PropertiesWindow)
+}; // class PropertiesWindow

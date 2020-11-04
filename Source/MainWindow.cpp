@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS2.
 
- Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
+ Developers: Samuel BÃ©land, Olivier BÃ©langer, Nicolas Masson
 
  SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -20,7 +20,8 @@
 #include "MainWindow.h"
 
 //==============================================================================
-MainWindow::MainWindow(juce::String name) : DocumentWindow(name, juce::Colours::lightgrey, DocumentWindow::allButtons)
+MainWindow::MainWindow(juce::String const & name)
+    : DocumentWindow(name, juce::Colours::lightgrey, DocumentWindow::allButtons)
 {
     setUsingNativeTitleBar(true);
     mcc.reset(new MainContentComponent(*this));
@@ -70,6 +71,22 @@ bool MainWindow::exitWinApp()
     props->setValue("winWidth", this->getWidth());
     props->setValue("winHeight", this->getHeight());
     return mcc->exitApp();
+}
+
+//==============================================================================
+void MainWindow::closeButtonPressed()
+{
+    juce::JUCEApplication::getInstance()->systemRequestedQuit();
+}
+
+//==============================================================================
+MainWindow * MainWindow::getMainAppWindow()
+{
+    for (int i = TopLevelWindow::getNumTopLevelWindows(); --i >= 0;) {
+        if (auto * maw = dynamic_cast<MainWindow *>(TopLevelWindow::getTopLevelWindow(i)))
+            return maw;
+    }
+    return nullptr;
 }
 
 //==============================================================================

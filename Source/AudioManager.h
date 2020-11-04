@@ -77,6 +77,8 @@ class AudioManager final : juce::AudioSourcePlayer
     JackPortConnectCallback mPortConnectCallback{};
 
     juce::CriticalSection mCriticalSection{};
+
+    static std::unique_ptr<AudioManager> mInstance;
     //==============================================================================
     // Dummies
     jack_client_t mDummyJackClient{};
@@ -116,11 +118,6 @@ public:
     void connect(char const * sourcePortName, char const * destinationPortName);
     void disconnect(jack_port_t * source, jack_port_t * destination);
     //==============================================================================
-    // Dummies
-    auto * getDummyJackClient() { return &mDummyJackClient; }
-    auto * getDummyJackCtlServer() { return &mDummyJackCtlServer; }
-    static JSList * getDummyJackCtlParameters() { return nullptr; }
-    //==============================================================================
     // AudioSourcePlayer overrides
     void audioDeviceError(const juce::String & errorMessage) override;
     void audioDeviceIOCallback(const float ** inputChannelData,
@@ -131,11 +128,22 @@ public:
     void audioDeviceAboutToStart(juce::AudioIODevice * device) override;
     void audioDeviceStopped() override;
     //==============================================================================
+    static void init(juce::String const & inputDevice,
+                     juce::String const & outputDevice,
+                     std::optional<juce::String> deviceType);
     static AudioManager & getInstance();
+    static void free();
+    //==============================================================================
+    // Dummies
+    auto * getDummyJackClient() { return &mDummyJackClient; }
+    auto * getDummyJackCtlServer() { return &mDummyJackCtlServer; }
+    static JSList * getDummyJackCtlParameters() { return nullptr; }
 
 private:
     //==============================================================================
-    AudioManager();
+    AudioManager(juce::String const & inputDevice,
+                 juce::String const & outputDevice,
+                 std::optional<juce::String> deviceType);
     //==============================================================================
     void setBufferSizes(int numSamples);
     //==============================================================================
