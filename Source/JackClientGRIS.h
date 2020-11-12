@@ -321,7 +321,7 @@ public:
 
     jack_client_t * getClient() { return mClient; }
     void clientRegistrationCallback(char const * name, int regist);
-    void portConnectCallback(jack_port_id_t a, jack_port_id_t b, int connect);
+    void portConnectCallback(jack_port_id_t a, jack_port_id_t b, int connect) const;
 
     unsigned getSampleRate() const { return mSampleRate; }
     unsigned getBufferSize() const { return mBufferSize; }

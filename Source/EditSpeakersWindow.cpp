@@ -260,37 +260,39 @@ void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const 
     struct Sorter toSort[MaxOutputs];
 
     auto & speakers{ mMainContentComponent.getListSpeaker() };
-    for (int i = 0; i < size; i++) {
-        auto & speaker{ *speakers[i] };
-        toSort[i].id = speaker.getIdSpeaker();
-        toSort[i].directOut = speaker.isDirectOut();
+    unsigned index{};
+    for (auto const * speaker : speakers) {
+        auto & toSortItem{ toSort[index++] };
+        toSortItem.id = speaker->getIdSpeaker();
+        toSortItem.directOut = speaker->isDirectOut();
         switch (newSortColumnId) {
         case 1:
-            toSort[i].value = static_cast<float>(speaker.getIdSpeaker());
+            toSortItem.value = static_cast<float>(speaker->getIdSpeaker());
             break;
         case 2:
-            toSort[i].value = speaker.getCoordinate().x;
+            toSortItem.value = speaker->getCoordinate().x;
             break;
         case 3:
-            toSort[i].value = speaker.getCoordinate().z;
+            toSortItem.value = speaker->getCoordinate().z;
             break;
         case 4:
-            toSort[i].value = speaker.getCoordinate().y;
+            toSortItem.value = speaker->getCoordinate().y;
             break;
         case 5:
-            toSort[i].value = speaker.getAziZenRad().x;
+            toSortItem.value = speaker->getAziZenRad().x;
             break;
         case 6:
-            toSort[i].value = speaker.getAziZenRad().y;
+            toSortItem.value = speaker->getAziZenRad().y;
             break;
         case 7:
-            toSort[i].value = speaker.getAziZenRad().z;
+            toSortItem.value = speaker->getAziZenRad().z;
             break;
         case 8:
-            toSort[i].value = static_cast<float>(speaker.getOutputPatch());
+            toSortItem.value = static_cast<float>(speaker->getOutputPatch());
             break;
         }
     }
+
     if (isForwards) {
         std::sort(toSort, toSort + size, compareLessThan);
     } else {

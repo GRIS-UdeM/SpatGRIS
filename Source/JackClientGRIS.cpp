@@ -27,19 +27,19 @@
 #include "Speaker.h"
 #include "spat/vbap.h"
 
-static bool jack_client_log_print = true;
+static bool jackClientLogPrint = true;
 
 //==============================================================================
 // Utilities.
-static bool int_vector_contains(std::vector<int> vec, int value)
+static bool intVectorContains(std::vector<int> const & vec, int const value)
 {
-    return (std::find(vec.begin(), vec.end(), value) != vec.end());
+    return std::find(vec.begin(), vec.end(), value) != vec.end();
 }
 
 //==============================================================================
 static void jack_client_log(const char * format, ...)
 {
-    if (jack_client_log_print) {
+    if (jackClientLogPrint) {
         char buffer[256];
         va_list args;
         va_start(args, format);
@@ -50,10 +50,10 @@ static void jack_client_log(const char * format, ...)
 }
 
 // Jack processing callback.
-static int process_audio(jack_nframes_t const nframes, void * arg)
+static int process_audio(jack_nframes_t const nFrames, void * arg)
 {
     auto * jackCli = static_cast<JackClientGris *>(arg);
-    return jackCli->processAudio(nframes);
+    return jackCli->processAudio(nFrames);
 }
 
 //==============================================================================
@@ -62,15 +62,15 @@ void session_callback(jack_session_event_t * event, void * arg)
 {
     auto * jackCli = static_cast<JackClientGris *>(arg);
 
-    char retval[100];
+    char returnValue[100];
     jack_client_log("session notification\n");
     jack_client_log("path %s, uuid %s, type: %s\n",
                     event->session_dir,
                     event->client_uuid,
                     event->type == JackSessionSave ? "save" : "quit");
 
-    snprintf(retval, 100, "jack_simple_session_client %s", event->client_uuid);
-    event->command_line = strdup(retval);
+    snprintf(returnValue, 100, "jack_simple_session_client %s", event->client_uuid);
+    event->command_line = strdup(returnValue);
 
     jack_session_reply(jackCli->getClient(), event);
 
@@ -78,7 +78,7 @@ void session_callback(jack_session_event_t * event, void * arg)
 }
 
 //==============================================================================
-int graph_order_callback(void * arg)
+int graphOrderCallback(void * arg)
 {
     auto * jackCli = static_cast<JackClientGris *>(arg);
     jack_client_log("graph_order_callback...\n");
@@ -88,7 +88,7 @@ int graph_order_callback(void * arg)
 }
 
 //==============================================================================
-int xrun_callback(void * arg)
+int xRunCallback(void * /*arg*/)
 {
     jassertfalse;
     /*auto * jackCli = static_cast<JackClientGris*>(arg);
@@ -98,7 +98,7 @@ int xrun_callback(void * arg)
 }
 
 //==============================================================================
-void jack_shutdown(void * arg)
+void jackShutdown(void * /*arg*/)
 {
     juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
                                            "FATAL ERROR",
@@ -108,7 +108,7 @@ void jack_shutdown(void * arg)
 }
 
 //==============================================================================
-void client_registration_callback(const char * name, int regist, void * arg)
+void client_registration_callback(const char * const name, int const registered, void * arg)
 {
     jack_client_log("Jack client registration : %s : ", name);
     if (!strcmp(name, CLIENT_NAME_IGNORE)) {
@@ -117,14 +117,14 @@ void client_registration_callback(const char * name, int regist, void * arg)
     }
 
     auto * jackCli = static_cast<JackClientGris *>(arg);
-    jackCli->clientRegistrationCallback(name, regist);
+    jackCli->clientRegistrationCallback(name, registered);
 }
 
 //==============================================================================
-void port_registration_callback(jack_port_id_t a, int regist, void * arg)
+void port_registration_callback(jack_port_id_t const a, int const registered, void * /*arg*/)
 {
     jack_client_log("Jack port : %d : ", a);
-    if (regist) {
+    if (registered) {
         jack_client_log("registered\n");
     } else {
         jack_client_log("deleted\n");
@@ -132,7 +132,7 @@ void port_registration_callback(jack_port_id_t a, int regist, void * arg)
 }
 
 //==============================================================================
-void port_connect_callback(jack_port_id_t a, jack_port_id_t b, int connect, void * arg)
+void port_connect_callback(jack_port_id_t const a, jack_port_id_t const b, int const connect, void * arg)
 {
     auto * jackCli = static_cast<JackClientGris *>(arg);
     jackCli->portConnectCallback(a, b, connect);
@@ -144,7 +144,7 @@ static float ** getSamplesFromWavFile(juce::File const & file)
 {
     jassert(file.existsAsFile());
 
-    float const factor = powf(2.0f, 31.0f);
+    auto const factor{ std::pow(2.0f, 31.0f) };
 
     juce::WavAudioFormat wavAudioFormat{};
     std::unique_ptr<juce::AudioFormatReader> audioFormatReader{
@@ -153,16 +153,16 @@ static float ** getSamplesFromWavFile(juce::File const & file)
     std::array<int *, 2> wavData{};
     wavData[0] = new int[audioFormatReader->lengthInSamples];
     wavData[1] = new int[audioFormatReader->lengthInSamples];
-    audioFormatReader->read(wavData.data(), 2, 0, (int)audioFormatReader->lengthInSamples, false);
-    float ** samples = (float **)malloc(2 * sizeof(float *));
-    for (int i = 0; i < 2; i++) {
-        samples[i] = (float *)malloc(audioFormatReader->lengthInSamples * sizeof(float));
-        for (int j = 0; j < audioFormatReader->lengthInSamples; j++) {
+    audioFormatReader->read(wavData.data(), 2, 0, static_cast<int>(audioFormatReader->lengthInSamples), false);
+    auto ** samples{ static_cast<float **>(malloc(2 * sizeof(float *))) };
+    for (int i{}; i < 2; ++i) {
+        samples[i] = static_cast<float *>(malloc(audioFormatReader->lengthInSamples * sizeof(float)));
+        for (int j{}; j < audioFormatReader->lengthInSamples; ++j) {
             samples[i][j] = wavData[i][j] / factor;
         }
     }
 
-    for (auto it : wavData) {
+    for (auto * it : wavData) {
         delete[] it;
     }
     return samples;
@@ -297,14 +297,14 @@ JackClientGris::JackClientGris()
     }
 
     // Register Jack callbacks and ports.
-    jack_on_shutdown(this->mClient, jack_shutdown, this);
+    jack_on_shutdown(this->mClient, jackShutdown, this);
     jack_set_process_callback(this->mClient, process_audio, this);
     jack_set_client_registration_callback(this->mClient, client_registration_callback, this);
     jack_set_session_callback(this->mClient, session_callback, this);
     jack_set_port_connect_callback(this->mClient, port_connect_callback, this);
     jack_set_port_registration_callback(this->mClient, port_registration_callback, this);
-    jack_set_graph_order_callback(this->mClient, graph_order_callback, this);
-    jack_set_xrun_callback(this->mClient, xrun_callback, this);
+    jack_set_graph_order_callback(this->mClient, graphOrderCallback, this);
+    jack_set_xrun_callback(this->mClient, xRunCallback, this);
 
     mSampleRate = jack_get_sample_rate(this->mClient);
     mBufferSize = jack_get_buffer_size(this->mClient);
@@ -393,7 +393,7 @@ void JackClientGris::clientRegistrationCallback(char const * name, int regist)
 }
 
 //==============================================================================
-void JackClientGris::portConnectCallback(jack_port_id_t const a, jack_port_id_t const b, int const connect)
+void JackClientGris::portConnectCallback(jack_port_id_t const a, jack_port_id_t const b, int const connect) const
 {
     jack_client_log("Jack port : ");
     if (connect) {
@@ -436,7 +436,7 @@ void JackClientGris::prepareToRecord()
     if (this->mModeSelected == VBAP || this->mModeSelected == LBAP) {
         num_of_channels = (int)this->mOutputsPort.size();
         for (int i = 0; i < num_of_channels; ++i) {
-            if (int_vector_contains(this->mOutputPatches, i + 1)) {
+            if (intVectorContains(this->mOutputPatches, i + 1)) {
                 channelName = parent + "/" + fname + "_" + juce::String(i + 1).paddedLeft('0', 3) + extF;
                 juce::File fileC = juce::File(channelName);
                 this->mRecorders[i].startRecording(fileC, this->mSampleRate, extF);
@@ -613,7 +613,7 @@ void JackClientGris::muteSoloVuMeterGainOut(jack_default_audio_sample_t ** outs,
         // Record buffer.
         if (mIsRecording) {
             if (num_of_channels == sizeOutputs && i < num_of_channels) {
-                if (int_vector_contains(mOutputPatches, i + 1)) {
+                if (intVectorContains(mOutputPatches, i + 1)) {
                     mRecorders[i].recordSamples(&outs[i], (int)nframes);
                 }
             } else if (num_of_channels == 2 && i < num_of_channels) {
@@ -626,7 +626,7 @@ void JackClientGris::muteSoloVuMeterGainOut(jack_default_audio_sample_t ** outs,
     if (!mIsRecording && mIndexRecord > 0) {
         if (num_of_channels == sizeOutputs) {
             for (unsigned int i = 0; i < sizeOutputs; ++i) {
-                if (int_vector_contains(mOutputPatches, i + 1) && i < num_of_channels) {
+                if (intVectorContains(mOutputPatches, i + 1) && i < num_of_channels) {
                     mRecorders[i].stop();
                 }
             }

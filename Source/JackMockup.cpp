@@ -157,7 +157,7 @@ int jack_set_graph_order_callback([[maybe_unused]] jack_client_t * client,
 }
 
 //==============================================================================
-int jack_set_xrun_callback([[maybe_unused]] jack_client_t * client, JackXRunCallback /*xrun_callback*/, void * /*arg*/)
+int jack_set_xrun_callback([[maybe_unused]] jack_client_t * client, JackXRunCallback /*xRunCallback*/, void * /*arg*/)
 {
     // TODO : should this be wired?
     jassert(client == AudioManager::getInstance().getDummyJackClient());
