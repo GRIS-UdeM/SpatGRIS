@@ -306,7 +306,7 @@ public:
     bool updateLevelComp();
 
     // Open - save.
-    void openXmlFileSpeaker(juce::String path);
+    void openXmlFileSpeaker(juce::String const & path);
     void reloadXmlFileSpeaker();
     void openPreset(juce::String path);
     void getPresetData(juce::XmlElement * xml) const;

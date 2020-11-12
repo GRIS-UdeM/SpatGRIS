@@ -71,6 +71,9 @@
       <FILE id="W2ApPD" name="AudioRecorder.cpp" compile="1" resource="0"
             file="Source/AudioRecorder.cpp"/>
       <FILE id="igqtKe" name="AudioRecorder.h" compile="0" resource="0" file="Source/AudioRecorder.h"/>
+      <FILE id="zv1h0m" name="AudioRenderer.cpp" compile="1" resource="0"
+            file="Source/AudioRenderer.cpp"/>
+      <FILE id="jgrqZi" name="AudioRenderer.h" compile="0" resource="0" file="Source/AudioRenderer.h"/>
       <FILE id="BVvOrd" name="Input.cpp" compile="1" resource="0" file="Source/Input.cpp"/>
       <FILE id="BiDXCC" name="Input.h" compile="0" resource="0" file="Source/Input.h"/>
       <FILE id="A5skyB" name="JackClientGRIS.cpp" compile="1" resource="0"
