@@ -20,11 +20,11 @@
 #include "MainWindow.h"
 
 //==============================================================================
-MainWindow::MainWindow(juce::String const & name)
+MainWindow::MainWindow(juce::String const & name, GrisLookAndFeel & newLookAndFeel)
     : DocumentWindow(name, juce::Colours::lightgrey, DocumentWindow::allButtons)
 {
     setUsingNativeTitleBar(true);
-    mMainContentComponent.reset(new MainContentComponent(*this));
+    mMainContentComponent.reset(new MainContentComponent(*this, newLookAndFeel));
     setContentOwned(mMainContentComponent.get(), true);
     setResizable(true, true);
 

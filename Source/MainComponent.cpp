@@ -147,7 +147,9 @@ private:
 };
 
 //==============================================================================
-MainContentComponent::MainContentComponent(MainWindow & parent) : mMainWindow(parent)
+MainContentComponent::MainContentComponent(MainWindow & mainWindow, GrisLookAndFeel & newLookAndFeel)
+    : mMainWindow(mainWindow)
+    , mLookAndFeel(newLookAndFeel)
 {
     juce::LookAndFeel::setDefaultLookAndFeel(&mLookAndFeel);
 

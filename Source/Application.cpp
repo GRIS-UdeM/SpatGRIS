@@ -149,7 +149,7 @@ void SpatGris2Application::initialise(const juce::String &)
 //==============================================================================
 void SpatGris2Application::start()
 {
-    mMainWindow.reset(new MainWindow(getApplicationName()));
+    mMainWindow.reset(new MainWindow(getApplicationName(), mGrisFeel));
 }
 
 //==============================================================================

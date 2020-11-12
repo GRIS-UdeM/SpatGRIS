@@ -140,7 +140,7 @@ void port_connect_callback(jack_port_id_t const a, jack_port_id_t const b, int c
 
 //==============================================================================
 // Load samples from a wav file into a float array.
-static float ** getSamplesFromWavFile(juce::File const & file)
+static juce::AudioBuffer<float> getSamplesFromWavFile(juce::File const & file)
 {
     jassert(file.existsAsFile());
 
@@ -150,15 +150,15 @@ static float ** getSamplesFromWavFile(juce::File const & file)
     std::unique_ptr<juce::AudioFormatReader> audioFormatReader{
         wavAudioFormat.createReaderFor(file.createInputStream().release(), true)
     };
+    jassert(audioFormatReader);
     std::array<int *, 2> wavData{};
     wavData[0] = new int[audioFormatReader->lengthInSamples];
     wavData[1] = new int[audioFormatReader->lengthInSamples];
     audioFormatReader->read(wavData.data(), 2, 0, static_cast<int>(audioFormatReader->lengthInSamples), false);
-    auto ** samples{ static_cast<float **>(malloc(2 * sizeof(float *))) };
+    juce::AudioBuffer<float> samples{ 2, static_cast<int>(audioFormatReader->lengthInSamples) };
     for (int i{}; i < 2; ++i) {
-        samples[i] = static_cast<float *>(malloc(audioFormatReader->lengthInSamples * sizeof(float)));
         for (int j{}; j < audioFormatReader->lengthInSamples; ++j) {
-            samples[i][j] = wavData[i][j] / factor;
+            samples.setSample(i, j, wavData[i][j] / factor);
         }
     }
 
@@ -194,18 +194,17 @@ JackClientGris::JackClientGris()
     }
 
     // Initialize impulse responses for VBAP+HRTF (BINAURAL mode).
-    float ** stbuf;
     // Azimuth = 0
     juce::String names0[8] = { "H0e025a.wav", "H0e020a.wav", "H0e065a.wav", "H0e110a.wav",
                                "H0e155a.wav", "H0e160a.wav", "H0e115a.wav", "H0e070a.wav" };
     int reverse0[8] = { 1, 0, 0, 0, 0, 1, 1, 1 };
     for (int i = 0; i < 8; i++) {
         auto const file{ HRTF_FOLDER_0.getChildFile(names0[i]) };
-        stbuf = getSamplesFromWavFile(file);
-        for (int k = 0; k < 128; k++) {
-            this->mVbapHrtfLeftImpulses[i][k] = stbuf[reverse0[i]][k];
-            this->mVbapHrtfRightImpulses[i][k] = stbuf[1 - reverse0[i]][k];
-        }
+        auto const stbuf{ getSamplesFromWavFile(file) };
+        auto const leftChannel{ reverse0[i] };
+        auto const rightChannel{ 1 - reverse0[i] };
+        std::memcpy(mVbapHrtfLeftImpulses[i], stbuf.getReadPointer(leftChannel), 128);
+        std::memcpy(mVbapHrtfRightImpulses[i], stbuf.getReadPointer(rightChannel), 128);
     }
     // Azimuth = 40
     juce::String names40[6]
@@ -213,20 +212,20 @@ JackClientGris::JackClientGris()
     int reverse40[6] = { 1, 0, 0, 0, 1, 1 };
     for (int i = 0; i < 6; i++) {
         auto const file{ HRTF_FOLDER_40.getChildFile(names40[i]) };
-        stbuf = getSamplesFromWavFile(file);
-        for (int k = 0; k < 128; k++) {
-            this->mVbapHrtfLeftImpulses[i + 8][k] = stbuf[reverse40[i]][k];
-            this->mVbapHrtfRightImpulses[i + 8][k] = stbuf[1 - reverse40[i]][k];
-        }
+        auto const stbuf{ getSamplesFromWavFile(file) };
+        auto const leftChannel{ reverse40[i] };
+        auto const rightChannel{ 1 - reverse40[i] };
+        std::memcpy(mVbapHrtfLeftImpulses[i], stbuf.getReadPointer(leftChannel), 128);
+        std::memcpy(mVbapHrtfRightImpulses[i], stbuf.getReadPointer(rightChannel), 128);
     }
     // Azimuth = 80
     for (int i = 0; i < 2; i++) {
         auto const file{ HRTF_FOLDER_80.getChildFile("H80e090a.wav") };
-        stbuf = getSamplesFromWavFile(file);
-        for (int k = 0; k < 128; k++) {
-            this->mVbapHrtfLeftImpulses[i + 14][k] = stbuf[1 - i][k];
-            this->mVbapHrtfRightImpulses[i + 14][k] = stbuf[i][k];
-        }
+        auto const stbuf{ getSamplesFromWavFile(file) };
+        auto const leftChannel{ 1 - i };
+        auto const rightChannel{ i };
+        std::memcpy(mVbapHrtfLeftImpulses[i], stbuf.getReadPointer(leftChannel), 128);
+        std::memcpy(mVbapHrtfRightImpulses[i], stbuf.getReadPointer(rightChannel), 128);
     }
 
     this->resetHrtf();

@@ -33,8 +33,8 @@ ENABLE_WARNINGS
 //==============================================================================
 class SpatGris2Application final : public juce::JUCEApplication
 {
-    GrisLookAndFeel mGrisFeel{};
     std::unique_ptr<MainWindow> mMainWindow{};
+    GrisLookAndFeel mGrisFeel{};
 
 public:
     //==============================================================================

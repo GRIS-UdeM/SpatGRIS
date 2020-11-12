@@ -72,7 +72,7 @@ private:
 
 public:
     //==============================================================================
-    explicit MainWindow(juce::String const & name);
+    explicit MainWindow(juce::String const & name, GrisLookAndFeel & newLookAndFeel);
     //==============================================================================
     MainWindow() = delete;
     ~MainWindow() = default;

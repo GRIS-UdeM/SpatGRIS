@@ -153,7 +153,7 @@ class MainContentComponent final
     bool mIsRecording;
     //==============================================================================
     // Look-and-feel.
-    GrisLookAndFeel mLookAndFeel;
+    GrisLookAndFeel & mLookAndFeel;
     SmallGrisLookAndFeel mSmallLookAndFeel;
 
     MainWindow & mMainWindow;
@@ -180,7 +180,7 @@ class MainContentComponent final
 
 public:
     //==============================================================================
-    explicit MainContentComponent(MainWindow & parent);
+    explicit MainContentComponent(MainWindow & mainWindow, GrisLookAndFeel & newLookAndFeel);
     //==============================================================================
     MainContentComponent() = delete;
     ~MainContentComponent() override;
