@@ -174,6 +174,7 @@ juce::Component * JackClientListComponent::refreshComponentForCell(int const row
     if (columnId == ColumnIds::ON_OFF_TOGGLE) {
         juce::TextButton * tbRemove = static_cast<juce::TextButton *>(existingComponentToUpdate);
         if (tbRemove == nullptr) {
+            // TODO : naked new
             tbRemove = new juce::TextButton();
             tbRemove->setName(juce::String(rowNumber));
             tbRemove->setBounds(4, 404, 88, 22);
@@ -193,6 +194,7 @@ juce::Component * JackClientListComponent::refreshComponentForCell(int const row
         ListIntOutComp * textLabel = static_cast<ListIntOutComp *>(existingComponentToUpdate);
 
         if (textLabel == nullptr) {
+            // TODO : naked new
             textLabel = new ListIntOutComp(*this);
         }
 

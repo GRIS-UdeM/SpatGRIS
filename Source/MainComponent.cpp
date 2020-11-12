@@ -63,7 +63,7 @@ public:
         }
 
         formatManager.registerBasicFormats();
-        juce::AudioFormatReader * readers[MaxOutputs];
+        juce::AudioFormatReader * readers[MAX_OUTPUTS];
         for (int i = 0; i < numberOfChannels; i++) {
             readers[i] = formatManager.createReaderFor(filenames[i]);
         }
@@ -1515,8 +1515,8 @@ void MainContentComponent::updateInputJack(int inInput, Input & inp)
     auto & si = this->jackClient->getSourcesIn()[inInput];
 
     if (mode == LBAP) {
-        si.radazi = inp.getAzimuth();
-        si.radele = M_PI2 - inp.getZenith();
+        si.radAzimuth = inp.getAzimuth();
+        si.radElevation = M_PI2 - inp.getZenith();
     } else {
         si.azimuth = ((inp.getAzimuth() / M2_PI) * 360.0f);
         if (si.azimuth > 180.0f) {
@@ -1526,8 +1526,8 @@ void MainContentComponent::updateInputJack(int inInput, Input & inp)
     }
     si.radius = inp.getRadius();
 
-    si.aziSpan = inp.getAzimuthSpan() * 0.5f;
-    si.zenSpan = inp.getZenithSpan() * 2.0f;
+    si.azimuthSpan = inp.getAzimuthSpan() * 0.5f;
+    si.zenithSpan = inp.getZenithSpan() * 2.0f;
 
     if (mode == VBAP || mode == VBAP_HRTF) {
         this->jackClient->getVbapSourcesToUpdate()[inInput] = 1;
@@ -1706,22 +1706,22 @@ bool MainContentComponent::updateLevelComp()
     this->jackClient->setMaxOutputPatch(0);
 
     // Save mute/solo/directOut states
-    bool inputsIsMuted[MaxInputs];
-    bool inputsIsSolo[MaxInputs];
+    bool inputsIsMuted[MAX_INPUTS];
+    bool inputsIsSolo[MAX_INPUTS];
     auto const soloIn = this->jackClient->getSoloIn();
-    int directOuts[MaxInputs];
-    auto const * sourcesIn{ jackClient->getSourcesIn() };
-    for (unsigned int i = 0; i < MaxInputs; i++) {
+    int directOuts[MAX_INPUTS];
+    auto const & sourcesIn{ jackClient->getSourcesIn() };
+    for (unsigned int i = 0; i < MAX_INPUTS; i++) {
         inputsIsMuted[i] = sourcesIn[i].isMuted;
         inputsIsSolo[i] = sourcesIn[i].isSolo;
         directOuts[i] = sourcesIn[i].directOut;
     }
 
-    bool outputsIsMuted[MaxInputs];
-    bool outputsIsSolo[MaxInputs];
+    bool outputsIsMuted[MAX_INPUTS];
+    bool outputsIsSolo[MAX_INPUTS];
     bool soloOut = this->jackClient->getSoloOut();
-    auto const * speakersOut{ jackClient->getSpeakersOut() };
-    for (unsigned int i = 0; i < MaxOutputs; i++) {
+    auto const & speakersOut{ jackClient->getSpeakersOut() };
+    for (unsigned int i = 0; i < MAX_OUTPUTS; i++) {
         outputsIsMuted[i] = speakersOut[i].isMuted;
         outputsIsSolo[i] = speakersOut[i].isSolo;
     }
@@ -1802,8 +1802,8 @@ bool MainContentComponent::updateLevelComp()
 
         SourceIn si;
         si.id = input->getId();
-        si.radazi = input->getAzimuth();
-        si.radele = M_PI2 - input->getZenith();
+        si.radAzimuth = input->getAzimuth();
+        si.radElevation = M_PI2 - input->getZenith();
         si.azimuth = input->getAzimuth();
         si.zenith = input->getZenith();
         si.radius = input->getRadius();
@@ -1859,7 +1859,7 @@ bool MainContentComponent::updateLevelComp()
 
     // Restore mute/solo/directOut states
     this->jackClient->setSoloIn(soloIn);
-    for (unsigned int i = 0; i < MaxInputs; i++) {
+    for (unsigned int i = 0; i < MAX_INPUTS; i++) {
         auto & sourceIn{ jackClient->getSourcesIn()[i] };
         sourceIn.isMuted = inputsIsMuted[i];
         sourceIn.isSolo = inputsIsSolo[i];
@@ -1872,7 +1872,7 @@ bool MainContentComponent::updateLevelComp()
     this->mInputLocks.unlock();
 
     this->jackClient->setSoloOut(soloOut);
-    for (unsigned int i = 0; i < MaxOutputs; i++) {
+    for (unsigned int i = 0; i < MAX_OUTPUTS; i++) {
         auto & speakerOut{ jackClient->getSpeakersOut()[i] };
         speakerOut.isMuted = outputsIsMuted[i];
         speakerOut.isSolo = outputsIsSolo[i];
@@ -1912,7 +1912,7 @@ void MainContentComponent::soloInput(int const id, bool const solo)
     sourcesIn[index].isSolo = solo;
 
     this->jackClient->setSoloIn(false);
-    for (unsigned int i = 0; i < MaxInputs; i++) {
+    for (unsigned int i = 0; i < MAX_INPUTS; i++) {
         if (sourcesIn[i].isSolo) {
             this->jackClient->setSoloIn(true);
             break;
@@ -1928,7 +1928,7 @@ void MainContentComponent::soloOutput(int const id, bool const solo)
     speakersOut[index].isSolo = solo;
 
     jackClient->setSoloOut(false);
-    for (unsigned int i = 0; i < MaxOutputs; i++) {
+    for (unsigned int i = 0; i < MAX_OUTPUTS; i++) {
         if (speakersOut[i].isSolo) {
             jackClient->setSoloOut(true);
             break;
@@ -2455,7 +2455,7 @@ void MainContentComponent::timerCallback()
 
     if (this->mIsRecording && !this->jackClient->isRecording()) {
         bool isReadyToMerge = true;
-        for (unsigned int i = 0; i < MaxOutputs; i++) {
+        for (unsigned int i = 0; i < MAX_OUTPUTS; i++) {
             if (this->jackClient->getRecorders()[i].backgroundThread.isThreadRunning()) {
                 isReadyToMerge = false;
             }
@@ -2526,8 +2526,8 @@ void MainContentComponent::textEditorReturnKeyPressed(juce::TextEditor & textEdi
         if (num_of_inputs < 1) {
             this->mAddInputsTextEditor->setText("1");
         }
-        if (num_of_inputs > MaxInputs) {
-            this->mAddInputsTextEditor->setText(juce::String(MaxInputs));
+        if (num_of_inputs > MAX_INPUTS) {
+            this->mAddInputsTextEditor->setText(juce::String(MAX_INPUTS));
         }
 
         if (this->jackClient->getInputPorts().size() != num_of_inputs) {

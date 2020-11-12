@@ -257,7 +257,7 @@ bool compareGreaterThan(Sorter const & a, Sorter const & b)
 void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const isForwards)
 {
     auto const size{ mMainContentComponent.getListSpeaker().size() };
-    struct Sorter toSort[MaxOutputs];
+    struct Sorter toSort[MAX_OUTPUTS];
 
     auto & speakers{ mMainContentComponent.getListSpeaker() };
     unsigned index{};
@@ -919,9 +919,10 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
     juce::ignoreUnused(isRowSelected);
 
     if (columnId == 11) {
-        auto * tbDirect{ static_cast<juce::ToggleButton *>(existingComponentToUpdate) };
+        auto * tbDirect{ dynamic_cast<juce::ToggleButton *>(existingComponentToUpdate) };
         if (tbDirect == nullptr) {
             tbDirect = new juce::ToggleButton();
+            mCells.add(tbDirect);
         }
         tbDirect->setName(juce::String(rowNumber + 1000));
         tbDirect->setClickingTogglesState(true);
@@ -933,9 +934,10 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
         return tbDirect;
     }
     if (columnId == 12) {
-        auto * tbRemove{ static_cast<juce::TextButton *>(existingComponentToUpdate) };
+        auto * tbRemove{ dynamic_cast<juce::TextButton *>(existingComponentToUpdate) };
         if (tbRemove == nullptr) {
             tbRemove = new juce::TextButton();
+            mCells.add(tbRemove);
         }
         tbRemove->setButtonText("X");
         tbRemove->setName(juce::String(rowNumber));
@@ -947,9 +949,10 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
     }
 
     // The other columns are editable text columns, for which we use the custom juce::Label component
-    auto * textLabel{ static_cast<EditableTextCustomComponent *>(existingComponentToUpdate) };
+    auto * textLabel{ dynamic_cast<EditableTextCustomComponent *>(existingComponentToUpdate) };
     if (textLabel == nullptr) {
         textLabel = new EditableTextCustomComponent(*this);
+        mCells.add(textLabel);
     }
 
     textLabel->setRowAndColumn(rowNumber, columnId);

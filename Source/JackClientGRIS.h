@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <array>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -59,15 +60,15 @@ ENABLE_WARNINGS
 class Speaker;
 
 // Limits of SpatGRIS2 In/Out.
-static unsigned int const MaxInputs = 256;
-static unsigned int const MaxOutputs = 256;
+static unsigned int const MAX_INPUTS = 256;
+static unsigned int const MAX_OUTPUTS = 256;
 
 //==============================================================================
-typedef struct {
+struct LbapData {
     lbap_pos pos;
-    float gains[MaxOutputs];
-    float y[MaxOutputs];
-} LBAP_DATA;
+    std::array<float, MAX_OUTPUTS> gains;
+    std::array<float, MAX_OUTPUTS> y;
+};
 
 //==============================================================================
 struct Client {
@@ -83,57 +84,57 @@ struct Client {
 //==============================================================================
 struct SourceIn {
     unsigned int id;
-    float x = 0.0f;
-    float y = 0.0f;
-    float z = 0.0f;
+    float x{};
+    float y{};
+    float z{};
 
-    float radazi = 0.0f;
-    float radele = 0.0;
-    float azimuth = 0.0f;
-    float zenith = 0.0f;
-    float radius = 1.0f;
-    float aziSpan = 0.0f;
-    float zenSpan = 0.0f;
+    float radAzimuth{};
+    float radElevation{};
+    float azimuth{};
+    float zenith{};
+    float radius{ 1.0f };
+    float azimuthSpan{};
+    float zenithSpan{};
 
-    float lbap_gains[MaxOutputs];
-    float lbap_y[MaxOutputs];
-    lbap_pos lbap_last_pos;
+    std::array<float, MAX_OUTPUTS> lbapGains{};
+    std::array<float, MAX_OUTPUTS> lbapY{};
+    lbap_pos lbapLastPos{ -1, -1, -1, 0.0f, 0.0f, 0.0f };
 
     bool isMuted = false;
     bool isSolo = false;
-    float gain; // Not used yet.
+    float gain{}; // Not used yet.
 
-    int directOut = 0;
+    int directOut{};
 
-    VBAP_DATA * paramVBap;
+    VBAP_DATA * paramVBap{};
 };
 
 //==============================================================================
 struct SpeakerOut {
     unsigned int id;
-    float x = 0.0f;
-    float y = 0.0f;
-    float z = 0.0f;
+    float x{};
+    float y{};
+    float z{};
 
-    float azimuth = 0.0f;
-    float zenith = 0.0f;
-    float radius = 0.0f;
+    float azimuth{};
+    float zenith{};
+    float radius{};
 
-    float gain = 1.0f;
+    float gain{ 1.0f };
 
     bool hpActive = false;
-    double b1 = 0.0;
-    double b2 = 0.0;
-    double b3 = 0.0;
-    double b4 = 0.0;
-    double ha0 = 0.0;
-    double ha1 = 0.0;
-    double ha2 = 0.0;
+    double b1{};
+    double b2{};
+    double b3{};
+    double b4{};
+    double ha0{};
+    double ha1{};
+    double ha2{};
 
     bool isMuted = false;
     bool isSolo = false;
 
-    int outputPatch = 0;
+    int outputPatch{};
 
     bool directOut = false;
 };
@@ -147,116 +148,116 @@ class JackClientGris
 {
     // class variables.
     //-----------------
-    unsigned int mSampleRate;
-    unsigned int mBufferSize;
-    unsigned int mNumberInputs;
-    unsigned int mNumberOutputs;
-    unsigned int mMaxOutputPatch;
+    unsigned int mSampleRate{};
+    unsigned int mBufferSize{};
+    unsigned int mNumberInputs{};
+    unsigned int mNumberOutputs{};
+    unsigned int mMaxOutputPatch{};
 
-    std::vector<int> mOutputPatches;
+    std::vector<int> mOutputPatches{};
 
     // Jack variables.
-    jack_client_t * mClient;
+    jack_client_t * mClient{};
 
-    std::vector<jack_port_t *> mInputsPort;
-    std::vector<jack_port_t *> mOutputsPort;
+    std::vector<jack_port_t *> mInputsPort{};
+    std::vector<jack_port_t *> mOutputsPort{};
 
     // Interpolation and master gain values.
-    float mInterMaster;
-    float mMasterGainOut;
+    float mInterMaster{ 0.8f };
+    float mMasterGainOut{ 1.0f };
 
     // Global solo states.
-    bool mSoloIn;
-    bool mSoloOut;
+    bool mSoloIn{ false };
+    bool mSoloOut{ false };
 
     // Pink noise test sound.
-    float mPinkNoiseC0;
-    float mPinkNoiseC1;
-    float mPinkNoiseC2;
-    float mPinkNoiseC3;
-    float mPinkNoiseC4;
-    float mPinkNoiseC5;
-    float mPinkNoiseC6;
-    float mPinkNoiseGain;
-    bool mPinkNoiseActive;
+    float mPinkNoiseC0{};
+    float mPinkNoiseC1{};
+    float mPinkNoiseC2{};
+    float mPinkNoiseC3{};
+    float mPinkNoiseC4{};
+    float mPinkNoiseC5{};
+    float mPinkNoiseC6{};
+    float mPinkNoiseGain{ 0.1f };
+    bool mPinkNoiseActive{ false };
 
     // Crossover highpass filter.
-    double mCrossoverHighpassX1[MaxOutputs];
-    double mCrossoverHighpassX2[MaxOutputs];
-    double mCrossoverHighpassX3[MaxOutputs];
-    double mCrossoverHighpassX4[MaxOutputs];
-    double mCrossoverHighpassY1[MaxOutputs];
-    double mCrossoverHighpassY2[MaxOutputs];
-    double mCrossoverHighpassY3[MaxOutputs];
-    double mCrossoverHighpassY4[MaxOutputs];
+    std::array<double, MAX_OUTPUTS> mCrossoverHighpassX1{};
+    std::array<double, MAX_OUTPUTS> mCrossoverHighpassX2{};
+    std::array<double, MAX_OUTPUTS> mCrossoverHighpassX3{};
+    std::array<double, MAX_OUTPUTS> mCrossoverHighpassX4{};
+    std::array<double, MAX_OUTPUTS> mCrossoverHighpassY1{};
+    std::array<double, MAX_OUTPUTS> mCrossoverHighpassY2{};
+    std::array<double, MAX_OUTPUTS> mCrossoverHighpassY3{};
+    std::array<double, MAX_OUTPUTS> mCrossoverHighpassY4{};
 
     // Mute / Solo / VuMeter.
-    float mLevelsIn[MaxInputs];
-    float mLevelsOut[MaxOutputs];
+    std::array<float, MAX_INPUTS> mLevelsIn{};
+    std::array<float, MAX_OUTPUTS> mLevelsOut{};
 
     // Client list.
-    std::vector<Client> mClients;
-    std::mutex mClientsLock;
+    std::vector<Client> mClients{};
+    std::mutex mClientsLock{};
 
     // Source and output lists.
-    SourceIn mSourcesIn[MaxInputs];
-    SpeakerOut mSpeakersOut[MaxOutputs];
+    std::array<SourceIn, MAX_INPUTS> mSourcesIn{};
+    std::array<SpeakerOut, MAX_OUTPUTS> mSpeakersOut{};
 
     // Enable/disable jack process callback.
-    bool mProcessBlockOn;
+    bool mProcessBlockOn{ true };
 
     // True when jack reports an xrun.
-    bool mIsOverloaded;
+    bool mIsOverloaded{ false };
 
     // Which spatialization mode is selected.
-    ModeSpatEnum mModeSelected;
+    ModeSpatEnum mModeSelected{ VBAP };
 
-    bool mAutoConnection; // not sure this one is necessary ?
+    bool mAutoConnection{ false }; // not sure this one is necessary ?
 
     // VBAP data.
-    unsigned int mVbapDimensions;
-    int mVbapSourcesToUpdate[MaxInputs];
+    unsigned mVbapDimensions{};
+    std::array<int, MAX_INPUTS> mVbapSourcesToUpdate{};
 
-    std::vector<std::vector<int>> mVbapTriplets;
+    std::vector<std::vector<int>> mVbapTriplets{};
 
     // BINAURAL data.
-    unsigned int mHrtfCount[16];
-    float mHrtfInputTmp[16][128];
-    float mVbapHrtfLeftImpulses[16][128];
-    float mVbapHrtfRightImpulses[16][128];
+    std::array<unsigned, 16> mHrtfCount{};
+    std::array<std::array<float, 128>, 16> mHrtfInputTmp{};
+    std::array<std::array<float, 128>, 16> mVbapHrtfLeftImpulses{};
+    std::array<std::array<float, 128>, 16> mVbapHrtfRightImpulses{};
 
     // STEREO data.
-    float mLastAzimuth[MaxInputs];
+    std::array<float, MAX_INPUTS> mLastAzimuth{};
 
     // LBAP data.
-    lbap_field * mLbapSpeakerField;
+    lbap_field * mLbapSpeakerField{};
 
     // Recording parameters.
-    unsigned int mIndexRecord = 0;
-    bool mIsRecording;
+    unsigned int mIndexRecord{};
+    bool mIsRecording{ false };
 
-    AudioRecorder mRecorders[MaxOutputs];
-    juce::Array<juce::File> mOutputFileNames;
+    std::array<AudioRecorder, MAX_OUTPUTS> mRecorders{};
+    juce::Array<juce::File> mOutputFileNames{};
 
     // LBAP distance attenuation values.
-    float mAttenuationLinearGain[1];
-    float mAttenuationLowpassCoefficient[1];
-    float mLastAttenuationGain[MaxInputs];
-    float mLastAttenuationCoefficient[MaxInputs];
-    float mAttenuationLowpassY[MaxInputs];
-    float mAttenuationLowpassZ[MaxInputs];
+    float mAttenuationLinearGain{ 0.01584893f };       // -36 dB;
+    float mAttenuationLowpassCoefficient{ 0.867208f }; // 1000 Hz
+    std::array<float, MAX_INPUTS> mLastAttenuationGain{};
+    std::array<float, MAX_INPUTS> mLastAttenuationCoefficient{};
+    std::array<float, MAX_INPUTS> mAttenuationLowpassY{};
+    std::array<float, MAX_INPUTS> mAttenuationLowpassZ{};
     //==============================================================================
     // Tells if an error occured while setting up the client.
-    bool mClientReady;
+    bool mClientReady{ false };
 
     // Private recording parameters.
-    int mRecordFormat = 0;     // 0 = WAV, 1 = AIFF
-    int mRecordFileConfig = 0; // 0 = Multiple Mono Files, 1 = Single Interleaved
+    int mRecordFormat{};     // 0 = WAV, 1 = AIFF
+    int mRecordFileConfig{}; // 0 = Multiple Mono Files, 1 = Single Interleaved
 
-    juce::String mRecordPath = "";
+    juce::String mRecordPath{};
 
     // This structure is used to compute the VBAP algorithm only once. Each source only gets a copy.
-    VBAP_DATA * mParamVBap;
+    VBAP_DATA * mParamVBap{};
 
 public:
     //==============================================================================
