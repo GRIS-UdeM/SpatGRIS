@@ -111,7 +111,7 @@ void jack_shutdown(void * arg)
 void client_registration_callback(const char * name, int regist, void * arg)
 {
     jack_client_log("Jack client registration : %s : ", name);
-    if (!strcmp(name, ClientNameIgnor)) {
+    if (!strcmp(name, CLIENT_NAME_IGNORE)) {
         jack_client_log("ignored\n");
         return;
     }
@@ -276,11 +276,11 @@ JackClientGris::JackClientGris()
     jack_client_log("\nStart Jack Client\n");
     jack_client_log("=================\n");
 
-    this->mClient = jackClientOpen(ClientName, options, &status, driverNameSys);
+    this->mClient = jackClientOpen(CLIENT_NAME, options, &status, SYS_DRIVER_NAME);
     if (this->mClient == NULL) {
         jack_client_log("\nTry again...\n");
         options = JackServerName;
-        this->mClient = jackClientOpen(ClientName, options, &status, driverNameSys);
+        this->mClient = jackClientOpen(CLIENT_NAME, options, &status, SYS_DRIVER_NAME);
         if (this->mClient == NULL) {
             jack_client_log("\n\n jack_client_open() failed, status = 0x%2.0x\n", status);
             if (status & JackServerFailed) {
@@ -292,8 +292,8 @@ JackClientGris::JackClientGris()
         jack_client_log("\n jackdmp wasn't running so it was started\n");
     }
     if (status & JackNameNotUnique) {
-        ClientName = jack_get_client_name(this->mClient);
-        jack_client_log("\n Chosen name already existed, new unique name `%s' assigned\n", ClientName);
+        CLIENT_NAME = jack_get_client_name(this->mClient);
+        jack_client_log("\n Chosen name already existed, new unique name `%s' assigned\n", CLIENT_NAME);
     }
 
     // Register Jack callbacks and ports.
@@ -402,7 +402,7 @@ void JackClientGris::portConnectCallback(jack_port_id_t const a, jack_port_id_t 
             std::string nameClient = jack_port_name(jack_port_by_id(mClient, a));
             std::string tempN = jack_port_short_name(jack_port_by_id(mClient, a));
             nameClient = nameClient.substr(0, nameClient.size() - (tempN.size() + 1));
-            if ((nameClient != ClientName && nameClient != ClientNameSys) || nameClient == ClientNameSys) {
+            if ((nameClient != CLIENT_NAME && nameClient != SYS_CLIENT_NAME) || nameClient == SYS_CLIENT_NAME) {
                 jack_disconnect(mClient,
                                 jack_port_name(jack_port_by_id(mClient, a)),
                                 jack_port_name(jack_port_by_id(mClient, b)));
@@ -1060,10 +1060,10 @@ void JackClientGris::connectedGrisToSystem()
 
     // DisConnect JackClientGris to system.
     while (portsOut[i]) {
-        if (getClientName(portsOut[i]) == ClientName) { // jackClient
+        if (getClientName(portsOut[i]) == CLIENT_NAME) { // jackClient
             j = 0;
             while (portsIn[j]) {
-                if (getClientName(portsIn[j]) == ClientNameSys && // system
+                if (getClientName(portsIn[j]) == SYS_CLIENT_NAME && // system
                     jack_port_connected_to(jack_port_by_name(this->mClient, portsOut[i]), portsIn[j])) {
                     jack_disconnect(this->mClient, portsOut[i], portsIn[j]);
                 }
@@ -1078,9 +1078,9 @@ void JackClientGris::connectedGrisToSystem()
 
     // Connect JackClientGris to system.
     while (portsOut[i]) {
-        if (getClientName(portsOut[i]) == ClientName) { // jackClient
+        if (getClientName(portsOut[i]) == CLIENT_NAME) { // jackClient
             while (portsIn[j]) {
-                if (getClientName(portsIn[j]) == ClientNameSys) { // system
+                if (getClientName(portsIn[j]) == SYS_CLIENT_NAME) { // system
                     jack_connect(this->mClient, portsOut[i], portsIn[j]);
                     j += 1;
                     break;
@@ -1248,7 +1248,7 @@ void JackClientGris::connectionClient(juce::String name, bool connect)
         if (getClientName(portsOut[i]) == name) {
             j = 0;
             while (portsIn[j]) {
-                if (getClientName(portsIn[j]) == ClientName && // jackClient
+                if (getClientName(portsIn[j]) == CLIENT_NAME && // jackClient
                     jack_port_connected_to(jack_port_by_name(this->mClient, portsOut[i]), portsIn[j])) {
                     jack_disconnect(this->mClient, portsOut[i], portsIn[j]);
                 }
@@ -1284,7 +1284,7 @@ void JackClientGris::connectionClient(juce::String name, bool connect)
         while (portsOut[i]) {
             if (nameClient == name && nameClient.compare(getClientName(portsOut[i])) == 0) {
                 while (portsIn[j]) {
-                    if (getClientName(portsIn[j]) == ClientName) {
+                    if (getClientName(portsIn[j]) == CLIENT_NAME) {
                         if (j >= startJ && j < endJ) {
                             jack_connect(this->mClient, portsOut[i], portsIn[j]);
                             conn = true;
@@ -1337,7 +1337,7 @@ void JackClientGris::updateClientPortAvailable(bool fromJack)
 
     while (portsOut[i]) {
         std::string nameCli = getClientName(portsOut[i]);
-        if (nameCli != ClientName && nameCli != ClientNameSys) {
+        if (nameCli != CLIENT_NAME && nameCli != SYS_CLIENT_NAME) {
             for (auto && cli : this->mClients) {
                 if (cli.name.compare(nameCli) == 0) {
                     cli.portAvailable += 1;

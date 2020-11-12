@@ -64,6 +64,13 @@ public:
         AboutID = 4000,
         OpenManualID = 4001,
     };
+
+private:
+    //==============================================================================
+    std::unique_ptr<MainContentComponent> mMainContentComponent{};
+    juce::ApplicationCommandManager mApplicationCommandManager{};
+
+public:
     //==============================================================================
     explicit MainWindow(juce::String const & name);
     //==============================================================================
@@ -84,9 +91,6 @@ public:
     static MainWindow * getMainAppWindow();
 
 private:
-    //==============================================================================
-    std::unique_ptr<MainContentComponent> mcc{};
-    juce::ApplicationCommandManager applicationCommandManager{};
     //=============================================================
     JUCE_LEAK_DETECTOR(MainWindow)
 };

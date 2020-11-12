@@ -30,9 +30,20 @@ class LevelComponent;
 //==============================================================================
 class ParentLevelComponent
 {
+protected:
+    //==============================================================================
+    int mDirectOutChannel = 0;
+
 public:
+    //==============================================================================
     ParentLevelComponent() = default;
     virtual ~ParentLevelComponent() = default;
+
+    ParentLevelComponent(ParentLevelComponent const &) = delete;
+    ParentLevelComponent(ParentLevelComponent &&) = delete;
+
+    ParentLevelComponent & operator=(ParentLevelComponent const &) = delete;
+    ParentLevelComponent & operator=(ParentLevelComponent &&) = delete;
     //==============================================================================
     virtual int getId() const = 0;
     virtual int getButtonInOutNumber() const = 0;
@@ -51,11 +62,7 @@ public:
     virtual int getDirectOutChannel() const = 0;
     virtual void sendDirectOutToClient(int id, int chn) = 0;
 
-protected:
-    //==============================================================================
-    int directOutChannel = 0;
-
 private:
     //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ParentLevelComponent);
+    JUCE_LEAK_DETECTOR(ParentLevelComponent)
 };

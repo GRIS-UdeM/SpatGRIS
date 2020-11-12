@@ -235,9 +235,10 @@ JackServerGris::JackServerGris(unsigned int rateV, unsigned int periodV, juce::S
         jack_server_log("\nStart Jack Server \n");
         jack_server_log("================= \n");
 
-        if (jackctl_server_open(this->mServer, jackctl_server_get_driver(this->mServer, driverNameSys))) {
+        if (jackctl_server_open(this->mServer, jackctl_server_get_driver(this->mServer, SYS_DRIVER_NAME))) {
             if (jackctl_server_start(this->mServer)) {
-                jackctl_server_load_internal(this->mServer, jackctl_server_get_internal(this->mServer, ClientNameSys));
+                jackctl_server_load_internal(this->mServer,
+                                             jackctl_server_get_internal(this->mServer, SYS_CLIENT_NAME));
             } else {
                 *errorCode = 3;
             }

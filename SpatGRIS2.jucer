@@ -97,6 +97,7 @@
       <FILE id="oP6icJ" name="OscInput.h" compile="0" resource="0" file="Source/OscInput.h"/>
       <FILE id="fIPWN2" name="ParentLevelComponent.h" compile="0" resource="0"
             file="Source/ParentLevelComponent.h"/>
+      <FILE id="I0ICQu" name="Ray.cpp" compile="1" resource="0" file="Source/Ray.cpp"/>
       <FILE id="oaSq5k" name="Ray.h" compile="0" resource="0" file="Source/Ray.h"/>
       <FILE id="e9Tcnv" name="ServerGrisConstants.cpp" compile="1" resource="0"
             file="Source/ServerGrisConstants.cpp"/>

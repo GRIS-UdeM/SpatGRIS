@@ -54,111 +54,114 @@ struct Triplet {
 };
 
 //==============================================================================
-glm::vec3 const ColorSpeaker = glm::vec3(0.87, 0.87, 0.87);
-glm::vec3 const ColorDirectOutSpeaker = glm::vec3(0.25, 0.25, 0.25);
-glm::vec3 const ColorSpeakerSelect = glm::vec3(1.00, 0.64, 0.09);
-glm::vec3 const SizeSpeaker = glm::vec3(0.5, 0.5, 0.5);
-glm::vec3 const DefaultCenter = glm::vec3(0, 0, 0);
+glm::vec3 const COLOR_SPEAKER{ 0.87f, 0.87f, 0.87f };
+glm::vec3 const COLOR_DIRECT_OUT_SPEAKER{ 0.25f, 0.25f, 0.25f };
+glm::vec3 const COLOR_SPEAKER_SELECT{ 1.00f, 0.64f, 0.09f };
+glm::vec3 const SIZE_SPEAKER{ 0.5f, 0.5f, 0.5f };
+glm::vec3 const DEFAULT_CENTER{ 0.0f, 0.0f, 0.0f };
 
-constexpr float Over = 0.02f;
+constexpr float OVER = 0.02f;
 
 //==============================================================================
 class Speaker final : public ParentLevelComponent
 {
+    glm::vec3 mMin{ 0.0f, 0.0f, 0.0f };
+    glm::vec3 mMax{ 0.0f, 0.0f, 0.0f };
+    glm::vec3 mCenter;
+    glm::vec3 mAziZenRad;
+    glm::vec3 mColor{ COLOR_SPEAKER };
+
+    bool mDirectOut = false;
+    bool mSelected = false;
+
+    float mLevelColour = 1.0f;
+    float mGain = 0.0f;
+    float mHpCutoff = 0.0f;
+
+    MainContentComponent * mMainContentComponent;
+    LevelComponent * mVuMeter;
+
+    SmallGrisLookAndFeel mLookAndFeel;
+
+    int mDirectOutChannel; // Not used for output.
+
+    int mId = -1;
+    int mOutputPatch = -1;
+
 public:
-    Speaker(MainContentComponent * parent = nullptr,
-            int idS = -1,
-            int outP = -1,
-            float azimuth = 0.0f,
-            float zenith = 0.0f,
-            float radius = 1.0f);
-    ~Speaker() override;
     //==============================================================================
-    bool isSelected() const { return this->selected; }
+    explicit Speaker(MainContentComponent * parent = nullptr,
+                     int idS = -1,
+                     int outP = -1,
+                     float azimuth = 0.0f,
+                     float zenith = 0.0f,
+                     float radius = 1.0f);
+    //==============================================================================
+    Speaker() = delete;
+    ~Speaker() override;
+
+    Speaker(Speaker const &) = delete;
+    Speaker(Speaker &&) = delete;
+
+    Speaker & operator=(Speaker const &) = delete;
+    Speaker & operator=(Speaker &&) = delete;
+    //==============================================================================
+    [[nodiscard]] bool isSelected() const { return this->mSelected; }
     void selectSpeaker();
     void unSelectSpeaker();
 
     // ParentLevelComponent
-    int getId() const override { return -1; } // Should not be used, use getIdSpeaker() instead.
-    int getButtonInOutNumber() const override { return this->outputPatch; };
-    float getLevel() const override;
-    float getAlpha();
+    [[nodiscard]] int getId() const override { return -1; } // Should not be used, use getIdSpeaker() instead.
+    [[nodiscard]] int getButtonInOutNumber() const override { return this->mOutputPatch; };
+    [[nodiscard]] float getLevel() const override;
+    [[nodiscard]] float getAlpha();
     void setMuted(bool mute) override;
     void setSolo(bool solo) override;
     void setColor(juce::Colour /*color*/, bool /*updateLevel = false*/) override {}
     void selectClick(bool select = true) override;
 
-    LevelComponent const * getVuMeter() const override { return this->vuMeter; }
-    LevelComponent * getVuMeter() override { return this->vuMeter; }
+    [[nodiscard]] LevelComponent const * getVuMeter() const override { return this->mVuMeter; }
+    [[nodiscard]] LevelComponent * getVuMeter() override { return this->mVuMeter; }
 
     // Normalized for user
-    void setBounds(const juce::Rectangle<int> & newBounds);
-    void setSpeakerId(int const id) { this->idSpeaker = id; };
-    int getIdSpeaker() const { return this->idSpeaker; }
+    // void setBounds(const juce::Rectangle<int> & newBounds);
+    void setSpeakerId(int const id) { this->mId = id; };
+    [[nodiscard]] int getIdSpeaker() const { return this->mId; }
     void setCoordinate(glm::vec3 value);
     void normalizeRadius();
     void setAziZenRad(glm::vec3 value);
-    int getOutputPatch() const { return this->outputPatch; }
+    [[nodiscard]] int getOutputPatch() const { return this->mOutputPatch; }
     void setOutputPatch(int value);
-    void setGain(float const value) { this->gain = value; }
-    float getGain() const { return this->gain; }
-    void setHighPassCutoff(float const value) { this->hpCutoff = value; }
-    float getHighPassCutoff() const { return this->hpCutoff; }
-    bool isDirectOut() const { return this->directOut; }
+    void setGain(float const value) { this->mGain = value; }
+    [[nodiscard]] float getGain() const { return this->mGain; }
+    void setHighPassCutoff(float const value) { this->mHpCutoff = value; }
+    [[nodiscard]] float getHighPassCutoff() const { return this->mHpCutoff; }
+    [[nodiscard]] bool isDirectOut() const { return this->mDirectOut; }
     void setDirectOut(bool value);
 
-    glm::vec3 getCoordinate() const { return this->center / 10.0f; }
-    glm::vec3 getAziZenRad() const
-    {
-        return glm::vec3(this->aziZenRad.x, this->aziZenRad.y, this->aziZenRad.z / 10.0f);
-    }
+    [[nodiscard]] glm::vec3 getCoordinate() const { return this->mCenter / 10.0f; }
+    [[nodiscard]] glm::vec3 getAziZenRad() const;
 
-    bool isInput() const override { return false; }
+    [[nodiscard]] bool isInput() const override { return false; }
 
     void changeDirectOutChannel(int /*chn*/) override{};
     void setDirectOutChannel(int /*chn*/) override{};
-    int getDirectOutChannel() const override { return 0; };
+    [[nodiscard]] int getDirectOutChannel() const override { return 0; };
     void sendDirectOutToClient(int /*id*/, int /*chn*/) override{};
 
     // OpenGL
-    glm::vec3 getMin() const { return this->min; }
-    glm::vec3 getMax() const { return this->max; }
-    glm::vec3 getCenter() const { return this->center; }
+    [[nodiscard]] glm::vec3 getMin() const { return this->mMin; }
+    [[nodiscard]] glm::vec3 getMax() const { return this->mMax; }
+    [[nodiscard]] glm::vec3 getCenter() const { return this->mCenter; }
 
-    bool isValid() const
-    {
-        return (this->min.x < this->max.x && this->min.y < this->max.y && this->min.z < this->max.z);
-    }
+    [[nodiscard]] bool isValid() const;
     void fix();
     void draw();
-    //==============================================================================
-    int idSpeaker = -1;
-    int outputPatch = -1;
 
 private:
     //==============================================================================
-    void newPosition(glm::vec3 center, glm::vec3 extents = SizeSpeaker);
-    void newSpheriqueCoord(glm::vec3 aziZenRad, glm::vec3 extents = SizeSpeaker);
+    void newPosition(glm::vec3 center, glm::vec3 extents = SIZE_SPEAKER);
+    void newSpheriqueCoord(glm::vec3 aziZenRad, glm::vec3 extents = SIZE_SPEAKER);
     //==============================================================================
-    glm::vec3 min = glm::vec3(0, 0, 0);
-    glm::vec3 max = glm::vec3(0, 0, 0);
-    glm::vec3 center;
-    glm::vec3 aziZenRad;
-    glm::vec3 color = ColorSpeaker;
-
-    bool directOut = false;
-    bool selected = false;
-
-    float levelColour = 1.0f;
-    float gain = 0.0f;
-    float hpCutoff = 0.0f;
-
-    MainContentComponent * mainParent;
-    LevelComponent * vuMeter;
-
-    SmallGrisLookAndFeel mGrisFeel;
-
-    int directOutChannel; // Not used for output.
-    //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Speaker);
+    JUCE_LEAK_DETECTOR(Speaker)
 };

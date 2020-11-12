@@ -113,7 +113,7 @@ void SpeakerViewComponent::render()
         input->draw();
         if (mShowNumber && input->getGain() != -1.0) {
             glm::vec3 posT = input->getCenter();
-            posT.y += SizeSpeaker.y + 0.4f;
+            posT.y += SIZE_SPEAKER.y + 0.4f;
             drawText(std::to_string(input->getId()), posT, input->getNumberColor(), 0.003f, true, input->getAlpha());
         }
     }
@@ -126,7 +126,7 @@ void SpeakerViewComponent::render()
                 speaker->draw();
                 if (mShowNumber) {
                     auto posT{ speaker->getCenter() };
-                    posT.y += SizeSpeaker.y + 0.4f;
+                    posT.y += SIZE_SPEAKER.y + 0.4f;
                     drawText(std::to_string(speaker->getOutputPatch()), posT, glm::vec3{ 0, 0, 0 }, 0.003f);
                 }
             }

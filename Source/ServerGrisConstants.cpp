@@ -19,23 +19,23 @@
 
 #include "ServerGrisConstants.h"
 
-const char * DeviceName = "GRIS";
-const char * ClientName = "SpatGRIS2";
-const char * ClientNameSys = "system";
-const char * ClientNameIgnor = "JAR::57";
+char const * const DEVICE_NAME = "GRIS";
+char const * CLIENT_NAME = "SpatGRIS2";
+char const * const SYS_CLIENT_NAME = "system";
+char const * const CLIENT_NAME_IGNORE = "JAR::57";
 
 #ifdef __linux__
-const char * DriverNameSys = "alsa";
-const bool UseOSNativeDialogBox = false;
+char const * const SYS_DRIVER_NAME = "alsa";
+const bool USE_OS_NATIVE_DIALOG_BOX = false;
 juce::String CURRENT_WORKING_DIR = juce::File::getCurrentWorkingDirectory().getFullPathName();
 juce::String RESOURCES_DIR = juce::String("/../../Resources/");
 #elif defined WIN32
-const char * driverNameSys = "coreaudio";
+char const * const SYS_DRIVER_NAME = "coreaudio";
 const bool USE_OS_NATIVE_DIALOG_BOX{ true };
 auto const CURRENT_WORKING_DIR{ juce::File::getCurrentWorkingDirectory() };
 auto const RESOURCES_DIR{ CURRENT_WORKING_DIR.getChildFile("Resources") };
 #elif defined __APPLE__
-const char * driverNameSys = "coreaudio";
+const char * SYS_DRIVER_NAME = "coreaudio";
 const bool USE_OS_NATIVE_DIALOG_BOX = true;
 juce::File CURRENT_WORKING_DIR = juce::File::getSpecialLocation(juce::File::currentApplicationFile);
 juce::File RESOURCES_DIR{ CURRENT_WORKING_DIR.getChildFile("Contents").getChildFile("Resources") };
@@ -55,14 +55,14 @@ juce::File const HRTF_FOLDER_0{ RESOURCES_DIR.getChildFile("hrtf_compact/elev" +
 juce::File const HRTF_FOLDER_40{ RESOURCES_DIR.getChildFile("hrtf_compact/elev" + juce::String(40) + "/") };
 juce::File const HRTF_FOLDER_80{ RESOURCES_DIR.getChildFile("hrtf_compact/elev" + juce::String(80) + "/") };
 
-const juce::StringArray ModeSpatString = { "DOME", "CUBE", "BINAURAL", "STEREO" };
+const juce::StringArray MODE_SPAT_STRING = { "DOME", "CUBE", "BINAURAL", "STEREO" };
 
 // Settings Jack Server
-const juce::StringArray BufferSizes = { "32", "64", "128", "256", "512", "1024", "2048" };
-const juce::StringArray RateValues = { "44100", "48000", "88200", "96000" };
-const juce::StringArray FileFormats = { "WAV", "AIFF" };
-const juce::StringArray FileConfigs = { "Multiple Mono Files", "Single Interleaved" };
-const juce::StringArray AttenuationDBs = { "0", "-12", "-24", "-36", "-48", "-60", "-72" };
-const juce::StringArray AttenuationCutoffs = { "125", "250", "500", "1000", "2000", "4000", "8000", "16000" };
+const juce::StringArray BUFFER_SIZES = { "32", "64", "128", "256", "512", "1024", "2048" };
+const juce::StringArray RATE_VALUES = { "44100", "48000", "88200", "96000" };
+const juce::StringArray FILE_FORMATS = { "WAV", "AIFF" };
+const juce::StringArray FILE_CONFIGS = { "Multiple Mono Files", "Single Interleaved" };
+const juce::StringArray ATTENUATION_DB = { "0", "-12", "-24", "-36", "-48", "-60", "-72" };
+const juce::StringArray ATTENUATION_CUTOFFS = { "125", "250", "500", "1000", "2000", "4000", "8000", "16000" };
 
-const unsigned int VuMeterWidthInPixels = 22;
+const unsigned int VU_METER_WIDTH_IN_PIXELS = 22;

@@ -24,14 +24,14 @@ MainWindow::MainWindow(juce::String const & name)
     : DocumentWindow(name, juce::Colours::lightgrey, DocumentWindow::allButtons)
 {
     setUsingNativeTitleBar(true);
-    mcc.reset(new MainContentComponent(*this));
-    setContentOwned(mcc.get(), true);
+    mMainContentComponent.reset(new MainContentComponent(*this));
+    setContentOwned(mMainContentComponent.get(), true);
     setResizable(true, true);
 
     // this lets the command manager use keypresses that arrive in our window.
     addKeyListener(getApplicationCommandManager().getKeyMappings());
 
-    juce::PropertiesFile * props = mcc->getApplicationProperties().getUserSettings();
+    juce::PropertiesFile * props = mMainContentComponent->getApplicationProperties().getUserSettings();
 
     // These offset values compensate for the title bar size.
     // TODO: it works on linux, need to be tested on MacOS.
@@ -65,12 +65,12 @@ MainWindow::MainWindow(juce::String const & name)
 //==============================================================================
 bool MainWindow::exitWinApp()
 {
-    juce::PropertiesFile * props = mcc->getApplicationProperties().getUserSettings();
+    juce::PropertiesFile * props = mMainContentComponent->getApplicationProperties().getUserSettings();
     props->setValue("xPosition", this->getScreenX());
     props->setValue("yPosition", this->getScreenY());
     props->setValue("winWidth", this->getWidth());
     props->setValue("winHeight", this->getHeight());
-    return mcc->exitApp();
+    return mMainContentComponent->exitApp();
 }
 
 //==============================================================================
@@ -92,5 +92,5 @@ MainWindow * MainWindow::getMainAppWindow()
 //==============================================================================
 juce::ApplicationCommandManager & MainWindow::getApplicationCommandManager()
 {
-    return applicationCommandManager;
+    return mApplicationCommandManager;
 }

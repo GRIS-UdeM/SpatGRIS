@@ -107,22 +107,22 @@ PropertiesComponent::PropertiesComponent(MainContentComponent & parent,
     }
 
     this->mRateLabel.reset(this->createPropLabel("Sampling Rate (hz) :", juce::Justification::left, ypos));
-    this->mRateCombo.reset(this->createPropComboBox(RateValues, indR, ypos));
+    this->mRateCombo.reset(this->createPropComboBox(RATE_VALUES, indR, ypos));
     ypos += 30;
 
     this->mBufferLabel.reset(this->createPropLabel("Buffer Size (spls) :", juce::Justification::left, ypos));
-    this->mBufferCombo.reset(this->createPropComboBox(BufferSizes, indB, ypos));
+    this->mBufferCombo.reset(this->createPropComboBox(BUFFER_SIZES, indB, ypos));
     ypos += 40;
 
     this->mRecordingLabel.reset(this->createPropLabel("Recording Settings", juce::Justification::left, ypos));
     ypos += 30;
 
     this->mRecFormatLabel.reset(this->createPropLabel("File Format :", juce::Justification::left, ypos));
-    this->mRecFormatCombo.reset(this->createPropComboBox(FileFormats, indFF, ypos));
+    this->mRecFormatCombo.reset(this->createPropComboBox(FILE_FORMATS, indFF, ypos));
     ypos += 30;
 
     this->mRecFileConfigLabel.reset(this->createPropLabel("Output Format :", juce::Justification::left, ypos));
-    this->mRecFileConfigCombo.reset(this->createPropComboBox(FileConfigs, indFC, ypos));
+    this->mRecFileConfigCombo.reset(this->createPropComboBox(FILE_CONFIGS, indFC, ypos));
     ypos += 40;
 
     this->mCubeDistanceLabel.reset(
@@ -130,11 +130,11 @@ PropertiesComponent::PropertiesComponent(MainContentComponent & parent,
     ypos += 30;
 
     this->mDistanceDbLabel.reset(this->createPropLabel("Attenuation (dB) :", juce::Justification::left, ypos));
-    this->mDistanceDbCombo.reset(this->createPropComboBox(AttenuationDBs, indAttDB, ypos));
+    this->mDistanceDbCombo.reset(this->createPropComboBox(ATTENUATION_DB, indAttDB, ypos));
     ypos += 30;
 
     this->mDistanceCutoffLabel.reset(this->createPropLabel("Attenuation (Hz) :", juce::Justification::left, ypos));
-    this->mDistanceCutoffCombo.reset(this->createPropComboBox(AttenuationCutoffs, indAttHz, ypos));
+    this->mDistanceCutoffCombo.reset(this->createPropComboBox(ATTENUATION_CUTOFFS, indAttHz, ypos));
     ypos += 40;
 
     this->mValidSettingsButton.reset(new juce::TextButton());

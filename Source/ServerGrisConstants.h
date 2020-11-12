@@ -25,11 +25,11 @@ DISABLE_WARNINGS
 #include <JuceHeader.h>
 ENABLE_WARNINGS
 
-extern const char * DeviceName;
-extern const char * ClientName;
-extern const char * driverNameSys;
-extern const char * ClientNameSys;
-extern const char * ClientNameIgnor;
+extern char const * const DEVICE_NAME;
+extern char const * CLIENT_NAME;
+extern char const * const SYS_DRIVER_NAME;
+extern char const * const SYS_CLIENT_NAME;
+extern char const * const CLIENT_NAME_IGNORE;
 
 extern const juce::File SPLASH_SCREEN_FILE;
 extern const juce::File DEFAULT_PRESET_FILE;
@@ -44,15 +44,15 @@ extern const juce::File HRTF_FOLDER_0;
 extern const juce::File HRTF_FOLDER_40;
 extern const juce::File HRTF_FOLDER_80;
 
-extern const juce::StringArray ModeSpatString;
+extern const juce::StringArray MODE_SPAT_STRING;
 
 extern const bool USE_OS_NATIVE_DIALOG_BOX;
 
-extern const juce::StringArray BufferSizes;
-extern const juce::StringArray RateValues;
-extern const juce::StringArray FileFormats;
-extern const juce::StringArray FileConfigs;
-extern const juce::StringArray AttenuationDBs;
-extern const juce::StringArray AttenuationCutoffs;
+extern const juce::StringArray BUFFER_SIZES;
+extern const juce::StringArray RATE_VALUES;
+extern const juce::StringArray FILE_FORMATS;
+extern const juce::StringArray FILE_CONFIGS;
+extern const juce::StringArray ATTENUATION_DB;
+extern const juce::StringArray ATTENUATION_CUTOFFS;
 
-extern const unsigned int VuMeterWidthInPixels;
+extern const unsigned int VU_METER_WIDTH_IN_PIXELS;

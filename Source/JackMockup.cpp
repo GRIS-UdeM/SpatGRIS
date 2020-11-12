@@ -548,7 +548,7 @@ jackctl_driver_t * jackctl_server_get_driver([[maybe_unused]] jackctl_server_t *
                                              [[maybe_unused]] const char * const driver_name)
 {
     jassert(server == AudioManager::getInstance().getDummyJackCtlServer());
-    jassert(juce::String{ driver_name } == driverNameSys);
+    jassert(juce::String{ driver_name } == SYS_DRIVER_NAME);
     return nullptr;
 }
 
@@ -557,7 +557,7 @@ jackctl_internal_t * jackctl_server_get_internal([[maybe_unused]] jackctl_server
                                                  [[maybe_unused]] const char * const internal_name)
 {
     jassert(server == AudioManager::getInstance().getDummyJackCtlServer());
-    jassert(juce::String{ internal_name } == ClientNameSys);
+    jassert(juce::String{ internal_name } == SYS_CLIENT_NAME);
     return nullptr;
 }
 

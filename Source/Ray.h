@@ -26,48 +26,35 @@ DISABLE_WARNINGS
     #include <GL/gl.h>
     #include <GL/glu.h>
     #include <GL/glut.h>
-#elif defined(WIN32) || defined(_WIN64)
-
-#else
+#elif defined(__APPLE__)
     #include <GLUT/glut.h>
     #include <OpenGL/gl.h>
     #include <OpenGl/glu.h>
 #endif
 
 #include "../glm/glm.hpp"
+
+#include <JuceHeader.h>
 ENABLE_WARNINGS
 
 //==============================================================================
 class Ray
 {
+    glm::vec3 mPosition{ 0.0f, 0.0f, 0.0f };
+    glm::vec3 mDirection{ 0.0f, 0.0f, 0.0f };
+    glm::vec3 mNormal{ 0.0f, 0.0f, 0.0f };
+
 public:
-    Ray() : position(glm::vec3(0, 0, 0)), direction(glm::vec3(0, 0, 0)), normal(glm::vec3(0, 0, 0)) {}
     //==============================================================================
-    void setRay(glm::vec3 p, glm::vec3 d)
-    {
-        this->position = glm::vec3(p);
-        this->direction = glm::vec3(d);
-        this->normal = (this->direction - this->position) / 5000.0f;
-    }
+    void setRay(glm::vec3 const & p, glm::vec3 const & d);
     //==============================================================================
-    glm::vec3 getNormal() const { return this->normal; }
-    glm::vec3 getPosition() const { return this->position; }
-    glm::vec3 getDirection() const { return this->direction; }
+    glm::vec3 const & getNormal() const { return this->mNormal; }
+    glm::vec3 const & getPosition() const { return this->mPosition; }
+    glm::vec3 const & getDirection() const { return this->mDirection; }
     //==============================================================================
-    void draw() const
-    {
-        glBegin(GL_LINES);
-        glColor3f(1, 0, 0);
-        glVertex3f(this->position.x, this->position.y, this->position.z);
-        glVertex3f(this->direction.x, this->direction.y, this->direction.z);
-        glEnd();
-    }
+    void draw() const;
 
 private:
     //==============================================================================
-    glm::vec3 position;
-    glm::vec3 direction;
-    glm::vec3 normal;
-    //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Ray);
+    JUCE_LEAK_DETECTOR(Ray)
 };

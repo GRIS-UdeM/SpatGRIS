@@ -253,8 +253,8 @@ MainContentComponent::MainContentComponent(MainWindow & parent) : mMainWindow(pa
     addLabel("Mode :", "Mode of spatilization", 150, 30, 60, 20, this->mControlUiBox->getContent());
     this->mModeSpatCombo.reset(
         addComboBox("", "Mode of spatilization", 155, 48, 90, 22, this->mControlUiBox->getContent()));
-    for (int i = 0; i < ModeSpatString.size(); i++) {
-        this->mModeSpatCombo->addItem(ModeSpatString[i], i + 1);
+    for (int i = 0; i < MODE_SPAT_STRING.size(); i++) {
+        this->mModeSpatCombo->addItem(MODE_SPAT_STRING[i], i + 1);
     }
 
     this->mAddInputsTextEditor.reset(
@@ -699,7 +699,7 @@ void MainContentComponent::handleShowSpeakerEditWindow()
                                 600);
     if (this->mEditSpeakersWindow == nullptr) {
         juce::String windowName = juce::String("Speakers Setup Edition - ")
-                                  + juce::String(ModeSpatString[this->jackClient->getMode()]) + juce::String(" - ")
+                                  + juce::String(MODE_SPAT_STRING[this->jackClient->getMode()]) + juce::String(" - ")
                                   + juce::File(this->mPathCurrentFileSpeaker).getFileName();
         this->mEditSpeakersWindow.reset(
             new EditSpeakersWindow(windowName, this->mLookAndFeel, *this, this->mNameConfig));
@@ -751,8 +751,8 @@ void MainContentComponent::handleShowPreferences()
                                                             this->mLookAndFeel,
                                                             mAlsaAvailableOutputDevices,
                                                             mAlsaOutputDevice,
-                                                            RateValues.indexOf(juce::String(RateValue)),
-                                                            BufferSizes.indexOf(juce::String(BufferValue)),
+                                                            RATE_VALUES.indexOf(juce::String(RateValue)),
+                                                            BUFFER_SIZES.indexOf(juce::String(BufferValue)),
                                                             static_cast<int>(FileFormat),
                                                             static_cast<int>(FileConfig),
                                                             static_cast<int>(AttenuationDB),
@@ -1733,13 +1733,13 @@ bool MainContentComponent::updateLevelComp()
     int i = 0, x = 2;
     auto const mode{ jackClient->getMode() };
     for (auto && it : this->mSpeakers) {
-        juce::Rectangle<int> level(x, 4, VuMeterWidthInPixels, 200);
+        juce::Rectangle<int> level(x, 4, VU_METER_WIDTH_IN_PIXELS, 200);
         it->getVuMeter()->setBounds(level);
         it->getVuMeter()->resetClipping();
         this->mOutputsUiBox->getContent()->addAndMakeVisible(it->getVuMeter());
         it->getVuMeter()->repaint();
 
-        x += VuMeterWidthInPixels;
+        x += VU_METER_WIDTH_IN_PIXELS;
 
         if (mode == VBAP || mode == VBAP_HRTF) {
             it->normalizeRadius();
@@ -1764,14 +1764,15 @@ bool MainContentComponent::updateLevelComp()
 
     // Set user gain and highpass filter cutoff frequency for each speaker.
     for (auto const * speaker : this->mSpeakers) {
-        this->jackClient->getSpeakersOut()[speaker->outputPatch - 1].gain = std::pow(10.0f, speaker->getGain() * 0.05f);
+        this->jackClient->getSpeakersOut()[speaker->getOutputPatch() - 1].gain
+            = std::pow(10.0f, speaker->getGain() * 0.05f);
         if (speaker->getHighPassCutoff() > 0.0f) {
             double * coeffs;
             Linkwitz_Riley_compute_variables(static_cast<double>(speaker->getHighPassCutoff()),
                                              (double)this->mSamplingRate,
                                              &coeffs,
                                              7);
-            auto & speakerOut{ jackClient->getSpeakersOut()[speaker->outputPatch - 1] };
+            auto & speakerOut{ jackClient->getSpeakersOut()[speaker->getOutputPatch() - 1] };
             speakerOut.b1 = coeffs[0];
             speakerOut.b2 = coeffs[1];
             speakerOut.b3 = coeffs[2];
@@ -1788,14 +1789,14 @@ bool MainContentComponent::updateLevelComp()
     x = 2;
     this->mInputLocks.lock();
     for (auto * input : this->mSourceInputs) {
-        juce::Rectangle<int> level(x, 4, VuMeterWidthInPixels, 200);
+        juce::Rectangle<int> level(x, 4, VU_METER_WIDTH_IN_PIXELS, 200);
         input->getVuMeter()->setBounds(level);
         input->getVuMeter()->updateDirectOutMenu(this->mSpeakers);
         input->getVuMeter()->resetClipping();
         this->mInputsUiBox->getContent()->addAndMakeVisible(input->getVuMeter());
         input->getVuMeter()->repaint();
 
-        x += VuMeterWidthInPixels;
+        x += VU_METER_WIDTH_IN_PIXELS;
 
         SourceIn si;
         si.id = input->getId();
@@ -2415,11 +2416,11 @@ void MainContentComponent::saveProperties(juce::String device,
     props->setValue("FileConfig", fileconfig);
 
     // Handle CUBE distance attenuation
-    float linGain = powf(10.0f, AttenuationDBs[attenuationDB].getFloatValue() * 0.05f);
+    float linGain = powf(10.0f, ATTENUATION_DB[attenuationDB].getFloatValue() * 0.05f);
     this->jackClient->setAttenuationDb(linGain);
     props->setValue("AttenuationDB", attenuationDB);
 
-    float coeff = expf(-M2_PI * AttenuationCutoffs[attenuationHz].getFloatValue() / this->jackClient->getSampleRate());
+    float coeff = expf(-M2_PI * ATTENUATION_CUTOFFS[attenuationHz].getFloatValue() / this->jackClient->getSampleRate());
     this->jackClient->setAttenuationHz(coeff);
     props->setValue("AttenuationHz", attenuationHz);
 
@@ -2635,8 +2636,8 @@ void MainContentComponent::comboBoxChanged(juce::ComboBox * comboBox)
 
         if (this->mEditSpeakersWindow != nullptr) {
             juce::String windowName = juce::String("Speakers Setup Edition - ")
-                                      + juce::String(ModeSpatString[this->jackClient->getMode()]) + juce::String(" - ")
-                                      + juce::File(this->mPathCurrentFileSpeaker).getFileName();
+                                      + juce::String(MODE_SPAT_STRING[this->jackClient->getMode()])
+                                      + juce::String(" - ") + juce::File(this->mPathCurrentFileSpeaker).getFileName();
             this->mEditSpeakersWindow->setName(windowName);
         }
     }
@@ -2719,10 +2720,10 @@ void MainContentComponent::resized()
     this->mMainUiBox->correctSize(getWidth() - this->mSpeakerViewComponent->getWidth() - 6, 610);
 
     this->mInputsUiBox->setBounds(0, 2, getWidth() - (this->mSpeakerViewComponent->getWidth() + 10), 231);
-    this->mInputsUiBox->correctSize(((unsigned int)this->mSourceInputs.size() * (VuMeterWidthInPixels)) + 4, 200);
+    this->mInputsUiBox->correctSize(((unsigned int)this->mSourceInputs.size() * (VU_METER_WIDTH_IN_PIXELS)) + 4, 200);
 
     this->mOutputsUiBox->setBounds(0, 233, getWidth() - (this->mSpeakerViewComponent->getWidth() + 10), 210);
-    this->mOutputsUiBox->correctSize(((unsigned int)this->mSpeakers.size() * (VuMeterWidthInPixels)) + 4, 180);
+    this->mOutputsUiBox->correctSize(((unsigned int)this->mSpeakers.size() * (VU_METER_WIDTH_IN_PIXELS)) + 4, 180);
 
     this->mControlUiBox->setBounds(0, 443, getWidth() - (this->mSpeakerViewComponent->getWidth() + 10), 145);
     this->mControlUiBox->correctSize(720, 145);
