@@ -63,7 +63,7 @@ class EditSpeakersWindow final
     juce::TableListBox mSpeakersTableListBox;
     juce::Font mFont;
 
-    int mNumRows;
+    int mNumRows{};
     bool mInitialized{ false };
     //==============================================================================
     friend EditableTextCustomComponent; // TODO: temporary solution whiling refactoring is going on...

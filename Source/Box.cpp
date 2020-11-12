@@ -23,7 +23,7 @@
 #include "MainComponent.h"
 
 //==============================================================================
-static double GetFloatPrecision(double value, double precision)
+static double getFloatPrecision(double value, double precision)
 {
     return (floor((value * pow(10, precision) + 0.5)) / pow(10, precision));
 }

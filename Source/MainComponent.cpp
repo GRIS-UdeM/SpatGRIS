@@ -1703,7 +1703,7 @@ bool MainContentComponent::updateLevelComp()
     this->jackClient->setProcessBlockOn(false);
     this->jackClient->setMaxOutputPatch(0);
 
-    // Save mute/solo/directout states
+    // Save mute/solo/directOut states
     bool inputsIsMuted[MaxInputs];
     bool inputsIsSolo[MaxInputs];
     auto const soloIn = this->jackClient->getSoloIn();
@@ -1855,7 +1855,7 @@ bool MainContentComponent::updateLevelComp()
         retval = this->jackClient->lbapSetupSpeakerField(tempListSpeaker);
     }
 
-    // Restore mute/solo/directout states
+    // Restore mute/solo/directOut states
     this->jackClient->setSoloIn(soloIn);
     for (unsigned int i = 0; i < MaxInputs; i++) {
         auto & sourceIn{ jackClient->getSourcesIn()[i] };

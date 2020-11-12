@@ -23,7 +23,7 @@
 #include "MainComponent.h"
 
 //==============================================================================
-static double GetFloatPrecision(double value, double precision)
+static double getFloatPrecision(double value, double precision)
 {
     return floor((value * pow(10, precision) + 0.5)) / pow(10, precision);
 }
@@ -229,13 +229,13 @@ void Speaker::newSpheriqueCoord(glm::vec3 aziZenRad, glm::vec3 extents)
     aziZenRad.y = abs(((-90.0f + aziZenRad.y) * M_PI) / 180.0f);
 
     if (this->mMainContentComponent->getModeSelected() == 1 || this->isDirectOut()) {
-        nCenter.x = GetFloatPrecision(aziZenRad.z * cosf(aziZenRad.x), 3);
-        nCenter.z = GetFloatPrecision(aziZenRad.z * sinf(aziZenRad.x), 3);
-        nCenter.y = GetFloatPrecision(10.f * (1.0 - aziZenRad.y / (M_PI / 2)), 3);
+        nCenter.x = getFloatPrecision(aziZenRad.z * cosf(aziZenRad.x), 3);
+        nCenter.z = getFloatPrecision(aziZenRad.z * sinf(aziZenRad.x), 3);
+        nCenter.y = getFloatPrecision(10.f * (1.0 - aziZenRad.y / (M_PI / 2)), 3);
     } else {
-        nCenter.x = GetFloatPrecision(aziZenRad.z * sinf(aziZenRad.y) * cosf(aziZenRad.x), 3);
-        nCenter.z = GetFloatPrecision(aziZenRad.z * sinf(aziZenRad.y) * sinf(aziZenRad.x), 3);
-        nCenter.y = GetFloatPrecision(10.f * cosf(aziZenRad.y), 3);
+        nCenter.x = getFloatPrecision(aziZenRad.z * sinf(aziZenRad.y) * cosf(aziZenRad.x), 3);
+        nCenter.z = getFloatPrecision(aziZenRad.z * sinf(aziZenRad.y) * sinf(aziZenRad.x), 3);
+        nCenter.y = getFloatPrecision(10.f * cosf(aziZenRad.y), 3);
     }
     this->newPosition(nCenter);
 }

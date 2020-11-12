@@ -23,33 +23,32 @@
 #include "MainComponent.h"
 
 //==============================================================================
-AboutComponent::AboutComponent(AboutWindow & aboutWindow, GrisLookAndFeel & lookAndFeel) : mParentWindow(aboutWindow)
+AboutComponent::AboutComponent(AboutWindow & parentWindow, GrisLookAndFeel & lookAndFeel) : mParentWindow(parentWindow)
 {
-    this->setSize(400, 500);
+    setSize(400, 500);
 
-    juce::File fs{ SERVER_GRIS_ICON_SMALL_FILE };
-    if (fs.exists()) {
-        juce::Image img = juce::ImageFileFormat::loadFrom(fs);
-        this->mLogoImage.setImage(img);
-        this->mLogoImage.setBounds(136, 5, 128, 127);
-        this->addAndMakeVisible(this->mLogoImage);
+    auto const & icon{ SERVER_GRIS_ICON_SMALL_FILE };
+    if (icon.exists()) {
+        auto const img{ juce::ImageFileFormat::loadFrom(icon) };
+        mLogoImage.setImage(img);
+        mLogoImage.setBounds(136, 5, 128, 127);
+        addAndMakeVisible(mLogoImage);
     }
 
-    this->mTitleLabel.setText("SpatGRIS v2 - Sound Spatialization Tool\n\n",
-                              juce::NotificationType::dontSendNotification);
-    this->mTitleLabel.setJustificationType(juce::Justification::horizontallyCentred);
-    this->mTitleLabel.setBounds(5, 150, 390, 50);
-    this->mTitleLabel.setLookAndFeel(&lookAndFeel);
-    this->mTitleLabel.setColour(juce::Label::textColourId, lookAndFeel.getFontColour());
-    this->addAndMakeVisible(this->mTitleLabel);
+    mTitleLabel.setText("SpatGRIS v2 - Sound Spatialization Tool\n\n", juce::NotificationType::dontSendNotification);
+    mTitleLabel.setJustificationType(juce::Justification::horizontallyCentred);
+    mTitleLabel.setBounds(5, 150, 390, 50);
+    mTitleLabel.setLookAndFeel(&lookAndFeel);
+    mTitleLabel.setColour(juce::Label::textColourId, lookAndFeel.getFontColour());
+    addAndMakeVisible(mTitleLabel);
 
-    juce::String version_num = STRING(JUCE_APP_VERSION);
-    this->mVersionLabel.setText("Version " + version_num + "\n\n\n", juce::NotificationType::dontSendNotification);
-    this->mVersionLabel.setJustificationType(juce::Justification::horizontallyCentred);
-    this->mVersionLabel.setBounds(5, 180, 390, 50);
-    this->mVersionLabel.setLookAndFeel(&lookAndFeel);
-    this->mVersionLabel.setColour(juce::Label::textColourId, lookAndFeel.getFontColour());
-    this->addAndMakeVisible(this->mVersionLabel);
+    juce::String const version{ STRING(JUCE_APP_VERSION) };
+    mVersionLabel.setText("Version " + version + "\n\n\n", juce::NotificationType::dontSendNotification);
+    mVersionLabel.setJustificationType(juce::Justification::horizontallyCentred);
+    mVersionLabel.setBounds(5, 180, 390, 50);
+    mVersionLabel.setLookAndFeel(&lookAndFeel);
+    mVersionLabel.setColour(juce::Label::textColourId, lookAndFeel.getFontColour());
+    addAndMakeVisible(mVersionLabel);
 
     juce::String infos{};
     infos << "Developed by the G.R.I.S. at Université de Montréal\n\n";
@@ -62,29 +61,29 @@ AboutComponent::AboutComponent(AboutWindow & aboutWindow, GrisLookAndFeel & look
     infos << "Assistants:\n\n";
     infos << "David LEDOUX, Christophe LENGELÉ, Nicola GIANNINI\n\n";
 
-    this->mInfosLabel.setText(infos, juce::NotificationType::dontSendNotification);
-    this->mInfosLabel.setJustificationType(juce::Justification::left);
-    this->mInfosLabel.setBounds(5, 230, 390, 250);
-    this->mInfosLabel.setFont(lookAndFeel.getFont());
-    this->mInfosLabel.setLookAndFeel(&lookAndFeel);
-    this->mInfosLabel.setColour(juce::Label::textColourId, lookAndFeel.getFontColour());
-    this->addAndMakeVisible(this->mInfosLabel);
+    mInfosLabel.setText(infos, juce::NotificationType::dontSendNotification);
+    mInfosLabel.setJustificationType(juce::Justification::left);
+    mInfosLabel.setBounds(5, 230, 390, 250);
+    mInfosLabel.setFont(lookAndFeel.getFont());
+    mInfosLabel.setLookAndFeel(&lookAndFeel);
+    mInfosLabel.setColour(juce::Label::textColourId, lookAndFeel.getFontColour());
+    addAndMakeVisible(mInfosLabel);
 
-    this->mWebsiteHyperlink.setButtonText("GRIS Web Site");
-    this->mWebsiteHyperlink.setURL(juce::URL{ "http://gris.musique.umontreal.ca/" });
-    this->mWebsiteHyperlink.setColour(juce::HyperlinkButton::textColourId, lookAndFeel.getFontColour());
-    this->mWebsiteHyperlink.setBounds(20, 470, 150, 22);
-    this->mWebsiteHyperlink.setColour(juce::ToggleButton::textColourId, lookAndFeel.getFontColour());
-    this->mWebsiteHyperlink.setLookAndFeel(&lookAndFeel);
-    this->mWebsiteHyperlink.addListener(this);
-    this->addAndMakeVisible(this->mWebsiteHyperlink);
+    mWebsiteHyperlink.setButtonText("GRIS Web Site");
+    mWebsiteHyperlink.setURL(juce::URL{ "http://gris.musique.umontreal.ca/" });
+    mWebsiteHyperlink.setColour(juce::HyperlinkButton::textColourId, lookAndFeel.getFontColour());
+    mWebsiteHyperlink.setBounds(20, 470, 150, 22);
+    mWebsiteHyperlink.setColour(juce::ToggleButton::textColourId, lookAndFeel.getFontColour());
+    mWebsiteHyperlink.setLookAndFeel(&lookAndFeel);
+    mWebsiteHyperlink.addListener(this);
+    addAndMakeVisible(mWebsiteHyperlink);
 
-    this->mCloseButton.setButtonText("Close");
-    this->mCloseButton.setBounds(250, 470, 100, 22);
-    this->mCloseButton.setColour(juce::ToggleButton::textColourId, lookAndFeel.getFontColour());
-    this->mCloseButton.setLookAndFeel(&lookAndFeel);
-    this->mCloseButton.addListener(this);
-    this->addAndMakeVisible(mCloseButton);
+    mCloseButton.setButtonText("Close");
+    mCloseButton.setBounds(250, 470, 100, 22);
+    mCloseButton.setColour(juce::ToggleButton::textColourId, lookAndFeel.getFontColour());
+    mCloseButton.setLookAndFeel(&lookAndFeel);
+    mCloseButton.addListener(this);
+    addAndMakeVisible(mCloseButton);
 }
 
 //==============================================================================
@@ -94,16 +93,16 @@ AboutWindow::AboutWindow(juce::String const & name,
     : juce::DocumentWindow(name, lookAndFeel.getBackgroundColour(), DocumentWindow::closeButton)
     , mMainContentComponent(mainContentComponent)
 {
-    this->setContentOwned(new AboutComponent{ *this, lookAndFeel }, true);
+    setContentOwned(new AboutComponent{ *this, lookAndFeel }, true);
 
-    this->centreWithSize(this->getContentComponent()->getWidth(), this->getContentComponent()->getHeight());
-    this->setUsingNativeTitleBar(true);
-    this->setResizable(false, false);
-    this->setVisible(true);
+    centreWithSize(getContentComponent()->getWidth(), getContentComponent()->getHeight());
+    setUsingNativeTitleBar(true);
+    setResizable(false, false);
+    setVisible(true);
 }
 
 //==============================================================================
 void AboutWindow::closeButtonPressed()
 {
-    this->mMainContentComponent.closeAboutWindow();
+    mMainContentComponent.closeAboutWindow();
 }
