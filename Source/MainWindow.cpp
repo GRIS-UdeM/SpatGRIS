@@ -31,7 +31,7 @@ MainWindow::MainWindow(juce::String const & name)
     // this lets the command manager use keypresses that arrive in our window.
     addKeyListener(getApplicationCommandManager().getKeyMappings());
 
-    juce::PropertiesFile * props = mcc->applicationProperties.getUserSettings();
+    juce::PropertiesFile * props = mcc->getApplicationProperties().getUserSettings();
 
     // These offset values compensate for the title bar size.
     // TODO: it works on linux, need to be tested on MacOS.
@@ -65,7 +65,7 @@ MainWindow::MainWindow(juce::String const & name)
 //==============================================================================
 bool MainWindow::exitWinApp()
 {
-    juce::PropertiesFile * props = mcc->applicationProperties.getUserSettings();
+    juce::PropertiesFile * props = mcc->getApplicationProperties().getUserSettings();
     props->setValue("xPosition", this->getScreenX());
     props->setValue("yPosition", this->getScreenY());
     props->setValue("winWidth", this->getWidth());

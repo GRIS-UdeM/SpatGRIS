@@ -59,7 +59,7 @@ float Speaker::getLevel() const
 float Speaker::getAlpha()
 {
     float alpha;
-    if (this->mainParent->isSpeakerLevelShown) {
+    if (this->mainParent->isSpeakerLevelShown()) {
         alpha = this->mainParent->getSpeakerLevelsAlpha(this->outputPatch - 1);
     } else {
         alpha = 1.0f;
@@ -247,7 +247,7 @@ void Speaker::draw()
 
     glBegin(GL_QUADS);
 
-    if (this->mainParent->isSpeakerLevelShown) {
+    if (this->mainParent->isSpeakerLevelShown()) {
         float val = this->getAlpha();
         this->levelColour = val + (this->levelColour - val) * 0.5;
         glColor4f(this->levelColour, this->levelColour, this->levelColour, transpa);

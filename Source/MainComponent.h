@@ -74,9 +74,122 @@ class MainContentComponent final
     , public juce::ComboBox::Listener
     , private juce::Timer
 {
+    // Jack server - client.
+    std::unique_ptr<JackServerGris> jackServer;
+    std::unique_ptr<JackClientGris> jackClient;
+
+    // Speakers.
+    std::vector<Triplet> mTriplets{};
+    juce::OwnedArray<Speaker> mSpeakers{};
+
+    std::mutex mSpeakerLocks{};
+
+    // Sources.
+    juce::OwnedArray<Input> mSourceInputs{};
+
+    std::mutex mInputLocks{};
+
+    // Open Sound Control.
+    std::unique_ptr<OscInput> mOscReceiver{};
+
+    // Paths.
+    juce::String mNameConfig;
+    juce::String mPathLastVbapSpeakerSetup;
+    juce::String mPathCurrentFileSpeaker;
+    juce::String mPathCurrentPreset;
+
+    // Alsa output device
+    juce::String mAlsaOutputDevice;
+    juce::Array<juce::String> mAlsaAvailableOutputDevices;
+
+    // Windows.
+    std::unique_ptr<EditSpeakersWindow> mEditSpeakersWindow;
+    std::unique_ptr<PropertiesWindow> mPropertiesWindow;
+    std::unique_ptr<FlatViewWindow> mFlatViewWindow;
+    std::unique_ptr<AboutWindow> mAboutWindow;
+    std::unique_ptr<OscLogWindow> mOscLogWindow;
+
+    // 3 Main Boxes.
+    std::unique_ptr<Box> mMainUiBox;
+    std::unique_ptr<Box> mInputsUiBox;
+    std::unique_ptr<Box> mOutputsUiBox;
+    std::unique_ptr<Box> mControlUiBox;
+
+    // Component in Box 3.
+    std::unique_ptr<juce::Label> mJackStatusLabel;
+    std::unique_ptr<juce::Label> mJackLoadLabel;
+    std::unique_ptr<juce::Label> mJackRateLabel;
+    std::unique_ptr<juce::Label> mJackBufferLabel;
+    std::unique_ptr<juce::Label> mJackInfoLabel;
+
+    std::unique_ptr<juce::ComboBox> mModeSpatCombo;
+
+    std::unique_ptr<juce::Slider> mMasterGainOutSlider;
+    std::unique_ptr<juce::Slider> mInterpolationSlider;
+
+    std::unique_ptr<juce::TextEditor> mAddInputsTextEditor;
+
+    std::unique_ptr<juce::Label> mAllClientsLabel;
+    std::unique_ptr<JackClientListComponent> mJackClientListComponent;
+
+    std::unique_ptr<juce::TextButton> mStartRecordButton;
+    std::unique_ptr<juce::TextEditor> mMinRecordTextEditor;
+    std::unique_ptr<juce::Label> mTimeRecordedLabel;
+    std::unique_ptr<juce::TextButton> mInitRecordButton;
+
+    // UI Components.
+    std::unique_ptr<SpeakerViewComponent> mSpeakerViewComponent;
+    juce::StretchableLayoutManager mVerticalLayout;
+    std::unique_ptr<juce::StretchableLayoutResizerBar> mVerticalDividerBar;
+
+    // App splash screen.
+    std::unique_ptr<juce::SplashScreen> mSplashScreen;
+
+    // Flags.
+    bool mIsProcessForeground;
+    bool mIsNumbersShown;
+    bool mIsSpeakersShown;
+    bool mIsSphereShown;
+    bool mIsRecording;
+    //==============================================================================
+    // Look-and-feel.
+    GrisLookAndFeel mLookAndFeel;
+    SmallGrisLookAndFeel mSmallLookAndFeel;
+
+    MainWindow & mMainWindow;
+
+    std::unique_ptr<juce::MenuBarComponent> mMenuBar;
+    //==============================================================================
+    // App user settings.
+    int mOscInputPort = 18032;
+    unsigned int mSamplingRate = 48000;
+
+    juce::ApplicationProperties mApplicationProperties;
+    juce::Rectangle<int> mFlatViewWindowRect;
+
+    // Visual flags.
+    bool mIsSourceLevelShown;
+    bool mIsSpeakerLevelShown;
+    bool mIsTripletsShown;
+    bool mIsSpanShown;
+
+    // App states.
+    bool mNeedToSavePreset = false;
+    bool mNeedToSaveSpeakerSetup = false;
+    bool mNeedToComputeVbap = true;
+
 public:
-    MainContentComponent(MainWindow & parent);
-    ~MainContentComponent() final;
+    //==============================================================================
+    explicit MainContentComponent(MainWindow & parent);
+    //==============================================================================
+    MainContentComponent() = delete;
+    ~MainContentComponent() override;
+
+    MainContentComponent(MainContentComponent const &) = delete;
+    MainContentComponent(MainContentComponent &&) = delete;
+
+    MainContentComponent & operator=(MainContentComponent const &) = delete;
+    MainContentComponent & operator=(MainContentComponent &&) = delete;
     //==============================================================================
     // Exit application.
     bool isPresetModified() const;
@@ -109,17 +222,28 @@ public:
     void handleShowOscLogView();
     void handleInputColours();
 
-    // Menubar methods.
-    juce::StringArray getMenuBarNames() final;
-    juce::PopupMenu getMenuForIndex(int menuIndex, const juce::String & /*menuName*/) final;
+    // other
+    bool isTripletsShown() const { return mIsTripletsShown; }
+    bool needToSaveSpeakerSetup() const { return mNeedToSaveSpeakerSetup; }
+    bool isSpanShown() const { return mIsSpanShown; }
+    bool isSourceLevelShown() const { return mIsSourceLevelShown; }
+    auto & getApplicationProperties() { return mApplicationProperties; }
+    bool isSpeakerLevelShown() const { return mIsSpeakerLevelShown; }
 
-    void menuItemSelected(int menuItemID, int /*topLevelMenuIndex*/) final;
+    void setNeedToComputeVbap(bool const state) { mNeedToComputeVbap = state; }
+    void setNeedToSaveSpeakerSetup(bool const state) { mNeedToSaveSpeakerSetup = state; }
+
+    // Menubar methods.
+    juce::StringArray getMenuBarNames() override;
+    juce::PopupMenu getMenuForIndex(int menuIndex, const juce::String & /*menuName*/) override;
+
+    void menuItemSelected(int menuItemID, int /*topLevelMenuIndex*/) override;
 
     // Speakers.
-    juce::OwnedArray<Speaker> & getListSpeaker() { return this->listSpeaker; }
-    juce::OwnedArray<Speaker> const & getListSpeaker() const { return this->listSpeaker; }
+    juce::OwnedArray<Speaker> & getListSpeaker() { return this->mSpeakers; }
+    juce::OwnedArray<Speaker> const & getListSpeaker() const { return this->mSpeakers; }
 
-    std::mutex & getLockSpeakers() { return this->lockSpeakers; }
+    std::mutex & getLockSpeakers() { return this->mSpeakerLocks; }
 
     Speaker * getSpeakerFromOutputPatch(int out);
     Speaker const * getSpeakerFromOutputPatch(int out) const;
@@ -134,10 +258,10 @@ public:
     int getMaxSpeakerOutputPatch() const;
 
     // Sources.
-    juce::OwnedArray<Input> & getListSourceInput() { return this->listSourceInput; }
-    juce::OwnedArray<Input> const & getListSourceInput() const { return this->listSourceInput; }
+    juce::OwnedArray<Input> & getListSourceInput() { return this->mSourceInputs; }
+    juce::OwnedArray<Input> const & getListSourceInput() const { return this->mSourceInputs; }
 
-    std::mutex & getLockInputs() { return this->lockInputs; }
+    std::mutex & getLockInputs() { return this->mInputLocks; }
 
     void updateInputJack(int inInput, Input & inp);
     bool isRadiusNormalized() const;
@@ -155,10 +279,10 @@ public:
 
     // VBAP triplets.
     void setListTripletFromVbap();
-    void clearListTriplet() { this->listTriplet.clear(); }
+    void clearListTriplet() { this->mTriplets.clear(); }
 
-    std::vector<Triplet> & getListTriplet() { return this->listTriplet; }
-    std::vector<Triplet> const & getListTriplet() const { return this->listTriplet; }
+    std::vector<Triplet> & getListTriplet() { return this->mTriplets; }
+    std::vector<Triplet> const & getListTriplet() const { return this->mTriplets; }
 
     // Speaker selections.
     void selectSpeaker(unsigned int idS);
@@ -174,29 +298,9 @@ public:
     // Input - output amplitude levels.
     float getLevelsOut(int indexLevel) const { return (20.0f * log10f(this->jackClient->getLevelsOut(indexLevel))); }
     float getLevelsIn(int indexLevel) const { return (20.0f * log10f(this->jackClient->getLevelsIn(indexLevel))); }
-    float getLevelsAlpha(int indexLevel) const
-    {
-        float level = this->jackClient->getLevelsIn(indexLevel);
-        if (level > 0.0001) { // -80 dB
-            return 1.0;
-        } else {
-            return sqrtf(level * 10000.0f);
-        }
-    }
-    float getSpeakerLevelsAlpha(int indexLevel) const
-    {
-        float level = this->jackClient->getLevelsOut(indexLevel);
-        float alpha = 1.0;
-        if (level > 0.001) { // -60 dB
-            alpha = 1.0;
-        } else {
-            alpha = sqrtf(level * 1000.0f);
-        }
-        if (alpha < 0.6) {
-            alpha = 0.6;
-        }
-        return alpha;
-    }
+    float getLevelsAlpha(int indexLevel) const;
+
+    float getSpeakerLevelsAlpha(int indexLevel) const;
 
     // Called when the speaker setup has changed.
     bool updateLevelComp();
@@ -221,57 +325,29 @@ public:
     void setTitle();
 
     // Screen refresh timer.
-    void handleTimer(bool state)
-    {
-        if (state) {
-            startTimerHz(24);
-        } else {
-            stopTimer();
-        }
-    }
+    void handleTimer(bool state);
 
     // Close windows other than the main one.
-    void closeSpeakersConfigurationWindow()
-    {
-        this->winSpeakConfig.reset();
-        this->jackClient->setProcessBlockOn(true);
-    }
-    void closePropertiesWindow() { this->windowProperties.reset(); }
-    void closeFlatViewWindow() { this->flatViewWindowSource = nullptr; }
-    void closeAboutWindow() { this->aboutWindow = nullptr; }
-    void closeOscLogWindow() { this->oscLogWindow = nullptr; }
+    void closeSpeakersConfigurationWindow();
+    void closePropertiesWindow() { this->mPropertiesWindow.reset(); }
+    void closeFlatViewWindow() { this->mFlatViewWindow = nullptr; }
+    void closeAboutWindow() { this->mAboutWindow = nullptr; }
+    void closeOscLogWindow() { this->mOscLogWindow = nullptr; }
 
     // Widget listener handlers.
-    void timerCallback() final;
-    void paint(juce::Graphics & g) final;
-    void resized() final;
-    void buttonClicked(juce::Button * button) final;
-    void sliderValueChanged(juce::Slider * slider) final;
-    void textEditorFocusLost(juce::TextEditor & textEditor) final;
-    void textEditorReturnKeyPressed(juce::TextEditor & textEditor) final;
-    void comboBoxChanged(juce::ComboBox * comboBox) final;
+    void timerCallback() override;
+    void paint(juce::Graphics & g) override;
+    void resized() override;
+    void buttonClicked(juce::Button * button) override;
+    void sliderValueChanged(juce::Slider * slider) override;
+    void textEditorFocusLost(juce::TextEditor & textEditor) override;
+    void textEditorReturnKeyPressed(juce::TextEditor & textEditor) override;
+    void comboBoxChanged(juce::ComboBox * comboBox) override;
 
-    int getModeSelected() const { return this->comBoxModeSpat->getSelectedId() - 1; }
+    int getModeSelected() const { return this->mModeSpatCombo->getSelectedId() - 1; }
 
     void setOscLogging(const juce::OSCMessage & message);
-    //==============================================================================
-    // App user settings.
-    int oscInputPort = 18032;
-    unsigned int samplingRate = 48000;
 
-    juce::ApplicationProperties applicationProperties;
-    juce::Rectangle<int> flatViewWindowRect;
-
-    // Visual flags.
-    bool isSourceLevelShown;
-    bool isSpeakerLevelShown;
-    bool isTripletsShown;
-    bool isSpanShown;
-
-    // App states.
-    bool needToSavePreset = false;
-    bool needToSaveSpeakerSetup = false;
-    bool needToComputeVbap = true;
     //==============================================================================
     // Widget creation helper.
     juce::TextEditor * addTextEditor(juce::String const & s,
@@ -285,15 +361,6 @@ public:
                                      int wLab = 80);
 
 private:
-    //==============================================================================
-    // Look-and-feel.
-    GrisLookAndFeel mGrisFeel;
-    SmallGrisLookAndFeel mSmallTextGrisFeel;
-
-    MainWindow & parent;
-
-    std::unique_ptr<juce::MenuBarComponent> menuBar;
-
     // Widget creation helpers.
     juce::Label *
         addLabel(const juce::String & s, const juce::String & stooltip, int x, int y, int w, int h, Component * into);
@@ -317,93 +384,15 @@ private:
                                  int h,
                                  Component * into);
 
-    // Jack server - client.
-    std::unique_ptr<JackServerGris> jackServer;
-    std::unique_ptr<JackClientGris> jackClient;
-
-    // Speakers.
-    std::vector<Triplet> listTriplet{};
-    juce::OwnedArray<Speaker> listSpeaker{};
-
-    std::mutex lockSpeakers{};
-
-    // Sources.
-    juce::OwnedArray<Input> listSourceInput{};
-
-    std::mutex lockInputs{};
-
-    // Open Sound Control.
-    std::unique_ptr<OscInput> oscReceiver{};
-
-    // Paths.
-    juce::String nameConfig;
-    juce::String pathLastVbapSpeakerSetup;
-    juce::String pathCurrentFileSpeaker;
-    juce::String pathCurrentPreset;
-
-    // Alsa output device
-    juce::String alsaOutputDevice;
-    juce::Array<juce::String> alsaAvailableOutputDevices;
-
-    // Windows.
-    std::unique_ptr<EditSpeakersWindow> winSpeakConfig;
-    std::unique_ptr<PropertiesWindow> windowProperties;
-    std::unique_ptr<FlatViewWindow> flatViewWindowSource;
-    std::unique_ptr<AboutWindow> aboutWindow;
-    std::unique_ptr<OscLogWindow> oscLogWindow;
-
-    // 3 Main Boxes.
-    std::unique_ptr<Box> boxMainUI;
-    std::unique_ptr<Box> boxInputsUI;
-    std::unique_ptr<Box> boxOutputsUI;
-    std::unique_ptr<Box> boxControlUI;
-
-    // Component in Box 3.
-    std::unique_ptr<juce::Label> labelJackStatus;
-    std::unique_ptr<juce::Label> labelJackLoad;
-    std::unique_ptr<juce::Label> labelJackRate;
-    std::unique_ptr<juce::Label> labelJackBuffer;
-    std::unique_ptr<juce::Label> labelJackInfo;
-
-    std::unique_ptr<juce::ComboBox> comBoxModeSpat;
-
-    std::unique_ptr<juce::Slider> sliderMasterGainOut;
-    std::unique_ptr<juce::Slider> sliderInterpolation;
-
-    std::unique_ptr<juce::TextEditor> tedAddInputs;
-
-    std::unique_ptr<juce::Label> labelAllClients;
-    std::unique_ptr<JackClientListComponent> jackClientListComponentJack;
-
-    std::unique_ptr<juce::TextButton> butStartRecord;
-    std::unique_ptr<juce::TextEditor> tedMinRecord;
-    std::unique_ptr<juce::Label> labelTimeRecorded;
-    std::unique_ptr<juce::TextButton> butInitRecord;
-
-    // UI Components.
-    std::unique_ptr<SpeakerViewComponent> speakerView;
-    juce::StretchableLayoutManager verticalLayout;
-    std::unique_ptr<juce::StretchableLayoutResizerBar> verticalDividerBar;
-
-    // App splash screen.
-    std::unique_ptr<juce::SplashScreen> splash;
-
-    // Flags.
-    bool isProcessForeground;
-    bool isNumbersShown;
-    bool isSpeakersShown;
-    bool isSphereShown;
-    bool isRecording;
-
     //==============================================================================
     // The following methods implement the ApplicationCommandTarget interface, allowing
     // this window to publish a set of actions it can perform, and which can be mapped
     // onto menus, keypresses, etc.
-    juce::ApplicationCommandTarget * getNextCommandTarget() final { return findFirstTargetParentComponent(); }
+    juce::ApplicationCommandTarget * getNextCommandTarget() override { return findFirstTargetParentComponent(); }
 
-    void getAllCommands(juce::Array<juce::CommandID> & commands) final;
-    void getCommandInfo(juce::CommandID commandID, juce::ApplicationCommandInfo & result) final;
-    bool perform(juce::ApplicationCommandTarget::InvocationInfo const & info) final;
+    void getAllCommands(juce::Array<juce::CommandID> & commands) override;
+    void getCommandInfo(juce::CommandID commandID, juce::ApplicationCommandInfo & result) override;
+    bool perform(juce::ApplicationCommandTarget::InvocationInfo const & info) override;
     //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainContentComponent)
+    JUCE_LEAK_DETECTOR(MainContentComponent)
 };

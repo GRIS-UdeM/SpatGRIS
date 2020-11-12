@@ -307,7 +307,7 @@ void EditSpeakersWindow::sliderValueChanged(juce::Slider * slider)
 //==============================================================================
 void EditSpeakersWindow::buttonClicked(juce::Button * button)
 {
-    bool tripletState = this->mMainContentComponent.isTripletsShown;
+    bool tripletState = this->mMainContentComponent.isTripletsShown();
     int selectedRow = this->mSpeakersTableListBox.getSelectedRow();
     int sortColumnId = this->mSpeakersTableListBox.getHeader().getSortColumnId();
     bool sortedForwards = this->mSpeakersTableListBox.getHeader().isSortedForwards();
@@ -325,7 +325,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
             this->mSpeakersTableListBox.selectRow(selectedRow + 1);
         }
         this->mSpeakersTableListBox.getHeader().setSortColumnId(sortColumnId, sortedForwards);
-        this->mMainContentComponent.needToComputeVbap = true;
+        this->mMainContentComponent.setNeedToComputeVbap(true);
     } else if (button == &this->mCompSpeakersButton) {
         if (this->mMainContentComponent.updateLevelComp()) {
             this->mMainContentComponent.setShowTriplets(tripletState);
@@ -359,7 +359,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         this->mSpeakersTableListBox.getHeader().setSortColumnId(sortColumnId, !sortedForwards);
         // This is the real sorting!
         this->mSpeakersTableListBox.getHeader().setSortColumnId(sortColumnId, sortedForwards);
-        this->mMainContentComponent.needToComputeVbap = true;
+        this->mMainContentComponent.setNeedToComputeVbap(true);
     } else if (button == &this->mPinkNoiseToggleButton) {
         this->mMainContentComponent.getJackClient()->setPinkNoiseActive(this->mPinkNoiseToggleButton.getToggleState());
     } else if (button->getName() != ""
@@ -378,7 +378,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         this->mMainContentComponent.resetSpeakerIds();
         updateWinContent();
         this->mSpeakersTableListBox.deselectAllRows();
-        this->mMainContentComponent.needToComputeVbap = true;
+        this->mMainContentComponent.setNeedToComputeVbap(true);
     } else {
         int row = button->getName().getIntValue() - 1000;
         this->mMainContentComponent.getListSpeaker()[row]->setDirectOut(button->getToggleState());
@@ -392,7 +392,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
             }
         }
         updateWinContent();
-        this->mMainContentComponent.needToComputeVbap = true;
+        this->mMainContentComponent.setNeedToComputeVbap(true);
     }
 }
 
@@ -449,7 +449,7 @@ void EditSpeakersWindow::updateWinContent()
     this->mNumRows = (unsigned int)this->mMainContentComponent.getListSpeaker().size();
     this->mSpeakersTableListBox.updateContent();
     if (this->mInitialized) {
-        this->mMainContentComponent.needToSaveSpeakerSetup = true;
+        this->mMainContentComponent.setNeedToSaveSpeakerSetup(true);
     }
     this->mInitialized = true;
 }
@@ -466,7 +466,7 @@ void EditSpeakersWindow::selectedRow(int const value)
 void EditSpeakersWindow::closeButtonPressed()
 {
     int exitV = 1;
-    if (this->mMainContentComponent.needToSaveSpeakerSetup) {
+    if (this->mMainContentComponent.needToSaveSpeakerSetup()) {
         juce::AlertWindow alert("Closing Speaker Setup Window !",
                                 "Do you want to compute and save the current setup ?",
                                 juce::AlertWindow::WarningIcon);
@@ -848,7 +848,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
             }
         }
         this->updateWinContent();
-        this->mMainContentComponent.needToComputeVbap = true;
+        this->mMainContentComponent.setNeedToComputeVbap(true);
         this->mMainContentComponent.getLockSpeakers().unlock();
     }
 }

@@ -38,22 +38,30 @@ ENABLE_WARNINGS
 //==============================================================================
 class JackServerGris
 {
+    unsigned int mRateValue;
+    unsigned int mPeriodValue;
+    jackctl_server_t * mServer;
+
 public:
-    JackServerGris(unsigned int rateV = 48000,
-                   unsigned int periodV = 1024,
-                   juce::String alsaOutputDevice = juce::String(),
-                   int * errorCode = nullptr);
+    //==============================================================================
+    explicit JackServerGris(unsigned int rateV = 48000,
+                            unsigned int periodV = 1024,
+                            juce::String alsaOutputDevice = juce::String(),
+                            int * errorCode = nullptr);
+    //==============================================================================
+    JackServerGris() = delete;
     ~JackServerGris();
+
+    JackServerGris(JackServerGris const &) = delete;
+    JackServerGris(JackServerGris &&) = delete;
+
+    JackServerGris & operator=(JackServerGris const &) = delete;
+    JackServerGris & operator=(JackServerGris &&) = delete;
     //==============================================================================
     // Only effective with alsa driver.
     juce::Array<juce::String> getAvailableOutputDevices() const;
-    //==============================================================================
-    jackctl_server_t * server;
 
 private:
     //==============================================================================
-    unsigned int rateValue;
-    unsigned int periodValue;
-    //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(JackServerGris);
+    JUCE_LEAK_DETECTOR(JackServerGris)
 };

@@ -276,7 +276,7 @@ void FlatViewWindow::drawSourceSpan(juce::Graphics & g, Input * it, const int fi
         float HRAzimSpan = 180.0f * (it->getAzimuthSpan()); // In zirkosc, this is [0,360]
         float HRElevSpan = 180.0f * (it->getZenithSpan());  // In zirkosc, this is [0,90]
 
-        if ((HRAzimSpan < 0.002f && HRElevSpan < 0.002f) || !this->mMainContentComponent.isSpanShown) {
+        if ((HRAzimSpan < 0.002f && HRElevSpan < 0.002f) || !this->mMainContentComponent.isSpanShown()) {
             return;
         }
 

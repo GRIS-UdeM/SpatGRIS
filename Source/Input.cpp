@@ -113,7 +113,7 @@ glm::vec3 Input::getNumberColor() const
 //==============================================================================
 juce::Colour Input::getColorJWithAlpha() const
 {
-    if (this->mMainContentComponent.isSourceLevelShown) {
+    if (this->mMainContentComponent.isSourceLevelShown()) {
         return this->mColorJ.withMultipliedAlpha(this->getAlpha());
     } else {
         return this->mColorJ;
@@ -123,7 +123,7 @@ juce::Colour Input::getColorJWithAlpha() const
 //==============================================================================
 float Input::getAlpha() const
 {
-    if (this->mMainContentComponent.isSourceLevelShown) {
+    if (this->mMainContentComponent.isSourceLevelShown()) {
         return this->mMainContentComponent.getLevelsAlpha(this->mIdChannel - 1);
     } else {
         return 1.0f;
@@ -141,7 +141,7 @@ void Input::draw()
     }
 
     // If isSourceLevelShown is on and alpha below 0.01, don't draw.
-    if (this->mMainContentComponent.isSourceLevelShown && this->getAlpha() <= 0.01) {
+    if (this->mMainContentComponent.isSourceLevelShown() && this->getAlpha() <= 0.01) {
         return;
     }
 
@@ -151,7 +151,7 @@ void Input::draw()
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glLineWidth(2);
 
-    if (this->mMainContentComponent.isSourceLevelShown) {
+    if (this->mMainContentComponent.isSourceLevelShown()) {
         glColor4f(this->mColor.x, this->mColor.y, this->mColor.z, this->getAlpha());
     } else {
         glColor4f(this->mColor.x, this->mColor.y, this->mColor.z, transpa);
@@ -160,7 +160,7 @@ void Input::draw()
     glutSolidSphere(this->mSizeT, 8, 8);
     glTranslatef(-this->mCenter.x, -this->mCenter.y, -this->mCenter.z);
 
-    if ((this->mAzimuthSpan != 0.0f || this->mZenithSpan != 0.0f) && this->mMainContentComponent.isSpanShown) {
+    if ((this->mAzimuthSpan != 0.0f || this->mZenithSpan != 0.0f) && this->mMainContentComponent.isSpanShown()) {
         if (this->mMainContentComponent.getModeSelected() == 1) {
             drawSpanLbap(this->mCenter.x, this->mCenter.y, this->mCenter.z);
         } else {

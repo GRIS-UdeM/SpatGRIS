@@ -155,13 +155,13 @@ static jackctl_internal_t * jackctl_server_get_internal(jackctl_server_t * serve
 // Jack server class definition.
 JackServerGris::JackServerGris(unsigned int rateV, unsigned int periodV, juce::String alsaOutputDevice, int * errorCode)
 {
-    this->rateValue = rateV;
-    this->periodValue = periodV;
+    this->mRateValue = rateV;
+    this->mPeriodValue = periodV;
 
-    this->server = jackctl_server_create(on_device_acquire, on_device_release);
+    this->mServer = jackctl_server_create(on_device_acquire, on_device_release);
 
-    if (this->server) {
-        auto const * parameters = jackctl_server_get_parameters(this->server);
+    if (this->mServer) {
+        auto const * parameters = jackctl_server_get_parameters(this->mServer);
 
         union jackctl_parameter_value value;
 
@@ -180,7 +180,7 @@ JackServerGris::JackServerGris(unsigned int rateV, unsigned int periodV, juce::S
         jack_server_log("\nList of drivers \n");
         jack_server_log("=============== \n");
 
-        auto const * drivers = jackctl_server_get_drivers_list(this->server);
+        auto const * drivers = jackctl_server_get_drivers_list(this->mServer);
         auto const * node_ptr = drivers;
         while (node_ptr != nullptr) {
             print_driver(static_cast<jackctl_driver_t *>(node_ptr->data));
@@ -209,13 +209,13 @@ JackServerGris::JackServerGris(unsigned int rateV, unsigned int periodV, juce::S
             // Set sampling rate.
             param = jackctl_get_parameter(driverParams, "rate");
             if (param != NULL) {
-                value.ui = value.i = this->rateValue;
+                value.ui = value.i = this->mRateValue;
                 jackctl_parameter_set_value(param, &value);
             }
             // Set buffer size.
             param = jackctl_get_parameter(driverParams, "period");
             if (param != NULL) {
-                value.ui = value.i = this->periodValue;
+                value.ui = value.i = this->mPeriodValue;
                 jackctl_parameter_set_value(param, &value);
             }
 
@@ -225,7 +225,7 @@ JackServerGris::JackServerGris(unsigned int rateV, unsigned int periodV, juce::S
         jack_server_log("\nList of internal clients \n");
         jack_server_log("======================== \n");
 
-        const JSList * internals = jackctl_server_get_internals_list(this->server);
+        const JSList * internals = jackctl_server_get_internals_list(this->mServer);
         node_ptr = internals;
         while (node_ptr != nullptr) {
             print_internal(static_cast<jackctl_internal_t *>(node_ptr->data));
@@ -235,9 +235,9 @@ JackServerGris::JackServerGris(unsigned int rateV, unsigned int periodV, juce::S
         jack_server_log("\nStart Jack Server \n");
         jack_server_log("================= \n");
 
-        if (jackctl_server_open(this->server, jackctl_server_get_driver(this->server, driverNameSys))) {
-            if (jackctl_server_start(this->server)) {
-                jackctl_server_load_internal(this->server, jackctl_server_get_internal(this->server, ClientNameSys));
+        if (jackctl_server_open(this->mServer, jackctl_server_get_driver(this->mServer, driverNameSys))) {
+            if (jackctl_server_start(this->mServer)) {
+                jackctl_server_load_internal(this->mServer, jackctl_server_get_internal(this->mServer, ClientNameSys));
             } else {
                 *errorCode = 3;
             }
@@ -252,10 +252,10 @@ JackServerGris::JackServerGris(unsigned int rateV, unsigned int periodV, juce::S
 //==============================================================================
 JackServerGris::~JackServerGris()
 {
-    if (this->server != nullptr) {
-        jackctl_server_stop(this->server);
-        jackctl_server_close(this->server);
-        jackctl_server_destroy(this->server);
+    if (this->mServer != nullptr) {
+        jackctl_server_stop(this->mServer);
+        jackctl_server_close(this->mServer);
+        jackctl_server_destroy(this->mServer);
     }
 }
 
