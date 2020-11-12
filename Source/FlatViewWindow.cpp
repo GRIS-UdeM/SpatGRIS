@@ -260,7 +260,7 @@ void FlatViewWindow::drawSourceSpan(juce::Graphics & g, Input * it, const int fi
 
     if (this->mMainContentComponent.getModeSelected() == LBAP) {
         int realW = (fieldWH - SourceDiameter);
-        float azimuthSpan = fieldWH * (it->getAziMuthSpan() * 0.5f);
+        float azimuthSpan = fieldWH * (it->getAzimuthSpan() * 0.5f);
         float halfAzimuthSpan = azimuthSpan / 2.0f - SourceRadius;
 
         sourceP.x = ((realW / 2.0f) + ((realW / 4.0f) * sourceP.x));
@@ -273,7 +273,7 @@ void FlatViewWindow::drawSourceSpan(juce::Graphics & g, Input * it, const int fi
         g.setColour(colorS.withAlpha(it->getAlpha() * 0.2f));
         g.fillEllipse(sourceP.x - halfAzimuthSpan, sourceP.y - halfAzimuthSpan, azimuthSpan, azimuthSpan);
     } else {
-        float HRAzimSpan = 180.0f * (it->getAziMuthSpan()); // In zirkosc, this is [0,360]
+        float HRAzimSpan = 180.0f * (it->getAzimuthSpan()); // In zirkosc, this is [0,360]
         float HRElevSpan = 180.0f * (it->getZenithSpan());  // In zirkosc, this is [0,90]
 
         if ((HRAzimSpan < 0.002f && HRElevSpan < 0.002f) || !this->mMainContentComponent.isSpanShown) {

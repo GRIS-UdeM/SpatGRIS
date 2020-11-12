@@ -29,6 +29,8 @@
         <FILE id="agZMLe" name="vbap.h" compile="0" resource="0" file="Source/spat/vbap.h"/>
       </GROUP>
       <GROUP id="{45A32A71-2629-205C-304E-C1093B6D3F59}" name="UI">
+        <FILE id="uYO3os" name="GrisLookAndFeel.cpp" compile="1" resource="0"
+              file="Source/GrisLookAndFeel.cpp"/>
         <GROUP id="{202AE941-C78E-5F46-CB31-EA8A544A343C}" name="Secondary Windows">
           <FILE id="abLCw0" name="AboutWindow.cpp" compile="1" resource="0" file="Source/AboutWindow.cpp"/>
           <FILE id="OQhNHY" name="AboutWindow.h" compile="0" resource="0" file="Source/AboutWindow.h"/>
@@ -66,8 +68,9 @@
       <FILE id="S7vdPe" name="AudioManager.cpp" compile="1" resource="0"
             file="Source/AudioManager.cpp"/>
       <FILE id="a7tJqo" name="AudioManager.h" compile="0" resource="0" file="Source/AudioManager.h"/>
-      <FILE id="uYO3os" name="GrisLookAndFeel.cpp" compile="1" resource="0"
-            file="Source/GrisLookAndFeel.cpp"/>
+      <FILE id="W2ApPD" name="AudioRecorder.cpp" compile="1" resource="0"
+            file="Source/AudioRecorder.cpp"/>
+      <FILE id="igqtKe" name="AudioRecorder.h" compile="0" resource="0" file="Source/AudioRecorder.h"/>
       <FILE id="BVvOrd" name="Input.cpp" compile="1" resource="0" file="Source/Input.cpp"/>
       <FILE id="BiDXCC" name="Input.h" compile="0" resource="0" file="Source/Input.h"/>
       <FILE id="A5skyB" name="JackClientGRIS.cpp" compile="1" resource="0"

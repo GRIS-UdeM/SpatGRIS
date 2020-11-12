@@ -300,7 +300,7 @@ void EditSpeakersWindow::sliderValueChanged(juce::Slider * slider)
     float gain;
     if (slider == &this->mPinkNoiseGainSlider) {
         gain = powf(10.0f, this->mPinkNoiseGainSlider.getValue() / 20.0f);
-        this->mMainContentComponent.getJackClient()->pinkNoiseGain = gain;
+        this->mMainContentComponent.getJackClient()->setPinkNoiseGain(gain);
     }
 }
 
@@ -361,10 +361,10 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         this->mSpeakersTableListBox.getHeader().setSortColumnId(sortColumnId, sortedForwards);
         this->mMainContentComponent.needToComputeVbap = true;
     } else if (button == &this->mPinkNoiseToggleButton) {
-        this->mMainContentComponent.getJackClient()->pinkNoiseSound = this->mPinkNoiseToggleButton.getToggleState();
+        this->mMainContentComponent.getJackClient()->setPinkNoiseActive(this->mPinkNoiseToggleButton.getToggleState());
     } else if (button->getName() != ""
                && (button->getName().getIntValue() >= 0
-                   && (unsigned int)button->getName().getIntValue()
+                   && static_cast<unsigned int>(button->getName().getIntValue())
                           <= this->mMainContentComponent.getListSpeaker().size())) {
         if (this->mSpeakersTableListBox.getNumSelectedRows() > 1
             && this->mSpeakersTableListBox.getSelectedRows().contains(button->getName().getIntValue())) {
@@ -490,7 +490,7 @@ void EditSpeakersWindow::closeButtonPressed()
         }
     }
     if (exitV) {
-        this->mMainContentComponent.getJackClient()->pinkNoiseSound = false;
+        this->mMainContentComponent.getJackClient()->setPinkNoiseActive(false);
         this->mMainContentComponent.closeSpeakersConfigurationWindow();
     }
 }

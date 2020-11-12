@@ -336,10 +336,11 @@ MainContentComponent::MainContentComponent(MainWindow & parent) : parent(parent)
         this->labelJackStatus->setText("Jack Run", juce::dontSendNotification);
     }
 
-    this->labelJackRate->setText(juce::String(this->jackClient->sampleRate) + " Hz", juce::dontSendNotification);
-    this->labelJackBuffer->setText(juce::String(this->jackClient->bufferSize) + " spls", juce::dontSendNotification);
-    this->labelJackInfo->setText("I : " + juce::String(this->jackClient->numberOutputs)
-                                     + " - O : " + juce::String(this->jackClient->numberInputs),
+    this->labelJackRate->setText(juce::String(this->jackClient->getSampleRate()) + " Hz", juce::dontSendNotification);
+    this->labelJackBuffer->setText(juce::String(this->jackClient->getBufferSize()) + " spls",
+                                   juce::dontSendNotification);
+    this->labelJackInfo->setText("I : " + juce::String(this->jackClient->getNumberOutputs())
+                                     + " - O : " + juce::String(this->jackClient->getNumberInputs()),
                                  juce::dontSendNotification);
 
     // Start the OSC Receiver.
@@ -694,7 +695,7 @@ void MainContentComponent::handleShowSpeakerEditWindow()
                                 600);
     if (this->winSpeakConfig == nullptr) {
         juce::String windowName = juce::String("Speakers Setup Edition - ")
-                                  + juce::String(ModeSpatString[this->jackClient->modeSelected]) + juce::String(" - ")
+                                  + juce::String(ModeSpatString[this->jackClient->getMode()]) + juce::String(" - ")
                                   + juce::File(this->pathCurrentFileSpeaker).getFileName();
         this->winSpeakConfig.reset(new EditSpeakersWindow(windowName, this->mGrisFeel, *this, this->nameConfig));
         this->winSpeakConfig->setBounds(result);
@@ -1181,7 +1182,7 @@ juce::PopupMenu MainContentComponent::getMenuForIndex(int menuIndex, const juce:
         menu.addSeparator();
         menu.addCommandItem(commandManager, MainWindow::ShowNumbersID);
         menu.addCommandItem(commandManager, MainWindow::ShowSpeakersID);
-        if (this->jackClient->vbapDimensions == 3) {
+        if (this->jackClient->getVbapDimensions() == 3) {
             menu.addCommandItem(commandManager, MainWindow::ShowTripletsID);
         } else {
             menu.addItem(MainWindow::ShowTripletsID, "Show Speaker Triplets", false, false);
@@ -1272,18 +1273,18 @@ bool MainContentComponent::exitApp()
 void MainContentComponent::connectionClientJack(juce::String nameCli, bool conn)
 {
     unsigned int maxport = 0;
-    for (auto && cli : this->jackClient->listClient) {
+    for (auto const & cli : this->jackClient->getClients()) {
         if (cli.portEnd > maxport) {
             maxport = cli.portEnd;
         }
     }
-    if (maxport > (unsigned int)this->tedAddInputs->getTextValue().toString().getIntValue()) {
+    if (maxport > static_cast<unsigned int>(this->tedAddInputs->getTextValue().toString().getIntValue())) {
         this->tedAddInputs->setText(juce::String(maxport), juce::dontSendNotification);
         textEditorReturnKeyPressed(*this->tedAddInputs);
     }
-    this->jackClient->processBlockOn = false;
+    this->jackClient->setProcessBlockOn(false);
     this->jackClient->connectionClient(nameCli, conn);
-    this->jackClient->processBlockOn = true;
+    this->jackClient->setProcessBlockOn(true);
 }
 
 //==============================================================================
@@ -1442,9 +1443,9 @@ void MainContentComponent::addSpeaker(int sortColumnId, bool isSortedForwards)
     }
     this->lockSpeakers.unlock();
 
-    this->jackClient->processBlockOn = false;
+    this->jackClient->setProcessBlockOn(false);
     this->jackClient->addOutput(this->listSpeaker.getLast()->getOutputPatch());
-    this->jackClient->processBlockOn = true;
+    this->jackClient->setProcessBlockOn(true);
 }
 
 //==============================================================================
@@ -1473,12 +1474,12 @@ void MainContentComponent::insertSpeaker(int position, int sortColumnId, bool is
     }
     this->lockSpeakers.unlock();
 
-    this->jackClient->processBlockOn = false;
+    this->jackClient->setProcessBlockOn(false);
     this->jackClient->clearOutput();
     for (auto && it : this->listSpeaker) {
         this->jackClient->addOutput(it->getOutputPatch());
     }
-    this->jackClient->processBlockOn = true;
+    this->jackClient->setProcessBlockOn(true);
 }
 
 //==============================================================================
@@ -1493,7 +1494,8 @@ void MainContentComponent::removeSpeaker(int idSpeaker)
 //==============================================================================
 bool MainContentComponent::isRadiusNormalized() const
 {
-    if (this->jackClient->modeSelected == VBAP || this->jackClient->modeSelected == VBAP_HRTF)
+    auto const mode{ this->jackClient->getMode() };
+    if (mode == VBAP || mode == VBAP_HRTF)
         return true;
     else
         return false;
@@ -1502,25 +1504,26 @@ bool MainContentComponent::isRadiusNormalized() const
 //==============================================================================
 void MainContentComponent::updateInputJack(int inInput, Input & inp)
 {
-    SourceIn * si = &this->jackClient->listSourceIn[inInput];
+    auto const mode{ jackClient->getMode() };
+    auto & si = this->jackClient->getSourcesIn()[inInput];
 
-    if (this->jackClient->modeSelected == LBAP) {
-        si->radazi = inp.getAziMuth();
-        si->radele = M_PI2 - inp.getZenith();
+    if (mode == LBAP) {
+        si.radazi = inp.getAzimuth();
+        si.radele = M_PI2 - inp.getZenith();
     } else {
-        si->azimuth = ((inp.getAziMuth() / M2_PI) * 360.0f);
-        if (si->azimuth > 180.0f) {
-            si->azimuth = si->azimuth - 360.0f;
+        si.azimuth = ((inp.getAzimuth() / M2_PI) * 360.0f);
+        if (si.azimuth > 180.0f) {
+            si.azimuth = si.azimuth - 360.0f;
         }
-        si->zenith = 90.0f - (inp.getZenith() / M2_PI) * 360.0f;
+        si.zenith = 90.0f - (inp.getZenith() / M2_PI) * 360.0f;
     }
-    si->radius = inp.getRadius();
+    si.radius = inp.getRadius();
 
-    si->aziSpan = inp.getAziMuthSpan() * 0.5f;
-    si->zenSpan = inp.getZenithSpan() * 2.0f;
+    si.aziSpan = inp.getAzimuthSpan() * 0.5f;
+    si.zenSpan = inp.getZenithSpan() * 2.0f;
 
-    if (this->jackClient->modeSelected == VBAP || this->jackClient->modeSelected == VBAP_HRTF) {
-        this->jackClient->vbapSourcesToUpdate[inInput] = 1;
+    if (mode == VBAP || mode == VBAP_HRTF) {
+        this->jackClient->getVbapSourcesToUpdate()[inInput] = 1;
     }
 }
 
@@ -1528,11 +1531,11 @@ void MainContentComponent::updateInputJack(int inInput, Input & inp)
 void MainContentComponent::setListTripletFromVbap()
 {
     this->clearListTriplet();
-    for (unsigned int i = 0; i < this->jackClient->vbap_triplets.size(); i++) {
+    for (auto const & it : jackClient->getVbapTriplets()) {
         Triplet tri;
-        tri.id1 = this->jackClient->vbap_triplets[i][0];
-        tri.id2 = this->jackClient->vbap_triplets[i][1];
-        tri.id3 = this->jackClient->vbap_triplets[i][2];
+        tri.id1 = it[0];
+        tri.id2 = it[1];
+        tri.id3 = it[2];
         this->listTriplet.push_back(tri);
     }
 }
@@ -1540,7 +1543,7 @@ void MainContentComponent::setListTripletFromVbap()
 //==============================================================================
 Speaker const * MainContentComponent::getSpeakerFromOutputPatch(int out) const
 {
-    for (auto const it : this->listSpeaker) {
+    for (auto const * it : this->listSpeaker) {
         if (it->getOutputPatch() == out && !it->isDirectOut()) {
             return it;
         }
@@ -1663,35 +1666,38 @@ bool MainContentComponent::updateLevelComp()
         }
     }
 
-    this->jackClient->processBlockOn = false;
-    this->jackClient->maxOutputPatch = 0;
+    this->jackClient->setProcessBlockOn(false);
+    this->jackClient->setMaxOutputPatch(0);
 
     // Save mute/solo/directout states
     bool inputsIsMuted[MaxInputs];
     bool inputsIsSolo[MaxInputs];
-    bool soloIn = this->jackClient->soloIn;
+    auto const soloIn = this->jackClient->getSoloIn();
     int directOuts[MaxInputs];
+    auto const * sourcesIn{ jackClient->getSourcesIn() };
     for (unsigned int i = 0; i < MaxInputs; i++) {
-        inputsIsMuted[i] = (&this->jackClient->listSourceIn[i])->isMuted;
-        inputsIsSolo[i] = (&this->jackClient->listSourceIn[i])->isSolo;
-        directOuts[i] = (&this->jackClient->listSourceIn[i])->directOut;
+        inputsIsMuted[i] = sourcesIn[i].isMuted;
+        inputsIsSolo[i] = sourcesIn[i].isSolo;
+        directOuts[i] = sourcesIn[i].directOut;
     }
 
     bool outputsIsMuted[MaxInputs];
     bool outputsIsSolo[MaxInputs];
-    bool soloOut = this->jackClient->soloOut;
+    bool soloOut = this->jackClient->getSoloOut();
+    auto const * speakersOut{ jackClient->getSpeakersOut() };
     for (unsigned int i = 0; i < MaxOutputs; i++) {
-        outputsIsMuted[i] = (&this->jackClient->listSpeakerOut[i])->isMuted;
-        outputsIsSolo[i] = (&this->jackClient->listSpeakerOut[i])->isSolo;
+        outputsIsMuted[i] = speakersOut[i].isMuted;
+        outputsIsSolo[i] = speakersOut[i].isSolo;
     }
 
     // Cleanup speakers output patch
-    for (auto && it : this->jackClient->listSpeakerOut) {
+    for (auto & it : this->jackClient->getSpeakersOut()) {
         it.outputPatch = 0;
     }
 
     // Create outputs.
     int i = 0, x = 2;
+    auto const mode{ jackClient->getMode() };
     for (auto && it : this->listSpeaker) {
         juce::Rectangle<int> level(x, 4, VuMeterWidthInPixels, 200);
         it->getVuMeter()->setBounds(level);
@@ -1701,7 +1707,7 @@ bool MainContentComponent::updateLevelComp()
 
         x += VuMeterWidthInPixels;
 
-        if (this->jackClient->modeSelected == VBAP || this->jackClient->modeSelected == VBAP_HRTF) {
+        if (mode == VBAP || mode == VBAP_HRTF) {
             it->normalizeRadius();
         }
 
@@ -1716,26 +1722,30 @@ bool MainContentComponent::updateLevelComp()
         so.outputPatch = it->getOutputPatch();
         so.directOut = it->isDirectOut();
 
-        this->jackClient->listSpeakerOut[i++] = so;
+        this->jackClient->getSpeakersOut()[i++] = so;
 
-        if ((unsigned int)it->getOutputPatch() > this->jackClient->maxOutputPatch)
-            this->jackClient->maxOutputPatch = it->getOutputPatch();
+        if (static_cast<unsigned int>(it->getOutputPatch()) > this->jackClient->getMaxOutputPatch())
+            this->jackClient->setMaxOutputPatch(it->getOutputPatch());
     }
 
     // Set user gain and highpass filter cutoff frequency for each speaker.
-    for (auto && it : this->listSpeaker) {
-        this->jackClient->listSpeakerOut[it->outputPatch - 1].gain = pow(10.0, it->getGain() * 0.05);
-        if (it->getHighPassCutoff() > 0.0f) {
+    for (auto const * speaker : this->listSpeaker) {
+        this->jackClient->getSpeakersOut()[speaker->outputPatch - 1].gain = std::pow(10.0f, speaker->getGain() * 0.05f);
+        if (speaker->getHighPassCutoff() > 0.0f) {
             double * coeffs;
-            Linkwitz_Riley_compute_variables((double)it->getHighPassCutoff(), (double)this->samplingRate, &coeffs, 7);
-            this->jackClient->listSpeakerOut[it->outputPatch - 1].b1 = coeffs[0];
-            this->jackClient->listSpeakerOut[it->outputPatch - 1].b2 = coeffs[1];
-            this->jackClient->listSpeakerOut[it->outputPatch - 1].b3 = coeffs[2];
-            this->jackClient->listSpeakerOut[it->outputPatch - 1].b4 = coeffs[3];
-            this->jackClient->listSpeakerOut[it->outputPatch - 1].ha0 = coeffs[4];
-            this->jackClient->listSpeakerOut[it->outputPatch - 1].ha1 = coeffs[5];
-            this->jackClient->listSpeakerOut[it->outputPatch - 1].ha2 = coeffs[6];
-            this->jackClient->listSpeakerOut[it->outputPatch - 1].hpActive = true;
+            Linkwitz_Riley_compute_variables(static_cast<double>(speaker->getHighPassCutoff()),
+                                             (double)this->samplingRate,
+                                             &coeffs,
+                                             7);
+            auto & speakerOut{ jackClient->getSpeakersOut()[speaker->outputPatch - 1] };
+            speakerOut.b1 = coeffs[0];
+            speakerOut.b2 = coeffs[1];
+            speakerOut.b3 = coeffs[2];
+            speakerOut.b4 = coeffs[3];
+            speakerOut.ha0 = coeffs[4];
+            speakerOut.ha1 = coeffs[5];
+            speakerOut.ha2 = coeffs[6];
+            speakerOut.hpActive = true;
             free(coeffs);
         }
     }
@@ -1743,25 +1753,25 @@ bool MainContentComponent::updateLevelComp()
     i = 0;
     x = 2;
     this->lockInputs.lock();
-    for (auto && it : this->listSourceInput) {
+    for (auto * input : this->listSourceInput) {
         juce::Rectangle<int> level(x, 4, VuMeterWidthInPixels, 200);
-        it->getVuMeter()->setBounds(level);
-        it->getVuMeter()->updateDirectOutMenu(this->listSpeaker);
-        it->getVuMeter()->resetClipping();
-        this->boxInputsUI->getContent()->addAndMakeVisible(it->getVuMeter());
-        it->getVuMeter()->repaint();
+        input->getVuMeter()->setBounds(level);
+        input->getVuMeter()->updateDirectOutMenu(this->listSpeaker);
+        input->getVuMeter()->resetClipping();
+        this->boxInputsUI->getContent()->addAndMakeVisible(input->getVuMeter());
+        input->getVuMeter()->repaint();
 
         x += VuMeterWidthInPixels;
 
         SourceIn si;
-        si.id = it->getId();
-        si.radazi = it->getAziMuth();
-        si.radele = M_PI2 - it->getZenith();
-        si.azimuth = it->getAziMuth();
-        si.zenith = it->getZenith();
-        si.radius = it->getRadius();
+        si.id = input->getId();
+        si.radazi = input->getAzimuth();
+        si.radele = M_PI2 - input->getZenith();
+        si.azimuth = input->getAzimuth();
+        si.zenith = input->getZenith();
+        si.radius = input->getRadius();
         si.gain = 0.0f;
-        this->jackClient->listSourceIn[i++] = si;
+        this->jackClient->getSourcesIn()[i++] = si;
     }
 
     this->lockInputs.unlock();
@@ -1785,12 +1795,12 @@ bool MainContentComponent::updateLevelComp()
     tempListSpeaker.resize(i);
 
     bool retval = false;
-    if (this->jackClient->modeSelected == VBAP || this->jackClient->modeSelected == VBAP_HRTF) {
-        this->jackClient->vbapDimensions = dimensions;
+    if (mode == VBAP || mode == VBAP_HRTF) {
+        this->jackClient->setVbapDimensions(dimensions);
         if (dimensions == 2) {
             this->setShowTriplets(false);
         }
-        retval = this->jackClient->initSpeakersTripplet(tempListSpeaker, dimensions, this->needToComputeVbap);
+        retval = this->jackClient->initSpeakersTriplet(tempListSpeaker, dimensions, this->needToComputeVbap);
 
         if (retval) {
             this->setListTripletFromVbap();
@@ -1805,17 +1815,18 @@ bool MainContentComponent::updateLevelComp()
             this->openXmlFileSpeaker(DEFAULT_SPEAKER_SETUP_FILE.getFullPathName());
             return false;
         }
-    } else if (this->jackClient->modeSelected == LBAP) {
+    } else if (mode == LBAP) {
         this->setShowTriplets(false);
         retval = this->jackClient->lbapSetupSpeakerField(tempListSpeaker);
     }
 
     // Restore mute/solo/directout states
-    this->jackClient->soloIn = soloIn;
+    this->jackClient->setSoloIn(soloIn);
     for (unsigned int i = 0; i < MaxInputs; i++) {
-        (&this->jackClient->listSourceIn[i])->isMuted = inputsIsMuted[i];
-        (&this->jackClient->listSourceIn[i])->isSolo = inputsIsSolo[i];
-        (&this->jackClient->listSourceIn[i])->directOut = directOuts[i];
+        auto & sourceIn{ jackClient->getSourcesIn()[i] };
+        sourceIn.isMuted = inputsIsMuted[i];
+        sourceIn.isSolo = inputsIsSolo[i];
+        sourceIn.directOut = directOuts[i];
     }
     this->lockInputs.lock();
     for (unsigned int i = 0; i < this->listSourceInput.size(); i++) {
@@ -1823,13 +1834,14 @@ bool MainContentComponent::updateLevelComp()
     }
     this->lockInputs.unlock();
 
-    this->jackClient->soloOut = soloOut;
+    this->jackClient->setSoloOut(soloOut);
     for (unsigned int i = 0; i < MaxOutputs; i++) {
-        (&this->jackClient->listSpeakerOut[i])->isMuted = outputsIsMuted[i];
-        (&this->jackClient->listSpeakerOut[i])->isSolo = outputsIsSolo[i];
+        auto & speakerOut{ jackClient->getSpeakersOut()[i] };
+        speakerOut.isMuted = outputsIsMuted[i];
+        speakerOut.isSolo = outputsIsSolo[i];
     }
 
-    this->jackClient->processBlockOn = true;
+    this->jackClient->setProcessBlockOn(true);
 
     return retval;
 }
@@ -1842,49 +1854,56 @@ void MainContentComponent::setNameConfig()
 }
 
 //==============================================================================
-void MainContentComponent::muteInput(int id, bool mute)
+void MainContentComponent::muteInput(int const id, bool const mute)
 {
-    (&this->jackClient->listSourceIn[id - 1])->isMuted = mute;
+    auto const index{ id - 1 };
+    jackClient->getSourcesIn()[index].isMuted = mute;
 }
 
 //==============================================================================
-void MainContentComponent::muteOutput(int id, bool mute)
+void MainContentComponent::muteOutput(int const id, bool const mute)
 {
-    (&this->jackClient->listSpeakerOut[id - 1])->isMuted = mute;
+    auto const index{ id - 1 };
+    jackClient->getSpeakersOut()[index].isMuted = mute;
 }
 
 //==============================================================================
-void MainContentComponent::soloInput(int id, bool solo)
+void MainContentComponent::soloInput(int const id, bool const solo)
 {
-    (&this->jackClient->listSourceIn[id - 1])->isSolo = solo;
+    auto & sourcesIn{ jackClient->getSourcesIn() };
+    auto const index{ id - 1 };
+    sourcesIn[index].isSolo = solo;
 
-    this->jackClient->soloIn = false;
+    this->jackClient->setSoloIn(false);
     for (unsigned int i = 0; i < MaxInputs; i++) {
-        if ((&this->jackClient->listSourceIn[i])->isSolo) {
-            this->jackClient->soloIn = true;
+        if (sourcesIn[i].isSolo) {
+            this->jackClient->setSoloIn(true);
             break;
         }
     }
 }
 
 //==============================================================================
-void MainContentComponent::soloOutput(int id, bool solo)
+void MainContentComponent::soloOutput(int const id, bool const solo)
 {
-    (&this->jackClient->listSpeakerOut[id - 1])->isSolo = solo;
+    auto const index{ id - 1 };
+    auto & speakersOut{ jackClient->getSpeakersOut() };
+    speakersOut[index].isSolo = solo;
 
-    this->jackClient->soloOut = false;
+    jackClient->setSoloOut(false);
     for (unsigned int i = 0; i < MaxOutputs; i++) {
-        if ((&this->jackClient->listSpeakerOut[i])->isSolo) {
-            this->jackClient->soloOut = true;
+        if (speakersOut[i].isSolo) {
+            jackClient->setSoloOut(true);
             break;
         }
     }
 }
 
 //==============================================================================
-void MainContentComponent::setDirectOut(int id, int chn)
+void MainContentComponent::setDirectOut(int const id, int const chn)
 {
-    (&this->jackClient->listSourceIn[id - 1])->directOut = chn;
+    auto const index{ id - 1 };
+    jackClient->getSourcesIn()[index].directOut = chn;
 }
 
 //==============================================================================
@@ -1927,30 +1946,30 @@ void MainContentComponent::openXmlFileSpeaker(juce::String path)
                 this->listSpeaker.clear();
                 this->lockSpeakers.unlock();
                 if (path.compare(BINAURAL_SPEAKER_SETUP_FILE.getFullPathName()) == 0) {
-                    this->jackClient->modeSelected = (ModeSpatEnum)(VBAP_HRTF);
+                    this->jackClient->setMode(VBAP_HRTF);
                     this->comBoxModeSpat->setSelectedId(VBAP_HRTF + 1, juce::NotificationType::dontSendNotification);
                 } else if (path.compare(STEREO_SPEAKER_SETUP_FILE.getFullPathName()) == 0) {
-                    this->jackClient->modeSelected = (ModeSpatEnum)(STEREO);
+                    this->jackClient->setMode(STEREO);
                     this->comBoxModeSpat->setSelectedId(STEREO + 1, juce::NotificationType::dontSendNotification);
                 } else if (!isNewSameAsOld && oldPath.compare(BINAURAL_SPEAKER_SETUP_FILE.getFullPathName()) != 0
                            && oldPath.compare(STEREO_SPEAKER_SETUP_FILE.getFullPathName()) != 0) {
                     int spatMode = mainXmlElem->getIntAttribute("SpatMode");
-                    this->jackClient->modeSelected = (ModeSpatEnum)(spatMode);
+                    this->jackClient->setMode(static_cast<ModeSpatEnum>(spatMode));
                     this->comBoxModeSpat->setSelectedId(spatMode + 1, juce::NotificationType::dontSendNotification);
                 } else if (!isNewSameAsLastSetup) {
                     int spatMode = mainXmlElem->getIntAttribute("SpatMode");
-                    this->jackClient->modeSelected = (ModeSpatEnum)(spatMode);
+                    this->jackClient->setMode(static_cast<ModeSpatEnum>(spatMode));
                     this->comBoxModeSpat->setSelectedId(spatMode + 1, juce::NotificationType::dontSendNotification);
                 }
 
                 bool loadSetupFromXYZ = false;
-                if (isNewSameAsOld && this->jackClient->modeSelected == LBAP)
+                if (isNewSameAsOld && this->jackClient->getMode() == LBAP)
                     loadSetupFromXYZ = true;
 
                 this->setNameConfig();
-                this->jackClient->processBlockOn = false;
+                this->jackClient->setProcessBlockOn(false);
                 this->jackClient->clearOutput();
-                this->jackClient->maxOutputPatch = 0;
+                this->jackClient->setMaxOutputPatch(0);
                 juce::Array<int> layoutIndexes;
                 int maxLayoutIndex = 0;
                 forEachXmlChildElement(*mainXmlElem, ring)
@@ -2003,7 +2022,7 @@ void MainContentComponent::openXmlFileSpeaker(juce::String path)
                         this->listTriplet.push_back(tri);
                     }
                 }
-                this->jackClient->processBlockOn = true;
+                this->jackClient->setProcessBlockOn(true);
                 ok = true;
             } else {
                 if (mainXmlElem->hasTagName("ServerGRIS_Preset")) {
@@ -2030,7 +2049,8 @@ void MainContentComponent::openXmlFileSpeaker(juce::String path)
         }
         this->needToComputeVbap = true;
         this->updateLevelComp();
-        if (this->getJackClient()->modeSelected != VBAP_HRTF && this->getJackClient()->modeSelected != STEREO) {
+        auto const mode{ jackClient->getMode() };
+        if (mode != VBAP_HRTF && mode != STEREO) {
             if (this->pathCurrentFileSpeaker.compare(BINAURAL_SPEAKER_SETUP_FILE.getFullPathName()) != 0
                 && this->pathCurrentFileSpeaker.compare(STEREO_SPEAKER_SETUP_FILE.getFullPathName()) != 0) {
                 this->pathLastVbapSpeakerSetup = this->pathCurrentFileSpeaker;
@@ -2057,7 +2077,7 @@ void MainContentComponent::setTitle()
 void MainContentComponent::openPreset(juce::String path)
 {
     juce::String msg;
-    this->jackClient->processBlockOn = false;
+    this->jackClient->setProcessBlockOn(false);
     juce::File xmlFile = juce::File(path.toStdString());
     juce::XmlDocument xmlDoc(xmlFile);
     std::unique_ptr<juce::XmlElement> mainXmlElem(xmlDoc.getDocumentElement());
@@ -2166,8 +2186,8 @@ void MainContentComponent::openPreset(juce::String path)
         }
     }
 
-    this->jackClient->pinkNoiseSound = false;
-    this->jackClient->processBlockOn = true;
+    this->jackClient->setPinkNoiseActive(false);
+    this->jackClient->setProcessBlockOn(true);
 
     if (this->pathCurrentPreset.endsWith("default_preset/default_preset.xml")) {
         this->applicationProperties.getUserSettings()->setValue(
@@ -2271,7 +2291,8 @@ void MainContentComponent::saveSpeakerSetup(juce::String path)
 
     this->needToSaveSpeakerSetup = false;
 
-    if (this->getJackClient()->modeSelected != VBAP_HRTF && this->getJackClient()->modeSelected != STEREO) {
+    auto const mode{ jackClient->getMode() };
+    if (mode != VBAP_HRTF && mode != STEREO) {
         if (this->pathCurrentFileSpeaker.compare(BINAURAL_SPEAKER_SETUP_FILE.getFullPathName()) != 0
             && this->pathCurrentFileSpeaker.compare(STEREO_SPEAKER_SETUP_FILE.getFullPathName()) != 0) {
             this->pathLastVbapSpeakerSetup = this->pathCurrentFileSpeaker;
@@ -2344,10 +2365,10 @@ void MainContentComponent::saveProperties(juce::String device,
 
     // Handle CUBE distance attenuation
     float linGain = powf(10.0f, AttenuationDBs[attenuationDB].getFloatValue() * 0.05f);
-    this->jackClient->setAttenuationDB(linGain);
+    this->jackClient->setAttenuationDb(linGain);
     props->setValue("AttenuationDB", attenuationDB);
 
-    float coeff = expf(-M2_PI * AttenuationCutoffs[attenuationHz].getFloatValue() / this->jackClient->sampleRate);
+    float coeff = expf(-M2_PI * AttenuationCutoffs[attenuationHz].getFloatValue() / this->jackClient->getSampleRate());
     this->jackClient->setAttenuationHz(coeff);
     props->setValue("AttenuationHz", attenuationHz);
 
@@ -2357,8 +2378,9 @@ void MainContentComponent::saveProperties(juce::String device,
 //==============================================================================
 void MainContentComponent::timerCallback()
 {
-    this->labelJackLoad->setText(juce::String(this->jackClient->getCpuUsed(), 4) + " %", juce::dontSendNotification);
-    int seconds = this->jackClient->indexRecord / this->jackClient->sampleRate;
+    this->labelJackLoad->setText(juce::String(this->jackClient->getCpuUsed() * 100.0f, 4) + " %",
+                                 juce::dontSendNotification);
+    int seconds = this->jackClient->getIndexRecord() / this->jackClient->getSampleRate();
     int minute = int(seconds / 60) % 60;
     seconds = int(seconds % 60);
     juce::String timeRecorded = ((minute < 10) ? "0" + juce::String(minute) : juce::String(minute)) + " : "
@@ -2377,28 +2399,28 @@ void MainContentComponent::timerCallback()
         this->butStartRecord->setButtonText("Record");
     }
 
-    if (this->isRecording && !this->jackClient->recording) {
+    if (this->isRecording && !this->jackClient->isRecording()) {
         bool isReadyToMerge = true;
         for (unsigned int i = 0; i < MaxOutputs; i++) {
-            if (this->jackClient->recorder[i].backgroundThread.isThreadRunning()) {
+            if (this->jackClient->getRecorders()[i].backgroundThread.isThreadRunning()) {
                 isReadyToMerge = false;
             }
         }
         if (isReadyToMerge) {
             this->isRecording = false;
             if (this->jackClient->getRecordFileConfig()) {
-                this->jackClient->processBlockOn = false;
+                this->jackClient->setProcessBlockOn(false);
                 AudioRenderer * renderer = new AudioRenderer();
                 renderer->prepareRecording(this->jackClient->getRecordingPath(),
-                                           this->jackClient->outputFilenames,
-                                           this->jackClient->sampleRate);
+                                           this->jackClient->getOutputFileNames(),
+                                           this->jackClient->getSampleRate());
                 renderer->runThread();
-                this->jackClient->processBlockOn = true;
+                this->jackClient->setProcessBlockOn(true);
             }
         }
     }
 
-    if (this->jackClient->overload) {
+    if (this->jackClient->isOverloaded()) {
         this->labelJackLoad->setColour(juce::Label::backgroundColourId, juce::Colours::darkred);
     } else {
         this->labelJackLoad->setColour(juce::Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
@@ -2454,14 +2476,14 @@ void MainContentComponent::textEditorReturnKeyPressed(juce::TextEditor & textEdi
             this->tedAddInputs->setText(juce::String(MaxInputs));
         }
 
-        if (this->jackClient->inputsPort.size() != num_of_inputs) {
-            this->jackClient->processBlockOn = false;
+        if (this->jackClient->getInputPorts().size() != num_of_inputs) {
+            this->jackClient->setProcessBlockOn(false);
             this->jackClient->addRemoveInput(num_of_inputs);
-            this->jackClient->processBlockOn = true;
+            this->jackClient->setProcessBlockOn(true);
 
             this->lockInputs.lock();
             bool addInput = false;
-            for (unsigned int i = 0; i < this->jackClient->inputsPort.size(); i++) {
+            for (unsigned int i = 0; i < this->jackClient->getInputPorts().size(); i++) {
                 if (i >= this->listSourceInput.size()) {
                     this->listSourceInput.add(new Input(*this, mSmallTextGrisFeel, i + 1));
                     addInput = true;
@@ -2469,7 +2491,7 @@ void MainContentComponent::textEditorReturnKeyPressed(juce::TextEditor & textEdi
             }
             if (!addInput) {
                 auto const listSourceInputSize{ this->listSourceInput.size() };
-                auto const jackClientInputPortSize{ this->jackClient->inputsPort.size() };
+                auto const jackClientInputPortSize{ this->jackClient->getInputPorts().size() };
                 if (listSourceInputSize > jackClientInputPortSize) {
                     this->listSourceInput.removeRange(jackClientInputPortSize,
                                                       listSourceInputSize - jackClientInputPortSize);
@@ -2486,7 +2508,7 @@ void MainContentComponent::textEditorReturnKeyPressed(juce::TextEditor & textEdi
 void MainContentComponent::buttonClicked(juce::Button * button)
 {
     if (button == this->butStartRecord.get()) {
-        if (this->jackClient->recording) {
+        if (this->jackClient->isRecording()) {
             this->jackClient->stopRecord();
             this->butStartRecord->setEnabled(false);
             this->labelTimeRecorded->setColour(juce::Label::textColourId, mGrisFeel.getFontColour());
@@ -2495,7 +2517,7 @@ void MainContentComponent::buttonClicked(juce::Button * button)
             this->jackClient->startRecord();
             this->labelTimeRecorded->setColour(juce::Label::textColourId, mGrisFeel.getRedColour());
         }
-        this->butStartRecord->setToggleState(this->jackClient->recording, juce::dontSendNotification);
+        this->butStartRecord->setToggleState(this->jackClient->isRecording(), juce::dontSendNotification);
     } else if (button == this->butInitRecord.get()) {
         this->chooseRecordingPath();
         this->butStartRecord->setEnabled(true);
@@ -2506,11 +2528,11 @@ void MainContentComponent::buttonClicked(juce::Button * button)
 void MainContentComponent::sliderValueChanged(juce::Slider * slider)
 {
     if (slider == this->sliderMasterGainOut.get()) {
-        this->jackClient->masterGainOut = pow(10.0, this->sliderMasterGainOut->getValue() * 0.05);
+        this->jackClient->setMasterGainOut(pow(10.0, this->sliderMasterGainOut->getValue() * 0.05));
     }
 
     else if (slider == this->sliderInterpolation.get()) {
-        this->jackClient->interMaster = this->sliderInterpolation->getValue();
+        this->jackClient->setInterMaster(this->sliderInterpolation->getValue());
     }
 }
 
@@ -2525,15 +2547,15 @@ void MainContentComponent::comboBoxChanged(juce::ComboBox * comboBox)
         alert.setLookAndFeel(&mGrisFeel);
         alert.addButton("Ok", 0, juce::KeyPress(juce::KeyPress::returnKey));
         alert.runModalLoop();
-        this->comBoxModeSpat->setSelectedId(this->jackClient->modeSelected + 1,
+        this->comBoxModeSpat->setSelectedId(this->jackClient->getMode() + 1,
                                             juce::NotificationType::dontSendNotification);
         return;
     }
 
     if (this->comBoxModeSpat.get() == comboBox) {
-        this->jackClient->processBlockOn = false;
-        this->jackClient->modeSelected = (ModeSpatEnum)(this->comBoxModeSpat->getSelectedId() - 1);
-        switch (this->jackClient->modeSelected) {
+        this->jackClient->setProcessBlockOn(false);
+        this->jackClient->setMode((ModeSpatEnum)(this->comBoxModeSpat->getSelectedId() - 1));
+        switch (jackClient->getMode()) {
         case VBAP:
             this->openXmlFileSpeaker(this->pathLastVbapSpeakerSetup);
             this->needToSaveSpeakerSetup = false;
@@ -2547,7 +2569,7 @@ void MainContentComponent::comboBoxChanged(juce::ComboBox * comboBox)
         case VBAP_HRTF:
             this->openXmlFileSpeaker(BINAURAL_SPEAKER_SETUP_FILE.getFullPathName());
             this->needToSaveSpeakerSetup = false;
-            this->jackClient->resetHRTF();
+            this->jackClient->resetHrtf();
             this->isSpanShown = false;
             break;
         case STEREO:
@@ -2558,12 +2580,12 @@ void MainContentComponent::comboBoxChanged(juce::ComboBox * comboBox)
         default:
             break;
         }
-        this->jackClient->processBlockOn = true;
+        this->jackClient->setProcessBlockOn(true);
 
         if (this->winSpeakConfig != nullptr) {
             juce::String windowName = juce::String("Speakers Setup Edition - ")
-                                      + juce::String(ModeSpatString[this->jackClient->modeSelected])
-                                      + juce::String(" - ") + juce::File(this->pathCurrentFileSpeaker).getFileName();
+                                      + juce::String(ModeSpatString[this->jackClient->getMode()]) + juce::String(" - ")
+                                      + juce::File(this->pathCurrentFileSpeaker).getFileName();
             this->winSpeakConfig->setName(windowName);
         }
     }

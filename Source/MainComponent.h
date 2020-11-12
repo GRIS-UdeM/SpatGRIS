@@ -146,10 +146,10 @@ public:
     JackClientGris * getJackClient() { return this->jackClient.get(); }
     JackClientGris const * getJackClient() const { return this->jackClient.get(); }
 
-    std::mutex & getLockClients() { return this->jackClient->lockListClient; }
+    std::mutex & getLockClients() { return this->jackClient->getClientsLock(); }
 
-    std::vector<Client> & getListClientjack() { return this->jackClient->listClient; }
-    std::vector<Client> const & getListClientjack() const { return this->jackClient->listClient; }
+    std::vector<Client> & getListClientjack() { return this->jackClient->getClients(); }
+    std::vector<Client> const & getListClientjack() const { return this->jackClient->getClients(); }
 
     void connectionClientJack(juce::String nameCli, bool conn = true);
 
@@ -234,7 +234,7 @@ public:
     void closeSpeakersConfigurationWindow()
     {
         this->winSpeakConfig.reset();
-        this->jackClient->processBlockOn = true;
+        this->jackClient->setProcessBlockOn(true);
     }
     void closePropertiesWindow() { this->windowProperties.reset(); }
     void closeFlatViewWindow() { this->flatViewWindowSource = nullptr; }
