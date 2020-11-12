@@ -374,17 +374,17 @@ public:
     void addNoiseSound(jack_default_audio_sample_t ** outs, jack_nframes_t nframes, unsigned sizeOutputs);
     void processVbap(jack_default_audio_sample_t ** ins,
                      jack_default_audio_sample_t ** outs,
-                     jack_nframes_t nframes,
+                     jack_nframes_t nFrames,
                      unsigned sizeInputs,
                      unsigned sizeOutputs);
     void processLbap(jack_default_audio_sample_t ** ins,
                      jack_default_audio_sample_t ** outs,
-                     jack_nframes_t nframes,
+                     jack_nframes_t nFrames,
                      unsigned sizeInputs,
                      unsigned sizeOutputs);
     void processVBapHrtf(jack_default_audio_sample_t ** ins,
                          jack_default_audio_sample_t ** outs,
-                         jack_nframes_t nframes,
+                         jack_nframes_t nFrames,
                          unsigned sizeInputs,
                          unsigned sizeOutputs);
     void processStereo(jack_default_audio_sample_t ** ins,

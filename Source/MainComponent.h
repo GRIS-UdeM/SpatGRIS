@@ -25,23 +25,6 @@ DISABLE_WARNINGS
 #include <JuceHeader.h>
 ENABLE_WARNINGS
 
-// Macros
-#ifndef M_PI
-    #define M_PI (3.14159265358979323846264338327950288)
-#endif
-
-#ifndef M2_PI
-    #define M2_PI (6.28318530717958647692528676655900577)
-#endif
-
-#ifndef M_PI2
-    #define M_PI2 (1.57079632679489661923132169163975143)
-#endif
-
-#ifndef M_PI4
-    #define M_PI4 (0.785398163397448309615660845819875720)
-#endif
-
 #define STRING2(x) #x
 #define STRING(x) STRING2(x)
 

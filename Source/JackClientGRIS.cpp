@@ -21,6 +21,7 @@
 
 #include <array>
 #include <cstdarg>
+#include <execution>
 
 #include "MainComponent.h"
 #include "ServerGrisConstants.h"
@@ -609,42 +610,35 @@ void JackClientGris::addNoiseSound(jack_default_audio_sample_t ** outs,
 //==============================================================================
 void JackClientGris::processVbap(jack_default_audio_sample_t ** ins,
                                  jack_default_audio_sample_t ** outs,
-                                 jack_nframes_t const nframes,
+                                 jack_nframes_t const nFrames,
                                  unsigned const sizeInputs,
                                  unsigned const sizeOutputs)
 {
-    unsigned int f, i, o, ilinear;
-    float y, interpG = 0.99, iogain = 0.0;
+    auto const iLinear{ mInterMaster == 0.0f };
+    auto interpolationG{ mInterMaster == 0.0f  ? 0.99f : std::pow(mInterMaster, 0.1f) * 0.0099f + 0.99f };
 
-    if (mInterMaster == 0.0) {
-        ilinear = 1;
-    } else {
-        ilinear = 0;
-        interpG = powf(mInterMaster, 0.1) * 0.0099 + 0.99;
-    }
-
-    for (i = 0; i < sizeInputs; ++i) {
+    for (unsigned i{}; i < sizeInputs; ++i) {
         if (mVbapSourcesToUpdate[i] == 1) {
-            updateSourceVbap(i);
+            updateSourceVbap(static_cast<int>(i));
             mVbapSourcesToUpdate[i] = 0;
         }
     }
 
-    for (o = 0; o < sizeOutputs; ++o) {
-        memset(outs[o], 0, sizeof(jack_default_audio_sample_t) * nframes);
-        for (i = 0; i < sizeInputs; ++i) {
+    for (unsigned o{}; o < sizeOutputs; ++o) {
+        std::fill(outs[o], outs[o] + nFrames, 0.0f);
+        for (unsigned i{}; i < sizeInputs; ++i) {
             if (!mSourcesIn[i].directOut && mSourcesIn[i].paramVBap != nullptr) {
-                iogain = mSourcesIn[i].paramVBap->gains[o];
-                y = mSourcesIn[i].paramVBap->y[o];
-                if (ilinear) {
-                    interpG = (iogain - y) / nframes;
-                    for (f = 0; f < nframes; ++f) {
-                        y += interpG;
+                auto const ioGain{ mSourcesIn[i].paramVBap->gains[o] };
+                auto y{ mSourcesIn[i].paramVBap->y[o] };
+                if (iLinear) {
+                    interpolationG = (ioGain - y) / nFrames;
+                    for (unsigned f{}; f < nFrames; ++f) {
+                        y += interpolationG;
                         outs[o][f] += ins[i][f] * y;
                     }
                 } else {
-                    for (f = 0; f < nframes; ++f) {
-                        y = iogain + (y - iogain) * interpG;
+                    for (unsigned f{}; f < nFrames; ++f) {
+                        y = ioGain + (y - ioGain) * interpolationG;
                         if (y < 0.0000000000001f) {
                             y = 0.0;
                         } else {
@@ -654,9 +648,7 @@ void JackClientGris::processVbap(jack_default_audio_sample_t ** ins,
                 }
                 mSourcesIn[i].paramVBap->y[o] = y;
             } else if (static_cast<unsigned int>(mSourcesIn[i].directOut - 1) == o) {
-                for (f = 0; f < nframes; ++f) {
-                    outs[o][f] += ins[i][f];
-                }
+                std::transform(outs[o], outs[o] + nFrames, ins[i], outs[o], std::plus<float>());
             }
         }
     }
@@ -665,99 +657,105 @@ void JackClientGris::processVbap(jack_default_audio_sample_t ** ins,
 //==============================================================================
 void JackClientGris::processLbap(jack_default_audio_sample_t ** ins,
                                  jack_default_audio_sample_t ** outs,
-                                 jack_nframes_t nframes,
-                                 unsigned sizeInputs,
-                                 unsigned sizeOutputs)
+                                 jack_nframes_t const nFrames,
+                                 unsigned const sizeInputs,
+                                 unsigned const sizeOutputs)
 {
-    unsigned int f, i, o, ilinear;
-    float y, gain, distance, distgain, distcoef, interpG = 0.99;
-    lbap_pos pos;
+    static auto constexpr MAX_N_FRAMES{ 2048u };
+    jassert(nFrames <= MAX_N_FRAMES);
+    std::array<float, MAX_N_FRAMES> filteredInputSignal{};
 
-    float filteredInputSignal[2048];
-    memset(filteredInputSignal, 0, sizeof(float) * nframes);
+    auto const iLinear{ mInterMaster == 0.0f };
+    auto interpolationG{ mInterMaster == 0.0f ? 0.99f : std::pow(mInterMaster, 0.1f) * 0.0099f + 0.99f };
 
-    if (mInterMaster == 0.0) {
-        ilinear = 1;
-    } else {
-        ilinear = 0;
-        interpG = powf(mInterMaster, 0.1) * 0.0099 + 0.99;
-    }
+    // TODO : is this necessary ?
+    std::for_each(outs, outs + sizeOutputs, [nFrames](float * it) { std::fill(it, it + nFrames, 0.0f); });
 
-    for (o = 0; o < sizeOutputs; ++o) {
-        memset(outs[o], 0, sizeof(jack_default_audio_sample_t) * nframes);
-    }
-
-    for (i = 0; i < sizeInputs; ++i) {
-        if (!mSourcesIn[i].directOut) {
-            lbap_pos_init_from_radians(&pos,
-                                       mSourcesIn[i].radAzimuth,
-                                       mSourcesIn[i].radElevation,
-                                       mSourcesIn[i].radius);
-            pos.radspan = mSourcesIn[i].azimuthSpan;
-            pos.elespan = mSourcesIn[i].zenithSpan;
-            distance = mSourcesIn[i].radius;
-            if (!lbap_pos_compare(&pos, &mSourcesIn[i].lbapLastPos)) {
-                lbap_field_compute(mLbapSpeakerField, &pos, mSourcesIn[i].lbapGains.data());
-                lbap_pos_copy(&mSourcesIn[i].lbapLastPos, &pos);
+    for (unsigned i{}; i < sizeInputs; ++i) {
+        auto & sourceIn{ mSourcesIn[i] };
+        if (!sourceIn.directOut) {
+            lbap_pos pos;
+            lbap_pos_init_from_radians(&pos, sourceIn.radAzimuth, sourceIn.radElevation, sourceIn.radius);
+            pos.radspan = sourceIn.azimuthSpan;
+            pos.elespan = sourceIn.zenithSpan;
+            auto distance{ sourceIn.radius };
+            if (!lbap_pos_compare(&pos, &sourceIn.lbapLastPos)) {
+                lbap_field_compute(mLbapSpeakerField, &pos, sourceIn.lbapGains.data());
+                lbap_pos_copy(&sourceIn.lbapLastPos, &pos);
             }
 
+            float distanceGain;
+            float distanceCoefficient;
             // Energy lost with distance, radius is in the range 0 - 2.6 (>1 is beyond HP circle).
             if (distance < 1.0f) {
-                distgain = 1.0f;
-                distcoef = 0.0f;
+                distanceGain = 1.0f;
+                distanceCoefficient = 0.0f;
             } else {
-                distance -= 1.0f;
-                distance *= 1.25f;
-                if (distance > 1.0f) {
-                    distance = 1.0f;
-                }
-                distgain = (1.0f - distance) * (1.0f - mAttenuationLinearGain) + mAttenuationLinearGain;
-                distcoef = distance * mAttenuationLowpassCoefficient;
+                distance = std::min((distance - 1.0f) * 1.25f, 1.0f);
+                distanceGain = (1.0f - distance) * (1.0f - mAttenuationLinearGain) + mAttenuationLinearGain;
+                distanceCoefficient = distance * mAttenuationLowpassCoefficient;
             }
-            float diffgain = (distgain - mLastAttenuationGain[i]) / nframes;
-            float diffcoef = (distcoef - mLastAttenuationCoefficient[i]) / nframes;
-            float filtInY = mAttenuationLowpassY[i];
-            float filtInZ = mAttenuationLowpassZ[i];
-            float lastcoef = mLastAttenuationCoefficient[i];
-            float lastgain = mLastAttenuationGain[i];
-            for (unsigned int k = 0; k < nframes; k++) {
-                lastcoef += diffcoef;
-                lastgain += diffgain;
-                filtInY = ins[i][k] + (filtInY - ins[i][k]) * lastcoef;
-                filtInZ = filtInY + (filtInZ - filtInY) * lastcoef;
-                filteredInputSignal[k] = filtInZ * lastgain;
+            auto const diffGain{ (distanceGain - mLastAttenuationGain[i]) / static_cast<float>(nFrames) };
+            auto const diffCoefficient
+                = (distanceCoefficient - mLastAttenuationCoefficient[i]) / static_cast<float>(nFrames);
+            auto filterInY{ mAttenuationLowpassY[i] };
+            auto filterInZ{ mAttenuationLowpassZ[i] };
+            auto lastCoefficient{ mLastAttenuationCoefficient[i] };
+            auto lastGain{ mLastAttenuationGain[i] };
+            for (unsigned k{}; k < nFrames; ++k) {
+                lastCoefficient += diffCoefficient;
+                lastGain += diffGain;
+                filterInY = ins[i][k] + (filterInY - ins[i][k]) * lastCoefficient;
+                filterInZ = filterInY + (filterInZ - filterInY) * lastCoefficient;
+                filteredInputSignal[k] = filterInZ * lastGain;
             }
-            mAttenuationLowpassY[i] = filtInY;
-            mAttenuationLowpassZ[i] = filtInZ;
-            mLastAttenuationGain[i] = distgain;
-            mLastAttenuationCoefficient[i] = distcoef;
+            mAttenuationLowpassY[i] = filterInY;
+            mAttenuationLowpassZ[i] = filterInZ;
+            mLastAttenuationGain[i] = distanceGain;
+            mLastAttenuationCoefficient[i] = distanceCoefficient;
             //==============================================================================
 
-            for (o = 0; o < sizeOutputs; ++o) {
-                gain = mSourcesIn[i].lbapGains[o];
-                y = mSourcesIn[i].lbapY[o];
-                if (ilinear) {
-                    interpG = (gain - y) / nframes;
-                    for (f = 0; f < nframes; ++f) {
-                        y += interpG;
+            for (unsigned o{}; o < sizeOutputs; ++o) {
+                auto const gain{ mSourcesIn[i].lbapGains[o] };
+                auto y{ mSourcesIn[i].lbapY[o] };
+                if (iLinear) {
+                    interpolationG = (gain - y) / nFrames;
+                    for (unsigned f{}; f < nFrames; ++f) {
+                        y += interpolationG;
                         outs[o][f] += filteredInputSignal[f] * y;
                     }
                 } else {
-                    for (f = 0; f < nframes; ++f) {
-                        y = gain + (y - gain) * interpG;
+                    std::array<float, MAX_N_FRAMES> tmp;
+                    
+                    std::generate(tmp.begin(), tmp.begin() + nFrames, [&y, gain, interpolationG]()->float
+                    {
+                        y = (y - gain) * interpolationG + gain, 0.0f;
+                        if (y < 0.0000000000001f)
+                        {
+                            y = 0.0f;
+                        }
+                        return y;
+                    });
+                    juce::FloatVectorOperations::addWithMultiply(outs[o], tmp.data(), filteredInputSignal.data(), nFrames);
+
+                    //juce::FloatVectorOperations::
+                    
+                    
+                    /*for (unsigned f{}; f < nFrames; ++f) {
+                        y = (y - gain) * interpolationG + gain;
                         if (y < 0.0000000000001f) {
                             y = 0.0;
                         } else {
                             outs[o][f] += filteredInputSignal[f] * y;
                         }
-                    }
+                    }*/
                 }
                 mSourcesIn[i].lbapY[o] = y;
             }
         } else {
-            for (o = 0; o < sizeOutputs; ++o) {
+            for (unsigned o{}; o < sizeOutputs; ++o) {
                 if (static_cast<unsigned int>(mSourcesIn[i].directOut - 1) == o) {
-                    for (f = 0; f < nframes; ++f) {
+                    for (unsigned f{}; f < nFrames; ++f) {
                         outs[o][f] += ins[i][f];
                     }
                 }
@@ -769,95 +767,94 @@ void JackClientGris::processLbap(jack_default_audio_sample_t ** ins,
 //==============================================================================
 void JackClientGris::processVBapHrtf(jack_default_audio_sample_t ** ins,
                                      jack_default_audio_sample_t ** outs,
-                                     jack_nframes_t nframes,
-                                     unsigned sizeInputs,
-                                     unsigned sizeOutputs)
+                                     jack_nframes_t const nFrames,
+                                     unsigned const sizeInputs,
+                                     [[maybe_unused]] unsigned const sizeOutputs)
 {
-    for (unsigned int o = 0; o < sizeOutputs; ++o) {
-        memset(outs[o], 0, sizeof(jack_default_audio_sample_t) * nframes);
-    }
+    static auto constexpr MAX_FRAME_COUNT = 2048u;
+    static auto constexpr NUM_CHANNELS = 16u;
 
-    unsigned int ilinear;
-    float interpG = 0.99f;
-    if (mInterMaster == 0.0) {
-        ilinear = 1;
-    } else {
-        ilinear = 0;
-        interpG = powf(mInterMaster, 0.1f) * 0.0099f + 0.99f;
-    }
+    jassert(sizeOutputs == NUM_CHANNELS);
 
-    for (unsigned int i = 0; i < sizeInputs; ++i) {
+    std::for_each(outs, outs + NUM_CHANNELS, [nFrames](float * channel) {
+        std::fill(channel, channel + nFrames, 0.0f);
+    });
+
+    auto const iLinear{ mInterMaster == 0.0f };
+    auto interpolationG{ mInterMaster == 0.0f ? 0.99f : std::pow(mInterMaster, 0.1f) * 0.0099f + 0.99f };
+
+    for (unsigned i{}; i < sizeInputs; ++i) {
         if (mVbapSourcesToUpdate[i] == 1) {
-            updateSourceVbap(i);
+            updateSourceVbap(static_cast<int>(i));
             mVbapSourcesToUpdate[i] = 0;
         }
     }
 
-    constexpr unsigned int MAX_FRAME_COUNT = 2048;
-    constexpr unsigned int MAX_OUTPUTS_COUNT = 16;
-    std::array<std::array<float, MAX_FRAME_COUNT>, MAX_OUTPUTS_COUNT> vbapouts{};
-
-    jassert(sizeOutputs == MAX_OUTPUTS_COUNT);
-
-    // zero mem
-    std::for_each(std::begin(vbapouts), std::end(vbapouts), [=](auto & buffer) {
-        std::fill(std::begin(buffer), std::begin(buffer) + nframes, 0.0f);
-    });
-
-    for (unsigned int o{}; o < MAX_OUTPUTS_COUNT; ++o) {
-        for (unsigned int i{}; i < sizeInputs; ++i) {
-            if (!mSourcesIn[i].directOut && mSourcesIn[i].paramVBap != nullptr) {
-                float iogain = mSourcesIn[i].paramVBap->gains[o];
-                float y = mSourcesIn[i].paramVBap->y[o];
-                if (ilinear) {
-                    interpG = (iogain - y) / nframes;
-                    for (unsigned int f{}; f < nframes; ++f) {
-                        y += interpG;
-                        vbapouts[o][f] += ins[i][f] * y;
+    for (unsigned outputIndex{}; outputIndex < NUM_CHANNELS; ++outputIndex) {
+        std::array<float, MAX_FRAME_COUNT> vbapOut{};
+        for (unsigned inputIndex{}; inputIndex < sizeInputs; ++inputIndex) {
+            if (!mSourcesIn[inputIndex].directOut && mSourcesIn[inputIndex].paramVBap != nullptr) {
+                auto const ioGain{ mSourcesIn[inputIndex].paramVBap->gains[outputIndex] };
+                auto y{ mSourcesIn[inputIndex].paramVBap->y[outputIndex] };
+                if (iLinear) {
+                    interpolationG = (ioGain - y) / static_cast<float>(nFrames);
+                    for (unsigned sampleIndex{}; sampleIndex < nFrames; ++sampleIndex) {
+                        y += interpolationG;
+                        vbapOut[sampleIndex] += ins[inputIndex][sampleIndex] * y;
                     }
                 } else {
-                    for (unsigned int f{}; f < nframes; ++f) {
-                        y = iogain + (y - iogain) * interpG;
+                    for (unsigned sampleIndex{}; sampleIndex < nFrames; ++sampleIndex) {
+                        y = ioGain + (y - ioGain) * interpolationG;
                         if (y < 0.0000000000001f) {
                             y = 0.0f;
                         } else {
-                            vbapouts[o][f] += ins[i][f] * y;
+                            vbapOut[sampleIndex] += ins[inputIndex][sampleIndex] * y;
                         }
                     }
                 }
-                mSourcesIn[i].paramVBap->y[o] = y;
+                mSourcesIn[inputIndex].paramVBap->y[outputIndex] = y;
             }
         }
 
-        int tmp_count;
-        for (unsigned int f = 0; f < nframes; ++f) {
-            tmp_count = mHrtfCount[o];
-            for (unsigned int k = 0; k < 128; ++k) {
-                if (tmp_count < 0) {
-                    tmp_count += 128;
-                }
-                float const sig = mHrtfInputTmp[o][tmp_count];
-                outs[0][f] += sig * mVbapHrtfLeftImpulses[o][k];
-                outs[1][f] += sig * mVbapHrtfRightImpulses[o][k];
-                --tmp_count;
+        // TODO : CPU go brrrrrrr
+        std::array<float, 128> reverseHrtfInputTmp;
+        std::reverse_copy(mHrtfInputTmp[outputIndex].begin(),
+                          mHrtfInputTmp[outputIndex].end(),
+                          reverseHrtfInputTmp.begin());
+        for (unsigned sampleIndex{}; sampleIndex < nFrames; ++sampleIndex) {
+            std::array<float, 128> sig;
+            //juce::FloatVectorOperations::multiply(sig.data(), reverseHrtfInputTmp.data(), mVbapHrtfLeftImpulses[outputIndex].data(), 128);
+            std::transform(reverseHrtfInputTmp.cbegin(),
+                           reverseHrtfInputTmp.cend(),
+                           mVbapHrtfLeftImpulses[outputIndex].cbegin(),
+                           sig.begin(),
+                           std::multiplies<float>());
+            outs[0][sampleIndex] = std::reduce(sig.cbegin(), sig.cend(), outs[0][sampleIndex]);
+            //juce::FloatVectorOperations::multiply(sig.data(), reverseHrtfInputTmp.data(), mVbapHrtfRightImpulses[outputIndex].data(), 128);
+            std::transform(reverseHrtfInputTmp.cbegin(),
+                           reverseHrtfInputTmp.cend(),
+                           mVbapHrtfRightImpulses[outputIndex].cbegin(),
+                           sig.begin(),
+                           std::multiplies<float>());
+            outs[1][sampleIndex] = std::reduce(sig.cbegin(), sig.cend(), outs[1][sampleIndex]);
+
+            ++mHrtfCount[outputIndex];
+            if (mHrtfCount[outputIndex] >= 128u) {
+                mHrtfCount[outputIndex] = 0;
             }
-            ++mHrtfCount[o];
-            if (mHrtfCount[o] >= 128) {
-                mHrtfCount[o] = 0;
-            }
-            mHrtfInputTmp[o][mHrtfCount[o]] = vbapouts[o][f];
+            mHrtfInputTmp[outputIndex][mHrtfCount[outputIndex]] = vbapOut[sampleIndex];
         }
     }
 
     // Add direct outs to the now stereo signal.
-    for (unsigned int i = 0; i < sizeInputs; ++i) {
+    for (unsigned i{}; i < sizeInputs; ++i) {
         if (mSourcesIn[i].directOut != 0) {
             if ((mSourcesIn[i].directOut % 2) == 1) {
-                for (unsigned int f = 0; f < nframes; ++f) {
+                for (unsigned f{}; f < nFrames; ++f) {
                     outs[0][f] += ins[i][f];
                 }
             } else {
-                for (unsigned int f = 0; f < nframes; ++f) {
+                for (unsigned f{}; f < nFrames; ++f) {
                     outs[1][f] += ins[i][f];
                 }
             }
@@ -872,9 +869,10 @@ void JackClientGris::processStereo(jack_default_audio_sample_t ** ins,
                                    unsigned const sizeInputs,
                                    unsigned const sizeOutputs)
 {
+    static auto constexpr FACTOR{ juce::MathConstants<float>::pi / 360.0f };
+
     unsigned int f, i;
     float azi, last_azi, scaled;
-    float factor = M_PI2 / 180.0f;
     float interpG = powf(mInterMaster, 0.1) * 0.0099 + 0.99;
     float gain = powf(10.0f, (sizeInputs - 1) * -0.1f * 0.05f);
 
@@ -899,7 +897,7 @@ void JackClientGris::processStereo(jack_default_audio_sample_t ** ins,
                 } else {
                     scaled = last_azi;
                 }
-                scaled = (scaled + 90) * factor;
+                scaled = (scaled + 90) * FACTOR;
                 outs[0][f] += ins[i][f] * cosf(scaled);
                 outs[1][f] += ins[i][f] * sinf(scaled);
             }

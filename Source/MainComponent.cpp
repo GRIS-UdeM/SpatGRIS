@@ -395,7 +395,7 @@ juce::Slider * MainContentComponent::addSlider(const juce::String & s,
     sd->setSize(w, h);
     sd->setTopLeftPosition(x, y);
     sd->setSliderStyle(juce::Slider::Rotary);
-    sd->setRotaryParameters(M_PI * 1.3f, M_PI * 2.7f, true);
+    sd->setRotaryParameters(juce::MathConstants<float>::pi * 1.3f, juce::MathConstants<float>::pi * 2.7f, true);
     sd->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 60, 20);
     sd->setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
     sd->setLookAndFeel(&mLookAndFeel);
@@ -407,12 +407,13 @@ juce::Slider * MainContentComponent::addSlider(const juce::String & s,
 //==============================================================================
 juce::ComboBox * MainContentComponent::addComboBox(const juce::String & s,
                                                    const juce::String & stooltip,
-                                                   int x,
-                                                   int y,
-                                                   int w,
-                                                   int h,
+                                                   int const x,
+                                                   int const y,
+                                                   int const w,
+                                                   int const h,
                                                    Component * into)
 {
+    // TODO : naked new
     juce::ComboBox * cb = new juce::ComboBox();
     cb->setTooltip(stooltip);
     cb->setSize(w, h);
@@ -1379,13 +1380,13 @@ void MainContentComponent::updateInputJack(int inInput, Input & inp)
 
     if (mode == LBAP) {
         si.radAzimuth = inp.getAzimuth();
-        si.radElevation = M_PI2 - inp.getZenith();
+        si.radElevation = juce::MathConstants<float>::halfPi - inp.getZenith();
     } else {
-        si.azimuth = ((inp.getAzimuth() / M2_PI) * 360.0f);
+        si.azimuth = ((inp.getAzimuth() / juce::MathConstants<float>::twoPi) * 360.0f);
         if (si.azimuth > 180.0f) {
             si.azimuth = si.azimuth - 360.0f;
         }
-        si.zenith = 90.0f - (inp.getZenith() / M2_PI) * 360.0f;
+        si.zenith = 90.0f - (inp.getZenith() / juce::MathConstants<float>::twoPi) * 360.0f;
     }
     si.radius = inp.getRadius();
 
@@ -1435,11 +1436,11 @@ Speaker * MainContentComponent::getSpeakerFromOutputPatch(int out)
 //==============================================================================
 static void Linkwitz_Riley_compute_variables(double freq, double sr, double ** coeffs, int length)
 {
-    double wc = 2 * M_PI * freq;
+    double wc = 2 * juce::MathConstants<float>::pi * freq;
     double wc2 = wc * wc;
     double wc3 = wc2 * wc;
     double wc4 = wc2 * wc2;
-    double k = wc / tan(M_PI * freq / sr);
+    double k = wc / tan(juce::MathConstants<float>::pi * freq / sr);
     double k2 = k * k;
     double k3 = k2 * k;
     double k4 = k2 * k2;
@@ -1665,7 +1666,7 @@ bool MainContentComponent::updateLevelComp()
         SourceIn si;
         si.id = input->getId();
         si.radAzimuth = input->getAzimuth();
-        si.radElevation = M_PI2 - input->getZenith();
+        si.radElevation = juce::MathConstants<float>::halfPi - input->getZenith();
         si.azimuth = input->getAzimuth();
         si.zenith = input->getZenith();
         si.radius = input->getRadius();
@@ -2282,7 +2283,8 @@ void MainContentComponent::saveProperties(juce::String device,
     jackClient->setAttenuationDb(linGain);
     props->setValue("AttenuationDB", attenuationDB);
 
-    float coeff = expf(-M2_PI * ATTENUATION_CUTOFFS[attenuationHz].getFloatValue() / jackClient->getSampleRate());
+    float coeff = expf(-juce::MathConstants<float>::twoPi * ATTENUATION_CUTOFFS[attenuationHz].getFloatValue()
+                       / jackClient->getSampleRate());
     jackClient->setAttenuationHz(coeff);
     props->setValue("AttenuationHz", attenuationHz);
 

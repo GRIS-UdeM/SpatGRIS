@@ -36,8 +36,8 @@ Input::Input(MainContentComponent & mainContentComponent, SmallGrisLookAndFeel &
 //==============================================================================
 void Input::resetPosition()
 {
-    this->mAzimuth = M_PI4;
-    this->mZenith = M_PI2;
+    this->mAzimuth = (juce::MathConstants<float>::halfPi / 2.0f);
+    this->mZenith = juce::MathConstants<float>::halfPi;
 
     this->mAzimuthSpan = 0.0f;
     this->mZenithSpan = 0.0f;
@@ -190,10 +190,10 @@ void Input::drawSpan()
             else
                 newazi = this->mAzimuth - azidev;
 
-            if (newazi > M_PI)
-                newazi -= (M_PI * 2.0f);
-            else if (newazi < -M_PI)
-                newazi += (M_PI * 2.0f);
+            if (newazi > juce::MathConstants<float>::pi)
+                newazi -= juce::MathConstants<float>::twoPi;
+            else if (newazi < -juce::MathConstants<float>::pi)
+                newazi += juce::MathConstants<float>::twoPi;
 
             if (this->mMainContentComponent.getModeSelected() == 1) {
                 cart = this->polToCar3d(newazi, this->mZenith);
@@ -208,10 +208,11 @@ void Input::drawSpan()
                         newele = this->mZenith + eledev;
                     else
                         newele = this->mZenith - eledev;
-                    if (newele > (M_PI * 0.5f))
-                        newele = (M_PI * 0.5f);
-                    else if (newele < 0)
-                        newele = 0;
+                    if (newele > juce::MathConstants<float>::halfPi) {
+                        newele = juce::MathConstants<float>::halfPi;
+                    } else if (newele < 0.0f) {
+                        newele = 0.0f;
+                    }
 
                     if (this->mMainContentComponent.getModeSelected() == 1) {
                         cart = this->polToCar3d(newazi, newele);
@@ -315,11 +316,11 @@ void Input::updateValues(float az, float ze, float azS, float zeS, float radius,
 void Input::updateValuesOld(float az, float ze, float azS, float zeS, float g)
 {
     if (az < 0) {
-        this->mAzimuth = fabsf(az) * M_PI;
+        this->mAzimuth = fabsf(az) * juce::MathConstants<float>::pi;
     } else {
-        this->mAzimuth = (1.0f - az) * M_PI + M_PI;
+        this->mAzimuth = (1.0f - az) * juce::MathConstants<float>::pi + juce::MathConstants<float>::pi;
     }
-    this->mZenith = (M_PI2) - (M_PI * ze);
+    this->mZenith = (juce::MathConstants<float>::halfPi) - (juce::MathConstants<float>::pi * ze);
 
     this->mAzimuthSpan = azS;
     this->mZenithSpan = zeS;

@@ -29,9 +29,9 @@ static const float SourceDiameter = SourceRadius * 2.f;
 typedef juce::Point<float> FPoint;
 
 //==============================================================================
-static float DegreeToRadian(float degree)
+static float DegreeToRadian(float const degree)
 {
-    return ((degree * M_PI) / 180.0f);
+    return ((degree * juce::MathConstants<float>::pi) / 180.0f);
 }
 
 //==============================================================================
@@ -44,10 +44,10 @@ static FPoint DegreeToXy(FPoint p, int FieldWidth)
 }
 
 //==============================================================================
-static FPoint GetSourceAzimElev(FPoint pXY, bool bUseCosElev = false)
+static FPoint GetSourceAzimElev(FPoint const pXY, bool const bUseCosElev = false)
 {
     // Calculate azim in range [0,1], and negate it because zirkonium wants -1 on right side.
-    float fAzim = -atan2f(pXY.x, pXY.y) / M_PI;
+    float fAzim = -atan2f(pXY.x, pXY.y) / juce::MathConstants<float>::pi;
 
     // Calculate xy distance from origin, and clamp it to 2 (ie ignore outside of circle).
     float hypo = hypotf(pXY.x, pXY.y);
@@ -57,9 +57,9 @@ static FPoint GetSourceAzimElev(FPoint pXY, bool bUseCosElev = false)
 
     float fElev;
     if (bUseCosElev) {
-        fElev = acosf(hypo / RadiusMax); // fElev is elevation in radian, [0,pi/2)
-        fElev /= (M_PI / 2.f);           // making range [0,1]
-        fElev /= 2.f;                    // making range [0,.5] because that's what the zirkonium wants
+        fElev = acosf(hypo / RadiusMax);                 // fElev is elevation in radian, [0,pi/2)
+        fElev /= (juce::MathConstants<float>::pi / 2.f); // making range [0,1]
+        fElev /= 2.f;                                    // making range [0,.5] because that's what the zirkonium wants
     } else {
         fElev = (RadiusMax - hypo) / 4.0f;
     }
@@ -321,8 +321,8 @@ void FlatViewWindow::drawSourceSpan(juce::Graphics & g, Input * it, const int fi
                                  maxRadius,
                                  maxRadius,
                                  0.0,
-                                 M_PI + DegreeToRadian(-HRAzim + HRAzimSpan / 2),
-                                 M_PI + DegreeToRadian(-HRAzim - HRAzimSpan / 2));
+                                 juce::MathConstants<float>::pi + DegreeToRadian(-HRAzim + HRAzimSpan / 2),
+                                 juce::MathConstants<float>::pi + DegreeToRadian(-HRAzim - HRAzimSpan / 2));
         } else {
             myPath.addCentredArc(fieldCenter,
                                  fieldCenter,

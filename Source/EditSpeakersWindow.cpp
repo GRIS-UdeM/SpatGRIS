@@ -151,7 +151,9 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     mPinkNoiseGainSlider.setTextValueSuffix(" dB");
     mPinkNoiseGainSlider.setBounds(200, 500, 60, 60);
     mPinkNoiseGainSlider.setSliderStyle(juce::Slider::Rotary);
-    mPinkNoiseGainSlider.setRotaryParameters(M_PI * 1.3f, M_PI * 2.7f, true);
+    mPinkNoiseGainSlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.3f,
+                                             juce::MathConstants<float>::pi * 2.7f,
+                                             true);
     mPinkNoiseGainSlider.setRange(-60, -3, 1);
     mPinkNoiseGainSlider.setValue(-20);
     mPinkNoiseGainSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 60, 20);
