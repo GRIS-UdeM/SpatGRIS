@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS2.
 
- Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
+ Developers: Samuel Bï¿½land, Olivier Bï¿½langer, Nicolas Masson
 
  SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
 #include <cstdint>
 
-#ifndef __APPLE__
+#ifdef WIN32
 using pthread_t = int;
 using sigset_t = int;
 #endif

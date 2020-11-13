@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS2.
 
- Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
+ Developers: Samuel Bï¿½land, Olivier Bï¿½langer, Nicolas Masson
 
  SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -297,7 +297,7 @@ juce::Array<juce::String> JackServerGris::getAvailableOutputDevices() const
 
             char device[128];
             snprintf(device, sizeof(device), "hw:%d,%d - %s", card, dev, snd_pcm_info_get_name(pcminfo));
-            devices.add(String(device));
+            devices.add(juce::String{ device });
         }
         snd_ctl_close(handle);
     }

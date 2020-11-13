@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS2.
 
- Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
+ Developers: Samuel Bï¿½land, Olivier Bï¿½langer, Nicolas Masson
 
  SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -21,7 +21,6 @@
 
 #include <array>
 #include <cstdarg>
-#include <execution>
 
 #include "MainComponent.h"
 #include "ServerGrisConstants.h"
@@ -615,7 +614,7 @@ void JackClientGris::processVbap(jack_default_audio_sample_t ** ins,
                                  unsigned const sizeOutputs)
 {
     auto const iLinear{ mInterMaster == 0.0f };
-    auto interpolationG{ mInterMaster == 0.0f  ? 0.99f : std::pow(mInterMaster, 0.1f) * 0.0099f + 0.99f };
+    auto interpolationG{ mInterMaster == 0.0f ? 0.99f : std::pow(mInterMaster, 0.1f) * 0.0099f + 0.99f };
 
     for (unsigned i{}; i < sizeInputs; ++i) {
         if (mVbapSourcesToUpdate[i] == 1) {
@@ -726,21 +725,21 @@ void JackClientGris::processLbap(jack_default_audio_sample_t ** ins,
                     }
                 } else {
                     std::array<float, MAX_N_FRAMES> tmp;
-                    
-                    std::generate(tmp.begin(), tmp.begin() + nFrames, [&y, gain, interpolationG]()->float
-                    {
+
+                    std::generate(tmp.begin(), tmp.begin() + nFrames, [&y, gain, interpolationG]() -> float {
                         y = (y - gain) * interpolationG + gain, 0.0f;
-                        if (y < 0.0000000000001f)
-                        {
+                        if (y < 0.0000000000001f) {
                             y = 0.0f;
                         }
                         return y;
                     });
-                    juce::FloatVectorOperations::addWithMultiply(outs[o], tmp.data(), filteredInputSignal.data(), nFrames);
+                    juce::FloatVectorOperations::addWithMultiply(outs[o],
+                                                                 tmp.data(),
+                                                                 filteredInputSignal.data(),
+                                                                 nFrames);
 
-                    //juce::FloatVectorOperations::
-                    
-                    
+                    // juce::FloatVectorOperations::
+
                     /*for (unsigned f{}; f < nFrames; ++f) {
                         y = (y - gain) * interpolationG + gain;
                         if (y < 0.0000000000001f) {
@@ -823,20 +822,27 @@ void JackClientGris::processVBapHrtf(jack_default_audio_sample_t ** ins,
                           reverseHrtfInputTmp.begin());
         for (unsigned sampleIndex{}; sampleIndex < nFrames; ++sampleIndex) {
             std::array<float, 128> sig;
-            //juce::FloatVectorOperations::multiply(sig.data(), reverseHrtfInputTmp.data(), mVbapHrtfLeftImpulses[outputIndex].data(), 128);
+            // NOTE : maybe this can be done faster using juce::FloatVectorOperations
             std::transform(reverseHrtfInputTmp.cbegin(),
                            reverseHrtfInputTmp.cend(),
                            mVbapHrtfLeftImpulses[outputIndex].cbegin(),
                            sig.begin(),
                            std::multiplies<float>());
+#ifdef __clang__
+            outs[0][sampleIndex] = std::accumulate(sig.cbegin(), sig.cend(), outs[0][sampleIndex]);
+#else
             outs[0][sampleIndex] = std::reduce(sig.cbegin(), sig.cend(), outs[0][sampleIndex]);
-            //juce::FloatVectorOperations::multiply(sig.data(), reverseHrtfInputTmp.data(), mVbapHrtfRightImpulses[outputIndex].data(), 128);
+#endif
             std::transform(reverseHrtfInputTmp.cbegin(),
                            reverseHrtfInputTmp.cend(),
                            mVbapHrtfRightImpulses[outputIndex].cbegin(),
                            sig.begin(),
                            std::multiplies<float>());
+#ifdef __clang__
+            outs[1][sampleIndex] = std::accumulate(sig.cbegin(), sig.cend(), outs[1][sampleIndex]);
+#else
             outs[1][sampleIndex] = std::reduce(sig.cbegin(), sig.cend(), outs[1][sampleIndex]);
+#endif
 
             ++mHrtfCount[outputIndex];
             if (mHrtfCount[outputIndex] >= 128u) {

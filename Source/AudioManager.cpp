@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS2.
 
- Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
+ Developers: Samuel Bï¿½land, Olivier Bï¿½langer, Nicolas Masson
 
  SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -55,11 +55,17 @@ AudioManager::AudioManager(juce::String const & inputDevice,
     jassert(audioDevice != nullptr);
     int channelIndex{};
     for (auto const & inputChannelName : audioDevice->getInputChannelNames()) {
-        registerPort(inputChannelName.toStdString().c_str(), "system", PortType::output, channelIndex++);
+        registerPort((juce::String{ "input " } + inputChannelName).toStdString().c_str(),
+                     "system",
+                     PortType::output,
+                     channelIndex++);
     }
     channelIndex = 0;
     for (auto const & outputChannelName : audioDevice->getOutputChannelNames()) {
-        registerPort(outputChannelName.toStdString().c_str(), "system", PortType::input, channelIndex++);
+        registerPort((juce::String{ "output " } + outputChannelName).toStdString().c_str(),
+                     "system",
+                     PortType::input,
+                     channelIndex++);
     }
 
     mAudioDeviceManager.addAudioCallback(this);

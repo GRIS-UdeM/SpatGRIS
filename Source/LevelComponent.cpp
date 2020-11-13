@@ -219,7 +219,8 @@ void LevelComponent::buttonClicked(juce::Button * button)
             colourSelector->addChangeListener(this);
             colourSelector->setColour(juce::ColourSelector::backgroundColourId, juce::Colours::transparentBlack);
             colourSelector->setSize(300, 400);
-            juce::CallOutBox::launchAsynchronously(colourSelector, getScreenBounds(), nullptr);
+            std::unique_ptr<juce::Component> component{ colourSelector };
+            juce::CallOutBox::launchAsynchronously(std::move(component), getScreenBounds(), nullptr);
         } else { // Output
             this->mParentLevelComponent.selectClick(this->mLastMouseButton);
         }

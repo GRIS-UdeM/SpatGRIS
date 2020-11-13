@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS2.
 
- Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
+ Developers: Samuel Bï¿½land, Olivier Bï¿½langer, Nicolas Masson
 
  SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -27,8 +27,8 @@ char const * const CLIENT_NAME_IGNORE = "JAR::57";
 #ifdef __linux__
 char const * const SYS_DRIVER_NAME = "alsa";
 const bool USE_OS_NATIVE_DIALOG_BOX = false;
-juce::String CURRENT_WORKING_DIR = juce::File::getCurrentWorkingDirectory().getFullPathName();
-juce::String RESOURCES_DIR = juce::String("/../../Resources/");
+auto const CURRENT_WORKING_DIR{ juce::File::getCurrentWorkingDirectory() };
+auto const RESOURCES_DIR{ CURRENT_WORKING_DIR.getChildFile("Resources") };
 #elif defined WIN32
 char const * const SYS_DRIVER_NAME = "coreaudio";
 const bool USE_OS_NATIVE_DIALOG_BOX{ true };

@@ -58,8 +58,8 @@ class MainContentComponent final
     , private juce::Timer
 {
     // Jack server - client.
-    std::unique_ptr<JackServerGris> jackServer;
-    std::unique_ptr<JackClientGris> jackClient;
+    std::unique_ptr<JackServerGris> mJackServer;
+    JackClientGris mJackClient;
 
     // Speakers.
     std::vector<Triplet> mTriplets{};
@@ -250,13 +250,13 @@ public:
     bool isRadiusNormalized() const;
 
     // Jack clients.
-    JackClientGris * getJackClient() { return this->jackClient.get(); }
-    JackClientGris const * getJackClient() const { return this->jackClient.get(); }
+    JackClientGris * getJackClient() { return &this->mJackClient; }
+    JackClientGris const * getJackClient() const { return &mJackClient; }
 
-    std::mutex & getLockClients() { return this->jackClient->getClientsLock(); }
+    std::mutex & getLockClients() { return mJackClient.getClientsLock(); }
 
-    std::vector<Client> & getListClientjack() { return this->jackClient->getClients(); }
-    std::vector<Client> const & getListClientjack() const { return this->jackClient->getClients(); }
+    std::vector<Client> & getListClientjack() { return this->mJackClient.getClients(); }
+    std::vector<Client> const & getListClientjack() const { return this->mJackClient.getClients(); }
 
     void connectionClientJack(juce::String nameCli, bool conn = true);
 
@@ -279,8 +279,8 @@ public:
     void soloOutput(int id, bool solo);
 
     // Input - output amplitude levels.
-    float getLevelsOut(int indexLevel) const { return (20.0f * log10f(this->jackClient->getLevelsOut(indexLevel))); }
-    float getLevelsIn(int indexLevel) const { return (20.0f * log10f(this->jackClient->getLevelsIn(indexLevel))); }
+    float getLevelsOut(int indexLevel) const { return (20.0f * log10f(this->mJackClient.getLevelsOut(indexLevel))); }
+    float getLevelsIn(int indexLevel) const { return (20.0f * log10f(this->mJackClient.getLevelsIn(indexLevel))); }
     float getLevelsAlpha(int indexLevel) const;
 
     float getSpeakerLevelsAlpha(int indexLevel) const;

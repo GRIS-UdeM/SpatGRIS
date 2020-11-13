@@ -94,7 +94,7 @@ public:
     juce::TextEditor * createPropIntTextEditor(juce::String const & tooltip, int ypos, int init);
     juce::ComboBox * createPropComboBox(juce::StringArray const & choices, int selected, int ypos);
 
-    void buttonClicked(juce::Button * button);
+    void buttonClicked(juce::Button * button) override;
     void closeButtonPressed();
 
 private:

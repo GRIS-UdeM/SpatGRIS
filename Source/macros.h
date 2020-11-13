@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS2.
 
- Developers: Samuel Béland, Olivier Belanger, Nicolas Masson
+ Developers: Samuel Bï¿½land, Olivier Belanger, Nicolas Masson
 
  SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -27,8 +27,10 @@
 #if defined(_MSC_VER)
     #define DISABLE_WARNINGS __pragma(warning(push, 0))
     #define ENABLE_WARNINGS __pragma(warning(pop))
-
-#elif defined(__GNUC__) || defined(__clang__)
+#elif defined(__clang__)
+    #define DISABLE_WARNINGS
+    #define ENABLE_WARNINGS
+#elif defined(__GNUC__)
     #define DO_PRAGMA(X) _Pragma(#X)
     #define DISABLE_WARNINGS                                                                                           \
         DO_PRAGMA(GCC diagnostic push)                                                                                 \
@@ -37,5 +39,4 @@
 
 #else
 static_assert(false, "What compiler are you using?");
-
 #endif

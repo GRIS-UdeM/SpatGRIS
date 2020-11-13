@@ -37,7 +37,7 @@ void SpeakerViewComponent::initialise()
 
     // TODO : undefined behavior
     auto argc = 1;
-    char * argv[1] = { static_cast<char *>("Something") };
+    char * argv[1] = { const_cast<char *>("Something") };
     glutInit(&argc, argv);
 }
 
