@@ -143,7 +143,6 @@
         <MODULEPATH id="juce_audio_processors" path="../../sdks/JUCE-4.3.1/modules"/>
         <MODULEPATH id="juce_audio_utils" path="../../sdks/JUCE-4.3.1/modules"/>
         <MODULEPATH id="juce_osc" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_dsp" path="../../../../../dev/JUCE/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
     <LINUX_MAKE targetFolder="Builds/LinuxMakefile" smallIcon="G8JPcc" bigIcon="G8JPcc"
@@ -170,7 +169,6 @@
         <MODULEPATH id="juce_audio_formats" path="../../sdks/JUCE-4.3.1/modules"/>
         <MODULEPATH id="juce_audio_devices" path="../../sdks/JUCE-4.3.1/modules"/>
         <MODULEPATH id="juce_audio_basics" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_dsp" path="../../../../../dev/JUCE/modules"/>
       </MODULEPATHS>
     </LINUX_MAKE>
     <CLION targetFolder="Builds/CLion" clionXcodeEnabled="1" clionMakefileEnabled="1">
@@ -190,7 +188,6 @@
         <MODULEPATH id="juce_audio_formats" path="../../juce"/>
         <MODULEPATH id="juce_audio_devices" path="../../juce"/>
         <MODULEPATH id="juce_audio_basics" path="../../juce"/>
-        <MODULEPATH id="juce_dsp" path="../../../../../dev/JUCE/modules"/>
       </MODULEPATHS>
     </CLION>
     <VS2019 targetFolder="Builds/VisualStudio2019">
@@ -216,7 +213,6 @@
         <MODULEPATH id="juce_audio_formats" path="../../juce"/>
         <MODULEPATH id="juce_audio_devices" path="../../juce"/>
         <MODULEPATH id="juce_audio_basics" path="../../juce"/>
-        <MODULEPATH id="juce_dsp" path="../../../../../dev/JUCE/modules"/>
       </MODULEPATHS>
     </VS2019>
   </EXPORTFORMATS>
@@ -229,7 +225,6 @@
     <MODULE id="juce_core" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
     <MODULE id="juce_cryptography" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
     <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
-    <MODULE id="juce_dsp" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
     <MODULE id="juce_events" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
     <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
     <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
