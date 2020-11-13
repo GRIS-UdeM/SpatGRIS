@@ -770,97 +770,78 @@ void JackClientGris::processVBapHrtf(jack_default_audio_sample_t ** ins,
                                      unsigned const sizeInputs,
                                      [[maybe_unused]] unsigned const sizeOutputs)
 {
-    static auto constexpr MAX_FRAME_COUNT = 2048u;
-    static auto constexpr NUM_CHANNELS = 16u;
+    int tmp_count;
+    unsigned int f, i, o, k;
+    float sig, y, iogain = 0.0f;
 
-    jassert(sizeOutputs == NUM_CHANNELS);
-
-    std::for_each(outs, outs + NUM_CHANNELS, [nFrames](float * channel) {
+    std::for_each(outs, outs + sizeOutputs, [nFrames](float * channel) {
         std::fill(channel, channel + nFrames, 0.0f);
     });
 
-    auto const iLinear{ mInterMaster == 0.0f };
-    auto interpolationG{ mInterMaster == 0.0f ? 0.99f : std::pow(mInterMaster, 0.1f) * 0.0099f + 0.99f };
+    auto const ilinear{ mInterMaster == 0.0f };
+    auto interpG{ ilinear ? 0.99f : powf(mInterMaster, 0.1f) * 0.0099f + 0.99f };
 
-    for (unsigned i{}; i < sizeInputs; ++i) {
+    for (i = 0; i < sizeInputs; ++i) {
         if (mVbapSourcesToUpdate[i] == 1) {
             updateSourceVbap(static_cast<int>(i));
             mVbapSourcesToUpdate[i] = 0;
         }
     }
 
-    for (unsigned outputIndex{}; outputIndex < NUM_CHANNELS; ++outputIndex) {
-        std::array<float, MAX_FRAME_COUNT> vbapOut{};
-        for (unsigned inputIndex{}; inputIndex < sizeInputs; ++inputIndex) {
-            if (!mSourcesIn[inputIndex].directOut && mSourcesIn[inputIndex].paramVBap != nullptr) {
-                auto const ioGain{ mSourcesIn[inputIndex].paramVBap->gains[outputIndex] };
-                auto y{ mSourcesIn[inputIndex].paramVBap->y[outputIndex] };
-                if (iLinear) {
-                    interpolationG = (ioGain - y) / static_cast<float>(nFrames);
-                    for (unsigned sampleIndex{}; sampleIndex < nFrames; ++sampleIndex) {
-                        y += interpolationG;
-                        vbapOut[sampleIndex] += ins[inputIndex][sampleIndex] * y;
+    for (o = 0; o < 16; ++o) {
+        std::array<float, 2048> vbapouts{};
+        for (i = 0; i < sizeInputs; ++i) {
+            if (!mSourcesIn[i].directOut && mSourcesIn[i].paramVBap != nullptr) {
+                iogain = mSourcesIn[i].paramVBap->gains[o];
+                y = mSourcesIn[i].paramVBap->y[o];
+                if (ilinear) {
+                    interpG = (iogain - y) / nFrames;
+                    for (f = 0; f < nFrames; ++f) {
+                        y += interpG;
+                        vbapouts[f] += ins[i][f] * y;
                     }
                 } else {
-                    for (unsigned sampleIndex{}; sampleIndex < nFrames; ++sampleIndex) {
-                        y = ioGain + (y - ioGain) * interpolationG;
+                    for (f = 0; f < nFrames; ++f) {
+                        y = iogain + (y - iogain) * interpG;
                         if (y < 0.0000000000001f) {
                             y = 0.0f;
                         } else {
-                            vbapOut[sampleIndex] += ins[inputIndex][sampleIndex] * y;
+                            vbapouts[f] += ins[i][f] * y;
                         }
                     }
                 }
-                mSourcesIn[inputIndex].paramVBap->y[outputIndex] = y;
+                mSourcesIn[i].paramVBap->y[o] = y;
             }
         }
 
-        // TODO : CPU go brrrrrrr
-        std::array<float, 128> reverseHrtfInputTmp;
-        std::reverse_copy(mHrtfInputTmp[outputIndex].begin(),
-                          mHrtfInputTmp[outputIndex].end(),
-                          reverseHrtfInputTmp.begin());
-        for (unsigned sampleIndex{}; sampleIndex < nFrames; ++sampleIndex) {
-            std::array<float, 128> sig;
-            // NOTE : maybe this can be done faster using juce::FloatVectorOperations
-            std::transform(reverseHrtfInputTmp.cbegin(),
-                           reverseHrtfInputTmp.cend(),
-                           mVbapHrtfLeftImpulses[outputIndex].cbegin(),
-                           sig.begin(),
-                           std::multiplies<float>());
-#ifdef __clang__
-            outs[0][sampleIndex] = std::accumulate(sig.cbegin(), sig.cend(), outs[0][sampleIndex]);
-#else
-            outs[0][sampleIndex] = std::reduce(sig.cbegin(), sig.cend(), outs[0][sampleIndex]);
-#endif
-            std::transform(reverseHrtfInputTmp.cbegin(),
-                           reverseHrtfInputTmp.cend(),
-                           mVbapHrtfRightImpulses[outputIndex].cbegin(),
-                           sig.begin(),
-                           std::multiplies<float>());
-#ifdef __clang__
-            outs[1][sampleIndex] = std::accumulate(sig.cbegin(), sig.cend(), outs[1][sampleIndex]);
-#else
-            outs[1][sampleIndex] = std::reduce(sig.cbegin(), sig.cend(), outs[1][sampleIndex]);
-#endif
-
-            ++mHrtfCount[outputIndex];
-            if (mHrtfCount[outputIndex] >= 128u) {
-                mHrtfCount[outputIndex] = 0;
+        for (f = 0; f < nFrames; f++) {
+            tmp_count = mHrtfCount[o];
+            for (k = 0; k < 128; ++k) {
+                if (tmp_count < 0) {
+                    tmp_count += 128;
+                }
+                sig = mHrtfInputTmp[o][tmp_count];
+                outs[0][f] += sig * mVbapHrtfLeftImpulses[o][k];
+                outs[1][f] += sig * mVbapHrtfRightImpulses[o][k];
+                tmp_count--;
             }
-            mHrtfInputTmp[outputIndex][mHrtfCount[outputIndex]] = vbapOut[sampleIndex];
+            mHrtfCount[o]++;
+            if (mHrtfCount[o] >= 128) {
+                mHrtfCount[o] = 0;
+            }
+            mHrtfInputTmp[o][mHrtfCount[o]] = vbapouts[f];
         }
     }
 
     // Add direct outs to the now stereo signal.
-    for (unsigned i{}; i < sizeInputs; ++i) {
+    for (i = 0; i < sizeInputs; ++i) {
         if (mSourcesIn[i].directOut != 0) {
             if ((mSourcesIn[i].directOut % 2) == 1) {
-                for (unsigned f{}; f < nFrames; ++f) {
+                for (f = 0; f < nFrames; ++f) {
                     outs[0][f] += ins[i][f];
                 }
             } else {
-                for (unsigned f{}; f < nFrames; ++f) {
+                for (f = 0; f < nFrames; ++f) {
                     outs[1][f] += ins[i][f];
                 }
             }
