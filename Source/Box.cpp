@@ -23,12 +23,6 @@
 #include "MainComponent.h"
 
 //==============================================================================
-static double getFloatPrecision(double value, double precision)
-{
-    return (floor((value * pow(10, precision) + 0.5)) / pow(10, precision));
-}
-
-//==============================================================================
 Box::Box(GrisLookAndFeel & feel,
          juce::String const & title,
          bool const verticalScrollbar,

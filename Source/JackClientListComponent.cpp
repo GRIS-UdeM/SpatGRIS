@@ -125,15 +125,15 @@ juce::String JackClientListComponent::getText(const int columnNumber, const int 
 
 //==============================================================================
 void JackClientListComponent::paintRowBackground(juce::Graphics & g,
-                                                 int rowNumber,
+                                                 int const rowNumber,
                                                  int /*width*/,
                                                  int /*height*/,
-                                                 bool rowIsSelected)
+                                                 bool /*rowIsSelected*/)
 {
     if (rowNumber % 2) {
-        g.fillAll(this->grisFeel->getBackgroundColour().withBrightness(0.6));
+        g.fillAll(this->grisFeel->getBackgroundColour().withBrightness(0.6f));
     } else {
-        g.fillAll(this->grisFeel->getBackgroundColour().withBrightness(0.7));
+        g.fillAll(this->grisFeel->getBackgroundColour().withBrightness(0.7f));
     }
 }
 

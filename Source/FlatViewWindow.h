@@ -58,8 +58,8 @@ public:
 private:
     //==============================================================================
     void drawFieldBackground(juce::Graphics & g, int fieldWH) const;
-    void drawSource(juce::Graphics & g, Input * it, int fieldWH) const;
-    void drawSourceSpan(juce::Graphics & g, Input * it, int fieldWH, const int fieldCenter) const;
+    void drawSource(juce::Graphics & g, Input * it, int fieldWh) const;
+    void drawSourceSpan(juce::Graphics & g, Input * it, int fieldWh, const int fieldCenter) const;
     //==============================================================================
     JUCE_LEAK_DETECTOR(FlatViewWindow)
 };

@@ -258,7 +258,7 @@ bool compareGreaterThan(Sorter const & a, Sorter const & b)
 //==============================================================================
 void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const isForwards)
 {
-    auto const size{ mMainContentComponent.getListSpeaker().size() };
+    auto const size{ static_cast<unsigned>(mMainContentComponent.getListSpeaker().size()) };
     struct Sorter toSort[MAX_OUTPUTS];
 
     auto & speakers{ mMainContentComponent.getListSpeaker() };
@@ -301,7 +301,7 @@ void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const 
         std::sort(toSort, toSort + size, compareGreaterThan);
     }
 
-    std::vector<int> newOrder{ size };
+    std::vector<int> newOrder{ static_cast<int>(size) };
     for (unsigned i{}; i < size; ++i) {
         newOrder[i] = toSort[i].id;
     }
@@ -591,9 +591,6 @@ void EditSpeakersWindow::setText(int const columnNumber,
                                  juce::String const & newText,
                                  bool const altDown)
 {
-    int /*ival*/;
-    // int oldval;
-    // float val;
     float diff;
     if (mMainContentComponent.getLockSpeakers().try_lock()) {
         if (mMainContentComponent.getListSpeaker().size() > rowNumber) {
@@ -882,9 +879,9 @@ void EditSpeakersWindow::paintRowBackground(juce::Graphics & g,
             mMainContentComponent.getLockSpeakers().unlock();
         }
         if (rowNumber % 2) {
-            g.fillAll(mLookAndFeel.getBackgroundColour().withBrightness(0.6));
+            g.fillAll(mLookAndFeel.getBackgroundColour().withBrightness(0.6f));
         } else {
-            g.fillAll(mLookAndFeel.getBackgroundColour().withBrightness(0.7));
+            g.fillAll(mLookAndFeel.getBackgroundColour().withBrightness(0.7f));
         }
     }
 }
@@ -902,7 +899,7 @@ void EditSpeakersWindow::paintCell(juce::Graphics & g,
     g.setFont(mFont);
 
     if (mMainContentComponent.getLockSpeakers().try_lock()) {
-        if (mMainContentComponent.getListSpeaker().size() > static_cast<unsigned int>(rowNumber)) {
+        if (mMainContentComponent.getListSpeaker().size() > rowNumber) {
             auto const text{ getText(columnId, rowNumber) };
             g.drawText(text, 2, 0, width - 4, height, juce::Justification::centredLeft, true);
         }

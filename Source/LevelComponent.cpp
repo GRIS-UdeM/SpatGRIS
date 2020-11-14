@@ -69,12 +69,15 @@ void LevelBox::setBounds(juce::Rectangle<int> const & newBounds)
     gm.setColour(this->mLookAndFeel.getScrollBarColour());
     gm.setFont(10.0f);
     int const start = this->getWidth() - 3;
-    int y{};
     for (int i{ 1 }; i < 10; i++) {
-        y = i * 14;
-        gf.drawLine(start, y, getWidth(), y, 1);
-        gb.drawLine(start, y, getWidth(), y, 1);
-        gm.drawLine(start, y, getWidth(), y, 1);
+        auto const y = i * 14;
+        auto const y_f{ static_cast<float>(y) };
+        auto const start_f{ static_cast<float>(start) };
+        auto const with_f{ static_cast<float>(getWidth()) };
+
+        gf.drawLine(start_f, y_f, with_f, y_f, 1.0f);
+        gb.drawLine(start_f, y_f, with_f, y_f, 1.0f);
+        gm.drawLine(start_f, y_f, with_f, y_f, 1.0f);
         if (i % 2 == 1) {
             gf.drawText(juce::String(i * -6), start - 15, y - 5, 15, 10, juce::Justification::centred, false);
             gb.drawText(juce::String(i * -6), start - 15, y - 5, 15, 10, juce::Justification::centred, false);
@@ -228,10 +231,10 @@ void LevelComponent::buttonClicked(juce::Button * button)
         juce::PopupMenu menu{};
         menu.addItem(1, "-");
         for (size_t i{}; i < this->directOutSpeakers.size(); ++i) {
-            menu.addItem(i + 2, juce::String{ this->directOutSpeakers[i] });
+            menu.addItem(static_cast<int>(i) + 2, juce::String{ this->directOutSpeakers[i] });
         }
 
-        auto result{ menu.show() };
+        auto const result{ menu.show() };
 
         int value{};
         if (result != 0) {

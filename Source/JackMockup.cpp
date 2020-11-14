@@ -288,7 +288,7 @@ int jack_connect([[maybe_unused]] jack_client_t * client, const char * source_po
     return 0;
 }
 
-int jack_disconnect(jack_client_t *, const char * source_port, const char * destination_port)
+int jack_disconnect(jack_client_t *, const char * /*source_port*/, const char * /*destination_port*/)
 {
     jassertfalse;
     return -1;
@@ -378,9 +378,11 @@ void jack_free(void * ptr)
 }
 
 //==============================================================================
-jackctl_server_t * jackctl_server_create(bool (*/*on_device_acquire*/)(const char * /*device_name*/),
-                                         void (*/*on_device_release*/)(const char * /*device_name*/))
+jackctl_server_t * jackctl_server_create(bool (*on_device_acquire)(const char * device_name),
+                                         void (*on_device_release)(const char * device_name))
 {
+    juce::ignoreUnused(on_device_acquire);
+    juce::ignoreUnused(on_device_release);
     return AudioManager::getInstance().getDummyJackCtlServer();
 }
 

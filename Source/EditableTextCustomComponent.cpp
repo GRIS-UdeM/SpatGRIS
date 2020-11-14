@@ -67,32 +67,32 @@ void EditableTextCustomComponent::mouseDrag(const juce::MouseEvent & event)
     case 3:
     case 4:
         if (offset < lastOffset)
-            val += 0.01; // up
+            val += 0.01f; // up
         if (offset > lastOffset)
-            val -= 0.01; // down
+            val -= 0.01f; // down
         ok = true;
         break;
     case 5:
     case 6:
     case 10:
         if (offset < lastOffset)
-            val += 1.0; // up
+            val += 1.0f; // up
         if (offset > lastOffset)
-            val -= 1.0; // down
+            val -= 1.0f; // down
         ok = true;
         break;
     case 7:
         if (offset < lastOffset)
-            val += 0.01; // up
+            val += 0.01f; // up
         if (offset > lastOffset)
-            val -= 0.01; // down
+            val -= 0.01f; // down
         ok = true;
         break;
     case 9:
         if (offset < lastOffset)
-            val += 0.1; // up
+            val += 0.1f; // up
         if (offset > lastOffset)
-            val -= 0.1; // down
+            val -= 0.1f; // down
         ok = true;
         break;
     }

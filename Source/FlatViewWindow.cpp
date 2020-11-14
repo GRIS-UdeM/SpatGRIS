@@ -22,49 +22,46 @@
 #include "Input.h"
 #include "MainComponent.h"
 
-static const float RadiusMax = 2.f;
-static const float SourceRadius = 10.f;
-static const float SourceDiameter = SourceRadius * 2.f;
-
-typedef juce::Point<float> FPoint;
+static float constexpr RADIUS_MAX = 2.0f;
+static float constexpr SOURCE_RADIUS = 10.0f;
+static float constexpr SOURCE_DIAMETER = SOURCE_RADIUS * 2.f;
 
 //==============================================================================
-static float DegreeToRadian(float const degree)
+static float degreeToRadian(float const degree)
 {
     return ((degree * juce::MathConstants<float>::pi) / 180.0f);
 }
 
 //==============================================================================
-static FPoint DegreeToXy(FPoint p, int FieldWidth)
+static juce::Point<float> degreeToXy(juce::Point<float> const & p, int const fieldWidth)
 {
-    float x, y;
-    x = -((FieldWidth - SourceDiameter) / 2) * sinf(DegreeToRadian(p.x)) * cosf(DegreeToRadian(p.y));
-    y = -((FieldWidth - SourceDiameter) / 2) * cosf(DegreeToRadian(p.x)) * cosf(DegreeToRadian(p.y));
-    return FPoint(x, y);
+    auto const fieldWidth_f{ static_cast<float>(fieldWidth) };
+    auto const x{ -((fieldWidth_f - SOURCE_DIAMETER) / 2.0f) * std::sin(degreeToRadian(p.x))
+                  * std::cos(degreeToRadian(p.y)) };
+    auto const y{ -((fieldWidth_f - SOURCE_DIAMETER) / 2.0f) * std::cos(degreeToRadian(p.x))
+                  * std::cos(degreeToRadian(p.y)) };
+    return juce::Point<float>{ x, y };
 }
 
 //==============================================================================
-static FPoint GetSourceAzimElev(FPoint const pXY, bool const bUseCosElev = false)
+static juce::Point<float> getSourceAzimuthElevation(juce::Point<float> const pXY, bool const bUseCosElev = false)
 {
     // Calculate azim in range [0,1], and negate it because zirkonium wants -1 on right side.
-    float fAzim = -atan2f(pXY.x, pXY.y) / juce::MathConstants<float>::pi;
+    auto const fAzimuth{ -std::atan2(pXY.x, pXY.y) / juce::MathConstants<float>::pi };
 
     // Calculate xy distance from origin, and clamp it to 2 (ie ignore outside of circle).
-    float hypo = hypotf(pXY.x, pXY.y);
-    if (hypo > RadiusMax) {
-        hypo = RadiusMax;
-    }
+    auto const hypo{ std::min(std::hypot(pXY.x, pXY.y), RADIUS_MAX) };
 
     float fElev;
     if (bUseCosElev) {
-        fElev = acosf(hypo / RadiusMax);                 // fElev is elevation in radian, [0,pi/2)
+        fElev = std::acos(hypo / RADIUS_MAX);            // fElev is elevation in radian, [0,pi/2)
         fElev /= (juce::MathConstants<float>::pi / 2.f); // making range [0,1]
-        fElev /= 2.f;                                    // making range [0,.5] because that's what the zirkonium wants
+        fElev /= 2.0f;                                   // making range [0,.5] because that's what the zirkonium wants
     } else {
-        fElev = (RadiusMax - hypo) / 4.0f;
+        fElev = (RADIUS_MAX - hypo) / 4.0f;
     }
 
-    return FPoint(fAzim, fElev);
+    return juce::Point<float>(fAzimuth, fElev);
 }
 
 //==============================================================================
@@ -73,79 +70,79 @@ FlatViewWindow::FlatViewWindow(MainContentComponent & parent, GrisLookAndFeel & 
     , mMainContentComponent(parent)
     , mLookAndFeel(feel)
 {
-    this->startTimerHz(24);
+    startTimerHz(24);
 }
 
 //==============================================================================
 FlatViewWindow::~FlatViewWindow()
 {
-    this->mMainContentComponent.closeFlatViewWindow();
+    mMainContentComponent.closeFlatViewWindow();
 }
 
 //==============================================================================
 void FlatViewWindow::drawFieldBackground(juce::Graphics & g, const int fieldWH) const
 {
-    const int realW = (fieldWH - SourceDiameter);
+    auto const realW{ fieldWH - static_cast<int>(SOURCE_DIAMETER) };
+    auto const realW_f{ static_cast<float>(realW) };
 
-    if (this->mMainContentComponent.getModeSelected() == LBAP) {
-        float offset, size;
+    auto const fieldWH_f{ static_cast<float>(fieldWH) };
+    if (mMainContentComponent.getModeSelected() == LBAP) {
         // Draw light background squares.
-        g.setColour(this->mLookAndFeel.getLightColour());
-        offset = fieldWH * 0.4;
-        size = fieldWH * 0.2;
+        g.setColour(mLookAndFeel.getLightColour());
+        auto offset{ fieldWH_f * 0.4f };
+        auto size{ fieldWH_f * 0.2f };
         g.drawRect(offset, offset, size, size);
-        offset = fieldWH * 0.2;
-        size = fieldWH * 0.6;
+        offset = fieldWH_f * 0.2f;
+        size = fieldWH_f * 0.6f;
         g.drawRect(offset, offset, size, size);
         g.drawRect(10, 10, fieldWH - 20, fieldWH - 20);
         // Draw shaded background squares.
-        g.setColour(this->mLookAndFeel.getLightColour().withBrightness(0.5));
-        offset = fieldWH * 0.3;
-        size = fieldWH * 0.4;
+        g.setColour(mLookAndFeel.getLightColour().withBrightness(0.5));
+        offset = fieldWH_f * 0.3f;
+        size = fieldWH_f * 0.4f;
         g.drawRect(offset, offset, size, size);
-        offset = fieldWH * 0.1;
-        size = fieldWH * 0.8;
+        offset = fieldWH_f * 0.1f;
+        size = fieldWH_f * 0.8f;
         g.drawRect(offset, offset, size, size);
         // Draw lines.
-        float center = (fieldWH - realW) / 2.0f;
-        g.drawLine(fieldWH * 0.2, fieldWH * 0.2, fieldWH - fieldWH * 0.2, fieldWH - fieldWH * 0.2);
-        g.drawLine(fieldWH * 0.2, fieldWH - fieldWH * 0.2, fieldWH - fieldWH * 0.2, fieldWH * 0.2);
-        g.drawLine(center, fieldWH / 2, realW + center, fieldWH / 2);
-        g.drawLine(fieldWH / 2, center, fieldWH / 2, realW + center);
+        auto const center{ (fieldWH - realW_f) / 2.0f };
+        g.drawLine(fieldWH_f * 0.2f, fieldWH_f * 0.2f, fieldWH_f - fieldWH_f * 0.2f, fieldWH_f - fieldWH_f * 0.2f);
+        g.drawLine(fieldWH_f * 0.2f, fieldWH_f - fieldWH_f * 0.2f, fieldWH_f - fieldWH_f * 0.2f, fieldWH_f * 0.2f);
+        g.drawLine(center, fieldWH_f / 2.0f, realW_f + center, fieldWH_f / 2.0f);
+        g.drawLine(fieldWH_f / 2.0f, center, fieldWH_f / 2.0f, realW_f + center);
     } else {
-        float w, x;
         // Draw line and light circle.
-        g.setColour(this->mLookAndFeel.getLightColour().withBrightness(0.5));
-        w = realW / 1.3f;
-        x = (fieldWH - w) / 2.0f;
+        g.setColour(mLookAndFeel.getLightColour().withBrightness(0.5));
+        auto w{ realW_f / 1.3f };
+        auto x{ (fieldWH_f - w) / 2.0f };
         g.drawEllipse(x, x, w, w, 1);
-        w = realW / 4.0f;
-        x = (fieldWH - w) / 2.0f;
+        w = realW_f / 4.0f;
+        x = (fieldWH_f - w) / 2.0f;
         g.drawEllipse(x, x, w, w, 1);
 
-        w = realW;
-        x = (fieldWH - w) / 2.0f;
-        float r = (w / 2) * 0.296f;
+        w = realW_f;
+        x = (fieldWH_f - w) / 2.0f;
+        auto const r{ w / 2.0f * 0.296f };
 
         g.drawLine(x + r, x + r, (w + x) - r, (w + x) - r);
         g.drawLine(x + r, (w + x) - r, (w + x) - r, x + r);
-        g.drawLine(x, fieldWH / 2, w + x, fieldWH / 2);
-        g.drawLine(fieldWH / 2, x, fieldWH / 2, w + x);
+        g.drawLine(x, fieldWH_f / 2, w + x, fieldWH_f / 2);
+        g.drawLine(fieldWH_f / 2, x, fieldWH_f / 2, w + x);
 
         // Draw big background circle.
-        g.setColour(this->mLookAndFeel.getLightColour());
+        g.setColour(mLookAndFeel.getLightColour());
         g.drawEllipse(x, x, w, w, 1);
 
         // Draw little background circle.
-        w = realW / 2.0f;
-        x = (fieldWH - w) / 2.0f;
+        w = realW_f / 2.0f;
+        x = (fieldWH_f - w) / 2.0f;
         g.drawEllipse(x, x, w, w, 1);
 
         // Draw fill center cirlce.
-        g.setColour(this->mLookAndFeel.getWinBackgroundColour());
-        w = realW / 4.0f;
-        w -= 2;
-        x = (fieldWH - w) / 2.0f;
+        g.setColour(mLookAndFeel.getWinBackgroundColour());
+        w = realW_f / 4.0f;
+        w -= 2.0f;
+        x = (fieldWH_f - w) / 2.0f;
         g.fillEllipse(x, x, w, w);
     }
 }
@@ -153,141 +150,143 @@ void FlatViewWindow::drawFieldBackground(juce::Graphics & g, const int fieldWH) 
 //==============================================================================
 void FlatViewWindow::paint(juce::Graphics & g)
 {
-    const int fieldWH = getWidth(); // Same as getHeight()
-    const int fieldCenter = fieldWH / 2;
-    const int realW = (fieldWH - SourceDiameter);
+    auto const fieldWh = getWidth(); // Same as getHeight()
+    auto const fieldCenter = fieldWh / 2;
+    auto const SourceDiameter_i{ static_cast<int>(SOURCE_DIAMETER) };
+    auto const realW = fieldWh - SourceDiameter_i;
 
-    g.fillAll(this->mLookAndFeel.getWinBackgroundColour());
+    g.fillAll(mLookAndFeel.getWinBackgroundColour());
 
-    drawFieldBackground(g, fieldWH);
+    drawFieldBackground(g, fieldWh);
 
-    g.setFont(this->mLookAndFeel.getFont());
-    g.setColour(this->mLookAndFeel.getLightColour());
+    g.setFont(mLookAndFeel.getFont());
+    g.setColour(mLookAndFeel.getLightColour());
     g.drawText("0",
                fieldCenter,
                10,
-               SourceDiameter,
-               SourceDiameter,
+               SourceDiameter_i,
+               SourceDiameter_i,
                juce::Justification(juce::Justification::centred),
                false);
     g.drawText("90",
                realW - 10,
-               (fieldWH - 4) / 2.0f,
-               SourceDiameter,
-               SourceDiameter,
+               (fieldWh - 4) / 2,
+               SourceDiameter_i,
+               SourceDiameter_i,
                juce::Justification(juce::Justification::centred),
                false);
     g.drawText("180",
                fieldCenter,
                realW - 6,
-               SourceDiameter,
-               SourceDiameter,
+               SourceDiameter_i,
+               SourceDiameter_i,
                juce::Justification(juce::Justification::centred),
                false);
     g.drawText("270",
                14,
-               (fieldWH - 4) / 2.0f,
-               SourceDiameter,
-               SourceDiameter,
+               (fieldWh - 4) / 2,
+               SourceDiameter_i,
+               SourceDiameter_i,
                juce::Justification(juce::Justification::centred),
                false);
 
     // Draw sources.
-    int maxDrawSource = (int)this->mMainContentComponent.getListSourceInput().size();
-    for (int i = 0; i < maxDrawSource; ++i) {
-        Input * it = this->mMainContentComponent.getListSourceInput().getUnchecked(i);
-        if (it->getGain() == -1.0) {
+    auto const maxDrawSource{ mMainContentComponent.getListSourceInput().size() };
+    for (int i{}; i < maxDrawSource; ++i) {
+        auto * it{ mMainContentComponent.getListSourceInput().getUnchecked(i) };
+        if (it->getGain() == -1.0f) {
             continue;
         }
-        drawSource(g, this->mMainContentComponent.getListSourceInput().getUnchecked(i), fieldWH);
-        drawSourceSpan(g, this->mMainContentComponent.getListSourceInput().getUnchecked(i), fieldWH, fieldCenter);
+        drawSource(g, mMainContentComponent.getListSourceInput().getUnchecked(i), fieldWh);
+        drawSourceSpan(g, mMainContentComponent.getListSourceInput().getUnchecked(i), fieldWh, fieldCenter);
     }
 }
 
 //==============================================================================
-void FlatViewWindow::drawSource(juce::Graphics & g, Input * it, const int fieldWH) const
+void FlatViewWindow::drawSource(juce::Graphics & g, Input * it, const int fieldWh) const
 {
-    const int realW = (fieldWH - SourceDiameter);
+    auto const realW = static_cast<float>(fieldWh) - SOURCE_DIAMETER;
     juce::String stringVal;
-    FPoint sourceP;
-    if (this->mMainContentComponent.getModeSelected() == LBAP) {
-        sourceP = FPoint(it->getCenter().z * 0.6f, it->getCenter().x * 0.6f) / 5.0f;
+    juce::Point<float> sourceP;
+    if (mMainContentComponent.getModeSelected() == LBAP) {
+        sourceP = juce::Point<float>(it->getCenter().z * 0.6f, it->getCenter().x * 0.6f) / 5.0f;
     } else {
-        sourceP = FPoint(it->getCenter().z, it->getCenter().x) / 5.0f;
+        sourceP = juce::Point<float>(it->getCenter().z, it->getCenter().x) / 5.0f;
     }
-    sourceP.x = ((realW / 2.0f) + ((realW / 4.0f) * sourceP.x));
-    sourceP.y = ((realW / 2.0f) - ((realW / 4.0f) * sourceP.y));
-    sourceP.x = sourceP.x < 0 ? 0 : sourceP.x > fieldWH - SourceDiameter ? fieldWH - SourceDiameter : sourceP.x;
-    sourceP.y = sourceP.y < 0 ? 0 : sourceP.y > fieldWH - SourceDiameter ? fieldWH - SourceDiameter : sourceP.y;
+    sourceP.x = realW / 2.0f + realW / 4.0f * sourceP.x;
+    sourceP.y = realW / 2.0f - realW / 4.0f * sourceP.y;
+    sourceP.x = sourceP.x < 0 ? 0 : sourceP.x > fieldWh - SOURCE_DIAMETER ? fieldWh - SOURCE_DIAMETER : sourceP.x;
+    sourceP.y = sourceP.y < 0 ? 0 : sourceP.y > fieldWh - SOURCE_DIAMETER ? fieldWh - SOURCE_DIAMETER : sourceP.y;
 
     g.setColour(it->getColorJWithAlpha());
-    g.fillEllipse(sourceP.x, sourceP.y, SourceDiameter, SourceDiameter);
+    g.fillEllipse(sourceP.x, sourceP.y, SOURCE_DIAMETER, SOURCE_DIAMETER);
 
     stringVal.clear();
     stringVal << it->getId();
 
     g.setColour(juce::Colours::black.withAlpha(it->getAlpha()));
-    int tx = sourceP.x;
-    int ty = sourceP.y;
+    auto const tx{ static_cast<int>(sourceP.x) };
+    auto const ty{ static_cast<int>(sourceP.y) };
+    auto const SourceDiameter_i{ static_cast<int>(SOURCE_DIAMETER) };
     g.drawText(stringVal,
                tx + 6,
                ty + 1,
-               SourceDiameter + 10,
-               SourceDiameter,
+               SourceDiameter_i + 10,
+               SourceDiameter_i,
                juce::Justification(juce::Justification::centredLeft),
                false);
     g.setColour(juce::Colours::white.withAlpha(it->getAlpha()));
     g.drawText(stringVal,
                tx + 5,
                ty,
-               SourceDiameter + 10,
-               SourceDiameter,
+               SourceDiameter_i + 10,
+               SourceDiameter_i,
                juce::Justification(juce::Justification::centredLeft),
                false);
 }
 
 //==============================================================================
-void FlatViewWindow::drawSourceSpan(juce::Graphics & g, Input * it, const int fieldWH, const int fieldCenter) const
+void FlatViewWindow::drawSourceSpan(juce::Graphics & g, Input * it, const int fieldWh, const int fieldCenter) const
 {
-    juce::Colour colorS = it->getColorJ();
+    auto const colorS{ it->getColorJ() };
 
-    FPoint sourceP;
-    if (this->mMainContentComponent.getModeSelected() == LBAP) {
-        sourceP = FPoint(it->getCenter().z * 0.6f, it->getCenter().x * 0.6f) / 5.0f;
+    juce::Point<float> sourceP;
+    if (mMainContentComponent.getModeSelected() == LBAP) {
+        sourceP = juce::Point<float>(it->getCenter().z * 0.6f, it->getCenter().x * 0.6f) / 5.0f;
     } else {
-        sourceP = FPoint(it->getCenter().z, it->getCenter().x) / 5.0f;
+        sourceP = juce::Point<float>(it->getCenter().z, it->getCenter().x) / 5.0f;
     }
 
-    if (this->mMainContentComponent.getModeSelected() == LBAP) {
-        int realW = (fieldWH - SourceDiameter);
-        float azimuthSpan = fieldWH * (it->getAzimuthSpan() * 0.5f);
-        float halfAzimuthSpan = azimuthSpan / 2.0f - SourceRadius;
+    if (mMainContentComponent.getModeSelected() == LBAP) {
+        auto const realW{ fieldWh - static_cast<int>(SOURCE_DIAMETER) };
+        auto const azimuthSpan{ fieldWh * (it->getAzimuthSpan() * 0.5f) };
+        auto const halfAzimuthSpan{ azimuthSpan / 2.0f - SOURCE_RADIUS };
 
-        sourceP.x = ((realW / 2.0f) + ((realW / 4.0f) * sourceP.x));
-        sourceP.y = ((realW / 2.0f) - ((realW / 4.0f) * sourceP.y));
-        sourceP.x = sourceP.x < 0 ? 0 : sourceP.x > fieldWH - SourceDiameter ? fieldWH - SourceDiameter : sourceP.x;
-        sourceP.y = sourceP.y < 0 ? 0 : sourceP.y > fieldWH - SourceDiameter ? fieldWH - SourceDiameter : sourceP.y;
+        sourceP.x = realW / 2.0f + realW / 4.0f * sourceP.x;
+        sourceP.y = realW / 2.0f - realW / 4.0f * sourceP.y;
+        sourceP.x = sourceP.x < 0 ? 0 : sourceP.x > fieldWh - SOURCE_DIAMETER ? fieldWh - SOURCE_DIAMETER : sourceP.x;
+        sourceP.y = sourceP.y < 0 ? 0 : sourceP.y > fieldWh - SOURCE_DIAMETER ? fieldWh - SOURCE_DIAMETER : sourceP.y;
 
         g.setColour(colorS.withAlpha(it->getAlpha() * 0.6f));
         g.drawEllipse(sourceP.x - halfAzimuthSpan, sourceP.y - halfAzimuthSpan, azimuthSpan, azimuthSpan, 1.5f);
         g.setColour(colorS.withAlpha(it->getAlpha() * 0.2f));
         g.fillEllipse(sourceP.x - halfAzimuthSpan, sourceP.y - halfAzimuthSpan, azimuthSpan, azimuthSpan);
     } else {
-        float HRAzimSpan = 180.0f * (it->getAzimuthSpan()); // In zirkosc, this is [0,360]
-        float HRElevSpan = 180.0f * (it->getZenithSpan());  // In zirkosc, this is [0,90]
+        auto const HRAzimSpan{ 180.0f * it->getAzimuthSpan() }; // In zirkosc, this is [0,360]
+        auto const HRElevSpan{ 180.0f * it->getZenithSpan() };  // In zirkosc, this is [0,90]
 
-        if ((HRAzimSpan < 0.002f && HRElevSpan < 0.002f) || !this->mMainContentComponent.isSpanShown()) {
+        if ((HRAzimSpan < 0.002f && HRElevSpan < 0.002f) || !mMainContentComponent.isSpanShown()) {
             return;
         }
 
-        FPoint azimElev = GetSourceAzimElev(sourceP, true);
+        auto const azimuthElevation{ getSourceAzimuthElevation(sourceP, true) };
 
-        float HRAzim = azimElev.x * 180.0f; // In zirkosc [-180,180]
-        float HRElev = azimElev.y * 180.0f; // In zirkosc [0,89.9999]
+        auto const hrAzimuth{ azimuthElevation.x * 180.0f };   // In zirkosc [-180,180]
+        auto const hrElevation{ azimuthElevation.y * 180.0f }; // In zirkosc [0,89.9999]
 
         // Calculate max and min elevation in degrees.
-        FPoint maxElev = { HRAzim, HRElev + HRElevSpan / 2.0f };
-        FPoint minElev = { HRAzim, HRElev - HRElevSpan / 2.0f };
+        juce::Point<float> maxElev = { hrAzimuth, hrElevation + HRElevSpan / 2.0f };
+        juce::Point<float> minElev = { hrAzimuth, hrElevation - HRElevSpan / 2.0f };
 
         if (minElev.y < 0) {
             maxElev.y = (maxElev.y - minElev.y);
@@ -295,50 +294,51 @@ void FlatViewWindow::drawSourceSpan(juce::Graphics & g, Input * it, const int fi
         }
 
         // Convert max min elev to xy.
-        FPoint screenMaxElev = DegreeToXy(maxElev, fieldWH);
-        FPoint screenMinElev = DegreeToXy(minElev, fieldWH);
+        auto const screenMaxElev = degreeToXy(maxElev, fieldWh);
+        auto const screenMinElev = degreeToXy(minElev, fieldWh);
 
         // Form minmax elev, calculate minmax radius.
-        float maxRadius = sqrtf(screenMaxElev.x * screenMaxElev.x + screenMaxElev.y * screenMaxElev.y);
-        float minRadius = sqrtf(screenMinElev.x * screenMinElev.x + screenMinElev.y * screenMinElev.y);
+        auto const maxRadius = std::sqrt(screenMaxElev.x * screenMaxElev.x + screenMaxElev.y * screenMaxElev.y);
+        auto const minRadius = std::sqrt(screenMinElev.x * screenMinElev.x + screenMinElev.y * screenMinElev.y);
 
         // Drawing the path for spanning.
         juce::Path myPath;
-        myPath.startNewSubPath(fieldCenter + screenMaxElev.x, fieldCenter + screenMaxElev.y);
+        auto const fieldCenter_f{ static_cast<float>(fieldCenter) };
+        myPath.startNewSubPath(fieldCenter_f + screenMaxElev.x, fieldCenter_f + screenMaxElev.y);
         // Half first arc center.
-        myPath.addCentredArc(fieldCenter,
-                             fieldCenter,
+        myPath.addCentredArc(fieldCenter_f,
+                             fieldCenter_f,
                              minRadius,
                              minRadius,
                              0.0,
-                             DegreeToRadian(-HRAzim),
-                             DegreeToRadian(-HRAzim + HRAzimSpan / 2));
+                             degreeToRadian(-hrAzimuth),
+                             degreeToRadian(-hrAzimuth + HRAzimSpan / 2));
 
         // If we are over the top of the dome we draw the adjacent angle.
         if (maxElev.getY() > 90.f) {
-            myPath.addCentredArc(fieldCenter,
-                                 fieldCenter,
+            myPath.addCentredArc(fieldCenter_f,
+                                 fieldCenter_f,
                                  maxRadius,
                                  maxRadius,
                                  0.0,
-                                 juce::MathConstants<float>::pi + DegreeToRadian(-HRAzim + HRAzimSpan / 2),
-                                 juce::MathConstants<float>::pi + DegreeToRadian(-HRAzim - HRAzimSpan / 2));
+                                 juce::MathConstants<float>::pi + degreeToRadian(-hrAzimuth + HRAzimSpan / 2),
+                                 juce::MathConstants<float>::pi + degreeToRadian(-hrAzimuth - HRAzimSpan / 2));
         } else {
-            myPath.addCentredArc(fieldCenter,
-                                 fieldCenter,
+            myPath.addCentredArc(fieldCenter_f,
+                                 fieldCenter_f,
                                  maxRadius,
                                  maxRadius,
                                  0.0,
-                                 DegreeToRadian(-HRAzim + HRAzimSpan / 2),
-                                 DegreeToRadian(-HRAzim - HRAzimSpan / 2));
+                                 degreeToRadian(-hrAzimuth + HRAzimSpan / 2),
+                                 degreeToRadian(-hrAzimuth - HRAzimSpan / 2));
         }
-        myPath.addCentredArc(fieldCenter,
-                             fieldCenter,
+        myPath.addCentredArc(fieldCenter_f,
+                             fieldCenter_f,
                              minRadius,
                              minRadius,
                              0.0,
-                             DegreeToRadian(-HRAzim - HRAzimSpan / 2),
-                             DegreeToRadian(-HRAzim));
+                             degreeToRadian(-hrAzimuth - HRAzimSpan / 2),
+                             degreeToRadian(-hrAzimuth));
 
         myPath.closeSubPath();
 
@@ -353,12 +353,12 @@ void FlatViewWindow::drawSourceSpan(juce::Graphics & g, Input * it, const int fi
 //==============================================================================
 void FlatViewWindow::resized()
 {
-    const int fieldWH = std::min(getWidth(), getHeight());
-    this->setSize(fieldWH, fieldWH);
+    auto const fieldWh = std::min(getWidth(), getHeight());
+    setSize(fieldWh, fieldWh);
 }
 
 //==============================================================================
 void FlatViewWindow::closeButtonPressed()
 {
-    this->mMainContentComponent.closeFlatViewWindow();
+    mMainContentComponent.closeFlatViewWindow();
 }

@@ -382,7 +382,7 @@ juce::TextEditor * MainContentComponent::addTextEditor(const juce::String & s,
 }
 
 //==============================================================================
-juce::Slider * MainContentComponent::addSlider(const juce::String & s,
+juce::Slider * MainContentComponent::addSlider(const juce::String & /*s*/,
                                                const juce::String & stooltip,
                                                int x,
                                                int y,
@@ -405,7 +405,7 @@ juce::Slider * MainContentComponent::addSlider(const juce::String & s,
 }
 
 //==============================================================================
-juce::ComboBox * MainContentComponent::addComboBox(const juce::String & s,
+juce::ComboBox * MainContentComponent::addComboBox(const juce::String & /*s*/,
                                                    const juce::String & stooltip,
                                                    int const x,
                                                    int const y,
@@ -814,8 +814,8 @@ void MainContentComponent::handleResetMeterClipping()
 //==============================================================================
 void MainContentComponent::handleInputColours()
 {
-    float hue = 0.0f;
-    float inc = 1.0 / (mSourceInputs.size() + 1);
+    auto hue = 0.0f;
+    auto const inc = 1.0f / static_cast<float>(mSourceInputs.size() + 1);
     for (auto && it : mSourceInputs) {
         it->setColor(juce::Colour::fromHSV(hue, 1, 0.75, 1), true);
         hue += inc;
@@ -1028,7 +1028,7 @@ bool MainContentComponent::perform(const InvocationInfo & info)
 }
 
 //==============================================================================
-juce::PopupMenu MainContentComponent::getMenuForIndex(int menuIndex, const juce::String & menuName)
+juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const juce::String & menuName)
 {
     juce::ApplicationCommandManager * commandManager = &mMainWindow.getApplicationCommandManager();
 
@@ -1076,10 +1076,9 @@ juce::PopupMenu MainContentComponent::getMenuForIndex(int menuIndex, const juce:
 }
 
 //==============================================================================
-void MainContentComponent::menuItemSelected(int menuItemID, int /*topLevelMenuIndex*/)
+void MainContentComponent::menuItemSelected(int /*menuItemID*/, int /*topLevelMenuIndex*/)
 {
-    switch (menuItemID) {
-    }
+    // ???
 }
 
 //==============================================================================
@@ -1159,9 +1158,9 @@ void MainContentComponent::connectionClientJack(juce::String nameCli, bool conn)
 }
 
 //==============================================================================
-void MainContentComponent::selectSpeaker(unsigned int idS)
+void MainContentComponent::selectSpeaker(unsigned int const idS)
 {
-    for (unsigned int i = 0; i < mSpeakers.size(); ++i) {
+    for (unsigned i = 0; i < static_cast<unsigned>(mSpeakers.size()); ++i) {
         if (i != idS) {
             mSpeakers[i]->unSelectSpeaker();
         } else {

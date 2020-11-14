@@ -50,11 +50,11 @@ static void jack_client_log(const char * format, ...)
 }
 
 // Jack processing callback.
-static int process_audio(jack_nframes_t const nFrames, void * arg)
-{
-    auto * jackCli = static_cast<JackClientGris *>(arg);
-    return jackCli->processAudio(nFrames);
-}
+// static int process_audio(jack_nframes_t const nFrames, void * arg)
+//{
+//    auto * jackCli = static_cast<JackClientGris *>(arg);
+//    return jackCli->processAudio(nFrames);
+//}
 
 //==============================================================================
 // Jack callback functions.
@@ -242,7 +242,7 @@ JackClientGris::JackClientGris()
 
     // Register Jack callbacks and ports.
     jack_on_shutdown(mClient, jackShutdown, this);
-    jack_set_process_callback(mClient, process_audio, this);
+    // jack_set_process_callback(mClient, process_audio, this);
     jack_set_client_registration_callback(mClient, client_registration_callback, this);
     jack_set_session_callback(mClient, session_callback, this);
     jack_set_port_connect_callback(mClient, port_connect_callback, this);
@@ -860,8 +860,8 @@ void JackClientGris::processStereo(jack_default_audio_sample_t ** ins,
 
     unsigned int f, i;
     float azi, last_azi, scaled;
-    float interpG = powf(mInterMaster, 0.1) * 0.0099 + 0.99;
-    float gain = powf(10.0f, (sizeInputs - 1) * -0.1f * 0.05f);
+    float interpG = powf(mInterMaster, 0.1f) * 0.0099f + 0.99f;
+    float gain = powf(10.0f, (static_cast<float>(sizeInputs) - 1.0f) * -0.1f * 0.05f);
 
     for (i = 0; i < sizeOutputs; ++i) {
         memset(outs[i], 0, sizeof(jack_default_audio_sample_t) * nframes);
@@ -1019,7 +1019,7 @@ void JackClientGris::connectedGrisToSystem()
 
     // Build output patch list.
     mOutputPatches.clear();
-    for (unsigned int i = 0; i < mOutputsPort.size(); i++) {
+    for (i = 0; i < mOutputsPort.size(); i++) {
         if (mSpeakersOut[i].outputPatch != 0) {
             mOutputPatches.push_back(mSpeakersOut[i].outputPatch);
         }
@@ -1072,7 +1072,7 @@ bool JackClientGris::initSpeakersTriplet(std::vector<Speaker *> const & listSpk,
     mVbapTriplets.clear();
     for (int i = 0; i < num; i++) {
         std::vector<int> row;
-        for (int j = 0; j < 3; j++) {
+        for (j = 0; j < 3; j++) {
             row.push_back(triplets[i][j]);
         }
         mVbapTriplets.push_back(row);

@@ -102,7 +102,7 @@ typedef void * (*JackThreadCallback)(void * arg);
 typedef void (*JackShutdownCallback)(void * arg);
 typedef void (*JackInfoShutdownCallback)(jack_status_t code, const char * reason, void * arg);
 typedef float jack_default_audio_sample_t;
-typedef struct _jack_session_event;
+// typedef struct _jack_session_event;
 typedef enum JackSessionEventType jack_session_event_type_t;
 typedef enum JackSessionFlags jack_session_flags_t;
 typedef struct jackctl_driver jackctl_driver_t;
