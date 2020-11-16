@@ -22,6 +22,7 @@
 #include "AudioRenderer.h"
 #include "LevelComponent.h"
 #include "MainWindow.h"
+#include "ServerGrisConstants.h"
 
 //==============================================================================
 MainContentComponent::MainContentComponent(MainWindow & mainWindow, GrisLookAndFeel & newLookAndFeel)
@@ -288,7 +289,7 @@ MainContentComponent::~MainContentComponent()
 //==============================================================================
 // Widget builder utilities.
 juce::Label * MainContentComponent::addLabel(const juce::String & s,
-                                             const juce::String & stooltip,
+                                             const juce::String & tooltip,
                                              int x,
                                              int y,
                                              int w,
@@ -297,7 +298,7 @@ juce::Label * MainContentComponent::addLabel(const juce::String & s,
 {
     juce::Label * lb = new juce::Label();
     lb->setText(s, juce::NotificationType::dontSendNotification);
-    lb->setTooltip(stooltip);
+    lb->setTooltip(tooltip);
     lb->setJustificationType(juce::Justification::left);
     lb->setFont(mLookAndFeel.getFont());
     lb->setLookAndFeel(&mLookAndFeel);
@@ -309,7 +310,7 @@ juce::Label * MainContentComponent::addLabel(const juce::String & s,
 
 //==============================================================================
 juce::TextButton * MainContentComponent::addButton(const juce::String & s,
-                                                   const juce::String & stooltip,
+                                                   const juce::String & tooltip,
                                                    int x,
                                                    int y,
                                                    int w,
@@ -317,7 +318,7 @@ juce::TextButton * MainContentComponent::addButton(const juce::String & s,
                                                    Component * into)
 {
     juce::TextButton * tb = new juce::TextButton();
-    tb->setTooltip(stooltip);
+    tb->setTooltip(tooltip);
     tb->setButtonText(s);
     tb->setSize(w, h);
     tb->setTopLeftPosition(x, y);
@@ -330,7 +331,7 @@ juce::TextButton * MainContentComponent::addButton(const juce::String & s,
 
 //==============================================================================
 juce::ToggleButton * MainContentComponent::addToggleButton(const juce::String & s,
-                                                           const juce::String & stooltip,
+                                                           const juce::String & tooltip,
                                                            int x,
                                                            int y,
                                                            int w,
@@ -339,7 +340,7 @@ juce::ToggleButton * MainContentComponent::addToggleButton(const juce::String & 
                                                            bool toggle)
 {
     juce::ToggleButton * tb = new juce::ToggleButton();
-    tb->setTooltip(stooltip);
+    tb->setTooltip(tooltip);
     tb->setButtonText(s);
     tb->setToggleState(toggle, juce::dontSendNotification);
     tb->setSize(w, h);
@@ -354,7 +355,7 @@ juce::ToggleButton * MainContentComponent::addToggleButton(const juce::String & 
 //==============================================================================
 juce::TextEditor * MainContentComponent::addTextEditor(const juce::String & s,
                                                        const juce::String & emptyS,
-                                                       const juce::String & stooltip,
+                                                       const juce::String & tooltip,
                                                        int x,
                                                        int y,
                                                        int w,
@@ -363,7 +364,7 @@ juce::TextEditor * MainContentComponent::addTextEditor(const juce::String & s,
                                                        int wLab)
 {
     juce::TextEditor * te = new juce::TextEditor();
-    te->setTooltip(stooltip);
+    te->setTooltip(tooltip);
     te->setTextToShowWhenEmpty(emptyS, mLookAndFeel.getOffColour());
     te->setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
     te->setLookAndFeel(&mLookAndFeel);
@@ -383,7 +384,7 @@ juce::TextEditor * MainContentComponent::addTextEditor(const juce::String & s,
 
 //==============================================================================
 juce::Slider * MainContentComponent::addSlider(const juce::String & /*s*/,
-                                               const juce::String & stooltip,
+                                               const juce::String & tooltip,
                                                int x,
                                                int y,
                                                int w,
@@ -391,7 +392,7 @@ juce::Slider * MainContentComponent::addSlider(const juce::String & /*s*/,
                                                Component * into)
 {
     juce::Slider * sd = new juce::Slider();
-    sd->setTooltip(stooltip);
+    sd->setTooltip(tooltip);
     sd->setSize(w, h);
     sd->setTopLeftPosition(x, y);
     sd->setSliderStyle(juce::Slider::Rotary);
@@ -406,7 +407,7 @@ juce::Slider * MainContentComponent::addSlider(const juce::String & /*s*/,
 
 //==============================================================================
 juce::ComboBox * MainContentComponent::addComboBox(const juce::String & /*s*/,
-                                                   const juce::String & stooltip,
+                                                   const juce::String & tooltip,
                                                    int const x,
                                                    int const y,
                                                    int const w,
@@ -415,7 +416,7 @@ juce::ComboBox * MainContentComponent::addComboBox(const juce::String & /*s*/,
 {
     // TODO : naked new
     juce::ComboBox * cb = new juce::ComboBox();
-    cb->setTooltip(stooltip);
+    cb->setTooltip(tooltip);
     cb->setSize(w, h);
     cb->setTopLeftPosition(x, y);
     cb->setLookAndFeel(&mLookAndFeel);
@@ -760,10 +761,10 @@ void MainContentComponent::setShowTriplets(bool state)
 bool MainContentComponent::validateShowTriplets() const
 {
     int success = true;
-    for (unsigned int i = 0; i < getListTriplet().size(); ++i) {
-        Speaker const * spk1 = getSpeakerFromOutputPatch(getListTriplet()[i].id1);
-        Speaker const * spk2 = getSpeakerFromOutputPatch(getListTriplet()[i].id2);
-        Speaker const * spk3 = getSpeakerFromOutputPatch(getListTriplet()[i].id3);
+    for (unsigned int i = 0; i < getTriplets().size(); ++i) {
+        Speaker const * spk1 = getSpeakerFromOutputPatch(getTriplets()[i].id1);
+        Speaker const * spk2 = getSpeakerFromOutputPatch(getTriplets()[i].id2);
+        Speaker const * spk3 = getSpeakerFromOutputPatch(getTriplets()[i].id3);
 
         if (spk1 == nullptr || spk2 == nullptr || spk3 == nullptr) {
             success = false;
@@ -855,11 +856,11 @@ void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & command
 }
 
 //==============================================================================
-void MainContentComponent::getCommandInfo(juce::CommandID commandID, juce::ApplicationCommandInfo & result)
+void MainContentComponent::getCommandInfo(juce::CommandID commandId, juce::ApplicationCommandInfo & result)
 {
     const juce::String generalCategory("General");
 
-    switch (commandID) {
+    switch (commandId) {
     case MainWindow::NewPresetID:
         result.setInfo("New Project", "Close the current preset and open the default.", generalCategory, 0);
         result.addDefaultKeypress('N', juce::ModifierKeys::commandModifier);
@@ -1034,7 +1035,7 @@ juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const j
 
     juce::PopupMenu menu;
 
-    if (menuName == "juce::File") {
+    if (menuName == "File") {
         menu.addCommandItem(commandManager, MainWindow::NewPresetID);
         menu.addCommandItem(commandManager, MainWindow::OpenPresetID);
         menu.addCommandItem(commandManager, MainWindow::SavePresetID);
@@ -1212,7 +1213,7 @@ void MainContentComponent::selectTripletSpeaker(int idS)
             tri.id2 = i2;
             tri.id3 = i3;
             int posDel = -1;
-            if (tripletExist(tri, posDel)) {
+            if (tripletExists(tri, posDel)) {
                 mTriplets.erase(mTriplets.begin() + posDel);
             } else {
                 mTriplets.push_back(tri);
@@ -1222,7 +1223,7 @@ void MainContentComponent::selectTripletSpeaker(int idS)
 }
 
 //==============================================================================
-bool MainContentComponent::tripletExist(Triplet tri, int & pos) const
+bool MainContentComponent::tripletExists(Triplet tri, int & pos) const
 {
     pos = 0;
     for (auto const & ti : mTriplets) {
@@ -1398,9 +1399,9 @@ void MainContentComponent::updateInputJack(int inInput, Input & inp)
 }
 
 //==============================================================================
-void MainContentComponent::setListTripletFromVbap()
+void MainContentComponent::setTripletsFromVbap()
 {
-    clearListTriplet();
+    clearTriplets();
     for (auto const & it : mJackClient.getVbapTriplets()) {
         Triplet tri;
         tri.id1 = it[0];
@@ -1702,7 +1703,7 @@ bool MainContentComponent::updateLevelComp()
         retval = mJackClient.initSpeakersTriplet(tempListSpeaker, dimensions, mNeedToComputeVbap);
 
         if (retval) {
-            setListTripletFromVbap();
+            setTripletsFromVbap();
             mNeedToComputeVbap = false;
         } else {
             juce::AlertWindow alert("Not a valid DOME 3-D configuration!    ",
@@ -2220,9 +2221,9 @@ void MainContentComponent::saveSpeakerSetup(juce::String path)
 void MainContentComponent::saveProperties(juce::String device,
                                           int rate,
                                           int buff,
-                                          int fileformat,
-                                          int fileconfig,
-                                          int attenuationDB,
+                                          int fileFormat,
+                                          int fileConfig,
+                                          int attenuationDb,
                                           int attenuationHz,
                                           int oscPort)
 {
@@ -2271,16 +2272,16 @@ void MainContentComponent::saveProperties(juce::String device,
     }
 
     // Handle recording settings
-    mJackClient.setRecordFormat(fileformat);
-    props->setValue("FileFormat", fileformat);
+    mJackClient.setRecordFormat(fileFormat);
+    props->setValue("FileFormat", fileFormat);
 
-    mJackClient.setRecordFileConfig(fileconfig);
-    props->setValue("FileConfig", fileconfig);
+    mJackClient.setRecordFileConfig(fileConfig);
+    props->setValue("FileConfig", fileConfig);
 
     // Handle CUBE distance attenuation
-    float linGain = powf(10.0f, ATTENUATION_DB[attenuationDB].getFloatValue() * 0.05f);
+    float linGain = powf(10.0f, ATTENUATION_DB[attenuationDb].getFloatValue() * 0.05f);
     mJackClient.setAttenuationDb(linGain);
-    props->setValue("AttenuationDB", attenuationDB);
+    props->setValue("AttenuationDB", attenuationDb);
 
     float coeff = expf(-juce::MathConstants<float>::twoPi * ATTENUATION_CUTOFFS[attenuationHz].getFloatValue()
                        / mJackClient.getSampleRate());
@@ -2506,7 +2507,7 @@ void MainContentComponent::comboBoxChanged(juce::ComboBox * comboBox)
 //==============================================================================
 juce::StringArray MainContentComponent::getMenuBarNames()
 {
-    char const * names[] = { "juce::File", "View", "Help", nullptr };
+    char const * names[] = { "File", "View", "Help", nullptr };
     return juce::StringArray{ names };
 }
 

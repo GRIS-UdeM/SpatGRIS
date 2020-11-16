@@ -21,6 +21,7 @@
 
 #include "GrisLookAndFeel.h"
 #include "MainComponent.h"
+#include "ServerGrisConstants.h"
 
 //==============================================================================
 AboutComponent::AboutComponent(AboutWindow & parentWindow, GrisLookAndFeel & lookAndFeel) : mParentWindow(parentWindow)

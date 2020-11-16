@@ -52,13 +52,12 @@ JackClientListComponent::JackClientListComponent(MainContentComponent * parent, 
 //==============================================================================
 void JackClientListComponent::buttonClicked(juce::Button * button)
 {
-    this->mainParent->getLockClients().lock();
-    bool connectedCli = !this->mainParent->getListClientjack().at(button->getName().getIntValue()).connected;
-    this->mainParent->connectionClientJack(
-        this->mainParent->getListClientjack().at(button->getName().getIntValue()).name,
-        connectedCli);
+    this->mainParent->getClientsLock().lock();
+    bool connectedCli = !this->mainParent->getClients().at(button->getName().getIntValue()).connected;
+    this->mainParent->connectionClientJack(this->mainParent->getClients().at(button->getName().getIntValue()).name,
+                                           connectedCli);
     updateContentCli();
-    this->mainParent->getLockClients().unlock();
+    this->mainParent->getClientsLock().unlock();
 }
 
 //==============================================================================
@@ -71,7 +70,7 @@ void JackClientListComponent::setBounds(int x, int y, int width, int height)
 //==============================================================================
 void JackClientListComponent::updateContentCli()
 {
-    numRows = (unsigned int)this->mainParent->getListClientjack().size();
+    numRows = (unsigned int)this->mainParent->getClients().size();
     tableListClient.updateContent();
     tableListClient.repaint();
 }
@@ -79,33 +78,33 @@ void JackClientListComponent::updateContentCli()
 //==============================================================================
 void JackClientListComponent::setValue(const int rowNumber, const int columnNumber, const int newRating)
 {
-    this->mainParent->getLockClients().lock();
-    if (this->mainParent->getListClientjack().size() > (unsigned int)rowNumber) {
+    this->mainParent->getClientsLock().lock();
+    if (this->mainParent->getClients().size() > (unsigned int)rowNumber) {
         switch (columnNumber) {
         case ColumnIds::START:
-            this->mainParent->getListClientjack().at(rowNumber).portStart = newRating;
-            this->mainParent->getListClientjack().at(rowNumber).initialized = true;
+            this->mainParent->getClients().at(rowNumber).portStart = newRating;
+            this->mainParent->getClients().at(rowNumber).initialized = true;
             break;
         case ColumnIds::END:
-            this->mainParent->getListClientjack().at(rowNumber).portEnd = newRating;
-            this->mainParent->getListClientjack().at(rowNumber).initialized = true;
+            this->mainParent->getClients().at(rowNumber).portEnd = newRating;
+            this->mainParent->getClients().at(rowNumber).initialized = true;
             break;
         }
     }
-    bool connectedCli = this->mainParent->getListClientjack().at(rowNumber).connected;
-    this->mainParent->connectionClientJack(this->mainParent->getListClientjack().at(rowNumber).name, connectedCli);
-    this->mainParent->getLockClients().unlock();
+    bool connectedCli = this->mainParent->getClients().at(rowNumber).connected;
+    this->mainParent->connectionClientJack(this->mainParent->getClients().at(rowNumber).name, connectedCli);
+    this->mainParent->getClientsLock().unlock();
 }
 
 //==============================================================================
 int JackClientListComponent::getValue(const int rowNumber, const int columnNumber) const
 {
-    if ((unsigned int)rowNumber < this->mainParent->getListClientjack().size()) {
+    if ((unsigned int)rowNumber < this->mainParent->getClients().size()) {
         switch (columnNumber) {
         case ColumnIds::START:
-            return this->mainParent->getListClientjack().at(rowNumber).portStart;
+            return this->mainParent->getClients().at(rowNumber).portStart;
         case ColumnIds::END:
-            return this->mainParent->getListClientjack().at(rowNumber).portEnd;
+            return this->mainParent->getClients().at(rowNumber).portEnd;
         }
     }
     return -1;
@@ -115,9 +114,9 @@ int JackClientListComponent::getValue(const int rowNumber, const int columnNumbe
 juce::String JackClientListComponent::getText(const int columnNumber, const int rowNumber) const
 {
     juce::String text = "?";
-    if ((unsigned int)rowNumber < this->mainParent->getListClientjack().size()) {
+    if ((unsigned int)rowNumber < this->mainParent->getClients().size()) {
         if (columnNumber == ColumnIds::CLIENT_NAME) {
-            text = juce::String(this->mainParent->getListClientjack().at(rowNumber).name);
+            text = juce::String(this->mainParent->getClients().at(rowNumber).name);
         }
     }
     return text;
@@ -145,8 +144,8 @@ void JackClientListComponent::paintCell(juce::Graphics & g,
                                         int const height,
                                         bool const /*rowIsSelected*/)
 {
-    if (this->mainParent->getLockClients().try_lock()) {
-        auto const jackClientListSize{ this->mainParent->getListClientjack().size() };
+    if (this->mainParent->getClientsLock().try_lock()) {
+        auto const jackClientListSize{ this->mainParent->getClients().size() };
         if (static_cast<size_t>(rowNumber) < jackClientListSize) {
             if (columnId == ColumnIds::CLIENT_NAME) {
                 juce::String text = getText(columnId, rowNumber);
@@ -155,7 +154,7 @@ void JackClientListComponent::paintCell(juce::Graphics & g,
                 g.drawText(text, 2, 0, width - 4, height, juce::Justification::centredLeft, true);
             }
         }
-        this->mainParent->getLockClients().unlock();
+        this->mainParent->getClientsLock().unlock();
     }
     g.setColour(juce::Colours::black.withAlpha(0.2f));
     g.fillRect(width - 1, 0, 1, height);
@@ -183,7 +182,7 @@ juce::Component * JackClientListComponent::refreshComponentForCell(int const row
             tbRemove->setLookAndFeel(this->grisFeel);
         }
 
-        if (this->mainParent->getListClientjack().at(rowNumber).connected) {
+        if (this->mainParent->getClients().at(rowNumber).connected) {
             tbRemove->setButtonText("<->");
         } else {
             tbRemove->setButtonText("<X>");

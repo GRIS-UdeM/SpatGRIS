@@ -21,6 +21,7 @@
 
 #include "GrisLookAndFeel.h"
 #include "MainComponent.h"
+#include "ServerGrisConstants.h"
 
 //==============================================================================
 juce::Label * PropertiesComponent::createPropLabel(juce::String const & lab,

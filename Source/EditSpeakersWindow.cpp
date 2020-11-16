@@ -197,7 +197,7 @@ void EditSpeakersWindow::initComp()
 
     mSpeakersTableListBox.setMultipleSelectionEnabled(true);
 
-    mNumRows = static_cast<unsigned>(mMainContentComponent.getListSpeaker().size());
+    mNumRows = static_cast<unsigned>(mMainContentComponent.getSpeakers().size());
 
     mListSpeakerBox.setBounds(0, 0, getWidth(), getHeight());
     mListSpeakerBox.correctSize(getWidth() - 8, getHeight());
@@ -258,10 +258,10 @@ bool compareGreaterThan(Sorter const & a, Sorter const & b)
 //==============================================================================
 void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const isForwards)
 {
-    auto const size{ static_cast<unsigned>(mMainContentComponent.getListSpeaker().size()) };
+    auto const size{ static_cast<unsigned>(mMainContentComponent.getSpeakers().size()) };
     struct Sorter toSort[MAX_OUTPUTS];
 
-    auto & speakers{ mMainContentComponent.getListSpeaker() };
+    auto & speakers{ mMainContentComponent.getSpeakers() };
     unsigned index{};
     for (auto const * speaker : speakers) {
         auto & toSortItem{ toSort[index++] };
@@ -301,7 +301,8 @@ void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const 
         std::sort(toSort, toSort + size, compareGreaterThan);
     }
 
-    std::vector<int> newOrder{ static_cast<int>(size) };
+    std::vector<int> newOrder{};
+    newOrder.resize(size);
     for (unsigned i{}; i < size; ++i) {
         newOrder[i] = toSort[i].id;
     }
@@ -349,12 +350,12 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         for (int i{}; i < mNumOfSpeakersTextEditor.getText().getIntValue(); i++) {
             if (selectedRow == -1 || selectedRow == (mNumRows - 1)) {
                 mMainContentComponent.addSpeaker(sortColumnId, sortedForwards);
-                mNumRows = mMainContentComponent.getListSpeaker().size();
+                mNumRows = mMainContentComponent.getSpeakers().size();
                 selectedRow = mNumRows - 1;
             } else {
                 mMainContentComponent.insertSpeaker(selectedRow, sortColumnId, sortedForwards);
                 selectedRow += 1;
-                mNumRows = mMainContentComponent.getListSpeaker().size();
+                mNumRows = mMainContentComponent.getSpeakers().size();
             }
 
             auto azimuth{ 360.0f / mNumOfSpeakersTextEditor.getText().getIntValue() * i
@@ -366,7 +367,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
             }
             auto const zenith{ mZenithTextEditor.getText().getFloatValue() };
             auto const radius{ mRadiusTextEditor.getText().getFloatValue() };
-            mMainContentComponent.getListSpeaker()[selectedRow]->setAziZenRad(glm::vec3(azimuth, zenith, radius));
+            mMainContentComponent.getSpeakers()[selectedRow]->setAziZenRad(glm::vec3(azimuth, zenith, radius));
         }
         updateWinContent();
         mSpeakersTableListBox.selectRow(selectedRow);
@@ -379,7 +380,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         mMainContentComponent.getJackClient()->setPinkNoiseActive(mPinkNoiseToggleButton.getToggleState());
     } else if (button->getName().isNotEmpty()
                && (button->getName().getIntValue() >= 0
-                   && button->getName().getIntValue() <= mMainContentComponent.getListSpeaker().size())) {
+                   && button->getName().getIntValue() <= mMainContentComponent.getSpeakers().size())) {
         if (mSpeakersTableListBox.getNumSelectedRows() > 1
             && mSpeakersTableListBox.getSelectedRows().contains(button->getName().getIntValue())) {
             for (auto i{ mSpeakersTableListBox.getSelectedRows().size() - 1 }; i >= 0; --i) {
@@ -395,11 +396,11 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         mMainContentComponent.setNeedToComputeVbap(true);
     } else {
         auto const row{ button->getName().getIntValue() - 1000 };
-        mMainContentComponent.getListSpeaker()[row]->setDirectOut(button->getToggleState());
+        mMainContentComponent.getSpeakers()[row]->setDirectOut(button->getToggleState());
         if (mSpeakersTableListBox.getNumSelectedRows() > 1) {
             for (int i{}; i < mSpeakersTableListBox.getSelectedRows().size(); ++i) {
                 auto const rowNumber{ mSpeakersTableListBox.getSelectedRows()[i] };
-                mMainContentComponent.getListSpeaker()[rowNumber]->setDirectOut(button->getToggleState());
+                mMainContentComponent.getSpeakers()[rowNumber]->setDirectOut(button->getToggleState());
                 auto * tog{ dynamic_cast<juce::ToggleButton *>(mSpeakersTableListBox.getCellComponent(11, rowNumber)) };
                 if (tog) {
                     tog->setToggleState(button->getToggleState(), juce::NotificationType::dontSendNotification);
@@ -460,7 +461,7 @@ void EditSpeakersWindow::textEditorReturnKeyPressed(juce::TextEditor & /*textEdi
 //==============================================================================
 void EditSpeakersWindow::updateWinContent()
 {
-    mNumRows = mMainContentComponent.getListSpeaker().size();
+    mNumRows = mMainContentComponent.getSpeakers().size();
     mSpeakersTableListBox.updateContent();
     if (mInitialized) {
         mMainContentComponent.setNeedToSaveSpeakerSetup(true);
@@ -540,8 +541,8 @@ void EditSpeakersWindow::resized()
 juce::String EditSpeakersWindow::getText(int const columnNumber, int const rowNumber) const
 {
     juce::String text{};
-    auto & speakers{ mMainContentComponent.getListSpeaker() };
-    if (mMainContentComponent.getListSpeaker().size() > rowNumber) {
+    auto & speakers{ mMainContentComponent.getSpeakers() };
+    if (mMainContentComponent.getSpeakers().size() > rowNumber) {
         auto & speaker{ *speakers[rowNumber] };
         switch (columnNumber) {
         case 1:
@@ -592,87 +593,87 @@ void EditSpeakersWindow::setText(int const columnNumber,
                                  bool const altDown)
 {
     float diff;
-    if (mMainContentComponent.getLockSpeakers().try_lock()) {
-        if (mMainContentComponent.getListSpeaker().size() > rowNumber) {
+    if (mMainContentComponent.getSpeakersLock().try_lock()) {
+        if (mMainContentComponent.getSpeakers().size() > rowNumber) {
             glm::vec3 newP;
             switch (columnNumber) {
             case 2: // X
             {
-                newP = mMainContentComponent.getListSpeaker()[rowNumber]->getCoordinate();
+                newP = mMainContentComponent.getSpeakers()[rowNumber]->getCoordinate();
                 auto const val{ static_cast<float>(getFloatPrecision(newText.getFloatValue(), 3)) };
                 diff = val - newP.x;
                 newP.x = val;
-                mMainContentComponent.getListSpeaker()[rowNumber]->setCoordinate(newP);
+                mMainContentComponent.getSpeakers()[rowNumber]->setCoordinate(newP);
                 if (mSpeakersTableListBox.getNumSelectedRows() > 1) {
                     for (int i = 0; i < mSpeakersTableListBox.getSelectedRows().size(); i++) {
                         int rownum = mSpeakersTableListBox.getSelectedRows()[i];
                         if (rownum == rowNumber) {
                             continue;
                         }
-                        newP = mMainContentComponent.getListSpeaker()[rownum]->getCoordinate();
+                        newP = mMainContentComponent.getSpeakers()[rownum]->getCoordinate();
                         if (altDown) {
                             newP.x += diff;
                         } else {
                             newP.x = val;
                         }
-                        mMainContentComponent.getListSpeaker()[rownum]->setCoordinate(newP);
+                        mMainContentComponent.getSpeakers()[rownum]->setCoordinate(newP);
                     }
                 }
                 break;
             }
             case 3: // Y
             {
-                newP = mMainContentComponent.getListSpeaker()[rowNumber]->getCoordinate();
+                newP = mMainContentComponent.getSpeakers()[rowNumber]->getCoordinate();
                 auto const val{ static_cast<float>(getFloatPrecision(newText.getFloatValue(), 3)) };
                 diff = val - newP.z;
                 newP.z = val;
-                mMainContentComponent.getListSpeaker()[rowNumber]->setCoordinate(newP);
+                mMainContentComponent.getSpeakers()[rowNumber]->setCoordinate(newP);
                 if (mSpeakersTableListBox.getNumSelectedRows() > 1) {
                     for (int i{}; i < mSpeakersTableListBox.getSelectedRows().size(); ++i) {
                         auto const rownum{ mSpeakersTableListBox.getSelectedRows()[i] };
                         if (rownum == rowNumber) {
                             continue;
                         }
-                        newP = mMainContentComponent.getListSpeaker()[rownum]->getCoordinate();
+                        newP = mMainContentComponent.getSpeakers()[rownum]->getCoordinate();
                         if (altDown) {
                             newP.z += diff;
                         } else {
                             newP.z = val;
                         }
-                        mMainContentComponent.getListSpeaker()[rownum]->setCoordinate(newP);
+                        mMainContentComponent.getSpeakers()[rownum]->setCoordinate(newP);
                     }
                 }
                 break;
             }
             case 4: // Z
             {
-                newP = mMainContentComponent.getListSpeaker()[rowNumber]->getCoordinate();
+                newP = mMainContentComponent.getSpeakers()[rowNumber]->getCoordinate();
                 auto val{ static_cast<float>(getFloatPrecision(newText.getFloatValue(), 3)) };
                 diff = val - newP.y;
                 val = std::clamp(val, -1.0f, 1.0f);
                 newP.y = val;
-                mMainContentComponent.getListSpeaker()[rowNumber]->setCoordinate(newP);
+                mMainContentComponent.getSpeakers()[rowNumber]->setCoordinate(newP);
                 if (mSpeakersTableListBox.getNumSelectedRows() > 1) {
                     for (int i{}; i < mSpeakersTableListBox.getSelectedRows().size(); ++i) {
                         auto const rownum{ mSpeakersTableListBox.getSelectedRows()[i] };
                         if (rownum == rowNumber) {
                             continue;
                         }
-                        newP = mMainContentComponent.getListSpeaker()[rownum]->getCoordinate();
+                        newP = mMainContentComponent.getSpeakers()[rownum]->getCoordinate();
                         if (altDown) {
                             newP.y += diff;
                             newP.y = std::clamp(newP.y, -1.0f, 1.0f);
                         } else {
                             newP.y = val;
                         }
-                        mMainContentComponent.getListSpeaker()[rownum]->setCoordinate(newP);
+                        mMainContentComponent.getSpeakers()[rownum]->setCoordinate(newP);
                     }
                 }
                 break;
             }
             case 5: // Azimuth
             {
-                newP = mMainContentComponent.getListSpeaker()[rowNumber]->getAziZenRad();
+                newP = mMainContentComponent.getSpeakers()[rowNumber]->getAziZenRad();
                 auto val{ static_cast<float>(getFloatPrecision(newText.getFloatValue(), 3)) };
                 diff = val - newP.x;
                 while (val > 360.0f) {
@@ -682,14 +683,14 @@ void EditSpeakersWindow::setText(int const columnNumber,
                     val += 360.0f;
                 }
                 newP.x = val;
-                mMainContentComponent.getListSpeaker()[rowNumber]->setAziZenRad(newP);
+                mMainContentComponent.getSpeakers()[rowNumber]->setAziZenRad(newP);
                 if (mSpeakersTableListBox.getNumSelectedRows() > 1) {
                     for (int i{}; i < mSpeakersTableListBox.getSelectedRows().size(); ++i) {
                         auto const rownum{ mSpeakersTableListBox.getSelectedRows()[i] };
                         if (rownum == rowNumber) {
                             continue;
                         }
-                        newP = mMainContentComponent.getListSpeaker()[rownum]->getAziZenRad();
+                        newP = mMainContentComponent.getSpeakers()[rownum]->getAziZenRad();
                         if (altDown) {
                             newP.x += diff;
                             while (newP.x > 360.0f) {
@@ -701,43 +702,43 @@ void EditSpeakersWindow::setText(int const columnNumber,
                         } else {
                             newP.x = val;
                         }
-                        mMainContentComponent.getListSpeaker()[rownum]->setAziZenRad(newP);
+                        mMainContentComponent.getSpeakers()[rownum]->setAziZenRad(newP);
                     }
                 }
                 break;
             }
             case 6: // Elevation
             {
-                newP = mMainContentComponent.getListSpeaker()[rowNumber]->getAziZenRad();
+                newP = mMainContentComponent.getSpeakers()[rowNumber]->getAziZenRad();
                 auto val{ static_cast<float>(getFloatPrecision(newText.getFloatValue(), 3)) };
                 diff = val - newP.y;
                 val = std::clamp(val, -90.0f, 90.0f);
                 newP.y = val;
-                mMainContentComponent.getListSpeaker()[rowNumber]->setAziZenRad(newP);
+                mMainContentComponent.getSpeakers()[rowNumber]->setAziZenRad(newP);
                 if (mSpeakersTableListBox.getNumSelectedRows() > 1) {
                     for (int i{}; i < mSpeakersTableListBox.getSelectedRows().size(); ++i) {
                         int const rownum{ mSpeakersTableListBox.getSelectedRows()[i] };
                         if (rownum == rowNumber) {
                             continue;
                         }
-                        newP = mMainContentComponent.getListSpeaker()[rownum]->getAziZenRad();
+                        newP = mMainContentComponent.getSpeakers()[rownum]->getAziZenRad();
                         if (altDown) {
                             newP.y += diff;
                             newP.y = std::clamp(newP.y, -90.0f, 90.0f);
                         } else {
                             newP.y = val;
                         }
-                        mMainContentComponent.getListSpeaker()[rownum]->setAziZenRad(newP);
+                        mMainContentComponent.getSpeakers()[rownum]->setAziZenRad(newP);
                     }
                 }
                 break;
             }
             case 7: // Distance
             {
-                newP = mMainContentComponent.getListSpeaker()[rowNumber]->getAziZenRad();
+                newP = mMainContentComponent.getSpeakers()[rowNumber]->getAziZenRad();
                 float val{};
                 if (mMainContentComponent.isRadiusNormalized()
-                    && !mMainContentComponent.getListSpeaker()[rowNumber]->isDirectOut()) {
+                    && !mMainContentComponent.getSpeakers()[rowNumber]->isDirectOut()) {
                     val = 1.0f;
                 } else {
                     val = static_cast<float>(getFloatPrecision(newText.getFloatValue(), 3));
@@ -745,14 +746,14 @@ void EditSpeakersWindow::setText(int const columnNumber,
                 diff = val - newP.z;
                 val = std::clamp(val, 0.0f, 2.5f);
                 newP.z = val;
-                mMainContentComponent.getListSpeaker()[rowNumber]->setAziZenRad(newP);
+                mMainContentComponent.getSpeakers()[rowNumber]->setAziZenRad(newP);
                 if (mSpeakersTableListBox.getNumSelectedRows() > 1) {
                     for (int i{}; i < mSpeakersTableListBox.getSelectedRows().size(); ++i) {
                         int const rownum{ mSpeakersTableListBox.getSelectedRows()[i] };
                         if (rownum == rowNumber) {
                             continue;
                         }
-                        newP = mMainContentComponent.getListSpeaker()[rownum]->getAziZenRad();
+                        newP = mMainContentComponent.getSpeakers()[rownum]->getAziZenRad();
                         if (altDown) {
                             newP.z += diff;
                             if (newP.z < 0.0f) {
@@ -763,7 +764,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
                         } else {
                             newP.z = val;
                         }
-                        mMainContentComponent.getListSpeaker()[rownum]->setAziZenRad(newP);
+                        mMainContentComponent.getSpeakers()[rownum]->setAziZenRad(newP);
                     }
                 }
                 break;
@@ -771,11 +772,11 @@ void EditSpeakersWindow::setText(int const columnNumber,
             case 8: // Output patch
             {
                 mMainContentComponent.setShowTriplets(false);
-                auto const oldValue{ mMainContentComponent.getListSpeaker()[rowNumber]->getOutputPatch() };
+                auto const oldValue{ mMainContentComponent.getSpeakers()[rowNumber]->getOutputPatch() };
                 auto iValue{ std::clamp(newText.getIntValue(), 0, 256) };
-                if (!mMainContentComponent.getListSpeaker()[rowNumber]->isDirectOut()) {
-                    for (auto && it : mMainContentComponent.getListSpeaker()) {
-                        if (it == mMainContentComponent.getListSpeaker()[rowNumber] || it->isDirectOut()) {
+                if (!mMainContentComponent.getSpeakers()[rowNumber]->isDirectOut()) {
+                    for (auto && it : mMainContentComponent.getSpeakers()) {
+                        if (it == mMainContentComponent.getSpeakers()[rowNumber] || it->isDirectOut()) {
                             continue;
                         }
                         if (it->getOutputPatch() == iValue) {
@@ -790,15 +791,15 @@ void EditSpeakersWindow::setText(int const columnNumber,
                         }
                     }
                 }
-                mMainContentComponent.getListSpeaker()[rowNumber]->setOutputPatch(iValue);
+                mMainContentComponent.getSpeakers()[rowNumber]->setOutputPatch(iValue);
                 break;
             }
             case 9: // Gain
             {
                 auto val{ newText.getFloatValue() };
-                diff = val - mMainContentComponent.getListSpeaker()[rowNumber]->getGain();
+                diff = val - mMainContentComponent.getSpeakers()[rowNumber]->getGain();
                 val = std::clamp(val, -18.0f, 6.0f);
-                mMainContentComponent.getListSpeaker()[rowNumber]->setGain(val);
+                mMainContentComponent.getSpeakers()[rowNumber]->setGain(val);
                 if (mSpeakersTableListBox.getNumSelectedRows() > 1) {
                     for (int i{}; i < mSpeakersTableListBox.getSelectedRows().size(); ++i) {
                         auto const rownum{ mSpeakersTableListBox.getSelectedRows()[i] };
@@ -806,12 +807,12 @@ void EditSpeakersWindow::setText(int const columnNumber,
                             continue;
                         }
                         if (altDown) {
-                            auto const g{ std::clamp(mMainContentComponent.getListSpeaker()[rownum]->getGain() + diff,
-                                                     -18.0f,
-                                                     6.0f) };
-                            mMainContentComponent.getListSpeaker()[rownum]->setGain(g);
+                            auto const g{
+                                std::clamp(mMainContentComponent.getSpeakers()[rownum]->getGain() + diff, -18.0f, 6.0f)
+                            };
+                            mMainContentComponent.getSpeakers()[rownum]->setGain(g);
                         } else {
-                            mMainContentComponent.getListSpeaker()[rownum]->setGain(val);
+                            mMainContentComponent.getSpeakers()[rownum]->setGain(val);
                         }
                     }
                 }
@@ -820,9 +821,9 @@ void EditSpeakersWindow::setText(int const columnNumber,
             case 10: // Filter Cutoff
             {
                 auto val{ newText.getFloatValue() };
-                diff = val - mMainContentComponent.getListSpeaker()[rowNumber]->getHighPassCutoff();
+                diff = val - mMainContentComponent.getSpeakers()[rowNumber]->getHighPassCutoff();
                 val = std::clamp(val, 0.0f, 150.0f);
-                mMainContentComponent.getListSpeaker()[rowNumber]->setHighPassCutoff(val);
+                mMainContentComponent.getSpeakers()[rowNumber]->setHighPassCutoff(val);
                 if (mSpeakersTableListBox.getNumSelectedRows() > 1) {
                     for (int i{}; i < mSpeakersTableListBox.getSelectedRows().size(); ++i) {
                         auto const rownum{ mSpeakersTableListBox.getSelectedRows()[i] };
@@ -830,15 +831,15 @@ void EditSpeakersWindow::setText(int const columnNumber,
                             continue;
                         }
                         if (altDown) {
-                            float g = mMainContentComponent.getListSpeaker()[rownum]->getHighPassCutoff() + diff;
+                            float g = mMainContentComponent.getSpeakers()[rownum]->getHighPassCutoff() + diff;
                             if (g < 0.0f) {
                                 g = 0.0f;
                             } else if (g > 150.0f) {
                                 g = 150.0f;
                             }
-                            mMainContentComponent.getListSpeaker()[rownum]->setHighPassCutoff(g);
+                            mMainContentComponent.getSpeakers()[rownum]->setHighPassCutoff(g);
                         } else {
-                            mMainContentComponent.getListSpeaker()[rownum]->setHighPassCutoff(val);
+                            mMainContentComponent.getSpeakers()[rownum]->setHighPassCutoff(val);
                         }
                     }
                 }
@@ -846,13 +847,13 @@ void EditSpeakersWindow::setText(int const columnNumber,
             }
             case 11: // Direct Out
                 mMainContentComponent.setShowTriplets(false);
-                mMainContentComponent.getListSpeaker()[rowNumber]->setDirectOut(newText.getIntValue());
+                mMainContentComponent.getSpeakers()[rowNumber]->setDirectOut(newText.getIntValue());
                 break;
             }
         }
         updateWinContent();
         mMainContentComponent.setNeedToComputeVbap(true);
-        mMainContentComponent.getLockSpeakers().unlock();
+        mMainContentComponent.getSpeakersLock().unlock();
     }
 }
 
@@ -867,16 +868,22 @@ void EditSpeakersWindow::paintRowBackground(juce::Graphics & g,
     juce::ignoreUnused(width);
     juce::ignoreUnused(height);
 
+    // TODO : fix the real problem and add the assertion back.
+    // jassert(rowNumber < mMainContentComponent.getSpeakers().size());
+    if (rowNumber >= mMainContentComponent.getSpeakers().size()) {
+        return;
+    }
+
     if (rowIsSelected) {
-        if (mMainContentComponent.getLockSpeakers().try_lock()) {
-            mMainContentComponent.getListSpeaker()[rowNumber]->selectSpeaker();
-            mMainContentComponent.getLockSpeakers().unlock();
+        if (mMainContentComponent.getSpeakersLock().try_lock()) {
+            mMainContentComponent.getSpeakers()[rowNumber]->selectSpeaker();
+            mMainContentComponent.getSpeakersLock().unlock();
         }
         g.fillAll(mLookAndFeel.getHighlightColour());
     } else {
-        if (mMainContentComponent.getLockSpeakers().try_lock()) {
-            mMainContentComponent.getListSpeaker()[rowNumber]->unSelectSpeaker();
-            mMainContentComponent.getLockSpeakers().unlock();
+        if (mMainContentComponent.getSpeakersLock().try_lock()) {
+            mMainContentComponent.getSpeakers()[rowNumber]->unSelectSpeaker();
+            mMainContentComponent.getSpeakersLock().unlock();
         }
         if (rowNumber % 2) {
             g.fillAll(mLookAndFeel.getBackgroundColour().withBrightness(0.6f));
@@ -898,12 +905,12 @@ void EditSpeakersWindow::paintCell(juce::Graphics & g,
     g.setColour(juce::Colours::black);
     g.setFont(mFont);
 
-    if (mMainContentComponent.getLockSpeakers().try_lock()) {
-        if (mMainContentComponent.getListSpeaker().size() > rowNumber) {
+    if (mMainContentComponent.getSpeakersLock().try_lock()) {
+        if (mMainContentComponent.getSpeakers().size() > rowNumber) {
             auto const text{ getText(columnId, rowNumber) };
             g.drawText(text, 2, 0, width - 4, height, juce::Justification::centredLeft, true);
         }
-        mMainContentComponent.getLockSpeakers().unlock();
+        mMainContentComponent.getSpeakersLock().unlock();
     }
     g.setColour(juce::Colours::black.withAlpha(0.2f));
     g.fillRect(width - 1, 0, 1, height);
@@ -927,7 +934,7 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
         tbDirect->setClickingTogglesState(true);
         tbDirect->setBounds(4, 404, 88, 22);
         tbDirect->addListener(this);
-        tbDirect->setToggleState(mMainContentComponent.getListSpeaker()[rowNumber]->isDirectOut(),
+        tbDirect->setToggleState(mMainContentComponent.getSpeakers()[rowNumber]->isDirectOut(),
                                  juce::dontSendNotification);
         tbDirect->setLookAndFeel(&mLookAndFeel);
         return tbDirect;
@@ -957,7 +964,7 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
     textLabel->setRowAndColumn(rowNumber, columnId);
 
     if (mMainContentComponent.getModeSelected() == LBAP
-        || mMainContentComponent.getListSpeaker()[rowNumber]->isDirectOut()) {
+        || mMainContentComponent.getSpeakers()[rowNumber]->isDirectOut()) {
         if (columnId < 2) {
             textLabel->setEditable(false);
         }
@@ -979,5 +986,5 @@ int EditSpeakersWindow::getModeSelected() const
 //==============================================================================
 bool EditSpeakersWindow::getDirectOutForSpeakerRow(int const row) const
 {
-    return mMainContentComponent.getListSpeaker()[row]->isDirectOut();
+    return mMainContentComponent.getSpeakers()[row]->isDirectOut();
 }

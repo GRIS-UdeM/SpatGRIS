@@ -142,7 +142,11 @@ void port_connect_callback(jack_port_id_t const a, jack_port_id_t const b, int c
 // Load samples from a wav file into a float array.
 static juce::AudioBuffer<float> getSamplesFromWavFile(juce::File const & file)
 {
-    jassert(file.existsAsFile());
+    if (!file.existsAsFile()) {
+        auto const error{ file.getFullPathName() + "\n\nTry re-installing SpatGRIS2." };
+        juce::AlertWindow::showMessageBox(juce::AlertWindow::AlertIconType::WarningIcon, "Missing file", error);
+        std::exit(-1);
+    }
 
     auto const factor{ std::pow(2.0f, 31.0f) };
 

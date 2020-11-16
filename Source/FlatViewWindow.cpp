@@ -191,14 +191,14 @@ void FlatViewWindow::paint(juce::Graphics & g)
                false);
 
     // Draw sources.
-    auto const maxDrawSource{ mMainContentComponent.getListSourceInput().size() };
+    auto const maxDrawSource{ mMainContentComponent.getSourceInputs().size() };
     for (int i{}; i < maxDrawSource; ++i) {
-        auto * it{ mMainContentComponent.getListSourceInput().getUnchecked(i) };
+        auto * it{ mMainContentComponent.getSourceInputs().getUnchecked(i) };
         if (it->getGain() == -1.0f) {
             continue;
         }
-        drawSource(g, mMainContentComponent.getListSourceInput().getUnchecked(i), fieldWh);
-        drawSourceSpan(g, mMainContentComponent.getListSourceInput().getUnchecked(i), fieldWh, fieldCenter);
+        drawSource(g, mMainContentComponent.getSourceInputs().getUnchecked(i), fieldWh);
+        drawSourceSpan(g, mMainContentComponent.getSourceInputs().getUnchecked(i), fieldWh, fieldCenter);
     }
 }
 

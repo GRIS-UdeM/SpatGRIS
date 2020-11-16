@@ -39,7 +39,6 @@ ENABLE_WARNINGS
 #include "OscInput.h"
 #include "OscLogWindow.h"
 #include "PropertiesWindow.h"
-#include "ServerGrisConstants.h"
 #include "Speaker.h"
 #include "SpeakerViewComponent.h"
 
@@ -220,13 +219,13 @@ public:
     juce::StringArray getMenuBarNames() override;
     juce::PopupMenu getMenuForIndex(int menuIndex, const juce::String & /*menuName*/) override;
 
-    void menuItemSelected(int menuItemID, int /*topLevelMenuIndex*/) override;
+    void menuItemSelected(int menuItemId, int /*topLevelMenuIndex*/) override;
 
     // Speakers.
-    juce::OwnedArray<Speaker> & getListSpeaker() { return this->mSpeakers; }
-    juce::OwnedArray<Speaker> const & getListSpeaker() const { return this->mSpeakers; }
+    juce::OwnedArray<Speaker> & getSpeakers() { return this->mSpeakers; }
+    juce::OwnedArray<Speaker> const & getSpeakers() const { return this->mSpeakers; }
 
-    std::mutex & getLockSpeakers() { return this->mSpeakerLocks; }
+    std::mutex & getSpeakersLock() { return this->mSpeakerLocks; }
 
     Speaker * getSpeakerFromOutputPatch(int out);
     Speaker const * getSpeakerFromOutputPatch(int out) const;
@@ -241,10 +240,10 @@ public:
     int getMaxSpeakerOutputPatch() const;
 
     // Sources.
-    juce::OwnedArray<Input> & getListSourceInput() { return this->mSourceInputs; }
-    juce::OwnedArray<Input> const & getListSourceInput() const { return this->mSourceInputs; }
+    juce::OwnedArray<Input> & getSourceInputs() { return this->mSourceInputs; }
+    juce::OwnedArray<Input> const & getSourceInputs() const { return this->mSourceInputs; }
 
-    std::mutex & getLockInputs() { return this->mInputLocks; }
+    std::mutex & getInputsLock() { return this->mInputLocks; }
 
     void updateInputJack(int inInput, Input & inp);
     bool isRadiusNormalized() const;
@@ -253,24 +252,24 @@ public:
     JackClientGris * getJackClient() { return &this->mJackClient; }
     JackClientGris const * getJackClient() const { return &mJackClient; }
 
-    std::mutex & getLockClients() { return mJackClient.getClientsLock(); }
+    std::vector<Client> & getClients() { return this->mJackClient.getClients(); }
+    std::vector<Client> const & getClients() const { return this->mJackClient.getClients(); }
 
-    std::vector<Client> & getListClientjack() { return this->mJackClient.getClients(); }
-    std::vector<Client> const & getListClientjack() const { return this->mJackClient.getClients(); }
+    std::mutex & getClientsLock() { return mJackClient.getClientsLock(); }
 
     void connectionClientJack(juce::String nameCli, bool conn = true);
 
     // VBAP triplets.
-    void setListTripletFromVbap();
-    void clearListTriplet() { this->mTriplets.clear(); }
+    void setTripletsFromVbap();
+    void clearTriplets() { this->mTriplets.clear(); }
 
-    std::vector<Triplet> & getListTriplet() { return this->mTriplets; }
-    std::vector<Triplet> const & getListTriplet() const { return this->mTriplets; }
+    std::vector<Triplet> & getTriplets() { return this->mTriplets; }
+    std::vector<Triplet> const & getTriplets() const { return this->mTriplets; }
 
     // Speaker selections.
     void selectSpeaker(unsigned int idS);
     void selectTripletSpeaker(int idS);
-    bool tripletExist(Triplet tri, int & pos) const;
+    bool tripletExists(Triplet tri, int & pos) const;
 
     // Mute - solo.
     void muteInput(int id, bool mute);
@@ -279,8 +278,14 @@ public:
     void soloOutput(int id, bool solo);
 
     // Input - output amplitude levels.
-    float getLevelsOut(int indexLevel) const { return (20.0f * log10f(this->mJackClient.getLevelsOut(indexLevel))); }
-    float getLevelsIn(int indexLevel) const { return (20.0f * log10f(this->mJackClient.getLevelsIn(indexLevel))); }
+    float getLevelsOut(int const indexLevel) const
+    {
+        return (20.0f * log10f(this->mJackClient.getLevelsOut(indexLevel)));
+    }
+    float getLevelsIn(int const indexLevel) const
+    {
+        return (20.0f * log10f(this->mJackClient.getLevelsIn(indexLevel)));
+    }
     float getLevelsAlpha(int indexLevel) const;
 
     float getSpeakerLevelsAlpha(int indexLevel) const;
@@ -298,9 +303,9 @@ public:
     void saveProperties(juce::String device,
                         int rate,
                         int buff,
-                        int fileformat,
-                        int fileconfig,
-                        int attenuationDB,
+                        int fileFormat,
+                        int fileConfig,
+                        int attenuationDb,
                         int attenuationHz,
                         int oscPort);
     void chooseRecordingPath();
@@ -335,7 +340,7 @@ public:
     // Widget creation helper.
     juce::TextEditor * addTextEditor(juce::String const & s,
                                      juce::String const & emptyS,
-                                     juce::String const & stooltip,
+                                     juce::String const & tooltip,
                                      int x,
                                      int y,
                                      int w,
@@ -346,11 +351,11 @@ public:
 private:
     // Widget creation helpers.
     juce::Label *
-        addLabel(const juce::String & s, const juce::String & stooltip, int x, int y, int w, int h, Component * into);
+        addLabel(const juce::String & s, const juce::String & tooltip, int x, int y, int w, int h, Component * into);
     juce::TextButton *
-        addButton(const juce::String & s, const juce::String & stooltip, int x, int y, int w, int h, Component * into);
+        addButton(const juce::String & s, const juce::String & tooltip, int x, int y, int w, int h, Component * into);
     juce::ToggleButton * addToggleButton(const juce::String & s,
-                                         const juce::String & stooltip,
+                                         const juce::String & tooltip,
                                          int x,
                                          int y,
                                          int w,
@@ -358,14 +363,9 @@ private:
                                          Component * into,
                                          bool toggle = false);
     juce::Slider *
-        addSlider(const juce::String & s, const juce::String & stooltip, int x, int y, int w, int h, Component * into);
-    juce::ComboBox * addComboBox(const juce::String & s,
-                                 const juce::String & stooltip,
-                                 int x,
-                                 int y,
-                                 int w,
-                                 int h,
-                                 Component * into);
+        addSlider(const juce::String & s, const juce::String & tooltip, int x, int y, int w, int h, Component * into);
+    juce::ComboBox *
+        addComboBox(const juce::String & s, const juce::String & tooltip, int x, int y, int w, int h, Component * into);
 
     //==============================================================================
     // The following methods implement the ApplicationCommandTarget interface, allowing
@@ -374,7 +374,7 @@ private:
     juce::ApplicationCommandTarget * getNextCommandTarget() override { return findFirstTargetParentComponent(); }
 
     void getAllCommands(juce::Array<juce::CommandID> & commands) override;
-    void getCommandInfo(juce::CommandID commandID, juce::ApplicationCommandInfo & result) override;
+    void getCommandInfo(juce::CommandID commandId, juce::ApplicationCommandInfo & result) override;
     bool perform(juce::ApplicationCommandTarget::InvocationInfo const & info) override;
     //==============================================================================
     JUCE_LEAK_DETECTOR(MainContentComponent)

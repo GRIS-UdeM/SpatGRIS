@@ -18,6 +18,7 @@
 */
 
 #include "MainWindow.h"
+#include "ServerGrisConstants.h"
 
 //==============================================================================
 MainWindow::MainWindow(juce::String const & name, GrisLookAndFeel & newLookAndFeel)
@@ -58,6 +59,8 @@ MainWindow::MainWindow(juce::String const & name, GrisLookAndFeel & newLookAndFe
     } else {
         centreWithSize(getWidth(), getHeight());
     }
+
+    setUsingNativeTitleBar(USE_OS_NATIVE_DIALOG_BOX);
 
     setVisible(true);
 }

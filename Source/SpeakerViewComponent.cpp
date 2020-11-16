@@ -105,11 +105,11 @@ void SpeakerViewComponent::render()
 
     // NOTE: For the moment, we are just using input values to draw, we aren't
     // changing them, so it's safe to go without the lock. When the function
-    // mMainContentComponent.getLockInputs()->try_lock() returns false, this causes
+    // mMainContentComponent.getInputsLock()->try_lock() returns false, this causes
     // a flicker in the 3D drawing. -belangeo
 
-    // if (mMainContentComponent.getLockInputs().try_lock()) {
-    for (auto * input : mMainContentComponent.getListSourceInput()) {
+    // if (mMainContentComponent.getInputsLock().try_lock()) {
+    for (auto * input : mMainContentComponent.getSourceInputs()) {
         input->draw();
         if (mShowNumber && input->getGain() != -1.0) {
             glm::vec3 posT = input->getCenter();
@@ -117,12 +117,12 @@ void SpeakerViewComponent::render()
             drawText(std::to_string(input->getId()), posT, input->getNumberColor(), 0.003f, true, input->getAlpha());
         }
     }
-    // mMainContentComponent.getLockInputs()->unlock();
+    // mMainContentComponent.getInputsLock()->unlock();
     //}
 
-    if (mMainContentComponent.getLockSpeakers().try_lock()) {
+    if (mMainContentComponent.getSpeakersLock().try_lock()) {
         if (!mHideSpeaker) {
-            for (auto * speaker : mMainContentComponent.getListSpeaker()) {
+            for (auto * speaker : mMainContentComponent.getSpeakers()) {
                 speaker->draw();
                 if (mShowNumber) {
                     auto posT{ speaker->getCenter() };
@@ -134,19 +134,19 @@ void SpeakerViewComponent::render()
         if (mShowTriplets) {
             drawTripletConnection();
         }
-        mMainContentComponent.getLockSpeakers().unlock();
+        mMainContentComponent.getSpeakersLock().unlock();
     }
 
     // Draw Sphere : Use many CPU
     if (mShowSphere) {
-        if (mMainContentComponent.getLockSpeakers().try_lock()) {
+        if (mMainContentComponent.getSpeakersLock().try_lock()) {
             static auto constexpr MAX_RADIUS{ 10.0 };
 
             // Not sure why we used the farthest speaker to set the size of the sphere.
             // Does not make much sense to me. -belangeo
-            // for (unsigned int i = 0; i < mMainContentComponent.getListSpeaker().size(); ++i) {
-            //    if (abs(mMainContentComponent.getListSpeaker()[i]->getAziZenRad().z * 10.f) > maxRadius) {
-            //        maxRadius = abs(mMainContentComponent.getListSpeaker()[i]->getAziZenRad().z * 10.0f);
+            // for (unsigned int i = 0; i < mMainContentComponent.getSpeakers().size(); ++i) {
+            //    if (abs(mMainContentComponent.getSpeakers()[i]->getAziZenRad().z * 10.f) > maxRadius) {
+            //        maxRadius = abs(mMainContentComponent.getSpeakers()[i]->getAziZenRad().z * 10.0f);
             //    }
             //}
 
@@ -191,7 +191,7 @@ void SpeakerViewComponent::render()
             }
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             glPopMatrix();
-            mMainContentComponent.getLockSpeakers().unlock();
+            mMainContentComponent.getSpeakersLock().unlock();
         }
     }
 
@@ -234,9 +234,9 @@ void SpeakerViewComponent::clickRay()
 
     auto iBestSpeaker = -1;
     auto selected = -1;
-    if (mMainContentComponent.getLockSpeakers().try_lock()) {
-        for (unsigned int i = 0; i < mMainContentComponent.getListSpeaker().size(); ++i) {
-            auto const * speaker{ mMainContentComponent.getListSpeaker()[i] };
+    if (mMainContentComponent.getSpeakersLock().try_lock()) {
+        for (unsigned int i = 0; i < mMainContentComponent.getSpeakers().size(); ++i) {
+            auto const * speaker{ mMainContentComponent.getSpeakers()[i] };
             if (speaker->isSelected()) {
                 selected = i;
             }
@@ -245,7 +245,7 @@ void SpeakerViewComponent::clickRay()
                     iBestSpeaker = i;
                 } else {
                     if (speakerNearCam(speaker->getCenter(),
-                                       mMainContentComponent.getListSpeaker()[iBestSpeaker]->getCenter())) {
+                                       mMainContentComponent.getSpeakers()[iBestSpeaker]->getCenter())) {
                         iBestSpeaker = i;
                     }
                 }
@@ -260,7 +260,7 @@ void SpeakerViewComponent::clickRay()
             }
             mMainContentComponent.selectSpeaker(iBestSpeaker);
         }
-        mMainContentComponent.getLockSpeakers().unlock();
+        mMainContentComponent.getSpeakersLock().unlock();
     }
 
     mControlOn = false;
@@ -491,7 +491,7 @@ void SpeakerViewComponent::drawTextOnGrid(std::string const & val, glm::vec3 con
 //==============================================================================
 void SpeakerViewComponent::drawTripletConnection() const
 {
-    for (auto const & triplet : mMainContentComponent.getListTriplet()) {
+    for (auto const & triplet : mMainContentComponent.getTriplets()) {
         auto const * spk1{ mMainContentComponent.getSpeakerFromOutputPatch(triplet.id1) };
         auto const * spk2{ mMainContentComponent.getSpeakerFromOutputPatch(triplet.id2) };
         auto const * spk3{ mMainContentComponent.getSpeakerFromOutputPatch(triplet.id3) };

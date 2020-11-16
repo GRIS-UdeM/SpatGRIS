@@ -271,7 +271,7 @@ void LevelComponent::changeListenerCallback(juce::ChangeBroadcaster * source)
         if (this->mLastMouseButton == 0) {
             Input * input = dynamic_cast<Input *>(&this->mParentLevelComponent);
             jassert(input != nullptr);
-            for (auto * it : input->getMainContentComponent().getListSourceInput()) {
+            for (auto * it : input->getMainContentComponent().getSourceInputs()) {
                 if (it->getId() == this->mParentLevelComponent.getId() + 1) {
                     it->setColor(cs->getCurrentColour(), true);
                 }

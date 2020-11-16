@@ -29,6 +29,7 @@ ENABLE_WARNINGS
 
     #include "AudioManager.h"
     #include "MainComponent.h"
+    #include "ServerGrisConstants.h"
 
 juce::HashMap<void *, std::function<void()>> freeing_functions{};
 
