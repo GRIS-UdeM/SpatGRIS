@@ -50,11 +50,11 @@ static void jack_client_log(const char * format, ...)
 }
 
 // Jack processing callback.
-// static int process_audio(jack_nframes_t const nFrames, void * arg)
-//{
-//    auto * jackCli = static_cast<JackClientGris *>(arg);
-//    return jackCli->processAudio(nFrames);
-//}
+static int process_audio(jack_nframes_t const nFrames, void * arg)
+{
+    auto * jackCli = static_cast<JackClientGris *>(arg);
+    return jackCli->processAudio(nFrames);
+}
 
 //==============================================================================
 // Jack callback functions.
@@ -246,7 +246,7 @@ JackClientGris::JackClientGris()
 
     // Register Jack callbacks and ports.
     jack_on_shutdown(mClient, jackShutdown, this);
-    // jack_set_process_callback(mClient, process_audio, this);
+    jack_set_process_callback(mClient, process_audio, this);
     jack_set_client_registration_callback(mClient, client_registration_callback, this);
     jack_set_session_callback(mClient, session_callback, this);
     jack_set_port_connect_callback(mClient, port_connect_callback, this);
