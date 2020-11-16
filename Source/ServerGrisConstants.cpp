@@ -35,7 +35,7 @@ const bool USE_OS_NATIVE_DIALOG_BOX{ true };
 auto const CURRENT_WORKING_DIR{ juce::File::getCurrentWorkingDirectory() };
 auto const RESOURCES_DIR{ CURRENT_WORKING_DIR.getChildFile("Resources") };
 #elif defined __APPLE__
-const char * SYS_DRIVER_NAME = "coreaudio";
+const char * const SYS_DRIVER_NAME = "coreaudio";
 const bool USE_OS_NATIVE_DIALOG_BOX = true;
 juce::File CURRENT_WORKING_DIR = juce::File::getSpecialLocation(juce::File::currentApplicationFile);
 juce::File RESOURCES_DIR{ CURRENT_WORKING_DIR.getChildFile("Contents").getChildFile("Resources") };

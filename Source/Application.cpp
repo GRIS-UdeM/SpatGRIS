@@ -178,6 +178,8 @@ void SpatGris2Application::chooseDevice(std::optional<juce::String> deviceType)
     if (deviceType) {
         audioDeviceManager.getAvailableDeviceTypes();
         audioDeviceManager.setCurrentAudioDeviceType(*deviceType, true);
+    } else {
+        audioDeviceManager.initialiseWithDefaultDevices(128, 128);
     }
     auto * deviceTypeObject{ audioDeviceManager.getCurrentDeviceTypeObject() };
     jassert(deviceTypeObject);
