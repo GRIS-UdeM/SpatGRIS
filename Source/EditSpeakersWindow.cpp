@@ -928,7 +928,6 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
         auto * tbDirect{ dynamic_cast<juce::ToggleButton *>(existingComponentToUpdate) };
         if (tbDirect == nullptr) {
             tbDirect = new juce::ToggleButton();
-            mCells.add(tbDirect);
         }
         tbDirect->setName(juce::String(rowNumber + 1000));
         tbDirect->setClickingTogglesState(true);
@@ -943,7 +942,6 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
         auto * tbRemove{ dynamic_cast<juce::TextButton *>(existingComponentToUpdate) };
         if (tbRemove == nullptr) {
             tbRemove = new juce::TextButton();
-            mCells.add(tbRemove);
         }
         tbRemove->setButtonText("X");
         tbRemove->setName(juce::String(rowNumber));
@@ -958,7 +956,6 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
     auto * textLabel{ dynamic_cast<EditableTextCustomComponent *>(existingComponentToUpdate) };
     if (textLabel == nullptr) {
         textLabel = new EditableTextCustomComponent(*this);
-        mCells.add(textLabel);
     }
 
     textLabel->setRowAndColumn(rowNumber, columnId);

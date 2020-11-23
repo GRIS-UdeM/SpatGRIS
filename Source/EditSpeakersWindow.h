@@ -65,8 +65,6 @@ class EditSpeakersWindow final
 
     int mNumRows{};
     bool mInitialized{ false };
-
-    juce::OwnedArray<juce::Component> mCells{};
     //==============================================================================
     friend EditableTextCustomComponent; // TODO: temporary solution whiling refactoring is going on...
 public:
