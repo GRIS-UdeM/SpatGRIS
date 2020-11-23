@@ -17,8 +17,22 @@
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Application.h"
+#include "Ray.h"
 
 //==============================================================================
-// This macro generates the main() routine that launches the app.
-START_JUCE_APPLICATION(SpatGris2Application)
+void Ray::setRay(glm::vec3 const & p, glm::vec3 const & d)
+{
+    this->mPosition = p;
+    this->mDirection = d;
+    this->mNormal = (this->mDirection - this->mPosition) / 5000.0f;
+}
+
+//==============================================================================
+void Ray::draw() const
+{
+    glBegin(GL_LINES);
+    glColor3f(1.0f, 0.0f, 0.0f);
+    glVertex3f(this->mPosition.x, this->mPosition.y, this->mPosition.z);
+    glVertex3f(this->mDirection.x, this->mDirection.y, this->mDirection.z);
+    glEnd();
+}

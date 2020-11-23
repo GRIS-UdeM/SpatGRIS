@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS2.
 
- Developers: Olivier Belanger, Nicolas Masson
+ Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
 
  SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -23,44 +23,46 @@
 #include "MainComponent.h"
 
 //==============================================================================
-static double GetFloatPrecision(double value, double precision)
+template<typename T, typename U>
+static T getFloatPrecision(T const value, U const precision)
 {
-    return floor((value * pow(10, precision) + 0.5)) / pow(10, precision);
+    return std::floor((value * std::pow(static_cast<T>(10), static_cast<T>(precision)) + static_cast<T>(0.5)))
+           / std::pow(static_cast<T>(10), static_cast<T>(precision));
 }
 
 //==============================================================================
 Speaker::Speaker(MainContentComponent * parent, int idS, int outP, float azimuth, float zenith, float radius)
 {
-    this->mainParent = parent;
-    this->idSpeaker = idS;
-    this->outputPatch = outP;
-    this->directOut = false;
-    LookAndFeel::setDefaultLookAndFeel(&mGrisFeel);
+    mMainContentComponent = parent;
+    mId = idS;
+    mOutputPatch = outP;
+    mDirectOut = false;
+    juce::LookAndFeel::setDefaultLookAndFeel(&mLookAndFeel);
 
     // Load position
-    this->setAziZenRad(glm::vec3(azimuth, zenith, radius));
+    setAziZenRad(glm::vec3(azimuth, zenith, radius));
 
-    this->vuMeter = new LevelComponent(*this, mGrisFeel, false);
+    mVuMeter = new LevelComponent(*this, mLookAndFeel, false);
 }
 
 //==============================================================================
 Speaker::~Speaker()
 {
-    delete this->vuMeter;
+    delete mVuMeter;
 }
 
 //==============================================================================
 float Speaker::getLevel() const
 {
-    return this->mainParent->getLevelsOut(this->outputPatch - 1);
+    return mMainContentComponent->getLevelsOut(mOutputPatch - 1);
 }
 
 //==============================================================================
 float Speaker::getAlpha()
 {
     float alpha;
-    if (this->mainParent->isSpeakerLevelShown) {
-        alpha = this->mainParent->getSpeakerLevelsAlpha(this->outputPatch - 1);
+    if (mMainContentComponent->isSpeakerLevelShown()) {
+        alpha = mMainContentComponent->getSpeakerLevelsAlpha(mOutputPatch - 1);
     } else {
         alpha = 1.0f;
     }
@@ -73,18 +75,18 @@ float Speaker::getAlpha()
 //==============================================================================
 void Speaker::setMuted(bool mute)
 {
-    this->mainParent->muteOutput(this->outputPatch, mute);
+    mMainContentComponent->muteOutput(mOutputPatch, mute);
     if (mute) {
-        this->mainParent->soloOutput(this->outputPatch, false);
+        mMainContentComponent->soloOutput(mOutputPatch, false);
     }
 }
 
 //==============================================================================
 void Speaker::setSolo(bool solo)
 {
-    this->mainParent->soloOutput(this->outputPatch, solo);
+    mMainContentComponent->soloOutput(mOutputPatch, solo);
     if (solo) {
-        this->mainParent->muteOutput(this->outputPatch, false);
+        mMainContentComponent->muteOutput(mOutputPatch, false);
     }
 }
 
@@ -92,22 +94,22 @@ void Speaker::setSolo(bool solo)
 void Speaker::setCoordinate(glm::vec3 value)
 {
     glm::vec3 newP;
-    newP.x = atan2(value.z, value.x) / M_PI * 180.0f;
+    newP.x = atan2(value.z, value.x) / juce::MathConstants<float>::pi * 180.0f;
     if (newP.x < 0.0) {
         newP.x += 360.0f;
     }
     newP.y = value.y * 90.0f;
     newP.z = sqrt(value.x * value.x + value.z * value.z);
-    this->setAziZenRad(newP);
+    setAziZenRad(newP);
 }
 
 //==============================================================================
 void Speaker::normalizeRadius()
 {
     if (!isDirectOut()) {
-        glm::vec3 v = this->getAziZenRad();
+        glm::vec3 v = getAziZenRad();
         v.z = 1.0f;
-        this->setAziZenRad(v);
+        setAziZenRad(v);
     }
 }
 
@@ -115,234 +117,246 @@ void Speaker::normalizeRadius()
 void Speaker::setAziZenRad(glm::vec3 value)
 {
     value.z = value.z * 10.0f;
-    this->aziZenRad = value;
-    this->newSpheriqueCoord(value);
+    mAziZenRad = value;
+    newSpheriqueCoord(value);
 }
 
 //==============================================================================
 void Speaker::setOutputPatch(int value)
 {
-    this->outputPatch = value;
-    this->vuMeter->setOutputLab(String(this->outputPatch));
+    mOutputPatch = value;
+    mVuMeter->setOutputLab(juce::String(mOutputPatch));
 }
 
 //==============================================================================
 void Speaker::setDirectOut(bool value)
 {
-    this->directOut = value;
-    if (this->directOut) {
-        this->color = ColorDirectOutSpeaker;
+    mDirectOut = value;
+    if (mDirectOut) {
+        mColor = COLOR_DIRECT_OUT_SPEAKER;
     } else {
-        this->color = ColorSpeaker;
+        mColor = COLOR_SPEAKER;
     }
+}
+
+//==============================================================================
+glm::vec3 Speaker::getAziZenRad() const
+{
+    return glm::vec3(mAziZenRad.x, mAziZenRad.y, mAziZenRad.z / 10.0f);
+}
+
+//==============================================================================
+bool Speaker::isValid() const
+{
+    return (mMin.x < mMax.x && mMin.y < mMax.y && mMin.z < mMax.z);
 }
 
 //==============================================================================
 void Speaker::fix()
 {
-    glm::vec3 _max = (this->max);
+    glm::vec3 _max = (mMax);
 
     // Change new "min" to previous "max".
-    if (this->min.x > this->max.x) {
-        this->max.x = this->min.x;
-        this->min.x = _max.x;
+    if (mMin.x > mMax.x) {
+        mMax.x = mMin.x;
+        mMin.x = _max.x;
     }
-    if (this->min.y > this->max.y) {
-        this->max.y = this->min.y;
-        this->min.y = _max.y;
+    if (mMin.y > mMax.y) {
+        mMax.y = mMin.y;
+        mMin.y = _max.y;
     }
-    if (this->min.z > this->max.z) {
-        this->max.z = this->min.z;
-        this->min.z = _max.z;
+    if (mMin.z > mMax.z) {
+        mMax.z = mMin.z;
+        mMin.z = _max.z;
     }
 }
 
 //==============================================================================
-void Speaker::selectClick(bool select)
+void Speaker::selectClick(bool const select)
 {
     if (select) {
-        this->mainParent->selectSpeaker(this->idSpeaker - 1);
+        mMainContentComponent->selectSpeaker(static_cast<unsigned>(mId - 1));
     } else {
-        this->mainParent->selectSpeaker(-1);
+        mMainContentComponent->selectSpeaker(static_cast<unsigned>(-1));
     }
 }
 
 //==============================================================================
 void Speaker::selectSpeaker()
 {
-    this->color = ColorSpeakerSelect;
-    this->selected = true;
-    this->vuMeter->setSelected(this->selected);
+    mColor = COLOR_SPEAKER_SELECT;
+    mSelected = true;
+    mVuMeter->setSelected(mSelected);
 }
 
 //==============================================================================
 void Speaker::unSelectSpeaker()
 {
-    if (this->directOut) {
-        this->color = ColorDirectOutSpeaker;
+    if (mDirectOut) {
+        mColor = COLOR_DIRECT_OUT_SPEAKER;
     } else {
-        this->color = ColorSpeaker;
+        mColor = COLOR_SPEAKER;
     }
-    this->selected = false;
-    this->vuMeter->setSelected(this->selected);
+    mSelected = false;
+    mVuMeter->setSelected(mSelected);
 }
 
 //==============================================================================
 void Speaker::newPosition(glm::vec3 center, glm::vec3 extents)
 {
     // min = center - extents, max = center + extents
-    this->min.x = center.x - extents.x;
-    this->min.y = center.y - extents.y;
-    this->min.z = center.z - extents.z;
+    mMin.x = center.x - extents.x;
+    mMin.y = center.y - extents.y;
+    mMin.z = center.z - extents.z;
 
-    this->max.x = center.x + extents.x;
-    this->max.y = center.y + extents.y;
-    this->max.z = center.z + extents.z;
+    mMax.x = center.x + extents.x;
+    mMax.y = center.y + extents.y;
+    mMax.z = center.z + extents.z;
 
-    if (!this->isValid()) {
-        this->fix();
+    if (!isValid()) {
+        fix();
     }
 
-    this->center
-        = glm::vec3(this->min.x + (this->max.x - this->min.x) / 2.0f, this->min.y + (this->max.y - this->min.y) / 2.0f,
-                    this->min.z + (this->max.z - this->min.z) / 2.0f);
+    mCenter = glm::vec3(mMin.x + (mMax.x - mMin.x) / 2.0f,
+                        mMin.y + (mMax.y - mMin.y) / 2.0f,
+                        mMin.z + (mMax.z - mMin.z) / 2.0f);
 }
 
 //==============================================================================
-void Speaker::newSpheriqueCoord(glm::vec3 aziZenRad, glm::vec3 extents)
+void Speaker::newSpheriqueCoord(glm::vec3 aziZenRad, glm::vec3 /*extents*/)
 {
     glm::vec3 nCenter;
 
-    aziZenRad.x = (aziZenRad.x * M_PI) / 180.0f;
-    aziZenRad.y = abs(((-90.0f + aziZenRad.y) * M_PI) / 180.0f);
+    aziZenRad.x = (aziZenRad.x * juce::MathConstants<float>::pi) / 180.0f;
+    aziZenRad.y = abs(((-90.0f + aziZenRad.y) * juce::MathConstants<float>::pi) / 180.0f);
 
-    if (this->mainParent->getModeSelected() == 1 || this->isDirectOut()) {
-        nCenter.x = GetFloatPrecision(aziZenRad.z * cosf(aziZenRad.x), 3);
-        nCenter.z = GetFloatPrecision(aziZenRad.z * sinf(aziZenRad.x), 3);
-        nCenter.y = GetFloatPrecision(10.f * (1.0 - aziZenRad.y / (M_PI / 2)), 3);
+    if (mMainContentComponent->getModeSelected() == 1 || isDirectOut()) {
+        nCenter.x = getFloatPrecision(aziZenRad.z * cosf(aziZenRad.x), 3);
+        nCenter.z = getFloatPrecision(aziZenRad.z * sinf(aziZenRad.x), 3);
+        nCenter.y = getFloatPrecision(10.0f * (1.0f - aziZenRad.y / (juce::MathConstants<float>::halfPi)), 3);
     } else {
-        nCenter.x = GetFloatPrecision(aziZenRad.z * sinf(aziZenRad.y) * cosf(aziZenRad.x), 3);
-        nCenter.z = GetFloatPrecision(aziZenRad.z * sinf(aziZenRad.y) * sinf(aziZenRad.x), 3);
-        nCenter.y = GetFloatPrecision(10.f * cosf(aziZenRad.y), 3);
+        nCenter.x = getFloatPrecision(aziZenRad.z * sinf(aziZenRad.y) * cosf(aziZenRad.x), 3);
+        nCenter.z = getFloatPrecision(aziZenRad.z * sinf(aziZenRad.y) * sinf(aziZenRad.x), 3);
+        nCenter.y = getFloatPrecision(10.0f * cosf(aziZenRad.y), 3);
     }
-    this->newPosition(nCenter);
+    newPosition(nCenter);
 }
 
 //==============================================================================
 void Speaker::draw()
 {
-    float transpa = 0.75;
+    static auto constexpr ALPHA = 0.75f;
 
     glPushMatrix();
 
-    glTranslatef(this->center.x, this->center.y, this->center.z);
+    glTranslatef(mCenter.x, mCenter.y, mCenter.z);
 
-    glRotatef(180.0f - this->aziZenRad.x, 0, 1.0, 0);
-    if (this->mainParent->getModeSelected() == 1) {
-        glRotatef(-this->aziZenRad.y + this->aziZenRad.y * this->aziZenRad.z / 20.0, 0, 0, 1.0);
+    glRotatef(180.0f - mAziZenRad.x, 0.0f, 1.0f, 0.0f);
+    if (mMainContentComponent->getModeSelected() == 1) {
+        glRotatef(-mAziZenRad.y + mAziZenRad.y * mAziZenRad.z / 20.0f, 0.0f, 0.0f, 1.0f);
     } else {
-        glRotatef(-this->aziZenRad.y, 0, 0, 1.0);
+        glRotatef(-mAziZenRad.y, 0.0f, 0.0f, 1.0f);
     }
-    glTranslatef(-1 * this->center.x, -1 * this->center.y, -1 * this->center.z);
+    glTranslatef(-1.0f * mCenter.x, -1.0f * mCenter.y, -1.0f * mCenter.z);
 
     glBegin(GL_QUADS);
 
-    if (this->mainParent->isSpeakerLevelShown) {
-        float val = this->getAlpha();
-        this->levelColour = val + (this->levelColour - val) * 0.5;
-        glColor4f(this->levelColour, this->levelColour, this->levelColour, transpa);
+    if (mMainContentComponent->isSpeakerLevelShown()) {
+        auto const alpha{ getAlpha() };
+        mLevelColour = alpha + (mLevelColour - alpha) * 0.5f;
+        glColor4f(mLevelColour, mLevelColour, mLevelColour, ALPHA);
     } else {
-        glColor4f(this->color.x, this->color.y, this->color.z, transpa);
+        glColor4f(mColor.x, mColor.y, mColor.z, ALPHA);
     }
 
-    glVertex3f(this->min.x, this->min.y, this->max.z);
-    glVertex3f(this->max.x, this->min.y, this->max.z);
-    glVertex3f(this->max.x, this->max.y, this->max.z);
-    glVertex3f(this->min.x, this->max.y, this->max.z);
+    glVertex3f(mMin.x, mMin.y, mMax.z);
+    glVertex3f(mMax.x, mMin.y, mMax.z);
+    glVertex3f(mMax.x, mMax.y, mMax.z);
+    glVertex3f(mMin.x, mMax.y, mMax.z);
 
-    glVertex3f(this->max.x, this->min.y, this->max.z);
-    glVertex3f(this->max.x, this->min.y, this->min.z);
-    glVertex3f(this->max.x, this->max.y, this->min.z);
-    glVertex3f(this->max.x, this->max.y, this->max.z);
+    glVertex3f(mMax.x, mMin.y, mMax.z);
+    glVertex3f(mMax.x, mMin.y, mMin.z);
+    glVertex3f(mMax.x, mMax.y, mMin.z);
+    glVertex3f(mMax.x, mMax.y, mMax.z);
 
-    glVertex3f(this->min.x, this->max.y, this->max.z);
-    glVertex3f(this->max.x, this->max.y, this->max.z);
-    glVertex3f(this->max.x, this->max.y, this->min.z);
-    glVertex3f(this->min.x, this->max.y, this->min.z);
+    glVertex3f(mMin.x, mMax.y, mMax.z);
+    glVertex3f(mMax.x, mMax.y, mMax.z);
+    glVertex3f(mMax.x, mMax.y, mMin.z);
+    glVertex3f(mMin.x, mMax.y, mMin.z);
 
-    glVertex3f(this->min.x, this->min.y, this->min.z);
-    glVertex3f(this->min.x, this->max.y, this->min.z);
-    glVertex3f(this->max.x, this->max.y, this->min.z);
-    glVertex3f(this->max.x, this->min.y, this->min.z);
+    glVertex3f(mMin.x, mMin.y, mMin.z);
+    glVertex3f(mMin.x, mMax.y, mMin.z);
+    glVertex3f(mMax.x, mMax.y, mMin.z);
+    glVertex3f(mMax.x, mMin.y, mMin.z);
 
-    glVertex3f(this->min.x, this->min.y, this->min.z);
-    glVertex3f(this->max.x, this->min.y, this->min.z);
-    glVertex3f(this->max.x, this->min.y, this->max.z);
-    glVertex3f(this->min.x, this->min.y, this->max.z);
+    glVertex3f(mMin.x, mMin.y, mMin.z);
+    glVertex3f(mMax.x, mMin.y, mMin.z);
+    glVertex3f(mMax.x, mMin.y, mMax.z);
+    glVertex3f(mMin.x, mMin.y, mMax.z);
 
-    glVertex3f(this->min.x, this->min.y, this->min.z);
-    glVertex3f(this->min.x, this->min.y, this->max.z);
-    glVertex3f(this->min.x, this->max.y, this->max.z);
-    glVertex3f(this->min.x, this->max.y, this->min.z);
+    glVertex3f(mMin.x, mMin.y, mMin.z);
+    glVertex3f(mMin.x, mMin.y, mMax.z);
+    glVertex3f(mMin.x, mMax.y, mMax.z);
+    glVertex3f(mMin.x, mMax.y, mMin.z);
 
     glEnd();
 
-    if (this->selected) {
-        glLineWidth(2);
+    if (mSelected) {
+        glLineWidth(2.0f);
         glBegin(GL_LINES);
-        glColor4f(0, 0, 0, transpa);
-        glVertex3f(this->center.x + SizeSpeaker.x, this->center.y, this->center.z);
-        glVertex3f(this->center.x + 1.2f, this->center.y, this->center.z);
+        glColor4f(0.0f, 0.0f, 0.0f, ALPHA);
+        glVertex3f(mCenter.x + SIZE_SPEAKER.x, mCenter.y, mCenter.z);
+        glVertex3f(mCenter.x + 1.2f, mCenter.y, mCenter.z);
         glEnd();
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        glLineWidth(4);
+        glLineWidth(4.0f);
         glBegin(GL_LINES);
 
-        glVertex3f(this->min.x - Over, this->min.y - Over, this->min.z - Over);
-        glVertex3f(this->min.x - Over, this->min.y - Over, this->max.z + Over);
+        glVertex3f(mMin.x - OVER, mMin.y - OVER, mMin.z - OVER);
+        glVertex3f(mMin.x - OVER, mMin.y - OVER, mMax.z + OVER);
 
-        glVertex3f(this->max.x + Over, this->min.y - Over, this->min.z - Over);
-        glVertex3f(this->max.x + Over, this->min.y - Over, this->max.z + Over);
+        glVertex3f(mMax.x + OVER, mMin.y - OVER, mMin.z - OVER);
+        glVertex3f(mMax.x + OVER, mMin.y - OVER, mMax.z + OVER);
 
-        glVertex3f(this->max.x + Over, this->max.y + Over, this->min.z - Over);
-        glVertex3f(this->max.x + Over, this->max.y + Over, this->max.z + Over);
+        glVertex3f(mMax.x + OVER, mMax.y + OVER, mMin.z - OVER);
+        glVertex3f(mMax.x + OVER, mMax.y + OVER, mMax.z + OVER);
 
-        glVertex3f(this->min.x - Over, this->max.y + Over, this->min.z - Over);
-        glVertex3f(this->min.x - Over, this->max.y + Over, this->max.z + Over);
+        glVertex3f(mMin.x - OVER, mMax.y + OVER, mMin.z - OVER);
+        glVertex3f(mMin.x - OVER, mMax.y + OVER, mMax.z + OVER);
 
-        glVertex3f(this->min.x - Over, this->min.y - Over, this->min.z - Over);
-        glVertex3f(this->max.x + Over, this->min.y - Over, this->min.z - Over);
+        glVertex3f(mMin.x - OVER, mMin.y - OVER, mMin.z - OVER);
+        glVertex3f(mMax.x + OVER, mMin.y - OVER, mMin.z - OVER);
 
-        glVertex3f(this->min.x - Over, this->min.y - Over, this->max.z + Over);
-        glVertex3f(this->max.x + Over, this->min.y - Over, this->max.z + Over);
+        glVertex3f(mMin.x - OVER, mMin.y - OVER, mMax.z + OVER);
+        glVertex3f(mMax.x + OVER, mMin.y - OVER, mMax.z + OVER);
 
-        glVertex3f(this->min.x - Over, this->max.y + Over, this->min.z - Over);
-        glVertex3f(this->max.x + Over, this->max.y + Over, this->min.z - Over);
+        glVertex3f(mMin.x - OVER, mMax.y + OVER, mMin.z - OVER);
+        glVertex3f(mMax.x + OVER, mMax.y + OVER, mMin.z - OVER);
 
-        glVertex3f(this->min.x - Over, this->max.y + Over, this->max.z + Over);
-        glVertex3f(this->max.x + Over, this->max.y + Over, this->max.z + Over);
+        glVertex3f(mMin.x - OVER, mMax.y + OVER, mMax.z + OVER);
+        glVertex3f(mMax.x + OVER, mMax.y + OVER, mMax.z + OVER);
 
-        glVertex3f(this->min.x - Over, this->min.y - Over, this->min.z - Over);
-        glVertex3f(this->min.x - Over, this->max.y + Over, this->min.z - Over);
+        glVertex3f(mMin.x - OVER, mMin.y - OVER, mMin.z - OVER);
+        glVertex3f(mMin.x - OVER, mMax.y + OVER, mMin.z - OVER);
 
-        glVertex3f(this->min.x - Over, this->min.y - Over, this->max.z + Over);
-        glVertex3f(this->min.x - Over, this->max.y + Over, this->max.z + Over);
+        glVertex3f(mMin.x - OVER, mMin.y - OVER, mMax.z + OVER);
+        glVertex3f(mMin.x - OVER, mMax.y + OVER, mMax.z + OVER);
 
-        glVertex3f(this->max.x + Over, this->min.y - Over, this->min.z - Over);
-        glVertex3f(this->max.x + Over, this->max.y + Over, this->min.z - Over);
+        glVertex3f(mMax.x + OVER, mMin.y - OVER, mMin.z - OVER);
+        glVertex3f(mMax.x + OVER, mMax.y + OVER, mMin.z - OVER);
 
-        glVertex3f(this->max.x + Over, this->min.y - Over, this->max.z + Over);
-        glVertex3f(this->max.x + Over, this->max.y + Over, this->max.z + Over);
+        glVertex3f(mMax.x + OVER, mMin.y - OVER, mMax.z + OVER);
+        glVertex3f(mMax.x + OVER, mMax.y + OVER, mMax.z + OVER);
 
         glEnd();
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     } else {
-        glLineWidth(2);
+        glLineWidth(2.0f);
         glBegin(GL_LINES);
-        glColor4f(0.37, 0.37, 0.37, transpa);
-        glVertex3f(this->center.x + SizeSpeaker.x, this->center.y, this->center.z);
-        glVertex3f(this->center.x + 1.2f, this->center.y, this->center.z);
+        glColor4f(0.37f, 0.37f, 0.37f, ALPHA);
+        glVertex3f(mCenter.x + SIZE_SPEAKER.x, mCenter.y, mCenter.z);
+        glVertex3f(mCenter.x + 1.2f, mCenter.y, mCenter.z);
         glEnd();
     }
 

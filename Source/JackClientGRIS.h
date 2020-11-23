@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS2.
 
- Developers: Olivier Belanger, Nicolas Masson
+ Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
 
  SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -17,330 +17,265 @@
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef JACKCLIENTGRIS_H
-#define JACKCLIENTGRIS_H
+#pragma once
 
+#include <array>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <vector>
 
+#include "macros.h"
+
+DISABLE_WARNINGS
 #if defined(WIN32) || defined(_WIN64)
-#include <cstdint>
-#include <mutex>
+    #include <cstdint>
+    #include <mutex>
 #else
-#include <unistd.h>
+    #include <unistd.h>
 #endif
 
 #ifdef __linux__
-#include <mutex>
+    #include <mutex>
 #endif
 
-#include "../JuceLibraryCode/JuceHeader.h"
+#include <JuceHeader.h>
 
-#include <jack/jack.h>
-#include <jack/session.h>
-#include <jack/transport.h>
-#include <jack/types.h>
+#if USE_JACK
+    #include <jack/jack.h>
+    #include <jack/session.h>
+    #include <jack/transport.h>
+    #include <jack/types.h>
+#else
+    #include "JackMockup.h"
+#endif
 
 #include "spat/lbap.h"
 #include "spat/vbap.h"
+ENABLE_WARNINGS
+
+#include "AudioRecorder.h"
 
 class Speaker;
 
 // Limits of SpatGRIS2 In/Out.
-static unsigned int const MaxInputs = 256;
-static unsigned int const MaxOutputs = 256;
+static unsigned int const MAX_INPUTS = 256;
+static unsigned int const MAX_OUTPUTS = 256;
 
 //==============================================================================
-typedef struct
-{
+struct LbapData {
     lbap_pos pos;
-    float    gains[MaxOutputs];
-    float    y[MaxOutputs];
-} LBAP_DATA;
+    std::array<float, MAX_OUTPUTS> gains;
+    std::array<float, MAX_OUTPUTS> y;
+};
 
 //==============================================================================
-struct Client
-{
-    String       name;
+struct Client {
+    juce::String name;
     unsigned int portStart = 0;
     unsigned int portEnd = 0;
     unsigned int portAvailable = 0;
     unsigned int activePorts = 0;
-    bool         initialized = false;
-    bool         connected = false;
+    bool initialized = false;
+    bool connected = false;
 };
 
 //==============================================================================
-struct SourceIn
-{
+struct SourceIn {
     unsigned int id;
-    float        x = 0.0f;
-    float        y = 0.0f;
-    float        z = 0.0f;
+    float x{};
+    float y{};
+    float z{};
 
-    float radazi = 0.0f;
-    float radele = 0.0;
-    float azimuth = 0.0f;
-    float zenith = 0.0f;
-    float radius = 1.0f;
-    float aziSpan = 0.0f;
-    float zenSpan = 0.0f;
+    float radAzimuth{};
+    float radElevation{};
+    float azimuth{};
+    float zenith{};
+    float radius{ 1.0f };
+    float azimuthSpan{};
+    float zenithSpan{};
 
-    float    lbap_gains[MaxOutputs];
-    float    lbap_y[MaxOutputs];
-    lbap_pos lbap_last_pos;
+    std::array<float, MAX_OUTPUTS> lbapGains{};
+    std::array<float, MAX_OUTPUTS> lbapY{};
+    lbap_pos lbapLastPos{ -1, -1, -1, 0.0f, 0.0f, 0.0f };
 
-    bool  isMuted = false;
-    bool  isSolo = false;
-    float gain; // Not used yet.
+    bool isMuted = false;
+    bool isSolo = false;
+    float gain{}; // Not used yet.
 
-    int directOut = 0;
+    int directOut{};
 
-    VBAP_DATA * paramVBap;
+    VBAP_DATA * paramVBap{};
 };
 
 //==============================================================================
-struct SpeakerOut
-{
+struct SpeakerOut {
     unsigned int id;
-    float        x = 0.0f;
-    float        y = 0.0f;
-    float        z = 0.0f;
+    float x{};
+    float y{};
+    float z{};
 
-    float azimuth = 0.0f;
-    float zenith = 0.0f;
-    float radius = 0.0f;
+    float azimuth{};
+    float zenith{};
+    float radius{};
 
-    float gain = 1.0f;
+    float gain{ 1.0f };
 
-    bool   hpActive = false;
-    double b1 = 0.0;
-    double b2 = 0.0;
-    double b3 = 0.0;
-    double b4 = 0.0;
-    double ha0 = 0.0;
-    double ha1 = 0.0;
-    double ha2 = 0.0;
+    bool hpActive = false;
+    double b1{};
+    double b2{};
+    double b3{};
+    double b4{};
+    double ha0{};
+    double ha1{};
+    double ha2{};
 
     bool isMuted = false;
     bool isSolo = false;
 
-    int outputPatch = 0;
+    int outputPatch{};
 
     bool directOut = false;
 };
 
 //==============================================================================
 // Spatialization modes.
-typedef enum
-{
-    VBAP = 0,
-    LBAP,
-    VBAP_HRTF,
-    STEREO
-} ModeSpatEnum;
-
-//==============================================================================
-// Audio recorder class used to write a monophonic soundfile on disk.
-class AudioRecorder
-{
-public:
-    AudioRecorder() : backgroundThread("Audio Recorder Thread"), activeWriter(nullptr) {}
-    ~AudioRecorder() { stop(); }
-    //==============================================================================
-    void startRecording(const File & file, unsigned int sampleRate, String extF)
-    {
-        stop();
-
-        backgroundThread.startThread();
-
-        // Create an OutputStream to write to our destination file.
-        file.deleteFile();
-        std::unique_ptr<FileOutputStream> fileStream(file.createOutputStream());
-
-        AudioFormatWriter * writer;
-
-        if (fileStream != nullptr) {
-            // Now create a writer object that writes to our output stream...
-            if (extF == ".wav") {
-                WavAudioFormat wavFormat;
-                writer = wavFormat.createWriterFor(fileStream.get(), sampleRate, 1, 24, NULL, 0);
-            } else {
-                AiffAudioFormat aiffFormat;
-                writer = aiffFormat.createWriterFor(fileStream.get(), sampleRate, 1, 24, NULL, 0);
-            }
-
-            if (writer != nullptr) {
-                fileStream.release(); // (passes responsibility for deleting the stream to the writer object that is now
-                                      // using it)
-
-                // Now we'll create one of these helper objects which will act as a FIFO buffer, and will
-                // write the data to disk on our background thread.
-                threadedWriter.reset(new AudioFormatWriter::ThreadedWriter(writer, backgroundThread, 32768));
-
-                // And now, swap over our active writer pointer so that the audio callback will start using it..
-                const ScopedLock sl(writerLock);
-                activeWriter = threadedWriter.get();
-            }
-        }
-    }
-    //==============================================================================
-    void stop()
-    {
-        if (activeWriter == nullptr) {
-            return;
-        }
-
-        // First, clear this pointer to stop the audio callback from using our writer object.
-        {
-            const ScopedLock sl(writerLock);
-            activeWriter = nullptr;
-        }
-
-        // Now we can delete the writer object. It's done in this order because the deletion could
-        // take a little time while remaining data gets flushed to disk, so it's best to avoid blocking
-        // the audio callback while this happens.
-        threadedWriter.reset();
-
-        // Stop the background thread.
-        backgroundThread.stopThread(100);
-    }
-    //==============================================================================
-    void recordSamples(float ** samples, int numSamples)
-    {
-        const ScopedLock sl(writerLock);
-        activeWriter.load()->write(samples, numSamples);
-    }
-    //==============================================================================
-    TimeSliceThread backgroundThread; // the thread that will write our audio data to disk
-
-private:
-    //==============================================================================
-    std::unique_ptr<AudioFormatWriter::ThreadedWriter> threadedWriter; // the FIFO used to buffer the incoming data
-    CriticalSection                                    writerLock;
-    std::atomic<AudioFormatWriter::ThreadedWriter *>   activeWriter{ nullptr };
-    //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioRecorder);
-};
+typedef enum { VBAP = 0, LBAP, VBAP_HRTF, STEREO } ModeSpatEnum;
 
 //==============================================================================
 class JackClientGris
 {
-public:
     // class variables.
     //-----------------
-    unsigned int sampleRate;
-    unsigned int bufferSize;
-    unsigned int numberInputs;
-    unsigned int numberOutputs;
-    unsigned int maxOutputPatch;
+    unsigned int mSampleRate{};
+    unsigned int mBufferSize{};
+    unsigned int mNumberInputs{};
+    unsigned int mNumberOutputs{};
+    unsigned int mMaxOutputPatch{};
 
-    std::vector<int> outputPatches;
+    std::vector<int> mOutputPatches{};
 
     // Jack variables.
-    jack_client_t * client;
+    jack_client_t * mClient{};
 
-    std::vector<jack_port_t *> inputsPort;
-    std::vector<jack_port_t *> outputsPort;
+    std::vector<jack_port_t *> mInputsPort{};
+    std::vector<jack_port_t *> mOutputsPort{};
 
     // Interpolation and master gain values.
-    float interMaster;
-    float masterGainOut;
+    float mInterMaster{ 0.8f };
+    float mMasterGainOut{ 1.0f };
 
     // Global solo states.
-    bool soloIn;
-    bool soloOut;
+    bool mSoloIn{ false };
+    bool mSoloOut{ false };
 
     // Pink noise test sound.
-    float c0;
-    float c1;
-    float c2;
-    float c3;
-    float c4;
-    float c5;
-    float c6;
-    float pinkNoiseGain;
-    bool  pinkNoiseSound;
+    float mPinkNoiseC0{};
+    float mPinkNoiseC1{};
+    float mPinkNoiseC2{};
+    float mPinkNoiseC3{};
+    float mPinkNoiseC4{};
+    float mPinkNoiseC5{};
+    float mPinkNoiseC6{};
+    float mPinkNoiseGain{ 0.1f };
+    bool mPinkNoiseActive{ false };
 
     // Crossover highpass filter.
-    double x1[MaxOutputs];
-    double x2[MaxOutputs];
-    double x3[MaxOutputs];
-    double x4[MaxOutputs];
-    double y1[MaxOutputs];
-    double y2[MaxOutputs];
-    double y3[MaxOutputs];
-    double y4[MaxOutputs];
+    std::array<double, MAX_OUTPUTS> mCrossoverHighpassX1{};
+    std::array<double, MAX_OUTPUTS> mCrossoverHighpassX2{};
+    std::array<double, MAX_OUTPUTS> mCrossoverHighpassX3{};
+    std::array<double, MAX_OUTPUTS> mCrossoverHighpassX4{};
+    std::array<double, MAX_OUTPUTS> mCrossoverHighpassY1{};
+    std::array<double, MAX_OUTPUTS> mCrossoverHighpassY2{};
+    std::array<double, MAX_OUTPUTS> mCrossoverHighpassY3{};
+    std::array<double, MAX_OUTPUTS> mCrossoverHighpassY4{};
 
     // Mute / Solo / VuMeter.
-    float levelsIn[MaxInputs];
-    float levelsOut[MaxOutputs];
+    std::array<float, MAX_INPUTS> mLevelsIn{};
+    std::array<float, MAX_OUTPUTS> mLevelsOut{};
 
     // Client list.
-    std::vector<Client> listClient;
-    std::mutex          lockListClient;
+    std::vector<Client> mClients{};
+    std::mutex mClientsLock{};
 
     // Source and output lists.
-    SourceIn   listSourceIn[MaxInputs];
-    SpeakerOut listSpeakerOut[MaxOutputs];
+    std::array<SourceIn, MAX_INPUTS> mSourcesIn{};
+    std::array<SpeakerOut, MAX_OUTPUTS> mSpeakersOut{};
 
     // Enable/disable jack process callback.
-    bool processBlockOn;
+    bool mProcessBlockOn{ true };
 
     // True when jack reports an xrun.
-    bool overload;
+    bool mIsOverloaded{ false };
 
     // Which spatialization mode is selected.
-    ModeSpatEnum modeSelected;
+    ModeSpatEnum mModeSelected{ VBAP };
 
-    bool autoConnection; // not sure this one is necessary ?
+    bool mAutoConnection{ false }; // not sure this one is necessary ?
 
     // VBAP data.
-    unsigned int vbapDimensions;
-    int          vbapSourcesToUpdate[MaxInputs];
+    unsigned mVbapDimensions{};
+    std::array<int, MAX_INPUTS> mVbapSourcesToUpdate{};
 
-    std::vector<std::vector<int>> vbap_triplets;
+    std::vector<std::vector<int>> mVbapTriplets{};
 
     // BINAURAL data.
-    unsigned int hrtf_count[16];
-    float        hrtf_input_tmp[16][128];
-    float        vbap_hrtf_left_impulses[16][128];
-    float        vbap_hrtf_right_impulses[16][128];
+    std::array<unsigned, 16> mHrtfCount{};
+    std::array<std::array<float, 128>, 16> mHrtfInputTmp{};
+    std::array<std::array<float, 128>, 16> mVbapHrtfLeftImpulses{};
+    std::array<std::array<float, 128>, 16> mVbapHrtfRightImpulses{};
 
     // STEREO data.
-    float last_azi[MaxInputs];
+    std::array<float, MAX_INPUTS> mLastAzimuth{};
 
     // LBAP data.
-    lbap_field * lbap_speaker_field;
+    lbap_field * mLbapSpeakerField{};
 
     // Recording parameters.
-    unsigned int indexRecord = 0;
-    bool         recording;
+    unsigned int mIndexRecord{};
+    bool mIsRecording{ false };
 
-    AudioRecorder recorder[MaxOutputs];
-    Array<File>   outputFilenames;
+    std::array<AudioRecorder, MAX_OUTPUTS> mRecorders{};
+    juce::Array<juce::File> mOutputFileNames{};
 
     // LBAP distance attenuation values.
-    float attenuationLinearGain[1];
-    float attenuationLowpassCoeff[1];
-    float lastAttenuationGain[MaxInputs];
-    float lastAttenuationCoef[MaxInputs];
-    float attenuationLowpassY[MaxInputs];
-    float attenuationLowpassZ[MaxInputs];
+    float mAttenuationLinearGain{ 0.01584893f };       // -36 dB;
+    float mAttenuationLowpassCoefficient{ 0.867208f }; // 1000 Hz
+    std::array<float, MAX_INPUTS> mLastAttenuationGain{};
+    std::array<float, MAX_INPUTS> mLastAttenuationCoefficient{};
+    std::array<float, MAX_INPUTS> mAttenuationLowpassY{};
+    std::array<float, MAX_INPUTS> mAttenuationLowpassZ{};
+    //==============================================================================
+    // Tells if an error occured while setting up the client.
+    bool mClientReady{ false };
 
+    // Private recording parameters.
+    int mRecordFormat{};     // 0 = WAV, 1 = AIFF
+    int mRecordFileConfig{}; // 0 = Multiple Mono Files, 1 = Single Interleaved
+
+    juce::String mRecordPath{};
+
+    // This structure is used to compute the VBAP algorithm only once. Each source only gets a copy.
+    VBAP_DATA * mParamVBap{};
+
+public:
     //==============================================================================
     // Class methods.
     JackClientGris();
     ~JackClientGris();
 
+    JackClientGris(JackClientGris const &) = delete;
+    JackClientGris(JackClientGris &&) = delete;
+
+    JackClientGris & operator=(JackClientGris const &) = delete;
+    JackClientGris & operator=(JackClientGris &&) = delete;
+    //==============================================================================
     // Audio Status.
-    bool  isReady() const { return clientReady; }
-    float getCpuUsed() const { return jack_cpu_load(client); }
-    float getLevelsIn(int index) const { return levelsIn[index]; }
-    float getLevelsOut(int index) const { return levelsOut[index]; }
+    bool isReady() const { return mClientReady; }
+    float getCpuUsed() const { return jack_cpu_load(mClient); }
+    float getLevelsIn(int const index) const { return mLevelsIn[index]; }
+    float getLevelsOut(int const index) const { return mLevelsOut[index]; }
 
     // Manage Inputs / Outputs.
     void addRemoveInput(unsigned int number);
@@ -351,62 +286,118 @@ public:
     std::vector<int> getDirectOutOutputPatches() const;
 
     // Manage clients.
-    void connectionClient(String name, bool connect = true);
+    void connectionClient(juce::String name, bool connect = true);
     void updateClientPortAvailable(bool fromJack);
 
     std::string getClientName(char const * port) const;
 
     // Recording.
     void prepareToRecord();
-    void startRecord()
-    {
-        this->indexRecord = 0;
-        this->recording = true;
-    }
-    void stopRecord() { this->recording = false; }
-    void setRecordFormat(int format) { this->recordFormat = format; }
-    int  getRecordFormat() const { return this->recordFormat; }
-    void setRecordFileConfig(int config) { this->recordFileConfig = config; }
-    int  getRecordFileConfig() const { return this->recordFileConfig; }
-    void setRecordingPath(String filePath) { this->recordPath = filePath; }
-    bool isSavingRun() const { return this->recording; }
+    void startRecord();
+    void stopRecord() { this->mIsRecording = false; }
+    void setRecordFormat(const int format) { this->mRecordFormat = format; }
+    int getRecordFormat() const { return this->mRecordFormat; }
+    void setRecordFileConfig(const int config) { this->mRecordFileConfig = config; }
+    int getRecordFileConfig() const { return this->mRecordFileConfig; }
+    void setRecordingPath(juce::String const & filePath) { this->mRecordPath = filePath; }
+    bool isSavingRun() const { return this->mIsRecording; }
 
-    juce::String const & getRecordingPath() const { return this->recordPath; }
+    juce::String const & getRecordingPath() const { return this->mRecordPath; }
 
     // Initialize VBAP algorithm.
-    bool initSpeakersTripplet(std::vector<Speaker *> const & listSpk, int dimensions, bool needToComputeVbap);
+    bool initSpeakersTriplet(std::vector<Speaker *> const & listSpk, int dimensions, bool needToComputeVbap);
 
     // Initialize LBAP algorithm.
     bool lbapSetupSpeakerField(std::vector<Speaker *> const & listSpk);
 
     // LBAP distance attenuation functions.
-    void setAttenuationDB(float value);
+    void setAttenuationDb(float value);
     void setAttenuationHz(float value);
 
     // Need to update a source VBAP data.
     void updateSourceVbap(int idS);
 
     // Reinit HRTF delay lines.
-    void resetHRTF();
+    void resetHrtf();
+
+    jack_client_t * getClient() { return mClient; }
+    void clientRegistrationCallback(char const * name, int regist);
+    void portConnectCallback(jack_port_id_t a, jack_port_id_t b, int connect) const;
+
+    unsigned getSampleRate() const { return mSampleRate; }
+    unsigned getBufferSize() const { return mBufferSize; }
+    unsigned getNumberOutputs() const { return mNumberOutputs; }
+    unsigned getNumberInputs() const { return mNumberInputs; }
+    ModeSpatEnum getMode() const { return mModeSelected; }
+    unsigned getVbapDimensions() const { return mVbapDimensions; }
+    auto const & getClients() const { return mClients; }
+    auto & getClients() { return mClients; }
+    auto & getSourcesIn() { return mSourcesIn; }
+    auto const & getSourcesIn() const { return mSourcesIn; }
+    auto & getVbapSourcesToUpdate() { return mVbapSourcesToUpdate; }
+    auto const & getVbapTriplets() const { return mVbapTriplets; }
+    bool getSoloIn() const { return mSoloIn; }
+    bool getSoloOut() const { return mSoloOut; }
+    auto const & getSpeakersOut() const { return mSpeakersOut; }
+    auto & getSpeakersOut() { return mSpeakersOut; }
+    unsigned getMaxOutputPatch() const { return mMaxOutputPatch; }
+    unsigned getIndexRecord() const { return mIndexRecord; }
+    auto const & getRecorders() const { return mRecorders; }
+    auto const & getOutputFileNames() const { return mOutputFileNames; }
+    auto const & getInputPorts() const { return mInputsPort; }
+    auto & getClientsLock() { return mClientsLock; }
+
+    bool isRecording() const { return mIsRecording; }
+    bool isOverloaded() const { return mIsOverloaded; }
+
+    void setProcessBlockOn(bool const state) { mProcessBlockOn = state; }
+    void setMaxOutputPatch(unsigned const maxOutputPatch) { mMaxOutputPatch = maxOutputPatch; }
+    void setVbapDimensions(unsigned const dimensions) { mVbapDimensions = dimensions; }
+    void setSoloIn(bool const state) { mSoloIn = state; }
+    void setSoloOut(bool const state) { mSoloOut = state; }
+    void setMode(ModeSpatEnum const mode) { mModeSelected = mode; }
+    void setMasterGainOut(float const gain) { mMasterGainOut = gain; }
+    void setInterMaster(float const interMaster) { mInterMaster = interMaster; }
+
+    //==============================================================================
+    // Pink noise
+    void setPinkNoiseGain(float const gain) { mPinkNoiseGain = gain; }
+    void setPinkNoiseActive(bool const state) { mPinkNoiseActive = state; }
+
+    //==============================================================================
+    // Audio processing
+    void muteSoloVuMeterIn(jack_default_audio_sample_t ** ins, jack_nframes_t nframes, unsigned sizeInputs);
+    void muteSoloVuMeterGainOut(jack_default_audio_sample_t ** outs,
+                                jack_nframes_t nframes,
+                                unsigned sizeOutputs,
+                                float gain = 1.0f);
+    void addNoiseSound(jack_default_audio_sample_t ** outs, jack_nframes_t nframes, unsigned sizeOutputs);
+    void processVbap(jack_default_audio_sample_t ** ins,
+                     jack_default_audio_sample_t ** outs,
+                     jack_nframes_t nFrames,
+                     unsigned sizeInputs,
+                     unsigned sizeOutputs);
+    void processLbap(jack_default_audio_sample_t ** ins,
+                     jack_default_audio_sample_t ** outs,
+                     jack_nframes_t nFrames,
+                     unsigned sizeInputs,
+                     unsigned sizeOutputs);
+    void processVBapHrtf(jack_default_audio_sample_t ** ins,
+                         jack_default_audio_sample_t ** outs,
+                         jack_nframes_t nFrames,
+                         unsigned sizeInputs,
+                         unsigned sizeOutputs);
+    void processStereo(jack_default_audio_sample_t ** ins,
+                       jack_default_audio_sample_t ** outs,
+                       jack_nframes_t nframes,
+                       unsigned sizeInputs,
+                       unsigned sizeOutputs);
+    int processAudio(jack_nframes_t nframes);
 
 private:
     //==============================================================================
-    // Tells if an error occured while setting up the client.
-    bool clientReady;
-
-    // Private recording parameters.
-    int recordFormat = 0;     // 0 = WAV, 1 = AIFF
-    int recordFileConfig = 0; // 0 = Multiple Mono Files, 1 = Single Interleaved
-
-    juce::String recordPath = "";
-
-    // This structure is used to compute the VBAP algorithm only once. Each source only gets a copy.
-    VBAP_DATA * paramVBap;
-    //==============================================================================
     // Connect the server's outputs to the system's inputs.
-    void connectedGristoSystem();
+    void connectedGrisToSystem();
     //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(JackClientGris);
+    JUCE_LEAK_DETECTOR(JackClientGris)
 };
-
-#endif /* JACKCLIENTGRIS_H */

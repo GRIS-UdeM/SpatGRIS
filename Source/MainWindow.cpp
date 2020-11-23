@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS2.
 
- Developers: Olivier Belanger, Nicolas Masson
+ Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
 
  SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -18,19 +18,21 @@
 */
 
 #include "MainWindow.h"
+#include "ServerGrisConstants.h"
 
 //==============================================================================
-MainWindow::MainWindow(String name) : DocumentWindow(name, Colours::lightgrey, DocumentWindow::allButtons)
+MainWindow::MainWindow(juce::String const & name, GrisLookAndFeel & newLookAndFeel)
+    : DocumentWindow(name, juce::Colours::lightgrey, DocumentWindow::allButtons)
 {
     setUsingNativeTitleBar(true);
-    mcc.reset(new MainContentComponent(*this));
-    setContentOwned(mcc.get(), true);
+    mMainContentComponent.reset(new MainContentComponent(*this, newLookAndFeel));
+    setContentOwned(mMainContentComponent.get(), true);
     setResizable(true, true);
 
     // this lets the command manager use keypresses that arrive in our window.
     addKeyListener(getApplicationCommandManager().getKeyMappings());
 
-    PropertiesFile * props = mcc->applicationProperties.getUserSettings();
+    juce::PropertiesFile * props = mMainContentComponent->getApplicationProperties().getUserSettings();
 
     // These offset values compensate for the title bar size.
     // TODO: it works on linux, need to be tested on MacOS.
@@ -42,13 +44,15 @@ MainWindow::MainWindow(String name) : DocumentWindow(name, Colours::lightgrey, D
     int yOffset = 0;
 #endif
 
-    juce::Rectangle<int> totalScreen = Desktop::getInstance().getDisplays().getTotalBounds(true);
+    juce::Rectangle<int> totalScreen = juce::Desktop::getInstance().getDisplays().getTotalBounds(true);
 
     if (props->containsKey("xPosition")) {
         bool fitInside = (props->getIntValue("xPosition") + props->getIntValue("winWidth")) <= totalScreen.getWidth();
         if (fitInside) {
-            this->setBounds(props->getIntValue("xPosition") - xOffset, props->getIntValue("yPosition") - yOffset,
-                            props->getIntValue("winWidth"), props->getIntValue("winHeight"));
+            this->setBounds(props->getIntValue("xPosition") - xOffset,
+                            props->getIntValue("yPosition") - yOffset,
+                            props->getIntValue("winWidth"),
+                            props->getIntValue("winHeight"));
         } else {
             centreWithSize(getWidth(), getHeight());
         }
@@ -56,22 +60,40 @@ MainWindow::MainWindow(String name) : DocumentWindow(name, Colours::lightgrey, D
         centreWithSize(getWidth(), getHeight());
     }
 
+    setUsingNativeTitleBar(USE_OS_NATIVE_DIALOG_BOX);
+
     setVisible(true);
 }
 
 //==============================================================================
 bool MainWindow::exitWinApp()
 {
-    PropertiesFile * props = mcc->applicationProperties.getUserSettings();
+    juce::PropertiesFile * props = mMainContentComponent->getApplicationProperties().getUserSettings();
     props->setValue("xPosition", this->getScreenX());
     props->setValue("yPosition", this->getScreenY());
     props->setValue("winWidth", this->getWidth());
     props->setValue("winHeight", this->getHeight());
-    return mcc->exitApp();
+    return mMainContentComponent->exitApp();
 }
 
 //==============================================================================
-ApplicationCommandManager & MainWindow::getApplicationCommandManager()
+void MainWindow::closeButtonPressed()
 {
-    return applicationCommandManager;
+    juce::JUCEApplication::getInstance()->systemRequestedQuit();
+}
+
+//==============================================================================
+MainWindow * MainWindow::getMainAppWindow()
+{
+    for (int i = TopLevelWindow::getNumTopLevelWindows(); --i >= 0;) {
+        if (auto * maw = dynamic_cast<MainWindow *>(TopLevelWindow::getTopLevelWindow(i)))
+            return maw;
+    }
+    return nullptr;
+}
+
+//==============================================================================
+juce::ApplicationCommandManager & MainWindow::getApplicationCommandManager()
+{
+    return mApplicationCommandManager;
 }

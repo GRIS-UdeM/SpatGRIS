@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS2.
 
- Developers: Olivier Belanger
+ Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
 
  SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -17,41 +17,42 @@
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef SERVERGRISCONSTANTS_H
-#define SERVERGRISCONSTANTS_H
+#pragma once
 
-#include "../JuceLibraryCode/JuceHeader.h"
+#include "macros.h"
 
-extern const char * DeviceName;
-extern const char * ClientName;
-extern const char * DriverNameSys;
-extern const char * ClientNameSys;
-extern const char * ClientNameIgnor;
+DISABLE_WARNINGS
+#include <JuceHeader.h>
+ENABLE_WARNINGS
 
-extern const juce::String SplashScreenFilePath;
-extern const juce::String DefaultPresetFilePath;
-extern const juce::String DefaultPresetDirectoryPath;
-extern const juce::String DefaultSpeakerSetupFilePath;
-extern const juce::String BinauralSpeakerSetupFilePath;
-extern const juce::String StereoSpeakerSetupFilePath;
-extern const juce::String ServerGrisManualFilePath;
-extern const juce::String ServerGrisIconSmallFilePath;
+extern char const * const DEVICE_NAME;
+extern char const * CLIENT_NAME;
+extern char const * const SYS_DRIVER_NAME;
+extern char const * const SYS_CLIENT_NAME;
+extern char const * const CLIENT_NAME_IGNORE;
 
-extern const juce::String HRTFFolder0Path;
-extern const juce::String HRTFFolder40Path;
-extern const juce::String HRTFFolder80Path;
+extern const juce::File SPLASH_SCREEN_FILE;
+extern const juce::File DEFAULT_PRESET_FILE;
+extern const juce::File DEFAULT_PRESET_DIRECTORY;
+extern const juce::File DEFAULT_SPEAKER_SETUP_FILE;
+extern const juce::File BINAURAL_SPEAKER_SETUP_FILE;
+extern const juce::File STEREO_SPEAKER_SETUP_FILE;
+extern const juce::File SERVER_GRIS_MANUAL_FILE;
+extern const juce::File SERVER_GRIS_ICON_SMALL_FILE;
 
-extern const juce::StringArray ModeSpatString;
+extern const juce::File HRTF_FOLDER_0;
+extern const juce::File HRTF_FOLDER_40;
+extern const juce::File HRTF_FOLDER_80;
 
-extern const bool UseOSNativeDialogBox;
+extern const juce::StringArray MODE_SPAT_STRING;
 
-extern const juce::StringArray BufferSizes;
-extern const juce::StringArray RateValues;
-extern const juce::StringArray FileFormats;
-extern const juce::StringArray FileConfigs;
-extern const juce::StringArray AttenuationDBs;
-extern const juce::StringArray AttenuationCutoffs;
+extern const bool USE_OS_NATIVE_DIALOG_BOX;
 
-extern const unsigned int VuMeterWidthInPixels;
+extern const juce::StringArray BUFFER_SIZES;
+extern const juce::StringArray RATE_VALUES;
+extern const juce::StringArray FILE_FORMATS;
+extern const juce::StringArray FILE_CONFIGS;
+extern const juce::StringArray ATTENUATION_DB;
+extern const juce::StringArray ATTENUATION_CUTOFFS;
 
-#endif /* SERVERGRISCONSTANTS_H */
+extern const unsigned int VU_METER_WIDTH_IN_PIXELS;

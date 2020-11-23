@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS2.
 
- Developers: Olivier Belanger, Nicolas Masson
+ Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
 
  SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -19,31 +19,24 @@
 
 #include "Box.h"
 
-#include <algorithm>
-
 #include "LevelComponent.h"
 #include "MainComponent.h"
-#include "ServerGrisConstants.h"
-#include "Speaker.h"
 
 //==============================================================================
-static double GetFloatPrecision(double value, double precision)
-{
-    return (floor((value * pow(10, precision) + 0.5)) / pow(10, precision));
-}
-
-//==============================================================================
-Box::Box(GrisLookAndFeel &    feel,
+Box::Box(GrisLookAndFeel & feel,
          juce::String const & title,
-         bool const           verticalScrollbar,
-         bool const           horizontalScrollbar)
-    : title(title), grisFeel(feel)
+         bool const verticalScrollbar,
+         bool const horizontalScrollbar)
+    : title(title)
+    , grisFeel(feel)
 {
     this->viewport.setViewedComponent(&this->content, false);
     this->viewport.setScrollBarsShown(verticalScrollbar, horizontalScrollbar);
     this->viewport.setScrollBarThickness(15);
-    this->viewport.getVerticalScrollBar().setColour(ScrollBar::ColourIds::thumbColourId, feel.getScrollBarColour());
-    this->viewport.getHorizontalScrollBar().setColour(ScrollBar::ColourIds::thumbColourId, feel.getScrollBarColour());
+    this->viewport.getVerticalScrollBar().setColour(juce::ScrollBar::ColourIds::thumbColourId,
+                                                    feel.getScrollBarColour());
+    this->viewport.getHorizontalScrollBar().setColour(juce::ScrollBar::ColourIds::thumbColourId,
+                                                      feel.getScrollBarColour());
 
     this->viewport.setLookAndFeel(&feel);
     addAndMakeVisible(this->viewport);
@@ -65,7 +58,7 @@ void Box::correctSize(unsigned int width, unsigned int height)
 }
 
 //==============================================================================
-void Box::paint(Graphics & g)
+void Box::paint(juce::Graphics & g)
 {
     g.setColour(this->grisFeel.getBackgroundColour());
     g.fillRect(getLocalBounds());

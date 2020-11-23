@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS2.
 
- Developers: Samuel Béland, Nicolas Masson
+ Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
 
  SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -19,10 +19,13 @@
 
 //==============================================================================
 
-#ifndef ABOUTWINDOW_H
-#define ABOUTWINDOW_H
+#pragma once
 
-#include "../JuceLibraryCode/JuceHeader.h"
+#include "macros.h"
+
+DISABLE_WARNINGS
+#include <JuceHeader.h>
+ENABLE_WARNINGS
 
 class MainContentComponent;
 class GrisLookAndFeel;
@@ -30,42 +33,58 @@ class GrisLookAndFeel;
 //==============================================================================
 class AboutWindow final : public juce::DocumentWindow
 {
+    MainContentComponent & mMainContentComponent;
+
 public:
-    AboutWindow(juce::String const & name, GrisLookAndFeel & lookAndFeel, MainContentComponent & mainContentComponent);
-    ~AboutWindow() final = default;
     //==============================================================================
-    void closeButtonPressed() final;
+    AboutWindow(juce::String const & name, GrisLookAndFeel & lookAndFeel, MainContentComponent & mainContentComponent);
+    //==============================================================================
+    AboutWindow() = delete;
+    ~AboutWindow() override = default;
+
+    AboutWindow(AboutWindow const &) = delete;
+    AboutWindow(AboutWindow &&) = delete;
+
+    AboutWindow & operator=(AboutWindow const &) = delete;
+    AboutWindow & operator=(AboutWindow &&) = delete;
+    //==============================================================================
+    void closeButtonPressed() override;
 
 private:
     //==============================================================================
-    MainContentComponent & mMainContentComponent;
-    //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AboutWindow);
-};
+    JUCE_LEAK_DETECTOR(AboutWindow)
+}; // class AboutWindow
 
 //==============================================================================
 class AboutComponent final
     : public juce::Component
     , public juce::TextButton::Listener
 {
+    AboutWindow & mParentWindow;
+
+    juce::ImageComponent mLogoImage;
+    juce::Label mTitleLabel;
+    juce::Label mVersionLabel;
+    juce::Label mInfosLabel;
+    juce::HyperlinkButton mWebsiteHyperlink;
+    juce::TextButton mCloseButton;
+
 public:
-    AboutComponent(AboutWindow & parentWindow, GrisLookAndFeel & lookAndFeel);
-    ~AboutComponent() final = default;
     //==============================================================================
-    void buttonClicked([[maybe_unused]] juce::Button * button) final { mParentWindow.closeButtonPressed(); }
+    AboutComponent(AboutWindow & parentWindow, GrisLookAndFeel & lookAndFeel);
+    //==============================================================================
+    AboutComponent() = delete;
+    ~AboutComponent() override = default;
+
+    AboutComponent(AboutComponent const &) = delete;
+    AboutComponent(AboutComponent &&) = delete;
+
+    AboutComponent & operator=(AboutComponent const &) = delete;
+    AboutComponent & operator=(AboutComponent &&) = delete;
+    //==============================================================================
+    void buttonClicked([[maybe_unused]] juce::Button * button) override { mParentWindow.closeButtonPressed(); }
 
 private:
     //==============================================================================
-    AboutWindow & mParentWindow;
-
-    juce::ImageComponent  mLogoImage;
-    juce::Label           mTitleLabel;
-    juce::Label           mVersionLabel;
-    juce::Label           mInfosLabel;
-    juce::HyperlinkButton mWebsiteHyperlink;
-    juce::TextButton      mCloseButton;
-    //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AboutComponent);
-};
-
-#endif // ABOUTWINDOW_H
+    JUCE_LEAK_DETECTOR(AboutComponent)
+}; // class AboutComponent

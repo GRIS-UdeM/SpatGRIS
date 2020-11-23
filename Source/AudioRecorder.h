@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS2.
 
- Developers: Samuel BÃ©land, Olivier BÃ©langer, Nicolas Masson
+ Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
 
  SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -22,39 +22,38 @@
 #include "macros.h"
 
 DISABLE_WARNINGS
-#if defined(__linux__)
-    #include <GL/gl.h>
-    #include <GL/glu.h>
-    #include <GL/glut.h>
-#elif defined(__APPLE__)
-    #include <GLUT/glut.h>
-    #include <OpenGL/gl.h>
-    #include <OpenGl/glu.h>
-#endif
-
-#include "../glm/glm.hpp"
-
 #include <JuceHeader.h>
 ENABLE_WARNINGS
 
 //==============================================================================
-class Ray
+// Audio recorder class used to write a monophonic sound file on disk.
+class AudioRecorder
 {
-    glm::vec3 mPosition{ 0.0f, 0.0f, 0.0f };
-    glm::vec3 mDirection{ 0.0f, 0.0f, 0.0f };
-    glm::vec3 mNormal{ 0.0f, 0.0f, 0.0f };
+    std::unique_ptr<juce::AudioFormatWriter::ThreadedWriter>
+        mThreadedWriter; // the FIFO used to buffer the incoming data
+    juce::CriticalSection mWriterLock;
+    std::atomic<juce::AudioFormatWriter::ThreadedWriter *> mActiveWriter{ nullptr };
 
 public:
     //==============================================================================
-    void setRay(glm::vec3 const & p, glm::vec3 const & d);
+    AudioRecorder();
+    ~AudioRecorder() { stop(); }
+
+    AudioRecorder(AudioRecorder const &) = delete;
+    AudioRecorder(AudioRecorder &&) = delete;
+
+    AudioRecorder & operator=(AudioRecorder const &) = delete;
+    AudioRecorder & operator=(AudioRecorder &&) = delete;
     //==============================================================================
-    glm::vec3 const & getNormal() const { return this->mNormal; }
-    glm::vec3 const & getPosition() const { return this->mPosition; }
-    glm::vec3 const & getDirection() const { return this->mDirection; }
+    void startRecording(juce::File const & file, unsigned int sampleRate, juce::String const & extF);
     //==============================================================================
-    void draw() const;
+    void stop();
+    //==============================================================================
+    void recordSamples(float ** samples, int numSamples) const;
+    //==============================================================================
+    juce::TimeSliceThread backgroundThread; // the thread that will write our audio data to disk
 
 private:
     //==============================================================================
-    JUCE_LEAK_DETECTOR(Ray)
+    JUCE_LEAK_DETECTOR(AudioRecorder)
 };

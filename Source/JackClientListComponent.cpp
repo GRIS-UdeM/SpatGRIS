@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS2.
 
- Developers: Samuel Béand, Olivier Belanger, Nicolas Masson
+ Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
 
  SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -25,20 +25,22 @@
 
 //==============================================================================
 JackClientListComponent::JackClientListComponent(MainContentComponent * parent, GrisLookAndFeel * feel)
-    : mainParent(parent), grisFeel(feel)
+    : mainParent(parent)
+    , grisFeel(feel)
 {
     tableListClient.setModel(this);
 
-    tableListClient.setColour(ListBox::outlineColourId, this->grisFeel->getWinBackgroundColour());
-    tableListClient.setColour(ListBox::backgroundColourId, this->grisFeel->getWinBackgroundColour());
+    tableListClient.setColour(juce::ListBox::outlineColourId, this->grisFeel->getWinBackgroundColour());
+    tableListClient.setColour(juce::ListBox::backgroundColourId, this->grisFeel->getWinBackgroundColour());
     tableListClient.setOutlineThickness(1);
 
-    tableListClient.getHeader().addColumn("Client", ColumnIds::CLIENT_NAME, 120, 70, 120,
-                                          TableHeaderComponent::notSortable);
-    tableListClient.getHeader().addColumn("Start", ColumnIds::START, 60, 35, 70, TableHeaderComponent::notSortable);
-    tableListClient.getHeader().addColumn("End", ColumnIds::END, 60, 35, 70, TableHeaderComponent::notSortable);
-    tableListClient.getHeader().addColumn("On/Off", ColumnIds::ON_OFF_TOGGLE, 62, 35, 70,
-                                          TableHeaderComponent::notSortable);
+    tableListClient.getHeader()
+        .addColumn("Client", ColumnIds::CLIENT_NAME, 120, 70, 120, juce::TableHeaderComponent::notSortable);
+    tableListClient.getHeader()
+        .addColumn("Start", ColumnIds::START, 60, 35, 70, juce::TableHeaderComponent::notSortable);
+    tableListClient.getHeader().addColumn("End", ColumnIds::END, 60, 35, 70, juce::TableHeaderComponent::notSortable);
+    tableListClient.getHeader()
+        .addColumn("On/Off", ColumnIds::ON_OFF_TOGGLE, 62, 35, 70, juce::TableHeaderComponent::notSortable);
 
     tableListClient.setMultipleSelectionEnabled(false);
 
@@ -48,14 +50,14 @@ JackClientListComponent::JackClientListComponent(MainContentComponent * parent, 
 }
 
 //==============================================================================
-void JackClientListComponent::buttonClicked(Button * button)
+void JackClientListComponent::buttonClicked(juce::Button * button)
 {
-    this->mainParent->getLockClients().lock();
-    bool connectedCli = !this->mainParent->getListClientjack().at(button->getName().getIntValue()).connected;
-    this->mainParent->connectionClientJack(
-        this->mainParent->getListClientjack().at(button->getName().getIntValue()).name, connectedCli);
+    this->mainParent->getClientsLock().lock();
+    bool connectedCli = !this->mainParent->getClients().at(button->getName().getIntValue()).connected;
+    this->mainParent->connectionClientJack(this->mainParent->getClients().at(button->getName().getIntValue()).name,
+                                           connectedCli);
     updateContentCli();
-    this->mainParent->getLockClients().unlock();
+    this->mainParent->getClientsLock().unlock();
 }
 
 //==============================================================================
@@ -68,7 +70,7 @@ void JackClientListComponent::setBounds(int x, int y, int width, int height)
 //==============================================================================
 void JackClientListComponent::updateContentCli()
 {
-    numRows = (unsigned int)this->mainParent->getListClientjack().size();
+    numRows = (unsigned int)this->mainParent->getClients().size();
     tableListClient.updateContent();
     tableListClient.repaint();
 }
@@ -76,85 +78,85 @@ void JackClientListComponent::updateContentCli()
 //==============================================================================
 void JackClientListComponent::setValue(const int rowNumber, const int columnNumber, const int newRating)
 {
-    this->mainParent->getLockClients().lock();
-    if (this->mainParent->getListClientjack().size() > (unsigned int)rowNumber) {
+    this->mainParent->getClientsLock().lock();
+    if (this->mainParent->getClients().size() > (unsigned int)rowNumber) {
         switch (columnNumber) {
         case ColumnIds::START:
-            this->mainParent->getListClientjack().at(rowNumber).portStart = newRating;
-            this->mainParent->getListClientjack().at(rowNumber).initialized = true;
+            this->mainParent->getClients().at(rowNumber).portStart = newRating;
+            this->mainParent->getClients().at(rowNumber).initialized = true;
             break;
         case ColumnIds::END:
-            this->mainParent->getListClientjack().at(rowNumber).portEnd = newRating;
-            this->mainParent->getListClientjack().at(rowNumber).initialized = true;
+            this->mainParent->getClients().at(rowNumber).portEnd = newRating;
+            this->mainParent->getClients().at(rowNumber).initialized = true;
             break;
         }
     }
-    bool connectedCli = this->mainParent->getListClientjack().at(rowNumber).connected;
-    this->mainParent->connectionClientJack(this->mainParent->getListClientjack().at(rowNumber).name, connectedCli);
-    this->mainParent->getLockClients().unlock();
+    bool connectedCli = this->mainParent->getClients().at(rowNumber).connected;
+    this->mainParent->connectionClientJack(this->mainParent->getClients().at(rowNumber).name, connectedCli);
+    this->mainParent->getClientsLock().unlock();
 }
 
 //==============================================================================
 int JackClientListComponent::getValue(const int rowNumber, const int columnNumber) const
 {
-    if ((unsigned int)rowNumber < this->mainParent->getListClientjack().size()) {
+    if ((unsigned int)rowNumber < this->mainParent->getClients().size()) {
         switch (columnNumber) {
         case ColumnIds::START:
-            return this->mainParent->getListClientjack().at(rowNumber).portStart;
+            return this->mainParent->getClients().at(rowNumber).portStart;
         case ColumnIds::END:
-            return this->mainParent->getListClientjack().at(rowNumber).portEnd;
+            return this->mainParent->getClients().at(rowNumber).portEnd;
         }
     }
     return -1;
 }
 
 //==============================================================================
-String JackClientListComponent::getText(const int columnNumber, const int rowNumber) const
+juce::String JackClientListComponent::getText(const int columnNumber, const int rowNumber) const
 {
-    String text = "?";
-    if ((unsigned int)rowNumber < this->mainParent->getListClientjack().size()) {
+    juce::String text = "?";
+    if ((unsigned int)rowNumber < this->mainParent->getClients().size()) {
         if (columnNumber == ColumnIds::CLIENT_NAME) {
-            text = String(this->mainParent->getListClientjack().at(rowNumber).name);
+            text = juce::String(this->mainParent->getClients().at(rowNumber).name);
         }
     }
     return text;
 }
 
 //==============================================================================
-void JackClientListComponent::paintRowBackground(Graphics & g,
-                                                 int        rowNumber,
+void JackClientListComponent::paintRowBackground(juce::Graphics & g,
+                                                 int const rowNumber,
                                                  int /*width*/,
                                                  int /*height*/,
-                                                 bool rowIsSelected)
+                                                 bool /*rowIsSelected*/)
 {
     if (rowNumber % 2) {
-        g.fillAll(this->grisFeel->getBackgroundColour().withBrightness(0.6));
+        g.fillAll(this->grisFeel->getBackgroundColour().withBrightness(0.6f));
     } else {
-        g.fillAll(this->grisFeel->getBackgroundColour().withBrightness(0.7));
+        g.fillAll(this->grisFeel->getBackgroundColour().withBrightness(0.7f));
     }
 }
 
 //==============================================================================
-void JackClientListComponent::paintCell(Graphics & g,
-                                        int const  rowNumber,
-                                        int const  columnId,
-                                        int const  width,
-                                        int const  height,
+void JackClientListComponent::paintCell(juce::Graphics & g,
+                                        int const rowNumber,
+                                        int const columnId,
+                                        int const width,
+                                        int const height,
                                         bool const /*rowIsSelected*/)
 {
-    if (this->mainParent->getLockClients().try_lock()) {
-        auto const jackClientListSize{ this->mainParent->getListClientjack().size() };
+    if (this->mainParent->getClientsLock().try_lock()) {
+        auto const jackClientListSize{ this->mainParent->getClients().size() };
         if (static_cast<size_t>(rowNumber) < jackClientListSize) {
             if (columnId == ColumnIds::CLIENT_NAME) {
                 juce::String text = getText(columnId, rowNumber);
-                g.setColour(Colours::black);
+                g.setColour(juce::Colours::black);
                 g.setFont(12.0f);
                 g.drawText(text, 2, 0, width - 4, height, juce::Justification::centredLeft, true);
             }
         }
-        this->mainParent->getLockClients().unlock();
+        this->mainParent->getClientsLock().unlock();
     }
-    g.setColour(Colours::black.withAlpha(0.2f));
+    g.setColour(juce::Colours::black.withAlpha(0.2f));
     g.fillRect(width - 1, 0, 1, height);
 }
 
@@ -169,17 +171,18 @@ juce::Component * JackClientListComponent::refreshComponentForCell(int const row
     }
 
     if (columnId == ColumnIds::ON_OFF_TOGGLE) {
-        TextButton * tbRemove = static_cast<TextButton *>(existingComponentToUpdate);
+        juce::TextButton * tbRemove = static_cast<juce::TextButton *>(existingComponentToUpdate);
         if (tbRemove == nullptr) {
-            tbRemove = new TextButton();
-            tbRemove->setName(String(rowNumber));
+            // TODO : naked new
+            tbRemove = new juce::TextButton();
+            tbRemove->setName(juce::String(rowNumber));
             tbRemove->setBounds(4, 404, 88, 22);
             tbRemove->addListener(this);
-            tbRemove->setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
+            tbRemove->setColour(juce::ToggleButton::textColourId, this->grisFeel->getFontColour());
             tbRemove->setLookAndFeel(this->grisFeel);
         }
 
-        if (this->mainParent->getListClientjack().at(rowNumber).connected) {
+        if (this->mainParent->getClients().at(rowNumber).connected) {
             tbRemove->setButtonText("<->");
         } else {
             tbRemove->setButtonText("<X>");
@@ -190,6 +193,7 @@ juce::Component * JackClientListComponent::refreshComponentForCell(int const row
         ListIntOutComp * textLabel = static_cast<ListIntOutComp *>(existingComponentToUpdate);
 
         if (textLabel == nullptr) {
+            // TODO : naked new
             textLabel = new ListIntOutComp(*this);
         }
 

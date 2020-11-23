@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS2.
 
- Developers: Samuel Béland, Olivier Belanger, Nicolas Masson
+ Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
 
  SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -22,211 +22,221 @@
 //==============================================================================
 GrisLookAndFeel::GrisLookAndFeel()
 {
-    this->backGroundAndFieldColour = juce::Colour::fromRGB(75, 75, 75); // Colours::darkgrey;
-    this->winBackGroundAndFieldColour = juce::Colour::fromRGB(46, 46, 46);
+    this->mBackGroundAndFieldColour = juce::Colour::fromRGB(75, 75, 75); // Colours::darkgrey;
+    this->mWinBackGroundAndFieldColour = juce::Colour::fromRGB(46, 46, 46);
 
-    this->lightColour = juce::Colour::fromRGB(235, 245, 250); // Colours::whitesmoke;
-    this->darkColour = juce::Colour::fromRGB(15, 10, 5);      // Colours::black;
-    this->greyColour = juce::Colour::fromRGB(120, 120, 120);  // Colours::grey;
-    this->editBgcolor = juce::Colour::fromRGB(172, 172, 172);
-    this->hlBgcolor = juce::Colour::fromRGB(190, 125, 18);
+    this->mLightColour = juce::Colour::fromRGB(235, 245, 250); // Colours::whitesmoke;
+    this->mDarkColour = juce::Colour::fromRGB(15, 10, 5);      // Colours::black;
+    this->mGreyColour = juce::Colour::fromRGB(120, 120, 120);  // Colours::grey;
+    this->mEditBgcolor = juce::Colour::fromRGB(172, 172, 172);
+    this->mHlBgcolor = juce::Colour::fromRGB(190, 125, 18);
 
-    this->onColor = juce::Colour::fromRGB(255, 165, 25);
-    this->onColorOver = juce::Colour::fromRGB(255, 184, 75);
-    this->onColorDown = juce::Colour::fromRGB(222, 144, 22);
-    this->offColor = juce::Colour::fromRGB(56, 56, 56);
+    this->mOnColor = juce::Colour::fromRGB(255, 165, 25);
+    this->mOnColorOver = juce::Colour::fromRGB(255, 184, 75);
+    this->mOnColorDown = juce::Colour::fromRGB(222, 144, 22);
+    this->mOffColor = juce::Colour::fromRGB(56, 56, 56);
 
-    this->greenColor = juce::Colour::fromRGB(56, 156, 56);
-    this->redColor = juce::Colour::fromRGB(220, 48, 35);
+    this->mGreenColor = juce::Colour::fromRGB(56, 156, 56);
+    this->mRedColor = juce::Colour::fromRGB(220, 48, 35);
 
-    this->setColour(PopupMenu::highlightedBackgroundColourId, this->onColor);
-    this->setColour(TextEditor::backgroundColourId, this->editBgcolor);
-    this->setColour(TextEditor::highlightColourId, this->hlBgcolor);
-    this->setColour(TextEditor::shadowColourId, this->editBgcolor);
+    this->setColour(juce::PopupMenu::highlightedBackgroundColourId, this->mOnColor);
+    this->setColour(juce::TextEditor::backgroundColourId, this->mEditBgcolor);
+    this->setColour(juce::TextEditor::highlightColourId, this->mHlBgcolor);
+    this->setColour(juce::TextEditor::shadowColourId, this->mEditBgcolor);
 
-    this->setColour(TextButton::buttonColourId, this->editBgcolor);
+    this->setColour(juce::TextButton::buttonColourId, this->mEditBgcolor);
 
-    this->setColour(ComboBox::backgroundColourId, this->editBgcolor);
-    this->setColour(ComboBox::outlineColourId, this->editBgcolor);
+    this->setColour(juce::ComboBox::backgroundColourId, this->mEditBgcolor);
+    this->setColour(juce::ComboBox::outlineColourId, this->mEditBgcolor);
 
-    this->setColour(Slider::thumbColourId, this->lightColour);
-    this->setColour(Slider::rotarySliderFillColourId, this->onColor);
-    this->setColour(Slider::trackColourId, this->darkColour);
-    this->setColour(Slider::textBoxBackgroundColourId, this->editBgcolor);
-    this->setColour(Slider::textBoxOutlineColourId, juce::Colours::transparentBlack);
+    this->setColour(juce::Slider::thumbColourId, this->mLightColour);
+    this->setColour(juce::Slider::rotarySliderFillColourId, this->mOnColor);
+    this->setColour(juce::Slider::trackColourId, this->mDarkColour);
+    this->setColour(juce::Slider::textBoxBackgroundColourId, this->mEditBgcolor);
+    this->setColour(juce::Slider::textBoxOutlineColourId, juce::Colours::transparentBlack);
 
-    this->setColour(TooltipWindow::ColourIds::backgroundColourId, this->backGroundAndFieldColour.withBrightness(0.8));
-    this->setColour(TooltipWindow::ColourIds::outlineColourId, this->backGroundAndFieldColour.withBrightness(0.8));
+    this->setColour(juce::TooltipWindow::ColourIds::backgroundColourId,
+                    this->mBackGroundAndFieldColour.withBrightness(0.8f));
+    this->setColour(juce::TooltipWindow::ColourIds::outlineColourId,
+                    this->mBackGroundAndFieldColour.withBrightness(0.8f));
 
-    this->setColour(AlertWindow::backgroundColourId, this->winBackGroundAndFieldColour);
-    this->setColour(AlertWindow::outlineColourId, this->onColor);
-    this->setColour(AlertWindow::textColourId, this->lightColour);
+    this->setColour(juce::AlertWindow::backgroundColourId, this->mWinBackGroundAndFieldColour);
+    this->setColour(juce::AlertWindow::outlineColourId, this->mOnColor);
+    this->setColour(juce::AlertWindow::textColourId, this->mLightColour);
 
 #if WIN32
-    this->fontSize = 18.f;
+    this->mFontSize = 18.f;
 #else
-    this->fontSize = 10.f;
+    this->mFontSize = 10.f;
 #endif
 
-    this->font.setHeight(this->fontSize);
-    this->smallFont.setHeight(this->fontSize - 1);
-    this->smallerFont.setHeight(this->fontSize - 2);
-    this->bigFont.setHeight(this->fontSize + 3);
-    this->biggerFont.setHeight(this->fontSize + 6);
+    this->mFont.setHeight(this->mFontSize);
+    this->mSmallFont.setHeight(this->mFontSize - 1);
+    this->mSmallerFont.setHeight(this->mFontSize - 2);
+    this->mBigFont.setHeight(this->mFontSize + 3);
+    this->mBiggerFont.setHeight(this->mFontSize + 6);
 }
 
 //==============================================================================
-juce::Font GrisLookAndFeel::getLabelFont(Label & label)
+juce::Font GrisLookAndFeel::getLabelFont(juce::Label & label)
 {
     if (label.getName() == "AboutBox_title")
-        return this->biggerFont;
+        return this->mBiggerFont;
     else if (label.getName() == "AboutBox_version")
-        return this->bigFont;
+        return this->mBigFont;
     else
-        return this->font;
+        return this->mFont;
 }
 
 //==============================================================================
 // https://github.com/audioplastic/Juce-look-and-feel-examples/blob/master/JuceLibraryCode/modules/juce_gui_basics/lookandfeel/juce_LookAndFeel.cpp
-void GrisLookAndFeel::drawComboBox(Graphics & g,
-                                   int        width,
-                                   int        height,
-                                   bool       isButtonDown,
-                                   int        buttonX,
-                                   int        buttonY,
-                                   int        buttonW,
-                                   int        buttonH,
-                                   ComboBox & box)
+void GrisLookAndFeel::drawComboBox(juce::Graphics & g,
+                                   int /*width*/,
+                                   int /*height*/,
+                                   bool /*isButtonDown*/,
+                                   int buttonX,
+                                   int buttonY,
+                                   int buttonW,
+                                   int buttonH,
+                                   juce::ComboBox & box)
 {
-    box.setColour(ColourSelector::backgroundColourId, this->onColor);
+    box.setColour(juce::ColourSelector::backgroundColourId, this->mOnColor);
 
-    g.fillAll(this->editBgcolor); // box.findColour (ComboBox::backgroundColourId))
+    g.fillAll(this->mEditBgcolor); // box.findColour (juce::ComboBox::backgroundColourId))
 
     const float arrowX = 0.3f;
     const float arrowH = 0.2f;
 
-    Path p;
-    p.addTriangle(buttonX + buttonW * 0.5f, buttonY + buttonH * (0.45f - arrowH), buttonX + buttonW * (1.0f - arrowX),
-                  buttonY + buttonH * 0.45f, buttonX + buttonW * arrowX, buttonY + buttonH * 0.45f);
+    juce::Path p;
+    p.addTriangle(buttonX + buttonW * 0.5f,
+                  buttonY + buttonH * (0.45f - arrowH),
+                  buttonX + buttonW * (1.0f - arrowX),
+                  buttonY + buttonH * 0.45f,
+                  buttonX + buttonW * arrowX,
+                  buttonY + buttonH * 0.45f);
 
-    p.addTriangle(buttonX + buttonW * 0.5f, buttonY + buttonH * (0.55f + arrowH), buttonX + buttonW * (1.0f - arrowX),
-                  buttonY + buttonH * 0.55f, buttonX + buttonW * arrowX, buttonY + buttonH * 0.55f);
+    p.addTriangle(buttonX + buttonW * 0.5f,
+                  buttonY + buttonH * (0.55f + arrowH),
+                  buttonX + buttonW * (1.0f - arrowX),
+                  buttonY + buttonH * 0.55f,
+                  buttonX + buttonW * arrowX,
+                  buttonY + buttonH * 0.55f);
 
-    g.setColour(this->darkColour.withMultipliedAlpha(
-        box.isEnabled() ? 1.0f : 0.3f)); // box.findColour (ComboBox::arrowColourId)
+    g.setColour(this->mDarkColour.withMultipliedAlpha(
+        box.isEnabled() ? 1.0f : 0.3f)); // box.findColour (juce::ComboBox::arrowColourId)
     g.fillPath(p);
 }
 
 //==============================================================================
-void GrisLookAndFeel::drawRoundThumb(Graphics &           g,
-                                     float const          x,
-                                     float const          y,
-                                     float const          diameter,
+void GrisLookAndFeel::drawRoundThumb(juce::Graphics & g,
+                                     float const x,
+                                     float const y,
+                                     float const diameter,
                                      juce::Colour const & colour,
-                                     float const          outlineThickness) const
+                                     float const outlineThickness) const
 {
     juce::Rectangle<float> const a(x, y, diameter, diameter);
-    float const                  halfThickness = outlineThickness * 0.5f;
+    float const halfThickness = outlineThickness * 0.5f;
 
-    Path p{};
+    juce::Path p{};
     p.addEllipse(x + halfThickness, y + halfThickness, diameter - outlineThickness, diameter - outlineThickness);
 
-    DropShadow const ds(this->darkColour, 1, Point<int>(0, 0));
+    juce::DropShadow const ds(this->mDarkColour, 1, juce::Point<int>(0, 0));
     ds.drawForPath(g, p);
 
     g.setColour(colour);
     g.fillPath(p);
 
     g.setColour(colour.brighter());
-    g.strokePath(p, PathStrokeType(outlineThickness));
+    g.strokePath(p, juce::PathStrokeType(outlineThickness));
 }
 
 //==============================================================================
-void GrisLookAndFeel::drawButtonBackground(Graphics &           g,
-                                           Button &             button,
-                                           const juce::Colour & backgroundColour,
-                                           bool                 isMouseOverButton,
-                                           bool                 isButtonDown)
+void GrisLookAndFeel::drawButtonBackground(juce::Graphics & g,
+                                           juce::Button & button,
+                                           const juce::Colour & /*backgroundColour*/,
+                                           bool isMouseOverButton,
+                                           bool isButtonDown)
 {
     const float width = button.getWidth() - 1.0f;
     const float height = button.getHeight() - 1.0f;
-    const float cornerSize = jmin(15.0f, jmin(width, height) * 0.45f);
+    const float cornerSize = juce::jmin(15.0f, juce::jmin(width, height) * 0.45f);
     const float lineThickness = cornerSize * 0.1f;
     const float halfThickness = lineThickness * 0.5f;
-    Path        outline;
+    juce::Path outline;
     outline.addRectangle(0.5f + halfThickness, 0.5f + halfThickness, width - lineThickness, height - lineThickness);
-    g.setColour(button.findColour(TextButton::buttonColourId));
+    g.setColour(button.findColour(juce::TextButton::buttonColourId));
     if (isButtonDown || isMouseOverButton) {
-        g.setColour(this->onColorOver);
+        g.setColour(this->mOnColorOver);
     }
     if (button.getToggleState()) {
-        g.setColour(this->onColor); // outlineColour
+        g.setColour(this->mOnColor); // outlineColour
     }
     if (button.isEnabled() && button.isMouseButtonDown()) {
-        g.setColour(this->onColorDown);
+        g.setColour(this->mOnColorDown);
     }
     g.fillPath(outline);
 }
 
 //==============================================================================
-void GrisLookAndFeel::drawTickBox(Graphics &  g,
-                                  Component & component,
-                                  float       x,
-                                  float       y,
-                                  float       w,
-                                  float       h,
-                                  bool        ticked,
-                                  bool        isEnabled,
-                                  bool        isMouseOverButton,
-                                  bool        isButtonDown)
+void GrisLookAndFeel::drawTickBox(juce::Graphics & g,
+                                  juce::Component & component,
+                                  float x,
+                                  float y,
+                                  float w,
+                                  float h,
+                                  bool ticked,
+                                  bool /*isEnabled*/,
+                                  bool /*isMouseOverButton*/,
+                                  bool /*isButtonDown*/)
 {
-    const float                  boxSize = w * 0.8f;
+    const float boxSize = w * 0.8f;
     const juce::Rectangle<float> r(x, y + (h - boxSize) * 0.5f, boxSize, boxSize);
 
     if (ticked) {
-        juce::Colour colour = this->onColor;
+        juce::Colour colour = this->mOnColor;
 
         if (component.isMouseOver()) {
-            colour = this->onColorOver;
+            colour = this->mOnColorOver;
         }
 
         if (!component.isEnabled()) {
-            colour = this->onColor.withBrightness(0.3f);
+            colour = this->mOnColor.withBrightness(0.3f);
         }
         g.setColour(colour);
         g.fillRect(r);
 
     } else {
-        juce::Colour colour = this->offColor;
+        juce::Colour colour = this->mOffColor;
         if (!component.isEnabled()) {
-            colour = this->offColor.withBrightness(0.3f);
+            colour = this->mOffColor.withBrightness(0.3f);
         }
         g.setColour(colour);
         g.fillRect(r);
     }
 
     if (component.isEnabled() && component.isMouseButtonDown()) {
-        g.setColour(this->onColorDown);
+        g.setColour(this->mOnColorDown);
         g.fillRect(r);
     }
 }
 
 //==============================================================================
-void GrisLookAndFeel::drawLinearSliderThumb(Graphics &                g,
-                                            int                       x,
-                                            int                       y,
-                                            int                       width,
-                                            int                       height,
-                                            float                     sliderPos,
-                                            float                     minSliderPos,
-                                            float                     maxSliderPos,
-                                            const Slider::SliderStyle style,
-                                            Slider &                  slider)
+void GrisLookAndFeel::drawLinearSliderThumb(juce::Graphics & g,
+                                            int x,
+                                            int y,
+                                            int width,
+                                            int height,
+                                            float sliderPos,
+                                            float /*minSliderPos*/,
+                                            float /*maxSliderPos*/,
+                                            const juce::Slider::SliderStyle style,
+                                            juce::Slider & slider)
 {
     const float sliderRadius = (float)(getSliderThumbRadius(slider) - 2);
-    float       kx, ky;
+    float kx, ky;
 
-    if (style == Slider::LinearVertical) {
+    if (style == juce::Slider::LinearVertical) {
         kx = x + width * 0.5f;
         ky = sliderPos;
     } else {
@@ -236,141 +246,173 @@ void GrisLookAndFeel::drawLinearSliderThumb(Graphics &                g,
     const juce::Rectangle<float> r(kx - (sliderRadius / 2.0f), ky - sliderRadius, 6, height * 2.0f);
 
     if (slider.isEnabled()) {
-        juce::Colour colour = this->onColor;
+        juce::Colour colour = this->mOnColor;
 
         if (slider.isMouseOver()) {
-            colour = this->onColorOver;
+            colour = this->mOnColorOver;
         }
         if (slider.isMouseButtonDown()) {
-            colour = this->onColorDown;
+            colour = this->mOnColorDown;
         }
         g.setColour(colour);
         g.fillRect(r);
     } else {
-        g.setColour(this->offColor);
+        g.setColour(this->mOffColor);
         g.fillRect(r);
     }
 }
 
 //==============================================================================
-void GrisLookAndFeel::drawLinearSlider(Graphics &                g,
-                                       int                       x,
-                                       int                       y,
-                                       int                       width,
-                                       int                       height,
-                                       float                     sliderPos,
-                                       float                     minSliderPos,
-                                       float                     maxSliderPos,
-                                       const Slider::SliderStyle style,
-                                       Slider &                  slider)
+void GrisLookAndFeel::drawLinearSlider(juce::Graphics & g,
+                                       int x,
+                                       int y,
+                                       int width,
+                                       int height,
+                                       float sliderPos,
+                                       float minSliderPos,
+                                       float maxSliderPos,
+                                       const juce::Slider::SliderStyle style,
+                                       juce::Slider & slider)
 {
     drawLinearSliderBackground(g, x, y, width, height + 2, sliderPos, minSliderPos, maxSliderPos, style, slider);
     drawLinearSliderThumb(g, x, y, width, height + 2, sliderPos, minSliderPos, maxSliderPos, style, slider);
 }
 
 //==============================================================================
-void GrisLookAndFeel::drawLinearSliderBackground(Graphics & g,
-                                                 int        x,
-                                                 int        y,
-                                                 int        width,
-                                                 int        height,
+void GrisLookAndFeel::drawLinearSliderBackground(juce::Graphics & g,
+                                                 int x,
+                                                 int y,
+                                                 int width,
+                                                 int height,
                                                  float /*sliderPos*/,
                                                  float /*minSliderPos*/,
                                                  float /*maxSliderPos*/,
-                                                 const Slider::SliderStyle /*style*/,
-                                                 Slider & slider)
+                                                 const juce::Slider::SliderStyle /*style*/,
+                                                 juce::Slider & slider)
 {
     const float sliderRadius = getSliderThumbRadius(slider) - 5.0f;
-    Path        on, off;
+    juce::Path on, off;
 
     if (slider.isHorizontal()) {
-        const float            iy = y + height * 0.5f - sliderRadius * 0.5f;
+        const float iy = y + height * 0.5f - sliderRadius * 0.5f;
         juce::Rectangle<float> r(x - sliderRadius * 0.5f, iy, width + sliderRadius, sliderRadius);
-        const float            onW = r.getWidth() * ((float)slider.valueToProportionOfLength(slider.getValue()));
+        const float onW = r.getWidth() * ((float)slider.valueToProportionOfLength(slider.getValue()));
         on.addRectangle(r.removeFromLeft(onW));
         off.addRectangle(r);
     } else {
-        const float            ix = x + width * 0.5f - sliderRadius * 0.5f;
+        const float ix = x + width * 0.5f - sliderRadius * 0.5f;
         juce::Rectangle<float> r(ix, y - sliderRadius * 0.5f, sliderRadius, height + sliderRadius);
-        const float            onH = r.getHeight() * ((float)slider.valueToProportionOfLength(slider.getValue()));
+        const float onH = r.getHeight() * ((float)slider.valueToProportionOfLength(slider.getValue()));
         on.addRectangle(r.removeFromBottom(onH));
         off.addRectangle(r);
     }
 
     if (slider.isEnabled()) {
-        g.setColour(slider.findColour(Slider::rotarySliderFillColourId));
+        g.setColour(slider.findColour(juce::Slider::rotarySliderFillColourId));
         g.fillPath(on);
-        g.setColour(slider.findColour(Slider::trackColourId));
+        g.setColour(slider.findColour(juce::Slider::trackColourId));
         g.fillPath(off);
     } else {
-        g.setColour(this->offColor);
+        g.setColour(this->mOffColor);
         g.fillPath(on);
         g.fillPath(off);
     }
 }
 
 //==============================================================================
-void GrisLookAndFeel::fillTextEditorBackground(Graphics & g, int width, int height, TextEditor & t)
+void GrisLookAndFeel::fillTextEditorBackground(juce::Graphics & g,
+                                               int /*width*/,
+                                               int /*height*/,
+                                               juce::TextEditor & /*t*/)
 {
-    g.setColour(this->editBgcolor);
+    g.setColour(this->mEditBgcolor);
     g.fillAll();
 }
 
 //==============================================================================
-void GrisLookAndFeel::drawTextEditorOutline(Graphics & g, int width, int height, TextEditor & t)
+void GrisLookAndFeel::drawTextEditorOutline(juce::Graphics & g, int width, int height, juce::TextEditor & t)
 {
     if (t.hasKeyboardFocus(true)) {
-        g.setColour(this->onColor);
+        g.setColour(this->mOnColor);
         g.drawRect(0, 0, width, height);
     }
 }
 
 //==============================================================================
-void GrisLookAndFeel::drawToggleButton(Graphics & g, ToggleButton & button, bool isMouseOverButton, bool isButtonDown)
+void GrisLookAndFeel::drawToggleButton(juce::Graphics & g,
+                                       juce::ToggleButton & button,
+                                       bool isMouseOverButton,
+                                       bool isButtonDown)
 {
     if (button.hasKeyboardFocus(true)) {
-        g.setColour(button.findColour(TextEditor::focusedOutlineColourId));
+        g.setColour(button.findColour(juce::TextEditor::focusedOutlineColourId));
     }
 
     if (button.getButtonText().length() == 1) {
-        drawTickBox(g, button, 0, 0, button.getWidth(), button.getHeight(), button.getToggleState(), button.isEnabled(),
-                    isMouseOverButton, isButtonDown);
-        g.setColour(button.findColour(ToggleButton::textColourId));
-        g.setFont(this->font);
+        drawTickBox(g,
+                    button,
+                    0,
+                    0,
+                    static_cast<float>(button.getWidth()),
+                    static_cast<float>(button.getHeight()),
+                    button.getToggleState(),
+                    button.isEnabled(),
+                    isMouseOverButton,
+                    isButtonDown);
+        g.setColour(button.findColour(juce::ToggleButton::textColourId));
+        g.setFont(this->mFont);
 
         if (!button.isEnabled())
             g.setOpacity(0.5f);
 
-        g.drawFittedText(button.getButtonText(), -2, 1, button.getWidth(), button.getHeight(), Justification::centred,
+        g.drawFittedText(button.getButtonText(),
+                         -2,
+                         1,
+                         button.getWidth(),
+                         button.getHeight(),
+                         juce::Justification::centred,
                          10);
 
     } else {
-        float       fontSize = jmin(15.0f, button.getHeight() * 0.75f);
+        float fontSize = juce::jmin(15.0f, button.getHeight() * 0.75f);
         const float tickWidth = fontSize * 1.1f;
 
-        drawTickBox(g, button, 4.0f, (button.getHeight() - tickWidth) * 0.5f, tickWidth, tickWidth,
-                    button.getToggleState(), button.isEnabled(), isMouseOverButton, isButtonDown);
+        drawTickBox(g,
+                    button,
+                    4.0f,
+                    (button.getHeight() - tickWidth) * 0.5f,
+                    tickWidth,
+                    tickWidth,
+                    button.getToggleState(),
+                    button.isEnabled(),
+                    isMouseOverButton,
+                    isButtonDown);
 
-        g.setColour(button.findColour(ToggleButton::textColourId));
-        g.setFont(this->font);
+        g.setColour(button.findColour(juce::ToggleButton::textColourId));
+        g.setFont(this->mFont);
 
         if (!button.isEnabled())
             g.setOpacity(0.5f);
 
         const int textX = (int)tickWidth + 5;
 
-        g.drawFittedText(button.getButtonText(), textX, 0, button.getWidth() - (textX - 5), button.getHeight(),
-                         Justification::centredLeft, 10);
+        g.drawFittedText(button.getButtonText(),
+                         textX,
+                         0,
+                         button.getWidth() - (textX - 5),
+                         button.getHeight(),
+                         juce::Justification::centredLeft,
+                         10);
     }
 }
 
 //==============================================================================
-void GrisLookAndFeel::drawTabButton(TabBarButton & button, Graphics & g, bool isMouseOver, bool isMouseDown)
+void GrisLookAndFeel::drawTabButton(juce::TabBarButton & button, juce::Graphics & g, bool isMouseOver, bool isMouseDown)
 {
     const juce::Rectangle<int> activeArea(button.getActiveArea());
     activeArea.withHeight(18);
-    const TabbedButtonBar::Orientation o = button.getTabbedButtonBar().getOrientation();
-    const juce::Colour                 bkg(button.getTabBackgroundColour());
+    const juce::TabbedButtonBar::Orientation o = button.getTabbedButtonBar().getOrientation();
+    const juce::Colour bkg(button.getTabBackgroundColour());
 
     if (button.getToggleState()) {
         g.setColour(bkg);
@@ -380,18 +422,18 @@ void GrisLookAndFeel::drawTabButton(TabBarButton & button, Graphics & g, bool is
 
     g.fillRect(activeArea);
 
-    g.setColour(this->winBackGroundAndFieldColour);
+    g.setColour(this->mWinBackGroundAndFieldColour);
 
     juce::Rectangle<int> r(activeArea);
-    if (o != TabbedButtonBar::TabsAtTop)
+    if (o != juce::TabbedButtonBar::TabsAtTop)
         g.fillRect(r.removeFromBottom(1));
-    if (o != TabbedButtonBar::TabsAtRight)
+    if (o != juce::TabbedButtonBar::TabsAtRight)
         g.fillRect(r.removeFromLeft(1));
-    if (o != TabbedButtonBar::TabsAtLeft)
+    if (o != juce::TabbedButtonBar::TabsAtLeft)
         g.fillRect(r.removeFromRight(1));
 
-    const float                  alpha = button.isEnabled() ? ((isMouseOver || isMouseDown) ? 1.0f : 0.8f) : 0.3f;
-    juce::Colour                 col = (bkg.contrasting().withMultipliedAlpha(alpha));
+    const float alpha = button.isEnabled() ? ((isMouseOver || isMouseDown) ? 1.0f : 0.8f) : 0.3f;
+    juce::Colour col = (bkg.contrasting().withMultipliedAlpha(alpha));
     const juce::Rectangle<float> area(button.getTextArea().toFloat());
 
     float length = area.getWidth();
@@ -400,19 +442,19 @@ void GrisLookAndFeel::drawTabButton(TabBarButton & button, Graphics & g, bool is
     if (button.getTabbedButtonBar().isVertical())
         std::swap(length, depth);
 
-    TextLayout textLayout;
+    juce::TextLayout textLayout;
     createTabTextLayout(button, length, depth, col, textLayout);
     textLayout.draw(g, juce::Rectangle<float>(length, depth));
 }
 
 //==============================================================================
-void GrisLookAndFeel::createTabTextLayout(const TabBarButton & button,
-                                          float                length,
-                                          float                depth,
-                                          juce::Colour const   colour,
-                                          TextLayout &         textLayout) const
+void GrisLookAndFeel::createTabTextLayout(const juce::TabBarButton & button,
+                                          float length,
+                                          float depth,
+                                          juce::Colour const colour,
+                                          juce::TextLayout & textLayout) const
 {
-    Font font(this->font);
+    juce::Font font(this->mFont);
 #if WIN32
     font.setHeight(depth * 0.60f);
 #else
@@ -421,89 +463,115 @@ void GrisLookAndFeel::createTabTextLayout(const TabBarButton & button,
 #endif
     font.setUnderline(button.hasKeyboardFocus(false));
 
-    AttributedString s;
-    s.setJustification(Justification::centred);
+    juce::AttributedString s;
+    s.setJustification(juce::Justification::centred);
     s.append(button.getButtonText().trim(), font, colour);
 
     textLayout.createLayout(s, length);
 }
 
 //==============================================================================
-void GrisLookAndFeel::drawRotarySlider(Graphics & g,
-                                       int        x,
-                                       int        y,
-                                       int        width,
-                                       int        height,
-                                       float      sliderPos,
-                                       float      rotaryStartAngle,
-                                       float      rotaryEndAngle,
-                                       Slider &   slider)
+void GrisLookAndFeel::drawRotarySlider(juce::Graphics & g,
+                                       int x,
+                                       int y,
+                                       int width,
+                                       int height,
+                                       float sliderPos,
+                                       float rotaryStartAngle,
+                                       float rotaryEndAngle,
+                                       juce::Slider & slider)
 {
-    const float radius = jmin(width / 2, height / 2) - 2.0f;
+    const float radius = juce::jmin(width / 2, height / 2) - 2.0f;
     const float centreX = x + width * 0.5f;
     const float centreY = (y + height * 0.5f) + 6.0f;
     const float rx = centreX - radius;
     const float ry = centreY - radius;
     const float rw = radius * 2.0f;
     const float angle = rotaryStartAngle + sliderPos * (rotaryEndAngle - rotaryStartAngle);
-    const bool  isMouseOver = slider.isMouseOverOrDragging() && slider.isEnabled();
+    const bool isMouseOver = slider.isMouseOverOrDragging() && slider.isEnabled();
 
     if (slider.isEnabled()) {
-        // slider.findColour (Slider::rotarySliderFillColourId).withAlpha (isMouseOver ? 0.7f : 1.0f)
+        // slider.findColour (juce::Slider::rotarySliderFillColourId).withAlpha (isMouseOver ? 0.7f : 1.0f)
         if (isMouseOver) {
-            g.setColour(this->onColorOver);
+            g.setColour(this->mOnColorOver);
         } else {
-            g.setColour(this->onColor);
+            g.setColour(this->mOnColor);
         }
     } else {
-        g.setColour(this->offColor);
+        g.setColour(this->mOffColor);
     }
-    Path filledArc;
+    juce::Path filledArc;
     filledArc.addPieSegment(rx, ry, rw, rw, rotaryStartAngle, angle, 0.0);
     g.fillPath(filledArc);
-    const float lineThickness = jmin(15.0f, jmin(width, height) * 0.45f) * 0.1f;
-    Path        outlineArc;
+    const float lineThickness = juce::jmin(15.0f, juce::jmin(width, height) * 0.45f) * 0.1f;
+    juce::Path outlineArc;
     outlineArc.addPieSegment(rx, ry, rw, rw, rotaryStartAngle, rotaryEndAngle, 0.0);
-    g.strokePath(outlineArc, PathStrokeType(lineThickness));
+    g.strokePath(outlineArc, juce::PathStrokeType(lineThickness));
 }
 
-void SmallGrisLookAndFeel::drawToggleButton(Graphics &     g,
-                                            ToggleButton & button,
-                                            bool           isMouseOverButton,
-                                            bool           isButtonDown)
+void SmallGrisLookAndFeel::drawToggleButton(juce::Graphics & g,
+                                            juce::ToggleButton & button,
+                                            bool isMouseOverButton,
+                                            bool isButtonDown)
 {
     if (button.hasKeyboardFocus(true)) {
-        g.setColour(button.findColour(TextEditor::focusedOutlineColourId));
+        g.setColour(button.findColour(juce::TextEditor::focusedOutlineColourId));
     }
 
     if (button.getButtonText().length() == 1) {
-        drawTickBox(g, button, 0, 0, button.getWidth(), button.getHeight(), button.getToggleState(), button.isEnabled(),
-                    isMouseOverButton, isButtonDown);
-        g.setColour(button.findColour(ToggleButton::textColourId));
-        g.setFont(this->smallFont);
+        drawTickBox(g,
+                    button,
+                    0,
+                    0,
+                    static_cast<float>(button.getWidth()),
+                    static_cast<float>(button.getHeight()),
+                    button.getToggleState(),
+                    button.isEnabled(),
+                    isMouseOverButton,
+                    isButtonDown);
+        g.setColour(button.findColour(juce::ToggleButton::textColourId));
+        g.setFont(this->mSmallFont);
 
         if (!button.isEnabled())
             g.setOpacity(0.5f);
 
-        g.drawFittedText(button.getButtonText(), -2, 1, button.getWidth(), button.getHeight(), Justification::centred,
+        g.drawFittedText(button.getButtonText(),
+                         -2,
+                         1,
+                         button.getWidth(),
+                         button.getHeight(),
+                         juce::Justification::centred,
                          10);
 
     } else {
-        float       fontSize = jmin(15.0f, button.getHeight() * 0.75f);
+        float fontSize = juce::jmin(15.0f, button.getHeight() * 0.75f);
         const float tickWidth = fontSize * 1.1f;
 
-        drawTickBox(g, button, 4.0f, (button.getHeight() - tickWidth) * 0.5f, tickWidth, tickWidth,
-                    button.getToggleState(), button.isEnabled(), isMouseOverButton, isButtonDown);
+        drawTickBox(g,
+                    button,
+                    4.0f,
+                    (button.getHeight() - tickWidth) * 0.5f,
+                    tickWidth,
+                    tickWidth,
+                    button.getToggleState(),
+                    button.isEnabled(),
+                    isMouseOverButton,
+                    isButtonDown);
 
-        g.setColour(button.findColour(ToggleButton::textColourId));
-        g.setFont(this->smallFont);
+        g.setColour(button.findColour(juce::ToggleButton::textColourId));
+        g.setFont(this->mSmallFont);
 
         if (!button.isEnabled())
             g.setOpacity(0.5f);
 
         const int textX = (int)tickWidth + 5;
 
-        g.drawFittedText(button.getButtonText(), textX, 0, button.getWidth() - (textX - 5), button.getHeight(),
-                         Justification::centredLeft, 10);
+        g.drawFittedText(button.getButtonText(),
+                         textX,
+                         0,
+                         button.getWidth() - (textX - 5),
+                         button.getHeight(),
+                         juce::Justification::centredLeft,
+                         10);
     }
 }

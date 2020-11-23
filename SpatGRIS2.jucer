@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="MXmiSb" name="SpatGRIS" projectType="guiapp" version="2.1.2"
-              bundleIdentifier="com.UdeM.GRIS.SpatGRIS2" includeBinaryInAppConfig="1"
-              jucerVersion="5.4.7" companyName="GRIS - UdeM" projectLineFeed="&#10;"
-              cppLanguageStandard="14">
+<JUCERPROJECT id="MXmiSb" name="SpatGRIS" projectType="guiapp" version="2.1.3"
+              bundleIdentifier="com.UdeM.GRIS.SpatGRIS2" includeBinaryInAppConfig="0"
+              companyName="GRIS - UdeM" projectLineFeed="&#10;" cppLanguageStandard="17"
+              jucerFormatVersion="1" displaySplashScreen="1" defines="USE_JACK=0"
+              maxBinaryFileSize="1048576" addUsingNamespaceToJuceHeader="0">
   <MAINGROUP id="lsxaKA" name="SpatGRIS">
     <GROUP id="{6EAF4FF6-A4F0-94E9-AA8A-98D9BF95CA11}" name="Resources">
       <FILE id="HYWx0V" name="JAS.jpil" compile="0" resource="1" file="Resources/JAS.jpil"
@@ -12,12 +13,15 @@
             file="Resources/ServerGRIS_icon_doc.png" xcodeResource="1"/>
       <FILE id="bC6POS" name="ServerGRIS_icon_small.png" compile="0" resource="1"
             file="Resources/ServerGRIS_icon_small.png" xcodeResource="1"/>
-      <FILE id="skBwoU" name="SpatGRIS2_2.0_Manual.pdf" compile="0" resource="1"
+      <FILE id="skBwoU" name="SpatGRIS2_2.0_Manual.pdf" compile="0" resource="0"
             file="Resources/SpatGRIS2_2.0_Manual.pdf" xcodeResource="1"/>
       <FILE id="VMUncp" name="splash_screen.png" compile="0" resource="1"
             file="Resources/splash_screen.png" xcodeResource="1"/>
     </GROUP>
     <GROUP id="{534A7161-2617-F3B1-0706-CC62D7A3FE71}" name="Source">
+      <GROUP id="{B880ED62-D15F-78F9-F83A-129573A5FA84}" name="misc">
+        <FILE id="FqmBI2" name="macros.h" compile="0" resource="0" file="Source/macros.h"/>
+      </GROUP>
       <GROUP id="{FB6EEEB4-BE6B-EB4A-201D-755A3CFACAAC}" name="spat">
         <FILE id="m3KtvU" name="lbap.c" compile="1" resource="0" file="Source/spat/lbap.c"/>
         <FILE id="XmhH3Q" name="lbap.h" compile="0" resource="0" file="Source/spat/lbap.h"/>
@@ -25,6 +29,8 @@
         <FILE id="agZMLe" name="vbap.h" compile="0" resource="0" file="Source/spat/vbap.h"/>
       </GROUP>
       <GROUP id="{45A32A71-2629-205C-304E-C1093B6D3F59}" name="UI">
+        <FILE id="uYO3os" name="GrisLookAndFeel.cpp" compile="1" resource="0"
+              file="Source/GrisLookAndFeel.cpp"/>
         <GROUP id="{202AE941-C78E-5F46-CB31-EA8A544A343C}" name="Secondary Windows">
           <FILE id="abLCw0" name="AboutWindow.cpp" compile="1" resource="0" file="Source/AboutWindow.cpp"/>
           <FILE id="OQhNHY" name="AboutWindow.h" compile="0" resource="0" file="Source/AboutWindow.h"/>
@@ -57,14 +63,25 @@
         <FILE id="MW5ESG" name="Box.cpp" compile="1" resource="0" file="Source/Box.cpp"/>
         <FILE id="RG3FbE" name="Box.h" compile="0" resource="0" file="Source/Box.h"/>
       </GROUP>
-      <FILE id="uYO3os" name="GrisLookAndFeel.cpp" compile="1" resource="0"
-            file="Source/GrisLookAndFeel.cpp"/>
+      <FILE id="g2wgxx" name="Application.cpp" compile="1" resource="0" file="Source/Application.cpp"/>
+      <FILE id="ObG5vj" name="Application.h" compile="0" resource="0" file="Source/Application.h"/>
+      <FILE id="S7vdPe" name="AudioManager.cpp" compile="1" resource="0"
+            file="Source/AudioManager.cpp"/>
+      <FILE id="a7tJqo" name="AudioManager.h" compile="0" resource="0" file="Source/AudioManager.h"/>
+      <FILE id="W2ApPD" name="AudioRecorder.cpp" compile="1" resource="0"
+            file="Source/AudioRecorder.cpp"/>
+      <FILE id="igqtKe" name="AudioRecorder.h" compile="0" resource="0" file="Source/AudioRecorder.h"/>
+      <FILE id="zv1h0m" name="AudioRenderer.cpp" compile="1" resource="0"
+            file="Source/AudioRenderer.cpp"/>
+      <FILE id="jgrqZi" name="AudioRenderer.h" compile="0" resource="0" file="Source/AudioRenderer.h"/>
       <FILE id="BVvOrd" name="Input.cpp" compile="1" resource="0" file="Source/Input.cpp"/>
       <FILE id="BiDXCC" name="Input.h" compile="0" resource="0" file="Source/Input.h"/>
       <FILE id="A5skyB" name="JackClientGRIS.cpp" compile="1" resource="0"
             file="Source/JackClientGRIS.cpp"/>
       <FILE id="kACxoj" name="JackClientGRIS.h" compile="0" resource="0"
             file="Source/JackClientGRIS.h"/>
+      <FILE id="JF9m5z" name="JackMockup.cpp" compile="1" resource="0" file="Source/JackMockup.cpp"/>
+      <FILE id="dw0hrM" name="JackMockup.h" compile="0" resource="0" file="Source/JackMockup.h"/>
       <FILE id="LMWJcl" name="JackServerGRIS.cpp" compile="1" resource="0"
             file="Source/JackServerGRIS.cpp"/>
       <FILE id="Dg7whn" name="JackServerGRIS.h" compile="0" resource="0"
@@ -83,6 +100,7 @@
       <FILE id="oP6icJ" name="OscInput.h" compile="0" resource="0" file="Source/OscInput.h"/>
       <FILE id="fIPWN2" name="ParentLevelComponent.h" compile="0" resource="0"
             file="Source/ParentLevelComponent.h"/>
+      <FILE id="I0ICQu" name="Ray.cpp" compile="1" resource="0" file="Source/Ray.cpp"/>
       <FILE id="oaSq5k" name="Ray.h" compile="0" resource="0" file="Source/Ray.h"/>
       <FILE id="e9Tcnv" name="ServerGrisConstants.cpp" compile="1" resource="0"
             file="Source/ServerGrisConstants.cpp"/>
@@ -101,7 +119,8 @@
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX" externalLibraries="" extraFrameworks="Jackservermp, Jackmp, GLUT"
                customXcodeResourceFolders="Resources/default_preset&#10;Resources/hrtf_compact"
-               smallIcon="bC6POS" bigIcon="TMAuh7" extraLinkerFlags="-F/Library/Frameworks">
+               smallIcon="bC6POS" bigIcon="TMAuh7" extraLinkerFlags="-F/Library/Frameworks"
+               microphonePermissionNeeded="1">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" osxCompatibility="10.11 SDK" isDebug="1" optimisation="1"
                        targetName="SpatGRIS" headerPath="../../jack&#10;../../glm"/>
@@ -115,8 +134,6 @@
         <MODULEPATH id="juce_data_structures" path="../../sdks/JUCE-4.3.1/modules"/>
         <MODULEPATH id="juce_gui_basics" path="../../sdks/JUCE-4.3.1/modules"/>
         <MODULEPATH id="juce_gui_extra" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_cryptography" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_video" path="../../sdks/JUCE-4.3.1/modules"/>
         <MODULEPATH id="juce_opengl" path="../../sdks/JUCE-4.3.1/modules"/>
         <MODULEPATH id="juce_audio_basics" path="../../sdks/JUCE-4.3.1/modules"/>
         <MODULEPATH id="juce_audio_devices" path="../../sdks/JUCE-4.3.1/modules"/>
@@ -135,7 +152,6 @@
                        libraryPath="/usr/lib/x86_64-linux-gnu"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_video" path="../../sdks/JUCE-4.3.1/modules"/>
         <MODULEPATH id="juce_osc" path="../../sdks/JUCE-4.3.1/modules"/>
         <MODULEPATH id="juce_opengl" path="../../sdks/JUCE-4.3.1/modules"/>
         <MODULEPATH id="juce_gui_extra" path="../../sdks/JUCE-4.3.1/modules"/>
@@ -143,7 +159,6 @@
         <MODULEPATH id="juce_graphics" path="../../sdks/JUCE-4.3.1/modules"/>
         <MODULEPATH id="juce_events" path="../../sdks/JUCE-4.3.1/modules"/>
         <MODULEPATH id="juce_data_structures" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_cryptography" path="../../sdks/JUCE-4.3.1/modules"/>
         <MODULEPATH id="juce_core" path="../../sdks/JUCE-4.3.1/modules"/>
         <MODULEPATH id="juce_audio_utils" path="../../sdks/JUCE-4.3.1/modules"/>
         <MODULEPATH id="juce_audio_processors" path="../../sdks/JUCE-4.3.1/modules"/>
@@ -152,36 +167,8 @@
         <MODULEPATH id="juce_audio_basics" path="../../sdks/JUCE-4.3.1/modules"/>
       </MODULEPATHS>
     </LINUX_MAKE>
-    <VS2017 targetFolder="Builds/VisualStudio2017" externalLibraries="libjack.lib&#10;libjackserver.lib&#10;freeglut.lib">
-      <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug" headerPath="..\..\jack&#10;..\..\glm&#10;..\..\freeglut\include"
-                       libraryPath="&quot;C:\Program Files (x86)\Jack\lib&quot;&#10;..\..\freeglut\lib&#10;..\..\freeglut\bin"
-                       winArchitecture="Win32" targetName="SpatGRIS"/>
-        <CONFIGURATION isDebug="0" name="Release" headerPath="..\..\jack&#10;..\..\glm&#10;..\..\freeglut\include"
-                       libraryPath="&quot;C:\Program Files (x86)\Jack\lib&quot;&#10;..\..\freeglut\lib&#10;..\..\freeglut\bin"
-                       winArchitecture="Win32" targetName="SpatGRIS"/>
-      </CONFIGURATIONS>
-      <MODULEPATHS>
-        <MODULEPATH id="juce_video" path="../../juce"/>
-        <MODULEPATH id="juce_osc" path="../../juce"/>
-        <MODULEPATH id="juce_opengl" path="../../juce"/>
-        <MODULEPATH id="juce_gui_extra" path="../../juce"/>
-        <MODULEPATH id="juce_gui_basics" path="../../juce"/>
-        <MODULEPATH id="juce_graphics" path="../../juce"/>
-        <MODULEPATH id="juce_events" path="../../juce"/>
-        <MODULEPATH id="juce_data_structures" path="../../juce"/>
-        <MODULEPATH id="juce_cryptography" path="../../juce"/>
-        <MODULEPATH id="juce_core" path="../../juce"/>
-        <MODULEPATH id="juce_audio_utils" path="../../juce"/>
-        <MODULEPATH id="juce_audio_processors" path="../../juce"/>
-        <MODULEPATH id="juce_audio_formats" path="../../juce"/>
-        <MODULEPATH id="juce_audio_devices" path="../../juce"/>
-        <MODULEPATH id="juce_audio_basics" path="../../juce"/>
-      </MODULEPATHS>
-    </VS2017>
     <CLION targetFolder="Builds/CLion" clionXcodeEnabled="1" clionMakefileEnabled="1">
       <MODULEPATHS>
-        <MODULEPATH id="juce_video" path="../../juce"/>
         <MODULEPATH id="juce_osc" path="../../juce"/>
         <MODULEPATH id="juce_opengl" path="../../juce"/>
         <MODULEPATH id="juce_gui_extra" path="../../juce"/>
@@ -189,7 +176,6 @@
         <MODULEPATH id="juce_graphics" path="../../juce"/>
         <MODULEPATH id="juce_events" path="../../juce"/>
         <MODULEPATH id="juce_data_structures" path="../../juce"/>
-        <MODULEPATH id="juce_cryptography" path="../../juce"/>
         <MODULEPATH id="juce_core" path="../../juce"/>
         <MODULEPATH id="juce_audio_utils" path="../../juce"/>
         <MODULEPATH id="juce_audio_processors" path="../../juce"/>
@@ -198,6 +184,29 @@
         <MODULEPATH id="juce_audio_basics" path="../../juce"/>
       </MODULEPATHS>
     </CLION>
+    <VS2019 targetFolder="Builds/VisualStudio2019">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug" headerPath="C:\dev\ASIO_SDK\common"/>
+        <CONFIGURATION isDebug="0" name="Release" headerPath="C:\dev\ASIO_SDK\common"
+                       linkTimeOptimisation="0" useRuntimeLibDLL="0" enableIncrementalLinking="1"
+                       alwaysGenerateDebugSymbols="1"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_osc" path="../../juce"/>
+        <MODULEPATH id="juce_opengl" path="../../juce"/>
+        <MODULEPATH id="juce_gui_extra" path="../../juce"/>
+        <MODULEPATH id="juce_gui_basics" path="../../juce"/>
+        <MODULEPATH id="juce_graphics" path="../../juce"/>
+        <MODULEPATH id="juce_events" path="../../juce"/>
+        <MODULEPATH id="juce_data_structures" path="../../juce"/>
+        <MODULEPATH id="juce_core" path="../../juce"/>
+        <MODULEPATH id="juce_audio_utils" path="../../juce"/>
+        <MODULEPATH id="juce_audio_processors" path="../../juce"/>
+        <MODULEPATH id="juce_audio_formats" path="../../juce"/>
+        <MODULEPATH id="juce_audio_devices" path="../../juce"/>
+        <MODULEPATH id="juce_audio_basics" path="../../juce"/>
+      </MODULEPATHS>
+    </VS2019>
   </EXPORTFORMATS>
   <MODULES>
     <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
@@ -206,7 +215,6 @@
     <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
     <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
     <MODULE id="juce_core" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
-    <MODULE id="juce_cryptography" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
     <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
     <MODULE id="juce_events" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
     <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
@@ -214,9 +222,8 @@
     <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
     <MODULE id="juce_opengl" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
     <MODULE id="juce_osc" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
-    <MODULE id="juce_video" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
   </MODULES>
-  <JUCEOPTIONS/>
+  <JUCEOPTIONS JUCE_ASIO="1"/>
   <LIVE_SETTINGS>
     <OSX/>
     <LINUX/>

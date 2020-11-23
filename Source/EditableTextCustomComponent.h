@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS2.
 
- Developers: Samuel Béland, Nicolas Masson
+ Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
 
  SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -17,10 +17,13 @@
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef EDITABLETEXTCUSTOMCOMPONENT_H
-#define EDITABLETEXTCUSTOMCOMPONENT_H
+#pragma once
 
-#include "../JuceLibraryCode/JuceHeader.h"
+#include "macros.h"
+
+DISABLE_WARNINGS
+#include <JuceHeader.h>
+ENABLE_WARNINGS
 
 class EditSpeakersWindow;
 
@@ -50,5 +53,3 @@ private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EditableTextCustomComponent);
 };
-
-#endif // EDITABLETEXTCUSTOMCOMPONENT_H

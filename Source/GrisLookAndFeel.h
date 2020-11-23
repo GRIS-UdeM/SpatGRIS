@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS2.
 
- Developers: Olivier Belanger, Nicolas Masson
+ Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
 
  SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -17,171 +17,195 @@
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef GRISLOOKANDFEEL_H
-#define GRISLOOKANDFEEL_H
+#pragma once
 
-#include "../JuceLibraryCode/JuceHeader.h"
+#include "macros.h"
+
+DISABLE_WARNINGS
+#include <JuceHeader.h>
+ENABLE_WARNINGS
+
+#include "BinaryData.h"
 
 //==============================================================================
-/** Custom Look And Feel subclasss. */
-class GrisLookAndFeel : public LookAndFeel_V3
+/** Custom Look And Feel */
+class GrisLookAndFeel : public juce::LookAndFeel_V3
 {
-private:
-    float fontSize;
+    float mFontSize;
 
-    juce::Font font
-        = juce::Font(juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf,
-                                                                   (size_t)BinaryData::SinkinSans400Regular_otfSize));
-    juce::Font bigFont
-        = juce::Font(juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf,
-                                                                   (size_t)BinaryData::SinkinSans400Regular_otfSize));
-    juce::Font biggerFont
-        = juce::Font(juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf,
-                                                                   (size_t)BinaryData::SinkinSans400Regular_otfSize));
+    juce::Font mFont = juce::Font(
+        juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf,
+                                                      static_cast<size_t>(BinaryData::SinkinSans400Regular_otfSize)));
+    juce::Font mBigFont = juce::Font(
+        juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf,
+                                                      static_cast<size_t>(BinaryData::SinkinSans400Regular_otfSize)));
+    juce::Font mBiggerFont = juce::Font(
+        juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf,
+                                                      static_cast<size_t>(BinaryData::SinkinSans400Regular_otfSize)));
 
-    juce::Colour backGroundAndFieldColour;
-    juce::Colour winBackGroundAndFieldColour;
-    juce::Colour lightColour;
-    juce::Colour darkColour;
-    juce::Colour greyColour;
-    juce::Colour editBgcolor;
-    juce::Colour hlBgcolor;
-    juce::Colour onColor;
-    juce::Colour onColorOver;
-    juce::Colour onColorDown;
-    juce::Colour offColor;
-    juce::Colour greenColor;
-    juce::Colour redColor;
+    juce::Colour mBackGroundAndFieldColour;
+    juce::Colour mWinBackGroundAndFieldColour;
+    juce::Colour mLightColour;
+    juce::Colour mDarkColour;
+    juce::Colour mGreyColour;
+    juce::Colour mEditBgcolor;
+    juce::Colour mHlBgcolor;
+    juce::Colour mOnColor;
+    juce::Colour mOnColorOver;
+    juce::Colour mOnColorDown;
+    juce::Colour mOffColor;
+    juce::Colour mGreenColor;
+    juce::Colour mRedColor;
 
 public:
     //==============================================================================
-    juce::Font smallFont
-        = juce::Font(juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf,
-                                                                   (size_t)BinaryData::SinkinSans400Regular_otfSize));
-    juce::Font smallerFont
-        = juce::Font(juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf,
-                                                                   (size_t)BinaryData::SinkinSans400Regular_otfSize));
+    juce::Font mSmallFont = juce::Font(
+        juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf,
+                                                      static_cast<size_t>(BinaryData::SinkinSans400Regular_otfSize)));
+    juce::Font mSmallerFont = juce::Font(
+        juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf,
+                                                      static_cast<size_t>(BinaryData::SinkinSans400Regular_otfSize)));
     //==============================================================================
     GrisLookAndFeel();
     ~GrisLookAndFeel() override = default;
+
+    GrisLookAndFeel(GrisLookAndFeel const &) = delete;
+    GrisLookAndFeel(GrisLookAndFeel &&) = delete;
+
+    GrisLookAndFeel & operator=(GrisLookAndFeel const &) = delete;
+    GrisLookAndFeel & operator=(GrisLookAndFeel &&) = delete;
     //==============================================================================
-    juce::Font getLabelFont(Label & label) final;
-    juce::Font getFont() const { return this->font; }
-    juce::Font getComboBoxFont(ComboBox & comboBox) final { return this->font; }
-    juce::Font getTextButtonFont(TextButton &, int buttonHeight) override { return this->font; }
-    juce::Font getMenuBarFont(MenuBarComponent &, int itemIndex, const String & itemText) final { return this->font; }
+    juce::Font getLabelFont(juce::Label & label) override;
+    juce::Font getFont() const { return this->mFont; }
+    juce::Font getComboBoxFont(juce::ComboBox & /*comboBox*/) override { return this->mFont; }
+    juce::Font getTextButtonFont(juce::TextButton &, int /*buttonHeight*/) override { return this->mFont; }
+    juce::Font getMenuBarFont(juce::MenuBarComponent &, int /*itemIndex*/, const juce::String & /*itemText*/) override
+    {
+        return this->mFont;
+    }
 
-    juce::Colour getWinBackgroundColour() const { return this->winBackGroundAndFieldColour; }
-    juce::Colour getBackgroundColour() const { return this->backGroundAndFieldColour; }
-    juce::Colour getFieldColour() const { return this->backGroundAndFieldColour; }
-    juce::Colour getFontColour() const { return this->lightColour; }
-    juce::Colour getScrollBarColour() const { return this->greyColour; }
-    juce::Colour getDarkColour() const { return this->darkColour; }
-    juce::Colour getLightColour() const { return this->lightColour; }
-    juce::Colour getEditBackgroundColour() const { return this->editBgcolor; }
-    juce::Colour getHighlightColour() const { return this->hlBgcolor; }
-    juce::Colour getOnColour() const { return this->onColor; }
-    juce::Colour getOffColour() const { return this->offColor; }
-    juce::Colour getGreenColour() const { return this->greenColor; }
-    juce::Colour getRedColour() const { return this->redColor; }
+    juce::Colour getWinBackgroundColour() const { return this->mWinBackGroundAndFieldColour; }
+    juce::Colour getBackgroundColour() const { return this->mBackGroundAndFieldColour; }
+    juce::Colour getFieldColour() const { return this->mBackGroundAndFieldColour; }
+    juce::Colour getFontColour() const { return this->mLightColour; }
+    juce::Colour getScrollBarColour() const { return this->mGreyColour; }
+    juce::Colour getDarkColour() const { return this->mDarkColour; }
+    juce::Colour getLightColour() const { return this->mLightColour; }
+    juce::Colour getEditBackgroundColour() const { return this->mEditBgcolor; }
+    juce::Colour getHighlightColour() const { return this->mHlBgcolor; }
+    juce::Colour getOnColour() const { return this->mOnColor; }
+    juce::Colour getOffColour() const { return this->mOffColor; }
+    juce::Colour getGreenColour() const { return this->mGreenColor; }
+    juce::Colour getRedColour() const { return this->mRedColor; }
 
-    void drawComboBox(Graphics & g,
-                      int        width,
-                      int        height,
-                      bool       isButtonDown,
-                      int        buttonX,
-                      int        buttonY,
-                      int        buttonW,
-                      int        buttonH,
-                      ComboBox & box) final;
-    void drawRoundThumb(Graphics &           g,
-                        float const          x,
-                        float const          y,
-                        float const          diameter,
+    void drawComboBox(juce::Graphics & g,
+                      int width,
+                      int height,
+                      bool isButtonDown,
+                      int buttonX,
+                      int buttonY,
+                      int buttonW,
+                      int buttonH,
+                      juce::ComboBox & box) override;
+    void drawRoundThumb(juce::Graphics & g,
+                        float x,
+                        float y,
+                        float diameter,
                         juce::Colour const & colour,
-                        float const          outlineThickness) const;
-    void drawButtonBackground(Graphics &           g,
-                              Button &             button,
+                        float outlineThickness) const;
+    void drawButtonBackground(juce::Graphics & g,
+                              juce::Button & button,
                               const juce::Colour & backgroundColour,
-                              bool                 isMouseOverButton,
-                              bool                 isButtonDown) final;
-    void drawTickBox(Graphics &  g,
-                     Component & component,
-                     float       x,
-                     float       y,
-                     float       w,
-                     float       h,
-                     bool        ticked,
-                     bool        isEnabled,
-                     bool        isMouseOverButton,
-                     bool        isButtonDown) final;
-    void drawLinearSliderThumb(Graphics &                g,
-                               int                       x,
-                               int                       y,
-                               int                       width,
-                               int                       height,
-                               float                     sliderPos,
-                               float                     minSliderPos,
-                               float                     maxSliderPos,
-                               const Slider::SliderStyle style,
-                               Slider &                  slider) final;
-    void drawLinearSlider(Graphics &                g,
-                          int                       x,
-                          int                       y,
-                          int                       width,
-                          int                       height,
-                          float                     sliderPos,
-                          float                     minSliderPos,
-                          float                     maxSliderPos,
-                          const Slider::SliderStyle style,
-                          Slider &                  slider) final;
-    void drawLinearSliderBackground(Graphics & g,
-                                    int        x,
-                                    int        y,
-                                    int        width,
-                                    int        height,
+                              bool isMouseOverButton,
+                              bool isButtonDown) override;
+    void drawTickBox(juce::Graphics & g,
+                     juce::Component & component,
+                     float x,
+                     float y,
+                     float w,
+                     float h,
+                     bool ticked,
+                     bool isEnabled,
+                     bool isMouseOverButton,
+                     bool isButtonDown) override;
+    void drawLinearSliderThumb(juce::Graphics & g,
+                               int x,
+                               int y,
+                               int width,
+                               int height,
+                               float sliderPos,
+                               float minSliderPos,
+                               float maxSliderPos,
+                               const juce::Slider::SliderStyle style,
+                               juce::Slider & slider) override;
+    void drawLinearSlider(juce::Graphics & g,
+                          int x,
+                          int y,
+                          int width,
+                          int height,
+                          float sliderPos,
+                          float minSliderPos,
+                          float maxSliderPos,
+                          const juce::Slider::SliderStyle style,
+                          juce::Slider & slider) override;
+    void drawLinearSliderBackground(juce::Graphics & g,
+                                    int x,
+                                    int y,
+                                    int width,
+                                    int height,
                                     float /*sliderPos*/,
                                     float /*minSliderPos*/,
                                     float /*maxSliderPos*/,
-                                    const Slider::SliderStyle /*style*/,
-                                    Slider & slider) final;
-    void fillTextEditorBackground(Graphics & g, int width, int height, TextEditor & t) final;
-    void drawTextEditorOutline(Graphics & g, int width, int height, TextEditor & t) final;
-    void drawToggleButton(Graphics & g, ToggleButton & button, bool isMouseOverButton, bool isButtonDown) override;
-    void drawTabButton(TabBarButton & button, Graphics & g, bool isMouseOver, bool isMouseDown) final;
-    void createTabTextLayout(const TabBarButton & button,
-                             float                length,
-                             float                depth,
-                             juce::Colour const   colour,
-                             TextLayout &         textLayout) const;
-    void drawRotarySlider(Graphics & g,
-                          int        x,
-                          int        y,
-                          int        width,
-                          int        height,
-                          float      sliderPos,
-                          float      rotaryStartAngle,
-                          float      rotaryEndAngle,
-                          Slider &   slider) final;
+                                    juce::Slider::SliderStyle /*style*/,
+                                    juce::Slider & slider) override;
+    void fillTextEditorBackground(juce::Graphics & g, int width, int height, juce::TextEditor & t) override;
+    void drawTextEditorOutline(juce::Graphics & g, int width, int height, juce::TextEditor & t) override;
+    void drawToggleButton(juce::Graphics & g,
+                          juce::ToggleButton & button,
+                          bool isMouseOverButton,
+                          bool isButtonDown) override;
+    void drawTabButton(juce::TabBarButton & button, juce::Graphics & g, bool isMouseOver, bool isMouseDown) override;
+    void createTabTextLayout(const juce::TabBarButton & button,
+                             float length,
+                             float depth,
+                             juce::Colour colour,
+                             juce::TextLayout & textLayout) const;
+    void drawRotarySlider(juce::Graphics & g,
+                          int x,
+                          int y,
+                          int width,
+                          int height,
+                          float sliderPos,
+                          float rotaryStartAngle,
+                          float rotaryEndAngle,
+                          juce::Slider & slider) override;
 
 private:
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GrisLookAndFeel);
-};
+    JUCE_LEAK_DETECTOR(GrisLookAndFeel)
+}; // class GrisLookAndFeel
 
 //==============================================================================
 class SmallGrisLookAndFeel final : public GrisLookAndFeel
 {
 public:
-    SmallGrisLookAndFeel() = default;
-    ~SmallGrisLookAndFeel() final = default;
     //==============================================================================
-    juce::Font getTextButtonFont(TextButton &, int buttonHeight) final { return this->smallerFont; }
+    SmallGrisLookAndFeel() = default;
+    ~SmallGrisLookAndFeel() override = default;
 
-    void drawToggleButton(Graphics & g, ToggleButton & button, bool isMouseOverButton, bool isButtonDown) final;
+    SmallGrisLookAndFeel(SmallGrisLookAndFeel const &) = delete;
+    SmallGrisLookAndFeel(SmallGrisLookAndFeel &&) = delete;
+
+    SmallGrisLookAndFeel & operator=(SmallGrisLookAndFeel const &) = delete;
+    SmallGrisLookAndFeel & operator=(SmallGrisLookAndFeel &&) = delete;
+    //==============================================================================
+    juce::Font getTextButtonFont(juce::TextButton &, int /*buttonHeight*/) override { return this->mSmallerFont; }
+
+    void drawToggleButton(juce::Graphics & g,
+                          juce::ToggleButton & button,
+                          bool isMouseOverButton,
+                          bool isButtonDown) override;
 
 private:
     //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SmallGrisLookAndFeel);
-};
-
-#endif // GRISLOOKANDFEEL_H
+    JUCE_LEAK_DETECTOR(SmallGrisLookAndFeel)
+}; // class SmallGrisLookAndFeel

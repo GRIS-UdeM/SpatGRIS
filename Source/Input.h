@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS2.
 
- Developers: Samuel Béland, Olivier Belanger, Nicolas Masson
+ Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
 
  SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -17,30 +17,30 @@
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef INPUT_H
-#define INPUT_H
+#pragma once
 
-#include <cstdio>
 #include <iostream>
 
+#include "macros.h"
+
+DISABLE_WARNINGS
 #if defined(__linux__)
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glut.h>
+    #include <GL/gl.h>
+    #include <GL/glu.h>
+    #include <GL/glut.h>
 #elif defined(WIN32) || defined(_WIN64)
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glut.h>
-#include <windows.h>
+    #include <GL/freeglut.h>
+    #include <windows.h>
 #else
-#include <GLUT/glut.h>
-#include <OpenGL/gl.h>
-#include <OpenGl/glu.h>
+    #include <GLUT/glut.h>
+    #include <OpenGL/gl.h>
+    #include <OpenGl/glu.h>
 #endif
 
 #include "../glm/glm.hpp"
 
-#include "../JuceLibraryCode/JuceHeader.h"
+#include <JuceHeader.h>
+ENABLE_WARNINGS
 
 #include "GrisLookAndFeel.h"
 #include "LevelComponent.h"
@@ -51,40 +51,67 @@ class MainContentComponent;
 //==============================================================================
 class Input final : public ParentLevelComponent
 {
+    MainContentComponent & mMainContentComponent;
+    SmallGrisLookAndFeel & mLookAndFeel;
+
+    int mIdChannel;
+    int mDirectOutChannel;
+
+    float mAzimuth;
+    float mZenith;
+    float mRadius;
+
+    float mAzimuthSpan;
+    float mZenithSpan;
+    float mGain;
+    float mSizeT = 0.3f;
+
+    glm::vec3 mCenter;
+    glm::vec3 mColor;
+    juce::Colour mColorJ;
+
+    LevelComponent mVuMeter;
+
 public:
+    //==============================================================================
     Input(MainContentComponent & mainContentComponent, SmallGrisLookAndFeel & lookAndFeel, int id = 0);
-    ~Input() final = default;
     //==============================================================================
-    void setMuted(bool mute);
-    void setSolo(bool solo);
-    void selectClick(bool select = true){};
-    void setColor(Colour color, bool updateLevel = false);
+    Input() = delete;
+    ~Input() override = default;
+
+    Input(Input const &) = delete;
+    Input(Input &&) = delete;
+
+    Input & operator=(Input const &) = delete;
+    Input & operator=(Input &&) = delete;
     //==============================================================================
-    MainContentComponent const & getMainContentComponent() const { return this->mainContentComponent; }
-    MainContentComponent &       getMainContentComponent() { return this->mainContentComponent; }
+    void setMuted(bool mute) override;
+    void setSolo(bool solo) override;
+    void selectClick(bool /*select = true*/) override{};
+    void setColor(juce::Colour color, bool updateLevel = false) override;
+    //==============================================================================
+    MainContentComponent const & getMainContentComponent() const { return this->mMainContentComponent; }
+    MainContentComponent & getMainContentComponent() { return this->mMainContentComponent; }
 
-    LevelComponent const * getVuMeter() const { return &this->vuMeter; }
-    LevelComponent *       getVuMeter() { return &this->vuMeter; }
+    LevelComponent const * getVuMeter() const override { return &this->mVuMeter; }
+    LevelComponent * getVuMeter() override { return &this->mVuMeter; }
 
-    int   getId() const final { return this->idChannel; }
-    int   getButtonInOutNumber() const { return this->idChannel; }
-    float getLevel() const;
+    int getId() const override { return this->mIdChannel; }
+    int getButtonInOutNumber() const override { return this->mIdChannel; }
+    float getLevel() const override;
     float getAlpha() const;
-    float getAziMuth() const { return this->azimuth; }
-    float getZenith() const { return this->zenith; }
-    float getRadius() const { return this->radius; }
-    float getAziMuthSpan() const { return this->azimSpan; }
-    float getZenithSpan() const { return this->zeniSpan; }
-    float getGain() const { return this->gain; }
+    float getAzimuth() const { return this->mAzimuth; }
+    float getZenith() const { return this->mZenith; }
+    float getRadius() const { return this->mRadius; }
+    float getAzimuthSpan() const { return this->mAzimuthSpan; }
+    float getZenithSpan() const { return this->mZenithSpan; }
+    float getGain() const { return this->mGain; }
 
-    glm::vec3 getCenter() const { return this->center; }
-    glm::vec3 getColor() const { return this->color; }
-    glm::vec3 getNumberColor() const
-    {
-        return glm::vec3(this->color.x * 0.5, this->color.y * 0.5, this->color.z * 0.5);
-    }
-    Colour getColorJ() const { return this->colorJ; }
-    Colour getColorJWithAlpha() const;
+    glm::vec3 getCenter() const { return this->mCenter; }
+    glm::vec3 getColor() const { return this->mColor; }
+    glm::vec3 getNumberColor() const;
+    juce::Colour getColorJ() const { return this->mColorJ; }
+    juce::Colour getColorJWithAlpha() const;
     //==============================================================================
     glm::vec3 polToCar(float azimuth, float zenith) const;
     glm::vec3 polToCar3d(float azimuth, float zenith) const;
@@ -94,39 +121,16 @@ public:
     void updateValues(float az, float ze, float azS, float zeS, float radius, float g, int mode);
     void updateValuesOld(float az, float ze, float azS, float zeS, float g);
     //==============================================================================
-    bool isInput() const final { return true; }
-    void changeDirectOutChannel(int const chn) final { this->directOutChannel = chn; }
-    void setDirectOutChannel(int chn) final;
-    int  getDirectOutChannel() const final { return this->directOutChannel; };
-    void sendDirectOutToClient(int id, int chn) final;
+    bool isInput() const override { return true; }
+    void changeDirectOutChannel(int const chn) override { this->mDirectOutChannel = chn; }
+    void setDirectOutChannel(int chn) override;
+    int getDirectOutChannel() const override { return this->mDirectOutChannel; };
+    void sendDirectOutToClient(int id, int chn) override;
 
     void drawSpan();
-    void drawSpanLBAP(float x, float y, float z);
+    void drawSpanLbap(float x, float y, float z);
 
 private:
     //==============================================================================
-    MainContentComponent & mainContentComponent;
-    SmallGrisLookAndFeel & lookAndFeel;
-
-    int idChannel;
-    int directOutChannel;
-
-    float azimuth;
-    float zenith;
-    float radius;
-
-    float azimSpan;
-    float zeniSpan;
-    float gain;
-    float sizeT = 0.3f;
-
-    glm::vec3 center;
-    glm::vec3 color;
-    Colour    colorJ;
-
-    LevelComponent vuMeter;
-    //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Input);
+    JUCE_LEAK_DETECTOR(Input)
 };
-
-#endif /* INPUT_H */

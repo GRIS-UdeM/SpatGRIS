@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS2.
 
- Developers: Nicolas Masson
+ Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
 
  SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -17,10 +17,13 @@
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef FLATVIEWWINDOW_H
-#define FLATVIEWWINDOW_H
+#pragma once
 
-#include "../JuceLibraryCode/JuceHeader.h"
+#include "macros.h"
+
+DISABLE_WARNINGS
+#include <JuceHeader.h>
+ENABLE_WARNINGS
 
 class MainContentComponent;
 class GrisLookAndFeel;
@@ -28,28 +31,35 @@ class Input;
 
 //==============================================================================
 class FlatViewWindow final
-    : public DocumentWindow
-    , private Timer
+    : public juce::DocumentWindow
+    , private juce::Timer
 {
+    MainContentComponent & mMainContentComponent;
+    GrisLookAndFeel & mLookAndFeel;
+
 public:
-    FlatViewWindow(MainContentComponent & parent, GrisLookAndFeel & feel);
-    ~FlatViewWindow() final;
     //==============================================================================
-    void timerCallback() final { this->repaint(); }
-    void paint(Graphics & g) final;
-    void resized() final;
-    void closeButtonPressed() final;
+    FlatViewWindow(MainContentComponent & parent, GrisLookAndFeel & feel);
+    //==============================================================================
+    FlatViewWindow() = delete;
+    ~FlatViewWindow() override;
+
+    FlatViewWindow(FlatViewWindow const &) = delete;
+    FlatViewWindow(FlatViewWindow &&) = delete;
+
+    FlatViewWindow & operator=(FlatViewWindow const &) = delete;
+    FlatViewWindow & operator=(FlatViewWindow &&) = delete;
+    //==============================================================================
+    void timerCallback() override { this->repaint(); }
+    void paint(juce::Graphics & g) override;
+    void resized() override;
+    void closeButtonPressed() override;
 
 private:
     //==============================================================================
-    void drawFieldBackground(Graphics & g, const int fieldWH) const;
-    void drawSource(Graphics & g, Input * it, const int fieldWH) const;
-    void drawSourceSpan(Graphics & g, Input * it, const int fieldWH, const int fieldCenter) const;
+    void drawFieldBackground(juce::Graphics & g, int fieldWH) const;
+    void drawSource(juce::Graphics & g, Input * it, int fieldWh) const;
+    void drawSourceSpan(juce::Graphics & g, Input * it, int fieldWh, const int fieldCenter) const;
     //==============================================================================
-    MainContentComponent & mainParent;
-    GrisLookAndFeel &      grisFeel;
-    //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FlatViewWindow);
+    JUCE_LEAK_DETECTOR(FlatViewWindow)
 };
-
-#endif /* FLATVIEWWINDOW_H */

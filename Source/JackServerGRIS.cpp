@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS2.
 
- Developers: Olivier Belanger, Nicolas Masson
+ Developers: Samuel B�land, Olivier B�langer, Nicolas Masson
 
  SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 #include <cstdio>
 
 #ifdef __linux__
-#include <alsa/asoundlib.h>
+    #include <alsa/asoundlib.h>
 #endif
 
 #include "JackClientGRIS.h"
@@ -36,7 +36,7 @@ static bool jack_server_log_print = false;
 static void jack_server_log(const char * format, ...)
 {
     if (jack_server_log_print) {
-        char    buffer[256];
+        char buffer[256];
         va_list args;
         va_start(args, format);
         vsprintf(buffer, format, args);
@@ -70,8 +70,8 @@ static void print_value(union jackctl_parameter_value value, jackctl_param_type_
 //==============================================================================
 static void print_parameters(const JSList * node_ptr)
 {
-    while (node_ptr != NULL) {
-        jackctl_parameter_t * parameter = (jackctl_parameter_t *)node_ptr->data;
+    while (node_ptr != nullptr) {
+        auto * parameter = static_cast<jackctl_parameter_t *>(node_ptr->data);
         jack_server_log("\nparameter name = %s\n", jackctl_parameter_get_name(parameter));
         if (!jackctl_parameter_get_id(parameter))
             jack_server_log("parameter id = \n");
@@ -111,6 +111,7 @@ static void on_device_release(const char * device_name)
     jack_server_log("on_device_release %s \n", device_name);
 }
 
+#if USE_JACK
 //==============================================================================
 static jackctl_parameter_t * jackctl_get_parameter(const JSList * parameters_list, const char * parameter_name)
 {
@@ -148,30 +149,25 @@ static jackctl_internal_t * jackctl_server_get_internal(jackctl_server_t * serve
     }
     return NULL;
 }
+#endif
 
 //==============================================================================
 // Jack server class definition.
-JackServerGris::JackServerGris(unsigned int rateV, unsigned int periodV, String alsaOutputDevice, int * errorCode)
+JackServerGris::JackServerGris(unsigned int rateV, unsigned int periodV, juce::String alsaOutputDevice, int * errorCode)
 {
-    this->rateValue = rateV;
-    this->periodValue = periodV;
-    const JSList * parameters;
-    const JSList * driverParams;
-    const JSList * drivers;
-    const JSList * internals;
-    const JSList * node_ptr;
+    this->mRateValue = rateV;
+    this->mPeriodValue = periodV;
 
-    this->server = jackctl_server_create(on_device_acquire, on_device_release);
+    this->mServer = jackctl_server_create(on_device_acquire, on_device_release);
 
-    if (this->server) {
-        parameters = jackctl_server_get_parameters(this->server);
+    if (this->mServer) {
+        auto const * parameters = jackctl_server_get_parameters(this->mServer);
 
-        jackctl_parameter_t *         param;
         union jackctl_parameter_value value;
 
         // Turn off Jack verbose mode.
-        param = jackctl_get_parameter(parameters, "verbose");
-        if (param != NULL) {
+        jackctl_parameter_t * param = jackctl_get_parameter(parameters, "verbose");
+        if (param != nullptr) {
             value.b = false;
             jackctl_parameter_set_value(param, &value);
         }
@@ -184,12 +180,12 @@ JackServerGris::JackServerGris(unsigned int rateV, unsigned int periodV, String 
         jack_server_log("\nList of drivers \n");
         jack_server_log("=============== \n");
 
-        drivers = jackctl_server_get_drivers_list(this->server);
-        node_ptr = drivers;
-        while (node_ptr != NULL) {
-            print_driver((jackctl_driver_t *)node_ptr->data);
+        auto const * drivers = jackctl_server_get_drivers_list(this->mServer);
+        auto const * node_ptr = drivers;
+        while (node_ptr != nullptr) {
+            print_driver(static_cast<jackctl_driver_t *>(node_ptr->data));
 
-            driverParams = jackctl_driver_get_parameters((jackctl_driver_t *)node_ptr->data);
+            auto const * driverParams = jackctl_driver_get_parameters(static_cast<jackctl_driver_t *>(node_ptr->data));
 
 #ifdef __linux__
             // Set output device.
@@ -213,13 +209,13 @@ JackServerGris::JackServerGris(unsigned int rateV, unsigned int periodV, String 
             // Set sampling rate.
             param = jackctl_get_parameter(driverParams, "rate");
             if (param != NULL) {
-                value.ui = value.i = this->rateValue;
+                value.ui = value.i = this->mRateValue;
                 jackctl_parameter_set_value(param, &value);
             }
             // Set buffer size.
             param = jackctl_get_parameter(driverParams, "period");
             if (param != NULL) {
-                value.ui = value.i = this->periodValue;
+                value.ui = value.i = this->mPeriodValue;
                 jackctl_parameter_set_value(param, &value);
             }
 
@@ -229,19 +225,20 @@ JackServerGris::JackServerGris(unsigned int rateV, unsigned int periodV, String 
         jack_server_log("\nList of internal clients \n");
         jack_server_log("======================== \n");
 
-        internals = jackctl_server_get_internals_list(this->server);
+        const JSList * internals = jackctl_server_get_internals_list(this->mServer);
         node_ptr = internals;
-        while (node_ptr != NULL) {
-            print_internal((jackctl_internal_t *)node_ptr->data);
+        while (node_ptr != nullptr) {
+            print_internal(static_cast<jackctl_internal_t *>(node_ptr->data));
             node_ptr = jack_slist_next(node_ptr);
         }
 
         jack_server_log("\nStart Jack Server \n");
         jack_server_log("================= \n");
 
-        if (jackctl_server_open(this->server, jackctl_server_get_driver(this->server, DriverNameSys))) {
-            if (jackctl_server_start(this->server)) {
-                jackctl_server_load_internal(this->server, jackctl_server_get_internal(this->server, ClientNameSys));
+        if (jackctl_server_open(this->mServer, jackctl_server_get_driver(this->mServer, SYS_DRIVER_NAME))) {
+            if (jackctl_server_start(this->mServer)) {
+                jackctl_server_load_internal(this->mServer,
+                                             jackctl_server_get_internal(this->mServer, SYS_CLIENT_NAME));
             } else {
                 *errorCode = 3;
             }
@@ -256,29 +253,29 @@ JackServerGris::JackServerGris(unsigned int rateV, unsigned int periodV, String 
 //==============================================================================
 JackServerGris::~JackServerGris()
 {
-    if (this->server != nullptr) {
-        jackctl_server_stop(this->server);
-        jackctl_server_close(this->server);
-        jackctl_server_destroy(this->server);
+    if (this->mServer != nullptr) {
+        jackctl_server_stop(this->mServer);
+        jackctl_server_close(this->mServer);
+        jackctl_server_destroy(this->mServer);
     }
 }
 
 //==============================================================================
-Array<String> JackServerGris::getAvailableOutputDevices() const
+juce::Array<juce::String> JackServerGris::getAvailableOutputDevices() const
 {
-    juce::Array<String> devices;
+    juce::Array<juce::String> devices;
 
 #ifdef __linux__
     snd_ctl_card_info_t * info;
-    snd_pcm_info_t *      pcminfo;
+    snd_pcm_info_t * pcminfo;
     snd_ctl_card_info_alloca(&info);
     snd_pcm_info_alloca(&pcminfo);
 
     int card = -1;
     while (snd_card_next(&card) >= 0 && card >= 0) {
-        int         err = 0;
+        int err = 0;
         snd_ctl_t * handle;
-        char        name[20];
+        char name[20];
         snprintf(name, sizeof(name), "hw:%d", card);
         if ((err = snd_ctl_open(&handle, name, 0)) < 0) {
             continue;
@@ -300,7 +297,7 @@ Array<String> JackServerGris::getAvailableOutputDevices() const
 
             char device[128];
             snprintf(device, sizeof(device), "hw:%d,%d - %s", card, dev, snd_pcm_info_get_name(pcminfo));
-            devices.add(String(device));
+            devices.add(juce::String{ device });
         }
         snd_ctl_close(handle);
     }

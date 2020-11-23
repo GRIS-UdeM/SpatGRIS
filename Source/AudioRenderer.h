@@ -19,45 +19,37 @@
 
 #pragma once
 
-#include <iostream>
-
 #include "macros.h"
 
 DISABLE_WARNINGS
 #include <JuceHeader.h>
 ENABLE_WARNINGS
 
-#include "GrisLookAndFeel.h"
-#include "JackClientGRIS.h"
-
-class LevelComponent;
-class MainContentComponent;
-
 //==============================================================================
-class Box final : public juce::Component
+// Audio recorder class used to write an interleaved multi-channel soundfile on disk.
+class AudioRenderer final : public juce::ThreadWithProgressWindow
 {
-public:
-    Box(GrisLookAndFeel & feel,
-        juce::String const & title = "",
-        bool verticalScrollbar = false,
-        bool horizontalScrollbar = true);
-    ~Box() final { this->content.deleteAllChildren(); }
-    //==============================================================================
-    juce::Component * getContent() { return &this->content; }
-    juce::Component const * getContent() const { return &this->content; }
+    juce::AudioFormatManager mFormatManager;
+    juce::File mFileToRecord;
+    juce::Array<juce::File> mFiles;
+    unsigned int mSampleRate;
 
-    void resized() final { this->viewport.setSize(this->getWidth(), this->getHeight()); }
-    void correctSize(unsigned int width, unsigned int height);
-    void paint(juce::Graphics & g) final;
+public:
+    //==============================================================================
+    AudioRenderer();
+    ~AudioRenderer() override = default;
+
+    AudioRenderer(AudioRenderer const &) = delete;
+    AudioRenderer(AudioRenderer &&) = delete;
+
+    AudioRenderer & operator=(AudioRenderer const &) = delete;
+    AudioRenderer & operator=(AudioRenderer &&) = delete;
+    //==============================================================================
+    void prepareRecording(juce::File const & file, juce::Array<juce::File> const & filenames, unsigned int sampleRate);
+    void run() override;
+    void threadComplete(bool userPressedCancel) override;
 
 private:
     //==============================================================================
-    GrisLookAndFeel & grisFeel;
-
-    juce::Component content;
-    juce::Viewport viewport;
-    // juce::Colour      bgColour;
-    juce::String title;
-    //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Box)
+    JUCE_LEAK_DETECTOR(AudioRenderer)
 };

@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS2.
 
- Developers: Olivier Belanger, Nicolas Masson
+ Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
 
  SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -24,8 +24,10 @@
 
 //==============================================================================
 LevelBox::LevelBox(LevelComponent & levelComponent, SmallGrisLookAndFeel & lookAndFeel)
-    : levelComponent(levelComponent), lookAndFeel(lookAndFeel)
-{}
+    : mLevelComponent(levelComponent)
+    , mLookAndFeel(lookAndFeel)
+{
+}
 
 //==============================================================================
 void LevelBox::setBounds(juce::Rectangle<int> const & newBounds)
@@ -35,43 +37,47 @@ void LevelBox::setBounds(juce::Rectangle<int> const & newBounds)
     // LevelBox size is (22, 140)
     this->juce::Component::setBounds(newBounds); // TODO: this does not look ok!
 
-    this->colorGrad = juce::ColourGradient{
-        juce::Colour::fromRGB(255, 94, 69), 0.f, 0.f, juce::Colour::fromRGB(17, 255, 159), 0.f, static_cast<float>(this->getHeight()), false
+    this->mColorGrad = juce::ColourGradient{
+        juce::Colour::fromRGB(255, 94, 69),    0.f,  0.f, juce::Colour::fromRGB(17, 255, 159), 0.f,
+        static_cast<float>(this->getHeight()), false
     };
-    this->colorGrad.addColour(0.1, juce::Colours::yellow);
+    this->mColorGrad.addColour(0.1, juce::Colours::yellow);
 
     // Create vu-meter foreground image.
-    this->vumeterBit = juce::Image{ juce::Image::RGB, 21, 140, true };
-    juce::Graphics gf{ this->vumeterBit };
-    gf.setGradientFill(this->colorGrad);
+    this->mVuMeterBit = juce::Image{ juce::Image::RGB, 21, 140, true };
+    juce::Graphics gf{ this->mVuMeterBit };
+    gf.setGradientFill(this->mColorGrad);
     gf.fillRect(0, 0, this->getWidth(), this->getHeight());
 
     // Create vu-meter background image.
-    this->vumeterBackBit = juce::Image{ juce::Image::RGB, 21, 140, true };
-    juce::Graphics gb{ this->vumeterBackBit };
-    gb.setColour(this->lookAndFeel.getDarkColour());
+    this->mVuMeterBackBit = juce::Image{ juce::Image::RGB, 21, 140, true };
+    juce::Graphics gb{ this->mVuMeterBackBit };
+    gb.setColour(this->mLookAndFeel.getDarkColour());
     gb.fillRect(0, 0, this->getWidth(), this->getHeight());
 
     // Create vu-meter muted image.
-    this->vumeterMutedBit = juce::Image(juce::Image::RGB, 21, 140, true);
-    juce::Graphics gm{ this->vumeterMutedBit };
-    gm.setColour(this->lookAndFeel.getWinBackgroundColour());
+    this->mVuMeterMutedBit = juce::Image(juce::Image::RGB, 21, 140, true);
+    juce::Graphics gm{ this->mVuMeterMutedBit };
+    gm.setColour(this->mLookAndFeel.getWinBackgroundColour());
     gm.fillRect(0, 0, this->getWidth(), this->getHeight());
 
     // Draw ticks on images.
-    gf.setColour(this->lookAndFeel.getDarkColour());
+    gf.setColour(this->mLookAndFeel.getDarkColour());
     gf.setFont(10.0f);
-    gb.setColour(this->lookAndFeel.getScrollBarColour());
+    gb.setColour(this->mLookAndFeel.getScrollBarColour());
     gb.setFont(10.0f);
-    gm.setColour(this->lookAndFeel.getScrollBarColour());
+    gm.setColour(this->mLookAndFeel.getScrollBarColour());
     gm.setFont(10.0f);
     int const start = this->getWidth() - 3;
-    int       y{};
     for (int i{ 1 }; i < 10; i++) {
-        y = i * 14;
-        gf.drawLine(start, y, getWidth(), y, 1);
-        gb.drawLine(start, y, getWidth(), y, 1);
-        gm.drawLine(start, y, getWidth(), y, 1);
+        auto const y = i * 14;
+        auto const y_f{ static_cast<float>(y) };
+        auto const start_f{ static_cast<float>(start) };
+        auto const with_f{ static_cast<float>(getWidth()) };
+
+        gf.drawLine(start_f, y_f, with_f, y_f, 1.0f);
+        gb.drawLine(start_f, y_f, with_f, y_f, 1.0f);
+        gm.drawLine(start_f, y_f, with_f, y_f, 1.0f);
         if (i % 2 == 1) {
             gf.drawText(juce::String(i * -6), start - 15, y - 5, 15, 10, juce::Justification::centred, false);
             gb.drawText(juce::String(i * -6), start - 15, y - 5, 15, 10, juce::Justification::centred, false);
@@ -83,22 +89,22 @@ void LevelBox::setBounds(juce::Rectangle<int> const & newBounds)
 //==============================================================================
 void LevelBox::paint(juce::Graphics & g)
 {
-    if (this->levelComponent.isMuted()) {
-        g.drawImage(this->vumeterMutedBit, 0, 0, 22, 140, 0, 0, 22, 140);
+    if (this->mLevelComponent.isMuted()) {
+        g.drawImage(this->mVuMeterMutedBit, 0, 0, 22, 140, 0, 0, 22, 140);
     } else {
-        float level{ this->levelComponent.getLevel() };
-        if (level < MinLevelComp) {
-            level = MinLevelComp;
-        } else if (level > MaxLevelComp) {
-            this->isClipping = true;
-            level = MaxLevelComp;
+        float level{ this->mLevelComponent.getLevel() };
+        if (level < MIN_LEVEL_COMP) {
+            level = MIN_LEVEL_COMP;
+        } else if (level > MAX_LEVEL_COMP) {
+            this->mIsClipping = true;
+            level = MAX_LEVEL_COMP;
         }
 
         int const h = static_cast<int>(level * -2.33333334f);
         int const rel = 140 - h;
-        g.drawImage(this->vumeterBit, 0, h, 22, rel, 0, h, 22, rel);
-        g.drawImage(this->vumeterBackBit, 0, 0, 22, h, 0, 0, 22, h);
-        if (this->isClipping) {
+        g.drawImage(this->mVuMeterBit, 0, h, 22, rel, 0, h, 22, rel);
+        g.drawImage(this->mVuMeterBackBit, 0, 0, 22, h, 0, 0, 22, h);
+        if (this->mIsClipping) {
             g.setColour(juce::Colour::fromHSV(0.0, 1, 0.75, 1));
             juce::Rectangle<float> const clipRect{ 0.5, 0.5, static_cast<float>(this->getWidth() - 1), 5 };
             g.fillRect(clipRect);
@@ -118,53 +124,53 @@ void LevelBox::mouseDown(juce::MouseEvent const & e)
 //==============================================================================
 void LevelBox::resetClipping()
 {
-    this->isClipping = false;
+    this->mIsClipping = false;
     this->repaint();
 }
 
 //==============================================================================
 LevelComponent::LevelComponent(ParentLevelComponent & parentLevelComponent,
                                SmallGrisLookAndFeel & lookAndFeel,
-                               bool const             colorful)
-    : parentLevelComponent(parentLevelComponent)
-    , lookAndFeel(lookAndFeel)
-    , isColorful(colorful)
-    , levelBox(*this, lookAndFeel)
+                               bool const colorful)
+    : mParentLevelComponent(parentLevelComponent)
+    , mLookAndFeel(lookAndFeel)
+    , mIsColorful(colorful)
+    , mLevelBox(*this, lookAndFeel)
 {
     // Label
-    this->idBut.setButtonText(juce::String{ this->parentLevelComponent.getButtonInOutNumber() });
-    this->idBut.setSize(22, 17);
-    this->idBut.setTopLeftPosition(0, 0);
-    this->idBut.setColour(juce::Label::textColourId, lookAndFeel.getFontColour());
-    this->idBut.setLookAndFeel(&lookAndFeel);
-    this->idBut.setColour(juce::TextButton::textColourOnId, lookAndFeel.getFontColour());
-    this->idBut.setColour(juce::TextButton::textColourOffId, lookAndFeel.getFontColour());
-    this->idBut.setColour(juce::TextButton::buttonColourId, lookAndFeel.getBackgroundColour());
-    this->idBut.addListener(this);
-    this->idBut.addMouseListener(this, true);
-    this->addAndMakeVisible(this->idBut);
+    this->mIdButton.setButtonText(juce::String{ this->mParentLevelComponent.getButtonInOutNumber() });
+    this->mIdButton.setSize(22, 17);
+    this->mIdButton.setTopLeftPosition(0, 0);
+    this->mIdButton.setColour(juce::Label::textColourId, lookAndFeel.getFontColour());
+    this->mIdButton.setLookAndFeel(&lookAndFeel);
+    this->mIdButton.setColour(juce::TextButton::textColourOnId, lookAndFeel.getFontColour());
+    this->mIdButton.setColour(juce::TextButton::textColourOffId, lookAndFeel.getFontColour());
+    this->mIdButton.setColour(juce::TextButton::buttonColourId, lookAndFeel.getBackgroundColour());
+    this->mIdButton.addListener(this);
+    this->mIdButton.addMouseListener(this, true);
+    this->addAndMakeVisible(this->mIdButton);
 
     // ToggleButton (mute)
-    this->muteToggleBut.setButtonText("m");
-    this->muteToggleBut.setSize(13, 15);
-    this->muteToggleBut.addListener(this);
-    this->muteToggleBut.setToggleState(false, juce::dontSendNotification);
-    this->muteToggleBut.setLookAndFeel(&lookAndFeel);
-    this->muteToggleBut.setColour(juce::ToggleButton::textColourId, lookAndFeel.getFontColour());
-    this->addAndMakeVisible(this->muteToggleBut);
+    this->mMuteToggleButton.setButtonText("m");
+    this->mMuteToggleButton.setSize(13, 15);
+    this->mMuteToggleButton.addListener(this);
+    this->mMuteToggleButton.setToggleState(false, juce::dontSendNotification);
+    this->mMuteToggleButton.setLookAndFeel(&lookAndFeel);
+    this->mMuteToggleButton.setColour(juce::ToggleButton::textColourId, lookAndFeel.getFontColour());
+    this->addAndMakeVisible(this->mMuteToggleButton);
 
     // ToggleButton (solo)
-    this->soloToggleBut.setButtonText("s");
-    this->soloToggleBut.setSize(13, 15);
-    this->soloToggleBut.addListener(this);
-    this->soloToggleBut.setToggleState(false, juce::dontSendNotification);
-    this->soloToggleBut.setColour(juce::ToggleButton::textColourId, lookAndFeel.getFontColour());
-    this->soloToggleBut.setColour(juce::TextButton::buttonColourId, lookAndFeel.getBackgroundColour());
-    this->soloToggleBut.setLookAndFeel(&lookAndFeel);
-    this->addAndMakeVisible(this->soloToggleBut);
+    this->mSoloToggleButton.setButtonText("s");
+    this->mSoloToggleButton.setSize(13, 15);
+    this->mSoloToggleButton.addListener(this);
+    this->mSoloToggleButton.setToggleState(false, juce::dontSendNotification);
+    this->mSoloToggleButton.setColour(juce::ToggleButton::textColourId, lookAndFeel.getFontColour());
+    this->mSoloToggleButton.setColour(juce::TextButton::buttonColourId, lookAndFeel.getBackgroundColour());
+    this->mSoloToggleButton.setLookAndFeel(&lookAndFeel);
+    this->addAndMakeVisible(this->mSoloToggleButton);
 
     // ComboBox (direct out)
-    if (this->parentLevelComponent.isInput()) {
+    if (this->mParentLevelComponent.isInput()) {
         this->directOut.setButtonText("-");
         this->directOut.setSize(22, 17);
         this->directOut.setColour(juce::Label::textColourId, lookAndFeel.getFontColour());
@@ -175,13 +181,13 @@ LevelComponent::LevelComponent(ParentLevelComponent & parentLevelComponent,
     }
 
     // Level box
-    this->addAndMakeVisible(this->levelBox);
+    this->addAndMakeVisible(this->mLevelBox);
 }
 
 //==============================================================================
 void LevelComponent::updateDirectOutMenu(juce::OwnedArray<Speaker> const & spkList)
 {
-    if (this->parentLevelComponent.isInput()) {
+    if (this->mParentLevelComponent.isInput()) {
         this->directOutSpeakers.clear();
         for (auto const speaker : spkList) {
             if (speaker->isDirectOut()) {
@@ -194,40 +200,41 @@ void LevelComponent::updateDirectOutMenu(juce::OwnedArray<Speaker> const & spkLi
 //==============================================================================
 void LevelComponent::buttonClicked(juce::Button * button)
 {
-    if (button == &this->muteToggleBut) {
-        this->parentLevelComponent.setMuted(this->muteToggleBut.getToggleState());
-        if (this->muteToggleBut.getToggleState()) {
-            this->soloToggleBut.setToggleState(false, juce::dontSendNotification);
+    if (button == &this->mMuteToggleButton) {
+        this->mParentLevelComponent.setMuted(this->mMuteToggleButton.getToggleState());
+        if (this->mMuteToggleButton.getToggleState()) {
+            this->mSoloToggleButton.setToggleState(false, juce::dontSendNotification);
         }
-        this->levelBox.repaint();
+        this->mLevelBox.repaint();
 
-    } else if (button == &this->soloToggleBut) {
-        this->parentLevelComponent.setSolo(this->soloToggleBut.getToggleState());
-        if (this->soloToggleBut.getToggleState()) {
-            this->muteToggleBut.setToggleState(false, juce::dontSendNotification);
+    } else if (button == &this->mSoloToggleButton) {
+        this->mParentLevelComponent.setSolo(this->mSoloToggleButton.getToggleState());
+        if (this->mSoloToggleButton.getToggleState()) {
+            this->mMuteToggleButton.setToggleState(false, juce::dontSendNotification);
         }
-        this->levelBox.repaint();
+        this->mLevelBox.repaint();
 
-    } else if (button == &this->idBut) {
-        if (this->isColorful) { // Input
+    } else if (button == &this->mIdButton) {
+        if (this->mIsColorful) { // Input
             auto * colourSelector{ new juce::ColourSelector{} };
             colourSelector->setName("background");
-            colourSelector->setCurrentColour(this->idBut.findColour(juce::TextButton::buttonColourId));
+            colourSelector->setCurrentColour(this->mIdButton.findColour(juce::TextButton::buttonColourId));
             colourSelector->addChangeListener(this);
             colourSelector->setColour(juce::ColourSelector::backgroundColourId, juce::Colours::transparentBlack);
             colourSelector->setSize(300, 400);
-            juce::CallOutBox::launchAsynchronously(colourSelector, getScreenBounds(), nullptr);
+            std::unique_ptr<juce::Component> component{ colourSelector };
+            juce::CallOutBox::launchAsynchronously(std::move(component), getScreenBounds(), nullptr);
         } else { // Output
-            this->parentLevelComponent.selectClick(this->lastMouseButton);
+            this->mParentLevelComponent.selectClick(this->mLastMouseButton);
         }
     } else if (button == &this->directOut) {
         juce::PopupMenu menu{};
         menu.addItem(1, "-");
         for (size_t i{}; i < this->directOutSpeakers.size(); ++i) {
-            menu.addItem(i + 2, juce::String{ this->directOutSpeakers[i] });
+            menu.addItem(static_cast<int>(i) + 2, juce::String{ this->directOutSpeakers[i] });
         }
 
-        auto result{ menu.show() };
+        auto const result{ menu.show() };
 
         int value{};
         if (result != 0) {
@@ -238,8 +245,8 @@ void LevelComponent::buttonClicked(juce::Button * button)
                 this->directOut.setButtonText(juce::String{ value });
             }
 
-            this->parentLevelComponent.changeDirectOutChannel(value);
-            this->parentLevelComponent.sendDirectOutToClient(this->parentLevelComponent.getId(), value);
+            this->mParentLevelComponent.changeDirectOutChannel(value);
+            this->mParentLevelComponent.sendDirectOutToClient(this->mParentLevelComponent.getId(), value);
         }
     }
 }
@@ -248,24 +255,24 @@ void LevelComponent::buttonClicked(juce::Button * button)
 void LevelComponent::mouseDown(juce::MouseEvent const & e)
 {
     if (e.mods.isRightButtonDown()) {
-        this->lastMouseButton = 0;
+        this->mLastMouseButton = 0;
     } else {
-        this->lastMouseButton = 1;
+        this->mLastMouseButton = 1;
     }
 }
 
 //==============================================================================
 void LevelComponent::changeListenerCallback(juce::ChangeBroadcaster * source)
 {
-    juce::ColourSelector * cs{ dynamic_cast<ColourSelector *>(source) };
+    juce::ColourSelector * cs{ dynamic_cast<juce::ColourSelector *>(source) };
     if (cs != nullptr) {
-        this->idBut.setColour(juce::TextButton::buttonColourId, cs->getCurrentColour());
-        this->parentLevelComponent.setColor(cs->getCurrentColour());
-        if (this->lastMouseButton == 0) {
-            Input * input = dynamic_cast<Input *>(&this->parentLevelComponent);
+        this->mIdButton.setColour(juce::TextButton::buttonColourId, cs->getCurrentColour());
+        this->mParentLevelComponent.setColor(cs->getCurrentColour());
+        if (this->mLastMouseButton == 0) {
+            Input * input = dynamic_cast<Input *>(&this->mParentLevelComponent);
             jassert(input != nullptr);
-            for (auto * it : input->getMainContentComponent().getListSourceInput()) {
-                if (it->getId() == this->parentLevelComponent.getId() + 1) {
+            for (auto * it : input->getMainContentComponent().getSourceInputs()) {
+                if (it->getId() == this->mParentLevelComponent.getId() + 1) {
                     it->setColor(cs->getCurrentColour(), true);
                 }
             }
@@ -274,30 +281,37 @@ void LevelComponent::changeListenerCallback(juce::ChangeBroadcaster * source)
 }
 
 //==============================================================================
+void LevelComponent::setColor(juce::Colour const color)
+{
+    this->mIdButton.setColour(juce::TextButton::buttonColourId, color);
+    this->repaint();
+}
+
+//==============================================================================
 void LevelComponent::update()
 {
-    auto const l = this->parentLevelComponent.getLevel();
+    auto const l = this->mParentLevelComponent.getLevel();
 
     if (!std::isnan(l)) {
-        if (!this->muteToggleBut.getToggleState() && this->level != l) {
+        if (!this->mMuteToggleButton.getToggleState() && this->mLevel != l) {
             this->repaint();
         }
-        this->level = l;
+        this->mLevel = l;
     }
 }
 
 //==============================================================================
 void LevelComponent::setSelected(bool const value)
 {
-    MessageManagerLock const mmLock{};
+    juce::MessageManagerLock const mmLock{};
     if (value) {
-        this->idBut.setColour(juce::TextButton::textColourOnId, this->lookAndFeel.getWinBackgroundColour());
-        this->idBut.setColour(juce::TextButton::textColourOffId, this->lookAndFeel.getWinBackgroundColour());
-        this->idBut.setColour(juce::TextButton::buttonColourId, this->lookAndFeel.getOnColour());
+        this->mIdButton.setColour(juce::TextButton::textColourOnId, this->mLookAndFeel.getWinBackgroundColour());
+        this->mIdButton.setColour(juce::TextButton::textColourOffId, this->mLookAndFeel.getWinBackgroundColour());
+        this->mIdButton.setColour(juce::TextButton::buttonColourId, this->mLookAndFeel.getOnColour());
     } else {
-        this->idBut.setColour(juce::TextButton::textColourOnId, this->lookAndFeel.getFontColour());
-        this->idBut.setColour(juce::TextButton::textColourOffId, this->lookAndFeel.getFontColour());
-        this->idBut.setColour(juce::TextButton::buttonColourId, this->lookAndFeel.getBackgroundColour());
+        this->mIdButton.setColour(juce::TextButton::textColourOnId, this->mLookAndFeel.getFontColour());
+        this->mIdButton.setColour(juce::TextButton::textColourOffId, this->mLookAndFeel.getFontColour());
+        this->mIdButton.setColour(juce::TextButton::buttonColourId, this->mLookAndFeel.getBackgroundColour());
     }
 }
 
@@ -308,15 +322,17 @@ void LevelComponent::setBounds(juce::Rectangle<int> const & newBounds)
 
     this->juce::Component::setBounds(newBounds); // TODO: this does not look ok!
 
-    juce::Rectangle<int> const labRect{ 0, 0, newBounds.getWidth(), this->idBut.getHeight() };
-    this->idBut.setBounds(labRect);
-    this->muteToggleBut.setBounds(0, 158, this->muteToggleBut.getWidth(), this->muteToggleBut.getHeight());
-    this->soloToggleBut.setBounds(this->muteToggleBut.getWidth() - 2, 158, this->muteToggleBut.getWidth(),
-                                  this->muteToggleBut.getHeight());
-    if (this->parentLevelComponent.isInput()) {
+    juce::Rectangle<int> const labRect{ 0, 0, newBounds.getWidth(), this->mIdButton.getHeight() };
+    this->mIdButton.setBounds(labRect);
+    this->mMuteToggleButton.setBounds(0, 158, this->mMuteToggleButton.getWidth(), this->mMuteToggleButton.getHeight());
+    this->mSoloToggleButton.setBounds(this->mMuteToggleButton.getWidth() - 2,
+                                      158,
+                                      this->mMuteToggleButton.getWidth(),
+                                      this->mMuteToggleButton.getHeight());
+    if (this->mParentLevelComponent.isInput()) {
         this->directOut.setBounds(0, getHeight() - 27, newBounds.getWidth(), this->directOut.getHeight());
     }
 
-    juce::Rectangle<int> const level{ 0, 18, newBounds.getWidth() - WidthRect, levelSize };
-    this->levelBox.setBounds(level);
+    juce::Rectangle<int> const level{ 0, 18, newBounds.getWidth() - WIDTH_RECT, levelSize };
+    this->mLevelBox.setBounds(level);
 }

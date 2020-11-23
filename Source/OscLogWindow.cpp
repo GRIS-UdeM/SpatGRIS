@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS2.
 
- Developers: Samuel Béland, Nicolas Masson
+ Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
 
  SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -23,57 +23,60 @@
 #include "MainComponent.h"
 
 //==============================================================================
-OscLogWindow::OscLogWindow(juce::String const &   name,
-                           juce::Colour const     backgroundColour,
-                           int const              buttonsNeeded,
+OscLogWindow::OscLogWindow(juce::String const & name,
+                           juce::Colour const backgroundColour,
+                           int const buttonsNeeded,
                            MainContentComponent * parent,
-                           GrisLookAndFeel *      feel)
-    : DocumentWindow(name, backgroundColour, buttonsNeeded), logger(codeDocument, 0), mainParent(parent), grisFeel(feel)
+                           GrisLookAndFeel * feel)
+    : DocumentWindow(name, backgroundColour, buttonsNeeded)
+    , mLogger(mCodeDocument, 0)
+    , mMainContentComponent(parent)
+    , mLookAndFeel(feel)
 {
-    this->index = 0;
-    this->activated = true;
+    this->mIndex = 0;
+    this->mActivated = true;
 
-    this->logger.setFont(this->logger.getFont().withPointHeight(this->logger.getFont().getHeightInPoints() + 3));
-    this->logger.setBounds(5, 5, 490, 450);
-    this->logger.setLookAndFeel(this->grisFeel);
-    this->juce::Component::addAndMakeVisible(this->logger);
+    this->mLogger.setFont(this->mLogger.getFont().withPointHeight(this->mLogger.getFont().getHeightInPoints() + 3));
+    this->mLogger.setBounds(5, 5, 490, 450);
+    this->mLogger.setLookAndFeel(this->mLookAndFeel);
+    this->juce::Component::addAndMakeVisible(this->mLogger);
 
-    this->stop.setButtonText("Stop");
-    this->stop.setClickingTogglesState(true);
-    this->stop.setToggleState(true, NotificationType::dontSendNotification);
-    this->stop.setBounds(100, 470, 100, 22);
-    this->stop.addListener(this);
-    this->stop.setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
-    this->stop.setLookAndFeel(this->grisFeel);
-    this->juce::Component::addAndMakeVisible(this->stop);
+    this->mStopButton.setButtonText("Stop");
+    this->mStopButton.setClickingTogglesState(true);
+    this->mStopButton.setToggleState(true, juce::NotificationType::dontSendNotification);
+    this->mStopButton.setBounds(100, 470, 100, 22);
+    this->mStopButton.addListener(this);
+    this->mStopButton.setColour(juce::ToggleButton::textColourId, this->mLookAndFeel->getFontColour());
+    this->mStopButton.setLookAndFeel(this->mLookAndFeel);
+    this->juce::Component::addAndMakeVisible(this->mStopButton);
 
-    this->close.setButtonText("Close");
-    this->close.setBounds(300, 470, 100, 22);
-    this->close.addListener(this);
-    this->close.setColour(ToggleButton::textColourId, this->grisFeel->getFontColour());
-    this->close.setLookAndFeel(this->grisFeel);
-    this->juce::Component::addAndMakeVisible(this->close);
+    this->mCloseButton.setButtonText("Close");
+    this->mCloseButton.setBounds(300, 470, 100, 22);
+    this->mCloseButton.addListener(this);
+    this->mCloseButton.setColour(juce::ToggleButton::textColourId, this->mLookAndFeel->getFontColour());
+    this->mCloseButton.setLookAndFeel(this->mLookAndFeel);
+    this->juce::Component::addAndMakeVisible(this->mCloseButton);
 }
 
 //==============================================================================
 OscLogWindow::~OscLogWindow()
 {
-    this->mainParent->closeOscLogWindow();
+    this->mMainContentComponent->closeOscLogWindow();
 }
 
 //==============================================================================
-void OscLogWindow::addToLog(String msg)
+void OscLogWindow::addToLog(juce::String msg)
 {
-    if (this->activated) {
-        this->index++;
+    if (this->mActivated) {
+        this->mIndex++;
 
-        const MessageManagerLock mmLock;
+        const juce::MessageManagerLock mmLock;
 
-        this->logger.insertTextAtCaret(msg);
+        this->mLogger.insertTextAtCaret(msg);
 
-        if (this->index == 500) {
-            this->index = 0;
-            this->logger.loadContent(String(""));
+        if (this->mIndex == 500) {
+            this->mIndex = 0;
+            this->mLogger.loadContent(juce::String(""));
         }
     }
 }
@@ -81,22 +84,22 @@ void OscLogWindow::addToLog(String msg)
 //==============================================================================
 void OscLogWindow::closeButtonPressed()
 {
-    this->stop.setButtonText("Start");
-    this->activated = false;
-    this->mainParent->closeOscLogWindow();
+    this->mStopButton.setButtonText("Start");
+    this->mActivated = false;
+    this->mMainContentComponent->closeOscLogWindow();
     delete this;
 }
 
 //==============================================================================
-void OscLogWindow::buttonClicked(Button * button)
+void OscLogWindow::buttonClicked(juce::Button * button)
 {
-    if (button == &this->stop) {
+    if (button == &this->mStopButton) {
         if (button->getToggleState()) {
-            this->stop.setButtonText("Stop");
-            this->activated = true;
+            this->mStopButton.setButtonText("Stop");
+            this->mActivated = true;
         } else {
-            this->stop.setButtonText("Start");
-            this->activated = false;
+            this->mStopButton.setButtonText("Start");
+            this->mActivated = false;
         }
     } else {
         this->closeButtonPressed();

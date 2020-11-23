@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS2.
 
- Developers: Olivier Belanger, Nicolas Masson
+ Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
 
  SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@ bool OscInput::startConnection(int port)
 }
 
 //==============================================================================
-void OscInput::oscBundleReceived(const OSCBundle & bundle)
+void OscInput::oscBundleReceived(const juce::OSCBundle & bundle)
 {
     for (auto & element : bundle) {
         if (element.isMessage())
@@ -48,47 +48,53 @@ void OscInput::oscBundleReceived(const OSCBundle & bundle)
 }
 
 //==============================================================================
-void OscInput::oscMessageReceived(const OSCMessage & message)
+void OscInput::oscMessageReceived(const juce::OSCMessage & message)
 {
-    this->mainContentComponent.setOscLogging(message);
+    this->mMainContentComponent.setOscLogging(message);
     std::string address = message.getAddressPattern().toString().toStdString();
     if (message[0].isInt32()) {
-        if (address == OscSpatServ) {
+        if (address == OSC_SPAT_SERV) {
             // int id, float azi [0, 2pi], float ele [0, pi], float azispan [0, 2],
             // float elespan [0, 0.5], float distance [0, 1], float gain [0, 1].
             unsigned int idS = message[0].getInt32();
-            this->mainContentComponent.getLockInputs().lock();
-            if (this->mainContentComponent.getListSourceInput().size() > idS) {
-                this->mainContentComponent.getListSourceInput()[idS]->updateValues(
-                    message[1].getFloat32(), message[2].getFloat32(), message[3].getFloat32(), message[4].getFloat32(),
-                    this->mainContentComponent.isRadiusNormalized() ? 1.0 : message[5].getFloat32(),
-                    message[6].getFloat32(), this->mainContentComponent.getModeSelected());
-                this->mainContentComponent.updateInputJack(idS, *this->mainContentComponent.getListSourceInput()[idS]);
+            this->mMainContentComponent.getInputsLock().lock();
+            if (this->mMainContentComponent.getSourceInputs().size() > idS) {
+                this->mMainContentComponent.getSourceInputs()[idS]->updateValues(
+                    message[1].getFloat32(),
+                    message[2].getFloat32(),
+                    message[3].getFloat32(),
+                    message[4].getFloat32(),
+                    this->mMainContentComponent.isRadiusNormalized() ? 1.0 : message[5].getFloat32(),
+                    message[6].getFloat32(),
+                    this->mMainContentComponent.getModeSelected());
+                this->mMainContentComponent.updateInputJack(idS, *this->mMainContentComponent.getSourceInputs()[idS]);
             }
-            this->mainContentComponent.getLockInputs().unlock();
+            this->mMainContentComponent.getInputsLock().unlock();
         }
 
-        else if (address == OscPanAZ) {
+        else if (address == OSC_PAN_AZ) {
             // id, azim, elev, azimSpan, elevSpan, gain (Zirkonium artifact).
             unsigned int idS = message[0].getInt32();
-            this->mainContentComponent.getLockInputs().lock();
-            if (this->mainContentComponent.getListSourceInput().size() > idS) {
-                this->mainContentComponent.getListSourceInput()[idS]->updateValuesOld(
-                    message[1].getFloat32(), message[2].getFloat32(), message[3].getFloat32(), message[4].getFloat32(),
-                    message[5].getFloat32());
-                this->mainContentComponent.updateInputJack(idS, *this->mainContentComponent.getListSourceInput()[idS]);
+            this->mMainContentComponent.getInputsLock().lock();
+            if (this->mMainContentComponent.getSourceInputs().size() > idS) {
+                this->mMainContentComponent.getSourceInputs()[idS]->updateValuesOld(message[1].getFloat32(),
+                                                                                    message[2].getFloat32(),
+                                                                                    message[3].getFloat32(),
+                                                                                    message[4].getFloat32(),
+                                                                                    message[5].getFloat32());
+                this->mMainContentComponent.updateInputJack(idS, *this->mMainContentComponent.getSourceInputs()[idS]);
             }
-            this->mainContentComponent.getLockInputs().unlock();
+            this->mMainContentComponent.getInputsLock().unlock();
         }
     } else if (message[0].isString()) {
         // string "reset", int voice_to_reset.
-        this->mainContentComponent.getLockInputs().lock();
+        this->mMainContentComponent.getInputsLock().lock();
         if (message[0].getString().compare("reset") == 0) {
             unsigned int idS = message[1].getInt32();
-            if (this->mainContentComponent.getListSourceInput().size() > idS) {
-                this->mainContentComponent.getListSourceInput()[idS]->resetPosition();
+            if (this->mMainContentComponent.getSourceInputs().size() > idS) {
+                this->mMainContentComponent.getSourceInputs()[idS]->resetPosition();
             }
         }
-        this->mainContentComponent.getLockInputs().unlock();
+        this->mMainContentComponent.getInputsLock().unlock();
     }
 }
