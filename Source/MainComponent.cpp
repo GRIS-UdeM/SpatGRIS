@@ -2294,7 +2294,8 @@ void MainContentComponent::saveProperties(juce::String device,
 //==============================================================================
 void MainContentComponent::timerCallback()
 {
-    mJackLoadLabel->setText(juce::String(mJackClient.getCpuUsed() * 100.0f, 4) + " %", juce::dontSendNotification);
+    auto const cpuLoad{ static_cast<int>(std::round(mJackClient.getCpuUsed() * 100.0f)) };
+    mJackLoadLabel->setText(juce::String{ cpuLoad } + " %", juce::dontSendNotification);
     int seconds = mJackClient.getIndexRecord() / mJackClient.getSampleRate();
     int minute = int(seconds / 60) % 60;
     seconds = int(seconds % 60);
