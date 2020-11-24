@@ -19,45 +19,47 @@
 
 #pragma once
 
-#include <iostream>
-
 #include "macros.h"
 
 DISABLE_WARNINGS
 #include <JuceHeader.h>
 ENABLE_WARNINGS
 
-#include "GrisLookAndFeel.h"
-#include "JackClientGRIS.h"
-
+class GrisLookAndFeel;
 class LevelComponent;
 class MainContentComponent;
 
 //==============================================================================
 class Box final : public juce::Component
 {
-public:
-    Box(GrisLookAndFeel & feel,
-        juce::String const & title = "",
-        bool verticalScrollbar = false,
-        bool horizontalScrollbar = true);
-    ~Box() final { this->content.deleteAllChildren(); }
-    //==============================================================================
-    juce::Component * getContent() { return &this->content; }
-    juce::Component const * getContent() const { return &this->content; }
+    GrisLookAndFeel & mLookAndFeel;
 
-    void resized() final { this->viewport.setSize(this->getWidth(), this->getHeight()); }
+    juce::Component mContent;
+    juce::Viewport mViewport;
+    juce::String mTitle;
+
+public:
+    //==============================================================================
+    explicit Box(GrisLookAndFeel & feel,
+                 juce::String const & title = "",
+                 bool verticalScrollbar = false,
+                 bool horizontalScrollbar = true);
+    ~Box() override { this->mContent.deleteAllChildren(); }
+
+    Box(Box const &) = delete;
+    Box(Box &&) = delete;
+
+    Box & operator=(Box const &) = delete;
+    Box & operator=(Box &&) = delete;
+    //==============================================================================
+    juce::Component * getContent() { return &this->mContent; }
+    juce::Component const * getContent() const { return &this->mContent; }
+
+    void resized() override { this->mViewport.setSize(this->getWidth(), this->getHeight()); }
     void correctSize(unsigned int width, unsigned int height);
-    void paint(juce::Graphics & g) final;
+    void paint(juce::Graphics & g) override;
 
 private:
     //==============================================================================
-    GrisLookAndFeel & grisFeel;
-
-    juce::Component content;
-    juce::Viewport viewport;
-    // juce::Colour      bgColour;
-    juce::String title;
-    //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Box)
+    JUCE_LEAK_DETECTOR(Box)
 };
