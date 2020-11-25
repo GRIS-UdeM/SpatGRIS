@@ -134,8 +134,8 @@ LevelComponent::LevelComponent(ParentLevelComponent & parentLevelComponent,
                                bool const colorful)
     : mParentLevelComponent(parentLevelComponent)
     , mLookAndFeel(lookAndFeel)
-    , mIsColorful(colorful)
     , mLevelBox(*this, lookAndFeel)
+    , mIsColorful(colorful)
 {
     // Label
     this->mIdButton.setButtonText(juce::String{ this->mParentLevelComponent.getButtonInOutNumber() });
@@ -171,13 +171,13 @@ LevelComponent::LevelComponent(ParentLevelComponent & parentLevelComponent,
 
     // ComboBox (direct out)
     if (this->mParentLevelComponent.isInput()) {
-        this->directOut.setButtonText("-");
-        this->directOut.setSize(22, 17);
-        this->directOut.setColour(juce::Label::textColourId, lookAndFeel.getFontColour());
-        this->directOut.setLookAndFeel(&lookAndFeel);
-        this->directOut.addListener(this);
-        this->directOut.addMouseListener(this, true);
-        this->addAndMakeVisible(this->directOut);
+        this->mDirectOutButton.setButtonText("-");
+        this->mDirectOutButton.setSize(22, 17);
+        this->mDirectOutButton.setColour(juce::Label::textColourId, lookAndFeel.getFontColour());
+        this->mDirectOutButton.setLookAndFeel(&lookAndFeel);
+        this->mDirectOutButton.addListener(this);
+        this->mDirectOutButton.addMouseListener(this, true);
+        this->addAndMakeVisible(this->mDirectOutButton);
     }
 
     // Level box
@@ -185,15 +185,10 @@ LevelComponent::LevelComponent(ParentLevelComponent & parentLevelComponent,
 }
 
 //==============================================================================
-void LevelComponent::updateDirectOutMenu(juce::OwnedArray<Speaker> const & spkList)
+void LevelComponent::updateDirectOutMenu(std::vector<int> directOuts)
 {
-    if (this->mParentLevelComponent.isInput()) {
-        this->directOutSpeakers.clear();
-        for (auto const speaker : spkList) {
-            if (speaker->isDirectOut()) {
-                this->directOutSpeakers.push_back(speaker->getOutputPatch());
-            }
-        }
+    if (mParentLevelComponent.isInput()) {
+        mDirectOutSpeakers = std::move(directOuts);
     }
 }
 
@@ -227,11 +222,11 @@ void LevelComponent::buttonClicked(juce::Button * button)
         } else { // Output
             this->mParentLevelComponent.selectClick(this->mLastMouseButton);
         }
-    } else if (button == &this->directOut) {
+    } else if (button == &this->mDirectOutButton) {
         juce::PopupMenu menu{};
         menu.addItem(1, "-");
-        for (size_t i{}; i < this->directOutSpeakers.size(); ++i) {
-            menu.addItem(static_cast<int>(i) + 2, juce::String{ this->directOutSpeakers[i] });
+        for (size_t i{}; i < this->mDirectOutSpeakers.size(); ++i) {
+            menu.addItem(static_cast<int>(i) + 2, juce::String{ this->mDirectOutSpeakers[i] });
         }
 
         auto const result{ menu.show() };
@@ -239,10 +234,10 @@ void LevelComponent::buttonClicked(juce::Button * button)
         int value{};
         if (result != 0) {
             if (result == 1) {
-                this->directOut.setButtonText("-");
+                this->mDirectOutButton.setButtonText("-");
             } else {
-                value = this->directOutSpeakers[result - 2];
-                this->directOut.setButtonText(juce::String{ value });
+                value = this->mDirectOutSpeakers[result - 2];
+                this->mDirectOutButton.setButtonText(juce::String{ value });
             }
 
             this->mParentLevelComponent.changeDirectOutChannel(value);
@@ -330,7 +325,7 @@ void LevelComponent::setBounds(juce::Rectangle<int> const & newBounds)
                                       this->mMuteToggleButton.getWidth(),
                                       this->mMuteToggleButton.getHeight());
     if (this->mParentLevelComponent.isInput()) {
-        this->directOut.setBounds(0, getHeight() - 27, newBounds.getWidth(), this->directOut.getHeight());
+        this->mDirectOutButton.setBounds(0, getHeight() - 27, newBounds.getWidth(), this->mDirectOutButton.getHeight());
     }
 
     juce::Rectangle<int> const level{ 0, 18, newBounds.getWidth() - WIDTH_RECT, levelSize };

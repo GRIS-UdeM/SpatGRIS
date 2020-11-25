@@ -339,8 +339,8 @@ void Input::setDirectOutChannel(int const chn)
 {
     mDirectOutChannel = chn;
     if (chn == 0) {
-        mVuMeter.directOut.setButtonText("-");
+        mVuMeter.getDirectOutButton().setButtonText("-");
     } else {
-        mVuMeter.directOut.setButtonText(juce::String(chn));
+        mVuMeter.getDirectOutButton().setButtonText(juce::String(chn));
     }
 }

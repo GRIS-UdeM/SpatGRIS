@@ -39,6 +39,7 @@ ENABLE_WARNINGS
 #include "OscInput.h"
 #include "OscLogWindow.h"
 #include "PropertiesWindow.h"
+#include "Speaker.h"
 #include "SpeakerViewComponent.h"
 
 class MainWindow;

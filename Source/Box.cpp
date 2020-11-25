@@ -19,8 +19,8 @@
 
 #include "Box.h"
 
+#include "GrisLookAndFeel.h"
 #include "LevelComponent.h"
-#include "MainComponent.h"
 
 //==============================================================================
 Box::Box(GrisLookAndFeel & feel,

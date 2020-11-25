@@ -1274,7 +1274,7 @@ void MainContentComponent::addSpeaker(int const sortColumnId, bool const isSorte
     auto const newId{ getMaxSpeakerId() + 1 };
 
     mSpeakerLocks.lock();
-    mSpeakers.add(new Speaker{ this, newId, newId, 0.0f, 0.0f, 1.0f });
+    mSpeakers.add(new Speaker{ *this, newId, newId, 0.0f, 0.0f, 1.0f });
 
     if (sortColumnId == 1 && isSortedForwards) {
         for (int i{}; i < mSpeakers.size(); ++i) {
@@ -1302,18 +1302,18 @@ void MainContentComponent::insertSpeaker(int const position, int const sortColum
     mSpeakerLocks.lock();
     if (sortColumnId == 1 && isSortedForwards) {
         newId = mSpeakers[position]->getIdSpeaker() + 1;
-        mSpeakers.insert(newPosition, new Speaker{ this, newId, newOut, 0.0f, 0.0f, 1.0f });
+        mSpeakers.insert(newPosition, new Speaker{ *this, newId, newOut, 0.0f, 0.0f, 1.0f });
         for (int i{}; i < mSpeakers.size(); ++i) {
             mSpeakers.getUnchecked(i)->setSpeakerId(i + 1);
         }
     } else if (sortColumnId == 1 && !isSortedForwards) {
         newId = mSpeakers[position]->getIdSpeaker() - 1;
-        mSpeakers.insert(newPosition, new Speaker{ this, newId, newOut, 0.0f, 0.0f, 1.0f });
+        mSpeakers.insert(newPosition, new Speaker{ *this, newId, newOut, 0.0f, 0.0f, 1.0f });
         for (int i{}; i < mSpeakers.size(); ++i) {
             mSpeakers.getUnchecked(i)->setSpeakerId(mSpeakers.size() - i);
         }
     } else {
-        mSpeakers.insert(newPosition, new Speaker{ this, newId, newOut, 0.0f, 0.0f, 1.0f });
+        mSpeakers.insert(newPosition, new Speaker{ *this, newId, newOut, 0.0f, 0.0f, 1.0f });
     }
     mSpeakerLocks.unlock();
 
@@ -1625,10 +1625,18 @@ bool MainContentComponent::updateLevelComp()
     i = 0;
     x = 2;
     mInputLocks.lock();
+    std::vector<int> directOutMenuItems{};
+    for (auto const * speaker : mSpeakers) {
+        if (speaker->isDirectOut()) {
+            directOutMenuItems.push_back(speaker->getOutputPatch());
+        }
+    }
     for (auto * input : mSourceInputs) {
         juce::Rectangle<int> level{ x, 4, VU_METER_WIDTH_IN_PIXELS, 200 };
         input->getVuMeter()->setBounds(level);
-        input->getVuMeter()->updateDirectOutMenu(mSpeakers);
+        if (input->isInput()) { // TODO : wut?
+            input->getVuMeter()->updateDirectOutMenu(directOutMenuItems);
+        }
         input->getVuMeter()->resetClipping();
         mInputsUiBox->getContent()->addAndMakeVisible(input->getVuMeter());
         input->getVuMeter()->repaint();
@@ -1859,7 +1867,7 @@ void MainContentComponent::openXmlFileSpeaker(juce::String const & path)
                                     maxLayoutIndex = layoutIndex;
                                 }
 
-                                mSpeakers.add(new Speaker{ this,
+                                mSpeakers.add(new Speaker{ *this,
                                                            layoutIndex,
                                                            spk->getIntAttribute("OutputPatch"),
                                                            static_cast<float>(spk->getDoubleAttribute("Azimuth")),

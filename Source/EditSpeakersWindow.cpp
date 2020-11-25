@@ -22,6 +22,7 @@
 #include "EditableTextCustomComponent.h"
 #include "GrisLookAndFeel.h"
 #include "MainComponent.h"
+#include "Speaker.h"
 
 //==============================================================================
 static double getFloatPrecision(double const value, double const precision)
