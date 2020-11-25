@@ -1478,7 +1478,7 @@ bool MainContentComponent::updateLevelComp()
     }
 
     auto dimensions{ 2 };
-    unsigned directOutSpeakers{};
+    int directOutSpeakers{};
 
     // Test for a 2-D or 3-D configuration.
     auto zenith{ -1.0f };

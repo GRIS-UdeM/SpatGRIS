@@ -25,21 +25,21 @@
 //==============================================================================
 OscInput::~OscInput()
 {
-    this->disconnect();
+    disconnect();
 }
 
 //==============================================================================
 bool OscInput::startConnection(int port)
 {
-    bool b = this->connect(port);
-    this->addListener(this);
+    bool b = connect(port);
+    addListener(this);
     return b;
 }
 
 //==============================================================================
 void OscInput::oscBundleReceived(const juce::OSCBundle & bundle)
 {
-    for (auto & element : bundle) {
+    for (auto const & element : bundle) {
         if (element.isMessage())
             oscMessageReceived(element.getMessage());
         else if (element.isBundle())
@@ -50,51 +50,51 @@ void OscInput::oscBundleReceived(const juce::OSCBundle & bundle)
 //==============================================================================
 void OscInput::oscMessageReceived(const juce::OSCMessage & message)
 {
-    this->mMainContentComponent.setOscLogging(message);
-    std::string address = message.getAddressPattern().toString().toStdString();
+    mMainContentComponent.setOscLogging(message);
+    auto const address{ message.getAddressPattern().toString().toStdString() };
     if (message[0].isInt32()) {
         if (address == OSC_SPAT_SERV) {
             // int id, float azi [0, 2pi], float ele [0, pi], float azispan [0, 2],
             // float elespan [0, 0.5], float distance [0, 1], float gain [0, 1].
-            unsigned int idS = message[0].getInt32();
-            this->mMainContentComponent.getInputsLock().lock();
-            if (this->mMainContentComponent.getSourceInputs().size() > idS) {
-                this->mMainContentComponent.getSourceInputs()[idS]->updateValues(
+            auto const idS{ message[0].getInt32() };
+            mMainContentComponent.getInputsLock().lock();
+            if (mMainContentComponent.getSourceInputs().size() > idS) {
+                mMainContentComponent.getSourceInputs()[idS]->updateValues(
                     message[1].getFloat32(),
                     message[2].getFloat32(),
                     message[3].getFloat32(),
                     message[4].getFloat32(),
-                    this->mMainContentComponent.isRadiusNormalized() ? 1.0 : message[5].getFloat32(),
+                    mMainContentComponent.isRadiusNormalized() ? 1.0f : message[5].getFloat32(),
                     message[6].getFloat32(),
-                    this->mMainContentComponent.getModeSelected());
-                this->mMainContentComponent.updateInputJack(idS, *this->mMainContentComponent.getSourceInputs()[idS]);
+                    mMainContentComponent.getModeSelected());
+                mMainContentComponent.updateInputJack(idS, *mMainContentComponent.getSourceInputs()[idS]);
             }
-            this->mMainContentComponent.getInputsLock().unlock();
+            mMainContentComponent.getInputsLock().unlock();
         }
 
         else if (address == OSC_PAN_AZ) {
             // id, azim, elev, azimSpan, elevSpan, gain (Zirkonium artifact).
-            unsigned int idS = message[0].getInt32();
-            this->mMainContentComponent.getInputsLock().lock();
-            if (this->mMainContentComponent.getSourceInputs().size() > idS) {
-                this->mMainContentComponent.getSourceInputs()[idS]->updateValuesOld(message[1].getFloat32(),
-                                                                                    message[2].getFloat32(),
-                                                                                    message[3].getFloat32(),
-                                                                                    message[4].getFloat32(),
-                                                                                    message[5].getFloat32());
-                this->mMainContentComponent.updateInputJack(idS, *this->mMainContentComponent.getSourceInputs()[idS]);
+            auto const idS{ message[0].getInt32() };
+            mMainContentComponent.getInputsLock().lock();
+            if (mMainContentComponent.getSourceInputs().size() > idS) {
+                mMainContentComponent.getSourceInputs()[idS]->updateValuesOld(message[1].getFloat32(),
+                                                                              message[2].getFloat32(),
+                                                                              message[3].getFloat32(),
+                                                                              message[4].getFloat32(),
+                                                                              message[5].getFloat32());
+                mMainContentComponent.updateInputJack(idS, *mMainContentComponent.getSourceInputs()[idS]);
             }
-            this->mMainContentComponent.getInputsLock().unlock();
+            mMainContentComponent.getInputsLock().unlock();
         }
     } else if (message[0].isString()) {
         // string "reset", int voice_to_reset.
-        this->mMainContentComponent.getInputsLock().lock();
+        mMainContentComponent.getInputsLock().lock();
         if (message[0].getString().compare("reset") == 0) {
-            unsigned int idS = message[1].getInt32();
-            if (this->mMainContentComponent.getSourceInputs().size() > idS) {
-                this->mMainContentComponent.getSourceInputs()[idS]->resetPosition();
+            auto const idS{ message[1].getInt32() };
+            if (mMainContentComponent.getSourceInputs().size() > idS) {
+                mMainContentComponent.getSourceInputs()[idS]->resetPosition();
             }
         }
-        this->mMainContentComponent.getInputsLock().unlock();
+        mMainContentComponent.getInputsLock().unlock();
     }
 }

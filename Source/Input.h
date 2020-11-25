@@ -54,20 +54,20 @@ class Input final : public ParentLevelComponent
     SmallGrisLookAndFeel & mLookAndFeel;
 
     int mIdChannel;
-    int mDirectOutChannel;
+    int mDirectOutChannel{};
 
-    float mAzimuth;
-    float mZenith;
-    float mRadius;
+    float mAzimuth{};
+    float mZenith{};
+    float mRadius{};
 
-    float mAzimuthSpan;
-    float mZenithSpan;
-    float mGain;
+    float mAzimuthSpan{};
+    float mZenithSpan{};
+    float mGain{};
     float mSizeT = 0.3f;
 
-    glm::vec3 mCenter;
-    glm::vec3 mColor;
-    juce::Colour mColorJ;
+    glm::vec3 mCenter{};
+    glm::vec3 mColor{};
+    juce::Colour mColorJ{};
 
     LevelComponent mVuMeter;
 
@@ -118,7 +118,7 @@ public:
     void resetPosition();
     void draw();
     void updateValues(float az, float ze, float azS, float zeS, float radius, float g, ModeSpatEnum mode);
-    void updateValuesOld(float az, float ze, float azS, float zeS, float g);
+    void updateValuesOld(float azimuth, float zenith, float azimuthSpan, float zenithSpan, float g);
     //==============================================================================
     [[nodiscard]] bool isInput() const override { return true; }
     void changeDirectOutChannel(int const chn) override { mDirectOutChannel = chn; }
@@ -126,8 +126,8 @@ public:
     [[nodiscard]] int getDirectOutChannel() const override { return mDirectOutChannel; };
     void sendDirectOutToClient(int id, int chn) override;
 
-    void drawSpan();
-    void drawSpanLbap(float x, float y, float z);
+    void drawSpan() const;
+    void drawSpanLbap(float x, float y, float z) const;
 
 private:
     //==============================================================================
