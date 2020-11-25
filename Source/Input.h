@@ -40,6 +40,7 @@ DISABLE_WARNINGS
 #include <JuceHeader.h>
 ENABLE_WARNINGS
 
+#include "JackClientGRIS.h"
 #include "LevelComponent.h"
 #include "ParentLevelComponent.h"
 
@@ -116,7 +117,7 @@ public:
     //==============================================================================
     void resetPosition();
     void draw();
-    void updateValues(float az, float ze, float azS, float zeS, float radius, float g, int mode);
+    void updateValues(float az, float ze, float azS, float zeS, float radius, float g, ModeSpatEnum mode);
     void updateValuesOld(float az, float ze, float azS, float zeS, float g);
     //==============================================================================
     [[nodiscard]] bool isInput() const override { return true; }

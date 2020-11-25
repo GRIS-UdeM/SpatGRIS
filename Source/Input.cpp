@@ -161,7 +161,7 @@ void Input::draw()
     glTranslatef(-this->mCenter.x, -this->mCenter.y, -this->mCenter.z);
 
     if ((this->mAzimuthSpan != 0.0f || this->mZenithSpan != 0.0f) && this->mMainContentComponent.isSpanShown()) {
-        if (this->mMainContentComponent.getModeSelected() == 1) {
+        if (this->mMainContentComponent.getModeSelected() == ModeSpatEnum::LBAP) {
             drawSpanLbap(this->mCenter.x, this->mCenter.y, this->mCenter.z);
         } else {
             drawSpan();
@@ -195,7 +195,7 @@ void Input::drawSpan()
             else if (newazi < -juce::MathConstants<float>::pi)
                 newazi += juce::MathConstants<float>::twoPi;
 
-            if (this->mMainContentComponent.getModeSelected() == 1) {
+            if (this->mMainContentComponent.getModeSelected() == ModeSpatEnum::LBAP) {
                 cart = this->polToCar3d(newazi, this->mZenith);
             } else {
                 cart = this->polToCar(newazi, this->mZenith);
@@ -214,7 +214,7 @@ void Input::drawSpan()
                         newele = 0.0f;
                     }
 
-                    if (this->mMainContentComponent.getModeSelected() == 1) {
+                    if (this->mMainContentComponent.getModeSelected() == ModeSpatEnum::LBAP) {
                         cart = this->polToCar3d(newazi, newele);
                     } else {
                         cart = this->polToCar(newazi, newele);
@@ -290,7 +290,13 @@ void Input::drawSpanLbap(float x, float y, float z)
 }
 
 //==============================================================================
-void Input::updateValues(float az, float ze, float azS, float zeS, float radius, float g, int mode)
+void Input::updateValues(float const az,
+                         float const ze,
+                         float const azS,
+                         float const zeS,
+                         float const radius,
+                         float const g,
+                         ModeSpatEnum const mode)
 {
     this->mAzimuth = az;
     this->mZenith = ze;
@@ -299,9 +305,9 @@ void Input::updateValues(float az, float ze, float azS, float zeS, float radius,
     this->mRadius = radius;
     this->mGain = g;
 
-    float factor = radius * 10.0f;
+    auto const factor{ radius * 10.0f };
 
-    if (mode == 1) {
+    if (mode == ModeSpatEnum::LBAP) {
         this->mCenter.x = (factor * cosf(this->mAzimuth));
         this->mCenter.z = (factor * sinf(this->mAzimuth));
         this->mCenter.y = ((10.0f * cosf(this->mZenith)) + (mSizeT / 2.0f));

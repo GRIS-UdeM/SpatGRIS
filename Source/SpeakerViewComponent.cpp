@@ -155,7 +155,7 @@ void SpeakerViewComponent::render()
             glLineWidth(1.0f);
             glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
             glColor3f(0.8f, 0.2f, 0.1f);
-            if (mMainContentComponent.getModeSelected() == LBAP) {
+            if (mMainContentComponent.getModeSelected() == ModeSpatEnum::LBAP) {
                 // Draw a cube when in LBAP mode.
                 for (auto i{ -10 }; i <= 10; i += 2) {
                     auto const i_f{ static_cast<float>(i) };
@@ -335,7 +335,7 @@ void SpeakerViewComponent::drawOriginGrid() const
     glLineWidth(1.5f);
     glColor3f(0.59, 0.59, 0.59);
 
-    if (mMainContentComponent.getModeSelected() == LBAP) {
+    if (mMainContentComponent.getModeSelected() == ModeSpatEnum::LBAP) {
         // Draw light squares.
         for (auto j{ 3.5f }; j < 19.f; j += 6.75f) {
             glBegin(GL_LINES);
@@ -407,7 +407,7 @@ void SpeakerViewComponent::drawOriginGrid() const
     glVertex3f(-std::cos(quarterPi * 3.0f) * 14.5f, 0.0f, -std::sin(quarterPi * 3.0f) * 14.5f);
     glEnd();
 
-    if (mMainContentComponent.getModeSelected() == LBAP) {
+    if (mMainContentComponent.getModeSelected() == ModeSpatEnum::LBAP) {
         // Draw grey squares.
         for (auto j{ 6.875f }; j < 15.0f; j += 6.75f) {
             glBegin(GL_LINES);

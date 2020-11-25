@@ -376,7 +376,7 @@ void JackClientGris::prepareToRecord()
     juce::String extF = fileS.getFileExtension();
     juce::String parent = fileS.getParentDirectory().getFullPathName();
 
-    if (mModeSelected == VBAP || mModeSelected == LBAP) {
+    if (mModeSelected == ModeSpatEnum::VBAP || mModeSelected == ModeSpatEnum::LBAP) {
         num_of_channels = (int)mOutputsPort.size();
         for (int i = 0; i < num_of_channels; ++i) {
             if (intVectorContains(mOutputPatches, i + 1)) {
@@ -386,7 +386,7 @@ void JackClientGris::prepareToRecord()
                 mOutputFileNames.add(fileC);
             }
         }
-    } else if (mModeSelected == VBAP_HRTF || mModeSelected == STEREO) {
+    } else if (mModeSelected == ModeSpatEnum::VBAP_HRTF || mModeSelected == ModeSpatEnum::STEREO) {
         num_of_channels = 2;
         for (int i = 0; i < num_of_channels; ++i) {
             channelName = parent + "/" + fname + "_" + juce::String(i + 1).paddedLeft('0', 3) + extF;
@@ -503,7 +503,7 @@ void JackClientGris::muteSoloVuMeterGainOut(jack_default_audio_sample_t ** outs,
     unsigned int num_of_channels = 2;
     double inval = 0.0, val = 0.0;
 
-    if (mModeSelected == VBAP || mModeSelected == LBAP) {
+    if (mModeSelected == ModeSpatEnum::VBAP || mModeSelected == ModeSpatEnum::LBAP) {
         num_of_channels = sizeOutputs;
     }
 
@@ -941,16 +941,16 @@ int JackClientGris::processAudio(jack_nframes_t const nframes)
     muteSoloVuMeterIn(ins, nframes, sizeInputs);
 
     switch (mModeSelected) {
-    case VBAP:
+    case ModeSpatEnum::VBAP:
         processVbap(ins, outs, nframes, sizeInputs, sizeOutputs);
         break;
-    case LBAP:
+    case ModeSpatEnum::LBAP:
         processLbap(ins, outs, nframes, sizeInputs, sizeOutputs);
         break;
-    case VBAP_HRTF:
+    case ModeSpatEnum::VBAP_HRTF:
         processVBapHrtf(ins, outs, nframes, sizeInputs, sizeOutputs);
         break;
-    case STEREO:
+    case ModeSpatEnum::STEREO:
         processStereo(ins, outs, nframes, sizeInputs, sizeOutputs);
         break;
     default:

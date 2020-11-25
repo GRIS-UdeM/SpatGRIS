@@ -137,7 +137,7 @@ struct SpeakerOut {
 
 //==============================================================================
 // Spatialization modes.
-typedef enum { VBAP = 0, LBAP, VBAP_HRTF, STEREO } ModeSpatEnum;
+enum class ModeSpatEnum { VBAP = 0, LBAP, VBAP_HRTF, STEREO };
 
 //==============================================================================
 class JackClientGris
@@ -206,7 +206,7 @@ class JackClientGris
     bool mIsOverloaded{ false };
 
     // Which spatialization mode is selected.
-    ModeSpatEnum mModeSelected{ VBAP };
+    ModeSpatEnum mModeSelected{ ModeSpatEnum::VBAP };
 
     bool mAutoConnection{ false }; // not sure this one is necessary ?
 

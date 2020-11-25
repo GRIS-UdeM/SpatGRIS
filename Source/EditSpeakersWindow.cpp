@@ -960,7 +960,7 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
 
     textLabel->setRowAndColumn(rowNumber, columnId);
 
-    if (mMainContentComponent.getModeSelected() == LBAP
+    if (mMainContentComponent.getModeSelected() == ModeSpatEnum::LBAP
         || mMainContentComponent.getSpeakers()[rowNumber]->isDirectOut()) {
         if (columnId < 2) {
             textLabel->setEditable(false);
@@ -975,9 +975,9 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
 }
 
 //==============================================================================
-int EditSpeakersWindow::getModeSelected() const
+ModeSpatEnum EditSpeakersWindow::getModeSelected() const
 {
-    return mMainContentComponent.getModeSelected();
+    return static_cast<ModeSpatEnum>(mMainContentComponent.getModeSelected());
 }
 
 //==============================================================================

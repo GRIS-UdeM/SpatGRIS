@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include "JackClientGRIS.h"
 #include "macros.h"
 
 DISABLE_WARNINGS
@@ -89,7 +90,7 @@ public:
 
 private:
     //==============================================================================
-    int getModeSelected() const;
+    ModeSpatEnum getModeSelected() const;
     bool getDirectOutForSpeakerRow(int row) const;
     juce::String getText(int columnNumber, int rowNumber) const;
     void setText(int columnNumber, int rowNumber, juce::String const & newText, bool altDown = false);

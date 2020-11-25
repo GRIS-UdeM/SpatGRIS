@@ -331,7 +331,7 @@ public:
     void textEditorReturnKeyPressed(juce::TextEditor & textEditor) override;
     void comboBoxChanged(juce::ComboBox const * comboBox) override;
 
-    int getModeSelected() const { return this->mModeSpatCombo->getSelectedId() - 1; }
+    ModeSpatEnum getModeSelected() const { return static_cast<ModeSpatEnum>(mModeSpatCombo->getSelectedId() - 1); }
 
     void setOscLogging(const juce::OSCMessage & message) const;
 
