@@ -282,7 +282,7 @@ public:
     std::vector<int> getDirectOutOutputPatches() const;
 
     // Manage clients.
-    void connectionClient(juce::String name, bool connect = true);
+    void connectionClient(juce::String const & name, bool connect = true);
     void updateClientPortAvailable(bool fromJack);
 
     std::string getClientName(char const * port) const;

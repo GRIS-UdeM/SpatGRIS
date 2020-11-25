@@ -1161,7 +1161,7 @@ void JackClientGris::updateSourceVbap(int const idS)
 }
 
 //==============================================================================
-void JackClientGris::connectionClient(juce::String name, bool connect)
+void JackClientGris::connectionClient(juce::String const & name, bool connect)
 {
     const char ** portsOut = jack_get_ports(mClient, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput);
     const char ** portsIn = jack_get_ports(mClient, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput);

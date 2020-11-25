@@ -56,8 +56,8 @@ class MainContentComponent final
     , private juce::Timer
 {
     // Jack server - client.
-    std::unique_ptr<JackServerGris> mJackServer;
-    JackClientGris mJackClient;
+    std::unique_ptr<JackServerGris> mJackServer{};
+    JackClientGris mJackClient{};
 
     // Speakers.
     std::vector<Triplet> mTriplets{};
@@ -120,11 +120,11 @@ class MainContentComponent final
 
     // UI Components.
     std::unique_ptr<SpeakerViewComponent> mSpeakerViewComponent{};
-    juce::StretchableLayoutManager mVerticalLayout;
+    juce::StretchableLayoutManager mVerticalLayout{};
     std::unique_ptr<juce::StretchableLayoutResizerBar> mVerticalDividerBar{};
 
     // App splash screen.
-    std::unique_ptr<juce::SplashScreen> mSplashScreen;
+    std::unique_ptr<juce::SplashScreen> mSplashScreen{};
 
     // Flags.
     bool mIsProcessForeground{ true };
@@ -135,22 +135,22 @@ class MainContentComponent final
     //==============================================================================
     // Look-and-feel.
     GrisLookAndFeel & mLookAndFeel;
-    SmallGrisLookAndFeel mSmallLookAndFeel;
+    SmallGrisLookAndFeel mSmallLookAndFeel{};
 
     MainWindow & mMainWindow;
 
-    std::unique_ptr<juce::MenuBarComponent> mMenuBar;
+    std::unique_ptr<juce::MenuBarComponent> mMenuBar{};
     //==============================================================================
     // App user settings.
     int mOscInputPort = 18032;
     unsigned int mSamplingRate = 48000;
 
-    juce::ApplicationProperties mApplicationProperties;
-    juce::Rectangle<int> mFlatViewWindowRect;
+    juce::ApplicationProperties mApplicationProperties{};
+    juce::Rectangle<int> mFlatViewWindowRect{};
 
     // Visual flags.
     bool mIsSourceLevelShown{ false };
-    bool mIsSpeakerLevelShown;
+    bool mIsSpeakerLevelShown{};
     bool mIsTripletsShown{ false };
     bool mIsSpanShown{ true };
 
@@ -186,7 +186,7 @@ public:
     void handleShowSpeakerEditWindow();
     void handleShowPreferences();
     void handleShowAbout();
-    void handleOpenManual();
+    static void handleOpenManual();
     void handleShow2DView();
     void handleShowNumbers();
     void setShowNumbers(bool state);
@@ -256,7 +256,7 @@ public:
 
     std::mutex & getClientsLock() { return mJackClient.getClientsLock(); }
 
-    void connectionClientJack(juce::String nameCli, bool conn = true);
+    void connectionClientJack(juce::String const & clientName, bool conn = true);
 
     // VBAP triplets.
     void setTripletsFromVbap();
@@ -266,9 +266,9 @@ public:
     std::vector<Triplet> const & getTriplets() const { return this->mTriplets; }
 
     // Speaker selections.
-    void selectSpeaker(unsigned int idS);
+    void selectSpeaker(int const idS) const;
     void selectTripletSpeaker(int idS);
-    bool tripletExists(Triplet tri, int & pos) const;
+    bool tripletExists(Triplet const & tri, int & pos) const;
 
     // Mute - solo.
     void muteInput(int id, bool mute);
@@ -295,11 +295,11 @@ public:
     // Open - save.
     void openXmlFileSpeaker(juce::String const & path);
     void reloadXmlFileSpeaker();
-    void openPreset(juce::String path);
+    void openPreset(juce::String const & path);
     void getPresetData(juce::XmlElement * xml) const;
-    void savePreset(juce::String path);
-    void saveSpeakerSetup(juce::String path);
-    void saveProperties(juce::String device,
+    void savePreset(juce::String const & path);
+    void saveSpeakerSetup(juce::String const & path);
+    void saveProperties(juce::String const & device,
                         int rate,
                         int buff,
                         int fileFormat,
@@ -309,7 +309,7 @@ public:
                         int oscPort);
     void chooseRecordingPath();
     void setNameConfig();
-    void setTitle();
+    void setTitle() const;
 
     // Screen refresh timer.
     void handleTimer(bool state);
@@ -329,11 +329,11 @@ public:
     void sliderValueChanged(juce::Slider * slider) override;
     void textEditorFocusLost(juce::TextEditor & textEditor) override;
     void textEditorReturnKeyPressed(juce::TextEditor & textEditor) override;
-    void comboBoxChanged(juce::ComboBox * comboBox) override;
+    void comboBoxChanged(juce::ComboBox const * comboBox) override;
 
     int getModeSelected() const { return this->mModeSpatCombo->getSelectedId() - 1; }
 
-    void setOscLogging(const juce::OSCMessage & message);
+    void setOscLogging(const juce::OSCMessage & message) const;
 
     //==============================================================================
     // Widget creation helper.

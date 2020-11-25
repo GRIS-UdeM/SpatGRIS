@@ -51,7 +51,7 @@ class JackClientListComponent final
         //==============================================================================
         void resized() final { comboBox.setBoundsInset(juce::BorderSize<int>(2)); }
         void setRowAndColumn(int newRow, int newColumn);
-        void comboBoxChanged(juce::ComboBox *) final { owner.setValue(row, columnId, comboBox.getSelectedId()); }
+        void comboBoxChanged(juce::ComboBox const *) final { owner.setValue(row, columnId, comboBox.getSelectedId()); }
 
     private:
         //==============================================================================

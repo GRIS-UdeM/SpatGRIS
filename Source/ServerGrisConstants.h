@@ -55,4 +55,4 @@ extern const juce::StringArray FILE_CONFIGS;
 extern const juce::StringArray ATTENUATION_DB;
 extern const juce::StringArray ATTENUATION_CUTOFFS;
 
-extern const unsigned int VU_METER_WIDTH_IN_PIXELS;
+static constexpr int VU_METER_WIDTH_IN_PIXELS = 22;

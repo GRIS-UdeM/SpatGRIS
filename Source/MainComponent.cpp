@@ -31,12 +31,12 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow, GrisLookAndF
 {
     juce::LookAndFeel::setDefaultLookAndFeel(&newLookAndFeel);
 
-    // Create the menubar.
+    // Create the menu bar.
     mMenuBar.reset(new juce::MenuBarComponent(this));
     addAndMakeVisible(mMenuBar.get());
 
     // App user settings storage file.
-    juce::PropertiesFile::Options options;
+    juce::PropertiesFile::Options options{};
     options.applicationName = "SpatGRIS2";
     options.commonToAllUsers = false;
     options.filenameSuffix = "xml";
@@ -103,9 +103,9 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow, GrisLookAndF
     mInterpolationSlider.reset(addSlider("Inter", "Interpolation", 70, 45, 60, 60, mControlUiBox->getContent()));
     mInterpolationSlider->setRange(0.0, 1.0, 0.001);
 
-    addLabel("Mode :", "Mode of spatilization", 150, 30, 60, 20, mControlUiBox->getContent());
-    mModeSpatCombo.reset(addComboBox("", "Mode of spatilization", 155, 48, 90, 22, mControlUiBox->getContent()));
-    for (int i = 0; i < MODE_SPAT_STRING.size(); i++) {
+    addLabel("Mode :", "Mode of spatialization", 150, 30, 60, 20, mControlUiBox->getContent());
+    mModeSpatCombo.reset(addComboBox("", "Mode of spatialization", 155, 48, 90, 22, mControlUiBox->getContent()));
+    for (int i{}; i < MODE_SPAT_STRING.size(); i++) {
         mModeSpatCombo->addItem(MODE_SPAT_STRING[i], i + 1);
     }
 
@@ -134,7 +134,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow, GrisLookAndF
     mVerticalLayout.setItemLayout(1, 8, 8, 8); // the vertical divider drag-bar thing is always 8 pixels wide
     mVerticalLayout.setItemLayout(
         2,
-        150,
+        150.0,
         -1.0,
         -0.565); // right panes must be at least 150 pixels wide, preferably 50% of the total width
     mVerticalDividerBar.reset(new juce::StretchableLayoutResizerBar(&mVerticalLayout, 1, true));
@@ -144,12 +144,12 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow, GrisLookAndF
     setSize(1285, 610);
 
     // Jack Initialization parameters.
-    unsigned int bufferValue = props->getIntValue("BufferValue", 1024);
-    unsigned int rateValue = props->getIntValue("RateValue", 48000);
+    auto bufferValue{ static_cast<unsigned>(props->getIntValue("BufferValue", 1024)) };
+    auto rateValue{ static_cast<unsigned>(props->getIntValue("RateValue", 48000)) };
 
     if (bufferValue == 0 || rateValue == 0) {
-        bufferValue = 1024;
-        rateValue = 48000;
+        bufferValue = 1024u;
+        rateValue = 48000u;
     }
 
     mSamplingRate = rateValue;
@@ -157,7 +157,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow, GrisLookAndF
     // Start Jack Server and client.
     mAlsaOutputDevice = props->getValue("AlsaOutputDevice", "");
     int errorCode{};
-    mJackServer.reset(new JackServerGris(rateValue, bufferValue, mAlsaOutputDevice, &errorCode));
+    mJackServer.reset(new JackServerGris{ rateValue, bufferValue, mAlsaOutputDevice, &errorCode });
     if (errorCode > 0) {
         juce::String msg;
         if (errorCode == 1) {
@@ -172,9 +172,8 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow, GrisLookAndF
             "Jack Server Failure",
             msg
                 + juce::String("\nYou should check for any mismatch between the server and your "
-                               "device\n(Sampling Rate, Input/Ouput Channels, etc.)"));
+                               "device\n(Sampling Rate, Input/Output Channels, etc.)"));
     }
-    // mJackClient.reset(new JackClientGris{});
 
     mAlsaAvailableOutputDevices = mJackServer->getAvailableOutputDevices();
 
@@ -237,7 +236,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow, GrisLookAndF
     }
 #endif
 
-    // Initialize the command manager for the menubar items.
+    // Initialize the command manager for the menu bar items.
     auto & commandManager{ mMainWindow.getApplicationCommandManager() };
     commandManager.registerAllCommandsForTarget(this);
 
@@ -271,8 +270,8 @@ MainContentComponent::~MainContentComponent()
 
 //==============================================================================
 // Widget builder utilities.
-juce::Label * MainContentComponent::addLabel(juce::String const const & s,
-                                             juce::String const const & tooltip,
+juce::Label * MainContentComponent::addLabel(juce::String const & s,
+                                             juce::String const & tooltip,
                                              int const x,
                                              int const y,
                                              int const w,
@@ -313,8 +312,8 @@ juce::TextButton * MainContentComponent::addButton(juce::String const & s,
 }
 
 //==============================================================================
-juce::ToggleButton * MainContentComponent::addToggleButton(juce::String const const & s,
-                                                           juce::String const const & tooltip,
+juce::ToggleButton * MainContentComponent::addToggleButton(juce::String const & s,
+                                                           juce::String const & tooltip,
                                                            int const x,
                                                            int const y,
                                                            int const w,
@@ -336,9 +335,9 @@ juce::ToggleButton * MainContentComponent::addToggleButton(juce::String const co
 }
 
 //==============================================================================
-juce::TextEditor * MainContentComponent::addTextEditor(juce::String const const const & s,
-                                                       juce::String const const const & emptyS,
-                                                       juce::String const const const & tooltip,
+juce::TextEditor * MainContentComponent::addTextEditor(juce::String const & s,
+                                                       juce::String const & emptyS,
+                                                       juce::String const & tooltip,
                                                        int const x,
                                                        int const y,
                                                        int const w,
@@ -366,8 +365,8 @@ juce::TextEditor * MainContentComponent::addTextEditor(juce::String const const 
 }
 
 //==============================================================================
-juce::Slider * MainContentComponent::addSlider(juce::String const const & /*s*/,
-                                               juce::String const const & tooltip,
+juce::Slider * MainContentComponent::addSlider(juce::String const & /*s*/,
+                                               juce::String const & tooltip,
                                                int const x,
                                                int const y,
                                                int const w,
@@ -389,8 +388,8 @@ juce::Slider * MainContentComponent::addSlider(juce::String const const & /*s*/,
 }
 
 //==============================================================================
-juce::ComboBox * MainContentComponent::addComboBox(juce::String const const & /*s*/,
-                                                   juce::String const const & tooltip,
+juce::ComboBox * MainContentComponent::addComboBox(juce::String const & /*s*/,
+                                                   juce::String const & tooltip,
                                                    int const x,
                                                    int const y,
                                                    int const w,
@@ -444,7 +443,7 @@ void MainContentComponent::handleOpenPreset()
 
     auto loaded{ false };
     if (fc.browseForFileToOpen()) {
-        juce::String chosen = fc.getResults().getReference(0).getFullPathName();
+        auto const chosen{ fc.getResults().getReference(0).getFullPathName() };
         juce::AlertWindow alert("Open Project !",
                                 "You want to load : " + chosen + "\nEverything not saved will be lost !",
                                 juce::AlertWindow::WarningIcon);
@@ -458,11 +457,11 @@ void MainContentComponent::handleOpenPreset()
     }
 
     if (loaded) { // Check for direct out OutputPatch mismatch.
-        for (auto && it : mSourceInputs) {
+        for (auto const * it : mSourceInputs) {
             if (it->getDirectOutChannel() != 0) {
-                std::vector<int> directOutOutputPatches = mJackClient.getDirectOutOutputPatches();
-                if (std::find(directOutOutputPatches.begin(), directOutOutputPatches.end(), it->getDirectOutChannel())
-                    == directOutOutputPatches.end()) {
+                auto const directOutOutputPatches{ mJackClient.getDirectOutOutputPatches() };
+                if (std::find(directOutOutputPatches.cbegin(), directOutOutputPatches.cend(), it->getDirectOutChannel())
+                    == directOutOutputPatches.cend()) {
                     juce::AlertWindow alert(
                         "Direct Out Mismatch!",
                         "Some of the direct out channels of this project don't exist in the current speaker setup.\n",
@@ -490,16 +489,19 @@ void MainContentComponent::handleSavePreset()
 //==============================================================================
 void MainContentComponent::handleSaveAsPreset()
 {
-    juce::String dir = mApplicationProperties.getUserSettings()->getValue("lastPresetDirectory");
-    if (!juce::File(dir).isDirectory()) {
-        dir = juce::File("~").getFullPathName();
+    juce::File dir{ mApplicationProperties.getUserSettings()->getValue("lastPresetDirectory") };
+    if (!dir.isDirectory()) {
+        dir = juce::File::getSpecialLocation(juce::File::SpecialLocationType::userHomeDirectory);
     }
-    juce::String filename = juce::File(mPathCurrentPreset).getFileName();
+    auto const filename{ juce::File{ mPathCurrentPreset }.getFileName() };
 
-    juce::FileChooser fc("Choose a file to save...", dir + "/" + filename, "*.xml", USE_OS_NATIVE_DIALOG_BOX);
+    juce::FileChooser fc{ "Choose a file to save...",
+                          dir.getFullPathName() + "/" + filename,
+                          "*.xml",
+                          USE_OS_NATIVE_DIALOG_BOX };
 
     if (fc.browseForFileToSave(true)) {
-        juce::String chosen = fc.getResults().getReference(0).getFullPathName();
+        auto const chosen{ fc.getResults().getReference(0).getFullPathName() };
         savePreset(chosen);
     }
 }
@@ -507,19 +509,22 @@ void MainContentComponent::handleSaveAsPreset()
 //==============================================================================
 void MainContentComponent::handleOpenSpeakerSetup()
 {
-    juce::String dir = mApplicationProperties.getUserSettings()->getValue("lastSpeakerSetupDirectory");
-    if (!juce::File(dir).isDirectory()) {
-        dir = juce::File("~").getFullPathName();
+    juce::File dir{ mApplicationProperties.getUserSettings()->getValue("lastSpeakerSetupDirectory") };
+    if (!dir.isDirectory()) {
+        dir = juce::File::getSpecialLocation(juce::File::SpecialLocationType::userHomeDirectory);
     }
-    juce::String filename = juce::File(mPathCurrentFileSpeaker).getFileName();
+    auto const filename{ juce::File{ mPathCurrentFileSpeaker }.getFileName() };
 
-    juce::FileChooser fc("Choose a file to open...", dir + "/" + filename, "*.xml", USE_OS_NATIVE_DIALOG_BOX);
+    juce::FileChooser fc{ "Choose a file to open...",
+                          dir.getFullPathName() + "/" + filename,
+                          "*.xml",
+                          USE_OS_NATIVE_DIALOG_BOX };
 
     if (fc.browseForFileToOpen()) {
-        juce::String chosen = fc.getResults().getReference(0).getFullPathName();
-        juce::AlertWindow alert("Load Speaker Setup !",
-                                "You want to load : " + chosen + "\nEverything not saved will be lost !",
-                                juce::AlertWindow::WarningIcon);
+        auto const chosen{ fc.getResults().getReference(0).getFullPathName() };
+        juce::AlertWindow alert{ "Load Speaker Setup !",
+                                 "You want to load : " + chosen + "\nEverything not saved will be lost !",
+                                 juce::AlertWindow::WarningIcon };
         alert.setLookAndFeel(&mLookAndFeel);
         alert.addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
         alert.addButton("Ok", 1, juce::KeyPress(juce::KeyPress::returnKey));
@@ -533,16 +538,19 @@ void MainContentComponent::handleOpenSpeakerSetup()
 //==============================================================================
 void MainContentComponent::handleSaveAsSpeakerSetup()
 {
-    juce::String dir = mApplicationProperties.getUserSettings()->getValue("lastSpeakerSetupDirectory");
-    if (!juce::File(dir).isDirectory() || dir.endsWith("/default_preset")) {
-        dir = juce::File("~").getFullPathName();
+    juce::File dir{ mApplicationProperties.getUserSettings()->getValue("lastSpeakerSetupDirectory") };
+    if (!dir.isDirectory() || dir.getFullPathName().endsWith("/default_preset")) {
+        dir = juce::File::getSpecialLocation(juce::File::SpecialLocationType::userHomeDirectory);
     }
-    juce::String filename = juce::File(mPathCurrentFileSpeaker).getFileName();
+    auto const filename{ juce::File{ mPathCurrentFileSpeaker }.getFileName() };
 
-    juce::FileChooser fc("Choose a file to save...", dir + "/" + filename, "*.xml", USE_OS_NATIVE_DIALOG_BOX);
+    juce::FileChooser fc{ "Choose a file to save...",
+                          dir.getFullPathName() + "/" + filename,
+                          "*.xml",
+                          USE_OS_NATIVE_DIALOG_BOX };
 
     if (fc.browseForFileToSave(true)) {
-        juce::String chosen = fc.getResults().getReference(0).getFullPathName();
+        auto const chosen{ fc.getResults().getReference(0).getFullPathName() };
         saveSpeakerSetup(chosen);
     }
 }
@@ -550,11 +558,14 @@ void MainContentComponent::handleSaveAsSpeakerSetup()
 //==============================================================================
 void MainContentComponent::handleShowSpeakerEditWindow()
 {
-    juce::Rectangle<int> result(getScreenX() + mSpeakerViewComponent->getWidth() + 20, getScreenY() + 20, 850, 600);
+    juce::Rectangle<int> const result{ getScreenX() + mSpeakerViewComponent->getWidth() + 20,
+                                       getScreenY() + 20,
+                                       850,
+                                       600 };
     if (mEditSpeakersWindow == nullptr) {
-        juce::String windowName = juce::String("Speakers Setup Edition - ")
-                                  + juce::String(MODE_SPAT_STRING[mJackClient.getMode()]) + juce::String(" - ")
-                                  + juce::File(mPathCurrentFileSpeaker).getFileName();
+        auto const windowName = juce::String("Speakers Setup Edition - ")
+                                + juce::String(MODE_SPAT_STRING[mJackClient.getMode()]) + " - "
+                                + juce::File(mPathCurrentFileSpeaker).getFileName();
         mEditSpeakersWindow.reset(new EditSpeakersWindow(windowName, mLookAndFeel, *this, mNameConfig));
         mEditSpeakersWindow->setBounds(result);
         mEditSpeakersWindow->initComp();
@@ -570,56 +581,33 @@ void MainContentComponent::handleShowSpeakerEditWindow()
 //==============================================================================
 void MainContentComponent::handleShowPreferences()
 {
-    juce::PropertiesFile * props = mApplicationProperties.getUserSettings();
+    auto const * props{ mApplicationProperties.getUserSettings() };
     if (mPropertiesWindow == nullptr) {
-        unsigned int BufferValue = props->getIntValue("BufferValue", 1024);
-        unsigned int RateValue = props->getIntValue("RateValue", 48000);
-        unsigned int FileFormat = props->getIntValue("FileFormat", 0);
-        unsigned int FileConfig = props->getIntValue("FileConfig", 0);
-        unsigned int AttenuationDB = props->getIntValue("AttenuationDB", 3);
-        unsigned int AttenuationHz = props->getIntValue("AttenuationHz", 3);
-        unsigned int OscInputPort = props->getIntValue("OscInputPort", 18032);
-        if (std::isnan(float(BufferValue)) || BufferValue == 0) {
-            BufferValue = 1024;
-        }
-        if (std::isnan(float(RateValue)) || RateValue == 0) {
-            RateValue = 48000;
-        }
-        if (std::isnan(float(FileFormat))) {
-            FileFormat = 0;
-        }
-        if (std::isnan(float(FileConfig))) {
-            FileConfig = 0;
-        }
-        if (std::isnan(float(AttenuationDB))) {
-            AttenuationDB = 3;
-        }
-        if (std::isnan(float(AttenuationHz))) {
-            AttenuationHz = 3;
-        }
-        if (std::isnan(float(OscInputPort))) {
-            OscInputPort = 18032;
-        }
+        auto const bufferValue{ props->getIntValue("BufferValue", 1024) };
+        auto const rateValue{ props->getIntValue("RateValue", 48000) };
+        auto const fileFormat{ props->getIntValue("FileFormat", 0) };
+        auto const fileConfig{ props->getIntValue("FileConfig", 0) };
+        auto const attenuationDb{ props->getIntValue("AttenuationDB", 3) };
+        auto const attenuationHz{ props->getIntValue("AttenuationHz", 3) };
+        auto const oscInputPort{ props->getIntValue("OscInputPort", 18032) };
+
         mPropertiesWindow.reset(new PropertiesWindow{ *this,
                                                       mLookAndFeel,
                                                       mAlsaAvailableOutputDevices,
                                                       mAlsaOutputDevice,
-                                                      RATE_VALUES.indexOf(juce::String(RateValue)),
-                                                      BUFFER_SIZES.indexOf(juce::String(BufferValue)),
-                                                      static_cast<int>(FileFormat),
-                                                      static_cast<int>(FileConfig),
-                                                      static_cast<int>(AttenuationDB),
-                                                      static_cast<int>(AttenuationHz),
-                                                      static_cast<int>(OscInputPort) });
+                                                      RATE_VALUES.indexOf(juce::String(rateValue)),
+                                                      BUFFER_SIZES.indexOf(juce::String(bufferValue)),
+                                                      fileFormat,
+                                                      fileConfig,
+                                                      attenuationDb,
+                                                      attenuationHz,
+                                                      oscInputPort });
     }
-    int height = 450;
-    if (mAlsaAvailableOutputDevices.isEmpty()) {
-        height = 420;
-    }
-    juce::Rectangle<int> result(getScreenX() + (mSpeakerViewComponent->getWidth() / 2) - 150,
-                                getScreenY() + (mSpeakerViewComponent->getHeight() / 2) - 75,
-                                270,
-                                height);
+    auto const height{ mAlsaAvailableOutputDevices.isEmpty() ? 420 : 450 };
+    juce::Rectangle<int> const result{ mSpeakerViewComponent->getWidth() / 2 + getScreenX() - 150,
+                                       mSpeakerViewComponent->getHeight() / 2 + getScreenY() - 75,
+                                       270,
+                                       height };
     mPropertiesWindow->setBounds(result);
     mPropertiesWindow->setResizable(false, false);
     mPropertiesWindow->setUsingNativeTitleBar(true);
@@ -672,7 +660,7 @@ void MainContentComponent::handleShowOscLogView()
 //==============================================================================
 void MainContentComponent::handleShowAbout()
 {
-    if (mAboutWindow.get() == nullptr) {
+    if (!mAboutWindow) {
         mAboutWindow.reset(new AboutWindow{ "About SpatGRIS", mLookAndFeel, *this });
     }
 }
@@ -680,9 +668,8 @@ void MainContentComponent::handleShowAbout()
 //==============================================================================
 void MainContentComponent::handleOpenManual()
 {
-    juce::File fs = juce::File(SERVER_GRIS_MANUAL_FILE);
-    if (fs.exists()) {
-        juce::Process::openDocument("file:" + fs.getFullPathName(), juce::String());
+    if (SERVER_GRIS_MANUAL_FILE.exists()) {
+        juce::Process::openDocument("file:" + SERVER_GRIS_MANUAL_FILE.getFullPathName(), juce::String());
     }
 }
 
@@ -693,7 +680,7 @@ void MainContentComponent::handleShowNumbers()
 }
 
 //==============================================================================
-void MainContentComponent::setShowNumbers(bool state)
+void MainContentComponent::setShowNumbers(bool const state)
 {
     mIsNumbersShown = state;
     mSpeakerViewComponent->setShowNumber(state);
@@ -706,7 +693,7 @@ void MainContentComponent::handleShowSpeakers()
 }
 
 //==============================================================================
-void MainContentComponent::setShowSpeakers(bool state)
+void MainContentComponent::setShowSpeakers(bool const state)
 {
     mIsSpeakersShown = state;
     mSpeakerViewComponent->setHideSpeaker(!state);
@@ -719,7 +706,7 @@ void MainContentComponent::handleShowTriplets()
 }
 
 //==============================================================================
-void MainContentComponent::setShowTriplets(bool state)
+void MainContentComponent::setShowTriplets(bool const state)
 {
     if (getModeSelected() == LBAP && state == true) {
         juce::AlertWindow alert("Can't draw triplets !",
@@ -746,18 +733,17 @@ void MainContentComponent::setShowTriplets(bool state)
 //==============================================================================
 bool MainContentComponent::validateShowTriplets() const
 {
-    int success = true;
-    for (unsigned int i = 0; i < getTriplets().size(); ++i) {
-        Speaker const * spk1 = getSpeakerFromOutputPatch(getTriplets()[i].id1);
-        Speaker const * spk2 = getSpeakerFromOutputPatch(getTriplets()[i].id2);
-        Speaker const * spk3 = getSpeakerFromOutputPatch(getTriplets()[i].id3);
+    for (auto const & triplet : getTriplets()) {
+        auto const * spk1 = getSpeakerFromOutputPatch(triplet.id1);
+        auto const * spk2 = getSpeakerFromOutputPatch(triplet.id2);
+        auto const * spk3 = getSpeakerFromOutputPatch(triplet.id3);
 
         if (spk1 == nullptr || spk2 == nullptr || spk3 == nullptr) {
-            success = false;
-            break;
+            return false;
         }
     }
-    return success;
+
+    return true;
 }
 
 //==============================================================================
@@ -1072,14 +1058,14 @@ void MainContentComponent::menuItemSelected(int /*menuItemID*/, int /*topLevelMe
 // Exit functions.
 bool MainContentComponent::isPresetModified() const
 {
-    juce::File xmlFile = juce::File(mPathCurrentPreset.toStdString());
-    juce::XmlDocument xmlDoc(xmlFile);
-    std::unique_ptr<juce::XmlElement> savedState(xmlDoc.getDocumentElement());
-    if (savedState == nullptr) {
+    juce::File const xmlFile{ mPathCurrentPreset };
+    juce::XmlDocument xmlDoc{ xmlFile };
+    auto const savedState{ xmlDoc.getDocumentElement() };
+    if (!savedState) {
         return true;
     }
 
-    auto currentState = std::make_unique<juce::XmlElement>("ServerGRIS_Preset");
+    auto const currentState{ std::make_unique<juce::XmlElement>("ServerGRIS_Preset") };
     getPresetData(currentState.get());
 
     if (!savedState->isEquivalentTo(currentState.get(), true)) {
@@ -1092,7 +1078,7 @@ bool MainContentComponent::isPresetModified() const
 //==============================================================================
 bool MainContentComponent::exitApp()
 {
-    int exitV = 2;
+    auto exitV{ 2 };
 
     if (isPresetModified()) {
         juce::AlertWindow alert("Exit SpatGRIS !",
@@ -1106,16 +1092,19 @@ bool MainContentComponent::exitApp()
         if (exitV == 1) {
             alert.setVisible(false);
             juce::ModalComponentManager::getInstance()->cancelAllModalComponents();
-            juce::String dir = mApplicationProperties.getUserSettings()->getValue("lastPresetDirectory");
-            if (!juce::File(dir).isDirectory()) {
-                dir = juce::File("~").getFullPathName();
+            juce::File dir{ mApplicationProperties.getUserSettings()->getValue("lastPresetDirectory") };
+            if (!dir.isDirectory()) {
+                dir = juce::File::getSpecialLocation(juce::File::SpecialLocationType::userHomeDirectory);
             }
-            juce::String filename = juce::File(mPathCurrentPreset).getFileName();
+            auto const filename{ juce::File(mPathCurrentPreset).getFileName() };
 
-            juce::FileChooser fc("Choose a file to save...", dir + "/" + filename, "*.xml", USE_OS_NATIVE_DIALOG_BOX);
+            juce::FileChooser fc("Choose a file to save...",
+                                 dir.getFullPathName() + "/" + filename,
+                                 "*.xml",
+                                 USE_OS_NATIVE_DIALOG_BOX);
 
             if (fc.browseForFileToSave(true)) {
-                juce::String chosen = fc.getResults().getReference(0).getFullPathName();
+                auto const chosen{ fc.getResults().getReference(0).getFullPathName() };
                 savePreset(chosen);
             } else {
                 exitV = 0;
@@ -1123,31 +1112,31 @@ bool MainContentComponent::exitApp()
         }
     }
 
-    return (exitV != 0);
+    return exitV != 0;
 }
 
 //==============================================================================
-void MainContentComponent::connectionClientJack(juce::String nameCli, bool conn)
+void MainContentComponent::connectionClientJack(juce::String const & clientName, bool const conn)
 {
-    unsigned int maxport = 0;
+    unsigned int maxPort{};
     for (auto const & cli : mJackClient.getClients()) {
-        if (cli.portEnd > maxport) {
-            maxport = cli.portEnd;
+        if (cli.portEnd > maxPort) {
+            maxPort = cli.portEnd;
         }
     }
-    if (maxport > static_cast<unsigned int>(mAddInputsTextEditor->getTextValue().toString().getIntValue())) {
-        mAddInputsTextEditor->setText(juce::String(maxport), juce::dontSendNotification);
+    if (maxPort > static_cast<unsigned int>(mAddInputsTextEditor->getTextValue().toString().getIntValue())) {
+        mAddInputsTextEditor->setText(juce::String{ maxPort }, juce::dontSendNotification);
         textEditorReturnKeyPressed(*mAddInputsTextEditor);
     }
     mJackClient.setProcessBlockOn(false);
-    mJackClient.connectionClient(nameCli, conn);
+    mJackClient.connectionClient(clientName, conn);
     mJackClient.setProcessBlockOn(true);
 }
 
 //==============================================================================
-void MainContentComponent::selectSpeaker(unsigned int const idS)
+void MainContentComponent::selectSpeaker(int const idS) const
 {
-    for (unsigned i = 0; i < static_cast<unsigned>(mSpeakers.size()); ++i) {
+    for (int i{}; i < mSpeakers.size(); ++i) {
         if (i != idS) {
             mSpeakers[i]->unSelectSpeaker();
         } else {
@@ -1162,8 +1151,8 @@ void MainContentComponent::selectSpeaker(unsigned int const idS)
 //==============================================================================
 void MainContentComponent::selectTripletSpeaker(int const idS)
 {
-    auto countS{ std::count_if(mSpeakers.begin(), mSpeakers.end(), [](Speaker const & speaker) {
-        return speaker.isSelected();
+    auto countS{ std::count_if(mSpeakers.begin(), mSpeakers.end(), [](Speaker const * speaker) {
+        return speaker->isSelected();
     }) };
 
     if (!mSpeakers[idS]->isSelected() && countS < 3) {
@@ -1205,7 +1194,7 @@ void MainContentComponent::selectTripletSpeaker(int const idS)
 }
 
 //==============================================================================
-bool MainContentComponent::tripletExists(Triplet tri, int & pos) const
+bool MainContentComponent::tripletExists(Triplet const & tri, int & pos) const
 {
     pos = 0;
     for (auto const & ti : mTriplets) {
@@ -1226,8 +1215,8 @@ bool MainContentComponent::tripletExists(Triplet tri, int & pos) const
 //==============================================================================
 void MainContentComponent::resetSpeakerIds()
 {
-    int id = 1;
-    for (auto && it : mSpeakers) {
+    auto id{ 1 };
+    for (auto * it : mSpeakers) {
         it->setSpeakerId(id++);
     }
 }
@@ -1258,10 +1247,11 @@ void MainContentComponent::reorderSpeakers(std::vector<int> const & newOrder)
 //==============================================================================
 int MainContentComponent::getMaxSpeakerId() const
 {
-    int maxId = 0;
-    for (auto && it : mSpeakers) {
-        if (it->getIdSpeaker() > maxId)
+    int maxId{};
+    for (auto const * it : mSpeakers) {
+        if (it->getIdSpeaker() > maxId) {
             maxId = it->getIdSpeaker();
+        }
     }
     return maxId;
 }
@@ -1269,29 +1259,30 @@ int MainContentComponent::getMaxSpeakerId() const
 //==============================================================================
 int MainContentComponent::getMaxSpeakerOutputPatch() const
 {
-    int maxOut = 0;
-    for (auto && it : mSpeakers) {
-        if (it->getOutputPatch() > maxOut)
+    int maxOut{};
+    for (auto const * it : mSpeakers) {
+        if (it->getOutputPatch() > maxOut) {
             maxOut = it->getOutputPatch();
+        }
     }
     return maxOut;
 }
 
 //==============================================================================
-void MainContentComponent::addSpeaker(int sortColumnId, bool isSortedForwards)
+void MainContentComponent::addSpeaker(int const sortColumnId, bool const isSortedForwards)
 {
-    int newId = getMaxSpeakerId() + 1;
+    auto const newId{ getMaxSpeakerId() + 1 };
 
     mSpeakerLocks.lock();
-    mSpeakers.add(new Speaker(this, newId, newId, 0.0f, 0.0f, 1.0f));
+    mSpeakers.add(new Speaker{ this, newId, newId, 0.0f, 0.0f, 1.0f });
 
     if (sortColumnId == 1 && isSortedForwards) {
-        for (unsigned int i = 0; i < mSpeakers.size(); i++) {
+        for (int i{}; i < mSpeakers.size(); ++i) {
             mSpeakers[i]->setSpeakerId(i + 1);
         }
     } else if (sortColumnId == 1 && !isSortedForwards) {
-        for (unsigned int i = 0; i < mSpeakers.size(); i++) {
-            mSpeakers[i]->setSpeakerId((int)mSpeakers.size() - i);
+        for (int i{}; i < mSpeakers.size(); ++i) {
+            mSpeakers[i]->setSpeakerId(mSpeakers.size() - i);
         }
     }
     mSpeakerLocks.unlock();
@@ -1302,41 +1293,40 @@ void MainContentComponent::addSpeaker(int sortColumnId, bool isSortedForwards)
 }
 
 //==============================================================================
-void MainContentComponent::insertSpeaker(int position, int sortColumnId, bool isSortedForwards)
+void MainContentComponent::insertSpeaker(int const position, int const sortColumnId, bool const isSortedForwards)
 {
-    int newPosition = position + 1;
-    int newId = getMaxSpeakerId() + 1;
-    int newOut = getMaxSpeakerOutputPatch() + 1;
+    auto const newPosition{ position + 1 };
+    auto const newOut{ getMaxSpeakerOutputPatch() + 1 };
+    auto newId{ getMaxSpeakerId() + 1 };
 
     mSpeakerLocks.lock();
     if (sortColumnId == 1 && isSortedForwards) {
         newId = mSpeakers[position]->getIdSpeaker() + 1;
-        mSpeakers.insert(newPosition, new Speaker(this, newId, newOut, 0.0f, 0.0f, 1.0f));
-        for (unsigned int i = 0; i < mSpeakers.size(); i++) {
+        mSpeakers.insert(newPosition, new Speaker{ this, newId, newOut, 0.0f, 0.0f, 1.0f });
+        for (int i{}; i < mSpeakers.size(); ++i) {
             mSpeakers.getUnchecked(i)->setSpeakerId(i + 1);
         }
     } else if (sortColumnId == 1 && !isSortedForwards) {
         newId = mSpeakers[position]->getIdSpeaker() - 1;
-        ;
-        mSpeakers.insert(newPosition, new Speaker(this, newId, newOut, 0.0f, 0.0f, 1.0f));
-        for (unsigned int i = 0; i < mSpeakers.size(); i++) {
+        mSpeakers.insert(newPosition, new Speaker{ this, newId, newOut, 0.0f, 0.0f, 1.0f });
+        for (int i{}; i < mSpeakers.size(); ++i) {
             mSpeakers.getUnchecked(i)->setSpeakerId(mSpeakers.size() - i);
         }
     } else {
-        mSpeakers.insert(newPosition, new Speaker(this, newId, newOut, 0.0f, 0.0f, 1.0f));
+        mSpeakers.insert(newPosition, new Speaker{ this, newId, newOut, 0.0f, 0.0f, 1.0f });
     }
     mSpeakerLocks.unlock();
 
     mJackClient.setProcessBlockOn(false);
     mJackClient.clearOutput();
-    for (auto && it : mSpeakers) {
+    for (auto * it : mSpeakers) {
         mJackClient.addOutput(it->getOutputPatch());
     }
     mJackClient.setProcessBlockOn(true);
 }
 
 //==============================================================================
-void MainContentComponent::removeSpeaker(int idSpeaker)
+void MainContentComponent::removeSpeaker(int const idSpeaker)
 {
     mJackClient.removeOutput(idSpeaker);
     mSpeakerLocks.lock();
@@ -1385,16 +1375,14 @@ void MainContentComponent::setTripletsFromVbap()
 {
     clearTriplets();
     for (auto const & it : mJackClient.getVbapTriplets()) {
-        Triplet tri;
-        tri.id1 = it[0];
-        tri.id2 = it[1];
-        tri.id3 = it[2];
+        jassert(it.size() == 3u);
+        Triplet const tri{ it[0], it[1], it[2] };
         mTriplets.push_back(tri);
     }
 }
 
 //==============================================================================
-Speaker const * MainContentComponent::getSpeakerFromOutputPatch(int out) const
+Speaker const * MainContentComponent::getSpeakerFromOutputPatch(int const out) const
 {
     for (auto const * it : mSpeakers) {
         if (it->getOutputPatch() == out && !it->isDirectOut()) {
@@ -1405,9 +1393,9 @@ Speaker const * MainContentComponent::getSpeakerFromOutputPatch(int out) const
 }
 
 //==============================================================================
-Speaker * MainContentComponent::getSpeakerFromOutputPatch(int out)
+Speaker * MainContentComponent::getSpeakerFromOutputPatch(int const out)
 {
-    for (auto it : mSpeakers) {
+    for (auto * it : mSpeakers) {
         if (it->getOutputPatch() == out && !it->isDirectOut()) {
             return it;
         }
@@ -1416,69 +1404,68 @@ Speaker * MainContentComponent::getSpeakerFromOutputPatch(int out)
 }
 
 //==============================================================================
-static void Linkwitz_Riley_compute_variables(double freq, double sr, double ** coeffs, int length)
+static void linkwitzRileyComputeVariables(double const freq, double const sr, double ** coefficients, int const length)
 {
-    double wc = 2 * juce::MathConstants<float>::pi * freq;
-    double wc2 = wc * wc;
-    double wc3 = wc2 * wc;
-    double wc4 = wc2 * wc2;
-    double k = wc / tan(juce::MathConstants<float>::pi * freq / sr);
-    double k2 = k * k;
-    double k3 = k2 * k;
-    double k4 = k2 * k2;
-    double sqrt2 = sqrt(2.0);
-    double sq_tmp1 = sqrt2 * wc3 * k;
-    double sq_tmp2 = sqrt2 * wc * k3;
-    double a_tmp = 4.0 * wc2 * k2 + 2.0 * sq_tmp1 + k4 + 2.0 * sq_tmp2 + wc4;
-    double k4_a_tmp = k4 / a_tmp;
+    auto const wc{ 2.0 * juce::MathConstants<double>::pi * freq };
+    auto const wc2{ wc * wc };
+    auto const wc3{ wc2 * wc };
+    auto const wc4{ wc2 * wc2 };
+    auto const k{ wc / std::tan(juce::MathConstants<double>::pi * freq / sr) };
+    auto const k2{ k * k };
+    auto const k3{ k2 * k };
+    auto const k4{ k2 * k2 };
+    static auto constexpr SQRT2{ juce::MathConstants<double>::sqrt2 };
+    auto const sqTmp1{ SQRT2 * wc3 * k };
+    auto const sqTmp2{ SQRT2 * wc * k3 };
+    auto const aTmp{ 4.0 * wc2 * k2 + 2.0 * sqTmp1 + k4 + 2.0 * sqTmp2 + wc4 };
+    auto const k4ATmp{ k4 / aTmp };
 
-    *coeffs = (double *)malloc(length * sizeof(double));
+    *coefficients = static_cast<double *>(malloc(length * sizeof(double)));
 
     /* common */
-    double b1 = (4.0 * (wc4 + sq_tmp1 - k4 - sq_tmp2)) / a_tmp;
-    double b2 = (6.0 * wc4 - 8.0 * wc2 * k2 + 6.0 * k4) / a_tmp;
-    double b3 = (4.0 * (wc4 - sq_tmp1 + sq_tmp2 - k4)) / a_tmp;
-    double b4 = (k4 - 2.0 * sq_tmp1 + wc4 - 2.0 * sq_tmp2 + 4.0 * wc2 * k2) / a_tmp;
+    auto const b1{ (4.0 * (wc4 + sqTmp1 - k4 - sqTmp2)) / aTmp };
+    auto const b2{ (6.0 * wc4 - 8.0 * wc2 * k2 + 6.0 * k4) / aTmp };
+    auto const b3{ (4.0 * (wc4 - sqTmp1 + sqTmp2 - k4)) / aTmp };
+    auto const b4{ (k4 - 2.0 * sqTmp1 + wc4 - 2.0 * sqTmp2 + 4.0 * wc2 * k2) / aTmp };
 
     /* highpass */
-    double ha0 = k4_a_tmp;
-    double ha1 = -4.0 * k4_a_tmp;
-    double ha2 = 6.0 * k4_a_tmp;
+    auto const ha0{ k4ATmp };
+    auto const ha1{ -4.0 * k4ATmp };
+    auto const ha2{ 6.0 * k4ATmp };
 
-    (*coeffs)[0] = b1;
-    (*coeffs)[1] = b2;
-    (*coeffs)[2] = b3;
-    (*coeffs)[3] = b4;
-    (*coeffs)[4] = ha0;
-    (*coeffs)[5] = ha1;
-    (*coeffs)[6] = ha2;
+    (*coefficients)[0] = b1;
+    (*coefficients)[1] = b2;
+    (*coefficients)[2] = b3;
+    (*coefficients)[3] = b4;
+    (*coefficients)[4] = ha0;
+    (*coefficients)[5] = ha1;
+    (*coefficients)[6] = ha2;
 }
 
 //==============================================================================
-float MainContentComponent::getLevelsAlpha(int indexLevel) const
+float MainContentComponent::getLevelsAlpha(int const indexLevel) const
 {
-    float level = mJackClient.getLevelsIn(indexLevel);
-    if (level > 0.0001) {
+    auto const level{ mJackClient.getLevelsIn(indexLevel) };
+    if (level > 0.0001f) {
         // -80 dB
-        return 1.0;
-    } else {
-        return sqrtf(level * 10000.0f);
+        return 1.0f;
     }
+    return std::sqrt(level * 10000.0f);
 }
 
 //==============================================================================
-float MainContentComponent::getSpeakerLevelsAlpha(int indexLevel) const
+float MainContentComponent::getSpeakerLevelsAlpha(int const indexLevel) const
 {
-    float level = mJackClient.getLevelsOut(indexLevel);
-    float alpha = 1.0;
-    if (level > 0.001) {
+    auto const level{ mJackClient.getLevelsOut(indexLevel) };
+    float alpha;
+    if (level > 0.001f) {
         // -60 dB
-        alpha = 1.0;
+        alpha = 1.0f;
     } else {
-        alpha = sqrtf(level * 1000.0f);
+        alpha = std::sqrt(level * 1000.0f);
     }
-    if (alpha < 0.6) {
-        alpha = 0.6;
+    if (alpha < 0.6f) {
+        alpha = 0.6f;
     }
     return alpha;
 }
@@ -1486,21 +1473,21 @@ float MainContentComponent::getSpeakerLevelsAlpha(int indexLevel) const
 //==============================================================================
 bool MainContentComponent::updateLevelComp()
 {
-    unsigned int dimensions = 2, directOutSpeakers = 0;
-
-    if (mSpeakers.size() == 0)
+    if (mSpeakers.isEmpty()) {
         return false;
+    }
+
+    auto dimensions{ 2 };
+    unsigned directOutSpeakers{};
 
     // Test for a 2-D or 3-D configuration.
-    float zenith = -1.0f;
-    for (auto && it : mSpeakers) {
+    auto zenith{ -1.0f };
+    for (auto const * it : mSpeakers) {
         if (it->isDirectOut()) {
             directOutSpeakers++;
-            continue;
-        }
-        if (zenith == -1.0f) {
+        } else if (zenith == -1.0f) {
             zenith = it->getAziZenRad().y;
-        } else if (it->getAziZenRad().y < (zenith - 4.9) || it->getAziZenRad().y > (zenith + 4.9)) {
+        } else if (it->getAziZenRad().y < (zenith - 4.9f) || it->getAziZenRad().y > (zenith + 4.9f)) {
             dimensions = 3;
         }
     }
@@ -1520,20 +1507,20 @@ bool MainContentComponent::updateLevelComp()
     }
 
     // Test for duplicated output patch.
-    std::vector<int> tempout;
-    for (unsigned int i = 0; i < mSpeakers.size(); i++) {
-        if (!mSpeakers[i]->isDirectOut()) {
-            tempout.push_back(mSpeakers[i]->getOutputPatch());
+    std::vector<int> tempOut;
+    for (auto const * speaker : mSpeakers) {
+        if (!speaker->isDirectOut()) {
+            tempOut.push_back(speaker->getOutputPatch());
         }
     }
 
-    std::sort(tempout.begin(), tempout.end());
-    for (unsigned int i = 0; i < tempout.size() - 1; i++) {
-        if (tempout[i] == tempout[i + 1]) {
-            juce::AlertWindow alert("Duplicated Output Numbers!    ",
-                                    "Some output numbers are used more than once. Do you want to continue anyway?    "
-                                    "\nIf you continue, you may have to fix your speaker setup before using it!   ",
-                                    juce::AlertWindow::WarningIcon);
+    std::sort(tempOut.begin(), tempOut.end());
+    for (size_t i{}; i < tempOut.size() - size_t{ 1u }; ++i) {
+        if (tempOut[i] == tempOut[i + 1u]) {
+            juce::AlertWindow alert{ "Duplicated Output Numbers!    ",
+                                     "Some output numbers are used more than once. Do you want to continue anyway?    "
+                                     "\nIf you continue, you may have to fix your speaker setup before using it!   ",
+                                     juce::AlertWindow::WarningIcon };
             alert.setLookAndFeel(&mLookAndFeel);
             alert.addButton("No", 0);
             alert.addButton("Yes", 1);
@@ -1549,25 +1536,26 @@ bool MainContentComponent::updateLevelComp()
     }
 
     mJackClient.setProcessBlockOn(false);
-    mJackClient.setMaxOutputPatch(0);
+    mJackClient.setMaxOutputPatch(0u);
 
     // Save mute/solo/directOut states
-    bool inputsIsMuted[MAX_INPUTS];
-    bool inputsIsSolo[MAX_INPUTS];
-    auto const soloIn = mJackClient.getSoloIn();
-    int directOuts[MAX_INPUTS];
+    std::array<bool, MAX_INPUTS> inputsIsMuted{};
+    std::array<bool, MAX_INPUTS> inputsIsSolo{};
+    auto const soloIn{ mJackClient.getSoloIn() };
+    std::array<int, MAX_INPUTS> directOuts{};
     auto const & sourcesIn{ mJackClient.getSourcesIn() };
-    for (unsigned int i = 0; i < MAX_INPUTS; i++) {
+
+    for (size_t i{}; i < MAX_INPUTS; ++i) {
         inputsIsMuted[i] = sourcesIn[i].isMuted;
         inputsIsSolo[i] = sourcesIn[i].isSolo;
         directOuts[i] = sourcesIn[i].directOut;
     }
 
-    bool outputsIsMuted[MAX_INPUTS];
-    bool outputsIsSolo[MAX_INPUTS];
-    bool soloOut = mJackClient.getSoloOut();
+    std::array<bool, MAX_OUTPUTS> outputsIsMuted{};
+    std::array<bool, MAX_OUTPUTS> outputsIsSolo{};
+    auto const soloOut{ mJackClient.getSoloOut() };
     auto const & speakersOut{ mJackClient.getSpeakersOut() };
-    for (unsigned int i = 0; i < MAX_OUTPUTS; i++) {
+    for (size_t i{}; i < MAX_OUTPUTS; ++i) {
         outputsIsMuted[i] = speakersOut[i].isMuted;
         outputsIsSolo[i] = speakersOut[i].isSolo;
     }
@@ -1578,57 +1566,59 @@ bool MainContentComponent::updateLevelComp()
     }
 
     // Create outputs.
-    int i = 0, x = 2;
+    int i{};
+    auto x{ 2 };
     auto const mode{ mJackClient.getMode() };
-    for (auto && it : mSpeakers) {
-        juce::Rectangle<int> level(x, 4, VU_METER_WIDTH_IN_PIXELS, 200);
-        it->getVuMeter()->setBounds(level);
-        it->getVuMeter()->resetClipping();
-        mOutputsUiBox->getContent()->addAndMakeVisible(it->getVuMeter());
-        it->getVuMeter()->repaint();
+    for (auto * speaker : mSpeakers) {
+        juce::Rectangle<int> level{ x, 4, VU_METER_WIDTH_IN_PIXELS, 200 };
+        speaker->getVuMeter()->setBounds(level);
+        speaker->getVuMeter()->resetClipping();
+        mOutputsUiBox->getContent()->addAndMakeVisible(speaker->getVuMeter());
+        speaker->getVuMeter()->repaint();
 
         x += VU_METER_WIDTH_IN_PIXELS;
 
         if (mode == VBAP || mode == VBAP_HRTF) {
-            it->normalizeRadius();
+            speaker->normalizeRadius();
         }
 
         SpeakerOut so;
-        so.id = it->getOutputPatch();
-        so.x = it->getCoordinate().x;
-        so.y = it->getCoordinate().y;
-        so.z = it->getCoordinate().z;
-        so.azimuth = it->getAziZenRad().x;
-        so.zenith = it->getAziZenRad().y;
-        so.radius = it->getAziZenRad().z;
-        so.outputPatch = it->getOutputPatch();
-        so.directOut = it->isDirectOut();
+        so.id = speaker->getOutputPatch();
+        so.x = speaker->getCoordinate().x;
+        so.y = speaker->getCoordinate().y;
+        so.z = speaker->getCoordinate().z;
+        so.azimuth = speaker->getAziZenRad().x;
+        so.zenith = speaker->getAziZenRad().y;
+        so.radius = speaker->getAziZenRad().z;
+        so.outputPatch = speaker->getOutputPatch();
+        so.directOut = speaker->isDirectOut();
 
         mJackClient.getSpeakersOut()[i++] = so;
 
-        if (static_cast<unsigned int>(it->getOutputPatch()) > mJackClient.getMaxOutputPatch())
-            mJackClient.setMaxOutputPatch(it->getOutputPatch());
+        if (static_cast<unsigned int>(speaker->getOutputPatch()) > mJackClient.getMaxOutputPatch())
+            mJackClient.setMaxOutputPatch(speaker->getOutputPatch());
     }
 
     // Set user gain and highpass filter cutoff frequency for each speaker.
     for (auto const * speaker : mSpeakers) {
-        mJackClient.getSpeakersOut()[speaker->getOutputPatch() - 1].gain = std::pow(10.0f, speaker->getGain() * 0.05f);
+        auto & speakerOut{ mJackClient.getSpeakersOut()[speaker->getOutputPatch() - 1] };
+        speakerOut.gain = std::pow(10.0f, speaker->getGain() * 0.05f);
         if (speaker->getHighPassCutoff() > 0.0f) {
-            double * coeffs;
-            Linkwitz_Riley_compute_variables(static_cast<double>(speaker->getHighPassCutoff()),
-                                             (double)mSamplingRate,
-                                             &coeffs,
-                                             7);
-            auto & speakerOut{ mJackClient.getSpeakersOut()[speaker->getOutputPatch() - 1] };
-            speakerOut.b1 = coeffs[0];
-            speakerOut.b2 = coeffs[1];
-            speakerOut.b3 = coeffs[2];
-            speakerOut.b4 = coeffs[3];
-            speakerOut.ha0 = coeffs[4];
-            speakerOut.ha1 = coeffs[5];
-            speakerOut.ha2 = coeffs[6];
+            double * coefficients;
+            linkwitzRileyComputeVariables(static_cast<double>(speaker->getHighPassCutoff()),
+                                          static_cast<double>(mSamplingRate),
+                                          &coefficients,
+                                          7);
+            speakerOut.b1 = coefficients[0];
+            speakerOut.b2 = coefficients[1];
+            speakerOut.b3 = coefficients[2];
+            speakerOut.b4 = coefficients[3];
+            speakerOut.ha0 = coefficients[4];
+            speakerOut.ha1 = coefficients[5];
+            speakerOut.ha2 = coefficients[6];
             speakerOut.hpActive = true;
-            free(coeffs);
+            free(coefficients);
+            // TODO : naked free
         }
     }
 
@@ -1636,7 +1626,7 @@ bool MainContentComponent::updateLevelComp()
     x = 2;
     mInputLocks.lock();
     for (auto * input : mSourceInputs) {
-        juce::Rectangle<int> level(x, 4, VU_METER_WIDTH_IN_PIXELS, 200);
+        juce::Rectangle<int> level{ x, 4, VU_METER_WIDTH_IN_PIXELS, 200 };
         input->getVuMeter()->setBounds(level);
         input->getVuMeter()->updateDirectOutMenu(mSpeakers);
         input->getVuMeter()->resetClipping();
@@ -1645,15 +1635,15 @@ bool MainContentComponent::updateLevelComp()
 
         x += VU_METER_WIDTH_IN_PIXELS;
 
-        SourceIn si;
-        si.id = input->getId();
-        si.radAzimuth = input->getAzimuth();
-        si.radElevation = juce::MathConstants<float>::halfPi - input->getZenith();
-        si.azimuth = input->getAzimuth();
-        si.zenith = input->getZenith();
-        si.radius = input->getRadius();
-        si.gain = 0.0f;
-        mJackClient.getSourcesIn()[i++] = si;
+        SourceIn sourceIn;
+        sourceIn.id = input->getId();
+        sourceIn.radAzimuth = input->getAzimuth();
+        sourceIn.radElevation = juce::MathConstants<float>::halfPi - input->getZenith();
+        sourceIn.azimuth = input->getAzimuth();
+        sourceIn.zenith = input->getZenith();
+        sourceIn.radius = input->getRadius();
+        sourceIn.gain = 0.0f;
+        mJackClient.getSourcesIn()[i++] = sourceIn;
     }
 
     mInputLocks.unlock();
@@ -1667,30 +1657,30 @@ bool MainContentComponent::updateLevelComp()
 
     // Temporarily remove direct out speakers to construct vbap or lbap algorithm.
     i = 0;
-    std::vector<Speaker *> tempListSpeaker;
+    std::vector<Speaker *> tempListSpeaker{};
     tempListSpeaker.resize(mSpeakers.size());
-    for (auto && it : mSpeakers) {
-        if (!it->isDirectOut()) {
-            tempListSpeaker[i++] = it;
+    for (auto * speaker : mSpeakers) {
+        if (!speaker->isDirectOut()) {
+            tempListSpeaker[i++] = speaker;
         }
     }
     tempListSpeaker.resize(i);
 
-    bool retval = false;
+    auto returnValue{ false };
     if (mode == VBAP || mode == VBAP_HRTF) {
         mJackClient.setVbapDimensions(dimensions);
         if (dimensions == 2) {
             setShowTriplets(false);
         }
-        retval = mJackClient.initSpeakersTriplet(tempListSpeaker, dimensions, mNeedToComputeVbap);
+        returnValue = mJackClient.initSpeakersTriplet(tempListSpeaker, dimensions, mNeedToComputeVbap);
 
-        if (retval) {
+        if (returnValue) {
             setTripletsFromVbap();
             mNeedToComputeVbap = false;
         } else {
-            juce::AlertWindow alert("Not a valid DOME 3-D configuration!    ",
-                                    "Maybe you want to open it in CUBE mode? Reload the default speaker setup...    ",
-                                    juce::AlertWindow::WarningIcon);
+            juce::AlertWindow alert{ "Not a valid DOME 3-D configuration!    ",
+                                     "Maybe you want to open it in CUBE mode? Reload the default speaker setup...    ",
+                                     juce::AlertWindow::WarningIcon };
             alert.setLookAndFeel(&mLookAndFeel);
             alert.addButton("Ok", 0, juce::KeyPress(juce::KeyPress::returnKey));
             alert.runModalLoop();
@@ -1699,33 +1689,33 @@ bool MainContentComponent::updateLevelComp()
         }
     } else if (mode == LBAP) {
         setShowTriplets(false);
-        retval = mJackClient.lbapSetupSpeakerField(tempListSpeaker);
+        returnValue = mJackClient.lbapSetupSpeakerField(tempListSpeaker);
     }
 
     // Restore mute/solo/directOut states
     mJackClient.setSoloIn(soloIn);
-    for (unsigned int i = 0; i < MAX_INPUTS; i++) {
-        auto & sourceIn{ mJackClient.getSourcesIn()[i] };
-        sourceIn.isMuted = inputsIsMuted[i];
-        sourceIn.isSolo = inputsIsSolo[i];
-        sourceIn.directOut = directOuts[i];
+    for (size_t sourceInIndex{}; sourceInIndex < MAX_INPUTS; ++sourceInIndex) {
+        auto & sourceIn{ mJackClient.getSourcesIn()[sourceInIndex] };
+        sourceIn.isMuted = inputsIsMuted[sourceInIndex];
+        sourceIn.isSolo = inputsIsSolo[sourceInIndex];
+        sourceIn.directOut = directOuts[sourceInIndex];
     }
     mInputLocks.lock();
-    for (unsigned int i = 0; i < mSourceInputs.size(); i++) {
-        mSourceInputs[i]->setDirectOutChannel(directOuts[i]);
+    for (int sourceInputIndex{}; sourceInputIndex < mSourceInputs.size(); sourceInputIndex++) {
+        mSourceInputs[sourceInputIndex]->setDirectOutChannel(directOuts[sourceInputIndex]);
     }
     mInputLocks.unlock();
 
     mJackClient.setSoloOut(soloOut);
-    for (unsigned int i = 0; i < MAX_OUTPUTS; i++) {
-        auto & speakerOut{ mJackClient.getSpeakersOut()[i] };
-        speakerOut.isMuted = outputsIsMuted[i];
-        speakerOut.isSolo = outputsIsSolo[i];
+    for (size_t speakerOutIndex{}; speakerOutIndex < MAX_OUTPUTS; ++speakerOutIndex) {
+        auto & speakerOut{ mJackClient.getSpeakersOut()[speakerOutIndex] };
+        speakerOut.isMuted = outputsIsMuted[speakerOutIndex];
+        speakerOut.isSolo = outputsIsSolo[speakerOutIndex];
     }
 
     mJackClient.setProcessBlockOn(true);
 
-    return retval;
+    return returnValue;
 }
 
 //==============================================================================
@@ -1894,11 +1884,10 @@ void MainContentComponent::openXmlFileSpeaker(juce::String const & path)
                         }
                     }
                     if (ring->hasTagName("triplet")) {
-                        Triplet tri;
-                        tri.id1 = ring->getIntAttribute("id1");
-                        tri.id2 = ring->getIntAttribute("id2");
-                        tri.id3 = ring->getIntAttribute("id3");
-                        mTriplets.push_back(tri);
+                        Triplet const triplet{ ring->getIntAttribute("id1"),
+                                               ring->getIntAttribute("id2"),
+                                               ring->getIntAttribute("id3") };
+                        mTriplets.push_back(triplet);
                     }
                 }
                 mJackClient.setProcessBlockOn(true);
@@ -1910,7 +1899,7 @@ void MainContentComponent::openXmlFileSpeaker(juce::String const & path)
                 } else {
                     msg = "Your file is corrupted !\n" + xmlDoc.getLastParseError();
                 }
-                juce::AlertWindow alert("Error in Load Speaker Setup !", msg, juce::AlertWindow::WarningIcon);
+                juce::AlertWindow alert{ "Error in Load Speaker Setup !", msg, juce::AlertWindow::WarningIcon };
                 alert.setLookAndFeel(&mLookAndFeel);
                 alert.addButton("Ok", 0, juce::KeyPress(juce::KeyPress::returnKey));
                 alert.runModalLoop();
@@ -1946,11 +1935,11 @@ void MainContentComponent::openXmlFileSpeaker(juce::String const & path)
 }
 
 //==============================================================================
-void MainContentComponent::setTitle()
+void MainContentComponent::setTitle() const
 {
-    juce::String version = STRING(JUCE_APP_VERSION);
-    version = "SpatGRIS v" + version + " - ";
-    mMainWindow.setName(version + juce::File(mPathCurrentPreset).getFileName());
+    auto const title{ juce::String{ "SpatGRIS v" } + STRING(JUCE_APP_VERSION) + " - "
+                      + juce::File{ mPathCurrentPreset }.getFileName() };
+    mMainWindow.setName(title);
 }
 
 //==============================================================================
@@ -1971,18 +1960,18 @@ void MainContentComponent::closeSpeakersConfigurationWindow()
 }
 
 //==============================================================================
-void MainContentComponent::openPreset(juce::String path)
+void MainContentComponent::openPreset(juce::String const & path)
 {
     juce::String msg;
     mJackClient.setProcessBlockOn(false);
-    juce::File xmlFile = juce::File(path.toStdString());
-    juce::XmlDocument xmlDoc(xmlFile);
-    std::unique_ptr<juce::XmlElement> mainXmlElem(xmlDoc.getDocumentElement());
-    if (mainXmlElem == nullptr) {
-        juce::AlertWindow alert("Error in Open Preset !",
-                                "Your file is corrupted !\n" + path.toStdString() + "\n"
-                                    + xmlDoc.getLastParseError().toStdString(),
-                                juce::AlertWindow::WarningIcon);
+    juce::File const xmlFile{ path };
+    juce::XmlDocument xmlDoc{ xmlFile };
+    auto const mainXmlElem{ xmlDoc.getDocumentElement() };
+    if (!mainXmlElem) {
+        juce::AlertWindow alert{ "Error in Open Preset !",
+                                 "Your file is corrupted !\n" + path.toStdString() + "\n"
+                                     + xmlDoc.getLastParseError().toStdString(),
+                                 juce::AlertWindow::WarningIcon };
         alert.setLookAndFeel(&mLookAndFeel);
         alert.addButton("Ok", 1, juce::KeyPress(juce::KeyPress::returnKey));
         alert.runModalLoop();
@@ -2030,9 +2019,9 @@ void MainContentComponent::openPreset(juce::String path)
             mSpeakerViewComponent->setShowSphere(mIsSphereShown);
 
             if (mainXmlElem->hasAttribute("CamAngleX")) {
-                float angleX = mainXmlElem->getDoubleAttribute("CamAngleX");
-                float angleY = mainXmlElem->getDoubleAttribute("CamAngleY");
-                float distance = mainXmlElem->getDoubleAttribute("CamDistance");
+                auto const angleX{ static_cast<float>(mainXmlElem->getDoubleAttribute("CamAngleX")) };
+                auto const angleY{ static_cast<float>(mainXmlElem->getDoubleAttribute("CamAngleY")) };
+                auto const distance{ static_cast<float>(mainXmlElem->getDoubleAttribute("CamDistance")) };
                 mSpeakerViewComponent->setCamPosition(angleX, angleY, distance);
             } else {
                 mSpeakerViewComponent->setCamPosition(80.0f, 25.0f, 22.0f); // TODO: named constants ?
@@ -2043,20 +2032,20 @@ void MainContentComponent::openPreset(juce::String path)
             sliderValueChanged(mMasterGainOutSlider.get());
             sliderValueChanged(mInterpolationSlider.get());
 
-            juce::File speakerSetup = juce::File(mPathCurrentFileSpeaker.toStdString());
+            juce::File const speakerSetup{ mPathCurrentFileSpeaker };
             if (!mPathCurrentFileSpeaker.startsWith("/")) {
                 mPathCurrentFileSpeaker
                     = DEFAULT_PRESET_DIRECTORY.getChildFile(mPathCurrentFileSpeaker).getFullPathName();
             }
 
-            forEachXmlChildElement(*mainXmlElem, input)
-            {
+            for (auto * input{ mainXmlElem->getFirstChildElement() }; input != nullptr;
+                 input = input->getNextElement()) {
                 if (input->hasTagName("Input")) {
-                    for (auto && it : mSourceInputs) {
+                    for (auto * it : mSourceInputs) {
                         if (it->getId() == input->getIntAttribute("Index")) {
-                            it->setColor(juce::Colour::fromFloatRGBA((float)input->getDoubleAttribute("R"),
-                                                                     (float)input->getDoubleAttribute("G"),
-                                                                     (float)input->getDoubleAttribute("B"),
+                            it->setColor(juce::Colour::fromFloatRGBA(static_cast<float>(input->getDoubleAttribute("R")),
+                                                                     static_cast<float>(input->getDoubleAttribute("G")),
+                                                                     static_cast<float>(input->getDoubleAttribute("B")),
                                                                      1.0f),
                                          true);
                             if (input->hasAttribute("DirectOut")) {
@@ -2115,47 +2104,49 @@ void MainContentComponent::getPresetData(juce::XmlElement * xml) const
     xml->setAttribute("CamAngleY", mSpeakerViewComponent->getCamAngleY());
     xml->setAttribute("CamDistance", mSpeakerViewComponent->getCamDistance());
 
-    for (auto const it : mSourceInputs) {
-        juce::XmlElement * xmlInput = new juce::XmlElement("Input");
-        xmlInput->setAttribute("Index", it->getId());
-        xmlInput->setAttribute("R", it->getColor().x);
-        xmlInput->setAttribute("G", it->getColor().y);
-        xmlInput->setAttribute("B", it->getColor().z);
-        xmlInput->setAttribute("DirectOut", juce::String(it->getDirectOutChannel()));
+    for (auto const * sourceInput : mSourceInputs) {
+        auto * xmlInput{ new juce::XmlElement{ "Input" } };
+        xmlInput->setAttribute("Index", sourceInput->getId());
+        xmlInput->setAttribute("R", sourceInput->getColor().x);
+        xmlInput->setAttribute("G", sourceInput->getColor().y);
+        xmlInput->setAttribute("B", sourceInput->getColor().z);
+        xmlInput->setAttribute("DirectOut", juce::String(sourceInput->getDirectOutChannel()));
         xml->addChildElement(xmlInput);
     }
 }
 
 //==============================================================================
-void MainContentComponent::savePreset(juce::String path)
+void MainContentComponent::savePreset(juce::String const & path)
 {
-    juce::File xmlFile = juce::File(path.toStdString());
-    auto xml = std::make_unique<juce::XmlElement>("ServerGRIS_Preset");
+    juce::File const xmlFile{ path };
+    auto const xml{ std::make_unique<juce::XmlElement>("ServerGRIS_Preset") };
     getPresetData(xml.get());
-    xml->writeTo(xmlFile);
-    xmlFile.create();
+    [[maybe_unused]] auto success{ xml->writeTo(xmlFile) };
+    jassert(success);
+    success = xmlFile.create();
+    jassert(success);
     mPathCurrentPreset = path;
     mApplicationProperties.getUserSettings()->setValue(
         "lastPresetDirectory",
-        juce::File(mPathCurrentPreset).getParentDirectory().getFullPathName());
+        juce::File{ mPathCurrentPreset }.getParentDirectory().getFullPathName());
     setTitle();
 }
 
 //==============================================================================
-void MainContentComponent::saveSpeakerSetup(juce::String path)
+void MainContentComponent::saveSpeakerSetup(juce::String const & path)
 {
     mPathCurrentFileSpeaker = path;
-    juce::File xmlFile = juce::File(path.toStdString());
+    juce::File const xmlFile{ path };
     juce::XmlElement xml{ "SpeakerSetup" };
 
     xml.setAttribute("Name", mNameConfig);
     xml.setAttribute("Dimension", 3);
     xml.setAttribute("SpatMode", getModeSelected());
 
-    juce::XmlElement * xmlRing{ new juce::XmlElement("Ring") };
+    auto * xmlRing{ new juce::XmlElement{ "Ring" } };
 
-    for (auto const & it : mSpeakers) {
-        juce::XmlElement * xmlInput{ new juce::XmlElement{ "Speaker" } };
+    for (auto const * it : mSpeakers) {
+        auto * xmlInput{ new juce::XmlElement{ "Speaker" } };
         xmlInput->setAttribute("PositionY", it->getCoordinate().z);
         xmlInput->setAttribute("PositionX", it->getCoordinate().x);
         xmlInput->setAttribute("PositionZ", it->getCoordinate().y);
@@ -2171,20 +2162,22 @@ void MainContentComponent::saveSpeakerSetup(juce::String path)
     }
     xml.addChildElement(xmlRing);
 
-    for (auto const & it : mTriplets) {
-        juce::XmlElement * xmlInput{ new juce::XmlElement{ "triplet" } };
-        xmlInput->setAttribute("id1", it.id1);
-        xmlInput->setAttribute("id2", it.id2);
-        xmlInput->setAttribute("id3", it.id3);
+    for (auto const & triplet : mTriplets) {
+        auto * xmlInput{ new juce::XmlElement{ "triplet" } };
+        xmlInput->setAttribute("id1", triplet.id1);
+        xmlInput->setAttribute("id2", triplet.id2);
+        xmlInput->setAttribute("id3", triplet.id3);
         xml.addChildElement(xmlInput);
     }
 
-    xml.writeTo(xmlFile);
-    xmlFile.create();
+    [[maybe_unused]] auto success{ xml.writeTo(xmlFile) };
+    jassert(success);
+    success = xmlFile.create();
+    jassert(success);
 
     mApplicationProperties.getUserSettings()->setValue(
         "lastSpeakerSetupDirectory",
-        juce::File(mPathCurrentFileSpeaker).getParentDirectory().getFullPathName());
+        juce::File{ mPathCurrentFileSpeaker }.getParentDirectory().getFullPathName());
 
     mNeedToSaveSpeakerSetup = false;
 
@@ -2200,40 +2193,40 @@ void MainContentComponent::saveSpeakerSetup(juce::String path)
 }
 
 //==============================================================================
-void MainContentComponent::saveProperties(juce::String device,
-                                          int rate,
-                                          int buff,
-                                          int fileFormat,
-                                          int fileConfig,
-                                          int attenuationDb,
-                                          int attenuationHz,
+void MainContentComponent::saveProperties(juce::String const & device,
+                                          int const rate,
+                                          int const buff,
+                                          int const fileFormat,
+                                          int const fileConfig,
+                                          int const attenuationDb,
+                                          int const attenuationHz,
                                           int oscPort)
 {
-    juce::PropertiesFile * props = mApplicationProperties.getUserSettings();
+    auto * props{ mApplicationProperties.getUserSettings() };
 
-    juce::String DeviceValue = props->getValue("AlsaOutputDevice", "");
-    int BufferValue = props->getIntValue("BufferValue", 1024);
-    int RateValue = props->getIntValue("RateValue", 48000);
-    int OscInputPort = props->getIntValue("OscInputPort", 18032);
+    auto const deviceValue{ props->getValue("AlsaOutputDevice", "") };
+    auto bufferValue{ props->getIntValue("BufferValue", 1024) };
+    auto rateValue{ props->getIntValue("RateValue", 48000) };
+    auto const oscInputPort{ props->getIntValue("OscInputPort", 18032) };
 
-    if (std::isnan(float(BufferValue)) || BufferValue == 0) {
-        BufferValue = 1024;
+    if (bufferValue == 0) {
+        bufferValue = 1024;
     }
-    if (std::isnan(float(RateValue)) || RateValue == 0) {
-        RateValue = 48000;
+    if (rateValue == 0) {
+        rateValue = 48000;
     }
 
-    if (device.compare(DeviceValue) != 0 || rate != RateValue || buff != BufferValue) {
+    if (device.compare(deviceValue) != 0 || rate != rateValue || buff != bufferValue) {
         juce::AlertWindow alert("You Need to Restart SpatGRIS!",
                                 "New settings will be effective on next launch of the SpatGRIS.",
                                 juce::AlertWindow::InfoIcon);
         alert.setLookAndFeel(&mLookAndFeel);
         alert.addButton("Cancel", 0);
-        alert.addButton("Ok", 1, juce::KeyPress(juce::KeyPress::returnKey));
+        alert.addButton("Ok", 1, juce::KeyPress{ juce::KeyPress::returnKey });
         if (alert.runModalLoop() != 0) {
             props->setValue("AlsaOutputDevice", device);
-            props->setValue("BufferValue", (int)buff);
-            props->setValue("RateValue", (int)rate);
+            props->setValue("BufferValue", buff);
+            props->setValue("RateValue", rate);
         }
     }
 
@@ -2241,7 +2234,7 @@ void MainContentComponent::saveProperties(juce::String device,
     if (oscPort < 0 || oscPort > 65535) {
         oscPort = 18032;
     }
-    if (oscPort != OscInputPort) {
+    if (oscPort != oscInputPort) {
         mOscInputPort = oscPort;
         props->setValue("OscInputPort", oscPort);
         mOscReceiver->closeConnection();
@@ -2261,13 +2254,14 @@ void MainContentComponent::saveProperties(juce::String device,
     props->setValue("FileConfig", fileConfig);
 
     // Handle CUBE distance attenuation
-    float linGain = powf(10.0f, ATTENUATION_DB[attenuationDb].getFloatValue() * 0.05f);
+    auto const linGain{ std::pow(10.0f, ATTENUATION_DB[attenuationDb].getFloatValue() * 0.05f) };
     mJackClient.setAttenuationDb(linGain);
     props->setValue("AttenuationDB", attenuationDb);
 
-    float coeff = expf(-juce::MathConstants<float>::twoPi * ATTENUATION_CUTOFFS[attenuationHz].getFloatValue()
-                       / mJackClient.getSampleRate());
-    mJackClient.setAttenuationHz(coeff);
+    auto const coefficient{ std::exp(-juce::MathConstants<float>::twoPi
+                                     * ATTENUATION_CUTOFFS[attenuationHz].getFloatValue()
+                                     / static_cast<float>(mJackClient.getSampleRate())) };
+    mJackClient.setAttenuationHz(coefficient);
     props->setValue("AttenuationHz", attenuationHz);
 
     mApplicationProperties.saveIfNeeded();
@@ -2278,11 +2272,11 @@ void MainContentComponent::timerCallback()
 {
     auto const cpuLoad{ static_cast<int>(std::round(mJackClient.getCpuUsed() * 100.0f)) };
     mJackLoadLabel->setText(juce::String{ cpuLoad } + " %", juce::dontSendNotification);
-    int seconds = mJackClient.getIndexRecord() / mJackClient.getSampleRate();
-    int minute = int(seconds / 60) % 60;
-    seconds = int(seconds % 60);
-    juce::String timeRecorded = ((minute < 10) ? "0" + juce::String(minute) : juce::String(minute)) + " : "
-                                + ((seconds < 10) ? "0" + juce::String(seconds) : juce::String(seconds));
+    auto seconds{ static_cast<int>(mJackClient.getIndexRecord() / mJackClient.getSampleRate()) };
+    auto const minute{ seconds / 60 % 60 };
+    seconds = seconds % 60;
+    auto const timeRecorded{ ((minute < 10) ? "0" + juce::String(minute) : juce::String(minute)) + " : "
+                             + ((seconds < 10) ? "0" + juce::String(seconds) : juce::String(seconds)) };
     mTimeRecordedLabel->setText(timeRecorded, juce::dontSendNotification);
 
     if (mStartRecordButton->getToggleState()) {
@@ -2291,24 +2285,22 @@ void MainContentComponent::timerCallback()
 
     if (mJackClient.isSavingRun()) {
         mStartRecordButton->setButtonText("Stop");
-    } else if (mJackClient.getRecordingPath() == "") {
-        mStartRecordButton->setButtonText("Record");
     } else {
         mStartRecordButton->setButtonText("Record");
     }
 
     if (mIsRecording && !mJackClient.isRecording()) {
-        bool isReadyToMerge = true;
-        for (unsigned int i = 0; i < MAX_OUTPUTS; i++) {
-            if (mJackClient.getRecorders()[i].backgroundThread.isThreadRunning()) {
-                isReadyToMerge = false;
-            }
-        }
+        auto const & recorders{ mJackClient.getRecorders() };
+        auto const isReadyToMerge{ std::all_of(
+            recorders.begin(),
+            recorders.end(),
+            [](AudioRecorder const & recorder) -> bool { return !recorder.backgroundThread.isThreadRunning(); }) };
+
         if (isReadyToMerge) {
             mIsRecording = false;
             if (mJackClient.getRecordFileConfig()) {
                 mJackClient.setProcessBlockOn(false);
-                AudioRenderer * renderer = new AudioRenderer();
+                auto * renderer{ new AudioRenderer{} };
                 renderer->prepareRecording(mJackClient.getRecordingPath(),
                                            mJackClient.getOutputFileNames(),
                                            mJackClient.getSampleRate());
@@ -2324,12 +2316,12 @@ void MainContentComponent::timerCallback()
         mJackLoadLabel->setColour(juce::Label::backgroundColourId, mLookAndFeel.getWinBackgroundColour());
     }
 
-    for (auto && it : mSourceInputs) {
-        it->getVuMeter()->update();
+    for (auto * sourceInput : mSourceInputs) {
+        sourceInput->getVuMeter()->update();
     }
 
-    for (auto && it : mSpeakers) {
-        it->getVuMeter()->update();
+    for (auto * speaker : mSpeakers) {
+        speaker->getVuMeter()->update();
     }
 
     mJackClientListComponent->updateContentCli();
@@ -2366,30 +2358,31 @@ void MainContentComponent::textEditorFocusLost(juce::TextEditor & textEditor)
 void MainContentComponent::textEditorReturnKeyPressed(juce::TextEditor & textEditor)
 {
     if (&textEditor == mAddInputsTextEditor.get()) {
-        unsigned int num_of_inputs = (unsigned int)mAddInputsTextEditor->getTextValue().toString().getIntValue();
-        if (num_of_inputs < 1) {
+        auto const numOfInputs{ static_cast<unsigned>(mAddInputsTextEditor->getTextValue().toString().getIntValue()) };
+        if (numOfInputs < 1) {
             mAddInputsTextEditor->setText("1");
         }
-        if (num_of_inputs > MAX_INPUTS) {
+        if (numOfInputs > MAX_INPUTS) {
             mAddInputsTextEditor->setText(juce::String(MAX_INPUTS));
         }
 
-        if (mJackClient.getInputPorts().size() != num_of_inputs) {
+        if (mJackClient.getInputPorts().size() != numOfInputs) {
             mJackClient.setProcessBlockOn(false);
-            mJackClient.addRemoveInput(num_of_inputs);
+            mJackClient.addRemoveInput(numOfInputs);
             mJackClient.setProcessBlockOn(true);
 
             mInputLocks.lock();
-            bool addInput = false;
-            for (unsigned int i = 0; i < mJackClient.getInputPorts().size(); i++) {
+            auto addInput{ false };
+            auto const numInputPorts{ static_cast<int>(mJackClient.getInputPorts().size()) };
+            for (int i{}; i < numInputPorts; ++i) {
                 if (i >= mSourceInputs.size()) {
-                    mSourceInputs.add(new Input(*this, mSmallLookAndFeel, i + 1));
+                    mSourceInputs.add(new Input{ *this, mSmallLookAndFeel, i + 1 });
                     addInput = true;
                 }
             }
             if (!addInput) {
                 auto const listSourceInputSize{ mSourceInputs.size() };
-                auto const jackClientInputPortSize{ mJackClient.getInputPorts().size() };
+                auto const jackClientInputPortSize{ static_cast<int>(mJackClient.getInputPorts().size()) };
                 if (listSourceInputSize > jackClientInputPortSize) {
                     mSourceInputs.removeRange(jackClientInputPortSize, listSourceInputSize - jackClientInputPortSize);
                 }
@@ -2425,16 +2418,16 @@ void MainContentComponent::buttonClicked(juce::Button * button)
 void MainContentComponent::sliderValueChanged(juce::Slider * slider)
 {
     if (slider == mMasterGainOutSlider.get()) {
-        mJackClient.setMasterGainOut(pow(10.0, mMasterGainOutSlider->getValue() * 0.05));
+        mJackClient.setMasterGainOut(std::pow(10.0f, static_cast<float>(mMasterGainOutSlider->getValue()) * 0.05f));
     }
 
     else if (slider == mInterpolationSlider.get()) {
-        mJackClient.setInterMaster(mInterpolationSlider->getValue());
+        mJackClient.setInterMaster(static_cast<float>(mInterpolationSlider->getValue()));
     }
 }
 
 //==============================================================================
-void MainContentComponent::comboBoxChanged(juce::ComboBox * comboBox)
+void MainContentComponent::comboBoxChanged(juce::ComboBox const * comboBox)
 {
     if (mEditSpeakersWindow != nullptr && mNeedToSaveSpeakerSetup) {
         juce::AlertWindow alert(
@@ -2450,7 +2443,7 @@ void MainContentComponent::comboBoxChanged(juce::ComboBox * comboBox)
 
     if (mModeSpatCombo.get() == comboBox) {
         mJackClient.setProcessBlockOn(false);
-        mJackClient.setMode((ModeSpatEnum)(mModeSpatCombo->getSelectedId() - 1));
+        mJackClient.setMode(static_cast<ModeSpatEnum>(mModeSpatCombo->getSelectedId() - 1));
         switch (mJackClient.getMode()) {
         case VBAP:
             openXmlFileSpeaker(mPathLastVbapSpeakerSetup);
@@ -2474,14 +2467,14 @@ void MainContentComponent::comboBoxChanged(juce::ComboBox * comboBox)
             mIsSpanShown = false;
             break;
         default:
-            break;
+            jassertfalse;
         }
         mJackClient.setProcessBlockOn(true);
 
         if (mEditSpeakersWindow != nullptr) {
-            juce::String windowName = juce::String("Speakers Setup Edition - ")
-                                      + juce::String(MODE_SPAT_STRING[mJackClient.getMode()]) + juce::String(" - ")
-                                      + juce::File(mPathCurrentFileSpeaker).getFileName();
+            auto const windowName{ juce::String("Speakers Setup Edition - ")
+                                   + juce::String(MODE_SPAT_STRING[mJackClient.getMode()]) + juce::String(" - ")
+                                   + juce::File(mPathCurrentFileSpeaker).getFileName() };
             mEditSpeakersWindow->setName(windowName);
         }
     }
@@ -2495,21 +2488,22 @@ juce::StringArray MainContentComponent::getMenuBarNames()
 }
 
 //==============================================================================
-void MainContentComponent::setOscLogging(const juce::OSCMessage & message)
+void MainContentComponent::setOscLogging(juce::OSCMessage const & message) const
 {
-    if (mOscLogWindow != nullptr) {
-        juce::String address = message.getAddressPattern().toString();
+    if (mOscLogWindow) {
+        auto const address{ message.getAddressPattern().toString() };
         mOscLogWindow->addToLog(address + "\n");
         juce::String msg;
-        for (int i = 0; i < message.size(); i++) {
-            if (message[i].isInt32()) {
-                msg = msg + juce::String(message[i].getInt32()) + " ";
-            } else if (message[i].isFloat32()) {
-                msg = msg + juce::String(message[i].getFloat32()) + " ";
-            } else if (message[i].isString()) {
-                msg = msg + message[i].getString() + " ";
+        for (auto const & element : message) {
+            if (element.isInt32()) {
+                msg += juce::String{ element.getInt32() } + " ";
+            } else if (element.isFloat32()) {
+                msg += juce::String{ element.getFloat32() } + " ";
+            } else if (element.isString()) {
+                msg += element.getString() + " ";
             }
         }
+
         mOscLogWindow->addToLog(msg + "\n");
     }
 }
@@ -2517,9 +2511,9 @@ void MainContentComponent::setOscLogging(const juce::OSCMessage & message)
 //==============================================================================
 void MainContentComponent::chooseRecordingPath()
 {
-    juce::String dir = mApplicationProperties.getUserSettings()->getValue("lastRecordingDirectory");
-    if (!juce::File(dir).isDirectory()) {
-        dir = juce::File("~").getFullPathName();
+    juce::File dir{ mApplicationProperties.getUserSettings()->getValue("lastRecordingDirectory") };
+    if (!dir.isDirectory()) {
+        dir = juce::File::getSpecialLocation(juce::File::SpecialLocationType::userHomeDirectory);
     }
     juce::String extF;
     juce::String extChoice;
@@ -2531,10 +2525,13 @@ void MainContentComponent::chooseRecordingPath()
         extChoice = "*.aif,*.wav";
     }
 
-    juce::FileChooser fc("Choose a file to save...", dir + "/recording" + extF, extChoice, USE_OS_NATIVE_DIALOG_BOX);
+    juce::FileChooser fc{ "Choose a file to save...",
+                          dir.getFullPathName() + "/recording" + extF,
+                          extChoice,
+                          USE_OS_NATIVE_DIALOG_BOX };
 
     if (fc.browseForFileToSave(true)) {
-        juce::String filePath = fc.getResults().getReference(0).getFullPathName();
+        auto const filePath{ fc.getResults().getReference(0).getFullPathName() };
         mApplicationProperties.getUserSettings()->setValue("lastRecordingDirectory",
                                                            juce::File(filePath).getParentDirectory().getFullPathName());
         mJackClient.setRecordingPath(filePath);
@@ -2545,16 +2542,16 @@ void MainContentComponent::chooseRecordingPath()
 //==============================================================================
 void MainContentComponent::resized()
 {
-    juce::Rectangle<int> r(getLocalBounds().reduced(2));
+    auto r{ getLocalBounds().reduced(2) };
 
     mMenuBar->setBounds(0, 0, getWidth(), 20);
     r.removeFromTop(20);
 
     // Lay out the speaker view and the vertical divider.
-    Component * vcomps[] = { mSpeakerViewComponent.get(), mVerticalDividerBar.get(), nullptr };
+    Component * vComps[] = { mSpeakerViewComponent.get(), mVerticalDividerBar.get(), nullptr };
 
     // Lay out side-by-side and resize the components' heights as well as widths.
-    mVerticalLayout.layOutComponents(vcomps, 3, r.getX(), r.getY(), r.getWidth(), r.getHeight(), false, true);
+    mVerticalLayout.layOutComponents(vComps, 3, r.getX(), r.getY(), r.getWidth(), r.getHeight(), false, true);
 
     mMainUiBox->setBounds(mSpeakerViewComponent->getWidth() + 6,
                           20,
@@ -2563,10 +2560,10 @@ void MainContentComponent::resized()
     mMainUiBox->correctSize(getWidth() - mSpeakerViewComponent->getWidth() - 6, 610);
 
     mInputsUiBox->setBounds(0, 2, getWidth() - (mSpeakerViewComponent->getWidth() + 10), 231);
-    mInputsUiBox->correctSize(((unsigned int)mSourceInputs.size() * (VU_METER_WIDTH_IN_PIXELS)) + 4, 200);
+    mInputsUiBox->correctSize(static_cast<unsigned>(mSourceInputs.size()) * (VU_METER_WIDTH_IN_PIXELS) + 4, 200);
 
     mOutputsUiBox->setBounds(0, 233, getWidth() - (mSpeakerViewComponent->getWidth() + 10), 210);
-    mOutputsUiBox->correctSize(((unsigned int)mSpeakers.size() * (VU_METER_WIDTH_IN_PIXELS)) + 4, 180);
+    mOutputsUiBox->correctSize(static_cast<unsigned>(mSpeakers.size()) * (VU_METER_WIDTH_IN_PIXELS) + 4, 180);
 
     mControlUiBox->setBounds(0, 443, getWidth() - (mSpeakerViewComponent->getWidth() + 10), 145);
     mControlUiBox->correctSize(720, 145);
