@@ -42,7 +42,7 @@ class JackClientListComponent final
         static constexpr int ON_OFF_TOGGLE = 4;
     };
     //==============================================================================
-    class ListIntOutComp final
+    class ListIntOutComp
         : public juce::Component
         , public juce::ComboBox::Listener
     {
@@ -65,7 +65,8 @@ class JackClientListComponent final
         //==============================================================================
         void resized() override { mComboBox.setBoundsInset(juce::BorderSize<int>(2)); }
         void setRowAndColumn(int newRow, int newColumn);
-        void comboBoxChanged(juce::ComboBox const *) override
+
+        void comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged) override
         {
             mOwner.setValue(mRow, mColumnId, mComboBox.getSelectedId());
         }

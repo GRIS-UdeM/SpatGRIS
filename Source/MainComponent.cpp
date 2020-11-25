@@ -2437,7 +2437,7 @@ void MainContentComponent::sliderValueChanged(juce::Slider * slider)
 }
 
 //==============================================================================
-void MainContentComponent::comboBoxChanged(juce::ComboBox const * comboBox)
+void MainContentComponent::comboBoxChanged(juce::ComboBox * comboBox)
 {
     if (mEditSpeakersWindow != nullptr && mNeedToSaveSpeakerSetup) {
         juce::AlertWindow alert(

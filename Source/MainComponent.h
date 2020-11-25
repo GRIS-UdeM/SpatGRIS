@@ -330,7 +330,7 @@ public:
     void sliderValueChanged(juce::Slider * slider) override;
     void textEditorFocusLost(juce::TextEditor & textEditor) override;
     void textEditorReturnKeyPressed(juce::TextEditor & textEditor) override;
-    void comboBoxChanged(juce::ComboBox const * comboBox) override;
+    void comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged) override;
 
     [[nodiscard]] ModeSpatEnum getModeSelected() const
     {
