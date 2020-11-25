@@ -50,8 +50,8 @@ public:
     OscInput & operator=(OscInput const &) = delete;
     OscInput & operator=(OscInput &&) = delete;
     //==============================================================================
-    bool startConnection(int port);
-    bool closeConnection() { return this->disconnect(); }
+    [[nodiscard]] bool startConnection(int port);
+    [[nodiscard]] bool closeConnection() { return this->disconnect(); }
 
 private:
     //==============================================================================

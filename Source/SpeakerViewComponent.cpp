@@ -235,7 +235,7 @@ void SpeakerViewComponent::clickRay()
     auto iBestSpeaker = -1;
     auto selected = -1;
     if (mMainContentComponent.getSpeakersLock().try_lock()) {
-        for (unsigned int i = 0; i < mMainContentComponent.getSpeakers().size(); ++i) {
+        for (int i{}; i < mMainContentComponent.getSpeakers().size(); ++i) {
             auto const * speaker{ mMainContentComponent.getSpeakers()[i] };
             if (speaker->isSelected()) {
                 selected = i;
@@ -296,7 +296,7 @@ void SpeakerViewComponent::mouseDrag(const juce::MouseEvent & e)
 }
 
 //==============================================================================
-void SpeakerViewComponent::mouseWheelMove(const juce::MouseEvent & e, const juce::MouseWheelDetails & wheel)
+void SpeakerViewComponent::mouseWheelMove(const juce::MouseEvent & /*e*/, const juce::MouseWheelDetails & wheel)
 {
     mDistance -= wheel.deltaY * SCROLL_WHEEL_SPEED_MOUSE;
     mDistance = std::clamp(mDistance, 1.0f, 70.f);
@@ -333,11 +333,11 @@ void SpeakerViewComponent::drawBackground()
 void SpeakerViewComponent::drawOriginGrid() const
 {
     glLineWidth(1.5f);
-    glColor3f(0.59, 0.59, 0.59);
+    glColor3f(0.59f, 0.59f, 0.59f);
 
     if (mMainContentComponent.getModeSelected() == ModeSpatEnum::LBAP) {
         // Draw light squares.
-        for (auto j{ 3.5f }; j < 19.f; j += 6.75f) {
+        for (auto j{ 3.5f }; j < 19.0f; j += 6.75f) {
             glBegin(GL_LINES);
             glVertex3f(-j, 0.0f, j);
             glVertex3f(j, 0.0f, j);

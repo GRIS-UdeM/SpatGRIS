@@ -90,13 +90,13 @@ public:
 
 private:
     //==============================================================================
-    ModeSpatEnum getModeSelected() const;
-    bool getDirectOutForSpeakerRow(int row) const;
-    juce::String getText(int columnNumber, int rowNumber) const;
+    [[nodiscard]] ModeSpatEnum getModeSelected() const;
+    [[nodiscard]] bool getDirectOutForSpeakerRow(int row) const;
+    [[nodiscard]] juce::String getText(int columnNumber, int rowNumber) const;
     void setText(int columnNumber, int rowNumber, juce::String const & newText, bool altDown = false);
     //==============================================================================
     // VIRTUALS
-    int getNumRows() override { return this->mNumRows; }
+    [[nodiscard]] int getNumRows() override { return this->mNumRows; }
     void buttonClicked(juce::Button * button) override;
     void textEditorTextChanged(juce::TextEditor & editor) override;
     void textEditorReturnKeyPressed(juce::TextEditor & textEditor) override;
@@ -106,10 +106,10 @@ private:
     void resized() override;
     void paintRowBackground(juce::Graphics & g, int rowNumber, int width, int height, bool rowIsSelected) override;
     void paintCell(juce::Graphics & g, int rowNumber, int columnId, int width, int height, bool rowIsSelected) override;
-    Component * refreshComponentForCell(int rowNumber,
-                                        int columnId,
-                                        bool isRowSelected,
-                                        Component * existingComponentToUpdate) override;
+    [[nodiscard]] Component * refreshComponentForCell(int rowNumber,
+                                                      int columnId,
+                                                      bool isRowSelected,
+                                                      Component * existingComponentToUpdate) override;
     //==============================================================================
     JUCE_LEAK_DETECTOR(EditSpeakersWindow)
 };

@@ -48,9 +48,9 @@ public:
     //==============================================================================
     void setRay(glm::vec3 const & p, glm::vec3 const & d);
     //==============================================================================
-    glm::vec3 const & getNormal() const { return this->mNormal; }
-    glm::vec3 const & getPosition() const { return this->mPosition; }
-    glm::vec3 const & getDirection() const { return this->mDirection; }
+    [[nodiscard]] glm::vec3 const & getNormal() const { return this->mNormal; }
+    [[nodiscard]] glm::vec3 const & getPosition() const { return this->mPosition; }
+    [[nodiscard]] glm::vec3 const & getDirection() const { return this->mDirection; }
     //==============================================================================
     void draw() const;
 

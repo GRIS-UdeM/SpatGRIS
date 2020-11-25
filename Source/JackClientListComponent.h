@@ -46,49 +46,67 @@ class JackClientListComponent final
         : public juce::Component
         , public juce::ComboBox::Listener
     {
+        JackClientListComponent & mOwner;
+        juce::ComboBox mComboBox;
+
+        int mRow;
+        int mColumnId;
+
     public:
-        ListIntOutComp(JackClientListComponent & td);
         //==============================================================================
-        void resized() final { comboBox.setBoundsInset(juce::BorderSize<int>(2)); }
+        explicit ListIntOutComp(JackClientListComponent & td);
+        ~ListIntOutComp() override = default;
+
+        ListIntOutComp(ListIntOutComp const &) = delete;
+        ListIntOutComp(ListIntOutComp &&) = delete;
+
+        ListIntOutComp & operator=(ListIntOutComp const &) = delete;
+        ListIntOutComp & operator=(ListIntOutComp &&) = delete;
+        //==============================================================================
+        void resized() override { mComboBox.setBoundsInset(juce::BorderSize<int>(2)); }
         void setRowAndColumn(int newRow, int newColumn);
-        void comboBoxChanged(juce::ComboBox const *) final { owner.setValue(row, columnId, comboBox.getSelectedId()); }
+        void comboBoxChanged(juce::ComboBox const *) override
+        {
+            mOwner.setValue(mRow, mColumnId, mComboBox.getSelectedId());
+        }
 
     private:
-        //==============================================================================
-        JackClientListComponent & owner;
-        juce::ComboBox comboBox;
+        JUCE_LEAK_DETECTOR(ListIntOutComp)
+    }; // class ListIntOutComp
 
-        int row;
-        int columnId;
-    };
+    //==============================================================================
+    MainContentComponent * mMainParent;
+    GrisLookAndFeel * mLookAndFeel;
+
+    unsigned int mNumRows{};
+
+    juce::TableListBox mTableListClient;
+    Box * mBox;
 
 public:
     JackClientListComponent(MainContentComponent * parent, GrisLookAndFeel * feel);
-    ~JackClientListComponent() final = default;
+    ~JackClientListComponent() override = default;
     //==============================================================================
     void updateContentCli();
-    void buttonClicked(juce::Button * button) final;
-    void setBounds(int x, int y, int width, int height);
-    void setValue(const int rowNumber, const int columnNumber, const int newRating);
-    int getValue(const int rowNumber, const int columnNumber) const;
-    int getNumRows() final { return numRows; }
-    void paintRowBackground(juce::Graphics & g, int rowNumber, int /*width*/, int /*height*/, bool rowIsSelected) final;
-    void
-        paintCell(juce::Graphics & g, int rowNumber, int columnId, int width, int height, bool /*rowIsSelected*/) final;
+    void buttonClicked(juce::Button * button) override;
+    void setBounds(int x, int y, int width, int height); // TODO : this hides juce::Component::setBounds()
+    void setValue(int rowNumber, int columnNumber, int newRating);
+    [[nodiscard]] int getValue(int rowNumber, int columnNumber) const;
+    [[nodiscard]] int getNumRows() override { return mNumRows; }
+    void paintRowBackground(juce::Graphics & g,
+                            int rowNumber,
+                            int /*width*/,
+                            int /*height*/,
+                            bool rowIsSelected) override;
+    void paintCell(juce::Graphics & g, int rowNumber, int columnId, int width, int height, bool /*rowIsSelected*/)
+        override;
 
-    juce::String getText(const int columnNumber, const int rowNumber) const;
-    juce::Component * refreshComponentForCell(int rowNumber,
-                                              int columnId,
-                                              bool /*isRowSelected*/,
-                                              Component * existingComponentToUpdate) final;
+    [[nodiscard]] juce::String getText(int columnNumber, int rowNumber) const;
+    [[nodiscard]] juce::Component * refreshComponentForCell(int rowNumber,
+                                                            int columnId,
+                                                            bool /*isRowSelected*/,
+                                                            Component * existingComponentToUpdate) override;
 
 private:
-    //==============================================================================
-    MainContentComponent * mainParent;
-    GrisLookAndFeel * grisFeel;
-
-    unsigned int numRows{};
-
-    juce::TableListBox tableListClient;
-    Box * box;
-};
+    JUCE_LEAK_DETECTOR(JackClientListComponent)
+}; // JackClientListComponent

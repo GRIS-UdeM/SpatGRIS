@@ -174,8 +174,8 @@ public:
     MainContentComponent & operator=(MainContentComponent &&) = delete;
     //==============================================================================
     // Exit application.
-    bool isPresetModified() const;
-    bool exitApp();
+    [[nodiscard]] bool isPresetModified() const;
+    [[nodiscard]] bool exitApp();
 
     // Menubar handlers.
     void handleNew();
@@ -205,30 +205,30 @@ public:
     void handleInputColours();
 
     // other
-    bool isTripletsShown() const { return mIsTripletsShown; }
-    bool needToSaveSpeakerSetup() const { return mNeedToSaveSpeakerSetup; }
-    bool isSpanShown() const { return mIsSpanShown; }
-    bool isSourceLevelShown() const { return mIsSourceLevelShown; }
-    auto & getApplicationProperties() { return mApplicationProperties; }
-    bool isSpeakerLevelShown() const { return mIsSpeakerLevelShown; }
+    [[nodiscard]] bool isTripletsShown() const { return mIsTripletsShown; }
+    [[nodiscard]] bool needToSaveSpeakerSetup() const { return mNeedToSaveSpeakerSetup; }
+    [[nodiscard]] bool isSpanShown() const { return mIsSpanShown; }
+    [[nodiscard]] bool isSourceLevelShown() const { return mIsSourceLevelShown; }
+    [[nodiscard]] auto & getApplicationProperties() { return mApplicationProperties; }
+    [[nodiscard]] bool isSpeakerLevelShown() const { return mIsSpeakerLevelShown; }
 
     void setNeedToComputeVbap(bool const state) { mNeedToComputeVbap = state; }
     void setNeedToSaveSpeakerSetup(bool const state) { mNeedToSaveSpeakerSetup = state; }
 
     // Menubar methods.
-    juce::StringArray getMenuBarNames() override;
-    juce::PopupMenu getMenuForIndex(int menuIndex, const juce::String & /*menuName*/) override;
+    [[nodiscard]] juce::StringArray getMenuBarNames() override;
+    [[nodiscard]] juce::PopupMenu getMenuForIndex(int menuIndex, const juce::String & /*menuName*/) override;
 
     void menuItemSelected(int menuItemId, int /*topLevelMenuIndex*/) override;
 
     // Speakers.
-    juce::OwnedArray<Speaker> & getSpeakers() { return this->mSpeakers; }
-    juce::OwnedArray<Speaker> const & getSpeakers() const { return this->mSpeakers; }
+    [[nodiscard]] juce::OwnedArray<Speaker> & getSpeakers() { return this->mSpeakers; }
+    [[nodiscard]] juce::OwnedArray<Speaker> const & getSpeakers() const { return this->mSpeakers; }
 
-    std::mutex & getSpeakersLock() { return this->mSpeakerLocks; }
+    [[nodiscard]] std::mutex & getSpeakersLock() { return this->mSpeakerLocks; }
 
-    Speaker * getSpeakerFromOutputPatch(int out);
-    Speaker const * getSpeakerFromOutputPatch(int out) const;
+    [[nodiscard]] Speaker * getSpeakerFromOutputPatch(int out);
+    [[nodiscard]] Speaker const * getSpeakerFromOutputPatch(int out) const;
 
     void addSpeaker(int sortColumnId = 1, bool isSortedForwards = true);
     void insertSpeaker(int position, int sortColumnId, bool isSortedForwards);
@@ -236,26 +236,26 @@ public:
     void setDirectOut(int id, int chn);
     void reorderSpeakers(std::vector<int> const & newOrder);
     void resetSpeakerIds();
-    int getMaxSpeakerId() const;
-    int getMaxSpeakerOutputPatch() const;
+    [[nodiscard]] int getMaxSpeakerId() const;
+    [[nodiscard]] int getMaxSpeakerOutputPatch() const;
 
     // Sources.
-    juce::OwnedArray<Input> & getSourceInputs() { return this->mSourceInputs; }
-    juce::OwnedArray<Input> const & getSourceInputs() const { return this->mSourceInputs; }
+    [[nodiscard]] juce::OwnedArray<Input> & getSourceInputs() { return this->mSourceInputs; }
+    [[nodiscard]] juce::OwnedArray<Input> const & getSourceInputs() const { return this->mSourceInputs; }
 
-    std::mutex & getInputsLock() { return this->mInputLocks; }
+    [[nodiscard]] std::mutex & getInputsLock() { return this->mInputLocks; }
 
     void updateInputJack(int inInput, Input & inp);
-    bool isRadiusNormalized() const;
+    [[nodiscard]] bool isRadiusNormalized() const;
 
     // Jack clients.
-    JackClientGris * getJackClient() { return &this->mJackClient; }
-    JackClientGris const * getJackClient() const { return &mJackClient; }
+    [[nodiscard]] JackClientGris * getJackClient() { return &this->mJackClient; }
+    [[nodiscard]] JackClientGris const * getJackClient() const { return &mJackClient; }
 
-    std::vector<Client> & getClients() { return this->mJackClient.getClients(); }
-    std::vector<Client> const & getClients() const { return this->mJackClient.getClients(); }
+    [[nodiscard]] std::vector<Client> & getClients() { return this->mJackClient.getClients(); }
+    [[nodiscard]] std::vector<Client> const & getClients() const { return this->mJackClient.getClients(); }
 
-    std::mutex & getClientsLock() { return mJackClient.getClientsLock(); }
+    [[nodiscard]] std::mutex & getClientsLock() { return mJackClient.getClientsLock(); }
 
     void connectionClientJack(juce::String const & clientName, bool conn = true);
 
@@ -263,13 +263,13 @@ public:
     void setTripletsFromVbap();
     void clearTriplets() { this->mTriplets.clear(); }
 
-    std::vector<Triplet> & getTriplets() { return this->mTriplets; }
-    std::vector<Triplet> const & getTriplets() const { return this->mTriplets; }
+    [[nodiscard]] std::vector<Triplet> & getTriplets() { return this->mTriplets; }
+    [[nodiscard]] std::vector<Triplet> const & getTriplets() const { return this->mTriplets; }
 
     // Speaker selections.
     void selectSpeaker(int const idS) const;
     void selectTripletSpeaker(int idS);
-    bool tripletExists(Triplet const & tri, int & pos) const;
+    [[nodiscard]] bool tripletExists(Triplet const & tri, int & pos) const;
 
     // Mute - solo.
     void muteInput(int id, bool mute);
@@ -278,20 +278,20 @@ public:
     void soloOutput(int id, bool solo);
 
     // Input - output amplitude levels.
-    float getLevelsOut(int const indexLevel) const
+    [[nodiscard]] float getLevelsOut(int const indexLevel) const
     {
-        return (20.0f * log10f(this->mJackClient.getLevelsOut(indexLevel)));
+        return (20.0f * std::log10(this->mJackClient.getLevelsOut(indexLevel)));
     }
-    float getLevelsIn(int const indexLevel) const
+    [[nodiscard]] float getLevelsIn(int const indexLevel) const
     {
-        return (20.0f * log10f(this->mJackClient.getLevelsIn(indexLevel)));
+        return (20.0f * std::log10(this->mJackClient.getLevelsIn(indexLevel)));
     }
-    float getLevelsAlpha(int indexLevel) const;
+    [[nodiscard]] float getLevelsAlpha(int indexLevel) const;
 
-    float getSpeakerLevelsAlpha(int indexLevel) const;
+    [[nodiscard]] float getSpeakerLevelsAlpha(int indexLevel) const;
 
     // Called when the speaker setup has changed.
-    bool updateLevelComp();
+    [[nodiscard]] bool updateLevelComp();
 
     // Open - save.
     void openXmlFileSpeaker(juce::String const & path);
@@ -332,55 +332,61 @@ public:
     void textEditorReturnKeyPressed(juce::TextEditor & textEditor) override;
     void comboBoxChanged(juce::ComboBox const * comboBox) override;
 
-    ModeSpatEnum getModeSelected() const { return static_cast<ModeSpatEnum>(mModeSpatCombo->getSelectedId() - 1); }
+    [[nodiscard]] ModeSpatEnum getModeSelected() const
+    {
+        return static_cast<ModeSpatEnum>(mModeSpatCombo->getSelectedId() - 1);
+    }
 
     void setOscLogging(const juce::OSCMessage & message) const;
 
     //==============================================================================
     // Widget creation helper.
-    juce::TextEditor * addTextEditor(juce::String const & s,
-                                     juce::String const & emptyS,
-                                     juce::String const & tooltip,
-                                     int x,
-                                     int y,
-                                     int w,
-                                     int h,
-                                     juce::Component * into,
-                                     int wLab = 80);
+    [[nodiscard]] juce::TextEditor * addTextEditor(juce::String const & s,
+                                                   juce::String const & emptyS,
+                                                   juce::String const & tooltip,
+                                                   int x,
+                                                   int y,
+                                                   int w,
+                                                   int h,
+                                                   juce::Component * into,
+                                                   int wLab = 80);
 
 private:
     // Widget creation helpers.
-    juce::Label * addLabel(const juce::String & s,
-                           const juce::String & tooltip,
-                           int x,
-                           int y,
-                           int w,
-                           int h,
-                           Component * into) const;
-    juce::TextButton *
-        addButton(const juce::String & s, const juce::String & tooltip, int x, int y, int w, int h, Component * into);
-    juce::ToggleButton * addToggleButton(const juce::String & s,
+    [[nodiscard]] juce::Label * addLabel(const juce::String & s,
                                          const juce::String & tooltip,
                                          int x,
                                          int y,
                                          int w,
                                          int h,
-                                         Component * into,
-                                         bool toggle = false);
-    juce::Slider *
+                                         Component * into) const;
+    [[nodiscard]] juce::TextButton *
+        addButton(const juce::String & s, const juce::String & tooltip, int x, int y, int w, int h, Component * into);
+    [[nodiscard]] juce::ToggleButton * addToggleButton(const juce::String & s,
+                                                       const juce::String & tooltip,
+                                                       int x,
+                                                       int y,
+                                                       int w,
+                                                       int h,
+                                                       Component * into,
+                                                       bool toggle = false);
+    [[nodiscard]] juce::Slider *
         addSlider(const juce::String & s, const juce::String & tooltip, int x, int y, int w, int h, Component * into);
-    juce::ComboBox *
+    [[nodiscard]] juce::ComboBox *
         addComboBox(const juce::String & s, const juce::String & tooltip, int x, int y, int w, int h, Component * into);
 
     //==============================================================================
     // The following methods implement the ApplicationCommandTarget interface, allowing
     // this window to publish a set of actions it can perform, and which can be mapped
     // onto menus, keypresses, etc.
-    juce::ApplicationCommandTarget * getNextCommandTarget() override { return findFirstTargetParentComponent(); }
+    [[nodiscard]] juce::ApplicationCommandTarget * getNextCommandTarget() override
+    {
+        return findFirstTargetParentComponent();
+    }
 
     void getAllCommands(juce::Array<juce::CommandID> & commands) override;
     void getCommandInfo(juce::CommandID commandId, juce::ApplicationCommandInfo & result) override;
-    bool perform(juce::ApplicationCommandTarget::InvocationInfo const & info) override;
+    [[nodiscard]] bool perform(juce::ApplicationCommandTarget::InvocationInfo const & info) override;
     //==============================================================================
     JUCE_LEAK_DETECTOR(MainContentComponent)
 };

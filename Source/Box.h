@@ -52,8 +52,8 @@ public:
     Box & operator=(Box const &) = delete;
     Box & operator=(Box &&) = delete;
     //==============================================================================
-    juce::Component * getContent() { return &this->mContent; }
-    juce::Component const * getContent() const { return &this->mContent; }
+    [[nodiscard]] juce::Component * getContent() { return &this->mContent; }
+    [[nodiscard]] juce::Component const * getContent() const { return &this->mContent; }
 
     void resized() override { this->mViewport.setSize(this->getWidth(), this->getHeight()); }
     void correctSize(unsigned int width, unsigned int height);

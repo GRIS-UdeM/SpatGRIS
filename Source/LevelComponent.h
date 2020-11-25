@@ -116,8 +116,8 @@ public:
     void updateDirectOutMenu(std::vector<int> directOuts);
     void resetClipping() { this->mLevelBox.resetClipping(); }
 
-    juce::TextButton & getDirectOutButton() { return mDirectOutButton; }
-    juce::TextButton const & getDirectOutButton() const { return mDirectOutButton; }
+    [[nodiscard]] juce::TextButton & getDirectOutButton() { return mDirectOutButton; }
+    [[nodiscard]] juce::TextButton const & getDirectOutButton() const { return mDirectOutButton; }
     //==============================================================================
     // overrides
     void buttonClicked(juce::Button * button) override;

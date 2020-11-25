@@ -144,7 +144,7 @@ PropertiesComponent::PropertiesComponent(MainContentComponent & parent,
 //==============================================================================
 void PropertiesWindow::closeButtonPressed()
 {
-    this->mainContentComponent.closePropertiesWindow();
+    this->mMainContentComponent.closePropertiesWindow();
 }
 
 //==============================================================================
@@ -171,24 +171,24 @@ PropertiesWindow::PropertiesWindow(MainContentComponent & parent,
                                    juce::String const & currentDevice,
                                    int indR,
                                    int indB,
-                                   int indFF,
-                                   int indFC,
-                                   int indAttDB,
+                                   int indFf,
+                                   int indFc,
+                                   int indAttDb,
                                    int indAttHz,
                                    int oscPort)
     : juce::DocumentWindow("Properties", lookAndFeel.getBackgroundColour(), DocumentWindow::allButtons)
-    , mainContentComponent(parent)
-    , propertiesComponent(parent,
-                          lookAndFeel,
-                          devices,
-                          currentDevice,
-                          indR,
-                          indB,
-                          indFF,
-                          indFC,
-                          indAttDB,
-                          indAttHz,
-                          oscPort)
+    , mMainContentComponent(parent)
+    , mPropertiesComponent(parent,
+                           lookAndFeel,
+                           devices,
+                           currentDevice,
+                           indR,
+                           indB,
+                           indFf,
+                           indFc,
+                           indAttDb,
+                           indAttHz,
+                           oscPort)
 {
-    this->setContentNonOwned(&this->propertiesComponent, false);
+    this->setContentNonOwned(&this->mPropertiesComponent, false);
 }

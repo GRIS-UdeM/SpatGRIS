@@ -123,8 +123,8 @@ public:
 
 private:
     //==============================================================================
-    float rayCast(Speaker const * speaker) const;
-    bool speakerNearCam(glm::vec3 speak1, glm::vec3 speak2) const;
+    [[nodiscard]] float rayCast(Speaker const * speaker) const;
+    [[nodiscard]] bool speakerNearCam(glm::vec3 speak1, glm::vec3 speak2) const;
 
     void clickRay();
 

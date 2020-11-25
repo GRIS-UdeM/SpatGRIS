@@ -90,11 +90,10 @@ public:
     PropertiesComponent & operator=(PropertiesComponent const &) = delete;
     PropertiesComponent & operator=(PropertiesComponent &&) = delete;
     //==============================================================================
-    juce::TextEditor * createPropIntTextEditor(juce::String const & tooltip, int ypos, int init);
-    juce::ComboBox * createPropComboBox(juce::StringArray const & choices, int selected, int ypos);
+    [[nodiscard]] juce::TextEditor * createPropIntTextEditor(juce::String const & tooltip, int ypos, int init);
+    [[nodiscard]] juce::ComboBox * createPropComboBox(juce::StringArray const & choices, int selected, int ypos);
 
     void buttonClicked(juce::Button * button) override;
-    void closeButtonPressed();
 
 private:
     //==============================================================================
@@ -104,8 +103,8 @@ private:
 //==============================================================================
 class PropertiesWindow final : public juce::DocumentWindow
 {
-    MainContentComponent & mainContentComponent;
-    PropertiesComponent propertiesComponent;
+    MainContentComponent & mMainContentComponent;
+    PropertiesComponent mPropertiesComponent;
 
 public:
     //==============================================================================
@@ -115,9 +114,9 @@ public:
                      juce::String const & currentDevice,
                      int indR = 0,
                      int indB = 0,
-                     int indFF = 0,
-                     int indFC = 0,
-                     int indAttDB = 2,
+                     int indFf = 0,
+                     int indFc = 0,
+                     int indAttDb = 2,
                      int indAttHz = 3,
                      int oscPort = 18032);
     //==============================================================================

@@ -30,26 +30,33 @@ class EditSpeakersWindow;
 //==============================================================================
 class EditableTextCustomComponent final : public juce::Label
 {
+    //==============================================================================
+    EditSpeakersWindow & mOwner;
+
+    int mRow;
+    int mColumnId;
+    int mLastOffset;
+
 public:
     //==============================================================================
     // DEFAULTS
-    EditableTextCustomComponent(EditSpeakersWindow & editSpeakersWindow);
-    ~EditableTextCustomComponent() final = default;
+    explicit EditableTextCustomComponent(EditSpeakersWindow & editSpeakersWindow);
+    ~EditableTextCustomComponent() override = default;
+
+    EditableTextCustomComponent(EditableTextCustomComponent const &) = delete;
+    EditableTextCustomComponent(EditableTextCustomComponent &&) = delete;
+
+    EditableTextCustomComponent & operator=(EditableTextCustomComponent const &) = delete;
+    EditableTextCustomComponent & operator=(EditableTextCustomComponent &&) = delete;
     //==============================================================================
-    void setRowAndColumn(const int newRow, const int newColumn);
+    void setRowAndColumn(int newRow, int newColumn);
     //==============================================================================
     // VIRTUALS
-    void mouseDown(const juce::MouseEvent & event) final;
-    void mouseDrag(const juce::MouseEvent & event) final;
-    void textWasEdited() final;
+    void mouseDown(const juce::MouseEvent & event) override;
+    void mouseDrag(const juce::MouseEvent & event) override;
+    void textWasEdited() override;
 
 private:
     //==============================================================================
-    EditSpeakersWindow & owner;
-
-    int row;
-    int columnId;
-    int lastOffset;
-    //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EditableTextCustomComponent);
+    JUCE_LEAK_DETECTOR(EditableTextCustomComponent)
 };

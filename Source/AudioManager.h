@@ -94,26 +94,26 @@ public:
     AudioManager & operator=(AudioManager const &) = delete;
     AudioManager & operator=(AudioManager &&) = delete;
     //==============================================================================
-    juce::AudioDeviceManager const & getAudioDeviceManager() const { return mAudioDeviceManager; }
-    juce::AudioDeviceManager & getAudioDeviceManager() { return mAudioDeviceManager; }
+    [[nodiscard]] juce::AudioDeviceManager const & getAudioDeviceManager() const { return mAudioDeviceManager; }
+    [[nodiscard]] juce::AudioDeviceManager & getAudioDeviceManager() { return mAudioDeviceManager; }
 
-    jack_port_t * registerPort(char const * newShortName,
-                               char const * newClientName,
-                               PortType newType,
-                               std::optional<int> newPhysicalPort = std::nullopt);
+    [[nodiscard]] jack_port_t * registerPort(char const * newShortName,
+                                             char const * newClientName,
+                                             PortType newType,
+                                             std::optional<int> newPhysicalPort = std::nullopt);
     void unregisterPort(jack_port_t * port);
 
-    bool isConnectedTo(jack_port_t const * port, char const * port_name) const;
-    jack_port_t * findPortByName(char const * name) const;
+    [[nodiscard]] bool isConnectedTo(jack_port_t const * port, char const * port_name) const;
+    [[nodiscard]] jack_port_t * findPortByName(char const * name) const;
 
     void registerPortConnectCallback(JackPortConnectCallback const callback) { mPortConnectCallback = callback; }
     void registerProcessCallback(JackProcessCallback const callback, void * arg);
 
-    juce::Array<jack_port_t *> getInputPorts() const;
-    juce::Array<jack_port_t *> getOutputPorts() const;
+    [[nodiscard]] juce::Array<jack_port_t *> getInputPorts() const;
+    [[nodiscard]] juce::Array<jack_port_t *> getOutputPorts() const;
     void * getBuffer(jack_port_t * port, jack_nframes_t nFrames);
 
-    std::optional<jack_port_t *> getPort(char const * name) const;
+    [[nodiscard]] std::optional<jack_port_t *> getPort(char const * name) const;
 
     void connect(char const * sourcePortName, char const * destinationPortName);
     void disconnect(jack_port_t * source, jack_port_t * destination);
@@ -131,13 +131,13 @@ public:
     static void init(juce::String const & inputDevice,
                      juce::String const & outputDevice,
                      std::optional<juce::String> deviceType);
-    static AudioManager & getInstance();
+    [[nodiscard]] static AudioManager & getInstance();
     static void free();
     //==============================================================================
     // Dummies
-    auto * getDummyJackClient() { return &mDummyJackClient; }
-    auto * getDummyJackCtlServer() { return &mDummyJackCtlServer; }
-    static JSList * getDummyJackCtlParameters() { return nullptr; }
+    [[nodiscard]] auto * getDummyJackClient() { return &mDummyJackClient; }
+    [[nodiscard]] auto * getDummyJackCtlServer() { return &mDummyJackCtlServer; }
+    [[nodiscard]] static JSList * getDummyJackCtlParameters() { return nullptr; }
 
 private:
     //==============================================================================

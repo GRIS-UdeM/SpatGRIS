@@ -51,9 +51,9 @@ public:
     void chooseDeviceType();
     void chooseDevice(std::optional<juce::String> deviceType);
     //==============================================================================
-    const juce::String getApplicationName() override { return ProjectInfo::projectName; }
-    const juce::String getApplicationVersion() override { return ProjectInfo::versionString; }
-    bool moreThanOneInstanceAllowed() override { return true; }
+    [[nodiscard]] const juce::String getApplicationName() override { return ProjectInfo::projectName; }
+    [[nodiscard]] const juce::String getApplicationVersion() override { return ProjectInfo::versionString; }
+    [[nodiscard]] bool moreThanOneInstanceAllowed() override { return true; }
     void initialise(const juce::String & /*commandLine*/) override;
     void shutdown() override;
     void systemRequestedQuit() override;

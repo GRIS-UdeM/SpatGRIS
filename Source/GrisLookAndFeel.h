@@ -75,28 +75,32 @@ public:
     GrisLookAndFeel & operator=(GrisLookAndFeel const &) = delete;
     GrisLookAndFeel & operator=(GrisLookAndFeel &&) = delete;
     //==============================================================================
-    juce::Font getLabelFont(juce::Label & label) override;
-    juce::Font getFont() const { return this->mFont; }
-    juce::Font getComboBoxFont(juce::ComboBox & /*comboBox*/) override { return this->mFont; }
-    juce::Font getTextButtonFont(juce::TextButton &, int /*buttonHeight*/) override { return this->mFont; }
-    juce::Font getMenuBarFont(juce::MenuBarComponent &, int /*itemIndex*/, const juce::String & /*itemText*/) override
+    [[nodiscard]] juce::Font getLabelFont(juce::Label & label) override;
+    [[nodiscard]] juce::Font getFont() const { return this->mFont; }
+    [[nodiscard]] juce::Font getComboBoxFont(juce::ComboBox & /*comboBox*/) override { return this->mFont; }
+    [[nodiscard]] juce::Font getTextButtonFont(juce::TextButton &, int /*buttonHeight*/) override
+    {
+        return this->mFont;
+    }
+    [[nodiscard]] juce::Font
+        getMenuBarFont(juce::MenuBarComponent &, int /*itemIndex*/, const juce::String & /*itemText*/) override
     {
         return this->mFont;
     }
 
-    juce::Colour getWinBackgroundColour() const { return this->mWinBackGroundAndFieldColour; }
-    juce::Colour getBackgroundColour() const { return this->mBackGroundAndFieldColour; }
-    juce::Colour getFieldColour() const { return this->mBackGroundAndFieldColour; }
-    juce::Colour getFontColour() const { return this->mLightColour; }
-    juce::Colour getScrollBarColour() const { return this->mGreyColour; }
-    juce::Colour getDarkColour() const { return this->mDarkColour; }
-    juce::Colour getLightColour() const { return this->mLightColour; }
-    juce::Colour getEditBackgroundColour() const { return this->mEditBgcolor; }
-    juce::Colour getHighlightColour() const { return this->mHlBgcolor; }
-    juce::Colour getOnColour() const { return this->mOnColor; }
-    juce::Colour getOffColour() const { return this->mOffColor; }
-    juce::Colour getGreenColour() const { return this->mGreenColor; }
-    juce::Colour getRedColour() const { return this->mRedColor; }
+    [[nodiscard]] juce::Colour getWinBackgroundColour() const { return this->mWinBackGroundAndFieldColour; }
+    [[nodiscard]] juce::Colour getBackgroundColour() const { return this->mBackGroundAndFieldColour; }
+    [[nodiscard]] juce::Colour getFieldColour() const { return this->mBackGroundAndFieldColour; }
+    [[nodiscard]] juce::Colour getFontColour() const { return this->mLightColour; }
+    [[nodiscard]] juce::Colour getScrollBarColour() const { return this->mGreyColour; }
+    [[nodiscard]] juce::Colour getDarkColour() const { return this->mDarkColour; }
+    [[nodiscard]] juce::Colour getLightColour() const { return this->mLightColour; }
+    [[nodiscard]] juce::Colour getEditBackgroundColour() const { return this->mEditBgcolor; }
+    [[nodiscard]] juce::Colour getHighlightColour() const { return this->mHlBgcolor; }
+    [[nodiscard]] juce::Colour getOnColour() const { return this->mOnColor; }
+    [[nodiscard]] juce::Colour getOffColour() const { return this->mOffColor; }
+    [[nodiscard]] juce::Colour getGreenColour() const { return this->mGreenColor; }
+    [[nodiscard]] juce::Colour getRedColour() const { return this->mRedColor; }
 
     void drawComboBox(juce::Graphics & g,
                       int width,
@@ -198,7 +202,10 @@ public:
     SmallGrisLookAndFeel & operator=(SmallGrisLookAndFeel const &) = delete;
     SmallGrisLookAndFeel & operator=(SmallGrisLookAndFeel &&) = delete;
     //==============================================================================
-    juce::Font getTextButtonFont(juce::TextButton &, int /*buttonHeight*/) override { return this->mSmallerFont; }
+    [[nodiscard]] juce::Font getTextButtonFont(juce::TextButton &, int /*buttonHeight*/) override
+    {
+        return this->mSmallerFont;
+    }
 
     void drawToggleButton(juce::Graphics & g,
                           juce::ToggleButton & button,

@@ -25,86 +25,86 @@
 
 //==============================================================================
 JackClientListComponent::JackClientListComponent(MainContentComponent * parent, GrisLookAndFeel * feel)
-    : mainParent(parent)
-    , grisFeel(feel)
+    : mMainParent(parent)
+    , mLookAndFeel(feel)
 {
-    tableListClient.setModel(this);
+    mTableListClient.setModel(this);
 
-    tableListClient.setColour(juce::ListBox::outlineColourId, this->grisFeel->getWinBackgroundColour());
-    tableListClient.setColour(juce::ListBox::backgroundColourId, this->grisFeel->getWinBackgroundColour());
-    tableListClient.setOutlineThickness(1);
+    mTableListClient.setColour(juce::ListBox::outlineColourId, this->mLookAndFeel->getWinBackgroundColour());
+    mTableListClient.setColour(juce::ListBox::backgroundColourId, this->mLookAndFeel->getWinBackgroundColour());
+    mTableListClient.setOutlineThickness(1);
 
-    tableListClient.getHeader()
+    mTableListClient.getHeader()
         .addColumn("Client", ColumnIds::CLIENT_NAME, 120, 70, 120, juce::TableHeaderComponent::notSortable);
-    tableListClient.getHeader()
+    mTableListClient.getHeader()
         .addColumn("Start", ColumnIds::START, 60, 35, 70, juce::TableHeaderComponent::notSortable);
-    tableListClient.getHeader().addColumn("End", ColumnIds::END, 60, 35, 70, juce::TableHeaderComponent::notSortable);
-    tableListClient.getHeader()
+    mTableListClient.getHeader().addColumn("End", ColumnIds::END, 60, 35, 70, juce::TableHeaderComponent::notSortable);
+    mTableListClient.getHeader()
         .addColumn("On/Off", ColumnIds::ON_OFF_TOGGLE, 62, 35, 70, juce::TableHeaderComponent::notSortable);
 
-    tableListClient.setMultipleSelectionEnabled(false);
+    mTableListClient.setMultipleSelectionEnabled(false);
 
-    tableListClient.updateContent();
+    mTableListClient.updateContent();
 
-    this->addAndMakeVisible(tableListClient);
+    this->addAndMakeVisible(mTableListClient);
 }
 
 //==============================================================================
 void JackClientListComponent::buttonClicked(juce::Button * button)
 {
-    this->mainParent->getClientsLock().lock();
-    bool connectedCli = !this->mainParent->getClients().at(button->getName().getIntValue()).connected;
-    this->mainParent->connectionClientJack(this->mainParent->getClients().at(button->getName().getIntValue()).name,
-                                           connectedCli);
+    this->mMainParent->getClientsLock().lock();
+    bool connectedCli = !this->mMainParent->getClients().at(button->getName().getIntValue()).connected;
+    this->mMainParent->connectionClientJack(this->mMainParent->getClients().at(button->getName().getIntValue()).name,
+                                            connectedCli);
     updateContentCli();
-    this->mainParent->getClientsLock().unlock();
+    this->mMainParent->getClientsLock().unlock();
 }
 
 //==============================================================================
 void JackClientListComponent::setBounds(int x, int y, int width, int height)
 {
     this->juce::Component::setBounds(x, y, width, height);
-    tableListClient.setSize(width, height);
+    mTableListClient.setSize(width, height);
 }
 
 //==============================================================================
 void JackClientListComponent::updateContentCli()
 {
-    numRows = (unsigned int)this->mainParent->getClients().size();
-    tableListClient.updateContent();
-    tableListClient.repaint();
+    mNumRows = (unsigned int)this->mMainParent->getClients().size();
+    mTableListClient.updateContent();
+    mTableListClient.repaint();
 }
 
 //==============================================================================
 void JackClientListComponent::setValue(const int rowNumber, const int columnNumber, const int newRating)
 {
-    this->mainParent->getClientsLock().lock();
-    if (this->mainParent->getClients().size() > (unsigned int)rowNumber) {
+    this->mMainParent->getClientsLock().lock();
+    if (this->mMainParent->getClients().size() > (unsigned int)rowNumber) {
         switch (columnNumber) {
         case ColumnIds::START:
-            this->mainParent->getClients().at(rowNumber).portStart = newRating;
-            this->mainParent->getClients().at(rowNumber).initialized = true;
+            this->mMainParent->getClients().at(rowNumber).portStart = newRating;
+            this->mMainParent->getClients().at(rowNumber).initialized = true;
             break;
         case ColumnIds::END:
-            this->mainParent->getClients().at(rowNumber).portEnd = newRating;
-            this->mainParent->getClients().at(rowNumber).initialized = true;
+            this->mMainParent->getClients().at(rowNumber).portEnd = newRating;
+            this->mMainParent->getClients().at(rowNumber).initialized = true;
             break;
         }
     }
-    bool connectedCli = this->mainParent->getClients().at(rowNumber).connected;
-    this->mainParent->connectionClientJack(this->mainParent->getClients().at(rowNumber).name, connectedCli);
-    this->mainParent->getClientsLock().unlock();
+    bool connectedCli = this->mMainParent->getClients().at(rowNumber).connected;
+    this->mMainParent->connectionClientJack(this->mMainParent->getClients().at(rowNumber).name, connectedCli);
+    this->mMainParent->getClientsLock().unlock();
 }
 
 //==============================================================================
 int JackClientListComponent::getValue(const int rowNumber, const int columnNumber) const
 {
-    if ((unsigned int)rowNumber < this->mainParent->getClients().size()) {
+    if ((unsigned int)rowNumber < this->mMainParent->getClients().size()) {
         switch (columnNumber) {
         case ColumnIds::START:
-            return this->mainParent->getClients().at(rowNumber).portStart;
+            return this->mMainParent->getClients().at(rowNumber).portStart;
         case ColumnIds::END:
-            return this->mainParent->getClients().at(rowNumber).portEnd;
+            return this->mMainParent->getClients().at(rowNumber).portEnd;
         }
     }
     return -1;
@@ -114,9 +114,9 @@ int JackClientListComponent::getValue(const int rowNumber, const int columnNumbe
 juce::String JackClientListComponent::getText(const int columnNumber, const int rowNumber) const
 {
     juce::String text = "?";
-    if ((unsigned int)rowNumber < this->mainParent->getClients().size()) {
+    if ((unsigned int)rowNumber < this->mMainParent->getClients().size()) {
         if (columnNumber == ColumnIds::CLIENT_NAME) {
-            text = juce::String(this->mainParent->getClients().at(rowNumber).name);
+            text = juce::String(this->mMainParent->getClients().at(rowNumber).name);
         }
     }
     return text;
@@ -130,9 +130,9 @@ void JackClientListComponent::paintRowBackground(juce::Graphics & g,
                                                  bool /*rowIsSelected*/)
 {
     if (rowNumber % 2) {
-        g.fillAll(this->grisFeel->getBackgroundColour().withBrightness(0.6f));
+        g.fillAll(this->mLookAndFeel->getBackgroundColour().withBrightness(0.6f));
     } else {
-        g.fillAll(this->grisFeel->getBackgroundColour().withBrightness(0.7f));
+        g.fillAll(this->mLookAndFeel->getBackgroundColour().withBrightness(0.7f));
     }
 }
 
@@ -144,8 +144,8 @@ void JackClientListComponent::paintCell(juce::Graphics & g,
                                         int const height,
                                         bool const /*rowIsSelected*/)
 {
-    if (this->mainParent->getClientsLock().try_lock()) {
-        auto const jackClientListSize{ this->mainParent->getClients().size() };
+    if (this->mMainParent->getClientsLock().try_lock()) {
+        auto const jackClientListSize{ this->mMainParent->getClients().size() };
         if (static_cast<size_t>(rowNumber) < jackClientListSize) {
             if (columnId == ColumnIds::CLIENT_NAME) {
                 juce::String text = getText(columnId, rowNumber);
@@ -154,7 +154,7 @@ void JackClientListComponent::paintCell(juce::Graphics & g,
                 g.drawText(text, 2, 0, width - 4, height, juce::Justification::centredLeft, true);
             }
         }
-        this->mainParent->getClientsLock().unlock();
+        this->mMainParent->getClientsLock().unlock();
     }
     g.setColour(juce::Colours::black.withAlpha(0.2f));
     g.fillRect(width - 1, 0, 1, height);
@@ -178,11 +178,11 @@ juce::Component * JackClientListComponent::refreshComponentForCell(int const row
             tbRemove->setName(juce::String(rowNumber));
             tbRemove->setBounds(4, 404, 88, 22);
             tbRemove->addListener(this);
-            tbRemove->setColour(juce::ToggleButton::textColourId, this->grisFeel->getFontColour());
-            tbRemove->setLookAndFeel(this->grisFeel);
+            tbRemove->setColour(juce::ToggleButton::textColourId, this->mLookAndFeel->getFontColour());
+            tbRemove->setLookAndFeel(this->mLookAndFeel);
         }
 
-        if (this->mainParent->getClients().at(rowNumber).connected) {
+        if (this->mMainParent->getClients().at(rowNumber).connected) {
             tbRemove->setButtonText("<->");
         } else {
             tbRemove->setButtonText("<X>");
@@ -206,19 +206,19 @@ juce::Component * JackClientListComponent::refreshComponentForCell(int const row
 //==============================================================================
 void JackClientListComponent::ListIntOutComp::setRowAndColumn(int newRow, int newColumn)
 {
-    this->row = newRow;
-    this->columnId = newColumn;
-    this->comboBox.setSelectedId(this->owner.getValue(this->row, this->columnId), juce::dontSendNotification);
+    this->mRow = newRow;
+    this->mColumnId = newColumn;
+    this->mComboBox.setSelectedId(this->mOwner.getValue(this->mRow, this->mColumnId), juce::dontSendNotification);
 }
 
 //==============================================================================
-JackClientListComponent::ListIntOutComp::ListIntOutComp(JackClientListComponent & td) : owner(td)
+JackClientListComponent::ListIntOutComp::ListIntOutComp(JackClientListComponent & td) : mOwner(td)
 {
     // Just put a combo box inside this component.
-    this->addAndMakeVisible(comboBox);
+    this->addAndMakeVisible(mComboBox);
     for (int i = 1; i <= 256; ++i) {
-        comboBox.addItem(juce::String(i), i);
+        mComboBox.addItem(juce::String(i), i);
     }
-    comboBox.addListener(this);
-    comboBox.setWantsKeyboardFocus(false);
+    mComboBox.addListener(this);
+    mComboBox.setWantsKeyboardFocus(false);
 }

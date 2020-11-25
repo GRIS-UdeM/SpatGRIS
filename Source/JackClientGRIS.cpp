@@ -471,21 +471,21 @@ std::vector<int> JackClientGris::getDirectOutOutputPatches() const
 
 //==============================================================================
 void JackClientGris::muteSoloVuMeterIn(jack_default_audio_sample_t ** ins,
-                                       jack_nframes_t const nframes,
+                                       jack_nframes_t const nFrames,
                                        unsigned const sizeInputs)
 {
     for (unsigned int i = 0; i < sizeInputs; ++i) {
         if (mSourcesIn[i].isMuted) { // Mute
-            memset(ins[i], 0, sizeof(jack_default_audio_sample_t) * nframes);
+            memset(ins[i], 0, sizeof(jack_default_audio_sample_t) * nFrames);
         } else if (mSoloIn) { // Solo
             if (!mSourcesIn[i].isSolo) {
-                memset(ins[i], 0, sizeof(jack_default_audio_sample_t) * nframes);
+                memset(ins[i], 0, sizeof(jack_default_audio_sample_t) * nFrames);
             }
         }
 
         // VuMeter
         auto maxGain = 0.0f;
-        for (unsigned int j = 1; j < nframes; j++) {
+        for (unsigned int j = 1; j < nFrames; j++) {
             auto const absGain = fabsf(ins[i][j]);
             if (absGain > maxGain)
                 maxGain = absGain;
@@ -496,7 +496,7 @@ void JackClientGris::muteSoloVuMeterIn(jack_default_audio_sample_t ** ins,
 
 //==============================================================================
 void JackClientGris::muteSoloVuMeterGainOut(jack_default_audio_sample_t ** outs,
-                                            jack_nframes_t const nframes,
+                                            jack_nframes_t const nFrames,
                                             unsigned const sizeOutputs,
                                             float const gain)
 {
@@ -509,23 +509,23 @@ void JackClientGris::muteSoloVuMeterGainOut(jack_default_audio_sample_t ** outs,
 
     for (unsigned int i = 0; i < sizeOutputs; ++i) {
         if (mSpeakersOut[i].isMuted) { // Mute
-            memset(outs[i], 0, sizeof(jack_default_audio_sample_t) * nframes);
+            memset(outs[i], 0, sizeof(jack_default_audio_sample_t) * nFrames);
         } else if (mSoloOut) { // Solo
             if (!mSpeakersOut[i].isSolo) {
-                memset(outs[i], 0, sizeof(jack_default_audio_sample_t) * nframes);
+                memset(outs[i], 0, sizeof(jack_default_audio_sample_t) * nFrames);
             }
         }
 
         // Speaker independent gain.
         auto const speakerGain = mSpeakersOut[i].gain;
-        for (unsigned int f = 0; f < nframes; ++f) {
+        for (unsigned int f = 0; f < nFrames; ++f) {
             outs[i][f] *= speakerGain * gain;
         }
 
         // Speaker independent crossover filter.
         if (mSpeakersOut[i].hpActive) {
             SpeakerOut so = mSpeakersOut[i];
-            for (unsigned int f = 0; f < nframes; ++f) {
+            for (unsigned int f = 0; f < nFrames; ++f) {
                 inval = (double)outs[i][f];
                 val = so.ha0 * inval + so.ha1 * mCrossoverHighpassX1[i] + so.ha2 * mCrossoverHighpassX2[i]
                       + so.ha1 * mCrossoverHighpassX3[i] + so.ha0 * mCrossoverHighpassX4[i]
@@ -545,7 +545,7 @@ void JackClientGris::muteSoloVuMeterGainOut(jack_default_audio_sample_t ** outs,
 
         // VuMeter
         float maxGain = 0.0f;
-        for (unsigned int j = 1; j < nframes; j++) {
+        for (unsigned int j = 1; j < nFrames; j++) {
             float absGain = fabsf(outs[i][j]);
             if (absGain > maxGain)
                 maxGain = absGain;
@@ -556,10 +556,10 @@ void JackClientGris::muteSoloVuMeterGainOut(jack_default_audio_sample_t ** outs,
         if (mIsRecording) {
             if (num_of_channels == sizeOutputs && i < num_of_channels) {
                 if (intVectorContains(mOutputPatches, i + 1)) {
-                    mRecorders[i].recordSamples(&outs[i], (int)nframes);
+                    mRecorders[i].recordSamples(&outs[i], (int)nFrames);
                 }
             } else if (num_of_channels == 2 && i < num_of_channels) {
-                mRecorders[i].recordSamples(&outs[i], (int)nframes);
+                mRecorders[i].recordSamples(&outs[i], (int)nFrames);
             }
         }
     }
@@ -578,19 +578,19 @@ void JackClientGris::muteSoloVuMeterGainOut(jack_default_audio_sample_t ** outs,
         }
         mIndexRecord = 0;
     } else if (mIsRecording) {
-        mIndexRecord += nframes;
+        mIndexRecord += nFrames;
     }
 }
 
 //==============================================================================
 void JackClientGris::addNoiseSound(jack_default_audio_sample_t ** outs,
-                                   jack_nframes_t const nframes,
+                                   jack_nframes_t const nFrames,
                                    unsigned const sizeOutputs)
 {
     float rnd;
     float val;
     float const fac = 1.0f / (static_cast<float>(RAND_MAX) / 2.0f);
-    for (unsigned int nF = 0; nF < nframes; ++nF) {
+    for (unsigned int nF = 0; nF < nFrames; ++nF) {
         rnd = rand() * fac - 1.0f;
         mPinkNoiseC0 = mPinkNoiseC0 * 0.99886f + rnd * 0.0555179f;
         mPinkNoiseC1 = mPinkNoiseC1 * 0.99332f + rnd * 0.0750759f;
@@ -856,7 +856,7 @@ void JackClientGris::processVBapHrtf(jack_default_audio_sample_t ** ins,
 //==============================================================================
 void JackClientGris::processStereo(jack_default_audio_sample_t ** ins,
                                    jack_default_audio_sample_t ** outs,
-                                   jack_nframes_t const nframes,
+                                   jack_nframes_t const nFrames,
                                    unsigned const sizeInputs,
                                    unsigned const sizeOutputs)
 {
@@ -868,14 +868,14 @@ void JackClientGris::processStereo(jack_default_audio_sample_t ** ins,
     float gain = powf(10.0f, (static_cast<float>(sizeInputs) - 1.0f) * -0.1f * 0.05f);
 
     for (i = 0; i < sizeOutputs; ++i) {
-        memset(outs[i], 0, sizeof(jack_default_audio_sample_t) * nframes);
+        memset(outs[i], 0, sizeof(jack_default_audio_sample_t) * nFrames);
     }
 
     for (i = 0; i < sizeInputs; ++i) {
         if (!mSourcesIn[i].directOut) {
             azi = mSourcesIn[i].azimuth;
             last_azi = mLastAzimuth[i];
-            for (f = 0; f < nframes; ++f) {
+            for (f = 0; f < nFrames; ++f) {
                 // Removes the chirp at 180->-180 degrees azimuth boundary.
                 if (abs(last_azi - azi) > 300.0f) {
                     last_azi = azi;
@@ -895,31 +895,31 @@ void JackClientGris::processStereo(jack_default_audio_sample_t ** ins,
             mLastAzimuth[i] = last_azi;
 
         } else if ((mSourcesIn[i].directOut % 2) == 1) {
-            for (f = 0; f < nframes; ++f) {
+            for (f = 0; f < nFrames; ++f) {
                 outs[0][f] += ins[i][f];
             }
         } else {
-            for (f = 0; f < nframes; ++f) {
+            for (f = 0; f < nFrames; ++f) {
                 outs[1][f] += ins[i][f];
             }
         }
     }
     // Apply gain compensation.
-    for (f = 0; f < nframes; ++f) {
+    for (f = 0; f < nFrames; ++f) {
         outs[0][f] *= gain;
         outs[1][f] *= gain;
     }
 }
 
 //==============================================================================
-int JackClientGris::processAudio(jack_nframes_t const nframes)
+int JackClientGris::processAudio(jack_nframes_t const nFrames)
 {
     // Return if the user is editing the speaker setup.
     if (!mProcessBlockOn) {
         for (unsigned int i = 0; i < mOutputsPort.size(); ++i) {
-            memset(((jack_default_audio_sample_t *)jack_port_get_buffer(mOutputsPort[i], nframes)),
+            memset(((jack_default_audio_sample_t *)jack_port_get_buffer(mOutputsPort[i], nFrames)),
                    0,
-                   sizeof(jack_default_audio_sample_t) * nframes);
+                   sizeof(jack_default_audio_sample_t) * nFrames);
             mLevelsOut[i] = 0.0f;
         }
         return 0;
@@ -932,26 +932,26 @@ int JackClientGris::processAudio(jack_nframes_t const nframes)
     jack_default_audio_sample_t * outs[MAX_OUTPUTS];
 
     for (unsigned int i = 0; i < sizeInputs; i++) {
-        ins[i] = (jack_default_audio_sample_t *)jack_port_get_buffer(mInputsPort[i], nframes);
+        ins[i] = (jack_default_audio_sample_t *)jack_port_get_buffer(mInputsPort[i], nFrames);
     }
     for (unsigned int i = 0; i < sizeOutputs; i++) {
-        outs[i] = (jack_default_audio_sample_t *)jack_port_get_buffer(mOutputsPort[i], nframes);
+        outs[i] = (jack_default_audio_sample_t *)jack_port_get_buffer(mOutputsPort[i], nFrames);
     }
 
-    muteSoloVuMeterIn(ins, nframes, sizeInputs);
+    muteSoloVuMeterIn(ins, nFrames, sizeInputs);
 
     switch (mModeSelected) {
     case ModeSpatEnum::VBAP:
-        processVbap(ins, outs, nframes, sizeInputs, sizeOutputs);
+        processVbap(ins, outs, nFrames, sizeInputs, sizeOutputs);
         break;
     case ModeSpatEnum::LBAP:
-        processLbap(ins, outs, nframes, sizeInputs, sizeOutputs);
+        processLbap(ins, outs, nFrames, sizeInputs, sizeOutputs);
         break;
     case ModeSpatEnum::VBAP_HRTF:
-        processVBapHrtf(ins, outs, nframes, sizeInputs, sizeOutputs);
+        processVBapHrtf(ins, outs, nFrames, sizeInputs, sizeOutputs);
         break;
     case ModeSpatEnum::STEREO:
-        processStereo(ins, outs, nframes, sizeInputs, sizeOutputs);
+        processStereo(ins, outs, nFrames, sizeInputs, sizeOutputs);
         break;
     default:
         jassertfalse;
@@ -959,10 +959,10 @@ int JackClientGris::processAudio(jack_nframes_t const nframes)
     }
 
     if (mPinkNoiseActive) {
-        addNoiseSound(outs, nframes, sizeOutputs);
+        addNoiseSound(outs, nFrames, sizeOutputs);
     }
 
-    muteSoloVuMeterGainOut(outs, nframes, sizeOutputs, mMasterGainOut);
+    muteSoloVuMeterGainOut(outs, nFrames, sizeOutputs, mMasterGainOut);
 
     mIsOverloaded = false;
 

@@ -51,7 +51,7 @@ public:
     JackServerGris & operator=(JackServerGris &&) = delete;
     //==============================================================================
     // Only effective with alsa driver.
-    juce::Array<juce::String> getAvailableOutputDevices() const;
+    [[nodiscard]] juce::Array<juce::String> getAvailableOutputDevices() const;
 
 private:
     //==============================================================================
