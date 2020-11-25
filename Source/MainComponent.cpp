@@ -35,12 +35,6 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow, GrisLookAndF
     mMenuBar.reset(new juce::MenuBarComponent(this));
     addAndMakeVisible(mMenuBar.get());
 
-    // Start the Splash screen.
-    if (SPLASH_SCREEN_FILE.exists()) {
-        mSplashScreen.reset(
-            new juce::SplashScreen("SpatGRIS2", juce::ImageFileFormat::loadFrom(SPLASH_SCREEN_FILE), true));
-    }
-
     // App user settings storage file.
     juce::PropertiesFile::Options options;
     options.applicationName = "SpatGRIS2";
@@ -52,31 +46,15 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow, GrisLookAndF
     options.osxLibrarySubFolder = "Application Support";
     mApplicationProperties.setStorageParameters(options);
 
-    juce::PropertiesFile * props = mApplicationProperties.getUserSettings();
-
-    // Initialize class variables.
-    mIsProcessForeground = true;
-    mIsNumbersShown = false;
-    mIsSpeakersShown = true;
-    mIsTripletsShown = false;
-    mIsSourceLevelShown = false;
-    mIsSphereShown = false;
-    mIsSpanShown = true;
-    mIsRecording = false;
+    auto * props{ mApplicationProperties.getUserSettings() };
 
     // Get a reference to the last opened VBAP speaker setup.
-    juce::File lastVbap = juce::File(props->getValue("lastVbapSpeakerSetup", "./not_saved_yet"));
+    juce::File const lastVbap{ props->getValue("lastVbapSpeakerSetup", "./not_saved_yet") };
     if (!lastVbap.existsAsFile()) {
         mPathLastVbapSpeakerSetup = DEFAULT_SPEAKER_SETUP_FILE.getFullPathName();
     } else {
         mPathLastVbapSpeakerSetup = props->getValue("lastVbapSpeakerSetup");
     }
-
-    mEditSpeakersWindow = nullptr;
-    mPropertiesWindow = nullptr;
-    mFlatViewWindow = nullptr;
-    mAboutWindow = nullptr;
-    mOscLogWindow = nullptr;
 
     // SpeakerViewComponent 3D view
     mSpeakerViewComponent.reset(new SpeakerViewComponent(*this));
@@ -148,7 +126,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow, GrisLookAndF
     mJackClientListComponent->setBounds(410, 0, 304, 138);
     mControlUiBox->getContent()->addAndMakeVisible(mJackClientListComponent.get());
 
-    // Set up the layout and resizer bars.
+    // Set up the layout and resize bars.
     mVerticalLayout.setItemLayout(0,
                                   -0.2,
                                   -0.8,
@@ -166,20 +144,20 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow, GrisLookAndF
     setSize(1285, 610);
 
     // Jack Initialization parameters.
-    unsigned int BufferValue = props->getIntValue("BufferValue", 1024);
-    unsigned int RateValue = props->getIntValue("RateValue", 48000);
+    unsigned int bufferValue = props->getIntValue("BufferValue", 1024);
+    unsigned int rateValue = props->getIntValue("RateValue", 48000);
 
-    if (std::isnan(float(BufferValue)) || BufferValue == 0 || std::isnan(float(RateValue)) || RateValue == 0) {
-        BufferValue = 1024;
-        RateValue = 48000;
+    if (bufferValue == 0 || rateValue == 0) {
+        bufferValue = 1024;
+        rateValue = 48000;
     }
 
-    mSamplingRate = RateValue;
+    mSamplingRate = rateValue;
 
     // Start Jack Server and client.
-    int errorCode = 0;
     mAlsaOutputDevice = props->getValue("AlsaOutputDevice", "");
-    mJackServer.reset(new JackServerGris(RateValue, BufferValue, mAlsaOutputDevice, &errorCode));
+    int errorCode{};
+    mJackServer.reset(new JackServerGris(rateValue, bufferValue, mAlsaOutputDevice, &errorCode));
     if (errorCode > 0) {
         juce::String msg;
         if (errorCode == 1) {
@@ -200,10 +178,10 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow, GrisLookAndF
 
     mAlsaAvailableOutputDevices = mJackServer->getAvailableOutputDevices();
 
-    unsigned int fileformat = props->getIntValue("FileFormat", 0);
-    mJackClient.setRecordFormat(fileformat);
-    unsigned int fileconfig = props->getIntValue("FileConfig", 0);
-    mJackClient.setRecordFileConfig(fileconfig);
+    auto const fileFormat{ props->getIntValue("FileFormat", 0) };
+    mJackClient.setRecordFormat(fileFormat);
+    auto const fileConfig{ props->getIntValue("FileConfig", 0) };
+    mJackClient.setRecordFileConfig(fileConfig);
 
     if (!mJackClient.isReady()) {
         mJackStatusLabel->setText("Jack ERROR", juce::dontSendNotification);
@@ -230,7 +208,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow, GrisLookAndF
     textEditorReturnKeyPressed(*mAddInputsTextEditor);
 
     // Open the default preset if lastOpenPreset is not a valid file.
-    juce::File preset = juce::File(props->getValue("lastOpenPreset", "./not_saved_yet"));
+    juce::File const preset{ props->getValue("lastOpenPreset", "./not_saved_yet") };
     if (!preset.existsAsFile()) {
         openPreset(DEFAULT_PRESET_FILE.getFullPathName());
     } else {
@@ -238,7 +216,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow, GrisLookAndF
     }
 
     // Open the default speaker setup if lastOpenSpeakerSetup is not a valid file.
-    juce::File setup = juce::File(props->getValue("lastOpenSpeakerSetup", "./not_saved_yet"));
+    juce::File const setup{ props->getValue("lastOpenSpeakerSetup", "./not_saved_yet") };
     if (!setup.existsAsFile()) {
         openXmlFileSpeaker(DEFAULT_SPEAKER_SETUP_FILE.getFullPathName());
     } else {
@@ -249,19 +227,24 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow, GrisLookAndF
     resized();
     startTimerHz(24);
 
-    // End Splash screen.
-    if (mSplashScreen) {
+    // Start Splash screen.
+#if NDEBUG
+    if (SPLASH_SCREEN_FILE.exists()) {
+        mSplashScreen.reset(
+            new juce::SplashScreen("SpatGRIS2", juce::ImageFileFormat::loadFrom(SPLASH_SCREEN_FILE), true));
         mSplashScreen->deleteAfterDelay(juce::RelativeTime::seconds(4), false);
         mSplashScreen.release();
     }
+#endif
 
     // Initialize the command manager for the menubar items.
-    juce::ApplicationCommandManager & commandManager = mMainWindow.getApplicationCommandManager();
+    auto & commandManager{ mMainWindow.getApplicationCommandManager() };
     commandManager.registerAllCommandsForTarget(this);
 
     // Restore last vertical divider position and speaker view cam distance.
     if (props->containsKey("sashPosition")) {
-        int trueSize = (int)round((getWidth() - 3) * abs(props->getDoubleValue("sashPosition")));
+        auto const trueSize{ static_cast<int>(
+            std::round(static_cast<double>(getWidth() - 3) * std::abs(props->getDoubleValue("sashPosition")))) };
         mVerticalLayout.setItemPosition(1, trueSize);
     }
 }
@@ -269,7 +252,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow, GrisLookAndF
 //==============================================================================
 MainContentComponent::~MainContentComponent()
 {
-    juce::PropertiesFile * props = mApplicationProperties.getUserSettings();
+    auto * props{ mApplicationProperties.getUserSettings() };
     props->setValue("lastOpenPreset", mPathCurrentPreset);
     props->setValue("lastOpenSpeakerSetup", mPathCurrentFileSpeaker);
     props->setValue("lastVbapSpeakerSetup", mPathLastVbapSpeakerSetup);
@@ -288,15 +271,15 @@ MainContentComponent::~MainContentComponent()
 
 //==============================================================================
 // Widget builder utilities.
-juce::Label * MainContentComponent::addLabel(const juce::String & s,
-                                             const juce::String & tooltip,
-                                             int x,
-                                             int y,
-                                             int w,
-                                             int h,
-                                             Component * into)
+juce::Label * MainContentComponent::addLabel(juce::String const const & s,
+                                             juce::String const const & tooltip,
+                                             int const x,
+                                             int const y,
+                                             int const w,
+                                             int const h,
+                                             Component * into) const
 {
-    juce::Label * lb = new juce::Label();
+    auto * lb{ new juce::Label{} };
     lb->setText(s, juce::NotificationType::dontSendNotification);
     lb->setTooltip(tooltip);
     lb->setJustificationType(juce::Justification::left);
@@ -309,15 +292,15 @@ juce::Label * MainContentComponent::addLabel(const juce::String & s,
 }
 
 //==============================================================================
-juce::TextButton * MainContentComponent::addButton(const juce::String & s,
-                                                   const juce::String & tooltip,
-                                                   int x,
-                                                   int y,
-                                                   int w,
-                                                   int h,
+juce::TextButton * MainContentComponent::addButton(juce::String const & s,
+                                                   juce::String const & tooltip,
+                                                   int const x,
+                                                   int const y,
+                                                   int const w,
+                                                   int const h,
                                                    Component * into)
 {
-    juce::TextButton * tb = new juce::TextButton();
+    auto * tb{ new juce::TextButton{} };
     tb->setTooltip(tooltip);
     tb->setButtonText(s);
     tb->setSize(w, h);
@@ -330,16 +313,16 @@ juce::TextButton * MainContentComponent::addButton(const juce::String & s,
 }
 
 //==============================================================================
-juce::ToggleButton * MainContentComponent::addToggleButton(const juce::String & s,
-                                                           const juce::String & tooltip,
-                                                           int x,
-                                                           int y,
-                                                           int w,
-                                                           int h,
+juce::ToggleButton * MainContentComponent::addToggleButton(juce::String const const & s,
+                                                           juce::String const const & tooltip,
+                                                           int const x,
+                                                           int const y,
+                                                           int const w,
+                                                           int const h,
                                                            Component * into,
-                                                           bool toggle)
+                                                           bool const toggle)
 {
-    juce::ToggleButton * tb = new juce::ToggleButton();
+    auto * tb{ new juce::ToggleButton{} };
     tb->setTooltip(tooltip);
     tb->setButtonText(s);
     tb->setToggleState(toggle, juce::dontSendNotification);
@@ -353,17 +336,17 @@ juce::ToggleButton * MainContentComponent::addToggleButton(const juce::String & 
 }
 
 //==============================================================================
-juce::TextEditor * MainContentComponent::addTextEditor(const juce::String & s,
-                                                       const juce::String & emptyS,
-                                                       const juce::String & tooltip,
-                                                       int x,
-                                                       int y,
-                                                       int w,
-                                                       int h,
+juce::TextEditor * MainContentComponent::addTextEditor(juce::String const const const & s,
+                                                       juce::String const const const & emptyS,
+                                                       juce::String const const const & tooltip,
+                                                       int const x,
+                                                       int const y,
+                                                       int const w,
+                                                       int const h,
                                                        Component * into,
-                                                       int wLab)
+                                                       int const wLab)
 {
-    juce::TextEditor * te = new juce::TextEditor();
+    auto * te{ new juce::TextEditor{} };
     te->setTooltip(tooltip);
     te->setTextToShowWhenEmpty(emptyS, mLookAndFeel.getOffColour());
     te->setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
@@ -383,15 +366,15 @@ juce::TextEditor * MainContentComponent::addTextEditor(const juce::String & s,
 }
 
 //==============================================================================
-juce::Slider * MainContentComponent::addSlider(const juce::String & /*s*/,
-                                               const juce::String & tooltip,
-                                               int x,
-                                               int y,
-                                               int w,
-                                               int h,
+juce::Slider * MainContentComponent::addSlider(juce::String const const & /*s*/,
+                                               juce::String const const & tooltip,
+                                               int const x,
+                                               int const y,
+                                               int const w,
+                                               int const h,
                                                Component * into)
 {
-    juce::Slider * sd = new juce::Slider();
+    auto * sd{ new juce::Slider{} };
     sd->setTooltip(tooltip);
     sd->setSize(w, h);
     sd->setTopLeftPosition(x, y);
@@ -406,8 +389,8 @@ juce::Slider * MainContentComponent::addSlider(const juce::String & /*s*/,
 }
 
 //==============================================================================
-juce::ComboBox * MainContentComponent::addComboBox(const juce::String & /*s*/,
-                                                   const juce::String & tooltip,
+juce::ComboBox * MainContentComponent::addComboBox(juce::String const const & /*s*/,
+                                                   juce::String const const & tooltip,
                                                    int const x,
                                                    int const y,
                                                    int const w,
@@ -415,7 +398,7 @@ juce::ComboBox * MainContentComponent::addComboBox(const juce::String & /*s*/,
                                                    Component * into)
 {
     // TODO : naked new
-    juce::ComboBox * cb = new juce::ComboBox();
+    auto * cb{ new juce::ComboBox{} };
     cb->setTooltip(tooltip);
     cb->setSize(w, h);
     cb->setTopLeftPosition(x, y);
@@ -429,13 +412,13 @@ juce::ComboBox * MainContentComponent::addComboBox(const juce::String & /*s*/,
 // Menu item action handlers.
 void MainContentComponent::handleNew()
 {
-    juce::AlertWindow alert("Closing current preset !", "Do you want to save ?", juce::AlertWindow::InfoIcon);
+    juce::AlertWindow alert{ "Closing current preset !", "Do you want to save ?", juce::AlertWindow::InfoIcon };
     alert.setLookAndFeel(&mLookAndFeel);
     alert.addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::deleteKey));
     alert.addButton("yes", 1, juce::KeyPress(juce::KeyPress::returnKey));
     alert.addButton("No", 2, juce::KeyPress(juce::KeyPress::escapeKey));
 
-    int status = alert.runModalLoop();
+    auto const status{ alert.runModalLoop() };
     if (status == 1) {
         handleSavePreset();
     } else if (status == 0) {
@@ -448,15 +431,18 @@ void MainContentComponent::handleNew()
 //==============================================================================
 void MainContentComponent::handleOpenPreset()
 {
-    juce::String dir = mApplicationProperties.getUserSettings()->getValue("lastPresetDirectory");
-    if (!juce::File(dir).isDirectory()) {
-        dir = juce::File("~").getFullPathName();
+    juce::File dir{ mApplicationProperties.getUserSettings()->getValue("lastPresetDirectory") };
+    if (!dir.isDirectory()) {
+        dir = juce::File::getSpecialLocation(juce::File::SpecialLocationType::userHomeDirectory);
     }
-    juce::String filename = juce::File(mPathCurrentPreset).getFileName();
+    auto const filename{ juce::File{ mPathCurrentPreset }.getFileName() };
 
-    juce::FileChooser fc("Choose a file to open...", dir + "/" + filename, "*.xml", USE_OS_NATIVE_DIALOG_BOX);
+    juce::FileChooser fc("Choose a file to open...",
+                         dir.getFullPathName() + "/" + filename,
+                         "*.xml",
+                         USE_OS_NATIVE_DIALOG_BOX);
 
-    bool loaded = false;
+    auto loaded{ false };
     if (fc.browseForFileToOpen()) {
         juce::String chosen = fc.getResults().getReference(0).getFullPathName();
         juce::AlertWindow alert("Open Project !",
@@ -1174,14 +1160,11 @@ void MainContentComponent::selectSpeaker(unsigned int const idS)
 }
 
 //==============================================================================
-void MainContentComponent::selectTripletSpeaker(int idS)
+void MainContentComponent::selectTripletSpeaker(int const idS)
 {
-    int countS = 0;
-    for (unsigned int i = 0; i < mSpeakers.size(); ++i) {
-        if (mSpeakers[i]->isSelected()) {
-            countS += 1;
-        }
-    }
+    auto countS{ std::count_if(mSpeakers.begin(), mSpeakers.end(), [](Speaker const & speaker) {
+        return speaker.isSelected();
+    }) };
 
     if (!mSpeakers[idS]->isSelected() && countS < 3) {
         mSpeakers[idS]->selectSpeaker();
@@ -1191,8 +1174,10 @@ void MainContentComponent::selectTripletSpeaker(int idS)
     }
 
     if (countS == 3) {
-        int i1 = -1, i2 = -1, i3 = -1;
-        for (unsigned int i = 0; i < mSpeakers.size(); ++i) {
+        auto i1{ -1 };
+        auto i2{ -1 };
+        auto i3{ -1 };
+        for (int i{}; i < mSpeakers.size(); ++i) {
             if (mSpeakers[i]->isSelected()) {
                 if (i1 == -1) {
                     i1 = i;
@@ -1208,11 +1193,8 @@ void MainContentComponent::selectTripletSpeaker(int idS)
             }
         }
         if (i1 != -1 && i2 != -1 && i3 != -1) {
-            Triplet tri;
-            tri.id1 = i1;
-            tri.id2 = i2;
-            tri.id3 = i3;
-            int posDel = -1;
+            Triplet const tri{ i1, i2, i3 };
+            auto posDel{ -1 };
             if (tripletExists(tri, posDel)) {
                 mTriplets.erase(mTriplets.begin() + posDel);
             } else {

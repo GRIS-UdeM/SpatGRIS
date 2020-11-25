@@ -25,15 +25,7 @@ DISABLE_WARNINGS
 #include <JuceHeader.h>
 ENABLE_WARNINGS
 
-#if USE_JACK
-    #include <jack/control.h>
-    #include <jack/jack.h>
-    #include <jack/session.h>
-    #include <jack/transport.h>
-    #include <jack/types.h>
-#else
-    #include "JackMockup.h"
-#endif
+#include "JackMockup.h"
 
 //==============================================================================
 class JackServerGris

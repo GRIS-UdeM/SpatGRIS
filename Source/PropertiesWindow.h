@@ -36,33 +36,33 @@ class PropertiesComponent final
     MainContentComponent & mMainContentComponent;
     GrisLookAndFeel & mLookAndFeel;
 
-    std::unique_ptr<juce::Label> mGeneralLabel;
-    std::unique_ptr<juce::Label> mJackSettingsLabel;
-    std::unique_ptr<juce::Label> mRecordingLabel;
-    std::unique_ptr<juce::Label> mCubeDistanceLabel;
+    juce::Label mGeneralLabel{ "", "General Settings" };
+    juce::Label mJackSettingsLabel{ "", "Jack Settings" };
+    juce::Label mRecordingLabel{ "", "Recording Settings" };
+    juce::Label mCubeDistanceLabel{ "", "CUBE Distance Settings" };
 
-    std::unique_ptr<juce::Label> mOscInputPortLabel;
-    std::unique_ptr<juce::TextEditor> mOscInputPortTextEditor;
+    juce::Label mOscInputPortLabel{ "", "OSC Input Port :" };
+    std::unique_ptr<juce::TextEditor> mOscInputPortTextEditor{};
 
-    std::unique_ptr<juce::Label> mDeviceLabel;
+    juce::Label mDeviceLabel{ "", "Output Device :" };
     std::unique_ptr<juce::ComboBox> mDeviceCombo;
 
-    std::unique_ptr<juce::Label> mRateLabel;
+    juce::Label mRateLabel{ "", "Sampling Rate (hz) :" };
     std::unique_ptr<juce::ComboBox> mRateCombo;
 
-    std::unique_ptr<juce::Label> mBufferLabel;
+    juce::Label mBufferLabel{ "", "Buffer Size (spls) :" };
     std::unique_ptr<juce::ComboBox> mBufferCombo;
 
-    std::unique_ptr<juce::Label> mRecFormatLabel;
+    juce::Label mRecFormatLabel{ "", "File Format :" };
     std::unique_ptr<juce::ComboBox> mRecFormatCombo;
 
-    std::unique_ptr<juce::Label> mRecFileConfigLabel;
+    juce::Label mRecFileConfigLabel{ "", "Output Format :" };
     std::unique_ptr<juce::ComboBox> mRecFileConfigCombo;
 
-    std::unique_ptr<juce::Label> mDistanceDbLabel;
+    juce::Label mDistanceDbLabel{ "", "Attenuation (dB) :" };
     std::unique_ptr<juce::ComboBox> mDistanceDbCombo;
 
-    std::unique_ptr<juce::Label> mDistanceCutoffLabel;
+    juce::Label mDistanceCutoffLabel{ "", "Attenuation (Hz) :" };
     std::unique_ptr<juce::ComboBox> mDistanceCutoffCombo;
 
     std::unique_ptr<juce::TextButton> mValidSettingsButton;
@@ -90,7 +90,6 @@ public:
     PropertiesComponent & operator=(PropertiesComponent const &) = delete;
     PropertiesComponent & operator=(PropertiesComponent &&) = delete;
     //==============================================================================
-    juce::Label * createPropLabel(juce::String const & lab, juce::Justification::Flags just, int ypos, int width = 100);
     juce::TextEditor * createPropIntTextEditor(juce::String const & tooltip, int ypos, int init);
     juce::ComboBox * createPropComboBox(juce::StringArray const & choices, int selected, int ypos);
 

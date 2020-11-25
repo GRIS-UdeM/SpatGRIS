@@ -113,7 +113,7 @@ void AudioRenderer::run()
 }
 
 //==============================================================================
-void AudioRenderer::threadComplete(bool userPressedCancel)
+void AudioRenderer::threadComplete(bool /*userPressedCancel*/)
 {
     // thread finished normally.
     juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,

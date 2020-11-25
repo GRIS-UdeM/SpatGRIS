@@ -19,8 +19,6 @@
 
 #pragma once
 
-#include <iostream>
-
 #include "macros.h"
 
 DISABLE_WARNINGS
@@ -42,10 +40,10 @@ DISABLE_WARNINGS
 #include <JuceHeader.h>
 ENABLE_WARNINGS
 
-#include "GrisLookAndFeel.h"
 #include "LevelComponent.h"
 #include "ParentLevelComponent.h"
 
+class GrisLookAndFeel;
 class MainContentComponent;
 
 //==============================================================================
@@ -90,41 +88,41 @@ public:
     void selectClick(bool /*select = true*/) override{};
     void setColor(juce::Colour color, bool updateLevel = false) override;
     //==============================================================================
-    MainContentComponent const & getMainContentComponent() const { return this->mMainContentComponent; }
-    MainContentComponent & getMainContentComponent() { return this->mMainContentComponent; }
+    [[nodiscard]] MainContentComponent const & getMainContentComponent() const { return mMainContentComponent; }
+    [[nodiscard]] MainContentComponent & getMainContentComponent() { return mMainContentComponent; }
 
-    LevelComponent const * getVuMeter() const override { return &this->mVuMeter; }
-    LevelComponent * getVuMeter() override { return &this->mVuMeter; }
+    [[nodiscard]] LevelComponent const * getVuMeter() const override { return &mVuMeter; }
+    [[nodiscard]] LevelComponent * getVuMeter() override { return &mVuMeter; }
 
-    int getId() const override { return this->mIdChannel; }
-    int getButtonInOutNumber() const override { return this->mIdChannel; }
-    float getLevel() const override;
-    float getAlpha() const;
-    float getAzimuth() const { return this->mAzimuth; }
-    float getZenith() const { return this->mZenith; }
-    float getRadius() const { return this->mRadius; }
-    float getAzimuthSpan() const { return this->mAzimuthSpan; }
-    float getZenithSpan() const { return this->mZenithSpan; }
-    float getGain() const { return this->mGain; }
+    [[nodiscard]] int getId() const override { return mIdChannel; }
+    [[nodiscard]] int getButtonInOutNumber() const override { return mIdChannel; }
+    [[nodiscard]] float getLevel() const override;
+    [[nodiscard]] float getAlpha() const;
+    [[nodiscard]] float getAzimuth() const { return mAzimuth; }
+    [[nodiscard]] float getZenith() const { return mZenith; }
+    [[nodiscard]] float getRadius() const { return mRadius; }
+    [[nodiscard]] float getAzimuthSpan() const { return mAzimuthSpan; }
+    [[nodiscard]] float getZenithSpan() const { return mZenithSpan; }
+    [[nodiscard]] float getGain() const { return mGain; }
 
-    glm::vec3 getCenter() const { return this->mCenter; }
-    glm::vec3 getColor() const { return this->mColor; }
-    glm::vec3 getNumberColor() const;
-    juce::Colour getColorJ() const { return this->mColorJ; }
-    juce::Colour getColorJWithAlpha() const;
+    [[nodiscard]] glm::vec3 getCenter() const { return mCenter; }
+    [[nodiscard]] glm::vec3 getColor() const { return mColor; }
+    [[nodiscard]] glm::vec3 getNumberColor() const;
+    [[nodiscard]] juce::Colour getColorJ() const { return mColorJ; }
+    [[nodiscard]] juce::Colour getColorJWithAlpha() const;
     //==============================================================================
-    glm::vec3 polToCar(float azimuth, float zenith) const;
-    glm::vec3 polToCar3d(float azimuth, float zenith) const;
+    [[nodiscard]] glm::vec3 polToCar(float azimuth, float zenith) const;
+    [[nodiscard]] glm::vec3 polToCar3d(float azimuth, float zenith) const;
     //==============================================================================
     void resetPosition();
     void draw();
     void updateValues(float az, float ze, float azS, float zeS, float radius, float g, int mode);
     void updateValuesOld(float az, float ze, float azS, float zeS, float g);
     //==============================================================================
-    bool isInput() const override { return true; }
-    void changeDirectOutChannel(int const chn) override { this->mDirectOutChannel = chn; }
+    [[nodiscard]] bool isInput() const override { return true; }
+    void changeDirectOutChannel(int const chn) override { mDirectOutChannel = chn; }
     void setDirectOutChannel(int chn) override;
-    int getDirectOutChannel() const override { return this->mDirectOutChannel; };
+    [[nodiscard]] int getDirectOutChannel() const override { return mDirectOutChannel; };
     void sendDirectOutToClient(int id, int chn) override;
 
     void drawSpan();

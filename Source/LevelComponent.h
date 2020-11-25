@@ -25,16 +25,15 @@ DISABLE_WARNINGS
 #include <JuceHeader.h>
 ENABLE_WARNINGS
 
-#include "Box.h"
-#include "GrisLookAndFeel.h"
-#include "ParentLevelComponent.h"
 #include "Speaker.h"
 
 static float constexpr MIN_LEVEL_COMP = -60.0f;
 static float constexpr MAX_LEVEL_COMP = 0.0f;
 static int constexpr WIDTH_RECT = 1;
 
+class GrisLookAndFeel;
 class LevelComponent;
+class ParentLevelComponent;
 
 //============================ LevelBox ================================
 class LevelBox final : public juce::Component

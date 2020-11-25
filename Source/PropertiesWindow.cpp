@@ -24,23 +24,6 @@
 #include "ServerGrisConstants.h"
 
 //==============================================================================
-juce::Label * PropertiesComponent::createPropLabel(juce::String const & lab,
-                                                   juce::Justification::Flags const just,
-                                                   int const ypos,
-                                                   int const width)
-{
-    juce::Label * label = new juce::Label();
-    label->setText(lab, juce::NotificationType::dontSendNotification);
-    label->setJustificationType(just);
-    label->setBounds(10, ypos, width, 22);
-    label->setFont(this->mLookAndFeel.getFont());
-    label->setLookAndFeel(&this->mLookAndFeel);
-    label->setColour(juce::Label::textColourId, this->mLookAndFeel.getFontColour());
-    this->juce::Component::addAndMakeVisible(label);
-    return label;
-}
-
-//==============================================================================
 juce::TextEditor * PropertiesComponent::createPropIntTextEditor(juce::String const & tooltip, int ypos, int init)
 {
     juce::TextEditor * editor = new juce::TextEditor();
@@ -66,7 +49,7 @@ juce::ComboBox *
     combo->setSelectedItemIndex(selected);
     combo->setBounds(130, ypos, 120, 22);
     combo->setLookAndFeel(&this->mLookAndFeel);
-    this->juce::Component::addAndMakeVisible(combo);
+    addAndMakeVisible(combo);
     return combo;
 }
 
@@ -87,54 +70,65 @@ PropertiesComponent::PropertiesComponent(MainContentComponent & parent,
 {
     int ypos = 20;
 
-    this->mGeneralLabel.reset(this->createPropLabel("General Settings", juce::Justification::left, ypos));
+    auto initComponent = [this](juce::Component & component, int const yPosition, int const width = 100) {
+        component.setBounds(10, yPosition, width, 22);
+        component.setLookAndFeel(&mLookAndFeel);
+        addAndMakeVisible(component);
+    };
+    auto initLabel = [this, &initComponent](juce::Label & label, int const yPosition, int const width = 100) {
+        label.setJustificationType(juce::Justification::Flags::left);
+        label.setFont(mLookAndFeel.getFont());
+        label.setColour(juce::Label::textColourId, mLookAndFeel.getFontColour());
+        initComponent(label, yPosition, width);
+    };
+
+    initLabel(mGeneralLabel, ypos);
     ypos += 30;
 
-    this->mOscInputPortLabel.reset(this->createPropLabel("OSC Input Port :", juce::Justification::left, ypos));
-    this->mOscInputPortTextEditor.reset(this->createPropIntTextEditor("Port Socket OSC Input", ypos, oscPort));
+    initLabel(mOscInputPortLabel, ypos);
+    mOscInputPortTextEditor.reset(createPropIntTextEditor("Port Socket OSC Input", ypos, oscPort));
     ypos += 40;
 
-    this->mJackSettingsLabel.reset(this->createPropLabel("Jack Settings", juce::Justification::left, ypos));
+    initLabel(mJackSettingsLabel, ypos);
     ypos += 30;
 
     if (!devices.isEmpty()) {
-        int deviceIndex = 0;
+        auto deviceIndex = 0;
         if (devices.contains(currentDevice)) {
             deviceIndex = devices.indexOf(currentDevice);
         }
-        this->mDeviceLabel.reset(this->createPropLabel("Output Device :", juce::Justification::left, ypos));
+        initLabel(mDeviceLabel, ypos);
         this->mDeviceCombo.reset(this->createPropComboBox(devices, deviceIndex, ypos));
         ypos += 30;
     }
 
-    this->mRateLabel.reset(this->createPropLabel("Sampling Rate (hz) :", juce::Justification::left, ypos));
+    initLabel(mRateLabel, ypos);
     this->mRateCombo.reset(this->createPropComboBox(RATE_VALUES, indR, ypos));
     ypos += 30;
 
-    this->mBufferLabel.reset(this->createPropLabel("Buffer Size (spls) :", juce::Justification::left, ypos));
+    initLabel(mBufferLabel, ypos);
     this->mBufferCombo.reset(this->createPropComboBox(BUFFER_SIZES, indB, ypos));
     ypos += 40;
 
-    this->mRecordingLabel.reset(this->createPropLabel("Recording Settings", juce::Justification::left, ypos));
+    initLabel(mRecordingLabel, ypos);
     ypos += 30;
 
-    this->mRecFormatLabel.reset(this->createPropLabel("File Format :", juce::Justification::left, ypos));
+    initLabel(mRecFormatLabel, ypos);
     this->mRecFormatCombo.reset(this->createPropComboBox(FILE_FORMATS, indFF, ypos));
     ypos += 30;
 
-    this->mRecFileConfigLabel.reset(this->createPropLabel("Output Format :", juce::Justification::left, ypos));
+    initLabel(mRecFileConfigLabel, ypos);
     this->mRecFileConfigCombo.reset(this->createPropComboBox(FILE_CONFIGS, indFC, ypos));
     ypos += 40;
 
-    this->mCubeDistanceLabel.reset(
-        this->createPropLabel("CUBE Distance Settings", juce::Justification::left, ypos, 250));
+    initLabel(mCubeDistanceLabel, ypos, 250);
     ypos += 30;
 
-    this->mDistanceDbLabel.reset(this->createPropLabel("Attenuation (dB) :", juce::Justification::left, ypos));
+    initLabel(mDistanceDbLabel, ypos);
     this->mDistanceDbCombo.reset(this->createPropComboBox(ATTENUATION_DB, indAttDB, ypos));
     ypos += 30;
 
-    this->mDistanceCutoffLabel.reset(this->createPropLabel("Attenuation (Hz) :", juce::Justification::left, ypos));
+    initLabel(mDistanceCutoffLabel, ypos);
     this->mDistanceCutoffCombo.reset(this->createPropComboBox(ATTENUATION_CUTOFFS, indAttHz, ypos));
     ypos += 40;
 

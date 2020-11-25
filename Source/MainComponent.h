@@ -39,7 +39,6 @@ ENABLE_WARNINGS
 #include "OscInput.h"
 #include "OscLogWindow.h"
 #include "PropertiesWindow.h"
-#include "Speaker.h"
 #include "SpeakerViewComponent.h"
 
 class MainWindow;
@@ -75,64 +74,64 @@ class MainContentComponent final
     std::unique_ptr<OscInput> mOscReceiver{};
 
     // Paths.
-    juce::String mNameConfig;
-    juce::String mPathLastVbapSpeakerSetup;
-    juce::String mPathCurrentFileSpeaker;
-    juce::String mPathCurrentPreset;
+    juce::String mNameConfig{};
+    juce::String mPathLastVbapSpeakerSetup{};
+    juce::String mPathCurrentFileSpeaker{};
+    juce::String mPathCurrentPreset{};
 
     // Alsa output device
-    juce::String mAlsaOutputDevice;
-    juce::Array<juce::String> mAlsaAvailableOutputDevices;
+    juce::String mAlsaOutputDevice{};
+    juce::Array<juce::String> mAlsaAvailableOutputDevices{};
 
     // Windows.
-    std::unique_ptr<EditSpeakersWindow> mEditSpeakersWindow;
-    std::unique_ptr<PropertiesWindow> mPropertiesWindow;
-    std::unique_ptr<FlatViewWindow> mFlatViewWindow;
-    std::unique_ptr<AboutWindow> mAboutWindow;
-    std::unique_ptr<OscLogWindow> mOscLogWindow;
+    std::unique_ptr<EditSpeakersWindow> mEditSpeakersWindow{};
+    std::unique_ptr<PropertiesWindow> mPropertiesWindow{};
+    std::unique_ptr<FlatViewWindow> mFlatViewWindow{};
+    std::unique_ptr<AboutWindow> mAboutWindow{};
+    std::unique_ptr<OscLogWindow> mOscLogWindow{};
 
     // 3 Main Boxes.
-    std::unique_ptr<Box> mMainUiBox;
-    std::unique_ptr<Box> mInputsUiBox;
-    std::unique_ptr<Box> mOutputsUiBox;
-    std::unique_ptr<Box> mControlUiBox;
+    std::unique_ptr<Box> mMainUiBox{};
+    std::unique_ptr<Box> mInputsUiBox{};
+    std::unique_ptr<Box> mOutputsUiBox{};
+    std::unique_ptr<Box> mControlUiBox{};
 
     // Component in Box 3.
-    std::unique_ptr<juce::Label> mJackStatusLabel;
-    std::unique_ptr<juce::Label> mJackLoadLabel;
-    std::unique_ptr<juce::Label> mJackRateLabel;
-    std::unique_ptr<juce::Label> mJackBufferLabel;
-    std::unique_ptr<juce::Label> mJackInfoLabel;
+    std::unique_ptr<juce::Label> mJackStatusLabel{};
+    std::unique_ptr<juce::Label> mJackLoadLabel{};
+    std::unique_ptr<juce::Label> mJackRateLabel{};
+    std::unique_ptr<juce::Label> mJackBufferLabel{};
+    std::unique_ptr<juce::Label> mJackInfoLabel{};
 
-    std::unique_ptr<juce::ComboBox> mModeSpatCombo;
+    std::unique_ptr<juce::ComboBox> mModeSpatCombo{};
 
-    std::unique_ptr<juce::Slider> mMasterGainOutSlider;
-    std::unique_ptr<juce::Slider> mInterpolationSlider;
+    std::unique_ptr<juce::Slider> mMasterGainOutSlider{};
+    std::unique_ptr<juce::Slider> mInterpolationSlider{};
 
-    std::unique_ptr<juce::TextEditor> mAddInputsTextEditor;
+    std::unique_ptr<juce::TextEditor> mAddInputsTextEditor{};
 
-    std::unique_ptr<juce::Label> mAllClientsLabel;
-    std::unique_ptr<JackClientListComponent> mJackClientListComponent;
+    std::unique_ptr<juce::Label> mAllClientsLabel{};
+    std::unique_ptr<JackClientListComponent> mJackClientListComponent{};
 
-    std::unique_ptr<juce::TextButton> mStartRecordButton;
-    std::unique_ptr<juce::TextEditor> mMinRecordTextEditor;
-    std::unique_ptr<juce::Label> mTimeRecordedLabel;
-    std::unique_ptr<juce::TextButton> mInitRecordButton;
+    std::unique_ptr<juce::TextButton> mStartRecordButton{};
+    std::unique_ptr<juce::TextEditor> mMinRecordTextEditor{};
+    std::unique_ptr<juce::Label> mTimeRecordedLabel{};
+    std::unique_ptr<juce::TextButton> mInitRecordButton{};
 
     // UI Components.
-    std::unique_ptr<SpeakerViewComponent> mSpeakerViewComponent;
+    std::unique_ptr<SpeakerViewComponent> mSpeakerViewComponent{};
     juce::StretchableLayoutManager mVerticalLayout;
-    std::unique_ptr<juce::StretchableLayoutResizerBar> mVerticalDividerBar;
+    std::unique_ptr<juce::StretchableLayoutResizerBar> mVerticalDividerBar{};
 
     // App splash screen.
     std::unique_ptr<juce::SplashScreen> mSplashScreen;
 
     // Flags.
-    bool mIsProcessForeground;
-    bool mIsNumbersShown;
-    bool mIsSpeakersShown;
-    bool mIsSphereShown;
-    bool mIsRecording;
+    bool mIsProcessForeground{ true };
+    bool mIsNumbersShown{ false };
+    bool mIsSpeakersShown{ true };
+    bool mIsSphereShown{ false };
+    bool mIsRecording{};
     //==============================================================================
     // Look-and-feel.
     GrisLookAndFeel & mLookAndFeel;
@@ -150,15 +149,15 @@ class MainContentComponent final
     juce::Rectangle<int> mFlatViewWindowRect;
 
     // Visual flags.
-    bool mIsSourceLevelShown;
+    bool mIsSourceLevelShown{ false };
     bool mIsSpeakerLevelShown;
-    bool mIsTripletsShown;
-    bool mIsSpanShown;
+    bool mIsTripletsShown{ false };
+    bool mIsSpanShown{ true };
 
     // App states.
-    bool mNeedToSavePreset = false;
-    bool mNeedToSaveSpeakerSetup = false;
-    bool mNeedToComputeVbap = true;
+    bool mNeedToSavePreset{ false };
+    bool mNeedToSaveSpeakerSetup{ false };
+    bool mNeedToComputeVbap{ true };
 
 public:
     //==============================================================================
@@ -350,8 +349,13 @@ public:
 
 private:
     // Widget creation helpers.
-    juce::Label *
-        addLabel(const juce::String & s, const juce::String & tooltip, int x, int y, int w, int h, Component * into);
+    juce::Label * addLabel(const juce::String & s,
+                           const juce::String & tooltip,
+                           int x,
+                           int y,
+                           int w,
+                           int h,
+                           Component * into) const;
     juce::TextButton *
         addButton(const juce::String & s, const juce::String & tooltip, int x, int y, int w, int h, Component * into);
     juce::ToggleButton * addToggleButton(const juce::String & s,

@@ -544,6 +544,7 @@ jackctl_parameter_t * jackctl_get_parameter([[maybe_unused]] JSList const * cons
         return nullptr;
     }
     jassertfalse;
+    return nullptr;
 }
 
 //==============================================================================
