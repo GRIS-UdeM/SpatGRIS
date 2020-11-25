@@ -67,6 +67,8 @@ class Speaker final : public ParentLevelComponent
 {
     SmallGrisLookAndFeel mLookAndFeel;
 
+    MainContentComponent & mMainContentComponent;
+
     glm::vec3 mMin{ 0.0f, 0.0f, 0.0f };
     glm::vec3 mMax{ 0.0f, 0.0f, 0.0f };
     glm::vec3 mCenter{};
@@ -80,13 +82,12 @@ class Speaker final : public ParentLevelComponent
     float mGain{ 0.0f };
     float mHpCutoff{ 0.0f };
 
-    MainContentComponent & mMainContentComponent;
-    LevelComponent mVuMeter;
-
     int mDirectOutChannel{}; // Not used for output.
 
     int mId;
     int mOutputPatch;
+
+    LevelComponent mVuMeter;
 
 public:
     //==============================================================================

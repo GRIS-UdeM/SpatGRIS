@@ -38,9 +38,9 @@ Speaker::Speaker(MainContentComponent & mainContentComponent,
                  float const zenith,
                  float const radius)
     : mMainContentComponent(mainContentComponent)
-    , mVuMeter(*this, mLookAndFeel, false)
     , mId(id)
     , mOutputPatch(outputPatch)
+    , mVuMeter(*this, mLookAndFeel, false)
 {
     // Load position
     setAziZenRad(glm::vec3(azimuth, zenith, radius));
