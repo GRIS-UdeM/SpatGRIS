@@ -19,6 +19,10 @@
 
 #include "Input.h"
 
+#if defined(WIN32)
+    #include <GL/freeglut.h>
+#endif
+
 #include "MainComponent.h"
 
 //==============================================================================
@@ -127,9 +131,9 @@ float Input::getAlpha() const
 }
 
 //==============================================================================
-void Input::draw()
+void Input::draw() const
 {
-    auto const alpha{ 0.75f };
+    static auto constexpr ALPHA{ 0.75f };
 
     // If not initialized, don't draw.
     if (mGain == -1.0f) {
@@ -150,10 +154,48 @@ void Input::draw()
     if (mMainContentComponent.isSourceLevelShown()) {
         glColor4f(mColor.x, mColor.y, mColor.z, getAlpha());
     } else {
-        glColor4f(mColor.x, mColor.y, mColor.z, alpha);
+        glColor4f(mColor.x, mColor.y, mColor.z, ALPHA);
     }
 
+#if defined(__APPLE__)
     glutSolidSphere(static_cast<double>(mSizeT), 8, 8);
+#else
+    // For some unknown reason, glutSolidSphere() crashes on Windows (and also maybe on Linux). This might be due to a
+    // conflict between glm, freeglut and juce's OpenGL implementations.
+    //
+    // This fix avoids calling glutSolidSphere().
+    static auto drawSphere = [](double const r) {
+        static auto constexpr LATS = 8;
+        static auto constexpr LONGS = 8;
+        for (int i{}; i <= LATS; ++i) {
+            auto const lat0
+                = juce::MathConstants<double>::pi * (-0.5 + static_cast<double>(i - 1) / static_cast<double>(LATS));
+            auto const z0 = std::sin(lat0);
+            auto const zr0 = std::cos(lat0);
+
+            auto const lat1
+                = juce::MathConstants<double>::pi * (-0.5 + static_cast<double>(i) / static_cast<double>(LATS));
+            auto const z1 = std::sin(lat1);
+            auto const zr1 = std::cos(lat1);
+
+            glBegin(GL_QUAD_STRIP);
+            for (int j{}; j <= LONGS; ++j) {
+                auto const lng
+                    = 2.0 * juce::MathConstants<double>::pi * static_cast<double>(j - 1) / static_cast<double>(LONGS);
+                auto const x = std::cos(lng);
+                auto const y = std::sin(lng);
+
+                glNormal3f(x * zr0, y * zr0, z0);
+                glVertex3f(r * x * zr0, r * y * zr0, r * z0);
+                glNormal3f(x * zr1, y * zr1, z1);
+                glVertex3f(r * x * zr1, r * y * zr1, r * z1);
+            }
+            glEnd();
+        }
+    };
+    drawSphere(mSizeT);
+#endif
+
     glTranslatef(-mCenter.x, -mCenter.y, -mCenter.z);
 
     if ((mAzimuthSpan != 0.0f || mZenithSpan != 0.0f) && mMainContentComponent.isSpanShown()) {

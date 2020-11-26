@@ -21,6 +21,10 @@
 
 #include "MainComponent.h"
 
+#if defined(WIN32)
+    #include <GL/freeglut.h>
+#endif
+
 //==============================================================================
 void SpeakerViewComponent::initialise()
 {
@@ -36,9 +40,11 @@ void SpeakerViewComponent::initialise()
     gluLookAt(4.0, 6.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 
     // TODO : undefined behavior
-    auto argc = 1;
-    char * argv[1] = { const_cast<char *>("Something") };
-    glutInit(&argc, argv);
+    // auto argc = 1;
+    // char * argv[1] = { const_cast<char *>("Something") };
+    // glutInit(&argc, argv);
+    int noArgs{};
+    glutInit(&noArgs, nullptr);
 }
 
 //==============================================================================
@@ -65,6 +71,8 @@ void SpeakerViewComponent::setCamPosition(float const angleX, float const angleY
 //==============================================================================
 void SpeakerViewComponent::render()
 {
+    jassert(juce::OpenGLHelpers::isContextActive());
+
     glEnable(GL_DEPTH_TEST);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -112,12 +120,12 @@ void SpeakerViewComponent::render()
     for (auto * input : mMainContentComponent.getSourceInputs()) {
         input->draw();
         if (mShowNumber && input->getGain() != -1.0) {
-            glm::vec3 posT = input->getCenter();
+            auto posT{ input->getCenter() };
             posT.y += SIZE_SPEAKER.y + 0.4f;
             drawText(std::to_string(input->getId()), posT, input->getNumberColor(), 0.003f, true, input->getAlpha());
         }
     }
-    // mMainContentComponent.getInputsLock()->unlock();
+    //    mMainContentComponent.getInputsLock().unlock();
     //}
 
     if (mMainContentComponent.getSpeakersLock().try_lock()) {

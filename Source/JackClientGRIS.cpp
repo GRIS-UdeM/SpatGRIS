@@ -341,6 +341,8 @@ void JackClientGris::portConnectCallback(jack_port_id_t const a, jack_port_id_t 
     jack_client_log("Jack port : ");
     if (connect) {
         // Stop Auto connection with system.
+        // TODO : crashes happening once in a while here. Probably due to some race conditions between AudioManager
+        // ports and the audio callbacks.
         if (!mAutoConnection) {
             std::string nameClient = jack_port_name(jack_port_by_id(mClient, a));
             std::string tempN = jack_port_short_name(jack_port_by_id(mClient, a));

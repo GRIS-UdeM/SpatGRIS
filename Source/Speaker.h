@@ -26,10 +26,7 @@ DISABLE_WARNINGS
     #include <GL/gl.h>
     #include <GL/glu.h>
     #include <GL/glut.h>
-#elif defined(WIN32) || defined(_WIN64)
-    #include <GL/freeglut.h>
-    #include <windows.h>
-#else
+#elif defined(__APPLE__)
     #include <GLUT/glut.h>
     #include <OpenGL/gl.h>
     #include <OpenGl/glu.h>

@@ -26,10 +26,7 @@ DISABLE_WARNINGS
     #include <GL/gl.h>
     #include <GL/glu.h>
     #include <GL/glut.h>
-#elif defined(WIN32) || defined(_WIN64)
-    #include <GL/freeglut.h>
-    #include <windows.h>
-#else
+#elif defined(__APPLE__)
     #include <GLUT/glut.h>
     #include <OpenGL/gl.h>
     #include <OpenGl/glu.h>
@@ -62,7 +59,7 @@ class Input final : public ParentLevelComponent
 
     float mAzimuthSpan{};
     float mZenithSpan{};
-    float mGain{};
+    float mGain{ -1.0f };
     float mSizeT = 0.3f;
 
     glm::vec3 mCenter{};
@@ -116,7 +113,7 @@ public:
     [[nodiscard]] glm::vec3 polToCar3d(float azimuth, float zenith) const;
     //==============================================================================
     void resetPosition();
-    void draw();
+    void draw() const;
     void updateValues(float az, float ze, float azS, float zeS, float radius, float g, ModeSpatEnum mode);
     void updateValuesOld(float azimuth, float zenith, float azimuthSpan, float zenithSpan, float g);
     //==============================================================================
