@@ -37,7 +37,7 @@ DISABLE_WARNINGS
 #include <JuceHeader.h>
 ENABLE_WARNINGS
 
-#include "JackClientGRIS.h"
+#include "JackClient.h"
 #include "LevelComponent.h"
 #include "ParentLevelComponent.h"
 

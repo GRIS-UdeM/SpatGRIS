@@ -21,7 +21,7 @@
 
 #include "GrisLookAndFeel.h"
 #include "MainComponent.h"
-#include "ServerGrisConstants.h"
+#include "constants.hpp"
 
 //==============================================================================
 juce::TextEditor * PropertiesComponent::createPropIntTextEditor(juce::String const & tooltip, int ypos, int init)

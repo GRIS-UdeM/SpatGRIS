@@ -13,6 +13,8 @@
             file="Resources/ServerGRIS_icon_doc.png" xcodeResource="1"/>
       <FILE id="bC6POS" name="ServerGRIS_icon_small.png" compile="0" resource="1"
             file="Resources/ServerGRIS_icon_small.png" xcodeResource="1"/>
+      <FILE id="sL2wMU" name="SinkinSans-400Regular.otf" compile="0" resource="1"
+            file="Source/SinkinSans-400Regular.otf"/>
       <FILE id="skBwoU" name="SpatGRIS2_2.0_Manual.pdf" compile="0" resource="0"
             file="Resources/SpatGRIS2_2.0_Manual.pdf" xcodeResource="1"/>
       <FILE id="VMUncp" name="splash_screen.png" compile="0" resource="1"
@@ -20,6 +22,8 @@
     </GROUP>
     <GROUP id="{534A7161-2617-F3B1-0706-CC62D7A3FE71}" name="Source">
       <GROUP id="{B880ED62-D15F-78F9-F83A-129573A5FA84}" name="misc">
+        <FILE id="e9Tcnv" name="constants.cpp" compile="1" resource="0" file="Source/constants.cpp"/>
+        <FILE id="Ug97Mv" name="constants.hpp" compile="0" resource="0" file="Source/constants.hpp"/>
         <FILE id="FqmBI2" name="macros.h" compile="0" resource="0" file="Source/macros.h"/>
       </GROUP>
       <GROUP id="{FB6EEEB4-BE6B-EB4A-201D-755A3CFACAAC}" name="spat">
@@ -76,16 +80,10 @@
       <FILE id="jgrqZi" name="AudioRenderer.h" compile="0" resource="0" file="Source/AudioRenderer.h"/>
       <FILE id="BVvOrd" name="Input.cpp" compile="1" resource="0" file="Source/Input.cpp"/>
       <FILE id="BiDXCC" name="Input.h" compile="0" resource="0" file="Source/Input.h"/>
-      <FILE id="A5skyB" name="JackClientGRIS.cpp" compile="1" resource="0"
-            file="Source/JackClientGRIS.cpp"/>
-      <FILE id="kACxoj" name="JackClientGRIS.h" compile="0" resource="0"
-            file="Source/JackClientGRIS.h"/>
+      <FILE id="A5skyB" name="JackClient.cpp" compile="1" resource="0" file="Source/JackClient.cpp"/>
+      <FILE id="kACxoj" name="JackClient.h" compile="0" resource="0" file="Source/JackClient.h"/>
       <FILE id="JF9m5z" name="JackMockup.cpp" compile="1" resource="0" file="Source/JackMockup.cpp"/>
       <FILE id="dw0hrM" name="JackMockup.h" compile="0" resource="0" file="Source/JackMockup.h"/>
-      <FILE id="LMWJcl" name="JackServerGRIS.cpp" compile="1" resource="0"
-            file="Source/JackServerGRIS.cpp"/>
-      <FILE id="Dg7whn" name="JackServerGRIS.h" compile="0" resource="0"
-            file="Source/JackServerGRIS.h"/>
       <FILE id="arLWJq" name="LevelComponent.cpp" compile="1" resource="0"
             file="Source/LevelComponent.cpp"/>
       <FILE id="Fv8Faz" name="LevelComponent.h" compile="0" resource="0"
@@ -102,12 +100,6 @@
             file="Source/ParentLevelComponent.h"/>
       <FILE id="I0ICQu" name="Ray.cpp" compile="1" resource="0" file="Source/Ray.cpp"/>
       <FILE id="oaSq5k" name="Ray.h" compile="0" resource="0" file="Source/Ray.h"/>
-      <FILE id="e9Tcnv" name="ServerGrisConstants.cpp" compile="1" resource="0"
-            file="Source/ServerGrisConstants.cpp"/>
-      <FILE id="Ug97Mv" name="ServerGrisConstants.h" compile="0" resource="0"
-            file="Source/ServerGrisConstants.h"/>
-      <FILE id="sL2wMU" name="SinkinSans-400Regular.otf" compile="0" resource="1"
-            file="Source/SinkinSans-400Regular.otf"/>
       <FILE id="KcFQB2" name="Speaker.cpp" compile="1" resource="0" file="Source/Speaker.cpp"/>
       <FILE id="i4Suin" name="Speaker.h" compile="0" resource="0" file="Source/Speaker.h"/>
       <FILE id="Tz4yI1" name="SpeakerViewComponent.cpp" compile="1" resource="0"

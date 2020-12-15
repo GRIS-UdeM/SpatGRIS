@@ -144,8 +144,6 @@ class JackClientGris
 {
     // class variables.
     //-----------------
-    unsigned int mSampleRate{};
-    unsigned int mBufferSize{};
     unsigned int mNumberInputs{};
     unsigned int mNumberOutputs{};
     unsigned int mMaxOutputPatch{};
@@ -321,8 +319,6 @@ public:
     void clientRegistrationCallback(char const * name, int regist);
     void portConnectCallback(jack_port_id_t a, jack_port_id_t b, int connect) const;
 
-    [[nodiscard]] unsigned getSampleRate() const { return mSampleRate; }
-    [[nodiscard]] unsigned getBufferSize() const { return mBufferSize; }
     [[nodiscard]] unsigned getNumberOutputs() const { return mNumberOutputs; }
     [[nodiscard]] unsigned getNumberInputs() const { return mNumberInputs; }
     [[nodiscard]] ModeSpatEnum getMode() const { return mModeSelected; }

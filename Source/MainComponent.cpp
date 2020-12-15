@@ -23,7 +23,7 @@
 #include "AudioRenderer.h"
 #include "LevelComponent.h"
 #include "MainWindow.h"
-#include "ServerGrisConstants.h"
+#include "constants.hpp"
 
 //==============================================================================
 MainContentComponent::MainContentComponent(MainWindow & mainWindow,
@@ -161,10 +161,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     // Start Jack Server and client.
     mAlsaOutputDevice = props->getValue(user_properties_tags::ALSA_OUTPUT_DEVICE, "");
     int errorCode{};
-    mJackServer.reset(new JackServerGris{ static_cast<unsigned>(sampleRate),
-                                          static_cast<unsigned>(bufferSize),
-                                          mAlsaOutputDevice,
-                                          &errorCode });
+
     if (errorCode > 0) {
         juce::String msg;
         if (errorCode == 1) {
@@ -182,7 +179,8 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
                                "device\n(Sampling Rate, Input/Output Channels, etc.)"));
     }
 
-    mAlsaAvailableOutputDevices = mJackServer->getAvailableOutputDevices();
+    auto * currentAudioDevice{ AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice() };
+    jassert(currentAudioDevice);
 
     auto const fileFormat{ props->getIntValue(user_properties_tags::FILE_FORMAT, 0) };
     mJackClient->setRecordFormat(fileFormat);
@@ -191,8 +189,10 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
 
     mCpuUsageLabel->setText("CPU usage : ", juce::dontSendNotification);
 
-    mJackRateLabel->setText(juce::String(mJackClient->getSampleRate()) + " Hz", juce::dontSendNotification);
-    mJackBufferLabel->setText(juce::String(mJackClient->getBufferSize()) + " spls", juce::dontSendNotification);
+    mJackRateLabel->setText(juce::String(currentAudioDevice->getCurrentSampleRate()) + " Hz",
+                            juce::dontSendNotification);
+    mJackBufferLabel->setText(juce::String(currentAudioDevice->getCurrentBufferSizeSamples()) + " spls",
+                              juce::dontSendNotification);
     mJackInfoLabel->setText("I : " + juce::String(mJackClient->getNumberOutputs())
                                 + " - O : " + juce::String(mJackClient->getNumberInputs()),
                             juce::dontSendNotification);
@@ -2272,9 +2272,12 @@ void MainContentComponent::saveProperties(juce::String const & device,
     mJackClient->setAttenuationDb(linGain);
     props->setValue(user_properties_tags::ATTENUATION_DB, attenuationDb);
 
+    auto * currentAudioDevice{ AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice() };
+    jassert(currentAudioDevice);
+
     auto const coefficient{ std::exp(-juce::MathConstants<float>::twoPi
                                      * ATTENUATION_CUTOFFS[attenuationHz].getFloatValue()
-                                     / static_cast<float>(mJackClient->getSampleRate())) };
+                                     / static_cast<float>(currentAudioDevice->getCurrentSampleRate())) };
     mJackClient->setAttenuationHz(coefficient);
     props->setValue(user_properties_tags::ATTENUATION_HZ, attenuationHz);
 
@@ -2284,9 +2287,14 @@ void MainContentComponent::saveProperties(juce::String const & device,
 //==============================================================================
 void MainContentComponent::timerCallback()
 {
+    // TODO : audioDevice should not be accessed this frequently
+    auto * audioDevice{ AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice() };
+    jassert(audioDevice);
+    auto const sampleRate{ static_cast<unsigned>(std::round(audioDevice->getCurrentSampleRate())) };
+
     auto const cpuLoad{ static_cast<int>(std::round(mJackClient->getCpuUsed() * 100.0f)) };
     mJackLoadLabel->setText(juce::String{ cpuLoad } + " %", juce::dontSendNotification);
-    auto seconds{ static_cast<int>(mJackClient->getIndexRecord() / mJackClient->getSampleRate()) };
+    auto seconds{ static_cast<int>(mJackClient->getIndexRecord() / sampleRate) };
     auto const minute{ seconds / 60 % 60 };
     seconds = seconds % 60;
     auto const timeRecorded{ ((minute < 10) ? "0" + juce::String(minute) : juce::String(minute)) + " : "
@@ -2317,7 +2325,7 @@ void MainContentComponent::timerCallback()
                 auto * renderer{ new AudioRenderer{} };
                 renderer->prepareRecording(mJackClient->getRecordingPath(),
                                            mJackClient->getOutputFileNames(),
-                                           mJackClient->getSampleRate());
+                                           sampleRate);
                 renderer->runThread();
                 mJackClient->setProcessBlockOn(true);
             }

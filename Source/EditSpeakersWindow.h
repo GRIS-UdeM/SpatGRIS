@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "JackClientGRIS.h"
+#include "JackClient.h"
 #include "macros.h"
 
 DISABLE_WARNINGS

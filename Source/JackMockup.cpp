@@ -29,22 +29,8 @@ ENABLE_WARNINGS
 
     #include "AudioManager.h"
     #include "MainComponent.h"
-    #include "ServerGrisConstants.h"
 
 juce::HashMap<void *, std::function<void()>> freeing_functions{};
-
-//==============================================================================
-int jack_session_reply(jack_client_t * /*client*/, jack_session_event_t * /*event*/)
-{
-    jassertfalse;
-    return -1;
-}
-
-//==============================================================================
-void jack_session_event_free(jack_session_event_t * /*event*/)
-{
-    jassertfalse;
-}
 
 //==============================================================================
 jack_client_t * jackClientOpen([[maybe_unused]] const char * const client_name,
@@ -60,29 +46,11 @@ jack_client_t * jackClientOpen([[maybe_unused]] const char * const client_name,
 }
 
 //==============================================================================
-int jack_client_close([[maybe_unused]] jack_client_t * client)
-{
-    jassert(client == AudioManager::getInstance().getDummyJackClient());
-
-    return 0;
-}
-
-//==============================================================================
 char * jack_get_client_name([[maybe_unused]] jack_client_t * client)
 {
     jassert(client == AudioManager::getInstance().getDummyJackClient());
 
     return "SpatGRIS2";
-}
-
-//==============================================================================
-int jack_activate([[maybe_unused]] jack_client_t * client)
-{
-    jassert(client == AudioManager::getInstance().getDummyJackClient());
-    jassert(AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice() != nullptr);
-    jassert(AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice()->isOpen());
-
-    return 0;
 }
 
 //==============================================================================
@@ -94,13 +62,6 @@ int jack_deactivate([[maybe_unused]] jack_client_t * client)
 
     AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice()->close();
     return 0;
-}
-
-//==============================================================================
-void jack_on_shutdown([[maybe_unused]] jack_client_t * const client, JackShutdownCallback /*function*/, void * /*arg*/)
-{
-    // The JackShutdownCallback only seems to get called when there is an unexpected shutdown. This can stay unwired.
-    jassert(client == AudioManager::getInstance().getDummyJackClient());
 }
 
 //==============================================================================
@@ -116,26 +77,6 @@ int jack_set_process_callback([[maybe_unused]] jack_client_t * const client,
 }
 
 //==============================================================================
-int jack_set_client_registration_callback([[maybe_unused]] jack_client_t * client,
-                                          JackClientRegistrationCallback /*registration_callback*/,
-                                          void * /*arg*/)
-{
-    // TODO : should this be wired?
-    jassert(client == AudioManager::getInstance().getDummyJackClient());
-    return 0;
-}
-
-//==============================================================================
-int jack_set_port_registration_callback([[maybe_unused]] jack_client_t * const client,
-                                        JackPortRegistrationCallback /*registration_callback*/,
-                                        void * /*arg*/)
-{
-    // TODO : should this be wired?
-    jassert(client == AudioManager::getInstance().getDummyJackClient());
-    return 0;
-}
-
-//==============================================================================
 int jack_set_port_connect_callback([[maybe_unused]] jack_client_t * client,
                                    JackPortConnectCallback const connect_callback,
                                    void * /*arg*/)
@@ -144,34 +85,6 @@ int jack_set_port_connect_callback([[maybe_unused]] jack_client_t * client,
     jassert(client == audioManager.getDummyJackClient());
 
     audioManager.registerPortConnectCallback(connect_callback);
-    return 0;
-}
-
-//==============================================================================
-int jack_set_graph_order_callback([[maybe_unused]] jack_client_t * client,
-                                  JackGraphOrderCallback /*graph_callback*/,
-                                  void * /*arg*/)
-{
-    // TODO : should this be wired?
-    jassert(client == AudioManager::getInstance().getDummyJackClient());
-    return 0;
-}
-
-//==============================================================================
-int jack_set_xrun_callback([[maybe_unused]] jack_client_t * client, JackXRunCallback /*xRunCallback*/, void * /*arg*/)
-{
-    // TODO : should this be wired?
-    jassert(client == AudioManager::getInstance().getDummyJackClient());
-    return 0;
-}
-
-//==============================================================================
-int jack_set_session_callback([[maybe_unused]] jack_client_t * client,
-                              JackSessionCallback /*session_callback*/,
-                              void * /*arg*/)
-{
-    // TODO : should this be wired?
-    jassert(client == AudioManager::getInstance().getDummyJackClient());
     return 0;
 }
 
@@ -289,12 +202,6 @@ int jack_connect([[maybe_unused]] jack_client_t * client, const char * source_po
     return 0;
 }
 
-int jack_disconnect(jack_client_t *, const char * /*source_port*/, const char * /*destination_port*/)
-{
-    jassertfalse;
-    return -1;
-}
-
 //==============================================================================
 char const ** jack_get_ports([[maybe_unused]] jack_client_t * const client,
                              [[maybe_unused]] const char * const port_name_pattern,
@@ -379,190 +286,9 @@ void jack_free(void * ptr)
 }
 
 //==============================================================================
-jackctl_server_t * jackctl_server_create(bool (*on_device_acquire)(const char * device_name),
-                                         void (*on_device_release)(const char * device_name))
-{
-    juce::ignoreUnused(on_device_acquire);
-    juce::ignoreUnused(on_device_release);
-    return AudioManager::getInstance().getDummyJackCtlServer();
-}
-
-//==============================================================================
-void jackctl_server_destroy([[maybe_unused]] jackctl_server_t * server)
-{
-    jassert(server == AudioManager::getInstance().getDummyJackCtlServer());
-}
-
-//==============================================================================
-bool jackctl_server_start([[maybe_unused]] jackctl_server_t * server, [[maybe_unused]] jackctl_driver_t * driver)
-{
-    jassert(server == AudioManager::getInstance().getDummyJackCtlServer());
-    jassert(driver == nullptr);
-    return true;
-}
-
-//==============================================================================
-bool jackctl_server_stop([[maybe_unused]] jackctl_server_t * server)
-{
-    jassert(server == AudioManager::getInstance().getDummyJackCtlServer());
-    return true;
-}
-
-//==============================================================================
-bool jackctl_server_open([[maybe_unused]] jackctl_server_t * server, [[maybe_unused]] jackctl_driver_t * driver)
-{
-    jassert(server == AudioManager::getInstance().getDummyJackCtlServer());
-    jassert(driver == nullptr);
-    return true;
-}
-
-//==============================================================================
-void jackctl_server_close([[maybe_unused]] jackctl_server_t * server)
-{
-    jassert(server == AudioManager::getInstance().getDummyJackCtlServer());
-}
-
-//==============================================================================
-const JSList * jackctl_server_get_drivers_list(jackctl_server_t * /*server*/)
-{
-    return nullptr;
-}
-
-//==============================================================================
 const JSList * jackctl_server_get_parameters(jackctl_server_t * /*server*/)
 {
     return AudioManager::getInstance().getDummyJackCtlParameters();
-}
-
-//==============================================================================
-const JSList * jackctl_server_get_internals_list(jackctl_server_t * /*server*/)
-{
-    return nullptr;
-}
-
-//==============================================================================
-bool jackctl_server_load_internal([[maybe_unused]] jackctl_server_t * server,
-                                  [[maybe_unused]] jackctl_internal_t * internal)
-{
-    jassert(server == AudioManager::getInstance().getDummyJackCtlServer());
-    jassert(internal == nullptr);
-    return true;
-}
-
-//==============================================================================
-const char * jackctl_driver_get_name(jackctl_driver_t * /*driver*/)
-{
-    jassertfalse;
-    return nullptr;
-}
-
-//==============================================================================
-const JSList * jackctl_driver_get_parameters(jackctl_driver_t * /*driver*/)
-{
-    jassertfalse;
-    return nullptr;
-}
-
-//==============================================================================
-const char * jackctl_internal_get_name(jackctl_internal_t * /*internal*/)
-{
-    jassertfalse;
-    return nullptr;
-}
-
-//==============================================================================
-const JSList * jackctl_internal_get_parameters(jackctl_internal_t * /*internal*/)
-{
-    jassertfalse;
-    return nullptr;
-}
-
-//==============================================================================
-const char * jackctl_parameter_get_name(jackctl_parameter_t * /*parameter*/)
-{
-    jassertfalse;
-    return nullptr;
-}
-
-//==============================================================================
-const char * jackctl_parameter_get_short_description(jackctl_parameter_t * /*parameter*/)
-{
-    jassertfalse;
-    return nullptr;
-}
-
-//==============================================================================
-const char * jackctl_parameter_get_long_description(jackctl_parameter_t * /*parameter*/)
-{
-    jassertfalse;
-    return nullptr;
-}
-
-//==============================================================================
-jackctl_param_type_t jackctl_parameter_get_type(jackctl_parameter_t * /*parameter*/)
-{
-    jassertfalse;
-    return {};
-}
-
-//==============================================================================
-char jackctl_parameter_get_id(jackctl_parameter_t * /*parameter*/)
-{
-    jassertfalse;
-    return {};
-}
-
-//==============================================================================
-bool jackctl_parameter_set_value(jackctl_parameter_t * /*parameter*/, const jackctl_parameter_value * /*value_ptr*/)
-{
-    jassertfalse;
-    return false;
-}
-
-//==============================================================================
-jackctl_parameter_value jackctl_parameter_get_default_value(jackctl_parameter_t * /*parameter*/)
-{
-    jassertfalse;
-    return {};
-}
-
-//==============================================================================
-JSList const * jack_slist_next(JSList const *)
-{
-    jassertfalse;
-    return nullptr;
-}
-
-//==============================================================================
-jackctl_parameter_t * jackctl_get_parameter([[maybe_unused]] JSList const * const parameters_list,
-                                            char const * const parameter_name)
-{
-    jassert(parameters_list == nullptr);
-    juce::String const parameter{ parameter_name };
-
-    if (parameter == "verbose") {
-        return nullptr;
-    }
-    jassertfalse;
-    return nullptr;
-}
-
-//==============================================================================
-jackctl_driver_t * jackctl_server_get_driver([[maybe_unused]] jackctl_server_t * const server,
-                                             [[maybe_unused]] const char * const driver_name)
-{
-    jassert(server == AudioManager::getInstance().getDummyJackCtlServer());
-    jassert(juce::String{ driver_name } == SYS_DRIVER_NAME);
-    return nullptr;
-}
-
-//==============================================================================
-jackctl_internal_t * jackctl_server_get_internal([[maybe_unused]] jackctl_server_t * const server,
-                                                 [[maybe_unused]] const char * const internal_name)
-{
-    jassert(server == AudioManager::getInstance().getDummyJackCtlServer());
-    jassert(juce::String{ internal_name } == SYS_CLIENT_NAME);
-    return nullptr;
 }
 
 #endif

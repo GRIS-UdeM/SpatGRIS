@@ -19,7 +19,7 @@
 
 #include "AudioManager.h"
 
-#include "ServerGrisConstants.h"
+#include "constants.hpp"
 
 static_assert(!USE_JACK);
 

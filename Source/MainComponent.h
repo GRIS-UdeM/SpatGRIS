@@ -35,9 +35,8 @@ ENABLE_WARNINGS
 #include "EditSpeakersWindow.h"
 #include "FlatViewWindow.h"
 #include "Input.h"
-#include "JackClientGRIS.h"
+#include "JackClient.h"
 #include "JackClientListComponent.h"
-#include "JackServerGRIS.h"
 #include "OscInput.h"
 #include "OscLogWindow.h"
 #include "PropertiesWindow.h"
@@ -58,8 +57,7 @@ class MainContentComponent final
     , public juce::ComboBox::Listener
     , private juce::Timer
 {
-    // Jack server - client.
-    std::unique_ptr<JackServerGris> mJackServer{};
+    // Jack client.
     std::unique_ptr<JackClientGris> mJackClient{};
 
     // Speakers.

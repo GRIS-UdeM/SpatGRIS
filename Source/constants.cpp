@@ -17,7 +17,7 @@
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "ServerGrisConstants.h"
+#include "constants.hpp"
 
 char const * const DEVICE_NAME = "GRIS";
 char const * CLIENT_NAME = "SpatGRIS2";

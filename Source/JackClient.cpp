@@ -17,14 +17,15 @@
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "JackClientGRIS.h"
+#include "JackClient.h"
 
 #include <array>
 #include <cstdarg>
 
+#include "AudioManager.h"
 #include "MainComponent.h"
-#include "ServerGrisConstants.h"
 #include "Speaker.h"
+#include "constants.hpp"
 #include "spat/vbap.h"
 
 static bool jackClientLogPrint = true;
@@ -60,8 +61,6 @@ static int process_audio(jack_nframes_t const nFrames, void * arg)
 // Jack callback functions.
 void session_callback(jack_session_event_t * event, void * arg)
 {
-    auto * jackCli = static_cast<JackClientGris *>(arg);
-
     char returnValue[100];
     jack_client_log("session notification\n");
     jack_client_log("path %s, uuid %s, type: %s\n",
@@ -71,10 +70,6 @@ void session_callback(jack_session_event_t * event, void * arg)
 
     snprintf(returnValue, 100, "jack_simple_session_client %s", event->client_uuid);
     event->command_line = strdup(returnValue);
-
-    jack_session_reply(jackCli->getClient(), event);
-
-    jack_session_event_free(event);
 }
 
 //==============================================================================
@@ -245,20 +240,8 @@ JackClientGris::JackClientGris()
     }
 
     // Register Jack callbacks and ports.
-    jack_on_shutdown(mClient, jackShutdown, this);
     jack_set_process_callback(mClient, process_audio, this);
-    jack_set_client_registration_callback(mClient, client_registration_callback, this);
-    jack_set_session_callback(mClient, session_callback, this);
     jack_set_port_connect_callback(mClient, port_connect_callback, this);
-    jack_set_port_registration_callback(mClient, port_registration_callback, this);
-    jack_set_graph_order_callback(mClient, graphOrderCallback, this);
-    jack_set_xrun_callback(mClient, xRunCallback, this);
-
-    mSampleRate = jack_get_sample_rate(mClient);
-    mBufferSize = jack_get_buffer_size(mClient);
-
-    jack_client_log("\nJack engine sample rate: %d \n", mSampleRate);
-    jack_client_log("Jack engine buffer size: %d \n", mBufferSize);
 
     // Initialize pink noise
     srand(static_cast<unsigned int>(time(nullptr)));
@@ -292,13 +275,6 @@ JackClientGris::JackClientGris()
     }
     jack_free(ports);
     jack_client_log("\nNumber of output ports: %d\n\n", mNumberOutputs);
-
-    // Activate client and connect the ports.
-    // Playback ports are "input" to the backend, and capture ports are "output" from it.
-    if (jack_activate(mClient)) {
-        jack_client_log("\n\n Jack cannot activate client.");
-        return;
-    }
 
     jack_client_log("\nJack Client Run\n");
     jack_client_log("=============== \n");
@@ -347,11 +323,6 @@ void JackClientGris::portConnectCallback(jack_port_id_t const a, jack_port_id_t 
             std::string nameClient = jack_port_name(jack_port_by_id(mClient, a));
             std::string tempN = jack_port_short_name(jack_port_by_id(mClient, a));
             nameClient = nameClient.substr(0, nameClient.size() - (tempN.size() + 1));
-            if ((nameClient != CLIENT_NAME && nameClient != SYS_CLIENT_NAME) || nameClient == SYS_CLIENT_NAME) {
-                jack_disconnect(mClient,
-                                jack_port_name(jack_port_by_id(mClient, a)),
-                                jack_port_name(jack_port_by_id(mClient, b)));
-            }
         }
         jack_client_log("Connect ");
     } else {
@@ -378,13 +349,17 @@ void JackClientGris::prepareToRecord()
     juce::String extF = fileS.getFileExtension();
     juce::String parent = fileS.getParentDirectory().getFullPathName();
 
+    auto * currentAudioDevice{ AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice() };
+    jassert(currentAudioDevice);
+    auto const sampleRate{ static_cast<unsigned>(std::round(currentAudioDevice->getCurrentSampleRate())) };
+
     if (mModeSelected == ModeSpatEnum::VBAP || mModeSelected == ModeSpatEnum::LBAP) {
         num_of_channels = (int)mOutputsPort.size();
         for (int i = 0; i < num_of_channels; ++i) {
             if (intVectorContains(mOutputPatches, i + 1)) {
                 channelName = parent + "/" + fname + "_" + juce::String(i + 1).paddedLeft('0', 3) + extF;
                 juce::File fileC = juce::File(channelName);
-                mRecorders[i].startRecording(fileC, mSampleRate, extF);
+                mRecorders[i].startRecording(fileC, sampleRate, extF);
                 mOutputFileNames.add(fileC);
             }
         }
@@ -393,7 +368,7 @@ void JackClientGris::prepareToRecord()
         for (int i = 0; i < num_of_channels; ++i) {
             channelName = parent + "/" + fname + "_" + juce::String(i + 1).paddedLeft('0', 3) + extF;
             juce::File fileC = juce::File(channelName);
-            mRecorders[i].startRecording(fileC, mSampleRate, extF);
+            mRecorders[i].startRecording(fileC, sampleRate, extF);
             mOutputFileNames.add(fileC);
         }
     }
@@ -997,7 +972,6 @@ void JackClientGris::connectedGrisToSystem()
             while (portsIn[j]) {
                 if (getClientName(portsIn[j]) == SYS_CLIENT_NAME && // system
                     jack_port_connected_to(jack_port_by_name(mClient, portsOut[i]), portsIn[j])) {
-                    jack_disconnect(mClient, portsOut[i], portsIn[j]);
                 }
                 j += 1;
             }
@@ -1182,7 +1156,6 @@ void JackClientGris::connectionClient(juce::String const & name, bool connect)
             while (portsIn[j]) {
                 if (getClientName(portsIn[j]) == CLIENT_NAME && // jackClient
                     jack_port_connected_to(jack_port_by_name(mClient, portsOut[i]), portsIn[j])) {
-                    jack_disconnect(mClient, portsOut[i], portsIn[j]);
                 }
                 j += 1;
             }
@@ -1365,5 +1338,4 @@ JackClientGris::~JackClientGris()
     for (unsigned int i = 0; i < mOutputsPort.size(); i++) {
         jack_port_unregister(mClient, mOutputsPort[i]);
     }
-    jack_client_close(mClient);
 }
