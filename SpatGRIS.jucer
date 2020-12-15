@@ -33,8 +33,6 @@
         <FILE id="agZMLe" name="vbap.h" compile="0" resource="0" file="Source/spat/vbap.h"/>
       </GROUP>
       <GROUP id="{45A32A71-2629-205C-304E-C1093B6D3F59}" name="UI">
-        <FILE id="uYO3os" name="GrisLookAndFeel.cpp" compile="1" resource="0"
-              file="Source/GrisLookAndFeel.cpp"/>
         <GROUP id="{202AE941-C78E-5F46-CB31-EA8A544A343C}" name="Secondary Windows">
           <FILE id="abLCw0" name="AboutWindow.cpp" compile="1" resource="0" file="Source/AboutWindow.cpp"/>
           <FILE id="OQhNHY" name="AboutWindow.h" compile="0" resource="0" file="Source/AboutWindow.h"/>
@@ -54,18 +52,17 @@
           <FILE id="mzs9KD" name="PropertiesWindow.h" compile="0" resource="0"
                 file="Source/PropertiesWindow.h"/>
         </GROUP>
+        <FILE id="MW5ESG" name="Box.cpp" compile="1" resource="0" file="Source/Box.cpp"/>
+        <FILE id="RG3FbE" name="Box.h" compile="0" resource="0" file="Source/Box.h"/>
         <FILE id="AYI1c0" name="EditableTextCustomComponent.cpp" compile="1"
               resource="0" file="Source/EditableTextCustomComponent.cpp"/>
         <FILE id="kl6jjL" name="EditableTextCustomComponent.h" compile="0"
               resource="0" file="Source/EditableTextCustomComponent.h"/>
+        <FILE id="XuxvPq" name="GlSphere.h" compile="0" resource="0" file="Source/GlSphere.h"/>
+        <FILE id="uYO3os" name="GrisLookAndFeel.cpp" compile="1" resource="0"
+              file="Source/GrisLookAndFeel.cpp"/>
         <FILE id="vyaPdB" name="GrisLookAndFeel.h" compile="0" resource="0"
               file="Source/GrisLookAndFeel.h"/>
-        <FILE id="cJ5sH5" name="JackClientListComponent.cpp" compile="1" resource="0"
-              file="Source/JackClientListComponent.cpp"/>
-        <FILE id="FqxvCu" name="JackClientListComponent.h" compile="0" resource="0"
-              file="Source/JackClientListComponent.h"/>
-        <FILE id="MW5ESG" name="Box.cpp" compile="1" resource="0" file="Source/Box.cpp"/>
-        <FILE id="RG3FbE" name="Box.h" compile="0" resource="0" file="Source/Box.h"/>
       </GROUP>
       <FILE id="g2wgxx" name="Application.cpp" compile="1" resource="0" file="Source/Application.cpp"/>
       <FILE id="ObG5vj" name="Application.h" compile="0" resource="0" file="Source/Application.h"/>

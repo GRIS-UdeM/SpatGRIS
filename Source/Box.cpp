@@ -43,7 +43,7 @@ Box::Box(GrisLookAndFeel & feel,
 }
 
 //==============================================================================
-void Box::correctSize(unsigned int width, unsigned int const height)
+void Box::correctSize(int width, int const height)
 {
     if (this->mTitle != "") {
         this->mViewport.setTopLeftPosition(0, 20);

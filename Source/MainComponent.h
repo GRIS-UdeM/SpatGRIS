@@ -36,7 +36,6 @@ ENABLE_WARNINGS
 #include "FlatViewWindow.h"
 #include "Input.h"
 #include "JackClient.h"
-#include "JackClientListComponent.h"
 #include "OscInput.h"
 #include "OscLogWindow.h"
 #include "PropertiesWindow.h"
@@ -112,7 +111,6 @@ class MainContentComponent final
     std::unique_ptr<juce::TextEditor> mAddInputsTextEditor{};
 
     std::unique_ptr<juce::Label> mAllClientsLabel{};
-    std::unique_ptr<JackClientListComponent> mJackClientListComponent{};
 
     std::unique_ptr<juce::TextButton> mStartRecordButton{};
     std::unique_ptr<juce::TextEditor> mMinRecordTextEditor{};

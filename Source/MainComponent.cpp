@@ -86,7 +86,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     addAndMakeVisible(mOutputsUiBox.get());
 
     // Box Control
-    mControlUiBox.reset(new Box(mLookAndFeel));
+    mControlUiBox.reset(new Box(mLookAndFeel, "Controls"));
     addAndMakeVisible(mControlUiBox.get());
 
     mMainUiBox->getContent()->addAndMakeVisible(mInputsUiBox.get());
@@ -94,11 +94,11 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     mMainUiBox->getContent()->addAndMakeVisible(mControlUiBox.get());
 
     // Components in Box Control
-    mCpuUsageLabel.reset(addLabel("Jack Unknown", "Jack Status", 0, 0, 80, 28, mControlUiBox->getContent()));
-    mJackLoadLabel.reset(addLabel("0.000000 %", "Load Jack CPU", 80, 0, 80, 28, mControlUiBox->getContent()));
-    mJackRateLabel.reset(addLabel("00000 Hz", "Rate", 160, 0, 80, 28, mControlUiBox->getContent()));
-    mJackBufferLabel.reset(addLabel("0000 spls", "Buffer Size", 240, 0, 80, 28, mControlUiBox->getContent()));
-    mJackInfoLabel.reset(addLabel("...", "Jack Inputs/Outputs system", 320, 0, 90, 28, mControlUiBox->getContent()));
+    mCpuUsageLabel.reset(addLabel("CPU usage", "CPU usage", 0, 0, 80, 28, mControlUiBox->getContent()));
+    mJackLoadLabel.reset(addLabel("0 %", "CPU usage", 80, 0, 80, 28, mControlUiBox->getContent()));
+    mJackRateLabel.reset(addLabel("0 Hz", "Rate", 120, 0, 80, 28, mControlUiBox->getContent()));
+    mJackBufferLabel.reset(addLabel("0 spls", "Buffer Size", 200, 0, 80, 28, mControlUiBox->getContent()));
+    mJackInfoLabel.reset(addLabel("...", "Inputs/Outputs", 280, 0, 90, 28, mControlUiBox->getContent()));
 
     mCpuUsageLabel->setColour(juce::Label::backgroundColourId, mLookAndFeel.getWinBackgroundColour());
     mJackLoadLabel->setColour(juce::Label::backgroundColourId, mLookAndFeel.getWinBackgroundColour());
@@ -133,11 +133,6 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     mStartRecordButton->setEnabled(false);
 
     mTimeRecordedLabel.reset(addLabel("00:00", "Record time", 327, 83, 50, 24, mControlUiBox->getContent()));
-
-    // Jack client box.
-    mJackClientListComponent.reset(new JackClientListComponent(this, &mLookAndFeel));
-    mJackClientListComponent->setBounds(410, 0, 304, 138);
-    mControlUiBox->getContent()->addAndMakeVisible(mJackClientListComponent.get());
 
     // Set up the layout and resize bars.
     mVerticalLayout.setItemLayout(0,
@@ -2346,8 +2341,6 @@ void MainContentComponent::timerCallback()
         speaker->getVuMeter()->update();
     }
 
-    mJackClientListComponent->updateContentCli();
-
     if (mIsProcessForeground != juce::Process::isForegroundProcess()) {
         mIsProcessForeground = juce::Process::isForegroundProcess();
         if (mEditSpeakersWindow != nullptr && mIsProcessForeground) {
@@ -2583,11 +2576,11 @@ void MainContentComponent::resized()
     mMainUiBox->correctSize(getWidth() - mSpeakerViewComponent->getWidth() - 6, 610);
 
     mInputsUiBox->setBounds(0, 2, getWidth() - (mSpeakerViewComponent->getWidth() + 10), 231);
-    mInputsUiBox->correctSize(static_cast<unsigned>(mSourceInputs.size()) * (VU_METER_WIDTH_IN_PIXELS) + 4, 200);
+    mInputsUiBox->correctSize(mSourceInputs.size() * VU_METER_WIDTH_IN_PIXELS + 4, 200);
 
     mOutputsUiBox->setBounds(0, 233, getWidth() - (mSpeakerViewComponent->getWidth() + 10), 210);
-    mOutputsUiBox->correctSize(static_cast<unsigned>(mSpeakers.size()) * (VU_METER_WIDTH_IN_PIXELS) + 4, 180);
+    mOutputsUiBox->correctSize(mSpeakers.size() * VU_METER_WIDTH_IN_PIXELS + 4, 180);
 
     mControlUiBox->setBounds(0, 443, getWidth() - (mSpeakerViewComponent->getWidth() + 10), 145);
-    mControlUiBox->correctSize(720, 145);
+    mControlUiBox->correctSize(410, 145);
 }

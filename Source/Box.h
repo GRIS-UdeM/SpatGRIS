@@ -56,7 +56,7 @@ public:
     [[nodiscard]] juce::Component const * getContent() const { return &this->mContent; }
 
     void resized() override { this->mViewport.setSize(this->getWidth(), this->getHeight()); }
-    void correctSize(unsigned int width, unsigned int height);
+    void correctSize(int width, int const height);
     void paint(juce::Graphics & g) override;
 
 private:

@@ -19,11 +19,8 @@
 
 #include "SpeakerViewComponent.h"
 
+#include "GlSphere.h"
 #include "MainComponent.h"
-
-#if defined(WIN32)
-    #include <GL/freeglut.h>
-#endif
 
 //==============================================================================
 void SpeakerViewComponent::initialise()
@@ -195,7 +192,11 @@ void SpeakerViewComponent::render()
                     glEnd();
                 }
             } else {
+#if defined(WIN32)
+                drawSphere(std::max(MAX_RADIUS, 1.0));
+#else
                 glutSolidSphere(std::max(MAX_RADIUS, 1.0), 20, 20);
+#endif
             }
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             glPopMatrix();
