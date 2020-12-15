@@ -19,9 +19,9 @@
 
 #include "AudioManager.h"
 
-#if !USE_JACK
+#include "ServerGrisConstants.h"
 
-    #include <iostream>
+static_assert(!USE_JACK);
 
 //==============================================================================
 std::unique_ptr<AudioManager> AudioManager::mInstance{ nullptr };
@@ -29,7 +29,9 @@ std::unique_ptr<AudioManager> AudioManager::mInstance{ nullptr };
 //==============================================================================
 AudioManager::AudioManager(juce::String const & inputDevice,
                            juce::String const & outputDevice,
-                           std::optional<juce::String> deviceType)
+                           std::optional<juce::String> deviceType,
+                           double const sampleRate,
+                           int const bufferSize)
 {
     if (deviceType) {
         [[maybe_unused]] auto const & dummy{ mAudioDeviceManager.getAvailableDeviceTypes() };
@@ -39,8 +41,11 @@ AudioManager::AudioManager(juce::String const & inputDevice,
         deviceTypeObject->scanForDevices();
     }
 
+    jassert(RATE_VALUES.contains(juce::String{ sampleRate, 0 }));
+    jassert(BUFFER_SIZES.contains(juce::String{ bufferSize }));
+
     juce::AudioDeviceManager::AudioDeviceSetup const setup{
-        outputDevice, inputDevice, 48000.0, 512, juce::BigInteger{}, true, juce::BigInteger{}, true
+        outputDevice, inputDevice, sampleRate, bufferSize, juce::BigInteger{}, true, juce::BigInteger{}, true
     };
 
     auto const error{ mAudioDeviceManager.initialise(128, 128, nullptr, false, setup.outputDeviceName, &setup) };
@@ -117,9 +122,11 @@ void AudioManager::setBufferSizes(int const numSamples)
 //==============================================================================
 void AudioManager::init(juce::String const & inputDevice,
                         juce::String const & outputDevice,
-                        std::optional<juce::String> deviceType)
+                        std::optional<juce::String> deviceType,
+                        double const sampleRate,
+                        int const bufferSize)
 {
-    mInstance.reset(new AudioManager{ inputDevice, outputDevice, std::move(deviceType) });
+    mInstance.reset(new AudioManager{ inputDevice, outputDevice, std::move(deviceType), sampleRate, bufferSize });
 }
 
 //==============================================================================
@@ -373,5 +380,3 @@ void AudioManager::free()
 {
     mInstance.reset();
 }
-
-#endif

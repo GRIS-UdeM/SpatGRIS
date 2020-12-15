@@ -32,11 +32,11 @@ AudioRenderer::AudioRenderer()
 
 //==============================================================================
 void AudioRenderer::prepareRecording(juce::File const & file,
-                                     juce::Array<juce::File> const & filenames,
+                                     juce::Array<juce::File> const & fileNames,
                                      unsigned const sampleRate)
 {
     mFileToRecord = file;
-    mFiles = filenames;
+    mFiles = fileNames;
     mSampleRate = sampleRate;
 }
 
@@ -44,11 +44,10 @@ void AudioRenderer::prepareRecording(juce::File const & file,
 void AudioRenderer::run()
 {
     static auto constexpr BLOCK_SIZE{ 2048u };
+
     auto const factor{ std::pow(2.0f, 31.0f) };
     auto const numberOfChannels{ mFiles.size() };
     auto const extF{ mFiles[0].getFileExtension() };
-
-    auto * data{ new int[BLOCK_SIZE] };
 
     juce::AudioBuffer<float> buffer{ numberOfChannels, BLOCK_SIZE };
 
@@ -84,6 +83,8 @@ void AudioRenderer::run()
     }
 
     unsigned int numberOfPasses{};
+    std::array<int, BLOCK_SIZE> data;
+    auto * const dataStart{ data.data() };
     while ((numberOfPasses * BLOCK_SIZE) < duration) {
         // this will update the progress bar on the dialog box
         setProgress(static_cast<double>(numberOfPasses) / static_cast<double>(howManyPasses));
@@ -91,7 +92,7 @@ void AudioRenderer::run()
         setStatusMessage("Processing...");
 
         for (int i{}; i < numberOfChannels; ++i) {
-            readers[i]->read(&data, 1, numberOfPasses * BLOCK_SIZE, BLOCK_SIZE, false);
+            readers[i]->read(&dataStart, 1, numberOfPasses * BLOCK_SIZE, BLOCK_SIZE, false);
             for (unsigned j{}; j < BLOCK_SIZE; ++j) {
                 buffer.setSample(i, j, data[j] / factor);
             }

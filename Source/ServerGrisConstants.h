@@ -56,3 +56,19 @@ extern const juce::StringArray ATTENUATION_DB;
 extern const juce::StringArray ATTENUATION_CUTOFFS;
 
 static constexpr int VU_METER_WIDTH_IN_PIXELS = 22;
+
+namespace user_properties_tags
+{
+static const inline juce::String LAST_VBAP_SPEAKER_SETUP = "lastVbapSpeakerSetup";
+static const inline juce::String ALSA_OUTPUT_DEVICE = "AlsaOutputDevice";
+static const inline juce::String LAST_OPEN_PRESET = "lastOpenPreset";
+static const inline juce::String LAST_OPEN_SPEAKER_SETUP = "lastOpenSpeakerSetup";
+static const inline juce::String BUFFER_SIZE = "BufferValue";
+static const inline juce::String SAMPLE_RATE = "RateValue";
+static const inline juce::String OSC_INPUT_PORT = "OscInputPort";
+static const inline juce::String FILE_FORMAT = "FileFormat";
+static const inline juce::String FILE_CONFIG = "FileConfig";
+static const inline juce::String ATTENUATION_HZ = "AttenuationHz";
+static const inline juce::String SASH_POSITION = "sashPosition";
+static const inline juce::String ATTENUATION_DB = "AttenuationDB";
+} // namespace user_properties_tags

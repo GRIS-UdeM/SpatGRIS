@@ -47,7 +47,9 @@ public:
     SpatGris2Application & operator=(SpatGris2Application const &) = delete;
     SpatGris2Application & operator=(SpatGris2Application &&) = delete;
     //==============================================================================
-    void start();
+    void start(juce::String const & inputDevice,
+               juce::String const & outputDevice,
+               std::optional<juce::String> deviceType);
     void chooseDeviceType();
     void chooseDevice(std::optional<juce::String> deviceType);
     //==============================================================================

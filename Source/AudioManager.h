@@ -130,7 +130,9 @@ public:
     //==============================================================================
     static void init(juce::String const & inputDevice,
                      juce::String const & outputDevice,
-                     std::optional<juce::String> deviceType);
+                     std::optional<juce::String> deviceType,
+                     double const sampleRate,
+                     int const bufferSize);
     [[nodiscard]] static AudioManager & getInstance();
     static void free();
     //==============================================================================
@@ -143,7 +145,9 @@ private:
     //==============================================================================
     AudioManager(juce::String const & inputDevice,
                  juce::String const & outputDevice,
-                 std::optional<juce::String> deviceType);
+                 std::optional<juce::String> deviceType,
+                 double sampleRate,
+                 int bufferSize);
     //==============================================================================
     void setBufferSizes(int numSamples);
     //==============================================================================

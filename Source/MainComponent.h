@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include <optional>
+
 #include "macros.h"
 
 DISABLE_WARNINGS
@@ -58,7 +60,7 @@ class MainContentComponent final
 {
     // Jack server - client.
     std::unique_ptr<JackServerGris> mJackServer{};
-    JackClientGris mJackClient{};
+    std::unique_ptr<JackClientGris> mJackClient{};
 
     // Speakers.
     std::vector<Triplet> mTriplets{};
@@ -98,7 +100,7 @@ class MainContentComponent final
     std::unique_ptr<Box> mControlUiBox{};
 
     // Component in Box 3.
-    std::unique_ptr<juce::Label> mJackStatusLabel{};
+    std::unique_ptr<juce::Label> mCpuUsageLabel{};
     std::unique_ptr<juce::Label> mJackLoadLabel{};
     std::unique_ptr<juce::Label> mJackRateLabel{};
     std::unique_ptr<juce::Label> mJackBufferLabel{};
@@ -162,7 +164,11 @@ class MainContentComponent final
 
 public:
     //==============================================================================
-    explicit MainContentComponent(MainWindow & mainWindow, GrisLookAndFeel & newLookAndFeel);
+    MainContentComponent(MainWindow & mainWindow,
+                         GrisLookAndFeel & newLookAndFeel,
+                         juce::String const & inputDevice,
+                         juce::String const & outputDevice,
+                         std::optional<juce::String> const & deviceType);
     //==============================================================================
     MainContentComponent() = delete;
     ~MainContentComponent() override;
@@ -249,13 +255,13 @@ public:
     [[nodiscard]] bool isRadiusNormalized() const;
 
     // Jack clients.
-    [[nodiscard]] JackClientGris * getJackClient() { return &this->mJackClient; }
-    [[nodiscard]] JackClientGris const * getJackClient() const { return &mJackClient; }
+    [[nodiscard]] JackClientGris * getJackClient() { return mJackClient.get(); }
+    [[nodiscard]] JackClientGris const * getJackClient() const { return mJackClient.get(); }
 
-    [[nodiscard]] std::vector<Client> & getClients() { return this->mJackClient.getClients(); }
-    [[nodiscard]] std::vector<Client> const & getClients() const { return this->mJackClient.getClients(); }
+    [[nodiscard]] std::vector<Client> & getClients() { return mJackClient->getClients(); }
+    [[nodiscard]] std::vector<Client> const & getClients() const { return mJackClient->getClients(); }
 
-    [[nodiscard]] std::mutex & getClientsLock() { return mJackClient.getClientsLock(); }
+    [[nodiscard]] std::mutex & getClientsLock() { return mJackClient->getClientsLock(); }
 
     void connectionClientJack(juce::String const & clientName, bool conn = true);
 
@@ -280,11 +286,11 @@ public:
     // Input - output amplitude levels.
     [[nodiscard]] float getLevelsOut(int const indexLevel) const
     {
-        return (20.0f * std::log10(this->mJackClient.getLevelsOut(indexLevel)));
+        return (20.0f * std::log10(this->mJackClient->getLevelsOut(indexLevel)));
     }
     [[nodiscard]] float getLevelsIn(int const indexLevel) const
     {
-        return (20.0f * std::log10(this->mJackClient.getLevelsIn(indexLevel)));
+        return (20.0f * std::log10(this->mJackClient->getLevelsIn(indexLevel)));
     }
     [[nodiscard]] float getLevelsAlpha(int indexLevel) const;
 

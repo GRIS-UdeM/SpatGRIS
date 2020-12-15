@@ -18,14 +18,20 @@
 */
 
 #include "MainWindow.h"
+
+#include "AudioManager.h"
 #include "ServerGrisConstants.h"
 
 //==============================================================================
-MainWindow::MainWindow(juce::String const & name, GrisLookAndFeel & newLookAndFeel)
+MainWindow::MainWindow(juce::String const & name,
+                       GrisLookAndFeel & newLookAndFeel,
+                       juce::String const & inputDevice,
+                       juce::String const & outputDevice,
+                       std::optional<juce::String> const & deviceType)
     : DocumentWindow(name, juce::Colours::lightgrey, DocumentWindow::allButtons)
 {
     setUsingNativeTitleBar(true);
-    mMainContentComponent.reset(new MainContentComponent(*this, newLookAndFeel));
+    mMainContentComponent.reset(new MainContentComponent(*this, newLookAndFeel, inputDevice, outputDevice, deviceType));
     setContentOwned(mMainContentComponent.get(), true);
     setResizable(true, true);
 

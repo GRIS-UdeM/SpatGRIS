@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include <optional>
+
 #include "macros.h"
 
 DISABLE_WARNINGS
@@ -72,7 +74,11 @@ private:
 
 public:
     //==============================================================================
-    explicit MainWindow(juce::String const & name, GrisLookAndFeel & newLookAndFeel);
+    MainWindow(juce::String const & name,
+               GrisLookAndFeel & newLookAndFeel,
+               juce::String const & inputDevice,
+               juce::String const & outputDevice,
+               std::optional<juce::String> const & deviceType);
     //==============================================================================
     MainWindow() = delete;
     ~MainWindow() = default;
