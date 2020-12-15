@@ -58,7 +58,7 @@ class MainContentComponent final
     , private juce::Timer
 {
     // Jack client.
-    std::unique_ptr<JackClientGris> mJackClient{};
+    std::unique_ptr<JackClient> mJackClient{};
 
     // Speakers.
     std::vector<Triplet> mTriplets{};
@@ -253,8 +253,8 @@ public:
     [[nodiscard]] bool isRadiusNormalized() const;
 
     // Jack clients.
-    [[nodiscard]] JackClientGris * getJackClient() { return mJackClient.get(); }
-    [[nodiscard]] JackClientGris const * getJackClient() const { return mJackClient.get(); }
+    [[nodiscard]] JackClient * getJackClient() { return mJackClient.get(); }
+    [[nodiscard]] JackClient const * getJackClient() const { return mJackClient.get(); }
 
     [[nodiscard]] std::vector<Client> & getClients() { return mJackClient->getClients(); }
     [[nodiscard]] std::vector<Client> const & getClients() const { return mJackClient->getClients(); }

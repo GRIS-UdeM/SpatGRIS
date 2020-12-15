@@ -66,7 +66,7 @@ class JackClientListComponent final
         void resized() override { mComboBox.setBoundsInset(juce::BorderSize<int>(2)); }
         void setRowAndColumn(int newRow, int newColumn);
 
-        void comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged) override
+        void comboBoxChanged(juce::ComboBox * /*comboBoxThatHasChanged*/) override
         {
             mOwner.setValue(mRow, mColumnId, mComboBox.getSelectedId());
         }

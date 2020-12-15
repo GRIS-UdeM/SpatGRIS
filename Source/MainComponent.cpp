@@ -55,7 +55,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     AudioManager::init(inputDevice, outputDevice, deviceType, static_cast<double>(sampleRate), bufferSize);
 
     // init jackClient
-    mJackClient = std::make_unique<JackClientGris>();
+    mJackClient = std::make_unique<JackClient>();
 
     // Create the menu bar.
     mMenuBar.reset(new juce::MenuBarComponent(this));

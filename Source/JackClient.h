@@ -19,33 +19,20 @@
 
 #pragma once
 
+static_assert(!USE_JACK);
+
 #include <array>
+#include <cstdint>
+#include <mutex>
 #include <vector>
 
 #include "macros.h"
 
 DISABLE_WARNINGS
-#if defined(WIN32) || defined(_WIN64)
-    #include <cstdint>
-    #include <mutex>
-#else
-    #include <unistd.h>
-#endif
-
-#ifdef __linux__
-    #include <mutex>
-#endif
 
 #include <JuceHeader.h>
 
-#if USE_JACK
-    #include <jack/jack.h>
-    #include <jack/session.h>
-    #include <jack/transport.h>
-    #include <jack/types.h>
-#else
-    #include "JackMockup.h"
-#endif
+#include "JackMockup.h"
 
 #include "spat/lbap.h"
 #include "spat/vbap.h"
@@ -140,7 +127,7 @@ struct SpeakerOut {
 enum class ModeSpatEnum { VBAP = 0, LBAP, VBAP_HRTF, STEREO };
 
 //==============================================================================
-class JackClientGris
+class JackClient
 {
     // class variables.
     //-----------------
@@ -256,14 +243,14 @@ class JackClientGris
 public:
     //==============================================================================
     // Class methods.
-    JackClientGris();
-    ~JackClientGris();
+    JackClient();
+    ~JackClient();
 
-    JackClientGris(JackClientGris const &) = delete;
-    JackClientGris(JackClientGris &&) = delete;
+    JackClient(JackClient const &) = delete;
+    JackClient(JackClient &&) = delete;
 
-    JackClientGris & operator=(JackClientGris const &) = delete;
-    JackClientGris & operator=(JackClientGris &&) = delete;
+    JackClient & operator=(JackClient const &) = delete;
+    JackClient & operator=(JackClient &&) = delete;
     //==============================================================================
     // Audio Status.
     [[nodiscard]] bool isReady() const { return mClientReady; }
@@ -392,5 +379,5 @@ private:
     // Connect the server's outputs to the system's inputs.
     void connectedGrisToSystem();
     //==============================================================================
-    JUCE_LEAK_DETECTOR(JackClientGris)
+    JUCE_LEAK_DETECTOR(JackClient)
 };
