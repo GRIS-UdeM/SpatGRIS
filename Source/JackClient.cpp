@@ -926,8 +926,8 @@ void JackClient::connectedGrisToSystem()
     const char ** portsOut = jack_get_ports(mClient, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput);
     const char ** portsIn = jack_get_ports(mClient, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput);
 
-    int i = 0;
-    int j = 0;
+    size_t i{};
+    size_t j;
 
     // DisConnect JackClientGris to system.
     while (portsOut[i]) {
@@ -937,10 +937,10 @@ void JackClient::connectedGrisToSystem()
                 if (getClientName(portsIn[j]) == SYS_CLIENT_NAME && // system
                     jack_port_connected_to(jack_port_by_name(mClient, portsOut[i]), portsIn[j])) {
                 }
-                j += 1;
+                ++j;
             }
         }
-        i += 1;
+        ++i;
     }
 
     i = 0;
@@ -952,18 +952,18 @@ void JackClient::connectedGrisToSystem()
             while (portsIn[j]) {
                 if (getClientName(portsIn[j]) == SYS_CLIENT_NAME) { // system
                     jack_connect(mClient, portsOut[i], portsIn[j]);
-                    j += 1;
+                    ++j;
                     break;
                 }
-                j += 1;
+                ++j;
             }
         }
-        i += 1;
+        ++i;
     }
 
     // Build output patch list.
     mOutputPatches.clear();
-    for (i = 0; i < mOutputsPort.size(); i++) {
+    for (i = 0; i < mOutputsPort.size(); ++i) {
         if (mSpeakersOut[i].outputPatch != 0) {
             mOutputPatches.push_back(mSpeakersOut[i].outputPatch);
         }
@@ -976,7 +976,6 @@ void JackClient::connectedGrisToSystem()
 //==============================================================================
 bool JackClient::initSpeakersTriplet(std::vector<Speaker *> const & listSpk, int dimensions, bool needToComputeVbap)
 {
-    int j;
     if (listSpk.size() <= 0) {
         return false;
     }
@@ -984,6 +983,7 @@ bool JackClient::initSpeakersTriplet(std::vector<Speaker *> const & listSpk, int
     ls lss[MAX_LS_AMOUNT];
     int outputPatches[MAX_LS_AMOUNT];
 
+    int j;
     for (unsigned int i = 0; i < listSpk.size(); i++) {
         for (j = 0; j < MAX_LS_AMOUNT; j++) {
             if (listSpk[i]->getOutputPatch() == mSpeakersOut[j].outputPatch && !mSpeakersOut[j].directOut) {

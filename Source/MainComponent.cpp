@@ -1800,7 +1800,7 @@ void MainContentComponent::openXmlFileSpeaker(juce::String const & path)
     auto const isNewSameAsOld{ oldPath.compare(path) == 0 };
     auto const isNewSameAsLastSetup{ mPathLastVbapSpeakerSetup.compare(path) == 0 };
     auto ok{ false };
-    if (!juce::File(path.toStdString()).existsAsFile()) {
+    if (!juce::File(path).existsAsFile()) {
         juce::AlertWindow alert("Error in Load Speaker Setup !",
                                 "Can't found file " + path + ", the current setup will be kept.",
                                 juce::AlertWindow::WarningIcon);
@@ -1842,7 +1842,7 @@ void MainContentComponent::openXmlFileSpeaker(juce::String const & path)
                     mModeSpatCombo->setSelectedId(spatMode + 1, juce::NotificationType::dontSendNotification);
                 }
 
-                auto const loadSetupFromXyz{ isNewSameAsOld && mJackClient->getMode() == ModeSpatEnum::LBAP };
+                auto const loadSetupFromXyz{ /*isNewSameAsOld &&*/ mJackClient->getMode() == ModeSpatEnum::LBAP };
 
                 setNameConfig();
                 mJackClient->setProcessBlockOn(false);
@@ -1866,12 +1866,11 @@ void MainContentComponent::openXmlFileSpeaker(juce::String const & path)
                                     maxLayoutIndex = layoutIndex;
                                 }
 
-                                mSpeakers.add(new Speaker{ *this,
-                                                           layoutIndex,
-                                                           spk->getIntAttribute("OutputPatch"),
-                                                           static_cast<float>(spk->getDoubleAttribute("Azimuth")),
-                                                           static_cast<float>(spk->getDoubleAttribute("Zenith")),
-                                                           static_cast<float>(spk->getDoubleAttribute("Radius")) });
+                                auto const outputPatch{ spk->getIntAttribute("OutputPatch") };
+                                auto const azimuth{ static_cast<float>(spk->getDoubleAttribute("Azimuth")) };
+                                auto const zenith{ static_cast<float>(spk->getDoubleAttribute("Zenith")) };
+                                auto const radius{ static_cast<float>(spk->getDoubleAttribute("Radius")) };
+                                mSpeakers.add(new Speaker{ *this, layoutIndex, outputPatch, azimuth, zenith, radius });
                                 if (loadSetupFromXyz) {
                                     mSpeakers.getLast()->setCoordinate(
                                         glm::vec3(static_cast<float>(spk->getDoubleAttribute("PositionX")),
