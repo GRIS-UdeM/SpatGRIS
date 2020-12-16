@@ -26,7 +26,10 @@
 #include "MainComponent.h"
 #include "Speaker.h"
 #include "constants.hpp"
+
+extern "C" {
 #include "spat/vbap.h"
+}
 
 static bool jackClientLogPrint = true;
 
@@ -80,26 +83,6 @@ int graphOrderCallback(void * arg)
     jackCli->updateClientPortAvailable(true);
     jack_client_log("... done!\n");
     return 0;
-}
-
-//==============================================================================
-int xRunCallback(void * /*arg*/)
-{
-    jassertfalse;
-    /*auto * jackCli = static_cast<JackClientGris*>(arg);
-    jackCli->mIsOverloaded = true;
-    jack_client_log("Jack buffer overrun!!!\n");*/
-    return 0;
-}
-
-//==============================================================================
-void jackShutdown(void * /*arg*/)
-{
-    juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
-                                           "FATAL ERROR",
-                                           "Please check :\n - Buffer Size\n - Sample Rate\n - Inputs/Outputs");
-    jack_client_log("FATAL ERROR: Jack shutdown!\n");
-    exit(1);
 }
 
 //==============================================================================
@@ -645,11 +628,10 @@ void JackClient::processLbap(jack_default_audio_sample_t ** ins,
     jassert(nFrames <= MAX_N_FRAMES);
     std::array<float, MAX_N_FRAMES> filteredInputSignal{};
 
-    auto const iLinear{ mInterMaster == 0.0f };
     auto interpolationG{ mInterMaster == 0.0f ? 0.99f : std::pow(mInterMaster, 0.1f) * 0.0099f + 0.99f };
 
     // TODO : is this necessary ?
-    std::for_each(outs, outs + sizeOutputs, [nFrames](float * it) { std::fill(it, it + nFrames, 0.0f); });
+    // std::for_each(outs, outs + sizeOutputs, [nFrames](float * it) { std::fill(it, it + nFrames, 0.0f); });
 
     for (unsigned i{}; i < sizeInputs; ++i) {
         auto & sourceIn{ mSourcesIn[i] };
@@ -694,50 +676,48 @@ void JackClient::processLbap(jack_default_audio_sample_t ** ins,
             mLastAttenuationGain[i] = distanceGain;
             mLastAttenuationCoefficient[i] = distanceCoefficient;
             //==============================================================================
-
+            // std::array<float, MAX_N_FRAMES> tmp;
             for (unsigned o{}; o < sizeOutputs; ++o) {
                 auto const gain{ mSourcesIn[i].lbapGains[o] };
                 auto y{ mSourcesIn[i].lbapY[o] };
-                if (iLinear) {
+                if (mInterMaster == 0.0f) {
                     interpolationG = (gain - y) / nFrames;
                     for (unsigned f{}; f < nFrames; ++f) {
                         y += interpolationG;
                         outs[o][f] += filteredInputSignal[f] * y;
                     }
                 } else {
-                    std::array<float, MAX_N_FRAMES> tmp;
-
-                    std::generate(tmp.begin(), tmp.begin() + nFrames, [&y, gain, interpolationG]() -> float {
-                        y = (y - gain) * interpolationG + gain, 0.0f;
-                        if (y < 0.0000000000001f) {
-                            y = 0.0f;
-                        }
-                        return y;
-                    });
-                    juce::FloatVectorOperations::addWithMultiply(outs[o],
-                                                                 tmp.data(),
-                                                                 filteredInputSignal.data(),
-                                                                 nFrames);
-
-                    // juce::FloatVectorOperations::
-
-                    /*for (unsigned f{}; f < nFrames; ++f) {
+                    // TODO : this is where 98% of the process takes place. Is it just a ramp? Optimize.
+                    for (unsigned f{}; f < nFrames; ++f) {
                         y = (y - gain) * interpolationG + gain;
                         if (y < 0.0000000000001f) {
-                            y = 0.0;
+                            y = 0.0f;
                         } else {
                             outs[o][f] += filteredInputSignal[f] * y;
                         }
-                    }*/
+                    }
+                    // std::generate(tmp.begin(), tmp.begin() + nFrames, [&y, gain, interpolationG]() -> float {
+                    //    y = (y - gain) * interpolationG + gain;
+                    //    if (y < 0.0000000000001f) {
+                    //        y = 0.0f;
+                    //    }
+                    //    return y;
+                    //});
+
+                    // juce::FloatVectorOperations::addWithMultiply(outs[o],
+                    //                                             tmp.data(),
+                    //                                             filteredInputSignal.data(),
+                    //                                             nFrames);
                 }
                 mSourcesIn[i].lbapY[o] = y;
             }
         } else {
             for (unsigned o{}; o < sizeOutputs; ++o) {
-                if (static_cast<unsigned int>(mSourcesIn[i].directOut - 1) == o) {
-                    for (unsigned f{}; f < nFrames; ++f) {
+                if (static_cast<unsigned>(mSourcesIn[i].directOut - 1) == o) {
+                    std::transform(outs[o], outs[o] + nFrames, ins[i], outs[o], std::plus());
+                    /*for (unsigned f{}; f < nFrames; ++f) {
                         outs[o][f] += ins[i][f];
-                    }
+                    }*/
                 }
             }
         }
@@ -751,43 +731,38 @@ void JackClient::processVBapHrtf(jack_default_audio_sample_t ** ins,
                                  unsigned const sizeInputs,
                                  [[maybe_unused]] unsigned const sizeOutputs)
 {
-    int tmp_count;
-    unsigned int f, i, o, k;
-    float sig, y, iogain = 0.0f;
+    // TODO : not shure this is necessary.
+    // std::for_each(outs, outs + sizeOutputs, [nFrames](float * channel) {
+    //    std::fill(channel, channel + nFrames, 0.0f);
+    //});
 
-    std::for_each(outs, outs + sizeOutputs, [nFrames](float * channel) {
-        std::fill(channel, channel + nFrames, 0.0f);
-    });
-
-    auto const ilinear{ mInterMaster == 0.0f };
-    auto interpG{ ilinear ? 0.99f : powf(mInterMaster, 0.1f) * 0.0099f + 0.99f };
-
-    for (i = 0; i < sizeInputs; ++i) {
+    for (unsigned i{}; i < sizeInputs; ++i) {
         if (mVbapSourcesToUpdate[i] == 1) {
             updateSourceVbap(static_cast<int>(i));
             mVbapSourcesToUpdate[i] = 0;
         }
     }
 
-    for (o = 0; o < 16; ++o) {
-        std::array<float, 2048> vbapouts{};
-        for (i = 0; i < sizeInputs; ++i) {
+    auto interpolationG{ mInterMaster == 0.0f ? 0.99f : std::pow(mInterMaster, 0.1f) * 0.0099f + 0.99f };
+    for (unsigned o{}; o < 16; ++o) {
+        std::array<float, 2048> vbapOuts{};
+        for (unsigned i{}; i < sizeInputs; ++i) {
             if (!mSourcesIn[i].directOut && mSourcesIn[i].paramVBap != nullptr) {
-                iogain = mSourcesIn[i].paramVBap->gains[o];
-                y = mSourcesIn[i].paramVBap->y[o];
-                if (ilinear) {
-                    interpG = (iogain - y) / nFrames;
-                    for (f = 0; f < nFrames; ++f) {
-                        y += interpG;
-                        vbapouts[f] += ins[i][f] * y;
+                auto const ioGain{ mSourcesIn[i].paramVBap->gains[o] };
+                auto y{ mSourcesIn[i].paramVBap->y[o] };
+                if (mInterMaster == 0.0f) {
+                    interpolationG = (ioGain - y) / nFrames;
+                    for (unsigned f{}; f < nFrames; ++f) {
+                        y += interpolationG;
+                        vbapOuts[f] += ins[i][f] * y;
                     }
                 } else {
-                    for (f = 0; f < nFrames; ++f) {
-                        y = iogain + (y - iogain) * interpG;
+                    for (unsigned f{}; f < nFrames; ++f) {
+                        y = ioGain + (y - ioGain) * interpolationG;
                         if (y < 0.0000000000001f) {
                             y = 0.0f;
                         } else {
-                            vbapouts[f] += ins[i][f] * y;
+                            vbapOuts[f] += ins[i][f] * y;
                         }
                     }
                 }
@@ -795,34 +770,34 @@ void JackClient::processVBapHrtf(jack_default_audio_sample_t ** ins,
             }
         }
 
-        for (f = 0; f < nFrames; f++) {
-            tmp_count = mHrtfCount[o];
-            for (k = 0; k < 128; ++k) {
-                if (tmp_count < 0) {
-                    tmp_count += 128;
+        for (unsigned f{}; f < nFrames; f++) {
+            auto tmpCount{ static_cast<int>(mHrtfCount[o]) };
+            for (unsigned k{}; k < 128; ++k) {
+                if (tmpCount < 0) {
+                    tmpCount += 128;
                 }
-                sig = mHrtfInputTmp[o][tmp_count];
+                auto const sig{ mHrtfInputTmp[o][tmpCount] };
                 outs[0][f] += sig * mVbapHrtfLeftImpulses[o][k];
                 outs[1][f] += sig * mVbapHrtfRightImpulses[o][k];
-                tmp_count--;
+                --tmpCount;
             }
             mHrtfCount[o]++;
             if (mHrtfCount[o] >= 128) {
                 mHrtfCount[o] = 0;
             }
-            mHrtfInputTmp[o][mHrtfCount[o]] = vbapouts[f];
+            mHrtfInputTmp[o][mHrtfCount[o]] = vbapOuts[f];
         }
     }
 
     // Add direct outs to the now stereo signal.
-    for (i = 0; i < sizeInputs; ++i) {
+    for (unsigned i{}; i < sizeInputs; ++i) {
         if (mSourcesIn[i].directOut != 0) {
-            if ((mSourcesIn[i].directOut % 2) == 1) {
-                for (f = 0; f < nFrames; ++f) {
+            if (mSourcesIn[i].directOut % 2 == 1) {
+                for (unsigned f{}; f < nFrames; ++f) {
                     outs[0][f] += ins[i][f];
                 }
             } else {
-                for (f = 0; f < nFrames; ++f) {
+                for (unsigned f{}; f < nFrames; ++f) {
                     outs[1][f] += ins[i][f];
                 }
             }
