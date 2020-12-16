@@ -577,7 +577,6 @@ void JackClient::processVbap(jack_default_audio_sample_t ** ins,
                              unsigned const sizeInputs,
                              unsigned const sizeOutputs)
 {
-    auto const iLinear{ mInterMaster == 0.0f };
     auto interpolationG{ mInterMaster == 0.0f ? 0.99f : std::pow(mInterMaster, 0.1f) * 0.0099f + 0.99f };
 
     for (unsigned i{}; i < sizeInputs; ++i) {
@@ -593,7 +592,7 @@ void JackClient::processVbap(jack_default_audio_sample_t ** ins,
             if (!mSourcesIn[i].directOut && mSourcesIn[i].paramVBap != nullptr) {
                 auto const ioGain{ mSourcesIn[i].paramVBap->gains[o] };
                 auto y{ mSourcesIn[i].paramVBap->y[o] };
-                if (iLinear) {
+                if (mInterMaster == 0.0f) {
                     interpolationG = (ioGain - y) / nFrames;
                     for (unsigned f{}; f < nFrames; ++f) {
                         y += interpolationG;
@@ -611,7 +610,7 @@ void JackClient::processVbap(jack_default_audio_sample_t ** ins,
                 }
                 mSourcesIn[i].paramVBap->y[o] = y;
             } else if (static_cast<unsigned int>(mSourcesIn[i].directOut - 1) == o) {
-                std::transform(outs[o], outs[o] + nFrames, ins[i], outs[o], std::plus<float>());
+                std::transform(outs[o], outs[o] + nFrames, ins[i], outs[o], std::plus());
             }
         }
     }
@@ -676,7 +675,6 @@ void JackClient::processLbap(jack_default_audio_sample_t ** ins,
             mLastAttenuationGain[i] = distanceGain;
             mLastAttenuationCoefficient[i] = distanceCoefficient;
             //==============================================================================
-            // std::array<float, MAX_N_FRAMES> tmp;
             for (unsigned o{}; o < sizeOutputs; ++o) {
                 auto const gain{ mSourcesIn[i].lbapGains[o] };
                 auto y{ mSourcesIn[i].lbapY[o] };
@@ -696,28 +694,15 @@ void JackClient::processLbap(jack_default_audio_sample_t ** ins,
                             outs[o][f] += filteredInputSignal[f] * y;
                         }
                     }
-                    // std::generate(tmp.begin(), tmp.begin() + nFrames, [&y, gain, interpolationG]() -> float {
-                    //    y = (y - gain) * interpolationG + gain;
-                    //    if (y < 0.0000000000001f) {
-                    //        y = 0.0f;
-                    //    }
-                    //    return y;
-                    //});
-
-                    // juce::FloatVectorOperations::addWithMultiply(outs[o],
-                    //                                             tmp.data(),
-                    //                                             filteredInputSignal.data(),
-                    //                                             nFrames);
                 }
                 mSourcesIn[i].lbapY[o] = y;
             }
         } else {
             for (unsigned o{}; o < sizeOutputs; ++o) {
                 if (static_cast<unsigned>(mSourcesIn[i].directOut - 1) == o) {
-                    std::transform(outs[o], outs[o] + nFrames, ins[i], outs[o], std::plus());
-                    /*for (unsigned f{}; f < nFrames; ++f) {
+                    for (unsigned f{}; f < nFrames; ++f) {
                         outs[o][f] += ins[i][f];
-                    }*/
+                    }
                 }
             }
         }
@@ -814,50 +799,49 @@ void JackClient::processStereo(jack_default_audio_sample_t ** ins,
 {
     static auto constexpr FACTOR{ juce::MathConstants<float>::pi / 360.0f };
 
-    unsigned int f, i;
-    float azi, last_azi, scaled;
-    float interpG = powf(mInterMaster, 0.1f) * 0.0099f + 0.99f;
-    float gain = powf(10.0f, (static_cast<float>(sizeInputs) - 1.0f) * -0.1f * 0.05f);
+    auto const interpolationG{ std::pow(mInterMaster, 0.1f) * 0.0099f + 0.99f };
+    auto const gain{ std::pow(10.0f, (static_cast<float>(sizeInputs) - 1.0f) * -0.1f * 0.05f) };
 
-    for (i = 0; i < sizeOutputs; ++i) {
+    for (unsigned i{}; i < sizeOutputs; ++i) {
         memset(outs[i], 0, sizeof(jack_default_audio_sample_t) * nFrames);
     }
 
-    for (i = 0; i < sizeInputs; ++i) {
+    for (unsigned i{}; i < sizeInputs; ++i) {
         if (!mSourcesIn[i].directOut) {
-            azi = mSourcesIn[i].azimuth;
-            last_azi = mLastAzimuth[i];
-            for (f = 0; f < nFrames; ++f) {
+            auto const azimuth{ mSourcesIn[i].azimuth };
+            auto lastAzimuth{ mLastAzimuth[i] };
+            for (unsigned f{}; f < nFrames; ++f) {
                 // Removes the chirp at 180->-180 degrees azimuth boundary.
-                if (abs(last_azi - azi) > 300.0f) {
-                    last_azi = azi;
+                if (std::abs(lastAzimuth - azimuth) > 300.0f) {
+                    lastAzimuth = azimuth;
                 }
-                last_azi = azi + (last_azi - azi) * interpG;
-                if (last_azi < -90.0f) {
-                    scaled = -90.0f - (last_azi + 90.0f);
-                } else if (last_azi > 90) {
-                    scaled = 90.0f - (last_azi - 90.0f);
+                lastAzimuth = azimuth + (lastAzimuth - azimuth) * interpolationG;
+                float scaled;
+                if (lastAzimuth < -90.0f) {
+                    scaled = -90.0f - (lastAzimuth + 90.0f);
+                } else if (lastAzimuth > 90) {
+                    scaled = 90.0f - (lastAzimuth - 90.0f);
                 } else {
-                    scaled = last_azi;
+                    scaled = lastAzimuth;
                 }
                 scaled = (scaled + 90) * FACTOR;
-                outs[0][f] += ins[i][f] * cosf(scaled);
-                outs[1][f] += ins[i][f] * sinf(scaled);
+                outs[0][f] += ins[i][f] * std::cos(scaled);
+                outs[1][f] += ins[i][f] * std::sin(scaled);
             }
-            mLastAzimuth[i] = last_azi;
+            mLastAzimuth[i] = lastAzimuth;
 
-        } else if ((mSourcesIn[i].directOut % 2) == 1) {
-            for (f = 0; f < nFrames; ++f) {
+        } else if (mSourcesIn[i].directOut % 2 == 1) {
+            for (unsigned f{}; f < nFrames; ++f) {
                 outs[0][f] += ins[i][f];
             }
         } else {
-            for (f = 0; f < nFrames; ++f) {
+            for (unsigned f{}; f < nFrames; ++f) {
                 outs[1][f] += ins[i][f];
             }
         }
     }
     // Apply gain compensation.
-    for (f = 0; f < nFrames; ++f) {
+    for (unsigned f{}; f < nFrames; ++f) {
         outs[0][f] *= gain;
         outs[1][f] *= gain;
     }
