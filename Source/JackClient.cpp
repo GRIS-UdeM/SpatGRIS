@@ -639,7 +639,9 @@ void JackClient::processLbap(jack_default_audio_sample_t ** ins,
             lbap_pos_init_from_radians(&pos, sourceIn.radAzimuth, sourceIn.radElevation, sourceIn.radius);
             pos.radspan = sourceIn.azimuthSpan;
             pos.elespan = sourceIn.zenithSpan;
-            auto distance{ sourceIn.radius };
+            // auto distance{ sourceIn.radius };
+            auto const elevation{ sourceIn.radElevation / juce::MathConstants<float>::halfPi };
+            auto distance{ std::sqrt(sourceIn.radius * sourceIn.radius + elevation * elevation) };
             if (!lbap_pos_compare(&pos, &sourceIn.lbapLastPos)) {
                 lbap_field_compute(mLbapSpeakerField, &pos, sourceIn.lbapGains.data());
                 lbap_pos_copy(&sourceIn.lbapLastPos, &pos);
@@ -652,7 +654,10 @@ void JackClient::processLbap(jack_default_audio_sample_t ** ins,
                 distanceGain = 1.0f;
                 distanceCoefficient = 0.0f;
             } else {
-                distance = std::min((distance - 1.0f) * 1.25f, 1.0f);
+                distance = (distance - 1.0f) * 1.25f;
+                if (distance > 1.0f) {
+                    distance = 1.0f;
+                }
                 distanceGain = (1.0f - distance) * (1.0f - mAttenuationLinearGain) + mAttenuationLinearGain;
                 distanceCoefficient = distance * mAttenuationLowpassCoefficient;
             }
