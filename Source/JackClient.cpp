@@ -176,8 +176,8 @@ JackClient::JackClient()
         auto const stbuf{ getSamplesFromWavFile(file) };
         auto const leftChannel{ reverse40[i] };
         auto const rightChannel{ 1 - reverse40[i] };
-        std::memcpy(mVbapHrtfLeftImpulses[i].data(), stbuf.getReadPointer(leftChannel), 128);
-        std::memcpy(mVbapHrtfRightImpulses[i].data(), stbuf.getReadPointer(rightChannel), 128);
+        std::memcpy(mVbapHrtfLeftImpulses[i + 8].data(), stbuf.getReadPointer(leftChannel), 128);
+        std::memcpy(mVbapHrtfRightImpulses[i + 8].data(), stbuf.getReadPointer(rightChannel), 128);
     }
     // Azimuth = 80
     for (int i = 0; i < 2; i++) {
@@ -185,8 +185,8 @@ JackClient::JackClient()
         auto const stbuf{ getSamplesFromWavFile(file) };
         auto const leftChannel{ 1 - i };
         auto const rightChannel{ i };
-        std::memcpy(mVbapHrtfLeftImpulses[i].data(), stbuf.getReadPointer(leftChannel), 128);
-        std::memcpy(mVbapHrtfRightImpulses[i].data(), stbuf.getReadPointer(rightChannel), 128);
+        std::memcpy(mVbapHrtfLeftImpulses[i + 14].data(), stbuf.getReadPointer(leftChannel), 128);
+        std::memcpy(mVbapHrtfRightImpulses[i + 14].data(), stbuf.getReadPointer(rightChannel), 128);
     }
 
     // Initialize STEREO data.
@@ -609,7 +609,7 @@ void JackClient::processVbap(jack_default_audio_sample_t ** ins,
                     }
                 }
                 mSourcesIn[i].paramVBap->y[o] = y;
-            } else if (static_cast<unsigned int>(mSourcesIn[i].directOut - 1) == o) {
+            } else if (static_cast<unsigned>(mSourcesIn[i].directOut - 1) == o) {
                 std::transform(outs[o], outs[o] + nFrames, ins[i], outs[o], std::plus());
             }
         }
