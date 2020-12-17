@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="MXmiSb" name="SpatGRIS" projectType="guiapp" version="2.1.3"
+<JUCERPROJECT id="MXmiSb" name="SpatGRIS" projectType="guiapp" version="2.1.4"
               bundleIdentifier="com.UdeM.GRIS.SpatGRIS3" includeBinaryInAppConfig="0"
               companyName="GRIS - UdeM" projectLineFeed="&#10;" cppLanguageStandard="17"
               jucerFormatVersion="1" displaySplashScreen="1" defines="USE_JACK=0"
@@ -108,7 +108,7 @@
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX" externalLibraries="" extraFrameworks="Jackservermp, Jackmp, GLUT"
                customXcodeResourceFolders="Resources/default_preset&#10;Resources/hrtf_compact"
-               smallIcon="bC6POS" bigIcon="TMAuh7" extraLinkerFlags="-F/Library/Frameworks"
+               smallIcon="" bigIcon="TMAuh7" extraLinkerFlags="-F/Library/Frameworks"
                microphonePermissionNeeded="1">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" osxCompatibility="10.11 SDK" isDebug="1" optimisation="1"
