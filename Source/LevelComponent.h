@@ -19,22 +19,20 @@
 
 #pragma once
 
+#include "GrisLookAndFeel.h"
 #include "macros.h"
 
 DISABLE_WARNINGS
 #include <JuceHeader.h>
 ENABLE_WARNINGS
 
-#include "Box.h"
-#include "GrisLookAndFeel.h"
-#include "ParentLevelComponent.h"
-#include "Speaker.h"
-
 static float constexpr MIN_LEVEL_COMP = -60.0f;
 static float constexpr MAX_LEVEL_COMP = 0.0f;
 static int constexpr WIDTH_RECT = 1;
 
+class GrisLookAndFeel;
 class LevelComponent;
+class ParentLevelComponent;
 
 //============================ LevelBox ================================
 class LevelBox final : public juce::Component
@@ -91,6 +89,9 @@ class LevelComponent final
     int mLastMouseButton = 1; // 1 means left, 0 means right
     bool mIsColorful;
 
+    std::vector<int> mDirectOutSpeakers;
+    juce::TextButton mDirectOutButton;
+
 public:
     //==============================================================================
     LevelComponent(ParentLevelComponent & parentLevelComponent,
@@ -108,19 +109,21 @@ public:
     //==============================================================================
     void setOutputLab(juce::String const & value) { this->mIdButton.setButtonText(value); }
     void setColor(juce::Colour color);
-    float getLevel() const { return mLevel; }
+    [[nodiscard]] float getLevel() const { return mLevel; }
     void update();
-    bool isMuted() const { return this->mMuteToggleButton.getToggleState(); }
+    [[nodiscard]] bool isMuted() const { return this->mMuteToggleButton.getToggleState(); }
     void setSelected(bool value);
+    void updateDirectOutMenu(std::vector<int> directOuts);
+    void resetClipping() { this->mLevelBox.resetClipping(); }
+
+    [[nodiscard]] juce::TextButton & getDirectOutButton() { return mDirectOutButton; }
+    [[nodiscard]] juce::TextButton const & getDirectOutButton() const { return mDirectOutButton; }
+    //==============================================================================
+    // overrides
     void buttonClicked(juce::Button * button) override;
     void mouseDown(const juce::MouseEvent & e) override;
     void setBounds(const juce::Rectangle<int> & newBounds);
     void changeListenerCallback(juce::ChangeBroadcaster * source) override;
-    void updateDirectOutMenu(juce::OwnedArray<Speaker> const & spkList);
-    void resetClipping() { this->mLevelBox.resetClipping(); }
-    //==============================================================================
-    std::vector<int> directOutSpeakers;
-    juce::TextButton directOut;
 
 private:
     //==============================================================================

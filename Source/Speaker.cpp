@@ -31,38 +31,33 @@ static T getFloatPrecision(T const value, U const precision)
 }
 
 //==============================================================================
-Speaker::Speaker(MainContentComponent * parent, int idS, int outP, float azimuth, float zenith, float radius)
+Speaker::Speaker(MainContentComponent & mainContentComponent,
+                 int const id,
+                 int const outputPatch,
+                 float const azimuth,
+                 float const zenith,
+                 float const radius)
+    : mMainContentComponent(mainContentComponent)
+    , mId(id)
+    , mOutputPatch(outputPatch)
+    , mVuMeter(*this, mLookAndFeel, false)
 {
-    mMainContentComponent = parent;
-    mId = idS;
-    mOutputPatch = outP;
-    mDirectOut = false;
-    juce::LookAndFeel::setDefaultLookAndFeel(&mLookAndFeel);
-
     // Load position
     setAziZenRad(glm::vec3(azimuth, zenith, radius));
-
-    mVuMeter = new LevelComponent(*this, mLookAndFeel, false);
-}
-
-//==============================================================================
-Speaker::~Speaker()
-{
-    delete mVuMeter;
 }
 
 //==============================================================================
 float Speaker::getLevel() const
 {
-    return mMainContentComponent->getLevelsOut(mOutputPatch - 1);
+    return mMainContentComponent.getLevelsOut(mOutputPatch - 1);
 }
 
 //==============================================================================
-float Speaker::getAlpha()
+float Speaker::getAlpha() const
 {
     float alpha;
-    if (mMainContentComponent->isSpeakerLevelShown()) {
-        alpha = mMainContentComponent->getSpeakerLevelsAlpha(mOutputPatch - 1);
+    if (mMainContentComponent.isSpeakerLevelShown()) {
+        alpha = mMainContentComponent.getSpeakerLevelsAlpha(mOutputPatch - 1);
     } else {
         alpha = 1.0f;
     }
@@ -73,25 +68,25 @@ float Speaker::getAlpha()
 }
 
 //==============================================================================
-void Speaker::setMuted(bool mute)
+void Speaker::setMuted(bool const mute)
 {
-    mMainContentComponent->muteOutput(mOutputPatch, mute);
+    mMainContentComponent.muteOutput(mOutputPatch, mute);
     if (mute) {
-        mMainContentComponent->soloOutput(mOutputPatch, false);
+        mMainContentComponent.soloOutput(mOutputPatch, false);
     }
 }
 
 //==============================================================================
-void Speaker::setSolo(bool solo)
+void Speaker::setSolo(bool const solo)
 {
-    mMainContentComponent->soloOutput(mOutputPatch, solo);
+    mMainContentComponent.soloOutput(mOutputPatch, solo);
     if (solo) {
-        mMainContentComponent->muteOutput(mOutputPatch, false);
+        mMainContentComponent.muteOutput(mOutputPatch, false);
     }
 }
 
 //==============================================================================
-void Speaker::setCoordinate(glm::vec3 value)
+void Speaker::setCoordinate(glm::vec3 const value)
 {
     glm::vec3 newP;
     newP.x = atan2(value.z, value.x) / juce::MathConstants<float>::pi * 180.0f;
@@ -118,18 +113,18 @@ void Speaker::setAziZenRad(glm::vec3 value)
 {
     value.z = value.z * 10.0f;
     mAziZenRad = value;
-    newSpheriqueCoord(value);
+    newSphericalCoord(value);
 }
 
 //==============================================================================
-void Speaker::setOutputPatch(int value)
+void Speaker::setOutputPatch(int const value)
 {
     mOutputPatch = value;
-    mVuMeter->setOutputLab(juce::String(mOutputPatch));
+    mVuMeter.setOutputLab(juce::String(mOutputPatch));
 }
 
 //==============================================================================
-void Speaker::setDirectOut(bool value)
+void Speaker::setDirectOut(bool const value)
 {
     mDirectOut = value;
     if (mDirectOut) {
@@ -154,20 +149,20 @@ bool Speaker::isValid() const
 //==============================================================================
 void Speaker::fix()
 {
-    glm::vec3 _max = (mMax);
+    auto const maxVec{ mMax };
 
     // Change new "min" to previous "max".
     if (mMin.x > mMax.x) {
         mMax.x = mMin.x;
-        mMin.x = _max.x;
+        mMin.x = maxVec.x;
     }
     if (mMin.y > mMax.y) {
         mMax.y = mMin.y;
-        mMin.y = _max.y;
+        mMin.y = maxVec.y;
     }
     if (mMin.z > mMax.z) {
         mMax.z = mMin.z;
-        mMin.z = _max.z;
+        mMin.z = maxVec.z;
     }
 }
 
@@ -175,9 +170,9 @@ void Speaker::fix()
 void Speaker::selectClick(bool const select)
 {
     if (select) {
-        mMainContentComponent->selectSpeaker(static_cast<unsigned>(mId - 1));
+        mMainContentComponent.selectSpeaker(mId - 1);
     } else {
-        mMainContentComponent->selectSpeaker(static_cast<unsigned>(-1));
+        mMainContentComponent.selectSpeaker(-1);
     }
 }
 
@@ -186,7 +181,7 @@ void Speaker::selectSpeaker()
 {
     mColor = COLOR_SPEAKER_SELECT;
     mSelected = true;
-    mVuMeter->setSelected(mSelected);
+    mVuMeter.setSelected(mSelected);
 }
 
 //==============================================================================
@@ -198,11 +193,11 @@ void Speaker::unSelectSpeaker()
         mColor = COLOR_SPEAKER;
     }
     mSelected = false;
-    mVuMeter->setSelected(mSelected);
+    mVuMeter.setSelected(mSelected);
 }
 
 //==============================================================================
-void Speaker::newPosition(glm::vec3 center, glm::vec3 extents)
+void Speaker::newPosition(glm::vec3 const center, glm::vec3 const extents)
 {
     // min = center - extents, max = center + extents
     mMin.x = center.x - extents.x;
@@ -223,14 +218,14 @@ void Speaker::newPosition(glm::vec3 center, glm::vec3 extents)
 }
 
 //==============================================================================
-void Speaker::newSpheriqueCoord(glm::vec3 aziZenRad, glm::vec3 /*extents*/)
+void Speaker::newSphericalCoord(glm::vec3 aziZenRad, glm::vec3 /*extents*/)
 {
     glm::vec3 nCenter;
 
     aziZenRad.x = (aziZenRad.x * juce::MathConstants<float>::pi) / 180.0f;
     aziZenRad.y = abs(((-90.0f + aziZenRad.y) * juce::MathConstants<float>::pi) / 180.0f);
 
-    if (mMainContentComponent->getModeSelected() == 1 || isDirectOut()) {
+    if (mMainContentComponent.getModeSelected() == ModeSpatEnum::LBAP || isDirectOut()) {
         nCenter.x = getFloatPrecision(aziZenRad.z * cosf(aziZenRad.x), 3);
         nCenter.z = getFloatPrecision(aziZenRad.z * sinf(aziZenRad.x), 3);
         nCenter.y = getFloatPrecision(10.0f * (1.0f - aziZenRad.y / (juce::MathConstants<float>::halfPi)), 3);
@@ -252,7 +247,7 @@ void Speaker::draw()
     glTranslatef(mCenter.x, mCenter.y, mCenter.z);
 
     glRotatef(180.0f - mAziZenRad.x, 0.0f, 1.0f, 0.0f);
-    if (mMainContentComponent->getModeSelected() == 1) {
+    if (mMainContentComponent.getModeSelected() == ModeSpatEnum::LBAP) {
         glRotatef(-mAziZenRad.y + mAziZenRad.y * mAziZenRad.z / 20.0f, 0.0f, 0.0f, 1.0f);
     } else {
         glRotatef(-mAziZenRad.y, 0.0f, 0.0f, 1.0f);
@@ -261,7 +256,7 @@ void Speaker::draw()
 
     glBegin(GL_QUADS);
 
-    if (mMainContentComponent->isSpeakerLevelShown()) {
+    if (mMainContentComponent.isSpeakerLevelShown()) {
         auto const alpha{ getAlpha() };
         mLevelColour = alpha + (mLevelColour - alpha) * 0.5f;
         glColor4f(mLevelColour, mLevelColour, mLevelColour, ALPHA);

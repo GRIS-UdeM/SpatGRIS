@@ -17,7 +17,7 @@
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "ServerGrisConstants.h"
+#include "constants.hpp"
 
 char const * const DEVICE_NAME = "GRIS";
 char const * CLIENT_NAME = "SpatGRIS2";
@@ -64,5 +64,3 @@ const juce::StringArray FILE_FORMATS = { "WAV", "AIFF" };
 const juce::StringArray FILE_CONFIGS = { "Multiple Mono Files", "Single Interleaved" };
 const juce::StringArray ATTENUATION_DB = { "0", "-12", "-24", "-36", "-48", "-60", "-72" };
 const juce::StringArray ATTENUATION_CUTOFFS = { "125", "250", "500", "1000", "2000", "4000", "8000", "16000" };
-
-const unsigned int VU_METER_WIDTH_IN_PIXELS = 22;

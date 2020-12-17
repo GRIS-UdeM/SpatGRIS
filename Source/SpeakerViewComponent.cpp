@@ -19,6 +19,7 @@
 
 #include "SpeakerViewComponent.h"
 
+#include "GlSphere.h"
 #include "MainComponent.h"
 
 //==============================================================================
@@ -36,9 +37,11 @@ void SpeakerViewComponent::initialise()
     gluLookAt(4.0, 6.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 
     // TODO : undefined behavior
-    auto argc = 1;
-    char * argv[1] = { const_cast<char *>("Something") };
-    glutInit(&argc, argv);
+    // auto argc = 1;
+    // char * argv[1] = { const_cast<char *>("Something") };
+    // glutInit(&argc, argv);
+    int noArgs{};
+    glutInit(&noArgs, nullptr);
 }
 
 //==============================================================================
@@ -65,6 +68,8 @@ void SpeakerViewComponent::setCamPosition(float const angleX, float const angleY
 //==============================================================================
 void SpeakerViewComponent::render()
 {
+    jassert(juce::OpenGLHelpers::isContextActive());
+
     glEnable(GL_DEPTH_TEST);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -112,12 +117,12 @@ void SpeakerViewComponent::render()
     for (auto * input : mMainContentComponent.getSourceInputs()) {
         input->draw();
         if (mShowNumber && input->getGain() != -1.0) {
-            glm::vec3 posT = input->getCenter();
+            auto posT{ input->getCenter() };
             posT.y += SIZE_SPEAKER.y + 0.4f;
             drawText(std::to_string(input->getId()), posT, input->getNumberColor(), 0.003f, true, input->getAlpha());
         }
     }
-    // mMainContentComponent.getInputsLock()->unlock();
+    //    mMainContentComponent.getInputsLock().unlock();
     //}
 
     if (mMainContentComponent.getSpeakersLock().try_lock()) {
@@ -155,7 +160,7 @@ void SpeakerViewComponent::render()
             glLineWidth(1.0f);
             glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
             glColor3f(0.8f, 0.2f, 0.1f);
-            if (mMainContentComponent.getModeSelected() == LBAP) {
+            if (mMainContentComponent.getModeSelected() == ModeSpatEnum::LBAP) {
                 // Draw a cube when in LBAP mode.
                 for (auto i{ -10 }; i <= 10; i += 2) {
                     auto const i_f{ static_cast<float>(i) };
@@ -187,7 +192,11 @@ void SpeakerViewComponent::render()
                     glEnd();
                 }
             } else {
+#if defined(WIN32)
+                drawSphere(std::max(MAX_RADIUS, 1.0));
+#else
                 glutSolidSphere(std::max(MAX_RADIUS, 1.0), 20, 20);
+#endif
             }
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             glPopMatrix();
@@ -235,7 +244,7 @@ void SpeakerViewComponent::clickRay()
     auto iBestSpeaker = -1;
     auto selected = -1;
     if (mMainContentComponent.getSpeakersLock().try_lock()) {
-        for (unsigned int i = 0; i < mMainContentComponent.getSpeakers().size(); ++i) {
+        for (int i{}; i < mMainContentComponent.getSpeakers().size(); ++i) {
             auto const * speaker{ mMainContentComponent.getSpeakers()[i] };
             if (speaker->isSelected()) {
                 selected = i;
@@ -296,7 +305,7 @@ void SpeakerViewComponent::mouseDrag(const juce::MouseEvent & e)
 }
 
 //==============================================================================
-void SpeakerViewComponent::mouseWheelMove(const juce::MouseEvent & e, const juce::MouseWheelDetails & wheel)
+void SpeakerViewComponent::mouseWheelMove(const juce::MouseEvent & /*e*/, const juce::MouseWheelDetails & wheel)
 {
     mDistance -= wheel.deltaY * SCROLL_WHEEL_SPEED_MOUSE;
     mDistance = std::clamp(mDistance, 1.0f, 70.f);
@@ -333,11 +342,11 @@ void SpeakerViewComponent::drawBackground()
 void SpeakerViewComponent::drawOriginGrid() const
 {
     glLineWidth(1.5f);
-    glColor3f(0.59, 0.59, 0.59);
+    glColor3f(0.59f, 0.59f, 0.59f);
 
-    if (mMainContentComponent.getModeSelected() == LBAP) {
+    if (mMainContentComponent.getModeSelected() == ModeSpatEnum::LBAP) {
         // Draw light squares.
-        for (auto j{ 3.5f }; j < 19.f; j += 6.75f) {
+        for (auto j{ 3.5f }; j < 19.0f; j += 6.75f) {
             glBegin(GL_LINES);
             glVertex3f(-j, 0.0f, j);
             glVertex3f(j, 0.0f, j);
@@ -407,7 +416,7 @@ void SpeakerViewComponent::drawOriginGrid() const
     glVertex3f(-std::cos(quarterPi * 3.0f) * 14.5f, 0.0f, -std::sin(quarterPi * 3.0f) * 14.5f);
     glEnd();
 
-    if (mMainContentComponent.getModeSelected() == LBAP) {
+    if (mMainContentComponent.getModeSelected() == ModeSpatEnum::LBAP) {
         // Draw grey squares.
         for (auto j{ 6.875f }; j < 15.0f; j += 6.75f) {
             glBegin(GL_LINES);

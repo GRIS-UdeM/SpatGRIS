@@ -1,57 +1,63 @@
-# SpatGRIS2
-SpatGRIS2 is developed by the Groupe de recherche en immersion spatiale (GRIS) at Université de Montréal. The software is dedicated to sound spatialization in 2D (plane mode, X and Y axis) and 3D (with vertical mode, Z axis). It includes a Speaker Setup design page and the movements are controled by an external OSC source, namely ControlGRIS, a plugin for Audio Unit and VST DAWs. 
-The Server works on Jack and includes 256 inputs and outputs with as many VU-meters as needed.
-The Server has a 3D and 2D view window and offers the possibility of viewing the sound activity in the 3D window.
-The software is in its development phase and updates are published on a regular basis.
+# SpatGRIS
 
-## Building the SpatGRIS2 on Debian (Ubuntu)
+SpatGRIS lets composers and sound designers spatialize audio in a way that is decoupled from any specific speaker layout.
 
-### Install dependencies
+It is developed by the _Groupe de recherche en immersion spatiale_ (GRIS) at Université de Montréal. When used in tandem with [ControlGRIS](https://github.com/GRIS-UdeM/ControlGris) (an open-source plugin for digital audio workstations), virtual trajectories can be assigned to sounds directly in the DAW. The audio is spatialized in realtime by SpatGRIS, according to the current speaker setup.
 
-```
-sudo apt-get install clang git ladspa-sdk freeglut3-dev g++ libasound2-dev libcurl4-openssl-dev libfreetype6-dev libjack-jackd2-dev libx11-dev libxcomposite-dev libxcursor-dev libxinerama-dev libxrandr-dev mesa-common-dev webkit2gtk-4.0 juce-tools jackd2
-```
+SpatGRIS works in 2D for dome-like speaker layouts or in 3D for arbitrary speaker layouts. It can handle up to 256 inputs and outputs (if you think your machine can handle it), with as many VU-meters as needed. It has 3D and 2D view windows and offers the possibility of viewing sound activity in the 3D window.
 
-### Configure Jack realtime Scheduling
+This software is in active development. Updates are published on a regular basis.
 
-Make sure that you are part of the group "audio" or "jackuser".
+## Virtual audio device
+
+If you want to use SpatGRIS and ControlGRIS on the same computer, you will need a virtual audio device that can route the audio from your DAW to SpatGRIS.
+
+#### MacOS
+
+We officially support using [BlackHole](https://github.com/ExistentialAudio/BlackHole). A 128 channels version [is made available with every SpatGRIS release](https://github.com/GRIS-UdeM/ServerGRIS/releases).
+
+#### Windows
+
+Note : ASIO dissalows interfacing with two different devices simoultaneously. If you are internally routing audio on Windows, you will need to find a non-ASIO virtual interface. ASIO should be reserved for setups where SpatGRIS uses the same audio interface for input and ouput and operates on a different machine than ControlGRIS.
+
+There is a donationware called [VB-CABLE Virtual Audio Device](https://vb-audio.com/Cable/) that _sorta_ works, although it seems to have trouble staying in sync with SpatGRIS and is limited to 32 channels.
+
+If you know of any other solution (preferably open sourced) that works better on Windows, __please tell us all about it__!
+
+#### Linux
+
+Their are numerous ways of creating loopback audio ports in Linux with ALSA, PulseAudio or JACK. While we do not provide a standard way of doing it, power users should have no problem figuring it out ;-).
+
+## Dependencies
+
+- [Juce 6](https://juce.com/get-juce)
+- freeglut 3 (Windows only)
+
+### Additional dependencies on Linux :
 
 ```bash
-sudo usermod -a -G audio <username>
+sudo apt-get install clang++-10 ladspa-sdk freeglut3-dev libasound2-dev \
+libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev \
+libxcursor-dev libxinerama-dev libxrandr-dev mesa-common-dev
 ```
 
-If this does not work or if the group does not exists, follow the steps described [in the JACK FAQ](https://jackaudio.org/faq/linux_rt_config.html).
+## Build
 
-### Download Juce
 
-To build the SpatGRIS2, you'll need Juce 5, download it from https://shop.juce.com/get-juce/download page.
+1. Generate the project files.
 
-### Clone SpatGRIS2 sources
-
-```
-git clone https://github.com/GRIS-UdeM/ServerGRIS.git
+```bash
+cd <ServerGRIS-path>
+<path-to-projucer> --resave SpatGRIS.jucer
 ```
 
-### Build the app
+2. Go to the generated `Builds/` folder. On Windows, use the Visual Studio 2019 solution file. On MacOS, use the Xcode project. On Linux :
 
-1. Start the Projucer app, open the SpatGRIS2.jucer file and save the project. This step must be done each time the structure of the project changes (new files, new JUCE version, etc.).
-
-```
-cd /path/to/JUCE/folder
-./Projucer
+```bash
+cd Builds/LinuxMakeFile
+make CONFIG=Release CXX=clang++-10
 ```
 
-After saving the project, you can quit the Projucer.
+## Run
 
-2. Go to the SpatGRIS2 Builds folder and compile the app.
-
-```
-cd ServerGRIS/Builds/LinuxMakeFile
-make CONFIG=Release
-```
-
-### Run the SpatGRIS2 (from LinuxMakeFile directory)
-
-```
-./build/SpatGRIS2
-```
+The software must be launched from the project root directory.

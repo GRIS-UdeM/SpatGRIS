@@ -45,21 +45,21 @@ public:
     ParentLevelComponent & operator=(ParentLevelComponent const &) = delete;
     ParentLevelComponent & operator=(ParentLevelComponent &&) = delete;
     //==============================================================================
-    virtual int getId() const = 0;
-    virtual int getButtonInOutNumber() const = 0;
-    virtual bool isInput() const = 0;
-    virtual float getLevel() const = 0;
+    [[nodiscard]] virtual int getId() const = 0;
+    [[nodiscard]] virtual int getButtonInOutNumber() const = 0;
+    [[nodiscard]] virtual bool isInput() const = 0;
+    [[nodiscard]] virtual float getLevel() const = 0;
     virtual void setMuted(bool mute) = 0;
     virtual void setSolo(bool solo) = 0;
     virtual void setColor(juce::Colour color, bool updateLevel = false) = 0;
     virtual void selectClick(bool select = true) = 0;
 
-    virtual LevelComponent * getVuMeter() = 0;
-    virtual LevelComponent const * getVuMeter() const = 0;
+    [[nodiscard]] virtual LevelComponent * getVuMeter() = 0;
+    [[nodiscard]] virtual LevelComponent const * getVuMeter() const = 0;
 
     virtual void changeDirectOutChannel(int chn) = 0;
     virtual void setDirectOutChannel(int chn) = 0;
-    virtual int getDirectOutChannel() const = 0;
+    [[nodiscard]] virtual int getDirectOutChannel() const = 0;
     virtual void sendDirectOutToClient(int id, int chn) = 0;
 
 private:

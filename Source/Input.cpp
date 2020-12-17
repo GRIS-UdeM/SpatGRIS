@@ -19,6 +19,7 @@
 
 #include "Input.h"
 
+#include "GlSphere.h"
 #include "MainComponent.h"
 
 //==============================================================================
@@ -26,143 +27,144 @@ Input::Input(MainContentComponent & mainContentComponent, SmallGrisLookAndFeel &
     : mMainContentComponent(mainContentComponent)
     , mLookAndFeel(lookAndFeel)
     , mIdChannel(id)
-    , mDirectOutChannel(0)
     , mVuMeter(*this, lookAndFeel)
 {
-    this->resetPosition();
-    this->setColor(juce::Colour::fromHSV(0, 1, 0.75, 1), true);
+    resetPosition();
+    setColor(juce::Colour::fromHSV(0, 1, 0.75, 1), true);
 }
 
 //==============================================================================
 void Input::resetPosition()
 {
-    this->mAzimuth = (juce::MathConstants<float>::halfPi / 2.0f);
-    this->mZenith = juce::MathConstants<float>::halfPi;
+    mAzimuth = juce::MathConstants<float>::halfPi / 2.0f;
+    mZenith = juce::MathConstants<float>::halfPi;
 
-    this->mAzimuthSpan = 0.0f;
-    this->mZenithSpan = 0.0f;
-    ;
+    mAzimuthSpan = 0.0f;
+    mZenithSpan = 0.0f;
 
-    this->mGain = -1.0f;
-    this->mRadius = 1.0f;
+    mGain = -1.0f;
+    mRadius = 1.0f;
 
-    this->mCenter.x = (14.0f * sinf(this->mZenith) * cosf(this->mAzimuth));
-    this->mCenter.z = (14.0f * sinf(this->mZenith) * sinf(this->mAzimuth));
-    this->mCenter.y = (14.0f * cosf(this->mZenith) + (mSizeT / 2.0f));
+    mCenter.x = 14.0f * std::sin(mZenith) * std::cos(mAzimuth);
+    mCenter.z = 14.0f * std::sin(mZenith) * std::sin(mAzimuth);
+    mCenter.y = 14.0f * std::cos(mZenith) + mSizeT / 2.0f;
 }
 
 //==============================================================================
-glm::vec3 Input::polToCar(float azimuth, float zenith) const
+glm::vec3 Input::polToCar(float const azimuth, float const zenith) const
 {
     glm::vec3 cart;
-    float factor = this->mRadius * 10.0f;
-    cart.x = (factor * sinf(zenith) * cosf(azimuth));
-    cart.z = (factor * sinf(zenith) * sinf(azimuth));
-    cart.y = ((10.0f * cosf(zenith)) + (mSizeT / 2.0f));
+    auto const factor{ mRadius * 10.0f };
+    cart.x = factor * std::sin(zenith) * std::cos(azimuth);
+    cart.z = factor * std::sin(zenith) * std::sin(azimuth);
+    cart.y = 10.0f * std::cos(zenith) + mSizeT / 2.0f;
     return cart;
 }
 
 //==============================================================================
-glm::vec3 Input::polToCar3d(float azimuth, float zenith) const
+glm::vec3 Input::polToCar3d(float const azimuth, float const zenith) const
 {
     glm::vec3 cart;
-    float factor = this->mRadius * 10.0f;
-    cart.x = (factor * cosf(azimuth));
-    cart.z = (factor * sinf(azimuth));
-    cart.y = ((10.0f * cosf(zenith)) + (mSizeT / 2.0f));
+    auto const factor{ mRadius * 10.0f };
+    cart.x = factor * std::cos(azimuth);
+    cart.z = factor * std::sin(azimuth);
+    cart.y = 10.0f * std::cos(zenith) + mSizeT / 2.0f;
     return cart;
 }
 
 //==============================================================================
-void Input::setMuted(bool mute)
+void Input::setMuted(bool const mute)
 {
-    this->mMainContentComponent.muteInput(this->mIdChannel, mute);
+    mMainContentComponent.muteInput(mIdChannel, mute);
     if (mute) {
-        this->mMainContentComponent.soloInput(this->mIdChannel, false);
+        mMainContentComponent.soloInput(mIdChannel, false);
     }
 }
 
 //==============================================================================
-void Input::setSolo(bool solo)
+void Input::setSolo(bool const solo)
 {
-    this->mMainContentComponent.soloInput(this->mIdChannel, solo);
+    mMainContentComponent.soloInput(mIdChannel, solo);
     if (solo) {
-        this->mMainContentComponent.muteInput(this->mIdChannel, false);
+        mMainContentComponent.muteInput(mIdChannel, false);
     }
 }
 
 //==============================================================================
-void Input::setColor(juce::Colour color, bool updateLevel)
+void Input::setColor(juce::Colour const color, bool const updateLevel)
 {
-    this->mColorJ = color;
-    this->mColor.x = this->mColorJ.getFloatRed();
-    this->mColor.y = this->mColorJ.getFloatGreen();
-    this->mColor.z = this->mColorJ.getFloatBlue();
+    mColorJ = color;
+    mColor.x = mColorJ.getFloatRed();
+    mColor.y = mColorJ.getFloatGreen();
+    mColor.z = mColorJ.getFloatBlue();
 
     if (updateLevel) {
-        this->mVuMeter.setColor(this->mColorJ);
+        mVuMeter.setColor(mColorJ);
     }
 }
 
 //==============================================================================
 glm::vec3 Input::getNumberColor() const
 {
-    return glm::vec3(this->mColor.x * 0.5, this->mColor.y * 0.5, this->mColor.z * 0.5);
+    return glm::vec3{ mColor.x * 0.5f, mColor.y * 0.5f, mColor.z * 0.5f };
 }
 
 //==============================================================================
 juce::Colour Input::getColorJWithAlpha() const
 {
-    if (this->mMainContentComponent.isSourceLevelShown()) {
-        return this->mColorJ.withMultipliedAlpha(this->getAlpha());
-    } else {
-        return this->mColorJ;
+    if (mMainContentComponent.isSourceLevelShown()) {
+        return mColorJ.withMultipliedAlpha(getAlpha());
     }
+    return mColorJ;
 }
 
 //==============================================================================
 float Input::getAlpha() const
 {
-    if (this->mMainContentComponent.isSourceLevelShown()) {
-        return this->mMainContentComponent.getLevelsAlpha(this->mIdChannel - 1);
-    } else {
-        return 1.0f;
+    if (mMainContentComponent.isSourceLevelShown()) {
+        return mMainContentComponent.getLevelsAlpha(mIdChannel - 1);
     }
+    return 1.0f;
 }
 
 //==============================================================================
-void Input::draw()
+void Input::draw() const
 {
-    float transpa = 0.75;
+    static auto constexpr ALPHA{ 0.75f };
 
-    // If not initalized, don't draw.
-    if (this->mGain == -1.0) {
+    // If not initialized, don't draw.
+    if (mGain == -1.0f) {
         return;
     }
 
     // If isSourceLevelShown is on and alpha below 0.01, don't draw.
-    if (this->mMainContentComponent.isSourceLevelShown() && this->getAlpha() <= 0.01) {
+    if (mMainContentComponent.isSourceLevelShown() && getAlpha() <= 0.01f) {
         return;
     }
 
     // Draw 3D sphere.
     glPushMatrix();
-    glTranslatef(this->mCenter.x, this->mCenter.y, this->mCenter.z);
+    glTranslatef(mCenter.x, mCenter.y, mCenter.z);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    glLineWidth(2);
+    glLineWidth(2.0f);
 
-    if (this->mMainContentComponent.isSourceLevelShown()) {
-        glColor4f(this->mColor.x, this->mColor.y, this->mColor.z, this->getAlpha());
+    if (mMainContentComponent.isSourceLevelShown()) {
+        glColor4f(mColor.x, mColor.y, mColor.z, getAlpha());
     } else {
-        glColor4f(this->mColor.x, this->mColor.y, this->mColor.z, transpa);
+        glColor4f(mColor.x, mColor.y, mColor.z, ALPHA);
     }
 
-    glutSolidSphere(this->mSizeT, 8, 8);
-    glTranslatef(-this->mCenter.x, -this->mCenter.y, -this->mCenter.z);
+#if defined(__APPLE__)
+    glutSolidSphere(static_cast<double>(mSizeT), 8, 8);
+#else
+    drawSphere(mSizeT);
+#endif
 
-    if ((this->mAzimuthSpan != 0.0f || this->mZenithSpan != 0.0f) && this->mMainContentComponent.isSpanShown()) {
-        if (this->mMainContentComponent.getModeSelected() == 1) {
-            drawSpanLbap(this->mCenter.x, this->mCenter.y, this->mCenter.z);
+    glTranslatef(-mCenter.x, -mCenter.y, -mCenter.z);
+
+    if ((mAzimuthSpan != 0.0f || mZenithSpan != 0.0f) && mMainContentComponent.isSpanShown()) {
+        if (mMainContentComponent.getModeSelected() == ModeSpatEnum::LBAP) {
+            drawSpanLbap(mCenter.x, mCenter.y, mCenter.z);
         } else {
             drawSpan();
         }
@@ -173,51 +175,42 @@ void Input::draw()
 }
 
 //==============================================================================
-void Input::drawSpan()
+void Input::drawSpan() const
 {
-    int num = 8;
-    float newazi, newele;
+    static auto constexpr NUM{ 8 };
+
     glm::vec3 cart;
 
     glPointSize(4);
     glBegin(GL_POINTS);
 
-    for (int i = 0; i < num; i++) {
-        float azidev = i * this->mAzimuthSpan * 0.5f * 0.42f;
-        for (int j = 0; j < 2; j++) {
-            if (j)
-                newazi = this->mAzimuth + azidev;
-            else
-                newazi = this->mAzimuth - azidev;
+    for (int i{}; i < NUM; ++i) {
+        auto const aziDev{ static_cast<float>(i) * mAzimuthSpan * 0.5f * 0.42f };
+        for (int j{}; j < 2; ++j) {
+            auto newAzimuth{ j ? mAzimuth + aziDev : mAzimuth - aziDev };
 
-            if (newazi > juce::MathConstants<float>::pi)
-                newazi -= juce::MathConstants<float>::twoPi;
-            else if (newazi < -juce::MathConstants<float>::pi)
-                newazi += juce::MathConstants<float>::twoPi;
+            if (newAzimuth > juce::MathConstants<float>::pi) {
+                newAzimuth -= juce::MathConstants<float>::twoPi;
+            } else if (newAzimuth < -juce::MathConstants<float>::pi) {
+                newAzimuth += juce::MathConstants<float>::twoPi;
+            }
 
-            if (this->mMainContentComponent.getModeSelected() == 1) {
-                cart = this->polToCar3d(newazi, this->mZenith);
+            if (mMainContentComponent.getModeSelected() == ModeSpatEnum::LBAP) {
+                cart = polToCar3d(newAzimuth, mZenith);
             } else {
-                cart = this->polToCar(newazi, this->mZenith);
+                cart = polToCar(newAzimuth, mZenith);
             }
             glVertex3f(cart.x, cart.y, cart.z);
-            for (int k = 0; k < 4; k++) {
-                float eledev = (k + 1) * this->mZenithSpan * 2.0f * 0.38f;
-                for (int l = 0; l < 2; l++) {
-                    if (l)
-                        newele = this->mZenith + eledev;
-                    else
-                        newele = this->mZenith - eledev;
-                    if (newele > juce::MathConstants<float>::halfPi) {
-                        newele = juce::MathConstants<float>::halfPi;
-                    } else if (newele < 0.0f) {
-                        newele = 0.0f;
-                    }
+            for (int k{}; k < 4; ++k) {
+                auto const eleDev{ (static_cast<float>(k) + 1.0f) * mZenithSpan * 2.0f * 0.38f };
+                for (int l{}; l < 2; ++l) {
+                    auto newElevation{ l ? mZenith + eleDev : mZenith - eleDev };
+                    newElevation = std::clamp(newElevation, 0.0f, juce::MathConstants<float>::halfPi);
 
-                    if (this->mMainContentComponent.getModeSelected() == 1) {
-                        cart = this->polToCar3d(newazi, newele);
+                    if (mMainContentComponent.getModeSelected() == ModeSpatEnum::LBAP) {
+                        cart = polToCar3d(newAzimuth, newElevation);
                     } else {
-                        cart = this->polToCar(newazi, newele);
+                        cart = polToCar(newAzimuth, newElevation);
                     }
                     glVertex3f(cart.x, cart.y, cart.z);
                 }
@@ -232,22 +225,21 @@ void Input::drawSpan()
 //==============================================================================
 float Input::getLevel() const
 {
-    return this->mMainContentComponent.getLevelsIn(this->mIdChannel - 1);
+    return mMainContentComponent.getLevelsIn(mIdChannel - 1);
 }
 
 //==============================================================================
-void Input::drawSpanLbap(float x, float y, float z)
+void Input::drawSpanLbap(float const x, float const y, float const z) const
 {
-    int num = 4;
-    float ytmp;
+    static auto constexpr NUM = 4;
 
     glPointSize(4);
     glBegin(GL_POINTS);
 
     // For the same elevation as the source position.
-    for (int i = 1; i <= num; i++) {
-        float raddev = i / 4.f * this->mAzimuthSpan * 6.f;
-        if (i < num) {
+    for (auto i{ 1 }; i <= NUM; ++i) {
+        auto const raddev{ static_cast<float>(i) / 4.0f * mAzimuthSpan * 6.0f };
+        if (i < NUM) {
             glVertex3f(x + raddev, y, z + raddev);
             glVertex3f(x + raddev, y, z - raddev);
             glVertex3f(x - raddev, y, z + raddev);
@@ -259,28 +251,29 @@ void Input::drawSpanLbap(float x, float y, float z)
         glVertex3f(x, y, z - raddev);
     }
     // For all other elevation levels.
-    for (int j = 0; j < num; j++) {
-        float eledev = (j + 1) / 2.f * this->mZenithSpan * 15.f;
-        for (int k = 0; k < 2; k++) {
+    for (int j{}; j < NUM; ++j) {
+        auto const eledev{ static_cast<float>(j + 1) / 2.0f * mZenithSpan * 15.0f };
+        for (int k{}; k < 2; ++k) {
+            float yTmp;
             if (k) {
-                ytmp = y + eledev;
-                ytmp = ytmp > 10.f ? 10.f : ytmp;
+                yTmp = y + eledev;
+                yTmp = yTmp > 10.0f ? 10.0f : yTmp;
             } else {
-                ytmp = y - eledev;
-                ytmp = ytmp < -10.f ? -10.f : ytmp;
+                yTmp = y - eledev;
+                yTmp = yTmp < -10.0f ? -10.0f : yTmp;
             }
-            for (int i = 1; i <= num; i++) {
-                float raddev = i / 4.f * this->mAzimuthSpan * 6.f;
-                if (i < num) {
-                    glVertex3f(x + raddev, ytmp, z + raddev);
-                    glVertex3f(x + raddev, ytmp, z - raddev);
-                    glVertex3f(x - raddev, ytmp, z + raddev);
-                    glVertex3f(x - raddev, ytmp, z - raddev);
+            for (auto i{ 1 }; i <= NUM; ++i) {
+                auto const raddev{ static_cast<float>(i) / 4.0f * mAzimuthSpan * 6.0f };
+                if (i < NUM) {
+                    glVertex3f(x + raddev, yTmp, z + raddev);
+                    glVertex3f(x + raddev, yTmp, z - raddev);
+                    glVertex3f(x - raddev, yTmp, z + raddev);
+                    glVertex3f(x - raddev, yTmp, z - raddev);
                 }
-                glVertex3f(x + raddev, ytmp, z);
-                glVertex3f(x - raddev, ytmp, z);
-                glVertex3f(x, ytmp, z + raddev);
-                glVertex3f(x, ytmp, z - raddev);
+                glVertex3f(x + raddev, yTmp, z);
+                glVertex3f(x - raddev, yTmp, z);
+                glVertex3f(x, yTmp, z + raddev);
+                glVertex3f(x, yTmp, z - raddev);
             }
         }
     }
@@ -290,61 +283,70 @@ void Input::drawSpanLbap(float x, float y, float z)
 }
 
 //==============================================================================
-void Input::updateValues(float az, float ze, float azS, float zeS, float radius, float g, int mode)
+void Input::updateValues(float const az,
+                         float const ze,
+                         float const azS,
+                         float const zeS,
+                         float const radius,
+                         float const g,
+                         ModeSpatEnum const mode)
 {
-    this->mAzimuth = az;
-    this->mZenith = ze;
-    this->mAzimuthSpan = azS;
-    this->mZenithSpan = zeS;
-    this->mRadius = radius;
-    this->mGain = g;
+    mAzimuth = az;
+    mZenith = ze;
+    mAzimuthSpan = azS;
+    mZenithSpan = zeS;
+    mRadius = radius;
+    mGain = g;
 
-    float factor = radius * 10.0f;
+    auto const factor{ radius * 10.0f };
 
-    if (mode == 1) {
-        this->mCenter.x = (factor * cosf(this->mAzimuth));
-        this->mCenter.z = (factor * sinf(this->mAzimuth));
-        this->mCenter.y = ((10.0f * cosf(this->mZenith)) + (mSizeT / 2.0f));
+    if (mode == ModeSpatEnum::LBAP) {
+        mCenter.x = factor * std::cos(mAzimuth);
+        mCenter.z = factor * std::sin(mAzimuth);
+        mCenter.y = 10.0f * std::cos(mZenith) + mSizeT / 2.0f;
     } else {
-        this->mCenter.x = (factor * sinf(this->mZenith) * cosf(this->mAzimuth));
-        this->mCenter.z = (factor * sinf(this->mZenith) * sinf(this->mAzimuth));
-        this->mCenter.y = ((10.0f * cosf(this->mZenith)) + (mSizeT / 2.0f));
+        mCenter.x = factor * std::sin(mZenith) * std::cos(mAzimuth);
+        mCenter.z = factor * std::sin(mZenith) * std::sin(mAzimuth);
+        mCenter.y = 10.0f * std::cos(mZenith) + mSizeT / 2.0f;
     }
 }
 
 //==============================================================================
-void Input::updateValuesOld(float az, float ze, float azS, float zeS, float g)
+void Input::updateValuesOld(float const azimuth,
+                            float const zenith,
+                            float const azimuthSpan,
+                            float const zenithSpan,
+                            float const g)
 {
-    if (az < 0) {
-        this->mAzimuth = fabsf(az) * juce::MathConstants<float>::pi;
+    if (azimuth < 0.0f) {
+        mAzimuth = std::fabs(azimuth) * juce::MathConstants<float>::pi;
     } else {
-        this->mAzimuth = (1.0f - az) * juce::MathConstants<float>::pi + juce::MathConstants<float>::pi;
+        mAzimuth = (1.0f - azimuth) * juce::MathConstants<float>::pi + juce::MathConstants<float>::pi;
     }
-    this->mZenith = (juce::MathConstants<float>::halfPi) - (juce::MathConstants<float>::pi * ze);
+    mZenith = juce::MathConstants<float>::halfPi - (juce::MathConstants<float>::pi * zenith);
 
-    this->mAzimuthSpan = azS;
-    this->mZenithSpan = zeS;
-    this->mGain = g;
+    mAzimuthSpan = azimuthSpan;
+    mZenithSpan = zenithSpan;
+    mGain = g;
 
-    this->mCenter.x = (10.0f * sinf(this->mZenith) * cosf(this->mAzimuth));
-    this->mCenter.z = (10.0f * sinf(this->mZenith) * sinf(this->mAzimuth));
-    this->mCenter.y = (10.0f * cosf(this->mZenith)) + (this->mSizeT / 2.0f);
+    mCenter.x = 10.0f * std::sin(mZenith) * std::cos(mAzimuth);
+    mCenter.z = 10.0f * std::sin(mZenith) * std::sin(mAzimuth);
+    mCenter.y = 10.0f * std::cos(mZenith) + (mSizeT / 2.0f);
 }
 
 //==============================================================================
-void Input::sendDirectOutToClient(int id, int chn)
+void Input::sendDirectOutToClient(int const id, int const chn)
 {
-    this->mMainContentComponent.setDirectOut(id, chn);
+    mMainContentComponent.setDirectOut(id, chn);
 }
 
 //==============================================================================
-void Input::setDirectOutChannel(int chn)
+void Input::setDirectOutChannel(int const chn)
 {
-    this->mDirectOutChannel = chn;
+    mDirectOutChannel = chn;
     if (chn == 0) {
-        this->mVuMeter.directOut.setButtonText("-");
-        return;
+        mVuMeter.getDirectOutButton().setButtonText("-");
     } else {
-        this->mVuMeter.directOut.setButtonText(juce::String(chn));
+        mVuMeter.getDirectOutButton().setButtonText(juce::String(chn));
     }
 }

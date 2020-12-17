@@ -20,24 +20,24 @@
 #include "EditableTextCustomComponent.h"
 
 #include "EditSpeakersWindow.h"
-#include "JackClientGRIS.h"
+#include "JackClient.h"
 
 //==============================================================================
 EditableTextCustomComponent::EditableTextCustomComponent(EditSpeakersWindow & editSpeakersWindow)
-    : owner(editSpeakersWindow)
+    : mOwner(editSpeakersWindow)
 {
     setEditable(false, true, false);
     setColour(textColourId, juce::Colours::black);
-    lastOffset = 0;
+    mLastOffset = 0;
 }
 
 //==============================================================================
 void EditableTextCustomComponent::mouseDown(const juce::MouseEvent & event)
 {
     if (event.mods.isRightButtonDown()) {
-        owner.mSpeakersTableListBox.deselectAllRows();
+        mOwner.mSpeakersTableListBox.deselectAllRows();
     } else {
-        owner.mSpeakersTableListBox.selectRowsBasedOnModifierKeys(row, event.mods, false);
+        mOwner.mSpeakersTableListBox.selectRowsBasedOnModifierKeys(mRow, event.mods, false);
     }
     Label::mouseDown(event);
 }
@@ -49,12 +49,12 @@ void EditableTextCustomComponent::mouseDrag(const juce::MouseEvent & event)
         return;
     }
 
-    if (owner.getModeSelected() == LBAP || owner.getDirectOutForSpeakerRow(row)) {
-        if (columnId < 2) {
+    if (mOwner.getModeSelected() == ModeSpatEnum::LBAP || mOwner.getDirectOutForSpeakerRow(mRow)) {
+        if (mColumnId < 2) {
             return;
         }
     } else {
-        if (columnId < 5) {
+        if (mColumnId < 5) {
             return;
         }
     }
@@ -62,56 +62,56 @@ void EditableTextCustomComponent::mouseDrag(const juce::MouseEvent & event)
     bool ok = false;
     int offset = event.getDistanceFromDragStartY();
     float val = getText().getFloatValue();
-    switch (columnId) {
+    switch (mColumnId) {
     case 2:
     case 3:
     case 4:
-        if (offset < lastOffset)
+        if (offset < mLastOffset)
             val += 0.01f; // up
-        if (offset > lastOffset)
+        if (offset > mLastOffset)
             val -= 0.01f; // down
         ok = true;
         break;
     case 5:
     case 6:
     case 10:
-        if (offset < lastOffset)
+        if (offset < mLastOffset)
             val += 1.0f; // up
-        if (offset > lastOffset)
+        if (offset > mLastOffset)
             val -= 1.0f; // down
         ok = true;
         break;
     case 7:
-        if (offset < lastOffset)
+        if (offset < mLastOffset)
             val += 0.01f; // up
-        if (offset > lastOffset)
+        if (offset > mLastOffset)
             val -= 0.01f; // down
         ok = true;
         break;
     case 9:
-        if (offset < lastOffset)
+        if (offset < mLastOffset)
             val += 0.1f; // up
-        if (offset > lastOffset)
+        if (offset > mLastOffset)
             val -= 0.1f; // down
         ok = true;
         break;
     }
     if (ok) {
-        owner.setText(columnId, row, juce::String(val), event.mods.isAltDown());
+        mOwner.setText(mColumnId, mRow, juce::String(val), event.mods.isAltDown());
     }
-    lastOffset = offset;
+    mLastOffset = offset;
 }
 
 //==============================================================================
 void EditableTextCustomComponent::textWasEdited()
 {
-    owner.setText(columnId, row, getText());
+    mOwner.setText(mColumnId, mRow, getText());
 }
 
 //==============================================================================
 void EditableTextCustomComponent::setRowAndColumn(const int newRow, const int newColumn)
 {
-    row = newRow;
-    columnId = newColumn;
-    setText(owner.getText(columnId, row), juce::dontSendNotification);
+    mRow = newRow;
+    mColumnId = newColumn;
+    setText(mOwner.getText(mColumnId, mRow), juce::dontSendNotification);
 }

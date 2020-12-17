@@ -1,3 +1,6 @@
+# Inno output dir for Windows installer
+WindowsInstallerOutput
+
 # VS code dir
 .vscode
 

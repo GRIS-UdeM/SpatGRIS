@@ -22,13 +22,7 @@
 #include "macros.h"
 
 DISABLE_WARNINGS
-#if defined(__linux__)
-
-#elif defined(WIN32) || defined(_WIN64)
-    #include <GL/freeglut.h>
-    #include <GL/gl.h>
-    #include <windows.h>
-#else
+#if defined(__APPLE__)
     #include <GLUT/glut.h>
     #include <OpenGL/gl.h>
     #include <OpenGL/gl3.h>
@@ -123,8 +117,8 @@ public:
 
 private:
     //==============================================================================
-    float rayCast(Speaker const * speaker) const;
-    bool speakerNearCam(glm::vec3 speak1, glm::vec3 speak2) const;
+    [[nodiscard]] float rayCast(Speaker const * speaker) const;
+    [[nodiscard]] bool speakerNearCam(glm::vec3 speak1, glm::vec3 speak2) const;
 
     void clickRay();
 

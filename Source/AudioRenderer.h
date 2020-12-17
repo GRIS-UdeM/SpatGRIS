@@ -45,7 +45,7 @@ public:
     AudioRenderer & operator=(AudioRenderer const &) = delete;
     AudioRenderer & operator=(AudioRenderer &&) = delete;
     //==============================================================================
-    void prepareRecording(juce::File const & file, juce::Array<juce::File> const & filenames, unsigned int sampleRate);
+    void prepareRecording(juce::File const & file, juce::Array<juce::File> const & fileNames, unsigned int sampleRate);
     void run() override;
     void threadComplete(bool userPressedCancel) override;
 
