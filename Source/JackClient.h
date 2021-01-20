@@ -254,7 +254,7 @@ public:
     //==============================================================================
     // Audio Status.
     [[nodiscard]] bool isReady() const { return mClientReady; }
-    [[nodiscard]] float getCpuUsed() const { return jack_cpu_load(mClient); }
+    [[nodiscard]] static float getCpuUsed();
     [[nodiscard]] float getLevelsIn(int const index) const { return mLevelsIn[index]; }
     [[nodiscard]] float getLevelsOut(int const index) const { return mLevelsOut[index]; }
 
@@ -270,7 +270,7 @@ public:
     void connectionClient(juce::String const & name, bool connect = true);
     void updateClientPortAvailable(bool fromJack);
 
-    [[nodiscard]] std::string getClientName(char const * port) const;
+    [[nodiscard]] std::string getClientName(char const * portName) const;
 
     // Recording.
     void prepareToRecord();

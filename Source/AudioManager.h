@@ -82,7 +82,6 @@ class AudioManager final : juce::AudioSourcePlayer
     //==============================================================================
     // Dummies
     jack_client_t mDummyJackClient{};
-    jackctl_server_t mDummyJackCtlServer{};
 
 public:
     //==============================================================================
@@ -111,7 +110,7 @@ public:
 
     [[nodiscard]] juce::Array<jack_port_t *> getInputPorts() const;
     [[nodiscard]] juce::Array<jack_port_t *> getOutputPorts() const;
-    void * getBuffer(jack_port_t * port, jack_nframes_t nFrames);
+    float * getBuffer(jack_port_t * port, jack_nframes_t nFrames);
 
     [[nodiscard]] std::optional<jack_port_t *> getPort(char const * name) const;
 
@@ -138,8 +137,6 @@ public:
     //==============================================================================
     // Dummies
     [[nodiscard]] auto * getDummyJackClient() { return &mDummyJackClient; }
-    [[nodiscard]] auto * getDummyJackCtlServer() { return &mDummyJackCtlServer; }
-    [[nodiscard]] static JSList * getDummyJackCtlParameters() { return nullptr; }
 
 private:
     //==============================================================================

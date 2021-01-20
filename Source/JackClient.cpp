@@ -63,21 +63,6 @@ static int process_audio(jack_nframes_t const nFrames, void * arg)
 }
 
 //==============================================================================
-// Jack callback functions.
-void session_callback(jack_session_event_t * event, void * /*arg*/)
-{
-    char returnValue[100];
-    jack_client_log("session notification\n");
-    jack_client_log("path %s, uuid %s, type: %s\n",
-                    event->session_dir,
-                    event->client_uuid,
-                    event->type == JackSessionSave ? "save" : "quit");
-
-    snprintf(returnValue, 100, "jack_simple_session_client %s", event->client_uuid);
-    // event->command_line = strdup(returnValue);
-}
-
-//==============================================================================
 int graphOrderCallback(void * arg)
 {
     auto * jackCli = static_cast<JackClient *>(arg);
@@ -198,35 +183,12 @@ JackClient::JackClient()
     mInterMaster = 0.8f;
 
     // open a client connection to the JACK server. Start server if it is not running.
-    jack_options_t options = JackNullOption;
-    jack_status_t status;
 
-    jack_client_log("\nStart Jack Client\n");
-    jack_client_log("=================\n");
-
-    mClient = jackClientOpen(CLIENT_NAME, options, &status, SYS_DRIVER_NAME);
-    if (mClient == NULL) {
-        jack_client_log("\nTry again...\n");
-        options = JackServerName;
-        mClient = jackClientOpen(CLIENT_NAME, options, &status, SYS_DRIVER_NAME);
-        if (mClient == NULL) {
-            jack_client_log("\n\n jack_client_open() failed, status = 0x%2.0x\n", status);
-            if (status & JackServerFailed) {
-                jack_client_log("\n\n Unable to connect to JACK server\n");
-            }
-        }
-    }
-    if (status & JackServerStarted) {
-        jack_client_log("\n jackdmp wasn't running so it was started\n");
-    }
-    if (status & JackNameNotUnique) {
-        CLIENT_NAME = jack_get_client_name(mClient);
-        jack_client_log("\n Chosen name already existed, new unique name `%s' assigned\n", CLIENT_NAME);
-    }
+    mClient = AudioManager::getInstance().getDummyJackClient();
 
     // Register Jack callbacks and ports.
-    jack_set_process_callback(mClient, process_audio, this);
-    jack_set_port_connect_callback(mClient, port_connect_callback, this);
+    AudioManager::getInstance().registerProcessCallback(process_audio, this);
+    AudioManager::getInstance().registerPortConnectCallback(port_connect_callback);
 
     // Initialize pink noise
     srand(static_cast<unsigned int>(time(nullptr)));
@@ -303,8 +265,8 @@ void JackClient::portConnectCallback(jack_port_id_t const a, jack_port_id_t cons
         // TODO : crashes happening once in a while here. Probably due to some race conditions between AudioManager
         // ports and the audio callbacks.
         if (!mAutoConnection) {
-            std::string nameClient{ jack_port_name(jack_port_by_id(mClient, a)) };
-            std::string const tempN{ jack_port_short_name(jack_port_by_id(mClient, a)) };
+            std::string nameClient{ jack_port_by_id(mClient, a)->fullName };
+            std::string const tempN{ jack_port_by_id(mClient, a)->shortName };
             nameClient = nameClient.substr(0, nameClient.size() - (tempN.size() + 1));
         }
         jack_client_log("Connect ");
@@ -367,22 +329,26 @@ void JackClient::startRecord()
 }
 
 //==============================================================================
+float JackClient::getCpuUsed()
+{
+    auto const usage{ AudioManager::getInstance().getAudioDeviceManager().getCpuUsage() };
+    return static_cast<float>(usage);
+}
+
+//==============================================================================
 void JackClient::addRemoveInput(unsigned int const number)
 {
     if (number < mInputsPort.size()) {
         while (number < mInputsPort.size()) {
-            jack_port_unregister(mClient, mInputsPort.back());
+            AudioManager::getInstance().unregisterPort(mInputsPort.back());
             mInputsPort.pop_back();
         }
     } else {
+        auto & audioManager{ AudioManager::getInstance() };
         while (number > mInputsPort.size()) {
             juce::String nameIn{ "input" };
             nameIn += juce::String{ mInputsPort.size() + 1 };
-            auto * newPort = jack_port_register(mClient,
-                                                nameIn.toStdString().c_str(),
-                                                JACK_DEFAULT_AUDIO_TYPE,
-                                                JackPortIsInput,
-                                                0);
+            auto * newPort{ audioManager.registerPort(nameIn.toStdString().c_str(), "SpatGRIS2", PortType::input) };
             mInputsPort.push_back(newPort);
         }
     }
@@ -394,7 +360,7 @@ void JackClient::clearOutput()
 {
     auto const num_output_ports{ mOutputsPort.size() };
     for (size_t i{}; i < num_output_ports; ++i) {
-        jack_port_unregister(mClient, mOutputsPort.back());
+        AudioManager::getInstance().unregisterPort(mOutputsPort.back());
         mOutputsPort.pop_back();
     }
 }
@@ -408,7 +374,10 @@ bool JackClient::addOutput(unsigned int const outputPatch)
     juce::String nameOut = "output";
     nameOut += juce::String(mOutputsPort.size() + 1);
 
-    jack_port_t * newPort = jack_port_register(mClient, nameOut.toUTF8(), JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
+    auto * newPort{
+        AudioManager::getInstance().registerPort(nameOut.toStdString().c_str(), "SpatGRIS2", PortType::output)
+    };
+
     mOutputsPort.push_back(newPort);
     connectedGrisToSystem();
     return true;
@@ -417,7 +386,7 @@ bool JackClient::addOutput(unsigned int const outputPatch)
 //==============================================================================
 void JackClient::removeOutput(int number)
 {
-    jack_port_unregister(mClient, mOutputsPort.at(number));
+    AudioManager::getInstance().unregisterPort(mOutputsPort.at(number));
     mOutputsPort.erase(mOutputsPort.begin() + number);
 }
 
@@ -838,7 +807,8 @@ int JackClient::processAudio(jack_nframes_t const nFrames)
     // Return if the user is editing the speaker setup.
     if (!mProcessBlockOn) {
         for (size_t i{}; i < mOutputsPort.size(); ++i) {
-            memset(static_cast<float *>(jack_port_get_buffer(mOutputsPort[i], nFrames)), 0, sizeof(float) * nFrames);
+            auto * buffer{ AudioManager::getInstance().getBuffer(mOutputsPort[i], nFrames) };
+            memset(static_cast<float *>(buffer), 0, sizeof(float) * nFrames);
             mLevelsOut[i] = 0.0f;
         }
         return 0;
@@ -847,14 +817,14 @@ int JackClient::processAudio(jack_nframes_t const nFrames)
     auto const sizeInputs{ mInputsPort.size() };
     auto const sizeOutputs{ mOutputsPort.size() };
 
-    jack_default_audio_sample_t * ins[MAX_INPUTS];
-    jack_default_audio_sample_t * outs[MAX_OUTPUTS];
+    float * ins[MAX_INPUTS];
+    float * outs[MAX_OUTPUTS];
 
     for (unsigned int i = 0; i < sizeInputs; i++) {
-        ins[i] = static_cast<jack_default_audio_sample_t *>(jack_port_get_buffer(mInputsPort[i], nFrames));
+        ins[i] = AudioManager::getInstance().getBuffer(mInputsPort[i], nFrames);
     }
     for (unsigned int i = 0; i < sizeOutputs; i++) {
-        outs[i] = static_cast<jack_default_audio_sample_t *>(jack_port_get_buffer(mOutputsPort[i], nFrames));
+        outs[i] = AudioManager::getInstance().getBuffer(mOutputsPort[i], nFrames);
     }
 
     muteSoloVuMeterIn(ins, nFrames, sizeInputs);
@@ -892,10 +862,13 @@ int JackClient::processAudio(jack_nframes_t const nFrames)
 void JackClient::connectedGrisToSystem()
 {
     clearOutput();
+    auto & audioManager{ AudioManager::getInstance() };
     for (unsigned int i = 0; i < mMaxOutputPatch; i++) {
         juce::String nameOut{ "output" };
         nameOut += juce::String{ mOutputsPort.size() + 1 };
-        auto * newPort{ jack_port_register(mClient, nameOut.toUTF8(), JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0) };
+
+        auto * newPort{ audioManager.registerPort(nameOut.toStdString().c_str(), "SpatGRIS2", PortType::output) };
+
         mOutputsPort.push_back(newPort);
     }
 
@@ -903,15 +876,20 @@ void JackClient::connectedGrisToSystem()
     auto const ** portsIn{ jack_get_ports(mClient, nullptr, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput) };
 
     size_t i{};
-    size_t j;
+    size_t j{};
 
     // DisConnect JackClientGris to system.
+    // TODO : this is confused
     while (portsOut[i] && i < MAX_OUTPUTS) {
         if (getClientName(portsOut[i]) == CLIENT_NAME) { // jackClient
             j = 0;
+            auto const portOut{ audioManager.getPort(portsOut[i]) };
+            jassert(portOut);
             while (portsIn[j]) {
-                if (getClientName(portsIn[j]) == SYS_CLIENT_NAME && // system
-                    jack_port_connected_to(jack_port_by_name(mClient, portsOut[i]), portsIn[j])) {
+                auto const portIn{ audioManager.getPort(portsIn[j]) };
+                jassert(portIn);
+                if (getClientName(portsIn[j]) == SYS_CLIENT_NAME && audioManager.isConnectedTo(*portOut, portsIn[j])) {
+                    audioManager.disconnect(*portOut, *portIn);
                 }
                 ++j;
             }
@@ -927,7 +905,7 @@ void JackClient::connectedGrisToSystem()
         if (getClientName(portsOut[i]) == CLIENT_NAME) { // jackClient
             while (portsIn[j]) {
                 if (getClientName(portsIn[j]) == SYS_CLIENT_NAME) { // system
-                    jack_connect(mClient, portsOut[i], portsIn[j]);
+                    audioManager.connect(portsOut[i], portsIn[j]);
                     ++j;
                     break;
                 }
@@ -1093,12 +1071,18 @@ void JackClient::connectionClient(juce::String const & name, bool connect)
 
     // Disconnect client.
     unsigned i{};
+    auto & audioManager{ AudioManager::getInstance() };
     while (portsOut[i]) {
+        auto const portOut{ audioManager.getPort(portsOut[i]) };
+        jassert(portOut);
         if (getClientName(portsOut[i]) == name) {
             int j{};
             while (portsIn[j]) {
-                if (getClientName(portsIn[j]) == CLIENT_NAME && // jackClient
-                    jack_port_connected_to(jack_port_by_name(mClient, portsOut[i]), portsIn[j])) {
+                auto const portIn{ audioManager.getPort(portsIn[j]) };
+                jassert(portIn);
+                if (getClientName(portsIn[j]) == CLIENT_NAME
+                    && AudioManager::getInstance().isConnectedTo(*portIn, portsIn[j])) {
+                    audioManager.disconnect(*portOut, *portIn);
                 }
                 j += 1;
             }
@@ -1135,7 +1119,7 @@ void JackClient::connectionClient(juce::String const & name, bool connect)
                 while (portsIn[j]) {
                     if (getClientName(portsIn[j]) == CLIENT_NAME) {
                         if (j >= startJ && j < endJ) {
-                            jack_connect(mClient, portsOut[i], portsIn[j]);
+                            audioManager.connect(portsOut[i], portsIn[j]);
                             conn = true;
                             j += 1;
                             break;
@@ -1161,13 +1145,15 @@ void JackClient::connectionClient(juce::String const & name, bool connect)
 }
 
 //==============================================================================
-std::string JackClient::getClientName(const char * port) const
+std::string JackClient::getClientName(const char * portName) const
 {
-    if (port != nullptr) {
-        auto * tt{ jack_port_by_name(mClient, port) };
-        if (tt) {
-            std::string const nameClient{ jack_port_name(tt) };
-            std::string const tempN{ jack_port_short_name(tt) };
+    if (portName != nullptr) {
+        auto const maybe_port{ AudioManager::getInstance().getPort(portName) };
+        jassert(maybe_port);
+        auto * port{ *maybe_port };
+        if (port) {
+            std::string const nameClient{ port->fullName };
+            std::string const tempN{ port->shortName };
             return nameClient.substr(0, nameClient.size() - (tempN.size() + 1));
         }
     }
@@ -1271,11 +1257,13 @@ JackClient::~JackClient()
 
     lbap_field_free(mLbapSpeakerField);
 
-    jack_deactivate(mClient);
-    for (auto * port : mInputsPort) {
-        jack_port_unregister(mClient, port);
+    auto & audioManager{ AudioManager::getInstance() };
+
+    audioManager.getAudioDeviceManager().getCurrentAudioDevice()->close();
+    for (auto * inputPort : mInputsPort) {
+        audioManager.unregisterPort(inputPort);
     }
     for (auto * outputPort : mOutputsPort) {
-        jack_port_unregister(mClient, outputPort);
+        audioManager.unregisterPort(outputPort);
     }
 }
