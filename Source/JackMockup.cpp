@@ -251,6 +251,8 @@ jack_port_t * jack_port_by_name([[maybe_unused]] jack_client_t * const client, c
     auto & audioManager{ AudioManager::getInstance() };
     jassert(client == audioManager.getDummyJackClient());
 
+    std::cout << "Name : " << port_name << '\n';
+
     auto const maybe_result{ audioManager.getPort(port_name) };
     jassert(maybe_result);
     auto * const result{ *maybe_result };

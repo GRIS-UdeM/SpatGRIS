@@ -193,7 +193,7 @@ void SpeakerViewComponent::render()
                 }
             } else {
 #if defined(WIN32)
-                drawSphere(std::max(MAX_RADIUS, 1.0));
+                drawSphere(std::max(static_cast<float>(MAX_RADIUS), 1.0f));
 #else
                 glutSolidSphere(std::max(MAX_RADIUS, 1.0), 20, 20);
 #endif

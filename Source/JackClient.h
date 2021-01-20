@@ -214,7 +214,7 @@ class JackClient
     lbap_field * mLbapSpeakerField{};
 
     // Recording parameters.
-    unsigned int mIndexRecord{};
+    size_t mIndexRecord{};
     bool mIsRecording{ false };
 
     std::array<AudioRecorder, MAX_OUTPUTS> mRecorders{};
@@ -320,8 +320,8 @@ public:
     [[nodiscard]] bool getSoloOut() const { return mSoloOut; }
     [[nodiscard]] auto const & getSpeakersOut() const { return mSpeakersOut; }
     [[nodiscard]] auto & getSpeakersOut() { return mSpeakersOut; }
-    [[nodiscard]] unsigned getMaxOutputPatch() const { return mMaxOutputPatch; }
-    [[nodiscard]] unsigned getIndexRecord() const { return mIndexRecord; }
+    [[nodiscard]] size_t getMaxOutputPatch() const { return mMaxOutputPatch; }
+    [[nodiscard]] size_t getIndexRecord() const { return mIndexRecord; }
     [[nodiscard]] auto const & getRecorders() const { return mRecorders; }
     [[nodiscard]] auto const & getOutputFileNames() const { return mOutputFileNames; }
     [[nodiscard]] auto const & getInputPorts() const { return mInputsPort; }
@@ -346,32 +346,13 @@ public:
 
     //==============================================================================
     // Audio processing
-    void muteSoloVuMeterIn(jack_default_audio_sample_t ** ins, jack_nframes_t nFrames, unsigned sizeInputs);
-    void muteSoloVuMeterGainOut(jack_default_audio_sample_t ** outs,
-                                jack_nframes_t nFrames,
-                                unsigned sizeOutputs,
-                                float gain = 1.0f);
-    void addNoiseSound(jack_default_audio_sample_t ** outs, jack_nframes_t nFrames, unsigned sizeOutputs);
-    void processVbap(jack_default_audio_sample_t ** ins,
-                     jack_default_audio_sample_t ** outs,
-                     jack_nframes_t nFrames,
-                     unsigned sizeInputs,
-                     unsigned sizeOutputs);
-    void processLbap(jack_default_audio_sample_t ** ins,
-                     jack_default_audio_sample_t ** outs,
-                     jack_nframes_t nFrames,
-                     unsigned sizeInputs,
-                     unsigned sizeOutputs);
-    void processVBapHrtf(jack_default_audio_sample_t ** ins,
-                         jack_default_audio_sample_t ** outs,
-                         jack_nframes_t nFrames,
-                         unsigned sizeInputs,
-                         unsigned sizeOutputs);
-    void processStereo(jack_default_audio_sample_t ** ins,
-                       jack_default_audio_sample_t ** outs,
-                       jack_nframes_t nFrames,
-                       unsigned sizeInputs,
-                       unsigned sizeOutputs);
+    void muteSoloVuMeterIn(jack_default_audio_sample_t ** ins, jack_nframes_t nFrames, size_t sizeInputs);
+    void muteSoloVuMeterGainOut(float ** outs, size_t nFrames, size_t sizeOutputs, float gain = 1.0f);
+    void addNoiseSound(float ** outs, size_t nFrames, size_t sizeOutputs);
+    void processVbap(float ** ins, float ** outs, size_t nFrames, size_t sizeInputs, size_t sizeOutputs);
+    void processLbap(float ** ins, float ** outs, size_t nFrames, size_t sizeInputs, size_t sizeOutputs);
+    void processVBapHrtf(float ** ins, float ** outs, size_t nFrames, size_t sizeInputs, size_t sizeOutputs);
+    void processStereo(float ** ins, float ** outs, size_t nFrames, size_t sizeInputs, size_t sizeOutputs);
     [[nodiscard]] int processAudio(jack_nframes_t nFrames);
 
 private:
