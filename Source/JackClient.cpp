@@ -408,7 +408,11 @@ void JackClient::addNoiseSound(float ** outs, size_t nFrames, size_t sizeOutputs
 }
 
 //==============================================================================
-void JackClient::processVbap(float ** ins, float ** outs, size_t nFrames, size_t sizeInputs, size_t sizeOutputs)
+void JackClient::processVbap(float ** ins,
+                             float ** outs,
+                             size_t const nFrames,
+                             size_t const sizeInputs,
+                             size_t const sizeOutputs)
 {
     auto interpolationG{ mInterMaster == 0.0f ? 0.99f : std::pow(mInterMaster, 0.1f) * 0.0099f + 0.99f };
 
@@ -468,9 +472,7 @@ void JackClient::processLbap(float ** ins, float ** outs, size_t nFrames, size_t
             lbap_pos_init_from_radians(&pos, sourceIn.radAzimuth, sourceIn.radElevation, sourceIn.radius);
             pos.radspan = sourceIn.azimuthSpan;
             pos.elespan = sourceIn.zenithSpan;
-            // auto distance{ sourceIn.radius };
-            auto const elevation{ sourceIn.radElevation / juce::MathConstants<float>::halfPi };
-            auto distance{ std::sqrt(sourceIn.radius * sourceIn.radius + elevation * elevation) };
+            auto distance{ sourceIn.radius };
             if (!lbap_pos_compare(&pos, &sourceIn.lbapLastPos)) {
                 lbap_field_compute(mLbapSpeakerField, &pos, sourceIn.lbapGains.data());
                 lbap_pos_copy(&sourceIn.lbapLastPos, &pos);
