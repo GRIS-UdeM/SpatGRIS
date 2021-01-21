@@ -1127,9 +1127,8 @@ void MainContentComponent::connectionClientJack(juce::String const & clientName,
         mAddInputsTextEditor->setText(juce::String{ maxPort }, juce::dontSendNotification);
         textEditorReturnKeyPressed(*mAddInputsTextEditor);
     }
-    mJackClient->setProcessBlockOn(false);
+
     mJackClient->connectionClient(clientName, conn);
-    mJackClient->setProcessBlockOn(true);
 }
 
 //==============================================================================
@@ -1286,9 +1285,7 @@ void MainContentComponent::addSpeaker(int const sortColumnId, bool const isSorte
     }
     mSpeakerLocks.unlock();
 
-    mJackClient->setProcessBlockOn(false);
     mJackClient->addOutput(mSpeakers.getLast()->getOutputPatch());
-    mJackClient->setProcessBlockOn(true);
 }
 
 //==============================================================================
@@ -1316,12 +1313,11 @@ void MainContentComponent::insertSpeaker(int const position, int const sortColum
     }
     mSpeakerLocks.unlock();
 
-    mJackClient->setProcessBlockOn(false);
+    juce::ScopedLock const lock{ mJackClient->getCriticalSection() };
     mJackClient->clearOutput();
     for (auto * it : mSpeakers) {
         mJackClient->addOutput(it->getOutputPatch());
     }
-    mJackClient->setProcessBlockOn(true);
 }
 
 //==============================================================================
@@ -1344,7 +1340,7 @@ bool MainContentComponent::isRadiusNormalized() const
 }
 
 //==============================================================================
-void MainContentComponent::updateInputJack(int inInput, Input & inp)
+void MainContentComponent::updateInputJack(int const inInput, Input & inp) const
 {
     auto const mode{ mJackClient->getMode() };
     auto & si = mJackClient->getSourcesIn()[inInput];
@@ -1536,7 +1532,7 @@ bool MainContentComponent::updateLevelComp()
         }
     }
 
-    mJackClient->setProcessBlockOn(false);
+    juce::ScopedLock const lock{ mJackClient->getCriticalSection() };
     mJackClient->setMaxOutputPatch(0u);
 
     // Save mute/solo/directOut states
@@ -1722,8 +1718,6 @@ bool MainContentComponent::updateLevelComp()
         speakerOut.isSolo = outputsIsSolo[speakerOutIndex];
     }
 
-    mJackClient->setProcessBlockOn(true);
-
     return returnValue;
 }
 
@@ -1735,21 +1729,21 @@ void MainContentComponent::setNameConfig()
 }
 
 //==============================================================================
-void MainContentComponent::muteInput(int const id, bool const mute)
+void MainContentComponent::muteInput(int const id, bool const mute) const
 {
     auto const index{ id - 1 };
     mJackClient->getSourcesIn()[index].isMuted = mute;
 }
 
 //==============================================================================
-void MainContentComponent::muteOutput(int const id, bool const mute)
+void MainContentComponent::muteOutput(int const id, bool const mute) const
 {
     auto const index{ id - 1 };
     mJackClient->getSpeakersOut()[index].isMuted = mute;
 }
 
 //==============================================================================
-void MainContentComponent::soloInput(int const id, bool const solo)
+void MainContentComponent::soloInput(int const id, bool const solo) const
 {
     auto & sourcesIn{ mJackClient->getSourcesIn() };
     auto const index{ id - 1 };
@@ -1765,7 +1759,7 @@ void MainContentComponent::soloInput(int const id, bool const solo)
 }
 
 //==============================================================================
-void MainContentComponent::soloOutput(int const id, bool const solo)
+void MainContentComponent::soloOutput(int const id, bool const solo) const
 {
     auto const index{ id - 1 };
     auto & speakersOut{ mJackClient->getSpeakersOut() };
@@ -1781,7 +1775,7 @@ void MainContentComponent::soloOutput(int const id, bool const solo)
 }
 
 //==============================================================================
-void MainContentComponent::setDirectOut(int const id, int const chn)
+void MainContentComponent::setDirectOut(int const id, int const chn) const
 {
     auto const index{ id - 1 };
     mJackClient->getSourcesIn()[index].directOut = chn;
@@ -1847,7 +1841,7 @@ void MainContentComponent::openXmlFileSpeaker(juce::String const & path)
                 auto const loadSetupFromXyz{ /*isNewSameAsOld &&*/ mJackClient->getMode() == SpatModes::lbap };
 
                 setNameConfig();
-                mJackClient->setProcessBlockOn(false);
+                juce::ScopedLock const lock{ mJackClient->getCriticalSection() };
                 mJackClient->clearOutput();
                 mJackClient->setMaxOutputPatch(0);
                 juce::Array<int> layoutIndexes{};
@@ -1900,7 +1894,6 @@ void MainContentComponent::openXmlFileSpeaker(juce::String const & path)
                         mTriplets.push_back(triplet);
                     }
                 }
-                mJackClient->setProcessBlockOn(true);
                 ok = true;
             } else {
                 juce::String msg;
@@ -1953,7 +1946,7 @@ void MainContentComponent::setTitle() const
 }
 
 //==============================================================================
-void MainContentComponent::handleTimer(bool state)
+void MainContentComponent::handleTimer(bool const state)
 {
     if (state) {
         startTimerHz(24);
@@ -1966,14 +1959,14 @@ void MainContentComponent::handleTimer(bool state)
 void MainContentComponent::closeSpeakersConfigurationWindow()
 {
     mEditSpeakersWindow.reset();
-    mJackClient->setProcessBlockOn(true);
 }
 
 //==============================================================================
 void MainContentComponent::openPreset(juce::String const & path)
 {
+    juce::ScopedLock const lock{ mJackClient->getCriticalSection() };
+
     juce::String msg;
-    mJackClient->setProcessBlockOn(false);
     juce::File const xmlFile{ path };
     juce::XmlDocument xmlDoc{ xmlFile };
     auto const mainXmlElem{ xmlDoc.getDocumentElement() };
@@ -2083,7 +2076,6 @@ void MainContentComponent::openPreset(juce::String const & path)
     }
 
     mJackClient->setPinkNoiseActive(false);
-    mJackClient->setProcessBlockOn(true);
 
     if (mPathCurrentPreset.endsWith("default_preset/default_preset.xml")) {
         mApplicationProperties.getUserSettings()->setValue(
@@ -2319,13 +2311,12 @@ void MainContentComponent::timerCallback()
         if (isReadyToMerge) {
             mIsRecording = false;
             if (mJackClient->getRecordFileConfig()) {
-                mJackClient->setProcessBlockOn(false);
+                juce::ScopedLock const lock{ mJackClient->getCriticalSection() };
                 auto * renderer{ new AudioRenderer{} };
                 renderer->prepareRecording(mJackClient->getRecordingPath(),
                                            mJackClient->getOutputFileNames(),
                                            sampleRate);
                 renderer->runThread();
-                mJackClient->setProcessBlockOn(true);
             }
         }
     }
@@ -2385,9 +2376,7 @@ void MainContentComponent::textEditorReturnKeyPressed(juce::TextEditor & textEdi
         }
 
         if (mJackClient->getInputPorts().size() != numOfInputs) {
-            mJackClient->setProcessBlockOn(false);
             mJackClient->addRemoveInput(numOfInputs);
-            mJackClient->setProcessBlockOn(true);
 
             mInputLocks.lock();
             auto addInput{ false };
@@ -2461,7 +2450,7 @@ void MainContentComponent::comboBoxChanged(juce::ComboBox * comboBox)
     }
 
     if (mModeSpatCombo.get() == comboBox) {
-        mJackClient->setProcessBlockOn(false);
+        juce::ScopedLock const lock{ mJackClient->getCriticalSection() };
         mJackClient->setMode(static_cast<SpatModes>(mModeSpatCombo->getSelectedId() - 1));
         switch (mJackClient->getMode()) {
         case SpatModes::vbap:
@@ -2488,7 +2477,6 @@ void MainContentComponent::comboBoxChanged(juce::ComboBox * comboBox)
         default:
             jassertfalse;
         }
-        mJackClient->setProcessBlockOn(true);
 
         if (mEditSpeakersWindow != nullptr) {
             auto const windowName{ juce::String("Speakers Setup Edition - ")

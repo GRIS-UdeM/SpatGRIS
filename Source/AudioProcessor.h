@@ -98,9 +98,6 @@ class AudioProcessor
     std::array<SourceIn, MAX_INPUTS> mSourcesIn{};
     std::array<SpeakerOut, MAX_OUTPUTS> mSpeakersOut{};
 
-    // Enable/disable jack process callback.
-    bool mProcessBlockOn{ true };
-
     // True when jack reports an xrun.
     bool mIsOverloaded{ false };
 
@@ -153,6 +150,8 @@ class AudioProcessor
 
     // This structure is used to compute the VBAP algorithm only once. Each source only gets a copy.
     VBAP_DATA * mParamVBap{};
+
+    juce::CriticalSection mCriticalSection{};
 
 public:
     //==============================================================================
@@ -239,7 +238,8 @@ public:
     [[nodiscard]] bool isRecording() const { return mIsRecording; }
     [[nodiscard]] bool isOverloaded() const { return mIsOverloaded; }
 
-    void setProcessBlockOn(bool const state) { mProcessBlockOn = state; } // TODO : this doesnt even work
+    juce::CriticalSection const & getCriticalSection() const { return mCriticalSection; }
+
     void setMaxOutputPatch(unsigned const maxOutputPatch) { mMaxOutputPatch = maxOutputPatch; }
     void setVbapDimensions(unsigned const dimensions) { mVbapDimensions = dimensions; }
     void setSoloIn(bool const state) { mSoloIn = state; }

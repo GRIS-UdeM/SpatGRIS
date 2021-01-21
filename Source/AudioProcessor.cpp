@@ -217,6 +217,8 @@ void AudioProcessor::startRecord()
 //==============================================================================
 void AudioProcessor::addRemoveInput(unsigned int const number)
 {
+    juce::ScopedLock const lock{ getCriticalSection() };
+
     if (number < mInputsPort.size()) {
         while (number < mInputsPort.size()) {
             AudioManager::getInstance().unregisterPort(mInputsPort.back());
@@ -247,6 +249,8 @@ void AudioProcessor::clearOutput()
 //==============================================================================
 bool AudioProcessor::addOutput(unsigned int const outputPatch)
 {
+    juce::ScopedLock const lock{ getCriticalSection() };
+
     if (outputPatch > mMaxOutputPatch) {
         mMaxOutputPatch = outputPatch;
     }
@@ -681,12 +685,16 @@ void AudioProcessor::processStereo(float ** ins, float ** outs, size_t nFrames, 
 void AudioProcessor::processAudio(size_t const nFrames)
 {
     // Return if the user is editing the speaker setup.
-    if (!mProcessBlockOn) {
-        for (size_t i{}; i < mOutputsPort.size(); ++i) {
-            auto * buffer{ AudioManager::getInstance().getBuffer(mOutputsPort[i], nFrames) };
-            memset(static_cast<float *>(buffer), 0, sizeof(float) * nFrames);
-            mLevelsOut[i] = 0.0f;
-        }
+    juce::ScopedTryLock const lock{ getCriticalSection() };
+
+    for (size_t i{}; i < mOutputsPort.size(); ++i) {
+        auto * buffer{ AudioManager::getInstance().getBuffer(mOutputsPort[i], nFrames) };
+        memset(static_cast<float *>(buffer), 0, sizeof(float) * nFrames);
+        mLevelsOut[i] = 0.0f;
+    }
+
+    if (!lock.isLocked()) {
+        return;
     }
 
     auto const sizeInputs{ mInputsPort.size() };
@@ -917,8 +925,10 @@ void AudioProcessor::updateSourceVbap(int const idS)
 }
 
 //==============================================================================
-void AudioProcessor::connectionClient(juce::String const & name, bool connect)
+void AudioProcessor::connectionClient(juce::String const & name, bool const connect)
 {
+    juce::ScopedLock const lock{ getCriticalSection() };
+
     auto & audioManager{ AudioManager::getInstance() };
     auto const inputPorts{ audioManager.getInputPorts() };
     auto const outputPorts{ audioManager.getOutputPorts() };

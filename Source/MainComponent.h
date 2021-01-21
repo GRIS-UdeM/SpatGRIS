@@ -235,7 +235,7 @@ public:
     void addSpeaker(int sortColumnId = 1, bool isSortedForwards = true);
     void insertSpeaker(int position, int sortColumnId, bool isSortedForwards);
     void removeSpeaker(int idSpeaker);
-    void setDirectOut(int id, int chn);
+    void setDirectOut(int id, int chn) const;
     void reorderSpeakers(std::vector<int> const & newOrder);
     void resetSpeakerIds();
     [[nodiscard]] int getMaxSpeakerId() const;
@@ -247,7 +247,7 @@ public:
 
     [[nodiscard]] std::mutex & getInputsLock() { return this->mInputLocks; }
 
-    void updateInputJack(int inInput, Input & inp);
+    void updateInputJack(int inInput, Input & inp) const;
     [[nodiscard]] bool isRadiusNormalized() const;
 
     // Jack clients.
@@ -274,10 +274,10 @@ public:
     [[nodiscard]] bool tripletExists(Triplet const & tri, int & pos) const;
 
     // Mute - solo.
-    void muteInput(int id, bool mute);
-    void muteOutput(int id, bool mute);
-    void soloInput(int id, bool solo);
-    void soloOutput(int id, bool solo);
+    void muteInput(int id, bool mute) const;
+    void muteOutput(int id, bool mute) const;
+    void soloInput(int id, bool solo) const;
+    void soloOutput(int id, bool solo) const;
 
     // Input - output amplitude levels.
     [[nodiscard]] float getLevelsOut(int const indexLevel) const
