@@ -25,6 +25,9 @@ DISABLE_WARNINGS
 #include <JuceHeader.h>
 ENABLE_WARNINGS
 
+static constexpr auto MAX_INPUTS = 256;
+static constexpr auto MAX_OUTPUTS = 256;
+
 extern char const * const DEVICE_NAME;
 extern char const * CLIENT_NAME;
 extern char const * const SYS_DRIVER_NAME;

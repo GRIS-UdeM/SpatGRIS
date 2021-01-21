@@ -27,14 +27,14 @@ DISABLE_WARNINGS
 #include <JuceHeader.h>
 ENABLE_WARNINGS
 
-#include "JackMockup.h"
+class JackClient;
 
 //==============================================================================
 enum class PortType { input, output };
 
 //==============================================================================
-struct _jack_port {
-    jack_port_id_t id;
+struct jack_port_t {
+    uint32_t id;
     char shortName[64]{};
     char clientName[64]{};
     char fullName[128]{};
@@ -42,11 +42,11 @@ struct _jack_port {
     std::optional<int> physicalPort;
     juce::AudioBuffer<float> buffer{};
 
-    _jack_port(jack_port_id_t const newId,
-               char const * const newShortName,
-               char const * const newClientName,
-               PortType const newType,
-               std::optional<int> const newPhysicalPort = std::nullopt)
+    jack_port_t(uint32_t const newId,
+                char const * const newShortName,
+                char const * const newClientName,
+                PortType const newType,
+                std::optional<int> const newPhysicalPort = std::nullopt)
         : id(newId)
         , type(newType)
         , physicalPort(newPhysicalPort)
@@ -68,20 +68,15 @@ class AudioManager final : juce::AudioSourcePlayer
     juce::OwnedArray<jack_port_t> mVirtualOutputPorts{};
     juce::OwnedArray<jack_port_t> mPhysicalOutputPorts{};
     juce::HashMap<jack_port_t *, jack_port_t *> mConnections{};
-    jack_port_id_t mLastGivePortId{};
+    uint32_t mLastGivePortId{};
     juce::AudioBuffer<float> mInputPortsBuffer{};
     juce::AudioBuffer<float> mOutputPortsBuffer{};
 
-    JackProcessCallback mProcessCallback{};
-    void * mProcessCallbackArg{};
-    JackPortConnectCallback mPortConnectCallback{};
+    JackClient * mJackClient{};
 
     juce::CriticalSection mCriticalSection{};
 
     static std::unique_ptr<AudioManager> mInstance;
-    //==============================================================================
-    // Dummies
-    jack_client_t mDummyJackClient{};
 
 public:
     //==============================================================================
@@ -103,16 +98,17 @@ public:
     void unregisterPort(jack_port_t * port);
 
     [[nodiscard]] bool isConnectedTo(jack_port_t const * port, char const * port_name) const;
-    [[nodiscard]] jack_port_t * findPortByName(char const * name) const;
 
-    void registerPortConnectCallback(JackPortConnectCallback const callback) { mPortConnectCallback = callback; }
-    void registerProcessCallback(JackProcessCallback const callback, void * arg);
+    void registerJackClient(JackClient * jackClient);
 
     [[nodiscard]] juce::Array<jack_port_t *> getInputPorts() const;
     [[nodiscard]] juce::Array<jack_port_t *> getOutputPorts() const;
-    float * getBuffer(jack_port_t * port, jack_nframes_t nFrames);
+    float * getBuffer(jack_port_t * port, size_t nFrames);
 
-    [[nodiscard]] std::optional<jack_port_t *> getPort(char const * name) const;
+    [[nodiscard]] jack_port_t * getPort(char const * name) const;
+    [[nodiscard]] jack_port_t * getPort(uint32_t id) const;
+
+    [[nodiscard]] std::vector<std::string> getPortNames(PortType portType) const;
 
     void connect(char const * sourcePortName, char const * destinationPortName);
     void disconnect(jack_port_t * source, jack_port_t * destination);
@@ -134,9 +130,6 @@ public:
                      int const bufferSize);
     [[nodiscard]] static AudioManager & getInstance();
     static void free();
-    //==============================================================================
-    // Dummies
-    [[nodiscard]] auto * getDummyJackClient() { return &mDummyJackClient; }
 
 private:
     //==============================================================================

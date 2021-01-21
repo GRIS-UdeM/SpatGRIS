@@ -2282,17 +2282,19 @@ void MainContentComponent::saveProperties(juce::String const & device,
 void MainContentComponent::timerCallback()
 {
     // TODO : audioDevice should not be accessed this frequently
-    auto * audioDevice{ AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice() };
+    auto & audioManager{ AudioManager::getInstance() };
+    auto & audioDeviceManager{ audioManager.getAudioDeviceManager() };
+    auto * audioDevice{ audioDeviceManager.getCurrentAudioDevice() };
     jassert(audioDevice);
     auto const sampleRate{ static_cast<unsigned>(std::round(audioDevice->getCurrentSampleRate())) };
 
-    auto const cpuLoad{ static_cast<int>(std::round(mJackClient->getCpuUsed() * 100.0f)) };
+    auto const cpuLoad{ static_cast<int>(std::round(audioDeviceManager.getCpuUsage() * 100.0)) };
     mJackLoadLabel->setText(juce::String{ cpuLoad } + " %", juce::dontSendNotification);
     auto seconds{ static_cast<int>(mJackClient->getIndexRecord() / sampleRate) };
     auto const minute{ seconds / 60 % 60 };
     seconds = seconds % 60;
-    auto const timeRecorded{ ((minute < 10) ? "0" + juce::String(minute) : juce::String(minute)) + " : "
-                             + ((seconds < 10) ? "0" + juce::String(seconds) : juce::String(seconds)) };
+    auto const timeRecorded{ ((minute < 10) ? "0" + juce::String{ minute } : juce::String{ minute }) + " : "
+                             + ((seconds < 10) ? "0" + juce::String{ seconds } : juce::String{ seconds }) };
     mTimeRecordedLabel->setText(timeRecorded, juce::dontSendNotification);
 
     if (mStartRecordButton->getToggleState()) {
@@ -2307,10 +2309,10 @@ void MainContentComponent::timerCallback()
 
     if (mIsRecording && !mJackClient->isRecording()) {
         auto const & recorders{ mJackClient->getRecorders() };
-        auto const isReadyToMerge{ std::all_of(
+        auto const isReadyToMerge{ std::none_of(
             recorders.begin(),
             recorders.end(),
-            [](AudioRecorder const & recorder) -> bool { return !recorder.backgroundThread.isThreadRunning(); }) };
+            [](AudioRecorder const & recorder) -> bool { return recorder.backgroundThread.isThreadRunning(); }) };
 
         if (isReadyToMerge) {
             mIsRecording = false;

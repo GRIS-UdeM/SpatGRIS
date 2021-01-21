@@ -32,19 +32,15 @@ DISABLE_WARNINGS
 
 #include <JuceHeader.h>
 
-#include "JackMockup.h"
-
 #include "spat/lbap.h"
 #include "spat/vbap.h"
 ENABLE_WARNINGS
 
 #include "AudioRecorder.h"
+#include "constants.hpp"
 
 class Speaker;
-
-// Limits of SpatGRIS2 In/Out.
-static unsigned int const MAX_INPUTS = 256;
-static unsigned int const MAX_OUTPUTS = 256;
+struct jack_port_t;
 
 //==============================================================================
 struct LbapData {
@@ -66,7 +62,7 @@ struct Client {
 
 //==============================================================================
 struct SourceIn {
-    unsigned int id;
+    unsigned int id{};
     float x{};
     float y{};
     float z{};
@@ -94,7 +90,7 @@ struct SourceIn {
 
 //==============================================================================
 struct SpeakerOut {
-    unsigned int id;
+    unsigned int id{};
     float x{};
     float y{};
     float z{};
@@ -138,8 +134,6 @@ class JackClient
     std::vector<int> mOutputPatches{};
 
     // Jack variables.
-    jack_client_t * mClient{};
-
     std::vector<jack_port_t *> mInputsPort{};
     std::vector<jack_port_t *> mOutputsPort{};
 
@@ -254,7 +248,6 @@ public:
     //==============================================================================
     // Audio Status.
     [[nodiscard]] bool isReady() const { return mClientReady; }
-    [[nodiscard]] static float getCpuUsed();
     [[nodiscard]] float getLevelsIn(int const index) const { return mLevelsIn[index]; }
     [[nodiscard]] float getLevelsOut(int const index) const { return mLevelsOut[index]; }
 
@@ -270,7 +263,7 @@ public:
     void connectionClient(juce::String const & name, bool connect = true);
     void updateClientPortAvailable(bool fromJack);
 
-    [[nodiscard]] std::string getClientName(char const * portName) const;
+    [[nodiscard]] static std::string getClientName(char const * portName);
 
     // Recording.
     void prepareToRecord();
@@ -302,9 +295,7 @@ public:
     // Reinit HRTF delay lines.
     void resetHrtf();
 
-    [[nodiscard]] jack_client_t * getClient() { return mClient; }
     void clientRegistrationCallback(char const * name, int regist);
-    void portConnectCallback(jack_port_id_t a, jack_port_id_t b, int connect) const;
 
     [[nodiscard]] unsigned getNumberOutputs() const { return mNumberOutputs; }
     [[nodiscard]] unsigned getNumberInputs() const { return mNumberInputs; }
@@ -346,14 +337,14 @@ public:
 
     //==============================================================================
     // Audio processing
-    void muteSoloVuMeterIn(jack_default_audio_sample_t ** ins, jack_nframes_t nFrames, size_t sizeInputs);
+    void muteSoloVuMeterIn(float ** ins, size_t nFrames, size_t sizeInputs);
     void muteSoloVuMeterGainOut(float ** outs, size_t nFrames, size_t sizeOutputs, float gain = 1.0f);
     void addNoiseSound(float ** outs, size_t nFrames, size_t sizeOutputs);
     void processVbap(float ** ins, float ** outs, size_t nFrames, size_t sizeInputs, size_t sizeOutputs);
     void processLbap(float ** ins, float ** outs, size_t nFrames, size_t sizeInputs, size_t sizeOutputs);
     void processVBapHrtf(float ** ins, float ** outs, size_t nFrames, size_t sizeInputs, size_t sizeOutputs);
     void processStereo(float ** ins, float ** outs, size_t nFrames, size_t sizeInputs, size_t sizeOutputs);
-    [[nodiscard]] int processAudio(jack_nframes_t nFrames);
+    void processAudio(size_t nFrames);
 
 private:
     //==============================================================================

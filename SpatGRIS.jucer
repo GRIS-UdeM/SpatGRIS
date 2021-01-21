@@ -79,8 +79,6 @@
       <FILE id="BiDXCC" name="Input.h" compile="0" resource="0" file="Source/Input.h"/>
       <FILE id="A5skyB" name="JackClient.cpp" compile="1" resource="0" file="Source/JackClient.cpp"/>
       <FILE id="kACxoj" name="JackClient.h" compile="0" resource="0" file="Source/JackClient.h"/>
-      <FILE id="JF9m5z" name="JackMockup.cpp" compile="1" resource="0" file="Source/JackMockup.cpp"/>
-      <FILE id="dw0hrM" name="JackMockup.h" compile="0" resource="0" file="Source/JackMockup.h"/>
       <FILE id="arLWJq" name="LevelComponent.cpp" compile="1" resource="0"
             file="Source/LevelComponent.cpp"/>
       <FILE id="Fv8Faz" name="LevelComponent.h" compile="0" resource="0"
