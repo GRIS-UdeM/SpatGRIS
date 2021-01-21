@@ -183,8 +183,6 @@ public:
     void connectionClient(juce::String const & name, bool connect = true);
     void updateClientPortAvailable(bool fromJack);
 
-    [[nodiscard]] static std::string getClientName(char const * portName);
-
     // Recording.
     void prepareToRecord();
     void startRecord();

@@ -555,11 +555,6 @@ void AudioProcessor::processVBapHrtf(float ** ins,
                                      size_t sizeInputs,
                                      [[maybe_unused]] size_t sizeOutputs)
 {
-    // TODO : not shure this is necessary.
-    // std::for_each(outs, outs + sizeOutputs, [nFrames](float * channel) {
-    //    std::fill(channel, channel + nFrames, 0.0f);
-    //});
-
     for (unsigned i{}; i < sizeInputs; ++i) {
         if (mVbapSourcesToUpdate[i] == 1) {
             updateSourceVbap(static_cast<int>(i));
@@ -741,7 +736,7 @@ void AudioProcessor::connectedGrisToSystem()
 {
     clearOutput();
     auto & audioManager{ AudioManager::getInstance() };
-    for (unsigned int i = 0; i < mMaxOutputPatch; i++) {
+    for (unsigned i{}; i < mMaxOutputPatch; ++i) {
         juce::String nameOut{ "output" };
         nameOut += juce::String{ mOutputsPort.size() + 1 };
 
@@ -750,51 +745,37 @@ void AudioProcessor::connectedGrisToSystem()
         mOutputsPort.push_back(newPort);
     }
 
-    auto const outputPortNames{ audioManager.getPortNames(PortType::output) };
-    auto const inputPortNames{ audioManager.getPortNames(PortType::input) };
-
-    size_t i{};
-    size_t j{};
+    auto const outputPorts{ audioManager.getOutputPorts() };
+    auto const inputPorts{ audioManager.getInputPorts() };
 
     // DisConnect JackClientGris to system.
     // TODO : this is confusing
-    while (i < outputPortNames.size()) {
-        if (getClientName(outputPortNames[i].c_str()) == CLIENT_NAME) { // jackClient
-            j = 0;
-            auto * portOut{ audioManager.getPort(outputPortNames[i].c_str()) };
-            while (j < inputPortNames.size()) {
-                auto * portIn{ audioManager.getPort(inputPortNames[j].c_str()) };
-                if (getClientName(inputPortNames[j].c_str()) == SYS_CLIENT_NAME
-                    && audioManager.isConnectedTo(portOut, inputPortNames[j].c_str())) {
-                    audioManager.disconnect(portOut, portIn);
+    for (auto * outputPort : outputPorts) {
+        if (strcmp(outputPort->clientName, CLIENT_NAME) == 0) { // jackClient
+            for (auto * inputPort : inputPorts) {
+                if (strcmp(inputPort->clientName, SYS_CLIENT_NAME) == 0
+                    && audioManager.isConnectedTo(outputPort, inputPort->fullName)) {
+                    audioManager.disconnect(outputPort, inputPort);
                 }
-                ++j;
             }
         }
-        ++i;
     }
 
-    i = 0;
-    j = 0;
-
     // Connect JackClientGris to system.
-    while (i < outputPortNames.size()) {
-        if (getClientName(outputPortNames[i].c_str()) == CLIENT_NAME) { // jackClient
-            while (j < inputPortNames.size()) {
-                if (getClientName(inputPortNames[j].c_str()) == SYS_CLIENT_NAME) { // system
-                    audioManager.connect(outputPortNames[i].c_str(), inputPortNames[j].c_str());
-                    ++j;
+    for (auto * outputPort : outputPorts) {
+        if (strcmp(outputPort->clientName, CLIENT_NAME) == 0) { // jackClient
+            for (auto * inputPort : inputPorts) {
+                if (strcmp(inputPort->clientName, SYS_CLIENT_NAME) == 0) { // system
+                    audioManager.connect(outputPort, inputPort);
                     break;
                 }
-                ++j;
             }
         }
-        ++i;
     }
 
     // Build output patch list.
     mOutputPatches.clear();
-    for (i = 0; i < mOutputsPort.size(); ++i) {
+    for (size_t i{}; i < mOutputsPort.size(); ++i) {
         if (mSpeakersOut[i].outputPatch != 0) {
             mOutputPatches.push_back(mSpeakersOut[i].outputPatch);
         }
@@ -939,32 +920,25 @@ void AudioProcessor::updateSourceVbap(int const idS)
 void AudioProcessor::connectionClient(juce::String const & name, bool connect)
 {
     auto & audioManager{ AudioManager::getInstance() };
-    auto inputPortNames{ audioManager.getPortNames(PortType::input) };
-    auto outputPortNames{ audioManager.getPortNames(PortType::output) };
+    auto const inputPorts{ audioManager.getInputPorts() };
+    auto const outputPorts{ audioManager.getOutputPorts() };
 
     updateClientPortAvailable(false);
 
     // Disconnect client.
-    unsigned i{};
-    while (i < outputPortNames.size()) {
-        auto * portOut{ audioManager.getPort(outputPortNames[i].c_str()) };
-        if (getClientName(outputPortNames[i].c_str()) == name) {
-            int j{};
-            while (j < inputPortNames.size()) {
-                auto * portIn{ audioManager.getPort(inputPortNames[j].c_str()) };
-                if (getClientName(inputPortNames[j].c_str()) == CLIENT_NAME
-                    && audioManager.isConnectedTo(portIn, inputPortNames[j].c_str())) {
-                    audioManager.disconnect(portOut, portIn);
+    for (auto * outputPort : outputPorts) {
+        if (name == outputPort->clientName) {
+            for (auto * inputPort : inputPorts) {
+                if (strcmp(inputPort->clientName, CLIENT_NAME) == 0
+                    && audioManager.isConnectedTo(inputPort, outputPort)) {
+                    audioManager.disconnect(inputPort, outputPort);
                 }
-                j += 1;
             }
         }
-        i += 1;
     }
 
     for (auto & cli : mClients) {
         if (cli.name == name) {
-            // cli.connected = false;
             cli.connected = true; // since there is no checkbox anymore, lets set this to true by default.
         }
     }
@@ -980,33 +954,27 @@ void AudioProcessor::connectionClient(juce::String const & name, bool connect)
 
     auto conn{ false };
     for (auto & cli : mClients) {
-        i = 0;
-        unsigned j{};
         auto const & nameClient = cli.name;
-        auto startJ{ cli.portStart - 1 };
-        auto endJ{ cli.portEnd };
+        auto startJ{ narrow<int>(cli.portStart) - 1 };
+        auto endJ{ narrow<int>(cli.portEnd) };
 
-        while (i < outputPortNames.size()) {
-            if (nameClient == name && nameClient.compare(getClientName(outputPortNames[i].c_str())) == 0) {
-                while (inputPortNames[j].c_str()) {
-                    if (getClientName(inputPortNames[j].c_str()) == CLIENT_NAME) {
+        for (auto * outputPort : outputPorts) {
+            if (nameClient == name && nameClient == outputPort->clientName) {
+                for (int j{}; j < inputPorts.size(); ++j) {
+                    auto * inputPort{ inputPorts[j] };
+                    if (strcmp(inputPort->clientName, CLIENT_NAME) == 0) {
                         if (j >= startJ && j < endJ) {
-                            audioManager.connect(outputPortNames[i].c_str(), inputPortNames[j].c_str());
+                            audioManager.connect(outputPort, inputPort);
                             conn = true;
-                            j += 1;
                             break;
                         }
-                        j += 1;
-
                     } else {
-                        j += 1;
                         startJ += 1;
                         endJ += 1;
                     }
                 }
                 cli.connected = conn;
             }
-            i += 1;
         }
     }
 
@@ -1014,36 +982,22 @@ void AudioProcessor::connectionClient(juce::String const & name, bool connect)
 }
 
 //==============================================================================
-std::string AudioProcessor::getClientName(const char * portName)
-{
-    jassert(portName != nullptr);
-    auto * port{ AudioManager::getInstance().getPort(portName) };
-
-    std::string const nameClient{ port->fullName };
-    std::string const tempN{ port->shortName };
-    return nameClient.substr(0, nameClient.size() - (tempN.size() + 1));
-}
-
-//==============================================================================
 void AudioProcessor::updateClientPortAvailable(bool const fromJack)
 {
-    auto const portsOut{ AudioManager::getInstance().getPortNames(PortType::output) };
+    auto const outputPorts{ AudioManager::getInstance().getOutputPorts() };
 
     for (auto & client : mClients) {
         client.portAvailable = 0;
     }
 
-    unsigned i{};
-    while (i < portsOut.size()) {
-        auto const clientName{ getClientName(portsOut[i].c_str()) };
-        if (clientName != CLIENT_NAME && clientName != SYS_CLIENT_NAME) {
+    for (auto const * outputPort : outputPorts) {
+        if (strcmp(outputPort->clientName, CLIENT_NAME) != 0 && strcmp(outputPort->clientName, SYS_CLIENT_NAME) != 0) {
             for (auto & client : mClients) {
-                if (client.name.compare(clientName) == 0) {
+                if (client.name.compare(outputPort->clientName) == 0) {
                     client.portAvailable += 1;
                 }
             }
         }
-        i++;
     }
 
     unsigned start{ 1 };

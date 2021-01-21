@@ -214,6 +214,18 @@ bool AudioManager::isConnectedTo(jack_port_t const * port, char const * port_nam
 }
 
 //==============================================================================
+bool AudioManager::isConnectedTo(jack_port_t const * portA, jack_port_t const * portB) const
+{
+    juce::ScopedLock sl{ mCriticalSection };
+
+    if (!mConnections.contains(const_cast<jack_port_t *>(portA))) {
+        return false;
+    }
+
+    return mConnections[const_cast<jack_port_t *>(portA)] == portB;
+}
+
+//==============================================================================
 void AudioManager::registerJackClient(AudioProcessor * jackClient)
 {
     juce::ScopedLock sl{ mCriticalSection };
@@ -328,8 +340,13 @@ void AudioManager::connect(char const * sourcePortName, char const * destination
 {
     juce::ScopedLock sl{ mCriticalSection };
 
-    auto * sourcePort{ getPort(sourcePortName) };
-    auto * destinationPort{ getPort(destinationPortName) };
+    connect(getPort(sourcePortName), getPort(destinationPortName));
+}
+
+//==============================================================================
+void AudioManager::connect(jack_port_t * sourcePort, jack_port_t * destinationPort)
+{
+    juce::ScopedLock sl{ mCriticalSection };
 
     jassert(sourcePort->type == PortType::output);
     jassert(destinationPort->type == PortType::input);

@@ -99,6 +99,7 @@ public:
     void unregisterPort(jack_port_t * port);
 
     [[nodiscard]] bool isConnectedTo(jack_port_t const * port, char const * port_name) const;
+    [[nodiscard]] bool isConnectedTo(jack_port_t const * portA, jack_port_t const * portB) const;
 
     void registerJackClient(AudioProcessor * jackClient);
 
@@ -112,6 +113,7 @@ public:
     [[nodiscard]] std::vector<std::string> getPortNames(PortType portType) const;
 
     void connect(char const * sourcePortName, char const * destinationPortName);
+    void connect(jack_port_t * sourcePort, jack_port_t * destinationPort);
     void disconnect(jack_port_t * sourcePort, jack_port_t * destinationPort);
     //==============================================================================
     // AudioSourcePlayer overrides
