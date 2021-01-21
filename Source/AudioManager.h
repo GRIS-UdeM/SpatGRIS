@@ -126,8 +126,8 @@ public:
     static void init(juce::String const & inputDevice,
                      juce::String const & outputDevice,
                      std::optional<juce::String> deviceType,
-                     double const sampleRate,
-                     int const bufferSize);
+                     double sampleRate,
+                     int bufferSize);
     [[nodiscard]] static AudioManager & getInstance();
     static void free();
 

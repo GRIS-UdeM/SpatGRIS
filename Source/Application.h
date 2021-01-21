@@ -49,7 +49,7 @@ public:
     //==============================================================================
     void start(juce::String const & inputDevice,
                juce::String const & outputDevice,
-               std::optional<juce::String> deviceType);
+               std::optional<juce::String> const & deviceType);
     void chooseDeviceType();
     void chooseDevice(std::optional<juce::String> deviceType);
     //==============================================================================

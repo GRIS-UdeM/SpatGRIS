@@ -125,7 +125,8 @@ public:
     {
         setVisible(false);
         mCallback(mInputMenu.getText(), mOutputMenu.getText(), mDeviceType);
-        if (juce::DialogWindow * dw = findParentComponentOfClass<juce::DialogWindow>()) {
+        auto * dw{ findParentComponentOfClass<juce::DialogWindow>() };
+        if (dw) {
             dw->exitModalState(1234);
         }
     }
@@ -149,9 +150,9 @@ void SpatGris2Application::initialise(const juce::String &)
 //==============================================================================
 void SpatGris2Application::start(juce::String const & inputDevice,
                                  juce::String const & outputDevice,
-                                 std::optional<juce::String> const deviceType)
+                                 std::optional<juce::String> const & deviceType)
 {
-    mMainWindow.reset(new MainWindow(getApplicationName(), mGrisFeel, inputDevice, outputDevice, deviceType));
+    mMainWindow = std::make_unique<MainWindow>(getApplicationName(), mGrisFeel, inputDevice, outputDevice, deviceType);
 }
 
 //==============================================================================
@@ -189,10 +190,9 @@ void SpatGris2Application::chooseDevice(std::optional<juce::String> deviceType)
     auto const inputDevices{ deviceTypeObject->getDeviceNames(true) };
     auto const outputDevices{ deviceTypeObject->getDeviceNames(false) };
 
-    auto callback
-        = [=](juce::String const & inputDevice,
-              juce::String const & outputDevice,
-              std::optional<juce::String> deviceType) { start(inputDevice, outputDevice, std::move(deviceType)); };
+    auto callback = [=](juce::String const & inputDevice,
+                        juce::String const & outputDevice,
+                        std::optional<juce::String> deviceType) { start(inputDevice, outputDevice, deviceType); };
 
     juce::DialogWindow::LaunchOptions options{};
     options.content.set(new DeviceChooser{ inputDevices, outputDevices, std::move(deviceType), callback }, true);
