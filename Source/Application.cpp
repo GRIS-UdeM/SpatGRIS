@@ -18,7 +18,6 @@
 */
 
 #include "Application.h"
-
 #include "AudioManager.h"
 
 //==============================================================================
@@ -58,7 +57,8 @@ public:
     {
         setVisible(false);
         mCallback(mMenu.getText());
-        if (juce::DialogWindow * dw = findParentComponentOfClass<juce::DialogWindow>()) {
+        auto * dw{ findParentComponentOfClass<juce::DialogWindow>() };
+        if (dw) {
             dw->exitModalState(1234);
         }
     }

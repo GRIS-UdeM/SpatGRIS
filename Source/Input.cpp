@@ -163,7 +163,7 @@ void Input::draw() const
     glTranslatef(-mCenter.x, -mCenter.y, -mCenter.z);
 
     if ((mAzimuthSpan != 0.0f || mZenithSpan != 0.0f) && mMainContentComponent.isSpanShown()) {
-        if (mMainContentComponent.getModeSelected() == ModeSpatEnum::LBAP) {
+        if (mMainContentComponent.getModeSelected() == SpatModes::lbap) {
             drawSpanLbap(mCenter.x, mCenter.y, mCenter.z);
         } else {
             drawSpan();
@@ -195,7 +195,7 @@ void Input::drawSpan() const
                 newAzimuth += juce::MathConstants<float>::twoPi;
             }
 
-            if (mMainContentComponent.getModeSelected() == ModeSpatEnum::LBAP) {
+            if (mMainContentComponent.getModeSelected() == SpatModes::lbap) {
                 cart = polToCar3d(newAzimuth, mZenith);
             } else {
                 cart = polToCar(newAzimuth, mZenith);
@@ -207,7 +207,7 @@ void Input::drawSpan() const
                     auto newElevation{ l ? mZenith + eleDev : mZenith - eleDev };
                     newElevation = std::clamp(newElevation, 0.0f, juce::MathConstants<float>::halfPi);
 
-                    if (mMainContentComponent.getModeSelected() == ModeSpatEnum::LBAP) {
+                    if (mMainContentComponent.getModeSelected() == SpatModes::lbap) {
                         cart = polToCar3d(newAzimuth, newElevation);
                     } else {
                         cart = polToCar(newAzimuth, newElevation);
@@ -289,7 +289,7 @@ void Input::updateValues(float const az,
                          float const zeS,
                          float const radius,
                          float const g,
-                         ModeSpatEnum const mode)
+                         SpatModes const mode)
 {
     mAzimuth = az;
     mZenith = ze;
@@ -300,7 +300,7 @@ void Input::updateValues(float const az,
 
     auto const factor{ radius * 10.0f };
 
-    if (mode == ModeSpatEnum::LBAP) {
+    if (mode == SpatModes::lbap) {
         mCenter.x = factor * std::cos(mAzimuth);
         mCenter.z = factor * std::sin(mAzimuth);
         mCenter.y = 10.0f * std::cos(mZenith) + mSizeT / 2.0f;

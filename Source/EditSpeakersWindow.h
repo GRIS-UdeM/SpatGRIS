@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "JackClient.h"
+#include "AudioProcessor.h"
 #include "macros.h"
 
 DISABLE_WARNINGS
@@ -90,7 +90,7 @@ public:
 
 private:
     //==============================================================================
-    [[nodiscard]] ModeSpatEnum getModeSelected() const;
+    [[nodiscard]] SpatModes getModeSelected() const;
     [[nodiscard]] bool getDirectOutForSpeakerRow(int row) const;
     [[nodiscard]] juce::String getText(int columnNumber, int rowNumber) const;
     void setText(int columnNumber, int rowNumber, juce::String const & newText, bool altDown = false);

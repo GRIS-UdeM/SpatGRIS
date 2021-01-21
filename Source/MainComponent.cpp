@@ -55,7 +55,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     AudioManager::init(inputDevice, outputDevice, deviceType, static_cast<double>(sampleRate), bufferSize);
 
     // init jackClient
-    mJackClient = std::make_unique<JackClient>();
+    mJackClient = std::make_unique<AudioProcessor>();
 
     // Create the menu bar.
     mMenuBar.reset(new juce::MenuBarComponent(this));
@@ -707,7 +707,7 @@ void MainContentComponent::handleShowTriplets()
 //==============================================================================
 void MainContentComponent::setShowTriplets(bool const state)
 {
-    if (getModeSelected() == ModeSpatEnum::LBAP && state == true) {
+    if (getModeSelected() == SpatModes::lbap && state == true) {
         juce::AlertWindow alert("Can't draw triplets !",
                                 "Triplets are not effective with the CUBE mode.",
                                 juce::AlertWindow::InfoIcon);
@@ -1337,7 +1337,7 @@ void MainContentComponent::removeSpeaker(int const idSpeaker)
 bool MainContentComponent::isRadiusNormalized() const
 {
     auto const mode{ mJackClient->getMode() };
-    if (mode == ModeSpatEnum::VBAP || mode == ModeSpatEnum::VBAP_HRTF)
+    if (mode == SpatModes::vbap || mode == SpatModes::hrtfVbap)
         return true;
     else
         return false;
@@ -1349,7 +1349,7 @@ void MainContentComponent::updateInputJack(int inInput, Input & inp)
     auto const mode{ mJackClient->getMode() };
     auto & si = mJackClient->getSourcesIn()[inInput];
 
-    if (mode == ModeSpatEnum::LBAP) {
+    if (mode == SpatModes::lbap) {
         si.radAzimuth = inp.getAzimuth();
         si.radElevation = juce::MathConstants<float>::halfPi - inp.getZenith();
     } else {
@@ -1364,7 +1364,7 @@ void MainContentComponent::updateInputJack(int inInput, Input & inp)
     si.azimuthSpan = inp.getAzimuthSpan() * 0.5f;
     si.zenithSpan = inp.getZenithSpan() * 2.0f;
 
-    if (mode == ModeSpatEnum::VBAP || mode == ModeSpatEnum::VBAP_HRTF) {
+    if (mode == SpatModes::vbap || mode == SpatModes::hrtfVbap) {
         mJackClient->getVbapSourcesToUpdate()[inInput] = 1;
     }
 }
@@ -1472,6 +1472,8 @@ float MainContentComponent::getSpeakerLevelsAlpha(int const indexLevel) const
 //==============================================================================
 bool MainContentComponent::updateLevelComp()
 {
+    // TODO : this function is 100 times longer than it should be.
+
     if (mSpeakers.isEmpty()) {
         return false;
     }
@@ -1577,7 +1579,7 @@ bool MainContentComponent::updateLevelComp()
 
         x += VU_METER_WIDTH_IN_PIXELS;
 
-        if (mode == ModeSpatEnum::VBAP || mode == ModeSpatEnum::VBAP_HRTF) {
+        if (mode == SpatModes::vbap || mode == SpatModes::hrtfVbap) {
             speaker->normalizeRadius();
         }
 
@@ -1674,7 +1676,7 @@ bool MainContentComponent::updateLevelComp()
     tempListSpeaker.resize(i);
 
     auto returnValue{ false };
-    if (mode == ModeSpatEnum::VBAP || mode == ModeSpatEnum::VBAP_HRTF) {
+    if (mode == SpatModes::vbap || mode == SpatModes::hrtfVbap) {
         mJackClient->setVbapDimensions(dimensions);
         if (dimensions == 2) {
             setShowTriplets(false);
@@ -1694,7 +1696,7 @@ bool MainContentComponent::updateLevelComp()
             openXmlFileSpeaker(DEFAULT_SPEAKER_SETUP_FILE.getFullPathName());
             return false;
         }
-    } else if (mode == ModeSpatEnum::LBAP) {
+    } else if (mode == SpatModes::lbap) {
         setShowTriplets(false);
         returnValue = mJackClient->lbapSetupSpeakerField(tempListSpeaker);
     }
@@ -1824,25 +1826,25 @@ void MainContentComponent::openXmlFileSpeaker(juce::String const & path)
                 mSpeakers.clear();
                 mSpeakerLocks.unlock();
                 if (path.compare(BINAURAL_SPEAKER_SETUP_FILE.getFullPathName()) == 0) {
-                    mJackClient->setMode(ModeSpatEnum::VBAP_HRTF);
-                    mModeSpatCombo->setSelectedId(static_cast<int>(ModeSpatEnum::VBAP_HRTF) + 1,
+                    mJackClient->setMode(SpatModes::hrtfVbap);
+                    mModeSpatCombo->setSelectedId(static_cast<int>(SpatModes::hrtfVbap) + 1,
                                                   juce::NotificationType::dontSendNotification);
                 } else if (path.compare(STEREO_SPEAKER_SETUP_FILE.getFullPathName()) == 0) {
-                    mJackClient->setMode(ModeSpatEnum::STEREO);
-                    mModeSpatCombo->setSelectedId(static_cast<int>(ModeSpatEnum::STEREO) + 1,
+                    mJackClient->setMode(SpatModes::stereo);
+                    mModeSpatCombo->setSelectedId(static_cast<int>(SpatModes::stereo) + 1,
                                                   juce::NotificationType::dontSendNotification);
                 } else if (!isNewSameAsOld && oldPath.compare(BINAURAL_SPEAKER_SETUP_FILE.getFullPathName()) != 0
                            && oldPath.compare(STEREO_SPEAKER_SETUP_FILE.getFullPathName()) != 0) {
                     auto const spatMode = mainXmlElem->getIntAttribute("SpatMode");
-                    mJackClient->setMode(static_cast<ModeSpatEnum>(spatMode));
+                    mJackClient->setMode(static_cast<SpatModes>(spatMode));
                     mModeSpatCombo->setSelectedId(spatMode + 1, juce::NotificationType::dontSendNotification);
                 } else if (!isNewSameAsLastSetup) {
                     auto const spatMode = mainXmlElem->getIntAttribute("SpatMode");
-                    mJackClient->setMode(static_cast<ModeSpatEnum>(spatMode));
+                    mJackClient->setMode(static_cast<SpatModes>(spatMode));
                     mModeSpatCombo->setSelectedId(spatMode + 1, juce::NotificationType::dontSendNotification);
                 }
 
-                auto const loadSetupFromXyz{ /*isNewSameAsOld &&*/ mJackClient->getMode() == ModeSpatEnum::LBAP };
+                auto const loadSetupFromXyz{ /*isNewSameAsOld &&*/ mJackClient->getMode() == SpatModes::lbap };
 
                 setNameConfig();
                 mJackClient->setProcessBlockOn(false);
@@ -1927,7 +1929,7 @@ void MainContentComponent::openXmlFileSpeaker(juce::String const & path)
         mNeedToComputeVbap = true;
         updateLevelComp();
         auto const mode{ mJackClient->getMode() };
-        if (mode != ModeSpatEnum::VBAP_HRTF && mode != ModeSpatEnum::STEREO) {
+        if (mode != SpatModes::hrtfVbap && mode != SpatModes::stereo) {
             if (mPathCurrentFileSpeaker.compare(BINAURAL_SPEAKER_SETUP_FILE.getFullPathName()) != 0
                 && mPathCurrentFileSpeaker.compare(STEREO_SPEAKER_SETUP_FILE.getFullPathName()) != 0) {
                 mPathLastVbapSpeakerSetup = mPathCurrentFileSpeaker;
@@ -2190,7 +2192,7 @@ void MainContentComponent::saveSpeakerSetup(juce::String const & path)
     mNeedToSaveSpeakerSetup = false;
 
     auto const mode{ mJackClient->getMode() };
-    if (mode != ModeSpatEnum::VBAP_HRTF && mode != ModeSpatEnum::STEREO) {
+    if (mode != SpatModes::hrtfVbap && mode != SpatModes::stereo) {
         if (mPathCurrentFileSpeaker.compare(BINAURAL_SPEAKER_SETUP_FILE.getFullPathName()) != 0
             && mPathCurrentFileSpeaker.compare(STEREO_SPEAKER_SETUP_FILE.getFullPathName()) != 0) {
             mPathLastVbapSpeakerSetup = mPathCurrentFileSpeaker;
@@ -2460,25 +2462,25 @@ void MainContentComponent::comboBoxChanged(juce::ComboBox * comboBox)
 
     if (mModeSpatCombo.get() == comboBox) {
         mJackClient->setProcessBlockOn(false);
-        mJackClient->setMode(static_cast<ModeSpatEnum>(mModeSpatCombo->getSelectedId() - 1));
+        mJackClient->setMode(static_cast<SpatModes>(mModeSpatCombo->getSelectedId() - 1));
         switch (mJackClient->getMode()) {
-        case ModeSpatEnum::VBAP:
+        case SpatModes::vbap:
             openXmlFileSpeaker(mPathLastVbapSpeakerSetup);
             mNeedToSaveSpeakerSetup = false;
             mIsSpanShown = true;
             break;
-        case ModeSpatEnum::LBAP:
+        case SpatModes::lbap:
             openXmlFileSpeaker(mPathLastVbapSpeakerSetup);
             mNeedToSaveSpeakerSetup = false;
             mIsSpanShown = true;
             break;
-        case ModeSpatEnum::VBAP_HRTF:
+        case SpatModes::hrtfVbap:
             openXmlFileSpeaker(BINAURAL_SPEAKER_SETUP_FILE.getFullPathName());
             mNeedToSaveSpeakerSetup = false;
             mJackClient->resetHrtf();
             mIsSpanShown = false;
             break;
-        case ModeSpatEnum::STEREO:
+        case SpatModes::stereo:
             openXmlFileSpeaker(STEREO_SPEAKER_SETUP_FILE.getFullPathName());
             mNeedToSaveSpeakerSetup = false;
             mIsSpanShown = false;

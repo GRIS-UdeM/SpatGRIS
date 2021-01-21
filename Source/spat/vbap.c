@@ -42,7 +42,7 @@ static int any_ls_inside_triplet(int a, int b, int c,
     lp3 = &(lss[c].coords);
 
     /* Matrix inversion. */
-    invdet = 1.0 / (lp1->x * ((lp2->y * lp3->z) - (lp2->z * lp3->y))
+    invdet = 1.0f / (lp1->x * ((lp2->y * lp3->z) - (lp2->z * lp3->y))
              - lp1->y * ((lp2->x * lp3->z) - (lp2->z * lp3->x))
              + lp1->z * ((lp2->x * lp3->y) - (lp2->y * lp3->x)));
 
@@ -126,9 +126,9 @@ static float vec_length(CART_VEC v1) {
 
 /* Returns the vector mean. */
 static void vec_mean(CART_VEC v1, CART_VEC v2, CART_VEC *v3) {
-    v3->x = (v1.x + v2.x) * 0.5;
-    v3->y = (v1.y + v2.y) * 0.5;
-    v3->z = (v1.z + v2.z) * 0.5;
+    v3->x = (v1.x + v2.x) * 0.5f;
+    v3->y = (v1.y + v2.y) * 0.5f;
+    v3->z = (v1.z + v2.z) * 0.5f;
 }
 
 /* Returns the vector product. */
@@ -222,9 +222,9 @@ static int lines_intersect(int i, int j, int k, int l,
     cross_prod(lss[k].coords, lss[l].coords,&v2);
     cross_prod(v1, v2, &v3);
 
-    neg_v3.x = 0.0 - v3.x;
-    neg_v3.y = 0.0 - v3.y;
-    neg_v3.z = 0.0 - v3.z;
+    neg_v3.x = 0.0f - v3.x;
+    neg_v3.y = 0.0f - v3.y;
+    neg_v3.z = 0.0f - v3.z;
 
     dist_ij = (vec_angle(lss[i].coords, lss[j].coords));
     dist_kl = (vec_angle(lss[k].coords, lss[l].coords));
@@ -262,17 +262,17 @@ static void new_spread_dir(CART_VEC *spreaddir, CART_VEC vscartdir,
 	ANG_VEC tmp;
 
     sum = clip(vec_prod(vscartdir, spread_base), -1.0, 1.0);
-	gamma = acosf(sum) / M_PI * 180.0;
+	gamma = acosf(sum) / (float)M_PI * 180.0f;
 	if(fabsf(gamma) < 1) {
-        tmp.azi = azi + 90.0; tmp.ele = 0.0; tmp.length = 1.0;
+        tmp.azi = azi + 90.0f; tmp.ele = 0.0f; tmp.length = 1.0f;
 		vec_angle_to_cart(&tmp, &spread_base);
         sum = clip(vec_prod(vscartdir, spread_base), -1.0, 1.0);
-		gamma = acosf(sum) / M_PI * 180.0;
+		gamma = acosf(sum) / (float)M_PI * 180.0f;
     }
-	beta = 180.0 - gamma;
-	b = sinf(spread * M_PI / 180.0) / sinf(beta * M_PI / 180.0);
-	a = sinf((180.0 - spread - beta) * M_PI / 180.0) /
-        sinf(beta * M_PI / 180.0);
+	beta = 180.0f - gamma;
+	b = sinf(spread * (float)M_PI / 180.0f) / sinf(beta * (float)M_PI / 180.0f);
+	a = sinf((180.0f - spread - beta) * (float)M_PI / 180.0f) /
+        sinf(beta * (float)M_PI / 180.0f);
 	spreaddir->x = a * vscartdir.x + b * spread_base.x;
 	spreaddir->y = a * vscartdir.y + b * spread_base.y;
 	spreaddir->z = a * vscartdir.z + b * spread_base.z;
@@ -355,8 +355,8 @@ static void spreadit(float azi, float spread, VBAP_DATA *data) {
 
 	if (spread > 70.0) {
         for (i=0; i<cnt; i++) {
-            data->gains[i] += (spread - 70.0) / 30.0 *
-                              (spread - 70.0) / 30.0 * 20.0;
+            data->gains[i] += (spread - 70.0f) / 30.0f *
+                              (spread - 70.0f) / 30.0f * 20.0f;
         }
     }
 	for (i=0; i<cnt; i++){
@@ -396,8 +396,8 @@ static void spreadit_azi_ele(float azi, float ele, float sp_azi,
 
     for (i=0; i<num; i++) {
         comp = powf(10.0f, (i+1) * -3.0f * 0.05f);
-        azidev = (i+1) * sp_azi * 45.0;
-        eledev = (i+1) * sp_ele * 22.5;
+        azidev = (i+1) * sp_azi * 45.0f;
+        eledev = (i+1) * sp_ele * 22.5f;
         for (k=0; k<knum; k++) {
             if (k == 0) {
                 newazi = data->ang_dir.azi + azidev;
@@ -448,7 +448,7 @@ static void spreadit_azi_ele(float azi, float ele, float sp_azi,
     }
 
 	if (sp_azi > 0.8 && sp_ele > 0.8) {
-        comp = (sp_azi - 0.8) / 0.2 * (sp_ele - 0.8) / 0.2 * 10.0;
+        comp = (sp_azi - 0.8f) / 0.2f * (sp_ele - 0.8f) / 0.2f * 10.0f;
         for (i=0; i<data->ls_out; i++) {
             data->gains[data->out_patches[i]-1] += comp;
         }
@@ -493,8 +493,8 @@ static void spreadit_azi_ele_flip_y_z(float azi, float ele, float sp_azi,
 
     for (i=0; i<num; i++) {
         comp = powf(10.0f, (i+1) * -3.0f * 0.05f);
-        azidev = (i+1) * sp_azi * 45.0;
-        eledev = (i+1) * sp_ele * 22.5;
+        azidev = (i+1) * sp_azi * 45.0f;
+        eledev = (i+1) * sp_ele * 22.5f;
         for (k=0; k<knum; k++) {
             if (k == 0) {
                 newazi = data->ang_dir.azi + azidev;
@@ -548,7 +548,7 @@ static void spreadit_azi_ele_flip_y_z(float azi, float ele, float sp_azi,
     }
 
 	if (sp_azi > 0.8 && sp_ele > 0.8) {
-        comp = (sp_azi - 0.8) / 0.2 * (sp_ele - 0.8) / 0.2 * 10.0;
+        comp = (sp_azi - 0.8f) / 0.2f * (sp_ele - 0.8f) / 0.2f * 10.0f;
         for (i=0; i<data->ls_out; i++) {
             data->gains[data->out_patches[i]-1] += comp;
         }
@@ -582,7 +582,7 @@ static void spreadit_azi(float azi, float sp_azi, VBAP_DATA *data) {
 
     for (i=0; i<num; i++) {
         comp = powf(10.0f, (i+1) * -3.0f * 0.05f);
-        azidev = (i+1) * sp_azi * 45.0;
+        azidev = (i+1) * sp_azi * 45.0f;
         for (k=0; k<2; k++) {
             if (k == 0) {
                 newazi = data->ang_dir.azi + azidev;
@@ -630,7 +630,7 @@ static void spreadit_azi_flip_y_z(float azi, float sp_azi, VBAP_DATA *data) {
 
     for (i=0; i<num; i++) {
         comp = powf(10.0f, (i+1) * -3.0f * 0.05f);
-        azidev = (i+1) * sp_azi * 45.0;
+        azidev = (i+1) * sp_azi * 45.0f;
         for (k=0; k<2; k++) {
             if (k == 0) {
                 newazi = data->ang_dir.azi + azidev;
@@ -790,11 +790,11 @@ void sort_2D_lss(ls lss[MAX_LS_AMOUNT],
         }
         sorted_lss[i]=index;
         tmp_azi = lss[index].angles.azi;
-        lss[index].angles.azi = (tmp_azi + 4000.0);
+        lss[index].angles.azi = tmp_azi + 4000.0f;
     }
     for (i=0; i<ls_amount; i++) {
         tmp_azi = lss[i].angles.azi;
-        lss[i].angles.azi = (tmp_azi - 4000.0);
+        lss[i].angles.azi = tmp_azi - 4000.0f;
     }
 }
 
@@ -954,7 +954,7 @@ void choose_ls_triplets(ls lss[MAX_LS_AMOUNT],
     for(i=0; i<ls_amount; i++) { 
         for(j=(i+1); j<ls_amount; j++) { 
             if(connections[i][j] == 1) {
-                distance = fabs(vec_angle(lss[i].coords, lss[j].coords));
+                distance = fabsf(vec_angle(lss[i].coords, lss[j].coords));
                 k=0;
                 while(distance_table[k] < distance) {
                     k++;
@@ -1049,7 +1049,7 @@ int calculate_3x3_matrixes(ls_triplet_chain *ls_triplets,
 
         /* Matrix inversion. */
         invmx = tr_ptr->inv_mx;
-        invdet = 1.0 / (lp1->x * ((lp2->y * lp3->z) - (lp2->z * lp3->y))
+        invdet = 1.0f / (lp1->x * ((lp2->y * lp3->z) - (lp2->z * lp3->y))
                       - lp1->y * ((lp2->x * lp3->z) - (lp2->z * lp3->x))
                       + lp1->z * ((lp2->x * lp3->y) - (lp2->y * lp3->x)));
 

@@ -31,11 +31,11 @@ ENABLE_WARNINGS
 #define STRING(x) STRING2(x)
 
 #include "AboutWindow.h"
+#include "AudioProcessor.h"
 #include "Box.h"
 #include "EditSpeakersWindow.h"
 #include "FlatViewWindow.h"
 #include "Input.h"
-#include "JackClient.h"
 #include "OscInput.h"
 #include "OscLogWindow.h"
 #include "PropertiesWindow.h"
@@ -57,7 +57,7 @@ class MainContentComponent final
     , private juce::Timer
 {
     // Jack client.
-    std::unique_ptr<JackClient> mJackClient{};
+    std::unique_ptr<AudioProcessor> mJackClient{};
 
     // Speakers.
     std::vector<Triplet> mTriplets{};
@@ -251,8 +251,8 @@ public:
     [[nodiscard]] bool isRadiusNormalized() const;
 
     // Jack clients.
-    [[nodiscard]] JackClient * getJackClient() { return mJackClient.get(); }
-    [[nodiscard]] JackClient const * getJackClient() const { return mJackClient.get(); }
+    [[nodiscard]] AudioProcessor * getJackClient() { return mJackClient.get(); }
+    [[nodiscard]] AudioProcessor const * getJackClient() const { return mJackClient.get(); }
 
     [[nodiscard]] std::vector<Client> & getClients() { return mJackClient->getClients(); }
     [[nodiscard]] std::vector<Client> const & getClients() const { return mJackClient->getClients(); }
@@ -293,7 +293,7 @@ public:
     [[nodiscard]] float getSpeakerLevelsAlpha(int indexLevel) const;
 
     // Called when the speaker setup has changed.
-    [[nodiscard]] bool updateLevelComp();
+    bool updateLevelComp(); // TODO : what does the return value means ?
 
     // Open - save.
     void openXmlFileSpeaker(juce::String const & path);
@@ -334,47 +334,47 @@ public:
     void textEditorReturnKeyPressed(juce::TextEditor & textEditor) override;
     void comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged) override;
 
-    [[nodiscard]] ModeSpatEnum getModeSelected() const
+    [[nodiscard]] SpatModes getModeSelected() const
     {
-        return static_cast<ModeSpatEnum>(mModeSpatCombo->getSelectedId() - 1);
+        return static_cast<SpatModes>(mModeSpatCombo->getSelectedId() - 1);
     }
 
     void setOscLogging(const juce::OSCMessage & message) const;
 
     //==============================================================================
     // Widget creation helper.
-    [[nodiscard]] juce::TextEditor * addTextEditor(juce::String const & s,
-                                                   juce::String const & emptyS,
-                                                   juce::String const & tooltip,
-                                                   int x,
-                                                   int y,
-                                                   int w,
-                                                   int h,
-                                                   juce::Component * into,
-                                                   int wLab = 80);
+    juce::TextEditor * addTextEditor(juce::String const & s,
+                                     juce::String const & emptyS,
+                                     juce::String const & tooltip,
+                                     int x,
+                                     int y,
+                                     int w,
+                                     int h,
+                                     juce::Component * into,
+                                     int wLab = 80);
 
 private:
     // Widget creation helpers.
-    [[nodiscard]] juce::Label * addLabel(const juce::String & s,
+    juce::Label * addLabel(const juce::String & s,
+                           const juce::String & tooltip,
+                           int x,
+                           int y,
+                           int w,
+                           int h,
+                           Component * into) const;
+    juce::TextButton *
+        addButton(const juce::String & s, const juce::String & tooltip, int x, int y, int w, int h, Component * into);
+    juce::ToggleButton * addToggleButton(const juce::String & s,
                                          const juce::String & tooltip,
                                          int x,
                                          int y,
                                          int w,
                                          int h,
-                                         Component * into) const;
-    [[nodiscard]] juce::TextButton *
-        addButton(const juce::String & s, const juce::String & tooltip, int x, int y, int w, int h, Component * into);
-    [[nodiscard]] juce::ToggleButton * addToggleButton(const juce::String & s,
-                                                       const juce::String & tooltip,
-                                                       int x,
-                                                       int y,
-                                                       int w,
-                                                       int h,
-                                                       Component * into,
-                                                       bool toggle = false);
-    [[nodiscard]] juce::Slider *
+                                         Component * into,
+                                         bool toggle = false);
+    juce::Slider *
         addSlider(const juce::String & s, const juce::String & tooltip, int x, int y, int w, int h, Component * into);
-    [[nodiscard]] juce::ComboBox *
+    juce::ComboBox *
         addComboBox(const juce::String & s, const juce::String & tooltip, int x, int y, int w, int h, Component * into);
 
     //==============================================================================

@@ -19,17 +19,13 @@
 
 #pragma once
 
-static_assert(!USE_JACK);
-
 #include <array>
-#include <cstdint>
 #include <mutex>
 #include <vector>
 
 #include "macros.h"
 
 DISABLE_WARNINGS
-
 #include <JuceHeader.h>
 
 #include "spat/lbap.h"
@@ -37,93 +33,17 @@ DISABLE_WARNINGS
 ENABLE_WARNINGS
 
 #include "AudioRecorder.h"
+#include "Client.hpp"
+#include "SourceIn.hpp"
+#include "SpatModes.hpp"
+#include "SpeakerOut.hpp"
 #include "constants.hpp"
 
 class Speaker;
 struct jack_port_t;
 
 //==============================================================================
-struct LbapData {
-    lbap_pos pos;
-    std::array<float, MAX_OUTPUTS> gains;
-    std::array<float, MAX_OUTPUTS> y;
-};
-
-//==============================================================================
-struct Client {
-    juce::String name;
-    unsigned int portStart = 0;
-    unsigned int portEnd = 0;
-    unsigned int portAvailable = 0;
-    unsigned int activePorts = 0;
-    bool initialized = false;
-    bool connected = false;
-};
-
-//==============================================================================
-struct SourceIn {
-    unsigned int id{};
-    float x{};
-    float y{};
-    float z{};
-
-    float radAzimuth{};
-    float radElevation{};
-    float azimuth{};
-    float zenith{};
-    float radius{ 1.0f };
-    float azimuthSpan{};
-    float zenithSpan{};
-
-    std::array<float, MAX_OUTPUTS> lbapGains{};
-    std::array<float, MAX_OUTPUTS> lbapY{};
-    lbap_pos lbapLastPos{ -1, -1, -1, 0.0f, 0.0f, 0.0f };
-
-    bool isMuted = false;
-    bool isSolo = false;
-    float gain{}; // Not used yet.
-
-    int directOut{};
-
-    VBAP_DATA * paramVBap{};
-};
-
-//==============================================================================
-struct SpeakerOut {
-    unsigned int id{};
-    float x{};
-    float y{};
-    float z{};
-
-    float azimuth{};
-    float zenith{};
-    float radius{};
-
-    float gain{ 1.0f };
-
-    bool hpActive = false;
-    double b1{};
-    double b2{};
-    double b3{};
-    double b4{};
-    double ha0{};
-    double ha1{};
-    double ha2{};
-
-    bool isMuted = false;
-    bool isSolo = false;
-
-    int outputPatch{};
-
-    bool directOut = false;
-};
-
-//==============================================================================
-// Spatialization modes.
-enum class ModeSpatEnum { VBAP = 0, LBAP, VBAP_HRTF, STEREO };
-
-//==============================================================================
-class JackClient
+class AudioProcessor
 {
     // class variables.
     //-----------------
@@ -185,7 +105,7 @@ class JackClient
     bool mIsOverloaded{ false };
 
     // Which spatialization mode is selected.
-    ModeSpatEnum mModeSelected{ ModeSpatEnum::VBAP };
+    SpatModes mModeSelected{ SpatModes::vbap };
 
     bool mAutoConnection{ false }; // not sure this one is necessary ?
 
@@ -237,14 +157,14 @@ class JackClient
 public:
     //==============================================================================
     // Class methods.
-    JackClient();
-    ~JackClient();
+    AudioProcessor();
+    ~AudioProcessor();
 
-    JackClient(JackClient const &) = delete;
-    JackClient(JackClient &&) = delete;
+    AudioProcessor(AudioProcessor const &) = delete;
+    AudioProcessor(AudioProcessor &&) = delete;
 
-    JackClient & operator=(JackClient const &) = delete;
-    JackClient & operator=(JackClient &&) = delete;
+    AudioProcessor & operator=(AudioProcessor const &) = delete;
+    AudioProcessor & operator=(AudioProcessor &&) = delete;
     //==============================================================================
     // Audio Status.
     [[nodiscard]] bool isReady() const { return mClientReady; }
@@ -254,7 +174,7 @@ public:
     // Manage Inputs / Outputs.
     void addRemoveInput(unsigned int number);
     void clearOutput();
-    [[nodiscard]] bool addOutput(unsigned int outputPatch);
+    bool addOutput(unsigned int outputPatch);
     void removeOutput(int number);
 
     [[nodiscard]] std::vector<int> getDirectOutOutputPatches() const;
@@ -299,7 +219,7 @@ public:
 
     [[nodiscard]] unsigned getNumberOutputs() const { return mNumberOutputs; }
     [[nodiscard]] unsigned getNumberInputs() const { return mNumberInputs; }
-    [[nodiscard]] ModeSpatEnum getMode() const { return mModeSelected; }
+    [[nodiscard]] SpatModes getMode() const { return mModeSelected; }
     [[nodiscard]] unsigned getVbapDimensions() const { return mVbapDimensions; }
     [[nodiscard]] auto const & getClients() const { return mClients; }
     [[nodiscard]] auto & getClients() { return mClients; }
@@ -321,12 +241,12 @@ public:
     [[nodiscard]] bool isRecording() const { return mIsRecording; }
     [[nodiscard]] bool isOverloaded() const { return mIsOverloaded; }
 
-    void setProcessBlockOn(bool const state) { mProcessBlockOn = state; }
+    void setProcessBlockOn(bool const state) { mProcessBlockOn = state; } // TODO : this doesnt even work
     void setMaxOutputPatch(unsigned const maxOutputPatch) { mMaxOutputPatch = maxOutputPatch; }
     void setVbapDimensions(unsigned const dimensions) { mVbapDimensions = dimensions; }
     void setSoloIn(bool const state) { mSoloIn = state; }
     void setSoloOut(bool const state) { mSoloOut = state; }
-    void setMode(ModeSpatEnum const mode) { mModeSelected = mode; }
+    void setMode(SpatModes const mode) { mModeSelected = mode; }
     void setMasterGainOut(float const gain) { mMasterGainOut = gain; }
     void setInterMaster(float const interMaster) { mInterMaster = interMaster; }
 
@@ -351,5 +271,5 @@ private:
     // Connect the server's outputs to the system's inputs.
     void connectedGrisToSystem();
     //==============================================================================
-    JUCE_LEAK_DETECTOR(JackClient)
+    JUCE_LEAK_DETECTOR(AudioProcessor)
 };

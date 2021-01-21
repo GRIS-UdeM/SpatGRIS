@@ -27,12 +27,13 @@ DISABLE_WARNINGS
 #include <JuceHeader.h>
 ENABLE_WARNINGS
 
-class JackClient;
+class AudioProcessor;
 
 //==============================================================================
 enum class PortType { input, output };
 
 //==============================================================================
+// TODO : this should go
 struct jack_port_t {
     uint32_t id;
     char shortName[64]{};
@@ -72,7 +73,7 @@ class AudioManager final : juce::AudioSourcePlayer
     juce::AudioBuffer<float> mInputPortsBuffer{};
     juce::AudioBuffer<float> mOutputPortsBuffer{};
 
-    JackClient * mJackClient{};
+    AudioProcessor * mJackClient{};
 
     juce::CriticalSection mCriticalSection{};
 
@@ -91,15 +92,15 @@ public:
     [[nodiscard]] juce::AudioDeviceManager const & getAudioDeviceManager() const { return mAudioDeviceManager; }
     [[nodiscard]] juce::AudioDeviceManager & getAudioDeviceManager() { return mAudioDeviceManager; }
 
-    [[nodiscard]] jack_port_t * registerPort(char const * newShortName,
-                                             char const * newClientName,
-                                             PortType newType,
-                                             std::optional<int> newPhysicalPort = std::nullopt);
+    jack_port_t * registerPort(char const * newShortName,
+                               char const * newClientName,
+                               PortType newType,
+                               std::optional<int> newPhysicalPort = std::nullopt);
     void unregisterPort(jack_port_t * port);
 
     [[nodiscard]] bool isConnectedTo(jack_port_t const * port, char const * port_name) const;
 
-    void registerJackClient(JackClient * jackClient);
+    void registerJackClient(AudioProcessor * jackClient);
 
     [[nodiscard]] juce::Array<jack_port_t *> getInputPorts() const;
     [[nodiscard]] juce::Array<jack_port_t *> getOutputPorts() const;
@@ -111,7 +112,7 @@ public:
     [[nodiscard]] std::vector<std::string> getPortNames(PortType portType) const;
 
     void connect(char const * sourcePortName, char const * destinationPortName);
-    void disconnect(jack_port_t * source, jack_port_t * destination);
+    void disconnect(jack_port_t * sourcePort, jack_port_t * destinationPort);
     //==============================================================================
     // AudioSourcePlayer overrides
     void audioDeviceError(const juce::String & errorMessage) override;

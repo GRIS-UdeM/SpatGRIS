@@ -19,7 +19,7 @@
 
 #include "AudioRenderer.h"
 
-#include "JackClient.h"
+#include "AudioProcessor.h"
 
 //==============================================================================
 AudioRenderer::AudioRenderer()

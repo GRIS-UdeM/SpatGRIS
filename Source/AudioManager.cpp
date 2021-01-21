@@ -19,7 +19,7 @@
 
 #include "AudioManager.h"
 
-#include "JackClient.h"
+#include "AudioProcessor.h"
 #include "constants.hpp"
 
 static_assert(!USE_JACK);
@@ -214,7 +214,7 @@ bool AudioManager::isConnectedTo(jack_port_t const * port, char const * port_nam
 }
 
 //==============================================================================
-void AudioManager::registerJackClient(JackClient * jackClient)
+void AudioManager::registerJackClient(AudioProcessor * jackClient)
 {
     juce::ScopedLock sl{ mCriticalSection };
     mJackClient = jackClient;
@@ -342,14 +342,14 @@ void AudioManager::connect(char const * sourcePortName, char const * destination
 }
 
 //==============================================================================
-void AudioManager::disconnect(jack_port_t * source, jack_port_t * destination)
+void AudioManager::disconnect(jack_port_t * sourcePort, jack_port_t * destinationPort)
 {
     juce::ScopedLock sl{ mCriticalSection };
 
-    jassert(mConnections.contains(source));
-    jassert(mConnections[source] == destination);
+    jassert(mConnections.contains(sourcePort));
+    jassert(mConnections[sourcePort] == destinationPort);
 
-    mConnections.remove(source);
+    mConnections.remove(sourcePort);
 }
 
 //==============================================================================
@@ -362,9 +362,7 @@ void AudioManager::audioDeviceError(const juce::String & /*errorMessage*/)
 void AudioManager::audioDeviceAboutToStart(juce::AudioIODevice * device)
 {
     juce::ScopedLock sl{ mCriticalSection };
-
-    auto const bufferSize{ device->getCurrentBufferSizeSamples() };
-    setBufferSizes(bufferSize);
+    setBufferSizes(device->getCurrentBufferSizeSamples());
 
     // TODO : call prepareToPlay
 }

@@ -86,7 +86,7 @@ void FlatViewWindow::drawFieldBackground(juce::Graphics & g, const int fieldWH) 
     auto const realW_f{ static_cast<float>(realW) };
 
     auto const fieldWH_f{ static_cast<float>(fieldWH) };
-    if (mMainContentComponent.getModeSelected() == ModeSpatEnum::LBAP) {
+    if (mMainContentComponent.getModeSelected() == SpatModes::lbap) {
         // Draw light background squares.
         g.setColour(mLookAndFeel.getLightColour());
         auto offset{ fieldWH_f * 0.4f };
@@ -208,7 +208,7 @@ void FlatViewWindow::drawSource(juce::Graphics & g, Input * it, const int fieldW
     auto const realW = static_cast<float>(fieldWh) - SOURCE_DIAMETER;
     juce::String stringVal;
     juce::Point<float> sourceP;
-    if (mMainContentComponent.getModeSelected() == ModeSpatEnum::LBAP) {
+    if (mMainContentComponent.getModeSelected() == SpatModes::lbap) {
         sourceP = juce::Point<float>(it->getCenter().z * 0.6f, it->getCenter().x * 0.6f) / 5.0f;
     } else {
         sourceP = juce::Point<float>(it->getCenter().z, it->getCenter().x) / 5.0f;
@@ -251,13 +251,13 @@ void FlatViewWindow::drawSourceSpan(juce::Graphics & g, Input * it, const int fi
     auto const colorS{ it->getColorJ() };
 
     juce::Point<float> sourceP;
-    if (mMainContentComponent.getModeSelected() == ModeSpatEnum::LBAP) {
+    if (mMainContentComponent.getModeSelected() == SpatModes::lbap) {
         sourceP = juce::Point<float>(it->getCenter().z * 0.6f, it->getCenter().x * 0.6f) / 5.0f;
     } else {
         sourceP = juce::Point<float>(it->getCenter().z, it->getCenter().x) / 5.0f;
     }
 
-    if (mMainContentComponent.getModeSelected() == ModeSpatEnum::LBAP) {
+    if (mMainContentComponent.getModeSelected() == SpatModes::lbap) {
         auto const realW{ fieldWh - static_cast<int>(SOURCE_DIAMETER) };
         auto const azimuthSpan{ fieldWh * (it->getAzimuthSpan() * 0.5f) };
         auto const halfAzimuthSpan{ azimuthSpan / 2.0f - SOURCE_RADIUS };

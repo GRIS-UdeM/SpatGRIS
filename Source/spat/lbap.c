@@ -68,7 +68,7 @@ lbap_speaker_compare(const void *pa, const void *pb) {
 /* Checks if an elevation is less distant than +/- 5 degrees of a base elevation. */
 static int
 lbap_is_same_ele(float base_ele, float ele) {
-    float deg5rad = 5.0 / 360.0 * M_PI * 2;
+    float deg5rad = 5.0f / 360.0f * (float)M_PI * 2.0f;
     if (ele > (base_ele - deg5rad) && ele < (base_ele + deg5rad))
         return 1;
     else
@@ -121,9 +121,9 @@ lbap_layer_init(int id, float ele, lbap_pos *speakers, int num) {
     layer->num_of_speakers = num;
 
     if (num <= 4)
-        layer->expon = 1.0;
+        layer->expon = 1.0f;
     else
-        layer->expon = num / 4.0;
+        layer->expon = num / 4.0f;
 
     layer->speakers = (lbap_pos *)malloc(sizeof(lbap_pos) * num);
     for (i=0; i<num; i++) {
@@ -214,8 +214,8 @@ lbap_layer_free(lbap_layer *layer) {
 static void
 lbap_layer_compute_gains(lbap_layer *layer, float azi, float rad, float radspan, float *gains) {
     int i, hsize = LBAP_MATRIX_SIZE / 2, sizeMinusOne = LBAP_MATRIX_SIZE - 1;
-    float x, y, norm, comp, sum = 0.0;
-    float exponent = layer->expon * (1.0 - radspan) * 2.0;
+    float x, y, norm, comp, sum = 0.0f;
+    float exponent = layer->expon * (1.0f - radspan) * 2.0f;
     lbap_pos pos;
     pos.azi = azi;
     pos.rad = rad;
@@ -228,9 +228,9 @@ lbap_layer_compute_gains(lbap_layer *layer, float azi, float rad, float radspan,
         gains[i] = powf(lbap_lookup(layer->matrix[i], x, y), exponent);
         sum += gains[i];
     }
-    if (sum > 0.0) {
-        comp = rad < 1.0 ? powf(3.0, (1.0 - rad)) : 1.0;
-        norm = 1.0 / sum * comp;                    // normalization (1.0 / sum) and compensation
+    if (sum > 0.0f) {
+        comp = rad < 1.0f ? powf(3.0f, (1.0f - rad)) : 1.0f;
+        norm = 1.0f / sum * comp;                    // normalization (1.0 / sum) and compensation
         for (i=0; i<layer->num_of_speakers; i++) {  // (powf(3.0, (1.0 - rad))) for energy spreading
             gains[i] *= norm;                       // when moving toward the center.
         }
@@ -354,7 +354,7 @@ lbap_field_compute(lbap_field *field, lbap_pos *pos, float *gains) {
         } else {
             gain = elespan / ((i - second->id) * 2);
         }
-        gain = gain > 1.0 ? 1.0 : gain;
+        gain = gain > 1.0f ? 1.0f : gain;
         lbap_layer_compute_gains(field->layers[i], pos->azi, pos->rad, pos->radspan, &gns[c]);
         for (j=0; j<field->layers[i]->num_of_speakers; j++) {
             gns[c++] *= gain;
@@ -371,8 +371,8 @@ lbap_speakers_from_positions(float *azi, float *ele, float *rad, int *spkid, int
     int i;
     lbap_speaker *speakers = (lbap_speaker *)malloc(sizeof(lbap_speaker) * num);
     for (i=0; i<num; i++) {
-        speakers[i].azi = azi[i] / 360.0f * M_PI * 2;
-        speakers[i].ele = ele[i] / 360.0f * M_PI * 2;
+        speakers[i].azi = azi[i] / 360.0f * (float)M_PI * 2.0f;
+        speakers[i].ele = ele[i] / 360.0f * (float)M_PI * 2.0f;
         speakers[i].rad = rad[i] < 0.0f ? 0.0f : rad[i] > 1.0f ? 1.0f : rad[i];
         speakers[i].spkid = spkid[i];
     }
@@ -383,15 +383,15 @@ void lbap_pos_init_from_radians(lbap_pos *pos, float azi, float ele, float rad) 
     pos->radspan = 0.0f;
     pos->elespan = 0.0f;
     while (azi < -M_PI) {
-        azi += M_PI * 2;
+        azi += (float)M_PI * 2.0f;
     }
     while (azi > M_PI) {
-        azi -= M_PI * 2;
+        azi -= (float)M_PI * 2.0f;
     }
     if (ele < 0) {
-        ele = 0.0;
+        ele = 0.0f;
     } else if (ele > (M_PI / 2)) {
-        ele = M_PI / 2;
+        ele = (float)M_PI / 2.0f;
     }
 
     pos->azi = azi;

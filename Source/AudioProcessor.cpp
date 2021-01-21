@@ -17,26 +17,29 @@
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "JackClient.h"
+#include "AudioProcessor.h"
 
 #include <array>
 #include <cstdarg>
+
+DISABLE_WARNINGS
+extern "C" {
+#include "spat/vbap.h"
+}
+ENABLE_WARNINGS
 
 #include "AudioManager.h"
 #include "MainComponent.h"
 #include "Speaker.h"
 #include "constants.hpp"
-
-extern "C" {
-#include "spat/vbap.h"
-}
+#include "narrow.hpp"
 
 //==============================================================================
 // Utilities.
 template<typename Coll>
 static bool contains(Coll const & coll, typename Coll::value_type const & value)
 {
-    return std::find(coll.begin(), coll.end(), value) != coll.end();
+    return std::find(std::cbegin(coll), std::cend(coll), value) != std::cend(coll);
 }
 
 //==============================================================================
@@ -75,7 +78,7 @@ static juce::AudioBuffer<float> getSamplesFromWavFile(juce::File const & file)
 
 //==============================================================================
 // JackClientGris class definition.
-JackClient::JackClient()
+AudioProcessor::AudioProcessor()
 {
     // Initialize impulse responses for VBAP+HRTF (BINAURAL mode).
     // Azimuth = 0
@@ -128,14 +131,14 @@ JackClient::JackClient()
     // Initialize pink noise
     srand(static_cast<unsigned int>(time(nullptr)));
 
-    mNumberInputs = audioManager.getPortNames(PortType::input).size();
-    mNumberOutputs = audioManager.getPortNames(PortType::output).size();
+    mNumberInputs = narrow<unsigned>(audioManager.getPortNames(PortType::input).size());
+    mNumberOutputs = narrow<unsigned>(audioManager.getPortNames(PortType::output).size());
 
     mClientReady = true;
 }
 
 //==============================================================================
-void JackClient::resetHrtf()
+void AudioProcessor::resetHrtf()
 {
     std::fill(std::begin(mHrtfCount), std::end(mHrtfCount), 0u);
     static constexpr std::array<float, 128> EMPTY_HRTF_INPUT{};
@@ -143,7 +146,7 @@ void JackClient::resetHrtf()
 }
 
 //==============================================================================
-void JackClient::clientRegistrationCallback(char const * const name, int const regist)
+void AudioProcessor::clientRegistrationCallback(char const * const name, int const regist)
 {
     std::lock_guard<std::mutex> lock{ mClientsLock };
     if (regist) {
@@ -160,7 +163,7 @@ void JackClient::clientRegistrationCallback(char const * const name, int const r
 }
 
 //==============================================================================
-void JackClient::prepareToRecord()
+void AudioProcessor::prepareToRecord()
 {
     int num_of_channels;
     if (mOutputsPort.empty()) {
@@ -181,18 +184,18 @@ void JackClient::prepareToRecord()
     jassert(currentAudioDevice);
     auto const sampleRate{ static_cast<unsigned>(std::round(currentAudioDevice->getCurrentSampleRate())) };
 
-    if (mModeSelected == ModeSpatEnum::VBAP || mModeSelected == ModeSpatEnum::LBAP) {
+    if (mModeSelected == SpatModes::vbap || mModeSelected == SpatModes::lbap) {
         num_of_channels = static_cast<int>(mOutputsPort.size());
         for (int i{}; i < num_of_channels; ++i) {
             if (contains(mOutputPatches, i + 1)) {
                 channelName
                     = parentDirectory + "/" + fileName + "_" + juce::String(i + 1).paddedLeft('0', 3) + fileExtension;
-                juce::File fileC = juce::File(channelName);
+                juce::File fileC{ channelName };
                 mRecorders[i].startRecording(fileC, sampleRate, fileExtension);
                 mOutputFileNames.add(fileC);
             }
         }
-    } else if (mModeSelected == ModeSpatEnum::VBAP_HRTF || mModeSelected == ModeSpatEnum::STEREO) {
+    } else if (mModeSelected == SpatModes::hrtfVbap || mModeSelected == SpatModes::stereo) {
         num_of_channels = 2;
         for (int i{}; i < num_of_channels; ++i) {
             channelName
@@ -205,14 +208,14 @@ void JackClient::prepareToRecord()
 }
 
 //==============================================================================
-void JackClient::startRecord()
+void AudioProcessor::startRecord()
 {
     mIndexRecord = 0;
     mIsRecording = true;
 }
 
 //==============================================================================
-void JackClient::addRemoveInput(unsigned int const number)
+void AudioProcessor::addRemoveInput(unsigned int const number)
 {
     if (number < mInputsPort.size()) {
         while (number < mInputsPort.size()) {
@@ -232,7 +235,7 @@ void JackClient::addRemoveInput(unsigned int const number)
 }
 
 //==============================================================================
-void JackClient::clearOutput()
+void AudioProcessor::clearOutput()
 {
     auto const num_output_ports{ mOutputsPort.size() };
     for (size_t i{}; i < num_output_ports; ++i) {
@@ -242,7 +245,7 @@ void JackClient::clearOutput()
 }
 
 //==============================================================================
-bool JackClient::addOutput(unsigned int const outputPatch)
+bool AudioProcessor::addOutput(unsigned int const outputPatch)
 {
     if (outputPatch > mMaxOutputPatch) {
         mMaxOutputPatch = outputPatch;
@@ -260,14 +263,14 @@ bool JackClient::addOutput(unsigned int const outputPatch)
 }
 
 //==============================================================================
-void JackClient::removeOutput(int const number)
+void AudioProcessor::removeOutput(int const number)
 {
     AudioManager::getInstance().unregisterPort(mOutputsPort.at(number));
     mOutputsPort.erase(mOutputsPort.begin() + number);
 }
 
 //==============================================================================
-std::vector<int> JackClient::getDirectOutOutputPatches() const
+std::vector<int> AudioProcessor::getDirectOutOutputPatches() const
 {
     std::vector<int> directOutOutputPatches;
     for (auto const & it : mSpeakersOut) {
@@ -278,7 +281,7 @@ std::vector<int> JackClient::getDirectOutOutputPatches() const
 }
 
 //==============================================================================
-void JackClient::muteSoloVuMeterIn(float ** ins, size_t const nFrames, size_t sizeInputs)
+void AudioProcessor::muteSoloVuMeterIn(float ** ins, size_t const nFrames, size_t sizeInputs)
 {
     for (unsigned int i = 0; i < sizeInputs; ++i) {
         if (mSourcesIn[i].isMuted) { // Mute
@@ -301,11 +304,11 @@ void JackClient::muteSoloVuMeterIn(float ** ins, size_t const nFrames, size_t si
 }
 
 //==============================================================================
-void JackClient::muteSoloVuMeterGainOut(float ** outs, size_t nFrames, size_t sizeOutputs, float const gain)
+void AudioProcessor::muteSoloVuMeterGainOut(float ** outs, size_t nFrames, size_t sizeOutputs, float const gain)
 {
     size_t num_of_channels{ 2 };
 
-    if (mModeSelected == ModeSpatEnum::VBAP || mModeSelected == ModeSpatEnum::LBAP) {
+    if (mModeSelected == SpatModes::vbap || mModeSelected == SpatModes::lbap) {
         num_of_channels = sizeOutputs;
     }
 
@@ -384,7 +387,7 @@ void JackClient::muteSoloVuMeterGainOut(float ** outs, size_t nFrames, size_t si
 }
 
 //==============================================================================
-void JackClient::addNoiseSound(float ** outs, size_t nFrames, size_t sizeOutputs)
+void AudioProcessor::addNoiseSound(float ** outs, size_t nFrames, size_t sizeOutputs)
 {
     static constexpr auto FAC{ 1.0f / (static_cast<float>(RAND_MAX) / 2.0f) };
     for (unsigned int nF = 0; nF < nFrames; ++nF) {
@@ -408,11 +411,11 @@ void JackClient::addNoiseSound(float ** outs, size_t nFrames, size_t sizeOutputs
 }
 
 //==============================================================================
-void JackClient::processVbap(float ** ins,
-                             float ** outs,
-                             size_t const nFrames,
-                             size_t const sizeInputs,
-                             size_t const sizeOutputs)
+void AudioProcessor::processVbap(float ** ins,
+                                 float ** outs,
+                                 size_t const nFrames,
+                                 size_t const sizeInputs,
+                                 size_t const sizeOutputs)
 {
     auto interpolationG{ mInterMaster == 0.0f ? 0.99f : std::pow(mInterMaster, 0.1f) * 0.0099f + 0.99f };
 
@@ -454,7 +457,7 @@ void JackClient::processVbap(float ** ins,
 }
 
 //==============================================================================
-void JackClient::processLbap(float ** ins, float ** outs, size_t nFrames, size_t sizeInputs, size_t sizeOutputs)
+void AudioProcessor::processLbap(float ** ins, float ** outs, size_t nFrames, size_t sizeInputs, size_t sizeOutputs)
 {
     static auto constexpr MAX_N_FRAMES{ 2048u };
     jassert(nFrames <= MAX_N_FRAMES);
@@ -546,11 +549,11 @@ void JackClient::processLbap(float ** ins, float ** outs, size_t nFrames, size_t
 }
 
 //==============================================================================
-void JackClient::processVBapHrtf(float ** ins,
-                                 float ** outs,
-                                 size_t nFrames,
-                                 size_t sizeInputs,
-                                 [[maybe_unused]] size_t sizeOutputs)
+void AudioProcessor::processVBapHrtf(float ** ins,
+                                     float ** outs,
+                                     size_t nFrames,
+                                     size_t sizeInputs,
+                                     [[maybe_unused]] size_t sizeOutputs)
 {
     // TODO : not shure this is necessary.
     // std::for_each(outs, outs + sizeOutputs, [nFrames](float * channel) {
@@ -627,7 +630,7 @@ void JackClient::processVBapHrtf(float ** ins,
 }
 
 //==============================================================================
-void JackClient::processStereo(float ** ins, float ** outs, size_t nFrames, size_t sizeInputs, size_t sizeOutputs)
+void AudioProcessor::processStereo(float ** ins, float ** outs, size_t nFrames, size_t sizeInputs, size_t sizeOutputs)
 {
     static auto constexpr FACTOR{ juce::MathConstants<float>::pi / 360.0f };
 
@@ -680,7 +683,7 @@ void JackClient::processStereo(float ** ins, float ** outs, size_t nFrames, size
 }
 
 //==============================================================================
-void JackClient::processAudio(size_t const nFrames)
+void AudioProcessor::processAudio(size_t const nFrames)
 {
     // Return if the user is editing the speaker setup.
     if (!mProcessBlockOn) {
@@ -707,16 +710,16 @@ void JackClient::processAudio(size_t const nFrames)
     muteSoloVuMeterIn(ins, nFrames, sizeInputs);
 
     switch (mModeSelected) {
-    case ModeSpatEnum::VBAP:
+    case SpatModes::vbap:
         processVbap(ins, outs, nFrames, sizeInputs, sizeOutputs);
         break;
-    case ModeSpatEnum::LBAP:
+    case SpatModes::lbap:
         processLbap(ins, outs, nFrames, sizeInputs, sizeOutputs);
         break;
-    case ModeSpatEnum::VBAP_HRTF:
+    case SpatModes::hrtfVbap:
         processVBapHrtf(ins, outs, nFrames, sizeInputs, sizeOutputs);
         break;
-    case ModeSpatEnum::STEREO:
+    case SpatModes::stereo:
         processStereo(ins, outs, nFrames, sizeInputs, sizeOutputs);
         break;
     default:
@@ -734,7 +737,7 @@ void JackClient::processAudio(size_t const nFrames)
 }
 
 //==============================================================================
-void JackClient::connectedGrisToSystem()
+void AudioProcessor::connectedGrisToSystem()
 {
     clearOutput();
     auto & audioManager{ AudioManager::getInstance() };
@@ -799,9 +802,9 @@ void JackClient::connectedGrisToSystem()
 }
 
 //==============================================================================
-bool JackClient::initSpeakersTriplet(std::vector<Speaker *> const & listSpk,
-                                     int const dimensions,
-                                     bool const needToComputeVbap)
+bool AudioProcessor::initSpeakersTriplet(std::vector<Speaker *> const & listSpk,
+                                         int const dimensions,
+                                         bool const needToComputeVbap)
 {
     if (listSpk.empty()) {
         return false;
@@ -864,7 +867,7 @@ bool JackClient::initSpeakersTriplet(std::vector<Speaker *> const & listSpk,
 }
 
 //==============================================================================
-bool JackClient::lbapSetupSpeakerField(std::vector<Speaker *> const & listSpk)
+bool AudioProcessor::lbapSetupSpeakerField(std::vector<Speaker *> const & listSpk)
 {
     int j;
     if (listSpk.empty()) {
@@ -903,19 +906,19 @@ bool JackClient::lbapSetupSpeakerField(std::vector<Speaker *> const & listSpk)
 }
 
 //==============================================================================
-void JackClient::setAttenuationDb(float const value)
+void AudioProcessor::setAttenuationDb(float const value)
 {
     mAttenuationLinearGain = value;
 }
 
 //==============================================================================
-void JackClient::setAttenuationHz(float const value)
+void AudioProcessor::setAttenuationHz(float const value)
 {
     mAttenuationLowpassCoefficient = value;
 }
 
 //==============================================================================
-void JackClient::updateSourceVbap(int const idS)
+void AudioProcessor::updateSourceVbap(int const idS)
 {
     if (mVbapDimensions == 3) {
         if (mSourcesIn[idS].paramVBap != nullptr) {
@@ -933,7 +936,7 @@ void JackClient::updateSourceVbap(int const idS)
 }
 
 //==============================================================================
-void JackClient::connectionClient(juce::String const & name, bool connect)
+void AudioProcessor::connectionClient(juce::String const & name, bool connect)
 {
     auto & audioManager{ AudioManager::getInstance() };
     auto inputPortNames{ audioManager.getPortNames(PortType::input) };
@@ -1011,7 +1014,7 @@ void JackClient::connectionClient(juce::String const & name, bool connect)
 }
 
 //==============================================================================
-std::string JackClient::getClientName(const char * portName)
+std::string AudioProcessor::getClientName(const char * portName)
 {
     jassert(portName != nullptr);
     auto * port{ AudioManager::getInstance().getPort(portName) };
@@ -1022,7 +1025,7 @@ std::string JackClient::getClientName(const char * portName)
 }
 
 //==============================================================================
-void JackClient::updateClientPortAvailable(bool const fromJack)
+void AudioProcessor::updateClientPortAvailable(bool const fromJack)
 {
     auto const portsOut{ AudioManager::getInstance().getPortNames(PortType::output) };
 
@@ -1109,7 +1112,7 @@ void JackClient::updateClientPortAvailable(bool const fromJack)
 }
 
 //==============================================================================
-JackClient::~JackClient()
+AudioProcessor::~AudioProcessor()
 {
     // TODO: paramVBap and mSourcesIn->paramVBap are never deallocated.
 
