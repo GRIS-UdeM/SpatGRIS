@@ -33,10 +33,10 @@ DISABLE_WARNINGS
 ENABLE_WARNINGS
 
 #include "AudioRecorder.h"
-#include "Client.hpp"
-#include "SourceIn.hpp"
+#include "ClientData.hpp"
+#include "SourceData.hpp"
 #include "SpatModes.hpp"
-#include "SpeakerOut.hpp"
+#include "SpeakerData.hpp"
 #include "constants.hpp"
 
 class Speaker;
@@ -91,12 +91,12 @@ class AudioProcessor
     std::array<float, MAX_OUTPUTS> mLevelsOut{};
 
     // Client list.
-    std::vector<Client> mClients{};
+    std::vector<ClientData> mClients{};
     std::mutex mClientsLock{};
 
     // Source and output lists.
-    std::array<SourceIn, MAX_INPUTS> mSourcesIn{};
-    std::array<SpeakerOut, MAX_OUTPUTS> mSpeakersOut{};
+    std::array<SourceData, MAX_INPUTS> mSourcesIn{};
+    std::array<SpeakerData, MAX_OUTPUTS> mSpeakersOut{};
 
     // True when jack reports an xrun.
     bool mIsOverloaded{ false };

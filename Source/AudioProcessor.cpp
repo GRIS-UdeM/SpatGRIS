@@ -150,14 +150,15 @@ void AudioProcessor::clientRegistrationCallback(char const * const name, int con
 {
     std::lock_guard<std::mutex> lock{ mClientsLock };
     if (regist) {
-        Client cli;
+        ClientData cli;
         cli.name = name;
         mClients.push_back(cli);
     } else {
         juce::String const name_str{ name };
-        auto const find_result{ std::find_if(std::cbegin(mClients),
-                                             std::cend(mClients),
-                                             [&name_str](Client const & client) { return client.name == name_str; }) };
+        auto const find_result{ std::find_if(
+            std::cbegin(mClients),
+            std::cend(mClients),
+            [&name_str](ClientData const & client) { return client.name == name_str; }) };
         mClients.erase(find_result);
     }
 }

@@ -1579,7 +1579,7 @@ bool MainContentComponent::updateLevelComp()
             speaker->normalizeRadius();
         }
 
-        SpeakerOut so;
+        SpeakerData so;
         so.id = speaker->getOutputPatch();
         so.x = speaker->getCoordinate().x;
         so.y = speaker->getCoordinate().y;
@@ -1640,7 +1640,7 @@ bool MainContentComponent::updateLevelComp()
 
         x += VU_METER_WIDTH_IN_PIXELS;
 
-        SourceIn sourceIn;
+        SourceData sourceIn;
         sourceIn.id = input->getId();
         sourceIn.radAzimuth = input->getAzimuth();
         sourceIn.radElevation = juce::MathConstants<float>::halfPi - input->getZenith();

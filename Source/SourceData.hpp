@@ -19,19 +19,41 @@
 
 #pragma once
 
+#include <array>
+
 #include "macros.h"
 
 DISABLE_WARNINGS
-#include <JuceHeader.h>
+#include "spat/lbap.h"
+#include "spat/vbap.h"
 ENABLE_WARNINGS
 
+#include "constants.hpp"
+
 //==============================================================================
-struct Client {
-    juce::String name;
-    unsigned int portStart = 0;
-    unsigned int portEnd = 0;
-    unsigned int portAvailable = 0;
-    unsigned int activePorts = 0;
-    bool initialized = false;
-    bool connected = false;
+struct SourceData {
+    unsigned int id{};
+    float x{};
+    float y{};
+    float z{};
+
+    float radAzimuth{};
+    float radElevation{};
+    float azimuth{};
+    float zenith{};
+    float radius{ 1.0f };
+    float azimuthSpan{};
+    float zenithSpan{};
+
+    std::array<float, MAX_OUTPUTS> lbapGains{};
+    std::array<float, MAX_OUTPUTS> lbapY{};
+    lbap_pos lbapLastPos{ -1, -1, -1, 0.0f, 0.0f, 0.0f };
+
+    bool isMuted = false;
+    bool isSolo = false;
+    float gain{}; // Not used yet.
+
+    int directOut{};
+
+    VBAP_DATA * paramVBap{};
 };

@@ -254,8 +254,8 @@ public:
     [[nodiscard]] AudioProcessor * getJackClient() { return mJackClient.get(); }
     [[nodiscard]] AudioProcessor const * getJackClient() const { return mJackClient.get(); }
 
-    [[nodiscard]] std::vector<Client> & getClients() { return mJackClient->getClients(); }
-    [[nodiscard]] std::vector<Client> const & getClients() const { return mJackClient->getClients(); }
+    [[nodiscard]] std::vector<ClientData> & getClients() { return mJackClient->getClients(); }
+    [[nodiscard]] std::vector<ClientData> const & getClients() const { return mJackClient->getClients(); }
 
     [[nodiscard]] std::mutex & getClientsLock() { return mJackClient->getClientsLock(); }
 

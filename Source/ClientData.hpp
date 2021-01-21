@@ -19,32 +19,19 @@
 
 #pragma once
 
+#include "macros.h"
+
+DISABLE_WARNINGS
+#include <JuceHeader.h>
+ENABLE_WARNINGS
+
 //==============================================================================
-struct SpeakerOut {
-    unsigned int id{};
-    float x{};
-    float y{};
-    float z{};
-
-    float azimuth{};
-    float zenith{};
-    float radius{};
-
-    float gain{ 1.0f };
-
-    bool hpActive = false;
-    double b1{};
-    double b2{};
-    double b3{};
-    double b4{};
-    double ha0{};
-    double ha1{};
-    double ha2{};
-
-    bool isMuted = false;
-    bool isSolo = false;
-
-    int outputPatch{};
-
-    bool directOut = false;
+struct ClientData {
+    juce::String name;
+    unsigned int portStart = 0;
+    unsigned int portEnd = 0;
+    unsigned int portAvailable = 0;
+    unsigned int activePorts = 0;
+    bool initialized = false;
+    bool connected = false;
 };

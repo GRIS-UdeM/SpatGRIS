@@ -19,41 +19,32 @@
 
 #pragma once
 
-#include <array>
-
-#include "macros.h"
-
-DISABLE_WARNINGS
-#include "spat/lbap.h"
-#include "spat/vbap.h"
-ENABLE_WARNINGS
-
-#include "constants.hpp"
-
 //==============================================================================
-struct SourceIn {
+struct SpeakerData {
     unsigned int id{};
     float x{};
     float y{};
     float z{};
 
-    float radAzimuth{};
-    float radElevation{};
     float azimuth{};
     float zenith{};
-    float radius{ 1.0f };
-    float azimuthSpan{};
-    float zenithSpan{};
+    float radius{};
 
-    std::array<float, MAX_OUTPUTS> lbapGains{};
-    std::array<float, MAX_OUTPUTS> lbapY{};
-    lbap_pos lbapLastPos{ -1, -1, -1, 0.0f, 0.0f, 0.0f };
+    float gain{ 1.0f };
+
+    bool hpActive = false;
+    double b1{};
+    double b2{};
+    double b3{};
+    double b4{};
+    double ha0{};
+    double ha1{};
+    double ha2{};
 
     bool isMuted = false;
     bool isSolo = false;
-    float gain{}; // Not used yet.
 
-    int directOut{};
+    int outputPatch{};
 
-    VBAP_DATA * paramVBap{};
+    bool directOut = false;
 };
