@@ -433,7 +433,6 @@ void AudioProcessor::processVbap(float ** ins,
 
     // TODO : clean this up
     for (unsigned o{}; o < sizeOutputs; ++o) {
-        std::fill(outs[o], outs[o] + nFrames, 0.0f);
         for (unsigned i{}; i < sizeInputs; ++i) {
             if (!mSourcesIn[i].directOut && mSourcesIn[i].paramVBap != nullptr) {
                 auto const ioGain{ mSourcesIn[i].paramVBap->gains[o] };
@@ -470,9 +469,6 @@ void AudioProcessor::processLbap(float ** ins, float ** outs, size_t nFrames, si
     std::array<float, MAX_N_FRAMES> filteredInputSignal{};
 
     auto interpolationG{ mInterMaster == 0.0f ? 0.99f : std::pow(mInterMaster, 0.1f) * 0.0099f + 0.99f };
-
-    // TODO : is this necessary ?
-    // std::for_each(outs, outs + sizeOutputs, [nFrames](float * it) { std::fill(it, it + nFrames, 0.0f); });
 
     for (unsigned i{}; i < sizeInputs; ++i) {
         auto & sourceIn{ mSourcesIn[i] };
@@ -638,10 +634,6 @@ void AudioProcessor::processStereo(float ** ins, float ** outs, size_t nFrames, 
     auto const interpolationG{ std::pow(mInterMaster, 0.1f) * 0.0099f + 0.99f };
     auto const gain{ std::pow(10.0f, (static_cast<float>(sizeInputs) - 1.0f) * -0.1f * 0.05f) };
 
-    for (unsigned i{}; i < sizeOutputs; ++i) {
-        memset(outs[i], 0, sizeof(float) * nFrames);
-    }
-
     for (unsigned i{}; i < sizeInputs; ++i) {
         if (!mSourcesIn[i].directOut) {
             auto const azimuth{ mSourcesIn[i].azimuth };
@@ -688,28 +680,29 @@ void AudioProcessor::processAudio(size_t const nFrames)
 {
     // Return if the user is editing the speaker setup.
     juce::ScopedTryLock const lock{ getCriticalSection() };
-
-    for (size_t i{}; i < mOutputsPort.size(); ++i) {
-        auto * buffer{ AudioManager::getInstance().getBuffer(mOutputsPort[i], nFrames) };
-        memset(buffer, 0, sizeof(float) * nFrames);
-        mLevelsOut[i] = 0.0f;
-    }
-
     if (!lock.isLocked()) {
         return;
     }
 
-    auto const sizeInputs{ mInputsPort.size() };
-    auto const sizeOutputs{ mOutputsPort.size() };
-
     float * ins[MAX_INPUTS];
     float * outs[MAX_OUTPUTS];
 
+    auto const sizeInputs{ mInputsPort.size() };
+    auto const sizeOutputs{ mOutputsPort.size() };
+
+    auto & audioManager{ AudioManager::getInstance() };
     for (unsigned int i = 0; i < sizeInputs; i++) {
-        ins[i] = AudioManager::getInstance().getBuffer(mInputsPort[i], nFrames);
+        ins[i] = audioManager.getBuffer(mInputsPort[i], nFrames);
     }
     for (unsigned int i = 0; i < sizeOutputs; i++) {
-        outs[i] = AudioManager::getInstance().getBuffer(mOutputsPort[i], nFrames);
+        outs[i] = audioManager.getBuffer(mOutputsPort[i], nFrames);
+    }
+
+    // clear output buffers
+    for (size_t i{}; i < mOutputsPort.size(); ++i) {
+        /*auto * outputBuffer{ audioManager.getBuffer(mOutputsPort[i], nFrames) };
+        std::fill(outputBuffer, outputBuffer + nFrames, 0.0f);*/
+        mLevelsOut[i] = 0.0f;
     }
 
     muteSoloVuMeterIn(ins, nFrames, sizeInputs);

@@ -85,6 +85,8 @@ void AudioManager::audioDeviceIOCallback(const float ** inputChannelData,
                                          int const numSamples)
 {
     juce::ScopedLock sl{ mCriticalSection };
+
+    // clear buffers
     mOutputPortsBuffer.clear();
     mInputPortsBuffer.clear();
 
@@ -97,6 +99,7 @@ void AudioManager::audioDeviceIOCallback(const float ** inputChannelData,
         }
     }
 
+    // do the actual processing
     if (mJackClient != nullptr) {
         mJackClient->processAudio(numSamples);
     }
