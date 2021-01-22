@@ -44,6 +44,19 @@ ENABLE_WARNINGS
 
 class MainWindow;
 
+class AudioDeviceManagerListener : public juce::ChangeListener
+{
+protected:
+    virtual void audioParametersChanged() = 0;
+
+private:
+    void changeListenerCallback([[maybe_unused]] juce::ChangeBroadcaster * source) override
+    {
+        jassert(dynamic_cast<juce::AudioDeviceManager *>(source));
+        audioParametersChanged();
+    }
+};
+
 //==============================================================================
 // This component lives inside our window, and this is where you should put all your controls and content.
 class MainContentComponent final
@@ -54,6 +67,7 @@ class MainContentComponent final
     , public juce::TextEditor::Listener
     , public juce::Slider::Listener
     , public juce::ComboBox::Listener
+    , private AudioDeviceManagerListener
     , private juce::Timer
 {
     // Jack client.
@@ -384,6 +398,11 @@ private:
     void getAllCommands(juce::Array<juce::CommandID> & commands) override;
     void getCommandInfo(juce::CommandID commandId, juce::ApplicationCommandInfo & result) override;
     [[nodiscard]] bool perform(juce::ApplicationCommandTarget::InvocationInfo const & info) override;
+
+protected:
+    void audioParametersChanged() override;
+
+private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(MainContentComponent)
 };

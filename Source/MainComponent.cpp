@@ -156,8 +156,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     // Start Jack Server and client.
     mAlsaOutputDevice = props->getValue(user_properties_tags::ALSA_OUTPUT_DEVICE, "");
 
-    auto * currentAudioDevice{ AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice() };
-    jassert(currentAudioDevice);
+    jassert(AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice());
 
     auto const fileFormat{ props->getIntValue(user_properties_tags::FILE_FORMAT, 0) };
     mAudioProcessor->setRecordFormat(fileFormat);
@@ -166,13 +165,8 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
 
     mCpuUsageLabel->setText("CPU usage : ", juce::dontSendNotification);
 
-    mSampleRateLabel->setText(juce::String(currentAudioDevice->getCurrentSampleRate()) + " Hz",
-                              juce::dontSendNotification);
-    mBufferSizeLabel->setText(juce::String(currentAudioDevice->getCurrentBufferSizeSamples()) + " spls",
-                              juce::dontSendNotification);
-    mChannelCountLabel->setText("I : " + juce::String(mAudioProcessor->getNumberOutputs())
-                                    + " - O : " + juce::String(mAudioProcessor->getNumberInputs()),
-                                juce::dontSendNotification);
+    AudioManager::getInstance().getAudioDeviceManager().addChangeListener(this);
+    audioParametersChanged();
 
     // Start the OSC Receiver.
     mOscReceiver.reset(new OscInput(*this));
@@ -807,7 +801,7 @@ void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & command
 }
 
 //==============================================================================
-void MainContentComponent::getCommandInfo(juce::CommandID commandId, juce::ApplicationCommandInfo & result)
+void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce::ApplicationCommandInfo & result)
 {
     const juce::String generalCategory("General");
 
@@ -977,6 +971,26 @@ bool MainContentComponent::perform(const InvocationInfo & info)
         }
     }
     return true;
+}
+
+//==============================================================================
+void MainContentComponent::audioParametersChanged()
+{
+    juce::ScopedLock const lock{ mAudioProcessor->getCriticalSection() };
+
+    auto * currentAudioDevice{ AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice() };
+
+    auto const sampleRate{ narrow<unsigned>(currentAudioDevice->getCurrentSampleRate()) };
+    auto const bufferSize{ currentAudioDevice->getCurrentBufferSizeSamples() };
+    auto const inputCount{ currentAudioDevice->getActiveInputChannels().countNumberOfSetBits() };
+    auto const outputCount{ currentAudioDevice->getActiveOutputChannels().countNumberOfSetBits() };
+
+    mSamplingRate = sampleRate;
+
+    mSampleRateLabel->setText(juce::String{ sampleRate } + " Hz", juce::NotificationType::dontSendNotification);
+    mBufferSizeLabel->setText(juce::String{ bufferSize } + " samples", juce::NotificationType::dontSendNotification);
+    mChannelCountLabel->setText("I : " + juce::String{ inputCount } + " - O : " + juce::String{ outputCount },
+                                juce::dontSendNotification);
 }
 
 //==============================================================================
