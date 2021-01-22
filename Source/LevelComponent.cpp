@@ -226,7 +226,7 @@ void LevelComponent::buttonClicked(juce::Button * button)
         juce::PopupMenu menu{};
         menu.addItem(1, "-");
         for (size_t i{}; i < mDirectOutSpeakers.size(); ++i) {
-            menu.addItem(static_cast<int>(i) + 2, juce::String{ mDirectOutSpeakers[i] });
+            menu.addItem(narrow<int>(i) + 2, juce::String{ mDirectOutSpeakers[i] });
         }
 
         auto const result{ menu.show() };

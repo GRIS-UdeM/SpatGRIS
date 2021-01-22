@@ -359,7 +359,7 @@ void AudioManager::connect(jack_port_t * sourcePort, jack_port_t * destinationPo
 }
 
 //==============================================================================
-void AudioManager::disconnect(jack_port_t * sourcePort, jack_port_t * destinationPort)
+void AudioManager::disconnect(jack_port_t * sourcePort, [[maybe_unused]] jack_port_t * destinationPort)
 {
     juce::ScopedLock sl{ mCriticalSection };
 

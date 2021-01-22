@@ -62,8 +62,8 @@ static juce::AudioBuffer<float> getSamplesFromWavFile(juce::File const & file)
     std::array<int *, 2> wavData{};
     wavData[0] = new int[audioFormatReader->lengthInSamples];
     wavData[1] = new int[audioFormatReader->lengthInSamples];
-    audioFormatReader->read(wavData.data(), 2, 0, static_cast<int>(audioFormatReader->lengthInSamples), false);
-    juce::AudioBuffer<float> samples{ 2, static_cast<int>(audioFormatReader->lengthInSamples) };
+    audioFormatReader->read(wavData.data(), 2, 0, narrow<int>(audioFormatReader->lengthInSamples), false);
+    juce::AudioBuffer<float> samples{ 2, narrow<int>(audioFormatReader->lengthInSamples) };
     for (int i{}; i < 2; ++i) {
         for (int j{}; j < audioFormatReader->lengthInSamples; ++j) {
             samples.setSample(i, j, wavData[i][j] / factor);
@@ -129,7 +129,7 @@ AudioProcessor::AudioProcessor()
     audioManager.registerJackClient(this);
 
     // Initialize pink noise
-    srand(static_cast<unsigned int>(time(nullptr)));
+    srand(static_cast<unsigned>(time(nullptr)));
 
     mNumberInputs = narrow<unsigned>(audioManager.getPortNames(PortType::input).size());
     mNumberOutputs = narrow<unsigned>(audioManager.getPortNames(PortType::output).size());
@@ -183,10 +183,10 @@ void AudioProcessor::prepareToRecord()
 
     auto * currentAudioDevice{ AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice() };
     jassert(currentAudioDevice);
-    auto const sampleRate{ static_cast<unsigned>(std::round(currentAudioDevice->getCurrentSampleRate())) };
+    auto const sampleRate{ narrow<unsigned>(std::round(currentAudioDevice->getCurrentSampleRate())) };
 
     if (mModeSelected == SpatModes::vbap || mModeSelected == SpatModes::lbap) {
-        num_of_channels = static_cast<int>(mOutputsPort.size());
+        num_of_channels = narrow<int>(mOutputsPort.size());
         for (int i{}; i < num_of_channels; ++i) {
             if (contains(mOutputPatches, i + 1)) {
                 channelName
@@ -365,10 +365,10 @@ void AudioProcessor::muteSoloVuMeterGainOut(float ** outs, size_t nFrames, size_
         if (mIsRecording) {
             if (num_of_channels == sizeOutputs && i < num_of_channels) {
                 if (contains(mOutputPatches, i + 1u)) {
-                    mRecorders[i].recordSamples(&outs[i], static_cast<int>(nFrames));
+                    mRecorders[i].recordSamples(&outs[i], narrow<int>(nFrames));
                 }
             } else if (num_of_channels == 2 && i < num_of_channels) {
-                mRecorders[i].recordSamples(&outs[i], static_cast<int>(nFrames));
+                mRecorders[i].recordSamples(&outs[i], narrow<int>(nFrames));
             }
         }
     }
@@ -426,11 +426,12 @@ void AudioProcessor::processVbap(float ** ins,
 
     for (unsigned i{}; i < sizeInputs; ++i) {
         if (mVbapSourcesToUpdate[i] == 1) {
-            updateSourceVbap(static_cast<int>(i));
+            updateSourceVbap(narrow<int>(i));
             mVbapSourcesToUpdate[i] = 0;
         }
     }
 
+    // TODO : clean this up
     for (unsigned o{}; o < sizeOutputs; ++o) {
         std::fill(outs[o], outs[o] + nFrames, 0.0f);
         for (unsigned i{}; i < sizeInputs; ++i) {
@@ -454,7 +455,7 @@ void AudioProcessor::processVbap(float ** ins,
                     }
                 }
                 mSourcesIn[i].paramVBap->y[o] = y;
-            } else if (static_cast<unsigned>(mSourcesIn[i].directOut - 1) == o) {
+            } else if (narrow<unsigned>(mSourcesIn[i].directOut - 1) == o) {
                 std::transform(outs[o], outs[o] + nFrames, ins[i], outs[o], std::plus());
             }
         }
@@ -543,7 +544,7 @@ void AudioProcessor::processLbap(float ** ins, float ** outs, size_t nFrames, si
             }
         } else {
             for (unsigned o{}; o < sizeOutputs; ++o) {
-                if (static_cast<unsigned>(mSourcesIn[i].directOut - 1) == o) {
+                if (narrow<unsigned>(mSourcesIn[i].directOut - 1) == o) {
                     for (unsigned f{}; f < nFrames; ++f) {
                         outs[o][f] += ins[i][f];
                     }
@@ -556,13 +557,13 @@ void AudioProcessor::processLbap(float ** ins, float ** outs, size_t nFrames, si
 //==============================================================================
 void AudioProcessor::processVBapHrtf(float ** ins,
                                      float ** outs,
-                                     size_t nFrames,
-                                     size_t sizeInputs,
+                                     size_t const nFrames,
+                                     size_t const sizeInputs,
                                      [[maybe_unused]] size_t sizeOutputs)
 {
     for (unsigned i{}; i < sizeInputs; ++i) {
         if (mVbapSourcesToUpdate[i] == 1) {
-            updateSourceVbap(static_cast<int>(i));
+            updateSourceVbap(narrow<int>(i));
             mVbapSourcesToUpdate[i] = 0;
         }
     }
@@ -595,7 +596,7 @@ void AudioProcessor::processVBapHrtf(float ** ins,
         }
 
         for (unsigned f{}; f < nFrames; f++) {
-            auto tmpCount{ static_cast<int>(mHrtfCount[o]) };
+            auto tmpCount{ narrow<int>(mHrtfCount[o]) };
             for (unsigned k{}; k < 128; ++k) {
                 if (tmpCount < 0) {
                     tmpCount += 128;
@@ -690,7 +691,7 @@ void AudioProcessor::processAudio(size_t const nFrames)
 
     for (size_t i{}; i < mOutputsPort.size(); ++i) {
         auto * buffer{ AudioManager::getInstance().getBuffer(mOutputsPort[i], nFrames) };
-        memset(static_cast<float *>(buffer), 0, sizeof(float) * nFrames);
+        memset(buffer, 0, sizeof(float) * nFrames);
         mLevelsOut[i] = 0.0f;
     }
 
@@ -821,10 +822,10 @@ bool AudioProcessor::initSpeakersTriplet(std::vector<Speaker *> const & listSpk,
 
     if (needToComputeVbap) {
         mParamVBap = init_vbap_from_speakers(lss,
-                                             static_cast<int>(listSpk.size()),
+                                             narrow<int>(listSpk.size()),
                                              dimensions,
                                              outputPatches,
-                                             static_cast<int>(mMaxOutputPatch),
+                                             narrow<int>(mMaxOutputPatch),
                                              nullptr);
         if (mParamVBap == nullptr) {
             return false;
@@ -882,11 +883,11 @@ bool AudioProcessor::lbapSetupSpeakerField(std::vector<Speaker *> const & listSp
     }
 
     auto * const speakers{
-        lbap_speakers_from_positions(azimuth, elevation, radius, outputPatch, static_cast<int>(listSpk.size()))
+        lbap_speakers_from_positions(azimuth, elevation, radius, outputPatch, narrow<int>(listSpk.size()))
     };
 
     lbap_field_reset(mLbapSpeakerField);
-    lbap_field_setup(mLbapSpeakerField, speakers, static_cast<int>(listSpk.size()));
+    lbap_field_setup(mLbapSpeakerField, speakers, narrow<int>(listSpk.size()));
 
     free(speakers);
 

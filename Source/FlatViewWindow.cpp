@@ -21,6 +21,7 @@
 
 #include "Input.h"
 #include "MainComponent.h"
+#include "narrow.hpp"
 
 static float constexpr RADIUS_MAX = 2.0f;
 static float constexpr SOURCE_RADIUS = 10.0f;
@@ -82,7 +83,7 @@ FlatViewWindow::~FlatViewWindow()
 //==============================================================================
 void FlatViewWindow::drawFieldBackground(juce::Graphics & g, const int fieldWH) const
 {
-    auto const realW{ fieldWH - static_cast<int>(SOURCE_DIAMETER) };
+    auto const realW{ fieldWH - narrow<int>(SOURCE_DIAMETER) };
     auto const realW_f{ static_cast<float>(realW) };
 
     auto const fieldWH_f{ static_cast<float>(fieldWH) };
@@ -152,7 +153,7 @@ void FlatViewWindow::paint(juce::Graphics & g)
 {
     auto const fieldWh = getWidth(); // Same as getHeight()
     auto const fieldCenter = fieldWh / 2;
-    auto const SourceDiameter_i{ static_cast<int>(SOURCE_DIAMETER) };
+    auto const SourceDiameter_i{ narrow<int>(SOURCE_DIAMETER) };
     auto const realW = fieldWh - SourceDiameter_i;
 
     g.fillAll(mLookAndFeel.getWinBackgroundColour());
@@ -227,7 +228,7 @@ void FlatViewWindow::drawSource(juce::Graphics & g, Input * it, const int fieldW
     g.setColour(juce::Colours::black.withAlpha(it->getAlpha()));
     auto const tx{ static_cast<int>(sourceP.x) };
     auto const ty{ static_cast<int>(sourceP.y) };
-    auto const SourceDiameter_i{ static_cast<int>(SOURCE_DIAMETER) };
+    auto const SourceDiameter_i{ narrow<int>(SOURCE_DIAMETER) };
     g.drawText(stringVal,
                tx + 6,
                ty + 1,
@@ -258,8 +259,8 @@ void FlatViewWindow::drawSourceSpan(juce::Graphics & g, Input * it, const int fi
     }
 
     if (mMainContentComponent.getModeSelected() == SpatModes::lbap) {
-        auto const realW{ fieldWh - static_cast<int>(SOURCE_DIAMETER) };
-        auto const azimuthSpan{ fieldWh * (it->getAzimuthSpan() * 0.5f) };
+        auto const realW{ fieldWh - narrow<int>(SOURCE_DIAMETER) };
+        auto const azimuthSpan{ static_cast<float>(fieldWh) * (it->getAzimuthSpan() * 0.5f) };
         auto const halfAzimuthSpan{ azimuthSpan / 2.0f - SOURCE_RADIUS };
 
         sourceP.x = realW / 2.0f + realW / 4.0f * sourceP.x;

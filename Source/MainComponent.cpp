@@ -52,7 +52,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     // init audio
     auto const sampleRate{ props->getIntValue(user_properties_tags::SAMPLE_RATE, 48000) };
     auto const bufferSize{ props->getIntValue(user_properties_tags::BUFFER_SIZE, 1024) };
-    AudioManager::init(inputDevice, outputDevice, deviceType, static_cast<double>(sampleRate), bufferSize);
+    AudioManager::init(inputDevice, outputDevice, deviceType, narrow<double>(sampleRate), bufferSize);
 
     // init jackClient
     mJackClient = std::make_unique<AudioProcessor>();
@@ -240,9 +240,8 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
 
     // Restore last vertical divider position and speaker view cam distance.
     if (props->containsKey(user_properties_tags::SASH_POSITION)) {
-        auto const trueSize{ static_cast<int>(
-            std::round(static_cast<double>(getWidth() - 3)
-                       * std::abs(props->getDoubleValue(user_properties_tags::SASH_POSITION)))) };
+        auto const trueSize{ narrow<int>(std::round(
+            narrow<double>(getWidth() - 3) * std::abs(props->getDoubleValue(user_properties_tags::SASH_POSITION)))) };
         mVerticalLayout.setItemPosition(1, trueSize);
     }
 }
@@ -1123,7 +1122,7 @@ void MainContentComponent::connectionClientJack(juce::String const & clientName,
             maxPort = cli.portEnd;
         }
     }
-    if (maxPort > static_cast<unsigned int>(mAddInputsTextEditor->getTextValue().toString().getIntValue())) {
+    if (maxPort > narrow<unsigned>(mAddInputsTextEditor->getTextValue().toString().getIntValue())) {
         mAddInputsTextEditor->setText(juce::String{ maxPort }, juce::dontSendNotification);
         textEditorReturnKeyPressed(*mAddInputsTextEditor);
     }
@@ -1592,8 +1591,9 @@ bool MainContentComponent::updateLevelComp()
 
         mJackClient->getSpeakersOut()[i++] = so;
 
-        if (static_cast<unsigned int>(speaker->getOutputPatch()) > mJackClient->getMaxOutputPatch())
+        if (narrow<size_t>(speaker->getOutputPatch()) > mJackClient->getMaxOutputPatch()) {
             mJackClient->setMaxOutputPatch(speaker->getOutputPatch());
+        }
     }
 
     // Set user gain and highpass filter cutoff frequency for each speaker.
@@ -1603,7 +1603,7 @@ bool MainContentComponent::updateLevelComp()
         if (speaker->getHighPassCutoff() > 0.0f) {
             double * coefficients;
             linkwitzRileyComputeVariables(static_cast<double>(speaker->getHighPassCutoff()),
-                                          static_cast<double>(mSamplingRate),
+                                          narrow<double>(mSamplingRate),
                                           &coefficients,
                                           7);
             speakerOut.b1 = coefficients[0];
@@ -1883,7 +1883,7 @@ void MainContentComponent::openXmlFileSpeaker(juce::String const & path)
                                 if (spk->hasAttribute("DirectOut")) {
                                     mSpeakers.getLast()->setDirectOut(spk->getBoolAttribute("DirectOut"));
                                 }
-                                mJackClient->addOutput(static_cast<unsigned int>(spk->getIntAttribute("OutputPatch")));
+                                mJackClient->addOutput(narrow<unsigned>(spk->getIntAttribute("OutputPatch")));
                             }
                         }
                     }
@@ -2265,7 +2265,7 @@ void MainContentComponent::saveProperties(juce::String const & device,
 
     auto const coefficient{ std::exp(-juce::MathConstants<float>::twoPi
                                      * ATTENUATION_CUTOFFS[attenuationHz].getFloatValue()
-                                     / static_cast<float>(currentAudioDevice->getCurrentSampleRate())) };
+                                     / narrow<float>(currentAudioDevice->getCurrentSampleRate())) };
     mJackClient->setAttenuationHz(coefficient);
     props->setValue(user_properties_tags::ATTENUATION_HZ, attenuationHz);
 
@@ -2280,11 +2280,11 @@ void MainContentComponent::timerCallback()
     auto & audioDeviceManager{ audioManager.getAudioDeviceManager() };
     auto * audioDevice{ audioDeviceManager.getCurrentAudioDevice() };
     jassert(audioDevice);
-    auto const sampleRate{ static_cast<unsigned>(std::round(audioDevice->getCurrentSampleRate())) };
+    auto const sampleRate{ narrow<unsigned>(std::round(audioDevice->getCurrentSampleRate())) };
 
-    auto const cpuLoad{ static_cast<int>(std::round(audioDeviceManager.getCpuUsage() * 100.0)) };
+    auto const cpuLoad{ narrow<int>(std::round(audioDeviceManager.getCpuUsage() * 100.0)) };
     mJackLoadLabel->setText(juce::String{ cpuLoad } + " %", juce::dontSendNotification);
-    auto seconds{ static_cast<int>(mJackClient->getIndexRecord() / sampleRate) };
+    auto seconds{ narrow<int>(mJackClient->getIndexRecord() / sampleRate) };
     auto const minute{ seconds / 60 % 60 };
     seconds = seconds % 60;
     auto const timeRecorded{ ((minute < 10) ? "0" + juce::String{ minute } : juce::String{ minute }) + " : "
@@ -2367,7 +2367,7 @@ void MainContentComponent::textEditorFocusLost(juce::TextEditor & textEditor)
 void MainContentComponent::textEditorReturnKeyPressed(juce::TextEditor & textEditor)
 {
     if (&textEditor == mAddInputsTextEditor.get()) {
-        auto const numOfInputs{ static_cast<unsigned>(mAddInputsTextEditor->getTextValue().toString().getIntValue()) };
+        auto const numOfInputs{ narrow<unsigned>(mAddInputsTextEditor->getTextValue().toString().getIntValue()) };
         if (numOfInputs < 1) {
             mAddInputsTextEditor->setText("1");
         }
@@ -2380,7 +2380,7 @@ void MainContentComponent::textEditorReturnKeyPressed(juce::TextEditor & textEdi
 
             mInputLocks.lock();
             auto addInput{ false };
-            auto const numInputPorts{ static_cast<int>(mJackClient->getInputPorts().size()) };
+            auto const numInputPorts{ narrow<int>(mJackClient->getInputPorts().size()) };
             for (int i{}; i < numInputPorts; ++i) {
                 if (i >= mSourceInputs.size()) {
                     mSourceInputs.add(new Input{ *this, mSmallLookAndFeel, i + 1 });
@@ -2389,7 +2389,7 @@ void MainContentComponent::textEditorReturnKeyPressed(juce::TextEditor & textEdi
             }
             if (!addInput) {
                 auto const listSourceInputSize{ mSourceInputs.size() };
-                auto const jackClientInputPortSize{ static_cast<int>(mJackClient->getInputPorts().size()) };
+                auto const jackClientInputPortSize{ narrow<int>(mJackClient->getInputPorts().size()) };
                 if (listSourceInputSize > jackClientInputPortSize) {
                     mSourceInputs.removeRange(jackClientInputPortSize, listSourceInputSize - jackClientInputPortSize);
                 }
