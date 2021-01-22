@@ -1544,7 +1544,7 @@ bool MainContentComponent::updateLevelComp()
     for (size_t i{}; i < MAX_INPUTS; ++i) {
         inputsIsMuted[i] = sourcesIn[i].isMuted;
         inputsIsSolo[i] = sourcesIn[i].isSolo;
-        directOuts[i] = sourcesIn[i].isDirectOut;
+        directOuts[i] = sourcesIn[i].directOut;
     }
 
     std::array<bool, MAX_OUTPUTS> outputsIsMuted{};
@@ -1703,7 +1703,7 @@ bool MainContentComponent::updateLevelComp()
         auto & sourceIn{ mJackClient->getSourcesIn()[sourceInIndex] };
         sourceIn.isMuted = inputsIsMuted[sourceInIndex];
         sourceIn.isSolo = inputsIsSolo[sourceInIndex];
-        sourceIn.isDirectOut = directOuts[sourceInIndex];
+        sourceIn.directOut = directOuts[sourceInIndex];
     }
     mInputLocks.lock();
     for (int sourceInputIndex{}; sourceInputIndex < mSourceInputs.size(); sourceInputIndex++) {
@@ -1778,7 +1778,7 @@ void MainContentComponent::soloOutput(int const id, bool const solo) const
 void MainContentComponent::setDirectOut(int const id, int const chn) const
 {
     auto const index{ id - 1 };
-    mJackClient->getSourcesIn()[index].isDirectOut = chn;
+    mJackClient->getSourcesIn()[index].directOut = chn;
 }
 
 //==============================================================================

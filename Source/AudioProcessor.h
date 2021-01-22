@@ -95,7 +95,7 @@ class AudioProcessor
     std::mutex mClientsLock{};
 
     // Source and output lists.
-    std::array<SourceData, MAX_INPUTS> mSourcesIn{};
+    std::array<SourceData, MAX_INPUTS> mSourcesData{};
     std::array<SpeakerData, MAX_OUTPUTS> mSpeakersOut{};
 
     // True when jack reports an xrun.
@@ -220,8 +220,8 @@ public:
     [[nodiscard]] unsigned getVbapDimensions() const { return mVbapDimensions; }
     [[nodiscard]] auto const & getClients() const { return mClients; }
     [[nodiscard]] auto & getClients() { return mClients; }
-    [[nodiscard]] auto & getSourcesIn() { return mSourcesIn; }
-    [[nodiscard]] auto const & getSourcesIn() const { return mSourcesIn; }
+    [[nodiscard]] auto & getSourcesIn() { return mSourcesData; }
+    [[nodiscard]] auto const & getSourcesIn() const { return mSourcesData; }
     [[nodiscard]] auto & getVbapSourcesToUpdate() { return mVbapSourcesToUpdate; }
     [[nodiscard]] auto const & getVbapTriplets() const { return mVbapTriplets; }
     [[nodiscard]] bool getSoloIn() const { return mSoloIn; }
@@ -258,10 +258,22 @@ public:
     void muteSoloVuMeterIn(float ** ins, size_t nFrames, size_t sizeInputs);
     void muteSoloVuMeterGainOut(float ** outs, size_t nFrames, size_t sizeOutputs, float gain = 1.0f);
     void addNoiseSound(float ** outs, size_t nFrames, size_t sizeOutputs);
-    void processVbap(float ** ins, float ** outs, size_t nFrames, size_t sizeInputs, size_t sizeOutputs);
-    void processLbap(float ** ins, float ** outs, size_t nFrames, size_t sizeInputs, size_t sizeOutputs);
-    void processVBapHrtf(float ** ins, float ** outs, size_t nFrames, size_t sizeInputs, size_t sizeOutputs);
-    void processStereo(float ** ins, float ** outs, size_t nFrames, size_t sizeInputs);
+    void processVbap(float const * const * ins,
+                     float * const * outs,
+                     size_t nFrames,
+                     size_t sizeInputs,
+                     size_t sizeOutputs);
+    void processLbap(float const * const * ins,
+                     float * const * outs,
+                     size_t nFrames,
+                     size_t sizeInputs,
+                     size_t sizeOutputs);
+    void processVBapHrtf(float const * const * ins,
+                         float * const * outs,
+                         size_t nFrames,
+                         size_t sizeInputs,
+                         size_t sizeOutputs);
+    void processStereo(float const * const * ins, float * const * outs, size_t nFrames, size_t sizeInputs);
     void processAudio(size_t nFrames);
 
 private:

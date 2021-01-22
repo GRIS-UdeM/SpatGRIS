@@ -53,7 +53,7 @@ struct SourceData {
     bool isSolo = false;
     float gain{}; // Not used yet.
 
-    int isDirectOut{};
+    int directOut{};
 
     VBAP_DATA * paramVBap{};
 };
