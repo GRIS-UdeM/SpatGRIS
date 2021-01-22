@@ -67,6 +67,8 @@ class PropertiesComponent final
 
     std::unique_ptr<juce::TextButton> mValidSettingsButton;
 
+    std::unique_ptr<juce::AudioDeviceSelectorComponent> mAudioSelectorComponent{};
+
 public:
     //==============================================================================
     PropertiesComponent(MainContentComponent & parent,
@@ -93,6 +95,7 @@ public:
     [[nodiscard]] juce::ComboBox * createPropComboBox(juce::StringArray const & choices, int selected, int yPosition);
 
     void buttonClicked(juce::Button * button) override;
+    void resized() override;
 
 private:
     //==============================================================================
@@ -128,6 +131,7 @@ public:
     PropertiesWindow & operator=(PropertiesWindow &&) = delete;
     //==============================================================================
     void closeButtonPressed() override;
+    void resized() override;
 
 private:
     //==============================================================================

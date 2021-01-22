@@ -255,7 +255,7 @@ public:
 
     //==============================================================================
     // Audio processing
-    void muteSoloVuMeterIn(float ** ins, size_t nFrames, size_t sizeInputs);
+    void muteSoloVuMeterIn(float * const * ins, size_t nFrames, size_t sizeInputs);
     void muteSoloVuMeterGainOut(float ** outs, size_t nFrames, size_t sizeOutputs, float gain = 1.0f);
     void addNoiseSound(float ** outs, size_t nFrames, size_t sizeOutputs);
     void processVbap(float const * const * ins,

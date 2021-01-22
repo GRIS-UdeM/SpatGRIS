@@ -582,7 +582,7 @@ void MainContentComponent::handleShowPreferences()
                                        270,
                                        height };
     mPropertiesWindow->setBounds(result);
-    mPropertiesWindow->setResizable(false, false);
+    // mPropertiesWindow->setResizable(false, false);
     mPropertiesWindow->setUsingNativeTitleBar(true);
     mPropertiesWindow->setVisible(true);
     mPropertiesWindow->repaint();
@@ -2277,7 +2277,11 @@ void MainContentComponent::timerCallback()
     jassert(audioDevice);
     auto const sampleRate{ narrow<unsigned>(std::round(audioDevice->getCurrentSampleRate())) };
 
-    auto const cpuLoad{ narrow<int>(std::round(audioDeviceManager.getCpuUsage() * 100.0)) };
+    static double cpuRunningAverage{};
+    auto const currentCpuUsage{ audioDeviceManager.getCpuUsage() * 100.0 };
+    cpuRunningAverage = std::max(cpuRunningAverage * 0.98, currentCpuUsage);
+
+    auto const cpuLoad{ narrow<int>(std::round(cpuRunningAverage)) };
     mCpuUsageValue->setText(juce::String{ cpuLoad } + " %", juce::dontSendNotification);
     auto seconds{ narrow<int>(mAudioProcessor->getIndexRecord() / sampleRate) };
     auto const minute{ seconds / 60 % 60 };

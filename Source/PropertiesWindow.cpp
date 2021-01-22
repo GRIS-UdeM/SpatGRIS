@@ -19,6 +19,7 @@
 
 #include "PropertiesWindow.h"
 
+#include "AudioManager.h"
 #include "GrisLookAndFeel.h"
 #include "MainComponent.h"
 #include "constants.hpp"
@@ -131,12 +132,31 @@ PropertiesComponent::PropertiesComponent(MainContentComponent & parent,
     mValidSettingsButton->setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
     mValidSettingsButton->setLookAndFeel(&mLookAndFeel);
     addAndMakeVisible(mValidSettingsButton.get());
+
+    mAudioSelectorComponent.reset(
+        new juce::AudioDeviceSelectorComponent{ AudioManager::getInstance().getAudioDeviceManager(),
+                                                1,
+                                                256,
+                                                2,
+                                                256,
+                                                false,
+                                                false,
+                                                false,
+                                                false });
+    mAudioSelectorComponent->setLookAndFeel(&mLookAndFeel);
+    addAndMakeVisible(mAudioSelectorComponent.get());
 }
 
 //==============================================================================
 void PropertiesWindow::closeButtonPressed()
 {
     mMainContentComponent.closePropertiesWindow();
+}
+
+//==============================================================================
+void PropertiesWindow::resized()
+{
+    mPropertiesComponent.setBounds(getLocalBounds());
 }
 
 //==============================================================================
@@ -153,6 +173,17 @@ void PropertiesComponent::buttonClicked(juce::Button * button)
                                              mOscInputPortTextEditor->getTextValue().toString().getIntValue());
         mMainContentComponent.closePropertiesWindow();
     }
+}
+
+//==============================================================================
+void PropertiesComponent::resized()
+{
+    auto const yPosition{ mValidSettingsButton->getBottom() + 40 };
+    auto const width{ getWidth() };
+    auto const height{ getHeight() - yPosition };
+
+    juce::Rectangle<int> const newBounds{ 0, yPosition, width, height };
+    mAudioSelectorComponent->setBounds(newBounds);
 }
 
 //==============================================================================
@@ -180,4 +211,5 @@ PropertiesWindow::PropertiesWindow(MainContentComponent & parent,
                            oscPort)
 {
     setContentNonOwned(&mPropertiesComponent, false);
+    setResizable(true, true);
 }

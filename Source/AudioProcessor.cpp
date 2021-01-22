@@ -291,25 +291,24 @@ std::vector<int> AudioProcessor::getDirectOutOutputPatches() const
 }
 
 //==============================================================================
-void AudioProcessor::muteSoloVuMeterIn(float ** ins, size_t const nFrames, size_t const sizeInputs)
+void AudioProcessor::muteSoloVuMeterIn(float * const * ins, size_t const nFrames, size_t const sizeInputs)
 {
-    for (unsigned int i = 0; i < sizeInputs; ++i) {
-        if (mSourcesData[i].isMuted) { // Mute
-            memset(ins[i], 0, sizeof(float) * nFrames);
+    for (unsigned inputIndex{}; inputIndex < sizeInputs; ++inputIndex) {
+        auto * buffer{ ins[inputIndex] };
+        auto const & sourceData{ mSourcesData[inputIndex] };
+        if (sourceData.isMuted) { // Mute
+            memset(buffer, 0, sizeof(float) * nFrames);
         } else if (mSoloIn) { // Solo
-            if (!mSourcesData[i].isSolo) {
-                memset(ins[i], 0, sizeof(float) * nFrames);
+            if (!sourceData.isSolo) {
+                memset(buffer, 0, sizeof(float) * nFrames);
             }
         }
 
         // VuMeter
-        auto maxGain = 0.0f;
-        for (unsigned int j = 1; j < nFrames; j++) {
-            auto const absGain = fabsf(ins[i][j]);
-            if (absGain > maxGain)
-                maxGain = absGain;
-        }
-        mLevelsIn[i] = maxGain;
+        static auto constexpr ABS = [](float const value) { return std::abs(value); };
+        static auto constexpr MAX = [](float const max, float const value) { return max > value ? max : value; };
+        auto const maxGain{ std::transform_reduce(buffer, buffer + nFrames, 0.0f, MAX, ABS) };
+        mLevelsIn[inputIndex] = maxGain;
     }
 }
 
@@ -453,8 +452,8 @@ void AudioProcessor::processVbap(float const * const * ins,
                 }
             } else {
                 // spat
-                auto const targetGain{ mSourcesData[inputIndex].paramVBap->gains[outputIndex] };
                 auto currentGain{ mSourcesData[inputIndex].paramVBap->y[outputIndex] };
+                auto const targetGain{ mSourcesData[inputIndex].paramVBap->gains[outputIndex] };
                 if (mInterMaster == 0.0f) {
                     // linear interpolation over buffer size
                     auto const gainSlope = (targetGain - currentGain) / nFrames;
@@ -730,7 +729,7 @@ void AudioProcessor::processStereo(float const * const * ins,
 //==============================================================================
 void AudioProcessor::processAudio(size_t const nFrames)
 {
-    // Return if the user is editing the speaker setup.
+    // Skip if the user is editing the speaker setup.
     juce::ScopedTryLock const lock{ getCriticalSection() };
     if (!lock.isLocked()) {
         return;
@@ -742,19 +741,13 @@ void AudioProcessor::processAudio(size_t const nFrames)
     auto const sizeInputs{ mInputsPort.size() };
     auto const sizeOutputs{ mOutputsPort.size() };
 
+    // consolidate all buffers
     auto & audioManager{ AudioManager::getInstance() };
     for (unsigned int i = 0; i < sizeInputs; i++) {
         ins[i] = audioManager.getBuffer(mInputsPort[i], nFrames);
     }
     for (unsigned int i = 0; i < sizeOutputs; i++) {
         outs[i] = audioManager.getBuffer(mOutputsPort[i], nFrames);
-    }
-
-    // clear output buffers
-    for (size_t i{}; i < mOutputsPort.size(); ++i) {
-        /*auto * outputBuffer{ audioManager.getBuffer(mOutputsPort[i], nFrames) };
-        std::fill(outputBuffer, outputBuffer + nFrames, 0.0f);*/
-        mLevelsOut[i] = 0.0f;
     }
 
     muteSoloVuMeterIn(ins, nFrames, sizeInputs);
