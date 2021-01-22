@@ -89,7 +89,7 @@ public:
     MainWindow & operator=(MainWindow const &) = delete;
     MainWindow & operator=(MainWindow &&) = delete;
     //==============================================================================
-    [[nodiscard]] bool exitWinApp();
+    [[nodiscard]] bool exitWinApp() const;
     [[nodiscard]] juce::ApplicationCommandManager & getApplicationCommandManager();
     //==============================================================================
     void closeButtonPressed() override;

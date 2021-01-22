@@ -24,31 +24,34 @@
 #include "constants.hpp"
 
 //==============================================================================
-juce::TextEditor * PropertiesComponent::createPropIntTextEditor(juce::String const & tooltip, int ypos, int init)
+juce::TextEditor *
+    PropertiesComponent::createPropIntTextEditor(juce::String const & tooltip, int const yPosition, int const init)
 {
-    juce::TextEditor * editor = new juce::TextEditor();
+    auto * editor{ new juce::TextEditor{} };
+
     editor->setTooltip(tooltip);
-    editor->setTextToShowWhenEmpty("", this->mLookAndFeel.getOffColour());
-    editor->setColour(juce::ToggleButton::textColourId, this->mLookAndFeel.getFontColour());
-    editor->setLookAndFeel(&this->mLookAndFeel);
-    editor->setBounds(130, ypos, 120, 22);
+    editor->setTextToShowWhenEmpty("", mLookAndFeel.getOffColour());
+    editor->setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
+    editor->setLookAndFeel(&mLookAndFeel);
+    editor->setBounds(130, yPosition, 120, 22);
     editor->setInputRestrictions(5, "0123456789");
-    editor->setText(juce::String(init));
-    /* Implemented but not yet in current Juce release. */
-    // this->mOscInputPortTextEditor->setJustification(Justification::right);
-    this->juce::Component::addAndMakeVisible(editor);
+    editor->setText(juce::String{ init });
+
+    addAndMakeVisible(editor);
     return editor;
 }
 
 //==============================================================================
 juce::ComboBox *
-    PropertiesComponent::createPropComboBox(juce::StringArray const & choices, int const selected, int const ypos)
+    PropertiesComponent::createPropComboBox(juce::StringArray const & choices, int const selected, int const yPosition)
 {
-    juce::ComboBox * combo = new juce::ComboBox();
+    auto * combo{ new juce::ComboBox{} };
+
     combo->addItemList(choices, 1);
     combo->setSelectedItemIndex(selected);
-    combo->setBounds(130, ypos, 120, 22);
-    combo->setLookAndFeel(&this->mLookAndFeel);
+    combo->setBounds(130, yPosition, 120, 22);
+    combo->setLookAndFeel(&mLookAndFeel);
+
     addAndMakeVisible(combo);
     return combo;
 }
@@ -56,7 +59,6 @@ juce::ComboBox *
 //==============================================================================
 PropertiesComponent::PropertiesComponent(MainContentComponent & parent,
                                          GrisLookAndFeel & lookAndFeel,
-                                         juce::Array<juce::String> const & devices,
                                          juce::String const & currentDevice,
                                          int const indR,
                                          int const indB,
@@ -68,7 +70,7 @@ PropertiesComponent::PropertiesComponent(MainContentComponent & parent,
     : mMainContentComponent(parent)
     , mLookAndFeel(lookAndFeel)
 {
-    int ypos = 20;
+    auto yPosition = 20;
 
     auto initComponent = [this](juce::Component & component, int const yPosition, int const width = 100) {
         component.setBounds(10, yPosition, width, 22);
@@ -82,105 +84,92 @@ PropertiesComponent::PropertiesComponent(MainContentComponent & parent,
         initComponent(label, yPosition, width);
     };
 
-    initLabel(mGeneralLabel, ypos);
-    ypos += 30;
+    initLabel(mGeneralLabel, yPosition);
+    yPosition += 30;
 
-    initLabel(mOscInputPortLabel, ypos);
-    mOscInputPortTextEditor.reset(createPropIntTextEditor("Port Socket OSC Input", ypos, oscPort));
-    ypos += 40;
+    initLabel(mOscInputPortLabel, yPosition);
+    mOscInputPortTextEditor.reset(createPropIntTextEditor("Port Socket OSC Input", yPosition, oscPort));
+    yPosition += 40;
 
-    initLabel(mJackSettingsLabel, ypos);
-    ypos += 30;
+    initLabel(mJackSettingsLabel, yPosition);
+    yPosition += 30;
 
-    if (!devices.isEmpty()) {
-        auto deviceIndex = 0;
-        if (devices.contains(currentDevice)) {
-            deviceIndex = devices.indexOf(currentDevice);
-        }
-        initLabel(mDeviceLabel, ypos);
-        this->mDeviceCombo.reset(this->createPropComboBox(devices, deviceIndex, ypos));
-        ypos += 30;
-    }
+    initLabel(mRateLabel, yPosition);
+    mRateCombo.reset(createPropComboBox(RATE_VALUES, indR, yPosition));
+    yPosition += 30;
 
-    initLabel(mRateLabel, ypos);
-    this->mRateCombo.reset(this->createPropComboBox(RATE_VALUES, indR, ypos));
-    ypos += 30;
+    initLabel(mBufferLabel, yPosition);
+    mBufferCombo.reset(createPropComboBox(BUFFER_SIZES, indB, yPosition));
+    yPosition += 40;
 
-    initLabel(mBufferLabel, ypos);
-    this->mBufferCombo.reset(this->createPropComboBox(BUFFER_SIZES, indB, ypos));
-    ypos += 40;
+    initLabel(mRecordingLabel, yPosition);
+    yPosition += 30;
 
-    initLabel(mRecordingLabel, ypos);
-    ypos += 30;
+    initLabel(mRecFormatLabel, yPosition);
+    mRecFormatCombo.reset(createPropComboBox(FILE_FORMATS, indFF, yPosition));
+    yPosition += 30;
 
-    initLabel(mRecFormatLabel, ypos);
-    this->mRecFormatCombo.reset(this->createPropComboBox(FILE_FORMATS, indFF, ypos));
-    ypos += 30;
+    initLabel(mRecFileConfigLabel, yPosition);
+    mRecFileConfigCombo.reset(createPropComboBox(FILE_CONFIGS, indFC, yPosition));
+    yPosition += 40;
 
-    initLabel(mRecFileConfigLabel, ypos);
-    this->mRecFileConfigCombo.reset(this->createPropComboBox(FILE_CONFIGS, indFC, ypos));
-    ypos += 40;
+    initLabel(mCubeDistanceLabel, yPosition, 250);
+    yPosition += 30;
 
-    initLabel(mCubeDistanceLabel, ypos, 250);
-    ypos += 30;
+    initLabel(mDistanceDbLabel, yPosition);
+    mDistanceDbCombo.reset(createPropComboBox(ATTENUATION_DB, indAttDB, yPosition));
+    yPosition += 30;
 
-    initLabel(mDistanceDbLabel, ypos);
-    this->mDistanceDbCombo.reset(this->createPropComboBox(ATTENUATION_DB, indAttDB, ypos));
-    ypos += 30;
+    initLabel(mDistanceCutoffLabel, yPosition);
+    mDistanceCutoffCombo.reset(createPropComboBox(ATTENUATION_CUTOFFS, indAttHz, yPosition));
+    yPosition += 40;
 
-    initLabel(mDistanceCutoffLabel, ypos);
-    this->mDistanceCutoffCombo.reset(this->createPropComboBox(ATTENUATION_CUTOFFS, indAttHz, ypos));
-    ypos += 40;
-
-    this->mValidSettingsButton.reset(new juce::TextButton());
-    this->mValidSettingsButton->setButtonText("Save");
-    this->mValidSettingsButton->setBounds(163, ypos, 88, 22);
-    this->mValidSettingsButton->addListener(this);
-    this->mValidSettingsButton->setColour(juce::ToggleButton::textColourId, this->mLookAndFeel.getFontColour());
-    this->mValidSettingsButton->setLookAndFeel(&this->mLookAndFeel);
-    this->addAndMakeVisible(this->mValidSettingsButton.get());
+    mValidSettingsButton.reset(new juce::TextButton());
+    mValidSettingsButton->setButtonText("Save");
+    mValidSettingsButton->setBounds(163, yPosition, 88, 22);
+    mValidSettingsButton->addListener(this);
+    mValidSettingsButton->setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
+    mValidSettingsButton->setLookAndFeel(&mLookAndFeel);
+    addAndMakeVisible(mValidSettingsButton.get());
 }
 
 //==============================================================================
 void PropertiesWindow::closeButtonPressed()
 {
-    this->mMainContentComponent.closePropertiesWindow();
+    mMainContentComponent.closePropertiesWindow();
 }
 
 //==============================================================================
 void PropertiesComponent::buttonClicked(juce::Button * button)
 {
-    if (button == this->mValidSettingsButton.get()) {
-        this->mMainContentComponent.saveProperties(
-            this->mDeviceCombo.get() != nullptr ? this->mDeviceCombo->getText() : juce::String{},
-            this->mRateCombo->getText().getIntValue(),
-            this->mBufferCombo->getText().getIntValue(),
-            this->mRecFormatCombo->getSelectedItemIndex(),
-            this->mRecFileConfigCombo->getSelectedItemIndex(),
-            this->mDistanceDbCombo->getSelectedItemIndex(),
-            this->mDistanceCutoffCombo->getSelectedItemIndex(),
-            this->mOscInputPortTextEditor->getTextValue().toString().getIntValue());
-        this->mMainContentComponent.closePropertiesWindow();
+    if (button == mValidSettingsButton.get()) {
+        mMainContentComponent.saveProperties(mDeviceCombo != nullptr ? mDeviceCombo->getText() : juce::String{},
+                                             mRateCombo->getText().getIntValue(),
+                                             mBufferCombo->getText().getIntValue(),
+                                             mRecFormatCombo->getSelectedItemIndex(),
+                                             mRecFileConfigCombo->getSelectedItemIndex(),
+                                             mDistanceDbCombo->getSelectedItemIndex(),
+                                             mDistanceCutoffCombo->getSelectedItemIndex(),
+                                             mOscInputPortTextEditor->getTextValue().toString().getIntValue());
+        mMainContentComponent.closePropertiesWindow();
     }
 }
 
 //==============================================================================
 PropertiesWindow::PropertiesWindow(MainContentComponent & parent,
-                                   GrisLookAndFeel & lookAndFeel,
-                                   juce::Array<juce::String> const & devices,
+                                   GrisLookAndFeel & grisLookAndFeel,
                                    juce::String const & currentDevice,
-                                   int indR,
-                                   int indB,
-                                   int indFf,
-                                   int indFc,
-                                   int indAttDb,
-                                   int indAttHz,
-                                   int oscPort)
-    : juce::DocumentWindow("Properties", lookAndFeel.getBackgroundColour(), DocumentWindow::allButtons)
+                                   int const indR,
+                                   int const indB,
+                                   int const indFf,
+                                   int const indFc,
+                                   int const indAttDb,
+                                   int const indAttHz,
+                                   int const oscPort)
+    : juce::DocumentWindow("Properties", grisLookAndFeel.getBackgroundColour(), DocumentWindow::allButtons)
     , mMainContentComponent(parent)
     , mPropertiesComponent(parent,
-                           lookAndFeel,
-                           devices,
+                           grisLookAndFeel,
                            currentDevice,
                            indR,
                            indB,
@@ -190,5 +179,5 @@ PropertiesWindow::PropertiesWindow(MainContentComponent & parent,
                            indAttHz,
                            oscPort)
 {
-    this->setContentNonOwned(&this->mPropertiesComponent, false);
+    setContentNonOwned(&mPropertiesComponent, false);
 }

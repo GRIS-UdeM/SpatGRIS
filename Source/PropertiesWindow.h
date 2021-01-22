@@ -37,7 +37,7 @@ class PropertiesComponent final
     GrisLookAndFeel & mLookAndFeel;
 
     juce::Label mGeneralLabel{ "", "General Settings" };
-    juce::Label mJackSettingsLabel{ "", "Jack Settings" };
+    juce::Label mJackSettingsLabel{ "", "Audio Settings" };
     juce::Label mRecordingLabel{ "", "Recording Settings" };
     juce::Label mCubeDistanceLabel{ "", "CUBE Distance Settings" };
 
@@ -71,7 +71,6 @@ public:
     //==============================================================================
     PropertiesComponent(MainContentComponent & parent,
                         GrisLookAndFeel & lookAndFeel,
-                        juce::Array<juce::String> const & devices,
                         juce::String const & currentDevice,
                         int indR,
                         int indB,
@@ -90,8 +89,8 @@ public:
     PropertiesComponent & operator=(PropertiesComponent const &) = delete;
     PropertiesComponent & operator=(PropertiesComponent &&) = delete;
     //==============================================================================
-    [[nodiscard]] juce::TextEditor * createPropIntTextEditor(juce::String const & tooltip, int ypos, int init);
-    [[nodiscard]] juce::ComboBox * createPropComboBox(juce::StringArray const & choices, int selected, int ypos);
+    [[nodiscard]] juce::TextEditor * createPropIntTextEditor(juce::String const & tooltip, int yPosition, int init);
+    [[nodiscard]] juce::ComboBox * createPropComboBox(juce::StringArray const & choices, int selected, int yPosition);
 
     void buttonClicked(juce::Button * button) override;
 
@@ -109,8 +108,7 @@ class PropertiesWindow final : public juce::DocumentWindow
 public:
     //==============================================================================
     PropertiesWindow(MainContentComponent & parent,
-                     GrisLookAndFeel & feel,
-                     juce::Array<juce::String> const & devices,
+                     GrisLookAndFeel & grisLookAndFeel,
                      juce::String const & currentDevice,
                      int indR = 0,
                      int indB = 0,

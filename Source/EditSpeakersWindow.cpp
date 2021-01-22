@@ -782,7 +782,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
                 auto const oldValue{ mMainContentComponent.getSpeakers()[rowNumber]->getOutputPatch() };
                 auto iValue{ std::clamp(newText.getIntValue(), 0, 256) };
                 if (!mMainContentComponent.getSpeakers()[rowNumber]->isDirectOut()) {
-                    for (auto && it : mMainContentComponent.getSpeakers()) {
+                    for (auto const * it : mMainContentComponent.getSpeakers()) {
                         if (it == mMainContentComponent.getSpeakers()[rowNumber] || it->isDirectOut()) {
                             continue;
                         }
