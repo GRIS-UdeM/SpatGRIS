@@ -20,7 +20,6 @@
 #include "AudioManager.h"
 
 #include "AudioProcessor.h"
-#include "constants.hpp"
 
 static_assert(!USE_JACK);
 
@@ -52,7 +51,6 @@ AudioManager::AudioManager(juce::String const & inputDevice,
     auto const error{ mAudioDeviceManager.initialise(128, 128, nullptr, false, setup.outputDeviceName, &setup) };
 
     if (error.isNotEmpty()) {
-        // jassertfalse;
         juce::AlertWindow::showMessageBox(juce::AlertWindow::AlertIconType::WarningIcon, "Error", error, "close");
         std::exit(-1);
     }

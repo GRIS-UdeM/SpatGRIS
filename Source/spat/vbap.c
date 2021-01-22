@@ -1341,19 +1341,19 @@ void vbap_flip_y_z(float azi, float ele, float spread, VBAP_DATA *data) {
     }
 }
 
-void vbap2_flip_y_z(float azi, float ele, float sp_azi,
-                    float sp_ele, VBAP_DATA *data) {
+void vbap2_flip_y_z(float const azi, float const ele, float const sp_azi,
+                    float const sp_ele, VBAP_DATA *data) {
     int i;
     float tmp;
     data->ang_dir.azi = azi;
     data->ang_dir.ele = ele;
-    data->ang_dir.length = 1.0;
+    data->ang_dir.length = 1.0f;
     vec_angle_to_cart(&data->ang_dir, &data->cart_dir);
     tmp = data->cart_dir.z;
     data->cart_dir.z = data->cart_dir.y;
     data->cart_dir.y = tmp;
     for (i=0; i<data->ls_am; i++) {
-        data->gains[i] = 0.0;
+        data->gains[i] = 0.0f;
     }
     compute_gains(data->ls_set_am, data->ls_sets, data->gains,
                   data->ls_am, data->cart_dir, data->dimension);

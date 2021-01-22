@@ -261,7 +261,7 @@ public:
     void processVbap(float ** ins, float ** outs, size_t nFrames, size_t sizeInputs, size_t sizeOutputs);
     void processLbap(float ** ins, float ** outs, size_t nFrames, size_t sizeInputs, size_t sizeOutputs);
     void processVBapHrtf(float ** ins, float ** outs, size_t nFrames, size_t sizeInputs, size_t sizeOutputs);
-    void processStereo(float ** ins, float ** outs, size_t nFrames, size_t sizeInputs, size_t sizeOutputs);
+    void processStereo(float ** ins, float ** outs, size_t nFrames, size_t sizeInputs);
     void processAudio(size_t nFrames);
 
 private:

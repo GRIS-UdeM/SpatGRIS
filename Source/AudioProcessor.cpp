@@ -286,7 +286,7 @@ std::vector<int> AudioProcessor::getDirectOutOutputPatches() const
 }
 
 //==============================================================================
-void AudioProcessor::muteSoloVuMeterIn(float ** ins, size_t const nFrames, size_t sizeInputs)
+void AudioProcessor::muteSoloVuMeterIn(float ** ins, size_t const nFrames, size_t const sizeInputs)
 {
     for (unsigned int i = 0; i < sizeInputs; ++i) {
         if (mSourcesIn[i].isMuted) { // Mute
@@ -309,7 +309,10 @@ void AudioProcessor::muteSoloVuMeterIn(float ** ins, size_t const nFrames, size_
 }
 
 //==============================================================================
-void AudioProcessor::muteSoloVuMeterGainOut(float ** outs, size_t nFrames, size_t sizeOutputs, float const gain)
+void AudioProcessor::muteSoloVuMeterGainOut(float ** outs,
+                                            size_t const nFrames,
+                                            size_t const sizeOutputs,
+                                            float const gain)
 {
     size_t num_of_channels{ 2 };
 
@@ -392,7 +395,7 @@ void AudioProcessor::muteSoloVuMeterGainOut(float ** outs, size_t nFrames, size_
 }
 
 //==============================================================================
-void AudioProcessor::addNoiseSound(float ** outs, size_t nFrames, size_t sizeOutputs)
+void AudioProcessor::addNoiseSound(float ** outs, size_t const nFrames, size_t const sizeOutputs)
 {
     static constexpr auto FAC{ 1.0f / (static_cast<float>(RAND_MAX) / 2.0f) };
     for (unsigned int nF = 0; nF < nFrames; ++nF) {
@@ -422,8 +425,6 @@ void AudioProcessor::processVbap(float ** ins,
                                  size_t const sizeInputs,
                                  size_t const sizeOutputs)
 {
-    auto interpolationG{ mInterMaster == 0.0f ? 0.99f : std::pow(mInterMaster, 0.1f) * 0.0099f + 0.99f };
-
     for (unsigned i{}; i < sizeInputs; ++i) {
         if (mVbapSourcesToUpdate[i] == 1) {
             updateSourceVbap(narrow<int>(i));
@@ -431,38 +432,70 @@ void AudioProcessor::processVbap(float ** ins,
         }
     }
 
-    // TODO : clean this up
-    for (unsigned o{}; o < sizeOutputs; ++o) {
-        for (unsigned i{}; i < sizeInputs; ++i) {
-            if (!mSourcesIn[i].directOut && mSourcesIn[i].paramVBap != nullptr) {
-                auto const ioGain{ mSourcesIn[i].paramVBap->gains[o] };
-                auto y{ mSourcesIn[i].paramVBap->y[o] };
+    auto const gainFactor{ std::pow(mInterMaster, 0.1f) * 0.0099f + 0.99f };
+
+    static constexpr size_t MAX_BUFFER_SIZE = 2048;
+    jassert(nFrames <= MAX_BUFFER_SIZE);
+
+    static float gainLinearSlope[MAX_BUFFER_SIZE];
+    static size_t lastFrameCount{};
+    if (mInterMaster == 0.0f && lastFrameCount != nFrames) {
+        lastFrameCount = nFrames;
+        auto const gainSlope{ 1.0f / nFrames };
+        float lastGain{};
+        std::generate(gainLinearSlope, gainLinearSlope + nFrames, [gainSlope, &lastGain]() {
+            return lastGain += gainSlope;
+        });
+    }
+
+    for (unsigned outputIndex{}; outputIndex < sizeOutputs; ++outputIndex) {
+        auto * outputBuffer{ outs[outputIndex] };
+        for (unsigned inputIndex{}; inputIndex < sizeInputs; ++inputIndex) {
+            auto * inputBuffer{ ins[inputIndex] };
+            if (mSourcesIn[inputIndex].directOut || mSourcesIn[inputIndex].paramVBap == nullptr) {
+                // direct out
+                if (narrow<unsigned>(mSourcesIn[inputIndex].directOut - 1) == outputIndex) {
+                    // output matches
+                    memcpy(outputBuffer, inputBuffer, sizeof(float) * nFrames);
+                }
+            } else {
+                // spat
+                auto const targetGain{ mSourcesIn[inputIndex].paramVBap->gains[outputIndex] };
+                auto currentGain{ mSourcesIn[inputIndex].paramVBap->y[outputIndex] };
                 if (mInterMaster == 0.0f) {
-                    interpolationG = (ioGain - y) / nFrames;
-                    for (unsigned f{}; f < nFrames; ++f) {
-                        y += interpolationG;
-                        outs[o][f] += ins[i][f] * y;
+                    // linear interpolation over buffer size
+                    auto const gainSlope = (targetGain - currentGain) / nFrames;
+                    if (targetGain == 0.0f && currentGain == 0.0f) {
+                        break;
+                    }
+                    for (unsigned sampleIndex{}; sampleIndex < nFrames; ++sampleIndex) {
+                        currentGain += gainSlope;
+                        outputBuffer[sampleIndex] += inputBuffer[sampleIndex] * currentGain;
                     }
                 } else {
-                    for (unsigned f{}; f < nFrames; ++f) {
-                        y = ioGain + (y - ioGain) * interpolationG;
-                        if (y < 0.0000000000001f) {
-                            y = 0.0;
-                        } else {
-                            outs[o][f] += ins[i][f] * y;
+                    // log interpolation with 1st order filter
+                    for (unsigned sampleIndex{}; sampleIndex < nFrames; ++sampleIndex) {
+                        currentGain = targetGain + (currentGain - targetGain) * gainFactor;
+                        if (currentGain < 0.0000000000001f && targetGain < 0.0000000000001f) {
+                            // If the gain is near zero and the target gain if also near zero, this means that
+                            // currentGain will no ever increase over this buffer
+                            break;
                         }
+                        outputBuffer[sampleIndex] += inputBuffer[sampleIndex] * currentGain;
                     }
                 }
-                mSourcesIn[i].paramVBap->y[o] = y;
-            } else if (narrow<unsigned>(mSourcesIn[i].directOut - 1) == o) {
-                std::transform(outs[o], outs[o] + nFrames, ins[i], outs[o], std::plus());
+                mSourcesIn[inputIndex].paramVBap->y[outputIndex] = currentGain;
             }
         }
     }
 }
 
 //==============================================================================
-void AudioProcessor::processLbap(float ** ins, float ** outs, size_t nFrames, size_t sizeInputs, size_t sizeOutputs)
+void AudioProcessor::processLbap(float ** ins,
+                                 float ** outs,
+                                 size_t const nFrames,
+                                 size_t const sizeInputs,
+                                 size_t const sizeOutputs)
 {
     static auto constexpr MAX_N_FRAMES{ 2048u };
     jassert(nFrames <= MAX_N_FRAMES);
@@ -627,7 +660,7 @@ void AudioProcessor::processVBapHrtf(float ** ins,
 }
 
 //==============================================================================
-void AudioProcessor::processStereo(float ** ins, float ** outs, size_t nFrames, size_t sizeInputs, size_t sizeOutputs)
+void AudioProcessor::processStereo(float ** ins, float ** outs, size_t const nFrames, size_t const sizeInputs)
 {
     static auto constexpr FACTOR{ juce::MathConstants<float>::pi / 360.0f };
 
@@ -718,7 +751,7 @@ void AudioProcessor::processAudio(size_t const nFrames)
         processVBapHrtf(ins, outs, nFrames, sizeInputs, sizeOutputs);
         break;
     case SpatModes::stereo:
-        processStereo(ins, outs, nFrames, sizeInputs, sizeOutputs);
+        processStereo(ins, outs, nFrames, sizeInputs);
         break;
     default:
         jassertfalse;
