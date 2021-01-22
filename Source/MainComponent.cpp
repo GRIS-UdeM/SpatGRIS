@@ -2277,12 +2277,21 @@ void MainContentComponent::timerCallback()
     jassert(audioDevice);
     auto const sampleRate{ narrow<unsigned>(std::round(audioDevice->getCurrentSampleRate())) };
 
+    // TODO : static variables no good
     static double cpuRunningAverage{};
+    static double amountToRemove{};
     auto const currentCpuUsage{ audioDeviceManager.getCpuUsage() * 100.0 };
-    cpuRunningAverage = std::max(cpuRunningAverage * 0.98, currentCpuUsage);
+    if (currentCpuUsage > cpuRunningAverage) {
+        cpuRunningAverage = currentCpuUsage;
+        amountToRemove = 0.01;
+    } else {
+        cpuRunningAverage = std::max(cpuRunningAverage - amountToRemove, currentCpuUsage);
+        amountToRemove *= 1.1;
+    }
 
     auto const cpuLoad{ narrow<int>(std::round(cpuRunningAverage)) };
     mCpuUsageValue->setText(juce::String{ cpuLoad } + " %", juce::dontSendNotification);
+
     auto seconds{ narrow<int>(mAudioProcessor->getIndexRecord() / sampleRate) };
     auto const minute{ seconds / 60 % 60 };
     seconds = seconds % 60;
