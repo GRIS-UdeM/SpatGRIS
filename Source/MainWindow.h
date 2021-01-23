@@ -74,11 +74,7 @@ private:
 
 public:
     //==============================================================================
-    MainWindow(juce::String const & name,
-               GrisLookAndFeel & newLookAndFeel,
-               juce::String const & inputDevice,
-               juce::String const & outputDevice,
-               std::optional<juce::String> const & deviceType);
+    MainWindow(juce::String const & name, GrisLookAndFeel & newLookAndFeel);
     //==============================================================================
     MainWindow() = delete;
     ~MainWindow() = default;
@@ -89,7 +85,7 @@ public:
     MainWindow & operator=(MainWindow const &) = delete;
     MainWindow & operator=(MainWindow &&) = delete;
     //==============================================================================
-    [[nodiscard]] bool exitWinApp();
+    [[nodiscard]] bool exitWinApp() const;
     [[nodiscard]] juce::ApplicationCommandManager & getApplicationCommandManager();
     //==============================================================================
     void closeButtonPressed() override;

@@ -19,176 +19,314 @@
 
 #include "PropertiesWindow.h"
 
+#include "AudioManager.h"
 #include "GrisLookAndFeel.h"
 #include "MainComponent.h"
 #include "constants.hpp"
 
 //==============================================================================
-juce::TextEditor * PropertiesComponent::createPropIntTextEditor(juce::String const & tooltip, int ypos, int init)
-{
-    juce::TextEditor * editor = new juce::TextEditor();
-    editor->setTooltip(tooltip);
-    editor->setTextToShowWhenEmpty("", this->mLookAndFeel.getOffColour());
-    editor->setColour(juce::ToggleButton::textColourId, this->mLookAndFeel.getFontColour());
-    editor->setLookAndFeel(&this->mLookAndFeel);
-    editor->setBounds(130, ypos, 120, 22);
-    editor->setInputRestrictions(5, "0123456789");
-    editor->setText(juce::String(init));
-    /* Implemented but not yet in current Juce release. */
-    // this->mOscInputPortTextEditor->setJustification(Justification::right);
-    this->juce::Component::addAndMakeVisible(editor);
-    return editor;
-}
-
-//==============================================================================
-juce::ComboBox *
-    PropertiesComponent::createPropComboBox(juce::StringArray const & choices, int const selected, int const ypos)
-{
-    juce::ComboBox * combo = new juce::ComboBox();
-    combo->addItemList(choices, 1);
-    combo->setSelectedItemIndex(selected);
-    combo->setBounds(130, ypos, 120, 22);
-    combo->setLookAndFeel(&this->mLookAndFeel);
-    addAndMakeVisible(combo);
-    return combo;
-}
-
-//==============================================================================
 PropertiesComponent::PropertiesComponent(MainContentComponent & parent,
                                          GrisLookAndFeel & lookAndFeel,
-                                         juce::Array<juce::String> const & devices,
-                                         juce::String const & currentDevice,
-                                         int const indR,
-                                         int const indB,
-                                         int const indFF,
-                                         int const indFC,
-                                         int const indAttDB,
-                                         int const indAttHz,
+                                         int const fileFormatIndex,
+                                         int const fileConfigIndex,
+                                         int const attenuationDbIndex,
+                                         int const attenuationCutoffIndex,
                                          int const oscPort)
     : mMainContentComponent(parent)
     , mLookAndFeel(lookAndFeel)
 {
-    int ypos = 20;
-
-    auto initComponent = [this](juce::Component & component, int const yPosition, int const width = 100) {
-        component.setBounds(10, yPosition, width, 22);
-        component.setLookAndFeel(&mLookAndFeel);
-        addAndMakeVisible(component);
-    };
-    auto initLabel = [this, &initComponent](juce::Label & label, int const yPosition, int const width = 100) {
-        label.setJustificationType(juce::Justification::Flags::left);
+    auto initLabel = [this](juce::Label & label) {
+        label.setJustificationType(juce::Justification::Flags::centredRight);
         label.setFont(mLookAndFeel.getFont());
         label.setColour(juce::Label::textColourId, mLookAndFeel.getFontColour());
-        initComponent(label, yPosition, width);
+        label.setBounds(0, 0, LEFT_COL_WIDTH, COMPONENT_HEIGHT);
+        label.setLookAndFeel(&mLookAndFeel);
+        addAndMakeVisible(label);
     };
 
-    initLabel(mGeneralLabel, ypos);
-    ypos += 30;
+    auto initSectionLabel = [this, &initLabel](juce::Label & label) {
+        initLabel(label);
+        label.setJustificationType(juce::Justification::Flags::centredLeft);
+        label.setFont(mLookAndFeel.getFont().withHorizontalScale(1.5f));
+    };
 
-    initLabel(mOscInputPortLabel, ypos);
-    mOscInputPortTextEditor.reset(createPropIntTextEditor("Port Socket OSC Input", ypos, oscPort));
-    ypos += 40;
+    auto initComboBox = [this](juce::ComboBox & combo, juce::StringArray choices = {}, int selectedIndex = 0) {
+        combo.addItemList(std::move(choices), 1);
+        combo.setSelectedItemIndex(selectedIndex, juce::dontSendNotification);
+        combo.setBounds(0, 0, RIGHT_COL_WIDTH, COMPONENT_HEIGHT);
+        combo.setLookAndFeel(&mLookAndFeel);
+        combo.addListener(this);
 
-    initLabel(mJackSettingsLabel, ypos);
-    ypos += 30;
+        addAndMakeVisible(combo);
+    };
 
-    if (!devices.isEmpty()) {
-        auto deviceIndex = 0;
-        if (devices.contains(currentDevice)) {
-            deviceIndex = devices.indexOf(currentDevice);
-        }
-        initLabel(mDeviceLabel, ypos);
-        this->mDeviceCombo.reset(this->createPropComboBox(devices, deviceIndex, ypos));
-        ypos += 30;
-    }
+    auto & audioManager{ AudioManager::getInstance() };
 
-    initLabel(mRateLabel, ypos);
-    this->mRateCombo.reset(this->createPropComboBox(RATE_VALUES, indR, ypos));
-    ypos += 30;
+    //==============================================================================
+    initSectionLabel(mAudioSectionLabel);
 
-    initLabel(mBufferLabel, ypos);
-    this->mBufferCombo.reset(this->createPropComboBox(BUFFER_SIZES, indB, ypos));
-    ypos += 40;
+    initLabel(mDeviceTypeLabel);
+    initComboBox(mDeviceTypeCombo, audioManager.getAvailableDeviceTypeNames());
 
-    initLabel(mRecordingLabel, ypos);
-    ypos += 30;
+    initLabel(mInputDeviceLabel);
+    initComboBox(mInputDeviceCombo);
 
-    initLabel(mRecFormatLabel, ypos);
-    this->mRecFormatCombo.reset(this->createPropComboBox(FILE_FORMATS, indFF, ypos));
-    ypos += 30;
+    initLabel(mOutputDeviceLabel);
+    initComboBox(mOutputDeviceCombo);
 
-    initLabel(mRecFileConfigLabel, ypos);
-    this->mRecFileConfigCombo.reset(this->createPropComboBox(FILE_CONFIGS, indFC, ypos));
-    ypos += 40;
+    initLabel(mSampleRateLabel);
+    initComboBox(mSampleRateCombo);
 
-    initLabel(mCubeDistanceLabel, ypos, 250);
-    ypos += 30;
+    initLabel(mBufferSize);
+    initComboBox(mBufferSizeCombo);
 
-    initLabel(mDistanceDbLabel, ypos);
-    this->mDistanceDbCombo.reset(this->createPropComboBox(ATTENUATION_DB, indAttDB, ypos));
-    ypos += 30;
+    //==============================================================================
+    initSectionLabel(mGeneralSectionLabel);
 
-    initLabel(mDistanceCutoffLabel, ypos);
-    this->mDistanceCutoffCombo.reset(this->createPropComboBox(ATTENUATION_CUTOFFS, indAttHz, ypos));
-    ypos += 40;
+    initLabel(mOscInputPortLabel);
+    mOscInputPortTextEditor.setTooltip("Port Socket OSC Input");
+    mOscInputPortTextEditor.setTextToShowWhenEmpty("", mLookAndFeel.getOffColour());
+    mOscInputPortTextEditor.setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
+    mOscInputPortTextEditor.setLookAndFeel(&mLookAndFeel);
+    mOscInputPortTextEditor.setBounds(0, 0, RIGHT_COL_WIDTH, COMPONENT_HEIGHT);
+    mOscInputPortTextEditor.setInputRestrictions(5, "0123456789");
+    mOscInputPortTextEditor.setText(juce::String{ oscPort });
+    addAndMakeVisible(mOscInputPortTextEditor);
 
-    this->mValidSettingsButton.reset(new juce::TextButton());
-    this->mValidSettingsButton->setButtonText("Save");
-    this->mValidSettingsButton->setBounds(163, ypos, 88, 22);
-    this->mValidSettingsButton->addListener(this);
-    this->mValidSettingsButton->setColour(juce::ToggleButton::textColourId, this->mLookAndFeel.getFontColour());
-    this->mValidSettingsButton->setLookAndFeel(&this->mLookAndFeel);
-    this->addAndMakeVisible(this->mValidSettingsButton.get());
+    initLabel(mRecFormatLabel);
+    initComboBox(mRecFormatCombo, FILE_FORMATS, fileFormatIndex);
+
+    initLabel(mRecFileConfigLabel);
+    initComboBox(mRecFileConfigCombo, FILE_CONFIGS, fileConfigIndex);
+
+    //==============================================================================
+    initSectionLabel(mCubeSectionLabel);
+
+    initLabel(mDistanceDbLabel);
+    initComboBox(mDistanceDbCombo, ATTENUATION_DB, attenuationDbIndex);
+
+    initLabel(mDistanceCutoffLabel);
+    initComboBox(mDistanceCutoffCombo, ATTENUATION_CUTOFFS, attenuationCutoffIndex);
+
+    //==============================================================================
+    mSaveSettingsButton.setButtonText("Save");
+    mSaveSettingsButton.setBounds(0, 0, RIGHT_COL_WIDTH / 2, COMPONENT_HEIGHT);
+    mSaveSettingsButton.addListener(this);
+    mSaveSettingsButton.setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
+    mSaveSettingsButton.setLookAndFeel(&mLookAndFeel);
+    addAndMakeVisible(mSaveSettingsButton);
+
+    fillComboBoxes();
+    placeComponents();
 }
 
 //==============================================================================
 void PropertiesWindow::closeButtonPressed()
 {
-    this->mMainContentComponent.closePropertiesWindow();
+    mMainContentComponent.closePropertiesWindow();
 }
 
 //==============================================================================
 void PropertiesComponent::buttonClicked(juce::Button * button)
 {
-    if (button == this->mValidSettingsButton.get()) {
-        this->mMainContentComponent.saveProperties(
-            this->mDeviceCombo.get() != nullptr ? this->mDeviceCombo->getText() : juce::String{},
-            this->mRateCombo->getText().getIntValue(),
-            this->mBufferCombo->getText().getIntValue(),
-            this->mRecFormatCombo->getSelectedItemIndex(),
-            this->mRecFileConfigCombo->getSelectedItemIndex(),
-            this->mDistanceDbCombo->getSelectedItemIndex(),
-            this->mDistanceCutoffCombo->getSelectedItemIndex(),
-            this->mOscInputPortTextEditor->getTextValue().toString().getIntValue());
-        this->mMainContentComponent.closePropertiesWindow();
+    if (button == &mSaveSettingsButton) {
+        mMainContentComponent.saveProperties(mDeviceTypeCombo.getText(),
+                                             mInputDeviceCombo.getText(),
+                                             mOutputDeviceCombo.getText(),
+                                             mSampleRateCombo.getText().getIntValue(),
+                                             mBufferSizeCombo.getText().getIntValue(),
+                                             mRecFormatCombo.getSelectedItemIndex(),
+                                             mRecFileConfigCombo.getSelectedItemIndex(),
+                                             mDistanceDbCombo.getSelectedItemIndex(),
+                                             mDistanceCutoffCombo.getSelectedItemIndex(),
+                                             mOscInputPortTextEditor.getTextValue().toString().getIntValue());
+        mMainContentComponent.closePropertiesWindow();
     }
 }
 
 //==============================================================================
-PropertiesWindow::PropertiesWindow(MainContentComponent & parent,
-                                   GrisLookAndFeel & lookAndFeel,
-                                   juce::Array<juce::String> const & devices,
-                                   juce::String const & currentDevice,
-                                   int indR,
-                                   int indB,
-                                   int indFf,
-                                   int indFc,
-                                   int indAttDb,
-                                   int indAttHz,
-                                   int oscPort)
-    : juce::DocumentWindow("Properties", lookAndFeel.getBackgroundColour(), DocumentWindow::allButtons)
-    , mMainContentComponent(parent)
-    , mPropertiesComponent(parent,
-                           lookAndFeel,
-                           devices,
-                           currentDevice,
-                           indR,
-                           indB,
-                           indFf,
-                           indFc,
-                           indAttDb,
-                           indAttHz,
-                           oscPort)
+void PropertiesComponent::placeComponents()
 {
-    this->setContentNonOwned(&this->mPropertiesComponent, false);
+    auto yPosition = PADDING;
+
+    auto const skip = [&yPosition]() { yPosition += LINE_SKIP; };
+    auto const skipSection = [&yPosition]() { yPosition += SECTION_SKIP; };
+
+    //==============================================================================
+    mAudioSectionLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
+    skip();
+
+    mDeviceTypeLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
+    mDeviceTypeCombo.setTopLeftPosition(RIGHT_COL_START, yPosition);
+    skip();
+
+    mInputDeviceLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
+    mInputDeviceCombo.setTopLeftPosition(RIGHT_COL_START, yPosition);
+    skip();
+
+    mOutputDeviceLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
+    mOutputDeviceCombo.setTopLeftPosition(RIGHT_COL_START, yPosition);
+    skip();
+
+    mSampleRateLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
+    mSampleRateCombo.setTopLeftPosition(RIGHT_COL_START, yPosition);
+    skip();
+
+    mBufferSize.setTopLeftPosition(LEFT_COL_START, yPosition);
+    mBufferSizeCombo.setTopLeftPosition(RIGHT_COL_START, yPosition);
+    skipSection();
+
+    //==============================================================================
+    mGeneralSectionLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
+    skip();
+
+    mOscInputPortLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
+    mOscInputPortTextEditor.setTopLeftPosition(RIGHT_COL_START, yPosition);
+    skip();
+
+    mRecFormatLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
+    mRecFormatCombo.setTopLeftPosition(RIGHT_COL_START, yPosition);
+    skip();
+
+    mRecFileConfigLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
+    mRecFileConfigCombo.setTopLeftPosition(RIGHT_COL_START, yPosition);
+    skipSection();
+
+    //==============================================================================
+    mCubeSectionLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
+    skip();
+
+    mDistanceDbLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
+    mDistanceDbCombo.setTopLeftPosition(RIGHT_COL_START, yPosition);
+    skip();
+
+    mDistanceCutoffLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
+    mDistanceCutoffCombo.setTopLeftPosition(RIGHT_COL_START, yPosition);
+    skipSection();
+
+    mSaveSettingsButton.setTopRightPosition(RIGHT_COL_START + RIGHT_COL_WIDTH, yPosition);
+
+    //==============================================================================
+
+    setBounds(0, 0, PADDING + LEFT_COL_WIDTH + PADDING + RIGHT_COL_WIDTH + PADDING, yPosition + PADDING);
+    getTopLevelComponent()->setSize(getWidth(), getHeight());
+}
+
+//==============================================================================
+void PropertiesComponent::fillComboBoxes()
+{
+    static auto constexpr TO_STRING_ARRAY = [](auto const & coll) {
+        juce::StringArray result{};
+        for (auto const & it : coll) {
+            result.add(juce::String{ it });
+        }
+        return result;
+    };
+
+    auto & audioManager{ AudioManager::getInstance() };
+    auto & audioDeviceManager{ audioManager.getAudioDeviceManager() };
+    auto const currentAudioDeviceSetup{ audioDeviceManager.getAudioDeviceSetup() };
+    auto * currentAudioDeviceType{ audioDeviceManager.getCurrentDeviceTypeObject() };
+    auto * audioDevice{ audioDeviceManager.getCurrentAudioDevice() };
+
+    auto const audioDeviceTypes{ audioManager.getAvailableDeviceTypeNames() };
+    auto const audioDeviceTypeIndex{ audioDeviceTypes.indexOf(currentAudioDeviceType->getTypeName()) };
+
+    mDeviceTypeCombo.clear(juce::dontSendNotification);
+    mDeviceTypeCombo.addItemList(audioManager.getAvailableDeviceTypeNames(), 1);
+    mDeviceTypeCombo.setSelectedItemIndex(audioDeviceTypeIndex, juce::dontSendNotification);
+
+    mInputDeviceCombo.clear(juce::dontSendNotification);
+    mOutputDeviceCombo.clear(juce::dontSendNotification);
+    mSampleRateCombo.clear(juce::dontSendNotification);
+    mBufferSizeCombo.clear(juce::dontSendNotification);
+    if (audioDevice) {
+        mInputDevices = currentAudioDeviceType->getDeviceNames(true);
+        auto const & currentInputDevice{ currentAudioDeviceSetup.inputDeviceName };
+        auto const inputDeviceIndex{ mInputDevices.indexOf(currentInputDevice) };
+
+        mInputDeviceCombo.addItemList(mInputDevices, 1);
+        mInputDeviceCombo.setSelectedItemIndex(inputDeviceIndex, juce::dontSendNotification);
+
+        mOutputDevices = currentAudioDeviceType->getDeviceNames(false);
+        auto const & currentOutputDevice{ currentAudioDeviceSetup.outputDeviceName };
+        auto const outputDeviceIndex{ mOutputDevices.indexOf(currentOutputDevice) };
+
+        mOutputDeviceCombo.addItemList(mOutputDevices, 1);
+        mOutputDeviceCombo.setSelectedItemIndex(outputDeviceIndex, juce::dontSendNotification);
+
+        auto const sampleRates{ audioDevice->getAvailableSampleRates() };
+        auto const currentSampleRate{ audioDevice->getCurrentSampleRate() };
+        auto const sampleRateIndex{ sampleRates.indexOf(currentSampleRate) };
+
+        mSampleRateCombo.addItemList(TO_STRING_ARRAY(sampleRates), 1);
+        mSampleRateCombo.setSelectedItemIndex(sampleRateIndex, juce::dontSendNotification);
+
+        auto const bufferSizes{ audioDevice->getAvailableBufferSizes() };
+        auto const currentBufferSize{ audioDevice->getCurrentBufferSizeSamples() };
+        auto const bufferSizeIndex{ bufferSizes.indexOf(currentBufferSize) };
+
+        mBufferSizeCombo.addItemList(TO_STRING_ARRAY(bufferSizes), 1);
+        mBufferSizeCombo.setSelectedItemIndex(bufferSizeIndex, juce::dontSendNotification);
+    }
+}
+
+//==============================================================================
+void PropertiesComponent::comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged)
+{
+    auto & audioDeviceManager{ AudioManager::getInstance().getAudioDeviceManager() };
+    auto setup{ audioDeviceManager.getAudioDeviceSetup() };
+    auto const hasSeparateInputsAndOutputs{
+        audioDeviceManager.getCurrentDeviceTypeObject()->hasSeparateInputsAndOutputs()
+    };
+
+    if (comboBoxThatHasChanged == &mDeviceTypeCombo) {
+        audioDeviceManager.setCurrentAudioDeviceType(comboBoxThatHasChanged->getText(), true);
+    } else if (comboBoxThatHasChanged == &mInputDeviceCombo) {
+        auto const deviceName{ mInputDeviceCombo.getText() };
+        setup.inputDeviceName = deviceName;
+        if (!hasSeparateInputsAndOutputs) {
+            setup.outputDeviceName = deviceName;
+        }
+        audioDeviceManager.setAudioDeviceSetup(setup, true);
+    } else if (comboBoxThatHasChanged == &mOutputDeviceCombo) {
+        auto const deviceName{ mOutputDeviceCombo.getText() };
+        setup.outputDeviceName = deviceName;
+        if (!hasSeparateInputsAndOutputs) {
+            setup.inputDeviceName = deviceName;
+        }
+        audioDeviceManager.setAudioDeviceSetup(setup, true);
+    } else if (comboBoxThatHasChanged == &mSampleRateCombo) {
+        setup.sampleRate = mSampleRateCombo.getText().getDoubleValue();
+        audioDeviceManager.setAudioDeviceSetup(setup, true);
+    } else if (comboBoxThatHasChanged == &mBufferSizeCombo) {
+        setup.bufferSize = mBufferSizeCombo.getText().getIntValue();
+        audioDeviceManager.setAudioDeviceSetup(setup, true);
+    } else if (comboBoxThatHasChanged == &mRecFormatCombo) {
+    } else if (comboBoxThatHasChanged == &mRecFileConfigCombo) {
+    } else if (comboBoxThatHasChanged == &mDistanceDbCombo) {
+    } else if (comboBoxThatHasChanged == &mDistanceCutoffCombo) {
+    } else {
+        jassertfalse;
+    }
+    fillComboBoxes();
+}
+
+//==============================================================================
+PropertiesWindow::PropertiesWindow(MainContentComponent & parent,
+                                   GrisLookAndFeel & grisLookAndFeel,
+                                   int const indFf,
+                                   int const indFc,
+                                   int const indAttDb,
+                                   int const indAttHz,
+                                   int const oscPort)
+    : juce::DocumentWindow("Properties", grisLookAndFeel.getBackgroundColour(), DocumentWindow::allButtons)
+    , mMainContentComponent(parent)
+    , mPropertiesComponent(parent, grisLookAndFeel, indFf, indFc, indAttDb, indAttHz, oscPort)
+{
+    setContentNonOwned(&mPropertiesComponent, true);
+    setResizable(false, false);
+    setUsingNativeTitleBar(true);
+    centreWithSize(getWidth(), getHeight());
+    PropertiesWindow::setVisible(true);
 }

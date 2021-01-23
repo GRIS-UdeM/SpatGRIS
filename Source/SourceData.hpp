@@ -17,26 +17,43 @@
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Application.h"
-#include "AudioManager.h"
+#pragma once
+
+#include <array>
+
+#include "macros.h"
+
+DISABLE_WARNINGS
+#include "spat/lbap.h"
+#include "spat/vbap.h"
+ENABLE_WARNINGS
+
+#include "constants.hpp"
 
 //==============================================================================
-void SpatGris2Application::initialise(juce::String const & /*commandLine*/)
-{
-    mMainWindow = std::make_unique<MainWindow>(getApplicationName(), mGrisFeel);
-}
+struct SourceData {
+    unsigned int id{};
+    float x{};
+    float y{};
+    float z{};
 
-//==============================================================================
-void SpatGris2Application::shutdown()
-{
-    mMainWindow.reset();
-    AudioManager::free();
-}
+    float radAzimuth{};
+    float radElevation{};
+    float azimuth{};
+    float zenith{};
+    float radius{ 1.0f };
+    float azimuthSpan{};
+    float zenithSpan{};
 
-//==============================================================================
-void SpatGris2Application::systemRequestedQuit()
-{
-    if (mMainWindow->exitWinApp()) {
-        quit();
-    }
-}
+    std::array<float, MAX_OUTPUTS> lbapGains{};
+    std::array<float, MAX_OUTPUTS> lbapY{};
+    lbap_pos lbapLastPos{ -1, -1, -1, 0.0f, 0.0f, 0.0f };
+
+    bool isMuted = false;
+    bool isSolo = false;
+    float gain{}; // Not used yet.
+
+    int directOut{};
+
+    VBAP_DATA * paramVBap{};
+};

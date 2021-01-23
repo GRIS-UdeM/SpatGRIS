@@ -27,14 +27,15 @@ DISABLE_WARNINGS
 #include <JuceHeader.h>
 ENABLE_WARNINGS
 
-#include "JackMockup.h"
+class AudioProcessor;
 
 //==============================================================================
 enum class PortType { input, output };
 
 //==============================================================================
-struct _jack_port {
-    jack_port_id_t id;
+// TODO : this should go
+struct jack_port_t {
+    uint32_t id;
     char shortName[64]{};
     char clientName[64]{};
     char fullName[128]{};
@@ -42,11 +43,11 @@ struct _jack_port {
     std::optional<int> physicalPort;
     juce::AudioBuffer<float> buffer{};
 
-    _jack_port(jack_port_id_t const newId,
-               char const * const newShortName,
-               char const * const newClientName,
-               PortType const newType,
-               std::optional<int> const newPhysicalPort = std::nullopt)
+    jack_port_t(uint32_t const newId,
+                char const * const newShortName,
+                char const * const newClientName,
+                PortType const newType,
+                std::optional<int> const newPhysicalPort = std::nullopt)
         : id(newId)
         , type(newType)
         , physicalPort(newPhysicalPort)
@@ -68,21 +69,15 @@ class AudioManager final : juce::AudioSourcePlayer
     juce::OwnedArray<jack_port_t> mVirtualOutputPorts{};
     juce::OwnedArray<jack_port_t> mPhysicalOutputPorts{};
     juce::HashMap<jack_port_t *, jack_port_t *> mConnections{};
-    jack_port_id_t mLastGivePortId{};
+    uint32_t mLastGivePortId{};
     juce::AudioBuffer<float> mInputPortsBuffer{};
     juce::AudioBuffer<float> mOutputPortsBuffer{};
 
-    JackProcessCallback mProcessCallback{};
-    void * mProcessCallbackArg{};
-    JackPortConnectCallback mPortConnectCallback{};
+    AudioProcessor * mJackClient{};
 
     juce::CriticalSection mCriticalSection{};
 
     static std::unique_ptr<AudioManager> mInstance;
-    //==============================================================================
-    // Dummies
-    jack_client_t mDummyJackClient{};
-    jackctl_server_t mDummyJackCtlServer{};
 
 public:
     //==============================================================================
@@ -97,26 +92,31 @@ public:
     [[nodiscard]] juce::AudioDeviceManager const & getAudioDeviceManager() const { return mAudioDeviceManager; }
     [[nodiscard]] juce::AudioDeviceManager & getAudioDeviceManager() { return mAudioDeviceManager; }
 
-    [[nodiscard]] jack_port_t * registerPort(char const * newShortName,
-                                             char const * newClientName,
-                                             PortType newType,
-                                             std::optional<int> newPhysicalPort = std::nullopt);
+    jack_port_t * registerPort(char const * newShortName,
+                               char const * newClientName,
+                               PortType newType,
+                               std::optional<int> newPhysicalPort = std::nullopt);
     void unregisterPort(jack_port_t * port);
 
     [[nodiscard]] bool isConnectedTo(jack_port_t const * port, char const * port_name) const;
-    [[nodiscard]] jack_port_t * findPortByName(char const * name) const;
+    [[nodiscard]] bool isConnectedTo(jack_port_t const * portA, jack_port_t const * portB) const;
 
-    void registerPortConnectCallback(JackPortConnectCallback const callback) { mPortConnectCallback = callback; }
-    void registerProcessCallback(JackProcessCallback const callback, void * arg);
+    void registerJackClient(AudioProcessor * jackClient);
 
     [[nodiscard]] juce::Array<jack_port_t *> getInputPorts() const;
     [[nodiscard]] juce::Array<jack_port_t *> getOutputPorts() const;
-    void * getBuffer(jack_port_t * port, jack_nframes_t nFrames);
+    float * getBuffer(jack_port_t * port, size_t nFrames);
 
-    [[nodiscard]] std::optional<jack_port_t *> getPort(char const * name) const;
+    [[nodiscard]] jack_port_t * getPort(char const * name) const;
+    [[nodiscard]] jack_port_t * getPort(uint32_t id) const;
+
+    [[nodiscard]] std::vector<std::string> getPortNames(PortType portType) const;
 
     void connect(char const * sourcePortName, char const * destinationPortName);
-    void disconnect(jack_port_t * source, jack_port_t * destination);
+    void connect(jack_port_t * sourcePort, jack_port_t * destinationPort);
+    void disconnect(jack_port_t * sourcePort, jack_port_t * destinationPort);
+
+    juce::StringArray getAvailableDeviceTypeNames();
     //==============================================================================
     // AudioSourcePlayer overrides
     void audioDeviceError(const juce::String & errorMessage) override;
@@ -128,24 +128,19 @@ public:
     void audioDeviceAboutToStart(juce::AudioIODevice * device) override;
     void audioDeviceStopped() override;
     //==============================================================================
-    static void init(juce::String const & inputDevice,
+    static void init(juce::String const & deviceType,
+                     juce::String const & inputDevice,
                      juce::String const & outputDevice,
-                     std::optional<juce::String> deviceType,
-                     double const sampleRate,
-                     int const bufferSize);
+                     double sampleRate,
+                     int bufferSize);
     [[nodiscard]] static AudioManager & getInstance();
     static void free();
-    //==============================================================================
-    // Dummies
-    [[nodiscard]] auto * getDummyJackClient() { return &mDummyJackClient; }
-    [[nodiscard]] auto * getDummyJackCtlServer() { return &mDummyJackCtlServer; }
-    [[nodiscard]] static JSList * getDummyJackCtlParameters() { return nullptr; }
 
 private:
     //==============================================================================
-    AudioManager(juce::String const & inputDevice,
+    AudioManager(juce::String const & deviceType,
+                 juce::String const & inputDevice,
                  juce::String const & outputDevice,
-                 std::optional<juce::String> deviceType,
                  double sampleRate,
                  int bufferSize);
     //==============================================================================

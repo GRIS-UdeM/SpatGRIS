@@ -17,26 +17,29 @@
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Application.h"
-#include "AudioManager.h"
+#pragma once
 
-//==============================================================================
-void SpatGris2Application::initialise(juce::String const & /*commandLine*/)
-{
-    mMainWindow = std::make_unique<MainWindow>(getApplicationName(), mGrisFeel);
-}
+#include <cassert>
+#include <type_traits>
 
-//==============================================================================
-void SpatGris2Application::shutdown()
+#ifdef NDEBUG
+template<typename To, typename From>
+constexpr To narrow(From const value)
 {
-    mMainWindow.reset();
-    AudioManager::free();
+    return static_cast<To>(value);
 }
+#else
+template<typename To, typename From>
+constexpr To narrow(From const value)
+{
+    static_assert(std::is_scalar_v<To> && std::is_scalar_v<From>);
 
-//==============================================================================
-void SpatGris2Application::systemRequestedQuit()
-{
-    if (mMainWindow->exitWinApp()) {
-        quit();
-    }
+    assert(std::is_signed_v<To> == std::is_signed_v<From> || value >= 0);
+
+    auto const expanded_value{ static_cast<To>(value) };
+    auto const sanity_check{ static_cast<From>(expanded_value) };
+    assert(sanity_check == value);
+
+    return expanded_value;
 }
+#endif

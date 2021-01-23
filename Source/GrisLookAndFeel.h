@@ -26,6 +26,7 @@ DISABLE_WARNINGS
 ENABLE_WARNINGS
 
 #include "BinaryData.h"
+#include "narrow.hpp"
 
 //==============================================================================
 /** Custom Look And Feel */
@@ -35,13 +36,13 @@ class GrisLookAndFeel : public juce::LookAndFeel_V3
 
     juce::Font mFont = juce::Font(
         juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf,
-                                                      static_cast<size_t>(BinaryData::SinkinSans400Regular_otfSize)));
+                                                      narrow<size_t>(BinaryData::SinkinSans400Regular_otfSize)));
     juce::Font mBigFont = juce::Font(
         juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf,
-                                                      static_cast<size_t>(BinaryData::SinkinSans400Regular_otfSize)));
+                                                      narrow<size_t>(BinaryData::SinkinSans400Regular_otfSize)));
     juce::Font mBiggerFont = juce::Font(
         juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf,
-                                                      static_cast<size_t>(BinaryData::SinkinSans400Regular_otfSize)));
+                                                      narrow<size_t>(BinaryData::SinkinSans400Regular_otfSize)));
 
     juce::Colour mBackGroundAndFieldColour;
     juce::Colour mWinBackGroundAndFieldColour;
@@ -61,10 +62,10 @@ public:
     //==============================================================================
     juce::Font mSmallFont = juce::Font(
         juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf,
-                                                      static_cast<size_t>(BinaryData::SinkinSans400Regular_otfSize)));
+                                                      narrow<size_t>(BinaryData::SinkinSans400Regular_otfSize)));
     juce::Font mSmallerFont = juce::Font(
         juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf,
-                                                      static_cast<size_t>(BinaryData::SinkinSans400Regular_otfSize)));
+                                                      narrow<size_t>(BinaryData::SinkinSans400Regular_otfSize)));
     //==============================================================================
     GrisLookAndFeel();
     ~GrisLookAndFeel() override = default;

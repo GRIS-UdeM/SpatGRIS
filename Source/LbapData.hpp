@@ -17,26 +17,21 @@
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Application.h"
-#include "AudioManager.h"
+#pragma once
+
+#include <array>
+
+#include "macros.h"
+
+DISABLE_WARNINGS
+#include "spat/lbap.h"
+ENABLE_WARNINGS
+
+#include "constants.hpp"
 
 //==============================================================================
-void SpatGris2Application::initialise(juce::String const & /*commandLine*/)
-{
-    mMainWindow = std::make_unique<MainWindow>(getApplicationName(), mGrisFeel);
-}
-
-//==============================================================================
-void SpatGris2Application::shutdown()
-{
-    mMainWindow.reset();
-    AudioManager::free();
-}
-
-//==============================================================================
-void SpatGris2Application::systemRequestedQuit()
-{
-    if (mMainWindow->exitWinApp()) {
-        quit();
-    }
-}
+struct LbapData {
+    lbap_pos pos;
+    std::array<float, MAX_OUTPUTS> gains;
+    std::array<float, MAX_OUTPUTS> y;
+};

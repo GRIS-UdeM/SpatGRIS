@@ -17,26 +17,21 @@
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Application.h"
-#include "AudioManager.h"
+#pragma once
+
+#include "macros.h"
+
+DISABLE_WARNINGS
+#include <JuceHeader.h>
+ENABLE_WARNINGS
 
 //==============================================================================
-void SpatGris2Application::initialise(juce::String const & /*commandLine*/)
-{
-    mMainWindow = std::make_unique<MainWindow>(getApplicationName(), mGrisFeel);
-}
-
-//==============================================================================
-void SpatGris2Application::shutdown()
-{
-    mMainWindow.reset();
-    AudioManager::free();
-}
-
-//==============================================================================
-void SpatGris2Application::systemRequestedQuit()
-{
-    if (mMainWindow->exitWinApp()) {
-        quit();
-    }
-}
+struct ClientData {
+    juce::String name;
+    unsigned int portStart = 0;
+    unsigned int portEnd = 0;
+    unsigned int portAvailable = 0;
+    unsigned int activePorts = 0;
+    bool initialized = false;
+    bool connected = false;
+};

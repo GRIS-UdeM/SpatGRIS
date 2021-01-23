@@ -58,8 +58,6 @@ juce::File const HRTF_FOLDER_80{ RESOURCES_DIR.getChildFile("hrtf_compact/elev" 
 const juce::StringArray MODE_SPAT_STRING = { "DOME", "CUBE", "BINAURAL", "STEREO" };
 
 // Settings Jack Server
-const juce::StringArray BUFFER_SIZES = { "32", "64", "128", "256", "512", "1024", "2048" };
-const juce::StringArray RATE_VALUES = { "44100", "48000", "88200", "96000" };
 const juce::StringArray FILE_FORMATS = { "WAV", "AIFF" };
 const juce::StringArray FILE_CONFIGS = { "Multiple Mono Files", "Single Interleaved" };
 const juce::StringArray ATTENUATION_DB = { "0", "-12", "-24", "-36", "-48", "-60", "-72" };

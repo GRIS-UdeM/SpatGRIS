@@ -26,11 +26,7 @@
 #include "constants.hpp"
 
 //==============================================================================
-MainContentComponent::MainContentComponent(MainWindow & mainWindow,
-                                           GrisLookAndFeel & newLookAndFeel,
-                                           juce::String const & inputDevice,
-                                           juce::String const & outputDevice,
-                                           std::optional<juce::String> const & deviceType)
+MainContentComponent::MainContentComponent(MainWindow & mainWindow, GrisLookAndFeel & newLookAndFeel)
     : mLookAndFeel(newLookAndFeel)
     , mMainWindow(mainWindow)
 {
@@ -50,12 +46,16 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     auto * props{ mApplicationProperties.getUserSettings() };
 
     // init audio
+    auto const deviceType{ props->getValue(user_properties_tags::DEVICE_TYPE, "") };
+    auto const inputDevice{ props->getValue(user_properties_tags::INPUT_DEVICE, "") };
+    auto const outputDevice{ props->getValue(user_properties_tags::OUTPUT_DEVICE, "") };
     auto const sampleRate{ props->getIntValue(user_properties_tags::SAMPLE_RATE, 48000) };
     auto const bufferSize{ props->getIntValue(user_properties_tags::BUFFER_SIZE, 1024) };
-    AudioManager::init(inputDevice, outputDevice, deviceType, static_cast<double>(sampleRate), bufferSize);
+
+    AudioManager::init(deviceType, inputDevice, outputDevice, narrow<double>(sampleRate), bufferSize);
 
     // init jackClient
-    mJackClient = std::make_unique<JackClient>();
+    mAudioProcessor = std::make_unique<AudioProcessor>();
 
     // Create the menu bar.
     mMenuBar.reset(new juce::MenuBarComponent(this));
@@ -64,9 +64,9 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     // Get a reference to the last opened VBAP speaker setup.
     juce::File const lastVbap{ props->getValue(user_properties_tags::LAST_VBAP_SPEAKER_SETUP, "./not_saved_yet") };
     if (!lastVbap.existsAsFile()) {
-        mPathLastVbapSpeakerSetup = DEFAULT_SPEAKER_SETUP_FILE.getFullPathName();
+        mLastVbapSetupPath = DEFAULT_SPEAKER_SETUP_FILE.getFullPathName();
     } else {
-        mPathLastVbapSpeakerSetup = props->getValue(user_properties_tags::LAST_VBAP_SPEAKER_SETUP);
+        mLastVbapSetupPath = props->getValue(user_properties_tags::LAST_VBAP_SPEAKER_SETUP);
     }
 
     // SpeakerViewComponent 3D view
@@ -95,16 +95,16 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
 
     // Components in Box Control
     mCpuUsageLabel.reset(addLabel("CPU usage", "CPU usage", 0, 0, 80, 28, mControlUiBox->getContent()));
-    mJackLoadLabel.reset(addLabel("0 %", "CPU usage", 80, 0, 80, 28, mControlUiBox->getContent()));
-    mJackRateLabel.reset(addLabel("0 Hz", "Rate", 120, 0, 80, 28, mControlUiBox->getContent()));
-    mJackBufferLabel.reset(addLabel("0 spls", "Buffer Size", 200, 0, 80, 28, mControlUiBox->getContent()));
-    mJackInfoLabel.reset(addLabel("...", "Inputs/Outputs", 280, 0, 90, 28, mControlUiBox->getContent()));
+    mCpuUsageValue.reset(addLabel("0 %", "CPU usage", 80, 0, 80, 28, mControlUiBox->getContent()));
+    mSampleRateLabel.reset(addLabel("0 Hz", "Rate", 120, 0, 80, 28, mControlUiBox->getContent()));
+    mBufferSizeLabel.reset(addLabel("0 spls", "Buffer Size", 200, 0, 80, 28, mControlUiBox->getContent()));
+    mChannelCountLabel.reset(addLabel("...", "Inputs/Outputs", 280, 0, 90, 28, mControlUiBox->getContent()));
 
     mCpuUsageLabel->setColour(juce::Label::backgroundColourId, mLookAndFeel.getWinBackgroundColour());
-    mJackLoadLabel->setColour(juce::Label::backgroundColourId, mLookAndFeel.getWinBackgroundColour());
-    mJackRateLabel->setColour(juce::Label::backgroundColourId, mLookAndFeel.getWinBackgroundColour());
-    mJackBufferLabel->setColour(juce::Label::backgroundColourId, mLookAndFeel.getWinBackgroundColour());
-    mJackInfoLabel->setColour(juce::Label::backgroundColourId, mLookAndFeel.getWinBackgroundColour());
+    mCpuUsageValue->setColour(juce::Label::backgroundColourId, mLookAndFeel.getWinBackgroundColour());
+    mSampleRateLabel->setColour(juce::Label::backgroundColourId, mLookAndFeel.getWinBackgroundColour());
+    mBufferSizeLabel->setColour(juce::Label::backgroundColourId, mLookAndFeel.getWinBackgroundColour());
+    mChannelCountLabel->setColour(juce::Label::backgroundColourId, mLookAndFeel.getWinBackgroundColour());
 
     addLabel("Gain", "Master Gain Outputs", 15, 30, 120, 20, mControlUiBox->getContent());
     mMasterGainOutSlider.reset(
@@ -117,9 +117,9 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     mInterpolationSlider->setRange(0.0, 1.0, 0.001);
 
     addLabel("Mode :", "Mode of spatialization", 150, 30, 60, 20, mControlUiBox->getContent());
-    mModeSpatCombo.reset(addComboBox("", "Mode of spatialization", 155, 48, 90, 22, mControlUiBox->getContent()));
+    mSpatModeCombo.reset(addComboBox("", "Mode of spatialization", 155, 48, 90, 22, mControlUiBox->getContent()));
     for (int i{}; i < MODE_SPAT_STRING.size(); i++) {
-        mModeSpatCombo->addItem(MODE_SPAT_STRING[i], i + 1);
+        mSpatModeCombo->addItem(MODE_SPAT_STRING[i], i + 1);
     }
 
     mAddInputsTextEditor.reset(
@@ -153,44 +153,17 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
 
     mSamplingRate = sampleRate;
 
-    // Start Jack Server and client.
-    mAlsaOutputDevice = props->getValue(user_properties_tags::ALSA_OUTPUT_DEVICE, "");
-    int errorCode{};
-
-    if (errorCode > 0) {
-        juce::String msg;
-        if (errorCode == 1) {
-            msg = "Failed to create Jack server...";
-        } else if (errorCode == 2) {
-            msg = "Failed to open Jack server...";
-        } else if (errorCode == 3) {
-            msg = "Failed to start Jack server...";
-        }
-        juce::AlertWindow::showMessageBoxAsync(
-            juce::AlertWindow::WarningIcon,
-            "Jack Server Failure",
-            msg
-                + juce::String("\nYou should check for any mismatch between the server and your "
-                               "device\n(Sampling Rate, Input/Output Channels, etc.)"));
-    }
-
-    auto * currentAudioDevice{ AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice() };
-    jassert(currentAudioDevice);
+    jassert(AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice());
 
     auto const fileFormat{ props->getIntValue(user_properties_tags::FILE_FORMAT, 0) };
-    mJackClient->setRecordFormat(fileFormat);
+    mAudioProcessor->setRecordFormat(fileFormat);
     auto const fileConfig{ props->getIntValue(user_properties_tags::FILE_CONFIG, 0) };
-    mJackClient->setRecordFileConfig(fileConfig);
+    mAudioProcessor->setRecordFileConfig(fileConfig);
 
     mCpuUsageLabel->setText("CPU usage : ", juce::dontSendNotification);
 
-    mJackRateLabel->setText(juce::String(currentAudioDevice->getCurrentSampleRate()) + " Hz",
-                            juce::dontSendNotification);
-    mJackBufferLabel->setText(juce::String(currentAudioDevice->getCurrentBufferSizeSamples()) + " spls",
-                              juce::dontSendNotification);
-    mJackInfoLabel->setText("I : " + juce::String(mJackClient->getNumberOutputs())
-                                + " - O : " + juce::String(mJackClient->getNumberInputs()),
-                            juce::dontSendNotification);
+    AudioManager::getInstance().getAudioDeviceManager().addChangeListener(this);
+    audioParametersChanged();
 
     // Start the OSC Receiver.
     mOscReceiver.reset(new OscInput(*this));
@@ -199,7 +172,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     // Default widget values.
     mMasterGainOutSlider->setValue(0.0);
     mInterpolationSlider->setValue(0.1);
-    mModeSpatCombo->setSelectedId(1);
+    mSpatModeCombo->setSelectedId(1);
 
     mAddInputsTextEditor->setText("16", juce::dontSendNotification);
     textEditorReturnKeyPressed(*mAddInputsTextEditor);
@@ -240,9 +213,8 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
 
     // Restore last vertical divider position and speaker view cam distance.
     if (props->containsKey(user_properties_tags::SASH_POSITION)) {
-        auto const trueSize{ static_cast<int>(
-            std::round(static_cast<double>(getWidth() - 3)
-                       * std::abs(props->getDoubleValue(user_properties_tags::SASH_POSITION)))) };
+        auto const trueSize{ narrow<int>(std::round(
+            narrow<double>(getWidth() - 3) * std::abs(props->getDoubleValue(user_properties_tags::SASH_POSITION)))) };
         mVerticalLayout.setItemPosition(1, trueSize);
     }
 }
@@ -251,20 +223,20 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
 MainContentComponent::~MainContentComponent()
 {
     auto * props{ mApplicationProperties.getUserSettings() };
-    props->setValue(user_properties_tags::LAST_OPEN_PRESET, mPathCurrentPreset);
-    props->setValue(user_properties_tags::LAST_OPEN_SPEAKER_SETUP, mPathCurrentFileSpeaker);
-    props->setValue(user_properties_tags::LAST_VBAP_SPEAKER_SETUP, mPathLastVbapSpeakerSetup);
+    props->setValue(user_properties_tags::LAST_OPEN_PRESET, mCurrentPresetPath);
+    props->setValue(user_properties_tags::LAST_OPEN_SPEAKER_SETUP, mCurrentSpeakerSetupPath);
+    props->setValue(user_properties_tags::LAST_VBAP_SPEAKER_SETUP, mLastVbapSetupPath);
     props->setValue(user_properties_tags::SASH_POSITION, mVerticalLayout.getItemCurrentRelativeSize(0));
     mApplicationProperties.saveIfNeeded();
     mApplicationProperties.closeFiles();
 
-    mSpeakerLocks.lock();
+    mSpeakersLock.lock();
     mSpeakers.clear();
-    mSpeakerLocks.unlock();
+    mSpeakersLock.unlock();
 
-    mInputLocks.lock();
-    mSourceInputs.clear();
-    mInputLocks.unlock();
+    mInputsLock.lock();
+    mInputs.clear();
+    mInputsLock.unlock();
 }
 
 //==============================================================================
@@ -433,7 +405,7 @@ void MainContentComponent::handleOpenPreset()
     if (!dir.isDirectory()) {
         dir = juce::File::getSpecialLocation(juce::File::SpecialLocationType::userHomeDirectory);
     }
-    auto const filename{ juce::File{ mPathCurrentPreset }.getFileName() };
+    auto const filename{ juce::File{ mCurrentPresetPath }.getFileName() };
 
     juce::FileChooser fc("Choose a file to open...",
                          dir.getFullPathName() + "/" + filename,
@@ -456,9 +428,9 @@ void MainContentComponent::handleOpenPreset()
     }
 
     if (loaded) { // Check for direct out OutputPatch mismatch.
-        for (auto const * it : mSourceInputs) {
+        for (auto const * it : mInputs) {
             if (it->getDirectOutChannel() != 0) {
-                auto const directOutOutputPatches{ mJackClient->getDirectOutOutputPatches() };
+                auto const directOutOutputPatches{ mAudioProcessor->getDirectOutOutputPatches() };
                 if (std::find(directOutOutputPatches.cbegin(), directOutOutputPatches.cend(), it->getDirectOutChannel())
                     == directOutOutputPatches.cend()) {
                     juce::AlertWindow alert(
@@ -478,11 +450,11 @@ void MainContentComponent::handleOpenPreset()
 //==============================================================================
 void MainContentComponent::handleSavePreset()
 {
-    if (!juce::File(mPathCurrentPreset).existsAsFile()
-        || mPathCurrentPreset.endsWith("default_preset/default_preset.xml")) {
+    if (!juce::File(mCurrentPresetPath).existsAsFile()
+        || mCurrentPresetPath.endsWith("default_preset/default_preset.xml")) {
         handleSaveAsPreset();
     }
-    savePreset(mPathCurrentPreset);
+    savePreset(mCurrentPresetPath);
 }
 
 //==============================================================================
@@ -492,7 +464,7 @@ void MainContentComponent::handleSaveAsPreset()
     if (!dir.isDirectory()) {
         dir = juce::File::getSpecialLocation(juce::File::SpecialLocationType::userHomeDirectory);
     }
-    auto const filename{ juce::File{ mPathCurrentPreset }.getFileName() };
+    auto const filename{ juce::File{ mCurrentPresetPath }.getFileName() };
 
     juce::FileChooser fc{ "Choose a file to save...",
                           dir.getFullPathName() + "/" + filename,
@@ -512,7 +484,7 @@ void MainContentComponent::handleOpenSpeakerSetup()
     if (!dir.isDirectory()) {
         dir = juce::File::getSpecialLocation(juce::File::SpecialLocationType::userHomeDirectory);
     }
-    auto const filename{ juce::File{ mPathCurrentFileSpeaker }.getFileName() };
+    auto const filename{ juce::File{ mCurrentSpeakerSetupPath }.getFileName() };
 
     juce::FileChooser fc{ "Choose a file to open...",
                           dir.getFullPathName() + "/" + filename,
@@ -541,7 +513,7 @@ void MainContentComponent::handleSaveAsSpeakerSetup()
     if (!dir.isDirectory() || dir.getFullPathName().endsWith("/default_preset")) {
         dir = juce::File::getSpecialLocation(juce::File::SpecialLocationType::userHomeDirectory);
     }
-    auto const filename{ juce::File{ mPathCurrentFileSpeaker }.getFileName() };
+    auto const filename{ juce::File{ mCurrentSpeakerSetupPath }.getFileName() };
 
     juce::FileChooser fc{ "Choose a file to save...",
                           dir.getFullPathName() + "/" + filename,
@@ -563,9 +535,9 @@ void MainContentComponent::handleShowSpeakerEditWindow()
                                        600 };
     if (mEditSpeakersWindow == nullptr) {
         auto const windowName = juce::String("Speakers Setup Edition - ")
-                                + juce::String(MODE_SPAT_STRING[static_cast<int>(mJackClient->getMode())]) + " - "
-                                + juce::File(mPathCurrentFileSpeaker).getFileName();
-        mEditSpeakersWindow.reset(new EditSpeakersWindow(windowName, mLookAndFeel, *this, mNameConfig));
+                                + juce::String(MODE_SPAT_STRING[static_cast<int>(mAudioProcessor->getMode())]) + " - "
+                                + juce::File(mCurrentSpeakerSetupPath).getFileName();
+        mEditSpeakersWindow.reset(new EditSpeakersWindow(windowName, mLookAndFeel, *this, mConfigurationName));
         mEditSpeakersWindow->setBounds(result);
         mEditSpeakersWindow->initComp();
     }
@@ -582,8 +554,6 @@ void MainContentComponent::handleShowPreferences()
 {
     auto const * props{ mApplicationProperties.getUserSettings() };
     if (mPropertiesWindow == nullptr) {
-        auto const bufferValue{ props->getIntValue(user_properties_tags::BUFFER_SIZE, 1024) };
-        auto const rateValue{ props->getIntValue(user_properties_tags::SAMPLE_RATE, 48000) };
         auto const fileFormat{ props->getIntValue(user_properties_tags::FILE_FORMAT, 0) };
         auto const fileConfig{ props->getIntValue(user_properties_tags::FILE_CONFIG, 0) };
         auto const attenuationDb{ props->getIntValue(user_properties_tags::ATTENUATION_DB, 3) };
@@ -592,26 +562,12 @@ void MainContentComponent::handleShowPreferences()
 
         mPropertiesWindow.reset(new PropertiesWindow{ *this,
                                                       mLookAndFeel,
-                                                      mAlsaAvailableOutputDevices,
-                                                      mAlsaOutputDevice,
-                                                      RATE_VALUES.indexOf(juce::String(rateValue)),
-                                                      BUFFER_SIZES.indexOf(juce::String(bufferValue)),
                                                       fileFormat,
                                                       fileConfig,
                                                       attenuationDb,
                                                       attenuationHz,
                                                       oscInputPort });
     }
-    auto const height{ mAlsaAvailableOutputDevices.isEmpty() ? 420 : 450 };
-    juce::Rectangle<int> const result{ mSpeakerViewComponent->getWidth() / 2 + getScreenX() - 150,
-                                       mSpeakerViewComponent->getHeight() / 2 + getScreenY() - 75,
-                                       270,
-                                       height };
-    mPropertiesWindow->setBounds(result);
-    mPropertiesWindow->setResizable(false, false);
-    mPropertiesWindow->setUsingNativeTitleBar(true);
-    mPropertiesWindow->setVisible(true);
-    mPropertiesWindow->repaint();
 }
 
 //==============================================================================
@@ -707,7 +663,7 @@ void MainContentComponent::handleShowTriplets()
 //==============================================================================
 void MainContentComponent::setShowTriplets(bool const state)
 {
-    if (getModeSelected() == ModeSpatEnum::LBAP && state == true) {
+    if (getModeSelected() == SpatModes::lbap && state == true) {
         juce::AlertWindow alert("Can't draw triplets !",
                                 "Triplets are not effective with the CUBE mode.",
                                 juce::AlertWindow::InfoIcon);
@@ -767,19 +723,19 @@ void MainContentComponent::handleShowSphere()
 //==============================================================================
 void MainContentComponent::handleResetInputPositions()
 {
-    for (auto && it : mSourceInputs) {
-        it->resetPosition();
+    for (auto * input : mInputs) {
+        input->resetPosition();
     }
 }
 
 //==============================================================================
 void MainContentComponent::handleResetMeterClipping()
 {
-    for (auto && it : mSourceInputs) {
-        it->getVuMeter()->resetClipping();
+    for (auto * input : mInputs) {
+        input->getVuMeter()->resetClipping();
     }
-    for (auto && it : mSpeakers) {
-        it->getVuMeter()->resetClipping();
+    for (auto * speaker : mSpeakers) {
+        speaker->getVuMeter()->resetClipping();
     }
 }
 
@@ -787,9 +743,9 @@ void MainContentComponent::handleResetMeterClipping()
 void MainContentComponent::handleInputColours()
 {
     auto hue = 0.0f;
-    auto const inc = 1.0f / static_cast<float>(mSourceInputs.size() + 1);
-    for (auto && it : mSourceInputs) {
-        it->setColor(juce::Colour::fromHSV(hue, 1, 0.75, 1), true);
+    auto const inc = 1.0f / static_cast<float>(mInputs.size() + 1);
+    for (auto * input : mInputs) {
+        input->setColor(juce::Colour::fromHSV(hue, 1, 0.75, 1), true);
         hue += inc;
     }
 }
@@ -827,7 +783,7 @@ void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & command
 }
 
 //==============================================================================
-void MainContentComponent::getCommandInfo(juce::CommandID commandId, juce::ApplicationCommandInfo & result)
+void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce::ApplicationCommandInfo & result)
 {
     const juce::String generalCategory("General");
 
@@ -1000,6 +956,30 @@ bool MainContentComponent::perform(const InvocationInfo & info)
 }
 
 //==============================================================================
+void MainContentComponent::audioParametersChanged()
+{
+    juce::ScopedLock const lock{ mAudioProcessor->getCriticalSection() };
+
+    auto * currentAudioDevice{ AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice() };
+
+    if (!currentAudioDevice) {
+        return;
+    }
+
+    auto const sampleRate{ narrow<unsigned>(currentAudioDevice->getCurrentSampleRate()) };
+    auto const bufferSize{ currentAudioDevice->getCurrentBufferSizeSamples() };
+    auto const inputCount{ currentAudioDevice->getActiveInputChannels().countNumberOfSetBits() };
+    auto const outputCount{ currentAudioDevice->getActiveOutputChannels().countNumberOfSetBits() };
+
+    mSamplingRate = sampleRate;
+
+    mSampleRateLabel->setText(juce::String{ sampleRate } + " Hz", juce::NotificationType::dontSendNotification);
+    mBufferSizeLabel->setText(juce::String{ bufferSize } + " samples", juce::NotificationType::dontSendNotification);
+    mChannelCountLabel->setText("I : " + juce::String{ inputCount } + " - O : " + juce::String{ outputCount },
+                                juce::dontSendNotification);
+}
+
+//==============================================================================
 juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const juce::String & menuName)
 {
     juce::ApplicationCommandManager * commandManager = &mMainWindow.getApplicationCommandManager();
@@ -1025,7 +1005,7 @@ juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const j
         menu.addSeparator();
         menu.addCommandItem(commandManager, MainWindow::ShowNumbersID);
         menu.addCommandItem(commandManager, MainWindow::ShowSpeakersID);
-        if (mJackClient->getVbapDimensions() == 3) {
+        if (mAudioProcessor->getVbapDimensions() == 3) {
             menu.addCommandItem(commandManager, MainWindow::ShowTripletsID);
         } else {
             menu.addItem(MainWindow::ShowTripletsID, "Show Speaker Triplets", false, false);
@@ -1057,7 +1037,7 @@ void MainContentComponent::menuItemSelected(int /*menuItemID*/, int /*topLevelMe
 // Exit functions.
 bool MainContentComponent::isPresetModified() const
 {
-    juce::File const xmlFile{ mPathCurrentPreset };
+    juce::File const xmlFile{ mCurrentPresetPath };
     juce::XmlDocument xmlDoc{ xmlFile };
     auto const savedState{ xmlDoc.getDocumentElement() };
     if (!savedState) {
@@ -1095,7 +1075,7 @@ bool MainContentComponent::exitApp()
             if (!dir.isDirectory()) {
                 dir = juce::File::getSpecialLocation(juce::File::SpecialLocationType::userHomeDirectory);
             }
-            auto const filename{ juce::File(mPathCurrentPreset).getFileName() };
+            auto const filename{ juce::File(mCurrentPresetPath).getFileName() };
 
             juce::FileChooser fc("Choose a file to save...",
                                  dir.getFullPathName() + "/" + filename,
@@ -1118,18 +1098,17 @@ bool MainContentComponent::exitApp()
 void MainContentComponent::connectionClientJack(juce::String const & clientName, bool const conn)
 {
     unsigned int maxPort{};
-    for (auto const & cli : mJackClient->getClients()) {
+    for (auto const & cli : mAudioProcessor->getClients()) {
         if (cli.portEnd > maxPort) {
             maxPort = cli.portEnd;
         }
     }
-    if (maxPort > static_cast<unsigned int>(mAddInputsTextEditor->getTextValue().toString().getIntValue())) {
+    if (maxPort > narrow<unsigned>(mAddInputsTextEditor->getTextValue().toString().getIntValue())) {
         mAddInputsTextEditor->setText(juce::String{ maxPort }, juce::dontSendNotification);
         textEditorReturnKeyPressed(*mAddInputsTextEditor);
     }
-    mJackClient->setProcessBlockOn(false);
-    mJackClient->connectionClient(clientName, conn);
-    mJackClient->setProcessBlockOn(true);
+
+    mAudioProcessor->connectionClient(clientName, conn);
 }
 
 //==============================================================================
@@ -1228,19 +1207,19 @@ void MainContentComponent::reorderSpeakers(std::vector<int> const & newOrder)
     juce::Array<Speaker *> tempListSpeaker{};
     tempListSpeaker.resize(size);
 
-    for (int i = 0; i < size; i++) {
-        for (auto && it : mSpeakers) {
-            if (it->getIdSpeaker() == newOrder[i]) {
-                tempListSpeaker.setUnchecked(i, it);
+    for (int i{}; i < size; ++i) {
+        for (auto * speaker : mSpeakers) {
+            if (speaker->getIdSpeaker() == newOrder[i]) {
+                tempListSpeaker.setUnchecked(i, speaker);
                 break;
             }
         }
     }
 
-    mSpeakerLocks.lock();
+    mSpeakersLock.lock();
     mSpeakers.clearQuick(false);
     mSpeakers.addArray(tempListSpeaker);
-    mSpeakerLocks.unlock();
+    mSpeakersLock.unlock();
 }
 
 //==============================================================================
@@ -1272,7 +1251,7 @@ void MainContentComponent::addSpeaker(int const sortColumnId, bool const isSorte
 {
     auto const newId{ getMaxSpeakerId() + 1 };
 
-    mSpeakerLocks.lock();
+    mSpeakersLock.lock();
     mSpeakers.add(new Speaker{ *this, newId, newId, 0.0f, 0.0f, 1.0f });
 
     if (sortColumnId == 1 && isSortedForwards) {
@@ -1284,11 +1263,9 @@ void MainContentComponent::addSpeaker(int const sortColumnId, bool const isSorte
             mSpeakers[i]->setSpeakerId(mSpeakers.size() - i);
         }
     }
-    mSpeakerLocks.unlock();
+    mSpeakersLock.unlock();
 
-    mJackClient->setProcessBlockOn(false);
-    mJackClient->addOutput(mSpeakers.getLast()->getOutputPatch());
-    mJackClient->setProcessBlockOn(true);
+    mAudioProcessor->addOutput(mSpeakers.getLast()->getOutputPatch());
 }
 
 //==============================================================================
@@ -1298,7 +1275,7 @@ void MainContentComponent::insertSpeaker(int const position, int const sortColum
     auto const newOut{ getMaxSpeakerOutputPatch() + 1 };
     auto newId{ getMaxSpeakerId() + 1 };
 
-    mSpeakerLocks.lock();
+    mSpeakersLock.lock();
     if (sortColumnId == 1 && isSortedForwards) {
         newId = mSpeakers[position]->getIdSpeaker() + 1;
         mSpeakers.insert(newPosition, new Speaker{ *this, newId, newOut, 0.0f, 0.0f, 1.0f });
@@ -1314,42 +1291,41 @@ void MainContentComponent::insertSpeaker(int const position, int const sortColum
     } else {
         mSpeakers.insert(newPosition, new Speaker{ *this, newId, newOut, 0.0f, 0.0f, 1.0f });
     }
-    mSpeakerLocks.unlock();
+    mSpeakersLock.unlock();
 
-    mJackClient->setProcessBlockOn(false);
-    mJackClient->clearOutput();
+    juce::ScopedLock const lock{ mAudioProcessor->getCriticalSection() };
+    mAudioProcessor->clearOutput();
     for (auto * it : mSpeakers) {
-        mJackClient->addOutput(it->getOutputPatch());
+        mAudioProcessor->addOutput(it->getOutputPatch());
     }
-    mJackClient->setProcessBlockOn(true);
 }
 
 //==============================================================================
 void MainContentComponent::removeSpeaker(int const idSpeaker)
 {
-    mJackClient->removeOutput(idSpeaker);
-    mSpeakerLocks.lock();
+    mAudioProcessor->removeOutput(idSpeaker);
+    mSpeakersLock.lock();
     mSpeakers.remove(idSpeaker, true);
-    mSpeakerLocks.unlock();
+    mSpeakersLock.unlock();
 }
 
 //==============================================================================
 bool MainContentComponent::isRadiusNormalized() const
 {
-    auto const mode{ mJackClient->getMode() };
-    if (mode == ModeSpatEnum::VBAP || mode == ModeSpatEnum::VBAP_HRTF)
+    auto const mode{ mAudioProcessor->getMode() };
+    if (mode == SpatModes::vbap || mode == SpatModes::hrtfVbap)
         return true;
     else
         return false;
 }
 
 //==============================================================================
-void MainContentComponent::updateInputJack(int inInput, Input & inp)
+void MainContentComponent::updateInputJack(int const inInput, Input & inp) const
 {
-    auto const mode{ mJackClient->getMode() };
-    auto & si = mJackClient->getSourcesIn()[inInput];
+    auto const mode{ mAudioProcessor->getMode() };
+    auto & si = mAudioProcessor->getSourcesIn()[inInput];
 
-    if (mode == ModeSpatEnum::LBAP) {
+    if (mode == SpatModes::lbap) {
         si.radAzimuth = inp.getAzimuth();
         si.radElevation = juce::MathConstants<float>::halfPi - inp.getZenith();
     } else {
@@ -1364,8 +1340,8 @@ void MainContentComponent::updateInputJack(int inInput, Input & inp)
     si.azimuthSpan = inp.getAzimuthSpan() * 0.5f;
     si.zenithSpan = inp.getZenithSpan() * 2.0f;
 
-    if (mode == ModeSpatEnum::VBAP || mode == ModeSpatEnum::VBAP_HRTF) {
-        mJackClient->getVbapSourcesToUpdate()[inInput] = 1;
+    if (mode == SpatModes::vbap || mode == SpatModes::hrtfVbap) {
+        mAudioProcessor->getVbapSourcesToUpdate()[inInput] = 1;
     }
 }
 
@@ -1373,7 +1349,7 @@ void MainContentComponent::updateInputJack(int inInput, Input & inp)
 void MainContentComponent::setTripletsFromVbap()
 {
     clearTriplets();
-    for (auto const & it : mJackClient->getVbapTriplets()) {
+    for (auto const & it : mAudioProcessor->getVbapTriplets()) {
         jassert(it.size() == 3u);
         Triplet const tri{ it[0], it[1], it[2] };
         mTriplets.push_back(tri);
@@ -1444,7 +1420,7 @@ static void linkwitzRileyComputeVariables(double const freq, double const sr, do
 //==============================================================================
 float MainContentComponent::getLevelsAlpha(int const indexLevel) const
 {
-    auto const level{ mJackClient->getLevelsIn(indexLevel) };
+    auto const level{ mAudioProcessor->getLevelsIn(indexLevel) };
     if (level > 0.0001f) {
         // -80 dB
         return 1.0f;
@@ -1455,7 +1431,7 @@ float MainContentComponent::getLevelsAlpha(int const indexLevel) const
 //==============================================================================
 float MainContentComponent::getSpeakerLevelsAlpha(int const indexLevel) const
 {
-    auto const level{ mJackClient->getLevelsOut(indexLevel) };
+    auto const level{ mAudioProcessor->getLevelsOut(indexLevel) };
     float alpha;
     if (level > 0.001f) {
         // -60 dB
@@ -1472,6 +1448,8 @@ float MainContentComponent::getSpeakerLevelsAlpha(int const indexLevel) const
 //==============================================================================
 bool MainContentComponent::updateLevelComp()
 {
+    // TODO : this function is 100 times longer than it should be.
+
     if (mSpeakers.isEmpty()) {
         return false;
     }
@@ -1500,7 +1478,7 @@ bool MainContentComponent::updateLevelComp()
         alert.addButton("No", 0);
         alert.addButton("Yes", 1, juce::KeyPress(juce::KeyPress::returnKey));
         if (alert.runModalLoop() != 0) {
-            openXmlFileSpeaker(mPathCurrentFileSpeaker);
+            openXmlFileSpeaker(mCurrentSpeakerSetupPath);
         }
         return false;
     }
@@ -1524,25 +1502,25 @@ bool MainContentComponent::updateLevelComp()
             alert.addButton("No", 0);
             alert.addButton("Yes", 1);
             if (alert.runModalLoop() == 0) {
-                if (mPathCurrentFileSpeaker.compare(mPathLastVbapSpeakerSetup) == 0) {
+                if (mCurrentSpeakerSetupPath.compare(mLastVbapSetupPath) == 0) {
                     openXmlFileSpeaker(DEFAULT_SPEAKER_SETUP_FILE.getFullPathName());
                 } else {
-                    openXmlFileSpeaker(mPathLastVbapSpeakerSetup);
+                    openXmlFileSpeaker(mLastVbapSetupPath);
                 }
             }
             return false;
         }
     }
 
-    mJackClient->setProcessBlockOn(false);
-    mJackClient->setMaxOutputPatch(0u);
+    juce::ScopedLock const lock{ mAudioProcessor->getCriticalSection() };
+    mAudioProcessor->setMaxOutputPatch(0u);
 
     // Save mute/solo/directOut states
     std::array<bool, MAX_INPUTS> inputsIsMuted{};
     std::array<bool, MAX_INPUTS> inputsIsSolo{};
-    auto const soloIn{ mJackClient->getSoloIn() };
+    auto const soloIn{ mAudioProcessor->getSoloIn() };
     std::array<int, MAX_INPUTS> directOuts{};
-    auto const & sourcesIn{ mJackClient->getSourcesIn() };
+    auto const & sourcesIn{ mAudioProcessor->getSourcesIn() };
 
     for (size_t i{}; i < MAX_INPUTS; ++i) {
         inputsIsMuted[i] = sourcesIn[i].isMuted;
@@ -1552,22 +1530,22 @@ bool MainContentComponent::updateLevelComp()
 
     std::array<bool, MAX_OUTPUTS> outputsIsMuted{};
     std::array<bool, MAX_OUTPUTS> outputsIsSolo{};
-    auto const soloOut{ mJackClient->getSoloOut() };
-    auto const & speakersOut{ mJackClient->getSpeakersOut() };
+    auto const soloOut{ mAudioProcessor->getSoloOut() };
+    auto const & speakersOut{ mAudioProcessor->getSpeakersOut() };
     for (size_t i{}; i < MAX_OUTPUTS; ++i) {
         outputsIsMuted[i] = speakersOut[i].isMuted;
         outputsIsSolo[i] = speakersOut[i].isSolo;
     }
 
     // Cleanup speakers output patch
-    for (auto & it : mJackClient->getSpeakersOut()) {
+    for (auto & it : mAudioProcessor->getSpeakersOut()) {
         it.outputPatch = 0;
     }
 
     // Create outputs.
     int i{};
     auto x{ 2 };
-    auto const mode{ mJackClient->getMode() };
+    auto const mode{ mAudioProcessor->getMode() };
     for (auto * speaker : mSpeakers) {
         juce::Rectangle<int> level{ x, 4, VU_METER_WIDTH_IN_PIXELS, 200 };
         speaker->getVuMeter()->setBounds(level);
@@ -1577,11 +1555,11 @@ bool MainContentComponent::updateLevelComp()
 
         x += VU_METER_WIDTH_IN_PIXELS;
 
-        if (mode == ModeSpatEnum::VBAP || mode == ModeSpatEnum::VBAP_HRTF) {
+        if (mode == SpatModes::vbap || mode == SpatModes::hrtfVbap) {
             speaker->normalizeRadius();
         }
 
-        SpeakerOut so;
+        SpeakerData so;
         so.id = speaker->getOutputPatch();
         so.x = speaker->getCoordinate().x;
         so.y = speaker->getCoordinate().y;
@@ -1592,20 +1570,21 @@ bool MainContentComponent::updateLevelComp()
         so.outputPatch = speaker->getOutputPatch();
         so.directOut = speaker->isDirectOut();
 
-        mJackClient->getSpeakersOut()[i++] = so;
+        mAudioProcessor->getSpeakersOut()[i++] = so;
 
-        if (static_cast<unsigned int>(speaker->getOutputPatch()) > mJackClient->getMaxOutputPatch())
-            mJackClient->setMaxOutputPatch(speaker->getOutputPatch());
+        if (narrow<size_t>(speaker->getOutputPatch()) > mAudioProcessor->getMaxOutputPatch()) {
+            mAudioProcessor->setMaxOutputPatch(speaker->getOutputPatch());
+        }
     }
 
     // Set user gain and highpass filter cutoff frequency for each speaker.
     for (auto const * speaker : mSpeakers) {
-        auto & speakerOut{ mJackClient->getSpeakersOut()[speaker->getOutputPatch() - 1] };
+        auto & speakerOut{ mAudioProcessor->getSpeakersOut()[speaker->getOutputPatch() - 1] };
         speakerOut.gain = std::pow(10.0f, speaker->getGain() * 0.05f);
         if (speaker->getHighPassCutoff() > 0.0f) {
             double * coefficients;
             linkwitzRileyComputeVariables(static_cast<double>(speaker->getHighPassCutoff()),
-                                          static_cast<double>(mSamplingRate),
+                                          narrow<double>(mSamplingRate),
                                           &coefficients,
                                           7);
             speakerOut.b1 = coefficients[0];
@@ -1623,14 +1602,14 @@ bool MainContentComponent::updateLevelComp()
 
     i = 0;
     x = 2;
-    mInputLocks.lock();
+    mInputsLock.lock();
     std::vector<int> directOutMenuItems{};
     for (auto const * speaker : mSpeakers) {
         if (speaker->isDirectOut()) {
             directOutMenuItems.push_back(speaker->getOutputPatch());
         }
     }
-    for (auto * input : mSourceInputs) {
+    for (auto * input : mInputs) {
         juce::Rectangle<int> level{ x, 4, VU_METER_WIDTH_IN_PIXELS, 200 };
         input->getVuMeter()->setBounds(level);
         if (input->isInput()) { // TODO : wut?
@@ -1642,7 +1621,7 @@ bool MainContentComponent::updateLevelComp()
 
         x += VU_METER_WIDTH_IN_PIXELS;
 
-        SourceIn sourceIn;
+        SourceData sourceIn;
         sourceIn.id = input->getId();
         sourceIn.radAzimuth = input->getAzimuth();
         sourceIn.radElevation = juce::MathConstants<float>::halfPi - input->getZenith();
@@ -1650,10 +1629,10 @@ bool MainContentComponent::updateLevelComp()
         sourceIn.zenith = input->getZenith();
         sourceIn.radius = input->getRadius();
         sourceIn.gain = 0.0f;
-        mJackClient->getSourcesIn()[i++] = sourceIn;
+        mAudioProcessor->getSourcesIn()[i++] = sourceIn;
     }
 
-    mInputLocks.unlock();
+    mInputsLock.unlock();
 
     if (mEditSpeakersWindow != nullptr) {
         mEditSpeakersWindow->updateWinContent();
@@ -1674,12 +1653,12 @@ bool MainContentComponent::updateLevelComp()
     tempListSpeaker.resize(i);
 
     auto returnValue{ false };
-    if (mode == ModeSpatEnum::VBAP || mode == ModeSpatEnum::VBAP_HRTF) {
-        mJackClient->setVbapDimensions(dimensions);
+    if (mode == SpatModes::vbap || mode == SpatModes::hrtfVbap) {
+        mAudioProcessor->setVbapDimensions(dimensions);
         if (dimensions == 2) {
             setShowTriplets(false);
         }
-        returnValue = mJackClient->initSpeakersTriplet(tempListSpeaker, dimensions, mNeedToComputeVbap);
+        returnValue = mAudioProcessor->initSpeakersTriplet(tempListSpeaker, dimensions, mNeedToComputeVbap);
 
         if (returnValue) {
             setTripletsFromVbap();
@@ -1694,33 +1673,31 @@ bool MainContentComponent::updateLevelComp()
             openXmlFileSpeaker(DEFAULT_SPEAKER_SETUP_FILE.getFullPathName());
             return false;
         }
-    } else if (mode == ModeSpatEnum::LBAP) {
+    } else if (mode == SpatModes::lbap) {
         setShowTriplets(false);
-        returnValue = mJackClient->lbapSetupSpeakerField(tempListSpeaker);
+        returnValue = mAudioProcessor->lbapSetupSpeakerField(tempListSpeaker);
     }
 
     // Restore mute/solo/directOut states
-    mJackClient->setSoloIn(soloIn);
+    mAudioProcessor->setSoloIn(soloIn);
     for (size_t sourceInIndex{}; sourceInIndex < MAX_INPUTS; ++sourceInIndex) {
-        auto & sourceIn{ mJackClient->getSourcesIn()[sourceInIndex] };
+        auto & sourceIn{ mAudioProcessor->getSourcesIn()[sourceInIndex] };
         sourceIn.isMuted = inputsIsMuted[sourceInIndex];
         sourceIn.isSolo = inputsIsSolo[sourceInIndex];
         sourceIn.directOut = directOuts[sourceInIndex];
     }
-    mInputLocks.lock();
-    for (int sourceInputIndex{}; sourceInputIndex < mSourceInputs.size(); sourceInputIndex++) {
-        mSourceInputs[sourceInputIndex]->setDirectOutChannel(directOuts[sourceInputIndex]);
+    mInputsLock.lock();
+    for (int sourceInputIndex{}; sourceInputIndex < mInputs.size(); sourceInputIndex++) {
+        mInputs[sourceInputIndex]->setDirectOutChannel(directOuts[sourceInputIndex]);
     }
-    mInputLocks.unlock();
+    mInputsLock.unlock();
 
-    mJackClient->setSoloOut(soloOut);
+    mAudioProcessor->setSoloOut(soloOut);
     for (size_t speakerOutIndex{}; speakerOutIndex < MAX_OUTPUTS; ++speakerOutIndex) {
-        auto & speakerOut{ mJackClient->getSpeakersOut()[speakerOutIndex] };
+        auto & speakerOut{ mAudioProcessor->getSpeakersOut()[speakerOutIndex] };
         speakerOut.isMuted = outputsIsMuted[speakerOutIndex];
         speakerOut.isSolo = outputsIsSolo[speakerOutIndex];
     }
-
-    mJackClient->setProcessBlockOn(true);
 
     return returnValue;
 }
@@ -1728,77 +1705,77 @@ bool MainContentComponent::updateLevelComp()
 //==============================================================================
 void MainContentComponent::setNameConfig()
 {
-    mNameConfig = mPathCurrentFileSpeaker.fromLastOccurrenceOf("/", false, false);
-    mSpeakerViewComponent->setNameConfig(mNameConfig);
+    mConfigurationName = mCurrentSpeakerSetupPath.fromLastOccurrenceOf("/", false, false);
+    mSpeakerViewComponent->setNameConfig(mConfigurationName);
 }
 
 //==============================================================================
-void MainContentComponent::muteInput(int const id, bool const mute)
+void MainContentComponent::muteInput(int const id, bool const mute) const
 {
     auto const index{ id - 1 };
-    mJackClient->getSourcesIn()[index].isMuted = mute;
+    mAudioProcessor->getSourcesIn()[index].isMuted = mute;
 }
 
 //==============================================================================
-void MainContentComponent::muteOutput(int const id, bool const mute)
+void MainContentComponent::muteOutput(int const id, bool const mute) const
 {
     auto const index{ id - 1 };
-    mJackClient->getSpeakersOut()[index].isMuted = mute;
+    mAudioProcessor->getSpeakersOut()[index].isMuted = mute;
 }
 
 //==============================================================================
-void MainContentComponent::soloInput(int const id, bool const solo)
+void MainContentComponent::soloInput(int const id, bool const solo) const
 {
-    auto & sourcesIn{ mJackClient->getSourcesIn() };
+    auto & sourcesIn{ mAudioProcessor->getSourcesIn() };
     auto const index{ id - 1 };
     sourcesIn[index].isSolo = solo;
 
-    mJackClient->setSoloIn(false);
+    mAudioProcessor->setSoloIn(false);
     for (unsigned int i = 0; i < MAX_INPUTS; i++) {
         if (sourcesIn[i].isSolo) {
-            mJackClient->setSoloIn(true);
+            mAudioProcessor->setSoloIn(true);
             break;
         }
     }
 }
 
 //==============================================================================
-void MainContentComponent::soloOutput(int const id, bool const solo)
+void MainContentComponent::soloOutput(int const id, bool const solo) const
 {
     auto const index{ id - 1 };
-    auto & speakersOut{ mJackClient->getSpeakersOut() };
+    auto & speakersOut{ mAudioProcessor->getSpeakersOut() };
     speakersOut[index].isSolo = solo;
 
-    mJackClient->setSoloOut(false);
+    mAudioProcessor->setSoloOut(false);
     for (unsigned int i = 0; i < MAX_OUTPUTS; i++) {
         if (speakersOut[i].isSolo) {
-            mJackClient->setSoloOut(true);
+            mAudioProcessor->setSoloOut(true);
             break;
         }
     }
 }
 
 //==============================================================================
-void MainContentComponent::setDirectOut(int const id, int const chn)
+void MainContentComponent::setDirectOut(int const id, int const chn) const
 {
     auto const index{ id - 1 };
-    mJackClient->getSourcesIn()[index].directOut = chn;
+    mAudioProcessor->getSourcesIn()[index].directOut = chn;
 }
 
 //==============================================================================
 void MainContentComponent::reloadXmlFileSpeaker()
 {
-    if (juce::File(mPathCurrentFileSpeaker).existsAsFile()) {
-        openXmlFileSpeaker(mPathCurrentFileSpeaker);
+    if (juce::File(mCurrentSpeakerSetupPath).existsAsFile()) {
+        openXmlFileSpeaker(mCurrentSpeakerSetupPath);
     }
 }
 
 //==============================================================================
 void MainContentComponent::openXmlFileSpeaker(juce::String const & path)
 {
-    auto const oldPath{ mPathCurrentFileSpeaker };
+    auto const oldPath{ mCurrentSpeakerSetupPath };
     auto const isNewSameAsOld{ oldPath.compare(path) == 0 };
-    auto const isNewSameAsLastSetup{ mPathLastVbapSpeakerSetup.compare(path) == 0 };
+    auto const isNewSameAsLastSetup{ mLastVbapSetupPath.compare(path) == 0 };
     auto ok{ false };
     if (!juce::File(path).existsAsFile()) {
         juce::AlertWindow alert("Error in Load Speaker Setup !",
@@ -1808,8 +1785,8 @@ void MainContentComponent::openXmlFileSpeaker(juce::String const & path)
         alert.addButton("Ok", 0, juce::KeyPress(juce::KeyPress::returnKey));
         alert.runModalLoop();
     } else {
-        mPathCurrentFileSpeaker = path;
-        juce::XmlDocument xmlDoc{ juce::File{ mPathCurrentFileSpeaker } };
+        mCurrentSpeakerSetupPath = path;
+        juce::XmlDocument xmlDoc{ juce::File{ mCurrentSpeakerSetupPath } };
         auto const mainXmlElem(xmlDoc.getDocumentElement());
         if (!mainXmlElem) {
             juce::AlertWindow alert{ "Error in Load Speaker Setup !",
@@ -1820,34 +1797,34 @@ void MainContentComponent::openXmlFileSpeaker(juce::String const & path)
             alert.runModalLoop();
         } else {
             if (mainXmlElem->hasTagName("SpeakerSetup")) {
-                mSpeakerLocks.lock();
+                mSpeakersLock.lock();
                 mSpeakers.clear();
-                mSpeakerLocks.unlock();
+                mSpeakersLock.unlock();
                 if (path.compare(BINAURAL_SPEAKER_SETUP_FILE.getFullPathName()) == 0) {
-                    mJackClient->setMode(ModeSpatEnum::VBAP_HRTF);
-                    mModeSpatCombo->setSelectedId(static_cast<int>(ModeSpatEnum::VBAP_HRTF) + 1,
+                    mAudioProcessor->setMode(SpatModes::hrtfVbap);
+                    mSpatModeCombo->setSelectedId(static_cast<int>(SpatModes::hrtfVbap) + 1,
                                                   juce::NotificationType::dontSendNotification);
                 } else if (path.compare(STEREO_SPEAKER_SETUP_FILE.getFullPathName()) == 0) {
-                    mJackClient->setMode(ModeSpatEnum::STEREO);
-                    mModeSpatCombo->setSelectedId(static_cast<int>(ModeSpatEnum::STEREO) + 1,
+                    mAudioProcessor->setMode(SpatModes::stereo);
+                    mSpatModeCombo->setSelectedId(static_cast<int>(SpatModes::stereo) + 1,
                                                   juce::NotificationType::dontSendNotification);
                 } else if (!isNewSameAsOld && oldPath.compare(BINAURAL_SPEAKER_SETUP_FILE.getFullPathName()) != 0
                            && oldPath.compare(STEREO_SPEAKER_SETUP_FILE.getFullPathName()) != 0) {
                     auto const spatMode = mainXmlElem->getIntAttribute("SpatMode");
-                    mJackClient->setMode(static_cast<ModeSpatEnum>(spatMode));
-                    mModeSpatCombo->setSelectedId(spatMode + 1, juce::NotificationType::dontSendNotification);
+                    mAudioProcessor->setMode(static_cast<SpatModes>(spatMode));
+                    mSpatModeCombo->setSelectedId(spatMode + 1, juce::NotificationType::dontSendNotification);
                 } else if (!isNewSameAsLastSetup) {
                     auto const spatMode = mainXmlElem->getIntAttribute("SpatMode");
-                    mJackClient->setMode(static_cast<ModeSpatEnum>(spatMode));
-                    mModeSpatCombo->setSelectedId(spatMode + 1, juce::NotificationType::dontSendNotification);
+                    mAudioProcessor->setMode(static_cast<SpatModes>(spatMode));
+                    mSpatModeCombo->setSelectedId(spatMode + 1, juce::NotificationType::dontSendNotification);
                 }
 
-                auto const loadSetupFromXyz{ /*isNewSameAsOld &&*/ mJackClient->getMode() == ModeSpatEnum::LBAP };
+                auto const loadSetupFromXyz{ /*isNewSameAsOld &&*/ mAudioProcessor->getMode() == SpatModes::lbap };
 
                 setNameConfig();
-                mJackClient->setProcessBlockOn(false);
-                mJackClient->clearOutput();
-                mJackClient->setMaxOutputPatch(0);
+                juce::ScopedLock const lock{ mAudioProcessor->getCriticalSection() };
+                mAudioProcessor->clearOutput();
+                mAudioProcessor->setMaxOutputPatch(0);
                 juce::Array<int> layoutIndexes{};
                 int maxLayoutIndex{};
                 forEachXmlChildElement(*mainXmlElem, ring)
@@ -1887,7 +1864,7 @@ void MainContentComponent::openXmlFileSpeaker(juce::String const & path)
                                 if (spk->hasAttribute("DirectOut")) {
                                     mSpeakers.getLast()->setDirectOut(spk->getBoolAttribute("DirectOut"));
                                 }
-                                mJackClient->addOutput(static_cast<unsigned int>(spk->getIntAttribute("OutputPatch")));
+                                mAudioProcessor->addOutput(narrow<unsigned>(spk->getIntAttribute("OutputPatch")));
                             }
                         }
                     }
@@ -1898,7 +1875,6 @@ void MainContentComponent::openXmlFileSpeaker(juce::String const & path)
                         mTriplets.push_back(triplet);
                     }
                 }
-                mJackClient->setProcessBlockOn(true);
                 ok = true;
             } else {
                 juce::String msg;
@@ -1915,22 +1891,22 @@ void MainContentComponent::openXmlFileSpeaker(juce::String const & path)
         }
     }
     if (ok) {
-        if (mPathCurrentFileSpeaker.endsWith("default_preset/default_speaker_setup.xml")) {
+        if (mCurrentSpeakerSetupPath.endsWith("default_preset/default_speaker_setup.xml")) {
             mApplicationProperties.getUserSettings()->setValue(
                 "lastSpeakerSetupDirectory",
                 juce::File::getSpecialLocation(juce::File::userHomeDirectory).getFullPathName());
         } else {
             mApplicationProperties.getUserSettings()->setValue(
                 "lastSpeakerSetupDirectory",
-                juce::File(mPathCurrentFileSpeaker).getParentDirectory().getFullPathName());
+                juce::File(mCurrentSpeakerSetupPath).getParentDirectory().getFullPathName());
         }
         mNeedToComputeVbap = true;
         updateLevelComp();
-        auto const mode{ mJackClient->getMode() };
-        if (mode != ModeSpatEnum::VBAP_HRTF && mode != ModeSpatEnum::STEREO) {
-            if (mPathCurrentFileSpeaker.compare(BINAURAL_SPEAKER_SETUP_FILE.getFullPathName()) != 0
-                && mPathCurrentFileSpeaker.compare(STEREO_SPEAKER_SETUP_FILE.getFullPathName()) != 0) {
-                mPathLastVbapSpeakerSetup = mPathCurrentFileSpeaker;
+        auto const mode{ mAudioProcessor->getMode() };
+        if (mode != SpatModes::hrtfVbap && mode != SpatModes::stereo) {
+            if (mCurrentSpeakerSetupPath.compare(BINAURAL_SPEAKER_SETUP_FILE.getFullPathName()) != 0
+                && mCurrentSpeakerSetupPath.compare(STEREO_SPEAKER_SETUP_FILE.getFullPathName()) != 0) {
+                mLastVbapSetupPath = mCurrentSpeakerSetupPath;
             }
         }
     } else {
@@ -1946,12 +1922,12 @@ void MainContentComponent::openXmlFileSpeaker(juce::String const & path)
 void MainContentComponent::setTitle() const
 {
     auto const title{ juce::String{ "SpatGRIS v" } + STRING(JUCE_APP_VERSION) + " - "
-                      + juce::File{ mPathCurrentPreset }.getFileName() };
+                      + juce::File{ mCurrentPresetPath }.getFileName() };
     mMainWindow.setName(title);
 }
 
 //==============================================================================
-void MainContentComponent::handleTimer(bool state)
+void MainContentComponent::handleTimer(bool const state)
 {
     if (state) {
         startTimerHz(24);
@@ -1964,14 +1940,14 @@ void MainContentComponent::handleTimer(bool state)
 void MainContentComponent::closeSpeakersConfigurationWindow()
 {
     mEditSpeakersWindow.reset();
-    mJackClient->setProcessBlockOn(true);
 }
 
 //==============================================================================
 void MainContentComponent::openPreset(juce::String const & path)
 {
+    juce::ScopedLock const lock{ mAudioProcessor->getCriticalSection() };
+
     juce::String msg;
-    mJackClient->setProcessBlockOn(false);
     juce::File const xmlFile{ path };
     juce::XmlDocument xmlDoc{ xmlFile };
     auto const mainXmlElem{ xmlDoc.getDocumentElement() };
@@ -1985,7 +1961,7 @@ void MainContentComponent::openPreset(juce::String const & path)
         alert.runModalLoop();
     } else {
         if (mainXmlElem->hasTagName("SpatServerGRIS_Preset") || mainXmlElem->hasTagName("ServerGRIS_Preset")) {
-            mPathCurrentPreset = path;
+            mCurrentPresetPath = path;
             mOscInputPort
                 = mainXmlElem->getIntAttribute("OSC_Input_Port"); // TODO: app preferences instead of project settings ?
             mAddInputsTextEditor->setText(mainXmlElem->getStringAttribute("Number_Of_Inputs"));
@@ -2040,16 +2016,16 @@ void MainContentComponent::openPreset(juce::String const & path)
             sliderValueChanged(mMasterGainOutSlider.get());
             sliderValueChanged(mInterpolationSlider.get());
 
-            juce::File const speakerSetup{ mPathCurrentFileSpeaker };
-            if (!mPathCurrentFileSpeaker.startsWith("/")) {
-                mPathCurrentFileSpeaker
-                    = DEFAULT_PRESET_DIRECTORY.getChildFile(mPathCurrentFileSpeaker).getFullPathName();
+            juce::File const speakerSetup{ mCurrentSpeakerSetupPath };
+            if (!mCurrentSpeakerSetupPath.startsWith("/")) {
+                mCurrentSpeakerSetupPath
+                    = DEFAULT_PRESET_DIRECTORY.getChildFile(mCurrentSpeakerSetupPath).getFullPathName();
             }
 
             for (auto * input{ mainXmlElem->getFirstChildElement() }; input != nullptr;
                  input = input->getNextElement()) {
                 if (input->hasTagName("Input")) {
-                    for (auto * it : mSourceInputs) {
+                    for (auto * it : mInputs) {
                         if (it->getId() == input->getIntAttribute("Index")) {
                             it->setColor(juce::Colour::fromFloatRGBA(static_cast<float>(input->getDoubleAttribute("R")),
                                                                      static_cast<float>(input->getDoubleAttribute("G")),
@@ -2080,17 +2056,16 @@ void MainContentComponent::openPreset(juce::String const & path)
         }
     }
 
-    mJackClient->setPinkNoiseActive(false);
-    mJackClient->setProcessBlockOn(true);
+    mAudioProcessor->setPinkNoiseActive(false);
 
-    if (mPathCurrentPreset.endsWith("default_preset/default_preset.xml")) {
+    if (mCurrentPresetPath.endsWith("default_preset/default_preset.xml")) {
         mApplicationProperties.getUserSettings()->setValue(
             "lastPresetDirectory",
             juce::File::getSpecialLocation(juce::File::userHomeDirectory).getFullPathName());
     } else {
         mApplicationProperties.getUserSettings()->setValue(
             "lastPresetDirectory",
-            juce::File(mPathCurrentPreset).getParentDirectory().getFullPathName());
+            juce::File(mCurrentPresetPath).getParentDirectory().getFullPathName());
     }
     setTitle();
 }
@@ -2112,7 +2087,7 @@ void MainContentComponent::getPresetData(juce::XmlElement * xml) const
     xml->setAttribute("CamAngleY", mSpeakerViewComponent->getCamAngleY());
     xml->setAttribute("CamDistance", mSpeakerViewComponent->getCamDistance());
 
-    for (auto const * sourceInput : mSourceInputs) {
+    for (auto const * sourceInput : mInputs) {
         auto * xmlInput{ new juce::XmlElement{ "Input" } };
         xmlInput->setAttribute("Index", sourceInput->getId());
         xmlInput->setAttribute("R", sourceInput->getColor().x);
@@ -2133,21 +2108,21 @@ void MainContentComponent::savePreset(juce::String const & path)
     jassert(success);
     success = xmlFile.create();
     jassert(success);
-    mPathCurrentPreset = path;
+    mCurrentPresetPath = path;
     mApplicationProperties.getUserSettings()->setValue(
         "lastPresetDirectory",
-        juce::File{ mPathCurrentPreset }.getParentDirectory().getFullPathName());
+        juce::File{ mCurrentPresetPath }.getParentDirectory().getFullPathName());
     setTitle();
 }
 
 //==============================================================================
 void MainContentComponent::saveSpeakerSetup(juce::String const & path)
 {
-    mPathCurrentFileSpeaker = path;
+    mCurrentSpeakerSetupPath = path;
     juce::File const xmlFile{ path };
     juce::XmlElement xml{ "SpeakerSetup" };
 
-    xml.setAttribute("Name", mNameConfig);
+    xml.setAttribute("Name", mConfigurationName);
     xml.setAttribute("Dimension", 3);
     xml.setAttribute("SpatMode", static_cast<int>(getModeSelected()));
 
@@ -2185,15 +2160,15 @@ void MainContentComponent::saveSpeakerSetup(juce::String const & path)
 
     mApplicationProperties.getUserSettings()->setValue(
         "lastSpeakerSetupDirectory",
-        juce::File{ mPathCurrentFileSpeaker }.getParentDirectory().getFullPathName());
+        juce::File{ mCurrentSpeakerSetupPath }.getParentDirectory().getFullPathName());
 
     mNeedToSaveSpeakerSetup = false;
 
-    auto const mode{ mJackClient->getMode() };
-    if (mode != ModeSpatEnum::VBAP_HRTF && mode != ModeSpatEnum::STEREO) {
-        if (mPathCurrentFileSpeaker.compare(BINAURAL_SPEAKER_SETUP_FILE.getFullPathName()) != 0
-            && mPathCurrentFileSpeaker.compare(STEREO_SPEAKER_SETUP_FILE.getFullPathName()) != 0) {
-            mPathLastVbapSpeakerSetup = mPathCurrentFileSpeaker;
+    auto const mode{ mAudioProcessor->getMode() };
+    if (mode != SpatModes::hrtfVbap && mode != SpatModes::stereo) {
+        if (mCurrentSpeakerSetupPath.compare(BINAURAL_SPEAKER_SETUP_FILE.getFullPathName()) != 0
+            && mCurrentSpeakerSetupPath.compare(STEREO_SPEAKER_SETUP_FILE.getFullPathName()) != 0) {
+            mLastVbapSetupPath = mCurrentSpeakerSetupPath;
         }
     }
 
@@ -2201,9 +2176,11 @@ void MainContentComponent::saveSpeakerSetup(juce::String const & path)
 }
 
 //==============================================================================
-void MainContentComponent::saveProperties(juce::String const & device,
-                                          int const rate,
-                                          int const buff,
+void MainContentComponent::saveProperties(juce::String const & audioDeviceType,
+                                          juce::String const & inputDevice,
+                                          juce::String const & outputDevice,
+                                          int const sampleRate,
+                                          int const bufferSize,
                                           int const fileFormat,
                                           int const fileConfig,
                                           int const attenuationDb,
@@ -2212,58 +2189,35 @@ void MainContentComponent::saveProperties(juce::String const & device,
 {
     auto * props{ mApplicationProperties.getUserSettings() };
 
-    auto const deviceValue{ props->getValue(user_properties_tags::ALSA_OUTPUT_DEVICE, "") };
-    auto bufferValue{ props->getIntValue(user_properties_tags::BUFFER_SIZE, 1024) };
-    auto rateValue{ props->getIntValue(user_properties_tags::SAMPLE_RATE, 48000) };
-    auto const oscInputPort{ props->getIntValue(user_properties_tags::OSC_INPUT_PORT, 18032) };
-
-    if (bufferValue == 0) {
-        bufferValue = 1024;
-    }
-    if (rateValue == 0) {
-        rateValue = 48000;
-    }
-
-    if (device.compare(deviceValue) != 0 || rate != rateValue || buff != bufferValue) {
-        juce::AlertWindow alert("You Need to Restart SpatGRIS!",
-                                "New settings will be effective on next launch of the SpatGRIS.",
-                                juce::AlertWindow::InfoIcon);
-        alert.setLookAndFeel(&mLookAndFeel);
-        alert.addButton("Cancel", 0);
-        alert.addButton("Ok", 1, juce::KeyPress{ juce::KeyPress::returnKey });
-        if (alert.runModalLoop() != 0) {
-            props->setValue(user_properties_tags::ALSA_OUTPUT_DEVICE, device);
-            props->setValue(user_properties_tags::BUFFER_SIZE, buff);
-            props->setValue(user_properties_tags::SAMPLE_RATE, rate);
-        }
-    }
+    // Handle audio options
+    props->setValue(user_properties_tags::DEVICE_TYPE, audioDeviceType);
+    props->setValue(user_properties_tags::INPUT_DEVICE, inputDevice);
+    props->setValue(user_properties_tags::OUTPUT_DEVICE, outputDevice);
+    props->setValue(user_properties_tags::SAMPLE_RATE, sampleRate);
+    props->setValue(user_properties_tags::BUFFER_SIZE, bufferSize);
 
     // Handle OSC Input Port
     if (oscPort < 0 || oscPort > 65535) {
         oscPort = 18032;
     }
-    if (oscPort != oscInputPort) {
+    auto const previousOscPort{ props->getIntValue(user_properties_tags::OSC_INPUT_PORT, 18032) };
+    if (oscPort != previousOscPort) {
         mOscInputPort = oscPort;
         props->setValue(user_properties_tags::OSC_INPUT_PORT, oscPort);
         mOscReceiver->closeConnection();
-        if (mOscReceiver->startConnection(mOscInputPort)) {
-            std::cout << "OSC receiver connected to port " << oscPort << '\n';
-        } else {
-            std::cout << "OSC receiver connection to port " << oscPort << " failed... Should popup an alert window."
-                      << '\n';
-        }
+        mOscReceiver->startConnection(mOscInputPort);
     }
 
     // Handle recording settings
-    mJackClient->setRecordFormat(fileFormat);
+    mAudioProcessor->setRecordFormat(fileFormat);
     props->setValue(user_properties_tags::FILE_FORMAT, fileFormat);
 
-    mJackClient->setRecordFileConfig(fileConfig);
+    mAudioProcessor->setRecordFileConfig(fileConfig);
     props->setValue(user_properties_tags::FILE_CONFIG, fileConfig);
 
     // Handle CUBE distance attenuation
     auto const linGain{ std::pow(10.0f, ATTENUATION_DB[attenuationDb].getFloatValue() * 0.05f) };
-    mJackClient->setAttenuationDb(linGain);
+    mAudioProcessor->setAttenuationDb(linGain);
     props->setValue(user_properties_tags::ATTENUATION_DB, attenuationDb);
 
     auto * currentAudioDevice{ AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice() };
@@ -2271,8 +2225,8 @@ void MainContentComponent::saveProperties(juce::String const & device,
 
     auto const coefficient{ std::exp(-juce::MathConstants<float>::twoPi
                                      * ATTENUATION_CUTOFFS[attenuationHz].getFloatValue()
-                                     / static_cast<float>(currentAudioDevice->getCurrentSampleRate())) };
-    mJackClient->setAttenuationHz(coefficient);
+                                     / narrow<float>(currentAudioDevice->getCurrentSampleRate())) };
+    mAudioProcessor->setAttenuationHz(coefficient);
     props->setValue(user_properties_tags::ATTENUATION_HZ, attenuationHz);
 
     mApplicationProperties.saveIfNeeded();
@@ -2282,57 +2236,75 @@ void MainContentComponent::saveProperties(juce::String const & device,
 void MainContentComponent::timerCallback()
 {
     // TODO : audioDevice should not be accessed this frequently
-    auto * audioDevice{ AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice() };
-    jassert(audioDevice);
-    auto const sampleRate{ static_cast<unsigned>(std::round(audioDevice->getCurrentSampleRate())) };
+    auto & audioManager{ AudioManager::getInstance() };
+    auto & audioDeviceManager{ audioManager.getAudioDeviceManager() };
+    auto * audioDevice{ audioDeviceManager.getCurrentAudioDevice() };
 
-    auto const cpuLoad{ static_cast<int>(std::round(mJackClient->getCpuUsed() * 100.0f)) };
-    mJackLoadLabel->setText(juce::String{ cpuLoad } + " %", juce::dontSendNotification);
-    auto seconds{ static_cast<int>(mJackClient->getIndexRecord() / sampleRate) };
+    if (!audioDevice) {
+        return;
+    }
+
+    auto const sampleRate{ narrow<unsigned>(std::round(audioDevice->getCurrentSampleRate())) };
+
+    // TODO : static variables no good
+    static double cpuRunningAverage{};
+    static double amountToRemove{};
+    auto const currentCpuUsage{ audioDeviceManager.getCpuUsage() * 100.0 };
+    if (currentCpuUsage > cpuRunningAverage) {
+        cpuRunningAverage = currentCpuUsage;
+        amountToRemove = 0.01;
+    } else {
+        cpuRunningAverage = std::max(cpuRunningAverage - amountToRemove, currentCpuUsage);
+        amountToRemove *= 1.1;
+    }
+
+    auto const cpuLoad{ narrow<int>(std::round(cpuRunningAverage)) };
+    mCpuUsageValue->setText(juce::String{ cpuLoad } + " %", juce::dontSendNotification);
+
+    auto seconds{ narrow<int>(mAudioProcessor->getIndexRecord() / sampleRate) };
     auto const minute{ seconds / 60 % 60 };
     seconds = seconds % 60;
-    auto const timeRecorded{ ((minute < 10) ? "0" + juce::String(minute) : juce::String(minute)) + " : "
-                             + ((seconds < 10) ? "0" + juce::String(seconds) : juce::String(seconds)) };
+    auto const timeRecorded{ ((minute < 10) ? "0" + juce::String{ minute } : juce::String{ minute }) + " : "
+                             + ((seconds < 10) ? "0" + juce::String{ seconds } : juce::String{ seconds }) };
     mTimeRecordedLabel->setText(timeRecorded, juce::dontSendNotification);
 
     if (mStartRecordButton->getToggleState()) {
         mStartRecordButton->setToggleState(false, juce::dontSendNotification);
     }
 
-    if (mJackClient->isSavingRun()) {
+    if (mAudioProcessor->isSavingRun()) {
         mStartRecordButton->setButtonText("Stop");
     } else {
         mStartRecordButton->setButtonText("Record");
     }
 
-    if (mIsRecording && !mJackClient->isRecording()) {
-        auto const & recorders{ mJackClient->getRecorders() };
-        auto const isReadyToMerge{ std::all_of(
+    if (mIsRecording && !mAudioProcessor->isRecording()) {
+        auto const & recorders{ mAudioProcessor->getRecorders() };
+        auto const isReadyToMerge{ std::none_of(
             recorders.begin(),
             recorders.end(),
-            [](AudioRecorder const & recorder) -> bool { return !recorder.backgroundThread.isThreadRunning(); }) };
+            [](AudioRecorder const & recorder) -> bool { return recorder.backgroundThread.isThreadRunning(); }) };
 
         if (isReadyToMerge) {
             mIsRecording = false;
-            if (mJackClient->getRecordFileConfig()) {
-                mJackClient->setProcessBlockOn(false);
+            if (mAudioProcessor->getRecordFileConfig()) {
+                juce::ScopedLock const lock{ mAudioProcessor->getCriticalSection() };
                 auto * renderer{ new AudioRenderer{} };
-                renderer->prepareRecording(mJackClient->getRecordingPath(),
-                                           mJackClient->getOutputFileNames(),
+                renderer->prepareRecording(mAudioProcessor->getRecordingPath(),
+                                           mAudioProcessor->getOutputFileNames(),
                                            sampleRate);
                 renderer->runThread();
-                mJackClient->setProcessBlockOn(true);
             }
         }
     }
 
-    if (mJackClient->isOverloaded()) {
-        mJackLoadLabel->setColour(juce::Label::backgroundColourId, juce::Colours::darkred);
+    if (mAudioProcessor->isOverloaded()) {
+        mCpuUsageValue->setColour(juce::Label::backgroundColourId, juce::Colours::darkred);
     } else {
-        mJackLoadLabel->setColour(juce::Label::backgroundColourId, mLookAndFeel.getWinBackgroundColour());
+        mCpuUsageValue->setColour(juce::Label::backgroundColourId, mLookAndFeel.getWinBackgroundColour());
     }
 
-    for (auto * sourceInput : mSourceInputs) {
+    for (auto * sourceInput : mInputs) {
         sourceInput->getVuMeter()->update();
     }
 
@@ -2372,7 +2344,7 @@ void MainContentComponent::textEditorFocusLost(juce::TextEditor & textEditor)
 void MainContentComponent::textEditorReturnKeyPressed(juce::TextEditor & textEditor)
 {
     if (&textEditor == mAddInputsTextEditor.get()) {
-        auto const numOfInputs{ static_cast<unsigned>(mAddInputsTextEditor->getTextValue().toString().getIntValue()) };
+        auto const numOfInputs{ narrow<unsigned>(mAddInputsTextEditor->getTextValue().toString().getIntValue()) };
         if (numOfInputs < 1) {
             mAddInputsTextEditor->setText("1");
         }
@@ -2380,28 +2352,26 @@ void MainContentComponent::textEditorReturnKeyPressed(juce::TextEditor & textEdi
             mAddInputsTextEditor->setText(juce::String(MAX_INPUTS));
         }
 
-        if (mJackClient->getInputPorts().size() != numOfInputs) {
-            mJackClient->setProcessBlockOn(false);
-            mJackClient->addRemoveInput(numOfInputs);
-            mJackClient->setProcessBlockOn(true);
+        if (mAudioProcessor->getInputPorts().size() != numOfInputs) {
+            mAudioProcessor->addRemoveInput(numOfInputs);
 
-            mInputLocks.lock();
+            mInputsLock.lock();
             auto addInput{ false };
-            auto const numInputPorts{ static_cast<int>(mJackClient->getInputPorts().size()) };
+            auto const numInputPorts{ narrow<int>(mAudioProcessor->getInputPorts().size()) };
             for (int i{}; i < numInputPorts; ++i) {
-                if (i >= mSourceInputs.size()) {
-                    mSourceInputs.add(new Input{ *this, mSmallLookAndFeel, i + 1 });
+                if (i >= mInputs.size()) {
+                    mInputs.add(new Input{ *this, mSmallLookAndFeel, i + 1 });
                     addInput = true;
                 }
             }
             if (!addInput) {
-                auto const listSourceInputSize{ mSourceInputs.size() };
-                auto const jackClientInputPortSize{ static_cast<int>(mJackClient->getInputPorts().size()) };
+                auto const listSourceInputSize{ mInputs.size() };
+                auto const jackClientInputPortSize{ narrow<int>(mAudioProcessor->getInputPorts().size()) };
                 if (listSourceInputSize > jackClientInputPortSize) {
-                    mSourceInputs.removeRange(jackClientInputPortSize, listSourceInputSize - jackClientInputPortSize);
+                    mInputs.removeRange(jackClientInputPortSize, listSourceInputSize - jackClientInputPortSize);
                 }
             }
-            mInputLocks.unlock();
+            mInputsLock.unlock();
         }
         unfocusAllComponents();
         updateLevelComp();
@@ -2412,16 +2382,16 @@ void MainContentComponent::textEditorReturnKeyPressed(juce::TextEditor & textEdi
 void MainContentComponent::buttonClicked(juce::Button * button)
 {
     if (button == mStartRecordButton.get()) {
-        if (mJackClient->isRecording()) {
-            mJackClient->stopRecord();
+        if (mAudioProcessor->isRecording()) {
+            mAudioProcessor->stopRecord();
             mStartRecordButton->setEnabled(false);
             mTimeRecordedLabel->setColour(juce::Label::textColourId, mLookAndFeel.getFontColour());
         } else {
             mIsRecording = true;
-            mJackClient->startRecord();
+            mAudioProcessor->startRecord();
             mTimeRecordedLabel->setColour(juce::Label::textColourId, mLookAndFeel.getRedColour());
         }
-        mStartRecordButton->setToggleState(mJackClient->isRecording(), juce::dontSendNotification);
+        mStartRecordButton->setToggleState(mAudioProcessor->isRecording(), juce::dontSendNotification);
     } else if (button == mInitRecordButton.get()) {
         chooseRecordingPath();
         mStartRecordButton->setEnabled(true);
@@ -2432,11 +2402,12 @@ void MainContentComponent::buttonClicked(juce::Button * button)
 void MainContentComponent::sliderValueChanged(juce::Slider * slider)
 {
     if (slider == mMasterGainOutSlider.get()) {
-        mJackClient->setMasterGainOut(std::pow(10.0f, static_cast<float>(mMasterGainOutSlider->getValue()) * 0.05f));
+        mAudioProcessor->setMasterGainOut(
+            std::pow(10.0f, static_cast<float>(mMasterGainOutSlider->getValue()) * 0.05f));
     }
 
     else if (slider == mInterpolationSlider.get()) {
-        mJackClient->setInterMaster(static_cast<float>(mInterpolationSlider->getValue()));
+        mAudioProcessor->setInterMaster(static_cast<float>(mInterpolationSlider->getValue()));
     }
 }
 
@@ -2451,32 +2422,32 @@ void MainContentComponent::comboBoxChanged(juce::ComboBox * comboBox)
         alert.setLookAndFeel(&mLookAndFeel);
         alert.addButton("Ok", 0, juce::KeyPress(juce::KeyPress::returnKey));
         alert.runModalLoop();
-        mModeSpatCombo->setSelectedId(static_cast<int>(mJackClient->getMode()) + 1,
+        mSpatModeCombo->setSelectedId(static_cast<int>(mAudioProcessor->getMode()) + 1,
                                       juce::NotificationType::dontSendNotification);
         return;
     }
 
-    if (mModeSpatCombo.get() == comboBox) {
-        mJackClient->setProcessBlockOn(false);
-        mJackClient->setMode(static_cast<ModeSpatEnum>(mModeSpatCombo->getSelectedId() - 1));
-        switch (mJackClient->getMode()) {
-        case ModeSpatEnum::VBAP:
-            openXmlFileSpeaker(mPathLastVbapSpeakerSetup);
+    if (mSpatModeCombo.get() == comboBox) {
+        juce::ScopedLock const lock{ mAudioProcessor->getCriticalSection() };
+        mAudioProcessor->setMode(static_cast<SpatModes>(mSpatModeCombo->getSelectedId() - 1));
+        switch (mAudioProcessor->getMode()) {
+        case SpatModes::vbap:
+            openXmlFileSpeaker(mLastVbapSetupPath);
             mNeedToSaveSpeakerSetup = false;
             mIsSpanShown = true;
             break;
-        case ModeSpatEnum::LBAP:
-            openXmlFileSpeaker(mPathLastVbapSpeakerSetup);
+        case SpatModes::lbap:
+            openXmlFileSpeaker(mLastVbapSetupPath);
             mNeedToSaveSpeakerSetup = false;
             mIsSpanShown = true;
             break;
-        case ModeSpatEnum::VBAP_HRTF:
+        case SpatModes::hrtfVbap:
             openXmlFileSpeaker(BINAURAL_SPEAKER_SETUP_FILE.getFullPathName());
             mNeedToSaveSpeakerSetup = false;
-            mJackClient->resetHrtf();
+            mAudioProcessor->resetHrtf();
             mIsSpanShown = false;
             break;
-        case ModeSpatEnum::STEREO:
+        case SpatModes::stereo:
             openXmlFileSpeaker(STEREO_SPEAKER_SETUP_FILE.getFullPathName());
             mNeedToSaveSpeakerSetup = false;
             mIsSpanShown = false;
@@ -2484,12 +2455,11 @@ void MainContentComponent::comboBoxChanged(juce::ComboBox * comboBox)
         default:
             jassertfalse;
         }
-        mJackClient->setProcessBlockOn(true);
 
         if (mEditSpeakersWindow != nullptr) {
             auto const windowName{ juce::String("Speakers Setup Edition - ")
-                                   + juce::String(MODE_SPAT_STRING[static_cast<int>(mJackClient->getMode())])
-                                   + juce::String(" - ") + juce::File(mPathCurrentFileSpeaker).getFileName() };
+                                   + juce::String(MODE_SPAT_STRING[static_cast<int>(mAudioProcessor->getMode())])
+                                   + juce::String(" - ") + juce::File(mCurrentSpeakerSetupPath).getFileName() };
             mEditSpeakersWindow->setName(windowName);
         }
     }
@@ -2532,7 +2502,7 @@ void MainContentComponent::chooseRecordingPath()
     }
     juce::String extF;
     juce::String extChoice;
-    if (mJackClient->getRecordFormat() == 0) {
+    if (mAudioProcessor->getRecordFormat() == 0) {
         extF = ".wav";
         extChoice = "*.wav,*.aif";
     } else {
@@ -2549,9 +2519,9 @@ void MainContentComponent::chooseRecordingPath()
         auto const filePath{ fc.getResults().getReference(0).getFullPathName() };
         mApplicationProperties.getUserSettings()->setValue("lastRecordingDirectory",
                                                            juce::File(filePath).getParentDirectory().getFullPathName());
-        mJackClient->setRecordingPath(filePath);
+        mAudioProcessor->setRecordingPath(filePath);
     }
-    mJackClient->prepareToRecord();
+    mAudioProcessor->prepareToRecord();
 }
 
 //==============================================================================
@@ -2575,7 +2545,7 @@ void MainContentComponent::resized()
     mMainUiBox->correctSize(getWidth() - mSpeakerViewComponent->getWidth() - 6, 610);
 
     mInputsUiBox->setBounds(0, 2, getWidth() - (mSpeakerViewComponent->getWidth() + 10), 231);
-    mInputsUiBox->correctSize(mSourceInputs.size() * VU_METER_WIDTH_IN_PIXELS + 4, 200);
+    mInputsUiBox->correctSize(mInputs.size() * VU_METER_WIDTH_IN_PIXELS + 4, 200);
 
     mOutputsUiBox->setBounds(0, 233, getWidth() - (mSpeakerViewComponent->getWidth() + 10), 210);
     mOutputsUiBox->correctSize(mSpeakers.size() * VU_METER_WIDTH_IN_PIXELS + 4, 180);

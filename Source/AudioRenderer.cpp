@@ -19,7 +19,7 @@
 
 #include "AudioRenderer.h"
 
-#include "JackClient.h"
+#include "AudioProcessor.h"
 
 //==============================================================================
 AudioRenderer::AudioRenderer()
@@ -57,7 +57,7 @@ void AudioRenderer::run()
         readers[i] = mFormatManager.createReaderFor(mFiles[i]);
     }
 
-    auto const duration{ static_cast<unsigned int>(readers[0]->lengthInSamples) };
+    auto const duration{ readers[0]->lengthInSamples };
     auto const howManyPasses{ duration / BLOCK_SIZE };
 
     // Create an OutputStream to write to our destination file.

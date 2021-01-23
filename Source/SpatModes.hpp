@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS2.
 
- Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
+ Developers: Samuel BÃ©land, Olivier BÃ©langer, Nicolas Masson
 
  SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -17,26 +17,8 @@
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Application.h"
-#include "AudioManager.h"
+#pragma once
 
 //==============================================================================
-void SpatGris2Application::initialise(juce::String const & /*commandLine*/)
-{
-    mMainWindow = std::make_unique<MainWindow>(getApplicationName(), mGrisFeel);
-}
-
-//==============================================================================
-void SpatGris2Application::shutdown()
-{
-    mMainWindow.reset();
-    AudioManager::free();
-}
-
-//==============================================================================
-void SpatGris2Application::systemRequestedQuit()
-{
-    if (mMainWindow->exitWinApp()) {
-        quit();
-    }
-}
+// Spatialization modes.
+enum class SpatModes { vbap = 0, lbap, hrtfVbap, stereo };

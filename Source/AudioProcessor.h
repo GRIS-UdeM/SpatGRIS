@@ -19,115 +19,31 @@
 
 #pragma once
 
-static_assert(!USE_JACK);
-
 #include <array>
-#include <cstdint>
 #include <mutex>
 #include <vector>
 
 #include "macros.h"
 
 DISABLE_WARNINGS
-
 #include <JuceHeader.h>
-
-#include "JackMockup.h"
 
 #include "spat/lbap.h"
 #include "spat/vbap.h"
 ENABLE_WARNINGS
 
 #include "AudioRecorder.h"
+#include "ClientData.hpp"
+#include "SourceData.hpp"
+#include "SpatModes.hpp"
+#include "SpeakerData.hpp"
+#include "constants.hpp"
 
 class Speaker;
-
-// Limits of SpatGRIS2 In/Out.
-static unsigned int const MAX_INPUTS = 256;
-static unsigned int const MAX_OUTPUTS = 256;
+struct jack_port_t;
 
 //==============================================================================
-struct LbapData {
-    lbap_pos pos;
-    std::array<float, MAX_OUTPUTS> gains;
-    std::array<float, MAX_OUTPUTS> y;
-};
-
-//==============================================================================
-struct Client {
-    juce::String name;
-    unsigned int portStart = 0;
-    unsigned int portEnd = 0;
-    unsigned int portAvailable = 0;
-    unsigned int activePorts = 0;
-    bool initialized = false;
-    bool connected = false;
-};
-
-//==============================================================================
-struct SourceIn {
-    unsigned int id;
-    float x{};
-    float y{};
-    float z{};
-
-    float radAzimuth{};
-    float radElevation{};
-    float azimuth{};
-    float zenith{};
-    float radius{ 1.0f };
-    float azimuthSpan{};
-    float zenithSpan{};
-
-    std::array<float, MAX_OUTPUTS> lbapGains{};
-    std::array<float, MAX_OUTPUTS> lbapY{};
-    lbap_pos lbapLastPos{ -1, -1, -1, 0.0f, 0.0f, 0.0f };
-
-    bool isMuted = false;
-    bool isSolo = false;
-    float gain{}; // Not used yet.
-
-    int directOut{};
-
-    VBAP_DATA * paramVBap{};
-};
-
-//==============================================================================
-struct SpeakerOut {
-    unsigned int id;
-    float x{};
-    float y{};
-    float z{};
-
-    float azimuth{};
-    float zenith{};
-    float radius{};
-
-    float gain{ 1.0f };
-
-    bool hpActive = false;
-    double b1{};
-    double b2{};
-    double b3{};
-    double b4{};
-    double ha0{};
-    double ha1{};
-    double ha2{};
-
-    bool isMuted = false;
-    bool isSolo = false;
-
-    int outputPatch{};
-
-    bool directOut = false;
-};
-
-//==============================================================================
-// Spatialization modes.
-enum class ModeSpatEnum { VBAP = 0, LBAP, VBAP_HRTF, STEREO };
-
-//==============================================================================
-class JackClient
+class AudioProcessor
 {
     // class variables.
     //-----------------
@@ -138,8 +54,6 @@ class JackClient
     std::vector<int> mOutputPatches{};
 
     // Jack variables.
-    jack_client_t * mClient{};
-
     std::vector<jack_port_t *> mInputsPort{};
     std::vector<jack_port_t *> mOutputsPort{};
 
@@ -177,21 +91,18 @@ class JackClient
     std::array<float, MAX_OUTPUTS> mLevelsOut{};
 
     // Client list.
-    std::vector<Client> mClients{};
+    std::vector<ClientData> mClients{};
     std::mutex mClientsLock{};
 
     // Source and output lists.
-    std::array<SourceIn, MAX_INPUTS> mSourcesIn{};
-    std::array<SpeakerOut, MAX_OUTPUTS> mSpeakersOut{};
-
-    // Enable/disable jack process callback.
-    bool mProcessBlockOn{ true };
+    std::array<SourceData, MAX_INPUTS> mSourcesData{};
+    std::array<SpeakerData, MAX_OUTPUTS> mSpeakersOut{};
 
     // True when jack reports an xrun.
     bool mIsOverloaded{ false };
 
     // Which spatialization mode is selected.
-    ModeSpatEnum mModeSelected{ ModeSpatEnum::VBAP };
+    SpatModes mModeSelected{ SpatModes::vbap };
 
     bool mAutoConnection{ false }; // not sure this one is necessary ?
 
@@ -214,7 +125,7 @@ class JackClient
     lbap_field * mLbapSpeakerField{};
 
     // Recording parameters.
-    unsigned int mIndexRecord{};
+    size_t mIndexRecord{};
     bool mIsRecording{ false };
 
     std::array<AudioRecorder, MAX_OUTPUTS> mRecorders{};
@@ -240,28 +151,29 @@ class JackClient
     // This structure is used to compute the VBAP algorithm only once. Each source only gets a copy.
     VBAP_DATA * mParamVBap{};
 
+    juce::CriticalSection mCriticalSection{};
+
 public:
     //==============================================================================
     // Class methods.
-    JackClient();
-    ~JackClient();
+    AudioProcessor();
+    ~AudioProcessor();
 
-    JackClient(JackClient const &) = delete;
-    JackClient(JackClient &&) = delete;
+    AudioProcessor(AudioProcessor const &) = delete;
+    AudioProcessor(AudioProcessor &&) = delete;
 
-    JackClient & operator=(JackClient const &) = delete;
-    JackClient & operator=(JackClient &&) = delete;
+    AudioProcessor & operator=(AudioProcessor const &) = delete;
+    AudioProcessor & operator=(AudioProcessor &&) = delete;
     //==============================================================================
     // Audio Status.
     [[nodiscard]] bool isReady() const { return mClientReady; }
-    [[nodiscard]] float getCpuUsed() const { return jack_cpu_load(mClient); }
     [[nodiscard]] float getLevelsIn(int const index) const { return mLevelsIn[index]; }
     [[nodiscard]] float getLevelsOut(int const index) const { return mLevelsOut[index]; }
 
     // Manage Inputs / Outputs.
     void addRemoveInput(unsigned int number);
     void clearOutput();
-    [[nodiscard]] bool addOutput(unsigned int outputPatch);
+    bool addOutput(unsigned int outputPatch);
     void removeOutput(int number);
 
     [[nodiscard]] std::vector<int> getDirectOutOutputPatches() const;
@@ -269,8 +181,6 @@ public:
     // Manage clients.
     void connectionClient(juce::String const & name, bool connect = true);
     void updateClientPortAvailable(bool fromJack);
-
-    [[nodiscard]] std::string getClientName(char const * port) const;
 
     // Recording.
     void prepareToRecord();
@@ -302,26 +212,24 @@ public:
     // Reinit HRTF delay lines.
     void resetHrtf();
 
-    [[nodiscard]] jack_client_t * getClient() { return mClient; }
     void clientRegistrationCallback(char const * name, int regist);
-    void portConnectCallback(jack_port_id_t a, jack_port_id_t b, int connect) const;
 
     [[nodiscard]] unsigned getNumberOutputs() const { return mNumberOutputs; }
     [[nodiscard]] unsigned getNumberInputs() const { return mNumberInputs; }
-    [[nodiscard]] ModeSpatEnum getMode() const { return mModeSelected; }
+    [[nodiscard]] SpatModes getMode() const { return mModeSelected; }
     [[nodiscard]] unsigned getVbapDimensions() const { return mVbapDimensions; }
     [[nodiscard]] auto const & getClients() const { return mClients; }
     [[nodiscard]] auto & getClients() { return mClients; }
-    [[nodiscard]] auto & getSourcesIn() { return mSourcesIn; }
-    [[nodiscard]] auto const & getSourcesIn() const { return mSourcesIn; }
+    [[nodiscard]] auto & getSourcesIn() { return mSourcesData; }
+    [[nodiscard]] auto const & getSourcesIn() const { return mSourcesData; }
     [[nodiscard]] auto & getVbapSourcesToUpdate() { return mVbapSourcesToUpdate; }
     [[nodiscard]] auto const & getVbapTriplets() const { return mVbapTriplets; }
     [[nodiscard]] bool getSoloIn() const { return mSoloIn; }
     [[nodiscard]] bool getSoloOut() const { return mSoloOut; }
     [[nodiscard]] auto const & getSpeakersOut() const { return mSpeakersOut; }
     [[nodiscard]] auto & getSpeakersOut() { return mSpeakersOut; }
-    [[nodiscard]] unsigned getMaxOutputPatch() const { return mMaxOutputPatch; }
-    [[nodiscard]] unsigned getIndexRecord() const { return mIndexRecord; }
+    [[nodiscard]] size_t getMaxOutputPatch() const { return mMaxOutputPatch; }
+    [[nodiscard]] size_t getIndexRecord() const { return mIndexRecord; }
     [[nodiscard]] auto const & getRecorders() const { return mRecorders; }
     [[nodiscard]] auto const & getOutputFileNames() const { return mOutputFileNames; }
     [[nodiscard]] auto const & getInputPorts() const { return mInputsPort; }
@@ -330,12 +238,13 @@ public:
     [[nodiscard]] bool isRecording() const { return mIsRecording; }
     [[nodiscard]] bool isOverloaded() const { return mIsOverloaded; }
 
-    void setProcessBlockOn(bool const state) { mProcessBlockOn = state; }
+    juce::CriticalSection const & getCriticalSection() const { return mCriticalSection; }
+
     void setMaxOutputPatch(unsigned const maxOutputPatch) { mMaxOutputPatch = maxOutputPatch; }
     void setVbapDimensions(unsigned const dimensions) { mVbapDimensions = dimensions; }
     void setSoloIn(bool const state) { mSoloIn = state; }
     void setSoloOut(bool const state) { mSoloOut = state; }
-    void setMode(ModeSpatEnum const mode) { mModeSelected = mode; }
+    void setMode(SpatModes const mode) { mModeSelected = mode; }
     void setMasterGainOut(float const gain) { mMasterGainOut = gain; }
     void setInterMaster(float const interMaster) { mInterMaster = interMaster; }
 
@@ -346,38 +255,31 @@ public:
 
     //==============================================================================
     // Audio processing
-    void muteSoloVuMeterIn(jack_default_audio_sample_t ** ins, jack_nframes_t nFrames, unsigned sizeInputs);
-    void muteSoloVuMeterGainOut(jack_default_audio_sample_t ** outs,
-                                jack_nframes_t nFrames,
-                                unsigned sizeOutputs,
-                                float gain = 1.0f);
-    void addNoiseSound(jack_default_audio_sample_t ** outs, jack_nframes_t nFrames, unsigned sizeOutputs);
-    void processVbap(jack_default_audio_sample_t ** ins,
-                     jack_default_audio_sample_t ** outs,
-                     jack_nframes_t nFrames,
-                     unsigned sizeInputs,
-                     unsigned sizeOutputs);
-    void processLbap(jack_default_audio_sample_t ** ins,
-                     jack_default_audio_sample_t ** outs,
-                     jack_nframes_t nFrames,
-                     unsigned sizeInputs,
-                     unsigned sizeOutputs);
-    void processVBapHrtf(jack_default_audio_sample_t ** ins,
-                         jack_default_audio_sample_t ** outs,
-                         jack_nframes_t nFrames,
-                         unsigned sizeInputs,
-                         unsigned sizeOutputs);
-    void processStereo(jack_default_audio_sample_t ** ins,
-                       jack_default_audio_sample_t ** outs,
-                       jack_nframes_t nFrames,
-                       unsigned sizeInputs,
-                       unsigned sizeOutputs);
-    [[nodiscard]] int processAudio(jack_nframes_t nFrames);
+    void muteSoloVuMeterIn(float * const * ins, size_t nFrames, size_t sizeInputs);
+    void muteSoloVuMeterGainOut(float ** outs, size_t nFrames, size_t sizeOutputs, float gain = 1.0f);
+    void addNoiseSound(float ** outs, size_t nFrames, size_t sizeOutputs);
+    void processVbap(float const * const * ins,
+                     float * const * outs,
+                     size_t nFrames,
+                     size_t sizeInputs,
+                     size_t sizeOutputs);
+    void processLbap(float const * const * ins,
+                     float * const * outs,
+                     size_t nFrames,
+                     size_t sizeInputs,
+                     size_t sizeOutputs);
+    void processVBapHrtf(float const * const * ins,
+                         float * const * outs,
+                         size_t nFrames,
+                         size_t sizeInputs,
+                         size_t sizeOutputs);
+    void processStereo(float const * const * ins, float * const * outs, size_t nFrames, size_t sizeInputs);
+    void processAudio(size_t nFrames);
 
 private:
     //==============================================================================
     // Connect the server's outputs to the system's inputs.
     void connectedGrisToSystem();
     //==============================================================================
-    JUCE_LEAK_DETECTOR(JackClient)
+    JUCE_LEAK_DETECTOR(AudioProcessor)
 };

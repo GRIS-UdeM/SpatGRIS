@@ -160,10 +160,10 @@ void SpeakerViewComponent::render()
             glLineWidth(1.0f);
             glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
             glColor3f(0.8f, 0.2f, 0.1f);
-            if (mMainContentComponent.getModeSelected() == ModeSpatEnum::LBAP) {
+            if (mMainContentComponent.getModeSelected() == SpatModes::lbap) {
                 // Draw a cube when in LBAP mode.
                 for (auto i{ -10 }; i <= 10; i += 2) {
-                    auto const i_f{ static_cast<float>(i) };
+                    auto const i_f{ narrow<float>(i) };
                     glBegin(GL_LINES);
                     glVertex3f(i_f, 10.0f, -10.0f);
                     glVertex3f(i_f, 10.0f, 10.0f);
@@ -193,7 +193,7 @@ void SpeakerViewComponent::render()
                 }
             } else {
 #if defined(WIN32)
-                drawSphere(std::max(MAX_RADIUS, 1.0));
+                drawSphere(std::max(narrow<float>(MAX_RADIUS), 1.0f));
 #else
                 glutSolidSphere(std::max(MAX_RADIUS, 1.0), 20, 20);
 #endif
@@ -285,8 +285,8 @@ void SpeakerViewComponent::mouseDown(const juce::MouseEvent & e)
     mDisplayScaling = juce::Desktop::getInstance().getDisplays().findDisplayForPoint(e.getScreenPosition()).scale;
 
     if (e.mods.isLeftButtonDown()) {
-        mRayClickX = static_cast<double>(e.getPosition().x);
-        mRayClickY = static_cast<double>(e.getPosition().y);
+        mRayClickX = narrow<double>(e.getPosition().x);
+        mRayClickY = narrow<double>(e.getPosition().y);
         mClickLeft = true;
         mControlOn = e.mods.isCtrlDown();
     } else if (e.mods.isRightButtonDown()) {
@@ -344,7 +344,7 @@ void SpeakerViewComponent::drawOriginGrid() const
     glLineWidth(1.5f);
     glColor3f(0.59f, 0.59f, 0.59f);
 
-    if (mMainContentComponent.getModeSelected() == ModeSpatEnum::LBAP) {
+    if (mMainContentComponent.getModeSelected() == SpatModes::lbap) {
         // Draw light squares.
         for (auto j{ 3.5f }; j < 19.0f; j += 6.75f) {
             glBegin(GL_LINES);
@@ -363,7 +363,7 @@ void SpeakerViewComponent::drawOriginGrid() const
         for (auto j{ 5.0f }; j < 11.f; j += 5.0f) {
             glBegin(GL_LINE_LOOP);
             for (int i{}; i <= 180; ++i) {
-                auto const angle{ juce::MathConstants<float>::twoPi * static_cast<float>(i) / 180.0f };
+                auto const angle{ juce::MathConstants<float>::twoPi * narrow<float>(i) / 180.0f };
                 glVertex3f(std::cos(angle) * j, 0.0f, std::sin(angle) * j);
             }
             glEnd();
@@ -395,13 +395,13 @@ void SpeakerViewComponent::drawOriginGrid() const
     glColor3f(0.49f, 0.49f, 0.49f);
 
     glBegin(GL_LINE_LOOP);
-    glVertex3f(0.0f, 0.0f, static_cast<float>(-NUM_GRID_LINES));
-    glVertex3f(0.0f, 0.0f, static_cast<float>(NUM_GRID_LINES));
+    glVertex3f(0.0f, 0.0f, narrow<float>(-NUM_GRID_LINES));
+    glVertex3f(0.0f, 0.0f, narrow<float>(NUM_GRID_LINES));
     glEnd();
 
     glBegin(GL_LINE_LOOP);
-    glVertex3f(static_cast<float>(-NUM_GRID_LINES), 0.0f, 0.0f);
-    glVertex3f(static_cast<float>(NUM_GRID_LINES), 0.0f, 0.0f);
+    glVertex3f(narrow<float>(-NUM_GRID_LINES), 0.0f, 0.0f);
+    glVertex3f(narrow<float>(NUM_GRID_LINES), 0.0f, 0.0f);
     glEnd();
 
     glBegin(GL_LINE_LOOP);
@@ -416,7 +416,7 @@ void SpeakerViewComponent::drawOriginGrid() const
     glVertex3f(-std::cos(quarterPi * 3.0f) * 14.5f, 0.0f, -std::sin(quarterPi * 3.0f) * 14.5f);
     glEnd();
 
-    if (mMainContentComponent.getModeSelected() == ModeSpatEnum::LBAP) {
+    if (mMainContentComponent.getModeSelected() == SpatModes::lbap) {
         // Draw grey squares.
         for (auto j{ 6.875f }; j < 15.0f; j += 6.75f) {
             glBegin(GL_LINES);
@@ -435,7 +435,7 @@ void SpeakerViewComponent::drawOriginGrid() const
         for (auto j{ 2.5f }; j < 13.0f; j += 5.0f) {
             glBegin(GL_LINE_LOOP);
             for (int i{}; i <= 180; ++i) {
-                auto const angle = (juce::MathConstants<float>::twoPi * static_cast<float>(i) / 180.0f);
+                auto const angle = (juce::MathConstants<float>::twoPi * narrow<float>(i) / 180.0f);
                 glVertex3f(std::cos(angle) * j, 0.0f, std::sin(angle) * j);
             }
             glEnd();

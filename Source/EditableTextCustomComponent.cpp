@@ -19,8 +19,8 @@
 
 #include "EditableTextCustomComponent.h"
 
+#include "AudioProcessor.h"
 #include "EditSpeakersWindow.h"
-#include "JackClient.h"
 
 //==============================================================================
 EditableTextCustomComponent::EditableTextCustomComponent(EditSpeakersWindow & editSpeakersWindow)
@@ -49,7 +49,7 @@ void EditableTextCustomComponent::mouseDrag(const juce::MouseEvent & event)
         return;
     }
 
-    if (mOwner.getModeSelected() == ModeSpatEnum::LBAP || mOwner.getDirectOutForSpeakerRow(mRow)) {
+    if (mOwner.getModeSelected() == SpatModes::lbap || mOwner.getDirectOutForSpeakerRow(mRow)) {
         if (mColumnId < 2) {
             return;
         }

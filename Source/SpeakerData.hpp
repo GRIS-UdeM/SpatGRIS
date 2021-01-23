@@ -17,26 +17,34 @@
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Application.h"
-#include "AudioManager.h"
+#pragma once
 
 //==============================================================================
-void SpatGris2Application::initialise(juce::String const & /*commandLine*/)
-{
-    mMainWindow = std::make_unique<MainWindow>(getApplicationName(), mGrisFeel);
-}
+struct SpeakerData {
+    unsigned int id{};
+    float x{};
+    float y{};
+    float z{};
 
-//==============================================================================
-void SpatGris2Application::shutdown()
-{
-    mMainWindow.reset();
-    AudioManager::free();
-}
+    float azimuth{};
+    float zenith{};
+    float radius{};
 
-//==============================================================================
-void SpatGris2Application::systemRequestedQuit()
-{
-    if (mMainWindow->exitWinApp()) {
-        quit();
-    }
-}
+    float gain{ 1.0f };
+
+    bool hpActive = false;
+    double b1{};
+    double b2{};
+    double b3{};
+    double b4{};
+    double ha0{};
+    double ha1{};
+    double ha2{};
+
+    bool isMuted = false;
+    bool isSolo = false;
+
+    int outputPatch{};
+
+    bool directOut = false;
+};

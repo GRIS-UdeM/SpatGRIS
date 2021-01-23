@@ -32,53 +32,76 @@ class GrisLookAndFeel;
 class PropertiesComponent final
     : public juce::Component
     , public juce::TextButton::Listener
+    , public juce::ComboBox::Listener
+    , public juce::TextEditor::Listener
 {
+    static constexpr auto PADDING = 20;
+    static constexpr auto LEFT_COL_WIDTH = 150;
+    static constexpr auto RIGHT_COL_WIDTH = 150;
+
+    static constexpr auto LEFT_COL_START = PADDING;
+    static constexpr auto RIGHT_COL_START = LEFT_COL_START + LEFT_COL_WIDTH + PADDING;
+
+    static constexpr auto COMPONENT_HEIGHT = 22;
+
+    static constexpr auto LINE_SKIP = 30;
+    static constexpr auto SECTION_SKIP = 50;
+
+    juce::StringArray mInputDevices{};
+    juce::StringArray mOutputDevices{};
+
     MainContentComponent & mMainContentComponent;
     GrisLookAndFeel & mLookAndFeel;
 
-    juce::Label mGeneralLabel{ "", "General Settings" };
-    juce::Label mJackSettingsLabel{ "", "Jack Settings" };
-    juce::Label mRecordingLabel{ "", "Recording Settings" };
-    juce::Label mCubeDistanceLabel{ "", "CUBE Distance Settings" };
+    //==============================================================================
+    juce::Label mAudioSectionLabel{ "", "Audio Settings" };
+
+    juce::Label mDeviceTypeLabel{ "", "Audio device type :" };
+    juce::ComboBox mDeviceTypeCombo{};
+
+    juce::Label mInputDeviceLabel{ "", "Audio input device :" };
+    juce::ComboBox mInputDeviceCombo{};
+
+    juce::Label mOutputDeviceLabel{ "", "Audio output device :" };
+    juce::ComboBox mOutputDeviceCombo{};
+
+    juce::Label mSampleRateLabel{ "", "Sampling Rate (hz) :" };
+    juce::ComboBox mSampleRateCombo;
+
+    juce::Label mBufferSize{ "", "Buffer Size (spls) :" };
+    juce::ComboBox mBufferSizeCombo;
+
+    //==============================================================================
+    juce::Label mGeneralSectionLabel{ "", "General Settings" };
 
     juce::Label mOscInputPortLabel{ "", "OSC Input Port :" };
-    std::unique_ptr<juce::TextEditor> mOscInputPortTextEditor{};
-
-    juce::Label mDeviceLabel{ "", "Output Device :" };
-    std::unique_ptr<juce::ComboBox> mDeviceCombo;
-
-    juce::Label mRateLabel{ "", "Sampling Rate (hz) :" };
-    std::unique_ptr<juce::ComboBox> mRateCombo;
-
-    juce::Label mBufferLabel{ "", "Buffer Size (spls) :" };
-    std::unique_ptr<juce::ComboBox> mBufferCombo;
+    juce::TextEditor mOscInputPortTextEditor{};
 
     juce::Label mRecFormatLabel{ "", "File Format :" };
-    std::unique_ptr<juce::ComboBox> mRecFormatCombo;
+    juce::ComboBox mRecFormatCombo;
 
     juce::Label mRecFileConfigLabel{ "", "Output Format :" };
-    std::unique_ptr<juce::ComboBox> mRecFileConfigCombo;
+    juce::ComboBox mRecFileConfigCombo;
+
+    //==============================================================================
+    juce::Label mCubeSectionLabel{ "", "CUBE Distance Settings" };
 
     juce::Label mDistanceDbLabel{ "", "Attenuation (dB) :" };
-    std::unique_ptr<juce::ComboBox> mDistanceDbCombo;
+    juce::ComboBox mDistanceDbCombo;
 
     juce::Label mDistanceCutoffLabel{ "", "Attenuation (Hz) :" };
-    std::unique_ptr<juce::ComboBox> mDistanceCutoffCombo;
+    juce::ComboBox mDistanceCutoffCombo;
 
-    std::unique_ptr<juce::TextButton> mValidSettingsButton;
+    juce::TextButton mSaveSettingsButton;
 
 public:
     //==============================================================================
     PropertiesComponent(MainContentComponent & parent,
                         GrisLookAndFeel & lookAndFeel,
-                        juce::Array<juce::String> const & devices,
-                        juce::String const & currentDevice,
-                        int indR,
-                        int indB,
-                        int indFF,
-                        int indFC,
-                        int indAttDB,
-                        int indAttHz,
+                        int fileFormatIndex,
+                        int fileConfigIndex,
+                        int attenuationDbIndex,
+                        int attenuationCutoffIndex,
                         int oscPort);
     //==============================================================================
     PropertiesComponent() = delete;
@@ -90,14 +113,19 @@ public:
     PropertiesComponent & operator=(PropertiesComponent const &) = delete;
     PropertiesComponent & operator=(PropertiesComponent &&) = delete;
     //==============================================================================
-    [[nodiscard]] juce::TextEditor * createPropIntTextEditor(juce::String const & tooltip, int ypos, int init);
-    [[nodiscard]] juce::ComboBox * createPropComboBox(juce::StringArray const & choices, int selected, int ypos);
 
     void buttonClicked(juce::Button * button) override;
 
+    void placeComponents();
+
 private:
     //==============================================================================
+    void applyCurrentlySelectedAudioDevices();
+    void fillComboBoxes();
+    //==============================================================================
     JUCE_LEAK_DETECTOR(PropertiesComponent)
+public:
+    void comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged) override;
 }; // class PropertiesComponent
 
 //==============================================================================
@@ -109,11 +137,7 @@ class PropertiesWindow final : public juce::DocumentWindow
 public:
     //==============================================================================
     PropertiesWindow(MainContentComponent & parent,
-                     GrisLookAndFeel & feel,
-                     juce::Array<juce::String> const & devices,
-                     juce::String const & currentDevice,
-                     int indR = 0,
-                     int indB = 0,
+                     GrisLookAndFeel & grisLookAndFeel,
                      int indFf = 0,
                      int indFc = 0,
                      int indAttDb = 2,
