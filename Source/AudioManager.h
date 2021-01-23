@@ -115,6 +115,8 @@ public:
     void connect(char const * sourcePortName, char const * destinationPortName);
     void connect(jack_port_t * sourcePort, jack_port_t * destinationPort);
     void disconnect(jack_port_t * sourcePort, jack_port_t * destinationPort);
+
+    juce::StringArray getAvailableDeviceTypeNames();
     //==============================================================================
     // AudioSourcePlayer overrides
     void audioDeviceError(const juce::String & errorMessage) override;

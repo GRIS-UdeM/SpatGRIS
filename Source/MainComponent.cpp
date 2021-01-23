@@ -153,9 +153,6 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
 
     mSamplingRate = sampleRate;
 
-    // Start Jack Server and client.
-    mAlsaOutputDevice = props->getValue(user_properties_tags::ALSA_OUTPUT_DEVICE, "");
-
     jassert(AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice());
 
     auto const fileFormat{ props->getIntValue(user_properties_tags::FILE_FORMAT, 0) };
@@ -557,8 +554,6 @@ void MainContentComponent::handleShowPreferences()
 {
     auto const * props{ mApplicationProperties.getUserSettings() };
     if (mPropertiesWindow == nullptr) {
-        auto const bufferValue{ props->getIntValue(user_properties_tags::BUFFER_SIZE, 1024) };
-        auto const rateValue{ props->getIntValue(user_properties_tags::SAMPLE_RATE, 48000) };
         auto const fileFormat{ props->getIntValue(user_properties_tags::FILE_FORMAT, 0) };
         auto const fileConfig{ props->getIntValue(user_properties_tags::FILE_CONFIG, 0) };
         auto const attenuationDb{ props->getIntValue(user_properties_tags::ATTENUATION_DB, 3) };
@@ -567,25 +562,12 @@ void MainContentComponent::handleShowPreferences()
 
         mPropertiesWindow.reset(new PropertiesWindow{ *this,
                                                       mLookAndFeel,
-                                                      mAlsaOutputDevice,
-                                                      RATE_VALUES.indexOf(juce::String(rateValue)),
-                                                      BUFFER_SIZES.indexOf(juce::String(bufferValue)),
                                                       fileFormat,
                                                       fileConfig,
                                                       attenuationDb,
                                                       attenuationHz,
                                                       oscInputPort });
     }
-    static auto constexpr height{ 420 };
-    juce::Rectangle<int> const result{ mSpeakerViewComponent->getWidth() / 2 + getScreenX() - 150,
-                                       mSpeakerViewComponent->getHeight() / 2 + getScreenY() - 75,
-                                       270,
-                                       height };
-    mPropertiesWindow->setBounds(result);
-    // mPropertiesWindow->setResizable(false, false);
-    mPropertiesWindow->setUsingNativeTitleBar(true);
-    mPropertiesWindow->setVisible(true);
-    mPropertiesWindow->repaint();
 }
 
 //==============================================================================
@@ -979,6 +961,10 @@ void MainContentComponent::audioParametersChanged()
     juce::ScopedLock const lock{ mAudioProcessor->getCriticalSection() };
 
     auto * currentAudioDevice{ AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice() };
+
+    if (!currentAudioDevice) {
+        return;
+    }
 
     auto const sampleRate{ narrow<unsigned>(currentAudioDevice->getCurrentSampleRate()) };
     auto const bufferSize{ currentAudioDevice->getCurrentBufferSizeSamples() };
@@ -2190,57 +2176,41 @@ void MainContentComponent::saveSpeakerSetup(juce::String const & path)
 }
 
 //==============================================================================
-void MainContentComponent::saveProperties(juce::String const & device,
-                                          int const rate,
-                                          int const buff,
+void MainContentComponent::saveProperties(juce::String const & audioDeviceType,
+                                          juce::String const & inputDevice,
+                                          juce::String const & outputDevice,
+                                          int const sampleRate,
+                                          int const bufferSize,
                                           int const fileFormat,
                                           int const fileConfig,
                                           int const attenuationDb,
                                           int const attenuationHz,
                                           int oscPort)
 {
+    // Handle audio options
+    juce::AudioDeviceManager::AudioDeviceSetup const setup{ outputDevice, inputDevice, sampleRate, bufferSize,
+                                                            {},           true,        {},         true };
+    auto & audioDeviceManager{ AudioManager::getInstance().getAudioDeviceManager() };
     auto * props{ mApplicationProperties.getUserSettings() };
 
-    auto const deviceValue{ props->getValue(user_properties_tags::ALSA_OUTPUT_DEVICE, "") };
-    auto bufferValue{ props->getIntValue(user_properties_tags::BUFFER_SIZE, 1024) };
-    auto rateValue{ props->getIntValue(user_properties_tags::SAMPLE_RATE, 48000) };
-    auto const oscInputPort{ props->getIntValue(user_properties_tags::OSC_INPUT_PORT, 18032) };
+    audioDeviceManager.setCurrentAudioDeviceType(audioDeviceType, true);
+    auto const error{ audioDeviceManager.setAudioDeviceSetup(setup, true) };
+    jassert(error.isEmpty());
 
-    if (bufferValue == 0) {
-        bufferValue = 1024;
-    }
-    if (rateValue == 0) {
-        rateValue = 48000;
-    }
-
-    if (device.compare(deviceValue) != 0 || rate != rateValue || buff != bufferValue) {
-        juce::AlertWindow alert("You Need to Restart SpatGRIS!",
-                                "New settings will be effective on next launch of the SpatGRIS.",
-                                juce::AlertWindow::InfoIcon);
-        alert.setLookAndFeel(&mLookAndFeel);
-        alert.addButton("Cancel", 0);
-        alert.addButton("Ok", 1, juce::KeyPress{ juce::KeyPress::returnKey });
-        if (alert.runModalLoop() != 0) {
-            props->setValue(user_properties_tags::ALSA_OUTPUT_DEVICE, device);
-            props->setValue(user_properties_tags::BUFFER_SIZE, buff);
-            props->setValue(user_properties_tags::SAMPLE_RATE, rate);
-        }
-    }
+    props->setValue(user_properties_tags::DEVICE_TYPE, audioDeviceType);
+    props->setValue(user_properties_tags::INPUT_DEVICE, inputDevice);
+    props->setValue(user_properties_tags::OUTPUT_DEVICE, outputDevice);
 
     // Handle OSC Input Port
     if (oscPort < 0 || oscPort > 65535) {
         oscPort = 18032;
     }
-    if (oscPort != oscInputPort) {
+    auto const previousOscPort{ props->getIntValue(user_properties_tags::OSC_INPUT_PORT, 18032) };
+    if (oscPort != previousOscPort) {
         mOscInputPort = oscPort;
         props->setValue(user_properties_tags::OSC_INPUT_PORT, oscPort);
         mOscReceiver->closeConnection();
-        if (mOscReceiver->startConnection(mOscInputPort)) {
-            std::cout << "OSC receiver connected to port " << oscPort << '\n';
-        } else {
-            std::cout << "OSC receiver connection to port " << oscPort << " failed... Should popup an alert window."
-                      << '\n';
-        }
+        mOscReceiver->startConnection(mOscInputPort);
     }
 
     // Handle recording settings
@@ -2274,7 +2244,11 @@ void MainContentComponent::timerCallback()
     auto & audioManager{ AudioManager::getInstance() };
     auto & audioDeviceManager{ audioManager.getAudioDeviceManager() };
     auto * audioDevice{ audioDeviceManager.getCurrentAudioDevice() };
-    jassert(audioDevice);
+
+    if (!audioDevice) {
+        return;
+    }
+
     auto const sampleRate{ narrow<unsigned>(std::round(audioDevice->getCurrentSampleRate())) };
 
     // TODO : static variables no good

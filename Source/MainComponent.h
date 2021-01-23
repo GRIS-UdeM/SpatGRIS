@@ -311,9 +311,11 @@ public:
     void getPresetData(juce::XmlElement * xml) const;
     void savePreset(juce::String const & path);
     void saveSpeakerSetup(juce::String const & path);
-    void saveProperties(juce::String const & device,
-                        int rate,
-                        int buff,
+    void saveProperties(juce::String const & audioDeviceType,
+                        juce::String const & inputDevice,
+                        juce::String const & outputDevice,
+                        int sampleRate,
+                        int bufferSize,
                         int fileFormat,
                         int fileConfig,
                         int attenuationDb,

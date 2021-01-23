@@ -51,8 +51,6 @@ extern const juce::StringArray MODE_SPAT_STRING;
 
 extern const bool USE_OS_NATIVE_DIALOG_BOX;
 
-extern const juce::StringArray BUFFER_SIZES;
-extern const juce::StringArray RATE_VALUES;
 extern const juce::StringArray FILE_FORMATS;
 extern const juce::StringArray FILE_CONFIGS;
 extern const juce::StringArray ATTENUATION_DB;
@@ -62,16 +60,19 @@ static constexpr int VU_METER_WIDTH_IN_PIXELS = 22;
 
 namespace user_properties_tags
 {
-static const inline juce::String LAST_VBAP_SPEAKER_SETUP = "lastVbapSpeakerSetup";
-static const inline juce::String ALSA_OUTPUT_DEVICE = "AlsaOutputDevice";
-static const inline juce::String LAST_OPEN_PRESET = "lastOpenPreset";
-static const inline juce::String LAST_OPEN_SPEAKER_SETUP = "lastOpenSpeakerSetup";
+static const inline juce::String DEVICE_TYPE = "audioDeviceType";
+static const inline juce::String INPUT_DEVICE = "inputDevice";
+static const inline juce::String OUTPUT_DEVICE = "outputDevice";
 static const inline juce::String BUFFER_SIZE = "BufferValue";
 static const inline juce::String SAMPLE_RATE = "RateValue";
 static const inline juce::String OSC_INPUT_PORT = "OscInputPort";
 static const inline juce::String FILE_FORMAT = "FileFormat";
 static const inline juce::String FILE_CONFIG = "FileConfig";
-static const inline juce::String ATTENUATION_HZ = "AttenuationHz";
-static const inline juce::String SASH_POSITION = "sashPosition";
 static const inline juce::String ATTENUATION_DB = "AttenuationDB";
+static const inline juce::String ATTENUATION_HZ = "AttenuationHz";
+
+static const inline juce::String LAST_VBAP_SPEAKER_SETUP = "lastVbapSpeakerSetup";
+static const inline juce::String LAST_OPEN_PRESET = "lastOpenPreset";
+static const inline juce::String LAST_OPEN_SPEAKER_SETUP = "lastOpenSpeakerSetup";
+static const inline juce::String SASH_POSITION = "sashPosition";
 } // namespace user_properties_tags

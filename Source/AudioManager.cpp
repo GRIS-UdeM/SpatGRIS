@@ -41,9 +41,6 @@ AudioManager::AudioManager(juce::String const & inputDevice,
         deviceTypeObject->scanForDevices();
     }
 
-    jassert(RATE_VALUES.contains(juce::String{ sampleRate, 0 }));
-    jassert(BUFFER_SIZES.contains(juce::String{ bufferSize }));
-
     juce::AudioDeviceManager::AudioDeviceSetup const setup{
         outputDevice, inputDevice, sampleRate, bufferSize, juce::BigInteger{}, true, juce::BigInteger{}, true
     };
@@ -368,6 +365,16 @@ void AudioManager::disconnect(jack_port_t * sourcePort, [[maybe_unused]] jack_po
     jassert(mConnections[sourcePort] == destinationPort);
 
     mConnections.remove(sourcePort);
+}
+
+//==============================================================================
+juce::StringArray AudioManager::getAvailableDeviceTypeNames()
+{
+    juce::StringArray result{};
+    for (auto const * deviceType : mAudioDeviceManager.getAvailableDeviceTypes()) {
+        result.add(deviceType->getTypeName());
+    }
+    return result;
 }
 
 //==============================================================================
