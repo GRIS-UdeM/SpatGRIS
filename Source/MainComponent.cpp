@@ -26,11 +26,7 @@
 #include "constants.hpp"
 
 //==============================================================================
-MainContentComponent::MainContentComponent(MainWindow & mainWindow,
-                                           GrisLookAndFeel & newLookAndFeel,
-                                           juce::String const & inputDevice,
-                                           juce::String const & outputDevice,
-                                           std::optional<juce::String> const & deviceType)
+MainContentComponent::MainContentComponent(MainWindow & mainWindow, GrisLookAndFeel & newLookAndFeel)
     : mLookAndFeel(newLookAndFeel)
     , mMainWindow(mainWindow)
 {
@@ -50,9 +46,13 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     auto * props{ mApplicationProperties.getUserSettings() };
 
     // init audio
+    auto const deviceType{ props->getValue(user_properties_tags::DEVICE_TYPE, "") };
+    auto const inputDevice{ props->getValue(user_properties_tags::INPUT_DEVICE, "") };
+    auto const outputDevice{ props->getValue(user_properties_tags::OUTPUT_DEVICE, "") };
     auto const sampleRate{ props->getIntValue(user_properties_tags::SAMPLE_RATE, 48000) };
     auto const bufferSize{ props->getIntValue(user_properties_tags::BUFFER_SIZE, 1024) };
-    AudioManager::init(inputDevice, outputDevice, deviceType, narrow<double>(sampleRate), bufferSize);
+
+    AudioManager::init(deviceType, inputDevice, outputDevice, narrow<double>(sampleRate), bufferSize);
 
     // init jackClient
     mAudioProcessor = std::make_unique<AudioProcessor>();
@@ -2187,19 +2187,14 @@ void MainContentComponent::saveProperties(juce::String const & audioDeviceType,
                                           int const attenuationHz,
                                           int oscPort)
 {
-    // Handle audio options
-    juce::AudioDeviceManager::AudioDeviceSetup const setup{ outputDevice, inputDevice, sampleRate, bufferSize,
-                                                            {},           true,        {},         true };
-    auto & audioDeviceManager{ AudioManager::getInstance().getAudioDeviceManager() };
     auto * props{ mApplicationProperties.getUserSettings() };
 
-    audioDeviceManager.setCurrentAudioDeviceType(audioDeviceType, true);
-    auto const error{ audioDeviceManager.setAudioDeviceSetup(setup, true) };
-    jassert(error.isEmpty());
-
+    // Handle audio options
     props->setValue(user_properties_tags::DEVICE_TYPE, audioDeviceType);
     props->setValue(user_properties_tags::INPUT_DEVICE, inputDevice);
     props->setValue(user_properties_tags::OUTPUT_DEVICE, outputDevice);
+    props->setValue(user_properties_tags::SAMPLE_RATE, sampleRate);
+    props->setValue(user_properties_tags::BUFFER_SIZE, bufferSize);
 
     // Handle OSC Input Port
     if (oscPort < 0 || oscPort > 65535) {

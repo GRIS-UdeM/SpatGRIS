@@ -169,11 +169,7 @@ class MainContentComponent final
 
 public:
     //==============================================================================
-    MainContentComponent(MainWindow & mainWindow,
-                         GrisLookAndFeel & newLookAndFeel,
-                         juce::String const & inputDevice,
-                         juce::String const & outputDevice,
-                         std::optional<juce::String> const & deviceType);
+    MainContentComponent(MainWindow & mainWindow, GrisLookAndFeel & newLookAndFeel);
     //==============================================================================
     MainContentComponent() = delete;
     ~MainContentComponent() override;

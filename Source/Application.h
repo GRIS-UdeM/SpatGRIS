@@ -47,12 +47,6 @@ public:
     SpatGris2Application & operator=(SpatGris2Application const &) = delete;
     SpatGris2Application & operator=(SpatGris2Application &&) = delete;
     //==============================================================================
-    void start(juce::String const & inputDevice,
-               juce::String const & outputDevice,
-               std::optional<juce::String> const & deviceType);
-    void chooseDeviceType();
-    void chooseDevice(std::optional<juce::String> deviceType);
-    //==============================================================================
     [[nodiscard]] const juce::String getApplicationName() override { return ProjectInfo::projectName; }
     [[nodiscard]] const juce::String getApplicationVersion() override { return ProjectInfo::versionString; }
     [[nodiscard]] bool moreThanOneInstanceAllowed() override { return true; }

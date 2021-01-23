@@ -128,9 +128,9 @@ public:
     void audioDeviceAboutToStart(juce::AudioIODevice * device) override;
     void audioDeviceStopped() override;
     //==============================================================================
-    static void init(juce::String const & inputDevice,
+    static void init(juce::String const & deviceType,
+                     juce::String const & inputDevice,
                      juce::String const & outputDevice,
-                     std::optional<juce::String> deviceType,
                      double sampleRate,
                      int bufferSize);
     [[nodiscard]] static AudioManager & getInstance();
@@ -138,9 +138,9 @@ public:
 
 private:
     //==============================================================================
-    AudioManager(juce::String const & inputDevice,
+    AudioManager(juce::String const & deviceType,
+                 juce::String const & inputDevice,
                  juce::String const & outputDevice,
-                 std::optional<juce::String> deviceType,
                  double sampleRate,
                  int bufferSize);
     //==============================================================================

@@ -279,6 +279,7 @@ void PropertiesComponent::comboBoxChanged(juce::ComboBox * comboBoxThatHasChange
     auto const hasSeparateInputsAndOutputs{
         audioDeviceManager.getCurrentDeviceTypeObject()->hasSeparateInputsAndOutputs()
     };
+
     if (comboBoxThatHasChanged == &mDeviceTypeCombo) {
         audioDeviceManager.setCurrentAudioDeviceType(comboBoxThatHasChanged->getText(), true);
     } else if (comboBoxThatHasChanged == &mInputDeviceCombo) {
