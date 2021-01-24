@@ -27,9 +27,6 @@
 
 DISABLE_WARNINGS
 #include <JuceHeader.h>
-
-#include "spat/lbap.h"
-#include "spat/vbap.h"
 ENABLE_WARNINGS
 
 #include "AudioRecorder.h"
@@ -38,6 +35,8 @@ ENABLE_WARNINGS
 #include "SpatModes.hpp"
 #include "SpeakerData.hpp"
 #include "constants.hpp"
+#include "lbap.hpp"
+#include "vbap.hpp"
 
 class Speaker;
 struct jack_port_t;
@@ -149,7 +148,7 @@ class AudioProcessor
     juce::String mRecordPath{};
 
     // This structure is used to compute the VBAP algorithm only once. Each source only gets a copy.
-    VBAP_DATA * mParamVBap{};
+    VbapData * mParamVBap{};
 
     juce::CriticalSection mCriticalSection{};
 

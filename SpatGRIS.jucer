@@ -46,10 +46,10 @@
         <FILE id="apexeV" name="narrow.hpp" compile="0" resource="0" file="Source/narrow.hpp"/>
       </GROUP>
       <GROUP id="{FB6EEEB4-BE6B-EB4A-201D-755A3CFACAAC}" name="spat">
-        <FILE id="m3KtvU" name="lbap.c" compile="1" resource="0" file="Source/spat/lbap.c"/>
-        <FILE id="XmhH3Q" name="lbap.h" compile="0" resource="0" file="Source/spat/lbap.h"/>
-        <FILE id="tKmZ05" name="vbap.c" compile="1" resource="0" file="Source/spat/vbap.c"/>
-        <FILE id="agZMLe" name="vbap.h" compile="0" resource="0" file="Source/spat/vbap.h"/>
+        <FILE id="zKQ5WK" name="lbap.cpp" compile="1" resource="0" file="Source/lbap.cpp"/>
+        <FILE id="G3SJU6" name="lbap.hpp" compile="0" resource="0" file="Source/lbap.hpp"/>
+        <FILE id="ihjJqS" name="vbap.cpp" compile="1" resource="0" file="Source/vbap.cpp"/>
+        <FILE id="gyI4aY" name="vbap.hpp" compile="0" resource="0" file="Source/vbap.hpp"/>
       </GROUP>
       <GROUP id="{879FD67D-521A-EC98-EB2A-A3C056EDF2C2}" name="structs">
         <FILE id="sHpI0D" name="ClientData.hpp" compile="0" resource="0" file="Source/ClientData.hpp"/>

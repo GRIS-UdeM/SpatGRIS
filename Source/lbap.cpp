@@ -1,10 +1,8 @@
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include "lbap.h"
+#include "lbap.hpp"
+#include <cstdlib>
 
 #ifndef M_PI
-#define M_PI    (3.14159265358979323846264338327950288)
+    #define M_PI (3.14159265358979323846264338327950288)
 #endif
 
 /* =================================================================================
@@ -12,19 +10,19 @@ Opaque data type declarations.
 ================================================================================= */
 
 struct lbap_layer {
-    int id;                 /**< Layer id. */
-    int num_of_speakers;    /**< Number of speakers into the layer. */
-    float ele;              /**< Elevation of the layer in the range 0 .. pi/2. */
-    float expon;            /**< Speaker gain exponent for 4+ speakers. */ 
-    float ***matrix;        /**< Arrays of amplitude values [spk][x][y]. */
-    lbap_pos *speakers;     /**< Array of speakers. */
+    int id;              /**< Layer id. */
+    int num_of_speakers; /**< Number of speakers into the layer. */
+    float ele;           /**< Elevation of the layer in the range 0 .. pi/2. */
+    float expon;         /**< Speaker gain exponent for 4+ speakers. */
+    float *** matrix;    /**< Arrays of amplitude values [spk][x][y]. */
+    lbap_pos * speakers; /**< Array of speakers. */
 };
 
 struct lbap_field {
-    int num_of_speakers;    /**< Total number of speakers in the field. */
-    int num_of_layers;      /**< Number of layers into the field. */
-    int *out_order;         /**< Physical output order as a list of int. */
-    lbap_layer **layers;    /**< Array of layers. */
+    int num_of_speakers;  /**< Total number of speakers in the field. */
+    int num_of_layers;    /**< Number of layers into the field. */
+    int * out_order;      /**< Physical output order as a list of int. */
+    lbap_layer ** layers; /**< Array of layers. */
 };
 
 /* =================================================================================
@@ -32,33 +30,33 @@ Utility functions.
 ================================================================================= */
 
 /* Fill x and y attributes of an lbap_pos according to azimuth and radius values. */
-static void 
-lbap_poltocar(lbap_pos *pos) {
+static void lbap_poltocar(lbap_pos * pos)
+{
     pos->x = pos->rad * cosf(pos->azi);
     pos->y = pos->rad * sinf(pos->azi);
 }
 
 /* Bilinear interpolation to retrieve the value at position (x, y) in a 2D matrix. */
-static float
-lbap_lookup(float **matrix, float x, float y) {
+static float lbap_lookup(float ** matrix, float x, float y)
+{
     int xi = (int)x;
     int yi = (int)y;
     float xf = x - xi;
     float yf = y - yi;
     float v1 = matrix[xi][yi];
-    float v2 = matrix[xi+1][yi];
-    float v3 = matrix[xi][yi+1];
-    float v4 = matrix[xi+1][yi+1];
+    float v2 = matrix[xi + 1][yi];
+    float v3 = matrix[xi][yi + 1];
+    float v4 = matrix[xi + 1][yi + 1];
     float xv1 = v1 + (v2 - v1) * xf;
     float xv2 = v3 + (v4 - v3) * xf;
     return xv1 + (xv2 - xv1) * yf;
 }
 
 /* Compare two speaker positions based on elevation. */
-static int
-lbap_speaker_compare(const void *pa, const void *pb) {
-    const lbap_speaker *a = (lbap_speaker *)pa;
-    const lbap_speaker *b = (lbap_speaker *)pb;
+static int lbap_speaker_compare(const void * pa, const void * pb)
+{
+    const lbap_speaker * a = (lbap_speaker *)pa;
+    const lbap_speaker * b = (lbap_speaker *)pb;
     if (a->ele > b->ele)
         return 1;
     else
@@ -66,8 +64,8 @@ lbap_speaker_compare(const void *pa, const void *pb) {
 }
 
 /* Checks if an elevation is less distant than +/- 5 degrees of a base elevation. */
-static int
-lbap_is_same_ele(float base_ele, float ele) {
+static int lbap_is_same_ele(float base_ele, float ele)
+{
     float deg5rad = 5.0f / 360.0f * (float)M_PI * 2.0f;
     if (ele > (base_ele - deg5rad) && ele < (base_ele + deg5rad))
         return 1;
@@ -76,11 +74,11 @@ lbap_is_same_ele(float base_ele, float ele) {
 }
 
 /* Returns the average elevation from a list of speakers. */
-static float
-lbap_mean_ele_from_speakers(lbap_speaker *speakers, int num) {
+static float lbap_mean_ele_from_speakers(lbap_speaker * speakers, int num)
+{
     int i;
     float sum = 0.0;
-    for (i=0; i<num; i++) {
+    for (i = 0; i < num; i++) {
         sum += speakers[i].ele;
     }
     return sum / num;
@@ -93,11 +91,11 @@ lbap_pos utility functions.
 /* Returns a pointer to an array of lbap_pos created from an array of lbap_speaker.
  * The pointer must be freed when done with it.
  */
-static lbap_pos * 
-lbap_pos_from_speakers(lbap_speaker *speakers, int num) {
+static lbap_pos * lbap_pos_from_speakers(lbap_speaker * speakers, int num)
+{
     int i;
-    lbap_pos *positions = (lbap_pos *)malloc(sizeof(lbap_pos) * num);
-    for (i=0; i<num; i++) {
+    lbap_pos * positions = (lbap_pos *)malloc(sizeof(lbap_pos) * num);
+    for (i = 0; i < num; i++) {
         positions[i].azi = speakers[i].azi;
         positions[i].ele = speakers[i].ele;
         positions[i].rad = speakers[i].rad;
@@ -110,11 +108,11 @@ lbap_layer utility functions.
 ================================================================================= */
 
 /* Initialize a newly created layer for `num` speakers. */
-static lbap_layer *
-lbap_layer_init(int id, float ele, lbap_pos *speakers, int num) {
+static lbap_layer * lbap_layer_init(int id, float ele, lbap_pos * speakers, int num)
+{
     int i, x, y, size1 = LBAP_MATRIX_SIZE + 1;
 
-    lbap_layer *layer = (lbap_layer *)malloc(sizeof(lbap_layer));
+    lbap_layer * layer = (lbap_layer *)malloc(sizeof(lbap_layer));
 
     layer->id = id;
     layer->ele = ele;
@@ -126,18 +124,18 @@ lbap_layer_init(int id, float ele, lbap_pos *speakers, int num) {
         layer->expon = num / 4.0f;
 
     layer->speakers = (lbap_pos *)malloc(sizeof(lbap_pos) * num);
-    for (i=0; i<num; i++) {
+    for (i = 0; i < num; i++) {
         layer->speakers[i].azi = speakers[i].azi;
         layer->speakers[i].rad = speakers[i].rad;
         lbap_poltocar(&layer->speakers[i]);
     }
 
     layer->matrix = (float ***)malloc(sizeof(float *) * num);
-    for (i=0; i<num; i++) {
+    for (i = 0; i < num; i++) {
         layer->matrix[i] = (float **)malloc(sizeof(float *) * size1);
-        for (x=0; x<size1; x++) {
+        for (x = 0; x < size1; x++) {
             layer->matrix[i][x] = (float *)malloc(sizeof(float) * size1);
-            for (y=0; y<size1; y++) {
+            for (y = 0; y < size1; y++) {
                 layer->matrix[i][x][y] = 0.0;
             }
         }
@@ -147,16 +145,16 @@ lbap_layer_init(int id, float ele, lbap_pos *speakers, int num) {
 }
 
 /* Pre-compute the matrices of amplitude for the layer's speakers. */
-static void
-lbap_layer_compute_matrix(lbap_layer *layer) {
+static void lbap_layer_compute_matrix(lbap_layer * layer)
+{
     int i, x, y, hsize = LBAP_MATRIX_SIZE / 2;
     float px, py, dist;
 
-    for (i=0; i<layer->num_of_speakers; i++) {
+    for (i = 0; i < layer->num_of_speakers; i++) {
         px = layer->speakers[i].x * hsize + hsize;
         py = layer->speakers[i].y * hsize + hsize;
-        for (x=0; x<LBAP_MATRIX_SIZE; x++) {
-            for (y=0; y<LBAP_MATRIX_SIZE; y++) {
+        for (x = 0; x < LBAP_MATRIX_SIZE; x++) {
+            for (y = 0; y < LBAP_MATRIX_SIZE; y++) {
                 dist = sqrtf(powf(x - px, 2) + powf(y - py, 2));
                 dist /= LBAP_MATRIX_SIZE;
                 dist = dist < 0.0f ? 0.0f : dist > 1.0f ? 1.0f : dist;
@@ -169,9 +167,9 @@ lbap_layer_compute_matrix(lbap_layer *layer) {
 }
 
 /* Create a new layer, based on a lbap_pos array, and add it the to field.*/
-static void
-lbap_layer_create(lbap_field *field, float ele, lbap_pos *speakers, int num) {
-    lbap_layer *layer;
+static void lbap_layer_create(lbap_field * field, float ele, lbap_pos * speakers, int num)
+{
+    lbap_layer * layer;
 
     field->num_of_speakers += num;
     field->num_of_layers++;
@@ -179,23 +177,22 @@ lbap_layer_create(lbap_field *field, float ele, lbap_pos *speakers, int num) {
     if (field->num_of_layers == 1)
         field->layers = (lbap_layer **)malloc(sizeof(lbap_layer *));
     else
-        field->layers = (lbap_layer **)realloc(field->layers,
-                                               sizeof(lbap_layer *) * field->num_of_layers);
+        field->layers = (lbap_layer **)realloc(field->layers, sizeof(lbap_layer *) * field->num_of_layers);
 
-    layer = lbap_layer_init(field->num_of_layers-1, ele, speakers, num);
+    layer = lbap_layer_init(field->num_of_layers - 1, ele, speakers, num);
 
     lbap_layer_compute_matrix(layer);
 
-    field->layers[field->num_of_layers-1] = layer;
+    field->layers[field->num_of_layers - 1] = layer;
 }
 
 /* Cleanup the memory used by a layer. */
-static void
-lbap_layer_free(lbap_layer *layer) {
+static void lbap_layer_free(lbap_layer * layer)
+{
     int i, x;
     if (layer->matrix) {
-        for (i=0; i<layer->num_of_speakers; i++) {
-            for (x=0; x<LBAP_MATRIX_SIZE; x++) {
+        for (i = 0; i < layer->num_of_speakers; i++) {
+            for (x = 0; x < LBAP_MATRIX_SIZE; x++) {
                 free(layer->matrix[i][x]);
             }
             free(layer->matrix[i]);
@@ -208,11 +205,11 @@ lbap_layer_free(lbap_layer *layer) {
     free(layer);
 }
 
-/* Compute the gain of each layer's speakers, for the given position, and store 
+/* Compute the gain of each layer's speakers, for the given position, and store
  * the result in the `gains` array.
  */
-static void
-lbap_layer_compute_gains(lbap_layer *layer, float azi, float rad, float radspan, float *gains) {
+static void lbap_layer_compute_gains(lbap_layer * layer, float azi, float rad, float radspan, float * gains)
+{
     int i, hsize = LBAP_MATRIX_SIZE / 2, sizeMinusOne = LBAP_MATRIX_SIZE - 1;
     float x, y, norm, comp, sum = 0.0f;
     float exponent = layer->expon * (1.0f - radspan) * 2.0f;
@@ -224,15 +221,15 @@ lbap_layer_compute_gains(lbap_layer *layer, float azi, float rad, float radspan,
     y = pos.y * (hsize - 1) + hsize;
     x = x < 0 ? 0 : x > sizeMinusOne ? sizeMinusOne : x;
     y = y < 0 ? 0 : y > sizeMinusOne ? sizeMinusOne : y;
-    for (i=0; i<layer->num_of_speakers; i++) {
+    for (i = 0; i < layer->num_of_speakers; i++) {
         gains[i] = powf(lbap_lookup(layer->matrix[i], x, y), exponent);
         sum += gains[i];
     }
     if (sum > 0.0f) {
         comp = rad < 1.0f ? powf(3.0f, (1.0f - rad)) : 1.0f;
-        norm = 1.0f / sum * comp;                    // normalization (1.0 / sum) and compensation
-        for (i=0; i<layer->num_of_speakers; i++) {  // (powf(3.0, (1.0 - rad))) for energy spreading
-            gains[i] *= norm;                       // when moving toward the center.
+        norm = 1.0f / sum * comp;                      // normalization (1.0 / sum) and compensation
+        for (i = 0; i < layer->num_of_speakers; i++) { // (powf(3.0, (1.0 - rad))) for energy spreading
+            gains[i] *= norm;                          // when moving toward the center.
         }
     }
 }
@@ -243,9 +240,9 @@ Layer-Based Amplitude Panning interface implementation.
 ====================================================================================
 ================================================================================= */
 
-lbap_field * 
-lbap_field_init(void) {
-    lbap_field *field = (lbap_field *)malloc(sizeof(lbap_field));
+lbap_field * lbap_field_init(void)
+{
+    lbap_field * field = (lbap_field *)malloc(sizeof(lbap_field));
     field->num_of_speakers = 0;
     field->num_of_layers = 0;
     field->layers = NULL;
@@ -253,11 +250,11 @@ lbap_field_init(void) {
     return field;
 }
 
-void
-lbap_field_free(lbap_field *field) {
+void lbap_field_free(lbap_field * field)
+{
     int i;
     if (field->layers) {
-        for (i=0; i<field->num_of_layers; i++) {
+        for (i = 0; i < field->num_of_layers; i++) {
             lbap_layer_free(field->layers[i]);
         }
         free(field->layers);
@@ -269,11 +266,11 @@ lbap_field_free(lbap_field *field) {
     free(field);
 }
 
-void
-lbap_field_reset(lbap_field *field) {
+void lbap_field_reset(lbap_field * field)
+{
     int i;
     if (field->layers) {
-        for (i=0; i<field->num_of_layers; i++) {
+        for (i = 0; i < field->num_of_layers; i++) {
             lbap_layer_free(field->layers[i]);
         }
         free(field->layers);
@@ -287,17 +284,17 @@ lbap_field_reset(lbap_field *field) {
     field->out_order = NULL;
 }
 
-void
-lbap_field_setup(lbap_field *field, lbap_speaker *speakers, int num) {
+void lbap_field_setup(lbap_field * field, lbap_speaker * speakers, int num)
+{
     int i, start, howmany, count = 0;
     float ele, mean;
-    lbap_pos *spk;
+    lbap_pos * spk;
 
     field->out_order = (int *)malloc(sizeof(int) * num);
 
     qsort(speakers, num, sizeof(lbap_speaker), lbap_speaker_compare);
 
-    for (i=0; i<num; i++) {
+    for (i = 0; i < num; i++) {
         field->out_order[i] = speakers[i].spkid;
     }
 
@@ -315,8 +312,8 @@ lbap_field_setup(lbap_field *field, lbap_speaker *speakers, int num) {
     }
 }
 
-void
-lbap_field_compute(lbap_field *field, lbap_pos *pos, float *gains) {
+void lbap_field_compute(lbap_field * field, lbap_pos * pos, float * gains)
+{
     int i, j, c;
     float frac = 0.0, gain = 0.0, elespan = 0.0;
     float gns[LBAP_MAX_NUMBER_OF_SPEAKERS];
@@ -325,9 +322,9 @@ lbap_field_compute(lbap_field *field, lbap_pos *pos, float *gains) {
         return;
     }
 
-    lbap_layer *first = field->layers[0];
-    lbap_layer *second = field->layers[field->num_of_layers-1];
-    for (i=0; i<field->num_of_layers; i++) {
+    lbap_layer * first = field->layers[0];
+    lbap_layer * second = field->layers[field->num_of_layers - 1];
+    for (i = 0; i < field->num_of_layers; i++) {
         if (field->layers[i]->ele > pos->ele) {
             second = field->layers[i];
             break;
@@ -335,14 +332,14 @@ lbap_field_compute(lbap_field *field, lbap_pos *pos, float *gains) {
         first = field->layers[i];
     }
 
-    if (first->id != (field->num_of_layers-1))
+    if (first->id != (field->num_of_layers - 1))
         frac = (pos->ele - first->ele) / (second->ele - first->ele);
 
     if (pos->elespan != 0.0)
         elespan = powf(pos->elespan, 4) * 6;
 
     c = 0;
-    for (i=0; i<field->num_of_layers; i++) {
+    for (i = 0; i < field->num_of_layers; i++) {
         if (i < first->id) {
             gain = elespan / ((first->id - i) * 2);
         } else if (i == first->id) {
@@ -356,21 +353,21 @@ lbap_field_compute(lbap_field *field, lbap_pos *pos, float *gains) {
         }
         gain = gain > 1.0f ? 1.0f : gain;
         lbap_layer_compute_gains(field->layers[i], pos->azi, pos->rad, pos->radspan, &gns[c]);
-        for (j=0; j<field->layers[i]->num_of_speakers; j++) {
+        for (j = 0; j < field->layers[i]->num_of_speakers; j++) {
             gns[c++] *= gain;
         }
     }
 
-    for (i=0; i<field->num_of_speakers; i++) {
+    for (i = 0; i < field->num_of_speakers; i++) {
         gains[field->out_order[i]] = gns[i];
     }
 }
 
-lbap_speaker *
-lbap_speakers_from_positions(float *azi, float *ele, float *rad, int *spkid, int num) {
+lbap_speaker * lbap_speakers_from_positions(float * azi, float * ele, float * rad, int * spkid, int num)
+{
     int i;
-    lbap_speaker *speakers = (lbap_speaker *)malloc(sizeof(lbap_speaker) * num);
-    for (i=0; i<num; i++) {
+    lbap_speaker * speakers = (lbap_speaker *)malloc(sizeof(lbap_speaker) * num);
+    for (i = 0; i < num; i++) {
         speakers[i].azi = azi[i] / 360.0f * (float)M_PI * 2.0f;
         speakers[i].ele = ele[i] / 360.0f * (float)M_PI * 2.0f;
         speakers[i].rad = rad[i] < 0.0f ? 0.0f : rad[i] > 1.0f ? 1.0f : rad[i];
@@ -379,7 +376,8 @@ lbap_speakers_from_positions(float *azi, float *ele, float *rad, int *spkid, int
     return speakers;
 }
 
-void lbap_pos_init_from_radians(lbap_pos *pos, float azi, float ele, float rad) {
+void lbap_pos_init_from_radians(lbap_pos * pos, float azi, float ele, float rad)
+{
     pos->radspan = 0.0f;
     pos->elespan = 0.0f;
     while (azi < -M_PI) {
@@ -399,7 +397,8 @@ void lbap_pos_init_from_radians(lbap_pos *pos, float azi, float ele, float rad) 
     pos->rad = rad < 0.0f ? 0.0f : rad > 2.0f ? 2.0f : rad;
 }
 
-void lbap_pos_init_from_degrees(lbap_pos *pos, float azi, float ele, float rad) {
+void lbap_pos_init_from_degrees(lbap_pos * pos, float azi, float ele, float rad)
+{
     pos->radspan = 0.0f;
     pos->elespan = 0.0f;
 
@@ -422,15 +421,17 @@ void lbap_pos_init_from_degrees(lbap_pos *pos, float azi, float ele, float rad) 
     pos->rad = rad < 0.0f ? 0.0f : rad > 2.0f ? 2.0f : rad;
 }
 
-int lbap_pos_compare(lbap_pos *p1, lbap_pos *p2) {
-    if (p1->azi == p2->azi && p1->ele == p2->ele && p1->rad == p2->rad && 
-       p1->radspan == p2->radspan && p1->elespan == p2->elespan)
+int lbap_pos_compare(lbap_pos * p1, lbap_pos * p2)
+{
+    if (p1->azi == p2->azi && p1->ele == p2->ele && p1->rad == p2->rad && p1->radspan == p2->radspan
+        && p1->elespan == p2->elespan)
         return 1;
     else
         return 0;
 }
 
-void lbap_pos_copy(lbap_pos *dest, lbap_pos *src) {
+void lbap_pos_copy(lbap_pos * dest, lbap_pos * src)
+{
     dest->azi = src->azi;
     dest->ele = src->ele;
     dest->rad = src->rad;

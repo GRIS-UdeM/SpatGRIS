@@ -22,17 +22,12 @@
 #include <array>
 #include <cstdarg>
 
-DISABLE_WARNINGS
-extern "C" {
-#include "spat/vbap.h"
-}
-ENABLE_WARNINGS
-
 #include "AudioManager.h"
 #include "MainComponent.h"
 #include "Speaker.h"
 #include "constants.hpp"
 #include "narrow.hpp"
+#include "vbap.hpp"
 
 float constexpr SMALL_GAIN = 0.0000000000001f;
 size_t constexpr MAX_BUFFER_SIZE = 2048;
@@ -457,7 +452,7 @@ void AudioProcessor::processVbap(float const * const * ins,
                 }
             } else {
                 // spat
-                auto currentGain{ mSourcesData[inputIndex].paramVBap->y[outputIndex] };
+                auto currentGain{ mSourcesData[inputIndex].paramVBap->gainsSmoothing[outputIndex] };
                 auto const targetGain{ mSourcesData[inputIndex].paramVBap->gains[outputIndex] };
                 if (mInterMaster == 0.0f) {
                     // linear interpolation over buffer size
@@ -482,7 +477,7 @@ void AudioProcessor::processVbap(float const * const * ins,
                         outputBuffer[sampleIndex] += inputBuffer[sampleIndex] * currentGain;
                     }
                 }
-                mSourcesData[inputIndex].paramVBap->y[outputIndex] = currentGain;
+                mSourcesData[inputIndex].paramVBap->gainsSmoothing[outputIndex] = currentGain;
             }
         }
     }
@@ -621,7 +616,7 @@ void AudioProcessor::processVBapHrtf(float const * const * ins,
             auto & sourceData{ mSourcesData[inputIndex] };
             if (!sourceData.directOut && sourceData.paramVBap != nullptr) {
                 auto const targetGain{ sourceData.paramVBap->gains[outputIndex] };
-                auto currentGain{ sourceData.paramVBap->y[outputIndex] };
+                auto currentGain{ sourceData.paramVBap->gainsSmoothing[outputIndex] };
                 auto const * inputBuffer{ ins[inputIndex] };
                 if (mInterMaster == 0.0f) {
                     // linear interpolation
@@ -643,7 +638,7 @@ void AudioProcessor::processVBapHrtf(float const * const * ins,
                         vbapOuts[sampleIndex] += inputBuffer[sampleIndex] * currentGain;
                     }
                 }
-                sourceData.paramVBap->y[outputIndex] = currentGain;
+                sourceData.paramVBap->gainsSmoothing[outputIndex] = currentGain;
             }
         }
 
@@ -857,12 +852,12 @@ bool AudioProcessor::initSpeakersTriplet(std::vector<Speaker *> const & listSpk,
         return false;
     }
 
-    ls lss[MAX_LS_AMOUNT];
-    int outputPatches[MAX_LS_AMOUNT];
+    LoudSpeaker lss[MAX_SPEAKER_COUNT];
+    int outputPatches[MAX_SPEAKER_COUNT];
 
     int j;
     for (unsigned i{}; i < listSpk.size(); ++i) {
-        for (j = 0; j < MAX_LS_AMOUNT; ++j) {
+        for (j = 0; j < MAX_SPEAKER_COUNT; ++j) {
             if (listSpk[i]->getOutputPatch() == mSpeakersOut[j].outputPatch && !mSpeakersOut[j].directOut) {
                 break;
             }
@@ -870,8 +865,8 @@ bool AudioProcessor::initSpeakersTriplet(std::vector<Speaker *> const & listSpk,
         lss[i].coords.x = mSpeakersOut[j].x;
         lss[i].coords.y = mSpeakersOut[j].y;
         lss[i].coords.z = mSpeakersOut[j].z;
-        lss[i].angles.azi = mSpeakersOut[j].azimuth;
-        lss[i].angles.ele = mSpeakersOut[j].zenith;
+        lss[i].angles.azimuth = mSpeakersOut[j].azimuth;
+        lss[i].angles.elevation = mSpeakersOut[j].zenith;
         lss[i].angles.length = mSpeakersOut[j].radius; // Always 1.0 for VBAP.
         outputPatches[i] = mSpeakersOut[j].outputPatch;
     }
@@ -927,7 +922,7 @@ bool AudioProcessor::lbapSetupSpeakerField(std::vector<Speaker *> const & listSp
     int outputPatch[MAX_OUTPUTS];
 
     for (unsigned int i = 0; i < listSpk.size(); i++) {
-        for (j = 0; j < MAX_LS_AMOUNT; j++) {
+        for (j = 0; j < MAX_SPEAKER_COUNT; ++j) {
             if (listSpk[i]->getOutputPatch() == mSpeakersOut[j].outputPatch && !mSpeakersOut[j].directOut) {
                 break;
             }
