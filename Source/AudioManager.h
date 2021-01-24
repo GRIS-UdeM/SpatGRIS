@@ -105,7 +105,7 @@ public:
 
     [[nodiscard]] juce::Array<jack_port_t *> getInputPorts() const;
     [[nodiscard]] juce::Array<jack_port_t *> getOutputPorts() const;
-    float * getBuffer(jack_port_t * port, size_t nFrames);
+    float * getBuffer(jack_port_t * port, size_t nFrames) noexcept;
 
     [[nodiscard]] jack_port_t * getPort(char const * name) const;
     [[nodiscard]] jack_port_t * getPort(uint32_t id) const;

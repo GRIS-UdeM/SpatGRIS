@@ -282,7 +282,7 @@ void SpeakerViewComponent::mouseDown(const juce::MouseEvent & e)
     mDeltaClickY = mCamAngleY - e.getPosition().y / mSlowDownFactor;
 
     // Always check on which display the speaker view component is.
-    mDisplayScaling = juce::Desktop::getInstance().getDisplays().findDisplayForPoint(e.getScreenPosition()).scale;
+    mDisplayScaling = juce::Desktop::getInstance().getDisplays().getDisplayForPoint(e.getScreenPosition())->scale;
 
     if (e.mods.isLeftButtonDown()) {
         mRayClickX = narrow<double>(e.getPosition().x);

@@ -42,7 +42,7 @@ size_t constexpr RIGHT = 1;
 //==============================================================================
 // Utilities.
 template<typename Coll>
-static bool contains(Coll const & coll, typename Coll::value_type const & value)
+static bool contains(Coll const & coll, typename Coll::value_type const & value) noexcept
 {
     return std::find(std::cbegin(coll), std::cend(coll), value) != std::cend(coll);
 }
@@ -291,7 +291,7 @@ std::vector<int> AudioProcessor::getDirectOutOutputPatches() const
 }
 
 //==============================================================================
-void AudioProcessor::muteSoloVuMeterIn(float * const * ins, size_t const nFrames, size_t const sizeInputs)
+void AudioProcessor::muteSoloVuMeterIn(float * const * ins, size_t const nFrames, size_t const sizeInputs) noexcept
 {
     for (unsigned inputIndex{}; inputIndex < sizeInputs; ++inputIndex) {
         auto * buffer{ ins[inputIndex] };
@@ -313,10 +313,10 @@ void AudioProcessor::muteSoloVuMeterIn(float * const * ins, size_t const nFrames
 }
 
 //==============================================================================
-void AudioProcessor::muteSoloVuMeterGainOut(float ** outs,
+void AudioProcessor::muteSoloVuMeterGainOut(float * const * outs,
                                             size_t const nFrames,
                                             size_t const sizeOutputs,
-                                            float const gain)
+                                            float const gain) noexcept
 {
     size_t channelCount{ 2 };
 
@@ -399,7 +399,7 @@ void AudioProcessor::muteSoloVuMeterGainOut(float ** outs,
 }
 
 //==============================================================================
-void AudioProcessor::addNoiseSound(float ** outs, size_t const nFrames, size_t const sizeOutputs)
+void AudioProcessor::addNoiseSound(float * const * outs, size_t const nFrames, size_t const sizeOutputs) noexcept
 {
     static constexpr auto FAC{ 1.0f / (static_cast<float>(RAND_MAX) / 2.0f) };
     for (unsigned int nF = 0; nF < nFrames; ++nF) {
@@ -427,7 +427,7 @@ void AudioProcessor::processVbap(float const * const * ins,
                                  float * const * outs,
                                  size_t const nFrames,
                                  size_t const sizeInputs,
-                                 size_t const sizeOutputs)
+                                 size_t const sizeOutputs) noexcept
 {
     for (unsigned i{}; i < sizeInputs; ++i) {
         if (mVbapSourcesToUpdate[i] == 1) {
@@ -493,7 +493,7 @@ void AudioProcessor::processLbap(float const * const * ins,
                                  float * const * outs,
                                  size_t const nFrames,
                                  size_t const sizeInputs,
-                                 size_t const sizeOutputs)
+                                 size_t const sizeOutputs) noexcept
 {
     jassert(nFrames <= MAX_BUFFER_SIZE);
     std::array<float, MAX_BUFFER_SIZE> filteredInputSignal{};
@@ -599,8 +599,7 @@ void AudioProcessor::processLbap(float const * const * ins,
 void AudioProcessor::processVBapHrtf(float const * const * ins,
                                      float * const * outs,
                                      size_t const nFrames,
-                                     size_t const sizeInputs,
-                                     size_t /*sizeOutputs*/)
+                                     size_t const sizeInputs) noexcept
 {
     for (unsigned i{}; i < sizeInputs; ++i) {
         if (mVbapSourcesToUpdate[i] == 1) {
@@ -688,10 +687,9 @@ void AudioProcessor::processVBapHrtf(float const * const * ins,
 void AudioProcessor::processStereo(float const * const * ins,
                                    float * const * outs,
                                    size_t const nFrames,
-                                   size_t const sizeInputs)
+                                   size_t const sizeInputs) noexcept
 {
     static auto constexpr FACTOR{ juce::MathConstants<float>::pi / 360.0f };
-
     auto const gainFactor{ std::pow(mInterMaster, 0.1f) * 0.0099f + 0.99f };
 
     for (unsigned inputIndex{}; inputIndex < sizeInputs; ++inputIndex) {
@@ -747,7 +745,7 @@ void AudioProcessor::processStereo(float const * const * ins,
 }
 
 //==============================================================================
-void AudioProcessor::processAudio(size_t const nFrames)
+void AudioProcessor::processAudio(size_t const nFrames) noexcept
 {
     // Skip if the user is editing the speaker setup.
     juce::ScopedTryLock const lock{ getCriticalSection() };
@@ -780,7 +778,7 @@ void AudioProcessor::processAudio(size_t const nFrames)
         processLbap(ins, outs, nFrames, sizeInputs, sizeOutputs);
         break;
     case SpatModes::hrtfVbap:
-        processVBapHrtf(ins, outs, nFrames, sizeInputs, sizeOutputs);
+        processVBapHrtf(ins, outs, nFrames, sizeInputs);
         break;
     case SpatModes::stereo:
         processStereo(ins, outs, nFrames, sizeInputs);
@@ -967,7 +965,7 @@ void AudioProcessor::setAttenuationHz(float const value)
 }
 
 //==============================================================================
-void AudioProcessor::updateSourceVbap(int const idS)
+void AudioProcessor::updateSourceVbap(int const idS) noexcept
 {
     if (mVbapDimensions == 3) {
         if (mSourcesData[idS].paramVBap != nullptr) {

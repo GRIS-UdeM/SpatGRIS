@@ -249,7 +249,7 @@ juce::Array<jack_port_t *> AudioManager::getOutputPorts() const
 }
 
 //==============================================================================
-float * AudioManager::getBuffer(jack_port_t * port, [[maybe_unused]] size_t const nFrames)
+float * AudioManager::getBuffer(jack_port_t * port, [[maybe_unused]] size_t const nFrames) noexcept
 {
     juce::ScopedLock sl{ mCriticalSection };
 

@@ -207,7 +207,7 @@ public:
     void setAttenuationHz(float value);
 
     // Need to update a source VBAP data.
-    void updateSourceVbap(int idS);
+    void updateSourceVbap(int idS) noexcept;
 
     // Reinit HRTF delay lines.
     void resetHrtf();
@@ -238,7 +238,7 @@ public:
     [[nodiscard]] bool isRecording() const { return mIsRecording; }
     [[nodiscard]] bool isOverloaded() const { return mIsOverloaded; }
 
-    juce::CriticalSection const & getCriticalSection() const { return mCriticalSection; }
+    juce::CriticalSection const & getCriticalSection() const noexcept { return mCriticalSection; }
 
     void setMaxOutputPatch(unsigned const maxOutputPatch) { mMaxOutputPatch = maxOutputPatch; }
     void setVbapDimensions(unsigned const dimensions) { mVbapDimensions = dimensions; }
@@ -255,26 +255,22 @@ public:
 
     //==============================================================================
     // Audio processing
-    void muteSoloVuMeterIn(float * const * ins, size_t nFrames, size_t sizeInputs);
-    void muteSoloVuMeterGainOut(float ** outs, size_t nFrames, size_t sizeOutputs, float gain = 1.0f);
-    void addNoiseSound(float ** outs, size_t nFrames, size_t sizeOutputs);
+    void muteSoloVuMeterIn(float * const * ins, size_t nFrames, size_t sizeInputs) noexcept;
+    void muteSoloVuMeterGainOut(float * const * outs, size_t nFrames, size_t sizeOutputs, float gain = 1.0f) noexcept;
+    void addNoiseSound(float * const * outs, size_t nFrames, size_t sizeOutputs) noexcept;
     void processVbap(float const * const * ins,
                      float * const * outs,
                      size_t nFrames,
                      size_t sizeInputs,
-                     size_t sizeOutputs);
+                     size_t sizeOutputs) noexcept;
     void processLbap(float const * const * ins,
                      float * const * outs,
                      size_t nFrames,
                      size_t sizeInputs,
-                     size_t sizeOutputs);
-    void processVBapHrtf(float const * const * ins,
-                         float * const * outs,
-                         size_t nFrames,
-                         size_t sizeInputs,
-                         size_t sizeOutputs);
-    void processStereo(float const * const * ins, float * const * outs, size_t nFrames, size_t sizeInputs);
-    void processAudio(size_t nFrames);
+                     size_t sizeOutputs) noexcept;
+    void processVBapHrtf(float const * const * ins, float * const * outs, size_t nFrames, size_t sizeInputs) noexcept;
+    void processStereo(float const * const * ins, float * const * outs, size_t nFrames, size_t sizeInputs) noexcept;
+    void processAudio(size_t nFrames) noexcept;
 
 private:
     //==============================================================================

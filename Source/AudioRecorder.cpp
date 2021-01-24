@@ -85,7 +85,7 @@ void AudioRecorder::stop()
 }
 
 //==============================================================================
-void AudioRecorder::recordSamples(float ** samples, int numSamples) const
+void AudioRecorder::recordSamples(float * const * samples, int numSamples) const
 {
     const juce::ScopedLock sl(mWriterLock);
     mActiveWriter.load()->write(samples, numSamples);

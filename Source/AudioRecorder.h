@@ -49,7 +49,7 @@ public:
     //==============================================================================
     void stop();
     //==============================================================================
-    void recordSamples(float ** samples, int numSamples) const;
+    void recordSamples(float * const * samples, int numSamples) const;
     //==============================================================================
     juce::TimeSliceThread backgroundThread; // the thread that will write our audio data to disk
 
