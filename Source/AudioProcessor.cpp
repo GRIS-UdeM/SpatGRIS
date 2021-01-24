@@ -441,6 +441,11 @@ void AudioProcessor::processVbap(float const * const * ins,
     for (unsigned outputIndex{}; outputIndex < sizeOutputs; ++outputIndex) {
         auto * outputBuffer{ outs[outputIndex] };
         for (unsigned inputIndex{}; inputIndex < sizeInputs; ++inputIndex) {
+            if (mLevelsIn[inputIndex] < SMALL_GAIN) {
+                // nothing to process
+                continue;
+            }
+
             auto const * inputBuffer{ ins[inputIndex] };
             if (mSourcesData[inputIndex].directOut || mSourcesData[inputIndex].paramVBap == nullptr) {
                 // direct out
@@ -496,6 +501,11 @@ void AudioProcessor::processLbap(float const * const * ins,
     auto const gainFactor{ std::pow(mInterMaster, 0.1f) * 0.0099f + 0.99f };
 
     for (unsigned inputIndex{}; inputIndex < sizeInputs; ++inputIndex) {
+        if (mLevelsIn[inputIndex] < SMALL_GAIN) {
+            // nothing to process
+            continue;
+        }
+
         auto const * inputBuffer{ ins[inputIndex] };
         auto & sourceData{ mSourcesData[inputIndex] };
         if (!sourceData.directOut) {
@@ -604,6 +614,11 @@ void AudioProcessor::processVBapHrtf(float const * const * ins,
         jassert(nFrames <= MAX_BUFFER_SIZE);
         std::array<float, MAX_BUFFER_SIZE> vbapOuts{};
         for (unsigned inputIndex{}; inputIndex < sizeInputs; ++inputIndex) {
+            if (mLevelsIn[inputIndex] < SMALL_GAIN) {
+                // nothing to process
+                continue;
+            }
+
             auto & sourceData{ mSourcesData[inputIndex] };
             if (!sourceData.directOut && sourceData.paramVBap != nullptr) {
                 auto const targetGain{ sourceData.paramVBap->gains[outputIndex] };
@@ -680,6 +695,11 @@ void AudioProcessor::processStereo(float const * const * ins,
     auto const gainFactor{ std::pow(mInterMaster, 0.1f) * 0.0099f + 0.99f };
 
     for (unsigned inputIndex{}; inputIndex < sizeInputs; ++inputIndex) {
+        if (mLevelsIn[inputIndex] < SMALL_GAIN) {
+            // nothing to process
+            continue;
+        }
+
         auto const & sourceData{ mSourcesData[inputIndex] };
         auto const * inputBuffer{ ins[inputIndex] };
         if (!sourceData.directOut) {
