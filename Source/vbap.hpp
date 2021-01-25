@@ -62,7 +62,7 @@ struct CartesianVector {
 
     [[nodiscard]] constexpr float dotProduct(CartesianVector const & other) const noexcept
     {
-        return (x * other.x + y * other.y + z * other.z);
+        return x * other.x + y * other.y + z * other.z;
     }
 
     [[nodiscard]] constexpr CartesianVector mean(CartesianVector const & other) const noexcept
