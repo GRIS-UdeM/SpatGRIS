@@ -74,7 +74,9 @@ private:
 
 public:
     //==============================================================================
-    MainWindow(juce::String const & name, GrisLookAndFeel & newLookAndFeel);
+    MainWindow(juce::String const & name,
+               GrisLookAndFeel & newLookAndFeel,
+               SmallGrisLookAndFeel & smallGrisLookAndFeel);
     //==============================================================================
     MainWindow() = delete;
     ~MainWindow() = default;

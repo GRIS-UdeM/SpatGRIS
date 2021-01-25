@@ -23,11 +23,13 @@
 #include "constants.hpp"
 
 //==============================================================================
-MainWindow::MainWindow(juce::String const & name, GrisLookAndFeel & newLookAndFeel)
+MainWindow::MainWindow(juce::String const & name,
+                       GrisLookAndFeel & newLookAndFeel,
+                       SmallGrisLookAndFeel & smallGrisLookAndFeel)
     : DocumentWindow(name, juce::Colours::lightgrey, DocumentWindow::allButtons)
 {
     setUsingNativeTitleBar(true);
-    mMainContentComponent = std::make_unique<MainContentComponent>(*this, newLookAndFeel);
+    mMainContentComponent = std::make_unique<MainContentComponent>(*this, newLookAndFeel, smallGrisLookAndFeel);
     setContentOwned(mMainContentComponent.get(), true);
     setResizable(true, true);
 

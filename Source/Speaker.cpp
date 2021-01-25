@@ -32,12 +32,14 @@ static T getFloatPrecision(T const value, U const precision)
 
 //==============================================================================
 Speaker::Speaker(MainContentComponent & mainContentComponent,
+                 SmallGrisLookAndFeel & smallGrisLookAndFeel,
                  int const id,
                  int const outputPatch,
                  float const azimuth,
                  float const zenith,
                  float const radius)
-    : mMainContentComponent(mainContentComponent)
+    : mLookAndFeel(smallGrisLookAndFeel)
+    , mMainContentComponent(mainContentComponent)
     , mId(id)
     , mOutputPatch(outputPatch)
     , mVuMeter(*this, mLookAndFeel, false)

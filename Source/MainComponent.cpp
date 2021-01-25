@@ -26,11 +26,14 @@
 #include "constants.hpp"
 
 //==============================================================================
-MainContentComponent::MainContentComponent(MainWindow & mainWindow, GrisLookAndFeel & newLookAndFeel)
-    : mLookAndFeel(newLookAndFeel)
+MainContentComponent::MainContentComponent(MainWindow & mainWindow,
+                                           GrisLookAndFeel & grisLookAndFeel,
+                                           SmallGrisLookAndFeel & smallGrisLookAndFeel)
+    : mLookAndFeel(grisLookAndFeel)
+    , mSmallLookAndFeel(smallGrisLookAndFeel)
     , mMainWindow(mainWindow)
 {
-    juce::LookAndFeel::setDefaultLookAndFeel(&newLookAndFeel);
+    juce::LookAndFeel::setDefaultLookAndFeel(&grisLookAndFeel);
 
     // App user settings storage file.
     juce::PropertiesFile::Options options{};
@@ -1252,7 +1255,7 @@ void MainContentComponent::addSpeaker(int const sortColumnId, bool const isSorte
     auto const newId{ getMaxSpeakerId() + 1 };
 
     mSpeakersLock.lock();
-    mSpeakers.add(new Speaker{ *this, newId, newId, 0.0f, 0.0f, 1.0f });
+    mSpeakers.add(new Speaker{ *this, mSmallLookAndFeel, newId, newId, 0.0f, 0.0f, 1.0f });
 
     if (sortColumnId == 1 && isSortedForwards) {
         for (int i{}; i < mSpeakers.size(); ++i) {
@@ -1278,18 +1281,18 @@ void MainContentComponent::insertSpeaker(int const position, int const sortColum
     mSpeakersLock.lock();
     if (sortColumnId == 1 && isSortedForwards) {
         newId = mSpeakers[position]->getIdSpeaker() + 1;
-        mSpeakers.insert(newPosition, new Speaker{ *this, newId, newOut, 0.0f, 0.0f, 1.0f });
+        mSpeakers.insert(newPosition, new Speaker{ *this, mSmallLookAndFeel, newId, newOut, 0.0f, 0.0f, 1.0f });
         for (int i{}; i < mSpeakers.size(); ++i) {
             mSpeakers.getUnchecked(i)->setSpeakerId(i + 1);
         }
     } else if (sortColumnId == 1 && !isSortedForwards) {
         newId = mSpeakers[position]->getIdSpeaker() - 1;
-        mSpeakers.insert(newPosition, new Speaker{ *this, newId, newOut, 0.0f, 0.0f, 1.0f });
+        mSpeakers.insert(newPosition, new Speaker{ *this, mSmallLookAndFeel, newId, newOut, 0.0f, 0.0f, 1.0f });
         for (int i{}; i < mSpeakers.size(); ++i) {
             mSpeakers.getUnchecked(i)->setSpeakerId(mSpeakers.size() - i);
         }
     } else {
-        mSpeakers.insert(newPosition, new Speaker{ *this, newId, newOut, 0.0f, 0.0f, 1.0f });
+        mSpeakers.insert(newPosition, new Speaker{ *this, mSmallLookAndFeel, newId, newOut, 0.0f, 0.0f, 1.0f });
     }
     mSpeakersLock.unlock();
 
@@ -1847,7 +1850,13 @@ void MainContentComponent::openXmlFileSpeaker(juce::String const & path)
                                 auto const azimuth{ static_cast<float>(spk->getDoubleAttribute("Azimuth")) };
                                 auto const zenith{ static_cast<float>(spk->getDoubleAttribute("Zenith")) };
                                 auto const radius{ static_cast<float>(spk->getDoubleAttribute("Radius")) };
-                                mSpeakers.add(new Speaker{ *this, layoutIndex, outputPatch, azimuth, zenith, radius });
+                                mSpeakers.add(new Speaker{ *this,
+                                                           mSmallLookAndFeel,
+                                                           layoutIndex,
+                                                           outputPatch,
+                                                           azimuth,
+                                                           zenith,
+                                                           radius });
                                 if (loadSetupFromXyz) {
                                     mSpeakers.getLast()->setCoordinate(
                                         glm::vec3(static_cast<float>(spk->getDoubleAttribute("PositionX")),

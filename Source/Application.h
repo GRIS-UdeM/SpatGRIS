@@ -35,6 +35,7 @@ class SpatGris2Application final : public juce::JUCEApplication
 {
     std::unique_ptr<MainWindow> mMainWindow{};
     GrisLookAndFeel mGrisFeel{};
+    SmallGrisLookAndFeel mSmallLookAndFeel{};
 
 public:
     //==============================================================================

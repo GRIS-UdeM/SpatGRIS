@@ -62,7 +62,7 @@ constexpr float OVER = 0.02f;
 //==============================================================================
 class Speaker final : public ParentLevelComponent
 {
-    SmallGrisLookAndFeel mLookAndFeel;
+    SmallGrisLookAndFeel & mLookAndFeel;
 
     MainContentComponent & mMainContentComponent;
 
@@ -89,6 +89,7 @@ class Speaker final : public ParentLevelComponent
 public:
     //==============================================================================
     Speaker(MainContentComponent & mainContentComponent,
+            SmallGrisLookAndFeel & smallGrisLookAndFeel,
             int id,
             int outputPatch,
             float azimuth,

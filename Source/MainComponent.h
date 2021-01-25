@@ -140,7 +140,7 @@ class MainContentComponent final
     //==============================================================================
     // Look-and-feel.
     GrisLookAndFeel & mLookAndFeel;
-    SmallGrisLookAndFeel mSmallLookAndFeel{};
+    SmallGrisLookAndFeel & mSmallLookAndFeel;
 
     MainWindow & mMainWindow;
 
@@ -169,7 +169,9 @@ class MainContentComponent final
 
 public:
     //==============================================================================
-    MainContentComponent(MainWindow & mainWindow, GrisLookAndFeel & newLookAndFeel);
+    MainContentComponent(MainWindow & mainWindow,
+                         GrisLookAndFeel & grisLookAndFeel,
+                         SmallGrisLookAndFeel & smallGrisLookAndFeel);
     //==============================================================================
     MainContentComponent() = delete;
     ~MainContentComponent() override;

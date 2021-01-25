@@ -23,7 +23,7 @@
 //==============================================================================
 void SpatGris2Application::initialise(juce::String const & /*commandLine*/)
 {
-    mMainWindow = std::make_unique<MainWindow>(getApplicationName(), mGrisFeel);
+    mMainWindow = std::make_unique<MainWindow>(getApplicationName(), mGrisFeel, mSmallLookAndFeel);
 }
 
 //==============================================================================
