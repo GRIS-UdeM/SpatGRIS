@@ -363,7 +363,7 @@ static void
     float sum = 0.0;
 
     sp_azi = std::clamp(sp_azi, 0.0f, 1.0f);
-    sp_azi = std::clamp(sp_ele, 0.0f, 1.0f);
+    sp_ele = std::clamp(sp_ele, 0.0f, 1.0f);
 
     // If both sp_azi and sp_ele are active, we want to put a virtual source at
     // (azi, ele +/- eledev) and (azi +/- azidev, ele) locations.
