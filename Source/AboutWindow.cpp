@@ -60,7 +60,7 @@ AboutComponent::AboutComponent(AboutWindow & parentWindow, GrisLookAndFeel & loo
     infos << "Actual: Samuel BÉLAND\n\n";
     infos << "Former: Olivier BÉLANGER, Vincent BERTHIAUME, Nicolas MASSON, Antoine MISSOUT\n\n\n";
     infos << "Assistants:\n\n";
-    infos << "David LEDOUX, Christophe LENGELÉ, Nicola GIANNINI\n\n";
+    infos << "Christophe LENGELÉ, Nicola GIANNINI, Mélanie Frisoli\n\n";
 
     mInfosLabel.setText(infos, juce::NotificationType::dontSendNotification);
     mInfosLabel.setJustificationType(juce::Justification::left);
