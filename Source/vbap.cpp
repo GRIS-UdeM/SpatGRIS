@@ -875,18 +875,19 @@ void choose_ls_triplets(LoudSpeaker const speakers[MAX_SPEAKER_COUNT],
      * vol_p_side_lgth().
      */
 
-    // we first build an array with all the indexes
+    // We first build an array with all the indexes
     std::vector<int> speakerIndexesSortedByElevation{};
     speakerIndexesSortedByElevation.resize(narrow<size_t>(numSpeakers));
     std::iota(std::begin(speakerIndexesSortedByElevation), std::end(speakerIndexesSortedByElevation), 0);
 
-    // then we sort it
+    // ...then we sort it according to the elevation values
     auto const compare = [speakers](size_t const & indexA, size_t const & indexB) -> bool {
         return speakers[indexA].angles.elevation < speakers[indexB].angles.elevation;
     };
     std::sort(std::begin(speakerIndexesSortedByElevation), std::end(speakerIndexesSortedByElevation), compare);
 
-    // then we test for valid triplets only when the elevation matches
+    // ...then we test for valid triplets ONLY when the elevation difference is within a specified range for two
+    // speakers
     for (size_t i{}; i < speakerIndexesSortedByElevation.size(); ++i) {
         auto const speaker1Index{ speakerIndexesSortedByElevation[i] };
         auto const & speaker1{ speakers[speaker1Index] };
@@ -895,10 +896,16 @@ void choose_ls_triplets(LoudSpeaker const speakers[MAX_SPEAKER_COUNT],
             auto const & speaker2{ speakers[speaker2Index] };
             static constexpr float MAX_ELEVATION_DIFF = 10.0f;
             if (speaker2.angles.elevation - speaker1.angles.elevation > MAX_ELEVATION_DIFF) {
-                // the next speakers are not going to work either
+                // The elevation difference is only going to get greater : we can move the 1st speaker and reset the
+                // other loops
                 break;
             }
-            for (auto k{ j + 1 }; k < speakerIndexesSortedByElevation.size(); ++k) {
+            for (size_t k{}; k < speakerIndexesSortedByElevation.size(); ++k) {
+                if (k >= i && k <= j) {
+                    // If k is between i and j, it means that i and k are within the elevation threshold (as well as k
+                    // and j), so they are going to get checked anyway. We also need not to include i or j twice!
+                    continue;
+                }
                 auto const speaker3Index{ speakerIndexesSortedByElevation[k] };
                 auto const & speaker3{ speakers[speaker3Index] };
                 auto const isValidCandidate{ vol_p_side_lgth(speaker1, speaker2, speaker3) > MIN_VOL_P_SIDE_LENGTH };
@@ -914,23 +921,6 @@ void choose_ls_triplets(LoudSpeaker const speakers[MAX_SPEAKER_COUNT],
             }
         }
     }
-
-    //// TODO : this is fucking unacceptable
-    // for (int i{}; i < numSpeakers; ++i) {
-    //    for (auto j = i + 1; j < numSpeakers; ++j) {
-    //        for (auto k = j + 1; k < numSpeakers; ++k) {
-    //            if (vol_p_side_lgth(speakers[i], speakers[j], speakers[k]) > MIN_VOL_P_SIDE_LENGTH) {
-    //                connections[i][j] = 1;
-    //                connections[j][i] = 1;
-    //                connections[i][k] = 1;
-    //                connections[k][i] = 1;
-    //                connections[j][k] = 1;
-    //                connections[k][j] = 1;
-    //                add_ldsp_triplet(i, j, k, speakerTriplets);
-    //            }
-    //        }
-    //    }
-    //}
 
     /* Calculate distances between all lss and sorting them. */
     auto table_size = (((numSpeakers - 1) * (numSpeakers)) / 2);
