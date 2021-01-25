@@ -141,31 +141,16 @@ struct VbapData {
  */
 SpeakersSetup * load_speakers_setup(int count, float * azimuth, float * elevation) noexcept;
 
-/* Fill a SPEAKERS_SETUP structure from the content of a text file.
- *
- * File format:
- *
- * First line starts with an integer which is the number of speakers.
- * Remaining lines (must be equal to the number of speakers) starts with
- * two floats. They give the azimuth and elevation for each speakers.
- */
-SpeakersSetup * load_speakers_setup_from_file(char const * filename) noexcept;
-
 /* Properly free a previously allocated SPEAKERS_SETUP structure.
  */
 void free_speakers_setup(SpeakersSetup * setup) noexcept;
 
-/* Initialize a VBAP_DATA structure from a loudspeakers setup and
- * an optional matrix of user-defined triplets.
- */
-VbapData * init_vbap_data(SpeakersSetup * setup, int const * const * triplets) noexcept;
-
-VbapData * init_vbap_from_speakers(LoudSpeaker lss[MAX_SPEAKER_COUNT],
+VbapData * init_vbap_from_speakers(LoudSpeaker speakers[MAX_SPEAKER_COUNT],
                                    int count,
-                                   int dim,
-                                   int outputPatches[MAX_SPEAKER_COUNT],
+                                   int dimensions,
+                                   int const outputPatches[MAX_SPEAKER_COUNT],
                                    int maxOutputPatch,
-                                   int const * const * triplets) noexcept;
+                                   [[maybe_unused]] int const * const * tripletsFileName);
 
 VbapData * copy_vbap_data(VbapData const * data) noexcept;
 
@@ -175,9 +160,7 @@ void free_vbap_data(VbapData * data) noexcept;
 
 /* Calculates gain factors using loudspeaker setup and angle direction.
  */
-void vbap(float azimuth, float elevation, float spread, VbapData * data) noexcept;
 void vbap2(float azimuth, float elevation, float spAzimuth, float spElevation, VbapData * data) noexcept;
-void vbap_flip_y_z(float azimuth, float elevation, float spread, VbapData * data) noexcept;
 void vbap2_flip_y_z(float azimuth, float elevation, float spAzimuth, float spElevation, VbapData * data) noexcept;
 
 int vbap_get_triplets(VbapData const * data, int *** triplets);

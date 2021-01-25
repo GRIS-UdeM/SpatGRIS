@@ -872,6 +872,7 @@ bool AudioProcessor::initSpeakersTriplet(std::vector<Speaker *> const & listSpk,
     }
 
     if (needToComputeVbap) {
+        free_vbap_data(mParamVBap);
         mParamVBap = init_vbap_from_speakers(lss,
                                              narrow<int>(listSpk.size()),
                                              dimensions,
@@ -884,7 +885,10 @@ bool AudioProcessor::initSpeakersTriplet(std::vector<Speaker *> const & listSpk,
     }
 
     for (unsigned i{}; i < MAX_INPUTS; ++i) {
-        mSourcesData[i].paramVBap = copy_vbap_data(mParamVBap);
+        auto & paramVbap{ mSourcesData[i].paramVBap };
+        free_vbap_data(paramVbap);
+        ;
+        paramVbap = copy_vbap_data(mParamVBap);
     }
 
     int ** triplets;

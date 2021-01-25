@@ -83,39 +83,16 @@ static bool any_speaker_inside_triplet(int const a,
     return false;
 }
 
-/* Properly free an automatically allocated ls_triplet_chain linked-list.
- */
-void free_ls_triplet_chain(TripletListNode * const ls_triplets) noexcept
-{
-    TripletListNode * ptr = ls_triplets;
-    while (ptr != nullptr) {
-        TripletListNode * const next = ptr->nextTriplet;
-        delete ptr;
-        ptr = next;
-    }
-}
-
 /* Adds i, j, k triplet to triplet chain. */
-static void add_ldsp_triplet(int const i, int const j, int const k, TripletListNode ** const speakerTriplets) noexcept
+static void add_ldsp_triplet(int const i, int const j, int const k, TripletList & triplets) noexcept
 {
-    auto * trip_ptr = *speakerTriplets;
-    TripletListNode * prev{};
+    TripletData newTripletData{};
 
-    // TODO : apparently a lot of time is being spent here...
-    while (trip_ptr != nullptr) {
-        prev = trip_ptr;
-        trip_ptr = trip_ptr->nextTriplet;
-    }
-    trip_ptr = new TripletListNode;
-    if (prev == nullptr) {
-        *speakerTriplets = trip_ptr;
-    } else {
-        prev->nextTriplet = trip_ptr;
-    }
-    trip_ptr->nextTriplet = nullptr;
-    trip_ptr->tripletSpeakerNumber[0] = i;
-    trip_ptr->tripletSpeakerNumber[1] = j;
-    trip_ptr->tripletSpeakerNumber[2] = k;
+    newTripletData.tripletSpeakerNumber[0] = i;
+    newTripletData.tripletSpeakerNumber[1] = j;
+    newTripletData.tripletSpeakerNumber[2] = k;
+
+    triplets.push_back(newTripletData);
 }
 
 /* Checks if two lines intersect on 3D sphere see theory in paper
@@ -524,10 +501,8 @@ static void spreadit_azi(float /*azi*/, float azimuthSpread, VbapData * data)
     }
 }
 
-static void spreadit_azi_flip_y_z(float /*azi*/, float sp_azi, VbapData * data)
+static void spreadit_azi_flip_y_z(float /*azi*/, float sp_azimuth, VbapData * data)
 {
-    int i;
-    static constexpr auto NUM = 4;
     float newazi;
     float comp;
     float tmp;
@@ -537,11 +512,12 @@ static void spreadit_azi_flip_y_z(float /*azi*/, float sp_azi, VbapData * data)
     std::array<float, MAX_SPEAKER_COUNT> tmp_gains{};
     float sum = 0.0;
 
-    sp_azi = std::clamp(sp_azi, 0.0f, 1.0f);
+    sp_azimuth = std::clamp(sp_azimuth, 0.0f, 1.0f);
 
-    for (i = 0; i < NUM; i++) {
+    static constexpr auto NUM = 4;
+    for (int i = 0; i < NUM; i++) {
         comp = std::pow(10.0f, (i + 1) * -3.0f * 0.05f);
-        float azidev = (i + 1) * sp_azi * 45.0f;
+        float azidev = (i + 1) * sp_azimuth * 45.0f;
         for (int k = 0; k < 2; k++) {
             if (k == 0) {
                 newazi = data->angularDirection.azimuth + azidev;
@@ -572,11 +548,11 @@ static void spreadit_azi_flip_y_z(float /*azi*/, float sp_azi, VbapData * data)
         }
     }
 
-    for (i = 0; i < cnt; i++) {
+    for (int i = 0; i < cnt; i++) {
         sum += (data->gains[i] * data->gains[i]);
     }
     sum = std::sqrt(sum);
-    for (i = 0; i < cnt; i++) {
+    for (int i = 0; i < cnt; i++) {
         data->gains[i] /= sum;
     }
 }
@@ -610,55 +586,6 @@ SpeakersSetup *
     return setup;
 }
 
-SpeakersSetup * load_speakers_setup_from_file(char const * const filename) noexcept
-{
-    int i = 0;
-    int count;
-    float azi;
-    float ele;
-    char c[10000];
-    FILE * fp;
-    auto * setup = new SpeakersSetup;
-
-    if ((fp = fopen(filename, "r")) == nullptr) {
-        fprintf(stderr, "Could not open loudspeaker setup file.\n");
-        free(setup);
-        exit(-1);
-    }
-
-    fgets(c, 10000, fp);
-    char * toke = (char *)strtok(c, " ");
-    sscanf(toke, "%d", &count);
-    if (count < 3) {
-        fprintf(stderr, "Too few loudspeakers %d\n", count);
-        free(setup);
-        exit(-1);
-    }
-
-    setup->azimuth = (float *)calloc(count, sizeof(float));
-    setup->elevation = (float *)calloc(count, sizeof(float));
-    while (1) {
-        if (fgets(c, 10000, fp) == nullptr)
-            break;
-        toke = (char *)strtok(c, " ");
-        if (sscanf(toke, "%f", &azi) > 0) {
-            toke = (char *)strtok(nullptr, " ");
-            sscanf(toke, "%f", &ele);
-        } else {
-            break;
-        }
-
-        setup->azimuth[i] = azi;
-        setup->elevation[i] = ele;
-        i++;
-        if (i == count)
-            break;
-    }
-    setup->dimension = 3;
-    setup->count = count;
-    return setup;
-}
-
 /* Build a speakers list from a SPEAKERS_SETUP structure.
  */
 void build_speakers_list(SpeakersSetup * setup, LoudSpeaker speakers[MAX_SPEAKER_COUNT])
@@ -678,43 +605,43 @@ void build_speakers_list(SpeakersSetup * setup, LoudSpeaker speakers[MAX_SPEAKER
 /*
  * No external use.
  */
-void sort_2D_lss(LoudSpeaker lss[MAX_SPEAKER_COUNT], int sorted_lss[MAX_SPEAKER_COUNT], int ls_amount)
+void sort_2D_lss(LoudSpeaker speakers[MAX_SPEAKER_COUNT], int sortedSpeakers[MAX_SPEAKER_COUNT], int numSpeakers)
 {
     int i, j, index = 0;
     float tmp, tmp_azi;
 
     /* Transforming angles between -180 and 180. */
-    for (i = 0; i < ls_amount; i++) {
-        lss[i].coords = lss[i].angles.toCartesian();
-        lss[i].angles.azimuth = std::acos(lss[i].coords.x);
-        if (std::abs(lss[i].coords.y) <= 0.001)
+    for (i = 0; i < numSpeakers; i++) {
+        speakers[i].coords = speakers[i].angles.toCartesian();
+        speakers[i].angles.azimuth = std::acos(speakers[i].coords.x);
+        if (std::abs(speakers[i].coords.y) <= 0.001)
             tmp = 1.0;
         else
-            tmp = lss[i].coords.y / std::abs(lss[i].coords.y);
-        lss[i].angles.azimuth *= tmp;
+            tmp = speakers[i].coords.y / std::abs(speakers[i].coords.y);
+        speakers[i].angles.azimuth *= tmp;
     }
-    for (i = 0; i < ls_amount; i++) {
+    for (i = 0; i < numSpeakers; i++) {
         tmp = 2000;
-        for (j = 0; j < ls_amount; j++) {
-            if (lss[j].angles.azimuth <= tmp) {
-                tmp = lss[j].angles.azimuth;
+        for (j = 0; j < numSpeakers; j++) {
+            if (speakers[j].angles.azimuth <= tmp) {
+                tmp = speakers[j].angles.azimuth;
                 index = j;
             }
         }
-        sorted_lss[i] = index;
-        tmp_azi = lss[index].angles.azimuth;
-        lss[index].angles.azimuth = tmp_azi + 4000.0f;
+        sortedSpeakers[i] = index;
+        tmp_azi = speakers[index].angles.azimuth;
+        speakers[index].angles.azimuth = tmp_azi + 4000.0f;
     }
-    for (i = 0; i < ls_amount; i++) {
-        tmp_azi = lss[i].angles.azimuth;
-        lss[i].angles.azimuth = tmp_azi - 4000.0f;
+    for (i = 0; i < numSpeakers; i++) {
+        tmp_azi = speakers[i].angles.azimuth;
+        speakers[i].angles.azimuth = tmp_azi - 4000.0f;
     }
 }
 
 /*
  * No external use.
  */
-int calc_2D_inv_tmatrix(float azi1, float azi2, float inv_mat[4])
+int calc_2D_inv_tmatrix(float const azi1, float const azi2, float inv_mat[4])
 {
     auto const x1 = fast::cos(azi1);
     auto const x2 = fast::sin(azi1);
@@ -727,40 +654,36 @@ int calc_2D_inv_tmatrix(float azi1, float azi2, float inv_mat[4])
         inv_mat[2] = 0.0;
         inv_mat[3] = 0.0;
         return 0;
-    } else {
-        inv_mat[0] = x4 / det;
-        inv_mat[1] = -x3 / det;
-        inv_mat[2] = -x2 / det;
-        inv_mat[3] = x1 / det;
-        return 1;
     }
+    inv_mat[0] = x4 / det;
+    inv_mat[1] = -x3 / det;
+    inv_mat[2] = -x2 / det;
+    inv_mat[3] = x1 / det;
+    return 1;
 }
 
 /* Selects the loudspeaker pairs, calculates the inversion
  * matrices and stores the data to a global array.
  */
-void choose_ls_tuplets(LoudSpeaker lss[MAX_SPEAKER_COUNT], TripletListNode ** ls_triplets, int ls_amount)
+void choose_ls_tuplets(LoudSpeaker speakers[MAX_SPEAKER_COUNT], TripletList & triplets, int const numSpeakers)
 {
-    int i, j, amount = 0;
-    int sorted_lss[MAX_SPEAKER_COUNT];
     int exist[MAX_SPEAKER_COUNT];
-    float inv_mat[MAX_SPEAKER_COUNT][4];
-    struct TripletListNode *prev, *tr_ptr = *ls_triplets;
-    prev = nullptr;
-
-    for (i = 0; i < MAX_SPEAKER_COUNT; i++) {
+    for (int i{}; i < MAX_SPEAKER_COUNT; ++i) {
         exist[i] = 0;
     }
 
+    int sortedSpeakers[MAX_SPEAKER_COUNT];
     /* Sort loudspeakers according their azimuth angle. */
-    sort_2D_lss(lss, sorted_lss, ls_amount);
+    sort_2D_lss(speakers, sortedSpeakers, numSpeakers);
 
     /* Adjacent loudspeakers are the loudspeaker pairs to be used. */
-    for (i = 0; i < (ls_amount - 1); i++) {
-        if ((lss[sorted_lss[i + 1]].angles.azimuth - lss[sorted_lss[i]].angles.azimuth)
+    int amount = 0;
+    float inv_mat[MAX_SPEAKER_COUNT][4];
+    for (int i = 0; i < (numSpeakers - 1); i++) {
+        if ((speakers[sortedSpeakers[i + 1]].angles.azimuth - speakers[sortedSpeakers[i]].angles.azimuth)
             <= (juce::MathConstants<float>::pi - 0.175f)) {
-            if (calc_2D_inv_tmatrix(lss[sorted_lss[i]].angles.azimuth,
-                                    lss[sorted_lss[i + 1]].angles.azimuth,
+            if (calc_2D_inv_tmatrix(speakers[sortedSpeakers[i]].angles.azimuth,
+                                    speakers[sortedSpeakers[i + 1]].angles.azimuth,
                                     inv_mat[i])
                 != 0) {
                 exist[i] = 1;
@@ -769,54 +692,41 @@ void choose_ls_tuplets(LoudSpeaker lss[MAX_SPEAKER_COUNT], TripletListNode ** ls
         }
     }
 
-    if (((juce::MathConstants<float>::twoPi - lss[sorted_lss[ls_amount - 1]].angles.azimuth)
-         + lss[sorted_lss[0]].angles.azimuth)
+    if (((juce::MathConstants<float>::twoPi - speakers[sortedSpeakers[numSpeakers - 1]].angles.azimuth)
+         + speakers[sortedSpeakers[0]].angles.azimuth)
         <= (juce::MathConstants<float>::pi - 0.175f)) {
-        if (calc_2D_inv_tmatrix(lss[sorted_lss[ls_amount - 1]].angles.azimuth,
-                                lss[sorted_lss[0]].angles.azimuth,
-                                inv_mat[ls_amount - 1])
+        if (calc_2D_inv_tmatrix(speakers[sortedSpeakers[numSpeakers - 1]].angles.azimuth,
+                                speakers[sortedSpeakers[0]].angles.azimuth,
+                                inv_mat[numSpeakers - 1])
             != 0) {
-            exist[ls_amount - 1] = 1;
-            amount++;
+            exist[numSpeakers - 1] = 1;
         }
     }
 
-    for (i = 0; i < ls_amount - 1; i++) {
+    for (int i = 0; i < numSpeakers - 1; i++) {
         if (exist[i] == 1) {
-            while (tr_ptr != nullptr) {
-                prev = tr_ptr;
-                tr_ptr = tr_ptr->nextTriplet;
+            TripletData newTripletData;
+
+            newTripletData.tripletSpeakerNumber[0] = sortedSpeakers[i] + 1;
+            newTripletData.tripletSpeakerNumber[1] = sortedSpeakers[i + 1] + 1;
+            for (int j = 0; j < 4; j++) {
+                newTripletData.tripletInverseMatrix[j] = inv_mat[i][j];
             }
-            tr_ptr = new TripletListNode;
-            if (prev == nullptr)
-                *ls_triplets = tr_ptr;
-            else
-                prev->nextTriplet = tr_ptr;
-            tr_ptr->nextTriplet = nullptr;
-            tr_ptr->tripletSpeakerNumber[0] = sorted_lss[i] + 1;
-            tr_ptr->tripletSpeakerNumber[1] = sorted_lss[i + 1] + 1;
-            for (j = 0; j < 4; j++) {
-                tr_ptr->tripletInverseMatrix[j] = inv_mat[i][j];
-            }
+
+            triplets.push_back(newTripletData);
         }
     }
 
-    if (exist[ls_amount - 1] == 1) {
-        while (tr_ptr != nullptr) {
-            prev = tr_ptr;
-            tr_ptr = tr_ptr->nextTriplet;
+    if (exist[numSpeakers - 1] == 1) {
+        TripletData newTripletData;
+
+        newTripletData.tripletSpeakerNumber[0] = sortedSpeakers[numSpeakers - 1] + 1;
+        newTripletData.tripletSpeakerNumber[1] = sortedSpeakers[0] + 1;
+        for (int j = 0; j < 4; j++) {
+            newTripletData.tripletInverseMatrix[j] = inv_mat[numSpeakers - 1][j];
         }
-        tr_ptr = new TripletListNode;
-        if (prev == nullptr)
-            *ls_triplets = tr_ptr;
-        else
-            prev->nextTriplet = tr_ptr;
-        tr_ptr->nextTriplet = nullptr;
-        tr_ptr->tripletSpeakerNumber[0] = sorted_lss[ls_amount - 1] + 1;
-        tr_ptr->tripletSpeakerNumber[1] = sorted_lss[0] + 1;
-        for (j = 0; j < 4; j++) {
-            tr_ptr->tripletInverseMatrix[j] = inv_mat[ls_amount - 1][j];
-        }
+
+        triplets.push_back(newTripletData);
     }
 }
 
@@ -845,22 +755,11 @@ static float vol_p_side_lgth(LoudSpeaker const & i, LoudSpeaker const & j, LoudS
  * This yields non-intersecting triangles, which can be used in panning.
  */
 void choose_ls_triplets(LoudSpeaker const speakers[MAX_SPEAKER_COUNT],
-                        TripletListNode ** const speakerTriplets,
+                        TripletList & triplets,
                         int const numSpeakers) noexcept
 {
     static constexpr size_t MAGIC = MAX_SPEAKER_COUNT * (MAX_SPEAKER_COUNT - 1) / 2;
-
-    int connections[MAX_SPEAKER_COUNT][MAX_SPEAKER_COUNT];
-
-    float distance_table[MAGIC];
-    int distance_table_i[MAGIC];
-    int distance_table_j[MAGIC];
-    TripletListNode * tmp_ptr;
-
-    if (numSpeakers == 0) {
-        fprintf(stderr, "Number of loudspeakers is zero.\nExiting!\n");
-        exit(-1);
-    }
+    jassert(numSpeakers > 0);
 
     /*
      * Ok, so the next part of the algorithm has to check vol_p_side_lgth() for EVERY possible speaker triplet. This
@@ -881,20 +780,24 @@ void choose_ls_triplets(LoudSpeaker const speakers[MAX_SPEAKER_COUNT],
     std::iota(std::begin(speakerIndexesSortedByElevation), std::end(speakerIndexesSortedByElevation), 0);
 
     // ...then we sort it according to the elevation values
-    auto const compare = [speakers](size_t const & indexA, size_t const & indexB) -> bool {
+    auto const sortIndexesBySpeakerElevation = [speakers](size_t const & indexA, size_t const & indexB) -> bool {
         return speakers[indexA].angles.elevation < speakers[indexB].angles.elevation;
     };
-    std::sort(std::begin(speakerIndexesSortedByElevation), std::end(speakerIndexesSortedByElevation), compare);
+    std::sort(std::begin(speakerIndexesSortedByElevation),
+              std::end(speakerIndexesSortedByElevation),
+              sortIndexesBySpeakerElevation);
 
     // ...then we test for valid triplets ONLY when the elevation difference is within a specified range for two
     // speakers
+    int connections[MAX_SPEAKER_COUNT][MAX_SPEAKER_COUNT];
+    memset(connections, 0, sizeof(int) * MAX_SPEAKER_COUNT * MAX_SPEAKER_COUNT);
     for (size_t i{}; i < speakerIndexesSortedByElevation.size(); ++i) {
         auto const speaker1Index{ speakerIndexesSortedByElevation[i] };
         auto const & speaker1{ speakers[speaker1Index] };
         for (auto j{ i + 1 }; j < speakerIndexesSortedByElevation.size(); ++j) {
             auto const speaker2Index{ speakerIndexesSortedByElevation[j] };
             auto const & speaker2{ speakers[speaker2Index] };
-            static constexpr float MAX_ELEVATION_DIFF = 10.0f;
+            static constexpr auto MAX_ELEVATION_DIFF = 10.0f;
             if (speaker2.angles.elevation - speaker1.angles.elevation > MAX_ELEVATION_DIFF) {
                 // The elevation difference is only going to get greater : we can move the 1st speaker and reset the
                 // other loops
@@ -916,7 +819,7 @@ void choose_ls_triplets(LoudSpeaker const speakers[MAX_SPEAKER_COUNT],
                     connections[speaker3Index][speaker1Index] = 1;
                     connections[speaker2Index][speaker3Index] = 1;
                     connections[speaker3Index][speaker2Index] = 1;
-                    add_ldsp_triplet(speaker1Index, speaker2Index, speaker3Index, speakerTriplets);
+                    add_ldsp_triplet(speaker1Index, speaker2Index, speaker3Index, triplets);
                 }
             }
         }
@@ -924,9 +827,15 @@ void choose_ls_triplets(LoudSpeaker const speakers[MAX_SPEAKER_COUNT],
 
     /* Calculate distances between all lss and sorting them. */
     auto table_size = (((numSpeakers - 1) * (numSpeakers)) / 2);
-    for (int i{}; i < table_size; i++) {
-        distance_table[i] = 100000.0f;
-    }
+    std::vector<float> distance_table{};
+    distance_table.resize(table_size);
+    std::fill(std::begin(distance_table), std::end(distance_table), 100000.0f);
+
+    std::vector<int> distance_table_i{};
+    distance_table_i.resize(table_size);
+
+    std::vector<int> distance_table_j{};
+    distance_table_j.resize(table_size);
 
     for (int i{}; i < numSpeakers; i++) {
         for (auto j = (i + 1); j < numSpeakers; j++) {
@@ -972,30 +881,22 @@ void choose_ls_triplets(LoudSpeaker const speakers[MAX_SPEAKER_COUNT],
 
     /* Remove triangles which had crossing sides with
      * smaller triangles or include loudspeakers. */
-    TripletListNode * trip_ptr = *speakerTriplets;
-    TripletListNode * prev = nullptr;
-    while (trip_ptr != nullptr) {
-        auto const & i = trip_ptr->tripletSpeakerNumber[0];
-        auto const & j = trip_ptr->tripletSpeakerNumber[1];
-        auto const & k = trip_ptr->tripletSpeakerNumber[2];
-        if (connections[i][j] == 0 || connections[i][k] == 0 || connections[j][k] == 0
-            || any_speaker_inside_triplet(i, j, k, speakers, numSpeakers) == 1) {
-            if (prev != nullptr) {
-                prev->nextTriplet = trip_ptr->nextTriplet;
-                tmp_ptr = trip_ptr;
-                trip_ptr = trip_ptr->nextTriplet;
-                free(tmp_ptr);
-            } else {
-                *speakerTriplets = trip_ptr->nextTriplet;
-                tmp_ptr = trip_ptr;
-                trip_ptr = trip_ptr->nextTriplet;
-                free(tmp_ptr);
-            }
-        } else {
-            prev = trip_ptr;
-            trip_ptr = trip_ptr->nextTriplet;
-        }
-    }
+    auto const predicate = [&connections, speakers, numSpeakers](TripletData const & triplet) -> bool {
+        auto const & i = triplet.tripletSpeakerNumber[0];
+        auto const & j = triplet.tripletSpeakerNumber[1];
+        auto const & k = triplet.tripletSpeakerNumber[2];
+
+        auto const anySpeakerInsideTriplet{ any_speaker_inside_triplet(i, j, k, speakers, numSpeakers) };
+        auto const hasAllConnections{ connections[i][j] && connections[i][k] && connections[j][k] };
+
+        auto const result{ hasAllConnections && !anySpeakerInsideTriplet };
+
+        return result;
+    };
+    auto const newTripletEnd{ std::partition(std::begin(triplets), std::end(triplets), predicate) };
+
+    triplets.erase(newTripletEnd, std::end(triplets));
+    triplets.shrink_to_fit();
 }
 
 /* Calculates the inverse matrices for 3D.
@@ -1003,242 +904,100 @@ void choose_ls_triplets(LoudSpeaker const speakers[MAX_SPEAKER_COUNT],
  * After this call, ls_triplets contains the speakers numbers
  * and the inverse matrix needed to compute channel gains.
  */
-int calculate_3x3_matrixes(TripletListNode * const ls_triplets,
-                           LoudSpeaker speakers[MAX_SPEAKER_COUNT],
-                           int /*numSpeakers*/)
+void calculate_3x3_matrixes(TripletList & triplets, LoudSpeaker speakers[MAX_SPEAKER_COUNT], int /*numSpeakers*/)
 {
-    auto * tr_ptr = ls_triplets;
-
-    if (tr_ptr == nullptr) {
-        fprintf(stderr, "Not valid 3-D configuration.\n");
-        return 0;
-    }
-
-    /* Calculations and data storage. */
-    while (tr_ptr != nullptr) {
-        CartesianVector * lp1 = &(speakers[tr_ptr->tripletSpeakerNumber[0]].coords);
-        CartesianVector * lp2 = &(speakers[tr_ptr->tripletSpeakerNumber[1]].coords);
-        CartesianVector * lp3 = &(speakers[tr_ptr->tripletSpeakerNumber[2]].coords);
+    for (auto & triplet : triplets) {
+        auto const * lp1 = &(speakers[triplet.tripletSpeakerNumber[0]].coords);
+        auto const * lp2 = &(speakers[triplet.tripletSpeakerNumber[1]].coords);
+        auto const * lp3 = &(speakers[triplet.tripletSpeakerNumber[2]].coords);
 
         /* Matrix inversion. */
-        float * invmx = tr_ptr->tripletInverseMatrix;
-        float invdet
+        auto * inverseMatrix = triplet.tripletInverseMatrix;
+        auto const inverseDet
             = 1.0f
               / (lp1->x * ((lp2->y * lp3->z) - (lp2->z * lp3->y)) - lp1->y * ((lp2->x * lp3->z) - (lp2->z * lp3->x))
                  + lp1->z * ((lp2->x * lp3->y) - (lp2->y * lp3->x)));
 
-        invmx[0] = ((lp2->y * lp3->z) - (lp2->z * lp3->y)) * invdet;
-        invmx[3] = ((lp1->y * lp3->z) - (lp1->z * lp3->y)) * -invdet;
-        invmx[6] = ((lp1->y * lp2->z) - (lp1->z * lp2->y)) * invdet;
-        invmx[1] = ((lp2->x * lp3->z) - (lp2->z * lp3->x)) * -invdet;
-        invmx[4] = ((lp1->x * lp3->z) - (lp1->z * lp3->x)) * invdet;
-        invmx[7] = ((lp1->x * lp2->z) - (lp1->z * lp2->x)) * -invdet;
-        invmx[2] = ((lp2->x * lp3->y) - (lp2->y * lp3->x)) * invdet;
-        invmx[5] = ((lp1->x * lp3->y) - (lp1->y * lp3->x)) * -invdet;
-        invmx[8] = ((lp1->x * lp2->y) - (lp1->y * lp2->x)) * invdet;
-        tr_ptr = tr_ptr->nextTriplet;
-    }
-    return 1;
-}
-
-/* To be implemented without file reading...
- * Load explicit speakers triplets. Not tested yet...
- */
-void load_ls_triplets(LoudSpeaker /*lss*/[MAX_SPEAKER_COUNT],
-                      TripletListNode ** ls_triplets,
-                      int /*ls_amount*/,
-                      const char * filename)
-{
-    int i;
-    int j;
-    int k;
-    FILE * fp;
-    char c[10000];
-    char * toke;
-
-    TripletListNode * trip_ptr = *ls_triplets;
-    TripletListNode * prev = nullptr;
-    while (trip_ptr != nullptr) {
-        prev = trip_ptr;
-        trip_ptr = trip_ptr->nextTriplet;
-    }
-
-    if ((fp = fopen(filename, "r")) == nullptr) {
-        fprintf(stderr, "Could not open loudspeaker setup file.\n");
-        exit(-1);
-    }
-
-    while (1) {
-        if (fgets(c, 10000, fp) == nullptr)
-            break;
-        toke = strtok(c, " ");
-        if (sscanf(toke, "%d", &i) > 0) {
-            toke = strtok(nullptr, " ");
-            sscanf(toke, "%d", &j);
-            toke = strtok(nullptr, " ");
-            sscanf(toke, "%d", &k);
-        } else {
-            break;
-        }
-
-        trip_ptr = new TripletListNode;
-
-        if (prev == nullptr)
-            *ls_triplets = trip_ptr;
-        else
-            prev->nextTriplet = trip_ptr;
-
-        trip_ptr->nextTriplet = nullptr;
-        trip_ptr->tripletSpeakerNumber[0] = i - 1;
-        trip_ptr->tripletSpeakerNumber[1] = j - 1;
-        trip_ptr->tripletSpeakerNumber[2] = k - 1;
-        prev = trip_ptr;
-        trip_ptr = nullptr;
+        inverseMatrix[0] = ((lp2->y * lp3->z) - (lp2->z * lp3->y)) * inverseDet;
+        inverseMatrix[3] = ((lp1->y * lp3->z) - (lp1->z * lp3->y)) * -inverseDet;
+        inverseMatrix[6] = ((lp1->y * lp2->z) - (lp1->z * lp2->y)) * inverseDet;
+        inverseMatrix[1] = ((lp2->x * lp3->z) - (lp2->z * lp3->x)) * -inverseDet;
+        inverseMatrix[4] = ((lp1->x * lp3->z) - (lp1->z * lp3->x)) * inverseDet;
+        inverseMatrix[7] = ((lp1->x * lp2->z) - (lp1->z * lp2->x)) * -inverseDet;
+        inverseMatrix[2] = ((lp2->x * lp3->y) - (lp2->y * lp3->x)) * inverseDet;
+        inverseMatrix[5] = ((lp1->x * lp3->y) - (lp1->y * lp3->x)) * -inverseDet;
+        inverseMatrix[8] = ((lp1->x * lp2->y) - (lp1->y * lp2->x)) * inverseDet;
     }
 }
 
-VbapData * init_vbap_data(SpeakersSetup * const setup, int const * const * triplets) noexcept
+VbapData * init_vbap_from_speakers(LoudSpeaker speakers[MAX_SPEAKER_COUNT],
+                                   int const count,
+                                   int const dimensions,
+                                   int const outputPatches[MAX_SPEAKER_COUNT],
+                                   int const maxOutputPatch,
+                                   [[maybe_unused]] int const * const * tripletsFileName)
 {
-    int i, j, ret;
-    LoudSpeaker lss[MAX_SPEAKER_COUNT];
-    TripletListNode * ls_triplets = nullptr;
-    TripletListNode * ls_ptr;
-    VbapData * data = (VbapData *)malloc(sizeof(VbapData));
+    jassert(tripletsFileName == nullptr);
 
-    build_speakers_list(setup, lss);
-
-    if (triplets == nullptr)
-        choose_ls_triplets(lss, &ls_triplets, setup->count);
-    else
-        load_ls_triplets(lss, &ls_triplets, setup->count, "filename");
-
-    ret = calculate_3x3_matrixes(ls_triplets, lss, setup->count);
-    if (ret == 0) {
-        free(data);
-        return nullptr;
-    }
-
-    data->dimension = setup->dimension;
-    data->numSpeakers = setup->count;
-    for (i = 0; i < MAX_SPEAKER_COUNT; i++) {
-        data->gains[i] = data->gainsSmoothing[i] = 0.0;
-    }
-
-    i = 0;
-    ls_ptr = ls_triplets;
-    while (ls_ptr != nullptr) {
-        ls_ptr = ls_ptr->nextTriplet;
-        i++;
-    }
-    data->numTriplets = i;
-    data->speakerSets = new SpeakerSet[i];
-
-    i = 0;
-    ls_ptr = ls_triplets;
-    while (ls_ptr != nullptr) {
-        for (j = 0; j < data->dimension; j++) {
-            data->speakerSets[i].speakerNos[j] = ls_ptr->tripletSpeakerNumber[j] + 1;
-        }
-        for (j = 0; j < (data->dimension * data->dimension); j++) {
-            data->speakerSets[i].invMx[j] = ls_ptr->tripletInverseMatrix[j];
-        }
-        ls_ptr = ls_ptr->nextTriplet;
-        i++;
-    }
-
-    free_ls_triplet_chain(ls_triplets);
-
-    return data;
-}
-
-VbapData * init_vbap_from_speakers(LoudSpeaker lss[MAX_SPEAKER_COUNT],
-                                   int count,
-                                   int dim,
-                                   int outputPatches[MAX_SPEAKER_COUNT],
-                                   int maxOutputPatch,
-                                   int const * const * triplets) noexcept
-{
-    int i, j, ret, offset = 0;
-    TripletListNode * ls_triplets = nullptr;
-    TripletListNode * ls_ptr;
-    VbapData * data = (VbapData *)malloc(sizeof(VbapData));
-
-    if (dim == 3) {
-        if (triplets == nullptr)
-            choose_ls_triplets(lss, &ls_triplets, count);
-        else
-            load_ls_triplets(lss, &ls_triplets, count, "filename");
-        ret = calculate_3x3_matrixes(ls_triplets, lss, count);
-        if (ret == 0) {
-            free(data);
-            return nullptr;
-        }
+    int offset{};
+    TripletList triplets{};
+    auto * data = new VbapData;
+    if (dimensions == 3) {
+        choose_ls_triplets(speakers, triplets, count);
+        calculate_3x3_matrixes(triplets, speakers, count);
         offset = 1;
-    } else if (dim == 2) {
-        choose_ls_tuplets(lss, &ls_triplets, count);
+    } else if (dimensions == 2) {
+        choose_ls_tuplets(speakers, triplets, count);
     }
 
     data->numOutputPatches = count;
-    for (i = 0; i < count; i++) {
+    for (int i = 0; i < count; i++) {
         data->outputPatches[i] = outputPatches[i];
     }
 
-    data->dimension = dim;
+    data->dimension = dimensions;
     data->numSpeakers = maxOutputPatch;
-    for (i = 0; i < MAX_SPEAKER_COUNT; i++) {
+    for (int i = 0; i < MAX_SPEAKER_COUNT; i++) {
         data->gains[i] = data->gainsSmoothing[i] = 0.0;
     }
 
-    i = 0;
-    ls_ptr = ls_triplets;
-    while (ls_ptr != nullptr) {
-        ls_ptr = ls_ptr->nextTriplet;
-        i++;
-    }
-    data->numTriplets = i;
-    data->speakerSets = (SpeakerSet *)malloc(sizeof(SpeakerSet) * i);
+    data->numTriplets = triplets.size();
+    ;
+    data->speakerSets = (SpeakerSet *)malloc(sizeof(SpeakerSet) * triplets.size());
 
-    i = 0;
-    ls_ptr = ls_triplets;
-    while (ls_ptr != nullptr) {
-        for (j = 0; j < data->dimension; j++) {
-            // data->ls_sets[i].ls_nos[j] = ls_ptr->ls_nos[j] + offset;
-            data->speakerSets[i].speakerNos[j] = outputPatches[ls_ptr->tripletSpeakerNumber[j] + offset - 1];
+    for (size_t i{}; i < triplets.size(); ++i) {
+        auto const & triplet{ triplets[i] };
+        for (int j = 0; j < data->dimension; j++) {
+            data->speakerSets[i].speakerNos[j] = outputPatches[triplet.tripletSpeakerNumber[j] + offset - 1];
         }
-        for (j = 0; j < (data->dimension * data->dimension); j++) {
-            data->speakerSets[i].invMx[j] = ls_ptr->tripletInverseMatrix[j];
+        for (int j = 0; j < (data->dimension * data->dimension); j++) {
+            data->speakerSets[i].invMx[j] = triplet.tripletInverseMatrix[j];
         }
-        ls_ptr = ls_ptr->nextTriplet;
-        i++;
     }
-
-    free_ls_triplet_chain(ls_triplets);
 
     return data;
 }
 
 VbapData * copy_vbap_data(VbapData const * const data) noexcept
 {
-    int i;
-    int j;
     auto * nw = new VbapData;
     nw->dimension = data->dimension;
     nw->numOutputPatches = data->numOutputPatches;
-    for (i = 0; i < data->numOutputPatches; i++) {
+    for (int i = 0; i < data->numOutputPatches; i++) {
         nw->outputPatches[i] = data->outputPatches[i];
     }
     nw->numSpeakers = data->numSpeakers;
     nw->numTriplets = data->numTriplets;
-    for (i = 0; i < MAX_SPEAKER_COUNT; i++) {
+    for (int i = 0; i < MAX_SPEAKER_COUNT; i++) {
         nw->gains[i] = data->gains[i];
         nw->gainsSmoothing[i] = data->gainsSmoothing[i];
     }
     nw->speakerSets = (SpeakerSet *)malloc(sizeof(SpeakerSet) * nw->numTriplets);
-    for (i = 0; i < nw->numTriplets; i++) {
-        for (j = 0; j < nw->dimension; j++) {
+    for (int i = 0; i < nw->numTriplets; i++) {
+        for (int j = 0; j < nw->dimension; j++) {
             nw->speakerSets[i].speakerNos[j] = data->speakerSets[i].speakerNos[j];
         }
-        for (j = 0; j < nw->dimension * nw->dimension; j++) {
+        for (int j = 0; j < nw->dimension * nw->dimension; j++) {
             nw->speakerSets[i].invMx[j] = data->speakerSets[i].invMx[j];
         }
     }
@@ -1256,30 +1015,11 @@ VbapData * copy_vbap_data(VbapData const * const data) noexcept
 
 void free_vbap_data(VbapData * const data) noexcept
 {
-    free(data->speakerSets);
-    free(data);
-}
-
-void vbap(float const azimuth, float const elevation, float const spread, VbapData * const data) noexcept
-{
-    data->angularDirection.azimuth = azimuth;
-    data->angularDirection.elevation = elevation;
-    data->angularDirection.length = 1.0;
-    data->cartesianDirection = data->angularDirection.toCartesian();
-    data->spreadingVector.x = data->cartesianDirection.x;
-    data->spreadingVector.y = data->cartesianDirection.y;
-    data->spreadingVector.z = data->cartesianDirection.z;
-    for (int i = 0; i < data->numSpeakers; i++) {
-        data->gains[i] = 0.0;
-    }
-    compute_gains(data->numTriplets,
-                  data->speakerSets,
-                  data->gains,
-                  data->numSpeakers,
-                  data->cartesianDirection,
-                  data->dimension);
-    if (spread > 0) {
-        spreadIt(azimuth, spread, data);
+    if (data != nullptr) {
+        if (data->speakerSets != nullptr) {
+            free(data->speakerSets);
+        }
+        free(data);
     }
 }
 
@@ -1311,32 +1051,6 @@ void vbap2(float const azimuth,
         if (spAzimuth > 0) {
             spreadit_azi(azimuth, spAzimuth, data);
         }
-    }
-}
-
-void vbap_flip_y_z(float const azimuth, float const elevation, float const spread, VbapData * const data) noexcept
-{
-    data->angularDirection.azimuth = azimuth;
-    data->angularDirection.elevation = elevation;
-    data->angularDirection.length = 1.0;
-    data->cartesianDirection = data->angularDirection.toCartesian();
-    float tmp = data->cartesianDirection.z;
-    data->cartesianDirection.z = data->cartesianDirection.y;
-    data->cartesianDirection.y = tmp;
-    data->spreadingVector.x = data->cartesianDirection.x;
-    data->spreadingVector.y = data->cartesianDirection.y;
-    data->spreadingVector.z = data->cartesianDirection.z;
-    for (int i = 0; i < data->numSpeakers; i++) {
-        data->gains[i] = 0.0;
-    }
-    compute_gains(data->numTriplets,
-                  data->speakerSets,
-                  data->gains,
-                  data->numSpeakers,
-                  data->cartesianDirection,
-                  data->dimension);
-    if (spread > 0) {
-        spreadIt(azimuth, spread, data);
     }
 }
 
@@ -1447,7 +1161,7 @@ void compute_gains(int const speaker_set_am,
 int vbap_get_triplets(VbapData const * const data, int *** triplets)
 {
     int const num = data->numTriplets;
-    (*triplets) = (int **)malloc(num * sizeof(int *));
+    *triplets = (int **)malloc(num * sizeof(int *));
     for (int i = 0; i < num; i++) {
         (*triplets)[i] = (int *)malloc(3 * sizeof(int));
         (*triplets)[i][0] = data->speakerSets[i].speakerNos[0];
