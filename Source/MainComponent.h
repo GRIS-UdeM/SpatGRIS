@@ -38,7 +38,7 @@ ENABLE_WARNINGS
 #include "Input.h"
 #include "OscInput.h"
 #include "OscLogWindow.h"
-#include "PropertiesWindow.h"
+#include "SettingsWindow.h"
 #include "Speaker.h"
 #include "SpeakerViewComponent.h"
 
@@ -96,7 +96,7 @@ class MainContentComponent final
 
     // Windows.
     std::unique_ptr<EditSpeakersWindow> mEditSpeakersWindow{};
-    std::unique_ptr<PropertiesWindow> mPropertiesWindow{};
+    std::unique_ptr<SettingsWindow> mPropertiesWindow{};
     std::unique_ptr<FlatViewWindow> mFlatViewWindow{};
     std::unique_ptr<AboutWindow> mAboutWindow{};
     std::unique_ptr<OscLogWindow> mOscLogWindow{};

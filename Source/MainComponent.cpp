@@ -563,13 +563,13 @@ void MainContentComponent::handleShowPreferences()
         auto const attenuationHz{ props->getIntValue(user_properties_tags::ATTENUATION_HZ, 3) };
         auto const oscInputPort{ props->getIntValue(user_properties_tags::OSC_INPUT_PORT, 18032) };
 
-        mPropertiesWindow.reset(new PropertiesWindow{ *this,
-                                                      mLookAndFeel,
-                                                      fileFormat,
-                                                      fileConfig,
-                                                      attenuationDb,
-                                                      attenuationHz,
-                                                      oscInputPort });
+        mPropertiesWindow.reset(new SettingsWindow{ *this,
+                                                    mLookAndFeel,
+                                                    fileFormat,
+                                                    fileConfig,
+                                                    attenuationDb,
+                                                    attenuationHz,
+                                                    oscInputPort });
     }
 }
 
@@ -865,7 +865,7 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
         result.setInfo("Show OSC Log Window", "Show the OSC logging window.", generalCategory, 0);
         break;
     case MainWindow::PrefsID:
-        result.setInfo("Preferences...", "Open the preferences window.", generalCategory, 0);
+        result.setInfo("Settings...", "Open the settings window.", generalCategory, 0);
         result.addDefaultKeypress(';', juce::ModifierKeys::commandModifier);
         break;
     case MainWindow::QuitID:

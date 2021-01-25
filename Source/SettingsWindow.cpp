@@ -17,7 +17,7 @@
  along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "PropertiesWindow.h"
+#include "SettingsWindow.h"
 
 #include "AudioManager.h"
 #include "GrisLookAndFeel.h"
@@ -25,13 +25,13 @@
 #include "constants.hpp"
 
 //==============================================================================
-PropertiesComponent::PropertiesComponent(MainContentComponent & parent,
-                                         GrisLookAndFeel & lookAndFeel,
-                                         int const fileFormatIndex,
-                                         int const fileConfigIndex,
-                                         int const attenuationDbIndex,
-                                         int const attenuationCutoffIndex,
-                                         int const oscPort)
+SettingsComponent::SettingsComponent(MainContentComponent & parent,
+                                     GrisLookAndFeel & lookAndFeel,
+                                     int const fileFormatIndex,
+                                     int const fileConfigIndex,
+                                     int const attenuationDbIndex,
+                                     int const attenuationCutoffIndex,
+                                     int const oscPort)
     : mMainContentComponent(parent)
     , mLookAndFeel(lookAndFeel)
 {
@@ -121,13 +121,13 @@ PropertiesComponent::PropertiesComponent(MainContentComponent & parent,
 }
 
 //==============================================================================
-void PropertiesWindow::closeButtonPressed()
+void SettingsWindow::closeButtonPressed()
 {
     mMainContentComponent.closePropertiesWindow();
 }
 
 //==============================================================================
-void PropertiesComponent::buttonClicked(juce::Button * button)
+void SettingsComponent::buttonClicked(juce::Button * button)
 {
     if (button == &mSaveSettingsButton) {
         mMainContentComponent.saveProperties(mDeviceTypeCombo.getText(),
@@ -145,7 +145,7 @@ void PropertiesComponent::buttonClicked(juce::Button * button)
 }
 
 //==============================================================================
-void PropertiesComponent::placeComponents()
+void SettingsComponent::placeComponents()
 {
     auto yPosition = PADDING;
 
@@ -213,7 +213,7 @@ void PropertiesComponent::placeComponents()
 }
 
 //==============================================================================
-void PropertiesComponent::fillComboBoxes()
+void SettingsComponent::fillComboBoxes()
 {
     static auto constexpr TO_STRING_ARRAY = [](auto const & coll) {
         juce::StringArray result{};
@@ -272,7 +272,7 @@ void PropertiesComponent::fillComboBoxes()
 }
 
 //==============================================================================
-void PropertiesComponent::comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged)
+void SettingsComponent::comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged)
 {
     auto & audioDeviceManager{ AudioManager::getInstance().getAudioDeviceManager() };
     auto setup{ audioDeviceManager.getAudioDeviceSetup() };
@@ -313,14 +313,14 @@ void PropertiesComponent::comboBoxChanged(juce::ComboBox * comboBoxThatHasChange
 }
 
 //==============================================================================
-PropertiesWindow::PropertiesWindow(MainContentComponent & parent,
-                                   GrisLookAndFeel & grisLookAndFeel,
-                                   int const indFf,
-                                   int const indFc,
-                                   int const indAttDb,
-                                   int const indAttHz,
-                                   int const oscPort)
-    : juce::DocumentWindow("Properties", grisLookAndFeel.getBackgroundColour(), DocumentWindow::allButtons)
+SettingsWindow::SettingsWindow(MainContentComponent & parent,
+                               GrisLookAndFeel & grisLookAndFeel,
+                               int const indFf,
+                               int const indFc,
+                               int const indAttDb,
+                               int const indAttHz,
+                               int const oscPort)
+    : juce::DocumentWindow("Settings", grisLookAndFeel.getBackgroundColour(), DocumentWindow::allButtons)
     , mMainContentComponent(parent)
     , mPropertiesComponent(parent, grisLookAndFeel, indFf, indFc, indAttDb, indAttHz, oscPort)
 {
@@ -328,5 +328,5 @@ PropertiesWindow::PropertiesWindow(MainContentComponent & parent,
     setResizable(false, false);
     setUsingNativeTitleBar(true);
     centreWithSize(getWidth(), getHeight());
-    PropertiesWindow::setVisible(true);
+    SettingsWindow::setVisible(true);
 }
