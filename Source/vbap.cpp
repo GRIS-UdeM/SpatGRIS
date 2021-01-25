@@ -137,118 +137,6 @@ static int lines_intersect(int const i,
     return (0);
 }
 
-/* subroutine for spreading */
-static CartesianVector newSpreadDir(CartesianVector const vsCartesianDir,
-                                    CartesianVector spreadBase,
-                                    float const azimuth,
-                                    float const spread)
-{
-    auto sum = std::clamp(vsCartesianDir.dotProduct(spreadBase), -1.0f, 1.0f);
-    auto gamma = std::acos(sum) / juce::MathConstants<float>::pi * 180.0f;
-    if (std::abs(gamma) < 1.0f) {
-        AngularVector const tmp{ azimuth + 90.0f, 0.0f, 1.0f };
-        spreadBase = tmp.toCartesian();
-        sum = std::clamp(vsCartesianDir.dotProduct(spreadBase), -1.0f, 1.0f);
-        gamma = std::acos(sum) / juce::MathConstants<float>::pi * 180.0f;
-    }
-    auto const beta = 180.0f - gamma;
-    auto const b = fast::sin(spread * juce::MathConstants<float>::pi / 180.0f)
-                   / fast::sin(beta * juce::MathConstants<float>::pi / 180.0f);
-    auto const a = fast::sin((180.0f - spread - beta) * juce::MathConstants<float>::pi / 180.0f)
-                   / fast::sin(beta * juce::MathConstants<float>::pi / 180.0f);
-    auto const x{ a * vsCartesianDir.x + b * spreadBase.x };
-    auto const y{ a * vsCartesianDir.y + b * spreadBase.y };
-    auto const z{ a * vsCartesianDir.z + b * spreadBase.z };
-    CartesianVector const unscaledResult{ x, y, z };
-    auto const power = std::sqrt(unscaledResult.dotProduct(unscaledResult));
-    auto const result{ unscaledResult / power };
-
-    return result;
-}
-
-/* subroutine for spreading */
-static CartesianVector
-    newSpreadBase(CartesianVector const spreadDir, CartesianVector const vscartdir, float const spread)
-{
-    auto const d = fast::cos(spread / 180.0f * juce::MathConstants<float>::pi);
-
-    auto const x{ spreadDir.x - d * vscartdir.x };
-    auto const y{ spreadDir.y - d * vscartdir.y };
-    auto const z{ spreadDir.z - d * vscartdir.z };
-    CartesianVector const unscaledResult{ x, y, z };
-
-    auto const power = std::sqrt(unscaledResult.dotProduct(unscaledResult));
-    auto const result{ unscaledResult / power };
-
-    return result;
-}
-
-/*
- * apply the sound signal to multiple panning directions
- * that causes some spreading.
- * See theory in paper V. Pulkki "Uniform spreading of amplitude panned
- * virtual sources" in WASPAA 99
- */
-static void spreadIt(float const azimuth, float const spread, VbapData * const data) noexcept
-{
-    /* four orthogonal dirs */
-    CartesianVector spreadDir[16];
-    CartesianVector spreadBase[16];
-    spreadDir[0] = newSpreadDir(data->cartesianDirection, data->spreadingVector, azimuth, spread);
-    data->spreadingVector = newSpreadBase(spreadDir[0], data->cartesianDirection, spread);
-    spreadBase[1] = data->spreadingVector.crossProduct(data->cartesianDirection);
-    spreadBase[2] = spreadBase[1].crossProduct(data->cartesianDirection);
-    spreadBase[3] = spreadBase[2].crossProduct(data->cartesianDirection);
-
-    /* four between them */
-    spreadBase[4] = data->spreadingVector.mean(spreadBase[1]);
-    spreadBase[5] = spreadBase[1].mean(spreadBase[2]);
-    spreadBase[6] = spreadBase[2].mean(spreadBase[3]);
-    spreadBase[7] = spreadBase[3].mean(data->spreadingVector);
-
-    /* four at half spread angle */
-    spreadBase[8] = data->cartesianDirection.mean(data->spreadingVector);
-    spreadBase[9] = data->cartesianDirection.mean(spreadBase[1]);
-    spreadBase[10] = data->cartesianDirection.mean(spreadBase[2]);
-    spreadBase[11] = data->cartesianDirection.mean(spreadBase[3]);
-
-    /* four at quarter spread angle */
-    spreadBase[12] = data->cartesianDirection.mean(spreadBase[8]);
-    spreadBase[13] = data->cartesianDirection.mean(spreadBase[9]);
-    spreadBase[14] = data->cartesianDirection.mean(spreadBase[10]);
-    spreadBase[15] = data->cartesianDirection.mean(spreadBase[11]);
-
-    std::array<float, MAX_SPEAKER_COUNT> tmpGain{};
-    int const cnt = data->numSpeakers;
-    static constexpr auto SPREAD_DIR_NUM = 16;
-    for (auto i = 1; i < SPREAD_DIR_NUM; ++i) {
-        spreadDir[i] = newSpreadDir(data->cartesianDirection, spreadBase[i], azimuth, spread);
-        compute_gains(data->numTriplets,
-                      data->speakerSets,
-                      tmpGain.data(),
-                      data->numSpeakers,
-                      spreadDir[i],
-                      data->dimension);
-        for (int j{}; j < cnt; ++j) {
-            data->gains[j] += tmpGain[j];
-        }
-    }
-
-    if (spread > 70.0) {
-        for (int i{}; i < cnt; ++i) {
-            data->gains[i] += (spread - 70.0f) / 30.0f * (spread - 70.0f) / 30.0f * 20.0f;
-        }
-    }
-    float sum{};
-    for (int i{}; i < cnt; ++i) {
-        sum += (data->gains[i] * data->gains[i]);
-    }
-    sum = std::sqrt(sum);
-    for (int i{}; i < cnt; ++i) {
-        data->gains[i] /= sum;
-    }
-}
-
 static void spreadit_azi_ele(float /*azi*/, float /*ele*/, float sp_azi, float sp_ele, VbapData * data) noexcept
 {
     int ind;
@@ -308,6 +196,8 @@ static void spreadit_azi_ele(float /*azi*/, float /*ele*/, float sp_azi, float s
                 break;
             default:
                 jassertfalse;
+                newAzimuth = 0.0f;
+                newElevation = 0.0f;
             }
 
             if (newAzimuth > 180) {
@@ -503,44 +393,32 @@ static void spreadit_azi(float /*azi*/, float azimuthSpread, VbapData * data)
 
 static void spreadit_azi_flip_y_z(float /*azi*/, float sp_azimuth, VbapData * data)
 {
-    float newazi;
-    float comp;
-    float tmp;
-    AngularVector spreadang;
-    CartesianVector spreadcart;
-    int const cnt = data->numSpeakers;
-    std::array<float, MAX_SPEAKER_COUNT> tmp_gains{};
-    float sum = 0.0;
-
     sp_azimuth = std::clamp(sp_azimuth, 0.0f, 1.0f);
 
     static constexpr auto NUM = 4;
+    std::array<float, MAX_SPEAKER_COUNT> tmp_gains{};
+    int const cnt = data->numSpeakers;
     for (int i = 0; i < NUM; i++) {
-        comp = std::pow(10.0f, (i + 1) * -3.0f * 0.05f);
-        float azidev = (i + 1) * sp_azimuth * 45.0f;
+        auto const comp = std::pow(10.0f, (i + 1) * -3.0f * 0.05f);
+        auto const azimuthDev = (i + 1) * sp_azimuth * 45.0f;
         for (int k = 0; k < 2; k++) {
-            if (k == 0) {
-                newazi = data->angularDirection.azimuth + azidev;
-            } else if (k == 1) {
-                newazi = data->angularDirection.azimuth - azidev;
+            auto newAzimuth
+                = k == 0 ? data->angularDirection.azimuth + azimuthDev : data->angularDirection.azimuth - azimuthDev;
+            if (newAzimuth > 180) {
+                newAzimuth -= 360;
+            } else if (newAzimuth < -180) {
+                newAzimuth += 360;
             }
-            if (newazi > 180) {
-                newazi -= 360;
-            } else if (newazi < -180) {
-                newazi += 360;
-            }
-            spreadang.azimuth = newazi;
-            spreadang.elevation = 0.0;
-            spreadang.length = 1.0;
-            spreadcart = spreadang.toCartesian();
-            tmp = spreadcart.z;
-            spreadcart.z = spreadcart.y;
-            spreadcart.y = tmp;
+            AngularVector const spreadAngle{ newAzimuth, 0.0f, 1.0f };
+            auto spreadCartesian = spreadAngle.toCartesian();
+            auto tmp = spreadCartesian.z;
+            spreadCartesian.z = spreadCartesian.y;
+            spreadCartesian.y = tmp;
             compute_gains(data->numTriplets,
                           data->speakerSets,
                           tmp_gains.data(),
                           data->numSpeakers,
-                          spreadcart,
+                          spreadCartesian,
                           data->dimension);
             for (int j = 0; j < cnt; j++) {
                 data->gains[j] += (tmp_gains[j] * comp);
@@ -548,6 +426,7 @@ static void spreadit_azi_flip_y_z(float /*azi*/, float sp_azimuth, VbapData * da
         }
     }
 
+    float sum = 0.0f;
     for (int i = 0; i < cnt; i++) {
         sum += (data->gains[i] * data->gains[i]);
     }
@@ -961,8 +840,7 @@ VbapData * init_vbap_from_speakers(LoudSpeaker speakers[MAX_SPEAKER_COUNT],
         data->gains[i] = data->gainsSmoothing[i] = 0.0;
     }
 
-    data->numTriplets = triplets.size();
-    ;
+    data->numTriplets = narrow<int>(triplets.size());
     data->speakerSets = (SpeakerSet *)malloc(sizeof(SpeakerSet) * triplets.size());
 
     for (size_t i{}; i < triplets.size(); ++i) {
