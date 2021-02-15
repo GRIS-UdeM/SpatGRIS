@@ -319,7 +319,7 @@ public:
                         int attenuationDb,
                         int attenuationHz,
                         int oscPort);
-    void chooseRecordingPath();
+    bool initRecording();
     void setNameConfig();
     void setTitle() const;
 

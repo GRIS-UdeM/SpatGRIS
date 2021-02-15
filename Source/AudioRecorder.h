@@ -33,6 +33,7 @@ class AudioRecorder
         mThreadedWriter; // the FIFO used to buffer the incoming data
     juce::CriticalSection mWriterLock;
     std::atomic<juce::AudioFormatWriter::ThreadedWriter *> mActiveWriter{ nullptr };
+    juce::TimeSliceThread mBackgroundThread; // the thread that will write our audio data to disk
 
 public:
     //==============================================================================
@@ -50,8 +51,7 @@ public:
     void stop();
     //==============================================================================
     void recordSamples(float * const * samples, int numSamples) const;
-    //==============================================================================
-    juce::TimeSliceThread backgroundThread; // the thread that will write our audio data to disk
+    [[nodiscard]] bool isThreadRunning() const;
 
 private:
     //==============================================================================

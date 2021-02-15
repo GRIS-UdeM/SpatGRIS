@@ -144,8 +144,7 @@ class AudioProcessor
     // Private recording parameters.
     int mRecordFormat{};     // 0 = WAV, 1 = AIFF
     int mRecordFileConfig{}; // 0 = Multiple Mono Files, 1 = Single Interleaved
-
-    juce::String mRecordPath{};
+    juce::String mRecordingPath{};
 
     // This structure is used to compute the VBAP algorithm only once. Each source only gets a copy.
     VbapData * mParamVBap{};
@@ -182,17 +181,14 @@ public:
     void updateClientPortAvailable(bool fromJack);
 
     // Recording.
-    void prepareToRecord();
+    void prepareToRecord(juce::String const &);
     void startRecord();
     void stopRecord() { this->mIsRecording = false; }
     void setRecordFormat(const int format) { this->mRecordFormat = format; }
     [[nodiscard]] int getRecordFormat() const { return this->mRecordFormat; }
     void setRecordFileConfig(const int config) { this->mRecordFileConfig = config; }
     [[nodiscard]] int getRecordFileConfig() const { return this->mRecordFileConfig; }
-    void setRecordingPath(juce::String const & filePath) { this->mRecordPath = filePath; }
     [[nodiscard]] bool isSavingRun() const { return this->mIsRecording; }
-
-    [[nodiscard]] juce::String const & getRecordingPath() const { return this->mRecordPath; }
 
     // Initialize VBAP algorithm.
     [[nodiscard]] bool
@@ -236,6 +232,7 @@ public:
 
     [[nodiscard]] bool isRecording() const { return mIsRecording; }
     [[nodiscard]] bool isOverloaded() const { return mIsOverloaded; }
+    [[nodiscard]] juce::String const & getRecordingPath() const { return mRecordingPath; }
 
     juce::CriticalSection const & getCriticalSection() const noexcept { return mCriticalSection; }
 

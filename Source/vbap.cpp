@@ -450,7 +450,7 @@ SpeakersSetup *
 
     if (count < 3) {
         fprintf(stderr, "Too few loudspeakers %d\n", count);
-        free(setup);
+        delete setup;
         exit(-1);
     }
 

@@ -20,7 +20,7 @@
 #include "AudioRecorder.h"
 
 //==============================================================================
-AudioRecorder::AudioRecorder() : backgroundThread("Audio Recorder Thread")
+AudioRecorder::AudioRecorder() : mBackgroundThread("Audio Recorder Thread")
 {
 }
 
@@ -28,8 +28,6 @@ AudioRecorder::AudioRecorder() : backgroundThread("Audio Recorder Thread")
 void AudioRecorder::startRecording(juce::File const & file, unsigned const sampleRate, juce::String const & extF)
 {
     stop();
-
-    backgroundThread.startThread();
 
     // Create an OutputStream to write to our destination file.
     file.deleteFile();
@@ -53,11 +51,13 @@ void AudioRecorder::startRecording(juce::File const & file, unsigned const sampl
 
             // Now we'll create one of these helper objects which will act as a FIFO buffer, and will
             // write the data to disk on our background thread.
-            mThreadedWriter.reset(new juce::AudioFormatWriter::ThreadedWriter(writer, backgroundThread, 32768));
+            mThreadedWriter.reset(new juce::AudioFormatWriter::ThreadedWriter(writer, mBackgroundThread, 32768));
 
             // And now, swap over our active writer pointer so that the audio callback will start using it..
             const juce::ScopedLock sl(mWriterLock);
             mActiveWriter = mThreadedWriter.get();
+
+            mBackgroundThread.startThread();
         }
     }
 }
@@ -81,7 +81,7 @@ void AudioRecorder::stop()
     mThreadedWriter.reset();
 
     // Stop the background thread.
-    backgroundThread.stopThread(100);
+    mBackgroundThread.stopThread(100);
 }
 
 //==============================================================================
@@ -89,4 +89,10 @@ void AudioRecorder::recordSamples(float * const * samples, int numSamples) const
 {
     const juce::ScopedLock sl(mWriterLock);
     mActiveWriter.load()->write(samples, numSamples);
+}
+
+//==============================================================================
+bool AudioRecorder::isThreadRunning() const
+{
+    return mBackgroundThread.isThreadRunning();
 }

@@ -108,22 +108,15 @@ void SpeakerViewComponent::render()
 
     drawOriginGrid();
 
-    // NOTE: For the moment, we are just using input values to draw, we aren't
-    // changing them, so it's safe to go without the lock. When the function
-    // mMainContentComponent.getInputsLock()->try_lock() returns false, this causes
-    // a flicker in the 3D drawing. -belangeo
-
-    // if (mMainContentComponent.getInputsLock().try_lock()) {
     for (auto * input : mMainContentComponent.getSourceInputs()) {
         input->draw();
-        if (mShowNumber && input->getGain() != -1.0) {
+        if (mShowNumber && input->getGain() != -1.0f) {
+            // Show number
             auto posT{ input->getCenter() };
             posT.y += SIZE_SPEAKER.y + 0.4f;
             drawText(std::to_string(input->getId()), posT, input->getNumberColor(), 0.003f, true, input->getAlpha());
         }
     }
-    //    mMainContentComponent.getInputsLock().unlock();
-    //}
 
     if (mMainContentComponent.getSpeakersLock().try_lock()) {
         if (!mHideSpeaker) {
@@ -145,15 +138,8 @@ void SpeakerViewComponent::render()
     // Draw Sphere : Use many CPU
     if (mShowSphere) {
         if (mMainContentComponent.getSpeakersLock().try_lock()) {
-            static auto constexpr MAX_RADIUS{ 10.0 };
-
-            // Not sure why we used the farthest speaker to set the size of the sphere.
-            // Does not make much sense to me. -belangeo
-            // for (unsigned int i = 0; i < mMainContentComponent.getSpeakers().size(); ++i) {
-            //    if (abs(mMainContentComponent.getSpeakers()[i]->getAziZenRad().z * 10.f) > maxRadius) {
-            //        maxRadius = abs(mMainContentComponent.getSpeakers()[i]->getAziZenRad().z * 10.0f);
-            //    }
-            //}
+            static auto constexpr MAX_RADIUS{ 10 };
+            static auto constexpr MAX_RADIUS_F{ static_cast<float>(MAX_RADIUS) };
 
             glPushMatrix();
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -162,40 +148,40 @@ void SpeakerViewComponent::render()
             glColor3f(0.8f, 0.2f, 0.1f);
             if (mMainContentComponent.getModeSelected() == SpatModes::lbap) {
                 // Draw a cube when in LBAP mode.
-                for (auto i{ -10 }; i <= 10; i += 2) {
+                for (auto i{ -MAX_RADIUS }; i <= MAX_RADIUS; i += 2) {
                     auto const i_f{ narrow<float>(i) };
                     glBegin(GL_LINES);
-                    glVertex3f(i_f, 10.0f, -10.0f);
-                    glVertex3f(i_f, 10.0f, 10.0f);
-                    glVertex3f(i_f, -10.0f, -10.0f);
-                    glVertex3f(i_f, -10.0f, 10.0f);
-                    glVertex3f(10.0f, -10.0f, i_f);
-                    glVertex3f(10.0f, 10.0f, i_f);
-                    glVertex3f(-10.0f, -10.0f, i_f);
-                    glVertex3f(-10.0f, 10.0f, i_f);
-                    glVertex3f(10.0f, i_f, -10.0f);
-                    glVertex3f(10.0f, i_f, 10.0f);
-                    glVertex3f(-10.0f, i_f, -10.0f);
-                    glVertex3f(-10.0f, i_f, 10.0f);
-                    glVertex3f(-10.0f, i_f, 10.0f);
-                    glVertex3f(10.0f, i_f, 10.0f);
-                    glVertex3f(-10.0f, i_f, -10.0f);
-                    glVertex3f(10.0f, i_f, -10.0f);
-                    glVertex3f(-10.0f, 10.0f, i_f);
-                    glVertex3f(10.0f, 10.0f, i_f);
-                    glVertex3f(-10.0f, -10.0f, i_f);
-                    glVertex3f(10.0f, -10.0f, i_f);
-                    glVertex3f(i_f, -10.0f, 10.0f);
-                    glVertex3f(i_f, 10.0f, 10.0f);
-                    glVertex3f(i_f, -10.0f, -10.0f);
-                    glVertex3f(i_f, 10.0f, -10.0f);
+                    glVertex3f(i_f, MAX_RADIUS_F, -MAX_RADIUS_F);
+                    glVertex3f(i_f, MAX_RADIUS_F, MAX_RADIUS_F);
+                    glVertex3f(i_f, -MAX_RADIUS_F, -MAX_RADIUS_F);
+                    glVertex3f(i_f, -MAX_RADIUS_F, MAX_RADIUS_F);
+                    glVertex3f(MAX_RADIUS_F, -MAX_RADIUS_F, i_f);
+                    glVertex3f(MAX_RADIUS_F, MAX_RADIUS_F, i_f);
+                    glVertex3f(-MAX_RADIUS_F, -MAX_RADIUS_F, i_f);
+                    glVertex3f(-MAX_RADIUS_F, MAX_RADIUS_F, i_f);
+                    glVertex3f(MAX_RADIUS_F, i_f, -MAX_RADIUS_F);
+                    glVertex3f(MAX_RADIUS_F, i_f, MAX_RADIUS_F);
+                    glVertex3f(-MAX_RADIUS_F, i_f, -MAX_RADIUS_F);
+                    glVertex3f(-MAX_RADIUS_F, i_f, MAX_RADIUS_F);
+                    glVertex3f(-MAX_RADIUS_F, i_f, MAX_RADIUS_F);
+                    glVertex3f(MAX_RADIUS_F, i_f, MAX_RADIUS_F);
+                    glVertex3f(-MAX_RADIUS_F, i_f, -MAX_RADIUS_F);
+                    glVertex3f(MAX_RADIUS_F, i_f, -MAX_RADIUS_F);
+                    glVertex3f(-MAX_RADIUS_F, MAX_RADIUS_F, i_f);
+                    glVertex3f(MAX_RADIUS_F, MAX_RADIUS_F, i_f);
+                    glVertex3f(-MAX_RADIUS_F, -MAX_RADIUS_F, i_f);
+                    glVertex3f(MAX_RADIUS_F, -MAX_RADIUS_F, i_f);
+                    glVertex3f(i_f, -MAX_RADIUS_F, MAX_RADIUS_F);
+                    glVertex3f(i_f, MAX_RADIUS_F, MAX_RADIUS_F);
+                    glVertex3f(i_f, -MAX_RADIUS_F, -MAX_RADIUS_F);
+                    glVertex3f(i_f, MAX_RADIUS_F, -MAX_RADIUS_F);
                     glEnd();
                 }
             } else {
 #if defined(WIN32)
-                drawSphere(std::max(narrow<float>(MAX_RADIUS), 1.0f));
+                drawSphere(std::max(MAX_RADIUS_F, 1.0f));
 #else
-                glutSolidSphere(std::max(MAX_RADIUS, 1.0), 20, 20);
+                glutSolidSphere(std::max(MAX_RADIUS_F, 1.0), 20, 20);
 #endif
             }
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -346,48 +332,51 @@ void SpeakerViewComponent::drawOriginGrid() const
 
     if (mMainContentComponent.getModeSelected() == SpatModes::lbap) {
         // Draw light squares.
-        for (auto j{ 3.5f }; j < 19.0f; j += 6.75f) {
+        for (int j{}; j < 3; ++j) {
+            auto const value{ static_cast<float>(j) * 6.75f + 3.5f };
             glBegin(GL_LINES);
-            glVertex3f(-j, 0.0f, j);
-            glVertex3f(j, 0.0f, j);
-            glVertex3f(j, 0.0f, -j);
-            glVertex3f(j, 0.0f, j);
-            glVertex3f(j, 0.0f, -j);
-            glVertex3f(-j, 0.0f, -j);
-            glVertex3f(-j, 0.0f, -j);
-            glVertex3f(-j, 0.0f, j);
+            glVertex3f(-value, 0.0f, value);
+            glVertex3f(value, 0.0f, value);
+            glVertex3f(value, 0.0f, -value);
+            glVertex3f(value, 0.0f, value);
+            glVertex3f(value, 0.0f, -value);
+            glVertex3f(-value, 0.0f, -value);
+            glVertex3f(-value, 0.0f, -value);
+            glVertex3f(-value, 0.0f, value);
             glEnd();
         }
     } else {
         // Draw light circles.
-        for (auto j{ 5.0f }; j < 11.f; j += 5.0f) {
+        for (int j{}; j < 2; ++j) {
+            auto const value{ narrow<float>(j) * 5.0f + 5.0f };
             glBegin(GL_LINE_LOOP);
             for (int i{}; i <= 180; ++i) {
                 auto const angle{ juce::MathConstants<float>::twoPi * narrow<float>(i) / 180.0f };
-                glVertex3f(std::cos(angle) * j, 0.0f, std::sin(angle) * j);
+                glVertex3f(std::cos(angle) * value, 0.0f, std::sin(angle) * value);
             }
             glEnd();
         }
     }
 
     // 3D RGB line.
+    static auto constexpr MAGIC{ 10.0f };
     glLineWidth(2.0f);
     glBegin(GL_LINES);
     glColor3f(0.4f, 0.0f, 0.0f);
-    glVertex3f(-10.0f, 0.0f, 0.0f);
+    glVertex3f(-MAGIC, 0.0f, 0.0f);
     glVertex3f(0.0f, 0.0f, 0.0f);
-    glColor3f(1.0f, 0, 0.0f);
+    glColor3f(1.0f, 0.0f, 0.0f);
     glVertex3f(0.0f, 0.0f, 0.0f);
-    glVertex3f(10.0f, 0.0f, 0.0f);
+    glVertex3f(MAGIC, 0.0f, 0.0f);
     glColor3f(0.0f, 0.0f, 1.0f);
     glVertex3f(0.0f, 0.0f, 0.0f);
-    glVertex3f(0.0f, 10.0f, 0.0f);
+    glVertex3f(0.0f, MAGIC, 0.0f);
     glColor3f(0.0f, 0.4f, 0.0f);
-    glVertex3f(0.0f, 0.0f, -10.0f);
+    glVertex3f(0.0f, 0.0f, -MAGIC);
     glVertex3f(0.0f, 0.0f, 0.0f);
     glColor3f(0.0f, 1.0f, 0.0f);
     glVertex3f(0.0f, 0.0f, 0.0f);
-    glVertex3f(0.0f, 0.0f, 10.0f);
+    glVertex3f(0.0f, 0.0f, MAGIC);
     glEnd();
 
     // Grid.
@@ -418,33 +407,36 @@ void SpeakerViewComponent::drawOriginGrid() const
 
     if (mMainContentComponent.getModeSelected() == SpatModes::lbap) {
         // Draw grey squares.
-        for (auto j{ 6.875f }; j < 15.0f; j += 6.75f) {
+        for (int j{}; j < 2; ++j) {
+            auto const value{ narrow<float>(j) * 6.75f + 6.875f };
             glBegin(GL_LINES);
-            glVertex3f(-j, 0.0f, j);
-            glVertex3f(j, 0.0f, j);
-            glVertex3f(j, 0.0f, -j);
-            glVertex3f(j, 0.0f, j);
-            glVertex3f(j, 0.0f, -j);
-            glVertex3f(-j, 0.0f, -j);
-            glVertex3f(-j, 0.0f, -j);
-            glVertex3f(-j, 0.0f, j);
+            glVertex3f(-value, 0.0f, value);
+            glVertex3f(value, 0.0f, value);
+            glVertex3f(value, 0.0f, -value);
+            glVertex3f(value, 0.0f, value);
+            glVertex3f(value, 0.0f, -value);
+            glVertex3f(-value, 0.0f, -value);
+            glVertex3f(-value, 0.0f, -value);
+            glVertex3f(-value, 0.0f, value);
             glEnd();
         }
     } else {
         // Draw grey circles.
-        for (auto j{ 2.5f }; j < 13.0f; j += 5.0f) {
+        // TODO : this is really expensive
+        for (int j{}; j < 3; ++j) {
+            auto const value{ narrow<float>(j) * 5.0f + 2.5f };
             glBegin(GL_LINE_LOOP);
             for (int i{}; i <= 180; ++i) {
                 auto const angle = (juce::MathConstants<float>::twoPi * narrow<float>(i) / 180.0f);
-                glVertex3f(std::cos(angle) * j, 0.0f, std::sin(angle) * j);
+                glVertex3f(std::cos(angle) * value, 0.0f, std::sin(angle) * value);
             }
             glEnd();
         }
     }
 
-    drawText("X", glm::vec3(10.0f, 0.1f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
-    drawText("Y", glm::vec3(0.0f, 0.1f, 10.0f), glm::vec3(1.0f, 1.0f, 1.0f));
-    drawText("Z", glm::vec3(0.0f, 10.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    drawText("X", glm::vec3(MAGIC, 0.1f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    drawText("Y", glm::vec3(0.0f, 0.1f, MAGIC), glm::vec3(1.0f, 1.0f, 1.0f));
+    drawText("Z", glm::vec3(0.0f, MAGIC, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
 
     drawTextOnGrid("0", glm::vec3(9.4f, 0.0f, 0.1f));
     drawTextOnGrid("90", glm::vec3(-0.8f, 0.0f, 9.0f));

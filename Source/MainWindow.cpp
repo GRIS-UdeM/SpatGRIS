@@ -65,7 +65,7 @@ MainWindow::MainWindow(juce::String const & name,
         centreWithSize(getWidth(), getHeight());
     }
 
-    setUsingNativeTitleBar(USE_OS_NATIVE_DIALOG_BOX);
+    setUsingNativeTitleBar(true);
 
     MainWindow::setVisible(true);
 }

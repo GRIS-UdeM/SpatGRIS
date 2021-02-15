@@ -164,9 +164,10 @@ void AudioProcessor::clientRegistrationCallback(char const * const name, int con
 }
 
 //==============================================================================
-void AudioProcessor::prepareToRecord()
+void AudioProcessor::prepareToRecord(juce::String const & recordPath)
 {
-    int num_of_channels;
+    mRecordingPath = recordPath;
+
     if (mOutputsPort.empty()) {
         return;
     }
@@ -176,7 +177,7 @@ void AudioProcessor::prepareToRecord()
     mOutputFileNames.clear();
 
     juce::String channelName;
-    juce::File const file{ mRecordPath };
+    juce::File const file{ recordPath };
     auto const fileName{ file.getFileNameWithoutExtension() };
     auto const fileExtension{ file.getFileExtension() };
     auto const parentDirectory{ file.getParentDirectory().getFullPathName() };
@@ -185,9 +186,10 @@ void AudioProcessor::prepareToRecord()
     jassert(currentAudioDevice);
     auto const sampleRate{ narrow<unsigned>(std::round(currentAudioDevice->getCurrentSampleRate())) };
 
+    int numOfChannels;
     if (mModeSelected == SpatModes::vbap || mModeSelected == SpatModes::lbap) {
-        num_of_channels = narrow<int>(mOutputsPort.size());
-        for (int i{}; i < num_of_channels; ++i) {
+        numOfChannels = narrow<int>(mOutputsPort.size());
+        for (int i{}; i < numOfChannels; ++i) {
             if (contains(mOutputPatches, i + 1)) {
                 channelName
                     = parentDirectory + "/" + fileName + "_" + juce::String(i + 1).paddedLeft('0', 3) + fileExtension;
@@ -197,8 +199,8 @@ void AudioProcessor::prepareToRecord()
             }
         }
     } else if (mModeSelected == SpatModes::hrtfVbap || mModeSelected == SpatModes::stereo) {
-        num_of_channels = 2;
-        for (int i{}; i < num_of_channels; ++i) {
+        numOfChannels = 2;
+        for (int i{}; i < numOfChannels; ++i) {
             channelName
                 = parentDirectory + "/" + fileName + "_" + juce::String(i + 1).paddedLeft('0', 3) + fileExtension;
             juce::File const fileC{ channelName };

@@ -114,7 +114,13 @@ public:
     //==============================================================================
     void resetPosition();
     void draw() const;
-    void updateValues(float az, float ze, float azS, float zeS, float radius, float g, SpatModes mode);
+    void updateValues(float azimuth,
+                      float zenith,
+                      float azimuthSpan,
+                      float zenithSpan,
+                      float radius,
+                      float gain,
+                      SpatModes mode);
     void updateValuesOld(float azimuth, float zenith, float azimuthSpan, float zenithSpan, float g);
     //==============================================================================
     [[nodiscard]] bool isInput() const override { return true; }

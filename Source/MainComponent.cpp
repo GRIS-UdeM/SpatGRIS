@@ -410,10 +410,7 @@ void MainContentComponent::handleOpenPreset()
     }
     auto const filename{ juce::File{ mCurrentPresetPath }.getFileName() };
 
-    juce::FileChooser fc("Choose a file to open...",
-                         dir.getFullPathName() + "/" + filename,
-                         "*.xml",
-                         USE_OS_NATIVE_DIALOG_BOX);
+    juce::FileChooser fc("Choose a file to open...", dir.getFullPathName() + "/" + filename, "*.xml", true);
 
     auto loaded{ false };
     if (fc.browseForFileToOpen()) {
@@ -469,10 +466,7 @@ void MainContentComponent::handleSaveAsPreset()
     }
     auto const filename{ juce::File{ mCurrentPresetPath }.getFileName() };
 
-    juce::FileChooser fc{ "Choose a file to save...",
-                          dir.getFullPathName() + "/" + filename,
-                          "*.xml",
-                          USE_OS_NATIVE_DIALOG_BOX };
+    juce::FileChooser fc{ "Choose a file to save...", dir.getFullPathName() + "/" + filename, "*.xml", true };
 
     if (fc.browseForFileToSave(true)) {
         auto const chosen{ fc.getResults().getReference(0).getFullPathName() };
@@ -489,10 +483,7 @@ void MainContentComponent::handleOpenSpeakerSetup()
     }
     auto const filename{ juce::File{ mCurrentSpeakerSetupPath }.getFileName() };
 
-    juce::FileChooser fc{ "Choose a file to open...",
-                          dir.getFullPathName() + "/" + filename,
-                          "*.xml",
-                          USE_OS_NATIVE_DIALOG_BOX };
+    juce::FileChooser fc{ "Choose a file to open...", dir.getFullPathName() + "/" + filename, "*.xml", true };
 
     if (fc.browseForFileToOpen()) {
         auto const chosen{ fc.getResults().getReference(0).getFullPathName() };
@@ -518,10 +509,7 @@ void MainContentComponent::handleSaveAsSpeakerSetup()
     }
     auto const filename{ juce::File{ mCurrentSpeakerSetupPath }.getFileName() };
 
-    juce::FileChooser fc{ "Choose a file to save...",
-                          dir.getFullPathName() + "/" + filename,
-                          "*.xml",
-                          USE_OS_NATIVE_DIALOG_BOX };
+    juce::FileChooser fc{ "Choose a file to save...", dir.getFullPathName() + "/" + filename, "*.xml", true };
 
     if (fc.browseForFileToSave(true)) {
         auto const chosen{ fc.getResults().getReference(0).getFullPathName() };
@@ -1080,10 +1068,7 @@ bool MainContentComponent::exitApp()
             }
             auto const filename{ juce::File(mCurrentPresetPath).getFileName() };
 
-            juce::FileChooser fc("Choose a file to save...",
-                                 dir.getFullPathName() + "/" + filename,
-                                 "*.xml",
-                                 USE_OS_NATIVE_DIALOG_BOX);
+            juce::FileChooser fc("Choose a file to save...", dir.getFullPathName() + "/" + filename, "*.xml", true);
 
             if (fc.browseForFileToSave(true)) {
                 auto const chosen{ fc.getResults().getReference(0).getFullPathName() };
@@ -2292,10 +2277,9 @@ void MainContentComponent::timerCallback()
         auto const isReadyToMerge{ std::none_of(
             recorders.begin(),
             recorders.end(),
-            [](AudioRecorder const & recorder) -> bool { return recorder.backgroundThread.isThreadRunning(); }) };
+            [](AudioRecorder const & recorder) -> bool { return recorder.isThreadRunning(); }) };
 
         if (isReadyToMerge) {
-            mIsRecording = false;
             if (mAudioProcessor->getRecordFileConfig()) {
                 juce::ScopedLock const lock{ mAudioProcessor->getCriticalSection() };
                 auto * renderer{ new AudioRenderer{} };
@@ -2304,6 +2288,7 @@ void MainContentComponent::timerCallback()
                                            sampleRate);
                 renderer->runThread();
             }
+            mIsRecording = false;
         }
     }
 
@@ -2402,8 +2387,9 @@ void MainContentComponent::buttonClicked(juce::Button * button)
         }
         mStartRecordButton->setToggleState(mAudioProcessor->isRecording(), juce::dontSendNotification);
     } else if (button == mInitRecordButton.get()) {
-        chooseRecordingPath();
-        mStartRecordButton->setEnabled(true);
+        if (initRecording()) {
+            mStartRecordButton->setEnabled(true);
+        }
     }
 }
 
@@ -2503,7 +2489,7 @@ void MainContentComponent::setOscLogging(juce::OSCMessage const & message) const
 }
 
 //==============================================================================
-void MainContentComponent::chooseRecordingPath()
+bool MainContentComponent::initRecording()
 {
     juce::File dir{ mApplicationProperties.getUserSettings()->getValue("lastRecordingDirectory") };
     if (!dir.isDirectory()) {
@@ -2519,18 +2505,17 @@ void MainContentComponent::chooseRecordingPath()
         extChoice = "*.aif,*.wav";
     }
 
-    juce::FileChooser fc{ "Choose a file to save...",
-                          dir.getFullPathName() + "/recording" + extF,
-                          extChoice,
-                          USE_OS_NATIVE_DIALOG_BOX };
+    juce::FileChooser fc{ "Choose a file to save...", dir.getFullPathName() + "/recording" + extF, extChoice, true };
 
-    if (fc.browseForFileToSave(true)) {
-        auto const filePath{ fc.getResults().getReference(0).getFullPathName() };
-        mApplicationProperties.getUserSettings()->setValue("lastRecordingDirectory",
-                                                           juce::File(filePath).getParentDirectory().getFullPathName());
-        mAudioProcessor->setRecordingPath(filePath);
+    if (!fc.browseForFileToSave(true)) {
+        return false;
     }
-    mAudioProcessor->prepareToRecord();
+
+    auto const filePath{ fc.getResults().getReference(0).getFullPathName() };
+    mApplicationProperties.getUserSettings()->setValue("lastRecordingDirectory",
+                                                       juce::File(filePath).getParentDirectory().getFullPathName());
+    mAudioProcessor->prepareToRecord(filePath);
+    return true;
 }
 
 //==============================================================================

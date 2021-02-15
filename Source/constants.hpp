@@ -49,8 +49,6 @@ extern const juce::File HRTF_FOLDER_80;
 
 extern const juce::StringArray MODE_SPAT_STRING;
 
-extern const bool USE_OS_NATIVE_DIALOG_BOX;
-
 extern const juce::StringArray FILE_FORMATS;
 extern const juce::StringArray FILE_CONFIGS;
 extern const juce::StringArray ATTENUATION_DB;

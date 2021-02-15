@@ -283,20 +283,20 @@ void Input::drawSpanLbap(float const x, float const y, float const z) const
 }
 
 //==============================================================================
-void Input::updateValues(float const az,
-                         float const ze,
-                         float const azS,
-                         float const zeS,
+void Input::updateValues(float const azimuth,
+                         float const zenith,
+                         float const azimuthSpan,
+                         float const zenithSpan,
                          float const radius,
-                         float const g,
+                         float const gain,
                          SpatModes const mode)
 {
-    mAzimuth = az;
-    mZenith = ze;
-    mAzimuthSpan = azS;
-    mZenithSpan = zeS;
+    mAzimuth = azimuth;
+    mZenith = zenith;
+    mAzimuthSpan = azimuthSpan;
+    mZenithSpan = zenithSpan;
     mRadius = radius;
-    mGain = g;
+    mGain = gain;
 
     auto const factor{ radius * 10.0f };
 
