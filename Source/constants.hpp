@@ -19,17 +19,19 @@
 
 #pragma once
 
-#include "macros.h"
+#include <optional>
 
+#include "macros.h"
 DISABLE_WARNINGS
 #include <JuceHeader.h>
 ENABLE_WARNINGS
 
 static constexpr auto MAX_INPUTS = 256;
 static constexpr auto MAX_OUTPUTS = 256;
+static constexpr auto VU_METER_WIDTH_IN_PIXELS = 22;
 
 extern char const * const DEVICE_NAME;
-extern char const * CLIENT_NAME;
+extern char const * const CLIENT_NAME;
 extern char const * const SYS_DRIVER_NAME;
 extern char const * const SYS_CLIENT_NAME;
 extern char const * const CLIENT_NAME_IGNORE;
@@ -54,23 +56,30 @@ extern const juce::StringArray FILE_CONFIGS;
 extern const juce::StringArray ATTENUATION_DB;
 extern const juce::StringArray ATTENUATION_CUTOFFS;
 
-static constexpr int VU_METER_WIDTH_IN_PIXELS = 22;
-
 namespace user_properties_tags
 {
-static const inline juce::String DEVICE_TYPE = "audioDeviceType";
-static const inline juce::String INPUT_DEVICE = "inputDevice";
-static const inline juce::String OUTPUT_DEVICE = "outputDevice";
-static const inline juce::String BUFFER_SIZE = "BufferValue";
-static const inline juce::String SAMPLE_RATE = "RateValue";
-static const inline juce::String OSC_INPUT_PORT = "OscInputPort";
-static const inline juce::String FILE_FORMAT = "FileFormat";
-static const inline juce::String FILE_CONFIG = "FileConfig";
-static const inline juce::String ATTENUATION_DB = "AttenuationDB";
-static const inline juce::String ATTENUATION_HZ = "AttenuationHz";
+extern const juce::String DEVICE_TYPE;
+extern const juce::String INPUT_DEVICE;
+extern const juce::String OUTPUT_DEVICE;
+extern const juce::String BUFFER_SIZE;
+extern const juce::String SAMPLE_RATE;
+extern const juce::String OSC_INPUT_PORT;
+extern const juce::String FILE_FORMAT;
+extern const juce::String FILE_CONFIG;
+extern const juce::String ATTENUATION_DB;
+extern const juce::String ATTENUATION_HZ;
 
-static const inline juce::String LAST_VBAP_SPEAKER_SETUP = "lastVbapSpeakerSetup";
-static const inline juce::String LAST_OPEN_PRESET = "lastOpenPreset";
-static const inline juce::String LAST_OPEN_SPEAKER_SETUP = "lastOpenSpeakerSetup";
-static const inline juce::String SASH_POSITION = "sashPosition";
+extern const juce::String LAST_VBAP_SPEAKER_SETUP;
+extern const juce::String LAST_OPEN_PRESET;
+extern const juce::String LAST_OPEN_SPEAKER_SETUP;
+extern const juce::String LAST_RECORDING_DIRECTORY;
+extern const juce::String SASH_POSITION;
 } // namespace user_properties_tags
+
+enum class RecordingFormat { wav, aiff };
+enum class RecordingConfig { interleaved, mono };
+
+juce::String recordingFormatToString(RecordingFormat format);
+std::optional<RecordingFormat> stringToRecordingFormat(juce::String const & string);
+juce::String recordingConfigToString(RecordingConfig config);
+std::optional<RecordingConfig> stringToRecordingConfig(juce::String const & string);

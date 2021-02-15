@@ -158,10 +158,10 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
 
     jassert(AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice());
 
-    auto const fileFormat{ props->getIntValue(user_properties_tags::FILE_FORMAT, 0) };
+    /*auto const fileFormat{ props->getIntValue(user_properties_tags::FILE_FORMAT, 0) };
     mAudioProcessor->setRecordFormat(fileFormat);
     auto const fileConfig{ props->getIntValue(user_properties_tags::FILE_CONFIG, 0) };
-    mAudioProcessor->setRecordFileConfig(fileConfig);
+    mAudioProcessor->setRecordFileConfig(fileConfig);*/
 
     mCpuUsageLabel->setText("CPU usage : ", juce::dontSendNotification);
 
@@ -2203,10 +2203,10 @@ void MainContentComponent::saveProperties(juce::String const & audioDeviceType,
     }
 
     // Handle recording settings
-    mAudioProcessor->setRecordFormat(fileFormat);
+    // mAudioProcessor->setRecordFormat(fileFormat);
     props->setValue(user_properties_tags::FILE_FORMAT, fileFormat);
 
-    mAudioProcessor->setRecordFileConfig(fileConfig);
+    // mAudioProcessor->setRecordFileConfig(fileConfig);
     props->setValue(user_properties_tags::FILE_CONFIG, fileConfig);
 
     // Handle CUBE distance attenuation
@@ -2266,13 +2266,13 @@ void MainContentComponent::timerCallback()
         mStartRecordButton->setToggleState(false, juce::dontSendNotification);
     }
 
-    if (mAudioProcessor->isSavingRun()) {
+    if (audioManager.isRecording()) {
         mStartRecordButton->setButtonText("Stop");
     } else {
         mStartRecordButton->setButtonText("Record");
     }
 
-    if (mIsRecording && !mAudioProcessor->isRecording()) {
+    /*if (mIsRecording && !mAudioProcessor->isRecording()) {
         auto const & recorders{ mAudioProcessor->getRecorders() };
         auto const isReadyToMerge{ std::none_of(
             recorders.begin(),
@@ -2290,7 +2290,7 @@ void MainContentComponent::timerCallback()
             }
             mIsRecording = false;
         }
-    }
+    }*/
 
     if (mAudioProcessor->isOverloaded()) {
         mCpuUsageValue->setColour(juce::Label::backgroundColourId, juce::Colours::darkred);
@@ -2375,17 +2375,18 @@ void MainContentComponent::textEditorReturnKeyPressed(juce::TextEditor & textEdi
 //==============================================================================
 void MainContentComponent::buttonClicked(juce::Button * button)
 {
+    auto & audioManager{ AudioManager::getInstance() };
+
     if (button == mStartRecordButton.get()) {
-        if (mAudioProcessor->isRecording()) {
-            mAudioProcessor->stopRecord();
+        if (audioManager.isRecording()) {
+            audioManager.stopRecording();
             mStartRecordButton->setEnabled(false);
             mTimeRecordedLabel->setColour(juce::Label::textColourId, mLookAndFeel.getFontColour());
         } else {
-            mIsRecording = true;
-            mAudioProcessor->startRecord();
+            audioManager.startRecording();
             mTimeRecordedLabel->setColour(juce::Label::textColourId, mLookAndFeel.getRedColour());
         }
-        mStartRecordButton->setToggleState(mAudioProcessor->isRecording(), juce::dontSendNotification);
+        mStartRecordButton->setToggleState(audioManager.isRecording(), juce::dontSendNotification);
     } else if (button == mInitRecordButton.get()) {
         if (initRecording()) {
             mStartRecordButton->setEnabled(true);
@@ -2491,19 +2492,31 @@ void MainContentComponent::setOscLogging(juce::OSCMessage const & message) const
 //==============================================================================
 bool MainContentComponent::initRecording()
 {
-    juce::File dir{ mApplicationProperties.getUserSettings()->getValue("lastRecordingDirectory") };
+    juce::File dir{ mApplicationProperties.getUserSettings()->getValue(
+        user_properties_tags::LAST_RECORDING_DIRECTORY) };
     if (!dir.isDirectory()) {
         dir = juce::File::getSpecialLocation(juce::File::SpecialLocationType::userHomeDirectory);
     }
     juce::String extF;
     juce::String extChoice;
-    if (mAudioProcessor->getRecordFormat() == 0) {
+
+    auto const recordFormatString{ mApplicationProperties.getUserSettings()->getValue(
+        user_properties_tags::FILE_FORMAT) };
+    auto const maybeFormat{ stringToRecordingFormat(recordFormatString) };
+    auto const format{ maybeFormat ? *maybeFormat : RecordingFormat::wav };
+
+    if (format == RecordingFormat::wav) {
         extF = ".wav";
         extChoice = "*.wav,*.aif";
     } else {
         extF = ".aif";
         extChoice = "*.aif,*.wav";
     }
+
+    auto const recordConfigString{ mApplicationProperties.getUserSettings()->getValue(
+        user_properties_tags::FILE_CONFIG) };
+    auto const maybeConfig{ stringToRecordingConfig(recordConfigString) };
+    auto const config{ maybeConfig ? *maybeConfig : RecordingConfig::interleaved };
 
     juce::FileChooser fc{ "Choose a file to save...", dir.getFullPathName() + "/recording" + extF, extChoice, true };
 
@@ -2514,8 +2527,8 @@ bool MainContentComponent::initRecording()
     auto const filePath{ fc.getResults().getReference(0).getFullPathName() };
     mApplicationProperties.getUserSettings()->setValue("lastRecordingDirectory",
                                                        juce::File(filePath).getParentDirectory().getFullPathName());
-    mAudioProcessor->prepareToRecord(filePath);
-    return true;
+    AudioManager::RecordingOptions const recordingOptions{ filePath, format, config, narrow<double>(mSamplingRate) };
+    return AudioManager::getInstance().prepareToRecord(recordingOptions);
 }
 
 //==============================================================================

@@ -95,8 +95,8 @@ void AudioManager::audioDeviceIOCallback(const float ** inputChannelData,
     }
 
     // do the actual processing
-    if (mJackClient != nullptr) {
-        mJackClient->processAudio(numSamples);
+    if (mAudioProcessor != nullptr) {
+        mAudioProcessor->processAudio(numSamples);
     }
 
     // copy output ports to output channels
@@ -105,6 +105,28 @@ void AudioManager::audioDeviceIOCallback(const float ** inputChannelData,
         auto * dest{ outputChannelData[i] };
         if (dest) {
             std::memcpy(dest, mOutputPortsBuffer.getReadPointer(i), sizeof(float) * numSamples);
+        }
+    }
+
+    // record samples
+    if (mIsRecording) {
+        if (mRecordingConfig == RecordingConfig::interleaved) {
+            jassert(mRecorders.size() == 1);
+            auto & recorder{ *mRecorders.getFirst() };
+            jassert(recorder.getNumChannels() == mOutputPortsBuffer.getNumChannels());
+            recorder.writeFromFloatArrays(mOutputPortsBuffer.getArrayOfReadPointers(),
+                                          mOutputPortsBuffer.getNumChannels(),
+                                          numSamples);
+        } else {
+            jassert(mRecordingConfig == RecordingConfig::mono);
+            jassert(mRecorders.size() == mOutputPortsBuffer.getNumChannels());
+            for (int channel{}; channel < mOutputPortsBuffer.getNumChannels(); ++channel) {
+                auto & recorder{ *mRecorders.getUnchecked(channel) };
+                ;
+                jassert(recorder.getNumChannels() == 1);
+                float const * const channelData{ mOutputPortsBuffer.getArrayOfReadPointers()[channel] };
+                recorder.writeFromFloatArrays(&channelData, 1, numSamples);
+            }
         }
     }
 }
@@ -129,15 +151,15 @@ void AudioManager::init(juce::String const & deviceType,
 }
 
 //==============================================================================
-jack_port_t * AudioManager::registerPort(char const * const newShortName,
-                                         char const * const newClientName,
-                                         PortType const newType,
-                                         std::optional<int> newPhysicalPort)
+audio_port_t * AudioManager::registerPort(char const * const newShortName,
+                                          char const * const newClientName,
+                                          PortType const newType,
+                                          std::optional<int> newPhysicalPort)
 {
     juce::ScopedLock sl{ mCriticalSection };
 
     auto newPort{
-        std::make_unique<jack_port_t>(++mLastGivePortId, newShortName, newClientName, newType, newPhysicalPort)
+        std::make_unique<audio_port_t>(++mLastGivePortId, newShortName, newClientName, newType, newPhysicalPort)
     };
 
     auto const * type{ (newType == PortType::input ? "input" : "output") };
@@ -148,7 +170,7 @@ jack_port_t * AudioManager::registerPort(char const * const newShortName,
         std::cout << "Registered virtual " << type << " port : id=" << newPort->id << '\n';
     }
 
-    jack_port_t * result;
+    audio_port_t * result;
 
     if (newType == PortType::input) {
         if (newPhysicalPort.has_value()) {
@@ -175,7 +197,7 @@ jack_port_t * AudioManager::registerPort(char const * const newShortName,
 }
 
 //==============================================================================
-void AudioManager::unregisterPort(jack_port_t * port)
+void AudioManager::unregisterPort(audio_port_t * port)
 {
     juce::ScopedLock sl{ mCriticalSection };
 
@@ -200,56 +222,56 @@ void AudioManager::unregisterPort(jack_port_t * port)
 }
 
 //==============================================================================
-bool AudioManager::isConnectedTo(jack_port_t const * port, char const * port_name) const
+bool AudioManager::isConnectedTo(audio_port_t const * port, char const * port_name) const
 {
     juce::ScopedLock sl{ mCriticalSection };
 
-    if (!mConnections.contains(const_cast<jack_port_t *>(port))) {
+    if (!mConnections.contains(const_cast<audio_port_t *>(port))) {
         return false;
     }
 
-    return strcmp(port_name, mConnections[const_cast<jack_port_t *>(port)]->fullName) == 0;
+    return strcmp(port_name, mConnections[const_cast<audio_port_t *>(port)]->fullName) == 0;
 }
 
 //==============================================================================
-bool AudioManager::isConnectedTo(jack_port_t const * portA, jack_port_t const * portB) const
+bool AudioManager::isConnectedTo(audio_port_t const * portA, audio_port_t const * portB) const
 {
     juce::ScopedLock sl{ mCriticalSection };
 
-    if (!mConnections.contains(const_cast<jack_port_t *>(portA))) {
+    if (!mConnections.contains(const_cast<audio_port_t *>(portA))) {
         return false;
     }
 
-    return mConnections[const_cast<jack_port_t *>(portA)] == portB;
+    return mConnections[const_cast<audio_port_t *>(portA)] == portB;
 }
 
 //==============================================================================
-void AudioManager::registerJackClient(AudioProcessor * jackClient)
+void AudioManager::registerAudioProcessor(AudioProcessor * audioProcessor)
 {
     juce::ScopedLock sl{ mCriticalSection };
-    mJackClient = jackClient;
+    mAudioProcessor = audioProcessor;
 }
 
 //==============================================================================
-juce::Array<jack_port_t *> AudioManager::getInputPorts() const
+juce::Array<audio_port_t *> AudioManager::getInputPorts() const
 {
-    juce::Array<jack_port_t *> result{};
+    juce::Array<audio_port_t *> result{};
     result.addArray(mPhysicalInputPorts);
     result.addArray(mVirtualInputPorts);
     return result;
 }
 
 //==============================================================================
-juce::Array<jack_port_t *> AudioManager::getOutputPorts() const
+juce::Array<audio_port_t *> AudioManager::getOutputPorts() const
 {
-    juce::Array<jack_port_t *> result{};
+    juce::Array<audio_port_t *> result{};
     result.addArray(mPhysicalOutputPorts);
     result.addArray(mVirtualOutputPorts);
     return result;
 }
 
 //==============================================================================
-float * AudioManager::getBuffer(jack_port_t * port, [[maybe_unused]] size_t const nFrames) noexcept
+float * AudioManager::getBuffer(audio_port_t * port, [[maybe_unused]] size_t const nFrames) noexcept
 {
     juce::ScopedLock sl{ mCriticalSection };
 
@@ -272,11 +294,11 @@ float * AudioManager::getBuffer(jack_port_t * port, [[maybe_unused]] size_t cons
 }
 
 //==============================================================================
-jack_port_t * AudioManager::getPort(char const * name) const
+audio_port_t * AudioManager::getPort(char const * name) const
 {
     juce::ScopedLock sl{ mCriticalSection };
 
-    auto const find = [=](juce::OwnedArray<jack_port_t> const & portArray) -> jack_port_t * {
+    auto const find = [=](juce::OwnedArray<audio_port_t> const & portArray) -> audio_port_t * {
         for (auto * port : portArray) {
             if (strcmp(port->fullName, name) == 0) {
                 return port;
@@ -303,7 +325,7 @@ jack_port_t * AudioManager::getPort(char const * name) const
 }
 
 //==============================================================================
-jack_port_t * AudioManager::getPort(uint32_t const id) const
+audio_port_t * AudioManager::getPort(uint32_t const id) const
 {
     for (auto * port : getInputPorts()) {
         if (port->id == id) {
@@ -342,7 +364,7 @@ void AudioManager::connect(char const * sourcePortName, char const * destination
 }
 
 //==============================================================================
-void AudioManager::connect(jack_port_t * sourcePort, jack_port_t * destinationPort)
+void AudioManager::connect(audio_port_t * sourcePort, audio_port_t * destinationPort)
 {
     juce::ScopedLock sl{ mCriticalSection };
 
@@ -357,7 +379,7 @@ void AudioManager::connect(jack_port_t * sourcePort, jack_port_t * destinationPo
 }
 
 //==============================================================================
-void AudioManager::disconnect(jack_port_t * sourcePort, [[maybe_unused]] jack_port_t * destinationPort)
+void AudioManager::disconnect(audio_port_t * sourcePort, [[maybe_unused]] audio_port_t * destinationPort)
 {
     juce::ScopedLock sl{ mCriticalSection };
 
@@ -375,6 +397,95 @@ juce::StringArray AudioManager::getAvailableDeviceTypeNames()
         result.add(deviceType->getTypeName());
     }
     return result;
+}
+
+//==============================================================================
+bool AudioManager::prepareToRecord(RecordingOptions const & recordingOptions)
+{
+    static constexpr auto BITS_PER_SAMPLE = 24;
+    static constexpr auto RECORD_QUALITY = 0;
+
+    mRecordingConfig = recordingOptions.config;
+
+    auto * currentAudioDevice{ mAudioDeviceManager.getCurrentAudioDevice() };
+    if (!currentAudioDevice) {
+        return false;
+    }
+
+    std::unique_ptr<juce::AudioFormat> format{};
+    switch (recordingOptions.format) {
+    case RecordingFormat::aiff:
+        format.reset(new juce::AiffAudioFormat{});
+        break;
+    case RecordingFormat::wav:
+        format.reset(new juce::WavAudioFormat{});
+        break;
+    }
+    jassert(format);
+
+    juce::StringPairArray const metaData{}; // lets leave this empty for now
+
+    if (recordingOptions.config == RecordingConfig::interleaved) {
+        juce::File const outputFile{ recordingOptions.path };
+        auto outputStream{ outputFile.createOutputStream() };
+        if (!outputStream) {
+            mRecorders.clear(true);
+            return false;
+        }
+        mRecorders.add(format->createWriterFor(outputStream.release(),
+                                               recordingOptions.sampleRate,
+                                               mOutputPortsBuffer.getNumChannels(),
+                                               BITS_PER_SAMPLE,
+                                               metaData,
+                                               RECORD_QUALITY));
+    } else {
+        jassert(recordingOptions.config == RecordingConfig::mono);
+
+        auto const baseOutputFile{ juce::File{ recordingOptions.path }.getParentDirectory().getFullPathName() + '/'
+                                   + juce::File{ recordingOptions.path }.getFileNameWithoutExtension() };
+        auto const extension{ juce::File{ recordingOptions.path }.getFileExtension() };
+
+        for (int output{}; output < mOutputPortsBuffer.getNumChannels(); ++output) {
+            juce::String fileIndex{ output };
+            while (fileIndex.length() < 3) {
+                fileIndex = "0" + fileIndex;
+            }
+            auto const outputPath{ baseOutputFile + "_" + fileIndex + extension };
+            juce::File const outputFile{ outputPath };
+            auto outputStream{ outputFile.createOutputStream() };
+            if (!outputStream) {
+                mRecorders.clear(true);
+                return false;
+            }
+            mRecorders.add(format->createWriterFor(outputStream.release(),
+                                                   recordingOptions.sampleRate,
+                                                   1,
+                                                   BITS_PER_SAMPLE,
+                                                   metaData,
+                                                   RECORD_QUALITY));
+        }
+    }
+
+    return true;
+}
+
+//==============================================================================
+void AudioManager::startRecording()
+{
+    juce::ScopedLock sl{ mCriticalSection };
+    mIsRecording = true;
+}
+
+//==============================================================================
+void AudioManager::stopRecording()
+{
+    juce::ScopedLock sl{ mCriticalSection };
+    for (auto * recorder : mRecorders) {
+        // TODO : is this necessary ?
+        recorder->flush();
+    }
+    mRecorders.clear(true);
+    mIsRecording = false;
 }
 
 //==============================================================================

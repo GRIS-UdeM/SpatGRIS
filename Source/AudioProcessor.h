@@ -39,7 +39,7 @@ ENABLE_WARNINGS
 #include "vbap.hpp"
 
 class Speaker;
-struct jack_port_t;
+struct audio_port_t;
 
 //==============================================================================
 class AudioProcessor
@@ -53,8 +53,8 @@ class AudioProcessor
     std::vector<int> mOutputPatches{};
 
     // Jack variables.
-    std::vector<jack_port_t *> mInputsPort{};
-    std::vector<jack_port_t *> mOutputsPort{};
+    std::vector<audio_port_t *> mInputsPort{};
+    std::vector<audio_port_t *> mOutputsPort{};
 
     // Interpolation and master gain values.
     float mInterMaster{ 0.8f };
@@ -125,10 +125,6 @@ class AudioProcessor
 
     // Recording parameters.
     size_t mIndexRecord{};
-    bool mIsRecording{ false };
-
-    std::array<AudioRecorder, MAX_OUTPUTS> mRecorders{};
-    juce::Array<juce::File> mOutputFileNames{};
 
     // LBAP distance attenuation values.
     float mAttenuationLinearGain{ 0.01584893f };       // -36 dB;
@@ -138,14 +134,6 @@ class AudioProcessor
     std::array<float, MAX_INPUTS> mAttenuationLowpassY{};
     std::array<float, MAX_INPUTS> mAttenuationLowpassZ{};
     //==============================================================================
-    // Tells if an error occured while setting up the client.
-    bool mClientReady{ false };
-
-    // Private recording parameters.
-    int mRecordFormat{};     // 0 = WAV, 1 = AIFF
-    int mRecordFileConfig{}; // 0 = Multiple Mono Files, 1 = Single Interleaved
-    juce::String mRecordingPath{};
-
     // This structure is used to compute the VBAP algorithm only once. Each source only gets a copy.
     VbapData * mParamVBap{};
 
@@ -164,7 +152,6 @@ public:
     AudioProcessor & operator=(AudioProcessor &&) = delete;
     //==============================================================================
     // Audio Status.
-    [[nodiscard]] bool isReady() const { return mClientReady; }
     [[nodiscard]] float getLevelsIn(int const index) const { return mLevelsIn[index]; }
     [[nodiscard]] float getLevelsOut(int const index) const { return mLevelsOut[index]; }
 
@@ -179,16 +166,6 @@ public:
     // Manage clients.
     void connectionClient(juce::String const & name, bool connect = true);
     void updateClientPortAvailable(bool fromJack);
-
-    // Recording.
-    void prepareToRecord(juce::String const &);
-    void startRecord();
-    void stopRecord() { this->mIsRecording = false; }
-    void setRecordFormat(const int format) { this->mRecordFormat = format; }
-    [[nodiscard]] int getRecordFormat() const { return this->mRecordFormat; }
-    void setRecordFileConfig(const int config) { this->mRecordFileConfig = config; }
-    [[nodiscard]] int getRecordFileConfig() const { return this->mRecordFileConfig; }
-    [[nodiscard]] bool isSavingRun() const { return this->mIsRecording; }
 
     // Initialize VBAP algorithm.
     [[nodiscard]] bool
@@ -225,14 +202,14 @@ public:
     [[nodiscard]] auto & getSpeakersOut() { return mSpeakersOut; }
     [[nodiscard]] size_t getMaxOutputPatch() const { return mMaxOutputPatch; }
     [[nodiscard]] size_t getIndexRecord() const { return mIndexRecord; }
-    [[nodiscard]] auto const & getRecorders() const { return mRecorders; }
-    [[nodiscard]] auto const & getOutputFileNames() const { return mOutputFileNames; }
+    //[[nodiscard]] auto const & getRecorders() const { return mRecorders; }
+    //[[nodiscard]] auto const & getOutputFileNames() const { return mOutputFileNames; }
     [[nodiscard]] auto const & getInputPorts() const { return mInputsPort; }
     [[nodiscard]] auto & getClientsLock() { return mClientsLock; }
 
-    [[nodiscard]] bool isRecording() const { return mIsRecording; }
+    //[[nodiscard]] bool isRecording() const { return mIsRecording; }
     [[nodiscard]] bool isOverloaded() const { return mIsOverloaded; }
-    [[nodiscard]] juce::String const & getRecordingPath() const { return mRecordingPath; }
+    //[[nodiscard]] juce::String const & getRecordingPath() const { return mRecordingPath; }
 
     juce::CriticalSection const & getCriticalSection() const noexcept { return mCriticalSection; }
 

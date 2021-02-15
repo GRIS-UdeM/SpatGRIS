@@ -136,7 +136,6 @@ class MainContentComponent final
 
     // Flags.
     bool mIsProcessForeground{ true };
-    bool mIsRecording{};
     //==============================================================================
     // Look-and-feel.
     GrisLookAndFeel & mLookAndFeel;

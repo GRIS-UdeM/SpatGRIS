@@ -22,10 +22,11 @@
 #include <optional>
 
 #include "macros.h"
-
 DISABLE_WARNINGS
 #include <JuceHeader.h>
 ENABLE_WARNINGS
+
+#include "constants.hpp"
 
 class AudioProcessor;
 
@@ -33,8 +34,8 @@ class AudioProcessor;
 enum class PortType { input, output };
 
 //==============================================================================
-// TODO : this should go
-struct jack_port_t {
+// TODO : this needs to go
+struct audio_port_t {
     uint32_t id;
     char shortName[64]{};
     char clientName[64]{};
@@ -43,11 +44,11 @@ struct jack_port_t {
     std::optional<int> physicalPort;
     juce::AudioBuffer<float> buffer{};
 
-    jack_port_t(uint32_t const newId,
-                char const * const newShortName,
-                char const * const newClientName,
-                PortType const newType,
-                std::optional<int> const newPhysicalPort = std::nullopt)
+    audio_port_t(uint32_t const newId,
+                 char const * const newShortName,
+                 char const * const newClientName,
+                 PortType const newType,
+                 std::optional<int> const newPhysicalPort = std::nullopt)
         : id(newId)
         , type(newType)
         , physicalPort(newPhysicalPort)
@@ -63,19 +64,31 @@ struct jack_port_t {
 //==============================================================================
 class AudioManager final : juce::AudioSourcePlayer
 {
+public:
+    struct RecordingOptions {
+        juce::String path;
+        RecordingFormat format;
+        RecordingConfig config;
+        double sampleRate;
+    };
+
+private:
     juce::AudioDeviceManager mAudioDeviceManager{};
-    juce::OwnedArray<jack_port_t> mVirtualInputPorts{};
-    juce::OwnedArray<jack_port_t> mPhysicalInputPorts{};
-    juce::OwnedArray<jack_port_t> mVirtualOutputPorts{};
-    juce::OwnedArray<jack_port_t> mPhysicalOutputPorts{};
-    juce::HashMap<jack_port_t *, jack_port_t *> mConnections{};
+    juce::OwnedArray<audio_port_t> mVirtualInputPorts{};
+    juce::OwnedArray<audio_port_t> mPhysicalInputPorts{};
+    juce::OwnedArray<audio_port_t> mVirtualOutputPorts{};
+    juce::OwnedArray<audio_port_t> mPhysicalOutputPorts{};
+    juce::HashMap<audio_port_t *, audio_port_t *> mConnections{};
     uint32_t mLastGivePortId{};
     juce::AudioBuffer<float> mInputPortsBuffer{};
     juce::AudioBuffer<float> mOutputPortsBuffer{};
 
-    AudioProcessor * mJackClient{};
+    AudioProcessor * mAudioProcessor{};
 
     juce::CriticalSection mCriticalSection{};
+    bool mIsRecording{};
+    juce::OwnedArray<juce::AudioFormatWriter> mRecorders{};
+    RecordingConfig mRecordingConfig{};
 
     static std::unique_ptr<AudioManager> mInstance;
 
@@ -92,31 +105,36 @@ public:
     [[nodiscard]] juce::AudioDeviceManager const & getAudioDeviceManager() const { return mAudioDeviceManager; }
     [[nodiscard]] juce::AudioDeviceManager & getAudioDeviceManager() { return mAudioDeviceManager; }
 
-    jack_port_t * registerPort(char const * newShortName,
-                               char const * newClientName,
-                               PortType newType,
-                               std::optional<int> newPhysicalPort = std::nullopt);
-    void unregisterPort(jack_port_t * port);
+    audio_port_t * registerPort(char const * newShortName,
+                                char const * newClientName,
+                                PortType newType,
+                                std::optional<int> newPhysicalPort = std::nullopt);
+    void unregisterPort(audio_port_t * port);
 
-    [[nodiscard]] bool isConnectedTo(jack_port_t const * port, char const * port_name) const;
-    [[nodiscard]] bool isConnectedTo(jack_port_t const * portA, jack_port_t const * portB) const;
+    [[nodiscard]] bool isConnectedTo(audio_port_t const * port, char const * port_name) const;
+    [[nodiscard]] bool isConnectedTo(audio_port_t const * portA, audio_port_t const * portB) const;
 
-    void registerJackClient(AudioProcessor * jackClient);
+    void registerAudioProcessor(AudioProcessor * audioProcessor);
 
-    [[nodiscard]] juce::Array<jack_port_t *> getInputPorts() const;
-    [[nodiscard]] juce::Array<jack_port_t *> getOutputPorts() const;
-    float * getBuffer(jack_port_t * port, size_t nFrames) noexcept;
+    [[nodiscard]] juce::Array<audio_port_t *> getInputPorts() const;
+    [[nodiscard]] juce::Array<audio_port_t *> getOutputPorts() const;
+    float * getBuffer(audio_port_t * port, size_t nFrames) noexcept;
 
-    [[nodiscard]] jack_port_t * getPort(char const * name) const;
-    [[nodiscard]] jack_port_t * getPort(uint32_t id) const;
+    [[nodiscard]] audio_port_t * getPort(char const * name) const;
+    [[nodiscard]] audio_port_t * getPort(uint32_t id) const;
 
     [[nodiscard]] std::vector<std::string> getPortNames(PortType portType) const;
 
     void connect(char const * sourcePortName, char const * destinationPortName);
-    void connect(jack_port_t * sourcePort, jack_port_t * destinationPort);
-    void disconnect(jack_port_t * sourcePort, jack_port_t * destinationPort);
+    void connect(audio_port_t * sourcePort, audio_port_t * destinationPort);
+    void disconnect(audio_port_t * sourcePort, audio_port_t * destinationPort);
 
     juce::StringArray getAvailableDeviceTypeNames();
+
+    bool prepareToRecord(RecordingOptions const & recordingOptions);
+    void startRecording();
+    void stopRecording();
+    bool isRecording() const { return mIsRecording; }
     //==============================================================================
     // AudioSourcePlayer overrides
     void audioDeviceError(const juce::String & errorMessage) override;

@@ -126,15 +126,13 @@ AudioProcessor::AudioProcessor()
     auto & audioManager{ AudioManager::getInstance() };
 
     // Register Jack callbacks and ports.
-    audioManager.registerJackClient(this);
+    audioManager.registerAudioProcessor(this);
 
     // Initialize pink noise
     srand(static_cast<unsigned>(time(nullptr)));
 
     mNumberInputs = narrow<unsigned>(audioManager.getPortNames(PortType::input).size());
     mNumberOutputs = narrow<unsigned>(audioManager.getPortNames(PortType::output).size());
-
-    mClientReady = true;
 }
 
 //==============================================================================
@@ -163,59 +161,59 @@ void AudioProcessor::clientRegistrationCallback(char const * const name, int con
     }
 }
 
-//==============================================================================
-void AudioProcessor::prepareToRecord(juce::String const & recordPath)
-{
-    mRecordingPath = recordPath;
+////==============================================================================
+// void AudioProcessor::prepareToRecord(juce::String const & recordPath)
+//{
+//    mRecordingPath = recordPath;
+//
+//    if (mOutputsPort.empty()) {
+//        return;
+//    }
+//
+//    mIsRecording = false;
+//    mIndexRecord = 0;
+//    mOutputFileNames.clear();
+//
+//    juce::String channelName;
+//    juce::File const file{ recordPath };
+//    auto const fileName{ file.getFileNameWithoutExtension() };
+//    auto const fileExtension{ file.getFileExtension() };
+//    auto const parentDirectory{ file.getParentDirectory().getFullPathName() };
+//
+//    auto * currentAudioDevice{ AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice() };
+//    jassert(currentAudioDevice);
+//    auto const sampleRate{ narrow<unsigned>(std::round(currentAudioDevice->getCurrentSampleRate())) };
+//
+//    int numOfChannels;
+//    if (mModeSelected == SpatModes::vbap || mModeSelected == SpatModes::lbap) {
+//        numOfChannels = narrow<int>(mOutputsPort.size());
+//        for (int i{}; i < numOfChannels; ++i) {
+//            if (contains(mOutputPatches, i + 1)) {
+//                channelName
+//                    = parentDirectory + "/" + fileName + "_" + juce::String(i + 1).paddedLeft('0', 3) + fileExtension;
+//                juce::File fileC{ channelName };
+//                mRecorders[i].startRecording(fileC, sampleRate, fileExtension);
+//                mOutputFileNames.add(fileC);
+//            }
+//        }
+//    } else if (mModeSelected == SpatModes::hrtfVbap || mModeSelected == SpatModes::stereo) {
+//        numOfChannels = 2;
+//        for (int i{}; i < numOfChannels; ++i) {
+//            channelName
+//                = parentDirectory + "/" + fileName + "_" + juce::String(i + 1).paddedLeft('0', 3) + fileExtension;
+//            juce::File const fileC{ channelName };
+//            mRecorders[i].startRecording(fileC, sampleRate, fileExtension);
+//            mOutputFileNames.add(fileC);
+//        }
+//    }
+//}
 
-    if (mOutputsPort.empty()) {
-        return;
-    }
-
-    mIsRecording = false;
-    mIndexRecord = 0;
-    mOutputFileNames.clear();
-
-    juce::String channelName;
-    juce::File const file{ recordPath };
-    auto const fileName{ file.getFileNameWithoutExtension() };
-    auto const fileExtension{ file.getFileExtension() };
-    auto const parentDirectory{ file.getParentDirectory().getFullPathName() };
-
-    auto * currentAudioDevice{ AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice() };
-    jassert(currentAudioDevice);
-    auto const sampleRate{ narrow<unsigned>(std::round(currentAudioDevice->getCurrentSampleRate())) };
-
-    int numOfChannels;
-    if (mModeSelected == SpatModes::vbap || mModeSelected == SpatModes::lbap) {
-        numOfChannels = narrow<int>(mOutputsPort.size());
-        for (int i{}; i < numOfChannels; ++i) {
-            if (contains(mOutputPatches, i + 1)) {
-                channelName
-                    = parentDirectory + "/" + fileName + "_" + juce::String(i + 1).paddedLeft('0', 3) + fileExtension;
-                juce::File fileC{ channelName };
-                mRecorders[i].startRecording(fileC, sampleRate, fileExtension);
-                mOutputFileNames.add(fileC);
-            }
-        }
-    } else if (mModeSelected == SpatModes::hrtfVbap || mModeSelected == SpatModes::stereo) {
-        numOfChannels = 2;
-        for (int i{}; i < numOfChannels; ++i) {
-            channelName
-                = parentDirectory + "/" + fileName + "_" + juce::String(i + 1).paddedLeft('0', 3) + fileExtension;
-            juce::File const fileC{ channelName };
-            mRecorders[i].startRecording(fileC, sampleRate, fileExtension);
-            mOutputFileNames.add(fileC);
-        }
-    }
-}
-
-//==============================================================================
-void AudioProcessor::startRecord()
-{
-    mIndexRecord = 0;
-    mIsRecording = true;
-}
+////==============================================================================
+// void AudioProcessor::startRecord()
+//{
+//    mIndexRecord = 0;
+//    mIsRecording = true;
+//}
 
 //==============================================================================
 void AudioProcessor::addRemoveInput(unsigned int const number)
@@ -365,34 +363,34 @@ void AudioProcessor::muteSoloVuMeterGainOut(float * const * outs,
         }
         mLevelsOut[i] = maxGain;
 
-        // Record buffer.
-        if (mIsRecording) {
-            if (channelCount == sizeOutputs && i < channelCount) {
-                if (contains(mOutputPatches, i + 1u)) {
-                    mRecorders[i].recordSamples(&outs[i], narrow<int>(nFrames));
-                }
-            } else if (channelCount == 2 && i < channelCount) {
-                mRecorders[i].recordSamples(&outs[i], narrow<int>(nFrames));
-            }
-        }
+        //// Record buffer.
+        // if (mIsRecording) {
+        //    if (channelCount == sizeOutputs && i < channelCount) {
+        //        if (contains(mOutputPatches, i + 1u)) {
+        //            mRecorders[i].recordSamples(&outs[i], narrow<int>(nFrames));
+        //        }
+        //    } else if (channelCount == 2 && i < channelCount) {
+        //        mRecorders[i].recordSamples(&outs[i], narrow<int>(nFrames));
+        //    }
+        //}
     }
 
-    // Recording index.
-    if (!mIsRecording && mIndexRecord > 0) {
-        if (channelCount == sizeOutputs) {
-            for (unsigned int i = 0; i < sizeOutputs; ++i) {
-                if (contains(mOutputPatches, i + 1) && i < channelCount) {
-                    mRecorders[i].stop();
-                }
-            }
-        } else if (channelCount == 2) {
-            mRecorders[0].stop();
-            mRecorders[1].stop();
-        }
-        mIndexRecord = 0;
-    } else if (mIsRecording) {
-        mIndexRecord += nFrames;
-    }
+    //// Recording index.
+    // if (!mIsRecording && mIndexRecord > 0) {
+    //    if (channelCount == sizeOutputs) {
+    //        for (unsigned int i = 0; i < sizeOutputs; ++i) {
+    //            if (contains(mOutputPatches, i + 1) && i < channelCount) {
+    //                mRecorders[i].stop();
+    //            }
+    //        }
+    //    } else if (channelCount == 2) {
+    //        mRecorders[0].stop();
+    //        mRecorders[1].stop();
+    //    }
+    //    mIndexRecord = 0;
+    //} else if (mIsRecording) {
+    //    mIndexRecord += nFrames;
+    //}
 }
 
 //==============================================================================
