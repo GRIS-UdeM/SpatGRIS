@@ -26,7 +26,7 @@ DISABLE_WARNINGS
 #include <JuceHeader.h>
 ENABLE_WARNINGS
 
-#include "constants.hpp"
+#include "Configuration.h"
 
 class AudioProcessor;
 

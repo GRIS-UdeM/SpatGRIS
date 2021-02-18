@@ -36,8 +36,6 @@ MainWindow::MainWindow(juce::String const & name,
     // this lets the command manager use keypresses that arrive in our window.
     addKeyListener(getApplicationCommandManager().getKeyMappings());
 
-    juce::PropertiesFile * props = mMainContentComponent->getApplicationProperties().getUserSettings();
-
     // These offset values compensate for the title bar size.
     // TODO: it works on linux, need to be tested on MacOS.
 #ifdef __linux__
@@ -50,14 +48,15 @@ MainWindow::MainWindow(juce::String const & name,
 
     auto const screenBounds = juce::Desktop::getInstance().getDisplays().getTotalBounds(true);
 
-    if (props->containsKey("xPosition")) {
-        auto const fitInside{ props->getIntValue("xPosition") + props->getIntValue("winWidth")
-                              <= screenBounds.getWidth() };
+    auto const & configuration{ mMainContentComponent->getConfiguration() };
+    auto const windowX{ configuration.getWindowX() };
+    if (windowX != -1) {
+        auto const windowWidth{ configuration.getWindowWidth() };
+        auto const fitInside{ windowX + windowWidth <= screenBounds.getWidth() };
         if (fitInside) {
-            setBounds(props->getIntValue("xPosition") - X_OFFSET,
-                      props->getIntValue("yPosition") - Y_OFFSET,
-                      props->getIntValue("winWidth"),
-                      props->getIntValue("winHeight"));
+            auto const windowY{ configuration.getWindowY() };
+            auto const windowHeight{ configuration.getWindowHeight() };
+            setBounds(windowX - X_OFFSET, windowY - Y_OFFSET, windowWidth, windowHeight);
         } else {
             centreWithSize(getWidth(), getHeight());
         }
@@ -73,11 +72,12 @@ MainWindow::MainWindow(juce::String const & name,
 //==============================================================================
 bool MainWindow::exitWinApp() const
 {
-    auto * props{ mMainContentComponent->getApplicationProperties().getUserSettings() };
-    props->setValue("xPosition", getScreenX());
-    props->setValue("yPosition", getScreenY());
-    props->setValue("winWidth", getWidth());
-    props->setValue("winHeight", getHeight());
+    auto const & configuration{ mMainContentComponent->getConfiguration() };
+    configuration.setWindowX(getScreenX());
+    configuration.setWindowY(getScreenY());
+    configuration.setWindowWidth(getWidth());
+    configuration.setWindowHeight(getHeight());
+
     return mMainContentComponent->exitApp();
 }
 

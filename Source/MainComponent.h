@@ -33,6 +33,7 @@ ENABLE_WARNINGS
 #include "AboutWindow.h"
 #include "AudioProcessor.h"
 #include "Box.h"
+#include "Configuration.h"
 #include "EditSpeakersWindow.h"
 #include "FlatViewWindow.h"
 #include "Input.h"
@@ -149,7 +150,7 @@ class MainContentComponent final
     int mOscInputPort{ 18032 };
     unsigned mSamplingRate{ 48000u };
 
-    juce::ApplicationProperties mApplicationProperties{};
+    Configuration mConfiguration;
     juce::Rectangle<int> mFlatViewWindowRect{};
 
     // Visual flags.
@@ -217,7 +218,6 @@ public:
     [[nodiscard]] bool needToSaveSpeakerSetup() const { return mNeedToSaveSpeakerSetup; }
     [[nodiscard]] bool isSpanShown() const { return mIsSpanShown; }
     [[nodiscard]] bool isSourceLevelShown() const { return mIsSourceLevelShown; }
-    [[nodiscard]] auto & getApplicationProperties() { return mApplicationProperties; }
     [[nodiscard]] bool isSpeakerLevelShown() const { return mIsSpeakerLevelShown; }
 
     void setNeedToComputeVbap(bool const state) { mNeedToComputeVbap = state; }
@@ -298,6 +298,8 @@ public:
 
     [[nodiscard]] float getSpeakerLevelsAlpha(int indexLevel) const;
 
+    [[nodiscard]] auto const & getConfiguration() const { return mConfiguration; }
+
     // Called when the speaker setup has changed.
     bool updateLevelComp(); // TODO : what does the return value means ?
 
@@ -311,14 +313,14 @@ public:
     void saveProperties(juce::String const & audioDeviceType,
                         juce::String const & inputDevice,
                         juce::String const & outputDevice,
-                        int sampleRate,
+                        double const sampleRate,
                         int bufferSize,
-                        int fileFormat,
-                        int fileConfig,
-                        int attenuationDb,
-                        int attenuationHz,
+                        RecordingFormat const recordingFormat,
+                        RecordingConfig const recordingConfig,
+                        int attenuationDbIndex,
+                        int attenuationFrequencyIndex,
                         int oscPort);
-    bool initRecording();
+    bool initRecording() const;
     void setNameConfig();
     void setTitle() const;
 

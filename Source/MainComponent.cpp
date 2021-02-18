@@ -35,27 +35,14 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
 {
     juce::LookAndFeel::setDefaultLookAndFeel(&grisLookAndFeel);
 
-    // App user settings storage file.
-    juce::PropertiesFile::Options options{};
-    options.applicationName = "SpatGRIS2";
-    options.commonToAllUsers = false;
-    options.filenameSuffix = "xml";
-    options.folderName = "GRIS";
-    options.storageFormat = juce::PropertiesFile::storeAsXML;
-    options.ignoreCaseOfKeyNames = true;
-    options.osxLibrarySubFolder = "Application Support";
-    mApplicationProperties.setStorageParameters(options);
-
-    auto * props{ mApplicationProperties.getUserSettings() };
-
     // init audio
-    auto const deviceType{ props->getValue(user_properties_tags::DEVICE_TYPE, "") };
-    auto const inputDevice{ props->getValue(user_properties_tags::INPUT_DEVICE, "") };
-    auto const outputDevice{ props->getValue(user_properties_tags::OUTPUT_DEVICE, "") };
-    auto const sampleRate{ props->getIntValue(user_properties_tags::SAMPLE_RATE, 48000) };
-    auto const bufferSize{ props->getIntValue(user_properties_tags::BUFFER_SIZE, 1024) };
+    auto const deviceType{ mConfiguration.getDeviceType() };
+    auto const inputDevice{ mConfiguration.getInputDevice() };
+    auto const outputDevice{ mConfiguration.getOutputDevice() };
+    auto const sampleRate{ mConfiguration.getSampleRate() };
+    auto const bufferSize{ mConfiguration.getBufferSize() };
 
-    AudioManager::init(deviceType, inputDevice, outputDevice, narrow<double>(sampleRate), bufferSize);
+    AudioManager::init(deviceType, inputDevice, outputDevice, sampleRate, bufferSize);
 
     // init jackClient
     mAudioProcessor = std::make_unique<AudioProcessor>();
@@ -65,12 +52,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     addAndMakeVisible(mMenuBar.get());
 
     // Get a reference to the last opened VBAP speaker setup.
-    juce::File const lastVbap{ props->getValue(user_properties_tags::LAST_VBAP_SPEAKER_SETUP, "./not_saved_yet") };
-    if (!lastVbap.existsAsFile()) {
-        mLastVbapSetupPath = DEFAULT_SPEAKER_SETUP_FILE.getFullPathName();
-    } else {
-        mLastVbapSetupPath = props->getValue(user_properties_tags::LAST_VBAP_SPEAKER_SETUP);
-    }
+    auto const lastVbap{ mConfiguration.getLastVbapSpeakerSetup() };
 
     // SpeakerViewComponent 3D view
     mSpeakerViewComponent.reset(new SpeakerViewComponent(*this));
@@ -154,14 +136,9 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     // Default application window size.
     setSize(1285, 610);
 
-    mSamplingRate = sampleRate;
+    mSamplingRate = narrow<unsigned>(sampleRate);
 
     jassert(AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice());
-
-    /*auto const fileFormat{ props->getIntValue(user_properties_tags::FILE_FORMAT, 0) };
-    mAudioProcessor->setRecordFormat(fileFormat);
-    auto const fileConfig{ props->getIntValue(user_properties_tags::FILE_CONFIG, 0) };
-    mAudioProcessor->setRecordFileConfig(fileConfig);*/
 
     mCpuUsageLabel->setText("CPU usage : ", juce::dontSendNotification);
 
@@ -181,20 +158,10 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     textEditorReturnKeyPressed(*mAddInputsTextEditor);
 
     // Open the default preset if lastOpenPreset is not a valid file.
-    juce::File const preset{ props->getValue(user_properties_tags::LAST_OPEN_PRESET, "./not_saved_yet") };
-    if (!preset.existsAsFile()) {
-        openPreset(DEFAULT_PRESET_FILE.getFullPathName());
-    } else {
-        openPreset(props->getValue(user_properties_tags::LAST_OPEN_PRESET));
-    }
+    auto const preset{ mConfiguration.getLastOpenPreset() };
 
     // Open the default speaker setup if lastOpenSpeakerSetup is not a valid file.
-    juce::File const setup{ props->getValue(user_properties_tags::LAST_OPEN_SPEAKER_SETUP, "./not_saved_yet") };
-    if (!setup.existsAsFile()) {
-        openXmlFileSpeaker(DEFAULT_SPEAKER_SETUP_FILE.getFullPathName());
-    } else {
-        openXmlFileSpeaker(props->getValue(user_properties_tags::LAST_OPEN_SPEAKER_SETUP));
-    }
+    juce::File const setup{ mConfiguration.getLastOpenSpeakerSetup() };
 
     // End layout and start refresh timer.
     resized();
@@ -204,7 +171,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
 #if NDEBUG
     if (SPLASH_SCREEN_FILE.exists()) {
         mSplashScreen.reset(
-            new juce::SplashScreen("SpatGRIS2", juce::ImageFileFormat::loadFrom(SPLASH_SCREEN_FILE), true));
+            new juce::SplashScreen("SpatGRIS3", juce::ImageFileFormat::loadFrom(SPLASH_SCREEN_FILE), true));
         mSplashScreen->deleteAfterDelay(juce::RelativeTime::seconds(4), false);
         mSplashScreen.release();
     }
@@ -215,9 +182,9 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     commandManager.registerAllCommandsForTarget(this);
 
     // Restore last vertical divider position and speaker view cam distance.
-    if (props->containsKey(user_properties_tags::SASH_POSITION)) {
-        auto const trueSize{ narrow<int>(std::round(
-            narrow<double>(getWidth() - 3) * std::abs(props->getDoubleValue(user_properties_tags::SASH_POSITION)))) };
+    auto const sashPosition{ mConfiguration.getSashPosition() };
+    if (sashPosition) {
+        auto const trueSize{ narrow<int>(std::round(narrow<double>(getWidth() - 3) * std::abs(*sashPosition))) };
         mVerticalLayout.setItemPosition(1, trueSize);
     }
 }
@@ -225,13 +192,10 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
 //==============================================================================
 MainContentComponent::~MainContentComponent()
 {
-    auto * props{ mApplicationProperties.getUserSettings() };
-    props->setValue(user_properties_tags::LAST_OPEN_PRESET, mCurrentPresetPath);
-    props->setValue(user_properties_tags::LAST_OPEN_SPEAKER_SETUP, mCurrentSpeakerSetupPath);
-    props->setValue(user_properties_tags::LAST_VBAP_SPEAKER_SETUP, mLastVbapSetupPath);
-    props->setValue(user_properties_tags::SASH_POSITION, mVerticalLayout.getItemCurrentRelativeSize(0));
-    mApplicationProperties.saveIfNeeded();
-    mApplicationProperties.closeFiles();
+    mConfiguration.setLastOpenPreset(mCurrentPresetPath);
+    mConfiguration.setLastOpenSpeakerSetup(mCurrentSpeakerSetupPath);
+    mConfiguration.setLastVbapSpeakerSetup(mLastVbapSetupPath);
+    mConfiguration.setSashPosition(mVerticalLayout.getItemCurrentRelativeSize(0));
 
     mSpeakersLock.lock();
     mSpeakers.clear();
@@ -404,10 +368,7 @@ void MainContentComponent::handleNew()
 //==============================================================================
 void MainContentComponent::handleOpenPreset()
 {
-    juce::File dir{ mApplicationProperties.getUserSettings()->getValue("lastPresetDirectory") };
-    if (!dir.isDirectory()) {
-        dir = juce::File::getSpecialLocation(juce::File::SpecialLocationType::userHomeDirectory);
-    }
+    auto const dir{ mConfiguration.getLastPresetDirectory() };
     auto const filename{ juce::File{ mCurrentPresetPath }.getFileName() };
 
     juce::FileChooser fc("Choose a file to open...", dir.getFullPathName() + "/" + filename, "*.xml", true);
@@ -460,10 +421,7 @@ void MainContentComponent::handleSavePreset()
 //==============================================================================
 void MainContentComponent::handleSaveAsPreset()
 {
-    juce::File dir{ mApplicationProperties.getUserSettings()->getValue("lastPresetDirectory") };
-    if (!dir.isDirectory()) {
-        dir = juce::File::getSpecialLocation(juce::File::SpecialLocationType::userHomeDirectory);
-    }
+    auto const dir{ mConfiguration.getLastPresetDirectory() };
     auto const filename{ juce::File{ mCurrentPresetPath }.getFileName() };
 
     juce::FileChooser fc{ "Choose a file to save...", dir.getFullPathName() + "/" + filename, "*.xml", true };
@@ -477,10 +435,7 @@ void MainContentComponent::handleSaveAsPreset()
 //==============================================================================
 void MainContentComponent::handleOpenSpeakerSetup()
 {
-    juce::File dir{ mApplicationProperties.getUserSettings()->getValue("lastSpeakerSetupDirectory") };
-    if (!dir.isDirectory()) {
-        dir = juce::File::getSpecialLocation(juce::File::SpecialLocationType::userHomeDirectory);
-    }
+    auto const dir{ mConfiguration.getLastSpeakerSetupDirectory() };
     auto const filename{ juce::File{ mCurrentSpeakerSetupPath }.getFileName() };
 
     juce::FileChooser fc{ "Choose a file to open...", dir.getFullPathName() + "/" + filename, "*.xml", true };
@@ -503,10 +458,7 @@ void MainContentComponent::handleOpenSpeakerSetup()
 //==============================================================================
 void MainContentComponent::handleSaveAsSpeakerSetup()
 {
-    juce::File dir{ mApplicationProperties.getUserSettings()->getValue("lastSpeakerSetupDirectory") };
-    if (!dir.isDirectory() || dir.getFullPathName().endsWith("/default_preset")) {
-        dir = juce::File::getSpecialLocation(juce::File::SpecialLocationType::userHomeDirectory);
-    }
+    auto const dir{ mConfiguration.getLastSpeakerSetupDirectory() };
     auto const filename{ juce::File{ mCurrentSpeakerSetupPath }.getFileName() };
 
     juce::FileChooser fc{ "Choose a file to save...", dir.getFullPathName() + "/" + filename, "*.xml", true };
@@ -543,13 +495,13 @@ void MainContentComponent::handleShowSpeakerEditWindow()
 //==============================================================================
 void MainContentComponent::handleShowPreferences()
 {
-    auto const * props{ mApplicationProperties.getUserSettings() };
     if (mPropertiesWindow == nullptr) {
-        auto const fileFormat{ props->getIntValue(user_properties_tags::FILE_FORMAT, 0) };
-        auto const fileConfig{ props->getIntValue(user_properties_tags::FILE_CONFIG, 0) };
-        auto const attenuationDb{ props->getIntValue(user_properties_tags::ATTENUATION_DB, 3) };
-        auto const attenuationHz{ props->getIntValue(user_properties_tags::ATTENUATION_HZ, 3) };
-        auto const oscInputPort{ props->getIntValue(user_properties_tags::OSC_INPUT_PORT, 18032) };
+        auto const fileFormat{ mConfiguration.getRecordingFormat() };
+        auto const fileConfig{ mConfiguration.getRecordingConfig() };
+
+        auto const attenuationDb{ mConfiguration.getAttenuationDbIndex() };
+        auto const attenuationHz{ mConfiguration.getAttenuationFrequencyIndex() };
+        auto const oscInputPort{ mConfiguration.getOscInputPort() };
 
         mPropertiesWindow.reset(new SettingsWindow{ *this,
                                                     mLookAndFeel,
@@ -1021,7 +973,7 @@ juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const j
 //==============================================================================
 void MainContentComponent::menuItemSelected(int /*menuItemID*/, int /*topLevelMenuIndex*/)
 {
-    // ???
+    // TODO : ???
 }
 
 //==============================================================================
@@ -1062,10 +1014,7 @@ bool MainContentComponent::exitApp()
         if (exitV == 1) {
             alert.setVisible(false);
             juce::ModalComponentManager::getInstance()->cancelAllModalComponents();
-            juce::File dir{ mApplicationProperties.getUserSettings()->getValue("lastPresetDirectory") };
-            if (!dir.isDirectory()) {
-                dir = juce::File::getSpecialLocation(juce::File::SpecialLocationType::userHomeDirectory);
-            }
+            auto const dir{ mConfiguration.getLastPresetDirectory() };
             auto const filename{ juce::File(mCurrentPresetPath).getFileName() };
 
             juce::FileChooser fc("Choose a file to save...", dir.getFullPathName() + "/" + filename, "*.xml", true);
@@ -1886,13 +1835,9 @@ void MainContentComponent::openXmlFileSpeaker(juce::String const & path)
     }
     if (ok) {
         if (mCurrentSpeakerSetupPath.endsWith("default_preset/default_speaker_setup.xml")) {
-            mApplicationProperties.getUserSettings()->setValue(
-                "lastSpeakerSetupDirectory",
-                juce::File::getSpecialLocation(juce::File::userHomeDirectory).getFullPathName());
+            mConfiguration.setLastSpeakerSetupDirectory(juce::File::getSpecialLocation(juce::File::userHomeDirectory));
         } else {
-            mApplicationProperties.getUserSettings()->setValue(
-                "lastSpeakerSetupDirectory",
-                juce::File(mCurrentSpeakerSetupPath).getParentDirectory().getFullPathName());
+            mConfiguration.setLastSpeakerSetupDirectory(juce::File{ mCurrentSpeakerSetupPath }.getParentDirectory());
         }
         mNeedToComputeVbap = true;
         updateLevelComp();
@@ -2053,13 +1998,9 @@ void MainContentComponent::openPreset(juce::String const & path)
     mAudioProcessor->setPinkNoiseActive(false);
 
     if (mCurrentPresetPath.endsWith("default_preset/default_preset.xml")) {
-        mApplicationProperties.getUserSettings()->setValue(
-            "lastPresetDirectory",
-            juce::File::getSpecialLocation(juce::File::userHomeDirectory).getFullPathName());
+        mConfiguration.setLastPresetDirectory(juce::File::getSpecialLocation(juce::File::userHomeDirectory));
     } else {
-        mApplicationProperties.getUserSettings()->setValue(
-            "lastPresetDirectory",
-            juce::File(mCurrentPresetPath).getParentDirectory().getFullPathName());
+        mConfiguration.setLastPresetDirectory(juce::File{ mCurrentPresetPath }.getParentDirectory());
     }
     setTitle();
 }
@@ -2103,9 +2044,8 @@ void MainContentComponent::savePreset(juce::String const & path)
     success = xmlFile.create();
     jassert(success);
     mCurrentPresetPath = path;
-    mApplicationProperties.getUserSettings()->setValue(
-        "lastPresetDirectory",
-        juce::File{ mCurrentPresetPath }.getParentDirectory().getFullPathName());
+    mConfiguration.setLastPresetDirectory(juce::File{ mCurrentPresetPath }.getParentDirectory());
+
     setTitle();
 }
 
@@ -2152,9 +2092,7 @@ void MainContentComponent::saveSpeakerSetup(juce::String const & path)
     success = xmlFile.create();
     jassert(success);
 
-    mApplicationProperties.getUserSettings()->setValue(
-        "lastSpeakerSetupDirectory",
-        juce::File{ mCurrentSpeakerSetupPath }.getParentDirectory().getFullPathName());
+    mConfiguration.setLastSpeakerSetupDirectory(juce::File{ mCurrentSpeakerSetupPath }.getParentDirectory());
 
     mNeedToSaveSpeakerSetup = false;
 
@@ -2173,57 +2111,50 @@ void MainContentComponent::saveSpeakerSetup(juce::String const & path)
 void MainContentComponent::saveProperties(juce::String const & audioDeviceType,
                                           juce::String const & inputDevice,
                                           juce::String const & outputDevice,
-                                          int const sampleRate,
+                                          double const sampleRate,
                                           int const bufferSize,
-                                          int const fileFormat,
-                                          int const fileConfig,
-                                          int const attenuationDb,
-                                          int const attenuationHz,
+                                          RecordingFormat const recordingFormat,
+                                          RecordingConfig const recordingConfig,
+                                          int const attenuationDbIndex,
+                                          int const attenuationFrequencyIndex,
                                           int oscPort)
 {
-    auto * props{ mApplicationProperties.getUserSettings() };
-
     // Handle audio options
-    props->setValue(user_properties_tags::DEVICE_TYPE, audioDeviceType);
-    props->setValue(user_properties_tags::INPUT_DEVICE, inputDevice);
-    props->setValue(user_properties_tags::OUTPUT_DEVICE, outputDevice);
-    props->setValue(user_properties_tags::SAMPLE_RATE, sampleRate);
-    props->setValue(user_properties_tags::BUFFER_SIZE, bufferSize);
+    mConfiguration.setDeviceType(audioDeviceType);
+    mConfiguration.setInputDevice(inputDevice);
+    mConfiguration.setOutputDevice(outputDevice);
+    mConfiguration.setSampleRate(sampleRate);
+    mConfiguration.setBufferSize(bufferSize);
 
     // Handle OSC Input Port
-    if (oscPort < 0 || oscPort > 65535) {
-        oscPort = 18032;
+    if (oscPort < 0 || oscPort > MAX_OSC_INPUT_PORT) {
+        oscPort = DEFAULT_OSC_INPUT_PORT;
     }
-    auto const previousOscPort{ props->getIntValue(user_properties_tags::OSC_INPUT_PORT, 18032) };
+    auto const previousOscPort{ mConfiguration.getOscInputPort() };
     if (oscPort != previousOscPort) {
         mOscInputPort = oscPort;
-        props->setValue(user_properties_tags::OSC_INPUT_PORT, oscPort);
+        mConfiguration.setOscInputPort(oscPort);
         mOscReceiver->closeConnection();
-        mOscReceiver->startConnection(mOscInputPort);
+        mOscReceiver->startConnection(oscPort);
     }
 
     // Handle recording settings
-    // mAudioProcessor->setRecordFormat(fileFormat);
-    props->setValue(user_properties_tags::FILE_FORMAT, fileFormat);
-
-    // mAudioProcessor->setRecordFileConfig(fileConfig);
-    props->setValue(user_properties_tags::FILE_CONFIG, fileConfig);
+    mConfiguration.setRecordingFormat(recordingFormat);
+    mConfiguration.setRecordingConfig(recordingConfig);
 
     // Handle CUBE distance attenuation
-    auto const linGain{ std::pow(10.0f, ATTENUATION_DB[attenuationDb].getFloatValue() * 0.05f) };
+    auto const linGain{ std::pow(10.0f, ATTENUATION_DB_STRINGS[attenuationDbIndex].getFloatValue() * 0.05f) };
     mAudioProcessor->setAttenuationDb(linGain);
-    props->setValue(user_properties_tags::ATTENUATION_DB, attenuationDb);
+    mConfiguration.setAttenuationDbIndex(attenuationDbIndex);
 
     auto * currentAudioDevice{ AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice() };
     jassert(currentAudioDevice);
 
     auto const coefficient{ std::exp(-juce::MathConstants<float>::twoPi
-                                     * ATTENUATION_CUTOFFS[attenuationHz].getFloatValue()
+                                     * ATTENUATION_FREQUENCY_STRINGS[attenuationFrequencyIndex].getFloatValue()
                                      / narrow<float>(currentAudioDevice->getCurrentSampleRate())) };
     mAudioProcessor->setAttenuationHz(coefficient);
-    props->setValue(user_properties_tags::ATTENUATION_HZ, attenuationHz);
-
-    mApplicationProperties.saveIfNeeded();
+    mConfiguration.setAttenuationFrequencyIndex(attenuationFrequencyIndex);
 }
 
 //==============================================================================
@@ -2490,22 +2421,15 @@ void MainContentComponent::setOscLogging(juce::OSCMessage const & message) const
 }
 
 //==============================================================================
-bool MainContentComponent::initRecording()
+bool MainContentComponent::initRecording() const
 {
-    juce::File dir{ mApplicationProperties.getUserSettings()->getValue(
-        user_properties_tags::LAST_RECORDING_DIRECTORY) };
-    if (!dir.isDirectory()) {
-        dir = juce::File::getSpecialLocation(juce::File::SpecialLocationType::userHomeDirectory);
-    }
+    auto const dir{ mConfiguration.getLastRecordingDirectory() };
     juce::String extF;
     juce::String extChoice;
 
-    auto const recordFormatString{ mApplicationProperties.getUserSettings()->getValue(
-        user_properties_tags::FILE_FORMAT) };
-    auto const maybeFormat{ stringToRecordingFormat(recordFormatString) };
-    auto const format{ maybeFormat ? *maybeFormat : RecordingFormat::wav };
+    auto const recordingFormat{ mConfiguration.getRecordingFormat() };
 
-    if (format == RecordingFormat::wav) {
+    if (recordingFormat == RecordingFormat::wav) {
         extF = ".wav";
         extChoice = "*.wav,*.aif";
     } else {
@@ -2513,10 +2437,7 @@ bool MainContentComponent::initRecording()
         extChoice = "*.aif,*.wav";
     }
 
-    auto const recordConfigString{ mApplicationProperties.getUserSettings()->getValue(
-        user_properties_tags::FILE_CONFIG) };
-    auto const maybeConfig{ stringToRecordingConfig(recordConfigString) };
-    auto const config{ maybeConfig ? *maybeConfig : RecordingConfig::interleaved };
+    auto const recordingConfig{ mConfiguration.getRecordingConfig() };
 
     juce::FileChooser fc{ "Choose a file to save...", dir.getFullPathName() + "/recording" + extF, extChoice, true };
 
@@ -2525,9 +2446,11 @@ bool MainContentComponent::initRecording()
     }
 
     auto const filePath{ fc.getResults().getReference(0).getFullPathName() };
-    mApplicationProperties.getUserSettings()->setValue("lastRecordingDirectory",
-                                                       juce::File(filePath).getParentDirectory().getFullPathName());
-    AudioManager::RecordingOptions const recordingOptions{ filePath, format, config, narrow<double>(mSamplingRate) };
+    mConfiguration.setLastRecordingDirectory(juce::File{ filePath }.getParentDirectory());
+    AudioManager::RecordingOptions const recordingOptions{ filePath,
+                                                           recordingFormat,
+                                                           recordingConfig,
+                                                           narrow<double>(mSamplingRate) };
     return AudioManager::getInstance().prepareToRecord(recordingOptions);
 }
 

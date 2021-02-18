@@ -27,8 +27,8 @@
 //==============================================================================
 SettingsComponent::SettingsComponent(MainContentComponent & parent,
                                      GrisLookAndFeel & lookAndFeel,
-                                     int const fileFormatIndex,
-                                     int const fileConfigIndex,
+                                     RecordingFormat const recordingFormat,
+                                     RecordingConfig const recordingConfig,
                                      int const attenuationDbIndex,
                                      int const attenuationCutoffIndex,
                                      int const oscPort)
@@ -94,19 +94,19 @@ SettingsComponent::SettingsComponent(MainContentComponent & parent,
     addAndMakeVisible(mOscInputPortTextEditor);
 
     initLabel(mRecFormatLabel);
-    initComboBox(mRecFormatCombo, FILE_FORMATS, fileFormatIndex);
+    initComboBox(mRecFormatCombo, RECORDING_FORMAT_STRINGS, static_cast<int>(recordingFormat));
 
     initLabel(mRecFileConfigLabel);
-    initComboBox(mRecFileConfigCombo, FILE_CONFIGS, fileConfigIndex);
+    initComboBox(mRecFileConfigCombo, RECORDING_CONFIG_STRINGS, static_cast<int>(recordingConfig));
 
     //==============================================================================
     initSectionLabel(mCubeSectionLabel);
 
     initLabel(mDistanceDbLabel);
-    initComboBox(mDistanceDbCombo, ATTENUATION_DB, attenuationDbIndex);
+    initComboBox(mDistanceDbCombo, ATTENUATION_DB_STRINGS, attenuationDbIndex);
 
     initLabel(mDistanceCutoffLabel);
-    initComboBox(mDistanceCutoffCombo, ATTENUATION_CUTOFFS, attenuationCutoffIndex);
+    initComboBox(mDistanceCutoffCombo, ATTENUATION_FREQUENCY_STRINGS, attenuationCutoffIndex);
 
     //==============================================================================
     mSaveSettingsButton.setButtonText("Save");
@@ -135,8 +135,8 @@ void SettingsComponent::buttonClicked(juce::Button * button)
                                              mOutputDeviceCombo.getText(),
                                              mSampleRateCombo.getText().getIntValue(),
                                              mBufferSizeCombo.getText().getIntValue(),
-                                             mRecFormatCombo.getSelectedItemIndex(),
-                                             mRecFileConfigCombo.getSelectedItemIndex(),
+                                             static_cast<RecordingFormat>(mRecFormatCombo.getSelectedItemIndex()),
+                                             static_cast<RecordingConfig>(mRecFileConfigCombo.getSelectedItemIndex()),
                                              mDistanceDbCombo.getSelectedItemIndex(),
                                              mDistanceCutoffCombo.getSelectedItemIndex(),
                                              mOscInputPortTextEditor.getTextValue().toString().getIntValue());
@@ -315,14 +315,20 @@ void SettingsComponent::comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged)
 //==============================================================================
 SettingsWindow::SettingsWindow(MainContentComponent & parent,
                                GrisLookAndFeel & grisLookAndFeel,
-                               int const indFf,
-                               int const indFc,
-                               int const indAttDb,
-                               int const indAttHz,
+                               RecordingFormat const recordingFormat,
+                               RecordingConfig const recordingConfig,
+                               int const attenuationDbIndex,
+                               int const attenuationFrequencyIndex,
                                int const oscPort)
     : juce::DocumentWindow("Settings", grisLookAndFeel.getBackgroundColour(), DocumentWindow::allButtons)
     , mMainContentComponent(parent)
-    , mPropertiesComponent(parent, grisLookAndFeel, indFf, indFc, indAttDb, indAttHz, oscPort)
+    , mPropertiesComponent(parent,
+                           grisLookAndFeel,
+                           recordingFormat,
+                           recordingConfig,
+                           attenuationDbIndex,
+                           attenuationFrequencyIndex,
+                           oscPort)
 {
     setContentNonOwned(&mPropertiesComponent, true);
     setResizable(false, false);

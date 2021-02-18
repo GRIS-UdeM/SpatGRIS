@@ -20,10 +20,11 @@
 #pragma once
 
 #include "macros.h"
-
 DISABLE_WARNINGS
 #include <JuceHeader.h>
 ENABLE_WARNINGS
+
+#include "Configuration.h"
 
 class MainContentComponent;
 class GrisLookAndFeel;
@@ -98,8 +99,8 @@ public:
     //==============================================================================
     SettingsComponent(MainContentComponent & parent,
                       GrisLookAndFeel & lookAndFeel,
-                      int fileFormatIndex,
-                      int fileConfigIndex,
+                      RecordingFormat recordingFormat,
+                      RecordingConfig recordingConfig,
                       int attenuationDbIndex,
                       int attenuationCutoffIndex,
                       int oscPort);
@@ -137,11 +138,11 @@ public:
     //==============================================================================
     SettingsWindow(MainContentComponent & parent,
                    GrisLookAndFeel & grisLookAndFeel,
-                   int indFf = 0,
-                   int indFc = 0,
-                   int indAttDb = 2,
-                   int indAttHz = 3,
-                   int oscPort = 18032);
+                   RecordingFormat recordingFormat,
+                   RecordingConfig recordingConfig,
+                   int attenuationDbIndex,
+                   int attenuationFrequencyIndex,
+                   int oscPort);
     //==============================================================================
     SettingsWindow() = delete;
     ~SettingsWindow() override = default;
