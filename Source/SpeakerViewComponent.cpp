@@ -36,10 +36,6 @@ void SpeakerViewComponent::initialise()
     glLoadIdentity();
     gluLookAt(4.0, 6.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 
-    // TODO : undefined behavior
-    // auto argc = 1;
-    // char * argv[1] = { const_cast<char *>("Something") };
-    // glutInit(&argc, argv);
     int noArgs{};
     glutInit(&noArgs, nullptr);
 }
@@ -84,9 +80,7 @@ void SpeakerViewComponent::render()
     glEnable(GL_POINT_SMOOTH);
     glHint(GL_POINT_SMOOTH, GL_NICEST);
 
-#if defined(WIN32) || defined(_WIN64)
-
-#else
+#ifndef WIN32
     glEnable(GL_MULTISAMPLE_ARB);
     glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
 #endif
@@ -103,7 +97,7 @@ void SpeakerViewComponent::render()
     auto const camZ{ mDistance * std::cos(mCamAngleX * DEG_TO_RAD) * cosY };
 
     glLoadIdentity();
-    gluLookAt(camX, camY, camZ, 0, 0, 0, 0, 1, 0);
+    gluLookAt(camX, camY, camZ, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
     mCamPos = glm::vec3(camX, camY, camZ);
 
     drawOriginGrid();
@@ -135,12 +129,9 @@ void SpeakerViewComponent::render()
         mMainContentComponent.getSpeakersLock().unlock();
     }
 
-    // Draw Sphere : Use many CPU
+    // Draw Sphere
     if (mShowSphere) {
         if (mMainContentComponent.getSpeakersLock().try_lock()) {
-            static auto constexpr MAX_RADIUS{ 10 };
-            static auto constexpr MAX_RADIUS_F{ static_cast<float>(MAX_RADIUS) };
-
             glPushMatrix();
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
             glLineWidth(1.0f);
@@ -148,40 +139,40 @@ void SpeakerViewComponent::render()
             glColor3f(0.8f, 0.2f, 0.1f);
             if (mMainContentComponent.getModeSelected() == SpatModes::lbap) {
                 // Draw a cube when in LBAP mode.
-                for (auto i{ -MAX_RADIUS }; i <= MAX_RADIUS; i += 2) {
+                for (auto i{ -static_cast<int>(MAX_RADIUS) }; i <= static_cast<int>(MAX_RADIUS); i += 2) {
                     auto const i_f{ narrow<float>(i) };
                     glBegin(GL_LINES);
-                    glVertex3f(i_f, MAX_RADIUS_F, -MAX_RADIUS_F);
-                    glVertex3f(i_f, MAX_RADIUS_F, MAX_RADIUS_F);
-                    glVertex3f(i_f, -MAX_RADIUS_F, -MAX_RADIUS_F);
-                    glVertex3f(i_f, -MAX_RADIUS_F, MAX_RADIUS_F);
-                    glVertex3f(MAX_RADIUS_F, -MAX_RADIUS_F, i_f);
-                    glVertex3f(MAX_RADIUS_F, MAX_RADIUS_F, i_f);
-                    glVertex3f(-MAX_RADIUS_F, -MAX_RADIUS_F, i_f);
-                    glVertex3f(-MAX_RADIUS_F, MAX_RADIUS_F, i_f);
-                    glVertex3f(MAX_RADIUS_F, i_f, -MAX_RADIUS_F);
-                    glVertex3f(MAX_RADIUS_F, i_f, MAX_RADIUS_F);
-                    glVertex3f(-MAX_RADIUS_F, i_f, -MAX_RADIUS_F);
-                    glVertex3f(-MAX_RADIUS_F, i_f, MAX_RADIUS_F);
-                    glVertex3f(-MAX_RADIUS_F, i_f, MAX_RADIUS_F);
-                    glVertex3f(MAX_RADIUS_F, i_f, MAX_RADIUS_F);
-                    glVertex3f(-MAX_RADIUS_F, i_f, -MAX_RADIUS_F);
-                    glVertex3f(MAX_RADIUS_F, i_f, -MAX_RADIUS_F);
-                    glVertex3f(-MAX_RADIUS_F, MAX_RADIUS_F, i_f);
-                    glVertex3f(MAX_RADIUS_F, MAX_RADIUS_F, i_f);
-                    glVertex3f(-MAX_RADIUS_F, -MAX_RADIUS_F, i_f);
-                    glVertex3f(MAX_RADIUS_F, -MAX_RADIUS_F, i_f);
-                    glVertex3f(i_f, -MAX_RADIUS_F, MAX_RADIUS_F);
-                    glVertex3f(i_f, MAX_RADIUS_F, MAX_RADIUS_F);
-                    glVertex3f(i_f, -MAX_RADIUS_F, -MAX_RADIUS_F);
-                    glVertex3f(i_f, MAX_RADIUS_F, -MAX_RADIUS_F);
+                    glVertex3f(i_f, MAX_RADIUS, -MAX_RADIUS);
+                    glVertex3f(i_f, MAX_RADIUS, MAX_RADIUS);
+                    glVertex3f(i_f, -MAX_RADIUS, -MAX_RADIUS);
+                    glVertex3f(i_f, -MAX_RADIUS, MAX_RADIUS);
+                    glVertex3f(MAX_RADIUS, -MAX_RADIUS, i_f);
+                    glVertex3f(MAX_RADIUS, MAX_RADIUS, i_f);
+                    glVertex3f(-MAX_RADIUS, -MAX_RADIUS, i_f);
+                    glVertex3f(-MAX_RADIUS, MAX_RADIUS, i_f);
+                    glVertex3f(MAX_RADIUS, i_f, -MAX_RADIUS);
+                    glVertex3f(MAX_RADIUS, i_f, MAX_RADIUS);
+                    glVertex3f(-MAX_RADIUS, i_f, -MAX_RADIUS);
+                    glVertex3f(-MAX_RADIUS, i_f, MAX_RADIUS);
+                    glVertex3f(-MAX_RADIUS, i_f, MAX_RADIUS);
+                    glVertex3f(MAX_RADIUS, i_f, MAX_RADIUS);
+                    glVertex3f(-MAX_RADIUS, i_f, -MAX_RADIUS);
+                    glVertex3f(MAX_RADIUS, i_f, -MAX_RADIUS);
+                    glVertex3f(-MAX_RADIUS, MAX_RADIUS, i_f);
+                    glVertex3f(MAX_RADIUS, MAX_RADIUS, i_f);
+                    glVertex3f(-MAX_RADIUS, -MAX_RADIUS, i_f);
+                    glVertex3f(MAX_RADIUS, -MAX_RADIUS, i_f);
+                    glVertex3f(i_f, -MAX_RADIUS, MAX_RADIUS);
+                    glVertex3f(i_f, MAX_RADIUS, MAX_RADIUS);
+                    glVertex3f(i_f, -MAX_RADIUS, -MAX_RADIUS);
+                    glVertex3f(i_f, MAX_RADIUS, -MAX_RADIUS);
                     glEnd();
                 }
             } else {
 #if defined(WIN32)
-                drawSphere(std::max(MAX_RADIUS_F, 1.0f));
+                drawSphere(std::max(MAX_RADIUS, 1.0f));
 #else
-                glutSolidSphere(std::max(MAX_RADIUS_F, 1.0), 20, 20);
+                glutSolidSphere(std::max(MAX_RADIUS, 1.0), SPACE_LIMIT, SPACE_LIMIT);
 #endif
             }
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -330,10 +321,12 @@ void SpeakerViewComponent::drawOriginGrid() const
     glLineWidth(1.5f);
     glColor3f(0.59f, 0.59f, 0.59f);
 
-    if (mMainContentComponent.getModeSelected() == SpatModes::lbap) {
-        // Draw light squares.
-        for (int j{}; j < 3; ++j) {
-            auto const value{ static_cast<float>(j) * 6.75f + 3.5f };
+    // Draw light lines
+    auto const spatMode{ mMainContentComponent.getModeSelected() };
+    if (spatMode == SpatModes::lbap) {
+        // squares.
+        static constexpr std::array<float, 3> LINES{ MAX_RADIUS / 3.0f, MAX_RADIUS, SPACE_LIMIT };
+        for (auto const value : LINES) {
             glBegin(GL_LINES);
             glVertex3f(-value, 0.0f, value);
             glVertex3f(value, 0.0f, value);
@@ -346,9 +339,9 @@ void SpeakerViewComponent::drawOriginGrid() const
             glEnd();
         }
     } else {
-        // Draw light circles.
-        for (int j{}; j < 2; ++j) {
-            auto const value{ narrow<float>(j) * 5.0f + 5.0f };
+        // circles.
+        static constexpr std::array<float, 2> LINES{ MAX_RADIUS / 2.0f, MAX_RADIUS };
+        for (auto const value : LINES) {
             glBegin(GL_LINE_LOOP);
             for (int i{}; i <= 180; ++i) {
                 auto const angle{ juce::MathConstants<float>::twoPi * narrow<float>(i) / 180.0f };
@@ -359,56 +352,63 @@ void SpeakerViewComponent::drawOriginGrid() const
     }
 
     // 3D RGB line.
-    static auto constexpr MAGIC{ 10.0f };
     glLineWidth(2.0f);
     glBegin(GL_LINES);
     glColor3f(0.4f, 0.0f, 0.0f);
-    glVertex3f(-MAGIC, 0.0f, 0.0f);
+    glVertex3f(-MAX_RADIUS, 0.0f, 0.0f);
     glVertex3f(0.0f, 0.0f, 0.0f);
     glColor3f(1.0f, 0.0f, 0.0f);
     glVertex3f(0.0f, 0.0f, 0.0f);
-    glVertex3f(MAGIC, 0.0f, 0.0f);
+    glVertex3f(MAX_RADIUS, 0.0f, 0.0f);
     glColor3f(0.0f, 0.0f, 1.0f);
     glVertex3f(0.0f, 0.0f, 0.0f);
-    glVertex3f(0.0f, MAGIC, 0.0f);
+    glVertex3f(0.0f, MAX_RADIUS, 0.0f);
     glColor3f(0.0f, 0.4f, 0.0f);
-    glVertex3f(0.0f, 0.0f, -MAGIC);
+    glVertex3f(0.0f, 0.0f, -MAX_RADIUS);
     glVertex3f(0.0f, 0.0f, 0.0f);
     glColor3f(0.0f, 1.0f, 0.0f);
     glVertex3f(0.0f, 0.0f, 0.0f);
-    glVertex3f(0.0f, 0.0f, MAGIC);
+    glVertex3f(0.0f, 0.0f, MAX_RADIUS);
     glEnd();
 
     // Grid.
     glLineWidth(1.0f);
     glColor3f(0.49f, 0.49f, 0.49f);
 
+    // Draw aligned cross
+    auto const alignedCrossLength{ spatMode == SpatModes::lbap ? SPACE_LIMIT : MAX_RADIUS * 1.5f };
     glBegin(GL_LINE_LOOP);
-    glVertex3f(0.0f, 0.0f, narrow<float>(-NUM_GRID_LINES));
-    glVertex3f(0.0f, 0.0f, narrow<float>(NUM_GRID_LINES));
+    glVertex3f(0.0f, 0.0f, -alignedCrossLength);
+    glVertex3f(0.0f, 0.0f, alignedCrossLength);
+    glEnd();
+    glBegin(GL_LINE_LOOP);
+    glVertex3f(-alignedCrossLength, 0.0f, 0.0f);
+    glVertex3f(alignedCrossLength, 0.0f, 0.0f);
     glEnd();
 
-    glBegin(GL_LINE_LOOP);
-    glVertex3f(narrow<float>(-NUM_GRID_LINES), 0.0f, 0.0f);
-    glVertex3f(narrow<float>(NUM_GRID_LINES), 0.0f, 0.0f);
-    glEnd();
-
+    // Draw diagonal cross
+    auto const diagonalCrossLength{ spatMode == SpatModes::lbap ? SPACE_LIMIT * juce::MathConstants<float>::sqrt2
+                                                                : alignedCrossLength };
     glBegin(GL_LINE_LOOP);
     static auto constexpr quarterPi{ juce::MathConstants<float>::halfPi / 2.0f };
-    glVertex3f(std::cos(quarterPi) * 14.5f, 0.0f, std::sin(quarterPi) * 14.5f);
-    glVertex3f(-std::cos(quarterPi) * 14.5f, 0.0f, -std::sin(quarterPi) * 14.5f);
-
+    glVertex3f(std::cos(quarterPi) * diagonalCrossLength, 0.0f, std::sin(quarterPi) * diagonalCrossLength);
+    glVertex3f(-std::cos(quarterPi) * diagonalCrossLength, 0.0f, -std::sin(quarterPi) * diagonalCrossLength);
     glEnd();
-
     glBegin(GL_LINE_LOOP);
-    glVertex3f(std::cos(quarterPi * 3.0f) * 14.5f, 0.0f, std::sin(quarterPi * 3.0f) * 14.5f);
-    glVertex3f(-std::cos(quarterPi * 3.0f) * 14.5f, 0.0f, -std::sin(quarterPi * 3.0f) * 14.5f);
+    glVertex3f(std::cos(quarterPi * 3.0f) * diagonalCrossLength,
+               0.0f,
+               std::sin(quarterPi * 3.0f) * diagonalCrossLength);
+    glVertex3f(-std::cos(quarterPi * 3.0f) * diagonalCrossLength,
+               0.0f,
+               -std::sin(quarterPi * 3.0f) * diagonalCrossLength);
     glEnd();
 
+    // Draw grey lines
     if (mMainContentComponent.getModeSelected() == SpatModes::lbap) {
-        // Draw grey squares.
-        for (int j{}; j < 2; ++j) {
-            auto const value{ narrow<float>(j) * 6.75f + 6.875f };
+        // squares
+        static constexpr std::array<float, 2> LINES{ MAX_RADIUS / 3.0f * 2.0f,
+                                                     (SPACE_LIMIT - MAX_RADIUS) / 2.0f + MAX_RADIUS };
+        for (auto const value : LINES) {
             glBegin(GL_LINES);
             glVertex3f(-value, 0.0f, value);
             glVertex3f(value, 0.0f, value);
@@ -421,7 +421,7 @@ void SpeakerViewComponent::drawOriginGrid() const
             glEnd();
         }
     } else {
-        // Draw grey circles.
+        // circles.
         // TODO : this is really expensive
         for (int j{}; j < 3; ++j) {
             auto const value{ narrow<float>(j) * 5.0f + 2.5f };
@@ -434,9 +434,9 @@ void SpeakerViewComponent::drawOriginGrid() const
         }
     }
 
-    drawText("X", glm::vec3(MAGIC, 0.1f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
-    drawText("Y", glm::vec3(0.0f, 0.1f, MAGIC), glm::vec3(1.0f, 1.0f, 1.0f));
-    drawText("Z", glm::vec3(0.0f, MAGIC, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    drawText("X", glm::vec3(0.0f, 0.1f, MAX_RADIUS), glm::vec3(1.0f, 1.0f, 1.0f));
+    drawText("Y", glm::vec3(MAX_RADIUS, 0.1f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    drawText("Z", glm::vec3(0.0f, MAX_RADIUS, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
 
     drawTextOnGrid("0", glm::vec3(9.4f, 0.0f, 0.1f));
     drawTextOnGrid("90", glm::vec3(-0.8f, 0.0f, 9.0f));
@@ -456,9 +456,9 @@ void SpeakerViewComponent::drawText(std::string const & val,
     glTranslatef(position.x, position.y, position.z);
 
     if (camLock) {
-        glRotatef((-mCamAngleX), 0, 1, 0);
-        if (mCamAngleY < 0 || mCamAngleY > 90.f) {
-            glRotatef(-mCamAngleY, 0, 1, 0);
+        glRotatef((-mCamAngleX), 0.0f, 1.0f, 0.0f);
+        if (mCamAngleY < 0.0f || mCamAngleY > 90.0f) {
+            glRotatef(-mCamAngleY, 0.0f, 1.0f, 0.0f);
         }
     }
 
@@ -478,7 +478,7 @@ void SpeakerViewComponent::drawTextOnGrid(std::string const & val, glm::vec3 con
     glTranslatef(position.x, position.y, position.z);
 
     glRotatef(-90.0, 1.0f, 0.0f, 0.0f);
-    glRotatef(270.0, 0.0f, 0.0f, 10.0f);
+    glRotatef(270.0, 0.0f, 0.0f, MAX_RADIUS);
 
     glScalef(scale, scale, scale);
     glColor3f(1.0f, 1.0f, 1.0f);

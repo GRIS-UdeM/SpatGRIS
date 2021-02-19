@@ -39,12 +39,16 @@ ENABLE_WARNINGS
 class MainContentComponent;
 class Speaker;
 
-static int constexpr NUM_GRID_LINES{ 17 };
 static float constexpr SCROLL_WHEEL_SPEED_MOUSE{ 1.8f };
 
 //==============================================================================
 class SpeakerViewComponent final : public juce::OpenGLAppComponent
 {
+public:
+    static auto constexpr MAX_RADIUS{ 10.0f };
+    static auto constexpr SPACE_LIMIT{ MAX_RADIUS * 1.66666666666f };
+
+private:
     MainContentComponent & mMainContentComponent;
 
     bool mShowSphere = false;

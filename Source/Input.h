@@ -47,6 +47,9 @@ class MainContentComponent;
 //==============================================================================
 class Input final : public ParentLevelComponent
 {
+    static constexpr auto SPHERE_RADIUS = 0.3f;
+    static constexpr auto HALF_SPHERE_RADIUS = SPHERE_RADIUS / 2.0f;
+
     MainContentComponent & mMainContentComponent;
     SmallGrisLookAndFeel & mLookAndFeel;
 
@@ -60,7 +63,6 @@ class Input final : public ParentLevelComponent
     float mAzimuthSpan{};
     float mZenithSpan{};
     float mGain{ -1.0f };
-    float mSizeT = 0.3f;
 
     glm::vec3 mCenter{};
     glm::vec3 mColor{};
