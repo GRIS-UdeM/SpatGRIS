@@ -428,6 +428,9 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
                 auto * tog{ dynamic_cast<juce::ToggleButton *>(mSpeakersTableListBox.getCellComponent(cols::DIRECT, rowNumber)) };
                 if (tog) {
                     tog->setToggleState(button->getToggleState(), juce::NotificationType::dontSendNotification);
+                } else
+                {
+                    jassertfalse;
                 }
             }
         }
@@ -869,7 +872,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
                 }
                 break;
             }
-            case cols::DIRECT: // Direct Out
+            case cols::DIRECT:
                 mMainContentComponent.setShowTriplets(false);
                 mMainContentComponent.getSpeakers()[rowNumber]->setDirectOut(newText.getIntValue());
                 break;
@@ -980,16 +983,34 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
     }
 
     textLabel->setRowAndColumn(rowNumber, columnId);
+    auto const xyzEditable{ mMainContentComponent.getModeSelected() == SpatModes::lbap
+            || mMainContentComponent.getSpeakers()[rowNumber]->isDirectOut() };
+    auto const distanceEditable{ mMainContentComponent.getModeSelected() == SpatModes::lbap };
 
-    if (mMainContentComponent.getModeSelected() == SpatModes::lbap
-        || mMainContentComponent.getSpeakers()[rowNumber]->isDirectOut()) {
-        if (columnId < cols::X) {
-            textLabel->setEditable(false);
-        }
-    } else {
-        if (columnId < cols::AZIMUTH) {
-            textLabel->setEditable(false);
-        }
+    switch (columnId)
+    {
+    case cols::ID:
+        textLabel->setEditable(false);
+        break;
+    case cols::X:
+    case cols::Y:
+    case cols::Z:
+            textLabel->setEditable(xyzEditable);
+            break;
+    case cols::DISTANCE:
+        textLabel->setEditable(distanceEditable);
+        break;
+    case cols::AZIMUTH:
+    case cols::ELEVATION:
+    case cols::OUTPUT_PATCH:
+    case cols::GAIN:
+    case cols::HIGHPASS:
+    case cols::DIRECT:
+    case cols::DELETE:
+        textLabel->setEditable(true);
+        break;
+    default:
+        jassertfalse;
     }
 
     return textLabel;
