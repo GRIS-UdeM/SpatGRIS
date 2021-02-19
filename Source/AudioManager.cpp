@@ -20,6 +20,7 @@
 #include "AudioManager.h"
 
 #include "AudioProcessor.h"
+#include "constants.hpp"
 
 static_assert(!USE_JACK);
 
@@ -34,24 +35,13 @@ AudioManager::AudioManager(juce::String const & deviceType,
                            double const sampleRate,
                            int const bufferSize)
 {
-    static constexpr auto NUM_NEEDED_CHANNELS = 256;
+    auto const success{ tryInitAudioDevice(deviceType, inputDevice, outputDevice, sampleRate, bufferSize) };
 
-    if (deviceType.isNotEmpty() && inputDevice.isNotEmpty() && outputDevice.isNotEmpty()) {
-        [[maybe_unused]] auto const & dummy{ mAudioDeviceManager.getAvailableDeviceTypes() };
-        mAudioDeviceManager.setCurrentAudioDeviceType(deviceType, true);
-        auto * deviceTypeObject{ mAudioDeviceManager.getCurrentDeviceTypeObject() };
-        jassert(deviceTypeObject);
-        deviceTypeObject->scanForDevices();
-
-        juce::BigInteger neededChannels{};
-        neededChannels.setRange(0, NUM_NEEDED_CHANNELS, true);
-        juce::AudioDeviceManager::AudioDeviceSetup const setup{ outputDevice,   inputDevice, sampleRate,     bufferSize,
-                                                                neededChannels, false,       neededChannels, false };
-        mAudioDeviceManager.setAudioDeviceSetup(setup, true);
-    } else {
-        mAudioDeviceManager.initialiseWithDefaultDevices(NUM_NEEDED_CHANNELS, NUM_NEEDED_CHANNELS);
+    if (!success) {
+        mAudioDeviceManager.initialiseWithDefaultDevices(MAX_INPUTS, MAX_OUTPUTS);
     }
 
+    // Register physical ports
     auto * audioDevice{ mAudioDeviceManager.getCurrentAudioDevice() };
     jassert(audioDevice != nullptr);
     int channelIndex{};
@@ -138,6 +128,48 @@ void AudioManager::setBufferSizes(int const numSamples)
 
     mInputPortsBuffer.setSize(mVirtualInputPorts.size(), numSamples, false, false, false);
     mOutputPortsBuffer.setSize(mVirtualOutputPorts.size(), numSamples, false, false, false);
+}
+
+//==============================================================================
+bool AudioManager::tryInitAudioDevice(juce::String const & deviceType,
+                                      juce::String const & inputDevice,
+                                      juce::String const & outputDevice,
+                                      double const sampleRate,
+                                      int const bufferSize)
+{
+    if (deviceType.isEmpty() || inputDevice.isEmpty() || outputDevice.isEmpty()) {
+        return false;
+    }
+
+    auto const & availableDeviceTypes{ mAudioDeviceManager.getAvailableDeviceTypes() };
+
+    auto const * const foundDeviceType{ std::find_if(
+        std::cbegin(availableDeviceTypes),
+        std::cend(availableDeviceTypes),
+        [&deviceType](juce::AudioIODeviceType const * audioDeviceType) -> bool {
+            return audioDeviceType->getTypeName() == deviceType;
+        }) };
+    if (foundDeviceType == std::cend(availableDeviceTypes)) {
+        return false;
+    }
+
+    mAudioDeviceManager.setCurrentAudioDeviceType(deviceType, true);
+    auto * deviceTypeObject{ mAudioDeviceManager.getCurrentDeviceTypeObject() };
+    jassert(deviceTypeObject);
+    deviceTypeObject->scanForDevices();
+
+    juce::BigInteger neededInputChannels{};
+    neededInputChannels.setRange(0, MAX_INPUTS, true);
+    juce::BigInteger neededOutputChannels{};
+    neededOutputChannels.setRange(0, MAX_OUTPUTS, true);
+    juce::AudioDeviceManager::AudioDeviceSetup const setup{
+        outputDevice, inputDevice, sampleRate, bufferSize, neededInputChannels, false, neededOutputChannels, false
+    };
+    auto const errorString{ mAudioDeviceManager.setAudioDeviceSetup(setup, true) };
+    if (errorString.isNotEmpty()) {
+        return false;
+    }
+    return true;
 }
 
 //==============================================================================

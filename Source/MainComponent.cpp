@@ -158,10 +158,10 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     textEditorReturnKeyPressed(*mAddInputsTextEditor);
 
     // Open the default preset if lastOpenPreset is not a valid file.
-    auto const preset{ mConfiguration.getLastOpenPreset() };
+    openPreset(mConfiguration.getLastOpenPreset());
 
     // Open the default speaker setup if lastOpenSpeakerSetup is not a valid file.
-    juce::File const setup{ mConfiguration.getLastOpenSpeakerSetup() };
+    openXmlFileSpeaker(mConfiguration.getLastOpenSpeakerSetup());
 
     // End layout and start refresh timer.
     resized();
@@ -909,14 +909,18 @@ void MainContentComponent::audioParametersChanged()
         return;
     }
 
-    auto const sampleRate{ narrow<unsigned>(currentAudioDevice->getCurrentSampleRate()) };
+    auto const sampleRate{ currentAudioDevice->getCurrentSampleRate() };
     auto const bufferSize{ currentAudioDevice->getCurrentBufferSizeSamples() };
     auto const inputCount{ currentAudioDevice->getActiveInputChannels().countNumberOfSetBits() };
     auto const outputCount{ currentAudioDevice->getActiveOutputChannels().countNumberOfSetBits() };
 
-    mSamplingRate = sampleRate;
+    mConfiguration.setSampleRate(sampleRate);
+    mConfiguration.setBufferSize(bufferSize);
 
-    mSampleRateLabel->setText(juce::String{ sampleRate } + " Hz", juce::NotificationType::dontSendNotification);
+    mSamplingRate = narrow<unsigned>(sampleRate);
+
+    mSampleRateLabel->setText(juce::String{ narrow<unsigned>(sampleRate) } + " Hz",
+                              juce::NotificationType::dontSendNotification);
     mBufferSizeLabel->setText(juce::String{ bufferSize } + " samples", juce::NotificationType::dontSendNotification);
     mChannelCountLabel->setText("I : " + juce::String{ inputCount } + " - O : " + juce::String{ outputCount },
                                 juce::dontSendNotification);
@@ -1708,21 +1712,23 @@ void MainContentComponent::reloadXmlFileSpeaker()
 }
 
 //==============================================================================
-void MainContentComponent::openXmlFileSpeaker(juce::String const & path)
+void MainContentComponent::openXmlFileSpeaker(juce::File const & file)
 {
+    jassert(file.existsAsFile());
+
     auto const oldPath{ mCurrentSpeakerSetupPath };
-    auto const isNewSameAsOld{ oldPath.compare(path) == 0 };
-    auto const isNewSameAsLastSetup{ mLastVbapSetupPath.compare(path) == 0 };
+    auto const isNewSameAsOld{ oldPath.compare(file.getFullPathName()) == 0 };
+    auto const isNewSameAsLastSetup{ mLastVbapSetupPath.compare(file.getFullPathName()) == 0 };
     auto ok{ false };
-    if (!juce::File(path).existsAsFile()) {
+    if (!juce::File(file).existsAsFile()) {
         juce::AlertWindow alert("Error in Load Speaker Setup !",
-                                "Can't found file " + path + ", the current setup will be kept.",
+                                "Cannot find file " + file.getFullPathName() + ", the current setup will be kept.",
                                 juce::AlertWindow::WarningIcon);
         alert.setLookAndFeel(&mLookAndFeel);
         alert.addButton("Ok", 0, juce::KeyPress(juce::KeyPress::returnKey));
         alert.runModalLoop();
     } else {
-        mCurrentSpeakerSetupPath = path;
+        mCurrentSpeakerSetupPath = file.getFullPathName();
         juce::XmlDocument xmlDoc{ juce::File{ mCurrentSpeakerSetupPath } };
         auto const mainXmlElem(xmlDoc.getDocumentElement());
         if (!mainXmlElem) {
@@ -1737,11 +1743,11 @@ void MainContentComponent::openXmlFileSpeaker(juce::String const & path)
                 mSpeakersLock.lock();
                 mSpeakers.clear();
                 mSpeakersLock.unlock();
-                if (path.compare(BINAURAL_SPEAKER_SETUP_FILE.getFullPathName()) == 0) {
+                if (file.getFullPathName().compare(BINAURAL_SPEAKER_SETUP_FILE.getFullPathName()) == 0) {
                     mAudioProcessor->setMode(SpatModes::hrtfVbap);
                     mSpatModeCombo->setSelectedId(static_cast<int>(SpatModes::hrtfVbap) + 1,
                                                   juce::NotificationType::dontSendNotification);
-                } else if (path.compare(STEREO_SPEAKER_SETUP_FILE.getFullPathName()) == 0) {
+                } else if (file.getFullPathName().compare(STEREO_SPEAKER_SETUP_FILE.getFullPathName()) == 0) {
                     mAudioProcessor->setMode(SpatModes::stereo);
                     mSpatModeCombo->setSelectedId(static_cast<int>(SpatModes::stereo) + 1,
                                                   juce::NotificationType::dontSendNotification);
@@ -1882,17 +1888,17 @@ void MainContentComponent::closeSpeakersConfigurationWindow()
 }
 
 //==============================================================================
-void MainContentComponent::openPreset(juce::String const & path)
+void MainContentComponent::openPreset(juce::File const & file)
 {
+    jassert(file.existsAsFile());
+
     juce::ScopedLock const lock{ mAudioProcessor->getCriticalSection() };
 
-    juce::String msg;
-    juce::File const xmlFile{ path };
-    juce::XmlDocument xmlDoc{ xmlFile };
+    juce::XmlDocument xmlDoc{ file };
     auto const mainXmlElem{ xmlDoc.getDocumentElement() };
     if (!mainXmlElem) {
         juce::AlertWindow alert{ "Error in Open Preset !",
-                                 "Your file is corrupted !\n" + path.toStdString() + "\n"
+                                 "Your file is corrupted !\n" + file.getFullPathName() + "\n"
                                      + xmlDoc.getLastParseError().toStdString(),
                                  juce::AlertWindow::WarningIcon };
         alert.setLookAndFeel(&mLookAndFeel);
@@ -1900,7 +1906,7 @@ void MainContentComponent::openPreset(juce::String const & path)
         alert.runModalLoop();
     } else {
         if (mainXmlElem->hasTagName("SpatServerGRIS_Preset") || mainXmlElem->hasTagName("ServerGRIS_Preset")) {
-            mCurrentPresetPath = path;
+            mCurrentPresetPath = file.getFullPathName();
             mOscInputPort
                 = mainXmlElem->getIntAttribute("OSC_Input_Port"); // TODO: app preferences instead of project settings ?
             mAddInputsTextEditor->setText(mainXmlElem->getStringAttribute("Number_Of_Inputs"));
@@ -1983,6 +1989,7 @@ void MainContentComponent::openPreset(juce::String const & path)
                 }
             }
         } else {
+            juce::String msg{};
             if (mainXmlElem->hasTagName("SpeakerSetup")) {
                 msg = "You are trying to open a Speaker Setup, and not a Server document !";
             } else {

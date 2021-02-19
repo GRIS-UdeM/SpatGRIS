@@ -163,6 +163,11 @@ private:
                  int bufferSize);
     //==============================================================================
     void setBufferSizes(int numSamples);
+    bool tryInitAudioDevice(juce::String const & deviceType,
+                            juce::String const & inputDevice,
+                            juce::String const & outputDevice,
+                            double sampleRate,
+                            int bufferSize);
     //==============================================================================
     JUCE_LEAK_DETECTOR(AudioManager)
 }; // class AudioManager

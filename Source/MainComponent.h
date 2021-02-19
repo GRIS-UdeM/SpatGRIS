@@ -304,9 +304,9 @@ public:
     bool updateLevelComp(); // TODO : what does the return value means ?
 
     // Open - save.
-    void openXmlFileSpeaker(juce::String const & path);
+    void openXmlFileSpeaker(juce::File const & file);
     void reloadXmlFileSpeaker();
-    void openPreset(juce::String const & path);
+    void openPreset(juce::File const & file);
     void getPresetData(juce::XmlElement * xml) const;
     void savePreset(juce::String const & path);
     void saveSpeakerSetup(juce::String const & path);

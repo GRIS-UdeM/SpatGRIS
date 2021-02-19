@@ -19,10 +19,18 @@
 
 #include "SettingsWindow.h"
 
+#include <bitset>
+
 #include "AudioManager.h"
 #include "GrisLookAndFeel.h"
 #include "MainComponent.h"
-#include "constants.hpp"
+
+bool isNotPowerOfTwo(int const value)
+{
+    jassert(value >= 0);
+    std::bitset<sizeof(value) * 8> const bitSet{ static_cast<unsigned>(value) };
+    return bitSet.count() != 1;
+}
 
 //==============================================================================
 SettingsComponent::SettingsComponent(MainContentComponent & parent,
@@ -50,15 +58,16 @@ SettingsComponent::SettingsComponent(MainContentComponent & parent,
         label.setFont(mLookAndFeel.getFont().withHorizontalScale(1.5f));
     };
 
-    auto initComboBox = [this](juce::ComboBox & combo, juce::StringArray choices = {}, int selectedIndex = 0) {
-        combo.addItemList(std::move(choices), 1);
-        combo.setSelectedItemIndex(selectedIndex, juce::dontSendNotification);
-        combo.setBounds(0, 0, RIGHT_COL_WIDTH, COMPONENT_HEIGHT);
-        combo.setLookAndFeel(&mLookAndFeel);
-        combo.addListener(this);
+    auto initComboBox
+        = [this](juce::ComboBox & combo, juce::StringArray const & choices = {}, int const selectedIndex = 0) {
+              combo.addItemList(choices, 1);
+              combo.setSelectedItemIndex(selectedIndex, juce::dontSendNotification);
+              combo.setBounds(0, 0, RIGHT_COL_WIDTH, COMPONENT_HEIGHT);
+              combo.setLookAndFeel(&mLookAndFeel);
+              combo.addListener(this);
 
-        addAndMakeVisible(combo);
-    };
+              addAndMakeVisible(combo);
+          };
 
     auto & audioManager{ AudioManager::getInstance() };
 
@@ -240,21 +249,21 @@ void SettingsComponent::fillComboBoxes()
     mOutputDeviceCombo.clear(juce::dontSendNotification);
     mSampleRateCombo.clear(juce::dontSendNotification);
     mBufferSizeCombo.clear(juce::dontSendNotification);
+    mInputDevices = currentAudioDeviceType->getDeviceNames(true);
+    auto const & currentInputDevice{ currentAudioDeviceSetup.inputDeviceName };
+    auto const inputDeviceIndex{ mInputDevices.indexOf(currentInputDevice) };
+
+    mInputDeviceCombo.addItemList(mInputDevices, 1);
+    mInputDeviceCombo.setSelectedItemIndex(inputDeviceIndex, juce::dontSendNotification);
+
+    mOutputDevices = currentAudioDeviceType->getDeviceNames(false);
+    auto const & currentOutputDevice{ currentAudioDeviceSetup.outputDeviceName };
+    auto const outputDeviceIndex{ mOutputDevices.indexOf(currentOutputDevice) };
+
+    mOutputDeviceCombo.addItemList(mOutputDevices, 1);
+    mOutputDeviceCombo.setSelectedItemIndex(outputDeviceIndex, juce::dontSendNotification);
+
     if (audioDevice) {
-        mInputDevices = currentAudioDeviceType->getDeviceNames(true);
-        auto const & currentInputDevice{ currentAudioDeviceSetup.inputDeviceName };
-        auto const inputDeviceIndex{ mInputDevices.indexOf(currentInputDevice) };
-
-        mInputDeviceCombo.addItemList(mInputDevices, 1);
-        mInputDeviceCombo.setSelectedItemIndex(inputDeviceIndex, juce::dontSendNotification);
-
-        mOutputDevices = currentAudioDeviceType->getDeviceNames(false);
-        auto const & currentOutputDevice{ currentAudioDeviceSetup.outputDeviceName };
-        auto const outputDeviceIndex{ mOutputDevices.indexOf(currentOutputDevice) };
-
-        mOutputDeviceCombo.addItemList(mOutputDevices, 1);
-        mOutputDeviceCombo.setSelectedItemIndex(outputDeviceIndex, juce::dontSendNotification);
-
         auto const sampleRates{ audioDevice->getAvailableSampleRates() };
         auto const currentSampleRate{ audioDevice->getCurrentSampleRate() };
         auto const sampleRateIndex{ sampleRates.indexOf(currentSampleRate) };
@@ -262,7 +271,8 @@ void SettingsComponent::fillComboBoxes()
         mSampleRateCombo.addItemList(TO_STRING_ARRAY(sampleRates), 1);
         mSampleRateCombo.setSelectedItemIndex(sampleRateIndex, juce::dontSendNotification);
 
-        auto const bufferSizes{ audioDevice->getAvailableBufferSizes() };
+        auto bufferSizes{ audioDevice->getAvailableBufferSizes() };
+        bufferSizes.removeIf(isNotPowerOfTwo);
         auto const currentBufferSize{ audioDevice->getCurrentBufferSizeSamples() };
         auto const bufferSizeIndex{ bufferSizes.indexOf(currentBufferSize) };
 

@@ -1,11 +1,20 @@
 /*
-  ==============================================================================
+ This file is part of SpatGRIS2.
 
-    Configuration.cpp
-    Created: 17 Feb 2021 4:07:33pm
-    Author:  samue
+ Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
 
-  ==============================================================================
+ SpatGRIS2 is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ SpatGRIS2 is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "Configuration.h"
@@ -44,7 +53,7 @@ Configuration::Configuration()
 {
     // App user settings storage file.
     juce::PropertiesFile::Options options{};
-    options.applicationName = "SpatGRIS2";
+    options.applicationName = juce::JUCEApplicationBase::getInstance()->getApplicationName();
     options.commonToAllUsers = false;
     options.filenameSuffix = "xml";
     options.folderName = "GRIS";
@@ -59,7 +68,6 @@ Configuration::Configuration()
 Configuration::~Configuration()
 {
     mApplicationProperties.saveIfNeeded();
-    mUserSettings = nullptr;
     mApplicationProperties.closeFiles();
 }
 
@@ -200,8 +208,8 @@ void Configuration::setLastSpeakerSetupDirectory(juce::File const & directory) c
 //==============================================================================
 juce::File Configuration::getLastVbapSpeakerSetup() const
 {
-    juce::File const lastVbap{ mUserSettings->getValue(Tags::LAST_VBAP_SPEAKER_SETUP) };
-    if (!juce::File{ lastVbap }.existsAsFile()) {
+    juce::File lastVbap{ mUserSettings->getValue(Tags::LAST_VBAP_SPEAKER_SETUP) };
+    if (!lastVbap.existsAsFile()) {
         return DEFAULT_SPEAKER_SETUP_FILE;
     }
     return lastVbap;
@@ -210,7 +218,7 @@ juce::File Configuration::getLastVbapSpeakerSetup() const
 //==============================================================================
 juce::File Configuration::getLastOpenPreset() const
 {
-    juce::File const lastOpenPreset{ mUserSettings->getValue(Tags::LAST_OPEN_PRESET) };
+    juce::File lastOpenPreset{ mUserSettings->getValue(Tags::LAST_OPEN_PRESET) };
     if (!lastOpenPreset.existsAsFile()) {
         return DEFAULT_PRESET_FILE;
     }
@@ -220,7 +228,7 @@ juce::File Configuration::getLastOpenPreset() const
 //==============================================================================
 juce::File Configuration::getLastOpenSpeakerSetup() const
 {
-    juce::File const lastOpenSpeakerSetup{ mUserSettings->getValue(Tags::LAST_OPEN_SPEAKER_SETUP) };
+    juce::File lastOpenSpeakerSetup{ mUserSettings->getValue(Tags::LAST_OPEN_SPEAKER_SETUP) };
     if (!lastOpenSpeakerSetup.existsAsFile()) {
         return DEFAULT_SPEAKER_SETUP_FILE;
     }
@@ -248,13 +256,13 @@ juce::String Configuration::getOutputDevice() const
 //==============================================================================
 double Configuration::getSampleRate() const
 {
-    return mUserSettings->getDoubleValue(Tags::SAMPLE_RATE);
+    return mUserSettings->getDoubleValue(Tags::SAMPLE_RATE, 48000.0);
 }
 
 //==============================================================================
 int Configuration::getBufferSize() const
 {
-    return mUserSettings->getIntValue(Tags::BUFFER_SIZE);
+    return mUserSettings->getIntValue(Tags::BUFFER_SIZE, 512);
 }
 
 //==============================================================================
@@ -317,7 +325,7 @@ RecordingConfig Configuration::getRecordingConfig() const
 //==============================================================================
 juce::File Configuration::getLastRecordingDirectory() const
 {
-    juce::File const file{ mUserSettings->getValue(Tags::LAST_RECORDING_DIRECTORY) };
+    juce::File file{ mUserSettings->getValue(Tags::LAST_RECORDING_DIRECTORY) };
     if (!file.isDirectory()) {
         return juce::File::getSpecialLocation(juce::File::SpecialLocationType::userHomeDirectory);
     }
@@ -357,7 +365,7 @@ int Configuration::getWindowHeight() const
 //==============================================================================
 juce::File Configuration::getLastPresetDirectory() const
 {
-    juce::File const file{ mUserSettings->getValue(Tags::LAST_PRESET_DIRECTORY) };
+    juce::File file{ mUserSettings->getValue(Tags::LAST_PRESET_DIRECTORY) };
     if (!file.isDirectory()) {
         return juce::File::getSpecialLocation(juce::File::SpecialLocationType::userHomeDirectory);
     }
@@ -367,7 +375,7 @@ juce::File Configuration::getLastPresetDirectory() const
 //==============================================================================
 juce::File Configuration::getLastSpeakerSetupDirectory() const
 {
-    juce::File const file{ mUserSettings->getValue(Tags::LAST_SPEAKER_SETUP_DIRECTORY) };
+    juce::File file{ mUserSettings->getValue(Tags::LAST_SPEAKER_SETUP_DIRECTORY) };
     if (!file.isDirectory()) {
         return juce::File::getSpecialLocation(juce::File::SpecialLocationType::userHomeDirectory);
     }
