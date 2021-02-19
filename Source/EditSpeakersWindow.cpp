@@ -276,10 +276,10 @@ void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const 
             toSortItem.value = static_cast<float>(speaker->getIdSpeaker());
             break;
         case 2:
-            toSortItem.value = speaker->getCoordinate().x;
+            toSortItem.value = speaker->getCoordinate().z;
             break;
         case 3:
-            toSortItem.value = speaker->getCoordinate().z;
+            toSortItem.value = speaker->getCoordinate().x;
             break;
         case 4:
             toSortItem.value = speaker->getCoordinate().y;
@@ -556,10 +556,10 @@ juce::String EditSpeakersWindow::getText(int const columnNumber, int const rowNu
             text = juce::String{ speaker.getIdSpeaker() };
             break;
         case 2:
-            text = juce::String{ speaker.getCoordinate().x };
+            text = juce::String{ speaker.getCoordinate().z };
             break;
         case 3:
-            text = juce::String{ speaker.getCoordinate().z };
+            text = juce::String{ speaker.getCoordinate().x };
             break;
         case 4:
             text = juce::String{ speaker.getCoordinate().y };
@@ -608,8 +608,8 @@ void EditSpeakersWindow::setText(int const columnNumber,
             {
                 newP = mMainContentComponent.getSpeakers()[rowNumber]->getCoordinate();
                 auto const val{ getFloatPrecision(newText.getFloatValue(), 3.0f) };
-                diff = val - newP.x;
-                newP.x = val;
+                diff = val - newP.z;
+                newP.z = val;
                 mMainContentComponent.getSpeakers()[rowNumber]->setCoordinate(newP);
                 if (mSpeakersTableListBox.getNumSelectedRows() > 1) {
                     for (int i{}; i < mSpeakersTableListBox.getSelectedRows().size(); ++i) {
@@ -619,9 +619,9 @@ void EditSpeakersWindow::setText(int const columnNumber,
                         }
                         newP = mMainContentComponent.getSpeakers()[rowNum]->getCoordinate();
                         if (altDown) {
-                            newP.x += diff;
+                            newP.z += diff;
                         } else {
-                            newP.x = val;
+                            newP.z = val;
                         }
                         mMainContentComponent.getSpeakers()[rowNum]->setCoordinate(newP);
                     }
@@ -632,8 +632,8 @@ void EditSpeakersWindow::setText(int const columnNumber,
             {
                 newP = mMainContentComponent.getSpeakers()[rowNumber]->getCoordinate();
                 auto const val{ getFloatPrecision(newText.getFloatValue(), 3.0f) };
-                diff = val - newP.z;
-                newP.z = val;
+                diff = val - newP.x;
+                newP.x = val;
                 mMainContentComponent.getSpeakers()[rowNumber]->setCoordinate(newP);
                 if (mSpeakersTableListBox.getNumSelectedRows() > 1) {
                     for (int i{}; i < mSpeakersTableListBox.getSelectedRows().size(); ++i) {
@@ -643,9 +643,9 @@ void EditSpeakersWindow::setText(int const columnNumber,
                         }
                         newP = mMainContentComponent.getSpeakers()[rowNum]->getCoordinate();
                         if (altDown) {
-                            newP.z += diff;
+                            newP.x += diff;
                         } else {
-                            newP.z = val;
+                            newP.x = val;
                         }
                         mMainContentComponent.getSpeakers()[rowNum]->setCoordinate(newP);
                     }
