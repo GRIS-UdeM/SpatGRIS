@@ -2464,29 +2464,52 @@ bool MainContentComponent::initRecording() const
 //==============================================================================
 void MainContentComponent::resized()
 {
-    auto r{ getLocalBounds().reduced(2) };
+    static constexpr auto MENU_BAR_HEIGHT = 20;
+    static constexpr auto PADDING = 10;
 
-    mMenuBar->setBounds(0, 0, getWidth(), 20);
-    r.removeFromTop(20);
+    auto reducedLocalBounds{ getLocalBounds().reduced(2) };
+
+    mMenuBar->setBounds(0, 0, getWidth(), MENU_BAR_HEIGHT);
+    reducedLocalBounds.removeFromTop(MENU_BAR_HEIGHT);
 
     // Lay out the speaker view and the vertical divider.
     Component * vComps[] = { mSpeakerViewComponent.get(), mVerticalDividerBar.get(), nullptr };
 
     // Lay out side-by-side and resize the components' heights as well as widths.
-    mVerticalLayout.layOutComponents(vComps, 3, r.getX(), r.getY(), r.getWidth(), r.getHeight(), false, true);
+    mVerticalLayout.layOutComponents(vComps,
+                                     3,
+                                     reducedLocalBounds.getX(),
+                                     reducedLocalBounds.getY(),
+                                     reducedLocalBounds.getWidth(),
+                                     reducedLocalBounds.getHeight(),
+                                     false,
+                                     true);
 
-    mMainUiBox->setBounds(mSpeakerViewComponent->getWidth() + 6,
-                          20,
-                          getWidth() - (mSpeakerViewComponent->getWidth() + 10),
-                          getHeight());
+    juce::Rectangle<int> const newMainUiBoxBounds{ mSpeakerViewComponent->getWidth() + 6,
+                                                   MENU_BAR_HEIGHT,
+                                                   getWidth() - (mSpeakerViewComponent->getWidth() + PADDING),
+                                                   getHeight() };
+    mMainUiBox->setBounds(newMainUiBoxBounds);
     mMainUiBox->correctSize(getWidth() - mSpeakerViewComponent->getWidth() - 6, 610);
 
-    mInputsUiBox->setBounds(0, 2, getWidth() - (mSpeakerViewComponent->getWidth() + 10), 231);
+    juce::Rectangle<int> const newInputsUiBoxBounds{ 0,
+                                                     2,
+                                                     getWidth() - (mSpeakerViewComponent->getWidth() + PADDING),
+                                                     231 };
+    mInputsUiBox->setBounds(newInputsUiBoxBounds);
     mInputsUiBox->correctSize(mInputs.size() * VU_METER_WIDTH_IN_PIXELS + 4, 200);
 
-    mOutputsUiBox->setBounds(0, 233, getWidth() - (mSpeakerViewComponent->getWidth() + 10), 210);
+    juce::Rectangle<int> const newOutputsUiBoxBounds{ 0,
+                                                      233,
+                                                      getWidth() - (mSpeakerViewComponent->getWidth() + PADDING),
+                                                      210 };
+    mOutputsUiBox->setBounds(newOutputsUiBoxBounds);
     mOutputsUiBox->correctSize(mSpeakers.size() * VU_METER_WIDTH_IN_PIXELS + 4, 180);
 
-    mControlUiBox->setBounds(0, 443, getWidth() - (mSpeakerViewComponent->getWidth() + 10), 145);
+    juce::Rectangle<int> const newControlUiBoxBounds{ 0,
+                                                      443,
+                                                      getWidth() - (mSpeakerViewComponent->getWidth() + PADDING),
+                                                      145 };
+    mControlUiBox->setBounds(newControlUiBoxBounds);
     mControlUiBox->correctSize(410, 145);
 }
