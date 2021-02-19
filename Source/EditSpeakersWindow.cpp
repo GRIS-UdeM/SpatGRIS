@@ -25,6 +25,23 @@
 #include "Speaker.h"
 #include "narrow.hpp"
 
+namespace cols
+{
+    static constexpr auto ID = 1;
+    static constexpr auto X = 2;
+    static constexpr auto Y = 3;
+    static constexpr auto Z = 4;
+    static constexpr auto AZIMUTH = 5;
+    static constexpr auto ELEVATION = 6;
+    static constexpr auto DISTANCE = 7;
+    static constexpr auto OUTPUT_PATCH = 8;
+    static constexpr auto GAIN = 9;
+    static constexpr auto HIGHPASS = 10;
+    static constexpr auto DIRECT = 11;
+    static constexpr auto DELETE = 12;
+}
+
+
 //==============================================================================
 template<typename T>
 static T getFloatPrecision(T const value, T const precision)
@@ -272,28 +289,28 @@ void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const 
         toSortItem.id = speaker->getIdSpeaker();
         toSortItem.directOut = speaker->isDirectOut();
         switch (newSortColumnId) {
-        case 1:
+        case cols::ID:
             toSortItem.value = static_cast<float>(speaker->getIdSpeaker());
             break;
-        case 2:
+        case cols::X:
             toSortItem.value = speaker->getCoordinate().z;
             break;
-        case 3:
+        case cols::Y:
             toSortItem.value = speaker->getCoordinate().x;
             break;
-        case 4:
+        case cols::Z:
             toSortItem.value = speaker->getCoordinate().y;
             break;
-        case 5:
+        case cols::AZIMUTH:
             toSortItem.value = speaker->getAziZenRad().x;
             break;
-        case 6:
+        case cols::ELEVATION:
             toSortItem.value = speaker->getAziZenRad().y;
             break;
-        case 7:
+        case cols::DISTANCE:
             toSortItem.value = speaker->getAziZenRad().z;
             break;
-        case 8:
+        case cols::OUTPUT_PATCH:
             toSortItem.value = static_cast<float>(speaker->getOutputPatch());
             break;
         default:
@@ -408,7 +425,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
             for (int i{}; i < mSpeakersTableListBox.getSelectedRows().size(); ++i) {
                 auto const rowNumber{ mSpeakersTableListBox.getSelectedRows()[i] };
                 mMainContentComponent.getSpeakers()[rowNumber]->setDirectOut(button->getToggleState());
-                auto * tog{ dynamic_cast<juce::ToggleButton *>(mSpeakersTableListBox.getCellComponent(11, rowNumber)) };
+                auto * tog{ dynamic_cast<juce::ToggleButton *>(mSpeakersTableListBox.getCellComponent(cols::DIRECT, rowNumber)) };
                 if (tog) {
                     tog->setToggleState(button->getToggleState(), juce::NotificationType::dontSendNotification);
                 }
@@ -552,37 +569,37 @@ juce::String EditSpeakersWindow::getText(int const columnNumber, int const rowNu
     if (mMainContentComponent.getSpeakers().size() > rowNumber) {
         auto & speaker{ *speakers[rowNumber] };
         switch (columnNumber) {
-        case 1:
+        case cols::ID:
             text = juce::String{ speaker.getIdSpeaker() };
             break;
-        case 2:
+        case cols::X:
             text = juce::String{ speaker.getCoordinate().z };
             break;
-        case 3:
+        case cols::Y:
             text = juce::String{ speaker.getCoordinate().x };
             break;
-        case 4:
+        case cols::Z:
             text = juce::String{ speaker.getCoordinate().y };
             break;
-        case 5:
+        case cols::AZIMUTH:
             text = juce::String{ speaker.getAziZenRad().x };
             break;
-        case 6:
+        case cols::ELEVATION:
             text = juce::String{ speaker.getAziZenRad().y };
             break;
-        case 7:
+        case cols::DISTANCE:
             text = juce::String{ speaker.getAziZenRad().z };
             break;
-        case 8:
+        case cols::OUTPUT_PATCH:
             text = juce::String{ speaker.getOutputPatch() };
             break;
-        case 9:
+        case cols::GAIN:
             text = juce::String{ speaker.getGain() };
             break;
-        case 10:
+        case cols::HIGHPASS:
             text = juce::String{ speaker.getHighPassCutoff() };
             break;
-        case 11:
+        case cols::DIRECT:
             text = juce::String{ static_cast<int>(speaker.isDirectOut()) };
             break;
         default:
@@ -604,7 +621,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
         if (mMainContentComponent.getSpeakers().size() > rowNumber) {
             glm::vec3 newP;
             switch (columnNumber) {
-            case 2: // X
+            case cols::X:
             {
                 newP = mMainContentComponent.getSpeakers()[rowNumber]->getCoordinate();
                 auto const val{ getFloatPrecision(newText.getFloatValue(), 3.0f) };
@@ -628,7 +645,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
                 }
                 break;
             }
-            case 3: // Y
+            case cols::Y:
             {
                 newP = mMainContentComponent.getSpeakers()[rowNumber]->getCoordinate();
                 auto const val{ getFloatPrecision(newText.getFloatValue(), 3.0f) };
@@ -652,7 +669,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
                 }
                 break;
             }
-            case 4: // Z
+            case cols::Z:
             {
                 newP = mMainContentComponent.getSpeakers()[rowNumber]->getCoordinate();
                 auto val{ getFloatPrecision(newText.getFloatValue(), 3.0f) };
@@ -678,7 +695,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
                 }
                 break;
             }
-            case 5: // Azimuth
+            case cols::AZIMUTH:
             {
                 newP = mMainContentComponent.getSpeakers()[rowNumber]->getAziZenRad();
                 auto val{ getFloatPrecision(newText.getFloatValue(), 3.0f) };
@@ -714,7 +731,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
                 }
                 break;
             }
-            case 6: // Elevation
+            case cols::ELEVATION:
             {
                 newP = mMainContentComponent.getSpeakers()[rowNumber]->getAziZenRad();
                 auto val{ getFloatPrecision(newText.getFloatValue(), 3.0f) };
@@ -740,7 +757,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
                 }
                 break;
             }
-            case 7: // Distance
+            case cols::DISTANCE:
             {
                 newP = mMainContentComponent.getSpeakers()[rowNumber]->getAziZenRad();
                 float val{};
@@ -776,7 +793,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
                 }
                 break;
             }
-            case 8: // Output patch
+            case cols::OUTPUT_PATCH:
             {
                 mMainContentComponent.setShowTriplets(false);
                 auto const oldValue{ mMainContentComponent.getSpeakers()[rowNumber]->getOutputPatch() };
@@ -801,7 +818,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
                 mMainContentComponent.getSpeakers()[rowNumber]->setOutputPatch(iValue);
                 break;
             }
-            case 9: // Gain
+            case cols::GAIN:
             {
                 auto val{ newText.getFloatValue() };
                 diff = val - mMainContentComponent.getSpeakers()[rowNumber]->getGain();
@@ -825,7 +842,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
                 }
                 break;
             }
-            case 10: // Filter Cutoff
+            case cols::HIGHPASS:
             {
                 auto val{ newText.getFloatValue() };
                 diff = val - mMainContentComponent.getSpeakers()[rowNumber]->getHighPassCutoff();
@@ -852,7 +869,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
                 }
                 break;
             }
-            case 11: // Direct Out
+            case cols::DIRECT: // Direct Out
                 mMainContentComponent.setShowTriplets(false);
                 mMainContentComponent.getSpeakers()[rowNumber]->setDirectOut(newText.getIntValue());
                 break;
@@ -928,7 +945,7 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
 {
     juce::ignoreUnused(isRowSelected);
 
-    if (columnId == 11) {
+    if (columnId == cols::DIRECT) {
         auto * tbDirect{ dynamic_cast<juce::ToggleButton *>(existingComponentToUpdate) };
         if (tbDirect == nullptr) {
             tbDirect = new juce::ToggleButton();
@@ -942,7 +959,7 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
         tbDirect->setLookAndFeel(&mLookAndFeel);
         return tbDirect;
     }
-    if (columnId == 12) {
+    if (columnId == cols::DELETE) {
         auto * tbRemove{ dynamic_cast<juce::TextButton *>(existingComponentToUpdate) };
         if (tbRemove == nullptr) {
             tbRemove = new juce::TextButton();
@@ -966,11 +983,11 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
 
     if (mMainContentComponent.getModeSelected() == SpatModes::lbap
         || mMainContentComponent.getSpeakers()[rowNumber]->isDirectOut()) {
-        if (columnId < 2) {
+        if (columnId < cols::X) {
             textLabel->setEditable(false);
         }
     } else {
-        if (columnId < 5) {
+        if (columnId < cols::AZIMUTH) {
             textLabel->setEditable(false);
         }
     }
