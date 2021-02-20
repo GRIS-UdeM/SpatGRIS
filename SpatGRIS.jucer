@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="MXmiSb" name="SpatGRIS" projectType="guiapp" version="2.1.6"
+<JUCERPROJECT id="MXmiSb" name="SpatGRIS" projectType="guiapp" version="2.1.7"
               bundleIdentifier="com.UdeM.GRIS.SpatGRIS3" includeBinaryInAppConfig="0"
               companyName="GRIS - UdeM" projectLineFeed="&#10;" cppLanguageStandard="17"
               jucerFormatVersion="1" displaySplashScreen="1" defines="USE_JACK=0"
