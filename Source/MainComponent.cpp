@@ -1404,8 +1404,8 @@ bool MainContentComponent::updateLevelComp()
         if (it->isDirectOut()) {
             directOutSpeakers++;
         } else if (zenith == -1.0f) {
-            zenith = it->getAziZenRad().y;
-        } else if (it->getAziZenRad().y < (zenith - 4.9f) || it->getAziZenRad().y > (zenith + 4.9f)) {
+            zenith = it->getPolarCoords().y;
+        } else if (it->getPolarCoords().y < (zenith - 4.9f) || it->getPolarCoords().y > (zenith + 4.9f)) {
             dimensions = 3;
         }
     }
@@ -1502,12 +1502,12 @@ bool MainContentComponent::updateLevelComp()
 
         SpeakerData so;
         so.id = speaker->getOutputPatch();
-        so.x = speaker->getCoordinate().x;
-        so.y = speaker->getCoordinate().y;
-        so.z = speaker->getCoordinate().z;
-        so.azimuth = speaker->getAziZenRad().x;
-        so.zenith = speaker->getAziZenRad().y;
-        so.radius = speaker->getAziZenRad().z;
+        so.x = speaker->getCartesianCoords().x;
+        so.y = speaker->getCartesianCoords().y;
+        so.z = speaker->getCartesianCoords().z;
+        so.azimuth = speaker->getPolarCoords().x;
+        so.zenith = speaker->getPolarCoords().y;
+        so.radius = speaker->getPolarCoords().z;
         so.outputPatch = speaker->getOutputPatch();
         so.directOut = speaker->isDirectOut();
 
@@ -2071,12 +2071,12 @@ void MainContentComponent::saveSpeakerSetup(juce::String const & path)
 
     for (auto const * it : mSpeakers) {
         auto * xmlInput{ new juce::XmlElement{ "Speaker" } };
-        xmlInput->setAttribute("PositionY", it->getCoordinate().z);
-        xmlInput->setAttribute("PositionX", it->getCoordinate().x);
-        xmlInput->setAttribute("PositionZ", it->getCoordinate().y);
-        xmlInput->setAttribute("Azimuth", it->getAziZenRad().x);
-        xmlInput->setAttribute("Zenith", it->getAziZenRad().y);
-        xmlInput->setAttribute("Radius", it->getAziZenRad().z);
+        xmlInput->setAttribute("PositionY", it->getCartesianCoords().z);
+        xmlInput->setAttribute("PositionX", it->getCartesianCoords().x);
+        xmlInput->setAttribute("PositionZ", it->getCartesianCoords().y);
+        xmlInput->setAttribute("Azimuth", it->getPolarCoords().x);
+        xmlInput->setAttribute("Zenith", it->getPolarCoords().y);
+        xmlInput->setAttribute("Radius", it->getPolarCoords().z);
         xmlInput->setAttribute("LayoutIndex", it->getIdSpeaker());
         xmlInput->setAttribute("OutputPatch", it->getOutputPatch());
         xmlInput->setAttribute("Gain", it->getGain());

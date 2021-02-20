@@ -141,8 +141,8 @@ public:
     [[nodiscard]] bool isDirectOut() const { return mDirectOut; }
     void setDirectOut(bool value);
 
-    [[nodiscard]] glm::vec3 getCoordinate() const { return mCenter / 10.0f; }
-    [[nodiscard]] glm::vec3 getAziZenRad() const;
+    [[nodiscard]] glm::vec3 getCartesianCoords() const { return mCenter / 10.0f; }
+    [[nodiscard]] glm::vec3 getPolarCoords() const;
 
     [[nodiscard]] bool isInput() const override { return false; }
 

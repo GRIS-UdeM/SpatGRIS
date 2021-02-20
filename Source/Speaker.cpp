@@ -104,7 +104,7 @@ void Speaker::setCoordinate(glm::vec3 const value)
 void Speaker::normalizeRadius()
 {
     if (!isDirectOut()) {
-        glm::vec3 v = getAziZenRad();
+        glm::vec3 v = getPolarCoords();
         v.z = 1.0f;
         setAziZenRad(v);
     }
@@ -137,7 +137,7 @@ void Speaker::setDirectOut(bool const value)
 }
 
 //==============================================================================
-glm::vec3 Speaker::getAziZenRad() const
+glm::vec3 Speaker::getPolarCoords() const
 {
     return glm::vec3(mAziZenRad.x, mAziZenRad.y, mAziZenRad.z / 10.0f);
 }
