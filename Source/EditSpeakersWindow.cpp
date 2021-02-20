@@ -187,6 +187,9 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     mListSpeakerBox.repaint();
     mListSpeakerBox.resized();
 
+    // add drag listener
+    mListSpeakerBox.addMouseListener(this, true);
+
     setContentNonOwned(&mListSpeakerBox, false);
 }
 
@@ -929,31 +932,31 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
     juce::ignoreUnused(isRowSelected);
 
     if (columnId == cols::DIRECT) {
-        auto * tbDirect{ dynamic_cast<juce::ToggleButton *>(existingComponentToUpdate) };
-        if (tbDirect == nullptr) {
-            tbDirect = new juce::ToggleButton();
+        auto * toggleButton{ dynamic_cast<juce::ToggleButton *>(existingComponentToUpdate) };
+        if (toggleButton == nullptr) {
+            toggleButton = new juce::ToggleButton();
         }
-        tbDirect->setName(juce::String(rowNumber + 1000));
-        tbDirect->setClickingTogglesState(true);
-        tbDirect->setBounds(4, 404, 88, 22);
-        tbDirect->addListener(this);
-        tbDirect->setToggleState(mMainContentComponent.getSpeakers()[rowNumber]->isDirectOut(),
-                                 juce::dontSendNotification);
-        tbDirect->setLookAndFeel(&mLookAndFeel);
-        return tbDirect;
+        toggleButton->setName(juce::String(rowNumber + 1000));
+        toggleButton->setClickingTogglesState(true);
+        toggleButton->setBounds(4, 404, 88, 22);
+        toggleButton->addListener(this);
+        toggleButton->setToggleState(mMainContentComponent.getSpeakers()[rowNumber]->isDirectOut(),
+                                     juce::dontSendNotification);
+        toggleButton->setLookAndFeel(&mLookAndFeel);
+        return toggleButton;
     }
     if (columnId == cols::DELETE) {
-        auto * tbRemove{ dynamic_cast<juce::TextButton *>(existingComponentToUpdate) };
-        if (tbRemove == nullptr) {
-            tbRemove = new juce::TextButton();
+        auto * textButton{ dynamic_cast<juce::TextButton *>(existingComponentToUpdate) };
+        if (textButton == nullptr) {
+            textButton = new juce::TextButton();
         }
-        tbRemove->setButtonText("X");
-        tbRemove->setName(juce::String(rowNumber));
-        tbRemove->setBounds(4, 404, 88, 22);
-        tbRemove->addListener(this);
-        tbRemove->setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
-        tbRemove->setLookAndFeel(&mLookAndFeel);
-        return tbRemove;
+        textButton->setButtonText("X");
+        textButton->setName(juce::String(rowNumber));
+        textButton->setBounds(4, 404, 88, 22);
+        textButton->addListener(this);
+        textButton->setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
+        textButton->setLookAndFeel(&mLookAndFeel);
+        return textButton;
     }
 
     // The other columns are editable text columns, for which we use the custom juce::Label component
@@ -987,6 +990,48 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
     }
 
     return textLabel;
+}
+
+//==============================================================================
+void EditSpeakersWindow::mouseDown(juce::MouseEvent const & event)
+{
+    mDragStartY = event.getMouseDownY();
+}
+
+//==============================================================================
+void EditSpeakersWindow::mouseDrag(juce::MouseEvent const & event)
+{
+    auto const rowHeight{ mSpeakersTableListBox.getRowHeight() };
+    auto const yDiff{ event.getPosition().getY() - mDragStartY };
+    auto const rowDiff{ yDiff / rowHeight };
+    auto const numRows{ mSpeakersTableListBox.getNumRows() };
+
+    if (rowDiff == 0) {
+        // no movement
+        return;
+    }
+
+    auto const getCurrentSpeakerOrder = [this]() -> std::vector<int> {
+        auto const & speakers{ mMainContentComponent.getSpeakers() };
+        std::vector<int> result{};
+        result.resize(narrow<size_t>(speakers.size()));
+        std::transform(std::begin(speakers),
+                       std::end(speakers),
+                       std::begin(result),
+                       [](Speaker const * speaker) -> int { return speaker->getIdSpeaker(); });
+        return result;
+    };
+
+    // TODO : make this work for multiple selections
+    auto const selectedRow{ mSpeakersTableListBox.getSelectedRow() };
+    auto const newIndex{ std::clamp(selectedRow + rowDiff, 0, numRows - 1) };
+    auto order{ getCurrentSpeakerOrder() };
+    std::swap(order[selectedRow], order[newIndex]);
+
+    mMainContentComponent.reorderSpeakers(order);
+    mDragStartY += yDiff;
+    mSpeakersTableListBox.selectRow(newIndex);
+    updateWinContent();
 }
 
 //==============================================================================
