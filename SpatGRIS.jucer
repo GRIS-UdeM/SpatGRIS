@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="MXmiSb" name="SpatGRIS" projectType="guiapp" version="2.1.6"
+<JUCERPROJECT id="MXmiSb" name="SpatGRIS" projectType="guiapp" version="2.1.7"
               bundleIdentifier="com.UdeM.GRIS.SpatGRIS3" includeBinaryInAppConfig="0"
               companyName="GRIS - UdeM" projectLineFeed="&#10;" cppLanguageStandard="17"
               jucerFormatVersion="1" displaySplashScreen="1" defines="USE_JACK=0"
@@ -23,6 +23,21 @@
             file="Resources/splash_screen.png" xcodeResource="1"/>
     </GROUP>
     <GROUP id="{534A7161-2617-F3B1-0706-CC62D7A3FE71}" name="Source">
+      <GROUP id="{D059D036-0ECD-ACF5-4465-BDC1A866C55E}" name="Audio">
+        <FILE id="S7vdPe" name="AudioManager.cpp" compile="1" resource="0"
+              file="Source/AudioManager.cpp"/>
+        <FILE id="a7tJqo" name="AudioManager.h" compile="0" resource="0" file="Source/AudioManager.h"/>
+        <FILE id="MwDdU3" name="AudioProcessor.cpp" compile="1" resource="0"
+              file="Source/AudioProcessor.cpp"/>
+        <FILE id="bLDhY1" name="AudioProcessor.h" compile="0" resource="0"
+              file="Source/AudioProcessor.h"/>
+        <FILE id="W2ApPD" name="AudioRecorder.cpp" compile="1" resource="0"
+              file="Source/AudioRecorder.cpp"/>
+        <FILE id="igqtKe" name="AudioRecorder.h" compile="0" resource="0" file="Source/AudioRecorder.h"/>
+        <FILE id="zv1h0m" name="AudioRenderer.cpp" compile="1" resource="0"
+              file="Source/AudioRenderer.cpp"/>
+        <FILE id="jgrqZi" name="AudioRenderer.h" compile="0" resource="0" file="Source/AudioRenderer.h"/>
+      </GROUP>
       <GROUP id="{B880ED62-D15F-78F9-F83A-129573A5FA84}" name="misc">
         <FILE id="e9Tcnv" name="constants.cpp" compile="1" resource="0" file="Source/constants.cpp"/>
         <FILE id="Ug97Mv" name="constants.hpp" compile="0" resource="0" file="Source/constants.hpp"/>
@@ -31,10 +46,10 @@
         <FILE id="apexeV" name="narrow.hpp" compile="0" resource="0" file="Source/narrow.hpp"/>
       </GROUP>
       <GROUP id="{FB6EEEB4-BE6B-EB4A-201D-755A3CFACAAC}" name="spat">
-        <FILE id="m3KtvU" name="lbap.c" compile="1" resource="0" file="Source/spat/lbap.c"/>
-        <FILE id="XmhH3Q" name="lbap.h" compile="0" resource="0" file="Source/spat/lbap.h"/>
-        <FILE id="tKmZ05" name="vbap.c" compile="1" resource="0" file="Source/spat/vbap.c"/>
-        <FILE id="agZMLe" name="vbap.h" compile="0" resource="0" file="Source/spat/vbap.h"/>
+        <FILE id="zKQ5WK" name="lbap.cpp" compile="1" resource="0" file="Source/lbap.cpp"/>
+        <FILE id="G3SJU6" name="lbap.hpp" compile="0" resource="0" file="Source/lbap.hpp"/>
+        <FILE id="ihjJqS" name="vbap.cpp" compile="1" resource="0" file="Source/vbap.cpp"/>
+        <FILE id="gyI4aY" name="vbap.hpp" compile="0" resource="0" file="Source/vbap.hpp"/>
       </GROUP>
       <GROUP id="{879FD67D-521A-EC98-EB2A-A3C056EDF2C2}" name="structs">
         <FILE id="sHpI0D" name="ClientData.hpp" compile="0" resource="0" file="Source/ClientData.hpp"/>
@@ -57,10 +72,10 @@
           <FILE id="skBbdl" name="OscLogWindow.cpp" compile="1" resource="0"
                 file="Source/OscLogWindow.cpp"/>
           <FILE id="GY7tUS" name="OscLogWindow.h" compile="0" resource="0" file="Source/OscLogWindow.h"/>
-          <FILE id="dKZN0u" name="PropertiesWindow.cpp" compile="1" resource="0"
-                file="Source/PropertiesWindow.cpp"/>
-          <FILE id="mzs9KD" name="PropertiesWindow.h" compile="0" resource="0"
-                file="Source/PropertiesWindow.h"/>
+          <FILE id="yW4r82" name="SettingsWindow.cpp" compile="1" resource="0"
+                file="Source/SettingsWindow.cpp"/>
+          <FILE id="iVF8jr" name="SettingsWindow.h" compile="0" resource="0"
+                file="Source/SettingsWindow.h"/>
         </GROUP>
         <FILE id="MW5ESG" name="Box.cpp" compile="1" resource="0" file="Source/Box.cpp"/>
         <FILE id="RG3FbE" name="Box.h" compile="0" resource="0" file="Source/Box.h"/>
@@ -73,28 +88,26 @@
               file="Source/GrisLookAndFeel.cpp"/>
         <FILE id="vyaPdB" name="GrisLookAndFeel.h" compile="0" resource="0"
               file="Source/GrisLookAndFeel.h"/>
+        <FILE id="arLWJq" name="LevelComponent.cpp" compile="1" resource="0"
+              file="Source/LevelComponent.cpp"/>
+        <FILE id="Fv8Faz" name="LevelComponent.h" compile="0" resource="0"
+              file="Source/LevelComponent.h"/>
+        <FILE id="fIPWN2" name="ParentLevelComponent.h" compile="0" resource="0"
+              file="Source/ParentLevelComponent.h"/>
+        <FILE id="I0ICQu" name="Ray.cpp" compile="1" resource="0" file="Source/Ray.cpp"/>
+        <FILE id="oaSq5k" name="Ray.h" compile="0" resource="0" file="Source/Ray.h"/>
+        <FILE id="Tz4yI1" name="SpeakerViewComponent.cpp" compile="1" resource="0"
+              file="Source/SpeakerViewComponent.cpp"/>
+        <FILE id="ItaT5M" name="SpeakerViewComponent.h" compile="0" resource="0"
+              file="Source/SpeakerViewComponent.h"/>
       </GROUP>
       <FILE id="g2wgxx" name="Application.cpp" compile="1" resource="0" file="Source/Application.cpp"/>
       <FILE id="ObG5vj" name="Application.h" compile="0" resource="0" file="Source/Application.h"/>
-      <FILE id="S7vdPe" name="AudioManager.cpp" compile="1" resource="0"
-            file="Source/AudioManager.cpp"/>
-      <FILE id="a7tJqo" name="AudioManager.h" compile="0" resource="0" file="Source/AudioManager.h"/>
-      <FILE id="MwDdU3" name="AudioProcessor.cpp" compile="1" resource="0"
-            file="Source/AudioProcessor.cpp"/>
-      <FILE id="bLDhY1" name="AudioProcessor.h" compile="0" resource="0"
-            file="Source/AudioProcessor.h"/>
-      <FILE id="W2ApPD" name="AudioRecorder.cpp" compile="1" resource="0"
-            file="Source/AudioRecorder.cpp"/>
-      <FILE id="igqtKe" name="AudioRecorder.h" compile="0" resource="0" file="Source/AudioRecorder.h"/>
-      <FILE id="zv1h0m" name="AudioRenderer.cpp" compile="1" resource="0"
-            file="Source/AudioRenderer.cpp"/>
-      <FILE id="jgrqZi" name="AudioRenderer.h" compile="0" resource="0" file="Source/AudioRenderer.h"/>
+      <FILE id="qa9nCn" name="Configuration.cpp" compile="1" resource="0"
+            file="Source/Configuration.cpp"/>
+      <FILE id="i5aeSY" name="Configuration.h" compile="0" resource="0" file="Source/Configuration.h"/>
       <FILE id="BVvOrd" name="Input.cpp" compile="1" resource="0" file="Source/Input.cpp"/>
       <FILE id="BiDXCC" name="Input.h" compile="0" resource="0" file="Source/Input.h"/>
-      <FILE id="arLWJq" name="LevelComponent.cpp" compile="1" resource="0"
-            file="Source/LevelComponent.cpp"/>
-      <FILE id="Fv8Faz" name="LevelComponent.h" compile="0" resource="0"
-            file="Source/LevelComponent.h"/>
       <FILE id="UmWQ55" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
       <FILE id="IoOl9R" name="MainComponent.cpp" compile="1" resource="0"
             file="Source/MainComponent.cpp"/>
@@ -103,16 +116,8 @@
       <FILE id="MTyXJy" name="MainWindow.h" compile="0" resource="0" file="Source/MainWindow.h"/>
       <FILE id="MSjj5i" name="OscInput.cpp" compile="1" resource="0" file="Source/OscInput.cpp"/>
       <FILE id="oP6icJ" name="OscInput.h" compile="0" resource="0" file="Source/OscInput.h"/>
-      <FILE id="fIPWN2" name="ParentLevelComponent.h" compile="0" resource="0"
-            file="Source/ParentLevelComponent.h"/>
-      <FILE id="I0ICQu" name="Ray.cpp" compile="1" resource="0" file="Source/Ray.cpp"/>
-      <FILE id="oaSq5k" name="Ray.h" compile="0" resource="0" file="Source/Ray.h"/>
       <FILE id="KcFQB2" name="Speaker.cpp" compile="1" resource="0" file="Source/Speaker.cpp"/>
       <FILE id="i4Suin" name="Speaker.h" compile="0" resource="0" file="Source/Speaker.h"/>
-      <FILE id="Tz4yI1" name="SpeakerViewComponent.cpp" compile="1" resource="0"
-            file="Source/SpeakerViewComponent.cpp"/>
-      <FILE id="ItaT5M" name="SpeakerViewComponent.h" compile="0" resource="0"
-            file="Source/SpeakerViewComponent.h"/>
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>

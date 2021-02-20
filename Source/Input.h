@@ -47,6 +47,9 @@ class MainContentComponent;
 //==============================================================================
 class Input final : public ParentLevelComponent
 {
+    static constexpr auto SPHERE_RADIUS = 0.3f;
+    static constexpr auto HALF_SPHERE_RADIUS = SPHERE_RADIUS / 2.0f;
+
     MainContentComponent & mMainContentComponent;
     SmallGrisLookAndFeel & mLookAndFeel;
 
@@ -60,7 +63,6 @@ class Input final : public ParentLevelComponent
     float mAzimuthSpan{};
     float mZenithSpan{};
     float mGain{ -1.0f };
-    float mSizeT = 0.3f;
 
     glm::vec3 mCenter{};
     glm::vec3 mColor{};
@@ -114,7 +116,13 @@ public:
     //==============================================================================
     void resetPosition();
     void draw() const;
-    void updateValues(float az, float ze, float azS, float zeS, float radius, float g, SpatModes mode);
+    void updateValues(float azimuth,
+                      float zenith,
+                      float azimuthSpan,
+                      float zenithSpan,
+                      float radius,
+                      float gain,
+                      SpatModes mode);
     void updateValuesOld(float azimuth, float zenith, float azimuthSpan, float zenithSpan, float g);
     //==============================================================================
     [[nodiscard]] bool isInput() const override { return true; }

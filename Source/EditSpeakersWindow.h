@@ -66,6 +66,7 @@ class EditSpeakersWindow final
 
     int mNumRows{};
     bool mInitialized{ false };
+    int mDragStartY{};
     //==============================================================================
     friend EditableTextCustomComponent; // TODO: temporary solution whiling refactoring is going on...
 public:
@@ -110,6 +111,8 @@ private:
                                                       int columnId,
                                                       bool isRowSelected,
                                                       Component * existingComponentToUpdate) override;
+    void mouseDown(juce::MouseEvent const & event) override;
+    void mouseDrag(juce::MouseEvent const & event) override;
     //==============================================================================
     JUCE_LEAK_DETECTOR(EditSpeakersWindow)
 };

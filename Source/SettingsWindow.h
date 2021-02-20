@@ -20,16 +20,17 @@
 #pragma once
 
 #include "macros.h"
-
 DISABLE_WARNINGS
 #include <JuceHeader.h>
 ENABLE_WARNINGS
+
+#include "Configuration.h"
 
 class MainContentComponent;
 class GrisLookAndFeel;
 
 //==============================================================================
-class PropertiesComponent final
+class SettingsComponent final
     : public juce::Component
     , public juce::TextButton::Listener
     , public juce::ComboBox::Listener
@@ -96,22 +97,22 @@ class PropertiesComponent final
 
 public:
     //==============================================================================
-    PropertiesComponent(MainContentComponent & parent,
-                        GrisLookAndFeel & lookAndFeel,
-                        int fileFormatIndex,
-                        int fileConfigIndex,
-                        int attenuationDbIndex,
-                        int attenuationCutoffIndex,
-                        int oscPort);
+    SettingsComponent(MainContentComponent & parent,
+                      GrisLookAndFeel & lookAndFeel,
+                      RecordingFormat recordingFormat,
+                      RecordingConfig recordingConfig,
+                      int attenuationDbIndex,
+                      int attenuationCutoffIndex,
+                      int oscPort);
     //==============================================================================
-    PropertiesComponent() = delete;
-    ~PropertiesComponent() override = default;
+    SettingsComponent() = delete;
+    ~SettingsComponent() override = default;
 
-    PropertiesComponent(PropertiesComponent const &) = delete;
-    PropertiesComponent(PropertiesComponent &&) = delete;
+    SettingsComponent(SettingsComponent const &) = delete;
+    SettingsComponent(SettingsComponent &&) = delete;
 
-    PropertiesComponent & operator=(PropertiesComponent const &) = delete;
-    PropertiesComponent & operator=(PropertiesComponent &&) = delete;
+    SettingsComponent & operator=(SettingsComponent const &) = delete;
+    SettingsComponent & operator=(SettingsComponent &&) = delete;
     //==============================================================================
 
     void buttonClicked(juce::Button * button) override;
@@ -120,42 +121,41 @@ public:
 
 private:
     //==============================================================================
-    void applyCurrentlySelectedAudioDevices();
     void fillComboBoxes();
     //==============================================================================
-    JUCE_LEAK_DETECTOR(PropertiesComponent)
+    JUCE_LEAK_DETECTOR(SettingsComponent)
 public:
     void comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged) override;
 }; // class PropertiesComponent
 
 //==============================================================================
-class PropertiesWindow final : public juce::DocumentWindow
+class SettingsWindow final : public juce::DocumentWindow
 {
     MainContentComponent & mMainContentComponent;
-    PropertiesComponent mPropertiesComponent;
+    SettingsComponent mPropertiesComponent;
 
 public:
     //==============================================================================
-    PropertiesWindow(MainContentComponent & parent,
-                     GrisLookAndFeel & grisLookAndFeel,
-                     int indFf = 0,
-                     int indFc = 0,
-                     int indAttDb = 2,
-                     int indAttHz = 3,
-                     int oscPort = 18032);
+    SettingsWindow(MainContentComponent & parent,
+                   GrisLookAndFeel & grisLookAndFeel,
+                   RecordingFormat recordingFormat,
+                   RecordingConfig recordingConfig,
+                   int attenuationDbIndex,
+                   int attenuationFrequencyIndex,
+                   int oscPort);
     //==============================================================================
-    PropertiesWindow() = delete;
-    ~PropertiesWindow() override = default;
+    SettingsWindow() = delete;
+    ~SettingsWindow() override = default;
 
-    PropertiesWindow(PropertiesWindow const &) = delete;
-    PropertiesWindow(PropertiesWindow &&) = delete;
+    SettingsWindow(SettingsWindow const &) = delete;
+    SettingsWindow(SettingsWindow &&) = delete;
 
-    PropertiesWindow & operator=(PropertiesWindow const &) = delete;
-    PropertiesWindow & operator=(PropertiesWindow &&) = delete;
+    SettingsWindow & operator=(SettingsWindow const &) = delete;
+    SettingsWindow & operator=(SettingsWindow &&) = delete;
     //==============================================================================
     void closeButtonPressed() override;
 
 private:
     //==============================================================================
-    JUCE_LEAK_DETECTOR(PropertiesWindow)
+    JUCE_LEAK_DETECTOR(SettingsWindow)
 }; // class PropertiesWindow

@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS2.
 
- Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
+ Developers: Samuel BÃ©land, Olivier BÃ©langer, Nicolas Masson
 
  SpatGRIS2 is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -62,7 +62,7 @@ constexpr float OVER = 0.02f;
 //==============================================================================
 class Speaker final : public ParentLevelComponent
 {
-    SmallGrisLookAndFeel mLookAndFeel;
+    SmallGrisLookAndFeel & mLookAndFeel;
 
     MainContentComponent & mMainContentComponent;
 
@@ -89,6 +89,7 @@ class Speaker final : public ParentLevelComponent
 public:
     //==============================================================================
     Speaker(MainContentComponent & mainContentComponent,
+            SmallGrisLookAndFeel & smallGrisLookAndFeel,
             int id,
             int outputPatch,
             float azimuth,
@@ -140,8 +141,8 @@ public:
     [[nodiscard]] bool isDirectOut() const { return mDirectOut; }
     void setDirectOut(bool value);
 
-    [[nodiscard]] glm::vec3 getCoordinate() const { return mCenter / 10.0f; }
-    [[nodiscard]] glm::vec3 getAziZenRad() const;
+    [[nodiscard]] glm::vec3 getCartesianCoords() const { return mCenter / 10.0f; }
+    [[nodiscard]] glm::vec3 getPolarCoords() const;
 
     [[nodiscard]] bool isInput() const override { return false; }
 

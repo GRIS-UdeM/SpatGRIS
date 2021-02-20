@@ -22,17 +22,12 @@
 #include <array>
 #include <cstdarg>
 
-DISABLE_WARNINGS
-extern "C" {
-#include "spat/vbap.h"
-}
-ENABLE_WARNINGS
-
 #include "AudioManager.h"
 #include "MainComponent.h"
 #include "Speaker.h"
 #include "constants.hpp"
 #include "narrow.hpp"
+#include "vbap.hpp"
 
 float constexpr SMALL_GAIN = 0.0000000000001f;
 size_t constexpr MAX_BUFFER_SIZE = 2048;
@@ -42,7 +37,7 @@ size_t constexpr RIGHT = 1;
 //==============================================================================
 // Utilities.
 template<typename Coll>
-static bool contains(Coll const & coll, typename Coll::value_type const & value)
+static bool contains(Coll const & coll, typename Coll::value_type const & value) noexcept
 {
     return std::find(std::cbegin(coll), std::cend(coll), value) != std::cend(coll);
 }
@@ -131,15 +126,13 @@ AudioProcessor::AudioProcessor()
     auto & audioManager{ AudioManager::getInstance() };
 
     // Register Jack callbacks and ports.
-    audioManager.registerJackClient(this);
+    audioManager.registerAudioProcessor(this);
 
     // Initialize pink noise
     srand(static_cast<unsigned>(time(nullptr)));
 
     mNumberInputs = narrow<unsigned>(audioManager.getPortNames(PortType::input).size());
     mNumberOutputs = narrow<unsigned>(audioManager.getPortNames(PortType::output).size());
-
-    mClientReady = true;
 }
 
 //==============================================================================
@@ -168,57 +161,59 @@ void AudioProcessor::clientRegistrationCallback(char const * const name, int con
     }
 }
 
-//==============================================================================
-void AudioProcessor::prepareToRecord()
-{
-    int num_of_channels;
-    if (mOutputsPort.empty()) {
-        return;
-    }
+////==============================================================================
+// void AudioProcessor::prepareToRecord(juce::String const & recordPath)
+//{
+//    mRecordingPath = recordPath;
+//
+//    if (mOutputsPort.empty()) {
+//        return;
+//    }
+//
+//    mIsRecording = false;
+//    mIndexRecord = 0;
+//    mOutputFileNames.clear();
+//
+//    juce::String channelName;
+//    juce::File const file{ recordPath };
+//    auto const fileName{ file.getFileNameWithoutExtension() };
+//    auto const fileExtension{ file.getFileExtension() };
+//    auto const parentDirectory{ file.getParentDirectory().getFullPathName() };
+//
+//    auto * currentAudioDevice{ AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice() };
+//    jassert(currentAudioDevice);
+//    auto const sampleRate{ narrow<unsigned>(std::round(currentAudioDevice->getCurrentSampleRate())) };
+//
+//    int numOfChannels;
+//    if (mModeSelected == SpatModes::vbap || mModeSelected == SpatModes::lbap) {
+//        numOfChannels = narrow<int>(mOutputsPort.size());
+//        for (int i{}; i < numOfChannels; ++i) {
+//            if (contains(mOutputPatches, i + 1)) {
+//                channelName
+//                    = parentDirectory + "/" + fileName + "_" + juce::String(i + 1).paddedLeft('0', 3) + fileExtension;
+//                juce::File fileC{ channelName };
+//                mRecorders[i].startRecording(fileC, sampleRate, fileExtension);
+//                mOutputFileNames.add(fileC);
+//            }
+//        }
+//    } else if (mModeSelected == SpatModes::hrtfVbap || mModeSelected == SpatModes::stereo) {
+//        numOfChannels = 2;
+//        for (int i{}; i < numOfChannels; ++i) {
+//            channelName
+//                = parentDirectory + "/" + fileName + "_" + juce::String(i + 1).paddedLeft('0', 3) + fileExtension;
+//            juce::File const fileC{ channelName };
+//            mRecorders[i].startRecording(fileC, sampleRate, fileExtension);
+//            mOutputFileNames.add(fileC);
+//        }
+//    }
+//}
 
-    mIsRecording = false;
-    mIndexRecord = 0;
-    mOutputFileNames.clear();
-
-    juce::String channelName;
-    juce::File const file{ mRecordPath };
-    auto const fileName{ file.getFileNameWithoutExtension() };
-    auto const fileExtension{ file.getFileExtension() };
-    auto const parentDirectory{ file.getParentDirectory().getFullPathName() };
-
-    auto * currentAudioDevice{ AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice() };
-    jassert(currentAudioDevice);
-    auto const sampleRate{ narrow<unsigned>(std::round(currentAudioDevice->getCurrentSampleRate())) };
-
-    if (mModeSelected == SpatModes::vbap || mModeSelected == SpatModes::lbap) {
-        num_of_channels = narrow<int>(mOutputsPort.size());
-        for (int i{}; i < num_of_channels; ++i) {
-            if (contains(mOutputPatches, i + 1)) {
-                channelName
-                    = parentDirectory + "/" + fileName + "_" + juce::String(i + 1).paddedLeft('0', 3) + fileExtension;
-                juce::File fileC{ channelName };
-                mRecorders[i].startRecording(fileC, sampleRate, fileExtension);
-                mOutputFileNames.add(fileC);
-            }
-        }
-    } else if (mModeSelected == SpatModes::hrtfVbap || mModeSelected == SpatModes::stereo) {
-        num_of_channels = 2;
-        for (int i{}; i < num_of_channels; ++i) {
-            channelName
-                = parentDirectory + "/" + fileName + "_" + juce::String(i + 1).paddedLeft('0', 3) + fileExtension;
-            juce::File const fileC{ channelName };
-            mRecorders[i].startRecording(fileC, sampleRate, fileExtension);
-            mOutputFileNames.add(fileC);
-        }
-    }
-}
-
-//==============================================================================
-void AudioProcessor::startRecord()
-{
-    mIndexRecord = 0;
-    mIsRecording = true;
-}
+////==============================================================================
+// void AudioProcessor::startRecord()
+//{
+//    mIndexRecord = 0;
+//    mIsRecording = true;
+//}
 
 //==============================================================================
 void AudioProcessor::addRemoveInput(unsigned int const number)
@@ -291,7 +286,7 @@ std::vector<int> AudioProcessor::getDirectOutOutputPatches() const
 }
 
 //==============================================================================
-void AudioProcessor::muteSoloVuMeterIn(float * const * ins, size_t const nFrames, size_t const sizeInputs)
+void AudioProcessor::muteSoloVuMeterIn(float * const * ins, size_t const nFrames, size_t const sizeInputs) noexcept
 {
     for (unsigned inputIndex{}; inputIndex < sizeInputs; ++inputIndex) {
         auto * buffer{ ins[inputIndex] };
@@ -313,10 +308,10 @@ void AudioProcessor::muteSoloVuMeterIn(float * const * ins, size_t const nFrames
 }
 
 //==============================================================================
-void AudioProcessor::muteSoloVuMeterGainOut(float ** outs,
+void AudioProcessor::muteSoloVuMeterGainOut(float * const * outs,
                                             size_t const nFrames,
                                             size_t const sizeOutputs,
-                                            float const gain)
+                                            float const gain) noexcept
 {
     size_t channelCount{ 2 };
 
@@ -368,38 +363,38 @@ void AudioProcessor::muteSoloVuMeterGainOut(float ** outs,
         }
         mLevelsOut[i] = maxGain;
 
-        // Record buffer.
-        if (mIsRecording) {
-            if (channelCount == sizeOutputs && i < channelCount) {
-                if (contains(mOutputPatches, i + 1u)) {
-                    mRecorders[i].recordSamples(&outs[i], narrow<int>(nFrames));
-                }
-            } else if (channelCount == 2 && i < channelCount) {
-                mRecorders[i].recordSamples(&outs[i], narrow<int>(nFrames));
-            }
-        }
+        //// Record buffer.
+        // if (mIsRecording) {
+        //    if (channelCount == sizeOutputs && i < channelCount) {
+        //        if (contains(mOutputPatches, i + 1u)) {
+        //            mRecorders[i].recordSamples(&outs[i], narrow<int>(nFrames));
+        //        }
+        //    } else if (channelCount == 2 && i < channelCount) {
+        //        mRecorders[i].recordSamples(&outs[i], narrow<int>(nFrames));
+        //    }
+        //}
     }
 
-    // Recording index.
-    if (!mIsRecording && mIndexRecord > 0) {
-        if (channelCount == sizeOutputs) {
-            for (unsigned int i = 0; i < sizeOutputs; ++i) {
-                if (contains(mOutputPatches, i + 1) && i < channelCount) {
-                    mRecorders[i].stop();
-                }
-            }
-        } else if (channelCount == 2) {
-            mRecorders[0].stop();
-            mRecorders[1].stop();
-        }
-        mIndexRecord = 0;
-    } else if (mIsRecording) {
-        mIndexRecord += nFrames;
-    }
+    //// Recording index.
+    // if (!mIsRecording && mIndexRecord > 0) {
+    //    if (channelCount == sizeOutputs) {
+    //        for (unsigned int i = 0; i < sizeOutputs; ++i) {
+    //            if (contains(mOutputPatches, i + 1) && i < channelCount) {
+    //                mRecorders[i].stop();
+    //            }
+    //        }
+    //    } else if (channelCount == 2) {
+    //        mRecorders[0].stop();
+    //        mRecorders[1].stop();
+    //    }
+    //    mIndexRecord = 0;
+    //} else if (mIsRecording) {
+    //    mIndexRecord += nFrames;
+    //}
 }
 
 //==============================================================================
-void AudioProcessor::addNoiseSound(float ** outs, size_t const nFrames, size_t const sizeOutputs)
+void AudioProcessor::addNoiseSound(float * const * outs, size_t const nFrames, size_t const sizeOutputs) noexcept
 {
     static constexpr auto FAC{ 1.0f / (static_cast<float>(RAND_MAX) / 2.0f) };
     for (unsigned int nF = 0; nF < nFrames; ++nF) {
@@ -427,7 +422,7 @@ void AudioProcessor::processVbap(float const * const * ins,
                                  float * const * outs,
                                  size_t const nFrames,
                                  size_t const sizeInputs,
-                                 size_t const sizeOutputs)
+                                 size_t const sizeOutputs) noexcept
 {
     for (unsigned i{}; i < sizeInputs; ++i) {
         if (mVbapSourcesToUpdate[i] == 1) {
@@ -441,6 +436,11 @@ void AudioProcessor::processVbap(float const * const * ins,
     for (unsigned outputIndex{}; outputIndex < sizeOutputs; ++outputIndex) {
         auto * outputBuffer{ outs[outputIndex] };
         for (unsigned inputIndex{}; inputIndex < sizeInputs; ++inputIndex) {
+            if (mLevelsIn[inputIndex] < SMALL_GAIN) {
+                // nothing to process
+                continue;
+            }
+
             auto const * inputBuffer{ ins[inputIndex] };
             if (mSourcesData[inputIndex].directOut || mSourcesData[inputIndex].paramVBap == nullptr) {
                 // direct out
@@ -452,7 +452,7 @@ void AudioProcessor::processVbap(float const * const * ins,
                 }
             } else {
                 // spat
-                auto currentGain{ mSourcesData[inputIndex].paramVBap->y[outputIndex] };
+                auto currentGain{ mSourcesData[inputIndex].paramVBap->gainsSmoothing[outputIndex] };
                 auto const targetGain{ mSourcesData[inputIndex].paramVBap->gains[outputIndex] };
                 if (mInterMaster == 0.0f) {
                     // linear interpolation over buffer size
@@ -477,7 +477,7 @@ void AudioProcessor::processVbap(float const * const * ins,
                         outputBuffer[sampleIndex] += inputBuffer[sampleIndex] * currentGain;
                     }
                 }
-                mSourcesData[inputIndex].paramVBap->y[outputIndex] = currentGain;
+                mSourcesData[inputIndex].paramVBap->gainsSmoothing[outputIndex] = currentGain;
             }
         }
     }
@@ -488,7 +488,7 @@ void AudioProcessor::processLbap(float const * const * ins,
                                  float * const * outs,
                                  size_t const nFrames,
                                  size_t const sizeInputs,
-                                 size_t const sizeOutputs)
+                                 size_t const sizeOutputs) noexcept
 {
     jassert(nFrames <= MAX_BUFFER_SIZE);
     std::array<float, MAX_BUFFER_SIZE> filteredInputSignal{};
@@ -496,6 +496,11 @@ void AudioProcessor::processLbap(float const * const * ins,
     auto const gainFactor{ std::pow(mInterMaster, 0.1f) * 0.0099f + 0.99f };
 
     for (unsigned inputIndex{}; inputIndex < sizeInputs; ++inputIndex) {
+        if (mLevelsIn[inputIndex] < SMALL_GAIN) {
+            // nothing to process
+            continue;
+        }
+
         auto const * inputBuffer{ ins[inputIndex] };
         auto & sourceData{ mSourcesData[inputIndex] };
         if (!sourceData.directOut) {
@@ -589,8 +594,7 @@ void AudioProcessor::processLbap(float const * const * ins,
 void AudioProcessor::processVBapHrtf(float const * const * ins,
                                      float * const * outs,
                                      size_t const nFrames,
-                                     size_t const sizeInputs,
-                                     size_t /*sizeOutputs*/)
+                                     size_t const sizeInputs) noexcept
 {
     for (unsigned i{}; i < sizeInputs; ++i) {
         if (mVbapSourcesToUpdate[i] == 1) {
@@ -604,10 +608,15 @@ void AudioProcessor::processVBapHrtf(float const * const * ins,
         jassert(nFrames <= MAX_BUFFER_SIZE);
         std::array<float, MAX_BUFFER_SIZE> vbapOuts{};
         for (unsigned inputIndex{}; inputIndex < sizeInputs; ++inputIndex) {
+            if (mLevelsIn[inputIndex] < SMALL_GAIN) {
+                // nothing to process
+                continue;
+            }
+
             auto & sourceData{ mSourcesData[inputIndex] };
             if (!sourceData.directOut && sourceData.paramVBap != nullptr) {
                 auto const targetGain{ sourceData.paramVBap->gains[outputIndex] };
-                auto currentGain{ sourceData.paramVBap->y[outputIndex] };
+                auto currentGain{ sourceData.paramVBap->gainsSmoothing[outputIndex] };
                 auto const * inputBuffer{ ins[inputIndex] };
                 if (mInterMaster == 0.0f) {
                     // linear interpolation
@@ -629,7 +638,7 @@ void AudioProcessor::processVBapHrtf(float const * const * ins,
                         vbapOuts[sampleIndex] += inputBuffer[sampleIndex] * currentGain;
                     }
                 }
-                sourceData.paramVBap->y[outputIndex] = currentGain;
+                sourceData.paramVBap->gainsSmoothing[outputIndex] = currentGain;
             }
         }
 
@@ -673,13 +682,17 @@ void AudioProcessor::processVBapHrtf(float const * const * ins,
 void AudioProcessor::processStereo(float const * const * ins,
                                    float * const * outs,
                                    size_t const nFrames,
-                                   size_t const sizeInputs)
+                                   size_t const sizeInputs) noexcept
 {
     static auto constexpr FACTOR{ juce::MathConstants<float>::pi / 360.0f };
-
     auto const gainFactor{ std::pow(mInterMaster, 0.1f) * 0.0099f + 0.99f };
 
     for (unsigned inputIndex{}; inputIndex < sizeInputs; ++inputIndex) {
+        if (mLevelsIn[inputIndex] < SMALL_GAIN) {
+            // nothing to process
+            continue;
+        }
+
         auto const & sourceData{ mSourcesData[inputIndex] };
         auto const * inputBuffer{ ins[inputIndex] };
         if (!sourceData.directOut) {
@@ -727,7 +740,7 @@ void AudioProcessor::processStereo(float const * const * ins,
 }
 
 //==============================================================================
-void AudioProcessor::processAudio(size_t const nFrames)
+void AudioProcessor::processAudio(size_t const nFrames) noexcept
 {
     // Skip if the user is editing the speaker setup.
     juce::ScopedTryLock const lock{ getCriticalSection() };
@@ -760,7 +773,7 @@ void AudioProcessor::processAudio(size_t const nFrames)
         processLbap(ins, outs, nFrames, sizeInputs, sizeOutputs);
         break;
     case SpatModes::hrtfVbap:
-        processVBapHrtf(ins, outs, nFrames, sizeInputs, sizeOutputs);
+        processVBapHrtf(ins, outs, nFrames, sizeInputs);
         break;
     case SpatModes::stereo:
         processStereo(ins, outs, nFrames, sizeInputs);
@@ -839,12 +852,12 @@ bool AudioProcessor::initSpeakersTriplet(std::vector<Speaker *> const & listSpk,
         return false;
     }
 
-    ls lss[MAX_LS_AMOUNT];
-    int outputPatches[MAX_LS_AMOUNT];
+    LoudSpeaker lss[MAX_SPEAKER_COUNT];
+    int outputPatches[MAX_SPEAKER_COUNT];
 
     int j;
     for (unsigned i{}; i < listSpk.size(); ++i) {
-        for (j = 0; j < MAX_LS_AMOUNT; ++j) {
+        for (j = 0; j < MAX_SPEAKER_COUNT; ++j) {
             if (listSpk[i]->getOutputPatch() == mSpeakersOut[j].outputPatch && !mSpeakersOut[j].directOut) {
                 break;
             }
@@ -852,13 +865,14 @@ bool AudioProcessor::initSpeakersTriplet(std::vector<Speaker *> const & listSpk,
         lss[i].coords.x = mSpeakersOut[j].x;
         lss[i].coords.y = mSpeakersOut[j].y;
         lss[i].coords.z = mSpeakersOut[j].z;
-        lss[i].angles.azi = mSpeakersOut[j].azimuth;
-        lss[i].angles.ele = mSpeakersOut[j].zenith;
+        lss[i].angles.azimuth = mSpeakersOut[j].azimuth;
+        lss[i].angles.elevation = mSpeakersOut[j].zenith;
         lss[i].angles.length = mSpeakersOut[j].radius; // Always 1.0 for VBAP.
         outputPatches[i] = mSpeakersOut[j].outputPatch;
     }
 
     if (needToComputeVbap) {
+        free_vbap_data(mParamVBap);
         mParamVBap = init_vbap_from_speakers(lss,
                                              narrow<int>(listSpk.size()),
                                              dimensions,
@@ -871,7 +885,10 @@ bool AudioProcessor::initSpeakersTriplet(std::vector<Speaker *> const & listSpk,
     }
 
     for (unsigned i{}; i < MAX_INPUTS; ++i) {
-        mSourcesData[i].paramVBap = copy_vbap_data(mParamVBap);
+        auto & paramVbap{ mSourcesData[i].paramVBap };
+        free_vbap_data(paramVbap);
+        ;
+        paramVbap = copy_vbap_data(mParamVBap);
     }
 
     int ** triplets;
@@ -909,7 +926,7 @@ bool AudioProcessor::lbapSetupSpeakerField(std::vector<Speaker *> const & listSp
     int outputPatch[MAX_OUTPUTS];
 
     for (unsigned int i = 0; i < listSpk.size(); i++) {
-        for (j = 0; j < MAX_LS_AMOUNT; j++) {
+        for (j = 0; j < MAX_SPEAKER_COUNT; ++j) {
             if (listSpk[i]->getOutputPatch() == mSpeakersOut[j].outputPatch && !mSpeakersOut[j].directOut) {
                 break;
             }
@@ -947,7 +964,7 @@ void AudioProcessor::setAttenuationHz(float const value)
 }
 
 //==============================================================================
-void AudioProcessor::updateSourceVbap(int const idS)
+void AudioProcessor::updateSourceVbap(int const idS) noexcept
 {
     if (mVbapDimensions == 3) {
         if (mSourcesData[idS].paramVBap != nullptr) {

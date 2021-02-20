@@ -21,6 +21,7 @@
 
 #include "GlSphere.h"
 #include "MainComponent.h"
+#include "SpeakerViewComponent.h"
 
 //==============================================================================
 Input::Input(MainContentComponent & mainContentComponent, SmallGrisLookAndFeel & lookAndFeel, int const id)
@@ -47,17 +48,17 @@ void Input::resetPosition()
 
     mCenter.x = 14.0f * std::sin(mZenith) * std::cos(mAzimuth);
     mCenter.z = 14.0f * std::sin(mZenith) * std::sin(mAzimuth);
-    mCenter.y = 14.0f * std::cos(mZenith) + mSizeT / 2.0f;
+    mCenter.y = 14.0f * std::cos(mZenith) + SPHERE_RADIUS / 2.0f;
 }
 
 //==============================================================================
 glm::vec3 Input::polToCar(float const azimuth, float const zenith) const
 {
     glm::vec3 cart;
-    auto const factor{ mRadius * 10.0f };
+    auto const factor{ mRadius * SpeakerViewComponent::MAX_RADIUS };
     cart.x = factor * std::sin(zenith) * std::cos(azimuth);
     cart.z = factor * std::sin(zenith) * std::sin(azimuth);
-    cart.y = 10.0f * std::cos(zenith) + mSizeT / 2.0f;
+    cart.y = SpeakerViewComponent::MAX_RADIUS * std::cos(zenith) + SPHERE_RADIUS / 2.0f;
     return cart;
 }
 
@@ -65,10 +66,10 @@ glm::vec3 Input::polToCar(float const azimuth, float const zenith) const
 glm::vec3 Input::polToCar3d(float const azimuth, float const zenith) const
 {
     glm::vec3 cart;
-    auto const factor{ mRadius * 10.0f };
+    auto const factor{ mRadius * SpeakerViewComponent::MAX_RADIUS };
     cart.x = factor * std::cos(azimuth);
     cart.z = factor * std::sin(azimuth);
-    cart.y = 10.0f * std::cos(zenith) + mSizeT / 2.0f;
+    cart.y = SpeakerViewComponent::MAX_RADIUS * std::cos(zenith) + SPHERE_RADIUS / 2.0f;
     return cart;
 }
 
@@ -155,9 +156,9 @@ void Input::draw() const
     }
 
 #if defined(__APPLE__)
-    glutSolidSphere(static_cast<double>(mSizeT), 8, 8);
+    glutSolidSphere(static_cast<double>(SPHERE_RADIUS), 8, 8);
 #else
-    drawSphere(mSizeT);
+    drawSphere(SPHERE_RADIUS);
 #endif
 
     glTranslatef(-mCenter.x, -mCenter.y, -mCenter.z);
@@ -257,10 +258,10 @@ void Input::drawSpanLbap(float const x, float const y, float const z) const
             float yTmp;
             if (k) {
                 yTmp = y + eledev;
-                yTmp = yTmp > 10.0f ? 10.0f : yTmp;
+                yTmp = yTmp > SpeakerViewComponent::MAX_RADIUS ? SpeakerViewComponent::MAX_RADIUS : yTmp;
             } else {
                 yTmp = y - eledev;
-                yTmp = yTmp < -10.0f ? -10.0f : yTmp;
+                yTmp = yTmp < -SpeakerViewComponent::MAX_RADIUS ? -SpeakerViewComponent::MAX_RADIUS : yTmp;
             }
             for (auto i{ 1 }; i <= NUM; ++i) {
                 auto const raddev{ static_cast<float>(i) / 4.0f * mAzimuthSpan * 6.0f };
@@ -283,31 +284,31 @@ void Input::drawSpanLbap(float const x, float const y, float const z) const
 }
 
 //==============================================================================
-void Input::updateValues(float const az,
-                         float const ze,
-                         float const azS,
-                         float const zeS,
+void Input::updateValues(float const azimuth,
+                         float const zenith,
+                         float const azimuthSpan,
+                         float const zenithSpan,
                          float const radius,
-                         float const g,
+                         float const gain,
                          SpatModes const mode)
 {
-    mAzimuth = az;
-    mZenith = ze;
-    mAzimuthSpan = azS;
-    mZenithSpan = zeS;
+    mAzimuth = azimuth;
+    mZenith = zenith;
+    mAzimuthSpan = azimuthSpan;
+    mZenithSpan = zenithSpan;
     mRadius = radius;
-    mGain = g;
+    mGain = gain;
 
-    auto const factor{ radius * 10.0f };
-
+    auto const radiusInComponent{ radius * SpeakerViewComponent::MAX_RADIUS };
     if (mode == SpatModes::lbap) {
-        mCenter.x = factor * std::cos(mAzimuth);
-        mCenter.z = factor * std::sin(mAzimuth);
-        mCenter.y = 10.0f * std::cos(mZenith) + mSizeT / 2.0f;
+        mCenter.x = radiusInComponent * std::cos(mAzimuth);
+        mCenter.y = (juce::MathConstants<float>::halfPi - zenith) / juce::MathConstants<float>::halfPi
+                    * SpeakerViewComponent::MAX_RADIUS;
+        mCenter.z = radiusInComponent * std::sin(mAzimuth);
     } else {
-        mCenter.x = factor * std::sin(mZenith) * std::cos(mAzimuth);
-        mCenter.z = factor * std::sin(mZenith) * std::sin(mAzimuth);
-        mCenter.y = 10.0f * std::cos(mZenith) + mSizeT / 2.0f;
+        mCenter.x = radiusInComponent * std::sin(mZenith) * std::cos(mAzimuth);
+        mCenter.y = SpeakerViewComponent::MAX_RADIUS * std::cos(mZenith);
+        mCenter.z = radiusInComponent * std::sin(mZenith) * std::sin(mAzimuth);
     }
 }
 
@@ -319,19 +320,19 @@ void Input::updateValuesOld(float const azimuth,
                             float const g)
 {
     if (azimuth < 0.0f) {
-        mAzimuth = std::fabs(azimuth) * juce::MathConstants<float>::pi;
+        mAzimuth = std::abs(azimuth) * juce::MathConstants<float>::pi;
     } else {
         mAzimuth = (1.0f - azimuth) * juce::MathConstants<float>::pi + juce::MathConstants<float>::pi;
     }
-    mZenith = juce::MathConstants<float>::halfPi - (juce::MathConstants<float>::pi * zenith);
+    mZenith = juce::MathConstants<float>::halfPi - juce::MathConstants<float>::pi * zenith;
 
     mAzimuthSpan = azimuthSpan;
     mZenithSpan = zenithSpan;
     mGain = g;
 
-    mCenter.x = 10.0f * std::sin(mZenith) * std::cos(mAzimuth);
-    mCenter.z = 10.0f * std::sin(mZenith) * std::sin(mAzimuth);
-    mCenter.y = 10.0f * std::cos(mZenith) + (mSizeT / 2.0f);
+    mCenter.x = SpeakerViewComponent::MAX_RADIUS * std::sin(mZenith) * std::cos(mAzimuth);
+    mCenter.y = SpeakerViewComponent::MAX_RADIUS * std::cos(mZenith) + (SPHERE_RADIUS / 2.0f);
+    mCenter.z = SpeakerViewComponent::MAX_RADIUS * std::sin(mZenith) * std::sin(mAzimuth);
 }
 
 //==============================================================================

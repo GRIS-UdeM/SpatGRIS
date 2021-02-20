@@ -20,23 +20,20 @@
 #include "constants.hpp"
 
 char const * const DEVICE_NAME = "GRIS";
-char const * CLIENT_NAME = "SpatGRIS2";
+char const * const CLIENT_NAME = "SpatGRIS3";
 char const * const SYS_CLIENT_NAME = "system";
 char const * const CLIENT_NAME_IGNORE = "JAR::57";
 
 #ifdef __linux__
 char const * const SYS_DRIVER_NAME = "alsa";
-const bool USE_OS_NATIVE_DIALOG_BOX = false;
 auto const CURRENT_WORKING_DIR{ juce::File::getCurrentWorkingDirectory() };
 auto const RESOURCES_DIR{ CURRENT_WORKING_DIR.getChildFile("Resources") };
 #elif defined WIN32
 char const * const SYS_DRIVER_NAME = "coreaudio";
-const bool USE_OS_NATIVE_DIALOG_BOX{ true };
 auto const CURRENT_WORKING_DIR{ juce::File::getCurrentWorkingDirectory() };
 auto const RESOURCES_DIR{ CURRENT_WORKING_DIR.getChildFile("Resources") };
 #elif defined __APPLE__
 const char * const SYS_DRIVER_NAME = "coreaudio";
-const bool USE_OS_NATIVE_DIALOG_BOX = true;
 juce::File CURRENT_WORKING_DIR = juce::File::getSpecialLocation(juce::File::currentApplicationFile);
 juce::File RESOURCES_DIR{ CURRENT_WORKING_DIR.getChildFile("Contents").getChildFile("Resources") };
 #else
@@ -56,9 +53,3 @@ juce::File const HRTF_FOLDER_40{ RESOURCES_DIR.getChildFile("hrtf_compact/elev" 
 juce::File const HRTF_FOLDER_80{ RESOURCES_DIR.getChildFile("hrtf_compact/elev" + juce::String(80) + "/") };
 
 const juce::StringArray MODE_SPAT_STRING = { "DOME", "CUBE", "BINAURAL", "STEREO" };
-
-// Settings Jack Server
-const juce::StringArray FILE_FORMATS = { "WAV", "AIFF" };
-const juce::StringArray FILE_CONFIGS = { "Multiple Mono Files", "Single Interleaved" };
-const juce::StringArray ATTENUATION_DB = { "0", "-12", "-24", "-36", "-48", "-60", "-72" };
-const juce::StringArray ATTENUATION_CUTOFFS = { "125", "250", "500", "1000", "2000", "4000", "8000", "16000" };

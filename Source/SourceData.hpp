@@ -21,14 +21,9 @@
 
 #include <array>
 
-#include "macros.h"
-
-DISABLE_WARNINGS
-#include "spat/lbap.h"
-#include "spat/vbap.h"
-ENABLE_WARNINGS
-
 #include "constants.hpp"
+#include "lbap.hpp"
+#include "vbap.hpp"
 
 //==============================================================================
 struct SourceData {
@@ -55,5 +50,5 @@ struct SourceData {
 
     int directOut{};
 
-    VBAP_DATA * paramVBap{};
+    VbapData * paramVBap{};
 };
