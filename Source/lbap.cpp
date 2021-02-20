@@ -1,4 +1,6 @@
 #include "lbap.hpp"
+
+#include <cmath>
 #include <cstdlib>
 
 #ifndef M_PI
@@ -32,8 +34,8 @@ Utility functions.
 /* Fill x and y attributes of an lbap_pos according to azimuth and radius values. */
 static void lbap_poltocar(lbap_pos * pos)
 {
-    pos->x = pos->rad * cosf(pos->azi);
-    pos->y = pos->rad * sinf(pos->azi);
+    pos->x = pos->rad * std::cos(pos->azi);
+    pos->y = pos->rad * std::sin(pos->azi);
 }
 
 /* Bilinear interpolation to retrieve the value at position (x, y) in a 2D matrix. */

@@ -19,6 +19,8 @@
 
 #include "SpeakerViewComponent.h"
 
+#include <algorithm>
+
 #include "GlSphere.h"
 #include "MainComponent.h"
 
@@ -172,7 +174,7 @@ void SpeakerViewComponent::render()
 #if defined(WIN32)
                 drawSphere(std::max(MAX_RADIUS, 1.0f));
 #else
-                glutSolidSphere(std::max(MAX_RADIUS, 1.0), SPACE_LIMIT, SPACE_LIMIT);
+                glutSolidSphere(std::max(MAX_RADIUS, 1.0f), SPACE_LIMIT, SPACE_LIMIT);
 #endif
             }
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
