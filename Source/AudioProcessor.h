@@ -29,7 +29,6 @@ DISABLE_WARNINGS
 #include <JuceHeader.h>
 ENABLE_WARNINGS
 
-#include "AudioRecorder.h"
 #include "ClientData.hpp"
 #include "SourceData.hpp"
 #include "SpatModes.hpp"

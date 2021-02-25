@@ -212,14 +212,6 @@ audio_port_t * AudioManager::registerPort(char const * const newShortName,
         std::make_unique<audio_port_t>(++mLastGivePortId, newShortName, newClientName, newType, newPhysicalPort)
     };
 
-    auto const * type{ (newType == PortType::input ? "input" : "output") };
-    if (newPhysicalPort.has_value()) {
-        std::cout << "Registered physical " << type << "port : id=" << newPort->id
-                  << " physicalChannel=" << *newPhysicalPort << '\n';
-    } else {
-        std::cout << "Registered virtual " << type << " port : id=" << newPort->id << '\n';
-    }
-
     audio_port_t * result;
 
     if (newType == PortType::input) {
@@ -262,8 +254,6 @@ void AudioManager::unregisterPort(audio_port_t * port)
             }
         }
     }
-
-    std::cout << "Unregistered port #" << port->id << '\n';
 
     mPhysicalOutputPorts.removeObject(port);
     mPhysicalInputPorts.removeObject(port);
@@ -375,7 +365,7 @@ audio_port_t * AudioManager::getPort(char const * name) const
 }
 
 //==============================================================================
-audio_port_t * AudioManager::getPort(uint32_t const id) const
+audio_port_t * AudioManager::getPort(port_id_t const id) const
 {
     for (auto * port : getInputPorts()) {
         if (port->id == id) {
@@ -399,7 +389,7 @@ std::vector<std::string> AudioManager::getPortNames(PortType const portType) con
     auto const ports{ portType == PortType::input ? getInputPorts() : getOutputPorts() };
 
     for (auto const * port : ports) {
-        result.push_back(port->fullName);
+        result.emplace_back(port->fullName);
     }
 
     return result;

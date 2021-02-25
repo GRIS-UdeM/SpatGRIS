@@ -27,6 +27,7 @@ DISABLE_WARNINGS
 ENABLE_WARNINGS
 
 #include "Configuration.h"
+#include "StrongTypes.hpp"
 
 class AudioProcessor;
 
@@ -36,7 +37,7 @@ enum class PortType { input, output };
 //==============================================================================
 // TODO : this needs to go
 struct audio_port_t {
-    uint32_t id;
+    port_id_t id;
     char shortName[64]{};
     char clientName[64]{};
     char fullName[128]{};
@@ -44,7 +45,7 @@ struct audio_port_t {
     std::optional<int> physicalPort;
     juce::AudioBuffer<float> buffer{};
 
-    audio_port_t(uint32_t const newId,
+    audio_port_t(port_id_t const newId,
                  char const * const newShortName,
                  char const * const newClientName,
                  PortType const newType,
@@ -88,7 +89,7 @@ private:
     juce::OwnedArray<audio_port_t> mVirtualOutputPorts{};
     juce::OwnedArray<audio_port_t> mPhysicalOutputPorts{};
     juce::HashMap<audio_port_t *, audio_port_t *> mConnections{};
-    uint32_t mLastGivePortId{};
+    port_id_t mLastGivePortId{};
     juce::AudioBuffer<float> mInputPortsBuffer{};
     juce::AudioBuffer<float> mOutputPortsBuffer{};
 
@@ -132,7 +133,7 @@ public:
     float * getBuffer(audio_port_t * port, size_t nFrames) noexcept;
 
     [[nodiscard]] audio_port_t * getPort(char const * name) const;
-    [[nodiscard]] audio_port_t * getPort(uint32_t id) const;
+    [[nodiscard]] audio_port_t * getPort(port_id_t const id) const;
 
     [[nodiscard]] std::vector<std::string> getPortNames(PortType portType) const;
 

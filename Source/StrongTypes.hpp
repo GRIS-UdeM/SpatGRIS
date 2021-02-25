@@ -10,22 +10,33 @@
 
 #pragma once
 
-template <typename T, typename Dummy>
+#include <cstdint>
+
+template<typename T, typename Dummy>
 class StrongIndex
 {
     T mValue;
+
 public:
     using type = T;
 
-    [[nodiscard]] bool operator==(StrongIndex const& other) const { return mValue == other.mValue; }
-    [[nodiscard]] bool operator!=(StrongIndex const& other) const { return mValue != other.mValue; }
-    [[nodiscard]] bool operator<(StrongIndex const& other) const { return mValue < other.mValue; }
-    [[nodiscard]] bool operator > (StrongIndex const& other) const { return mValue > other.mValue; }
-    [[nodiscard]] bool operator<=(StrongIndex const& other) const { return mValue <= other.mValue; }
-    [[nodiscard]] bool operator>=(StrongIndex const& other) const { return mValue >= other.mValue; }
+    StrongIndex() = default;
+    explicit StrongIndex(T const & value) : mValue(value) {}
 
-    [[nodiscard]] T const& get() const { return mValue; }
-    StrongIndex& operator++() { ++mValue; return *this; }
+    [[nodiscard]] bool operator==(StrongIndex const & other) const { return mValue == other.mValue; }
+    [[nodiscard]] bool operator!=(StrongIndex const & other) const { return mValue != other.mValue; }
+    [[nodiscard]] bool operator<(StrongIndex const & other) const { return mValue < other.mValue; }
+    [[nodiscard]] bool operator>(StrongIndex const & other) const { return mValue > other.mValue; }
+    [[nodiscard]] bool operator<=(StrongIndex const & other) const { return mValue <= other.mValue; }
+    [[nodiscard]] bool operator>=(StrongIndex const & other) const { return mValue >= other.mValue; }
+
+    [[nodiscard]] T const & get() const { return mValue; }
+    StrongIndex & operator++()
+    {
+        ++mValue;
+        return *this;
+    }
 };
 using speaker_index_t = StrongIndex<int, struct SpeakerIndexT>;
 using speaker_id_t = StrongIndex<int, struct SpeakerIdT>;
+using port_id_t = StrongIndex<uint32_t, struct PortIdT>;
