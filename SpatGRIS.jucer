@@ -31,14 +31,9 @@
               file="Source/AudioProcessor.cpp"/>
         <FILE id="bLDhY1" name="AudioProcessor.h" compile="0" resource="0"
               file="Source/AudioProcessor.h"/>
-        <FILE id="W2ApPD" name="AudioRecorder.cpp" compile="1" resource="0"
-              file="Source/AudioRecorder.cpp"/>
-        <FILE id="igqtKe" name="AudioRecorder.h" compile="0" resource="0" file="Source/AudioRecorder.h"/>
-        <FILE id="zv1h0m" name="AudioRenderer.cpp" compile="1" resource="0"
-              file="Source/AudioRenderer.cpp"/>
-        <FILE id="jgrqZi" name="AudioRenderer.h" compile="0" resource="0" file="Source/AudioRenderer.h"/>
       </GROUP>
       <GROUP id="{B880ED62-D15F-78F9-F83A-129573A5FA84}" name="misc">
+        <FILE id="F7hMuN" name="StrongTypes.hpp" compile="0" resource="0" file="Source/StrongTypes.hpp"/>
         <FILE id="e9Tcnv" name="constants.cpp" compile="1" resource="0" file="Source/constants.cpp"/>
         <FILE id="Ug97Mv" name="constants.hpp" compile="0" resource="0" file="Source/constants.hpp"/>
         <FILE id="yGfcg6" name="SpatModes.hpp" compile="0" resource="0" file="Source/SpatModes.hpp"/>
