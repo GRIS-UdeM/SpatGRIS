@@ -59,6 +59,8 @@ AudioManager::AudioManager(juce::String const & deviceType,
                      channelIndex++);
     }
 
+    mRecordersThread.setPriority(9);
+
     mAudioDeviceManager.addAudioCallback(this);
 }
 
@@ -98,26 +100,42 @@ void AudioManager::audioDeviceIOCallback(const float ** inputChannelData,
         }
     }
 
+    auto stopRecordingAndDisplayError = [this]() {
+        stopRecording();
+        juce::AlertWindow::showMessageBox(
+            juce::AlertWindow::AlertIconType::WarningIcon,
+            "Error",
+            "Recording stopped because samples were dropped.\nRecording on a faster disk might solve this issue.");
+    };
+
     // record samples
     if (mIsRecording) {
         if (mRecordingConfig == RecordingConfig::interleaved) {
             jassert(mRecorders.size() == 1);
             auto & recorder{ *mRecorders.getFirst() };
-            jassert(recorder.getNumChannels() == mOutputPortsBuffer.getNumChannels());
-            recorder.writeFromFloatArrays(mOutputPortsBuffer.getArrayOfReadPointers(),
-                                          mOutputPortsBuffer.getNumChannels(),
-                                          numSamples);
+            jassert(recorder.audioFormatWriter->getNumChannels() == mOutputPortsBuffer.getNumChannels());
+            auto const success{ recorder.threadedWriter->write(mOutputPortsBuffer.getArrayOfReadPointers(),
+                                                               numSamples) };
+            jassert(success);
+            if (!success) {
+                stopRecordingAndDisplayError();
+            }
         } else {
             jassert(mRecordingConfig == RecordingConfig::mono);
             jassert(mRecorders.size() == mOutputPortsBuffer.getNumChannels());
             for (int channel{}; channel < mOutputPortsBuffer.getNumChannels(); ++channel) {
                 auto & recorder{ *mRecorders.getUnchecked(channel) };
-                ;
-                jassert(recorder.getNumChannels() == 1);
-                float const * const channelData{ mOutputPortsBuffer.getArrayOfReadPointers()[channel] };
-                recorder.writeFromFloatArrays(&channelData, 1, numSamples);
+                jassert(recorder.audioFormatWriter->getNumChannels() == 1);
+                auto const * const channelData{ mOutputPortsBuffer.getArrayOfReadPointers()[channel] };
+                auto const success{ recorder.threadedWriter->write(&channelData, numSamples) };
+                jassert(success);
+                if (!success) {
+                    stopRecordingAndDisplayError();
+                    break;
+                }
             }
         }
+        mNumSamplesRecorded += numSamples;
     }
 }
 
@@ -438,6 +456,7 @@ bool AudioManager::prepareToRecord(RecordingOptions const & recordingOptions)
     static constexpr auto RECORD_QUALITY = 0;
 
     mRecordingConfig = recordingOptions.config;
+    mNumSamplesRecorded = 0;
 
     auto * currentAudioDevice{ mAudioDeviceManager.getCurrentAudioDevice() };
     if (!currentAudioDevice) {
@@ -455,21 +474,49 @@ bool AudioManager::prepareToRecord(RecordingOptions const & recordingOptions)
     }
     jassert(format);
 
-    juce::StringPairArray const metaData{}; // lets leave this empty for now
+    auto makeRecordingInfo = [](juce::String const & filePath,
+                                juce::AudioFormat & format,
+                                int const numChannels,
+                                double const sampleRate,
+                                int const bufferSize,
+                                juce::TimeSliceThread & timeSlicedThread) -> std::unique_ptr<RecorderInfo> {
+        juce::StringPairArray const metaData{}; // lets leave this empty for now
 
-    if (recordingOptions.config == RecordingConfig::interleaved) {
-        juce::File const outputFile{ recordingOptions.path };
+        juce::File const outputFile{ filePath };
         auto outputStream{ outputFile.createOutputStream() };
         if (!outputStream) {
-            mRecorders.clear(true);
+            return nullptr;
+        }
+        auto * audioFormatWriter{ format.createWriterFor(outputStream.release(),
+                                                         sampleRate,
+                                                         numChannels,
+                                                         BITS_PER_SAMPLE,
+                                                         metaData,
+                                                         RECORD_QUALITY) };
+        if (!audioFormatWriter) {
+            return nullptr;
+        }
+        std::unique_ptr<juce::AudioFormatWriter::ThreadedWriter> threadedWriter{
+            new juce::AudioFormatWriter::ThreadedWriter{ audioFormatWriter, timeSlicedThread, bufferSize }
+        };
+        auto result{ std::make_unique<RecorderInfo>() };
+        result->audioFormatWriter = audioFormatWriter;
+        result->threadedWriter = std::move(threadedWriter);
+        return result;
+    };
+
+    if (recordingOptions.config == RecordingConfig::interleaved) {
+        auto const bufferSize{ RECORDERS_BUFFER_SIZE_IN_SAMPLES * mOutputPortsBuffer.getNumChannels() };
+        auto recorderInfo{ makeRecordingInfo(recordingOptions.path,
+                                             *format,
+                                             mOutputPortsBuffer.getNumChannels(),
+                                             recordingOptions.sampleRate,
+                                             bufferSize,
+                                             mRecordersThread) };
+        if (!recorderInfo) {
             return false;
         }
-        mRecorders.add(format->createWriterFor(outputStream.release(),
-                                               recordingOptions.sampleRate,
-                                               mOutputPortsBuffer.getNumChannels(),
-                                               BITS_PER_SAMPLE,
-                                               metaData,
-                                               RECORD_QUALITY));
+        mRecorders.add(recorderInfo.release());
     } else {
         jassert(recordingOptions.config == RecordingConfig::mono);
 
@@ -477,26 +524,26 @@ bool AudioManager::prepareToRecord(RecordingOptions const & recordingOptions)
                                    + juce::File{ recordingOptions.path }.getFileNameWithoutExtension() };
         auto const extension{ juce::File{ recordingOptions.path }.getFileExtension() };
 
-        for (int output{}; output < mOutputPortsBuffer.getNumChannels(); ++output) {
+        for (auto output{ 1 }; output <= mOutputPortsBuffer.getNumChannels(); ++output) {
             juce::String fileIndex{ output };
             while (fileIndex.length() < 3) {
                 fileIndex = "0" + fileIndex;
             }
             auto const outputPath{ baseOutputFile + "_" + fileIndex + extension };
-            juce::File const outputFile{ outputPath };
-            auto outputStream{ outputFile.createOutputStream() };
-            if (!outputStream) {
-                mRecorders.clear(true);
+            auto recorderInfo{ makeRecordingInfo(outputPath,
+                                                 *format,
+                                                 1,
+                                                 recordingOptions.sampleRate,
+                                                 RECORDERS_BUFFER_SIZE_IN_SAMPLES,
+                                                 mRecordersThread) };
+            if (!recorderInfo) {
                 return false;
             }
-            mRecorders.add(format->createWriterFor(outputStream.release(),
-                                                   recordingOptions.sampleRate,
-                                                   1,
-                                                   BITS_PER_SAMPLE,
-                                                   metaData,
-                                                   RECORD_QUALITY));
+            mRecorders.add(recorderInfo.release());
         }
     }
+
+    mRecordersThread.startThread();
 
     return true;
 }
@@ -512,11 +559,9 @@ void AudioManager::startRecording()
 void AudioManager::stopRecording()
 {
     juce::ScopedLock sl{ mCriticalSection };
-    for (auto * recorder : mRecorders) {
-        // TODO : is this necessary ?
-        recorder->flush();
-    }
+    // threadedWriters will flush their data before going off
     mRecorders.clear(true);
+    mRecordersThread.stopThread(-1);
     mIsRecording = false;
 }
 

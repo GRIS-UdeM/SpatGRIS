@@ -123,9 +123,6 @@ class AudioProcessor
     // LBAP data.
     lbap_field * mLbapSpeakerField{};
 
-    // Recording parameters.
-    size_t mIndexRecord{};
-
     // LBAP distance attenuation values.
     float mAttenuationLinearGain{ 0.01584893f };       // -36 dB;
     float mAttenuationLowpassCoefficient{ 0.867208f }; // 1000 Hz
@@ -201,15 +198,10 @@ public:
     [[nodiscard]] auto const & getSpeakersOut() const { return mSpeakersOut; }
     [[nodiscard]] auto & getSpeakersOut() { return mSpeakersOut; }
     [[nodiscard]] size_t getMaxOutputPatch() const { return mMaxOutputPatch; }
-    [[nodiscard]] size_t getIndexRecord() const { return mIndexRecord; }
-    //[[nodiscard]] auto const & getRecorders() const { return mRecorders; }
-    //[[nodiscard]] auto const & getOutputFileNames() const { return mOutputFileNames; }
     [[nodiscard]] auto const & getInputPorts() const { return mInputsPort; }
     [[nodiscard]] auto & getClientsLock() { return mClientsLock; }
 
-    //[[nodiscard]] bool isRecording() const { return mIsRecording; }
     [[nodiscard]] bool isOverloaded() const { return mIsOverloaded; }
-    //[[nodiscard]] juce::String const & getRecordingPath() const { return mRecordingPath; }
 
     juce::CriticalSection const & getCriticalSection() const noexcept { return mCriticalSection; }
 

@@ -194,8 +194,9 @@ MainContentComponent::~MainContentComponent()
 {
     mConfiguration.setLastOpenPreset(mCurrentPresetPath);
     mConfiguration.setLastOpenSpeakerSetup(mCurrentSpeakerSetupPath);
-    mConfiguration.setLastVbapSpeakerSetup(mLastVbapSetupPath);
     mConfiguration.setSashPosition(mVerticalLayout.getItemCurrentRelativeSize(0));
+
+    mSpeakerViewComponent.reset();
 
     mSpeakersLock.lock();
     mSpeakers.clear();
@@ -1443,10 +1444,11 @@ bool MainContentComponent::updateLevelComp()
             alert.addButton("No", 0);
             alert.addButton("Yes", 1);
             if (alert.runModalLoop() == 0) {
-                if (mCurrentSpeakerSetupPath.compare(mLastVbapSetupPath) == 0) {
+                auto const lastSpeakerSetupPathInConfig{ mConfiguration.getLastVbapSpeakerSetup().getFullPathName() };
+                if (mCurrentSpeakerSetupPath.compare(lastSpeakerSetupPathInConfig) == 0) {
                     openXmlFileSpeaker(DEFAULT_SPEAKER_SETUP_FILE.getFullPathName());
                 } else {
-                    openXmlFileSpeaker(mLastVbapSetupPath);
+                    openXmlFileSpeaker(lastSpeakerSetupPathInConfig);
                 }
             }
             return false;
@@ -1718,9 +1720,9 @@ void MainContentComponent::openXmlFileSpeaker(juce::File const & file)
 
     auto const oldPath{ mCurrentSpeakerSetupPath };
     auto const isNewSameAsOld{ oldPath.compare(file.getFullPathName()) == 0 };
-    auto const isNewSameAsLastSetup{ mLastVbapSetupPath.compare(file.getFullPathName()) == 0 };
+    auto const isNewSameAsLastSetup{ mConfiguration.getLastOpenSpeakerSetup() == file };
     auto ok{ false };
-    if (!juce::File(file).existsAsFile()) {
+    if (!file.existsAsFile()) {
         juce::AlertWindow alert("Error in Load Speaker Setup !",
                                 "Cannot find file " + file.getFullPathName() + ", the current setup will be kept.",
                                 juce::AlertWindow::WarningIcon);
@@ -1851,7 +1853,7 @@ void MainContentComponent::openXmlFileSpeaker(juce::File const & file)
         if (mode != SpatModes::hrtfVbap && mode != SpatModes::stereo) {
             if (mCurrentSpeakerSetupPath.compare(BINAURAL_SPEAKER_SETUP_FILE.getFullPathName()) != 0
                 && mCurrentSpeakerSetupPath.compare(STEREO_SPEAKER_SETUP_FILE.getFullPathName()) != 0) {
-                mLastVbapSetupPath = mCurrentSpeakerSetupPath;
+                mConfiguration.setLastOpenSpeakerSetup(mCurrentSpeakerSetupPath);
             }
         }
     } else {
@@ -2107,7 +2109,7 @@ void MainContentComponent::saveSpeakerSetup(juce::String const & path)
     if (mode != SpatModes::hrtfVbap && mode != SpatModes::stereo) {
         if (mCurrentSpeakerSetupPath.compare(BINAURAL_SPEAKER_SETUP_FILE.getFullPathName()) != 0
             && mCurrentSpeakerSetupPath.compare(STEREO_SPEAKER_SETUP_FILE.getFullPathName()) != 0) {
-            mLastVbapSetupPath = mCurrentSpeakerSetupPath;
+            mConfiguration.setLastOpenSpeakerSetup(mCurrentSpeakerSetupPath);
         }
     }
 
@@ -2176,8 +2178,6 @@ void MainContentComponent::timerCallback()
         return;
     }
 
-    auto const sampleRate{ narrow<unsigned>(std::round(audioDevice->getCurrentSampleRate())) };
-
     // TODO : static variables no good
     static double cpuRunningAverage{};
     static double amountToRemove{};
@@ -2193,7 +2193,8 @@ void MainContentComponent::timerCallback()
     auto const cpuLoad{ narrow<int>(std::round(cpuRunningAverage)) };
     mCpuUsageValue->setText(juce::String{ cpuLoad } + " %", juce::dontSendNotification);
 
-    auto seconds{ narrow<int>(mAudioProcessor->getIndexRecord() / sampleRate) };
+    auto const sampleRate{ audioDevice->getCurrentSampleRate() };
+    auto seconds{ static_cast<int>(static_cast<double>(audioManager.getNumSamplesRecorded()) / sampleRate) };
     auto const minute{ seconds / 60 % 60 };
     seconds = seconds % 60;
     auto const timeRecorded{ ((minute < 10) ? "0" + juce::String{ minute } : juce::String{ minute }) + " : "
@@ -2366,12 +2367,12 @@ void MainContentComponent::comboBoxChanged(juce::ComboBox * comboBox)
         mAudioProcessor->setMode(static_cast<SpatModes>(mSpatModeCombo->getSelectedId() - 1));
         switch (mAudioProcessor->getMode()) {
         case SpatModes::vbap:
-            openXmlFileSpeaker(mLastVbapSetupPath);
+            openXmlFileSpeaker(mConfiguration.getLastVbapSpeakerSetup());
             mNeedToSaveSpeakerSetup = false;
             mIsSpanShown = true;
             break;
         case SpatModes::lbap:
-            openXmlFileSpeaker(mLastVbapSetupPath);
+            openXmlFileSpeaker(mConfiguration.getLastOpenSpeakerSetup());
             mNeedToSaveSpeakerSetup = false;
             mIsSpanShown = true;
             break;

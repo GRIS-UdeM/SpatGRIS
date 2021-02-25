@@ -88,7 +88,6 @@ class MainContentComponent final
 
     // Paths.
     juce::String mConfigurationName{};
-    juce::String mLastVbapSetupPath{};
     juce::String mCurrentSpeakerSetupPath{};
     juce::String mCurrentPresetPath{};
 

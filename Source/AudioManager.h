@@ -64,6 +64,15 @@ struct audio_port_t {
 //==============================================================================
 class AudioManager final : juce::AudioSourcePlayer
 {
+    // 2^17 samples * 32 bits per sample == 0.5 mb buffer per channel
+    static constexpr auto RECORDERS_BUFFER_SIZE_IN_SAMPLES = 131072;
+    //==============================================================================
+    struct RecorderInfo {
+        std::unique_ptr<juce::AudioFormatWriter::ThreadedWriter> threadedWriter;
+        juce::AudioFormatWriter *
+            audioFormatWriter; // this is only left for safety assertions : it will get deleted by the threadedWriter
+    };
+    //==============================================================================
 public:
     struct RecordingOptions {
         juce::String path;
@@ -87,7 +96,9 @@ private:
 
     juce::CriticalSection mCriticalSection{};
     bool mIsRecording{};
-    juce::OwnedArray<juce::AudioFormatWriter> mRecorders{};
+    juce::Atomic<int64_t> mNumSamplesRecorded{};
+    juce::OwnedArray<RecorderInfo> mRecorders{};
+    juce::TimeSliceThread mRecordersThread{ "SpatGRIS recording thread" };
     RecordingConfig mRecordingConfig{};
 
     static std::unique_ptr<AudioManager> mInstance;
@@ -135,6 +146,7 @@ public:
     void startRecording();
     void stopRecording();
     bool isRecording() const { return mIsRecording; }
+    int64_t getNumSamplesRecorded() const { return mNumSamplesRecorded.get(); }
     //==============================================================================
     // AudioSourcePlayer overrides
     void audioDeviceError(const juce::String & errorMessage) override;
