@@ -89,8 +89,6 @@ class MainContentComponent final
 
     // Paths.
     juce::String mConfigurationName{};
-    juce::String mCurrentSpeakerSetupPath{};
-    juce::String mCurrentPresetPath{};
 
     // Alsa output device
     juce::String mAlsaOutputDevice{};

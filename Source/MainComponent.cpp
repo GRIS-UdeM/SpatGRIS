@@ -191,8 +191,6 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
 //==============================================================================
 MainContentComponent::~MainContentComponent()
 {
-    mConfiguration.setLastOpenPreset(mCurrentPresetPath);
-    mConfiguration.setLastOpenSpeakerSetup(mCurrentSpeakerSetupPath);
     mConfiguration.setSashPosition(mVerticalLayout.getItemCurrentRelativeSize(0));
 
     mSpeakerViewComponent.reset();
@@ -369,8 +367,9 @@ void MainContentComponent::handleNew()
 //==============================================================================
 void MainContentComponent::handleOpenPreset()
 {
-    auto const dir{ mConfiguration.getLastOpenPreset().getParentDirectory() };
-    auto const filename{ juce::File{ mCurrentPresetPath }.getFileName() };
+    auto const lastOpenPreset{ mConfiguration.getLastOpenPreset() };
+    auto const dir{ lastOpenPreset.getParentDirectory() };
+    auto const filename{ lastOpenPreset.getFileName() };
 
     juce::FileChooser fc("Choose a file to open...", dir.getFullPathName() + "/" + filename, "*.xml", true);
 
@@ -412,20 +411,20 @@ void MainContentComponent::handleOpenPreset()
 //==============================================================================
 void MainContentComponent::handleSavePreset()
 {
-    if (!juce::File(mCurrentPresetPath).existsAsFile()
-        || mCurrentPresetPath.endsWith("default_preset/default_preset.xml")) {
+    auto const lastOpenPreset{ mConfiguration.getLastOpenPreset() };
+    if (!lastOpenPreset.existsAsFile()
+        || lastOpenPreset.getFullPathName().endsWith("default_preset/default_preset.xml")) {
         handleSaveAsPreset();
     }
-    savePreset(mCurrentPresetPath);
+    savePreset(lastOpenPreset.getFullPathName());
 }
 
 //==============================================================================
 void MainContentComponent::handleSaveAsPreset()
 {
-    auto const dir{ mConfiguration.getLastOpenPreset().getParentDirectory() };
-    auto const filename{ juce::File{ mCurrentPresetPath }.getFileName() };
+    auto const lastOpenPreset{ mConfiguration.getLastOpenPreset() };
 
-    juce::FileChooser fc{ "Choose a file to save...", dir.getFullPathName() + "/" + filename, "*.xml", true };
+    juce::FileChooser fc{ "Choose a file to save...", lastOpenPreset.getFullPathName(), "*.xml", true };
 
     if (fc.browseForFileToSave(true)) {
         auto const chosen{ fc.getResults().getReference(0).getFullPathName() };
@@ -437,7 +436,7 @@ void MainContentComponent::handleSaveAsPreset()
 void MainContentComponent::handleOpenSpeakerSetup()
 {
     auto const dir{ mConfiguration.getLastOpenSpeakerSetup().getParentDirectory() };
-    auto const filename{ juce::File{ mCurrentSpeakerSetupPath }.getFileName() };
+    auto const filename{ mConfiguration.getLastOpenSpeakerSetup().getFileName() };
 
     juce::FileChooser fc{ "Choose a file to open...", dir.getFullPathName() + "/" + filename, "*.xml", true };
 
@@ -459,10 +458,9 @@ void MainContentComponent::handleOpenSpeakerSetup()
 //==============================================================================
 void MainContentComponent::handleSaveAsSpeakerSetup()
 {
-    auto const dir{ mConfiguration.getLastOpenSpeakerSetup().getParentDirectory() };
-    auto const filename{ juce::File{ mCurrentSpeakerSetupPath }.getFileName() };
+    auto const lastOpenSpeakerSetup{ mConfiguration.getLastOpenSpeakerSetup() };
 
-    juce::FileChooser fc{ "Choose a file to save...", dir.getFullPathName() + "/" + filename, "*.xml", true };
+    juce::FileChooser fc{ "Choose a file to save...", lastOpenSpeakerSetup.getFullPathName(), "*.xml", true };
 
     if (fc.browseForFileToSave(true)) {
         auto const chosen{ fc.getResults().getReference(0).getFullPathName() };
@@ -478,9 +476,10 @@ void MainContentComponent::handleShowSpeakerEditWindow()
                                        850,
                                        600 };
     if (mEditSpeakersWindow == nullptr) {
+        auto const lastOpenSpeakerSetup{ mConfiguration.getLastOpenSpeakerSetup() };
         auto const windowName = juce::String("Speakers Setup Edition - ")
                                 + juce::String(MODE_SPAT_STRING[static_cast<int>(mAudioProcessor->getMode())]) + " - "
-                                + juce::File(mCurrentSpeakerSetupPath).getFileName();
+                                + lastOpenSpeakerSetup.getFileName();
         mEditSpeakersWindow.reset(new EditSpeakersWindow(windowName, mLookAndFeel, *this, mConfigurationName));
         mEditSpeakersWindow->setBounds(result);
         mEditSpeakersWindow->initComp();
@@ -985,7 +984,7 @@ void MainContentComponent::menuItemSelected(int /*menuItemID*/, int /*topLevelMe
 // Exit functions.
 bool MainContentComponent::isPresetModified() const
 {
-    juce::File const xmlFile{ mCurrentPresetPath };
+    auto const xmlFile{ mConfiguration.getLastOpenPreset() };
     juce::XmlDocument xmlDoc{ xmlFile };
     auto const savedState{ xmlDoc.getDocumentElement() };
     if (!savedState) {
@@ -1019,10 +1018,9 @@ bool MainContentComponent::exitApp()
         if (exitV == 1) {
             alert.setVisible(false);
             juce::ModalComponentManager::getInstance()->cancelAllModalComponents();
-            auto const dir{ mConfiguration.getLastOpenPreset().getParentDirectory() };
-            auto const filename{ juce::File(mCurrentPresetPath).getFileName() };
+            auto const lastOpenPreset{ mConfiguration.getLastOpenPreset() };
 
-            juce::FileChooser fc("Choose a file to save...", dir.getFullPathName() + "/" + filename, "*.xml", true);
+            juce::FileChooser fc("Choose a file to save...", lastOpenPreset.getFullPathName(), "*.xml", true);
 
             if (fc.browseForFileToSave(true)) {
                 auto const chosen{ fc.getResults().getReference(0).getFullPathName() };
@@ -1418,7 +1416,7 @@ bool MainContentComponent::updateLevelComp()
         alert.addButton("No", 0);
         alert.addButton("Yes", 1, juce::KeyPress(juce::KeyPress::returnKey));
         if (alert.runModalLoop() != 0) {
-            openXmlFileSpeaker(mCurrentSpeakerSetupPath);
+            openXmlFileSpeaker(mConfiguration.getLastOpenSpeakerSetup());
         }
         return false;
     }
@@ -1443,11 +1441,7 @@ bool MainContentComponent::updateLevelComp()
             alert.addButton("Yes", 1);
             if (alert.runModalLoop() == 0) {
                 auto const lastSpeakerSetupPathInConfig{ mConfiguration.getLastVbapSpeakerSetup().getFullPathName() };
-                if (mCurrentSpeakerSetupPath.compare(lastSpeakerSetupPathInConfig) == 0) {
-                    openXmlFileSpeaker(DEFAULT_SPEAKER_SETUP_FILE.getFullPathName());
-                } else {
-                    openXmlFileSpeaker(lastSpeakerSetupPathInConfig);
-                }
+                openXmlFileSpeaker(mConfiguration.getLastVbapSpeakerSetup());
             }
             return false;
         }
@@ -1646,7 +1640,8 @@ bool MainContentComponent::updateLevelComp()
 //==============================================================================
 void MainContentComponent::setNameConfig()
 {
-    mConfigurationName = mCurrentSpeakerSetupPath.fromLastOccurrenceOf("/", false, false);
+    mConfigurationName
+        = mConfiguration.getLastOpenSpeakerSetup().getFullPathName().fromLastOccurrenceOf("/", false, false);
     mSpeakerViewComponent->setNameConfig(mConfigurationName);
 }
 
@@ -1706,8 +1701,9 @@ void MainContentComponent::setDirectOut(int const id, output_patch_t const chn) 
 //==============================================================================
 void MainContentComponent::reloadXmlFileSpeaker()
 {
-    if (juce::File(mCurrentSpeakerSetupPath).existsAsFile()) {
-        openXmlFileSpeaker(mCurrentSpeakerSetupPath);
+    auto const lastSpeakerSetup{ mConfiguration.getLastOpenSpeakerSetup() };
+    if (lastSpeakerSetup.existsAsFile()) {
+        openXmlFileSpeaker(lastSpeakerSetup);
     }
 }
 
@@ -1716,7 +1712,7 @@ void MainContentComponent::openXmlFileSpeaker(juce::File const & file)
 {
     jassert(file.existsAsFile());
 
-    auto const oldPath{ mCurrentSpeakerSetupPath };
+    auto const oldPath{ mConfiguration.getLastOpenSpeakerSetup().getFullPathName() };
     auto const isNewSameAsOld{ oldPath.compare(file.getFullPathName()) == 0 };
     auto const isNewSameAsLastSetup{ mConfiguration.getLastOpenSpeakerSetup() == file };
 
@@ -1728,8 +1724,7 @@ void MainContentComponent::openXmlFileSpeaker(juce::File const & file)
         return;
     }
 
-    mCurrentSpeakerSetupPath = file.getFullPathName();
-    juce::XmlDocument xmlDoc{ juce::File{ mCurrentSpeakerSetupPath } };
+    juce::XmlDocument xmlDoc{ file };
     auto const mainXmlElem(xmlDoc.getDocumentElement());
     if (!mainXmlElem) {
         juce::AlertWindow::showMessageBox(juce::AlertWindow::WarningIcon,
@@ -1839,20 +1834,13 @@ void MainContentComponent::openXmlFileSpeaker(juce::File const & file)
 
     mNeedToComputeVbap = true;
     updateLevelComp();
-    auto const mode{ mAudioProcessor->getMode() };
-    if (mode != SpatModes::hrtfVbap && mode != SpatModes::stereo) {
-        if (mCurrentSpeakerSetupPath.compare(BINAURAL_SPEAKER_SETUP_FILE.getFullPathName()) != 0
-            && mCurrentSpeakerSetupPath.compare(STEREO_SPEAKER_SETUP_FILE.getFullPathName()) != 0) {
-            mConfiguration.setLastOpenSpeakerSetup(mCurrentSpeakerSetupPath);
-        }
-    }
 }
 
 //==============================================================================
 void MainContentComponent::setTitle() const
 {
-    auto const title{ juce::String{ "SpatGRIS v" } + STRING(JUCE_APP_VERSION) + " - "
-                      + juce::File{ mCurrentPresetPath }.getFileName() };
+    auto const currentPreset{ mConfiguration.getLastOpenPreset() };
+    auto const title{ juce::String{ "SpatGRIS v" } + STRING(JUCE_APP_VERSION) + " - " + currentPreset.getFileName() };
     mMainWindow.setName(title);
 }
 
@@ -1897,7 +1885,6 @@ void MainContentComponent::openPreset(juce::File const & file)
         return;
     }
 
-    mCurrentPresetPath = file.getFullPathName();
     mOscInputPort = mainXmlElem->getIntAttribute("OSC_Input_Port");
     mAddInputsTextEditor->setText(mainXmlElem->getStringAttribute("Number_Of_Inputs"));
     mMasterGainOutSlider->setValue(mainXmlElem->getDoubleAttribute("Master_Gain_Out", 0.0), juce::sendNotification);
@@ -1949,11 +1936,6 @@ void MainContentComponent::openPreset(juce::File const & file)
     textEditorReturnKeyPressed(*mAddInputsTextEditor);
     sliderValueChanged(mMasterGainOutSlider.get());
     sliderValueChanged(mInterpolationSlider.get());
-
-    juce::File const speakerSetup{ mCurrentSpeakerSetupPath };
-    if (!mCurrentSpeakerSetupPath.startsWith("/")) {
-        mCurrentSpeakerSetupPath = DEFAULT_PRESET_DIRECTORY.getChildFile(mCurrentSpeakerSetupPath).getFullPathName();
-    }
 
     for (auto * input{ mainXmlElem->getFirstChildElement() }; input != nullptr; input = input->getNextElement()) {
         if (input->hasTagName("Input")) {
@@ -2021,8 +2003,7 @@ void MainContentComponent::savePreset(juce::String const & path)
     jassert(success);
     success = xmlFile.create();
     jassert(success);
-    mCurrentPresetPath = path;
-    mConfiguration.setLastOpenPreset(mCurrentPresetPath);
+    mConfiguration.setLastOpenPreset(path);
 
     setTitle();
 }
@@ -2030,7 +2011,6 @@ void MainContentComponent::savePreset(juce::String const & path)
 //==============================================================================
 void MainContentComponent::saveSpeakerSetup(juce::String const & path)
 {
-    mCurrentSpeakerSetupPath = path;
     juce::File const xmlFile{ path };
     juce::XmlElement xml{ "SpeakerSetup" };
 
@@ -2070,17 +2050,9 @@ void MainContentComponent::saveSpeakerSetup(juce::String const & path)
     success = xmlFile.create();
     jassert(success);
 
-    mConfiguration.setLastOpenSpeakerSetup(mCurrentSpeakerSetupPath);
+    mConfiguration.setLastOpenSpeakerSetup(path);
 
     mNeedToSaveSpeakerSetup = false;
-
-    auto const mode{ mAudioProcessor->getMode() };
-    if (mode != SpatModes::hrtfVbap && mode != SpatModes::stereo) {
-        if (mCurrentSpeakerSetupPath.compare(BINAURAL_SPEAKER_SETUP_FILE.getFullPathName()) != 0
-            && mCurrentSpeakerSetupPath.compare(STEREO_SPEAKER_SETUP_FILE.getFullPathName()) != 0) {
-            mConfiguration.setLastOpenSpeakerSetup(mCurrentSpeakerSetupPath);
-        }
-    }
 
     setNameConfig();
 }
@@ -2361,9 +2333,10 @@ void MainContentComponent::comboBoxChanged(juce::ComboBox * comboBox)
         }
 
         if (mEditSpeakersWindow != nullptr) {
+            auto const lastSpeakerSetup{ mConfiguration.getLastOpenSpeakerSetup() };
             auto const windowName{ juce::String("Speakers Setup Edition - ")
                                    + juce::String(MODE_SPAT_STRING[static_cast<int>(mAudioProcessor->getMode())])
-                                   + juce::String(" - ") + juce::File(mCurrentSpeakerSetupPath).getFileName() };
+                                   + juce::String(" - ") + lastSpeakerSetup.getFileName() };
             mEditSpeakersWindow->setName(windowName);
         }
     }
