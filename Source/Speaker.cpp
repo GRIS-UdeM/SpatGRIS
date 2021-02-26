@@ -234,7 +234,7 @@ void Speaker::newSphericalCoord(glm::vec3 aziZenRad, glm::vec3 /*extents*/)
     aziZenRad.x = (aziZenRad.x * juce::MathConstants<float>::pi) / 180.0f;
     aziZenRad.y = abs(((-90.0f + aziZenRad.y) * juce::MathConstants<float>::pi) / 180.0f);
 
-    if (mMainContentComponent.getModeSelected() == SpatModes::lbap || isDirectOut()) {
+    if (mMainContentComponent.getModeSelected() == SpatMode::lbap || isDirectOut()) {
         nCenter.x = getFloatPrecision(aziZenRad.z * cosf(aziZenRad.x), 3);
         nCenter.z = getFloatPrecision(aziZenRad.z * sinf(aziZenRad.x), 3);
         nCenter.y = getFloatPrecision(10.0f * (1.0f - aziZenRad.y / (juce::MathConstants<float>::halfPi)), 3);
@@ -256,7 +256,7 @@ void Speaker::draw()
     glTranslatef(mCenter.x, mCenter.y, mCenter.z);
 
     glRotatef(180.0f - mAziZenRad.x, 0.0f, 1.0f, 0.0f);
-    if (mMainContentComponent.getModeSelected() == SpatModes::lbap) {
+    if (mMainContentComponent.getModeSelected() == SpatMode::lbap) {
         glRotatef(-mAziZenRad.y + mAziZenRad.y * mAziZenRad.z / 20.0f, 0.0f, 0.0f, 1.0f);
     } else {
         glRotatef(-mAziZenRad.y, 0.0f, 0.0f, 1.0f);

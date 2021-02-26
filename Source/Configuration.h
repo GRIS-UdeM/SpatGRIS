@@ -26,6 +26,8 @@ DISABLE_WARNINGS
 #include <JuceHeader.h>
 ENABLE_WARNINGS
 
+#include "SpatMode.hpp"
+
 //==============================================================================
 enum class RecordingFormat { wav, aiff };
 enum class RecordingConfig { mono, interleaved };
@@ -52,11 +54,10 @@ class Configuration
         static juce::String const ATTENUATION_DB;
         static juce::String const ATTENUATION_HZ;
         static juce::String const LAST_VBAP_SPEAKER_SETUP;
-        static juce::String const LAST_OPEN_PRESET;
-        static juce::String const LAST_OPEN_SPEAKER_SETUP;
+        static juce::String const LAST_PRESET;
+        static juce::String const LAST_LBAP_SPEAKER_SETUP;
         static juce::String const LAST_RECORDING_DIRECTORY;
         static juce::String const SASH_POSITION;
-        static juce::String const LAST_SPEAKER_SETUP_DIRECTORY;
         static juce::String const WINDOW_X;
         static juce::String const WINDOW_Y;
         static juce::String const WINDOW_WIDTH;
@@ -96,9 +97,8 @@ public:
     void setWindowHeight(int windowHeight) const;
     void setSashPosition(double sashPosition) const;
 
-    void setLastVbapSpeakerSetup(juce::File const & lastVbapSpeakerSetup) const;
     void setLastOpenPreset(juce::File const & lastOpenPreset) const;
-    void setLastOpenSpeakerSetup(juce::File const & lastOpenSpeakerSetup) const;
+    void setLastSpeakerSetup(juce::File const & lastOpenSpeakerSetup, SpatMode spatMode) const;
     //==============================================================================
     [[nodiscard]] juce::String getDeviceType() const;
     [[nodiscard]] juce::String getInputDevice() const;
@@ -120,9 +120,8 @@ public:
     [[nodiscard]] int getWindowHeight() const;
     [[nodiscard]] std::optional<double> getSashPosition() const;
 
-    [[nodiscard]] juce::File getLastVbapSpeakerSetup() const;
     [[nodiscard]] juce::File getLastOpenPreset() const;
-    [[nodiscard]] juce::File getLastOpenSpeakerSetup() const;
+    [[nodiscard]] juce::File getLastSpeakerSetup(SpatMode spatMode) const;
 
 private:
     //==============================================================================

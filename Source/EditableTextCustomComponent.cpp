@@ -49,7 +49,7 @@ void EditableTextCustomComponent::mouseDrag(const juce::MouseEvent & event)
         return;
     }
 
-    if (mOwner.getModeSelected() == SpatModes::lbap || mOwner.getDirectOutForSpeakerRow(mRow)) {
+    if (mOwner.getModeSelected() == SpatMode::lbap || mOwner.getDirectOutForSpeakerRow(mRow)) {
         if (mColumnId < 2) {
             return;
         }

@@ -21,4 +21,4 @@
 
 //==============================================================================
 // Spatialization modes.
-enum class SpatModes { vbap = 0, lbap, hrtfVbap, stereo };
+enum class SpatMode { vbap = 0, lbap, hrtfVbap, stereo };

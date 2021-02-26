@@ -50,9 +50,6 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     mMenuBar.reset(new juce::MenuBarComponent(this));
     addAndMakeVisible(mMenuBar.get());
 
-    // Get a reference to the last opened VBAP speaker setup.
-    auto const lastVbap{ mConfiguration.getLastVbapSpeakerSetup() };
-
     // SpeakerViewComponent 3D view
     mSpeakerViewComponent.reset(new SpeakerViewComponent(*this));
     addAndMakeVisible(mSpeakerViewComponent.get());
@@ -160,7 +157,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     openPreset(mConfiguration.getLastOpenPreset());
 
     // Open the default speaker setup if lastOpenSpeakerSetup is not a valid file.
-    openXmlFileSpeaker(mConfiguration.getLastOpenSpeakerSetup());
+    openXmlFileSpeaker(mConfiguration.getLastSpeakerSetup(mAudioProcessor->getMode()));
 
     // End layout and start refresh timer.
     resized();
@@ -435,10 +432,9 @@ void MainContentComponent::handleSaveAsPreset()
 //==============================================================================
 void MainContentComponent::handleOpenSpeakerSetup()
 {
-    auto const dir{ mConfiguration.getLastOpenSpeakerSetup().getParentDirectory() };
-    auto const filename{ mConfiguration.getLastOpenSpeakerSetup().getFileName() };
+    auto const lastOpenSetup{ mConfiguration.getLastSpeakerSetup(mAudioProcessor->getMode()) };
 
-    juce::FileChooser fc{ "Choose a file to open...", dir.getFullPathName() + "/" + filename, "*.xml", true };
+    juce::FileChooser fc{ "Choose a file to open...", lastOpenSetup, "*.xml", true };
 
     if (fc.browseForFileToOpen()) {
         auto const chosen{ fc.getResults().getReference(0).getFullPathName() };
@@ -458,7 +454,7 @@ void MainContentComponent::handleOpenSpeakerSetup()
 //==============================================================================
 void MainContentComponent::handleSaveAsSpeakerSetup()
 {
-    auto const lastOpenSpeakerSetup{ mConfiguration.getLastOpenSpeakerSetup() };
+    auto const lastOpenSpeakerSetup{ mConfiguration.getLastSpeakerSetup(mAudioProcessor->getMode()) };
 
     juce::FileChooser fc{ "Choose a file to save...", lastOpenSpeakerSetup.getFullPathName(), "*.xml", true };
 
@@ -476,7 +472,7 @@ void MainContentComponent::handleShowSpeakerEditWindow()
                                        850,
                                        600 };
     if (mEditSpeakersWindow == nullptr) {
-        auto const lastOpenSpeakerSetup{ mConfiguration.getLastOpenSpeakerSetup() };
+        auto const lastOpenSpeakerSetup{ mConfiguration.getLastSpeakerSetup(mAudioProcessor->getMode()) };
         auto const windowName = juce::String("Speakers Setup Edition - ")
                                 + juce::String(MODE_SPAT_STRING[static_cast<int>(mAudioProcessor->getMode())]) + " - "
                                 + lastOpenSpeakerSetup.getFileName();
@@ -606,7 +602,7 @@ void MainContentComponent::handleShowTriplets()
 //==============================================================================
 void MainContentComponent::setShowTriplets(bool const state)
 {
-    if (getModeSelected() == SpatModes::lbap && state == true) {
+    if (getModeSelected() == SpatMode::lbap && state == true) {
         juce::AlertWindow alert("Can't draw triplets !",
                                 "Triplets are not effective with the CUBE mode.",
                                 juce::AlertWindow::InfoIcon);
@@ -1256,7 +1252,7 @@ void MainContentComponent::removeSpeaker(int const idSpeaker)
 bool MainContentComponent::isRadiusNormalized() const
 {
     auto const mode{ mAudioProcessor->getMode() };
-    if (mode == SpatModes::vbap || mode == SpatModes::hrtfVbap)
+    if (mode == SpatMode::vbap || mode == SpatMode::hrtfVbap)
         return true;
     else
         return false;
@@ -1268,7 +1264,7 @@ void MainContentComponent::updateInputJack(int const inInput, Input & inp) const
     auto const mode{ mAudioProcessor->getMode() };
     auto & si = mAudioProcessor->getSourcesIn()[inInput];
 
-    if (mode == SpatModes::lbap) {
+    if (mode == SpatMode::lbap) {
         si.radAzimuth = inp.getAzimuth();
         si.radElevation = juce::MathConstants<float>::halfPi - inp.getZenith();
     } else {
@@ -1283,7 +1279,7 @@ void MainContentComponent::updateInputJack(int const inInput, Input & inp) const
     si.azimuthSpan = inp.getAzimuthSpan() * 0.5f;
     si.zenithSpan = inp.getZenithSpan() * 2.0f;
 
-    if (mode == SpatModes::vbap || mode == SpatModes::hrtfVbap) {
+    if (mode == SpatMode::vbap || mode == SpatMode::hrtfVbap) {
         mAudioProcessor->getVbapSourcesToUpdate()[inInput] = 1;
     }
 }
@@ -1416,7 +1412,7 @@ bool MainContentComponent::updateLevelComp()
         alert.addButton("No", 0);
         alert.addButton("Yes", 1, juce::KeyPress(juce::KeyPress::returnKey));
         if (alert.runModalLoop() != 0) {
-            openXmlFileSpeaker(mConfiguration.getLastOpenSpeakerSetup());
+            openXmlFileSpeaker(mConfiguration.getLastSpeakerSetup(mAudioProcessor->getMode()));
         }
         return false;
     }
@@ -1440,8 +1436,7 @@ bool MainContentComponent::updateLevelComp()
             alert.addButton("No", 0);
             alert.addButton("Yes", 1);
             if (alert.runModalLoop() == 0) {
-                auto const lastSpeakerSetupPathInConfig{ mConfiguration.getLastVbapSpeakerSetup().getFullPathName() };
-                openXmlFileSpeaker(mConfiguration.getLastVbapSpeakerSetup());
+                openXmlFileSpeaker(mConfiguration.getLastSpeakerSetup(mAudioProcessor->getMode()));
             }
             return false;
         }
@@ -1490,7 +1485,7 @@ bool MainContentComponent::updateLevelComp()
 
         x += VU_METER_WIDTH_IN_PIXELS;
 
-        if (mode == SpatModes::vbap || mode == SpatModes::hrtfVbap) {
+        if (mode == SpatMode::vbap || mode == SpatMode::hrtfVbap) {
             speaker->normalizeRadius();
         }
 
@@ -1588,7 +1583,7 @@ bool MainContentComponent::updateLevelComp()
     tempListSpeaker.resize(i);
 
     auto returnValue{ false };
-    if (mode == SpatModes::vbap || mode == SpatModes::hrtfVbap) {
+    if (mode == SpatMode::vbap || mode == SpatMode::hrtfVbap) {
         mAudioProcessor->setVbapDimensions(dimensions);
         if (dimensions == 2) {
             setShowTriplets(false);
@@ -1608,7 +1603,7 @@ bool MainContentComponent::updateLevelComp()
             openXmlFileSpeaker(DEFAULT_SPEAKER_SETUP_FILE.getFullPathName());
             return false;
         }
-    } else if (mode == SpatModes::lbap) {
+    } else if (mode == SpatMode::lbap) {
         setShowTriplets(false);
         returnValue = mAudioProcessor->lbapSetupSpeakerField(tempListSpeaker);
     }
@@ -1640,8 +1635,9 @@ bool MainContentComponent::updateLevelComp()
 //==============================================================================
 void MainContentComponent::setNameConfig()
 {
-    mConfigurationName
-        = mConfiguration.getLastOpenSpeakerSetup().getFullPathName().fromLastOccurrenceOf("/", false, false);
+    mConfigurationName = mConfiguration.getLastSpeakerSetup(mAudioProcessor->getMode())
+                             .getFullPathName()
+                             .fromLastOccurrenceOf("/", false, false);
     mSpeakerViewComponent->setNameConfig(mConfigurationName);
 }
 
@@ -1701,10 +1697,7 @@ void MainContentComponent::setDirectOut(int const id, output_patch_t const chn) 
 //==============================================================================
 void MainContentComponent::reloadXmlFileSpeaker()
 {
-    auto const lastSpeakerSetup{ mConfiguration.getLastOpenSpeakerSetup() };
-    if (lastSpeakerSetup.existsAsFile()) {
-        openXmlFileSpeaker(lastSpeakerSetup);
-    }
+    openXmlFileSpeaker(mConfiguration.getLastSpeakerSetup(mAudioProcessor->getMode()));
 }
 
 //==============================================================================
@@ -1712,9 +1705,8 @@ void MainContentComponent::openXmlFileSpeaker(juce::File const & file)
 {
     jassert(file.existsAsFile());
 
-    auto const oldPath{ mConfiguration.getLastOpenSpeakerSetup().getFullPathName() };
-    auto const isNewSameAsOld{ oldPath.compare(file.getFullPathName()) == 0 };
-    auto const isNewSameAsLastSetup{ mConfiguration.getLastOpenSpeakerSetup() == file };
+    auto const oldFile{ mConfiguration.getLastSpeakerSetup(mAudioProcessor->getMode()) };
+    auto const isNewSameAsOld{ file == oldFile };
 
     if (!file.existsAsFile()) {
         juce::AlertWindow::showMessageBox(juce::AlertWindow::WarningIcon,
@@ -1749,25 +1741,24 @@ void MainContentComponent::openXmlFileSpeaker(juce::File const & file)
     }
 
     if (file.getFullPathName().compare(BINAURAL_SPEAKER_SETUP_FILE.getFullPathName()) == 0) {
-        mAudioProcessor->setMode(SpatModes::hrtfVbap);
-        mSpatModeCombo->setSelectedId(static_cast<int>(SpatModes::hrtfVbap) + 1,
+        mAudioProcessor->setMode(SpatMode::hrtfVbap);
+        mSpatModeCombo->setSelectedId(static_cast<int>(SpatMode::hrtfVbap) + 1,
                                       juce::NotificationType::dontSendNotification);
     } else if (file.getFullPathName().compare(STEREO_SPEAKER_SETUP_FILE.getFullPathName()) == 0) {
-        mAudioProcessor->setMode(SpatModes::stereo);
-        mSpatModeCombo->setSelectedId(static_cast<int>(SpatModes::stereo) + 1,
+        mAudioProcessor->setMode(SpatMode::stereo);
+        mSpatModeCombo->setSelectedId(static_cast<int>(SpatMode::stereo) + 1,
                                       juce::NotificationType::dontSendNotification);
-    } else if (!isNewSameAsOld && oldPath.compare(BINAURAL_SPEAKER_SETUP_FILE.getFullPathName()) != 0
-               && oldPath.compare(STEREO_SPEAKER_SETUP_FILE.getFullPathName()) != 0) {
+    } else if (!isNewSameAsOld && oldFile != BINAURAL_SPEAKER_SETUP_FILE && oldFile != STEREO_SPEAKER_SETUP_FILE) {
         auto const spatMode = mainXmlElem->getIntAttribute("SpatMode");
-        mAudioProcessor->setMode(static_cast<SpatModes>(spatMode));
+        mAudioProcessor->setMode(static_cast<SpatMode>(spatMode));
         mSpatModeCombo->setSelectedId(spatMode + 1, juce::NotificationType::dontSendNotification);
-    } else if (!isNewSameAsLastSetup) {
+    } else if (!isNewSameAsOld) {
         auto const spatMode = mainXmlElem->getIntAttribute("SpatMode");
-        mAudioProcessor->setMode(static_cast<SpatModes>(spatMode));
+        mAudioProcessor->setMode(static_cast<SpatMode>(spatMode));
         mSpatModeCombo->setSelectedId(spatMode + 1, juce::NotificationType::dontSendNotification);
     }
 
-    auto const loadSetupFromXyz{ /*isNewSameAsOld &&*/ mAudioProcessor->getMode() == SpatModes::lbap };
+    auto const loadSetupFromXyz{ /*isNewSameAsOld &&*/ mAudioProcessor->getMode() == SpatMode::lbap };
 
     setNameConfig();
     juce::ScopedLock const lock{ mAudioProcessor->getCriticalSection() };
@@ -1830,7 +1821,7 @@ void MainContentComponent::openXmlFileSpeaker(juce::File const & file)
         }
     }
 
-    mConfiguration.setLastOpenSpeakerSetup(file);
+    mConfiguration.setLastSpeakerSetup(file, mAudioProcessor->getMode());
 
     mNeedToComputeVbap = true;
     updateLevelComp();
@@ -2050,7 +2041,7 @@ void MainContentComponent::saveSpeakerSetup(juce::String const & path)
     success = xmlFile.create();
     jassert(success);
 
-    mConfiguration.setLastOpenSpeakerSetup(path);
+    mConfiguration.setLastSpeakerSetup(path, mAudioProcessor->getMode());
 
     mNeedToSaveSpeakerSetup = false;
 
@@ -2305,38 +2296,31 @@ void MainContentComponent::comboBoxChanged(juce::ComboBox * comboBox)
 
     if (mSpatModeCombo.get() == comboBox) {
         juce::ScopedLock const lock{ mAudioProcessor->getCriticalSection() };
-        mAudioProcessor->setMode(static_cast<SpatModes>(mSpatModeCombo->getSelectedId() - 1));
-        switch (mAudioProcessor->getMode()) {
-        case SpatModes::vbap:
-            openXmlFileSpeaker(mConfiguration.getLastVbapSpeakerSetup());
-            mNeedToSaveSpeakerSetup = false;
+        mAudioProcessor->setMode(static_cast<SpatMode>(mSpatModeCombo->getSelectedId() - 1));
+        auto const spatMode{ mAudioProcessor->getMode() };
+        openXmlFileSpeaker(mConfiguration.getLastSpeakerSetup(spatMode));
+        mNeedToSaveSpeakerSetup = false;
+        switch (spatMode) {
+        case SpatMode::vbap:
             mIsSpanShown = true;
             break;
-        case SpatModes::lbap:
-            openXmlFileSpeaker(mConfiguration.getLastOpenSpeakerSetup());
-            mNeedToSaveSpeakerSetup = false;
+        case SpatMode::lbap:
             mIsSpanShown = true;
             break;
-        case SpatModes::hrtfVbap:
-            openXmlFileSpeaker(BINAURAL_SPEAKER_SETUP_FILE.getFullPathName());
-            mNeedToSaveSpeakerSetup = false;
+        case SpatMode::hrtfVbap:
             mAudioProcessor->resetHrtf();
             mIsSpanShown = false;
             break;
-        case SpatModes::stereo:
-            openXmlFileSpeaker(STEREO_SPEAKER_SETUP_FILE.getFullPathName());
-            mNeedToSaveSpeakerSetup = false;
+        case SpatMode::stereo:
             mIsSpanShown = false;
             break;
-        default:
-            jassertfalse;
         }
 
         if (mEditSpeakersWindow != nullptr) {
-            auto const lastSpeakerSetup{ mConfiguration.getLastOpenSpeakerSetup() };
+            auto const lastSpeakerSetup{ mConfiguration.getLastSpeakerSetup(spatMode) };
             auto const windowName{ juce::String("Speakers Setup Edition - ")
-                                   + juce::String(MODE_SPAT_STRING[static_cast<int>(mAudioProcessor->getMode())])
-                                   + juce::String(" - ") + lastSpeakerSetup.getFileName() };
+                                   + juce::String(MODE_SPAT_STRING[static_cast<int>(spatMode)]) + juce::String(" - ")
+                                   + lastSpeakerSetup.getFileName() };
             mEditSpeakersWindow->setName(windowName);
         }
     }

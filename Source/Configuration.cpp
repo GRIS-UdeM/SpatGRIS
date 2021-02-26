@@ -33,11 +33,10 @@ juce::String const Configuration::Tags::RECORDING_CONFIG = "RECORDING_CONFIG";
 juce::String const Configuration::Tags::ATTENUATION_DB = "ATTENUATION_DB";
 juce::String const Configuration::Tags::ATTENUATION_HZ = "ATTENUATION_HZ";
 juce::String const Configuration::Tags::LAST_VBAP_SPEAKER_SETUP = "LAST_VBAP_SPEAKER_SETUP";
-juce::String const Configuration::Tags::LAST_OPEN_PRESET = "LAST_OPEN_PRESET";
-juce::String const Configuration::Tags::LAST_OPEN_SPEAKER_SETUP = "LAST_OPEN_SPEAKER_SETUP";
+juce::String const Configuration::Tags::LAST_PRESET = "LAST_PRESET";
+juce::String const Configuration::Tags::LAST_LBAP_SPEAKER_SETUP = "LAST_LBAP_SPEAKER_SETUP";
 juce::String const Configuration::Tags::LAST_RECORDING_DIRECTORY = "LAST_RECORDING_DIRECTORY";
 juce::String const Configuration::Tags::SASH_POSITION = "SASH_POSITION";
-juce::String const Configuration::Tags::LAST_SPEAKER_SETUP_DIRECTORY = "LAST_SPEAKER_SETUP_DIRECTORY";
 juce::String const Configuration::Tags::WINDOW_X = "WINDOW_X";
 juce::String const Configuration::Tags::WINDOW_Y = "WINDOW_Y";
 juce::String const Configuration::Tags::WINDOW_WIDTH = "WINDOW_WIDTH";
@@ -67,6 +66,7 @@ Configuration::Configuration()
 //==============================================================================
 Configuration::~Configuration()
 {
+    mUserSettings->saveIfNeeded();
     mApplicationProperties.saveIfNeeded();
     mApplicationProperties.closeFiles();
 }
@@ -176,37 +176,32 @@ void Configuration::setSashPosition(double const sashPosition) const
 }
 
 //==============================================================================
-void Configuration::setLastVbapSpeakerSetup(juce::File const & lastVbapSpeakerSetup) const
-{
-    mUserSettings->setValue(Tags::LAST_VBAP_SPEAKER_SETUP, lastVbapSpeakerSetup.getFullPathName());
-}
-
-//==============================================================================
 void Configuration::setLastOpenPreset(juce::File const & lastOpenPreset) const
 {
-    mUserSettings->setValue(Tags::LAST_OPEN_PRESET, lastOpenPreset.getFullPathName());
+    mUserSettings->setValue(Tags::LAST_PRESET, lastOpenPreset.getFullPathName());
 }
 
 //==============================================================================
-void Configuration::setLastOpenSpeakerSetup(juce::File const & lastOpenSpeakerSetup) const
+void Configuration::setLastSpeakerSetup(juce::File const & lastOpenSpeakerSetup, SpatMode const spatMode) const
 {
-    mUserSettings->setValue(Tags::LAST_OPEN_SPEAKER_SETUP, lastOpenSpeakerSetup.getFullPathName());
-}
-
-//==============================================================================
-juce::File Configuration::getLastVbapSpeakerSetup() const
-{
-    juce::File lastVbap{ mUserSettings->getValue(Tags::LAST_VBAP_SPEAKER_SETUP) };
-    if (!lastVbap.existsAsFile()) {
-        return DEFAULT_SPEAKER_SETUP_FILE;
+    switch (spatMode) {
+    case SpatMode::lbap:
+        mUserSettings->setValue(Tags::LAST_LBAP_SPEAKER_SETUP, lastOpenSpeakerSetup.getFullPathName());
+        return;
+    case SpatMode::stereo:
+        mUserSettings->setValue(Tags::LAST_VBAP_SPEAKER_SETUP, lastOpenSpeakerSetup.getFullPathName());
+        return;
+    case SpatMode::hrtfVbap:
+    case SpatMode::vbap:
+        return;
     }
-    return lastVbap;
+    jassertfalse;
 }
 
 //==============================================================================
 juce::File Configuration::getLastOpenPreset() const
 {
-    juce::File lastOpenPreset{ mUserSettings->getValue(Tags::LAST_OPEN_PRESET) };
+    juce::File lastOpenPreset{ mUserSettings->getValue(Tags::LAST_PRESET) };
     if (!lastOpenPreset.existsAsFile()) {
         return DEFAULT_PRESET_FILE;
     }
@@ -214,13 +209,30 @@ juce::File Configuration::getLastOpenPreset() const
 }
 
 //==============================================================================
-juce::File Configuration::getLastOpenSpeakerSetup() const
+juce::File Configuration::getLastSpeakerSetup(SpatMode const spatMode) const
 {
-    juce::File lastOpenSpeakerSetup{ mUserSettings->getValue(Tags::LAST_OPEN_SPEAKER_SETUP) };
-    if (!lastOpenSpeakerSetup.existsAsFile()) {
-        return DEFAULT_SPEAKER_SETUP_FILE;
+    switch (spatMode) {
+    case SpatMode::hrtfVbap:
+        return BINAURAL_SPEAKER_SETUP_FILE;
+    case SpatMode::lbap: {
+        juce::File const lastLbap{ mUserSettings->getValue(Tags::LAST_LBAP_SPEAKER_SETUP) };
+        if (!lastLbap.existsAsFile()) {
+            return DEFAULT_SPEAKER_SETUP_FILE;
+        }
+        return lastLbap;
     }
-    return lastOpenSpeakerSetup;
+    case SpatMode::stereo:
+        return STEREO_SPEAKER_SETUP_FILE;
+    case SpatMode::vbap: {
+        juce::File const lastVbap{ mUserSettings->getValue(Tags::LAST_VBAP_SPEAKER_SETUP) };
+        if (!lastVbap.existsAsFile()) {
+            return DEFAULT_SPEAKER_SETUP_FILE;
+        }
+        return lastVbap;
+    }
+    }
+    jassertfalse;
+    return {};
 }
 
 //==============================================================================

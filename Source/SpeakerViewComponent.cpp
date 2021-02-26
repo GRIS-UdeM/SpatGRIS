@@ -142,7 +142,7 @@ void SpeakerViewComponent::render()
             glLineWidth(1.0f);
             glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
             glColor3f(0.8f, 0.2f, 0.1f);
-            if (mMainContentComponent.getModeSelected() == SpatModes::lbap) {
+            if (mMainContentComponent.getModeSelected() == SpatMode::lbap) {
                 // Draw a cube when in LBAP mode.
                 for (auto i{ -static_cast<int>(MAX_RADIUS) }; i <= static_cast<int>(MAX_RADIUS); i += 2) {
                     auto const i_f{ narrow<float>(i) };
@@ -325,7 +325,7 @@ void SpeakerViewComponent::drawOriginGrid() const
 
     // Draw light lines
     auto const spatMode{ mMainContentComponent.getModeSelected() };
-    if (spatMode == SpatModes::lbap) {
+    if (spatMode == SpatMode::lbap) {
         // squares.
         static constexpr std::array<float, 3> LINES{ MAX_RADIUS / 3.0f, MAX_RADIUS, SPACE_LIMIT };
         for (auto const value : LINES) {
@@ -378,7 +378,7 @@ void SpeakerViewComponent::drawOriginGrid() const
     glColor3f(0.49f, 0.49f, 0.49f);
 
     // Draw aligned cross
-    auto const alignedCrossLength{ spatMode == SpatModes::lbap ? SPACE_LIMIT : MAX_RADIUS * 1.5f };
+    auto const alignedCrossLength{ spatMode == SpatMode::lbap ? SPACE_LIMIT : MAX_RADIUS * 1.5f };
     glBegin(GL_LINE_LOOP);
     glVertex3f(0.0f, 0.0f, -alignedCrossLength);
     glVertex3f(0.0f, 0.0f, alignedCrossLength);
@@ -389,8 +389,8 @@ void SpeakerViewComponent::drawOriginGrid() const
     glEnd();
 
     // Draw diagonal cross
-    auto const diagonalCrossLength{ spatMode == SpatModes::lbap ? SPACE_LIMIT * juce::MathConstants<float>::sqrt2
-                                                                : alignedCrossLength };
+    auto const diagonalCrossLength{ spatMode == SpatMode::lbap ? SPACE_LIMIT * juce::MathConstants<float>::sqrt2
+                                                               : alignedCrossLength };
     glBegin(GL_LINE_LOOP);
     static auto constexpr quarterPi{ juce::MathConstants<float>::halfPi / 2.0f };
     glVertex3f(std::cos(quarterPi) * diagonalCrossLength, 0.0f, std::sin(quarterPi) * diagonalCrossLength);
@@ -406,7 +406,7 @@ void SpeakerViewComponent::drawOriginGrid() const
     glEnd();
 
     // Draw grey lines
-    if (mMainContentComponent.getModeSelected() == SpatModes::lbap) {
+    if (mMainContentComponent.getModeSelected() == SpatMode::lbap) {
         // squares
         static constexpr std::array<float, 2> LINES{ MAX_RADIUS / 3.0f * 2.0f,
                                                      (SPACE_LIMIT - MAX_RADIUS) / 2.0f + MAX_RADIUS };

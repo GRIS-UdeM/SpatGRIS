@@ -122,7 +122,7 @@ public:
                       float zenithSpan,
                       float radius,
                       float gain,
-                      SpatModes mode);
+                      SpatMode mode);
     void updateValuesOld(float azimuth, float zenith, float azimuthSpan, float zenithSpan, float g);
     //==============================================================================
     [[nodiscard]] bool isInput() const override { return true; }

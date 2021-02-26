@@ -164,7 +164,7 @@ void Input::draw() const
     glTranslatef(-mCenter.x, -mCenter.y, -mCenter.z);
 
     if ((mAzimuthSpan != 0.0f || mZenithSpan != 0.0f) && mMainContentComponent.isSpanShown()) {
-        if (mMainContentComponent.getModeSelected() == SpatModes::lbap) {
+        if (mMainContentComponent.getModeSelected() == SpatMode::lbap) {
             drawSpanLbap(mCenter.x, mCenter.y, mCenter.z);
         } else {
             drawSpan();
@@ -196,7 +196,7 @@ void Input::drawSpan() const
                 newAzimuth += juce::MathConstants<float>::twoPi;
             }
 
-            if (mMainContentComponent.getModeSelected() == SpatModes::lbap) {
+            if (mMainContentComponent.getModeSelected() == SpatMode::lbap) {
                 cart = polToCar3d(newAzimuth, mZenith);
             } else {
                 cart = polToCar(newAzimuth, mZenith);
@@ -208,7 +208,7 @@ void Input::drawSpan() const
                     auto newElevation{ l ? mZenith + eleDev : mZenith - eleDev };
                     newElevation = std::clamp(newElevation, 0.0f, juce::MathConstants<float>::halfPi);
 
-                    if (mMainContentComponent.getModeSelected() == SpatModes::lbap) {
+                    if (mMainContentComponent.getModeSelected() == SpatMode::lbap) {
                         cart = polToCar3d(newAzimuth, newElevation);
                     } else {
                         cart = polToCar(newAzimuth, newElevation);
@@ -290,7 +290,7 @@ void Input::updateValues(float const azimuth,
                          float const zenithSpan,
                          float const radius,
                          float const gain,
-                         SpatModes const mode)
+                         SpatMode const mode)
 {
     mAzimuth = azimuth;
     mZenith = zenith;
@@ -300,7 +300,7 @@ void Input::updateValues(float const azimuth,
     mGain = gain;
 
     auto const radiusInComponent{ radius * SpeakerViewComponent::MAX_RADIUS };
-    if (mode == SpatModes::lbap) {
+    if (mode == SpatMode::lbap) {
         mCenter.x = radiusInComponent * std::cos(mAzimuth);
         mCenter.y = (juce::MathConstants<float>::halfPi - zenith) / juce::MathConstants<float>::halfPi
                     * SpeakerViewComponent::MAX_RADIUS;

@@ -54,6 +54,7 @@ public:
     //==============================================================================
     [[nodiscard]] juce::Component * getContent() { return &this->mContent; }
     [[nodiscard]] juce::Component const * getContent() const { return &this->mContent; }
+    [[nodiscard]] juce::Viewport * getViewport() { return &mViewport; }
 
     void resized() override { this->mViewport.setSize(this->getWidth(), this->getHeight()); }
     void correctSize(int width, int const height);

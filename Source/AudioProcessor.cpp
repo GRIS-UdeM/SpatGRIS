@@ -706,16 +706,16 @@ void AudioProcessor::processAudio(size_t const nFrames) noexcept
     muteSoloVuMeterIn(ins, nFrames, sizeInputs);
 
     switch (mModeSelected) {
-    case SpatModes::vbap:
+    case SpatMode::vbap:
         processVbap(ins, outs, nFrames, sizeInputs, sizeOutputs);
         break;
-    case SpatModes::lbap:
+    case SpatMode::lbap:
         processLbap(ins, outs, nFrames, sizeInputs, sizeOutputs);
         break;
-    case SpatModes::hrtfVbap:
+    case SpatMode::hrtfVbap:
         processVBapHrtf(ins, outs, nFrames, sizeInputs);
         break;
-    case SpatModes::stereo:
+    case SpatMode::stereo:
         processStereo(ins, outs, nFrames, sizeInputs);
         break;
     default:

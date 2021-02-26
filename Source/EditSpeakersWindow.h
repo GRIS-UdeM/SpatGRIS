@@ -19,13 +19,14 @@
 
 #pragma once
 
-#include "AudioProcessor.h"
-#include "macros.h"
+#include <optional>
 
+#include "macros.h"
 DISABLE_WARNINGS
 #include <JuceHeader.h>
 ENABLE_WARNINGS
 
+#include "AudioProcessor.h"
 #include "Box.h"
 
 class EditableTextCustomComponent;
@@ -66,7 +67,7 @@ class EditSpeakersWindow final
 
     int mNumRows{};
     bool mInitialized{ false };
-    int mDragStartY{};
+    std::optional<int> mDragStartY{};
     //==============================================================================
     friend EditableTextCustomComponent; // TODO: temporary solution whiling refactoring is going on...
 public:
@@ -91,7 +92,7 @@ public:
 
 private:
     //==============================================================================
-    [[nodiscard]] SpatModes getModeSelected() const;
+    [[nodiscard]] SpatMode getModeSelected() const;
     [[nodiscard]] bool getDirectOutForSpeakerRow(int row) const;
     [[nodiscard]] juce::String getText(int columnNumber, int rowNumber) const;
     void setText(int columnNumber, int rowNumber, juce::String const & newText, bool altDown = false);

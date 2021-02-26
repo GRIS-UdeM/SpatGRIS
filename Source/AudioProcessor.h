@@ -32,7 +32,7 @@ ENABLE_WARNINGS
 
 #include "ClientData.hpp"
 #include "SourceData.hpp"
-#include "SpatModes.hpp"
+#include "SpatMode.hpp"
 #include "SpeakerData.hpp"
 #include "constants.hpp"
 #include "lbap.hpp"
@@ -101,7 +101,7 @@ class AudioProcessor
     bool mIsOverloaded{ false };
 
     // Which spatialization mode is selected.
-    SpatModes mModeSelected{ SpatModes::vbap };
+    SpatMode mModeSelected{ SpatMode::vbap };
 
     bool mAutoConnection{ false }; // not sure this one is necessary ?
 
@@ -185,7 +185,7 @@ public:
 
     [[nodiscard]] unsigned getNumberOutputs() const { return mNumberOutputs; }
     [[nodiscard]] unsigned getNumberInputs() const { return mNumberInputs; }
-    [[nodiscard]] SpatModes getMode() const { return mModeSelected; }
+    [[nodiscard]] SpatMode getMode() const { return mModeSelected; }
     [[nodiscard]] unsigned getVbapDimensions() const { return mVbapDimensions; }
     [[nodiscard]] auto const & getClients() const { return mClients; }
     [[nodiscard]] auto & getClients() { return mClients; }
@@ -209,7 +209,7 @@ public:
     void setVbapDimensions(unsigned const dimensions) { mVbapDimensions = dimensions; }
     void setSoloIn(bool const state) { mSoloIn = state; }
     void setSoloOut(bool const state) { mSoloOut = state; }
-    void setMode(SpatModes const mode) { mModeSelected = mode; }
+    void setMode(SpatMode const mode) { mModeSelected = mode; }
     void setMasterGainOut(float const gain) { mMasterGainOut = gain; }
     void setInterMaster(float const interMaster) { mInterMaster = interMaster; }
 

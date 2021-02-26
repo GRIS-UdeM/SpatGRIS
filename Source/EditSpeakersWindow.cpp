@@ -485,6 +485,7 @@ void EditSpeakersWindow::updateWinContent()
 {
     mNumRows = mMainContentComponent.getSpeakers().size();
     mSpeakersTableListBox.updateContent();
+    // TODO : mInitialized is an ugly fix
     if (mInitialized) {
         mMainContentComponent.setNeedToSaveSpeakerSetup(true);
     }
@@ -966,7 +967,7 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
     }
 
     textLabel->setRowAndColumn(rowNumber, columnId);
-    auto const xyzEditable{ mMainContentComponent.getModeSelected() == SpatModes::lbap
+    auto const xyzEditable{ mMainContentComponent.getModeSelected() == SpatMode::lbap
                             || mMainContentComponent.getSpeakers()[rowNumber]->isDirectOut() };
 
     switch (columnId) {
@@ -995,15 +996,25 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
 //==============================================================================
 void EditSpeakersWindow::mouseDown(juce::MouseEvent const & event)
 {
-    mDragStartY = event.getMouseDownY();
+    auto const positionRelativeToSpeakersTableListBox{ event.getEventRelativeTo(&mSpeakersTableListBox).getPosition() };
+    auto const speakersTableListBoxBounds{ mSpeakersTableListBox.getBounds() };
+    if (speakersTableListBoxBounds.contains(positionRelativeToSpeakersTableListBox)) {
+        mDragStartY = event.getMouseDownY();
+    } else {
+        mDragStartY = std::nullopt;
+    }
 }
 
 //==============================================================================
 void EditSpeakersWindow::mouseDrag(juce::MouseEvent const & event)
 {
+    if (!mDragStartY) {
+        return;
+    }
+
     auto const rowHeight{ mSpeakersTableListBox.getRowHeight() };
-    auto const yDiff{ event.getPosition().getY() - mDragStartY };
-    auto const rowDiff{ yDiff / rowHeight };
+    auto const yDiff{ event.getPosition().getY() - *mDragStartY };
+    auto const rowDiff{ narrow<int>(std::round(narrow<float>(yDiff) / narrow<float>(rowHeight))) };
     auto const numRows{ mSpeakersTableListBox.getNumRows() };
 
     if (rowDiff == 0) {
@@ -1024,20 +1035,29 @@ void EditSpeakersWindow::mouseDrag(juce::MouseEvent const & event)
 
     // TODO : make this work for multiple selections
     auto const selectedRow{ mSpeakersTableListBox.getSelectedRow() };
+    if (selectedRow < 0 || selectedRow >= mSpeakersTableListBox.getNumRows())
+    {
+        return;
+    }
+
     auto const newIndex{ std::clamp(selectedRow + rowDiff, 0, numRows - 1) };
+    if (newIndex == selectedRow) {
+        return;
+    }
+
     auto order{ getCurrentSpeakerOrder() };
     std::swap(order[selectedRow], order[newIndex]);
 
     mMainContentComponent.reorderSpeakers(order);
-    mDragStartY += yDiff;
+    *mDragStartY += rowDiff * rowHeight;
     mSpeakersTableListBox.selectRow(newIndex);
     updateWinContent();
 }
 
 //==============================================================================
-SpatModes EditSpeakersWindow::getModeSelected() const
+SpatMode EditSpeakersWindow::getModeSelected() const
 {
-    return static_cast<SpatModes>(mMainContentComponent.getModeSelected());
+    return static_cast<SpatMode>(mMainContentComponent.getModeSelected());
 }
 
 //==============================================================================
