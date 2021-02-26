@@ -23,6 +23,7 @@
 #include <mutex>
 #include <vector>
 
+#include "Speaker.h"
 #include "macros.h"
 
 DISABLE_WARNINGS
@@ -47,9 +48,9 @@ class AudioProcessor
     //-----------------
     unsigned int mNumberInputs{};
     unsigned int mNumberOutputs{};
-    unsigned int mMaxOutputPatch{};
+    output_patch_t mMaxOutputPatch{};
 
-    std::vector<int> mOutputPatches{};
+    std::vector<output_patch_t> mOutputPatches{};
 
     // Jack variables.
     std::vector<audio_port_t *> mInputsPort{};
@@ -108,7 +109,7 @@ class AudioProcessor
     unsigned mVbapDimensions{};
     std::array<int, MAX_INPUTS> mVbapSourcesToUpdate{};
 
-    std::vector<std::vector<int>> mVbapTriplets{};
+    juce::Array<Triplet> mVbapTriplets{};
 
     // BINAURAL data.
     std::array<unsigned, 16> mHrtfCount{};
@@ -154,10 +155,10 @@ public:
     // Manage Inputs / Outputs.
     void addRemoveInput(unsigned int number);
     void clearOutput();
-    bool addOutput(unsigned int outputPatch);
+    bool addOutput(output_patch_t outputPatch);
     void removeOutput(int number);
 
-    [[nodiscard]] std::vector<int> getDirectOutOutputPatches() const;
+    [[nodiscard]] std::vector<output_patch_t> getDirectOutOutputPatches() const;
 
     // Manage clients.
     void connectionClient(juce::String const & name, bool connect = true);
@@ -196,7 +197,7 @@ public:
     [[nodiscard]] bool getSoloOut() const { return mSoloOut; }
     [[nodiscard]] auto const & getSpeakersOut() const { return mSpeakersOut; }
     [[nodiscard]] auto & getSpeakersOut() { return mSpeakersOut; }
-    [[nodiscard]] size_t getMaxOutputPatch() const { return mMaxOutputPatch; }
+    [[nodiscard]] output_patch_t getMaxOutputPatch() const { return mMaxOutputPatch; }
     [[nodiscard]] auto const & getInputPorts() const { return mInputsPort; }
     [[nodiscard]] auto & getClientsLock() { return mClientsLock; }
 
@@ -204,7 +205,7 @@ public:
 
     juce::CriticalSection const & getCriticalSection() const noexcept { return mCriticalSection; }
 
-    void setMaxOutputPatch(unsigned const maxOutputPatch) { mMaxOutputPatch = maxOutputPatch; }
+    void setMaxOutputPatch(output_patch_t const maxOutputPatch) { mMaxOutputPatch = maxOutputPatch; }
     void setVbapDimensions(unsigned const dimensions) { mVbapDimensions = dimensions; }
     void setSoloIn(bool const state) { mSoloIn = state; }
     void setSoloOut(bool const state) { mSoloOut = state; }

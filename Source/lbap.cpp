@@ -297,7 +297,7 @@ void lbap_field_setup(lbap_field * field, lbap_speaker * speakers, int num)
     qsort(speakers, num, sizeof(lbap_speaker), lbap_speaker_compare);
 
     for (i = 0; i < num; i++) {
-        field->out_order[i] = speakers[i].spkid;
+        field->out_order[i] = speakers[i].outputPatch.get();
     }
 
     while (count < num) {
@@ -365,7 +365,7 @@ void lbap_field_compute(lbap_field * field, lbap_pos * pos, float * gains)
     }
 }
 
-lbap_speaker * lbap_speakers_from_positions(float * azi, float * ele, float * rad, int * spkid, int num)
+lbap_speaker * lbap_speakers_from_positions(float * azi, float * ele, float * rad, output_patch_t * spkid, int num)
 {
     int i;
     lbap_speaker * speakers = (lbap_speaker *)malloc(sizeof(lbap_speaker) * num);
@@ -373,7 +373,7 @@ lbap_speaker * lbap_speakers_from_positions(float * azi, float * ele, float * ra
         speakers[i].azi = azi[i] / 360.0f * (float)M_PI * 2.0f;
         speakers[i].ele = ele[i] / 360.0f * (float)M_PI * 2.0f;
         speakers[i].rad = rad[i] < 0.0f ? 0.0f : rad[i] > 1.0f ? 1.0f : rad[i];
-        speakers[i].spkid = spkid[i];
+        speakers[i].outputPatch = spkid[i];
     }
     return speakers;
 }

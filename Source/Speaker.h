@@ -40,14 +40,15 @@ ENABLE_WARNINGS
 #include "GrisLookAndFeel.h"
 #include "LevelComponent.h"
 #include "ParentLevelComponent.h"
+#include "StrongTypes.hpp"
 
 class MainContentComponent;
 
 //==============================================================================
 struct Triplet {
-    int id1;
-    int id2;
-    int id3;
+    output_patch_t id1;
+    output_patch_t id2;
+    output_patch_t id3;
 };
 
 //==============================================================================
@@ -79,10 +80,8 @@ class Speaker final : public ParentLevelComponent
     float mGain{ 0.0f };
     float mHpCutoff{ 0.0f };
 
-    int mDirectOutChannel{}; // Not used for output.
-
-    int mId;
-    int mOutputPatch;
+    speaker_id_t mId;
+    output_patch_t mOutputPatch;
 
     LevelComponent mVuMeter;
 
@@ -90,8 +89,8 @@ public:
     //==============================================================================
     Speaker(MainContentComponent & mainContentComponent,
             SmallGrisLookAndFeel & smallGrisLookAndFeel,
-            int id,
-            int outputPatch,
+            speaker_id_t id,
+            output_patch_t outputPatch,
             float azimuth,
             float zenith,
             float radius);
@@ -109,13 +108,9 @@ public:
     void selectSpeaker();
     void unSelectSpeaker();
 
-    // ParentLevelComponent
-    [[nodiscard]] int getId() const override
-    {
-        jassertfalse;
-        return -1;
-    } // Should not be used, use getIdSpeaker() instead.
-    [[nodiscard]] int getButtonInOutNumber() const override { return mOutputPatch; };
+    // Should not be used, use getIdSpeaker() instead.
+    [[nodiscard]] int getId() const override;
+    [[nodiscard]] int getButtonInOutNumber() const override { return mOutputPatch.get(); };
     [[nodiscard]] float getLevel() const override;
     [[nodiscard]] float getAlpha() const;
     void setMuted(bool mute) override;
@@ -127,13 +122,13 @@ public:
     [[nodiscard]] LevelComponent * getVuMeter() override { return &mVuMeter; }
 
     // Normalized for user
-    void setSpeakerId(int const id) { mId = id; };
-    [[nodiscard]] int getIdSpeaker() const { return mId; }
+    void setSpeakerId(speaker_id_t const id) { mId = id; };
+    [[nodiscard]] speaker_id_t getIdSpeaker() const { return mId; }
     void setCoordinate(glm::vec3 value);
     void normalizeRadius();
     void setAziZenRad(glm::vec3 value);
-    [[nodiscard]] int getOutputPatch() const { return mOutputPatch; }
-    void setOutputPatch(int value);
+    [[nodiscard]] output_patch_t getOutputPatch() const { return mOutputPatch; }
+    void setOutputPatch(output_patch_t const value);
     void setGain(float const value) { mGain = value; }
     [[nodiscard]] float getGain() const { return mGain; }
     void setHighPassCutoff(float const value) { mHpCutoff = value; }
@@ -146,10 +141,13 @@ public:
 
     [[nodiscard]] bool isInput() const override { return false; }
 
-    void changeDirectOutChannel(int /*chn*/) override{};
-    void setDirectOutChannel(int /*chn*/) override{};
-    [[nodiscard]] int getDirectOutChannel() const override { return 0; };
-    void sendDirectOutToClient(int /*id*/, int /*chn*/) override{};
+    void changeDirectOutChannel(output_patch_t
+                                /*chn*/) override{};
+    void setDirectOutChannel(output_patch_t const
+                             /*chn*/) override{};
+    [[nodiscard]] output_patch_t getDirectOutChannel() const override { return output_patch_t{}; };
+    void sendDirectOutToClient(int /*id*/, output_patch_t
+                               /*chn*/) override{};
 
     // OpenGL
     [[nodiscard]] glm::vec3 getMin() const { return mMin; }

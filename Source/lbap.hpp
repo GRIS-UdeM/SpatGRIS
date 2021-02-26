@@ -25,6 +25,8 @@
 
 #pragma once
 
+#include "StrongTypes.hpp"
+
 #define LBAP_MAX_NUMBER_OF_SPEAKERS 256
 #define LBAP_MATRIX_SIZE 64
 
@@ -45,10 +47,10 @@ typedef struct lbap_field lbap_field;
  * at 0) used by the field to properly order the output signals.
  */
 typedef struct {
-    float azi; /**< Azimuth in the range -pi .. pi. */
-    float ele; /**< Elevation in the range 0 .. pi/2. */
-    float rad; /**< Length of the vector in the range 0 .. 1. */
-    int spkid; /**< Physical output id. */
+    float azi;                  /**< Azimuth in the range -pi .. pi. */
+    float ele;                  /**< Elevation in the range 0 .. pi/2. */
+    float rad;                  /**< Length of the vector in the range 0 .. 1. */
+    output_patch_t outputPatch; /**< Physical output id. */
 } lbap_speaker;
 
 /** \brief A structure containing coordinates of a point in the field.
@@ -130,7 +132,7 @@ void lbap_field_compute(lbap_field * field, lbap_pos * pos, float * gains);
  *
  * \return lbap_speaker array pointer.
  */
-lbap_speaker * lbap_speakers_from_positions(float * azi, float * ele, float * rad, int * spkid, int num);
+lbap_speaker * lbap_speakers_from_positions(float * azi, float * ele, float * rad, output_patch_t * spkid, int num);
 
 /** \brief Initialize an lbap_pos structure from a position in radians.
  *

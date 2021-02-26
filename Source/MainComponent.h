@@ -42,6 +42,7 @@ ENABLE_WARNINGS
 #include "SettingsWindow.h"
 #include "Speaker.h"
 #include "SpeakerViewComponent.h"
+#include "StrongTypes.hpp"
 
 class MainWindow;
 
@@ -75,7 +76,7 @@ class MainContentComponent final
     std::unique_ptr<AudioProcessor> mAudioProcessor{};
 
     // Speakers.
-    std::vector<Triplet> mTriplets{};
+    juce::Array<Triplet> mTriplets{};
     juce::OwnedArray<Speaker> mSpeakers{};
     std::mutex mSpeakersLock{};
 
@@ -234,17 +235,17 @@ public:
 
     [[nodiscard]] std::mutex & getSpeakersLock() { return this->mSpeakersLock; }
 
-    [[nodiscard]] Speaker * getSpeakerFromOutputPatch(int out);
-    [[nodiscard]] Speaker const * getSpeakerFromOutputPatch(int out) const;
+    [[nodiscard]] Speaker * getSpeakerFromOutputPatch(output_patch_t out);
+    [[nodiscard]] Speaker const * getSpeakerFromOutputPatch(output_patch_t out) const;
 
     void addSpeaker(int sortColumnId = 1, bool isSortedForwards = true);
     void insertSpeaker(int position, int sortColumnId, bool isSortedForwards);
     void removeSpeaker(int idSpeaker);
-    void setDirectOut(int id, int chn) const;
-    void reorderSpeakers(std::vector<int> const & newOrder);
+    void setDirectOut(int id, output_patch_t const chn) const;
+    void reorderSpeakers(std::vector<speaker_id_t> const & newOrder);
     void resetSpeakerIds();
-    [[nodiscard]] int getMaxSpeakerId() const;
-    [[nodiscard]] int getMaxSpeakerOutputPatch() const;
+    [[nodiscard]] speaker_id_t getMaxSpeakerId() const;
+    [[nodiscard]] output_patch_t getMaxSpeakerOutputPatch() const;
 
     // Sources.
     [[nodiscard]] juce::OwnedArray<Input> & getSourceInputs() { return this->mInputs; }
@@ -270,19 +271,19 @@ public:
     void setTripletsFromVbap();
     void clearTriplets() { this->mTriplets.clear(); }
 
-    [[nodiscard]] std::vector<Triplet> & getTriplets() { return this->mTriplets; }
-    [[nodiscard]] std::vector<Triplet> const & getTriplets() const { return this->mTriplets; }
+    [[nodiscard]] juce::Array<Triplet> & getTriplets() { return this->mTriplets; }
+    [[nodiscard]] juce::Array<Triplet> const & getTriplets() const { return this->mTriplets; }
 
     // Speaker selections.
-    void selectSpeaker(int const idS) const;
-    void selectTripletSpeaker(int idS);
+    void selectSpeaker(speaker_id_t const idS) const;
+    void selectTripletSpeaker(speaker_id_t const idS);
     [[nodiscard]] bool tripletExists(Triplet const & tri, int & pos) const;
 
     // Mute - solo.
     void muteInput(int id, bool mute) const;
-    void muteOutput(int id, bool mute) const;
-    void soloInput(int id, bool solo) const;
-    void soloOutput(int id, bool solo) const;
+    void muteOutput(output_patch_t id, bool mute) const;
+    void soloInput(output_patch_t id, bool solo) const;
+    void soloOutput(output_patch_t id, bool solo) const;
 
     // Input - output amplitude levels.
     [[nodiscard]] float getLevelsOut(int const indexLevel) const

@@ -78,14 +78,14 @@ void Input::setMuted(bool const mute)
 {
     mMainContentComponent.muteInput(mIdChannel, mute);
     if (mute) {
-        mMainContentComponent.soloInput(mIdChannel, false);
+        mMainContentComponent.soloInput(output_patch_t{ mIdChannel }, false);
     }
 }
 
 //==============================================================================
 void Input::setSolo(bool const solo)
 {
-    mMainContentComponent.soloInput(mIdChannel, solo);
+    mMainContentComponent.soloInput(output_patch_t{ mIdChannel }, solo);
     if (solo) {
         mMainContentComponent.muteInput(mIdChannel, false);
     }
@@ -336,18 +336,18 @@ void Input::updateValuesOld(float const azimuth,
 }
 
 //==============================================================================
-void Input::sendDirectOutToClient(int const id, int const chn)
+void Input::sendDirectOutToClient(int const id, output_patch_t const chn)
 {
     mMainContentComponent.setDirectOut(id, chn);
 }
 
 //==============================================================================
-void Input::setDirectOutChannel(int const chn)
+void Input::setDirectOutChannel(output_patch_t const chn)
 {
     mDirectOutChannel = chn;
-    if (chn == 0) {
+    if (chn == output_patch_t{}) {
         mVuMeter.getDirectOutButton().setButtonText("-");
     } else {
-        mVuMeter.getDirectOutButton().setButtonText(juce::String(chn));
+        mVuMeter.getDirectOutButton().setButtonText(juce::String(chn.get()));
     }
 }

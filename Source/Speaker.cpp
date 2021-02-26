@@ -33,8 +33,8 @@ static T getFloatPrecision(T const value, U const precision)
 //==============================================================================
 Speaker::Speaker(MainContentComponent & mainContentComponent,
                  SmallGrisLookAndFeel & smallGrisLookAndFeel,
-                 int const id,
-                 int const outputPatch,
+                 speaker_id_t const id,
+                 output_patch_t const outputPatch,
                  float const azimuth,
                  float const zenith,
                  float const radius)
@@ -51,7 +51,7 @@ Speaker::Speaker(MainContentComponent & mainContentComponent,
 //==============================================================================
 float Speaker::getLevel() const
 {
-    return mMainContentComponent.getLevelsOut(mOutputPatch - 1);
+    return mMainContentComponent.getLevelsOut(mOutputPatch.get() - 1);
 }
 
 //==============================================================================
@@ -59,7 +59,7 @@ float Speaker::getAlpha() const
 {
     float alpha;
     if (mMainContentComponent.isSpeakerLevelShown()) {
-        alpha = mMainContentComponent.getSpeakerLevelsAlpha(mOutputPatch - 1);
+        alpha = mMainContentComponent.getSpeakerLevelsAlpha(mOutputPatch.get() - 1);
     } else {
         alpha = 1.0f;
     }
@@ -119,10 +119,10 @@ void Speaker::setAziZenRad(glm::vec3 value)
 }
 
 //==============================================================================
-void Speaker::setOutputPatch(int const value)
+void Speaker::setOutputPatch(output_patch_t const value)
 {
     mOutputPatch = value;
-    mVuMeter.setOutputLab(juce::String(mOutputPatch));
+    mVuMeter.setOutputLab(juce::String(mOutputPatch.get()));
 }
 
 //==============================================================================
@@ -172,9 +172,9 @@ void Speaker::fix()
 void Speaker::selectClick(bool const select)
 {
     if (select) {
-        mMainContentComponent.selectSpeaker(mId - 1);
+        mMainContentComponent.selectSpeaker(speaker_id_t{ mId.get() - 1 }); // TODO : what the hell is this?!?
     } else {
-        mMainContentComponent.selectSpeaker(-1);
+        mMainContentComponent.selectSpeaker(speaker_id_t{ -1 });
     }
 }
 
@@ -196,6 +196,13 @@ void Speaker::unSelectSpeaker()
     }
     mSelected = false;
     mVuMeter.setSelected(mSelected);
+}
+
+//==============================================================================
+int Speaker::getId() const
+{
+    jassertfalse; // Should not be used, use getIdSpeaker() instead.
+    return -1;
 }
 
 //==============================================================================

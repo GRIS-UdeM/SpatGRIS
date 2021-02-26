@@ -19,12 +19,13 @@
 
 #pragma once
 
-#include "GrisLookAndFeel.h"
 #include "macros.h"
-
 DISABLE_WARNINGS
 #include <JuceHeader.h>
 ENABLE_WARNINGS
+
+#include "GrisLookAndFeel.h"
+#include "StrongTypes.hpp"
 
 static float constexpr MIN_LEVEL_COMP = -60.0f;
 static float constexpr MAX_LEVEL_COMP = 0.0f;
@@ -89,7 +90,7 @@ class LevelComponent final
     int mLastMouseButton = 1; // 1 means left, 0 means right
     bool mIsColorful;
 
-    std::vector<int> mDirectOutSpeakers;
+    std::vector<output_patch_t> mDirectOutSpeakers;
     juce::TextButton mDirectOutButton;
 
 public:
@@ -113,7 +114,7 @@ public:
     void update();
     [[nodiscard]] bool isMuted() const { return this->mMuteToggleButton.getToggleState(); }
     void setSelected(bool value);
-    void updateDirectOutMenu(std::vector<int> directOuts);
+    void updateDirectOutMenu(std::vector<output_patch_t> directOuts);
     void resetClipping() { this->mLevelBox.resetClipping(); }
 
     [[nodiscard]] juce::TextButton & getDirectOutButton() { return mDirectOutButton; }

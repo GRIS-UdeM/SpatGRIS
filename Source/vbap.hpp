@@ -14,6 +14,8 @@ DISABLE_WARNINGS
 #include <JuceHeader.h>
 ENABLE_WARNINGS
 
+#include "StrongTypes.hpp"
+
 constexpr auto MAX_SPEAKER_COUNT = 256;
 constexpr auto MAX_TRIPLET_COUNT = 128;
 constexpr auto MIN_VOL_P_SIDE_LENGTH = 0.01f;
@@ -124,17 +126,17 @@ struct LoudSpeaker {
 
 /* VBAP structure of n loudspeaker panning */
 struct VbapData {
-    int outputPatches[MAX_SPEAKER_COUNT];    /* Physical outputs (starts at 1). */
-    float gains[MAX_SPEAKER_COUNT];          /* Loudspeaker gains. */
-    float gainsSmoothing[MAX_SPEAKER_COUNT]; /* Loudspeaker gains smoothing. */
-    int dimension;                           /* Dimensions, 2 or 3. */
-    SpeakerSet * speakerSets;                /* Loudspeaker triplet structure. */
-    int numOutputPatches;                    /* Number of output patches. */
-    int numSpeakers;                         /* Number of loudspeakers. */
-    int numTriplets;                         /* Number of triplets. */
-    AngularVector angularDirection;          /* Angular direction. */
-    CartesianVector cartesianDirection;      /* Cartesian direction. */
-    CartesianVector spreadingVector;         /* Spreading vector. */
+    output_patch_t outputPatches[MAX_SPEAKER_COUNT]; /* Physical outputs (starts at 1). */
+    float gains[MAX_SPEAKER_COUNT];                  /* Loudspeaker gains. */
+    float gainsSmoothing[MAX_SPEAKER_COUNT];         /* Loudspeaker gains smoothing. */
+    int dimension;                                   /* Dimensions, 2 or 3. */
+    SpeakerSet * speakerSets;                        /* Loudspeaker triplet structure. */
+    int numOutputPatches;                            /* Number of output patches. */
+    int numSpeakers;                                 /* Number of loudspeakers. */
+    int numTriplets;                                 /* Number of triplets. */
+    AngularVector angularDirection;                  /* Angular direction. */
+    CartesianVector cartesianDirection;              /* Cartesian direction. */
+    CartesianVector spreadingVector;                 /* Spreading vector. */
 };
 
 /* Fill a SPEAKERS_SETUP structure from values.
@@ -148,8 +150,8 @@ void free_speakers_setup(SpeakersSetup * setup) noexcept;
 VbapData * init_vbap_from_speakers(LoudSpeaker speakers[MAX_SPEAKER_COUNT],
                                    int count,
                                    int dimensions,
-                                   int const outputPatches[MAX_SPEAKER_COUNT],
-                                   int maxOutputPatch,
+                                   output_patch_t const outputPatches[MAX_SPEAKER_COUNT],
+                                   output_patch_t maxOutputPatch,
                                    [[maybe_unused]] int const * const * tripletsFileName);
 
 VbapData * copy_vbap_data(VbapData const * data) noexcept;

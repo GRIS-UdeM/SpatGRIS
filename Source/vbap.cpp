@@ -6,11 +6,12 @@
 
 #include "vbap.hpp"
 
-#include "narrow.hpp"
-
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+
+#include "StrongTypes.hpp"
+#include "narrow.hpp"
 
 /* Linked-list of all loudspeakers. */
 struct TripletListNode {
@@ -227,17 +228,17 @@ static void spreadit_azi_ele(float /*azi*/, float /*ele*/, float sp_azi, float s
     if (sp_azi > 0.8f && sp_ele > 0.8f) {
         comp = (sp_azi - 0.8f) / 0.2f * (sp_ele - 0.8f) / 0.2f * 10.0f;
         for (int i{}; i < data->numOutputPatches; ++i) {
-            data->gains[data->outputPatches[i] - 1] += comp;
+            data->gains[data->outputPatches[i].get() - 1] += comp;
         }
     }
 
     for (int i{}; i < data->numOutputPatches; ++i) {
-        ind = data->outputPatches[i] - 1;
+        ind = data->outputPatches[i].get() - 1;
         sum += (data->gains[ind] * data->gains[ind]);
     }
     sum = std::sqrt(sum);
     for (int i{}; i < data->numOutputPatches; ++i) {
-        ind = data->outputPatches[i] - 1;
+        ind = data->outputPatches[i].get() - 1;
         data->gains[ind] /= sum;
     }
 }
@@ -321,17 +322,17 @@ static void
     if (sp_azi > 0.8f && sp_ele > 0.8f) {
         comp = (sp_azi - 0.8f) / 0.2f * (sp_ele - 0.8f) / 0.2f * 10.0f;
         for (int i{}; i < data->numOutputPatches; ++i) {
-            data->gains[data->outputPatches[i] - 1] += comp;
+            data->gains[data->outputPatches[i].get() - 1] += comp;
         }
     }
 
     for (int i{}; i < data->numOutputPatches; ++i) {
-        auto const index = data->outputPatches[i] - 1;
+        auto const index = data->outputPatches[i].get() - 1;
         sum += (data->gains[index] * data->gains[index]);
     }
     sum = std::sqrt(sum);
     for (int i{}; i < data->numOutputPatches; ++i) {
-        auto const index = data->outputPatches[i] - 1;
+        auto const index = data->outputPatches[i].get() - 1;
         data->gains[index] /= sum;
     }
 }
@@ -812,8 +813,8 @@ void calculate_3x3_matrixes(TripletList & triplets, LoudSpeaker speakers[MAX_SPE
 VbapData * init_vbap_from_speakers(LoudSpeaker speakers[MAX_SPEAKER_COUNT],
                                    int const count,
                                    int const dimensions,
-                                   int const outputPatches[MAX_SPEAKER_COUNT],
-                                   int const maxOutputPatch,
+                                   output_patch_t const outputPatches[MAX_SPEAKER_COUNT],
+                                   output_patch_t const maxOutputPatch,
                                    [[maybe_unused]] int const * const * tripletsFileName)
 {
     jassert(tripletsFileName == nullptr);
@@ -835,7 +836,7 @@ VbapData * init_vbap_from_speakers(LoudSpeaker speakers[MAX_SPEAKER_COUNT],
     }
 
     data->dimension = dimensions;
-    data->numSpeakers = maxOutputPatch;
+    data->numSpeakers = maxOutputPatch.get();
     for (int i = 0; i < MAX_SPEAKER_COUNT; i++) {
         data->gains[i] = data->gainsSmoothing[i] = 0.0;
     }
@@ -846,7 +847,7 @@ VbapData * init_vbap_from_speakers(LoudSpeaker speakers[MAX_SPEAKER_COUNT],
     for (size_t i{}; i < triplets.size(); ++i) {
         auto const & triplet{ triplets[i] };
         for (int j = 0; j < data->dimension; j++) {
-            data->speakerSets[i].speakerNos[j] = outputPatches[triplet.tripletSpeakerNumber[j] + offset - 1];
+            data->speakerSets[i].speakerNos[j] = outputPatches[triplet.tripletSpeakerNumber[j] + offset - 1].get();
         }
         for (int j = 0; j < (data->dimension * data->dimension); j++) {
             data->speakerSets[i].invMx[j] = triplet.tripletInverseMatrix[j];
@@ -856,6 +857,7 @@ VbapData * init_vbap_from_speakers(LoudSpeaker speakers[MAX_SPEAKER_COUNT],
     return data;
 }
 
+//==============================================================================
 VbapData * copy_vbap_data(VbapData const * const data) noexcept
 {
     auto * nw = new VbapData;

@@ -57,10 +57,10 @@ public:
     [[nodiscard]] virtual LevelComponent * getVuMeter() = 0;
     [[nodiscard]] virtual LevelComponent const * getVuMeter() const = 0;
 
-    virtual void changeDirectOutChannel(int chn) = 0;
-    virtual void setDirectOutChannel(int chn) = 0;
-    [[nodiscard]] virtual int getDirectOutChannel() const = 0;
-    virtual void sendDirectOutToClient(int id, int chn) = 0;
+    virtual void changeDirectOutChannel(output_patch_t chn) = 0;
+    virtual void setDirectOutChannel(output_patch_t chn) = 0;
+    [[nodiscard]] virtual output_patch_t getDirectOutChannel() const = 0;
+    virtual void sendDirectOutToClient(int id, output_patch_t chn) = 0;
 
 private:
     //==============================================================================

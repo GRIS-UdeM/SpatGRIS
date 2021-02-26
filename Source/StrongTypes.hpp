@@ -21,22 +21,29 @@ public:
     using type = T;
 
     StrongIndex() = default;
-    explicit StrongIndex(T const & value) : mValue(value) {}
+    explicit constexpr StrongIndex(T const & value) : mValue(value) {}
 
-    [[nodiscard]] bool operator==(StrongIndex const & other) const { return mValue == other.mValue; }
-    [[nodiscard]] bool operator!=(StrongIndex const & other) const { return mValue != other.mValue; }
-    [[nodiscard]] bool operator<(StrongIndex const & other) const { return mValue < other.mValue; }
-    [[nodiscard]] bool operator>(StrongIndex const & other) const { return mValue > other.mValue; }
-    [[nodiscard]] bool operator<=(StrongIndex const & other) const { return mValue <= other.mValue; }
-    [[nodiscard]] bool operator>=(StrongIndex const & other) const { return mValue >= other.mValue; }
+    [[nodiscard]] constexpr bool operator==(StrongIndex const & other) const { return mValue == other.mValue; }
+    [[nodiscard]] constexpr bool operator!=(StrongIndex const & other) const { return mValue != other.mValue; }
+    [[nodiscard]] constexpr bool operator<(StrongIndex const & other) const { return mValue < other.mValue; }
+    [[nodiscard]] constexpr bool operator>(StrongIndex const & other) const { return mValue > other.mValue; }
+    [[nodiscard]] constexpr bool operator<=(StrongIndex const & other) const { return mValue <= other.mValue; }
+    [[nodiscard]] constexpr bool operator>=(StrongIndex const & other) const { return mValue >= other.mValue; }
 
-    [[nodiscard]] T const & get() const { return mValue; }
+    [[nodiscard]] constexpr T const & get() const { return mValue; }
     StrongIndex & operator++()
     {
         ++mValue;
+        return *this;
+    }
+    StrongIndex operator++(int) { return StrongIndex{ mValue++ }; }
+    StrongIndex & operator--()
+    {
+        --mValue;
         return *this;
     }
 };
 using speaker_index_t = StrongIndex<int, struct SpeakerIndexT>;
 using speaker_id_t = StrongIndex<int, struct SpeakerIdT>;
 using port_id_t = StrongIndex<uint32_t, struct PortIdT>;
+using output_patch_t = StrongIndex<int, struct OutputPatchT>;

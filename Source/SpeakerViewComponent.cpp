@@ -121,7 +121,7 @@ void SpeakerViewComponent::render()
                 if (mShowNumber) {
                     auto posT{ speaker->getCenter() };
                     posT.y += SIZE_SPEAKER.y + 0.4f;
-                    drawText(std::to_string(speaker->getOutputPatch()), posT, glm::vec3{ 0, 0, 0 }, 0.003f);
+                    drawText(std::to_string(speaker->getOutputPatch().get()), posT, glm::vec3{ 0, 0, 0 }, 0.003f);
                 }
             }
         }
@@ -220,30 +220,31 @@ void SpeakerViewComponent::clickRay()
 
     mRay.setRay(glm::vec3{ mXs, mYs, mZs }, glm::vec3{ mXe, mYe, mZe });
 
-    auto iBestSpeaker = -1;
-    auto selected = -1;
+    static constexpr speaker_id_t INVALID_ID{ -1 };
+    auto iBestSpeaker = INVALID_ID;
+    auto selected = INVALID_ID;
     if (mMainContentComponent.getSpeakersLock().try_lock()) {
         for (int i{}; i < mMainContentComponent.getSpeakers().size(); ++i) {
             auto const * speaker{ mMainContentComponent.getSpeakers()[i] };
             if (speaker->isSelected()) {
-                selected = i;
+                selected = speaker_id_t{ i };
             }
             if (rayCast(speaker) != -1) {
-                if (iBestSpeaker == -1) {
-                    iBestSpeaker = i;
+                if (iBestSpeaker == INVALID_ID) {
+                    iBestSpeaker = speaker_id_t{ i };
                 } else {
                     if (speakerNearCam(speaker->getCenter(),
-                                       mMainContentComponent.getSpeakers()[iBestSpeaker]->getCenter())) {
-                        iBestSpeaker = i;
+                                       mMainContentComponent.getSpeakers()[iBestSpeaker.get()]->getCenter())) {
+                        iBestSpeaker = speaker_id_t{ i };
                     }
                 }
             }
         }
 
-        if (mControlOn && iBestSpeaker >= 0) {
+        if (mControlOn && iBestSpeaker >= speaker_id_t{}) {
             mMainContentComponent.selectTripletSpeaker(iBestSpeaker);
         } else {
-            if (iBestSpeaker == -1) {
+            if (iBestSpeaker == INVALID_ID) {
                 iBestSpeaker = selected;
             }
             mMainContentComponent.selectSpeaker(iBestSpeaker);
@@ -269,7 +270,7 @@ void SpeakerViewComponent::mouseDown(const juce::MouseEvent & e)
         mClickLeft = true;
         mControlOn = e.mods.isCtrlDown();
     } else if (e.mods.isRightButtonDown()) {
-        mMainContentComponent.selectSpeaker(-1);
+        mMainContentComponent.selectSpeaker(speaker_id_t{ -1 });
     }
 }
 

@@ -185,7 +185,7 @@ LevelComponent::LevelComponent(ParentLevelComponent & parentLevelComponent,
 }
 
 //==============================================================================
-void LevelComponent::updateDirectOutMenu(std::vector<int> directOuts)
+void LevelComponent::updateDirectOutMenu(std::vector<output_patch_t> directOuts)
 {
     if (mParentLevelComponent.isInput()) {
         mDirectOutSpeakers = std::move(directOuts);
@@ -226,18 +226,18 @@ void LevelComponent::buttonClicked(juce::Button * button)
         juce::PopupMenu menu{};
         menu.addItem(1, "-");
         for (size_t i{}; i < mDirectOutSpeakers.size(); ++i) {
-            menu.addItem(narrow<int>(i) + 2, juce::String{ mDirectOutSpeakers[i] });
+            menu.addItem(narrow<int>(i) + 2, juce::String{ mDirectOutSpeakers[i].get() });
         }
 
         auto const result{ menu.show() };
 
-        int value{};
+        output_patch_t value{};
         if (result != 0) {
             if (result == 1) {
                 mDirectOutButton.setButtonText("-");
             } else {
                 value = mDirectOutSpeakers[result - 2];
-                mDirectOutButton.setButtonText(juce::String{ value });
+                mDirectOutButton.setButtonText(juce::String{ value.get() });
             }
 
             mParentLevelComponent.changeDirectOutChannel(value);

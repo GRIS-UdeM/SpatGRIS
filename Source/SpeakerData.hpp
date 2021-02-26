@@ -19,9 +19,11 @@
 
 #pragma once
 
+#include "StrongTypes.hpp"
+
 //==============================================================================
 struct SpeakerData {
-    unsigned int id{};
+    speaker_id_t id{};
     float x{};
     float y{};
     float z{};
@@ -44,7 +46,7 @@ struct SpeakerData {
     bool isMuted = false;
     bool isSolo = false;
 
-    int outputPatch{};
+    output_patch_t outputPatch{};
 
     bool directOut = false;
 };

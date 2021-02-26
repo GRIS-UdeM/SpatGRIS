@@ -54,7 +54,7 @@ class Input final : public ParentLevelComponent
     SmallGrisLookAndFeel & mLookAndFeel;
 
     int mIdChannel;
-    int mDirectOutChannel{};
+    output_patch_t mDirectOutChannel{};
 
     float mAzimuth{};
     float mZenith{};
@@ -126,10 +126,10 @@ public:
     void updateValuesOld(float azimuth, float zenith, float azimuthSpan, float zenithSpan, float g);
     //==============================================================================
     [[nodiscard]] bool isInput() const override { return true; }
-    void changeDirectOutChannel(int const chn) override { mDirectOutChannel = chn; }
-    void setDirectOutChannel(int chn) override;
-    [[nodiscard]] int getDirectOutChannel() const override { return mDirectOutChannel; };
-    void sendDirectOutToClient(int id, int chn) override;
+    void changeDirectOutChannel(output_patch_t chn) override { mDirectOutChannel = chn; }
+    void setDirectOutChannel(output_patch_t chn) override;
+    [[nodiscard]] output_patch_t getDirectOutChannel() const override { return mDirectOutChannel; };
+    void sendDirectOutToClient(int id, output_patch_t chn) override;
 
     void drawSpan() const;
     void drawSpanLbap(float x, float y, float z) const;
