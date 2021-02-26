@@ -2457,7 +2457,7 @@ bool MainContentComponent::initRecording() const
                                                            recordingFormat,
                                                            recordingConfig,
                                                            narrow<double>(mSamplingRate) };
-    return AudioManager::getInstance().prepareToRecord(recordingOptions);
+    return AudioManager::getInstance().prepareToRecord(recordingOptions, mSpeakers);
 }
 
 //==============================================================================

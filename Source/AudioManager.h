@@ -27,6 +27,7 @@ DISABLE_WARNINGS
 ENABLE_WARNINGS
 
 #include "Configuration.h"
+#include "Speaker.h"
 #include "StrongTypes.hpp"
 
 class AudioProcessor;
@@ -101,6 +102,8 @@ private:
     juce::OwnedArray<RecorderInfo> mRecorders{};
     juce::TimeSliceThread mRecordersThread{ "SpatGRIS recording thread" };
     RecordingConfig mRecordingConfig{};
+    juce::AudioBuffer<float> mRecordingBuffer{};
+    juce::Array<output_patch_t> mChannelsToRecord{};
 
     static std::unique_ptr<AudioManager> mInstance;
 
@@ -143,7 +146,7 @@ public:
 
     juce::StringArray getAvailableDeviceTypeNames();
 
-    bool prepareToRecord(RecordingOptions const & recordingOptions);
+    bool prepareToRecord(RecordingOptions const & recordingOptions, juce::OwnedArray<Speaker> const & speakers);
     void startRecording();
     void stopRecording();
     bool isRecording() const { return mIsRecording; }
