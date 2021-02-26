@@ -197,9 +197,10 @@ MainContentComponent::~MainContentComponent()
 
     mSpeakerViewComponent.reset();
 
-    mSpeakersLock.lock();
-    mSpeakers.clear();
-    mSpeakersLock.unlock();
+    {
+        juce::ScopedLock sl{ mSpeakersLock };
+        mSpeakers.clear();
+    }
 
     mInputsLock.lock();
     mInputs.clear();
@@ -368,7 +369,7 @@ void MainContentComponent::handleNew()
 //==============================================================================
 void MainContentComponent::handleOpenPreset()
 {
-    auto const dir{ mConfiguration.getLastPresetDirectory() };
+    auto const dir{ mConfiguration.getLastOpenPreset().getParentDirectory() };
     auto const filename{ juce::File{ mCurrentPresetPath }.getFileName() };
 
     juce::FileChooser fc("Choose a file to open...", dir.getFullPathName() + "/" + filename, "*.xml", true);
@@ -421,7 +422,7 @@ void MainContentComponent::handleSavePreset()
 //==============================================================================
 void MainContentComponent::handleSaveAsPreset()
 {
-    auto const dir{ mConfiguration.getLastPresetDirectory() };
+    auto const dir{ mConfiguration.getLastOpenPreset().getParentDirectory() };
     auto const filename{ juce::File{ mCurrentPresetPath }.getFileName() };
 
     juce::FileChooser fc{ "Choose a file to save...", dir.getFullPathName() + "/" + filename, "*.xml", true };
@@ -435,7 +436,7 @@ void MainContentComponent::handleSaveAsPreset()
 //==============================================================================
 void MainContentComponent::handleOpenSpeakerSetup()
 {
-    auto const dir{ mConfiguration.getLastSpeakerSetupDirectory() };
+    auto const dir{ mConfiguration.getLastOpenSpeakerSetup().getParentDirectory() };
     auto const filename{ juce::File{ mCurrentSpeakerSetupPath }.getFileName() };
 
     juce::FileChooser fc{ "Choose a file to open...", dir.getFullPathName() + "/" + filename, "*.xml", true };
@@ -458,7 +459,7 @@ void MainContentComponent::handleOpenSpeakerSetup()
 //==============================================================================
 void MainContentComponent::handleSaveAsSpeakerSetup()
 {
-    auto const dir{ mConfiguration.getLastSpeakerSetupDirectory() };
+    auto const dir{ mConfiguration.getLastOpenSpeakerSetup().getParentDirectory() };
     auto const filename{ juce::File{ mCurrentSpeakerSetupPath }.getFileName() };
 
     juce::FileChooser fc{ "Choose a file to save...", dir.getFullPathName() + "/" + filename, "*.xml", true };
@@ -1018,7 +1019,7 @@ bool MainContentComponent::exitApp()
         if (exitV == 1) {
             alert.setVisible(false);
             juce::ModalComponentManager::getInstance()->cancelAllModalComponents();
-            auto const dir{ mConfiguration.getLastPresetDirectory() };
+            auto const dir{ mConfiguration.getLastOpenPreset().getParentDirectory() };
             auto const filename{ juce::File(mCurrentPresetPath).getFileName() };
 
             juce::FileChooser fc("Choose a file to save...", dir.getFullPathName() + "/" + filename, "*.xml", true);
@@ -1158,10 +1159,9 @@ void MainContentComponent::reorderSpeakers(std::vector<speaker_id_t> const & new
         }
     }
 
-    mSpeakersLock.lock();
+    juce::ScopedLock sl{ mSpeakersLock };
     mSpeakers.clearQuick(false);
     mSpeakers.addArray(tempListSpeaker);
-    mSpeakersLock.unlock();
 }
 
 //==============================================================================
@@ -1191,23 +1191,23 @@ output_patch_t MainContentComponent::getMaxSpeakerOutputPatch() const
 //==============================================================================
 void MainContentComponent::addSpeaker(int const sortColumnId, bool const isSortedForwards)
 {
-    auto const newId{ ++getMaxSpeakerId() };
+    {
+        juce::ScopedLock sl{ mSpeakersLock };
+        auto const newId{ ++getMaxSpeakerId() };
+        mSpeakers.add(new Speaker{ *this, mSmallLookAndFeel, newId, output_patch_t{ newId.get() }, 0.0f, 0.0f, 1.0f });
 
-    mSpeakersLock.lock();
-    mSpeakers.add(new Speaker{ *this, mSmallLookAndFeel, newId, output_patch_t{ newId.get() }, 0.0f, 0.0f, 1.0f });
-
-    if (sortColumnId == 1 && isSortedForwards) {
-        for (int i{}; i < mSpeakers.size(); ++i) {
-            speaker_id_t const newId{ i + 1 };
-            mSpeakers[i]->setSpeakerId(newId);
-        }
-    } else if (sortColumnId == 1 && !isSortedForwards) {
-        for (int i{}; i < mSpeakers.size(); ++i) {
-            speaker_id_t const newId{ mSpeakers.size() - i };
-            mSpeakers[i]->setSpeakerId(newId);
+        if (sortColumnId == 1 && isSortedForwards) {
+            for (int i{}; i < mSpeakers.size(); ++i) {
+                speaker_id_t const newId{ i + 1 };
+                mSpeakers[i]->setSpeakerId(newId);
+            }
+        } else if (sortColumnId == 1 && !isSortedForwards) {
+            for (int i{}; i < mSpeakers.size(); ++i) {
+                speaker_id_t const newId{ mSpeakers.size() - i };
+                mSpeakers[i]->setSpeakerId(newId);
+            }
         }
     }
-    mSpeakersLock.unlock();
 
     mAudioProcessor->addOutput(mSpeakers.getLast()->getOutputPatch());
 }
@@ -1219,24 +1219,25 @@ void MainContentComponent::insertSpeaker(int const position, int const sortColum
     auto const newOut{ ++getMaxSpeakerOutputPatch() };
     auto newId{ ++getMaxSpeakerId() };
 
-    mSpeakersLock.lock();
-    if (sortColumnId == 1 && isSortedForwards) {
-        newId = ++mSpeakers[position]->getIdSpeaker();
-        mSpeakers.insert(newPosition, new Speaker{ *this, mSmallLookAndFeel, newId, newOut, 0.0f, 0.0f, 1.0f });
-        for (auto i{ 1 }; i <= mSpeakers.size(); ++i) {
-            mSpeakers.getUnchecked(i)->setSpeakerId(speaker_id_t{ i });
+    {
+        juce::ScopedLock sl{ mSpeakersLock };
+        if (sortColumnId == 1 && isSortedForwards) {
+            newId = ++mSpeakers[position]->getIdSpeaker();
+            mSpeakers.insert(newPosition, new Speaker{ *this, mSmallLookAndFeel, newId, newOut, 0.0f, 0.0f, 1.0f });
+            for (auto i{ 1 }; i <= mSpeakers.size(); ++i) {
+                mSpeakers.getUnchecked(i)->setSpeakerId(speaker_id_t{ i });
+            }
+        } else if (sortColumnId == 1 && !isSortedForwards) {
+            newId = --mSpeakers[position]->getIdSpeaker();
+            mSpeakers.insert(newPosition, new Speaker{ *this, mSmallLookAndFeel, newId, newOut, 0.0f, 0.0f, 1.0f });
+            for (int i{}; i < mSpeakers.size(); ++i) {
+                speaker_id_t const id{ mSpeakers.size() - i };
+                mSpeakers.getUnchecked(i)->setSpeakerId(id);
+            }
+        } else {
+            mSpeakers.insert(newPosition, new Speaker{ *this, mSmallLookAndFeel, newId, newOut, 0.0f, 0.0f, 1.0f });
         }
-    } else if (sortColumnId == 1 && !isSortedForwards) {
-        newId = --mSpeakers[position]->getIdSpeaker();
-        mSpeakers.insert(newPosition, new Speaker{ *this, mSmallLookAndFeel, newId, newOut, 0.0f, 0.0f, 1.0f });
-        for (int i{}; i < mSpeakers.size(); ++i) {
-            speaker_id_t const id{ mSpeakers.size() - i };
-            mSpeakers.getUnchecked(i)->setSpeakerId(id);
-        }
-    } else {
-        mSpeakers.insert(newPosition, new Speaker{ *this, mSmallLookAndFeel, newId, newOut, 0.0f, 0.0f, 1.0f });
     }
-    mSpeakersLock.unlock();
 
     juce::ScopedLock const lock{ mAudioProcessor->getCriticalSection() };
     mAudioProcessor->clearOutput();
@@ -1249,9 +1250,8 @@ void MainContentComponent::insertSpeaker(int const position, int const sortColum
 void MainContentComponent::removeSpeaker(int const idSpeaker)
 {
     mAudioProcessor->removeOutput(idSpeaker);
-    mSpeakersLock.lock();
+    juce::ScopedLock sl{ mSpeakersLock };
     mSpeakers.remove(idSpeaker, true);
-    mSpeakersLock.unlock();
 }
 
 //==============================================================================
@@ -1719,146 +1719,131 @@ void MainContentComponent::openXmlFileSpeaker(juce::File const & file)
     auto const oldPath{ mCurrentSpeakerSetupPath };
     auto const isNewSameAsOld{ oldPath.compare(file.getFullPathName()) == 0 };
     auto const isNewSameAsLastSetup{ mConfiguration.getLastOpenSpeakerSetup() == file };
-    auto ok{ false };
+
     if (!file.existsAsFile()) {
-        juce::AlertWindow alert("Error in Load Speaker Setup !",
-                                "Cannot find file " + file.getFullPathName() + ", the current setup will be kept.",
-                                juce::AlertWindow::WarningIcon);
-        alert.setLookAndFeel(&mLookAndFeel);
-        alert.addButton("Ok", 0, juce::KeyPress(juce::KeyPress::returnKey));
-        alert.runModalLoop();
-    } else {
-        mCurrentSpeakerSetupPath = file.getFullPathName();
-        juce::XmlDocument xmlDoc{ juce::File{ mCurrentSpeakerSetupPath } };
-        auto const mainXmlElem(xmlDoc.getDocumentElement());
-        if (!mainXmlElem) {
-            juce::AlertWindow alert{ "Error in Load Speaker Setup !",
-                                     "Your file is corrupted !\n" + xmlDoc.getLastParseError(),
-                                     juce::AlertWindow::WarningIcon };
-            alert.setLookAndFeel(&mLookAndFeel);
-            alert.addButton("Ok", 0);
-            alert.runModalLoop();
-        } else {
-            if (mainXmlElem->hasTagName("SpeakerSetup")) {
-                mSpeakersLock.lock();
-                mSpeakers.clear();
-                mSpeakersLock.unlock();
-                if (file.getFullPathName().compare(BINAURAL_SPEAKER_SETUP_FILE.getFullPathName()) == 0) {
-                    mAudioProcessor->setMode(SpatModes::hrtfVbap);
-                    mSpatModeCombo->setSelectedId(static_cast<int>(SpatModes::hrtfVbap) + 1,
-                                                  juce::NotificationType::dontSendNotification);
-                } else if (file.getFullPathName().compare(STEREO_SPEAKER_SETUP_FILE.getFullPathName()) == 0) {
-                    mAudioProcessor->setMode(SpatModes::stereo);
-                    mSpatModeCombo->setSelectedId(static_cast<int>(SpatModes::stereo) + 1,
-                                                  juce::NotificationType::dontSendNotification);
-                } else if (!isNewSameAsOld && oldPath.compare(BINAURAL_SPEAKER_SETUP_FILE.getFullPathName()) != 0
-                           && oldPath.compare(STEREO_SPEAKER_SETUP_FILE.getFullPathName()) != 0) {
-                    auto const spatMode = mainXmlElem->getIntAttribute("SpatMode");
-                    mAudioProcessor->setMode(static_cast<SpatModes>(spatMode));
-                    mSpatModeCombo->setSelectedId(spatMode + 1, juce::NotificationType::dontSendNotification);
-                } else if (!isNewSameAsLastSetup) {
-                    auto const spatMode = mainXmlElem->getIntAttribute("SpatMode");
-                    mAudioProcessor->setMode(static_cast<SpatModes>(spatMode));
-                    mSpatModeCombo->setSelectedId(spatMode + 1, juce::NotificationType::dontSendNotification);
-                }
+        juce::AlertWindow::showMessageBox(juce::AlertWindow::WarningIcon,
+                                          "Error in Load Speaker Setup !",
+                                          "Cannot find file " + file.getFullPathName() + ", loading default setup.");
+        openXmlFileSpeaker(DEFAULT_SPEAKER_SETUP_FILE);
+        return;
+    }
 
-                auto const loadSetupFromXyz{ /*isNewSameAsOld &&*/ mAudioProcessor->getMode() == SpatModes::lbap };
+    mCurrentSpeakerSetupPath = file.getFullPathName();
+    juce::XmlDocument xmlDoc{ juce::File{ mCurrentSpeakerSetupPath } };
+    auto const mainXmlElem(xmlDoc.getDocumentElement());
+    if (!mainXmlElem) {
+        juce::AlertWindow::showMessageBox(juce::AlertWindow::WarningIcon,
+                                          "Error in Load Speaker Setup !",
+                                          "Your file is corrupted !\n" + xmlDoc.getLastParseError());
+        openXmlFileSpeaker(DEFAULT_SPEAKER_SETUP_FILE);
+        return;
+    }
 
-                setNameConfig();
-                juce::ScopedLock const lock{ mAudioProcessor->getCriticalSection() };
-                mAudioProcessor->clearOutput();
-                mAudioProcessor->setMaxOutputPatch(output_patch_t{});
-                juce::Array<int> layoutIndexes{};
-                int maxLayoutIndex{};
-                forEachXmlChildElement(*mainXmlElem, ring)
-                {
-                    if (ring->hasTagName("Ring")) {
-                        forEachXmlChildElement(*ring, spk)
-                        {
-                            if (spk->hasTagName("Speaker")) {
-                                // Safety against layoutIndex doubles in the speaker setup.
-                                auto layoutIndex{ spk->getIntAttribute("LayoutIndex") };
-                                if (layoutIndexes.contains(layoutIndex)) {
-                                    layoutIndex = ++maxLayoutIndex;
-                                }
-                                layoutIndexes.add(layoutIndex);
-                                if (layoutIndex > maxLayoutIndex) {
-                                    maxLayoutIndex = layoutIndex;
-                                }
+    if (!mainXmlElem->hasTagName("SpeakerSetup")) {
+        auto const msg{ mainXmlElem->hasTagName("ServerGRIS_Preset")
+                            ? "You are trying to open a Server document, and not a Speaker Setup !"
+                            : "Your file is corrupted !\n" + xmlDoc.getLastParseError() };
+        juce::AlertWindow::showMessageBox(juce::AlertWindow::WarningIcon, "Error in Load Speaker Setup !", msg);
+        openXmlFileSpeaker(DEFAULT_SPEAKER_SETUP_FILE);
+        return;
+    }
 
-                                output_patch_t const outputPatch{ spk->getIntAttribute("OutputPatch") };
-                                auto const azimuth{ static_cast<float>(spk->getDoubleAttribute("Azimuth")) };
-                                auto const zenith{ static_cast<float>(spk->getDoubleAttribute("Zenith")) };
-                                auto const radius{ static_cast<float>(spk->getDoubleAttribute("Radius")) };
-                                mSpeakers.add(new Speaker{ *this,
-                                                           mSmallLookAndFeel,
-                                                           speaker_id_t{ layoutIndex },
-                                                           outputPatch,
-                                                           azimuth,
-                                                           zenith,
-                                                           radius });
-                                if (loadSetupFromXyz) {
-                                    mSpeakers.getLast()->setCoordinate(
-                                        glm::vec3(static_cast<float>(spk->getDoubleAttribute("PositionX")),
-                                                  static_cast<float>(spk->getDoubleAttribute("PositionZ")),
-                                                  static_cast<float>(spk->getDoubleAttribute("PositionY"))));
-                                }
-                                if (spk->hasAttribute("Gain")) {
-                                    mSpeakers.getLast()->setGain(static_cast<float>(spk->getDoubleAttribute("Gain")));
-                                }
-                                if (spk->hasAttribute("HighPassCutoff")) {
-                                    mSpeakers.getLast()->setHighPassCutoff(
-                                        static_cast<float>(spk->getDoubleAttribute("HighPassCutoff")));
-                                }
-                                if (spk->hasAttribute("DirectOut")) {
-                                    mSpeakers.getLast()->setDirectOut(spk->getBoolAttribute("DirectOut"));
-                                }
-                                mAudioProcessor->addOutput(output_patch_t{ spk->getIntAttribute("OutputPatch") });
-                            }
-                        }
+    {
+        juce::ScopedLock sl{ mSpeakersLock };
+        mSpeakers.clear();
+    }
+
+    if (file.getFullPathName().compare(BINAURAL_SPEAKER_SETUP_FILE.getFullPathName()) == 0) {
+        mAudioProcessor->setMode(SpatModes::hrtfVbap);
+        mSpatModeCombo->setSelectedId(static_cast<int>(SpatModes::hrtfVbap) + 1,
+                                      juce::NotificationType::dontSendNotification);
+    } else if (file.getFullPathName().compare(STEREO_SPEAKER_SETUP_FILE.getFullPathName()) == 0) {
+        mAudioProcessor->setMode(SpatModes::stereo);
+        mSpatModeCombo->setSelectedId(static_cast<int>(SpatModes::stereo) + 1,
+                                      juce::NotificationType::dontSendNotification);
+    } else if (!isNewSameAsOld && oldPath.compare(BINAURAL_SPEAKER_SETUP_FILE.getFullPathName()) != 0
+               && oldPath.compare(STEREO_SPEAKER_SETUP_FILE.getFullPathName()) != 0) {
+        auto const spatMode = mainXmlElem->getIntAttribute("SpatMode");
+        mAudioProcessor->setMode(static_cast<SpatModes>(spatMode));
+        mSpatModeCombo->setSelectedId(spatMode + 1, juce::NotificationType::dontSendNotification);
+    } else if (!isNewSameAsLastSetup) {
+        auto const spatMode = mainXmlElem->getIntAttribute("SpatMode");
+        mAudioProcessor->setMode(static_cast<SpatModes>(spatMode));
+        mSpatModeCombo->setSelectedId(spatMode + 1, juce::NotificationType::dontSendNotification);
+    }
+
+    auto const loadSetupFromXyz{ /*isNewSameAsOld &&*/ mAudioProcessor->getMode() == SpatModes::lbap };
+
+    setNameConfig();
+    juce::ScopedLock const lock{ mAudioProcessor->getCriticalSection() };
+    mAudioProcessor->clearOutput();
+    mAudioProcessor->setMaxOutputPatch(output_patch_t{});
+    juce::Array<int> layoutIndexes{};
+    int maxLayoutIndex{};
+    forEachXmlChildElement(*mainXmlElem, ring)
+    {
+        if (ring->hasTagName("Ring")) {
+            forEachXmlChildElement(*ring, spk)
+            {
+                if (spk->hasTagName("Speaker")) {
+                    // Safety against layoutIndex doubles in the speaker setup.
+                    auto layoutIndex{ spk->getIntAttribute("LayoutIndex") };
+                    if (layoutIndexes.contains(layoutIndex)) {
+                        layoutIndex = ++maxLayoutIndex;
                     }
-                    if (ring->hasTagName("triplet")) {
-                        Triplet const triplet{ output_patch_t{ ring->getIntAttribute("id1") },
-                                               output_patch_t{ ring->getIntAttribute("id2") },
-                                               output_patch_t{ ring->getIntAttribute("id3") } };
-                        mTriplets.add(triplet);
+                    layoutIndexes.add(layoutIndex);
+                    if (layoutIndex > maxLayoutIndex) {
+                        maxLayoutIndex = layoutIndex;
                     }
+
+                    output_patch_t const outputPatch{ spk->getIntAttribute("OutputPatch") };
+                    auto const azimuth{ static_cast<float>(spk->getDoubleAttribute("Azimuth")) };
+                    auto const zenith{ static_cast<float>(spk->getDoubleAttribute("Zenith")) };
+                    auto const radius{ static_cast<float>(spk->getDoubleAttribute("Radius")) };
+                    mSpeakers.add(new Speaker{ *this,
+                                               mSmallLookAndFeel,
+                                               speaker_id_t{ layoutIndex },
+                                               outputPatch,
+                                               azimuth,
+                                               zenith,
+                                               radius });
+                    if (loadSetupFromXyz) {
+                        mSpeakers.getLast()->setCoordinate(
+                            glm::vec3(static_cast<float>(spk->getDoubleAttribute("PositionX")),
+                                      static_cast<float>(spk->getDoubleAttribute("PositionZ")),
+                                      static_cast<float>(spk->getDoubleAttribute("PositionY"))));
+                    }
+                    if (spk->hasAttribute("Gain")) {
+                        mSpeakers.getLast()->setGain(static_cast<float>(spk->getDoubleAttribute("Gain")));
+                    }
+                    if (spk->hasAttribute("HighPassCutoff")) {
+                        mSpeakers.getLast()->setHighPassCutoff(
+                            static_cast<float>(spk->getDoubleAttribute("HighPassCutoff")));
+                    }
+                    if (spk->hasAttribute("DirectOut")) {
+                        mSpeakers.getLast()->setDirectOut(spk->getBoolAttribute("DirectOut"));
+                    }
+                    mAudioProcessor->addOutput(output_patch_t{ spk->getIntAttribute("OutputPatch") });
                 }
-                ok = true;
-            } else {
-                juce::String msg;
-                if (mainXmlElem->hasTagName("ServerGRIS_Preset")) {
-                    msg = "You are trying to open a Server document, and not a Speaker Setup !";
-                } else {
-                    msg = "Your file is corrupted !\n" + xmlDoc.getLastParseError();
-                }
-                juce::AlertWindow alert{ "Error in Load Speaker Setup !", msg, juce::AlertWindow::WarningIcon };
-                alert.setLookAndFeel(&mLookAndFeel);
-                alert.addButton("Ok", 0, juce::KeyPress(juce::KeyPress::returnKey));
-                alert.runModalLoop();
             }
+        }
+        if (ring->hasTagName("triplet")) {
+            Triplet const triplet{ output_patch_t{ ring->getIntAttribute("id1") },
+                                   output_patch_t{ ring->getIntAttribute("id2") },
+                                   output_patch_t{ ring->getIntAttribute("id3") } };
+            mTriplets.add(triplet);
         }
     }
-    if (ok) {
-        if (mCurrentSpeakerSetupPath.endsWith("default_preset/default_speaker_setup.xml")) {
-            mConfiguration.setLastSpeakerSetupDirectory(juce::File::getSpecialLocation(juce::File::userHomeDirectory));
-        } else {
-            mConfiguration.setLastSpeakerSetupDirectory(juce::File{ mCurrentSpeakerSetupPath }.getParentDirectory());
-        }
-        mNeedToComputeVbap = true;
-        updateLevelComp();
-        auto const mode{ mAudioProcessor->getMode() };
-        if (mode != SpatModes::hrtfVbap && mode != SpatModes::stereo) {
-            if (mCurrentSpeakerSetupPath.compare(BINAURAL_SPEAKER_SETUP_FILE.getFullPathName()) != 0
-                && mCurrentSpeakerSetupPath.compare(STEREO_SPEAKER_SETUP_FILE.getFullPathName()) != 0) {
-                mConfiguration.setLastOpenSpeakerSetup(mCurrentSpeakerSetupPath);
-            }
-        }
-    } else {
-        if (isNewSameAsOld) {
-            openXmlFileSpeaker(DEFAULT_SPEAKER_SETUP_FILE.getFullPathName());
-        } else {
-            openXmlFileSpeaker(oldPath);
+
+    mConfiguration.setLastOpenSpeakerSetup(file);
+
+    mNeedToComputeVbap = true;
+    updateLevelComp();
+    auto const mode{ mAudioProcessor->getMode() };
+    if (mode != SpatModes::hrtfVbap && mode != SpatModes::stereo) {
+        if (mCurrentSpeakerSetupPath.compare(BINAURAL_SPEAKER_SETUP_FILE.getFullPathName()) != 0
+            && mCurrentSpeakerSetupPath.compare(STEREO_SPEAKER_SETUP_FILE.getFullPathName()) != 0) {
+            mConfiguration.setLastOpenSpeakerSetup(mCurrentSpeakerSetupPath);
         }
     }
 }
@@ -1897,118 +1882,104 @@ void MainContentComponent::openPreset(juce::File const & file)
     juce::XmlDocument xmlDoc{ file };
     auto const mainXmlElem{ xmlDoc.getDocumentElement() };
     if (!mainXmlElem) {
-        juce::AlertWindow alert{ "Error in Open Preset !",
-                                 "Your file is corrupted !\n" + file.getFullPathName() + "\n"
-                                     + xmlDoc.getLastParseError().toStdString(),
-                                 juce::AlertWindow::WarningIcon };
-        alert.setLookAndFeel(&mLookAndFeel);
-        alert.addButton("Ok", 1, juce::KeyPress(juce::KeyPress::returnKey));
-        alert.runModalLoop();
+        juce::AlertWindow::showMessageBox(juce::AlertWindow::AlertIconType::WarningIcon,
+                                          "Error in Open Preset !",
+                                          "Your file is corrupted !\n" + file.getFullPathName() + "\n"
+                                              + xmlDoc.getLastParseError());
+        return;
+    }
+
+    if (!mainXmlElem->hasTagName("SpatServerGRIS_Preset") && !mainXmlElem->hasTagName("ServerGRIS_Preset")) {
+        auto const msg{ mainXmlElem->hasTagName("SpeakerSetup")
+                            ? "You are trying to open a Speaker Setup instead of a project file !"
+                            : "Your file is corrupted !\n" + xmlDoc.getLastParseError() };
+        juce::AlertWindow::showMessageBox(juce::AlertWindow::WarningIcon, "Error in Open Preset !", msg);
+        return;
+    }
+
+    mCurrentPresetPath = file.getFullPathName();
+    mOscInputPort = mainXmlElem->getIntAttribute("OSC_Input_Port");
+    mAddInputsTextEditor->setText(mainXmlElem->getStringAttribute("Number_Of_Inputs"));
+    mMasterGainOutSlider->setValue(mainXmlElem->getDoubleAttribute("Master_Gain_Out", 0.0), juce::sendNotification);
+    mInterpolationSlider->setValue(mainXmlElem->getDoubleAttribute("Master_Interpolation", 0.1),
+                                   juce::sendNotification);
+    setShowNumbers(mainXmlElem->getBoolAttribute("Show_Numbers"));
+    if (mainXmlElem->hasAttribute("Show_Speakers")) {
+        setShowSpeakers(mainXmlElem->getBoolAttribute("Show_Speakers"));
     } else {
-        if (mainXmlElem->hasTagName("SpatServerGRIS_Preset") || mainXmlElem->hasTagName("ServerGRIS_Preset")) {
-            mCurrentPresetPath = file.getFullPathName();
-            mOscInputPort
-                = mainXmlElem->getIntAttribute("OSC_Input_Port"); // TODO: app preferences instead of project settings ?
-            mAddInputsTextEditor->setText(mainXmlElem->getStringAttribute("Number_Of_Inputs"));
-            mMasterGainOutSlider->setValue(mainXmlElem->getDoubleAttribute("Master_Gain_Out", 0.0),
-                                           juce::sendNotification);
-            mInterpolationSlider->setValue(mainXmlElem->getDoubleAttribute("Master_Interpolation", 0.1),
-                                           juce::sendNotification);
-            setShowNumbers(mainXmlElem->getBoolAttribute("Show_Numbers"));
-            if (mainXmlElem->hasAttribute("Show_Speakers")) {
-                setShowSpeakers(mainXmlElem->getBoolAttribute("Show_Speakers"));
-            } else {
-                setShowSpeakers(true);
-            }
-            if (mainXmlElem->hasAttribute("Show_Triplets")) {
-                setShowTriplets(mainXmlElem->getBoolAttribute("Show_Triplets"));
-            } else {
-                setShowTriplets(false);
-            }
-            if (mainXmlElem->hasAttribute("Use_Alpha")) {
-                mIsSourceLevelShown = mainXmlElem->getBoolAttribute("Use_Alpha");
-            } else {
-                mIsSourceLevelShown = false;
-            }
-            if (mainXmlElem->hasAttribute("Use_Alpha")) {
-                mIsSourceLevelShown = mainXmlElem->getBoolAttribute("Use_Alpha");
-            } else {
-                mIsSourceLevelShown = false;
-            }
-            if (mainXmlElem->hasAttribute("Show_Speaker_Level")) {
-                mIsSpeakerLevelShown = mainXmlElem->getBoolAttribute("Show_Speaker_Level");
-            } else {
-                mIsSpeakerLevelShown = false;
-            }
-            if (mainXmlElem->hasAttribute("Show_Sphere")) {
-                mIsSphereShown = mainXmlElem->getBoolAttribute("Show_Sphere");
-            } else {
-                mIsSphereShown = false;
-            }
-            mSpeakerViewComponent->setShowSphere(mIsSphereShown);
+        setShowSpeakers(true);
+    }
+    if (mainXmlElem->hasAttribute("Show_Triplets")) {
+        setShowTriplets(mainXmlElem->getBoolAttribute("Show_Triplets"));
+    } else {
+        setShowTriplets(false);
+    }
+    if (mainXmlElem->hasAttribute("Use_Alpha")) {
+        mIsSourceLevelShown = mainXmlElem->getBoolAttribute("Use_Alpha");
+    } else {
+        mIsSourceLevelShown = false;
+    }
+    if (mainXmlElem->hasAttribute("Use_Alpha")) {
+        mIsSourceLevelShown = mainXmlElem->getBoolAttribute("Use_Alpha");
+    } else {
+        mIsSourceLevelShown = false;
+    }
+    if (mainXmlElem->hasAttribute("Show_Speaker_Level")) {
+        mIsSpeakerLevelShown = mainXmlElem->getBoolAttribute("Show_Speaker_Level");
+    } else {
+        mIsSpeakerLevelShown = false;
+    }
+    if (mainXmlElem->hasAttribute("Show_Sphere")) {
+        mIsSphereShown = mainXmlElem->getBoolAttribute("Show_Sphere");
+    } else {
+        mIsSphereShown = false;
+    }
+    mSpeakerViewComponent->setShowSphere(mIsSphereShown);
 
-            if (mainXmlElem->hasAttribute("CamAngleX")) {
-                auto const angleX{ static_cast<float>(mainXmlElem->getDoubleAttribute("CamAngleX")) };
-                auto const angleY{ static_cast<float>(mainXmlElem->getDoubleAttribute("CamAngleY")) };
-                auto const distance{ static_cast<float>(mainXmlElem->getDoubleAttribute("CamDistance")) };
-                mSpeakerViewComponent->setCamPosition(angleX, angleY, distance);
-            } else {
-                mSpeakerViewComponent->setCamPosition(80.0f, 25.0f, 22.0f); // TODO: named constants ?
-            }
+    if (mainXmlElem->hasAttribute("CamAngleX")) {
+        auto const angleX{ static_cast<float>(mainXmlElem->getDoubleAttribute("CamAngleX")) };
+        auto const angleY{ static_cast<float>(mainXmlElem->getDoubleAttribute("CamAngleY")) };
+        auto const distance{ static_cast<float>(mainXmlElem->getDoubleAttribute("CamDistance")) };
+        mSpeakerViewComponent->setCamPosition(angleX, angleY, distance);
+    } else {
+        mSpeakerViewComponent->setCamPosition(80.0f, 25.0f, 22.0f); // TODO: named constants ?
+    }
 
-            // Update
-            textEditorReturnKeyPressed(*mAddInputsTextEditor);
-            sliderValueChanged(mMasterGainOutSlider.get());
-            sliderValueChanged(mInterpolationSlider.get());
+    // Update
+    textEditorReturnKeyPressed(*mAddInputsTextEditor);
+    sliderValueChanged(mMasterGainOutSlider.get());
+    sliderValueChanged(mInterpolationSlider.get());
 
-            juce::File const speakerSetup{ mCurrentSpeakerSetupPath };
-            if (!mCurrentSpeakerSetupPath.startsWith("/")) {
-                mCurrentSpeakerSetupPath
-                    = DEFAULT_PRESET_DIRECTORY.getChildFile(mCurrentSpeakerSetupPath).getFullPathName();
-            }
+    juce::File const speakerSetup{ mCurrentSpeakerSetupPath };
+    if (!mCurrentSpeakerSetupPath.startsWith("/")) {
+        mCurrentSpeakerSetupPath = DEFAULT_PRESET_DIRECTORY.getChildFile(mCurrentSpeakerSetupPath).getFullPathName();
+    }
 
-            for (auto * input{ mainXmlElem->getFirstChildElement() }; input != nullptr;
-                 input = input->getNextElement()) {
-                if (input->hasTagName("Input")) {
-                    for (auto * it : mInputs) {
-                        if (it->getId() == input->getIntAttribute("Index")) {
-                            it->setColor(juce::Colour::fromFloatRGBA(static_cast<float>(input->getDoubleAttribute("R")),
-                                                                     static_cast<float>(input->getDoubleAttribute("G")),
-                                                                     static_cast<float>(input->getDoubleAttribute("B")),
-                                                                     1.0f),
-                                         true);
-                            if (input->hasAttribute("DirectOut")) {
-                                it->setDirectOutChannel(output_patch_t{ input->getIntAttribute("DirectOut") });
-                                setDirectOut(it->getId(), output_patch_t{ input->getIntAttribute("DirectOut") });
-                            } else {
-                                it->setDirectOutChannel(output_patch_t{});
-                                setDirectOut(it->getId(), output_patch_t{});
-                            }
-                        }
+    for (auto * input{ mainXmlElem->getFirstChildElement() }; input != nullptr; input = input->getNextElement()) {
+        if (input->hasTagName("Input")) {
+            for (auto * it : mInputs) {
+                if (it->getId() == input->getIntAttribute("Index")) {
+                    it->setColor(juce::Colour::fromFloatRGBA(static_cast<float>(input->getDoubleAttribute("R")),
+                                                             static_cast<float>(input->getDoubleAttribute("G")),
+                                                             static_cast<float>(input->getDoubleAttribute("B")),
+                                                             1.0f),
+                                 true);
+                    if (input->hasAttribute("DirectOut")) {
+                        it->setDirectOutChannel(output_patch_t{ input->getIntAttribute("DirectOut") });
+                        setDirectOut(it->getId(), output_patch_t{ input->getIntAttribute("DirectOut") });
+                    } else {
+                        it->setDirectOutChannel(output_patch_t{});
+                        setDirectOut(it->getId(), output_patch_t{});
                     }
                 }
             }
-        } else {
-            juce::String msg{};
-            if (mainXmlElem->hasTagName("SpeakerSetup")) {
-                msg = "You are trying to open a Speaker Setup, and not a Server document !";
-            } else {
-                msg = "Your file is corrupted !\n" + xmlDoc.getLastParseError();
-            }
-            juce::AlertWindow alert("Error in Open Preset !", msg, juce::AlertWindow::WarningIcon);
-            alert.setLookAndFeel(&mLookAndFeel);
-            alert.addButton("Ok", 0, juce::KeyPress(juce::KeyPress::returnKey));
-            alert.runModalLoop();
         }
     }
 
+    mConfiguration.setLastOpenPreset(file);
+
     mAudioProcessor->setPinkNoiseActive(false);
 
-    if (mCurrentPresetPath.endsWith("default_preset/default_preset.xml")) {
-        mConfiguration.setLastPresetDirectory(juce::File::getSpecialLocation(juce::File::userHomeDirectory));
-    } else {
-        mConfiguration.setLastPresetDirectory(juce::File{ mCurrentPresetPath }.getParentDirectory());
-    }
     setTitle();
 }
 
@@ -2051,7 +2022,7 @@ void MainContentComponent::savePreset(juce::String const & path)
     success = xmlFile.create();
     jassert(success);
     mCurrentPresetPath = path;
-    mConfiguration.setLastPresetDirectory(juce::File{ mCurrentPresetPath }.getParentDirectory());
+    mConfiguration.setLastOpenPreset(mCurrentPresetPath);
 
     setTitle();
 }
@@ -2099,7 +2070,7 @@ void MainContentComponent::saveSpeakerSetup(juce::String const & path)
     success = xmlFile.create();
     jassert(success);
 
-    mConfiguration.setLastSpeakerSetupDirectory(juce::File{ mCurrentSpeakerSetupPath }.getParentDirectory());
+    mConfiguration.setLastOpenSpeakerSetup(mCurrentSpeakerSetupPath);
 
     mNeedToSaveSpeakerSetup = false;
 

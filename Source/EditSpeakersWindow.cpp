@@ -611,7 +611,8 @@ void EditSpeakersWindow::setText(int const columnNumber,
                                  juce::String const & newText,
                                  bool const altDown)
 {
-    if (mMainContentComponent.getSpeakersLock().try_lock()) {
+    juce::ScopedTryLock sl{ mMainContentComponent.getSpeakersLock() };
+    if (sl.isLocked()) {
         if (mMainContentComponent.getSpeakers().size() > rowNumber) {
             auto const selectedRows{ mSpeakersTableListBox.getSelectedRows() };
             auto & speaker{ *mMainContentComponent.getSpeakers()[rowNumber] };
@@ -863,7 +864,6 @@ void EditSpeakersWindow::setText(int const columnNumber,
         }
         updateWinContent();
         mMainContentComponent.setNeedToComputeVbap(true);
-        mMainContentComponent.getSpeakersLock().unlock();
     }
 }
 
@@ -882,15 +882,15 @@ void EditSpeakersWindow::paintRowBackground(juce::Graphics & g,
     }
 
     if (rowIsSelected) {
-        if (mMainContentComponent.getSpeakersLock().try_lock()) {
+        juce::ScopedTryLock const sl{ mMainContentComponent.getSpeakersLock() };
+        if (sl.isLocked()) {
             mMainContentComponent.getSpeakers()[rowNumber]->selectSpeaker();
-            mMainContentComponent.getSpeakersLock().unlock();
         }
         g.fillAll(mLookAndFeel.getHighlightColour());
     } else {
-        if (mMainContentComponent.getSpeakersLock().try_lock()) {
+        juce::ScopedTryLock const sl{ mMainContentComponent.getSpeakersLock() };
+        if (sl.isLocked()) {
             mMainContentComponent.getSpeakers()[rowNumber]->unSelectSpeaker();
-            mMainContentComponent.getSpeakersLock().unlock();
         }
         if (rowNumber % 2) {
             g.fillAll(mLookAndFeel.getBackgroundColour().withBrightness(0.6f));
@@ -912,12 +912,12 @@ void EditSpeakersWindow::paintCell(juce::Graphics & g,
     g.setColour(juce::Colours::black);
     g.setFont(mFont);
 
-    if (mMainContentComponent.getSpeakersLock().try_lock()) {
+    juce::ScopedTryLock const sl{ mMainContentComponent.getSpeakersLock() };
+    if (sl.isLocked()) {
         if (mMainContentComponent.getSpeakers().size() > rowNumber) {
             auto const text{ getText(columnId, rowNumber) };
             g.drawText(text, 2, 0, width - 4, height, juce::Justification::centredLeft, true);
         }
-        mMainContentComponent.getSpeakersLock().unlock();
     }
     g.setColour(juce::Colours::black.withAlpha(0.2f));
     g.fillRect(width - 1, 0, 1, height);

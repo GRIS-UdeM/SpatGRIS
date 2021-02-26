@@ -26,8 +26,6 @@ DISABLE_WARNINGS
 #include <JuceHeader.h>
 ENABLE_WARNINGS
 
-#include "constants.hpp"
-
 //==============================================================================
 enum class RecordingFormat { wav, aiff };
 enum class RecordingConfig { mono, interleaved };
@@ -58,7 +56,6 @@ class Configuration
         static juce::String const LAST_OPEN_SPEAKER_SETUP;
         static juce::String const LAST_RECORDING_DIRECTORY;
         static juce::String const SASH_POSITION;
-        static juce::String const LAST_PRESET_DIRECTORY;
         static juce::String const LAST_SPEAKER_SETUP_DIRECTORY;
         static juce::String const WINDOW_X;
         static juce::String const WINDOW_Y;
@@ -102,8 +99,6 @@ public:
     void setLastVbapSpeakerSetup(juce::File const & lastVbapSpeakerSetup) const;
     void setLastOpenPreset(juce::File const & lastOpenPreset) const;
     void setLastOpenSpeakerSetup(juce::File const & lastOpenSpeakerSetup) const;
-    void setLastPresetDirectory(juce::File const & directory) const;
-    void setLastSpeakerSetupDirectory(juce::File const & directory) const;
     //==============================================================================
     [[nodiscard]] juce::String getDeviceType() const;
     [[nodiscard]] juce::String getInputDevice() const;
@@ -128,8 +123,6 @@ public:
     [[nodiscard]] juce::File getLastVbapSpeakerSetup() const;
     [[nodiscard]] juce::File getLastOpenPreset() const;
     [[nodiscard]] juce::File getLastOpenSpeakerSetup() const;
-    [[nodiscard]] juce::File getLastPresetDirectory() const;
-    [[nodiscard]] juce::File getLastSpeakerSetupDirectory() const;
 
 private:
     //==============================================================================

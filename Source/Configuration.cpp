@@ -20,6 +20,7 @@
 #include "Configuration.h"
 
 #include "AudioManager.h"
+#include "constants.hpp"
 
 juce::String const Configuration::Tags::DEVICE_TYPE = "DEVICE_TYPE";
 juce::String const Configuration::Tags::INPUT_DEVICE = "INPUT_DEVICE";
@@ -35,7 +36,6 @@ juce::String const Configuration::Tags::LAST_VBAP_SPEAKER_SETUP = "LAST_VBAP_SPE
 juce::String const Configuration::Tags::LAST_OPEN_PRESET = "LAST_OPEN_PRESET";
 juce::String const Configuration::Tags::LAST_OPEN_SPEAKER_SETUP = "LAST_OPEN_SPEAKER_SETUP";
 juce::String const Configuration::Tags::LAST_RECORDING_DIRECTORY = "LAST_RECORDING_DIRECTORY";
-juce::String const Configuration::Tags::LAST_PRESET_DIRECTORY = "LAST_PRESET_DIRECTORY";
 juce::String const Configuration::Tags::SASH_POSITION = "SASH_POSITION";
 juce::String const Configuration::Tags::LAST_SPEAKER_SETUP_DIRECTORY = "LAST_SPEAKER_SETUP_DIRECTORY";
 juce::String const Configuration::Tags::WINDOW_X = "WINDOW_X";
@@ -194,18 +194,6 @@ void Configuration::setLastOpenSpeakerSetup(juce::File const & lastOpenSpeakerSe
 }
 
 //==============================================================================
-void Configuration::setLastPresetDirectory(juce::File const & directory) const
-{
-    mUserSettings->setValue(Tags::LAST_PRESET_DIRECTORY, directory.getFullPathName());
-}
-
-//==============================================================================
-void Configuration::setLastSpeakerSetupDirectory(juce::File const & directory) const
-{
-    mUserSettings->setValue(Tags::LAST_SPEAKER_SETUP_DIRECTORY, directory.getFullPathName());
-}
-
-//==============================================================================
 juce::File Configuration::getLastVbapSpeakerSetup() const
 {
     juce::File lastVbap{ mUserSettings->getValue(Tags::LAST_VBAP_SPEAKER_SETUP) };
@@ -360,24 +348,4 @@ int Configuration::getWindowWidth() const
 int Configuration::getWindowHeight() const
 {
     return mUserSettings->getIntValue(Tags::WINDOW_HEIGHT, 0);
-}
-
-//==============================================================================
-juce::File Configuration::getLastPresetDirectory() const
-{
-    juce::File file{ mUserSettings->getValue(Tags::LAST_PRESET_DIRECTORY) };
-    if (!file.isDirectory()) {
-        return juce::File::getSpecialLocation(juce::File::SpecialLocationType::userHomeDirectory);
-    }
-    return file;
-}
-
-//==============================================================================
-juce::File Configuration::getLastSpeakerSetupDirectory() const
-{
-    juce::File file{ mUserSettings->getValue(Tags::LAST_SPEAKER_SETUP_DIRECTORY) };
-    if (!file.isDirectory()) {
-        return juce::File::getSpecialLocation(juce::File::SpecialLocationType::userHomeDirectory);
-    }
-    return file;
 }

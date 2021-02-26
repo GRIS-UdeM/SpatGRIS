@@ -114,26 +114,29 @@ void SpeakerViewComponent::render()
         }
     }
 
-    if (mMainContentComponent.getSpeakersLock().try_lock()) {
-        if (!mHideSpeaker) {
-            for (auto * speaker : mMainContentComponent.getSpeakers()) {
-                speaker->draw();
-                if (mShowNumber) {
-                    auto posT{ speaker->getCenter() };
-                    posT.y += SIZE_SPEAKER.y + 0.4f;
-                    drawText(std::to_string(speaker->getOutputPatch().get()), posT, glm::vec3{ 0, 0, 0 }, 0.003f);
+    {
+        juce::ScopedTryLock const sl{ mMainContentComponent.getSpeakersLock() };
+        if (sl.isLocked()) {
+            if (!mHideSpeaker) {
+                for (auto * speaker : mMainContentComponent.getSpeakers()) {
+                    speaker->draw();
+                    if (mShowNumber) {
+                        auto posT{ speaker->getCenter() };
+                        posT.y += SIZE_SPEAKER.y + 0.4f;
+                        drawText(std::to_string(speaker->getOutputPatch().get()), posT, glm::vec3{ 0, 0, 0 }, 0.003f);
+                    }
                 }
             }
+            if (mShowTriplets) {
+                drawTripletConnection();
+            }
         }
-        if (mShowTriplets) {
-            drawTripletConnection();
-        }
-        mMainContentComponent.getSpeakersLock().unlock();
     }
 
     // Draw Sphere
     if (mShowSphere) {
-        if (mMainContentComponent.getSpeakersLock().try_lock()) {
+        juce::ScopedTryLock const sl{ mMainContentComponent.getSpeakersLock() };
+        if (sl.isLocked()) {
             glPushMatrix();
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
             glLineWidth(1.0f);
@@ -179,16 +182,12 @@ void SpeakerViewComponent::render()
             }
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             glPopMatrix();
-            mMainContentComponent.getSpeakersLock().unlock();
         }
     }
 
     if (mClickLeft) {
         clickRay();
     }
-
-    // Draw Click Ray.
-    // ray.draw();
 
     glFlush();
 }
@@ -223,7 +222,8 @@ void SpeakerViewComponent::clickRay()
     static constexpr speaker_id_t INVALID_ID{ -1 };
     auto iBestSpeaker = INVALID_ID;
     auto selected = INVALID_ID;
-    if (mMainContentComponent.getSpeakersLock().try_lock()) {
+    juce::ScopedTryLock const sl{ mMainContentComponent.getSpeakersLock() };
+    if (sl.isLocked()) {
         for (int i{}; i < mMainContentComponent.getSpeakers().size(); ++i) {
             auto const * speaker{ mMainContentComponent.getSpeakers()[i] };
             if (speaker->isSelected()) {
@@ -249,7 +249,6 @@ void SpeakerViewComponent::clickRay()
             }
             mMainContentComponent.selectSpeaker(iBestSpeaker);
         }
-        mMainContentComponent.getSpeakersLock().unlock();
     }
 
     mControlOn = false;

@@ -78,7 +78,7 @@ class MainContentComponent final
     // Speakers.
     juce::Array<Triplet> mTriplets{};
     juce::OwnedArray<Speaker> mSpeakers{};
-    std::mutex mSpeakersLock{};
+    juce::CriticalSection mSpeakersLock{};
 
     // Sources.
     juce::OwnedArray<Input> mInputs{};
@@ -233,7 +233,7 @@ public:
     [[nodiscard]] juce::OwnedArray<Speaker> & getSpeakers() { return this->mSpeakers; }
     [[nodiscard]] juce::OwnedArray<Speaker> const & getSpeakers() const { return this->mSpeakers; }
 
-    [[nodiscard]] std::mutex & getSpeakersLock() { return this->mSpeakersLock; }
+    [[nodiscard]] juce::CriticalSection const & getSpeakersLock() const { return mSpeakersLock; }
 
     [[nodiscard]] Speaker * getSpeakerFromOutputPatch(output_patch_t out);
     [[nodiscard]] Speaker const * getSpeakerFromOutputPatch(output_patch_t out) const;
@@ -241,7 +241,7 @@ public:
     void addSpeaker(int sortColumnId = 1, bool isSortedForwards = true);
     void insertSpeaker(int position, int sortColumnId, bool isSortedForwards);
     void removeSpeaker(int idSpeaker);
-    void setDirectOut(int id, output_patch_t const chn) const;
+    void setDirectOut(int id, output_patch_t chn) const;
     void reorderSpeakers(std::vector<speaker_id_t> const & newOrder);
     void resetSpeakerIds();
     [[nodiscard]] speaker_id_t getMaxSpeakerId() const;
