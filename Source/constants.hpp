@@ -27,6 +27,7 @@ ENABLE_WARNINGS
 static constexpr auto MAX_INPUTS = 256;
 static constexpr auto MAX_OUTPUTS = 256;
 static constexpr auto VU_METER_WIDTH_IN_PIXELS = 22;
+static constexpr auto LBAP_EXTENDED_RADIUS = 1.6666667f;
 
 extern char const * const DEVICE_NAME;
 extern char const * const CLIENT_NAME;

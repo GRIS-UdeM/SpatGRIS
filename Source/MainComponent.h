@@ -306,7 +306,7 @@ public:
     void reloadXmlFileSpeaker();
     void openPreset(juce::File const & file);
     void getPresetData(juce::XmlElement * xml) const;
-    void savePreset(juce::String const & path);
+    void savePreset(juce::String const & path) const;
     void saveSpeakerSetup(juce::String const & path);
     void saveProperties(juce::String const & audioDeviceType,
                         juce::String const & inputDevice,

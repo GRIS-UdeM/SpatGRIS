@@ -172,8 +172,8 @@ public:
     [[nodiscard]] bool lbapSetupSpeakerField(std::vector<Speaker *> const & listSpk);
 
     // LBAP distance attenuation functions.
-    void setAttenuationDb(float value);
-    void setAttenuationHz(float value);
+    void setAttenuationDbIndex(int index);
+    void setAttenuationFrequencyIndex(int index);
 
     // Need to update a source VBAP data.
     void updateSourceVbap(int idS) noexcept;

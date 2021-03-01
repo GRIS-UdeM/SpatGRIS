@@ -20,7 +20,6 @@
 #pragma once
 
 #include "macros.h"
-
 DISABLE_WARNINGS
 #if defined(__APPLE__)
     #include <GLUT/glut.h>
@@ -28,13 +27,12 @@ DISABLE_WARNINGS
     #include <OpenGL/gl3.h>
     #include <OpenGl/glu.h>
 #endif
-
 #include "../glm/glm.hpp"
-
 #include <JuceHeader.h>
 ENABLE_WARNINGS
 
 #include "Ray.h"
+#include "constants.hpp"
 
 class MainContentComponent;
 class Speaker;
@@ -46,7 +44,7 @@ class SpeakerViewComponent final : public juce::OpenGLAppComponent
 {
 public:
     static auto constexpr MAX_RADIUS{ 10.0f };
-    static auto constexpr SPACE_LIMIT{ MAX_RADIUS * 1.66666666666f };
+    static auto constexpr SPACE_LIMIT{ MAX_RADIUS * LBAP_EXTENDED_RADIUS };
 
 private:
     MainContentComponent & mMainContentComponent;

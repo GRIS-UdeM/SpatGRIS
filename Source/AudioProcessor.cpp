@@ -448,26 +448,17 @@ void AudioProcessor::processLbap(float const * const * ins,
             lbap_pos_init_from_radians(&pos, sourceData.radAzimuth, sourceData.radElevation, sourceData.radius);
             pos.radspan = sourceData.azimuthSpan;
             pos.elespan = sourceData.zenithSpan;
-            auto distance{ sourceData.radius };
+            // Energy is lost with distance.
+            // A radius < 1 is not impact sound
+            // Radius between 1 and 1.66 are reduced
+            // Radius over 1.66 is clamped to 1.66
+            auto const distance{ std::clamp((sourceData.radius - 1.0f) / (LBAP_EXTENDED_RADIUS - 1.0f), 0.0f, 1.0f) };
             if (!lbap_pos_compare(&pos, &sourceData.lbapLastPos)) {
                 lbap_field_compute(mLbapSpeakerField, &pos, sourceData.lbapGains.data());
                 lbap_pos_copy(&sourceData.lbapLastPos, &pos);
             }
-
-            float distanceGain;
-            float distanceCoefficient;
-            // Energy lost with distance, radius is in the range 0 - 2.6 (>1 is beyond HP circle).
-            if (distance < 1.0f) {
-                distanceGain = 1.0f;
-                distanceCoefficient = 0.0f;
-            } else {
-                distance = (distance - 1.0f) * 1.25f;
-                if (distance > 1.0f) {
-                    distance = 1.0f;
-                }
-                distanceGain = (1.0f - distance) * (1.0f - mAttenuationLinearGain) + mAttenuationLinearGain;
-                distanceCoefficient = distance * mAttenuationLowpassCoefficient;
-            }
+            auto const distanceGain{ (1.0f - distance) * (1.0f - mAttenuationLinearGain) + mAttenuationLinearGain };
+            auto const distanceCoefficient{ distance * mAttenuationLowpassCoefficient };
             auto const diffGain{ (distanceGain - mLastAttenuationGain[inputIndex]) / narrow<float>(nFrames) };
             auto const diffCoefficient
                 = (distanceCoefficient - mLastAttenuationCoefficient[inputIndex]) / narrow<float>(nFrames);
@@ -475,12 +466,23 @@ void AudioProcessor::processLbap(float const * const * ins,
             auto filterInZ{ mAttenuationLowpassZ[inputIndex] };
             auto lastCoefficient{ mLastAttenuationCoefficient[inputIndex] };
             auto lastGain{ mLastAttenuationGain[inputIndex] };
-            for (size_t sampleIndex{}; sampleIndex < nFrames; ++sampleIndex) {
-                lastCoefficient += diffCoefficient;
-                lastGain += diffGain;
-                filterInY = inputBuffer[sampleIndex] + (filterInY - inputBuffer[sampleIndex]) * lastCoefficient;
-                filterInZ = filterInY + (filterInZ - filterInY) * lastCoefficient;
-                filteredInputSignal[sampleIndex] = filterInZ * lastGain;
+            // TODO : this could be greatly optimized
+            if (diffCoefficient == 0.0f && diffGain == 0.0f) {
+                // simplified version
+                for (size_t sampleIndex{}; sampleIndex < nFrames; ++sampleIndex) {
+                    filterInY = inputBuffer[sampleIndex] + (filterInY - inputBuffer[sampleIndex]) * lastCoefficient;
+                    filterInZ = filterInY + (filterInZ - filterInY) * lastCoefficient;
+                    filteredInputSignal[sampleIndex] = filterInZ * lastGain;
+                }
+            } else {
+                // full version
+                for (size_t sampleIndex{}; sampleIndex < nFrames; ++sampleIndex) {
+                    lastCoefficient += diffCoefficient;
+                    lastGain += diffGain;
+                    filterInY = inputBuffer[sampleIndex] + (filterInY - inputBuffer[sampleIndex]) * lastCoefficient;
+                    filterInZ = filterInY + (filterInZ - filterInY) * lastCoefficient;
+                    filteredInputSignal[sampleIndex] = filterInZ * lastGain;
+                }
             }
             mAttenuationLowpassY[inputIndex] = filterInY;
             mAttenuationLowpassZ[inputIndex] = filterInZ;
@@ -891,15 +893,26 @@ bool AudioProcessor::lbapSetupSpeakerField(std::vector<Speaker *> const & listSp
 }
 
 //==============================================================================
-void AudioProcessor::setAttenuationDb(float const value)
+void AudioProcessor::setAttenuationDbIndex(int const index)
 {
-    mAttenuationLinearGain = value;
+    jassert(index >= 0 && index < ATTENUATION_DB_STRINGS.size());
+    auto const gain{ std::pow(10.0f, ATTENUATION_DB_STRINGS[index].getFloatValue() * 0.05f) };
+    mAttenuationLinearGain = gain;
 }
 
 //==============================================================================
-void AudioProcessor::setAttenuationHz(float const value)
+void AudioProcessor::setAttenuationFrequencyIndex(int const index)
 {
-    mAttenuationLowpassCoefficient = value;
+    jassert(index >= 0 && index < ATTENUATION_FREQUENCY_STRINGS.size());
+    auto * audioDevice{ AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice() };
+    jassert(audioDevice);
+    if (!audioDevice) {
+        return;
+    }
+    auto const coefficient{ std::exp(-juce::MathConstants<float>::twoPi
+                                     * ATTENUATION_FREQUENCY_STRINGS[index].getFloatValue()
+                                     / narrow<float>(audioDevice->getCurrentSampleRate())) };
+    mAttenuationLowpassCoefficient = coefficient;
 }
 
 //==============================================================================

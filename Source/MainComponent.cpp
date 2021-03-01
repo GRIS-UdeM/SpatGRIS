@@ -43,8 +43,13 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
 
     AudioManager::init(deviceType, inputDevice, outputDevice, sampleRate, bufferSize);
 
-    // init jackClient
     mAudioProcessor = std::make_unique<AudioProcessor>();
+
+    auto const attenuationDbIndex{ mConfiguration.getAttenuationDbIndex() };
+    mAudioProcessor->setAttenuationDbIndex(attenuationDbIndex);
+
+    auto const attenuationFrequencyIndex{ mConfiguration.getAttenuationFrequencyIndex() };
+    mAudioProcessor->setAttenuationFrequencyIndex(attenuationFrequencyIndex);
 
     // Create the menu bar.
     mMenuBar.reset(new juce::MenuBarComponent(this));
@@ -1985,7 +1990,7 @@ void MainContentComponent::getPresetData(juce::XmlElement * xml) const
 }
 
 //==============================================================================
-void MainContentComponent::savePreset(juce::String const & path)
+void MainContentComponent::savePreset(juce::String const & path) const
 {
     juce::File const xmlFile{ path };
     auto const xml{ std::make_unique<juce::XmlElement>("ServerGRIS_Preset") };
@@ -2084,17 +2089,13 @@ void MainContentComponent::saveProperties(juce::String const & audioDeviceType,
     mConfiguration.setRecordingConfig(recordingConfig);
 
     // Handle CUBE distance attenuation
-    auto const linGain{ std::pow(10.0f, ATTENUATION_DB_STRINGS[attenuationDbIndex].getFloatValue() * 0.05f) };
-    mAudioProcessor->setAttenuationDb(linGain);
+    mAudioProcessor->setAttenuationDbIndex(attenuationDbIndex);
     mConfiguration.setAttenuationDbIndex(attenuationDbIndex);
 
     auto * currentAudioDevice{ AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice() };
     jassert(currentAudioDevice);
 
-    auto const coefficient{ std::exp(-juce::MathConstants<float>::twoPi
-                                     * ATTENUATION_FREQUENCY_STRINGS[attenuationFrequencyIndex].getFloatValue()
-                                     / narrow<float>(currentAudioDevice->getCurrentSampleRate())) };
-    mAudioProcessor->setAttenuationHz(coefficient);
+    mAudioProcessor->setAttenuationFrequencyIndex(attenuationFrequencyIndex);
     mConfiguration.setAttenuationFrequencyIndex(attenuationFrequencyIndex);
 }
 
