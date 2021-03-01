@@ -46,7 +46,7 @@ public:
         OpenSpeakerSetupID = 2000,
         ShowSpeakerEditID = 2003,
 
-        PrefsID = 9998,
+        OpenSettingsWindowID = 9998,
         QuitID = 9999,
 
         // View menu

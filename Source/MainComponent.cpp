@@ -717,7 +717,7 @@ void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & command
         MainWindow::ResetInputPosID,
         MainWindow::ResetMeterClipping,
         MainWindow::ShowOscLogView,
-        MainWindow::PrefsID,
+        MainWindow::OpenSettingsWindowID,
         MainWindow::QuitID,
         MainWindow::AboutID,
         MainWindow::OpenManualID,
@@ -805,9 +805,9 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
     case MainWindow::ShowOscLogView:
         result.setInfo("Show OSC Log Window", "Show the OSC logging window.", generalCategory, 0);
         break;
-    case MainWindow::PrefsID:
+    case MainWindow::OpenSettingsWindowID:
         result.setInfo("Settings...", "Open the settings window.", generalCategory, 0);
-        result.addDefaultKeypress(';', juce::ModifierKeys::commandModifier);
+        result.addDefaultKeypress(',', juce::ModifierKeys::commandModifier);
         break;
     case MainWindow::QuitID:
         result.setInfo("Quit", "Quit the SpatGRIS.", generalCategory, 0);
@@ -880,7 +880,7 @@ bool MainContentComponent::perform(const InvocationInfo & info)
         case MainWindow::ShowOscLogView:
             handleShowOscLogView();
             break;
-        case MainWindow::PrefsID:
+        case MainWindow::OpenSettingsWindowID:
             handleShowPreferences();
             break;
         case MainWindow::QuitID:
@@ -942,7 +942,7 @@ juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const j
         menu.addSeparator();
         menu.addCommandItem(commandManager, MainWindow::OpenSpeakerSetupID);
         menu.addSeparator();
-        menu.addCommandItem(commandManager, MainWindow::PrefsID);
+        menu.addCommandItem(commandManager, MainWindow::OpenSettingsWindowID);
 #if !JUCE_MAC
         menu.addSeparator();
         menu.addCommandItem(commandManager, MainWindow::QuitID);
