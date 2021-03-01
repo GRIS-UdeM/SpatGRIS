@@ -203,17 +203,72 @@ void EditSpeakersWindow::initComp()
     mSpeakersTableListBox.setOutlineThickness(1);
 
     auto & header{ mSpeakersTableListBox.getHeader() };
-    header.addColumn("Output", cols::OUTPUT_PATCH, 70, 50, 120, juce::TableHeaderComponent::defaultFlags);
-    header.addColumn("X", cols::X, 70, 50, 120, juce::TableHeaderComponent::defaultFlags);
-    header.addColumn("Y", cols::Y, 70, 50, 120, juce::TableHeaderComponent::defaultFlags);
-    header.addColumn("Z", cols::Z, 70, 50, 120, juce::TableHeaderComponent::defaultFlags);
-    header.addColumn("Azimuth", cols::AZIMUTH, 70, 50, 120, juce::TableHeaderComponent::defaultFlags);
-    header.addColumn("Elevation", cols::ELEVATION, 70, 50, 120, juce::TableHeaderComponent::defaultFlags);
-    header.addColumn("Distance", cols::DISTANCE, 70, 50, 120, juce::TableHeaderComponent::defaultFlags);
-    header.addColumn("Gain (dB)", cols::GAIN, 70, 50, 120, juce::TableHeaderComponent::notSortable);
-    header.addColumn("Highpass", cols::HIGHPASS, 70, 50, 120, juce::TableHeaderComponent::notSortable);
-    header.addColumn("Direct", cols::DIRECT, 70, 50, 120, juce::TableHeaderComponent::notSortable);
-    header.addColumn("delete", cols::DELETE, 70, 50, 120, juce::TableHeaderComponent::notSortable);
+    header.addColumn("Output",
+                     cols::OUTPUT_PATCH,
+                     DEFAULT_COL_WIDTH,
+                     MIN_COL_WIDTH,
+                     MAX_COL_WIDTH,
+                     juce::TableHeaderComponent::defaultFlags);
+    header.addColumn("X",
+                     cols::X,
+                     DEFAULT_COL_WIDTH,
+                     MIN_COL_WIDTH,
+                     MAX_COL_WIDTH,
+                     juce::TableHeaderComponent::defaultFlags);
+    header.addColumn("Y",
+                     cols::Y,
+                     DEFAULT_COL_WIDTH,
+                     MIN_COL_WIDTH,
+                     MAX_COL_WIDTH,
+                     juce::TableHeaderComponent::defaultFlags);
+    header.addColumn("Z",
+                     cols::Z,
+                     DEFAULT_COL_WIDTH,
+                     MIN_COL_WIDTH,
+                     MAX_COL_WIDTH,
+                     juce::TableHeaderComponent::defaultFlags);
+    header.addColumn("Azimuth",
+                     cols::AZIMUTH,
+                     DEFAULT_COL_WIDTH,
+                     MIN_COL_WIDTH,
+                     MAX_COL_WIDTH,
+                     juce::TableHeaderComponent::defaultFlags);
+    header.addColumn("Elevation",
+                     cols::ELEVATION,
+                     DEFAULT_COL_WIDTH,
+                     MIN_COL_WIDTH,
+                     MAX_COL_WIDTH,
+                     juce::TableHeaderComponent::defaultFlags);
+    header.addColumn("Distance",
+                     cols::DISTANCE,
+                     DEFAULT_COL_WIDTH,
+                     MIN_COL_WIDTH,
+                     MAX_COL_WIDTH,
+                     juce::TableHeaderComponent::defaultFlags);
+    header.addColumn("Gain (dB)",
+                     cols::GAIN,
+                     DEFAULT_COL_WIDTH,
+                     MIN_COL_WIDTH,
+                     MAX_COL_WIDTH,
+                     juce::TableHeaderComponent::notSortable);
+    header.addColumn("Highpass",
+                     cols::HIGHPASS,
+                     DEFAULT_COL_WIDTH,
+                     MIN_COL_WIDTH,
+                     MAX_COL_WIDTH,
+                     juce::TableHeaderComponent::notSortable);
+    header.addColumn("Direct",
+                     cols::DIRECT,
+                     DEFAULT_COL_WIDTH,
+                     MIN_COL_WIDTH,
+                     MAX_COL_WIDTH,
+                     juce::TableHeaderComponent::notSortable);
+    header.addColumn("delete",
+                     cols::DELETE,
+                     DEFAULT_COL_WIDTH,
+                     MIN_COL_WIDTH,
+                     MAX_COL_WIDTH,
+                     juce::TableHeaderComponent::notSortable);
 
     mSpeakersTableListBox.setMultipleSelectionEnabled(true);
 
@@ -861,6 +916,8 @@ void EditSpeakersWindow::setText(int const columnNumber,
                 mMainContentComponent.setShowTriplets(false);
                 speaker.setDirectOut(newText.getIntValue());
                 break;
+            default:
+                break;
             }
         }
         updateWinContent();
@@ -998,7 +1055,26 @@ void EditSpeakersWindow::mouseDown(juce::MouseEvent const & event)
 {
     auto const positionRelativeToSpeakersTableListBox{ event.getEventRelativeTo(&mSpeakersTableListBox).getPosition() };
     auto const speakersTableListBoxBounds{ mSpeakersTableListBox.getBounds() };
-    if (speakersTableListBoxBounds.contains(positionRelativeToSpeakersTableListBox)) {
+
+    static auto const getDraggableWidth
+        = [](SpatMode const spatMode, juce::TableHeaderComponent const & tableHeader) -> int {
+        switch (spatMode) {
+        case SpatMode::lbap:
+            return tableHeader.getColumnWidth(cols::OUTPUT_PATCH);
+        case SpatMode::hrtfVbap:
+        case SpatMode::vbap:
+        case SpatMode::stereo:
+            return tableHeader.getColumnWidth(cols::OUTPUT_PATCH) + tableHeader.getColumnWidth(cols::X)
+                   + tableHeader.getColumnWidth(cols::Y) + tableHeader.getColumnWidth(cols::Z);
+        }
+        jassertfalse;
+        return 0;
+    };
+
+    auto const draggableWidth{ getDraggableWidth(mMainContentComponent.getModeSelected(),
+                                                 mSpeakersTableListBox.getHeader()) };
+    if (speakersTableListBoxBounds.contains(positionRelativeToSpeakersTableListBox)
+        && positionRelativeToSpeakersTableListBox.getX() < draggableWidth) {
         mDragStartY = event.getMouseDownY();
     } else {
         mDragStartY = std::nullopt;
@@ -1035,8 +1111,7 @@ void EditSpeakersWindow::mouseDrag(juce::MouseEvent const & event)
 
     // TODO : make this work for multiple selections
     auto const selectedRow{ mSpeakersTableListBox.getSelectedRow() };
-    if (selectedRow < 0 || selectedRow >= mSpeakersTableListBox.getNumRows())
-    {
+    if (selectedRow < 0 || selectedRow >= mSpeakersTableListBox.getNumRows()) {
         return;
     }
 
@@ -1051,6 +1126,8 @@ void EditSpeakersWindow::mouseDrag(juce::MouseEvent const & event)
     mMainContentComponent.reorderSpeakers(order);
     *mDragStartY += rowDiff * rowHeight;
     mSpeakersTableListBox.selectRow(newIndex);
+
+    mMainContentComponent.setNeedToSaveSpeakerSetup(true);
     updateWinContent();
 }
 

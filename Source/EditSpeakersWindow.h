@@ -41,6 +41,10 @@ class EditSpeakersWindow final
     , public juce::TextEditor::Listener
     , public juce::Slider::Listener
 {
+    static auto constexpr MIN_COL_WIDTH = 50;
+    static auto constexpr MAX_COL_WIDTH = 120;
+    static auto constexpr DEFAULT_COL_WIDTH = 70;
+
     MainContentComponent & mMainContentComponent;
     GrisLookAndFeel & mLookAndFeel;
 
