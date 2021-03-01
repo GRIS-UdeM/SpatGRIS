@@ -93,6 +93,8 @@ class MainContentComponent final
     // Alsa output device
     juce::String mAlsaOutputDevice{};
 
+    juce::File mCurrentSpeakerSetup{};
+
     // Windows.
     std::unique_ptr<EditSpeakersWindow> mEditSpeakersWindow{};
     std::unique_ptr<SettingsWindow> mPropertiesWindow{};
@@ -181,14 +183,14 @@ public:
     MainContentComponent & operator=(MainContentComponent &&) = delete;
     //==============================================================================
     // Exit application.
-    [[nodiscard]] bool isPresetModified() const;
+    [[nodiscard]] bool isProjectModified() const;
     [[nodiscard]] bool exitApp();
 
     // Menubar handlers.
     void handleNew();
-    void handleOpenPreset();
-    void handleSavePreset();
-    void handleSaveAsPreset();
+    void handleOpenProject();
+    void handleSaveProject() const;
+    void handleSaveAsProject() const;
     void handleOpenSpeakerSetup();
     void handleSaveAsSpeakerSetup(); // Called when closing the Speaker Setup Edition window.
     void handleShowSpeakerEditWindow();
@@ -304,9 +306,9 @@ public:
     // Open - save.
     void openXmlFileSpeaker(juce::File const & file);
     void reloadXmlFileSpeaker();
-    void openPreset(juce::File const & file);
-    void getPresetData(juce::XmlElement * xml) const;
-    void savePreset(juce::String const & path) const;
+    void openProject(juce::File const & file);
+    void getProjectData(juce::XmlElement * xml) const;
+    void saveProject(juce::String const & path) const;
     void saveSpeakerSetup(juce::String const & path);
     void saveProperties(juce::String const & audioDeviceType,
                         juce::String const & inputDevice,
@@ -319,7 +321,7 @@ public:
                         int attenuationFrequencyIndex,
                         int oscPort);
     bool initRecording() const;
-    void setNameConfig();
+    void setCurrentSpeakerSetup(juce::File const & file);
     void setTitle() const;
 
     // Screen refresh timer.

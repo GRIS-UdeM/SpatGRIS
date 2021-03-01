@@ -53,15 +53,15 @@ class Configuration
         static juce::String const RECORDING_CONFIG;
         static juce::String const ATTENUATION_DB;
         static juce::String const ATTENUATION_HZ;
-        static juce::String const LAST_VBAP_SPEAKER_SETUP;
         static juce::String const LAST_PRESET;
-        static juce::String const LAST_LBAP_SPEAKER_SETUP;
+        static juce::String const LAST_SPEAKER_SETUP;
         static juce::String const LAST_RECORDING_DIRECTORY;
         static juce::String const SASH_POSITION;
         static juce::String const WINDOW_X;
         static juce::String const WINDOW_Y;
         static juce::String const WINDOW_WIDTH;
         static juce::String const WINDOW_HEIGHT;
+        static juce::String const LAST_SPAT_MODE;
     };
 
     juce::ApplicationProperties mApplicationProperties{};
@@ -88,6 +88,7 @@ public:
     void setRecordingFormat(RecordingFormat recordingFormat) const;
     void setRecordingConfig(RecordingConfig recordingConfig) const;
     void setLastRecordingDirectory(juce::File const & lastRecordingDirectory) const;
+    void setLastSpatMode(SpatMode spatMode) const;
 
     void setOscInputPort(int oscInputPort) const;
 
@@ -97,8 +98,8 @@ public:
     void setWindowHeight(int windowHeight) const;
     void setSashPosition(double sashPosition) const;
 
-    void setLastOpenPreset(juce::File const & lastOpenPreset) const;
-    void setLastSpeakerSetup(juce::File const & lastOpenSpeakerSetup, SpatMode spatMode) const;
+    void setLastOpenProject(juce::File const & lastOpenPreset) const;
+    void setLastSpeakerSetup_(juce::File const & lastOpenSpeakerSetup) const;
     //==============================================================================
     [[nodiscard]] juce::String getDeviceType() const;
     [[nodiscard]] juce::String getInputDevice() const;
@@ -111,6 +112,7 @@ public:
     [[nodiscard]] RecordingFormat getRecordingFormat() const;
     [[nodiscard]] RecordingConfig getRecordingConfig() const;
     [[nodiscard]] juce::File getLastRecordingDirectory() const;
+    [[nodiscard]] SpatMode getLastSpatMode() const;
 
     [[nodiscard]] int getOscInputPort() const;
 
@@ -120,8 +122,8 @@ public:
     [[nodiscard]] int getWindowHeight() const;
     [[nodiscard]] std::optional<double> getSashPosition() const;
 
-    [[nodiscard]] juce::File getLastOpenPreset() const;
-    [[nodiscard]] juce::File getLastSpeakerSetup(SpatMode spatMode) const;
+    [[nodiscard]] juce::File getLastOpenProject() const;
+    [[nodiscard]] juce::File getLastSpeakerSetup_() const;
 
 private:
     //==============================================================================

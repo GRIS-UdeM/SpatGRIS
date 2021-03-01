@@ -32,15 +32,15 @@ juce::String const Configuration::Tags::RECORDING_FORMAT = "RECORDING_FORMAT";
 juce::String const Configuration::Tags::RECORDING_CONFIG = "RECORDING_CONFIG";
 juce::String const Configuration::Tags::ATTENUATION_DB = "ATTENUATION_DB";
 juce::String const Configuration::Tags::ATTENUATION_HZ = "ATTENUATION_HZ";
-juce::String const Configuration::Tags::LAST_VBAP_SPEAKER_SETUP = "LAST_VBAP_SPEAKER_SETUP";
+juce::String const Configuration::Tags::LAST_SPEAKER_SETUP = "LAST_SPEAKER_SETUP";
 juce::String const Configuration::Tags::LAST_PRESET = "LAST_PRESET";
-juce::String const Configuration::Tags::LAST_LBAP_SPEAKER_SETUP = "LAST_LBAP_SPEAKER_SETUP";
 juce::String const Configuration::Tags::LAST_RECORDING_DIRECTORY = "LAST_RECORDING_DIRECTORY";
 juce::String const Configuration::Tags::SASH_POSITION = "SASH_POSITION";
 juce::String const Configuration::Tags::WINDOW_X = "WINDOW_X";
 juce::String const Configuration::Tags::WINDOW_Y = "WINDOW_Y";
 juce::String const Configuration::Tags::WINDOW_WIDTH = "WINDOW_WIDTH";
 juce::String const Configuration::Tags::WINDOW_HEIGHT = "WINDOW_HEIGHT";
+juce::String const Configuration::Tags::LAST_SPAT_MODE = "LAST_SPAT_MODE";
 
 juce::StringArray const RECORDING_FORMAT_STRINGS{ "WAV", "AIFF" };
 juce::StringArray const RECORDING_CONFIG_STRINGS{ "Multiple Mono Files", "Single Interleaved" };
@@ -140,6 +140,15 @@ void Configuration::setLastRecordingDirectory(juce::File const & lastRecordingDi
 }
 
 //==============================================================================
+void Configuration::setLastSpatMode(SpatMode spatMode) const
+{
+    auto const index{ static_cast<int>(spatMode) };
+    jassert(index >= 0 && index < MODE_SPAT_STRING.size());
+    auto const & string{ MODE_SPAT_STRING.getReference(index) };
+    mUserSettings->setValue(Tags::LAST_SPAT_MODE, string);
+}
+
+//==============================================================================
 void Configuration::setOscInputPort(int const oscInputPort) const
 {
     mUserSettings->setValue(Tags::OSC_INPUT_PORT, oscInputPort);
@@ -176,63 +185,35 @@ void Configuration::setSashPosition(double const sashPosition) const
 }
 
 //==============================================================================
-void Configuration::setLastOpenPreset(juce::File const & lastOpenPreset) const
+void Configuration::setLastOpenProject(juce::File const & lastOpenPreset) const
 {
     mUserSettings->setValue(Tags::LAST_PRESET, lastOpenPreset.getFullPathName());
 }
 
 //==============================================================================
-void Configuration::setLastSpeakerSetup(juce::File const & lastOpenSpeakerSetup, SpatMode const spatMode) const
+void Configuration::setLastSpeakerSetup_(juce::File const & lastOpenSpeakerSetup) const
 {
-    switch (spatMode) {
-    case SpatMode::lbap:
-        mUserSettings->setValue(Tags::LAST_LBAP_SPEAKER_SETUP, lastOpenSpeakerSetup.getFullPathName());
-        return;
-    case SpatMode::stereo:
-        mUserSettings->setValue(Tags::LAST_VBAP_SPEAKER_SETUP, lastOpenSpeakerSetup.getFullPathName());
-        return;
-    case SpatMode::hrtfVbap:
-    case SpatMode::vbap:
-        return;
-    }
-    jassertfalse;
+    mUserSettings->setValue(Tags::LAST_SPEAKER_SETUP, lastOpenSpeakerSetup.getFullPathName());
 }
 
 //==============================================================================
-juce::File Configuration::getLastOpenPreset() const
+juce::File Configuration::getLastOpenProject() const
 {
     juce::File lastOpenPreset{ mUserSettings->getValue(Tags::LAST_PRESET) };
     if (!lastOpenPreset.existsAsFile()) {
-        return DEFAULT_PRESET_FILE;
+        return DEFAULT_PROJECT_FILE;
     }
     return lastOpenPreset;
 }
 
 //==============================================================================
-juce::File Configuration::getLastSpeakerSetup(SpatMode const spatMode) const
+juce::File Configuration::getLastSpeakerSetup_() const
 {
-    switch (spatMode) {
-    case SpatMode::hrtfVbap:
-        return BINAURAL_SPEAKER_SETUP_FILE;
-    case SpatMode::lbap: {
-        juce::File const lastLbap{ mUserSettings->getValue(Tags::LAST_LBAP_SPEAKER_SETUP) };
-        if (!lastLbap.existsAsFile()) {
-            return DEFAULT_SPEAKER_SETUP_FILE;
-        }
-        return lastLbap;
+    juce::File const lastSetup{ mUserSettings->getValue(Tags::LAST_SPEAKER_SETUP) };
+    if (!lastSetup.existsAsFile()) {
+        return DEFAULT_SPEAKER_SETUP_FILE;
     }
-    case SpatMode::stereo:
-        return STEREO_SPEAKER_SETUP_FILE;
-    case SpatMode::vbap: {
-        juce::File const lastVbap{ mUserSettings->getValue(Tags::LAST_VBAP_SPEAKER_SETUP) };
-        if (!lastVbap.existsAsFile()) {
-            return DEFAULT_SPEAKER_SETUP_FILE;
-        }
-        return lastVbap;
-    }
-    }
-    jassertfalse;
-    return {};
+    return lastSetup;
 }
 
 //==============================================================================
@@ -330,6 +311,17 @@ juce::File Configuration::getLastRecordingDirectory() const
         return juce::File::getSpecialLocation(juce::File::SpecialLocationType::userHomeDirectory);
     }
     return file;
+}
+
+//==============================================================================
+SpatMode Configuration::getLastSpatMode() const
+{
+    auto const lastSpatModeString{ mUserSettings->getValue(Tags::LAST_SPAT_MODE) };
+    auto const index{ MODE_SPAT_STRING.indexOf(lastSpatModeString) };
+    if (index == -1) {
+        return SpatMode::vbap;
+    }
+    return static_cast<SpatMode>(index);
 }
 
 //==============================================================================

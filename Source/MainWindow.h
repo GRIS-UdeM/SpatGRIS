@@ -38,10 +38,10 @@ class MainWindow final : public juce::DocumentWindow
 public:
     enum CommandIDs {
         // File menu
-        NewPresetID = 1000,
-        OpenPresetID = 1001,
-        SavePresetID = 1002,
-        SaveAsPresetID = 1003,
+        NewProjectID = 1000,
+        OpenProjectID = 1001,
+        SaveProjectID = 1002,
+        SaveAsProjectID = 1003,
 
         OpenSpeakerSetupID = 2000,
         ShowSpeakerEditID = 2003,

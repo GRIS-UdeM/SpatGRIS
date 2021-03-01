@@ -36,7 +36,7 @@ extern char const * const SYS_CLIENT_NAME;
 extern char const * const CLIENT_NAME_IGNORE;
 
 extern juce::File const SPLASH_SCREEN_FILE;
-extern juce::File const DEFAULT_PRESET_FILE;
+extern juce::File const DEFAULT_PROJECT_FILE;
 extern juce::File const DEFAULT_PRESET_DIRECTORY;
 extern juce::File const DEFAULT_SPEAKER_SETUP_FILE;
 extern juce::File const BINAURAL_SPEAKER_SETUP_FILE;

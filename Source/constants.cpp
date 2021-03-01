@@ -42,7 +42,7 @@ static_assert(false, "What are you building this on?");
 
 juce::File const SPLASH_SCREEN_FILE{ RESOURCES_DIR.getChildFile("splash_screen.png") };
 juce::File const DEFAULT_PRESET_DIRECTORY{ RESOURCES_DIR.getChildFile("default_preset/") };
-juce::File const DEFAULT_PRESET_FILE{ DEFAULT_PRESET_DIRECTORY.getChildFile("default_preset.xml") };
+juce::File const DEFAULT_PROJECT_FILE{ DEFAULT_PRESET_DIRECTORY.getChildFile("default_preset.xml") };
 juce::File const DEFAULT_SPEAKER_SETUP_FILE{ DEFAULT_PRESET_DIRECTORY.getChildFile("default_speaker_setup.xml") };
 juce::File const BINAURAL_SPEAKER_SETUP_FILE{ DEFAULT_PRESET_DIRECTORY.getChildFile("BINAURAL_SPEAKER_SETUP.xml") };
 juce::File const STEREO_SPEAKER_SETUP_FILE{ DEFAULT_PRESET_DIRECTORY.getChildFile("STEREO_SPEAKER_SETUP.xml") };
