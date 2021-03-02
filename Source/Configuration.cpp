@@ -209,7 +209,7 @@ juce::File Configuration::getLastOpenProject() const
 //==============================================================================
 juce::File Configuration::getLastSpeakerSetup_() const
 {
-    juce::File const lastSetup{ mUserSettings->getValue(Tags::LAST_SPEAKER_SETUP) };
+    juce::File lastSetup{ mUserSettings->getValue(Tags::LAST_SPEAKER_SETUP) };
     if (!lastSetup.existsAsFile()) {
         return DEFAULT_SPEAKER_SETUP_FILE;
     }

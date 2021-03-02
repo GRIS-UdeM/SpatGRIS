@@ -109,7 +109,7 @@ private:
 
 public:
     //==============================================================================
-    ~AudioManager() = default;
+    ~AudioManager();
 
     AudioManager(AudioManager const &) = delete;
     AudioManager(AudioManager &&) = delete;

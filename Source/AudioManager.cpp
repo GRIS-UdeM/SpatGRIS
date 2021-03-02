@@ -213,6 +213,15 @@ void AudioManager::init(juce::String const & deviceType,
 }
 
 //==============================================================================
+AudioManager::~AudioManager()
+{
+    juce::ScopedLock const sl{ mCriticalSection };
+    if (mIsRecording) {
+        stopRecording();
+    }
+}
+
+//==============================================================================
 audio_port_t * AudioManager::registerPort(char const * const newShortName,
                                           char const * const newClientName,
                                           PortType const newType,

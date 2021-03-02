@@ -304,7 +304,7 @@ public:
     bool updateLevelComp(); // TODO : what does the return value means ?
 
     // Open - save.
-    void openXmlFileSpeaker(juce::File const & file);
+    void openXmlFileSpeaker(juce::File const & file, std::optional<SpatMode> forceSpatMode = std::nullopt);
     void reloadXmlFileSpeaker();
     void openProject(juce::File const & file);
     void getProjectData(juce::XmlElement * xml) const;

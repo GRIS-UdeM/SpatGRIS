@@ -165,14 +165,14 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     auto const lastSpatMode{ mConfiguration.getLastSpatMode() };
     switch (lastSpatMode) {
     case SpatMode::hrtfVbap:
-        openXmlFileSpeaker(BINAURAL_SPEAKER_SETUP_FILE);
+        openXmlFileSpeaker(BINAURAL_SPEAKER_SETUP_FILE, lastSpatMode);
         break;
     case SpatMode::lbap:
     case SpatMode::vbap:
-        openXmlFileSpeaker(mConfiguration.getLastSpeakerSetup_());
+        openXmlFileSpeaker(mConfiguration.getLastSpeakerSetup_(), lastSpatMode);
         break;
     case SpatMode::stereo:
-        openXmlFileSpeaker(STEREO_SPEAKER_SETUP_FILE);
+        openXmlFileSpeaker(STEREO_SPEAKER_SETUP_FILE, lastSpatMode);
         break;
     }
 
@@ -1417,14 +1417,14 @@ bool MainContentComponent::updateLevelComp()
 
     // Too few speakers...
     if ((mSpeakers.size() - directOutSpeakers) < dimensions) {
-        juce::AlertWindow alert("Not enough speakers!    ",
-                                "Do you want to reload previous config?    ",
+        juce::AlertWindow alert("Not enough speakers !    ",
+                                "Do you want to reload the default setup ?    ",
                                 juce::AlertWindow::WarningIcon);
         alert.setLookAndFeel(&mLookAndFeel);
         alert.addButton("No", 0);
         alert.addButton("Yes", 1, juce::KeyPress(juce::KeyPress::returnKey));
         if (alert.runModalLoop() != 0) {
-            openXmlFileSpeaker(mConfiguration.getLastSpeakerSetup_());
+            openXmlFileSpeaker(DEFAULT_SPEAKER_SETUP_FILE);
         }
         return false;
     }
@@ -1448,7 +1448,7 @@ bool MainContentComponent::updateLevelComp()
             alert.addButton("No", 0);
             alert.addButton("Yes", 1);
             if (alert.runModalLoop() == 0) {
-                openXmlFileSpeaker(mConfiguration.getLastSpeakerSetup_());
+                openXmlFileSpeaker(DEFAULT_SPEAKER_SETUP_FILE);
             }
             return false;
         }
@@ -1607,12 +1607,12 @@ bool MainContentComponent::updateLevelComp()
             mNeedToComputeVbap = false;
         } else {
             juce::AlertWindow alert{ "Not a valid DOME 3-D configuration!    ",
-                                     "Maybe you want to open it in CUBE mode? Reload the default speaker setup...    ",
+                                     "Maybe you want to open it in CUBE mode? Reload the default speaker setup ?    ",
                                      juce::AlertWindow::WarningIcon };
             alert.setLookAndFeel(&mLookAndFeel);
             alert.addButton("Ok", 0, juce::KeyPress(juce::KeyPress::returnKey));
             alert.runModalLoop();
-            openXmlFileSpeaker(DEFAULT_SPEAKER_SETUP_FILE.getFullPathName());
+            openXmlFileSpeaker(DEFAULT_SPEAKER_SETUP_FILE);
             return false;
         }
     } else if (mode == SpatMode::lbap) {
@@ -1708,11 +1708,11 @@ void MainContentComponent::setDirectOut(int const id, output_patch_t const chn) 
 //==============================================================================
 void MainContentComponent::reloadXmlFileSpeaker()
 {
-    openXmlFileSpeaker(mConfiguration.getLastSpeakerSetup_());
+    openXmlFileSpeaker(mConfiguration.getLastSpeakerSetup_(), mAudioProcessor->getMode());
 }
 
 //==============================================================================
-void MainContentComponent::openXmlFileSpeaker(juce::File const & file)
+void MainContentComponent::openXmlFileSpeaker(juce::File const & file, std::optional<SpatMode> const forceSpatMode)
 {
     jassert(file.existsAsFile());
 
@@ -1750,17 +1750,8 @@ void MainContentComponent::openXmlFileSpeaker(juce::File const & file)
         mSpeakers.clear();
     }
 
-    static auto const getSpatMode = [](juce::File const & file, juce::XmlElement const & mainXmlElement) -> SpatMode {
-        if (file == BINAURAL_SPEAKER_SETUP_FILE) {
-            return SpatMode::hrtfVbap;
-        }
-        if (file == STEREO_SPEAKER_SETUP_FILE) {
-            return SpatMode::stereo;
-        }
-        return static_cast<SpatMode>(mainXmlElement.getIntAttribute("SpatMode"));
-    };
-
-    auto const spatMode{ isNewSameAsOld ? mAudioProcessor->getMode() : getSpatMode(file, *mainXmlElem) };
+    auto const spatMode{ forceSpatMode ? *forceSpatMode
+                                       : static_cast<SpatMode>(mainXmlElem->getIntAttribute("SpatMode")) };
 
     mAudioProcessor->setMode(spatMode);
     mSpatModeCombo->setSelectedId(static_cast<int>(spatMode) + 1, juce::dontSendNotification);
@@ -2305,16 +2296,16 @@ void MainContentComponent::comboBoxChanged(juce::ComboBox * comboBoxThatHasChang
         switch (newSpatMode) {
         case SpatMode::vbap:
         case SpatMode::lbap:
-            openXmlFileSpeaker(mCurrentSpeakerSetup);
+            openXmlFileSpeaker(mConfiguration.getLastSpeakerSetup_(), newSpatMode);
             mIsSpanShown = true;
             break;
         case SpatMode::hrtfVbap:
-            openXmlFileSpeaker(BINAURAL_SPEAKER_SETUP_FILE);
+            openXmlFileSpeaker(BINAURAL_SPEAKER_SETUP_FILE, newSpatMode);
             mAudioProcessor->resetHrtf();
             mIsSpanShown = false;
             break;
         case SpatMode::stereo:
-            openXmlFileSpeaker(STEREO_SPEAKER_SETUP_FILE);
+            openXmlFileSpeaker(STEREO_SPEAKER_SETUP_FILE, newSpatMode);
             mIsSpanShown = false;
             break;
         }
