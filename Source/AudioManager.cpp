@@ -134,8 +134,10 @@ void AudioManager::audioDeviceIOCallback(const float ** inputChannelData,
             }
         } else {
             jassert(mRecordingConfig == RecordingConfig::mono);
-            jassert(mRecorders.size() == mRecordingBuffer.getNumChannels());
-            for (int channel{}; channel < mRecordingBuffer.getNumChannels(); ++channel) {
+            jassert(mAudioProcessor->getMode() == SpatMode::hrtfVbap
+                        ? mRecorders.size() == 2
+                        : mRecorders.size() == mRecordingBuffer.getNumChannels());
+            for (int channel{}; channel < mChannelsToRecord.size(); ++channel) {
                 auto & recorder{ *mRecorders.getUnchecked(channel) };
                 jassert(recorder.audioFormatWriter->getNumChannels() == 1);
                 auto const * const channelData{ mRecordingBuffer.getArrayOfReadPointers()[channel] };
@@ -218,6 +220,7 @@ AudioManager::~AudioManager()
     juce::ScopedLock const sl{ mCriticalSection };
     if (mIsRecording) {
         stopRecording();
+        mRecorders.clear(true);
     }
 }
 
@@ -489,16 +492,22 @@ bool AudioManager::prepareToRecord(RecordingOptions const & recordingOptions,
 
     // update channels to record
     static auto const getChannelsToRecord
-        = [](juce::OwnedArray<Speaker> const & speakers) -> juce::Array<output_patch_t> {
+        = [](juce::OwnedArray<Speaker> const & speakers, SpatMode const spatMode) -> juce::Array<output_patch_t> {
         juce::Array<output_patch_t> result{};
-        result.resize(speakers.size());
-        std::transform(speakers.begin(), speakers.end(), result.begin(), [](Speaker const * speaker) -> output_patch_t {
-            return speaker->getOutputPatch();
-        });
-        std::sort(result.begin(), result.end());
+        if (spatMode == SpatMode::hrtfVbap) {
+            result.add(output_patch_t{ 1 });
+            result.add(output_patch_t{ 2 });
+        } else {
+            result.resize(speakers.size());
+            std::transform(speakers.begin(),
+                           speakers.end(),
+                           result.begin(),
+                           [](Speaker const * speaker) -> output_patch_t { return speaker->getOutputPatch(); });
+            std::sort(result.begin(), result.end());
+        }
         return result;
     };
-    mChannelsToRecord = getChannelsToRecord(speakers);
+    mChannelsToRecord = getChannelsToRecord(speakers, mAudioProcessor->getMode());
 
     // subroutine to build the SpeakerInfos
     auto makeRecordingInfo = [](juce::String const & filePath,
@@ -569,7 +578,35 @@ bool AudioManager::prepareToRecord(RecordingOptions const & recordingOptions,
 
         auto const fileNames{ getFileNames(baseOutputFile, extension, mChannelsToRecord) };
 
+        bool deleteAllFiles{ false };
         for (auto const & fileName : fileNames) {
+            // delete file if needed
+            juce::File file{ fileName };
+            if (file.existsAsFile()) {
+                if (!deleteAllFiles) {
+                    juce::AlertWindow alertWindow{ "error",
+                                                   "File \"" + file.getFullPathName() + "\" will be deleted. Proceed ?",
+                                                   juce::AlertWindow::WarningIcon };
+                    alertWindow.addButton("No", 0);
+                    alertWindow.addButton("yes", 1);
+                    alertWindow.addButton("Yes for all", 2);
+                    auto const result{ alertWindow.runModalLoop() };
+                    if (result == 0) {
+                        return false;
+                    }
+                    if (result == 2) {
+                        deleteAllFiles = true;
+                    }
+                }
+                auto const success{ file.deleteFile() };
+                if (!success) {
+                    juce::AlertWindow::showMessageBox(juce::AlertWindow::WarningIcon,
+                                                      "Error",
+                                                      juce::String{ "Unable to overwrite file \"" }
+                                                          + file.getFullPathName() + "\".");
+                    return false;
+                }
+            }
             auto recorderInfo{ makeRecordingInfo(fileName,
                                                  *audioFormat,
                                                  1,
