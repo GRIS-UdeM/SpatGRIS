@@ -676,7 +676,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
             switch (columnNumber) {
             case cols::X: {
                 auto newP = speaker.getCartesianCoords();
-                auto const val{ getFloatPrecision(newText.getFloatValue(), 3.0f) };
+                auto const val{ std::clamp(newText.getFloatValue(), -1.0f, 1.0f) };
                 auto diff = val - newP.z;
                 newP.z = val;
                 speaker.setCoordinate(newP);
@@ -699,7 +699,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
             }
             case cols::Y: {
                 auto newP = speaker.getCartesianCoords();
-                auto const val{ getFloatPrecision(newText.getFloatValue(), 3.0f) };
+                auto const val{ std::clamp(newText.getFloatValue(), -1.0f, 1.0f) };
                 auto diff = val - newP.x;
                 newP.x = val;
                 speaker.setCoordinate(newP);
@@ -722,9 +722,8 @@ void EditSpeakersWindow::setText(int const columnNumber,
             }
             case cols::Z: {
                 auto newP = speaker.getCartesianCoords();
-                auto val{ getFloatPrecision(newText.getFloatValue(), 3.0f) };
+                auto const val{ std::clamp(newText.getFloatValue(), 0.0f, 1.0f) };
                 auto diff = val - newP.y;
-                val = std::clamp(val, -1.0f, 1.0f);
                 newP.y = val;
                 speaker.setCoordinate(newP);
                 if (selectedRows.size() > 1) {
@@ -782,9 +781,8 @@ void EditSpeakersWindow::setText(int const columnNumber,
             }
             case cols::ELEVATION: {
                 auto newP = speaker.getPolarCoords();
-                auto val{ getFloatPrecision(newText.getFloatValue(), 3.0f) };
+                auto const val{ std::clamp(newText.getFloatValue(), -90.0f, 90.0f) };
                 auto diff = val - newP.y;
-                val = std::clamp(val, -90.0f, 90.0f);
                 newP.y = val;
                 speaker.setAziZenRad(newP);
                 if (selectedRows.size() > 1) {
@@ -814,7 +812,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
                     val = getFloatPrecision(newText.getFloatValue(), 3.0f);
                 }
                 auto diff = val - newP.z;
-                val = std::clamp(val, 0.0f, 2.5f);
+                val = std::clamp(val, 0.0f, juce::MathConstants<float>::sqrt2);
                 newP.z = val;
                 speaker.setAziZenRad(newP);
                 if (selectedRows.size() > 1) {
