@@ -1,20 +1,20 @@
 /*
- This file is part of SpatGRIS2.
+ This file is part of SpatGRIS.
 
  Developers: Samuel B�land, Olivier B�langer, Nicolas Masson
 
- SpatGRIS2 is free software: you can redistribute it and/or modify
+ SpatGRIS is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
 
- SpatGRIS2 is distributed in the hope that it will be useful,
+ SpatGRIS is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
 
  You should have received a copy of the GNU General Public License
- along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
+ along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "AudioProcessor.h"
@@ -39,7 +39,7 @@ size_t constexpr RIGHT = 1;
 static juce::AudioBuffer<float> getSamplesFromWavFile(juce::File const & file)
 {
     if (!file.existsAsFile()) {
-        auto const error{ file.getFullPathName() + "\n\nTry re-installing SpatGRIS2." };
+        auto const error{ file.getFullPathName() + "\n\nTry re-installing SpatGRIS." };
         juce::AlertWindow::showMessageBox(juce::AlertWindow::AlertIconType::WarningIcon, "Missing file", error);
         std::exit(-1);
     }
@@ -145,7 +145,7 @@ void AudioProcessor::addRemoveInput(unsigned int const number)
         while (number > mInputsPort.size()) {
             juce::String nameIn{ "input" };
             nameIn += juce::String{ mInputsPort.size() + 1 };
-            auto * newPort{ audioManager.registerPort(nameIn.toStdString().c_str(), "SpatGRIS2", PortType::input) };
+            auto * newPort{ audioManager.registerPort(nameIn.toStdString().c_str(), "SpatGRIS", PortType::input) };
             mInputsPort.push_back(newPort);
         }
     }
@@ -174,7 +174,7 @@ bool AudioProcessor::addOutput(output_patch_t const outputPatch)
     nameOut += juce::String(mOutputsPort.size() + 1);
 
     auto * newPort{
-        AudioManager::getInstance().registerPort(nameOut.toStdString().c_str(), "SpatGRIS2", PortType::output)
+        AudioManager::getInstance().registerPort(nameOut.toStdString().c_str(), "SpatGRIS", PortType::output)
     };
 
     mOutputsPort.push_back(newPort);
@@ -681,7 +681,7 @@ void AudioProcessor::reconnectPorts()
         juce::String nameOut{ "output" };
         nameOut += juce::String{ mOutputsPort.size() + 1 };
 
-        auto * newPort{ audioManager.registerPort(nameOut.toStdString().c_str(), "SpatGRIS2", PortType::output) };
+        auto * newPort{ audioManager.registerPort(nameOut.toStdString().c_str(), "SpatGRIS", PortType::output) };
 
         mOutputsPort.push_back(newPort);
     }

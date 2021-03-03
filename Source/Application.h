@@ -1,25 +1,23 @@
 /*
- This file is part of SpatGRIS2.
+ This file is part of SpatGRIS.
 
  Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
 
- SpatGRIS2 is free software: you can redistribute it and/or modify
+ SpatGRIS is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
 
- SpatGRIS2 is distributed in the hope that it will be useful,
+ SpatGRIS is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
 
  You should have received a copy of the GNU General Public License
- along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
+ along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #pragma once
-
-#include <optional>
 
 #include "macros.h"
 DISABLE_WARNINGS
@@ -30,7 +28,7 @@ ENABLE_WARNINGS
 #include "MainWindow.h"
 
 //==============================================================================
-class SpatGris2Application final : public juce::JUCEApplication
+class SpatGrisApplication final : public juce::JUCEApplication
 {
     std::unique_ptr<MainWindow> mMainWindow{};
     GrisLookAndFeel mGrisFeel{};
@@ -38,14 +36,14 @@ class SpatGris2Application final : public juce::JUCEApplication
 
 public:
     //==============================================================================
-    SpatGris2Application() = default;
-    ~SpatGris2Application() override = default;
+    SpatGrisApplication() = default;
+    ~SpatGrisApplication() override = default;
 
-    SpatGris2Application(SpatGris2Application const &) = delete;
-    SpatGris2Application(SpatGris2Application &&) = delete;
+    SpatGrisApplication(SpatGrisApplication const &) = delete;
+    SpatGrisApplication(SpatGrisApplication &&) = delete;
 
-    SpatGris2Application & operator=(SpatGris2Application const &) = delete;
-    SpatGris2Application & operator=(SpatGris2Application &&) = delete;
+    SpatGrisApplication & operator=(SpatGrisApplication const &) = delete;
+    SpatGrisApplication & operator=(SpatGrisApplication &&) = delete;
     //==============================================================================
     [[nodiscard]] const juce::String getApplicationName() override { return ProjectInfo::projectName; }
     [[nodiscard]] const juce::String getApplicationVersion() override { return ProjectInfo::versionString; }
@@ -57,5 +55,5 @@ public:
 
 private:
     //==============================================================================
-    JUCE_LEAK_DETECTOR(SpatGris2Application)
+    JUCE_LEAK_DETECTOR(SpatGrisApplication)
 };
