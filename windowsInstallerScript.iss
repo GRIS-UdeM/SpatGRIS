@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "SpatGris"
-#define MyAppVersion "2.1.7"
+#define MyAppVersion "2.1.8"
 #define MyAppPublisher "Gris - UdeM"
 #define MyAppURL "http://gris.musique.umontreal.ca/"
 #define MyAppExeName "SpatGRIS.exe"
@@ -42,6 +42,8 @@ Source: "Builds\VisualStudio2019\x64\Release\App\{#MyAppExeName}"; DestDir: "{ap
 Source: "Builds\VisualStudio2019\x64\Release\App\freeglut.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "Resources\hrtf_compact\*"; DestDir: "{app}\Resources\hrtf_compact"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "Resources\default_preset\*"; DestDir: "{app}\Resources\default_preset"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "Resources\templates\*"; DestDir: "{app}\templates"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "Resources\SpatGRIS2_2.0_Manual.pdf"; DestDir: "{app}\Resources\SpatGRIS2_2.0_Manual.pdf"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]

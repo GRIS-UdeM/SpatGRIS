@@ -1,14 +1,23 @@
 #!/bin/sh
 
-# Developer: Olivier Belanger
+# Developer: Olivier Belanger & Samuel Béland
 
-# To build the installer for OSX, install JackOSX.0.92_b3.pkg,
-# compile SpatGRIS in Release mode
-# and run this shell script from the installer folder.
+# To build the installer for OSX, compile SpatGRIS in Release mode
+# and run this shell script from the installer folder while giving
+# the version number as an argument.
 
-export PACKAGE_NAME=SpatGRIS_v2.1.2.pkg
-export DMG_DIR="SpatGRIS v2.1.2"
-export DMG_NAME="SpatGRIS_v2.1.2.dmg"
+
+
+if [ "$#" -ne 1 ]; then
+    echo "Please provide the SpatGRIS version number as an argument to this script"
+    exit -1
+fi
+
+VERSION=$1
+
+export PACKAGE_NAME="SpatGRIS_v$VERSION.pkg"
+export DMG_DIR="SpatGRIS_v$VERSION"
+export DMG_NAME="SpatGRIS_v$VERSION.dmg"
 
 # Replace app icon with a better version
 cp ../Resources/Icon.icns ../Builds/MacOSX/build/Release/SpatGRIS.app/Contents/Resources/Icon.icns
@@ -42,44 +51,9 @@ cp $PKG_RESOURCES/ReadMe.rtf $BUILD_RESOURCES/ReadMe.rtf
 
 echo "copying application..."
 cp -r ../Builds/MacOSX/build/Release/SpatGRIS.app $APPLICATIONS_DIR/
-cp -r /Applications/Jack $APPLICATIONS_DIR/
 
 echo "copying support libs..."
-sudo cp /usr/local/bin/jackd $SUPPORT_LIBS_DIR/bin/
-sudo cp /usr/local/bin/jackdmp $SUPPORT_LIBS_DIR/bin/
-sudo cp /usr/local/bin/jack_metro $SUPPORT_LIBS_DIR/bin/
-sudo cp /usr/local/bin/jack_lsp $SUPPORT_LIBS_DIR/bin/
-sudo cp /usr/local/bin/jack_disconnect $SUPPORT_LIBS_DIR/bin/
-sudo cp /usr/local/bin/jack_connect $SUPPORT_LIBS_DIR/bin/
-sudo cp /usr/local/bin/jack_load $SUPPORT_LIBS_DIR/bin/
-sudo cp /usr/local/bin/jack_unload $SUPPORT_LIBS_DIR/bin/
-sudo cp /usr/local/bin/jack_netsource $SUPPORT_LIBS_DIR/bin/
-sudo cp /usr/local/lib/jackmp/jack_coreaudio.so $SUPPORT_LIBS_DIR/lib/jackmp/
-sudo cp /usr/local/lib/jackmp/jack_coremidi.so $SUPPORT_LIBS_DIR/lib/jackmp/
-sudo cp /usr/local/lib/jackmp/jack_loopback.so $SUPPORT_LIBS_DIR/lib/jackmp/
-sudo cp /usr/local/lib/jackmp/jack_net.so $SUPPORT_LIBS_DIR/lib/jackmp/
-sudo cp /usr/local/lib/jackmp/jack_netone.so $SUPPORT_LIBS_DIR/lib/jackmp/
-sudo cp /usr/local/lib/jackmp/netmanager.so $SUPPORT_LIBS_DIR/lib/jackmp/
-sudo cp /usr/local/lib/jackmp/netadapter.so $SUPPORT_LIBS_DIR/lib/jackmp/
-sudo cp /usr/local/lib/jackmp/audioadapter.so $SUPPORT_LIBS_DIR/lib/jackmp/
-sudo cp /usr/local/lib/pkgconfig/jack.pc $SUPPORT_LIBS_DIR/lib/pkgconfig/
-sudo cp -r /usr/local/include/jack $SUPPORT_LIBS_DIR/include/
-
-sudo cp -r /Library/Frameworks/Jackmp.framework $FRAMEWORKS_DIR
-sudo cp -r /Library/Frameworks/Jackservermp.framework $FRAMEWORKS_DIR
-sudo cp -r /Library/Frameworks/Jacknet.framework $FRAMEWORKS_DIR
-sudo cp -r /Library/Frameworks/Panda.framework $FRAMEWORKS_DIR
-
-sudo cp /usr/local/lib/libjack.0.dylib $SUPPORT_LIBS_DIR/lib/
-sudo cp /usr/local/lib/libjack.dylib $SUPPORT_LIBS_DIR/lib/
-sudo cp /usr/local/lib/libjackserver.0.dylib $SUPPORT_LIBS_DIR/lib/
-sudo cp /usr/local/lib/libjackserver.dylib $SUPPORT_LIBS_DIR/lib/
-sudo cp /usr/local/lib/libjacknet.0.dylib $SUPPORT_LIBS_DIR/lib/
-sudo cp /usr/local/lib/libjacknet.dylib $SUPPORT_LIBS_DIR/lib/
-
-sudo cp -r /Library/Audio/Plug-Ins/HAL/JackRouter.plugin $PLUGINS_DIR/HAL/
-sudo cp -r /Library/Audio/Plug-Ins/Components/JACK-insert.component $PLUGINS_DIR/Components/
-sudo cp -r /Library/Audio/Plug-Ins/VST/JACK-insert.vst $PLUGINS_DIR/VST/
+# sudo cp -r /Library/Frameworks/Panda.framework $FRAMEWORKS_DIR
 
 cd $INSTALLER_DIR
 
@@ -94,24 +68,24 @@ sudo chmod -R 755 SupportLibs/Package_Contents/usr
 echo "building packages..."
 pkgbuild    --identifier com.gris.umontreal.ca.SpatGRIS.app.pkg \
             --root Application/Package_Contents/ \
-            --version 1.0 \
+            --version $VERSION \
             --scripts $PKG_RESOURCES \
             --component-plist ../Application.plist \
             Application.pkg
 
 pkgbuild    --identifier com.gris.umontreal.ca.SpatGRIS.libs.pkg \
             --root SupportLibs/Package_Contents/ \
-            --version 1.0 \
+            --version $VERSION \
             SupportLibs.pkg
 
 pkgbuild    --identifier com.gris.umontreal.ca.SpatGRIS.frameworks.pkg \
             --root Frameworks/Package_Contents/ \
-            --version 1.0 \
+            --version $VERSION \
             Frameworks.pkg
 
 pkgbuild    --identifier com.gris.umontreal.ca.SpatGRIS.plugins.pkg \
             --root Plugins/Package_Contents/ \
-            --version 1.0 \
+            --version $VERSION \
             Plugins.pkg
 
 echo "building product..."
@@ -121,7 +95,7 @@ echo "assembling DMG..."
 mkdir "$DMG_DIR"
 cd "$DMG_DIR"
 cp ../$PACKAGE_NAME .
-cp -r "../../../Resources/SpatGRIS2 Templates" .
+cp -r "../../../Resources/templates Templates" .
 
 cd ..
 
