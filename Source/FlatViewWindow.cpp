@@ -21,6 +21,7 @@
 
 #include "Input.h"
 #include "MainComponent.h"
+#include "constants.hpp"
 #include "narrow.hpp"
 
 static float constexpr RADIUS_MAX = 2.0f;
@@ -75,75 +76,68 @@ FlatViewWindow::FlatViewWindow(MainContentComponent & parent, GrisLookAndFeel & 
 }
 
 //==============================================================================
-FlatViewWindow::~FlatViewWindow()
+void FlatViewWindow::drawFieldBackground(juce::Graphics & g, int const fieldSize) const
 {
-    mMainContentComponent.closeFlatViewWindow();
-}
+    auto const fieldSizeFloat{ narrow<float>(fieldSize) };
+    auto const realSize{ fieldSizeFloat - SOURCE_DIAMETER };
 
-//==============================================================================
-void FlatViewWindow::drawFieldBackground(juce::Graphics & g, const int fieldWH) const
-{
-    auto const realW{ fieldWH - narrow<int>(SOURCE_DIAMETER) };
-    auto const realW_f{ static_cast<float>(realW) };
+    auto const getCenteredSquare = [fieldSizeFloat](float const size) -> juce::Rectangle<float> {
+        auto const offset{ (fieldSizeFloat - size) / 2.0f };
+        juce::Rectangle<float> const result{ offset, offset, size, size };
+        return result;
+    };
 
-    auto const fieldWH_f{ static_cast<float>(fieldWH) };
     if (mMainContentComponent.getModeSelected() == SpatMode::lbap) {
-        // Draw light background squares.
-        g.setColour(mLookAndFeel.getLightColour());
-        auto offset{ fieldWH_f * 0.4f };
-        auto size{ fieldWH_f * 0.2f };
-        g.drawRect(offset, offset, size, size);
-        offset = fieldWH_f * 0.2f;
-        size = fieldWH_f * 0.6f;
-        g.drawRect(offset, offset, size, size);
-        g.drawRect(10, 10, fieldWH - 20, fieldWH - 20);
         // Draw shaded background squares.
         g.setColour(mLookAndFeel.getLightColour().withBrightness(0.5));
-        offset = fieldWH_f * 0.3f;
-        size = fieldWH_f * 0.4f;
-        g.drawRect(offset, offset, size, size);
-        offset = fieldWH_f * 0.1f;
-        size = fieldWH_f * 0.8f;
-        g.drawRect(offset, offset, size, size);
+        auto const smallRect{ getCenteredSquare(realSize / LBAP_EXTENDED_RADIUS / 2.0f) };
+        auto const noAttenuationRect{ getCenteredSquare(realSize / LBAP_EXTENDED_RADIUS) };
+        auto const maxAttenuationRect{ getCenteredSquare(realSize) };
+        g.drawRect(smallRect);
+        g.drawEllipse(noAttenuationRect, 1.0f);
+        g.drawEllipse(maxAttenuationRect, 1.0f);
         // Draw lines.
-        auto const center{ (fieldWH - realW_f) / 2.0f };
-        g.drawLine(fieldWH_f * 0.2f, fieldWH_f * 0.2f, fieldWH_f - fieldWH_f * 0.2f, fieldWH_f - fieldWH_f * 0.2f);
-        g.drawLine(fieldWH_f * 0.2f, fieldWH_f - fieldWH_f * 0.2f, fieldWH_f - fieldWH_f * 0.2f, fieldWH_f * 0.2f);
-        g.drawLine(center, fieldWH_f / 2.0f, realW_f + center, fieldWH_f / 2.0f);
-        g.drawLine(fieldWH_f / 2.0f, center, fieldWH_f / 2.0f, realW_f + center);
+        static constexpr auto LINE_START{ SOURCE_DIAMETER / 2.0f };
+        auto const lineEnd{ realSize + SOURCE_DIAMETER / 2.0f };
+        g.drawLine(LINE_START, LINE_START, lineEnd, lineEnd);
+        g.drawLine(LINE_START, lineEnd, lineEnd, LINE_START);
+        // Draw light background squares.
+        g.setColour(mLookAndFeel.getLightColour());
+        g.drawRect(noAttenuationRect);
+        g.drawRect(maxAttenuationRect);
     } else {
         // Draw line and light circle.
         g.setColour(mLookAndFeel.getLightColour().withBrightness(0.5));
-        auto w{ realW_f / 1.3f };
-        auto x{ (fieldWH_f - w) / 2.0f };
+        auto w{ realSize / 1.3f };
+        auto x{ (fieldSizeFloat - w) / 2.0f };
         g.drawEllipse(x, x, w, w, 1);
-        w = realW_f / 4.0f;
-        x = (fieldWH_f - w) / 2.0f;
+        w = realSize / 4.0f;
+        x = (fieldSizeFloat - w) / 2.0f;
         g.drawEllipse(x, x, w, w, 1);
 
-        w = realW_f;
-        x = (fieldWH_f - w) / 2.0f;
+        w = realSize;
+        x = (fieldSizeFloat - w) / 2.0f;
         auto const r{ w / 2.0f * 0.296f };
 
         g.drawLine(x + r, x + r, (w + x) - r, (w + x) - r);
         g.drawLine(x + r, (w + x) - r, (w + x) - r, x + r);
-        g.drawLine(x, fieldWH_f / 2, w + x, fieldWH_f / 2);
-        g.drawLine(fieldWH_f / 2, x, fieldWH_f / 2, w + x);
+        g.drawLine(x, fieldSizeFloat / 2, w + x, fieldSizeFloat / 2);
+        g.drawLine(fieldSizeFloat / 2, x, fieldSizeFloat / 2, w + x);
 
         // Draw big background circle.
         g.setColour(mLookAndFeel.getLightColour());
         g.drawEllipse(x, x, w, w, 1);
 
         // Draw little background circle.
-        w = realW_f / 2.0f;
-        x = (fieldWH_f - w) / 2.0f;
+        w = realSize / 2.0f;
+        x = (fieldSizeFloat - w) / 2.0f;
         g.drawEllipse(x, x, w, w, 1);
 
-        // Draw fill center cirlce.
+        // Draw fill center circle.
         g.setColour(mLookAndFeel.getWinBackgroundColour());
-        w = realW_f / 4.0f;
+        w = realSize / 4.0f;
         w -= 2.0f;
-        x = (fieldWH_f - w) / 2.0f;
+        x = (fieldSizeFloat - w) / 2.0f;
         g.fillEllipse(x, x, w, w);
     }
 }
@@ -151,43 +145,44 @@ void FlatViewWindow::drawFieldBackground(juce::Graphics & g, const int fieldWH) 
 //==============================================================================
 void FlatViewWindow::paint(juce::Graphics & g)
 {
-    auto const fieldWh = getWidth(); // Same as getHeight()
-    auto const fieldCenter = fieldWh / 2;
-    auto const SourceDiameter_i{ narrow<int>(SOURCE_DIAMETER) };
-    auto const realW = fieldWh - SourceDiameter_i;
+    static auto constexpr SOURCE_DIAMETER_INT{ narrow<int>(SOURCE_DIAMETER) };
+
+    auto const fieldSize = getWidth(); // Same as getHeight()
+    auto const fieldCenter = fieldSize / 2;
+    auto const realSize = fieldSize - SOURCE_DIAMETER_INT;
 
     g.fillAll(mLookAndFeel.getWinBackgroundColour());
 
-    drawFieldBackground(g, fieldWh);
+    drawFieldBackground(g, fieldSize);
 
-    g.setFont(mLookAndFeel.getFont());
+    g.setFont(mLookAndFeel.getFont().withHeight(15.0f));
     g.setColour(mLookAndFeel.getLightColour());
     g.drawText("0",
                fieldCenter,
                10,
-               SourceDiameter_i,
-               SourceDiameter_i,
+               SOURCE_DIAMETER_INT,
+               SOURCE_DIAMETER_INT,
                juce::Justification(juce::Justification::centred),
                false);
     g.drawText("90",
-               realW - 10,
-               (fieldWh - 4) / 2,
-               SourceDiameter_i,
-               SourceDiameter_i,
+               realSize - 10,
+               (fieldSize - 4) / 2,
+               SOURCE_DIAMETER_INT,
+               SOURCE_DIAMETER_INT,
                juce::Justification(juce::Justification::centred),
                false);
     g.drawText("180",
                fieldCenter,
-               realW - 6,
-               SourceDiameter_i,
-               SourceDiameter_i,
+               realSize - 6,
+               SOURCE_DIAMETER_INT,
+               SOURCE_DIAMETER_INT,
                juce::Justification(juce::Justification::centred),
                false);
     g.drawText("270",
                14,
-               (fieldWh - 4) / 2,
-               SourceDiameter_i,
-               SourceDiameter_i,
+               (fieldSize - 4) / 2,
+               SOURCE_DIAMETER_INT,
+               SOURCE_DIAMETER_INT,
                juce::Justification(juce::Justification::centred),
                false);
 
@@ -198,50 +193,55 @@ void FlatViewWindow::paint(juce::Graphics & g)
         if (it->getGain() == -1.0f) {
             continue;
         }
-        drawSource(g, mMainContentComponent.getSourceInputs().getUnchecked(i), fieldWh);
-        drawSourceSpan(g, mMainContentComponent.getSourceInputs().getUnchecked(i), fieldWh, fieldCenter);
+        drawSource(g, mMainContentComponent.getSourceInputs().getUnchecked(i), fieldSize);
+        drawSourceSpan(g, mMainContentComponent.getSourceInputs().getUnchecked(i), fieldSize, fieldCenter);
     }
 }
 
 //==============================================================================
-void FlatViewWindow::drawSource(juce::Graphics & g, Input * it, const int fieldWh) const
+void FlatViewWindow::drawSource(juce::Graphics & g, Input * input, const int fieldSize) const
 {
-    auto const realW = static_cast<float>(fieldWh) - SOURCE_DIAMETER;
-    juce::String stringVal;
-    juce::Point<float> sourceP;
+    static constexpr auto SOURCE_DIAMETER_INT{ narrow<int>(SOURCE_DIAMETER) };
+
+    auto const fieldSizeFloat{ narrow<float>(fieldSize) };
+    auto const realSize = fieldSizeFloat - SOURCE_DIAMETER;
+    juce::Point<float> sourcePosition;
     if (mMainContentComponent.getModeSelected() == SpatMode::lbap) {
-        sourceP = juce::Point<float>(it->getCenter().z * 0.6f, it->getCenter().x * 0.6f) / 5.0f;
+        sourcePosition = juce::Point<float>(input->getCenter().z * 0.6f, input->getCenter().x * 0.6f) / 5.0f;
     } else {
-        sourceP = juce::Point<float>(it->getCenter().z, it->getCenter().x) / 5.0f;
+        sourcePosition = juce::Point<float>(input->getCenter().z, input->getCenter().x) / 5.0f;
     }
-    sourceP.x = realW / 2.0f + realW / 4.0f * sourceP.x;
-    sourceP.y = realW / 2.0f - realW / 4.0f * sourceP.y;
-    sourceP.x = sourceP.x < 0 ? 0 : sourceP.x > fieldWh - SOURCE_DIAMETER ? fieldWh - SOURCE_DIAMETER : sourceP.x;
-    sourceP.y = sourceP.y < 0 ? 0 : sourceP.y > fieldWh - SOURCE_DIAMETER ? fieldWh - SOURCE_DIAMETER : sourceP.y;
+    sourcePosition.x = realSize / 2.0f + realSize / 4.0f * sourcePosition.x;
+    sourcePosition.y = realSize / 2.0f - realSize / 4.0f * sourcePosition.y;
+    sourcePosition.x = sourcePosition.x < 0.0f
+                           ? 0.0f
+                           : sourcePosition.x > fieldSizeFloat - SOURCE_DIAMETER ? fieldSizeFloat - SOURCE_DIAMETER
+                                                                                 : sourcePosition.x;
+    sourcePosition.y = sourcePosition.y < 0.0f
+                           ? 0.0f
+                           : sourcePosition.y > fieldSizeFloat - SOURCE_DIAMETER ? fieldSizeFloat - SOURCE_DIAMETER
+                                                                                 : sourcePosition.y;
 
-    g.setColour(it->getColorJWithAlpha());
-    g.fillEllipse(sourceP.x, sourceP.y, SOURCE_DIAMETER, SOURCE_DIAMETER);
+    g.setColour(input->getColorJWithAlpha());
+    g.fillEllipse(sourcePosition.x, sourcePosition.y, SOURCE_DIAMETER, SOURCE_DIAMETER);
 
-    stringVal.clear();
-    stringVal << it->getId();
-
-    g.setColour(juce::Colours::black.withAlpha(it->getAlpha()));
-    auto const tx{ static_cast<int>(sourceP.x) };
-    auto const ty{ static_cast<int>(sourceP.y) };
-    auto const SourceDiameter_i{ narrow<int>(SOURCE_DIAMETER) };
+    g.setColour(juce::Colours::black.withAlpha(input->getAlpha()));
+    auto const tx{ static_cast<int>(sourcePosition.x) };
+    auto const ty{ static_cast<int>(sourcePosition.y) };
+    juce::String const stringVal{ input->getId() };
     g.drawText(stringVal,
                tx + 6,
                ty + 1,
-               SourceDiameter_i + 10,
-               SourceDiameter_i,
+               SOURCE_DIAMETER_INT + 10,
+               SOURCE_DIAMETER_INT,
                juce::Justification(juce::Justification::centredLeft),
                false);
-    g.setColour(juce::Colours::white.withAlpha(it->getAlpha()));
+    g.setColour(juce::Colours::white.withAlpha(input->getAlpha()));
     g.drawText(stringVal,
                tx + 5,
                ty,
-               SourceDiameter_i + 10,
-               SourceDiameter_i,
+               SOURCE_DIAMETER_INT + 10,
+               SOURCE_DIAMETER_INT,
                juce::Justification(juce::Justification::centredLeft),
                false);
 }
@@ -273,8 +273,8 @@ void FlatViewWindow::drawSourceSpan(juce::Graphics & g, Input * it, const int fi
         g.setColour(colorS.withAlpha(it->getAlpha() * 0.2f));
         g.fillEllipse(sourceP.x - halfAzimuthSpan, sourceP.y - halfAzimuthSpan, azimuthSpan, azimuthSpan);
     } else {
-        auto const HRAzimSpan{ 180.0f * it->getAzimuthSpan() }; // In zirkosc, this is [0,360]
-        auto const HRElevSpan{ 180.0f * it->getZenithSpan() };  // In zirkosc, this is [0,90]
+        auto const HRAzimSpan{ 180.0f * it->getAzimuthSpan() };
+        auto const HRElevSpan{ 180.0f * it->getZenithSpan() };
 
         if ((HRAzimSpan < 0.002f && HRElevSpan < 0.002f) || !mMainContentComponent.isSpanShown()) {
             return;
@@ -282,8 +282,8 @@ void FlatViewWindow::drawSourceSpan(juce::Graphics & g, Input * it, const int fi
 
         auto const azimuthElevation{ getSourceAzimuthElevation(sourceP, true) };
 
-        auto const hrAzimuth{ azimuthElevation.x * 180.0f };   // In zirkosc [-180,180]
-        auto const hrElevation{ azimuthElevation.y * 180.0f }; // In zirkosc [0,89.9999]
+        auto const hrAzimuth{ azimuthElevation.x * 180.0f };
+        auto const hrElevation{ azimuthElevation.y * 180.0f };
 
         // Calculate max and min elevation in degrees.
         juce::Point<float> maxElev = { hrAzimuth, hrElevation + HRElevSpan / 2.0f };

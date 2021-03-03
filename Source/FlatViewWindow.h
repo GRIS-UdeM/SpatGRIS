@@ -20,7 +20,6 @@
 #pragma once
 
 #include "macros.h"
-
 DISABLE_WARNINGS
 #include <JuceHeader.h>
 ENABLE_WARNINGS
@@ -42,11 +41,10 @@ public:
     FlatViewWindow(MainContentComponent & parent, GrisLookAndFeel & feel);
     //==============================================================================
     FlatViewWindow() = delete;
-    ~FlatViewWindow() override;
-
+    ~FlatViewWindow() override = default;
+    //==============================================================================
     FlatViewWindow(FlatViewWindow const &) = delete;
     FlatViewWindow(FlatViewWindow &&) = delete;
-
     FlatViewWindow & operator=(FlatViewWindow const &) = delete;
     FlatViewWindow & operator=(FlatViewWindow &&) = delete;
     //==============================================================================
@@ -57,9 +55,9 @@ public:
 
 private:
     //==============================================================================
-    void drawFieldBackground(juce::Graphics & g, int fieldWH) const;
-    void drawSource(juce::Graphics & g, Input * it, int fieldWh) const;
-    void drawSourceSpan(juce::Graphics & g, Input * it, int fieldWh, const int fieldCenter) const;
+    void drawFieldBackground(juce::Graphics & g, int fieldSize) const;
+    void drawSource(juce::Graphics & g, Input * input, int fieldSize) const;
+    void drawSourceSpan(juce::Graphics & g, Input * it, int fieldWh, int fieldCenter) const;
     //==============================================================================
     JUCE_LEAK_DETECTOR(FlatViewWindow)
 };
