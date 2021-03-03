@@ -247,7 +247,15 @@ void SpeakerViewComponent::clickRay()
             if (iBestSpeaker == INVALID_ID) {
                 iBestSpeaker = selected;
             }
-            mMainContentComponent.selectSpeaker(speakers[iBestSpeaker.get()]->getOutputPatch());
+            
+            output_patch_t outputPatch{};
+            if (iBestSpeaker == INVALID_ID) {
+                outputPatch = output_patch_t{-1};
+            } else {
+                outputPatch =speakers[iBestSpeaker.get()]->getOutputPatch();
+            }
+            
+            mMainContentComponent.selectSpeaker(outputPatch);
         }
     }
 
