@@ -224,7 +224,7 @@ public:
     [[nodiscard]] juce::Array<Triplet> const & getTriplets() const { return mTriplets; }
 
     // Speaker selections.
-    void selectSpeaker(speaker_id_t idS) const;
+    void selectSpeaker(output_patch_t const outputPatch) const;
     void selectTripletSpeaker(speaker_id_t idS);
 
     // Mute - solo.

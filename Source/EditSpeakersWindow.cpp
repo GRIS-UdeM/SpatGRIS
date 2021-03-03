@@ -548,11 +548,26 @@ void EditSpeakersWindow::updateWinContent()
 }
 
 //==============================================================================
-void EditSpeakersWindow::selectedRow(int const value)
+void EditSpeakersWindow::selectRow(int const value)
 {
     juce::MessageManagerLock const mmLock{};
     mSpeakersTableListBox.selectRow(value);
     repaint();
+}
+
+//==============================================================================
+void EditSpeakersWindow::selectSpeaker(output_patch_t const outputPatch)
+{
+    juce::ScopedLock const sl{ mMainContentComponent.getSpeakersLock() };
+    int row{};
+    for (auto const * speaker : mMainContentComponent.getSpeakers()) {
+        if (speaker->getOutputPatch() == outputPatch) {
+            selectRow(row);
+            return;
+        }
+        ++row;
+    }
+    selectRow(-1);
 }
 
 //==============================================================================

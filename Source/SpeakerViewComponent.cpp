@@ -223,9 +223,10 @@ void SpeakerViewComponent::clickRay()
     auto iBestSpeaker = INVALID_ID;
     auto selected = INVALID_ID;
     juce::ScopedTryLock const sl{ mMainContentComponent.getSpeakersLock() };
+    auto const & speakers{ mMainContentComponent.getSpeakers() };
     if (sl.isLocked()) {
-        for (int i{}; i < mMainContentComponent.getSpeakers().size(); ++i) {
-            auto const * speaker{ mMainContentComponent.getSpeakers()[i] };
+        for (int i{}; i < speakers.size(); ++i) {
+            auto const * speaker{ speakers[i] };
             if (speaker->isSelected()) {
                 selected = speaker_id_t{ i };
             }
@@ -233,8 +234,7 @@ void SpeakerViewComponent::clickRay()
                 if (iBestSpeaker == INVALID_ID) {
                     iBestSpeaker = speaker_id_t{ i };
                 } else {
-                    if (speakerNearCam(speaker->getCenter(),
-                                       mMainContentComponent.getSpeakers()[iBestSpeaker.get()]->getCenter())) {
+                    if (speakerNearCam(speaker->getCenter(), speakers[iBestSpeaker.get()]->getCenter())) {
                         iBestSpeaker = speaker_id_t{ i };
                     }
                 }
@@ -247,7 +247,7 @@ void SpeakerViewComponent::clickRay()
             if (iBestSpeaker == INVALID_ID) {
                 iBestSpeaker = selected;
             }
-            mMainContentComponent.selectSpeaker(iBestSpeaker);
+            mMainContentComponent.selectSpeaker(speakers[iBestSpeaker.get()]->getOutputPatch());
         }
     }
 
@@ -269,7 +269,7 @@ void SpeakerViewComponent::mouseDown(const juce::MouseEvent & e)
         mClickLeft = true;
         mControlOn = e.mods.isCtrlDown();
     } else if (e.mods.isRightButtonDown()) {
-        mMainContentComponent.selectSpeaker(speaker_id_t{ -1 });
+        mMainContentComponent.selectSpeaker(output_patch_t{ -1 });
     }
 }
 

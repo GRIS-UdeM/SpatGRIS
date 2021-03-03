@@ -84,15 +84,15 @@ public:
     //==============================================================================
     EditSpeakersWindow() = delete;
     ~EditSpeakersWindow() override = default;
-
+    //==============================================================================
     EditSpeakersWindow(EditSpeakersWindow const &) = delete;
     EditSpeakersWindow(EditSpeakersWindow &&) = delete;
-
     EditSpeakersWindow & operator=(EditSpeakersWindow const &) = delete;
     EditSpeakersWindow & operator=(EditSpeakersWindow &&) = delete;
     //==============================================================================
     void initComp();
-    void selectedRow(int value);
+    void selectRow(int value);
+    void selectSpeaker(output_patch_t outputPatch);
     void updateWinContent();
 
 private:

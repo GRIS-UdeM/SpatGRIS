@@ -1045,17 +1045,18 @@ bool MainContentComponent::exitApp() const
 }
 
 //==============================================================================
-void MainContentComponent::selectSpeaker(speaker_id_t const idS) const
+void MainContentComponent::selectSpeaker(output_patch_t const outputPatch) const
 {
-    for (int i{}; i < mSpeakers.size(); ++i) {
-        if (i != idS.get()) {
-            mSpeakers[i]->unSelectSpeaker();
+    for (auto * speaker : mSpeakers) {
+        if (speaker->getOutputPatch() != outputPatch) {
+            speaker->unSelectSpeaker();
         } else {
-            mSpeakers[i]->selectSpeaker();
+            speaker->selectSpeaker();
         }
     }
     if (mEditSpeakersWindow != nullptr) {
-        mEditSpeakersWindow->selectedRow(idS.get());
+        // auto const outputPatch{ mSpeakers[idS.get()]->getOutputPatch() };
+        mEditSpeakersWindow->selectSpeaker(outputPatch);
     }
 }
 

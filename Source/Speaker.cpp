@@ -172,9 +172,9 @@ void Speaker::fix()
 void Speaker::selectClick(bool const select)
 {
     if (select) {
-        mMainContentComponent.selectSpeaker(speaker_id_t{ mId.get() - 1 }); // TODO : what the hell is this?!?
+        mMainContentComponent.selectSpeaker(mOutputPatch);
     } else {
-        mMainContentComponent.selectSpeaker(speaker_id_t{ -1 });
+        mMainContentComponent.selectSpeaker(mOutputPatch);
     }
 }
 
