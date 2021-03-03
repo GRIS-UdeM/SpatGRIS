@@ -33,10 +33,10 @@
               file="Source/AudioProcessor.h"/>
       </GROUP>
       <GROUP id="{B880ED62-D15F-78F9-F83A-129573A5FA84}" name="misc">
+        <FILE id="wuCEse" name="SpatMode.hpp" compile="0" resource="0" file="Source/SpatMode.hpp"/>
         <FILE id="F7hMuN" name="StrongTypes.hpp" compile="0" resource="0" file="Source/StrongTypes.hpp"/>
         <FILE id="e9Tcnv" name="constants.cpp" compile="1" resource="0" file="Source/constants.cpp"/>
         <FILE id="Ug97Mv" name="constants.hpp" compile="0" resource="0" file="Source/constants.hpp"/>
-        <FILE id="yGfcg6" name="SpatModes.hpp" compile="0" resource="0" file="Source/SpatModes.hpp"/>
         <FILE id="FqmBI2" name="macros.h" compile="0" resource="0" file="Source/macros.h"/>
         <FILE id="apexeV" name="narrow.hpp" compile="0" resource="0" file="Source/narrow.hpp"/>
       </GROUP>
@@ -47,7 +47,6 @@
         <FILE id="gyI4aY" name="vbap.hpp" compile="0" resource="0" file="Source/vbap.hpp"/>
       </GROUP>
       <GROUP id="{879FD67D-521A-EC98-EB2A-A3C056EDF2C2}" name="structs">
-        <FILE id="sHpI0D" name="ClientData.hpp" compile="0" resource="0" file="Source/ClientData.hpp"/>
         <FILE id="ofkHog" name="LbapData.hpp" compile="0" resource="0" file="Source/LbapData.hpp"/>
         <FILE id="jVjbue" name="SourceData.hpp" compile="0" resource="0" file="Source/SourceData.hpp"/>
         <FILE id="wWrACh" name="SpeakerData.hpp" compile="0" resource="0" file="Source/SpeakerData.hpp"/>

@@ -35,14 +35,6 @@ size_t constexpr LEFT = 0;
 size_t constexpr RIGHT = 1;
 
 //==============================================================================
-// Utilities.
-template<typename Coll>
-static bool contains(Coll const & coll, typename Coll::value_type const & value) noexcept
-{
-    return std::find(std::cbegin(coll), std::cend(coll), value) != std::cend(coll);
-}
-
-//==============================================================================
 // Load samples from a wav file into a float array.
 static juce::AudioBuffer<float> getSamplesFromWavFile(juce::File const & file)
 {
@@ -136,24 +128,6 @@ void AudioProcessor::resetHrtf()
     std::fill(std::begin(mHrtfCount), std::end(mHrtfCount), 0u);
     static constexpr std::array<float, 128> EMPTY_HRTF_INPUT{};
     std::fill(std::begin(mHrtfInputTmp), std::end(mHrtfInputTmp), EMPTY_HRTF_INPUT);
-}
-
-//==============================================================================
-void AudioProcessor::clientRegistrationCallback(char const * const name, int const regist)
-{
-    std::lock_guard<std::mutex> lock{ mClientsLock };
-    if (regist) {
-        ClientData cli;
-        cli.name = name;
-        mClients.push_back(cli);
-    } else {
-        juce::String const name_str{ name };
-        auto const find_result{ std::find_if(
-            std::cbegin(mClients),
-            std::cend(mClients),
-            [&name_str](ClientData const & client) { return client.name == name_str; }) };
-        mClients.erase(find_result);
-    }
 }
 
 //==============================================================================
@@ -297,35 +271,7 @@ void AudioProcessor::muteSoloVuMeterGainOut(float * const * outs,
             }
         }
         mLevelsOut[i] = maxGain;
-
-        //// Record buffer.
-        // if (mIsRecording) {
-        //    if (channelCount == sizeOutputs && i < channelCount) {
-        //        if (contains(mOutputPatches, i + 1u)) {
-        //            mRecorders[i].recordSamples(&outs[i], narrow<int>(nFrames));
-        //        }
-        //    } else if (channelCount == 2 && i < channelCount) {
-        //        mRecorders[i].recordSamples(&outs[i], narrow<int>(nFrames));
-        //    }
-        //}
     }
-
-    //// Recording index.
-    // if (!mIsRecording && mIndexRecord > 0) {
-    //    if (channelCount == sizeOutputs) {
-    //        for (unsigned int i = 0; i < sizeOutputs; ++i) {
-    //            if (contains(mOutputPatches, i + 1) && i < channelCount) {
-    //                mRecorders[i].stop();
-    //            }
-    //        }
-    //    } else if (channelCount == 2) {
-    //        mRecorders[0].stop();
-    //        mRecorders[1].stop();
-    //    }
-    //    mIndexRecord = 0;
-    //} else if (mIsRecording) {
-    //    mIndexRecord += nFrames;
-    //}
 }
 
 //==============================================================================
@@ -724,8 +670,6 @@ void AudioProcessor::processAudio(size_t const nFrames) noexcept
     }
 
     muteSoloVuMeterGainOut(outs, nFrames, sizeOutputs, mMasterGainOut);
-
-    mIsOverloaded = false;
 }
 
 //==============================================================================
@@ -923,153 +867,6 @@ void AudioProcessor::updateSourceVbap(int const idS) noexcept
         if (mSourcesData[idS].paramVBap != nullptr) {
             vbap2(mSourcesData[idS].azimuth, 0.0f, mSourcesData[idS].azimuthSpan, 0.0f, mSourcesData[idS].paramVBap);
         }
-    }
-}
-
-//==============================================================================
-void AudioProcessor::connectionClient(juce::String const & name, bool const connect)
-{
-    juce::ScopedLock const lock{ getCriticalSection() };
-
-    auto & audioManager{ AudioManager::getInstance() };
-    auto const inputPorts{ audioManager.getInputPorts() };
-    auto const outputPorts{ audioManager.getOutputPorts() };
-
-    updateClientPortAvailable();
-
-    // Disconnect client.
-    for (auto * outputPort : outputPorts) {
-        if (name == outputPort->clientName) {
-            for (auto * inputPort : inputPorts) {
-                if (strcmp(inputPort->clientName, CLIENT_NAME) == 0
-                    && audioManager.isConnectedTo(inputPort, outputPort)) {
-                    audioManager.disconnect(inputPort, outputPort);
-                }
-            }
-        }
-    }
-
-    for (auto & cli : mClients) {
-        if (cli.name == name) {
-            cli.connected = true;
-        }
-    }
-
-    reconnectPorts();
-
-    if (!connect) {
-        return;
-    }
-
-    mAutoConnection = true;
-
-    // TODO : this is horrendous. Clients should be removed altogether.
-    auto conn{ false };
-    for (auto & cli : mClients) {
-        auto const & nameClient = cli.name;
-        auto startJ{ narrow<int>(cli.portStart) - 1 };
-        auto endJ{ narrow<int>(cli.portEnd) };
-
-        for (auto * outputPort : outputPorts) {
-            if (nameClient == name && nameClient == outputPort->clientName) {
-                for (int j{}; j < inputPorts.size(); ++j) {
-                    auto * inputPort{ inputPorts[j] };
-                    if (strcmp(inputPort->clientName, CLIENT_NAME) == 0) {
-                        if (j >= startJ && j < endJ) {
-                            audioManager.connect(outputPort, inputPort);
-                            conn = true;
-                            break;
-                        }
-                    } else {
-                        startJ += 1;
-                        endJ += 1;
-                    }
-                }
-                cli.connected = conn;
-            }
-        }
-    }
-
-    mAutoConnection = false;
-}
-
-//==============================================================================
-void AudioProcessor::updateClientPortAvailable()
-{
-    auto const outputPorts{ AudioManager::getInstance().getOutputPorts() };
-
-    for (auto & client : mClients) {
-        client.portAvailable = 0;
-    }
-
-    for (auto const * outputPort : outputPorts) {
-        if (strcmp(outputPort->clientName, CLIENT_NAME) != 0 && strcmp(outputPort->clientName, SYS_CLIENT_NAME) != 0) {
-            for (auto & client : mClients) {
-                if (client.name.compare(outputPort->clientName) == 0) {
-                    client.portAvailable += 1;
-                }
-            }
-        }
-    }
-
-    unsigned start{ 1 };
-    unsigned end;
-    unsigned defaultActivePorts{ 64 };
-    for (auto & client : mClients) {
-        client.initialized = true;
-        end = client.activePorts;
-        if (client.portStart == 0 || client.portEnd == 0 || !client.initialized) { // ports not initialized.
-            client.portStart = start;
-            client.portEnd = start + end - 1;
-            start += end;
-        } else if (client.portStart >= client.portEnd
-                   || client.portEnd - client.portStart > client.portAvailable) { // portStart bigger than portEnd.
-            client.portStart = start;
-            client.portEnd = start + client.activePorts - 1;
-            start += client.activePorts;
-        } else {
-            if (mClients.size() > 1) {
-                unsigned pos{ 0 };
-                auto somethingBad{ false };
-                for (unsigned c{}; c < mClients.size(); ++c) {
-                    if (mClients[c].name == client.name) {
-                        pos = c;
-                        break;
-                    }
-                }
-                if (pos == 0) {
-                    somethingBad = false;
-                } else if (pos >= mClients.size()) {
-                    somethingBad = true; // Never supposed to get here.
-                } else {
-                    if (client.portStart - 1 != mClients[pos - 1].portEnd) {
-                        auto const numPorts{ client.portEnd - client.portStart };
-                        client.portStart = mClients[pos - 1].portEnd + 1;
-                        client.portEnd = client.portStart + numPorts;
-                    }
-                    for (auto const & clientCompare : mClients) {
-                        if (clientCompare.name != client.name && client.portStart > clientCompare.portStart
-                            && client.portStart < clientCompare.portEnd) {
-                            somethingBad = true;
-                        } else if (clientCompare.name != client.name && client.portEnd > clientCompare.portStart
-                                   && client.portEnd < clientCompare.portEnd) {
-                            somethingBad = true;
-                        }
-                    }
-                }
-
-                if (somethingBad) { // ports overlap other client ports.
-                    client.portStart = start;
-                    client.portEnd = start + defaultActivePorts - 1;
-                    start += defaultActivePorts;
-                } else {
-                    // If everything goes right, we keep portStart and portEnd for this client.
-                    start = client.portEnd + 1;
-                }
-            }
-        }
-        client.activePorts = client.portEnd - client.portStart + 1;
-        jassert(client.portStart <= mInputsPort.size());
     }
 }
 

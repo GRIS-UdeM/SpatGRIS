@@ -163,8 +163,8 @@ void AudioManager::setBufferSizes(int const numSamples)
 bool AudioManager::tryInitAudioDevice(juce::String const & deviceType,
                                       juce::String const & inputDevice,
                                       juce::String const & outputDevice,
-                                      double const sampleRate,
-                                      int const bufferSize)
+                                      double const requestedSampleRate,
+                                      int const requestedBufferSize)
 {
     if (deviceType.isEmpty() || inputDevice.isEmpty() || outputDevice.isEmpty()) {
         return false;
@@ -191,9 +191,10 @@ bool AudioManager::tryInitAudioDevice(juce::String const & deviceType,
     neededInputChannels.setRange(0, MAX_INPUTS, true);
     juce::BigInteger neededOutputChannels{};
     neededOutputChannels.setRange(0, MAX_OUTPUTS, true);
-    juce::AudioDeviceManager::AudioDeviceSetup const setup{
-        outputDevice, inputDevice, sampleRate, bufferSize, neededInputChannels, false, neededOutputChannels, false
-    };
+    juce::AudioDeviceManager::AudioDeviceSetup const setup{ outputDevice,         inputDevice,
+                                                            requestedSampleRate,  requestedBufferSize,
+                                                            neededInputChannels,  false,
+                                                            neededOutputChannels, false };
     auto const errorString{ mAudioDeviceManager.setAudioDeviceSetup(setup, true) };
     if (errorString.isNotEmpty()) {
         return false;
@@ -340,12 +341,12 @@ float * AudioManager::getBuffer(audio_port_t * port, [[maybe_unused]] size_t con
 
     switch (port->type) {
     case PortType::input: {
-        jassert(mInputPortsBuffer.getNumSamples() >= nFrames);
+        jassert(mInputPortsBuffer.getNumSamples() >= narrow<int>(nFrames));
         auto const index{ mVirtualInputPorts.indexOf(port) };
         return mInputPortsBuffer.getWritePointer(index);
     }
     case PortType::output: {
-        jassert(mOutputPortsBuffer.getNumSamples() >= nFrames);
+        jassert(mOutputPortsBuffer.getNumSamples() >= narrow<int>(nFrames));
         auto const index{ mVirtualOutputPorts.indexOf(port) };
         return mOutputPortsBuffer.getWritePointer(index);
     }
@@ -510,8 +511,8 @@ bool AudioManager::prepareToRecord(RecordingOptions const & recordingOptions,
     auto makeRecordingInfo = [](juce::String const & filePath,
                                 juce::AudioFormat & format,
                                 int const numChannels,
-                                double const sampleRate,
-                                int const bufferSize,
+                                double const recordingSampleRate,
+                                int const recordingBufferSize,
                                 juce::TimeSliceThread & timeSlicedThread) -> std::unique_ptr<RecorderInfo> {
         juce::StringPairArray const metaData{}; // lets leave this empty for now
 
@@ -521,7 +522,7 @@ bool AudioManager::prepareToRecord(RecordingOptions const & recordingOptions,
             return nullptr;
         }
         auto * audioFormatWriter{ format.createWriterFor(outputStream.release(),
-                                                         sampleRate,
+                                                         recordingSampleRate,
                                                          numChannels,
                                                          BITS_PER_SAMPLE,
                                                          metaData,
@@ -530,7 +531,7 @@ bool AudioManager::prepareToRecord(RecordingOptions const & recordingOptions,
             return nullptr;
         }
         std::unique_ptr<juce::AudioFormatWriter::ThreadedWriter> threadedWriter{
-            new juce::AudioFormatWriter::ThreadedWriter{ audioFormatWriter, timeSlicedThread, bufferSize }
+            new juce::AudioFormatWriter::ThreadedWriter{ audioFormatWriter, timeSlicedThread, recordingBufferSize }
         };
         auto result{ std::make_unique<RecorderInfo>() };
         result->audioFormatWriter = audioFormatWriter;
@@ -540,12 +541,12 @@ bool AudioManager::prepareToRecord(RecordingOptions const & recordingOptions,
 
     // build the recorders
     if (recordingOptions.config == RecordingConfig::interleaved) {
-        auto const bufferSize{ RECORDERS_BUFFER_SIZE_IN_SAMPLES * mOutputPortsBuffer.getNumChannels() };
+        auto const recordingBufferSize{ RECORDERS_BUFFER_SIZE_IN_SAMPLES * mOutputPortsBuffer.getNumChannels() };
         auto recorderInfo{ makeRecordingInfo(recordingOptions.path,
                                              *audioFormat,
                                              mOutputPortsBuffer.getNumChannels(),
                                              recordingOptions.sampleRate,
-                                             bufferSize,
+                                             recordingBufferSize,
                                              mRecordersThread) };
         if (!recorderInfo) {
             return false;

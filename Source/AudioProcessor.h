@@ -20,19 +20,16 @@
 #pragma once
 
 #include <array>
-#include <mutex>
 #include <vector>
 
-#include "Speaker.h"
 #include "macros.h"
-
 DISABLE_WARNINGS
 #include <JuceHeader.h>
 ENABLE_WARNINGS
 
-#include "ClientData.hpp"
 #include "SourceData.hpp"
 #include "SpatMode.hpp"
+#include "Speaker.h"
 #include "SpeakerData.hpp"
 #include "constants.hpp"
 #include "lbap.hpp"
@@ -47,8 +44,6 @@ struct audio_port_t;
  */
 class AudioProcessor
 {
-    // class variables.
-    //-----------------
     unsigned int mNumberInputs{};
     unsigned int mNumberOutputs{};
     output_patch_t mMaxOutputPatch{};
@@ -92,16 +87,9 @@ class AudioProcessor
     std::array<float, MAX_INPUTS> mLevelsIn{};
     std::array<float, MAX_OUTPUTS> mLevelsOut{};
 
-    // Client list.
-    std::vector<ClientData> mClients{};
-    std::mutex mClientsLock{};
-
     // Source and output lists.
     std::array<SourceData, MAX_INPUTS> mSourcesData{};
     std::array<SpeakerData, MAX_OUTPUTS> mSpeakersOut{};
-
-    // True when jack reports an xrun.
-    bool mIsOverloaded{ false };
 
     // Which spatialization mode is selected.
     SpatMode mModeSelected{ SpatMode::vbap };
@@ -141,13 +129,11 @@ class AudioProcessor
 
 public:
     //==============================================================================
-    // Class methods.
     AudioProcessor();
     ~AudioProcessor();
-
+    //==============================================================================
     AudioProcessor(AudioProcessor const &) = delete;
     AudioProcessor(AudioProcessor &&) = delete;
-
     AudioProcessor & operator=(AudioProcessor const &) = delete;
     AudioProcessor & operator=(AudioProcessor &&) = delete;
     //==============================================================================
@@ -158,13 +144,10 @@ public:
     // Manage Inputs / Outputs.
     void addRemoveInput(unsigned int number);
     void clearOutput();
-    bool addOutput(output_patch_t outputPatch);
     void removeOutput(int number);
+    bool addOutput(output_patch_t outputPatch);
 
     [[nodiscard]] std::vector<output_patch_t> getDirectOutOutputPatches() const;
-
-    // Manage clients.
-    void connectionClient(juce::String const & name, bool connect = true);
 
     // Initialize VBAP algorithm.
     [[nodiscard]] bool
@@ -177,20 +160,13 @@ public:
     void setAttenuationDbIndex(int index);
     void setAttenuationFrequencyIndex(int index);
 
-    // Need to update a source VBAP data.
-    void updateSourceVbap(int idS) noexcept;
-
     // Reinit HRTF delay lines.
     void resetHrtf();
-
-    void clientRegistrationCallback(char const * name, int regist);
 
     [[nodiscard]] unsigned getNumberOutputs() const { return mNumberOutputs; }
     [[nodiscard]] unsigned getNumberInputs() const { return mNumberInputs; }
     [[nodiscard]] SpatMode getMode() const { return mModeSelected; }
     [[nodiscard]] unsigned getVbapDimensions() const { return mVbapDimensions; }
-    [[nodiscard]] auto const & getClients() const { return mClients; }
-    [[nodiscard]] auto & getClients() { return mClients; }
     [[nodiscard]] auto & getSourcesIn() { return mSourcesData; }
     [[nodiscard]] auto const & getSourcesIn() const { return mSourcesData; }
     [[nodiscard]] auto & getVbapSourcesToUpdate() { return mVbapSourcesToUpdate; }
@@ -201,9 +177,6 @@ public:
     [[nodiscard]] auto & getSpeakersOut() { return mSpeakersOut; }
     [[nodiscard]] output_patch_t getMaxOutputPatch() const { return mMaxOutputPatch; }
     [[nodiscard]] auto const & getInputPorts() const { return mInputsPort; }
-    [[nodiscard]] auto & getClientsLock() { return mClientsLock; }
-
-    [[nodiscard]] bool isOverloaded() const { return mIsOverloaded; }
 
     juce::CriticalSection const & getCriticalSection() const noexcept { return mCriticalSection; }
 
@@ -222,7 +195,6 @@ public:
 
     //==============================================================================
     // Audio processing
-    void muteSoloVuMeterIn(float * const * ins, size_t nFrames, size_t sizeInputs) noexcept;
     void muteSoloVuMeterGainOut(float * const * outs, size_t nFrames, size_t sizeOutputs, float gain = 1.0f) noexcept;
     void addNoiseSound(float * const * outs, size_t nFrames, size_t sizeOutputs) noexcept;
     void processVbap(float const * const * ins,
@@ -243,7 +215,8 @@ private:
     //==============================================================================
     // Connect the server's outputs to the system's inputs.
     void reconnectPorts();
-    void updateClientPortAvailable();
+    void muteSoloVuMeterIn(float * const * ins, size_t nFrames, size_t sizeInputs) noexcept;
+    void updateSourceVbap(int idS) noexcept;
     //==============================================================================
     JUCE_LEAK_DETECTOR(AudioProcessor)
 };

@@ -390,7 +390,7 @@ void EditSpeakersWindow::sliderValueChanged(juce::Slider * slider)
     if (slider == &mPinkNoiseGainSlider) {
         auto const sliderValue{ static_cast<float>(mPinkNoiseGainSlider.getValue()) };
         auto const gain{ std::pow(10.0f, sliderValue / 20.0f) };
-        mMainContentComponent.getJackClient()->setPinkNoiseGain(gain);
+        mMainContentComponent.getAudioProcessor().setPinkNoiseGain(gain);
     }
 }
 
@@ -417,7 +417,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         mSpeakersTableListBox.getHeader().setSortColumnId(sortColumnId, sortedForwards);
         mMainContentComponent.setNeedToComputeVbap(true);
     } else if (button == &mCompSpeakersButton) {
-        if (mMainContentComponent.updateLevelComp()) {
+        if (mMainContentComponent.refreshSpeakers()) {
             mMainContentComponent.setShowTriplets(tripletState);
         }
     } else if (button == &mAddRingButton) {
@@ -451,7 +451,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         mSpeakersTableListBox.getHeader().setSortColumnId(sortColumnId, sortedForwards);
         mMainContentComponent.setNeedToComputeVbap(true);
     } else if (button == &mPinkNoiseToggleButton) {
-        mMainContentComponent.getJackClient()->setPinkNoiseActive(mPinkNoiseToggleButton.getToggleState());
+        mMainContentComponent.getAudioProcessor().setPinkNoiseActive(mPinkNoiseToggleButton.getToggleState());
     } else if (button->getName().isNotEmpty()
                && (button->getName().getIntValue() >= 0
                    && button->getName().getIntValue() <= mMainContentComponent.getSpeakers().size())) {
@@ -571,7 +571,7 @@ void EditSpeakersWindow::closeButtonPressed()
 
         if (exitV == 1) {
             alert.setVisible(false);
-            mMainContentComponent.updateLevelComp();
+            mMainContentComponent.refreshSpeakers();
             mMainContentComponent.handleTimer(false);
             setAlwaysOnTop(false);
             mMainContentComponent.handleSaveAsSpeakerSetup();
@@ -579,11 +579,11 @@ void EditSpeakersWindow::closeButtonPressed()
         } else if (exitV == 2) {
             alert.setVisible(false);
             mMainContentComponent.reloadXmlFileSpeaker();
-            mMainContentComponent.updateLevelComp();
+            mMainContentComponent.refreshSpeakers();
         }
     }
     if (exitV) {
-        mMainContentComponent.getJackClient()->setPinkNoiseActive(false);
+        mMainContentComponent.getAudioProcessor().setPinkNoiseActive(false);
         mMainContentComponent.closeSpeakersConfigurationWindow();
     }
 }

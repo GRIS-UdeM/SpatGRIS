@@ -182,8 +182,8 @@ private:
     bool tryInitAudioDevice(juce::String const & deviceType,
                             juce::String const & inputDevice,
                             juce::String const & outputDevice,
-                            double sampleRate,
-                            int bufferSize);
+                            double requestedSampleRate,
+                            int requestedBufferSize);
     //==============================================================================
     JUCE_LEAK_DETECTOR(AudioManager)
 }; // class AudioManager

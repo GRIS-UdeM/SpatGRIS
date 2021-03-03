@@ -72,7 +72,6 @@ class MainContentComponent final
     , private AudioDeviceManagerListener
     , private juce::Timer
 {
-    // Jack client.
     std::unique_ptr<AudioProcessor> mAudioProcessor{};
 
     // Speakers.
@@ -87,11 +86,7 @@ class MainContentComponent final
     // Open Sound Control.
     std::unique_ptr<OscInput> mOscReceiver{};
 
-    // Paths.
     juce::String mConfigurationName{};
-
-    // Alsa output device
-    juce::String mAlsaOutputDevice{};
 
     juce::File mCurrentSpeakerSetup{};
 
@@ -183,35 +178,9 @@ public:
     MainContentComponent & operator=(MainContentComponent &&) = delete;
     //==============================================================================
     // Exit application.
-    [[nodiscard]] bool isProjectModified() const;
-    [[nodiscard]] bool exitApp();
+    [[nodiscard]] bool exitApp() const;
 
-    // Menubar handlers.
-    void handleNew();
-    void handleOpenProject();
-    void handleSaveProject() const;
-    void handleSaveAsProject() const;
-    void handleOpenSpeakerSetup();
-    void handleSaveAsSpeakerSetup(); // Called when closing the Speaker Setup Edition window.
-    void handleShowSpeakerEditWindow();
-    void handleShowPreferences();
-    void handleShowAbout();
-    static void handleOpenManual();
-    void handleShow2DView();
-    void handleShowNumbers();
-    void setShowNumbers(bool state);
-    void handleShowSpeakers();
-    void setShowSpeakers(bool state);
-    void handleShowTriplets();
     void setShowTriplets(bool state);
-    [[nodiscard]] bool validateShowTriplets() const;
-    void handleShowSourceLevel();
-    void handleShowSpeakerLevel();
-    void handleShowSphere();
-    void handleResetInputPositions();
-    void handleResetMeterClipping();
-    void handleShowOscLogView();
-    void handleInputColours();
 
     // other
     [[nodiscard]] bool isTripletsShown() const { return mIsTripletsShown; }
@@ -223,15 +192,9 @@ public:
     void setNeedToComputeVbap(bool const state) { mNeedToComputeVbap = state; }
     void setNeedToSaveSpeakerSetup(bool const state) { mNeedToSaveSpeakerSetup = state; }
 
-    // Menubar methods.
-    [[nodiscard]] juce::StringArray getMenuBarNames() override;
-    [[nodiscard]] juce::PopupMenu getMenuForIndex(int menuIndex, const juce::String & /*menuName*/) override;
-
-    void menuItemSelected(int menuItemId, int /*topLevelMenuIndex*/) override;
-
     // Speakers.
-    [[nodiscard]] juce::OwnedArray<Speaker> & getSpeakers() { return this->mSpeakers; }
-    [[nodiscard]] juce::OwnedArray<Speaker> const & getSpeakers() const { return this->mSpeakers; }
+    [[nodiscard]] juce::OwnedArray<Speaker> & getSpeakers() { return mSpeakers; }
+    [[nodiscard]] juce::OwnedArray<Speaker> const & getSpeakers() const { return mSpeakers; }
 
     [[nodiscard]] juce::CriticalSection const & getSpeakersLock() const { return mSpeakersLock; }
 
@@ -244,40 +207,25 @@ public:
     void setDirectOut(int id, output_patch_t chn) const;
     void reorderSpeakers(std::vector<speaker_id_t> const & newOrder);
     void resetSpeakerIds();
-    [[nodiscard]] speaker_id_t getMaxSpeakerId() const;
-    [[nodiscard]] output_patch_t getMaxSpeakerOutputPatch() const;
 
     // Sources.
-    [[nodiscard]] juce::OwnedArray<Input> & getSourceInputs() { return this->mInputs; }
-    [[nodiscard]] juce::OwnedArray<Input> const & getSourceInputs() const { return this->mInputs; }
+    [[nodiscard]] juce::OwnedArray<Input> & getSourceInputs() { return mInputs; }
+    [[nodiscard]] juce::OwnedArray<Input> const & getSourceInputs() const { return mInputs; }
 
-    [[nodiscard]] std::mutex & getInputsLock() { return this->mInputsLock; }
+    [[nodiscard]] std::mutex & getInputsLock() { return mInputsLock; }
 
-    void updateInputJack(int inInput, Input & inp) const;
     [[nodiscard]] bool isRadiusNormalized() const;
 
-    // Jack clients.
-    [[nodiscard]] AudioProcessor * getJackClient() { return mAudioProcessor.get(); }
-    [[nodiscard]] AudioProcessor const * getJackClient() const { return mAudioProcessor.get(); }
-
-    [[nodiscard]] std::vector<ClientData> & getClients() { return mAudioProcessor->getClients(); }
-    [[nodiscard]] std::vector<ClientData> const & getClients() const { return mAudioProcessor->getClients(); }
-
-    [[nodiscard]] std::mutex & getClientsLock() const { return mAudioProcessor->getClientsLock(); }
-
-    void connectionClientJack(juce::String const & clientName, bool conn = true);
+    [[nodiscard]] AudioProcessor & getAudioProcessor() { return *mAudioProcessor; }
+    [[nodiscard]] AudioProcessor const & getAudioProcessor() const { return *mAudioProcessor; }
 
     // VBAP triplets.
-    void setTripletsFromVbap();
-    void clearTriplets() { this->mTriplets.clear(); }
-
-    [[nodiscard]] juce::Array<Triplet> & getTriplets() { return this->mTriplets; }
-    [[nodiscard]] juce::Array<Triplet> const & getTriplets() const { return this->mTriplets; }
+    [[nodiscard]] juce::Array<Triplet> & getTriplets() { return mTriplets; }
+    [[nodiscard]] juce::Array<Triplet> const & getTriplets() const { return mTriplets; }
 
     // Speaker selections.
-    void selectSpeaker(speaker_id_t const idS) const;
-    void selectTripletSpeaker(speaker_id_t const idS);
-    [[nodiscard]] bool tripletExists(Triplet const & tri, int & pos) const;
+    void selectSpeaker(speaker_id_t idS) const;
+    void selectTripletSpeaker(speaker_id_t idS);
 
     // Mute - solo.
     void muteInput(int id, bool mute) const;
@@ -286,55 +234,43 @@ public:
     void soloOutput(output_patch_t id, bool solo) const;
 
     // Input - output amplitude levels.
-    [[nodiscard]] float getLevelsOut(int const indexLevel) const
-    {
-        return (20.0f * std::log10(this->mAudioProcessor->getLevelsOut(indexLevel)));
-    }
-    [[nodiscard]] float getLevelsIn(int const indexLevel) const
-    {
-        return (20.0f * std::log10(this->mAudioProcessor->getLevelsIn(indexLevel)));
-    }
+    [[nodiscard]] float getLevelsOut(int indexLevel) const;
+    [[nodiscard]] float getLevelsIn(int indexLevel) const;
     [[nodiscard]] float getLevelsAlpha(int indexLevel) const;
-
     [[nodiscard]] float getSpeakerLevelsAlpha(int indexLevel) const;
 
-    [[nodiscard]] auto const & getConfiguration() const { return mConfiguration; }
-
     // Called when the speaker setup has changed.
-    bool updateLevelComp(); // TODO : what does the return value mean ?
+    bool refreshSpeakers();
 
     // Open - save.
-    void openXmlFileSpeaker(juce::File const & file, std::optional<SpatMode> forceSpatMode = std::nullopt);
     void reloadXmlFileSpeaker();
-    void openProject(juce::File const & file);
-    void getProjectData(juce::XmlElement * xml) const;
-    void saveProject(juce::String const & path) const;
-    void saveSpeakerSetup(juce::String const & path);
     void saveProperties(juce::String const & audioDeviceType,
                         juce::String const & inputDevice,
                         juce::String const & outputDevice,
-                        double const sampleRate,
+                        double sampleRate,
                         int bufferSize,
-                        RecordingFormat const recordingFormat,
-                        RecordingConfig const recordingConfig,
+                        RecordingFormat recordingFormat,
+                        RecordingConfig recordingConfig,
                         int attenuationDbIndex,
                         int attenuationFrequencyIndex,
                         int oscPort);
-    bool initRecording() const;
-    void setCurrentSpeakerSetup(juce::File const & file);
-    void setTitle() const;
 
     // Screen refresh timer.
     void handleTimer(bool state);
+    void handleSaveAsSpeakerSetup();
 
     // Close windows other than the main one.
-    void closeSpeakersConfigurationWindow();
-    void closePropertiesWindow() { this->mPropertiesWindow.reset(); }
-    void closeFlatViewWindow() { this->mFlatViewWindow = nullptr; }
-    void closeAboutWindow() { this->mAboutWindow = nullptr; }
-    void closeOscLogWindow() { this->mOscLogWindow = nullptr; }
+    void closeSpeakersConfigurationWindow() { mEditSpeakersWindow.reset(); }
+    void closePropertiesWindow() { mPropertiesWindow.reset(); }
+    void closeFlatViewWindow() { mFlatViewWindow.reset(); }
+    void closeAboutWindow() { mAboutWindow.reset(); }
+    void closeOscLogWindow() { mOscLogWindow.reset(); }
 
-    // Widget listener handlers.
+    [[nodiscard]] auto const & getConfiguration() const { return mConfiguration; }
+    [[nodiscard]] SpatMode getModeSelected() const;
+    void setOscLogging(const juce::OSCMessage & message) const;
+    void updateSourceData(int sourceDataIndex, Input & input) const;
+    //==============================================================================
     void timerCallback() override;
     void paint(juce::Graphics & g) override;
     void resized() override;
@@ -343,16 +279,13 @@ public:
     void textEditorFocusLost(juce::TextEditor & textEditor) override;
     void textEditorReturnKeyPressed(juce::TextEditor & textEditor) override;
     void comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged) override;
+    void menuItemSelected(int menuItemId, int /*topLevelMenuIndex*/) override;
+    [[nodiscard]] juce::StringArray getMenuBarNames() override;
+    [[nodiscard]] juce::PopupMenu getMenuForIndex(int menuIndex, const juce::String & /*menuName*/) override;
 
-    [[nodiscard]] SpatMode getModeSelected() const
-    {
-        return static_cast<SpatMode>(mSpatModeCombo->getSelectedId() - 1);
-    }
-
-    void setOscLogging(const juce::OSCMessage & message) const;
-
+private:
     //==============================================================================
-    // Widget creation helper.
+    // Widget creation helpers.
     juce::TextEditor * addTextEditor(juce::String const & s,
                                      juce::String const & emptyS,
                                      juce::String const & tooltip,
@@ -362,9 +295,6 @@ public:
                                      int h,
                                      juce::Component * into,
                                      int wLab = 80);
-
-private:
-    // Widget creation helpers.
     juce::Label * addLabel(const juce::String & s,
                            const juce::String & tooltip,
                            int x,
@@ -386,24 +316,58 @@ private:
         addSlider(const juce::String & s, const juce::String & tooltip, int x, int y, int w, int h, Component * into);
     juce::ComboBox *
         addComboBox(const juce::String & s, const juce::String & tooltip, int x, int y, int w, int h, Component * into);
-
     //==============================================================================
-    // The following methods implement the ApplicationCommandTarget interface, allowing
-    // this window to publish a set of actions it can perform, and which can be mapped
-    // onto menus, keypresses, etc.
-    [[nodiscard]] juce::ApplicationCommandTarget * getNextCommandTarget() override
-    {
-        return findFirstTargetParentComponent();
-    }
+    // MenuBar handlers.
+    void handleNew();
+    void handleOpenProject();
+    void handleSaveProject() const;
+    void handleSaveAsProject() const;
+    void handleOpenSpeakerSetup();
+    void handleShowSpeakerEditWindow();
+    void handleShowPreferences();
+    void handleShowAbout();
+    void handleShow2DView();
+    void handleShowNumbers();
+    void handleShowSpeakers();
+    void handleShowTriplets();
+    void handleShowSourceLevel();
+    void handleShowSpeakerLevel();
+    void handleShowSphere();
+    void handleResetInputPositions();
+    void handleResetMeterClipping();
+    void handleShowOscLogView();
+    void handleInputColours();
+
+    void setShowNumbers(bool state);
+    void setShowSpeakers(bool state);
+    void setTripletsFromVbap();
+
+    [[nodiscard]] speaker_id_t getMaxSpeakerId() const;
+    [[nodiscard]] output_patch_t getMaxSpeakerOutputPatch() const;
+    [[nodiscard]] bool tripletExists(Triplet const & tri, int & pos) const;
+    [[nodiscard]] bool validateShowTriplets() const;
+    [[nodiscard]] bool isProjectModified() const;
+    //==============================================================================
+    // Open - save.
+    void openXmlFileSpeaker(juce::File const & file, std::optional<SpatMode> forceSpatMode = std::nullopt);
+    void openProject(juce::File const & file);
+    void getProjectData(juce::XmlElement * xml) const;
+    void saveProject(juce::String const & path) const;
+    void saveSpeakerSetup(juce::String const & path);
+    void setCurrentSpeakerSetup(juce::File const & file);
+    void setTitle() const;
+
+    [[nodiscard]] bool initRecording() const;
+    //==============================================================================
+    // OVERRIDES
+    void audioParametersChanged() override;
 
     void getAllCommands(juce::Array<juce::CommandID> & commands) override;
     void getCommandInfo(juce::CommandID commandId, juce::ApplicationCommandInfo & result) override;
+    [[nodiscard]] juce::ApplicationCommandTarget * getNextCommandTarget() override;
     [[nodiscard]] bool perform(juce::ApplicationCommandTarget::InvocationInfo const & info) override;
-
-protected:
-    void audioParametersChanged() override;
-
-private:
+    //==============================================================================
+    static void handleOpenManual();
     //==============================================================================
     JUCE_LEAK_DETECTOR(MainContentComponent)
 };

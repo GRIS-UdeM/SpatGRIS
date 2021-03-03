@@ -67,7 +67,7 @@ void OscInput::oscMessageReceived(const juce::OSCMessage & message)
                     mMainContentComponent.isRadiusNormalized() ? 1.0f : message[5].getFloat32(),
                     message[6].getFloat32(),
                     mMainContentComponent.getModeSelected());
-                mMainContentComponent.updateInputJack(idS, *mMainContentComponent.getSourceInputs()[idS]);
+                mMainContentComponent.updateSourceData(idS, *mMainContentComponent.getSourceInputs()[idS]);
             }
             mMainContentComponent.getInputsLock().unlock();
         }
@@ -82,7 +82,7 @@ void OscInput::oscMessageReceived(const juce::OSCMessage & message)
                                                                               message[3].getFloat32(),
                                                                               message[4].getFloat32(),
                                                                               message[5].getFloat32());
-                mMainContentComponent.updateInputJack(idS, *mMainContentComponent.getSourceInputs()[idS]);
+                mMainContentComponent.updateSourceData(idS, *mMainContentComponent.getSourceInputs()[idS]);
             }
             mMainContentComponent.getInputsLock().unlock();
         }

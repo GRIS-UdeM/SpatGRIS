@@ -359,6 +359,12 @@ juce::ComboBox * MainContentComponent::addComboBox(juce::String const & /*s*/,
 }
 
 //==============================================================================
+juce::ApplicationCommandTarget * MainContentComponent::getNextCommandTarget()
+{
+    return findFirstTargetParentComponent();
+}
+
+//==============================================================================
 // Menu item action handlers.
 void MainContentComponent::handleNew()
 {
@@ -639,7 +645,7 @@ void MainContentComponent::setShowTriplets(bool const state)
 //==============================================================================
 bool MainContentComponent::validateShowTriplets() const
 {
-    for (auto const & triplet : getTriplets()) {
+    for (auto const & triplet : mTriplets) {
         auto const * spk1 = getSpeakerFromOutputPatch(triplet.id1);
         auto const * spk2 = getSpeakerFromOutputPatch(triplet.id2);
         auto const * spk3 = getSpeakerFromOutputPatch(triplet.id3);
@@ -1006,7 +1012,7 @@ bool MainContentComponent::isProjectModified() const
 }
 
 //==============================================================================
-bool MainContentComponent::exitApp()
+bool MainContentComponent::exitApp() const
 {
     auto exitV{ 2 };
 
@@ -1036,23 +1042,6 @@ bool MainContentComponent::exitApp()
     }
 
     return exitV != 0;
-}
-
-//==============================================================================
-void MainContentComponent::connectionClientJack(juce::String const & clientName, bool const conn)
-{
-    unsigned int maxPort{};
-    for (auto const & cli : mAudioProcessor->getClients()) {
-        if (cli.portEnd > maxPort) {
-            maxPort = cli.portEnd;
-        }
-    }
-    if (maxPort > narrow<unsigned>(mAddInputsTextEditor->getTextValue().toString().getIntValue())) {
-        mAddInputsTextEditor->setText(juce::String{ maxPort }, juce::dontSendNotification);
-        textEditorReturnKeyPressed(*mAddInputsTextEditor);
-    }
-
-    mAudioProcessor->connectionClient(clientName, conn);
 }
 
 //==============================================================================
@@ -1200,13 +1189,13 @@ void MainContentComponent::addSpeaker(int const sortColumnId, bool const isSorte
 
         if (sortColumnId == 1 && isSortedForwards) {
             for (int i{}; i < mSpeakers.size(); ++i) {
-                speaker_id_t const newId{ i + 1 };
-                mSpeakers[i]->setSpeakerId(newId);
+                speaker_id_t const id{ i + 1 };
+                mSpeakers[i]->setSpeakerId(id);
             }
         } else if (sortColumnId == 1 && !isSortedForwards) {
             for (int i{}; i < mSpeakers.size(); ++i) {
-                speaker_id_t const newId{ mSpeakers.size() - i };
-                mSpeakers[i]->setSpeakerId(newId);
+                speaker_id_t const id{ mSpeakers.size() - i };
+                mSpeakers[i]->setSpeakerId(id);
             }
         }
     }
@@ -1267,28 +1256,28 @@ bool MainContentComponent::isRadiusNormalized() const
 }
 
 //==============================================================================
-void MainContentComponent::updateInputJack(int const inInput, Input & inp) const
+void MainContentComponent::updateSourceData(int const sourceDataIndex, Input & input) const
 {
-    auto const mode{ mAudioProcessor->getMode() };
-    auto & si = mAudioProcessor->getSourcesIn()[inInput];
+    auto const spatMode{ mAudioProcessor->getMode() };
+    auto & sourceData{ mAudioProcessor->getSourcesIn()[sourceDataIndex] };
 
-    if (mode == SpatMode::lbap) {
-        si.radAzimuth = inp.getAzimuth();
-        si.radElevation = juce::MathConstants<float>::halfPi - inp.getZenith();
+    if (spatMode == SpatMode::lbap) {
+        sourceData.radAzimuth = input.getAzimuth();
+        sourceData.radElevation = juce::MathConstants<float>::halfPi - input.getZenith();
     } else {
-        si.azimuth = ((inp.getAzimuth() / juce::MathConstants<float>::twoPi) * 360.0f);
-        if (si.azimuth > 180.0f) {
-            si.azimuth = si.azimuth - 360.0f;
+        sourceData.azimuth = ((input.getAzimuth() / juce::MathConstants<float>::twoPi) * 360.0f);
+        if (sourceData.azimuth > 180.0f) {
+            sourceData.azimuth = sourceData.azimuth - 360.0f;
         }
-        si.zenith = 90.0f - (inp.getZenith() / juce::MathConstants<float>::twoPi) * 360.0f;
+        sourceData.zenith = 90.0f - (input.getZenith() / juce::MathConstants<float>::twoPi) * 360.0f;
     }
-    si.radius = inp.getRadius();
+    sourceData.radius = input.getRadius();
 
-    si.azimuthSpan = inp.getAzimuthSpan() * 0.5f;
-    si.zenithSpan = inp.getZenithSpan() * 2.0f;
+    sourceData.azimuthSpan = input.getAzimuthSpan() * 0.5f;
+    sourceData.zenithSpan = input.getZenithSpan() * 2.0f;
 
-    if (mode == SpatMode::vbap || mode == SpatMode::hrtfVbap) {
-        mAudioProcessor->getVbapSourcesToUpdate()[inInput] = 1;
+    if (spatMode == SpatMode::vbap || spatMode == SpatMode::hrtfVbap) {
+        mAudioProcessor->getVbapSourcesToUpdate()[sourceDataIndex] = 1;
     }
 }
 
@@ -1360,6 +1349,12 @@ static void linkwitzRileyComputeVariables(double const freq, double const sr, do
 }
 
 //==============================================================================
+float MainContentComponent::getLevelsIn(int const indexLevel) const
+{
+    return (20.0f * std::log10(mAudioProcessor->getLevelsIn(indexLevel)));
+}
+
+//==============================================================================
 float MainContentComponent::getLevelsAlpha(int const indexLevel) const
 {
     auto const level{ mAudioProcessor->getLevelsIn(indexLevel) };
@@ -1388,7 +1383,7 @@ float MainContentComponent::getSpeakerLevelsAlpha(int const indexLevel) const
 }
 
 //==============================================================================
-bool MainContentComponent::updateLevelComp()
+bool MainContentComponent::refreshSpeakers()
 {
     // TODO : this function is 100 times longer than it should be.
 
@@ -1695,6 +1690,12 @@ void MainContentComponent::soloOutput(output_patch_t const id, bool const solo) 
 }
 
 //==============================================================================
+float MainContentComponent::getLevelsOut(int const indexLevel) const
+{
+    return (20.0f * std::log10(mAudioProcessor->getLevelsOut(indexLevel)));
+}
+
+//==============================================================================
 void MainContentComponent::setDirectOut(int const id, output_patch_t const chn) const
 {
     auto const index{ id - 1 };
@@ -1821,7 +1822,7 @@ void MainContentComponent::openXmlFileSpeaker(juce::File const & file, std::opti
     }
 
     mNeedToComputeVbap = true;
-    updateLevelComp();
+    refreshSpeakers();
 }
 
 //==============================================================================
@@ -1840,12 +1841,6 @@ void MainContentComponent::handleTimer(bool const state)
     } else {
         stopTimer();
     }
-}
-
-//==============================================================================
-void MainContentComponent::closeSpeakersConfigurationWindow()
-{
-    mEditSpeakersWindow.reset();
 }
 
 //==============================================================================
@@ -2131,7 +2126,7 @@ void MainContentComponent::timerCallback()
         mStartRecordButton->setButtonText("Record");
     }
 
-    if (mAudioProcessor->isOverloaded()) {
+    if (cpuLoad >= 100) {
         mCpuUsageValue->setColour(juce::Label::backgroundColourId, juce::Colours::darkred);
     } else {
         mCpuUsageValue->setColour(juce::Label::backgroundColourId, mLookAndFeel.getWinBackgroundColour());
@@ -2207,7 +2202,7 @@ void MainContentComponent::textEditorReturnKeyPressed(juce::TextEditor & textEdi
             mInputsLock.unlock();
         }
         unfocusAllComponents();
-        updateLevelComp();
+        refreshSpeakers();
     }
 }
 
@@ -2292,6 +2287,12 @@ void MainContentComponent::comboBoxChanged(juce::ComboBox * comboBoxThatHasChang
             mEditSpeakersWindow->setName(windowName);
         }
     }
+}
+
+//==============================================================================
+SpatMode MainContentComponent::getModeSelected() const
+{
+    return static_cast<SpatMode>(mSpatModeCombo->getSelectedId() - 1);
 }
 
 //==============================================================================
