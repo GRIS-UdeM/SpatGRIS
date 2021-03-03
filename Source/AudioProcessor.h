@@ -94,8 +94,6 @@ class AudioProcessor
     // Which spatialization mode is selected.
     SpatMode mModeSelected{ SpatMode::vbap };
 
-    bool mAutoConnection{ false }; // not sure this one is necessary ?
-
     // VBAP data.
     unsigned mVbapDimensions{};
     std::array<int, MAX_INPUTS> mVbapSourcesToUpdate{};

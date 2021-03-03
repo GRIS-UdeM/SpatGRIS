@@ -47,7 +47,6 @@
         <FILE id="gyI4aY" name="vbap.hpp" compile="0" resource="0" file="Source/vbap.hpp"/>
       </GROUP>
       <GROUP id="{879FD67D-521A-EC98-EB2A-A3C056EDF2C2}" name="structs">
-        <FILE id="ofkHog" name="LbapData.hpp" compile="0" resource="0" file="Source/LbapData.hpp"/>
         <FILE id="jVjbue" name="SourceData.hpp" compile="0" resource="0" file="Source/SourceData.hpp"/>
         <FILE id="wWrACh" name="SpeakerData.hpp" compile="0" resource="0" file="Source/SpeakerData.hpp"/>
       </GROUP>

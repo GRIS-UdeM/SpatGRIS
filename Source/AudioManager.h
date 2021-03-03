@@ -84,19 +84,21 @@ public:
     };
 
 private:
+    juce::CriticalSection mCriticalSection{};
+
+    AudioProcessor * mAudioProcessor{};
+
     juce::AudioDeviceManager mAudioDeviceManager{};
     juce::OwnedArray<audio_port_t> mVirtualInputPorts{};
     juce::OwnedArray<audio_port_t> mPhysicalInputPorts{};
     juce::OwnedArray<audio_port_t> mVirtualOutputPorts{};
     juce::OwnedArray<audio_port_t> mPhysicalOutputPorts{};
     juce::HashMap<audio_port_t *, audio_port_t *> mConnections{};
-    port_id_t mLastGivePortId{};
+    port_id_t mLastGivenPortId{};
     juce::AudioBuffer<float> mInputPortsBuffer{};
     juce::AudioBuffer<float> mOutputPortsBuffer{};
 
-    AudioProcessor * mAudioProcessor{};
-
-    juce::CriticalSection mCriticalSection{};
+    // Recording
     bool mIsRecording{};
     juce::Atomic<int64_t> mNumSamplesRecorded{};
     juce::OwnedArray<RecorderInfo> mRecorders{};
@@ -104,7 +106,7 @@ private:
     RecordingConfig mRecordingConfig{};
     juce::AudioBuffer<float> mRecordingBuffer{};
     juce::Array<output_patch_t> mChannelsToRecord{};
-
+    //==============================================================================
     static std::unique_ptr<AudioManager> mInstance;
 
 public:
@@ -127,7 +129,6 @@ public:
     void unregisterPort(audio_port_t * port);
 
     [[nodiscard]] bool isConnectedTo(audio_port_t const * port, char const * port_name) const;
-    [[nodiscard]] bool isConnectedTo(audio_port_t const * portA, audio_port_t const * portB) const;
 
     void registerAudioProcessor(AudioProcessor * audioProcessor);
 
@@ -135,12 +136,8 @@ public:
     [[nodiscard]] juce::Array<audio_port_t *> getOutputPorts() const;
     float * getBuffer(audio_port_t * port, size_t nFrames) noexcept;
 
-    [[nodiscard]] audio_port_t * getPort(char const * name) const;
-    [[nodiscard]] audio_port_t * getPort(port_id_t const id) const;
-
     [[nodiscard]] std::vector<std::string> getPortNames(PortType portType) const;
 
-    void connect(char const * sourcePortName, char const * destinationPortName);
     void connect(audio_port_t * sourcePort, audio_port_t * destinationPort);
     void disconnect(audio_port_t * sourcePort, audio_port_t * destinationPort);
 
@@ -167,8 +164,8 @@ public:
                      juce::String const & outputDevice,
                      double sampleRate,
                      int bufferSize);
-    [[nodiscard]] static AudioManager & getInstance();
     static void free();
+    [[nodiscard]] static AudioManager & getInstance();
 
 private:
     //==============================================================================
@@ -179,11 +176,14 @@ private:
                  int bufferSize);
     //==============================================================================
     void setBufferSizes(int numSamples);
-    bool tryInitAudioDevice(juce::String const & deviceType,
-                            juce::String const & inputDevice,
-                            juce::String const & outputDevice,
-                            double requestedSampleRate,
-                            int requestedBufferSize);
+
+    [[nodiscard]] audio_port_t * getPort(char const * name) const;
+    [[nodiscard]] audio_port_t * getPort(port_id_t id) const;
+    [[nodiscard]] bool tryInitAudioDevice(juce::String const & deviceType,
+                                          juce::String const & inputDevice,
+                                          juce::String const & outputDevice,
+                                          double requestedSampleRate,
+                                          int requestedBufferSize);
     //==============================================================================
     JUCE_LEAK_DETECTOR(AudioManager)
 }; // class AudioManager

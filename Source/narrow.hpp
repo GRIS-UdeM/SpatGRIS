@@ -34,10 +34,13 @@ constexpr To narrow(From const value)
 {
     static_assert(std::is_scalar_v<To> && std::is_scalar_v<From>);
 
+    // If you hit this assertion, it means that you tried to cast a negative value into an unsigned type.
     assert(std::is_signed_v<To> == std::is_signed_v<From> || value >= 0);
 
     auto const expanded_value{ static_cast<To>(value) };
     auto const sanity_check{ static_cast<From>(expanded_value) };
+
+    // If you hit this assertion, it means that you tried to
     assert(sanity_check == value);
 
     return expanded_value;

@@ -231,7 +231,7 @@ audio_port_t * AudioManager::registerPort(char const * const newShortName,
     juce::ScopedLock sl{ mCriticalSection };
 
     auto newPort{
-        std::make_unique<audio_port_t>(++mLastGivePortId, newShortName, newClientName, newType, newPhysicalPort)
+        std::make_unique<audio_port_t>(++mLastGivenPortId, newShortName, newClientName, newType, newPhysicalPort)
     };
 
     audio_port_t * result;
@@ -293,18 +293,6 @@ bool AudioManager::isConnectedTo(audio_port_t const * port, char const * port_na
     }
 
     return strcmp(port_name, mConnections[const_cast<audio_port_t *>(port)]->fullName) == 0;
-}
-
-//==============================================================================
-bool AudioManager::isConnectedTo(audio_port_t const * portA, audio_port_t const * portB) const
-{
-    juce::ScopedLock sl{ mCriticalSection };
-
-    if (!mConnections.contains(const_cast<audio_port_t *>(portA))) {
-        return false;
-    }
-
-    return mConnections[const_cast<audio_port_t *>(portA)] == portB;
 }
 
 //==============================================================================
@@ -415,14 +403,6 @@ std::vector<std::string> AudioManager::getPortNames(PortType const portType) con
     }
 
     return result;
-}
-
-//==============================================================================
-void AudioManager::connect(char const * sourcePortName, char const * destinationPortName)
-{
-    juce::ScopedLock sl{ mCriticalSection };
-
-    connect(getPort(sourcePortName), getPort(destinationPortName));
 }
 
 //==============================================================================
@@ -646,7 +626,7 @@ void AudioManager::stopRecording()
 }
 
 //==============================================================================
-void AudioManager::audioDeviceError(const juce::String & /*errorMessage*/)
+void AudioManager::audioDeviceError(juce::String const & /*errorMessage*/)
 {
     jassertfalse;
 }
