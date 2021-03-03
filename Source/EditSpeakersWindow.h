@@ -73,7 +73,8 @@ class EditSpeakersWindow final
     bool mInitialized{ false };
     std::optional<int> mDragStartY{};
     //==============================================================================
-    friend EditableTextCustomComponent; // TODO: temporary solution whiling refactoring is going on...
+    friend EditableTextCustomComponent;
+
 public:
     //==============================================================================
     EditSpeakersWindow(juce::String const & name,

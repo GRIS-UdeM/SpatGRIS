@@ -42,6 +42,9 @@ class Speaker;
 struct audio_port_t;
 
 //==============================================================================
+/**
+ * Does most of the spatialization heavy-lifting.
+ */
 class AudioProcessor
 {
     // class variables.
@@ -162,7 +165,6 @@ public:
 
     // Manage clients.
     void connectionClient(juce::String const & name, bool connect = true);
-    void updateClientPortAvailable(bool fromJack);
 
     // Initialize VBAP algorithm.
     [[nodiscard]] bool
@@ -240,7 +242,8 @@ public:
 private:
     //==============================================================================
     // Connect the server's outputs to the system's inputs.
-    void connectedGrisToSystem();
+    void reconnectPorts();
+    void updateClientPortAvailable();
     //==============================================================================
     JUCE_LEAK_DETECTOR(AudioProcessor)
 };

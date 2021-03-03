@@ -37,7 +37,6 @@ MainWindow::MainWindow(juce::String const & name,
     addKeyListener(getApplicationCommandManager().getKeyMappings());
 
     // These offset values compensate for the title bar size.
-    // TODO: it works on linux, need to be tested on MacOS.
 #ifdef __linux__
     static constexpr auto X_OFFSET = 3;
     static constexpr auto Y_OFFSET = 29;

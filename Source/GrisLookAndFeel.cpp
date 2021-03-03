@@ -413,7 +413,6 @@ void GrisLookAndFeel::drawTabButton(juce::TabBarButton & button,
                                     bool const isMouseDown)
 {
     auto const activeArea(button.getActiveArea());
-    activeArea.withHeight(18); // TODO : this value should be assigned!
     auto const orientation = button.getTabbedButtonBar().getOrientation();
     auto const bkg{ button.getTabBackgroundColour() };
 

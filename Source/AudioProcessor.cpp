@@ -77,7 +77,6 @@ static juce::AudioBuffer<float> getSamplesFromWavFile(juce::File const & file)
 }
 
 //==============================================================================
-// JackClientGris class definition.
 AudioProcessor::AudioProcessor()
 {
     // Initialize impulse responses for VBAP+HRTF (BINAURAL mode).
@@ -121,11 +120,7 @@ AudioProcessor::AudioProcessor()
 
     mInterMaster = 0.8f;
 
-    // open a client connection to the JACK server. Start server if it is not running.
-
     auto & audioManager{ AudioManager::getInstance() };
-
-    // Register Jack callbacks and ports.
     audioManager.registerAudioProcessor(this);
 
     // Initialize pink noise
@@ -180,7 +175,7 @@ void AudioProcessor::addRemoveInput(unsigned int const number)
             mInputsPort.push_back(newPort);
         }
     }
-    connectedGrisToSystem();
+    reconnectPorts();
 }
 
 //==============================================================================
@@ -209,7 +204,7 @@ bool AudioProcessor::addOutput(output_patch_t const outputPatch)
     };
 
     mOutputsPort.push_back(newPort);
-    connectedGrisToSystem();
+    reconnectPorts();
     return true;
 }
 
@@ -586,10 +581,9 @@ void AudioProcessor::processVBapHrtf(float const * const * ins,
 
         for (unsigned sampleIndex{}; sampleIndex < nFrames; ++sampleIndex) {
             auto tmpCount{ narrow<int>(mHrtfCount[outputIndex]) };
-            static constexpr auto MYSTERY = 128; // TODO : solve
-            for (unsigned hrtfIndex{}; hrtfIndex < MYSTERY; ++hrtfIndex) {
+            for (unsigned hrtfIndex{}; hrtfIndex < HRTF_NUM_SAMPLES; ++hrtfIndex) {
                 if (tmpCount < 0) {
-                    tmpCount += MYSTERY;
+                    tmpCount += HRTF_NUM_SAMPLES;
                 }
                 auto const sig{ mHrtfInputTmp[outputIndex][tmpCount] };
                 outs[LEFT][sampleIndex] += sig * mVbapHrtfLeftImpulses[outputIndex][hrtfIndex];
@@ -597,7 +591,7 @@ void AudioProcessor::processVBapHrtf(float const * const * ins,
                 --tmpCount;
             }
             mHrtfCount[outputIndex]++;
-            if (mHrtfCount[outputIndex] >= MYSTERY) {
+            if (mHrtfCount[outputIndex] >= HRTF_NUM_SAMPLES) {
                 mHrtfCount[outputIndex] = 0;
             }
             mHrtfInputTmp[outputIndex][mHrtfCount[outputIndex]] = vbapOuts[sampleIndex];
@@ -735,7 +729,7 @@ void AudioProcessor::processAudio(size_t const nFrames) noexcept
 }
 
 //==============================================================================
-void AudioProcessor::connectedGrisToSystem()
+void AudioProcessor::reconnectPorts()
 {
     clearOutput();
     auto & audioManager{ AudioManager::getInstance() };
@@ -751,10 +745,9 @@ void AudioProcessor::connectedGrisToSystem()
     auto const outputPorts{ audioManager.getOutputPorts() };
     auto const inputPorts{ audioManager.getInputPorts() };
 
-    // DisConnect JackClientGris to system.
-    // TODO : this is confusing
+    // Disconnect ports
     for (auto * outputPort : outputPorts) {
-        if (strcmp(outputPort->clientName, CLIENT_NAME) == 0) { // jackClient
+        if (strcmp(outputPort->clientName, CLIENT_NAME) == 0) {
             for (auto * inputPort : inputPorts) {
                 if (strcmp(inputPort->clientName, SYS_CLIENT_NAME) == 0
                     && audioManager.isConnectedTo(outputPort, inputPort->fullName)) {
@@ -764,11 +757,11 @@ void AudioProcessor::connectedGrisToSystem()
         }
     }
 
-    // Connect JackClientGris to system.
+    // Connect ports
     for (auto * outputPort : outputPorts) {
-        if (strcmp(outputPort->clientName, CLIENT_NAME) == 0) { // jackClient
+        if (strcmp(outputPort->clientName, CLIENT_NAME) == 0) {
             for (auto * inputPort : inputPorts) {
-                if (strcmp(inputPort->clientName, SYS_CLIENT_NAME) == 0) { // system
+                if (strcmp(inputPort->clientName, SYS_CLIENT_NAME) == 0) {
                     audioManager.connect(outputPort, inputPort);
                     break;
                 }
@@ -848,7 +841,7 @@ bool AudioProcessor::initSpeakersTriplet(std::vector<Speaker *> const & listSpk,
     }
     free(triplets);
 
-    connectedGrisToSystem();
+    reconnectPorts();
 
     return true;
 }
@@ -887,7 +880,7 @@ bool AudioProcessor::lbapSetupSpeakerField(std::vector<Speaker *> const & listSp
 
     free(speakers);
 
-    connectedGrisToSystem();
+    reconnectPorts();
 
     return true;
 }
@@ -942,7 +935,7 @@ void AudioProcessor::connectionClient(juce::String const & name, bool const conn
     auto const inputPorts{ audioManager.getInputPorts() };
     auto const outputPorts{ audioManager.getOutputPorts() };
 
-    updateClientPortAvailable(false);
+    updateClientPortAvailable();
 
     // Disconnect client.
     for (auto * outputPort : outputPorts) {
@@ -958,19 +951,19 @@ void AudioProcessor::connectionClient(juce::String const & name, bool const conn
 
     for (auto & cli : mClients) {
         if (cli.name == name) {
-            cli.connected = true; // since there is no checkbox anymore, lets set this to true by default.
+            cli.connected = true;
         }
     }
 
-    connectedGrisToSystem();
+    reconnectPorts();
 
     if (!connect) {
         return;
     }
 
-    // Connect other client to JackClientGris
     mAutoConnection = true;
 
+    // TODO : this is horrendous. Clients should be removed altogether.
     auto conn{ false };
     for (auto & cli : mClients) {
         auto const & nameClient = cli.name;
@@ -1001,7 +994,7 @@ void AudioProcessor::connectionClient(juce::String const & name, bool const conn
 }
 
 //==============================================================================
-void AudioProcessor::updateClientPortAvailable(bool const fromJack)
+void AudioProcessor::updateClientPortAvailable()
 {
     auto const outputPorts{ AudioManager::getInstance().getOutputPorts() };
 
@@ -1023,12 +1016,8 @@ void AudioProcessor::updateClientPortAvailable(bool const fromJack)
     unsigned end;
     unsigned defaultActivePorts{ 64 };
     for (auto & client : mClients) {
-        if (!fromJack) {
-            client.initialized = true;
-            end = client.activePorts;
-        } else {
-            end = client.portAvailable < defaultActivePorts ? client.portAvailable : defaultActivePorts;
-        }
+        client.initialized = true;
+        end = client.activePorts;
         if (client.portStart == 0 || client.portEnd == 0 || !client.initialized) { // ports not initialized.
             client.portStart = start;
             client.portEnd = start + end - 1;
@@ -1087,9 +1076,8 @@ void AudioProcessor::updateClientPortAvailable(bool const fromJack)
 //==============================================================================
 AudioProcessor::~AudioProcessor()
 {
-    // TODO: paramVBap and mSourcesIn->paramVBap are never deallocated.
-
     lbap_field_free(mLbapSpeakerField);
+    free_vbap_data(mParamVBap);
 
     auto & audioManager{ AudioManager::getInstance() };
 

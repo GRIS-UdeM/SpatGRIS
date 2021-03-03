@@ -32,10 +32,9 @@ LevelBox::LevelBox(LevelComponent & levelComponent, SmallGrisLookAndFeel & lookA
 //==============================================================================
 void LevelBox::setBounds(juce::Rectangle<int> const & newBounds)
 {
-    // TODO: this function should not be drawing or loading images.
+    // TODO: move the painting stuff to paint()
 
-    // LevelBox size is (22, 140)
-    juce::Component::setBounds(newBounds); // TODO: this does not look ok!
+    juce::Component::setBounds(newBounds);
 
     mColorGrad
         = juce::ColourGradient{ juce::Colour::fromRGB(255, 94, 69), 0.f,  0.f, juce::Colour::fromRGB(17, 255, 159), 0.f,
@@ -47,26 +46,26 @@ void LevelBox::setBounds(juce::Rectangle<int> const & newBounds)
     juce::Graphics gf{ mVuMeterBit };
     gf.setGradientFill(mColorGrad);
     gf.fillRect(0, 0, getWidth(), getHeight());
+    gf.setColour(mLookAndFeel.getDarkColour());
+    gf.setFont(10.0f);
 
     // Create vu-meter background image.
     mVuMeterBackBit = juce::Image{ juce::Image::RGB, 21, 140, true };
     juce::Graphics gb{ mVuMeterBackBit };
     gb.setColour(mLookAndFeel.getDarkColour());
     gb.fillRect(0, 0, getWidth(), getHeight());
+    gb.setColour(mLookAndFeel.getScrollBarColour());
+    gb.setFont(10.0f);
 
     // Create vu-meter muted image.
     mVuMeterMutedBit = juce::Image(juce::Image::RGB, 21, 140, true);
     juce::Graphics gm{ mVuMeterMutedBit };
     gm.setColour(mLookAndFeel.getWinBackgroundColour());
     gm.fillRect(0, 0, getWidth(), getHeight());
-
-    // Draw ticks on images.
-    gf.setColour(mLookAndFeel.getDarkColour());
-    gf.setFont(10.0f);
-    gb.setColour(mLookAndFeel.getScrollBarColour());
-    gb.setFont(10.0f);
     gm.setColour(mLookAndFeel.getScrollBarColour());
     gm.setFont(10.0f);
+
+    // Draw ticks on images.
     int const start = getWidth() - 3;
     for (int i{ 1 }; i < 10; i++) {
         auto const y = i * 14;
@@ -259,16 +258,16 @@ void LevelComponent::mouseDown(juce::MouseEvent const & e)
 //==============================================================================
 void LevelComponent::changeListenerCallback(juce::ChangeBroadcaster * source)
 {
-    juce::ColourSelector * cs{ dynamic_cast<juce::ColourSelector *>(source) };
-    if (cs != nullptr) {
-        mIdButton.setColour(juce::TextButton::buttonColourId, cs->getCurrentColour());
-        mParentLevelComponent.setColor(cs->getCurrentColour());
+    auto * colorSelector{ dynamic_cast<juce::ColourSelector *>(source) };
+    if (colorSelector != nullptr) {
+        mIdButton.setColour(juce::TextButton::buttonColourId, colorSelector->getCurrentColour());
+        mParentLevelComponent.setColor(colorSelector->getCurrentColour());
         if (mLastMouseButton == 0) {
-            Input * input = dynamic_cast<Input *>(&mParentLevelComponent);
+            auto * input = dynamic_cast<Input *>(&mParentLevelComponent);
             jassert(input != nullptr);
             for (auto * it : input->getMainContentComponent().getSourceInputs()) {
                 if (it->getId() == mParentLevelComponent.getId() + 1) {
-                    it->setColor(cs->getCurrentColour(), true);
+                    it->setColor(colorSelector->getCurrentColour(), true);
                 }
             }
         }
@@ -285,13 +284,13 @@ void LevelComponent::setColor(juce::Colour const color)
 //==============================================================================
 void LevelComponent::update()
 {
-    auto const l = mParentLevelComponent.getLevel();
+    auto const level{ mParentLevelComponent.getLevel() };
 
-    if (!std::isnan(l)) {
-        if (!mMuteToggleButton.getToggleState() && mLevel != l) {
+    if (!std::isnan(level)) {
+        if (!mMuteToggleButton.getToggleState() && mLevel != level) {
             repaint();
         }
-        mLevel = l;
+        mLevel = level;
     }
 }
 
@@ -313,21 +312,30 @@ void LevelComponent::setSelected(bool const value)
 //==============================================================================
 void LevelComponent::setBounds(juce::Rectangle<int> const & newBounds)
 {
-    int const levelSize{ 140 };
+    static constexpr auto LEVEL_SIZE{ 140 };
 
-    juce::Component::setBounds(newBounds); // TODO: this does not look ok!
+    juce::Component::setBounds(newBounds);
 
-    juce::Rectangle<int> const labRect{ 0, 0, newBounds.getWidth(), mIdButton.getHeight() };
-    mIdButton.setBounds(labRect);
-    mMuteToggleButton.setBounds(0, 158, mMuteToggleButton.getWidth(), mMuteToggleButton.getHeight());
-    mSoloToggleButton.setBounds(mMuteToggleButton.getWidth() - 2,
-                                158,
-                                mMuteToggleButton.getWidth(),
-                                mMuteToggleButton.getHeight());
+    juce::Rectangle<int> const idBounds{ 0, 0, newBounds.getWidth(), mIdButton.getHeight() };
+    mIdButton.setBounds(idBounds);
+
+    juce::Rectangle<int> const muteButtonBounds{ 0, 158, mMuteToggleButton.getWidth(), mMuteToggleButton.getHeight() };
+    mMuteToggleButton.setBounds(muteButtonBounds);
+
+    juce::Rectangle<int> const soloButtonBounds{ mMuteToggleButton.getWidth() - 2,
+                                                 158,
+                                                 mMuteToggleButton.getWidth(),
+                                                 mMuteToggleButton.getHeight() };
+    mSoloToggleButton.setBounds(soloButtonBounds);
+
     if (mParentLevelComponent.isInput()) {
-        mDirectOutButton.setBounds(0, getHeight() - 27, newBounds.getWidth(), mDirectOutButton.getHeight());
+        juce::Rectangle<int> const directOutButtonBounds{ 0,
+                                                          getHeight() - 27,
+                                                          newBounds.getWidth(),
+                                                          mDirectOutButton.getHeight() };
+        mDirectOutButton.setBounds(directOutButtonBounds);
     }
 
-    juce::Rectangle<int> const level{ 0, 18, newBounds.getWidth() - WIDTH_RECT, levelSize };
-    mLevelBox.setBounds(level);
+    juce::Rectangle<int> const levelBoxBounds{ 0, 18, newBounds.getWidth() - WIDTH_RECT, LEVEL_SIZE };
+    mLevelBox.setBounds(levelBoxBounds);
 }

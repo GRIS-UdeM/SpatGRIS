@@ -972,9 +972,6 @@ juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const j
         menu.addCommandItem(commandManager, MainWindow::ColorizeInputsID);
         menu.addCommandItem(commandManager, MainWindow::ResetInputPosID);
         menu.addCommandItem(commandManager, MainWindow::ResetMeterClipping);
-        // TODO: Osc log window still crashes on MacOS. Useful only in debugging process.
-        // menu.addSeparator();
-        // menu.addCommandItem(commandManager, MainWindow::ShowOscLogView);
     } else if (menuName == "Help") {
         menu.addCommandItem(commandManager, MainWindow::AboutID);
         menu.addCommandItem(commandManager, MainWindow::OpenManualID);
@@ -985,7 +982,6 @@ juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const j
 //==============================================================================
 void MainContentComponent::menuItemSelected(int /*menuItemID*/, int /*topLevelMenuIndex*/)
 {
-    // TODO : ???
 }
 
 //==============================================================================
@@ -1921,7 +1917,7 @@ void MainContentComponent::openProject(juce::File const & file)
         auto const distance{ static_cast<float>(mainXmlElem->getDoubleAttribute("CamDistance")) };
         mSpeakerViewComponent->setCamPosition(angleX, angleY, distance);
     } else {
-        mSpeakerViewComponent->setCamPosition(80.0f, 25.0f, 22.0f); // TODO: named constants ?
+        mSpeakerViewComponent->setCamPosition(80.0f, 25.0f, 22.0f);
     }
 
     // Update
@@ -2094,7 +2090,6 @@ void MainContentComponent::saveProperties(juce::String const & audioDeviceType,
 //==============================================================================
 void MainContentComponent::timerCallback()
 {
-    // TODO : audioDevice should not be accessed this frequently
     auto & audioManager{ AudioManager::getInstance() };
     auto & audioDeviceManager{ audioManager.getAudioDeviceManager() };
     auto * audioDevice{ audioDeviceManager.getCurrentAudioDevice() };
@@ -2135,26 +2130,6 @@ void MainContentComponent::timerCallback()
     } else {
         mStartRecordButton->setButtonText("Record");
     }
-
-    /*if (mIsRecording && !mAudioProcessor->isRecording()) {
-        auto const & recorders{ mAudioProcessor->getRecorders() };
-        auto const isReadyToMerge{ std::none_of(
-            recorders.begin(),
-            recorders.end(),
-            [](AudioRecorder const & recorder) -> bool { return recorder.isThreadRunning(); }) };
-
-        if (isReadyToMerge) {
-            if (mAudioProcessor->getRecordFileConfig()) {
-                juce::ScopedLock const lock{ mAudioProcessor->getCriticalSection() };
-                auto * renderer{ new AudioRenderer{} };
-                renderer->prepareRecording(mAudioProcessor->getRecordingPath(),
-                                           mAudioProcessor->getOutputFileNames(),
-                                           sampleRate);
-                renderer->runThread();
-            }
-            mIsRecording = false;
-        }
-    }*/
 
     if (mAudioProcessor->isOverloaded()) {
         mCpuUsageValue->setColour(juce::Label::backgroundColourId, juce::Colours::darkred);
@@ -2292,7 +2267,7 @@ void MainContentComponent::comboBoxChanged(juce::ComboBox * comboBoxThatHasChang
         auto const newSpatMode{ static_cast<SpatMode>(mSpatModeCombo->getSelectedId() - 1) };
         mAudioProcessor->setMode(newSpatMode);
         mNeedToSaveSpeakerSetup = false;
-        // TODO : good files are not recalled
+
         switch (newSpatMode) {
         case SpatMode::vbap:
         case SpatMode::lbap:

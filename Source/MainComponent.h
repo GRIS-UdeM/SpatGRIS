@@ -301,7 +301,7 @@ public:
     [[nodiscard]] auto const & getConfiguration() const { return mConfiguration; }
 
     // Called when the speaker setup has changed.
-    bool updateLevelComp(); // TODO : what does the return value means ?
+    bool updateLevelComp(); // TODO : what does the return value mean ?
 
     // Open - save.
     void openXmlFileSpeaker(juce::File const & file, std::optional<SpatMode> forceSpatMode = std::nullopt);

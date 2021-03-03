@@ -22,8 +22,6 @@
 #include "AudioProcessor.h"
 #include "constants.hpp"
 
-static_assert(!USE_JACK);
-
 //==============================================================================
 std::unique_ptr<AudioManager> AudioManager::mInstance{ nullptr };
 
@@ -117,7 +115,6 @@ void AudioManager::audioDeviceIOCallback(const float ** inputChannelData,
          * so the solution is to copy the active sections of the output buffer into an other buffer so that it is nicely
          * aligned for recording.
          */
-
         for (int i{}; i < mChannelsToRecord.size(); ++i) {
             auto const & outputPatch{ mChannelsToRecord[i] };
             mRecordingBuffer.copyFrom(i, 0, mOutputPortsBuffer.getReadPointer(outputPatch.get() - 1), numSamples);
@@ -658,16 +655,14 @@ void AudioManager::audioDeviceAboutToStart(juce::AudioIODevice * device)
 {
     juce::ScopedLock sl{ mCriticalSection };
     setBufferSizes(device->getCurrentBufferSizeSamples());
-
-    // TODO : call prepareToPlay
+    // when AudioProcessor will be a real AudioSource, prepareToPlay() should be called here.
 }
 
 //==============================================================================
 void AudioManager::audioDeviceStopped()
 {
     juce::ScopedLock sl{ mCriticalSection };
-
-    // TODO : call releaseResources
+    // when AudioProcessor will be a real AudioSource, releaseResources() should be called here.
 }
 
 //==============================================================================
