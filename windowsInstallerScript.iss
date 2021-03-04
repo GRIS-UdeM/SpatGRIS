@@ -43,7 +43,7 @@ Source: "Builds\VisualStudio2019\x64\Release\App\freeglut.dll"; DestDir: "{app}"
 Source: "Resources\hrtf_compact\*"; DestDir: "{app}\Resources\hrtf_compact"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "Resources\default_preset\*"; DestDir: "{app}\Resources\default_preset"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "Resources\templates\*"; DestDir: "{app}\templates"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "Resources\SpatGRIS2_2.0_Manual.pdf"; DestDir: "{app}\Resources\SpatGRIS2_2.0_Manual.pdf"; Flags: ignoreversion
+Source: "Resources\SpatGRIS2_2.0_Manual.pdf"; DestDir: "{app}\Resources"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
