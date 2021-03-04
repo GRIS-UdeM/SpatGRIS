@@ -14,35 +14,24 @@ if [ "$#" -ne 1 ]; then
 fi
 
 VERSION=$1
+IDENTIFIER="ca.umontreal.musique.gris.spatgris"
 
 export PACKAGE_NAME="SpatGRIS_v$VERSION.pkg"
 export DMG_DIR="SpatGRIS_v$VERSION"
 export DMG_NAME="SpatGRIS_v$VERSION.dmg"
 
-# Replace app icon with a better version
-cp ../Resources/Icon.icns ../Builds/MacOSX/build/Release/SpatGRIS.app/Contents/Resources/Icon.icns
-
 export INSTALLER_DIR=`pwd`/installerdir
 export APPLICATIONS_DIR=$INSTALLER_DIR/Application/Package_Contents/Applications
-export SUPPORT_LIBS_DIR=$INSTALLER_DIR/SupportLibs/Package_Contents/usr/local
-export FRAMEWORKS_DIR=$INSTALLER_DIR/Frameworks/Package_Contents/Library/Frameworks
-export PLUGINS_DIR=$INSTALLER_DIR/Plugins/Package_Contents/Library/Audio/Plug-Ins
+# export PLUGINS_DIR=$INSTALLER_DIR/Plugins/Package_Contents/Library/Audio/Plug-Ins
 
 export BUILD_RESOURCES=$INSTALLER_DIR/PkgResources/English.lproj
 export PKG_RESOURCES=$INSTALLER_DIR/../PkgResources
 
 mkdir -p $APPLICATIONS_DIR
-mkdir -p $SUPPORT_LIBS_DIR
-mkdir -p $FRAMEWORKS_DIR
-mkdir -p $PLUGINS_DIR
-mkdir -p $SUPPORT_LIBS_DIR/bin
-mkdir -p $SUPPORT_LIBS_DIR/lib
-mkdir -p $SUPPORT_LIBS_DIR/include
-mkdir -p $SUPPORT_LIBS_DIR/lib/jackmp
-mkdir -p $SUPPORT_LIBS_DIR/lib/pkgconfig
-mkdir -p $PLUGINS_DIR/HAL
-mkdir -p $PLUGINS_DIR/VST
-mkdir -p $PLUGINS_DIR/Components
+# mkdir -p $PLUGINS_DIR
+# mkdir -p $PLUGINS_DIR/HAL
+# mkdir -p $PLUGINS_DIR/VST
+# mkdir -p $PLUGINS_DIR/Components
 mkdir -p $BUILD_RESOURCES
 
 cp $PKG_RESOURCES/License.rtf $BUILD_RESOURCES/License.rtf
@@ -52,41 +41,21 @@ cp $PKG_RESOURCES/ReadMe.rtf $BUILD_RESOURCES/ReadMe.rtf
 echo "copying application..."
 cp -r ../Builds/MacOSX/build/Release/SpatGRIS.app $APPLICATIONS_DIR/
 
-echo "copying support libs..."
-# sudo cp -r /Library/Frameworks/Panda.framework $FRAMEWORKS_DIR
-
 cd $INSTALLER_DIR
 
-echo "setting permissions..."
-#sudo chgrp -R wheel Application/Package_Contents/
-#sudo chown -R root Application/Package_Contents/
-#sudo chmod -R 755 Application/Package_Contents/
-sudo chgrp -R wheel SupportLibs/Package_Contents/usr
-sudo chown -R root SupportLibs/Package_Contents/usr
-sudo chmod -R 755 SupportLibs/Package_Contents/usr
-
 echo "building packages..."
-pkgbuild    --identifier com.gris.umontreal.ca.SpatGRIS.app.pkg \
+pkgbuild    --identifier $IDENTIFIER.pkg \
             --root Application/Package_Contents/ \
             --version $VERSION \
             --scripts $PKG_RESOURCES \
             --component-plist ../Application.plist \
+            --sign "Q2A837SX87" \
             Application.pkg
 
-pkgbuild    --identifier com.gris.umontreal.ca.SpatGRIS.libs.pkg \
-            --root SupportLibs/Package_Contents/ \
-            --version $VERSION \
-            SupportLibs.pkg
-
-pkgbuild    --identifier com.gris.umontreal.ca.SpatGRIS.frameworks.pkg \
-            --root Frameworks/Package_Contents/ \
-            --version $VERSION \
-            Frameworks.pkg
-
-pkgbuild    --identifier com.gris.umontreal.ca.SpatGRIS.plugins.pkg \
-            --root Plugins/Package_Contents/ \
-            --version $VERSION \
-            Plugins.pkg
+# pkgbuild    --identifier com.gris.umontreal.ca.SpatGRIS.plugins.pkg \
+#             --root Plugins/Package_Contents/ \
+#             --version $VERSION \
+#             Plugins.pkg
 
 echo "building product..."
 productbuild --distribution ../Distribution.dist --resources $BUILD_RESOURCES $PACKAGE_NAME
@@ -95,7 +64,7 @@ echo "assembling DMG..."
 mkdir "$DMG_DIR"
 cd "$DMG_DIR"
 cp ../$PACKAGE_NAME .
-cp -r "../../../Resources/templates Templates" .
+cp -r "../../../Resources/templates" .
 
 cd ..
 

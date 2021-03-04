@@ -8,23 +8,23 @@
     <readme file="ReadMe.rtf" />
     <license file="License.rtf" />
 
-    <pkg-ref id="com.gris.umontreal.ca.SpatGRIS.app.pkg"/>
-    <pkg-ref id="com.gris.umontreal.ca.SpatGRIS.libs.pkg"/>
-    <pkg-ref id="com.gris.umontreal.ca.SpatGRIS.frameworks.pkg"/>
-    <pkg-ref id="com.gris.umontreal.ca.SpatGRIS.plugins.pkg"/>
+    <pkg-ref id="ca.umontreal.musique.gris.spatgris.pkg"/>
+    <!-- <pkg-ref id="com.gris.umontreal.ca.SpatGRIS.libs.pkg"/> -->
+    <!-- <pkg-ref id="com.gris.umontreal.ca.SpatGRIS.frameworks.pkg"/> -->
+    <!-- <pkg-ref id="com.gris.umontreal.ca.SpatGRIS.plugins.pkg"/> -->
     <choices-outline>
-        <line choice="com.gris.umontreal.ca.SpatGRIS.app.pkg"/>
-        <line choice="com.gris.umontreal.ca.SpatGRIS.libs.pkg"/>
-        <line choice="com.gris.umontreal.ca.SpatGRIS.frameworks.pkg"/>
-        <line choice="com.gris.umontreal.ca.SpatGRIS.plugins.pkg"/>
+        <line choice="ca.umontreal.musique.gris.spatgris.pkg"/>
+        <!-- <line choice="com.gris.umontreal.ca.SpatGRIS.libs.pkg"/> -->
+        <!-- <line choice="com.gris.umontreal.ca.SpatGRIS.frameworks.pkg"/> -->
+        <!-- <line choice="com.gris.umontreal.ca.SpatGRIS.plugins.pkg"/> -->
     </choices-outline>
     
-    <choice id="com.gris.umontreal.ca.SpatGRIS.app.pkg"
+    <choice id="ca.umontreal.musique.gris.spatgris.pkg"
     visible="true"
     title="SpatGRIS">
-        <pkg-ref id="com.gris.umontreal.ca.SpatGRIS.app.pkg"/>
+        <pkg-ref id="ca.umontreal.musique.gris.spatgris.pkg"/>
     </choice>
-    <choice id="com.gris.umontreal.ca.SpatGRIS.libs.pkg"
+    <!-- <choice id="com.gris.umontreal.ca.SpatGRIS.libs.pkg"
     visible="true"
     title="Support Libraries">
         <pkg-ref id="com.gris.umontreal.ca.SpatGRIS.libs.pkg"/>
@@ -38,10 +38,10 @@
     visible="true"
     title="Plugins">
         <pkg-ref id="com.gris.umontreal.ca.SpatGRIS.plugins.pkg"/>
-    </choice>
+    </choice> -->
     
-<pkg-ref id="com.gris.umontreal.ca.SpatGRIS.app.pkg" version="3.0" onConclusion="none" auth="root">Application.pkg</pkg-ref>
-<pkg-ref id="com.gris.umontreal.ca.SpatGRIS.libs.pkg" version="3.0" onConclusion="none" auth="root">SupportLibs.pkg</pkg-ref>
+<pkg-ref id="ca.umontreal.musique.gris.spatgris.pkg" version="3.0" onConclusion="none" auth="root">Application.pkg</pkg-ref>
+<!-- <pkg-ref id="com.gris.umontreal.ca.SpatGRIS.libs.pkg" version="3.0" onConclusion="none" auth="root">SupportLibs.pkg</pkg-ref>
 <pkg-ref id="com.gris.umontreal.ca.SpatGRIS.frameworks.pkg" version="3.0" onConclusion="none" auth="root">Frameworks.pkg</pkg-ref>
-<pkg-ref id="com.gris.umontreal.ca.SpatGRIS.plugins.pkg" version="3.0" onConclusion="none" auth="root">Plugins.pkg</pkg-ref>
+<pkg-ref id="com.gris.umontreal.ca.SpatGRIS.plugins.pkg" version="3.0" onConclusion="none" auth="root">Plugins.pkg</pkg-ref> -->
 </installer-gui-script>
