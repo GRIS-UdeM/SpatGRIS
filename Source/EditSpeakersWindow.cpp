@@ -174,8 +174,8 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     mPinkNoiseGainSlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.3f,
                                              juce::MathConstants<float>::pi * 2.7f,
                                              true);
-    mPinkNoiseGainSlider.setRange(-60, -3, 1);
-    mPinkNoiseGainSlider.setValue(-20);
+    mPinkNoiseGainSlider.setRange(MIN_PINK_NOISE_DB.get(), MAX_PINK_NOISE_DB.get(), 1.0);
+    mPinkNoiseGainSlider.setValue(DEFAULT_PINK_NOISE_DB.get());
     mPinkNoiseGainSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 60, 20);
     mPinkNoiseGainSlider.setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
     mPinkNoiseGainSlider.setLookAndFeel(&mLookAndFeel);
@@ -388,9 +388,8 @@ void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const 
 void EditSpeakersWindow::sliderValueChanged(juce::Slider * slider)
 {
     if (slider == &mPinkNoiseGainSlider) {
-        auto const sliderValue{ static_cast<float>(mPinkNoiseGainSlider.getValue()) };
-        auto const gain{ std::pow(10.0f, sliderValue / 20.0f) };
-        mMainContentComponent.getAudioProcessor().setPinkNoiseGain(gain);
+        dbfs_t const db{ narrow<float>(mPinkNoiseGainSlider.getValue()) };
+        mMainContentComponent.getAudioProcessor().setPinkNoiseGain(db);
     }
 }
 

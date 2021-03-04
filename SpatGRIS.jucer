@@ -31,6 +31,10 @@
               file="Source/AudioProcessor.cpp"/>
         <FILE id="bLDhY1" name="AudioProcessor.h" compile="0" resource="0"
               file="Source/AudioProcessor.h"/>
+        <FILE id="PgRLbY" name="PinkNoiseGenerator.cpp" compile="1" resource="0"
+              file="Source/PinkNoiseGenerator.cpp"/>
+        <FILE id="H5EPIz" name="PinkNoiseGenerator.h" compile="0" resource="0"
+              file="Source/PinkNoiseGenerator.h"/>
       </GROUP>
       <GROUP id="{B880ED62-D15F-78F9-F83A-129573A5FA84}" name="misc">
         <FILE id="wuCEse" name="SpatMode.hpp" compile="0" resource="0" file="Source/SpatMode.hpp"/>

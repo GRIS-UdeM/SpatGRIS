@@ -19,16 +19,16 @@
 
 #pragma once
 
-#include "macros.h"
-DISABLE_WARNINGS
-#include <JuceHeader.h>
-ENABLE_WARNINGS
+#include "StrongTypes.hpp"
 
-static constexpr auto MAX_INPUTS = 256;
-static constexpr auto MAX_OUTPUTS = 256;
-static constexpr auto VU_METER_WIDTH_IN_PIXELS = 22;
-static constexpr auto LBAP_EXTENDED_RADIUS = 1.6666667f;
-static constexpr auto HRTF_NUM_SAMPLES = 128;
+constexpr auto MAX_INPUTS = 256;
+constexpr auto MAX_OUTPUTS = 256;
+constexpr auto VU_METER_WIDTH_IN_PIXELS = 22;
+constexpr auto LBAP_EXTENDED_RADIUS = 1.6666667f;
+constexpr auto HRTF_NUM_SAMPLES = 128;
+constexpr dbfs_t MIN_PINK_NOISE_DB{ -60.0f };
+constexpr dbfs_t MAX_PINK_NOISE_DB{ 0.0f };
+constexpr dbfs_t DEFAULT_PINK_NOISE_DB{ -20.0f };
 
 extern char const * const DEVICE_NAME;
 extern char const * const CLIENT_NAME;

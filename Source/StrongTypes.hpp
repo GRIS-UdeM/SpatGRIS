@@ -19,6 +19,11 @@
 
 #pragma once
 
+#include "macros.h"
+DISABLE_WARNINGS
+#include <JuceHeader.h>
+ENABLE_WARNINGS
+
 #include <cstdint>
 
 template<typename T, typename Dummy>
@@ -26,11 +31,13 @@ class StrongIndex
 {
     T mValue;
 
+    static_assert(std::is_integral_v<T>, "Underlying types should be integrals.");
+
 public:
     using type = T;
 
     StrongIndex() = default;
-    explicit constexpr StrongIndex(T const & value) : mValue(value) {}
+    explicit constexpr StrongIndex(type const & value) : mValue(value) {}
 
     [[nodiscard]] constexpr bool operator==(StrongIndex const & other) const { return mValue == other.mValue; }
     [[nodiscard]] constexpr bool operator!=(StrongIndex const & other) const { return mValue != other.mValue; }
@@ -39,7 +46,7 @@ public:
     [[nodiscard]] constexpr bool operator<=(StrongIndex const & other) const { return mValue <= other.mValue; }
     [[nodiscard]] constexpr bool operator>=(StrongIndex const & other) const { return mValue >= other.mValue; }
 
-    [[nodiscard]] constexpr T const & get() const { return mValue; }
+    [[nodiscard]] constexpr type const & get() const { return mValue; }
     StrongIndex & operator++()
     {
         ++mValue;
@@ -55,3 +62,43 @@ public:
 using speaker_id_t = StrongIndex<int, struct SpeakerIdT>;
 using port_id_t = StrongIndex<uint32_t, struct PortIdT>;
 using output_patch_t = StrongIndex<int, struct OutputPatchT>;
+
+template<typename T, typename Derived, typename Dummy>
+class StrongFloat
+{
+protected:
+    T mValue;
+
+    static_assert(std::is_floating_point_v<T>, "Underlying types should be floating points.");
+    // static_assert(std::is_base_of_v<StrongFloat, Derived>, "This is a CRTP type.");
+public:
+    using type = T;
+
+    StrongFloat() = default;
+    explicit constexpr StrongFloat(T const & value) : mValue(value) {}
+
+    [[nodiscard]] constexpr bool operator==(Derived const & other) const { return mValue == other.mValue; }
+    [[nodiscard]] constexpr bool operator!=(Derived const & other) const { return mValue != other.mValue; }
+    [[nodiscard]] constexpr bool operator<(Derived const & other) const { return mValue < other.mValue; }
+    [[nodiscard]] constexpr bool operator>(Derived const & other) const { return mValue > other.mValue; }
+    [[nodiscard]] constexpr bool operator<=(Derived const & other) const { return mValue <= other.mValue; }
+    [[nodiscard]] constexpr bool operator>=(Derived const & other) const { return mValue >= other.mValue; }
+
+    [[nodiscard]] constexpr type const & get() const { return mValue; }
+
+    [[nodiscard]] constexpr Derived operator+(Derived const & other) const { return Derived{ mValue + other.mValue }; }
+    [[nodiscard]] constexpr Derived operator-(Derived const & other) const { return Derived{ mValue - other.mValue }; }
+    [[nodiscard]] constexpr Derived operator*(type const mod) const { return Derived{ mValue * mod }; }
+    [[nodiscard]] constexpr Derived operator/(type const mod) const { return Derived{ mValue / mod }; }
+    [[nodiscard]] constexpr type operator/(Derived const & other) const { return mValue / other.mValue; }
+};
+
+class dbfs_t final : public StrongFloat<float, dbfs_t, struct VolumeT>
+{
+public:
+    dbfs_t() = default;
+    explicit constexpr dbfs_t(type const & value) : StrongFloat(value) {}
+
+    [[nodiscard]] type toGain() const { return juce::Decibels::decibelsToGain(mValue); }
+    static dbfs_t fromGain(type const gain) { return dbfs_t{ juce::Decibels::gainToDecibels(gain) }; }
+};

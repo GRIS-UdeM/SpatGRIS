@@ -63,14 +63,7 @@ class AudioProcessor
     bool mSoloOut{ false };
 
     // Pink noise test sound.
-    float mPinkNoiseC0{};
-    float mPinkNoiseC1{};
-    float mPinkNoiseC2{};
-    float mPinkNoiseC3{};
-    float mPinkNoiseC4{};
-    float mPinkNoiseC5{};
-    float mPinkNoiseC6{};
-    float mPinkNoiseGain{ 0.1f };
+    dbfs_t mPinkNoiseGain{ -20.0f };
     bool mPinkNoiseActive{ false };
 
     // Crossover highpass filter.
@@ -188,13 +181,12 @@ public:
 
     //==============================================================================
     // Pink noise
-    void setPinkNoiseGain(float const gain) { mPinkNoiseGain = gain; }
+    void setPinkNoiseGain(dbfs_t const gain) { mPinkNoiseGain = gain; }
     void setPinkNoiseActive(bool const state) { mPinkNoiseActive = state; }
 
     //==============================================================================
     // Audio processing
     void muteSoloVuMeterGainOut(float * const * outs, size_t nFrames, size_t sizeOutputs, float gain = 1.0f) noexcept;
-    void addNoiseSound(float * const * outs, size_t nFrames, size_t sizeOutputs) noexcept;
     void processVbap(float const * const * ins,
                      float * const * outs,
                      size_t nFrames,

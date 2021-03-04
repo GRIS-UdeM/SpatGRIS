@@ -24,6 +24,7 @@
 
 #include "AudioManager.h"
 #include "MainComponent.h"
+#include "PinkNoiseGenerator.h"
 #include "Speaker.h"
 #include "constants.hpp"
 #include "narrow.hpp"
@@ -271,30 +272,6 @@ void AudioProcessor::muteSoloVuMeterGainOut(float * const * outs,
             }
         }
         mLevelsOut[i] = maxGain;
-    }
-}
-
-//==============================================================================
-void AudioProcessor::addNoiseSound(float * const * outs, size_t const nFrames, size_t const sizeOutputs) noexcept
-{
-    static constexpr auto FAC{ 1.0f / (static_cast<float>(RAND_MAX) / 2.0f) };
-    for (unsigned int nF = 0; nF < nFrames; ++nF) {
-        auto const rnd{ rand() * FAC - 1.0f };
-        mPinkNoiseC0 = mPinkNoiseC0 * 0.99886f + rnd * 0.0555179f;
-        mPinkNoiseC1 = mPinkNoiseC1 * 0.99332f + rnd * 0.0750759f;
-        mPinkNoiseC2 = mPinkNoiseC2 * 0.96900f + rnd * 0.1538520f;
-        mPinkNoiseC3 = mPinkNoiseC3 * 0.86650f + rnd * 0.3104856f;
-        mPinkNoiseC4 = mPinkNoiseC4 * 0.55000f + rnd * 0.5329522f;
-        mPinkNoiseC5 = mPinkNoiseC5 * -0.7616f - rnd * 0.0168980f;
-        auto val{ mPinkNoiseC0 + mPinkNoiseC1 + mPinkNoiseC2 + mPinkNoiseC3 + mPinkNoiseC4 + mPinkNoiseC5 + mPinkNoiseC6
-                  + rnd * 0.5362f };
-        val *= 0.2f;
-        val *= mPinkNoiseGain;
-        mPinkNoiseC6 = rnd * 0.115926f;
-
-        for (unsigned int i = 0; i < sizeOutputs; i++) {
-            outs[i][nF] += val;
-        }
     }
 }
 
@@ -666,7 +643,7 @@ void AudioProcessor::processAudio(size_t const nFrames) noexcept
     }
 
     if (mPinkNoiseActive) {
-        addNoiseSound(outs, nFrames, sizeOutputs);
+        fillWithPinkNoise(outs, nFrames, sizeOutputs, mPinkNoiseGain);
     }
 
     muteSoloVuMeterGainOut(outs, nFrames, sizeOutputs, mMasterGainOut);
