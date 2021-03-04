@@ -44,7 +44,7 @@ cp -r ../Builds/MacOSX/build/Release/SpatGRIS.app $APPLICATIONS_DIR/
 cd $INSTALLER_DIR
 
 echo "building packages..."
-pkgbuild    --identifier $IDENTIFIER.pkg \
+pkgbuild    --identifier $IDENTIFIER \
             --root Application/Package_Contents/ \
             --version $VERSION \
             --scripts $PKG_RESOURCES \
@@ -65,6 +65,7 @@ mkdir "$DMG_DIR"
 cd "$DMG_DIR"
 cp ../$PACKAGE_NAME .
 cp -r "../../../Resources/templates" .
+cp "../../BlackHole128ch.v0.2.8.pkg" "BlackHole128ch.v0.2.8.pkg" || exit -1
 
 cd ..
 
