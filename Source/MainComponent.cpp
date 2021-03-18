@@ -1186,7 +1186,8 @@ void MainContentComponent::addSpeaker(int const sortColumnId, bool const isSorte
     {
         juce::ScopedLock sl{ mSpeakersLock };
         auto const newId{ ++getMaxSpeakerId() };
-        mSpeakers.add(new Speaker{ *this, mSmallLookAndFeel, newId, output_patch_t{ newId.get() }, 0.0f, 0.0f, 1.0f });
+        auto const newOutputPatch{ ++getMaxSpeakerOutputPatch() };
+        mSpeakers.add(new Speaker{ *this, mSmallLookAndFeel, newId, newOutputPatch, 0.0f, 0.0f, 1.0f });
 
         auto const isSortedByOutputPatch{ sortColumnId == EditSpeakersWindow::Cols::OUTPUT_PATCH };
 
