@@ -87,7 +87,6 @@ private:
     juce::Font mFont;
 
     int mNumRows{};
-    bool mInitialized{ false };
     std::optional<int> mDragStartY{};
     //==============================================================================
     friend EditableTextCustomComponent;
@@ -110,7 +109,7 @@ public:
     void initComp();
     void selectRow(int value);
     void selectSpeaker(output_patch_t outputPatch);
-    void updateWinContent();
+    void updateWinContent(bool needToSaveSpeakerSetup);
 
 private:
     //==============================================================================
@@ -137,7 +136,6 @@ private:
                                                       Component * existingComponentToUpdate) override;
     void mouseDown(juce::MouseEvent const & event) override;
     void mouseDrag(juce::MouseEvent const & event) override;
-    void mouseMove(juce::MouseEvent const & event) override;
     //==============================================================================
     JUCE_LEAK_DETECTOR(EditSpeakersWindow)
 };

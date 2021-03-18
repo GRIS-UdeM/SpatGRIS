@@ -373,7 +373,7 @@ void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const 
         newOrder[i] = speaker_id_t{ toSort[i].id };
     }
     mMainContentComponent.reorderSpeakers(newOrder);
-    updateWinContent();
+    updateWinContent(false);
 }
 
 //==============================================================================
@@ -398,11 +398,11 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
     if (button == &mAddSpeakerButton) {
         if (selectedRow == -1 || selectedRow == (mNumRows - 1)) {
             mMainContentComponent.addSpeaker(sortColumnId, sortedForwards);
-            updateWinContent();
+            updateWinContent(true);
             mSpeakersTableListBox.selectRow(getNumRows() - 1);
         } else {
             mMainContentComponent.insertSpeaker(selectedRow, sortColumnId, sortedForwards);
-            updateWinContent();
+            updateWinContent(true);
             mSpeakersTableListBox.selectRow(selectedRow + 1);
         }
         mSpeakersTableListBox.getHeader().setSortColumnId(sortColumnId, sortedForwards);
@@ -434,7 +434,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
             auto const radius{ mRadiusTextEditor.getText().getFloatValue() };
             mMainContentComponent.getSpeakers()[selectedRow]->setAziZenRad(glm::vec3(azimuth, zenith, radius));
         }
-        updateWinContent();
+        updateWinContent(true);
         mSpeakersTableListBox.selectRow(selectedRow);
         // TableList needs different sorting parameters to trigger the sorting function.
         mSpeakersTableListBox.getHeader().setSortColumnId(sortColumnId, !sortedForwards);
@@ -446,6 +446,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
     } else if (button->getName().isNotEmpty()
                && (button->getName().getIntValue() >= 0
                    && button->getName().getIntValue() <= mMainContentComponent.getSpeakers().size())) {
+        // Delete button
         if (mSpeakersTableListBox.getNumSelectedRows() > 1
             && mSpeakersTableListBox.getSelectedRows().contains(button->getName().getIntValue())) {
             for (auto i{ mSpeakersTableListBox.getSelectedRows().size() - 1 }; i >= 0; --i) {
@@ -456,10 +457,11 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
             mMainContentComponent.removeSpeaker(button->getName().getIntValue());
         }
         mMainContentComponent.resetSpeakerIds();
-        updateWinContent();
+        updateWinContent(true);
         mSpeakersTableListBox.deselectAllRows();
         mMainContentComponent.setNeedToComputeVbap(true);
     } else {
+        // Direct out
         auto const row{ button->getName().getIntValue() - 1000 };
         mMainContentComponent.getSpeakers()[row]->setDirectOut(button->getToggleState());
         if (mSpeakersTableListBox.getNumSelectedRows() > 1) {
@@ -475,7 +477,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
                 }
             }
         }
-        updateWinContent();
+        updateWinContent(true);
         mMainContentComponent.setNeedToComputeVbap(true);
     }
 }
@@ -527,15 +529,13 @@ void EditSpeakersWindow::textEditorReturnKeyPressed(juce::TextEditor & /*textEdi
 }
 
 //==============================================================================
-void EditSpeakersWindow::updateWinContent()
+void EditSpeakersWindow::updateWinContent(bool const needToSaveSpeakerSetup)
 {
     mNumRows = mMainContentComponent.getSpeakers().size();
     mSpeakersTableListBox.updateContent();
-    // TODO : mInitialized is an ugly fix
-    if (mInitialized) {
+    if (needToSaveSpeakerSetup) {
         mMainContentComponent.setNeedToSaveSpeakerSetup(true);
     }
-    mInitialized = true;
 }
 
 //==============================================================================
@@ -927,7 +927,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
                 break;
             }
         }
-        updateWinContent();
+        updateWinContent(true); // necessary?
         mMainContentComponent.setNeedToComputeVbap(true);
     }
 }
@@ -985,7 +985,6 @@ void EditSpeakersWindow::paintCell(juce::Graphics & /*g*/,
                                    int const /*height*/,
                                    bool /*rowIsSelected*/)
 {
-    jassertfalse;
 }
 
 //==============================================================================
@@ -1140,12 +1139,7 @@ void EditSpeakersWindow::mouseDrag(juce::MouseEvent const & event)
     mSpeakersTableListBox.selectRow(newIndex);
 
     mMainContentComponent.setNeedToSaveSpeakerSetup(true);
-    updateWinContent();
-}
-
-//==============================================================================
-void EditSpeakersWindow::mouseMove(juce::MouseEvent const & event)
-{
+    updateWinContent(true);
 }
 
 //==============================================================================

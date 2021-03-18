@@ -484,6 +484,13 @@ void MainContentComponent::handleSaveAsSpeakerSetup()
 }
 
 //==============================================================================
+void MainContentComponent::closeSpeakersConfigurationWindow()
+{
+    mNeedToSaveSpeakerSetup = false;
+    mEditSpeakersWindow.reset();
+}
+
+//==============================================================================
 void MainContentComponent::handleShowSpeakerEditWindow()
 {
     juce::Rectangle<int> const result{ getScreenX() + mSpeakerViewComponent->getWidth() + 20,
@@ -1573,7 +1580,7 @@ bool MainContentComponent::refreshSpeakers()
     mInputsLock.unlock();
 
     if (mEditSpeakersWindow != nullptr) {
-        mEditSpeakersWindow->updateWinContent();
+        mEditSpeakersWindow->updateWinContent(false);
     }
 
     mOutputsUiBox->repaint();

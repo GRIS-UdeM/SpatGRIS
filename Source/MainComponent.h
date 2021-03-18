@@ -260,7 +260,7 @@ public:
     void handleSaveAsSpeakerSetup();
 
     // Close windows other than the main one.
-    void closeSpeakersConfigurationWindow() { mEditSpeakersWindow.reset(); }
+    void closeSpeakersConfigurationWindow();
     void closePropertiesWindow() { mPropertiesWindow.reset(); }
     void closeFlatViewWindow() { mFlatViewWindow.reset(); }
     void closeAboutWindow() { mAboutWindow.reset(); }
