@@ -1216,8 +1216,8 @@ void MainContentComponent::insertSpeaker(int const position, int const sortColum
         if (sortColumnId == 1 && isSortedForwards) {
             newId = ++mSpeakers[position]->getIdSpeaker();
             mSpeakers.insert(newPosition, new Speaker{ *this, mSmallLookAndFeel, newId, newOut, 0.0f, 0.0f, 1.0f });
-            for (auto i{ 1 }; i <= mSpeakers.size(); ++i) {
-                mSpeakers.getUnchecked(i)->setSpeakerId(speaker_id_t{ i });
+            for (auto i{ 0 }; i < mSpeakers.size(); ++i) {
+                mSpeakers.getUnchecked(i)->setSpeakerId(speaker_id_t{ i + 1 });
             }
         } else if (sortColumnId == 1 && !isSortedForwards) {
             newId = --mSpeakers[position]->getIdSpeaker();
