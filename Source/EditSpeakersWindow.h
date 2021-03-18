@@ -41,6 +41,23 @@ class EditSpeakersWindow final
     , public juce::TextEditor::Listener
     , public juce::Slider::Listener
 {
+public:
+    struct Cols {
+        static constexpr int DRAG_HANDLE = 1;
+        static constexpr int OUTPUT_PATCH = 2;
+        static constexpr int X = 3;
+        static constexpr int Y = 4;
+        static constexpr int Z = 5;
+        static constexpr int AZIMUTH = 6;
+        static constexpr int ELEVATION = 7;
+        static constexpr int DISTANCE = 8;
+        static constexpr int GAIN = 9;
+        static constexpr int HIGHPASS = 10;
+        static constexpr int DIRECT_TOGGLE = 11;
+        static constexpr int DELETE_BUTTON = 12;
+    };
+
+private:
     static auto constexpr MIN_COL_WIDTH = 50;
     static auto constexpr MAX_COL_WIDTH = 120;
     static auto constexpr DEFAULT_COL_WIDTH = 70;
@@ -101,6 +118,7 @@ private:
     [[nodiscard]] bool getDirectOutForSpeakerRow(int row) const;
     [[nodiscard]] juce::String getText(int columnNumber, int rowNumber) const;
     void setText(int columnNumber, int rowNumber, juce::String const & newText, bool altDown = false);
+    bool isMouseOverDragHandle(juce::MouseEvent const & event);
     //==============================================================================
     // VIRTUALS
     [[nodiscard]] int getNumRows() override { return this->mNumRows; }
@@ -119,6 +137,7 @@ private:
                                                       Component * existingComponentToUpdate) override;
     void mouseDown(juce::MouseEvent const & event) override;
     void mouseDrag(juce::MouseEvent const & event) override;
+    void mouseMove(juce::MouseEvent const & event) override;
     //==============================================================================
     JUCE_LEAK_DETECTOR(EditSpeakersWindow)
 };

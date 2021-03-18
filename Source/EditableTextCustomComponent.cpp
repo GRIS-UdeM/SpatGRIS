@@ -49,54 +49,55 @@ void EditableTextCustomComponent::mouseDrag(const juce::MouseEvent & event)
         return;
     }
 
-    if (mOwner.getModeSelected() == SpatMode::lbap || mOwner.getDirectOutForSpeakerRow(mRow)) {
-        if (mColumnId < 2) {
+    // auto const isXyzEditable{  };
+
+    using col = EditSpeakersWindow::Cols;
+
+    switch (mColumnId) {
+    case col::DRAG_HANDLE:
+    case col::OUTPUT_PATCH:
+    case col::DIRECT_TOGGLE:
+    case col::DELETE_BUTTON:
+        return;
+    case col::X:
+    case col::Y:
+    case col::Z:
+        if (mOwner.getModeSelected() != SpatMode::lbap) {
             return;
         }
-    } else {
-        if (mColumnId < 5) {
-            return;
-        }
+        break;
+    case col::AZIMUTH:
+    case col::ELEVATION:
+    case col::DISTANCE:
+    case col::GAIN:
+    case col::HIGHPASS:
+        break;
+    default:
+        jassertfalse;
     }
 
-    bool ok = false;
-    int offset = event.getDistanceFromDragStartY();
-    float val = getText().getFloatValue();
+    std::optional<float> increment{};
     switch (mColumnId) {
-    case 2:
-    case 3:
-    case 4:
-        if (offset < mLastOffset)
-            val += 0.01f; // up
-        if (offset > mLastOffset)
-            val -= 0.01f; // down
-        ok = true;
+    case col::X:
+    case col::Y:
+    case col::Z:
+    case col::DISTANCE:
+        increment = 0.01f;
         break;
-    case 5:
-    case 6:
-    case 10:
-        if (offset < mLastOffset)
-            val += 1.0f; // up
-        if (offset > mLastOffset)
-            val -= 1.0f; // down
-        ok = true;
+    case col::GAIN:
+        increment = 0.1f;
         break;
-    case 7:
-        if (offset < mLastOffset)
-            val += 0.01f; // up
-        if (offset > mLastOffset)
-            val -= 0.01f; // down
-        ok = true;
-        break;
-    case 9:
-        if (offset < mLastOffset)
-            val += 0.1f; // up
-        if (offset > mLastOffset)
-            val -= 0.1f; // down
-        ok = true;
+    case col::AZIMUTH:
+    case col::ELEVATION:
+    case col::HIGHPASS:
+        increment = 1.0f;
         break;
     }
-    if (ok) {
+
+    auto const offset{ event.getDistanceFromDragStartY() };
+    if (increment) {
+        auto const diff{ offset < mLastOffset ? *increment : *increment * -1.0f };
+        auto const val{ getText().getFloatValue() + diff };
         mOwner.setText(mColumnId, mRow, juce::String(val), event.mods.isAltDown());
     }
     mLastOffset = offset;
@@ -113,5 +114,9 @@ void EditableTextCustomComponent::setRowAndColumn(const int newRow, const int ne
 {
     mRow = newRow;
     mColumnId = newColumn;
+    if (newColumn == EditSpeakersWindow::Cols::DRAG_HANDLE) {
+        setColour(ColourIds::outlineColourId, juce::Colours::black.withAlpha(0.2f));
+        setBorderSize(juce::BorderSize<int>{ 1 });
+    }
     setText(mOwner.getText(mColumnId, mRow), juce::dontSendNotification);
 }

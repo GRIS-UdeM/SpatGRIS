@@ -1188,12 +1188,14 @@ void MainContentComponent::addSpeaker(int const sortColumnId, bool const isSorte
         auto const newId{ ++getMaxSpeakerId() };
         mSpeakers.add(new Speaker{ *this, mSmallLookAndFeel, newId, output_patch_t{ newId.get() }, 0.0f, 0.0f, 1.0f });
 
-        if (sortColumnId == 1 && isSortedForwards) {
+        auto const isSortedByOutputPatch{ sortColumnId == EditSpeakersWindow::Cols::OUTPUT_PATCH };
+
+        if (isSortedByOutputPatch && isSortedForwards) {
             for (int i{}; i < mSpeakers.size(); ++i) {
                 speaker_id_t const id{ i + 1 };
                 mSpeakers[i]->setSpeakerId(id);
             }
-        } else if (sortColumnId == 1 && !isSortedForwards) {
+        } else if (isSortedByOutputPatch && !isSortedForwards) {
             for (int i{}; i < mSpeakers.size(); ++i) {
                 speaker_id_t const id{ mSpeakers.size() - i };
                 mSpeakers[i]->setSpeakerId(id);
@@ -1213,13 +1215,14 @@ void MainContentComponent::insertSpeaker(int const position, int const sortColum
 
     {
         juce::ScopedLock sl{ mSpeakersLock };
-        if (sortColumnId == 1 && isSortedForwards) {
+        auto const isSortedByOutputPatch{ sortColumnId == EditSpeakersWindow::Cols::OUTPUT_PATCH };
+        if (isSortedByOutputPatch && isSortedForwards) {
             newId = ++mSpeakers[position]->getIdSpeaker();
             mSpeakers.insert(newPosition, new Speaker{ *this, mSmallLookAndFeel, newId, newOut, 0.0f, 0.0f, 1.0f });
             for (auto i{ 0 }; i < mSpeakers.size(); ++i) {
                 mSpeakers.getUnchecked(i)->setSpeakerId(speaker_id_t{ i + 1 });
             }
-        } else if (sortColumnId == 1 && !isSortedForwards) {
+        } else if (isSortedByOutputPatch && !isSortedForwards) {
             newId = --mSpeakers[position]->getIdSpeaker();
             mSpeakers.insert(newPosition, new Speaker{ *this, mSmallLookAndFeel, newId, newOut, 0.0f, 0.0f, 1.0f });
             for (int i{}; i < mSpeakers.size(); ++i) {

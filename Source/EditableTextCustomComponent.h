@@ -20,7 +20,6 @@
 #pragma once
 
 #include "macros.h"
-
 DISABLE_WARNINGS
 #include <JuceHeader.h>
 ENABLE_WARNINGS
@@ -30,11 +29,9 @@ class EditSpeakersWindow;
 //==============================================================================
 class EditableTextCustomComponent final : public juce::Label
 {
-    //==============================================================================
     EditSpeakersWindow & mOwner;
-
-    int mRow;
-    int mColumnId;
+    int mRow{};
+    int mColumnId{};
     int mLastOffset;
 
 public:
@@ -42,10 +39,9 @@ public:
     // DEFAULTS
     explicit EditableTextCustomComponent(EditSpeakersWindow & editSpeakersWindow);
     ~EditableTextCustomComponent() override = default;
-
+    //==============================================================================
     EditableTextCustomComponent(EditableTextCustomComponent const &) = delete;
     EditableTextCustomComponent(EditableTextCustomComponent &&) = delete;
-
     EditableTextCustomComponent & operator=(EditableTextCustomComponent const &) = delete;
     EditableTextCustomComponent & operator=(EditableTextCustomComponent &&) = delete;
     //==============================================================================
