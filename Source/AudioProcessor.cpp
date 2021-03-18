@@ -615,10 +615,10 @@ void AudioProcessor::processAudio(size_t const nFrames) noexcept
 
     // consolidate all buffers
     auto & audioManager{ AudioManager::getInstance() };
-    for (unsigned int i = 0; i < sizeInputs; i++) {
+    for (unsigned i{}; i < sizeInputs; ++i) {
         ins[i] = audioManager.getBuffer(mInputsPort[i], nFrames);
     }
-    for (unsigned int i = 0; i < sizeOutputs; i++) {
+    for (unsigned i{}; i < sizeOutputs; ++i) {
         outs[i] = audioManager.getBuffer(mOutputsPort[i], nFrames);
     }
 
@@ -643,7 +643,12 @@ void AudioProcessor::processAudio(size_t const nFrames) noexcept
     }
 
     if (mPinkNoiseActive) {
-        fillWithPinkNoise(outs, nFrames, sizeOutputs, mPinkNoiseGain);
+        std::array<float *, MAX_OUTPUTS> activeChannels;
+        std::transform(mOutputPatches.cbegin(),
+                       mOutputPatches.cend(),
+                       activeChannels.begin(),
+                       [outs](output_patch_t const & patch) -> float * { return outs[patch.get() - 1]; });
+        fillWithPinkNoise(activeChannels.data(), nFrames, mOutputPatches.size(), mPinkNoiseGain);
     }
 
     muteSoloVuMeterGainOut(outs, nFrames, sizeOutputs, mMasterGainOut);
