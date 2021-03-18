@@ -1441,8 +1441,8 @@ bool MainContentComponent::refreshSpeakers()
                                      "\nIf you continue, you may have to fix your speaker setup before using it!   ",
                                      juce::AlertWindow::WarningIcon };
             alert.setLookAndFeel(&mLookAndFeel);
-            alert.addButton("No", 0);
-            alert.addButton("Yes", 1);
+            alert.addButton("Load default setup", 0);
+            alert.addButton("Keep current setup", 1);
             if (alert.runModalLoop() == 0) {
                 openXmlFileSpeaker(DEFAULT_SPEAKER_SETUP_FILE);
             }

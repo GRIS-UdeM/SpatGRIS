@@ -570,19 +570,22 @@ void EditSpeakersWindow::closeButtonPressed()
                                 "Do you want to compute and save the current setup ?",
                                 juce::AlertWindow::WarningIcon);
         alert.setLookAndFeel(&mLookAndFeel);
-        alert.addButton("Save", 1, juce::KeyPress(juce::KeyPress::returnKey));
-        alert.addButton("No", 2);
-        alert.addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
+        enum Button { save, no, cancel };
+        alert.addButton("Save", Button::save, juce::KeyPress(juce::KeyPress::returnKey));
+        alert.addButton("No", Button::no);
+        alert.addButton("Cancel", Button::cancel, juce::KeyPress(juce::KeyPress::escapeKey));
         exitV = alert.runModalLoop();
 
-        if (exitV == 1) {
+        if (exitV == Button::save) {
             alert.setVisible(false);
-            mMainContentComponent.refreshSpeakers();
-            mMainContentComponent.handleTimer(false);
-            setAlwaysOnTop(false);
-            mMainContentComponent.handleSaveAsSpeakerSetup();
-            mMainContentComponent.handleTimer(true);
-        } else if (exitV == 2) {
+            auto const valid{ mMainContentComponent.refreshSpeakers() };
+            if (valid) {
+                mMainContentComponent.handleTimer(false);
+                setAlwaysOnTop(false);
+                mMainContentComponent.handleSaveAsSpeakerSetup();
+                mMainContentComponent.handleTimer(true);
+            }
+        } else if (exitV == Button::no) {
             alert.setVisible(false);
             mMainContentComponent.reloadXmlFileSpeaker();
             mMainContentComponent.refreshSpeakers();
