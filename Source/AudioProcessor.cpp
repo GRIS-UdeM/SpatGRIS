@@ -364,8 +364,8 @@ void AudioProcessor::processLbap(float const * const * ins,
         if (!sourceData.directOut.get()) {
             lbap_pos pos;
             lbap_pos_init_from_radians(&pos, sourceData.radAzimuth, sourceData.radElevation, sourceData.radius);
-            pos.radspan = sourceData.azimuthSpan;
-            pos.elespan = sourceData.zenithSpan;
+            pos.radiusSpan = sourceData.azimuthSpan;
+            pos.elevationSpan = sourceData.zenithSpan;
             // Energy is lost with distance.
             // A radius < 1 is not impact sound
             // Radius between 1 and 1.66 are reduced

@@ -47,9 +47,9 @@ typedef struct lbap_field lbap_field;
  * at 0) used by the field to properly order the output signals.
  */
 typedef struct {
-    float azi;                  /**< Azimuth in the range -pi .. pi. */
-    float ele;                  /**< Elevation in the range 0 .. pi/2. */
-    float rad;                  /**< Length of the vector in the range 0 .. 1. */
+    float azimuth;              /**< Azimuth in the range -pi .. pi. */
+    float elevation;            /**< Elevation in the range 0 .. pi/2. */
+    float radius;               /**< Length of the vector in the range 0 .. 1. */
     output_patch_t outputPatch; /**< Physical output id. */
 } lbap_speaker;
 
@@ -67,14 +67,14 @@ typedef struct {
  * to the angular coordinates.
  */
 typedef struct {
-    float azi; /**< Azimuth in the range -pi .. pi. */
-    float ele; /**< Elevation in the range 0 .. pi/2. */
-    float rad; /**< Length of the vector in the range 0 .. 1. */
+    float azimuth;   /**< Azimuth in the range -pi .. pi. */
+    float elevation; /**< Elevation in the range 0 .. pi/2. */
+    float radius;    /**< Length of the vector in the range 0 .. 1. */
     float x;
     float y;
     float z;
-    float radspan;
-    float elespan;
+    float radiusSpan;
+    float elevationSpan;
 } lbap_pos;
 
 /** \brief Initializes a new spatialization field.
@@ -86,7 +86,7 @@ typedef struct {
  *
  * \return lbap_field pointer.
  */
-lbap_field * lbap_field_init(void);
+lbap_field * lbap_field_init();
 
 /** \brief Frees memory used by a lbap_field.
  *
@@ -117,7 +117,7 @@ void lbap_field_setup(lbap_field * field, lbap_speaker * speakers, int num);
  * memory. This array can be passed to the audio processing function
  * to control the gain of the signal outputs.
  */
-void lbap_field_compute(lbap_field * field, lbap_pos * pos, float * gains);
+void lbap_field_compute(lbap_field * field, lbap_pos * position, float * gains);
 
 /** \brief Computes an array of lbap_speaker from lists of angular positions.
  *
@@ -132,7 +132,11 @@ void lbap_field_compute(lbap_field * field, lbap_pos * pos, float * gains);
  *
  * \return lbap_speaker array pointer.
  */
-lbap_speaker * lbap_speakers_from_positions(float * azi, float * ele, float * rad, output_patch_t * spkid, int num);
+lbap_speaker * lbap_speakers_from_positions(float * azimuth,
+                                            float * elevation,
+                                            float * radius,
+                                            output_patch_t * outputPatch,
+                                            int num);
 
 /** \brief Initialize an lbap_pos structure from a position in radians.
  *
@@ -140,7 +144,7 @@ lbap_speaker * lbap_speakers_from_positions(float * azi, float * ele, float * ra
  * in radians, and where `rad` is the length of the vector between 0 and 1. The
  * first parameter is a pointer to an lbap_pos which will be properly initialized.
  */
-void lbap_pos_init_from_radians(lbap_pos * pos, float azi, float ele, float rad);
+void lbap_pos_init_from_radians(lbap_pos * position, float azimuth, float elevation, float radius);
 
 /** \brief Initialize an lbap_pos structure from a position in degrees.
  *
@@ -148,7 +152,7 @@ void lbap_pos_init_from_radians(lbap_pos * pos, float azi, float ele, float rad)
  * in degrees, and where `rad` is the length of the vector between 0 and 1. The
  * first parameter is a pointer to an lbap_pos which will be properly initialized.
  */
-void lbap_pos_init_from_degrees(lbap_pos * pos, float azi, float ele, float rad);
+void lbap_pos_init_from_degrees(lbap_pos * position, float azimuth, float elevation, float radius);
 
 /** \brief Compare two positions.
  *
