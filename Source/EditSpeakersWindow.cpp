@@ -663,8 +663,11 @@ juce::String EditSpeakersWindow::getText(int const columnNumber, int const rowNu
         case Cols::DIRECT_TOGGLE:
             text = juce::String{ static_cast<int>(speaker.isDirectOut()) };
             break;
+        case Cols::DRAG_HANDLE:
+            text = "=";
+            break;
         default:
-            text = "?";
+            jassertfalse;
         }
     }
 
@@ -1023,21 +1026,8 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
         textButton->setLookAndFeel(&mLookAndFeel);
         return textButton;
     }
-    if (columnId == Cols::DRAG_HANDLE) {
-        if (!existingComponentToUpdate) {
-            auto newLabel{ std::make_unique<EditableTextCustomComponent>(*this) };
-            newLabel->setJustificationType(juce::Justification::centred);
-            newLabel->setRowAndColumn(rowNumber, columnId);
-            newLabel->setEditable(false);
-            newLabel->setText("=", juce::dontSendNotification);
-            newLabel->setFont(juce::Font{ 20.0f, juce::Font::FontStyleFlags::bold });
-            newLabel->setMouseCursor(juce::MouseCursor::StandardCursorType::DraggingHandCursor);
-            existingComponentToUpdate = newLabel.release();
-        }
-        return existingComponentToUpdate;
-    }
 
-    enum class EditionType { notEditable, editable, valueDraggable };
+    enum class EditionType { notEditable, editable, valueDraggable, reorderDraggable };
 
     auto const getEditionType = [this, rowNumber, columnId]() -> EditionType {
         switch (columnId) {
@@ -1060,25 +1050,38 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
         case Cols::DELETE_BUTTON:
         case Cols::DIRECT_TOGGLE:
         case Cols::DRAG_HANDLE:
-            return EditionType::notEditable;
+            return EditionType::reorderDraggable;
         }
         jassertfalse;
         return {};
+    };
+
+    static auto const getMouseCursor = [](EditionType const editionType) {
+        switch (editionType) {
+        case EditionType::valueDraggable:
+            return juce::MouseCursor::StandardCursorType::UpDownResizeCursor;
+        case EditionType::reorderDraggable:
+            return juce::MouseCursor::StandardCursorType::DraggingHandCursor;
+        default:
+            return juce::MouseCursor::StandardCursorType::NormalCursor;
+        }
     };
 
     // The other columns are editable text columns, for which we use the custom juce::Label component
     auto * textLabel{ dynamic_cast<EditableTextCustomComponent *>(existingComponentToUpdate) };
     if (textLabel == nullptr) {
         textLabel = new EditableTextCustomComponent{ *this };
+        if (columnId == Cols::DRAG_HANDLE) {
+            textLabel->setJustificationType(juce::Justification::centred);
+            textLabel->setEditable(false);
+            textLabel->setMouseCursor(juce::MouseCursor::StandardCursorType::DraggingHandCursor);
+        }
     }
 
     auto const editionType{ getEditionType() };
-    auto const mouseCursor{ editionType == EditionType::valueDraggable
-                                ? juce::MouseCursor::StandardCursorType::UpDownResizeCursor
-                                : juce::MouseCursor::StandardCursorType::NormalCursor };
     textLabel->setRowAndColumn(rowNumber, columnId);
-    textLabel->setMouseCursor(mouseCursor);
-    textLabel->setEditable(editionType != EditionType::notEditable);
+    textLabel->setMouseCursor(getMouseCursor(editionType));
+    textLabel->setEditable(editionType == EditionType::editable || editionType == EditionType::valueDraggable);
 
     return textLabel;
 }
@@ -1087,7 +1090,7 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
 void EditSpeakersWindow::mouseDown(juce::MouseEvent const & event)
 {
     if (isMouseOverDragHandle(event)) {
-        mDragStartY = event.getMouseDownY();
+        mDragStartY = event.getEventRelativeTo(&mSpeakersTableListBox).getPosition().getY();
     } else {
         mDragStartY = std::nullopt;
     }
@@ -1100,8 +1103,10 @@ void EditSpeakersWindow::mouseDrag(juce::MouseEvent const & event)
         return;
     }
 
+    auto const eventRel{ event.getEventRelativeTo(&mSpeakersTableListBox).getPosition() };
+
     auto const rowHeight{ mSpeakersTableListBox.getRowHeight() };
-    auto const yDiff{ event.getPosition().getY() - *mDragStartY };
+    auto const yDiff{ eventRel.getY() - *mDragStartY };
     auto const rowDiff{ narrow<int>(std::round(narrow<float>(yDiff) / narrow<float>(rowHeight))) };
     auto const numRows{ mSpeakersTableListBox.getNumRows() };
 
@@ -1124,6 +1129,7 @@ void EditSpeakersWindow::mouseDrag(juce::MouseEvent const & event)
     // TODO : make this work for multiple selections
     auto const selectedRow{ mSpeakersTableListBox.getSelectedRow() };
     if (selectedRow < 0 || selectedRow >= mSpeakersTableListBox.getNumRows()) {
+        jassertfalse;
         return;
     }
 
@@ -1136,7 +1142,9 @@ void EditSpeakersWindow::mouseDrag(juce::MouseEvent const & event)
     std::swap(order[selectedRow], order[newIndex]);
 
     mMainContentComponent.reorderSpeakers(order);
-    *mDragStartY += rowDiff * rowHeight;
+    if (mSpeakersTableListBox.contains(eventRel)) {
+        *mDragStartY += rowDiff * rowHeight;
+    }
     mSpeakersTableListBox.selectRow(newIndex);
 
     mMainContentComponent.setNeedToSaveSpeakerSetup(true);
