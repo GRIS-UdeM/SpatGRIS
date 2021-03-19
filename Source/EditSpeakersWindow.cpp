@@ -564,13 +564,13 @@ void EditSpeakersWindow::selectSpeaker(output_patch_t const outputPatch)
 //==============================================================================
 void EditSpeakersWindow::closeButtonPressed()
 {
-    auto exitV{ 1 };
+    enum Button { save, no, cancel };
+    int exitV{ no };
     if (mMainContentComponent.needToSaveSpeakerSetup()) {
         juce::AlertWindow alert("Closing Speaker Setup Window !",
                                 "Do you want to compute and save the current setup ?",
                                 juce::AlertWindow::WarningIcon);
         alert.setLookAndFeel(&mLookAndFeel);
-        enum Button { save, no, cancel };
         alert.addButton("Save", Button::save, juce::KeyPress(juce::KeyPress::returnKey));
         alert.addButton("No", Button::no);
         alert.addButton("Cancel", Button::cancel, juce::KeyPress(juce::KeyPress::escapeKey));
@@ -579,19 +579,20 @@ void EditSpeakersWindow::closeButtonPressed()
         if (exitV == Button::save) {
             alert.setVisible(false);
             auto const valid{ mMainContentComponent.refreshSpeakers() };
-            if (valid) {
-                mMainContentComponent.handleTimer(false);
-                setAlwaysOnTop(false);
-                mMainContentComponent.handleSaveAsSpeakerSetup();
-                mMainContentComponent.handleTimer(true);
+            if (!valid) {
+                return;
             }
+            mMainContentComponent.handleTimer(false);
+            setAlwaysOnTop(false);
+            mMainContentComponent.handleSaveAsSpeakerSetup();
+            mMainContentComponent.handleTimer(true);
         } else if (exitV == Button::no) {
             alert.setVisible(false);
             mMainContentComponent.reloadXmlFileSpeaker();
             mMainContentComponent.refreshSpeakers();
         }
     }
-    if (exitV) {
+    if (exitV != cancel) {
         mMainContentComponent.getAudioProcessor().setPinkNoiseActive(false);
         mMainContentComponent.closeSpeakersConfigurationWindow();
     }

@@ -1433,28 +1433,30 @@ bool MainContentComponent::refreshSpeakers()
     }
 
     // Test for duplicated output patch.
-    std::vector<output_patch_t> tempOut;
+    std::vector<output_patch_t> tempOut{};
+    tempOut.reserve(mSpeakers.size());
     for (auto const * speaker : mSpeakers) {
+        // duplicates are ok for direct outs
         if (!speaker->isDirectOut()) {
             tempOut.push_back(speaker->getOutputPatch());
         }
     }
-
     std::sort(tempOut.begin(), tempOut.end());
-    for (size_t i{}; i < tempOut.size() - size_t{ 1u }; ++i) {
-        if (tempOut[i] == tempOut[i + 1u]) {
-            juce::AlertWindow alert{ "Duplicated Output Numbers!    ",
-                                     "Some output numbers are used more than once. Do you want to continue anyway?    "
-                                     "\nIf you continue, you may have to fix your speaker setup before using it!   ",
-                                     juce::AlertWindow::WarningIcon };
-            alert.setLookAndFeel(&mLookAndFeel);
-            alert.addButton("Load default setup", 0);
-            alert.addButton("Keep current setup", 1);
-            if (alert.runModalLoop() == 0) {
-                openXmlFileSpeaker(DEFAULT_SPEAKER_SETUP_FILE);
-            }
-            return false;
+    auto const hasDuplicates{ std::adjacent_find(std::cbegin(tempOut), std::cend(tempOut)) != std::cend(tempOut) };
+    ;
+    if (hasDuplicates) {
+        juce::AlertWindow alert{ "Duplicated Output Numbers!    ",
+                                 "Some output numbers are used more than once. Do you want to continue anyway?    "
+                                 "\nIf you continue, you may have to fix your speaker setup before using it!   ",
+                                 juce::AlertWindow::WarningIcon };
+        alert.setLookAndFeel(&mLookAndFeel);
+        alert.addButton("Load default setup", 0);
+        alert.addButton("Keep current setup", 1);
+        if (alert.runModalLoop() == 0) {
+            openXmlFileSpeaker(DEFAULT_SPEAKER_SETUP_FILE);
+            mNeedToSaveSpeakerSetup = false;
         }
+        return false;
     }
 
     juce::ScopedLock const lock{ mAudioProcessor->getCriticalSection() };
