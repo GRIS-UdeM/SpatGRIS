@@ -107,10 +107,6 @@ AudioProcessor::AudioProcessor()
         std::memcpy(mVbapHrtfRightImpulses[i + 14].data(), stbuf.getReadPointer(rightChannel), 128);
     }
 
-    // Initialize STEREO data.
-    // Initialize LBAP data.
-    mLbapSpeakerField = lbap_field_init();
-
     mInterMaster = 0.8f;
 
     auto & audioManager{ AudioManager::getInstance() };
@@ -362,8 +358,7 @@ void AudioProcessor::processLbap(float const * const * ins,
         auto const * inputBuffer{ ins[inputIndex] };
         auto & sourceData{ mSourcesData[inputIndex] };
         if (!sourceData.directOut.get()) {
-            lbap_pos pos;
-            lbap_pos_init_from_radians(&pos, sourceData.radAzimuth, sourceData.radElevation, sourceData.radius);
+            auto pos{ lbap_pos_init_from_radians(sourceData.radAzimuth, sourceData.radElevation, sourceData.radius) };
             pos.radiusSpan = sourceData.azimuthSpan;
             pos.elevationSpan = sourceData.zenithSpan;
             // Energy is lost with distance.
@@ -371,9 +366,9 @@ void AudioProcessor::processLbap(float const * const * ins,
             // Radius between 1 and 1.66 are reduced
             // Radius over 1.66 is clamped to 1.66
             auto const distance{ std::clamp((sourceData.radius - 1.0f) / (LBAP_EXTENDED_RADIUS - 1.0f), 0.0f, 1.0f) };
-            if (!lbap_pos_compare(&pos, &sourceData.lbapLastPos)) {
-                lbap_field_compute(mLbapSpeakerField, &pos, sourceData.lbapGains.data());
-                lbap_pos_copy(&sourceData.lbapLastPos, &pos);
+            if (pos != sourceData.lbapLastPos) {
+                lbap_field_compute(mLbapSpeakerField, pos, sourceData.lbapGains.data());
+                sourceData.lbapLastPos = pos;
             }
             auto const distanceGain{ (1.0f - distance) * (1.0f - mAttenuationLinearGain) + mAttenuationLinearGain };
             auto const distanceCoefficient{ distance * mAttenuationLowpassCoefficient };
@@ -705,7 +700,7 @@ void AudioProcessor::reconnectPorts()
 }
 
 //==============================================================================
-bool AudioProcessor::initSpeakersTriplet(std::vector<Speaker *> const & listSpk,
+bool AudioProcessor::initSpeakersTriplet(std::vector<Speaker const *> const & listSpk,
                                          int const dimensions,
                                          bool const needToComputeVbap)
 {
@@ -773,7 +768,7 @@ bool AudioProcessor::initSpeakersTriplet(std::vector<Speaker *> const & listSpk,
 }
 
 //==============================================================================
-bool AudioProcessor::lbapSetupSpeakerField(std::vector<Speaker *> const & listSpk)
+bool AudioProcessor::lbapSetupSpeakerField(std::vector<Speaker const *> const & listSpk)
 {
     int j;
     if (listSpk.empty()) {
@@ -797,14 +792,10 @@ bool AudioProcessor::lbapSetupSpeakerField(std::vector<Speaker *> const & listSp
         outputPatch[i] = --mSpeakersOut[j].outputPatch;
     }
 
-    auto * const speakers{
-        lbap_speakers_from_positions(azimuth, elevation, radius, outputPatch, narrow<int>(listSpk.size()))
-    };
+    auto speakers{ lbap_speakers_from_positions(mSpeakersOut.data(), listSpk.size()) };
 
-    lbap_field_reset(mLbapSpeakerField);
-    lbap_field_setup(mLbapSpeakerField, speakers, narrow<int>(listSpk.size()));
-
-    free(speakers);
+    mLbapSpeakerField.reset();
+    lbap_field_setup(mLbapSpeakerField, speakers);
 
     reconnectPorts();
 
@@ -855,7 +846,6 @@ void AudioProcessor::updateSourceVbap(int const idS) noexcept
 //==============================================================================
 AudioProcessor::~AudioProcessor()
 {
-    lbap_field_free(mLbapSpeakerField);
     free_vbap_data(mParamVBap);
 
     auto & audioManager{ AudioManager::getInstance() };

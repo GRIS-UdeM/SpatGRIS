@@ -27,12 +27,9 @@
 
 #include "StrongTypes.hpp"
 
-#define LBAP_MAX_NUMBER_OF_SPEAKERS 256
-#define LBAP_MATRIX_SIZE 64
+static auto constexpr LBAP_MATRIX_SIZE = 64;
 
-/* Opaque data types. */
-typedef struct lbap_layer lbap_layer;
-typedef struct lbap_field lbap_field;
+struct SpeakerData;
 
 /** \brief A structure containing coordinates of a speaker in the field.
  *
@@ -46,12 +43,12 @@ typedef struct lbap_field lbap_field;
  * field will process the speakers. The `spkid` is an integer (starting
  * at 0) used by the field to properly order the output signals.
  */
-typedef struct {
+struct lbap_speaker {
     float azimuth;              /**< Azimuth in the range -pi .. pi. */
     float elevation;            /**< Elevation in the range 0 .. pi/2. */
     float radius;               /**< Length of the vector in the range 0 .. 1. */
     output_patch_t outputPatch; /**< Physical output id. */
-} lbap_speaker;
+};
 
 /** \brief A structure containing coordinates of a point in the field.
  *
@@ -66,7 +63,7 @@ typedef struct {
  * and `z`), the framework will automatically fill these values according
  * to the angular coordinates.
  */
-typedef struct {
+struct lbap_pos {
     float azimuth;   /**< Azimuth in the range -pi .. pi. */
     float elevation; /**< Elevation in the range 0 .. pi/2. */
     float radius;    /**< Length of the vector in the range 0 .. 1. */
@@ -75,31 +72,44 @@ typedef struct {
     float z;
     float radiusSpan;
     float elevationSpan;
-} lbap_pos;
 
-/** \brief Initializes a new spatialization field.
- *
- * This function creates and initializes a new spatialization field.
- *
- * It's the reponsibility of the user to call `lbap_field_free(field)`
- * when done with it.
- *
- * \return lbap_field pointer.
- */
-lbap_field * lbap_field_init();
+    [[nodiscard]] bool operator==(lbap_pos const & other) const
+    {
+        return azimuth == other.azimuth && elevation == other.elevation && radius == other.radius
+               && radiusSpan == other.radiusSpan && elevationSpan && other.elevationSpan;
+    }
+    [[nodiscard]] bool operator!=(lbap_pos const & other) const { return !(*this == other); }
+};
 
-/** \brief Frees memory used by a lbap_field.
- *
- * This function must be used to properly release the memory used by the
- * `lbap_field` given as parameter.
- */
-void lbap_field_free(lbap_field * field);
+/* =================================================================================
+Opaque data type declarations.
+================================================================================= */
 
-/** \brief Resets a lbap_field.
- *
- * This function resets the state of the `lbap_field` given as parameter.
- */
-void lbap_field_reset(lbap_field * field);
+using matrix_t = std::array<std::array<float, LBAP_MATRIX_SIZE + 1>, LBAP_MATRIX_SIZE + 1>;
+
+struct lbap_layer {
+    int id;                                /**< Layer id. */
+    float elevation;                       /**< Elevation of the layer in the range 0 .. pi/2. */
+    float gainExponent;                    /**< Speaker gain exponent for 4+ speakers. */
+    std::vector<matrix_t> amplitudeMatrix; /**< Arrays of amplitude values [spk][x][y]. */
+    std::vector<lbap_pos> speakers;        /**< Array of speakers. */
+};
+
+struct lbap_field {
+    std::vector<output_patch_t> outputOrder; /**< Physical output order as a list of int. */
+    std::vector<lbap_layer> layers;          /**< Array of layers. */
+    [[nodiscard]] size_t getNumSpeakers() const
+    {
+        return std::reduce(layers.cbegin(), layers.cend(), size_t{}, [](size_t const sum, lbap_layer const & layer) {
+            return sum + layer.speakers.size();
+        });
+    }
+    void reset()
+    {
+        outputOrder.clear();
+        layers.clear();
+    }
+};
 
 /** \brief Creates the field's layers according to the position of speakers.
  *
@@ -107,7 +117,7 @@ void lbap_field_reset(lbap_field * field);
  * speakers given as `speakers` argument. The argument `num` is the number of
  * speakers passed to the function.
  */
-void lbap_field_setup(lbap_field * field, lbap_speaker * speakers, int num);
+void lbap_field_setup(lbap_field & field, std::vector<lbap_speaker> & speakers);
 
 /** \brief Calculates the gain of the outputs for a source's position.
  *
@@ -117,7 +127,7 @@ void lbap_field_setup(lbap_field * field, lbap_speaker * speakers, int num);
  * memory. This array can be passed to the audio processing function
  * to control the gain of the signal outputs.
  */
-void lbap_field_compute(lbap_field * field, lbap_pos * position, float * gains);
+void lbap_field_compute(lbap_field const & field, lbap_pos const & position, float * gains);
 
 /** \brief Computes an array of lbap_speaker from lists of angular positions.
  *
@@ -132,11 +142,7 @@ void lbap_field_compute(lbap_field * field, lbap_pos * position, float * gains);
  *
  * \return lbap_speaker array pointer.
  */
-lbap_speaker * lbap_speakers_from_positions(float * azimuth,
-                                            float * elevation,
-                                            float * radius,
-                                            output_patch_t * outputPatch,
-                                            int num);
+std::vector<lbap_speaker> lbap_speakers_from_positions(SpeakerData const * speakers, size_t numSpeakers);
 
 /** \brief Initialize an lbap_pos structure from a position in radians.
  *
@@ -144,24 +150,4 @@ lbap_speaker * lbap_speakers_from_positions(float * azimuth,
  * in radians, and where `rad` is the length of the vector between 0 and 1. The
  * first parameter is a pointer to an lbap_pos which will be properly initialized.
  */
-void lbap_pos_init_from_radians(lbap_pos * position, float azimuth, float elevation, float radius);
-
-/** \brief Initialize an lbap_pos structure from a position in degrees.
- *
- * This function takes as parameters a position where `azi` and `ele` are given
- * in degrees, and where `rad` is the length of the vector between 0 and 1. The
- * first parameter is a pointer to an lbap_pos which will be properly initialized.
- */
-void lbap_pos_init_from_degrees(lbap_pos * position, float azimuth, float elevation, float radius);
-
-/** \brief Compare two positions.
- *
- * This function returns 1 if the two positions are identical, 0 otherwise.
- */
-int lbap_pos_compare(lbap_pos * p1, lbap_pos * p2);
-
-/** \brief Copy the content of a lbap_pos to another.
- *
- * This function copy the content of `src` to `dest`.
- */
-void lbap_pos_copy(lbap_pos * dest, lbap_pos * src);
+lbap_pos lbap_pos_init_from_radians(float azimuth, float elevation, float radius);

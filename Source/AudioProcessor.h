@@ -103,7 +103,7 @@ class AudioProcessor
     std::array<float, MAX_INPUTS> mLastAzimuth{};
 
     // LBAP data.
-    lbap_field * mLbapSpeakerField{};
+    lbap_field mLbapSpeakerField{};
 
     // LBAP distance attenuation values.
     float mAttenuationLinearGain{ 0.01584893f };       // -36 dB;
@@ -142,10 +142,10 @@ public:
 
     // Initialize VBAP algorithm.
     [[nodiscard]] bool
-        initSpeakersTriplet(std::vector<Speaker *> const & listSpk, int dimensions, bool needToComputeVbap);
+        initSpeakersTriplet(std::vector<Speaker const *> const & listSpk, int dimensions, bool needToComputeVbap);
 
     // Initialize LBAP algorithm.
-    [[nodiscard]] bool lbapSetupSpeakerField(std::vector<Speaker *> const & listSpk);
+    [[nodiscard]] bool lbapSetupSpeakerField(std::vector<Speaker const *> const & listSpk);
 
     // LBAP distance attenuation functions.
     void setAttenuationDbIndex(int index);

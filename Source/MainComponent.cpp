@@ -1590,7 +1590,7 @@ bool MainContentComponent::refreshSpeakers()
 
     // Temporarily remove direct out speakers to construct vbap or lbap algorithm.
     i = 0;
-    std::vector<Speaker *> tempListSpeaker{};
+    std::vector<Speaker const *> tempListSpeaker{};
     tempListSpeaker.resize(mSpeakers.size());
     for (auto * speaker : mSpeakers) {
         if (!speaker->isDirectOut()) {
@@ -2089,8 +2089,7 @@ void MainContentComponent::saveProperties(juce::String const & audioDeviceType,
     mAudioProcessor->setAttenuationDbIndex(attenuationDbIndex);
     mConfiguration.setAttenuationDbIndex(attenuationDbIndex);
 
-    auto * currentAudioDevice{ AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice() };
-    jassert(currentAudioDevice);
+    jassert(AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice());
 
     mAudioProcessor->setAttenuationFrequencyIndex(attenuationFrequencyIndex);
     mConfiguration.setAttenuationFrequencyIndex(attenuationFrequencyIndex);
