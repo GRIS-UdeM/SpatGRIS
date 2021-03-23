@@ -91,6 +91,33 @@ public:
     [[nodiscard]] constexpr Derived operator*(type const mod) const { return Derived{ mValue * mod }; }
     [[nodiscard]] constexpr Derived operator/(type const mod) const { return Derived{ mValue / mod }; }
     [[nodiscard]] constexpr type operator/(Derived const & other) const { return mValue / other.mValue; }
+
+protected:
+    [[nodiscard]] constexpr Derived centeredAroundZero(type const amplitude) const noexcept
+    {
+        auto const halfAmplitude{ amplitude / static_cast<type>(2) };
+        auto const isTooSmall = [min = -halfAmplitude](type const value) -> bool { return value < min; };
+
+        if (isTooSmall(mValue)) {
+            auto newValue{ mValue + amplitude };
+            while (isTooSmall(newValue)) {
+                newValue += amplitude;
+            }
+            return Derived{ newValue };
+        }
+
+        auto const isTooHigh = [max = halfAmplitude](type const value) -> bool { return value >= max; };
+
+        if (isTooHigh(mValue)) {
+            auto newValue{ mValue - amplitude };
+            while (isTooHigh(newValue)) {
+                newValue -= amplitude;
+            }
+            return Derived{ newValue };
+        }
+
+        return *static_cast<Derived const *>(this);
+    }
 };
 
 class dbfs_t final : public StrongFloat<float, dbfs_t, struct VolumeT>
@@ -101,4 +128,34 @@ public:
 
     [[nodiscard]] type toGain() const { return juce::Decibels::decibelsToGain(mValue); }
     static dbfs_t fromGain(type const gain) { return dbfs_t{ juce::Decibels::gainToDecibels(gain) }; }
+};
+
+class degrees_t final : public StrongFloat<float, degrees_t, struct DegreesT>
+{
+public:
+    static constexpr type DEGREE_PER_RADIAN{ static_cast<type>(360) / juce::MathConstants<type>::twoPi };
+
+    degrees_t() = default;
+    explicit constexpr degrees_t(type const & value) : StrongFloat(value) {}
+
+    [[nodiscard]] constexpr degrees_t centered() const noexcept { return centeredAroundZero(static_cast<type>(360)); }
+};
+
+class radians_t final : public StrongFloat<float, radians_t, struct RadiansT>
+{
+public:
+    static constexpr type RADIAN_PER_DEGREE{ juce::MathConstants<type>::twoPi / static_cast<type>(360) };
+
+    radians_t() = default;
+    explicit constexpr radians_t(type const & value) : StrongFloat(value) {}
+    constexpr radians_t(degrees_t const & degrees) : StrongFloat(degrees.get() * RADIAN_PER_DEGREE) {}
+
+    [[nodiscard]] constexpr radians_t centered() const noexcept
+    {
+        return centeredAroundZero(juce::MathConstants<type>::twoPi);
+    }
+    [[nodiscard]] constexpr degrees_t toDegrees() const noexcept
+    {
+        return degrees_t{ mValue * degrees_t::DEGREE_PER_RADIAN };
+    }
 };

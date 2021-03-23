@@ -770,26 +770,21 @@ bool AudioProcessor::initSpeakersTriplet(std::vector<Speaker const *> const & li
 //==============================================================================
 bool AudioProcessor::lbapSetupSpeakerField(std::vector<Speaker const *> const & listSpk)
 {
-    int j;
     if (listSpk.empty()) {
         return false;
     }
 
-    float azimuth[MAX_OUTPUTS];
-    float elevation[MAX_OUTPUTS];
-    float radius[MAX_OUTPUTS];
-    output_patch_t outputPatch[MAX_OUTPUTS];
-
-    for (unsigned int i = 0; i < listSpk.size(); i++) {
-        for (j = 0; j < MAX_SPEAKER_COUNT; ++j) {
-            if (listSpk[i]->getOutputPatch() == mSpeakersOut[j].outputPatch && !mSpeakersOut[j].directOut) {
-                break;
-            }
+    for (auto const * speaker : listSpk) {
+        auto matchingSpeakerDataIt{ std::find_if(
+            mSpeakersOut.begin(),
+            mSpeakersOut.end(),
+            [outputPatch = speaker->getOutputPatch()](SpeakerData const & speakerData) -> bool {
+                return !speakerData.directOut && outputPatch == speakerData.outputPatch;
+            }) };
+        if (matchingSpeakerDataIt == mSpeakersOut.end()) {
+            continue;
         }
-        azimuth[i] = mSpeakersOut[j].azimuth;
-        elevation[i] = mSpeakersOut[j].zenith;
-        radius[i] = mSpeakersOut[j].radius;
-        outputPatch[i] = --mSpeakersOut[j].outputPatch;
+        --matchingSpeakerDataIt->outputPatch;
     }
 
     auto speakers{ lbap_speakers_from_positions(mSpeakersOut.data(), listSpk.size()) };
