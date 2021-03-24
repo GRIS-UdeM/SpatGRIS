@@ -1787,7 +1787,8 @@ void MainContentComponent::openXmlFileSpeaker(juce::File const & file, std::opti
 void MainContentComponent::setTitle() const
 {
     auto const currentProject{ mConfiguration.getLastOpenProject() };
-    auto const title{ juce::String{ "SpatGRIS v" } + STRING(JUCE_APP_VERSION) + " - " + currentProject.getFileName() };
+    auto const title{ juce::String{ "SpatGRIS v" } + juce::JUCEApplication::getInstance()->getApplicationVersion()
+                      + " - " + currentProject.getFileName() };
     mMainWindow.setName(title);
 }
 

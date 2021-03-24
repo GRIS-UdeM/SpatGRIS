@@ -27,8 +27,6 @@ private:
 
 public:
     //==============================================================================
-    using iterator = typename juce::OwnedArray<value_type>::Iterator;
-    //==============================================================================
     Manager() = default;
     ~Manager() = default;
     //==============================================================================
@@ -66,11 +64,6 @@ public:
         jassert(contains(key));
         mItems.removeObject(mMap[key]);
         mMap.remove(key);
-    }
-    void remove(iterator const & it)
-    {
-        jassert(contains(it.getKey()));
-        remove(it.getKey());
     }
     //==============================================================================
     [[nodiscard]] auto const & getLock() const { return mLock; }

@@ -19,19 +19,15 @@
 
 #pragma once
 
-#include "AboutWindow.h"
-
 #include <optional>
 
-#include "juce_core/containers/juce_Array.h"
 #include "macros.h"
-
 DISABLE_WARNINGS
 #include <JuceHeader.h>
 ENABLE_WARNINGS
 
-#define STRING2(x) #x
-#define STRING(x) STRING2(x)
+//#define STRING2(x) #x
+//#define STRING(x) STRING2(x)
 
 #include "AboutWindow.h"
 #include "AudioProcessor.h"
