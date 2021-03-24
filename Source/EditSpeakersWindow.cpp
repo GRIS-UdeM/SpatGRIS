@@ -329,31 +329,31 @@ void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const 
 
     auto & speakers{ mMainContentComponent.getSpeakers() };
     unsigned index{};
-    for (auto const & speaker : speakers) {
+    for (auto const * speaker : speakers) {
         auto & toSortItem{ toSort[index++] };
-        toSortItem.id = speaker.getSpeakerId().get();
-        toSortItem.directOut = speaker.isDirectOut();
+        toSortItem.id = speaker->getSpeakerId().get();
+        toSortItem.directOut = speaker->isDirectOut();
         switch (newSortColumnId) {
         case Cols::X:
-            toSortItem.value = speaker.getCartesianCoords().z;
+            toSortItem.value = speaker->getCartesianCoords().z;
             break;
         case Cols::Y:
-            toSortItem.value = speaker.getCartesianCoords().x;
+            toSortItem.value = speaker->getCartesianCoords().x;
             break;
         case Cols::Z:
-            toSortItem.value = speaker.getCartesianCoords().y;
+            toSortItem.value = speaker->getCartesianCoords().y;
             break;
         case Cols::AZIMUTH:
-            toSortItem.value = speaker.getPolarCoords().x;
+            toSortItem.value = speaker->getPolarCoords().x;
             break;
         case Cols::ELEVATION:
-            toSortItem.value = speaker.getPolarCoords().y;
+            toSortItem.value = speaker->getPolarCoords().y;
             break;
         case Cols::DISTANCE:
-            toSortItem.value = speaker.getPolarCoords().z;
+            toSortItem.value = speaker->getPolarCoords().z;
             break;
         case Cols::OUTPUT_PATCH:
-            toSortItem.value = static_cast<float>(speaker.getOutputPatch().get());
+            toSortItem.value = static_cast<float>(speaker->getOutputPatch().get());
             break;
         default:
             jassertfalse;
@@ -853,11 +853,11 @@ void EditSpeakersWindow::setText(int const columnNumber,
                 auto const oldValue{ speaker.getOutputPatch() };
                 auto iValue{ output_patch_t{ std::clamp(newText.getIntValue(), 0, 256) } };
                 if (!speaker.isDirectOut()) {
-                    for (auto const & speaker : mMainContentComponent.getSpeakers()) {
-                        if (&speaker == &getSpeaker(rowNumber) || speaker.isDirectOut()) {
+                    for (auto const * speaker : mMainContentComponent.getSpeakers()) {
+                        if (speaker == &getSpeaker(rowNumber) || speaker->isDirectOut()) {
                             continue;
                         }
-                        if (speaker.getOutputPatch() == iValue) {
+                        if (speaker->getOutputPatch() == iValue) {
                             juce::AlertWindow alert("Wrong output patch!    ",
                                                     "Sorry! Output patch number " + juce::String(iValue.get())
                                                         + " is already used.",

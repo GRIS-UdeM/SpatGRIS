@@ -480,7 +480,7 @@ bool AudioManager::prepareToRecord(RecordingOptions const & recordingOptions,
             std::transform(speakers.begin(),
                            speakers.end(),
                            result.begin(),
-                           [](Speaker const & speaker) -> output_patch_t { return speaker.getOutputPatch(); });
+                           [](Speaker const * speaker) -> output_patch_t { return speaker->getOutputPatch(); });
             std::sort(result.begin(), result.end());
         }
         return result;

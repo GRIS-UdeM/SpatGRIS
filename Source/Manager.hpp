@@ -68,12 +68,12 @@ public:
     //==============================================================================
     [[nodiscard]] auto const & getLock() const { return mLock; }
     //==============================================================================
-    [[nodiscard]] value_type * begin() { return *mItems.data(); }
-    [[nodiscard]] value_type * end() { return *(mItems.data() + size()); }
-    [[nodiscard]] value_type const * begin() const { return *mItems.data(); }
-    [[nodiscard]] value_type const * end() const { return *(mItems.data() + size()); }
-    [[nodiscard]] value_type const * cbegin() const { return *mItems.data(); }
-    [[nodiscard]] value_type const * cend() const { return *(mItems.data() + size()); }
+    [[nodiscard]] value_type * const * begin() { return mItems.data(); }
+    [[nodiscard]] value_type * const * end() { return mItems.data() + size(); }
+    [[nodiscard]] value_type const * const * begin() const { return mItems.data(); }
+    [[nodiscard]] value_type const * const * end() const { return mItems.data() + size(); }
+    [[nodiscard]] value_type const * const * cbegin() const { return mItems.data(); }
+    [[nodiscard]] value_type const * const * cend() const { return mItems.data() + size(); }
     //==============================================================================
     void clear()
     {

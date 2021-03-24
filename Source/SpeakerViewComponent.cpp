@@ -117,12 +117,12 @@ void SpeakerViewComponent::render()
     juce::ScopedTryLock const lock{ mMainContentComponent.getSpeakers().getLock() };
     if (lock.isLocked()) {
         if (!mHideSpeaker) {
-            for (auto & speaker : mMainContentComponent.getSpeakers()) {
-                speaker.draw();
+            for (auto * speaker : mMainContentComponent.getSpeakers()) {
+                speaker->draw();
                 if (mShowNumber) {
-                    auto posT{ speaker.getCenter() };
+                    auto posT{ speaker->getCenter() };
                     posT.y += SIZE_SPEAKER.y + 0.4f;
-                    drawText(std::to_string(speaker.getOutputPatch().get()), posT, glm::vec3{ 0, 0, 0 }, 0.003f);
+                    drawText(std::to_string(speaker->getOutputPatch().get()), posT, glm::vec3{ 0, 0, 0 }, 0.003f);
                 }
             }
         }
@@ -219,16 +219,16 @@ void SpeakerViewComponent::clickRay()
     auto const & speakers{ mMainContentComponent.getSpeakers() };
     juce::ScopedTryLock const lock{ speakers.getLock() };
     if (lock.isLocked()) {
-        for (auto const & speaker : speakers) {
-            if (speaker.isSelected()) {
-                selected = speaker.getSpeakerId();
+        for (auto const * speaker : speakers) {
+            if (speaker->isSelected()) {
+                selected = speaker->getSpeakerId();
             }
-            if (rayCast(&speaker) != -1) {
+            if (rayCast(speaker) != -1) {
                 if (!iBestSpeaker) {
-                    iBestSpeaker = speaker.getSpeakerId();
+                    iBestSpeaker = speaker->getSpeakerId();
                 } else {
-                    if (speakerNearCam(speaker.getCenter(), speakers.get(*iBestSpeaker).getCenter())) {
-                        iBestSpeaker = speaker.getSpeakerId();
+                    if (speakerNearCam(speaker->getCenter(), speakers.get(*iBestSpeaker).getCenter())) {
+                        iBestSpeaker = speaker->getSpeakerId();
                     }
                 }
             }
