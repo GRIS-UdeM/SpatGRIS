@@ -49,9 +49,38 @@ public:
     [[nodiscard]] size_t size() const { return mSize; }
     //==============================================================================
     [[nodiscard]] iterator begin() { return mData.begin(); }
-    [[nodiscard]] iterator end() { return mData.end(); }
+    [[nodiscard]] iterator end() { return mData.begin() + mSize; }
     [[nodiscard]] const_iterator begin() const { return mData.cbegin(); }
-    [[nodiscard]] const_iterator end() const { return mData.cend(); }
+    [[nodiscard]] const_iterator end() const { return mData.cbegin() + mSize; }
     [[nodiscard]] const_iterator cbegin() const { return mData.cbegin(); }
-    [[nodiscard]] const_iterator cend() const { return mData.cend(); }
+    [[nodiscard]] const_iterator cend() const { return mData.cbegin() + mSize; }
+    //==============================================================================
+    T & front()
+    {
+        jassert(!isEmpty());
+        return mData.front();
+    }
+    T const & front() const
+    {
+        jassert(!isEmpty());
+        return mData.front();
+    }
+    T & back()
+    {
+        jassert(!isEmpty());
+        return mData[mSize - 1];
+    }
+    T const & back() const
+    {
+        jassert(!isEmpty());
+        return mData[mSize - 1];
+    }
+    //==============================================================================
+    void erase(const_iterator const & it)
+    {
+        jassert(it != cend());
+        jassert(!isEmpty());
+        *it = back();
+        --mSize;
+    }
 };
