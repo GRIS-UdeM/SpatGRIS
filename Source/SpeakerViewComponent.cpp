@@ -114,75 +114,70 @@ void SpeakerViewComponent::render()
         }
     }
 
-    {
-        juce::ScopedTryLock const sl{ mMainContentComponent.getSpeakersLock() };
-        if (sl.isLocked()) {
-            if (!mHideSpeaker) {
-                for (auto * speaker : mMainContentComponent.getSpeakers()) {
-                    speaker->draw();
-                    if (mShowNumber) {
-                        auto posT{ speaker->getCenter() };
-                        posT.y += SIZE_SPEAKER.y + 0.4f;
-                        drawText(std::to_string(speaker->getOutputPatch().get()), posT, glm::vec3{ 0, 0, 0 }, 0.003f);
-                    }
+    juce::ScopedTryLock const lock{ mMainContentComponent.getSpeakers().getLock() };
+    if (lock.isLocked()) {
+        if (!mHideSpeaker) {
+            for (auto & speaker : mMainContentComponent.getSpeakers()) {
+                speaker.draw();
+                if (mShowNumber) {
+                    auto posT{ speaker.getCenter() };
+                    posT.y += SIZE_SPEAKER.y + 0.4f;
+                    drawText(std::to_string(speaker.getOutputPatch().get()), posT, glm::vec3{ 0, 0, 0 }, 0.003f);
                 }
             }
-            if (mShowTriplets) {
-                drawTripletConnection();
-            }
+        }
+        if (mShowTriplets) {
+            drawTripletConnection();
         }
     }
 
     // Draw Sphere / Cube
     if (mShowSphere) {
-        juce::ScopedTryLock const sl{ mMainContentComponent.getSpeakersLock() };
-        if (sl.isLocked()) {
-            glPushMatrix();
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            glLineWidth(1.0f);
-            glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
-            glColor3f(0.8f, 0.2f, 0.1f);
-            if (mMainContentComponent.getModeSelected() == SpatMode::lbap) {
-                // Draw a cube when in LBAP mode.
-                for (auto i{ -static_cast<int>(MAX_RADIUS) }; i <= static_cast<int>(MAX_RADIUS); i += 2) {
-                    auto const i_f{ narrow<float>(i) };
-                    glBegin(GL_LINES);
-                    glVertex3f(i_f, MAX_RADIUS, -MAX_RADIUS);
-                    glVertex3f(i_f, MAX_RADIUS, MAX_RADIUS);
-                    glVertex3f(i_f, -MAX_RADIUS, -MAX_RADIUS);
-                    glVertex3f(i_f, -MAX_RADIUS, MAX_RADIUS);
-                    glVertex3f(MAX_RADIUS, -MAX_RADIUS, i_f);
-                    glVertex3f(MAX_RADIUS, MAX_RADIUS, i_f);
-                    glVertex3f(-MAX_RADIUS, -MAX_RADIUS, i_f);
-                    glVertex3f(-MAX_RADIUS, MAX_RADIUS, i_f);
-                    glVertex3f(MAX_RADIUS, i_f, -MAX_RADIUS);
-                    glVertex3f(MAX_RADIUS, i_f, MAX_RADIUS);
-                    glVertex3f(-MAX_RADIUS, i_f, -MAX_RADIUS);
-                    glVertex3f(-MAX_RADIUS, i_f, MAX_RADIUS);
-                    glVertex3f(-MAX_RADIUS, i_f, MAX_RADIUS);
-                    glVertex3f(MAX_RADIUS, i_f, MAX_RADIUS);
-                    glVertex3f(-MAX_RADIUS, i_f, -MAX_RADIUS);
-                    glVertex3f(MAX_RADIUS, i_f, -MAX_RADIUS);
-                    glVertex3f(-MAX_RADIUS, MAX_RADIUS, i_f);
-                    glVertex3f(MAX_RADIUS, MAX_RADIUS, i_f);
-                    glVertex3f(-MAX_RADIUS, -MAX_RADIUS, i_f);
-                    glVertex3f(MAX_RADIUS, -MAX_RADIUS, i_f);
-                    glVertex3f(i_f, -MAX_RADIUS, MAX_RADIUS);
-                    glVertex3f(i_f, MAX_RADIUS, MAX_RADIUS);
-                    glVertex3f(i_f, -MAX_RADIUS, -MAX_RADIUS);
-                    glVertex3f(i_f, MAX_RADIUS, -MAX_RADIUS);
-                    glEnd();
-                }
-            } else {
-#if defined(WIN32)
-                drawSphere(std::max(MAX_RADIUS, 1.0f));
-#else
-                glutSolidSphere(std::max(MAX_RADIUS, 1.0f), SPACE_LIMIT, SPACE_LIMIT);
-#endif
+        glPushMatrix();
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        glLineWidth(1.0f);
+        glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+        glColor3f(0.8f, 0.2f, 0.1f);
+        if (mMainContentComponent.getModeSelected() == SpatMode::lbap) {
+            // Draw a cube when in LBAP mode.
+            for (auto i{ -static_cast<int>(MAX_RADIUS) }; i <= static_cast<int>(MAX_RADIUS); i += 2) {
+                auto const i_f{ narrow<float>(i) };
+                glBegin(GL_LINES);
+                glVertex3f(i_f, MAX_RADIUS, -MAX_RADIUS);
+                glVertex3f(i_f, MAX_RADIUS, MAX_RADIUS);
+                glVertex3f(i_f, -MAX_RADIUS, -MAX_RADIUS);
+                glVertex3f(i_f, -MAX_RADIUS, MAX_RADIUS);
+                glVertex3f(MAX_RADIUS, -MAX_RADIUS, i_f);
+                glVertex3f(MAX_RADIUS, MAX_RADIUS, i_f);
+                glVertex3f(-MAX_RADIUS, -MAX_RADIUS, i_f);
+                glVertex3f(-MAX_RADIUS, MAX_RADIUS, i_f);
+                glVertex3f(MAX_RADIUS, i_f, -MAX_RADIUS);
+                glVertex3f(MAX_RADIUS, i_f, MAX_RADIUS);
+                glVertex3f(-MAX_RADIUS, i_f, -MAX_RADIUS);
+                glVertex3f(-MAX_RADIUS, i_f, MAX_RADIUS);
+                glVertex3f(-MAX_RADIUS, i_f, MAX_RADIUS);
+                glVertex3f(MAX_RADIUS, i_f, MAX_RADIUS);
+                glVertex3f(-MAX_RADIUS, i_f, -MAX_RADIUS);
+                glVertex3f(MAX_RADIUS, i_f, -MAX_RADIUS);
+                glVertex3f(-MAX_RADIUS, MAX_RADIUS, i_f);
+                glVertex3f(MAX_RADIUS, MAX_RADIUS, i_f);
+                glVertex3f(-MAX_RADIUS, -MAX_RADIUS, i_f);
+                glVertex3f(MAX_RADIUS, -MAX_RADIUS, i_f);
+                glVertex3f(i_f, -MAX_RADIUS, MAX_RADIUS);
+                glVertex3f(i_f, MAX_RADIUS, MAX_RADIUS);
+                glVertex3f(i_f, -MAX_RADIUS, -MAX_RADIUS);
+                glVertex3f(i_f, MAX_RADIUS, -MAX_RADIUS);
+                glEnd();
             }
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-            glPopMatrix();
+        } else {
+#if defined(WIN32)
+            drawSphere(std::max(MAX_RADIUS, 1.0f));
+#else
+            glutSolidSphere(std::max(MAX_RADIUS, 1.0f), SPACE_LIMIT, SPACE_LIMIT);
+#endif
         }
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        glPopMatrix();
     }
 
     if (mClickLeft) {
@@ -219,40 +214,38 @@ void SpeakerViewComponent::clickRay()
 
     mRay.setRay(glm::vec3{ mXs, mYs, mZs }, glm::vec3{ mXe, mYe, mZe });
 
-    static constexpr speaker_id_t INVALID_ID{ -1 };
-    auto iBestSpeaker = INVALID_ID;
-    auto selected = INVALID_ID;
-    juce::ScopedTryLock const sl{ mMainContentComponent.getSpeakersLock() };
+    std::optional<speaker_id_t> iBestSpeaker{};
+    std::optional<speaker_id_t> selected{};
     auto const & speakers{ mMainContentComponent.getSpeakers() };
-    if (sl.isLocked()) {
-        for (int i{}; i < speakers.size(); ++i) {
-            auto const * speaker{ speakers[i] };
-            if (speaker->isSelected()) {
-                selected = speaker_id_t{ i };
+    juce::ScopedTryLock const lock{ speakers.getLock() };
+    if (lock.isLocked()) {
+        for (auto const & speaker : speakers) {
+            if (speaker.isSelected()) {
+                selected = speaker.getSpeakerId();
             }
-            if (rayCast(speaker) != -1) {
-                if (iBestSpeaker == INVALID_ID) {
-                    iBestSpeaker = speaker_id_t{ i };
+            if (rayCast(&speaker) != -1) {
+                if (!iBestSpeaker) {
+                    iBestSpeaker = speaker.getSpeakerId();
                 } else {
-                    if (speakerNearCam(speaker->getCenter(), speakers[iBestSpeaker.get()]->getCenter())) {
-                        iBestSpeaker = speaker_id_t{ i };
+                    if (speakerNearCam(speaker.getCenter(), speakers.get(*iBestSpeaker).getCenter())) {
+                        iBestSpeaker = speaker.getSpeakerId();
                     }
                 }
             }
         }
 
-        if (mControlOn && iBestSpeaker >= speaker_id_t{}) {
-            mMainContentComponent.selectTripletSpeaker(iBestSpeaker);
+        if (mControlOn && iBestSpeaker) {
+            mMainContentComponent.selectTripletSpeaker(*iBestSpeaker);
         } else {
-            if (iBestSpeaker == INVALID_ID) {
+            if (!iBestSpeaker) {
                 iBestSpeaker = selected;
             }
 
             output_patch_t outputPatch{};
-            if (iBestSpeaker == INVALID_ID) {
+            if (!iBestSpeaker) {
                 outputPatch = output_patch_t{ -1 };
             } else {
-                outputPatch = speakers[iBestSpeaker.get()]->getOutputPatch();
+                outputPatch = speakers.get(*iBestSpeaker).getOutputPatch();
             }
 
             mMainContentComponent.selectSpeaker(outputPatch);

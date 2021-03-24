@@ -19,8 +19,11 @@
 
 #pragma once
 
+#include "AboutWindow.h"
+
 #include <optional>
 
+#include "juce_core/containers/juce_Array.h"
 #include "macros.h"
 
 DISABLE_WARNINGS
@@ -37,6 +40,7 @@ ENABLE_WARNINGS
 #include "EditSpeakersWindow.h"
 #include "FlatViewWindow.h"
 #include "Input.h"
+#include "Manager.hpp"
 #include "OscInput.h"
 #include "OscLogWindow.h"
 #include "SettingsWindow.h"
@@ -76,8 +80,8 @@ class MainContentComponent final
 
     // Speakers.
     juce::Array<Triplet> mTriplets{};
-    juce::OwnedArray<Speaker> mSpeakers{};
-    juce::CriticalSection mSpeakersLock{};
+    Manager<Speaker, speaker_id_t> mSpeakers{};
+    juce::Array<speaker_id_t> mSpeakersDisplayOrder{};
 
     // Sources.
     juce::OwnedArray<Input> mInputs{};
@@ -193,20 +197,17 @@ public:
     void setNeedToSaveSpeakerSetup(bool const state) { mNeedToSaveSpeakerSetup = state; }
 
     // Speakers.
-    [[nodiscard]] juce::OwnedArray<Speaker> & getSpeakers() { return mSpeakers; }
-    [[nodiscard]] juce::OwnedArray<Speaker> const & getSpeakers() const { return mSpeakers; }
-
-    [[nodiscard]] juce::CriticalSection const & getSpeakersLock() const { return mSpeakersLock; }
+    [[nodiscard]] auto & getSpeakers() { return mSpeakers; }
+    [[nodiscard]] auto const & getSpeakers() const { return mSpeakers; }
 
     [[nodiscard]] Speaker * getSpeakerFromOutputPatch(output_patch_t out);
     [[nodiscard]] Speaker const * getSpeakerFromOutputPatch(output_patch_t out) const;
 
-    void addSpeaker(int sortColumnId = 1, bool isSortedForwards = true);
-    void insertSpeaker(int position, int sortColumnId, bool isSortedForwards);
-    void removeSpeaker(int idSpeaker);
+    Speaker & addSpeaker();
+    void insertSpeaker(int position);
+    void removeSpeaker(speaker_id_t const id);
     void setDirectOut(int id, output_patch_t chn) const;
-    void reorderSpeakers(std::vector<speaker_id_t> const & newOrder);
-    void resetSpeakerIds();
+    void reorderSpeakers(juce::Array<speaker_id_t> newOrder);
 
     // Sources.
     [[nodiscard]] juce::OwnedArray<Input> & getSourceInputs() { return mInputs; }
@@ -224,7 +225,7 @@ public:
     [[nodiscard]] juce::Array<Triplet> const & getTriplets() const { return mTriplets; }
 
     // Speaker selections.
-    void selectSpeaker(output_patch_t const outputPatch) const;
+    void selectSpeaker(output_patch_t outputPatch);
     void selectTripletSpeaker(speaker_id_t idS);
 
     // Mute - solo.

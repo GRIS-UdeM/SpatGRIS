@@ -27,6 +27,7 @@ DISABLE_WARNINGS
 ENABLE_WARNINGS
 
 #include "Configuration.h"
+#include "Manager.hpp"
 #include "Speaker.h"
 #include "StrongTypes.hpp"
 
@@ -143,7 +144,7 @@ public:
 
     juce::StringArray getAvailableDeviceTypeNames();
 
-    bool prepareToRecord(RecordingOptions const & recordingOptions, juce::OwnedArray<Speaker> const & speakers);
+    bool prepareToRecord(RecordingOptions const & recordingOptions, Manager<Speaker, speaker_id_t> const & speakers);
     void startRecording();
     void stopRecording();
     bool isRecording() const { return mIsRecording; }

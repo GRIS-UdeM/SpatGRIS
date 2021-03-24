@@ -443,7 +443,7 @@ juce::StringArray AudioManager::getAvailableDeviceTypeNames()
 
 //==============================================================================
 bool AudioManager::prepareToRecord(RecordingOptions const & recordingOptions,
-                                   ::juce::OwnedArray<Speaker> const & speakers)
+                                   Manager<Speaker, speaker_id_t> const & speakers)
 {
     static constexpr auto BITS_PER_SAMPLE = 24;
     static constexpr auto RECORD_QUALITY = 0;
@@ -470,7 +470,7 @@ bool AudioManager::prepareToRecord(RecordingOptions const & recordingOptions,
 
     // update channels to record
     static auto const getChannelsToRecord
-        = [](juce::OwnedArray<Speaker> const & speakers, SpatMode const spatMode) -> juce::Array<output_patch_t> {
+        = [](Manager<Speaker, speaker_id_t> const & speakers, SpatMode const spatMode) -> juce::Array<output_patch_t> {
         juce::Array<output_patch_t> result{};
         if (spatMode == SpatMode::hrtfVbap) {
             result.add(output_patch_t{ 1 });
@@ -480,7 +480,7 @@ bool AudioManager::prepareToRecord(RecordingOptions const & recordingOptions,
             std::transform(speakers.begin(),
                            speakers.end(),
                            result.begin(),
-                           [](Speaker const * speaker) -> output_patch_t { return speaker->getOutputPatch(); });
+                           [](Speaker const & speaker) -> output_patch_t { return speaker.getOutputPatch(); });
             std::sort(result.begin(), result.end());
         }
         return result;

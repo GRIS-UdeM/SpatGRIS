@@ -26,8 +26,12 @@ ENABLE_WARNINGS
 
 #include <cstdint>
 
+class StrongIndexBase
+{
+};
+
 template<typename T, typename Dummy>
-class StrongIndex
+class StrongIndex : public StrongIndexBase
 {
     T mValue;
 
@@ -62,6 +66,7 @@ public:
 using speaker_id_t = StrongIndex<int, struct SpeakerIdT>;
 using port_id_t = StrongIndex<uint32_t, struct PortIdT>;
 using output_patch_t = StrongIndex<int, struct OutputPatchT>;
+using display_order_t = StrongIndex<int, struct DisplayOrderT>;
 
 template<typename T, typename Derived, typename Dummy>
 class StrongFloat

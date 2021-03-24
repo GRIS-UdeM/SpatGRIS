@@ -37,6 +37,7 @@
               file="Source/PinkNoiseGenerator.h"/>
       </GROUP>
       <GROUP id="{B880ED62-D15F-78F9-F83A-129573A5FA84}" name="misc">
+        <FILE id="GMYB2w" name="Manager.hpp" compile="0" resource="0" file="Source/Manager.hpp"/>
         <FILE id="qrPHXG" name="StaticVector.h" compile="0" resource="0" file="Source/StaticVector.h"/>
         <FILE id="wuCEse" name="SpatMode.hpp" compile="0" resource="0" file="Source/SpatMode.hpp"/>
         <FILE id="F7hMuN" name="StrongTypes.hpp" compile="0" resource="0" file="Source/StrongTypes.hpp"/>

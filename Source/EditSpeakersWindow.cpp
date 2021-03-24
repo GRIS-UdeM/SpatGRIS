@@ -329,31 +329,31 @@ void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const 
 
     auto & speakers{ mMainContentComponent.getSpeakers() };
     unsigned index{};
-    for (auto const * speaker : speakers) {
+    for (auto const & speaker : speakers) {
         auto & toSortItem{ toSort[index++] };
-        toSortItem.id = speaker->getIdSpeaker().get();
-        toSortItem.directOut = speaker->isDirectOut();
+        toSortItem.id = speaker.getSpeakerId().get();
+        toSortItem.directOut = speaker.isDirectOut();
         switch (newSortColumnId) {
         case Cols::X:
-            toSortItem.value = speaker->getCartesianCoords().z;
+            toSortItem.value = speaker.getCartesianCoords().z;
             break;
         case Cols::Y:
-            toSortItem.value = speaker->getCartesianCoords().x;
+            toSortItem.value = speaker.getCartesianCoords().x;
             break;
         case Cols::Z:
-            toSortItem.value = speaker->getCartesianCoords().y;
+            toSortItem.value = speaker.getCartesianCoords().y;
             break;
         case Cols::AZIMUTH:
-            toSortItem.value = speaker->getPolarCoords().x;
+            toSortItem.value = speaker.getPolarCoords().x;
             break;
         case Cols::ELEVATION:
-            toSortItem.value = speaker->getPolarCoords().y;
+            toSortItem.value = speaker.getPolarCoords().y;
             break;
         case Cols::DISTANCE:
-            toSortItem.value = speaker->getPolarCoords().z;
+            toSortItem.value = speaker.getPolarCoords().z;
             break;
         case Cols::OUTPUT_PATCH:
-            toSortItem.value = static_cast<float>(speaker->getOutputPatch().get());
+            toSortItem.value = static_cast<float>(speaker.getOutputPatch().get());
             break;
         default:
             jassertfalse;
@@ -367,12 +367,12 @@ void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const 
         std::sort(toSort, toSort + size, compareGreaterThan);
     }
 
-    std::vector<speaker_id_t> newOrder{};
+    juce::Array<speaker_id_t> newOrder{};
     newOrder.resize(size);
     for (int i{}; i < size; ++i) {
         newOrder[i] = speaker_id_t{ toSort[i].id };
     }
-    mMainContentComponent.reorderSpeakers(newOrder);
+    mMainContentComponent.reorderSpeakers(std::move(newOrder));
     updateWinContent(false);
 }
 
@@ -397,11 +397,11 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
 
     if (button == &mAddSpeakerButton) {
         if (selectedRow == -1 || selectedRow == (mNumRows - 1)) {
-            mMainContentComponent.addSpeaker(sortColumnId, sortedForwards);
+            mMainContentComponent.addSpeaker();
             updateWinContent(true);
             mSpeakersTableListBox.selectRow(getNumRows() - 1);
         } else {
-            mMainContentComponent.insertSpeaker(selectedRow, sortColumnId, sortedForwards);
+            mMainContentComponent.insertSpeaker(selectedRow);
             updateWinContent(true);
             mSpeakersTableListBox.selectRow(selectedRow + 1);
         }
@@ -414,11 +414,11 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
     } else if (button == &mAddRingButton) {
         for (int i{}; i < mNumOfSpeakersTextEditor.getText().getIntValue(); i++) {
             if (selectedRow == -1 || selectedRow == (mNumRows - 1)) {
-                mMainContentComponent.addSpeaker(sortColumnId, sortedForwards);
+                mMainContentComponent.addSpeaker();
                 mNumRows = mMainContentComponent.getSpeakers().size();
                 selectedRow = mNumRows - 1;
             } else {
-                mMainContentComponent.insertSpeaker(selectedRow, sortColumnId, sortedForwards);
+                mMainContentComponent.insertSpeaker(selectedRow);
                 selectedRow += 1;
                 mNumRows = mMainContentComponent.getSpeakers().size();
             }
@@ -1122,7 +1122,7 @@ void EditSpeakersWindow::mouseDrag(juce::MouseEvent const & event)
         std::transform(std::begin(speakers),
                        std::end(speakers),
                        std::begin(result),
-                       [](Speaker const * speaker) -> speaker_id_t { return speaker->getIdSpeaker(); });
+                       [](Speaker const * speaker) -> speaker_id_t { return speaker->getId(); });
         return result;
     };
 

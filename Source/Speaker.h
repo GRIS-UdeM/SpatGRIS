@@ -122,8 +122,7 @@ public:
     [[nodiscard]] LevelComponent * getVuMeter() override { return &mVuMeter; }
 
     // Normalized for user
-    void setSpeakerId(speaker_id_t const id) { mId = id; };
-    [[nodiscard]] speaker_id_t getIdSpeaker() const { return mId; }
+    [[nodiscard]] speaker_id_t getSpeakerId() const { return mId; }
     void setCoordinate(glm::vec3 value);
     void normalizeRadius();
     void setAziZenRad(glm::vec3 value);

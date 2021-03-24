@@ -210,7 +210,7 @@ MainContentComponent::~MainContentComponent()
     mSpeakerViewComponent.reset();
 
     {
-        juce::ScopedLock sl{ mSpeakersLock };
+        juce::ScopedLock const lock{ mSpeakers.getLock() };
         mSpeakers.clear();
     }
 
@@ -698,8 +698,8 @@ void MainContentComponent::handleResetMeterClipping()
     for (auto * input : mInputs) {
         input->getVuMeter()->resetClipping();
     }
-    for (auto * speaker : mSpeakers) {
-        speaker->getVuMeter()->resetClipping();
+    for (auto & speaker : mSpeakers) {
+        speaker.getVuMeter()->resetClipping();
     }
 }
 
@@ -1052,13 +1052,13 @@ bool MainContentComponent::exitApp() const
 }
 
 //==============================================================================
-void MainContentComponent::selectSpeaker(output_patch_t const outputPatch) const
+void MainContentComponent::selectSpeaker(output_patch_t const outputPatch)
 {
-    for (auto * speaker : mSpeakers) {
-        if (speaker->getOutputPatch() != outputPatch) {
-            speaker->unSelectSpeaker();
+    for (auto & speaker : mSpeakers) {
+        if (speaker.getOutputPatch() != outputPatch) {
+            speaker.unSelectSpeaker();
         } else {
-            speaker->selectSpeaker();
+            speaker.selectSpeaker();
         }
     }
     if (mEditSpeakersWindow != nullptr) {
@@ -1074,35 +1074,35 @@ void MainContentComponent::selectTripletSpeaker(speaker_id_t const idS)
         return speaker->isSelected();
     }) };
 
-    if (!mSpeakers[idS.get()]->isSelected() && countS < 3) {
-        mSpeakers[idS.get()]->selectSpeaker();
+    if (!mSpeakers.get(idS).isSelected() && countS < 3) {
+        mSpeakers.get(idS).selectSpeaker();
         countS += 1;
     } else {
-        mSpeakers[idS.get()]->unSelectSpeaker();
+        mSpeakers.get(idS).unSelectSpeaker();
     }
 
     if (countS == 3) {
-        static constexpr output_patch_t INVALID_PATCH{ -1 };
-        auto i1{ INVALID_PATCH };
-        auto i2{ INVALID_PATCH };
-        auto i3{ INVALID_PATCH };
-        for (int i{}; i < mSpeakers.size(); ++i) {
-            if (mSpeakers[i]->isSelected()) {
-                if (i1 == INVALID_PATCH) {
-                    i1 = output_patch_t{ i };
-                } else {
-                    if (i2 == INVALID_PATCH) {
-                        i2 = output_patch_t{ i };
-                    } else {
-                        if (i3 == INVALID_PATCH) {
-                            i3 = output_patch_t{ i };
-                        }
-                    }
+        std::optional<output_patch_t> i1{};
+        std::optional<output_patch_t> i2{};
+        std::optional<output_patch_t> i3{};
+        for (auto const & speaker : mSpeakers) {
+            if (speaker.isSelected()) {
+                auto const outputPatch{ speaker.getOutputPatch() };
+                if (!i1) {
+                    i1 = outputPatch;
+                    continue;
                 }
+                if (!i2) {
+                    i2 = outputPatch;
+                    continue;
+                }
+                i3 = outputPatch;
+                break;
             }
         }
-        if (i1 != INVALID_PATCH && i2 != INVALID_PATCH && i3 != INVALID_PATCH) {
-            Triplet const tri{ i1, i2, i3 };
+
+        if (i1 && i2 && i3) {
+            Triplet const tri{ *i1, *i2, *i3 };
             auto posDel{ -1 };
             if (tripletExists(tri, posDel)) {
                 mTriplets.remove(mTriplets.begin() + posDel);
@@ -1133,43 +1133,20 @@ bool MainContentComponent::tripletExists(Triplet const & tri, int & pos) const
 }
 
 //==============================================================================
-void MainContentComponent::resetSpeakerIds()
+void MainContentComponent::reorderSpeakers(juce::Array<speaker_id_t> newOrder)
 {
-    speaker_id_t id{ 1 };
-    for (auto * it : mSpeakers) {
-        it->setSpeakerId(id++);
-    }
-}
-
-//==============================================================================
-void MainContentComponent::reorderSpeakers(std::vector<speaker_id_t> const & newOrder)
-{
-    auto const size = mSpeakers.size();
-
-    juce::Array<Speaker *> tempListSpeaker{};
-    tempListSpeaker.resize(size);
-
-    for (int i{}; i < size; ++i) {
-        for (auto * speaker : mSpeakers) {
-            if (speaker->getIdSpeaker() == newOrder[i]) {
-                tempListSpeaker.setUnchecked(i, speaker);
-                break;
-            }
-        }
-    }
-
-    juce::ScopedLock sl{ mSpeakersLock };
-    mSpeakers.clearQuick(false);
-    mSpeakers.addArray(tempListSpeaker);
+    juce::ScopedLock lock{ mSpeakers.getLock() }; // TODO: necessary?
+    jassert(newOrder.size() == mSpeakersDisplayOrder.size());
+    mSpeakersDisplayOrder = std::move(newOrder);
 }
 
 //==============================================================================
 speaker_id_t MainContentComponent::getMaxSpeakerId() const
 {
     speaker_id_t maxId{};
-    for (auto const * it : mSpeakers) {
-        if (it->getIdSpeaker() > maxId) {
-            maxId = it->getIdSpeaker();
+    for (auto const & speaker : mSpeakers) {
+        if (speaker.getSpeakerId() > maxId) {
+            maxId = speaker.getSpeakerId();
         }
     }
     return maxId;
@@ -1179,82 +1156,49 @@ speaker_id_t MainContentComponent::getMaxSpeakerId() const
 output_patch_t MainContentComponent::getMaxSpeakerOutputPatch() const
 {
     output_patch_t maxOut{};
-    for (auto const * it : mSpeakers) {
-        if (it->getOutputPatch() > maxOut) {
-            maxOut = it->getOutputPatch();
+    for (auto const & speaker : mSpeakers) {
+        if (speaker.getOutputPatch() > maxOut) {
+            maxOut = speaker.getOutputPatch();
         }
     }
     return maxOut;
 }
 
 //==============================================================================
-void MainContentComponent::addSpeaker(int const sortColumnId, bool const isSortedForwards)
+Speaker & MainContentComponent::addSpeaker()
 {
-    {
-        juce::ScopedLock sl{ mSpeakersLock };
-        auto const newId{ ++getMaxSpeakerId() };
-        auto const newOutputPatch{ ++getMaxSpeakerOutputPatch() };
-        mSpeakers.add(new Speaker{ *this, mSmallLookAndFeel, newId, newOutputPatch, 0.0f, 0.0f, 1.0f });
-
-        auto const isSortedByOutputPatch{ sortColumnId == EditSpeakersWindow::Cols::OUTPUT_PATCH };
-
-        if (isSortedByOutputPatch && isSortedForwards) {
-            for (int i{}; i < mSpeakers.size(); ++i) {
-                speaker_id_t const id{ i + 1 };
-                mSpeakers[i]->setSpeakerId(id);
-            }
-        } else if (isSortedByOutputPatch && !isSortedForwards) {
-            for (int i{}; i < mSpeakers.size(); ++i) {
-                speaker_id_t const id{ mSpeakers.size() - i };
-                mSpeakers[i]->setSpeakerId(id);
-            }
-        }
-    }
-
-    mAudioProcessor->addOutput(mSpeakers.getLast()->getOutputPatch());
+    juce::ScopedLock const lock{ mSpeakers.getLock() };
+    auto const newId{ ++getMaxSpeakerId() };
+    auto const newOutputPatch{ ++getMaxSpeakerOutputPatch() };
+    auto & speaker{ mSpeakers.add(
+        newId,
+        std::make_unique<Speaker>(*this, mSmallLookAndFeel, newId, newOutputPatch, 0.0f, 0.0f, 1.0f)) };
+    mSpeakersDisplayOrder.add(newId);
+    mAudioProcessor->addOutput(newOutputPatch);
+    return speaker;
 }
 
 //==============================================================================
-void MainContentComponent::insertSpeaker(int const position, int const sortColumnId, bool const isSortedForwards)
+void MainContentComponent::insertSpeaker(int const position)
 {
     auto const newPosition{ position + 1 };
-    auto const newOut{ ++getMaxSpeakerOutputPatch() };
-    auto newId{ ++getMaxSpeakerId() };
 
-    {
-        juce::ScopedLock sl{ mSpeakersLock };
-        auto const isSortedByOutputPatch{ sortColumnId == EditSpeakersWindow::Cols::OUTPUT_PATCH };
-        if (isSortedByOutputPatch && isSortedForwards) {
-            newId = ++mSpeakers[position]->getIdSpeaker();
-            mSpeakers.insert(newPosition, new Speaker{ *this, mSmallLookAndFeel, newId, newOut, 0.0f, 0.0f, 1.0f });
-            for (auto i{ 0 }; i < mSpeakers.size(); ++i) {
-                mSpeakers.getUnchecked(i)->setSpeakerId(speaker_id_t{ i + 1 });
-            }
-        } else if (isSortedByOutputPatch && !isSortedForwards) {
-            newId = --mSpeakers[position]->getIdSpeaker();
-            mSpeakers.insert(newPosition, new Speaker{ *this, mSmallLookAndFeel, newId, newOut, 0.0f, 0.0f, 1.0f });
-            for (int i{}; i < mSpeakers.size(); ++i) {
-                speaker_id_t const id{ mSpeakers.size() - i };
-                mSpeakers.getUnchecked(i)->setSpeakerId(id);
-            }
-        } else {
-            mSpeakers.insert(newPosition, new Speaker{ *this, mSmallLookAndFeel, newId, newOut, 0.0f, 0.0f, 1.0f });
-        }
-    }
-
-    juce::ScopedLock const lock{ mAudioProcessor->getCriticalSection() };
-    mAudioProcessor->clearOutput();
-    for (auto * it : mSpeakers) {
-        mAudioProcessor->addOutput(it->getOutputPatch());
-    }
+    juce::ScopedLock const lock{ mSpeakers.getLock() };
+    auto & newSpeaker{ addSpeaker() };
+    mSpeakersDisplayOrder.insert(newPosition, newSpeaker.getSpeakerId());
 }
 
 //==============================================================================
-void MainContentComponent::removeSpeaker(int const idSpeaker)
+void MainContentComponent::removeSpeaker(speaker_id_t const id)
 {
-    mAudioProcessor->removeOutput(idSpeaker);
-    juce::ScopedLock sl{ mSpeakersLock };
-    mSpeakers.remove(idSpeaker, true);
+    juce::ScopedLock const lock{ mSpeakers.getLock() };
+    auto const & speaker{ mSpeakers.get(id) };
+
+    jassertfalse; // TODO : I don't get this
+
+    mAudioProcessor->removeOutput(speaker.getOutputPatch().get());
+    mSpeakers.remove(id);
+    mSpeakersDisplayOrder.removeFirstMatchingValue(id);
 }
 
 //==============================================================================
@@ -1302,9 +1246,9 @@ void MainContentComponent::setTripletsFromVbap()
 //==============================================================================
 Speaker const * MainContentComponent::getSpeakerFromOutputPatch(output_patch_t const out) const
 {
-    for (auto const * it : mSpeakers) {
-        if (it->getOutputPatch() == out && !it->isDirectOut()) {
-            return it;
+    for (auto const & speaker : mSpeakers) {
+        if (speaker.getOutputPatch() == out && !speaker.isDirectOut()) {
+            return &speaker;
         }
     }
     return nullptr;
@@ -1313,9 +1257,9 @@ Speaker const * MainContentComponent::getSpeakerFromOutputPatch(output_patch_t c
 //==============================================================================
 Speaker * MainContentComponent::getSpeakerFromOutputPatch(output_patch_t const out)
 {
-    for (auto * it : mSpeakers) {
-        if (it->getOutputPatch() == out && !it->isDirectOut()) {
-            return it;
+    for (auto & speaker : mSpeakers) {
+        if (speaker.getOutputPatch() == out && !speaker.isDirectOut()) {
+            return &speaker;
         }
     }
     return nullptr;
@@ -1408,12 +1352,12 @@ bool MainContentComponent::refreshSpeakers()
 
     // Test for a 2-D or 3-D configuration.
     auto zenith{ -1.0f };
-    for (auto const * it : mSpeakers) {
-        if (it->isDirectOut()) {
+    for (auto const & speaker : mSpeakers) {
+        if (speaker.isDirectOut()) {
             directOutSpeakers++;
         } else if (zenith == -1.0f) {
-            zenith = it->getPolarCoords().y;
-        } else if (it->getPolarCoords().y < (zenith - 4.9f) || it->getPolarCoords().y > (zenith + 4.9f)) {
+            zenith = speaker.getPolarCoords().y;
+        } else if (speaker.getPolarCoords().y < (zenith - 4.9f) || speaker.getPolarCoords().y > (zenith + 4.9f)) {
             dimensions = 3;
         }
     }
@@ -1435,10 +1379,10 @@ bool MainContentComponent::refreshSpeakers()
     // Test for duplicated output patch.
     std::vector<output_patch_t> tempOut{};
     tempOut.reserve(mSpeakers.size());
-    for (auto const * speaker : mSpeakers) {
+    for (auto const & speaker : mSpeakers) {
         // duplicates are ok for direct outs
-        if (!speaker->isDirectOut()) {
-            tempOut.push_back(speaker->getOutputPatch());
+        if (!speaker.isDirectOut()) {
+            tempOut.push_back(speaker.getOutputPatch());
         }
     }
     std::sort(tempOut.begin(), tempOut.end());
@@ -1493,44 +1437,44 @@ bool MainContentComponent::refreshSpeakers()
     int i{};
     auto x{ 2 };
     auto const mode{ mAudioProcessor->getMode() };
-    for (auto * speaker : mSpeakers) {
+    for (auto & speaker : mSpeakers) {
         juce::Rectangle<int> level{ x, 4, VU_METER_WIDTH_IN_PIXELS, 200 };
-        speaker->getVuMeter()->setBounds(level);
-        speaker->getVuMeter()->resetClipping();
-        mOutputsUiBox->getContent()->addAndMakeVisible(speaker->getVuMeter());
-        speaker->getVuMeter()->repaint();
+        speaker.getVuMeter()->setBounds(level);
+        speaker.getVuMeter()->resetClipping();
+        mOutputsUiBox->getContent()->addAndMakeVisible(speaker.getVuMeter());
+        speaker.getVuMeter()->repaint();
 
         x += VU_METER_WIDTH_IN_PIXELS;
 
         if (mode == SpatMode::vbap || mode == SpatMode::hrtfVbap) {
-            speaker->normalizeRadius();
+            speaker.normalizeRadius();
         }
 
         SpeakerData so;
-        so.id = speaker_id_t{ speaker->getOutputPatch().get() };
-        so.x = speaker->getCartesianCoords().x;
-        so.y = speaker->getCartesianCoords().y;
-        so.z = speaker->getCartesianCoords().z;
-        so.azimuth = degrees_t{ speaker->getPolarCoords().x };
-        so.zenith = degrees_t{ speaker->getPolarCoords().y };
-        so.radius = speaker->getPolarCoords().z;
-        so.outputPatch = speaker->getOutputPatch();
-        so.directOut = speaker->isDirectOut();
+        so.id = speaker_id_t{ speaker.getOutputPatch().get() };
+        so.x = speaker.getCartesianCoords().x;
+        so.y = speaker.getCartesianCoords().y;
+        so.z = speaker.getCartesianCoords().z;
+        so.azimuth = degrees_t{ speaker.getPolarCoords().x };
+        so.zenith = degrees_t{ speaker.getPolarCoords().y };
+        so.radius = speaker.getPolarCoords().z;
+        so.outputPatch = speaker.getOutputPatch();
+        so.directOut = speaker.isDirectOut();
 
         mAudioProcessor->getSpeakersOut()[i++] = so;
 
-        if (speaker->getOutputPatch() > mAudioProcessor->getMaxOutputPatch()) {
-            mAudioProcessor->setMaxOutputPatch(speaker->getOutputPatch());
+        if (speaker.getOutputPatch() > mAudioProcessor->getMaxOutputPatch()) {
+            mAudioProcessor->setMaxOutputPatch(speaker.getOutputPatch());
         }
     }
 
     // Set user gain and highpass filter cutoff frequency for each speaker.
-    for (auto const * speaker : mSpeakers) {
-        auto & speakerOut{ mAudioProcessor->getSpeakersOut()[speaker->getOutputPatch().get() - 1] };
-        speakerOut.gain = std::pow(10.0f, speaker->getGain() * 0.05f);
-        if (speaker->getHighPassCutoff() > 0.0f) {
+    for (auto const & speaker : mSpeakers) {
+        auto & speakerOut{ mAudioProcessor->getSpeakersOut()[speaker.getOutputPatch().get() - 1] };
+        speakerOut.gain = std::pow(10.0f, speaker.getGain() * 0.05f);
+        if (speaker.getHighPassCutoff() > 0.0f) {
             double * coefficients;
-            linkwitzRileyComputeVariables(static_cast<double>(speaker->getHighPassCutoff()),
+            linkwitzRileyComputeVariables(static_cast<double>(speaker.getHighPassCutoff()),
                                           narrow<double>(mSamplingRate),
                                           &coefficients,
                                           7);
@@ -1551,9 +1495,9 @@ bool MainContentComponent::refreshSpeakers()
     x = 2;
     mInputsLock.lock();
     std::vector<output_patch_t> directOutMenuItems{};
-    for (auto const * speaker : mSpeakers) {
-        if (speaker->isDirectOut()) {
-            directOutMenuItems.push_back(speaker->getOutputPatch());
+    for (auto const & speaker : mSpeakers) {
+        if (speaker.isDirectOut()) {
+            directOutMenuItems.push_back(speaker.getOutputPatch());
         }
     }
     for (auto * input : mInputs) {
@@ -1592,9 +1536,9 @@ bool MainContentComponent::refreshSpeakers()
     i = 0;
     std::vector<Speaker const *> tempListSpeaker{};
     tempListSpeaker.resize(mSpeakers.size());
-    for (auto * speaker : mSpeakers) {
-        if (!speaker->isDirectOut()) {
-            tempListSpeaker[i++] = speaker;
+    for (auto & speaker : mSpeakers) {
+        if (!speaker.isDirectOut()) {
+            tempListSpeaker[i++] = &speaker;
         }
     }
     tempListSpeaker.resize(i);
@@ -1757,7 +1701,7 @@ void MainContentComponent::openXmlFileSpeaker(juce::File const & file, std::opti
     }
 
     {
-        juce::ScopedLock sl{ mSpeakersLock };
+        juce::ScopedLock const lock{ mSpeakers.getLock() };
         mSpeakers.clear();
     }
 
@@ -1794,28 +1738,28 @@ void MainContentComponent::openXmlFileSpeaker(juce::File const & file, std::opti
                     auto const azimuth{ static_cast<float>(spk->getDoubleAttribute("Azimuth")) };
                     auto const zenith{ static_cast<float>(spk->getDoubleAttribute("Zenith")) };
                     auto const radius{ static_cast<float>(spk->getDoubleAttribute("Radius")) };
-                    mSpeakers.add(new Speaker{ *this,
-                                               mSmallLookAndFeel,
-                                               speaker_id_t{ layoutIndex },
-                                               outputPatch,
-                                               azimuth,
-                                               zenith,
-                                               radius });
+                    speaker_id_t const id{ layoutIndex };
+                    auto & newSpeaker{ mSpeakers.add(id,
+                                                     std::make_unique<Speaker>(*this,
+                                                                               mSmallLookAndFeel,
+                                                                               id,
+                                                                               outputPatch,
+                                                                               azimuth,
+                                                                               zenith,
+                                                                               radius)) };
                     if (loadSetupFromXyz) {
-                        mSpeakers.getLast()->setCoordinate(
-                            glm::vec3(static_cast<float>(spk->getDoubleAttribute("PositionX")),
-                                      static_cast<float>(spk->getDoubleAttribute("PositionZ")),
-                                      static_cast<float>(spk->getDoubleAttribute("PositionY"))));
+                        newSpeaker.setCoordinate(glm::vec3(static_cast<float>(spk->getDoubleAttribute("PositionX")),
+                                                           static_cast<float>(spk->getDoubleAttribute("PositionZ")),
+                                                           static_cast<float>(spk->getDoubleAttribute("PositionY"))));
                     }
                     if (spk->hasAttribute("Gain")) {
-                        mSpeakers.getLast()->setGain(static_cast<float>(spk->getDoubleAttribute("Gain")));
+                        newSpeaker.setGain(static_cast<float>(spk->getDoubleAttribute("Gain")));
                     }
                     if (spk->hasAttribute("HighPassCutoff")) {
-                        mSpeakers.getLast()->setHighPassCutoff(
-                            static_cast<float>(spk->getDoubleAttribute("HighPassCutoff")));
+                        newSpeaker.setHighPassCutoff(static_cast<float>(spk->getDoubleAttribute("HighPassCutoff")));
                     }
                     if (spk->hasAttribute("DirectOut")) {
-                        mSpeakers.getLast()->setDirectOut(spk->getBoolAttribute("DirectOut"));
+                        newSpeaker.setDirectOut(spk->getBoolAttribute("DirectOut"));
                     }
                     mAudioProcessor->addOutput(output_patch_t{ spk->getIntAttribute("OutputPatch") });
                 }
@@ -2015,19 +1959,19 @@ void MainContentComponent::saveSpeakerSetup(juce::String const & path)
 
     auto * xmlRing{ new juce::XmlElement{ "Ring" } };
 
-    for (auto const * it : mSpeakers) {
+    for (auto const & speaker : mSpeakers) {
         auto * xmlInput{ new juce::XmlElement{ "Speaker" } };
-        xmlInput->setAttribute("PositionY", it->getCartesianCoords().z);
-        xmlInput->setAttribute("PositionX", it->getCartesianCoords().x);
-        xmlInput->setAttribute("PositionZ", it->getCartesianCoords().y);
-        xmlInput->setAttribute("Azimuth", it->getPolarCoords().x);
-        xmlInput->setAttribute("Zenith", it->getPolarCoords().y);
-        xmlInput->setAttribute("Radius", it->getPolarCoords().z);
-        xmlInput->setAttribute("LayoutIndex", it->getIdSpeaker().get());
-        xmlInput->setAttribute("OutputPatch", it->getOutputPatch().get());
-        xmlInput->setAttribute("Gain", it->getGain());
-        xmlInput->setAttribute("HighPassCutoff", it->getHighPassCutoff());
-        xmlInput->setAttribute("DirectOut", it->isDirectOut());
+        xmlInput->setAttribute("PositionY", speaker.getCartesianCoords().z);
+        xmlInput->setAttribute("PositionX", speaker.getCartesianCoords().x);
+        xmlInput->setAttribute("PositionZ", speaker.getCartesianCoords().y);
+        xmlInput->setAttribute("Azimuth", speaker.getPolarCoords().x);
+        xmlInput->setAttribute("Zenith", speaker.getPolarCoords().y);
+        xmlInput->setAttribute("Radius", speaker.getPolarCoords().z);
+        xmlInput->setAttribute("LayoutIndex", speaker.getSpeakerId().get());
+        xmlInput->setAttribute("OutputPatch", speaker.getOutputPatch().get());
+        xmlInput->setAttribute("Gain", speaker.getGain());
+        xmlInput->setAttribute("HighPassCutoff", speaker.getHighPassCutoff());
+        xmlInput->setAttribute("DirectOut", speaker.isDirectOut());
         xmlRing->addChildElement(xmlInput);
     }
     xml.addChildElement(xmlRing);
@@ -2149,8 +2093,8 @@ void MainContentComponent::timerCallback()
         sourceInput->getVuMeter()->update();
     }
 
-    for (auto * speaker : mSpeakers) {
-        speaker->getVuMeter()->update();
+    for (auto & speaker : mSpeakers) {
+        speaker.getVuMeter()->update();
     }
 
     if (mIsProcessForeground != juce::Process::isForegroundProcess()) {
