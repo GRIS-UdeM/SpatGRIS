@@ -44,8 +44,8 @@ struct SpeakerData;
  * at 0) used by the field to properly order the output signals.
  */
 struct lbap_speaker {
-    float azimuth;              /**< Azimuth in the range -pi .. pi. */
-    float elevation;            /**< Elevation in the range 0 .. pi/2. */
+    radians_t azimuth;          /**< Azimuth in the range -pi .. pi. */
+    radians_t elevation;        /**< Elevation in the range 0 .. pi/2. */
     float radius;               /**< Length of the vector in the range 0 .. 1. */
     output_patch_t outputPatch; /**< Physical output id. */
 };
@@ -64,21 +64,22 @@ struct lbap_speaker {
  * to the angular coordinates.
  */
 struct lbap_pos {
-    float azimuth;   /**< Azimuth in the range -pi .. pi. */
-    float elevation; /**< Elevation in the range 0 .. pi/2. */
-    float radius;    /**< Length of the vector in the range 0 .. 1. */
+    radians_t azimuth;   /**< Azimuth in the range -pi .. pi. */
+    radians_t elevation; /**< Elevation in the range 0 .. pi/2. */
+    float radius;        /**< Length of the vector in the range 0 .. 1. */
     float x;
     float y;
     float z;
     float radiusSpan;
     float elevationSpan;
 
-    [[nodiscard]] bool operator==(lbap_pos const & other) const
+    [[nodiscard]] constexpr bool operator==(lbap_pos const & other) const noexcept
     {
-        return azimuth == other.azimuth && elevation == other.elevation && radius == other.radius
-               && radiusSpan == other.radiusSpan && elevationSpan && other.elevationSpan;
+        return azimuth == other.azimuth && elevation == other.elevation && radius == other.radius && x == other.x
+               && y == other.y && z == other.z && radiusSpan == other.radiusSpan
+               && elevationSpan == other.elevationSpan;
     }
-    [[nodiscard]] bool operator!=(lbap_pos const & other) const { return !(*this == other); }
+    [[nodiscard]] constexpr bool operator!=(lbap_pos const & other) const noexcept { return !(*this == other); }
 };
 
 /* =================================================================================
@@ -89,7 +90,7 @@ using matrix_t = std::array<std::array<float, LBAP_MATRIX_SIZE + 1>, LBAP_MATRIX
 
 struct lbap_layer {
     int id;                                /**< Layer id. */
-    float elevation;                       /**< Elevation of the layer in the range 0 .. pi/2. */
+    radians_t elevation;                   /**< Elevation of the layer in the range 0 .. pi/2. */
     float gainExponent;                    /**< Speaker gain exponent for 4+ speakers. */
     std::vector<matrix_t> amplitudeMatrix; /**< Arrays of amplitude values [spk][x][y]. */
     std::vector<lbap_pos> speakers;        /**< Array of speakers. */
@@ -150,4 +151,4 @@ std::vector<lbap_speaker> lbap_speakers_from_positions(SpeakerData const * speak
  * in radians, and where `rad` is the length of the vector between 0 and 1. The
  * first parameter is a pointer to an lbap_pos which will be properly initialized.
  */
-lbap_pos lbap_pos_init_from_radians(float azimuth, float elevation, float radius);
+lbap_pos lbap_pos_init_from_radians(radians_t azimuth, radians_t elevation, float radius);

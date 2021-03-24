@@ -92,6 +92,20 @@ public:
     [[nodiscard]] constexpr Derived operator/(type const mod) const { return Derived{ mValue / mod }; }
     [[nodiscard]] constexpr type operator/(Derived const & other) const { return mValue / other.mValue; }
 
+    Derived & operator*=(type const & mod) noexcept
+    {
+        mValue *= mod;
+        return *static_cast<Derived *>(this);
+    }
+    Derived & operator/=(type const & mod) noexcept
+    {
+        jassert(mod != 0);
+        mValue /= mod;
+        return *static_cast<Derived *>(this);
+    }
+
+    [[nodiscard]] constexpr Derived abs() const noexcept { return Derived{ std::abs(mValue) }; }
+
 protected:
     [[nodiscard]] constexpr Derived centeredAroundZero(type const amplitude) const noexcept
     {
@@ -159,3 +173,7 @@ public:
         return degrees_t{ mValue * degrees_t::DEGREE_PER_RADIAN };
     }
 };
+
+constexpr radians_t HALF_PI{ juce::MathConstants<radians_t::type>::halfPi };
+constexpr radians_t PI{ juce::MathConstants<radians_t::type>::pi };
+constexpr radians_t TWO_PI{ juce::MathConstants<radians_t::type>::twoPi };

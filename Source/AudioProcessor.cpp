@@ -554,22 +554,22 @@ void AudioProcessor::processStereo(float const * const * ins,
             auto lastAzimuth{ mLastAzimuth[inputIndex] };
             for (size_t sampleIndex{}; sampleIndex < nFrames; ++sampleIndex) {
                 // Removes the chirp at 180->-180 degrees azimuth boundary.
-                if (std::abs(lastAzimuth - azimuth) > 300.0f) {
+                if ((lastAzimuth - azimuth).abs() > degrees_t{ 300.0f }) {
                     lastAzimuth = azimuth;
                 }
                 lastAzimuth = azimuth + (lastAzimuth - azimuth) * gainFactor;
-                float scaled;
-                if (lastAzimuth < -90.0f) {
-                    scaled = -90.0f - (lastAzimuth + 90.0f);
-                } else if (lastAzimuth > 90.0f) {
-                    scaled = 90.0f - (lastAzimuth - 90.0f);
+                degrees_t scaled;
+                if (lastAzimuth < degrees_t{ -90.0f }) {
+                    scaled = degrees_t{ -90.0f } - (lastAzimuth + degrees_t{ 90.0f });
+                } else if (lastAzimuth > degrees_t{ 90.0f }) {
+                    scaled = degrees_t{ 90.0f } - (lastAzimuth - degrees_t{ 90.0f });
                 } else {
                     scaled = lastAzimuth;
                 }
-                scaled = (scaled + 90.0f) * FACTOR;
+                scaled = (scaled + degrees_t{ 90.0f }) * FACTOR;
                 using fast = juce::dsp::FastMathApproximations;
-                outs[LEFT][sampleIndex] += inputBuffer[sampleIndex] * fast::cos(scaled);
-                outs[RIGHT][sampleIndex] += inputBuffer[sampleIndex] * fast::sin(scaled);
+                outs[LEFT][sampleIndex] += inputBuffer[sampleIndex] * fast::cos(scaled.get());
+                outs[RIGHT][sampleIndex] += inputBuffer[sampleIndex] * fast::sin(scaled.get());
             }
             mLastAzimuth[inputIndex] = lastAzimuth;
 
@@ -833,7 +833,11 @@ void AudioProcessor::updateSourceVbap(int const idS) noexcept
         }
     } else if (mVbapDimensions == 2) {
         if (mSourcesData[idS].paramVBap != nullptr) {
-            vbap2(mSourcesData[idS].azimuth, 0.0f, mSourcesData[idS].azimuthSpan, 0.0f, mSourcesData[idS].paramVBap);
+            vbap2(mSourcesData[idS].azimuth,
+                  degrees_t{},
+                  mSourcesData[idS].azimuthSpan,
+                  0.0f,
+                  mSourcesData[idS].paramVBap);
         }
     }
 }

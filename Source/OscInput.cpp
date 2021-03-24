@@ -60,8 +60,8 @@ void OscInput::oscMessageReceived(const juce::OSCMessage & message)
             mMainContentComponent.getInputsLock().lock();
             if (mMainContentComponent.getSourceInputs().size() > idS) {
                 mMainContentComponent.getSourceInputs()[idS]->updateValues(
-                    message[1].getFloat32(),
-                    message[2].getFloat32(),
+                    radians_t{ message[1].getFloat32() },
+                    radians_t{ message[2].getFloat32() },
                     message[3].getFloat32(),
                     message[4].getFloat32(),
                     mMainContentComponent.isRadiusNormalized() ? 1.0f : message[5].getFloat32(),

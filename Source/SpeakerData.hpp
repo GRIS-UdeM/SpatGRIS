@@ -28,8 +28,8 @@ struct SpeakerData {
     float y{};
     float z{};
 
-    float azimuth{};
-    float zenith{};
+    degrees_t azimuth{};
+    degrees_t zenith{};
     float radius{};
 
     float gain{ 1.0f };

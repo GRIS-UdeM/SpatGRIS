@@ -1275,13 +1275,13 @@ void MainContentComponent::updateSourceData(int const sourceDataIndex, Input & i
 
     if (spatMode == SpatMode::lbap) {
         sourceData.radAzimuth = input.getAzimuth();
-        sourceData.radElevation = juce::MathConstants<float>::halfPi - input.getZenith();
+        sourceData.radElevation = HALF_PI - input.getZenith();
     } else {
-        sourceData.azimuth = ((input.getAzimuth() / juce::MathConstants<float>::twoPi) * 360.0f);
-        if (sourceData.azimuth > 180.0f) {
-            sourceData.azimuth = sourceData.azimuth - 360.0f;
+        sourceData.azimuth = input.getAzimuth().toDegrees();
+        if (sourceData.azimuth > degrees_t{ 180.0f }) {
+            sourceData.azimuth = sourceData.azimuth - degrees_t{ 360.0f };
         }
-        sourceData.zenith = 90.0f - (input.getZenith() / juce::MathConstants<float>::twoPi) * 360.0f;
+        sourceData.zenith = degrees_t{ 90.0f } - input.getZenith().toDegrees();
     }
     sourceData.radius = input.getRadius();
 
@@ -1511,8 +1511,8 @@ bool MainContentComponent::refreshSpeakers()
         so.x = speaker->getCartesianCoords().x;
         so.y = speaker->getCartesianCoords().y;
         so.z = speaker->getCartesianCoords().z;
-        so.azimuth = speaker->getPolarCoords().x;
-        so.zenith = speaker->getPolarCoords().y;
+        so.azimuth = degrees_t{ speaker->getPolarCoords().x };
+        so.zenith = degrees_t{ speaker->getPolarCoords().y };
         so.radius = speaker->getPolarCoords().z;
         so.outputPatch = speaker->getOutputPatch();
         so.directOut = speaker->isDirectOut();
@@ -1571,9 +1571,9 @@ bool MainContentComponent::refreshSpeakers()
         SourceData sourceIn;
         sourceIn.id = input->getId();
         sourceIn.radAzimuth = input->getAzimuth();
-        sourceIn.radElevation = juce::MathConstants<float>::halfPi - input->getZenith();
-        sourceIn.azimuth = input->getAzimuth();
-        sourceIn.zenith = input->getZenith();
+        sourceIn.radElevation = HALF_PI - input->getZenith();
+        sourceIn.azimuth = input->getAzimuth().toDegrees();
+        sourceIn.zenith = input->getZenith().toDegrees();
         sourceIn.radius = input->getRadius();
         sourceIn.gain = 0.0f;
         mAudioProcessor->getSourcesIn()[i++] = sourceIn;

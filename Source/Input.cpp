@@ -37,8 +37,8 @@ Input::Input(MainContentComponent & mainContentComponent, SmallGrisLookAndFeel &
 //==============================================================================
 void Input::resetPosition()
 {
-    mAzimuth = juce::MathConstants<float>::halfPi / 2.0f;
-    mZenith = juce::MathConstants<float>::halfPi;
+    mAzimuth = HALF_PI / 2.0f;
+    mZenith = HALF_PI;
 
     mAzimuthSpan = 0.0f;
     mZenithSpan = 0.0f;
@@ -46,30 +46,30 @@ void Input::resetPosition()
     mGain = -1.0f;
     mRadius = 1.0f;
 
-    mCenter.x = 14.0f * std::sin(mZenith) * std::cos(mAzimuth);
-    mCenter.z = 14.0f * std::sin(mZenith) * std::sin(mAzimuth);
-    mCenter.y = 14.0f * std::cos(mZenith) + SPHERE_RADIUS / 2.0f;
+    mCenter.x = 14.0f * std::sin(mZenith.get()) * std::cos(mAzimuth.get());
+    mCenter.z = 14.0f * std::sin(mZenith.get()) * std::sin(mAzimuth.get());
+    mCenter.y = 14.0f * std::cos(mZenith.get()) + SPHERE_RADIUS / 2.0f;
 }
 
 //==============================================================================
-glm::vec3 Input::polToCar(float const azimuth, float const zenith) const
+glm::vec3 Input::polToCar(radians_t const azimuth, radians_t const zenith) const
 {
     glm::vec3 cart;
     auto const factor{ mRadius * SpeakerViewComponent::MAX_RADIUS };
-    cart.x = factor * std::sin(zenith) * std::cos(azimuth);
-    cart.z = factor * std::sin(zenith) * std::sin(azimuth);
-    cart.y = SpeakerViewComponent::MAX_RADIUS * std::cos(zenith) + SPHERE_RADIUS / 2.0f;
+    cart.x = factor * std::sin(zenith.get()) * std::cos(azimuth.get());
+    cart.z = factor * std::sin(zenith.get()) * std::sin(azimuth.get());
+    cart.y = SpeakerViewComponent::MAX_RADIUS * std::cos(zenith.get()) + SPHERE_RADIUS / 2.0f;
     return cart;
 }
 
 //==============================================================================
-glm::vec3 Input::polToCar3d(float const azimuth, float const zenith) const
+glm::vec3 Input::polToCar3d(radians_t const azimuth, radians_t const zenith) const
 {
     glm::vec3 cart;
     auto const factor{ mRadius * SpeakerViewComponent::MAX_RADIUS };
-    cart.x = factor * std::cos(azimuth);
-    cart.z = factor * std::sin(azimuth);
-    cart.y = SpeakerViewComponent::MAX_RADIUS * std::cos(zenith) + SPHERE_RADIUS / 2.0f;
+    cart.x = factor * std::cos(azimuth.get());
+    cart.z = factor * std::sin(azimuth.get());
+    cart.y = SpeakerViewComponent::MAX_RADIUS * std::cos(zenith.get()) + SPHERE_RADIUS / 2.0f;
     return cart;
 }
 
@@ -186,15 +186,11 @@ void Input::drawSpan() const
     glBegin(GL_POINTS);
 
     for (int i{}; i < NUM; ++i) {
-        auto const aziDev{ static_cast<float>(i) * mAzimuthSpan * 0.5f * 0.42f };
+        auto const aziDev{ radians_t{ narrow<radians_t::type>(i) } * mAzimuthSpan * 0.5f * 0.42f };
         for (int j{}; j < 2; ++j) {
             auto newAzimuth{ j ? mAzimuth + aziDev : mAzimuth - aziDev };
 
-            if (newAzimuth > juce::MathConstants<float>::pi) {
-                newAzimuth -= juce::MathConstants<float>::twoPi;
-            } else if (newAzimuth < -juce::MathConstants<float>::pi) {
-                newAzimuth += juce::MathConstants<float>::twoPi;
-            }
+            newAzimuth = newAzimuth.centered();
 
             if (mMainContentComponent.getModeSelected() == SpatMode::lbap) {
                 cart = polToCar3d(newAzimuth, mZenith);
@@ -203,10 +199,10 @@ void Input::drawSpan() const
             }
             glVertex3f(cart.x, cart.y, cart.z);
             for (int k{}; k < 4; ++k) {
-                auto const eleDev{ (static_cast<float>(k) + 1.0f) * mZenithSpan * 2.0f * 0.38f };
+                radians_t const eleDev{ (static_cast<float>(k) + 1.0f) * mZenithSpan * 2.0f * 0.38f };
                 for (int l{}; l < 2; ++l) {
                     auto newElevation{ l ? mZenith + eleDev : mZenith - eleDev };
-                    newElevation = std::clamp(newElevation, 0.0f, juce::MathConstants<float>::halfPi);
+                    newElevation = std::clamp(newElevation, radians_t{}, HALF_PI);
 
                     if (mMainContentComponent.getModeSelected() == SpatMode::lbap) {
                         cart = polToCar3d(newAzimuth, newElevation);
@@ -284,8 +280,8 @@ void Input::drawSpanLbap(float const x, float const y, float const z) const
 }
 
 //==============================================================================
-void Input::updateValues(float const azimuth,
-                         float const zenith,
+void Input::updateValues(radians_t const azimuth,
+                         radians_t const zenith,
                          float const azimuthSpan,
                          float const zenithSpan,
                          float const radius,
@@ -301,14 +297,13 @@ void Input::updateValues(float const azimuth,
 
     auto const radiusInComponent{ radius * SpeakerViewComponent::MAX_RADIUS };
     if (mode == SpatMode::lbap) {
-        mCenter.x = radiusInComponent * std::cos(mAzimuth);
-        mCenter.y = (juce::MathConstants<float>::halfPi - zenith) / juce::MathConstants<float>::halfPi
-                    * SpeakerViewComponent::MAX_RADIUS;
-        mCenter.z = radiusInComponent * std::sin(mAzimuth);
+        mCenter.x = radiusInComponent * std::cos(mAzimuth.get());
+        mCenter.y = (HALF_PI - zenith) / HALF_PI * SpeakerViewComponent::MAX_RADIUS;
+        mCenter.z = radiusInComponent * std::sin(mAzimuth.get());
     } else {
-        mCenter.x = radiusInComponent * std::sin(mZenith) * std::cos(mAzimuth);
-        mCenter.y = SpeakerViewComponent::MAX_RADIUS * std::cos(mZenith);
-        mCenter.z = radiusInComponent * std::sin(mZenith) * std::sin(mAzimuth);
+        mCenter.x = radiusInComponent * std::sin(mZenith.get()) * std::cos(mAzimuth.get());
+        mCenter.y = SpeakerViewComponent::MAX_RADIUS * std::cos(mZenith.get());
+        mCenter.z = radiusInComponent * std::sin(mZenith.get()) * std::sin(mAzimuth.get());
     }
 }
 
@@ -320,19 +315,19 @@ void Input::updateValuesOld(float const azimuth,
                             float const g)
 {
     if (azimuth < 0.0f) {
-        mAzimuth = std::abs(azimuth) * juce::MathConstants<float>::pi;
+        mAzimuth = PI * std::abs(azimuth);
     } else {
-        mAzimuth = (1.0f - azimuth) * juce::MathConstants<float>::pi + juce::MathConstants<float>::pi;
+        mAzimuth = PI * (1.0f - azimuth) + PI;
     }
-    mZenith = juce::MathConstants<float>::halfPi - juce::MathConstants<float>::pi * zenith;
+    mZenith = HALF_PI - PI * zenith;
 
     mAzimuthSpan = azimuthSpan;
     mZenithSpan = zenithSpan;
     mGain = g;
 
-    mCenter.x = SpeakerViewComponent::MAX_RADIUS * std::sin(mZenith) * std::cos(mAzimuth);
-    mCenter.y = SpeakerViewComponent::MAX_RADIUS * std::cos(mZenith) + (SPHERE_RADIUS / 2.0f);
-    mCenter.z = SpeakerViewComponent::MAX_RADIUS * std::sin(mZenith) * std::sin(mAzimuth);
+    mCenter.x = SpeakerViewComponent::MAX_RADIUS * std::sin(mZenith.get()) * std::cos(mAzimuth.get());
+    mCenter.y = SpeakerViewComponent::MAX_RADIUS * std::cos(mZenith.get()) + (SPHERE_RADIUS / 2.0f);
+    mCenter.z = SpeakerViewComponent::MAX_RADIUS * std::sin(mZenith.get()) * std::sin(mAzimuth.get());
 }
 
 //==============================================================================

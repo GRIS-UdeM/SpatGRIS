@@ -32,17 +32,17 @@ struct SourceData {
     float y{};
     float z{};
 
-    float radAzimuth{};
-    float radElevation{};
-    float azimuth{};
-    float zenith{};
+    radians_t radAzimuth{};
+    radians_t radElevation{};
+    degrees_t azimuth{};
+    degrees_t zenith{};
     float radius{ 1.0f };
     float azimuthSpan{};
     float zenithSpan{};
 
     std::array<float, MAX_OUTPUTS> lbapGains{};
     std::array<float, MAX_OUTPUTS> lbapY{};
-    lbap_pos lbapLastPos{ -1, -1, -1, 0.0f, 0.0f, 0.0f };
+    lbap_pos lbapLastPos{ radians_t{ -1.0f }, radians_t{ -1.0f }, -1, 0.0f, 0.0f, 0.0f };
 
     bool isMuted = false;
     bool isSolo = false;

@@ -100,7 +100,7 @@ class AudioProcessor
     std::array<std::array<float, 128>, 16> mVbapHrtfRightImpulses{};
 
     // STEREO data.
-    std::array<float, MAX_INPUTS> mLastAzimuth{};
+    std::array<degrees_t, MAX_INPUTS> mLastAzimuth{};
 
     // LBAP data.
     lbap_field mLbapSpeakerField{};

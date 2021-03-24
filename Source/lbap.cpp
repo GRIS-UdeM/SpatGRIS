@@ -16,8 +16,8 @@ Utility functions.
 /* Fill x and y attributes of an lbap_pos according to azimuth and radius values. */
 static void fillCartesianFromPolar(lbap_pos & pos)
 {
-    pos.x = pos.radius * std::cos(pos.azimuth);
-    pos.y = pos.radius * std::sin(pos.azimuth);
+    pos.x = pos.radius * std::cos(pos.azimuth.get());
+    pos.y = pos.radius * std::sin(pos.azimuth.get());
 }
 
 /* Bilinear interpolation to retrieve the value at position (x, y) in a 2D matrix. */
@@ -37,19 +37,19 @@ static float bilinearInterpolation(matrix_t const & matrix, float const x, float
 }
 
 /* Checks if an elevation is less distant than +/- 5 degrees of a base elevation. */
-static bool isPracticallySameElevation(float const baseElevation, float const elevation)
+static bool isPracticallySameElevation(radians_t const baseElevation, radians_t const elevation)
 {
-    auto const deg5Rad{ 5.0f / 360.0f * juce::MathConstants<float>::twoPi };
-    return elevation > (baseElevation - deg5Rad) && elevation < (baseElevation + deg5Rad);
+    static constexpr radians_t TOLERANCE{ degrees_t{ 5.0f } };
+    return elevation > (baseElevation - TOLERANCE) && elevation < (baseElevation + TOLERANCE);
 }
 
 /* Returns the average elevation from a list of speakers. */
-static float averageSpeakerElevation(lbap_speaker const * speakers, size_t const num)
+static radians_t averageSpeakerElevation(lbap_speaker const * speakers, size_t const num)
 {
     static auto const ACCUMULATE_ELEVATION
-        = [](float const total, lbap_speaker const & speaker) { return total + speaker.elevation; };
+        = [](radians_t const total, lbap_speaker const & speaker) { return total + speaker.elevation; };
 
-    auto const sum{ std::reduce(speakers, speakers + num, 0.0f, ACCUMULATE_ELEVATION) };
+    auto const sum{ std::reduce(speakers, speakers + num, radians_t{}, ACCUMULATE_ELEVATION) };
     return sum / narrow<float>(num);
 }
 
@@ -81,7 +81,7 @@ lbap_layer utility functions.
 ================================================================================= */
 
 /* Initialize a newly created layer for `num` speakers. */
-static lbap_layer initLayers(int const layerId, float const elevation, std::vector<lbap_pos> const & speakers)
+static lbap_layer initLayers(int const layerId, radians_t const elevation, std::vector<lbap_pos> const & speakers)
 {
     lbap_layer result{};
 
@@ -130,7 +130,8 @@ static void computeMatrix(lbap_layer & layer)
 }
 
 /* Create a new layer, based on a lbap_pos array, and add it the to field.*/
-static lbap_layer createLayer(lbap_field const & field, float const elevation, std::vector<lbap_pos> const & speakers)
+static lbap_layer
+    createLayer(lbap_field const & field, radians_t const elevation, std::vector<lbap_pos> const & speakers)
 {
     auto result{ initLayers(field.layers.size(), elevation, speakers) };
     computeMatrix(result);
@@ -141,7 +142,7 @@ static lbap_layer createLayer(lbap_field const & field, float const elevation, s
  * the result in the `gains` array.
  */
 static void computeGains(lbap_layer const & layer,
-                         float const azimuth,
+                         radians_t const azimuth,
                          float const radius,
                          float const radiusSpan,
                          float * gains)
@@ -267,29 +268,19 @@ std::vector<lbap_speaker> lbap_speakers_from_positions(SpeakerData const * speak
     std::vector<lbap_speaker> result{};
     result.reserve(numSpeakers);
     std::transform(speakers, speakers + numSpeakers, std::back_inserter(result), [](SpeakerData const & speaker) {
-        auto const azimuth{ speaker.azimuth / 360.0f * juce::MathConstants<float>::twoPi };
-        auto const elevation{ speaker.zenith / 360.0f * juce::MathConstants<float>::twoPi };
-        auto const radius{ std::clamp(speaker.radius, 0.0f, 1.0f) };
-        auto const outputPatch{ speaker.outputPatch }; // TODO : should be - 1 ?
-        return lbap_speaker{ azimuth, elevation, radius, outputPatch };
+        auto const clampedRadius{ std::clamp(speaker.radius, 0.0f, 1.0f) };
+        return lbap_speaker{ speaker.azimuth, speaker.zenith, clampedRadius, speaker.outputPatch };
     });
     return result;
 }
 
-lbap_pos lbap_pos_init_from_radians(float azimuth, float const elevation, float const radius)
+lbap_pos lbap_pos_init_from_radians(radians_t const azimuth, radians_t const elevation, float const radius)
 {
     lbap_pos result{};
     result.radiusSpan = 0.0f;
     result.elevationSpan = 0.0f;
-    while (azimuth < -juce::MathConstants<float>::pi) {
-        azimuth += juce::MathConstants<float>::twoPi;
-    }
-    while (azimuth > juce::MathConstants<float>::pi) {
-        azimuth -= juce::MathConstants<float>::twoPi;
-    }
-
-    result.azimuth = azimuth;
-    result.elevation = std::clamp(elevation, 0.0f, juce::MathConstants<float>::halfPi);
+    result.azimuth = azimuth.centered();
+    result.elevation = std::clamp(elevation, radians_t{}, HALF_PI);
     result.radius = std::clamp(radius, 0.0f, 2.0f);
     return result;
 }

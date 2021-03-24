@@ -56,8 +56,8 @@ class Input final : public ParentLevelComponent
     int mIdChannel;
     output_patch_t mDirectOutChannel{};
 
-    float mAzimuth{};
-    float mZenith{};
+    radians_t mAzimuth{};
+    radians_t mZenith{};
     float mRadius{};
 
     float mAzimuthSpan{};
@@ -98,8 +98,8 @@ public:
     [[nodiscard]] int getButtonInOutNumber() const override { return mIdChannel; }
     [[nodiscard]] float getLevel() const override;
     [[nodiscard]] float getAlpha() const;
-    [[nodiscard]] float getAzimuth() const { return mAzimuth; }
-    [[nodiscard]] float getZenith() const { return mZenith; }
+    [[nodiscard]] radians_t getAzimuth() const { return mAzimuth; }
+    [[nodiscard]] radians_t getZenith() const { return mZenith; }
     [[nodiscard]] float getRadius() const { return mRadius; }
     [[nodiscard]] float getAzimuthSpan() const { return mAzimuthSpan; }
     [[nodiscard]] float getZenithSpan() const { return mZenithSpan; }
@@ -111,13 +111,13 @@ public:
     [[nodiscard]] juce::Colour getColorJ() const { return mColorJ; }
     [[nodiscard]] juce::Colour getColorJWithAlpha() const;
     //==============================================================================
-    [[nodiscard]] glm::vec3 polToCar(float azimuth, float zenith) const;
-    [[nodiscard]] glm::vec3 polToCar3d(float azimuth, float zenith) const;
+    [[nodiscard]] glm::vec3 polToCar(radians_t azimuth, radians_t zenith) const;
+    [[nodiscard]] glm::vec3 polToCar3d(radians_t azimuth, radians_t zenith) const;
     //==============================================================================
     void resetPosition();
     void draw() const;
-    void updateValues(float azimuth,
-                      float zenith,
+    void updateValues(radians_t azimuth,
+                      radians_t zenith,
                       float azimuthSpan,
                       float zenithSpan,
                       float radius,

@@ -24,10 +24,10 @@ static float constexpr ANGLE_TO_RADIAN = juce::MathConstants<float>::twoPi / 360
 using fast = juce::dsp::FastMathApproximations;
 
 struct SpeakersSetup {
-    int dimension;     /* Number of dimension, always 3. */
-    int count;         /* Number of speakers. */
-    float * azimuth;   /* Azimuth angle of speakers. */
-    float * elevation; /* Elevation angle of speakers. */
+    int dimension;         /* Number of dimension, always 3. */
+    int count;             /* Number of speakers. */
+    degrees_t * azimuth;   /* Azimuth angle of speakers. */
+    degrees_t * elevation; /* Elevation angle of speakers. */
 };
 
 /* Cartesian vector for a speaker position. */
@@ -87,17 +87,17 @@ struct CartesianVector {
 
 /* Angular vector for a speaker position. */
 struct AngularVector {
-    float azimuth;
-    float elevation;
+    degrees_t azimuth;
+    degrees_t elevation;
     float length;
 
     /* Converts a vector from angular to cartesian coordinates. */
-    CartesianVector toCartesian() const noexcept
+    [[nodiscard]] CartesianVector toCartesian() const noexcept
     {
-        auto const cele = fast::cos(elevation * ANGLE_TO_RADIAN);
-        auto const x = fast::cos(azimuth * ANGLE_TO_RADIAN) * cele;
-        auto const y = fast::sin(azimuth * ANGLE_TO_RADIAN) * cele;
-        auto const z = fast::sin(elevation * ANGLE_TO_RADIAN);
+        auto const cele = fast::cos(radians_t{ elevation }.get());
+        auto const x = fast::cos(radians_t{ azimuth }.get()) * cele;
+        auto const y = fast::sin(radians_t{ azimuth }.get()) * cele;
+        auto const z = fast::sin(radians_t{ elevation }.get());
 
         CartesianVector const result{ x, y, z };
         return result;
@@ -105,7 +105,8 @@ struct AngularVector {
 
     [[nodiscard]] constexpr bool isOnSameElevation(AngularVector const & other) const noexcept
     {
-        return elevation > other.elevation - 5.0f && elevation < other.elevation + 5.0f;
+        constexpr degrees_t TOLERANCE{ 5.0f };
+        return elevation > other.elevation - TOLERANCE && elevation < other.elevation + TOLERANCE;
     }
 };
 
@@ -141,7 +142,7 @@ struct VbapData {
 
 /* Fill a SPEAKERS_SETUP structure from values.
  */
-SpeakersSetup * load_speakers_setup(int count, float * azimuth, float * elevation) noexcept;
+SpeakersSetup * load_speakers_setup(int count, degrees_t * azimuth, degrees_t * elevation) noexcept;
 
 /* Properly free a previously allocated SPEAKERS_SETUP structure.
  */
@@ -162,7 +163,11 @@ void free_vbap_data(VbapData * data) noexcept;
 
 /* Calculates gain factors using loudspeaker setup and angle direction.
  */
-void vbap2(float azimuth, float elevation, float spAzimuth, float spElevation, VbapData * data) noexcept;
-void vbap2_flip_y_z(float azimuth, float elevation, float spAzimuth, float spElevation, VbapData * data) noexcept;
+void vbap2(degrees_t azimuth, degrees_t elevation, float spAzimuth, float spElevation, VbapData * data) noexcept;
+void vbap2_flip_y_z(degrees_t azimuth,
+                    degrees_t elevation,
+                    float spAzimuth,
+                    float spElevation,
+                    VbapData * data) noexcept;
 
 int vbap_get_triplets(VbapData const * data, int *** triplets);
