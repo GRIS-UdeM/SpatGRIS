@@ -214,8 +214,8 @@ void SpeakerViewComponent::clickRay()
 
     mRay.setRay(glm::vec3{ mXs, mYs, mZs }, glm::vec3{ mXe, mYe, mZe });
 
-    std::optional<speaker_id_t> iBestSpeaker{};
-    std::optional<speaker_id_t> selected{};
+    tl::optional<speaker_id_t> iBestSpeaker{};
+    tl::optional<speaker_id_t> selected{};
     auto const & speakers{ mMainContentComponent.getSpeakers() };
     juce::ScopedTryLock const lock{ speakers.getLock() };
     if (lock.isLocked()) {
@@ -241,14 +241,7 @@ void SpeakerViewComponent::clickRay()
                 iBestSpeaker = selected;
             }
 
-            output_patch_t outputPatch{};
-            if (!iBestSpeaker) {
-                outputPatch = output_patch_t{ -1 };
-            } else {
-                outputPatch = speakers.get(*iBestSpeaker).getOutputPatch();
-            }
-
-            mMainContentComponent.selectSpeaker(outputPatch);
+            mMainContentComponent.selectSpeaker(iBestSpeaker);
         }
     }
 
@@ -270,7 +263,7 @@ void SpeakerViewComponent::mouseDown(const juce::MouseEvent & e)
         mClickLeft = true;
         mControlOn = e.mods.isCtrlDown();
     } else if (e.mods.isRightButtonDown()) {
-        mMainContentComponent.selectSpeaker(output_patch_t{ -1 });
+        mMainContentComponent.selectSpeaker(tl::nullopt);
     }
 }
 

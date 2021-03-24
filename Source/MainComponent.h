@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include <optional>
+#include "lib/tl/optional.hpp"
 
 #include "macros.h"
 DISABLE_WARNINGS
@@ -195,6 +195,7 @@ public:
     // Speakers.
     [[nodiscard]] auto & getSpeakers() { return mSpeakers; }
     [[nodiscard]] auto const & getSpeakers() const { return mSpeakers; }
+    [[nodiscard]] auto const & getSpeakersDisplayOrder() const { return mSpeakersDisplayOrder; }
 
     [[nodiscard]] Speaker * getSpeakerFromOutputPatch(output_patch_t out);
     [[nodiscard]] Speaker const * getSpeakerFromOutputPatch(output_patch_t out) const;
@@ -221,7 +222,7 @@ public:
     [[nodiscard]] juce::Array<Triplet> const & getTriplets() const { return mTriplets; }
 
     // Speaker selections.
-    void selectSpeaker(output_patch_t outputPatch);
+    void selectSpeaker(tl::optional<speaker_id_t> const id);
     void selectTripletSpeaker(speaker_id_t idS);
 
     // Mute - solo.
@@ -346,7 +347,7 @@ private:
     [[nodiscard]] bool isProjectModified() const;
     //==============================================================================
     // Open - save.
-    void openXmlFileSpeaker(juce::File const & file, std::optional<SpatMode> forceSpatMode = std::nullopt);
+    void openXmlFileSpeaker(juce::File const & file, tl::optional<SpatMode> forceSpatMode = tl::nullopt);
     void openProject(juce::File const & file);
     void getProjectData(juce::XmlElement * xml) const;
     void saveProject(juce::String const & path) const;

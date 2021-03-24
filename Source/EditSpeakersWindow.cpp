@@ -388,39 +388,51 @@ void EditSpeakersWindow::sliderValueChanged(juce::Slider * slider)
 //==============================================================================
 void EditSpeakersWindow::buttonClicked(juce::Button * button)
 {
+    static auto const getSelectecRow = [](juce::TableListBox const & tableListBox) -> tl::optional<int> {
+        auto const selectedRow{ tableListBox.getSelectedRow() };
+        if (selectedRow < 0) {
+            return tl::nullopt;
+        }
+        return selectedRow;
+    };
+
     auto const tripletState{ mMainContentComponent.isTripletsShown() };
     auto const sortColumnId{ mSpeakersTableListBox.getHeader().getSortColumnId() };
     auto const sortedForwards{ mSpeakersTableListBox.getHeader().isSortedForwards() };
-    auto selectedRow{ mSpeakersTableListBox.getSelectedRow() };
+    auto & speakers{ mMainContentComponent.getSpeakers() };
+    auto selectedRow{ getSelectecRow(mSpeakersTableListBox) };
 
     mMainContentComponent.setShowTriplets(false);
 
     if (button == &mAddSpeakerButton) {
-        if (selectedRow == -1 || selectedRow == (mNumRows - 1)) {
+        // Add speaker button
+        if (!selectedRow) {
             mMainContentComponent.addSpeaker();
             updateWinContent(true);
             mSpeakersTableListBox.selectRow(getNumRows() - 1);
         } else {
-            mMainContentComponent.insertSpeaker(selectedRow);
+            mMainContentComponent.insertSpeaker(*selectedRow);
             updateWinContent(true);
-            mSpeakersTableListBox.selectRow(selectedRow + 1);
+            mSpeakersTableListBox.selectRow(*selectedRow + 1);
         }
-        mSpeakersTableListBox.getHeader().setSortColumnId(sortColumnId, sortedForwards);
+        mSpeakersTableListBox.getHeader().setSortColumnId(sortColumnId, sortedForwards); // TODO: necessary?
         mMainContentComponent.setNeedToComputeVbap(true);
     } else if (button == &mCompSpeakersButton) {
+        // Compute speaker button
         if (mMainContentComponent.refreshSpeakers()) {
             mMainContentComponent.setShowTriplets(tripletState);
         }
     } else if (button == &mAddRingButton) {
+        // Add ring button
         for (int i{}; i < mNumOfSpeakersTextEditor.getText().getIntValue(); i++) {
-            if (selectedRow == -1 || selectedRow == (mNumRows - 1)) {
+            if (!selectedRow) {
                 mMainContentComponent.addSpeaker();
-                mNumRows = mMainContentComponent.getSpeakers().size();
+                mNumRows = speakers.size();
                 selectedRow = mNumRows - 1;
             } else {
-                mMainContentComponent.insertSpeaker(selectedRow);
-                selectedRow += 1;
-                mNumRows = mMainContentComponent.getSpeakers().size();
+                mMainContentComponent.insertSpeaker(*selectedRow);
+                *selectedRow += 1;
+                mNumRows = speakers.size();
             }
 
             auto azimuth{ 360.0f / mNumOfSpeakersTextEditor.getText().getIntValue() * i
@@ -432,16 +444,18 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
             }
             auto const zenith{ mZenithTextEditor.getText().getFloatValue() };
             auto const radius{ mRadiusTextEditor.getText().getFloatValue() };
-            mMainContentComponent.getSpeakers()[selectedRow]->setAziZenRad(glm::vec3(azimuth, zenith, radius));
+
+            getSpeaker(*selectedRow).setAziZenRad(glm::vec3(azimuth, zenith, radius));
         }
         updateWinContent(true);
-        mSpeakersTableListBox.selectRow(selectedRow);
+        mSpeakersTableListBox.selectRow(*selectedRow);
         // TableList needs different sorting parameters to trigger the sorting function.
         mSpeakersTableListBox.getHeader().setSortColumnId(sortColumnId, !sortedForwards);
         // This is the real sorting!
         mSpeakersTableListBox.getHeader().setSortColumnId(sortColumnId, sortedForwards);
         mMainContentComponent.setNeedToComputeVbap(true);
     } else if (button == &mPinkNoiseToggleButton) {
+        // Pink noise button
         mMainContentComponent.getAudioProcessor().setPinkNoiseActive(mPinkNoiseToggleButton.getToggleState());
     } else if (button->getName().isNotEmpty()
                && (button->getName().getIntValue() >= 0
@@ -451,23 +465,25 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
             && mSpeakersTableListBox.getSelectedRows().contains(button->getName().getIntValue())) {
             for (auto i{ mSpeakersTableListBox.getSelectedRows().size() - 1 }; i >= 0; --i) {
                 auto const rowNumber{ mSpeakersTableListBox.getSelectedRows()[i] };
-                mMainContentComponent.removeSpeaker(rowNumber);
+                auto const speakerId{ mMainContentComponent.getSpeakersDisplayOrder()[rowNumber] };
+                mMainContentComponent.removeSpeaker(speakerId);
             }
         } else {
-            mMainContentComponent.removeSpeaker(button->getName().getIntValue());
+            auto const row{ button->getName().getIntValue() };
+            auto const speakerId{ mMainContentComponent.getSpeakersDisplayOrder()[row] };
+            mMainContentComponent.removeSpeaker(speakerId);
         }
-        mMainContentComponent.resetSpeakerIds();
         updateWinContent(true);
         mSpeakersTableListBox.deselectAllRows();
         mMainContentComponent.setNeedToComputeVbap(true);
     } else {
         // Direct out
-        auto const row{ button->getName().getIntValue() - 1000 };
-        mMainContentComponent.getSpeakers()[row]->setDirectOut(button->getToggleState());
+        auto const row{ button->getName().getIntValue() - 1000 }; // TODO: why -1000?
+        getSpeaker(row).setDirectOut(button->getToggleState());
         if (mSpeakersTableListBox.getNumSelectedRows() > 1) {
             for (int i{}; i < mSpeakersTableListBox.getSelectedRows().size(); ++i) {
                 auto const rowNumber{ mSpeakersTableListBox.getSelectedRows()[i] };
-                mMainContentComponent.getSpeakers()[rowNumber]->setDirectOut(button->getToggleState());
+                getSpeaker(rowNumber).setDirectOut(button->getToggleState());
                 auto * tog{ dynamic_cast<juce::ToggleButton *>(
                     mSpeakersTableListBox.getCellComponent(Cols::DIRECT_TOGGLE, rowNumber)) };
                 if (tog) {
@@ -539,26 +555,24 @@ void EditSpeakersWindow::updateWinContent(bool const needToSaveSpeakerSetup)
 }
 
 //==============================================================================
-void EditSpeakersWindow::selectRow(int const value)
+void EditSpeakersWindow::selectRow(tl::optional<int> const value)
 {
     juce::MessageManagerLock const mmLock{};
-    mSpeakersTableListBox.selectRow(value);
+    mSpeakersTableListBox.selectRow(value.value_or(-1));
     repaint();
 }
 
 //==============================================================================
-void EditSpeakersWindow::selectSpeaker(output_patch_t const outputPatch)
+void EditSpeakersWindow::selectSpeaker(tl::optional<speaker_id_t> const id)
 {
-    juce::ScopedLock const sl{ mMainContentComponent.getSpeakersLock() };
-    int row{};
-    for (auto const * speaker : mMainContentComponent.getSpeakers()) {
-        if (speaker->getOutputPatch() == outputPatch) {
-            selectRow(row);
-            return;
-        }
-        ++row;
-    }
-    selectRow(-1);
+    auto const getSelectedRow = [this](speaker_id_t const id) {
+        auto const & displayOrder{ mMainContentComponent.getSpeakersDisplayOrder() };
+        jassert(displayOrder.contains(id));
+        return displayOrder.indexOf(id);
+    };
+
+    juce::ScopedLock const lock{ mMainContentComponent.getSpeakers().getLock() };
+    selectRow(id.map(getSelectedRow));
 }
 
 //==============================================================================
@@ -628,50 +642,33 @@ void EditSpeakersWindow::resized()
 //==============================================================================
 juce::String EditSpeakersWindow::getText(int const columnNumber, int const rowNumber) const
 {
-    juce::String text{};
-    auto & speakers{ mMainContentComponent.getSpeakers() };
-    if (mMainContentComponent.getSpeakers().size() > rowNumber) {
-        auto & speaker{ *speakers[rowNumber] };
-        switch (columnNumber) {
-        case Cols::X:
-            text = juce::String{ speaker.getCartesianCoords().z, 2 };
-            break;
-        case Cols::Y:
-            text = juce::String{ speaker.getCartesianCoords().x, 2 };
-            break;
-        case Cols::Z:
-            text = juce::String{ speaker.getCartesianCoords().y, 2 };
-            break;
-        case Cols::AZIMUTH:
-            text = juce::String{ speaker.getPolarCoords().x, 2 };
-            break;
-        case Cols::ELEVATION:
-            text = juce::String{ speaker.getPolarCoords().y, 2 };
-            break;
-        case Cols::DISTANCE:
-            text = juce::String{ speaker.getPolarCoords().z, 2 };
-            break;
-        case Cols::OUTPUT_PATCH:
-            text = juce::String{ speaker.getOutputPatch().get() };
-            break;
-        case Cols::GAIN:
-            text = juce::String{ speaker.getGain(), 2 };
-            break;
-        case Cols::HIGHPASS:
-            text = juce::String{ speaker.getHighPassCutoff(), 2 };
-            break;
-        case Cols::DIRECT_TOGGLE:
-            text = juce::String{ static_cast<int>(speaker.isDirectOut()) };
-            break;
-        case Cols::DRAG_HANDLE:
-            text = "=";
-            break;
-        default:
-            jassertfalse;
-        }
+    jassert(mMainContentComponent.getSpeakers().size() > rowNumber);
+    auto const & speaker{ getSpeaker(rowNumber) };
+    switch (columnNumber) {
+    case Cols::X:
+        return juce::String{ speaker.getCartesianCoords().z, 2 };
+    case Cols::Y:
+        return juce::String{ speaker.getCartesianCoords().x, 2 };
+    case Cols::Z:
+        return juce::String{ speaker.getCartesianCoords().y, 2 };
+    case Cols::AZIMUTH:
+        return juce::String{ speaker.getPolarCoords().x, 2 };
+    case Cols::ELEVATION:
+        return juce::String{ speaker.getPolarCoords().y, 2 };
+    case Cols::DISTANCE:
+        return juce::String{ speaker.getPolarCoords().z, 2 };
+    case Cols::OUTPUT_PATCH:
+        return juce::String{ speaker.getOutputPatch().get() };
+    case Cols::GAIN:
+        return juce::String{ speaker.getGain(), 2 };
+    case Cols::HIGHPASS:
+        return juce::String{ speaker.getHighPassCutoff(), 2 };
+    case Cols::DIRECT_TOGGLE:
+        return juce::String{ static_cast<int>(speaker.isDirectOut()) };
+    case Cols::DRAG_HANDLE:
+        return "=";
     }
-
-    return text;
+    jassertfalse;
 }
 
 //==============================================================================
@@ -680,11 +677,12 @@ void EditSpeakersWindow::setText(int const columnNumber,
                                  juce::String const & newText,
                                  bool const altDown)
 {
-    juce::ScopedTryLock sl{ mMainContentComponent.getSpeakersLock() };
-    if (sl.isLocked()) {
+    juce::ScopedTryLock lock{ mMainContentComponent.getSpeakers().getLock() };
+    if (lock.isLocked()) {
         if (mMainContentComponent.getSpeakers().size() > rowNumber) {
             auto const selectedRows{ mSpeakersTableListBox.getSelectedRows() };
-            auto & speaker{ *mMainContentComponent.getSpeakers()[rowNumber] };
+            auto & speakers{ mMainContentComponent.getSpeakers() };
+            auto & speaker{ getSpeaker(rowNumber) };
 
             switch (columnNumber) {
             case Cols::X: {
@@ -699,13 +697,13 @@ void EditSpeakersWindow::setText(int const columnNumber,
                         if (rowNum == rowNumber) {
                             continue;
                         }
-                        newP = mMainContentComponent.getSpeakers()[rowNum]->getCartesianCoords();
+                        newP = getSpeaker(rowNumber).getCartesianCoords();
                         if (altDown) {
                             newP.z += diff;
                         } else {
                             newP.z = val;
                         }
-                        mMainContentComponent.getSpeakers()[rowNum]->setCoordinate(newP);
+                        getSpeaker(rowNumber).setCoordinate(newP);
                     }
                 }
                 break;
@@ -722,13 +720,13 @@ void EditSpeakersWindow::setText(int const columnNumber,
                         if (rowNum == rowNumber) {
                             continue;
                         }
-                        newP = mMainContentComponent.getSpeakers()[rowNum]->getCartesianCoords();
+                        newP = getSpeaker(rowNum).getCartesianCoords();
                         if (altDown) {
                             newP.x += diff;
                         } else {
                             newP.x = val;
                         }
-                        mMainContentComponent.getSpeakers()[rowNum]->setCoordinate(newP);
+                        getSpeaker(rowNum).setCoordinate(newP);
                     }
                 }
                 break;
@@ -745,14 +743,14 @@ void EditSpeakersWindow::setText(int const columnNumber,
                         if (rowNum == rowNumber) {
                             continue;
                         }
-                        newP = mMainContentComponent.getSpeakers()[rowNum]->getCartesianCoords();
+                        newP = getSpeaker(rowNum).getCartesianCoords();
                         if (altDown) {
                             newP.y += diff;
                             newP.y = std::clamp(newP.y, -1.0f, 1.0f);
                         } else {
                             newP.y = val;
                         }
-                        mMainContentComponent.getSpeakers()[rowNum]->setCoordinate(newP);
+                        getSpeaker(rowNum).setCoordinate(newP);
                     }
                 }
                 break;
@@ -775,7 +773,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
                         if (rowNum == rowNumber) {
                             continue;
                         }
-                        newP = mMainContentComponent.getSpeakers()[rowNum]->getPolarCoords();
+                        newP = getSpeaker(rowNum).getPolarCoords();
                         if (altDown) {
                             newP.x += diff;
                             while (newP.x > 360.0f) {
@@ -787,7 +785,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
                         } else {
                             newP.x = val;
                         }
-                        mMainContentComponent.getSpeakers()[rowNum]->setAziZenRad(newP);
+                        getSpeaker(rowNum).setAziZenRad(newP);
                     }
                 }
                 break;
@@ -804,14 +802,14 @@ void EditSpeakersWindow::setText(int const columnNumber,
                         if (rowNum == rowNumber) {
                             continue;
                         }
-                        newP = mMainContentComponent.getSpeakers()[rowNum]->getPolarCoords();
+                        newP = getSpeaker(rowNum).getPolarCoords();
                         if (altDown) {
                             newP.y += diff;
                             newP.y = std::clamp(newP.y, -90.0f, 90.0f);
                         } else {
                             newP.y = val;
                         }
-                        mMainContentComponent.getSpeakers()[rowNum]->setAziZenRad(newP);
+                        getSpeaker(rowNum).setAziZenRad(newP);
                     }
                 }
                 break;
@@ -834,7 +832,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
                         if (rowNum == rowNumber) {
                             continue;
                         }
-                        newP = mMainContentComponent.getSpeakers()[rowNum]->getPolarCoords();
+                        newP = getSpeaker(rowNum).getPolarCoords();
                         if (altDown) {
                             newP.z += diff;
                             if (newP.z < 0.0f) {
@@ -845,7 +843,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
                         } else {
                             newP.z = val;
                         }
-                        mMainContentComponent.getSpeakers()[rowNum]->setAziZenRad(newP);
+                        getSpeaker(rowNum).setAziZenRad(newP);
                     }
                 }
                 break;
@@ -855,11 +853,11 @@ void EditSpeakersWindow::setText(int const columnNumber,
                 auto const oldValue{ speaker.getOutputPatch() };
                 auto iValue{ output_patch_t{ std::clamp(newText.getIntValue(), 0, 256) } };
                 if (!speaker.isDirectOut()) {
-                    for (auto const * it : mMainContentComponent.getSpeakers()) {
-                        if (it == mMainContentComponent.getSpeakers()[rowNumber] || it->isDirectOut()) {
+                    for (auto const & speaker : mMainContentComponent.getSpeakers()) {
+                        if (&speaker == &getSpeaker(rowNumber) || speaker.isDirectOut()) {
                             continue;
                         }
-                        if (it->getOutputPatch() == iValue) {
+                        if (speaker.getOutputPatch() == iValue) {
                             juce::AlertWindow alert("Wrong output patch!    ",
                                                     "Sorry! Output patch number " + juce::String(iValue.get())
                                                         + " is already used.",
@@ -886,12 +884,10 @@ void EditSpeakersWindow::setText(int const columnNumber,
                             continue;
                         }
                         if (altDown) {
-                            auto const g{
-                                std::clamp(mMainContentComponent.getSpeakers()[rowNum]->getGain() + diff, -18.0f, 6.0f)
-                            };
-                            mMainContentComponent.getSpeakers()[rowNum]->setGain(g);
+                            auto const g{ std::clamp(getSpeaker(rowNum).getGain() + diff, -18.0f, 6.0f) };
+                            getSpeaker(rowNum).setGain(g);
                         } else {
-                            mMainContentComponent.getSpeakers()[rowNum]->setGain(val);
+                            getSpeaker(rowNum).setGain(val);
                         }
                     }
                 }
@@ -909,15 +905,15 @@ void EditSpeakersWindow::setText(int const columnNumber,
                             continue;
                         }
                         if (altDown) {
-                            float g = mMainContentComponent.getSpeakers()[rowNum]->getHighPassCutoff() + diff;
+                            float g = getSpeaker(rowNum).getHighPassCutoff() + diff;
                             if (g < 0.0f) {
                                 g = 0.0f;
                             } else if (g > 150.0f) {
                                 g = 150.0f;
                             }
-                            mMainContentComponent.getSpeakers()[rowNum]->setHighPassCutoff(g);
+                            getSpeaker(rowNum).setHighPassCutoff(g);
                         } else {
-                            mMainContentComponent.getSpeakers()[rowNum]->setHighPassCutoff(val);
+                            getSpeaker(rowNum).setHighPassCutoff(val);
                         }
                     }
                 }
@@ -948,6 +944,15 @@ bool EditSpeakersWindow::isMouseOverDragHandle(juce::MouseEvent const & event)
 }
 
 //==============================================================================
+Speaker & EditSpeakersWindow::getSpeaker(int const rowNum) const
+{
+    auto const & speakerDisplayOrder{ mMainContentComponent.getSpeakersDisplayOrder() };
+    jassert(rowNum >= 0 && rowNum < speakerDisplayOrder.size());
+    auto const speakerId{ speakerDisplayOrder[rowNum] };
+    return mMainContentComponent.getSpeakers().get(speakerId);
+}
+
+//==============================================================================
 // This is overloaded from TableListBoxModel, and should fill in the background of the whole row.
 void EditSpeakersWindow::paintRowBackground(juce::Graphics & g,
                                             int const rowNumber,
@@ -962,15 +967,15 @@ void EditSpeakersWindow::paintRowBackground(juce::Graphics & g,
     }
 
     if (rowIsSelected) {
-        juce::ScopedTryLock const sl{ mMainContentComponent.getSpeakersLock() };
-        if (sl.isLocked()) {
-            mMainContentComponent.getSpeakers()[rowNumber]->selectSpeaker();
+        juce::ScopedTryLock const lock{ mMainContentComponent.getSpeakers().getLock() };
+        if (lock.isLocked()) {
+            getSpeaker(rowNumber).selectSpeaker();
         }
         g.fillAll(mLookAndFeel.getHighlightColour());
     } else {
-        juce::ScopedTryLock const sl{ mMainContentComponent.getSpeakersLock() };
-        if (sl.isLocked()) {
-            mMainContentComponent.getSpeakers()[rowNumber]->unSelectSpeaker();
+        juce::ScopedTryLock const lock{ mMainContentComponent.getSpeakers().getLock() };
+        if (lock.isLocked()) {
+            getSpeaker(rowNumber).unSelectSpeaker();
         }
         if (rowNumber % 2) {
             g.fillAll(mLookAndFeel.getBackgroundColour().withBrightness(0.6f));
@@ -1008,8 +1013,7 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
         toggleButton->setClickingTogglesState(true);
         toggleButton->setBounds(4, 404, 88, 22);
         toggleButton->addListener(this);
-        toggleButton->setToggleState(mMainContentComponent.getSpeakers()[rowNumber]->isDirectOut(),
-                                     juce::dontSendNotification);
+        toggleButton->setToggleState(getSpeaker(rowNumber).isDirectOut(), juce::dontSendNotification);
         toggleButton->setLookAndFeel(&mLookAndFeel);
         return toggleButton;
     }
@@ -1034,8 +1038,7 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
         case Cols::X:
         case Cols::Y:
         case Cols::Z:
-            if (mMainContentComponent.getModeSelected() == SpatMode::lbap
-                || mMainContentComponent.getSpeakers()[rowNumber]->isDirectOut()) {
+            if (mMainContentComponent.getModeSelected() == SpatMode::lbap || getSpeaker(rowNumber).isDirectOut()) {
                 return EditionType::valueDraggable;
             }
             return EditionType::notEditable;
@@ -1092,7 +1095,7 @@ void EditSpeakersWindow::mouseDown(juce::MouseEvent const & event)
     if (isMouseOverDragHandle(event)) {
         mDragStartY = event.getEventRelativeTo(&mSpeakersTableListBox).getPosition().getY();
     } else {
-        mDragStartY = std::nullopt;
+        mDragStartY = tl::nullopt;
     }
 }
 
@@ -1115,17 +1118,6 @@ void EditSpeakersWindow::mouseDrag(juce::MouseEvent const & event)
         return;
     }
 
-    auto const getCurrentSpeakerOrder = [this]() -> std::vector<speaker_id_t> {
-        auto const & speakers{ mMainContentComponent.getSpeakers() };
-        std::vector<speaker_id_t> result{};
-        result.resize(narrow<size_t>(speakers.size()));
-        std::transform(std::begin(speakers),
-                       std::end(speakers),
-                       std::begin(result),
-                       [](Speaker const * speaker) -> speaker_id_t { return speaker->getId(); });
-        return result;
-    };
-
     // TODO : make this work for multiple selections
     auto const selectedRow{ mSpeakersTableListBox.getSelectedRow() };
     if (selectedRow < 0 || selectedRow >= mSpeakersTableListBox.getNumRows()) {
@@ -1138,8 +1130,8 @@ void EditSpeakersWindow::mouseDrag(juce::MouseEvent const & event)
         return;
     }
 
-    auto order{ getCurrentSpeakerOrder() };
-    std::swap(order[selectedRow], order[newIndex]);
+    auto order{ mMainContentComponent.getSpeakersDisplayOrder() };
+    order.swap(selectedRow, newIndex);
 
     mMainContentComponent.reorderSpeakers(order);
     if (mSpeakersTableListBox.contains(eventRel)) {
@@ -1160,5 +1152,5 @@ SpatMode EditSpeakersWindow::getModeSelected() const
 //==============================================================================
 bool EditSpeakersWindow::getDirectOutForSpeakerRow(int const row) const
 {
-    return mMainContentComponent.getSpeakers()[row]->isDirectOut();
+    return getSpeaker(row).isDirectOut();
 }

@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include <optional>
+#include "lib/tl/optional.hpp"
 
 #include "macros.h"
 DISABLE_WARNINGS
@@ -120,7 +120,7 @@ public:
     [[nodiscard]] int getWindowY() const;
     [[nodiscard]] int getWindowWidth() const;
     [[nodiscard]] int getWindowHeight() const;
-    [[nodiscard]] std::optional<double> getSashPosition() const;
+    [[nodiscard]] tl::optional<double> getSashPosition() const;
 
     [[nodiscard]] juce::File getLastOpenProject() const;
     [[nodiscard]] juce::File getLastSpeakerSetup_() const;

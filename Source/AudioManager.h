@@ -19,12 +19,12 @@
 
 #pragma once
 
-#include <optional>
-
 #include "macros.h"
 DISABLE_WARNINGS
 #include <JuceHeader.h>
 ENABLE_WARNINGS
+
+#include "lib/tl/optional.hpp"
 
 #include "Configuration.h"
 #include "Manager.hpp"
@@ -44,14 +44,14 @@ struct audio_port_t {
     char clientName[64]{};
     char fullName[128]{};
     PortType type;
-    std::optional<int> physicalPort;
+    tl::optional<int> physicalPort;
     juce::AudioBuffer<float> buffer{};
 
     audio_port_t(port_id_t const newId,
                  char const * const newShortName,
                  char const * const newClientName,
                  PortType const newType,
-                 std::optional<int> const newPhysicalPort = std::nullopt)
+                 tl::optional<int> const newPhysicalPort = tl::nullopt)
         : id(newId)
         , type(newType)
         , physicalPort(newPhysicalPort)
@@ -126,7 +126,7 @@ public:
     audio_port_t * registerPort(char const * newShortName,
                                 char const * newClientName,
                                 PortType newType,
-                                std::optional<int> newPhysicalPort = std::nullopt);
+                                tl::optional<int> newPhysicalPort = tl::nullopt);
     void unregisterPort(audio_port_t * port);
 
     [[nodiscard]] bool isConnectedTo(audio_port_t const * port, char const * port_name) const;

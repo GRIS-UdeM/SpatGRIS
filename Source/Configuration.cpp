@@ -269,10 +269,10 @@ int Configuration::getAttenuationFrequencyIndex() const
 }
 
 //==============================================================================
-std::optional<double> Configuration::getSashPosition() const
+tl::optional<double> Configuration::getSashPosition() const
 {
     if (!mUserSettings->containsKey(Tags::SASH_POSITION)) {
-        return std::nullopt;
+        return tl::nullopt;
     }
     return mUserSettings->getDoubleValue(Tags::SASH_POSITION);
 }

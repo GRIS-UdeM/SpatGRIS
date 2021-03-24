@@ -171,10 +171,11 @@ void Speaker::fix()
 //==============================================================================
 void Speaker::selectClick(bool const select)
 {
+    // TODO: why are branches the same?
     if (select) {
-        mMainContentComponent.selectSpeaker(mOutputPatch);
+        mMainContentComponent.selectSpeaker(mId);
     } else {
-        mMainContentComponent.selectSpeaker(mOutputPatch);
+        mMainContentComponent.selectSpeaker(mId);
     }
 }
 

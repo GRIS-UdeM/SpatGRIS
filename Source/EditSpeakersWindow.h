@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include <optional>
+#include "lib/tl/optional.hpp"
 
 #include "macros.h"
 DISABLE_WARNINGS
@@ -87,7 +87,7 @@ private:
     juce::Font mFont;
 
     int mNumRows{};
-    std::optional<int> mDragStartY{};
+    tl::optional<int> mDragStartY{};
     //==============================================================================
     friend EditableTextCustomComponent;
 
@@ -107,8 +107,8 @@ public:
     EditSpeakersWindow & operator=(EditSpeakersWindow &&) = delete;
     //==============================================================================
     void initComp();
-    void selectRow(int value);
-    void selectSpeaker(output_patch_t outputPatch);
+    void selectRow(tl::optional<int> const value);
+    void selectSpeaker(tl::optional<speaker_id_t> const id);
     void updateWinContent(bool needToSaveSpeakerSetup);
 
 private:
@@ -118,6 +118,7 @@ private:
     [[nodiscard]] juce::String getText(int columnNumber, int rowNumber) const;
     void setText(int columnNumber, int rowNumber, juce::String const & newText, bool altDown = false);
     bool isMouseOverDragHandle(juce::MouseEvent const & event);
+    Speaker & getSpeaker(int rowNum) const;
     //==============================================================================
     // VIRTUALS
     [[nodiscard]] int getNumRows() override { return this->mNumRows; }

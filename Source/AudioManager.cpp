@@ -226,7 +226,7 @@ AudioManager::~AudioManager()
 audio_port_t * AudioManager::registerPort(char const * const newShortName,
                                           char const * const newClientName,
                                           PortType const newType,
-                                          std::optional<int> newPhysicalPort)
+                                          tl::optional<int> newPhysicalPort)
 {
     juce::ScopedLock sl{ mCriticalSection };
 

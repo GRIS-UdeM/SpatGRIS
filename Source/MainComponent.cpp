@@ -1052,26 +1052,34 @@ bool MainContentComponent::exitApp() const
 }
 
 //==============================================================================
-void MainContentComponent::selectSpeaker(output_patch_t const outputPatch)
+void MainContentComponent::selectSpeaker(tl::optional<speaker_id_t> const id)
 {
-    for (auto & speaker : mSpeakers) {
-        if (speaker.getOutputPatch() != outputPatch) {
+    auto const applySelection = [&](speaker_id_t const selectedId) {
+        for (auto & speaker : mSpeakers) {
+            if (id == speaker.getSpeakerId()) {
+                speaker.selectSpeaker();
+                continue;
+            }
             speaker.unSelectSpeaker();
-        } else {
-            speaker.selectSpeaker();
         }
-    }
+    };
+    auto const unselectAll = [&]() {
+        for (auto & speaker : mSpeakers) {
+            speaker.unSelectSpeaker();
+        }
+    };
+
+    id.map_or_else(applySelection, unselectAll);
     if (mEditSpeakersWindow != nullptr) {
-        // auto const outputPatch{ mSpeakers[idS.get()]->getOutputPatch() };
-        mEditSpeakersWindow->selectSpeaker(outputPatch);
+        mEditSpeakersWindow->selectSpeaker(id);
     }
 }
 
 //==============================================================================
 void MainContentComponent::selectTripletSpeaker(speaker_id_t const idS)
 {
-    auto countS{ std::count_if(mSpeakers.begin(), mSpeakers.end(), [](Speaker const * speaker) {
-        return speaker->isSelected();
+    auto countS{ std::count_if(mSpeakers.begin(), mSpeakers.end(), [](Speaker const & speaker) {
+        return speaker.isSelected();
     }) };
 
     if (!mSpeakers.get(idS).isSelected() && countS < 3) {
@@ -1082,9 +1090,9 @@ void MainContentComponent::selectTripletSpeaker(speaker_id_t const idS)
     }
 
     if (countS == 3) {
-        std::optional<output_patch_t> i1{};
-        std::optional<output_patch_t> i2{};
-        std::optional<output_patch_t> i3{};
+        tl::optional<output_patch_t> i1{};
+        tl::optional<output_patch_t> i2{};
+        tl::optional<output_patch_t> i3{};
         for (auto const & speaker : mSpeakers) {
             if (speaker.isSelected()) {
                 auto const outputPatch{ speaker.getOutputPatch() };
@@ -1667,7 +1675,7 @@ void MainContentComponent::reloadXmlFileSpeaker()
 }
 
 //==============================================================================
-void MainContentComponent::openXmlFileSpeaker(juce::File const & file, std::optional<SpatMode> const forceSpatMode)
+void MainContentComponent::openXmlFileSpeaker(juce::File const & file, tl::optional<SpatMode> const forceSpatMode)
 {
     jassert(file.existsAsFile());
 
