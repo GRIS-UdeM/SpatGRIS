@@ -33,6 +33,11 @@ public:
         mData[mSize++] = std::move(value);
     }
     void clear() { mSize = 0; }
+    void resize(size_t const newSize)
+    {
+        jassert(newSize <= CAPACITY);
+        mSize = newSize;
+    }
     //==============================================================================
     [[nodiscard]] bool isEmpty() const { return mSize == 0; }
     [[nodiscard]] bool isFull() const { return mSize == CAPACITY; }

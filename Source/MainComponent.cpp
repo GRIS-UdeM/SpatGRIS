@@ -214,9 +214,8 @@ MainContentComponent::~MainContentComponent()
         mSpeakers.clear();
     }
 
-    mInputsLock.lock();
+    juce::ScopedLock const lock{ mInputsLock };
     mInputs.clear();
-    mInputsLock.unlock();
 }
 
 //==============================================================================
@@ -1182,7 +1181,6 @@ Speaker & MainContentComponent::addSpeaker()
         newId,
         std::make_unique<Speaker>(*this, mSmallLookAndFeel, newId, newOutputPatch, 0.0f, 0.0f, 1.0f)) };
     mSpeakersDisplayOrder.add(newId);
-    mAudioProcessor->addOutput(newOutputPatch);
     return speaker;
 }
 
@@ -1200,11 +1198,6 @@ void MainContentComponent::insertSpeaker(int const position)
 void MainContentComponent::removeSpeaker(speaker_id_t const id)
 {
     juce::ScopedLock const lock{ mSpeakers.getLock() };
-    auto const & speaker{ mSpeakers.get(id) };
-
-    jassertfalse; // TODO : I don't get this
-
-    mAudioProcessor->removeOutput(speaker.getOutputPatch().get());
     mSpeakers.remove(id);
     mSpeakersDisplayOrder.removeFirstMatchingValue(id);
 }
@@ -1213,10 +1206,11 @@ void MainContentComponent::removeSpeaker(speaker_id_t const id)
 bool MainContentComponent::isRadiusNormalized() const
 {
     auto const mode{ mAudioProcessor->getMode() };
-    if (mode == SpatMode::vbap || mode == SpatMode::hrtfVbap)
+    if (mode == SpatMode::vbap || mode == SpatMode::hrtfVbap) {
         return true;
-    else
-        return false;
+    }
+
+    return false;
 }
 
 //==============================================================================
@@ -1260,6 +1254,28 @@ Speaker const * MainContentComponent::getSpeakerFromOutputPatch(output_patch_t c
         }
     }
     return nullptr;
+}
+
+//==============================================================================
+void MainContentComponent::setNumInputs(int const numInputs, bool const updateTextInput)
+{
+    jassert(numInputs >= 1 && numInputs <= MAX_INPUTS);
+
+    if (updateTextInput) {
+        mAddInputsTextEditor->setText(juce::String{ numInputs }, false);
+    }
+
+    if (numInputs > mInputs.size()) {
+        // add some inputs
+        for (int i{ mInputs.size() }; i < numInputs; ++i) {
+            mInputs.add(new Input{ *this, mSmallLookAndFeel, i + 1 });
+        }
+    } else if (numInputs < mInputs.size()) {
+        // remove some inputs
+        mInputs.removeRange(numInputs, mInputs.size() - numInputs);
+    }
+    unfocusAllComponents();
+    refreshSpeakers();
 }
 
 //==============================================================================
@@ -1501,37 +1517,37 @@ bool MainContentComponent::refreshSpeakers()
 
     i = 0;
     x = 2;
-    mInputsLock.lock();
     std::vector<output_patch_t> directOutMenuItems{};
     for (auto const * speaker : mSpeakers) {
         if (speaker->isDirectOut()) {
             directOutMenuItems.push_back(speaker->getOutputPatch());
         }
     }
-    for (auto * input : mInputs) {
-        juce::Rectangle<int> level{ x, 4, VU_METER_WIDTH_IN_PIXELS, 200 };
-        input->getVuMeter()->setBounds(level);
-        if (input->isInput()) { // TODO : wut?
-            input->getVuMeter()->updateDirectOutMenu(directOutMenuItems);
+    {
+        juce::ScopedLock const lock{ mInputsLock };
+        for (auto * input : mInputs) {
+            juce::Rectangle<int> level{ x, 4, VU_METER_WIDTH_IN_PIXELS, 200 };
+            input->getVuMeter()->setBounds(level);
+            if (input->isInput()) { // TODO : wut?
+                input->getVuMeter()->updateDirectOutMenu(directOutMenuItems);
+            }
+            input->getVuMeter()->resetClipping();
+            mInputsUiBox->getContent()->addAndMakeVisible(input->getVuMeter());
+            input->getVuMeter()->repaint();
+
+            x += VU_METER_WIDTH_IN_PIXELS;
+
+            SourceData sourceIn;
+            sourceIn.id = input->getId();
+            sourceIn.radAzimuth = input->getAzimuth();
+            sourceIn.radElevation = HALF_PI - input->getZenith();
+            sourceIn.azimuth = input->getAzimuth().toDegrees();
+            sourceIn.zenith = input->getZenith().toDegrees();
+            sourceIn.radius = input->getRadius();
+            sourceIn.gain = 0.0f;
+            mAudioProcessor->getSourcesIn()[i++] = sourceIn;
         }
-        input->getVuMeter()->resetClipping();
-        mInputsUiBox->getContent()->addAndMakeVisible(input->getVuMeter());
-        input->getVuMeter()->repaint();
-
-        x += VU_METER_WIDTH_IN_PIXELS;
-
-        SourceData sourceIn;
-        sourceIn.id = input->getId();
-        sourceIn.radAzimuth = input->getAzimuth();
-        sourceIn.radElevation = HALF_PI - input->getZenith();
-        sourceIn.azimuth = input->getAzimuth().toDegrees();
-        sourceIn.zenith = input->getZenith().toDegrees();
-        sourceIn.radius = input->getRadius();
-        sourceIn.gain = 0.0f;
-        mAudioProcessor->getSourcesIn()[i++] = sourceIn;
     }
-
-    mInputsLock.unlock();
 
     if (mEditSpeakersWindow != nullptr) {
         mEditSpeakersWindow->updateWinContent(false);
@@ -1585,11 +1601,12 @@ bool MainContentComponent::refreshSpeakers()
         sourceIn.isSolo = inputsIsSolo[sourceInIndex];
         sourceIn.directOut = directOuts[sourceInIndex];
     }
-    mInputsLock.lock();
-    for (int sourceInputIndex{}; sourceInputIndex < mInputs.size(); sourceInputIndex++) {
-        mInputs[sourceInputIndex]->setDirectOutChannel(directOuts[sourceInputIndex]);
+    {
+        juce::ScopedLock const lock{ mInputsLock };
+        for (int sourceInputIndex{}; sourceInputIndex < mInputs.size(); sourceInputIndex++) {
+            mInputs[sourceInputIndex]->setDirectOutChannel(directOuts[sourceInputIndex]);
+        }
     }
-    mInputsLock.unlock();
 
     mAudioProcessor->setSoloOut(soloOut);
     for (size_t speakerOutIndex{}; speakerOutIndex < MAX_OUTPUTS; ++speakerOutIndex) {
@@ -1722,10 +1739,10 @@ void MainContentComponent::openXmlFileSpeaker(juce::File const & file, tl::optio
     auto const loadSetupFromXyz{ spatMode == SpatMode::lbap };
 
     juce::ScopedLock const lock{ mAudioProcessor->getCriticalSection() };
-    mAudioProcessor->clearOutput();
     mAudioProcessor->setMaxOutputPatch(output_patch_t{});
     juce::Array<int> layoutIndexes{};
     int maxLayoutIndex{};
+
     forEachXmlChildElement(*mainXmlElem, ring)
     {
         if (ring->hasTagName("Ring")) {
@@ -1755,6 +1772,7 @@ void MainContentComponent::openXmlFileSpeaker(juce::File const & file, tl::optio
                                                                                azimuth,
                                                                                zenith,
                                                                                radius)) };
+
                     if (loadSetupFromXyz) {
                         newSpeaker.setCoordinate(glm::vec3(static_cast<float>(spk->getDoubleAttribute("PositionX")),
                                                            static_cast<float>(spk->getDoubleAttribute("PositionZ")),
@@ -1769,7 +1787,6 @@ void MainContentComponent::openXmlFileSpeaker(juce::File const & file, tl::optio
                     if (spk->hasAttribute("DirectOut")) {
                         newSpeaker.setDirectOut(spk->getBoolAttribute("DirectOut"));
                     }
-                    mAudioProcessor->addOutput(outputPatch);
                 }
             }
         }
@@ -1780,6 +1797,14 @@ void MainContentComponent::openXmlFileSpeaker(juce::File const & file, tl::optio
             mTriplets.add(triplet);
         }
     }
+
+    juce::Array<speaker_id_t> order{};
+    order.resize(mSpeakers.size());
+    std::transform(mSpeakers.cbegin(), mSpeakers.cend(), order.begin(), [](Speaker const * speaker) {
+        return speaker->getSpeakerId();
+    });
+    std::sort(order.begin(), order.end());
+    mSpeakersDisplayOrder = std::move(order);
 
     setCurrentSpeakerSetup(file);
     mConfiguration.setLastSpatMode(spatMode);
@@ -2138,36 +2163,10 @@ void MainContentComponent::textEditorFocusLost(juce::TextEditor & textEditor)
 void MainContentComponent::textEditorReturnKeyPressed(juce::TextEditor & textEditor)
 {
     if (&textEditor == mAddInputsTextEditor.get()) {
-        auto const numOfInputs{ narrow<unsigned>(mAddInputsTextEditor->getTextValue().toString().getIntValue()) };
-        if (numOfInputs < 1) {
-            mAddInputsTextEditor->setText("1");
-        }
-        if (numOfInputs > MAX_INPUTS) {
-            mAddInputsTextEditor->setText(juce::String(MAX_INPUTS));
-        }
-
-        if (mAudioProcessor->getInputPorts().size() != numOfInputs) {
-            mAudioProcessor->addRemoveInput(numOfInputs);
-
-            mInputsLock.lock();
-            auto addInput{ false };
-            auto const numInputPorts{ narrow<int>(mAudioProcessor->getInputPorts().size()) };
-            for (int i{}; i < numInputPorts; ++i) {
-                if (i >= mInputs.size()) {
-                    mInputs.add(new Input{ *this, mSmallLookAndFeel, i + 1 });
-                    addInput = true;
-                }
-            }
-            if (!addInput) {
-                auto const listSourceInputSize{ mInputs.size() };
-                if (listSourceInputSize > numInputPorts) {
-                    mInputs.removeRange(numInputPorts, listSourceInputSize - numInputPorts);
-                }
-            }
-            mInputsLock.unlock();
-        }
-        unfocusAllComponents();
-        refreshSpeakers();
+        juce::ScopedLock const lock{ mInputsLock };
+        auto const unclippedValue{ mAddInputsTextEditor->getTextValue().toString().getIntValue() };
+        auto const numOfInputs{ std::clamp(unclippedValue, 1, MAX_INPUTS) };
+        setNumInputs(numOfInputs, unclippedValue != numOfInputs);
     }
 }
 

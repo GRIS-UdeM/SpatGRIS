@@ -64,7 +64,6 @@ public:
     }
 };
 using speaker_id_t = StrongIndex<int, struct SpeakerIdT>;
-using port_id_t = StrongIndex<uint32_t, struct PortIdT>;
 using output_patch_t = StrongIndex<int, struct OutputPatchT>;
 using display_order_t = StrongIndex<int, struct DisplayOrderT>;
 

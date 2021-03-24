@@ -26,9 +26,6 @@ DISABLE_WARNINGS
 #include <JuceHeader.h>
 ENABLE_WARNINGS
 
-//#define STRING2(x) #x
-//#define STRING(x) STRING2(x)
-
 #include "AboutWindow.h"
 #include "AudioProcessor.h"
 #include "Box.h"
@@ -81,7 +78,7 @@ class MainContentComponent final
 
     // Sources.
     juce::OwnedArray<Input> mInputs{};
-    std::mutex mInputsLock{};
+    juce::CriticalSection mInputsLock{};
 
     // Open Sound Control.
     std::unique_ptr<OscInput> mOscReceiver{};
@@ -192,6 +189,8 @@ public:
     void setNeedToComputeVbap(bool const state) { mNeedToComputeVbap = state; }
     void setNeedToSaveSpeakerSetup(bool const state) { mNeedToSaveSpeakerSetup = state; }
 
+    void setNumInputs(int numInputs, bool const updateTextInput);
+
     // Speakers.
     [[nodiscard]] auto & getSpeakers() { return mSpeakers; }
     [[nodiscard]] auto const & getSpeakers() const { return mSpeakers; }
@@ -210,7 +209,7 @@ public:
     [[nodiscard]] juce::OwnedArray<Input> & getSourceInputs() { return mInputs; }
     [[nodiscard]] juce::OwnedArray<Input> const & getSourceInputs() const { return mInputs; }
 
-    [[nodiscard]] std::mutex & getInputsLock() { return mInputsLock; }
+    [[nodiscard]] juce::CriticalSection const & getInputsLock() const { return mInputsLock; }
 
     [[nodiscard]] bool isRadiusNormalized() const;
 

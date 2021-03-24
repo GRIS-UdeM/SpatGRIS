@@ -35,6 +35,10 @@
               file="Source/PinkNoiseGenerator.cpp"/>
         <FILE id="H5EPIz" name="PinkNoiseGenerator.h" compile="0" resource="0"
               file="Source/PinkNoiseGenerator.h"/>
+        <FILE id="VKaECU" name="TaggedAudioBuffer.cpp" compile="1" resource="0"
+              file="Source/TaggedAudioBuffer.cpp"/>
+        <FILE id="Qctsv6" name="TaggedAudioBuffer.h" compile="0" resource="0"
+              file="Source/TaggedAudioBuffer.h"/>
       </GROUP>
       <GROUP id="{B880ED62-D15F-78F9-F83A-129573A5FA84}" name="misc">
         <FILE id="GMYB2w" name="Manager.hpp" compile="0" resource="0" file="Source/Manager.hpp"/>

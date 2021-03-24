@@ -114,9 +114,6 @@ AudioProcessor::AudioProcessor()
 
     // Initialize pink noise
     srand(static_cast<unsigned>(time(nullptr)));
-
-    mNumberInputs = narrow<unsigned>(audioManager.getPortNames(PortType::input).size());
-    mNumberOutputs = narrow<unsigned>(audioManager.getPortNames(PortType::output).size());
 }
 
 //==============================================================================
@@ -125,65 +122,6 @@ void AudioProcessor::resetHrtf()
     std::fill(std::begin(mHrtfCount), std::end(mHrtfCount), 0u);
     static constexpr std::array<float, 128> EMPTY_HRTF_INPUT{};
     std::fill(std::begin(mHrtfInputTmp), std::end(mHrtfInputTmp), EMPTY_HRTF_INPUT);
-}
-
-//==============================================================================
-void AudioProcessor::addRemoveInput(unsigned int const number)
-{
-    juce::ScopedLock const lock{ getCriticalSection() };
-
-    if (number < mInputsPort.size()) {
-        while (number < mInputsPort.size()) {
-            AudioManager::getInstance().unregisterPort(mInputsPort.back());
-            mInputsPort.pop_back();
-        }
-    } else {
-        auto & audioManager{ AudioManager::getInstance() };
-        while (number > mInputsPort.size()) {
-            juce::String nameIn{ "input" };
-            nameIn += juce::String{ mInputsPort.size() + 1 };
-            auto * newPort{ audioManager.registerPort(nameIn.toStdString().c_str(), "SpatGRIS", PortType::input) };
-            mInputsPort.push_back(newPort);
-        }
-    }
-    reconnectPorts();
-}
-
-//==============================================================================
-void AudioProcessor::clearOutput()
-{
-    auto const num_output_ports{ mOutputsPort.size() };
-    for (size_t i{}; i < num_output_ports; ++i) {
-        AudioManager::getInstance().unregisterPort(mOutputsPort.back());
-        mOutputsPort.pop_back();
-    }
-}
-
-//==============================================================================
-bool AudioProcessor::addOutput(output_patch_t const outputPatch)
-{
-    juce::ScopedLock const lock{ getCriticalSection() };
-
-    if (outputPatch > mMaxOutputPatch) {
-        mMaxOutputPatch = outputPatch;
-    }
-    juce::String nameOut = "output";
-    nameOut += juce::String(mOutputsPort.size() + 1);
-
-    auto * newPort{
-        AudioManager::getInstance().registerPort(nameOut.toStdString().c_str(), "SpatGRIS", PortType::output)
-    };
-
-    mOutputsPort.push_back(newPort);
-    reconnectPorts();
-    return true;
-}
-
-//==============================================================================
-void AudioProcessor::removeOutput(int const number)
-{
-    AudioManager::getInstance().unregisterPort(mOutputsPort.at(number));
-    mOutputsPort.erase(mOutputsPort.begin() + number);
 }
 
 //==============================================================================
@@ -594,7 +532,8 @@ void AudioProcessor::processStereo(float const * const * ins,
 }
 
 //==============================================================================
-void AudioProcessor::processAudio(size_t const nFrames) noexcept
+void AudioProcessor::processAudio(juce::AudioBuffer<float> const & inputBuffer,
+                                  juce::AudioBuffer<float> & outputBuffer) noexcept
 {
     // Skip if the user is editing the speaker setup.
     juce::ScopedTryLock const lock{ getCriticalSection() };
@@ -608,8 +547,24 @@ void AudioProcessor::processAudio(size_t const nFrames) noexcept
     auto const sizeInputs{ mInputsPort.size() };
     auto const sizeOutputs{ mOutputsPort.size() };
 
-    // consolidate all buffers
-    auto & audioManager{ AudioManager::getInstance() };
+    // Resize buffers
+    auto const num if (mInputBuffer.getNumChannels() < totalNumInputChannels
+                       || mInputBuffer.getNumSamples() < numSamples)
+    {
+        mInputBuffer.setSize(totalNumInputChannels, numSamples);
+    }
+
+    // TODO : do audio right plz
+    auto const numOutputChannelsNeeded{ getMaxOutputPatch().get() - 1 };
+    if (mOutputBuffer.getNumChannels() < numOutputChannelsNeeded || mOutputBuffer.getNumSamples() < numSamples) {
+        mOutputBuffer.setSize(numOutputChannelsNeeded, numSamples);
+    }
+
+    // copy input data to input buffer
+    for (int i{}; i < totalNumInputChannels;)
+
+        // consolidate all buffers
+        auto & audioManager{ AudioManager::getInstance() };
     for (unsigned i{}; i < sizeInputs; ++i) {
         ins[i] = audioManager.getBuffer(mInputsPort[i], nFrames);
     }
@@ -647,56 +602,6 @@ void AudioProcessor::processAudio(size_t const nFrames) noexcept
     }
 
     muteSoloVuMeterGainOut(outs, nFrames, sizeOutputs, mMasterGainOut);
-}
-
-//==============================================================================
-void AudioProcessor::reconnectPorts()
-{
-    clearOutput();
-    auto & audioManager{ AudioManager::getInstance() };
-    for (output_patch_t i{}; i < mMaxOutputPatch; ++i) {
-        juce::String nameOut{ "output" };
-        nameOut += juce::String{ mOutputsPort.size() + 1 };
-
-        auto * newPort{ audioManager.registerPort(nameOut.toStdString().c_str(), "SpatGRIS", PortType::output) };
-
-        mOutputsPort.push_back(newPort);
-    }
-
-    auto const outputPorts{ audioManager.getOutputPorts() };
-    auto const inputPorts{ audioManager.getInputPorts() };
-
-    // Disconnect ports
-    for (auto * outputPort : outputPorts) {
-        if (strcmp(outputPort->clientName, CLIENT_NAME) == 0) {
-            for (auto * inputPort : inputPorts) {
-                if (strcmp(inputPort->clientName, SYS_CLIENT_NAME) == 0
-                    && audioManager.isConnectedTo(outputPort, inputPort->fullName)) {
-                    audioManager.disconnect(outputPort, inputPort);
-                }
-            }
-        }
-    }
-
-    // Connect ports
-    for (auto * outputPort : outputPorts) {
-        if (strcmp(outputPort->clientName, CLIENT_NAME) == 0) {
-            for (auto * inputPort : inputPorts) {
-                if (strcmp(inputPort->clientName, SYS_CLIENT_NAME) == 0) {
-                    audioManager.connect(outputPort, inputPort);
-                    break;
-                }
-            }
-        }
-    }
-
-    // Build output patch list.
-    mOutputPatches.clear();
-    for (size_t i{}; i < mOutputsPort.size(); ++i) {
-        if (mSpeakersOut[i].outputPatch != output_patch_t{ 0 }) {
-            mOutputPatches.push_back(mSpeakersOut[i].outputPatch);
-        }
-    }
 }
 
 //==============================================================================
@@ -846,14 +751,5 @@ void AudioProcessor::updateSourceVbap(int const idS) noexcept
 AudioProcessor::~AudioProcessor()
 {
     free_vbap_data(mParamVBap);
-
-    auto & audioManager{ AudioManager::getInstance() };
-
-    audioManager.getAudioDeviceManager().getCurrentAudioDevice()->close();
-    for (auto * inputPort : mInputsPort) {
-        audioManager.unregisterPort(inputPort);
-    }
-    for (auto * outputPort : mOutputsPort) {
-        audioManager.unregisterPort(outputPort);
-    }
+    AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice()->close();
 }

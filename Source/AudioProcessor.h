@@ -36,7 +36,6 @@ ENABLE_WARNINGS
 #include "vbap.hpp"
 
 class Speaker;
-struct audio_port_t;
 
 //==============================================================================
 /**
@@ -44,15 +43,8 @@ struct audio_port_t;
  */
 class AudioProcessor
 {
-    unsigned int mNumberInputs{};
-    unsigned int mNumberOutputs{};
     output_patch_t mMaxOutputPatch{};
-
     std::vector<output_patch_t> mOutputPatches{};
-
-    // Audio ports
-    std::vector<audio_port_t *> mInputsPort{};
-    std::vector<audio_port_t *> mOutputsPort{};
 
     // Interpolation and master gain values.
     float mInterMaster{ 0.8f };
@@ -117,6 +109,8 @@ class AudioProcessor
     VbapData * mParamVBap{};
 
     juce::CriticalSection mCriticalSection{};
+    juce::AudioBuffer<float> mInputBuffer{};
+    juce::AudioBuffer<float> mOutputBuffer{};
 
 public:
     //==============================================================================
@@ -131,12 +125,6 @@ public:
     // Audio Status.
     [[nodiscard]] float getLevelsIn(int const index) const { return mLevelsIn[index]; }
     [[nodiscard]] float getLevelsOut(int const index) const { return mLevelsOut[index]; }
-
-    // Manage Inputs / Outputs.
-    void addRemoveInput(unsigned int number);
-    void clearOutput();
-    void removeOutput(int number);
-    bool addOutput(output_patch_t outputPatch);
 
     [[nodiscard]] std::vector<output_patch_t> getDirectOutOutputPatches() const;
 
@@ -154,8 +142,6 @@ public:
     // Reinit HRTF delay lines.
     void resetHrtf();
 
-    [[nodiscard]] unsigned getNumberOutputs() const { return mNumberOutputs; }
-    [[nodiscard]] unsigned getNumberInputs() const { return mNumberInputs; }
     [[nodiscard]] SpatMode getMode() const { return mModeSelected; }
     [[nodiscard]] unsigned getVbapDimensions() const { return mVbapDimensions; }
     [[nodiscard]] auto & getSourcesIn() { return mSourcesData; }
@@ -167,7 +153,6 @@ public:
     [[nodiscard]] auto const & getSpeakersOut() const { return mSpeakersOut; }
     [[nodiscard]] auto & getSpeakersOut() { return mSpeakersOut; }
     [[nodiscard]] output_patch_t getMaxOutputPatch() const { return mMaxOutputPatch; }
-    [[nodiscard]] auto const & getInputPorts() const { return mInputsPort; }
 
     juce::CriticalSection const & getCriticalSection() const noexcept { return mCriticalSection; }
 
@@ -199,12 +184,11 @@ public:
                      size_t sizeOutputs) noexcept;
     void processVBapHrtf(float const * const * ins, float * const * outs, size_t nFrames, size_t sizeInputs) noexcept;
     void processStereo(float const * const * ins, float * const * outs, size_t nFrames, size_t sizeInputs) noexcept;
-    void processAudio(size_t nFrames) noexcept;
+    void processAudio(juce::AudioBuffer<float> const & inputBuffer, juce::AudioBuffer<float> & outputBuffer) noexcept;
 
 private:
     //==============================================================================
     // Connect the server's outputs to the system's inputs.
-    void reconnectPorts();
     void muteSoloVuMeterIn(float * const * ins, size_t nFrames, size_t sizeInputs) noexcept;
     void updateSourceVbap(int idS) noexcept;
     //==============================================================================

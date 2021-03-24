@@ -24,45 +24,13 @@ DISABLE_WARNINGS
 #include <JuceHeader.h>
 ENABLE_WARNINGS
 
-#include "lib/tl/optional.hpp"
-
 #include "Configuration.h"
+#include "Input.h"
 #include "Manager.hpp"
 #include "Speaker.h"
 #include "StrongTypes.hpp"
 
 class AudioProcessor;
-
-//==============================================================================
-enum class PortType { input, output };
-
-//==============================================================================
-// TODO : this needs to go
-struct audio_port_t {
-    port_id_t id;
-    char shortName[64]{};
-    char clientName[64]{};
-    char fullName[128]{};
-    PortType type;
-    tl::optional<int> physicalPort;
-    juce::AudioBuffer<float> buffer{};
-
-    audio_port_t(port_id_t const newId,
-                 char const * const newShortName,
-                 char const * const newClientName,
-                 PortType const newType,
-                 tl::optional<int> const newPhysicalPort = tl::nullopt)
-        : id(newId)
-        , type(newType)
-        , physicalPort(newPhysicalPort)
-    {
-        std::strcpy(shortName, newShortName);
-        std::strcpy(clientName, newClientName);
-        std::strcpy(fullName, newClientName);
-        std::strcat(fullName, ":");
-        std::strcat(fullName, newShortName);
-    }
-};
 
 //==============================================================================
 class AudioManager final : juce::AudioSourcePlayer
@@ -88,16 +56,13 @@ private:
     juce::CriticalSection mCriticalSection{};
 
     AudioProcessor * mAudioProcessor{};
+    Manager<Speaker, speaker_id_t> const * mSpeakers{};
+    juce::Array<Input> const * mInputs{};
 
     juce::AudioDeviceManager mAudioDeviceManager{};
-    juce::OwnedArray<audio_port_t> mVirtualInputPorts{};
-    juce::OwnedArray<audio_port_t> mPhysicalInputPorts{};
-    juce::OwnedArray<audio_port_t> mVirtualOutputPorts{};
-    juce::OwnedArray<audio_port_t> mPhysicalOutputPorts{};
-    juce::HashMap<audio_port_t *, audio_port_t *> mConnections{};
-    port_id_t mLastGivenPortId{};
-    juce::AudioBuffer<float> mInputPortsBuffer{};
-    juce::AudioBuffer<float> mOutputPortsBuffer{};
+
+    juce::AudioBuffer<float> mInputBuffer{};
+    juce::AudioBuffer<float> mOutputBuffer{};
 
     // Recording
     bool mIsRecording{};
@@ -123,24 +88,9 @@ public:
     [[nodiscard]] juce::AudioDeviceManager const & getAudioDeviceManager() const { return mAudioDeviceManager; }
     [[nodiscard]] juce::AudioDeviceManager & getAudioDeviceManager() { return mAudioDeviceManager; }
 
-    audio_port_t * registerPort(char const * newShortName,
-                                char const * newClientName,
-                                PortType newType,
-                                tl::optional<int> newPhysicalPort = tl::nullopt);
-    void unregisterPort(audio_port_t * port);
-
-    [[nodiscard]] bool isConnectedTo(audio_port_t const * port, char const * port_name) const;
-
-    void registerAudioProcessor(AudioProcessor * audioProcessor);
-
-    [[nodiscard]] juce::Array<audio_port_t *> getInputPorts() const;
-    [[nodiscard]] juce::Array<audio_port_t *> getOutputPorts() const;
-    float * getBuffer(audio_port_t * port, size_t nFrames) noexcept;
-
-    [[nodiscard]] std::vector<std::string> getPortNames(PortType portType) const;
-
-    void connect(audio_port_t * sourcePort, audio_port_t * destinationPort);
-    void disconnect(audio_port_t * sourcePort, audio_port_t * destinationPort);
+    void registerAudioProcessor(AudioProcessor * audioProcessor,
+                                Manager<Speaker, speaker_id_t> const & speakers,
+                                juce::Array<Input> const & inputs);
 
     juce::StringArray getAvailableDeviceTypeNames();
 
@@ -176,10 +126,6 @@ private:
                  double sampleRate,
                  int bufferSize);
     //==============================================================================
-    void setBufferSizes(int numSamples);
-
-    [[nodiscard]] audio_port_t * getPort(char const * name) const;
-    [[nodiscard]] audio_port_t * getPort(port_id_t id) const;
     [[nodiscard]] bool tryInitAudioDevice(juce::String const & deviceType,
                                           juce::String const & inputDevice,
                                           juce::String const & outputDevice,

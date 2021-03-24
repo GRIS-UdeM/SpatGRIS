@@ -23,6 +23,7 @@
 #include "GrisLookAndFeel.h"
 #include "MainComponent.h"
 #include "Speaker.h"
+#include "StaticVector.h"
 #include "narrow.hpp"
 
 //==============================================================================
@@ -325,53 +326,47 @@ bool compareGreaterThan(Sorter const & a, Sorter const & b)
 //==============================================================================
 void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const isForwards)
 {
-    struct Sorter toSort[MAX_OUTPUTS];
+    static auto const extractValue = [](Speaker const * speaker, int const sortColumn) -> float {
+        switch (sortColumn) {
+        case Cols::X:
+            return speaker->getCartesianCoords().z;
+        case Cols::Y:
+            return speaker->getCartesianCoords().x;
+        case Cols::Z:
+            return speaker->getCartesianCoords().y;
+        case Cols::AZIMUTH:
+            return speaker->getPolarCoords().x;
+        case Cols::ELEVATION:
+            return speaker->getPolarCoords().y;
+        case Cols::DISTANCE:
+            return speaker->getPolarCoords().z;
+        case Cols::OUTPUT_PATCH:
+            return static_cast<float>(speaker->getOutputPatch().get());
+        }
+        jassertfalse;
+    };
 
     auto & speakers{ mMainContentComponent.getSpeakers() };
-    unsigned index{};
-    for (auto const * speaker : speakers) {
-        auto & toSortItem{ toSort[index++] };
-        toSortItem.id = speaker->getSpeakerId().get();
-        toSortItem.directOut = speaker->isDirectOut();
-        switch (newSortColumnId) {
-        case Cols::X:
-            toSortItem.value = speaker->getCartesianCoords().z;
-            break;
-        case Cols::Y:
-            toSortItem.value = speaker->getCartesianCoords().x;
-            break;
-        case Cols::Z:
-            toSortItem.value = speaker->getCartesianCoords().y;
-            break;
-        case Cols::AZIMUTH:
-            toSortItem.value = speaker->getPolarCoords().x;
-            break;
-        case Cols::ELEVATION:
-            toSortItem.value = speaker->getPolarCoords().y;
-            break;
-        case Cols::DISTANCE:
-            toSortItem.value = speaker->getPolarCoords().z;
-            break;
-        case Cols::OUTPUT_PATCH:
-            toSortItem.value = static_cast<float>(speaker->getOutputPatch().get());
-            break;
-        default:
-            jassertfalse;
-        }
-    }
-
-    auto const size{ mMainContentComponent.getSpeakers().size() };
+    std::vector<std::pair<float, speaker_id_t>> valuesToSort{};
+    valuesToSort.reserve(narrow<size_t>(speakers.size()));
+    std::transform(speakers.cbegin(),
+                   speakers.cend(),
+                   std::back_inserter(valuesToSort),
+                   [newSortColumnId](Speaker const * speaker) {
+                       return std::make_pair(extractValue(speaker, newSortColumnId), speaker->getSpeakerId());
+                   });
     if (isForwards) {
-        std::sort(toSort, toSort + size, compareLessThan);
+        std::sort(valuesToSort.begin(), valuesToSort.end(), std::less());
     } else {
-        std::sort(toSort, toSort + size, compareGreaterThan);
+        std::sort(valuesToSort.begin(), valuesToSort.end(), std::greater_equal());
     }
-
     juce::Array<speaker_id_t> newOrder{};
-    newOrder.resize(size);
-    for (int i{}; i < size; ++i) {
-        newOrder[i] = speaker_id_t{ toSort[i].id };
-    }
+    newOrder.resize(narrow<int>(valuesToSort.size()));
+    std::transform(valuesToSort.cbegin(),
+                   valuesToSort.cend(),
+                   newOrder.begin(),
+                   [](std::pair<float, speaker_id_t> const & entry) { return entry.second; });
+
     mMainContentComponent.reorderSpeakers(std::move(newOrder));
     updateWinContent(false);
 }
@@ -669,6 +664,7 @@ juce::String EditSpeakersWindow::getText(int const columnNumber, int const rowNu
         return "=";
     }
     jassertfalse;
+    return {};
 }
 
 //==============================================================================
