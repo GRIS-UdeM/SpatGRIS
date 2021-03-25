@@ -57,7 +57,7 @@ void OscInput::oscMessageReceived(const juce::OSCMessage & message)
             // int id, float azi [0, 2pi], float ele [0, pi], float azispan [0, 2],
             // float elespan [0, 0.5], float distance [0, 1], float gain [0, 1].
             auto const idS{ message[0].getInt32() };
-            mMainContentComponent.getInputsLock().lock();
+            juce::ScopedLock const lock{ mMainContentComponent.getInputsLock() };
             if (mMainContentComponent.getSourceInputs().size() > idS) {
                 mMainContentComponent.getSourceInputs()[idS]->updateValues(
                     radians_t{ message[1].getFloat32() },
@@ -69,13 +69,12 @@ void OscInput::oscMessageReceived(const juce::OSCMessage & message)
                     mMainContentComponent.getModeSelected());
                 mMainContentComponent.updateSourceData(idS, *mMainContentComponent.getSourceInputs()[idS]);
             }
-            mMainContentComponent.getInputsLock().unlock();
         }
 
         else if (address == OSC_PAN_AZ) {
             // id, azim, elev, azimSpan, elevSpan, gain (Zirkonium artifact).
             auto const idS{ message[0].getInt32() };
-            mMainContentComponent.getInputsLock().lock();
+            juce::ScopedLock const lock{ mMainContentComponent.getInputsLock() };
             if (mMainContentComponent.getSourceInputs().size() > idS) {
                 mMainContentComponent.getSourceInputs()[idS]->updateValuesOld(message[1].getFloat32(),
                                                                               message[2].getFloat32(),
@@ -84,17 +83,15 @@ void OscInput::oscMessageReceived(const juce::OSCMessage & message)
                                                                               message[5].getFloat32());
                 mMainContentComponent.updateSourceData(idS, *mMainContentComponent.getSourceInputs()[idS]);
             }
-            mMainContentComponent.getInputsLock().unlock();
         }
     } else if (message[0].isString()) {
         // string "reset", int voice_to_reset.
-        mMainContentComponent.getInputsLock().lock();
+        juce::ScopedLock const lock{ mMainContentComponent.getInputsLock() };
         if (message[0].getString().compare("reset") == 0) {
             auto const idS{ message[1].getInt32() };
             if (mMainContentComponent.getSourceInputs().size() > idS) {
                 mMainContentComponent.getSourceInputs()[idS]->resetPosition();
             }
         }
-        mMainContentComponent.getInputsLock().unlock();
     }
 }

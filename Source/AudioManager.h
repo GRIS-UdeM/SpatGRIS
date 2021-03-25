@@ -29,6 +29,8 @@ ENABLE_WARNINGS
 #include "Manager.hpp"
 #include "Speaker.h"
 #include "StrongTypes.hpp"
+#include "TaggedAudioBuffer.h"
+#include "constants.hpp"
 
 class AudioProcessor;
 
@@ -42,6 +44,7 @@ class AudioManager final : juce::AudioSourcePlayer
         std::unique_ptr<juce::AudioFormatWriter::ThreadedWriter> threadedWriter;
         juce::AudioFormatWriter *
             audioFormatWriter; // this is only left for safety assertions : it will get deleted by the threadedWriter
+        juce::Array<float const *> dataToRecord;
     };
     //==============================================================================
 public:
@@ -57,12 +60,12 @@ private:
 
     AudioProcessor * mAudioProcessor{};
     Manager<Speaker, speaker_id_t> const * mSpeakers{};
-    juce::Array<Input> const * mInputs{};
+    juce::OwnedArray<Input> const * mInputs{};
 
     juce::AudioDeviceManager mAudioDeviceManager{};
 
     juce::AudioBuffer<float> mInputBuffer{};
-    juce::AudioBuffer<float> mOutputBuffer{};
+    TaggedAudioBuffer<MAX_OUTPUTS> mOutputBuffer{};
 
     // Recording
     bool mIsRecording{};
@@ -70,18 +73,15 @@ private:
     juce::OwnedArray<RecorderInfo> mRecorders{};
     juce::TimeSliceThread mRecordersThread{ "SpatGRIS recording thread" };
     RecordingConfig mRecordingConfig{};
-    juce::AudioBuffer<float> mRecordingBuffer{};
-    juce::Array<output_patch_t> mChannelsToRecord{};
     //==============================================================================
     static std::unique_ptr<AudioManager> mInstance;
 
 public:
     //==============================================================================
     ~AudioManager();
-
+    //==============================================================================
     AudioManager(AudioManager const &) = delete;
     AudioManager(AudioManager &&) = delete;
-
     AudioManager & operator=(AudioManager const &) = delete;
     AudioManager & operator=(AudioManager &&) = delete;
     //==============================================================================
@@ -90,7 +90,7 @@ public:
 
     void registerAudioProcessor(AudioProcessor * audioProcessor,
                                 Manager<Speaker, speaker_id_t> const & speakers,
-                                juce::Array<Input> const & inputs);
+                                juce::OwnedArray<Input> const & inputs);
 
     juce::StringArray getAvailableDeviceTypeNames();
 

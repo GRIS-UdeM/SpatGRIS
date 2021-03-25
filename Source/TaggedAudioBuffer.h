@@ -13,33 +13,50 @@ ENABLE_WARNINGS
 template<size_t CAPACITY>
 class TaggedAudioBuffer
 {
-    static auto constexpr MAX_BUFFER_LENGTH = 4096;
-
     struct ChannelInfo {
         speaker_id_t speakerId;
         output_patch_t outputPatch;
+        float * buffer;
     };
+
+    using container_type = StaticVector<ChannelInfo, CAPACITY>;
 
     StaticVector<ChannelInfo, CAPACITY> mChannelInfo{};
     juce::AudioBuffer<float> mBuffer{};
 
 public:
+    using iterator = typename container_type::iterator;
+    using const_iterator = typename container_type::const_iterator;
+
+    static auto constexpr MAX_BUFFER_LENGTH = 4096;
+
+    int getNumChannels() const
+    {
+        jassert(mBuffer.getNumChannels() == mChannelInfo.size());
+        return mChannelInfo.size();
+    }
+    void clear() { mBuffer.clear(); }
     void setSpeakers(Manager<Speaker, speaker_id_t> const & speakers)
     {
         juce::ScopedLock const lock{ speakers.getLock() };
         jassert(speakers.size() <= narrow<int>(CAPACITY));
         mBuffer.setSize(speakers.size(), MAX_BUFFER_LENGTH);
         mChannelInfo.resize(narrow<size_t>(speakers.size()));
+        int channelCount{};
         std::transform(speakers.cbegin(),
                        speakers.cend(),
                        mChannelInfo.begin(),
-                       [](Speaker const * speaker) -> ChannelInfo {
-                           return ChannelInfo{ speaker->getSpeakerId(), speaker->getOutputPatch() };
+                       [&](Speaker const * speaker) -> ChannelInfo {
+                           return ChannelInfo{ speaker->getSpeakerId(),
+                                               speaker->getOutputPatch(),
+                                               mBuffer.getWritePointer(channelCount++) };
                        });
         std::sort(mChannelInfo.begin(), mChannelInfo.end(), [](ChannelInfo const & a, ChannelInfo const & b) -> bool {
             return a.speakerId < b.speakerId;
         });
     }
+
+    float * const * getUnorderedArrayOfWritePointers() { return mBuffer.getArrayOfWritePointers(); }
 
     float * getWritePointer(speaker_id_t const id)
     {
@@ -75,6 +92,11 @@ public:
             ++bufferIndex;
         }
     }
+
+    const_iterator begin() const { return mChannelInfo.cbegin(); }
+    const_iterator end() const { return mChannelInfo.cend(); }
+    const_iterator cbegin() const { return mChannelInfo.cbegin(); }
+    const_iterator cend() const { return mChannelInfo.cend(); }
 
 private:
     int getIndexOf(speaker_id_t const id) const

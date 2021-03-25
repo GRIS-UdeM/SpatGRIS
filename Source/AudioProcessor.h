@@ -27,10 +27,13 @@ DISABLE_WARNINGS
 #include <JuceHeader.h>
 ENABLE_WARNINGS
 
+#include "Input.h"
+#include "Manager.hpp"
 #include "SourceData.hpp"
 #include "SpatMode.hpp"
 #include "Speaker.h"
 #include "SpeakerData.hpp"
+#include "TaggedAudioBuffer.h"
 #include "constants.hpp"
 #include "lbap.hpp"
 #include "vbap.hpp"
@@ -109,12 +112,10 @@ class AudioProcessor
     VbapData * mParamVBap{};
 
     juce::CriticalSection mCriticalSection{};
-    juce::AudioBuffer<float> mInputBuffer{};
-    juce::AudioBuffer<float> mOutputBuffer{};
 
 public:
     //==============================================================================
-    AudioProcessor();
+    AudioProcessor(Manager<Speaker, speaker_id_t> const & speakers, juce::OwnedArray<Input> const & inputs);
     ~AudioProcessor();
     //==============================================================================
     AudioProcessor(AudioProcessor const &) = delete;
@@ -171,25 +172,23 @@ public:
 
     //==============================================================================
     // Audio processing
-    void muteSoloVuMeterGainOut(float * const * outs, size_t nFrames, size_t sizeOutputs, float gain = 1.0f) noexcept;
-    void processVbap(float const * const * ins,
-                     float * const * outs,
-                     size_t nFrames,
-                     size_t sizeInputs,
-                     size_t sizeOutputs) noexcept;
-    void processLbap(float const * const * ins,
-                     float * const * outs,
-                     size_t nFrames,
-                     size_t sizeInputs,
-                     size_t sizeOutputs) noexcept;
-    void processVBapHrtf(float const * const * ins, float * const * outs, size_t nFrames, size_t sizeInputs) noexcept;
-    void processStereo(float const * const * ins, float * const * outs, size_t nFrames, size_t sizeInputs) noexcept;
-    void processAudio(juce::AudioBuffer<float> const & inputBuffer, juce::AudioBuffer<float> & outputBuffer) noexcept;
+    void muteSoloVuMeterGainOut(juce::AudioBuffer<float> const & inputBuffer,
+                                TaggedAudioBuffer<MAX_OUTPUTS> const & outputBuffer,
+                                float gain = 1.0f) noexcept;
+    void processVbap(juce::AudioBuffer<float> const & inputBuffer,
+                     TaggedAudioBuffer<MAX_OUTPUTS> const & outputBuffer) noexcept;
+    void processLbap(juce::AudioBuffer<float> const & inputBuffer,
+                     TaggedAudioBuffer<MAX_OUTPUTS> const & outputBuffer) noexcept;
+    void processVBapHrtf(juce::AudioBuffer<float> const & inputBuffer,
+                         TaggedAudioBuffer<MAX_OUTPUTS> const & outputBuffer) noexcept;
+    void processStereo(juce::AudioBuffer<float> const & inputBuffer,
+                       TaggedAudioBuffer<MAX_OUTPUTS> const & outputBuffer) noexcept;
+    void processAudio(juce::AudioBuffer<float> & inputBuffer, TaggedAudioBuffer<MAX_OUTPUTS> & outputBuffer) noexcept;
 
 private:
     //==============================================================================
     // Connect the server's outputs to the system's inputs.
-    void muteSoloVuMeterIn(float * const * ins, size_t nFrames, size_t sizeInputs) noexcept;
+    void muteSoloVuMeterIn(juce::AudioBuffer<float> & inputBuffer) noexcept;
     void updateSourceVbap(int idS) noexcept;
     //==============================================================================
     JUCE_LEAK_DETECTOR(AudioProcessor)

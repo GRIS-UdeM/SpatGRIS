@@ -37,9 +37,10 @@ DISABLE_WARNINGS
 #include <JuceHeader.h>
 ENABLE_WARNINGS
 
-#include "AudioProcessor.h"
+//#include "AudioProcessor.h"
 #include "LevelComponent.h"
 #include "ParentLevelComponent.h"
+#include "SpatMode.hpp"
 
 class GrisLookAndFeel;
 class MainContentComponent;

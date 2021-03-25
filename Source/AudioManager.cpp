@@ -53,23 +53,22 @@ void AudioManager::audioDeviceIOCallback(float const ** inputChannelData,
                                          int const totalNumOutputChannels,
                                          int const numSamples)
 {
+    jassert(numSamples <= mOutputBuffer.MAX_BUFFER_LENGTH);
     juce::ScopedLock sl{ mCriticalSection };
 
     // clear buffers
-    mInputBuffer.clear();
     mOutputBuffer.clear();
 
     // resize buffers if needed
-    static auto const resizeOrClearBuffer
-        = [](juce::AudioBuffer<float> & buffer, int const minInputChannels, int const numSamples) {
-              if (buffer.getNumChannels() < minInputChannels || buffer.getNumSamples() < numSamples) {
-                  buffer.setSize(minInputChannels, numSamples);
-              } else {
-                  buffer.clear();
-              }
-          };
-    resizeOrClearBuffer(mInputBuffer, mInputs->size(), numSamples);
-    resizeOrClearBuffer(mInputBuffer, mSpeakers->size(), numSamples);
+    if (mInputBuffer.getNumChannels() != mInputs->size() || mInputBuffer.getNumSamples() != numSamples) {
+        // TODO: should this be moved outside of the audio loop?
+        mInputBuffer.setSize(mInputs->size(), numSamples);
+    } else {
+        mInputBuffer.clear();
+    }
+
+    // TODO: DO NOT PUT THIS IN THE AUDIO LOOP!
+    mOutputBuffer.setSpeakers(*mSpeakers);
 
     // copy input data to buffers
     auto const numInputChannelsToCopy{ std::min(totalNumInputChannels, mInputBuffer.getNumChannels()) };
@@ -83,65 +82,24 @@ void AudioManager::audioDeviceIOCallback(float const ** inputChannelData,
     }
 
     // copy buffers to output
-    // the buffer is always filled in speaker id ascending order
-    int bufferChannelIndex{};
-    for (auto const * speaker : *mSpeakers) {
-        auto const outputChannelIndex{ speaker->getOutputPatch().get() - 1 };
-        jassert(outputChannelIndex >= 0);
-        jassert(outputChannelIndex < mOutputBuffer.getNumChannels());
-        if (outputChannelIndex < totalNumOutputChannels) {
-            auto const * dataToCopyFrom{ mOutputBuffer.getReadPointer(bufferChannelIndex) };
-            std::memcpy(outputChannelData[outputChannelIndex], dataToCopyFrom, sizeof(float) * numSamples);
-        }
-        ++bufferChannelIndex;
-    }
+    mOutputBuffer.copyToPhysicalOutput(outputChannelData, totalNumOutputChannels, numSamples);
 
     // Record
-    auto stopRecordingAndDisplayError = [this]() {
-        stopRecording();
-        juce::AlertWindow::showMessageBox(
-            juce::AlertWindow::AlertIconType::WarningIcon,
-            "Error",
-            "Recording stopped because samples were dropped.\nRecording on a faster disk might solve this issue.");
-    };
-
     if (mIsRecording) {
-        // copy samples for recorder
+        auto const stopRecordingAndDisplayError = [this]() {
+            stopRecording();
+            juce::AlertWindow::showMessageBox(
+                juce::AlertWindow::AlertIconType::WarningIcon,
+                "Error",
+                "Recording stopped because samples were dropped.\nRecording on a faster disk might solve this issue.");
+        };
 
-        /* TODO : this is very dirty. The problem comes from the fact that SpatGRIS allocates as many channels as the
-         * max output patch. Changing this will require a lot of hard work, and I do not have time for this right now,
-         * so the solution is to copy the active sections of the output buffer into an other buffer so that it is nicely
-         * aligned for recording.
-         */
-        for (int i{}; i < mChannelsToRecord.size(); ++i) {
-            auto const & outputPatch{ mChannelsToRecord[i] };
-            mRecordingBuffer.copyFrom(i, 0, mOutputPortsBuffer.getReadPointer(outputPatch.get() - 1), numSamples);
-        }
-
-        if (mRecordingConfig == RecordingConfig::interleaved) {
-            jassert(mRecorders.size() == 1);
-            auto & recorder{ *mRecorders.getFirst() };
-            jassert(recorder.audioFormatWriter->getNumChannels() == mRecordingBuffer.getNumChannels());
-            auto const success{ recorder.threadedWriter->write(mRecordingBuffer.getArrayOfReadPointers(), numSamples) };
+        for (auto const & recorder : mRecorders) {
+            jassert(recorder->audioFormatWriter->getNumChannels() == recorder->dataToRecord.size());
+            auto const success{ recorder->threadedWriter->write(recorder->dataToRecord.data(), numSamples) };
             jassert(success);
             if (!success) {
                 stopRecordingAndDisplayError();
-            }
-        } else {
-            jassert(mRecordingConfig == RecordingConfig::mono);
-            jassert(mAudioProcessor->getMode() == SpatMode::hrtfVbap
-                        ? mRecorders.size() == 2
-                        : mRecorders.size() == mRecordingBuffer.getNumChannels());
-            for (int channel{}; channel < mChannelsToRecord.size(); ++channel) {
-                auto & recorder{ *mRecorders.getUnchecked(channel) };
-                jassert(recorder.audioFormatWriter->getNumChannels() == 1);
-                auto const * const channelData{ mRecordingBuffer.getArrayOfReadPointers()[channel] };
-                auto const success{ recorder.threadedWriter->write(&channelData, numSamples) };
-                jassert(success);
-                if (!success) {
-                    stopRecordingAndDisplayError();
-                    break;
-                }
             }
         }
         mNumSamplesRecorded += numSamples;
@@ -214,7 +172,7 @@ AudioManager::~AudioManager()
 //==============================================================================
 void AudioManager::registerAudioProcessor(AudioProcessor * audioProcessor,
                                           Manager<Speaker, speaker_id_t> const & speakers,
-                                          juce::Array<Input> const & inputs)
+                                          juce::OwnedArray<Input> const & inputs)
 {
     juce::ScopedLock sl{ mCriticalSection };
     mAudioProcessor = audioProcessor;
@@ -241,6 +199,7 @@ bool AudioManager::prepareToRecord(RecordingOptions const & recordingOptions,
 
     mRecordingConfig = recordingOptions.config;
     mNumSamplesRecorded = 0;
+    mRecorders.clearQuick(true);
 
     auto * currentAudioDevice{ mAudioDeviceManager.getCurrentAudioDevice() };
     if (!currentAudioDevice) {
@@ -259,31 +218,13 @@ bool AudioManager::prepareToRecord(RecordingOptions const & recordingOptions,
     }
     jassert(audioFormat);
 
-    // update channels to record
-    static auto const getChannelsToRecord
-        = [](Manager<Speaker, speaker_id_t> const & speakers, SpatMode const spatMode) -> juce::Array<output_patch_t> {
-        juce::Array<output_patch_t> result{};
-        if (spatMode == SpatMode::hrtfVbap) {
-            result.add(output_patch_t{ 1 });
-            result.add(output_patch_t{ 2 });
-        } else {
-            result.resize(speakers.size());
-            std::transform(speakers.begin(),
-                           speakers.end(),
-                           result.begin(),
-                           [](Speaker const * speaker) -> output_patch_t { return speaker->getOutputPatch(); });
-            std::sort(result.begin(), result.end());
-        }
-        return result;
-    };
-    mChannelsToRecord = getChannelsToRecord(speakers, mAudioProcessor->getMode());
-
-    // subroutine to build the SpeakerInfos
+    // subroutine to build the RecorderInfos
     auto makeRecordingInfo = [](juce::String const & filePath,
                                 juce::AudioFormat & format,
                                 int const numChannels,
                                 double const recordingSampleRate,
                                 int const recordingBufferSize,
+                                juce::Array<float const *> dataToRecord,
                                 juce::TimeSliceThread & timeSlicedThread) -> std::unique_ptr<RecorderInfo> {
         juce::StringPairArray const metaData{}; // lets leave this empty for now
 
@@ -307,92 +248,142 @@ bool AudioManager::prepareToRecord(RecordingOptions const & recordingOptions,
         auto result{ std::make_unique<RecorderInfo>() };
         result->audioFormatWriter = audioFormatWriter;
         result->threadedWriter = std::move(threadedWriter);
+        result->dataToRecord = std::move(dataToRecord);
         return result;
     };
 
-    // build the recorders
-    if (recordingOptions.config == RecordingConfig::interleaved) {
-        auto const recordingBufferSize{ RECORDERS_BUFFER_SIZE_IN_SAMPLES * mOutputPortsBuffer.getNumChannels() };
-        auto recorderInfo{ makeRecordingInfo(recordingOptions.path,
-                                             *audioFormat,
-                                             mOutputPortsBuffer.getNumChannels(),
-                                             recordingOptions.sampleRate,
-                                             recordingBufferSize,
-                                             mRecordersThread) };
-        if (!recorderInfo) {
-            return false;
-        }
-        mRecorders.add(recorderInfo.release());
-    } else {
-        jassert(recordingOptions.config == RecordingConfig::mono);
+    struct ChannelInfo {
+        output_patch_t outputPatch;
+        speaker_id_t speakerId;
+    };
 
-        static auto const getFileNames = [](juce::String const & prefix,
-                                            juce::String const & extension,
-                                            juce::Array<output_patch_t> const & channelsToRecord) -> juce::StringArray {
-            juce::StringArray result{};
-            for (auto const outputPatch : channelsToRecord) {
-                juce::String number{ outputPatch.get() };
-                while (number.length() < 3) {
-                    number = "0" + number;
-                }
-
-                result.add(prefix + "_" + number + extension);
-            }
-            return result;
-        };
-
-        auto const baseOutputFile{ juce::File{ recordingOptions.path }.getParentDirectory().getFullPathName() + '/'
-                                   + juce::File{ recordingOptions.path }.getFileNameWithoutExtension() };
-        auto const extension{ juce::File{ recordingOptions.path }.getFileExtension() };
-
-        auto const fileNames{ getFileNames(baseOutputFile, extension, mChannelsToRecord) };
-
-        bool deleteAllFiles{ false };
-        for (auto const & fileName : fileNames) {
-            // delete file if needed
-            juce::File file{ fileName };
-            if (file.existsAsFile()) {
-                if (!deleteAllFiles) {
-                    juce::AlertWindow alertWindow{ "error",
-                                                   "File \"" + file.getFullPathName() + "\" will be deleted. Proceed ?",
-                                                   juce::AlertWindow::WarningIcon };
-                    alertWindow.addButton("No", 0);
-                    alertWindow.addButton("yes", 1);
-                    alertWindow.addButton("Yes for all", 2);
-                    auto const result{ alertWindow.runModalLoop() };
-                    if (result == 0) {
-                        return false;
-                    }
-                    if (result == 2) {
-                        deleteAllFiles = true;
-                    }
-                }
-                auto const success{ file.deleteFile() };
-                if (!success) {
-                    juce::AlertWindow::showMessageBox(juce::AlertWindow::WarningIcon,
-                                                      "Error",
-                                                      juce::String{ "Unable to overwrite file \"" }
-                                                          + file.getFullPathName() + "\".");
-                    return false;
-                }
-            }
-            auto recorderInfo{ makeRecordingInfo(fileName,
-                                                 *audioFormat,
-                                                 1,
-                                                 recordingOptions.sampleRate,
-                                                 RECORDERS_BUFFER_SIZE_IN_SAMPLES,
-                                                 mRecordersThread) };
-            if (!recorderInfo) {
-                return false;
-            }
-            mRecorders.add(recorderInfo.release());
+    // Register channel info
+    juce::Array<ChannelInfo> channelInfo{};
+    {
+        juce::ScopedLock const lock{ mSpeakers->getLock() };
+        channelInfo.ensureStorageAllocated(mSpeakers->size());
+        if (mAudioProcessor->getMode() == SpatMode::hrtfVbap) {
+            auto const * const * firstSpeakerIt{ std::find_if(
+                mSpeakers->cbegin(),
+                mSpeakers->cend(),
+                [](Speaker const * speaker) { return speaker->getOutputPatch().get() == 1; }) };
+            auto const * const * secondSpeakerIt{ std::find_if(
+                mSpeakers->cbegin(),
+                mSpeakers->cend(),
+                [](Speaker const * speaker) { return speaker->getOutputPatch().get() == 2; }) };
+            jassert(firstSpeakerIt != mSpeakers->cend() && secondSpeakerIt != mSpeakers->cend());
+            channelInfo.add(ChannelInfo{ output_patch_t{ 1 }, (*firstSpeakerIt)->getSpeakerId() });
+            channelInfo.add(ChannelInfo{ output_patch_t{ 2 }, (*secondSpeakerIt)->getSpeakerId() });
+        } else {
+            channelInfo.resize(mSpeakers->size());
+            std::transform(mSpeakers->cbegin(), mSpeakers->cend(), channelInfo.begin(), [](Speaker const * speaker) {
+                return ChannelInfo{ speaker->getOutputPatch(), speaker->getSpeakerId() };
+            });
+            std::sort(channelInfo.begin(), channelInfo.end(), [](ChannelInfo const & a, ChannelInfo const & b) {
+                return a.outputPatch < b.outputPatch;
+            });
         }
     }
 
-    // allocate the recording buffer
-    // 2048 is fine. Worst case is the audio callback will allocate at the first call.
-    static constexpr auto BUFFER_SIZE{ 2048 };
-    mRecordingBuffer.setSize(speakers.size(), BUFFER_SIZE);
+    // Compute file paths
+    juce::StringArray filePaths{};
+    auto const baseOutputFile{ juce::File{ recordingOptions.path }.getParentDirectory().getFullPathName() + '/'
+                               + juce::File{ recordingOptions.path }.getFileNameWithoutExtension() };
+    auto const extension{ juce::File{ recordingOptions.path }.getFileExtension() };
+    if (recordingOptions.config == RecordingConfig::mono) {
+        filePaths.ensureStorageAllocated(channelInfo.size());
+        for (auto const & info : channelInfo) {
+            auto pathWithoutExtension{ baseOutputFile + juce::String{ info.outputPatch.get() } };
+            auto newPath{ pathWithoutExtension + extension };
+            while (filePaths.contains(newPath)) {
+                pathWithoutExtension += "-2";
+                newPath = pathWithoutExtension + extension;
+            }
+            filePaths.add(newPath);
+        }
+    } else {
+        jassert(recordingOptions.config == RecordingConfig::interleaved);
+        filePaths.add(baseOutputFile + extension);
+    }
+
+    // Delete files if needed
+    auto deleteAllFiles{ false };
+    for (auto const & fileName : filePaths) {
+        // delete file if needed
+        juce::File file{ fileName };
+        if (file.existsAsFile()) {
+            if (!deleteAllFiles) {
+                juce::AlertWindow alertWindow{ "error",
+                                               "File \"" + file.getFullPathName() + "\" will be deleted. Proceed ?",
+                                               juce::AlertWindow::WarningIcon };
+                alertWindow.addButton("No", 0);
+                alertWindow.addButton("yes", 1);
+                alertWindow.addButton("Yes for all", 2);
+                auto const result{ alertWindow.runModalLoop() };
+                if (result == 0) {
+                    return false;
+                }
+                if (result == 2) {
+                    deleteAllFiles = true;
+                }
+            }
+            auto const success{ file.deleteFile() };
+            if (!success) {
+                juce::AlertWindow::showMessageBox(juce::AlertWindow::WarningIcon,
+                                                  "Error",
+                                                  juce::String{ "Unable to overwrite file \"" } + file.getFullPathName()
+                                                      + "\".");
+                return false;
+            }
+        }
+    }
+
+    // Make recorders
+    auto const recordingBufferSize{ RECORDERS_BUFFER_SIZE_IN_SAMPLES * channelInfo.size() };
+    if (recordingOptions.config == RecordingConfig::mono) {
+        jassert(channelInfo.size() == filePaths.size());
+        for (int i{}; i < channelInfo.size(); ++i) {
+            auto const & speakerId{ channelInfo[i].speakerId };
+            auto const & filePath{ filePaths[i] };
+            juce::Array<float const *> dataToRecord{};
+            dataToRecord.add(mOutputBuffer.getReadPointer(speakerId));
+            auto recordingInfo{ makeRecordingInfo(filePath,
+                                                  *audioFormat,
+                                                  1,
+                                                  recordingOptions.sampleRate,
+                                                  recordingBufferSize,
+                                                  std::move(dataToRecord),
+                                                  mRecordersThread) };
+            if (!recordingInfo) {
+                return false;
+            }
+            mRecorders.add(std::move(recordingInfo));
+        }
+    } else {
+        jassert(recordingOptions.config == RecordingConfig::interleaved);
+        jassert(filePaths.size() == 1);
+        auto const & filePath{ filePaths[0] };
+        StaticVector<speaker_id_t, MAX_OUTPUTS> speakersToRecord{};
+        speakersToRecord.resize(channelInfo.size());
+        std::transform(channelInfo.begin(), channelInfo.end(), speakersToRecord.begin(), [](ChannelInfo const & info) {
+            return info.speakerId;
+        });
+        auto const staticDataToRecord{ mOutputBuffer.getArrayOfReadPointers(speakersToRecord) };
+        juce::Array<float const *> dataToRecord{};
+        dataToRecord.resize(staticDataToRecord.size());
+        std::copy(staticDataToRecord.cbegin(), staticDataToRecord.cend(), dataToRecord.begin());
+        auto recordingInfo{ makeRecordingInfo(filePath,
+                                              *audioFormat,
+                                              speakersToRecord.size(),
+                                              recordingOptions.sampleRate,
+                                              recordingBufferSize,
+                                              std::move(dataToRecord),
+                                              mRecordersThread) };
+        if (!recordingInfo) {
+            return false;
+        }
+        mRecorders.add(std::move(recordingInfo));
+    }
 
     mRecordersThread.startThread();
 
@@ -426,7 +417,6 @@ void AudioManager::audioDeviceError(juce::String const & /*errorMessage*/)
 void AudioManager::audioDeviceAboutToStart(juce::AudioIODevice * device)
 {
     juce::ScopedLock sl{ mCriticalSection };
-    setBufferSizes(device->getCurrentBufferSizeSamples());
     // when AudioProcessor will be a real AudioSource, prepareToPlay() should be called here.
 }
 

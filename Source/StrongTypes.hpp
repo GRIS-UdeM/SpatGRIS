@@ -24,8 +24,6 @@ DISABLE_WARNINGS
 #include <JuceHeader.h>
 ENABLE_WARNINGS
 
-#include <cstdint>
-
 class StrongIndexBase
 {
 };
