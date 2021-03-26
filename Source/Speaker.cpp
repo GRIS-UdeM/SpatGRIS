@@ -51,7 +51,7 @@ Speaker::Speaker(MainContentComponent & mainContentComponent,
 //==============================================================================
 float Speaker::getLevel() const
 {
-    return mMainContentComponent.getLevelsOut(mOutputPatch.get() - 1);
+    return mMainContentComponent.getLevelsOut(mId);
 }
 
 //==============================================================================
@@ -59,7 +59,7 @@ float Speaker::getAlpha() const
 {
     float alpha;
     if (mMainContentComponent.isSpeakerLevelShown()) {
-        alpha = mMainContentComponent.getSpeakerLevelsAlpha(mOutputPatch.get() - 1);
+        alpha = mMainContentComponent.getSpeakerLevelsAlpha(mId);
     } else {
         alpha = 1.0f;
     }
@@ -72,18 +72,18 @@ float Speaker::getAlpha() const
 //==============================================================================
 void Speaker::setMuted(bool const mute)
 {
-    mMainContentComponent.muteOutput(mOutputPatch, mute);
+    mMainContentComponent.muteOutput(mId, mute);
     if (mute) {
-        mMainContentComponent.soloOutput(mOutputPatch, false);
+        mMainContentComponent.soloOutput(mId, false);
     }
 }
 
 //==============================================================================
 void Speaker::setSolo(bool const solo)
 {
-    mMainContentComponent.soloOutput(mOutputPatch, solo);
+    mMainContentComponent.soloOutput(mId, solo);
     if (solo) {
-        mMainContentComponent.muteOutput(mOutputPatch, false);
+        mMainContentComponent.muteOutput(mId, false);
     }
 }
 

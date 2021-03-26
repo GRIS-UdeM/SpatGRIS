@@ -226,12 +226,12 @@ public:
 
     // Mute - solo.
     void muteInput(int id, bool mute) const;
-    void muteOutput(output_patch_t id, bool mute) const;
-    void soloInput(output_patch_t id, bool solo) const;
-    void soloOutput(output_patch_t id, bool solo) const;
+    void muteOutput(speaker_id_t const id, bool mute) const;
+    void soloInput(int const sourceIndex, bool solo) const;
+    void soloOutput(speaker_id_t const speakerId, bool solo) const;
 
     // Input - output amplitude levels.
-    [[nodiscard]] float getLevelsOut(int indexLevel) const;
+    [[nodiscard]] float getLevelsOut(speaker_id_t const speakerID) const;
     [[nodiscard]] float getLevelsIn(int indexLevel) const;
     [[nodiscard]] float getLevelsAlpha(int indexLevel) const;
     [[nodiscard]] float getSpeakerLevelsAlpha(speaker_id_t const speakerId) const;

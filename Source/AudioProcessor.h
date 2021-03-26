@@ -63,7 +63,7 @@ class AudioProcessor
 
     // Source and output lists.
     StaticVector<SourceData, MAX_INPUTS> mSourcesData{};
-    StaticVector<SpeakerData, MAX_OUTPUTS> mSpeakersOut{};
+    Manager<SpeakerData, speaker_id_t> mSpeakersOut{};
 
     // Which spatialization mode is selected.
     SpatMode mModeSelected{ SpatMode::vbap };

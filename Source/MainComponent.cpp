@@ -43,7 +43,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
 
     AudioManager::init(deviceType, inputDevice, outputDevice, sampleRate, bufferSize);
 
-    mAudioProcessor = std::make_unique<AudioProcessor>();
+    mAudioProcessor = std::make_unique<AudioProcessor>(mSpeakers, mInputs);
 
     auto const attenuationDbIndex{ mConfiguration.getAttenuationDbIndex() };
     mAudioProcessor->setAttenuationDbIndex(attenuationDbIndex);
@@ -1341,7 +1341,7 @@ float MainContentComponent::getLevelsAlpha(int const indexLevel) const
 //==============================================================================
 float MainContentComponent::getSpeakerLevelsAlpha(speaker_id_t const speakerId) const
 {
-    auto const level{ mAudioProcessor->getLevelsOut(speakerId) };
+    auto const level{ mAudioProcessor->getSpeakersOut().get(speakerId).magnitude };
     float alpha;
     if (level > 0.001f) {
         // -60 dB
@@ -1424,33 +1424,35 @@ bool MainContentComponent::refreshSpeakers()
     mAudioProcessor->setMaxOutputPatch(output_patch_t{});
 
     // Save mute/solo/directOut states
-    std::array<bool, MAX_INPUTS> inputsIsMuted{};
-    std::array<bool, MAX_INPUTS> inputsIsSolo{};
     auto const soloIn{ mAudioProcessor->getSoloIn() };
-    std::array<output_patch_t, MAX_INPUTS> directOuts{};
     auto const & sourcesIn{ mAudioProcessor->getSourcesIn() };
 
-    for (size_t i{}; i < MAX_INPUTS; ++i) {
-        inputsIsMuted[i] = sourcesIn[i].isMuted;
-        inputsIsSolo[i] = sourcesIn[i].isSolo;
-        directOuts[i] = sourcesIn[i].directOut;
+    struct MuteSoloDirectState {
+        bool isMuted;
+        bool isSolo;
+        tl::optional<output_patch_t> directOut;
+    };
+
+    StaticVector<MuteSoloDirectState, MAX_INPUTS> sourcesMuteSoloDirectStates{};
+    for (auto const & sourceData : sourcesIn) {
+        sourcesMuteSoloDirectStates.push_back(
+            MuteSoloDirectState{ sourceData.isMuted, sourceData.isSolo, sourceData.directOut });
     }
 
-    std::array<bool, MAX_OUTPUTS> outputsIsMuted{};
-    std::array<bool, MAX_OUTPUTS> outputsIsSolo{};
     auto const soloOut{ mAudioProcessor->getSoloOut() };
     auto const & speakersOut{ mAudioProcessor->getSpeakersOut() };
-    for (size_t i{}; i < MAX_OUTPUTS; ++i) {
-        outputsIsMuted[i] = speakersOut[i].isMuted;
-        outputsIsSolo[i] = speakersOut[i].isSolo;
+    juce::HashMap<speaker_id_t::type, MuteSoloDirectState> speakersMuteSoloStates{};
+    for (auto const * speaker : speakersOut) {
+        speakersMuteSoloStates.set(speaker->id.get(),
+                                   MuteSoloDirectState{ speaker->isMuted, speaker->isSolo, tl::nullopt });
     }
 
     // Cleanup speakers output patch
-    for (auto & it : mAudioProcessor->getSpeakersOut()) {
-        it.outputPatch = output_patch_t{ 0 };
-    }
+    // for (auto & it : mAudioProcessor->getSpeakersOut()) {
+    //    it.outputPatch = output_patch_t{ 0 };
+    //}
 
-    // Create outputs.
+    // copy speakers to AudioProcessor speakersData
     int i{};
     auto x{ 2 };
     auto const mode{ mAudioProcessor->getMode() };
@@ -1478,7 +1480,8 @@ bool MainContentComponent::refreshSpeakers()
         so.outputPatch = speaker->getOutputPatch();
         so.directOut = speaker->isDirectOut();
 
-        mAudioProcessor->getSpeakersOut()[i++] = so;
+        // TODO: add instead of assign?
+        mAudioProcessor->getSpeakersOut().get(so.id) = so;
 
         if (speaker->getOutputPatch() > mAudioProcessor->getMaxOutputPatch()) {
             mAudioProcessor->setMaxOutputPatch(speaker->getOutputPatch());
@@ -1487,7 +1490,7 @@ bool MainContentComponent::refreshSpeakers()
 
     // Set user gain and highpass filter cutoff frequency for each speaker->
     for (auto const * speaker : mSpeakers) {
-        auto & speakerOut{ mAudioProcessor->getSpeakersOut()[speaker->getOutputPatch().get() - 1] };
+        auto & speakerOut{ mAudioProcessor->getSpeakersOut().get(speaker->getSpeakerId()) };
         speakerOut.gain = std::pow(10.0f, speaker->getGain() * 0.05f);
         if (speaker->getHighPassCutoff() > 0.0f) {
             speakerOut.crossoverPassiveData
@@ -1540,13 +1543,11 @@ bool MainContentComponent::refreshSpeakers()
     // Temporarily remove direct out speakers to construct vbap or lbap algorithm.
     i = 0;
     std::vector<Speaker const *> tempListSpeaker{};
-    tempListSpeaker.resize(mSpeakers.size());
-    for (auto * speaker : mSpeakers) {
-        if (!speaker->isDirectOut()) {
-            tempListSpeaker[i++] = speaker;
-        }
-    }
-    tempListSpeaker.resize(i);
+    tempListSpeaker.reserve(mSpeakers.size());
+    std::copy_if(mSpeakers.cbegin(),
+                 mSpeakers.cend(),
+                 std::back_inserter(tempListSpeaker),
+                 [](Speaker const * speaker) { return !speaker->isDirectOut(); });
 
     auto returnValue{ false };
     if (mode == SpatMode::vbap || mode == SpatMode::hrtfVbap) {
@@ -1576,24 +1577,25 @@ bool MainContentComponent::refreshSpeakers()
 
     // Restore mute/solo/directOut states
     mAudioProcessor->setSoloIn(soloIn);
-    for (size_t sourceInIndex{}; sourceInIndex < MAX_INPUTS; ++sourceInIndex) {
-        auto & sourceIn{ mAudioProcessor->getSourcesIn()[sourceInIndex] };
-        sourceIn.isMuted = inputsIsMuted[sourceInIndex];
-        sourceIn.isSolo = inputsIsSolo[sourceInIndex];
-        sourceIn.directOut = directOuts[sourceInIndex];
-    }
     {
         juce::ScopedLock const lock{ mInputsLock };
-        for (int sourceInputIndex{}; sourceInputIndex < mInputs.size(); sourceInputIndex++) {
-            mInputs[sourceInputIndex]->setDirectOutChannel(directOuts[sourceInputIndex]);
+        for (size_t sourceInIndex{}; sourceInIndex < MAX_INPUTS; ++sourceInIndex) {
+            auto & sourceIn{ mAudioProcessor->getSourcesIn()[sourceInIndex] };
+            auto const & sourceState{ sourcesMuteSoloDirectStates[sourceInIndex] };
+            sourceIn.isMuted = sourceState.isMuted;
+            sourceIn.isSolo = sourceState.isSolo;
+            sourceIn.directOut = sourceState.directOut;
+            sourceState.directOut.map(
+                [&](output_patch_t const outputPatch) { mInputs[sourceInIndex]->setDirectOutChannel(outputPatch); });
         }
     }
 
     mAudioProcessor->setSoloOut(soloOut);
-    for (size_t speakerOutIndex{}; speakerOutIndex < MAX_OUTPUTS; ++speakerOutIndex) {
-        auto & speakerOut{ mAudioProcessor->getSpeakersOut()[speakerOutIndex] };
-        speakerOut.isMuted = outputsIsMuted[speakerOutIndex];
-        speakerOut.isSolo = outputsIsSolo[speakerOutIndex];
+    for (auto * speakerData : mAudioProcessor->getSpeakersOut()) {
+        auto const & state{ speakersMuteSoloStates[speakerData->id.get()] };
+        speakerData->isMuted = state.isMuted;
+        speakerData->isSolo = state.isSolo;
+        jassert(!state.directOut);
     }
 
     return returnValue;
@@ -1615,48 +1617,45 @@ void MainContentComponent::muteInput(int const id, bool const mute) const
 }
 
 //==============================================================================
-void MainContentComponent::muteOutput(output_patch_t const id, bool const mute) const
+void MainContentComponent::muteOutput(speaker_id_t const id, bool const mute) const
 {
-    auto const index{ id.get() - 1 };
-    mAudioProcessor->getSpeakersOut()[index].isMuted = mute;
+    mAudioProcessor->getSpeakersOut().get(id).isMuted = mute;
 }
 
 //==============================================================================
-void MainContentComponent::soloInput(output_patch_t const id, bool const solo) const
+void MainContentComponent::soloInput(int const sourceIndex, bool const solo) const
 {
-    auto & sourcesIn{ mAudioProcessor->getSourcesIn() };
-    auto const index{ id.get() - 1 };
-    sourcesIn[index].isSolo = solo;
+    auto & sources{ mAudioProcessor->getSourcesIn() };
+    sources[sourceIndex].isSolo = solo;
 
     mAudioProcessor->setSoloIn(false);
-    for (unsigned int i = 0; i < MAX_INPUTS; i++) {
-        if (sourcesIn[i].isSolo) {
-            mAudioProcessor->setSoloIn(true);
-            break;
-        }
+    if (std::any_of(sources.cbegin(), sources.cend(), [](SourceData const & sourceData) {
+            return sourceData.isSolo;
+        })) {
+        mAudioProcessor->setSoloIn(true);
     }
 }
 
 //==============================================================================
-void MainContentComponent::soloOutput(output_patch_t const id, bool const solo) const
+void MainContentComponent::soloOutput(speaker_id_t const speakerId, bool const solo) const
 {
-    auto const index{ id.get() - 1 };
-    auto & speakersOut{ mAudioProcessor->getSpeakersOut() };
-    speakersOut[index].isSolo = solo;
+    auto const index{ speakerId.get() - 1 };
+    auto & speakers{ mAudioProcessor->getSpeakersOut() };
+    speakers.get(speakerId).isSolo = solo;
 
     mAudioProcessor->setSoloOut(false);
-    for (unsigned int i = 0; i < MAX_OUTPUTS; i++) {
-        if (speakersOut[i].isSolo) {
-            mAudioProcessor->setSoloOut(true);
-            break;
-        }
+    if (std::any_of(speakers.cbegin(), speakers.cend(), [](SpeakerData const * speakerData) {
+            return speakerData->isSolo;
+        })) {
+        mAudioProcessor->setSoloOut(true);
     }
 }
 
 //==============================================================================
-float MainContentComponent::getLevelsOut(int const indexLevel) const
+float MainContentComponent::getLevelsOut(speaker_id_t const speakerID) const
 {
-    return (20.0f * std::log10(mAudioProcessor->getLevelsOut(indexLevel)));
+    auto const magnitude{ mAudioProcessor->getSpeakersOut().get(speakerID).magnitude };
+    return 20.0f * std::log10(magnitude); // TODO: is this a simple toDb transformation?
 }
 
 //==============================================================================

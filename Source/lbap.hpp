@@ -25,9 +25,8 @@
 
 #pragma once
 
-#include "StaticVector.h"
+#include "Manager.hpp"
 #include "StrongTypes.hpp"
-#include "constants.hpp"
 
 static auto constexpr LBAP_MATRIX_SIZE = 64;
 
@@ -145,7 +144,7 @@ void lbap_field_compute(lbap_field const & field, lbap_pos const & position, flo
  *
  * \return lbap_speaker array pointer.
  */
-std::vector<lbap_speaker> lbap_speakers_from_positions(StaticVector<SpeakerData, MAX_OUTPUTS> const & speakers);
+std::vector<lbap_speaker> lbap_speakers_from_positions(Manager<SpeakerData, speaker_id_t> const & speakers);
 
 /** \brief Initialize an lbap_pos structure from a position in radians.
  *

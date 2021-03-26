@@ -78,14 +78,14 @@ void Input::setMuted(bool const mute)
 {
     mMainContentComponent.muteInput(mIdChannel, mute);
     if (mute) {
-        mMainContentComponent.soloInput(output_patch_t{ mIdChannel }, false);
+        mMainContentComponent.soloInput(mIdChannel, false);
     }
 }
 
 //==============================================================================
 void Input::setSolo(bool const solo)
 {
-    mMainContentComponent.soloInput(output_patch_t{ mIdChannel }, solo);
+    mMainContentComponent.soloInput(mIdChannel, solo);
     if (solo) {
         mMainContentComponent.muteInput(mIdChannel, false);
     }
