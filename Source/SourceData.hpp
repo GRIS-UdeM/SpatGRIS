@@ -27,6 +27,13 @@
 #include "lbap.hpp"
 #include "vbap.hpp"
 
+struct AttenuationData {
+    float lastGain{};
+    float lastCoefficient{};
+    float lowpassY{};
+    float lowpassZ{};
+};
+
 //==============================================================================
 struct SourceData {
     unsigned int id{};
@@ -58,4 +65,5 @@ struct SourceData {
 
     VbapData * paramVBap{};
     bool shouldUpdateVbap{};
+    AttenuationData attenuationData{};
 };

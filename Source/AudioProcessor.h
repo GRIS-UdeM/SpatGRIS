@@ -88,10 +88,6 @@ class AudioProcessor
     // LBAP distance attenuation values.
     float mAttenuationLinearGain{ 0.01584893f };       // -36 dB;
     float mAttenuationLowpassCoefficient{ 0.867208f }; // 1000 Hz
-    std::array<float, MAX_INPUTS> mLastAttenuationGain{};
-    std::array<float, MAX_INPUTS> mLastAttenuationCoefficient{};
-    std::array<float, MAX_INPUTS> mAttenuationLowpassY{};
-    std::array<float, MAX_INPUTS> mAttenuationLowpassZ{};
     //==============================================================================
     // This structure is used to compute the VBAP algorithm only once. Each source only gets a copy.
     VbapData * mParamVBap{};
