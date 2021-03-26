@@ -42,6 +42,8 @@ struct SourceData {
     degrees_t zenith{};
     float radius{ 1.0f };
 
+    degrees_t lastAzimuth{};
+
     radians_t radAzimuth{};
     radians_t radElevation{};
 

@@ -232,7 +232,7 @@ void AudioProcessor::processVbap(juce::AudioBuffer<float> const & inputBuffer,
                 jassert(source.directOut);
                 if (*source.directOut == speaker.outputPatch) {
                     // output patch matches
-                    std::transform(inputSamples, inputSamples + numSamples, outputSamples, std::plus());
+                    std::transform(inputSamples, inputSamples + numSamples, outputSamples, outputSamples, std::plus());
                 }
                 continue;
             }
@@ -294,8 +294,8 @@ void AudioProcessor::processLbap(juce::AudioBuffer<float> const & inputBuffer,
             for (auto & speaker : mSpeakersOut) {
                 if (*source.directOut == speaker.outputPatch) {
                     auto * outputSamples{ outputBuffer.getWritePointer(speaker.id) };
-                    std::transform(inputSamples, inputSamples + numSamples, outputSamples, std::plus());
-                    continue;
+                    std::transform(inputSamples, inputSamples + numSamples, outputSamples, outputSamples, std::plus());
+                    break;
                 }
             }
             continue;
@@ -482,61 +482,63 @@ void AudioProcessor::processVBapHrtf(juce::AudioBuffer<float> const & inputBuffe
 
 //==============================================================================
 void AudioProcessor::processStereo(juce::AudioBuffer<float> const & inputBuffer,
-                                   TaggedAudioBuffer<MAX_OUTPUTS> const & outputBuffer) noexcept
+                                   TaggedAudioBuffer<MAX_OUTPUTS> & outputBuffer) noexcept
 {
+    jassert(mSpeakersOut.size() == 2);
+
     static auto constexpr FACTOR{ juce::MathConstants<float>::pi / 360.0f };
     auto const gainFactor{ std::pow(mInterMaster, 0.1f) * 0.0099f + 0.99f };
 
-    for (unsigned inputIndex{}; inputIndex < sizeInputs; ++inputIndex) {
-        if (mLevelsIn[inputIndex] < SMALL_GAIN) {
+    auto * leftOutputSamples{ outputBuffer.getWritePointerByOutputPatch(output_patch_t{ 1 }) };
+    auto * rightOutputSamples{ outputBuffer.getWritePointerByOutputPatch(output_patch_t{ 2 }) };
+    auto const numSamples{ inputBuffer.getNumSamples() };
+
+    for (int sourceIndex{}; sourceIndex < mSourcesData.size(); ++sourceIndex) {
+        // Is empty?
+        auto & source{ mSourcesData[sourceIndex] };
+        if (source.magnitude < SMALL_GAIN) {
             // nothing to process
             continue;
         }
 
-        auto const & sourceData{ mSourcesData[inputIndex] };
-        auto const * inputBuffer{ ins[inputIndex] };
-        if (!sourceData.directOut.get()) {
-            auto const azimuth{ sourceData.azimuth };
-            auto lastAzimuth{ mLastAzimuth[inputIndex] };
-            for (size_t sampleIndex{}; sampleIndex < nFrames; ++sampleIndex) {
-                // Removes the chirp at 180->-180 degrees azimuth boundary.
-                if ((lastAzimuth - azimuth).abs() > degrees_t{ 300.0f }) {
-                    lastAzimuth = azimuth;
-                }
-                lastAzimuth = azimuth + (lastAzimuth - azimuth) * gainFactor;
-                degrees_t scaled;
-                if (lastAzimuth < degrees_t{ -90.0f }) {
-                    scaled = degrees_t{ -90.0f } - (lastAzimuth + degrees_t{ 90.0f });
-                } else if (lastAzimuth > degrees_t{ 90.0f }) {
-                    scaled = degrees_t{ 90.0f } - (lastAzimuth - degrees_t{ 90.0f });
-                } else {
-                    scaled = lastAzimuth;
-                }
-                scaled = (scaled + degrees_t{ 90.0f }) * FACTOR;
-                using fast = juce::dsp::FastMathApproximations;
-                outs[LEFT][sampleIndex] += inputBuffer[sampleIndex] * fast::cos(scaled.get());
-                outs[RIGHT][sampleIndex] += inputBuffer[sampleIndex] * fast::sin(scaled.get());
-            }
-            mLastAzimuth[inputIndex] = lastAzimuth;
-
-        } else if (sourceData.directOut.get() % 2 == 1) {
-            // left direct out
-            for (size_t sampleIndex{}; sampleIndex < nFrames; ++sampleIndex) {
-                outs[LEFT][sampleIndex] += inputBuffer[sampleIndex];
-            }
-        } else {
-            // right direct out
-            for (size_t sampleIndex{}; sampleIndex < nFrames; ++sampleIndex) {
-                outs[RIGHT][sampleIndex] += inputBuffer[sampleIndex];
-            }
+        // Is direct out?
+        auto const * inputSamples{ inputBuffer.getReadPointer(sourceIndex) };
+        if (source.directOut) {
+            auto * target{ source.directOut->get() % 2 == 1 ? leftOutputSamples : rightOutputSamples };
+            std::transform(inputSamples, inputSamples + numSamples, target, target, std::plus());
+            continue;
         }
+
+        // Process
+        auto const & azimuth{ source.azimuth };
+        auto lastAzimuth{ source.lastAzimuth };
+        for (int sampleIndex{}; sampleIndex < numSamples; ++sampleIndex) {
+            // Removes the chirp at 180->-180 degrees azimuth boundary.
+            if ((lastAzimuth - azimuth).abs() > degrees_t{ 300.0f }) {
+                lastAzimuth = azimuth;
+            }
+            lastAzimuth = azimuth + (lastAzimuth - azimuth) * gainFactor;
+            degrees_t scaled;
+            if (lastAzimuth < degrees_t{ -90.0f }) {
+                scaled = degrees_t{ -90.0f } - (lastAzimuth + degrees_t{ 90.0f });
+            } else if (lastAzimuth > degrees_t{ 90.0f }) {
+                scaled = degrees_t{ 90.0f } - (lastAzimuth - degrees_t{ 90.0f });
+            } else {
+                scaled = lastAzimuth;
+            }
+            scaled = (scaled + degrees_t{ 90.0f }) * FACTOR;
+            using fast = juce::dsp::FastMathApproximations;
+            leftOutputSamples[sampleIndex] += inputSamples[sampleIndex] * fast::cos(scaled.get());
+            rightOutputSamples[sampleIndex] += inputSamples[sampleIndex] * fast::sin(scaled.get());
+        }
+        source.lastAzimuth = lastAzimuth;
     }
+
     // Apply gain compensation.
-    auto const compensation{ std::pow(10.0f, (narrow<float>(sizeInputs) - 1.0f) * -0.1f * 0.05f) };
-    for (size_t sampleIndex{}; sampleIndex < nFrames; ++sampleIndex) {
-        outs[LEFT][sampleIndex] *= compensation;
-        outs[RIGHT][sampleIndex] *= compensation;
-    }
+    auto const compensation{ std::pow(10.0f, (narrow<float>(inputBuffer.getNumChannels()) - 1.0f) * -0.1f * 0.05f) };
+    auto const applyCompensation = [compensation](float & sample) { sample *= compensation; };
+    std::for_each_n(leftOutputSamples, numSamples, applyCompensation);
+    std::for_each_n(rightOutputSamples, numSamples, applyCompensation);
 }
 
 //==============================================================================
@@ -623,11 +625,9 @@ bool AudioProcessor::initSpeakersTriplet(std::vector<Speaker const *> const & li
         }
     }
 
-    for (unsigned i{}; i < MAX_INPUTS; ++i) {
-        auto & paramVbap{ mSourcesData[i].paramVBap };
-        free_vbap_data(paramVbap);
-        ;
-        paramVbap = copy_vbap_data(mParamVBap);
+    for (auto & source : mSourcesData) {
+        free_vbap_data(source.paramVBap);
+        source.paramVBap = copy_vbap_data(mParamVBap);
     }
 
     int ** triplets;
@@ -668,7 +668,7 @@ bool AudioProcessor::lbapSetupSpeakerField(std::vector<Speaker const *> const & 
         --matchingSpeakerDataIt->outputPatch;
     }
 
-    auto speakers{ lbap_speakers_from_positions(mSpeakersOut.data(), listSpk.size()) };
+    auto speakers{ lbap_speakers_from_positions(mSpeakersOut) };
 
     mLbapSpeakerField.reset();
     lbap_field_setup(mLbapSpeakerField, speakers);

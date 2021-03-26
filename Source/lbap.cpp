@@ -263,11 +263,11 @@ void lbap_field_compute(lbap_field const & field, lbap_pos const & position, flo
     }
 }
 
-std::vector<lbap_speaker> lbap_speakers_from_positions(SpeakerData const * speakers, size_t const numSpeakers)
+std::vector<lbap_speaker> lbap_speakers_from_positions(StaticVector<SpeakerData, MAX_OUTPUTS> const & speakers)
 {
     std::vector<lbap_speaker> result{};
-    result.reserve(numSpeakers);
-    std::transform(speakers, speakers + numSpeakers, std::back_inserter(result), [](SpeakerData const & speaker) {
+    result.reserve(speakers.size());
+    std::transform(speakers.cbegin(), speakers.cend(), std::back_inserter(result), [](SpeakerData const & speaker) {
         auto const clampedRadius{ std::clamp(speaker.radius, 0.0f, 1.0f) };
         return lbap_speaker{ speaker.azimuth, speaker.zenith, clampedRadius, speaker.outputPatch };
     });

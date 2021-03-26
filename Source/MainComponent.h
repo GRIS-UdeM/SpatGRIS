@@ -234,7 +234,7 @@ public:
     [[nodiscard]] float getLevelsOut(int indexLevel) const;
     [[nodiscard]] float getLevelsIn(int indexLevel) const;
     [[nodiscard]] float getLevelsAlpha(int indexLevel) const;
-    [[nodiscard]] float getSpeakerLevelsAlpha(int indexLevel) const;
+    [[nodiscard]] float getSpeakerLevelsAlpha(speaker_id_t const speakerId) const;
 
     // Called when the speaker setup has changed.
     bool refreshSpeakers();

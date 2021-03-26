@@ -11,7 +11,8 @@ ENABLE_WARNINGS
 template<typename T, size_t CAPACITY>
 class StaticVector
 {
-    static_assert(std::is_trivially_default_constructible_v<T>);
+    static_assert(std::is_default_constructible_v<T>);
+    static_assert(std::is_trivially_destructible_v<T>);
     using container_t = std::array<T, CAPACITY>;
     //==============================================================================
     container_t mData;

@@ -1235,7 +1235,7 @@ void MainContentComponent::updateSourceData(int const sourceDataIndex, Input & i
     sourceData.zenithSpan = input.getZenithSpan() * 2.0f;
 
     if (spatMode == SpatMode::vbap || spatMode == SpatMode::hrtfVbap) {
-        mAudioProcessor->getVbapSourcesToUpdate()[sourceDataIndex] = 1;
+        sourceData.shouldUpdateVbap = true;
     }
 }
 
@@ -1290,7 +1290,7 @@ Speaker * MainContentComponent::getSpeakerFromOutputPatch(output_patch_t const o
 }
 
 //==============================================================================
-static void linkwitzRileyComputeVariables(double const freq, double const sr, double ** coefficients, int const length)
+static CrossoverPassiveData linkwitzRileyComputeVariables(double const freq, double const sr)
 {
     auto const wc{ 2.0 * juce::MathConstants<double>::pi * freq };
     auto const wc2{ wc * wc };
@@ -1306,8 +1306,6 @@ static void linkwitzRileyComputeVariables(double const freq, double const sr, do
     auto const aTmp{ 4.0 * wc2 * k2 + 2.0 * sqTmp1 + k4 + 2.0 * sqTmp2 + wc4 };
     auto const k4ATmp{ k4 / aTmp };
 
-    *coefficients = static_cast<double *>(malloc(length * sizeof(double)));
-
     /* common */
     auto const b1{ (4.0 * (wc4 + sqTmp1 - k4 - sqTmp2)) / aTmp };
     auto const b2{ (6.0 * wc4 - 8.0 * wc2 * k2 + 6.0 * k4) / aTmp };
@@ -1319,25 +1317,20 @@ static void linkwitzRileyComputeVariables(double const freq, double const sr, do
     auto const ha1{ -4.0 * k4ATmp };
     auto const ha2{ 6.0 * k4ATmp };
 
-    (*coefficients)[0] = b1;
-    (*coefficients)[1] = b2;
-    (*coefficients)[2] = b3;
-    (*coefficients)[3] = b4;
-    (*coefficients)[4] = ha0;
-    (*coefficients)[5] = ha1;
-    (*coefficients)[6] = ha2;
+    return CrossoverPassiveData{ b1, b2, b3, b4, ha0, ha1, ha2 };
 }
 
 //==============================================================================
 float MainContentComponent::getLevelsIn(int const indexLevel) const
 {
-    return (20.0f * std::log10(mAudioProcessor->getLevelsIn(indexLevel)));
+    auto const magnitude{ mAudioProcessor->getSourcesIn()[indexLevel].magnitude };
+    return (20.0f * std::log10(magnitude)); // TODO: simple to db calc?
 }
 
 //==============================================================================
 float MainContentComponent::getLevelsAlpha(int const indexLevel) const
 {
-    auto const level{ mAudioProcessor->getLevelsIn(indexLevel) };
+    auto const level{ mAudioProcessor->getSourcesIn()[indexLevel].magnitude };
     if (level > 0.0001f) {
         // -80 dB
         return 1.0f;
@@ -1346,9 +1339,9 @@ float MainContentComponent::getLevelsAlpha(int const indexLevel) const
 }
 
 //==============================================================================
-float MainContentComponent::getSpeakerLevelsAlpha(int const indexLevel) const
+float MainContentComponent::getSpeakerLevelsAlpha(speaker_id_t const speakerId) const
 {
-    auto const level{ mAudioProcessor->getLevelsOut(indexLevel) };
+    auto const level{ mAudioProcessor->getLevelsOut(speakerId) };
     float alpha;
     if (level > 0.001f) {
         // -60 dB
@@ -1497,21 +1490,9 @@ bool MainContentComponent::refreshSpeakers()
         auto & speakerOut{ mAudioProcessor->getSpeakersOut()[speaker->getOutputPatch().get() - 1] };
         speakerOut.gain = std::pow(10.0f, speaker->getGain() * 0.05f);
         if (speaker->getHighPassCutoff() > 0.0f) {
-            double * coefficients;
-            linkwitzRileyComputeVariables(static_cast<double>(speaker->getHighPassCutoff()),
-                                          narrow<double>(mSamplingRate),
-                                          &coefficients,
-                                          7);
-            speakerOut.b1 = coefficients[0];
-            speakerOut.b2 = coefficients[1];
-            speakerOut.b3 = coefficients[2];
-            speakerOut.b4 = coefficients[3];
-            speakerOut.ha0 = coefficients[4];
-            speakerOut.ha1 = coefficients[5];
-            speakerOut.ha2 = coefficients[6];
-            speakerOut.hpActive = true;
-            free(coefficients);
-            // TODO : naked free
+            speakerOut.crossoverPassiveData
+                = linkwitzRileyComputeVariables(static_cast<double>(speaker->getHighPassCutoff()),
+                                                narrow<double>(mSamplingRate));
         }
     }
 

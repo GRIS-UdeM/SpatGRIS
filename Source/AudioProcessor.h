@@ -79,9 +79,6 @@ class AudioProcessor
     std::array<std::array<float, 128>, 16> mVbapHrtfLeftImpulses{};
     std::array<std::array<float, 128>, 16> mVbapHrtfRightImpulses{};
 
-    // STEREO data.
-    std::array<degrees_t, MAX_INPUTS> mLastAzimuth{};
-
     // LBAP data.
     lbap_field mLbapSpeakerField{};
 
@@ -105,8 +102,6 @@ public:
     AudioProcessor & operator=(AudioProcessor &&) = delete;
     //==============================================================================
     // Audio Status.
-    [[nodiscard]] float getLevelsIn(int const index) const { return mLevelsIn[index]; }
-    [[nodiscard]] float getLevelsOut(int const index) const { return mLevelsOut[index]; }
 
     [[nodiscard]] std::vector<output_patch_t> getDirectOutOutputPatches() const;
 
@@ -128,7 +123,6 @@ public:
     [[nodiscard]] unsigned getVbapDimensions() const { return mVbapDimensions; }
     [[nodiscard]] auto & getSourcesIn() { return mSourcesData; }
     [[nodiscard]] auto const & getSourcesIn() const { return mSourcesData; }
-    [[nodiscard]] auto & getVbapSourcesToUpdate() { return mVbapSourcesToUpdate; }
     [[nodiscard]] auto const & getVbapTriplets() const { return mVbapTriplets; }
     [[nodiscard]] bool getSoloIn() const { return mSoloIn; }
     [[nodiscard]] bool getSoloOut() const { return mSoloOut; }
@@ -136,7 +130,7 @@ public:
     [[nodiscard]] auto & getSpeakersOut() { return mSpeakersOut; }
     [[nodiscard]] output_patch_t getMaxOutputPatch() const { return mMaxOutputPatch; }
 
-    juce::CriticalSection const & getCriticalSection() const noexcept { return mCriticalSection; }
+    [[nodiscard]] juce::CriticalSection const & getCriticalSection() const noexcept { return mCriticalSection; }
 
     void setMaxOutputPatch(output_patch_t const maxOutputPatch) { mMaxOutputPatch = maxOutputPatch; }
     void setVbapDimensions(unsigned const dimensions) { mVbapDimensions = dimensions; }
