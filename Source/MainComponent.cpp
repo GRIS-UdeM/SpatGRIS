@@ -41,9 +41,15 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     auto const sampleRate{ mConfiguration.getSampleRate() };
     auto const bufferSize{ mConfiguration.getBufferSize() };
 
+    // TODO: probably a race condition here
     AudioManager::init(deviceType, inputDevice, outputDevice, sampleRate, bufferSize);
-
     mAudioProcessor = std::make_unique<AudioProcessor>(mSpeakers, mInputs);
+
+    juce::ScopedLock const audioLock{ mAudioProcessor->getCriticalSection() };
+
+    auto & audioManager{ AudioManager::getInstance() };
+    audioManager.registerAudioProcessor(mAudioProcessor.get(), mSpeakers, mInputs);
+    mSamplingRate = narrow<unsigned>(sampleRate);
 
     auto const attenuationDbIndex{ mConfiguration.getAttenuationDbIndex() };
     mAudioProcessor->setAttenuationDbIndex(attenuationDbIndex);
@@ -136,8 +142,6 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
 
     // Default application window size.
     setSize(1285, 610);
-
-    mSamplingRate = narrow<unsigned>(sampleRate);
 
     jassert(AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice());
 
@@ -1216,6 +1220,10 @@ bool MainContentComponent::isRadiusNormalized() const
 //==============================================================================
 void MainContentComponent::updateSourceData(int const sourceDataIndex, Input & input) const
 {
+    if (sourceDataIndex >= mAudioProcessor->getSourcesIn().size()) {
+        return;
+    }
+
     auto const spatMode{ mAudioProcessor->getMode() };
     auto & sourceData{ mAudioProcessor->getSourcesIn()[sourceDataIndex] };
 
@@ -1456,6 +1464,9 @@ bool MainContentComponent::refreshSpeakers()
     int i{};
     auto x{ 2 };
     auto const mode{ mAudioProcessor->getMode() };
+    auto & speakersData{ mAudioProcessor->getSpeakersOut() };
+    speakersData.clear();
+    juce::ScopedLock const speakersLock{ mSpeakers.getLock() };
     for (auto * speaker : mSpeakers) {
         juce::Rectangle<int> level{ x, 4, VU_METER_WIDTH_IN_PIXELS, 200 };
         speaker->getVuMeter()->setBounds(level);
@@ -1469,19 +1480,21 @@ bool MainContentComponent::refreshSpeakers()
             speaker->normalizeRadius();
         }
 
-        SpeakerData so;
-        so.id = speaker_id_t{ speaker->getOutputPatch().get() };
-        so.x = speaker->getCartesianCoords().x;
-        so.y = speaker->getCartesianCoords().y;
-        so.z = speaker->getCartesianCoords().z;
-        so.azimuth = degrees_t{ speaker->getPolarCoords().x };
-        so.zenith = degrees_t{ speaker->getPolarCoords().y };
-        so.radius = speaker->getPolarCoords().z;
-        so.outputPatch = speaker->getOutputPatch();
-        so.directOut = speaker->isDirectOut();
+        auto const speakerId{ speaker->getSpeakerId() };
+
+        auto so{ std::make_unique<SpeakerData>() };
+        so->id = speakerId;
+        so->x = speaker->getCartesianCoords().x;
+        so->y = speaker->getCartesianCoords().y;
+        so->z = speaker->getCartesianCoords().z;
+        so->azimuth = degrees_t{ speaker->getPolarCoords().x };
+        so->zenith = degrees_t{ speaker->getPolarCoords().y };
+        so->radius = speaker->getPolarCoords().z;
+        so->outputPatch = speaker->getOutputPatch();
+        so->directOut = speaker->isDirectOut();
 
         // TODO: add instead of assign?
-        mAudioProcessor->getSpeakersOut().get(so.id) = so;
+        speakersData.add(speakerId, std::move(so));
 
         if (speaker->getOutputPatch() > mAudioProcessor->getMaxOutputPatch()) {
             mAudioProcessor->setMaxOutputPatch(speaker->getOutputPatch());
@@ -1509,6 +1522,8 @@ bool MainContentComponent::refreshSpeakers()
     }
     {
         juce::ScopedLock const lock{ mInputsLock };
+        auto & sourcesData{ mAudioProcessor->getSourcesIn() };
+        sourcesData.clear();
         for (auto * input : mInputs) {
             juce::Rectangle<int> level{ x, 4, VU_METER_WIDTH_IN_PIXELS, 200 };
             input->getVuMeter()->setBounds(level);
@@ -1521,7 +1536,7 @@ bool MainContentComponent::refreshSpeakers()
 
             x += VU_METER_WIDTH_IN_PIXELS;
 
-            SourceData sourceIn;
+            SourceData sourceIn{};
             sourceIn.id = input->getId();
             sourceIn.radAzimuth = input->getAzimuth();
             sourceIn.radElevation = HALF_PI - input->getZenith();
@@ -1529,7 +1544,7 @@ bool MainContentComponent::refreshSpeakers()
             sourceIn.zenith = input->getZenith().toDegrees();
             sourceIn.radius = input->getRadius();
             sourceIn.gain = 0.0f;
-            mAudioProcessor->getSourcesIn()[i++] = sourceIn;
+            sourcesData.push_back(sourceIn);
         }
     }
 
@@ -1578,8 +1593,8 @@ bool MainContentComponent::refreshSpeakers()
     // Restore mute/solo/directOut states
     mAudioProcessor->setSoloIn(soloIn);
     {
-        juce::ScopedLock const lock{ mInputsLock };
-        for (size_t sourceInIndex{}; sourceInIndex < MAX_INPUTS; ++sourceInIndex) {
+        juce::ScopedLock const inputsLock{ mInputsLock };
+        for (size_t sourceInIndex{}; sourceInIndex < sourcesMuteSoloDirectStates.size(); ++sourceInIndex) {
             auto & sourceIn{ mAudioProcessor->getSourcesIn()[sourceInIndex] };
             auto const & sourceState{ sourcesMuteSoloDirectStates[sourceInIndex] };
             sourceIn.isMuted = sourceState.isMuted;
@@ -1661,8 +1676,9 @@ float MainContentComponent::getLevelsOut(speaker_id_t const speakerID) const
 //==============================================================================
 void MainContentComponent::setDirectOut(int const id, output_patch_t const chn) const
 {
-    auto const index{ id - 1 };
-    mAudioProcessor->getSourcesIn()[index].directOut = chn;
+    // auto const index{ id - 1 };
+    mInputs[id]->setDirectOutChannel(chn);
+    // mAudioProcessor->getSourcesIn()[index].directOut = chn;
 }
 
 //==============================================================================
@@ -1903,10 +1919,10 @@ void MainContentComponent::openProject(juce::File const & file)
                                  true);
                     if (input->hasAttribute("DirectOut")) {
                         it->setDirectOutChannel(output_patch_t{ input->getIntAttribute("DirectOut") });
-                        setDirectOut(it->getId(), output_patch_t{ input->getIntAttribute("DirectOut") });
+                        setDirectOut(it->getId() - 1, output_patch_t{ input->getIntAttribute("DirectOut") });
                     } else {
                         it->setDirectOutChannel(output_patch_t{});
-                        setDirectOut(it->getId(), output_patch_t{});
+                        setDirectOut(it->getId() - 1, output_patch_t{});
                     }
                 }
             }

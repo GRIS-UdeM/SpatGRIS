@@ -109,9 +109,6 @@ AudioProcessor::AudioProcessor(Manager<Speaker, speaker_id_t> const & speakers, 
 
     mInterMaster = 0.8f;
 
-    auto & audioManager{ AudioManager::getInstance() };
-    audioManager.registerAudioProcessor(this, speakers, inputs);
-
     // Initialize pink noise
     srand(static_cast<unsigned>(time(nullptr)));
 }
@@ -157,7 +154,6 @@ void AudioProcessor::muteSoloVuMeterGainOut(TaggedAudioBuffer<MAX_OUTPUTS> & out
                                             int const numSamples,
                                             float const gain) noexcept
 {
-    jassert(outputBuffer.getNumChannels());
     for (auto * speakerOut : mSpeakersOut) {
         auto buffer{ outputBuffer.getChannel(speakerOut->id, numSamples) };
 

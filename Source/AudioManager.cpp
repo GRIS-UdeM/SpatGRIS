@@ -54,7 +54,7 @@ void AudioManager::audioDeviceIOCallback(float const ** inputChannelData,
                                          int const numSamples)
 {
     jassert(numSamples <= mOutputBuffer.MAX_BUFFER_LENGTH);
-    juce::ScopedLock sl{ mCriticalSection };
+    juce::ScopedLock sl{ mCriticalSection }; // TODO: necessary?
 
     // clear buffers
     mOutputBuffer.clear();
