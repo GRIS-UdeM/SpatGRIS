@@ -21,6 +21,8 @@
 
 #include <array>
 
+#include "lib/tl/optional.hpp"
+
 #include "constants.hpp"
 #include "lbap.hpp"
 #include "vbap.hpp"
@@ -28,17 +30,20 @@
 //==============================================================================
 struct SourceData {
     unsigned int id{};
-    float x{};
-    float y{};
-    float z{};
 
-    radians_t radAzimuth{};
-    radians_t radElevation{};
     degrees_t azimuth{};
     degrees_t zenith{};
     float radius{ 1.0f };
+
+    radians_t radAzimuth{};
+    radians_t radElevation{};
+
     float azimuthSpan{};
     float zenithSpan{};
+
+    float x{};
+    float y{};
+    float z{};
 
     std::array<float, MAX_OUTPUTS> lbapGains{};
     std::array<float, MAX_OUTPUTS> lbapY{};
@@ -47,8 +52,10 @@ struct SourceData {
     bool isMuted = false;
     bool isSolo = false;
     float gain{}; // Not used yet.
+    float magnitude{};
 
-    output_patch_t directOut{};
+    tl::optional<output_patch_t> directOut{};
 
     VbapData * paramVBap{};
+    bool shouldUpdateVbap{};
 };

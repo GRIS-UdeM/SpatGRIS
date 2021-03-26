@@ -61,30 +61,15 @@ class AudioProcessor
     dbfs_t mPinkNoiseGain{ -20.0f };
     bool mPinkNoiseActive{ false };
 
-    // Crossover highpass filter.
-    std::array<double, MAX_OUTPUTS> mCrossoverHighpassX1{};
-    std::array<double, MAX_OUTPUTS> mCrossoverHighpassX2{};
-    std::array<double, MAX_OUTPUTS> mCrossoverHighpassX3{};
-    std::array<double, MAX_OUTPUTS> mCrossoverHighpassX4{};
-    std::array<double, MAX_OUTPUTS> mCrossoverHighpassY1{};
-    std::array<double, MAX_OUTPUTS> mCrossoverHighpassY2{};
-    std::array<double, MAX_OUTPUTS> mCrossoverHighpassY3{};
-    std::array<double, MAX_OUTPUTS> mCrossoverHighpassY4{};
-
-    // Mute / Solo / VuMeter.
-    std::array<float, MAX_INPUTS> mLevelsIn{};
-    std::array<float, MAX_OUTPUTS> mLevelsOut{};
-
     // Source and output lists.
-    std::array<SourceData, MAX_INPUTS> mSourcesData{};
-    std::array<SpeakerData, MAX_OUTPUTS> mSpeakersOut{};
+    StaticVector<SourceData, MAX_INPUTS> mSourcesData{};
+    StaticVector<SpeakerData, MAX_OUTPUTS> mSpeakersOut{};
 
     // Which spatialization mode is selected.
     SpatMode mModeSelected{ SpatMode::vbap };
 
     // VBAP data.
     unsigned mVbapDimensions{};
-    std::array<int, MAX_INPUTS> mVbapSourcesToUpdate{};
 
     juce::Array<Triplet> mVbapTriplets{};
 
@@ -172,17 +157,17 @@ public:
 
     //==============================================================================
     // Audio processing
-    void muteSoloVuMeterGainOut(juce::AudioBuffer<float> const & inputBuffer,
-                                TaggedAudioBuffer<MAX_OUTPUTS> const & outputBuffer,
+    void muteSoloVuMeterGainOut(TaggedAudioBuffer<MAX_OUTPUTS> & outputBuffer,
+                                int const numSamples,
                                 float gain = 1.0f) noexcept;
     void processVbap(juce::AudioBuffer<float> const & inputBuffer,
-                     TaggedAudioBuffer<MAX_OUTPUTS> const & outputBuffer) noexcept;
+                     TaggedAudioBuffer<MAX_OUTPUTS> & outputBuffer) noexcept;
     void processLbap(juce::AudioBuffer<float> const & inputBuffer,
-                     TaggedAudioBuffer<MAX_OUTPUTS> const & outputBuffer) noexcept;
+                     TaggedAudioBuffer<MAX_OUTPUTS> & outputBuffer) noexcept;
     void processVBapHrtf(juce::AudioBuffer<float> const & inputBuffer,
-                         TaggedAudioBuffer<MAX_OUTPUTS> const & outputBuffer) noexcept;
+                         TaggedAudioBuffer<MAX_OUTPUTS> & outputBuffer) noexcept;
     void processStereo(juce::AudioBuffer<float> const & inputBuffer,
-                       TaggedAudioBuffer<MAX_OUTPUTS> const & outputBuffer) noexcept;
+                       TaggedAudioBuffer<MAX_OUTPUTS> & outputBuffer) noexcept;
     void processAudio(juce::AudioBuffer<float> & inputBuffer, TaggedAudioBuffer<MAX_OUTPUTS> & outputBuffer) noexcept;
 
 private:

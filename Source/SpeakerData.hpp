@@ -20,21 +20,19 @@
 #pragma once
 
 #include "StrongTypes.hpp"
+#include "lib/tl/optional.hpp"
 
-//==============================================================================
-struct SpeakerData {
-    speaker_id_t id{};
-    float x{};
-    float y{};
-    float z{};
-
-    degrees_t azimuth{};
-    degrees_t zenith{};
-    float radius{};
-
-    float gain{ 1.0f };
-
-    bool hpActive = false;
+struct CrossoverActiveData {
+    double x1{};
+    double x2{};
+    double x3{};
+    double x4{};
+    double y1{};
+    double y2{};
+    double y3{};
+    double y4{};
+};
+struct CrossoverPassiveData {
     double b1{};
     double b2{};
     double b3{};
@@ -42,11 +40,28 @@ struct SpeakerData {
     double ha0{};
     double ha1{};
     double ha2{};
+};
+
+//==============================================================================
+struct SpeakerData {
+    speaker_id_t id{};
+    output_patch_t outputPatch{};
+    float gain{ 1.0f };
+
+    degrees_t azimuth{};
+    degrees_t zenith{};
+    float radius{};
+
+    float x{};
+    float y{};
+    float z{};
+
+    tl::optional<CrossoverPassiveData> crossoverPassiveData{};
+    CrossoverActiveData crossoverActiveData{};
 
     bool isMuted = false;
     bool isSolo = false;
-
-    output_patch_t outputPatch{};
-
     bool directOut = false;
+
+    float magnitude{};
 };

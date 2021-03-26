@@ -22,6 +22,29 @@ public:
     using iterator = typename container_t::iterator;
     using const_iterator = typename container_t::const_iterator;
     //==============================================================================
+    T & operator[](int const index)
+    {
+        auto const index_u{ narrow<size_t>(index) };
+        jassert(index_u < mSize);
+        return mData[index_u];
+    }
+    T const & operator[](int const index) const
+    {
+        auto const index_u{ narrow<size_t>(index) };
+        jassert(index_u < mSize);
+        return mData[index_u];
+    }
+    T & operator[](size_t const index)
+    {
+        jassert(index < mSize);
+        return mData[index];
+    }
+    T const & operator[](size_t const index) const
+    {
+        jassert(index < mSize);
+        return mData[index];
+    }
+
     void push_back(T const & value)
     {
         jassert(!isFull());

@@ -56,7 +56,20 @@ public:
         });
     }
 
-    float * const * getUnorderedArrayOfWritePointers() { return mBuffer.getArrayOfWritePointers(); }
+    [[nodiscard]] juce::AudioBuffer<float> getUnderlyingBuffer(int const numSamples)
+    {
+        jassert(numSamples <= MAX_BUFFER_LENGTH);
+        return juce::AudioBuffer<float>{ mBuffer.getArrayOfWritePointers(),
+                                         mBuffer.getNumChannels(),
+                                         mBuffer.getNumSamples() };
+    }
+    [[nodiscard]] juce::AudioBuffer<float> getChannel(speaker_id_t const id, int const numSamples)
+    {
+        jassert(numSamples <= MAX_BUFFER_LENGTH);
+        auto const index{ getIndexOf(id) };
+        auto * const data{ mBuffer.getWritePointer(index) };
+        return juce::AudioBuffer<float>{ &data, 1, numSamples };
+    }
 
     float * getWritePointer(speaker_id_t const id)
     {
