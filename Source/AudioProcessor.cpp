@@ -203,8 +203,6 @@ void AudioProcessor::muteSoloVuMeterGainOut(TaggedAudioBuffer<MAX_OUTPUTS> & out
 void AudioProcessor::processVbap(juce::AudioBuffer<float> const & inputBuffer,
                                  TaggedAudioBuffer<MAX_OUTPUTS> & outputBuffer) noexcept
 {
-    auto const numSources{ narrow<int>(mSourcesData.size()) };
-    jassert(numSources == inputBuffer.getNumChannels());
     int index{};
     for (auto & source : mSourcesData) {
         if (source.shouldUpdateVbap) {
@@ -383,83 +381,99 @@ void AudioProcessor::processLbap(juce::AudioBuffer<float> const & inputBuffer,
 
 //==============================================================================
 void AudioProcessor::processVBapHrtf(juce::AudioBuffer<float> const & inputBuffer,
-                                     TaggedAudioBuffer<MAX_OUTPUTS> const & outputBuffer) noexcept
+                                     TaggedAudioBuffer<MAX_OUTPUTS> & outputBuffer) noexcept
 {
-    for (unsigned i{}; i < sizeInputs; ++i) {
-        if (mVbapSourcesToUpdate[i] == 1) {
-            updateSourceVbap(narrow<int>(i));
-            mVbapSourcesToUpdate[i] = 0;
+    jassert(outputBuffer.getNumChannels() == 16);
+
+    // Update vbap data
+    {
+        int index{};
+        for (auto & source : mSourcesData) {
+            if (source.shouldUpdateVbap) {
+                updateSourceVbap(index);
+                source.shouldUpdateVbap = false;
+            }
+            ++index;
         }
     }
 
     auto const gainFactor{ std::pow(mInterMaster, 0.1f) * 0.0099f + 0.99f };
-    for (unsigned outputIndex{}; outputIndex < 16; ++outputIndex) {
-        jassert(nFrames <= MAX_BUFFER_SIZE);
+    auto const numSamples{ inputBuffer.getNumSamples() };
+    auto * leftOutputSamples{ outputBuffer.getWritePointerByOutputPatch(output_patch_t{ 1 }) };
+    auto * rightOutputSamples{ outputBuffer.getWritePointerByOutputPatch(output_patch_t{ 2 }) };
+    for (auto const & speaker : mSpeakersOut) {
+        jassert(numSamples <= narrow<int>(MAX_BUFFER_SIZE));
         std::array<float, MAX_BUFFER_SIZE> vbapOuts{};
-        for (unsigned inputIndex{}; inputIndex < sizeInputs; ++inputIndex) {
-            if (mLevelsIn[inputIndex] < SMALL_GAIN) {
-                // nothing to process
+        for (int sourceIndex{}; sourceIndex < inputBuffer.getNumChannels(); ++sourceIndex) {
+            auto const & source{ mSourcesData[sourceIndex] };
+
+            // Is empty?
+            if (source.magnitude < SMALL_GAIN) {
                 continue;
             }
 
-            auto & sourceData{ mSourcesData[inputIndex] };
-            if (!sourceData.directOut.get() && sourceData.paramVBap != nullptr) {
-                auto const targetGain{ sourceData.paramVBap->gains[outputIndex] };
-                auto currentGain{ sourceData.paramVBap->gainsSmoothing[outputIndex] };
-                auto const * inputBuffer{ ins[inputIndex] };
+            // Process vbap
+            auto const outputIndex{ narrow<size_t>(speaker.outputPatch.get() - 1) };
+            if (!source.directOut && source.paramVBap) {
+                auto const targetGain{ source.paramVBap->gains[outputIndex] };
+                auto currentGain{ source.paramVBap->gainsSmoothing[outputIndex] };
+                auto const * inputSamples{ inputBuffer.getReadPointer(sourceIndex) };
                 if (mInterMaster == 0.0f) {
                     // linear interpolation
                     if (currentGain < SMALL_GAIN && targetGain < SMALL_GAIN) {
                         continue;
                     }
-                    auto const gainSlope = (targetGain - currentGain) / nFrames;
-                    for (size_t sampleIndex{}; sampleIndex < nFrames; ++sampleIndex) {
+                    auto const gainSlope = (targetGain - currentGain) / narrow<float>(numSamples);
+                    for (int sampleIndex{}; sampleIndex < numSamples; ++sampleIndex) {
                         currentGain += gainSlope;
-                        vbapOuts[sampleIndex] += inputBuffer[sampleIndex] * currentGain;
+                        vbapOuts[sampleIndex] += inputSamples[sampleIndex] * currentGain;
                     }
                 } else {
                     // log interpolation with 1st order filter
-                    for (size_t sampleIndex{}; sampleIndex < nFrames; ++sampleIndex) {
+                    for (int sampleIndex{}; sampleIndex < numSamples; ++sampleIndex) {
                         currentGain = targetGain + (currentGain - targetGain) * gainFactor;
                         if (currentGain < SMALL_GAIN && targetGain < SMALL_GAIN) {
                             break;
                         }
-                        vbapOuts[sampleIndex] += inputBuffer[sampleIndex] * currentGain;
+                        vbapOuts[sampleIndex] += inputSamples[sampleIndex] * currentGain;
                     }
                 }
-                sourceData.paramVBap->gainsSmoothing[outputIndex] = currentGain;
+                source.paramVBap->gainsSmoothing[outputIndex] = currentGain;
+            }
+
+            // Process hrtf and mixdown to stereo
+            for (size_t sampleIndex{}; sampleIndex < narrow<size_t>(numSamples); ++sampleIndex) {
+                auto tmpCount{ narrow<int>(mHrtfCount[outputIndex]) };
+                for (unsigned hrtfIndex{}; hrtfIndex < HRTF_NUM_SAMPLES; ++hrtfIndex) {
+                    if (tmpCount < 0) {
+                        tmpCount += HRTF_NUM_SAMPLES;
+                    }
+                    auto const sig{ mHrtfInputTmp[outputIndex][tmpCount] };
+                    leftOutputSamples[sampleIndex] += sig * mVbapHrtfLeftImpulses[outputIndex][hrtfIndex];
+                    rightOutputSamples[sampleIndex] += sig * mVbapHrtfRightImpulses[outputIndex][hrtfIndex];
+                    --tmpCount;
+                }
+                mHrtfCount[outputIndex]++;
+                if (mHrtfCount[outputIndex] >= HRTF_NUM_SAMPLES) {
+                    mHrtfCount[outputIndex] = 0;
+                }
+                mHrtfInputTmp[outputIndex][mHrtfCount[outputIndex]] = vbapOuts[sampleIndex];
             }
         }
 
-        for (unsigned sampleIndex{}; sampleIndex < nFrames; ++sampleIndex) {
-            auto tmpCount{ narrow<int>(mHrtfCount[outputIndex]) };
-            for (unsigned hrtfIndex{}; hrtfIndex < HRTF_NUM_SAMPLES; ++hrtfIndex) {
-                if (tmpCount < 0) {
-                    tmpCount += HRTF_NUM_SAMPLES;
-                }
-                auto const sig{ mHrtfInputTmp[outputIndex][tmpCount] };
-                outs[LEFT][sampleIndex] += sig * mVbapHrtfLeftImpulses[outputIndex][hrtfIndex];
-                outs[RIGHT][sampleIndex] += sig * mVbapHrtfRightImpulses[outputIndex][hrtfIndex];
-                --tmpCount;
-            }
-            mHrtfCount[outputIndex]++;
-            if (mHrtfCount[outputIndex] >= HRTF_NUM_SAMPLES) {
-                mHrtfCount[outputIndex] = 0;
-            }
-            mHrtfInputTmp[outputIndex][mHrtfCount[outputIndex]] = vbapOuts[sampleIndex];
-        }
-    }
-
-    // Add direct outs to the now stereo signal.
-    for (unsigned inputIndex{}; inputIndex < sizeInputs; ++inputIndex) {
-        if (mSourcesData[inputIndex].directOut.get() != 0) {
-            if (mSourcesData[inputIndex].directOut.get() % 2 == 1) {
-                for (size_t sampleIndex{}; sampleIndex < nFrames; ++sampleIndex) {
-                    outs[LEFT][sampleIndex] += ins[inputIndex][sampleIndex];
-                }
-            } else {
-                for (size_t sampleIndex{}; sampleIndex < nFrames; ++sampleIndex) {
-                    outs[RIGHT][sampleIndex] += ins[inputIndex][sampleIndex];
+        // Add direct outs to the now stereo signal.
+        for (int inputIndex{}; inputIndex < inputBuffer.getNumChannels(); ++inputIndex) {
+            auto const & source{ mSourcesData[inputIndex] };
+            auto const * inputSamples{ inputBuffer.getReadPointer(inputIndex) };
+            if (source.directOut) {
+                if (source.directOut->get() % 2 == 1) {
+                    for (int sampleIndex{}; sampleIndex < numSamples; ++sampleIndex) {
+                        leftOutputSamples[sampleIndex] += inputSamples[sampleIndex];
+                    }
+                } else {
+                    for (int sampleIndex{}; sampleIndex < numSamples; ++sampleIndex) {
+                        rightOutputSamples[sampleIndex] += inputSamples[sampleIndex];
+                    }
                 }
             }
         }

@@ -56,6 +56,17 @@ public:
         });
     }
 
+    [[nodiscard]] float * getWritePointerByOutputPatch(output_patch_t const outputPatch)
+    {
+        jassert(
+            std::count_if(cbegin(), cend(), [&](ChannelInfo const & info) { return info.outputPatch == outputPatch; })
+            == 1);
+        auto const info{ std::find_if(begin(), end(), [&](ChannelInfo const info) {
+            return info.outputPatch == outputPatch;
+        }) };
+        return info->buffer;
+    }
+
     [[nodiscard]] juce::AudioBuffer<float> getUnderlyingBuffer(int const numSamples)
     {
         jassert(numSamples <= MAX_BUFFER_LENGTH);
@@ -71,17 +82,18 @@ public:
         return juce::AudioBuffer<float>{ &data, 1, numSamples };
     }
 
-    float * getWritePointer(speaker_id_t const id)
+    [[nodiscard]] float * getWritePointer(speaker_id_t const id)
     {
         auto const index{ getIndexOf(id) };
         return mBuffer.getWritePointer(index);
     }
-    float const * getReadPointer(speaker_id_t const id) const
+    [[nodiscard]] float const * getReadPointer(speaker_id_t const id) const
     {
         auto const index{ getIndexOf(id) };
         return mBuffer.getReadPointer(index);
     }
-    StaticVector<float const *, CAPACITY> getArrayOfReadPointers(StaticVector<speaker_id_t, CAPACITY> const & ids) const
+    [[nodiscard]] StaticVector<float const *, CAPACITY>
+        getArrayOfReadPointers(StaticVector<speaker_id_t, CAPACITY> const & ids) const
     {
         StaticVector<float const *, CAPACITY> result{};
         for (auto const id : ids) {
@@ -112,7 +124,7 @@ public:
     const_iterator cend() const { return mChannelInfo.cend(); }
 
 private:
-    int getIndexOf(speaker_id_t const id) const
+    [[nodiscard]] int getIndexOf(speaker_id_t const id) const
     {
         auto const it{ std::lower_bound(
             mChannelInfo.cbegin(),
