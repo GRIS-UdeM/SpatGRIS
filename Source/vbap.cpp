@@ -13,12 +13,12 @@
 #include "StrongTypes.hpp"
 #include "narrow.hpp"
 
-/* Linked-list of all loudspeakers. */
-struct TripletListNode {
-    int tripletSpeakerNumber[3];   /* Triplet speaker numbers */
-    float tripletInverseMatrix[9]; /* Triplet inverse matrix */
-    TripletListNode * nextTriplet; /* Next triplet */
-};
+///* Linked-list of all loudspeakers. */
+// struct TripletListNode {
+//    int tripletSpeakerNumber[3];   /* Triplet speaker numbers */
+//    float tripletInverseMatrix[9]; /* Triplet inverse matrix */
+//    TripletListNode * nextTriplet; /* Next triplet */
+//};
 
 struct TripletData {
     int tripletSpeakerNumber[3];   /* Triplet speaker numbers */

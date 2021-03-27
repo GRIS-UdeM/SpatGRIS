@@ -62,6 +62,7 @@ public:
     }
 };
 using speaker_id_t = StrongIndex<int, struct SpeakerIdT>;
+using speaker_index_t = StrongIndex<int, struct SpeakerIndexT>;
 using output_patch_t = StrongIndex<int, struct OutputPatchT>;
 using display_order_t = StrongIndex<int, struct DisplayOrderT>;
 
@@ -174,6 +175,13 @@ public:
     {
         return degrees_t{ mValue * degrees_t::DEGREE_PER_RADIAN };
     }
+};
+
+class hz_t final : public StrongFloat<float, hz_t, struct HzT>
+{
+public:
+    hz_t() = default;
+    explicit constexpr hz_t(type const & value) : StrongFloat(value) {}
 };
 
 constexpr radians_t HALF_PI{ juce::MathConstants<radians_t::type>::halfPi };

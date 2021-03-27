@@ -17,7 +17,6 @@ ENABLE_WARNINGS
 #include "StrongTypes.hpp"
 
 constexpr auto MAX_SPEAKER_COUNT = 256;
-constexpr auto MAX_TRIPLET_COUNT = 128;
 constexpr auto MIN_VOL_P_SIDE_LENGTH = 0.01f;
 static float constexpr ANGLE_TO_RADIAN = juce::MathConstants<float>::twoPi / 360.0f;
 

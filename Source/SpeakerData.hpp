@@ -32,6 +32,7 @@ struct CrossoverActiveData {
     double y3{};
     double y4{};
 };
+
 struct CrossoverPassiveData {
     double b1{};
     double b2{};
