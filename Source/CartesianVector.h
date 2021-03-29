@@ -1,8 +1,7 @@
 #pragma once
 
-#include "StrongTypes.hpp"
+#include <cmath>
 
-/* Cartesian vector for a speaker position. */
 struct CartesianVector {
     float x;
     float y;
@@ -38,10 +37,5 @@ struct CartesianVector {
         return result;
     }
 
-    [[nodiscard]] float angleWith(CartesianVector const & other) const noexcept
-    {
-        auto inner = dotProduct(other) / std::sqrt(length2() * other.length2());
-        inner = std::clamp(inner, -1.0f, 1.0f);
-        return std::abs(std::acos(inner));
-    }
+    [[nodiscard]] float angleWith(CartesianVector const & other) const noexcept;
 };

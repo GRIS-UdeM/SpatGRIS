@@ -1298,7 +1298,7 @@ Speaker * MainContentComponent::getSpeakerFromOutputPatch(output_patch_t const o
 }
 
 //==============================================================================
-static CrossoverPassiveData linkwitzRileyComputeVariables(double const freq, double const sr)
+static SpeakerCrossoverParams linkwitzRileyComputeVariables(double const freq, double const sr)
 {
     auto const wc{ 2.0 * juce::MathConstants<double>::pi * freq };
     auto const wc2{ wc * wc };
@@ -1325,7 +1325,7 @@ static CrossoverPassiveData linkwitzRileyComputeVariables(double const freq, dou
     auto const ha1{ -4.0 * k4ATmp };
     auto const ha2{ 6.0 * k4ATmp };
 
-    return CrossoverPassiveData{ b1, b2, b3, b4, ha0, ha1, ha2 };
+    return SpeakerCrossoverParams{ b1, b2, b3, b4, ha0, ha1, ha2 };
 }
 
 //==============================================================================

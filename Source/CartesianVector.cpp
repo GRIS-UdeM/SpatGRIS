@@ -1,5 +1,7 @@
 #include "CartesianVector.h"
 
+#include <algorithm>
+
 //==============================================================================
 CartesianVector CartesianVector::crossProduct(CartesianVector const & other) const noexcept
 {
@@ -12,4 +14,19 @@ CartesianVector CartesianVector::crossProduct(CartesianVector const & other) con
     auto const result{ unscaledResult / length };
 
     return result;
+}
+
+//==============================================================================
+float CartesianVector::angleWith(CartesianVector const & other) const noexcept
+{
+    auto inner = dotProduct(other) / std::sqrt(length2() * other.length2());
+    inner = std::clamp(inner, -1.0f, 1.0f);
+    return std::abs(std::acos(inner));
+}
+
+//==============================================================================
+PolarVector CartesianVector::toPolar() const noexcept
+{
+    jassertfalse;
+    return {};
 }

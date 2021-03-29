@@ -57,9 +57,21 @@
         <FILE id="gyI4aY" name="vbap.hpp" compile="0" resource="0" file="Source/vbap.hpp"/>
       </GROUP>
       <GROUP id="{879FD67D-521A-EC98-EB2A-A3C056EDF2C2}" name="structs">
+        <FILE id="KYw7Ga" name="CartesianVector.cpp" compile="1" resource="0"
+              file="Source/CartesianVector.cpp"/>
+        <FILE id="Fo1t1H" name="CartesianVector.h" compile="0" resource="0"
+              file="Source/CartesianVector.h"/>
+        <FILE id="uWpyry" name="LocklessQueue.h" compile="0" resource="0" file="Source/LocklessQueue.h"/>
+        <FILE id="XZJcvv" name="PolarVector.cpp" compile="1" resource="0" file="Source/PolarVector.cpp"/>
+        <FILE id="v4qTK2" name="PolarVector.h" compile="0" resource="0" file="Source/PolarVector.h"/>
+        <FILE id="RGyF3P" name="Pool.hpp" compile="0" resource="0" file="Source/Pool.hpp"/>
         <FILE id="jVjbue" name="SourceData.hpp" compile="0" resource="0" file="Source/SourceData.hpp"/>
         <FILE id="wWrACh" name="SpeakerData.hpp" compile="0" resource="0" file="Source/SpeakerData.hpp"/>
+        <FILE id="G671gB" name="StaticManager.hpp" compile="0" resource="0"
+              file="Source/StaticManager.hpp"/>
         <FILE id="iunGqH" name="TestStructs.hpp" compile="0" resource="0" file="Source/TestStructs.hpp"/>
+        <FILE id="gLY4l0" name="ThreadsafePtr.hpp" compile="0" resource="0"
+              file="Source/ThreadsafePtr.hpp"/>
       </GROUP>
       <GROUP id="{45A32A71-2629-205C-304E-C1093B6D3F59}" name="UI">
         <GROUP id="{202AE941-C78E-5F46-CB31-EA8A544A343C}" name="Secondary Windows">

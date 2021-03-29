@@ -62,7 +62,7 @@ public:
     }
 };
 using speaker_id_t = StrongIndex<int, struct SpeakerIdT>;
-using speaker_index_t = StrongIndex<int, struct SpeakerIndexT>;
+using source_index_t = StrongIndex<int, struct SourceIndexT>;
 using output_patch_t = StrongIndex<int, struct OutputPatchT>;
 using display_order_t = StrongIndex<int, struct DisplayOrderT>;
 

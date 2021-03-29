@@ -5,77 +5,19 @@
 #include "lib/tl/optional.hpp"
 
 #include "Manager.hpp"
+#include "PolarVector.h"
+#include "StaticManager.hpp"
 #include "StaticVector.h"
 #include "StrongTypes.hpp"
+#include "ThreadsafePtr.hpp"
 #include "constants.hpp"
-#include "narrow.hpp"
-#include <bitset>
-#include <variant>
 
-template<typename key_t, typename value_t, size_t CAPACITY>
-class StaticManager
-{
-    static_assert(
-        std::is_trivially_default_constructible_v<value_t> && std::is_trivially_default_constructible_v<key_t>);
-    static_assert(std::is_same_v<key_t, speaker_index_t> || std::is_same_v<key_t, output_patch_t>);
+//==============================================================================
+// AUDIO SIDE
+//==============================================================================
 
-    std::array<value_t, CAPACITY> mData{};
-    std::bitset<CAPACITY> mUsed{};
-    juce::CriticalSection mCriticalSection{};
-
-public:
-    void clear() { mUsed.reset(); }
-
-    void set(key_t const key, value_t && value)
-    {
-        auto const index{ narrow<size_t>(key.get() - 1) };
-        mData[index] = std::forward<value_t>(value);
-        mUsed.set(index);
-    }
-
-    value_t const & get(key_t const key) const
-    {
-        auto const index{ narrow<size_t>(key.get() - 1) };
-        jassert(mUsed.test(index));
-        return mData[index];
-    }
-
-    auto const & getCriticalSection() const { return mCriticalSection; }
-};
-
-// Spat static
-
-struct SpatStatic {
-};
-
-// Spat dynamic
-
-struct PolarVector {
-    radians_t azimuth{};
-    radians_t zenith{};
-    float length{};
-};
-
-struct CartesianVector {
-    float x{};
-    float y{};
-    float z{};
-};
-
-struct CrossoverData {
-    struct ActiveData {
-        double x1{};
-        double x2{};
-        double x3{};
-        double x4{};
-        double y1{};
-        double y2{};
-        double y3{};
-        double y4{};
-    };
-
-    hz_t freq{};
-
+// The parameters of a speaker highpass filter.
+struct SpeakerCrossoverParams {
     double b1{};
     double b2{};
     double b3{};
@@ -83,61 +25,130 @@ struct CrossoverData {
     double ha0{};
     double ha1{};
     double ha2{};
-
-    ActiveData activeData{};
 };
 
-enum class PortState { normal, muted, solo };
+// The running variables of a speaker highpass filter.
+struct SpeakerCrossoverVars {
+    double x1{};
+    double x2{};
+    double x3{};
+    double x4{};
+    double y1{};
+    double y2{};
+    double y3{};
+    double y4{};
+};
 
-struct AttenuationData {
+struct LbapSourceAttenuationParams {
+    float linearGain{};
+    float lowpassCoefficient{};
+};
+
+struct LbapSourceAttenuationVars {
     float lastGain{};
     float lastCoefficient{};
     float lowpassY{};
     float lowpassZ{};
 };
 
-template<typename T>
-class PerOutputArray
-{
-    static constexpr size_t CAPACITY{ MAX_OUTPUTS };
+// The info needed per speaker to spatialize sound. This info is updated constantly by the message thread.
+struct SpeakerParams {
+    float gain{};
+    tl::optional<SpeakerCrossoverParams> crossoverParams{};
+};
 
-    std::array<float, CAPACITY> mData{};
+// The current data info of a speaker. This is only accessed by the audioProcessor and the message thread never
+// interferes.
+struct SpeakerVars {
+    // Last effective gains used in spatialization algorithms. Used for interpolation.
+    StaticManager<source_index_t, float, MAX_INPUTS> lastSpatGains{};
+    // The current state of the per-speaker highpass.
+    SpeakerCrossoverVars crossoverVars{};
+    // The last gains computed for every source for this speaker. Used for gain smoothing.
+    StaticManager<source_index_t, float, MAX_INPUTS> lastSourceGains{};
 
-public:
-    T & operator[](output_patch_t const outputPatch)
+    // LBAP-specific
+    LbapSourceAttenuationVars lbapSourceAttenuationVars{};
+    // STEREO-specific
+    radians_t stereoLastAzimuth{};
+};
+
+struct AudioState {
+    using SpeakerGains = StaticManager<output_patch_t, float, MAX_OUTPUTS>;
+
+    StaticManager<output_patch_t, SpeakerParams, MAX_OUTPUTS> speakerParams{};
+    StaticManager<output_patch_t, SpeakerVars, MAX_OUTPUTS> speakerVars{};
+    StaticManager<source_index_t, ThreadsafePtr<SpeakerGains>, MAX_INPUTS> gainMatrix{};
+
+    juce::Atomic<StaticManager<source_index_t, float, MAX_INPUTS> *> sourcePeaks{};
+    juce::Atomic<StaticManager<output_patch_t, float, MAX_OUTPUTS> *> speakerPeaks{};
+
+    // LBAP-specific
+    ThreadsafePtr<LbapSourceAttenuationParams> lbapAttenuationData{};
+
+    // STEREO-specific
+    StaticManager<source_index_t, ThreadsafePtr<StaticManager<output_patch_t, radians_t, MAX_OUTPUTS>>, MAX_INPUTS>
+        stereoAzimuths{};
+
+    ~AudioState()
     {
-        auto const index{ narrow<size_t>(outputPatch.get() - 1) };
-        jassert(index < CAPACITY);
-        return mData[index];
-    }
-    T const & operator[](output_patch_t const outputPatch) const
-    {
-        auto const index{ narrow<size_t>(outputPatch.get() - 1) };
-        jassert(index < CAPACITY);
-        return mData[index];
+        for (auto & gainArray : gainMatrix) {
+            gainArray.free();
+        }
+        lbapAttenuationData.free();
+        delete speakerPeaks.get();
+        delete sourcePeaks.get();
     }
 };
 
-struct SpeakerTriplet {
-    std::array<speaker_id_t, 3> ids{};
-    std::array<float, 9> inverseMatrix{};
-    std::array<float, 3> gains{};
-    float smallestWt{};
-    int neg_g_am{};
+static auto constexpr AUDIO_DATA{ sizeof(AudioState) / 1024.0f / 1024.0f };
+
+//==============================================================================
+// LOGIC/GUI SIDE
+//==============================================================================
+
+enum class PortState { normal, muted, solo };
+
+struct Source {
+    source_index_t index{};
+    PortState state{};
+    PolarVector vector{};
+    CartesianVector position{};
+    float azimuthSpan{};
+    float zenithSpan{};
+    tl::optional<output_patch_t> directOut{};
+    float peak{};
+    bool isSelected{};
+    juce::Colour colour{};
 };
 
-struct VbapSourceData {
-    PerOutputArray<float> gains{};
-    PerOutputArray<float> gainsSmoothing{};
+struct Speaker {
+    speaker_id_t id{};
+    output_patch_t outputPatch{};
+    PortState state{};
+    PolarVector vector{};
+    CartesianVector position{};
+    float gain{};
+    tl::optional<SpeakerCrossoverParams> crossoverData{};
+    float peak{};
+    bool isSelected{};
 };
 
-struct VbapData {
-    enum class Dimensions { three, two };
+struct SpatGrisData {
+    using Sources = StaticManager<source_index_t, Source, MAX_INPUTS>;
+    using Speakers = StaticManager<output_patch_t, Source, MAX_OUTPUTS>;
+    using DirectOutSpeakers = Manager<Speaker, speaker_id_t>;
 
-    StaticVector<VbapSourceData, MAX_INPUTS> sourceData{};
-    Dimensions dimensions{ Dimensions::three };
-    std::vector<SpeakerTriplet> triplets{};
+    Sources sources{};
+    Speakers speakers{};
+    DirectOutSpeakers directOutSpeakers{};
 };
+
+static auto constexpr LOGIC_DATA{ sizeof(SpatGrisData) / 1024.0f / 1024.0f };
+
+//==============================================================================
+// Spat algorithms side
+//=============================================================================
 
 static auto constexpr LBAP_MATRIX_SIZE = 64;
 using matrix_t = std::array<std::array<float, LBAP_MATRIX_SIZE + 1>, LBAP_MATRIX_SIZE + 1>;
@@ -150,44 +161,32 @@ struct LbapLayer {
 };
 
 struct LbapData {
-    AttenuationData attenuationData{};
-    PerOutputArray<float> y{};
+    LbapSourceAttenuationVars attenuationData{};
     PolarVector lastVector{};
 };
 
-struct StereoData {
-    radians_t lastAzimuth{};
+class SpatAlgorithm
+{
+public:
+    virtual void init(SpatGrisData::Speakers const & speakers) = 0;
+    [[nodiscard]] virtual AudioState::SpeakerGains
+        computeSpeakerGains(PolarVector const & sourcePosition) const noexcept = 0;
 };
 
-struct Speaker {
-    speaker_id_t id{};
-    output_patch_t outputPatch{};
-    PortState state{};
-    bool isDirectOut{};
-    PolarVector vector{};
-    CartesianVector position{};
-    float gain{};
-    tl::optional<CrossoverData> crossoverData{};
-    float peak{};
+struct VbapSpeakerTriplet {
+    std::array<speaker_id_t, 3> ids{};
+    std::array<float, 9> inverseMatrix{};
+    std::array<float, 3> gains{};
+    float smallestWt{};
+    int neg_g_am{};
 };
 
-struct Source {
-    int index{};
-    PortState state{};
-    PolarVector vector{};
-    CartesianVector position{};
-    float azimuthSpan{};
-    float zenithSpan{};
-    float gain{};
-    tl::optional<output_patch_t> directOut{};
-    float peak{};
+class VbapAlgorithm : public SpatAlgorithm
+{
+    enum class Dimensions { three, two };
 
-    juce::Colour colour{};
+    Dimensions mDimensions{ Dimensions::three };
+    std::vector<VbapSpeakerTriplet> mTriplets{};
+
+public:
 };
-
-struct SpatGrisData {
-    StaticVector<Source, MAX_INPUTS> sources{};
-    Manager<Speaker, speaker_id_t> speakers{};
-};
-
-static auto constexpr TEST{ sizeof(SpatGrisData) / 1024.0f / 1024.0f };

@@ -22,7 +22,7 @@
 #include "StrongTypes.hpp"
 #include "lib/tl/optional.hpp"
 
-struct CrossoverActiveData {
+struct SpeakerCrossoverVars {
     double x1{};
     double x2{};
     double x3{};
@@ -33,7 +33,7 @@ struct CrossoverActiveData {
     double y4{};
 };
 
-struct CrossoverPassiveData {
+struct SpeakerCrossoverParams {
     double b1{};
     double b2{};
     double b3{};
@@ -57,8 +57,8 @@ struct SpeakerData {
     float y{};
     float z{};
 
-    tl::optional<CrossoverPassiveData> crossoverPassiveData{};
-    CrossoverActiveData crossoverActiveData{};
+    tl::optional<SpeakerCrossoverParams> crossoverPassiveData{};
+    SpeakerCrossoverVars crossoverActiveData{};
 
     bool isMuted = false;
     bool isSolo = false;

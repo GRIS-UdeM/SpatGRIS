@@ -1,11 +1,13 @@
 #pragma once
 
 #include "CartesianVector.h"
+#include "StrongTypes.hpp"
 
-/* Angular vector for a speaker position. */
+static constexpr radians_t DEFAULT_ELEVATION_COMPARE_TOLERANCE{ degrees_t{ 5.0f } };
+
 struct PolarVector {
     radians_t azimuth;
-    radians_t zenith;
+    radians_t elevation;
     float length;
 
     /* Converts a vector from angular to cartesian coordinates. */
@@ -13,8 +15,10 @@ struct PolarVector {
 
     [[nodiscard]] constexpr bool isOnSameElevation(PolarVector const & other,
                                                    radians_t const tolerance
-                                                   = toRadians(degrees_t{ 5.0f })) const noexcept
+                                                   = DEFAULT_ELEVATION_COMPARE_TOLERANCE) const noexcept
     {
-        return zenith > other.zenith - tolerance && zenith < other.zenith + tolerance;
+        return elevation > other.elevation - tolerance && elevation < other.elevation + tolerance;
     }
+
+    [[nodiscard]] static PolarVector fromCartesian(CartesianVector const & cartesianVector);
 };
