@@ -14,6 +14,7 @@ DISABLE_WARNINGS
 #include <JuceHeader.h>
 ENABLE_WARNINGS
 
+#include "PolarVector.h"
 #include "StrongTypes.hpp"
 
 constexpr auto MAX_SPEAKER_COUNT = 256;
@@ -29,86 +30,6 @@ struct SpeakersSetup {
     degrees_t * elevation; /* Elevation angle of speakers. */
 };
 
-/* Cartesian vector for a speaker position. */
-struct CartesianVector {
-    float x;
-    float y;
-    float z;
-
-    [[nodiscard]] constexpr CartesianVector operator/(float const scalar) const noexcept
-    {
-        CartesianVector const result{ x / scalar, y / scalar, z / scalar };
-        return result;
-    }
-
-    /* Returns the vector length without the sqrt. */
-    [[nodiscard]] constexpr float length2() const noexcept { return x * x + y * y + z * z; }
-
-    [[nodiscard]] float length() const noexcept { return std::sqrt(length2()); }
-
-    [[nodiscard]] CartesianVector crossProduct(CartesianVector const & other) const noexcept
-    {
-        auto const newX = (y * other.z) - (z * other.y);
-        auto const newY = (z * other.x) - (x * other.z);
-        auto const newZ = (x * other.y) - (y * other.x);
-        CartesianVector const unscaledResult{ newX, newY, newZ };
-
-        auto const length = unscaledResult.length();
-        auto const result{ unscaledResult / length };
-
-        return result;
-    }
-
-    [[nodiscard]] constexpr CartesianVector operator-() const noexcept { return CartesianVector{ -x, -y, -z }; }
-
-    [[nodiscard]] constexpr float dotProduct(CartesianVector const & other) const noexcept
-    {
-        return x * other.x + y * other.y + z * other.z;
-    }
-
-    [[nodiscard]] constexpr CartesianVector mean(CartesianVector const & other) const noexcept
-    {
-        auto const newX{ (x + other.x) * 0.5f };
-        auto const newY{ (y + other.y) * 0.5f };
-        auto const newZ{ (z + other.z) * 0.5f };
-
-        CartesianVector const result{ newX, newY, newZ };
-        return result;
-    }
-
-    [[nodiscard]] float angleWith(CartesianVector const & other) const noexcept
-    {
-        auto inner = dotProduct(other) / std::sqrt(length2() * other.length2());
-        inner = std::clamp(inner, -1.0f, 1.0f);
-        return std::abs(std::acos(inner));
-    }
-};
-
-/* Angular vector for a speaker position. */
-struct AngularVector {
-    degrees_t azimuth;
-    degrees_t elevation;
-    float length;
-
-    /* Converts a vector from angular to cartesian coordinates. */
-    [[nodiscard]] CartesianVector toCartesian() const noexcept
-    {
-        auto const cele = fast::cos(radians_t{ elevation }.get());
-        auto const x = fast::cos(radians_t{ azimuth }.get()) * cele;
-        auto const y = fast::sin(radians_t{ azimuth }.get()) * cele;
-        auto const z = fast::sin(radians_t{ elevation }.get());
-
-        CartesianVector const result{ x, y, z };
-        return result;
-    }
-
-    [[nodiscard]] constexpr bool isOnSameElevation(AngularVector const & other) const noexcept
-    {
-        constexpr degrees_t TOLERANCE{ 5.0f };
-        return elevation > other.elevation - TOLERANCE && elevation < other.elevation + TOLERANCE;
-    }
-};
-
 /* A struct for a loudspeaker triplet or pair (set). */
 struct SpeakerSet {
     int speakerNos[3];
@@ -121,7 +42,7 @@ struct SpeakerSet {
 /* A struct for a loudspeaker instance. */
 struct LoudSpeaker {
     CartesianVector coords;
-    AngularVector angles;
+    PolarVector angles;
 };
 
 /* VBAP structure of n loudspeaker panning */
@@ -134,7 +55,7 @@ struct VbapData {
     int numOutputPatches;                            /* Number of output patches. */
     int numSpeakers;                                 /* Number of loudspeakers. */
     int numTriplets;                                 /* Number of triplets. */
-    AngularVector angularDirection;                  /* Angular direction. */
+    PolarVector angularDirection;                    /* Angular direction. */
     CartesianVector cartesianDirection;              /* Cartesian direction. */
     CartesianVector spreadingVector;                 /* Spreading vector. */
 };

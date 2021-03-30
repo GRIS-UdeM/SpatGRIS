@@ -142,8 +142,8 @@ static void spreadit_azi_ele(degrees_t /*azi*/, degrees_t /*ele*/, float sp_azi,
 {
     int ind;
     static constexpr auto num = 4;
-    degrees_t newAzimuth;
-    degrees_t newElevation;
+    radians_t newAzimuth;
+    radians_t newElevation;
     float comp;
     int const cnt = data->numSpeakers;
     std::array<float, MAX_SPEAKER_COUNT> tmp_gains{};
@@ -201,7 +201,7 @@ static void spreadit_azi_ele(degrees_t /*azi*/, degrees_t /*ele*/, float sp_azi,
 
             newAzimuth = newAzimuth.centered();
             newElevation = newElevation.centered();
-            AngularVector const spreadAngle{ newAzimuth, newElevation, 1.0f };
+            PolarVector const spreadAngle{ newAzimuth, newElevation, 1.0f };
             auto const spreadCartesian{ spreadAngle.toCartesian() };
             compute_gains(data->numTriplets,
                           data->speakerSets,
@@ -239,8 +239,8 @@ static void spreadit_azi_ele_flip_y_z(degrees_t /*azi*/,
                                       float sp_ele,
                                       VbapData * const data) noexcept
 {
-    degrees_t newAzimuth{};
-    degrees_t newElevation{};
+    radians_t newAzimuth{};
+    radians_t newElevation{};
     float comp;
     auto const cnt = data->numSpeakers;
     std::array<float, MAX_SPEAKER_COUNT> tmp_gains{};
@@ -287,7 +287,7 @@ static void spreadit_azi_ele_flip_y_z(degrees_t /*azi*/,
             }
             newAzimuth = newAzimuth.centered();
             newElevation = newElevation.centered();
-            AngularVector const spreadAngle{ newAzimuth, newElevation, 1.0f };
+            PolarVector const spreadAngle{ newAzimuth, newElevation, 1.0f };
             CartesianVector spreadCartesian = spreadAngle.toCartesian();
             auto const tmp = spreadCartesian.z;
             spreadCartesian.z = spreadCartesian.y;
@@ -326,8 +326,8 @@ static void spreadit_azi(degrees_t /*azi*/, float azimuthSpread, VbapData * data
 {
     int i;
     static constexpr auto num = 4;
-    degrees_t newazi{};
-    AngularVector spreadang;
+    radians_t newazi{};
+    PolarVector spreadang;
     int cnt = data->numSpeakers;
     std::array<float, MAX_SPEAKER_COUNT> tmp_gains{};
     float sum = 0.0;
@@ -387,7 +387,7 @@ static void spreadit_azi_flip_y_z(degrees_t /*azi*/, float sp_azimuth, VbapData 
             auto newAzimuth
                 = k == 0 ? data->angularDirection.azimuth + azimuthDev : data->angularDirection.azimuth - azimuthDev;
             newAzimuth = newAzimuth.centered();
-            AngularVector const spreadAngle{ newAzimuth, degrees_t{}, 1.0f };
+            PolarVector const spreadAngle{ newAzimuth, degrees_t{}, 1.0f };
             auto spreadCartesian = spreadAngle.toCartesian();
             auto tmp = spreadCartesian.z;
             spreadCartesian.z = spreadCartesian.y;
@@ -449,7 +449,7 @@ SpeakersSetup *
 void build_speakers_list(SpeakersSetup * setup, LoudSpeaker speakers[MAX_SPEAKER_COUNT])
 {
     for (int i = 0; i < setup->count; i++) {
-        AngularVector a_vector;
+        PolarVector a_vector;
         a_vector.azimuth = setup->azimuth[i];
         a_vector.elevation = setup->elevation[i];
         auto const c_vector = a_vector.toCartesian();
@@ -552,8 +552,8 @@ void choose_ls_tuplets(LoudSpeaker speakers[MAX_SPEAKER_COUNT], TripletList & tr
         }
     }
 
-    if (degrees_t{ 360.0f } - speakers[sortedSpeakers[numSpeakers - 1]].angles.azimuth
-            + speakers[sortedSpeakers[0]].angles.azimuth
+    if (degrees_t{ 360.0f } - speakers[sortedSpeakers[numSpeakers - 1]].angles.azimuth.toDegrees()
+            + speakers[sortedSpeakers[0]].angles.azimuth.toDegrees()
         <= degrees_t{ 170 }) {
         if (calc_2D_inv_tmatrix(speakers[sortedSpeakers[numSpeakers - 1]].angles.azimuth,
                                 speakers[sortedSpeakers[0]].angles.azimuth,
