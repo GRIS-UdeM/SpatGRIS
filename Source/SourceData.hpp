@@ -27,7 +27,7 @@
 #include "lbap.hpp"
 #include "vbap.hpp"
 
-struct LbapSourceAttenuationVars {
+struct LbapDistanceAttenuationData {
     float lastGain{};
     float lastCoefficient{};
     float lowpassY{};
@@ -67,5 +67,5 @@ struct SourceData {
 
     VbapData * paramVBap{};
     bool shouldUpdateVbap{};
-    LbapSourceAttenuationVars attenuationData{};
+    LbapDistanceAttenuationData attenuationData{};
 };

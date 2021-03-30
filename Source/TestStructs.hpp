@@ -17,7 +17,7 @@
 //==============================================================================
 
 // The parameters of a speaker highpass filter.
-struct SpeakerCrossoverParams {
+struct SpeakerHighpassConfig {
     double b1{};
     double b2{};
     double b3{};
@@ -28,7 +28,7 @@ struct SpeakerCrossoverParams {
 };
 
 // The running variables of a speaker highpass filter.
-struct SpeakerCrossoverVars {
+struct SpeakerHighpassData {
     double x1{};
     double x2{};
     double x3{};
@@ -39,12 +39,12 @@ struct SpeakerCrossoverVars {
     double y4{};
 };
 
-struct LbapSourceAttenuationParams {
+struct LbapDistanceAttenuationConfig {
     float linearGain{};
     float lowpassCoefficient{};
 };
 
-struct LbapSourceAttenuationVars {
+struct LbapDistanceAttenuationData {
     float lastGain{};
     float lastCoefficient{};
     float lowpassY{};
@@ -52,56 +52,69 @@ struct LbapSourceAttenuationVars {
 };
 
 // The info needed per speaker to spatialize sound. This info is updated constantly by the message thread.
-struct SpeakerParams {
+struct SpeakerAudioConfig {
     float gain{};
-    tl::optional<SpeakerCrossoverParams> crossoverParams{};
+    tl::optional<SpeakerHighpassConfig> highpassConfig{};
 };
 
 // The current data info of a speaker. This is only accessed by the audioProcessor and the message thread never
 // interferes.
-struct SpeakerVars {
-    // Last effective gains used in spatialization algorithms. Used for interpolation.
+struct SpeakerAudioData {
+    // Last effectiv gains used in spatialization algorithms. Used for interpolation.
     StaticManager<source_index_t, float, MAX_INPUTS> lastSpatGains{};
     // The current state of the per-speaker highpass.
-    SpeakerCrossoverVars crossoverVars{};
-    // The last gains computed for every source for this speaker. Used for gain smoothing.
-    StaticManager<source_index_t, float, MAX_INPUTS> lastSourceGains{};
+    SpeakerHighpassData highpassData{};
+};
 
+struct SourceAudioData {
     // LBAP-specific
-    LbapSourceAttenuationVars lbapSourceAttenuationVars{};
+    LbapDistanceAttenuationData lbapSourceAttenuationVars{};
     // STEREO-specific
     radians_t stereoLastAzimuth{};
 };
 
-struct AudioState {
-    using SpeakerGains = StaticManager<output_patch_t, float, MAX_OUTPUTS>;
+struct AudioConfig {
+    float masterGain{};
+    float gainInterpolation{};
 
-    StaticManager<output_patch_t, SpeakerParams, MAX_OUTPUTS> speakerParams{};
-    StaticManager<output_patch_t, SpeakerVars, MAX_OUTPUTS> speakerVars{};
-    StaticManager<source_index_t, ThreadsafePtr<SpeakerGains>, MAX_INPUTS> gainMatrix{};
+    StaticManager<output_patch_t, SpeakerAudioConfig, MAX_OUTPUTS> speakersAudioConfig{};
+
+    // LBAP-specific
+    LbapDistanceAttenuationConfig lbapDistanceAttenuationConfig{};
+};
+
+struct AudioState {
+    using SpeakersSpatGains = StaticManager<output_patch_t, float, MAX_OUTPUTS>;
+    StaticManager<source_index_t, ThreadsafePtr<SpeakersSpatGains>, MAX_INPUTS> spatGainMatrix{};
+
+    AudioConfig audioConfig{};
+
+    StaticManager<output_patch_t, SpeakerAudioData, MAX_OUTPUTS> speakersAudioData{};
 
     juce::Atomic<StaticManager<source_index_t, float, MAX_INPUTS> *> sourcePeaks{};
     juce::Atomic<StaticManager<output_patch_t, float, MAX_OUTPUTS> *> speakerPeaks{};
 
-    // LBAP-specific
-    ThreadsafePtr<LbapSourceAttenuationParams> lbapAttenuationData{};
-
     // STEREO-specific
-    StaticManager<source_index_t, ThreadsafePtr<StaticManager<output_patch_t, radians_t, MAX_OUTPUTS>>, MAX_INPUTS>
-        stereoAzimuths{};
-
+    StaticManager<source_index_t, ThreadsafePtr<radians_t>, MAX_OUTPUTS> stereoAzimuths{};
+    //==============================================================================
+    AudioState() = default;
     ~AudioState()
     {
-        for (auto & gainArray : gainMatrix) {
+        for (auto & gainArray : spatGainMatrix) {
             gainArray.free();
         }
-        lbapAttenuationData.free();
+        for (auto & azimuth : stereoAzimuths) {
+            azimuth.free();
+        }
         delete speakerPeaks.get();
         delete sourcePeaks.get();
     }
+    //==============================================================================
+    AudioState(AudioState const &) = delete;
+    AudioState(AudioState &&) = delete;
+    AudioState & operator=(AudioState const &) = delete;
+    AudioState & operator=(AudioState &&) = delete;
 };
-
-static auto constexpr AUDIO_DATA{ sizeof(AudioState) / 1024.0f / 1024.0f };
 
 //==============================================================================
 // LOGIC/GUI SIDE
@@ -109,7 +122,7 @@ static auto constexpr AUDIO_DATA{ sizeof(AudioState) / 1024.0f / 1024.0f };
 
 enum class PortState { normal, muted, solo };
 
-struct Source {
+struct SourceData {
     source_index_t index{};
     PortState state{};
     PolarVector vector{};
@@ -122,29 +135,27 @@ struct Source {
     juce::Colour colour{};
 };
 
-struct Speaker {
+struct SpeakerData {
     speaker_id_t id{};
     output_patch_t outputPatch{};
     PortState state{};
     PolarVector vector{};
     CartesianVector position{};
     float gain{};
-    tl::optional<SpeakerCrossoverParams> crossoverData{};
+    tl::optional<SpeakerHighpassConfig> crossoverData{};
     float peak{};
     bool isSelected{};
 };
 
 struct SpatGrisData {
-    using Sources = StaticManager<source_index_t, Source, MAX_INPUTS>;
-    using Speakers = StaticManager<output_patch_t, Source, MAX_OUTPUTS>;
-    using DirectOutSpeakers = Manager<Speaker, speaker_id_t>;
+    using Sources = StaticManager<source_index_t, SourceData, MAX_INPUTS>;
+    using Speakers = StaticManager<output_patch_t, SourceData, MAX_OUTPUTS>;
+    using DirectOutSpeakers = Manager<SpeakerData, speaker_id_t>;
 
     Sources sources{};
     Speakers speakers{};
     DirectOutSpeakers directOutSpeakers{};
 };
-
-static auto constexpr LOGIC_DATA{ sizeof(SpatGrisData) / 1024.0f / 1024.0f };
 
 //==============================================================================
 // Spat algorithms side
@@ -161,15 +172,23 @@ struct LbapLayer {
 };
 
 struct LbapData {
-    LbapSourceAttenuationVars attenuationData{};
+    LbapDistanceAttenuationData attenuationData{};
     PolarVector lastVector{};
 };
 
 class SpatAlgorithm
 {
 public:
+    SpatAlgorithm() = default;
+    virtual ~SpatAlgorithm() = default;
+    //==============================================================================
+    SpatAlgorithm(SpatAlgorithm const &) = delete;
+    SpatAlgorithm(SpatAlgorithm &&) = delete;
+    SpatAlgorithm & operator=(SpatAlgorithm const &) = delete;
+    SpatAlgorithm & operator=(SpatAlgorithm &&) = delete;
+    //==============================================================================
     virtual void init(SpatGrisData::Speakers const & speakers) = 0;
-    [[nodiscard]] virtual AudioState::SpeakerGains
+    [[nodiscard]] virtual AudioState::SpeakersSpatGains
         computeSpeakerGains(PolarVector const & sourcePosition) const noexcept = 0;
 };
 

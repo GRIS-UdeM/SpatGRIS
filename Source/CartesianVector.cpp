@@ -23,10 +23,3 @@ float CartesianVector::angleWith(CartesianVector const & other) const noexcept
     inner = std::clamp(inner, -1.0f, 1.0f);
     return std::abs(std::acos(inner));
 }
-
-//==============================================================================
-PolarVector CartesianVector::toPolar() const noexcept
-{
-    jassertfalse;
-    return {};
-}

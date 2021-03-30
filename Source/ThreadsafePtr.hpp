@@ -9,6 +9,7 @@ class ThreadsafePtr
     juce::Atomic<T *> mPendingValue{};
 
 public:
+    //==============================================================================
 #ifndef NDEBUG
     ~ThreadsafePtr()
     {
@@ -17,6 +18,10 @@ public:
         jassert(mPendingValue.get() == nullptr);
     }
 #endif
+    //==============================================================================
+    ThreadsafePtr & operator=(ThreadsafePtr const &) = delete;
+    ThreadsafePtr & operator=(ThreadsafePtr &&) = delete;
+    //==============================================================================
 
     T const * get(Pool<T> & pool)
     {
