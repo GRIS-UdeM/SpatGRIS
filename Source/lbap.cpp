@@ -5,7 +5,7 @@ DISABLE_WARNINGS
 #include <JuceHeader.h>
 ENABLE_WARNINGS
 
-#include "SpeakerData.hpp"
+#include "AudioStructs.hpp"
 #include "constants.hpp"
 #include "narrow.hpp"
 
@@ -263,13 +263,13 @@ void lbap_field_compute(lbap_field const & field, lbap_pos const & position, flo
     }
 }
 
-std::vector<lbap_speaker> lbap_speakers_from_positions(Manager<SpeakerData, speaker_id_t> const & speakers)
+std::vector<lbap_speaker> lbap_speakers_from_positions(OwnedMap<SpeakerData, output_patch_t> const & speakers)
 {
     std::vector<lbap_speaker> result{};
     result.reserve(speakers.size());
     std::transform(speakers.cbegin(), speakers.cend(), std::back_inserter(result), [](SpeakerData const * speaker) {
-        auto const clampedRadius{ std::clamp(speaker->radius, 0.0f, 1.0f) };
-        return lbap_speaker{ speaker->azimuth, speaker->zenith, clampedRadius, speaker->outputPatch };
+        auto const clampedRadius{ std::clamp(speaker->vector.length, 0.0f, 1.0f) };
+        return lbap_speaker{ speaker->vector.azimuth, speaker->vector.elevation, clampedRadius, speaker->outputPatch };
     });
     return result;
 }

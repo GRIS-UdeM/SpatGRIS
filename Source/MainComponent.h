@@ -33,9 +33,9 @@ ENABLE_WARNINGS
 #include "EditSpeakersWindow.h"
 #include "FlatViewWindow.h"
 #include "Input.h"
-#include "Manager.hpp"
 #include "OscInput.h"
 #include "OscLogWindow.h"
+#include "OwnedMap.hpp"
 #include "SettingsWindow.h"
 #include "Speaker.h"
 #include "SpeakerViewComponent.h"
@@ -73,8 +73,8 @@ class MainContentComponent final
 
     // Speakers.
     juce::Array<Triplet> mTriplets{};
-    Manager<Speaker, speaker_id_t> mSpeakers{};
-    juce::Array<speaker_id_t> mSpeakersDisplayOrder{};
+    OwnedMap<output_patch_t, Speaker> mSpeakers{};
+    juce::Array<output_patch_t> mSpeakersDisplayOrder{};
 
     // Sources.
     juce::OwnedArray<Input> mInputs{};
@@ -201,9 +201,9 @@ public:
 
     Speaker & addSpeaker();
     void insertSpeaker(int position);
-    void removeSpeaker(speaker_id_t const id);
+    void removeSpeaker(output_patch_t outputPatch);
     void setDirectOut(int id, output_patch_t chn) const;
-    void reorderSpeakers(juce::Array<speaker_id_t> newOrder);
+    void reorderSpeakers(juce::Array<output_patch_t> newOrder);
 
     // Sources.
     [[nodiscard]] juce::OwnedArray<Input> & getSourceInputs() { return mInputs; }
@@ -221,20 +221,18 @@ public:
     [[nodiscard]] juce::Array<Triplet> const & getTriplets() const { return mTriplets; }
 
     // Speaker selections.
-    void selectSpeaker(tl::optional<speaker_id_t> const id);
-    void selectTripletSpeaker(speaker_id_t idS);
+    void selectSpeaker(tl::optional<output_patch_t> outputPatch);
+    void selectTripletSpeaker(output_patch_t outputPatch);
 
     // Mute - solo.
-    void muteInput(int id, bool mute) const;
-    void muteOutput(speaker_id_t const id, bool mute) const;
-    void soloInput(int const sourceIndex, bool solo) const;
-    void soloOutput(speaker_id_t const speakerId, bool solo) const;
+    void setSourceState(source_index_t sourceIndex, PortState state) const;
+    void setSpeakerState(output_patch_t outputPatch, PortState state) const;
 
     // Input - output amplitude levels.
-    [[nodiscard]] float getLevelsOut(speaker_id_t const speakerID) const;
-    [[nodiscard]] float getLevelsIn(int indexLevel) const;
-    [[nodiscard]] float getLevelsAlpha(int indexLevel) const;
-    [[nodiscard]] float getSpeakerLevelsAlpha(speaker_id_t const speakerId) const;
+    [[nodiscard]] float getPeak(output_patch_t outputPatch) const;
+    [[nodiscard]] float getPeak(source_index_t sourceIndex) const;
+    [[nodiscard]] float getAlpha(output_patch_t outputPatch) const;
+    [[nodiscard]] float getAlpha(source_index_t sourceIndex) const;
 
     // Called when the speaker setup has changed.
     bool refreshSpeakers();
@@ -339,7 +337,6 @@ private:
     void setShowSpeakers(bool state);
     void setTripletsFromVbap();
 
-    [[nodiscard]] speaker_id_t getMaxSpeakerId() const;
     [[nodiscard]] output_patch_t getMaxSpeakerOutputPatch() const;
     [[nodiscard]] bool tripletExists(Triplet const & tri, int & pos) const;
     [[nodiscard]] bool validateShowTriplets() const;

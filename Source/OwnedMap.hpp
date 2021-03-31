@@ -3,77 +3,85 @@
 #include "StrongTypes.hpp"
 
 //==============================================================================
-template<typename T, typename U>
-class Manager
+template<typename KeyType, typename ValueType>
+class OwnedMap
 {
 public:
-    using value_type = T;
-    using key_type = U;
+    using key_type = KeyType;
+    using value_type = ValueType;
+    struct Node {
+        key_type key{};
+        value_type * value{};
+    };
+
+private:
+    static_assert(std::is_base_of_v<StrongIndexBase, key_type>);
+    struct ExtendedHashFunctions : juce::DefaultHashFunctions {
+        static int generateHash(key_type const key, int const upperLimit)
+        {
+            return juce::DefaultHashFunctions::generateHash(key.get(), upperLimit);
+        }
+    };
+    using map_type = juce::HashMap<key_type, Node, ExtendedHashFunctions>;
+
+public:
+    using iterator_type = typename map_type::Iterator;
 
 private:
     //==============================================================================
-    static_assert(std::is_base_of_v<StrongIndexBase, key_type>);
-    //==============================================================================
-    struct ExtendedHashFunctions : juce::DefaultHashFunctions {
-        static int generateHash(key_type const index, int const upperLimit)
-        {
-            return juce::DefaultHashFunctions::generateHash(index.get(), upperLimit);
-        }
-    };
-    //==============================================================================
-    juce::CriticalSection mLock;
+    juce::CriticalSection mCriticalSection;
     juce::OwnedArray<value_type> mItems;
-    juce::HashMap<key_type, value_type *, ExtendedHashFunctions> mMap;
+    map_type mMap;
 
 public:
     //==============================================================================
-    Manager() = default;
-    ~Manager() = default;
+    OwnedMap() = default;
+    ~OwnedMap() = default;
     //==============================================================================
-    Manager(Manager const &) = delete;
-    Manager(Manager &&) = delete;
-    Manager & operator=(Manager const &) = delete;
-    Manager & operator=(Manager &&) = delete;
+    OwnedMap(OwnedMap const &) = delete;
+    OwnedMap(OwnedMap &&) = delete;
+    OwnedMap & operator=(OwnedMap const &) = delete;
+    OwnedMap & operator=(OwnedMap &&) = delete;
     //==============================================================================
     [[nodiscard]] bool contains(key_type const key) const { return mMap.contains(key); }
     [[nodiscard]] int size() const { return mItems.size(); }
     [[nodiscard]] bool isEmpty() const { return mItems.isEmpty(); }
     //==============================================================================
-    [[nodiscard]] value_type const & get(key_type const key) const
+    [[nodiscard]] value_type const & operator[](key_type const key) const
     {
         jassert(contains(key));
-        return *mMap[key];
+        return *mMap[key].value;
     }
     //==============================================================================
-    [[nodiscard]] value_type & get(key_type const key)
+    [[nodiscard]] value_type & operator[](key_type const key)
     {
         jassert(contains(key));
-        return *mMap[key];
+        return *mMap[key].value;
     }
     //==============================================================================
     value_type & add(key_type const key, std::unique_ptr<value_type> value)
     {
         jassert(!contains(key));
         mItems.add(value.get());
-        mMap.set(key, value.get());
+        mMap.set(key, Node{ key, value.get() });
         return *value.release();
     }
     //==============================================================================
     void remove(key_type const key)
     {
         jassert(contains(key));
-        mItems.removeObject(mMap[key]);
+        mItems.removeObject(mMap[key].value);
         mMap.remove(key);
     }
     //==============================================================================
-    [[nodiscard]] auto const & getLock() const { return mLock; }
+    [[nodiscard]] auto const & getCriticalSection() const { return mCriticalSection; }
     //==============================================================================
-    [[nodiscard]] value_type * const * begin() { return mItems.data(); }
-    [[nodiscard]] value_type * const * end() { return mItems.data() + size(); }
-    [[nodiscard]] value_type const * const * begin() const { return mItems.data(); }
-    [[nodiscard]] value_type const * const * end() const { return mItems.data() + size(); }
-    [[nodiscard]] value_type const * const * cbegin() const { return mItems.data(); }
-    [[nodiscard]] value_type const * const * cend() const { return mItems.data() + size(); }
+    [[nodiscard]] iterator_type begin() { return mMap.begin(); }
+    [[nodiscard]] iterator_type end() { return mMap.end(); }
+    [[nodiscard]] iterator_type begin() const { return mMap.begin(); }
+    [[nodiscard]] iterator_type end() const { return mMap.end(); }
+    [[nodiscard]] iterator_type cbegin() const { return mMap.begin(); }
+    [[nodiscard]] iterator_type cend() const { return mMap.end(); }
     //==============================================================================
     void clear()
     {
@@ -83,5 +91,5 @@ public:
 
 private:
     //==============================================================================
-    JUCE_LEAK_DETECTOR(Manager)
+    JUCE_LEAK_DETECTOR(OwnedMap)
 };

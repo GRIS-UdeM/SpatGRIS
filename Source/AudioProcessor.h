@@ -19,24 +19,24 @@
 
 #pragma once
 
+#include "constants.hpp"
+
 #include <array>
 #include <vector>
 
+#include "StaticMap.hpp"
+#include "TaggedAudioBuffer.hpp"
 #include "macros.h"
 DISABLE_WARNINGS
 #include <JuceHeader.h>
 ENABLE_WARNINGS
 
-#include "Input.h"
-#include "Manager.hpp"
-#include "SourceData.hpp"
-#include "SpatMode.hpp"
+#include "AudioStructs.hpp"
+//#include "SourceData.hpp"
+#include "AbstractSpatAlgorithm.hpp"
 #include "Speaker.h"
-#include "SpeakerData.hpp"
-#include "TaggedAudioBuffer.h"
-#include "constants.hpp"
-#include "lbap.hpp"
-#include "vbap.hpp"
+//#include "SpeakerData.hpp"
+#include "TaggedAudioBuffer.hpp"
 
 class Speaker;
 
@@ -46,55 +46,16 @@ class Speaker;
  */
 class AudioProcessor
 {
-    output_patch_t mMaxOutputPatch{};
-    std::vector<output_patch_t> mOutputPatches{};
-
-    // Interpolation and master gain values.
-    float mInterMaster{ 0.8f };
-    float mMasterGainOut{ 1.0f };
-
-    // Global solo states.
-    bool mSoloIn{ false };
-    bool mSoloOut{ false };
-
-    // Pink noise test sound.
-    dbfs_t mPinkNoiseGain{ -20.0f };
-    bool mPinkNoiseActive{ false };
-
-    // Source and output lists.
-    StaticVector<SourceData, MAX_INPUTS> mSourcesData{};
-    Manager<SpeakerData, speaker_id_t> mSpeakersOut{};
-
-    // Which spatialization mode is selected.
-    SpatMode mModeSelected{ SpatMode::vbap };
-
-    // VBAP data.
-    unsigned mVbapDimensions{};
-
-    juce::Array<Triplet> mVbapTriplets{};
-
-    // BINAURAL data.
-    std::array<unsigned, 16> mHrtfCount{};
-    std::array<std::array<float, 128>, 16> mHrtfInputTmp{};
-    std::array<std::array<float, 128>, 16> mVbapHrtfLeftImpulses{};
-    std::array<std::array<float, 128>, 16> mVbapHrtfRightImpulses{};
-
-    // LBAP data.
-    lbap_field mLbapSpeakerField{};
-
-    // LBAP distance attenuation values.
-    float mAttenuationLinearGain{ 0.01584893f };       // -36 dB;
-    float mAttenuationLowpassCoefficient{ 0.867208f }; // 1000 Hz
+    AudioData mAudioData{};
+    std::unique_ptr<AbstractSpatAlgorithm> mSpatAlgorithm{};
     //==============================================================================
-    // This structure is used to compute the VBAP algorithm only once. Each source only gets a copy.
-    VbapData * mParamVBap{};
-
     juce::CriticalSection mCriticalSection{};
+    Pool<SpeakersSpatGains> * mGainsPool{};
 
 public:
     //==============================================================================
-    AudioProcessor(Manager<Speaker, speaker_id_t> const & speakers, juce::OwnedArray<Input> const & inputs);
-    ~AudioProcessor();
+    AudioProcessor();
+    ~AudioProcessor() = default;
     //==============================================================================
     AudioProcessor(AudioProcessor const &) = delete;
     AudioProcessor(AudioProcessor &&) = delete;
@@ -103,15 +64,6 @@ public:
     //==============================================================================
     // Audio Status.
 
-    [[nodiscard]] std::vector<output_patch_t> getDirectOutOutputPatches() const;
-
-    // Initialize VBAP algorithm.
-    [[nodiscard]] bool
-        initSpeakersTriplet(std::vector<Speaker const *> const & listSpk, int dimensions, bool needToComputeVbap);
-
-    // Initialize LBAP algorithm.
-    [[nodiscard]] bool lbapSetupSpeakerField(std::vector<Speaker const *> const & listSpk);
-
     // LBAP distance attenuation functions.
     void setAttenuationDbIndex(int index);
     void setAttenuationFrequencyIndex(int index);
@@ -119,51 +71,28 @@ public:
     // Reinit HRTF delay lines.
     void resetHrtf();
 
-    [[nodiscard]] SpatMode getMode() const { return mModeSelected; }
-    [[nodiscard]] unsigned getVbapDimensions() const { return mVbapDimensions; }
-    [[nodiscard]] auto & getSourcesIn() { return mSourcesData; }
-    [[nodiscard]] auto const & getSourcesIn() const { return mSourcesData; }
-    [[nodiscard]] auto const & getVbapTriplets() const { return mVbapTriplets; }
-    [[nodiscard]] bool getSoloIn() const { return mSoloIn; }
-    [[nodiscard]] bool getSoloOut() const { return mSoloOut; }
-    [[nodiscard]] auto const & getSpeakersOut() const { return mSpeakersOut; }
-    [[nodiscard]] auto & getSpeakersOut() { return mSpeakersOut; }
-    [[nodiscard]] output_patch_t getMaxOutputPatch() const { return mMaxOutputPatch; }
-
     [[nodiscard]] juce::CriticalSection const & getCriticalSection() const noexcept { return mCriticalSection; }
 
-    void setMaxOutputPatch(output_patch_t const maxOutputPatch) { mMaxOutputPatch = maxOutputPatch; }
-    void setVbapDimensions(unsigned const dimensions) { mVbapDimensions = dimensions; }
-    void setSoloIn(bool const state) { mSoloIn = state; }
-    void setSoloOut(bool const state) { mSoloOut = state; }
-    void setMode(SpatMode const mode) { mModeSelected = mode; }
-    void setMasterGainOut(float const gain) { mMasterGainOut = gain; }
-    void setInterMaster(float const interMaster) { mInterMaster = interMaster; }
-
-    //==============================================================================
-    // Pink noise
-    void setPinkNoiseGain(dbfs_t const gain) { mPinkNoiseGain = gain; }
-    void setPinkNoiseActive(bool const state) { mPinkNoiseActive = state; }
+    void setAudioConfig(AudioConfig const & audioConfig);
 
     //==============================================================================
     // Audio processing
-    void muteSoloVuMeterGainOut(TaggedAudioBuffer<MAX_OUTPUTS> & outputBuffer,
-                                int const numSamples,
-                                float gain = 1.0f) noexcept;
-    void processVbap(juce::AudioBuffer<float> const & inputBuffer,
-                     TaggedAudioBuffer<MAX_OUTPUTS> & outputBuffer) noexcept;
-    void processLbap(juce::AudioBuffer<float> const & inputBuffer,
-                     TaggedAudioBuffer<MAX_OUTPUTS> & outputBuffer) noexcept;
-    void processVBapHrtf(juce::AudioBuffer<float> const & inputBuffer,
-                         TaggedAudioBuffer<MAX_OUTPUTS> & outputBuffer) noexcept;
-    void processStereo(juce::AudioBuffer<float> const & inputBuffer,
-                       TaggedAudioBuffer<MAX_OUTPUTS> & outputBuffer) noexcept;
-    void processAudio(juce::AudioBuffer<float> & inputBuffer, TaggedAudioBuffer<MAX_OUTPUTS> & outputBuffer) noexcept;
+    SpeakerPeaks muteSoloVuMeterGainOut(SpeakerAudioBuffer & speakerBuffer) noexcept;
+    void processVbap(SourceAudioBuffer const & inputBuffer,
+                     SpeakerAudioBuffer & outputBuffer,
+                     SourcePeaks const & sourcePeaks) noexcept;
+    void
+        processLbap(SourceAudioBuffer & sourceBuffer, SpeakerAudioBuffer & speakerBuffer, SourcePeaks const &) noexcept;
+    void processVBapHrtf(SourceAudioBuffer const & inputBuffer,
+                         SpeakerAudioBuffer & outputBuffer,
+                         SourcePeaks const & sourcePeaks) noexcept;
+    void processStereo(SourceAudioBuffer const & sourceBuffer, SpeakerAudioBuffer & speakerBuffer) noexcept;
+    void processAudio(SourceAudioBuffer & sourceBuffer, SpeakerAudioBuffer & speakerBuffer) noexcept;
 
 private:
     //==============================================================================
     // Connect the server's outputs to the system's inputs.
-    void muteSoloVuMeterIn(juce::AudioBuffer<float> & inputBuffer) noexcept;
+    SourcePeaks muteSoloVuMeterIn(SourceAudioBuffer & inputBuffer) const noexcept;
     void updateSourceVbap(int idS) noexcept;
     //==============================================================================
     JUCE_LEAK_DETECTOR(AudioProcessor)

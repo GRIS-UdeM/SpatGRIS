@@ -33,14 +33,12 @@ static T getFloatPrecision(T const value, U const precision)
 //==============================================================================
 Speaker::Speaker(MainContentComponent & mainContentComponent,
                  SmallGrisLookAndFeel & smallGrisLookAndFeel,
-                 speaker_id_t const id,
                  output_patch_t const outputPatch,
                  float const azimuth,
                  float const zenith,
                  float const radius)
     : mLookAndFeel(smallGrisLookAndFeel)
     , mMainContentComponent(mainContentComponent)
-    , mId(id)
     , mOutputPatch(outputPatch)
     , mVuMeter(*this, mLookAndFeel, false)
 {
@@ -51,7 +49,7 @@ Speaker::Speaker(MainContentComponent & mainContentComponent,
 //==============================================================================
 float Speaker::getLevel() const
 {
-    return mMainContentComponent.getLevelsOut(mId);
+    return mMainContentComponent.getPeak(mOutputPatch);
 }
 
 //==============================================================================
@@ -59,7 +57,7 @@ float Speaker::getAlpha() const
 {
     float alpha;
     if (mMainContentComponent.isSpeakerLevelShown()) {
-        alpha = mMainContentComponent.getSpeakerLevelsAlpha(mId);
+        alpha = mMainContentComponent.getAlpha(mOutputPatch);
     } else {
         alpha = 1.0f;
     }
@@ -70,21 +68,9 @@ float Speaker::getAlpha() const
 }
 
 //==============================================================================
-void Speaker::setMuted(bool const mute)
+void Speaker::setState(PortState const state)
 {
-    mMainContentComponent.muteOutput(mId, mute);
-    if (mute) {
-        mMainContentComponent.soloOutput(mId, false);
-    }
-}
-
-//==============================================================================
-void Speaker::setSolo(bool const solo)
-{
-    mMainContentComponent.soloOutput(mId, solo);
-    if (solo) {
-        mMainContentComponent.muteOutput(mId, false);
-    }
+    mMainContentComponent.setSpeakerState(mOutputPatch, state);
 }
 
 //==============================================================================

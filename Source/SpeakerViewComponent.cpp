@@ -114,7 +114,7 @@ void SpeakerViewComponent::render()
         }
     }
 
-    juce::ScopedTryLock const lock{ mMainContentComponent.getSpeakers().getLock() };
+    juce::ScopedTryLock const lock{ mMainContentComponent.getSpeakers().getCriticalSection() };
     if (lock.isLocked()) {
         if (!mHideSpeaker) {
             for (auto * speaker : mMainContentComponent.getSpeakers()) {
@@ -214,21 +214,21 @@ void SpeakerViewComponent::clickRay()
 
     mRay.setRay(glm::vec3{ mXs, mYs, mZs }, glm::vec3{ mXe, mYe, mZe });
 
-    tl::optional<speaker_id_t> iBestSpeaker{};
-    tl::optional<speaker_id_t> selected{};
+    tl::optional<output_patch_t> iBestSpeaker{};
+    tl::optional<output_patch_t> selected{};
     auto const & speakers{ mMainContentComponent.getSpeakers() };
-    juce::ScopedTryLock const lock{ speakers.getLock() };
+    juce::ScopedTryLock const lock{ speakers.getCriticalSection() };
     if (lock.isLocked()) {
         for (auto const * speaker : speakers) {
             if (speaker->isSelected()) {
-                selected = speaker->getSpeakerId();
+                selected = speaker->getOutputPatch();
             }
             if (rayCast(speaker) != -1) {
                 if (!iBestSpeaker) {
-                    iBestSpeaker = speaker->getSpeakerId();
+                    iBestSpeaker = speaker->getOutputPatch();
                 } else {
-                    if (speakerNearCam(speaker->getCenter(), speakers.get(*iBestSpeaker).getCenter())) {
-                        iBestSpeaker = speaker->getSpeakerId();
+                    if (speakerNearCam(speaker->getCenter(), speakers[*iBestSpeaker].getCenter())) {
+                        iBestSpeaker = speaker->getOutputPatch();
                     }
                 }
             }

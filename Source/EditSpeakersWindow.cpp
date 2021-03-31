@@ -566,7 +566,7 @@ void EditSpeakersWindow::selectSpeaker(tl::optional<speaker_id_t> const id)
         return displayOrder.indexOf(id);
     };
 
-    juce::ScopedLock const lock{ mMainContentComponent.getSpeakers().getLock() };
+    juce::ScopedLock const lock{ mMainContentComponent.getSpeakers().getCriticalSection() };
     selectRow(id.map(getSelectedRow));
 }
 
@@ -673,7 +673,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
                                  juce::String const & newText,
                                  bool const altDown)
 {
-    juce::ScopedTryLock lock{ mMainContentComponent.getSpeakers().getLock() };
+    juce::ScopedTryLock lock{ mMainContentComponent.getSpeakers().getCriticalSection() };
     if (lock.isLocked()) {
         if (mMainContentComponent.getSpeakers().size() > rowNumber) {
             auto const selectedRows{ mSpeakersTableListBox.getSelectedRows() };
@@ -963,13 +963,13 @@ void EditSpeakersWindow::paintRowBackground(juce::Graphics & g,
     }
 
     if (rowIsSelected) {
-        juce::ScopedTryLock const lock{ mMainContentComponent.getSpeakers().getLock() };
+        juce::ScopedTryLock const lock{ mMainContentComponent.getSpeakers().getCriticalSection() };
         if (lock.isLocked()) {
             getSpeaker(rowNumber).selectSpeaker();
         }
         g.fillAll(mLookAndFeel.getHighlightColour());
     } else {
-        juce::ScopedTryLock const lock{ mMainContentComponent.getSpeakers().getLock() };
+        juce::ScopedTryLock const lock{ mMainContentComponent.getSpeakers().getCriticalSection() };
         if (lock.isLocked()) {
             getSpeaker(rowNumber).unSelectSpeaker();
         }

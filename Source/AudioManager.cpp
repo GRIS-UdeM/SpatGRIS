@@ -53,27 +53,21 @@ void AudioManager::audioDeviceIOCallback(float const ** inputChannelData,
                                          int const totalNumOutputChannels,
                                          int const numSamples)
 {
-    jassert(numSamples <= mOutputBuffer.MAX_BUFFER_LENGTH);
+    jassert(numSamples <= mInputBuffer.MAX_NUM_SAMPLES);
+    jassert(numSamples <= mOutputBuffer.MAX_NUM_SAMPLES);
     juce::ScopedLock sl{ mCriticalSection }; // TODO: necessary?
 
     // clear buffers
-    mOutputBuffer.clear();
-
-    // resize buffers if needed
-    if (mInputBuffer.getNumChannels() != mInputs->size() || mInputBuffer.getNumSamples() != numSamples) {
-        // TODO: should this be moved outside of the audio loop?
-        mInputBuffer.setSize(mInputs->size(), numSamples);
-    } else {
-        mInputBuffer.clear();
-    }
-
-    // TODO: DO NOT PUT THIS IN THE AUDIO LOOP!
-    mOutputBuffer.setSpeakers(*mSpeakers);
+    mInputBuffer.silence();
+    mOutputBuffer.silence();
 
     // copy input data to buffers
-    auto const numInputChannelsToCopy{ std::min(totalNumInputChannels, mInputBuffer.getNumChannels()) };
+    auto const numInputChannelsToCopy{ std::min(totalNumInputChannels, mInputBuffer.size()) };
     for (int i{}; i < numInputChannelsToCopy; ++i) {
-        mInputBuffer.copyFrom(i, 0, inputChannelData[i], numSamples);
+        source_index_t const sourceIndex{ i + 1 };
+        auto const * sourceData{ inputChannelData[i] };
+        auto * destinationData{ mInputBuffer.getWritePointer(sourceIndex) };
+        std::copy_n(sourceData, numSamples, destinationData);
     }
 
     // do the actual processing
@@ -170,14 +164,11 @@ AudioManager::~AudioManager()
 }
 
 //==============================================================================
-void AudioManager::registerAudioProcessor(AudioProcessor * audioProcessor,
-                                          Manager<Speaker, speaker_id_t> const & speakers,
-                                          juce::OwnedArray<Input> const & inputs)
+void AudioManager::registerAudioProcessor(AudioProcessor * audioProcessor, AudioConfig const & audioConfig)
 {
     juce::ScopedLock sl{ mCriticalSection };
     mAudioProcessor = audioProcessor;
-    mSpeakers = &speakers;
-    mInputs = &inputs;
+    mAudioConfigRef = &audioConfig;
 }
 
 //==============================================================================
@@ -192,7 +183,7 @@ juce::StringArray AudioManager::getAvailableDeviceTypeNames()
 
 //==============================================================================
 bool AudioManager::prepareToRecord(RecordingOptions const & recordingOptions,
-                                   Manager<Speaker, speaker_id_t> const & speakers)
+                                   OwnedMap<Speaker, speaker_id_t> const & speakers)
 {
     static constexpr auto BITS_PER_SAMPLE = 24;
     static constexpr auto RECORD_QUALITY = 0;

@@ -35,14 +35,16 @@
               file="Source/PinkNoiseGenerator.cpp"/>
         <FILE id="H5EPIz" name="PinkNoiseGenerator.h" compile="0" resource="0"
               file="Source/PinkNoiseGenerator.h"/>
-        <FILE id="VKaECU" name="TaggedAudioBuffer.cpp" compile="1" resource="0"
-              file="Source/TaggedAudioBuffer.cpp"/>
-        <FILE id="Qctsv6" name="TaggedAudioBuffer.h" compile="0" resource="0"
-              file="Source/TaggedAudioBuffer.h"/>
+        <FILE id="Qctsv6" name="TaggedAudioBuffer.hpp" compile="0" resource="0"
+              file="Source/TaggedAudioBuffer.hpp"/>
+      </GROUP>
+      <GROUP id="{CAE9BD57-C46F-25A5-8F7E-772337A1A370}" name="containers">
+        <FILE id="X8vUnO" name="OwnedMap.hpp" compile="0" resource="0" file="Source/OwnedMap.hpp"/>
+        <FILE id="yy5rCQ" name="StaticMap.hpp" compile="0" resource="0" file="Source/StaticMap.hpp"/>
+        <FILE id="qrPHXG" name="StaticVector.hpp" compile="0" resource="0"
+              file="Source/StaticVector.hpp"/>
       </GROUP>
       <GROUP id="{B880ED62-D15F-78F9-F83A-129573A5FA84}" name="misc">
-        <FILE id="GMYB2w" name="Manager.hpp" compile="0" resource="0" file="Source/Manager.hpp"/>
-        <FILE id="qrPHXG" name="StaticVector.h" compile="0" resource="0" file="Source/StaticVector.h"/>
         <FILE id="wuCEse" name="SpatMode.hpp" compile="0" resource="0" file="Source/SpatMode.hpp"/>
         <FILE id="F7hMuN" name="StrongTypes.hpp" compile="0" resource="0" file="Source/StrongTypes.hpp"/>
         <FILE id="e9Tcnv" name="constants.cpp" compile="1" resource="0" file="Source/constants.cpp"/>
@@ -51,10 +53,31 @@
         <FILE id="apexeV" name="narrow.hpp" compile="0" resource="0" file="Source/narrow.hpp"/>
       </GROUP>
       <GROUP id="{FB6EEEB4-BE6B-EB4A-201D-755A3CFACAAC}" name="spat">
-        <FILE id="zKQ5WK" name="lbap.cpp" compile="1" resource="0" file="Source/lbap.cpp"/>
-        <FILE id="G3SJU6" name="lbap.hpp" compile="0" resource="0" file="Source/lbap.hpp"/>
-        <FILE id="ihjJqS" name="vbap.cpp" compile="1" resource="0" file="Source/vbap.cpp"/>
-        <FILE id="gyI4aY" name="vbap.hpp" compile="0" resource="0" file="Source/vbap.hpp"/>
+        <GROUP id="{F536EC3E-463E-F7C1-C73E-F95B29576CC6}" name="implementations">
+          <FILE id="zKQ5WK" name="lbap.cpp" compile="1" resource="0" file="Source/lbap.cpp"/>
+          <FILE id="G3SJU6" name="lbap.hpp" compile="0" resource="0" file="Source/lbap.hpp"/>
+          <FILE id="ihjJqS" name="vbap.cpp" compile="1" resource="0" file="Source/vbap.cpp"/>
+          <FILE id="gyI4aY" name="vbap.hpp" compile="0" resource="0" file="Source/vbap.hpp"/>
+        </GROUP>
+        <FILE id="sIHZLh" name="HrtfVbapAlgorithm.cpp" compile="1" resource="0"
+              file="Source/HrtfVbapAlgorithm.cpp"/>
+        <FILE id="sXfAcS" name="HrtfVbapAlgorithm.hpp" compile="0" resource="0"
+              file="Source/HrtfVbapAlgorithm.hpp"/>
+        <FILE id="wPgW0E" name="LbapAlgorithm.cpp" compile="1" resource="0"
+              file="Source/LbapAlgorithm.cpp"/>
+        <FILE id="SRzTxM" name="LbapAlgorithm.hpp" compile="0" resource="0"
+              file="Source/LbapAlgorithm.hpp"/>
+        <FILE id="NWnli2" name="AbstractSpatAlgorithm.cpp" compile="1" resource="0"
+              file="Source/AbstractSpatAlgorithm.cpp"/>
+        <FILE id="SuIy1P" name="AbstractSpatAlgorithm.hpp" compile="0" resource="0"
+              file="Source/AbstractSpatAlgorithm.hpp"/>
+        <FILE id="a5pP1T" name="StereoAlgorithm.cpp" compile="1" resource="0"
+              file="Source/StereoAlgorithm.cpp"/>
+        <FILE id="VHmR6h" name="StereoAlgorithm.hpp" compile="0" resource="0"
+              file="Source/StereoAlgorithm.hpp"/>
+        <FILE id="k5RRcN" name="VbapAlgorithm.cpp" compile="1" resource="0"
+              file="Source/VbapAlgorithm.cpp"/>
+        <FILE id="JxLj01" name="VbapAlgorithm.h" compile="0" resource="0" file="Source/VbapAlgorithm.h"/>
       </GROUP>
       <GROUP id="{879FD67D-521A-EC98-EB2A-A3C056EDF2C2}" name="structs">
         <FILE id="KYw7Ga" name="CartesianVector.cpp" compile="1" resource="0"
@@ -65,11 +88,8 @@
         <FILE id="XZJcvv" name="PolarVector.cpp" compile="1" resource="0" file="Source/PolarVector.cpp"/>
         <FILE id="v4qTK2" name="PolarVector.h" compile="0" resource="0" file="Source/PolarVector.h"/>
         <FILE id="RGyF3P" name="Pool.hpp" compile="0" resource="0" file="Source/Pool.hpp"/>
-        <FILE id="jVjbue" name="SourceData.hpp" compile="0" resource="0" file="Source/SourceData.hpp"/>
-        <FILE id="wWrACh" name="SpeakerData.hpp" compile="0" resource="0" file="Source/SpeakerData.hpp"/>
-        <FILE id="G671gB" name="StaticManager.hpp" compile="0" resource="0"
-              file="Source/StaticManager.hpp"/>
-        <FILE id="iunGqH" name="TestStructs.hpp" compile="0" resource="0" file="Source/TestStructs.hpp"/>
+        <FILE id="iunGqH" name="AudioStructs.hpp" compile="0" resource="0"
+              file="Source/AudioStructs.hpp"/>
         <FILE id="gLY4l0" name="ThreadsafePtr.hpp" compile="0" resource="0"
               file="Source/ThreadsafePtr.hpp"/>
       </GROUP>

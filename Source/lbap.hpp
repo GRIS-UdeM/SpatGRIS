@@ -25,7 +25,7 @@
 
 #pragma once
 
-#include "Manager.hpp"
+#include "OwnedMap.hpp"
 #include "StrongTypes.hpp"
 
 static auto constexpr LBAP_MATRIX_SIZE = 64;
@@ -144,7 +144,7 @@ void lbap_field_compute(lbap_field const & field, lbap_pos const & position, flo
  *
  * \return lbap_speaker array pointer.
  */
-std::vector<lbap_speaker> lbap_speakers_from_positions(Manager<SpeakerData, speaker_id_t> const & speakers);
+std::vector<lbap_speaker> lbap_speakers_from_positions(OwnedMap<SpeakerData, output_patch_t> const & speakers);
 
 /** \brief Initialize an lbap_pos structure from a position in radians.
  *

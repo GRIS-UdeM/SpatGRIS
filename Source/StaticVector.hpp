@@ -62,6 +62,8 @@ public:
         jassert(newSize <= CAPACITY);
         mSize = newSize;
     }
+
+    T * data() { return mData.data(); }
     //==============================================================================
     [[nodiscard]] bool isEmpty() const { return mSize == 0; }
     [[nodiscard]] bool isFull() const { return mSize == CAPACITY; }

@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS.
 
- Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
+ Developers: Samuel BÃ©land, Olivier BÃ©langer, Nicolas Masson
 
  SpatGRIS is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@ static float pinkNoiseC5{};
 static float pinkNoiseC6{};
 
 //==============================================================================
-void fillWithPinkNoise(float * const * samples, int const numSamples, int const numChannels, dbfs_t const db)
+void fillWithPinkNoise(float * const * samples, int const numSamples, int const numChannels, float const gain)
 {
     static constexpr auto FAC{ 1.0f / (static_cast<float>(RAND_MAX) / 2.0f) };
     static constexpr dbfs_t CORRECTION{ -18.2f };
@@ -45,7 +45,7 @@ void fillWithPinkNoise(float * const * samples, int const numSamples, int const 
         pinkNoiseC5 = pinkNoiseC5 * -0.7616f - rnd * 0.0168980f;
         auto sampleValue{ pinkNoiseC0 + pinkNoiseC1 + pinkNoiseC2 + pinkNoiseC3 + pinkNoiseC4 + pinkNoiseC5
                           + pinkNoiseC6 + rnd * 0.5362f };
-        sampleValue *= db.toGain() * CORRECTION.toGain();
+        sampleValue *= gain * CORRECTION.toGain();
         pinkNoiseC6 = rnd * 0.115926f;
 
         for (int channelIndex{}; channelIndex < numChannels; channelIndex++) {

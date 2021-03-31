@@ -24,9 +24,10 @@ DISABLE_WARNINGS
 #include <JuceHeader.h>
 ENABLE_WARNINGS
 
+#include "AudioStructs.hpp"
 #include "Configuration.h"
 #include "Input.h"
-#include "Manager.hpp"
+#include "OwnedMap.hpp"
 #include "Speaker.h"
 #include "StrongTypes.hpp"
 #include "TaggedAudioBuffer.h"
@@ -41,10 +42,10 @@ class AudioManager final : juce::AudioSourcePlayer
     static constexpr auto RECORDERS_BUFFER_SIZE_IN_SAMPLES = 131072;
     //==============================================================================
     struct RecorderInfo {
-        std::unique_ptr<juce::AudioFormatWriter::ThreadedWriter> threadedWriter;
+        std::unique_ptr<juce::AudioFormatWriter::ThreadedWriter> threadedWriter{};
         juce::AudioFormatWriter *
-            audioFormatWriter; // this is only left for safety assertions : it will get deleted by the threadedWriter
-        juce::Array<float const *> dataToRecord;
+            audioFormatWriter{}; // this is only left for safety assertions : it will get deleted by the threadedWriter
+        juce::Array<float const *> dataToRecord{};
     };
     //==============================================================================
 public:
@@ -59,13 +60,12 @@ private:
     juce::CriticalSection mCriticalSection{};
 
     AudioProcessor * mAudioProcessor{};
-    Manager<Speaker, speaker_id_t> const * mSpeakers{};
-    juce::OwnedArray<Input> const * mInputs{};
+    AudioConfig const * mAudioConfigRef{};
 
     juce::AudioDeviceManager mAudioDeviceManager{};
 
-    juce::AudioBuffer<float> mInputBuffer{};
-    TaggedAudioBuffer<MAX_OUTPUTS> mOutputBuffer{};
+    SourceAudioBuffer mInputBuffer{};
+    SpeakerAudioBuffer mOutputBuffer{};
 
     // Recording
     bool mIsRecording{};
@@ -88,13 +88,11 @@ public:
     [[nodiscard]] juce::AudioDeviceManager const & getAudioDeviceManager() const { return mAudioDeviceManager; }
     [[nodiscard]] juce::AudioDeviceManager & getAudioDeviceManager() { return mAudioDeviceManager; }
 
-    void registerAudioProcessor(AudioProcessor * audioProcessor,
-                                Manager<Speaker, speaker_id_t> const & speakers,
-                                juce::OwnedArray<Input> const & inputs);
+    void registerAudioProcessor(AudioProcessor * audioProcessor, AudioConfig const & audioConfig);
 
     juce::StringArray getAvailableDeviceTypeNames();
 
-    bool prepareToRecord(RecordingOptions const & recordingOptions, Manager<Speaker, speaker_id_t> const & speakers);
+    bool prepareToRecord(RecordingOptions const & recordingOptions, SpatGrisData::SpeakersData const & speakers);
     void startRecording();
     void stopRecording();
     bool isRecording() const { return mIsRecording; }

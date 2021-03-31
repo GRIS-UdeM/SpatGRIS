@@ -108,7 +108,7 @@ public:
     //==============================================================================
     void initComp();
     void selectRow(tl::optional<int> const value);
-    void selectSpeaker(tl::optional<speaker_id_t> const id);
+    void selectSpeaker(tl::optional<output_patch_t> outputPatch);
     void updateWinContent(bool needToSaveSpeakerSetup);
 
 private:

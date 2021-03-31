@@ -43,6 +43,7 @@ ENABLE_WARNINGS
 #include "StrongTypes.hpp"
 
 class MainContentComponent;
+enum class PortState;
 
 //==============================================================================
 struct Triplet {
@@ -80,7 +81,6 @@ class Speaker final : public ParentLevelComponent
     float mGain{ 0.0f };
     float mHpCutoff{ 0.0f };
 
-    speaker_id_t mId;
     output_patch_t mOutputPatch;
 
     LevelComponent mVuMeter;
@@ -89,7 +89,6 @@ public:
     //==============================================================================
     Speaker(MainContentComponent & mainContentComponent,
             SmallGrisLookAndFeel & smallGrisLookAndFeel,
-            speaker_id_t id,
             output_patch_t outputPatch,
             float azimuth,
             float zenith,
@@ -113,8 +112,7 @@ public:
     [[nodiscard]] int getButtonInOutNumber() const override { return mOutputPatch.get(); };
     [[nodiscard]] float getLevel() const override;
     [[nodiscard]] float getAlpha() const;
-    void setMuted(bool mute) override;
-    void setSolo(bool solo) override;
+    void setState(PortState state);
     void setColor(juce::Colour /*color*/, bool /*updateLevel = false*/) override {}
     void selectClick(bool select = true) override;
 
@@ -122,7 +120,6 @@ public:
     [[nodiscard]] LevelComponent * getVuMeter() override { return &mVuMeter; }
 
     // Normalized for user
-    [[nodiscard]] speaker_id_t getSpeakerId() const { return mId; }
     void setCoordinate(glm::vec3 value);
     void normalizeRadius();
     void setAziZenRad(glm::vec3 value);

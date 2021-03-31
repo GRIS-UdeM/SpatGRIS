@@ -214,7 +214,7 @@ MainContentComponent::~MainContentComponent()
     mSpeakerViewComponent.reset();
 
     {
-        juce::ScopedLock const lock{ mSpeakers.getLock() };
+        juce::ScopedLock const lock{ mSpeakers.getCriticalSection() };
         mSpeakers.clear();
     }
 
@@ -1146,7 +1146,7 @@ bool MainContentComponent::tripletExists(Triplet const & tri, int & pos) const
 //==============================================================================
 void MainContentComponent::reorderSpeakers(juce::Array<speaker_id_t> newOrder)
 {
-    juce::ScopedLock lock{ mSpeakers.getLock() }; // TODO: necessary?
+    juce::ScopedLock lock{ mSpeakers.getCriticalSection() }; // TODO: necessary?
     jassert(newOrder.size() == mSpeakersDisplayOrder.size());
     mSpeakersDisplayOrder = std::move(newOrder);
 }
@@ -1178,7 +1178,7 @@ output_patch_t MainContentComponent::getMaxSpeakerOutputPatch() const
 //==============================================================================
 Speaker & MainContentComponent::addSpeaker()
 {
-    juce::ScopedLock const lock{ mSpeakers.getLock() };
+    juce::ScopedLock const lock{ mSpeakers.getCriticalSection() };
     auto const newId{ ++getMaxSpeakerId() };
     auto const newOutputPatch{ ++getMaxSpeakerOutputPatch() };
     auto & speaker{ mSpeakers.add(
@@ -1193,7 +1193,7 @@ void MainContentComponent::insertSpeaker(int const position)
 {
     auto const newPosition{ position + 1 };
 
-    juce::ScopedLock const lock{ mSpeakers.getLock() };
+    juce::ScopedLock const lock{ mSpeakers.getCriticalSection() };
     auto & newSpeaker{ addSpeaker() };
     mSpeakersDisplayOrder.insert(newPosition, newSpeaker.getSpeakerId());
 }
@@ -1201,7 +1201,7 @@ void MainContentComponent::insertSpeaker(int const position)
 //==============================================================================
 void MainContentComponent::removeSpeaker(speaker_id_t const id)
 {
-    juce::ScopedLock const lock{ mSpeakers.getLock() };
+    juce::ScopedLock const lock{ mSpeakers.getCriticalSection() };
     mSpeakers.remove(id);
     mSpeakersDisplayOrder.removeFirstMatchingValue(id);
 }
@@ -1466,7 +1466,7 @@ bool MainContentComponent::refreshSpeakers()
     auto const mode{ mAudioProcessor->getMode() };
     auto & speakersData{ mAudioProcessor->getSpeakersOut() };
     speakersData.clear();
-    juce::ScopedLock const speakersLock{ mSpeakers.getLock() };
+    juce::ScopedLock const speakersLock{ mSpeakers.getCriticalSection() };
     for (auto * speaker : mSpeakers) {
         juce::Rectangle<int> level{ x, 4, VU_METER_WIDTH_IN_PIXELS, 200 };
         speaker->getVuMeter()->setBounds(level);
@@ -1722,7 +1722,7 @@ void MainContentComponent::openXmlFileSpeaker(juce::File const & file, tl::optio
     }
 
     {
-        juce::ScopedLock const lock{ mSpeakers.getLock() };
+        juce::ScopedLock const lock{ mSpeakers.getCriticalSection() };
         mSpeakers.clear();
     }
 

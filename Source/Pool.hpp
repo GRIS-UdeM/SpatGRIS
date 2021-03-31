@@ -9,39 +9,39 @@ class Pool
 {
     static constexpr size_t BUFFER_SIZE = 1024;
 
-    LocklessQueue<T *, BUFFER_SIZE> mLocklessWaitingQueue{};
-    juce::OwnedArray<T> mPool{};
+    juce::Array<T *> mFreeObjects{};
+    LocklessQueue<T *, BUFFER_SIZE> mPendingFreeObjects{};
+    juce::OwnedArray<T> mOwnedData{};
 
 public:
     void giveBack(T * ptr)
     {
-        if (mLocklessWaitingQueue.free() == 0) {
+        if (mPendingFreeObjects.free() > 0) {
+            mPendingFreeObjects.add(ptr);
+        } else {
             JUCE_ASSERT_MESSAGE_THREAD;
-            mPool.add(ptr);
-            return;
+            mFreeObjects.add(ptr);
         }
-
-        mLocklessWaitingQueue.add(ptr);
     }
 
-    void cleanup()
+    void transferPendingObjects()
     {
         JUCE_ASSERT_MESSAGE_THREAD;
         tl::optional<T *> ptr{};
-        while ((ptr = mLocklessWaitingQueue.consume())) {
-            mPool.add(*ptr);
+        while ((ptr = mPendingFreeObjects.consume()).has_value()) {
+            mFreeObjects.add(*ptr);
         }
     }
 
     T * acquire()
     {
-        JUCE_ASSERT_MESSAGE_THREAD;
-        if (mPool.size() <= 0) {
-            return new T{};
+        if (mFreeObjects.size() <= 0) {
+            JUCE_ASSERT_MESSAGE_THREAD;
+            return mOwnedData.add(new T{});
         }
 
-        auto * ptr{ mPool.getLast() };
-        mPool.removeLast(1, false);
+        auto * ptr{ mFreeObjects.getLast() };
+        mFreeObjects.removeLast(1);
         return ptr;
     }
 };

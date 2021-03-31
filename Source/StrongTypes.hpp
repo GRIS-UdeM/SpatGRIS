@@ -24,11 +24,13 @@ DISABLE_WARNINGS
 #include <JuceHeader.h>
 ENABLE_WARNINGS
 
+#include "narrow.hpp"
+
 class StrongIndexBase
 {
 };
 
-template<typename T, typename Dummy>
+template<typename T, typename Dummy, T StartsAt>
 class StrongIndex : public StrongIndexBase
 {
     T mValue;
@@ -37,6 +39,8 @@ class StrongIndex : public StrongIndexBase
 
 public:
     using type = T;
+
+    static constexpr auto OFFSET = StartsAt;
 
     StrongIndex() = default;
     explicit constexpr StrongIndex(type const & value) : mValue(value) {}
@@ -60,11 +64,17 @@ public:
         --mValue;
         return *this;
     }
+
+    template<typename TargetType>
+    [[nodiscard]] TargetType removeOffset() const
+    {
+        return narrow<TargetType>(mValue - OFFSET);
+    }
 };
-using speaker_id_t = StrongIndex<int, struct SpeakerIdT>;
-using source_index_t = StrongIndex<int, struct SourceIndexT>;
-using output_patch_t = StrongIndex<int, struct OutputPatchT>;
-using display_order_t = StrongIndex<int, struct DisplayOrderT>;
+// using source_index_t = StrongIndex<int, struct SourceIndexT, 1>;
+// using output_patch_t = StrongIndex<int, struct OutputPatchT, 1>;
+typedef StrongIndex<int, struct SourceIndexT, 1> source_index_t;
+typedef StrongIndex<int, struct OutputPatchT, 1> output_patch_t;
 
 template<typename T, typename Derived, typename Dummy>
 class StrongFloat
