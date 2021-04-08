@@ -80,16 +80,17 @@
         <FILE id="JxLj01" name="VbapAlgorithm.h" compile="0" resource="0" file="Source/VbapAlgorithm.h"/>
       </GROUP>
       <GROUP id="{879FD67D-521A-EC98-EB2A-A3C056EDF2C2}" name="structs">
+        <FILE id="iunGqH" name="AudioStructs.hpp" compile="0" resource="0"
+              file="Source/AudioStructs.hpp"/>
         <FILE id="KYw7Ga" name="CartesianVector.cpp" compile="1" resource="0"
               file="Source/CartesianVector.cpp"/>
         <FILE id="Fo1t1H" name="CartesianVector.h" compile="0" resource="0"
               file="Source/CartesianVector.h"/>
         <FILE id="uWpyry" name="LocklessQueue.h" compile="0" resource="0" file="Source/LocklessQueue.h"/>
+        <FILE id="myBXNh" name="LogicStrucs.hpp" compile="0" resource="0" file="Source/LogicStrucs.hpp"/>
         <FILE id="XZJcvv" name="PolarVector.cpp" compile="1" resource="0" file="Source/PolarVector.cpp"/>
         <FILE id="v4qTK2" name="PolarVector.h" compile="0" resource="0" file="Source/PolarVector.h"/>
         <FILE id="RGyF3P" name="Pool.hpp" compile="0" resource="0" file="Source/Pool.hpp"/>
-        <FILE id="iunGqH" name="AudioStructs.hpp" compile="0" resource="0"
-              file="Source/AudioStructs.hpp"/>
         <FILE id="gLY4l0" name="ThreadsafePtr.hpp" compile="0" resource="0"
               file="Source/ThreadsafePtr.hpp"/>
       </GROUP>

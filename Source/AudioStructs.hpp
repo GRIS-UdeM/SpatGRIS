@@ -142,9 +142,6 @@ struct AudioConfig {
 
     tl::optional<float> pinkNoiseGain{};
 
-    // VBAP-specific
-    VbapDimensions vbapDimensions{};
-
     // LBAP-specific
     LbapAttenuationConfig lbapAttenuationConfig{};
 };

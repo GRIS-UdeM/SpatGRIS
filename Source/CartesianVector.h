@@ -1,14 +1,19 @@
 #pragma once
 
+#include "lib/tl/optional.hpp"
+
 #include <cmath>
 
 #include <JuceHeader.h>
 
 struct CartesianVector {
-private:
-    static juce::String const XML_TAG;
+    struct XmlTags {
+        static juce::String const MAIN_TAG;
+        static juce::String const X;
+        static juce::String const Y;
+        static juce::String const Z;
+    };
 
-public:
     float x;
     float y;
     float z;
@@ -47,10 +52,28 @@ public:
 
     [[nodiscard]] juce::XmlElement * toXml() const noexcept
     {
-        auto result{ std::make_unique<juce::XmlElement>(XML_TAG) };
-        result->setAttribute("x", x);
-        result->setAttribute("y", y);
-        result->setAttribute("z", z);
+        auto result{ std::make_unique<juce::XmlElement>(XmlTags::MAIN_TAG) };
+        result->setAttribute(XmlTags::X, x);
+        result->setAttribute(XmlTags::Y, y);
+        result->setAttribute(XmlTags::Z, z);
         return result.release();
+    }
+
+    [[nodiscard]] static tl::optional<CartesianVector> fromXml(juce::XmlElement const & xml)
+    {
+        juce::StringArray const requiredTags{ XmlTags::X, XmlTags::Y, XmlTags::Z };
+
+        if (!std::all_of(requiredTags.begin(), requiredTags.end(), [&](juce::String const & tag) {
+                return xml.hasAttribute(tag);
+            })) {
+            return tl::nullopt;
+        }
+
+        CartesianVector result;
+        result.x = xml.getDoubleAttribute(XmlTags::X);
+        result.y = xml.getDoubleAttribute(XmlTags::Y);
+        result.z = xml.getDoubleAttribute(XmlTags::Z);
+
+        return result;
     }
 };
