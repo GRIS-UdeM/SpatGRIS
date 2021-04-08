@@ -127,6 +127,7 @@ void AudioProcessor::resetHrtf()
 //==============================================================================
 void AudioProcessor::setAudioConfig(AudioConfig const & audioConfig)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedLock const lock{ mCriticalSection };
     mAudioData.config = audioConfig;
 }
@@ -498,71 +499,6 @@ bool AudioProcessor::initSpeakersTriplet(std::vector<Speaker const *> const & li
                                          int const dimensions,
                                          bool const needToComputeVbap)
 {
-    jassert(
-        std::none_of(listSpk.cbegin(), listSpk.cend(), [](Speaker const * speaker) { return speaker->isDirectOut(); }));
-
-    if (listSpk.empty()) {
-        return false;
-    }
-
-    LoudSpeaker lss[MAX_SPEAKER_COUNT];
-    output_patch_t outputPatches[MAX_SPEAKER_COUNT];
-
-    int j{};
-    for (unsigned i{}; i < listSpk.size(); ++i) {
-        auto const * speaker{ listSpk[i] };
-        auto const * const * speakerDataIt{ std::find_if(mSpeakersOut.cbegin(),
-                                                         mSpeakersOut.cend(),
-                                                         [&](SpeakerData const * speakerData) {
-                                                             return !speakerData->directOut
-                                                                    && speakerData->outputPatch
-                                                                           == speaker->getOutputPatch();
-                                                         }) };
-        jassert(speakerDataIt != mSpeakersOut.cend());
-        auto const & speakerData{ **speakerDataIt };
-        lss[i].coords.x = speakerData.x;
-        lss[i].coords.y = speakerData.y;
-        lss[i].coords.z = speakerData.z;
-        lss[i].angles.azimuth = speakerData.azimuth;
-        lss[i].angles.elevation = speakerData.zenith;
-        lss[i].angles.length = speakerData.radius; // Always 1.0 for VBAP.
-        outputPatches[i] = speakerData.outputPatch;
-    }
-
-    if (needToComputeVbap) {
-        free_vbap_data(mParamVBap);
-        mParamVBap = init_vbap_from_speakers(lss,
-                                             narrow<int>(listSpk.size()),
-                                             dimensions,
-                                             outputPatches,
-                                             mMaxOutputPatch,
-                                             nullptr);
-        if (mParamVBap == nullptr) {
-            return false;
-        }
-    }
-
-    for (auto & source : mSourcesData) {
-        free_vbap_data(source.paramVBap);
-        source.paramVBap = copy_vbap_data(mParamVBap);
-    }
-
-    int ** triplets;
-    auto const num{ vbap_get_triplets(mSourcesData[0].paramVBap, &triplets) };
-    mVbapTriplets.clear();
-    for (int i{}; i < num; ++i) {
-        Triplet const row{ output_patch_t{ triplets[i][0] },
-                           output_patch_t{ triplets[i][1] },
-                           output_patch_t{ triplets[i][2] } };
-        mVbapTriplets.add(row);
-    }
-
-    for (int i{}; i < num; i++) {
-        free(triplets[i]);
-    }
-    free(triplets);
-
-    return true;
 }
 
 //==============================================================================

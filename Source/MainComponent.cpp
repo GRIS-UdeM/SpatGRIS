@@ -204,6 +204,8 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         auto const trueSize{ narrow<int>(std::round(narrow<double>(getWidth() - 3) * std::abs(*sashPosition))) };
         mVerticalLayout.setItemPosition(1, trueSize);
     }
+
+    mSpatAlgorithm = AbstractSpatAlgorithm::make()
 }
 
 //==============================================================================

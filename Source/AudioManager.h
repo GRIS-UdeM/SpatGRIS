@@ -26,12 +26,7 @@ ENABLE_WARNINGS
 
 #include "AudioStructs.hpp"
 #include "Configuration.h"
-#include "Input.h"
-#include "OwnedMap.hpp"
-#include "Speaker.h"
-#include "StrongTypes.hpp"
-#include "TaggedAudioBuffer.h"
-#include "constants.hpp"
+#include "TaggedAudioBuffer.hpp"
 
 class AudioProcessor;
 

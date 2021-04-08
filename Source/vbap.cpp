@@ -49,10 +49,10 @@ static bool any_speaker_inside_triplet(output_patch_t const a,
     inverseMatrix[5] = ((lp1->x * lp3->y) - (lp1->y * lp3->x)) * -invdet;
     inverseMatrix[8] = ((lp1->x * lp2->y) - (lp1->y * lp2->x)) * invdet;
 
-    for (auto const * speaker : speakers) {
-        if (speaker->outputPatch != a && speaker->outputPatch != b && speaker->outputPatch != c) {
+    for (auto const speaker : speakers) {
+        if (speaker.key != a && speaker.key != b && speaker.key != c) {
             auto this_inside{ true };
-            auto const & speakerPosition{ speaker->position };
+            auto const & speakerPosition{ speaker.value->position };
             for (size_t j{}; j < 3; ++j) {
                 auto tmp = speakerPosition.x * inverseMatrix[0 + j * 3];
                 tmp += speakerPosition.y * inverseMatrix[1 + j * 3];
@@ -494,7 +494,7 @@ std::vector<TripletData> computeTriplets(SpatGrisData::SpeakersData const & spea
     std::vector<int> distance_table_j{};
     distance_table_j.resize(table_size);
 
-    for (auto const * const * i_speaker_it{ speakers.cbegin() }; i_speaker_it < speakers.cend(); ++i_speaker_it) {
+    for (auto const i_speaker_it{ speakers.cbegin() }; i_speaker_it < speakers.cend(); ++i_speaker_it) {
         auto const & i_speaker{ **i_speaker_it };
         auto const & i_outputPatch{ i_speaker.outputPatch };
         for (auto const * const * j_speaker_it{ i_speaker_it + 1 }; j_speaker_it < speakers.cend(); ++j_speaker_it) {

@@ -21,9 +21,6 @@
 
 #include "constants.hpp"
 
-#include <array>
-#include <vector>
-
 #include "StaticMap.hpp"
 #include "TaggedAudioBuffer.hpp"
 #include "macros.h"
@@ -32,11 +29,6 @@ DISABLE_WARNINGS
 ENABLE_WARNINGS
 
 #include "AudioStructs.hpp"
-//#include "SourceData.hpp"
-#include "AbstractSpatAlgorithm.hpp"
-#include "Speaker.h"
-//#include "SpeakerData.hpp"
-#include "TaggedAudioBuffer.hpp"
 
 class Speaker;
 
@@ -47,10 +39,7 @@ class Speaker;
 class AudioProcessor
 {
     AudioData mAudioData{};
-    std::unique_ptr<AbstractSpatAlgorithm> mSpatAlgorithm{};
-    //==============================================================================
     juce::CriticalSection mCriticalSection{};
-    Pool<SpeakersSpatGains> * mGainsPool{};
 
 public:
     //==============================================================================

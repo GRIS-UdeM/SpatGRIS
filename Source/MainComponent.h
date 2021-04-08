@@ -27,6 +27,7 @@ DISABLE_WARNINGS
 ENABLE_WARNINGS
 
 #include "AboutWindow.h"
+#include "AbstractSpatAlgorithm.hpp"
 #include "AudioProcessor.h"
 #include "Box.h"
 #include "Configuration.h"
@@ -158,6 +159,8 @@ class MainContentComponent final
     bool mNeedToSavePreset{ false };
     bool mNeedToSaveSpeakerSetup{ false };
     bool mNeedToComputeVbap{ true };
+
+    std::unique_ptr<AbstractSpatAlgorithm> mSpatAlgorithm{};
 
 public:
     //==============================================================================

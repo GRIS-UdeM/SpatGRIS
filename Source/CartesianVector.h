@@ -2,7 +2,13 @@
 
 #include <cmath>
 
+#include <JuceHeader.h>
+
 struct CartesianVector {
+private:
+    static juce::String const XML_TAG;
+
+public:
     float x;
     float y;
     float z;
@@ -38,4 +44,13 @@ struct CartesianVector {
     }
 
     [[nodiscard]] float angleWith(CartesianVector const & other) const noexcept;
+
+    [[nodiscard]] juce::XmlElement * toXml() const noexcept
+    {
+        auto result{ std::make_unique<juce::XmlElement>(XML_TAG) };
+        result->setAttribute("x", x);
+        result->setAttribute("y", y);
+        result->setAttribute("z", z);
+        return result.release();
+    }
 };
