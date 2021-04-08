@@ -99,12 +99,19 @@ public:
 
     [[nodiscard]] constexpr type const & get() const { return mValue; }
 
+    [[nodiscard]] constexpr Derived operator-() const { return Derived{ -mValue }; }
+
     [[nodiscard]] constexpr Derived operator+(Derived const & other) const { return Derived{ mValue + other.mValue }; }
     [[nodiscard]] constexpr Derived operator-(Derived const & other) const { return Derived{ mValue - other.mValue }; }
     [[nodiscard]] constexpr Derived operator*(type const mod) const { return Derived{ mValue * mod }; }
     [[nodiscard]] constexpr Derived operator/(type const mod) const { return Derived{ mValue / mod }; }
     [[nodiscard]] constexpr type operator/(Derived const & other) const { return mValue / other.mValue; }
 
+    Derived & operator+=(Derived const & other) noexcept
+    {
+        mValue += other.mValue;
+        return *this;
+    }
     Derived & operator*=(type const & mod) noexcept
     {
         mValue *= mod;
@@ -185,6 +192,8 @@ public:
     {
         return degrees_t{ mValue * degrees_t::DEGREE_PER_RADIAN };
     }
+
+    [[nodiscard]] constexpr operator degrees_t() const { return toDegrees(); }
 };
 
 class hz_t final : public StrongFloat<float, hz_t, struct HzT>

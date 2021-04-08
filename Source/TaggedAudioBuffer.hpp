@@ -5,7 +5,7 @@ DISABLE_WARNINGS
 #include <JuceHeader.h>
 ENABLE_WARNINGS
 
-#include "StaticMap.hpp"
+#include "OwnedMap.hpp"
 #include "StaticVector.hpp"
 
 template<typename KeyType, size_t Capacity>

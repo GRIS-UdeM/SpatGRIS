@@ -86,7 +86,9 @@ public:
     void processVBapHrtf(SourceAudioBuffer const & inputBuffer,
                          SpeakerAudioBuffer & outputBuffer,
                          SourcePeaks const & sourcePeaks) noexcept;
-    void processStereo(SourceAudioBuffer const & sourceBuffer, SpeakerAudioBuffer & speakerBuffer) noexcept;
+    void processStereo(SourceAudioBuffer const & sourceBuffer,
+                       SpeakerAudioBuffer & speakerBuffer,
+                       SourcePeaks const &) noexcept;
     void processAudio(SourceAudioBuffer & sourceBuffer, SpeakerAudioBuffer & speakerBuffer) noexcept;
 
 private:

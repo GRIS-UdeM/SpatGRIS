@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS.
 
- Developers: Samuel B�land, Olivier B�langer, Nicolas Masson
+ Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
 
  SpatGRIS is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -332,6 +332,8 @@ void AudioProcessor::processVBapHrtf(SourceAudioBuffer const & inputBuffer,
     processVbap(inputBuffer, outputBuffer, sourcePeaks);
 
     auto const numSamples{ inputBuffer.getNumSamples() };
+
+    // Process hrtf and mixdown to stereo
     std::array<float, MAX_BUFFER_SIZE> leftOutputSamples{};
     std::array<float, MAX_BUFFER_SIZE> rightOutputSamples{};
     for (auto const speaker : mAudioData.config.speakersAudioConfig) {
@@ -339,36 +341,30 @@ void AudioProcessor::processVBapHrtf(SourceAudioBuffer const & inputBuffer,
         auto & hrtfCount{ hrtfState.count };
         auto & hrtfInputTmp{ hrtfState.inputTmp };
         auto const outputIndex{ speaker.key.removeOffset<size_t>() };
-        auto const * vbapOuts{ outputBuffer[speaker.key].getReadPointer(0) };
+        auto const * outputSamples{ outputBuffer[speaker.key].getReadPointer(0) };
         auto const & hrtfLeftImpulses{ hrtfState.leftImpulses };
         auto const & hrtfRightImpulses{ hrtfState.rightImpulses };
-        for (auto const source : mAudioData.config.sourcesAudioConfig) {
-            // Process hrtf and mixdown to stereo
-            for (size_t sampleIndex{}; sampleIndex < narrow<size_t>(numSamples); ++sampleIndex) {
-                auto tmpCount{ narrow<int>(hrtfCount[outputIndex]) };
-                for (unsigned hrtfIndex{}; hrtfIndex < HRTF_NUM_SAMPLES; ++hrtfIndex) {
-                    if (tmpCount < 0) {
-                        tmpCount += HRTF_NUM_SAMPLES;
-                    }
-                    auto const sig{ hrtfInputTmp[outputIndex][tmpCount] };
-                    leftOutputSamples[sampleIndex] += sig * hrtfLeftImpulses[outputIndex][hrtfIndex];
-                    rightOutputSamples[sampleIndex] += sig * hrtfRightImpulses[outputIndex][hrtfIndex];
-                    --tmpCount;
+        for (size_t sampleIndex{}; sampleIndex < narrow<size_t>(numSamples); ++sampleIndex) {
+            auto tmpCount{ narrow<int>(hrtfCount[outputIndex]) };
+            for (unsigned hrtfIndex{}; hrtfIndex < HRTF_NUM_SAMPLES; ++hrtfIndex) {
+                if (tmpCount < 0) {
+                    tmpCount += HRTF_NUM_SAMPLES;
                 }
-                hrtfCount[outputIndex]++;
-                if (hrtfCount[outputIndex] >= HRTF_NUM_SAMPLES) {
-                    hrtfCount[outputIndex] = 0;
-                }
-                hrtfInputTmp[outputIndex][hrtfCount[outputIndex]] = vbapOuts[sampleIndex];
+                auto const sig{ hrtfInputTmp[outputIndex][tmpCount] };
+                leftOutputSamples[sampleIndex] += sig * hrtfLeftImpulses[outputIndex][hrtfIndex];
+                rightOutputSamples[sampleIndex] += sig * hrtfRightImpulses[outputIndex][hrtfIndex];
+                --tmpCount;
             }
+            hrtfCount[outputIndex]++;
+            if (hrtfCount[outputIndex] >= HRTF_NUM_SAMPLES) {
+                hrtfCount[outputIndex] = 0;
+            }
+            hrtfInputTmp[outputIndex][hrtfCount[outputIndex]] = outputSamples[sampleIndex];
         }
     }
 
-    outputBuffer[output_patch_t{ 2 }].copyFrom(0, 0, rightOutputSamples.data(), numSamples);
-
     static constexpr output_patch_t LEFT_OUTPUT_PATCH{ 1 };
     static constexpr output_patch_t RIGHT_OUTPUT_PATCH{ 2 };
-
     for (auto const speaker : mAudioData.config.speakersAudioConfig) {
         if (speaker.key == LEFT_OUTPUT_PATCH) {
             outputBuffer[LEFT_OUTPUT_PATCH].copyFrom(0, 0, leftOutputSamples.data(), numSamples);
@@ -381,61 +377,54 @@ void AudioProcessor::processVBapHrtf(SourceAudioBuffer const & inputBuffer,
 }
 
 //==============================================================================
-void AudioProcessor::processStereo(juce::AudioBuffer<float> const & inputBuffer,
-                                   TaggedAudioBuffer<MAX_OUTPUTS> & outputBuffer) noexcept
+void AudioProcessor::processStereo(SourceAudioBuffer const & inputBuffer,
+                                   SpeakerAudioBuffer & outputBuffer,
+                                   SourcePeaks const & sourcePeaks) noexcept
 {
-    jassert(mSpeakersOut.size() == 2);
+    jassert(outputBuffer.size() == 2);
 
-    static auto constexpr FACTOR{ juce::MathConstants<float>::pi / 360.0f };
-    auto const gainFactor{ std::pow(mInterMaster, 0.1f) * 0.0099f + 0.99f };
+    auto const gainFactor{ std::pow(mAudioData.config.spatGainsInterpolation, 0.1f) * 0.0099f + 0.99f };
 
-    auto * leftOutputSamples{ outputBuffer.getWritePointerByOutputPatch(output_patch_t{ 1 }) };
-    auto * rightOutputSamples{ outputBuffer.getWritePointerByOutputPatch(output_patch_t{ 2 }) };
+    auto * leftOutputSamples{ outputBuffer[output_patch_t{ 1 }].getWritePointer(0) };
+    auto * rightOutputSamples{ outputBuffer[output_patch_t{ 2 }].getWritePointer(0) };
     auto const numSamples{ inputBuffer.getNumSamples() };
 
-    for (int sourceIndex{}; sourceIndex < mSourcesData.size(); ++sourceIndex) {
+    auto const & sources{ mAudioData.config.sourcesAudioConfig };
+    for (auto const source : sources) {
         // Is empty?
-        auto & source{ mSourcesData[sourceIndex] };
-        if (source.magnitude < SMALL_GAIN) {
-            // nothing to process
+        if (source.value.isMuted || source.value.directOut || sourcePeaks[source.key] < SMALL_GAIN) {
             continue;
         }
 
-        // Is direct out?
-        auto const * inputSamples{ inputBuffer.getReadPointer(sourceIndex) };
-        if (source.directOut) {
-            auto * target{ source.directOut->get() % 2 == 1 ? leftOutputSamples : rightOutputSamples };
-            std::transform(inputSamples, inputSamples + numSamples, target, target, std::plus());
-            continue;
-        }
+        auto const * inputSamples{ inputBuffer[source.key].getReadPointer(0) };
 
         // Process
-        auto const & azimuth{ source.azimuth };
-        auto lastAzimuth{ source.lastAzimuth };
+        auto const azimuth{ mAudioData.stereoSourceAzimuths[source.key].get() };
+        auto & lastAzimuth{ mAudioData.state.sourcesAudioState[source.key].stereoLastAzimuth };
         for (int sampleIndex{}; sampleIndex < numSamples; ++sampleIndex) {
             // Removes the chirp at 180->-180 degrees azimuth boundary.
             if ((lastAzimuth - azimuth).abs() > degrees_t{ 300.0f }) {
                 lastAzimuth = azimuth;
             }
             lastAzimuth = azimuth + (lastAzimuth - azimuth) * gainFactor;
-            degrees_t scaled;
-            if (lastAzimuth < degrees_t{ -90.0f }) {
-                scaled = degrees_t{ -90.0f } - (lastAzimuth + degrees_t{ 90.0f });
-            } else if (lastAzimuth > degrees_t{ 90.0f }) {
-                scaled = degrees_t{ 90.0f } - (lastAzimuth - degrees_t{ 90.0f });
+            radians_t scaled;
+            static constexpr radians_t NINETY_DEG{ degrees_t{ 90.0f } };
+            if (lastAzimuth < -NINETY_DEG) {
+                scaled = -NINETY_DEG - (lastAzimuth + NINETY_DEG);
+            } else if (lastAzimuth > NINETY_DEG) {
+                scaled = NINETY_DEG - (lastAzimuth - NINETY_DEG);
             } else {
                 scaled = lastAzimuth;
             }
-            scaled = (scaled + degrees_t{ 90.0f }) * FACTOR;
+            scaled += NINETY_DEG;
             using fast = juce::dsp::FastMathApproximations;
             leftOutputSamples[sampleIndex] += inputSamples[sampleIndex] * fast::cos(scaled.get());
             rightOutputSamples[sampleIndex] += inputSamples[sampleIndex] * fast::sin(scaled.get());
         }
-        source.lastAzimuth = lastAzimuth;
     }
 
     // Apply gain compensation.
-    auto const compensation{ std::pow(10.0f, (narrow<float>(inputBuffer.getNumChannels()) - 1.0f) * -0.1f * 0.05f) };
+    auto const compensation{ std::pow(10.0f, (narrow<float>(sources.size()) - 1.0f) * -0.1f * 0.05f) };
     auto const applyCompensation = [compensation](float & sample) { sample *= compensation; };
     std::for_each_n(leftOutputSamples, numSamples, applyCompensation);
     std::for_each_n(rightOutputSamples, numSamples, applyCompensation);
@@ -453,9 +442,12 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer, SpeakerAudio
     jassert(sourceBuffer.getNumSamples() == speakerBuffer.getNumSamples());
     auto const numSamples{ sourceBuffer.getNumSamples() };
 
-    muteSoloVuMeterIn(sourceBuffer);
+    // Process source peaks
+    auto * sourcePeaks{ mAudioData.sourcePeaks.pool.acquire() };
+    *sourcePeaks = muteSoloVuMeterIn(sourceBuffer);
 
     if (mAudioData.config.pinkNoiseGain) {
+        // Process pink noise
         StaticVector<output_patch_t, MAX_OUTPUTS> activeChannels{};
         for (auto channel : mAudioData.config.speakersAudioConfig) {
             activeChannels.push_back(channel.key);
@@ -463,24 +455,26 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer, SpeakerAudio
         auto data{ speakerBuffer.getArrayOfWritePointers(activeChannels) };
         fillWithPinkNoise(data.data(), numSamples, data.size(), *mAudioData.config.pinkNoiseGain);
     } else {
-        switch (mSpatAlgorithm->getSpatMode()) {
+        // Process spat algorithm
+        switch (mAudioData.config.spatMode) {
         case SpatMode::vbap:
-            processVbap(sourceBuffer, speakerBuffer);
+            processVbap(sourceBuffer, speakerBuffer, *sourcePeaks);
             break;
         case SpatMode::lbap:
-            processLbap(sourceBuffer, speakerBuffer, );
+            processLbap(sourceBuffer, speakerBuffer, *sourcePeaks);
             break;
         case SpatMode::hrtfVbap:
-            processVBapHrtf(sourceBuffer, speakerBuffer);
+            processVBapHrtf(sourceBuffer, speakerBuffer, *sourcePeaks);
             break;
         case SpatMode::stereo:
-            processStereo(sourceBuffer, speakerBuffer);
+            processStereo(sourceBuffer, speakerBuffer, *sourcePeaks);
             break;
         default:
             jassertfalse;
             break;
         }
 
+        // Process direct outs
         for (auto const & directOutPair : mAudioData.config.directOutPairs) {
             auto const & origin{ sourceBuffer[directOutPair.first] };
             auto & dest{ speakerBuffer[directOutPair.second] };
@@ -488,7 +482,15 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer, SpeakerAudio
         }
     }
 
-    muteSoloVuMeterGainOut(speakerBuffer);
+    // Process speaker highpass
+
+    // Process speaker peaks
+    auto * speakerPeaks{ mAudioData.speakerPeaks.pool.acquire() };
+    *speakerPeaks = muteSoloVuMeterGainOut(speakerBuffer);
+
+    // return peaks data to message thread
+    mAudioData.sourcePeaks.set(sourcePeaks);
+    mAudioData.speakerPeaks.set(speakerPeaks);
 }
 
 //==============================================================================
