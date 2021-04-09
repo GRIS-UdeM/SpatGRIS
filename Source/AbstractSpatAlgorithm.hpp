@@ -1,7 +1,7 @@
 #pragma once
 
 #include "AudioStructs.hpp"
-#include "PolarVector.h"
+#include "LogicStrucs.hpp"
 #include "SpatMode.hpp"
 
 class AbstractSpatAlgorithm
@@ -15,9 +15,8 @@ public:
     AbstractSpatAlgorithm & operator=(AbstractSpatAlgorithm const &) = delete;
     AbstractSpatAlgorithm & operator=(AbstractSpatAlgorithm &&) = delete;
     //==============================================================================
-    virtual void init(SpatGrisData::SpeakersData const & speakers) = 0;
-    [[nodiscard]] virtual SpatMode getSpatMode() const noexcept = 0;
-    [[nodiscard]] virtual SpeakersSpatGains computeSpeakerGains(PolarVector const & sourcePosition) const noexcept = 0;
+    virtual void init(SpeakersData const & speakers) = 0;
+    [[nodiscard]] virtual SpeakersSpatGains computeSpeakerGains(SourceData const & source) const noexcept = 0;
     //==============================================================================
     [[nodiscard]] static std::unique_ptr<AbstractSpatAlgorithm> make(SpatMode spatMode);
 };

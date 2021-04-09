@@ -495,7 +495,7 @@ void SpeakerViewComponent::drawTripletConnection() const
 }
 
 //==============================================================================
-float SpeakerViewComponent::rayCast(Speaker const * const speaker) const
+float SpeakerViewComponent::rayCast(SpeakerModel const * const speaker) const
 {
     auto const t1{ (speaker->getMin().x - mRay.getPosition().x) / mRay.getNormal().x };
     auto const t2{ (speaker->getMax().x - mRay.getPosition().x) / mRay.getNormal().x };

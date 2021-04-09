@@ -44,11 +44,10 @@ class AudioManager final : juce::AudioSourcePlayer
     };
     //==============================================================================
 public:
-    struct RecordingOptions {
-        juce::String path;
-        RecordingFormat format;
-        RecordingConfig config;
-        double sampleRate;
+    struct RecordingParameters {
+        juce::String path{};
+        RecordingOptions options{};
+        double sampleRate{};
     };
 
 private:
@@ -67,7 +66,7 @@ private:
     juce::Atomic<int64_t> mNumSamplesRecorded{};
     juce::OwnedArray<RecorderInfo> mRecorders{};
     juce::TimeSliceThread mRecordersThread{ "SpatGRIS recording thread" };
-    RecordingConfig mRecordingConfig{};
+    RecordingParameters mRecordingParameters{};
     //==============================================================================
     static std::unique_ptr<AudioManager> mInstance;
 
@@ -83,11 +82,11 @@ public:
     [[nodiscard]] juce::AudioDeviceManager const & getAudioDeviceManager() const { return mAudioDeviceManager; }
     [[nodiscard]] juce::AudioDeviceManager & getAudioDeviceManager() { return mAudioDeviceManager; }
 
-    void registerAudioProcessor(AudioProcessor * audioProcessor, AudioConfig const & audioConfig);
-
     juce::StringArray getAvailableDeviceTypeNames();
 
-    bool prepareToRecord(RecordingOptions const & recordingOptions, SpatGrisData::SpeakersData const & speakers);
+    void registerAudioProcessor(AudioProcessor * audioProcessor);
+
+    bool prepareToRecord(RecordingOptions const & recordingOptions, SpeakersData const & speakers);
     void startRecording();
     void stopRecording();
     bool isRecording() const { return mIsRecording; }

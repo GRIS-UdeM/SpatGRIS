@@ -164,11 +164,10 @@ AudioManager::~AudioManager()
 }
 
 //==============================================================================
-void AudioManager::registerAudioProcessor(AudioProcessor * audioProcessor, AudioConfig const & audioConfig)
+void AudioManager::registerAudioProcessor(AudioProcessor * audioProcessor)
 {
     juce::ScopedLock sl{ mCriticalSection };
     mAudioProcessor = audioProcessor;
-    mAudioConfigRef = &audioConfig;
 }
 
 //==============================================================================
@@ -182,13 +181,12 @@ juce::StringArray AudioManager::getAvailableDeviceTypeNames()
 }
 
 //==============================================================================
-bool AudioManager::prepareToRecord(RecordingOptions const & recordingOptions,
-                                   OwnedMap<Speaker, speaker_id_t> const & speakers)
+bool AudioManager::prepareToRecord(RecordingOptions const & recordingOptions, SpeakersData const & speakers)
 {
     static constexpr auto BITS_PER_SAMPLE = 24;
     static constexpr auto RECORD_QUALITY = 0;
 
-    mRecordingConfig = recordingOptions.config;
+    mRecordingParameters.options = recordingOptions;
     mNumSamplesRecorded = 0;
     mRecorders.clearQuick(true);
 
@@ -257,19 +255,22 @@ bool AudioManager::prepareToRecord(RecordingOptions const & recordingOptions,
             auto const * const * firstSpeakerIt{ std::find_if(
                 mSpeakers->cbegin(),
                 mSpeakers->cend(),
-                [](Speaker const * speaker) { return speaker->getOutputPatch().get() == 1; }) };
+                [](SpeakerModel const * speaker) { return speaker->getOutputPatch().get() == 1; }) };
             auto const * const * secondSpeakerIt{ std::find_if(
                 mSpeakers->cbegin(),
                 mSpeakers->cend(),
-                [](Speaker const * speaker) { return speaker->getOutputPatch().get() == 2; }) };
+                [](SpeakerModel const * speaker) { return speaker->getOutputPatch().get() == 2; }) };
             jassert(firstSpeakerIt != mSpeakers->cend() && secondSpeakerIt != mSpeakers->cend());
             channelInfo.add(ChannelInfo{ output_patch_t{ 1 }, (*firstSpeakerIt)->getSpeakerId() });
             channelInfo.add(ChannelInfo{ output_patch_t{ 2 }, (*secondSpeakerIt)->getSpeakerId() });
         } else {
             channelInfo.resize(mSpeakers->size());
-            std::transform(mSpeakers->cbegin(), mSpeakers->cend(), channelInfo.begin(), [](Speaker const * speaker) {
-                return ChannelInfo{ speaker->getOutputPatch(), speaker->getSpeakerId() };
-            });
+            std::transform(mSpeakers->cbegin(),
+                           mSpeakers->cend(),
+                           channelInfo.begin(),
+                           [](SpeakerModel const * speaker) {
+                               return ChannelInfo{ speaker->getOutputPatch(), speaker->getSpeakerId() };
+                           });
             std::sort(channelInfo.begin(), channelInfo.end(), [](ChannelInfo const & a, ChannelInfo const & b) {
                 return a.outputPatch < b.outputPatch;
             });
@@ -281,7 +282,7 @@ bool AudioManager::prepareToRecord(RecordingOptions const & recordingOptions,
     auto const baseOutputFile{ juce::File{ recordingOptions.path }.getParentDirectory().getFullPathName() + '/'
                                + juce::File{ recordingOptions.path }.getFileNameWithoutExtension() };
     auto const extension{ juce::File{ recordingOptions.path }.getFileExtension() };
-    if (recordingOptions.config == RecordingConfig::mono) {
+    if (recordingOptions.fileType == RecordingConfig::mono) {
         filePaths.ensureStorageAllocated(channelInfo.size());
         for (auto const & info : channelInfo) {
             auto pathWithoutExtension{ baseOutputFile + juce::String{ info.outputPatch.get() } };
@@ -293,7 +294,7 @@ bool AudioManager::prepareToRecord(RecordingOptions const & recordingOptions,
             filePaths.add(newPath);
         }
     } else {
-        jassert(recordingOptions.config == RecordingConfig::interleaved);
+        jassert(recordingOptions.fileType == RecordingConfig::interleaved);
         filePaths.add(baseOutputFile + extension);
     }
 
@@ -331,7 +332,7 @@ bool AudioManager::prepareToRecord(RecordingOptions const & recordingOptions,
 
     // Make recorders
     auto const recordingBufferSize{ RECORDERS_BUFFER_SIZE_IN_SAMPLES * channelInfo.size() };
-    if (recordingOptions.config == RecordingConfig::mono) {
+    if (recordingOptions.fileType == RecordingConfig::mono) {
         jassert(channelInfo.size() == filePaths.size());
         for (int i{}; i < channelInfo.size(); ++i) {
             auto const & speakerId{ channelInfo[i].speakerId };
@@ -351,7 +352,7 @@ bool AudioManager::prepareToRecord(RecordingOptions const & recordingOptions,
             mRecorders.add(std::move(recordingInfo));
         }
     } else {
-        jassert(recordingOptions.config == RecordingConfig::interleaved);
+        jassert(recordingOptions.fileType == RecordingConfig::interleaved);
         jassert(filePaths.size() == 1);
         auto const & filePath{ filePaths[0] };
         StaticVector<speaker_id_t, MAX_OUTPUTS> speakersToRecord{};

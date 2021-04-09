@@ -17,17 +17,20 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Input.h"
+#include "InputModel.h"
 
 #include "GlSphere.h"
 #include "MainComponent.h"
 #include "SpeakerViewComponent.h"
 
 //==============================================================================
-Input::Input(MainContentComponent & mainContentComponent, SmallGrisLookAndFeel & lookAndFeel, int const id)
-    : mMainContentComponent(mainContentComponent)
+InputModel::InputModel(MainContentComponent & mainContentComponent,
+                       SmallGrisLookAndFeel & lookAndFeel,
+                       source_index_t const index)
+    : VuMeterModel(index.get())
+    , mMainContentComponent(mainContentComponent)
     , mLookAndFeel(lookAndFeel)
-    , mIdChannel(id)
+    , mIndex(index)
     , mVuMeter(*this, lookAndFeel)
 {
     resetPosition();
@@ -35,27 +38,26 @@ Input::Input(MainContentComponent & mainContentComponent, SmallGrisLookAndFeel &
 }
 
 //==============================================================================
-void Input::resetPosition()
+void InputModel::resetPosition()
 {
-    mAzimuth = HALF_PI / 2.0f;
-    mZenith = HALF_PI;
+    mVector.azimuth = HALF_PI / 2.0f;
+    mVector.elevation = HALF_PI;
 
     mAzimuthSpan = 0.0f;
     mZenithSpan = 0.0f;
 
-    mGain = -1.0f;
-    mRadius = 1.0f;
+    mVector.length = 1.0f;
 
-    mCenter.x = 14.0f * std::sin(mZenith.get()) * std::cos(mAzimuth.get());
-    mCenter.z = 14.0f * std::sin(mZenith.get()) * std::sin(mAzimuth.get());
-    mCenter.y = 14.0f * std::cos(mZenith.get()) + SPHERE_RADIUS / 2.0f;
+    mCenter.x = 14.0f * std::sin(mVector.elevation.get()) * std::cos(mVector.azimuth.get());
+    mCenter.z = 14.0f * std::sin(mVector.elevation.get()) * std::sin(mVector.azimuth.get());
+    mCenter.y = 14.0f * std::cos(mVector.elevation.get()) + SPHERE_RADIUS / 2.0f;
 }
 
 //==============================================================================
-glm::vec3 Input::polToCar(radians_t const azimuth, radians_t const zenith) const
+glm::vec3 InputModel::polToCar(radians_t const azimuth, radians_t const zenith) const
 {
     glm::vec3 cart;
-    auto const factor{ mRadius * SpeakerViewComponent::MAX_RADIUS };
+    auto const factor{ mVector.length * SpeakerViewComponent::MAX_RADIUS };
     cart.x = factor * std::sin(zenith.get()) * std::cos(azimuth.get());
     cart.z = factor * std::sin(zenith.get()) * std::sin(azimuth.get());
     cart.y = SpeakerViewComponent::MAX_RADIUS * std::cos(zenith.get()) + SPHERE_RADIUS / 2.0f;
@@ -63,36 +65,23 @@ glm::vec3 Input::polToCar(radians_t const azimuth, radians_t const zenith) const
 }
 
 //==============================================================================
-glm::vec3 Input::polToCar3d(radians_t const azimuth, radians_t const zenith) const
+glm::vec3 InputModel::polToCar3d(radians_t const azimuth, radians_t const zenith) const
 {
     glm::vec3 cart;
-    auto const factor{ mRadius * SpeakerViewComponent::MAX_RADIUS };
+    auto const factor{ mVector.length * SpeakerViewComponent::MAX_RADIUS };
     cart.x = factor * std::cos(azimuth.get());
     cart.z = factor * std::sin(azimuth.get());
     cart.y = SpeakerViewComponent::MAX_RADIUS * std::cos(zenith.get()) + SPHERE_RADIUS / 2.0f;
     return cart;
 }
 
-//==============================================================================
-void Input::setMuted(bool const mute)
+void InputModel::setState(PortState const state)
 {
-    mMainContentComponent.muteInput(mIdChannel, mute);
-    if (mute) {
-        mMainContentComponent.soloInput(mIdChannel, false);
-    }
+    mMainContentComponent.setSourceState(mIndex, state);
 }
 
 //==============================================================================
-void Input::setSolo(bool const solo)
-{
-    mMainContentComponent.soloInput(mIdChannel, solo);
-    if (solo) {
-        mMainContentComponent.muteInput(mIdChannel, false);
-    }
-}
-
-//==============================================================================
-void Input::setColor(juce::Colour const color, bool const updateLevel)
+void InputModel::setColor(juce::Colour const color, bool const updateLevel)
 {
     mColorJ = color;
     mColor.x = mColorJ.getFloatRed();
@@ -105,13 +94,13 @@ void Input::setColor(juce::Colour const color, bool const updateLevel)
 }
 
 //==============================================================================
-glm::vec3 Input::getNumberColor() const
+glm::vec3 InputModel::getNumberColor() const
 {
     return glm::vec3{ mColor.x * 0.5f, mColor.y * 0.5f, mColor.z * 0.5f };
 }
 
 //==============================================================================
-juce::Colour Input::getColorJWithAlpha() const
+juce::Colour InputModel::getColorJWithAlpha() const
 {
     if (mMainContentComponent.isSourceLevelShown()) {
         return mColorJ.withMultipliedAlpha(getAlpha());
@@ -120,23 +109,18 @@ juce::Colour Input::getColorJWithAlpha() const
 }
 
 //==============================================================================
-float Input::getAlpha() const
+float InputModel::getAlpha() const
 {
     if (mMainContentComponent.isSourceLevelShown()) {
-        return mMainContentComponent.getLevelsAlpha(mIdChannel - 1);
+        return mMainContentComponent.getSourceAlpha(mIndex);
     }
     return 1.0f;
 }
 
 //==============================================================================
-void Input::draw() const
+void InputModel::draw() const
 {
     static auto constexpr ALPHA{ 0.75f };
-
-    // If not initialized, don't draw.
-    if (mGain == -1.0f) {
-        return;
-    }
 
     // If isSourceLevelShown is on and alpha below 0.01, don't draw.
     if (mMainContentComponent.isSourceLevelShown() && getAlpha() <= 0.01f) {
@@ -176,7 +160,7 @@ void Input::draw() const
 }
 
 //==============================================================================
-void Input::drawSpan() const
+void InputModel::drawSpan() const
 {
     static auto constexpr NUM{ 8 };
 
@@ -185,23 +169,26 @@ void Input::drawSpan() const
     glPointSize(4);
     glBegin(GL_POINTS);
 
+    auto const & azimuth{ mVector.azimuth };
+    auto const & elevation{ mVector.elevation };
+
     for (int i{}; i < NUM; ++i) {
         auto const aziDev{ radians_t{ narrow<radians_t::type>(i) } * mAzimuthSpan * 0.5f * 0.42f };
         for (int j{}; j < 2; ++j) {
-            auto newAzimuth{ j ? mAzimuth + aziDev : mAzimuth - aziDev };
+            auto newAzimuth{ j ? azimuth + aziDev : azimuth - aziDev };
 
             newAzimuth = newAzimuth.centered();
 
             if (mMainContentComponent.getModeSelected() == SpatMode::lbap) {
-                cart = polToCar3d(newAzimuth, mZenith);
+                cart = polToCar3d(newAzimuth, elevation);
             } else {
-                cart = polToCar(newAzimuth, mZenith);
+                cart = polToCar(newAzimuth, elevation);
             }
             glVertex3f(cart.x, cart.y, cart.z);
             for (int k{}; k < 4; ++k) {
                 radians_t const eleDev{ (static_cast<float>(k) + 1.0f) * mZenithSpan * 2.0f * 0.38f };
                 for (int l{}; l < 2; ++l) {
-                    auto newElevation{ l ? mZenith + eleDev : mZenith - eleDev };
+                    auto newElevation{ l ? elevation + eleDev : elevation - eleDev };
                     newElevation = std::clamp(newElevation, radians_t{}, HALF_PI);
 
                     if (mMainContentComponent.getModeSelected() == SpatMode::lbap) {
@@ -220,13 +207,13 @@ void Input::drawSpan() const
 }
 
 //==============================================================================
-float Input::getLevel() const
+dbfs_t InputModel::getLevel() const
 {
-    return mMainContentComponent.getLevelsIn(mIdChannel - 1);
+    return mMainContentComponent.getSourcePeak(mIndex);
 }
 
 //==============================================================================
-void Input::drawSpanLbap(float const x, float const y, float const z) const
+void InputModel::drawSpanLbap(float const x, float const y, float const z) const
 {
     static auto constexpr NUM = 4;
 
@@ -280,19 +267,15 @@ void Input::drawSpanLbap(float const x, float const y, float const z) const
 }
 
 //==============================================================================
-void Input::updateValues(radians_t const azimuth,
-                         radians_t const zenith,
-                         float const azimuthSpan,
-                         float const zenithSpan,
-                         float const radius,
-                         float const gain,
-                         SpatMode const mode)
+void InputModel::updateValues(PolarVector const & vector,
+                              float azimuthSpan,
+                              float zenithSpan,
+                              dbfs_t gain,
+                              SpatMode mode)
 {
-    mAzimuth = azimuth;
-    mZenith = zenith;
+    mVector = vector;
     mAzimuthSpan = azimuthSpan;
     mZenithSpan = zenithSpan;
-    mRadius = radius;
     mGain = gain;
 
     auto const radiusInComponent{ radius * SpeakerViewComponent::MAX_RADIUS };
@@ -308,11 +291,11 @@ void Input::updateValues(radians_t const azimuth,
 }
 
 //==============================================================================
-void Input::updateValuesOld(float const azimuth,
-                            float const zenith,
-                            float const azimuthSpan,
-                            float const zenithSpan,
-                            float const g)
+void InputModel::updateValuesOld(float const azimuth,
+                                 float const zenith,
+                                 float const azimuthSpan,
+                                 float const zenithSpan,
+                                 float const g)
 {
     if (azimuth < 0.0f) {
         mAzimuth = PI * std::abs(azimuth);
@@ -331,13 +314,24 @@ void Input::updateValuesOld(float const azimuth,
 }
 
 //==============================================================================
-void Input::sendDirectOutToClient(int const id, output_patch_t const chn)
+void InputModel::setDirectOut(tl::optional<output_patch_t> const directOut)
 {
-    mMainContentComponent.setDirectOut(id, chn);
+    mDirectOut = directOut;
+
+    auto const buttonText{ directOut.map_or([](output_patch_t const & patch) { return juce::String{ patch.get() }; },
+                                            juce::String{ "-" }) };
+    mVuMeter.getDirectOutButton().setButtonText(buttonText);
+    mMainContentComponent.setDirectOut()
 }
 
 //==============================================================================
-void Input::setDirectOutChannel(output_patch_t const chn)
+void InputModel::sendDirectOutToClient(int const id, output_patch_t const chn)
+{
+    mMainContentComponent.setSourceDirectOut(id, chn);
+}
+
+//==============================================================================
+void InputModel::setDirectOutChannel(output_patch_t const chn)
 {
     mDirectOutChannel = chn;
     if (chn == output_patch_t{}) {

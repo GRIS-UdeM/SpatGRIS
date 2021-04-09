@@ -25,7 +25,10 @@
 
 #pragma once
 
+#include "CartesianVector.h"
+#include "LogicStrucs.hpp"
 #include "OwnedMap.hpp"
+#include "PolarVector.h"
 #include "StrongTypes.hpp"
 
 static auto constexpr LBAP_MATRIX_SIZE = 64;
@@ -45,10 +48,8 @@ struct SpeakerData;
  * at 0) used by the field to properly order the output signals.
  */
 struct lbap_speaker {
-    radians_t azimuth;          /**< Azimuth in the range -pi .. pi. */
-    radians_t elevation;        /**< Elevation in the range 0 .. pi/2. */
-    float radius;               /**< Length of the vector in the range 0 .. 1. */
-    output_patch_t outputPatch; /**< Physical output id. */
+    PolarVector vector{};
+    output_patch_t outputPatch{}; /**< Physical output id. */
 };
 
 /** \brief A structure containing coordinates of a point in the field.
@@ -65,20 +66,15 @@ struct lbap_speaker {
  * to the angular coordinates.
  */
 struct lbap_pos {
-    radians_t azimuth;   /**< Azimuth in the range -pi .. pi. */
-    radians_t elevation; /**< Elevation in the range 0 .. pi/2. */
-    float radius;        /**< Length of the vector in the range 0 .. 1. */
-    float x;
-    float y;
-    float z;
-    float radiusSpan;
-    float elevationSpan;
+    PolarVector vector{};
+    CartesianVector position{};
+    float radiusSpan{};
+    float elevationSpan{};
 
     [[nodiscard]] constexpr bool operator==(lbap_pos const & other) const noexcept
     {
-        return azimuth == other.azimuth && elevation == other.elevation && radius == other.radius && x == other.x
-               && y == other.y && z == other.z && radiusSpan == other.radiusSpan
-               && elevationSpan == other.elevationSpan;
+        jassert((vector == other.vector) == (position == other.position));
+        return vector == other.vector && radiusSpan == other.radiusSpan && elevationSpan == other.elevationSpan;
     }
     [[nodiscard]] constexpr bool operator!=(lbap_pos const & other) const noexcept { return !(*this == other); }
 };
@@ -98,7 +94,7 @@ struct lbap_layer {
 };
 
 struct lbap_field {
-    std::vector<output_patch_t> outputOrder; /**< Physical output order as a list of int. */
+    std::vector<output_patch_t> outputOrder; /**< Physical output order. */
     std::vector<lbap_layer> layers;          /**< Array of layers. */
     [[nodiscard]] size_t getNumSpeakers() const
     {
@@ -119,7 +115,7 @@ struct lbap_field {
  * speakers given as `speakers` argument. The argument `num` is the number of
  * speakers passed to the function.
  */
-void lbap_field_setup(lbap_field & field, std::vector<lbap_speaker> & speakers);
+lbap_field lbap_field_setup(SpeakersData const & speakers);
 
 /** \brief Calculates the gain of the outputs for a source's position.
  *
@@ -129,27 +125,4 @@ void lbap_field_setup(lbap_field & field, std::vector<lbap_speaker> & speakers);
  * memory. This array can be passed to the audio processing function
  * to control the gain of the signal outputs.
  */
-void lbap_field_compute(lbap_field const & field, lbap_pos const & position, float * gains);
-
-/** \brief Computes an array of lbap_speaker from lists of angular positions.
- *
- * This function takes as parameters an array of azimuth positions (given
- * in degrees from -180 to 180), an array of elevation positions (also given
- * in degrees, from 0 to 90), an array of radius (vector length between 0 and 1)
- * and an array of speaker output id (the physical output associated to the
- * speaker) and returns a corresponding array of lbap_speaker structures.
- * The parameter `num` is the number of elements in the arrays.
- *
- * _The user is responsible for freeing the array when finished with it._
- *
- * \return lbap_speaker array pointer.
- */
-std::vector<lbap_speaker> lbap_speakers_from_positions(OwnedMap<SpeakerData, output_patch_t> const & speakers);
-
-/** \brief Initialize an lbap_pos structure from a position in radians.
- *
- * This function takes as parameters a position where `azi` and `ele` are given
- * in radians, and where `rad` is the length of the vector between 0 and 1. The
- * first parameter is a pointer to an lbap_pos which will be properly initialized.
- */
-lbap_pos lbap_pos_init_from_radians(radians_t azimuth, radians_t elevation, float radius);
+SpeakersSpatGains lbap_field_compute(SourceData const & source, lbap_field const & field);

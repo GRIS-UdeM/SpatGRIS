@@ -6,51 +6,50 @@
 
 #include "vbap.hpp"
 
+#include "LogicStrucs.hpp"
+
 #include <cstdlib>
 
 #include "StrongTypes.hpp"
 #include "narrow.hpp"
 
-struct TripletData {
-    std::array<output_patch_t, 3> outputPatches; /* Triplet speaker numbers */
-    std::array<float, 9> inverseMatrix;          /* Triplet inverse matrix */
-};
+using fast = juce::dsp::FastMathApproximations;
 
-using TripletList = std::vector<TripletData>;
+struct TripletData {
+    SpeakerTriplet triplet;
+    std::array<float, 9> inverseMatrix; /* Triplet inverse matrix */
+};
 
 SpeakersSpatGains
     compute_gains(int speaker_set_am, SpeakerSet * sets, int numSpeakers, CartesianVector cart_dir, int dim) noexcept;
 
 /* Returns 1 if there is loudspeaker(s) inside given ls triplet. */
-static bool any_speaker_inside_triplet(output_patch_t const a,
-                                       output_patch_t const b,
-                                       output_patch_t const c,
-                                       SpatGrisData::SpeakersData const & speakers) noexcept
+static bool any_speaker_inside_triplet(SpeakerTriplet const & triplet, SpeakersData const & speakers) noexcept
 {
-    float inverseMatrix[9];
+    std::array<float, 9> inverseMatrix;
 
-    auto const * const lp1 = &(speakers[a].position);
-    auto const * const lp2 = &(speakers[b].position);
-    auto const * const lp3 = &(speakers[c].position);
+    auto const * const lp1 = &(speakers[triplet.patch1].position);
+    auto const * const lp2 = &(speakers[triplet.patch2].position);
+    auto const * const lp3 = &(speakers[triplet.patch3].position);
 
     /* Matrix inversion. */
-    auto const invdet
-        = 1.0f
-          / (lp1->x * ((lp2->y * lp3->z) - (lp2->z * lp3->y)) - lp1->y * ((lp2->x * lp3->z) - (lp2->z * lp3->x))
-             + lp1->z * ((lp2->x * lp3->y) - (lp2->y * lp3->x)));
+    auto const inverseDeterminant{ 1.0f
+                                   / (lp1->x * ((lp2->y * lp3->z) - (lp2->z * lp3->y))
+                                      - lp1->y * ((lp2->x * lp3->z) - (lp2->z * lp3->x))
+                                      + lp1->z * ((lp2->x * lp3->y) - (lp2->y * lp3->x))) };
 
-    inverseMatrix[0] = ((lp2->y * lp3->z) - (lp2->z * lp3->y)) * invdet;
-    inverseMatrix[3] = ((lp1->y * lp3->z) - (lp1->z * lp3->y)) * -invdet;
-    inverseMatrix[6] = ((lp1->y * lp2->z) - (lp1->z * lp2->y)) * invdet;
-    inverseMatrix[1] = ((lp2->x * lp3->z) - (lp2->z * lp3->x)) * -invdet;
-    inverseMatrix[4] = ((lp1->x * lp3->z) - (lp1->z * lp3->x)) * invdet;
-    inverseMatrix[7] = ((lp1->x * lp2->z) - (lp1->z * lp2->x)) * -invdet;
-    inverseMatrix[2] = ((lp2->x * lp3->y) - (lp2->y * lp3->x)) * invdet;
-    inverseMatrix[5] = ((lp1->x * lp3->y) - (lp1->y * lp3->x)) * -invdet;
-    inverseMatrix[8] = ((lp1->x * lp2->y) - (lp1->y * lp2->x)) * invdet;
+    inverseMatrix[0] = ((lp2->y * lp3->z) - (lp2->z * lp3->y)) * inverseDeterminant;
+    inverseMatrix[3] = ((lp1->y * lp3->z) - (lp1->z * lp3->y)) * -inverseDeterminant;
+    inverseMatrix[6] = ((lp1->y * lp2->z) - (lp1->z * lp2->y)) * inverseDeterminant;
+    inverseMatrix[1] = ((lp2->x * lp3->z) - (lp2->z * lp3->x)) * -inverseDeterminant;
+    inverseMatrix[4] = ((lp1->x * lp3->z) - (lp1->z * lp3->x)) * inverseDeterminant;
+    inverseMatrix[7] = ((lp1->x * lp2->z) - (lp1->z * lp2->x)) * -inverseDeterminant;
+    inverseMatrix[2] = ((lp2->x * lp3->y) - (lp2->y * lp3->x)) * inverseDeterminant;
+    inverseMatrix[5] = ((lp1->x * lp3->y) - (lp1->y * lp3->x)) * -inverseDeterminant;
+    inverseMatrix[8] = ((lp1->x * lp2->y) - (lp1->y * lp2->x)) * inverseDeterminant;
 
     for (auto const speaker : speakers) {
-        if (speaker.key != a && speaker.key != b && speaker.key != c) {
+        if (!triplet.contains(speaker.key)) {
             auto this_inside{ true };
             auto const & speakerPosition{ speaker.value->position };
             for (size_t j{}; j < 3; ++j) {
@@ -412,7 +411,7 @@ static float vol_p_side_lgth(SpeakerData const & i, SpeakerData const & j, Speak
  * connections are searched and the longer connection is erased.
  * This yields non-intersecting triangles, which can be used in panning.
  */
-std::vector<TripletData> computeTriplets(SpatGrisData::SpeakersData const & speakers) noexcept
+std::vector<TripletData> computeTriplets(SpeakersData const & speakers) noexcept
 {
     static constexpr size_t MAGIC = MAX_OUTPUTS * (MAX_OUTPUTS - 1) / 2;
     jassert(speakers.size() >= 3);
@@ -494,12 +493,13 @@ std::vector<TripletData> computeTriplets(SpatGrisData::SpeakersData const & spea
     std::vector<int> distance_table_j{};
     distance_table_j.resize(table_size);
 
-    for (auto const i_speaker_it{ speakers.cbegin() }; i_speaker_it < speakers.cend(); ++i_speaker_it) {
-        auto const & i_speaker{ **i_speaker_it };
-        auto const & i_outputPatch{ i_speaker.outputPatch };
-        for (auto const * const * j_speaker_it{ i_speaker_it + 1 }; j_speaker_it < speakers.cend(); ++j_speaker_it) {
-            auto const & j_speaker{ **j_speaker_it };
-            auto const j_outputPatch{ j_speaker.outputPatch };
+    for (auto i_speaker_it{ speakers.cbegin() }; i_speaker_it != speakers.cend(); ++i_speaker_it) {
+        auto const & i_speaker{ *i_speaker_it.getValue().value };
+        auto const i_outputPatch{ i_speaker_it.getKey() };
+        for (auto j_speaker_it{ ++SpeakersData::iterator_type{ i_speaker_it } }; j_speaker_it != speakers.cend();
+             ++j_speaker_it) {
+            auto const & j_speaker{ *j_speaker_it.getValue().value };
+            auto const j_outputPatch{ j_speaker_it.getKey() };
             if (connections[i_outputPatch][j_outputPatch]) {
                 auto const distance = i_speaker.position.angleWith(j_speaker.position);
                 int k{};
@@ -554,11 +554,11 @@ std::vector<TripletData> computeTriplets(SpatGrisData::SpeakersData const & spea
     /* Remove triangles which had crossing sides with
      * smaller triangles or include loudspeakers. */
     auto const predicate = [&](TripletData const & triplet) -> bool {
-        auto const & i = triplet.outputPatches[0];
-        auto const & j = triplet.outputPatches[1];
-        auto const & k = triplet.outputPatches[2];
+        auto const & i = triplet.triplet.patch1;
+        auto const & j = triplet.triplet.patch2;
+        auto const & k = triplet.triplet.patch3;
 
-        auto const anySpeakerInsideTriplet{ any_speaker_inside_triplet(i, j, k, speakers) };
+        auto const anySpeakerInsideTriplet{ any_speaker_inside_triplet(triplet.triplet, speakers) };
         auto const hasAllConnections{ connections[i][j] && connections[i][k] && connections[j][k] };
 
         auto const result{ hasAllConnections && !anySpeakerInsideTriplet };
@@ -577,12 +577,11 @@ std::vector<TripletData> computeTriplets(SpatGrisData::SpeakersData const & spea
  * After this call, ls_triplets contains the speakers numbers
  * and the inverse matrix needed to compute channel gains.
  */
-static std::array<float, 9> computeInverseMatrix(TripletData const & triplet,
-                                                 SpatGrisData::SpeakersData const & speakers)
+static std::array<float, 9> computeInverseMatrix(TripletData const & triplet, SpeakersData const & speakers)
 {
-    auto const & lp1{ speakers[triplet.outputPatches[0]].position };
-    auto const & lp2{ speakers[triplet.outputPatches[1]].position };
-    auto const & lp3{ speakers[triplet.outputPatches[2]].position };
+    auto const & lp1{ speakers[triplet.triplet.patch1].position };
+    auto const & lp2{ speakers[triplet.triplet.patch2].position };
+    auto const & lp3{ speakers[triplet.triplet.patch3].position };
 
     /* Matrix inversion. */
     auto const inverseDet = 1.0f
@@ -602,7 +601,7 @@ static std::array<float, 9> computeInverseMatrix(TripletData const & triplet,
     return inverseMatrix;
 }
 
-std::unique_ptr<VbapData> init_vbap_from_speakers(SpatGrisData::SpeakersData const & speakers)
+std::unique_ptr<VbapData> init_vbap_from_speakers(SpeakersData const & speakers)
 {
     static constexpr auto offset = 1;
 
@@ -637,57 +636,11 @@ std::unique_ptr<VbapData> init_vbap_from_speakers(SpatGrisData::SpeakersData con
     return data;
 }
 
-////==============================================================================
-// VbapData * copy_vbap_data(VbapData const * const data) noexcept
-//{
-//    auto * nw = new VbapData;
-//    nw->dimension = data->dimension;
-//    nw->numOutputPatches = data->numOutputPatches;
-//    for (int i = 0; i < data->numOutputPatches; i++) {
-//        nw->outputPatches[i] = data->outputPatches[i];
-//    }
-//    nw->numSpeakers = data->numSpeakers;
-//    nw->numTriplets = data->numTriplets;
-//    for (int i = 0; i < MAX_OUTPUTS; i++) {
-//        nw->gains[i] = data->gains[i];
-//        nw->gainsSmoothing[i] = data->gainsSmoothing[i];
-//    }
-//    nw->speakerSets = (SpeakerSet *)malloc(sizeof(SpeakerSet) * nw->numTriplets);
-//    for (int i = 0; i < nw->numTriplets; i++) {
-//        for (int j = 0; j < nw->dimension; j++) {
-//            nw->speakerSets[i].speakerNos[j] = data->speakerSets[i].speakerNos[j];
-//        }
-//        for (int j = 0; j < nw->dimension * nw->dimension; j++) {
-//            nw->speakerSets[i].invMx[j] = data->speakerSets[i].invMx[j];
-//        }
-//    }
-//    nw->angularDirection.azimuth = data->angularDirection.azimuth;
-//    nw->angularDirection.elevation = data->angularDirection.elevation;
-//    nw->angularDirection.length = data->angularDirection.length;
-//    nw->cartesianDirection.x = data->cartesianDirection.x;
-//    nw->cartesianDirection.y = data->cartesianDirection.y;
-//    nw->cartesianDirection.z = data->cartesianDirection.z;
-//    nw->spreadingVector.x = data->spreadingVector.x;
-//    nw->spreadingVector.y = data->spreadingVector.y;
-//    nw->spreadingVector.z = data->spreadingVector.z;
-//    return nw;
-//}
-
-void free_vbap_data(VbapData * const data) noexcept
-{
-    if (data != nullptr) {
-        if (data->speakerSets != nullptr) {
-            free(data->speakerSets);
-        }
-        free(data);
-    }
-}
-
-void vbap2(degrees_t const azimuth,
-           degrees_t const elevation,
-           float const spAzimuth,
-           float const spElevation,
-           VbapData * const data) noexcept
+SpeakersSpatGains vbap2(degrees_t const azimuth,
+                        degrees_t const elevation,
+                        float const spAzimuth,
+                        float const spElevation,
+                        VbapData * const data) noexcept
 {
     int i;
     data->angularDirection.azimuth = azimuth;
@@ -715,11 +668,11 @@ void vbap2(degrees_t const azimuth,
     }
 }
 
-void vbap2_flip_y_z(degrees_t const azimuth,
-                    degrees_t const elevation,
-                    float const spAzimuth,
-                    float const spElevation,
-                    VbapData * data) noexcept
+SpeakersSpatGains vbap2_flip_y_z(degrees_t const azimuth,
+                                 degrees_t const elevation,
+                                 float const spAzimuth,
+                                 float const spElevation,
+                                 VbapData * data) noexcept
 {
     data->angularDirection.azimuth = azimuth;
     data->angularDirection.elevation = elevation;

@@ -17,10 +17,10 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Speaker.h"
+#include "SpeakerModel.h"
 
-#include "LevelComponent.h"
 #include "MainComponent.h"
+#include "VuMeterComponent.h"
 
 //==============================================================================
 template<typename T, typename U>
@@ -31,12 +31,12 @@ static T getFloatPrecision(T const value, U const precision)
 }
 
 //==============================================================================
-Speaker::Speaker(MainContentComponent & mainContentComponent,
-                 SmallGrisLookAndFeel & smallGrisLookAndFeel,
-                 output_patch_t const outputPatch,
-                 float const azimuth,
-                 float const zenith,
-                 float const radius)
+SpeakerModel::SpeakerModel(MainContentComponent & mainContentComponent,
+                           SmallGrisLookAndFeel & smallGrisLookAndFeel,
+                           output_patch_t const outputPatch,
+                           float const azimuth,
+                           float const zenith,
+                           float const radius)
     : mLookAndFeel(smallGrisLookAndFeel)
     , mMainContentComponent(mainContentComponent)
     , mOutputPatch(outputPatch)
@@ -47,13 +47,13 @@ Speaker::Speaker(MainContentComponent & mainContentComponent,
 }
 
 //==============================================================================
-float Speaker::getLevel() const
+float SpeakerModel::getLevel() const
 {
     return mMainContentComponent.getPeak(mOutputPatch);
 }
 
 //==============================================================================
-float Speaker::getAlpha() const
+float SpeakerModel::getAlpha() const
 {
     float alpha;
     if (mMainContentComponent.isSpeakerLevelShown()) {
@@ -68,13 +68,13 @@ float Speaker::getAlpha() const
 }
 
 //==============================================================================
-void Speaker::setState(PortState const state)
+void SpeakerModel::setState(PortState const state)
 {
     mMainContentComponent.setSpeakerState(mOutputPatch, state);
 }
 
 //==============================================================================
-void Speaker::setCoordinate(glm::vec3 const value)
+void SpeakerModel::setCoordinate(glm::vec3 const value)
 {
     glm::vec3 newP;
     newP.x = atan2(value.z, value.x) / juce::MathConstants<float>::pi * 180.0f;
@@ -87,7 +87,7 @@ void Speaker::setCoordinate(glm::vec3 const value)
 }
 
 //==============================================================================
-void Speaker::normalizeRadius()
+void SpeakerModel::normalizeRadius()
 {
     if (!isDirectOut()) {
         glm::vec3 v = getPolarCoords();
@@ -97,7 +97,7 @@ void Speaker::normalizeRadius()
 }
 
 //==============================================================================
-void Speaker::setAziZenRad(glm::vec3 value)
+void SpeakerModel::setAziZenRad(glm::vec3 value)
 {
     value.z = value.z * 10.0f;
     mAziZenRad = value;
@@ -105,14 +105,14 @@ void Speaker::setAziZenRad(glm::vec3 value)
 }
 
 //==============================================================================
-void Speaker::setOutputPatch(output_patch_t const value)
+void SpeakerModel::setOutputPatch(output_patch_t const value)
 {
     mOutputPatch = value;
     mVuMeter.setOutputLab(juce::String(mOutputPatch.get()));
 }
 
 //==============================================================================
-void Speaker::setDirectOut(bool const value)
+void SpeakerModel::setDirectOut(bool const value)
 {
     mDirectOut = value;
     if (mDirectOut) {
@@ -123,19 +123,19 @@ void Speaker::setDirectOut(bool const value)
 }
 
 //==============================================================================
-glm::vec3 Speaker::getPolarCoords() const
+glm::vec3 SpeakerModel::getPolarCoords() const
 {
     return glm::vec3(mAziZenRad.x, mAziZenRad.y, mAziZenRad.z / 10.0f);
 }
 
 //==============================================================================
-bool Speaker::isValid() const
+bool SpeakerModel::isValid() const
 {
     return (mMin.x < mMax.x && mMin.y < mMax.y && mMin.z < mMax.z);
 }
 
 //==============================================================================
-void Speaker::fix()
+void SpeakerModel::fix()
 {
     auto const maxVec{ mMax };
 
@@ -155,7 +155,7 @@ void Speaker::fix()
 }
 
 //==============================================================================
-void Speaker::selectClick(bool const select)
+void SpeakerModel::setSelected(bool const select)
 {
     // TODO: why are branches the same?
     if (select) {
@@ -166,7 +166,7 @@ void Speaker::selectClick(bool const select)
 }
 
 //==============================================================================
-void Speaker::selectSpeaker()
+void SpeakerModel::selectSpeaker()
 {
     mColor = COLOR_SPEAKER_SELECT;
     mSelected = true;
@@ -174,7 +174,7 @@ void Speaker::selectSpeaker()
 }
 
 //==============================================================================
-void Speaker::unSelectSpeaker()
+void SpeakerModel::unSelectSpeaker()
 {
     if (mDirectOut) {
         mColor = COLOR_DIRECT_OUT_SPEAKER;
@@ -186,14 +186,14 @@ void Speaker::unSelectSpeaker()
 }
 
 //==============================================================================
-int Speaker::getId() const
+int SpeakerModel::getId() const
 {
     jassertfalse; // Should not be used, use getIdSpeaker() instead.
     return -1;
 }
 
 //==============================================================================
-void Speaker::newPosition(glm::vec3 const center, glm::vec3 const extents)
+void SpeakerModel::newPosition(glm::vec3 const center, glm::vec3 const extents)
 {
     // min = center - extents, max = center + extents
     mMin.x = center.x - extents.x;
@@ -214,7 +214,7 @@ void Speaker::newPosition(glm::vec3 const center, glm::vec3 const extents)
 }
 
 //==============================================================================
-void Speaker::newSphericalCoord(glm::vec3 aziZenRad, glm::vec3 /*extents*/)
+void SpeakerModel::newSphericalCoord(glm::vec3 aziZenRad, glm::vec3 /*extents*/)
 {
     glm::vec3 nCenter;
 
@@ -234,7 +234,7 @@ void Speaker::newSphericalCoord(glm::vec3 aziZenRad, glm::vec3 /*extents*/)
 }
 
 //==============================================================================
-void Speaker::draw()
+void SpeakerModel::draw()
 {
     static auto constexpr ALPHA = 0.75f;
 

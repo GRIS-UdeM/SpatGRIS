@@ -17,20 +17,20 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "LevelComponent.h"
+#include "VuMeterComponent.h"
 
 #include "MainComponent.h"
-#include "Speaker.h"
+#include "SpeakerModel.h"
 
 //==============================================================================
-LevelBox::LevelBox(LevelComponent & levelComponent, SmallGrisLookAndFeel & lookAndFeel)
+VuMeterBox::VuMeterBox(VuMeterComponent & levelComponent, SmallGrisLookAndFeel & lookAndFeel)
     : mLevelComponent(levelComponent)
     , mLookAndFeel(lookAndFeel)
 {
 }
 
 //==============================================================================
-void LevelBox::setBounds(juce::Rectangle<int> const & newBounds)
+void VuMeterBox::setBounds(juce::Rectangle<int> const & newBounds)
 {
     // TODO: move the painting stuff to paint()
 
@@ -42,7 +42,7 @@ void LevelBox::setBounds(juce::Rectangle<int> const & newBounds)
     mColorGrad.addColour(0.1, juce::Colours::yellow);
 
     // Create vu-meter foreground image.
-    mVuMeterBit = juce::Image{ juce::Image::RGB, 21, 140, true };
+    mVuMeterBit = juce::Image{ juce::Image::RGB, WIDTH - 1, HEIGHT, true };
     juce::Graphics gf{ mVuMeterBit };
     gf.setGradientFill(mColorGrad);
     gf.fillRect(0, 0, getWidth(), getHeight());
@@ -50,7 +50,7 @@ void LevelBox::setBounds(juce::Rectangle<int> const & newBounds)
     gf.setFont(10.0f);
 
     // Create vu-meter background image.
-    mVuMeterBackBit = juce::Image{ juce::Image::RGB, 21, 140, true };
+    mVuMeterBackBit = juce::Image{ juce::Image::RGB, WIDTH - 1, HEIGHT, true };
     juce::Graphics gb{ mVuMeterBackBit };
     gb.setColour(mLookAndFeel.getDarkColour());
     gb.fillRect(0, 0, getWidth(), getHeight());
@@ -58,7 +58,7 @@ void LevelBox::setBounds(juce::Rectangle<int> const & newBounds)
     gb.setFont(10.0f);
 
     // Create vu-meter muted image.
-    mVuMeterMutedBit = juce::Image(juce::Image::RGB, 21, 140, true);
+    mVuMeterMutedBit = juce::Image(juce::Image::RGB, WIDTH - 1, HEIGHT, true);
     juce::Graphics gm{ mVuMeterMutedBit };
     gm.setColour(mLookAndFeel.getWinBackgroundColour());
     gm.fillRect(0, 0, getWidth(), getHeight());
@@ -85,12 +85,12 @@ void LevelBox::setBounds(juce::Rectangle<int> const & newBounds)
 }
 
 //==============================================================================
-void LevelBox::paint(juce::Graphics & g)
+void VuMeterBox::paint(juce::Graphics & g)
 {
     if (mLevelComponent.isMuted()) {
-        g.drawImage(mVuMeterMutedBit, 0, 0, 22, 140, 0, 0, 22, 140);
+        g.drawImage(mVuMeterMutedBit, 0, 0, WIDTH, HEIGHT, 0, 0, HEIGHT, WIDTH);
     } else {
-        float level{ mLevelComponent.getLevel() };
+        auto level{ mLevelComponent.getLevel() };
         if (level < MIN_LEVEL_COMP) {
             level = MIN_LEVEL_COMP;
         } else if (level > MAX_LEVEL_COMP) {
@@ -98,10 +98,10 @@ void LevelBox::paint(juce::Graphics & g)
             level = MAX_LEVEL_COMP;
         }
 
-        int const h = static_cast<int>(level * -2.33333334f);
-        int const rel = 140 - h;
-        g.drawImage(mVuMeterBit, 0, h, 22, rel, 0, h, 22, rel);
-        g.drawImage(mVuMeterBackBit, 0, 0, 22, h, 0, 0, 22, h);
+        auto const h = static_cast<int>(level.get() * -2.33333334f);
+        auto const rel = HEIGHT - h;
+        g.drawImage(mVuMeterBit, 0, h, WIDTH, rel, 0, h, WIDTH, rel);
+        g.drawImage(mVuMeterBackBit, 0, 0, WIDTH, h, 0, 0, WIDTH, h);
         if (mIsClipping) {
             g.setColour(juce::Colour::fromHSV(0.0, 1, 0.75, 1));
             juce::Rectangle<float> const clipRect{ 0.5, 0.5, static_cast<float>(getWidth() - 1), 5 };
@@ -111,7 +111,7 @@ void LevelBox::paint(juce::Graphics & g)
 }
 
 //==============================================================================
-void LevelBox::mouseDown(juce::MouseEvent const & e)
+void VuMeterBox::mouseDown(juce::MouseEvent const & e)
 {
     juce::Rectangle<int> const hitBox{ 0, 0, getWidth(), 20 };
     if (hitBox.contains(e.getPosition())) {
@@ -120,23 +120,23 @@ void LevelBox::mouseDown(juce::MouseEvent const & e)
 }
 
 //==============================================================================
-void LevelBox::resetClipping()
+void VuMeterBox::resetClipping()
 {
     mIsClipping = false;
     repaint();
 }
 
 //==============================================================================
-LevelComponent::LevelComponent(ParentLevelComponent & parentLevelComponent,
-                               SmallGrisLookAndFeel & lookAndFeel,
-                               bool const colorful)
-    : mParentLevelComponent(parentLevelComponent)
+VuMeterComponent::VuMeterComponent(VuMeterModel & parentLevelComponent,
+                                   SmallGrisLookAndFeel & lookAndFeel,
+                                   bool const colorful)
+    : mModel(parentLevelComponent)
     , mLookAndFeel(lookAndFeel)
-    , mLevelBox(*this, lookAndFeel)
+    , mContainerBox(*this, lookAndFeel)
     , mIsColorful(colorful)
 {
     // Label
-    auto const id{ mParentLevelComponent.getButtonInOutNumber() };
+    auto const id{ mModel.getButtonInOutNumber() };
     mIdButton.setButtonText(juce::String{ id });
     mIdButton.setSize(22, 17);
     mIdButton.setTopLeftPosition(0, 0);
@@ -169,7 +169,7 @@ LevelComponent::LevelComponent(ParentLevelComponent & parentLevelComponent,
     addAndMakeVisible(mSoloToggleButton);
 
     // ComboBox (direct out)
-    if (mParentLevelComponent.isInput()) {
+    if (mModel.isInput()) {
         mDirectOutButton.setButtonText("-");
         mDirectOutButton.setSize(22, 17);
         mDirectOutButton.setColour(juce::Label::textColourId, lookAndFeel.getFontColour());
@@ -180,33 +180,41 @@ LevelComponent::LevelComponent(ParentLevelComponent & parentLevelComponent,
     }
 
     // Level box
-    addAndMakeVisible(mLevelBox);
+    addAndMakeVisible(mContainerBox);
 }
 
 //==============================================================================
-void LevelComponent::updateDirectOutMenu(std::vector<output_patch_t> directOuts)
+void VuMeterComponent::updateDirectOutMenu(std::vector<output_patch_t> directOuts)
 {
-    if (mParentLevelComponent.isInput()) {
+    if (mModel.isInput()) {
         mDirectOutSpeakers = std::move(directOuts);
     }
 }
 
 //==============================================================================
-void LevelComponent::buttonClicked(juce::Button * button)
+void VuMeterComponent::setLevel(dbfs_t const level)
+{
+    mLevel = level;
+    repaint();
+}
+
+//==============================================================================
+void VuMeterComponent::buttonClicked(juce::Button * button)
 {
     if (button == &mMuteToggleButton) {
-        mParentLevelComponent.setMuted(mMuteToggleButton.getToggleState());
         if (mMuteToggleButton.getToggleState()) {
+            mModel.setState(PortState::muted);
             mSoloToggleButton.setToggleState(false, juce::dontSendNotification);
+        } else {
+            mModel.setState(PortState::normal);
         }
-        mLevelBox.repaint();
+        mContainerBox.repaint();
 
     } else if (button == &mSoloToggleButton) {
-        mParentLevelComponent.setSolo(mSoloToggleButton.getToggleState());
         if (mSoloToggleButton.getToggleState()) {
-            mMuteToggleButton.setToggleState(false, juce::dontSendNotification);
+            mModel.setState(PortState::solo);
         }
-        mLevelBox.repaint();
+        mContainerBox.repaint();
 
     } else if (button == &mIdButton) {
         if (mIsColorful) { // Input
@@ -219,7 +227,7 @@ void LevelComponent::buttonClicked(juce::Button * button)
             std::unique_ptr<juce::Component> component{ colourSelector };
             juce::CallOutBox::launchAsynchronously(std::move(component), getScreenBounds(), nullptr);
         } else { // Output
-            mParentLevelComponent.selectClick(mLastMouseButton);
+            mModel.setSelected(mLastMouseButton);
         }
     } else if (button == &mDirectOutButton) {
         juce::PopupMenu menu{};
@@ -239,14 +247,14 @@ void LevelComponent::buttonClicked(juce::Button * button)
                 mDirectOutButton.setButtonText(juce::String{ value.get() });
             }
 
-            mParentLevelComponent.changeDirectOutChannel(value);
-            mParentLevelComponent.sendDirectOutToClient(mParentLevelComponent.getId(), value);
+            mModel.changeDirectOutChannel(value);
+            mModel.sendDirectOutToClient(mModel.getId(), value);
         }
     }
 }
 
 //==============================================================================
-void LevelComponent::mouseDown(juce::MouseEvent const & e)
+void VuMeterComponent::mouseDown(juce::MouseEvent const & e)
 {
     if (e.mods.isRightButtonDown()) {
         mLastMouseButton = 0;
@@ -256,17 +264,17 @@ void LevelComponent::mouseDown(juce::MouseEvent const & e)
 }
 
 //==============================================================================
-void LevelComponent::changeListenerCallback(juce::ChangeBroadcaster * source)
+void VuMeterComponent::changeListenerCallback(juce::ChangeBroadcaster * source)
 {
     auto * colorSelector{ dynamic_cast<juce::ColourSelector *>(source) };
     if (colorSelector != nullptr) {
         mIdButton.setColour(juce::TextButton::buttonColourId, colorSelector->getCurrentColour());
-        mParentLevelComponent.setColor(colorSelector->getCurrentColour());
+        mModel.setColor(colorSelector->getCurrentColour());
         if (mLastMouseButton == 0) {
-            auto * input = dynamic_cast<Input *>(&mParentLevelComponent);
+            auto * input = dynamic_cast<InputModel *>(&mModel);
             jassert(input != nullptr);
             for (auto * it : input->getMainContentComponent().getSourceInputs()) {
-                if (it->getId() == mParentLevelComponent.getId() + 1) {
+                if (it->getId() == mModel.getId() + 1) {
                     it->setColor(colorSelector->getCurrentColour(), true);
                 }
             }
@@ -275,16 +283,16 @@ void LevelComponent::changeListenerCallback(juce::ChangeBroadcaster * source)
 }
 
 //==============================================================================
-void LevelComponent::setColor(juce::Colour const color)
+void VuMeterComponent::setColor(juce::Colour const color)
 {
     mIdButton.setColour(juce::TextButton::buttonColourId, color);
     repaint();
 }
 
 //==============================================================================
-void LevelComponent::update()
+void VuMeterComponent::update()
 {
-    auto const level{ mParentLevelComponent.getLevel() };
+    auto const level{ mModel.getLevel() };
 
     if (!std::isnan(level)) {
         if (!mMuteToggleButton.getToggleState() && mLevel != level) {
@@ -295,7 +303,7 @@ void LevelComponent::update()
 }
 
 //==============================================================================
-void LevelComponent::setSelected(bool const value)
+void VuMeterComponent::setSelected(bool const value)
 {
     juce::MessageManagerLock const mmLock{};
     if (value) {
@@ -310,7 +318,7 @@ void LevelComponent::setSelected(bool const value)
 }
 
 //==============================================================================
-void LevelComponent::setBounds(juce::Rectangle<int> const & newBounds)
+void VuMeterComponent::setBounds(juce::Rectangle<int> const & newBounds)
 {
     static constexpr auto LEVEL_SIZE{ 140 };
 
@@ -328,7 +336,7 @@ void LevelComponent::setBounds(juce::Rectangle<int> const & newBounds)
                                                  mMuteToggleButton.getHeight() };
     mSoloToggleButton.setBounds(soloButtonBounds);
 
-    if (mParentLevelComponent.isInput()) {
+    if (mModel.isInput()) {
         juce::Rectangle<int> const directOutButtonBounds{ 0,
                                                           getHeight() - 27,
                                                           newBounds.getWidth(),
@@ -337,5 +345,5 @@ void LevelComponent::setBounds(juce::Rectangle<int> const & newBounds)
     }
 
     juce::Rectangle<int> const levelBoxBounds{ 0, 18, newBounds.getWidth() - WIDTH_RECT, LEVEL_SIZE };
-    mLevelBox.setBounds(levelBoxBounds);
+    mContainerBox.setBounds(levelBoxBounds);
 }

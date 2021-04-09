@@ -30,7 +30,7 @@ ENABLE_WARNINGS
 
 #include "AudioStructs.hpp"
 
-class Speaker;
+class SpeakerModel;
 
 //==============================================================================
 /**
@@ -44,28 +44,25 @@ class AudioProcessor
 public:
     //==============================================================================
     AudioProcessor();
-    ~AudioProcessor() = default;
+    ~AudioProcessor();
     //==============================================================================
     AudioProcessor(AudioProcessor const &) = delete;
     AudioProcessor(AudioProcessor &&) = delete;
     AudioProcessor & operator=(AudioProcessor const &) = delete;
     AudioProcessor & operator=(AudioProcessor &&) = delete;
     //==============================================================================
-    // Audio Status.
-
-    // LBAP distance attenuation functions.
-    void setAttenuationDbIndex(int index);
-    void setAttenuationFrequencyIndex(int index);
-
     // Reinit HRTF delay lines.
     void resetHrtf();
-
-    [[nodiscard]] juce::CriticalSection const & getCriticalSection() const noexcept { return mCriticalSection; }
-
     void setAudioConfig(AudioConfig const & audioConfig);
+    [[nodiscard]] juce::CriticalSection const & getCriticalSection() const noexcept { return mCriticalSection; }
+    void processAudio(SourceAudioBuffer & sourceBuffer, SpeakerAudioBuffer & speakerBuffer) noexcept;
 
+    auto & getAudioData() { return mAudioData; }
+    auto const & getAudioData() const { return mAudioData; }
+
+private:
     //==============================================================================
-    // Audio processing
+    SourcePeaks muteSoloVuMeterIn(SourceAudioBuffer & inputBuffer) const noexcept;
     SpeakerPeaks muteSoloVuMeterGainOut(SpeakerAudioBuffer & speakerBuffer) noexcept;
     void processVbap(SourceAudioBuffer const & inputBuffer,
                      SpeakerAudioBuffer & outputBuffer,
@@ -78,13 +75,6 @@ public:
     void processStereo(SourceAudioBuffer const & sourceBuffer,
                        SpeakerAudioBuffer & speakerBuffer,
                        SourcePeaks const &) noexcept;
-    void processAudio(SourceAudioBuffer & sourceBuffer, SpeakerAudioBuffer & speakerBuffer) noexcept;
-
-private:
-    //==============================================================================
-    // Connect the server's outputs to the system's inputs.
-    SourcePeaks muteSoloVuMeterIn(SourceAudioBuffer & inputBuffer) const noexcept;
-    void updateSourceVbap(int idS) noexcept;
     //==============================================================================
     JUCE_LEAK_DETECTOR(AudioProcessor)
 };

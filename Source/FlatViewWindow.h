@@ -26,7 +26,7 @@ ENABLE_WARNINGS
 
 class MainContentComponent;
 class GrisLookAndFeel;
-class Input;
+class InputModel;
 
 //==============================================================================
 class FlatViewWindow final
@@ -56,8 +56,8 @@ public:
 private:
     //==============================================================================
     void drawFieldBackground(juce::Graphics & g, int fieldSize) const;
-    void drawSource(juce::Graphics & g, Input * input, int fieldSize) const;
-    void drawSourceSpan(juce::Graphics & g, Input * it, int fieldWh, int fieldCenter) const;
+    void drawSource(juce::Graphics & g, InputModel * input, int fieldSize) const;
+    void drawSourceSpan(juce::Graphics & g, InputModel * it, int fieldWh, int fieldCenter) const;
     //==============================================================================
     JUCE_LEAK_DETECTOR(FlatViewWindow)
 };

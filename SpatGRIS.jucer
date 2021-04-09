@@ -53,33 +53,32 @@
         <FILE id="apexeV" name="narrow.hpp" compile="0" resource="0" file="Source/narrow.hpp"/>
       </GROUP>
       <GROUP id="{FB6EEEB4-BE6B-EB4A-201D-755A3CFACAAC}" name="spat">
+        <FILE id="CKR5UT" name="VbapSpatAlgorithm.cpp" compile="1" resource="0"
+              file="Source/VbapSpatAlgorithm.cpp"/>
+        <FILE id="HLMRlF" name="VbapSpatAlgorithm.hpp" compile="0" resource="0"
+              file="Source/VbapSpatAlgorithm.hpp"/>
         <GROUP id="{F536EC3E-463E-F7C1-C73E-F95B29576CC6}" name="implementations">
           <FILE id="zKQ5WK" name="lbap.cpp" compile="1" resource="0" file="Source/lbap.cpp"/>
           <FILE id="G3SJU6" name="lbap.hpp" compile="0" resource="0" file="Source/lbap.hpp"/>
           <FILE id="ihjJqS" name="vbap.cpp" compile="1" resource="0" file="Source/vbap.cpp"/>
           <FILE id="gyI4aY" name="vbap.hpp" compile="0" resource="0" file="Source/vbap.hpp"/>
         </GROUP>
-        <FILE id="sIHZLh" name="HrtfVbapAlgorithm.cpp" compile="1" resource="0"
-              file="Source/HrtfVbapAlgorithm.cpp"/>
-        <FILE id="sXfAcS" name="HrtfVbapAlgorithm.hpp" compile="0" resource="0"
-              file="Source/HrtfVbapAlgorithm.hpp"/>
-        <FILE id="wPgW0E" name="LbapAlgorithm.cpp" compile="1" resource="0"
-              file="Source/LbapAlgorithm.cpp"/>
-        <FILE id="SRzTxM" name="LbapAlgorithm.hpp" compile="0" resource="0"
-              file="Source/LbapAlgorithm.hpp"/>
+        <FILE id="wPgW0E" name="LbapSpatAlgorithm.cpp" compile="1" resource="0"
+              file="Source/LbapSpatAlgorithm.cpp"/>
+        <FILE id="SRzTxM" name="LbapSpatAlgorithm.hpp" compile="0" resource="0"
+              file="Source/LbapSpatAlgorithm.hpp"/>
         <FILE id="NWnli2" name="AbstractSpatAlgorithm.cpp" compile="1" resource="0"
               file="Source/AbstractSpatAlgorithm.cpp"/>
         <FILE id="SuIy1P" name="AbstractSpatAlgorithm.hpp" compile="0" resource="0"
               file="Source/AbstractSpatAlgorithm.hpp"/>
-        <FILE id="a5pP1T" name="StereoAlgorithm.cpp" compile="1" resource="0"
-              file="Source/StereoAlgorithm.cpp"/>
-        <FILE id="VHmR6h" name="StereoAlgorithm.hpp" compile="0" resource="0"
-              file="Source/StereoAlgorithm.hpp"/>
-        <FILE id="k5RRcN" name="VbapAlgorithm.cpp" compile="1" resource="0"
-              file="Source/VbapAlgorithm.cpp"/>
-        <FILE id="JxLj01" name="VbapAlgorithm.h" compile="0" resource="0" file="Source/VbapAlgorithm.h"/>
+        <FILE id="a5pP1T" name="StereoSpatAlgorithm.cpp" compile="1" resource="0"
+              file="Source/StereoSpatAlgorithm.cpp"/>
+        <FILE id="VHmR6h" name="StereoSpatAlgorithm.hpp" compile="0" resource="0"
+              file="Source/StereoSpatAlgorithm.hpp"/>
       </GROUP>
       <GROUP id="{879FD67D-521A-EC98-EB2A-A3C056EDF2C2}" name="structs">
+        <FILE id="mrd0M4" name="AudioStructs.cpp" compile="1" resource="0"
+              file="Source/AudioStructs.cpp"/>
         <FILE id="iunGqH" name="AudioStructs.hpp" compile="0" resource="0"
               file="Source/AudioStructs.hpp"/>
         <FILE id="KYw7Ga" name="CartesianVector.cpp" compile="1" resource="0"
@@ -87,6 +86,7 @@
         <FILE id="Fo1t1H" name="CartesianVector.h" compile="0" resource="0"
               file="Source/CartesianVector.h"/>
         <FILE id="uWpyry" name="LocklessQueue.h" compile="0" resource="0" file="Source/LocklessQueue.h"/>
+        <FILE id="plOS8g" name="LogicStrucs.cpp" compile="1" resource="0" file="Source/LogicStrucs.cpp"/>
         <FILE id="myBXNh" name="LogicStrucs.hpp" compile="0" resource="0" file="Source/LogicStrucs.hpp"/>
         <FILE id="XZJcvv" name="PolarVector.cpp" compile="1" resource="0" file="Source/PolarVector.cpp"/>
         <FILE id="v4qTK2" name="PolarVector.h" compile="0" resource="0" file="Source/PolarVector.h"/>
@@ -125,26 +125,28 @@
               file="Source/GrisLookAndFeel.cpp"/>
         <FILE id="vyaPdB" name="GrisLookAndFeel.h" compile="0" resource="0"
               file="Source/GrisLookAndFeel.h"/>
-        <FILE id="arLWJq" name="LevelComponent.cpp" compile="1" resource="0"
-              file="Source/LevelComponent.cpp"/>
-        <FILE id="Fv8Faz" name="LevelComponent.h" compile="0" resource="0"
-              file="Source/LevelComponent.h"/>
-        <FILE id="fIPWN2" name="ParentLevelComponent.h" compile="0" resource="0"
-              file="Source/ParentLevelComponent.h"/>
+        <FILE id="sqfniL" name="InputModel.cpp" compile="1" resource="0" file="Source/InputModel.cpp"/>
+        <FILE id="n57PDw" name="InputModel.h" compile="0" resource="0" file="Source/InputModel.h"/>
         <FILE id="I0ICQu" name="Ray.cpp" compile="1" resource="0" file="Source/Ray.cpp"/>
         <FILE id="oaSq5k" name="Ray.h" compile="0" resource="0" file="Source/Ray.h"/>
+        <FILE id="tDYWgF" name="SpeakerModel.cpp" compile="1" resource="0"
+              file="Source/SpeakerModel.cpp"/>
+        <FILE id="ArP6sZ" name="SpeakerModel.h" compile="0" resource="0" file="Source/SpeakerModel.h"/>
         <FILE id="Tz4yI1" name="SpeakerViewComponent.cpp" compile="1" resource="0"
               file="Source/SpeakerViewComponent.cpp"/>
         <FILE id="ItaT5M" name="SpeakerViewComponent.h" compile="0" resource="0"
               file="Source/SpeakerViewComponent.h"/>
+        <FILE id="UxDOKf" name="VuMeterComponent.cpp" compile="1" resource="0"
+              file="Source/VuMeterComponent.cpp"/>
+        <FILE id="pQThlS" name="VuMeterComponent.h" compile="0" resource="0"
+              file="Source/VuMeterComponent.h"/>
+        <FILE id="FtcdCa" name="VuMeterModel.h" compile="0" resource="0" file="Source/VuMeterModel.h"/>
       </GROUP>
       <FILE id="g2wgxx" name="Application.cpp" compile="1" resource="0" file="Source/Application.cpp"/>
       <FILE id="ObG5vj" name="Application.h" compile="0" resource="0" file="Source/Application.h"/>
       <FILE id="qa9nCn" name="Configuration.cpp" compile="1" resource="0"
             file="Source/Configuration.cpp"/>
       <FILE id="i5aeSY" name="Configuration.h" compile="0" resource="0" file="Source/Configuration.h"/>
-      <FILE id="BVvOrd" name="Input.cpp" compile="1" resource="0" file="Source/Input.cpp"/>
-      <FILE id="BiDXCC" name="Input.h" compile="0" resource="0" file="Source/Input.h"/>
       <FILE id="UmWQ55" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
       <FILE id="IoOl9R" name="MainComponent.cpp" compile="1" resource="0"
             file="Source/MainComponent.cpp"/>
@@ -153,8 +155,6 @@
       <FILE id="MTyXJy" name="MainWindow.h" compile="0" resource="0" file="Source/MainWindow.h"/>
       <FILE id="MSjj5i" name="OscInput.cpp" compile="1" resource="0" file="Source/OscInput.cpp"/>
       <FILE id="oP6icJ" name="OscInput.h" compile="0" resource="0" file="Source/OscInput.h"/>
-      <FILE id="KcFQB2" name="Speaker.cpp" compile="1" resource="0" file="Source/Speaker.cpp"/>
-      <FILE id="i4Suin" name="Speaker.h" compile="0" resource="0" file="Source/Speaker.h"/>
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>

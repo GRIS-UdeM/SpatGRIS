@@ -19,26 +19,28 @@
 
 #pragma once
 
-#include "macros.h"
-DISABLE_WARNINGS
 #include <JuceHeader.h>
-ENABLE_WARNINGS
 
 #include "GrisLookAndFeel.h"
 #include "StrongTypes.hpp"
 
-static float constexpr MIN_LEVEL_COMP = -60.0f;
-static float constexpr MAX_LEVEL_COMP = 0.0f;
+static dbfs_t constexpr MIN_LEVEL_COMP{ -60.0f };
+static dbfs_t constexpr MAX_LEVEL_COMP{ 0.0f };
 static int constexpr WIDTH_RECT = 1;
 
 class GrisLookAndFeel;
-class LevelComponent;
-class ParentLevelComponent;
+class VuMeterComponent;
+class VuMeterModel;
+
+enum class MouseButton { right, left };
 
 //============================ LevelBox ================================
-class LevelBox final : public juce::Component
+class VuMeterBox final : public juce::Component
 {
-    LevelComponent & mLevelComponent;
+    static constexpr auto WIDTH = 22;
+    static constexpr auto HEIGHT = 140;
+
+    VuMeterComponent & mLevelComponent;
     SmallGrisLookAndFeel & mLookAndFeel;
 
     juce::ColourGradient mColorGrad;
@@ -50,16 +52,16 @@ class LevelBox final : public juce::Component
 
 public:
     //==============================================================================
-    LevelBox(LevelComponent & levelComponent, SmallGrisLookAndFeel & lookAndFeel);
+    VuMeterBox(VuMeterComponent & levelComponent, SmallGrisLookAndFeel & lookAndFeel);
     //==============================================================================
-    LevelBox() = delete;
-    ~LevelBox() override = default;
+    VuMeterBox() = delete;
+    ~VuMeterBox() override = default;
 
-    LevelBox(LevelBox const &) = delete;
-    LevelBox(LevelBox &&) = delete;
+    VuMeterBox(VuMeterBox const &) = delete;
+    VuMeterBox(VuMeterBox &&) = delete;
 
-    LevelBox & operator=(LevelBox const &) = delete;
-    LevelBox & operator=(LevelBox &&) = delete;
+    VuMeterBox & operator=(VuMeterBox const &) = delete;
+    VuMeterBox & operator=(VuMeterBox &&) = delete;
     //==============================================================================
     void setBounds(const juce::Rectangle<int> & newBounds);
     void paint(juce::Graphics & g) override;
@@ -68,26 +70,26 @@ public:
 
 private:
     //==============================================================================
-    JUCE_LEAK_DETECTOR(LevelBox)
+    JUCE_LEAK_DETECTOR(VuMeterBox)
 }; // class LevelBox
 
 //======================== LevelComponent ==============================
-class LevelComponent final
+class VuMeterComponent final
     : public juce::Component
     , public juce::ToggleButton::Listener
     , public juce::ChangeListener
 {
-    ParentLevelComponent & mParentLevelComponent;
+    VuMeterModel & mModel;
     SmallGrisLookAndFeel & mLookAndFeel;
 
-    LevelBox mLevelBox;
+    VuMeterBox mContainerBox;
 
     juce::TextButton mIdButton;
     juce::ToggleButton mMuteToggleButton;
     juce::ToggleButton mSoloToggleButton;
 
-    float mLevel = MIN_LEVEL_COMP;
-    int mLastMouseButton = 1; // 1 means left, 0 means right
+    dbfs_t mLevel{ MIN_LEVEL_COMP };
+    MouseButton mLastMouseButton{ MouseButton::right };
     bool mIsColorful;
 
     std::vector<output_patch_t> mDirectOutSpeakers;
@@ -95,27 +97,26 @@ class LevelComponent final
 
 public:
     //==============================================================================
-    LevelComponent(ParentLevelComponent & parentLevelComponent,
-                   SmallGrisLookAndFeel & lookAndFeel,
-                   bool colorful = true);
+    VuMeterComponent(VuMeterModel & parentLevelComponent, SmallGrisLookAndFeel & lookAndFeel, bool colorful = true);
     //==============================================================================
-    LevelComponent() = delete;
-    ~LevelComponent() override = default;
+    VuMeterComponent() = delete;
+    ~VuMeterComponent() override = default;
 
-    LevelComponent(LevelComponent const &) = delete;
-    LevelComponent(LevelComponent &&) = delete;
+    VuMeterComponent(VuMeterComponent const &) = delete;
+    VuMeterComponent(VuMeterComponent &&) = delete;
 
-    LevelComponent & operator=(LevelComponent const &) = delete;
-    LevelComponent & operator=(LevelComponent &&) = delete;
+    VuMeterComponent & operator=(VuMeterComponent const &) = delete;
+    VuMeterComponent & operator=(VuMeterComponent &&) = delete;
     //==============================================================================
     void setOutputLab(juce::String const & value) { this->mIdButton.setButtonText(value); }
     void setColor(juce::Colour color);
-    [[nodiscard]] float getLevel() const { return mLevel; }
+    [[nodiscard]] dbfs_t getLevel() const { return mLevel; }
     void update();
     [[nodiscard]] bool isMuted() const { return this->mMuteToggleButton.getToggleState(); }
     void setSelected(bool value);
     void updateDirectOutMenu(std::vector<output_patch_t> directOuts);
-    void resetClipping() { this->mLevelBox.resetClipping(); }
+    void resetClipping() { this->mContainerBox.resetClipping(); }
+    void setLevel(dbfs_t level);
 
     [[nodiscard]] juce::TextButton & getDirectOutButton() { return mDirectOutButton; }
     [[nodiscard]] juce::TextButton const & getDirectOutButton() const { return mDirectOutButton; }
@@ -128,5 +129,5 @@ public:
 
 private:
     //==============================================================================
-    JUCE_LEAK_DETECTOR(LevelComponent)
+    JUCE_LEAK_DETECTOR(VuMeterComponent)
 }; // class LevelComponent

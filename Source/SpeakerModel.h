@@ -38,9 +38,9 @@ DISABLE_WARNINGS
 ENABLE_WARNINGS
 
 #include "GrisLookAndFeel.h"
-#include "LevelComponent.h"
-#include "ParentLevelComponent.h"
 #include "StrongTypes.hpp"
+#include "VuMeterComponent.h"
+#include "VuMeterModel.h"
 
 class MainContentComponent;
 enum class PortState;
@@ -62,7 +62,7 @@ glm::vec3 const DEFAULT_CENTER{ 0.0f, 0.0f, 0.0f };
 constexpr float OVER = 0.02f;
 
 //==============================================================================
-class Speaker final : public ParentLevelComponent
+class SpeakerModel final : public VuMeterModel
 {
     SmallGrisLookAndFeel & mLookAndFeel;
 
@@ -83,25 +83,25 @@ class Speaker final : public ParentLevelComponent
 
     output_patch_t mOutputPatch;
 
-    LevelComponent mVuMeter;
+    VuMeterComponent mVuMeter;
 
 public:
     //==============================================================================
-    Speaker(MainContentComponent & mainContentComponent,
-            SmallGrisLookAndFeel & smallGrisLookAndFeel,
-            output_patch_t outputPatch,
-            float azimuth,
-            float zenith,
-            float radius);
+    SpeakerModel(MainContentComponent & mainContentComponent,
+                 SmallGrisLookAndFeel & smallGrisLookAndFeel,
+                 output_patch_t outputPatch,
+                 float azimuth,
+                 float zenith,
+                 float radius);
     //==============================================================================
-    Speaker() = delete;
-    ~Speaker() override = default;
+    SpeakerModel() = delete;
+    ~SpeakerModel() override = default;
 
-    Speaker(Speaker const &) = delete;
-    Speaker(Speaker &&) = delete;
+    SpeakerModel(SpeakerModel const &) = delete;
+    SpeakerModel(SpeakerModel &&) = delete;
 
-    Speaker & operator=(Speaker const &) = delete;
-    Speaker & operator=(Speaker &&) = delete;
+    SpeakerModel & operator=(SpeakerModel const &) = delete;
+    SpeakerModel & operator=(SpeakerModel &&) = delete;
     //==============================================================================
     [[nodiscard]] bool isSelected() const { return mSelected; }
     void selectSpeaker();
@@ -114,10 +114,10 @@ public:
     [[nodiscard]] float getAlpha() const;
     void setState(PortState state);
     void setColor(juce::Colour /*color*/, bool /*updateLevel = false*/) override {}
-    void selectClick(bool select = true) override;
+    void setSelected(bool select = true) override;
 
-    [[nodiscard]] LevelComponent const * getVuMeter() const override { return &mVuMeter; }
-    [[nodiscard]] LevelComponent * getVuMeter() override { return &mVuMeter; }
+    [[nodiscard]] VuMeterComponent const * getVuMeter() const override { return &mVuMeter; }
+    [[nodiscard]] VuMeterComponent * getVuMeter() override { return &mVuMeter; }
 
     // Normalized for user
     void setCoordinate(glm::vec3 value);

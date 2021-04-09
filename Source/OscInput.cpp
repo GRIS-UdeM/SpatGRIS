@@ -19,7 +19,7 @@
 
 #include "OscInput.h"
 
-#include "Input.h"
+#include "InputModel.h"
 #include "MainComponent.h"
 
 //==============================================================================

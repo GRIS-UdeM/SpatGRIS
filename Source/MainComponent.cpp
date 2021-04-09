@@ -20,8 +20,8 @@
 #include "MainComponent.h"
 
 #include "AudioManager.h"
-#include "LevelComponent.h"
 #include "MainWindow.h"
+#include "VuMeterComponent.h"
 #include "constants.hpp"
 
 //==============================================================================
@@ -34,28 +34,24 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
 {
     juce::LookAndFeel::setDefaultLookAndFeel(&grisLookAndFeel);
 
-    // init audio
-    auto const deviceType{ mConfiguration.getDeviceType() };
-    auto const inputDevice{ mConfiguration.getInputDevice() };
-    auto const outputDevice{ mConfiguration.getOutputDevice() };
-    auto const sampleRate{ mConfiguration.getSampleRate() };
-    auto const bufferSize{ mConfiguration.getBufferSize() };
+    mData.appData = mConfiguration.load();
 
+    // init audio
     // TODO: probably a race condition here
-    AudioManager::init(deviceType, inputDevice, outputDevice, sampleRate, bufferSize);
-    mAudioProcessor = std::make_unique<AudioProcessor>(mSpeakers, mInputs);
+    auto const & audioSettings{ mData.appData.audioSettings };
+    AudioManager::init(audioSettings.deviceType,
+                       audioSettings.inputDevice,
+                       audioSettings.outputDevice,
+                       audioSettings.sampleRate,
+                       audioSettings.bufferSize);
+    mAudioProcessor = std::make_unique<AudioProcessor>();
 
     juce::ScopedLock const audioLock{ mAudioProcessor->getCriticalSection() };
 
     auto & audioManager{ AudioManager::getInstance() };
-    audioManager.registerAudioProcessor(mAudioProcessor.get(), mSpeakers, mInputs);
-    mSamplingRate = narrow<unsigned>(sampleRate);
+    audioManager.registerAudioProcessor(mAudioProcessor.get());
 
-    auto const attenuationDbIndex{ mConfiguration.getAttenuationDbIndex() };
-    mAudioProcessor->setAttenuationDbIndex(attenuationDbIndex);
-
-    auto const attenuationFrequencyIndex{ mConfiguration.getAttenuationFrequencyIndex() };
-    mAudioProcessor->setAttenuationFrequencyIndex(attenuationFrequencyIndex);
+    mAudioProcessor->setAudioConfig(mData.toAudioConfig());
 
     // Create the menu bar.
     mMenuBar.reset(new juce::MenuBarComponent(this));
@@ -152,7 +148,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
 
     // Start the OSC Receiver.
     mOscReceiver.reset(new OscInput(*this));
-    mOscReceiver->startConnection(mOscInputPort);
+    mOscReceiver->startConnection(mData.projectData.oscPort);
 
     // Default widget values.
     mMasterGainOutSlider->setValue(0.0);
@@ -163,17 +159,17 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     textEditorReturnKeyPressed(*mAddInputsTextEditor);
 
     // Open the default project if lastOpenProject is not a valid file.
-    openProject(mConfiguration.getLastOpenProject());
+    openProject(mData.appData.lastProject);
 
     // Open the default speaker setup if lastOpenSpeakerSetup is not a valid file.
-    auto const lastSpatMode{ mConfiguration.getLastSpatMode() };
+    auto const lastSpatMode{ mData.appData.lastSpatMode };
     switch (lastSpatMode) {
     case SpatMode::hrtfVbap:
         openXmlFileSpeaker(BINAURAL_SPEAKER_SETUP_FILE, lastSpatMode);
         break;
     case SpatMode::lbap:
     case SpatMode::vbap:
-        openXmlFileSpeaker(mConfiguration.getLastSpeakerSetup_(), lastSpatMode);
+        openXmlFileSpeaker(mData.appData.lastSpeakerSetup, lastSpatMode);
         break;
     case SpatMode::stereo:
         openXmlFileSpeaker(STEREO_SPEAKER_SETUP_FILE, lastSpatMode);
@@ -199,19 +195,21 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     commandManager.registerAllCommandsForTarget(this);
 
     // Restore last vertical divider position and speaker view cam distance.
-    auto const sashPosition{ mConfiguration.getSashPosition() };
-    if (sashPosition) {
-        auto const trueSize{ narrow<int>(std::round(narrow<double>(getWidth() - 3) * std::abs(*sashPosition))) };
-        mVerticalLayout.setItemPosition(1, trueSize);
-    }
+    auto const sashPosition{ mData.appData.sashPosition };
+    auto const trueSize{ narrow<int>(std::round(narrow<double>(getWidth() - 3) * std::abs(sashPosition))) };
+    mVerticalLayout.setItemPosition(1, trueSize);
 
-    mSpatAlgorithm = AbstractSpatAlgorithm::make()
+    mSpatAlgorithm = AbstractSpatAlgorithm::make(lastSpatMode);
+    mSpatAlgorithm->init(mData.speakersData);
 }
 
 //==============================================================================
 MainContentComponent::~MainContentComponent()
 {
-    mConfiguration.setSashPosition(mVerticalLayout.getItemCurrentRelativeSize(0));
+    mData.appData.sashPosition = mVerticalLayout.getItemCurrentRelativeSize(0);
+    // TODO : save other appData thingies
+
+    mConfiguration.save(mData.appData);
 
     mSpeakerViewComponent.reset();
 
@@ -221,7 +219,7 @@ MainContentComponent::~MainContentComponent()
     }
 
     juce::ScopedLock const lock{ mInputsLock };
-    mInputs.clear();
+    mInputModels.clear();
 }
 
 //==============================================================================
@@ -392,7 +390,7 @@ void MainContentComponent::handleNew()
 //==============================================================================
 void MainContentComponent::handleOpenProject()
 {
-    auto const lastOpenProject{ mConfiguration.getLastOpenProject() };
+    juce::File const lastOpenProject{ mData.appData.lastProject };
     auto const dir{ lastOpenProject.getParentDirectory() };
     auto const filename{ lastOpenProject.getFileName() };
 
@@ -414,7 +412,7 @@ void MainContentComponent::handleOpenProject()
     }
 
     if (loaded) { // Check for direct out OutputPatch mismatch.
-        for (auto const * it : mInputs) {
+        for (auto const * it : mInputModels) {
             if (it->getDirectOutChannel() != output_patch_t{}) {
                 auto const directOutOutputPatches{ mAudioProcessor->getDirectOutOutputPatches() };
                 if (std::find(directOutOutputPatches.cbegin(), directOutOutputPatches.cend(), it->getDirectOutChannel())
@@ -600,7 +598,7 @@ void MainContentComponent::handleOpenManual()
 //==============================================================================
 void MainContentComponent::handleShowNumbers()
 {
-    setShowNumbers(!mIsNumbersShown);
+    setShowNumbers(!mData.projectData.viewSettings.showSpeakerNumbers);
 }
 
 //==============================================================================
@@ -692,7 +690,7 @@ void MainContentComponent::handleShowSphere()
 //==============================================================================
 void MainContentComponent::handleResetInputPositions()
 {
-    for (auto * input : mInputs) {
+    for (auto * input : mInputModels) {
         input->resetPosition();
     }
 }
@@ -700,7 +698,7 @@ void MainContentComponent::handleResetInputPositions()
 //==============================================================================
 void MainContentComponent::handleResetMeterClipping()
 {
-    for (auto * input : mInputs) {
+    for (auto * input : mInputModels) {
         input->getVuMeter()->resetClipping();
     }
     for (auto * speaker : mSpeakers) {
@@ -712,8 +710,8 @@ void MainContentComponent::handleResetMeterClipping()
 void MainContentComponent::handleInputColours()
 {
     auto hue = 0.0f;
-    auto const inc = 1.0f / static_cast<float>(mInputs.size() + 1);
-    for (auto * input : mInputs) {
+    auto const inc = 1.0f / static_cast<float>(mInputModels.size() + 1);
+    for (auto * input : mInputModels) {
         input->setColor(juce::Colour::fromHSV(hue, 1, 0.75, 1), true);
         hue += inc;
     }
@@ -1057,7 +1055,7 @@ bool MainContentComponent::exitApp() const
 }
 
 //==============================================================================
-void MainContentComponent::selectSpeaker(tl::optional<speaker_id_t> const id)
+void MainContentComponent::selectSpeaker(tl::optional<output_patch_t> const outputPatch)
 {
     auto const applySelection = [&](speaker_id_t const selectedId) {
         for (auto * speaker : mSpeakers) {
@@ -1081,9 +1079,9 @@ void MainContentComponent::selectSpeaker(tl::optional<speaker_id_t> const id)
 }
 
 //==============================================================================
-void MainContentComponent::selectTripletSpeaker(speaker_id_t const idS)
+void MainContentComponent::selectTripletSpeaker(output_patch_t const idS)
 {
-    auto countS{ std::count_if(mSpeakers.begin(), mSpeakers.end(), [](Speaker const * speaker) {
+    auto countS{ std::count_if(mSpeakers.begin(), mSpeakers.end(), [](SpeakerModel const * speaker) {
         return speaker->isSelected();
     }) };
 
@@ -1127,6 +1125,18 @@ void MainContentComponent::selectTripletSpeaker(speaker_id_t const idS)
 }
 
 //==============================================================================
+void MainContentComponent::setSourceState(source_index_t const sourceIndex, PortState const state)
+{
+    mData.projectData.sourcesData[sourceIndex].state = state;
+}
+
+//==============================================================================
+void MainContentComponent::setSpeakerState(output_patch_t const outputPatch, PortState const state)
+{
+    mData.speakersData[outputPatch].state = state;
+}
+
+//==============================================================================
 bool MainContentComponent::tripletExists(Triplet const & tri, int & pos) const
 {
     pos = 0;
@@ -1146,23 +1156,11 @@ bool MainContentComponent::tripletExists(Triplet const & tri, int & pos) const
 }
 
 //==============================================================================
-void MainContentComponent::reorderSpeakers(juce::Array<speaker_id_t> newOrder)
+void MainContentComponent::reorderSpeakers(juce::Array<output_patch_t> newOrder)
 {
     juce::ScopedLock lock{ mSpeakers.getCriticalSection() }; // TODO: necessary?
     jassert(newOrder.size() == mSpeakersDisplayOrder.size());
     mSpeakersDisplayOrder = std::move(newOrder);
-}
-
-//==============================================================================
-speaker_id_t MainContentComponent::getMaxSpeakerId() const
-{
-    speaker_id_t maxId{};
-    for (auto const * speaker : mSpeakers) {
-        if (speaker->getSpeakerId() > maxId) {
-            maxId = speaker->getSpeakerId();
-        }
-    }
-    return maxId;
 }
 
 //==============================================================================
@@ -1178,14 +1176,14 @@ output_patch_t MainContentComponent::getMaxSpeakerOutputPatch() const
 }
 
 //==============================================================================
-Speaker & MainContentComponent::addSpeaker()
+SpeakerModel & MainContentComponent::addSpeaker()
 {
     juce::ScopedLock const lock{ mSpeakers.getCriticalSection() };
     auto const newId{ ++getMaxSpeakerId() };
     auto const newOutputPatch{ ++getMaxSpeakerOutputPatch() };
     auto & speaker{ mSpeakers.add(
         newId,
-        std::make_unique<Speaker>(*this, mSmallLookAndFeel, newId, newOutputPatch, 0.0f, 0.0f, 1.0f)) };
+        std::make_unique<SpeakerModel>(*this, mSmallLookAndFeel, newId, newOutputPatch, 0.0f, 0.0f, 1.0f)) };
     mSpeakersDisplayOrder.add(newId);
     return speaker;
 }
@@ -1201,7 +1199,7 @@ void MainContentComponent::insertSpeaker(int const position)
 }
 
 //==============================================================================
-void MainContentComponent::removeSpeaker(speaker_id_t const id)
+void MainContentComponent::removeSpeaker(output_patch_t const id)
 {
     juce::ScopedLock const lock{ mSpeakers.getCriticalSection() };
     mSpeakers.remove(id);
@@ -1220,7 +1218,7 @@ bool MainContentComponent::isRadiusNormalized() const
 }
 
 //==============================================================================
-void MainContentComponent::updateSourceData(int const sourceDataIndex, Input & input) const
+void MainContentComponent::updateSourceData(int const sourceDataIndex, InputModel & input) const
 {
     if (sourceDataIndex >= mAudioProcessor->getSourcesIn().size()) {
         return;
@@ -1256,7 +1254,7 @@ void MainContentComponent::setTripletsFromVbap()
 }
 
 //==============================================================================
-Speaker const * MainContentComponent::getSpeakerFromOutputPatch(output_patch_t const out) const
+SpeakerModel const * MainContentComponent::getSpeakerFromOutputPatch(output_patch_t const out) const
 {
     for (auto const * speaker : mSpeakers) {
         if (speaker->getOutputPatch() == out && !speaker->isDirectOut()) {
@@ -1275,21 +1273,21 @@ void MainContentComponent::setNumInputs(int const numInputs, bool const updateTe
         mAddInputsTextEditor->setText(juce::String{ numInputs }, false);
     }
 
-    if (numInputs > mInputs.size()) {
+    if (numInputs > mInputModels.size()) {
         // add some inputs
-        for (int i{ mInputs.size() }; i < numInputs; ++i) {
-            mInputs.add(new Input{ *this, mSmallLookAndFeel, i + 1 });
+        for (int i{ mInputModels.size() }; i < numInputs; ++i) {
+            mInputModels.add(new InputModel{ *this, mSmallLookAndFeel, i + 1 });
         }
-    } else if (numInputs < mInputs.size()) {
+    } else if (numInputs < mInputModels.size()) {
         // remove some inputs
-        mInputs.removeRange(numInputs, mInputs.size() - numInputs);
+        mInputModels.removeRange(numInputs, mInputModels.size() - numInputs);
     }
     unfocusAllComponents();
     refreshSpeakers();
 }
 
 //==============================================================================
-Speaker * MainContentComponent::getSpeakerFromOutputPatch(output_patch_t const out)
+SpeakerModel * MainContentComponent::getSpeakerFromOutputPatch(output_patch_t const out)
 {
     for (auto * speaker : mSpeakers) {
         if (speaker->getOutputPatch() == out && !speaker->isDirectOut()) {
@@ -1331,16 +1329,18 @@ static SpeakerHighpassConfig linkwitzRileyComputeVariables(double const freq, do
 }
 
 //==============================================================================
-float MainContentComponent::getLevelsIn(int const indexLevel) const
+dbfs_t MainContentComponent::getSourcePeak(source_index_t const sourceIndex) const
 {
-    auto const magnitude{ mAudioProcessor->getSourcesIn()[indexLevel].magnitude };
-    return (20.0f * std::log10(magnitude)); // TODO: simple to db calc?
+    auto const & peaks{ *mAudioProcessor->getAudioData().sourcePeaks.get() };
+    auto const magnitude{ peaks[sourceIndex] };
+    return dbfs_t::fromGain(magnitude);
 }
 
 //==============================================================================
-float MainContentComponent::getLevelsAlpha(int const indexLevel) const
+float MainContentComponent::getSourceAlpha(source_index_t const sourceIndex) const
 {
-    auto const level{ mAudioProcessor->getSourcesIn()[indexLevel].magnitude };
+    auto const db{ getSourcePeak(sourceIndex) };
+    auto const level{ db.toGain() };
     if (level > 0.0001f) {
         // -80 dB
         return 1.0f;
@@ -1349,9 +1349,18 @@ float MainContentComponent::getLevelsAlpha(int const indexLevel) const
 }
 
 //==============================================================================
-float MainContentComponent::getSpeakerLevelsAlpha(speaker_id_t const speakerId) const
+dbfs_t MainContentComponent::getSpeakerPeak(output_patch_t const outputPatch) const
 {
-    auto const level{ mAudioProcessor->getSpeakersOut().get(speakerId).magnitude };
+    auto const & peaks{ *mAudioProcessor->getAudioData().speakerPeaks.get() };
+    auto const magnitude{ peaks[outputPatch] };
+    return dbfs_t::fromGain(magnitude);
+}
+
+//==============================================================================
+float MainContentComponent::getSpeakerAlpha(output_patch_t const outputPatch) const
+{
+    auto const db{ getSpeakerPeak(outputPatch) };
+    auto const level{ db.toGain() };
     float alpha;
     if (level > 0.001f) {
         // -60 dB
@@ -1526,7 +1535,7 @@ bool MainContentComponent::refreshSpeakers()
         juce::ScopedLock const lock{ mInputsLock };
         auto & sourcesData{ mAudioProcessor->getSourcesIn() };
         sourcesData.clear();
-        for (auto * input : mInputs) {
+        for (auto * input : mInputModels) {
             juce::Rectangle<int> level{ x, 4, VU_METER_WIDTH_IN_PIXELS, 200 };
             input->getVuMeter()->setBounds(level);
             if (input->isInput()) { // TODO : wut?
@@ -1559,12 +1568,12 @@ bool MainContentComponent::refreshSpeakers()
 
     // Temporarily remove direct out speakers to construct vbap or lbap algorithm.
     i = 0;
-    std::vector<Speaker const *> tempListSpeaker{};
+    std::vector<SpeakerModel const *> tempListSpeaker{};
     tempListSpeaker.reserve(mSpeakers.size());
     std::copy_if(mSpeakers.cbegin(),
                  mSpeakers.cend(),
                  std::back_inserter(tempListSpeaker),
-                 [](Speaker const * speaker) { return !speaker->isDirectOut(); });
+                 [](SpeakerModel const * speaker) { return !speaker->isDirectOut(); });
 
     auto returnValue{ false };
     if (mode == SpatMode::vbap || mode == SpatMode::hrtfVbap) {
@@ -1602,8 +1611,9 @@ bool MainContentComponent::refreshSpeakers()
             sourceIn.isMuted = sourceState.isMuted;
             sourceIn.isSolo = sourceState.isSolo;
             sourceIn.directOut = sourceState.directOut;
-            sourceState.directOut.map(
-                [&](output_patch_t const outputPatch) { mInputs[sourceInIndex]->setDirectOutChannel(outputPatch); });
+            sourceState.directOut.map([&](output_patch_t const outputPatch) {
+                mInputModels[sourceInIndex]->setDirectOutChannel(outputPatch);
+            });
         }
     }
 
@@ -1676,10 +1686,10 @@ float MainContentComponent::getLevelsOut(speaker_id_t const speakerID) const
 }
 
 //==============================================================================
-void MainContentComponent::setDirectOut(int const id, output_patch_t const chn) const
+void MainContentComponent::setSourceDirectOut(source_index_t const sourceIndex,
+                                              output_patch_t const directOutPatch) const
 {
-    // auto const index{ id - 1 };
-    mInputs[id]->setDirectOutChannel(chn);
+    mInputModels[sourceIndex]->setDirectOutChannel(directOutPatch);
     // mAudioProcessor->getSourcesIn()[index].directOut = chn;
 }
 
@@ -1763,13 +1773,13 @@ void MainContentComponent::openXmlFileSpeaker(juce::File const & file, tl::optio
                     auto const radius{ static_cast<float>(spk->getDoubleAttribute("Radius")) };
                     speaker_id_t const id{ layoutIndex };
                     auto & newSpeaker{ mSpeakers.add(id,
-                                                     std::make_unique<Speaker>(*this,
-                                                                               mSmallLookAndFeel,
-                                                                               id,
-                                                                               outputPatch,
-                                                                               azimuth,
-                                                                               zenith,
-                                                                               radius)) };
+                                                     std::make_unique<SpeakerModel>(*this,
+                                                                                    mSmallLookAndFeel,
+                                                                                    id,
+                                                                                    outputPatch,
+                                                                                    azimuth,
+                                                                                    zenith,
+                                                                                    radius)) };
 
                     if (loadSetupFromXyz) {
                         newSpeaker.setCoordinate(glm::vec3(static_cast<float>(spk->getDoubleAttribute("PositionX")),
@@ -1798,7 +1808,7 @@ void MainContentComponent::openXmlFileSpeaker(juce::File const & file, tl::optio
 
     juce::Array<speaker_id_t> order{};
     order.resize(mSpeakers.size());
-    std::transform(mSpeakers.cbegin(), mSpeakers.cend(), order.begin(), [](Speaker const * speaker) {
+    std::transform(mSpeakers.cbegin(), mSpeakers.cend(), order.begin(), [](SpeakerModel const * speaker) {
         return speaker->getSpeakerId();
     });
     std::sort(order.begin(), order.end());
@@ -1912,7 +1922,7 @@ void MainContentComponent::openProject(juce::File const & file)
 
     for (auto * input{ mainXmlElem->getFirstChildElement() }; input != nullptr; input = input->getNextElement()) {
         if (input->hasTagName("Input")) {
-            for (auto * it : mInputs) {
+            for (auto * it : mInputModels) {
                 if (it->getId() == input->getIntAttribute("Index")) {
                     it->setColor(juce::Colour::fromFloatRGBA(static_cast<float>(input->getDoubleAttribute("R")),
                                                              static_cast<float>(input->getDoubleAttribute("G")),
@@ -1921,10 +1931,10 @@ void MainContentComponent::openProject(juce::File const & file)
                                  true);
                     if (input->hasAttribute("DirectOut")) {
                         it->setDirectOutChannel(output_patch_t{ input->getIntAttribute("DirectOut") });
-                        setDirectOut(it->getId() - 1, output_patch_t{ input->getIntAttribute("DirectOut") });
+                        setSourceDirectOut(it->getId() - 1, output_patch_t{ input->getIntAttribute("DirectOut") });
                     } else {
                         it->setDirectOutChannel(output_patch_t{});
-                        setDirectOut(it->getId() - 1, output_patch_t{});
+                        setSourceDirectOut(it->getId() - 1, output_patch_t{});
                     }
                 }
             }
@@ -1953,7 +1963,7 @@ void MainContentComponent::getProjectData(juce::XmlElement * xml) const
     xml->setAttribute("CamAngleY", mSpeakerViewComponent->getCamAngleY());
     xml->setAttribute("CamDistance", mSpeakerViewComponent->getCamDistance());
 
-    for (auto const * sourceInput : mInputs) {
+    for (auto const * sourceInput : mInputModels) {
         auto * xmlInput{ new juce::XmlElement{ "Input" } };
         xmlInput->setAttribute("Index", sourceInput->getId());
         xmlInput->setAttribute("R", sourceInput->getColor().x);
@@ -2074,6 +2084,22 @@ void MainContentComponent::saveProperties(juce::String const & audioDeviceType,
 //==============================================================================
 void MainContentComponent::timerCallback()
 {
+    // Update levels
+    auto & audioData{ mAudioProcessor->getAudioData() };
+    auto const & sourcePeaks{ *audioData.sourcePeaks.get() };
+    for (auto * sourceVuMeter : mInputModels) {
+        auto const & peak{ source_index_t{ sourceVuMeter->getChannel() } };
+        sourceVuMeter->setLevel(peak);
+    }
+
+    auto const & speakerPeaks{ *audioData.speakerPeaks.get() };
+    for (auto * speakerVuMeter : mSpeakers) {
+        auto const & peak
+        {
+            output_patch_t { speakerVuMeter-> }
+        }
+    }
+
     auto & audioManager{ AudioManager::getInstance() };
     auto & audioDeviceManager{ audioManager.getAudioDeviceManager() };
     auto * audioDevice{ audioDeviceManager.getCurrentAudioDevice() };
@@ -2121,7 +2147,7 @@ void MainContentComponent::timerCallback()
         mCpuUsageValue->setColour(juce::Label::backgroundColourId, mLookAndFeel.getWinBackgroundColour());
     }
 
-    for (auto * sourceInput : mInputs) {
+    for (auto * sourceInput : mInputModels) {
         sourceInput->getVuMeter()->update();
     }
 
@@ -2355,7 +2381,7 @@ void MainContentComponent::resized()
                                                      getWidth() - (mSpeakerViewComponent->getWidth() + PADDING),
                                                      231 };
     mInputsUiBox->setBounds(newInputsUiBoxBounds);
-    mInputsUiBox->correctSize(mInputs.size() * VU_METER_WIDTH_IN_PIXELS + 4, 200);
+    mInputsUiBox->correctSize(mInputModels.size() * VU_METER_WIDTH_IN_PIXELS + 4, 200);
 
     juce::Rectangle<int> const newOutputsUiBoxBounds{ 0,
                                                       233,

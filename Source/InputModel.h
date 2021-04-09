@@ -19,8 +19,10 @@
 
 #pragma once
 
+#include "PolarVector.h"
 #include "macros.h"
 
+enum class PortState;
 DISABLE_WARNINGS
 #if defined(__linux__)
     #include <GL/gl.h>
@@ -38,15 +40,15 @@ DISABLE_WARNINGS
 ENABLE_WARNINGS
 
 //#include "AudioProcessor.h"
-#include "LevelComponent.h"
-#include "ParentLevelComponent.h"
 #include "SpatMode.hpp"
+#include "VuMeterComponent.h"
+#include "VuMeterModel.h"
 
 class GrisLookAndFeel;
 class MainContentComponent;
 
 //==============================================================================
-class Input final : public ParentLevelComponent
+class InputModel final : public VuMeterModel
 {
     static constexpr auto SPHERE_RADIUS = 0.3f;
     static constexpr auto HALF_SPHERE_RADIUS = SPHERE_RADIUS / 2.0f;
@@ -54,57 +56,48 @@ class Input final : public ParentLevelComponent
     MainContentComponent & mMainContentComponent;
     SmallGrisLookAndFeel & mLookAndFeel;
 
-    int mIdChannel;
-    output_patch_t mDirectOutChannel{};
+    source_index_t mIndex;
+    tl::optional<output_patch_t> mDirectOut{};
 
-    radians_t mAzimuth{};
-    radians_t mZenith{};
-    float mRadius{};
-
+    PolarVector mVector{};
     float mAzimuthSpan{};
     float mZenithSpan{};
-    float mGain{ -1.0f };
 
     glm::vec3 mCenter{};
     glm::vec3 mColor{};
     juce::Colour mColorJ{};
 
-    LevelComponent mVuMeter;
+    VuMeterComponent mVuMeter;
 
 public:
     //==============================================================================
-    Input(MainContentComponent & mainContentComponent, SmallGrisLookAndFeel & lookAndFeel, int id = 0);
+    InputModel(MainContentComponent & mainContentComponent, SmallGrisLookAndFeel & lookAndFeel, source_index_t index);
     //==============================================================================
-    Input() = delete;
-    ~Input() override = default;
+    InputModel() = delete;
+    ~InputModel() override = default;
 
-    Input(Input const &) = delete;
-    Input(Input &&) = delete;
+    InputModel(InputModel const &) = delete;
+    InputModel(InputModel &&) = delete;
 
-    Input & operator=(Input const &) = delete;
-    Input & operator=(Input &&) = delete;
+    InputModel & operator=(InputModel const &) = delete;
+    InputModel & operator=(InputModel &&) = delete;
     //==============================================================================
-    void setMuted(bool mute) override;
-    void setSolo(bool solo) override;
-    void selectClick(bool /*select = true*/) override{};
+    void setState(PortState state) override;
+    void setSelected(bool state) override{};
     void setColor(juce::Colour color, bool updateLevel = false) override;
     //==============================================================================
     [[nodiscard]] MainContentComponent const & getMainContentComponent() const { return mMainContentComponent; }
     [[nodiscard]] MainContentComponent & getMainContentComponent() { return mMainContentComponent; }
 
-    [[nodiscard]] LevelComponent const * getVuMeter() const override { return &mVuMeter; }
-    [[nodiscard]] LevelComponent * getVuMeter() override { return &mVuMeter; }
+    [[nodiscard]] VuMeterComponent const * getVuMeter() const override { return &mVuMeter; }
+    [[nodiscard]] VuMeterComponent * getVuMeter() override { return &mVuMeter; }
 
-    [[nodiscard]] int getId() const override { return mIdChannel; }
-    [[nodiscard]] int getButtonInOutNumber() const override { return mIdChannel; }
-    [[nodiscard]] float getLevel() const override;
+    [[nodiscard]] source_index_t getIndex() const { return mIndex; }
+    [[nodiscard]] dbfs_t getLevel() const override;
     [[nodiscard]] float getAlpha() const;
-    [[nodiscard]] radians_t getAzimuth() const { return mAzimuth; }
-    [[nodiscard]] radians_t getZenith() const { return mZenith; }
-    [[nodiscard]] float getRadius() const { return mRadius; }
+    [[nodiscard]] auto const & getVector() const { return mVector; }
     [[nodiscard]] float getAzimuthSpan() const { return mAzimuthSpan; }
     [[nodiscard]] float getZenithSpan() const { return mZenithSpan; }
-    [[nodiscard]] float getGain() const { return mGain; }
 
     [[nodiscard]] glm::vec3 getCenter() const { return mCenter; }
     [[nodiscard]] glm::vec3 getColor() const { return mColor; }
@@ -117,25 +110,18 @@ public:
     //==============================================================================
     void resetPosition();
     void draw() const;
-    void updateValues(radians_t azimuth,
-                      radians_t zenith,
-                      float azimuthSpan,
-                      float zenithSpan,
-                      float radius,
-                      float gain,
-                      SpatMode mode);
+    void updateValues(PolarVector const & vector, float azimuthSpan, float zenithSpan, dbfs_t gain, SpatMode mode);
     void updateValuesOld(float azimuth, float zenith, float azimuthSpan, float zenithSpan, float g);
     //==============================================================================
     [[nodiscard]] bool isInput() const override { return true; }
-    void changeDirectOutChannel(output_patch_t chn) override { mDirectOutChannel = chn; }
-    void setDirectOutChannel(output_patch_t chn) override;
-    [[nodiscard]] output_patch_t getDirectOutChannel() const override { return mDirectOutChannel; };
-    void sendDirectOutToClient(int id, output_patch_t chn) override;
+    void setDirectOut(tl::optional<output_patch_t> directOut);
+    [[nodiscard]] tl::optional<output_patch_t> getDirectOut() const { return mDirectOut; };
+    // void sendDirectOutToClient(int id, output_patch_t chn) override; // TODO: what is this?
 
     void drawSpan() const;
     void drawSpanLbap(float x, float y, float z) const;
 
 private:
     //==============================================================================
-    JUCE_LEAK_DETECTOR(Input)
+    JUCE_LEAK_DETECTOR(InputModel)
 };

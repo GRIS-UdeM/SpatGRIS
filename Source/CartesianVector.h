@@ -18,6 +18,11 @@ struct CartesianVector {
     float y;
     float z;
 
+    [[nodiscard]] constexpr bool operator==(CartesianVector const & other) const noexcept
+    {
+        return x == other.x && y == other.y && z == other.z;
+    }
+
     [[nodiscard]] constexpr CartesianVector operator/(float const scalar) const noexcept
     {
         CartesianVector const result{ x / scalar, y / scalar, z / scalar };

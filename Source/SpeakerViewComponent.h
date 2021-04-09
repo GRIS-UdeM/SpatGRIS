@@ -35,7 +35,7 @@ ENABLE_WARNINGS
 #include "constants.hpp"
 
 class MainContentComponent;
-class Speaker;
+class SpeakerModel;
 
 static float constexpr SCROLL_WHEEL_SPEED_MOUSE{ 1.8f };
 
@@ -119,7 +119,7 @@ public:
 
 private:
     //==============================================================================
-    [[nodiscard]] float rayCast(Speaker const * speaker) const;
+    [[nodiscard]] float rayCast(SpeakerModel const * speaker) const;
     [[nodiscard]] bool speakerNearCam(glm::vec3 speak1, glm::vec3 speak2) const;
 
     void clickRay();

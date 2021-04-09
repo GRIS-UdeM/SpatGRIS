@@ -22,7 +22,7 @@
 #include "EditableTextCustomComponent.h"
 #include "GrisLookAndFeel.h"
 #include "MainComponent.h"
-#include "Speaker.h"
+#include "SpeakerModel.h"
 #include "StaticVector.h"
 #include "narrow.hpp"
 
@@ -326,7 +326,7 @@ bool compareGreaterThan(Sorter const & a, Sorter const & b)
 //==============================================================================
 void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const isForwards)
 {
-    static auto const extractValue = [](Speaker const * speaker, int const sortColumn) -> float {
+    static auto const extractValue = [](SpeakerModel const * speaker, int const sortColumn) -> float {
         switch (sortColumn) {
         case Cols::X:
             return speaker->getCartesianCoords().z;
@@ -352,7 +352,7 @@ void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const 
     std::transform(speakers.cbegin(),
                    speakers.cend(),
                    std::back_inserter(valuesToSort),
-                   [newSortColumnId](Speaker const * speaker) {
+                   [newSortColumnId](SpeakerModel const * speaker) {
                        return std::make_pair(extractValue(speaker, newSortColumnId), speaker->getSpeakerId());
                    });
     if (isForwards) {
@@ -940,7 +940,7 @@ bool EditSpeakersWindow::isMouseOverDragHandle(juce::MouseEvent const & event)
 }
 
 //==============================================================================
-Speaker & EditSpeakersWindow::getSpeaker(int const rowNum) const
+SpeakerModel & EditSpeakersWindow::getSpeaker(int const rowNum) const
 {
     auto const & speakerDisplayOrder{ mMainContentComponent.getSpeakersDisplayOrder() };
     jassert(rowNum >= 0 && rowNum < speakerDisplayOrder.size());

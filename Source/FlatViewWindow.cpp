@@ -19,7 +19,7 @@
 
 #include "FlatViewWindow.h"
 
-#include "Input.h"
+#include "InputModel.h"
 #include "MainComponent.h"
 #include "constants.hpp"
 #include "narrow.hpp"
@@ -199,7 +199,7 @@ void FlatViewWindow::paint(juce::Graphics & g)
 }
 
 //==============================================================================
-void FlatViewWindow::drawSource(juce::Graphics & g, Input * input, const int fieldSize) const
+void FlatViewWindow::drawSource(juce::Graphics & g, InputModel * input, const int fieldSize) const
 {
     static constexpr auto SOURCE_DIAMETER_INT{ narrow<int>(SOURCE_DIAMETER) };
 
@@ -247,7 +247,7 @@ void FlatViewWindow::drawSource(juce::Graphics & g, Input * input, const int fie
 }
 
 //==============================================================================
-void FlatViewWindow::drawSourceSpan(juce::Graphics & g, Input * it, const int fieldWh, const int fieldCenter) const
+void FlatViewWindow::drawSourceSpan(juce::Graphics & g, InputModel * it, const int fieldWh, const int fieldCenter) const
 {
     auto const colorS{ it->getColorJ() };
 

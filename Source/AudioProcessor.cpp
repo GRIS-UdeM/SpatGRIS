@@ -25,7 +25,7 @@
 #include "AudioManager.h"
 #include "MainComponent.h"
 #include "PinkNoiseGenerator.h"
-#include "Speaker.h"
+#include "SpeakerModel.h"
 #include "StaticMap.hpp"
 #include "TaggedAudioBuffer.hpp"
 #include "constants.hpp"
@@ -384,58 +384,25 @@ void AudioProcessor::processStereo(SourceAudioBuffer const & inputBuffer,
 {
     jassert(outputBuffer.size() == 2);
 
-    auto const gainFactor{ std::pow(mAudioData.config.spatGainsInterpolation, 0.1f) * 0.0099f + 0.99f };
-
-    auto * leftOutputSamples{ outputBuffer[output_patch_t{ 1 }].getWritePointer(0) };
-    auto * rightOutputSamples{ outputBuffer[output_patch_t{ 2 }].getWritePointer(0) };
-    auto const numSamples{ inputBuffer.getNumSamples() };
-
-    auto const & sources{ mAudioData.config.sourcesAudioConfig };
-    for (auto const source : sources) {
-        // Is empty?
-        if (source.value.isMuted || source.value.directOut || sourcePeaks[source.key] < SMALL_GAIN) {
-            continue;
-        }
-
-        auto const * inputSamples{ inputBuffer[source.key].getReadPointer(0) };
-
-        // Process
-        auto const azimuth{ mAudioData.stereoSourceAzimuths[source.key].get() };
-        auto & lastAzimuth{ mAudioData.state.sourcesAudioState[source.key].stereoLastAzimuth };
-        for (int sampleIndex{}; sampleIndex < numSamples; ++sampleIndex) {
-            // Removes the chirp at 180->-180 degrees azimuth boundary.
-            if ((lastAzimuth - azimuth).abs() > degrees_t{ 300.0f }) {
-                lastAzimuth = azimuth;
-            }
-            lastAzimuth = azimuth + (lastAzimuth - azimuth) * gainFactor;
-            radians_t scaled;
-            static constexpr radians_t NINETY_DEG{ degrees_t{ 90.0f } };
-            if (lastAzimuth < -NINETY_DEG) {
-                scaled = -NINETY_DEG - (lastAzimuth + NINETY_DEG);
-            } else if (lastAzimuth > NINETY_DEG) {
-                scaled = NINETY_DEG - (lastAzimuth - NINETY_DEG);
-            } else {
-                scaled = lastAzimuth;
-            }
-            scaled += NINETY_DEG;
-            using fast = juce::dsp::FastMathApproximations;
-            leftOutputSamples[sampleIndex] += inputSamples[sampleIndex] * fast::cos(scaled.get());
-            rightOutputSamples[sampleIndex] += inputSamples[sampleIndex] * fast::sin(scaled.get());
-        }
-    }
+    // Vbap does what we're looking for
+    processVbap(inputBuffer, outputBuffer, sourcePeaks);
 
     // Apply gain compensation.
-    auto const compensation{ std::pow(10.0f, (narrow<float>(sources.size()) - 1.0f) * -0.1f * 0.05f) };
-    auto const applyCompensation = [compensation](float & sample) { sample *= compensation; };
-    std::for_each_n(leftOutputSamples, numSamples, applyCompensation);
-    std::for_each_n(rightOutputSamples, numSamples, applyCompensation);
+    auto & leftBuffer{ outputBuffer[output_patch_t{ 1 }] };
+    auto & rightBuffer{ outputBuffer[output_patch_t{ 2 }] };
+    auto const numSamples{ inputBuffer.getNumSamples() };
+    auto const compensation{
+        std::pow(10.0f, (narrow<float>(mAudioData.config.sourcesAudioConfig.size()) - 1.0f) * -0.1f * 0.05f)
+    };
+    leftBuffer.applyGain(0, numSamples, compensation);
+    rightBuffer.applyGain(0, numSamples, compensation);
 }
 
 //==============================================================================
 void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer, SpeakerAudioBuffer & speakerBuffer) noexcept
 {
     // Skip if the user is editing the speaker setup.
-    juce::ScopedTryLock const lock{ getCriticalSection() };
+    juce::ScopedTryLock const lock{ mCriticalSection };
     if (!lock.isLocked()) {
         return;
     }
@@ -483,9 +450,7 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer, SpeakerAudio
         }
     }
 
-    // Process speaker highpass
-
-    // Process speaker peaks
+    // Process speaker peaks/gains/highpass
     auto * speakerPeaks{ mAudioData.speakerPeaks.pool.acquire() };
     *speakerPeaks = muteSoloVuMeterGainOut(speakerBuffer);
 
@@ -495,84 +460,7 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer, SpeakerAudio
 }
 
 //==============================================================================
-bool AudioProcessor::initSpeakersTriplet(std::vector<Speaker const *> const & listSpk,
-                                         int const dimensions,
-                                         bool const needToComputeVbap)
-{
-}
-
-//==============================================================================
-bool AudioProcessor::lbapSetupSpeakerField(std::vector<Speaker const *> const & listSpk)
-{
-    jassert(
-        std::none_of(listSpk.cbegin(), listSpk.cend(), [](Speaker const * speaker) { return speaker->isDirectOut(); }));
-
-    if (listSpk.empty()) {
-        return false;
-    }
-
-    for (auto const * speaker : listSpk) {
-        auto * const * const matchingSpeakerDataIt{ std::find_if(
-            mSpeakersOut.begin(),
-            mSpeakersOut.end(),
-            [outputPatch = speaker->getOutputPatch()](SpeakerData const * speakerData) -> bool {
-                return !speakerData->directOut && outputPatch == speakerData->outputPatch;
-            }) };
-        if (matchingSpeakerDataIt == mSpeakersOut.end()) {
-            continue;
-        }
-        auto & matchingSpeaker{ **matchingSpeakerDataIt };
-        --matchingSpeaker.outputPatch;
-    }
-
-    auto speakers{ lbap_speakers_from_positions(mSpeakersOut) };
-
-    mLbapSpeakerField.reset();
-    lbap_field_setup(mLbapSpeakerField, speakers);
-
-    return true;
-}
-
-//==============================================================================
-void AudioProcessor::setAttenuationFrequencyIndex(int const index)
-{
-    jassert(index >= 0 && index < ATTENUATION_FREQUENCY_STRINGS.size());
-    auto * audioDevice{ AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice() };
-    jassert(audioDevice);
-    if (!audioDevice) {
-        return;
-    }
-    auto const coefficient{ std::exp(-juce::MathConstants<float>::twoPi
-                                     * ATTENUATION_FREQUENCY_STRINGS[index].getFloatValue()
-                                     / narrow<float>(audioDevice->getCurrentSampleRate())) };
-    mAttenuationLowpassCoefficient = coefficient;
-}
-
-//==============================================================================
-void AudioProcessor::updateSourceVbap(int const idS) noexcept
-{
-    if (mVbapDimensions == 3) {
-        if (mSourcesData[idS].paramVBap != nullptr) {
-            vbap2_flip_y_z(mSourcesData[idS].azimuth,
-                           mSourcesData[idS].zenith,
-                           mSourcesData[idS].azimuthSpan,
-                           mSourcesData[idS].zenithSpan,
-                           mSourcesData[idS].paramVBap);
-        }
-    } else if (mVbapDimensions == 2) {
-        if (mSourcesData[idS].paramVBap != nullptr) {
-            vbap2(mSourcesData[idS].azimuth,
-                  degrees_t{},
-                  mSourcesData[idS].azimuthSpan,
-                  0.0f,
-                  mSourcesData[idS].paramVBap);
-        }
-    }
-}
-
-//==============================================================================
 AudioProcessor::~AudioProcessor()
 {
-    free_vbap_data(mParamVBap);
     AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice()->close();
 }

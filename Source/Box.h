@@ -26,7 +26,7 @@ DISABLE_WARNINGS
 ENABLE_WARNINGS
 
 class GrisLookAndFeel;
-class LevelComponent;
+class VuMeterComponent;
 class MainContentComponent;
 
 //==============================================================================

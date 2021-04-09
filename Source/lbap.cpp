@@ -13,13 +13,6 @@ ENABLE_WARNINGS
 Utility functions.
 ================================================================================= */
 
-/* Fill x and y attributes of an lbap_pos according to azimuth and radius values. */
-static void fillCartesianFromPolar(lbap_pos & pos)
-{
-    pos.x = pos.radius * std::cos(pos.azimuth.get());
-    pos.y = pos.radius * std::sin(pos.azimuth.get());
-}
-
 /* Bilinear interpolation to retrieve the value at position (x, y) in a 2D matrix. */
 static float bilinearInterpolation(matrix_t const & matrix, float const x, float const y)
 {
@@ -47,7 +40,7 @@ static bool isPracticallySameElevation(radians_t const baseElevation, radians_t 
 static radians_t averageSpeakerElevation(lbap_speaker const * speakers, size_t const num)
 {
     static auto const ACCUMULATE_ELEVATION
-        = [](radians_t const total, lbap_speaker const & speaker) { return total + speaker.elevation; };
+        = [](radians_t const total, lbap_speaker const & speaker) { return total + speaker.vector.elevation; };
 
     auto const sum{ std::reduce(speakers, speakers + num, radians_t{}, ACCUMULATE_ELEVATION) };
     return sum / narrow<float>(num);
@@ -68,9 +61,9 @@ static std::vector<lbap_pos> lbapPositionsFromSpeakers(lbap_speaker const * spea
                    std::back_inserter(positions),
                    [](lbap_speaker const & speaker) -> lbap_pos {
                        lbap_pos result{};
-                       result.azimuth = speaker.azimuth;
-                       result.elevation = speaker.elevation;
-                       result.radius = speaker.radius;
+                       result.vector.azimuth = speaker.vector.azimuth;
+                       result.vector.elevation = speaker.vector.elevation;
+                       result.vector.length = speaker.vector.length;
                        return result;
                    });
     return positions;

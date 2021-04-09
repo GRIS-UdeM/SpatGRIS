@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include "LogicStrucs.hpp"
+#include "constants.hpp"
 #include "lib/tl/optional.hpp"
 
 #include "macros.h"
@@ -33,12 +35,12 @@ ENABLE_WARNINGS
 #include "Configuration.h"
 #include "EditSpeakersWindow.h"
 #include "FlatViewWindow.h"
-#include "Input.h"
+#include "InputModel.h"
 #include "OscInput.h"
 #include "OscLogWindow.h"
 #include "OwnedMap.hpp"
 #include "SettingsWindow.h"
-#include "Speaker.h"
+#include "SpeakerModel.h"
 #include "SpeakerViewComponent.h"
 #include "StrongTypes.hpp"
 
@@ -74,11 +76,11 @@ class MainContentComponent final
 
     // Speakers.
     juce::Array<Triplet> mTriplets{};
-    OwnedMap<output_patch_t, Speaker> mSpeakers{};
+    OwnedMap<output_patch_t, SpeakerModel> mSpeakers{};
     juce::Array<output_patch_t> mSpeakersDisplayOrder{};
 
     // Sources.
-    juce::OwnedArray<Input> mInputs{};
+    juce::OwnedArray<InputModel> mInputModels{};
     juce::CriticalSection mInputsLock{};
 
     // Open Sound Control.
@@ -140,26 +142,15 @@ class MainContentComponent final
     std::unique_ptr<juce::MenuBarComponent> mMenuBar{};
     //==============================================================================
     // App user settings.
-    int mOscInputPort{ 18032 };
-    unsigned mSamplingRate{ 48000u };
 
     Configuration mConfiguration;
     juce::Rectangle<int> mFlatViewWindowRect{};
 
-    // Visual flags.
-    bool mIsNumbersShown{ false };
-    bool mIsSpeakersShown{ true };
-    bool mIsSphereShown{ false };
-    bool mIsSourceLevelShown{ false };
-    bool mIsSpeakerLevelShown{ false };
-    bool mIsTripletsShown{ false };
-    bool mIsSpanShown{ true };
-
     // App states.
     bool mNeedToSavePreset{ false };
     bool mNeedToSaveSpeakerSetup{ false };
-    bool mNeedToComputeVbap{ true };
 
+    SpatGrisData mData;
     std::unique_ptr<AbstractSpatAlgorithm> mSpatAlgorithm{};
 
 public:
@@ -183,14 +174,15 @@ public:
     void setShowTriplets(bool state);
 
     // other
-    [[nodiscard]] bool isTripletsShown() const { return mIsTripletsShown; }
+    [[nodiscard]] bool isTripletsShown() const { return mData.projectData.viewSettings.showSpeakerTriplets; }
     [[nodiscard]] bool needToSaveSpeakerSetup() const { return mNeedToSaveSpeakerSetup; }
-    [[nodiscard]] bool isSpanShown() const { return mIsSpanShown; }
-    [[nodiscard]] bool isSourceLevelShown() const { return mIsSourceLevelShown; }
-    [[nodiscard]] bool isSpeakerLevelShown() const { return mIsSpeakerLevelShown; }
+    [[nodiscard]] bool isSpanShown() const { return true; } // TODO
+    [[nodiscard]] bool isSourceLevelShown() const { return mData.projectData.viewSettings.showSourceActivity; }
+    [[nodiscard]] bool isSpeakerLevelShown() const { return mData.projectData.viewSettings.showSpeakerLevels; }
 
-    void setNeedToComputeVbap(bool const state) { mNeedToComputeVbap = state; }
     void setNeedToSaveSpeakerSetup(bool const state) { mNeedToSaveSpeakerSetup = state; }
+
+    void setNeedToComputeVbap(bool const state) { jassertfalse; }
 
     void setNumInputs(int numInputs, bool const updateTextInput);
 
@@ -199,18 +191,23 @@ public:
     [[nodiscard]] auto const & getSpeakers() const { return mSpeakers; }
     [[nodiscard]] auto const & getSpeakersDisplayOrder() const { return mSpeakersDisplayOrder; }
 
-    [[nodiscard]] Speaker * getSpeakerFromOutputPatch(output_patch_t out);
-    [[nodiscard]] Speaker const * getSpeakerFromOutputPatch(output_patch_t out) const;
+    [[nodiscard]] SpeakerModel * getSpeakerFromOutputPatch(output_patch_t out);
+    [[nodiscard]] SpeakerModel const * getSpeakerFromOutputPatch(output_patch_t out) const;
 
-    Speaker & addSpeaker();
+    SpeakerModel & addSpeaker();
     void insertSpeaker(int position);
     void removeSpeaker(output_patch_t outputPatch);
-    void setDirectOut(int id, output_patch_t chn) const;
+    void setSourceDirectOut(source_index_t const, output_patch_t) const;
     void reorderSpeakers(juce::Array<output_patch_t> newOrder);
 
+    [[nodiscard]] dbfs_t getSourcePeak(source_index_t sourceIndex) const;
+    [[nodiscard]] float getSourceAlpha(source_index_t sourceIndex) const;
+    [[nodiscard]] dbfs_t getSpeakerPeak(output_patch_t outputPatch) const;
+    [[nodiscard]] float getSpeakerAlpha(output_patch_t outputPatch) const;
+
     // Sources.
-    [[nodiscard]] juce::OwnedArray<Input> & getSourceInputs() { return mInputs; }
-    [[nodiscard]] juce::OwnedArray<Input> const & getSourceInputs() const { return mInputs; }
+    [[nodiscard]] juce::OwnedArray<InputModel> & getSourceInputs() { return mInputModels; }
+    [[nodiscard]] juce::OwnedArray<InputModel> const & getSourceInputs() const { return mInputModels; }
 
     [[nodiscard]] juce::CriticalSection const & getInputsLock() const { return mInputsLock; }
 
@@ -228,8 +225,8 @@ public:
     void selectTripletSpeaker(output_patch_t outputPatch);
 
     // Mute - solo.
-    void setSourceState(source_index_t sourceIndex, PortState state) const;
-    void setSpeakerState(output_patch_t outputPatch, PortState state) const;
+    void setSourceState(source_index_t sourceIndex, PortState state);
+    void setSpeakerState(output_patch_t outputPatch, PortState state);
 
     // Input - output amplitude levels.
     [[nodiscard]] float getPeak(output_patch_t outputPatch) const;
@@ -242,16 +239,7 @@ public:
 
     // Open - save.
     void reloadXmlFileSpeaker();
-    void saveProperties(juce::String const & audioDeviceType,
-                        juce::String const & inputDevice,
-                        juce::String const & outputDevice,
-                        double sampleRate,
-                        int bufferSize,
-                        RecordingFormat recordingFormat,
-                        RecordingConfig recordingConfig,
-                        int attenuationDbIndex,
-                        int attenuationFrequencyIndex,
-                        int oscPort);
+    void saveProperties(SpatGrisAppData const & appData);
 
     // Screen refresh timer.
     void handleTimer(bool state);
@@ -267,7 +255,7 @@ public:
     [[nodiscard]] auto const & getConfiguration() const { return mConfiguration; }
     [[nodiscard]] SpatMode getModeSelected() const;
     void setOscLogging(const juce::OSCMessage & message) const;
-    void updateSourceData(int sourceDataIndex, Input & input) const;
+    void updateSourceData(int sourceDataIndex, InputModel & input) const;
     //==============================================================================
     void timerCallback() override;
     void paint(juce::Graphics & g) override;

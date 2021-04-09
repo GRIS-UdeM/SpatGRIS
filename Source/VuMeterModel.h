@@ -19,50 +19,39 @@
 
 #pragma once
 
-#include "macros.h"
-
-DISABLE_WARNINGS
 #include <JuceHeader.h>
-ENABLE_WARNINGS
 
-class LevelComponent;
+class VuMeterComponent;
 
 //==============================================================================
-class ParentLevelComponent
+class VuMeterModel
 {
 protected:
     //==============================================================================
-    int mDirectOutChannel = 0;
+    int mChannel;
 
 public:
     //==============================================================================
-    ParentLevelComponent() = default;
-    virtual ~ParentLevelComponent() = default;
+    explicit VuMeterModel(int const channel) : mChannel(channel) {}
+    virtual ~VuMeterModel() = default;
 
-    ParentLevelComponent(ParentLevelComponent const &) = delete;
-    ParentLevelComponent(ParentLevelComponent &&) = delete;
+    VuMeterModel(VuMeterModel const &) = delete;
+    VuMeterModel(VuMeterModel &&) = delete;
 
-    ParentLevelComponent & operator=(ParentLevelComponent const &) = delete;
-    ParentLevelComponent & operator=(ParentLevelComponent &&) = delete;
+    VuMeterModel & operator=(VuMeterModel const &) = delete;
+    VuMeterModel & operator=(VuMeterModel &&) = delete;
     //==============================================================================
-    [[nodiscard]] virtual int getId() const = 0;
-    [[nodiscard]] virtual int getButtonInOutNumber() const = 0;
+    [[nodiscard]] int getChannel() const { return mChannel; }
     [[nodiscard]] virtual bool isInput() const = 0;
-    [[nodiscard]] virtual float getLevel() const = 0;
-    virtual void setMuted(bool mute) = 0;
-    virtual void setSolo(bool solo) = 0;
+    [[nodiscard]] virtual dbfs_t getLevel() const = 0;
+    virtual void setState(PortState state) = 0;
     virtual void setColor(juce::Colour color, bool updateLevel = false) = 0;
-    virtual void selectClick(bool select = true) = 0;
+    virtual void setSelected(bool state) = 0;
 
-    [[nodiscard]] virtual LevelComponent * getVuMeter() = 0;
-    [[nodiscard]] virtual LevelComponent const * getVuMeter() const = 0;
-
-    virtual void changeDirectOutChannel(output_patch_t chn) = 0;
-    virtual void setDirectOutChannel(output_patch_t chn) = 0;
-    [[nodiscard]] virtual output_patch_t getDirectOutChannel() const = 0;
-    virtual void sendDirectOutToClient(int id, output_patch_t chn) = 0;
+    [[nodiscard]] virtual VuMeterComponent * getVuMeter() = 0;
+    [[nodiscard]] virtual VuMeterComponent const * getVuMeter() const = 0;
 
 private:
     //==============================================================================
-    JUCE_LEAK_DETECTOR(ParentLevelComponent)
+    JUCE_LEAK_DETECTOR(VuMeterModel)
 };
