@@ -140,7 +140,6 @@
               file="Source/VuMeterComponent.cpp"/>
         <FILE id="pQThlS" name="VuMeterComponent.h" compile="0" resource="0"
               file="Source/VuMeterComponent.h"/>
-        <FILE id="FtcdCa" name="VuMeterModel.h" compile="0" resource="0" file="Source/VuMeterModel.h"/>
       </GROUP>
       <FILE id="g2wgxx" name="Application.cpp" compile="1" resource="0" file="Source/Application.cpp"/>
       <FILE id="ObG5vj" name="Application.h" compile="0" resource="0" file="Source/Application.h"/>

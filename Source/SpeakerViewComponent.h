@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include "CartesianVector.h"
 #include "macros.h"
 DISABLE_WARNINGS
 #if defined(__APPLE__)
@@ -56,8 +57,8 @@ private:
     bool mHideSpeaker = false;
     bool mShowTriplets = false;
 
-    float mCamAngleX = 80.0f;
-    float mCamAngleY = 25.0f;
+    degrees_t mCamAngleX{ 80.0f };
+    degrees_t mCamAngleY{ 25.0f };
     float mDistance = 22.0f;
 
     float mSlowDownFactor = 3.0f; // Reduce the angle changing speed.
@@ -101,11 +102,11 @@ public:
     void setShowTriplets(bool const value) { mShowTriplets = value; }
     void setNameConfig(juce::String const & name);
 
-    float getCamAngleX() const { return mCamAngleX; };
-    float getCamAngleY() const { return mCamAngleY; };
+    degrees_t getCamAngleX() const { return mCamAngleX; };
+    degrees_t getCamAngleY() const { return mCamAngleY; };
     float getCamDistance() const { return mDistance; };
 
-    void setCamPosition(float angleX, float angleY, float distance);
+    void setCamPosition(CartesianVector const & position);
     //==============================================================================
     void initialise() override;
     void shutdown() override {}

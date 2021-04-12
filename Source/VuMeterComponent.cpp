@@ -24,18 +24,21 @@
 #include "SpeakerModel.h"
 
 //==============================================================================
-VuMeterBox::VuMeterBox(VuMeterComponent & levelComponent, SmallGrisLookAndFeel & lookAndFeel)
-    : mLevelComponent(levelComponent)
-    , mLookAndFeel(lookAndFeel)
+LevelBox::LevelBox(SmallGrisLookAndFeel & lookAndFeel) : mLookAndFeel(lookAndFeel)
 {
 }
 
 //==============================================================================
-void VuMeterBox::setBounds(juce::Rectangle<int> const & newBounds)
+void LevelBox::setBounds(juce::Rectangle<int> const & newBounds)
 {
-    // TODO: move the painting stuff to paint()
+    auto const shouldRecomputeImages{ newBounds.getWidth() != getBounds().getWidth()
+                                      || newBounds.getHeight() != getBounds().getHeight() };
 
     juce::Component::setBounds(newBounds);
+
+    if (!shouldRecomputeImages) {
+        return;
+    }
 
     mColorGrad
         = juce::ColourGradient{ juce::Colour::fromRGB(255, 94, 69), 0.f,  0.f, juce::Colour::fromRGB(17, 255, 159), 0.f,
@@ -67,7 +70,7 @@ void VuMeterBox::setBounds(juce::Rectangle<int> const & newBounds)
     gm.setFont(10.0f);
 
     // Draw ticks on images.
-    int const start = getWidth() - 3;
+    auto const start = getWidth() - 3;
     for (int i{ 1 }; i < 10; i++) {
         auto const y = i * 14;
         auto const y_f{ static_cast<float>(y) };
@@ -86,20 +89,12 @@ void VuMeterBox::setBounds(juce::Rectangle<int> const & newBounds)
 }
 
 //==============================================================================
-void VuMeterBox::paint(juce::Graphics & g)
+void LevelBox::paint(juce::Graphics & g)
 {
-    if (mLevelComponent.isMuted()) {
+    if (mLevel <= MIN_LEVEL_COMP) {
         g.drawImage(mVuMeterMutedBit, 0, 0, WIDTH, HEIGHT, 0, 0, HEIGHT, WIDTH);
     } else {
-        auto level{ mLevelComponent.getLevel() };
-        if (level < MIN_LEVEL_COMP) {
-            level = MIN_LEVEL_COMP;
-        } else if (level > MAX_LEVEL_COMP) {
-            mIsClipping = true;
-            level = MAX_LEVEL_COMP;
-        }
-
-        auto const h = static_cast<int>(level.get() * -2.33333334f);
+        auto const h = static_cast<int>(mLevel.get() * -2.33333334f);
         auto const rel = HEIGHT - h;
         g.drawImage(mVuMeterBit, 0, h, WIDTH, rel, 0, h, WIDTH, rel);
         g.drawImage(mVuMeterBackBit, 0, 0, WIDTH, h, 0, 0, WIDTH, h);
@@ -112,7 +107,7 @@ void VuMeterBox::paint(juce::Graphics & g)
 }
 
 //==============================================================================
-void VuMeterBox::mouseDown(juce::MouseEvent const & e)
+void LevelBox::mouseDown(juce::MouseEvent const & e)
 {
     juce::Rectangle<int> const hitBox{ 0, 0, getWidth(), 20 };
     if (hitBox.contains(e.getPosition())) {
@@ -121,25 +116,36 @@ void VuMeterBox::mouseDown(juce::MouseEvent const & e)
 }
 
 //==============================================================================
-void VuMeterBox::resetClipping()
+void LevelBox::resetClipping()
 {
     mIsClipping = false;
     repaint();
 }
 
 //==============================================================================
-VuMeterComponent::VuMeterComponent(VuMeterModel & model,
-                                   SmallGrisLookAndFeel & lookAndFeel,
-                                   SpeakersData const & speakersData,
-                                   bool const colorful)
-    : mModel(model)
-    , mLookAndFeel(lookAndFeel)
-    , mContainerBox(*this, lookAndFeel)
-    , mIsColorful(colorful)
-    , mSpeakersData(speakersData)
+void LevelBox::setLevel(dbfs_t const level)
+{
+    auto const clippedLevel{ std::clamp(level, MIN_LEVEL_COMP, MAX_LEVEL_COMP) };
+
+    if (clippedLevel == mLevel) {
+        return;
+    }
+
+    if (clippedLevel > level) {
+        mIsClipping = true;
+    }
+    mLevel = clippedLevel;
+
+    repaint();
+}
+
+//==============================================================================
+AbstractVuMeterComponent::AbstractVuMeterComponent(int const channel, SmallGrisLookAndFeel & lookAndFeel)
+    : mLookAndFeel(lookAndFeel)
+    , mLevelBox(lookAndFeel)
 {
     // Label
-    mIdButton.setButtonText(juce::String{ mModel.getChannel() });
+    mIdButton.setButtonText(juce::String{ channel });
     mIdButton.setSize(22, 17);
     mIdButton.setTopLeftPosition(0, 0);
     mIdButton.setColour(juce::Label::textColourId, lookAndFeel.getFontColour());
@@ -170,67 +176,132 @@ VuMeterComponent::VuMeterComponent(VuMeterModel & model,
     mSoloToggleButton.setLookAndFeel(&lookAndFeel);
     addAndMakeVisible(mSoloToggleButton);
 
-    // ComboBox (direct out)
-    if (mModel.isInput()) {
-        mDirectOutButton.setButtonText("-");
-        mDirectOutButton.setSize(22, 17);
-        mDirectOutButton.setColour(juce::Label::textColourId, lookAndFeel.getFontColour());
-        mDirectOutButton.setLookAndFeel(&lookAndFeel);
-        mDirectOutButton.addListener(this);
-        mDirectOutButton.addMouseListener(this, true);
-        addAndMakeVisible(mDirectOutButton);
-    }
-
     // Level box
-    addAndMakeVisible(mContainerBox);
+    addAndMakeVisible(mLevelBox);
 }
 
 //==============================================================================
-void VuMeterComponent::setLevel(dbfs_t const level)
+void AbstractVuMeterComponent::setState(PortState const state)
 {
-    mLevel = level;
+    mSoloToggleButton.setToggleState(state == PortState::solo, juce::dontSendNotification);
+    mMuteToggleButton.setToggleState(state == PortState::muted, juce::dontSendNotification);
+
     repaint();
 }
 
 //==============================================================================
-void VuMeterComponent::buttonClicked(juce::Button * button)
+void SpeakerVuMeterComponent::setSelected(bool const value)
+{
+    if (value) {
+        mIdButton.setColour(juce::TextButton::textColourOnId, mLookAndFeel.getWinBackgroundColour());
+        mIdButton.setColour(juce::TextButton::textColourOffId, mLookAndFeel.getWinBackgroundColour());
+        mIdButton.setColour(juce::TextButton::buttonColourId, mLookAndFeel.getOnColour());
+    } else {
+        mIdButton.setColour(juce::TextButton::textColourOnId, mLookAndFeel.getFontColour());
+        mIdButton.setColour(juce::TextButton::textColourOffId, mLookAndFeel.getFontColour());
+        mIdButton.setColour(juce::TextButton::buttonColourId, mLookAndFeel.getBackgroundColour());
+    }
+    repaint();
+}
+
+//==============================================================================
+void SpeakerVuMeterComponent::buttonClicked(juce::Button * button)
 {
     if (button == &mMuteToggleButton) {
-        if (mMuteToggleButton.getToggleState()) {
-            mModel.setState(PortState::muted);
-            mSoloToggleButton.setToggleState(false, juce::dontSendNotification);
-        } else {
-            mModel.setState(PortState::normal);
-        }
-        mContainerBox.repaint();
-
+        auto const newState{ mMuteToggleButton.getToggleState() ? PortState::muted : PortState::normal };
+        mOwner.handleSpeakerStateChanged(mOutputPatch, newState);
     } else if (button == &mSoloToggleButton) {
-        if (mSoloToggleButton.getToggleState()) {
-            mModel.setState(PortState::solo);
-        }
-        mContainerBox.repaint();
-
+        auto const newState{ mSoloToggleButton.getToggleState() ? PortState::solo : PortState::normal };
+        mOwner.handleSpeakerStateChanged(mOutputPatch, newState);
     } else if (button == &mIdButton) {
-        if (mIsColorful) { // Input
-            auto * colourSelector{ new juce::ColourSelector{} };
-            colourSelector->setName("background");
-            colourSelector->setCurrentColour(mIdButton.findColour(juce::TextButton::buttonColourId));
-            colourSelector->addChangeListener(this);
-            colourSelector->setColour(juce::ColourSelector::backgroundColourId, juce::Colours::transparentBlack);
-            colourSelector->setSize(300, 400);
-            std::unique_ptr<juce::Component> component{ colourSelector };
-            juce::CallOutBox::launchAsynchronously(std::move(component), getScreenBounds(), nullptr);
-        } else { // Output
-            auto const selected{ mLastMouseButton == MouseButton::left };
-            mModel.setSelected(selected);
-        }
+        mOwner.handleSpeakerSelected(mOutputPatch, true);
+    }
+}
+
+//==============================================================================
+void AbstractVuMeterComponent::setBounds(juce::Rectangle<int> const & newBounds)
+{
+    static constexpr auto LEVEL_SIZE{ LevelBox::HEIGHT };
+
+    juce::Component::setBounds(newBounds);
+
+    juce::Rectangle<int> const idBounds{ 0, 0, newBounds.getWidth(), mIdButton.getHeight() };
+    mIdButton.setBounds(idBounds);
+
+    juce::Rectangle<int> const muteButtonBounds{ 0, 158, mMuteToggleButton.getWidth(), mMuteToggleButton.getHeight() };
+    mMuteToggleButton.setBounds(muteButtonBounds);
+
+    juce::Rectangle<int> const soloButtonBounds{ mMuteToggleButton.getWidth() - 2,
+                                                 158,
+                                                 mMuteToggleButton.getWidth(),
+                                                 mMuteToggleButton.getHeight() };
+    mSoloToggleButton.setBounds(soloButtonBounds);
+
+    juce::Rectangle<int> const levelBoxBounds{ 0, 18, newBounds.getWidth() - WIDTH_RECT, LEVEL_SIZE };
+    mLevelBox.setBounds(levelBoxBounds);
+}
+
+//==============================================================================
+SourceVuMeterComponent::SourceVuMeterComponent(source_index_t const sourceIndex,
+                                               tl::optional<output_patch_t> const directOut,
+                                               juce::Colour const colour,
+                                               Owner & owner,
+                                               SmallGrisLookAndFeel & lookAndFeel)
+    : AbstractVuMeterComponent(sourceIndex.get(), lookAndFeel)
+    , mSourceIndex(sourceIndex)
+    , mOwner(owner)
+{
+    mDirectOutButton.setSize(22, 17);
+    mDirectOutButton.setColour(juce::Label::textColourId, lookAndFeel.getFontColour());
+    mDirectOutButton.setLookAndFeel(&lookAndFeel);
+    mDirectOutButton.addListener(this);
+    mDirectOutButton.addMouseListener(this, true);
+    setDirectOut(directOut);
+    addAndMakeVisible(mDirectOutButton);
+
+    setSourceColour(colour);
+}
+
+//==============================================================================
+void SourceVuMeterComponent::setDirectOut(tl::optional<output_patch_t> const outputPatch)
+{
+    static auto const PATCH_TO_STRING
+        = [](output_patch_t const outputPatch) { return juce::String{ outputPatch.get() }; };
+
+    mDirectOutButton.setButtonText(outputPatch.map_or(PATCH_TO_STRING, NO_DIRECT_OUT_TEXT));
+}
+
+//==============================================================================
+void SourceVuMeterComponent::setSourceColour(juce::Colour const colour)
+{
+    mIdButton.setColour(juce::TextButton::buttonColourId, colour);
+}
+
+//==============================================================================
+void SourceVuMeterComponent::buttonClicked(juce::Button * button)
+{
+    if (button == &mMuteToggleButton) {
+        auto const newState{ mMuteToggleButton.getToggleState() ? PortState::muted : PortState::normal };
+        mOwner.handleSourceStateChanged(mSourceIndex, newState);
+    } else if (button == &mSoloToggleButton) {
+        auto const newState{ mSoloToggleButton.getToggleState() ? PortState::solo : PortState::normal };
+        mOwner.handleSourceStateChanged(mSourceIndex, newState);
+    } else if (button == &mIdButton) {
+        auto * colourSelector{ new juce::ColourSelector{} };
+        colourSelector->setName("background");
+        colourSelector->setCurrentColour(mIdButton.findColour(juce::TextButton::buttonColourId));
+        colourSelector->addChangeListener(this);
+        colourSelector->setColour(juce::ColourSelector::backgroundColourId, juce::Colours::transparentBlack);
+        colourSelector->setSize(300, 400);
+        std::unique_ptr<juce::Component> component{ colourSelector };
+        juce::CallOutBox::launchAsynchronously(std::move(component), getScreenBounds(), nullptr);
     } else if (button == &mDirectOutButton) {
         juce::PopupMenu menu{};
         static constexpr auto CHOICE_NOT_DIRECT_OUT = std::numeric_limits<int>::min();
         static constexpr auto CHOICE_CANCELED = 0;
         juce::Array<output_patch_t> directOutSpeakers{};
         juce::Array<output_patch_t> nonDirectOutSpeakers{};
-        for (auto const speaker : mSpeakersData) {
+        for (auto const speaker : mOwner.getSpeakersData()) {
             auto & destination{ speaker.value->isDirectOutOnly ? directOutSpeakers : nonDirectOutSpeakers };
             destination.add(speaker.key);
         }
@@ -254,110 +325,37 @@ void VuMeterComponent::buttonClicked(juce::Button * button)
             newOutputPatch = output_patch_t{ result };
         }
 
-        mModel.
-
-            if (result == 1)
-        {
-            mDirectOutButton.setButtonText("-");
-        }
-        else
-        {
-            value = mDirectOutSpeakers[result - 2];
-            mDirectOutButton.setButtonText(juce::String{ value.get() });
-        }
-
-        mModel.changeDirectOutChannel(value);
-        mModel.sendDirectOutToClient(mModel.getId(), value);
+        mOwner.handleSourceDirectOutChanged(mSourceIndex, newOutputPatch);
     }
 }
 
 //==============================================================================
-void VuMeterComponent::mouseDown(juce::MouseEvent const & e)
+void SourceVuMeterComponent::setBounds(const juce::Rectangle<int> & newBounds)
 {
-    mLastMouseButton = (e.mods.isRightButtonDown() ? MouseButton::right : MouseButton::left);
+    AbstractVuMeterComponent::setBounds(newBounds);
+
+    juce::Rectangle<int> const directOutButtonBounds{ 0,
+                                                      getHeight() - 27,
+                                                      newBounds.getWidth(),
+                                                      mDirectOutButton.getHeight() };
+    mDirectOutButton.setBounds(directOutButtonBounds);
 }
 
 //==============================================================================
-void VuMeterComponent::changeListenerCallback(juce::ChangeBroadcaster * source)
+void SourceVuMeterComponent::changeListenerCallback(juce::ChangeBroadcaster * source)
 {
     auto * colorSelector{ dynamic_cast<juce::ColourSelector *>(source) };
     if (colorSelector != nullptr) {
-        mIdButton.setColour(juce::TextButton::buttonColourId, colorSelector->getCurrentColour());
-        mModel.setColor(colorSelector->getCurrentColour());
-        if (mLastMouseButton == MouseButton::right) {
-            auto * input = dynamic_cast<InputModel *>(&mModel);
-            jassert(input != nullptr);
-            for (auto * it : input->getMainContentComponent().getSourceInputs()) {
-                if (it->getChannel() == mModel.getChannel() + 1) {
-                    it->setColor(colorSelector->getCurrentColour(), true);
-                }
-            }
-        }
+        // TODO : notify listeners
     }
 }
 
 //==============================================================================
-void VuMeterComponent::setColor(juce::Colour const color)
+SpeakerVuMeterComponent::SpeakerVuMeterComponent(output_patch_t const outputPatch,
+                                                 Owner & owner,
+                                                 SmallGrisLookAndFeel & lookAndFeel)
+    : AbstractVuMeterComponent(outputPatch.get(), lookAndFeel)
+    , mOwner(owner)
 {
-    mIdButton.setColour(juce::TextButton::buttonColourId, color);
-    repaint();
-}
-
-//==============================================================================
-void VuMeterComponent::update()
-{
-    auto const level{ mModel.getLevel() };
-
-    if (!std::isnan(level)) {
-        if (!mMuteToggleButton.getToggleState() && mLevel != level) {
-            repaint();
-        }
-        mLevel = level;
-    }
-}
-
-//==============================================================================
-void VuMeterComponent::setSelected(bool const value)
-{
-    juce::MessageManagerLock const mmLock{};
-    if (value) {
-        mIdButton.setColour(juce::TextButton::textColourOnId, mLookAndFeel.getWinBackgroundColour());
-        mIdButton.setColour(juce::TextButton::textColourOffId, mLookAndFeel.getWinBackgroundColour());
-        mIdButton.setColour(juce::TextButton::buttonColourId, mLookAndFeel.getOnColour());
-    } else {
-        mIdButton.setColour(juce::TextButton::textColourOnId, mLookAndFeel.getFontColour());
-        mIdButton.setColour(juce::TextButton::textColourOffId, mLookAndFeel.getFontColour());
-        mIdButton.setColour(juce::TextButton::buttonColourId, mLookAndFeel.getBackgroundColour());
-    }
-}
-
-//==============================================================================
-void VuMeterComponent::setBounds(juce::Rectangle<int> const & newBounds)
-{
-    static constexpr auto LEVEL_SIZE{ 140 };
-
-    juce::Component::setBounds(newBounds);
-
-    juce::Rectangle<int> const idBounds{ 0, 0, newBounds.getWidth(), mIdButton.getHeight() };
-    mIdButton.setBounds(idBounds);
-
-    juce::Rectangle<int> const muteButtonBounds{ 0, 158, mMuteToggleButton.getWidth(), mMuteToggleButton.getHeight() };
-    mMuteToggleButton.setBounds(muteButtonBounds);
-
-    juce::Rectangle<int> const soloButtonBounds{ mMuteToggleButton.getWidth() - 2,
-                                                 158,
-                                                 mMuteToggleButton.getWidth(),
-                                                 mMuteToggleButton.getHeight() };
-    mSoloToggleButton.setBounds(soloButtonBounds);
-
-    if (mModel.isInput()) {
-        juce::Rectangle<int> const directOutButtonBounds{ 0,
-                                                          getHeight() - 27,
-                                                          newBounds.getWidth(),
-                                                          mDirectOutButton.getHeight() };
-        mDirectOutButton.setBounds(directOutButtonBounds);
-    }
-
-    juce::Rectangle<int> const levelBoxBounds{ 0, 18, newBounds.getWidth() - WIDTH_RECT, LEVEL_SIZE };
-    mContainerBox.setBounds(levelBoxBounds);
+    setSelected(false);
 }

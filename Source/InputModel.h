@@ -42,13 +42,12 @@ ENABLE_WARNINGS
 //#include "AudioProcessor.h"
 #include "SpatMode.hpp"
 #include "VuMeterComponent.h"
-#include "VuMeterModel.h"
 
 class GrisLookAndFeel;
 class MainContentComponent;
 
 //==============================================================================
-class InputModel final : public VuMeterModel
+class InputModel
 {
     static constexpr auto SPHERE_RADIUS = 0.3f;
     static constexpr auto HALF_SPHERE_RADIUS = SPHERE_RADIUS / 2.0f;
@@ -67,14 +66,12 @@ class InputModel final : public VuMeterModel
     glm::vec3 mColor{};
     juce::Colour mColorJ{};
 
-    VuMeterComponent mVuMeter;
-
 public:
     //==============================================================================
     InputModel(MainContentComponent & mainContentComponent, SmallGrisLookAndFeel & lookAndFeel, source_index_t index);
     //==============================================================================
     InputModel() = delete;
-    ~InputModel() override = default;
+    ~InputModel() = default;
 
     InputModel(InputModel const &) = delete;
     InputModel(InputModel &&) = delete;
@@ -82,18 +79,10 @@ public:
     InputModel & operator=(InputModel const &) = delete;
     InputModel & operator=(InputModel &&) = delete;
     //==============================================================================
-    void setState(PortState state) override;
-    void setSelected(bool state) override{};
-    void setColor(juce::Colour color, bool updateLevel = false) override;
-    //==============================================================================
     [[nodiscard]] MainContentComponent const & getMainContentComponent() const { return mMainContentComponent; }
     [[nodiscard]] MainContentComponent & getMainContentComponent() { return mMainContentComponent; }
 
-    [[nodiscard]] VuMeterComponent const * getVuMeter() const override { return &mVuMeter; }
-    [[nodiscard]] VuMeterComponent * getVuMeter() override { return &mVuMeter; }
-
     [[nodiscard]] source_index_t getIndex() const { return mIndex; }
-    [[nodiscard]] dbfs_t getLevel() const override;
     [[nodiscard]] float getAlpha() const;
     [[nodiscard]] auto const & getVector() const { return mVector; }
     [[nodiscard]] float getAzimuthSpan() const { return mAzimuthSpan; }
@@ -113,7 +102,6 @@ public:
     void updateValues(PolarVector const & vector, float azimuthSpan, float zenithSpan, dbfs_t gain, SpatMode mode);
     void updateValuesOld(float azimuth, float zenith, float azimuthSpan, float zenithSpan, float g);
     //==============================================================================
-    [[nodiscard]] bool isInput() const override { return true; }
     void setDirectOut(tl::optional<output_patch_t> directOut);
     [[nodiscard]] tl::optional<output_patch_t> getDirectOut() const { return mDirectOut; };
     // void sendDirectOutToClient(int id, output_patch_t chn) override; // TODO: what is this?

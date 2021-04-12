@@ -388,6 +388,79 @@ void MainContentComponent::handleNew()
 }
 
 //==============================================================================
+void MainContentComponent::openProject(juce::File const & file)
+{
+    jassert(file.existsAsFile());
+
+    juce::XmlDocument xmlDoc{ file };
+    auto const mainXmlElem{ xmlDoc.getDocumentElement() };
+
+    if (!mainXmlElem) {
+        // Formatting error
+        juce::AlertWindow::showMessageBox(juce::AlertWindow::AlertIconType::WarningIcon,
+                                          "Error in Open Project !",
+                                          "Your file is corrupted !\n" + file.getFullPathName() + "\n"
+                                              + xmlDoc.getLastParseError());
+        return;
+    }
+
+    if (!mainXmlElem->hasTagName("SpatServerGRIS_Preset") && !mainXmlElem->hasTagName("ServerGRIS_Preset")) {
+        // Wrong file type
+        auto const msg{ mainXmlElem->hasTagName("SpeakerSetup")
+                            ? "You are trying to open a Speaker Setup instead of a project file !"
+                            : "Your file is corrupted !\n" + xmlDoc.getLastParseError() };
+        juce::AlertWindow::showMessageBox(juce::AlertWindow::WarningIcon, "Error in Open Project !", msg);
+        return;
+    }
+
+    auto const success{ SpatGrisProjectData::fromXml(*mainXmlElem, mData.projectData) };
+    if (!success) {
+        // Missing params
+        juce::AlertWindow::showMessageBox(juce::AlertWindow::AlertIconType::WarningIcon,
+                                          "Unable to read project file !",
+                                          "One or more mandatory parameters are missing !");
+        return;
+    }
+
+    mAddInputsTextEditor->setText(juce::String{ mData.projectData.sourcesData.size() });
+    mMasterGainOutSlider->setValue(mData.projectData.masterGain, juce::dontSendNotification);
+    mInterpolationSlider->setValue(mData.projectData.spatGainsInterpolation, juce::dontSendNotification);
+
+    mSpeakerViewComponent->setShowNumber(mData.projectData.viewSettings.showSpeakerNumbers);
+    mSpeakerViewComponent->setHideSpeaker(!mData.projectData.viewSettings.showSpeakers);
+    mSpeakerViewComponent->setShowTriplets(mData.projectData.viewSettings.showSpeakerTriplets);
+    mSpeakerViewComponent->setShowSphere(mData.projectData.viewSettings.showSphereOrCube);
+    mSpeakerViewComponent->setCamPosition(mData.projectData.cameraPosition);
+    // DEFAULT
+    // mSpeakerViewComponent->setCamPosition(80.0f, 25.0f, 22.0f);
+
+    for (auto * input{ mainXmlElem->getFirstChildElement() }; input != nullptr; input = input->getNextElement()) {
+        if (input->hasTagName("Input")) {
+            for (auto * it : mInputModels) {
+                if (it->getId() == input->getIntAttribute("Index")) {
+                    it->setColor(juce::Colour::fromFloatRGBA(static_cast<float>(input->getDoubleAttribute("R")),
+                                                             static_cast<float>(input->getDoubleAttribute("G")),
+                                                             static_cast<float>(input->getDoubleAttribute("B")),
+                                                             1.0f),
+                                 true);
+                    if (input->hasAttribute("DirectOut")) {
+                        it->setDirectOutChannel(output_patch_t{ input->getIntAttribute("DirectOut") });
+                        setSourceDirectOut(it->getId() - 1, output_patch_t{ input->getIntAttribute("DirectOut") });
+                    } else {
+                        it->setDirectOutChannel(output_patch_t{});
+                        setSourceDirectOut(it->getId() - 1, output_patch_t{});
+                    }
+                }
+            }
+        }
+    }
+
+    mConfiguration.setLastOpenProject(file);
+    mAudioProcessor->setPinkNoiseActive(false);
+    setTitle();
+}
+
+//==============================================================================
 void MainContentComponent::handleOpenProject()
 {
     juce::File const lastOpenProject{ mData.appData.lastProject };
@@ -602,13 +675,6 @@ void MainContentComponent::handleShowNumbers()
 }
 
 //==============================================================================
-void MainContentComponent::setShowNumbers(bool const state)
-{
-    mIsNumbersShown = state;
-    mSpeakerViewComponent->setShowNumber(state);
-}
-
-//==============================================================================
 void MainContentComponent::handleShowSpeakers()
 {
     setShowSpeakers(!mIsSpeakersShown);
@@ -618,38 +684,36 @@ void MainContentComponent::handleShowSpeakers()
 void MainContentComponent::setShowSpeakers(bool const state)
 {
     mIsSpeakersShown = state;
-    mSpeakerViewComponent->setHideSpeaker(!state);
 }
 
 //==============================================================================
 void MainContentComponent::handleShowTriplets()
 {
-    setShowTriplets(!mIsTripletsShown);
-}
-
-//==============================================================================
-void MainContentComponent::setShowTriplets(bool const state)
-{
-    if (getModeSelected() == SpatMode::lbap && state == true) {
+    auto const newState{ !mData.projectData.viewSettings.showSpeakerTriplets };
+    if (getModeSelected() == SpatMode::lbap && newState) {
         juce::AlertWindow alert("Can't draw triplets !",
                                 "Triplets are not effective with the CUBE mode.",
                                 juce::AlertWindow::InfoIcon);
         alert.setLookAndFeel(&mLookAndFeel);
         alert.addButton("Close", 0, juce::KeyPress(juce::KeyPress::returnKey));
         alert.runModalLoop();
-        setShowTriplets(false);
-    } else if (validateShowTriplets() || state == false) {
-        mIsTripletsShown = state;
-        mSpeakerViewComponent->setShowTriplets(state);
-    } else {
+        mSpeakerViewComponent->setShowTriplets(false);
+        return;
+    }
+
+    if (!validateShowTriplets() && newState) {
         juce::AlertWindow alert("Can't draw all triplets !",
                                 "Maybe you didn't compute your current speaker setup ?",
                                 juce::AlertWindow::InfoIcon);
         alert.setLookAndFeel(&mLookAndFeel);
         alert.addButton("Close", 0, juce::KeyPress(juce::KeyPress::returnKey));
         alert.runModalLoop();
-        setShowTriplets(false);
+        mSpeakerViewComponent->setShowTriplets(false);
+        return;
     }
+
+    mData.projectData.viewSettings.showSpeakerTriplets = newState;
+    mSpeakerViewComponent->setShowTriplets(newState);
 }
 
 //==============================================================================
@@ -1052,6 +1116,72 @@ bool MainContentComponent::exitApp() const
     }
 
     return exitV != 0;
+}
+
+//==============================================================================
+void MainContentComponent::handleSourceColorChanged(source_index_t const sourceIndex, juce::Colour const colour)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    mData.projectData.sourcesData[sourceIndex].colour = colour;
+    mSourceVuMeters[sourceIndex].setSourceColour(colour);
+}
+
+//==============================================================================
+void MainContentComponent::handleSourceStateChanged(source_index_t const sourceIndex, PortState const state)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    mData.projectData.sourcesData[sourceIndex].state = state;
+
+    mAudioProcessor->setAudioConfig(mData.toAudioConfig());
+    mSourceVuMeters[sourceIndex].setState(state);
+}
+
+//==============================================================================
+void MainContentComponent::handleSpeakerSelected(juce::Array<output_patch_t> const selection)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    for (auto const speaker : mData.speakersData) {
+        auto const isSelected{ selection.contains(speaker.key) };
+
+        if (speaker.value->isSelected == isSelected) {
+            continue;
+        }
+
+        speaker.value->isSelected = isSelected;
+        mSpeakerVuMeters[speaker.key].setSelected(isSelected);
+        if (mEditSpeakersWindow) {
+            // TODO : handle multiple selection
+            mEditSpeakersWindow->selectSpeaker(speaker.key);
+        }
+        // TODO : update 3D view ?
+    }
+}
+
+//==============================================================================
+void MainContentComponent::handleSpeakerStateChanged(output_patch_t const outputPatch, PortState const state)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    mData.speakersData[outputPatch].state = state;
+
+    mAudioProcessor->setAudioConfig(mData.toAudioConfig());
+    mSpeakerVuMeters[outputPatch].setState(state);
+    // TODO : update 3D view ?
+}
+
+//==============================================================================
+void MainContentComponent::handleSourceDirectOutChanged(source_index_t const sourceIndex,
+                                                        tl::optional<output_patch_t> const outputPatch)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    mData.projectData.sourcesData[sourceIndex].directOut = outputPatch;
+
+    mAudioProcessor->setAudioConfig(mData.toAudioConfig());
+    mSourceVuMeters[sourceIndex].setDirectOut(outputPatch);
 }
 
 //==============================================================================
@@ -1841,109 +1971,6 @@ void MainContentComponent::handleTimer(bool const state)
     } else {
         stopTimer();
     }
-}
-
-//==============================================================================
-void MainContentComponent::openProject(juce::File const & file)
-{
-    jassert(file.existsAsFile());
-
-    juce::ScopedLock const lock{ mAudioProcessor->getCriticalSection() };
-
-    juce::XmlDocument xmlDoc{ file };
-    auto const mainXmlElem{ xmlDoc.getDocumentElement() };
-    if (!mainXmlElem) {
-        juce::AlertWindow::showMessageBox(juce::AlertWindow::AlertIconType::WarningIcon,
-                                          "Error in Open Project !",
-                                          "Your file is corrupted !\n" + file.getFullPathName() + "\n"
-                                              + xmlDoc.getLastParseError());
-        return;
-    }
-
-    if (!mainXmlElem->hasTagName("SpatServerGRIS_Preset") && !mainXmlElem->hasTagName("ServerGRIS_Preset")) {
-        auto const msg{ mainXmlElem->hasTagName("SpeakerSetup")
-                            ? "You are trying to open a Speaker Setup instead of a project file !"
-                            : "Your file is corrupted !\n" + xmlDoc.getLastParseError() };
-        juce::AlertWindow::showMessageBox(juce::AlertWindow::WarningIcon, "Error in Open Project !", msg);
-        return;
-    }
-
-    mOscInputPort = mainXmlElem->getIntAttribute("OSC_Input_Port");
-    mAddInputsTextEditor->setText(mainXmlElem->getStringAttribute("Number_Of_Inputs"));
-    mMasterGainOutSlider->setValue(mainXmlElem->getDoubleAttribute("Master_Gain_Out", 0.0), juce::sendNotification);
-    mInterpolationSlider->setValue(mainXmlElem->getDoubleAttribute("Master_Interpolation", 0.1),
-                                   juce::sendNotification);
-    setShowNumbers(mainXmlElem->getBoolAttribute("Show_Numbers"));
-    if (mainXmlElem->hasAttribute("Show_Speakers")) {
-        setShowSpeakers(mainXmlElem->getBoolAttribute("Show_Speakers"));
-    } else {
-        setShowSpeakers(true);
-    }
-    if (mainXmlElem->hasAttribute("Show_Triplets")) {
-        setShowTriplets(mainXmlElem->getBoolAttribute("Show_Triplets"));
-    } else {
-        setShowTriplets(false);
-    }
-    if (mainXmlElem->hasAttribute("Use_Alpha")) {
-        mIsSourceLevelShown = mainXmlElem->getBoolAttribute("Use_Alpha");
-    } else {
-        mIsSourceLevelShown = false;
-    }
-    if (mainXmlElem->hasAttribute("Use_Alpha")) {
-        mIsSourceLevelShown = mainXmlElem->getBoolAttribute("Use_Alpha");
-    } else {
-        mIsSourceLevelShown = false;
-    }
-    if (mainXmlElem->hasAttribute("Show_Speaker_Level")) {
-        mIsSpeakerLevelShown = mainXmlElem->getBoolAttribute("Show_Speaker_Level");
-    } else {
-        mIsSpeakerLevelShown = false;
-    }
-    if (mainXmlElem->hasAttribute("Show_Sphere")) {
-        mIsSphereShown = mainXmlElem->getBoolAttribute("Show_Sphere");
-    } else {
-        mIsSphereShown = false;
-    }
-    mSpeakerViewComponent->setShowSphere(mIsSphereShown);
-
-    if (mainXmlElem->hasAttribute("CamAngleX")) {
-        auto const angleX{ static_cast<float>(mainXmlElem->getDoubleAttribute("CamAngleX")) };
-        auto const angleY{ static_cast<float>(mainXmlElem->getDoubleAttribute("CamAngleY")) };
-        auto const distance{ static_cast<float>(mainXmlElem->getDoubleAttribute("CamDistance")) };
-        mSpeakerViewComponent->setCamPosition(angleX, angleY, distance);
-    } else {
-        mSpeakerViewComponent->setCamPosition(80.0f, 25.0f, 22.0f);
-    }
-
-    // Update
-    textEditorReturnKeyPressed(*mAddInputsTextEditor);
-    sliderValueChanged(mMasterGainOutSlider.get());
-    sliderValueChanged(mInterpolationSlider.get());
-
-    for (auto * input{ mainXmlElem->getFirstChildElement() }; input != nullptr; input = input->getNextElement()) {
-        if (input->hasTagName("Input")) {
-            for (auto * it : mInputModels) {
-                if (it->getId() == input->getIntAttribute("Index")) {
-                    it->setColor(juce::Colour::fromFloatRGBA(static_cast<float>(input->getDoubleAttribute("R")),
-                                                             static_cast<float>(input->getDoubleAttribute("G")),
-                                                             static_cast<float>(input->getDoubleAttribute("B")),
-                                                             1.0f),
-                                 true);
-                    if (input->hasAttribute("DirectOut")) {
-                        it->setDirectOutChannel(output_patch_t{ input->getIntAttribute("DirectOut") });
-                        setSourceDirectOut(it->getId() - 1, output_patch_t{ input->getIntAttribute("DirectOut") });
-                    } else {
-                        it->setDirectOutChannel(output_patch_t{});
-                        setSourceDirectOut(it->getId() - 1, output_patch_t{});
-                    }
-                }
-            }
-        }
-    }
-
-    mConfiguration.setLastOpenProject(file);
-    mAudioProcessor->setPinkNoiseActive(false);
-    setTitle();
 }
 
 //==============================================================================

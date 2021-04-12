@@ -62,7 +62,7 @@ glm::vec3 const DEFAULT_CENTER{ 0.0f, 0.0f, 0.0f };
 constexpr float OVER = 0.02f;
 
 //==============================================================================
-class SpeakerModel final : public VuMeterModel
+class SpeakerModel
 {
     SmallGrisLookAndFeel & mLookAndFeel;
 
@@ -83,8 +83,6 @@ class SpeakerModel final : public VuMeterModel
 
     output_patch_t mOutputPatch;
 
-    VuMeterComponent mVuMeter;
-
 public:
     //==============================================================================
     SpeakerModel(MainContentComponent & mainContentComponent,
@@ -95,7 +93,7 @@ public:
                  float radius);
     //==============================================================================
     SpeakerModel() = delete;
-    ~SpeakerModel() override = default;
+    ~SpeakerModel() = default;
 
     SpeakerModel(SpeakerModel const &) = delete;
     SpeakerModel(SpeakerModel &&) = delete;
@@ -108,16 +106,8 @@ public:
     void unSelectSpeaker();
 
     // Should not be used, use getIdSpeaker() instead.
-    [[nodiscard]] int getId() const override;
-    [[nodiscard]] int getButtonInOutNumber() const override { return mOutputPatch.get(); };
-    [[nodiscard]] float getLevel() const override;
     [[nodiscard]] float getAlpha() const;
     void setState(PortState state);
-    void setColor(juce::Colour /*color*/, bool /*updateLevel = false*/) override {}
-    void setSelected(bool select = true) override;
-
-    [[nodiscard]] VuMeterComponent const * getVuMeter() const override { return &mVuMeter; }
-    [[nodiscard]] VuMeterComponent * getVuMeter() override { return &mVuMeter; }
 
     // Normalized for user
     void setCoordinate(glm::vec3 value);
@@ -135,16 +125,6 @@ public:
     [[nodiscard]] glm::vec3 getCartesianCoords() const { return mCenter / 10.0f; }
     [[nodiscard]] glm::vec3 getPolarCoords() const;
 
-    [[nodiscard]] bool isInput() const override { return false; }
-
-    void changeDirectOutChannel(output_patch_t
-                                /*chn*/) override{};
-    void setDirectOutChannel(output_patch_t const
-                             /*chn*/) override{};
-    [[nodiscard]] output_patch_t getDirectOutChannel() const override { return output_patch_t{}; };
-    void sendDirectOutToClient(int /*id*/, output_patch_t
-                               /*chn*/) override{};
-
     // OpenGL
     [[nodiscard]] glm::vec3 getMin() const { return mMin; }
     [[nodiscard]] glm::vec3 getMax() const { return mMax; }
@@ -159,5 +139,5 @@ private:
     void newPosition(glm::vec3 center, glm::vec3 extents = SIZE_SPEAKER);
     void newSphericalCoord(glm::vec3 aziZenRad, glm::vec3 extents = SIZE_SPEAKER);
     //==============================================================================
-    JUCE_LEAK_DETECTOR(Speaker)
+    JUCE_LEAK_DETECTOR(SpeakerModel)
 };

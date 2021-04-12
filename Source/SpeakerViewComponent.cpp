@@ -56,11 +56,12 @@ void SpeakerViewComponent::setNameConfig(juce::String const & name)
 }
 
 //==============================================================================
-void SpeakerViewComponent::setCamPosition(float const angleX, float const angleY, float const distance)
+void SpeakerViewComponent::setCamPosition(CartesianVector const & position)
 {
-    mCamAngleX = angleX;
-    mCamAngleY = angleY;
-    mDistance = distance;
+    auto const polarVector{ PolarVector::fromCartesian(position) };
+    mCamAngleX = polarVector.azimuth;
+    mCamAngleY = polarVector.elevation;
+    mDistance = polarVector.length;
 }
 
 //==============================================================================

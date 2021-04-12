@@ -20,13 +20,9 @@
 #pragma once
 
 #include "LogicStrucs.hpp"
-#include "constants.hpp"
 #include "lib/tl/optional.hpp"
 
-#include "macros.h"
-DISABLE_WARNINGS
 #include <JuceHeader.h>
-ENABLE_WARNINGS
 
 #include "AboutWindow.h"
 #include "AbstractSpatAlgorithm.hpp"
@@ -43,6 +39,7 @@ ENABLE_WARNINGS
 #include "SpeakerModel.h"
 #include "SpeakerViewComponent.h"
 #include "StrongTypes.hpp"
+#include "VuMeterComponent.h"
 
 class MainWindow;
 
@@ -69,6 +66,8 @@ class MainContentComponent final
     , public juce::TextEditor::Listener
     , public juce::Slider::Listener
     , public juce::ComboBox::Listener
+    , public SourceVuMeterComponent::Owner
+    , public SpeakerVuMeterComponent::Owner
     , private AudioDeviceManagerListener
     , private juce::Timer
 {
@@ -78,6 +77,9 @@ class MainContentComponent final
     juce::Array<Triplet> mTriplets{};
     OwnedMap<output_patch_t, SpeakerModel> mSpeakers{};
     juce::Array<output_patch_t> mSpeakersDisplayOrder{};
+
+    OwnedMap<source_index_t, SourceVuMeterComponent> mSourceVuMeters{};
+    OwnedMap<output_patch_t, SpeakerVuMeterComponent> mSpeakerVuMeters{};
 
     // Sources.
     juce::OwnedArray<InputModel> mInputModels{};
@@ -171,7 +173,12 @@ public:
     // Exit application.
     [[nodiscard]] bool exitApp() const;
 
-    void setShowTriplets(bool state);
+    void handleSourceColorChanged(source_index_t sourceIndex, juce::Colour colour) override;
+    void handleSourceStateChanged(source_index_t sourceIndex, PortState state) override;
+    void handleSpeakerSelected(juce::Array<output_patch_t> selection) override;
+    void handleSpeakerStateChanged(output_patch_t outputPatch, PortState state) override;
+    void handleSourceDirectOutChanged(source_index_t sourceIndex, tl::optional<output_patch_t> outputPatch) override;
+    [[nodiscard]] SpeakersData const & getSpeakersData() const override { return mData.speakersData; }
 
     // other
     [[nodiscard]] bool isTripletsShown() const { return mData.projectData.viewSettings.showSpeakerTriplets; }
@@ -324,8 +331,6 @@ private:
     void handleShowOscLogView();
     void handleInputColours();
 
-    void setShowNumbers(bool state);
-    void setShowSpeakers(bool state);
     void setTripletsFromVbap();
 
     [[nodiscard]] output_patch_t getMaxSpeakerOutputPatch() const;
