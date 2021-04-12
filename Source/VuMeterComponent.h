@@ -22,6 +22,7 @@
 #include <JuceHeader.h>
 
 #include "GrisLookAndFeel.h"
+#include "LogicStrucs.hpp"
 #include "StrongTypes.hpp"
 
 static dbfs_t constexpr MIN_LEVEL_COMP{ -60.0f };
@@ -92,12 +93,16 @@ class VuMeterComponent final
     MouseButton mLastMouseButton{ MouseButton::right };
     bool mIsColorful;
 
-    std::vector<output_patch_t> mDirectOutSpeakers;
     juce::TextButton mDirectOutButton;
+
+    SpeakersData const & mSpeakersData;
 
 public:
     //==============================================================================
-    VuMeterComponent(VuMeterModel & parentLevelComponent, SmallGrisLookAndFeel & lookAndFeel, bool colorful = true);
+    VuMeterComponent(VuMeterModel & model,
+                     SmallGrisLookAndFeel & lookAndFeel,
+                     SpeakersData const & speakersData,
+                     bool colorful);
     //==============================================================================
     VuMeterComponent() = delete;
     ~VuMeterComponent() override = default;
@@ -114,7 +119,6 @@ public:
     void update();
     [[nodiscard]] bool isMuted() const { return this->mMuteToggleButton.getToggleState(); }
     void setSelected(bool value);
-    void updateDirectOutMenu(std::vector<output_patch_t> directOuts);
     void resetClipping() { this->mContainerBox.resetClipping(); }
     void setLevel(dbfs_t level);
 

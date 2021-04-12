@@ -19,6 +19,7 @@
 
 #include "VuMeterComponent.h"
 
+#include "LogicStrucs.hpp"
 #include "MainComponent.h"
 #include "SpeakerModel.h"
 
@@ -127,17 +128,18 @@ void VuMeterBox::resetClipping()
 }
 
 //==============================================================================
-VuMeterComponent::VuMeterComponent(VuMeterModel & parentLevelComponent,
+VuMeterComponent::VuMeterComponent(VuMeterModel & model,
                                    SmallGrisLookAndFeel & lookAndFeel,
+                                   SpeakersData const & speakersData,
                                    bool const colorful)
-    : mModel(parentLevelComponent)
+    : mModel(model)
     , mLookAndFeel(lookAndFeel)
     , mContainerBox(*this, lookAndFeel)
     , mIsColorful(colorful)
+    , mSpeakersData(speakersData)
 {
     // Label
-    auto const id{ mModel.getButtonInOutNumber() };
-    mIdButton.setButtonText(juce::String{ id });
+    mIdButton.setButtonText(juce::String{ mModel.getChannel() });
     mIdButton.setSize(22, 17);
     mIdButton.setTopLeftPosition(0, 0);
     mIdButton.setColour(juce::Label::textColourId, lookAndFeel.getFontColour());
@@ -184,14 +186,6 @@ VuMeterComponent::VuMeterComponent(VuMeterModel & parentLevelComponent,
 }
 
 //==============================================================================
-void VuMeterComponent::updateDirectOutMenu(std::vector<output_patch_t> directOuts)
-{
-    if (mModel.isInput()) {
-        mDirectOutSpeakers = std::move(directOuts);
-    }
-}
-
-//==============================================================================
 void VuMeterComponent::setLevel(dbfs_t const level)
 {
     mLevel = level;
@@ -227,40 +221,60 @@ void VuMeterComponent::buttonClicked(juce::Button * button)
             std::unique_ptr<juce::Component> component{ colourSelector };
             juce::CallOutBox::launchAsynchronously(std::move(component), getScreenBounds(), nullptr);
         } else { // Output
-            mModel.setSelected(mLastMouseButton);
+            auto const selected{ mLastMouseButton == MouseButton::left };
+            mModel.setSelected(selected);
         }
     } else if (button == &mDirectOutButton) {
         juce::PopupMenu menu{};
-        menu.addItem(1, "-");
-        for (size_t i{}; i < mDirectOutSpeakers.size(); ++i) {
-            menu.addItem(narrow<int>(i) + 2, juce::String{ mDirectOutSpeakers[i].get() });
+        static constexpr auto CHOICE_NOT_DIRECT_OUT = std::numeric_limits<int>::min();
+        static constexpr auto CHOICE_CANCELED = 0;
+        juce::Array<output_patch_t> directOutSpeakers{};
+        juce::Array<output_patch_t> nonDirectOutSpeakers{};
+        for (auto const speaker : mSpeakersData) {
+            auto & destination{ speaker.value->isDirectOutOnly ? directOutSpeakers : nonDirectOutSpeakers };
+            destination.add(speaker.key);
+        }
+        menu.addItem(CHOICE_NOT_DIRECT_OUT, "-");
+        for (auto const outputPatch : directOutSpeakers) {
+            menu.addItem(outputPatch.get(), juce::String{ outputPatch.get() });
+        }
+        menu.addItem(CHOICE_NOT_DIRECT_OUT, "-");
+        for (auto const outputPatch : nonDirectOutSpeakers) {
+            menu.addItem(outputPatch.get(), juce::String{ outputPatch.get() });
         }
 
         auto const result{ menu.show() };
 
-        output_patch_t value{};
-        if (result != 0) {
-            if (result == 1) {
-                mDirectOutButton.setButtonText("-");
-            } else {
-                value = mDirectOutSpeakers[result - 2];
-                mDirectOutButton.setButtonText(juce::String{ value.get() });
-            }
-
-            mModel.changeDirectOutChannel(value);
-            mModel.sendDirectOutToClient(mModel.getId(), value);
+        if (result == CHOICE_CANCELED) {
+            return;
         }
+
+        tl::optional<output_patch_t> newOutputPatch{};
+        if (result != CHOICE_NOT_DIRECT_OUT) {
+            newOutputPatch = output_patch_t{ result };
+        }
+
+        mModel.
+
+            if (result == 1)
+        {
+            mDirectOutButton.setButtonText("-");
+        }
+        else
+        {
+            value = mDirectOutSpeakers[result - 2];
+            mDirectOutButton.setButtonText(juce::String{ value.get() });
+        }
+
+        mModel.changeDirectOutChannel(value);
+        mModel.sendDirectOutToClient(mModel.getId(), value);
     }
 }
 
 //==============================================================================
 void VuMeterComponent::mouseDown(juce::MouseEvent const & e)
 {
-    if (e.mods.isRightButtonDown()) {
-        mLastMouseButton = 0;
-    } else {
-        mLastMouseButton = 1;
-    }
+    mLastMouseButton = (e.mods.isRightButtonDown() ? MouseButton::right : MouseButton::left);
 }
 
 //==============================================================================
@@ -270,11 +284,11 @@ void VuMeterComponent::changeListenerCallback(juce::ChangeBroadcaster * source)
     if (colorSelector != nullptr) {
         mIdButton.setColour(juce::TextButton::buttonColourId, colorSelector->getCurrentColour());
         mModel.setColor(colorSelector->getCurrentColour());
-        if (mLastMouseButton == 0) {
+        if (mLastMouseButton == MouseButton::right) {
             auto * input = dynamic_cast<InputModel *>(&mModel);
             jassert(input != nullptr);
             for (auto * it : input->getMainContentComponent().getSourceInputs()) {
-                if (it->getId() == mModel.getId() + 1) {
+                if (it->getChannel() == mModel.getChannel() + 1) {
                     it->setColor(colorSelector->getCurrentColour(), true);
                 }
             }

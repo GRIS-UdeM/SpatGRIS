@@ -34,20 +34,19 @@ public:
     //==============================================================================
     explicit VuMeterModel(int const channel) : mChannel(channel) {}
     virtual ~VuMeterModel() = default;
-
+    //==============================================================================
     VuMeterModel(VuMeterModel const &) = delete;
     VuMeterModel(VuMeterModel &&) = delete;
-
     VuMeterModel & operator=(VuMeterModel const &) = delete;
     VuMeterModel & operator=(VuMeterModel &&) = delete;
     //==============================================================================
     [[nodiscard]] int getChannel() const { return mChannel; }
+    //==============================================================================
     [[nodiscard]] virtual bool isInput() const = 0;
     [[nodiscard]] virtual dbfs_t getLevel() const = 0;
     virtual void setState(PortState state) = 0;
     virtual void setColor(juce::Colour color, bool updateLevel = false) = 0;
     virtual void setSelected(bool state) = 0;
-
     [[nodiscard]] virtual VuMeterComponent * getVuMeter() = 0;
     [[nodiscard]] virtual VuMeterComponent const * getVuMeter() const = 0;
 
