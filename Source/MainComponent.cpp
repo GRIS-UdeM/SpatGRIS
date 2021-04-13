@@ -148,7 +148,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
 
     // Start the OSC Receiver.
     mOscReceiver.reset(new OscInput(*this));
-    mOscReceiver->startConnection(mData.projectData.oscPort);
+    mOscReceiver->startConnection(mData.project.oscPort);
 
     // Default widget values.
     mMasterGainOutSlider->setValue(0.0);
@@ -413,7 +413,7 @@ void MainContentComponent::openProject(juce::File const & file)
         return;
     }
 
-    auto const success{ SpatGrisProjectData::fromXml(*mainXmlElem, mData.projectData) };
+    auto const success{ SpatGrisProjectData::fromXml(*mainXmlElem, mData.project) };
     if (!success) {
         // Missing params
         juce::AlertWindow::showMessageBox(juce::AlertWindow::AlertIconType::WarningIcon,
@@ -422,41 +422,24 @@ void MainContentComponent::openProject(juce::File const & file)
         return;
     }
 
-    mAddInputsTextEditor->setText(juce::String{ mData.projectData.sourcesData.size() });
-    mMasterGainOutSlider->setValue(mData.projectData.masterGain, juce::dontSendNotification);
-    mInterpolationSlider->setValue(mData.projectData.spatGainsInterpolation, juce::dontSendNotification);
+    mAddInputsTextEditor->setText(juce::String{ mData.project.sources.size() });
 
-    mSpeakerViewComponent->setShowNumber(mData.projectData.viewSettings.showSpeakerNumbers);
-    mSpeakerViewComponent->setHideSpeaker(!mData.projectData.viewSettings.showSpeakers);
-    mSpeakerViewComponent->setShowTriplets(mData.projectData.viewSettings.showSpeakerTriplets);
-    mSpeakerViewComponent->setShowSphere(mData.projectData.viewSettings.showSphereOrCube);
-    mSpeakerViewComponent->setCamPosition(mData.projectData.cameraPosition);
+    mMasterGainOutSlider->setValue(mData.project.masterGain, juce::dontSendNotification);
+    mInterpolationSlider->setValue(mData.project.spatGainsInterpolation, juce::dontSendNotification);
+
+    mSpeakerViewComponent->setShowNumber(mData.project.viewSettings.showSpeakerNumbers);
+    mSpeakerViewComponent->setHideSpeaker(!mData.project.viewSettings.showSpeakers);
+    mSpeakerViewComponent->setShowTriplets(mData.project.viewSettings.showSpeakerTriplets);
+    mSpeakerViewComponent->setShowSphere(mData.project.viewSettings.showSphereOrCube);
+    mSpeakerViewComponent->setCamPosition(mData.project.cameraPosition);
     // DEFAULT
     // mSpeakerViewComponent->setCamPosition(80.0f, 25.0f, 22.0f);
 
-    for (auto * input{ mainXmlElem->getFirstChildElement() }; input != nullptr; input = input->getNextElement()) {
-        if (input->hasTagName("Input")) {
-            for (auto * it : mInputModels) {
-                if (it->getId() == input->getIntAttribute("Index")) {
-                    it->setColor(juce::Colour::fromFloatRGBA(static_cast<float>(input->getDoubleAttribute("R")),
-                                                             static_cast<float>(input->getDoubleAttribute("G")),
-                                                             static_cast<float>(input->getDoubleAttribute("B")),
-                                                             1.0f),
-                                 true);
-                    if (input->hasAttribute("DirectOut")) {
-                        it->setDirectOutChannel(output_patch_t{ input->getIntAttribute("DirectOut") });
-                        setSourceDirectOut(it->getId() - 1, output_patch_t{ input->getIntAttribute("DirectOut") });
-                    } else {
-                        it->setDirectOutChannel(output_patch_t{});
-                        setSourceDirectOut(it->getId() - 1, output_patch_t{});
-                    }
-                }
-            }
-        }
-    }
+    refreshSourceVuMeterComponents();
 
-    mConfiguration.setLastOpenProject(file);
-    mAudioProcessor->setPinkNoiseActive(false);
+    mData.appData.lastProject = file.getFullPathName();
+    mAudioProcessor->setAudioConfig(mData.toAudioConfig());
+
     setTitle();
 }
 
@@ -485,11 +468,10 @@ void MainContentComponent::handleOpenProject()
     }
 
     if (loaded) { // Check for direct out OutputPatch mismatch.
-        for (auto const * it : mInputModels) {
-            if (it->getDirectOutChannel() != output_patch_t{}) {
-                auto const directOutOutputPatches{ mAudioProcessor->getDirectOutOutputPatches() };
-                if (std::find(directOutOutputPatches.cbegin(), directOutOutputPatches.cend(), it->getDirectOutChannel())
-                    == directOutOutputPatches.cend()) {
+        for (auto const source : mData.project.sources) {
+            auto const & directOut{ source.value->directOut };
+            if (directOut) {
+                if (!mData.speakersData.contains(*directOut)) {
                     juce::AlertWindow alert(
                         "Direct Out Mismatch!",
                         "Some of the direct out channels of this project don't exist in the current speaker setup.\n",
@@ -498,6 +480,7 @@ void MainContentComponent::handleOpenProject()
                     alert.addButton("Ok", 1, juce::KeyPress(juce::KeyPress::returnKey));
                     alert.runModalLoop();
                     break;
+                    // TODO : reload last project?
                 }
             }
         }
@@ -507,7 +490,7 @@ void MainContentComponent::handleOpenProject()
 //==============================================================================
 void MainContentComponent::handleSaveProject() const
 {
-    auto const lastOpenProject{ mConfiguration.getLastOpenProject() };
+    juce::File const lastOpenProject{ mData.appData.lastProject };
     if (!lastOpenProject.existsAsFile()
         || lastOpenProject.getFullPathName().endsWith("default_preset/default_preset.xml")) {
         handleSaveAsProject();
@@ -518,7 +501,7 @@ void MainContentComponent::handleSaveProject() const
 //==============================================================================
 void MainContentComponent::handleSaveAsProject() const
 {
-    auto const lastOpenProject{ mConfiguration.getLastOpenProject() };
+    juce::File const lastOpenProject{ mData.appData.lastProject };
 
     juce::FileChooser fc{ "Choose a file to save...", lastOpenProject.getFullPathName(), "*.xml", true };
 
@@ -575,7 +558,7 @@ void MainContentComponent::handleShowSpeakerEditWindow()
                                        600 };
     if (mEditSpeakersWindow == nullptr) {
         auto const windowName = juce::String("Speakers Setup Edition - ")
-                                + juce::String(MODE_SPAT_STRING[static_cast<int>(mAudioProcessor->getMode())]) + " - "
+                                + juce::String(MODE_SPAT_STRING[static_cast<int>(mData.appData.lastSpatMode)]) + " - "
                                 + mCurrentSpeakerSetup.getFileName();
         mEditSpeakersWindow = std::make_unique<EditSpeakersWindow>(windowName, mLookAndFeel, *this, mConfigurationName);
         mEditSpeakersWindow->setBounds(result);
@@ -593,20 +576,11 @@ void MainContentComponent::handleShowSpeakerEditWindow()
 void MainContentComponent::handleShowPreferences()
 {
     if (mPropertiesWindow == nullptr) {
-        auto const fileFormat{ mConfiguration.getRecordingFormat() };
-        auto const fileConfig{ mConfiguration.getRecordingConfig() };
-
-        auto const attenuationDb{ mConfiguration.getAttenuationDbIndex() };
-        auto const attenuationHz{ mConfiguration.getAttenuationFrequencyIndex() };
-        auto const oscInputPort{ mConfiguration.getOscInputPort() };
-
         mPropertiesWindow.reset(new SettingsWindow{ *this,
-                                                    mLookAndFeel,
-                                                    fileFormat,
-                                                    fileConfig,
-                                                    attenuationDb,
-                                                    attenuationHz,
-                                                    oscInputPort });
+                                                    mData.appData.recordingOptions,
+                                                    mData.project.lbapDistanceAttenuationData,
+                                                    mData.project.oscPort,
+                                                    mLookAndFeel });
     }
 }
 
@@ -671,25 +645,23 @@ void MainContentComponent::handleOpenManual()
 //==============================================================================
 void MainContentComponent::handleShowNumbers()
 {
-    setShowNumbers(!mData.projectData.viewSettings.showSpeakerNumbers);
+    auto & var{ mData.project.viewSettings.showSpeakerNumbers };
+    var = !var;
+    mSpeakerViewComponent->setShowNumber(var);
 }
 
 //==============================================================================
 void MainContentComponent::handleShowSpeakers()
 {
-    setShowSpeakers(!mIsSpeakersShown);
-}
-
-//==============================================================================
-void MainContentComponent::setShowSpeakers(bool const state)
-{
-    mIsSpeakersShown = state;
+    auto & var{ mData.project.viewSettings.showSpeakers };
+    var = !var;
+    mSpeakerViewComponent->setHideSpeaker(!var);
 }
 
 //==============================================================================
 void MainContentComponent::handleShowTriplets()
 {
-    auto const newState{ !mData.projectData.viewSettings.showSpeakerTriplets };
+    auto const newState{ !mData.project.viewSettings.showSpeakerTriplets };
     if (getModeSelected() == SpatMode::lbap && newState) {
         juce::AlertWindow alert("Can't draw triplets !",
                                 "Triplets are not effective with the CUBE mode.",
@@ -712,7 +684,7 @@ void MainContentComponent::handleShowTriplets()
         return;
     }
 
-    mData.projectData.viewSettings.showSpeakerTriplets = newState;
+    mData.project.viewSettings.showSpeakerTriplets = newState;
     mSpeakerViewComponent->setShowTriplets(newState);
 }
 
@@ -735,20 +707,25 @@ bool MainContentComponent::validateShowTriplets() const
 //==============================================================================
 void MainContentComponent::handleShowSourceLevel()
 {
-    mIsSourceLevelShown = !mIsSourceLevelShown;
+    auto & var{ mData.project.viewSettings.showSourceActivity };
+    var = !var;
+    // TODO : where to set this?
 }
 
 //==============================================================================
 void MainContentComponent::handleShowSpeakerLevel()
 {
-    mIsSpeakerLevelShown = !mIsSpeakerLevelShown;
+    auto & var{ mData.project.viewSettings.showSpeakerLevels };
+    var = !var;
+    // TODO : where to set this?
 }
 
 //==============================================================================
 void MainContentComponent::handleShowSphere()
 {
-    mIsSphereShown = !mIsSphereShown;
-    mSpeakerViewComponent->setShowSphere(mIsSphereShown);
+    auto & var{ mData.project.viewSettings.showSphereOrCube };
+    var = !var;
+    mSpeakerViewComponent->setShowSphere(var);
 }
 
 //==============================================================================
@@ -762,21 +739,23 @@ void MainContentComponent::handleResetInputPositions()
 //==============================================================================
 void MainContentComponent::handleResetMeterClipping()
 {
-    for (auto * input : mInputModels) {
-        input->getVuMeter()->resetClipping();
+    for (auto vuMeter : mSourceVuMeterComponents) {
+        vuMeter.value->resetClipping();
     }
-    for (auto * speaker : mSpeakers) {
-        speaker->getVuMeter()->resetClipping();
+    for (auto vuMeter : mSpeakerVuMeters) {
+        vuMeter.value->resetClipping();
     }
 }
 
 //==============================================================================
-void MainContentComponent::handleInputColours()
+void MainContentComponent::handleColorizeInputs()
 {
-    auto hue = 0.0f;
-    auto const inc = 1.0f / static_cast<float>(mInputModels.size() + 1);
-    for (auto * input : mInputModels) {
-        input->setColor(juce::Colour::fromHSV(hue, 1, 0.75, 1), true);
+    float hue{};
+    auto const inc{ 1.0f / static_cast<float>(mData.project.sources.size() + 1) };
+    for (auto source : mData.project.sources) {
+        auto const colour{ juce::Colour::fromHSV(hue, 1, 0.75, 1) };
+        source.value->colour = colour;
+        mSourceVuMeterComponents[source.key].setSourceColour(colour);
         hue += inc;
     }
 }
@@ -956,7 +935,7 @@ bool MainContentComponent::perform(const InvocationInfo & info)
             handleShowSphere();
             break;
         case MainWindow::ColorizeInputsID:
-            handleInputColours();
+            handleColorizeInputs();
             break;
         case MainWindow::ResetInputPosID:
             handleResetInputPositions();
@@ -1119,12 +1098,28 @@ bool MainContentComponent::exitApp() const
 }
 
 //==============================================================================
+void MainContentComponent::refreshSourceVuMeterComponents()
+{
+    mSourceVuMeterComponents.clear();
+
+    for (auto source : mData.project.sources) {
+        auto newVuMeter{ std::make_unique<SourceVuMeterComponent>(source.key,
+                                                                  source.value->directOut,
+                                                                  source.value->colour,
+                                                                  *this,
+                                                                  mSmallLookAndFeel) };
+        addAndMakeVisible(newVuMeter.get());
+        mSourceVuMeterComponents.add(source.key, std::move(newVuMeter));
+    }
+}
+
+//==============================================================================
 void MainContentComponent::handleSourceColorChanged(source_index_t const sourceIndex, juce::Colour const colour)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    mData.projectData.sourcesData[sourceIndex].colour = colour;
-    mSourceVuMeters[sourceIndex].setSourceColour(colour);
+    mData.project.sources[sourceIndex].colour = colour;
+    mSourceVuMeterComponents[sourceIndex].setSourceColour(colour);
 }
 
 //==============================================================================
@@ -1132,10 +1127,10 @@ void MainContentComponent::handleSourceStateChanged(source_index_t const sourceI
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    mData.projectData.sourcesData[sourceIndex].state = state;
+    mData.project.sources[sourceIndex].state = state;
 
     mAudioProcessor->setAudioConfig(mData.toAudioConfig());
-    mSourceVuMeters[sourceIndex].setState(state);
+    mSourceVuMeterComponents[sourceIndex].setState(state);
 }
 
 //==============================================================================
@@ -1178,10 +1173,10 @@ void MainContentComponent::handleSourceDirectOutChanged(source_index_t const sou
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    mData.projectData.sourcesData[sourceIndex].directOut = outputPatch;
+    mData.project.sources[sourceIndex].directOut = outputPatch;
 
     mAudioProcessor->setAudioConfig(mData.toAudioConfig());
-    mSourceVuMeters[sourceIndex].setDirectOut(outputPatch);
+    mSourceVuMeterComponents[sourceIndex].setDirectOut(outputPatch);
 }
 
 //==============================================================================
@@ -1257,7 +1252,7 @@ void MainContentComponent::selectTripletSpeaker(output_patch_t const idS)
 //==============================================================================
 void MainContentComponent::setSourceState(source_index_t const sourceIndex, PortState const state)
 {
-    mData.projectData.sourcesData[sourceIndex].state = state;
+    mData.project.sources[sourceIndex].state = state;
 }
 
 //==============================================================================
@@ -1957,9 +1952,9 @@ void MainContentComponent::openXmlFileSpeaker(juce::File const & file, tl::optio
 //==============================================================================
 void MainContentComponent::setTitle() const
 {
-    auto const currentProject{ mConfiguration.getLastOpenProject() };
+    auto const currentProject{ mData.appData.lastProject };
     auto const title{ juce::String{ "SpatGRIS v" } + juce::JUCEApplication::getInstance()->getApplicationVersion()
-                      + " - " + currentProject.getFileName() };
+                      + " - " + currentProject };
     mMainWindow.setName(title);
 }
 

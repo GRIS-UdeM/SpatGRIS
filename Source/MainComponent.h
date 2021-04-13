@@ -78,7 +78,7 @@ class MainContentComponent final
     OwnedMap<output_patch_t, SpeakerModel> mSpeakers{};
     juce::Array<output_patch_t> mSpeakersDisplayOrder{};
 
-    OwnedMap<source_index_t, SourceVuMeterComponent> mSourceVuMeters{};
+    OwnedMap<source_index_t, SourceVuMeterComponent> mSourceVuMeterComponents{};
     OwnedMap<output_patch_t, SpeakerVuMeterComponent> mSpeakerVuMeters{};
 
     // Sources.
@@ -173,6 +173,8 @@ public:
     // Exit application.
     [[nodiscard]] bool exitApp() const;
 
+    void refreshSourceVuMeterComponents();
+
     void handleSourceColorChanged(source_index_t sourceIndex, juce::Colour colour) override;
     void handleSourceStateChanged(source_index_t sourceIndex, PortState state) override;
     void handleSpeakerSelected(juce::Array<output_patch_t> selection) override;
@@ -181,11 +183,11 @@ public:
     [[nodiscard]] SpeakersData const & getSpeakersData() const override { return mData.speakersData; }
 
     // other
-    [[nodiscard]] bool isTripletsShown() const { return mData.projectData.viewSettings.showSpeakerTriplets; }
+    [[nodiscard]] bool isTripletsShown() const { return mData.project.viewSettings.showSpeakerTriplets; }
     [[nodiscard]] bool needToSaveSpeakerSetup() const { return mNeedToSaveSpeakerSetup; }
     [[nodiscard]] bool isSpanShown() const { return true; } // TODO
-    [[nodiscard]] bool isSourceLevelShown() const { return mData.projectData.viewSettings.showSourceActivity; }
-    [[nodiscard]] bool isSpeakerLevelShown() const { return mData.projectData.viewSettings.showSpeakerLevels; }
+    [[nodiscard]] bool isSourceLevelShown() const { return mData.project.viewSettings.showSourceActivity; }
+    [[nodiscard]] bool isSpeakerLevelShown() const { return mData.project.viewSettings.showSpeakerLevels; }
 
     void setNeedToSaveSpeakerSetup(bool const state) { mNeedToSaveSpeakerSetup = state; }
 
@@ -329,7 +331,7 @@ private:
     void handleResetInputPositions();
     void handleResetMeterClipping();
     void handleShowOscLogView();
-    void handleInputColours();
+    void handleColorizeInputs();
 
     void setTripletsFromVbap();
 

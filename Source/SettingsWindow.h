@@ -98,12 +98,10 @@ class SettingsComponent final
 public:
     //==============================================================================
     SettingsComponent(MainContentComponent & parent,
-                      GrisLookAndFeel & lookAndFeel,
-                      RecordingFormat recordingFormat,
-                      RecordingConfig recordingConfig,
-                      int attenuationDbIndex,
-                      int attenuationCutoffIndex,
-                      int oscPort);
+                      RecordingOptions const & recordingOptions,
+                      LbapDistanceAttenuationData const & lbapData,
+                      int oscPort,
+                      GrisLookAndFeel & lookAndFeel);
     //==============================================================================
     SettingsComponent() = delete;
     ~SettingsComponent() override = default;
@@ -137,12 +135,10 @@ class SettingsWindow final : public juce::DocumentWindow
 public:
     //==============================================================================
     SettingsWindow(MainContentComponent & parent,
-                   GrisLookAndFeel & grisLookAndFeel,
-                   RecordingFormat recordingFormat,
-                   RecordingConfig recordingConfig,
-                   int attenuationDbIndex,
-                   int attenuationFrequencyIndex,
-                   int oscPort);
+                   RecordingOptions const & recordingOptions,
+                   LbapDistanceAttenuationData const & lbapData,
+                   int oscPort,
+                   GrisLookAndFeel & grisLookAndFeel);
     //==============================================================================
     SettingsWindow() = delete;
     ~SettingsWindow() override = default;

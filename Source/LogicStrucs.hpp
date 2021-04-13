@@ -158,7 +158,7 @@ struct SpatGrisViewSettings {
 //==============================================================================
 using SourcesData = OwnedMap<source_index_t, SourceData>;
 struct SpatGrisProjectData {
-    SourcesData sourcesData{};
+    SourcesData sources{};
     LbapDistanceAttenuationData lbapDistanceAttenuationData{};
     SpatGrisViewSettings viewSettings{};
     CartesianVector cameraPosition{};
@@ -214,7 +214,7 @@ struct SpatGrisAppData {
 using SpeakersData = OwnedMap<output_patch_t, SpeakerData>;
 struct SpatGrisData {
     SpeakersData speakersData{};
-    SpatGrisProjectData projectData{};
+    SpatGrisProjectData project{};
     SpatGrisAppData appData{};
     tl::optional<float> pinkNoiseGain{};
     //==============================================================================

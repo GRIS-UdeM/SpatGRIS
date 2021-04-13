@@ -34,12 +34,10 @@ bool isNotPowerOfTwo(int const value)
 
 //==============================================================================
 SettingsComponent::SettingsComponent(MainContentComponent & parent,
-                                     GrisLookAndFeel & lookAndFeel,
-                                     RecordingFormat const recordingFormat,
-                                     RecordingConfig const recordingConfig,
-                                     int const attenuationDbIndex,
-                                     int const attenuationCutoffIndex,
-                                     int const oscPort)
+                                     RecordingOptions const & recordingOptions,
+                                     LbapDistanceAttenuationData const & lbapData,
+                                     int oscPort,
+                                     GrisLookAndFeel & lookAndFeel)
     : mMainContentComponent(parent)
     , mLookAndFeel(lookAndFeel)
 {
@@ -103,19 +101,19 @@ SettingsComponent::SettingsComponent(MainContentComponent & parent,
     addAndMakeVisible(mOscInputPortTextEditor);
 
     initLabel(mRecFormatLabel);
-    initComboBox(mRecFormatCombo, RECORDING_FORMAT_STRINGS, static_cast<int>(recordingFormat));
+    initComboBox(mRecFormatCombo, RECORDING_FORMAT_STRINGS, static_cast<int>(recordingOptions.format));
 
     initLabel(mRecFileConfigLabel);
-    initComboBox(mRecFileConfigCombo, RECORDING_CONFIG_STRINGS, static_cast<int>(recordingConfig));
+    initComboBox(mRecFileConfigCombo, RECORDING_CONFIG_STRINGS, static_cast<int>(recordingOptions.fileType));
 
     //==============================================================================
     initSectionLabel(mCubeSectionLabel);
 
     initLabel(mDistanceDbLabel);
-    initComboBox(mDistanceDbCombo, ATTENUATION_DB_STRINGS, attenuationDbIndex);
+    initComboBox(mDistanceDbCombo, ATTENUATION_DB_STRINGS, lbapData.attenuation);
 
     initLabel(mDistanceCutoffLabel);
-    initComboBox(mDistanceCutoffCombo, ATTENUATION_FREQUENCY_STRINGS, attenuationCutoffIndex);
+    initComboBox(mDistanceCutoffCombo, ATTENUATION_FREQUENCY_STRINGS, lbapData.freq);
 
     //==============================================================================
     mSaveSettingsButton.setButtonText("Save");
@@ -324,21 +322,13 @@ void SettingsComponent::comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged)
 
 //==============================================================================
 SettingsWindow::SettingsWindow(MainContentComponent & parent,
-                               GrisLookAndFeel & grisLookAndFeel,
-                               RecordingFormat const recordingFormat,
-                               RecordingConfig const recordingConfig,
-                               int const attenuationDbIndex,
-                               int const attenuationFrequencyIndex,
-                               int const oscPort)
+                               RecordingOptions const & recordingOptions,
+                               LbapDistanceAttenuationData const & lbapData,
+                               int oscPort,
+                               GrisLookAndFeel & grisLookAndFeel)
     : juce::DocumentWindow("Settings", grisLookAndFeel.getBackgroundColour(), DocumentWindow::allButtons)
     , mMainContentComponent(parent)
-    , mPropertiesComponent(parent,
-                           grisLookAndFeel,
-                           recordingFormat,
-                           recordingConfig,
-                           attenuationDbIndex,
-                           attenuationFrequencyIndex,
-                           oscPort)
+    , mPropertiesComponent(parent, recordingOptions, lbapData, oscPort, grisLookAndFeel)
 {
     setContentNonOwned(&mPropertiesComponent, true);
     setResizable(false, false);

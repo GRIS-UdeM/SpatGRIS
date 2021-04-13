@@ -416,7 +416,7 @@ juce::XmlElement * SpatGrisProjectData::toXml() const
     auto result{ std::make_unique<juce::XmlElement>(XmlTags::MAIN_TAG) };
 
     auto sources{ std::make_unique<juce::XmlElement>(XmlTags::SOURCES) };
-    for (auto const sourceData : sourcesData) {
+    for (auto const sourceData : sources) {
         sources->addChildElement(sourceData.value->toXml(sourceData.key));
     }
     auto cameraElement{ std::make_unique<juce::XmlElement>(XmlTags::CAMERA) };
@@ -452,7 +452,7 @@ bool SpatGrisProjectData::fromXml(juce::XmlElement const & xml, SpatGrisProjectD
         return false;
     }
 
-    destination.sourcesData.clear();
+    destination.sources.clear();
     forEachXmlChildElement(*sourcesElement, sourceElement)
     {
         jassert(sourceElement);
@@ -461,7 +461,7 @@ bool SpatGrisProjectData::fromXml(juce::XmlElement const & xml, SpatGrisProjectD
             return false;
         }
         auto const sourceIndex{ source_index_t{ sourceElement->getTagName().getIntValue() } };
-        destination.sourcesData.add(sourceIndex, std::make_unique<SourceData>(*sourceData));
+        destination.sources.add(sourceIndex, std::make_unique<SourceData>(*sourceData));
     }
 
     auto const lbapAttenuation{ LbapDistanceAttenuationData::fromXml(*lbapAttenuationElement) };
@@ -551,27 +551,27 @@ AudioConfig SpatGrisData::toAudioConfig() const
 {
     AudioConfig result{};
 
-    for (auto source : projectData.sourcesData) {
+    for (auto source : project.sources) {
         if (source.value->directOut) {
             result.directOutPairs.add(std::make_pair(source.key, *source.value->directOut));
         }
     }
 
     auto const isAtLeastOneSourceSolo{ std::any_of(
-        projectData.sourcesData.cbegin(),
-        projectData.sourcesData.cend(),
+        project.sources.cbegin(),
+        project.sources.cend(),
         [](auto const node) { return node.value->state == PortState::solo; }) };
     auto const isAtLeastOnSpeakerSolo{ std::any_of(speakersData.cbegin(), speakersData.cend(), [](auto const node) {
         return node.value->state == PortState::solo;
     }) };
 
-    result.lbapAttenuationConfig = projectData.lbapDistanceAttenuationData.toConfig(appData.audioSettings.sampleRate);
-    result.masterGain = projectData.masterGain;
+    result.lbapAttenuationConfig = project.lbapDistanceAttenuationData.toConfig(appData.audioSettings.sampleRate);
+    result.masterGain = project.masterGain;
     result.pinkNoiseGain = pinkNoiseGain;
-    for (auto const source : projectData.sourcesData) {
+    for (auto const source : project.sources) {
         result.sourcesAudioConfig.add(source.key, source.value->toConfig(isAtLeastOneSourceSolo));
     }
-    result.spatGainsInterpolation = projectData.spatGainsInterpolation;
+    result.spatGainsInterpolation = project.spatGainsInterpolation;
     for (auto const speaker : speakersData) {
         result.speakersAudioConfig.add(
             speaker.key,
