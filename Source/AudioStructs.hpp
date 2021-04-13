@@ -13,7 +13,7 @@
 #include "ThreadsafePtr.hpp"
 #include "constants.hpp"
 
-enum class VbapDimensions { two, three };
+enum class VbapType { twoD, threeD };
 
 //==============================================================================
 struct SpeakerHighpassState {

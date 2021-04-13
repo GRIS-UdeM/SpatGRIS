@@ -23,7 +23,7 @@ struct SourceData {
     juce::Colour colour{};
     //==============================================================================
     [[nodiscard]] SourceAudioConfig toConfig(bool soloMode) const;
-    [[nodiscard]] juce::XmlElement * toXml(source_index_t index) const;
+    [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml(source_index_t index) const;
     [[nodiscard]] static tl::optional<SourceData> fromXml(juce::XmlElement const & xml);
     //==============================================================================
     struct XmlTags {
@@ -40,7 +40,7 @@ struct SpeakerHighpassData {
     hz_t freq{};
     //==============================================================================
     [[nodiscard]] SpeakerHighpassConfig toConfig(double sampleRate) const;
-    [[nodiscard]] juce::XmlElement * toXml() const;
+    [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
     [[nodiscard]] static tl::optional<SpeakerHighpassData> fromXml(juce::XmlElement const & xml);
     //==============================================================================
     struct XmlTags {
@@ -61,7 +61,7 @@ struct SpeakerData {
     bool isDirectOutOnly{};
     //==============================================================================
     [[nodiscard]] SpeakerAudioConfig toConfig(bool soloMode, double sampleRate) const;
-    [[nodiscard]] juce::XmlElement * toXml(output_patch_t outputPatch) const;
+    [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml(output_patch_t outputPatch) const;
     [[nodiscard]] static tl::optional<SpeakerData> fromXml(juce::XmlElement const & xml);
     //==============================================================================
     struct XmlTags {
@@ -77,7 +77,7 @@ struct LbapDistanceAttenuationData {
     dbfs_t attenuation{};
     //==============================================================================
     [[nodiscard]] LbapAttenuationConfig toConfig(double sampleRate) const;
-    [[nodiscard]] juce::XmlElement * toXml() const;
+    [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
     [[nodiscard]] static tl::optional<LbapDistanceAttenuationData> fromXml(juce::XmlElement const & xml);
     //==============================================================================
     struct XmlTags {
@@ -95,7 +95,7 @@ struct AudioSettings {
     double sampleRate{};
     int bufferSize{};
     //==============================================================================
-    [[nodiscard]] juce::XmlElement * toXml() const;
+    [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
     [[nodiscard]] static tl::optional<AudioSettings> fromXml(juce::XmlElement const & xml);
     //==============================================================================
     struct XmlTags {
@@ -122,7 +122,7 @@ struct RecordingOptions {
     RecordingFormat format{};
     RecordingFileType fileType{};
     //==============================================================================
-    [[nodiscard]] juce::XmlElement * toXml() const;
+    [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
     [[nodiscard]] static tl::optional<RecordingOptions> fromXml(juce::XmlElement const & xml);
     //==============================================================================
     struct XmlTags {
@@ -141,7 +141,7 @@ struct SpatGrisViewSettings {
     bool showSphereOrCube{};
     bool showSourceActivity{};
     //==============================================================================
-    [[nodiscard]] juce::XmlElement * toXml() const;
+    [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
     [[nodiscard]] static tl::optional<SpatGrisViewSettings> fromXml(juce::XmlElement const & xml);
     //==============================================================================
     struct XmlTags {
@@ -163,11 +163,11 @@ struct SpatGrisProjectData {
     SpatGrisViewSettings viewSettings{};
     CartesianVector cameraPosition{};
     int oscPort{ DEFAULT_OSC_INPUT_PORT };
-    float masterGain{};
+    dbfs_t masterGain{};
     float spatGainsInterpolation{};
     //==============================================================================
-    [[nodiscard]] juce::XmlElement * toXml() const;
-    [[nodiscard]] static bool fromXml(juce::XmlElement const & xml, SpatGrisProjectData & destination);
+    [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
+    [[nodiscard]] static tl::optional<SpatGrisProjectData> fromXml(juce::XmlElement const & xml);
     //==============================================================================
     struct XmlTags {
         static juce::String const MAIN_TAG;
@@ -186,14 +186,14 @@ struct SpatGrisAppData {
     juce::String lastSpeakerSetup{};
     juce::String lastProject{};
     juce::String lastRecordingDirectory{};
-    SpatMode lastSpatMode{};
+    SpatMode spatMode{};
     int windowX{};
     int windowY{};
     int windowWidth{};
     int windowHeight{};
     double sashPosition{};
     //==============================================================================
-    [[nodiscard]] juce::XmlElement * toXml() const;
+    [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
     [[nodiscard]] static tl::optional<SpatGrisAppData> fromXml(juce::XmlElement const & xml);
     //==============================================================================
     struct XmlTags {
@@ -212,8 +212,22 @@ struct SpatGrisAppData {
 
 //==============================================================================
 using SpeakersData = OwnedMap<output_patch_t, SpeakerData>;
+
+struct SpeakerSetup {
+    struct XmlTags {
+        static juce::String const MAIN_TAG;
+        static juce::String const SPAT_MODE;
+    };
+
+    SpeakersData speakers{};
+    juce::Array<output_patch_t> order{};
+
+    [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml(SpatMode mode) const;
+    [[nodiscard]] static tl::optional<std::pair<SpeakerSetup, SpatMode>> fromXml(juce::XmlElement const & xml);
+};
+
 struct SpatGrisData {
-    SpeakersData speakersData{};
+    SpeakerSetup speakerSetup{};
     SpatGrisProjectData project{};
     SpatGrisAppData appData{};
     tl::optional<float> pinkNoiseGain{};

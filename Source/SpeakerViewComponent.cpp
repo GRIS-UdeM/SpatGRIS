@@ -115,10 +115,10 @@ void SpeakerViewComponent::render()
         }
     }
 
-    juce::ScopedTryLock const lock{ mMainContentComponent.getSpeakers().getCriticalSection() };
+    juce::ScopedTryLock const lock{ mMainContentComponent.getSpeakerModels().getCriticalSection() };
     if (lock.isLocked()) {
         if (!mHideSpeaker) {
-            for (auto * speaker : mMainContentComponent.getSpeakers()) {
+            for (auto * speaker : mMainContentComponent.getSpeakerModels()) {
                 speaker->draw();
                 if (mShowNumber) {
                     auto posT{ speaker->getCenter() };
@@ -217,7 +217,7 @@ void SpeakerViewComponent::clickRay()
 
     tl::optional<output_patch_t> iBestSpeaker{};
     tl::optional<output_patch_t> selected{};
-    auto const & speakers{ mMainContentComponent.getSpeakers() };
+    auto const & speakers{ mMainContentComponent.getSpeakerModels() };
     juce::ScopedTryLock const lock{ speakers.getCriticalSection() };
     if (lock.isLocked()) {
         for (auto const * speaker : speakers) {

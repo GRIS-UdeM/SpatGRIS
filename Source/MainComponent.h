@@ -75,15 +75,15 @@ class MainContentComponent final
 
     // Speakers.
     juce::Array<Triplet> mTriplets{};
-    OwnedMap<output_patch_t, SpeakerModel> mSpeakers{};
-    juce::Array<output_patch_t> mSpeakersDisplayOrder{};
+    OwnedMap<output_patch_t, SpeakerModel> mSpeakerModels{};
 
     OwnedMap<source_index_t, SourceVuMeterComponent> mSourceVuMeterComponents{};
     OwnedMap<output_patch_t, SpeakerVuMeterComponent> mSpeakerVuMeters{};
 
     // Sources.
-    juce::OwnedArray<InputModel> mInputModels{};
-    juce::CriticalSection mInputsLock{};
+    juce::OwnedArray<InputModel> mSourceModels{};
+
+    juce::CriticalSection mCriticalSection{};
 
     // Open Sound Control.
     std::unique_ptr<OscInput> mOscReceiver{};
@@ -117,7 +117,7 @@ class MainContentComponent final
     std::unique_ptr<juce::Slider> mMasterGainOutSlider{};
     std::unique_ptr<juce::Slider> mInterpolationSlider{};
 
-    std::unique_ptr<juce::TextEditor> mAddInputsTextEditor{};
+    std::unique_ptr<juce::TextEditor> mNumSourcesTextEditor{};
 
     std::unique_ptr<juce::TextButton> mStartRecordButton{};
     std::unique_ptr<juce::TextEditor> mMinRecordTextEditor{};
@@ -171,16 +171,25 @@ public:
     MainContentComponent & operator=(MainContentComponent &&) = delete;
     //==============================================================================
     // Exit application.
-    [[nodiscard]] bool exitApp() const;
+    [[nodiscard]] bool exitApp();
+
+    void refreshVuMeterPeaks();
 
     void refreshSourceVuMeterComponents();
+    void refreshSpeakerVuMeterComponents();
+
+    juce::CriticalSection const & getCriticalSection() const { return mCriticalSection; }
 
     void handleSourceColorChanged(source_index_t sourceIndex, juce::Colour colour) override;
     void handleSourceStateChanged(source_index_t sourceIndex, PortState state) override;
     void handleSpeakerSelected(juce::Array<output_patch_t> selection) override;
     void handleSpeakerStateChanged(output_patch_t outputPatch, PortState state) override;
     void handleSourceDirectOutChanged(source_index_t sourceIndex, tl::optional<output_patch_t> outputPatch) override;
-    [[nodiscard]] SpeakersData const & getSpeakersData() const override { return mData.speakersData; }
+    [[nodiscard]] SpeakersData const & getSpeakersData() const override { return mData.speakerSetup.speakers; }
+
+    void handleSpatModeChanged(SpatMode spatMode);
+    void handleMasterGainChanged(dbfs_t gain);
+    void handleGainInterpolationChanged(float interpolation);
 
     // other
     [[nodiscard]] bool isTripletsShown() const { return mData.project.viewSettings.showSpeakerTriplets; }
@@ -193,17 +202,14 @@ public:
 
     void setNeedToComputeVbap(bool const state) { jassertfalse; }
 
-    void setNumInputs(int numInputs, bool const updateTextInput);
+    void handleNumSourcesChanged(int numSources);
 
     // Speakers.
-    [[nodiscard]] auto & getSpeakers() { return mSpeakers; }
-    [[nodiscard]] auto const & getSpeakers() const { return mSpeakers; }
-    [[nodiscard]] auto const & getSpeakersDisplayOrder() const { return mSpeakersDisplayOrder; }
+    [[nodiscard]] auto & getSpeakerModels() { return mSpeakerModels; }
+    [[nodiscard]] auto const & getSpeakerModels() const { return mSpeakerModels; }
+    [[nodiscard]] auto const & getSpeakersDisplayOrder() const { return mData.speakerSetup.order; }
 
-    [[nodiscard]] SpeakerModel * getSpeakerFromOutputPatch(output_patch_t out);
-    [[nodiscard]] SpeakerModel const * getSpeakerFromOutputPatch(output_patch_t out) const;
-
-    SpeakerModel & addSpeaker();
+    output_patch_t addSpeaker();
     void insertSpeaker(int position);
     void removeSpeaker(output_patch_t outputPatch);
     void setSourceDirectOut(source_index_t const, output_patch_t) const;
@@ -215,10 +221,8 @@ public:
     [[nodiscard]] float getSpeakerAlpha(output_patch_t outputPatch) const;
 
     // Sources.
-    [[nodiscard]] juce::OwnedArray<InputModel> & getSourceInputs() { return mInputModels; }
-    [[nodiscard]] juce::OwnedArray<InputModel> const & getSourceInputs() const { return mInputModels; }
-
-    [[nodiscard]] juce::CriticalSection const & getInputsLock() const { return mInputsLock; }
+    [[nodiscard]] juce::OwnedArray<InputModel> & getSourceInputs() { return mSourceModels; }
+    [[nodiscard]] juce::OwnedArray<InputModel> const & getSourceInputs() const { return mSourceModels; }
 
     [[nodiscard]] bool isRadiusNormalized() const;
 
@@ -228,10 +232,6 @@ public:
     // VBAP triplets.
     [[nodiscard]] juce::Array<Triplet> & getTriplets() { return mTriplets; }
     [[nodiscard]] juce::Array<Triplet> const & getTriplets() const { return mTriplets; }
-
-    // Speaker selections.
-    void selectSpeaker(tl::optional<output_patch_t> outputPatch);
-    void selectTripletSpeaker(output_patch_t outputPatch);
 
     // Mute - solo.
     void setSourceState(source_index_t sourceIndex, PortState state);
@@ -248,7 +248,6 @@ public:
 
     // Open - save.
     void reloadXmlFileSpeaker();
-    void saveProperties(SpatGrisAppData const & appData);
 
     // Screen refresh timer.
     void handleTimer(bool state);
@@ -262,7 +261,6 @@ public:
     void closeOscLogWindow() { mOscLogWindow.reset(); }
 
     [[nodiscard]] auto const & getConfiguration() const { return mConfiguration; }
-    [[nodiscard]] SpatMode getModeSelected() const;
     void setOscLogging(const juce::OSCMessage & message) const;
     void updateSourceData(int sourceDataIndex, InputModel & input) const;
     //==============================================================================
@@ -315,8 +313,8 @@ private:
     // MenuBar handlers.
     void handleNew();
     void handleOpenProject();
-    void handleSaveProject() const;
-    void handleSaveAsProject() const;
+    void handleSaveProject();
+    void handleSaveAsProject();
     void handleOpenSpeakerSetup();
     void handleShowSpeakerEditWindow();
     void handleShowPreferences();
@@ -337,19 +335,17 @@ private:
 
     [[nodiscard]] output_patch_t getMaxSpeakerOutputPatch() const;
     [[nodiscard]] bool tripletExists(Triplet const & tri, int & pos) const;
-    [[nodiscard]] bool validateShowTriplets() const;
     [[nodiscard]] bool isProjectModified() const;
     //==============================================================================
     // Open - save.
-    void openXmlFileSpeaker(juce::File const & file, tl::optional<SpatMode> forceSpatMode = tl::nullopt);
+    void loadSpeakerSetup(juce::File const & file, tl::optional<SpatMode> forceSpatMode = tl::nullopt);
     void openProject(juce::File const & file);
-    void getProjectData(juce::XmlElement * xml) const;
-    void saveProject(juce::String const & path) const;
+    void saveProject(juce::String const & path);
     void saveSpeakerSetup(juce::String const & path);
     void setCurrentSpeakerSetup(juce::File const & file);
     void setTitle() const;
 
-    [[nodiscard]] bool initRecording() const;
+    [[nodiscard]] bool initRecording();
     //==============================================================================
     // OVERRIDES
     void audioParametersChanged() override;

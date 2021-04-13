@@ -265,7 +265,7 @@ void EditSpeakersWindow::initComp()
 
     mSpeakersTableListBox.setMultipleSelectionEnabled(true);
 
-    mNumRows = mMainContentComponent.getSpeakers().size();
+    mNumRows = mMainContentComponent.getSpeakerModels().size();
 
     mListSpeakerBox.setBounds(0, 0, getWidth(), getHeight());
     mListSpeakerBox.correctSize(getWidth() - 8, getHeight());
@@ -346,7 +346,7 @@ void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const 
         jassertfalse;
     };
 
-    auto & speakers{ mMainContentComponent.getSpeakers() };
+    auto & speakers{ mMainContentComponent.getSpeakerModels() };
     std::vector<std::pair<float, speaker_id_t>> valuesToSort{};
     valuesToSort.reserve(narrow<size_t>(speakers.size()));
     std::transform(speakers.cbegin(),
@@ -394,7 +394,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
     auto const tripletState{ mMainContentComponent.isTripletsShown() };
     auto const sortColumnId{ mSpeakersTableListBox.getHeader().getSortColumnId() };
     auto const sortedForwards{ mSpeakersTableListBox.getHeader().isSortedForwards() };
-    auto & speakers{ mMainContentComponent.getSpeakers() };
+    auto & speakers{ mMainContentComponent.getSpeakerModels() };
     auto selectedRow{ getSelectecRow(mSpeakersTableListBox) };
 
     mMainContentComponent.setShowTriplets(false);
@@ -454,7 +454,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         mMainContentComponent.getAudioProcessor().setPinkNoiseActive(mPinkNoiseToggleButton.getToggleState());
     } else if (button->getName().isNotEmpty()
                && (button->getName().getIntValue() >= 0
-                   && button->getName().getIntValue() <= mMainContentComponent.getSpeakers().size())) {
+                   && button->getName().getIntValue() <= mMainContentComponent.getSpeakerModels().size())) {
         // Delete button
         if (mSpeakersTableListBox.getNumSelectedRows() > 1
             && mSpeakersTableListBox.getSelectedRows().contains(button->getName().getIntValue())) {
@@ -542,7 +542,7 @@ void EditSpeakersWindow::textEditorReturnKeyPressed(juce::TextEditor & /*textEdi
 //==============================================================================
 void EditSpeakersWindow::updateWinContent(bool const needToSaveSpeakerSetup)
 {
-    mNumRows = mMainContentComponent.getSpeakers().size();
+    mNumRows = mMainContentComponent.getSpeakerModels().size();
     mSpeakersTableListBox.updateContent();
     if (needToSaveSpeakerSetup) {
         mMainContentComponent.setNeedToSaveSpeakerSetup(true);
@@ -566,7 +566,7 @@ void EditSpeakersWindow::selectSpeaker(tl::optional<speaker_id_t> const id)
         return displayOrder.indexOf(id);
     };
 
-    juce::ScopedLock const lock{ mMainContentComponent.getSpeakers().getCriticalSection() };
+    juce::ScopedLock const lock{ mMainContentComponent.getSpeakerModels().getCriticalSection() };
     selectRow(id.map(getSelectedRow));
 }
 
@@ -637,7 +637,7 @@ void EditSpeakersWindow::resized()
 //==============================================================================
 juce::String EditSpeakersWindow::getText(int const columnNumber, int const rowNumber) const
 {
-    jassert(mMainContentComponent.getSpeakers().size() > rowNumber);
+    jassert(mMainContentComponent.getSpeakerModels().size() > rowNumber);
     auto const & speaker{ getSpeaker(rowNumber) };
     switch (columnNumber) {
     case Cols::X:
@@ -673,11 +673,11 @@ void EditSpeakersWindow::setText(int const columnNumber,
                                  juce::String const & newText,
                                  bool const altDown)
 {
-    juce::ScopedTryLock lock{ mMainContentComponent.getSpeakers().getCriticalSection() };
+    juce::ScopedTryLock lock{ mMainContentComponent.getSpeakerModels().getCriticalSection() };
     if (lock.isLocked()) {
-        if (mMainContentComponent.getSpeakers().size() > rowNumber) {
+        if (mMainContentComponent.getSpeakerModels().size() > rowNumber) {
             auto const selectedRows{ mSpeakersTableListBox.getSelectedRows() };
-            auto & speakers{ mMainContentComponent.getSpeakers() };
+            auto & speakers{ mMainContentComponent.getSpeakerModels() };
             auto & speaker{ getSpeaker(rowNumber) };
 
             switch (columnNumber) {
@@ -849,7 +849,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
                 auto const oldValue{ speaker.getOutputPatch() };
                 auto iValue{ output_patch_t{ std::clamp(newText.getIntValue(), 0, 256) } };
                 if (!speaker.isDirectOut()) {
-                    for (auto const * speaker : mMainContentComponent.getSpeakers()) {
+                    for (auto const * speaker : mMainContentComponent.getSpeakerModels()) {
                         if (speaker == &getSpeaker(rowNumber) || speaker->isDirectOut()) {
                             continue;
                         }
@@ -945,7 +945,7 @@ SpeakerModel & EditSpeakersWindow::getSpeaker(int const rowNum) const
     auto const & speakerDisplayOrder{ mMainContentComponent.getSpeakersDisplayOrder() };
     jassert(rowNum >= 0 && rowNum < speakerDisplayOrder.size());
     auto const speakerId{ speakerDisplayOrder[rowNum] };
-    return mMainContentComponent.getSpeakers().get(speakerId);
+    return mMainContentComponent.getSpeakerModels().get(speakerId);
 }
 
 //==============================================================================
@@ -958,18 +958,18 @@ void EditSpeakersWindow::paintRowBackground(juce::Graphics & g,
 {
     // TODO : fix the real problem and add the assertion back.
     // jassert(rowNumber < mMainContentComponent.getSpeakers().size());
-    if (rowNumber >= mMainContentComponent.getSpeakers().size()) {
+    if (rowNumber >= mMainContentComponent.getSpeakerModels().size()) {
         return;
     }
 
     if (rowIsSelected) {
-        juce::ScopedTryLock const lock{ mMainContentComponent.getSpeakers().getCriticalSection() };
+        juce::ScopedTryLock const lock{ mMainContentComponent.getSpeakerModels().getCriticalSection() };
         if (lock.isLocked()) {
             getSpeaker(rowNumber).selectSpeaker();
         }
         g.fillAll(mLookAndFeel.getHighlightColour());
     } else {
-        juce::ScopedTryLock const lock{ mMainContentComponent.getSpeakers().getCriticalSection() };
+        juce::ScopedTryLock const lock{ mMainContentComponent.getSpeakerModels().getCriticalSection() };
         if (lock.isLocked()) {
             getSpeaker(rowNumber).unSelectSpeaker();
         }

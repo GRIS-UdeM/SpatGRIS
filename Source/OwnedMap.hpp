@@ -25,11 +25,34 @@ private:
     using map_type = juce::HashMap<key_type, Node, ExtendedHashFunctions>;
 
 public:
-    using iterator_type = typename map_type::Iterator;
+    // using iterator_type = typename map_type::Iterator;
+    class iterator_type
+    {
+        map_type::Iterator mMapIterator;
+
+    public:
+        using iterator_category = std::forward_iterator_tag;
+        using difference_type = int;
+        using value_type = Node;
+        using pointer = Node *;
+        using reference = Node &;
+
+        explicit iterator_type(typename map_type::Iterator iterator) : mMapIterator(std::move(iterator)) {}
+
+        value_type operator*() const { return *mMapIterator; }
+
+        iterator_type & operator++()
+        {
+            ++mMapIterator;
+            return *this;
+        }
+
+        bool operator==(iterator_type const & other) const { return !(mMapIterator != other.mMapIterator); }
+        bool operator!=(iterator_type const & other) const { return mMapIterator != other.mMapIterator; }
+    };
 
 private:
     //==============================================================================
-    juce::CriticalSection mCriticalSection;
     juce::OwnedArray<value_type> mItems;
     map_type mMap;
 
@@ -39,9 +62,14 @@ public:
     ~OwnedMap() = default;
     //==============================================================================
     OwnedMap(OwnedMap const &) = delete;
-    OwnedMap(OwnedMap &&) = delete;
+    OwnedMap(OwnedMap && other) noexcept : mItems(std::move(other.mItems)) { mMap.swapWith(other.mMap); }
     OwnedMap & operator=(OwnedMap const &) = delete;
-    OwnedMap & operator=(OwnedMap &&) = delete;
+    OwnedMap & operator=(OwnedMap && other) noexcept
+    {
+        mItems = std::move(other.mItems);
+        mMap.swapWith(other.mMap);
+        return *this;
+    }
     //==============================================================================
     [[nodiscard]] bool contains(key_type const key) const { return mMap.contains(key); }
     [[nodiscard]] int size() const { return mItems.size(); }
@@ -74,14 +102,12 @@ public:
         mMap.remove(key);
     }
     //==============================================================================
-    [[nodiscard]] auto const & getCriticalSection() const { return mCriticalSection; }
-    //==============================================================================
-    [[nodiscard]] iterator_type begin() { return mMap.begin(); }
-    [[nodiscard]] iterator_type end() { return mMap.end(); }
-    [[nodiscard]] iterator_type begin() const { return mMap.begin(); }
-    [[nodiscard]] iterator_type end() const { return mMap.end(); }
-    [[nodiscard]] iterator_type cbegin() const { return mMap.begin(); }
-    [[nodiscard]] iterator_type cend() const { return mMap.end(); }
+    [[nodiscard]] iterator_type begin() { return iterator_type{ mMap.begin() }; }
+    [[nodiscard]] iterator_type end() { return iterator_type{ mMap.end() }; }
+    [[nodiscard]] iterator_type begin() const { return iterator_type{ mMap.begin() }; }
+    [[nodiscard]] iterator_type end() const { return iterator_type{ mMap.end() }; }
+    [[nodiscard]] iterator_type cbegin() const { return iterator_type{ mMap.begin() }; }
+    [[nodiscard]] iterator_type cend() const { return iterator_type{ mMap.end() }; }
     //==============================================================================
     void clear()
     {
