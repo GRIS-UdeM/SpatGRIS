@@ -59,12 +59,13 @@ public:
 
     [[nodiscard]] value_type const & operator[](key_type const key) const { return mBuffers[key]; }
 
-    [[nodiscard]] StaticVector<float const *, CAPACITY>
-        getArrayOfReadPointers(StaticVector<key_type, CAPACITY> const & channels) const
+    [[nodiscard]] juce::Array<float const *> getArrayOfReadPointers(juce::Array<key_type> const & keys) const
     {
-        StaticVector<float const *, CAPACITY> result{};
-        for (auto const key : channels) {
-            result.push_back((*this)[key].getReadPointer(0));
+        JUCE_ASSERT_MESSAGE_THREAD;
+        juce::Array<float const *> result{};
+        result.ensureStorageAllocated(keys.size());
+        for (auto const key : keys) {
+            result.add((*this)[key].getReadPointer(0));
         }
         return result;
     }

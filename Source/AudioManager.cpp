@@ -66,7 +66,7 @@ void AudioManager::audioDeviceIOCallback(float const ** inputChannelData,
     for (int i{}; i < numInputChannelsToCopy; ++i) {
         source_index_t const sourceIndex{ i + 1 };
         auto const * sourceData{ inputChannelData[i] };
-        auto * destinationData{ mInputBuffer.getWritePointer(sourceIndex) };
+        auto * destinationData{ mInputBuffer[sourceIndex].getWritePointer(0) };
         std::copy_n(sourceData, numSamples, destinationData);
     }
 
@@ -76,7 +76,7 @@ void AudioManager::audioDeviceIOCallback(float const ** inputChannelData,
     }
 
     // copy buffers to output
-    mOutputBuffer.copyToPhysicalOutput(outputChannelData, totalNumOutputChannels, numSamples);
+    mOutputBuffer.copyToPhysicalOutput(outputChannelData, totalNumOutputChannels);
 
     // Record
     if (mIsRecording) {
@@ -181,23 +181,24 @@ juce::StringArray AudioManager::getAvailableDeviceTypeNames()
 }
 
 //==============================================================================
-bool AudioManager::prepareToRecord(RecordingOptions const & recordingOptions, SpeakersData const & speakers)
+bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
 {
     static constexpr auto BITS_PER_SAMPLE = 24;
     static constexpr auto RECORD_QUALITY = 0;
 
-    mRecordingParameters.options = recordingOptions;
+    jassert(std::is_sorted(recordingParams.speakersToRecord.begin(), recordingParams.speakersToRecord.end()));
     mNumSamplesRecorded = 0;
     mRecorders.clearQuick(true);
 
     auto * currentAudioDevice{ mAudioDeviceManager.getCurrentAudioDevice() };
+    jassert(currentAudioDevice);
     if (!currentAudioDevice) {
         return false;
     }
 
     // prepare audioFormat
     std::unique_ptr<juce::AudioFormat> audioFormat{};
-    switch (recordingOptions.format) {
+    switch (recordingParams.options.format) {
     case RecordingFormat::aiff:
         audioFormat.reset(new juce::AiffAudioFormat{});
         break;
@@ -208,32 +209,35 @@ bool AudioManager::prepareToRecord(RecordingOptions const & recordingOptions, Sp
     jassert(audioFormat);
 
     // subroutine to build the RecorderInfos
-    auto makeRecordingInfo = [](juce::String const & filePath,
-                                juce::AudioFormat & format,
-                                int const numChannels,
-                                double const recordingSampleRate,
-                                int const recordingBufferSize,
-                                juce::Array<float const *> dataToRecord,
-                                juce::TimeSliceThread & timeSlicedThread) -> std::unique_ptr<RecorderInfo> {
+    static auto const makeRecordingInfo
+        = [](juce::String const & path,
+             juce::AudioFormat & format,
+             double const sampleRate,
+             int const bufferSize,
+             juce::Array<float const *> dataToRecord,
+             juce::TimeSliceThread & timeSlicedThread) -> std::unique_ptr<RecorderInfo> {
         juce::StringPairArray const metaData{}; // lets leave this empty for now
 
-        juce::File const outputFile{ filePath };
+        juce::File const outputFile{ path };
         auto outputStream{ outputFile.createOutputStream() };
+        jassert(outputStream);
         if (!outputStream) {
             return nullptr;
         }
         auto * audioFormatWriter{ format.createWriterFor(outputStream.release(),
-                                                         recordingSampleRate,
-                                                         numChannels,
+                                                         sampleRate,
+                                                         dataToRecord.size(),
                                                          BITS_PER_SAMPLE,
                                                          metaData,
                                                          RECORD_QUALITY) };
+        jassert(audioFormatWriter);
         if (!audioFormatWriter) {
             return nullptr;
         }
-        std::unique_ptr<juce::AudioFormatWriter::ThreadedWriter> threadedWriter{
-            new juce::AudioFormatWriter::ThreadedWriter{ audioFormatWriter, timeSlicedThread, recordingBufferSize }
+        auto threadedWriter{
+            std::make_unique<juce::AudioFormatWriter::ThreadedWriter>(audioFormatWriter, timeSlicedThread, bufferSize)
         };
+        jassert(threadedWriter);
         auto result{ std::make_unique<RecorderInfo>() };
         result->audioFormatWriter = audioFormatWriter;
         result->threadedWriter = std::move(threadedWriter);
@@ -241,51 +245,15 @@ bool AudioManager::prepareToRecord(RecordingOptions const & recordingOptions, Sp
         return result;
     };
 
-    struct ChannelInfo {
-        output_patch_t outputPatch;
-        speaker_id_t speakerId;
-    };
-
-    // Register channel info
-    juce::Array<ChannelInfo> channelInfo{};
-    {
-        juce::ScopedLock const lock{ mSpeakers->getLock() };
-        channelInfo.ensureStorageAllocated(mSpeakers->size());
-        if (mAudioProcessor->getMode() == SpatMode::hrtfVbap) {
-            auto const * const * firstSpeakerIt{ std::find_if(
-                mSpeakers->cbegin(),
-                mSpeakers->cend(),
-                [](SpeakerModel const * speaker) { return speaker->getOutputPatch().get() == 1; }) };
-            auto const * const * secondSpeakerIt{ std::find_if(
-                mSpeakers->cbegin(),
-                mSpeakers->cend(),
-                [](SpeakerModel const * speaker) { return speaker->getOutputPatch().get() == 2; }) };
-            jassert(firstSpeakerIt != mSpeakers->cend() && secondSpeakerIt != mSpeakers->cend());
-            channelInfo.add(ChannelInfo{ output_patch_t{ 1 }, (*firstSpeakerIt)->getSpeakerId() });
-            channelInfo.add(ChannelInfo{ output_patch_t{ 2 }, (*secondSpeakerIt)->getSpeakerId() });
-        } else {
-            channelInfo.resize(mSpeakers->size());
-            std::transform(mSpeakers->cbegin(),
-                           mSpeakers->cend(),
-                           channelInfo.begin(),
-                           [](SpeakerModel const * speaker) {
-                               return ChannelInfo{ speaker->getOutputPatch(), speaker->getSpeakerId() };
-                           });
-            std::sort(channelInfo.begin(), channelInfo.end(), [](ChannelInfo const & a, ChannelInfo const & b) {
-                return a.outputPatch < b.outputPatch;
-            });
-        }
-    }
-
     // Compute file paths
     juce::StringArray filePaths{};
-    auto const baseOutputFile{ juce::File{ recordingOptions.path }.getParentDirectory().getFullPathName() + '/'
-                               + juce::File{ recordingOptions.path }.getFileNameWithoutExtension() };
-    auto const extension{ juce::File{ recordingOptions.path }.getFileExtension() };
-    if (recordingOptions.fileType == RecordingConfig::mono) {
-        filePaths.ensureStorageAllocated(channelInfo.size());
-        for (auto const & info : channelInfo) {
-            auto pathWithoutExtension{ baseOutputFile + juce::String{ info.outputPatch.get() } };
+    auto const baseOutputFile{ juce::File{ recordingParams.path }.getParentDirectory().getFullPathName() + '/'
+                               + juce::File{ recordingParams.path }.getFileNameWithoutExtension() };
+    auto const extension{ juce::File{ recordingParams.path }.getFileExtension() };
+    if (recordingParams.options.fileType == RecordingFileType::mono) {
+        filePaths.ensureStorageAllocated(recordingParams.speakersToRecord.size());
+        for (auto const outputPatch : recordingParams.speakersToRecord) {
+            auto pathWithoutExtension{ baseOutputFile + juce::String{ outputPatch.get() } };
             auto newPath{ pathWithoutExtension + extension };
             while (filePaths.contains(newPath)) {
                 pathWithoutExtension += "-2";
@@ -294,7 +262,7 @@ bool AudioManager::prepareToRecord(RecordingOptions const & recordingOptions, Sp
             filePaths.add(newPath);
         }
     } else {
-        jassert(recordingOptions.fileType == RecordingConfig::interleaved);
+        jassert(recordingParams.options.fileType == RecordingFileType::interleaved);
         filePaths.add(baseOutputFile + extension);
     }
 
@@ -331,18 +299,17 @@ bool AudioManager::prepareToRecord(RecordingOptions const & recordingOptions, Sp
     }
 
     // Make recorders
-    auto const recordingBufferSize{ RECORDERS_BUFFER_SIZE_IN_SAMPLES * channelInfo.size() };
-    if (recordingOptions.fileType == RecordingConfig::mono) {
-        jassert(channelInfo.size() == filePaths.size());
-        for (int i{}; i < channelInfo.size(); ++i) {
-            auto const & speakerId{ channelInfo[i].speakerId };
+    auto const recordingBufferSize{ RECORDERS_BUFFER_SIZE_IN_SAMPLES * recordingParams.speakersToRecord.size() };
+    if (recordingParams.options.fileType == RecordingFileType::mono) {
+        jassert(recordingParams.speakersToRecord.size() == filePaths.size());
+        for (int i{}; i < recordingParams.speakersToRecord.size(); ++i) {
+            auto const outputPatch{ recordingParams.speakersToRecord[i] };
             auto const & filePath{ filePaths[i] };
             juce::Array<float const *> dataToRecord{};
-            dataToRecord.add(mOutputBuffer.getReadPointer(speakerId));
+            dataToRecord.add(mOutputBuffer[outputPatch].getReadPointer(0));
             auto recordingInfo{ makeRecordingInfo(filePath,
                                                   *audioFormat,
-                                                  1,
-                                                  recordingOptions.sampleRate,
+                                                  recordingParams.sampleRate,
                                                   recordingBufferSize,
                                                   std::move(dataToRecord),
                                                   mRecordersThread) };
@@ -352,22 +319,13 @@ bool AudioManager::prepareToRecord(RecordingOptions const & recordingOptions, Sp
             mRecorders.add(std::move(recordingInfo));
         }
     } else {
-        jassert(recordingOptions.fileType == RecordingConfig::interleaved);
+        jassert(recordingParams.options.fileType == RecordingFileType::interleaved);
         jassert(filePaths.size() == 1);
         auto const & filePath{ filePaths[0] };
-        StaticVector<speaker_id_t, MAX_OUTPUTS> speakersToRecord{};
-        speakersToRecord.resize(channelInfo.size());
-        std::transform(channelInfo.begin(), channelInfo.end(), speakersToRecord.begin(), [](ChannelInfo const & info) {
-            return info.speakerId;
-        });
-        auto const staticDataToRecord{ mOutputBuffer.getArrayOfReadPointers(speakersToRecord) };
-        juce::Array<float const *> dataToRecord{};
-        dataToRecord.resize(staticDataToRecord.size());
-        std::copy(staticDataToRecord.cbegin(), staticDataToRecord.cend(), dataToRecord.begin());
+        auto const dataToRecord{ mOutputBuffer.getArrayOfReadPointers(recordingParams.speakersToRecord) };
         auto recordingInfo{ makeRecordingInfo(filePath,
                                               *audioFormat,
-                                              speakersToRecord.size(),
-                                              recordingOptions.sampleRate,
+                                              recordingParams.sampleRate,
                                               recordingBufferSize,
                                               std::move(dataToRecord),
                                               mRecordersThread) };

@@ -1905,21 +1905,22 @@ bool MainContentComponent::initRecording()
         extChoice = "*.aif,*.wav";
     }
 
-    auto const recordingConfig{ mData.appData.recordingOptions.fileType };
+    auto const initialFile{ dir.getFullPathName() + "/recording" + extF };
 
-    juce::FileChooser fc{ "Choose a file to save...", dir.getFullPathName() + "/recording" + extF, extChoice, true };
+    juce::FileChooser fileChooser{ "Choose a file to save...", initialFile, extChoice, true };
 
-    if (!fc.browseForFileToSave(true)) {
+    if (!fileChooser.browseForFileToSave(true)) {
         return false;
     }
+    jassert(!fileChooser.getResults().isEmpty());
 
-    auto const filePath{ fc.getResults().getReference(0) };
-    mData.appData.lastRecordingDirectory = juce::File{ filePath }.getParentDirectory().getFullPathName();
-    RecordingOptions const recordingOptions{ filePath,
-                                             recordingFormat,
-                                             recordingConfig,
-                                             narrow<double>(mSamplingRate) };
-    return AudioManager::getInstance().prepareToRecord(recordingOptions, mSpeakerModels);
+    auto const fileToRecord{ fileChooser.getResults().getReference(0) };
+    mData.appData.lastRecordingDirectory = fileToRecord.getParentDirectory().getFullPathName();
+    AudioManager::RecordingParameters const recordingParams{ fileToRecord.getFullPathName(),
+                                                             mData.appData.recordingOptions,
+                                                             mData.appData.audioSettings.sampleRate,
+                                                             mData.appData.spatMode };
+    return AudioManager::getInstance().prepareToRecord(recordingParams, mData.speakerSetup.speakers);
 }
 
 //==============================================================================

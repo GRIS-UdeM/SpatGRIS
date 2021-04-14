@@ -48,6 +48,7 @@ public:
         juce::String path{};
         RecordingOptions options{};
         double sampleRate{};
+        juce::Array<output_patch_t> speakersToRecord{};
     };
 
 private:
@@ -66,7 +67,8 @@ private:
     juce::Atomic<int64_t> mNumSamplesRecorded{};
     juce::OwnedArray<RecorderInfo> mRecorders{};
     juce::TimeSliceThread mRecordersThread{ "SpatGRIS recording thread" };
-    RecordingParameters mRecordingParameters{};
+    /*RecordingParameters mRecordingParameters{};*/
+    // juce::Array<output_patch_t> mSpeakersToRecord{};
     //==============================================================================
     static std::unique_ptr<AudioManager> mInstance;
 
@@ -86,7 +88,7 @@ public:
 
     void registerAudioProcessor(AudioProcessor * audioProcessor);
 
-    bool prepareToRecord(RecordingOptions const & recordingOptions, SpeakersData const & speakers);
+    bool prepareToRecord(RecordingParameters const & recordingParams);
     void startRecording();
     void stopRecording();
     bool isRecording() const { return mIsRecording; }
