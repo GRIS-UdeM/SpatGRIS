@@ -175,6 +175,8 @@ public:
 
     void refreshVuMeterPeaks();
 
+    auto const & getData() const noexcept { return mData; }
+
     void refreshSourceVuMeterComponents();
     void refreshSpeakerVuMeterComponents();
 

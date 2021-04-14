@@ -25,5 +25,5 @@ struct PolarVector {
         return elevation > other.elevation - tolerance && elevation < other.elevation + tolerance;
     }
 
-    [[nodiscard]] static PolarVector fromCartesian(CartesianVector const & cartesianVector);
+    [[nodiscard]] static PolarVector fromCartesian(CartesianVector const & pos) noexcept;
 };
