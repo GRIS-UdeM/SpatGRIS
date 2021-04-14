@@ -28,7 +28,7 @@ public:
     // using iterator_type = typename map_type::Iterator;
     class iterator_type
     {
-        map_type::Iterator mMapIterator;
+        typename map_type::Iterator mMapIterator;
 
     public:
         using iterator_category = std::forward_iterator_tag;

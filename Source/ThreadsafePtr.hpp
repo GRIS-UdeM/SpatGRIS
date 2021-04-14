@@ -10,7 +10,7 @@ class ThreadsafePtr
 
 public:
     //==============================================================================
-    static Pool<T> pool{};
+    static Pool<T> pool;
     //==============================================================================
     ThreadsafePtr() = default;
 #ifndef NDEBUG

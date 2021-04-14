@@ -1,6 +1,7 @@
 #pragma once
 
 #include "AudioStructs.hpp"
+#include "OwnedMap.hpp"
 
 static constexpr auto DEFAULT_OSC_INPUT_PORT = 18032;
 static constexpr auto MAX_OSC_INPUT_PORT = 65535;

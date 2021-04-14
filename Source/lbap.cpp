@@ -86,13 +86,7 @@ static lbap_layer initLayers(int const layerId, radians_t const elevation, std::
     std::transform(speakers.cbegin(),
                    speakers.cend(),
                    std::back_inserter(result.speakers),
-                   [](lbap_pos const & speaker) {
-                       lbap_pos result{};
-                       result.azimuth = speaker.azimuth;
-                       result.radius = speaker.radius;
-                       fillCartesianFromPolar(result);
-                       return result;
-                   });
+                   [](lbap_pos const & speaker) { return speaker; });
 
     result.amplitudeMatrix.reserve(speakers.size());
     static constexpr matrix_t EMPTY_MATRIX{};

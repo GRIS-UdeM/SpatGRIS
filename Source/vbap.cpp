@@ -4,14 +4,16 @@
  * Updated by belangeo, 2017.
  */
 
+#include "OwnedMap.hpp"
+
 #include "vbap.hpp"
-
-#include "LogicStrucs.hpp"
-
-#include <cstdlib>
-
-#include "StrongTypes.hpp"
-#include "narrow.hpp"
+//
+//#include "LogicStrucs.hpp"
+//
+//#include <cstdlib>
+//
+//#include "StrongTypes.hpp"
+//#include "narrow.hpp"
 
 using fast = juce::dsp::FastMathApproximations;
 
@@ -494,12 +496,12 @@ std::vector<TripletData> computeTriplets(SpeakersData const & speakers) noexcept
     distance_table_j.resize(table_size);
 
     for (auto i_speaker_it{ speakers.cbegin() }; i_speaker_it != speakers.cend(); ++i_speaker_it) {
-        auto const & i_speaker{ *i_speaker_it.getValue().value };
-        auto const i_outputPatch{ i_speaker_it.getKey() };
+        auto const & i_speaker{ *(*i_speaker_it).value };
+        auto const i_outputPatch{ (*i_speaker_it).key };
         for (auto j_speaker_it{ ++SpeakersData::iterator_type{ i_speaker_it } }; j_speaker_it != speakers.cend();
              ++j_speaker_it) {
-            auto const & j_speaker{ *j_speaker_it.getValue().value };
-            auto const j_outputPatch{ j_speaker_it.getKey() };
+            auto const & j_speaker{ *(*j_speaker_it).value };
+            auto const j_outputPatch{ (*j_speaker_it).key };
             if (connections[i_outputPatch][j_outputPatch]) {
                 auto const distance = i_speaker.position.angleWith(j_speaker.position);
                 int k{};
@@ -527,14 +529,10 @@ std::vector<TripletData> computeTriplets(SpeakersData const & speakers) noexcept
         output_patch_t const i_outputPatch{ distance_table_i[i] + 1 };
         output_patch_t const j_outputPatch{ distance_table_j[i] + 1 };
         if (connections[i_outputPatch][j_outputPatch]) {
-            for (auto const * const * j_speaker_it{ speakers.cbegin() }; j_speaker_it < speakers.cend();
-                 ++j_speaker_it) {
-                auto const & j_speaker{ **j_speaker_it };
-                auto const j_outputPatch{ j_speaker.outputPatch };
-                for (auto const * const * k_speaker_it{ speakers.cbegin() + 1 }; k_speaker_it < speakers.cend();
-                     ++k_speaker_it) {
-                    auto const & k_speaker{ **k_speaker_it };
-                    auto const k_outputPatch{ k_speaker.outputPatch };
+            for (auto j_speaker_it{ speakers.cbegin() }; j_speaker_it != speakers.cend(); ++j_speaker_it) {
+                auto const j_outputPatch{ (*j_speaker_it).key };
+                for (auto k_speaker_it{ ++speakers.cbegin() }; k_speaker_it != speakers.cend(); ++k_speaker_it) {
+                    auto const k_outputPatch{ (*k_speaker_it).key };
                     if ((j_outputPatch != i_outputPatch) && (k_outputPatch != j_outputPatch)
                         && (k_outputPatch != i_outputPatch) && (j_outputPatch != j_outputPatch)) {
                         auto const & a{ speakers[i_outputPatch].position };

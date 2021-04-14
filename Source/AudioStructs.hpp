@@ -1,15 +1,11 @@
 #pragma once
 
+#include "lib/tl/optional.hpp"
 #include <JuceHeader.h>
 
-#include "lib/tl/optional.hpp"
-
-#include "OwnedMap.hpp"
 #include "PolarVector.h"
 #include "SpatMode.hpp"
 #include "StaticMap.hpp"
-#include "StaticVector.hpp"
-#include "StrongTypes.hpp"
 #include "ThreadsafePtr.hpp"
 #include "constants.hpp"
 

@@ -6,13 +6,10 @@
 
 #pragma once
 
-#include "LogicStrucs.hpp"
-#include "macros.h"
-DISABLE_WARNINGS
 #include <JuceHeader.h>
-ENABLE_WARNINGS
 
 #include "AudioStructs.hpp"
+#include "LogicStrucs.hpp"
 #include "PolarVector.h"
 #include "StrongTypes.hpp"
 

@@ -40,7 +40,6 @@ ENABLE_WARNINGS
 #include "GrisLookAndFeel.h"
 #include "StrongTypes.hpp"
 #include "VuMeterComponent.h"
-#include "VuMeterModel.h"
 
 class MainContentComponent;
 enum class PortState;
