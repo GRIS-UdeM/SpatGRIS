@@ -602,7 +602,7 @@ AudioConfig SpatGrisData::toAudioConfig() const
 
     result.lbapAttenuationConfig = project.lbapDistanceAttenuationData.toConfig(appData.audioSettings.sampleRate);
     result.masterGain = project.masterGain.toGain();
-    result.pinkNoiseGain = pinkNoiseGain;
+    result.pinkNoiseGain = pinkNoiseLevel.map([](auto const & level) { return level.toGain(); });
     for (auto const source : project.sources) {
         result.sourcesAudioConfig.add(source.key, source.value->toConfig(isAtLeastOneSourceSolo));
     }

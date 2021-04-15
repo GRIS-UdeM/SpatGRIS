@@ -240,7 +240,7 @@ struct SpatGrisData {
     SpeakerSetup speakerSetup{};
     SpatGrisProjectData project{};
     SpatGrisAppData appData{};
-    tl::optional<float> pinkNoiseGain{};
+    tl::optional<dbfs_t> pinkNoiseLevel{};
     //==============================================================================
     [[nodiscard]] AudioConfig toAudioConfig() const;
 };

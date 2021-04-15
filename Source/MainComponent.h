@@ -38,6 +38,7 @@
 #include "SpeakerViewComponent.h"
 #include "StrongTypes.hpp"
 #include "VuMeterComponent.h"
+#include "constants.hpp"
 
 class MainWindow;
 
@@ -174,10 +175,17 @@ public:
     void refreshSourceVuMeterComponents();
     void refreshSpeakerVuMeterComponents();
 
-    juce::CriticalSection const & getCriticalSection() const { return mCriticalSection; }
+    auto const & getCriticalSection() const { return mCriticalSection; }
 
-    void handleSourcePositionChanged(PolarVector const & newPosition, float newAzimuthSpan, float newZenithSpan);
+    void handleSourcePositionChanged(source_index_t sourceIndex,
+                                     PolarVector const & newPosition,
+                                     float newAzimuthSpan,
+                                     float newZenithSpan);
     void resetSourcePosition(source_index_t sourceIndex);
+
+    void handleSpeakerOnlyDirectOutChanged(output_patch_t outputPatch, bool state);
+
+    void handlePinkNoiseGainChanged(tl::optional<dbfs_t> gain);
 
     void handleSourceColorChanged(source_index_t sourceIndex, juce::Colour colour) override;
     void handleSourceStateChanged(source_index_t sourceIndex, PortState state) override;
@@ -189,6 +197,12 @@ public:
     void handleSpatModeChanged(SpatMode spatMode);
     void handleMasterGainChanged(dbfs_t gain);
     void handleGainInterpolationChanged(float interpolation);
+    void handleNewSpeakerPosition(output_patch_t outputPatch, CartesianVector const & position);
+    void handleNewSpeakerPosition(output_patch_t outputPatch, PolarVector const & position);
+
+    void updateAudioProcessor() const;
+
+    void handleSetShowTriplets(bool state);
 
     // other
     [[nodiscard]] bool isTripletsShown() const { return mData.project.viewSettings.showSpeakerTriplets; }
@@ -207,7 +221,7 @@ public:
     [[nodiscard]] auto const & getSpeakersDisplayOrder() const { return mData.speakerSetup.order; }
 
     output_patch_t addSpeaker();
-    void insertSpeaker(int position);
+    output_patch_t insertSpeaker(int position);
     void removeSpeaker(output_patch_t outputPatch);
     void setSourceDirectOut(source_index_t const, output_patch_t) const;
     void reorderSpeakers(juce::Array<output_patch_t> newOrder);

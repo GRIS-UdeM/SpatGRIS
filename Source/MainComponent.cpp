@@ -1131,11 +1131,55 @@ void MainContentComponent::refreshSpeakerVuMeterComponents()
 }
 
 //==============================================================================
+void MainContentComponent::handleSourcePositionChanged(source_index_t const sourceIndex,
+                                                       PolarVector const & newPosition,
+                                                       float const newAzimuthSpan,
+                                                       float const newZenithSpan)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedLock const lock{ mCriticalSection };
+
+    auto & source{ mData.project.sources[sourceIndex] };
+    source.vector = newPosition;
+    source.position = newPosition.toCartesian();
+    source.azimuthSpan = newAzimuthSpan;
+    source.zenithSpan = newZenithSpan;
+
+    auto & audioData{ mAudioProcessor->getAudioData() };
+    auto & queue{ audioData.spatGainMatrix[sourceIndex] };
+    auto & pool{ queue.pool };
+    auto * gains{ pool.acquire() };
+    *gains = mSpatAlgorithm->computeSpeakerGains(source);
+    queue.set(gains);
+    pool.transferPendingObjects();
+}
+
+//==============================================================================
 void MainContentComponent::resetSourcePosition(source_index_t const sourceIndex)
 {
     juce::ScopedLock const lock{ mCriticalSection };
     mData.project.sources[sourceIndex].position = tl::nullopt;
     mData.project.sources[sourceIndex].vector = tl::nullopt;
+}
+
+//==============================================================================
+void MainContentComponent::handleSpeakerOnlyDirectOutChanged(output_patch_t const outputPatch, bool const state)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    auto & val{ mData.speakerSetup.speakers[outputPatch].isDirectOutOnly };
+    if (state != val) {
+        val = state;
+        updateAudioProcessor();
+    }
+}
+
+//==============================================================================
+void MainContentComponent::handlePinkNoiseGainChanged(tl::optional<dbfs_t> const gain)
+{
+    if (gain != mData.pinkNoiseLevel) {
+        mData.pinkNoiseLevel = gain;
+        mAudioProcessor->setAudioConfig(mData.toAudioConfig());
+    }
 }
 
 //==============================================================================
@@ -1241,20 +1285,55 @@ void MainContentComponent::handleMasterGainChanged(dbfs_t const gain)
 //==============================================================================
 void MainContentComponent::handleGainInterpolationChanged(float const interpolation)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
     mData.project.spatGainsInterpolation = interpolation;
     mAudioProcessor->setAudioConfig(mData.toAudioConfig());
     mInterpolationSlider->setValue(interpolation, juce::dontSendNotification);
 }
 
 //==============================================================================
+void MainContentComponent::handleNewSpeakerPosition(output_patch_t const outputPatch, CartesianVector const & position)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    auto & speaker{ mData.speakerSetup.speakers[outputPatch] };
+    speaker.vector = PolarVector::fromCartesian(position);
+    speaker.position = position;
+}
+
+//==============================================================================
+void MainContentComponent::handleNewSpeakerPosition(output_patch_t const outputPatch, PolarVector const & position)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    auto & speaker{ mData.speakerSetup.speakers[outputPatch] };
+    speaker.vector = position;
+    speaker.position = position.toCartesian();
+}
+
+//==============================================================================
+void MainContentComponent::updateAudioProcessor() const
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    mAudioProcessor->setAudioConfig(mData.toAudioConfig());
+}
+
+//==============================================================================
+void MainContentComponent::handleSetShowTriplets(bool const state)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    mData.project.viewSettings.showSpeakerTriplets = state;
+}
+
+//==============================================================================
 void MainContentComponent::setSourceState(source_index_t const sourceIndex, PortState const state)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
     mData.project.sources[sourceIndex].state = state;
 }
 
 //==============================================================================
 void MainContentComponent::setSpeakerState(output_patch_t const outputPatch, PortState const state)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
     mData.speakerSetup.speakers[outputPatch].state = state;
 }
 
@@ -1309,7 +1388,7 @@ output_patch_t MainContentComponent::addSpeaker()
 }
 
 //==============================================================================
-void MainContentComponent::insertSpeaker(int const position)
+output_patch_t MainContentComponent::insertSpeaker(int const position)
 {
     auto const newPosition{ position + 1 };
 
@@ -1320,6 +1399,7 @@ void MainContentComponent::insertSpeaker(int const position)
     jassert(newOutputPatch == lastAppenedOutputPatch);
     order.removeLast();
     order.insert(newPosition, newOutputPatch);
+    return newOutputPatch;
 }
 
 //==============================================================================

@@ -68,7 +68,7 @@ void OscInput::oscMessageReceived(const juce::OSCMessage & message)
 
                 PolarVector const vector{ azimuth, zenith, length };
 
-                mMainContentComponent.handleSourcePositionChanged(vector, azimuthSpan, zenithSpan);
+                mMainContentComponent.handleSourcePositionChanged(, vector, azimuthSpan, zenithSpan);
             }
         }
 

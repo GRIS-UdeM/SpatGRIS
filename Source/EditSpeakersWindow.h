@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include "LogicStrucs.hpp"
 #include "lib/tl/optional.hpp"
 
 #include "macros.h"
@@ -118,7 +119,8 @@ private:
     [[nodiscard]] juce::String getText(int columnNumber, int rowNumber) const;
     void setText(int columnNumber, int rowNumber, juce::String const & newText, bool altDown = false);
     bool isMouseOverDragHandle(juce::MouseEvent const & event);
-    SpeakerModel & getSpeaker(int rowNum) const;
+    SpeakerData const & getSpeakerData(int rowNum) const;
+    [[nodiscard]] output_patch_t getSpeakerOutputPatchForRow(int row) const;
     //==============================================================================
     // VIRTUALS
     [[nodiscard]] int getNumRows() override { return this->mNumRows; }
