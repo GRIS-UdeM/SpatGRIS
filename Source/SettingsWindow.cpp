@@ -36,7 +36,7 @@ bool isNotPowerOfTwo(int const value)
 SettingsComponent::SettingsComponent(MainContentComponent & parent,
                                      RecordingOptions const & recordingOptions,
                                      LbapDistanceAttenuationData const & lbapData,
-                                     int oscPort,
+                                     int const oscPort,
                                      GrisLookAndFeel & lookAndFeel)
     : mMainContentComponent(parent)
     , mLookAndFeel(lookAndFeel)
@@ -101,19 +101,23 @@ SettingsComponent::SettingsComponent(MainContentComponent & parent,
     addAndMakeVisible(mOscInputPortTextEditor);
 
     initLabel(mRecFormatLabel);
-    initComboBox(mRecFormatCombo, RECORDING_FORMAT_STRINGS, static_cast<int>(recordingOptions.format));
+    initComboBox(mRecFormatCombo, RECORDING_FORMAT_STRINGS, narrow<int>(recordingOptions.format) + 1);
 
     initLabel(mRecFileConfigLabel);
-    initComboBox(mRecFileConfigCombo, RECORDING_CONFIG_STRINGS, static_cast<int>(recordingOptions.fileType));
+    initComboBox(mRecFileConfigCombo, RECORDING_CONFIG_STRINGS, narrow<int>(recordingOptions.fileType) + 1);
 
     //==============================================================================
     initSectionLabel(mCubeSectionLabel);
 
+    auto const attenuationDbIndex{ attenuationDbToComboBoxIndex(lbapData.attenuation) };
+    jassert(attenuationDbIndex);
     initLabel(mDistanceDbLabel);
-    initComboBox(mDistanceDbCombo, ATTENUATION_DB_STRINGS, lbapData.attenuation);
+    initComboBox(mDistanceDbCombo, ATTENUATION_DB_STRINGS, attenuationDbIndex.value_or(0));
 
+    auto const attenuationFreqIndex{ attenuationFreqToComboBoxIndex(lbapData.freq) };
+    jassert(attenuationFreqIndex);
     initLabel(mDistanceCutoffLabel);
-    initComboBox(mDistanceCutoffCombo, ATTENUATION_FREQUENCY_STRINGS, lbapData.freq);
+    initComboBox(mDistanceCutoffCombo, ATTENUATION_FREQUENCY_STRINGS, attenuationFreqIndex.value_or(0));
 
     //==============================================================================
     mSaveSettingsButton.setButtonText("Save");
@@ -137,16 +141,7 @@ void SettingsWindow::closeButtonPressed()
 void SettingsComponent::buttonClicked(juce::Button * button)
 {
     if (button == &mSaveSettingsButton) {
-        mMainContentComponent.saveProperties(mDeviceTypeCombo.getText(),
-                                             mInputDeviceCombo.getText(),
-                                             mOutputDeviceCombo.getText(),
-                                             mSampleRateCombo.getText().getIntValue(),
-                                             mBufferSizeCombo.getText().getIntValue(),
-                                             static_cast<RecordingFormat>(mRecFormatCombo.getSelectedItemIndex()),
-                                             static_cast<RecordingConfig>(mRecFileConfigCombo.getSelectedItemIndex()),
-                                             mDistanceDbCombo.getSelectedItemIndex(),
-                                             mDistanceCutoffCombo.getSelectedItemIndex(),
-                                             mOscInputPortTextEditor.getTextValue().toString().getIntValue());
+        jassertfalse; // TODO : should save or something?
         mMainContentComponent.closePropertiesWindow();
     }
 }
@@ -311,9 +306,13 @@ void SettingsComponent::comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged)
         setup.bufferSize = mBufferSizeCombo.getText().getIntValue();
         audioDeviceManager.setAudioDeviceSetup(setup, true);
     } else if (comboBoxThatHasChanged == &mRecFormatCombo) {
+        jassertfalse; // TODO
     } else if (comboBoxThatHasChanged == &mRecFileConfigCombo) {
+        jassertfalse; // TODO
     } else if (comboBoxThatHasChanged == &mDistanceDbCombo) {
+        jassertfalse; // TODO
     } else if (comboBoxThatHasChanged == &mDistanceCutoffCombo) {
+        jassertfalse; // TODO
     } else {
         jassertfalse;
     }
@@ -324,7 +323,7 @@ void SettingsComponent::comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged)
 SettingsWindow::SettingsWindow(MainContentComponent & parent,
                                RecordingOptions const & recordingOptions,
                                LbapDistanceAttenuationData const & lbapData,
-                               int oscPort,
+                               int const oscPort,
                                GrisLookAndFeel & grisLookAndFeel)
     : juce::DocumentWindow("Settings", grisLookAndFeel.getBackgroundColour(), DocumentWindow::allButtons)
     , mMainContentComponent(parent)

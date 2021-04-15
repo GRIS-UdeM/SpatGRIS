@@ -21,11 +21,6 @@
 
 juce::String const Configuration::XmlTags::MAIN_TAG = "SpatGRIS app data";
 
-juce::StringArray const RECORDING_FORMAT_STRINGS{ "WAV", "AIFF" };
-juce::StringArray const RECORDING_CONFIG_STRINGS{ "Multiple Mono Files", "Single Interleaved" };
-juce::StringArray const ATTENUATION_DB_STRINGS{ "0", "-12", "-24", "-36", "-48", "-60", "-72" };
-juce::StringArray const ATTENUATION_FREQUENCY_STRINGS{ "125", "250", "500", "1000", "2000", "4000", "8000", "16000 " };
-
 //==============================================================================
 Configuration::Configuration()
 {
@@ -54,7 +49,7 @@ Configuration::~Configuration()
 void Configuration::save(SpatGrisAppData const & appData) const
 {
     mUserSettings->clear();
-    mUserSettings->setValue(XmlTags::MAIN_TAG, appData.toXml());
+    mUserSettings->setValue(XmlTags::MAIN_TAG, appData.toXml().get());
 }
 
 //==============================================================================

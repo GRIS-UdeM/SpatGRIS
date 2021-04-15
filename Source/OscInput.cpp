@@ -19,7 +19,6 @@
 
 #include "OscInput.h"
 
-#include "InputModel.h"
 #include "MainComponent.h"
 
 //==============================================================================
@@ -56,42 +55,34 @@ void OscInput::oscMessageReceived(const juce::OSCMessage & message)
         if (address == OSC_SPAT_SERV) {
             // int id, float azi [0, 2pi], float ele [0, pi], float azispan [0, 2],
             // float elespan [0, 0.5], float distance [0, 1], float gain [0, 1].
-            auto const idS{ message[0].getInt32() };
-            juce::ScopedLock const lock{ mMainContentComponent.getInputsLock() };
-            if (mMainContentComponent.getSourceInputs().size() > idS) {
-                mMainContentComponent.getSourceInputs()[idS]->updateValues(
-                    radians_t{ message[1].getFloat32() },
-                    radians_t{ message[2].getFloat32() },
-                    message[3].getFloat32(),
-                    message[4].getFloat32(),
-                    mMainContentComponent.isRadiusNormalized() ? 1.0f : message[5].getFloat32(),
-                    message[6].getFloat32(),
-                    mMainContentComponent.getModeSelected());
-                mMainContentComponent.updateSourceData(idS, *mMainContentComponent.getSourceInputs()[idS]);
+            source_index_t const sourceIndex{ message[0].getInt32() };
+            juce::ScopedLock const lock{ mMainContentComponent.getCriticalSection() };
+            auto const & data{ mMainContentComponent.getData() };
+            if (data.project.sources.contains(sourceIndex)) {
+                radians_t const azimuth{ message[1].getFloat32() };
+                radians_t const zenith{ message[2].getFloat32() };
+                auto const azimuthSpan{ message[3].getFloat32() };
+                auto const zenithSpan{ message[4].getFloat32() };
+                auto const length{ message[5].getFloat32() };
+                [[maybe_unused]] auto const gain{ message[6].getFloat32() };
+
+                PolarVector const vector{ azimuth, zenith, length };
+
+                mMainContentComponent.handleSourcePositionChanged(vector, azimuthSpan, zenithSpan);
             }
         }
 
         else if (address == OSC_PAN_AZ) {
             // id, azim, elev, azimSpan, elevSpan, gain (Zirkonium artifact).
-            auto const idS{ message[0].getInt32() };
-            juce::ScopedLock const lock{ mMainContentComponent.getInputsLock() };
-            if (mMainContentComponent.getSourceInputs().size() > idS) {
-                mMainContentComponent.getSourceInputs()[idS]->updateValuesOld(message[1].getFloat32(),
-                                                                              message[2].getFloat32(),
-                                                                              message[3].getFloat32(),
-                                                                              message[4].getFloat32(),
-                                                                              message[5].getFloat32());
-                mMainContentComponent.updateSourceData(idS, *mMainContentComponent.getSourceInputs()[idS]);
-            }
+
+            // DEPRECATED
+            jassertfalse;
         }
     } else if (message[0].isString()) {
-        // string "reset", int voice_to_reset.
-        juce::ScopedLock const lock{ mMainContentComponent.getInputsLock() };
         if (message[0].getString().compare("reset") == 0) {
-            auto const idS{ message[1].getInt32() };
-            if (mMainContentComponent.getSourceInputs().size() > idS) {
-                mMainContentComponent.getSourceInputs()[idS]->resetPosition();
-            }
+            // string "reset", int voice_to_reset.
+            source_index_t const sourceIndex{ message[1].getInt32() };
+            mMainContentComponent.resetSourcePosition(sourceIndex);
         }
     }
 }

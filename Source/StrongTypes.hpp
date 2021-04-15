@@ -76,8 +76,12 @@ public:
 typedef StrongIndex<int, struct SourceIndexT, 1> source_index_t;
 typedef StrongIndex<int, struct OutputPatchT, 1> output_patch_t;
 
+class StrongFloatBase
+{
+};
+
 template<typename T, typename Derived, typename Dummy>
-class StrongFloat
+class StrongFloat : public StrongFloatBase
 {
 protected:
     T mValue;

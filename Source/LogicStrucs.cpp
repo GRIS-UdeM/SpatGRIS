@@ -45,9 +45,6 @@ std::unique_ptr<juce::XmlElement> SourceData::toXml(source_index_t const index) 
     auto result{ std::make_unique<juce::XmlElement>(juce::String{ index.get() }) };
 
     result->setAttribute(XmlTags::STATE, portStateToString(state));
-    result->addChildElement(position.toXml());
-    result->setAttribute(XmlTags::AZIMUTH_SPAN, azimuthSpan);
-    result->setAttribute(XmlTags::ZENITH_SPAN, zenithSpan);
     if (directOut) {
         result->setAttribute(XmlTags::DIRECT_OUT, directOut->get());
     }
@@ -59,10 +56,7 @@ std::unique_ptr<juce::XmlElement> SourceData::toXml(source_index_t const index) 
 //==============================================================================
 tl::optional<SourceData> SourceData::fromXml(juce::XmlElement const & xml)
 {
-    juce::StringArray const requiredTags{ XmlTags::STATE,
-                                          XmlTags::AZIMUTH_SPAN,
-                                          XmlTags::ZENITH_SPAN,
-                                          XmlTags::COLOUR };
+    juce::StringArray const requiredTags{ XmlTags::STATE, XmlTags::COLOUR };
 
     auto const * positionElement{ xml.getChildByName(CartesianVector::XmlTags::MAIN_TAG) };
 
@@ -84,8 +78,6 @@ tl::optional<SourceData> SourceData::fromXml(juce::XmlElement const & xml)
     result.state = *state;
     result.position = *position;
     result.vector = PolarVector::fromCartesian(*position);
-    result.azimuthSpan = xml.getDoubleAttribute(XmlTags::AZIMUTH_SPAN);
-    result.zenithSpan = xml.getDoubleAttribute(XmlTags::ZENITH_SPAN);
     if (xml.hasAttribute(XmlTags::DIRECT_OUT)) {
         result.directOut = output_patch_t{ xml.getIntAttribute(XmlTags::DIRECT_OUT) };
     }

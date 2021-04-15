@@ -212,10 +212,6 @@ MainContentComponent::~MainContentComponent()
     mConfiguration.save(mData.appData);
 
     mSpeakerViewComponent.reset();
-
-    juce::ScopedLock const lock{ mCriticalSection };
-    mSpeakerModels.clear();
-    mSourceModels.clear();
 }
 
 //==============================================================================
@@ -712,8 +708,9 @@ void MainContentComponent::handleShowSphere()
 //==============================================================================
 void MainContentComponent::handleResetInputPositions()
 {
-    for (auto * input : mSourceModels) {
-        input->resetPosition();
+    for (auto const source : mData.project.sources) {
+        source.value->position = tl::nullopt;
+        source.value->vector = tl::nullopt;
     }
 }
 
@@ -1134,6 +1131,14 @@ void MainContentComponent::refreshSpeakerVuMeterComponents()
 }
 
 //==============================================================================
+void MainContentComponent::resetSourcePosition(source_index_t const sourceIndex)
+{
+    juce::ScopedLock const lock{ mCriticalSection };
+    mData.project.sources[sourceIndex].position = tl::nullopt;
+    mData.project.sources[sourceIndex].vector = tl::nullopt;
+}
+
+//==============================================================================
 void MainContentComponent::handleSourceColorChanged(source_index_t const sourceIndex, juce::Colour const colour)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -1321,7 +1326,6 @@ void MainContentComponent::insertSpeaker(int const position)
 void MainContentComponent::removeSpeaker(output_patch_t const outputPatch)
 {
     juce::ScopedLock const lock{ mCriticalSection };
-    mSpeakerModels.remove(outputPatch);
     mSpeakerVuMeters.remove(outputPatch);
     mData.speakerSetup.order.removeFirstMatchingValue(outputPatch);
     mData.speakerSetup.speakers.remove(outputPatch);
@@ -1377,19 +1381,12 @@ void MainContentComponent::handleNumSourcesChanged(int const numSources)
     jassert(numSources >= 1 && numSources <= MAX_INPUTS);
 
     auto const removeSource = [&](source_index_t const index) {
-        auto ** findResult{ std::find_if(mSourceModels.begin(),
-                                         mSourceModels.end(),
-                                         [index](InputModel const * source) { return source->getIndex() == index; }) };
-        jassert(findResult != mSourceModels.end());
-        mSourceModels.removeObject(*findResult);
-
         mSourceVuMeterComponents.remove(index);
         mData.project.sources.remove(index);
     };
 
     auto const addSource = [&](source_index_t const index) {
         mData.project.sources.add(index, std::make_unique<SourceData>());
-        mSourceModels.add(std::make_unique<InputModel>(*this, mSmallLookAndFeel, index));
         mSourceVuMeterComponents.add(
             index,
             std::make_unique<SourceVuMeterComponent>(index, tl::nullopt, juce::Colour{}, *this, mSmallLookAndFeel));
@@ -1397,13 +1394,13 @@ void MainContentComponent::handleNumSourcesChanged(int const numSources)
 
     mNumSourcesTextEditor->setText(juce::String{ numSources }, false);
 
-    if (numSources > mSourceModels.size()) {
+    if (numSources > mData.project.sources.size()) {
         source_index_t const firstNewIndex{ mData.project.sources.size() + 1 };
         source_index_t const lastNewIndex{ numSources };
         for (auto index{ firstNewIndex }; index <= lastNewIndex; ++index) {
             addSource(index);
         }
-    } else if (numSources < mSourceModels.size()) {
+    } else if (numSources < mData.project.sources.size()) {
         // remove some inputs
         while (mData.project.sources.size() > numSources) {
             source_index_t const index{ mData.project.sources.size() };
@@ -1916,11 +1913,32 @@ bool MainContentComponent::initRecording()
 
     auto const fileToRecord{ fileChooser.getResults().getReference(0) };
     mData.appData.lastRecordingDirectory = fileToRecord.getParentDirectory().getFullPathName();
+
+    auto const getSpeakersToRecord = [&]() {
+        juce::Array<output_patch_t> result{};
+        switch (mData.appData.spatMode) {
+        case SpatMode::lbap:
+        case SpatMode::vbap:
+            result = mData.speakerSetup.order;
+            result.sort();
+            break;
+        case SpatMode::hrtfVbap:
+        case SpatMode::stereo:
+            result.add(output_patch_t{ 1 });
+            result.add(output_patch_t{ 2 });
+            break;
+        }
+
+        return result;
+    };
+
+    auto speakersToRecord{ getSpeakersToRecord() };
+
     AudioManager::RecordingParameters const recordingParams{ fileToRecord.getFullPathName(),
                                                              mData.appData.recordingOptions,
                                                              mData.appData.audioSettings.sampleRate,
-                                                             mData.appData.spatMode };
-    return AudioManager::getInstance().prepareToRecord(recordingParams, mData.speakerSetup.speakers);
+                                                             std::move(speakersToRecord) };
+    return AudioManager::getInstance().prepareToRecord(recordingParams);
 }
 
 //==============================================================================
@@ -1959,14 +1977,14 @@ void MainContentComponent::resized()
                                                      getWidth() - (mSpeakerViewComponent->getWidth() + PADDING),
                                                      231 };
     mInputsUiBox->setBounds(newInputsUiBoxBounds);
-    mInputsUiBox->correctSize(mSourceModels.size() * VU_METER_WIDTH_IN_PIXELS + 4, 200);
+    mInputsUiBox->correctSize(mData.project.sources.size() * VU_METER_WIDTH_IN_PIXELS + 4, 200);
 
     juce::Rectangle<int> const newOutputsUiBoxBounds{ 0,
                                                       233,
                                                       getWidth() - (mSpeakerViewComponent->getWidth() + PADDING),
                                                       210 };
     mOutputsUiBox->setBounds(newOutputsUiBoxBounds);
-    mOutputsUiBox->correctSize(mSpeakerModels.size() * VU_METER_WIDTH_IN_PIXELS + 4, 180);
+    mOutputsUiBox->correctSize(mData.speakerSetup.speakers.size() * VU_METER_WIDTH_IN_PIXELS + 4, 180);
 
     juce::Rectangle<int> const newControlUiBoxBounds{ 0,
                                                       443,

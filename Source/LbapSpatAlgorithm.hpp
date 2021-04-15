@@ -12,4 +12,10 @@ class LbapSpatAlgorithm final : public AbstractSpatAlgorithm
 public:
     void init(SpeakersData const & speakers) override;
     [[nodiscard]] SpeakersSpatGains computeSpeakerGains(SourceData const & source) const noexcept override;
+    [[nodiscard]] bool hasTriplets() const override { return false; }
+    [[nodiscard]] juce::Array<Triplet> getTriplets() const override
+    {
+        jassertfalse;
+        return juce::Array<Triplet>{};
+    }
 };

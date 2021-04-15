@@ -18,7 +18,7 @@ static float constexpr ANGLE_TO_RADIAN = juce::MathConstants<float>::twoPi / 360
 
 /* A struct for a loudspeaker triplet or pair (set). */
 struct SpeakerSet {
-    std::array<output_patch_t, 3> speakerNos{};
+    Triplet speakerNos{};
     std::array<float, 9> invMx{};
     std::array<float, 3> setGains{};
     float smallestWt{};
@@ -51,14 +51,4 @@ SpeakersSpatGains vbap2_flip_y_z(degrees_t azimuth,
                                  float spElevation,
                                  VbapData * data) noexcept;
 
-struct SpeakerTriplet {
-    output_patch_t patch1{};
-    output_patch_t patch2{};
-    output_patch_t patch3{};
-    //==============================================================================
-    [[nodiscard]] bool contains(output_patch_t const patch) const noexcept
-    {
-        return patch == patch1 || patch == patch2 || patch == patch3;
-    }
-};
-juce::Array<SpeakerTriplet> vbap_get_triplets(VbapData const & data);
+juce::Array<Triplet> vbap_get_triplets(VbapData const & data);

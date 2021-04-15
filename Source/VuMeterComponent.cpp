@@ -21,7 +21,6 @@
 
 #include "LogicStrucs.hpp"
 #include "MainComponent.h"
-#include "SpeakerModel.h"
 
 //==============================================================================
 LevelBox::LevelBox(SmallGrisLookAndFeel & lookAndFeel) : mLookAndFeel(lookAndFeel)
@@ -214,7 +213,7 @@ void SpeakerVuMeterComponent::buttonClicked(juce::Button * button)
         auto const newState{ mSoloToggleButton.getToggleState() ? PortState::solo : PortState::normal };
         mOwner.handleSpeakerStateChanged(mOutputPatch, newState);
     } else if (button == &mIdButton) {
-        mOwner.handleSpeakerSelected(mOutputPatch, true);
+        mOwner.handleSpeakerSelected(mOutputPatch);
     }
 }
 

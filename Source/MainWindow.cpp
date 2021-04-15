@@ -47,14 +47,14 @@ MainWindow::MainWindow(juce::String const & name,
 
     auto const screenBounds = juce::Desktop::getInstance().getDisplays().getTotalBounds(true);
 
-    auto const & configuration{ mMainContentComponent->getConfiguration() };
-    auto const windowX{ configuration.getWindowX() };
+    auto const & appData{ mMainContentComponent->getData().appData };
+    auto const windowX{ appData.windowX };
     if (windowX != -1) {
-        auto const windowWidth{ configuration.getWindowWidth() };
+        auto const windowWidth{ appData.windowWidth };
         auto const fitInside{ windowX + windowWidth <= screenBounds.getWidth() };
         if (fitInside) {
-            auto const windowY{ configuration.getWindowY() };
-            auto const windowHeight{ configuration.getWindowHeight() };
+            auto const windowY{ appData.windowY };
+            auto const windowHeight{ appData.windowHeight };
             setBounds(windowX - X_OFFSET, windowY - Y_OFFSET, windowWidth, windowHeight);
         } else {
             centreWithSize(getWidth(), getHeight());
@@ -71,11 +71,12 @@ MainWindow::MainWindow(juce::String const & name,
 //==============================================================================
 bool MainWindow::exitWinApp() const
 {
-    auto const & configuration{ mMainContentComponent->getConfiguration() };
-    configuration.setWindowX(getScreenX());
-    configuration.setWindowY(getScreenY());
-    configuration.setWindowWidth(getWidth());
-    configuration.setWindowHeight(getHeight());
+    jassertfalse; // TODO : save window screen position
+    // auto const & configuration{ mMainContentComponent->getConfiguration() };
+    // configuration.setWindowX(getScreenX());
+    // configuration.setWindowY(getScreenY());
+    // configuration.setWindowWidth(getWidth());
+    // configuration.setWindowHeight(getHeight());
 
     return mMainContentComponent->exitApp();
 }

@@ -24,6 +24,12 @@
 #include "GlSphere.h"
 #include "MainComponent.h"
 
+glm::vec3 const SpeakerViewComponent::COLOR_SPEAKER{ 0.87f, 0.87f, 0.87f };
+glm::vec3 const SpeakerViewComponent::COLOR_DIRECT_OUT_SPEAKER{ 0.25f, 0.25f, 0.25f };
+glm::vec3 const SpeakerViewComponent::COLOR_SPEAKER_SELECT{ 1.00f, 0.64f, 0.09f };
+glm::vec3 const SpeakerViewComponent::SIZE_SPEAKER{ 0.5f, 0.5f, 0.5f };
+glm::vec3 const SpeakerViewComponent::DEFAULT_CENTER{ 0.0f, 0.0f, 0.0f };
+
 //==============================================================================
 void SpeakerViewComponent::initialise()
 {
@@ -94,7 +100,6 @@ void SpeakerViewComponent::render()
 
     glLoadIdentity();
     gluLookAt(camPos.x, camPos.y, camPos.z, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-    mCamPos = glm::vec3{ camPos.x, camPos.y, camPos.z };
 
     drawOriginGrid();
 
@@ -103,10 +108,13 @@ void SpeakerViewComponent::render()
     auto const & data{ mMainContentComponent.getData() };
 
     for (auto const source : data.project.sources) {
+        if (!source.value->position) {
+            continue;
+        }
         drawSource(*source.value, data.appData.spatMode);
         if (mShowNumber) {
             // Show number
-            auto position{ source.value->position };
+            auto position{ *source.value->position };
             position.y += SIZE_SPEAKER.y + 0.4f;
             drawText(juce::String{ source.key.get() }, position, juce::Colours::black, 0.003f, true);
         }
@@ -211,31 +219,35 @@ void SpeakerViewComponent::clickRay()
 
     tl::optional<output_patch_t> iBestSpeaker{};
     tl::optional<output_patch_t> selected{};
-    auto const & speakers{ mMainContentComponent.getSpeakerModels() };
+    auto const & speakers{ mMainContentComponent.getData().speakerSetup.speakers };
     // TODO : take lock
-    for (auto const speaker : mMainContentComponent.getData().speakerSetup.speakers) {
+    for (auto const speaker : speakers) {
         if (speaker.value->isSelected) {
             selected = speaker.key;
         }
         if (rayCast(*speaker.value) != -1) {
             if (!iBestSpeaker) {
-                iBestSpeaker = speaker->getOutputPatch();
+                iBestSpeaker = speaker.key;
             } else {
-                if (speakerNearCam(speaker->getCenter(), speakers[*iBestSpeaker].getCenter())) {
-                    iBestSpeaker = speaker->getOutputPatch();
+                if (speakerNearCam(speaker.value->position, speakers[*iBestSpeaker].position)) {
+                    iBestSpeaker = speaker.key;
                 }
             }
         }
     }
 
+    juce::Array<output_patch_t> selection{};
+    if (iBestSpeaker) {
+        selection.add(*iBestSpeaker);
+    }
     if (mControlOn && iBestSpeaker) {
-        mMainContentComponent.selectTripletSpeaker(*iBestSpeaker);
+        mMainContentComponent.handleSpeakerSelected(selection);
     } else {
-        if (!iBestSpeaker) {
-            iBestSpeaker = selected;
+        if (!iBestSpeaker && selected) {
+            selection.add(*selected);
         }
 
-        mMainContentComponent.selectSpeaker(iBestSpeaker);
+        mMainContentComponent.handleSpeakerSelected(selection);
     }
 
     mControlOn = false;
@@ -244,8 +256,9 @@ void SpeakerViewComponent::clickRay()
 //==============================================================================
 void SpeakerViewComponent::mouseDown(const juce::MouseEvent & e)
 {
-    mDeltaClickX = mCamAngleX - e.getPosition().x / mSlowDownFactor;
-    mDeltaClickY = mCamAngleY - e.getPosition().y / mSlowDownFactor;
+    // TODO : this used cam angle before : why?
+    mDeltaClickX = mCamVector.azimuth.get() - e.getPosition().x / mSlowDownFactor;
+    mDeltaClickY = mCamVector.elevation.get() - e.getPosition().y / mSlowDownFactor;
 
     // Always check on which display the speaker view component is.
     mDisplayScaling = juce::Desktop::getInstance().getDisplays().getDisplayForPoint(e.getScreenPosition())->scale;
@@ -256,25 +269,27 @@ void SpeakerViewComponent::mouseDown(const juce::MouseEvent & e)
         mClickLeft = true;
         mControlOn = e.mods.isCtrlDown();
     } else if (e.mods.isRightButtonDown()) {
-        mMainContentComponent.selectSpeaker(tl::nullopt);
+        mMainContentComponent.handleSpeakerSelected(juce::Array<output_patch_t>{});
     }
 }
 
 //==============================================================================
 void SpeakerViewComponent::mouseDrag(const juce::MouseEvent & e)
 {
+    static constexpr radians_t NEARLY_90_DEG{ degrees_t{ 89.99f } };
+
     if (e.mods.isLeftButtonDown()) {
-        mCamAngleX = e.getPosition().x / mSlowDownFactor + mDeltaClickX;
-        mCamAngleY = e.getPosition().y / mSlowDownFactor + mDeltaClickY;
-        mCamAngleY = mCamAngleY < -89.99f ? -89.99f : mCamAngleY > 89.99f ? 89.99f : mCamAngleY;
+        mCamVector.azimuth = radians_t{ e.getPosition().x / mSlowDownFactor + mDeltaClickX };
+        mCamVector.elevation = std::clamp(radians_t{ e.getPosition().y / mSlowDownFactor + mDeltaClickY },
+                                          -NEARLY_90_DEG,
+                                          NEARLY_90_DEG);
     }
 }
 
 //==============================================================================
 void SpeakerViewComponent::mouseWheelMove(const juce::MouseEvent & /*e*/, const juce::MouseWheelDetails & wheel)
 {
-    mDistance -= wheel.deltaY * SCROLL_WHEEL_SPEED_MOUSE;
-    mDistance = std::clamp(mDistance, 1.0f, 70.f);
+    mCamVector.length -= std::clamp(wheel.deltaY * SCROLL_WHEEL_SPEED_MOUSE, 1.0f, 70.0f);
 }
 
 //==============================================================================
@@ -332,7 +347,7 @@ void SpeakerViewComponent::drawOriginGrid() const
     glLineWidth(1.5f);
 
     // Squares & circles
-    auto const spatMode{ mMainContentComponent.getModeSelected() };
+    auto const spatMode{ mMainContentComponent.getData().appData.spatMode };
     if (spatMode == SpatMode::lbap) {
         // light grey
         glColor3f(0.59f, 0.59f, 0.59f);
@@ -490,6 +505,10 @@ void SpeakerViewComponent::drawSource(SourceData const & source, SpatMode const 
 {
     static auto constexpr ALPHA{ 0.75f };
 
+    if (!source.position) {
+        return;
+    }
+
     // If isSourceLevelShown is on and alpha below 0.01, don't draw.
     if (mMainContentComponent.isSourceLevelShown() && getAlpha() <= 0.01f) {
         return;
@@ -497,7 +516,7 @@ void SpeakerViewComponent::drawSource(SourceData const & source, SpatMode const 
 
     // Draw 3D sphere.
     glPushMatrix();
-    auto const & pos{ source.position };
+    auto const & pos{ *source.position };
     glTranslatef(pos.x, pos.y, pos.z);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glLineWidth(2.0f);
@@ -542,14 +561,19 @@ void SpeakerViewComponent::drawVbapSpan(SourceData const & source)
 {
     static auto constexpr NUM{ 8 };
 
+    if (!source.vector) {
+        return;
+    }
+
     glPointSize(4);
     glBegin(GL_POINTS);
 
-    auto const & azimuth{ source.vector.azimuth };
-    auto const & elevation{ source.vector.elevation };
+    auto const & azimuth{ source.vector->azimuth };
+    auto const & elevation{ source.vector->elevation };
+    auto const & length{ source.vector->length };
 
     for (int i{}; i < NUM; ++i) {
-        auto const aziDev{ source.vector.azimuth * narrow<float>(i) * 0.5f * 0.42f };
+        auto const aziDev{ azimuth * narrow<float>(i) * 0.5f * 0.42f };
         for (int j{}; j < 2; ++j) {
             auto newAzimuth{ j ? azimuth + aziDev : azimuth - aziDev };
 
@@ -557,7 +581,7 @@ void SpeakerViewComponent::drawVbapSpan(SourceData const & source)
 
             {
                 auto const vertex{
-                    PolarVector{ newAzimuth, source.vector.elevation, source.vector.length * MAX_RADIUS }.toCartesian()
+                    PolarVector{ newAzimuth, elevation, source.vector->length * MAX_RADIUS }.toCartesian()
                 };
                 glVertex3f(vertex.x, vertex.y, vertex.z);
             }
@@ -566,9 +590,7 @@ void SpeakerViewComponent::drawVbapSpan(SourceData const & source)
                 for (int l{}; l < 2; ++l) {
                     auto newElevation{ l ? elevation + eleDev : elevation - eleDev };
                     newElevation = std::clamp(newElevation, radians_t{}, HALF_PI);
-                    auto const vertex{
-                        PolarVector{ newAzimuth, newElevation, source.vector.length * MAX_RADIUS }.toCartesian()
-                    };
+                    auto const vertex{ PolarVector{ newAzimuth, newElevation, length * MAX_RADIUS }.toCartesian() };
                     glVertex3f(vertex.x, vertex.y, vertex.z);
                 }
             }
@@ -584,10 +606,14 @@ void SpeakerViewComponent::drawLbapSpan(SourceData const & source)
 {
     static auto constexpr NUM = 4;
 
+    if (!source.position) {
+        return;
+    }
+
     glPointSize(4);
     glBegin(GL_POINTS);
 
-    auto const & pos{ source.position };
+    auto const & pos{ *source.position };
 
     // For the same elevation as the source position.
     for (auto i{ 1 }; i <= NUM; ++i) {
@@ -716,41 +742,43 @@ void SpeakerViewComponent::drawSpeaker(SpeakerData const & speaker) const
         glLineWidth(4.0f);
         glBegin(GL_LINES);
 
-        glVertex3f(vertexMin.x - OVER, vertexMin.y - OVER, vertexMin.z - OVER);
-        glVertex3f(vertexMin.x - OVER, vertexMin.y - OVER, vertexMax.z + OVER);
+        jassertfalse;
+        // TODO : what does OVER mean?
+        // glVertex3f(vertexMin.x - OVER, vertexMin.y - OVER, vertexMin.z - OVER);
+        // glVertex3f(vertexMin.x - OVER, vertexMin.y - OVER, vertexMax.z + OVER);
 
-        glVertex3f(vertexMax.x + OVER, vertexMin.y - OVER, vertexMin.z - OVER);
-        glVertex3f(vertexMax.x + OVER, vertexMin.y - OVER, vertexMax.z + OVER);
+        // glVertex3f(vertexMax.x + OVER, vertexMin.y - OVER, vertexMin.z - OVER);
+        // glVertex3f(vertexMax.x + OVER, vertexMin.y - OVER, vertexMax.z + OVER);
 
-        glVertex3f(vertexMax.x + OVER, vertexMax.y + OVER, vertexMin.z - OVER);
-        glVertex3f(vertexMax.x + OVER, vertexMax.y + OVER, vertexMax.z + OVER);
+        // glVertex3f(vertexMax.x + OVER, vertexMax.y + OVER, vertexMin.z - OVER);
+        // glVertex3f(vertexMax.x + OVER, vertexMax.y + OVER, vertexMax.z + OVER);
 
-        glVertex3f(vertexMin.x - OVER, vertexMax.y + OVER, vertexMin.z - OVER);
-        glVertex3f(vertexMin.x - OVER, vertexMax.y + OVER, vertexMax.z + OVER);
+        // glVertex3f(vertexMin.x - OVER, vertexMax.y + OVER, vertexMin.z - OVER);
+        // glVertex3f(vertexMin.x - OVER, vertexMax.y + OVER, vertexMax.z + OVER);
 
-        glVertex3f(vertexMin.x - OVER, vertexMin.y - OVER, vertexMin.z - OVER);
-        glVertex3f(vertexMax.x + OVER, vertexMin.y - OVER, vertexMin.z - OVER);
+        // glVertex3f(vertexMin.x - OVER, vertexMin.y - OVER, vertexMin.z - OVER);
+        // glVertex3f(vertexMax.x + OVER, vertexMin.y - OVER, vertexMin.z - OVER);
 
-        glVertex3f(vertexMin.x - OVER, vertexMin.y - OVER, vertexMax.z + OVER);
-        glVertex3f(vertexMax.x + OVER, vertexMin.y - OVER, vertexMax.z + OVER);
+        // glVertex3f(vertexMin.x - OVER, vertexMin.y - OVER, vertexMax.z + OVER);
+        // glVertex3f(vertexMax.x + OVER, vertexMin.y - OVER, vertexMax.z + OVER);
 
-        glVertex3f(vertexMin.x - OVER, vertexMax.y + OVER, vertexMin.z - OVER);
-        glVertex3f(vertexMax.x + OVER, vertexMax.y + OVER, vertexMin.z - OVER);
+        // glVertex3f(vertexMin.x - OVER, vertexMax.y + OVER, vertexMin.z - OVER);
+        // glVertex3f(vertexMax.x + OVER, vertexMax.y + OVER, vertexMin.z - OVER);
 
-        glVertex3f(vertexMin.x - OVER, vertexMax.y + OVER, vertexMax.z + OVER);
-        glVertex3f(vertexMax.x + OVER, vertexMax.y + OVER, vertexMax.z + OVER);
+        // glVertex3f(vertexMin.x - OVER, vertexMax.y + OVER, vertexMax.z + OVER);
+        // glVertex3f(vertexMax.x + OVER, vertexMax.y + OVER, vertexMax.z + OVER);
 
-        glVertex3f(vertexMin.x - OVER, vertexMin.y - OVER, vertexMin.z - OVER);
-        glVertex3f(vertexMin.x - OVER, vertexMax.y + OVER, vertexMin.z - OVER);
+        // glVertex3f(vertexMin.x - OVER, vertexMin.y - OVER, vertexMin.z - OVER);
+        // glVertex3f(vertexMin.x - OVER, vertexMax.y + OVER, vertexMin.z - OVER);
 
-        glVertex3f(vertexMin.x - OVER, vertexMin.y - OVER, vertexMax.z + OVER);
-        glVertex3f(vertexMin.x - OVER, vertexMax.y + OVER, vertexMax.z + OVER);
+        // glVertex3f(vertexMin.x - OVER, vertexMin.y - OVER, vertexMax.z + OVER);
+        // glVertex3f(vertexMin.x - OVER, vertexMax.y + OVER, vertexMax.z + OVER);
 
-        glVertex3f(vertexMax.x + OVER, vertexMin.y - OVER, vertexMin.z - OVER);
-        glVertex3f(vertexMax.x + OVER, vertexMax.y + OVER, vertexMin.z - OVER);
+        // glVertex3f(vertexMax.x + OVER, vertexMin.y - OVER, vertexMin.z - OVER);
+        // glVertex3f(vertexMax.x + OVER, vertexMax.y + OVER, vertexMin.z - OVER);
 
-        glVertex3f(vertexMax.x + OVER, vertexMin.y - OVER, vertexMax.z + OVER);
-        glVertex3f(vertexMax.x + OVER, vertexMax.y + OVER, vertexMax.z + OVER);
+        // glVertex3f(vertexMax.x + OVER, vertexMin.y - OVER, vertexMax.z + OVER);
+        // glVertex3f(vertexMax.x + OVER, vertexMax.y + OVER, vertexMax.z + OVER);
 
         glEnd();
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -767,37 +795,44 @@ void SpeakerViewComponent::drawSpeaker(SpeakerData const & speaker) const
 }
 
 //==============================================================================
-float SpeakerViewComponent::rayCast(SpeakerData const & speaker) const
+float SpeakerViewComponent::rayCast(SpeakerData const & /*speaker*/) const
 {
-    auto const t1{ (speaker->getMin().x - mRay.getPosition().x) / mRay.getNormal().x };
-    auto const t2{ (speaker->getMax().x - mRay.getPosition().x) / mRay.getNormal().x };
-    auto const t3{ (speaker->getMin().y - mRay.getPosition().y) / mRay.getNormal().y };
-    auto const t4{ (speaker->getMax().y - mRay.getPosition().y) / mRay.getNormal().y };
-    auto const t5{ (speaker->getMin().z - mRay.getPosition().z) / mRay.getNormal().z };
-    auto const t6{ (speaker->getMax().z - mRay.getPosition().z) / mRay.getNormal().z };
+    // TODO
 
-    auto const tMin{ std::max(std::max(std::min(t1, t2), std::min(t3, t4)), std::min(t5, t6)) };
-    auto const tMax{ std::min(std::min(std::max(t1, t2), std::max(t3, t4)), std::max(t5, t6)) };
+    jassertfalse;
+    return -1.0f;
 
-    // if tMax < 0, ray (line) is intersecting AABB, but whole AABB is behind us
-    if (tMax < 0) {
-        return -1;
-    }
+    // auto const t1{ (speaker->getMin().x - mRay.getPosition().x) / mRay.getNormal().x };
+    // auto const t2{ (speaker->getMax().x - mRay.getPosition().x) / mRay.getNormal().x };
+    // auto const t3{ (speaker->getMin().y - mRay.getPosition().y) / mRay.getNormal().y };
+    // auto const t4{ (speaker->getMax().y - mRay.getPosition().y) / mRay.getNormal().y };
+    // auto const t5{ (speaker->getMin().z - mRay.getPosition().z) / mRay.getNormal().z };
+    // auto const t6{ (speaker->getMax().z - mRay.getPosition().z) / mRay.getNormal().z };
 
-    // if tMin > tMax, ray doesn't intersect AABB
-    if (tMin > tMax) {
-        return -1;
-    }
+    // auto const tMin{ std::max(std::max(std::min(t1, t2), std::min(t3, t4)), std::min(t5, t6)) };
+    // auto const tMax{ std::min(std::min(std::max(t1, t2), std::max(t3, t4)), std::max(t5, t6)) };
 
-    if (tMin < 0.0f) {
-        return tMax;
-    }
-    return tMin;
+    //// if tMax < 0, ray (line) is intersecting AABB, but whole AABB is behind us
+    // if (tMax < 0) {
+    //    return -1;
+    //}
+
+    //// if tMin > tMax, ray doesn't intersect AABB
+    // if (tMin > tMax) {
+    //    return -1;
+    //}
+
+    // if (tMin < 0.0f) {
+    //    return tMax;
+    //}
+    // return tMin;
 }
 
 //==============================================================================
-bool SpeakerViewComponent::speakerNearCam(glm::vec3 const speak1, glm::vec3 const speak2) const
+bool SpeakerViewComponent::speakerNearCam(CartesianVector const & speak1, CartesianVector const & speak2) const
 {
-    return (std::sqrt(exp2(speak1.x - mCamPos.x) + exp2(speak1.y - mCamPos.y) + exp2(speak1.z - mCamPos.z))
-            <= std::sqrt(std::exp2(speak2.x - mCamPos.x) + exp2(speak2.y - mCamPos.y) + exp2(speak2.z - mCamPos.z)));
+    auto const camPosition{ mCamVector.toCartesian() };
+    auto const distance1{ (speak1 - camPosition).length2() };
+    auto const distance2{ (speak2 - camPosition).length2() };
+    return distance1 < distance2;
 }

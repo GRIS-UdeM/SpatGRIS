@@ -19,7 +19,6 @@
 
 #include "FlatViewWindow.h"
 
-#include "InputModel.h"
 #include "MainComponent.h"
 #include "constants.hpp"
 #include "narrow.hpp"
@@ -87,7 +86,7 @@ void FlatViewWindow::drawFieldBackground(juce::Graphics & g, int const fieldSize
         return result;
     };
 
-    if (mMainContentComponent.getModeSelected() == SpatMode::lbap) {
+    if (mMainContentComponent.getData().appData.spatMode == SpatMode::lbap) {
         // Draw shaded background squares.
         g.setColour(mLookAndFeel.getLightColour().withBrightness(0.5));
         auto const smallRect{ getCenteredSquare(realSize / LBAP_EXTENDED_RADIUS / 2.0f) };
@@ -187,30 +186,24 @@ void FlatViewWindow::paint(juce::Graphics & g)
                false);
 
     // Draw sources.
-    auto const maxDrawSource{ mMainContentComponent.getSourceInputs().size() };
-    for (int i{}; i < maxDrawSource; ++i) {
-        auto * it{ mMainContentComponent.getSourceInputs().getUnchecked(i) };
-        if (it->getGain() == -1.0f) {
-            continue;
-        }
-        drawSource(g, mMainContentComponent.getSourceInputs().getUnchecked(i), fieldSize);
-        drawSourceSpan(g, mMainContentComponent.getSourceInputs().getUnchecked(i), fieldSize, fieldCenter);
+    for (auto const source : mMainContentComponent.getData().project.sources) {
+        drawSource(g, source, fieldSize);
+        drawSourceSpan(g, *source.value, fieldSize, fieldCenter, mMainContentComponent.getData().appData.spatMode);
     }
 }
 
 //==============================================================================
-void FlatViewWindow::drawSource(juce::Graphics & g, InputModel * input, const int fieldSize) const
+void FlatViewWindow::drawSource(juce::Graphics & g, SourcesData::Node const & source, const int fieldSize) const
 {
     static constexpr auto SOURCE_DIAMETER_INT{ narrow<int>(SOURCE_DIAMETER) };
 
+    if (!source.value->position) {
+        return;
+    }
+
     auto const fieldSizeFloat{ narrow<float>(fieldSize) };
     auto const realSize = fieldSizeFloat - SOURCE_DIAMETER;
-    juce::Point<float> sourcePosition;
-    if (mMainContentComponent.getModeSelected() == SpatMode::lbap) {
-        sourcePosition = juce::Point<float>(input->getCenter().z * 0.6f, input->getCenter().x * 0.6f) / 5.0f;
-    } else {
-        sourcePosition = juce::Point<float>(input->getCenter().z, input->getCenter().x) / 5.0f;
-    }
+    juce::Point<float> sourcePosition{ source.value->position->x, source.value->position->y };
     sourcePosition.x = realSize / 2.0f + realSize / 4.0f * sourcePosition.x;
     sourcePosition.y = realSize / 2.0f - realSize / 4.0f * sourcePosition.y;
     sourcePosition.x = sourcePosition.x < 0.0f
@@ -222,13 +215,14 @@ void FlatViewWindow::drawSource(juce::Graphics & g, InputModel * input, const in
                            : sourcePosition.y > fieldSizeFloat - SOURCE_DIAMETER ? fieldSizeFloat - SOURCE_DIAMETER
                                                                                  : sourcePosition.y;
 
-    g.setColour(input->getColorJWithAlpha());
+    g.setColour(source.value->colour);
     g.fillEllipse(sourcePosition.x, sourcePosition.y, SOURCE_DIAMETER, SOURCE_DIAMETER);
 
-    g.setColour(juce::Colours::black.withAlpha(input->getAlpha()));
+    g.setColour(
+        juce::Colours::black.withAlpha(source.value->colour.getAlpha())); // TODO : should read alpha from peaks?
     auto const tx{ static_cast<int>(sourcePosition.x) };
     auto const ty{ static_cast<int>(sourcePosition.y) };
-    juce::String const stringVal{ input->getId() };
+    juce::String const stringVal{ source.key.get() };
     g.drawText(stringVal,
                tx + 6,
                ty + 1,
@@ -236,7 +230,8 @@ void FlatViewWindow::drawSource(juce::Graphics & g, InputModel * input, const in
                SOURCE_DIAMETER_INT,
                juce::Justification(juce::Justification::centredLeft),
                false);
-    g.setColour(juce::Colours::white.withAlpha(input->getAlpha()));
+    g.setColour(
+        juce::Colours::white.withAlpha(source.value->colour.getAlpha())); // TODO : should read alpha from peaks?
     g.drawText(stringVal,
                tx + 5,
                ty,
@@ -247,20 +242,20 @@ void FlatViewWindow::drawSource(juce::Graphics & g, InputModel * input, const in
 }
 
 //==============================================================================
-void FlatViewWindow::drawSourceSpan(juce::Graphics & g, InputModel * it, const int fieldWh, const int fieldCenter) const
+void FlatViewWindow::drawSourceSpan(juce::Graphics & g,
+                                    SourceData const & source,
+                                    const int fieldWh,
+                                    const int fieldCenter,
+                                    SpatMode const spatMode) const
 {
-    auto const colorS{ it->getColorJ() };
+    auto const colorS{ source.colour };
 
-    juce::Point<float> sourceP;
-    if (mMainContentComponent.getModeSelected() == SpatMode::lbap) {
-        sourceP = juce::Point<float>(it->getCenter().z * 0.6f, it->getCenter().x * 0.6f) / 5.0f;
-    } else {
-        sourceP = juce::Point<float>(it->getCenter().z, it->getCenter().x) / 5.0f;
-    }
+    juce::Point<float> sourceP{};
 
-    if (mMainContentComponent.getModeSelected() == SpatMode::lbap) {
+    auto const alpha{ source.colour.getAlpha() }; // TODO : should use alpha from peaks?
+    if (spatMode == SpatMode::lbap) {
         auto const realW{ fieldWh - narrow<int>(SOURCE_DIAMETER) };
-        auto const azimuthSpan{ static_cast<float>(fieldWh) * (it->getAzimuthSpan() * 0.5f) };
+        auto const azimuthSpan{ static_cast<float>(fieldWh) * (source.azimuthSpan * 0.5f) };
         auto const halfAzimuthSpan{ azimuthSpan / 2.0f - SOURCE_RADIUS };
 
         sourceP.x = realW / 2.0f + realW / 4.0f * sourceP.x;
@@ -268,13 +263,13 @@ void FlatViewWindow::drawSourceSpan(juce::Graphics & g, InputModel * it, const i
         sourceP.x = sourceP.x < 0 ? 0 : sourceP.x > fieldWh - SOURCE_DIAMETER ? fieldWh - SOURCE_DIAMETER : sourceP.x;
         sourceP.y = sourceP.y < 0 ? 0 : sourceP.y > fieldWh - SOURCE_DIAMETER ? fieldWh - SOURCE_DIAMETER : sourceP.y;
 
-        g.setColour(colorS.withAlpha(it->getAlpha() * 0.6f));
+        g.setColour(colorS.withAlpha(alpha * 0.6f));
         g.drawEllipse(sourceP.x - halfAzimuthSpan, sourceP.y - halfAzimuthSpan, azimuthSpan, azimuthSpan, 1.5f);
-        g.setColour(colorS.withAlpha(it->getAlpha() * 0.2f));
+        g.setColour(colorS.withAlpha(alpha * 0.2f));
         g.fillEllipse(sourceP.x - halfAzimuthSpan, sourceP.y - halfAzimuthSpan, azimuthSpan, azimuthSpan);
     } else {
-        auto const HRAzimSpan{ 180.0f * it->getAzimuthSpan() };
-        auto const HRElevSpan{ 180.0f * it->getZenithSpan() };
+        auto const HRAzimSpan{ 180.0f * source.azimuthSpan };
+        auto const HRElevSpan{ 180.0f * source.zenithSpan };
 
         if ((HRAzimSpan < 0.002f && HRElevSpan < 0.002f) || !mMainContentComponent.isSpanShown()) {
             return;
@@ -343,10 +338,10 @@ void FlatViewWindow::drawSourceSpan(juce::Graphics & g, InputModel * it, const i
 
         myPath.closeSubPath();
 
-        g.setColour(colorS.withAlpha(it->getAlpha() * 0.2f));
+        g.setColour(colorS.withAlpha(alpha * 0.2f));
         g.fillPath(myPath);
 
-        g.setColour(colorS.withAlpha(it->getAlpha() * 0.6f));
+        g.setColour(colorS.withAlpha(alpha * 0.6f));
         g.strokePath(myPath, juce::PathStrokeType(0.5));
     }
 }

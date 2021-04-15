@@ -18,7 +18,7 @@
 using fast = juce::dsp::FastMathApproximations;
 
 struct TripletData {
-    SpeakerTriplet triplet;
+    Triplet triplet;
     std::array<float, 9> inverseMatrix; /* Triplet inverse matrix */
 };
 
@@ -26,13 +26,13 @@ SpeakersSpatGains
     compute_gains(int speaker_set_am, SpeakerSet * sets, int numSpeakers, CartesianVector cart_dir, int dim) noexcept;
 
 /* Returns 1 if there is loudspeaker(s) inside given ls triplet. */
-static bool any_speaker_inside_triplet(SpeakerTriplet const & triplet, SpeakersData const & speakers) noexcept
+static bool any_speaker_inside_triplet(Triplet const & triplet, SpeakersData const & speakers) noexcept
 {
     std::array<float, 9> inverseMatrix;
 
-    auto const * const lp1 = &(speakers[triplet.patch1].position);
-    auto const * const lp2 = &(speakers[triplet.patch2].position);
-    auto const * const lp3 = &(speakers[triplet.patch3].position);
+    auto const * const lp1 = &(speakers[triplet.id1].position);
+    auto const * const lp2 = &(speakers[triplet.id2].position);
+    auto const * const lp3 = &(speakers[triplet.id3].position);
 
     /* Matrix inversion. */
     auto const inverseDeterminant{ 1.0f
@@ -477,7 +477,9 @@ std::vector<TripletData> computeTriplets(SpeakersData const & speakers) noexcept
                     connections[speaker3Index][speaker1Index] = true;
                     connections[speaker2Index][speaker3Index] = true;
                     connections[speaker3Index][speaker2Index] = true;
-                    triplets.emplace_back(speaker1Index, speaker2Index, speaker3Index);
+                    TripletData newData{};
+                    newData.triplet = Triplet{ speaker1Index, speaker2Index, speaker3Index };
+                    triplets.emplace_back(std::move(newData));
                 }
             }
         }
@@ -552,9 +554,9 @@ std::vector<TripletData> computeTriplets(SpeakersData const & speakers) noexcept
     /* Remove triangles which had crossing sides with
      * smaller triangles or include loudspeakers. */
     auto const predicate = [&](TripletData const & triplet) -> bool {
-        auto const & i = triplet.triplet.patch1;
-        auto const & j = triplet.triplet.patch2;
-        auto const & k = triplet.triplet.patch3;
+        auto const & i = triplet.triplet.id1;
+        auto const & j = triplet.triplet.id2;
+        auto const & k = triplet.triplet.id3;
 
         auto const anySpeakerInsideTriplet{ any_speaker_inside_triplet(triplet.triplet, speakers) };
         auto const hasAllConnections{ connections[i][j] && connections[i][k] && connections[j][k] };
@@ -577,9 +579,9 @@ std::vector<TripletData> computeTriplets(SpeakersData const & speakers) noexcept
  */
 static std::array<float, 9> computeInverseMatrix(TripletData const & triplet, SpeakersData const & speakers)
 {
-    auto const & lp1{ speakers[triplet.triplet.patch1].position };
-    auto const & lp2{ speakers[triplet.triplet.patch2].position };
-    auto const & lp3{ speakers[triplet.triplet.patch3].position };
+    auto const & lp1{ speakers[triplet.triplet.id1].position };
+    auto const & lp2{ speakers[triplet.triplet.id2].position };
+    auto const & lp3{ speakers[triplet.triplet.id3].position };
 
     /* Matrix inversion. */
     auto const inverseDet = 1.0f
@@ -758,18 +760,18 @@ SpeakersSpatGains compute_gains(int const speaker_set_am,
     }
 
     SpeakersSpatGains gains{};
-    gains[sets[j].speakerNos[0]] = juce::jmax(sets[j].setGains[0], 0.0f);
-    gains[sets[j].speakerNos[1]] = juce::jmax(sets[j].setGains[1], 0.0f);
+    gains[sets[j].speakerNos.id1] = juce::jmax(sets[j].setGains[0], 0.0f);
+    gains[sets[j].speakerNos.id2] = juce::jmax(sets[j].setGains[1], 0.0f);
     jassert(dim == 3);
     /*if (dim == 3)
     {*/
-    gains[sets[j].speakerNos[2]] = juce::jmax(sets[j].setGains[2], 0.0f);
+    gains[sets[j].speakerNos.id3] = juce::jmax(sets[j].setGains[2], 0.0f);
     //}
 }
 
-juce::Array<std::array<output_patch_t, 3>> vbap_get_triplets(VbapData const * const data)
+juce::Array<Triplet> vbap_get_triplets(VbapData const * const data)
 {
-    juce::Array<std::array<output_patch_t, 3>> result{};
+    juce::Array<Triplet> result{};
     result.resize(data->numSpeakers);
     std::transform(data->speakerSets,
                    data->speakerSets + data->numSpeakers,

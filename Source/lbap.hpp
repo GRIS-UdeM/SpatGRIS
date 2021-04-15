@@ -31,8 +31,6 @@
 #include "PolarVector.h"
 #include "StrongTypes.hpp"
 
-static auto constexpr LBAP_MATRIX_SIZE = 64;
-
 struct SpeakerData;
 
 /** \brief A structure containing coordinates of a speaker in the field.

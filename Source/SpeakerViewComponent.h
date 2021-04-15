@@ -48,11 +48,11 @@ static float constexpr SCROLL_WHEEL_SPEED_MOUSE{ 1.8f };
 class SpeakerViewComponent final : public juce::OpenGLAppComponent
 {
 public:
-    static glm::vec3 const COLOR_SPEAKER{ 0.87f, 0.87f, 0.87f };
-    static glm::vec3 const COLOR_DIRECT_OUT_SPEAKER{ 0.25f, 0.25f, 0.25f };
-    static glm::vec3 const COLOR_SPEAKER_SELECT{ 1.00f, 0.64f, 0.09f };
-    static glm::vec3 const SIZE_SPEAKER{ 0.5f, 0.5f, 0.5f };
-    static glm::vec3 const DEFAULT_CENTER{ 0.0f, 0.0f, 0.0f };
+    static glm::vec3 const COLOR_SPEAKER;
+    static glm::vec3 const COLOR_DIRECT_OUT_SPEAKER;
+    static glm::vec3 const COLOR_SPEAKER_SELECT;
+    static glm::vec3 const SIZE_SPEAKER;
+    static glm::vec3 const DEFAULT_CENTER;
     static auto constexpr MAX_RADIUS{ 10.0f };
     static auto constexpr SPACE_LIMIT{ MAX_RADIUS * LBAP_EXTENDED_RADIUS };
 
@@ -79,7 +79,7 @@ private:
 
     Ray mRay;
 
-    glm::vec3 mCamPos;
+    // glm::vec3 mCamPos;
 
     juce::String mNameConfig = "...";
 
@@ -126,7 +126,7 @@ public:
 private:
     //==============================================================================
     [[nodiscard]] float rayCast(SpeakerData const & speaker) const;
-    [[nodiscard]] bool speakerNearCam(glm::vec3 speak1, glm::vec3 speak2) const;
+    [[nodiscard]] bool speakerNearCam(CartesianVector const & speak1, CartesianVector const & speak2) const;
 
     void clickRay();
 

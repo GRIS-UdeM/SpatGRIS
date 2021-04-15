@@ -22,8 +22,6 @@
 #include "EditableTextCustomComponent.h"
 #include "GrisLookAndFeel.h"
 #include "MainComponent.h"
-#include "SpeakerModel.h"
-#include "StaticVector.h"
 #include "narrow.hpp"
 
 //==============================================================================

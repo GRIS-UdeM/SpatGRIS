@@ -14,8 +14,8 @@ enum class PortState { normal, muted, solo };
 //==============================================================================
 struct SourceData {
     PortState state{};
-    PolarVector vector{};
-    CartesianVector position{};
+    tl::optional<PolarVector> vector{};
+    tl::optional<CartesianVector> position{};
     float azimuthSpan{};
     float zenithSpan{};
     tl::optional<output_patch_t> directOut{};
@@ -29,11 +29,20 @@ struct SourceData {
     //==============================================================================
     struct XmlTags {
         static juce::String const STATE;
-        static juce::String const AZIMUTH_SPAN;
-        static juce::String const ZENITH_SPAN;
         static juce::String const DIRECT_OUT;
         static juce::String const COLOUR;
     };
+};
+
+struct Triplet {
+    output_patch_t id1{};
+    output_patch_t id2{};
+    output_patch_t id3{};
+
+    [[nodiscard]] constexpr bool contains(output_patch_t const outputPatch) const noexcept
+    {
+        return id1 == outputPatch || id2 == outputPatch || id3 == outputPatch;
+    }
 };
 
 //==============================================================================

@@ -31,12 +31,10 @@
 #include "Configuration.h"
 #include "EditSpeakersWindow.h"
 #include "FlatViewWindow.h"
-#include "InputModel.h"
 #include "OscInput.h"
 #include "OscLogWindow.h"
 #include "OwnedMap.hpp"
 #include "SettingsWindow.h"
-#include "SpeakerModel.h"
 #include "SpeakerViewComponent.h"
 #include "StrongTypes.hpp"
 #include "VuMeterComponent.h"
@@ -71,19 +69,15 @@ class MainContentComponent final
     , private AudioDeviceManagerListener
     , private juce::Timer
 {
+    juce::CriticalSection mCriticalSection{};
+
     std::unique_ptr<AudioProcessor> mAudioProcessor{};
 
     // Speakers.
     juce::Array<Triplet> mTriplets{};
-    OwnedMap<output_patch_t, SpeakerModel> mSpeakerModels{};
 
     OwnedMap<source_index_t, SourceVuMeterComponent> mSourceVuMeterComponents{};
     OwnedMap<output_patch_t, SpeakerVuMeterComponent> mSpeakerVuMeters{};
-
-    // Sources.
-    juce::OwnedArray<InputModel> mSourceModels{};
-
-    juce::CriticalSection mCriticalSection{};
 
     // Open Sound Control.
     std::unique_ptr<OscInput> mOscReceiver{};
@@ -182,6 +176,9 @@ public:
 
     juce::CriticalSection const & getCriticalSection() const { return mCriticalSection; }
 
+    void handleSourcePositionChanged(PolarVector const & newPosition, float newAzimuthSpan, float newZenithSpan);
+    void resetSourcePosition(source_index_t sourceIndex);
+
     void handleSourceColorChanged(source_index_t sourceIndex, juce::Colour colour) override;
     void handleSourceStateChanged(source_index_t sourceIndex, PortState state) override;
     void handleSpeakerSelected(juce::Array<output_patch_t> selection) override;
@@ -207,8 +204,6 @@ public:
     void handleNumSourcesChanged(int numSources);
 
     // Speakers.
-    [[nodiscard]] auto & getSpeakerModels() { return mSpeakerModels; }
-    [[nodiscard]] auto const & getSpeakerModels() const { return mSpeakerModels; }
     [[nodiscard]] auto const & getSpeakersDisplayOrder() const { return mData.speakerSetup.order; }
 
     output_patch_t addSpeaker();
@@ -221,10 +216,6 @@ public:
     [[nodiscard]] float getSourceAlpha(source_index_t sourceIndex) const;
     [[nodiscard]] dbfs_t getSpeakerPeak(output_patch_t outputPatch) const;
     [[nodiscard]] float getSpeakerAlpha(output_patch_t outputPatch) const;
-
-    // Sources.
-    [[nodiscard]] juce::OwnedArray<InputModel> & getSourceInputs() { return mSourceModels; }
-    [[nodiscard]] juce::OwnedArray<InputModel> const & getSourceInputs() const { return mSourceModels; }
 
     [[nodiscard]] bool isRadiusNormalized() const;
 
@@ -262,7 +253,6 @@ public:
     void closeAboutWindow() { mAboutWindow.reset(); }
     void closeOscLogWindow() { mOscLogWindow.reset(); }
 
-    [[nodiscard]] auto const & getConfiguration() const { return mConfiguration; }
     void setOscLogging(const juce::OSCMessage & message) const;
     void updateSourceData(int sourceDataIndex, InputModel & input) const;
     //==============================================================================

@@ -125,13 +125,8 @@
               file="Source/GrisLookAndFeel.cpp"/>
         <FILE id="vyaPdB" name="GrisLookAndFeel.h" compile="0" resource="0"
               file="Source/GrisLookAndFeel.h"/>
-        <FILE id="sqfniL" name="InputModel.cpp" compile="1" resource="0" file="Source/InputModel.cpp"/>
-        <FILE id="n57PDw" name="InputModel.h" compile="0" resource="0" file="Source/InputModel.h"/>
         <FILE id="I0ICQu" name="Ray.cpp" compile="1" resource="0" file="Source/Ray.cpp"/>
         <FILE id="oaSq5k" name="Ray.h" compile="0" resource="0" file="Source/Ray.h"/>
-        <FILE id="tDYWgF" name="SpeakerModel.cpp" compile="1" resource="0"
-              file="Source/SpeakerModel.cpp"/>
-        <FILE id="ArP6sZ" name="SpeakerModel.h" compile="0" resource="0" file="Source/SpeakerModel.h"/>
         <FILE id="Tz4yI1" name="SpeakerViewComponent.cpp" compile="1" resource="0"
               file="Source/SpeakerViewComponent.cpp"/>
         <FILE id="ItaT5M" name="SpeakerViewComponent.h" compile="0" resource="0"
