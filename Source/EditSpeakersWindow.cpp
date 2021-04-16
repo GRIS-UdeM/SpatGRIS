@@ -342,6 +342,7 @@ void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const 
             return static_cast<float>(speaker.key.get());
         }
         jassertfalse;
+        return 0.0f;
     };
 
     auto const & speakers{ mMainContentComponent.getData().speakerSetup.speakers };

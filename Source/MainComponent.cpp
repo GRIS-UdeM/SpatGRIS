@@ -155,11 +155,8 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     mInterpolationSlider->setValue(0.1);
     mSpatModeCombo->setSelectedId(1);
 
-    mNumSourcesTextEditor->setText("16", juce::dontSendNotification);
-    textEditorReturnKeyPressed(*mNumSourcesTextEditor);
-
     // Open the default project if lastOpenProject is not a valid file.
-    openProject(mData.appData.lastProject);
+    loadProject(mData.appData.lastProject);
 
     // Open the default speaker setup if lastOpenSpeakerSetup is not a valid file.
     auto const lastSpatMode{ mData.appData.spatMode };
@@ -376,11 +373,11 @@ void MainContentComponent::handleNew()
         return;
     }
 
-    openProject(DEFAULT_PROJECT_FILE.getFullPathName());
+    loadProject(DEFAULT_PROJECT_FILE.getFullPathName());
 }
 
 //==============================================================================
-void MainContentComponent::openProject(juce::File const & file)
+void MainContentComponent::loadProject(juce::File const & file)
 {
     jassert(file.existsAsFile());
 
@@ -411,11 +408,12 @@ void MainContentComponent::openProject(juce::File const & file)
         juce::AlertWindow::showMessageBox(juce::AlertWindow::AlertIconType::WarningIcon,
                                           "Unable to read project file !",
                                           "One or more mandatory parameters are missing !");
+        loadDefaultSpeakerSetup(SpatMode::vbap);
         return;
     }
     mData.project = std::move(*projectData);
 
-    mNumSourcesTextEditor->setText(juce::String{ mData.project.sources.size() });
+    mNumSourcesTextEditor->setText(juce::String{ mData.project.sources.size() }, false);
 
     mMasterGainOutSlider->setValue(mData.project.masterGain.get(), juce::dontSendNotification);
     mInterpolationSlider->setValue(mData.project.spatGainsInterpolation, juce::dontSendNotification);
@@ -428,12 +426,10 @@ void MainContentComponent::openProject(juce::File const & file)
     // DEFAULT
     // mSpeakerViewComponent->setCamPosition(80.0f, 25.0f, 22.0f);
 
-    refreshSourceVuMeterComponents();
-
     mData.appData.lastProject = file.getFullPathName();
-    mAudioProcessor->setAudioConfig(mData.toAudioConfig());
-
     setTitle();
+    refreshSourceVuMeterComponents();
+    updateAudioProcessor();
 }
 
 //==============================================================================
@@ -455,7 +451,7 @@ void MainContentComponent::handleOpenProject()
         alert.addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
         alert.addButton("Ok", 1, juce::KeyPress(juce::KeyPress::returnKey));
         if (alert.runModalLoop() != 0) {
-            openProject(chosen);
+            loadProject(chosen);
             loaded = true;
         }
     }
@@ -1167,6 +1163,24 @@ void MainContentComponent::resetSourcePosition(source_index_t const sourceIndex)
 }
 
 //==============================================================================
+void MainContentComponent::loadDefaultSpeakerSetup(SpatMode const spatMode)
+{
+    switch (spatMode) {
+    case SpatMode::vbap:
+    case SpatMode::lbap:
+        loadSpeakerSetup(DEFAULT_SPEAKER_SETUP_FILE, spatMode);
+        return;
+    case SpatMode::hrtfVbap:
+        loadSpeakerSetup(BINAURAL_SPEAKER_SETUP_FILE, spatMode);
+        return;
+    case SpatMode::stereo:
+        loadSpeakerSetup(STEREO_SPEAKER_SETUP_FILE, spatMode);
+        return;
+    }
+    jassertfalse;
+}
+
+//==============================================================================
 void MainContentComponent::handleSpeakerOnlyDirectOutChanged(output_patch_t const outputPatch, bool const state)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -1298,7 +1312,7 @@ void MainContentComponent::handleSpatModeChanged(SpatMode const spatMode)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    if (mData.appData.spatMode != spatMode) {
+    if (mData.appData.spatMode != spatMode || mSpatAlgorithm == nullptr) {
         mData.appData.spatMode = spatMode;
 
         switch (spatMode) {
@@ -1384,9 +1398,10 @@ void MainContentComponent::setSpeakerState(output_patch_t const outputPatch, Por
 }
 
 //==============================================================================
-bool MainContentComponent::tripletExists(Triplet const & tri, int & pos) const
+tl::optional<int> MainContentComponent::findEquivalentTripletIndex(Triplet const & tri) const
 {
     juce::ScopedReadLock const lock{ mLock };
+    int index{};
     for (auto const & ti : mTriplets) {
         if ((ti.id1 == tri.id1 && ti.id2 == tri.id2 && ti.id3 == tri.id3)
             || (ti.id1 == tri.id1 && ti.id2 == tri.id3 && ti.id3 == tri.id2)
@@ -1394,11 +1409,12 @@ bool MainContentComponent::tripletExists(Triplet const & tri, int & pos) const
             || (ti.id1 == tri.id2 && ti.id2 == tri.id3 && ti.id3 == tri.id1)
             || (ti.id1 == tri.id3 && ti.id2 == tri.id2 && ti.id3 == tri.id1)
             || (ti.id1 == tri.id3 && ti.id2 == tri.id1 && ti.id3 == tri.id2)) {
-            return true;
+            return index;
         }
+        ++index;
     }
 
-    return false;
+    return tl::nullopt;
 }
 
 //==============================================================================
@@ -1515,66 +1531,24 @@ void MainContentComponent::handleNumSourcesChanged(int const numSources)
 {
     jassert(numSources >= 1 && numSources <= MAX_INPUTS);
 
-    auto const removeSource = [&](source_index_t const index) {
-        mSourceVuMeterComponents.remove(index);
-        mData.project.sources.remove(index);
-    };
-
-    auto const addSource = [&](source_index_t const index) {
-        mData.project.sources.add(index, std::make_unique<SourceData>());
-        mSourceVuMeterComponents.add(
-            index,
-            std::make_unique<SourceVuMeterComponent>(index, tl::nullopt, juce::Colour{}, *this, mSmallLookAndFeel));
-    };
-
     mNumSourcesTextEditor->setText(juce::String{ numSources }, false);
 
     if (numSources > mData.project.sources.size()) {
         source_index_t const firstNewIndex{ mData.project.sources.size() + 1 };
         source_index_t const lastNewIndex{ numSources };
         for (auto index{ firstNewIndex }; index <= lastNewIndex; ++index) {
-            addSource(index);
+            mData.project.sources.add(index, std::make_unique<SourceData>());
         }
     } else if (numSources < mData.project.sources.size()) {
         // remove some inputs
         while (mData.project.sources.size() > numSources) {
             source_index_t const index{ mData.project.sources.size() };
-            removeSource(index);
+            mData.project.sources.remove(index);
         }
     }
+
+    refreshSourceVuMeterComponents();
     unfocusAllComponents();
-    refreshSpeakers();
-}
-
-//==============================================================================
-static SpeakerHighpassConfig linkwitzRileyComputeVariables(double const freq, double const sr)
-{
-    auto const wc{ 2.0 * juce::MathConstants<double>::pi * freq };
-    auto const wc2{ wc * wc };
-    auto const wc3{ wc2 * wc };
-    auto const wc4{ wc2 * wc2 };
-    auto const k{ wc / std::tan(juce::MathConstants<double>::pi * freq / sr) };
-    auto const k2{ k * k };
-    auto const k3{ k2 * k };
-    auto const k4{ k2 * k2 };
-    static auto constexpr SQRT2{ juce::MathConstants<double>::sqrt2 };
-    auto const sqTmp1{ SQRT2 * wc3 * k };
-    auto const sqTmp2{ SQRT2 * wc * k3 };
-    auto const aTmp{ 4.0 * wc2 * k2 + 2.0 * sqTmp1 + k4 + 2.0 * sqTmp2 + wc4 };
-    auto const k4ATmp{ k4 / aTmp };
-
-    /* common */
-    auto const b1{ (4.0 * (wc4 + sqTmp1 - k4 - sqTmp2)) / aTmp };
-    auto const b2{ (6.0 * wc4 - 8.0 * wc2 * k2 + 6.0 * k4) / aTmp };
-    auto const b3{ (4.0 * (wc4 - sqTmp1 + sqTmp2 - k4)) / aTmp };
-    auto const b4{ (k4 - 2.0 * sqTmp1 + wc4 - 2.0 * sqTmp2 + 4.0 * wc2 * k2) / aTmp };
-
-    /* highpass */
-    auto const ha0{ k4ATmp };
-    auto const ha1{ -4.0 * k4ATmp };
-    auto const ha2{ 6.0 * k4ATmp };
-
-    return SpeakerHighpassConfig{ b1, b2, b3, b4, ha0, ha1, ha2 };
 }
 
 //==============================================================================
@@ -1699,7 +1673,6 @@ bool MainContentComponent::refreshSpeakers()
         return false;
     }
 
-    refreshSourceVuMeterComponents();
     refreshSpeakerVuMeterComponents();
 
     mSpatAlgorithm->init(mData.speakerSetup.speakers);
@@ -1722,7 +1695,7 @@ bool MainContentComponent::refreshSpeakers()
         return false;
     }*/
 
-    mAudioProcessor->setAudioConfig(mData.toAudioConfig());
+    updateAudioProcessor();
 
     return true;
 }
@@ -1981,7 +1954,7 @@ void MainContentComponent::comboBoxChanged(juce::ComboBox * comboBoxThatHasChang
         }
 
         juce::ScopedLock const lock{ mAudioProcessor->getCriticalSection() };
-        auto const newSpatMode{ static_cast<SpatMode>(mSpatModeCombo->getSelectedId() - 1) };
+        auto const newSpatMode{ static_cast<SpatMode>(mSpatModeCombo->getSelectedId()) };
         handleSpatModeChanged(newSpatMode);
 
         if (mEditSpeakersWindow != nullptr) {

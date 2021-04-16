@@ -1,5 +1,7 @@
 #include "LogicStrucs.hpp"
 
+#include "LegacySpatFileFormat.h"
+
 juce::String const SourceData::XmlTags::STATE = "STATE";
 juce::String const SourceData::XmlTags::DIRECT_OUT = "DIRECT_OUT";
 juce::String const SourceData::XmlTags::COLOUR = "COLOR";
@@ -485,10 +487,11 @@ std::unique_ptr<juce::XmlElement> SpatGrisProjectData::toXml() const
 tl::optional<SpatGrisProjectData> SpatGrisProjectData::fromXml(juce::XmlElement const & xml)
 {
     juce::StringArray const requiredTags{ XmlTags::MASTER_GAIN, XmlTags::GAIN_INTERPOLATION, XmlTags::OSC_PORT };
-    if (!std::all_of(requiredTags.begin(), requiredTags.end(), [&](juce::String const & string) {
-            return xml.hasAttribute(string);
-        })) {
-        return tl::nullopt;
+    if (xml.getTagName() != XmlTags::MAIN_TAG
+        || !std::all_of(requiredTags.begin(), requiredTags.end(), [&](juce::String const & string) {
+               return xml.hasAttribute(string);
+           })) {
+        return readLegacyProjectFile(xml);
     }
 
     auto const * sourcesElement{ xml.getChildByName(XmlTags::SOURCES) };
@@ -614,7 +617,7 @@ tl::optional<std::pair<SpeakerSetup, SpatMode>> SpeakerSetup::fromXml(juce::XmlE
     auto const spatMode{ stringToSpatMode(xml.getStringAttribute(XmlTags::SPAT_MODE)) };
 
     if (xml.getTagName() != XmlTags::MAIN_TAG || !spatMode) {
-        return tl::nullopt;
+        return readLegacySpeakerSetup(xml);
     }
 
     std::pair<SpeakerSetup, SpatMode> result{};

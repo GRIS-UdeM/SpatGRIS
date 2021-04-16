@@ -81,9 +81,9 @@ struct CartesianVector {
         }
 
         CartesianVector result;
-        result.x = xml.getDoubleAttribute(XmlTags::X);
-        result.y = xml.getDoubleAttribute(XmlTags::Y);
-        result.z = xml.getDoubleAttribute(XmlTags::Z);
+        result.x = static_cast<float>(xml.getDoubleAttribute(XmlTags::X));
+        result.y = static_cast<float>(xml.getDoubleAttribute(XmlTags::Y));
+        result.z = static_cast<float>(xml.getDoubleAttribute(XmlTags::Z));
 
         return result;
     }

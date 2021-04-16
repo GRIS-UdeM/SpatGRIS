@@ -193,15 +193,15 @@ struct SpatGrisProjectData {
 struct SpatGrisAppData {
     AudioSettings audioSettings{};
     RecordingOptions recordingOptions{};
-    juce::String lastSpeakerSetup{};
-    juce::String lastProject{};
+    juce::String lastSpeakerSetup{ DEFAULT_SPEAKER_SETUP_FILE.getFullPathName() };
+    juce::String lastProject{ DEFAULT_PROJECT_FILE.getFullPathName() };
     juce::String lastRecordingDirectory{};
     SpatMode spatMode{};
     int windowX{};
     int windowY{};
-    int windowWidth{};
-    int windowHeight{};
-    double sashPosition{};
+    int windowWidth{ 1285 };
+    int windowHeight{ 610 };
+    double sashPosition{ 0.5 };
     //==============================================================================
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
     [[nodiscard]] static tl::optional<SpatGrisAppData> fromXml(juce::XmlElement const & xml);

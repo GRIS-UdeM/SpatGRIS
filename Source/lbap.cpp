@@ -121,7 +121,7 @@ static void computeMatrix(lbap_layer & layer)
 static lbap_layer
     createLayer(lbap_field const & field, radians_t const elevation, std::vector<lbap_pos> const & speakers)
 {
-    auto result{ initLayers(field.layers.size(), elevation, speakers) };
+    auto result{ initLayers(narrow<int>(field.layers.size()), elevation, speakers) };
     computeMatrix(result);
     return result;
 }

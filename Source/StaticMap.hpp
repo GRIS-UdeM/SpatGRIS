@@ -139,6 +139,15 @@ public:
         mUsed.set(index, false);
     }
 
+    void fill(KeyType firstKey, ValueType const & value)
+    {
+        for (auto & node : mData) {
+            node.key = firstKey++;
+            node.value = value;
+        }
+        mUsed.set();
+    }
+
     [[nodiscard]] ValueType & operator[](KeyType const key)
     {
         auto const index{ toIndex(key) };

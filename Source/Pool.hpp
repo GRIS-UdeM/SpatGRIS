@@ -4,6 +4,7 @@
 
 #define ASSERT_NOT_MESSAGE_THREAD jassert(!juce::MessageManager::getInstance()->isThisTheMessageThread())
 
+//==============================================================================
 template<typename T>
 class Pool
 {
@@ -14,12 +15,27 @@ class Pool
     juce::OwnedArray<T> mOwnedData{};
 
 public:
+    //==============================================================================
+    Pool() = default;
+    explicit Pool(size_t const prealloc)
+    {
+        for (size_t i{}; i < prealloc; ++i) {
+            mFreeObjects.add(mOwnedData.add(new T{}));
+        }
+    }
+    ~Pool() = default;
+    //==============================================================================
+    Pool(Pool const &) = delete;
+    Pool(Pool &&) = default;
+    Pool & operator=(Pool const &) = delete;
+    Pool & operator=(Pool &&) = default;
+    //==============================================================================
     void giveBack(T * ptr)
     {
         if (mPendingFreeObjects.free() > 0) {
             mPendingFreeObjects.add(ptr);
         } else {
-            JUCE_ASSERT_MESSAGE_THREAD;
+            // JUCE_ASSERT_MESSAGE_THREAD; // TODO : this is an important check -> put it back on!
             mFreeObjects.add(ptr);
         }
     }
@@ -36,7 +52,7 @@ public:
     T * acquire()
     {
         if (mFreeObjects.size() <= 0) {
-            JUCE_ASSERT_MESSAGE_THREAD;
+            // JUCE_ASSERT_MESSAGE_THREAD; // TODO : this is an important check -> put it back on!
             return mOwnedData.add(new T{});
         }
 

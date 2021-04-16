@@ -450,6 +450,9 @@ std::vector<TripletData> computeTriplets(SpeakersData const & speakers) noexcept
     // ...then we test for valid triplets ONLY when the elevation difference is within a specified range for two
     // speakers
     StaticMap<output_patch_t, StaticMap<output_patch_t, bool, MAX_OUTPUTS>, MAX_OUTPUTS> connections{};
+    StaticMap<output_patch_t, bool, MAX_OUTPUTS> base{};
+    base.fill(output_patch_t{ 1 }, false);
+    connections.fill(output_patch_t{ 1 }, base);
     std::vector<TripletData> triplets{};
     for (size_t i{}; i < speakerIndexesSortedByElevation.size(); ++i) {
         auto const speaker1Index{ speakerIndexesSortedByElevation[i] };
@@ -481,7 +484,7 @@ std::vector<TripletData> computeTriplets(SpeakersData const & speakers) noexcept
                     connections[speaker3Index][speaker2Index] = true;
                     TripletData newData{};
                     newData.triplet = Triplet{ speaker1Index, speaker2Index, speaker3Index };
-                    triplets.emplace_back(std::move(newData));
+                    triplets.emplace_back(newData);
                 }
             }
         }

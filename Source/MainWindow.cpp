@@ -20,7 +20,6 @@
 #include "MainWindow.h"
 
 #include "AudioManager.h"
-#include "constants.hpp"
 
 //==============================================================================
 MainWindow::MainWindow(juce::String const & name,

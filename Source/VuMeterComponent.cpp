@@ -267,9 +267,10 @@ SourceVuMeterComponent::SourceVuMeterComponent(source_index_t const sourceIndex,
 void SourceVuMeterComponent::setDirectOut(tl::optional<output_patch_t> const outputPatch)
 {
     static auto const PATCH_TO_STRING
-        = [](output_patch_t const outputPatch) { return juce::String{ outputPatch.get() }; };
+        = [](output_patch_t const outputPatch) -> juce::String { return juce::String{ outputPatch.get() }; };
 
-    mDirectOutButton.setButtonText(outputPatch.map_or(PATCH_TO_STRING, NO_DIRECT_OUT_TEXT));
+    auto const newText{ outputPatch.map_or(PATCH_TO_STRING, NO_DIRECT_OUT_TEXT) };
+    mDirectOutButton.setButtonText(newText);
 }
 
 //==============================================================================

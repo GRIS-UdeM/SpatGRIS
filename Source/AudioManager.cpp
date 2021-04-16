@@ -25,9 +25,6 @@
 //==============================================================================
 std::unique_ptr<AudioManager> AudioManager::mInstance{ nullptr };
 
-Pool<SpeakersSpatGains> ThreadsafePtr<SpeakersSpatGains>::pool{};
-Pool<SourcePeaks> ThreadsafePtr<SourcePeaks>::pool{};
-
 //==============================================================================
 AudioManager::AudioManager(juce::String const & deviceType,
                            juce::String const & inputDevice,
@@ -215,8 +212,8 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
     static auto const makeRecordingInfo
         = [](juce::String const & path,
              juce::AudioFormat & format,
-             double const sampleRate,
-             int const bufferSize,
+             double const sampleRate_,
+             int const bufferSize_,
              juce::Array<float const *> dataToRecord,
              juce::TimeSliceThread & timeSlicedThread) -> std::unique_ptr<RecorderInfo> {
         juce::StringPairArray const metaData{}; // lets leave this empty for now
@@ -228,7 +225,7 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
             return nullptr;
         }
         auto * audioFormatWriter{ format.createWriterFor(outputStream.release(),
-                                                         sampleRate,
+                                                         sampleRate_,
                                                          dataToRecord.size(),
                                                          BITS_PER_SAMPLE,
                                                          metaData,
@@ -238,7 +235,7 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
             return nullptr;
         }
         auto threadedWriter{
-            std::make_unique<juce::AudioFormatWriter::ThreadedWriter>(audioFormatWriter, timeSlicedThread, bufferSize)
+            std::make_unique<juce::AudioFormatWriter::ThreadedWriter>(audioFormatWriter, timeSlicedThread, bufferSize_)
         };
         jassert(threadedWriter);
         auto result{ std::make_unique<RecorderInfo>() };
@@ -367,16 +364,14 @@ void AudioManager::audioDeviceError(juce::String const & /*errorMessage*/)
 }
 
 //==============================================================================
-void AudioManager::audioDeviceAboutToStart(juce::AudioIODevice * device)
+void AudioManager::audioDeviceAboutToStart(juce::AudioIODevice * /*device*/)
 {
-    juce::ScopedLock sl{ mCriticalSection };
     // when AudioProcessor will be a real AudioSource, prepareToPlay() should be called here.
 }
 
 //==============================================================================
 void AudioManager::audioDeviceStopped()
 {
-    juce::ScopedLock sl{ mCriticalSection };
     // when AudioProcessor will be a real AudioSource, releaseResources() should be called here.
 }
 

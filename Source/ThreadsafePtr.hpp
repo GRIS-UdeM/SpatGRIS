@@ -51,8 +51,6 @@ public:
 
     T const * get()
     {
-        jassert(mCurrentValue != nullptr);
-
         if (mPendingValue.get() == nullptr) {
             return mCurrentValue;
         }

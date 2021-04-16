@@ -35,6 +35,9 @@ size_t constexpr MAX_BUFFER_SIZE = 2048;
 size_t constexpr LEFT = 0;
 size_t constexpr RIGHT = 1;
 
+Pool<SpeakersSpatGains> ThreadsafePtr<SpeakersSpatGains>::pool{ 32 };
+Pool<SourcePeaks> ThreadsafePtr<SourcePeaks>::pool{ 32 };
+
 //==============================================================================
 // Load samples from a wav file into a float array.
 static juce::AudioBuffer<float> getSamplesFromWavFile(juce::File const & file)

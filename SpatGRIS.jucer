@@ -86,6 +86,10 @@
               file="Source/CartesianVector.cpp"/>
         <FILE id="Fo1t1H" name="CartesianVector.h" compile="0" resource="0"
               file="Source/CartesianVector.h"/>
+        <FILE id="ZYxwv4" name="LegacySpatFileFormat.cpp" compile="1" resource="0"
+              file="Source/LegacySpatFileFormat.cpp"/>
+        <FILE id="aVZj0s" name="LegacySpatFileFormat.h" compile="0" resource="0"
+              file="Source/LegacySpatFileFormat.h"/>
         <FILE id="uWpyry" name="LocklessQueue.h" compile="0" resource="0" file="Source/LocklessQueue.h"/>
         <FILE id="plOS8g" name="LogicStrucs.cpp" compile="1" resource="0" file="Source/LogicStrucs.cpp"/>
         <FILE id="myBXNh" name="LogicStrucs.hpp" compile="0" resource="0" file="Source/LogicStrucs.hpp"/>

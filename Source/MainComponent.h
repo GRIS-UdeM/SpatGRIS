@@ -183,6 +183,8 @@ public:
                                      float newZenithSpan);
     void resetSourcePosition(source_index_t sourceIndex);
 
+    void loadDefaultSpeakerSetup(SpatMode spatMode);
+
     void handleSpeakerOnlyDirectOutChanged(output_patch_t outputPatch, bool state);
     void handleSpeakerOutputPatchChanged(output_patch_t oldOutputPatch, output_patch_t newOutputPatch);
     void handleSetSpeakerGain(output_patch_t outputPatch, dbfs_t gain);
@@ -216,7 +218,7 @@ public:
 
     void setNeedToSaveSpeakerSetup(bool const state) { mNeedToSaveSpeakerSetup = state; }
 
-    void setNeedToComputeVbap(bool const state) { jassertfalse; }
+    void setNeedToComputeVbap(bool const /*state*/) { jassertfalse; }
 
     void handleNumSourcesChanged(int numSources);
 
@@ -343,12 +345,12 @@ private:
     void setTripletsFromVbap();
 
     [[nodiscard]] output_patch_t getMaxSpeakerOutputPatch() const;
-    [[nodiscard]] bool tripletExists(Triplet const & tri, int & pos) const;
+    [[nodiscard]] tl::optional<int> findEquivalentTripletIndex(Triplet const & tri) const;
     [[nodiscard]] bool isProjectModified() const;
     //==============================================================================
     // Open - save.
     void loadSpeakerSetup(juce::File const & file, tl::optional<SpatMode> forceSpatMode = tl::nullopt);
-    void openProject(juce::File const & file);
+    void loadProject(juce::File const & file);
     void saveProject(juce::String const & path);
     void saveSpeakerSetup(juce::String const & path);
     void setCurrentSpeakerSetup(juce::File const & file);
