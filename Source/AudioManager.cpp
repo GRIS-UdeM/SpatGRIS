@@ -33,6 +33,8 @@ AudioManager::AudioManager(juce::String const & deviceType,
                            double const sampleRate,
                            int const bufferSize)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     auto const success{ tryInitAudioDevice(deviceType, inputDevice, outputDevice, sampleRate, bufferSize) };
 
     if (!success) {
@@ -55,7 +57,15 @@ void AudioManager::audioDeviceIOCallback(float const ** inputChannelData,
 {
     jassert(numSamples <= mInputBuffer.MAX_NUM_SAMPLES);
     jassert(numSamples <= mOutputBuffer.MAX_NUM_SAMPLES);
-    juce::ScopedLock sl{ mCriticalSection }; // TODO: necessary?
+
+    if (!mAudioProcessor) {
+        return;
+    }
+
+    juce::ScopedTryLock const lock{ mAudioProcessor->getLock() };
+    if (!lock.isLocked()) {
+        return;
+    }
 
     // clear buffers
     mInputBuffer.silence();
@@ -107,6 +117,8 @@ bool AudioManager::tryInitAudioDevice(juce::String const & deviceType,
                                       double const requestedSampleRate,
                                       int const requestedBufferSize)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     if (deviceType.isEmpty() || inputDevice.isEmpty() || outputDevice.isEmpty()) {
         return false;
     }
@@ -150,13 +162,16 @@ void AudioManager::init(juce::String const & deviceType,
                         double const sampleRate,
                         int const bufferSize)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
     mInstance.reset(new AudioManager{ deviceType, inputDevice, outputDevice, sampleRate, bufferSize });
 }
 
 //==============================================================================
 AudioManager::~AudioManager()
 {
-    juce::ScopedLock const sl{ mCriticalSection };
+    JUCE_ASSERT_MESSAGE_THREAD;
+    jassert(mAudioProcessor);
+    juce::ScopedLock const sl{ mAudioProcessor->getLock() };
     if (mIsRecording) {
         stopRecording();
         mRecorders.clear(true);
@@ -166,13 +181,14 @@ AudioManager::~AudioManager()
 //==============================================================================
 void AudioManager::registerAudioProcessor(AudioProcessor * audioProcessor)
 {
-    juce::ScopedLock sl{ mCriticalSection };
+    JUCE_ASSERT_MESSAGE_THREAD;
     mAudioProcessor = audioProcessor;
 }
 
 //==============================================================================
 juce::StringArray AudioManager::getAvailableDeviceTypeNames()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
     juce::StringArray result{};
     for (auto const * deviceType : mAudioDeviceManager.getAvailableDeviceTypes()) {
         result.add(deviceType->getTypeName());
@@ -183,6 +199,8 @@ juce::StringArray AudioManager::getAvailableDeviceTypeNames()
 //==============================================================================
 bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     static constexpr auto BITS_PER_SAMPLE = 24;
     static constexpr auto RECORD_QUALITY = 0;
 
@@ -343,18 +361,48 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
 //==============================================================================
 void AudioManager::startRecording()
 {
-    juce::ScopedLock sl{ mCriticalSection };
+    JUCE_ASSERT_MESSAGE_THREAD;
     mIsRecording = true;
 }
 
 //==============================================================================
 void AudioManager::stopRecording()
 {
-    juce::ScopedLock sl{ mCriticalSection };
+    JUCE_ASSERT_MESSAGE_THREAD;
+    jassert(mAudioProcessor);
+    juce::ScopedLock sl{ mAudioProcessor->getLock() };
     // threadedWriters will flush their data before going off
     mRecorders.clear(true);
     mRecordersThread.stopThread(-1);
     mIsRecording = false;
+}
+
+//==============================================================================
+void AudioManager::initInputBuffer(juce::Array<source_index_t> const & sources)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    jassert(mAudioProcessor);
+    juce::ScopedLock const lock{ mAudioProcessor->getLock() };
+    mInputBuffer.init(sources);
+}
+
+//==============================================================================
+void AudioManager::initOutputBuffer(juce::Array<output_patch_t> const & speakers)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    jassert(mAudioProcessor);
+    juce::ScopedLock const lock{ mAudioProcessor->getLock() };
+    mOutputBuffer.init(speakers);
+}
+
+//==============================================================================
+void AudioManager::setBufferSize(int const bufferSize)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    jassert(mAudioProcessor);
+    juce::ScopedLock const lock{ mAudioProcessor->getLock() };
+    mInputBuffer.setNumSamples(bufferSize);
+    mOutputBuffer.setNumSamples(bufferSize);
 }
 
 //==============================================================================
@@ -385,5 +433,6 @@ AudioManager & AudioManager::getInstance()
 //==============================================================================
 void AudioManager::free()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
     mInstance.reset();
 }

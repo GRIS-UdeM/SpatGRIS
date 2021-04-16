@@ -52,8 +52,6 @@ public:
     };
 
 private:
-    juce::CriticalSection mCriticalSection{};
-
     AudioProcessor * mAudioProcessor{};
     AudioConfig const * mAudioConfigRef{};
 
@@ -93,6 +91,10 @@ public:
     void stopRecording();
     bool isRecording() const { return mIsRecording; }
     int64_t getNumSamplesRecorded() const { return mNumSamplesRecorded.get(); }
+
+    void initInputBuffer(juce::Array<source_index_t> const & sources);
+    void initOutputBuffer(juce::Array<output_patch_t> const & speakers);
+    void setBufferSize(int bufferSize);
     //==============================================================================
     // AudioSourcePlayer overrides
     void audioDeviceError(const juce::String & errorMessage) override;

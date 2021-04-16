@@ -126,11 +126,19 @@ void AudioProcessor::resetHrtf()
 }
 
 //==============================================================================
-void AudioProcessor::setAudioConfig(AudioConfig const & audioConfig)
+void AudioProcessor::setAudioConfig(AudioConfig const & newAudioConfig)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedLock const lock{ mCriticalSection };
-    mAudioData.config = audioConfig;
+    if (!mAudioData.config.sourcesAudioConfig.hasSameKeys(newAudioConfig.sourcesAudioConfig)) {
+        AudioManager::getInstance().initInputBuffer(newAudioConfig.sourcesAudioConfig.getKeys());
+        // TODO : init everything non-config item to the right strong indexes
+    }
+    if (!mAudioData.config.speakersAudioConfig.hasSameKeys(newAudioConfig.speakersAudioConfig)) {
+        AudioManager::getInstance().initOutputBuffer(newAudioConfig.speakersAudioConfig.getKeys());
+        // TODO : init everything non-config item to the right strong indexes
+    }
+    mAudioData.config = newAudioConfig;
 }
 
 //==============================================================================
@@ -191,7 +199,7 @@ void AudioProcessor::processVbap(SourceAudioBuffer const & inputBuffer,
         if (source.value.isMuted || source.value.directOut || sourcePeaks[source.key] < SMALL_GAIN) {
             continue;
         }
-        auto const & gains{ *mAudioData.spatGainMatrix[source.key].get() };
+        auto const & gains{ *mAudioData.spatGainMatrix[source.key].get() }; // TODO : spatGainMatrix is not set!
         auto & lastGains{ mAudioData.state.sourcesAudioState[source.key].lastSpatGains };
         auto const * inputSamples{ inputBuffer[source.key].getReadPointer(0) };
 

@@ -40,6 +40,7 @@ public:
     {
         JUCE_ASSERT_MESSAGE_THREAD;
         jassert(numSamples <= MAX_NUM_SAMPLES);
+        mNumSamples = numSamples;
         for (auto buffer : mBuffers) {
             buffer.value->setSize(1, numSamples);
         }
@@ -88,7 +89,7 @@ public:
             auto const outIndex{ buffer.key.removeOffset<decltype(numOutputs)>() };
             jassert(outIndex >= 0);
             if (outIndex < numOutputs) {
-                auto const * origin{ buffer.value->getReadPointer(1) };
+                auto const * origin{ buffer.value->getReadPointer(0) };
                 auto * dest{ outs[outIndex] };
                 std::transform(origin, origin + mNumSamples, dest, dest, std::plus());
             }

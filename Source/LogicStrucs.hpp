@@ -8,7 +8,7 @@ static constexpr auto MAX_OSC_INPUT_PORT = 65535;
 
 enum class PortState { normal, muted, solo };
 
-[[nodiscard]] juce::String portStateToString(PortState const state);
+[[nodiscard]] juce::String portStateToString(PortState state);
 [[nodiscard]] tl::optional<PortState> stringToPortState(juce::String const & string);
 
 //==============================================================================
@@ -42,6 +42,11 @@ struct Triplet {
     [[nodiscard]] constexpr bool contains(output_patch_t const outputPatch) const noexcept
     {
         return id1 == outputPatch || id2 == outputPatch || id3 == outputPatch;
+    }
+
+    [[nodiscard]] constexpr bool isSameAs(Triplet const & other) const noexcept
+    {
+        return contains(other.id1) && contains(other.id2) && contains(other.id3);
     }
 };
 
@@ -83,7 +88,7 @@ struct SpeakerData {
 
 //==============================================================================
 struct LbapDistanceAttenuationData {
-    hz_t freq{};
+    hz_t freq{ 1000.0f };
     dbfs_t attenuation{};
     //==============================================================================
     [[nodiscard]] LbapAttenuationConfig toConfig(double sampleRate) const;

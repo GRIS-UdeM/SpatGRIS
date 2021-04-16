@@ -92,7 +92,7 @@ SourceAudioConfig SourceData::toConfig(bool const soloMode) const
 {
     SourceAudioConfig result;
     result.directOut = directOut;
-    result.isMuted = soloMode ? state == PortState::solo : state != PortState::muted;
+    result.isMuted = soloMode ? state != PortState::solo : state == PortState::muted;
     return result;
 }
 
@@ -201,7 +201,7 @@ SpeakerAudioConfig SpeakerData::toConfig(bool const soloMode, double const sampl
     auto const getHighpassConfig = [&](SpeakerHighpassData const & data) { return data.toConfig(sampleRate); };
 
     SpeakerAudioConfig result;
-    result.isMuted = soloMode ? state == PortState::solo : state != PortState::muted;
+    result.isMuted = soloMode ? state != PortState::solo : state == PortState::muted;
     result.gain = gain.toGain();
     result.highpassConfig = highpassData.map(getHighpassConfig);
     result.isDirectOutOnly = isDirectOutOnly;

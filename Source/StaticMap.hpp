@@ -148,6 +148,19 @@ public:
         mUsed.set();
     }
 
+    juce::Array<KeyType> getKeys() const noexcept
+    {
+        JUCE_ASSERT_MESSAGE_THREAD;
+        juce::Array<KeyType> result{};
+        result.ensureStorageAllocated(size());
+        for (auto const node : *this) {
+            result.add(node.key);
+        }
+        return result;
+    }
+
+    [[nodiscard]] bool hasSameKeys(StaticMap const & other) const noexcept { return mUsed == other.mUsed; }
+
     [[nodiscard]] ValueType & operator[](KeyType const key)
     {
         auto const index{ toIndex(key) };
