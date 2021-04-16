@@ -56,20 +56,17 @@ void OscInput::oscMessageReceived(const juce::OSCMessage & message)
             // int id, float azi [0, 2pi], float ele [0, pi], float azispan [0, 2],
             // float elespan [0, 0.5], float distance [0, 1], float gain [0, 1].
             source_index_t const sourceIndex{ message[0].getInt32() };
-            juce::ScopedLock const lock{ mMainContentComponent.getCriticalSection() };
-            auto const & data{ mMainContentComponent.getData() };
-            if (data.project.sources.contains(sourceIndex)) {
-                radians_t const azimuth{ message[1].getFloat32() };
-                radians_t const zenith{ message[2].getFloat32() };
-                auto const azimuthSpan{ message[3].getFloat32() };
-                auto const zenithSpan{ message[4].getFloat32() };
-                auto const length{ message[5].getFloat32() };
-                [[maybe_unused]] auto const gain{ message[6].getFloat32() };
+            radians_t const azimuth{ message[1].getFloat32() };
+            radians_t const zenith{ message[2].getFloat32() };
+            auto const azimuthSpan{ message[3].getFloat32() };
+            auto const zenithSpan{ message[4].getFloat32() };
+            auto const length{ message[5].getFloat32() };
 
-                PolarVector const vector{ azimuth, zenith, length };
+            [[maybe_unused]] auto const gain{ message[6].getFloat32() };
 
-                mMainContentComponent.handleSourcePositionChanged(, vector, azimuthSpan, zenithSpan);
-            }
+            PolarVector const vector{ azimuth, zenith, length };
+
+            mMainContentComponent.handleSourcePositionChanged(sourceIndex, vector, azimuthSpan, zenithSpan);
         }
 
         else if (address == OSC_PAN_AZ) {

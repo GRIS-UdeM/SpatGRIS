@@ -25,12 +25,10 @@
 #include "AudioManager.h"
 #include "MainComponent.h"
 #include "PinkNoiseGenerator.h"
-#include "SpeakerModel.h"
 #include "StaticMap.hpp"
 #include "TaggedAudioBuffer.hpp"
 #include "constants.hpp"
 #include "narrow.hpp"
-#include "vbap.hpp"
 
 float constexpr SMALL_GAIN = 0.0000000000001f;
 size_t constexpr MAX_BUFFER_SIZE = 2048;
@@ -121,7 +119,7 @@ void AudioProcessor::resetHrtf()
     auto & hrtf{ mAudioData.state.hrtf };
     std::fill(hrtf.count.begin(), hrtf.count.end(), 0u);
     static constexpr std::array<float, 128> EMPTY_HRTF_INPUT{};
-    std::fill(hrtf.inputTmp, hrtf.inputTmp, EMPTY_HRTF_INPUT);
+    std::fill(hrtf.inputTmp.begin(), hrtf.inputTmp.end(), EMPTY_HRTF_INPUT);
 }
 
 //==============================================================================

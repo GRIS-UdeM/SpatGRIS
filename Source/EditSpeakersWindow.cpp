@@ -782,7 +782,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
         case Cols::ELEVATION: {
             auto newVector = speaker.vector;
             degrees_t const val{ std::clamp(newText.getFloatValue(), -90.0f, 90.0f) };
-            auto diff = val - newVector.elevation;
+            radians_t diff = val - newVector.elevation;
             newVector.elevation = val;
             mMainContentComponent.handleNewSpeakerPosition(outputPatch, newVector);
             if (selectedRows.size() > 1) {
@@ -824,11 +824,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
                     newVector = speaker.vector;
                     if (altDown) {
                         newVector.length += diff;
-                        if (newVector.length < 0.0f) {
-                            newVector.length = 0.0f;
-                        } else if (newVector.length > 2.5f) {
-                            newVector.length = 2.5f;
-                        }
+                        newVector.length = std::clamp(newVector.length, 0.0f, 2.5f);
                     } else {
                         newVector.length = val;
                     }

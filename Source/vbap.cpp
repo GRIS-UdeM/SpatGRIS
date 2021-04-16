@@ -434,7 +434,9 @@ std::vector<TripletData> computeTriplets(SpeakersData const & speakers) noexcept
     // We first build an array with all the indexes
     std::vector<output_patch_t> speakerIndexesSortedByElevation{};
     speakerIndexesSortedByElevation.resize(speakers.size());
-    std::iota(std::begin(speakerIndexesSortedByElevation), std::end(speakerIndexesSortedByElevation), 0);
+    std::iota(std::begin(speakerIndexesSortedByElevation),
+              std::end(speakerIndexesSortedByElevation),
+              output_patch_t{ 1 });
 
     // ...then we sort it according to the elevation values
     auto const sortIndexesBySpeakerElevation
@@ -666,6 +668,7 @@ SpeakersSpatGains vbap2(degrees_t const azimuth,
             spreadit_azi(azimuth, spAzimuth, data);
         }
     }
+    return SpeakersSpatGains{}; // TODO : nonsense
 }
 
 SpeakersSpatGains vbap2_flip_y_z(degrees_t const azimuth,
@@ -700,6 +703,8 @@ SpeakersSpatGains vbap2_flip_y_z(degrees_t const azimuth,
             spreadit_azi_flip_y_z(azimuth, spAzimuth, data);
         }
     }
+
+    return SpeakersSpatGains{}; // TODO : nonesense
 }
 
 /* Selects a vector base of a virtual source.
@@ -767,6 +772,7 @@ SpeakersSpatGains compute_gains(int const speaker_set_am,
     {*/
     gains[sets[j].speakerNos.id3] = juce::jmax(sets[j].setGains[2], 0.0f);
     //}
+    return gains;
 }
 
 juce::Array<Triplet> vbap_get_triplets(VbapData const * const data)

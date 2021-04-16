@@ -25,7 +25,6 @@ private:
     using map_type = juce::HashMap<key_type, Node, ExtendedHashFunctions>;
 
 public:
-    // using iterator_type = typename map_type::Iterator;
     class iterator_type
     {
         typename map_type::Iterator mMapIterator;

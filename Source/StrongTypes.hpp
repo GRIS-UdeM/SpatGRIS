@@ -19,10 +19,9 @@
 
 #pragma once
 
-#include "macros.h"
-DISABLE_WARNINGS
+#define STRIGNIFY(x) #x
+
 #include <JuceHeader.h>
-ENABLE_WARNINGS
 
 #include "narrow.hpp"
 
@@ -87,7 +86,8 @@ protected:
     T mValue;
 
     static_assert(std::is_floating_point_v<T>, "Underlying types should be floating points.");
-    // static_assert(std::is_base_of_v<StrongFloat, Derived>, "This is a CRTP type.");
+    static_assert(std::is_floating_point_v<T>);
+
 public:
     using type = T;
 

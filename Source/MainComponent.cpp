@@ -1139,6 +1139,10 @@ void MainContentComponent::handleSourcePositionChanged(source_index_t const sour
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
 
+    if (!mData.project.sources.contains(sourceIndex)) {
+        return;
+    }
+
     auto & source{ mData.project.sources[sourceIndex] };
     source.vector = newPosition;
     source.position = newPosition.toCartesian();
@@ -1413,12 +1417,11 @@ output_patch_t MainContentComponent::getMaxSpeakerOutputPatch() const
 {
     juce::ScopedReadLock const lock{ mLock };
 
-    auto const & speakers{ mData.speakerSetup.speakers };
-    auto const maxNode{ std::max_element(
-        speakers.cbegin(),
-        speakers.cend(),
-        [](SpeakersData::Node const & a, SpeakersData::Node const & b) { return a.key < b.key; }) };
-    return (*maxNode).key;
+    jassert(!mData.speakerSetup.order.isEmpty());
+
+    auto const & patches{ mData.speakerSetup.order };
+    auto const maxPatch{ *std::max_element(patches.begin(), patches.end()) };
+    return maxPatch;
 }
 
 //==============================================================================
@@ -1952,7 +1955,7 @@ void MainContentComponent::buttonClicked(juce::Button * button)
 void MainContentComponent::sliderValueChanged(juce::Slider * slider)
 {
     if (slider == mMasterGainOutSlider.get()) {
-        dbfs_t const value{ mMasterGainOutSlider->getValue() };
+        dbfs_t const value{ static_cast<float>(mMasterGainOutSlider->getValue()) };
         handleMasterGainChanged(value);
     } else if (slider == mInterpolationSlider.get()) {
         auto const value{ static_cast<float>(mInterpolationSlider->getValue()) };
