@@ -37,6 +37,7 @@ size_t constexpr RIGHT = 1;
 
 Pool<SpeakersSpatGains> ThreadsafePtr<SpeakersSpatGains>::pool{ 32 };
 Pool<SourcePeaks> ThreadsafePtr<SourcePeaks>::pool{ 32 };
+Pool<SpeakerPeaks> ThreadsafePtr<SpeakerPeaks>::pool{ 32 };
 
 //==============================================================================
 // Load samples from a wav file into a float array.
@@ -132,11 +133,9 @@ void AudioProcessor::setAudioConfig(AudioConfig const & newAudioConfig)
     juce::ScopedLock const lock{ mCriticalSection };
     if (!mAudioData.config.sourcesAudioConfig.hasSameKeys(newAudioConfig.sourcesAudioConfig)) {
         AudioManager::getInstance().initInputBuffer(newAudioConfig.sourcesAudioConfig.getKeys());
-        // TODO : init everything non-config item to the right strong indexes
     }
     if (!mAudioData.config.speakersAudioConfig.hasSameKeys(newAudioConfig.speakersAudioConfig)) {
         AudioManager::getInstance().initOutputBuffer(newAudioConfig.speakersAudioConfig.getKeys());
-        // TODO : init everything non-config item to the right strong indexes
     }
     mAudioData.config = newAudioConfig;
 }

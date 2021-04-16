@@ -6,6 +6,7 @@
 #include "PolarVector.h"
 #include "SpatMode.hpp"
 #include "StaticMap.hpp"
+#include "StrongArray.hpp"
 #include "ThreadsafePtr.hpp"
 #include "constants.hpp"
 
@@ -66,7 +67,7 @@ struct LbapAttenuationConfig {
 };
 
 //==============================================================================
-typedef StaticMap<output_patch_t, float, MAX_OUTPUTS> SpeakersSpatGains;
+using SpeakersSpatGains = StrongArray<output_patch_t, float, MAX_OUTPUTS>;
 
 //==============================================================================
 struct SourceAudioState {
@@ -111,16 +112,16 @@ struct HrtfData {
 
 //==============================================================================
 struct AudioState {
-    StaticMap<source_index_t, SourceAudioState, MAX_INPUTS> sourcesAudioState{};
-    StaticMap<output_patch_t, SpeakerAudioState, MAX_OUTPUTS> speakersAudioState{};
+    StrongArray<source_index_t, SourceAudioState, MAX_INPUTS> sourcesAudioState{};
+    StrongArray<output_patch_t, SpeakerAudioState, MAX_OUTPUTS> speakersAudioState{};
 
     // HRTF-specific
     HrtfData hrtf{};
 };
 
 //==============================================================================
-typedef StaticMap<source_index_t, float, MAX_INPUTS> SourcePeaks;
-typedef StaticMap<output_patch_t, float, MAX_OUTPUTS> SpeakerPeaks;
+using SourcePeaks = StaticMap<source_index_t, float, MAX_INPUTS>;
+using SpeakerPeaks = StaticMap<output_patch_t, float, MAX_OUTPUTS>;
 
 //==============================================================================
 struct AudioData {
@@ -131,9 +132,8 @@ struct AudioData {
     AudioState state{};
 
     // Live message thread -> audio thread
-    StaticMap<source_index_t, ThreadsafePtr<SpeakersSpatGains>, MAX_INPUTS> spatGainMatrix{};
-    StaticMap<source_index_t, juce::Atomic<float>, MAX_INPUTS> lbapSourceDistances{};      // Lbap-specific
-    StaticMap<source_index_t, juce::Atomic<radians_t>, MAX_INPUTS> stereoSourceAzimuths{}; // STEREO-specific
+    StrongArray<source_index_t, ThreadsafePtr<SpeakersSpatGains>, MAX_INPUTS> spatGainMatrix{};
+    StrongArray<source_index_t, juce::Atomic<float>, MAX_INPUTS> lbapSourceDistances{}; // Lbap-specific
 
     // Live audio thread -> message thread
     ThreadsafePtr<SourcePeaks> sourcePeaks{};

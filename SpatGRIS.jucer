@@ -43,6 +43,7 @@
         <FILE id="yy5rCQ" name="StaticMap.hpp" compile="0" resource="0" file="Source/StaticMap.hpp"/>
         <FILE id="qrPHXG" name="StaticVector.hpp" compile="0" resource="0"
               file="Source/StaticVector.hpp"/>
+        <FILE id="UFkY7k" name="StrongArray.hpp" compile="0" resource="0" file="Source/StrongArray.hpp"/>
       </GROUP>
       <GROUP id="{B880ED62-D15F-78F9-F83A-129573A5FA84}" name="misc">
         <FILE id="c9O7Fi" name="SpatMode.cpp" compile="1" resource="0" file="Source/SpatMode.cpp"/>

@@ -12,7 +12,7 @@ public:
     //==============================================================================
     static Pool<T> pool;
     //==============================================================================
-    ThreadsafePtr() = default;
+    ThreadsafePtr() : mCurrentValue(pool.acquire()) {}
 #ifndef NDEBUG
     ~ThreadsafePtr() { assertEmpty(); }
     ThreadsafePtr(ThreadsafePtr const & other)
