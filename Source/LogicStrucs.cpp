@@ -145,8 +145,8 @@ SpeakerAudioConfig SpeakerData::toConfig(bool const soloMode, double const sampl
 
     SpeakerAudioConfig result;
     result.isMuted = soloMode ? state == PortState::solo : state != PortState::muted;
-    result.gain = gain;
-    result.highpassConfig = crossoverData.map(getHighpassConfig);
+    result.gain = gain.toGain();
+    result.highpassConfig = highpassData.map(getHighpassConfig);
     result.isDirectOutOnly = isDirectOutOnly;
     return result;
 }
@@ -158,9 +158,9 @@ std::unique_ptr<juce::XmlElement> SpeakerData::toXml(output_patch_t const output
 
     result->setAttribute(XmlTags::STATE, portStateToString(state));
     result->addChildElement(position.toXml());
-    result->setAttribute(XmlTags::GAIN, gain);
-    if (crossoverData) {
-        result->addChildElement(crossoverData->toXml().release());
+    result->setAttribute(XmlTags::GAIN, gain.get());
+    if (highpassData) {
+        result->addChildElement(highpassData->toXml().release());
     }
     result->setAttribute(XmlTags::IS_DIRECT_OUT_ONLY, isDirectOutOnly);
 
@@ -194,13 +194,13 @@ tl::optional<SpeakerData> SpeakerData::fromXml(juce::XmlElement const & xml)
     result.state = *state;
     result.position = *position;
     result.vector = PolarVector::fromCartesian(*position);
-    result.gain = static_cast<float>(xml.getDoubleAttribute(XmlTags::GAIN));
+    result.gain = dbfs_t{ static_cast<float>(xml.getDoubleAttribute(XmlTags::GAIN)) };
     if (crossoverElement) {
         auto const crossover{ SpeakerHighpassData::fromXml(*crossoverElement) };
         if (!crossover) {
             return tl::nullopt;
         }
-        result.crossoverData = crossover;
+        result.highpassData = crossover;
     }
     result.isDirectOutOnly = xml.getBoolAttribute(XmlTags::IS_DIRECT_OUT_ONLY);
 

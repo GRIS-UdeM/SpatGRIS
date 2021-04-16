@@ -70,7 +70,7 @@ class MainContentComponent final
     , private AudioDeviceManagerListener
     , private juce::Timer
 {
-    juce::CriticalSection mCriticalSection{};
+    juce::ReadWriteLock mLock{};
 
     std::unique_ptr<AudioProcessor> mAudioProcessor{};
 
@@ -175,7 +175,7 @@ public:
     void refreshSourceVuMeterComponents();
     void refreshSpeakerVuMeterComponents();
 
-    auto const & getCriticalSection() const { return mCriticalSection; }
+    auto const & getLock() const { return mLock; }
 
     void handleSourcePositionChanged(source_index_t sourceIndex,
                                      PolarVector const & newPosition,
@@ -184,6 +184,9 @@ public:
     void resetSourcePosition(source_index_t sourceIndex);
 
     void handleSpeakerOnlyDirectOutChanged(output_patch_t outputPatch, bool state);
+    void handleSpeakerOutputPatchChanged(output_patch_t oldOutputPatch, output_patch_t newOutputPatch);
+    void handleSetSpeakerGain(output_patch_t outputPatch, dbfs_t gain);
+    void handleSetSpeakerHighPassFreq(output_patch_t outputPatch, hz_t freq);
 
     void handlePinkNoiseGainChanged(tl::optional<dbfs_t> gain);
 

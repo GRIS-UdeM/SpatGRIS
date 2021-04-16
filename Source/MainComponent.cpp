@@ -1137,7 +1137,7 @@ void MainContentComponent::handleSourcePositionChanged(source_index_t const sour
                                                        float const newZenithSpan)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-    juce::ScopedLock const lock{ mCriticalSection };
+    juce::ScopedWriteLock const lock{ mLock };
 
     auto & source{ mData.project.sources[sourceIndex] };
     source.vector = newPosition;
@@ -1157,7 +1157,7 @@ void MainContentComponent::handleSourcePositionChanged(source_index_t const sour
 //==============================================================================
 void MainContentComponent::resetSourcePosition(source_index_t const sourceIndex)
 {
-    juce::ScopedLock const lock{ mCriticalSection };
+    juce::ScopedWriteLock const lock{ mLock };
     mData.project.sources[sourceIndex].position = tl::nullopt;
     mData.project.sources[sourceIndex].vector = tl::nullopt;
 }
@@ -1170,6 +1170,47 @@ void MainContentComponent::handleSpeakerOnlyDirectOutChanged(output_patch_t cons
     if (state != val) {
         val = state;
         updateAudioProcessor();
+    }
+}
+
+//==============================================================================
+void MainContentComponent::handleSpeakerOutputPatchChanged(output_patch_t const oldOutputPatch,
+                                                           output_patch_t const newOutputPatch)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    auto & speakers{ mData.speakerSetup.speakers };
+    speakers.add(newOutputPatch, std::make_unique<SpeakerData>(speakers[oldOutputPatch]));
+    speakers.remove(oldOutputPatch);
+
+    auto & order{ mData.speakerSetup.order };
+    order.set(order.indexOf(oldOutputPatch), newOutputPatch);
+
+    refreshSpeakerVuMeterComponents();
+}
+
+//==============================================================================
+void MainContentComponent::handleSetSpeakerGain(output_patch_t const outputPatch, dbfs_t const gain)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    mData.speakerSetup.speakers[outputPatch].gain = gain;
+
+    updateAudioProcessor();
+}
+
+//==============================================================================
+void MainContentComponent::handleSetSpeakerHighPassFreq(output_patch_t const outputPatch, hz_t const freq)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    if (freq == hz_t{ 0.0f }) {
+        mData.speakerSetup.speakers[outputPatch].highpassData.reset();
+    } else {
+        mData.speakerSetup.speakers[outputPatch].highpassData = SpeakerHighpassData{ freq };
     }
 }
 
@@ -1334,13 +1375,14 @@ void MainContentComponent::setSourceState(source_index_t const sourceIndex, Port
 void MainContentComponent::setSpeakerState(output_patch_t const outputPatch, PortState const state)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
     mData.speakerSetup.speakers[outputPatch].state = state;
 }
 
 //==============================================================================
 bool MainContentComponent::tripletExists(Triplet const & tri, int & pos) const
 {
-    pos = 0;
+    juce::ScopedReadLock const lock{ mLock };
     for (auto const & ti : mTriplets) {
         if ((ti.id1 == tri.id1 && ti.id2 == tri.id2 && ti.id3 == tri.id3)
             || (ti.id1 == tri.id1 && ti.id2 == tri.id3 && ti.id3 == tri.id2)
@@ -1350,7 +1392,6 @@ bool MainContentComponent::tripletExists(Triplet const & tri, int & pos) const
             || (ti.id1 == tri.id3 && ti.id2 == tri.id1 && ti.id3 == tri.id2)) {
             return true;
         }
-        pos += 1;
     }
 
     return false;
@@ -1359,16 +1400,19 @@ bool MainContentComponent::tripletExists(Triplet const & tri, int & pos) const
 //==============================================================================
 void MainContentComponent::reorderSpeakers(juce::Array<output_patch_t> newOrder)
 {
-    juce::ScopedLock lock{ mCriticalSection }; // TODO: necessary?
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
     auto & order{ mData.speakerSetup.order };
     jassert(newOrder.size() == order.size());
     order = std::move(newOrder);
-    // TODO : reorder components
+    refreshSpeakerVuMeterComponents();
 }
 
 //==============================================================================
 output_patch_t MainContentComponent::getMaxSpeakerOutputPatch() const
 {
+    juce::ScopedReadLock const lock{ mLock };
+
     auto const & speakers{ mData.speakerSetup.speakers };
     auto const maxNode{ std::max_element(
         speakers.cbegin(),
@@ -1380,32 +1424,40 @@ output_patch_t MainContentComponent::getMaxSpeakerOutputPatch() const
 //==============================================================================
 output_patch_t MainContentComponent::addSpeaker()
 {
-    juce::ScopedLock const lock{ mCriticalSection };
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    juce::ScopedWriteLock const lock{ mLock };
     auto const newOutputPatch{ ++getMaxSpeakerOutputPatch() };
     mData.speakerSetup.speakers.add(newOutputPatch, std::make_unique<SpeakerData>());
     mData.speakerSetup.order.add(newOutputPatch);
+
+    refreshSpeakerVuMeterComponents();
+
     return newOutputPatch;
 }
 
 //==============================================================================
 output_patch_t MainContentComponent::insertSpeaker(int const position)
 {
-    auto const newPosition{ position + 1 };
+    juce::ScopedWriteLock const lock{ mLock };
 
-    juce::ScopedLock const lock{ mCriticalSection };
+    auto const newPosition{ position };
     auto const newOutputPatch{ addSpeaker() };
     auto & order{ mData.speakerSetup.order };
     [[maybe_unused]] auto const lastAppenedOutputPatch{ mData.speakerSetup.order.getLast() };
     jassert(newOutputPatch == lastAppenedOutputPatch);
     order.removeLast();
     order.insert(newPosition, newOutputPatch);
+
+    refreshSpeakerVuMeterComponents(); // TODO : this will be done twice sometimes
+
     return newOutputPatch;
 }
 
 //==============================================================================
 void MainContentComponent::removeSpeaker(output_patch_t const outputPatch)
 {
-    juce::ScopedLock const lock{ mCriticalSection };
+    juce::ScopedWriteLock const lock{ mLock };
     mSpeakerVuMeters.remove(outputPatch);
     mData.speakerSetup.order.removeFirstMatchingValue(outputPatch);
     mData.speakerSetup.speakers.remove(outputPatch);
@@ -1689,6 +1741,7 @@ void MainContentComponent::reloadXmlFileSpeaker()
 //==============================================================================
 void MainContentComponent::loadSpeakerSetup(juce::File const & file, tl::optional<SpatMode> const forceSpatMode)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
     jassert(file.existsAsFile());
 
     if (!file.existsAsFile()) {
@@ -1720,7 +1773,7 @@ void MainContentComponent::loadSpeakerSetup(juce::File const & file, tl::optiona
         return;
     }
 
-    juce::ScopedLock const lock{ mCriticalSection };
+    juce::ScopedWriteLock const lock{ mLock };
 
     mData.speakerSetup = std::move(speakerSetup->first);
 

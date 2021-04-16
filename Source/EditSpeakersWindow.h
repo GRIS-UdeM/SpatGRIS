@@ -115,7 +115,6 @@ public:
 private:
     //==============================================================================
     [[nodiscard]] SpatMode getModeSelected() const;
-    [[nodiscard]] bool getDirectOutForSpeakerRow(int row) const;
     [[nodiscard]] juce::String getText(int columnNumber, int rowNumber) const;
     void setText(int columnNumber, int rowNumber, juce::String const & newText, bool altDown = false);
     bool isMouseOverDragHandle(juce::MouseEvent const & event);

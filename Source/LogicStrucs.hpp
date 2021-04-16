@@ -64,8 +64,8 @@ struct SpeakerData {
     PortState state{};
     PolarVector vector{};
     CartesianVector position{};
-    float gain{};
-    tl::optional<SpeakerHighpassData> crossoverData{};
+    dbfs_t gain{};
+    tl::optional<SpeakerHighpassData> highpassData{};
     float peak{};
     bool isSelected{};
     bool isDirectOutOnly{};
