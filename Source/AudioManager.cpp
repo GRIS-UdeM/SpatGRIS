@@ -25,6 +25,9 @@
 //==============================================================================
 std::unique_ptr<AudioManager> AudioManager::mInstance{ nullptr };
 
+Pool<SpeakersSpatGains> ThreadsafePtr<SpeakersSpatGains>::pool{};
+Pool<SourcePeaks> ThreadsafePtr<SourcePeaks>::pool{};
+
 //==============================================================================
 AudioManager::AudioManager(juce::String const & deviceType,
                            juce::String const & inputDevice,

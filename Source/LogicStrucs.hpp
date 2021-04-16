@@ -143,7 +143,7 @@ struct RecordingOptions {
 };
 
 //==============================================================================
-struct SpatGrisViewSettings {
+struct ViewSettings {
     bool showSpeakers{};
     bool showSpeakerNumbers{};
     bool showSpeakerTriplets{};
@@ -152,7 +152,7 @@ struct SpatGrisViewSettings {
     bool showSourceActivity{};
     //==============================================================================
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
-    [[nodiscard]] static tl::optional<SpatGrisViewSettings> fromXml(juce::XmlElement const & xml);
+    [[nodiscard]] static tl::optional<ViewSettings> fromXml(juce::XmlElement const & xml);
     //==============================================================================
     struct XmlTags {
         static juce::String const MAIN_TAG;
@@ -170,7 +170,7 @@ using SourcesData = OwnedMap<source_index_t, SourceData>;
 struct SpatGrisProjectData {
     SourcesData sources{};
     LbapDistanceAttenuationData lbapDistanceAttenuationData{};
-    SpatGrisViewSettings viewSettings{};
+    ViewSettings viewSettings{};
     CartesianVector cameraPosition{};
     int oscPort{ DEFAULT_OSC_INPUT_PORT };
     dbfs_t masterGain{};

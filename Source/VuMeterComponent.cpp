@@ -22,6 +22,8 @@
 #include "LogicStrucs.hpp"
 #include "MainComponent.h"
 
+juce::String const SourceVuMeterComponent::NO_DIRECT_OUT_TEXT = "-";
+
 //==============================================================================
 LevelBox::LevelBox(SmallGrisLookAndFeel & lookAndFeel) : mLookAndFeel(lookAndFeel)
 {

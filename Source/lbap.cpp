@@ -177,10 +177,10 @@ Layer-Based Amplitude Panning interface implementation.
 ====================================================================================
 ================================================================================= */
 
-void lbap_field_setup(lbap_field & field, std::vector<lbap_speaker> & speakers)
+lbap_field lbap_field_setup(SpeakersData const & speakers)
 {
     jassertfalse; // TODO
-
+    return lbap_field{};
     /*std::sort(speakers.begin(), speakers.end(), [](lbap_speaker const & a, lbap_speaker const & b) -> bool {
         return a.elevation < b.elevation;
     });
@@ -204,10 +204,10 @@ void lbap_field_setup(lbap_field & field, std::vector<lbap_speaker> & speakers)
     }*/
 }
 
-void lbap_field_compute(lbap_field const & field, lbap_pos const & position, float * gains)
+SpeakersSpatGains lbap_field_compute(SourceData const & source, lbap_field const & field)
 {
     jassertfalse; // TODO
-
+    return SpeakersSpatGains{};
     // auto const * firstLayer = &field.layers.front();
     // auto const * secondLayer = &field.layers.back();
     // for (size_t i{}; i < field.layers.size(); ++i) {

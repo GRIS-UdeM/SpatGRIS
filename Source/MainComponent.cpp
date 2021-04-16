@@ -106,8 +106,8 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
 
     addLabel("Mode :", "Mode of spatialization", 150, 30, 60, 20, mControlUiBox->getContent());
     mSpatModeCombo.reset(addComboBox("", "Mode of spatialization", 155, 48, 90, 22, mControlUiBox->getContent()));
-    for (int i{}; i < MODE_SPAT_STRING.size(); i++) {
-        mSpatModeCombo->addItem(MODE_SPAT_STRING[i], i + 1);
+    for (int i{}; i < SPAT_MODE_STRINGS.size(); i++) {
+        mSpatModeCombo->addItem(SPAT_MODE_STRINGS[i], i + 1);
     }
 
     mNumSourcesTextEditor.reset(
@@ -551,7 +551,7 @@ void MainContentComponent::handleShowSpeakerEditWindow()
                                        600 };
     if (mEditSpeakersWindow == nullptr) {
         auto const windowName = juce::String("Speakers Setup Edition - ")
-                                + juce::String(MODE_SPAT_STRING[static_cast<int>(mData.appData.spatMode)]) + " - "
+                                + juce::String(SPAT_MODE_STRINGS[static_cast<int>(mData.appData.spatMode)]) + " - "
                                 + mCurrentSpeakerSetup.getFileName();
         mEditSpeakersWindow = std::make_unique<EditSpeakersWindow>(windowName, mLookAndFeel, *this, mConfigurationName);
         mEditSpeakersWindow->setBounds(result);
@@ -1986,8 +1986,8 @@ void MainContentComponent::comboBoxChanged(juce::ComboBox * comboBoxThatHasChang
 
         if (mEditSpeakersWindow != nullptr) {
             auto const windowName{ juce::String("Speakers Setup Edition - ")
-                                   + juce::String(MODE_SPAT_STRING[static_cast<int>(newSpatMode)]) + juce::String(" - ")
-                                   + mCurrentSpeakerSetup.getFileName() };
+                                   + juce::String(SPAT_MODE_STRINGS[static_cast<int>(newSpatMode)])
+                                   + juce::String(" - ") + mCurrentSpeakerSetup.getFileName() };
             mEditSpeakersWindow->setName(windowName);
         }
     }

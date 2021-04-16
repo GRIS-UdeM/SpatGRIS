@@ -23,28 +23,9 @@
 
 #include "lib/tl/optional.hpp"
 
-//==============================================================================
-// Spatialization modes.
 enum class SpatMode { vbap = 0, lbap, hrtfVbap, stereo };
-
-juce::String spatModeToString(SpatMode const mode)
-{
-    switch (mode) {
-    case SpatMode::hrtfVbap:
-        return "hrtfVbap";
-    case SpatMode::lbap:
-        return "lbap";
-    case SpatMode::vbap:
-        return "vbap";
-    case SpatMode::stereo:
-        return "stereo";
-    }
-    jassertfalse;
-    return "";
-}
-
-tl::optional<SpatMode> stringToSpatMode(juce::String const & string)
-{
-    jassertfalse; // TODO : use the string arrays in constants
-    return {};
-}
+//==============================================================================
+extern juce::StringArray const SPAT_MODE_STRINGS;
+//==============================================================================
+juce::String spatModeToString(SpatMode mode);
+tl::optional<SpatMode> stringToSpatMode(juce::String const & string);

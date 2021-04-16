@@ -48,7 +48,6 @@ extern juce::File const SERVER_GRIS_ICON_SMALL_FILE;
 extern juce::File const HRTF_FOLDER_0;
 extern juce::File const HRTF_FOLDER_40;
 extern juce::File const HRTF_FOLDER_80;
-extern juce::StringArray const MODE_SPAT_STRING;
 
 extern juce::StringArray const RECORDING_FORMAT_STRINGS;
 extern juce::StringArray const RECORDING_CONFIG_STRINGS;

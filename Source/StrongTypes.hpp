@@ -114,7 +114,7 @@ public:
     Derived & operator+=(Derived const & other) noexcept
     {
         mValue += other.mValue;
-        return *this;
+        return *static_cast<Derived *>(this);
     }
     Derived & operator*=(type const & mod) noexcept
     {

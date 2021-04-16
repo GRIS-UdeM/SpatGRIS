@@ -2,6 +2,11 @@
 
 #include <algorithm>
 
+juce::String const CartesianVector::XmlTags::MAIN_TAG = "POSITION";
+juce::String const CartesianVector::XmlTags::X = "X";
+juce::String const CartesianVector::XmlTags::Y = "Y";
+juce::String const CartesianVector::XmlTags::Z = "Z";
+
 //==============================================================================
 CartesianVector CartesianVector::crossProduct(CartesianVector const & other) const noexcept
 {

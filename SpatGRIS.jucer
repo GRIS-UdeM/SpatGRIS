@@ -45,6 +45,7 @@
               file="Source/StaticVector.hpp"/>
       </GROUP>
       <GROUP id="{B880ED62-D15F-78F9-F83A-129573A5FA84}" name="misc">
+        <FILE id="c9O7Fi" name="SpatMode.cpp" compile="1" resource="0" file="Source/SpatMode.cpp"/>
         <FILE id="wuCEse" name="SpatMode.hpp" compile="0" resource="0" file="Source/SpatMode.hpp"/>
         <FILE id="F7hMuN" name="StrongTypes.hpp" compile="0" resource="0" file="Source/StrongTypes.hpp"/>
         <FILE id="e9Tcnv" name="constants.cpp" compile="1" resource="0" file="Source/constants.cpp"/>
