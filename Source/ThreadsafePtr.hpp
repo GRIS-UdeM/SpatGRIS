@@ -6,7 +6,7 @@ template<typename T>
 class ThreadsafePtr
 {
     T * mCurrentValue{};
-    juce::Atomic<T *> mPendingValue{};
+    std::atomic<T *> mPendingValue{};
 
 public:
     //==============================================================================
@@ -51,7 +51,7 @@ public:
 
     T const * get()
     {
-        if (mPendingValue.get() == nullptr) {
+        if (mPendingValue.load() == nullptr) {
             return mCurrentValue;
         }
 
@@ -82,7 +82,7 @@ private:
     {
         JUCE_ASSERT_MESSAGE_THREAD;
         jassert(mCurrentValue == nullptr);
-        jassert(mPendingValue.get() == nullptr);
+        jassert(mPendingValue.load() == nullptr);
     }
 #endif
 };

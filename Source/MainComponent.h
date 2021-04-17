@@ -273,7 +273,6 @@ public:
     void closeOscLogWindow() { mOscLogWindow.reset(); }
 
     void setOscLogging(const juce::OSCMessage & message) const;
-    void updateSourceData(int sourceDataIndex, InputModel & input) const;
     //==============================================================================
     void timerCallback() override;
     void paint(juce::Graphics & g) override;

@@ -156,6 +156,11 @@ public:
 
 private:
     //==============================================================================
+    void muteButtonClicked() const;
+    void soloButtonClicked() const;
+    void colorSelectorButtonClicked();
+    void directOutButtonClicked() const;
+    //==============================================================================
     JUCE_LEAK_DETECTOR(AbstractVuMeterComponent)
 }; // class LevelComponent
 

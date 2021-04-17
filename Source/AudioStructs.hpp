@@ -133,7 +133,7 @@ struct AudioData {
 
     // Live message thread -> audio thread
     StrongArray<source_index_t, ThreadsafePtr<SpeakersSpatGains>, MAX_INPUTS> spatGainMatrix{};
-    StrongArray<source_index_t, juce::Atomic<float>, MAX_INPUTS> lbapSourceDistances{}; // Lbap-specific
+    StrongArray<source_index_t, std::atomic<float>, MAX_INPUTS> lbapSourceDistances{}; // Lbap-specific
 
     // Live audio thread -> message thread
     ThreadsafePtr<SourcePeaks> sourcePeaks{};

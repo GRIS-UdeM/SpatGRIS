@@ -94,7 +94,7 @@ public:
 
     void initInputBuffer(juce::Array<source_index_t> const & sources);
     void initOutputBuffer(juce::Array<output_patch_t> const & speakers);
-    void setBufferSize(int bufferSize);
+    void setBufferSize(int newBufferSize);
     //==============================================================================
     // AudioSourcePlayer overrides
     void audioDeviceError(const juce::String & errorMessage) override;

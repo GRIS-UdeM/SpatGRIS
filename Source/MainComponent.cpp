@@ -1090,13 +1090,13 @@ void MainContentComponent::refreshVuMeterPeaks()
     auto & audioData{ mAudioProcessor->getAudioData() };
     auto const & sourcePeaks{ *audioData.sourcePeaks.get() };
     for (auto const peak : sourcePeaks) {
-        dbfs_t const dbPeak{ peak.value };
+        auto const dbPeak{ dbfs_t::fromGain(peak.value) };
         mSourceVuMeterComponents[peak.key].setLevel(dbPeak);
     }
 
     auto const & speakerPeaks{ *audioData.speakerPeaks.get() };
     for (auto const peak : speakerPeaks) {
-        dbfs_t dbPeak{ peak.value };
+        auto const dbPeak{ dbfs_t::fromGain(peak.value) };
         mSpeakerVuMeters[peak.key].setLevel(dbPeak);
     }
 }
@@ -1114,7 +1114,7 @@ void MainContentComponent::refreshSourceVuMeterComponents()
                                                                   *this,
                                                                   mSmallLookAndFeel) };
         mInputsUiBox->addAndMakeVisible(newVuMeter.get());
-        juce::Rectangle<int> const bounds{ x, 4, VU_METER_WIDTH_IN_PIXELS, 200 };
+        juce::Rectangle<int> const bounds{ x, 20, VU_METER_WIDTH_IN_PIXELS, 200 };
         newVuMeter->setBounds(bounds);
         mSourceVuMeterComponents.add(source.key, std::move(newVuMeter));
         x += VU_METER_WIDTH_IN_PIXELS;
@@ -1143,7 +1143,7 @@ void MainContentComponent::handleSourcePositionChanged(source_index_t const sour
                                                        float const newAzimuthSpan,
                                                        float const newZenithSpan)
 {
-    JUCE_ASSERT_MESSAGE_THREAD;
+    jassert(juce::Thread::getCurrentThread()->getThreadName() == "JUCE OSC server");
     juce::ScopedWriteLock const lock{ mLock };
 
     if (!mData.project.sources.contains(sourceIndex)) {
@@ -1497,37 +1497,6 @@ void MainContentComponent::removeSpeaker(output_patch_t const outputPatch)
 bool MainContentComponent::isRadiusNormalized() const
 {
     return mData.appData.spatMode == SpatMode::vbap || mData.appData.spatMode == SpatMode::hrtfVbap;
-}
-
-//==============================================================================
-void MainContentComponent::updateSourceData(int const sourceDataIndex, InputModel & input) const
-{
-    jassertfalse;
-    /*if (sourceDataIndex >= mAudioProcessor->getSourcesIn().size()) {
-        return;
-    }
-
-    auto const spatMode{ mAudioProcessor->getMode() };
-    auto & sourceData{ mAudioProcessor->getSourcesIn()[sourceDataIndex] };
-
-    if (spatMode == SpatMode::lbap) {
-        sourceData.radAzimuth = input.getAzimuth();
-        sourceData.radElevation = HALF_PI - input.getZenith();
-    } else {
-        sourceData.azimuth = input.getAzimuth().toDegrees();
-        if (sourceData.azimuth > degrees_t{ 180.0f }) {
-            sourceData.azimuth = sourceData.azimuth - degrees_t{ 360.0f };
-        }
-        sourceData.zenith = degrees_t{ 90.0f } - input.getZenith().toDegrees();
-    }
-    sourceData.radius = input.getRadius();
-
-    sourceData.azimuthSpan = input.getAzimuthSpan() * 0.5f;
-    sourceData.zenithSpan = input.getZenithSpan() * 2.0f;
-
-    if (spatMode == SpatMode::vbap || spatMode == SpatMode::hrtfVbap) {
-        sourceData.shouldUpdateVbap = true;
-    }*/
 }
 
 //==============================================================================

@@ -11,9 +11,9 @@ class StaticMap
     static_assert(std::is_default_constructible_v<ValueType>);
 #ifdef NDEBUG
     // StaticManager has assertion checks that make it non-trivial in debug mode.
-    static_assert(std::is_trivially_copyable_v<value_t>);
-    static_assert(std::is_trivially_copy_assignable_v<value_t>);
-    static_assert(std::is_trivially_destructible_v<value_t>);
+    static_assert(std::is_trivially_copyable_v<ValueType>);
+    static_assert(std::is_trivially_copy_assignable_v<ValueType>);
+    static_assert(std::is_trivially_destructible_v<ValueType>);
 #endif
 public:
     //==============================================================================
@@ -148,11 +148,11 @@ public:
         mUsed.set();
     }
 
-    juce::Array<KeyType> getKeys() const noexcept
+    [[nodiscard]] juce::Array<KeyType> getKeys() const noexcept
     {
         JUCE_ASSERT_MESSAGE_THREAD;
         juce::Array<KeyType> result{};
-        result.ensureStorageAllocated(size());
+        result.ensureStorageAllocated(narrow<int>(size()));
         for (auto const node : *this) {
             result.add(node.key);
         }

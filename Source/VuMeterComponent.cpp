@@ -126,7 +126,7 @@ void LevelBox::resetClipping()
 //==============================================================================
 void LevelBox::setLevel(dbfs_t const level)
 {
-    auto const clippedLevel{ std::clamp(level, MIN_LEVEL_COMP, MAX_LEVEL_COMP) };
+    auto const & clippedLevel{ std::clamp(level, MIN_LEVEL_COMP, MAX_LEVEL_COMP) };
 
     if (clippedLevel == mLevel) {
         return;
@@ -266,10 +266,15 @@ SourceVuMeterComponent::SourceVuMeterComponent(source_index_t const sourceIndex,
 //==============================================================================
 void SourceVuMeterComponent::setDirectOut(tl::optional<output_patch_t> const outputPatch)
 {
-    static auto const PATCH_TO_STRING
+    // TODO : the following code always results in some app-crashing invalid string when the optional holds a value. Why
+    // is that ? Is it possible that the perfect-forwarding of a juce::String does something weird ?
+
+    /*static auto const PATCH_TO_STRING
         = [](output_patch_t const outputPatch) -> juce::String { return juce::String{ outputPatch.get() }; };
 
-    auto const newText{ outputPatch.map_or(PATCH_TO_STRING, NO_DIRECT_OUT_TEXT) };
+    auto const newText{ outputPatch.map_or(PATCH_TO_STRING, NO_DIRECT_OUT_TEXT) };*/
+
+    auto const newText{ outputPatch ? juce::String{ outputPatch->get() } : NO_DIRECT_OUT_TEXT };
     mDirectOutButton.setButtonText(newText);
 }
 
@@ -283,51 +288,14 @@ void SourceVuMeterComponent::setSourceColour(juce::Colour const colour)
 void SourceVuMeterComponent::buttonClicked(juce::Button * button)
 {
     if (button == &mMuteToggleButton) {
-        auto const newState{ mMuteToggleButton.getToggleState() ? PortState::muted : PortState::normal };
-        mOwner.handleSourceStateChanged(mSourceIndex, newState);
+        muteButtonClicked();
     } else if (button == &mSoloToggleButton) {
-        auto const newState{ mSoloToggleButton.getToggleState() ? PortState::solo : PortState::normal };
-        mOwner.handleSourceStateChanged(mSourceIndex, newState);
+        // SOLO
+        soloButtonClicked();
     } else if (button == &mIdButton) {
-        auto * colourSelector{ new juce::ColourSelector{} };
-        colourSelector->setName("background");
-        colourSelector->setCurrentColour(mIdButton.findColour(juce::TextButton::buttonColourId));
-        colourSelector->addChangeListener(this);
-        colourSelector->setColour(juce::ColourSelector::backgroundColourId, juce::Colours::transparentBlack);
-        colourSelector->setSize(300, 400);
-        std::unique_ptr<juce::Component> component{ colourSelector };
-        juce::CallOutBox::launchAsynchronously(std::move(component), getScreenBounds(), nullptr);
+        colorSelectorButtonClicked();
     } else if (button == &mDirectOutButton) {
-        juce::PopupMenu menu{};
-        static constexpr auto CHOICE_NOT_DIRECT_OUT = std::numeric_limits<int>::min();
-        static constexpr auto CHOICE_CANCELED = 0;
-        juce::Array<output_patch_t> directOutSpeakers{};
-        juce::Array<output_patch_t> nonDirectOutSpeakers{};
-        for (auto const speaker : mOwner.getSpeakersData()) {
-            auto & destination{ speaker.value->isDirectOutOnly ? directOutSpeakers : nonDirectOutSpeakers };
-            destination.add(speaker.key);
-        }
-        menu.addItem(CHOICE_NOT_DIRECT_OUT, "-");
-        for (auto const outputPatch : directOutSpeakers) {
-            menu.addItem(outputPatch.get(), juce::String{ outputPatch.get() });
-        }
-        menu.addItem(CHOICE_NOT_DIRECT_OUT, "-");
-        for (auto const outputPatch : nonDirectOutSpeakers) {
-            menu.addItem(outputPatch.get(), juce::String{ outputPatch.get() });
-        }
-
-        auto const result{ menu.show() };
-
-        if (result == CHOICE_CANCELED) {
-            return;
-        }
-
-        tl::optional<output_patch_t> newOutputPatch{};
-        if (result != CHOICE_NOT_DIRECT_OUT) {
-            newOutputPatch = output_patch_t{ result };
-        }
-
-        mOwner.handleSourceDirectOutChanged(mSourceIndex, newOutputPatch);
+        directOutButtonClicked();
     }
 }
 
@@ -347,9 +315,72 @@ void SourceVuMeterComponent::setBounds(const juce::Rectangle<int> & newBounds)
 void SourceVuMeterComponent::changeListenerCallback(juce::ChangeBroadcaster * source)
 {
     auto * colorSelector{ dynamic_cast<juce::ColourSelector *>(source) };
+    jassert(colorSelector);
     if (colorSelector != nullptr) {
-        // TODO : notify listeners
+        mOwner.handleSourceColorChanged(mSourceIndex, colorSelector->getCurrentColour());
     }
+}
+
+//==============================================================================
+void SourceVuMeterComponent::muteButtonClicked() const
+{
+    auto const newState{ mMuteToggleButton.getToggleState() ? PortState::muted : PortState::normal };
+    mOwner.handleSourceStateChanged(mSourceIndex, newState);
+}
+
+//==============================================================================
+void SourceVuMeterComponent::soloButtonClicked() const
+{
+    auto const newState{ mSoloToggleButton.getToggleState() ? PortState::solo : PortState::normal };
+    mOwner.handleSourceStateChanged(mSourceIndex, newState);
+}
+
+//==============================================================================
+void SourceVuMeterComponent::colorSelectorButtonClicked()
+{
+    auto * colourSelector{ new juce::ColourSelector{} };
+    colourSelector->setName("background");
+    colourSelector->setCurrentColour(mIdButton.findColour(juce::TextButton::buttonColourId));
+    colourSelector->addChangeListener(this);
+    colourSelector->setColour(juce::ColourSelector::backgroundColourId, juce::Colours::transparentBlack);
+    colourSelector->setSize(300, 400);
+    std::unique_ptr<juce::Component> component{ colourSelector };
+    juce::CallOutBox::launchAsynchronously(std::move(component), getScreenBounds(), nullptr);
+}
+
+//==============================================================================
+void SourceVuMeterComponent::directOutButtonClicked() const
+{
+    juce::PopupMenu menu{};
+    static constexpr auto CHOICE_NOT_DIRECT_OUT = std::numeric_limits<int>::min();
+    static constexpr auto CHOICE_CANCELED = 0;
+    juce::Array<output_patch_t> directOutSpeakers{};
+    juce::Array<output_patch_t> nonDirectOutSpeakers{};
+    for (auto const speaker : mOwner.getSpeakersData()) {
+        auto & destination{ speaker.value->isDirectOutOnly ? directOutSpeakers : nonDirectOutSpeakers };
+        destination.add(speaker.key);
+    }
+    menu.addItem(CHOICE_NOT_DIRECT_OUT, "-");
+    for (auto const outputPatch : directOutSpeakers) {
+        menu.addItem(outputPatch.get(), juce::String{ outputPatch.get() });
+    }
+    menu.addItem(CHOICE_NOT_DIRECT_OUT, "-");
+    for (auto const outputPatch : nonDirectOutSpeakers) {
+        menu.addItem(outputPatch.get(), juce::String{ outputPatch.get() });
+    }
+
+    auto const result{ menu.show() };
+
+    if (result == CHOICE_CANCELED) {
+        return;
+    }
+
+    tl::optional<output_patch_t> newOutputPatch{};
+    if (result != CHOICE_NOT_DIRECT_OUT) {
+        newOutputPatch = output_patch_t{ result };
+    }
+
+    mOwner.handleSourceDirectOutChanged(mSourceIndex, newOutputPatch);
 }
 
 //==============================================================================
@@ -357,6 +388,7 @@ SpeakerVuMeterComponent::SpeakerVuMeterComponent(output_patch_t const outputPatc
                                                  Owner & owner,
                                                  SmallGrisLookAndFeel & lookAndFeel)
     : AbstractVuMeterComponent(outputPatch.get(), lookAndFeel)
+    , mOutputPatch(outputPatch)
     , mOwner(owner)
 {
     setSelected(false);

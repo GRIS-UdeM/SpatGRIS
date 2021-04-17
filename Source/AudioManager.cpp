@@ -340,7 +340,7 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
         jassert(recordingParams.options.fileType == RecordingFileType::interleaved);
         jassert(filePaths.size() == 1);
         auto const & filePath{ filePaths[0] };
-        auto const dataToRecord{ mOutputBuffer.getArrayOfReadPointers(recordingParams.speakersToRecord) };
+        auto dataToRecord{ mOutputBuffer.getArrayOfReadPointers(recordingParams.speakersToRecord) };
         auto recordingInfo{ makeRecordingInfo(filePath,
                                               *audioFormat,
                                               recordingParams.sampleRate,
@@ -370,7 +370,7 @@ void AudioManager::stopRecording()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     jassert(mAudioProcessor);
-    juce::ScopedLock sl{ mAudioProcessor->getLock() };
+    juce::ScopedLock const sl{ mAudioProcessor->getLock() };
     // threadedWriters will flush their data before going off
     mRecorders.clear(true);
     mRecordersThread.stopThread(-1);
@@ -396,13 +396,13 @@ void AudioManager::initOutputBuffer(juce::Array<output_patch_t> const & speakers
 }
 
 //==============================================================================
-void AudioManager::setBufferSize(int const bufferSize)
+void AudioManager::setBufferSize(int const newBufferSize)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     jassert(mAudioProcessor);
     juce::ScopedLock const lock{ mAudioProcessor->getLock() };
-    mInputBuffer.setNumSamples(bufferSize);
-    mOutputBuffer.setNumSamples(bufferSize);
+    mInputBuffer.setNumSamples(newBufferSize);
+    mOutputBuffer.setNumSamples(newBufferSize);
 }
 
 //==============================================================================

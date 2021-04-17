@@ -85,11 +85,11 @@ AudioProcessor::AudioProcessor()
     int reverse0[8] = { 1, 0, 0, 0, 0, 1, 1, 1 };
     for (int i = 0; i < 8; i++) {
         auto const file{ HRTF_FOLDER_0.getChildFile(names0[i]) };
-        auto const stbuf{ getSamplesFromWavFile(file) };
+        auto const buffer{ getSamplesFromWavFile(file) };
         auto const leftChannel{ reverse0[i] };
         auto const rightChannel{ 1 - reverse0[i] };
-        std::memcpy(hrtf.leftImpulses[i].data(), stbuf.getReadPointer(leftChannel), 128);
-        std::memcpy(hrtf.rightImpulses[i].data(), stbuf.getReadPointer(rightChannel), 128);
+        std::memcpy(hrtf.leftImpulses[i].data(), buffer.getReadPointer(leftChannel), 128);
+        std::memcpy(hrtf.rightImpulses[i].data(), buffer.getReadPointer(rightChannel), 128);
     }
     // Azimuth = 40
     juce::String names40[6]
@@ -97,24 +97,24 @@ AudioProcessor::AudioProcessor()
     int reverse40[6] = { 1, 0, 0, 0, 1, 1 };
     for (int i = 0; i < 6; i++) {
         auto const file{ HRTF_FOLDER_40.getChildFile(names40[i]) };
-        auto const stbuf{ getSamplesFromWavFile(file) };
+        auto const buffer{ getSamplesFromWavFile(file) };
         auto const leftChannel{ reverse40[i] };
         auto const rightChannel{ 1 - reverse40[i] };
-        std::memcpy(hrtf.leftImpulses[i + 8].data(), stbuf.getReadPointer(leftChannel), 128);
-        std::memcpy(hrtf.rightImpulses[i + 8].data(), stbuf.getReadPointer(rightChannel), 128);
+        std::memcpy(hrtf.leftImpulses[i + 8].data(), buffer.getReadPointer(leftChannel), 128);
+        std::memcpy(hrtf.rightImpulses[i + 8].data(), buffer.getReadPointer(rightChannel), 128);
     }
     // Azimuth = 80
     for (int i = 0; i < 2; i++) {
         auto const file{ HRTF_FOLDER_80.getChildFile("H80e090a.wav") };
-        auto const stbuf{ getSamplesFromWavFile(file) };
+        auto const buffer{ getSamplesFromWavFile(file) };
         auto const leftChannel{ 1 - i };
         auto const rightChannel{ i };
-        std::memcpy(hrtf.leftImpulses[i + 14].data(), stbuf.getReadPointer(leftChannel), 128);
-        std::memcpy(hrtf.rightImpulses[i + 14].data(), stbuf.getReadPointer(rightChannel), 128);
+        std::memcpy(hrtf.leftImpulses[i + 14].data(), buffer.getReadPointer(leftChannel), 128);
+        std::memcpy(hrtf.rightImpulses[i + 14].data(), buffer.getReadPointer(rightChannel), 128);
     }
 
     // Initialize pink noise
-    srand(static_cast<unsigned>(time(nullptr)));
+    srand(static_cast<unsigned>(time(nullptr))); // NOLINT(cert-msc51-cpp)
 }
 
 //==============================================================================
@@ -260,7 +260,7 @@ void AudioProcessor::processLbap(SourceAudioBuffer & inputBuffer,
         // Radius between 1 and 1.66 are reduced
         // Radius over 1.66 is clamped to 1.66
         // auto const distance{ std::clamp((source.radius - 1.0f) / (LBAP_EXTENDED_RADIUS - 1.0f), 0.0f, 1.0f) };
-        auto const distance{ mAudioData.lbapSourceDistances[source.key].get() };
+        auto const distance{ mAudioData.lbapSourceDistances[source.key].load() };
         auto const distanceGain{ (1.0f - distance) * (1.0f - attenuationConfig.linearGain)
                                  + attenuationConfig.linearGain };
         auto const distanceCoefficient{ distance * attenuationConfig.lowpassCoefficient };
@@ -300,7 +300,7 @@ void AudioProcessor::processLbap(SourceAudioBuffer & inputBuffer,
         auto const & gains{ *mAudioData.spatGainMatrix[source.key].get() };
         auto & lastGains{ mAudioData.state.sourcesAudioState[source.key].lastSpatGains };
 
-        for (auto const speaker : mAudioData.config.speakersAudioConfig) {
+        for (auto const & speaker : mAudioData.config.speakersAudioConfig) {
             auto * outputSamples{ outputBuffer[speaker.key].getWritePointer(0) };
             auto const & targetGain{ gains[speaker.key] };
             auto & currentGain{ lastGains[speaker.key] };
@@ -342,10 +342,10 @@ void AudioProcessor::processVBapHrtf(SourceAudioBuffer const & inputBuffer,
 
     auto const numSamples{ inputBuffer.getNumSamples() };
 
-    // Process hrtf and mixdown to stereo
+    // Process hrtf and mix to stereo
     std::array<float, MAX_BUFFER_SIZE> leftOutputSamples{};
     std::array<float, MAX_BUFFER_SIZE> rightOutputSamples{};
-    for (auto const speaker : mAudioData.config.speakersAudioConfig) {
+    for (auto const & speaker : mAudioData.config.speakersAudioConfig) {
         auto & hrtfState{ mAudioData.state.hrtf };
         auto & hrtfCount{ hrtfState.count };
         auto & hrtfInputTmp{ hrtfState.inputTmp };
@@ -374,7 +374,7 @@ void AudioProcessor::processVBapHrtf(SourceAudioBuffer const & inputBuffer,
 
     static constexpr output_patch_t LEFT_OUTPUT_PATCH{ 1 };
     static constexpr output_patch_t RIGHT_OUTPUT_PATCH{ 2 };
-    for (auto const speaker : mAudioData.config.speakersAudioConfig) {
+    for (auto const & speaker : mAudioData.config.speakersAudioConfig) {
         if (speaker.key == LEFT_OUTPUT_PATCH) {
             outputBuffer[LEFT_OUTPUT_PATCH].copyFrom(0, 0, leftOutputSamples.data(), numSamples);
         } else if (speaker.key == RIGHT_OUTPUT_PATCH) {
@@ -419,7 +419,7 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer, SpeakerAudio
     auto const numSamples{ sourceBuffer.getNumSamples() };
 
     // Process source peaks
-    auto * sourcePeaks{ mAudioData.sourcePeaks.pool.acquire() };
+    auto * sourcePeaks{ ThreadsafePtr<SourcePeaks>::pool.acquire() };
     *sourcePeaks = muteSoloVuMeterIn(sourceBuffer);
 
     if (mAudioData.config.pinkNoiseGain) {
@@ -429,7 +429,7 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer, SpeakerAudio
             activeChannels.push_back(channel.key);
         }
         auto data{ speakerBuffer.getArrayOfWritePointers(activeChannels) };
-        fillWithPinkNoise(data.data(), numSamples, data.size(), *mAudioData.config.pinkNoiseGain);
+        fillWithPinkNoise(data.data(), numSamples, narrow<int>(data.size()), *mAudioData.config.pinkNoiseGain);
     } else {
         // Process spat algorithm
         switch (mAudioData.config.spatMode) {
@@ -459,7 +459,7 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer, SpeakerAudio
     }
 
     // Process speaker peaks/gains/highpass
-    auto * speakerPeaks{ mAudioData.speakerPeaks.pool.acquire() };
+    auto * speakerPeaks{ ThreadsafePtr<SpeakerPeaks>::pool.acquire() };
     *speakerPeaks = muteSoloVuMeterGainOut(speakerBuffer);
 
     // return peaks data to message thread
