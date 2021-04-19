@@ -193,7 +193,7 @@ void FlatViewWindow::paint(juce::Graphics & g)
 }
 
 //==============================================================================
-void FlatViewWindow::drawSource(juce::Graphics & g, SourcesData::Node const & source, const int fieldSize) const
+void FlatViewWindow::drawSource(juce::Graphics & g, SourcesData::ConstNode const & source, const int fieldSize) const
 {
     static constexpr auto SOURCE_DIAMETER_INT{ narrow<int>(SOURCE_DIAMETER) };
 

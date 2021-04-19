@@ -18,12 +18,13 @@ public:
     using value_type = juce::AudioBuffer<float>;
 
 private:
-    using container_type = OwnedMap<key_type, value_type>;
+    using container_type = OwnedMap<key_type, value_type, Capacity>;
     container_type mBuffers{};
     int mNumSamples{};
 
 public:
-    using iterator_type = typename container_type::iterator_type;
+    using iterator = typename container_type::iterator;
+    using const_iterator = typename container_type::const_iterator;
 
     void init(juce::Array<key_type> const & channels)
     {
@@ -96,12 +97,12 @@ public:
         }
     }
 
-    [[nodiscard]] iterator_type begin() { return mBuffers.begin(); }
-    [[nodiscard]] iterator_type end() { return mBuffers.end(); }
-    [[nodiscard]] iterator_type begin() const { return mBuffers.cbegin(); }
-    [[nodiscard]] iterator_type end() const { return mBuffers.cend(); }
-    [[nodiscard]] iterator_type cbegin() const { return mBuffers.cbegin(); }
-    [[nodiscard]] iterator_type cend() const { return mBuffers.cend(); }
+    [[nodiscard]] iterator begin() { return mBuffers.begin(); }
+    [[nodiscard]] iterator end() { return mBuffers.end(); }
+    [[nodiscard]] const_iterator begin() const { return mBuffers.cbegin(); }
+    [[nodiscard]] const_iterator end() const { return mBuffers.cend(); }
+    [[nodiscard]] const_iterator cbegin() const { return mBuffers.cbegin(); }
+    [[nodiscard]] const_iterator cend() const { return mBuffers.cend(); }
 };
 
 using SourceAudioBuffer = TaggedAudioBuffer<source_index_t, MAX_INPUTS>;

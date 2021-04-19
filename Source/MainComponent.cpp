@@ -1595,7 +1595,7 @@ bool MainContentComponent::refreshSpeakers()
     auto const numActiveSpeakers{ std::count_if(
         speakers.cbegin(),
         speakers.cend(),
-        [](SpeakersData::Node const speaker) { return speaker.value->isDirectOutOnly; }) };
+        [](SpeakersData::ConstNode const speaker) { return speaker.value->isDirectOutOnly; }) };
 
     // Ensure there is enough speakers
     auto const showNotEnoughSpeakersError = [&]() {
@@ -1623,7 +1623,7 @@ bool MainContentComponent::refreshSpeakers()
 
         auto const areSpeakersOnSamePlane{ std::all_of(mData.speakerSetup.speakers.cbegin(),
                                                        mData.speakerSetup.speakers.cend(),
-                                                       [&](SpeakersData::Node const node) {
+                                                       [&](SpeakersData::ConstNode const node) {
                                                            auto const zenith{ node.value->vector.elevation };
                                                            return zenith < maxZenith && zenith > minZenith;
                                                        }) };

@@ -505,7 +505,7 @@ std::vector<TripletData> computeTriplets(SpeakersData const & speakers) noexcept
     for (auto i_speaker_it{ speakers.cbegin() }; i_speaker_it != speakers.cend(); ++i_speaker_it) {
         auto const & i_speaker{ *(*i_speaker_it).value };
         auto const i_outputPatch{ (*i_speaker_it).key };
-        for (auto j_speaker_it{ ++SpeakersData::iterator_type{ i_speaker_it } }; j_speaker_it != speakers.cend();
+        for (auto j_speaker_it{ ++SpeakersData::const_iterator{ i_speaker_it } }; j_speaker_it != speakers.cend();
              ++j_speaker_it) {
             auto const & j_speaker{ *(*j_speaker_it).value };
             auto const j_outputPatch{ (*j_speaker_it).key };

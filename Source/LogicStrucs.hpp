@@ -171,7 +171,7 @@ struct ViewSettings {
 };
 
 //==============================================================================
-using SourcesData = OwnedMap<source_index_t, SourceData>;
+using SourcesData = OwnedMap<source_index_t, SourceData, MAX_INPUTS>;
 struct SpatGrisProjectData {
     SourcesData sources{};
     LbapDistanceAttenuationData lbapDistanceAttenuationData{};
@@ -226,7 +226,7 @@ struct SpatGrisAppData {
 };
 
 //==============================================================================
-using SpeakersData = OwnedMap<output_patch_t, SpeakerData>;
+using SpeakersData = OwnedMap<output_patch_t, SpeakerData, MAX_OUTPUTS>;
 
 struct SpeakerSetup {
     struct XmlTags {

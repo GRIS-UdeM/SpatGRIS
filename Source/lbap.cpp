@@ -259,7 +259,7 @@ SpeakersSpatGains lbap_field_compute(SourceData const & source, lbap_field const
     //}
 }
 
-std::vector<lbap_speaker> lbap_speakers_from_positions(OwnedMap<SpeakerData, output_patch_t> const & speakers)
+std::vector<lbap_speaker> lbap_speakers_from_positions(SpeakersData const & speakers)
 {
     jassertfalse; // TODO
     return std::vector<lbap_speaker>{};

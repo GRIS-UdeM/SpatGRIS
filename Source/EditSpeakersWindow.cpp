@@ -326,7 +326,7 @@ bool compareGreaterThan(Sorter const & a, Sorter const & b)
 //==============================================================================
 void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const isForwards)
 {
-    static auto const extractValue = [](SpeakersData::Node const & speaker, int const sortColumn) -> float {
+    static auto const extractValue = [](SpeakersData::ConstNode const & speaker, int const sortColumn) -> float {
         switch (sortColumn) {
         case Cols::X:
             return speaker.value->position.z;
@@ -353,7 +353,7 @@ void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const 
     std::transform(speakers.cbegin(),
                    speakers.cend(),
                    std::back_inserter(valuesToSort),
-                   [newSortColumnId](SpeakersData::Node const speaker) {
+                   [newSortColumnId](SpeakersData::ConstNode const speaker) {
                        return std::make_pair(extractValue(speaker, newSortColumnId), speaker.key);
                    });
     if (isForwards) {

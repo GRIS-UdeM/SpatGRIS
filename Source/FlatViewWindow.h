@@ -57,7 +57,7 @@ public:
 private:
     //==============================================================================
     void drawFieldBackground(juce::Graphics & g, int fieldSize) const;
-    void drawSource(juce::Graphics & g, SourcesData::Node const & source, const int fieldSize) const;
+    void drawSource(juce::Graphics & g, SourcesData::ConstNode const & source, const int fieldSize) const;
     void drawSourceSpan(juce::Graphics & g,
                         SourceData const & source,
                         const int fieldWh,

@@ -77,8 +77,8 @@ class MainContentComponent final
     // Speakers.
     juce::Array<Triplet> mTriplets{};
 
-    OwnedMap<source_index_t, SourceVuMeterComponent> mSourceVuMeterComponents{};
-    OwnedMap<output_patch_t, SpeakerVuMeterComponent> mSpeakerVuMeters{};
+    OwnedMap<source_index_t, SourceVuMeterComponent, MAX_INPUTS> mSourceVuMeterComponents{};
+    OwnedMap<output_patch_t, SpeakerVuMeterComponent, MAX_OUTPUTS> mSpeakerVuMeters{};
 
     // Open Sound Control.
     std::unique_ptr<OscInput> mOscReceiver{};

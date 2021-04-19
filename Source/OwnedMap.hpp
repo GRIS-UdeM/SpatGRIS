@@ -1,117 +1,242 @@
 #pragma once
 
 #include "StrongTypes.hpp"
+#include <bitset>
 
 //==============================================================================
-template<typename KeyType, typename ValueType>
+template<typename KeyType, typename ValueType, size_t CAPACITY>
 class OwnedMap
 {
+    static_assert(std::is_base_of_v<StrongIndexBase, KeyType>);
+    //==============================================================================
 public:
-    using key_type = KeyType;
-    using value_type = ValueType;
     struct Node {
-        key_type key{};
-        value_type * value{};
+        KeyType key{};
+        ValueType * value{};
     };
-
-private:
-    static_assert(std::is_base_of_v<StrongIndexBase, key_type>);
-    struct ExtendedHashFunctions : juce::DefaultHashFunctions {
-        static int generateHash(key_type const key, int const upperLimit)
-        {
-            return juce::DefaultHashFunctions::generateHash(key.get(), upperLimit);
-        }
-    };
-    using map_type = juce::HashMap<key_type, Node, ExtendedHashFunctions>;
-
-public:
-    class iterator_type
-    {
-        typename map_type::Iterator mMapIterator;
-
-    public:
-        using iterator_category = std::forward_iterator_tag;
-        using difference_type = int;
-        using value_type = Node;
-        using pointer = Node *;
-        using reference = Node &;
-
-        explicit iterator_type(typename map_type::Iterator iterator) : mMapIterator(std::move(iterator)) {}
-
-        value_type operator*() const { return *mMapIterator; }
-
-        iterator_type & operator++()
-        {
-            ++mMapIterator;
-            return *this;
-        }
-
-        bool operator==(iterator_type const & other) const { return !(mMapIterator != other.mMapIterator); }
-        bool operator!=(iterator_type const & other) const { return mMapIterator != other.mMapIterator; }
+    struct ConstNode {
+        KeyType key{};
+        ValueType const * value{};
     };
 
 private:
     //==============================================================================
-    juce::OwnedArray<value_type> mItems;
-    map_type mMap;
+    std::array<Node, CAPACITY> mData{};
+    std::bitset<CAPACITY> mUsed{};
 
 public:
     //==============================================================================
     OwnedMap() = default;
-    ~OwnedMap() = default;
+    ~OwnedMap() noexcept
+    {
+        for (auto & node : *this) {
+            delete node.value;
+        }
+    }
     //==============================================================================
     OwnedMap(OwnedMap const &) = delete;
-    OwnedMap(OwnedMap && other) noexcept : mItems(std::move(other.mItems)) { mMap.swapWith(other.mMap); }
+    OwnedMap(OwnedMap && other) noexcept : mData(other.mData), mUsed(other.mUsed) { other.mUsed.reset(); }
     OwnedMap & operator=(OwnedMap const &) = delete;
     OwnedMap & operator=(OwnedMap && other) noexcept
     {
-        mItems = std::move(other.mItems);
-        mMap.swapWith(other.mMap);
+        clear();
+        mData = other.mData;
+        mUsed = other.mUsed;
+        other.mUsed.reset();
         return *this;
     }
     //==============================================================================
-    [[nodiscard]] bool contains(key_type const key) const { return mMap.contains(key); }
-    [[nodiscard]] int size() const { return mItems.size(); }
-    [[nodiscard]] bool isEmpty() const { return mItems.isEmpty(); }
-    //==============================================================================
-    [[nodiscard]] value_type const & operator[](key_type const key) const
+    void clear() noexcept
     {
-        jassert(contains(key));
-        return *mMap[key].value;
+        for (auto & node : *this) {
+            delete node.value;
+        }
+        mUsed.reset();
     }
-    //==============================================================================
-    [[nodiscard]] value_type & operator[](key_type const key)
+    [[nodiscard]] int size() const noexcept { return narrow<int>(mUsed.count()); }
+
+    [[nodiscard]] ValueType & operator[](KeyType const key) { return *getNode(key).value; }
+    [[nodiscard]] ValueType const & operator[](KeyType const key) const { return *getConstNode(key).value; }
+
+    [[nodiscard]] Node & getNode(KeyType const & key) noexcept
     {
-        jassert(contains(key));
-        return *mMap[key].value;
+        auto const index{ toIndex(key) };
+        jassert(index < CAPACITY);
+        jassert(mUsed.test(index));
+        return mData[index];
     }
-    //==============================================================================
-    value_type & add(key_type const key, std::unique_ptr<value_type> value)
+
+    [[nodiscard]] ConstNode const & getConstNode(KeyType const & key) const noexcept
     {
-        jassert(!contains(key));
-        mItems.add(value.get());
-        mMap.set(key, Node{ key, value.get() });
-        return *value.release();
+        auto const index{ toIndex(key) };
+        jassert(index < CAPACITY);
+        jassert(mUsed.test(index));
+        return reinterpret_cast<ConstNode const &>(mData[index]);
     }
-    //==============================================================================
-    void remove(key_type const key)
+
+    [[nodiscard]] size_t toIndex(KeyType const & key) const noexcept
     {
-        jassert(contains(key));
-        mItems.removeObject(mMap[key].value);
-        mMap.remove(key);
+        return narrow<size_t>(key.get() - KeyType::OFFSET);
     }
-    //==============================================================================
-    [[nodiscard]] iterator_type begin() { return iterator_type{ mMap.begin() }; }
-    [[nodiscard]] iterator_type end() { return iterator_type{ mMap.end() }; }
-    [[nodiscard]] iterator_type begin() const { return iterator_type{ mMap.begin() }; }
-    [[nodiscard]] iterator_type end() const { return iterator_type{ mMap.end() }; }
-    [[nodiscard]] iterator_type cbegin() const { return iterator_type{ mMap.begin() }; }
-    [[nodiscard]] iterator_type cend() const { return iterator_type{ mMap.end() }; }
-    //==============================================================================
-    void clear()
+
+    [[nodiscard]] bool contains(KeyType const & key) const noexcept
     {
-        mItems.clearQuick(true);
-        mMap.clear();
+        auto const index{ toIndex(key) };
+        jassert(index < CAPACITY);
+        return mUsed.test(index);
+    }
+
+    [[nodiscard]] KeyType getNextUsedKey(KeyType const & key) const noexcept
+    {
+        auto index{ toIndex(key) };
+        if (index >= CAPACITY) {
+            return key;
+        }
+        do {
+            ++index;
+        } while (index < CAPACITY && !mUsed.test(index));
+        return KeyType{ narrow<KeyType::type>(index) + KeyType::OFFSET };
+    }
+    [[nodiscard]] KeyType getFirstUsedKey() const noexcept
+    {
+        KeyType const key{ KeyType::OFFSET };
+        if (contains(key)) {
+            return key;
+        }
+        return getNextUsedKey(key);
+    }
+    ValueType & add(KeyType const key, std::unique_ptr<ValueType> value) noexcept
+    {
+        auto const index{ toIndex(key) };
+        jassert(index < CAPACITY);
+        jassert(!mUsed.test(index));
+        mData[index].key = key;
+        mData[index].value = value.release();
+        mUsed.set(index);
+        return *mData[index].value;
+    }
+    void remove(KeyType const key) noexcept
+    {
+        auto const index{ toIndex(key) };
+        jassert(index < CAPACITY);
+        jassert(mUsed.test(index));
+        delete mData[index].value;
+        mUsed.reset(index);
+    }
+
+    //==============================================================================
+    class iterator
+    {
+        OwnedMap * mOwnedMap{};
+        KeyType mCurrentKey{};
+
+    public:
+        iterator() = default;
+        iterator(OwnedMap & map, KeyType const key) : mOwnedMap(&map), mCurrentKey(key) {}
+        ~iterator() = default;
+        iterator(iterator const &) = default;
+        iterator(iterator &&) = default;
+        iterator & operator=(iterator const &) = default;
+        iterator & operator=(iterator &&) = default;
+
+        using iterator_category = std::forward_iterator_tag;
+        using difference_type = std::ptrdiff_t;
+        using value_type = Node;
+        using pointer = Node *;
+        using reference = Node &;
+
+        [[nodiscard]] bool operator==(iterator const & other) const noexcept
+        {
+            return mCurrentKey == other.mCurrentKey;
+        }
+        [[nodiscard]] bool operator!=(iterator const & other) const noexcept
+        {
+            return mCurrentKey != other.mCurrentKey;
+        }
+        [[nodiscard]] bool operator<(iterator const & other) const noexcept { return mCurrentKey < other.mCurrentKey; }
+
+        [[nodiscard]] reference operator*() { return mOwnedMap->getNode(mCurrentKey); }
+        [[nodiscard]] reference operator*() const { return mOwnedMap->getNode(mCurrentKey); }
+        [[nodiscard]] pointer operator->() { return &mOwnedMap->getNode(mCurrentKey); }
+        [[nodiscard]] pointer operator->() const { return &mOwnedMap->getNode(mCurrentKey); }
+
+        iterator & operator++() noexcept
+        {
+            mCurrentKey = mOwnedMap->getNextUsedKey(mCurrentKey);
+            return *this;
+        }
+        [[nodiscard]] iterator operator++(int) noexcept
+        {
+            auto const temp{ *this };
+            ++(*this);
+            return temp;
+        }
+    };
+    class const_iterator
+    {
+        OwnedMap const * mOwnedMap{};
+        KeyType mCurrentKey{};
+
+    public:
+        const_iterator() = default;
+        const_iterator(OwnedMap const & map, KeyType const key) : mOwnedMap(&map), mCurrentKey(key) {}
+        ~const_iterator() = default;
+        const_iterator(const_iterator const &) = default;
+        const_iterator(const_iterator &&) = default;
+        const_iterator & operator=(const_iterator const &) = default;
+        const_iterator & operator=(const_iterator &&) = default;
+
+        using iterator_category = std::forward_iterator_tag;
+        using difference_type = std::ptrdiff_t;
+        using value_type = ConstNode;
+        using pointer = ConstNode const *;
+        using reference = ConstNode const &;
+
+        [[nodiscard]] bool operator==(const_iterator const & other) const noexcept
+        {
+            return mCurrentKey == other.mCurrentKey;
+        }
+        [[nodiscard]] bool operator!=(const_iterator const & other) const noexcept
+        {
+            return mCurrentKey != other.mCurrentKey;
+        }
+        [[nodiscard]] bool operator<(const_iterator const & other) const noexcept
+        {
+            return mCurrentKey < other.mCurrentKey;
+        }
+
+        [[nodiscard]] reference operator*() { return mOwnedMap->getConstNode(mCurrentKey); }
+        [[nodiscard]] reference operator*() const { return mOwnedMap->getConstNode(mCurrentKey); }
+        [[nodiscard]] pointer operator->() { return &mOwnedMap->getConstNode(mCurrentKey); }
+        [[nodiscard]] pointer operator->() const { return &mOwnedMap->getConstNode(mCurrentKey); }
+
+        const_iterator & operator++() noexcept
+        {
+            mCurrentKey = mOwnedMap->getNextUsedKey(mCurrentKey);
+            return *this;
+        }
+        [[nodiscard]] const_iterator operator++(int) noexcept
+        {
+            auto const temp{ *this };
+            ++(*this);
+            return temp;
+        }
+    };
+
+    [[nodiscard]] iterator begin() noexcept { return iterator{ *this, getFirstUsedKey() }; }
+    [[nodiscard]] iterator end() noexcept
+    {
+        return iterator{ *this, KeyType{ narrow<typename KeyType::type>(CAPACITY) + KeyType::OFFSET } };
+    }
+    [[nodiscard]] const_iterator begin() const noexcept { return const_iterator{ *this, getFirstUsedKey() }; }
+    [[nodiscard]] const_iterator end() const noexcept
+    {
+        return const_iterator{ *this, KeyType{ narrow<typename KeyType::type>(CAPACITY) + KeyType::OFFSET } };
+    }
+    [[nodiscard]] const_iterator cbegin() const noexcept { return const_iterator{ *this, getFirstUsedKey() }; }
+    [[nodiscard]] const_iterator cend() const noexcept
+    {
+        return const_iterator{ *this, KeyType{ narrow<typename KeyType::type>(CAPACITY) + KeyType::OFFSET } };
     }
 
 private:
