@@ -425,7 +425,7 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer, SpeakerAudio
     if (mAudioData.config.pinkNoiseGain) {
         // Process pink noise
         StaticVector<output_patch_t, MAX_OUTPUTS> activeChannels{};
-        for (auto channel : mAudioData.config.speakersAudioConfig) {
+        for (auto const & channel : mAudioData.config.speakersAudioConfig) {
             activeChannels.push_back(channel.key);
         }
         auto data{ speakerBuffer.getArrayOfWritePointers(activeChannels) };

@@ -511,6 +511,10 @@ tl::optional<SpatGrisProjectData> SpatGrisProjectData::fromXml(juce::XmlElement 
             return tl::nullopt;
         }
         auto const sourceIndex{ source_index_t{ sourceElement->getTagName().getIntValue() } };
+        jassert(LEGAL_SOURCE_INDEX_RANGE.contains(sourceIndex));
+        if (!LEGAL_SOURCE_INDEX_RANGE.contains(sourceIndex)) {
+            return tl::nullopt;
+        }
         result.sources.add(sourceIndex, std::make_unique<SourceData>(*sourceData));
     }
 
@@ -521,9 +525,11 @@ tl::optional<SpatGrisProjectData> SpatGrisProjectData::fromXml(juce::XmlElement 
         return tl::nullopt;
     }
 
-    result.masterGain = dbfs_t{ static_cast<dbfs_t::type>(xml.getDoubleAttribute(XmlTags::MASTER_GAIN)) };
-    result.spatGainsInterpolation = static_cast<float>(xml.getDoubleAttribute(XmlTags::GAIN_INTERPOLATION));
-    result.oscPort = xml.getIntAttribute(XmlTags::OSC_PORT);
+    result.masterGain = LEGAL_MASTER_GAIN_RANGE.clipValue(
+        dbfs_t{ static_cast<dbfs_t::type>(xml.getDoubleAttribute(XmlTags::MASTER_GAIN)) });
+    result.spatGainsInterpolation = LEGAL_GAIN_INTERPOLATION_RANGE.clipValue(
+        static_cast<float>(xml.getDoubleAttribute(XmlTags::GAIN_INTERPOLATION)));
+    result.oscPort = xml.getIntAttribute(XmlTags::OSC_PORT); // TODO : validate value
     result.viewSettings = *viewSettings;
     result.lbapDistanceAttenuationData = *lbapAttenuation;
 

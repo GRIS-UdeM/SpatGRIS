@@ -8,6 +8,12 @@ tl::optional<std::pair<SpeakerSetup, SpatMode>> readLegacySpeakerSetup(juce::Xml
     }
 
     auto const spatMode{ static_cast<SpatMode>(xml.getIntAttribute("SpatMode")) };
+    jassert(spatMode == SpatMode::hrtfVbap || spatMode == SpatMode::lbap || spatMode == SpatMode::vbap
+            || spatMode == SpatMode::stereo);
+    if (spatMode != SpatMode::hrtfVbap && spatMode != SpatMode::lbap && spatMode != SpatMode::vbap
+        && spatMode != SpatMode::stereo) {
+        return tl::nullopt;
+    }
     juce::Array<std::pair<int, output_patch_t>> layout;
     SpeakerSetup result{};
 
@@ -18,12 +24,20 @@ tl::optional<std::pair<SpeakerSetup, SpatMode>> readLegacySpeakerSetup(juce::Xml
             {
                 if (spk->hasTagName("Speaker")) {
                     // layout
-                    auto const layoutIndex{ spk->getIntAttribute("LayoutIndex") };
+                    auto const layoutIndex{ spk->getIntAttribute("LayoutIndex") - 1 };
                     output_patch_t outputPatch{ spk->getIntAttribute("OutputPatch") };
+                    jassert(LEGAL_OUTPUT_PATCH_RANGE.contains(outputPatch));
+                    if (!LEGAL_OUTPUT_PATCH_RANGE.contains(outputPatch)) {
+                        return tl::nullopt;
+                    }
 
                     // position
-                    radians_t const azimuth{ degrees_t{ static_cast<float>(spk->getDoubleAttribute("Azimuth", 0.0)) } };
-                    radians_t const zenith{ degrees_t{ static_cast<float>(spk->getDoubleAttribute("Zenith", 0.0)) } };
+                    radians_t const azimuth{
+                        degrees_t{ static_cast<float>(spk->getDoubleAttribute("Azimuth", 0.0)) }.centered()
+                    };
+                    radians_t const zenith{
+                        degrees_t{ static_cast<float>(spk->getDoubleAttribute("Zenith", 0.0)) }.centered()
+                    };
                     auto const length{ static_cast<float>(spk->getDoubleAttribute("Radius", 1.0)) };
                     PolarVector const vector{ azimuth, zenith, length };
 
@@ -47,7 +61,27 @@ tl::optional<std::pair<SpeakerSetup, SpatMode>> readLegacySpeakerSetup(juce::Xml
             }
         }
     }
+
     std::sort(layout.begin(), layout.end());
+    auto const isLayoutValid = [&]() {
+        // Layout should be numbers 0 to n
+        int expected{};
+        for (auto const & node : layout) {
+            if (node.first != expected++) {
+                return false;
+            }
+        }
+
+        // output patches should all be existing speakers
+        return std::all_of(layout.begin(), layout.end(), [&](std::pair<int, output_patch_t> const & node) {
+            return result.speakers.contains(node.second);
+        });
+    };
+    jassert(isLayoutValid());
+    if (!isLayoutValid()) {
+        return tl::nullopt;
+    }
+
     result.order.resize(layout.size());
     std::transform(layout.begin(),
                    layout.end(),
@@ -64,12 +98,14 @@ tl::optional<SpatGrisProjectData> readLegacyProjectFile(juce::XmlElement const &
         return tl::nullopt;
     }
 
-    auto const oscPort{ xml.getIntAttribute("OSC_Input_Port", DEFAULT_OSC_INPUT_PORT) };
+    auto const oscPort{ xml.getIntAttribute("OSC_Input_Port", DEFAULT_OSC_INPUT_PORT) }; // TODO : validate value
 
     // auto const numInputs{ xml.getStringAttribute("Number_Of_Inputs").getIntValue() }; /* UNUSED */
 
-    dbfs_t const masterGain{ static_cast<float>(xml.getDoubleAttribute("Master_Gain_Out", 0.0)) };
-    auto const gainInterpolation{ static_cast<float>(xml.getDoubleAttribute("Master_Interpolation", 0.1)) };
+    auto const masterGain{ LEGAL_MASTER_GAIN_RANGE.clipValue(
+        dbfs_t{ static_cast<float>(xml.getDoubleAttribute("Master_Gain_Out", 0.0)) }) };
+    auto const gainInterpolation{ LEGAL_GAIN_INTERPOLATION_RANGE.clipValue(
+        static_cast<float>(xml.getDoubleAttribute("Master_Interpolation", 0.1))) };
 
     auto const showSpeakerNumbers{ xml.getBoolAttribute("Show_Numbers", false) };
     auto const showSpeakers{ xml.getBoolAttribute("Show_Speakers", true) };
@@ -80,8 +116,8 @@ tl::optional<SpatGrisProjectData> readLegacyProjectFile(juce::XmlElement const &
     ViewSettings const viewSettings{ showSpeakers,      showSpeakerNumbers, showTriplets,
                                      showSpeakerLevels, showSphereOrCube,   showSourceLevels };
 
-    radians_t const camAzimuth{ static_cast<float>(xml.getDoubleAttribute("CamAngleX", 0.0f)) };
-    radians_t const camZenith{ static_cast<float>(xml.getDoubleAttribute("CamAngleY", 0.0f)) };
+    auto const camAzimuth{ radians_t{ static_cast<float>(xml.getDoubleAttribute("CamAngleX", 0.0f)) }.centered() };
+    auto const camZenith{ radians_t{ static_cast<float>(xml.getDoubleAttribute("CamAngleY", 0.0f)) }.centered() };
     auto const camDistance{ static_cast<float>(xml.getDoubleAttribute("CamDistance", 22.0f)) };
     auto const camPosition{ PolarVector{ camAzimuth, camZenith, camDistance }.toCartesian() };
 
@@ -91,13 +127,21 @@ tl::optional<SpatGrisProjectData> readLegacyProjectFile(juce::XmlElement const &
     {
         if (source->hasTagName("Input")) {
             source_index_t const index{ source->getIntAttribute("Index") };
+            jassert(LEGAL_SOURCE_INDEX_RANGE.contains(index));
+            if (!LEGAL_SOURCE_INDEX_RANGE.contains(index)) {
+                return tl::nullopt;
+            }
             auto const red{ static_cast<float>(source->getDoubleAttribute("R", 1.0f)) };
-            auto const green{ static_cast<float>(xml.getDoubleAttribute("G", 1.0f)) };
-            auto const blue{ static_cast<float>(xml.getDoubleAttribute("B", 1.0f)) };
+            auto const green{ static_cast<float>(source->getDoubleAttribute("G", 1.0f)) };
+            auto const blue{ static_cast<float>(source->getDoubleAttribute("B", 1.0f)) };
             auto const color{ juce::Colour::fromFloatRGBA(red, green, blue, 1.0f) };
             tl::optional<output_patch_t> directOut{};
-            if (xml.hasAttribute("DirectOut")) {
-                directOut = output_patch_t{ xml.getIntAttribute("DirectOut") };
+            if (source->getIntAttribute("DirectOut") != 0) {
+                directOut = output_patch_t{ source->getIntAttribute("DirectOut") };
+                jassert(LEGAL_OUTPUT_PATCH_RANGE.contains(*directOut));
+                if (!LEGAL_OUTPUT_PATCH_RANGE.contains(*directOut)) {
+                    return tl::nullopt;
+                }
             }
 
             auto newSourceData{ std::make_unique<SourceData>() };

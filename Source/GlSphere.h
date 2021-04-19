@@ -36,6 +36,9 @@ ENABLE_WARNINGS
 static auto inline drawSphere = [](float const r) {
     static auto constexpr LATS = 8;
     static auto constexpr LONGS = 8;
+
+    ASSERT_OPEN_GL_THREAD;
+
     for (int i{}; i <= LATS; ++i) {
         auto const lat0
             = juce::MathConstants<float>::pi * (-0.5f + static_cast<float>(i - 1) / static_cast<float>(LATS));

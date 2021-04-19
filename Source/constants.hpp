@@ -25,11 +25,16 @@
 constexpr auto MAX_INPUTS = 256;
 constexpr auto MAX_OUTPUTS = 256;
 constexpr auto VU_METER_WIDTH_IN_PIXELS = 22;
+constexpr auto VU_METER_HEIGHT = 140;
 constexpr auto LBAP_EXTENDED_RADIUS = 1.6666667f;
 constexpr auto HRTF_NUM_SAMPLES = 128;
-constexpr dbfs_t MIN_PINK_NOISE_DB{ -60.0f };
-constexpr dbfs_t MAX_PINK_NOISE_DB{ 0.0f };
 constexpr dbfs_t DEFAULT_PINK_NOISE_DB{ -20.0f };
+
+constexpr juce::Range<source_index_t> LEGAL_SOURCE_INDEX_RANGE{ source_index_t{ 1 }, source_index_t{ MAX_INPUTS } };
+constexpr juce::Range<output_patch_t> LEGAL_OUTPUT_PATCH_RANGE{ output_patch_t{ 1 }, output_patch_t{ MAX_OUTPUTS } };
+constexpr juce::Range<dbfs_t> LEGAL_MASTER_GAIN_RANGE{ dbfs_t{ -60.0f }, dbfs_t{ 12.0f } };
+constexpr juce::Range<float> LEGAL_GAIN_INTERPOLATION_RANGE{ 0.0f, 1.0f };
+constexpr juce::Range<dbfs_t> LEGAL_PINK_NOISE_GAIN_RANGE{ dbfs_t{ -60.0f }, dbfs_t{ 0.0f } };
 
 extern char const * const DEVICE_NAME;
 extern char const * const CLIENT_NAME;

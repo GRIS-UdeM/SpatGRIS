@@ -39,6 +39,8 @@ ENABLE_WARNINGS
 #include "Ray.h"
 #include "constants.hpp"
 
+#define ASSERT_OPEN_GL_THREAD jassert(juce::Thread::getCurrentThread()->getThreadName() == "Pool")
+
 class MainContentComponent;
 class SpeakerModel;
 

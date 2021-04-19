@@ -158,7 +158,9 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     mPinkNoiseGainSlider.setRotaryParameters(juce::MathConstants<float>::pi * 1.3f,
                                              juce::MathConstants<float>::pi * 2.7f,
                                              true);
-    mPinkNoiseGainSlider.setRange(MIN_PINK_NOISE_DB.get(), MAX_PINK_NOISE_DB.get(), 1.0);
+    mPinkNoiseGainSlider.setRange(LEGAL_PINK_NOISE_GAIN_RANGE.getStart().get(),
+                                  LEGAL_PINK_NOISE_GAIN_RANGE.getEnd().get(),
+                                  1.0);
     mPinkNoiseGainSlider.setValue(DEFAULT_PINK_NOISE_DB.get());
     mPinkNoiseGainSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 60, 20);
     mPinkNoiseGainSlider.setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());

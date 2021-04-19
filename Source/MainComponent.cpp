@@ -199,6 +199,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     initGui();
     initAudioManager();
     initAudioProcessor(); // Audio starts playing at this point
+    juce::ScopedLock const lock{ mAudioProcessor->getLock() };
     initProject();
     initSpeakerSetup();
     startOsc();
@@ -1090,12 +1091,19 @@ void MainContentComponent::refreshVuMeterPeaks()
     auto & audioData{ mAudioProcessor->getAudioData() };
     auto const & sourcePeaks{ *audioData.sourcePeaks.get() };
     for (auto const peak : sourcePeaks) {
+        if (!mSourceVuMeterComponents.contains(peak.key)) {
+            // TODO : peaks might include objects that do not exist anymore
+            continue;
+        }
         auto const dbPeak{ dbfs_t::fromGain(peak.value) };
         mSourceVuMeterComponents[peak.key].setLevel(dbPeak);
     }
 
     auto const & speakerPeaks{ *audioData.speakerPeaks.get() };
     for (auto const peak : speakerPeaks) {
+        if (!mSpeakerVuMeters.contains(peak.key)) {
+            continue;
+        }
         auto const dbPeak{ dbfs_t::fromGain(peak.value) };
         mSpeakerVuMeters[peak.key].setLevel(dbPeak);
     }

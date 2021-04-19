@@ -71,6 +71,7 @@ void SpeakerViewComponent::setCamPosition(CartesianVector const & position)
 void SpeakerViewComponent::render()
 {
     jassert(juce::OpenGLHelpers::isContextActive());
+    ASSERT_OPEN_GL_THREAD;
 
     glEnable(GL_DEPTH_TEST);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -201,6 +202,8 @@ void SpeakerViewComponent::paint(juce::Graphics & g)
 //==============================================================================
 void SpeakerViewComponent::clickRay()
 {
+    ASSERT_OPEN_GL_THREAD;
+
     mClickLeft = false;
     double matModelView[16], matProjection[16];
     int viewport[4];
@@ -236,18 +239,9 @@ void SpeakerViewComponent::clickRay()
         }
     }
 
-    juce::Array<output_patch_t> selection{};
-    if (iBestSpeaker) {
-        selection.add(*iBestSpeaker);
-    }
     if (mControlOn && iBestSpeaker) {
-        mMainContentComponent.handleSpeakerSelected(selection);
-    } else {
-        if (!iBestSpeaker && selected) {
-            selection.add(*selected);
-        }
-
-        mMainContentComponent.handleSpeakerSelected(selection);
+        juce::MessageManager::callAsync(
+            [=] { mMainContentComponent.handleSpeakerSelected(juce::Array<output_patch_t>{ *iBestSpeaker }); });
     }
 
     mControlOn = false;
@@ -322,6 +316,8 @@ void SpeakerViewComponent::drawBackground()
 //==============================================================================
 void SpeakerViewComponent::drawOriginGrid() const
 {
+    ASSERT_OPEN_GL_THREAD;
+
     static auto const drawSquare = [](float const length) -> void {
         glBegin(GL_LINES);
         glVertex3f(-length, 0.0f, length);
@@ -441,6 +437,8 @@ void SpeakerViewComponent::drawText(juce::String const & val,
                                     float const scale,
                                     bool const camLock) const
 {
+    ASSERT_OPEN_GL_THREAD;
+
     glPushMatrix();
     glTranslatef(position.x, position.y, position.z);
 
@@ -481,6 +479,8 @@ void SpeakerViewComponent::drawTextOnGrid(std::string const & val, glm::vec3 con
 //==============================================================================
 void SpeakerViewComponent::drawTripletConnection() const
 {
+    ASSERT_OPEN_GL_THREAD;
+
     auto const & data{ mMainContentComponent.getData() };
     for (auto const & triplet : mMainContentComponent.getTriplets()) {
         auto const & spk1{ data.speakerSetup.speakers[triplet.id1].position };
@@ -504,6 +504,8 @@ void SpeakerViewComponent::drawTripletConnection() const
 void SpeakerViewComponent::drawSource(SourceData const & source, SpatMode const spatMode) const
 {
     static auto constexpr ALPHA{ 0.75f };
+
+    ASSERT_OPEN_GL_THREAD;
 
     if (!source.position) {
         return;
@@ -667,6 +669,8 @@ void SpeakerViewComponent::drawSpeaker(SpeakerData const & speaker) const
 {
     static auto constexpr ALPHA = 0.75f;
 
+    ASSERT_OPEN_GL_THREAD;
+
     auto const & center{ speaker.position };
     auto const & vector{ speaker.vector };
 
@@ -797,9 +801,11 @@ void SpeakerViewComponent::drawSpeaker(SpeakerData const & speaker) const
 //==============================================================================
 float SpeakerViewComponent::rayCast(SpeakerData const & /*speaker*/) const
 {
+    ASSERT_OPEN_GL_THREAD;
+
     // TODO
 
-    jassertfalse;
+    // jassertfalse;
     return -1.0f;
 
     // auto const t1{ (speaker->getMin().x - mRay.getPosition().x) / mRay.getNormal().x };
@@ -831,6 +837,8 @@ float SpeakerViewComponent::rayCast(SpeakerData const & /*speaker*/) const
 //==============================================================================
 bool SpeakerViewComponent::speakerNearCam(CartesianVector const & speak1, CartesianVector const & speak2) const
 {
+    ASSERT_OPEN_GL_THREAD;
+
     auto const camPosition{ mCamVector.toCartesian() };
     auto const distance1{ (speak1 - camPosition).length2() };
     auto const distance2{ (speak2 - camPosition).length2() };
