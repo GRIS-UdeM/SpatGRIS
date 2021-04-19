@@ -213,8 +213,13 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
 //==============================================================================
 MainContentComponent::~MainContentComponent()
 {
+    juce::ScopedWriteLock const lock{ mLock };
+    auto const bounds{ MainWindow::getMainAppWindow()->getBounds() };
+    mData.appData.windowX = bounds.getX();
+    mData.appData.windowY = bounds.getY();
+    mData.appData.windowWidth = bounds.getWidth();
+    mData.appData.windowHeight = bounds.getHeight();
     mData.appData.sashPosition = mVerticalLayout.getItemCurrentRelativeSize(0);
-    // TODO : save other appData thingies
 
     mConfiguration.save(mData.appData);
 

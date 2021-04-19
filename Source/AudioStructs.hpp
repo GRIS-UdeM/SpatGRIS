@@ -138,6 +138,16 @@ struct AudioData {
     // Live audio thread -> message thread
     ThreadsafePtr<SourcePeaks> sourcePeaks{};
     ThreadsafePtr<SpeakerPeaks> speakerPeaks{};
+
+    //~AudioData() noexcept
+    //{
+    //    sourcePeaks.releaseResources();
+    //    speakerPeaks.releaseResources();
+    //    for (auto & ptr : spatGainMatrix)
+    //    {
+    //        ptr.releaseResources();
+    //    }
+    //}
 };
 
 //==============================================================================

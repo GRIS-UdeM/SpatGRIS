@@ -26,9 +26,9 @@ MainWindow::MainWindow(juce::String const & name,
                        GrisLookAndFeel & newLookAndFeel,
                        SmallGrisLookAndFeel & smallGrisLookAndFeel)
     : DocumentWindow(name, juce::Colours::lightgrey, DocumentWindow::allButtons)
+    , mMainContentComponent(std::make_unique<MainContentComponent>(*this, newLookAndFeel, smallGrisLookAndFeel))
 {
     setUsingNativeTitleBar(true);
-    mMainContentComponent = std::make_unique<MainContentComponent>(*this, newLookAndFeel, smallGrisLookAndFeel);
     setContentOwned(mMainContentComponent.get(), true);
     setResizable(true, true);
 
@@ -62,21 +62,12 @@ MainWindow::MainWindow(juce::String const & name,
         centreWithSize(getWidth(), getHeight());
     }
 
-    setUsingNativeTitleBar(true);
-
     MainWindow::setVisible(true);
 }
 
 //==============================================================================
 bool MainWindow::exitWinApp() const
 {
-    jassertfalse; // TODO : save window screen position
-    // auto const & configuration{ mMainContentComponent->getConfiguration() };
-    // configuration.setWindowX(getScreenX());
-    // configuration.setWindowY(getScreenY());
-    // configuration.setWindowWidth(getWidth());
-    // configuration.setWindowHeight(getHeight());
-
     return mMainContentComponent->exitApp();
 }
 

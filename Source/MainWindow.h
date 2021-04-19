@@ -69,8 +69,8 @@ public:
 
 private:
     //==============================================================================
-    std::unique_ptr<MainContentComponent> mMainContentComponent{};
     juce::ApplicationCommandManager mApplicationCommandManager{};
+    std::unique_ptr<MainContentComponent> mMainContentComponent{};
 
 public:
     //==============================================================================

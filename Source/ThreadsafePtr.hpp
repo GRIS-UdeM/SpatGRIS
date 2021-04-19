@@ -13,40 +13,11 @@ public:
     static Pool<T> pool;
     //==============================================================================
     ThreadsafePtr() : mCurrentValue(pool.acquire()) {}
-#ifndef NDEBUG
-    ~ThreadsafePtr() { assertEmpty(); }
-    ThreadsafePtr(ThreadsafePtr const & other)
-    {
-        assertEmpty();
-        other.assertEmpty();
-    }
-    ThreadsafePtr(ThreadsafePtr const && other) noexcept
-    {
-        assertEmpty();
-        other.assertEmpty();
-    }
-    ThreadsafePtr & operator=(ThreadsafePtr const & other)
-    {
-        if (&other == this) {
-            return *this;
-        }
-        assertEmpty();
-        other.assertEmpty();
-        return *this;
-    }
-    ThreadsafePtr & operator=(ThreadsafePtr && other) noexcept
-    {
-        assertEmpty();
-        other.assertEmpty();
-        return *this;
-    }
-#else
     ~ThreadsafePtr() = default;
     ThreadsafePtr(ThreadsafePtr const &) = default;
     ThreadsafePtr(ThreadsafePtr &&) = default;
     ThreadsafePtr & operator=(ThreadsafePtr const &) = default;
     ThreadsafePtr & operator=(ThreadsafePtr &&) = default;
-#endif
     //==============================================================================
 
     T const * get()
@@ -63,26 +34,28 @@ public:
 
     void set(T * const value)
     {
+        jassert(pool.mOwnedData.contains(value));
         auto * oldValue{ mPendingValue.exchange(value) };
         if (oldValue) {
             pool.giveBack(oldValue);
         }
     }
 
-    void releaseResources()
-    {
-        JUCE_ASSERT_MESSAGE_THREAD;
-        delete mCurrentValue;
-        delete mPendingValue.get();
-    }
+    // void releaseResources()
+    //{
+    //    JUCE_ASSERT_MESSAGE_THREAD;
+    //    delete mPendingValue.exchange(nullptr);
+    //    delete mCurrentValue;
+    //    mCurrentValue = nullptr;
+    //}
 
-private:
-#ifndef NDEBUG
-    void assertEmpty() const
-    {
-        JUCE_ASSERT_MESSAGE_THREAD;
-        jassert(mCurrentValue == nullptr);
-        jassert(mPendingValue.load() == nullptr);
-    }
-#endif
+    // private:
+    //#ifndef NDEBUG
+    //    void assertEmpty() const
+    //    {
+    //        JUCE_ASSERT_MESSAGE_THREAD;
+    //        jassert(mCurrentValue == nullptr);
+    //        jassert(mPendingValue.load() == nullptr);
+    //    }
+    //#endif
 };
