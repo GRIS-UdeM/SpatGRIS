@@ -23,12 +23,14 @@
 #include <type_traits>
 
 #ifdef NDEBUG
+//==============================================================================
 template<typename To, typename From>
 constexpr To narrow(From const value)
 {
     return static_cast<To>(value);
 }
 #else
+//==============================================================================
 template<typename To, typename From>
 constexpr To narrow(From const value)
 {

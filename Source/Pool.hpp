@@ -14,10 +14,8 @@ class Pool
     LocklessQueue<T *, BUFFER_SIZE> mPendingFreeObjects{};
 #ifndef NDEBUG
 public:
-    juce::OwnedArray<T> mOwnedData{};
-
-private:
 #endif
+    juce::OwnedArray<T> mOwnedData{};
 
 public:
     //==============================================================================

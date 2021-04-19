@@ -4,6 +4,7 @@
 #include "LogicStrucs.hpp"
 #include "SpatMode.hpp"
 
+//==============================================================================
 class AbstractSpatAlgorithm
 {
 public:

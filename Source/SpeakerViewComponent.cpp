@@ -24,10 +24,13 @@
 #include "GlSphere.h"
 #include "MainComponent.h"
 
+Pool<tl::optional<ViewportSourceData>> ThreadsafePtr<tl::optional<ViewportSourceData>>::pool{ 32 };
+Pool<float> ThreadsafePtr<float>::pool{ 32 };
+
 glm::vec3 const SpeakerViewComponent::COLOR_SPEAKER{ 0.87f, 0.87f, 0.87f };
 glm::vec3 const SpeakerViewComponent::COLOR_DIRECT_OUT_SPEAKER{ 0.25f, 0.25f, 0.25f };
 glm::vec3 const SpeakerViewComponent::COLOR_SPEAKER_SELECT{ 1.00f, 0.64f, 0.09f };
-glm::vec3 const SpeakerViewComponent::SIZE_SPEAKER{ 0.5f, 0.5f, 0.5f };
+glm::vec3 const SpeakerViewComponent::SIZE_SPEAKER{ 0.05f, 0.05f, 0.05f };
 glm::vec3 const SpeakerViewComponent::DEFAULT_CENTER{ 0.0f, 0.0f, 0.0f };
 
 //==============================================================================
@@ -49,29 +52,36 @@ void SpeakerViewComponent::initialise()
 }
 
 //==============================================================================
-SpeakerViewComponent::SpeakerViewComponent(MainContentComponent & mainContentComponent)
-    : mMainContentComponent(mainContentComponent)
+void SpeakerViewComponent::setConfig(ViewportConfig const & config)
 {
-}
-
-//==============================================================================
-void SpeakerViewComponent::setNameConfig(juce::String const & name)
-{
-    mNameConfig = name;
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedLock const lock{ mLock };
+    mData.config = config;
     repaint();
 }
 
 //==============================================================================
-void SpeakerViewComponent::setCamPosition(CartesianVector const & position)
+void SpeakerViewComponent::setCameraPosition(CartesianVector const & position) noexcept
 {
-    mCamVector = PolarVector::fromCartesian(position);
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedLock const lock{ mLock };
+    mData.state.cameraPosition = PolarVector::fromCartesian(position);
 }
 
 //==============================================================================
 void SpeakerViewComponent::render()
 {
-    jassert(juce::OpenGLHelpers::isContextActive());
     ASSERT_OPEN_GL_THREAD;
+    jassert(juce::OpenGLHelpers::isContextActive());
+
+    juce::ScopedLock const lock{ mLock };
+
+    auto const currentTime{ glutGet(GLUT_ELAPSED_TIME) };
+    auto const secondsElapsed{ narrow<float>(currentTime - mData.state.lastRenderTimeMs) / 100.0f };
+    auto const zoomToAdd{ secondsElapsed * mData.state.cameraZoomVelocity };
+    mData.state.cameraPosition.length += zoomToAdd;
+    mData.state.cameraZoomVelocity *= std::pow(0.5f, secondsElapsed);
+    mData.state.lastRenderTimeMs = currentTime;
 
     glEnable(GL_DEPTH_TEST);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -97,95 +107,50 @@ void SpeakerViewComponent::render()
     gluPerspective(80.0, static_cast<GLdouble>(getWidth()) / static_cast<GLdouble>(getHeight()), 0.5, 75.0);
     glMatrixMode(GL_MODELVIEW);
 
-    auto const camPos{ mCamVector.toCartesian() };
+    auto const & camPos{ mData.state.cameraPosition.toCartesian() };
 
     glLoadIdentity();
     gluLookAt(camPos.x, camPos.y, camPos.z, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 
     drawOriginGrid();
 
-    // TODO : do a try-lock of leave function
-
-    auto const & data{ mMainContentComponent.getData() };
-
-    for (auto const source : data.project.sources) {
-        if (!source.value->position) {
+    // Draw sources
+    auto const & viewSettings{ mData.config.viewSettings };
+    for (auto & sourceQueue : mData.sources) {
+        auto const & source{ *sourceQueue.value.get() };
+        if (!source) {
             continue;
         }
-        drawSource(*source.value, data.appData.spatMode);
-        if (mShowNumber) {
-            // Show number
-            auto position{ *source.value->position };
-            position.y += SIZE_SPEAKER.y + 0.4f;
-            drawText(juce::String{ source.key.get() }, position, juce::Colours::black, 0.003f, true);
+        drawSource(sourceQueue.key, *source);
+    }
+
+    // Draw speakers
+    if (viewSettings.showSpeakers) {
+        for (auto const & speaker : mData.config.speakers) {
+            drawSpeaker(speaker.key, speaker.value);
         }
     }
 
-    if (!mHideSpeakers) {
-        for (auto const speaker : data.speakerSetup.speakers) {
-            drawSpeaker(*speaker.value);
-            if (mShowNumber) {
-                auto posT{ speaker.value->position };
-                posT.y += SIZE_SPEAKER.y + 0.4f;
-                drawText(juce::String{ speaker.key.get() }, posT, juce::Colours::black, 0.003f);
-            }
-        }
-    }
-    if (mShowTriplets) {
+    // Draw triplets
+    if (viewSettings.showSpeakerTriplets) {
         drawTripletConnection();
     }
 
     // Draw Sphere / Cube
-    if (mShowSphere) {
-        glPushMatrix();
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        glLineWidth(1.0f);
-        glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
-        glColor3f(0.8f, 0.2f, 0.1f);
-        if (data.appData.spatMode == SpatMode::lbap) {
-            // Draw a cube when in LBAP mode.
-            for (auto i{ -static_cast<int>(MAX_RADIUS) }; i <= static_cast<int>(MAX_RADIUS); i += 2) {
-                auto const i_f{ narrow<float>(i) };
-                glBegin(GL_LINES);
-                glVertex3f(i_f, MAX_RADIUS, -MAX_RADIUS);
-                glVertex3f(i_f, MAX_RADIUS, MAX_RADIUS);
-                glVertex3f(i_f, -MAX_RADIUS, -MAX_RADIUS);
-                glVertex3f(i_f, -MAX_RADIUS, MAX_RADIUS);
-                glVertex3f(MAX_RADIUS, -MAX_RADIUS, i_f);
-                glVertex3f(MAX_RADIUS, MAX_RADIUS, i_f);
-                glVertex3f(-MAX_RADIUS, -MAX_RADIUS, i_f);
-                glVertex3f(-MAX_RADIUS, MAX_RADIUS, i_f);
-                glVertex3f(MAX_RADIUS, i_f, -MAX_RADIUS);
-                glVertex3f(MAX_RADIUS, i_f, MAX_RADIUS);
-                glVertex3f(-MAX_RADIUS, i_f, -MAX_RADIUS);
-                glVertex3f(-MAX_RADIUS, i_f, MAX_RADIUS);
-                glVertex3f(-MAX_RADIUS, i_f, MAX_RADIUS);
-                glVertex3f(MAX_RADIUS, i_f, MAX_RADIUS);
-                glVertex3f(-MAX_RADIUS, i_f, -MAX_RADIUS);
-                glVertex3f(MAX_RADIUS, i_f, -MAX_RADIUS);
-                glVertex3f(-MAX_RADIUS, MAX_RADIUS, i_f);
-                glVertex3f(MAX_RADIUS, MAX_RADIUS, i_f);
-                glVertex3f(-MAX_RADIUS, -MAX_RADIUS, i_f);
-                glVertex3f(MAX_RADIUS, -MAX_RADIUS, i_f);
-                glVertex3f(i_f, -MAX_RADIUS, MAX_RADIUS);
-                glVertex3f(i_f, MAX_RADIUS, MAX_RADIUS);
-                glVertex3f(i_f, -MAX_RADIUS, -MAX_RADIUS);
-                glVertex3f(i_f, MAX_RADIUS, -MAX_RADIUS);
-                glEnd();
-            }
-        } else {
-#if defined(WIN32)
-            drawSphere(std::max(MAX_RADIUS, 1.0f));
-#else
-            glutSolidSphere(std::max(MAX_RADIUS, 1.0f), SPACE_LIMIT, SPACE_LIMIT);
-#endif
+    if (viewSettings.showSphereOrCube) {
+        switch (mData.config.spatMode) {
+        case SpatMode::hrtfVbap:
+        case SpatMode::vbap:
+            drawFieldCube();
+            break;
+        case SpatMode::lbap:
+            drawFieldSphere();
+        case SpatMode::stereo:
+            break;
+        default:
+            jassertfalse;
+            break;
         }
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        glPopMatrix();
-    }
-
-    if (mClickLeft) {
-        clickRay();
     }
 
     glFlush();
@@ -196,7 +161,7 @@ void SpeakerViewComponent::paint(juce::Graphics & g)
 {
     g.setColour(juce::Colours::white);
     g.setFont(16.0f);
-    g.drawText(mNameConfig, 18, 18, 300, 30, juce::Justification::left);
+    g.drawText(mData.config.title, 18, 18, 300, 30, juce::Justification::left);
 }
 
 //==============================================================================
@@ -204,7 +169,6 @@ void SpeakerViewComponent::clickRay()
 {
     ASSERT_OPEN_GL_THREAD;
 
-    mClickLeft = false;
     double matModelView[16], matProjection[16];
     int viewport[4];
 
@@ -212,8 +176,8 @@ void SpeakerViewComponent::clickRay()
     glGetDoublev(GL_PROJECTION_MATRIX, matProjection);
     glGetIntegerv(GL_VIEWPORT, viewport);
 
-    auto const winX{ mRayClickX * mDisplayScaling };
-    auto const winY{ viewport[3] - mRayClickY * mDisplayScaling };
+    auto const winX{ mData.state.rayClick.x * mDisplayScaling };
+    auto const winY{ viewport[3] - mData.state.rayClick.y * mDisplayScaling };
 
     gluUnProject(winX, winY, 0.0, matModelView, matProjection, viewport, &mXs, &mYs, &mZs);
     gluUnProject(winX, winY, 1.0, matModelView, matProjection, viewport, &mXe, &mYe, &mZe);
@@ -221,47 +185,44 @@ void SpeakerViewComponent::clickRay()
     mRay.setRay(glm::vec3{ mXs, mYs, mZs }, glm::vec3{ mXe, mYe, mZe });
 
     tl::optional<output_patch_t> iBestSpeaker{};
-    tl::optional<output_patch_t> selected{};
-    auto const & speakers{ mMainContentComponent.getData().speakerSetup.speakers };
-    // TODO : take lock
+    auto const & speakers{ mData.config.speakers };
     for (auto const speaker : speakers) {
-        if (speaker.value->isSelected) {
-            selected = speaker.key;
-        }
-        if (rayCast(*speaker.value) != -1) {
+        if (rayCast(speaker.value.position) != -1.0f) {
             if (!iBestSpeaker) {
                 iBestSpeaker = speaker.key;
             } else {
-                if (speakerNearCam(speaker.value->position, speakers[*iBestSpeaker].position)) {
+                if (speakerNearCam(speaker.value.position, speakers[*iBestSpeaker].position)) {
                     iBestSpeaker = speaker.key;
                 }
             }
         }
     }
 
-    if (mControlOn && iBestSpeaker) {
-        juce::MessageManager::callAsync(
-            [=] { mMainContentComponent.handleSpeakerSelected(juce::Array<output_patch_t>{ *iBestSpeaker }); });
+    if (iBestSpeaker) {
+        juce::MessageManager::callAsync([this, speaker = *iBestSpeaker] {
+            mMainContentComponent.handleSpeakerSelected(juce::Array<output_patch_t>{ speaker });
+        });
     }
-
-    mControlOn = false;
 }
 
 //==============================================================================
 void SpeakerViewComponent::mouseDown(const juce::MouseEvent & e)
 {
-    // TODO : this used cam angle before : why?
-    mDeltaClickX = mCamVector.azimuth.get() - e.getPosition().x / mSlowDownFactor;
-    mDeltaClickY = mCamVector.elevation.get() - e.getPosition().y / mSlowDownFactor;
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    juce::ScopedLock const lock{ mLock };
+    auto const translation{ -e.getPosition().x / mSlowDownFactor };
+    mData.state.deltaClick = juce::Point<float>{ mData.state.cameraPosition.azimuth.toDegrees().get(),
+                                                 mData.state.cameraPosition.elevation.toDegrees().get() }
+                                 .translated(translation, translation);
 
     // Always check on which display the speaker view component is.
     mDisplayScaling = juce::Desktop::getInstance().getDisplays().getDisplayForPoint(e.getScreenPosition())->scale;
 
     if (e.mods.isLeftButtonDown()) {
-        mRayClickX = narrow<double>(e.getPosition().x);
-        mRayClickY = narrow<double>(e.getPosition().y);
-        mClickLeft = true;
-        mControlOn = e.mods.isCtrlDown();
+        mData.state.rayClick.x = narrow<float>(e.getPosition().x);
+        mData.state.rayClick.y = narrow<float>(e.getPosition().y);
+        mData.state.shouldRayCast = true;
     } else if (e.mods.isRightButtonDown()) {
         mMainContentComponent.handleSpeakerSelected(juce::Array<output_patch_t>{});
     }
@@ -270,20 +231,28 @@ void SpeakerViewComponent::mouseDown(const juce::MouseEvent & e)
 //==============================================================================
 void SpeakerViewComponent::mouseDrag(const juce::MouseEvent & e)
 {
-    static constexpr radians_t NEARLY_90_DEG{ degrees_t{ 89.99f } };
+    JUCE_ASSERT_MESSAGE_THREAD;
 
+    static constexpr auto NEARLY_90_DEG{ degrees_t{ 89.99f } };
+
+    juce::ScopedLock const lock{ mLock };
     if (e.mods.isLeftButtonDown()) {
-        mCamVector.azimuth = radians_t{ e.getPosition().x / mSlowDownFactor + mDeltaClickX };
-        mCamVector.elevation = std::clamp(radians_t{ e.getPosition().y / mSlowDownFactor + mDeltaClickY },
-                                          -NEARLY_90_DEG,
-                                          NEARLY_90_DEG);
+        mData.state.cameraPosition.azimuth
+            = degrees_t{ e.getPosition().x / mSlowDownFactor + mData.state.deltaClick.x };
+        mData.state.cameraPosition.elevation
+            = std::clamp(degrees_t{ e.getPosition().y / mSlowDownFactor + mData.state.deltaClick.y },
+                         -NEARLY_90_DEG,
+                         NEARLY_90_DEG);
     }
 }
 
 //==============================================================================
 void SpeakerViewComponent::mouseWheelMove(const juce::MouseEvent & /*e*/, const juce::MouseWheelDetails & wheel)
 {
-    mCamVector.length -= std::clamp(wheel.deltaY * SCROLL_WHEEL_SPEED_MOUSE, 1.0f, 70.0f);
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedLock const lock{ mLock };
+
+    mData.state.cameraZoomVelocity -= 5.0f * wheel.deltaY;
 }
 
 //==============================================================================
@@ -363,9 +332,9 @@ void SpeakerViewComponent::drawOriginGrid() const
 
         // dark grey
         glColor3f(0.49f, 0.49f, 0.49f);
-        drawCircle(2.5f);
-        drawCircle(7.5f);
-        drawCircle(12.5f);
+        drawCircle(MAX_RADIUS / 4.0f);
+        drawCircle(MAX_RADIUS / 4.0f * 3.0f);
+        drawCircle(MAX_RADIUS / 4.0f * 5.0f);
     }
 
     // 3D RGB line.
@@ -420,14 +389,14 @@ void SpeakerViewComponent::drawOriginGrid() const
                -std::sin(QUARTER_PI * 3.0f) * diagonalCrossLength);
     glEnd();
 
-    drawText("X", CartesianVector{ 0.0f, 0.1f, MAX_RADIUS }, juce::Colours::white);
-    drawText("Y", CartesianVector{ MAX_RADIUS, 0.1f, 0.0f }, juce::Colours::white);
-    drawText("Z", CartesianVector{ 0.0f, MAX_RADIUS, 0.0f }, juce::Colours::white);
+    drawText("X", CartesianVector{ 0.0f, 0.1f, MAX_RADIUS }, juce::Colours::white, 0.0005f);
+    drawText("Y", CartesianVector{ MAX_RADIUS, 0.1f, 0.0f }, juce::Colours::white, 0.0005f);
+    drawText("Z", CartesianVector{ 0.0f, MAX_RADIUS, 0.0f }, juce::Colours::white, 0.0005f);
 
-    drawTextOnGrid("0", glm::vec3(9.4f, 0.0f, 0.1f));
-    drawTextOnGrid("90", glm::vec3(-0.8f, 0.0f, 9.0f));
-    drawTextOnGrid("180", glm::vec3(-9.8f, 0.0f, 0.1f));
-    drawTextOnGrid("270", glm::vec3(-0.8f, 0.0f, -9.8f));
+    drawTextOnGrid("0", glm::vec3(0.94f, 0.0f, 0.01f), 0.0005f);
+    drawTextOnGrid("90", glm::vec3(-0.08f, 0.0f, 0.90f), 0.0005f);
+    drawTextOnGrid("180", glm::vec3(-0.98f, 0.0f, 0.01f), 0.0005f);
+    drawTextOnGrid("270", glm::vec3(-0.08f, 0.0f, -0.98f), 0.0005f);
 }
 
 //==============================================================================
@@ -443,9 +412,13 @@ void SpeakerViewComponent::drawText(juce::String const & val,
     glTranslatef(position.x, position.y, position.z);
 
     if (camLock) {
-        glRotatef((-mCamVector.azimuth.get()), 0.0f, 1.0f, 0.0f);
-        if (mCamVector.elevation.get() < 0.0f || mCamVector.elevation.get() > 90.0f) {
-            glRotatef(-mCamVector.elevation.get(), 0.0f, 1.0f, 0.0f);
+        auto const & camPos{ mData.state.cameraPosition };
+        auto const azimuth{ camPos.azimuth.toDegrees() };
+        auto const elevation{ camPos.elevation.toDegrees() };
+
+        glRotatef((-azimuth.get()), 0.0f, 1.0f, 0.0f);
+        if (elevation.get() < 0.0f || elevation > HALF_PI) {
+            glRotatef(-elevation.get(), 0.0f, 1.0f, 0.0f);
         }
     }
 
@@ -464,8 +437,8 @@ void SpeakerViewComponent::drawTextOnGrid(std::string const & val, glm::vec3 con
     glPushMatrix();
     glTranslatef(position.x, position.y, position.z);
 
-    glRotatef(-90.0, 1.0f, 0.0f, 0.0f);
-    glRotatef(270.0, 0.0f, 0.0f, MAX_RADIUS);
+    glRotatef(-HALF_PI.toDegrees().get(), 1.0f, 0.0f, 0.0f);
+    glRotatef((HALF_PI * 4.0f).toDegrees().get(), 0.0f, 0.0f, 1.0f);
 
     glScalef(scale, scale, scale);
     glColor3f(1.0f, 1.0f, 1.0f);
@@ -501,34 +474,25 @@ void SpeakerViewComponent::drawTripletConnection() const
 }
 
 //==============================================================================
-void SpeakerViewComponent::drawSource(SourceData const & source, SpatMode const spatMode) const
+void SpeakerViewComponent::drawSource(source_index_t const index, ViewportSourceData const & source) const
 {
-    static auto constexpr ALPHA{ 0.75f };
-
     ASSERT_OPEN_GL_THREAD;
 
-    if (!source.position) {
-        return;
-    }
-
-    // If isSourceLevelShown is on and alpha below 0.01, don't draw.
-    if (mMainContentComponent.isSourceLevelShown() && getAlpha() <= 0.01f) {
+    if (source.colour.getAlpha() == 0.0f) {
         return;
     }
 
     // Draw 3D sphere.
     glPushMatrix();
-    auto const & pos{ *source.position };
+    auto const & pos{ source.position };
     glTranslatef(pos.x, pos.y, pos.z);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glLineWidth(2.0f);
 
-    auto const & color{ source.colour };
-    if (mMainContentComponent.isSourceLevelShown()) {
-        glColor4f(color.getFloatRed(), color.getFloatGreen(), color.getFloatBlue(), color.getAlpha());
-    } else {
-        glColor4f(color.getFloatRed(), color.getFloatGreen(), color.getFloatBlue(), ALPHA);
-    }
+    glColor4f(source.colour.getFloatRed(),
+              source.colour.getFloatGreen(),
+              source.colour.getFloatBlue(),
+              source.colour.getAlpha());
 
 #if defined(__APPLE__)
     glutSolidSphere(static_cast<double>(SPHERE_RADIUS), 8, 8);
@@ -538,8 +502,8 @@ void SpeakerViewComponent::drawSource(SourceData const & source, SpatMode const 
 
     glTranslatef(-pos.x, -pos.y, -pos.z);
 
-    if ((source.azimuthSpan != 0.0f || source.zenithSpan != 0.0f) && mMainContentComponent.isSpanShown()) {
-        switch (spatMode) {
+    if (source.azimuthSpan != 0.0f || source.zenithSpan != 0.0f) {
+        switch (mData.config.spatMode) {
         case SpatMode::lbap:
             drawLbapSpan(source);
             break;
@@ -556,23 +520,26 @@ void SpeakerViewComponent::drawSource(SourceData const & source, SpatMode const 
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glPopMatrix();
+
+    if (mData.config.viewSettings.showSpeakerNumbers) {
+        auto position{ source.position };
+        position.y += SIZE_SPEAKER.y + 0.04f;
+        drawText(juce::String{ index.get() }, position, source.colour, 0.0003f, true);
+    }
 }
 
 //==============================================================================
-void SpeakerViewComponent::drawVbapSpan(SourceData const & source)
+void SpeakerViewComponent::drawVbapSpan(ViewportSourceData const & source)
 {
     static auto constexpr NUM{ 8 };
-
-    if (!source.vector) {
-        return;
-    }
 
     glPointSize(4);
     glBegin(GL_POINTS);
 
-    auto const & azimuth{ source.vector->azimuth };
-    auto const & elevation{ source.vector->elevation };
-    auto const & length{ source.vector->length };
+    auto const polarCoords{ PolarVector::fromCartesian(source.position) };
+    auto const & azimuth{ polarCoords.azimuth };
+    auto const & elevation{ polarCoords.elevation };
+    auto const & length{ polarCoords.length };
 
     for (int i{}; i < NUM; ++i) {
         auto const aziDev{ azimuth * narrow<float>(i) * 0.5f * 0.42f };
@@ -583,7 +550,7 @@ void SpeakerViewComponent::drawVbapSpan(SourceData const & source)
 
             {
                 auto const vertex{
-                    PolarVector{ newAzimuth, elevation, source.vector->length * MAX_RADIUS }.toCartesian()
+                    PolarVector{ newAzimuth, elevation, polarCoords.length * MAX_RADIUS }.toCartesian()
                 };
                 glVertex3f(vertex.x, vertex.y, vertex.z);
             }
@@ -604,18 +571,74 @@ void SpeakerViewComponent::drawVbapSpan(SourceData const & source)
 }
 
 //==============================================================================
-void SpeakerViewComponent::drawLbapSpan(SourceData const & source)
+void SpeakerViewComponent::drawFieldSphere()
+{
+    glPushMatrix();
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glLineWidth(1.0f);
+    glRotatef(HALF_PI.toDegrees().get(), 1.0f, 0.0f, 0.0f);
+    glColor3f(0.8f, 0.2f, 0.1f);
+#if defined(WIN32)
+    drawSphere(std::max(MAX_RADIUS, 1.0f));
+#else
+    glutSolidSphere(std::max(MAX_RADIUS, 1.0f), SPACE_LIMIT, SPACE_LIMIT);
+#endif
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glPopMatrix();
+}
+
+//==============================================================================
+void SpeakerViewComponent::drawFieldCube()
+{
+    glPushMatrix();
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glLineWidth(1.0f);
+    glRotatef(HALF_PI.toDegrees().get(), 1.0f, 0.0f, 0.0f);
+    glColor3f(0.8f, 0.2f, 0.1f);
+    // Draw a cube when in LBAP mode.
+    static constexpr int DEFINITION = 10;
+    for (auto i{ -DEFINITION }; i <= DEFINITION; i += 2) {
+        auto const i_f{ narrow<float>(i) / narrow<float>(DEFINITION) };
+        glBegin(GL_LINES);
+        glVertex3f(i_f, MAX_RADIUS, -MAX_RADIUS);
+        glVertex3f(i_f, MAX_RADIUS, MAX_RADIUS);
+        glVertex3f(i_f, -MAX_RADIUS, -MAX_RADIUS);
+        glVertex3f(i_f, -MAX_RADIUS, MAX_RADIUS);
+        glVertex3f(MAX_RADIUS, -MAX_RADIUS, i_f);
+        glVertex3f(MAX_RADIUS, MAX_RADIUS, i_f);
+        glVertex3f(-MAX_RADIUS, -MAX_RADIUS, i_f);
+        glVertex3f(-MAX_RADIUS, MAX_RADIUS, i_f);
+        glVertex3f(MAX_RADIUS, i_f, -MAX_RADIUS);
+        glVertex3f(MAX_RADIUS, i_f, MAX_RADIUS);
+        glVertex3f(-MAX_RADIUS, i_f, -MAX_RADIUS);
+        glVertex3f(-MAX_RADIUS, i_f, MAX_RADIUS);
+        glVertex3f(-MAX_RADIUS, i_f, MAX_RADIUS);
+        glVertex3f(MAX_RADIUS, i_f, MAX_RADIUS);
+        glVertex3f(-MAX_RADIUS, i_f, -MAX_RADIUS);
+        glVertex3f(MAX_RADIUS, i_f, -MAX_RADIUS);
+        glVertex3f(-MAX_RADIUS, MAX_RADIUS, i_f);
+        glVertex3f(MAX_RADIUS, MAX_RADIUS, i_f);
+        glVertex3f(-MAX_RADIUS, -MAX_RADIUS, i_f);
+        glVertex3f(MAX_RADIUS, -MAX_RADIUS, i_f);
+        glVertex3f(i_f, -MAX_RADIUS, MAX_RADIUS);
+        glVertex3f(i_f, MAX_RADIUS, MAX_RADIUS);
+        glVertex3f(i_f, -MAX_RADIUS, -MAX_RADIUS);
+        glVertex3f(i_f, MAX_RADIUS, -MAX_RADIUS);
+        glEnd();
+    }
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glPopMatrix();
+}
+
+//==============================================================================
+void SpeakerViewComponent::drawLbapSpan(ViewportSourceData const & source)
 {
     static auto constexpr NUM = 4;
-
-    if (!source.position) {
-        return;
-    }
 
     glPointSize(4);
     glBegin(GL_POINTS);
 
-    auto const & pos{ *source.position };
+    auto const & pos{ source.position };
 
     // For the same elevation as the source position.
     for (auto i{ 1 }; i <= NUM; ++i) {
@@ -665,14 +688,14 @@ void SpeakerViewComponent::drawLbapSpan(SourceData const & source)
 }
 
 //==============================================================================
-void SpeakerViewComponent::drawSpeaker(SpeakerData const & speaker) const
+void SpeakerViewComponent::drawSpeaker(output_patch_t const outputPatch, ViewportSpeakerConfig const & speaker)
 {
-    static auto constexpr ALPHA = 0.75f;
+    static constexpr auto DEFAULT_ALPHA = 0.75f;
 
     ASSERT_OPEN_GL_THREAD;
 
     auto const & center{ speaker.position };
-    auto const & vector{ speaker.vector };
+    auto const vector{ PolarVector::fromCartesian(speaker.position) };
 
     glPushMatrix();
 
@@ -681,22 +704,20 @@ void SpeakerViewComponent::drawSpeaker(SpeakerData const & speaker) const
     glRotatef(180.0f - vector.azimuth.toDegrees().get(), 0.0f, 1.0f, 0.0f);
     // TODO : why a branch here ?
     // if (mMainContentComponent.getModeSelected() == SpatMode::lbap) {
-    glRotatef(-vector.elevation.get() + vector.elevation.get() * vector.length / 20.0f, 0.0f, 0.0f, 1.0f);
-    //}
-    /* else {
-        glRotatef(-mAziZenRad.y, 0.0f, 0.0f, 1.0f);
-    }*/
-    glTranslatef(-1.0f * center.x, -1.0f * center.y, -1.0f * center.z);
+    /*glRotatef(-vector.elevation.toDegrees().get() + vector.elevation.toDegrees().get() * vector.length / 2.0f, 0.0f,
+     * 0.0f, 1.0f);*/
+    glRotatef(-vector.elevation.toDegrees().get(), 0.0f, 0.0f, 1.0f);
+    glTranslatef(-center.x, -center.y, -center.z);
 
     glBegin(GL_QUADS);
 
-    if (mMainContentComponent.isSpeakerLevelShown()) {
+    if (mData.config.viewSettings.showSpeakerLevels) {
         static constexpr auto USED_TO_BE_OLD_COLOR{ 1.0f };
-        auto const alpha{ getAlpha() };
+        auto const alpha{ *mData.speakersAlpha[outputPatch].get() };
         auto const levelColour = alpha + (USED_TO_BE_OLD_COLOR - alpha) * 0.5f;
-        glColor4f(levelColour, levelColour, levelColour, ALPHA);
+        glColor4f(levelColour, levelColour, levelColour, alpha);
     } else {
-        glColor4f(COLOR_SPEAKER.x, COLOR_SPEAKER.y, COLOR_SPEAKER.z, ALPHA);
+        glColor4f(COLOR_SPEAKER.x, COLOR_SPEAKER.y, COLOR_SPEAKER.z, DEFAULT_ALPHA);
     }
 
     CartesianVector const vertexMin{ center.x - SIZE_SPEAKER.x, center.y - SIZE_SPEAKER.y, center.z - SIZE_SPEAKER.z };
@@ -737,7 +758,7 @@ void SpeakerViewComponent::drawSpeaker(SpeakerData const & speaker) const
     if (speaker.isSelected) {
         glLineWidth(2.0f);
         glBegin(GL_LINES);
-        glColor4f(0.0f, 0.0f, 0.0f, ALPHA);
+        glColor4f(0.0f, 0.0f, 0.0f, DEFAULT_ALPHA);
         glVertex3f(center.x + SIZE_SPEAKER.x, center.y, center.z);
         glVertex3f(center.x + 1.2f, center.y, center.z);
         glEnd();
@@ -789,17 +810,23 @@ void SpeakerViewComponent::drawSpeaker(SpeakerData const & speaker) const
     } else {
         glLineWidth(2.0f);
         glBegin(GL_LINES);
-        glColor4f(0.37f, 0.37f, 0.37f, ALPHA);
+        glColor4f(0.37f, 0.37f, 0.37f, DEFAULT_ALPHA);
         glVertex3f(center.x + SIZE_SPEAKER.x, center.y, center.z);
         glVertex3f(center.x + 1.2f, center.y, center.z);
         glEnd();
     }
 
     glPopMatrix();
+
+    if (mData.config.viewSettings.showSpeakerNumbers) {
+        auto posT{ speaker.position };
+        posT.y += SIZE_SPEAKER.y + 0.04f;
+        drawText(juce::String{ outputPatch.get() }, posT, juce::Colours::black, 0.0003f);
+    }
 }
 
 //==============================================================================
-float SpeakerViewComponent::rayCast(SpeakerData const & /*speaker*/) const
+float SpeakerViewComponent::rayCast(CartesianVector const & speakerPosition) const
 {
     ASSERT_OPEN_GL_THREAD;
 
@@ -839,7 +866,7 @@ bool SpeakerViewComponent::speakerNearCam(CartesianVector const & speak1, Cartes
 {
     ASSERT_OPEN_GL_THREAD;
 
-    auto const camPosition{ mCamVector.toCartesian() };
+    auto const camPosition{ mData.state.cameraPosition.toCartesian() };
     auto const distance1{ (speak1 - camPosition).length2() };
     auto const distance2{ (speak2 - camPosition).length2() };
     return distance1 < distance2;

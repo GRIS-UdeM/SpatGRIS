@@ -20,6 +20,7 @@
 #pragma once
 
 #include "CartesianVector.h"
+#include "LogicStrucs.hpp"
 #include "PolarVector.h"
 #include "macros.h"
 struct SpeakerData;
@@ -55,35 +56,20 @@ public:
     static glm::vec3 const COLOR_SPEAKER_SELECT;
     static glm::vec3 const SIZE_SPEAKER;
     static glm::vec3 const DEFAULT_CENTER;
-    static auto constexpr MAX_RADIUS{ 10.0f };
+    static auto constexpr MAX_RADIUS{ 1.0f };
     static auto constexpr SPACE_LIMIT{ MAX_RADIUS * LBAP_EXTENDED_RADIUS };
 
 private:
     MainContentComponent & mMainContentComponent;
+    juce::CriticalSection mLock{};
 
-    bool mShowSphere = false;
-    bool mShowNumber = false;
-    bool mClickLeft = false;
-    bool mControlOn = false;
-    bool mHideSpeakers = false;
-    bool mShowTriplets = false;
-
-    PolarVector mCamVector{ radians_t{}, radians_t{}, 22.0f };
+    ViewportData mData{};
 
     float mSlowDownFactor = 3.0f; // Reduce the angle changing speed.
-    float mDeltaClickX{};
-    float mDeltaClickY{};
-
-    double mRayClickX{};
-    double mRayClickY{};
 
     double mDisplayScaling = 1.0;
 
     Ray mRay;
-
-    // glm::vec3 mCamPos;
-
-    juce::String mNameConfig = "...";
 
     GLdouble mXs{};
     GLdouble mYs{};
@@ -93,12 +79,13 @@ private:
     GLdouble mZe{};
 
 public:
-    static constexpr auto SPHERE_RADIUS = 0.3f;
+    static constexpr auto SPHERE_RADIUS = 0.03f;
     static constexpr auto HALF_SPHERE_RADIUS = SPHERE_RADIUS / 2.0f;
     //==============================================================================
-    explicit SpeakerViewComponent(MainContentComponent & mainContentComponent);
-    //==============================================================================
-    SpeakerViewComponent() = delete;
+    explicit SpeakerViewComponent(MainContentComponent & mainContentComponent)
+        : mMainContentComponent(mainContentComponent)
+    {
+    }
     ~SpeakerViewComponent() override { shutdownOpenGL(); }
 
     SpeakerViewComponent(SpeakerViewComponent const &) = delete;
@@ -107,13 +94,13 @@ public:
     SpeakerViewComponent & operator=(SpeakerViewComponent const &) = delete;
     SpeakerViewComponent & operator=(SpeakerViewComponent &&) = delete;
     //==============================================================================
-    void setShowSphere(bool const value) { mShowSphere = value; }
-    void setShowNumber(bool const value) { mShowNumber = value; }
-    void setHideSpeaker(bool const value) { mHideSpeakers = value; }
-    void setShowTriplets(bool const value) { mShowTriplets = value; }
-    void setNameConfig(juce::String const & name);
+    auto & getData() noexcept { return mData; }
+    auto const & getData() const noexcept { return mData; }
 
-    void setCamPosition(CartesianVector const & position);
+    void setConfig(ViewportConfig const & config);
+    void setCameraPosition(CartesianVector const & position) noexcept;
+
+    auto const & getLock() const noexcept { return mLock; }
     //==============================================================================
     void initialise() override;
     void shutdown() override {}
@@ -127,7 +114,7 @@ public:
 
 private:
     //==============================================================================
-    [[nodiscard]] float rayCast(SpeakerData const & speaker) const;
+    [[nodiscard]] float rayCast(CartesianVector const & speakerPosition) const;
     [[nodiscard]] bool speakerNearCam(CartesianVector const & speak1, CartesianVector const & speak2) const;
 
     void clickRay();
@@ -139,13 +126,15 @@ private:
                   float scale = 0.005f,
                   bool camLock = true) const;
     void drawTripletConnection() const;
-    void drawSource(SourceData const & source, SpatMode const spatMode) const;
+    void drawSource(source_index_t index, ViewportSourceData const & source) const;
+    void drawSpeaker(output_patch_t outputPatch, ViewportSpeakerConfig const & speaker);
     //==============================================================================
     static void drawBackground();
     static void drawTextOnGrid(std::string const & val, glm::vec3 position, float scale = 0.003f);
-    static void drawVbapSpan(SourceData const & source);
-    static void drawLbapSpan(SourceData const & source);
-    void drawSpeaker(SpeakerData const & speaker) const;
+    static void drawVbapSpan(ViewportSourceData const & source);
+    static void drawLbapSpan(ViewportSourceData const & source);
+    static void drawFieldSphere();
+    static void drawFieldCube();
     //==============================================================================
     JUCE_LEAK_DETECTOR(SpeakerViewComponent)
 }; // class SpeakerViewComponent

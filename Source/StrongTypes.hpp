@@ -19,16 +19,16 @@
 
 #pragma once
 
-#define STRIGNIFY(x) #x
-
 #include <JuceHeader.h>
 
 #include "narrow.hpp"
 
+//==============================================================================
 class StrongIndexBase
 {
 };
 
+//==============================================================================
 template<typename T, typename Dummy, T StartsAt>
 class StrongIndex : public StrongIndexBase
 {
@@ -37,21 +37,22 @@ class StrongIndex : public StrongIndexBase
     static_assert(std::is_integral_v<T>, "Underlying types should be integrals.");
 
 public:
+    //==============================================================================
     using type = T;
-
     static constexpr auto OFFSET = StartsAt;
-
+    //==============================================================================
     StrongIndex() = default;
     explicit constexpr StrongIndex(type const & value) : mValue(value) {}
-
+    //==============================================================================
     [[nodiscard]] constexpr bool operator==(StrongIndex const & other) const { return mValue == other.mValue; }
     [[nodiscard]] constexpr bool operator!=(StrongIndex const & other) const { return mValue != other.mValue; }
     [[nodiscard]] constexpr bool operator<(StrongIndex const & other) const { return mValue < other.mValue; }
     [[nodiscard]] constexpr bool operator>(StrongIndex const & other) const { return mValue > other.mValue; }
     [[nodiscard]] constexpr bool operator<=(StrongIndex const & other) const { return mValue <= other.mValue; }
     [[nodiscard]] constexpr bool operator>=(StrongIndex const & other) const { return mValue >= other.mValue; }
-
+    //==============================================================================
     [[nodiscard]] constexpr type const & get() const { return mValue; }
+    //==============================================================================
     StrongIndex & operator++()
     {
         ++mValue;
@@ -63,54 +64,55 @@ public:
         --mValue;
         return *this;
     }
-
+    //==============================================================================
     template<typename TargetType>
     [[nodiscard]] TargetType removeOffset() const
     {
         return narrow<TargetType>(mValue - OFFSET);
     }
 };
-// using source_index_t = StrongIndex<int, struct SourceIndexT, 1>;
-// using output_patch_t = StrongIndex<int, struct OutputPatchT, 1>;
-typedef StrongIndex<int, struct SourceIndexT, 1> source_index_t;
-typedef StrongIndex<int, struct OutputPatchT, 1> output_patch_t;
+using source_index_t = StrongIndex<int, struct SourceIndexT, 1>;
+using output_patch_t = StrongIndex<int, struct OutputPatchT, 1>;
 
+//==============================================================================
 class StrongFloatBase
 {
 };
 
+//==============================================================================
 template<typename T, typename Derived, typename Dummy>
 class StrongFloat : public StrongFloatBase
 {
-protected:
-    T mValue;
-
     static_assert(std::is_floating_point_v<T>, "Underlying types should be floating points.");
     static_assert(std::is_floating_point_v<T>);
 
-public:
-    using type = T;
+protected:
+    //==============================================================================
+    T mValue;
 
+public:
+    //==============================================================================
+    using type = T;
+    //==============================================================================
     StrongFloat() = default;
     explicit constexpr StrongFloat(T const & value) : mValue(value) {}
-
+    //==============================================================================
     [[nodiscard]] constexpr bool operator==(Derived const & other) const { return mValue == other.mValue; }
     [[nodiscard]] constexpr bool operator!=(Derived const & other) const { return mValue != other.mValue; }
     [[nodiscard]] constexpr bool operator<(Derived const & other) const { return mValue < other.mValue; }
     [[nodiscard]] constexpr bool operator>(Derived const & other) const { return mValue > other.mValue; }
     [[nodiscard]] constexpr bool operator<=(Derived const & other) const { return mValue <= other.mValue; }
     [[nodiscard]] constexpr bool operator>=(Derived const & other) const { return mValue >= other.mValue; }
-
+    //==============================================================================
     [[nodiscard]] constexpr type const & get() const { return mValue; }
-
+    //==============================================================================
     [[nodiscard]] constexpr Derived operator-() const { return Derived{ -mValue }; }
-
     [[nodiscard]] constexpr Derived operator+(Derived const & other) const { return Derived{ mValue + other.mValue }; }
     [[nodiscard]] constexpr Derived operator-(Derived const & other) const { return Derived{ mValue - other.mValue }; }
     [[nodiscard]] constexpr Derived operator*(type const mod) const { return Derived{ mValue * mod }; }
     [[nodiscard]] constexpr Derived operator/(type const mod) const { return Derived{ mValue / mod }; }
     [[nodiscard]] constexpr type operator/(Derived const & other) const { return mValue / other.mValue; }
-
+    //==============================================================================
     Derived & operator+=(Derived const & other) noexcept
     {
         mValue += other.mValue;
@@ -127,10 +129,11 @@ public:
         mValue /= mod;
         return *static_cast<Derived *>(this);
     }
-
+    //==============================================================================
     [[nodiscard]] constexpr Derived abs() const noexcept { return Derived{ std::abs(mValue) }; }
 
 protected:
+    //==============================================================================
     [[nodiscard]] constexpr Derived centeredAroundZero(type const amplitude) const noexcept
     {
         auto const halfAmplitude{ amplitude / static_cast<type>(2) };
@@ -158,48 +161,53 @@ protected:
     }
 };
 
+//==============================================================================
 class dbfs_t final : public StrongFloat<float, dbfs_t, struct VolumeT>
 {
 public:
     dbfs_t() = default;
     explicit constexpr dbfs_t(type const & value) : StrongFloat(value) {}
-
+    //==============================================================================
     [[nodiscard]] type toGain() const { return juce::Decibels::decibelsToGain(mValue); }
     static dbfs_t fromGain(type const gain) { return dbfs_t{ juce::Decibels::gainToDecibels(gain) }; }
 };
 
+//==============================================================================
 class degrees_t final : public StrongFloat<float, degrees_t, struct DegreesT>
 {
 public:
     static constexpr type DEGREE_PER_RADIAN{ static_cast<type>(360) / juce::MathConstants<type>::twoPi };
-
+    //==============================================================================
     degrees_t() = default;
     explicit constexpr degrees_t(type const & value) : StrongFloat(value) {}
-
+    //==============================================================================
     [[nodiscard]] constexpr degrees_t centered() const noexcept { return centeredAroundZero(static_cast<type>(360)); }
 };
 
+//==============================================================================
 class radians_t final : public StrongFloat<float, radians_t, struct RadiansT>
 {
 public:
     static constexpr type RADIAN_PER_DEGREE{ juce::MathConstants<type>::twoPi / static_cast<type>(360) };
-
+    //==============================================================================
     radians_t() = default;
     explicit constexpr radians_t(type const & value) : StrongFloat(value) {}
     constexpr radians_t(degrees_t const & degrees) : StrongFloat(degrees.get() * RADIAN_PER_DEGREE) {}
-
+    //==============================================================================
     [[nodiscard]] constexpr radians_t centered() const noexcept
     {
         return centeredAroundZero(juce::MathConstants<type>::twoPi);
     }
+    //==============================================================================
     [[nodiscard]] constexpr degrees_t toDegrees() const noexcept
     {
         return degrees_t{ mValue * degrees_t::DEGREE_PER_RADIAN };
     }
-
+    //==============================================================================
     [[nodiscard]] constexpr operator degrees_t() const { return toDegrees(); }
 };
 
+//==============================================================================
 class hz_t final : public StrongFloat<float, hz_t, struct HzT>
 {
 public:
@@ -207,6 +215,7 @@ public:
     explicit constexpr hz_t(type const & value) : StrongFloat(value) {}
 };
 
+//==============================================================================
 constexpr radians_t HALF_PI{ juce::MathConstants<radians_t::type>::halfPi };
 constexpr radians_t PI{ juce::MathConstants<radians_t::type>::pi };
 constexpr radians_t TWO_PI{ juce::MathConstants<radians_t::type>::twoPi };

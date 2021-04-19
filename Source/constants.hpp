@@ -54,10 +54,12 @@ extern juce::File const HRTF_FOLDER_0;
 extern juce::File const HRTF_FOLDER_40;
 extern juce::File const HRTF_FOLDER_80;
 
+//==============================================================================
 extern juce::StringArray const RECORDING_FORMAT_STRINGS;
 extern juce::StringArray const RECORDING_CONFIG_STRINGS;
 extern juce::StringArray const ATTENUATION_DB_STRINGS;
 extern juce::StringArray const ATTENUATION_FREQUENCY_STRINGS;
 
+//==============================================================================
 [[nodiscard]] tl::optional<int> attenuationDbToComboBoxIndex(dbfs_t attenuation);
 [[nodiscard]] tl::optional<int> attenuationFreqToComboBoxIndex(hz_t const freq);

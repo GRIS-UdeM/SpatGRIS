@@ -12,6 +12,67 @@ enum class PortState { normal, muted, solo };
 [[nodiscard]] tl::optional<PortState> stringToPortState(juce::String const & string);
 
 //==============================================================================
+struct ViewSettings {
+    bool showSpeakers{};
+    bool showSpeakerNumbers{};
+    bool showSpeakerTriplets{};
+    bool showSpeakerLevels{};
+    bool showSphereOrCube{};
+    bool showSourceActivity{};
+    //==============================================================================
+    [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
+    [[nodiscard]] static tl::optional<ViewSettings> fromXml(juce::XmlElement const & xml);
+    //==============================================================================
+    struct XmlTags {
+        static juce::String const MAIN_TAG;
+        static juce::String const SHOW_SPEAKERS;
+        static juce::String const SHOW_SPEAKER_NUMBERS;
+        static juce::String const SHOW_SPEAKER_TRIPLETS;
+        static juce::String const SHOW_SPEAKER_LEVELS;
+        static juce::String const SHOW_SPHERE_OR_CUBE;
+        static juce::String const SHOW_SOURCE_ACTIVITY;
+    };
+};
+
+//==============================================================================
+struct ViewportSourceData {
+    CartesianVector position{};
+    float azimuthSpan{};
+    float zenithSpan{};
+    juce::Colour colour{};
+};
+
+struct ViewportSpeakerConfig {
+    CartesianVector position{};
+    bool isSelected{};
+    bool isDirectOutOnly{};
+};
+
+struct ViewportConfig {
+    StaticMap<output_patch_t, ViewportSpeakerConfig, MAX_OUTPUTS> speakers{};
+    ViewSettings viewSettings{};
+    SpatMode spatMode{};
+    juce::String title{};
+};
+
+struct ViewportState {
+    float cameraZoomVelocity{};
+    PolarVector cameraPosition{};
+    int lastRenderTimeMs{};
+    juce::Point<float> deltaClick{};
+    juce::Point<float> rayClick{};
+    bool shouldRayCast{};
+    float displayScaling{};
+};
+
+struct ViewportData {
+    ViewportConfig config{};
+    ViewportState state{};
+    StaticMap<source_index_t, ThreadsafePtr<tl::optional<ViewportSourceData>>, MAX_INPUTS> sources{};
+    StrongArray<output_patch_t, ThreadsafePtr<float>, MAX_OUTPUTS> speakersAlpha{};
+};
+
+//==============================================================================
 struct SourceData {
     PortState state{};
     tl::optional<PolarVector> vector{};
@@ -24,6 +85,7 @@ struct SourceData {
     juce::Colour colour{};
     //==============================================================================
     [[nodiscard]] SourceAudioConfig toConfig(bool soloMode) const;
+    [[nodiscard]] ViewportSourceData toViewportData(float alpha) const;
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml(source_index_t index) const;
     [[nodiscard]] static tl::optional<SourceData> fromXml(juce::XmlElement const & xml);
     //==============================================================================
@@ -75,9 +137,10 @@ struct SpeakerData {
     bool isSelected{};
     bool isDirectOutOnly{};
     //==============================================================================
-    [[nodiscard]] SpeakerAudioConfig toConfig(bool soloMode, double sampleRate) const;
-    [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml(output_patch_t outputPatch) const;
-    [[nodiscard]] static tl::optional<SpeakerData> fromXml(juce::XmlElement const & xml);
+    [[nodiscard]] SpeakerAudioConfig toConfig(bool soloMode, double sampleRate) const noexcept;
+    [[nodiscard]] ViewportSpeakerConfig toViewportConfig() const noexcept;
+    [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml(output_patch_t outputPatch) const noexcept;
+    [[nodiscard]] static tl::optional<SpeakerData> fromXml(juce::XmlElement const & xml) noexcept;
     //==============================================================================
     struct XmlTags {
         static juce::String const STATE;
@@ -144,29 +207,6 @@ struct RecordingOptions {
         static juce::String const MAIN_TAG;
         static juce::String const FORMAT;
         static juce::String const FILE_TYPE;
-    };
-};
-
-//==============================================================================
-struct ViewSettings {
-    bool showSpeakers{};
-    bool showSpeakerNumbers{};
-    bool showSpeakerTriplets{};
-    bool showSpeakerLevels{};
-    bool showSphereOrCube{};
-    bool showSourceActivity{};
-    //==============================================================================
-    [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
-    [[nodiscard]] static tl::optional<ViewSettings> fromXml(juce::XmlElement const & xml);
-    //==============================================================================
-    struct XmlTags {
-        static juce::String const MAIN_TAG;
-        static juce::String const SHOW_SPEAKERS;
-        static juce::String const SHOW_SPEAKER_NUMBERS;
-        static juce::String const SHOW_SPEAKER_TRIPLETS;
-        static juce::String const SHOW_SPEAKER_LEVELS;
-        static juce::String const SHOW_SPHERE_OR_CUBE;
-        static juce::String const SHOW_SOURCE_ACTIVITY;
     };
 };
 
@@ -248,4 +288,5 @@ struct SpatGrisData {
     tl::optional<dbfs_t> pinkNoiseLevel{};
     //==============================================================================
     [[nodiscard]] AudioConfig toAudioConfig() const;
+    [[nodiscard]] ViewportConfig toViewportConfig() const noexcept;
 };

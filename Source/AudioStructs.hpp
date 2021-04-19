@@ -120,8 +120,8 @@ struct AudioState {
 };
 
 //==============================================================================
-using SourcePeaks = StaticMap<source_index_t, float, MAX_INPUTS>;
-using SpeakerPeaks = StaticMap<output_patch_t, float, MAX_OUTPUTS>;
+using SourcePeaks = StrongArray<source_index_t, float, MAX_INPUTS>;
+using SpeakerPeaks = StrongArray<output_patch_t, float, MAX_OUTPUTS>;
 
 //==============================================================================
 struct AudioData {
@@ -138,16 +138,6 @@ struct AudioData {
     // Live audio thread -> message thread
     ThreadsafePtr<SourcePeaks> sourcePeaks{};
     ThreadsafePtr<SpeakerPeaks> speakerPeaks{};
-
-    //~AudioData() noexcept
-    //{
-    //    sourcePeaks.releaseResources();
-    //    speakerPeaks.releaseResources();
-    //    for (auto & ptr : spatGainMatrix)
-    //    {
-    //        ptr.releaseResources();
-    //    }
-    //}
 };
 
 //==============================================================================

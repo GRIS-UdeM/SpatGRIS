@@ -19,6 +19,4 @@
 
 #pragma once
 
-#include "StrongTypes.hpp"
-
 void fillWithPinkNoise(float * const * samples, int numSamples, int numChannels, float gain);

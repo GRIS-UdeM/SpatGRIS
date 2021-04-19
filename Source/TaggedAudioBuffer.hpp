@@ -1,13 +1,11 @@
 #pragma once
 
-#include "macros.h"
-DISABLE_WARNINGS
 #include <JuceHeader.h>
-ENABLE_WARNINGS
 
 #include "OwnedMap.hpp"
 #include "StaticVector.hpp"
 
+//==============================================================================
 template<typename KeyType, size_t Capacity>
 class TaggedAudioBuffer
 {
@@ -18,14 +16,16 @@ public:
     using value_type = juce::AudioBuffer<float>;
 
 private:
+    //==============================================================================
     using container_type = OwnedMap<key_type, value_type, Capacity>;
     container_type mBuffers{};
     int mNumSamples{};
 
 public:
+    //==============================================================================
     using iterator = typename container_type::iterator;
     using const_iterator = typename container_type::const_iterator;
-
+    //==============================================================================
     void init(juce::Array<key_type> const & channels)
     {
         JUCE_ASSERT_MESSAGE_THREAD;
@@ -36,7 +36,7 @@ public:
             mBuffers.add(key, std::make_unique<juce::AudioBuffer<float>>(1, MAX_NUM_SAMPLES));
         }
     }
-
+    //==============================================================================
     void setNumSamples(int const numSamples)
     {
         JUCE_ASSERT_MESSAGE_THREAD;
@@ -46,21 +46,22 @@ public:
             buffer.value->setSize(1, numSamples);
         }
     }
-
+    //==============================================================================
     [[nodiscard]] int size() const { return mBuffers.size(); }
-
+    //==============================================================================
     void silence()
     {
         for (auto buffer : mBuffers) {
             buffer.value->clear();
         }
     }
+    //==============================================================================
     void silence(key_type const channel, int const numSamples) { (*this)[channel].clear(); }
-
+    //==============================================================================
     [[nodiscard]] value_type & operator[](key_type const key) { return mBuffers[key]; }
-
+    //==============================================================================
     [[nodiscard]] value_type const & operator[](key_type const key) const { return mBuffers[key]; }
-
+    //==============================================================================
     [[nodiscard]] juce::Array<float const *> getArrayOfReadPointers(juce::Array<key_type> const & keys) const
     {
         JUCE_ASSERT_MESSAGE_THREAD;
@@ -71,7 +72,7 @@ public:
         }
         return result;
     }
-
+    //==============================================================================
     [[nodiscard]] StaticVector<float *, CAPACITY>
         getArrayOfWritePointers(StaticVector<key_type, CAPACITY> const & channels)
     {
@@ -81,9 +82,9 @@ public:
         }
         return result;
     }
-
+    //==============================================================================
     [[nodiscard]] int getNumSamples() const { return mNumSamples; }
-
+    //==============================================================================
     void copyToPhysicalOutput(float * const * outs, int const numOutputs) const
     {
         for (auto const buffer : mBuffers) {
@@ -96,7 +97,7 @@ public:
             }
         }
     }
-
+    //==============================================================================
     [[nodiscard]] iterator begin() { return mBuffers.begin(); }
     [[nodiscard]] iterator end() { return mBuffers.end(); }
     [[nodiscard]] const_iterator begin() const { return mBuffers.cbegin(); }
@@ -105,5 +106,6 @@ public:
     [[nodiscard]] const_iterator cend() const { return mBuffers.cend(); }
 };
 
+//==============================================================================
 using SourceAudioBuffer = TaggedAudioBuffer<source_index_t, MAX_INPUTS>;
 using SpeakerAudioBuffer = TaggedAudioBuffer<output_patch_t, MAX_OUTPUTS>;

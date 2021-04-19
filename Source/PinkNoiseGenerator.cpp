@@ -19,6 +19,7 @@
 
 #include "PinkNoiseGenerator.h"
 
+#include "StrongTypes.hpp"
 #include "narrow.hpp"
 
 static float pinkNoiseC0{};
@@ -33,7 +34,9 @@ static float pinkNoiseC6{};
 void fillWithPinkNoise(float * const * samples, int const numSamples, int const numChannels, float const gain)
 {
     static constexpr auto FAC{ 1.0f / (static_cast<float>(RAND_MAX) / 2.0f) };
-    static constexpr dbfs_t CORRECTION{ -18.2f };
+    static constexpr dbfs_t CORRECTION_DB{ -18.2f };
+
+    static auto const CORRECTION{ CORRECTION_DB.toGain() };
 
     for (int sampleIndex{}; sampleIndex < numSamples; ++sampleIndex) {
         auto const rnd{ narrow<float>(rand()) * FAC - 1.0f };
@@ -45,7 +48,7 @@ void fillWithPinkNoise(float * const * samples, int const numSamples, int const 
         pinkNoiseC5 = pinkNoiseC5 * -0.7616f - rnd * 0.0168980f;
         auto sampleValue{ pinkNoiseC0 + pinkNoiseC1 + pinkNoiseC2 + pinkNoiseC3 + pinkNoiseC4 + pinkNoiseC5
                           + pinkNoiseC6 + rnd * 0.5362f };
-        sampleValue *= gain * CORRECTION.toGain();
+        sampleValue *= gain * CORRECTION;
         pinkNoiseC6 = rnd * 0.115926f;
 
         for (int channelIndex{}; channelIndex < numChannels; channelIndex++) {

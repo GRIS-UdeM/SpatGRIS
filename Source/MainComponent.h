@@ -168,7 +168,7 @@ public:
     // Exit application.
     [[nodiscard]] bool exitApp();
 
-    void refreshVuMeterPeaks();
+    void updatePeaks();
 
     auto const & getData() const noexcept { return mData; }
 
@@ -206,6 +206,7 @@ public:
     void handleNewSpeakerPosition(output_patch_t outputPatch, PolarVector const & position);
 
     void updateAudioProcessor() const;
+    void updateViewportConfig() const;
 
     void handleSetShowTriplets(bool state);
 
@@ -248,12 +249,6 @@ public:
     // Mute - solo.
     void setSourceState(source_index_t sourceIndex, PortState state);
     void setSpeakerState(output_patch_t outputPatch, PortState state);
-
-    // Input - output amplitude levels.
-    [[nodiscard]] float getPeak(output_patch_t outputPatch) const;
-    [[nodiscard]] float getPeak(source_index_t sourceIndex) const;
-    [[nodiscard]] float getAlpha(output_patch_t outputPatch) const;
-    [[nodiscard]] float getAlpha(source_index_t sourceIndex) const;
 
     // Called when the speaker setup has changed.
     bool refreshSpeakers();
@@ -352,7 +347,6 @@ private:
     void loadProject(juce::File const & file);
     void saveProject(juce::String const & path);
     void saveSpeakerSetup(juce::String const & path);
-    void setCurrentSpeakerSetup(juce::File const & file);
     void setTitle() const;
 
     [[nodiscard]] bool initRecording();

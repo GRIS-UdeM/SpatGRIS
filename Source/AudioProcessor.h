@@ -19,16 +19,11 @@
 
 #pragma once
 
-#include "constants.hpp"
-
-#include "StaticMap.hpp"
-#include "TaggedAudioBuffer.hpp"
-#include "macros.h"
-DISABLE_WARNINGS
 #include <JuceHeader.h>
-ENABLE_WARNINGS
 
 #include "AudioStructs.hpp"
+#include "StaticMap.hpp"
+#include "TaggedAudioBuffer.hpp"
 
 class SpeakerModel;
 

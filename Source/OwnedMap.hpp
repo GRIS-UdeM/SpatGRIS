@@ -53,11 +53,12 @@ public:
         }
         mUsed.reset();
     }
+    //==============================================================================
     [[nodiscard]] int size() const noexcept { return narrow<int>(mUsed.count()); }
-
+    //==============================================================================
     [[nodiscard]] ValueType & operator[](KeyType const key) { return *getNode(key).value; }
     [[nodiscard]] ValueType const & operator[](KeyType const key) const { return *getConstNode(key).value; }
-
+    //==============================================================================
     [[nodiscard]] Node & getNode(KeyType const & key) noexcept
     {
         auto const index{ toIndex(key) };
@@ -65,7 +66,6 @@ public:
         jassert(mUsed.test(index));
         return mData[index];
     }
-
     [[nodiscard]] ConstNode const & getConstNode(KeyType const & key) const noexcept
     {
         auto const index{ toIndex(key) };
@@ -73,19 +73,19 @@ public:
         jassert(mUsed.test(index));
         return reinterpret_cast<ConstNode const &>(mData[index]);
     }
-
+    //==============================================================================
     [[nodiscard]] size_t toIndex(KeyType const & key) const noexcept
     {
         return narrow<size_t>(key.get() - KeyType::OFFSET);
     }
-
+    //==============================================================================
     [[nodiscard]] bool contains(KeyType const & key) const noexcept
     {
         auto const index{ toIndex(key) };
         jassert(index < CAPACITY);
         return mUsed.test(index);
     }
-
+    //==============================================================================
     [[nodiscard]] KeyType getNextUsedKey(KeyType const & key) const noexcept
     {
         auto index{ toIndex(key) };
@@ -97,6 +97,7 @@ public:
         } while (index < CAPACITY && !mUsed.test(index));
         return KeyType{ narrow<KeyType::type>(index) + KeyType::OFFSET };
     }
+    //==============================================================================
     [[nodiscard]] KeyType getFirstUsedKey() const noexcept
     {
         KeyType const key{ KeyType::OFFSET };
@@ -105,6 +106,7 @@ public:
         }
         return getNextUsedKey(key);
     }
+    //==============================================================================
     ValueType & add(KeyType const key, std::unique_ptr<ValueType> value) noexcept
     {
         auto const index{ toIndex(key) };
@@ -115,6 +117,7 @@ public:
         mUsed.set(index);
         return *mData[index].value;
     }
+    //==============================================================================
     void remove(KeyType const key) noexcept
     {
         auto const index{ toIndex(key) };
@@ -131,6 +134,7 @@ public:
         KeyType mCurrentKey{};
 
     public:
+        //==============================================================================
         iterator() = default;
         iterator(OwnedMap & map, KeyType const key) : mOwnedMap(&map), mCurrentKey(key) {}
         ~iterator() = default;
@@ -138,13 +142,13 @@ public:
         iterator(iterator &&) = default;
         iterator & operator=(iterator const &) = default;
         iterator & operator=(iterator &&) = default;
-
+        //==============================================================================
         using iterator_category = std::forward_iterator_tag;
         using difference_type = std::ptrdiff_t;
         using value_type = Node;
         using pointer = Node *;
         using reference = Node &;
-
+        //==============================================================================
         [[nodiscard]] bool operator==(iterator const & other) const noexcept
         {
             return mCurrentKey == other.mCurrentKey;
@@ -154,12 +158,12 @@ public:
             return mCurrentKey != other.mCurrentKey;
         }
         [[nodiscard]] bool operator<(iterator const & other) const noexcept { return mCurrentKey < other.mCurrentKey; }
-
+        //==============================================================================
         [[nodiscard]] reference operator*() { return mOwnedMap->getNode(mCurrentKey); }
         [[nodiscard]] reference operator*() const { return mOwnedMap->getNode(mCurrentKey); }
         [[nodiscard]] pointer operator->() { return &mOwnedMap->getNode(mCurrentKey); }
         [[nodiscard]] pointer operator->() const { return &mOwnedMap->getNode(mCurrentKey); }
-
+        //==============================================================================
         iterator & operator++() noexcept
         {
             mCurrentKey = mOwnedMap->getNextUsedKey(mCurrentKey);
@@ -172,12 +176,15 @@ public:
             return temp;
         }
     };
+
+    //==============================================================================
     class const_iterator
     {
         OwnedMap const * mOwnedMap{};
         KeyType mCurrentKey{};
 
     public:
+        //==============================================================================
         const_iterator() = default;
         const_iterator(OwnedMap const & map, KeyType const key) : mOwnedMap(&map), mCurrentKey(key) {}
         ~const_iterator() = default;
@@ -185,13 +192,13 @@ public:
         const_iterator(const_iterator &&) = default;
         const_iterator & operator=(const_iterator const &) = default;
         const_iterator & operator=(const_iterator &&) = default;
-
+        //==============================================================================
         using iterator_category = std::forward_iterator_tag;
         using difference_type = std::ptrdiff_t;
         using value_type = ConstNode;
         using pointer = ConstNode const *;
         using reference = ConstNode const &;
-
+        //==============================================================================
         [[nodiscard]] bool operator==(const_iterator const & other) const noexcept
         {
             return mCurrentKey == other.mCurrentKey;
@@ -204,12 +211,12 @@ public:
         {
             return mCurrentKey < other.mCurrentKey;
         }
-
+        //==============================================================================
         [[nodiscard]] reference operator*() { return mOwnedMap->getConstNode(mCurrentKey); }
         [[nodiscard]] reference operator*() const { return mOwnedMap->getConstNode(mCurrentKey); }
         [[nodiscard]] pointer operator->() { return &mOwnedMap->getConstNode(mCurrentKey); }
         [[nodiscard]] pointer operator->() const { return &mOwnedMap->getConstNode(mCurrentKey); }
-
+        //==============================================================================
         const_iterator & operator++() noexcept
         {
             mCurrentKey = mOwnedMap->getNextUsedKey(mCurrentKey);
@@ -223,6 +230,7 @@ public:
         }
     };
 
+    //==============================================================================
     [[nodiscard]] iterator begin() noexcept { return iterator{ *this, getFirstUsedKey() }; }
     [[nodiscard]] iterator end() noexcept
     {

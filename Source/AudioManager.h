@@ -19,10 +19,7 @@
 
 #pragma once
 
-#include "macros.h"
-DISABLE_WARNINGS
 #include <JuceHeader.h>
-ENABLE_WARNINGS
 
 #include "AudioStructs.hpp"
 #include "Configuration.h"
@@ -42,8 +39,9 @@ class AudioManager final : juce::AudioSourcePlayer
             audioFormatWriter{}; // this is only left for safety assertions : it will get deleted by the threadedWriter
         juce::Array<float const *> dataToRecord{};
     };
-    //==============================================================================
+
 public:
+    //==============================================================================
     struct RecordingParameters {
         juce::String path{};
         RecordingOptions options{};
@@ -52,21 +50,17 @@ public:
     };
 
 private:
+    //==============================================================================
     AudioProcessor * mAudioProcessor{};
     AudioConfig const * mAudioConfigRef{};
-
     juce::AudioDeviceManager mAudioDeviceManager{};
-
     SourceAudioBuffer mInputBuffer{};
     SpeakerAudioBuffer mOutputBuffer{};
-
     // Recording
     bool mIsRecording{};
     juce::Atomic<int64_t> mNumSamplesRecorded{};
     juce::OwnedArray<RecorderInfo> mRecorders{};
     juce::TimeSliceThread mRecordersThread{ "SpatGRIS recording thread" };
-    /*RecordingParameters mRecordingParameters{};*/
-    // juce::Array<output_patch_t> mSpeakersToRecord{};
     //==============================================================================
     static std::unique_ptr<AudioManager> mInstance;
 

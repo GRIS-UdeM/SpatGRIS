@@ -3,11 +3,9 @@
 #include <array>
 #include <type_traits>
 
-#include "macros.h"
-DISABLE_WARNINGS
 #include <JuceHeader.h>
-ENABLE_WARNINGS
 
+//==============================================================================
 template<typename T, size_t CAPACITY>
 class StaticVector
 {
@@ -35,6 +33,7 @@ public:
         jassert(index_u < mSize);
         return mData[index_u];
     }
+    //==============================================================================
     T & operator[](size_t const index)
     {
         jassert(index < mSize);
@@ -45,7 +44,7 @@ public:
         jassert(index < mSize);
         return mData[index];
     }
-
+    //==============================================================================
     void push_back(T const & value)
     {
         jassert(!isFull());
@@ -56,13 +55,15 @@ public:
         jassert(!isFull());
         mData[mSize++] = std::move(value);
     }
+    //==============================================================================
     void clear() { mSize = 0; }
+    //==============================================================================
     void resize(size_t const newSize)
     {
         jassert(newSize <= CAPACITY);
         mSize = newSize;
     }
-
+    //==============================================================================
     T * data() { return mData.data(); }
     //==============================================================================
     [[nodiscard]] bool isEmpty() const { return mSize == 0; }
@@ -86,6 +87,7 @@ public:
         jassert(!isEmpty());
         return mData.front();
     }
+    //==============================================================================
     T & back()
     {
         jassert(!isEmpty());

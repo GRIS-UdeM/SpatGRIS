@@ -25,6 +25,25 @@
 #include "constants.hpp"
 
 //==============================================================================
+static float gainToAlpha(float const gain)
+{
+    static constexpr auto MIN_ALPHA{ 0.15f };
+    static constexpr auto MAX_ALPHA{ 0.75f };
+    static constexpr auto ALPHA_RANGE{ MAX_ALPHA - MIN_ALPHA };
+
+    static constexpr dbfs_t MIN_DB{ -60.0f };
+    static constexpr dbfs_t MAX_DB{ 0.0f };
+    static constexpr dbfs_t DB_RANGE{ MAX_DB - MIN_DB };
+
+    auto const clippedGain{ std::clamp(dbfs_t::fromGain(gain), MIN_DB, MAX_DB) };
+    auto const ratio{ (clippedGain - MIN_DB) / DB_RANGE };
+    jassert(ratio >= 0.0f && ratio <= 1.0f);
+    auto const result{ ratio * ALPHA_RANGE + MIN_ALPHA };
+
+    return result;
+}
+
+//==============================================================================
 MainContentComponent::MainContentComponent(MainWindow & mainWindow,
                                            GrisLookAndFeel & grisLookAndFeel,
                                            SmallGrisLookAndFeel & smallGrisLookAndFeel)
@@ -394,7 +413,9 @@ void MainContentComponent::handleNew()
 //==============================================================================
 void MainContentComponent::loadProject(juce::File const & file)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
     jassert(file.existsAsFile());
+    juce::ScopedWriteLock const lock{ mLock };
 
     juce::XmlDocument xmlDoc{ file };
     auto const mainXmlElem{ xmlDoc.getDocumentElement() };
@@ -427,21 +448,15 @@ void MainContentComponent::loadProject(juce::File const & file)
         return;
     }
     mData.project = std::move(*projectData);
+    mData.appData.lastProject = file.getFullPathName();
 
     mNumSourcesTextEditor->setText(juce::String{ mData.project.sources.size() }, false);
 
     mMasterGainOutSlider->setValue(mData.project.masterGain.get(), juce::dontSendNotification);
     mInterpolationSlider->setValue(mData.project.spatGainsInterpolation, juce::dontSendNotification);
 
-    mSpeakerViewComponent->setShowNumber(mData.project.viewSettings.showSpeakerNumbers);
-    mSpeakerViewComponent->setHideSpeaker(!mData.project.viewSettings.showSpeakers);
-    mSpeakerViewComponent->setShowTriplets(mData.project.viewSettings.showSpeakerTriplets);
-    mSpeakerViewComponent->setShowSphere(mData.project.viewSettings.showSphereOrCube);
-    mSpeakerViewComponent->setCamPosition(mData.project.cameraPosition);
-    // DEFAULT
-    // mSpeakerViewComponent->setCamPosition(80.0f, 25.0f, 22.0f);
-
-    mData.appData.lastProject = file.getFullPathName();
+    mSpeakerViewComponent->setCameraPosition(mData.project.cameraPosition);
+    updateViewportConfig();
     setTitle();
     refreshSourceVuMeterComponents();
     updateAudioProcessor();
@@ -579,6 +594,7 @@ void MainContentComponent::handleShowSpeakerEditWindow()
 //==============================================================================
 void MainContentComponent::handleShowPreferences()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
     if (mPropertiesWindow == nullptr) {
         mPropertiesWindow.reset(new SettingsWindow{ *this,
                                                     mData.appData.recordingOptions,
@@ -591,6 +607,7 @@ void MainContentComponent::handleShowPreferences()
 //==============================================================================
 void MainContentComponent::handleShow2DView()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
     if (mFlatViewWindow == nullptr) {
         mFlatViewWindow.reset(new FlatViewWindow{ *this, mLookAndFeel });
     } else {
@@ -616,6 +633,7 @@ void MainContentComponent::handleShow2DView()
 //==============================================================================
 void MainContentComponent::handleShowOscLogView()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
     if (mOscLogWindow == nullptr) {
         mOscLogWindow.reset(new OscLogWindow("OSC Logging Windows",
                                              mLookAndFeel.getWinBackgroundColour(),
@@ -633,6 +651,7 @@ void MainContentComponent::handleShowOscLogView()
 //==============================================================================
 void MainContentComponent::handleShowAbout()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
     if (!mAboutWindow) {
         mAboutWindow.reset(new AboutWindow{ "About SpatGRIS", mLookAndFeel, *this });
     }
@@ -641,6 +660,7 @@ void MainContentComponent::handleShowAbout()
 //==============================================================================
 void MainContentComponent::handleOpenManual()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
     if (SERVER_GRIS_MANUAL_FILE.exists()) {
         juce::Process::openDocument("file:" + SERVER_GRIS_MANUAL_FILE.getFullPathName(), juce::String());
     }
@@ -649,22 +669,31 @@ void MainContentComponent::handleOpenManual()
 //==============================================================================
 void MainContentComponent::handleShowNumbers()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
     auto & var{ mData.project.viewSettings.showSpeakerNumbers };
     var = !var;
-    mSpeakerViewComponent->setShowNumber(var);
+    updateViewportConfig();
 }
 
 //==============================================================================
 void MainContentComponent::handleShowSpeakers()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
     auto & var{ mData.project.viewSettings.showSpeakers };
     var = !var;
-    mSpeakerViewComponent->setHideSpeaker(!var);
+    updateViewportConfig();
 }
 
 //==============================================================================
 void MainContentComponent::handleShowTriplets()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
     auto const newState{ !mData.project.viewSettings.showSpeakerTriplets };
     if ((mData.appData.spatMode == SpatMode::lbap || mData.appData.spatMode == SpatMode::stereo) && newState) {
         juce::AlertWindow alert("Can't draw triplets !",
@@ -673,7 +702,6 @@ void MainContentComponent::handleShowTriplets()
         alert.setLookAndFeel(&mLookAndFeel);
         alert.addButton("Close", 0, juce::KeyPress(juce::KeyPress::returnKey));
         alert.runModalLoop();
-        mSpeakerViewComponent->setShowTriplets(false);
         return;
     }
 
@@ -689,45 +717,64 @@ void MainContentComponent::handleShowTriplets()
     }*/
 
     mData.project.viewSettings.showSpeakerTriplets = newState;
-    mSpeakerViewComponent->setShowTriplets(newState);
+    updateViewportConfig();
 }
 
 //==============================================================================
 void MainContentComponent::handleShowSourceLevel()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
     auto & var{ mData.project.viewSettings.showSourceActivity };
     var = !var;
-    // TODO : where to set this?
+    updateViewportConfig();
 }
 
 //==============================================================================
 void MainContentComponent::handleShowSpeakerLevel()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
     auto & var{ mData.project.viewSettings.showSpeakerLevels };
     var = !var;
-    // TODO : where to set this?
+    updateViewportConfig();
 }
 
 //==============================================================================
 void MainContentComponent::handleShowSphere()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
     auto & var{ mData.project.viewSettings.showSphereOrCube };
     var = !var;
-    mSpeakerViewComponent->setShowSphere(var);
+    updateViewportConfig();
 }
 
 //==============================================================================
 void MainContentComponent::handleResetInputPositions()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const mainLock{ mLock };
+
+    auto & viewPortData{ mSpeakerViewComponent->getData() };
     for (auto const source : mData.project.sources) {
         source.value->position = tl::nullopt;
         source.value->vector = tl::nullopt;
+
+        auto * ptr{ viewPortData.sources[source.key].pool.acquire() };
+        *ptr = tl::nullopt;
+        viewPortData.sources[source.key].set(ptr);
     }
 }
 
 //==============================================================================
 void MainContentComponent::handleResetMeterClipping()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     for (auto vuMeter : mSourceVuMeterComponents) {
         vuMeter.value->resetClipping();
     }
@@ -739,6 +786,9 @@ void MainContentComponent::handleResetMeterClipping()
 //==============================================================================
 void MainContentComponent::handleColorizeInputs()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
     float hue{};
     auto const inc{ 1.0f / static_cast<float>(mData.project.sources.size() + 1) };
     for (auto source : mData.project.sources) {
@@ -1091,26 +1141,43 @@ bool MainContentComponent::exitApp()
 }
 
 //==============================================================================
-void MainContentComponent::refreshVuMeterPeaks()
+void MainContentComponent::updatePeaks()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
+    auto & viewportData{ mSpeakerViewComponent->getData() };
+
     auto & audioData{ mAudioProcessor->getAudioData() };
     auto const & sourcePeaks{ *audioData.sourcePeaks.get() };
-    for (auto const peak : sourcePeaks) {
-        if (!mSourceVuMeterComponents.contains(peak.key)) {
-            // TODO : peaks might include objects that do not exist anymore
+    for (auto const sourceData : mData.project.sources) {
+        auto const & peak{ sourcePeaks[sourceData.key] };
+        auto const dbPeak{ dbfs_t::fromGain(peak) };
+        mSourceVuMeterComponents[sourceData.key].setLevel(dbPeak);
+
+        if (!sourceData.value->position) {
             continue;
         }
-        auto const dbPeak{ dbfs_t::fromGain(peak.value) };
-        mSourceVuMeterComponents[peak.key].setLevel(dbPeak);
+        auto & queue{ viewportData.sources[sourceData.key] };
+        auto & pool{ queue.pool };
+        auto * ptr{ pool.acquire() };
+        *ptr = sourceData.value->toViewportData(gainToAlpha(peak));
+        queue.set(ptr);
+        pool.transferPendingObjects();
     }
 
     auto const & speakerPeaks{ *audioData.speakerPeaks.get() };
-    for (auto const peak : speakerPeaks) {
-        if (!mSpeakerVuMeters.contains(peak.key)) {
-            continue;
-        }
-        auto const dbPeak{ dbfs_t::fromGain(peak.value) };
-        mSpeakerVuMeters[peak.key].setLevel(dbPeak);
+    for (auto const speaker : mData.speakerSetup.speakers) {
+        auto const & peak{ speakerPeaks[speaker.key] };
+        auto const dbPeak{ dbfs_t::fromGain(peak) };
+        mSpeakerVuMeters[speaker.key].setLevel(dbPeak);
+
+        auto & queue{ viewportData.speakersAlpha[speaker.key] };
+        auto & pool{ queue.pool };
+        auto * ptr{ pool.acquire() };
+        *ptr = gainToAlpha(peak);
+        queue.set(ptr);
+        pool.transferPendingObjects();
     }
 }
 
@@ -1360,43 +1427,62 @@ void MainContentComponent::handleSpatModeChanged(SpatMode const spatMode)
 //==============================================================================
 void MainContentComponent::handleMasterGainChanged(dbfs_t const gain)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     mData.project.masterGain = gain;
-    mAudioProcessor->setAudioConfig(mData.toAudioConfig());
     mMasterGainOutSlider->setValue(gain.get(), juce::dontSendNotification);
+
+    updateAudioProcessor();
 }
 
 //==============================================================================
 void MainContentComponent::handleGainInterpolationChanged(float const interpolation)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
+
     mData.project.spatGainsInterpolation = interpolation;
-    mAudioProcessor->setAudioConfig(mData.toAudioConfig());
     mInterpolationSlider->setValue(interpolation, juce::dontSendNotification);
+
+    updateAudioProcessor();
 }
 
 //==============================================================================
 void MainContentComponent::handleNewSpeakerPosition(output_patch_t const outputPatch, CartesianVector const & position)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
+
     auto & speaker{ mData.speakerSetup.speakers[outputPatch] };
     speaker.vector = PolarVector::fromCartesian(position);
     speaker.position = position;
+
+    // TODO : re-init spat algorithm?
 }
 
 //==============================================================================
 void MainContentComponent::handleNewSpeakerPosition(output_patch_t const outputPatch, PolarVector const & position)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
+
     auto & speaker{ mData.speakerSetup.speakers[outputPatch] };
     speaker.vector = position;
     speaker.position = position.toCartesian();
+
+    // TODO : re-init spat algorithm?
 }
 
 //==============================================================================
 void MainContentComponent::updateAudioProcessor() const
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-    mAudioProcessor->setAudioConfig(mData.toAudioConfig());
+    mAudioProcessor->setAudioConfig(mData.toAudioConfig()); // TODO : use unique_ptr instead
+}
+
+//==============================================================================
+void MainContentComponent::updateViewportConfig() const
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+    mSpeakerViewComponent->setConfig(mData.toViewportConfig());
 }
 
 //==============================================================================
@@ -1690,16 +1776,9 @@ bool MainContentComponent::refreshSpeakers()
     }*/
 
     updateAudioProcessor();
+    updateViewportConfig();
 
     return true;
-}
-
-//==============================================================================
-void MainContentComponent::setCurrentSpeakerSetup(juce::File const & file)
-{
-    mCurrentSpeakerSetup = file;
-    mConfigurationName = file.getFileNameWithoutExtension();
-    mSpeakerViewComponent->setNameConfig(mConfigurationName);
 }
 
 //==============================================================================
@@ -1796,15 +1875,14 @@ void MainContentComponent::saveSpeakerSetup(juce::String const & path)
     jassert(success);
 
     mData.appData.lastSpeakerSetup = path;
-
-    setCurrentSpeakerSetup(path);
+    // TODO : some gui to update?
 }
 
 //==============================================================================
 void MainContentComponent::timerCallback()
 {
     // Update levels
-    refreshVuMeterPeaks();
+    updatePeaks();
 
     auto & audioManager{ AudioManager::getInstance() };
     auto & audioDeviceManager{ audioManager.getAudioDeviceManager() };

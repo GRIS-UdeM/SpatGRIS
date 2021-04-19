@@ -57,6 +57,7 @@ juce::StringArray const RECORDING_CONFIG_STRINGS{ "Multiple Mono Files", "Single
 juce::StringArray const ATTENUATION_DB_STRINGS{ "0", "-12", "-24", "-36", "-48", "-60", "-72" };
 juce::StringArray const ATTENUATION_FREQUENCY_STRINGS{ "125", "250", "500", "1000", "2000", "4000", "8000", "16000 " };
 
+//==============================================================================
 template<typename T>
 static juce::Array<T> stringToStronglyTypedFloat(juce::StringArray const & strings)
 {

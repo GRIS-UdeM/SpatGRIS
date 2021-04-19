@@ -97,6 +97,20 @@ SourceAudioConfig SourceData::toConfig(bool const soloMode) const
 }
 
 //==============================================================================
+ViewportSourceData SourceData::toViewportData(float const alpha) const
+{
+    jassert(position);
+
+    ViewportSourceData result{};
+    result.colour = colour.withAlpha(alpha);
+    result.azimuthSpan = azimuthSpan;
+    result.zenithSpan = zenithSpan;
+    result.position = *position;
+
+    return result;
+}
+
+//==============================================================================
 std::unique_ptr<juce::XmlElement> SourceData::toXml(source_index_t const index) const
 {
     auto result{ std::make_unique<juce::XmlElement>(juce::String{ index.get() }) };
@@ -196,7 +210,7 @@ tl::optional<SpeakerHighpassData> SpeakerHighpassData::fromXml(juce::XmlElement 
 }
 
 //==============================================================================
-SpeakerAudioConfig SpeakerData::toConfig(bool const soloMode, double const sampleRate) const
+SpeakerAudioConfig SpeakerData::toConfig(bool const soloMode, double const sampleRate) const noexcept
 {
     auto const getHighpassConfig = [&](SpeakerHighpassData const & data) { return data.toConfig(sampleRate); };
 
@@ -209,7 +223,13 @@ SpeakerAudioConfig SpeakerData::toConfig(bool const soloMode, double const sampl
 }
 
 //==============================================================================
-std::unique_ptr<juce::XmlElement> SpeakerData::toXml(output_patch_t const outputPatch) const
+ViewportSpeakerConfig SpeakerData::toViewportConfig() const noexcept
+{
+    return ViewportSpeakerConfig{ position, isSelected, isDirectOutOnly };
+}
+
+//==============================================================================
+std::unique_ptr<juce::XmlElement> SpeakerData::toXml(output_patch_t const outputPatch) const noexcept
 {
     auto result{ std::make_unique<juce::XmlElement>(juce::String{ outputPatch.get() }) };
 
@@ -225,7 +245,7 @@ std::unique_ptr<juce::XmlElement> SpeakerData::toXml(output_patch_t const output
 }
 
 //==============================================================================
-tl::optional<SpeakerData> SpeakerData::fromXml(juce::XmlElement const & xml)
+tl::optional<SpeakerData> SpeakerData::fromXml(juce::XmlElement const & xml) noexcept
 {
     juce::StringArray const requiredTags{ XmlTags::GAIN, XmlTags::IS_DIRECT_OUT_ONLY, XmlTags::STATE };
 
@@ -676,6 +696,20 @@ AudioConfig SpatGrisData::toAudioConfig() const
             speaker.key,
             speaker.value->toConfig(isAtLeastOnSpeakerSolo, appData.audioSettings.sampleRate));
     }
+
+    return result;
+}
+
+//==============================================================================
+ViewportConfig SpatGrisData::toViewportConfig() const noexcept
+{
+    ViewportConfig result{};
+    for (auto const & speaker : speakerSetup.speakers) {
+        result.speakers.add(speaker.key, speaker.value->toViewportConfig());
+    }
+    result.spatMode = appData.spatMode;
+    result.viewSettings = project.viewSettings;
+    result.title = appData.lastSpeakerSetup;
 
     return result;
 }

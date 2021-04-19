@@ -37,7 +37,6 @@ size_t constexpr RIGHT = 1;
 
 Pool<SpeakersSpatGains> ThreadsafePtr<SpeakersSpatGains>::pool{ 32 };
 Pool<SourcePeaks> ThreadsafePtr<SourcePeaks>::pool{ 32 };
-Pool<SpeakerPeaks> ThreadsafePtr<SpeakerPeaks>::pool{ 32 };
 
 //==============================================================================
 // Load samples from a wav file into a float array.
@@ -149,7 +148,7 @@ SourcePeaks AudioProcessor::muteSoloVuMeterIn(SourceAudioBuffer & inputBuffer) c
         auto const & buffer{ *channel.value };
         auto const peak{ config.isMuted ? 0.0f : buffer.getMagnitude(0, inputBuffer.getNumSamples()) };
 
-        peaks.add(channel.key, peak);
+        peaks[channel.key] = peak;
     }
     return peaks;
 }
@@ -165,7 +164,7 @@ SpeakerPeaks AudioProcessor::muteSoloVuMeterGainOut(SpeakerAudioBuffer & speaker
         auto & buffer{ *channel.value };
         if (config.isMuted || config.gain < SMALL_GAIN) {
             buffer.clear();
-            peaks.add(channel.key, 0.0f);
+            peaks[channel.key] = 0.0f;
             continue;
         }
 
@@ -179,7 +178,7 @@ SpeakerPeaks AudioProcessor::muteSoloVuMeterGainOut(SpeakerAudioBuffer & speaker
         }
 
         auto const magnitude{ buffer.getMagnitude(0, numSamples) };
-        peaks.add(channel.key, magnitude);
+        peaks[channel.key] = magnitude;
     }
 
     return peaks;
