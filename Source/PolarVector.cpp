@@ -16,9 +16,17 @@ using fast = juce::dsp::FastMathApproximations;
 //==============================================================================
 CartesianVector PolarVector::toCartesian() const noexcept
 {
-    auto const x{ length * SIN(elevation.get()) * COS(azimuth.get()) };
-    auto const y{ length * SIN(elevation.get()) * SIN(azimuth.get()) };
-    auto const z{ length * COS(elevation.get()) };
+    // Mathematically, the azimuth angle should start from the pole and be equal to 90 degrees at the equator.
+    // We have to accomodate for a slightly different coordinate system where the azimuth angle starts at the equator
+    // and is equal to 90 degrees at the north pole.
+
+    // This is quite dangerous because any trigonometry done outside of this class might get things wrong.
+
+    auto const inverseElevation{ HALF_PI - elevation };
+
+    auto const x{ length * SIN(inverseElevation.get()) * COS(azimuth.get()) };
+    auto const y{ length * SIN(inverseElevation.get()) * SIN(azimuth.get()) };
+    auto const z{ length * COS(inverseElevation.get()) };
 
     CartesianVector const result{ x, y, z };
     return result;
@@ -27,11 +35,19 @@ CartesianVector PolarVector::toCartesian() const noexcept
 //==============================================================================
 PolarVector PolarVector::fromCartesian(CartesianVector const & pos) noexcept
 {
+    // Mathematically, the azimuth angle should start from the pole and be equal to 90 degrees at the equator.
+    // We have to accomodate for a slightly different coordinate system where the azimuth angle starts at the equator
+    // and is equal to 90 degrees at the north pole.
+
+    // This is quite dangerous because any trigonometry done outside of this class might get things wrong.
+
     auto const length{ std::sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z) };
     radians_t const azimuth{ std::acos(pos.x / std::sqrt(pos.x * pos.x + pos.y * pos.y))
                              * (pos.y < 0.0f ? -1.0f : 1.0f) };
     radians_t const zenith{ std::acos(pos.z / length) };
 
-    PolarVector const result{ azimuth, zenith, length };
+    auto const inverseZenith{ HALF_PI - zenith };
+
+    PolarVector const result{ azimuth, inverseZenith, length };
     return result;
 }

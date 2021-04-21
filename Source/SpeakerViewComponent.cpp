@@ -45,7 +45,7 @@ void SpeakerViewComponent::initialise()
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    gluLookAt(4.0, 6.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+    gluLookAt(4.0, 6.0, 5.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
 
     int noArgs{};
     glutInit(&noArgs, nullptr);
@@ -211,10 +211,8 @@ void SpeakerViewComponent::mouseDown(const juce::MouseEvent & e)
     JUCE_ASSERT_MESSAGE_THREAD;
 
     juce::ScopedLock const lock{ mLock };
-    auto const translation{ -e.getPosition().x / mSlowDownFactor };
-    mData.state.deltaClick = juce::Point<float>{ mData.state.cameraPosition.azimuth.toDegrees().get(),
-                                                 mData.state.cameraPosition.elevation.toDegrees().get() }
-                                 .translated(translation, translation);
+    mData.state.panMouseOrigin = e.getPosition().toFloat();
+    mData.state.panCameraOrigin = mData.state.cameraPosition;
 
     // Always check on which display the speaker view component is.
     mDisplayScaling = juce::Desktop::getInstance().getDisplays().getDisplayForPoint(e.getScreenPosition())->scale;
@@ -233,19 +231,17 @@ void SpeakerViewComponent::mouseDrag(const juce::MouseEvent & e)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    static constexpr auto NEARLY_90_DEG{ degrees_t{ 89.99f } };
+    static constexpr radians_t NEARLY_90_DEG{ degrees_t{ 89.99f } };
 
     juce::ScopedLock const lock{ mLock };
     if (e.mods.isLeftButtonDown()) {
+        auto const delta{ (e.getPosition().toFloat() - mData.state.panMouseOrigin) };
+
         mData.state.cameraPosition.azimuth
-            = degrees_t{ e.getPosition().x / mSlowDownFactor + mData.state.deltaClick.x }.centered();
-        // mData.state.cameraPosition.elevation
-        //    = std::clamp(degrees_t{ e.getPosition().y / mSlowDownFactor + mData.state.deltaClick.y },
-        //                 -NEARLY_90_DEG,
-        //                 NEARLY_90_DEG);
+            = (mData.state.panCameraOrigin.azimuth - radians_t{ delta.x / 500.0f }).centered();
         mData.state.cameraPosition.elevation
-            = std::clamp(degrees_t{ e.getPosition().y / mSlowDownFactor + mData.state.deltaClick.y },
-                         degrees_t{},
+            = std::clamp((mData.state.panCameraOrigin.elevation + radians_t{ delta.y / 500.0f }).centered(),
+                         -NEARLY_90_DEG,
                          NEARLY_90_DEG);
     }
 }
@@ -705,8 +701,8 @@ void SpeakerViewComponent::drawSpeaker(output_patch_t const outputPatch, Viewpor
     glPushMatrix();
 
     glTranslatef(center.x, center.y, center.z);
-    glRotatef(-vector.azimuth.toDegrees().get(), 1.0f, 0.0f, 0.0f);
-    glRotatef(-vector.elevation.toDegrees().get(), 0.0f, 1.0f, 0.0f);
+    glRotatef((PI + vector.azimuth).toDegrees().get(), 0.0f, 0.0f, 1.0f);
+    glRotatef(vector.elevation.toDegrees().get(), 0.0f, 1.0f, 0.0f);
     glTranslatef(-center.x, -center.y, -center.z);
 
     glBegin(GL_QUADS);
@@ -812,7 +808,7 @@ void SpeakerViewComponent::drawSpeaker(output_patch_t const outputPatch, Viewpor
         glBegin(GL_LINES);
         glColor4f(0.37f, 0.37f, 0.37f, DEFAULT_ALPHA);
         glVertex3f(center.x + SIZE_SPEAKER.x, center.y, center.z);
-        glVertex3f(center.x + 1.2f, center.y, center.z);
+        glVertex3f(center.x + 0.12f, center.y, center.z);
         glEnd();
     }
 

@@ -1210,7 +1210,7 @@ void MainContentComponent::refreshSpeakerVuMeterComponents()
     for (auto speaker : mData.speakerSetup.speakers) {
         auto newVuMeter{ std::make_unique<SpeakerVuMeterComponent>(speaker.key, *this, mSmallLookAndFeel) };
         mOutputsUiBox->addAndMakeVisible(newVuMeter.get());
-        juce::Rectangle<int> const bounds{ x, 4, VU_METER_WIDTH_IN_PIXELS, 200 };
+        juce::Rectangle<int> const bounds{ x, 20, VU_METER_WIDTH_IN_PIXELS, 200 };
         newVuMeter->setBounds(bounds);
         mSpeakerVuMeters.add(speaker.key, std::move(newVuMeter));
         x += VU_METER_WIDTH_IN_PIXELS;

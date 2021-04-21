@@ -59,9 +59,10 @@ struct ViewportState {
     float cameraZoomVelocity{};
     PolarVector cameraPosition{};
     int lastRenderTimeMs{};
-    juce::Point<float> deltaClick{};
     juce::Point<float> rayClick{};
     bool shouldRayCast{};
+    juce::Point<float> panMouseOrigin{};
+    PolarVector panCameraOrigin{};
     float displayScaling{};
 };
 

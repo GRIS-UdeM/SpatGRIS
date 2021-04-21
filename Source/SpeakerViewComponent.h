@@ -65,8 +65,6 @@ private:
 
     ViewportData mData{};
 
-    float mSlowDownFactor = 3.0f; // Reduce the angle changing speed.
-
     double mDisplayScaling = 1.0;
 
     Ray mRay;
