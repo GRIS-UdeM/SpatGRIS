@@ -16,12 +16,6 @@ using fast = juce::dsp::FastMathApproximations;
 //==============================================================================
 CartesianVector PolarVector::toCartesian() const noexcept
 {
-    // TODO : what is this
-    /*auto const cele = fast::cos(elevation.get());
-    auto const x = fast::cos(azimuth.get()) * cele;
-    auto const y = fast::sin(azimuth.get()) * cele;
-    auto const z = fast::sin(elevation.get());*/
-
     auto const x{ length * SIN(elevation.get()) * COS(azimuth.get()) };
     auto const y{ length * SIN(elevation.get()) * SIN(azimuth.get()) };
     auto const z{ length * COS(elevation.get()) };

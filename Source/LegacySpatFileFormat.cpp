@@ -116,9 +116,9 @@ tl::optional<SpatGrisProjectData> readLegacyProjectFile(juce::XmlElement const &
     ViewSettings const viewSettings{ showSpeakers,      showSpeakerNumbers, showTriplets,
                                      showSpeakerLevels, showSphereOrCube,   showSourceLevels };
 
-    auto const camAzimuth{ radians_t{ static_cast<float>(xml.getDoubleAttribute("CamAngleX", 0.0f)) }.centered() };
-    auto const camZenith{ radians_t{ static_cast<float>(xml.getDoubleAttribute("CamAngleY", 0.0f)) }.centered() };
-    auto const camDistance{ static_cast<float>(xml.getDoubleAttribute("CamDistance", 22.0f)) };
+    auto const camAzimuth{ degrees_t{ static_cast<float>(xml.getDoubleAttribute("CamAngleX", 0.0f)) }.centered() };
+    auto const camZenith{ degrees_t{ static_cast<float>(xml.getDoubleAttribute("CamAngleY", 0.0f)) }.centered() };
+    auto const camDistance{ static_cast<float>(xml.getDoubleAttribute("CamDistance", 22.0f) / 10.0f) };
     auto const camPosition{ PolarVector{ camAzimuth, camZenith, camDistance }.toCartesian() };
 
     SpatGrisProjectData result{};

@@ -110,7 +110,7 @@ void SpeakerViewComponent::render()
     auto const & camPos{ mData.state.cameraPosition.toCartesian() };
 
     glLoadIdentity();
-    gluLookAt(camPos.x, camPos.y, camPos.z, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+    gluLookAt(camPos.x, camPos.y, camPos.z, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
 
     drawOriginGrid();
 
@@ -238,10 +238,14 @@ void SpeakerViewComponent::mouseDrag(const juce::MouseEvent & e)
     juce::ScopedLock const lock{ mLock };
     if (e.mods.isLeftButtonDown()) {
         mData.state.cameraPosition.azimuth
-            = degrees_t{ e.getPosition().x / mSlowDownFactor + mData.state.deltaClick.x };
+            = degrees_t{ e.getPosition().x / mSlowDownFactor + mData.state.deltaClick.x }.centered();
+        // mData.state.cameraPosition.elevation
+        //    = std::clamp(degrees_t{ e.getPosition().y / mSlowDownFactor + mData.state.deltaClick.y },
+        //                 -NEARLY_90_DEG,
+        //                 NEARLY_90_DEG);
         mData.state.cameraPosition.elevation
             = std::clamp(degrees_t{ e.getPosition().y / mSlowDownFactor + mData.state.deltaClick.y },
-                         -NEARLY_90_DEG,
+                         degrees_t{},
                          NEARLY_90_DEG);
     }
 }
@@ -289,14 +293,14 @@ void SpeakerViewComponent::drawOriginGrid() const
 
     static auto const drawSquare = [](float const length) -> void {
         glBegin(GL_LINES);
-        glVertex3f(-length, 0.0f, length);
-        glVertex3f(length, 0.0f, length);
-        glVertex3f(length, 0.0f, -length);
-        glVertex3f(length, 0.0f, length);
-        glVertex3f(length, 0.0f, -length);
-        glVertex3f(-length, 0.0f, -length);
-        glVertex3f(-length, 0.0f, -length);
-        glVertex3f(-length, 0.0f, length);
+        glVertex3f(-length, length, 0.0f);
+        glVertex3f(length, length, 0.0f);
+        glVertex3f(length, -length, 0.0f);
+        glVertex3f(length, length, 0.0f);
+        glVertex3f(length, -length, 0.0f);
+        glVertex3f(-length, -length, 0.0f);
+        glVertex3f(-length, -length, 0.0f);
+        glVertex3f(-length, length, 0.0f);
         glEnd();
     };
 
@@ -304,7 +308,7 @@ void SpeakerViewComponent::drawOriginGrid() const
         glBegin(GL_LINE_LOOP);
         for (int i{}; i <= 180; ++i) {
             auto const angle{ juce::MathConstants<float>::twoPi * narrow<float>(i) / 180.0f };
-            glVertex3f(std::cos(angle) * radius, 0.0f, std::sin(angle) * radius);
+            glVertex3f(std::cos(angle) * radius, std::sin(angle) * radius, 0.0f);
         }
         glEnd();
     };
@@ -339,22 +343,26 @@ void SpeakerViewComponent::drawOriginGrid() const
 
     // 3D RGB line.
     glLineWidth(2.0f);
+    // X
     glBegin(GL_LINES);
-    glColor3f(0.4f, 0.0f, 0.0f);
-    glVertex3f(-MAX_RADIUS, 0.0f, 0.0f);
-    glVertex3f(0.0f, 0.0f, 0.0f);
-    glColor3f(1.0f, 0.0f, 0.0f);
-    glVertex3f(0.0f, 0.0f, 0.0f);
-    glVertex3f(MAX_RADIUS, 0.0f, 0.0f);
-    glColor3f(0.0f, 0.0f, 1.0f);
-    glVertex3f(0.0f, 0.0f, 0.0f);
-    glVertex3f(0.0f, MAX_RADIUS, 0.0f);
     glColor3f(0.0f, 0.4f, 0.0f);
-    glVertex3f(0.0f, 0.0f, -MAX_RADIUS);
+    glVertex3f(-MAX_RADIUS, 0.0f, 0.0f);
     glVertex3f(0.0f, 0.0f, 0.0f);
     glColor3f(0.0f, 1.0f, 0.0f);
     glVertex3f(0.0f, 0.0f, 0.0f);
+    glVertex3f(MAX_RADIUS, 0.0f, 0.0f);
+    // Y
+    glColor3f(0.4f, 0.0f, 0.0f);
+    glVertex3f(0.0f, -MAX_RADIUS, 0.0f);
+    glVertex3f(0.0f, 0.0f, 0.0f);
+    glColor3f(1.0f, 0.0f, 0.0f);
+    glVertex3f(0.0f, 0.0f, 0.0f);
+    glVertex3f(0.0f, MAX_RADIUS, 0.0f);
+    // Z
+    glColor3f(0.0f, 0.0f, 1.0f);
+    glVertex3f(0.0f, 0.0f, 0.0f);
     glVertex3f(0.0f, 0.0f, MAX_RADIUS);
+
     glEnd();
 
     // Grid.
@@ -364,8 +372,8 @@ void SpeakerViewComponent::drawOriginGrid() const
     // Draw aligned cross
     auto const alignedCrossLength{ spatMode == SpatMode::lbap ? SPACE_LIMIT : MAX_RADIUS * 1.5f };
     glBegin(GL_LINE_LOOP);
-    glVertex3f(0.0f, 0.0f, -alignedCrossLength);
-    glVertex3f(0.0f, 0.0f, alignedCrossLength);
+    glVertex3f(0.0f, -alignedCrossLength, 0.0f);
+    glVertex3f(0.0f, alignedCrossLength, 0.0f);
     glEnd();
     glBegin(GL_LINE_LOOP);
     glVertex3f(-alignedCrossLength, 0.0f, 0.0f);
@@ -377,26 +385,26 @@ void SpeakerViewComponent::drawOriginGrid() const
                                                                : alignedCrossLength };
     glBegin(GL_LINE_LOOP);
     static auto constexpr QUARTER_PI{ juce::MathConstants<float>::halfPi / 2.0f };
-    glVertex3f(std::cos(QUARTER_PI) * diagonalCrossLength, 0.0f, std::sin(QUARTER_PI) * diagonalCrossLength);
-    glVertex3f(-std::cos(QUARTER_PI) * diagonalCrossLength, 0.0f, -std::sin(QUARTER_PI) * diagonalCrossLength);
+    glVertex3f(std::cos(QUARTER_PI) * diagonalCrossLength, std::sin(QUARTER_PI) * diagonalCrossLength, 0.0f);
+    glVertex3f(-std::cos(QUARTER_PI) * diagonalCrossLength, -std::sin(QUARTER_PI) * diagonalCrossLength, 0.0f);
     glEnd();
     glBegin(GL_LINE_LOOP);
     glVertex3f(std::cos(QUARTER_PI * 3.0f) * diagonalCrossLength,
-               0.0f,
-               std::sin(QUARTER_PI * 3.0f) * diagonalCrossLength);
+               std::sin(QUARTER_PI * 3.0f) * diagonalCrossLength,
+               0.0f);
     glVertex3f(-std::cos(QUARTER_PI * 3.0f) * diagonalCrossLength,
-               0.0f,
-               -std::sin(QUARTER_PI * 3.0f) * diagonalCrossLength);
+               -std::sin(QUARTER_PI * 3.0f) * diagonalCrossLength,
+               0.0f);
     glEnd();
 
-    drawText("X", CartesianVector{ 0.0f, 0.1f, MAX_RADIUS }, juce::Colours::white, 0.0005f);
-    drawText("Y", CartesianVector{ MAX_RADIUS, 0.1f, 0.0f }, juce::Colours::white, 0.0005f);
-    drawText("Z", CartesianVector{ 0.0f, MAX_RADIUS, 0.0f }, juce::Colours::white, 0.0005f);
+    drawText("X", CartesianVector{ MAX_RADIUS, 0.0f, 0.1f }, juce::Colours::white, 0.0005f);
+    drawText("Y", CartesianVector{ 0.1f, MAX_RADIUS, 0.0f }, juce::Colours::white, 0.0005f);
+    drawText("Z", CartesianVector{ 0.0f, 0.0f, MAX_RADIUS }, juce::Colours::white, 0.0005f);
 
-    drawTextOnGrid("0", glm::vec3(0.94f, 0.0f, 0.01f), 0.0005f);
-    drawTextOnGrid("90", glm::vec3(-0.08f, 0.0f, 0.90f), 0.0005f);
-    drawTextOnGrid("180", glm::vec3(-0.98f, 0.0f, 0.01f), 0.0005f);
-    drawTextOnGrid("270", glm::vec3(-0.08f, 0.0f, -0.98f), 0.0005f);
+    drawTextOnGrid("0", glm::vec3(0.94f, 0.01f, 0.0f), 0.0005f);
+    drawTextOnGrid("90", glm::vec3(-0.08f, 0.90f, 0.0f), 0.0005f);
+    drawTextOnGrid("180", glm::vec3(-0.98f, 0.01f, 0.0f), 0.0005f);
+    drawTextOnGrid("270", glm::vec3(-0.08f, -0.98f, 0.0f), 0.0005f);
 }
 
 //==============================================================================
@@ -413,13 +421,11 @@ void SpeakerViewComponent::drawText(juce::String const & val,
 
     if (camLock) {
         auto const & camPos{ mData.state.cameraPosition };
-        auto const azimuth{ camPos.azimuth.toDegrees() };
+        auto const azimuth{ camPos.azimuth.toDegrees() + HALF_PI };
         auto const elevation{ camPos.elevation.toDegrees() };
 
-        glRotatef((-azimuth.get()), 0.0f, 1.0f, 0.0f);
-        if (elevation.get() < 0.0f || elevation > HALF_PI) {
-            glRotatef(-elevation.get(), 0.0f, 1.0f, 0.0f);
-        }
+        glRotatef(HALF_PI.toDegrees().get(), 1.0f, 0.0f, 0.0f);
+        glRotatef(azimuth.get(), 0.0f, 1.0f, 0.0f);
     }
 
     glScalef(scale, scale, scale);
@@ -436,7 +442,6 @@ void SpeakerViewComponent::drawTextOnGrid(std::string const & val, glm::vec3 con
 {
     glPushMatrix();
     glTranslatef(position.x, position.y, position.z);
-
     glRotatef(-HALF_PI.toDegrees().get(), 1.0f, 0.0f, 0.0f);
     glRotatef((HALF_PI * 4.0f).toDegrees().get(), 0.0f, 0.0f, 1.0f);
 
@@ -700,13 +705,8 @@ void SpeakerViewComponent::drawSpeaker(output_patch_t const outputPatch, Viewpor
     glPushMatrix();
 
     glTranslatef(center.x, center.y, center.z);
-
-    glRotatef(180.0f - vector.azimuth.toDegrees().get(), 0.0f, 1.0f, 0.0f);
-    // TODO : why a branch here ?
-    // if (mMainContentComponent.getModeSelected() == SpatMode::lbap) {
-    /*glRotatef(-vector.elevation.toDegrees().get() + vector.elevation.toDegrees().get() * vector.length / 2.0f, 0.0f,
-     * 0.0f, 1.0f);*/
-    glRotatef(-vector.elevation.toDegrees().get(), 0.0f, 0.0f, 1.0f);
+    glRotatef(-vector.azimuth.toDegrees().get(), 1.0f, 0.0f, 0.0f);
+    glRotatef(-vector.elevation.toDegrees().get(), 0.0f, 1.0f, 0.0f);
     glTranslatef(-center.x, -center.y, -center.z);
 
     glBegin(GL_QUADS);
