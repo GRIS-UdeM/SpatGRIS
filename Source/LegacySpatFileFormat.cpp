@@ -33,7 +33,7 @@ tl::optional<std::pair<SpeakerSetup, SpatMode>> readLegacySpeakerSetup(juce::Xml
 
                     // position
                     radians_t const azimuth{
-                        degrees_t{ static_cast<float>(spk->getDoubleAttribute("Azimuth", 0.0)) }.centered()
+                        degrees_t{ static_cast<float>(-spk->getDoubleAttribute("Azimuth", 0.0)) }.centered()
                     };
                     radians_t const zenith{
                         degrees_t{ static_cast<float>(spk->getDoubleAttribute("Zenith", 0.0)) }.centered()

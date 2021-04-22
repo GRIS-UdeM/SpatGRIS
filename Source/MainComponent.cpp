@@ -27,9 +27,10 @@
 //==============================================================================
 static float gainToAlpha(float const gain)
 {
-    static constexpr auto MIN_ALPHA{ 0.15f };
-    static constexpr auto MAX_ALPHA{ 0.75f };
+    static constexpr auto MIN_ALPHA{ 0.1f };
+    static constexpr auto MAX_ALPHA{ 1.0f };
     static constexpr auto ALPHA_RANGE{ MAX_ALPHA - MIN_ALPHA };
+    static constexpr auto ALPHA_CURVE{ 0.7f };
 
     static constexpr dbfs_t MIN_DB{ -60.0f };
     static constexpr dbfs_t MAX_DB{ 0.0f };
@@ -38,7 +39,7 @@ static float gainToAlpha(float const gain)
     auto const clippedGain{ std::clamp(dbfs_t::fromGain(gain), MIN_DB, MAX_DB) };
     auto const ratio{ (clippedGain - MIN_DB) / DB_RANGE };
     jassert(ratio >= 0.0f && ratio <= 1.0f);
-    auto const result{ ratio * ALPHA_RANGE + MIN_ALPHA };
+    auto const result{ std::pow(ratio, ALPHA_CURVE) * ALPHA_RANGE + MIN_ALPHA };
 
     return result;
 }
@@ -1372,6 +1373,8 @@ void MainContentComponent::handleSpeakerSelected(juce::Array<output_patch_t> con
         }
         // TODO : update 3D view ?
     }
+
+    updateViewportConfig();
 }
 
 //==============================================================================

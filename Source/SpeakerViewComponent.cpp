@@ -24,14 +24,12 @@
 #include "GlSphere.h"
 #include "MainComponent.h"
 
+juce::Colour const SpeakerViewComponent::COLOR_SPEAKER{ 222u, 222u, 222u };
+juce::Colour const SpeakerViewComponent::COLOR_DIRECT_OUT_SPEAKER{ 64u, 64u, 64u };
+juce::Colour const SpeakerViewComponent::COLOR_SPEAKER_SELECT{ 255u, 163u, 23u };
+
 Pool<tl::optional<ViewportSourceData>> ThreadsafePtr<tl::optional<ViewportSourceData>>::pool{ 32 };
 Pool<float> ThreadsafePtr<float>::pool{ 32 };
-
-glm::vec3 const SpeakerViewComponent::COLOR_SPEAKER{ 0.87f, 0.87f, 0.87f };
-glm::vec3 const SpeakerViewComponent::COLOR_DIRECT_OUT_SPEAKER{ 0.25f, 0.25f, 0.25f };
-glm::vec3 const SpeakerViewComponent::COLOR_SPEAKER_SELECT{ 1.00f, 0.64f, 0.09f };
-glm::vec3 const SpeakerViewComponent::SIZE_SPEAKER{ 0.05f, 0.05f, 0.05f };
-glm::vec3 const SpeakerViewComponent::DEFAULT_CENTER{ 0.0f, 0.0f, 0.0f };
 
 //==============================================================================
 void SpeakerViewComponent::initialise()
@@ -76,10 +74,27 @@ void SpeakerViewComponent::render()
 
     juce::ScopedLock const lock{ mLock };
 
+    static constexpr auto MIN_ZOOM = 0.3f;
+    static constexpr auto MAX_ZOOM = 3.0f;
+    static constexpr auto ZOOM_RANGE = MAX_ZOOM - MIN_ZOOM;
+    static constexpr auto ZOOM_CURVE = 0.5f;
+    static constexpr auto INVERSE_ZOOM_CURVE = 1.0f / ZOOM_CURVE;
+
     auto const currentTime{ glutGet(GLUT_ELAPSED_TIME) };
     auto const secondsElapsed{ narrow<float>(currentTime - mData.state.lastRenderTimeMs) / 100.0f };
     auto const zoomToAdd{ secondsElapsed * mData.state.cameraZoomVelocity };
-    mData.state.cameraPosition.length += zoomToAdd;
+
+    if (zoomToAdd) {
+        int test{};
+    }
+
+    auto const currentZoom{ (mData.state.cameraPosition.length - MIN_ZOOM) / ZOOM_RANGE };
+    auto const scaledZoom{ std::pow(currentZoom, ZOOM_CURVE) };
+    auto const scaledTargetZoom{ scaledZoom + zoomToAdd };
+    auto const unclippedTargetZoom{ std::pow(scaledTargetZoom, INVERSE_ZOOM_CURVE) * ZOOM_RANGE + MIN_ZOOM };
+    auto const targetZoom{ std::clamp(unclippedTargetZoom, MIN_ZOOM, MAX_ZOOM) };
+
+    mData.state.cameraPosition.length = targetZoom;
     mData.state.cameraZoomVelocity *= std::pow(0.5f, secondsElapsed);
     mData.state.lastRenderTimeMs = currentTime;
 
@@ -151,6 +166,12 @@ void SpeakerViewComponent::render()
             jassertfalse;
             break;
         }
+    }
+
+    // test speaker selection
+    if (mData.state.shouldRayCast) {
+        clickRay();
+        mData.state.shouldRayCast = false;
     }
 
     glFlush();
@@ -231,6 +252,7 @@ void SpeakerViewComponent::mouseDrag(const juce::MouseEvent & e)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
+    static constexpr float CAM_SLOW_DOWN = 250.0f;
     static constexpr radians_t NEARLY_90_DEG{ degrees_t{ 89.99f } };
 
     juce::ScopedLock const lock{ mLock };
@@ -238,9 +260,9 @@ void SpeakerViewComponent::mouseDrag(const juce::MouseEvent & e)
         auto const delta{ (e.getPosition().toFloat() - mData.state.panMouseOrigin) };
 
         mData.state.cameraPosition.azimuth
-            = (mData.state.panCameraOrigin.azimuth - radians_t{ delta.x / 500.0f }).centered();
+            = (mData.state.panCameraOrigin.azimuth - radians_t{ delta.x / CAM_SLOW_DOWN }).centered();
         mData.state.cameraPosition.elevation
-            = std::clamp((mData.state.panCameraOrigin.elevation + radians_t{ delta.y / 500.0f }).centered(),
+            = std::clamp((mData.state.panCameraOrigin.elevation + radians_t{ delta.y / CAM_SLOW_DOWN }).centered(),
                          -NEARLY_90_DEG,
                          NEARLY_90_DEG);
     }
@@ -252,7 +274,8 @@ void SpeakerViewComponent::mouseWheelMove(const juce::MouseEvent & /*e*/, const 
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedLock const lock{ mLock };
 
-    mData.state.cameraZoomVelocity -= 5.0f * wheel.deltaY;
+    // mData.state.cameraZoomVelocity -= wheel.deltaY * 0.05f;
+    mData.state.cameraZoomVelocity -= wheel.deltaY * (mData.state.cameraZoomVelocity + 1.0f) * 0.1f;
 }
 
 //==============================================================================
@@ -398,10 +421,10 @@ void SpeakerViewComponent::drawOriginGrid() const
     drawText("Y", CartesianVector{ MAX_RADIUS, -HALF_CHAR_WIDTH, 0.0f }, juce::Colours::white, 0.0005f);
     drawText("Z", CartesianVector{ -HALF_CHAR_WIDTH, 0.0f, MAX_RADIUS }, juce::Colours::white, 0.0005f);
 
-    drawTextOnGrid("0", glm::vec3(0.94f, 0.01f, 0.0f), 0.0005f);
-    drawTextOnGrid("90", glm::vec3(-0.08f, 0.90f, 0.0f), 0.0005f);
-    drawTextOnGrid("180", glm::vec3(-0.98f, 0.01f, 0.0f), 0.0005f);
-    drawTextOnGrid("270", glm::vec3(-0.08f, -0.98f, 0.0f), 0.0005f);
+    drawTextOnGrid("0", glm::vec3(0.94f, -0.03f, 0.0f), 0.00035f);
+    drawTextOnGrid("90", glm::vec3(-0.08f, -0.9f, 0.0f), 0.00035f);
+    drawTextOnGrid("180", glm::vec3(-0.98f, -0.015f, 0.0f), 0.00035f);
+    drawTextOnGrid("270", glm::vec3(-0.08f, 0.98f, 0.0f), 0.00035f);
 }
 
 //==============================================================================
@@ -438,8 +461,8 @@ void SpeakerViewComponent::drawTextOnGrid(std::string const & val, glm::vec3 con
 {
     glPushMatrix();
     glTranslatef(position.x, position.y, position.z);
-    glRotatef(-HALF_PI.toDegrees().get(), 1.0f, 0.0f, 0.0f);
-    glRotatef((HALF_PI * 4.0f).toDegrees().get(), 0.0f, 0.0f, 1.0f);
+    glRotatef(-HALF_PI.toDegrees().get(), 0.0f, 0.0f, 1.0f);
+    // glRotatef(-HALF_PI.toDegrees().get(), 1.0f, 0.0f, 0.0f);
 
     glScalef(scale, scale, scale);
     glColor3f(1.0f, 1.0f, 1.0f);
@@ -524,7 +547,7 @@ void SpeakerViewComponent::drawSource(source_index_t const index, ViewportSource
 
     if (mData.config.viewSettings.showSpeakerNumbers) {
         auto position{ source.position };
-        position.y += SIZE_SPEAKER.y + 0.04f;
+        position.y += SIZE_SPEAKER + 0.04f;
         drawText(juce::String{ index.get() }, position, source.colour, 0.0003f, true);
     }
 }
@@ -693,32 +716,37 @@ void SpeakerViewComponent::drawSpeaker(output_patch_t const outputPatch, Viewpor
 {
     static constexpr auto DEFAULT_ALPHA = 0.75f;
 
+    auto const & showSpeakerLevels{ mData.config.viewSettings.showSpeakerLevels };
+    auto const alpha{ showSpeakerLevels ? *mData.speakersAlpha[outputPatch].get() : DEFAULT_ALPHA };
+
+    auto const getSpeakerColour = [&]() {
+        if (speaker.isSelected) {
+            return COLOR_SPEAKER_SELECT.withAlpha(alpha);
+        }
+        if (speaker.isDirectOutOnly && !showSpeakerLevels) {
+            return COLOR_DIRECT_OUT_SPEAKER.withAlpha(alpha);
+        }
+        return COLOR_SPEAKER.withAlpha(alpha);
+    };
+
     ASSERT_OPEN_GL_THREAD;
 
     auto const & center{ speaker.position };
     auto const vector{ PolarVector::fromCartesian(speaker.position) };
 
     glPushMatrix();
-
     glTranslatef(center.x, center.y, center.z);
     glRotatef((PI + vector.azimuth).toDegrees().get(), 0.0f, 0.0f, 1.0f);
     glRotatef(vector.elevation.toDegrees().get(), 0.0f, 1.0f, 0.0f);
     glTranslatef(-center.x, -center.y, -center.z);
 
+    CartesianVector const vertexMin{ center.x - SIZE_SPEAKER, center.y - SIZE_SPEAKER, center.z - SIZE_SPEAKER };
+    CartesianVector const vertexMax{ center.x + SIZE_SPEAKER, center.y + SIZE_SPEAKER, center.z + SIZE_SPEAKER };
+    auto const colour{ getSpeakerColour() };
+
+    // Draw box
     glBegin(GL_QUADS);
-
-    if (mData.config.viewSettings.showSpeakerLevels) {
-        static constexpr auto USED_TO_BE_OLD_COLOR{ 1.0f };
-        auto const alpha{ *mData.speakersAlpha[outputPatch].get() };
-        auto const levelColour = alpha + (USED_TO_BE_OLD_COLOR - alpha) * 0.5f;
-        glColor4f(levelColour, levelColour, levelColour, alpha);
-    } else {
-        glColor4f(COLOR_SPEAKER.x, COLOR_SPEAKER.y, COLOR_SPEAKER.z, DEFAULT_ALPHA);
-    }
-
-    CartesianVector const vertexMin{ center.x - SIZE_SPEAKER.x, center.y - SIZE_SPEAKER.y, center.z - SIZE_SPEAKER.z };
-    CartesianVector const vertexMax{ center.x + SIZE_SPEAKER.x, center.y + SIZE_SPEAKER.y, center.z + SIZE_SPEAKER.z };
-
+    glColor4f(colour.getFloatRed(), colour.getFloatGreen(), colour.getFloatBlue(), colour.getFloatAlpha());
     glVertex3f(vertexMin.x, vertexMin.y, vertexMax.z);
     glVertex3f(vertexMax.x, vertexMin.y, vertexMax.z);
     glVertex3f(vertexMax.x, vertexMax.y, vertexMax.z);
@@ -751,72 +779,72 @@ void SpeakerViewComponent::drawSpeaker(output_patch_t const outputPatch, Viewpor
 
     glEnd();
 
+    // Draw selection wireframe
     if (speaker.isSelected) {
-        glLineWidth(2.0f);
-        glBegin(GL_LINES);
-        glColor4f(0.0f, 0.0f, 0.0f, DEFAULT_ALPHA);
-        glVertex3f(center.x + SIZE_SPEAKER.x, center.y, center.z);
-        glVertex3f(center.x + 1.2f, center.y, center.z);
-        glEnd();
-
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        glLineWidth(4.0f);
+        glLineWidth(3.0f);
+        glColor3f(0.0f, 0.0f, 0.0f);
         glBegin(GL_LINES);
 
-        jassertfalse;
-        // TODO : what does OVER mean?
-        // glVertex3f(vertexMin.x - OVER, vertexMin.y - OVER, vertexMin.z - OVER);
-        // glVertex3f(vertexMin.x - OVER, vertexMin.y - OVER, vertexMax.z + OVER);
+        static constexpr auto OVER = 0.001f;
 
-        // glVertex3f(vertexMax.x + OVER, vertexMin.y - OVER, vertexMin.z - OVER);
-        // glVertex3f(vertexMax.x + OVER, vertexMin.y - OVER, vertexMax.z + OVER);
+        glVertex3f(vertexMin.x - OVER, vertexMin.y - OVER, vertexMin.z - OVER);
+        glVertex3f(vertexMin.x - OVER, vertexMin.y - OVER, vertexMax.z + OVER);
 
-        // glVertex3f(vertexMax.x + OVER, vertexMax.y + OVER, vertexMin.z - OVER);
-        // glVertex3f(vertexMax.x + OVER, vertexMax.y + OVER, vertexMax.z + OVER);
+        glVertex3f(vertexMax.x + OVER, vertexMin.y - OVER, vertexMin.z - OVER);
+        glVertex3f(vertexMax.x + OVER, vertexMin.y - OVER, vertexMax.z + OVER);
 
-        // glVertex3f(vertexMin.x - OVER, vertexMax.y + OVER, vertexMin.z - OVER);
-        // glVertex3f(vertexMin.x - OVER, vertexMax.y + OVER, vertexMax.z + OVER);
+        glVertex3f(vertexMax.x + OVER, vertexMax.y + OVER, vertexMin.z - OVER);
+        glVertex3f(vertexMax.x + OVER, vertexMax.y + OVER, vertexMax.z + OVER);
 
-        // glVertex3f(vertexMin.x - OVER, vertexMin.y - OVER, vertexMin.z - OVER);
-        // glVertex3f(vertexMax.x + OVER, vertexMin.y - OVER, vertexMin.z - OVER);
+        glVertex3f(vertexMin.x - OVER, vertexMax.y + OVER, vertexMin.z - OVER);
+        glVertex3f(vertexMin.x - OVER, vertexMax.y + OVER, vertexMax.z + OVER);
 
-        // glVertex3f(vertexMin.x - OVER, vertexMin.y - OVER, vertexMax.z + OVER);
-        // glVertex3f(vertexMax.x + OVER, vertexMin.y - OVER, vertexMax.z + OVER);
+        glVertex3f(vertexMin.x - OVER, vertexMin.y - OVER, vertexMin.z - OVER);
+        glVertex3f(vertexMax.x + OVER, vertexMin.y - OVER, vertexMin.z - OVER);
 
-        // glVertex3f(vertexMin.x - OVER, vertexMax.y + OVER, vertexMin.z - OVER);
-        // glVertex3f(vertexMax.x + OVER, vertexMax.y + OVER, vertexMin.z - OVER);
+        glVertex3f(vertexMin.x - OVER, vertexMin.y - OVER, vertexMax.z + OVER);
+        glVertex3f(vertexMax.x + OVER, vertexMin.y - OVER, vertexMax.z + OVER);
 
-        // glVertex3f(vertexMin.x - OVER, vertexMax.y + OVER, vertexMax.z + OVER);
-        // glVertex3f(vertexMax.x + OVER, vertexMax.y + OVER, vertexMax.z + OVER);
+        glVertex3f(vertexMin.x - OVER, vertexMax.y + OVER, vertexMin.z - OVER);
+        glVertex3f(vertexMax.x + OVER, vertexMax.y + OVER, vertexMin.z - OVER);
 
-        // glVertex3f(vertexMin.x - OVER, vertexMin.y - OVER, vertexMin.z - OVER);
-        // glVertex3f(vertexMin.x - OVER, vertexMax.y + OVER, vertexMin.z - OVER);
+        glVertex3f(vertexMin.x - OVER, vertexMax.y + OVER, vertexMax.z + OVER);
+        glVertex3f(vertexMax.x + OVER, vertexMax.y + OVER, vertexMax.z + OVER);
 
-        // glVertex3f(vertexMin.x - OVER, vertexMin.y - OVER, vertexMax.z + OVER);
-        // glVertex3f(vertexMin.x - OVER, vertexMax.y + OVER, vertexMax.z + OVER);
+        glVertex3f(vertexMin.x - OVER, vertexMin.y - OVER, vertexMin.z - OVER);
+        glVertex3f(vertexMin.x - OVER, vertexMax.y + OVER, vertexMin.z - OVER);
 
-        // glVertex3f(vertexMax.x + OVER, vertexMin.y - OVER, vertexMin.z - OVER);
-        // glVertex3f(vertexMax.x + OVER, vertexMax.y + OVER, vertexMin.z - OVER);
+        glVertex3f(vertexMin.x - OVER, vertexMin.y - OVER, vertexMax.z + OVER);
+        glVertex3f(vertexMin.x - OVER, vertexMax.y + OVER, vertexMax.z + OVER);
 
-        // glVertex3f(vertexMax.x + OVER, vertexMin.y - OVER, vertexMax.z + OVER);
-        // glVertex3f(vertexMax.x + OVER, vertexMax.y + OVER, vertexMax.z + OVER);
+        glVertex3f(vertexMax.x + OVER, vertexMin.y - OVER, vertexMin.z - OVER);
+        glVertex3f(vertexMax.x + OVER, vertexMax.y + OVER, vertexMin.z - OVER);
+
+        glVertex3f(vertexMax.x + OVER, vertexMin.y - OVER, vertexMax.z + OVER);
+        glVertex3f(vertexMax.x + OVER, vertexMax.y + OVER, vertexMax.z + OVER);
 
         glEnd();
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    } else {
-        glLineWidth(2.0f);
-        glBegin(GL_LINES);
-        glColor4f(0.37f, 0.37f, 0.37f, DEFAULT_ALPHA);
-        glVertex3f(center.x + SIZE_SPEAKER.x, center.y, center.z);
-        glVertex3f(center.x + 0.12f, center.y, center.z);
-        glEnd();
     }
+
+    // draw direction line
+    glLineWidth(2.0f);
+    glBegin(GL_LINES);
+    if (speaker.isSelected) {
+        glColor4f(0.0f, 0.0f, 0.0f, alpha);
+    } else {
+        glColor4f(0.37f, 0.37f, 0.37f, alpha);
+    }
+    glVertex3f(center.x + SIZE_SPEAKER, center.y, center.z);
+    glVertex3f(center.x + 0.12f, center.y, center.z);
+    glEnd();
 
     glPopMatrix();
 
     if (mData.config.viewSettings.showSpeakerNumbers) {
         auto posT{ speaker.position };
-        posT.y += SIZE_SPEAKER.y + 0.04f;
+        posT.z += SIZE_SPEAKER + 0.04f;
         drawText(juce::String{ outputPatch.get() }, posT, juce::Colours::black, 0.0003f);
     }
 }
@@ -826,35 +854,30 @@ float SpeakerViewComponent::rayCast(CartesianVector const & speakerPosition) con
 {
     ASSERT_OPEN_GL_THREAD;
 
-    // TODO
+    auto const t1{ (speakerPosition.x - SIZE_SPEAKER - mRay.getPosition().x) / mRay.getNormal().x };
+    auto const t2{ (speakerPosition.x + SIZE_SPEAKER - mRay.getPosition().x) / mRay.getNormal().x };
+    auto const t3{ (speakerPosition.y - SIZE_SPEAKER - mRay.getPosition().y) / mRay.getNormal().y };
+    auto const t4{ (speakerPosition.y + SIZE_SPEAKER - mRay.getPosition().y) / mRay.getNormal().y };
+    auto const t5{ (speakerPosition.z - SIZE_SPEAKER - mRay.getPosition().z) / mRay.getNormal().z };
+    auto const t6{ (speakerPosition.z + SIZE_SPEAKER - mRay.getPosition().z) / mRay.getNormal().z };
 
-    // jassertfalse;
-    return -1.0f;
+    auto const tMin{ std::max(std::max(std::min(t1, t2), std::min(t3, t4)), std::min(t5, t6)) };
+    auto const tMax{ std::min(std::min(std::max(t1, t2), std::max(t3, t4)), std::max(t5, t6)) };
 
-    // auto const t1{ (speaker->getMin().x - mRay.getPosition().x) / mRay.getNormal().x };
-    // auto const t2{ (speaker->getMax().x - mRay.getPosition().x) / mRay.getNormal().x };
-    // auto const t3{ (speaker->getMin().y - mRay.getPosition().y) / mRay.getNormal().y };
-    // auto const t4{ (speaker->getMax().y - mRay.getPosition().y) / mRay.getNormal().y };
-    // auto const t5{ (speaker->getMin().z - mRay.getPosition().z) / mRay.getNormal().z };
-    // auto const t6{ (speaker->getMax().z - mRay.getPosition().z) / mRay.getNormal().z };
+    // if tMax < 0, ray (line) is intersecting AABB, but whole AABB is behind us
+    if (tMax < 0) {
+        return -1;
+    }
 
-    // auto const tMin{ std::max(std::max(std::min(t1, t2), std::min(t3, t4)), std::min(t5, t6)) };
-    // auto const tMax{ std::min(std::min(std::max(t1, t2), std::max(t3, t4)), std::max(t5, t6)) };
+    // if tMin > tMax, ray doesn't intersect AABB
+    if (tMin > tMax) {
+        return -1;
+    }
 
-    //// if tMax < 0, ray (line) is intersecting AABB, but whole AABB is behind us
-    // if (tMax < 0) {
-    //    return -1;
-    //}
-
-    //// if tMin > tMax, ray doesn't intersect AABB
-    // if (tMin > tMax) {
-    //    return -1;
-    //}
-
-    // if (tMin < 0.0f) {
-    //    return tMax;
-    //}
-    // return tMin;
+    if (tMin < 0.0f) {
+        return tMax;
+    }
+    return tMin;
 }
 
 //==============================================================================

@@ -51,11 +51,10 @@ static float constexpr SCROLL_WHEEL_SPEED_MOUSE{ 1.8f };
 class SpeakerViewComponent final : public juce::OpenGLAppComponent
 {
 public:
-    static glm::vec3 const COLOR_SPEAKER;
-    static glm::vec3 const COLOR_DIRECT_OUT_SPEAKER;
-    static glm::vec3 const COLOR_SPEAKER_SELECT;
-    static glm::vec3 const SIZE_SPEAKER;
-    static glm::vec3 const DEFAULT_CENTER;
+    static const juce::Colour COLOR_SPEAKER;
+    static const juce::Colour COLOR_DIRECT_OUT_SPEAKER;
+    static const juce::Colour COLOR_SPEAKER_SELECT;
+    static constexpr float SIZE_SPEAKER{ 0.05f };
     static auto constexpr MAX_RADIUS{ 1.0f };
     static auto constexpr SPACE_LIMIT{ MAX_RADIUS * LBAP_EXTENDED_RADIUS };
 

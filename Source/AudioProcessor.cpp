@@ -162,13 +162,14 @@ SpeakerPeaks AudioProcessor::muteSoloVuMeterGainOut(SpeakerAudioBuffer & speaker
     for (auto const channel : speakersBuffer) {
         auto const & config{ mAudioData.config.speakersAudioConfig[channel.key] };
         auto & buffer{ *channel.value };
-        if (config.isMuted || config.gain < SMALL_GAIN) {
+        auto const gain{ mAudioData.config.masterGain * config.gain };
+        if (config.isMuted || gain < SMALL_GAIN) {
             buffer.clear();
             peaks[channel.key] = 0.0f;
             continue;
         }
 
-        buffer.applyGain(0, numSamples, config.gain);
+        buffer.applyGain(0, numSamples, gain);
 
         if (config.highpassConfig) {
             auto * const samples{ buffer.getWritePointer(0) };
