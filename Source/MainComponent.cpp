@@ -174,13 +174,13 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         mInterpolationSlider->setValue(0.1, juce::dontSendNotification);
         mSpatModeCombo->setSelectedId(0, juce::dontSendNotification);
 
+        // Default application window size.
+        setSize(1285, 610);
+
         // Restore last vertical divider position and speaker view cam distance.
         auto const sashPosition{ mData.appData.sashPosition };
         auto const trueSize{ narrow<int>(std::round(narrow<double>(getWidth() - 3) * std::abs(sashPosition))) };
         mVerticalLayout.setItemPosition(1, trueSize);
-
-        // Default application window size.
-        setSize(1285, 610);
     };
 
     auto const startOsc = [&]() {

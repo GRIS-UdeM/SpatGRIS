@@ -339,21 +339,21 @@ void SpeakerViewComponent::drawOriginGrid() const
 
     // 3D RGB line.
     glLineWidth(2.0f);
-    // X
     glBegin(GL_LINES);
-    glColor3f(0.0f, 0.4f, 0.0f);
-    glVertex3f(-MAX_RADIUS, 0.0f, 0.0f);
-    glVertex3f(0.0f, 0.0f, 0.0f);
+    // X
     glColor3f(0.0f, 1.0f, 0.0f);
+    glVertex3f(0.0f, -MAX_RADIUS, 0.0f);
     glVertex3f(0.0f, 0.0f, 0.0f);
-    glVertex3f(MAX_RADIUS, 0.0f, 0.0f);
+    glColor3f(0.0f, 0.4f, 0.0f);
+    glVertex3f(0.0f, 0.0f, 0.0f);
+    glVertex3f(0.0f, MAX_RADIUS, 0.0f);
     // Y
     glColor3f(0.4f, 0.0f, 0.0f);
-    glVertex3f(0.0f, -MAX_RADIUS, 0.0f);
+    glVertex3f(-MAX_RADIUS, 0.0f, 0.0f);
     glVertex3f(0.0f, 0.0f, 0.0f);
     glColor3f(1.0f, 0.0f, 0.0f);
     glVertex3f(0.0f, 0.0f, 0.0f);
-    glVertex3f(0.0f, MAX_RADIUS, 0.0f);
+    glVertex3f(MAX_RADIUS, 0.0f, 0.0f);
     // Z
     glColor3f(0.0f, 0.0f, 1.0f);
     glVertex3f(0.0f, 0.0f, 0.0f);
@@ -393,9 +393,10 @@ void SpeakerViewComponent::drawOriginGrid() const
                0.0f);
     glEnd();
 
-    drawText("X", CartesianVector{ MAX_RADIUS, 0.0f, 0.1f }, juce::Colours::white, 0.0005f);
-    drawText("Y", CartesianVector{ 0.1f, MAX_RADIUS, 0.0f }, juce::Colours::white, 0.0005f);
-    drawText("Z", CartesianVector{ 0.0f, 0.0f, MAX_RADIUS }, juce::Colours::white, 0.0005f);
+    static auto constexpr HALF_CHAR_WIDTH = 0.025f;
+    drawText("X", CartesianVector{ -HALF_CHAR_WIDTH, -MAX_RADIUS, 0.0f }, juce::Colours::white, 0.0005f);
+    drawText("Y", CartesianVector{ MAX_RADIUS, -HALF_CHAR_WIDTH, 0.0f }, juce::Colours::white, 0.0005f);
+    drawText("Z", CartesianVector{ -HALF_CHAR_WIDTH, 0.0f, MAX_RADIUS }, juce::Colours::white, 0.0005f);
 
     drawTextOnGrid("0", glm::vec3(0.94f, 0.01f, 0.0f), 0.0005f);
     drawTextOnGrid("90", glm::vec3(-0.08f, 0.90f, 0.0f), 0.0005f);
@@ -418,7 +419,6 @@ void SpeakerViewComponent::drawText(juce::String const & val,
     if (camLock) {
         auto const & camPos{ mData.state.cameraPosition };
         auto const azimuth{ camPos.azimuth.toDegrees() + HALF_PI };
-        auto const elevation{ camPos.elevation.toDegrees() };
 
         glRotatef(HALF_PI.toDegrees().get(), 1.0f, 0.0f, 0.0f);
         glRotatef(azimuth.get(), 0.0f, 1.0f, 0.0f);
