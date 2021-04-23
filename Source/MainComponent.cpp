@@ -1233,8 +1233,8 @@ void MainContentComponent::handleSourcePositionChanged(source_index_t const sour
     }
 
     auto & source{ mData.project.sources[sourceIndex] };
-    source.vector = newPosition;
-    source.position = newPosition.toCartesian();
+    source.vector = mData.appData.spatMode == SpatMode::lbap ? newPosition : newPosition.normalized();
+    source.position = source.vector->toCartesian();
     source.azimuthSpan = newAzimuthSpan;
     source.zenithSpan = newZenithSpan;
 

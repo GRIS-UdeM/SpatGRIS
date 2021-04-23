@@ -17,6 +17,7 @@ struct PolarVector {
 
     /* Converts a vector from angular to cartesian coordinates. */
     [[nodiscard]] CartesianVector toCartesian() const noexcept;
+    [[nodiscard]] PolarVector normalized() const noexcept { return PolarVector{ azimuth, elevation, 1.0f }; }
 
     [[nodiscard]] constexpr bool isOnSameElevation(PolarVector const & other,
                                                    radians_t const tolerance
