@@ -38,6 +38,14 @@
         <FILE id="Qctsv6" name="TaggedAudioBuffer.hpp" compile="0" resource="0"
               file="Source/TaggedAudioBuffer.hpp"/>
       </GROUP>
+      <GROUP id="{10C840A3-25DC-D3B8-3ADA-AF70CFA44CC0}" name="Concurrency">
+        <FILE id="L4t4N9" name="AtomicExchanger.hpp" compile="0" resource="0"
+              file="Source/AtomicExchanger.hpp"/>
+        <FILE id="uWpyry" name="LocklessQueue.h" compile="0" resource="0" file="Source/LocklessQueue.h"/>
+        <FILE id="RGyF3P" name="Pool.hpp" compile="0" resource="0" file="Source/Pool.hpp"/>
+        <FILE id="gLY4l0" name="ThreadsafePtr.hpp" compile="0" resource="0"
+              file="Source/ThreadsafePtr.hpp"/>
+      </GROUP>
       <GROUP id="{CAE9BD57-C46F-25A5-8F7E-772337A1A370}" name="containers">
         <FILE id="X8vUnO" name="OwnedMap.hpp" compile="0" resource="0" file="Source/OwnedMap.hpp"/>
         <FILE id="yy5rCQ" name="StaticMap.hpp" compile="0" resource="0" file="Source/StaticMap.hpp"/>
@@ -91,14 +99,10 @@
               file="Source/LegacySpatFileFormat.cpp"/>
         <FILE id="aVZj0s" name="LegacySpatFileFormat.h" compile="0" resource="0"
               file="Source/LegacySpatFileFormat.h"/>
-        <FILE id="uWpyry" name="LocklessQueue.h" compile="0" resource="0" file="Source/LocklessQueue.h"/>
         <FILE id="plOS8g" name="LogicStrucs.cpp" compile="1" resource="0" file="Source/LogicStrucs.cpp"/>
         <FILE id="myBXNh" name="LogicStrucs.hpp" compile="0" resource="0" file="Source/LogicStrucs.hpp"/>
         <FILE id="XZJcvv" name="PolarVector.cpp" compile="1" resource="0" file="Source/PolarVector.cpp"/>
         <FILE id="v4qTK2" name="PolarVector.h" compile="0" resource="0" file="Source/PolarVector.h"/>
-        <FILE id="RGyF3P" name="Pool.hpp" compile="0" resource="0" file="Source/Pool.hpp"/>
-        <FILE id="gLY4l0" name="ThreadsafePtr.hpp" compile="0" resource="0"
-              file="Source/ThreadsafePtr.hpp"/>
       </GROUP>
       <GROUP id="{45A32A71-2629-205C-304E-C1093B6D3F59}" name="UI">
         <GROUP id="{202AE941-C78E-5F46-CB31-EA8A544A343C}" name="Secondary Windows">

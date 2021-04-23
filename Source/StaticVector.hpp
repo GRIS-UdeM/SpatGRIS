@@ -55,6 +55,11 @@ public:
         jassert(!isFull());
         mData[mSize++] = std::move(value);
     }
+    T pop_back() noexcept
+    {
+        jassert(!isEmpty());
+        return std::move(mData[--mSize]);
+    }
     //==============================================================================
     void clear() { mSize = 0; }
     //==============================================================================
