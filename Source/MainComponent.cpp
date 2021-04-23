@@ -230,6 +230,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
 //==============================================================================
 MainContentComponent::~MainContentComponent()
 {
+    mOscReceiver.reset();
     juce::ScopedWriteLock const lock{ mLock };
     auto const bounds{ MainWindow::getMainAppWindow()->getBounds() };
     mData.appData.windowX = bounds.getX();

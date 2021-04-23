@@ -72,25 +72,27 @@ void SpeakerViewComponent::setCameraPosition(CartesianVector const & position) n
 //==============================================================================
 void SpeakerViewComponent::render()
 {
-    ASSERT_OPEN_GL_THREAD;
-    jassert(juce::OpenGLHelpers::isContextActive());
-
-    juce::ScopedLock const lock{ mLock };
-
     static constexpr auto MIN_ZOOM = 0.3f;
     static constexpr auto MAX_ZOOM = 3.0f;
     static constexpr auto ZOOM_RANGE = MAX_ZOOM - MIN_ZOOM;
     static constexpr auto ZOOM_CURVE = 0.5f;
     static constexpr auto INVERSE_ZOOM_CURVE = 1.0f / ZOOM_CURVE;
 
-    auto const currentTime{ glutGet(GLUT_ELAPSED_TIME) };
-    auto const secondsElapsed{ narrow<float>(currentTime - mData.state.lastRenderTimeMs) / 100.0f };
-    auto const zoomToAdd{ secondsElapsed * mData.state.cameraZoomVelocity };
+    static constexpr int MIN_REFRESH_INTERVAL = 16;
 
-    if (zoomToAdd) {
-        int test{};
+    ASSERT_OPEN_GL_THREAD;
+    jassert(juce::OpenGLHelpers::isContextActive());
+
+    auto const currentTime{ glutGet(GLUT_ELAPSED_TIME) };
+    if (currentTime - mData.state.lastRenderTimeMs < MIN_REFRESH_INTERVAL) {
+        return;
     }
 
+    auto const deciSecondsElapsed{ narrow<float>(currentTime - mData.state.lastRenderTimeMs) / 100.0f };
+
+    juce::ScopedLock const lock{ mLock };
+
+    auto const zoomToAdd{ deciSecondsElapsed * mData.state.cameraZoomVelocity };
     auto const currentZoom{ (mData.state.cameraPosition.length - MIN_ZOOM) / ZOOM_RANGE };
     auto const scaledZoom{ std::pow(currentZoom, ZOOM_CURVE) };
     auto const scaledTargetZoom{ scaledZoom + zoomToAdd };
@@ -98,7 +100,7 @@ void SpeakerViewComponent::render()
     auto const targetZoom{ std::clamp(unclippedTargetZoom, MIN_ZOOM, MAX_ZOOM) };
 
     mData.state.cameraPosition.length = targetZoom;
-    mData.state.cameraZoomVelocity *= std::pow(0.5f, secondsElapsed);
+    mData.state.cameraZoomVelocity *= std::pow(0.5f, deciSecondsElapsed);
     mData.state.lastRenderTimeMs = currentTime;
 
     glEnable(GL_DEPTH_TEST);

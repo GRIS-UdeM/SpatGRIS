@@ -173,8 +173,6 @@ void AudioManager::init(juce::String const & deviceType,
 AudioManager::~AudioManager()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-    jassert(mAudioProcessor);
-    juce::ScopedLock const sl{ mAudioProcessor->getLock() };
     if (mIsRecording) {
         stopRecording();
         mRecorders.clear(true);

@@ -93,8 +93,8 @@ void LevelBox::setBounds(juce::Rectangle<int> const & newBounds)
 void LevelBox::paint(juce::Graphics & g)
 {
     if (mLevel <= MIN_LEVEL_COMP) {
-        g.drawImage(mVuMeterBackBit, 0, 0, WIDTH, HEIGHT, 0, 0, HEIGHT, WIDTH);
-        g.drawImage(mVuMeterMutedBit, 0, 0, WIDTH, HEIGHT, 0, 0, HEIGHT, WIDTH);
+        g.drawImage(mVuMeterBackBit, 0, 0, WIDTH, HEIGHT, 0, 0, WIDTH, HEIGHT);
+        g.drawImage(mVuMeterMutedBit, 0, 0, WIDTH, HEIGHT, 0, 0, WIDTH, HEIGHT);
     } else {
         auto const h = static_cast<int>(mLevel.get() * -2.33333334f);
         auto const rel = HEIGHT - h;
