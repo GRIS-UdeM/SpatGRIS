@@ -28,9 +28,6 @@ juce::Colour const SpeakerViewComponent::COLOR_SPEAKER{ 222u, 222u, 222u };
 juce::Colour const SpeakerViewComponent::COLOR_DIRECT_OUT_SPEAKER{ 64u, 64u, 64u };
 juce::Colour const SpeakerViewComponent::COLOR_SPEAKER_SELECT{ 255u, 163u, 23u };
 
-Pool<tl::optional<ViewportSourceData>> ThreadsafePtr<tl::optional<ViewportSourceData>>::pool{ 32 };
-Pool<float> ThreadsafePtr<float>::pool{ 32 };
-
 //==============================================================================
 void SpeakerViewComponent::initialise()
 {
@@ -137,12 +134,18 @@ void SpeakerViewComponent::render()
 
     // Draw sources
     auto const & viewSettings{ mData.config.viewSettings };
-    for (auto & sourceQueue : mData.sources) {
-        auto const & source{ *sourceQueue.value.get() };
-        if (!source) {
+    for (auto & source : mData.sources) {
+        auto & exchanger{ source.value };
+        auto *& ticket{ mData.state.mostRecentSourcesData[source.key] };
+        exchanger.getMostRecent(ticket);
+        if (ticket == nullptr) {
             continue;
         }
-        drawSource(sourceQueue.key, *source);
+        auto const & sourceData{ ticket->get() };
+        if (!sourceData) {
+            continue;
+        }
+        drawSource(source.key, *sourceData);
     }
 
     // Draw speakers
@@ -723,7 +726,20 @@ void SpeakerViewComponent::drawSpeaker(output_patch_t const outputPatch, Viewpor
     static constexpr auto DEFAULT_ALPHA = 0.75f;
 
     auto const & showSpeakerLevels{ mData.config.viewSettings.showSpeakerLevels };
-    auto const alpha{ showSpeakerLevels ? *mData.speakersAlpha[outputPatch].get() : DEFAULT_ALPHA };
+    auto const getAlpha = [&]() {
+        if (!showSpeakerLevels) {
+            return DEFAULT_ALPHA;
+        }
+        auto & exchanger{ mData.speakersAlpha[outputPatch] };
+        auto *& ticket{ mData.state.mostRectentSpeakersAlpha[outputPatch] };
+        exchanger.getMostRecent(ticket);
+        if (ticket == nullptr) {
+            return DEFAULT_ALPHA;
+        }
+        return ticket->get();
+    };
+
+    auto const alpha{ getAlpha() };
 
     auto const getSpeakerColour = [&]() {
         if (speaker.isSelected) {

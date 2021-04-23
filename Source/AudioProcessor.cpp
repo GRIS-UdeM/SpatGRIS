@@ -35,9 +35,6 @@ size_t constexpr MAX_BUFFER_SIZE = 2048;
 size_t constexpr LEFT = 0;
 size_t constexpr RIGHT = 1;
 
-Pool<SpeakersSpatGains> ThreadsafePtr<SpeakersSpatGains>::pool{ 64 };
-Pool<SourcePeaks> ThreadsafePtr<SourcePeaks>::pool{ 32 };
-
 //==============================================================================
 // Load samples from a wav file into a float array.
 static juce::AudioBuffer<float> getSamplesFromWavFile(juce::File const & file)
@@ -140,9 +137,8 @@ void AudioProcessor::setAudioConfig(AudioConfig const & newAudioConfig)
 }
 
 //==============================================================================
-SourcePeaks AudioProcessor::muteSoloVuMeterIn(SourceAudioBuffer & inputBuffer) const noexcept
+void AudioProcessor::muteSoloVuMeterIn(SourceAudioBuffer & inputBuffer, SourcePeaks & peaks) const noexcept
 {
-    SourcePeaks peaks{};
     for (auto const channel : inputBuffer) {
         auto const & config{ mAudioData.config.sourcesAudioConfig[channel.key] };
         auto const & buffer{ *channel.value };
@@ -150,14 +146,12 @@ SourcePeaks AudioProcessor::muteSoloVuMeterIn(SourceAudioBuffer & inputBuffer) c
 
         peaks[channel.key] = peak;
     }
-    return peaks;
 }
 
 //==============================================================================
-SpeakerPeaks AudioProcessor::muteSoloVuMeterGainOut(SpeakerAudioBuffer & speakersBuffer) noexcept
+void AudioProcessor::muteSoloVuMeterGainOut(SpeakerAudioBuffer & speakersBuffer, SpeakerPeaks & peaks) noexcept
 {
     auto const numSamples{ speakersBuffer.getNumSamples() };
-    SpeakerPeaks peaks{};
 
     for (auto const channel : speakersBuffer) {
         auto const & config{ mAudioData.config.speakersAudioConfig[channel.key] };
@@ -181,8 +175,6 @@ SpeakerPeaks AudioProcessor::muteSoloVuMeterGainOut(SpeakerAudioBuffer & speaker
         auto const magnitude{ buffer.getMagnitude(0, numSamples) };
         peaks[channel.key] = magnitude;
     }
-
-    return peaks;
 }
 
 //==============================================================================
@@ -198,7 +190,12 @@ void AudioProcessor::processVbap(SourceAudioBuffer const & inputBuffer,
         if (source.value.isMuted || source.value.directOut || sourcePeaks[source.key] < SMALL_GAIN) {
             continue;
         }
-        auto const & gains{ *mAudioData.spatGainMatrix[source.key].get() }; // TODO : spatGainMatrix is not set!
+        auto *& gainsTicket{ mAudioData.state.mostRecentSpatGains[source.key] };
+        mAudioData.spatGainMatrix[source.key].getMostRecent(gainsTicket);
+        if (gainsTicket == nullptr) {
+            continue;
+        }
+        auto const & gains{ gainsTicket->get() };
         auto & lastGains{ mAudioData.state.sourcesAudioState[source.key].lastSpatGains };
         auto const * inputSamples{ inputBuffer[source.key].getReadPointer(0) };
 
@@ -253,6 +250,13 @@ void AudioProcessor::processLbap(SourceAudioBuffer & inputBuffer,
             continue;
         }
 
+        auto *& gainsTicket{ mAudioData.state.mostRecentSpatGains[source.key] };
+        mAudioData.spatGainMatrix[source.key].getMostRecent(gainsTicket);
+        if (gainsTicket == nullptr) {
+            continue;
+        }
+        auto const & gains{ gainsTicket->get() };
+
         // process attenuation
 
         // Energy is lost with distance.
@@ -297,7 +301,6 @@ void AudioProcessor::processLbap(SourceAudioBuffer & inputBuffer,
         attenuationState.lastCoefficient = distanceCoefficient;
 
         // Process spatialization
-        auto const & gains{ *mAudioData.spatGainMatrix[source.key].get() };
         auto & lastGains{ mAudioData.state.sourcesAudioState[source.key].lastSpatGains };
 
         for (auto const & speaker : mAudioData.config.speakersAudioConfig) {
@@ -419,8 +422,9 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer, SpeakerAudio
     auto const numSamples{ sourceBuffer.getNumSamples() };
 
     // Process source peaks
-    auto * sourcePeaks{ ThreadsafePtr<SourcePeaks>::pool.acquire() };
-    *sourcePeaks = muteSoloVuMeterIn(sourceBuffer);
+    auto * sourcePeaksTicket{ mAudioData.sourcePeaks.acquire() };
+    auto & sourcePeaks{ sourcePeaksTicket->get() };
+    muteSoloVuMeterIn(sourceBuffer, sourcePeaks);
 
     if (mAudioData.config.pinkNoiseGain) {
         // Process pink noise
@@ -434,16 +438,16 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer, SpeakerAudio
         // Process spat algorithm
         switch (mAudioData.config.spatMode) {
         case SpatMode::vbap:
-            processVbap(sourceBuffer, speakerBuffer, *sourcePeaks);
+            processVbap(sourceBuffer, speakerBuffer, sourcePeaks);
             break;
         case SpatMode::lbap:
-            processLbap(sourceBuffer, speakerBuffer, *sourcePeaks);
+            processLbap(sourceBuffer, speakerBuffer, sourcePeaks);
             break;
         case SpatMode::hrtfVbap:
-            processVBapHrtf(sourceBuffer, speakerBuffer, *sourcePeaks);
+            processVBapHrtf(sourceBuffer, speakerBuffer, sourcePeaks);
             break;
         case SpatMode::stereo:
-            processStereo(sourceBuffer, speakerBuffer, *sourcePeaks);
+            processStereo(sourceBuffer, speakerBuffer, sourcePeaks);
             break;
         default:
             jassertfalse;
@@ -459,12 +463,13 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer, SpeakerAudio
     }
 
     // Process speaker peaks/gains/highpass
-    auto * speakerPeaks{ ThreadsafePtr<SpeakerPeaks>::pool.acquire() };
-    *speakerPeaks = muteSoloVuMeterGainOut(speakerBuffer);
+    auto * speakerPeaksTicket{ mAudioData.speakerPeaks.acquire() };
+    auto & speakerPeaks{ speakerPeaksTicket->get() };
+    muteSoloVuMeterGainOut(speakerBuffer, speakerPeaks);
 
     // return peaks data to message thread
-    mAudioData.sourcePeaks.set(sourcePeaks);
-    mAudioData.speakerPeaks.set(speakerPeaks);
+    mAudioData.sourcePeaks.setMostRecent(sourcePeaksTicket);
+    mAudioData.speakerPeaks.setMostRecent(speakerPeaksTicket);
 }
 
 //==============================================================================

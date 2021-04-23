@@ -3,11 +3,11 @@
 #include "lib/tl/optional.hpp"
 #include <JuceHeader.h>
 
+#include "AtomicExchanger.hpp"
 #include "PolarVector.h"
 #include "SpatMode.hpp"
 #include "StaticMap.hpp"
 #include "StrongArray.hpp"
-#include "ThreadsafePtr.hpp"
 #include "constants.hpp"
 
 enum class VbapType { twoD, threeD };
@@ -114,7 +114,7 @@ struct HrtfData {
 struct AudioState {
     StrongArray<source_index_t, SourceAudioState, MAX_INPUTS> sourcesAudioState{};
     StrongArray<output_patch_t, SpeakerAudioState, MAX_OUTPUTS> speakersAudioState{};
-
+    StrongArray<source_index_t, AtomicExchanger<SpeakersSpatGains>::Ticket *, MAX_INPUTS> mostRecentSpatGains{};
     // HRTF-specific
     HrtfData hrtf{};
 };
@@ -132,12 +132,12 @@ struct AudioData {
     AudioState state{};
 
     // Live message thread -> audio thread
-    StrongArray<source_index_t, ThreadsafePtr<SpeakersSpatGains>, MAX_INPUTS> spatGainMatrix{};
+    StrongArray<source_index_t, AtomicExchanger<SpeakersSpatGains>, MAX_INPUTS> spatGainMatrix{};
     StrongArray<source_index_t, std::atomic<float>, MAX_INPUTS> lbapSourceDistances{}; // Lbap-specific
 
     // Live audio thread -> message thread
-    ThreadsafePtr<SourcePeaks> sourcePeaks{};
-    ThreadsafePtr<SpeakerPeaks> speakerPeaks{};
+    AtomicExchanger<SourcePeaks> sourcePeaks{};
+    AtomicExchanger<SpeakerPeaks> speakerPeaks{};
 };
 
 //==============================================================================

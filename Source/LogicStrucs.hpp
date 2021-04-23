@@ -56,6 +56,9 @@ struct ViewportConfig {
 };
 
 struct ViewportState {
+    StrongArray<source_index_t, AtomicExchanger<tl::optional<ViewportSourceData>>::Ticket *, MAX_INPUTS>
+        mostRecentSourcesData{};
+    StrongArray<output_patch_t, AtomicExchanger<float>::Ticket *, MAX_OUTPUTS> mostRectentSpeakersAlpha{};
     float cameraZoomVelocity{};
     PolarVector cameraPosition{};
     int lastRenderTimeMs{};
@@ -69,8 +72,8 @@ struct ViewportState {
 struct ViewportData {
     ViewportConfig config{};
     ViewportState state{};
-    StaticMap<source_index_t, ThreadsafePtr<tl::optional<ViewportSourceData>>, MAX_INPUTS> sources{};
-    StrongArray<output_patch_t, ThreadsafePtr<float>, MAX_OUTPUTS> speakersAlpha{};
+    StaticMap<source_index_t, AtomicExchanger<tl::optional<ViewportSourceData>>, MAX_INPUTS> sources{};
+    StrongArray<output_patch_t, AtomicExchanger<float>, MAX_OUTPUTS> speakersAlpha{};
 };
 
 //==============================================================================
@@ -287,6 +290,8 @@ struct SpatGrisData {
     SpatGrisProjectData project{};
     SpatGrisAppData appData{};
     tl::optional<dbfs_t> pinkNoiseLevel{};
+    AtomicExchanger<SourcePeaks>::Ticket * mostRecentSourcePeaks{};
+    AtomicExchanger<SpeakerPeaks>::Ticket * mostRecentSpeakerPeaks{};
     //==============================================================================
     [[nodiscard]] AudioConfig toAudioConfig() const;
     [[nodiscard]] ViewportConfig toViewportConfig() const noexcept;

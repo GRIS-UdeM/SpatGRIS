@@ -124,6 +124,20 @@ public:
     };
     friend const_iterator;
     //==============================================================================
+    StaticMap()
+    {
+        KeyType key{ KeyType::OFFSET };
+        for (auto & node : mData) {
+            node.key = key++;
+        }
+    }
+    ~StaticMap() = default;
+    //==============================================================================
+    StaticMap(StaticMap const &) = default;
+    StaticMap(StaticMap &&) = default;
+    StaticMap & operator=(StaticMap const &) = default;
+    StaticMap & operator=(StaticMap &&) = default;
+    //==============================================================================
     [[nodiscard]] bool isEmpty() const { return mUsed.none(); }
     //==============================================================================
     [[nodiscard]] size_t size() const { return mUsed.count(); }
@@ -136,14 +150,16 @@ public:
 
         auto const index{ toIndex(key) };
         jassert(!mUsed.test(index));
-        Node const newNode{ key, value };
-        mData[index] = newNode;
+        auto & node{ mData[index] };
+        jassert(node.key == key);
+        node.value = value;
         mUsed.set(index);
     }
     void add(KeyType const key)
     {
         auto const index{ toIndex(key) };
         jassert(!mUsed.test(index));
+        jassert(mData[index].key == key);
         mUsed.set(index);
     }
     //==============================================================================

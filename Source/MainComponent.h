@@ -229,13 +229,7 @@ public:
     output_patch_t addSpeaker();
     output_patch_t insertSpeaker(int position);
     void removeSpeaker(output_patch_t outputPatch);
-    void setSourceDirectOut(source_index_t const, output_patch_t) const;
     void reorderSpeakers(juce::Array<output_patch_t> newOrder);
-
-    [[nodiscard]] dbfs_t getSourcePeak(source_index_t sourceIndex) const;
-    [[nodiscard]] float getSourceAlpha(source_index_t sourceIndex) const;
-    [[nodiscard]] dbfs_t getSpeakerPeak(output_patch_t outputPatch) const;
-    [[nodiscard]] float getSpeakerAlpha(output_patch_t outputPatch) const;
 
     [[nodiscard]] bool isRadiusNormalized() const;
 

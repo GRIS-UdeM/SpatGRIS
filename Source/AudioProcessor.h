@@ -57,8 +57,8 @@ public:
 
 private:
     //==============================================================================
-    SourcePeaks muteSoloVuMeterIn(SourceAudioBuffer & inputBuffer) const noexcept;
-    SpeakerPeaks muteSoloVuMeterGainOut(SpeakerAudioBuffer & speakerBuffer) noexcept;
+    void muteSoloVuMeterIn(SourceAudioBuffer & inputBuffer, SourcePeaks & peaks) const noexcept;
+    void muteSoloVuMeterGainOut(SpeakerAudioBuffer & speakersBuffer, SpeakerPeaks & peaks) noexcept;
     void processVbap(SourceAudioBuffer const & inputBuffer,
                      SpeakerAudioBuffer & outputBuffer,
                      SourcePeaks const & sourcePeaks) noexcept;

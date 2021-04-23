@@ -41,10 +41,6 @@
       <GROUP id="{10C840A3-25DC-D3B8-3ADA-AF70CFA44CC0}" name="Concurrency">
         <FILE id="L4t4N9" name="AtomicExchanger.hpp" compile="0" resource="0"
               file="Source/AtomicExchanger.hpp"/>
-        <FILE id="uWpyry" name="LocklessQueue.h" compile="0" resource="0" file="Source/LocklessQueue.h"/>
-        <FILE id="RGyF3P" name="Pool.hpp" compile="0" resource="0" file="Source/Pool.hpp"/>
-        <FILE id="gLY4l0" name="ThreadsafePtr.hpp" compile="0" resource="0"
-              file="Source/ThreadsafePtr.hpp"/>
       </GROUP>
       <GROUP id="{CAE9BD57-C46F-25A5-8F7E-772337A1A370}" name="containers">
         <FILE id="X8vUnO" name="OwnedMap.hpp" compile="0" resource="0" file="Source/OwnedMap.hpp"/>

@@ -762,9 +762,10 @@ void MainContentComponent::handleResetInputPositions()
         source.value->position = tl::nullopt;
         source.value->vector = tl::nullopt;
 
-        auto * ptr{ viewPortData.sources[source.key].pool.acquire() };
-        *ptr = tl::nullopt;
-        viewPortData.sources[source.key].set(ptr);
+        auto & exchanger{ viewPortData.sources[source.key] };
+        auto * sourceTicket{ exchanger.acquire() };
+        sourceTicket->get() = tl::nullopt;
+        exchanger.setMostRecent(sourceTicket);
     }
 }
 
@@ -1147,7 +1148,12 @@ void MainContentComponent::updatePeaks()
     auto & viewportData{ mSpeakerViewComponent->getData() };
 
     auto & audioData{ mAudioProcessor->getAudioData() };
-    auto const & sourcePeaks{ *audioData.sourcePeaks.get() };
+    auto *& sourcePeaksTicket{ mData.mostRecentSourcePeaks };
+    audioData.sourcePeaks.getMostRecent(sourcePeaksTicket);
+    if (!sourcePeaksTicket) {
+        return;
+    }
+    auto const & sourcePeaks{ sourcePeaksTicket->get() };
     for (auto const sourceData : mData.project.sources) {
         auto const & peak{ sourcePeaks[sourceData.key] };
         auto const dbPeak{ dbfs_t::fromGain(peak) };
@@ -1160,26 +1166,27 @@ void MainContentComponent::updatePeaks()
             viewportData.sources.add(sourceData.key);
         }
 
-        auto & queue{ viewportData.sources[sourceData.key] };
-        auto & pool{ queue.pool };
-        auto * ptr{ pool.acquire() };
-        *ptr = sourceData.value->toViewportData(gainToAlpha(peak));
-        queue.set(ptr);
-        pool.transferPendingObjects();
+        auto & exchanger{ viewportData.sources[sourceData.key] };
+        auto * ticket{ exchanger.acquire() };
+        ticket->get() = sourceData.value->toViewportData(gainToAlpha(peak));
+        exchanger.setMostRecent(ticket);
     }
 
-    auto const & speakerPeaks{ *audioData.speakerPeaks.get() };
+    auto *& speakerPeaksTicket{ mData.mostRecentSpeakerPeaks };
+    audioData.speakerPeaks.getMostRecent(speakerPeaksTicket);
+    if (speakerPeaksTicket == nullptr) {
+        return;
+    }
+    auto const & speakerPeaks{ speakerPeaksTicket->get() };
     for (auto const speaker : mData.speakerSetup.speakers) {
         auto const & peak{ speakerPeaks[speaker.key] };
         auto const dbPeak{ dbfs_t::fromGain(peak) };
         mSpeakerVuMeters[speaker.key].setLevel(dbPeak);
 
-        auto & queue{ viewportData.speakersAlpha[speaker.key] };
-        auto & pool{ queue.pool };
-        auto * ptr{ pool.acquire() };
-        *ptr = gainToAlpha(peak);
-        queue.set(ptr);
-        pool.transferPendingObjects();
+        auto & exchanger{ viewportData.speakersAlpha[speaker.key] };
+        auto * ticket{ exchanger.acquire() };
+        ticket->get() = gainToAlpha(peak);
+        exchanger.setMostRecent(ticket);
     }
 }
 
@@ -1239,12 +1246,10 @@ void MainContentComponent::handleSourcePositionChanged(source_index_t const sour
     source.zenithSpan = newZenithSpan;
 
     auto & audioData{ mAudioProcessor->getAudioData() };
-    auto & queue{ audioData.spatGainMatrix[sourceIndex] };
-    auto & pool{ queue.pool };
-    auto * gains{ pool.acquire() };
-    mSpatAlgorithm->computeSpeakerGains(source, *gains);
-    queue.set(gains);
-    pool.transferPendingObjects();
+    auto & exchanger{ audioData.spatGainMatrix[sourceIndex] };
+    auto * ticket{ exchanger.acquire() };
+    mSpatAlgorithm->computeSpeakerGains(source, ticket->get());
+    exchanger.setMostRecent(ticket);
 }
 
 //==============================================================================
@@ -1634,52 +1639,6 @@ void MainContentComponent::handleNumSourcesChanged(int const numSources)
     refreshSourceVuMeterComponents();
     updateAudioProcessor();
     unfocusAllComponents();
-}
-
-//==============================================================================
-dbfs_t MainContentComponent::getSourcePeak(source_index_t const sourceIndex) const
-{
-    auto const & peaks{ *mAudioProcessor->getAudioData().sourcePeaks.get() };
-    auto const magnitude{ peaks[sourceIndex] };
-    return dbfs_t::fromGain(magnitude);
-}
-
-//==============================================================================
-float MainContentComponent::getSourceAlpha(source_index_t const sourceIndex) const
-{
-    auto const db{ getSourcePeak(sourceIndex) };
-    auto const level{ db.toGain() };
-    if (level > 0.0001f) {
-        // -80 dB
-        return 1.0f;
-    }
-    return std::sqrt(level * 10000.0f);
-}
-
-//==============================================================================
-dbfs_t MainContentComponent::getSpeakerPeak(output_patch_t const outputPatch) const
-{
-    auto const & peaks{ *mAudioProcessor->getAudioData().speakerPeaks.get() };
-    auto const magnitude{ peaks[outputPatch] };
-    return dbfs_t::fromGain(magnitude);
-}
-
-//==============================================================================
-float MainContentComponent::getSpeakerAlpha(output_patch_t const outputPatch) const
-{
-    auto const db{ getSpeakerPeak(outputPatch) };
-    auto const level{ db.toGain() };
-    float alpha;
-    if (level > 0.001f) {
-        // -60 dB
-        alpha = 1.0f;
-    } else {
-        alpha = std::sqrt(level * 1000.0f);
-    }
-    if (alpha < 0.6f) {
-        alpha = 0.6f;
-    }
-    return alpha;
 }
 
 //==============================================================================

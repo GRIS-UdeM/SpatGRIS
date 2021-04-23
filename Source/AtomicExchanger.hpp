@@ -11,9 +11,16 @@ class AtomicExchanger
 public:
     //==============================================================================
     struct Ticket {
+        friend AtomicExchanger;
+        [[nodiscard]] T & get() noexcept { return value; }
+        [[nodiscard]] T const & get() const noexcept { return value; }
+
+    private:
         T value{};
         std::atomic<bool> isFree{ true };
     };
+    static_assert(std::atomic<Ticket *>::is_always_lock_free);
+    static_assert(std::atomic<bool>::is_always_lock_free);
 
 private:
     //==============================================================================
@@ -44,28 +51,33 @@ public:
         return nullptr;
     }
     //==============================================================================
-    void setMostRecent(Ticket * ticket) noexcept
+    void getMostRecent(Ticket *& ticketToUpdate) noexcept
     {
-        jassert(!ticket->isFree.load());
-        mMostRecent.exchange(ticket);
-        if (ticket != nullptr) {
-            jassert(!ticket->isFree.load());
-            ticket->isFree.store(true);
-        }
-    }
-    //==============================================================================
-    void updateTicket(Ticket *& oldTicket) noexcept
-    {
-        jassert(oldTicket ? !oldTicket->isFree.load() : true);
-        Ticket * mostRecentTicket{};
-        mMostRecent.exchange(mostRecentTicket);
-        if (mostRecentTicket == nullptr) {
+        auto * mostRecent{ mMostRecent.exchange(nullptr) };
+        if (mostRecent == nullptr) {
             return;
         }
-        jassert(!mostRecentTicket->isFree.load());
-        if (oldTicket) {
-            oldTicket->isFree.store(true);
+        jassert(mostRecent != ticketToUpdate);
+        jassert(!mostRecent->isFree.load());
+        if (ticketToUpdate) {
+            jassert(!ticketToUpdate->isFree.load());
+            ticketToUpdate->isFree.store(true);
         }
-        oldTicket = mostRecentTicket;
+        ticketToUpdate = mostRecent;
+    }
+    //==============================================================================
+    void setMostRecent(Ticket * newMostRecent) noexcept
+    {
+        jassert(newMostRecent);
+        jassert(!newMostRecent->isFree.load());
+        auto * oldMostRecent{ mMostRecent.exchange(newMostRecent) };
+        jassert(newMostRecent != oldMostRecent);
+        if (oldMostRecent == nullptr) {
+            return;
+        }
+        jassert(!oldMostRecent->isFree.load());
+        if (oldMostRecent) {
+            oldMostRecent->isFree.store(true);
+        }
     }
 };

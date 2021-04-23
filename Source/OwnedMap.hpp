@@ -26,7 +26,13 @@ private:
 
 public:
     //==============================================================================
-    OwnedMap() = default;
+    OwnedMap()
+    {
+        KeyType key{ KeyType::OFFSET };
+        for (auto & node : mData) {
+            node.key = key++;
+        }
+    }
     ~OwnedMap() noexcept
     {
         for (auto & node : *this) {
@@ -112,7 +118,7 @@ public:
         auto const index{ toIndex(key) };
         jassert(index < CAPACITY);
         jassert(!mUsed.test(index));
-        mData[index].key = key;
+        jassert(mData[index].key == key);
         mData[index].value = value.release();
         mUsed.set(index);
         return *mData[index].value;
