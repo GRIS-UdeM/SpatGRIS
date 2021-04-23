@@ -38,14 +38,13 @@ public:
         if (mPendingFreeObjects.free() > 0) {
             mPendingFreeObjects.add(ptr);
         } else {
-            // JUCE_ASSERT_MESSAGE_THREAD; // TODO : this is an important check -> put it back on!
+            // JUCE_ASSERT_MESSAGE_THREAD;
             mFreeObjects.add(ptr);
         }
     }
 
     void transferPendingObjects()
     {
-        JUCE_ASSERT_MESSAGE_THREAD;
         tl::optional<T *> ptr{};
         while ((ptr = mPendingFreeObjects.consume()).has_value()) {
             mFreeObjects.add(*ptr);
@@ -55,7 +54,7 @@ public:
     T * acquire()
     {
         if (mFreeObjects.size() <= 0) {
-            // JUCE_ASSERT_MESSAGE_THREAD; // TODO : this is an important check -> put it back on!
+            // JUCE_ASSERT_MESSAGE_THREAD;
             return mOwnedData.add(new T{});
         }
 

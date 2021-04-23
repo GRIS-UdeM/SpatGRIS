@@ -55,7 +55,11 @@ void OscInput::oscMessageReceived(const juce::OSCMessage & message)
         if (address == OSC_SPAT_SERV) {
             // int id, float azi [0, 2pi], float ele [0, pi], float azispan [0, 2],
             // float elespan [0, 0.5], float distance [0, 1], float gain [0, 1].
-            source_index_t const sourceIndex{ message[0].getInt32() };
+            source_index_t const sourceIndex{ message[0].getInt32() + 1 };
+            jassert(LEGAL_SOURCE_INDEX_RANGE.contains(sourceIndex));
+            if (!LEGAL_SOURCE_INDEX_RANGE.contains(sourceIndex)) {
+                return;
+            }
             radians_t const azimuth{ message[1].getFloat32() };
             radians_t const zenith{ message[2].getFloat32() };
             auto const azimuthSpan{ message[3].getFloat32() };

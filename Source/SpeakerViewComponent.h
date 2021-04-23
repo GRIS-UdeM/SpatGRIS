@@ -94,7 +94,7 @@ public:
     auto & getData() noexcept { return mData; }
     auto const & getData() const noexcept { return mData; }
 
-    void setConfig(ViewportConfig const & config);
+    void setConfig(ViewportConfig const & config, SourcesData const & sources);
     void setCameraPosition(CartesianVector const & position) noexcept;
 
     auto const & getLock() const noexcept { return mLock; }

@@ -189,10 +189,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         mOscReceiver->startConnection(mData.project.oscPort);
     };
 
-    auto const initAppData = [&]() {
-        mData.appData = mConfiguration.load();
-        mSpatAlgorithm = AbstractSpatAlgorithm::make(mData.appData.spatMode);
-    };
+    auto const initAppData = [&]() { mData.appData = mConfiguration.load(); };
     auto const initProject = [&]() {
         if (juce::File{ mData.appData.lastProject }.existsAsFile()) {
             loadProject(mData.appData.lastProject);
@@ -1159,6 +1156,10 @@ void MainContentComponent::updatePeaks()
         if (!sourceData.value->position) {
             continue;
         }
+        if (!viewportData.sources.contains(sourceData.key)) {
+            viewportData.sources.add(sourceData.key);
+        }
+
         auto & queue{ viewportData.sources[sourceData.key] };
         auto & pool{ queue.pool };
         auto * ptr{ pool.acquire() };
@@ -1241,7 +1242,7 @@ void MainContentComponent::handleSourcePositionChanged(source_index_t const sour
     auto & queue{ audioData.spatGainMatrix[sourceIndex] };
     auto & pool{ queue.pool };
     auto * gains{ pool.acquire() };
-    *gains = mSpatAlgorithm->computeSpeakerGains(source);
+    mSpatAlgorithm->computeSpeakerGains(source, *gains);
     queue.set(gains);
     pool.transferPendingObjects();
 }
@@ -1405,9 +1406,10 @@ void MainContentComponent::handleSourceDirectOutChanged(source_index_t const sou
 void MainContentComponent::handleSpatModeChanged(SpatMode const spatMode)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
+    jassert(narrow<int>(spatMode) >= 0 && narrow<int>(spatMode) <= narrow<int>(SpatMode::stereo));
 
-    mSpatModeCombo->setSelectedId(static_cast<int>(spatMode), juce::dontSendNotification);
-    if (mData.appData.spatMode != spatMode) {
+    mSpatModeCombo->setSelectedId(static_cast<int>(spatMode) + 1, juce::dontSendNotification);
+    if (mData.appData.spatMode != spatMode || !mSpatAlgorithm) {
         mData.appData.spatMode = spatMode;
 
         switch (spatMode) {
@@ -1485,7 +1487,7 @@ void MainContentComponent::updateViewportConfig() const
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
-    mSpeakerViewComponent->setConfig(mData.toViewportConfig());
+    mSpeakerViewComponent->setConfig(mData.toViewportConfig(), mData.project.sources);
 }
 
 //==============================================================================
@@ -2023,7 +2025,7 @@ void MainContentComponent::comboBoxChanged(juce::ComboBox * comboBoxThatHasChang
         }
 
         juce::ScopedLock const lock{ mAudioProcessor->getLock() };
-        auto const newSpatMode{ static_cast<SpatMode>(mSpatModeCombo->getSelectedId()) };
+        auto const newSpatMode{ static_cast<SpatMode>(mSpatModeCombo->getSelectedId() - 1) };
         handleSpatModeChanged(newSpatMode);
 
         if (mEditSpeakersWindow != nullptr) {

@@ -42,11 +42,19 @@ PolarVector PolarVector::fromCartesian(CartesianVector const & pos) noexcept
     // This is quite dangerous because any trigonometry done outside of this class might get things wrong.
 
     auto const length{ std::sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z) };
+    if (length == 0.0f) {
+        return PolarVector{ radians_t{}, radians_t{}, 0.0f };
+    }
+
+    radians_t const zenith{ std::acos(pos.z / length) };
+    auto const inverseZenith{ HALF_PI - zenith };
+
+    if (pos.x == 0.0f && pos.y == 0.0f) {
+        return PolarVector{ radians_t{}, inverseZenith, length };
+    }
+
     radians_t const azimuth{ std::acos(pos.x / std::sqrt(pos.x * pos.x + pos.y * pos.y))
                              * (pos.y < 0.0f ? -1.0f : 1.0f) };
-    radians_t const zenith{ std::acos(pos.z / length) };
-
-    auto const inverseZenith{ HALF_PI - zenith };
 
     PolarVector const result{ azimuth, inverseZenith, length };
     return result;

@@ -7,7 +7,14 @@ void LbapSpatAlgorithm::init(SpeakersData const & speakers)
 }
 
 //==============================================================================
-SpeakersSpatGains LbapSpatAlgorithm::computeSpeakerGains(SourceData const & source) const noexcept
+void LbapSpatAlgorithm::computeSpeakerGains(SourceData const & source, SpeakersSpatGains & gains) const noexcept
 {
-    return lbap_field_compute(source, mData);
+    lbap_field_compute(source, mData);
+}
+
+//==============================================================================
+juce::Array<Triplet> LbapSpatAlgorithm::getTriplets() const noexcept
+{
+    jassertfalse;
+    return juce::Array<Triplet>{};
 }

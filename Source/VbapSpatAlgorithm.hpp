@@ -4,6 +4,8 @@
 
 #include "AbstractSpatAlgorithm.hpp"
 
+VbapType getVbapType(SpeakersData const & speakers);
+
 class VbapSpatAlgorithm final : public AbstractSpatAlgorithm
 {
     std::unique_ptr<VbapData> mData{};
@@ -11,7 +13,7 @@ class VbapSpatAlgorithm final : public AbstractSpatAlgorithm
 public:
     void init(SpeakersData const & speakers) override;
 
-    [[nodiscard]] SpeakersSpatGains computeSpeakerGains(SourceData const & source) const noexcept override;
-    [[nodiscard]] bool hasTriplets() const override { return true; }
-    [[nodiscard]] juce::Array<Triplet> getTriplets() const override;
+    void computeSpeakerGains(SourceData const & source, SpeakersSpatGains & gains) const noexcept override;
+    [[nodiscard]] juce::Array<Triplet> getTriplets() const noexcept override;
+    [[nodiscard]] bool hasTriplets() const noexcept override { return false; }
 };

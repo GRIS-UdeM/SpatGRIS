@@ -22,6 +22,9 @@ public:
     [[nodiscard]] ValueType & operator[](KeyType const & key) noexcept { return mData[getIndex(key)]; }
     [[nodiscard]] ValueType const & operator[](KeyType const & key) const noexcept { return mData[getIndex(key)]; }
     //==============================================================================
+    [[nodiscard]] ValueType * data() noexcept { return mData.data(); }
+    [[nodiscard]] ValueType const * data() const noexcept { return mData.data(); }
+    //==============================================================================
     [[nodiscard]] iterator begin() noexcept { return mData.begin(); }
     [[nodiscard]] iterator end() noexcept { return mData.end(); }
     [[nodiscard]] const_iterator begin() const noexcept { return mData.cbegin(); }

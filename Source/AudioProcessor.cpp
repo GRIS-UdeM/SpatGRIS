@@ -35,7 +35,7 @@ size_t constexpr MAX_BUFFER_SIZE = 2048;
 size_t constexpr LEFT = 0;
 size_t constexpr RIGHT = 1;
 
-Pool<SpeakersSpatGains> ThreadsafePtr<SpeakersSpatGains>::pool{ 32 };
+Pool<SpeakersSpatGains> ThreadsafePtr<SpeakersSpatGains>::pool{ 64 };
 Pool<SourcePeaks> ThreadsafePtr<SourcePeaks>::pool{ 32 };
 
 //==============================================================================

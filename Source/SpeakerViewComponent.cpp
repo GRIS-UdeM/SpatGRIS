@@ -50,11 +50,17 @@ void SpeakerViewComponent::initialise()
 }
 
 //==============================================================================
-void SpeakerViewComponent::setConfig(ViewportConfig const & config)
+void SpeakerViewComponent::setConfig(ViewportConfig const & config, SourcesData const & sources)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedLock const lock{ mLock };
     mData.config = config;
+
+    mData.sources.clear();
+    for (auto const & source : sources) {
+        mData.sources.add(source.key);
+    }
+
     repaint();
 }
 
