@@ -52,6 +52,9 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     , mSmallLookAndFeel(smallGrisLookAndFeel)
     , mMainWindow(mainWindow)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
     auto const showSplashScreen = [&]() {
 #if NDEBUG
         if (SPLASH_SCREEN_FILE.exists()) {
@@ -215,8 +218,10 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     initAppData();
     initGui();
     initAudioManager();
-    initAudioProcessor(); // Audio starts playing at this point
-    juce::ScopedLock const lock{ mAudioProcessor->getLock() };
+    initAudioProcessor();
+
+    juce::ScopedLock const audioLock{ mAudioProcessor->getLock() };
+
     initProject();
     initSpeakerSetup();
     startOsc();
@@ -230,8 +235,10 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
 //==============================================================================
 MainContentComponent::~MainContentComponent()
 {
-    mOscReceiver.reset();
+    JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
+
+    mOscReceiver.reset();
     auto const bounds{ MainWindow::getMainAppWindow()->getBounds() };
     mData.appData.windowX = bounds.getX();
     mData.appData.windowY = bounds.getY();
@@ -254,6 +261,8 @@ juce::Label * MainContentComponent::addLabel(juce::String const & s,
                                              int const h,
                                              Component * into) const
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     auto * lb{ new juce::Label{} };
     lb->setText(s, juce::NotificationType::dontSendNotification);
     lb->setTooltip(tooltip);
@@ -275,6 +284,8 @@ juce::TextButton * MainContentComponent::addButton(juce::String const & s,
                                                    int const h,
                                                    Component * into)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     auto * tb{ new juce::TextButton{} };
     tb->setTooltip(tooltip);
     tb->setButtonText(s);
@@ -297,6 +308,8 @@ juce::ToggleButton * MainContentComponent::addToggleButton(juce::String const & 
                                                            Component * into,
                                                            bool const toggle)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     auto * tb{ new juce::ToggleButton{} };
     tb->setTooltip(tooltip);
     tb->setButtonText(s);
@@ -321,6 +334,8 @@ juce::TextEditor * MainContentComponent::addTextEditor(juce::String const & s,
                                                        Component * into,
                                                        int const wLab)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     auto * te{ new juce::TextEditor{} };
     te->setTooltip(tooltip);
     te->setTextToShowWhenEmpty(emptyS, mLookAndFeel.getOffColour());
@@ -349,6 +364,8 @@ juce::Slider * MainContentComponent::addSlider(juce::String const & /*s*/,
                                                int const h,
                                                Component * into)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     auto * sd{ new juce::Slider{} };
     sd->setTooltip(tooltip);
     sd->setSize(w, h);
@@ -372,6 +389,8 @@ juce::ComboBox * MainContentComponent::addComboBox(juce::String const & /*s*/,
                                                    int const h,
                                                    Component * into)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     // TODO : naked new
     auto * cb{ new juce::ComboBox{} };
     cb->setTooltip(tooltip);
@@ -386,13 +405,16 @@ juce::ComboBox * MainContentComponent::addComboBox(juce::String const & /*s*/,
 //==============================================================================
 juce::ApplicationCommandTarget * MainContentComponent::getNextCommandTarget()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
     return findFirstTargetParentComponent();
 }
 
 //==============================================================================
 // Menu item action handlers.
-void MainContentComponent::handleNew()
+void MainContentComponent::handleNewProject()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     juce::AlertWindow alert{ "Closing current project !", "Do you want to save ?", juce::AlertWindow::InfoIcon };
     alert.setLookAndFeel(&mLookAndFeel);
     alert.addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::deleteKey));
@@ -413,8 +435,9 @@ void MainContentComponent::handleNew()
 void MainContentComponent::loadProject(juce::File const & file)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-    jassert(file.existsAsFile());
     juce::ScopedWriteLock const lock{ mLock };
+
+    jassert(file.existsAsFile());
 
     juce::XmlDocument xmlDoc{ file };
     auto const mainXmlElem{ xmlDoc.getDocumentElement() };
@@ -464,6 +487,9 @@ void MainContentComponent::loadProject(juce::File const & file)
 //==============================================================================
 void MainContentComponent::handleOpenProject()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
     juce::File const lastOpenProject{ mData.appData.lastProject };
     auto const dir{ lastOpenProject.getParentDirectory() };
     auto const filename{ lastOpenProject.getFileName() };
@@ -508,6 +534,9 @@ void MainContentComponent::handleOpenProject()
 //==============================================================================
 void MainContentComponent::handleSaveProject()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
     juce::File const lastOpenProject{ mData.appData.lastProject };
     if (!lastOpenProject.existsAsFile()
         || lastOpenProject.getFullPathName().endsWith("default_preset/default_preset.xml")) {
@@ -519,6 +548,9 @@ void MainContentComponent::handleSaveProject()
 //==============================================================================
 void MainContentComponent::handleSaveAsProject()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
     juce::File const lastOpenProject{ mData.appData.lastProject };
 
     juce::FileChooser fc{ "Choose a file to save...", lastOpenProject.getFullPathName(), "*.xml", true };
@@ -532,6 +564,9 @@ void MainContentComponent::handleSaveAsProject()
 //==============================================================================
 void MainContentComponent::handleOpenSpeakerSetup()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
     juce::FileChooser fc{ "Choose a file to open...", mCurrentSpeakerSetup, "*.xml", true };
 
     if (fc.browseForFileToOpen()) {
@@ -552,6 +587,9 @@ void MainContentComponent::handleOpenSpeakerSetup()
 //==============================================================================
 void MainContentComponent::handleSaveAsSpeakerSetup()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
     juce::FileChooser fc{ "Choose a file to save...", mCurrentSpeakerSetup, "*.xml", true };
 
     if (fc.browseForFileToSave(true)) {
@@ -563,6 +601,8 @@ void MainContentComponent::handleSaveAsSpeakerSetup()
 //==============================================================================
 void MainContentComponent::closeSpeakersConfigurationWindow()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     mNeedToSaveSpeakerSetup = false;
     mEditSpeakersWindow.reset();
 }
@@ -570,6 +610,9 @@ void MainContentComponent::closeSpeakersConfigurationWindow()
 //==============================================================================
 void MainContentComponent::handleShowSpeakerEditWindow()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
     juce::Rectangle<int> const result{ getScreenX() + mSpeakerViewComponent->getWidth() + 20,
                                        getScreenY() + 20,
                                        850,
@@ -594,6 +637,8 @@ void MainContentComponent::handleShowSpeakerEditWindow()
 void MainContentComponent::handleShowPreferences()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
     if (mPropertiesWindow == nullptr) {
         mPropertiesWindow.reset(new SettingsWindow{ *this,
                                                     mData.appData.recordingOptions,
@@ -607,6 +652,8 @@ void MainContentComponent::handleShowPreferences()
 void MainContentComponent::handleShow2DView()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
     if (mFlatViewWindow == nullptr) {
         mFlatViewWindow.reset(new FlatViewWindow{ *this, mLookAndFeel });
     } else {
@@ -630,27 +677,10 @@ void MainContentComponent::handleShow2DView()
 }
 
 //==============================================================================
-void MainContentComponent::handleShowOscLogView()
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-    if (mOscLogWindow == nullptr) {
-        mOscLogWindow.reset(new OscLogWindow("OSC Logging Windows",
-                                             mLookAndFeel.getWinBackgroundColour(),
-                                             juce::DocumentWindow::allButtons,
-                                             this,
-                                             &mLookAndFeel));
-    }
-    mOscLogWindow->centreWithSize(500, 500);
-    mOscLogWindow->setResizable(false, false);
-    mOscLogWindow->setUsingNativeTitleBar(true);
-    mOscLogWindow->setVisible(true);
-    mOscLogWindow->repaint();
-}
-
-//==============================================================================
 void MainContentComponent::handleShowAbout()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
+
     if (!mAboutWindow) {
         mAboutWindow.reset(new AboutWindow{ "About SpatGRIS", mLookAndFeel, *this });
     }
@@ -660,6 +690,7 @@ void MainContentComponent::handleShowAbout()
 void MainContentComponent::handleOpenManual()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
+
     if (SERVER_GRIS_MANUAL_FILE.exists()) {
         juce::Process::openDocument("file:" + SERVER_GRIS_MANUAL_FILE.getFullPathName(), juce::String());
     }
@@ -691,8 +722,8 @@ void MainContentComponent::handleShowSpeakers()
 void MainContentComponent::handleShowTriplets()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-    juce::ScopedWriteLock const lock{ mLock };
 
+    juce::ScopedReadLock const readLock{ mLock };
     auto const newState{ !mData.project.viewSettings.showSpeakerTriplets };
     if ((mData.appData.spatMode == SpatMode::lbap || mData.appData.spatMode == SpatMode::stereo) && newState) {
         juce::AlertWindow alert("Can't draw triplets !",
@@ -704,6 +735,7 @@ void MainContentComponent::handleShowTriplets()
         return;
     }
 
+    juce::ScopedWriteLock const writeLock{ mLock };
     mData.project.viewSettings.showSpeakerTriplets = newState;
     updateViewportConfig();
 }
@@ -745,7 +777,7 @@ void MainContentComponent::handleShowSphere()
 void MainContentComponent::handleResetInputPositions()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-    juce::ScopedWriteLock const mainLock{ mLock };
+    juce::ScopedWriteLock const lock{ mLock };
 
     auto & viewPortData{ mSpeakerViewComponent->getData() };
     auto & gainMatrix{ mAudioProcessor->getAudioData().spatGainMatrix };
@@ -769,6 +801,8 @@ void MainContentComponent::handleResetInputPositions()
             exchanger.setMostRecent(gains);
         }
     }
+
+    updateAudioProcessor();
 }
 
 //==============================================================================
@@ -804,6 +838,8 @@ void MainContentComponent::handleColorizeInputs()
 // Command manager methods.
 void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & commands)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     // this returns the set of all commands that this target can perform.
     const juce::CommandID ids[] = {
         MainWindow::NewProjectID,
@@ -835,6 +871,9 @@ void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & command
 //==============================================================================
 void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce::ApplicationCommandInfo & result)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
     const juce::String generalCategory("General");
 
     switch (commandId) {
@@ -933,10 +972,12 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
 //==============================================================================
 bool MainContentComponent::perform(const InvocationInfo & info)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     if (MainWindow::getMainAppWindow()) {
         switch (info.commandID) {
         case MainWindow::NewProjectID:
-            handleNew();
+            handleNewProject();
             break;
         case MainWindow::OpenProjectID:
             handleOpenProject();
@@ -983,9 +1024,6 @@ bool MainContentComponent::perform(const InvocationInfo & info)
         case MainWindow::ResetMeterClipping:
             handleResetMeterClipping();
             break;
-        case MainWindow::ShowOscLogView:
-            handleShowOscLogView();
-            break;
         case MainWindow::OpenSettingsWindowID:
             handleShowPreferences();
             break;
@@ -1008,7 +1046,8 @@ bool MainContentComponent::perform(const InvocationInfo & info)
 //==============================================================================
 void MainContentComponent::audioParametersChanged()
 {
-    juce::ScopedLock const lock{ mAudioProcessor->getLock() };
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedLock const audioLock{ mAudioProcessor->getLock() };
 
     auto * currentAudioDevice{ AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice() };
     jassert(currentAudioDevice);
@@ -1023,6 +1062,8 @@ void MainContentComponent::audioParametersChanged()
     auto const bufferSize{ currentAudioDevice->getCurrentBufferSizeSamples() };
     auto const inputCount{ currentAudioDevice->getActiveInputChannels().countNumberOfSetBits() };
     auto const outputCount{ currentAudioDevice->getActiveOutputChannels().countNumberOfSetBits() };
+
+    juce::ScopedWriteLock const lock{ mLock };
 
     mData.appData.audioSettings.sampleRate = setup.sampleRate;
     mData.appData.audioSettings.bufferSize = setup.bufferSize;
@@ -1042,6 +1083,8 @@ void MainContentComponent::audioParametersChanged()
 //==============================================================================
 juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const juce::String & menuName)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     juce::ApplicationCommandManager * commandManager = &mMainWindow.getApplicationCommandManager();
 
     juce::PopupMenu menu;
@@ -1087,12 +1130,16 @@ juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const j
 //==============================================================================
 void MainContentComponent::menuItemSelected(int /*menuItemID*/, int /*topLevelMenuIndex*/)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
 }
 
 //==============================================================================
 // Exit functions.
 bool MainContentComponent::isProjectModified() const
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
     auto const savedState{ juce::XmlDocument{ mData.appData.lastProject }.getDocumentElement() };
     if (!savedState) {
         return true;
@@ -1107,6 +1154,8 @@ bool MainContentComponent::isProjectModified() const
 //==============================================================================
 bool MainContentComponent::exitApp()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
     // TODO : maybe the audio settings should be part of the project?
 
     auto exitV{ 2 };
@@ -1195,6 +1244,9 @@ void MainContentComponent::updatePeaks()
 //==============================================================================
 void MainContentComponent::refreshSourceVuMeterComponents()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
     mSourceVuMeterComponents.clear();
 
     auto x{ 2 };
@@ -1215,6 +1267,9 @@ void MainContentComponent::refreshSourceVuMeterComponents()
 //==============================================================================
 void MainContentComponent::refreshSpeakerVuMeterComponents()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
     mSpeakerVuMeters.clear();
 
     auto x{ 2 };
@@ -1266,6 +1321,7 @@ void MainContentComponent::resetSourcePosition(source_index_t const sourceIndex)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
+
     mData.project.sources[sourceIndex].position = tl::nullopt;
     mData.project.sources[sourceIndex].vector = tl::nullopt;
 }
@@ -1294,6 +1350,8 @@ void MainContentComponent::loadDefaultSpeakerSetup(SpatMode const spatMode)
 void MainContentComponent::handleSpeakerOnlyDirectOutChanged(output_patch_t const outputPatch, bool const state)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
     auto & val{ mData.speakerSetup.speakers[outputPatch].isDirectOutOnly };
     if (state != val) {
         val = state;
@@ -1377,7 +1435,7 @@ void MainContentComponent::handleSourceStateChanged(source_index_t const sourceI
         mData.project.sources.cend(),
         [](SourcesData::ConstNode const & node) { return node.value->state == PortState::solo; }) };
 
-    mAudioProcessor->setAudioConfig(mData.toAudioConfig());
+    updateAudioProcessor();
     mSourceVuMeterComponents[sourceIndex].setState(state, isAtLeastOneSourceSolo);
 }
 
@@ -1385,6 +1443,7 @@ void MainContentComponent::handleSourceStateChanged(source_index_t const sourceI
 void MainContentComponent::handleSpeakerSelected(juce::Array<output_patch_t> const selection)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
 
     for (auto const speaker : mData.speakerSetup.speakers) {
         auto const isSelected{ selection.contains(speaker.key) };
@@ -1399,7 +1458,6 @@ void MainContentComponent::handleSpeakerSelected(juce::Array<output_patch_t> con
             // TODO : handle multiple selection
             mEditSpeakersWindow->selectSpeaker(speaker.key);
         }
-        // TODO : update 3D view ?
     }
 
     updateViewportConfig();
@@ -1412,7 +1470,7 @@ void MainContentComponent::handleSpeakerStateChanged(output_patch_t const output
     juce::ScopedWriteLock const lock{ mLock };
 
     mData.speakerSetup.speakers[outputPatch].state = state;
-    mAudioProcessor->setAudioConfig(mData.toAudioConfig());
+    updateAudioProcessor();
 
     auto const isAtLeastOneSpeakerSolo{ std::any_of(
         mData.speakerSetup.speakers.cbegin(),
@@ -1428,10 +1486,11 @@ void MainContentComponent::handleSourceDirectOutChanged(source_index_t const sou
                                                         tl::optional<output_patch_t> const outputPatch)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
 
     mData.project.sources[sourceIndex].directOut = outputPatch;
 
-    mAudioProcessor->setAudioConfig(mData.toAudioConfig());
+    updateAudioProcessor();
     mSourceVuMeterComponents[sourceIndex].setDirectOut(outputPatch);
 }
 
@@ -1440,6 +1499,7 @@ void MainContentComponent::handleSpatModeChanged(SpatMode const spatMode)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     jassert(narrow<int>(spatMode) >= 0 && narrow<int>(spatMode) <= narrow<int>(SpatMode::stereo));
+    juce::ScopedWriteLock const lock{ mLock };
 
     mSpatModeCombo->setSelectedId(static_cast<int>(spatMode) + 1, juce::dontSendNotification);
     if (mData.appData.spatMode != spatMode || !mSpatAlgorithm) {
@@ -1466,6 +1526,7 @@ void MainContentComponent::handleSpatModeChanged(SpatMode const spatMode)
 void MainContentComponent::handleMasterGainChanged(dbfs_t const gain)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
 
     mData.project.masterGain = gain;
     mMasterGainOutSlider->setValue(gain.get(), juce::dontSendNotification);
@@ -1477,6 +1538,7 @@ void MainContentComponent::handleMasterGainChanged(dbfs_t const gain)
 void MainContentComponent::handleGainInterpolationChanged(float const interpolation)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
 
     mData.project.spatGainsInterpolation = interpolation;
     mInterpolationSlider->setValue(interpolation, juce::dontSendNotification);
@@ -1488,6 +1550,7 @@ void MainContentComponent::handleGainInterpolationChanged(float const interpolat
 void MainContentComponent::handleNewSpeakerPosition(output_patch_t const outputPatch, CartesianVector const & position)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
 
     auto & speaker{ mData.speakerSetup.speakers[outputPatch] };
     speaker.vector = PolarVector::fromCartesian(position);
@@ -1500,6 +1563,7 @@ void MainContentComponent::handleNewSpeakerPosition(output_patch_t const outputP
 void MainContentComponent::handleNewSpeakerPosition(output_patch_t const outputPatch, PolarVector const & position)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
 
     auto & speaker{ mData.speakerSetup.speakers[outputPatch] };
     speaker.vector = position;
@@ -1512,6 +1576,8 @@ void MainContentComponent::handleNewSpeakerPosition(output_patch_t const outputP
 void MainContentComponent::updateAudioProcessor() const
 {
     JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
     mAudioProcessor->setAudioConfig(mData.toAudioConfig()); // TODO : use unique_ptr instead
 }
 
@@ -1520,6 +1586,7 @@ void MainContentComponent::updateViewportConfig() const
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
+
     auto const newConfig{ mData.toViewportConfig() };
     if (newConfig.viewSettings.showSpeakerTriplets && mSpatAlgorithm->hasTriplets()) {
         mSpeakerViewComponent->setTriplets(mSpatAlgorithm->getTriplets());
@@ -1531,14 +1598,21 @@ void MainContentComponent::updateViewportConfig() const
 void MainContentComponent::handleSetShowTriplets(bool const state)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
     mData.project.viewSettings.showSpeakerTriplets = state;
+    updateViewportConfig();
 }
 
 //==============================================================================
 void MainContentComponent::setSourceState(source_index_t const sourceIndex, PortState const state)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
     mData.project.sources[sourceIndex].state = state;
+    updateAudioProcessor();
+    updateViewportConfig();
 }
 
 //==============================================================================
@@ -1546,27 +1620,10 @@ void MainContentComponent::setSpeakerState(output_patch_t const outputPatch, Por
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
+
     mData.speakerSetup.speakers[outputPatch].state = state;
-}
-
-//==============================================================================
-tl::optional<int> MainContentComponent::findEquivalentTripletIndex(Triplet const & tri) const
-{
-    juce::ScopedReadLock const lock{ mLock };
-    int index{};
-    for (auto const & ti : mTriplets) {
-        if ((ti.id1 == tri.id1 && ti.id2 == tri.id2 && ti.id3 == tri.id3)
-            || (ti.id1 == tri.id1 && ti.id2 == tri.id3 && ti.id3 == tri.id2)
-            || (ti.id1 == tri.id2 && ti.id2 == tri.id1 && ti.id3 == tri.id3)
-            || (ti.id1 == tri.id2 && ti.id2 == tri.id3 && ti.id3 == tri.id1)
-            || (ti.id1 == tri.id3 && ti.id2 == tri.id2 && ti.id3 == tri.id1)
-            || (ti.id1 == tri.id3 && ti.id2 == tri.id1 && ti.id3 == tri.id2)) {
-            return index;
-        }
-        ++index;
-    }
-
-    return tl::nullopt;
+    updateAudioProcessor();
+    updateViewportConfig();
 }
 
 //==============================================================================
@@ -1574,6 +1631,7 @@ void MainContentComponent::reorderSpeakers(juce::Array<output_patch_t> newOrder)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
+
     auto & order{ mData.speakerSetup.order };
     jassert(newOrder.size() == order.size());
     order = std::move(newOrder);
@@ -1583,9 +1641,9 @@ void MainContentComponent::reorderSpeakers(juce::Array<output_patch_t> newOrder)
 //==============================================================================
 output_patch_t MainContentComponent::getMaxSpeakerOutputPatch() const
 {
-    juce::ScopedReadLock const lock{ mLock };
-
+    JUCE_ASSERT_MESSAGE_THREAD;
     jassert(!mData.speakerSetup.order.isEmpty());
+    juce::ScopedReadLock const lock{ mLock };
 
     auto const & patches{ mData.speakerSetup.order };
     auto const maxPatch{ *std::max_element(patches.begin(), patches.end()) };
@@ -1596,8 +1654,8 @@ output_patch_t MainContentComponent::getMaxSpeakerOutputPatch() const
 output_patch_t MainContentComponent::addSpeaker()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-
     juce::ScopedWriteLock const lock{ mLock };
+
     auto const newOutputPatch{ ++getMaxSpeakerOutputPatch() };
     mData.speakerSetup.speakers.add(newOutputPatch, std::make_unique<SpeakerData>());
     mData.speakerSetup.order.add(newOutputPatch);
@@ -1610,6 +1668,7 @@ output_patch_t MainContentComponent::addSpeaker()
 //==============================================================================
 output_patch_t MainContentComponent::insertSpeaker(int const position)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
 
     auto const newPosition{ position };
@@ -1628,7 +1687,9 @@ output_patch_t MainContentComponent::insertSpeaker(int const position)
 //==============================================================================
 void MainContentComponent::removeSpeaker(output_patch_t const outputPatch)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
+
     mSpeakerVuMeters.remove(outputPatch);
     mData.speakerSetup.order.removeFirstMatchingValue(outputPatch);
     mData.speakerSetup.speakers.remove(outputPatch);
@@ -1637,20 +1698,18 @@ void MainContentComponent::removeSpeaker(output_patch_t const outputPatch)
 //==============================================================================
 bool MainContentComponent::isRadiusNormalized() const
 {
-    return mData.appData.spatMode == SpatMode::vbap || mData.appData.spatMode == SpatMode::hrtfVbap;
-}
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
 
-//==============================================================================
-void MainContentComponent::setTripletsFromVbap()
-{
-    jassert(mSpatAlgorithm->hasTriplets());
-    mTriplets = mSpatAlgorithm->getTriplets();
+    return mData.appData.spatMode == SpatMode::vbap || mData.appData.spatMode == SpatMode::hrtfVbap;
 }
 
 //==============================================================================
 void MainContentComponent::handleNumSourcesChanged(int const numSources)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
     jassert(numSources >= 1 && numSources <= MAX_INPUTS);
+    juce::ScopedWriteLock const lock{ mLock };
 
     mNumSourcesTextEditor->setText(juce::String{ numSources }, false);
 
@@ -1676,7 +1735,8 @@ void MainContentComponent::handleNumSourcesChanged(int const numSources)
 //==============================================================================
 bool MainContentComponent::refreshSpeakers()
 {
-    // TODO : this function is 100 times longer than it should be.
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
 
     auto const & speakers{ mData.speakerSetup.speakers };
     auto const numActiveSpeakers{ std::count_if(
@@ -1759,18 +1819,6 @@ bool MainContentComponent::refreshSpeakers()
 
     mOutputsUiBox->repaint();
     resized();
-
-    /*} else {
-        juce::AlertWindow alert{ "Not a valid DOME 3-D configuration!    ",
-                                 "Maybe you want to open it in CUBE mode? Reload the default speaker setup ?    ",
-                                 juce::AlertWindow::WarningIcon };
-        alert.setLookAndFeel(&mLookAndFeel);
-        alert.addButton("Ok", 0, juce::KeyPress(juce::KeyPress::returnKey));
-        alert.runModalLoop();
-        openXmlFileSpeaker(DEFAULT_SPEAKER_SETUP_FILE);
-        return false;
-    }*/
-
     updateAudioProcessor();
     updateViewportConfig();
 
@@ -1780,6 +1828,9 @@ bool MainContentComponent::refreshSpeakers()
 //==============================================================================
 void MainContentComponent::reloadXmlFileSpeaker()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
     loadSpeakerSetup(mData.appData.lastSpeakerSetup, tl::nullopt);
 }
 
@@ -1819,7 +1870,6 @@ void MainContentComponent::loadSpeakerSetup(juce::File const & file, tl::optiona
     }
 
     juce::ScopedWriteLock const lock{ mLock };
-
     mData.speakerSetup = std::move(speakerSetup->first);
 
     handleSpatModeChanged(forceSpatMode.value_or(speakerSetup->second));
@@ -1829,6 +1879,9 @@ void MainContentComponent::loadSpeakerSetup(juce::File const & file, tl::optiona
 //==============================================================================
 void MainContentComponent::setTitle() const
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
     auto const currentProject{ mData.appData.lastProject };
     auto const title{ juce::String{ "SpatGRIS v" } + juce::JUCEApplication::getInstance()->getApplicationVersion()
                       + " - " + currentProject };
@@ -1838,6 +1891,8 @@ void MainContentComponent::setTitle() const
 //==============================================================================
 void MainContentComponent::handleTimer(bool const state)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     if (state) {
         startTimerHz(24);
     } else {
@@ -1848,6 +1903,9 @@ void MainContentComponent::handleTimer(bool const state)
 //==============================================================================
 void MainContentComponent::saveProject(juce::String const & path)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
     juce::File const xmlFile{ path };
     auto const xml{ mData.project.toXml() };
     [[maybe_unused]] auto success{ xml->writeTo(xmlFile) };
@@ -1862,6 +1920,9 @@ void MainContentComponent::saveProject(juce::String const & path)
 //==============================================================================
 void MainContentComponent::saveSpeakerSetup(juce::String const & path)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
     juce::File const xmlFile{ path };
     auto const xml{ mData.speakerSetup.toXml(mData.appData.spatMode) };
 
@@ -1877,6 +1938,8 @@ void MainContentComponent::saveSpeakerSetup(juce::String const & path)
 //==============================================================================
 void MainContentComponent::timerCallback()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     // Update levels
     updatePeaks();
 
@@ -1946,19 +2009,25 @@ void MainContentComponent::timerCallback()
 //==============================================================================
 void MainContentComponent::paint(juce::Graphics & g)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     g.fillAll(mLookAndFeel.getWinBackgroundColour());
 }
 
 //==============================================================================
 void MainContentComponent::textEditorFocusLost(juce::TextEditor & textEditor)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     textEditorReturnKeyPressed(textEditor);
 }
 
 //==============================================================================
 void MainContentComponent::textEditorReturnKeyPressed(juce::TextEditor & textEditor)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
     jassert(&textEditor == mNumSourcesTextEditor.get());
+
     auto const unclippedValue{ mNumSourcesTextEditor->getTextValue().toString().getIntValue() };
     auto const numOfInputs{ std::clamp(unclippedValue, 2, MAX_INPUTS) };
     handleNumSourcesChanged(numOfInputs);
@@ -1967,6 +2036,8 @@ void MainContentComponent::textEditorReturnKeyPressed(juce::TextEditor & textEdi
 //==============================================================================
 void MainContentComponent::buttonClicked(juce::Button * button)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     auto & audioManager{ AudioManager::getInstance() };
 
     if (button == mStartRecordButton.get()) {
@@ -1989,6 +2060,8 @@ void MainContentComponent::buttonClicked(juce::Button * button)
 //==============================================================================
 void MainContentComponent::sliderValueChanged(juce::Slider * slider)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     if (slider == mMasterGainOutSlider.get()) {
         dbfs_t const value{ static_cast<float>(mMasterGainOutSlider->getValue()) };
         handleMasterGainChanged(value);
@@ -2001,6 +2074,9 @@ void MainContentComponent::sliderValueChanged(juce::Slider * slider)
 //==============================================================================
 void MainContentComponent::comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
     if (comboBoxThatHasChanged == mSpatModeCombo.get()) {
         if (mNeedToSaveSpeakerSetup) {
             juce::AlertWindow alert(
@@ -2031,34 +2107,18 @@ void MainContentComponent::comboBoxChanged(juce::ComboBox * comboBoxThatHasChang
 //==============================================================================
 juce::StringArray MainContentComponent::getMenuBarNames()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     char const * names[] = { "File", "View", "Help", nullptr };
     return juce::StringArray{ names };
 }
 
 //==============================================================================
-void MainContentComponent::setOscLogging(juce::OSCMessage const & message) const
-{
-    if (mOscLogWindow) {
-        auto const address{ message.getAddressPattern().toString() };
-        mOscLogWindow->addToLog(address + "\n");
-        juce::String msg;
-        for (auto const & element : message) {
-            if (element.isInt32()) {
-                msg += juce::String{ element.getInt32() } + " ";
-            } else if (element.isFloat32()) {
-                msg += juce::String{ element.getFloat32() } + " ";
-            } else if (element.isString()) {
-                msg += element.getString() + " ";
-            }
-        }
-
-        mOscLogWindow->addToLog(msg + "\n");
-    }
-}
-
-//==============================================================================
 bool MainContentComponent::initRecording()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
     juce::File dir{ mData.appData.lastRecordingDirectory };
     if (!(dir.exists() && !dir.existsAsFile())) {
         dir = juce::File::getSpecialLocation(juce::File::SpecialLocationType::userDesktopDirectory);
@@ -2120,6 +2180,8 @@ void MainContentComponent::resized()
 {
     static constexpr auto MENU_BAR_HEIGHT = 20;
     static constexpr auto PADDING = 10;
+
+    JUCE_ASSERT_MESSAGE_THREAD;
 
     auto reducedLocalBounds{ getLocalBounds().reduced(2) };
 

@@ -49,7 +49,6 @@ void OscInput::oscBundleReceived(const juce::OSCBundle & bundle)
 //==============================================================================
 void OscInput::oscMessageReceived(const juce::OSCMessage & message)
 {
-    mMainContentComponent.setOscLogging(message);
     auto const address{ message.getAddressPattern().toString().toStdString() };
     if (message[0].isInt32()) {
         if (address == OSC_SPAT_SERV) {

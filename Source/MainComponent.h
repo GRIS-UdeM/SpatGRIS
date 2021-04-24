@@ -257,8 +257,6 @@ public:
     void closeFlatViewWindow() { mFlatViewWindow.reset(); }
     void closeAboutWindow() { mAboutWindow.reset(); }
     void closeOscLogWindow() { mOscLogWindow.reset(); }
-
-    void setOscLogging(const juce::OSCMessage & message) const;
     //==============================================================================
     void timerCallback() override;
     void paint(juce::Graphics & g) override;
@@ -307,7 +305,7 @@ private:
         addComboBox(const juce::String & s, const juce::String & tooltip, int x, int y, int w, int h, Component * into);
     //==============================================================================
     // MenuBar handlers.
-    void handleNew();
+    void handleNewProject();
     void handleOpenProject();
     void handleSaveProject();
     void handleSaveAsProject();
@@ -324,13 +322,9 @@ private:
     void handleShowSphere();
     void handleResetInputPositions();
     void handleResetMeterClipping();
-    void handleShowOscLogView();
     void handleColorizeInputs();
 
-    void setTripletsFromVbap();
-
     [[nodiscard]] output_patch_t getMaxSpeakerOutputPatch() const;
-    [[nodiscard]] tl::optional<int> findEquivalentTripletIndex(Triplet const & tri) const;
     [[nodiscard]] bool isProjectModified() const;
     //==============================================================================
     // Open - save.
