@@ -185,6 +185,8 @@ void FlatViewWindow::paint(juce::Graphics & g)
                juce::Justification(juce::Justification::centred),
                false);
 
+    juce::ScopedReadLock const lock{ mMainContentComponent.getLock() };
+
     // Draw sources.
     for (auto const source : mMainContentComponent.getData().project.sources) {
         drawSource(g, source, fieldSize);
@@ -203,17 +205,16 @@ void FlatViewWindow::drawSource(juce::Graphics & g, SourcesData::ConstNode const
 
     auto const fieldSizeFloat{ narrow<float>(fieldSize) };
     auto const realSize = fieldSizeFloat - SOURCE_DIAMETER;
-    juce::Point<float> sourcePosition{ source.value->position->x, source.value->position->y };
-    sourcePosition.x = realSize / 2.0f + realSize / 4.0f * sourcePosition.x;
-    sourcePosition.y = realSize / 2.0f - realSize / 4.0f * sourcePosition.y;
-    sourcePosition.x = sourcePosition.x < 0.0f
-                           ? 0.0f
-                           : sourcePosition.x > fieldSizeFloat - SOURCE_DIAMETER ? fieldSizeFloat - SOURCE_DIAMETER
-                                                                                 : sourcePosition.x;
-    sourcePosition.y = sourcePosition.y < 0.0f
-                           ? 0.0f
-                           : sourcePosition.y > fieldSizeFloat - SOURCE_DIAMETER ? fieldSizeFloat - SOURCE_DIAMETER
-                                                                                 : sourcePosition.y;
+
+    auto const getSourcePosition = [&]() {
+        // The x and y are weirdly inverted, I know
+        auto const rawPosition{ juce::Point<float>{ -source.value->position->y, -source.value->position->x } };
+        auto const normalizedPosition{ rawPosition.translated(1.0f, 1.0f) / 2.0f };
+        auto const scaledPosition{ normalizedPosition * realSize };
+        return scaledPosition;
+    };
+
+    auto const sourcePosition{ getSourcePosition() };
 
     g.setColour(source.value->colour);
     g.fillEllipse(sourcePosition.x, sourcePosition.y, SOURCE_DIAMETER, SOURCE_DIAMETER);
@@ -248,11 +249,13 @@ void FlatViewWindow::drawSourceSpan(juce::Graphics & g,
                                     const int fieldCenter,
                                     SpatMode const spatMode) const
 {
+    jassertfalse; // TODO
+
     auto const colorS{ source.colour };
 
     juce::Point<float> sourceP{};
 
-    auto const alpha{ source.colour.getAlpha() }; // TODO : should use alpha from peaks?
+    auto const alpha{ 0.1f }; // TODO : should use alpha from peaks?
     if (spatMode == SpatMode::lbap) {
         auto const realW{ fieldWh - narrow<int>(SOURCE_DIAMETER) };
         auto const azimuthSpan{ static_cast<float>(fieldWh) * (source.azimuthSpan * 0.5f) };
@@ -267,83 +270,85 @@ void FlatViewWindow::drawSourceSpan(juce::Graphics & g,
         g.drawEllipse(sourceP.x - halfAzimuthSpan, sourceP.y - halfAzimuthSpan, azimuthSpan, azimuthSpan, 1.5f);
         g.setColour(colorS.withAlpha(alpha * 0.2f));
         g.fillEllipse(sourceP.x - halfAzimuthSpan, sourceP.y - halfAzimuthSpan, azimuthSpan, azimuthSpan);
-    } else {
-        auto const HRAzimSpan{ 180.0f * source.azimuthSpan };
-        auto const HRElevSpan{ 180.0f * source.zenithSpan };
 
-        if ((HRAzimSpan < 0.002f && HRElevSpan < 0.002f) || !mMainContentComponent.isSpanShown()) {
-            return;
-        }
-
-        auto const azimuthElevation{ getSourceAzimuthElevation(sourceP, true) };
-
-        auto const hrAzimuth{ azimuthElevation.x * 180.0f };
-        auto const hrElevation{ azimuthElevation.y * 180.0f };
-
-        // Calculate max and min elevation in degrees.
-        juce::Point<float> maxElev = { hrAzimuth, hrElevation + HRElevSpan / 2.0f };
-        juce::Point<float> minElev = { hrAzimuth, hrElevation - HRElevSpan / 2.0f };
-
-        if (minElev.y < 0) {
-            maxElev.y = (maxElev.y - minElev.y);
-            minElev.y = 0.0f;
-        }
-
-        // Convert max min elev to xy.
-        auto const screenMaxElev = degreeToXy(maxElev, fieldWh);
-        auto const screenMinElev = degreeToXy(minElev, fieldWh);
-
-        // Form minmax elev, calculate minmax radius.
-        auto const maxRadius = std::sqrt(screenMaxElev.x * screenMaxElev.x + screenMaxElev.y * screenMaxElev.y);
-        auto const minRadius = std::sqrt(screenMinElev.x * screenMinElev.x + screenMinElev.y * screenMinElev.y);
-
-        // Drawing the path for spanning.
-        juce::Path myPath;
-        auto const fieldCenter_f{ static_cast<float>(fieldCenter) };
-        myPath.startNewSubPath(fieldCenter_f + screenMaxElev.x, fieldCenter_f + screenMaxElev.y);
-        // Half first arc center.
-        myPath.addCentredArc(fieldCenter_f,
-                             fieldCenter_f,
-                             minRadius,
-                             minRadius,
-                             0.0,
-                             degreeToRadian(-hrAzimuth),
-                             degreeToRadian(-hrAzimuth + HRAzimSpan / 2));
-
-        // If we are over the top of the dome we draw the adjacent angle.
-        if (maxElev.getY() > 90.f) {
-            myPath.addCentredArc(fieldCenter_f,
-                                 fieldCenter_f,
-                                 maxRadius,
-                                 maxRadius,
-                                 0.0,
-                                 juce::MathConstants<float>::pi + degreeToRadian(-hrAzimuth + HRAzimSpan / 2),
-                                 juce::MathConstants<float>::pi + degreeToRadian(-hrAzimuth - HRAzimSpan / 2));
-        } else {
-            myPath.addCentredArc(fieldCenter_f,
-                                 fieldCenter_f,
-                                 maxRadius,
-                                 maxRadius,
-                                 0.0,
-                                 degreeToRadian(-hrAzimuth + HRAzimSpan / 2),
-                                 degreeToRadian(-hrAzimuth - HRAzimSpan / 2));
-        }
-        myPath.addCentredArc(fieldCenter_f,
-                             fieldCenter_f,
-                             minRadius,
-                             minRadius,
-                             0.0,
-                             degreeToRadian(-hrAzimuth - HRAzimSpan / 2),
-                             degreeToRadian(-hrAzimuth));
-
-        myPath.closeSubPath();
-
-        g.setColour(colorS.withAlpha(alpha * 0.2f));
-        g.fillPath(myPath);
-
-        g.setColour(colorS.withAlpha(alpha * 0.6f));
-        g.strokePath(myPath, juce::PathStrokeType(0.5));
+        return;
     }
+
+    auto const HRAzimSpan{ 180.0f * source.azimuthSpan };
+    auto const HRElevSpan{ 180.0f * source.zenithSpan };
+
+    if ((HRAzimSpan < 0.002f && HRElevSpan < 0.002f) || !mMainContentComponent.isSpanShown()) {
+        return;
+    }
+
+    auto const azimuthElevation{ getSourceAzimuthElevation(sourceP, true) };
+
+    auto const hrAzimuth{ azimuthElevation.x * 180.0f };
+    auto const hrElevation{ azimuthElevation.y * 180.0f };
+
+    // Calculate max and min elevation in degrees.
+    juce::Point<float> maxElev = { hrAzimuth, hrElevation + HRElevSpan / 2.0f };
+    juce::Point<float> minElev = { hrAzimuth, hrElevation - HRElevSpan / 2.0f };
+
+    if (minElev.y < 0) {
+        maxElev.y = (maxElev.y - minElev.y);
+        minElev.y = 0.0f;
+    }
+
+    // Convert max min elev to xy.
+    auto const screenMaxElev = degreeToXy(maxElev, fieldWh);
+    auto const screenMinElev = degreeToXy(minElev, fieldWh);
+
+    // Form minmax elev, calculate minmax radius.
+    auto const maxRadius = std::sqrt(screenMaxElev.x * screenMaxElev.x + screenMaxElev.y * screenMaxElev.y);
+    auto const minRadius = std::sqrt(screenMinElev.x * screenMinElev.x + screenMinElev.y * screenMinElev.y);
+
+    // Drawing the path for spanning.
+    juce::Path myPath;
+    auto const fieldCenter_f{ static_cast<float>(fieldCenter) };
+    myPath.startNewSubPath(fieldCenter_f + screenMaxElev.x, fieldCenter_f + screenMaxElev.y);
+    // Half first arc center.
+    myPath.addCentredArc(fieldCenter_f,
+                         fieldCenter_f,
+                         minRadius,
+                         minRadius,
+                         0.0,
+                         degreeToRadian(-hrAzimuth),
+                         degreeToRadian(-hrAzimuth + HRAzimSpan / 2));
+
+    // If we are over the top of the dome we draw the adjacent angle.
+    if (maxElev.getY() > 90.f) {
+        myPath.addCentredArc(fieldCenter_f,
+                             fieldCenter_f,
+                             maxRadius,
+                             maxRadius,
+                             0.0,
+                             juce::MathConstants<float>::pi + degreeToRadian(-hrAzimuth + HRAzimSpan / 2),
+                             juce::MathConstants<float>::pi + degreeToRadian(-hrAzimuth - HRAzimSpan / 2));
+    } else {
+        myPath.addCentredArc(fieldCenter_f,
+                             fieldCenter_f,
+                             maxRadius,
+                             maxRadius,
+                             0.0,
+                             degreeToRadian(-hrAzimuth + HRAzimSpan / 2),
+                             degreeToRadian(-hrAzimuth - HRAzimSpan / 2));
+    }
+    myPath.addCentredArc(fieldCenter_f,
+                         fieldCenter_f,
+                         minRadius,
+                         minRadius,
+                         0.0,
+                         degreeToRadian(-hrAzimuth - HRAzimSpan / 2),
+                         degreeToRadian(-hrAzimuth));
+
+    myPath.closeSubPath();
+
+    g.setColour(colorS.withAlpha(alpha * 0.2f));
+    g.fillPath(myPath);
+
+    g.setColour(colorS.withAlpha(alpha * 0.6f));
+    g.strokePath(myPath, juce::PathStrokeType(0.5));
 }
 
 //==============================================================================
