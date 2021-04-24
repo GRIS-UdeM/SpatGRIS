@@ -84,10 +84,9 @@ public:
     {
     }
     ~SpeakerViewComponent() override { shutdownOpenGL(); }
-
+    //==============================================================================
     SpeakerViewComponent(SpeakerViewComponent const &) = delete;
     SpeakerViewComponent(SpeakerViewComponent &&) = delete;
-
     SpeakerViewComponent & operator=(SpeakerViewComponent const &) = delete;
     SpeakerViewComponent & operator=(SpeakerViewComponent &&) = delete;
     //==============================================================================
@@ -96,6 +95,7 @@ public:
 
     void setConfig(ViewportConfig const & config, SourcesData const & sources);
     void setCameraPosition(CartesianVector const & position) noexcept;
+    void setTriplets(juce::Array<Triplet> triplets) noexcept;
 
     auto const & getLock() const noexcept { return mLock; }
     //==============================================================================

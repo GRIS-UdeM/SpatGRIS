@@ -2,6 +2,7 @@
 
 #include "AudioStructs.hpp"
 #include "OwnedMap.hpp"
+#include "Triplet.hpp"
 
 static constexpr auto DEFAULT_OSC_INPUT_PORT = 18032;
 static constexpr auto MAX_OSC_INPUT_PORT = 65535;
@@ -67,6 +68,7 @@ struct ViewportState {
     juce::Point<float> panMouseOrigin{};
     PolarVector panCameraOrigin{};
     float displayScaling{};
+    juce::Array<Triplet> triplets{};
 };
 
 struct ViewportData {
@@ -98,22 +100,6 @@ struct SourceData {
         static juce::String const DIRECT_OUT;
         static juce::String const COLOUR;
     };
-};
-
-struct Triplet {
-    output_patch_t id1{};
-    output_patch_t id2{};
-    output_patch_t id3{};
-
-    [[nodiscard]] constexpr bool contains(output_patch_t const outputPatch) const noexcept
-    {
-        return id1 == outputPatch || id2 == outputPatch || id3 == outputPatch;
-    }
-
-    [[nodiscard]] constexpr bool isSameAs(Triplet const & other) const noexcept
-    {
-        return contains(other.id1) && contains(other.id2) && contains(other.id3);
-    }
 };
 
 //==============================================================================

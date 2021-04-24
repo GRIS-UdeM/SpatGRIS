@@ -62,8 +62,10 @@ void OscInput::oscMessageReceived(const juce::OSCMessage & message)
             }
             auto const azimuth{ (TWO_PI - radians_t{ message[1].getFloat32() }).centered() };
             auto const zenith{ HALF_PI - radians_t{ message[2].getFloat32() } };
-            auto const azimuthSpan{ message[3].getFloat32() };
-            auto const zenithSpan{ message[4].getFloat32() };
+            auto const azimuthSpan{ message[3].getFloat32() / 2.0f };
+            jassert(azimuthSpan >= 0.0f && azimuthSpan <= 1.0f);
+            auto const zenithSpan{ message[4].getFloat32() * 2.0f };
+            jassert(zenithSpan >= 0.0f && zenithSpan <= 1.0f);
             auto const length{ message[5].getFloat32() };
 
             [[maybe_unused]] auto const gain{ message[6].getFloat32() };

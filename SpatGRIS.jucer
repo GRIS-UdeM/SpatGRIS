@@ -99,6 +99,7 @@
         <FILE id="myBXNh" name="LogicStrucs.hpp" compile="0" resource="0" file="Source/LogicStrucs.hpp"/>
         <FILE id="XZJcvv" name="PolarVector.cpp" compile="1" resource="0" file="Source/PolarVector.cpp"/>
         <FILE id="v4qTK2" name="PolarVector.h" compile="0" resource="0" file="Source/PolarVector.h"/>
+        <FILE id="gaSzyY" name="Triplet.hpp" compile="0" resource="0" file="Source/Triplet.hpp"/>
       </GROUP>
       <GROUP id="{45A32A71-2629-205C-304E-C1093B6D3F59}" name="UI">
         <GROUP id="{202AE941-C78E-5F46-CB31-EA8A544A343C}" name="Secondary Windows">

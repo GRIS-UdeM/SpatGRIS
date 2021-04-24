@@ -25,13 +25,10 @@
 juce::String const SourceVuMeterComponent::NO_DIRECT_OUT_TEXT = "-";
 
 //==============================================================================
-LevelBox::LevelBox(SmallGrisLookAndFeel & lookAndFeel) : mLookAndFeel(lookAndFeel)
-{
-}
-
-//==============================================================================
 void LevelBox::setBounds(juce::Rectangle<int> const & newBounds)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     auto const shouldRecomputeImages{ newBounds.getWidth() != getBounds().getWidth()
                                       || newBounds.getHeight() != getBounds().getHeight() };
 
@@ -92,25 +89,34 @@ void LevelBox::setBounds(juce::Rectangle<int> const & newBounds)
 //==============================================================================
 void LevelBox::paint(juce::Graphics & g)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    if (mIsMuted) {
+        g.drawImage(mVuMeterMutedBit, 0, 0, WIDTH, HEIGHT, 0, 0, WIDTH, HEIGHT);
+        return;
+    }
+
     if (mLevel <= MIN_LEVEL_COMP) {
         g.drawImage(mVuMeterBackBit, 0, 0, WIDTH, HEIGHT, 0, 0, WIDTH, HEIGHT);
-        g.drawImage(mVuMeterMutedBit, 0, 0, WIDTH, HEIGHT, 0, 0, WIDTH, HEIGHT);
-    } else {
-        auto const h = static_cast<int>(mLevel.get() * -2.33333334f);
-        auto const rel = HEIGHT - h;
-        g.drawImage(mVuMeterBit, 0, h, WIDTH, rel, 0, h, WIDTH, rel);
-        g.drawImage(mVuMeterBackBit, 0, 0, WIDTH, h, 0, 0, WIDTH, h);
-        if (mIsClipping) {
-            g.setColour(juce::Colour::fromHSV(0.0, 1, 0.75, 1));
-            juce::Rectangle<float> const clipRect{ 0.5, 0.5, static_cast<float>(getWidth() - 1), 5 };
-            g.fillRect(clipRect);
-        }
+        return;
+    }
+
+    auto const h = static_cast<int>(mLevel.get() * -2.33333334f);
+    auto const rel = HEIGHT - h;
+    g.drawImage(mVuMeterBit, 0, h, WIDTH, rel, 0, h, WIDTH, rel);
+    g.drawImage(mVuMeterBackBit, 0, 0, WIDTH, h, 0, 0, WIDTH, h);
+    if (mIsClipping) {
+        g.setColour(juce::Colour::fromHSV(0.0, 1, 0.75, 1));
+        juce::Rectangle<float> const clipRect{ 0.5, 0.5, static_cast<float>(getWidth() - 1), 5 };
+        g.fillRect(clipRect);
     }
 }
 
 //==============================================================================
 void LevelBox::mouseDown(juce::MouseEvent const & e)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     juce::Rectangle<int> const hitBox{ 0, 0, getWidth(), 20 };
     if (hitBox.contains(e.getPosition())) {
         resetClipping();
@@ -129,13 +135,15 @@ void LevelBox::resetClipping()
 //==============================================================================
 void LevelBox::setLevel(dbfs_t const level)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     auto const & clippedLevel{ std::clamp(level, MIN_LEVEL_COMP, MAX_LEVEL_COMP) };
 
     if (clippedLevel == mLevel) {
         return;
     }
 
-    if (clippedLevel > level) {
+    if (level > MAX_LEVEL_COMP) {
         mIsClipping = true;
     }
     mLevel = clippedLevel;
@@ -144,10 +152,24 @@ void LevelBox::setLevel(dbfs_t const level)
 }
 
 //==============================================================================
+void LevelBox::setMuted(bool const muted)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    if (muted == mIsMuted) {
+        return;
+    }
+    mIsMuted = muted;
+    repaint();
+}
+
+//==============================================================================
 AbstractVuMeterComponent::AbstractVuMeterComponent(int const channel, SmallGrisLookAndFeel & lookAndFeel)
     : mLookAndFeel(lookAndFeel)
     , mLevelBox(lookAndFeel)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     // Label
     mIdButton.setButtonText(juce::String{ channel });
     mIdButton.setSize(22, 17);
@@ -185,10 +207,13 @@ AbstractVuMeterComponent::AbstractVuMeterComponent(int const channel, SmallGrisL
 }
 
 //==============================================================================
-void AbstractVuMeterComponent::setState(PortState const state)
+void AbstractVuMeterComponent::setState(PortState const state, bool const soloMode)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     mSoloToggleButton.setToggleState(state == PortState::solo, juce::dontSendNotification);
     mMuteToggleButton.setToggleState(state == PortState::muted, juce::dontSendNotification);
+    mLevelBox.setMuted(soloMode ? state != PortState::solo : state == PortState::muted);
 
     repaint();
 }
@@ -196,6 +221,8 @@ void AbstractVuMeterComponent::setState(PortState const state)
 //==============================================================================
 void SpeakerVuMeterComponent::setSelected(bool const value)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     if (value) {
         mIdButton.setColour(juce::TextButton::textColourOnId, mLookAndFeel.getWinBackgroundColour());
         mIdButton.setColour(juce::TextButton::textColourOffId, mLookAndFeel.getWinBackgroundColour());
@@ -211,6 +238,8 @@ void SpeakerVuMeterComponent::setSelected(bool const value)
 //==============================================================================
 void SpeakerVuMeterComponent::buttonClicked(juce::Button * button)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     if (button == &mMuteToggleButton) {
         auto const newState{ mMuteToggleButton.getToggleState() ? PortState::muted : PortState::normal };
         mOwner.handleSpeakerStateChanged(mOutputPatch, newState);
@@ -225,6 +254,8 @@ void SpeakerVuMeterComponent::buttonClicked(juce::Button * button)
 //==============================================================================
 void AbstractVuMeterComponent::setBounds(juce::Rectangle<int> const & newBounds)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     static constexpr auto LEVEL_SIZE{ LevelBox::HEIGHT };
 
     juce::Component::setBounds(newBounds);
@@ -255,6 +286,8 @@ SourceVuMeterComponent::SourceVuMeterComponent(source_index_t const sourceIndex,
     , mSourceIndex(sourceIndex)
     , mOwner(owner)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     mDirectOutButton.setSize(22, 17);
     mDirectOutButton.setColour(juce::Label::textColourId, lookAndFeel.getFontColour());
     mDirectOutButton.setLookAndFeel(&lookAndFeel);
@@ -269,6 +302,8 @@ SourceVuMeterComponent::SourceVuMeterComponent(source_index_t const sourceIndex,
 //==============================================================================
 void SourceVuMeterComponent::setDirectOut(tl::optional<output_patch_t> const outputPatch)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     // TODO : the following code always results in some app-crashing invalid string when the optional holds a value. Why
     // is that ? Is it possible that the perfect-forwarding of a juce::String does something weird ?
 
@@ -284,12 +319,16 @@ void SourceVuMeterComponent::setDirectOut(tl::optional<output_patch_t> const out
 //==============================================================================
 void SourceVuMeterComponent::setSourceColour(juce::Colour const colour)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     mIdButton.setColour(juce::TextButton::buttonColourId, colour);
 }
 
 //==============================================================================
 void SourceVuMeterComponent::buttonClicked(juce::Button * button)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     if (button == &mMuteToggleButton) {
         muteButtonClicked();
     } else if (button == &mSoloToggleButton) {
@@ -305,6 +344,8 @@ void SourceVuMeterComponent::buttonClicked(juce::Button * button)
 //==============================================================================
 void SourceVuMeterComponent::setBounds(const juce::Rectangle<int> & newBounds)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     AbstractVuMeterComponent::setBounds(newBounds);
 
     juce::Rectangle<int> const directOutButtonBounds{ 0,
@@ -317,6 +358,8 @@ void SourceVuMeterComponent::setBounds(const juce::Rectangle<int> & newBounds)
 //==============================================================================
 void SourceVuMeterComponent::changeListenerCallback(juce::ChangeBroadcaster * source)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     auto * colorSelector{ dynamic_cast<juce::ColourSelector *>(source) };
     jassert(colorSelector);
     if (colorSelector != nullptr) {
@@ -327,6 +370,8 @@ void SourceVuMeterComponent::changeListenerCallback(juce::ChangeBroadcaster * so
 //==============================================================================
 void SourceVuMeterComponent::muteButtonClicked() const
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     auto const newState{ mMuteToggleButton.getToggleState() ? PortState::muted : PortState::normal };
     mOwner.handleSourceStateChanged(mSourceIndex, newState);
 }
@@ -334,6 +379,8 @@ void SourceVuMeterComponent::muteButtonClicked() const
 //==============================================================================
 void SourceVuMeterComponent::soloButtonClicked() const
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     auto const newState{ mSoloToggleButton.getToggleState() ? PortState::solo : PortState::normal };
     mOwner.handleSourceStateChanged(mSourceIndex, newState);
 }
@@ -341,6 +388,8 @@ void SourceVuMeterComponent::soloButtonClicked() const
 //==============================================================================
 void SourceVuMeterComponent::colorSelectorButtonClicked()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     auto * colourSelector{ new juce::ColourSelector{} };
     colourSelector->setName("background");
     colourSelector->setCurrentColour(mIdButton.findColour(juce::TextButton::buttonColourId));
@@ -354,6 +403,8 @@ void SourceVuMeterComponent::colorSelectorButtonClicked()
 //==============================================================================
 void SourceVuMeterComponent::directOutButtonClicked() const
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     juce::PopupMenu menu{};
     static constexpr auto CHOICE_NOT_DIRECT_OUT = std::numeric_limits<int>::min();
     static constexpr auto CHOICE_CANCELED = 0;
@@ -394,5 +445,7 @@ SpeakerVuMeterComponent::SpeakerVuMeterComponent(output_patch_t const outputPatc
     , mOutputPatch(outputPatch)
     , mOwner(owner)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     setSelected(false);
 }

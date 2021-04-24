@@ -3,6 +3,7 @@
 #include "AudioStructs.hpp"
 #include "LogicStrucs.hpp"
 #include "SpatMode.hpp"
+#include "Triplet.hpp"
 
 //==============================================================================
 class AbstractSpatAlgorithm

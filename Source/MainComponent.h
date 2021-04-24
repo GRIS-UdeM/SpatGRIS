@@ -37,6 +37,7 @@
 #include "SettingsWindow.h"
 #include "SpeakerViewComponent.h"
 #include "StrongTypes.hpp"
+#include "Triplet.hpp"
 #include "VuMeterComponent.h"
 #include "constants.hpp"
 
@@ -235,10 +236,6 @@ public:
 
     [[nodiscard]] AudioProcessor & getAudioProcessor() { return *mAudioProcessor; }
     [[nodiscard]] AudioProcessor const & getAudioProcessor() const { return *mAudioProcessor; }
-
-    // VBAP triplets.
-    [[nodiscard]] juce::Array<Triplet> & getTriplets() { return mTriplets; }
-    [[nodiscard]] juce::Array<Triplet> const & getTriplets() const { return mTriplets; }
 
     // Mute - solo.
     void setSourceState(source_index_t sourceIndex, PortState state);

@@ -14,13 +14,6 @@
 #include "StrongTypes.hpp"
 #include "narrow.hpp"
 
-/* Linked-list of all loudspeakers. */
-struct TripletListNode {
-    int tripletSpeakerNumber[3];   /* Triplet speaker numbers */
-    float tripletInverseMatrix[9]; /* Triplet inverse matrix */
-    TripletListNode * nextTriplet; /* Next triplet */
-};
-
 struct TripletData {
     int tripletSpeakerNumber[3];   /* Triplet speaker numbers */
     float tripletInverseMatrix[9]; /* Triplet inverse matrix */
@@ -145,10 +138,9 @@ static void spreadit_azi_ele(SourceData const & source, SpeakersSpatGains & gain
     static constexpr auto num = 4;
     degrees_t newAzimuth;
     degrees_t newElevation;
-    float comp;
     int const cnt = data.numSpeakers;
-    SpeakersSpatGains tmp_gains{};
     float sum = 0.0f;
+    SpeakersSpatGains tmp_gains{};
 
     auto const sp_azi = std::clamp(source.azimuthSpan, 0.0f, 1.0f);
     auto const sp_ele = std::clamp(source.zenithSpan, 0.0f, 1.0f);
@@ -160,10 +152,10 @@ static void spreadit_azi_ele(SourceData const & source, SpeakersSpatGains & gain
     auto * rawGains{ gains.data() };
 
     for (int i{}; i < num; ++i) {
-        auto const iFloat{ degrees_t{ narrow<degrees_t::type>(i) } };
-        comp = std::pow(10.0f, ((iFloat + degrees_t{ 1.0f }) * -3.0f * 0.05f).get());
-        auto const azimuthDev = (iFloat + degrees_t{ 1.0f }) * sp_azi * 45.0f;
-        auto const elevationDev = (iFloat + degrees_t{ 1.0f }) * sp_ele * 22.5f;
+        auto const iFloat{ narrow<float>(i) };
+        auto const compensation = std::pow(10.0f, (iFloat + 1.0f) * -3.0f * 0.05f);
+        auto const azimuthDev = degrees_t{ 45.0f } * (iFloat + 1.0f) * sp_azi;
+        auto const elevationDev = degrees_t{ 22.5f } * (iFloat + 1.0f) * sp_ele;
         for (int k{}; k < kNum; ++k) {
             switch (k) {
             case 0:
@@ -202,8 +194,8 @@ static void spreadit_azi_ele(SourceData const & source, SpeakersSpatGains & gain
                 jassertfalse;
             }
 
+            newElevation = std::clamp(newElevation, degrees_t{}, HALF_PI.toDegrees());
             newAzimuth = newAzimuth.centered();
-            newElevation = newElevation.centered();
             PolarVector const spreadAngle{ newAzimuth, newElevation, 1.0f };
             auto const spreadCartesian{ spreadAngle.toCartesian() };
             compute_gains(data.numTriplets,
@@ -212,17 +204,21 @@ static void spreadit_azi_ele(SourceData const & source, SpeakersSpatGains & gain
                           data.numSpeakers,
                           spreadCartesian,
                           data.dimension);
-            auto const * rawTmpGains{ tmp_gains.data() };
-            for (int j{}; j < cnt; ++j) {
-                rawGains[j] += rawTmpGains[j] * comp;
-            }
+            std::transform(gains.cbegin(),
+                           gains.cend(),
+                           tmp_gains.cbegin(),
+                           gains.begin(),
+                           [compensation](float const a, float const b) { return a + b * compensation; });
+            // for (int j{}; j < cnt; ++j) {
+            //    rawGains[j] += rawTmpGains[j] * comp;
+            //}
         }
     }
 
     if (sp_azi > 0.8f && sp_ele > 0.8f) {
-        comp = (sp_azi - 0.8f) / 0.2f * (sp_ele - 0.8f) / 0.2f * 10.0f;
+        auto const compensation = (sp_azi - 0.8f) / 0.2f * (sp_ele - 0.8f) / 0.2f * 10.0f;
         for (int i{}; i < data.numOutputPatches; ++i) {
-            rawGains[data.outputPatches[i].get() - 1] += comp;
+            rawGains[data.outputPatches[i].get() - 1] += compensation;
         }
     }
 
@@ -235,103 +231,6 @@ static void spreadit_azi_ele(SourceData const & source, SpeakersSpatGains & gain
         ind = data.outputPatches[i].get() - 1;
         rawGains[ind] /= sum;
     }
-}
-
-static void spreadit_azi_ele_flip_y_z(degrees_t /*azi*/,
-                                      degrees_t /*ele*/,
-                                      float /*sp_azi*/,
-                                      float /*sp_ele*/,
-                                      VbapData * const /*data*/) noexcept
-{
-    jassertfalse;
-    // degrees_t newAzimuth{};
-    // degrees_t newElevation{};
-    // float comp;
-    // auto const cnt = data->numSpeakers;
-    // std::array<float, MAX_OUTPUTS> tmp_gains{};
-    // float sum = 0.0;
-
-    // sp_azi = std::clamp(sp_azi, 0.0f, 1.0f);
-    // sp_ele = std::clamp(sp_ele, 0.0f, 1.0f);
-
-    //// If both sp_azi and sp_ele are active, we want to put a virtual source at
-    //// (azi, ele +/- eledev) and (azi +/- azidev, ele) locations.
-    // auto const kNum{ sp_azi > 0.0f && sp_ele > 0.0f ? 8 : 4 };
-
-    // static constexpr auto NUM = 4;
-    // for (int i{}; i < NUM; ++i) {
-    //    auto const iFloat{ static_cast<float>(i) };
-    //    comp = std::pow(10.0f, (iFloat + 1.0f) * -3.0f * 0.05f);
-    //    degrees_t const azimuthDev{ (iFloat + 1.0f) * sp_azi * 45.0f };
-    //    degrees_t const elevationDev{ (iFloat + 1.0f) * sp_ele * 22.5f };
-    //    for (int k{}; k < kNum; ++k) {
-    //        if (k == 0) {
-    //            newAzimuth = data->angularDirection.azimuth + azimuthDev;
-    //            newElevation = data->angularDirection.elevation + elevationDev;
-    //        }
-    //        else if (k == 1) {
-    //            newAzimuth = data->angularDirection.azimuth - azimuthDev;
-    //            newElevation = data->angularDirection.elevation - elevationDev;
-    //        }
-    //        else if (k == 2) {
-    //            newAzimuth = data->angularDirection.azimuth + azimuthDev;
-    //            newElevation = data->angularDirection.elevation - elevationDev;
-    //        }
-    //        else if (k == 3) {
-    //            newAzimuth = data->angularDirection.azimuth - azimuthDev;
-    //            newElevation = data->angularDirection.elevation + elevationDev;
-    //        }
-    //        else if (k == 4) {
-    //            newAzimuth = data->angularDirection.azimuth;
-    //            newElevation = data->angularDirection.elevation + elevationDev;
-    //        }
-    //        else if (k == 5) {
-    //            newAzimuth = data->angularDirection.azimuth;
-    //            newElevation = data->angularDirection.elevation - elevationDev;
-    //        }
-    //        else if (k == 6) {
-    //            newAzimuth = data->angularDirection.azimuth + azimuthDev;
-    //            newElevation = data->angularDirection.elevation;
-    //        }
-    //        else if (k == 7) {
-    //            newAzimuth = data->angularDirection.azimuth - azimuthDev;
-    //            newElevation = data->angularDirection.elevation;
-    //        }
-    //        newAzimuth = newAzimuth.centered();
-    //        newElevation = newElevation.centered();
-    //        PolarVector const spreadAngle{ newAzimuth, newElevation, 1.0f };
-    //        CartesianVector spreadCartesian = spreadAngle.toCartesian();
-    //        auto const tmp = spreadCartesian.z;
-    //        spreadCartesian.z = spreadCartesian.y;
-    //        spreadCartesian.y = tmp;
-    //        compute_gains(data->numTriplets,
-    //            data->speakerSets,
-    //            tmp_gains,
-    //            data->numSpeakers,
-    //            spreadCartesian,
-    //            data->dimension);
-    //        for (int j{}; j < cnt; ++j) {
-    //            data->gains[j] += tmp_gains[j] * comp;
-    //        }
-    //    }
-    //}
-
-    // if (sp_azi > 0.8f && sp_ele > 0.8f) {
-    //    comp = (sp_azi - 0.8f) / 0.2f * (sp_ele - 0.8f) / 0.2f * 10.0f;
-    //    for (int i{}; i < data->numOutputPatches; ++i) {
-    //        data->gains[data->outputPatches[i].get() - 1] += comp;
-    //    }
-    //}
-
-    // for (int i{}; i < data->numOutputPatches; ++i) {
-    //    auto const index = data->outputPatches[i].get() - 1;
-    //    sum += (data->gains[index] * data->gains[index]);
-    //}
-    // sum = std::sqrt(sum);
-    // for (int i{}; i < data->numOutputPatches; ++i) {
-    //    auto const index = data->outputPatches[i].get() - 1;
-    //    data->gains[index] /= sum;
-    //}
 }
 
 static void spreadit_azi(SourceData const & source, SpeakersSpatGains & gains, VbapData & data)
@@ -376,78 +275,6 @@ static void spreadit_azi(SourceData const & source, SpeakersSpatGains & gains, V
     for (i = 0; i < cnt; i++) {
         rawGains[i] /= sum;
     }
-}
-
-static void spreadit_azi_flip_y_z(degrees_t /*azi*/, float /*sp_azimuth*/, VbapData * /*data*/)
-{
-    jassertfalse;
-    /*sp_azimuth = std::clamp(sp_azimuth, 0.0f, 1.0f);
-
-    static constexpr auto NUM = 4;
-    std::array<float, MAX_OUTPUTS> tmp_gains{};
-    int const cnt = data->numSpeakers;
-    for (int i = 0; i < NUM; i++) {
-        auto const comp = std::pow(10.0f, (i + 1) * -3.0f * 0.05f);
-        degrees_t const azimuthDev{ (i + 1) * sp_azimuth * 45.0f };
-        for (int k = 0; k < 2; k++) {
-            auto newAzimuth
-                = k == 0 ? data->angularDirection.azimuth + azimuthDev : data->angularDirection.azimuth - azimuthDev;
-            newAzimuth = newAzimuth.centered();
-            PolarVector const spreadAngle{ newAzimuth, degrees_t{}, 1.0f };
-            auto spreadCartesian = spreadAngle.toCartesian();
-            auto tmp = spreadCartesian.z;
-            spreadCartesian.z = spreadCartesian.y;
-            spreadCartesian.y = tmp;
-            compute_gains(data->numTriplets,
-                data->speakerSets,
-                tmp_gains,
-                data->numSpeakers,
-                spreadCartesian,
-                data->dimension);
-            for (int j = 0; j < cnt; j++) {
-                data->gains[j] += (tmp_gains[j] * comp);
-            }
-        }
-    }
-
-    float sum = 0.0f;
-    for (int i = 0; i < cnt; i++) {
-        sum += (data->gains[i] * data->gains[i]);
-    }
-    sum = std::sqrt(sum);
-    for (int i = 0; i < cnt; i++) {
-        data->gains[i] /= sum;
-    }*/
-}
-
-void free_speakers_setup(SpeakersSetup * const setup) noexcept
-{
-    free(setup->azimuth);
-    free(setup->elevation);
-    free(setup);
-}
-
-SpeakersSetup *
-    load_speakers_setup(int const count, degrees_t const * const azimuth, degrees_t const * const elevation) noexcept
-{
-    auto * setup = new SpeakersSetup;
-
-    if (count < 3) {
-        fprintf(stderr, "Too few loudspeakers %d\n", count);
-        delete setup;
-        exit(-1);
-    }
-
-    // TODO: dangerous memory manipulations
-    setup->azimuth = static_cast<degrees_t *>(calloc(count, sizeof(degrees_t)));
-    setup->elevation = static_cast<degrees_t *>(calloc(count, sizeof(degrees_t)));
-    for (int i{}; i < count; ++i) {
-        setup->azimuth[i] = azimuth[i];
-        setup->elevation[i] = elevation[i];
-    }
-    setup->dimension = 3;
-    setup->count = count;
-    return setup;
 }
 
 /*
@@ -520,11 +347,7 @@ static int calc_2D_inv_tmatrix(radians_t const azi1, radians_t const azi2, float
 static void
     choose_ls_tuplets(std::array<LoudSpeaker, MAX_OUTPUTS> & speakers, TripletList & triplets, int const numSpeakers)
 {
-    std::array<int, MAX_OUTPUTS> exist;
-    for (int i{}; i < MAX_OUTPUTS; ++i) {
-        exist[i] = 0;
-    }
-
+    std::array<int, MAX_OUTPUTS> exist{};
     std::array<int, MAX_OUTPUTS> sortedSpeakers;
     /* Sort loudspeakers according their azimuth angle. */
     sort_2D_lss(speakers, sortedSpeakers, numSpeakers);
@@ -611,7 +434,6 @@ static void choose_ls_triplets(std::array<LoudSpeaker, MAX_OUTPUTS> const & spea
                                TripletList & triplets,
                                int const numSpeakers) noexcept
 {
-    static constexpr size_t MAGIC = MAX_OUTPUTS * (MAX_OUTPUTS - 1) / 2;
     jassert(numSpeakers > 0);
 
     /*
@@ -825,16 +647,6 @@ VbapData * init_vbap_from_speakers(std::array<LoudSpeaker, MAX_OUTPUTS> & speake
     return data;
 }
 
-void free_vbap_data(VbapData * const data) noexcept
-{
-    if (data != nullptr) {
-        if (data->speakerSets != nullptr) {
-            free(data->speakerSets);
-        }
-        free(data);
-    }
-}
-
 void vbap2(SourceData const & source, SpeakersSpatGains & gains, VbapData & data) noexcept
 {
     int i;
@@ -855,41 +667,6 @@ void vbap2(SourceData const & source, SpeakersSpatGains & gains, VbapData & data
             spreadit_azi(source, gains, data);
         }
     }
-}
-
-void vbap2_flip_y_z(degrees_t const /*azimuth*/,
-                    degrees_t const /*elevation*/,
-                    float const /*spAzimuth*/,
-                    float const /*spElevation*/,
-                    VbapData * /*data*/) noexcept
-{
-    jassertfalse;
-    // data->angularDirection.azimuth = azimuth;
-    // data->angularDirection.elevation = elevation;
-    // data->angularDirection.length = 1.0f;
-    // data->cartesianDirection = data->angularDirection.toCartesian();
-    // auto const tmp = data->cartesianDirection.z;
-    // data->cartesianDirection.z = data->cartesianDirection.y;
-    // data->cartesianDirection.y = tmp;
-    // for (int i{}; i < data->numSpeakers; ++i) {
-    //    data->gains[i] = 0.0f;
-    //}
-    // compute_gains(data->numTriplets,
-    //    data->speakerSets,
-    //    data->gains,
-    //    data->numSpeakers,
-    //    data->cartesianDirection,
-    //    data->dimension);
-    // if (data->dimension == 3) {
-    //    if (spAzimuth > 0 || spElevation > 0) {
-    //        spreadit_azi_ele_flip_y_z(azimuth, elevation, spAzimuth, spElevation, data);
-    //    }
-    //}
-    // else {
-    //    if (spAzimuth > 0) {
-    //        spreadit_azi_flip_y_z(azimuth, spAzimuth, data);
-    //    }
-    //}
 }
 
 /* Selects a vector base of a virtual source.
@@ -950,8 +727,6 @@ static void compute_gains(int const speaker_set_am,
         sets[j].setGains[2] = 1.0;
     }
 
-    memset(gains.data(), 0, numSpeakers * sizeof(float));
-
     auto * rawGains{ gains.data() };
     rawGains[sets[j].speakerNos[0] - 1] = sets[j].setGains[0];
     rawGains[sets[j].speakerNos[1] - 1] = sets[j].setGains[1];
@@ -964,15 +739,21 @@ static void compute_gains(int const speaker_set_am,
     }
 }
 
-int vbap_get_triplets(VbapData const * const data, int *** triplets)
+juce::Array<Triplet> vbap_get_triplets(VbapData const & data)
 {
-    int const num = data->numTriplets;
-    *triplets = (int **)malloc(num * sizeof(int *));
+    int const num = data.numTriplets;
+    juce::Array<Triplet> result{};
+    result.ensureStorageAllocated(num);
     for (int i = 0; i < num; i++) {
-        (*triplets)[i] = (int *)malloc(3 * sizeof(int));
-        (*triplets)[i][0] = data->speakerSets[i].speakerNos[0];
-        (*triplets)[i][1] = data->speakerSets[i].speakerNos[1];
-        (*triplets)[i][2] = data->speakerSets[i].speakerNos[2];
+        Triplet triplet{};
+        triplet.id1 = data.outputPatches[data.speakerSets[i].speakerNos[0] - 1];
+        triplet.id2 = data.outputPatches[data.speakerSets[i].speakerNos[1] - 1];
+        triplet.id3 = data.outputPatches[data.speakerSets[i].speakerNos[2] - 1];
+
+        jassert(LEGAL_OUTPUT_PATCH_RANGE.contains(triplet.id1) && LEGAL_OUTPUT_PATCH_RANGE.contains(triplet.id2)
+                && LEGAL_OUTPUT_PATCH_RANGE.contains(triplet.id3));
+
+        result.add(triplet);
     }
-    return num;
+    return result;
 }

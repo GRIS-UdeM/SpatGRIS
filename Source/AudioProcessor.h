@@ -22,7 +22,6 @@
 #include <JuceHeader.h>
 
 #include "AudioStructs.hpp"
-#include "StaticMap.hpp"
 #include "TaggedAudioBuffer.hpp"
 
 class SpeakerModel;

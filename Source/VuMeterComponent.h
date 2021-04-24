@@ -47,11 +47,12 @@ private:
     juce::Image mVuMeterBackBit;
     juce::Image mVuMeterMutedBit;
     bool mIsClipping{};
+    bool mIsMuted{};
     dbfs_t mLevel{};
 
 public:
     //==============================================================================
-    explicit LevelBox(SmallGrisLookAndFeel & lookAndFeel);
+    explicit LevelBox(SmallGrisLookAndFeel & lookAndFeel) : mLookAndFeel(lookAndFeel) {}
     ~LevelBox() override = default;
     //==============================================================================
     LevelBox(LevelBox const &) = delete;
@@ -62,6 +63,7 @@ public:
     void setBounds(juce::Rectangle<int> const & newBounds);
     void resetClipping();
     void setLevel(dbfs_t level);
+    void setMuted(bool muted);
     //==============================================================================
     void paint(juce::Graphics & g) override;
     void mouseDown(const juce::MouseEvent & e) override;
@@ -98,7 +100,7 @@ public:
     //==============================================================================
     void setLevel(dbfs_t const level) { mLevelBox.setLevel(level); }
     void resetClipping() { mLevelBox.resetClipping(); }
-    void setState(PortState state);
+    void setState(PortState state, bool soloMode);
     //==============================================================================
     virtual void setBounds(juce::Rectangle<int> const & newBounds);
 

@@ -19,20 +19,24 @@ VbapType getVbapType(SpeakersData const & speakers)
 //==============================================================================
 void VbapSpatAlgorithm::init(SpeakersData const & speakers)
 {
-    auto const numSpeakers{ speakers.size() };
-
     std::array<LoudSpeaker, MAX_OUTPUTS> loudSpeakers{};
     std::array<output_patch_t, MAX_OUTPUTS> outputPatches{};
     size_t index{};
+    output_patch_t maxOutputPatch{};
     for (auto const & speaker : speakers) {
+        if (speaker.value->isDirectOutOnly) {
+            continue;
+        }
+
+        maxOutputPatch = std::max(maxOutputPatch, speaker.key);
+
         loudSpeakers[index].coords = speaker.value->position;
         loudSpeakers[index].angles = speaker.value->vector;
         outputPatches[index] = speaker.key;
         ++index;
     }
     auto const dimensions{ getVbapType(speakers) == VbapType::twoD ? 2 : 3 };
-    auto const maxOutputPatch{ output_patch_t{
-        narrow<output_patch_t::type>(numSpeakers - 1 + output_patch_t::OFFSET) } };
+    auto const numSpeakers{ narrow<int>(index) };
 
     mData.reset(init_vbap_from_speakers(loudSpeakers, numSpeakers, dimensions, outputPatches, maxOutputPatch));
 }
@@ -47,6 +51,15 @@ void VbapSpatAlgorithm::computeSpeakerGains(SourceData const & source, SpeakersS
 //==============================================================================
 juce::Array<Triplet> VbapSpatAlgorithm::getTriplets() const noexcept
 {
-    jassertfalse;
-    return juce::Array<Triplet>{};
+    jassert(hasTriplets());
+    return vbap_get_triplets(*mData);
+}
+
+//==============================================================================
+bool VbapSpatAlgorithm::hasTriplets() const noexcept
+{
+    if (!mData) {
+        return false;
+    }
+    return mData->dimension == 3;
 }

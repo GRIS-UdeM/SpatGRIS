@@ -31,6 +31,8 @@ juce::Colour const SpeakerViewComponent::COLOR_SPEAKER_SELECT{ 255u, 163u, 23u }
 //==============================================================================
 void SpeakerViewComponent::initialise()
 {
+    openGLContext.setContinuousRepainting(true);
+
     glClearColor(0.0, 0.0, 0.0, 1.0);
     glColor3f(1.0, 1.0, 1.0);
 
@@ -57,8 +59,6 @@ void SpeakerViewComponent::setConfig(ViewportConfig const & config, SourcesData 
     for (auto const & source : sources) {
         mData.sources.add(source.key);
     }
-
-    repaint();
 }
 
 //==============================================================================
@@ -70,6 +70,14 @@ void SpeakerViewComponent::setCameraPosition(CartesianVector const & position) n
 }
 
 //==============================================================================
+void SpeakerViewComponent::setTriplets(juce::Array<Triplet> triplets) noexcept
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedLock const lock{ mLock };
+    mData.state.triplets = std::move(triplets);
+}
+
+//==============================================================================
 void SpeakerViewComponent::render()
 {
     static constexpr auto MIN_ZOOM = 0.3f;
@@ -78,20 +86,14 @@ void SpeakerViewComponent::render()
     static constexpr auto ZOOM_CURVE = 0.5f;
     static constexpr auto INVERSE_ZOOM_CURVE = 1.0f / ZOOM_CURVE;
 
-    static constexpr int MIN_REFRESH_INTERVAL = 16;
-
     ASSERT_OPEN_GL_THREAD;
     jassert(juce::OpenGLHelpers::isContextActive());
 
-    auto const currentTime{ glutGet(GLUT_ELAPSED_TIME) };
-    if (currentTime - mData.state.lastRenderTimeMs < MIN_REFRESH_INTERVAL) {
-        return;
-    }
-
-    auto const deciSecondsElapsed{ narrow<float>(currentTime - mData.state.lastRenderTimeMs) / 100.0f };
-
     juce::ScopedLock const lock{ mLock };
 
+    // Process zoom smoothed animation
+    auto const currentTime{ glutGet(GLUT_ELAPSED_TIME) };
+    auto const deciSecondsElapsed{ narrow<float>(currentTime - mData.state.lastRenderTimeMs) / 100.0f };
     auto const zoomToAdd{ deciSecondsElapsed * mData.state.cameraZoomVelocity };
     auto const currentZoom{ (mData.state.cameraPosition.length - MIN_ZOOM) / ZOOM_RANGE };
     auto const scaledZoom{ std::pow(currentZoom, ZOOM_CURVE) };
@@ -103,6 +105,7 @@ void SpeakerViewComponent::render()
     mData.state.cameraZoomVelocity *= std::pow(0.5f, deciSecondsElapsed);
     mData.state.lastRenderTimeMs = currentTime;
 
+    // Init OpenGL context
     glEnable(GL_DEPTH_TEST);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -489,11 +492,10 @@ void SpeakerViewComponent::drawTripletConnection() const
 {
     ASSERT_OPEN_GL_THREAD;
 
-    auto const & data{ mMainContentComponent.getData() };
-    for (auto const & triplet : mMainContentComponent.getTriplets()) {
-        auto const & spk1{ data.speakerSetup.speakers[triplet.id1].position };
-        auto const & spk2{ data.speakerSetup.speakers[triplet.id2].position };
-        auto const & spk3{ data.speakerSetup.speakers[triplet.id3].position };
+    for (auto const & triplet : mData.state.triplets) {
+        auto const & spk1{ mData.config.speakers[triplet.id1].position };
+        auto const & spk2{ mData.config.speakers[triplet.id2].position };
+        auto const & spk3{ mData.config.speakers[triplet.id3].position };
 
         glLineWidth(1.0f);
         glBegin(GL_LINES);
@@ -577,7 +579,7 @@ void SpeakerViewComponent::drawVbapSpan(ViewportSourceData const & source)
     auto const & length{ polarCoords.length };
 
     for (int i{}; i < NUM; ++i) {
-        auto const aziDev{ azimuth * narrow<float>(i) * 0.5f * 0.42f };
+        radians_t const aziDev{ source.azimuthSpan * narrow<float>(i) * 0.42f };
         for (int j{}; j < 2; ++j) {
             auto newAzimuth{ j ? azimuth + aziDev : azimuth - aziDev };
 
@@ -590,7 +592,7 @@ void SpeakerViewComponent::drawVbapSpan(ViewportSourceData const & source)
                 glVertex3f(vertex.x, vertex.y, vertex.z);
             }
             for (int k{}; k < 4; ++k) {
-                radians_t const eleDev{ (static_cast<float>(k) + 1.0f) * source.zenithSpan * 2.0f * 0.38f };
+                radians_t const eleDev{ (static_cast<float>(k) + 1.0f) * source.zenithSpan * 0.38f };
                 for (int l{}; l < 2; ++l) {
                     auto newElevation{ l ? elevation + eleDev : elevation - eleDev };
                     newElevation = std::clamp(newElevation, radians_t{}, HALF_PI);

@@ -704,17 +704,6 @@ void MainContentComponent::handleShowTriplets()
         return;
     }
 
-    /*if (!validateShowTriplets() && newState) {
-        juce::AlertWindow alert("Can't draw all triplets !",
-                                "Maybe you didn't compute your current speaker setup ?",
-                                juce::AlertWindow::InfoIcon);
-        alert.setLookAndFeel(&mLookAndFeel);
-        alert.addButton("Close", 0, juce::KeyPress(juce::KeyPress::returnKey));
-        alert.runModalLoop();
-        mSpeakerViewComponent->setShowTriplets(false);
-        return;
-    }*/
-
     mData.project.viewSettings.showSpeakerTriplets = newState;
     updateViewportConfig();
 }
@@ -759,14 +748,26 @@ void MainContentComponent::handleResetInputPositions()
     juce::ScopedWriteLock const mainLock{ mLock };
 
     auto & viewPortData{ mSpeakerViewComponent->getData() };
+    auto & gainMatrix{ mAudioProcessor->getAudioData().spatGainMatrix };
     for (auto const source : mData.project.sources) {
+        // reset positions
         source.value->position = tl::nullopt;
         source.value->vector = tl::nullopt;
 
-        auto & exchanger{ viewPortData.sources[source.key] };
-        auto * sourceTicket{ exchanger.acquire() };
-        sourceTicket->get() = tl::nullopt;
-        exchanger.setMostRecent(sourceTicket);
+        {
+            // reset 3d view
+            auto & exchanger{ viewPortData.sources[source.key] };
+            auto * sourceTicket{ exchanger.acquire() };
+            sourceTicket->get() = tl::nullopt;
+            exchanger.setMostRecent(sourceTicket);
+        }
+        {
+            // reset gain matrix
+            auto & exchanger{ gainMatrix[source.key] };
+            auto * gains{ exchanger.acquire() };
+            gains->get() = SpeakersSpatGains{};
+            exchanger.setMostRecent(gains);
+        }
     }
 }
 
@@ -1240,8 +1241,15 @@ void MainContentComponent::handleSourcePositionChanged(source_index_t const sour
         return;
     }
 
+    auto const normalizedPosition{ mData.appData.spatMode == SpatMode::lbap ? newPosition : newPosition.normalized() };
     auto & source{ mData.project.sources[sourceIndex] };
-    source.vector = mData.appData.spatMode == SpatMode::lbap ? newPosition : newPosition.normalized();
+
+    if (normalizedPosition == source.vector && newAzimuthSpan == source.azimuthSpan
+        && newZenithSpan == source.zenithSpan) {
+        return;
+    }
+
+    source.vector = normalizedPosition;
     source.position = source.vector->toCartesian();
     source.azimuthSpan = newAzimuthSpan;
     source.zenithSpan = newZenithSpan;
@@ -1256,6 +1264,7 @@ void MainContentComponent::handleSourcePositionChanged(source_index_t const sour
 //==============================================================================
 void MainContentComponent::resetSourcePosition(source_index_t const sourceIndex)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
     mData.project.sources[sourceIndex].position = tl::nullopt;
     mData.project.sources[sourceIndex].vector = tl::nullopt;
@@ -1264,6 +1273,8 @@ void MainContentComponent::resetSourcePosition(source_index_t const sourceIndex)
 //==============================================================================
 void MainContentComponent::loadDefaultSpeakerSetup(SpatMode const spatMode)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     switch (spatMode) {
     case SpatMode::vbap:
     case SpatMode::lbap:
@@ -1334,6 +1345,9 @@ void MainContentComponent::handleSetSpeakerHighPassFreq(output_patch_t const out
 //==============================================================================
 void MainContentComponent::handlePinkNoiseGainChanged(tl::optional<dbfs_t> const gain)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
     if (gain != mData.pinkNoiseLevel) {
         mData.pinkNoiseLevel = gain;
         mAudioProcessor->setAudioConfig(mData.toAudioConfig());
@@ -1344,6 +1358,7 @@ void MainContentComponent::handlePinkNoiseGainChanged(tl::optional<dbfs_t> const
 void MainContentComponent::handleSourceColorChanged(source_index_t const sourceIndex, juce::Colour const colour)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
 
     mData.project.sources[sourceIndex].colour = colour;
     mSourceVuMeterComponents[sourceIndex].setSourceColour(colour);
@@ -1353,11 +1368,17 @@ void MainContentComponent::handleSourceColorChanged(source_index_t const sourceI
 void MainContentComponent::handleSourceStateChanged(source_index_t const sourceIndex, PortState const state)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
 
     mData.project.sources[sourceIndex].state = state;
 
+    auto const isAtLeastOneSourceSolo{ std::any_of(
+        mData.project.sources.cbegin(),
+        mData.project.sources.cend(),
+        [](SourcesData::ConstNode const & node) { return node.value->state == PortState::solo; }) };
+
     mAudioProcessor->setAudioConfig(mData.toAudioConfig());
-    mSourceVuMeterComponents[sourceIndex].setState(state);
+    mSourceVuMeterComponents[sourceIndex].setState(state, isAtLeastOneSourceSolo);
 }
 
 //==============================================================================
@@ -1388,11 +1409,17 @@ void MainContentComponent::handleSpeakerSelected(juce::Array<output_patch_t> con
 void MainContentComponent::handleSpeakerStateChanged(output_patch_t const outputPatch, PortState const state)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
 
     mData.speakerSetup.speakers[outputPatch].state = state;
-
     mAudioProcessor->setAudioConfig(mData.toAudioConfig());
-    mSpeakerVuMeters[outputPatch].setState(state);
+
+    auto const isAtLeastOneSpeakerSolo{ std::any_of(
+        mData.speakerSetup.speakers.cbegin(),
+        mData.speakerSetup.speakers.cend(),
+        [](SpeakersData::ConstNode const & node) { return node.value->state == PortState::solo; }) };
+
+    mSpeakerVuMeters[outputPatch].setState(state, isAtLeastOneSpeakerSolo);
     // TODO : update 3D view ?
 }
 
@@ -1493,7 +1520,11 @@ void MainContentComponent::updateViewportConfig() const
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
-    mSpeakerViewComponent->setConfig(mData.toViewportConfig(), mData.project.sources);
+    auto const newConfig{ mData.toViewportConfig() };
+    if (newConfig.viewSettings.showSpeakerTriplets && mSpatAlgorithm->hasTriplets()) {
+        mSpeakerViewComponent->setTriplets(mSpatAlgorithm->getTriplets());
+    }
+    mSpeakerViewComponent->setConfig(newConfig, mData.project.sources);
 }
 
 //==============================================================================
