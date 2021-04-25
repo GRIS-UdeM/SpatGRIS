@@ -134,26 +134,20 @@ tl::optional<SourceData> SourceData::fromXml(juce::XmlElement const & xml)
 
     juce::StringArray const requiredTags{ XmlTags::STATE, XmlTags::COLOUR };
 
-    auto const * positionElement{ xml.getChildByName(CartesianVector::XmlTags::MAIN_TAG) };
-
-    if (positionElement == nullptr
-        || !std::all_of(requiredTags.begin(), requiredTags.end(), [&](juce::String const & tag) {
-               return xml.hasAttribute(tag);
-           })) {
+    if (!std::all_of(requiredTags.begin(), requiredTags.end(), [&](juce::String const & tag) {
+            return xml.hasAttribute(tag);
+        })) {
         return tl::nullopt;
     }
 
     auto const state{ stringToPortState(xml.getStringAttribute(XmlTags::STATE)) };
-    auto const position{ CartesianVector::fromXml(*positionElement) };
 
-    if (!state || !position) {
+    if (!state) {
         return tl::nullopt;
     }
 
     SourceData result{};
     result.state = *state;
-    result.position = *position;
-    result.vector = PolarVector::fromCartesian(*position);
     if (xml.hasAttribute(XmlTags::DIRECT_OUT)) {
         result.directOut = output_patch_t{ xml.getIntAttribute(XmlTags::DIRECT_OUT) };
     }
@@ -459,17 +453,14 @@ std::unique_ptr<juce::XmlElement> ViewSettings::toXml() const
 //==============================================================================
 tl::optional<ViewSettings> ViewSettings::fromXml(juce::XmlElement const & xml)
 {
-    juce::StringArray const requiredTags{ XmlTags::MAIN_TAG,
-                                          XmlTags::SHOW_SPEAKERS,
-                                          XmlTags::SHOW_SPEAKER_NUMBERS,
-                                          XmlTags::SHOW_SPEAKER_TRIPLETS,
-                                          XmlTags::SHOW_SPEAKER_LEVELS,
-                                          XmlTags::SHOW_SPHERE_OR_CUBE,
-                                          XmlTags::SHOW_SOURCE_ACTIVITY };
+    juce::StringArray const requiredTags{ XmlTags::SHOW_SPEAKERS,         XmlTags::SHOW_SPEAKER_NUMBERS,
+                                          XmlTags::SHOW_SPEAKER_TRIPLETS, XmlTags::SHOW_SPEAKER_LEVELS,
+                                          XmlTags::SHOW_SPHERE_OR_CUBE,   XmlTags::SHOW_SOURCE_ACTIVITY };
 
-    if (!std::all_of(requiredTags.begin(), requiredTags.end(), [&](juce::String const & tag) {
-            return xml.hasAttribute(tag);
-        })) {
+    if (xml.getTagName() != XmlTags::MAIN_TAG
+        || !std::all_of(requiredTags.begin(), requiredTags.end(), [&](juce::String const & tag) {
+               return xml.hasAttribute(tag);
+           })) {
         return tl::nullopt;
     }
 
@@ -535,7 +526,9 @@ tl::optional<SpatGrisProjectData> SpatGrisProjectData::fromXml(juce::XmlElement 
         if (!sourceData) {
             return tl::nullopt;
         }
-        auto const sourceIndex{ source_index_t{ sourceElement->getTagName().getIntValue() } };
+
+        auto const sourceIndex{ source_index_t{
+            sourceElement->getTagName().substring(SourceData::XmlTags::MAIN_TAG_PREFIX.length()).getIntValue() } };
         jassert(LEGAL_SOURCE_INDEX_RANGE.contains(sourceIndex));
         if (!LEGAL_SOURCE_INDEX_RANGE.contains(sourceIndex)) {
             return tl::nullopt;

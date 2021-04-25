@@ -454,12 +454,11 @@ void MainContentComponent::loadProject(juce::File const & file)
         return;
     }
 
-    if (!mainXmlElem->hasTagName("SpatServerGRIS_Preset") && !mainXmlElem->hasTagName("ServerGRIS_Preset")) {
+    if (mainXmlElem->hasTagName("SpeakerSetup") || mainXmlElem->hasTagName(SpeakerSetup::XmlTags::MAIN_TAG)) {
         // Wrong file type
-        auto const msg{ mainXmlElem->hasTagName("SpeakerSetup")
-                            ? "You are trying to open a Speaker Setup instead of a project file !"
-                            : "Your file is corrupted !\n" + xmlDoc.getLastParseError() };
-        juce::AlertWindow::showMessageBox(juce::AlertWindow::WarningIcon, "Error in Open Project !", msg);
+        juce::AlertWindow::showMessageBox(juce::AlertWindow::WarningIcon,
+                                          "Error in Open Project !",
+                                          "You are trying to open a Speaker Setup instead of a project file !");
         return;
     }
 
@@ -468,7 +467,7 @@ void MainContentComponent::loadProject(juce::File const & file)
         // Missing params
         juce::AlertWindow::showMessageBox(juce::AlertWindow::AlertIconType::WarningIcon,
                                           "Unable to read project file !",
-                                          "One or more mandatory parameters are missing !");
+                                          "One or more mandatory parameters are missing. Your file might be corrupt.");
         loadDefaultSpeakerSetup(SpatMode::vbap);
         return;
     }
