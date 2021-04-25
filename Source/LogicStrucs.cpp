@@ -5,6 +5,7 @@
 juce::String const SourceData::XmlTags::STATE = "STATE";
 juce::String const SourceData::XmlTags::DIRECT_OUT = "DIRECT_OUT";
 juce::String const SourceData::XmlTags::COLOUR = "COLOR";
+juce::String const SourceData::XmlTags::MAIN_TAG_PREFIX = "SOURCE_";
 
 juce::String const SpeakerHighpassData::XmlTags::MAIN_TAG = "HIGHPASS";
 juce::String const SpeakerHighpassData::XmlTags::FREQ = "FREQ";
@@ -113,7 +114,7 @@ ViewportSourceData SourceData::toViewportData(float const alpha) const
 //==============================================================================
 std::unique_ptr<juce::XmlElement> SourceData::toXml(source_index_t const index) const
 {
-    auto result{ std::make_unique<juce::XmlElement>(juce::String{ index.get() }) };
+    auto result{ std::make_unique<juce::XmlElement>(XmlTags::MAIN_TAG_PREFIX + juce::String{ index.get() }) };
 
     result->setAttribute(XmlTags::STATE, portStateToString(state));
     if (directOut) {
@@ -127,6 +128,10 @@ std::unique_ptr<juce::XmlElement> SourceData::toXml(source_index_t const index) 
 //==============================================================================
 tl::optional<SourceData> SourceData::fromXml(juce::XmlElement const & xml)
 {
+    if (!xml.getTagName().startsWith(XmlTags::MAIN_TAG_PREFIX)) {
+        return tl::nullopt;
+    }
+
     juce::StringArray const requiredTags{ XmlTags::STATE, XmlTags::COLOUR };
 
     auto const * positionElement{ xml.getChildByName(CartesianVector::XmlTags::MAIN_TAG) };

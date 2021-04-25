@@ -66,13 +66,13 @@ struct lbap_speaker {
 struct lbap_pos {
     PolarVector vector{};
     CartesianVector position{};
-    float radiusSpan{};
-    float elevationSpan{};
+    float azimuthSpan{};
+    float zenithSpan{};
 
     [[nodiscard]] constexpr bool operator==(lbap_pos const & other) const noexcept
     {
         jassert((vector == other.vector) == (position == other.position));
-        return vector == other.vector && radiusSpan == other.radiusSpan && elevationSpan == other.elevationSpan;
+        return vector == other.vector && azimuthSpan == other.azimuthSpan && zenithSpan == other.zenithSpan;
     }
     [[nodiscard]] constexpr bool operator!=(lbap_pos const & other) const noexcept { return !(*this == other); }
 };
@@ -123,4 +123,4 @@ lbap_field lbap_field_setup(SpeakersData const & speakers);
  * memory. This array can be passed to the audio processing function
  * to control the gain of the signal outputs.
  */
-SpeakersSpatGains lbap_field_compute(SourceData const & source, lbap_field const & field);
+void lbap_field_compute(SourceData const & source, SpeakersSpatGains & gains, lbap_field const & field);

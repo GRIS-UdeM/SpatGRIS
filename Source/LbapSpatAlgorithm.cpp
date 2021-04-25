@@ -9,7 +9,7 @@ void LbapSpatAlgorithm::init(SpeakersData const & speakers)
 //==============================================================================
 void LbapSpatAlgorithm::computeSpeakerGains(SourceData const & source, SpeakersSpatGains & gains) const noexcept
 {
-    lbap_field_compute(source, mData);
+    lbap_field_compute(source, gains, mData);
 }
 
 //==============================================================================

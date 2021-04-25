@@ -236,17 +236,20 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
 MainContentComponent::~MainContentComponent()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-    juce::ScopedWriteLock const lock{ mLock };
-
     mOscReceiver.reset();
-    auto const bounds{ MainWindow::getMainAppWindow()->getBounds() };
-    mData.appData.windowX = bounds.getX();
-    mData.appData.windowY = bounds.getY();
-    mData.appData.windowWidth = bounds.getWidth();
-    mData.appData.windowHeight = bounds.getHeight();
-    mData.appData.sashPosition = mVerticalLayout.getItemCurrentRelativeSize(0);
 
-    mConfiguration.save(mData.appData);
+    {
+        juce::ScopedWriteLock const lock{ mLock };
+
+        auto const bounds{ MainWindow::getMainAppWindow()->getBounds() };
+        mData.appData.windowX = bounds.getX();
+        mData.appData.windowY = bounds.getY();
+        mData.appData.windowWidth = bounds.getWidth();
+        mData.appData.windowHeight = bounds.getHeight();
+        mData.appData.sashPosition = mVerticalLayout.getItemCurrentRelativeSize(0);
+
+        mConfiguration.save(mData.appData);
+    }
 
     mSpeakerViewComponent.reset();
 }
@@ -1273,12 +1276,12 @@ void MainContentComponent::refreshSpeakerVuMeterComponents()
     mSpeakerVuMeters.clear();
 
     auto x{ 2 };
-    for (auto speaker : mData.speakerSetup.speakers) {
-        auto newVuMeter{ std::make_unique<SpeakerVuMeterComponent>(speaker.key, *this, mSmallLookAndFeel) };
+    for (auto const outputPatch : mData.speakerSetup.order) {
+        auto newVuMeter{ std::make_unique<SpeakerVuMeterComponent>(outputPatch, *this, mSmallLookAndFeel) };
         mOutputsUiBox->addAndMakeVisible(newVuMeter.get());
         juce::Rectangle<int> const bounds{ x, 20, VU_METER_WIDTH_IN_PIXELS, 200 };
         newVuMeter->setBounds(bounds);
-        mSpeakerVuMeters.add(speaker.key, std::move(newVuMeter));
+        mSpeakerVuMeters.add(outputPatch, std::move(newVuMeter));
         x += VU_METER_WIDTH_IN_PIXELS;
     }
 }

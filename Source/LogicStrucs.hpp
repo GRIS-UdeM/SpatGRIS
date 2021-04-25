@@ -99,6 +99,7 @@ struct SourceData {
         static juce::String const STATE;
         static juce::String const DIRECT_OUT;
         static juce::String const COLOUR;
+        static juce::String const MAIN_TAG_PREFIX;
     };
 };
 
