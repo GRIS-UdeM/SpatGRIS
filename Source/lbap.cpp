@@ -61,9 +61,8 @@ static std::vector<lbap_pos> lbapPositionsFromSpeakers(lbap_speaker const * spea
                    std::back_inserter(positions),
                    [](lbap_speaker const & speaker) -> lbap_pos {
                        lbap_pos result{};
-                       result.vector.azimuth = speaker.vector.azimuth;
-                       result.vector.elevation = speaker.vector.elevation;
-                       result.vector.length = speaker.vector.length;
+                       result.vector = speaker.vector;
+                       result.position = speaker.vector.toCartesian();
                        return result;
                    });
     return positions;
@@ -255,6 +254,7 @@ void lbap_field_compute(SourceData const & source, SpeakersSpatGains & gains, lb
                        tempGains.cbegin() + c + field.layers[i].speakers.size(),
                        tempGains.begin() + c,
                        [gain](float const x) { return x * gain; });
+        c += field.layers[i].speakers.size();
     }
 
     // TODO : is it where shit hits the fan ?

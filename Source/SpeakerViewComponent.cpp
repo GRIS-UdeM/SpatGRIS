@@ -679,43 +679,36 @@ void SpeakerViewComponent::drawLbapSpan(ViewportSourceData const & source)
 
     // For the same elevation as the source position.
     for (auto i{ 1 }; i <= NUM; ++i) {
-        auto const raddev{ static_cast<float>(i) / 4.0f * source.azimuthSpan * 6.0f };
+        auto const raddev{ narrow<float>(i) * source.azimuthSpan / narrow<float>(NUM - 1) };
         if (i < NUM) {
-            glVertex3f(pos.x + raddev, pos.y, pos.z + raddev);
-            glVertex3f(pos.x + raddev, pos.y, pos.z - raddev);
-            glVertex3f(pos.x - raddev, pos.y, pos.z + raddev);
-            glVertex3f(pos.x - raddev, pos.y, pos.z - raddev);
+            glVertex3f(pos.x + raddev, pos.y + raddev, pos.z);
+            glVertex3f(pos.x + raddev, pos.y - raddev, pos.z);
+            glVertex3f(pos.x - raddev, pos.y + raddev, pos.z);
+            glVertex3f(pos.x - raddev, pos.y - raddev, pos.z);
         }
         glVertex3f(pos.x + raddev, pos.y, pos.z);
         glVertex3f(pos.x - raddev, pos.y, pos.z);
-        glVertex3f(pos.x, pos.y, pos.z + raddev);
-        glVertex3f(pos.x, pos.y, pos.z - raddev);
+        glVertex3f(pos.x, pos.y + raddev, pos.z);
+        glVertex3f(pos.x, pos.y - raddev, pos.z);
     }
 
     // For all other elevation levels.
     for (int j{}; j < NUM; ++j) {
-        auto const eledev{ static_cast<float>(j + 1) / 2.0f * source.zenithSpan * 15.0f };
+        auto const eledev{ narrow<float>(j + 1) / narrow<float>(NUM) * source.zenithSpan };
         for (int k{}; k < 2; ++k) {
-            float yTmp;
-            if (k) {
-                yTmp = pos.y + eledev;
-                yTmp = yTmp > MAX_RADIUS ? MAX_RADIUS : yTmp;
-            } else {
-                yTmp = pos.y - eledev;
-                yTmp = yTmp < -MAX_RADIUS ? -MAX_RADIUS : yTmp;
-            }
+            auto const zTemp{ std::clamp(k != 0 ? pos.z + eledev : pos.z - eledev, 0.0f, 1.0f) };
             for (auto i{ 1 }; i <= NUM; ++i) {
-                auto const raddev{ static_cast<float>(i) / 4.0f * source.azimuthSpan * 6.0f };
+                auto const raddev{ narrow<float>(i) * source.azimuthSpan / narrow<float>(NUM - 1) };
                 if (i < NUM) {
-                    glVertex3f(pos.x + raddev, yTmp, pos.z + raddev);
-                    glVertex3f(pos.x + raddev, yTmp, pos.z - raddev);
-                    glVertex3f(pos.x - raddev, yTmp, pos.z + raddev);
-                    glVertex3f(pos.x - raddev, yTmp, pos.z - raddev);
+                    glVertex3f(pos.x + raddev, pos.y + raddev, zTemp);
+                    glVertex3f(pos.x + raddev, pos.y - raddev, zTemp);
+                    glVertex3f(pos.x - raddev, pos.y + raddev, zTemp);
+                    glVertex3f(pos.x - raddev, pos.y - raddev, zTemp);
                 }
-                glVertex3f(pos.x + raddev, yTmp, pos.z);
-                glVertex3f(pos.x - raddev, yTmp, pos.z);
-                glVertex3f(pos.x, yTmp, pos.z + raddev);
-                glVertex3f(pos.x, yTmp, pos.z - raddev);
+                glVertex3f(pos.x + raddev, pos.y, zTemp);
+                glVertex3f(pos.x - raddev, pos.y, zTemp);
+                glVertex3f(pos.x, pos.y + raddev, zTemp);
+                glVertex3f(pos.x, pos.y - raddev, zTemp);
             }
         }
     }

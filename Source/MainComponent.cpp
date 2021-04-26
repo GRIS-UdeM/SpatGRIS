@@ -1542,6 +1542,8 @@ void MainContentComponent::handleSpatModeChanged(SpatMode const spatMode)
 
         mSpatAlgorithm = AbstractSpatAlgorithm::make(spatMode);
         mSpatAlgorithm->init(mData.speakerSetup.speakers);
+
+        updateViewportConfig();
     }
 }
 
