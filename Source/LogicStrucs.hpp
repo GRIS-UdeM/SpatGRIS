@@ -281,6 +281,6 @@ struct SpatGrisData {
     AtomicExchanger<SourcePeaks>::Ticket * mostRecentSourcePeaks{};
     AtomicExchanger<SpeakerPeaks>::Ticket * mostRecentSpeakerPeaks{};
     //==============================================================================
-    [[nodiscard]] AudioConfig toAudioConfig() const;
+    [[nodiscard]] std::unique_ptr<AudioConfig> toAudioConfig() const;
     [[nodiscard]] ViewportConfig toViewportConfig() const noexcept;
 };

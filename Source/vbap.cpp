@@ -21,13 +21,75 @@ struct TripletData {
 
 using TripletList = std::vector<TripletData>;
 
-/* Fast-forward declarations. */
-void compute_gains(int speaker_set_am,
-                   SpeakerSet * sets,
-                   SpeakersSpatGains & gains,
-                   int numSpeakers,
-                   CartesianVector cart_dir,
-                   int dim) noexcept;
+/* Selects a vector base of a virtual source.
+ * Calculates gain factors in that base. */
+static void compute_gains(int const speaker_set_am,
+                          SpeakerSet * sets,
+                          SpeakersSpatGains & gains,
+                          int const numSpeakers,
+                          CartesianVector const cart_dir,
+                          int const dim) noexcept
+{
+    float vec[3];
+    /* Direction of the virtual source in cartesian coordinates. */
+    vec[0] = cart_dir.x;
+    vec[1] = cart_dir.y;
+    vec[2] = cart_dir.z;
+
+    for (int i = 0; i < speaker_set_am; i++) {
+        sets[i].setGains[0] = 0.0;
+        sets[i].setGains[1] = 0.0;
+        sets[i].setGains[2] = 0.0;
+        sets[i].smallestWt = 1000.0;
+        sets[i].neg_g_am = 0;
+    }
+
+    for (int i = 0; i < speaker_set_am; i++) {
+        for (int j = 0; j < dim; j++) {
+            for (int k = 0; k < dim; k++) {
+                sets[i].setGains[j] += vec[k] * sets[i].invMx[((dim * j) + k)];
+            }
+            if (sets[i].smallestWt > sets[i].setGains[j])
+                sets[i].smallestWt = sets[i].setGains[j];
+            if (sets[i].setGains[j] < -0.05)
+                sets[i].neg_g_am++;
+        }
+    }
+
+    int j = 0;
+    float tmp = sets[0].smallestWt;
+    int tmp2 = sets[0].neg_g_am;
+    for (int i = 1; i < speaker_set_am; i++) {
+        if (sets[i].neg_g_am < tmp2) {
+            tmp = sets[i].smallestWt;
+            tmp2 = sets[i].neg_g_am;
+            j = i;
+        } else if (sets[i].neg_g_am == tmp2) {
+            if (sets[i].smallestWt > tmp) {
+                tmp = sets[i].smallestWt;
+                tmp2 = sets[i].neg_g_am;
+                j = i;
+            }
+        }
+    }
+
+    if (sets[j].setGains[0] <= 0.0 && sets[j].setGains[1] <= 0.0 && sets[j].setGains[2] <= 0.0) {
+        sets[j].setGains[0] = 1.0;
+        sets[j].setGains[1] = 1.0;
+        sets[j].setGains[2] = 1.0;
+    }
+
+    auto * rawGains{ gains.data() };
+    rawGains[sets[j].speakerNos[0] - 1] = sets[j].setGains[0];
+    rawGains[sets[j].speakerNos[1] - 1] = sets[j].setGains[1];
+    if (dim == 3)
+        rawGains[sets[j].speakerNos[2] - 1] = sets[j].setGains[2];
+
+    for (int i = 0; i < numSpeakers; i++) {
+        if (rawGains[i] < 0.0)
+            rawGains[i] = 0.0;
+    }
+}
 
 /* Returns 1 if there is loudspeaker(s) inside given ls triplet. */
 static bool any_speaker_inside_triplet(int const a,
@@ -666,76 +728,6 @@ void vbap2(SourceData const & source, SpeakersSpatGains & gains, VbapData & data
         if (source.azimuthSpan > 0) {
             spreadit_azi(source, gains, data);
         }
-    }
-}
-
-/* Selects a vector base of a virtual source.
- * Calculates gain factors in that base. */
-static void compute_gains(int const speaker_set_am,
-                          SpeakerSet * sets,
-                          SpeakersSpatGains & gains,
-                          int const numSpeakers,
-                          CartesianVector const cart_dir,
-                          int const dim) noexcept
-{
-    float vec[3];
-    /* Direction of the virtual source in cartesian coordinates. */
-    vec[0] = cart_dir.x;
-    vec[1] = cart_dir.y;
-    vec[2] = cart_dir.z;
-
-    for (int i = 0; i < speaker_set_am; i++) {
-        sets[i].setGains[0] = 0.0;
-        sets[i].setGains[1] = 0.0;
-        sets[i].setGains[2] = 0.0;
-        sets[i].smallestWt = 1000.0;
-        sets[i].neg_g_am = 0;
-    }
-
-    for (int i = 0; i < speaker_set_am; i++) {
-        for (int j = 0; j < dim; j++) {
-            for (int k = 0; k < dim; k++) {
-                sets[i].setGains[j] += vec[k] * sets[i].invMx[((dim * j) + k)];
-            }
-            if (sets[i].smallestWt > sets[i].setGains[j])
-                sets[i].smallestWt = sets[i].setGains[j];
-            if (sets[i].setGains[j] < -0.05)
-                sets[i].neg_g_am++;
-        }
-    }
-
-    int j = 0;
-    float tmp = sets[0].smallestWt;
-    int tmp2 = sets[0].neg_g_am;
-    for (int i = 1; i < speaker_set_am; i++) {
-        if (sets[i].neg_g_am < tmp2) {
-            tmp = sets[i].smallestWt;
-            tmp2 = sets[i].neg_g_am;
-            j = i;
-        } else if (sets[i].neg_g_am == tmp2) {
-            if (sets[i].smallestWt > tmp) {
-                tmp = sets[i].smallestWt;
-                tmp2 = sets[i].neg_g_am;
-                j = i;
-            }
-        }
-    }
-
-    if (sets[j].setGains[0] <= 0.0 && sets[j].setGains[1] <= 0.0 && sets[j].setGains[2] <= 0.0) {
-        sets[j].setGains[0] = 1.0;
-        sets[j].setGains[1] = 1.0;
-        sets[j].setGains[2] = 1.0;
-    }
-
-    auto * rawGains{ gains.data() };
-    rawGains[sets[j].speakerNos[0] - 1] = sets[j].setGains[0];
-    rawGains[sets[j].speakerNos[1] - 1] = sets[j].setGains[1];
-    if (dim == 3)
-        rawGains[sets[j].speakerNos[2] - 1] = sets[j].setGains[2];
-
-    for (int i = 0; i < numSpeakers; i++) {
-        if (rawGains[i] < 0.0)
-            rawGains[i] = 0.0;
     }
 }
 

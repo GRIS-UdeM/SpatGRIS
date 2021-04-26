@@ -123,24 +123,25 @@ void AudioProcessor::resetHrtf()
 }
 
 //==============================================================================
-void AudioProcessor::setAudioConfig(AudioConfig const & newAudioConfig)
+void AudioProcessor::setAudioConfig(std::unique_ptr<AudioConfig> newAudioConfig)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedLock const lock{ mCriticalSection };
-    if (!mAudioData.config.sourcesAudioConfig.hasSameKeys(newAudioConfig.sourcesAudioConfig)) {
-        AudioManager::getInstance().initInputBuffer(newAudioConfig.sourcesAudioConfig.getKeys());
+    if (!mAudioData.config || !mAudioData.config->sourcesAudioConfig.hasSameKeys(newAudioConfig->sourcesAudioConfig)) {
+        AudioManager::getInstance().initInputBuffer(newAudioConfig->sourcesAudioConfig.getKeys());
     }
-    if (!mAudioData.config.speakersAudioConfig.hasSameKeys(newAudioConfig.speakersAudioConfig)) {
-        AudioManager::getInstance().initOutputBuffer(newAudioConfig.speakersAudioConfig.getKeys());
+    if (!mAudioData.config
+        || !mAudioData.config->speakersAudioConfig.hasSameKeys(newAudioConfig->speakersAudioConfig)) {
+        AudioManager::getInstance().initOutputBuffer(newAudioConfig->speakersAudioConfig.getKeys());
     }
-    mAudioData.config = newAudioConfig;
+    mAudioData.config = std::move(newAudioConfig);
 }
 
 //==============================================================================
 void AudioProcessor::muteSoloVuMeterIn(SourceAudioBuffer & inputBuffer, SourcePeaks & peaks) const noexcept
 {
     for (auto const channel : inputBuffer) {
-        auto const & config{ mAudioData.config.sourcesAudioConfig[channel.key] };
+        auto const & config{ mAudioData.config->sourcesAudioConfig[channel.key] };
         auto const & buffer{ *channel.value };
         auto const peak{ config.isMuted ? 0.0f : buffer.getMagnitude(0, inputBuffer.getNumSamples()) };
 
@@ -154,9 +155,9 @@ void AudioProcessor::muteSoloVuMeterGainOut(SpeakerAudioBuffer & speakersBuffer,
     auto const numSamples{ speakersBuffer.getNumSamples() };
 
     for (auto const channel : speakersBuffer) {
-        auto const & config{ mAudioData.config.speakersAudioConfig[channel.key] };
+        auto const & config{ mAudioData.config->speakersAudioConfig[channel.key] };
         auto & buffer{ *channel.value };
-        auto const gain{ mAudioData.config.masterGain * config.gain };
+        auto const gain{ mAudioData.config->masterGain * config.gain };
         if (config.isMuted || gain < SMALL_GAIN) {
             buffer.clear();
             peaks[channel.key] = 0.0f;
@@ -182,11 +183,11 @@ void AudioProcessor::processVbap(SourceAudioBuffer const & inputBuffer,
                                  SpeakerAudioBuffer & outputBuffer,
                                  SourcePeaks const & sourcePeaks) noexcept
 {
-    auto const & gainInterpolation{ mAudioData.config.spatGainsInterpolation };
+    auto const & gainInterpolation{ mAudioData.config->spatGainsInterpolation };
     auto const gainFactor{ std::pow(gainInterpolation, 0.1f) * 0.0099f + 0.99f };
 
     auto const numSamples{ inputBuffer.getNumSamples() };
-    for (auto const & source : mAudioData.config.sourcesAudioConfig) {
+    for (auto const & source : mAudioData.config->sourcesAudioConfig) {
         if (source.value.isMuted || source.value.directOut || sourcePeaks[source.key] < SMALL_GAIN) {
             continue;
         }
@@ -199,7 +200,7 @@ void AudioProcessor::processVbap(SourceAudioBuffer const & inputBuffer,
         auto & lastGains{ mAudioData.state.sourcesAudioState[source.key].lastSpatGains };
         auto const * inputSamples{ inputBuffer[source.key].getReadPointer(0) };
 
-        for (auto const & speaker : mAudioData.config.speakersAudioConfig) {
+        for (auto const & speaker : mAudioData.config->speakersAudioConfig) {
             if (speaker.value.isMuted || speaker.value.isDirectOutOnly || speaker.value.gain < SMALL_GAIN) {
                 continue;
             }
@@ -240,12 +241,12 @@ void AudioProcessor::processLbap(SourceAudioBuffer & inputBuffer,
 {
     std::array<float, MAX_BUFFER_SIZE> filteredInputSignal{};
 
-    auto const & gainInterpolation{ mAudioData.config.spatGainsInterpolation };
+    auto const & gainInterpolation{ mAudioData.config->spatGainsInterpolation };
     auto const gainFactor{ std::pow(gainInterpolation, 0.1f) * 0.0099f + 0.99f };
-    auto const & attenuationConfig{ mAudioData.config.lbapAttenuationConfig };
+    auto const & attenuationConfig{ mAudioData.config->lbapAttenuationConfig };
     auto const numSamples{ inputBuffer.getNumSamples() };
 
-    for (auto const source : mAudioData.config.sourcesAudioConfig) {
+    for (auto const source : mAudioData.config->sourcesAudioConfig) {
         if (source.value.isMuted || source.value.directOut || sourcePeaks[source.key] < SMALL_GAIN) {
             continue;
         }
@@ -303,7 +304,7 @@ void AudioProcessor::processLbap(SourceAudioBuffer & inputBuffer,
         // Process spatialization
         auto & lastGains{ mAudioData.state.sourcesAudioState[source.key].lastSpatGains };
 
-        for (auto const & speaker : mAudioData.config.speakersAudioConfig) {
+        for (auto const & speaker : mAudioData.config->speakersAudioConfig) {
             auto * outputSamples{ outputBuffer[speaker.key].getWritePointer(0) };
             auto const & targetGain{ gains[speaker.key] };
             auto & currentGain{ lastGains[speaker.key] };
@@ -348,7 +349,7 @@ void AudioProcessor::processVBapHrtf(SourceAudioBuffer const & inputBuffer,
     // Process hrtf and mix to stereo
     std::array<float, MAX_BUFFER_SIZE> leftOutputSamples{};
     std::array<float, MAX_BUFFER_SIZE> rightOutputSamples{};
-    for (auto const & speaker : mAudioData.config.speakersAudioConfig) {
+    for (auto const & speaker : mAudioData.config->speakersAudioConfig) {
         auto & hrtfState{ mAudioData.state.hrtf };
         auto & hrtfCount{ hrtfState.count };
         auto & hrtfInputTmp{ hrtfState.inputTmp };
@@ -377,7 +378,7 @@ void AudioProcessor::processVBapHrtf(SourceAudioBuffer const & inputBuffer,
 
     static constexpr output_patch_t LEFT_OUTPUT_PATCH{ 1 };
     static constexpr output_patch_t RIGHT_OUTPUT_PATCH{ 2 };
-    for (auto const & speaker : mAudioData.config.speakersAudioConfig) {
+    for (auto const & speaker : mAudioData.config->speakersAudioConfig) {
         if (speaker.key == LEFT_OUTPUT_PATCH) {
             outputBuffer[LEFT_OUTPUT_PATCH].copyFrom(0, 0, leftOutputSamples.data(), numSamples);
         } else if (speaker.key == RIGHT_OUTPUT_PATCH) {
@@ -403,7 +404,7 @@ void AudioProcessor::processStereo(SourceAudioBuffer const & inputBuffer,
     auto & rightBuffer{ outputBuffer[output_patch_t{ 2 }] };
     auto const numSamples{ inputBuffer.getNumSamples() };
     auto const compensation{
-        std::pow(10.0f, (narrow<float>(mAudioData.config.sourcesAudioConfig.size()) - 1.0f) * -0.1f * 0.05f)
+        std::pow(10.0f, (narrow<float>(mAudioData.config->sourcesAudioConfig.size()) - 1.0f) * -0.1f * 0.05f)
     };
     leftBuffer.applyGain(0, numSamples, compensation);
     rightBuffer.applyGain(0, numSamples, compensation);
@@ -426,17 +427,17 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer, SpeakerAudio
     auto & sourcePeaks{ sourcePeaksTicket->get() };
     muteSoloVuMeterIn(sourceBuffer, sourcePeaks);
 
-    if (mAudioData.config.pinkNoiseGain) {
+    if (mAudioData.config->pinkNoiseGain) {
         // Process pink noise
         StaticVector<output_patch_t, MAX_OUTPUTS> activeChannels{};
-        for (auto const & channel : mAudioData.config.speakersAudioConfig) {
+        for (auto const & channel : mAudioData.config->speakersAudioConfig) {
             activeChannels.push_back(channel.key);
         }
         auto data{ speakerBuffer.getArrayOfWritePointers(activeChannels) };
-        fillWithPinkNoise(data.data(), numSamples, narrow<int>(data.size()), *mAudioData.config.pinkNoiseGain);
+        fillWithPinkNoise(data.data(), numSamples, narrow<int>(data.size()), *mAudioData.config->pinkNoiseGain);
     } else {
         // Process spat algorithm
-        switch (mAudioData.config.spatMode) {
+        switch (mAudioData.config->spatMode) {
         case SpatMode::vbap:
             processVbap(sourceBuffer, speakerBuffer, sourcePeaks);
             break;
@@ -455,7 +456,7 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer, SpeakerAudio
         }
 
         // Process direct outs
-        for (auto const & directOutPair : mAudioData.config.directOutPairs) {
+        for (auto const & directOutPair : mAudioData.config->directOutPairs) {
             auto const & origin{ sourceBuffer[directOutPair.first] };
             auto & dest{ speakerBuffer[directOutPair.second] };
             dest.addFrom(0, 0, origin, 0, 0, numSamples);

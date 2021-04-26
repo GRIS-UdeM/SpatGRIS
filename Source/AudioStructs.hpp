@@ -126,7 +126,7 @@ using SpeakerPeaks = StrongArray<output_patch_t, float, MAX_OUTPUTS>;
 //==============================================================================
 struct AudioData {
     // Offline message thread -> audio thread
-    AudioConfig config{};
+    std::unique_ptr<AudioConfig> config{};
 
     // Live audio thread -> audio thread
     AudioState state{};

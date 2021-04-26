@@ -680,9 +680,9 @@ tl::optional<std::pair<SpeakerSetup, SpatMode>> SpeakerSetup::fromXml(juce::XmlE
 }
 
 //==============================================================================
-AudioConfig SpatGrisData::toAudioConfig() const
+std::unique_ptr<AudioConfig> SpatGrisData::toAudioConfig() const
 {
-    AudioConfig result{};
+    auto result{ std::make_unique<AudioConfig>() };
 
     auto const isAtLeastOneSourceSolo{ std::any_of(
         project.sources.cbegin(),
@@ -696,19 +696,19 @@ AudioConfig SpatGrisData::toAudioConfig() const
     for (auto source : project.sources) {
         if (source.value->directOut && source.value->state != PortState::muted
             && !(isAtLeastOneSourceSolo && source.value->state != PortState::solo)) {
-            result.directOutPairs.add(std::make_pair(source.key, *source.value->directOut));
+            result->directOutPairs.add(std::make_pair(source.key, *source.value->directOut));
         }
     }
 
-    result.lbapAttenuationConfig = project.lbapDistanceAttenuationData.toConfig(appData.audioSettings.sampleRate);
-    result.masterGain = project.masterGain.toGain();
-    result.pinkNoiseGain = pinkNoiseLevel.map([](auto const & level) { return level.toGain(); });
+    result->lbapAttenuationConfig = project.lbapDistanceAttenuationData.toConfig(appData.audioSettings.sampleRate);
+    result->masterGain = project.masterGain.toGain();
+    result->pinkNoiseGain = pinkNoiseLevel.map([](auto const & level) { return level.toGain(); });
     for (auto const source : project.sources) {
-        result.sourcesAudioConfig.add(source.key, source.value->toConfig(isAtLeastOneSourceSolo));
+        result->sourcesAudioConfig.add(source.key, source.value->toConfig(isAtLeastOneSourceSolo));
     }
-    result.spatGainsInterpolation = project.spatGainsInterpolation;
+    result->spatGainsInterpolation = project.spatGainsInterpolation;
     for (auto const speaker : speakerSetup.speakers) {
-        result.speakersAudioConfig.add(
+        result->speakersAudioConfig.add(
             speaker.key,
             speaker.value->toConfig(isAtLeastOnSpeakerSolo, appData.audioSettings.sampleRate));
     }

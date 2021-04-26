@@ -47,7 +47,7 @@ public:
     //==============================================================================
     // Reinit HRTF delay lines.
     void resetHrtf();
-    void setAudioConfig(AudioConfig const & newAudioConfig);
+    void setAudioConfig(std::unique_ptr<AudioConfig> newAudioConfig);
     [[nodiscard]] juce::CriticalSection const & getLock() const noexcept { return mCriticalSection; }
     void processAudio(SourceAudioBuffer & sourceBuffer, SpeakerAudioBuffer & speakerBuffer) noexcept;
 
