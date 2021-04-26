@@ -127,6 +127,7 @@ void AudioProcessor::setAudioConfig(std::unique_ptr<AudioConfig> newAudioConfig)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedLock const lock{ mCriticalSection };
+
     if (!mAudioData.config || !mAudioData.config->sourcesAudioConfig.hasSameKeys(newAudioConfig->sourcesAudioConfig)) {
         AudioManager::getInstance().initInputBuffer(newAudioConfig->sourcesAudioConfig.getKeys());
     }
@@ -134,7 +135,10 @@ void AudioProcessor::setAudioConfig(std::unique_ptr<AudioConfig> newAudioConfig)
         || !mAudioData.config->speakersAudioConfig.hasSameKeys(newAudioConfig->speakersAudioConfig)) {
         AudioManager::getInstance().initOutputBuffer(newAudioConfig->speakersAudioConfig.getKeys());
     }
+
     mAudioData.config = std::move(newAudioConfig);
+
+    std::fill(mAudioData.state.sourcesAudioState.begin(), mAudioData.state.sourcesAudioState.end(), SourceAudioState{});
 }
 
 //==============================================================================
@@ -239,11 +243,8 @@ void AudioProcessor::processLbap(SourceAudioBuffer & inputBuffer,
                                  SpeakerAudioBuffer & outputBuffer,
                                  SourcePeaks const & sourcePeaks) noexcept
 {
-    std::array<float, MAX_BUFFER_SIZE> filteredInputSignal{};
-
     auto const & gainInterpolation{ mAudioData.config->spatGainsInterpolation };
     auto const gainFactor{ std::pow(gainInterpolation, 0.1f) * 0.0099f + 0.99f };
-    auto const & attenuationConfig{ mAudioData.config->lbapAttenuationConfig };
     auto const numSamples{ inputBuffer.getNumSamples() };
 
     for (auto const source : mAudioData.config->sourcesAudioConfig) {
@@ -259,47 +260,12 @@ void AudioProcessor::processLbap(SourceAudioBuffer & inputBuffer,
         auto const & gains{ gainsTicket->get() };
 
         // process attenuation
-
-        // Energy is lost with distance.
-        // A radius < 1 is not impact sound
-        // Radius between 1 and 1.66 are reduced
-        // Radius over 1.66 is clamped to 1.66
-        // auto const distance{ std::clamp((source.radius - 1.0f) / (LBAP_EXTENDED_RADIUS - 1.0f), 0.0f, 1.0f) };
-        auto const distance{ mAudioData.lbapSourceDistances[source.key].load() };
-        auto const distanceGain{ (1.0f - distance) * (1.0f - attenuationConfig.linearGain)
-                                 + attenuationConfig.linearGain };
-        auto const distanceCoefficient{ distance * attenuationConfig.lowpassCoefficient };
-        auto & attenuationState{ mAudioData.state.sourcesAudioState[source.key].lbapAttenuationState };
-        auto const diffGain{ (distanceGain - attenuationState.lastGain) / narrow<float>(numSamples) };
-        auto const diffCoefficient
-            = (distanceCoefficient - attenuationState.lastCoefficient) / narrow<float>(numSamples);
-        auto filterInY{ attenuationState.lowpassY };
-        auto filterInZ{ attenuationState.lowpassZ };
-        auto lastCoefficient{ attenuationState.lastCoefficient };
-        auto lastGain{ attenuationState.lastGain };
-        // TODO : this could be greatly optimized
-        auto const * inputSamples{ inputBuffer[source.key].getReadPointer(0) };
-        if (diffCoefficient == 0.0f && diffGain == 0.0f) {
-            // simplified version
-            for (int sampleIndex{}; sampleIndex < numSamples; ++sampleIndex) {
-                filterInY = inputSamples[sampleIndex] + (filterInY - inputSamples[sampleIndex]) * lastCoefficient;
-                filterInZ = filterInY + (filterInZ - filterInY) * lastCoefficient;
-                filteredInputSignal[sampleIndex] = filterInZ * lastGain;
-            }
-        } else {
-            // full version
-            for (int sampleIndex{}; sampleIndex < numSamples; ++sampleIndex) {
-                lastCoefficient += diffCoefficient;
-                lastGain += diffGain;
-                filterInY = inputSamples[sampleIndex] + (filterInY - inputSamples[sampleIndex]) * lastCoefficient;
-                filterInZ = filterInY + (filterInZ - filterInY) * lastCoefficient;
-                filteredInputSignal[sampleIndex] = filterInZ * lastGain;
-            }
-        }
-        attenuationState.lowpassY = filterInY;
-        attenuationState.lowpassZ = filterInZ;
-        attenuationState.lastGain = distanceGain;
-        attenuationState.lastCoefficient = distanceCoefficient;
+        auto * inputData{ inputBuffer[source.key].getWritePointer(0) };
+        mAudioData.config->lbapAttenuationConfig.process(
+            inputData,
+            numSamples,
+            mAudioData.lbapSourceDistances[source.key].load(),
+            mAudioData.state.sourcesAudioState[source.key].lbapAttenuationState);
 
         // Process spatialization
         auto & lastGains{ mAudioData.state.sourcesAudioState[source.key].lastSpatGains };
@@ -317,7 +283,7 @@ void AudioProcessor::processLbap(SourceAudioBuffer & inputBuffer,
                 }
                 for (int sampleIndex{}; sampleIndex < numSamples; ++sampleIndex) {
                     currentGain += gainSlope;
-                    outputSamples[sampleIndex] += filteredInputSignal[sampleIndex] * currentGain;
+                    outputSamples[sampleIndex] += inputData[sampleIndex] * currentGain;
                 }
             } else {
                 // log interpolation with 1st order filter
@@ -328,7 +294,7 @@ void AudioProcessor::processLbap(SourceAudioBuffer & inputBuffer,
                         // currentGain will no ever increase over this buffer
                         break;
                     }
-                    outputSamples[sampleIndex] += filteredInputSignal[sampleIndex] * currentGain;
+                    outputSamples[sampleIndex] += inputData[sampleIndex] * currentGain;
                 }
             }
         }

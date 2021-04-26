@@ -141,7 +141,6 @@ void SettingsWindow::closeButtonPressed()
 void SettingsComponent::buttonClicked(juce::Button * button)
 {
     if (button == &mSaveSettingsButton) {
-        jassertfalse; // TODO : should save or something?
         mMainContentComponent.closePropertiesWindow();
     }
 }
@@ -310,9 +309,11 @@ void SettingsComponent::comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged)
     } else if (comboBoxThatHasChanged == &mRecFileConfigCombo) {
         jassertfalse; // TODO
     } else if (comboBoxThatHasChanged == &mDistanceDbCombo) {
-        jassertfalse; // TODO
+        dbfs_t const attenuation{ mDistanceDbCombo.getText().getFloatValue() };
+        mMainContentComponent.setLbapAttenuationDb(attenuation);
     } else if (comboBoxThatHasChanged == &mDistanceCutoffCombo) {
-        jassertfalse; // TODO
+        hz_t const freq{ mDistanceCutoffCombo.getText().getFloatValue() };
+        mMainContentComponent.setLbapAttenuationFreq(freq);
     } else {
         jassertfalse;
     }

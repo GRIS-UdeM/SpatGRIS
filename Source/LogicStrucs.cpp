@@ -706,6 +706,7 @@ std::unique_ptr<AudioConfig> SpatGrisData::toAudioConfig() const
     for (auto const source : project.sources) {
         result->sourcesAudioConfig.add(source.key, source.value->toConfig(isAtLeastOneSourceSolo));
     }
+    result->spatMode = appData.spatMode;
     result->spatGainsInterpolation = project.spatGainsInterpolation;
     for (auto const speaker : speakerSetup.speakers) {
         result->speakersAudioConfig.add(

@@ -173,6 +173,9 @@ public:
 
     auto const & getData() const noexcept { return mData; }
 
+    void setLbapAttenuationDb(dbfs_t attenuation);
+    void setLbapAttenuationFreq(hz_t freq);
+
     void refreshSourceVuMeterComponents();
     void refreshSpeakerVuMeterComponents();
 

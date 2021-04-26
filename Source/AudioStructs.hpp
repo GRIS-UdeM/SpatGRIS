@@ -52,8 +52,8 @@ struct SpeakerAudioState {
 
 //==============================================================================
 struct LbapSourceAttenuationState {
-    float lastGain{};
-    float lastCoefficient{};
+    float currentGain{};
+    float currentCoefficient{};
     float lowpassY{};
     float lowpassZ{};
 };

@@ -6,8 +6,8 @@
 void SpeakerHighpassConfig::process(float * data, int const numSamples, SpeakerHighpassState & state) const
 {
     for (int sampleIndex{}; sampleIndex < numSamples; ++sampleIndex) {
-        auto const inval{ static_cast<double>(data[sampleIndex]) };
-        auto const val{ ha0 * inval + ha1 * state.x1 + ha2 * state.x2 + ha1 * state.x3 + ha0 * state.x4 - b1 * state.y1
+        auto const sample{ static_cast<double>(data[sampleIndex]) };
+        auto const val{ ha0 * sample + ha1 * state.x1 + ha2 * state.x2 + ha1 * state.x3 + ha0 * state.x4 - b1 * state.y1
                         - b2 * state.y2 - b3 * state.y3 - b4 * state.y4 };
         state.y4 = state.y3;
         state.y3 = state.y2;
@@ -16,8 +16,18 @@ void SpeakerHighpassConfig::process(float * data, int const numSamples, SpeakerH
         state.x4 = state.x3;
         state.x3 = state.x2;
         state.x2 = state.x1;
-        state.x1 = inval;
+        state.x1 = sample;
         data[sampleIndex] = static_cast<float>(val);
+
+        jassert(std::isfinite(state.x1));
+        jassert(std::isfinite(state.x2));
+        jassert(std::isfinite(state.x3));
+        jassert(std::isfinite(state.x4));
+        jassert(std::isfinite(state.y1));
+        jassert(std::isfinite(state.y2));
+        jassert(std::isfinite(state.y3));
+        jassert(std::isfinite(state.y4));
+        jassert(std::isfinite(data[sampleIndex]));
     }
 }
 
@@ -27,34 +37,54 @@ void LbapAttenuationConfig::process(float * data,
                                     float const distance,
                                     LbapSourceAttenuationState & state) const
 {
-    auto const distanceGain{ (1.0f - distance) * (1.0f - linearGain) + linearGain };
-    auto const distanceCoefficient{ distance * lowpassCoefficient };
-    auto const diffGain{ (distanceGain - state.lastGain) / narrow<float>(numSamples) };
-    auto const diffCoefficient = (distanceCoefficient - state.lastCoefficient) / narrow<float>(numSamples);
-    auto filterInY{ state.lowpassY };
-    auto filterInZ{ state.lowpassZ };
-    auto lastCoefficient{ state.lastCoefficient };
-    auto lastGain{ state.lastGain };
-    // TODO : this could be greatly optimized
-    if (diffCoefficient == 0.0f && diffGain == 0.0f) {
-        // simplified version
-        for (int sampleIndex{}; sampleIndex < numSamples; ++sampleIndex) {
-            filterInY = data[sampleIndex] + (filterInY - data[sampleIndex]) * lastCoefficient;
-            filterInZ = filterInY + (filterInZ - filterInY) * lastCoefficient;
-            data[sampleIndex] = filterInZ * lastGain;
+    static constexpr auto NORMAL_DISTANCE = 1.0f;
+    static constexpr auto EXTRA_DISTANCE = LBAP_EXTENDED_RADIUS - NORMAL_DISTANCE;
+
+    auto const attenuationRatio{ std::clamp((distance - NORMAL_DISTANCE) / EXTRA_DISTANCE, 0.0f, 1.0f) };
+    auto const targetGain{ 1.0f - attenuationRatio * (1.0f - linearGain) };
+    auto const targetCoefficient{ attenuationRatio * lowpassCoefficient };
+
+    auto const gainStep{ (targetGain - state.currentGain) / narrow<float>(numSamples) };
+    auto const coefficientStep{ (targetCoefficient - state.currentCoefficient) / narrow<float>(numSamples) };
+
+    jassert(std::isfinite(targetGain));
+    jassert(std::isfinite(targetCoefficient));
+    jassert(std::isfinite(gainStep));
+    jassert(std::isfinite(coefficientStep));
+    jassert(std::isfinite(state.lowpassY));
+    jassert(std::isfinite(state.lowpassZ));
+    jassert(std::isfinite(state.currentCoefficient));
+    jassert(std::isfinite(state.currentGain));
+
+    if (coefficientStep == 0.0f && gainStep == 0.0f) {
+        if (attenuationRatio == 0.0f) {
+            return;
         }
-    } else {
-        // full version
+
+        // no ramp in coefficient and gain
         for (int sampleIndex{}; sampleIndex < numSamples; ++sampleIndex) {
-            lastCoefficient += diffCoefficient;
-            lastGain += diffGain;
-            filterInY = data[sampleIndex] + (filterInY - data[sampleIndex]) * lastCoefficient;
-            filterInZ = filterInY + (filterInZ - filterInY) * lastCoefficient;
-            data[sampleIndex] = filterInZ * lastGain;
+            state.lowpassY = data[sampleIndex] + (state.lowpassY - data[sampleIndex]) * state.currentCoefficient;
+            state.lowpassZ = state.lowpassY + (state.lowpassZ - state.lowpassY) * state.currentCoefficient;
+            data[sampleIndex] = state.lowpassZ * state.currentGain;
+
+            jassert(std::isfinite(state.lowpassY));
+            jassert(std::isfinite(state.lowpassZ));
         }
+
+        return;
     }
-    state.lowpassY = filterInY;
-    state.lowpassZ = filterInZ;
-    state.lastGain = distanceGain;
-    state.lastCoefficient = distanceCoefficient;
+
+    // coefficient and/or gain ramp
+    for (int sampleIndex{}; sampleIndex < numSamples; ++sampleIndex) {
+        state.currentCoefficient += coefficientStep;
+        state.currentGain += gainStep;
+        state.lowpassY = data[sampleIndex] + (state.lowpassY - data[sampleIndex]) * state.currentCoefficient;
+        state.lowpassZ = state.lowpassY + (state.lowpassZ - state.lowpassY) * state.currentCoefficient;
+        data[sampleIndex] = state.lowpassZ * state.currentGain;
+
+        jassert(std::isfinite(state.currentCoefficient));
+        jassert(std::isfinite(state.currentGain));
+        jassert(std::isfinite(state.lowpassY));
+        jassert(std::isfinite(state.lowpassZ));
+    }
 }

@@ -1245,6 +1245,28 @@ void MainContentComponent::updatePeaks()
 }
 
 //==============================================================================
+void MainContentComponent::setLbapAttenuationDb(dbfs_t const attenuation)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    mData.project.lbapDistanceAttenuationData.attenuation = attenuation;
+
+    updateAudioProcessor();
+}
+
+//==============================================================================
+void MainContentComponent::setLbapAttenuationFreq(hz_t const freq)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    mData.project.lbapDistanceAttenuationData.freq = freq;
+
+    updateAudioProcessor();
+}
+
+//==============================================================================
 void MainContentComponent::refreshSourceVuMeterComponents()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -1333,6 +1355,10 @@ void MainContentComponent::handleSourcePositionChanged(source_index_t const sour
     auto * ticket{ exchanger.acquire() };
     mSpatAlgorithm->computeSpeakerGains(source, ticket->get());
     exchanger.setMostRecent(ticket);
+
+    if (mData.appData.spatMode == SpatMode::lbap) {
+        mAudioProcessor->getAudioData().lbapSourceDistances[sourceIndex] = length;
+    }
 }
 
 //==============================================================================
@@ -1539,6 +1565,7 @@ void MainContentComponent::handleSpatModeChanged(SpatMode const spatMode)
         mSpatAlgorithm = AbstractSpatAlgorithm::make(spatMode);
         mSpatAlgorithm->init(mData.speakerSetup.speakers);
 
+        updateAudioProcessor();
         updateViewportConfig();
     }
 }
