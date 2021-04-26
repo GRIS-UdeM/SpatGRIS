@@ -69,9 +69,8 @@ void OscInput::oscMessageReceived(const juce::OSCMessage & message)
 
             [[maybe_unused]] auto const gain{ message[6].getFloat32() };
 
-            PolarVector const vector{ azimuth, zenith, length };
-
-            mMainContentComponent.handleSourcePositionChanged(sourceIndex, vector, azimuthSpan, zenithSpan);
+            mMainContentComponent
+                .handleSourcePositionChanged(sourceIndex, azimuth, zenith, length, azimuthSpan, zenithSpan);
         }
 
         else if (address == OSC_PAN_AZ) {

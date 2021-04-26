@@ -1,5 +1,7 @@
 #include "LegacySpatFileFormat.h"
 
+#include "LegacyLbapPosition.h"
+
 //==============================================================================
 tl::optional<std::pair<SpeakerSetup, SpatMode>> readLegacySpeakerSetup(juce::XmlElement const & xml)
 {
@@ -39,7 +41,9 @@ tl::optional<std::pair<SpeakerSetup, SpatMode>> readLegacySpeakerSetup(juce::Xml
                         degrees_t{ static_cast<float>(spk->getDoubleAttribute("Zenith", 0.0)) }.centered()
                     };
                     auto const length{ static_cast<float>(spk->getDoubleAttribute("Radius", 1.0)) };
-                    PolarVector const vector{ azimuth, zenith, length };
+                    auto const vector{ spatMode == SpatMode::lbap
+                                           ? LegacyLbapPosition{ azimuth, zenith, length }.toPolar()
+                                           : PolarVector{ azimuth, zenith, length } };
 
                     // audio params
                     dbfs_t const gain{ static_cast<float>(spk->getDoubleAttribute("Gain", 0.0)) };

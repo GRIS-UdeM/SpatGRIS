@@ -178,8 +178,10 @@ public:
 
     auto const & getLock() const { return mLock; }
 
-    void handleSourcePositionChanged(source_index_t sourceIndex,
-                                     PolarVector const & newPosition,
+    void handleSourcePositionChanged(source_index_t const sourceIndex,
+                                     radians_t azimuth,
+                                     radians_t elevation,
+                                     float length,
                                      float newAzimuthSpan,
                                      float newZenithSpan);
     void resetSourcePosition(source_index_t sourceIndex);

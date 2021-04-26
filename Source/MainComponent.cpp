@@ -20,6 +20,7 @@
 #include "MainComponent.h"
 
 #include "AudioManager.h"
+#include "LegacyLbapPosition.h"
 #include "MainWindow.h"
 #include "VuMeterComponent.h"
 #include "constants.hpp"
@@ -1287,7 +1288,9 @@ void MainContentComponent::refreshSpeakerVuMeterComponents()
 
 //==============================================================================
 void MainContentComponent::handleSourcePositionChanged(source_index_t const sourceIndex,
-                                                       PolarVector const & newPosition,
+                                                       radians_t const azimuth,
+                                                       radians_t const elevation,
+                                                       float const length,
                                                        float const newAzimuthSpan,
                                                        float const newZenithSpan)
 {
@@ -1303,16 +1306,9 @@ void MainContentComponent::handleSourcePositionChanged(source_index_t const sour
         case SpatMode::vbap:
         case SpatMode::hrtfVbap:
         case SpatMode::stereo:
-            return newPosition.normalized();
+            return PolarVector{ azimuth, elevation, length }.normalized();
         case SpatMode::lbap: {
-            // I know, this is really frustrating...
-
-            auto const x{ newPosition.length * std::cos(newPosition.azimuth.get()) };
-            auto const y{ newPosition.length * std::sin(newPosition.azimuth.get()) };
-            auto const z{ 1.0f - (HALF_PI - newPosition.elevation) / HALF_PI };
-
-            CartesianVector const result{ x, y, z };
-            return PolarVector::fromCartesian(result);
+            return LegacyLbapPosition{ azimuth, elevation, length }.toPolar();
         }
         }
         jassertfalse;
