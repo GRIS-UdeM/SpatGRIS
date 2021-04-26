@@ -13,6 +13,7 @@ juce::String const SpeakerHighpassData::XmlTags::FREQ = "FREQ";
 juce::String const SpeakerData::XmlTags::STATE = "STATE";
 juce::String const SpeakerData::XmlTags::GAIN = "GAIN";
 juce::String const SpeakerData::XmlTags::IS_DIRECT_OUT_ONLY = "DIRECT_OUT_ONLY";
+juce::String const SpeakerData::XmlTags::MAIN_TAG_PREFIX = "SPEAKER_";
 
 juce::String const LbapDistanceAttenuationData::XmlTags::MAIN_TAG = "LBAP_SETTINGS";
 juce::String const LbapDistanceAttenuationData::XmlTags::FREQ = "FREQ";
@@ -230,7 +231,7 @@ ViewportSpeakerConfig SpeakerData::toViewportConfig() const noexcept
 //==============================================================================
 std::unique_ptr<juce::XmlElement> SpeakerData::toXml(output_patch_t const outputPatch) const noexcept
 {
-    auto result{ std::make_unique<juce::XmlElement>(juce::String{ outputPatch.get() }) };
+    auto result{ std::make_unique<juce::XmlElement>(XmlTags::MAIN_TAG_PREFIX + juce::String{ outputPatch.get() }) };
 
     result->setAttribute(XmlTags::STATE, portStateToString(state));
     result->addChildElement(position.toXml());
@@ -659,7 +660,13 @@ tl::optional<std::pair<SpeakerSetup, SpatMode>> SpeakerSetup::fromXml(juce::XmlE
 
     forEachXmlChildElement(xml, speaker)
     {
-        output_patch_t const outputPatch{ speaker->getTagName().getIntValue() };
+        auto const tagName{ speaker->getTagName() };
+        if (!tagName.startsWith(SpeakerData::XmlTags::MAIN_TAG_PREFIX)) {
+            return tl::nullopt;
+        }
+        output_patch_t const outputPatch{
+            tagName.substring(SpeakerData::XmlTags::MAIN_TAG_PREFIX.length()).getIntValue()
+        };
         result.first.order.add(outputPatch);
         auto const speakerData{ SpeakerData::fromXml(*speaker) };
         if (!speakerData) {

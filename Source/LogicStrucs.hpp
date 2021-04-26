@@ -137,6 +137,7 @@ struct SpeakerData {
         static juce::String const STATE;
         static juce::String const GAIN;
         static juce::String const IS_DIRECT_OUT_ONLY;
+        static juce::String const MAIN_TAG_PREFIX;
     };
 };
 
