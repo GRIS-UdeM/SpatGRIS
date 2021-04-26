@@ -170,10 +170,10 @@ void SpeakerViewComponent::render()
         switch (mData.config.spatMode) {
         case SpatMode::hrtfVbap:
         case SpatMode::vbap:
-            drawFieldCube();
+            drawFieldSphere();
             break;
         case SpatMode::lbap:
-            drawFieldSphere();
+            drawFieldCube();
         case SpatMode::stereo:
             break;
         default:

@@ -480,10 +480,10 @@ void MainContentComponent::loadProject(juce::File const & file)
     mInterpolationSlider->setValue(mData.project.spatGainsInterpolation, juce::dontSendNotification);
 
     mSpeakerViewComponent->setCameraPosition(mData.project.cameraPosition);
+    updateAudioProcessor();
     updateViewportConfig();
     setTitle();
     refreshSourceVuMeterComponents();
-    updateAudioProcessor();
 }
 
 //==============================================================================
@@ -1298,15 +1298,36 @@ void MainContentComponent::handleSourcePositionChanged(source_index_t const sour
         return;
     }
 
-    auto const normalizedPosition{ mData.appData.spatMode == SpatMode::lbap ? newPosition : newPosition.normalized() };
+    auto const getCorrectPosition = [&]() {
+        switch (mData.appData.spatMode) {
+        case SpatMode::vbap:
+        case SpatMode::hrtfVbap:
+        case SpatMode::stereo:
+            return newPosition.normalized();
+        case SpatMode::lbap: {
+            // I know, this is really frustrating...
+
+            auto const x{ newPosition.length * std::cos(newPosition.azimuth.get()) };
+            auto const y{ newPosition.length * std::sin(newPosition.azimuth.get()) };
+            auto const z{ 1.0f - (HALF_PI - newPosition.elevation) / HALF_PI };
+
+            CartesianVector const result{ x, y, z };
+            return PolarVector::fromCartesian(result);
+        }
+        }
+        jassertfalse;
+        return PolarVector{};
+    };
+
+    auto const correctedPosition{ getCorrectPosition() };
     auto & source{ mData.project.sources[sourceIndex] };
 
-    if (normalizedPosition == source.vector && newAzimuthSpan == source.azimuthSpan
+    if (correctedPosition == source.vector && newAzimuthSpan == source.azimuthSpan
         && newZenithSpan == source.zenithSpan) {
         return;
     }
 
-    source.vector = normalizedPosition;
+    source.vector = correctedPosition;
     source.position = source.vector->toCartesian();
     source.azimuthSpan = newAzimuthSpan;
     source.zenithSpan = newZenithSpan;
@@ -1590,7 +1611,7 @@ void MainContentComponent::updateViewportConfig() const
     juce::ScopedReadLock const lock{ mLock };
 
     auto const newConfig{ mData.toViewportConfig() };
-    if (newConfig.viewSettings.showSpeakerTriplets && mSpatAlgorithm->hasTriplets()) {
+    if (newConfig.viewSettings.showSpeakerTriplets && mSpatAlgorithm && mSpatAlgorithm->hasTriplets()) {
         mSpeakerViewComponent->setTriplets(mSpatAlgorithm->getTriplets());
     }
     mSpeakerViewComponent->setConfig(newConfig, mData.project.sources);

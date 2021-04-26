@@ -513,12 +513,37 @@ tl::optional<SpatGrisProjectData> SpatGrisProjectData::fromXml(juce::XmlElement 
     auto const * sourcesElement{ xml.getChildByName(XmlTags::SOURCES) };
     auto const * lbapAttenuationElement{ xml.getChildByName(LbapDistanceAttenuationData::XmlTags::MAIN_TAG) };
     auto const * viewSettingsElement{ xml.getChildByName(ViewSettings::XmlTags::MAIN_TAG) };
+    auto const * cameraElement{ xml.getChildByName(XmlTags::CAMERA) };
 
-    if (!sourcesElement || !lbapAttenuationElement || !viewSettingsElement) {
+    if (!sourcesElement || !lbapAttenuationElement || !viewSettingsElement || !cameraElement) {
         return tl::nullopt;
     }
 
     SpatGrisProjectData result{};
+
+    auto const lbapAttenuation{ LbapDistanceAttenuationData::fromXml(*lbapAttenuationElement) };
+    auto const viewSettings{ ViewSettings::fromXml(*viewSettingsElement) };
+    auto const * cameraPositionElement{ cameraElement->getChildByName(CartesianVector::XmlTags::MAIN_TAG) };
+
+    if (!lbapAttenuation || !viewSettings || !cameraPositionElement) {
+        return tl::nullopt;
+    }
+
+    auto const cameraPosition{ CartesianVector::fromXml(*cameraPositionElement) };
+
+    if (!cameraPosition) {
+        return tl::nullopt;
+    }
+
+    result.masterGain = LEGAL_MASTER_GAIN_RANGE.clipValue(
+        dbfs_t{ static_cast<dbfs_t::type>(xml.getDoubleAttribute(XmlTags::MASTER_GAIN)) });
+    result.spatGainsInterpolation = LEGAL_GAIN_INTERPOLATION_RANGE.clipValue(
+        static_cast<float>(xml.getDoubleAttribute(XmlTags::GAIN_INTERPOLATION)));
+    result.oscPort = xml.getIntAttribute(XmlTags::OSC_PORT); // TODO : validate value
+    result.viewSettings = *viewSettings;
+    result.lbapDistanceAttenuationData = *lbapAttenuation;
+    result.cameraPosition = *cameraPosition;
+
     forEachXmlChildElement(*sourcesElement, sourceElement)
     {
         jassert(sourceElement);
@@ -535,21 +560,6 @@ tl::optional<SpatGrisProjectData> SpatGrisProjectData::fromXml(juce::XmlElement 
         }
         result.sources.add(sourceIndex, std::make_unique<SourceData>(*sourceData));
     }
-
-    auto const lbapAttenuation{ LbapDistanceAttenuationData::fromXml(*lbapAttenuationElement) };
-    auto const viewSettings{ ViewSettings::fromXml(*viewSettingsElement) };
-
-    if (!lbapAttenuation || !viewSettings) {
-        return tl::nullopt;
-    }
-
-    result.masterGain = LEGAL_MASTER_GAIN_RANGE.clipValue(
-        dbfs_t{ static_cast<dbfs_t::type>(xml.getDoubleAttribute(XmlTags::MASTER_GAIN)) });
-    result.spatGainsInterpolation = LEGAL_GAIN_INTERPOLATION_RANGE.clipValue(
-        static_cast<float>(xml.getDoubleAttribute(XmlTags::GAIN_INTERPOLATION)));
-    result.oscPort = xml.getIntAttribute(XmlTags::OSC_PORT); // TODO : validate value
-    result.viewSettings = *viewSettings;
-    result.lbapDistanceAttenuationData = *lbapAttenuation;
 
     return tl::make_optional(std::move(result));
 }
