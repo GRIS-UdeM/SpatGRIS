@@ -31,6 +31,7 @@ juce::Colour const SpeakerViewComponent::COLOR_SPEAKER_SELECT{ 255u, 163u, 23u }
 //==============================================================================
 void SpeakerViewComponent::initialise()
 {
+    // TODO : continuous repainting should be set to false
     openGLContext.setContinuousRepainting(true);
 
     glClearColor(0.0, 0.0, 0.0, 1.0);
@@ -53,8 +54,8 @@ void SpeakerViewComponent::setConfig(ViewportConfig const & config, SourcesData 
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedLock const lock{ mLock };
-    mData.config = config;
 
+    mData.config = config;
     mData.sources.clear();
     for (auto const & source : sources) {
         mData.sources.add(source.key);
@@ -66,6 +67,7 @@ void SpeakerViewComponent::setCameraPosition(CartesianVector const & position) n
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedLock const lock{ mLock };
+
     mData.state.cameraPosition = PolarVector::fromCartesian(position);
 }
 
@@ -88,7 +90,6 @@ void SpeakerViewComponent::render()
 
     ASSERT_OPEN_GL_THREAD;
     jassert(juce::OpenGLHelpers::isContextActive());
-
     juce::ScopedLock const lock{ mLock };
 
     // Process zoom smoothed animation
@@ -127,7 +128,7 @@ void SpeakerViewComponent::render()
 
     drawBackground();
 
-    gluPerspective(80.0, static_cast<GLdouble>(getWidth()) / static_cast<GLdouble>(getHeight()), 0.5, 75.0);
+    gluPerspective(70.0, static_cast<GLdouble>(getWidth()) / static_cast<GLdouble>(getHeight()), 0.5, 75.0);
     glMatrixMode(GL_MODELVIEW);
 
     auto const & camPos{ mData.state.cameraPosition.toCartesian() };
@@ -174,6 +175,7 @@ void SpeakerViewComponent::render()
             break;
         case SpatMode::lbap:
             drawFieldCube();
+            break;
         case SpatMode::stereo:
             break;
         default:
@@ -194,6 +196,9 @@ void SpeakerViewComponent::render()
 //==============================================================================
 void SpeakerViewComponent::paint(juce::Graphics & g)
 {
+    ASSERT_OPEN_GL_THREAD;
+    juce::ScopedLock const lock{ mLock };
+
     g.setColour(juce::Colours::white);
     g.setFont(16.0f);
     g.drawText(mData.config.title, 18, 18, 300, 30, juce::Justification::left);

@@ -179,6 +179,8 @@ public:
     void refreshSourceVuMeterComponents();
     void refreshSpeakerVuMeterComponents();
 
+    bool removeInvalidDirectOuts();
+
     auto const & getLock() const { return mLock; }
 
     void handleSourcePositionChanged(source_index_t const sourceIndex,

@@ -472,6 +472,7 @@ void MainContentComponent::loadProject(juce::File const & file)
         loadDefaultSpeakerSetup(SpatMode::vbap);
         return;
     }
+
     mData.project = std::move(*projectData);
     mData.appData.lastProject = file.getFullPathName();
 
@@ -481,6 +482,8 @@ void MainContentComponent::loadProject(juce::File const & file)
     mInterpolationSlider->setValue(mData.project.spatGainsInterpolation, juce::dontSendNotification);
 
     mSpeakerViewComponent->setCameraPosition(mData.project.cameraPosition);
+
+    removeInvalidDirectOuts();
     updateAudioProcessor();
     updateViewportConfig();
     setTitle();
@@ -1309,6 +1312,31 @@ void MainContentComponent::refreshSpeakerVuMeterComponents()
 }
 
 //==============================================================================
+bool MainContentComponent::removeInvalidDirectOuts()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    bool madeChange{};
+
+    for (auto & source : mData.project.sources) {
+        auto & directOut{ source.value->directOut };
+        if (!directOut) {
+            continue;
+        }
+
+        if (mData.speakerSetup.speakers.contains(*directOut)) {
+            continue;
+        }
+
+        directOut = tl::nullopt;
+        madeChange = true;
+    }
+
+    return madeChange;
+}
+
+//==============================================================================
 void MainContentComponent::handleSourcePositionChanged(source_index_t const sourceIndex,
                                                        radians_t const azimuth,
                                                        radians_t const elevation,
@@ -1790,7 +1818,7 @@ bool MainContentComponent::refreshSpeakers()
     auto const numActiveSpeakers{ std::count_if(
         speakers.cbegin(),
         speakers.cend(),
-        [](SpeakersData::ConstNode const speaker) { return speaker.value->isDirectOutOnly; }) };
+        [](SpeakersData::ConstNode const speaker) { return !speaker.value->isDirectOutOnly; }) };
 
     // Ensure there is enough speakers
     auto const showNotEnoughSpeakersError = [&]() {
@@ -1910,6 +1938,7 @@ void MainContentComponent::loadSpeakerSetup(juce::File const & file, tl::optiona
 
     if (!speakerSetup) {
         auto const msg{ mainXmlElem->hasTagName("ServerGRIS_Preset")
+                                || mainXmlElem->hasTagName(SpatGrisProjectData::XmlTags::MAIN_TAG)
                             ? "You are trying to open a Server document, and not a Speaker Setup !"
                             : "Your file is corrupted !\n" + xmlDoc.getLastParseError() };
         juce::AlertWindow::showMessageBox(juce::AlertWindow::WarningIcon, "Error in Load Speaker Setup !", msg);
@@ -1920,6 +1949,7 @@ void MainContentComponent::loadSpeakerSetup(juce::File const & file, tl::optiona
     juce::ScopedWriteLock const lock{ mLock };
     mData.speakerSetup = std::move(speakerSetup->first);
 
+    removeInvalidDirectOuts();
     handleSpatModeChanged(forceSpatMode.value_or(speakerSetup->second));
     refreshSpeakers();
 }

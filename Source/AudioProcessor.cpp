@@ -247,7 +247,7 @@ void AudioProcessor::processLbap(SourceAudioBuffer & inputBuffer,
     auto const gainFactor{ std::pow(gainInterpolation, 0.1f) * 0.0099f + 0.99f };
     auto const numSamples{ inputBuffer.getNumSamples() };
 
-    for (auto const source : mAudioData.config->sourcesAudioConfig) {
+    for (auto const & source : mAudioData.config->sourcesAudioConfig) {
         if (source.value.isMuted || source.value.directOut || sourcePeaks[source.key] < SMALL_GAIN) {
             continue;
         }
@@ -313,13 +313,21 @@ void AudioProcessor::processVBapHrtf(SourceAudioBuffer const & inputBuffer,
     auto const numSamples{ inputBuffer.getNumSamples() };
 
     // Process hrtf and mix to stereo
-    std::array<float, MAX_BUFFER_SIZE> leftOutputSamples{};
-    std::array<float, MAX_BUFFER_SIZE> rightOutputSamples{};
+    static std::array<float, MAX_BUFFER_SIZE> leftOutputSamples{};
+    static std::array<float, MAX_BUFFER_SIZE> rightOutputSamples{};
+
+    std::fill_n(leftOutputSamples.begin(), numSamples, 0.0f);
+    std::fill_n(rightOutputSamples.begin(), numSamples, 0.0f);
+
     for (auto const & speaker : mAudioData.config->speakersAudioConfig) {
         auto & hrtfState{ mAudioData.state.hrtf };
         auto & hrtfCount{ hrtfState.count };
         auto & hrtfInputTmp{ hrtfState.inputTmp };
         auto const outputIndex{ speaker.key.removeOffset<size_t>() };
+        auto const & outputSamplesBuffer{ outputBuffer[speaker.key] };
+        if (outputSamplesBuffer.getMagnitude(0, numSamples) == 0.0f) {
+            continue;
+        }
         auto const * outputSamples{ outputBuffer[speaker.key].getReadPointer(0) };
         auto const & hrtfLeftImpulses{ hrtfState.leftImpulses };
         auto const & hrtfRightImpulses{ hrtfState.rightImpulses };
@@ -329,6 +337,7 @@ void AudioProcessor::processVBapHrtf(SourceAudioBuffer const & inputBuffer,
                 if (tmpCount < 0) {
                     tmpCount += HRTF_NUM_SAMPLES;
                 }
+                // TODO : traversing tmpCount backwards is probably hurting performances
                 auto const sig{ hrtfInputTmp[outputIndex][tmpCount] };
                 leftOutputSamples[sampleIndex] += sig * hrtfLeftImpulses[outputIndex][hrtfIndex];
                 rightOutputSamples[sampleIndex] += sig * hrtfRightImpulses[outputIndex][hrtfIndex];
@@ -348,7 +357,7 @@ void AudioProcessor::processVBapHrtf(SourceAudioBuffer const & inputBuffer,
         if (speaker.key == LEFT_OUTPUT_PATCH) {
             outputBuffer[LEFT_OUTPUT_PATCH].copyFrom(0, 0, leftOutputSamples.data(), numSamples);
         } else if (speaker.key == RIGHT_OUTPUT_PATCH) {
-            outputBuffer[RIGHT_OUTPUT_PATCH].copyFrom(0, 0, leftOutputSamples.data(), numSamples);
+            outputBuffer[RIGHT_OUTPUT_PATCH].copyFrom(0, 0, rightOutputSamples.data(), numSamples);
         } else {
             outputBuffer[speaker.key].clear();
         }
