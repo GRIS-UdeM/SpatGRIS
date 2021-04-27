@@ -378,19 +378,19 @@ void SpeakerViewComponent::drawOriginGrid() const
     glLineWidth(2.0f);
     glBegin(GL_LINES);
     // X
-    glColor3f(0.0f, 1.0f, 0.0f);
-    glVertex3f(0.0f, -MAX_RADIUS, 0.0f);
-    glVertex3f(0.0f, 0.0f, 0.0f);
     glColor3f(0.0f, 0.4f, 0.0f);
     glVertex3f(0.0f, 0.0f, 0.0f);
-    glVertex3f(0.0f, MAX_RADIUS, 0.0f);
+    glVertex3f(-MAX_RADIUS, 0.0f, 0.0f);
+    glColor3f(0.0f, 1.0f, 0.0f);
+    glVertex3f(MAX_RADIUS, 0.0f, 0.0f);
+    glVertex3f(0.0f, 0.0f, 0.0f);
     // Y
     glColor3f(0.4f, 0.0f, 0.0f);
-    glVertex3f(-MAX_RADIUS, 0.0f, 0.0f);
+    glVertex3f(0.0f, -MAX_RADIUS, 0.0f);
     glVertex3f(0.0f, 0.0f, 0.0f);
     glColor3f(1.0f, 0.0f, 0.0f);
     glVertex3f(0.0f, 0.0f, 0.0f);
-    glVertex3f(MAX_RADIUS, 0.0f, 0.0f);
+    glVertex3f(0.0f, MAX_RADIUS, 0.0f);
     // Z
     glColor3f(0.0f, 0.0f, 1.0f);
     glVertex3f(0.0f, 0.0f, 0.0f);
@@ -431,14 +431,14 @@ void SpeakerViewComponent::drawOriginGrid() const
     glEnd();
 
     static auto constexpr HALF_CHAR_WIDTH = 0.025f;
-    drawText("X", CartesianVector{ -HALF_CHAR_WIDTH, -MAX_RADIUS, 0.0f }, juce::Colours::white, 0.0005f);
-    drawText("Y", CartesianVector{ MAX_RADIUS, -HALF_CHAR_WIDTH, 0.0f }, juce::Colours::white, 0.0005f);
-    drawText("Z", CartesianVector{ -HALF_CHAR_WIDTH, 0.0f, MAX_RADIUS }, juce::Colours::white, 0.0005f);
+    drawText("X", CartesianVector{ MAX_RADIUS, -HALF_CHAR_WIDTH, 0.0f }, juce::Colours::white, 0.0005f);
+    drawText("Y", CartesianVector{ -HALF_CHAR_WIDTH, MAX_RADIUS, 0.0f }, juce::Colours::white, 0.0005f);
+    drawText("Z", CartesianVector{ -HALF_CHAR_WIDTH, 0.0f, MAX_RADIUS + 0.03f }, juce::Colours::white, 0.0005f);
 
-    drawTextOnGrid("0", glm::vec3(0.94f, -0.03f, 0.0f), 0.00035f);
-    drawTextOnGrid("90", glm::vec3(-0.08f, -0.9f, 0.0f), 0.00035f);
-    drawTextOnGrid("180", glm::vec3(-0.98f, -0.015f, 0.0f), 0.00035f);
-    drawTextOnGrid("270", glm::vec3(-0.08f, 0.98f, 0.0f), 0.00035f);
+    drawTextOnGrid("0", glm::vec3(0.02f, 0.94f, 0.0f), 0.00035f);
+    drawTextOnGrid("90", glm::vec3(0.91f, -0.08f, 0.0f), 0.00035f);
+    drawTextOnGrid("180", glm::vec3(0.03f, -0.94f, 0.0f), 0.00035f);
+    drawTextOnGrid("270", glm::vec3(-0.98f, -0.08f, 0.0f), 0.00035f);
 }
 
 //==============================================================================
@@ -475,8 +475,7 @@ void SpeakerViewComponent::drawTextOnGrid(std::string const & val, glm::vec3 con
 {
     glPushMatrix();
     glTranslatef(position.x, position.y, position.z);
-    glRotatef(-HALF_PI.toDegrees().get(), 0.0f, 0.0f, 1.0f);
-    // glRotatef(-HALF_PI.toDegrees().get(), 1.0f, 0.0f, 0.0f);
+    glRotatef(0.0f, 0.0f, 0.0f, 1.0f);
 
     glScalef(scale, scale, scale);
     glColor3f(1.0f, 1.0f, 1.0f);

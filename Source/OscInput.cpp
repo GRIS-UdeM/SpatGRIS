@@ -59,7 +59,7 @@ void OscInput::oscMessageReceived(const juce::OSCMessage & message)
             if (!LEGAL_SOURCE_INDEX_RANGE.contains(sourceIndex)) {
                 return;
             }
-            auto const azimuth{ (TWO_PI - radians_t{ message[1].getFloat32() }).centered() };
+            auto const azimuth{ HALF_PI - radians_t{ message[1].getFloat32() }.centered() };
             auto const zenith{ HALF_PI - radians_t{ message[2].getFloat32() } };
             auto const azimuthSpan{ message[3].getFloat32() / 2.0f };
             jassert(azimuthSpan >= 0.0f && azimuthSpan <= 1.0f);

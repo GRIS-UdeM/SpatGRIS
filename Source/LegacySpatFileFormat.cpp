@@ -34,9 +34,9 @@ tl::optional<std::pair<SpeakerSetup, SpatMode>> readLegacySpeakerSetup(juce::Xml
                     }
 
                     // position
-                    radians_t const azimuth{
-                        degrees_t{ static_cast<float>(-spk->getDoubleAttribute("Azimuth", 0.0)) }.centered()
-                    };
+                    radians_t const azimuth{ (degrees_t{ static_cast<float>(-spk->getDoubleAttribute("Azimuth", 0.0)) }
+                                              + degrees_t{ 90.0f })
+                                                 .centered() };
                     radians_t const zenith{
                         degrees_t{ static_cast<float>(spk->getDoubleAttribute("Zenith", 0.0)) }.centered()
                     };
@@ -120,10 +120,10 @@ tl::optional<SpatGrisProjectData> readLegacyProjectFile(juce::XmlElement const &
     ViewSettings const viewSettings{ showSpeakers,      showSpeakerNumbers, showTriplets,
                                      showSpeakerLevels, showSphereOrCube,   showSourceLevels };
 
-    auto const camAzimuth{
-        degrees_t{ static_cast<float>(xml.getDoubleAttribute("CamAngleX", 0.0f) + 90.0f) }.centered()
+    radians_t const camAzimuth{
+        (degrees_t{ static_cast<float>(xml.getDoubleAttribute("CamAngleX", 0.0f)) } + degrees_t{ 180.0f }).centered()
     };
-    auto const camZenith{ degrees_t{ static_cast<float>(xml.getDoubleAttribute("CamAngleY", 0.0f)) }.centered() };
+    radians_t const camZenith{ degrees_t{ static_cast<float>(xml.getDoubleAttribute("CamAngleY", 0.0f)) }.centered() };
     auto const camDistance{ static_cast<float>(xml.getDoubleAttribute("CamDistance", 22.0f) / 10.0f) };
     auto const camPosition{ PolarVector{ camAzimuth, camZenith, camDistance }.toCartesian() };
 
