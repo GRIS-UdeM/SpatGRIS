@@ -216,6 +216,7 @@ public:
 };
 
 //==============================================================================
+constexpr radians_t QUARTER_PI{ juce::MathConstants<radians_t::type>::halfPi / 2.0f };
 constexpr radians_t HALF_PI{ juce::MathConstants<radians_t::type>::halfPi };
 constexpr radians_t PI{ juce::MathConstants<radians_t::type>::pi };
 constexpr radians_t TWO_PI{ juce::MathConstants<radians_t::type>::twoPi };

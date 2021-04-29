@@ -378,9 +378,8 @@ void AudioProcessor::processStereo(SourceAudioBuffer const & inputBuffer,
     auto & leftBuffer{ outputBuffer[output_patch_t{ 1 }] };
     auto & rightBuffer{ outputBuffer[output_patch_t{ 2 }] };
     auto const numSamples{ inputBuffer.getNumSamples() };
-    auto const compensation{
-        std::pow(10.0f, (narrow<float>(mAudioData.config->sourcesAudioConfig.size()) - 1.0f) * -0.1f * 0.05f)
-    };
+    auto const compensation{ std::pow(10.0f,
+                                      (narrow<float>(mAudioData.config->sourcesAudioConfig.size()) - 1.0f) * -0.005f) };
     leftBuffer.applyGain(0, numSamples, compensation);
     rightBuffer.applyGain(0, numSamples, compensation);
 }

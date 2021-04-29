@@ -1585,6 +1585,7 @@ void MainContentComponent::handleSpatModeChanged(SpatMode const spatMode)
             break;
         case SpatMode::stereo:
             loadSpeakerSetup(STEREO_SPEAKER_SETUP_FILE, SpatMode::stereo);
+            break;
         case SpatMode::lbap:
         case SpatMode::vbap:
             break;
@@ -1950,7 +1951,14 @@ void MainContentComponent::loadSpeakerSetup(juce::File const & file, tl::optiona
     mData.speakerSetup = std::move(speakerSetup->first);
 
     removeInvalidDirectOuts();
-    handleSpatModeChanged(forceSpatMode.value_or(speakerSetup->second));
+
+    auto const newSpatMode{ forceSpatMode.value_or(speakerSetup->second) };
+    if (newSpatMode != mData.appData.spatMode) {
+        // TODO : the way spatMode and spatAlgorithm are updated is not clear enough.
+        handleSpatModeChanged(newSpatMode);
+        mSpatAlgorithm = AbstractSpatAlgorithm::make(newSpatMode);
+    }
+
     refreshSpeakers();
 }
 
