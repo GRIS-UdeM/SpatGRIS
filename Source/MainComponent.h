@@ -142,10 +142,6 @@ class MainContentComponent final
     Configuration mConfiguration;
     juce::Rectangle<int> mFlatViewWindowRect{};
 
-    // App states.
-    bool mNeedToSavePreset{ false };
-    bool mNeedToSaveSpeakerSetup{ false };
-
     SpatGrisData mData{};
     std::unique_ptr<AbstractSpatAlgorithm> mSpatAlgorithm{};
 
@@ -219,13 +215,6 @@ public:
 
     void handleSetShowTriplets(bool state);
 
-    // other
-    [[nodiscard]] bool needToSaveSpeakerSetup() const { return mNeedToSaveSpeakerSetup; }
-
-    void setNeedToSaveSpeakerSetup(bool const state) { mNeedToSaveSpeakerSetup = state; }
-
-    void setNeedToComputeVbap(bool const /*state*/) { jassertfalse; }
-
     void handleNumSourcesChanged(int numSources);
 
     // Speakers.
@@ -273,6 +262,9 @@ public:
     void menuItemSelected(int menuItemId, int /*topLevelMenuIndex*/) override;
     [[nodiscard]] juce::StringArray getMenuBarNames() override;
     [[nodiscard]] juce::PopupMenu getMenuForIndex(int menuIndex, const juce::String & /*menuName*/) override;
+
+    [[nodiscard]] bool isProjectModified() const;
+    [[nodiscard]] bool isSpeakerSetupModified() const;
 
 private:
     //==============================================================================
@@ -329,7 +321,6 @@ private:
     void handleColorizeInputs();
 
     [[nodiscard]] output_patch_t getMaxSpeakerOutputPatch() const;
-    [[nodiscard]] bool isProjectModified() const;
     //==============================================================================
     // Open - save.
     void loadSpeakerSetup(juce::File const & file, tl::optional<SpatMode> forceSpatMode = tl::nullopt);

@@ -644,7 +644,6 @@ void MainContentComponent::closeSpeakersConfigurationWindow()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    mNeedToSaveSpeakerSetup = false;
     mEditSpeakersWindow.reset();
 }
 
@@ -1210,6 +1209,26 @@ bool MainContentComponent::isProjectModified() const
 }
 
 //==============================================================================
+bool MainContentComponent::isSpeakerSetupModified() const
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
+    auto const savedElement{ juce::XmlDocument{ juce::File{ mData.appData.lastSpeakerSetup } }.getDocumentElement() };
+    jassert(savedElement);
+    if (!savedElement) {
+        return true;
+    }
+
+    auto const savedSpeakerSetup{ SpeakerSetup::fromXml(*savedElement) };
+    jassert(savedSpeakerSetup);
+    if (!savedSpeakerSetup) {
+        return true;
+    }
+    return mData.speakerSetup != savedSpeakerSetup->first;
+}
+
+//==============================================================================
 bool MainContentComponent::exitApp()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -1506,6 +1525,7 @@ void MainContentComponent::handleSpeakerOnlyDirectOutChanged(output_patch_t cons
     if (state != val) {
         val = state;
         updateAudioProcessor();
+        updateViewportConfig();
     }
 }
 
@@ -1604,10 +1624,12 @@ void MainContentComponent::handleSpeakerSelected(juce::Array<output_patch_t> con
 
         speaker.value->isSelected = isSelected;
         mSpeakerVuMeters[speaker.key].setSelected(isSelected);
-        if (mEditSpeakersWindow) {
-            // TODO : handle multiple selection
-            mEditSpeakersWindow->selectSpeaker(speaker.key);
+
+        if (!isSelected || !mEditSpeakersWindow) {
+            continue;
         }
+
+        mEditSpeakersWindow->selectSpeaker(speaker.key);
     }
 
     updateViewportConfig();
@@ -1729,7 +1751,7 @@ void MainContentComponent::handleNewSpeakerPosition(output_patch_t const outputP
     speaker.vector = PolarVector::fromCartesian(position);
     speaker.position = position;
 
-    // TODO : re-init spat algorithm?
+    updateViewportConfig();
 }
 
 //==============================================================================
@@ -1863,9 +1885,11 @@ void MainContentComponent::removeSpeaker(output_patch_t const outputPatch)
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
 
-    mSpeakerVuMeters.remove(outputPatch);
     mData.speakerSetup.order.removeFirstMatchingValue(outputPatch);
     mData.speakerSetup.speakers.remove(outputPatch);
+
+    updateViewportConfig();
+    updateAudioProcessor();
 }
 
 //==============================================================================
@@ -1979,7 +2003,6 @@ bool MainContentComponent::refreshSpeakers()
         alert.addButton("Keep current setup", 1);
         if (alert.runModalLoop() == 0) {
             loadSpeakerSetup(DEFAULT_SPEAKER_SETUP_FILE);
-            mNeedToSaveSpeakerSetup = false;
         }
         return false;
     }
@@ -1988,7 +2011,7 @@ bool MainContentComponent::refreshSpeakers()
     refreshSpeakerVuMeterComponents();
 
     if (mEditSpeakersWindow != nullptr) {
-        mEditSpeakersWindow->updateWinContent(false);
+        mEditSpeakersWindow->updateWinContent();
     }
 
     mOutputsUiBox->repaint();
@@ -2209,7 +2232,7 @@ void MainContentComponent::textEditorFocusLost(juce::TextEditor & textEditor)
 }
 
 //==============================================================================
-void MainContentComponent::textEditorReturnKeyPressed(juce::TextEditor & textEditor)
+void MainContentComponent::textEditorReturnKeyPressed([[maybe_unused]] juce::TextEditor & textEditor)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     jassert(&textEditor == mNumSourcesTextEditor.get());
@@ -2264,7 +2287,7 @@ void MainContentComponent::comboBoxChanged(juce::ComboBox * comboBoxThatHasChang
     juce::ScopedReadLock const lock{ mLock };
 
     if (comboBoxThatHasChanged == mSpatModeCombo.get()) {
-        if (mNeedToSaveSpeakerSetup) {
+        if (isSpeakerSetupModified()) {
             juce::AlertWindow alert(
                 "The speaker configuration has changed!    ",
                 "Save your changes or close the speaker configuration window before switching mode...    ",

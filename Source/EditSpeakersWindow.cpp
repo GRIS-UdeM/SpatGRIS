@@ -369,7 +369,7 @@ void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const 
                    [](std::pair<float, output_patch_t> const & entry) { return entry.second; });
 
     mMainContentComponent.reorderSpeakers(std::move(newOrder));
-    updateWinContent(false);
+    updateWinContent();
 }
 
 //==============================================================================
@@ -392,7 +392,6 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         return selectedRow;
     };
 
-    jassertfalse; // auto const tripletState{ mMainContentComponent.isTripletsShown() };
     auto const sortColumnId{ mSpeakersTableListBox.getHeader().getSortColumnId() };
     auto const sortedForwards{ mSpeakersTableListBox.getHeader().isSortedForwards() };
     auto const & speakers{ mMainContentComponent.getData().speakerSetup.speakers };
@@ -404,24 +403,23 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         // Add speaker button
         if (!selectedRow) {
             mMainContentComponent.addSpeaker();
-            updateWinContent(true);
+            updateWinContent();
             mSpeakersTableListBox.selectRow(getNumRows() - 1);
         } else {
             mMainContentComponent.insertSpeaker(*selectedRow);
-            updateWinContent(true);
+            updateWinContent();
             mSpeakersTableListBox.selectRow(*selectedRow + 1);
         }
         mSpeakersTableListBox.getHeader().setSortColumnId(sortColumnId, sortedForwards); // TODO: necessary?
-        mMainContentComponent.setNeedToComputeVbap(true);
+        mShouldRefreshSpeakers = true;
     } else if (button == &mCompSpeakersButton) {
         // Compute speaker button
-        if (mMainContentComponent.refreshSpeakers()) {
-            jassertfalse; // mMainContentComponent.handleSetShowTriplets(tripletState);
-        }
+        auto const success{ mMainContentComponent.refreshSpeakers() };
+        mShouldRefreshSpeakers = !success;
     } else if (button == &mAddRingButton) {
         // Add ring button
         for (int i{}; i < mNumOfSpeakersTextEditor.getText().getIntValue(); i++) {
-            output_patch_t newOutputPatch{};
+            output_patch_t newOutputPatch;
             if (!selectedRow) {
                 newOutputPatch = mMainContentComponent.addSpeaker();
                 mNumRows = speakers.size();
@@ -440,13 +438,13 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
 
             mMainContentComponent.handleNewSpeakerPosition(newOutputPatch, PolarVector{ azimuth, zenith, radius });
         }
-        updateWinContent(true);
+        updateWinContent();
         mSpeakersTableListBox.selectRow(*selectedRow);
         // TableList needs different sorting parameters to trigger the sorting function.
         mSpeakersTableListBox.getHeader().setSortColumnId(sortColumnId, !sortedForwards);
         // This is the real sorting!
         mSpeakersTableListBox.getHeader().setSortColumnId(sortColumnId, sortedForwards);
-        mMainContentComponent.setNeedToComputeVbap(true);
+        mShouldRefreshSpeakers = true;
     } else if (button == &mPinkNoiseToggleButton) {
         // Pink noise button
         tl::optional<dbfs_t> newPinkNoiseLevel{};
@@ -454,7 +452,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
             newPinkNoiseLevel = dbfs_t{ static_cast<float>(mPinkNoiseGainSlider.getValue()) };
         }
         mMainContentComponent.handlePinkNoiseGainChanged(newPinkNoiseLevel);
-    } else if (button->getName().isNotEmpty() && button->getName().getIntValue() >= 0) {
+    } else if (button->getName().getIntValue() < DIRECT_OUT_BUTTON_ID_OFFSET) {
         // Delete button
         if (mSpeakersTableListBox.getNumSelectedRows() > 1
             && mSpeakersTableListBox.getSelectedRows().contains(button->getName().getIntValue())) {
@@ -468,29 +466,17 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
             auto const speakerId{ mMainContentComponent.getSpeakersDisplayOrder()[row] };
             mMainContentComponent.removeSpeaker(speakerId);
         }
-        updateWinContent(true);
+        updateWinContent();
         mSpeakersTableListBox.deselectAllRows();
-        mMainContentComponent.setNeedToComputeVbap(true);
+        mShouldRefreshSpeakers = true;
     } else {
         // Direct out
-        auto const row{ button->getName().getIntValue() - 1000 }; // TODO: why -1000?
+        jassert(button->getName().getIntValue() >= DIRECT_OUT_BUTTON_ID_OFFSET);
+        auto const row{ button->getName().getIntValue() - DIRECT_OUT_BUTTON_ID_OFFSET };
         auto const outputPatch{ getSpeakerOutputPatchForRow(row) };
         mMainContentComponent.handleSpeakerOnlyDirectOutChanged(outputPatch, button->getToggleState());
-        /*if (mSpeakersTableListBox.getNumSelectedRows() > 1) {
-            for (int i{}; i < mSpeakersTableListBox.getSelectedRows().size(); ++i) {
-                auto const rowNumber{ mSpeakersTableListBox.getSelectedRows()[i] };
-                getSpeakerData(rowNumber).setDirectOut(button->getToggleState());
-                auto * tog{ dynamic_cast<juce::ToggleButton *>(
-                    mSpeakersTableListBox.getCellComponent(Cols::DIRECT_TOGGLE, rowNumber)) };
-                if (tog) {
-                    tog->setToggleState(button->getToggleState(), juce::NotificationType::dontSendNotification);
-                } else {
-                    jassertfalse;
-                }
-            }
-        }*/
-        updateWinContent(true);
-        mMainContentComponent.setNeedToComputeVbap(true);
+        updateWinContent();
+        mShouldRefreshSpeakers = true;
     }
 }
 
@@ -541,13 +527,29 @@ void EditSpeakersWindow::textEditorReturnKeyPressed(juce::TextEditor & /*textEdi
 }
 
 //==============================================================================
-void EditSpeakersWindow::updateWinContent(bool const needToSaveSpeakerSetup)
+void EditSpeakersWindow::updateWinContent()
 {
     mNumRows = mMainContentComponent.getData().speakerSetup.speakers.size();
     mSpeakersTableListBox.updateContent();
-    if (needToSaveSpeakerSetup) {
-        mMainContentComponent.setNeedToSaveSpeakerSetup(true);
+}
+
+//==============================================================================
+void EditSpeakersWindow::pushSelectionToMainComponent() const
+{
+    auto const selectedRows{ mSpeakersTableListBox.getSelectedRows() };
+    if (selectedRows == mLastSelectedRows) {
+        return;
     }
+
+    juce::Array<output_patch_t> selection{};
+    selection.ensureStorageAllocated(selectedRows.size());
+    for (int i{}; i < selectedRows.size(); ++i) {
+        auto const row{ selectedRows[i] };
+        auto const outputPatch{ getSpeakerOutputPatchForRow(row) };
+        selection.add(outputPatch);
+    }
+
+    mMainContentComponent.handleSpeakerSelected(std::move(selection));
 }
 
 //==============================================================================
@@ -576,7 +578,8 @@ void EditSpeakersWindow::closeButtonPressed()
 {
     enum Button { save, no, cancel };
     int exitV{ no };
-    if (mMainContentComponent.needToSaveSpeakerSetup()) {
+
+    if (mShouldRefreshSpeakers || mMainContentComponent.isSpeakerSetupModified()) {
         juce::AlertWindow alert("Closing Speaker Setup Window !",
                                 "Do you want to compute and save the current setup ?",
                                 juce::AlertWindow::WarningIcon);
@@ -709,6 +712,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
                     mMainContentComponent.handleNewSpeakerPosition(outputPatch, newPosition);
                 }
             }
+            mShouldRefreshSpeakers = true;
             break;
         }
         case Cols::Y: {
@@ -732,6 +736,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
                     mMainContentComponent.handleNewSpeakerPosition(outputPatch, newPosition);
                 }
             }
+            mShouldRefreshSpeakers = true;
             break;
         }
         case Cols::Z: {
@@ -756,6 +761,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
                     mMainContentComponent.handleNewSpeakerPosition(outputPatch, newPosition);
                 }
             }
+            mShouldRefreshSpeakers = true;
             break;
         }
         case Cols::AZIMUTH: {
@@ -780,6 +786,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
                     mMainContentComponent.handleNewSpeakerPosition(outputPatch, newVector);
                 }
             }
+            mShouldRefreshSpeakers = true;
             break;
         }
         case Cols::ELEVATION: {
@@ -804,6 +811,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
                     mMainContentComponent.handleNewSpeakerPosition(outputPatch, newVector);
                 }
             }
+            mShouldRefreshSpeakers = true;
             break;
         }
         case Cols::DISTANCE: {
@@ -834,6 +842,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
                     mMainContentComponent.handleNewSpeakerPosition(outputPatch, newVector);
                 }
             }
+            mShouldRefreshSpeakers = true;
             break;
         }
         case Cols::OUTPUT_PATCH: {
@@ -853,6 +862,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
                     mMainContentComponent.handleSpeakerOutputPatchChanged(oldOutputPatch, newOutputPatch);
                 }
             }
+            mShouldRefreshSpeakers = true;
             break;
         }
         case Cols::GAIN: {
@@ -906,13 +916,14 @@ void EditSpeakersWindow::setText(int const columnNumber,
         case Cols::DIRECT_TOGGLE:
             mMainContentComponent.handleSetShowTriplets(false);
             mMainContentComponent.handleSpeakerOnlyDirectOutChanged(outputPatch, newText.getIntValue());
+            mShouldRefreshSpeakers = true;
             break;
         default:
             break;
         }
     }
-    updateWinContent(true); // necessary?
-    mMainContentComponent.setNeedToComputeVbap(true);
+    updateWinContent(); // necessary?
+    mMainContentComponent.updateViewportConfig();
 }
 
 //==============================================================================
@@ -954,7 +965,7 @@ void EditSpeakersWindow::paintRowBackground(juce::Graphics & g,
     // TODO : fix the real problem and add the assertion back.
     juce::ScopedReadLock const lock{ mMainContentComponent.getLock() };
     auto const & speakers{ mMainContentComponent.getData().speakerSetup.speakers };
-    jassert(rowNumber < mMainContentComponent.getData().speakerSetup.speakers.size());
+    // jassert(rowNumber < speakers.size());
     if (rowNumber >= speakers.size()) {
         return;
     }
@@ -962,7 +973,7 @@ void EditSpeakersWindow::paintRowBackground(juce::Graphics & g,
     auto const outputPatch{ getSpeakerOutputPatchForRow(rowIsSelected) };
 
     if (rowIsSelected) {
-        mMainContentComponent.handleSpeakerSelected(outputPatch);
+        // mMainContentComponent.handleSpeakerSelected(outputPatch);
         g.fillAll(mLookAndFeel.getHighlightColour());
     } else {
         if (rowNumber % 2) {
@@ -1000,7 +1011,7 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
         if (toggleButton == nullptr) {
             toggleButton = new juce::ToggleButton();
         }
-        toggleButton->setName(juce::String(rowNumber + 1000));
+        toggleButton->setName(juce::String(rowNumber + DIRECT_OUT_BUTTON_ID_OFFSET));
         toggleButton->setClickingTogglesState(true);
         toggleButton->setBounds(4, 404, 88, 22);
         toggleButton->addListener(this);
@@ -1088,6 +1099,7 @@ void EditSpeakersWindow::mouseDown(juce::MouseEvent const & event)
     } else {
         mDragStartY = tl::nullopt;
     }
+    pushSelectionToMainComponent();
 }
 
 //==============================================================================
@@ -1130,8 +1142,7 @@ void EditSpeakersWindow::mouseDrag(juce::MouseEvent const & event)
     }
     mSpeakersTableListBox.selectRow(newIndex);
 
-    mMainContentComponent.setNeedToSaveSpeakerSetup(true);
-    updateWinContent(true);
+    updateWinContent();
 }
 
 //==============================================================================

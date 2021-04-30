@@ -222,6 +222,12 @@ tl::optional<SpeakerHighpassData> SpeakerHighpassData::fromXml(juce::XmlElement 
 }
 
 //==============================================================================
+bool SpeakerHighpassData::operator==(SpeakerHighpassData const & other) const noexcept
+{
+    return other.freq == freq;
+}
+
+//==============================================================================
 SpeakerAudioConfig SpeakerData::toConfig(bool const soloMode, double const sampleRate) const noexcept
 {
     auto const getHighpassConfig = [&](SpeakerHighpassData const & data) { return data.toConfig(sampleRate); };
@@ -294,6 +300,13 @@ tl::optional<SpeakerData> SpeakerData::fromXml(juce::XmlElement const & xml) noe
     result.isDirectOutOnly = xml.getBoolAttribute(XmlTags::IS_DIRECT_OUT_ONLY);
 
     return result;
+}
+
+//==============================================================================
+bool SpeakerData::operator==(SpeakerData const & other) const noexcept
+{
+    return other.isDirectOutOnly == isDirectOutOnly && other.highpassData == highpassData && other.position == position
+           && other.gain == gain;
 }
 
 //==============================================================================
@@ -689,6 +702,12 @@ tl::optional<std::pair<SpeakerSetup, SpatMode>> SpeakerSetup::fromXml(juce::XmlE
     }
 
     return tl::make_optional(std::move(result));
+}
+
+//==============================================================================
+bool SpeakerSetup::operator==(SpeakerSetup const & other) const noexcept
+{
+    return other.order == order && other.speakers == speakers;
 }
 
 //==============================================================================

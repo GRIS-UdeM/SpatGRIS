@@ -42,6 +42,8 @@ class EditSpeakersWindow final
     , public juce::TextEditor::Listener
     , public juce::Slider::Listener
 {
+    static constexpr auto DIRECT_OUT_BUTTON_ID_OFFSET = 1000;
+
 public:
     struct Cols {
         static constexpr int DRAG_HANDLE = 1;
@@ -89,6 +91,8 @@ private:
 
     int mNumRows{};
     tl::optional<int> mDragStartY{};
+    bool mShouldRefreshSpeakers{};
+    juce::SparseSet<int> mLastSelectedRows{};
     //==============================================================================
     friend EditableTextCustomComponent;
 
@@ -110,10 +114,11 @@ public:
     void initComp();
     void selectRow(tl::optional<int> const value);
     void selectSpeaker(tl::optional<output_patch_t> outputPatch);
-    void updateWinContent(bool needToSaveSpeakerSetup);
+    void updateWinContent();
 
 private:
     //==============================================================================
+    void pushSelectionToMainComponent() const;
     [[nodiscard]] SpatMode getModeSelected() const;
     [[nodiscard]] juce::String getText(int columnNumber, int rowNumber) const;
     void setText(int columnNumber, int rowNumber, juce::String const & newText, bool altDown = false);

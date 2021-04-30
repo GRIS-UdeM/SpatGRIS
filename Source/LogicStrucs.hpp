@@ -111,6 +111,7 @@ struct SpeakerHighpassData {
     [[nodiscard]] SpeakerHighpassConfig toConfig(double sampleRate) const;
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
     [[nodiscard]] static tl::optional<SpeakerHighpassData> fromXml(juce::XmlElement const & xml);
+    [[nodiscard]] bool operator==(SpeakerHighpassData const & other) const noexcept;
     //==============================================================================
     struct XmlTags {
         static juce::String const MAIN_TAG;
@@ -133,6 +134,7 @@ struct SpeakerData {
     [[nodiscard]] ViewportSpeakerConfig toViewportConfig() const noexcept;
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml(output_patch_t outputPatch) const noexcept;
     [[nodiscard]] static tl::optional<SpeakerData> fromXml(juce::XmlElement const & xml) noexcept;
+    [[nodiscard]] bool operator==(SpeakerData const & other) const noexcept;
     //==============================================================================
     struct XmlTags {
         static juce::String const STATE;
@@ -269,16 +271,18 @@ struct SpatGrisAppData {
 using SpeakersData = OwnedMap<output_patch_t, SpeakerData, MAX_OUTPUTS>;
 
 struct SpeakerSetup {
+    SpeakersData speakers{};
+    juce::Array<output_patch_t> order{};
+    //==============================================================================
+    [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml(SpatMode mode) const;
+    [[nodiscard]] static tl::optional<std::pair<SpeakerSetup, SpatMode>> fromXml(juce::XmlElement const & xml);
+    [[nodiscard]] bool operator==(SpeakerSetup const & other) const noexcept;
+    [[nodiscard]] bool operator!=(SpeakerSetup const & other) const noexcept { return !(*this == other); }
+    //==============================================================================
     struct XmlTags {
         static juce::String const MAIN_TAG;
         static juce::String const SPAT_MODE;
     };
-
-    SpeakersData speakers{};
-    juce::Array<output_patch_t> order{};
-
-    [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml(SpatMode mode) const;
-    [[nodiscard]] static tl::optional<std::pair<SpeakerSetup, SpatMode>> fromXml(juce::XmlElement const & xml);
 };
 
 struct SpatGrisData {
