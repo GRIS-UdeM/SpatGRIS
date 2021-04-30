@@ -33,7 +33,7 @@ class SpeakerModel;
 class AudioProcessor
 {
     AudioData mAudioData{};
-    juce::CriticalSection mCriticalSection{};
+    juce::CriticalSection mLock{};
 
 public:
     //==============================================================================
@@ -48,7 +48,7 @@ public:
     // Reinit HRTF delay lines.
     void resetHrtf();
     void setAudioConfig(std::unique_ptr<AudioConfig> newAudioConfig);
-    [[nodiscard]] juce::CriticalSection const & getLock() const noexcept { return mCriticalSection; }
+    [[nodiscard]] juce::CriticalSection const & getLock() const noexcept { return mLock; }
     void processAudio(SourceAudioBuffer & sourceBuffer, SpeakerAudioBuffer & speakerBuffer) noexcept;
 
     auto & getAudioData() { return mAudioData; }

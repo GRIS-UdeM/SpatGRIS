@@ -726,7 +726,21 @@ ViewportConfig SpatGrisData::toViewportConfig() const noexcept
     }
     result.spatMode = appData.spatMode;
     result.viewSettings = project.viewSettings;
-    result.title = appData.lastSpeakerSetup;
+
+    auto const getTitle = [&]() {
+        switch (appData.spatMode) {
+        case SpatMode::lbap:
+        case SpatMode::vbap:
+            return juce::File{ appData.lastSpeakerSetup }.getFileName();
+        case SpatMode::hrtfVbap:
+        case SpatMode::stereo:
+            return juce::String{};
+        }
+        jassertfalse;
+        return juce::String{};
+    };
+
+    result.title = getTitle();
 
     return result;
 }

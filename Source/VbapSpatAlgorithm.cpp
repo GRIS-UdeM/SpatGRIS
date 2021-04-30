@@ -17,7 +17,7 @@ VbapType getVbapType(SpeakersData const & speakers)
 }
 
 //==============================================================================
-void VbapSpatAlgorithm::init(SpeakersData const & speakers)
+VbapSpatAlgorithm::VbapSpatAlgorithm(SpeakersData const & speakers)
 {
     std::array<LoudSpeaker, MAX_OUTPUTS> loudSpeakers{};
     std::array<output_patch_t, MAX_OUTPUTS> outputPatches{};

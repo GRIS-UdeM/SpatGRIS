@@ -526,8 +526,7 @@ static void choose_ls_triplets(std::array<LoudSpeaker, MAX_OUTPUTS> const & spea
 
     // ...then we test for valid triplets ONLY when the elevation difference is within a specified range for two
     // speakers
-    int connections[MAX_OUTPUTS][MAX_OUTPUTS];
-    memset(connections, 0, sizeof(int) * MAX_OUTPUTS * MAX_OUTPUTS);
+    std::array<std::array<bool, MAX_OUTPUTS>, MAX_OUTPUTS> connections{};
     for (size_t i{}; i < speakerIndexesSortedByElevation.size(); ++i) {
         auto const speaker1Index{ speakerIndexesSortedByElevation[i] };
         auto const & speaker1{ speakers[speaker1Index] };
@@ -550,12 +549,12 @@ static void choose_ls_triplets(std::array<LoudSpeaker, MAX_OUTPUTS> const & spea
                 auto const & speaker3{ speakers[speaker3Index] };
                 auto const isValidCandidate{ vol_p_side_lgth(speaker1, speaker2, speaker3) > MIN_VOL_P_SIDE_LENGTH };
                 if (isValidCandidate) {
-                    connections[speaker1Index][speaker2Index] = 1;
-                    connections[speaker2Index][speaker1Index] = 1;
-                    connections[speaker1Index][speaker3Index] = 1;
-                    connections[speaker3Index][speaker1Index] = 1;
-                    connections[speaker2Index][speaker3Index] = 1;
-                    connections[speaker3Index][speaker2Index] = 1;
+                    connections[speaker1Index][speaker2Index] = true;
+                    connections[speaker2Index][speaker1Index] = true;
+                    connections[speaker1Index][speaker3Index] = true;
+                    connections[speaker3Index][speaker1Index] = true;
+                    connections[speaker2Index][speaker3Index] = true;
+                    connections[speaker3Index][speaker2Index] = true;
                     add_ldsp_triplet(speaker1Index, speaker2Index, speaker3Index, triplets);
                 }
             }
@@ -576,7 +575,7 @@ static void choose_ls_triplets(std::array<LoudSpeaker, MAX_OUTPUTS> const & spea
 
     for (int i{}; i < numSpeakers; i++) {
         for (auto j = (i + 1); j < numSpeakers; j++) {
-            if (connections[i][j] == 1) {
+            if (connections[i][j]) {
                 auto const distance = speakers[i].coords.angleWith(speakers[j].coords);
                 int k{};
                 while (distance_table[k] < distance) {
@@ -602,13 +601,13 @@ static void choose_ls_triplets(std::array<LoudSpeaker, MAX_OUTPUTS> const & spea
     for (int i{}; i < table_size; ++i) {
         auto const fst_ls = distance_table_i[i];
         auto const sec_ls = distance_table_j[i];
-        if (connections[fst_ls][sec_ls] == 1) {
+        if (connections[fst_ls][sec_ls]) {
             for (int j{}; j < numSpeakers; j++) {
                 for (auto k = j + 1; k < numSpeakers; k++) {
                     if ((j != fst_ls) && (k != sec_ls) && (k != fst_ls) && (j != sec_ls)) {
                         if (lines_intersect(fst_ls, sec_ls, j, k, speakers)) {
-                            connections[j][k] = 0;
-                            connections[k][j] = 0;
+                            connections[j][k] = false;
+                            connections[k][j] = false;
                         }
                     }
                 }
@@ -623,12 +622,11 @@ static void choose_ls_triplets(std::array<LoudSpeaker, MAX_OUTPUTS> const & spea
         auto const & j = triplet.tripletSpeakerNumber[1];
         auto const & k = triplet.tripletSpeakerNumber[2];
 
-        auto const anySpeakerInsideTriplet{ any_speaker_inside_triplet(i, j, k, speakers, numSpeakers) };
-        auto const hasAllConnections{ connections[i][j] && connections[i][k] && connections[j][k] };
+        if (any_speaker_inside_triplet(i, j, k, speakers, numSpeakers)) {
+            return false;
+        }
 
-        auto const result{ hasAllConnections && !anySpeakerInsideTriplet };
-
-        return result;
+        return connections[i][j] && connections[i][k] && connections[j][k];
     };
     auto const newTripletEnd{ std::partition(std::begin(triplets), std::end(triplets), predicate) };
 
@@ -691,7 +689,7 @@ VbapData * init_vbap_from_speakers(std::array<LoudSpeaker, MAX_OUTPUTS> & speake
     }
 
     data->dimension = dimensions;
-    data->numSpeakers = maxOutputPatch.get();
+    data->numSpeakers = speakers.size();
 
     data->numTriplets = narrow<int>(triplets.size());
     data->speakerSets = (SpeakerSet *)malloc(sizeof(SpeakerSet) * triplets.size());

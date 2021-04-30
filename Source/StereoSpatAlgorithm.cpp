@@ -1,12 +1,6 @@
 #include "StereoSpatAlgorithm.hpp"
 
 //==============================================================================
-void StereoSpatAlgorithm::init([[maybe_unused]] SpeakersData const & speakers)
-{
-    jassert(speakers.size() == 2);
-}
-
-//==============================================================================
 juce::Array<Triplet> StereoSpatAlgorithm::getTriplets() const noexcept
 {
     jassertfalse;

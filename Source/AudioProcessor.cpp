@@ -116,6 +116,9 @@ AudioProcessor::AudioProcessor()
 //==============================================================================
 void AudioProcessor::resetHrtf()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedLock const lock{ mLock };
+
     auto & hrtf{ mAudioData.state.hrtf };
     std::fill(hrtf.count.begin(), hrtf.count.end(), 0u);
     static constexpr std::array<float, 128> EMPTY_HRTF_INPUT{};
@@ -126,7 +129,7 @@ void AudioProcessor::resetHrtf()
 void AudioProcessor::setAudioConfig(std::unique_ptr<AudioConfig> newAudioConfig)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-    juce::ScopedLock const lock{ mCriticalSection };
+    juce::ScopedLock const lock{ mLock };
 
     if (!mAudioData.config || !mAudioData.config->sourcesAudioConfig.hasSameKeys(newAudioConfig->sourcesAudioConfig)) {
         AudioManager::getInstance().initInputBuffer(newAudioConfig->sourcesAudioConfig.getKeys());
@@ -388,7 +391,7 @@ void AudioProcessor::processStereo(SourceAudioBuffer const & inputBuffer,
 void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer, SpeakerAudioBuffer & speakerBuffer) noexcept
 {
     // Skip if the user is editing the speaker setup.
-    juce::ScopedTryLock const lock{ mCriticalSection };
+    juce::ScopedTryLock const lock{ mLock };
     if (!lock.isLocked()) {
         return;
     }

@@ -60,6 +60,7 @@ void SpeakerViewComponent::setConfig(ViewportConfig const & config, SourcesData 
     for (auto const & source : sources) {
         mData.sources.add(source.key);
     }
+    repaint();
 }
 
 //==============================================================================

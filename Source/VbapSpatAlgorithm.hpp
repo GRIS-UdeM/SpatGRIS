@@ -11,8 +11,9 @@ class VbapSpatAlgorithm final : public AbstractSpatAlgorithm
     std::unique_ptr<VbapData> mData{};
 
 public:
-    void init(SpeakersData const & speakers) override;
-
+    //==============================================================================
+    explicit VbapSpatAlgorithm(SpeakersData const & speakers);
+    //==============================================================================
     void computeSpeakerGains(SourceData const & source, SpeakersSpatGains & gains) const noexcept override;
     [[nodiscard]] juce::Array<Triplet> getTriplets() const noexcept override;
     [[nodiscard]] bool hasTriplets() const noexcept override;

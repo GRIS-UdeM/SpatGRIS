@@ -10,7 +10,9 @@ class LbapSpatAlgorithm final : public AbstractSpatAlgorithm
     lbap_field mData{};
 
 public:
-    void init(SpeakersData const & speakers) override;
+    //==============================================================================
+    explicit LbapSpatAlgorithm(SpeakersData const & speakers);
+    //==============================================================================
     [[nodiscard]] void computeSpeakerGains(SourceData const & source,
                                            SpeakersSpatGains & gains) const noexcept override;
     [[nodiscard]] juce::Array<Triplet> getTriplets() const noexcept override;

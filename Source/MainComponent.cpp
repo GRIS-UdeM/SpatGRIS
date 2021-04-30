@@ -147,6 +147,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         for (int i{}; i < SPAT_MODE_STRINGS.size(); i++) {
             mSpatModeCombo->addItem(SPAT_MODE_STRINGS[i], i + 1);
         }
+        mSpatModeCombo->setSelectedId(narrow<int>(mData.appData.spatMode) + 1, juce::dontSendNotification);
 
         mNumSourcesTextEditor.reset(
             addTextEditor("Inputs :", "0", "Numbers of Inputs", 122, 83, 43, 22, mControlUiBox->getContent()));
@@ -177,7 +178,6 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
 
         mMasterGainOutSlider->setValue(0.0, juce::dontSendNotification);
         mInterpolationSlider->setValue(0.1, juce::dontSendNotification);
-        mSpatModeCombo->setSelectedId(0, juce::dontSendNotification);
 
         // Default application window size.
         setSize(1285, 610);
@@ -202,11 +202,18 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         }
     };
     auto const initSpeakerSetup = [&]() {
-        if (juce::File{ mData.appData.lastSpeakerSetup }.existsAsFile()) {
-            loadSpeakerSetup(mData.appData.lastSpeakerSetup);
-        } else {
-            loadDefaultSpeakerSetup(SpatMode::vbap);
+        auto const spatMode{ mData.appData.spatMode };
+        switch (spatMode) {
+        case SpatMode::hrtfVbap:
+        case SpatMode::stereo:
+            handleSpatModeChanged(mData.appData.spatMode);
+            return;
+        case SpatMode::vbap:
+        case SpatMode::lbap:
+            loadSpeakerSetup(mData.appData.lastSpeakerSetup, spatMode);
+            return;
         }
+        jassertfalse;
     };
 
     auto const initCommandManager = [&]() {
@@ -1572,31 +1579,50 @@ void MainContentComponent::handleSpatModeChanged(SpatMode const spatMode)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     jassert(narrow<int>(spatMode) >= 0 && narrow<int>(spatMode) <= narrow<int>(SpatMode::stereo));
-    juce::ScopedWriteLock const lock{ mLock };
+    juce::ScopedReadLock const readLock{ mLock };
 
     mSpatModeCombo->setSelectedId(static_cast<int>(spatMode) + 1, juce::dontSendNotification);
-    if (mData.appData.spatMode != spatMode || !mSpatAlgorithm) {
-        mData.appData.spatMode = spatMode;
 
+    if (mData.appData.spatMode == spatMode && mSpatAlgorithm) {
+        return;
+    }
+
+    // handle speaker setup change
+    auto const getForcedSpeakerSetup = [&]() -> tl::optional<juce::File> {
         switch (spatMode) {
         case SpatMode::hrtfVbap:
-            loadSpeakerSetup(BINAURAL_SPEAKER_SETUP_FILE, SpatMode::hrtfVbap);
-            mAudioProcessor->resetHrtf();
-            break;
+            return BINAURAL_SPEAKER_SETUP_FILE;
         case SpatMode::stereo:
-            loadSpeakerSetup(STEREO_SPEAKER_SETUP_FILE, SpatMode::stereo);
-            break;
+            return STEREO_SPEAKER_SETUP_FILE;
         case SpatMode::lbap:
         case SpatMode::vbap:
-            break;
+            switch (mData.appData.spatMode) {
+            case SpatMode::hrtfVbap:
+            case SpatMode::stereo:
+                return mData.appData.lastSpeakerSetup;
+            case SpatMode::lbap:
+            case SpatMode::vbap:
+                // keep the current setup and adapt it to the new spatMode
+                return tl::nullopt;
+            }
         }
+        jassertfalse;
+        return tl::nullopt;
+    };
 
-        mSpatAlgorithm = AbstractSpatAlgorithm::make(spatMode);
-        mSpatAlgorithm->init(mData.speakerSetup.speakers);
-
-        updateAudioProcessor();
-        updateViewportConfig();
+    auto const forcedSpeakerSetup{ getForcedSpeakerSetup() };
+    if (forcedSpeakerSetup) {
+        loadSpeakerSetup(*forcedSpeakerSetup, spatMode);
+        mAudioProcessor->resetHrtf();
+        return;
     }
+
+    // speaker setup stays the same
+    mData.appData.spatMode = spatMode;
+    mSpatAlgorithm = AbstractSpatAlgorithm::make(spatMode, mData.speakerSetup.speakers);
+
+    updateAudioProcessor();
+    updateViewportConfig();
 }
 
 //==============================================================================
@@ -1815,6 +1841,8 @@ bool MainContentComponent::refreshSpeakers()
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
+    removeInvalidDirectOuts();
+
     auto const & speakers{ mData.speakerSetup.speakers };
     auto const numActiveSpeakers{ std::count_if(
         speakers.cbegin(),
@@ -1886,9 +1914,8 @@ bool MainContentComponent::refreshSpeakers()
         return false;
     }
 
+    mSpatAlgorithm = AbstractSpatAlgorithm::make(mData.appData.spatMode, mData.speakerSetup.speakers);
     refreshSpeakerVuMeterComponents();
-
-    mSpatAlgorithm->init(mData.speakerSetup.speakers);
 
     if (mEditSpeakersWindow != nullptr) {
         mEditSpeakersWindow->updateWinContent(false);
@@ -1949,14 +1976,17 @@ void MainContentComponent::loadSpeakerSetup(juce::File const & file, tl::optiona
 
     juce::ScopedWriteLock const lock{ mLock };
     mData.speakerSetup = std::move(speakerSetup->first);
+    mData.appData.spatMode = forceSpatMode.value_or(speakerSetup->second);
+    mSpatModeCombo->setSelectedId(narrow<int>(mData.appData.spatMode) + 1, juce::dontSendNotification);
 
-    removeInvalidDirectOuts();
-
-    auto const newSpatMode{ forceSpatMode.value_or(speakerSetup->second) };
-    if (newSpatMode != mData.appData.spatMode) {
-        // TODO : the way spatMode and spatAlgorithm are updated is not clear enough.
-        handleSpatModeChanged(newSpatMode);
-        mSpatAlgorithm = AbstractSpatAlgorithm::make(newSpatMode);
+    switch (mData.appData.spatMode) {
+    case SpatMode::lbap:
+    case SpatMode::vbap:
+        mData.appData.lastSpeakerSetup = file.getFullPathName();
+        break;
+    case SpatMode::hrtfVbap:
+    case SpatMode::stereo:
+        break;
     }
 
     refreshSpeakers();
@@ -1968,9 +1998,9 @@ void MainContentComponent::setTitle() const
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
-    auto const currentProject{ mData.appData.lastProject };
+    juce::File const currentProject{ mData.appData.lastProject };
     auto const title{ juce::String{ "SpatGRIS v" } + juce::JUCEApplication::getInstance()->getApplicationVersion()
-                      + " - " + currentProject };
+                      + " - " + currentProject.getFileName() };
     mMainWindow.setName(title);
 }
 

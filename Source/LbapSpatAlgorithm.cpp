@@ -1,9 +1,8 @@
 #include "LbapSpatAlgorithm.hpp"
 
 //==============================================================================
-void LbapSpatAlgorithm::init(SpeakersData const & speakers)
+LbapSpatAlgorithm::LbapSpatAlgorithm(SpeakersData const & speakers) : mData(lbap_field_setup(speakers))
 {
-    mData = lbap_field_setup(speakers);
 }
 
 //==============================================================================
