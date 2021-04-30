@@ -45,10 +45,9 @@ struct VbapData {
     // std::array<float, MAX_OUTPUTS> gains;                  /* Loudspeaker gains. */
     std::array<float, MAX_OUTPUTS> gainsSmoothing; /* Loudspeaker gains smoothing. */
     int dimension;                                 /* Dimensions, 2 or 3. */
-    SpeakerSet * speakerSets;                      /* Loudspeaker triplet structure. */
+    juce::Array<SpeakerSet> speakerSets;           /* Loudspeaker triplet structure. */
     int numOutputPatches;                          /* Number of output patches. */
     int numSpeakers;                               /* Number of loudspeakers. */
-    int numTriplets;                               /* Number of triplets. */
     PolarVector angularDirection;                  /* Angular direction. */
     CartesianVector cartesianDirection;            /* Cartesian direction. */
     CartesianVector spreadingVector;               /* Spreading vector. */

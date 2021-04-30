@@ -23,8 +23,7 @@ using TripletList = std::vector<TripletData>;
 
 /* Selects a vector base of a virtual source.
  * Calculates gain factors in that base. */
-static void compute_gains(int const speaker_set_am,
-                          SpeakerSet * sets,
+static void compute_gains(juce::Array<SpeakerSet> & sets,
                           SpeakersSpatGains & gains,
                           int const numSpeakers,
                           CartesianVector const cart_dir,
@@ -36,30 +35,30 @@ static void compute_gains(int const speaker_set_am,
     vec[1] = cart_dir.y;
     vec[2] = cart_dir.z;
 
-    for (int i = 0; i < speaker_set_am; i++) {
-        sets[i].setGains[0] = 0.0;
-        sets[i].setGains[1] = 0.0;
-        sets[i].setGains[2] = 0.0;
-        sets[i].smallestWt = 1000.0;
-        sets[i].neg_g_am = 0;
+    for (auto & set : sets) {
+        set.setGains[0] = 0.0;
+        set.setGains[1] = 0.0;
+        set.setGains[2] = 0.0;
+        set.smallestWt = 1000.0;
+        set.neg_g_am = 0;
     }
 
-    for (int i = 0; i < speaker_set_am; i++) {
+    for (auto & set : sets) {
         for (int j = 0; j < dim; j++) {
             for (int k = 0; k < dim; k++) {
-                sets[i].setGains[j] += vec[k] * sets[i].invMx[((dim * j) + k)];
+                set.setGains[j] += vec[k] * set.invMx[((dim * j) + k)];
             }
-            if (sets[i].smallestWt > sets[i].setGains[j])
-                sets[i].smallestWt = sets[i].setGains[j];
-            if (sets[i].setGains[j] < -0.05)
-                sets[i].neg_g_am++;
+            if (set.smallestWt > set.setGains[j])
+                set.smallestWt = set.setGains[j];
+            if (set.setGains[j] < -0.05)
+                set.neg_g_am++;
         }
     }
 
     int j = 0;
     float tmp = sets[0].smallestWt;
     int tmp2 = sets[0].neg_g_am;
-    for (int i = 1; i < speaker_set_am; i++) {
+    for (int i = 1; i < sets.size(); i++) {
         if (sets[i].neg_g_am < tmp2) {
             tmp = sets[i].smallestWt;
             tmp2 = sets[i].neg_g_am;
@@ -138,18 +137,6 @@ static bool any_speaker_inside_triplet(int const a,
         }
     }
     return false;
-}
-
-/* Adds i, j, k triplet to triplet chain. */
-static void add_ldsp_triplet(int const i, int const j, int const k, TripletList & triplets) noexcept
-{
-    TripletData newTripletData{};
-
-    newTripletData.tripletSpeakerNumber[0] = i;
-    newTripletData.tripletSpeakerNumber[1] = j;
-    newTripletData.tripletSpeakerNumber[2] = k;
-
-    triplets.push_back(newTripletData);
 }
 
 /* Checks if two lines intersect on 3D sphere see theory in paper
@@ -260,12 +247,7 @@ static void spreadit_azi_ele(SourceData const & source, SpeakersSpatGains & gain
             newAzimuth = newAzimuth.centered();
             PolarVector const spreadAngle{ newAzimuth, newElevation, 1.0f };
             auto const spreadCartesian{ spreadAngle.toCartesian() };
-            compute_gains(data.numTriplets,
-                          data.speakerSets,
-                          tmp_gains,
-                          data.numSpeakers,
-                          spreadCartesian,
-                          data.dimension);
+            compute_gains(data.speakerSets, tmp_gains, data.numSpeakers, spreadCartesian, data.dimension);
             std::transform(gains.cbegin(),
                            gains.cend(),
                            tmp_gains.cbegin(),
@@ -322,7 +304,7 @@ static void spreadit_azi(SourceData const & source, SpeakersSpatGains & gains, V
             spreadang.elevation = degrees_t{};
             spreadang.length = 1.0;
             CartesianVector spreadcart = spreadang.toCartesian();
-            compute_gains(data.numTriplets, data.speakerSets, tmp_gains, data.numSpeakers, spreadcart, data.dimension);
+            compute_gains(data.speakerSets, tmp_gains, data.numSpeakers, spreadcart, data.dimension);
             auto const * rawTmpGains{ tmp_gains.data() };
             for (int j = 0; j < cnt; j++) {
                 rawGains[j] += (rawTmpGains[j] * comp);
@@ -492,9 +474,8 @@ static float vol_p_side_lgth(LoudSpeaker const & i, LoudSpeaker const & j, LoudS
  * connections are searched and the longer connection is erased.
  * This yields non-intersecting triangles, which can be used in panning.
  */
-static void choose_ls_triplets(std::array<LoudSpeaker, MAX_OUTPUTS> const & speakers,
-                               TripletList & triplets,
-                               int const numSpeakers) noexcept
+static TripletList choose_ls_triplets(std::array<LoudSpeaker, MAX_OUTPUTS> const & speakers,
+                                      int const numSpeakers) noexcept
 {
     jassert(numSpeakers > 0);
 
@@ -527,6 +508,7 @@ static void choose_ls_triplets(std::array<LoudSpeaker, MAX_OUTPUTS> const & spea
     // ...then we test for valid triplets ONLY when the elevation difference is within a specified range for two
     // speakers
     std::array<std::array<bool, MAX_OUTPUTS>, MAX_OUTPUTS> connections{};
+    TripletList triplets{};
     for (size_t i{}; i < speakerIndexesSortedByElevation.size(); ++i) {
         auto const speaker1Index{ speakerIndexesSortedByElevation[i] };
         auto const & speaker1{ speakers[speaker1Index] };
@@ -555,7 +537,14 @@ static void choose_ls_triplets(std::array<LoudSpeaker, MAX_OUTPUTS> const & spea
                     connections[speaker3Index][speaker1Index] = true;
                     connections[speaker2Index][speaker3Index] = true;
                     connections[speaker3Index][speaker2Index] = true;
-                    add_ldsp_triplet(speaker1Index, speaker2Index, speaker3Index, triplets);
+
+                    TripletData newTripletData{};
+
+                    newTripletData.tripletSpeakerNumber[0] = speaker1Index;
+                    newTripletData.tripletSpeakerNumber[1] = speaker2Index;
+                    newTripletData.tripletSpeakerNumber[2] = speaker3Index;
+
+                    triplets.push_back(newTripletData);
                 }
             }
         }
@@ -632,6 +621,7 @@ static void choose_ls_triplets(std::array<LoudSpeaker, MAX_OUTPUTS> const & spea
 
     triplets.erase(newTripletEnd, std::end(triplets));
     triplets.shrink_to_fit();
+    return triplets;
 }
 
 /* Calculates the inverse matrices for 3D.
@@ -676,7 +666,7 @@ VbapData * init_vbap_from_speakers(std::array<LoudSpeaker, MAX_OUTPUTS> & speake
     TripletList triplets{};
     auto * data = new VbapData;
     if (dimensions == 3) {
-        choose_ls_triplets(speakers, triplets, count);
+        triplets = choose_ls_triplets(speakers, count);
         calculate_3x3_matrixes(triplets, speakers, count);
         offset = 1;
     } else if (dimensions == 2) {
@@ -691,17 +681,15 @@ VbapData * init_vbap_from_speakers(std::array<LoudSpeaker, MAX_OUTPUTS> & speake
     data->dimension = dimensions;
     data->numSpeakers = speakers.size();
 
-    data->numTriplets = narrow<int>(triplets.size());
-    data->speakerSets = (SpeakerSet *)malloc(sizeof(SpeakerSet) * triplets.size());
-
-    for (size_t i{}; i < triplets.size(); ++i) {
-        auto const & triplet{ triplets[i] };
+    for (auto const & triplet : triplets) {
+        SpeakerSet newSet{};
         for (int j = 0; j < data->dimension; j++) {
-            data->speakerSets[i].speakerNos[j] = outputPatches[triplet.tripletSpeakerNumber[j] + offset - 1].get();
+            newSet.speakerNos[j] = outputPatches[triplet.tripletSpeakerNumber[j] + offset - 1].get();
         }
         for (int j = 0; j < (data->dimension * data->dimension); j++) {
-            data->speakerSets[i].invMx[j] = triplet.tripletInverseMatrix[j];
+            newSet.invMx[j] = triplet.tripletInverseMatrix[j];
         }
+        data->speakerSets.add(newSet);
     }
 
     return data;
@@ -717,7 +705,7 @@ void vbap2(SourceData const & source, SpeakersSpatGains & gains, VbapData & data
     data.angularDirection.length = 1.0;
     data.cartesianDirection = *source.position;
     std::fill(gains.begin(), gains.end(), 0.0f);
-    compute_gains(data.numTriplets, data.speakerSets, gains, data.numSpeakers, data.cartesianDirection, data.dimension);
+    compute_gains(data.speakerSets, gains, data.numSpeakers, data.cartesianDirection, data.dimension);
     if (data.dimension == 3) {
         if (source.azimuthSpan > 0 || source.zenithSpan > 0) {
             spreadit_azi_ele(source, gains, data);
@@ -731,14 +719,17 @@ void vbap2(SourceData const & source, SpeakersSpatGains & gains, VbapData & data
 
 juce::Array<Triplet> vbap_get_triplets(VbapData const & data)
 {
-    int const num = data.numTriplets;
     juce::Array<Triplet> result{};
-    result.ensureStorageAllocated(num);
-    for (int i = 0; i < num; i++) {
+    result.ensureStorageAllocated(data.speakerSets.size());
+    for (auto const & set : data.speakerSets) {
         Triplet triplet{};
-        triplet.id1 = data.outputPatches[data.speakerSets[i].speakerNos[0] - 1];
-        triplet.id2 = data.outputPatches[data.speakerSets[i].speakerNos[1] - 1];
-        triplet.id3 = data.outputPatches[data.speakerSets[i].speakerNos[2] - 1];
+
+        // triplet.id1 = data.outputPatches[set.speakerNos[0] - 1];
+        // triplet.id2 = data.outputPatches[set.speakerNos[1] - 1];
+        // triplet.id3 = data.outputPatches[set.speakerNos[2] - 1];
+        triplet.id1 = output_patch_t{ set.speakerNos[0] };
+        triplet.id2 = output_patch_t{ set.speakerNos[1] };
+        triplet.id3 = output_patch_t{ set.speakerNos[2] };
 
         jassert(LEGAL_OUTPUT_PATCH_RANGE.contains(triplet.id1) && LEGAL_OUTPUT_PATCH_RANGE.contains(triplet.id2)
                 && LEGAL_OUTPUT_PATCH_RANGE.contains(triplet.id3));
