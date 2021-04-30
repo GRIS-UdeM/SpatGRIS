@@ -171,15 +171,15 @@ lbap_field lbap_field_setup(SpeakersData const & speakers)
 {
     std::vector<lbap_speaker> lbapSpeakers{};
     lbapSpeakers.reserve(speakers.size());
-    std::transform(speakers.cbegin(),
-                   speakers.cend(),
-                   std::back_inserter(lbapSpeakers),
-                   [](SpeakersData::ConstNode const & node) {
-                       lbap_speaker result;
-                       result.outputPatch = node.key;
-                       result.vector = node.value->vector;
-                       return result;
-                   });
+
+    for (auto const & speaker : speakers) {
+        if (speaker.value->isDirectOutOnly) {
+            continue;
+        }
+
+        lbap_speaker const newSpeaker{ speaker.value->vector, speaker.key };
+        lbapSpeakers.push_back(newSpeaker);
+    }
 
     std::sort(lbapSpeakers.begin(), lbapSpeakers.end(), [](lbap_speaker const & a, lbap_speaker const & b) -> bool {
         return a.vector.elevation < b.vector.elevation;
@@ -195,7 +195,8 @@ lbap_field lbap_field_setup(SpeakersData const & speakers)
     while (count < lbapSpeakers.size()) {
         auto const start = count;
         auto const elevation = lbapSpeakers[count++].vector.elevation;
-        while (count < speakers.size() && isPracticallySameElevation(elevation, lbapSpeakers[count].vector.elevation)) {
+        while (count < lbapSpeakers.size()
+               && isPracticallySameElevation(elevation, lbapSpeakers[count].vector.elevation)) {
             ++count;
         }
         auto const howMany{ count - start };
