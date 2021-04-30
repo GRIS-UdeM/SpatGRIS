@@ -43,7 +43,6 @@ juce::String const SpatGrisProjectData::XmlTags::SOURCES = "SOURCES";
 juce::String const SpatGrisProjectData::XmlTags::MASTER_GAIN = "MASTER_GAIN";
 juce::String const SpatGrisProjectData::XmlTags::GAIN_INTERPOLATION = "GAIN_INTERPOLATION";
 juce::String const SpatGrisProjectData::XmlTags::OSC_PORT = "OSC_PORT";
-juce::String const SpatGrisProjectData::XmlTags::CAMERA = "CAMERA";
 
 juce::String const SpatGrisAppData::XmlTags::MAIN_TAG = "SPAT_GRIS_APP_DATA";
 juce::String const SpatGrisAppData::XmlTags::LAST_SPEAKER_SETUP = "LAST_SPEAKER_SETUP";
@@ -55,6 +54,7 @@ juce::String const SpatGrisAppData::XmlTags::WINDOW_Y = "WINDOW_Y";
 juce::String const SpatGrisAppData::XmlTags::WINDOW_WIDTH = "WINDOW_WIDTH";
 juce::String const SpatGrisAppData::XmlTags::WINDOW_HEIGHT = "WINDOW_HEIGHT";
 juce::String const SpatGrisAppData::XmlTags::SASH_POSITION = "SASH_POSITION";
+juce::String const SpatGrisAppData::XmlTags::CAMERA = "CAMERA";
 
 juce::String const SpeakerSetup::XmlTags::MAIN_TAG = "SPEAKER_SETUP";
 juce::String const SpeakerSetup::XmlTags::SPAT_MODE = "SPAT_MODE";
@@ -154,6 +154,18 @@ tl::optional<SourceData> SourceData::fromXml(juce::XmlElement const & xml)
     }
     result.colour = juce::Colour{ narrow<uint32_t>(xml.getStringAttribute(XmlTags::COLOUR).getLargeIntValue()) };
 
+    return result;
+}
+
+//==============================================================================
+bool SourceData::operator==(SourceData const & other) const noexcept
+{
+    // TODO : this is very misleading and should be replaced with something that does make it seem like we're really
+    // comparing the two sources.
+    auto const result{ other.directOut == directOut && other.colour == colour };
+    if (!result) {
+        int test{};
+    }
     return result;
 }
 
@@ -319,6 +331,12 @@ tl::optional<LbapDistanceAttenuationData> LbapDistanceAttenuationData::fromXml(j
 }
 
 //==============================================================================
+bool LbapDistanceAttenuationData::operator==(LbapDistanceAttenuationData const & other) const noexcept
+{
+    return other.attenuation == attenuation && other.freq == freq;
+}
+
+//==============================================================================
 std::unique_ptr<juce::XmlElement> AudioSettings::toXml() const
 {
     auto result{ std::make_unique<juce::XmlElement>(XmlTags::MAIN_TAG) };
@@ -470,13 +488,9 @@ std::unique_ptr<juce::XmlElement> SpatGrisProjectData::toXml() const
     for (auto const sourceData : sources) {
         sourcesElement->addChildElement(sourceData.value->toXml(sourceData.key).release());
     }
-    auto cameraElement{ std::make_unique<juce::XmlElement>(XmlTags::CAMERA) };
-    cameraElement->addChildElement(cameraPosition.toXml());
 
     result->addChildElement(sourcesElement.release());
-    result->addChildElement(cameraElement.release());
     result->addChildElement(lbapDistanceAttenuationData.toXml().release());
-    result->addChildElement(viewSettings.toXml().release());
 
     result->setAttribute(XmlTags::OSC_PORT, oscPort);
     result->setAttribute(XmlTags::MASTER_GAIN, masterGain.get());
@@ -498,26 +512,16 @@ tl::optional<SpatGrisProjectData> SpatGrisProjectData::fromXml(juce::XmlElement 
 
     auto const * sourcesElement{ xml.getChildByName(XmlTags::SOURCES) };
     auto const * lbapAttenuationElement{ xml.getChildByName(LbapDistanceAttenuationData::XmlTags::MAIN_TAG) };
-    auto const * viewSettingsElement{ xml.getChildByName(ViewSettings::XmlTags::MAIN_TAG) };
-    auto const * cameraElement{ xml.getChildByName(XmlTags::CAMERA) };
 
-    if (!sourcesElement || !lbapAttenuationElement || !viewSettingsElement || !cameraElement) {
+    if (!sourcesElement || !lbapAttenuationElement) {
         return tl::nullopt;
     }
 
     SpatGrisProjectData result{};
 
     auto const lbapAttenuation{ LbapDistanceAttenuationData::fromXml(*lbapAttenuationElement) };
-    auto const viewSettings{ ViewSettings::fromXml(*viewSettingsElement) };
-    auto const * cameraPositionElement{ cameraElement->getChildByName(CartesianVector::XmlTags::MAIN_TAG) };
 
-    if (!lbapAttenuation || !viewSettings || !cameraPositionElement) {
-        return tl::nullopt;
-    }
-
-    auto const cameraPosition{ CartesianVector::fromXml(*cameraPositionElement) };
-
-    if (!cameraPosition) {
+    if (!lbapAttenuation) {
         return tl::nullopt;
     }
 
@@ -526,9 +530,7 @@ tl::optional<SpatGrisProjectData> SpatGrisProjectData::fromXml(juce::XmlElement 
     result.spatGainsInterpolation = LEGAL_GAIN_INTERPOLATION_RANGE.clipValue(
         static_cast<float>(xml.getDoubleAttribute(XmlTags::GAIN_INTERPOLATION)));
     result.oscPort = xml.getIntAttribute(XmlTags::OSC_PORT); // TODO : validate value
-    result.viewSettings = *viewSettings;
     result.lbapDistanceAttenuationData = *lbapAttenuation;
-    result.cameraPosition = *cameraPosition;
 
     forEachXmlChildElement(*sourcesElement, sourceElement)
     {
@@ -551,12 +553,25 @@ tl::optional<SpatGrisProjectData> SpatGrisProjectData::fromXml(juce::XmlElement 
 }
 
 //==============================================================================
+bool SpatGrisProjectData::operator==(SpatGrisProjectData const & other) const noexcept
+{
+    return other.spatGainsInterpolation == spatGainsInterpolation && other.oscPort == oscPort
+           && other.masterGain == masterGain && other.lbapDistanceAttenuationData == lbapDistanceAttenuationData
+           && other.sources == sources;
+}
+
+//==============================================================================
 std::unique_ptr<juce::XmlElement> SpatGrisAppData::toXml() const
 {
     auto result{ std::make_unique<juce::XmlElement>(XmlTags::MAIN_TAG) };
 
+    auto cameraElement{ std::make_unique<juce::XmlElement>(XmlTags::CAMERA) };
+    cameraElement->addChildElement(cameraPosition.toXml());
+
     result->addChildElement(audioSettings.toXml().release());
     result->addChildElement(recordingOptions.toXml().release());
+    result->addChildElement(cameraElement.release());
+    result->addChildElement(viewSettings.toXml().release());
 
     result->setAttribute(XmlTags::LAST_SPEAKER_SETUP, lastSpeakerSetup);
     result->setAttribute(XmlTags::LAST_PROJECT, lastProject);
@@ -582,19 +597,29 @@ tl::optional<SpatGrisAppData> SpatGrisAppData::fromXml(juce::XmlElement const & 
 
     auto const * audioSettingsElement{ xml.getChildByName(AudioSettings::XmlTags::MAIN_TAG) };
     auto const * recordingOptionsElement{ xml.getChildByName(RecordingOptions::XmlTags::MAIN_TAG) };
+    auto const * cameraElement{ xml.getChildByName(XmlTags::CAMERA) };
+    auto const * viewSettingsElement{ xml.getChildByName(ViewSettings::XmlTags::MAIN_TAG) };
 
-    if (xml.getTagName() != XmlTags::MAIN_TAG || !audioSettingsElement || !recordingOptionsElement
+    if (xml.getTagName() != XmlTags::MAIN_TAG || !audioSettingsElement || !recordingOptionsElement || !cameraElement
+        || !viewSettingsElement
         || !std::all_of(requiredTags.begin(), requiredTags.end(), [&](juce::String const & tag) {
                return xml.hasAttribute(tag);
            })) {
         return tl::nullopt;
     }
 
+    auto const * cameraPositionElement{ cameraElement->getChildByName(CartesianVector::XmlTags::MAIN_TAG) };
+    if (!cameraPositionElement) {
+        return tl::nullopt;
+    }
+
     auto const audioSettings{ AudioSettings::fromXml(*audioSettingsElement) };
     auto const recordingOptions{ RecordingOptions::fromXml(*recordingOptionsElement) };
     auto const lastSpatMode{ stringToSpatMode(xml.getStringAttribute(XmlTags::LAST_SPAT_MODE)) };
+    auto const cameraPosition{ CartesianVector::fromXml(*cameraPositionElement) };
+    auto const viewSettings{ ViewSettings::fromXml(*viewSettingsElement) };
 
-    if (!audioSettings || !recordingOptions || !lastSpatMode) {
+    if (!audioSettings || !recordingOptions || !lastSpatMode || !cameraPosition || !viewSettings) {
         return tl::nullopt;
     }
 
@@ -612,6 +637,8 @@ tl::optional<SpatGrisAppData> SpatGrisAppData::fromXml(juce::XmlElement const & 
     result.windowWidth = xml.getIntAttribute(XmlTags::WINDOW_WIDTH);
     result.windowHeight = xml.getIntAttribute(XmlTags::WINDOW_HEIGHT);
     result.sashPosition = xml.getDoubleAttribute(XmlTags::SASH_POSITION);
+    result.viewSettings = *viewSettings;
+    result.cameraPosition = *cameraPosition;
 
     return result;
 }
@@ -710,7 +737,7 @@ ViewportConfig SpatGrisData::toViewportConfig() const noexcept
         result.speakers.add(speaker.key, speaker.value->toViewportConfig());
     }
     result.spatMode = appData.spatMode;
-    result.viewSettings = project.viewSettings;
+    result.viewSettings = appData.viewSettings;
 
     auto const getTitle = [&]() {
         switch (appData.spatMode) {

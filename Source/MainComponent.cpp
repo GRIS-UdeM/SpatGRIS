@@ -186,6 +186,8 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         auto const sashPosition{ mData.appData.sashPosition };
         auto const trueSize{ narrow<int>(std::round(narrow<double>(getWidth() - 3) * std::abs(sashPosition))) };
         mVerticalLayout.setItemPosition(1, trueSize);
+
+        mSpeakerViewComponent->setCameraPosition(mData.appData.cameraPosition);
     };
 
     auto const startOsc = [&]() {
@@ -196,9 +198,9 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     auto const initAppData = [&]() { mData.appData = mConfiguration.load(); };
     auto const initProject = [&]() {
         if (juce::File{ mData.appData.lastProject }.existsAsFile()) {
-            loadProject(mData.appData.lastProject);
+            loadProject(mData.appData.lastProject, LoadProjectOption::dontRemoveInvalidDirectOuts);
         } else {
-            loadProject(DEFAULT_PROJECT_FILE);
+            loadProject(DEFAULT_PROJECT_FILE, LoadProjectOption::dontRemoveInvalidDirectOuts);
         }
     };
     auto const initSpeakerSetup = [&]() {
@@ -255,6 +257,7 @@ MainContentComponent::~MainContentComponent()
         mData.appData.windowWidth = bounds.getWidth();
         mData.appData.windowHeight = bounds.getHeight();
         mData.appData.sashPosition = mVerticalLayout.getItemCurrentRelativeSize(0);
+        mData.appData.cameraPosition = mSpeakerViewComponent->getCameraPosition();
 
         mConfiguration.save(mData.appData);
     }
@@ -439,11 +442,11 @@ void MainContentComponent::handleNewProject()
         return;
     }
 
-    loadProject(DEFAULT_PROJECT_FILE);
+    loadProject(DEFAULT_PROJECT_FILE, LoadProjectOption::removeInvalidDirectOuts);
 }
 
 //==============================================================================
-void MainContentComponent::loadProject(juce::File const & file)
+void MainContentComponent::loadProject(juce::File const & file, LoadProjectOption const loadProjectOption)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
@@ -484,13 +487,13 @@ void MainContentComponent::loadProject(juce::File const & file)
     mData.appData.lastProject = file.getFullPathName();
 
     mNumSourcesTextEditor->setText(juce::String{ mData.project.sources.size() }, false);
-
     mMasterGainOutSlider->setValue(mData.project.masterGain.get(), juce::dontSendNotification);
     mInterpolationSlider->setValue(mData.project.spatGainsInterpolation, juce::dontSendNotification);
 
-    mSpeakerViewComponent->setCameraPosition(mData.project.cameraPosition);
+    if (loadProjectOption == LoadProjectOption::removeInvalidDirectOuts) {
+        removeInvalidDirectOuts();
+    }
 
-    removeInvalidDirectOuts();
     updateAudioProcessor();
     updateViewportConfig();
     setTitle();
@@ -519,7 +522,7 @@ void MainContentComponent::handleOpenProject()
         alert.addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
         alert.addButton("Ok", 1, juce::KeyPress(juce::KeyPress::returnKey));
         if (alert.runModalLoop() != 0) {
-            loadProject(chosen);
+            loadProject(chosen, LoadProjectOption::removeInvalidDirectOuts);
             loaded = true;
         }
     }
@@ -673,7 +676,8 @@ void MainContentComponent::handleShowSpeakerEditWindow()
         auto const windowName = juce::String("Speakers Setup Edition - ")
                                 + juce::String(SPAT_MODE_STRINGS[static_cast<int>(mData.appData.spatMode)]) + " - "
                                 + mData.appData.lastSpeakerSetup;
-        mEditSpeakersWindow = std::make_unique<EditSpeakersWindow>(windowName, mLookAndFeel, *this, mConfigurationName);
+        mEditSpeakersWindow
+            = std::make_unique<EditSpeakersWindow>(windowName, mLookAndFeel, *this, mData.appData.lastProject);
         mEditSpeakersWindow->setBounds(result);
         mEditSpeakersWindow->initComp();
     }
@@ -754,7 +758,7 @@ void MainContentComponent::handleShowNumbers()
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
 
-    auto & var{ mData.project.viewSettings.showSpeakerNumbers };
+    auto & var{ mData.appData.viewSettings.showSpeakerNumbers };
     var = !var;
     updateViewportConfig();
 }
@@ -765,7 +769,7 @@ void MainContentComponent::handleShowSpeakers()
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
 
-    auto & var{ mData.project.viewSettings.showSpeakers };
+    auto & var{ mData.appData.viewSettings.showSpeakers };
     var = !var;
     updateViewportConfig();
 }
@@ -776,7 +780,7 @@ void MainContentComponent::handleShowTriplets()
     JUCE_ASSERT_MESSAGE_THREAD;
 
     juce::ScopedReadLock const readLock{ mLock };
-    auto const newState{ !mData.project.viewSettings.showSpeakerTriplets };
+    auto const newState{ !mData.appData.viewSettings.showSpeakerTriplets };
     if ((mData.appData.spatMode == SpatMode::lbap || mData.appData.spatMode == SpatMode::stereo) && newState) {
         juce::AlertWindow alert("Can't draw triplets !",
                                 "Triplets are not effective with the CUBE or STEREO modes.",
@@ -788,7 +792,7 @@ void MainContentComponent::handleShowTriplets()
     }
 
     juce::ScopedWriteLock const writeLock{ mLock };
-    mData.project.viewSettings.showSpeakerTriplets = newState;
+    mData.appData.viewSettings.showSpeakerTriplets = newState;
     updateViewportConfig();
 }
 
@@ -798,7 +802,7 @@ void MainContentComponent::handleShowSourceLevel()
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
 
-    auto & var{ mData.project.viewSettings.showSourceActivity };
+    auto & var{ mData.appData.viewSettings.showSourceActivity };
     var = !var;
     updateViewportConfig();
 }
@@ -809,7 +813,7 @@ void MainContentComponent::handleShowSpeakerLevel()
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
 
-    auto & var{ mData.project.viewSettings.showSpeakerLevels };
+    auto & var{ mData.appData.viewSettings.showSpeakerLevels };
     var = !var;
     updateViewportConfig();
 }
@@ -820,7 +824,7 @@ void MainContentComponent::handleShowSphere()
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
 
-    auto & var{ mData.project.viewSettings.showSphereOrCube };
+    auto & var{ mData.appData.viewSettings.showSphereOrCube };
     var = !var;
     updateViewportConfig();
 }
@@ -960,32 +964,32 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
     case MainWindow::ShowNumbersID:
         result.setInfo("Show Numbers", "Show source and speaker numbers on the 3D view.", generalCategory, 0);
         result.addDefaultKeypress('N', juce::ModifierKeys::altModifier);
-        result.setTicked(mData.project.viewSettings.showSpeakerNumbers);
+        result.setTicked(mData.appData.viewSettings.showSpeakerNumbers);
         break;
     case MainWindow::ShowSpeakersID:
         result.setInfo("Show Speakers", "Show speakers on the 3D view.", generalCategory, 0);
         result.addDefaultKeypress('S', juce::ModifierKeys::altModifier);
-        result.setTicked(mData.project.viewSettings.showSpeakers);
+        result.setTicked(mData.appData.viewSettings.showSpeakers);
         break;
     case MainWindow::ShowTripletsID:
         result.setInfo("Show Speaker Triplets", "Show speaker triplets on the 3D view.", generalCategory, 0);
         result.addDefaultKeypress('T', juce::ModifierKeys::altModifier);
-        result.setTicked(mData.project.viewSettings.showSpeakerTriplets);
+        result.setTicked(mData.appData.viewSettings.showSpeakerTriplets);
         break;
     case MainWindow::ShowSourceLevelID:
         result.setInfo("Show Source Activity", "Activate brightness on sources on the 3D view.", generalCategory, 0);
         result.addDefaultKeypress('A', juce::ModifierKeys::altModifier);
-        result.setTicked(mData.project.viewSettings.showSourceActivity);
+        result.setTicked(mData.appData.viewSettings.showSourceActivity);
         break;
     case MainWindow::ShowSpeakerLevelID:
         result.setInfo("Show Speaker Level", "Activate brightness on speakers on the 3D view.", generalCategory, 0);
         result.addDefaultKeypress('L', juce::ModifierKeys::altModifier);
-        result.setTicked(mData.project.viewSettings.showSpeakerLevels);
+        result.setTicked(mData.appData.viewSettings.showSpeakerLevels);
         break;
     case MainWindow::ShowSphereID:
         result.setInfo("Show Sphere/Cube", "Show the sphere on the 3D view.", generalCategory, 0);
         result.addDefaultKeypress('O', juce::ModifierKeys::altModifier);
-        result.setTicked(mData.project.viewSettings.showSphereOrCube);
+        result.setTicked(mData.appData.viewSettings.showSphereOrCube);
         break;
     case MainWindow::ColorizeInputsID:
         result.setInfo("Colorize Inputs", "Spread the colour of the inputs over the colour range.", generalCategory, 0);
@@ -1192,15 +1196,17 @@ bool MainContentComponent::isProjectModified() const
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
-    auto const savedState{ juce::XmlDocument{ mData.appData.lastProject }.getDocumentElement() };
-    if (!savedState) {
+    auto const savedElement{ juce::XmlDocument{ juce::File{ mData.appData.lastProject } }.getDocumentElement() };
+    jassert(savedElement);
+    if (!savedElement) {
         return true;
     }
-
-    std::unique_ptr<juce::XmlElement> const currentState{ mData.appData.toXml() };
-    jassert(currentState);
-
-    return !savedState->isEquivalentTo(currentState.get(), true);
+    auto const savedProject{ SpatGrisProjectData::fromXml(*savedElement) };
+    jassert(savedProject);
+    if (!savedProject) {
+        return true;
+    }
+    return mData.project != *savedProject;
 }
 
 //==============================================================================
@@ -1358,7 +1364,7 @@ void MainContentComponent::refreshSpeakerVuMeterComponents()
 }
 
 //==============================================================================
-bool MainContentComponent::removeInvalidDirectOuts()
+void MainContentComponent::removeInvalidDirectOuts()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
@@ -1379,7 +1385,14 @@ bool MainContentComponent::removeInvalidDirectOuts()
         madeChange = true;
     }
 
-    return madeChange;
+    if (madeChange) {
+        juce::AlertWindow::showMessageBox(
+            juce::AlertWindow::AlertIconType::WarningIcon,
+            "Dropped direct out",
+            "One or more direct outs were disabled because the speakers where not available anymore.",
+            "Ok",
+            this);
+    }
 }
 
 //==============================================================================
@@ -1760,7 +1773,7 @@ void MainContentComponent::handleSetShowTriplets(bool const state)
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
 
-    mData.project.viewSettings.showSpeakerTriplets = state;
+    mData.appData.viewSettings.showSpeakerTriplets = state;
     updateViewportConfig();
 }
 
@@ -1941,7 +1954,7 @@ bool MainContentComponent::refreshSpeakers()
 
     auto const lbapDimensions{ getVbapDimensions() };
     if (lbapDimensions == VbapType::twoD) {
-        mData.project.viewSettings.showSpeakerTriplets = false;
+        mData.appData.viewSettings.showSpeakerTriplets = false;
     } else if (mData.speakerSetup.speakers.size() < 3) {
         showNotEnoughSpeakersError();
         return false;
@@ -2264,7 +2277,7 @@ void MainContentComponent::comboBoxChanged(juce::ComboBox * comboBoxThatHasChang
             return;
         }
 
-        juce::ScopedLock const lock{ mAudioProcessor->getLock() };
+        juce::ScopedLock const audioLock{ mAudioProcessor->getLock() };
         auto const newSpatMode{ static_cast<SpatMode>(mSpatModeCombo->getSelectedId() - 1) };
         handleSpatModeChanged(newSpatMode);
 

@@ -29,6 +29,8 @@ constexpr auto VU_METER_HEIGHT = 140;
 constexpr auto LBAP_EXTENDED_RADIUS = 1.6666667f;
 constexpr auto HRTF_NUM_SAMPLES = 128;
 constexpr dbfs_t DEFAULT_PINK_NOISE_DB{ -20.0f };
+constexpr auto DEFAULT_SAMPLE_RATE{ 48000.0 };
+constexpr auto DEFAULT_BUFFER_SIZE{ 512 };
 
 constexpr juce::Range<source_index_t> LEGAL_SOURCE_INDEX_RANGE{ source_index_t{ 1 }, source_index_t{ MAX_INPUTS } };
 constexpr juce::Range<output_patch_t> LEGAL_OUTPUT_PATCH_RANGE{ output_patch_t{ 1 }, output_patch_t{ MAX_OUTPUTS } };

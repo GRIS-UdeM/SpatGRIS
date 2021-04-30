@@ -52,6 +52,17 @@ public:
         return *this;
     }
     //==============================================================================
+    [[nodiscard]] bool operator==(OwnedMap const & other) const
+    {
+        if (mUsed != other.mUsed) {
+            return false;
+        }
+
+        return std::all_of(this->cbegin(), this->cend(), [&](ConstNode const & node) {
+            return *node.value == other[node.key];
+        });
+    }
+    //==============================================================================
     void clear() noexcept
     {
         for (auto & node : *this) {

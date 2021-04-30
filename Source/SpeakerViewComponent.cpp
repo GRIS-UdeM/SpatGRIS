@@ -50,6 +50,15 @@ void SpeakerViewComponent::initialise()
 }
 
 //==============================================================================
+CartesianVector SpeakerViewComponent::getCameraPosition() const
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedLock const lock{ mLock };
+
+    return mData.state.cameraPosition.toCartesian();
+}
+
+//==============================================================================
 void SpeakerViewComponent::setConfig(ViewportConfig const & config, SourcesData const & sources)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -423,16 +432,19 @@ void SpeakerViewComponent::drawOriginGrid() const
     auto const diagonalCrossLength{ spatMode == SpatMode::lbap ? SPACE_LIMIT * juce::MathConstants<float>::sqrt2
                                                                : alignedCrossLength };
     glBegin(GL_LINE_LOOP);
-    static auto constexpr QUARTER_PI{ juce::MathConstants<float>::halfPi / 2.0f };
-    glVertex3f(std::cos(QUARTER_PI) * diagonalCrossLength, std::sin(QUARTER_PI) * diagonalCrossLength, 0.0f);
-    glVertex3f(-std::cos(QUARTER_PI) * diagonalCrossLength, -std::sin(QUARTER_PI) * diagonalCrossLength, 0.0f);
+    glVertex3f(std::cos(QUARTER_PI.get()) * diagonalCrossLength,
+               std::sin(QUARTER_PI.get()) * diagonalCrossLength,
+               0.0f);
+    glVertex3f(-std::cos(QUARTER_PI.get()) * diagonalCrossLength,
+               -std::sin(QUARTER_PI.get()) * diagonalCrossLength,
+               0.0f);
     glEnd();
     glBegin(GL_LINE_LOOP);
-    glVertex3f(std::cos(QUARTER_PI * 3.0f) * diagonalCrossLength,
-               std::sin(QUARTER_PI * 3.0f) * diagonalCrossLength,
+    glVertex3f(std::cos(QUARTER_PI.get() * 3.0f) * diagonalCrossLength,
+               std::sin(QUARTER_PI.get() * 3.0f) * diagonalCrossLength,
                0.0f);
-    glVertex3f(-std::cos(QUARTER_PI * 3.0f) * diagonalCrossLength,
-               -std::sin(QUARTER_PI * 3.0f) * diagonalCrossLength,
+    glVertex3f(-std::cos(QUARTER_PI.get() * 3.0f) * diagonalCrossLength,
+               -std::sin(QUARTER_PI.get() * 3.0f) * diagonalCrossLength,
                0.0f);
     glEnd();
 

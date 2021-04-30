@@ -14,12 +14,12 @@ enum class PortState { normal, muted, solo };
 
 //==============================================================================
 struct ViewSettings {
-    bool showSpeakers{};
-    bool showSpeakerNumbers{};
-    bool showSpeakerTriplets{};
-    bool showSpeakerLevels{};
-    bool showSphereOrCube{};
-    bool showSourceActivity{};
+    bool showSpeakers{ true };
+    bool showSpeakerNumbers{ false };
+    bool showSpeakerTriplets{ false };
+    bool showSpeakerLevels{ false };
+    bool showSphereOrCube{ false };
+    bool showSourceActivity{ false };
     //==============================================================================
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
     [[nodiscard]] static tl::optional<ViewSettings> fromXml(juce::XmlElement const & xml);
@@ -94,6 +94,7 @@ struct SourceData {
     [[nodiscard]] ViewportSourceData toViewportData(float alpha) const;
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml(source_index_t index) const;
     [[nodiscard]] static tl::optional<SourceData> fromXml(juce::XmlElement const & xml);
+    [[nodiscard]] bool operator==(SourceData const & other) const noexcept;
     //==============================================================================
     struct XmlTags {
         static juce::String const STATE;
@@ -149,6 +150,7 @@ struct LbapDistanceAttenuationData {
     [[nodiscard]] LbapAttenuationConfig toConfig(double sampleRate) const;
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
     [[nodiscard]] static tl::optional<LbapDistanceAttenuationData> fromXml(juce::XmlElement const & xml);
+    [[nodiscard]] bool operator==(LbapDistanceAttenuationData const & other) const noexcept;
     //==============================================================================
     struct XmlTags {
         static juce::String const MAIN_TAG;
@@ -162,8 +164,8 @@ struct AudioSettings {
     juce::String deviceType{};
     juce::String inputDevice{};
     juce::String outputDevice{};
-    double sampleRate{};
-    int bufferSize{};
+    double sampleRate{ DEFAULT_SAMPLE_RATE };
+    int bufferSize{ DEFAULT_BUFFER_SIZE };
     //==============================================================================
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
     [[nodiscard]] static tl::optional<AudioSettings> fromXml(juce::XmlElement const & xml);
@@ -180,7 +182,9 @@ struct AudioSettings {
 
 //==============================================================================
 enum class RecordingFormat { wav, aiff };
+constexpr auto DEFAULT_RECORDING_FORMAT{ RecordingFormat::wav };
 enum class RecordingFileType { mono, interleaved };
+constexpr auto DEFAULT_RECORDING_FILE_TYPE{ RecordingFileType::mono };
 
 juce::String recordingFormatToString(RecordingFormat format);
 tl::optional<RecordingFormat> stringToRecordingFormat(juce::String const & string);
@@ -189,8 +193,8 @@ tl::optional<RecordingFileType> stringToRecordingFileType(juce::String const & s
 
 //==============================================================================
 struct RecordingOptions {
-    RecordingFormat format{};
-    RecordingFileType fileType{};
+    RecordingFormat format{ DEFAULT_RECORDING_FORMAT };
+    RecordingFileType fileType{ DEFAULT_RECORDING_FILE_TYPE };
     //==============================================================================
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
     [[nodiscard]] static tl::optional<RecordingOptions> fromXml(juce::XmlElement const & xml);
@@ -207,14 +211,14 @@ using SourcesData = OwnedMap<source_index_t, SourceData, MAX_INPUTS>;
 struct SpatGrisProjectData {
     SourcesData sources{};
     LbapDistanceAttenuationData lbapDistanceAttenuationData{};
-    ViewSettings viewSettings{};
-    CartesianVector cameraPosition{};
     int oscPort{ DEFAULT_OSC_INPUT_PORT };
     dbfs_t masterGain{};
     float spatGainsInterpolation{};
     //==============================================================================
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
     [[nodiscard]] static tl::optional<SpatGrisProjectData> fromXml(juce::XmlElement const & xml);
+    [[nodiscard]] bool operator==(SpatGrisProjectData const & other) const noexcept;
+    [[nodiscard]] bool operator!=(SpatGrisProjectData const & other) const noexcept { return !(*this == other); }
     //==============================================================================
     struct XmlTags {
         static juce::String const MAIN_TAG;
@@ -222,7 +226,6 @@ struct SpatGrisProjectData {
         static juce::String const MASTER_GAIN;
         static juce::String const GAIN_INTERPOLATION;
         static juce::String const OSC_PORT;
-        static juce::String const CAMERA;
     };
 };
 
@@ -230,12 +233,16 @@ struct SpatGrisProjectData {
 struct SpatGrisAppData {
     AudioSettings audioSettings{};
     RecordingOptions recordingOptions{};
+    ViewSettings viewSettings{};
+    CartesianVector cameraPosition{ 0.0f, -2.0f, 1.0f };
     juce::String lastSpeakerSetup{ DEFAULT_SPEAKER_SETUP_FILE.getFullPathName() };
     juce::String lastProject{ DEFAULT_PROJECT_FILE.getFullPathName() };
-    juce::String lastRecordingDirectory{};
+    juce::String lastRecordingDirectory{
+        juce::File::getSpecialLocation(juce::File::SpecialLocationType::userDesktopDirectory).getFullPathName()
+    };
     SpatMode spatMode{};
-    int windowX{};
-    int windowY{};
+    int windowX{ 100 };
+    int windowY{ 100 };
     int windowWidth{ 1285 };
     int windowHeight{ 610 };
     double sashPosition{ 0.5 };
@@ -254,6 +261,7 @@ struct SpatGrisAppData {
         static juce::String const WINDOW_WIDTH;
         static juce::String const WINDOW_HEIGHT;
         static juce::String const SASH_POSITION;
+        static juce::String const CAMERA;
     };
 };
 

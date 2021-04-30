@@ -71,6 +71,8 @@ class MainContentComponent final
     , private AudioDeviceManagerListener
     , private juce::Timer
 {
+    enum class LoadProjectOption { removeInvalidDirectOuts, dontRemoveInvalidDirectOuts };
+
     juce::ReadWriteLock mLock{};
 
     std::unique_ptr<AudioProcessor> mAudioProcessor{};
@@ -83,8 +85,6 @@ class MainContentComponent final
 
     // Open Sound Control.
     std::unique_ptr<OscInput> mOscReceiver{};
-
-    juce::String mConfigurationName{};
 
     // Windows.
     std::unique_ptr<EditSpeakersWindow> mEditSpeakersWindow{};
@@ -146,7 +146,7 @@ class MainContentComponent final
     bool mNeedToSavePreset{ false };
     bool mNeedToSaveSpeakerSetup{ false };
 
-    SpatGrisData mData;
+    SpatGrisData mData{};
     std::unique_ptr<AbstractSpatAlgorithm> mSpatAlgorithm{};
 
 public:
@@ -177,7 +177,7 @@ public:
     void refreshSourceVuMeterComponents();
     void refreshSpeakerVuMeterComponents();
 
-    bool removeInvalidDirectOuts();
+    void removeInvalidDirectOuts();
 
     auto const & getLock() const { return mLock; }
 
@@ -220,11 +220,7 @@ public:
     void handleSetShowTriplets(bool state);
 
     // other
-    [[nodiscard]] bool isTripletsShown() const { return mData.project.viewSettings.showSpeakerTriplets; }
     [[nodiscard]] bool needToSaveSpeakerSetup() const { return mNeedToSaveSpeakerSetup; }
-    [[nodiscard]] bool isSpanShown() const { return true; } // TODO
-    [[nodiscard]] bool isSourceLevelShown() const { return mData.project.viewSettings.showSourceActivity; }
-    [[nodiscard]] bool isSpeakerLevelShown() const { return mData.project.viewSettings.showSpeakerLevels; }
 
     void setNeedToSaveSpeakerSetup(bool const state) { mNeedToSaveSpeakerSetup = state; }
 
@@ -337,7 +333,7 @@ private:
     //==============================================================================
     // Open - save.
     void loadSpeakerSetup(juce::File const & file, tl::optional<SpatMode> forceSpatMode = tl::nullopt);
-    void loadProject(juce::File const & file);
+    void loadProject(juce::File const & file, LoadProjectOption loadProjectOption);
     void saveProject(juce::String const & path);
     void saveSpeakerSetup(juce::String const & path);
     void setTitle() const;

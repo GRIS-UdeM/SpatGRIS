@@ -93,6 +93,8 @@ public:
     auto & getData() noexcept { return mData; }
     auto const & getData() const noexcept { return mData; }
 
+    CartesianVector getCameraPosition() const;
+
     void setConfig(ViewportConfig const & config, SourcesData const & sources);
     void setCameraPosition(CartesianVector const & position) noexcept;
     void setTriplets(juce::Array<Triplet> triplets) noexcept;

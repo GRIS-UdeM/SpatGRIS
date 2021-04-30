@@ -277,9 +277,10 @@ void FlatViewWindow::drawSourceSpan(juce::Graphics & g,
     auto const HRAzimSpan{ 180.0f * source.azimuthSpan };
     auto const HRElevSpan{ 180.0f * source.zenithSpan };
 
-    if ((HRAzimSpan < 0.002f && HRElevSpan < 0.002f) || !mMainContentComponent.isSpanShown()) {
-        return;
-    }
+    jassertfalse;
+    // if ((HRAzimSpan < 0.002f && HRElevSpan < 0.002f) || !mMainContentComponent.isSpanShown()) {
+    //    return;
+    //}
 
     auto const azimuthElevation{ getSourceAzimuthElevation(sourceP, true) };
 

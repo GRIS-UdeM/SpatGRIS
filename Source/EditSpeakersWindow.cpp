@@ -392,7 +392,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         return selectedRow;
     };
 
-    auto const tripletState{ mMainContentComponent.isTripletsShown() };
+    jassertfalse; // auto const tripletState{ mMainContentComponent.isTripletsShown() };
     auto const sortColumnId{ mSpeakersTableListBox.getHeader().getSortColumnId() };
     auto const sortedForwards{ mSpeakersTableListBox.getHeader().isSortedForwards() };
     auto const & speakers{ mMainContentComponent.getData().speakerSetup.speakers };
@@ -416,7 +416,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
     } else if (button == &mCompSpeakersButton) {
         // Compute speaker button
         if (mMainContentComponent.refreshSpeakers()) {
-            mMainContentComponent.handleSetShowTriplets(tripletState);
+            jassertfalse; // mMainContentComponent.handleSetShowTriplets(tripletState);
         }
     } else if (button == &mAddRingButton) {
         // Add ring button
