@@ -361,49 +361,34 @@ tl::optional<AudioSettings> AudioSettings::fromXml(juce::XmlElement const & xml)
 //==============================================================================
 juce::String recordingFormatToString(RecordingFormat const format)
 {
-    switch (format) {
-    case RecordingFormat::aiff:
-        return "aiff";
-    case RecordingFormat::wav:
-        return "wav";
-    }
-    jassertfalse;
-    return "";
+    return RECORDING_FORMAT_STRINGS[narrow<int>(format)];
 }
 
 //==============================================================================
 tl::optional<RecordingFormat> stringToRecordingFormat(juce::String const & string)
 {
-    if (string == "aiff") {
-        return RecordingFormat::aiff;
+    for (int i{}; i < RECORDING_FORMAT_STRINGS.size(); ++i) {
+        if (string == RECORDING_FORMAT_STRINGS[i]) {
+            return narrow<RecordingFormat>(i);
+        }
     }
-    if (string == "wav") {
-        return RecordingFormat::wav;
-    }
+
     return tl::nullopt;
 }
 
 //==============================================================================
 juce::String recordingFileTypeToString(RecordingFileType const fileType)
 {
-    switch (fileType) {
-    case RecordingFileType::interleaved:
-        return "interleaved";
-    case RecordingFileType::mono:
-        return "mono";
-    }
-    jassertfalse;
-    return "";
+    return RECORDING_FILE_TYPE_STRINGS[narrow<int>(fileType)];
 }
 
 //==============================================================================
 tl::optional<RecordingFileType> stringToRecordingFileType(juce::String const & string)
 {
-    if (string == "interleaved") {
-        return RecordingFileType::interleaved;
-    }
-    if (string == "mono") {
-        return RecordingFileType::mono;
+    for (int i{}; i < RECORDING_FILE_TYPE_STRINGS.size(); ++i) {
+        if (string == RECORDING_FILE_TYPE_STRINGS[i]) {
+            return narrow<RecordingFileType>(i);
+        }
     }
     return tl::nullopt;
 }

@@ -439,7 +439,7 @@ void MainContentComponent::handleNewProject()
         return;
     }
 
-    loadProject(DEFAULT_PROJECT_FILE.getFullPathName());
+    loadProject(DEFAULT_PROJECT_FILE);
 }
 
 //==============================================================================
@@ -551,8 +551,7 @@ void MainContentComponent::handleSaveProject()
     juce::ScopedReadLock const lock{ mLock };
 
     juce::File const lastOpenProject{ mData.appData.lastProject };
-    if (!lastOpenProject.existsAsFile()
-        || lastOpenProject.getFullPathName().endsWith("default_preset/default_preset.xml")) {
+    if (!lastOpenProject.existsAsFile() || lastOpenProject == DEFAULT_PROJECT_FILE) {
         handleSaveAsProject();
     }
     saveProject(lastOpenProject.getFullPathName());
@@ -564,7 +563,10 @@ void MainContentComponent::handleSaveAsProject()
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
-    juce::File const lastOpenProject{ mData.appData.lastProject };
+    juce::File const lastOpenProject{ mData.appData.lastProject == DEFAULT_PROJECT_FILE.getFullPathName()
+                                          ? juce::File::getSpecialLocation(
+                                              juce::File::SpecialLocationType::userDesktopDirectory)
+                                          : mData.appData.lastProject };
 
     juce::FileChooser fc{ "Choose a file to save...", lastOpenProject.getFullPathName(), "*.xml", true };
 
@@ -580,7 +582,12 @@ void MainContentComponent::handleOpenSpeakerSetup()
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
-    juce::FileChooser fc{ "Choose a file to open...", mCurrentSpeakerSetup, "*.xml", true };
+    auto const initialFile{ juce::File{ mData.appData.lastSpeakerSetup }.existsAsFile()
+                                ? mData.appData.lastSpeakerSetup
+                                : juce::File::getSpecialLocation(
+                                    juce::File::SpecialLocationType::userDesktopDirectory) };
+
+    juce::FileChooser fc{ "Choose a file to open...", initialFile, "*.xml", true };
 
     if (fc.browseForFileToOpen()) {
         auto const chosen{ fc.getResults().getReference(0).getFullPathName() };
@@ -603,7 +610,25 @@ void MainContentComponent::handleSaveAsSpeakerSetup()
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
-    juce::FileChooser fc{ "Choose a file to save...", mCurrentSpeakerSetup, "*.xml", true };
+    switch (mData.appData.spatMode) {
+    case SpatMode::hrtfVbap:
+    case SpatMode::stereo:
+        juce::AlertWindow::showMessageBox(juce::AlertWindow::AlertIconType::WarningIcon,
+                                          "Warning",
+                                          "Binaural and stereo setups should not be modified.",
+                                          "Ok",
+                                          this);
+        return;
+    case SpatMode::lbap:
+    case SpatMode::vbap:
+        break;
+    }
+
+    auto const initialFile{ mData.appData.lastSpeakerSetup == DEFAULT_SPEAKER_SETUP_FILE.getFullPathName()
+                                ? juce::File::getSpecialLocation(juce::File::SpecialLocationType::userDesktopDirectory)
+                                : mData.appData.lastSpeakerSetup };
+
+    juce::FileChooser fc{ "Choose a file to save...", initialFile, "*.xml", true };
 
     if (fc.browseForFileToSave(true)) {
         auto const chosen{ fc.getResults().getReference(0).getFullPathName() };
@@ -626,6 +651,20 @@ void MainContentComponent::handleShowSpeakerEditWindow()
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
+    switch (mData.appData.spatMode) {
+    case SpatMode::hrtfVbap:
+    case SpatMode::stereo:
+        juce::AlertWindow::showMessageBox(juce::AlertWindow::AlertIconType::WarningIcon,
+                                          "Warning",
+                                          "The Binaural and Stereo speaker setups cannot be modified.",
+                                          "Ok",
+                                          this);
+        return;
+    case SpatMode::lbap:
+    case SpatMode::vbap:
+        break;
+    }
+
     juce::Rectangle<int> const result{ getScreenX() + mSpeakerViewComponent->getWidth() + 20,
                                        getScreenY() + 20,
                                        850,
@@ -633,7 +672,7 @@ void MainContentComponent::handleShowSpeakerEditWindow()
     if (mEditSpeakersWindow == nullptr) {
         auto const windowName = juce::String("Speakers Setup Edition - ")
                                 + juce::String(SPAT_MODE_STRINGS[static_cast<int>(mData.appData.spatMode)]) + " - "
-                                + mCurrentSpeakerSetup.getFileName();
+                                + mData.appData.lastSpeakerSetup;
         mEditSpeakersWindow = std::make_unique<EditSpeakersWindow>(windowName, mLookAndFeel, *this, mConfigurationName);
         mEditSpeakersWindow->setBounds(result);
         mEditSpeakersWindow->initComp();
@@ -1427,6 +1466,24 @@ void MainContentComponent::loadDefaultSpeakerSetup(SpatMode const spatMode)
 }
 
 //==============================================================================
+void MainContentComponent::setRecordingFormat(RecordingFormat const format)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    mData.appData.recordingOptions.format = format;
+}
+
+//==============================================================================
+void MainContentComponent::setRecordingFileType(RecordingFileType const fileType)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    mData.appData.recordingOptions.fileType = fileType;
+}
+
+//==============================================================================
 void MainContentComponent::handleSpeakerOnlyDirectOutChanged(output_patch_t const outputPatch, bool const state)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -2214,7 +2271,7 @@ void MainContentComponent::comboBoxChanged(juce::ComboBox * comboBoxThatHasChang
         if (mEditSpeakersWindow != nullptr) {
             auto const windowName{ juce::String("Speakers Setup Edition - ")
                                    + juce::String(SPAT_MODE_STRINGS[static_cast<int>(newSpatMode)])
-                                   + juce::String(" - ") + mCurrentSpeakerSetup.getFileName() };
+                                   + juce::String(" - ") + mData.appData.lastSpeakerSetup };
             mEditSpeakersWindow->setName(windowName);
         }
     }

@@ -82,7 +82,7 @@ class SettingsComponent final
     juce::ComboBox mRecFormatCombo;
 
     juce::Label mRecFileConfigLabel{ "", "Output Format :" };
-    juce::ComboBox mRecFileConfigCombo;
+    juce::ComboBox mRecFileTypeCombo;
 
     //==============================================================================
     juce::Label mCubeSectionLabel{ "", "CUBE Distance Settings" };

@@ -56,7 +56,7 @@ extern juce::File const HRTF_FOLDER_80;
 
 //==============================================================================
 extern juce::StringArray const RECORDING_FORMAT_STRINGS;
-extern juce::StringArray const RECORDING_CONFIG_STRINGS;
+extern juce::StringArray const RECORDING_FILE_TYPE_STRINGS;
 extern juce::StringArray const ATTENUATION_DB_STRINGS;
 extern juce::StringArray const ATTENUATION_FREQUENCY_STRINGS;
 

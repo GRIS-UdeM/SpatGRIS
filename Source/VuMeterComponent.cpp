@@ -96,7 +96,7 @@ void LevelBox::paint(juce::Graphics & g)
         return;
     }
 
-    if (mLevel <= MIN_LEVEL_COMP) {
+    if (mLevel <= MIN_LEVEL_COMP && !mIsClipping) {
         g.drawImage(mVuMeterBackBit, 0, 0, WIDTH, HEIGHT, 0, 0, WIDTH, HEIGHT);
         return;
     }

@@ -86,8 +86,6 @@ class MainContentComponent final
 
     juce::String mConfigurationName{};
 
-    juce::File mCurrentSpeakerSetup{};
-
     // Windows.
     std::unique_ptr<EditSpeakersWindow> mEditSpeakersWindow{};
     std::unique_ptr<SettingsWindow> mPropertiesWindow{};
@@ -192,6 +190,9 @@ public:
     void resetSourcePosition(source_index_t sourceIndex);
 
     void loadDefaultSpeakerSetup(SpatMode spatMode);
+
+    void setRecordingFormat(RecordingFormat format);
+    void setRecordingFileType(RecordingFileType fileType);
 
     void handleSpeakerOnlyDirectOutChanged(output_patch_t outputPatch, bool state);
     void handleSpeakerOutputPatchChanged(output_patch_t oldOutputPatch, output_patch_t newOutputPatch);
