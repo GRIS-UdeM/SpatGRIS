@@ -26,7 +26,7 @@ using InverseMatrix = std::array<float, 9>;
 
 /* A struct for a loudspeaker triplet or pair (set). */
 struct SpeakerSet {
-    std::array<int, 3> speakerNos;
+    std::array<output_patch_t, 3> speakerNos;
     InverseMatrix invMx;
     std::array<float, 3> setGains;
     float smallestWt;

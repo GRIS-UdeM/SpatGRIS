@@ -6,9 +6,7 @@
 
 #include "vbap.hpp"
 
-#include <cstdio>
 #include <cstdlib>
-#include <cstring>
 
 #include "LogicStrucs.hpp"
 #include "StrongTypes.hpp"
@@ -36,29 +34,29 @@ static void compute_gains(juce::Array<SpeakerSet> & sets,
     vec[2] = cart_dir.z;
 
     for (auto & set : sets) {
-        set.setGains[0] = 0.0;
-        set.setGains[1] = 0.0;
-        set.setGains[2] = 0.0;
-        set.smallestWt = 1000.0;
+        set.setGains[0] = 0.0f;
+        set.setGains[1] = 0.0f;
+        set.setGains[2] = 0.0f;
+        set.smallestWt = 1000.0f;
         set.neg_g_am = 0;
     }
 
     for (auto & set : sets) {
-        for (int j = 0; j < dim; j++) {
-            for (int k = 0; k < dim; k++) {
+        for (int j{}; j < dim; ++j) {
+            for (int k{}; k < dim; ++k) {
                 set.setGains[j] += vec[k] * set.invMx[((dim * j) + k)];
             }
             if (set.smallestWt > set.setGains[j])
                 set.smallestWt = set.setGains[j];
-            if (set.setGains[j] < -0.05)
-                set.neg_g_am++;
+            if (set.setGains[j] < -0.05f)
+                ++set.neg_g_am;
         }
     }
 
-    int j = 0;
-    float tmp = sets[0].smallestWt;
-    int tmp2 = sets[0].neg_g_am;
-    for (int i = 1; i < sets.size(); i++) {
+    int j{};
+    auto tmp = sets[0].smallestWt;
+    auto tmp2 = sets[0].neg_g_am;
+    for (auto i{ 1 }; i < sets.size(); ++i) {
         if (sets[i].neg_g_am < tmp2) {
             tmp = sets[i].smallestWt;
             tmp2 = sets[i].neg_g_am;
@@ -72,21 +70,23 @@ static void compute_gains(juce::Array<SpeakerSet> & sets,
         }
     }
 
-    if (sets[j].setGains[0] <= 0.0 && sets[j].setGains[1] <= 0.0 && sets[j].setGains[2] <= 0.0) {
-        sets[j].setGains[0] = 1.0;
-        sets[j].setGains[1] = 1.0;
-        sets[j].setGains[2] = 1.0;
+    if (sets[j].setGains[0] <= 0.0f && sets[j].setGains[1] <= 0.0f && sets[j].setGains[2] <= 0.0f) {
+        sets[j].setGains[0] = 1.0f;
+        sets[j].setGains[1] = 1.0f;
+        sets[j].setGains[2] = 1.0f;
     }
 
     auto * rawGains{ gains.data() };
-    rawGains[sets[j].speakerNos[0] - 1] = sets[j].setGains[0];
-    rawGains[sets[j].speakerNos[1] - 1] = sets[j].setGains[1];
-    if (dim == 3)
-        rawGains[sets[j].speakerNos[2] - 1] = sets[j].setGains[2];
+    rawGains[sets[j].speakerNos[0].get() - 1] = sets[j].setGains[0];
+    rawGains[sets[j].speakerNos[1].get() - 1] = sets[j].setGains[1];
+    if (dim == 3) {
+        rawGains[sets[j].speakerNos[2].get() - 1] = sets[j].setGains[2];
+    }
 
-    for (int i = 0; i < numSpeakers; i++) {
-        if (rawGains[i] < 0.0)
-            rawGains[i] = 0.0;
+    for (int i{}; i < numSpeakers; ++i) {
+        if (rawGains[i] < 0.0f) {
+            rawGains[i] = 0.0f;
+        }
     }
 }
 
@@ -167,9 +167,9 @@ static int lines_intersect(int const i,
     auto const dist_lnv3 = negV3.angleWith(speakers[l].coords);
 
     /*One of loudspeakers is close to crossing point, don't do anything.*/
-    if (std::abs(dist_iv3) <= 0.01 || std::abs(dist_jv3) <= 0.01 || std::abs(dist_kv3) <= 0.01
-        || std::abs(dist_lv3) <= 0.01 || std::abs(dist_inv3) <= 0.01 || std::abs(dist_jnv3) <= 0.01
-        || std::abs(dist_knv3) <= 0.01 || std::abs(dist_lnv3) <= 0.01) {
+    if (std::abs(dist_iv3) <= 0.01f || std::abs(dist_jv3) <= 0.01f || std::abs(dist_kv3) <= 0.01f
+        || std::abs(dist_lv3) <= 0.01f || std::abs(dist_inv3) <= 0.01f || std::abs(dist_jnv3) <= 0.01f
+        || std::abs(dist_knv3) <= 0.01f || std::abs(dist_lnv3) <= 0.01f) {
         return (0);
     }
 
@@ -684,7 +684,7 @@ VbapData * init_vbap_from_speakers(std::array<LoudSpeaker, MAX_OUTPUTS> & speake
     for (auto const & triplet : triplets) {
         SpeakerSet newSet{};
         for (int j = 0; j < data->dimension; j++) {
-            newSet.speakerNos[j] = outputPatches[triplet.tripletSpeakerNumber[j] + offset - 1].get();
+            newSet.speakerNos[j] = outputPatches[triplet.tripletSpeakerNumber[j] + offset - 1];
         }
         for (int j = 0; j < (data->dimension * data->dimension); j++) {
             newSet.invMx[j] = triplet.tripletInverseMatrix[j];
@@ -724,9 +724,6 @@ juce::Array<Triplet> vbap_get_triplets(VbapData const & data)
     for (auto const & set : data.speakerSets) {
         Triplet triplet{};
 
-        // triplet.id1 = data.outputPatches[set.speakerNos[0] - 1];
-        // triplet.id2 = data.outputPatches[set.speakerNos[1] - 1];
-        // triplet.id3 = data.outputPatches[set.speakerNos[2] - 1];
         triplet.id1 = output_patch_t{ set.speakerNos[0] };
         triplet.id2 = output_patch_t{ set.speakerNos[1] };
         triplet.id3 = output_patch_t{ set.speakerNos[2] };
