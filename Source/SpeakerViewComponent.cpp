@@ -92,10 +92,10 @@ void SpeakerViewComponent::setTriplets(juce::Array<Triplet> triplets) noexcept
 //==============================================================================
 void SpeakerViewComponent::render()
 {
-    static constexpr auto MIN_ZOOM = 0.3f;
-    static constexpr auto MAX_ZOOM = 3.0f;
+    static constexpr auto MIN_ZOOM = 0.7f;
+    static constexpr auto MAX_ZOOM = 4.0f;
     static constexpr auto ZOOM_RANGE = MAX_ZOOM - MIN_ZOOM;
-    static constexpr auto ZOOM_CURVE = 0.5f;
+    static constexpr auto ZOOM_CURVE = 0.7f;
     static constexpr auto INVERSE_ZOOM_CURVE = 1.0f / ZOOM_CURVE;
 
     ASSERT_OPEN_GL_THREAD;
@@ -108,9 +108,11 @@ void SpeakerViewComponent::render()
     auto const zoomToAdd{ deciSecondsElapsed * mData.state.cameraZoomVelocity };
     auto const currentZoom{ (mData.state.cameraPosition.length - MIN_ZOOM) / ZOOM_RANGE };
     auto const scaledZoom{ std::pow(currentZoom, ZOOM_CURVE) };
-    auto const scaledTargetZoom{ scaledZoom + zoomToAdd };
+    auto const scaledTargetZoom{ std::max(scaledZoom + zoomToAdd, 0.0f) };
     auto const unclippedTargetZoom{ std::pow(scaledTargetZoom, INVERSE_ZOOM_CURVE) * ZOOM_RANGE + MIN_ZOOM };
     auto const targetZoom{ std::clamp(unclippedTargetZoom, MIN_ZOOM, MAX_ZOOM) };
+
+    jassert(std::isfinite(targetZoom));
 
     mData.state.cameraPosition.length = targetZoom;
     mData.state.cameraZoomVelocity *= std::pow(0.5f, deciSecondsElapsed);

@@ -1344,7 +1344,7 @@ void MainContentComponent::refreshSourceVuMeterComponents()
 
     mSourceVuMeterComponents.clear();
 
-    auto x{ 2 };
+    auto x{ 3 };
     for (auto source : mData.project.sources) {
         auto newVuMeter{ std::make_unique<SourceVuMeterComponent>(source.key,
                                                                   source.value->directOut,
@@ -1352,7 +1352,7 @@ void MainContentComponent::refreshSourceVuMeterComponents()
                                                                   *this,
                                                                   mSmallLookAndFeel) };
         mInputsUiBox->addAndMakeVisible(newVuMeter.get());
-        juce::Rectangle<int> const bounds{ x, 20, VU_METER_WIDTH, 200 };
+        juce::Rectangle<int> const bounds{ x, 23, VU_METER_WIDTH, 200 };
         newVuMeter->setBounds(bounds);
         mSourceVuMeterComponents.add(source.key, std::move(newVuMeter));
         x += VU_METER_WIDTH;
@@ -1367,11 +1367,11 @@ void MainContentComponent::refreshSpeakerVuMeterComponents()
 
     mSpeakerVuMeters.clear();
 
-    auto x{ 2 };
+    auto x{ 3 };
     for (auto const outputPatch : mData.speakerSetup.order) {
         auto newVuMeter{ std::make_unique<SpeakerVuMeterComponent>(outputPatch, *this, mSmallLookAndFeel) };
         mOutputsUiBox->addAndMakeVisible(newVuMeter.get());
-        juce::Rectangle<int> const bounds{ x, 20, VU_METER_WIDTH, 200 };
+        juce::Rectangle<int> const bounds{ x, 23, VU_METER_WIDTH, 200 };
         newVuMeter->setBounds(bounds);
         mSpeakerVuMeters.add(outputPatch, std::move(newVuMeter));
         x += VU_METER_WIDTH;
