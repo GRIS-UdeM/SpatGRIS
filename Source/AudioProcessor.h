@@ -61,8 +61,9 @@ private:
     void processVbap(SourceAudioBuffer const & inputBuffer,
                      SpeakerAudioBuffer & outputBuffer,
                      SourcePeaks const & sourcePeaks) noexcept;
-    void
-        processLbap(SourceAudioBuffer & sourceBuffer, SpeakerAudioBuffer & speakerBuffer, SourcePeaks const &) noexcept;
+    void processLbap(SourceAudioBuffer & sourcesBuffer,
+                     SpeakerAudioBuffer & speakersBuffer,
+                     SourcePeaks const &) noexcept;
     void processVBapHrtf(SourceAudioBuffer const & inputBuffer,
                          SpeakerAudioBuffer & outputBuffer,
                          SourcePeaks const & sourcePeaks) noexcept;

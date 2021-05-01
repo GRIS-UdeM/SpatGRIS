@@ -28,36 +28,39 @@ static float constexpr SOURCE_RADIUS = 10.0f;
 static float constexpr SOURCE_DIAMETER = SOURCE_RADIUS * 2.f;
 
 //==============================================================================
+// TODO : remove this function
 static float degreeToRadian(float const degree)
 {
-    return ((degree * juce::MathConstants<float>::pi) / 180.0f);
+    return degree * juce::MathConstants<float>::pi / 180.0f;
 }
 
 //==============================================================================
+// TODO : remove this function
 static juce::Point<float> degreeToXy(juce::Point<float> const & p, int const fieldWidth)
 {
-    auto const fieldWidth_f{ static_cast<float>(fieldWidth) };
-    auto const x{ -((fieldWidth_f - SOURCE_DIAMETER) / 2.0f) * std::sin(degreeToRadian(p.x))
+    auto const fieldWidthF{ static_cast<float>(fieldWidth) };
+    auto const x{ -((fieldWidthF - SOURCE_DIAMETER) / 2.0f) * std::sin(degreeToRadian(p.x))
                   * std::cos(degreeToRadian(p.y)) };
-    auto const y{ -((fieldWidth_f - SOURCE_DIAMETER) / 2.0f) * std::cos(degreeToRadian(p.x))
+    auto const y{ -((fieldWidthF - SOURCE_DIAMETER) / 2.0f) * std::cos(degreeToRadian(p.x))
                   * std::cos(degreeToRadian(p.y)) };
     return juce::Point<float>{ x, y };
 }
 
 //==============================================================================
-static juce::Point<float> getSourceAzimuthElevation(juce::Point<float> const pXY, bool const bUseCosElev = false)
+// TODO : remove this function
+static juce::Point<float> getSourceAzimuthElevation(juce::Point<float> const point, bool const bUseCosElev = false)
 {
-    // Calculate azim in range [0,1], and negate it because zirkonium wants -1 on right side.
-    auto const fAzimuth{ -std::atan2(pXY.x, pXY.y) / juce::MathConstants<float>::pi };
+    // Calculate azimuth in range [0,1], and negate it because zirkonium wants -1 on right side.
+    auto const fAzimuth{ -std::atan2(point.x, point.y) / juce::MathConstants<float>::pi };
 
     // Calculate xy distance from origin, and clamp it to 2 (ie ignore outside of circle).
-    auto const hypo{ std::min(std::hypot(pXY.x, pXY.y), RADIUS_MAX) };
+    auto const hypo{ std::min(std::hypot(point.x, point.y), RADIUS_MAX) };
 
     float fElev;
     if (bUseCosElev) {
-        fElev = std::acos(hypo / RADIUS_MAX);            // fElev is elevation in radian, [0,pi/2)
-        fElev /= (juce::MathConstants<float>::pi / 2.f); // making range [0,1]
-        fElev /= 2.0f;                                   // making range [0,.5] because that's what the zirkonium wants
+        fElev = std::acos(hypo / RADIUS_MAX); // fElev is elevation in radian, [0,pi/2)
+        fElev /= HALF_PI.get();               // making range [0,1]
+        fElev /= 2.0f;                        // making range [0,.5] because that's what the zirkonium wants
     } else {
         fElev = (RADIUS_MAX - hypo) / 4.0f;
     }
@@ -118,8 +121,8 @@ void FlatViewWindow::drawFieldBackground(juce::Graphics & g, int const fieldSize
         x = (fieldSizeFloat - w) / 2.0f;
         auto const r{ w / 2.0f * 0.296f };
 
-        g.drawLine(x + r, x + r, (w + x) - r, (w + x) - r);
-        g.drawLine(x + r, (w + x) - r, (w + x) - r, x + r);
+        g.drawLine(x + r, x + r, w + x - r, w + x - r);
+        g.drawLine(x + r, w + x - r, w + x - r, x + r);
         g.drawLine(x, fieldSizeFloat / 2, w + x, fieldSizeFloat / 2);
         g.drawLine(fieldSizeFloat / 2, x, fieldSizeFloat / 2, w + x);
 
@@ -245,11 +248,13 @@ void FlatViewWindow::drawSource(juce::Graphics & g, SourcesData::ConstNode const
 //==============================================================================
 void FlatViewWindow::drawSourceSpan(juce::Graphics & g,
                                     SourceData const & source,
-                                    const int fieldWh,
+                                    const int fieldSize,
                                     const int fieldCenter,
                                     SpatMode const spatMode) const
 {
     jassertfalse; // TODO
+
+    auto const fieldSizeF{ narrow<float>(fieldSize) };
 
     auto const colorS{ source.colour };
 
@@ -257,14 +262,16 @@ void FlatViewWindow::drawSourceSpan(juce::Graphics & g,
 
     auto const alpha{ 0.1f }; // TODO : should use alpha from peaks?
     if (spatMode == SpatMode::lbap) {
-        auto const realW{ fieldWh - narrow<int>(SOURCE_DIAMETER) };
-        auto const azimuthSpan{ static_cast<float>(fieldWh) * (source.azimuthSpan * 0.5f) };
+        auto const realW{ fieldSize - narrow<int>(SOURCE_DIAMETER) };
+        auto const azimuthSpan{ static_cast<float>(fieldSize) * (source.azimuthSpan * 0.5f) };
         auto const halfAzimuthSpan{ azimuthSpan / 2.0f - SOURCE_RADIUS };
 
         sourceP.x = realW / 2.0f + realW / 4.0f * sourceP.x;
         sourceP.y = realW / 2.0f - realW / 4.0f * sourceP.y;
-        sourceP.x = sourceP.x < 0 ? 0 : sourceP.x > fieldWh - SOURCE_DIAMETER ? fieldWh - SOURCE_DIAMETER : sourceP.x;
-        sourceP.y = sourceP.y < 0 ? 0 : sourceP.y > fieldWh - SOURCE_DIAMETER ? fieldWh - SOURCE_DIAMETER : sourceP.y;
+        sourceP.x
+            = sourceP.x < 0 ? 0 : sourceP.x > fieldSizeF - SOURCE_DIAMETER ? fieldSizeF - SOURCE_DIAMETER : sourceP.x;
+        sourceP.y
+            = sourceP.y < 0 ? 0 : sourceP.y > fieldSizeF - SOURCE_DIAMETER ? fieldSizeF - SOURCE_DIAMETER : sourceP.y;
 
         g.setColour(colorS.withAlpha(alpha * 0.6f));
         g.drawEllipse(sourceP.x - halfAzimuthSpan, sourceP.y - halfAzimuthSpan, azimuthSpan, azimuthSpan, 1.5f);
@@ -292,25 +299,25 @@ void FlatViewWindow::drawSourceSpan(juce::Graphics & g,
     juce::Point<float> minElev = { hrAzimuth, hrElevation - HRElevSpan / 2.0f };
 
     if (minElev.y < 0) {
-        maxElev.y = (maxElev.y - minElev.y);
+        maxElev.y = maxElev.y - minElev.y;
         minElev.y = 0.0f;
     }
 
     // Convert max min elev to xy.
-    auto const screenMaxElev = degreeToXy(maxElev, fieldWh);
-    auto const screenMinElev = degreeToXy(minElev, fieldWh);
+    auto const screenMaxElev = degreeToXy(maxElev, fieldSize);
+    auto const screenMinElev = degreeToXy(minElev, fieldSize);
 
-    // Form minmax elev, calculate minmax radius.
+    // Form minMax elev, calculate minMax radius.
     auto const maxRadius = std::sqrt(screenMaxElev.x * screenMaxElev.x + screenMaxElev.y * screenMaxElev.y);
     auto const minRadius = std::sqrt(screenMinElev.x * screenMinElev.x + screenMinElev.y * screenMinElev.y);
 
     // Drawing the path for spanning.
     juce::Path myPath;
-    auto const fieldCenter_f{ static_cast<float>(fieldCenter) };
-    myPath.startNewSubPath(fieldCenter_f + screenMaxElev.x, fieldCenter_f + screenMaxElev.y);
+    auto const fieldCenterF{ static_cast<float>(fieldCenter) };
+    myPath.startNewSubPath(fieldCenterF + screenMaxElev.x, fieldCenterF + screenMaxElev.y);
     // Half first arc center.
-    myPath.addCentredArc(fieldCenter_f,
-                         fieldCenter_f,
+    myPath.addCentredArc(fieldCenterF,
+                         fieldCenterF,
                          minRadius,
                          minRadius,
                          0.0,
@@ -319,24 +326,24 @@ void FlatViewWindow::drawSourceSpan(juce::Graphics & g,
 
     // If we are over the top of the dome we draw the adjacent angle.
     if (maxElev.getY() > 90.f) {
-        myPath.addCentredArc(fieldCenter_f,
-                             fieldCenter_f,
+        myPath.addCentredArc(fieldCenterF,
+                             fieldCenterF,
                              maxRadius,
                              maxRadius,
                              0.0,
                              juce::MathConstants<float>::pi + degreeToRadian(-hrAzimuth + HRAzimSpan / 2),
                              juce::MathConstants<float>::pi + degreeToRadian(-hrAzimuth - HRAzimSpan / 2));
     } else {
-        myPath.addCentredArc(fieldCenter_f,
-                             fieldCenter_f,
+        myPath.addCentredArc(fieldCenterF,
+                             fieldCenterF,
                              maxRadius,
                              maxRadius,
                              0.0,
                              degreeToRadian(-hrAzimuth + HRAzimSpan / 2),
                              degreeToRadian(-hrAzimuth - HRAzimSpan / 2));
     }
-    myPath.addCentredArc(fieldCenter_f,
-                         fieldCenter_f,
+    myPath.addCentredArc(fieldCenterF,
+                         fieldCenterF,
                          minRadius,
                          minRadius,
                          0.0,

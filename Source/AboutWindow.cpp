@@ -43,7 +43,7 @@ AboutComponent::AboutComponent(AboutWindow & parentWindow, GrisLookAndFeel & loo
     mTitleLabel.setColour(juce::Label::textColourId, lookAndFeel.getFontColour());
     addAndMakeVisible(mTitleLabel);
 
-    juce::String const version{ juce::JUCEApplication::getInstance()->getApplicationVersion() };
+    auto const version{ juce::JUCEApplication::getInstance()->getApplicationVersion() };
     mVersionLabel.setText("Version " + version + "\n\n\n", juce::NotificationType::dontSendNotification);
     mVersionLabel.setJustificationType(juce::Justification::horizontallyCentred);
     mVersionLabel.setBounds(5, 180, 390, 50);
@@ -99,7 +99,7 @@ AboutWindow::AboutWindow(juce::String const & name,
     centreWithSize(getContentComponent()->getWidth(), getContentComponent()->getHeight());
     setUsingNativeTitleBar(true);
     setResizable(false, false);
-    setVisible(true);
+    juce::Component::setVisible(true);
 }
 
 //==============================================================================

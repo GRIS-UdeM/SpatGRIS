@@ -64,7 +64,7 @@ static float bilinearInterpolation(matrix_t const & matrix, float const x, float
 static bool isPracticallySameElevation(radians_t const baseElevation, radians_t const elevation)
 {
     static constexpr radians_t TOLERANCE{ degrees_t{ 5.0f } };
-    return elevation > (baseElevation - TOLERANCE) && elevation < (baseElevation + TOLERANCE);
+    return elevation > baseElevation - TOLERANCE && elevation < baseElevation + TOLERANCE;
 }
 
 //==============================================================================
@@ -187,7 +187,7 @@ static void computeGains(lbap_layer const & layer, SourceData const & source, fl
 
     if (sum > 0.0f) {
         // (pow(3.0, (1.0 - rad))) for energy spreading when moving toward the center.
-        auto const comp = source.vector->length < 1.0f ? std::pow(3.0f, (1.0f - source.vector->length)) : 1.0f;
+        auto const comp = source.vector->length < 1.0f ? std::pow(3.0f, 1.0f - source.vector->length) : 1.0f;
         // normalization (1.0 / sum) and compensation
         auto const norm = 1.0f / sum * comp;
         std::transform(gains, gains + layer.speakers.size(), gains, [norm](float & gain) { return gain * norm; });

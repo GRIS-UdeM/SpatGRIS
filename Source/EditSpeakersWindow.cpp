@@ -326,7 +326,7 @@ bool compareGreaterThan(Sorter const & a, Sorter const & b)
 //==============================================================================
 void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const isForwards)
 {
-    static auto const extractValue = [](SpeakersData::ConstNode const & speaker, int const sortColumn) -> float {
+    static auto const EXTRACT_VALUE = [](SpeakersData::ConstNode const & speaker, int const sortColumn) -> float {
         switch (sortColumn) {
         case Cols::X:
             return speaker.value->position.z;
@@ -342,9 +342,10 @@ void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const 
             return speaker.value->vector.length;
         case Cols::OUTPUT_PATCH:
             return static_cast<float>(speaker.key.get());
+        default:
+            jassertfalse;
+            return 0.0f;
         }
-        jassertfalse;
-        return 0.0f;
     };
 
     auto const & speakers{ mMainContentComponent.getData().speakerSetup.speakers };
@@ -354,7 +355,7 @@ void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const 
                    speakers.cend(),
                    std::back_inserter(valuesToSort),
                    [newSortColumnId](SpeakersData::ConstNode const speaker) {
-                       return std::make_pair(extractValue(speaker, newSortColumnId), speaker.key);
+                       return std::make_pair(EXTRACT_VALUE(speaker, newSortColumnId), speaker.key);
                    });
     if (isForwards) {
         std::sort(valuesToSort.begin(), valuesToSort.end(), std::less());
@@ -384,7 +385,7 @@ void EditSpeakersWindow::sliderValueChanged(juce::Slider * slider)
 //==============================================================================
 void EditSpeakersWindow::buttonClicked(juce::Button * button)
 {
-    static auto const getSelectecRow = [](juce::TableListBox const & tableListBox) -> tl::optional<int> {
+    static auto const GET_SELECTED_ROW = [](juce::TableListBox const & tableListBox) -> tl::optional<int> {
         auto const selectedRow{ tableListBox.getSelectedRow() };
         if (selectedRow < 0) {
             return tl::nullopt;
@@ -395,7 +396,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
     auto const sortColumnId{ mSpeakersTableListBox.getHeader().getSortColumnId() };
     auto const sortedForwards{ mSpeakersTableListBox.getHeader().isSortedForwards() };
     auto const & speakers{ mMainContentComponent.getData().speakerSetup.speakers };
-    auto selectedRow{ getSelectecRow(mSpeakersTableListBox) };
+    auto selectedRow{ GET_SELECTED_ROW(mSpeakersTableListBox) };
 
     mMainContentComponent.handleSetShowTriplets(false);
 
@@ -430,7 +431,8 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
                 mNumRows = speakers.size();
             }
 
-            degrees_t azimuth{ 360.0f / mNumOfSpeakersTextEditor.getText().getIntValue() * i
+            degrees_t azimuth{ 360.0f / narrow<float>(mNumOfSpeakersTextEditor.getText().getIntValue())
+                                   * narrow<float>(i)
                                + mOffsetAngleTextEditor.getText().getFloatValue() };
             azimuth = azimuth.centered();
             degrees_t const zenith{ mZenithTextEditor.getText().getFloatValue() };
@@ -671,9 +673,10 @@ juce::String EditSpeakersWindow::getText(int const columnNumber, int const rowNu
         return juce::String{ static_cast<int>(speaker.isDirectOutOnly) };
     case Cols::DRAG_HANDLE:
         return "=";
+    default:
+        jassertfalse;
+        return "";
     }
-    jassertfalse;
-    return {};
 }
 
 //==============================================================================
@@ -962,15 +965,11 @@ void EditSpeakersWindow::paintRowBackground(juce::Graphics & g,
                                             int const /*height*/,
                                             bool const rowIsSelected)
 {
-    // TODO : fix the real problem and add the assertion back.
     juce::ScopedReadLock const lock{ mMainContentComponent.getLock() };
     auto const & speakers{ mMainContentComponent.getData().speakerSetup.speakers };
-    // jassert(rowNumber < speakers.size());
     if (rowNumber >= speakers.size()) {
         return;
     }
-
-    auto const outputPatch{ getSpeakerOutputPatchForRow(rowIsSelected) };
 
     if (rowIsSelected) {
         // mMainContentComponent.handleSpeakerSelected(outputPatch);
@@ -1056,12 +1055,13 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
         case Cols::DIRECT_TOGGLE:
         case Cols::DRAG_HANDLE:
             return EditionType::reorderDraggable;
+        default:
+            jassertfalse;
+            return {};
         }
-        jassertfalse;
-        return {};
     };
 
-    static auto const getMouseCursor = [](EditionType const editionType) {
+    static auto const GET_MOUSE_CURSOR = [](EditionType const editionType) {
         switch (editionType) {
         case EditionType::valueDraggable:
             return juce::MouseCursor::StandardCursorType::UpDownResizeCursor;
@@ -1085,7 +1085,7 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
 
     auto const editionType{ getEditionType() };
     textLabel->setRowAndColumn(rowNumber, columnId);
-    textLabel->setMouseCursor(getMouseCursor(editionType));
+    textLabel->setMouseCursor(GET_MOUSE_CURSOR(editionType));
     textLabel->setEditable(editionType == EditionType::editable || editionType == EditionType::valueDraggable);
 
     return textLabel;

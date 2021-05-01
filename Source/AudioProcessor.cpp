@@ -45,7 +45,7 @@ static juce::AudioBuffer<float> getSamplesFromWavFile(juce::File const & file)
         std::exit(-1);
     }
 
-    auto const factor{ std::pow(2.0f, 31.0f) };
+    static auto const FACTOR{ std::pow(2.0f, 31.0f) };
 
     juce::WavAudioFormat wavAudioFormat{};
     std::unique_ptr<juce::AudioFormatReader> audioFormatReader{
@@ -59,7 +59,7 @@ static juce::AudioBuffer<float> getSamplesFromWavFile(juce::File const & file)
     juce::AudioBuffer<float> samples{ 2, narrow<int>(audioFormatReader->lengthInSamples) };
     for (int i{}; i < 2; ++i) {
         for (int j{}; j < audioFormatReader->lengthInSamples; ++j) {
-            samples.setSample(i, j, wavData[i][j] / factor);
+            samples.setSample(i, j, static_cast<float>(wavData[i][j]) / FACTOR);
         }
     }
 
@@ -79,7 +79,7 @@ AudioProcessor::AudioProcessor()
     juce::String names0[8] = { "H0e025a.wav", "H0e020a.wav", "H0e065a.wav", "H0e110a.wav",
                                "H0e155a.wav", "H0e160a.wav", "H0e115a.wav", "H0e070a.wav" };
     int reverse0[8] = { 1, 0, 0, 0, 0, 1, 1, 1 };
-    for (int i = 0; i < 8; i++) {
+    for (int i{}; i < 8; ++i) {
         auto const file{ HRTF_FOLDER_0.getChildFile(names0[i]) };
         auto const buffer{ getSamplesFromWavFile(file) };
         auto const leftChannel{ reverse0[i] };
@@ -91,7 +91,7 @@ AudioProcessor::AudioProcessor()
     juce::String names40[6]
         = { "H40e032a.wav", "H40e026a.wav", "H40e084a.wav", "H40e148a.wav", "H40e154a.wav", "H40e090a.wav" };
     int reverse40[6] = { 1, 0, 0, 0, 1, 1 };
-    for (int i = 0; i < 6; i++) {
+    for (int i{}; i < 6; ++i) {
         auto const file{ HRTF_FOLDER_40.getChildFile(names40[i]) };
         auto const buffer{ getSamplesFromWavFile(file) };
         auto const leftChannel{ reverse40[i] };
@@ -100,7 +100,7 @@ AudioProcessor::AudioProcessor()
         std::memcpy(hrtf.rightImpulses[i + 8].data(), buffer.getReadPointer(rightChannel), 128);
     }
     // Azimuth = 80
-    for (int i = 0; i < 2; i++) {
+    for (int i{}; i < 2; ++i) {
         auto const file{ HRTF_FOLDER_80.getChildFile("H80e090a.wav") };
         auto const buffer{ getSamplesFromWavFile(file) };
         auto const leftChannel{ 1 - i };
@@ -242,13 +242,13 @@ void AudioProcessor::processVbap(SourceAudioBuffer const & inputBuffer,
 }
 
 //==============================================================================
-void AudioProcessor::processLbap(SourceAudioBuffer & inputBuffer,
-                                 SpeakerAudioBuffer & outputBuffer,
+void AudioProcessor::processLbap(SourceAudioBuffer & sourcesBuffer,
+                                 SpeakerAudioBuffer & speakersBuffer,
                                  SourcePeaks const & sourcePeaks) noexcept
 {
     auto const & gainInterpolation{ mAudioData.config->spatGainsInterpolation };
     auto const gainFactor{ std::pow(gainInterpolation, 0.1f) * 0.0099f + 0.99f };
-    auto const numSamples{ inputBuffer.getNumSamples() };
+    auto const numSamples{ sourcesBuffer.getNumSamples() };
 
     for (auto const & source : mAudioData.config->sourcesAudioConfig) {
         if (source.value.isMuted || source.value.directOut || sourcePeaks[source.key] < SMALL_GAIN) {
@@ -263,7 +263,7 @@ void AudioProcessor::processLbap(SourceAudioBuffer & inputBuffer,
         auto const & gains{ gainsTicket->get() };
 
         // process attenuation
-        auto * inputData{ inputBuffer[source.key].getWritePointer(0) };
+        auto * inputData{ sourcesBuffer[source.key].getWritePointer(0) };
         mAudioData.config->lbapAttenuationConfig.process(
             inputData,
             numSamples,
@@ -274,7 +274,7 @@ void AudioProcessor::processLbap(SourceAudioBuffer & inputBuffer,
         auto & lastGains{ mAudioData.state.sourcesAudioState[source.key].lastSpatGains };
 
         for (auto const & speaker : mAudioData.config->speakersAudioConfig) {
-            auto * outputSamples{ outputBuffer[speaker.key].getWritePointer(0) };
+            auto * outputSamples{ speakersBuffer[speaker.key].getWritePointer(0) };
             auto const & targetGain{ gains[speaker.key] };
             auto & currentGain{ lastGains[speaker.key] };
             if (gainInterpolation == 0.0f) {
