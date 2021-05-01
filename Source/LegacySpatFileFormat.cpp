@@ -130,21 +130,6 @@ tl::optional<SpatGrisProjectData> readLegacyProjectFile(juce::XmlElement const &
     auto const gainInterpolation{ LEGAL_GAIN_INTERPOLATION_RANGE.clipValue(
         static_cast<float>(xml.getDoubleAttribute("Master_Interpolation", 0.1))) };
 
-    // ViewSettings are now part of the AppData instead of the ProjectData
-    // auto const showSpeakerNumbers{ xml.getBoolAttribute("Show_Numbers", false) };
-    // auto const showSpeakers{ xml.getBoolAttribute("Show_Speakers", true) };
-    // auto const showTriplets{ xml.getBoolAttribute("Show_Triplets", false) };
-    // auto const showSourceLevels{ xml.getBoolAttribute("Use_Alpha", false) };
-    // auto const showSpeakerLevels{ xml.getBoolAttribute("Show_Speaker_Level", false) };
-    // auto const showSphereOrCube{ xml.getBoolAttribute("Show_Sphere", false) };
-
-    radians_t const camAzimuth{
-        (degrees_t{ static_cast<float>(xml.getDoubleAttribute("CamAngleX", 0.0f)) } + degrees_t{ 180.0f }).centered()
-    };
-    radians_t const camZenith{ degrees_t{ static_cast<float>(xml.getDoubleAttribute("CamAngleY", 0.0f)) }.centered() };
-    auto const camDistance{ static_cast<float>(xml.getDoubleAttribute("CamDistance", 22.0f) / 10.0f) };
-    auto const camPosition{ PolarVector{ camAzimuth, camZenith, camDistance }.toCartesian() };
-
     SpatGrisProjectData result{};
 
     forEachXmlChildElement(xml, source)

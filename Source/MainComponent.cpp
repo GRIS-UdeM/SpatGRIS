@@ -512,39 +512,22 @@ void MainContentComponent::handleOpenProject()
 
     juce::FileChooser fc("Choose a file to open...", dir.getFullPathName() + "/" + filename, "*.xml", true);
 
-    auto loaded{ false };
-    if (fc.browseForFileToOpen()) {
-        auto const chosen{ fc.getResults().getReference(0).getFullPathName() };
-        juce::AlertWindow alert("Open Project !",
-                                "You want to load : " + chosen + "\nEverything not saved will be lost !",
-                                juce::AlertWindow::WarningIcon);
-        alert.setLookAndFeel(&mLookAndFeel);
-        alert.addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
-        alert.addButton("Ok", 1, juce::KeyPress(juce::KeyPress::returnKey));
-        if (alert.runModalLoop() != 0) {
-            loadProject(chosen, LoadProjectOption::removeInvalidDirectOuts);
-            loaded = true;
-        }
+    if (!fc.browseForFileToOpen()) {
+        return;
     }
 
-    if (loaded) { // Check for direct out OutputPatch mismatch.
-        for (auto const source : mData.project.sources) {
-            auto const & directOut{ source.value->directOut };
-            if (directOut) {
-                if (!mData.speakerSetup.speakers.contains(*directOut)) {
-                    juce::AlertWindow alert(
-                        "Direct Out Mismatch!",
-                        "Some of the direct out channels of this project don't exist in the current speaker setup.\n",
-                        juce::AlertWindow::WarningIcon);
-                    alert.setLookAndFeel(&mLookAndFeel);
-                    alert.addButton("Ok", 1, juce::KeyPress(juce::KeyPress::returnKey));
-                    alert.runModalLoop();
-                    break;
-                    // TODO : reload last project?
-                }
-            }
-        }
+    auto const chosen{ fc.getResults().getReference(0).getFullPathName() };
+    juce::AlertWindow alert("Open Project !",
+                            "You want to load : " + chosen + "\nEverything not saved will be lost !",
+                            juce::AlertWindow::WarningIcon);
+    alert.setLookAndFeel(&mLookAndFeel);
+    alert.addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
+    alert.addButton("Ok", 1, juce::KeyPress(juce::KeyPress::returnKey));
+    if (alert.runModalLoop() != 1) {
+        return;
     }
+
+    loadProject(chosen, LoadProjectOption::removeInvalidDirectOuts);
 }
 
 //==============================================================================
@@ -1233,38 +1216,51 @@ bool MainContentComponent::exitApp()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
-    // TODO : maybe the audio settings should be part of the project?
 
-    auto exitV{ 2 };
+    static constexpr auto EXIT_APP = true;
+    static constexpr auto DONT_EXIT_APP = false;
+
     juce::XmlDocument lastProjectDocument{ mData.appData.lastProject };
     auto lastProjectElement{ lastProjectDocument.getDocumentElement() };
     std::unique_ptr<juce::XmlElement> currentProjectElement{ mData.appData.toXml() };
 
-    if (isProjectModified()) {
-        juce::AlertWindow alert("Exit SpatGRIS !",
-                                "Do you want to save the current project ?",
-                                juce::AlertWindow::InfoIcon);
-        alert.setLookAndFeel(&mLookAndFeel);
-        alert.addButton("Save", 1, juce::KeyPress(juce::KeyPress::returnKey));
-        alert.addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
-        alert.addButton("Exit", 2, juce::KeyPress(juce::KeyPress::deleteKey));
-        exitV = alert.runModalLoop();
-        if (exitV == 1) {
-            alert.setVisible(false);
-            juce::ModalComponentManager::getInstance()->cancelAllModalComponents();
-
-            juce::FileChooser fc("Choose a file to save...", mData.appData.lastProject, "*.xml", true);
-
-            if (fc.browseForFileToSave(true)) {
-                auto const chosen{ fc.getResults().getReference(0).getFullPathName() };
-                saveProject(chosen);
-            } else {
-                exitV = 0;
-            }
-        }
+    if (!isProjectModified()) {
+        return EXIT_APP;
     }
 
-    return exitV != 0;
+    static constexpr auto BUTTON_SAVE = 1;
+    static constexpr auto BUTTON_CANCEL = 0;
+    static constexpr auto BUTTON_EXIT = 2;
+    juce::AlertWindow alert("Exit SpatGRIS !",
+                            "Do you want to save the current project ?",
+                            juce::AlertWindow::InfoIcon);
+    alert.setLookAndFeel(&mLookAndFeel);
+    alert.addButton("Save", 1, juce::KeyPress(juce::KeyPress::returnKey));
+    alert.addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
+    alert.addButton("Exit", 2, juce::KeyPress(juce::KeyPress::deleteKey));
+    auto const action = alert.runModalLoop();
+
+    if (action == BUTTON_CANCEL) {
+        return DONT_EXIT_APP;
+    }
+
+    if (action == BUTTON_EXIT) {
+        return EXIT_APP;
+    }
+
+    jassert(action == BUTTON_SAVE);
+    alert.setVisible(false);
+    juce::ModalComponentManager::getInstance()->cancelAllModalComponents();
+
+    juce::FileChooser fc("Choose a file to save...", mData.appData.lastProject, "*.xml", true);
+    if (!fc.browseForFileToSave(true)) {
+        return DONT_EXIT_APP;
+    }
+
+    auto const chosen{ fc.getResults().getReference(0).getFullPathName() };
+    saveProject(chosen);
+
+    return EXIT_APP;
 }
 
 //==============================================================================
@@ -1670,8 +1666,9 @@ void MainContentComponent::handleSourceDirectOutChanged(source_index_t const sou
 void MainContentComponent::handleSpatModeChanged(SpatMode const spatMode)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
     jassert(narrow<int>(spatMode) >= 0 && narrow<int>(spatMode) <= narrow<int>(SpatMode::stereo));
-    juce::ScopedReadLock const readLock{ mLock };
 
     mSpatModeCombo->setSelectedId(static_cast<int>(spatMode) + 1, juce::dontSendNotification);
 
@@ -1701,6 +1698,8 @@ void MainContentComponent::handleSpatModeChanged(SpatMode const spatMode)
         jassertfalse;
         return tl::nullopt;
     };
+
+    mData.appData.viewSettings.showSpeakerTriplets = false;
 
     auto const forcedSpeakerSetup{ getForcedSpeakerSetup() };
     if (forcedSpeakerSetup) {
@@ -2035,7 +2034,6 @@ void MainContentComponent::reloadXmlFileSpeaker()
 void MainContentComponent::loadSpeakerSetup(juce::File const & file, tl::optional<SpatMode> const forceSpatMode)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-    jassert(file.existsAsFile());
 
     if (!file.existsAsFile()) {
         juce::AlertWindow::showMessageBox(juce::AlertWindow::WarningIcon,

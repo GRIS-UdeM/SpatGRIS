@@ -1,25 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<SPAT_GRIS_PROJECT_DATA OSC_PORT="18032" MASTER_GAIN="-12.94999980926514" GAIN_INTERPOLATION="0.0">
-  <SOURCES>
-    <SOURCE_1 STATE="normal" COLOR="4294901760"/>
-    <SOURCE_2 STATE="normal" COLOR="4294907904"/>
-    <SOURCE_3 STATE="normal" COLOR="4278389247"/>
-    <SOURCE_4 STATE="normal" COLOR="4278780927"/>
-    <SOURCE_5 STATE="normal" COLOR="4283562245"/>
-    <SOURCE_6 STATE="normal" COLOR="4283562245"/>
-    <SOURCE_7 STATE="normal" COLOR="4291084291"/>
-    <SOURCE_8 STATE="normal" COLOR="4291084291"/>
-    <SOURCE_9 STATE="normal" COLOR="4278302147"/>
-    <SOURCE_10 STATE="normal" COLOR="4278302147"/>
-    <SOURCE_11 STATE="normal" COLOR="4286513283"/>
-    <SOURCE_12 STATE="normal" COLOR="4286513283"/>
-    <SOURCE_13 STATE="normal" COLOR="4289752320"/>
-    <SOURCE_14 STATE="normal" COLOR="4289752320"/>
-    <SOURCE_15 STATE="normal" COLOR="4289921336"/>
-    <SOURCE_16 STATE="normal" COLOR="4289921336"/>
-    <SOURCE_17 STATE="normal" COLOR="4285333761"/>
-    <SOURCE_18 STATE="normal" COLOR="4285333761"/>
-  </SOURCES>
-  <LBAP_SETTINGS FREQ="1000.0" ATTENUATION="0.0"/>
-</SPAT_GRIS_PROJECT_DATA>
+<ServerGRIS_Preset OSC_Input_Port="18032" Number_Of_Inputs="18" Master_Gain_Out="0.0"
+                   Master_Interpolation="0.1" Show_Numbers="0" Show_Speakers="1"
+                   Show_Triplets="0" Use_Alpha="0" Show_Speaker_Level="0"
+                   Show_Sphere="0" CamAngleX="89.66667938232422" CamAngleY="20.66667175292969"
+                   CamDistance="22.00703048706055">
+  <Input Index="1" R="1.0" G="0.0" B="0.0" DirectOut="0"/>
+  <Input Index="2" R="1.0" G="0.09411764889955521" B="0.0" DirectOut="0"/>
+  <Input Index="3" R="0.0117647061124444" G="0.03529411926865578" B="1.0"
+         DirectOut="0"/>
+  <Input Index="4" R="0.03529411926865578" G="0.0117647061124444" B="1.0"
+         DirectOut="0"/>
+  <Input Index="5" R="0.3176470696926117" G="0.9764705896377563" B="0.01960784383118153"
+         DirectOut="0"/>
+  <Input Index="6" R="0.3176470696926117" G="0.9764705896377563" B="0.01960784383118153"
+         DirectOut="0"/>
+  <Input Index="7" R="0.7686274647712708" G="0.7529411911964417" B="0.0117647061124444"
+         DirectOut="0"/>
+  <Input Index="8" R="0.7686274647712708" G="0.7529411911964417" B="0.0117647061124444"
+         DirectOut="0"/>
+  <Input Index="9" R="0.003921568859368563" G="0.7098039388656616" B="0.7647058963775635"
+         DirectOut="0"/>
+  <Input Index="10" R="0.003921568859368563" G="0.7098039388656616" B="0.7647058963775635"
+         DirectOut="0"/>
+  <Input Index="11" R="0.4980392158031464" G="0.0" B="0.5137255191802979"
+         DirectOut="0"/>
+  <Input Index="12" R="0.4980392158031464" G="0.0" B="0.5137255191802979"
+         DirectOut="0"/>
+  <Input Index="13" R="0.6901960968971252" G="0.4274509847164154" B="0.0"
+         DirectOut="0"/>
+  <Input Index="14" R="0.6901960968971252" G="0.4274509847164154" B="0.0"
+         DirectOut="0"/>
+  <Input Index="15" R="0.7019608020782471" G="0.003921568859368563" B="0.2196078449487686"
+         DirectOut="0"/>
+  <Input Index="16" R="0.7019608020782471" G="0.003921568859368563" B="0.2196078449487686"
+         DirectOut="0"/>
+  <Input Index="17" R="0.4274509847164154" G="0.003921568859368563" B="0.003921568859368563"
+         DirectOut="17"/>
+  <Input Index="18" R="0.4274509847164154" G="0.003921568859368563" B="0.003921568859368563"
+         DirectOut="18"/>
+</ServerGRIS_Preset>
