@@ -19,13 +19,7 @@
 
 #pragma once
 
-#include "lib/tl/optional.hpp"
-
-#include "macros.h"
-
-DISABLE_WARNINGS
 #include <JuceHeader.h>
-ENABLE_WARNINGS
 
 #include "MainComponent.h"
 

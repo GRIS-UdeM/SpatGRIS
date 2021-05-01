@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS.
 
- Developers: Samuel B�land, Olivier B�langer, Nicolas Masson
+ Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
 
  SpatGRIS is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -19,21 +19,13 @@
 
 #include "constants.hpp"
 
-char const * const DEVICE_NAME = "GRIS";
-char const * const CLIENT_NAME = "SpatGRIS3";
-char const * const SYS_CLIENT_NAME = "system";
-char const * const CLIENT_NAME_IGNORE = "JAR::57";
-
 #ifdef __linux__
-char const * const SYS_DRIVER_NAME = "alsa";
 auto const CURRENT_WORKING_DIR{ juce::File::getCurrentWorkingDirectory() };
 auto const RESOURCES_DIR{ CURRENT_WORKING_DIR.getChildFile("Resources") };
 #elif defined WIN32
-char const * const SYS_DRIVER_NAME = "coreaudio";
 auto const CURRENT_WORKING_DIR{ juce::File::getCurrentWorkingDirectory() };
 auto const RESOURCES_DIR{ CURRENT_WORKING_DIR.getChildFile("Resources") };
 #elif defined __APPLE__
-const char * const SYS_DRIVER_NAME = "coreaudio";
 juce::File CURRENT_WORKING_DIR = juce::File::getSpecialLocation(juce::File::currentApplicationFile);
 juce::File RESOURCES_DIR{ CURRENT_WORKING_DIR.getChildFile("Contents").getChildFile("Resources") };
 #else
@@ -41,13 +33,13 @@ static_assert(false, "What are you building this on?");
 #endif
 
 juce::File const SPLASH_SCREEN_FILE{ RESOURCES_DIR.getChildFile("splash_screen.png") };
-juce::File const DEFAULT_PRESET_DIRECTORY{ RESOURCES_DIR.getChildFile("default_preset/") };
-juce::File const DEFAULT_PROJECT_FILE{ DEFAULT_PRESET_DIRECTORY.getChildFile("default_preset.xml") };
-juce::File const DEFAULT_SPEAKER_SETUP_FILE{ DEFAULT_PRESET_DIRECTORY.getChildFile("default_speaker_setup.xml") };
-juce::File const BINAURAL_SPEAKER_SETUP_FILE{ DEFAULT_PRESET_DIRECTORY.getChildFile("BINAURAL_SPEAKER_SETUP.xml") };
-juce::File const STEREO_SPEAKER_SETUP_FILE{ DEFAULT_PRESET_DIRECTORY.getChildFile("STEREO_SPEAKER_SETUP.xml") };
-juce::File const SERVER_GRIS_MANUAL_FILE{ RESOURCES_DIR.getChildFile("SpatGRIS2_2.0_Manual.pdf") };
-juce::File const SERVER_GRIS_ICON_SMALL_FILE{ RESOURCES_DIR.getChildFile("ServerGRIS_icon_small.png") };
+juce::File const DEFAULT_PROJECT_DIRECTORY{ RESOURCES_DIR.getChildFile("default_preset/") };
+juce::File const DEFAULT_PROJECT_FILE{ DEFAULT_PROJECT_DIRECTORY.getChildFile("default_preset.xml") };
+juce::File const DEFAULT_SPEAKER_SETUP_FILE{ DEFAULT_PROJECT_DIRECTORY.getChildFile("default_speaker_setup.xml") };
+juce::File const BINAURAL_SPEAKER_SETUP_FILE{ DEFAULT_PROJECT_DIRECTORY.getChildFile("BINAURAL_SPEAKER_SETUP.xml") };
+juce::File const STEREO_SPEAKER_SETUP_FILE{ DEFAULT_PROJECT_DIRECTORY.getChildFile("STEREO_SPEAKER_SETUP.xml") };
+juce::File const MANUAL_FILE{ RESOURCES_DIR.getChildFile("SpatGRIS2_2.0_Manual.pdf") };
+juce::File const ICON_SMALL_FILE{ RESOURCES_DIR.getChildFile("ServerGRIS_icon_small.png") };
 juce::File const HRTF_FOLDER_0{ RESOURCES_DIR.getChildFile("hrtf_compact/elev" + juce::String(0) + "/") };
 juce::File const HRTF_FOLDER_40{ RESOURCES_DIR.getChildFile("hrtf_compact/elev" + juce::String(40) + "/") };
 juce::File const HRTF_FOLDER_80{ RESOURCES_DIR.getChildFile("hrtf_compact/elev" + juce::String(80) + "/") };

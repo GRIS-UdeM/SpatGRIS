@@ -19,15 +19,11 @@
 
 #pragma once
 
-#include "macros.h"
-
-DISABLE_WARNINGS
-
 #include <JuceHeader.h>
+
 #if defined(WIN32)
     #include <GL/freeglut.h>
 #endif
-ENABLE_WARNINGS
 
 // For some unknown reason, glutSolidSphere() crashes on Windows (and also maybe on Linux). This might be due to a
 // conflict between glm, freeglut and juce's OpenGL implementations.

@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS.
 
- Developers: Samuel B�land, Olivier B�langer, Nicolas Masson
+ Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
 
  SpatGRIS is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -38,7 +38,7 @@ AudioManager::AudioManager(juce::String const & deviceType,
     auto const success{ tryInitAudioDevice(deviceType, inputDevice, outputDevice, sampleRate, bufferSize) };
 
     if (!success) {
-        mAudioDeviceManager.initialiseWithDefaultDevices(MAX_INPUTS, MAX_OUTPUTS);
+        mAudioDeviceManager.initialiseWithDefaultDevices(MAX_NUM_SOURCES, MAX_NUM_SPEAKERS);
     }
 
     // Register physical ports
@@ -144,9 +144,9 @@ bool AudioManager::tryInitAudioDevice(juce::String const & deviceType,
     deviceTypeObject->scanForDevices();
 
     juce::BigInteger neededInputChannels{};
-    neededInputChannels.setRange(0, MAX_INPUTS, true);
+    neededInputChannels.setRange(0, MAX_NUM_SOURCES, true);
     juce::BigInteger neededOutputChannels{};
-    neededOutputChannels.setRange(0, MAX_OUTPUTS, true);
+    neededOutputChannels.setRange(0, MAX_NUM_SPEAKERS, true);
     juce::AudioDeviceManager::AudioDeviceSetup const setup{ outputDevice,         inputDevice,
                                                             requestedSampleRate,  requestedBufferSize,
                                                             neededInputChannels,  false,

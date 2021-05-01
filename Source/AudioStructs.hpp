@@ -1,3 +1,22 @@
+/*
+ This file is part of SpatGRIS.
+
+ Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
+
+ SpatGRIS is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ SpatGRIS is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #pragma once
 
 #include "lib/tl/optional.hpp"
@@ -67,7 +86,7 @@ struct LbapAttenuationConfig {
 };
 
 //==============================================================================
-using SpeakersSpatGains = StrongArray<output_patch_t, float, MAX_OUTPUTS>;
+using SpeakersSpatGains = StrongArray<output_patch_t, float, MAX_NUM_SPEAKERS>;
 
 //==============================================================================
 struct SourceAudioState {
@@ -93,8 +112,8 @@ struct AudioConfig {
 
     juce::Array<std::pair<source_index_t, output_patch_t>> directOutPairs{};
 
-    StaticMap<source_index_t, SourceAudioConfig, MAX_INPUTS> sourcesAudioConfig{};
-    StaticMap<output_patch_t, SpeakerAudioConfig, MAX_OUTPUTS> speakersAudioConfig{};
+    StaticMap<source_index_t, SourceAudioConfig, MAX_NUM_SOURCES> sourcesAudioConfig{};
+    StaticMap<output_patch_t, SpeakerAudioConfig, MAX_NUM_SPEAKERS> speakersAudioConfig{};
 
     tl::optional<float> pinkNoiseGain{};
 
@@ -112,16 +131,16 @@ struct HrtfData {
 
 //==============================================================================
 struct AudioState {
-    StrongArray<source_index_t, SourceAudioState, MAX_INPUTS> sourcesAudioState{};
-    StrongArray<output_patch_t, SpeakerAudioState, MAX_OUTPUTS> speakersAudioState{};
-    StrongArray<source_index_t, AtomicExchanger<SpeakersSpatGains>::Ticket *, MAX_INPUTS> mostRecentSpatGains{};
+    StrongArray<source_index_t, SourceAudioState, MAX_NUM_SOURCES> sourcesAudioState{};
+    StrongArray<output_patch_t, SpeakerAudioState, MAX_NUM_SPEAKERS> speakersAudioState{};
+    StrongArray<source_index_t, AtomicExchanger<SpeakersSpatGains>::Ticket *, MAX_NUM_SOURCES> mostRecentSpatGains{};
     // HRTF-specific
     HrtfData hrtf{};
 };
 
 //==============================================================================
-using SourcePeaks = StrongArray<source_index_t, float, MAX_INPUTS>;
-using SpeakerPeaks = StrongArray<output_patch_t, float, MAX_OUTPUTS>;
+using SourcePeaks = StrongArray<source_index_t, float, MAX_NUM_SOURCES>;
+using SpeakerPeaks = StrongArray<output_patch_t, float, MAX_NUM_SPEAKERS>;
 
 //==============================================================================
 struct AudioData {
@@ -132,8 +151,8 @@ struct AudioData {
     AudioState state{};
 
     // Live message thread -> audio thread
-    StrongArray<source_index_t, AtomicExchanger<SpeakersSpatGains>, MAX_INPUTS> spatGainMatrix{};
-    StrongArray<source_index_t, std::atomic<float>, MAX_INPUTS> lbapSourceDistances{}; // Lbap-specific
+    StrongArray<source_index_t, AtomicExchanger<SpeakersSpatGains>, MAX_NUM_SOURCES> spatGainMatrix{};
+    StrongArray<source_index_t, std::atomic<float>, MAX_NUM_SOURCES> lbapSourceDistances{}; // Lbap-specific
 
     // Live audio thread -> message thread
     AtomicExchanger<SourcePeaks> sourcePeaks{};

@@ -19,14 +19,11 @@
 
 #pragma once
 
+#include <JuceHeader.h>
+
 #include "CartesianVector.h"
 #include "LogicStrucs.hpp"
-#include "PolarVector.h"
-#include "macros.h"
-struct SpeakerData;
-enum class SpatMode;
-struct SourceData;
-DISABLE_WARNINGS
+
 #if defined(__APPLE__)
     #include <GLUT/glut.h>
     #include <OpenGL/gl.h>
@@ -34,11 +31,13 @@ DISABLE_WARNINGS
     #include <OpenGl/glu.h>
 #endif
 #include "../glm/glm.hpp"
-#include <JuceHeader.h>
-ENABLE_WARNINGS
 
 #include "Ray.h"
 #include "constants.hpp"
+
+struct SpeakerData;
+enum class SpatMode;
+struct SourceData;
 
 #define ASSERT_OPEN_GL_THREAD jassert(juce::Thread::getCurrentThread()->getThreadName() == "Pool")
 

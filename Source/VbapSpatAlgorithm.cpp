@@ -1,5 +1,25 @@
+/*
+ This file is part of SpatGRIS.
+
+ Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
+
+ SpatGRIS is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ SpatGRIS is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "VbapSpatAlgorithm.hpp"
 
+//==============================================================================
 VbapType getVbapType(SpeakersData const & speakers)
 {
     auto const firstSpeaker{ *speakers.begin() };
@@ -19,16 +39,13 @@ VbapType getVbapType(SpeakersData const & speakers)
 //==============================================================================
 VbapSpatAlgorithm::VbapSpatAlgorithm(SpeakersData const & speakers)
 {
-    std::array<LoudSpeaker, MAX_OUTPUTS> loudSpeakers{};
-    std::array<output_patch_t, MAX_OUTPUTS> outputPatches{};
+    std::array<LoudSpeaker, MAX_NUM_SPEAKERS> loudSpeakers{};
+    std::array<output_patch_t, MAX_NUM_SPEAKERS> outputPatches{};
     size_t index{};
-    output_patch_t maxOutputPatch{};
     for (auto const & speaker : speakers) {
         if (speaker.value->isDirectOutOnly) {
             continue;
         }
-
-        maxOutputPatch = std::max(maxOutputPatch, speaker.key);
 
         loudSpeakers[index].coords = speaker.value->position;
         loudSpeakers[index].angles = speaker.value->vector;
@@ -38,21 +55,21 @@ VbapSpatAlgorithm::VbapSpatAlgorithm(SpeakersData const & speakers)
     auto const dimensions{ getVbapType(speakers) == VbapType::twoD ? 2 : 3 };
     auto const numSpeakers{ narrow<int>(index) };
 
-    mData.reset(init_vbap_from_speakers(loudSpeakers, numSpeakers, dimensions, outputPatches, maxOutputPatch));
+    mData.reset(vbapInit(loudSpeakers, numSpeakers, dimensions, outputPatches));
 }
 
 //==============================================================================
 void VbapSpatAlgorithm::computeSpeakerGains(SourceData const & source, SpeakersSpatGains & gains) const noexcept
 {
     jassert(source.vector);
-    vbap2(source, gains, *mData);
+    vbapCompute(source, gains, *mData);
 }
 
 //==============================================================================
 juce::Array<Triplet> VbapSpatAlgorithm::getTriplets() const noexcept
 {
     jassert(hasTriplets());
-    return vbap_get_triplets(*mData);
+    return vbapExtractTriplets(*mData);
 }
 
 //==============================================================================

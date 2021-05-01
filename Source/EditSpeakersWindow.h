@@ -22,10 +22,7 @@
 #include "LogicStrucs.hpp"
 #include "lib/tl/optional.hpp"
 
-#include "macros.h"
-DISABLE_WARNINGS
 #include <JuceHeader.h>
-ENABLE_WARNINGS
 
 #include "AudioProcessor.h"
 #include "Box.h"

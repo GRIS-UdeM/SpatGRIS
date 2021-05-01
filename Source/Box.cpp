@@ -20,7 +20,6 @@
 #include "Box.h"
 
 #include "GrisLookAndFeel.h"
-#include "VuMeterComponent.h"
 
 //==============================================================================
 Box::Box(GrisLookAndFeel & feel,

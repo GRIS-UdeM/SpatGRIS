@@ -19,9 +19,6 @@
 
 #pragma once
 
-#include "macros.h"
-
-DISABLE_WARNINGS
 #if defined(__linux__)
     #include <GL/gl.h>
     #include <GL/glu.h>
@@ -35,7 +32,6 @@ DISABLE_WARNINGS
 #include "../glm/glm.hpp"
 
 #include <JuceHeader.h>
-ENABLE_WARNINGS
 
 //==============================================================================
 class Ray

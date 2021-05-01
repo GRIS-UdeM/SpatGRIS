@@ -28,7 +28,7 @@ AboutComponent::AboutComponent(AboutWindow & parentWindow, GrisLookAndFeel & loo
 {
     setSize(400, 500);
 
-    auto const & icon{ SERVER_GRIS_ICON_SMALL_FILE };
+    auto const & icon{ ICON_SMALL_FILE };
     if (icon.exists()) {
         auto const img{ juce::ImageFileFormat::loadFrom(icon) };
         mLogoImage.setImage(img);

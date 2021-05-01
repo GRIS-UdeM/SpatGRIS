@@ -1,3 +1,28 @@
+/*
+ * Functions for 3D VBAP processing based on work by Ville Pulkki.
+ * (c) Ville Pulkki - 2.2.1999 Helsinki University of Technology.
+ * Updated by belangeo, 2017.
+ * Updated by Samuel Béland, 2021.
+ */
+
+/*
+ This file is part of SpatGRIS.
+
+ Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
+
+ SpatGRIS is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ SpatGRIS is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #pragma once
 
@@ -41,26 +66,24 @@ struct LoudSpeaker {
 
 /* VBAP structure of n loudspeaker panning */
 struct VbapData {
-    std::array<output_patch_t, MAX_OUTPUTS> outputPatches; /* Physical outputs (starts at 1). */
-    // std::array<float, MAX_OUTPUTS> gains;                  /* Loudspeaker gains. */
-    std::array<float, MAX_OUTPUTS> gainsSmoothing; /* Loudspeaker gains smoothing. */
-    int dimension;                                 /* Dimensions, 2 or 3. */
-    juce::Array<SpeakerSet> speakerSets;           /* Loudspeaker triplet structure. */
-    int numOutputPatches;                          /* Number of output patches. */
-    int numSpeakers;                               /* Number of loudspeakers. */
-    PolarVector angularDirection;                  /* Angular direction. */
-    CartesianVector cartesianDirection;            /* Cartesian direction. */
-    CartesianVector spreadingVector;               /* Spreading vector. */
+    std::array<output_patch_t, MAX_NUM_SPEAKERS> outputPatches; /* Physical outputs (starts at 1). */
+    std::array<float, MAX_NUM_SPEAKERS> gainsSmoothing;         /* Loudspeaker gains smoothing. */
+    int dimension;                                              /* Dimensions, 2 or 3. */
+    juce::Array<SpeakerSet> speakerSets;                        /* Loudspeaker triplet structure. */
+    int numOutputPatches;                                       /* Number of output patches. */
+    int numSpeakers;                                            /* Number of loudspeakers. */
+    PolarVector angularDirection;                               /* Angular direction. */
+    CartesianVector cartesianDirection;                         /* Cartesian direction. */
+    CartesianVector spreadingVector;                            /* Spreading vector. */
 };
 
-VbapData * init_vbap_from_speakers(std::array<LoudSpeaker, MAX_OUTPUTS> & speakers,
-                                   int count,
-                                   int dimensions,
-                                   std::array<output_patch_t, MAX_OUTPUTS> const & outputPatches,
-                                   output_patch_t maxOutputPatch);
+VbapData * vbapInit(std::array<LoudSpeaker, MAX_NUM_SPEAKERS> & speakers,
+                    int count,
+                    int dimensions,
+                    std::array<output_patch_t, MAX_NUM_SPEAKERS> const & outputPatches);
 
 /* Calculates gain factors using loudspeaker setup and angle direction.
  */
-void vbap2(SourceData const & source, SpeakersSpatGains & gains, VbapData & data) noexcept;
+void vbapCompute(SourceData const & source, SpeakersSpatGains & gains, VbapData & data) noexcept;
 
-juce::Array<Triplet> vbap_get_triplets(VbapData const & data);
+juce::Array<Triplet> vbapExtractTriplets(VbapData const & data);

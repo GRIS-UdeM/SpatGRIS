@@ -1,27 +1,34 @@
-/** \file lbap.h
- *  \brief Layer-Based Amplitude Panning framework.
+/**
+ *  Layer-Based Amplitude Panning framework.
  *
  * LBAP (Layer-Based Amplitude Panning) is a framework written in C
- * to do 2-D or 3-D sound spatialisation. It uses a pre-computed
- * gain matrices to perform the spatialisation of the sources very
+ * to do 2-D or 3-D sound spatialization. It uses a pre-computed
+ * gain matrices to perform the spatialization of the sources very
  * efficiently.
+ *
+ * author : Olivier Belanger, 2018
+ *
+ * Modified by Samuel Béland, 2021
  */
 
-/** \mainpage Welcome to LBAP documentation
- *
- * LBAP (Layer-Based Amplitude Panning) is a framework written in C
- * to do 2-D or 3-D sound spatialisation. It uses a pre-computed
- * gain matrices to perform the spatialisation of the sources very
- * efficiently.
- *
- * \section reference API Reference
- *
- * Complete API Reference: lbap.h
- *
- * ---
- *
- * \author Olivier Belanger, 2018
- */
+/*
+ This file is part of SpatGRIS.
+
+ Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
+
+ SpatGRIS is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ SpatGRIS is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #pragma once
 
@@ -45,7 +52,7 @@ struct SpeakerData;
  * field will process the speakers. The `spkid` is an integer (starting
  * at 0) used by the field to properly order the output signals.
  */
-struct lbap_speaker {
+struct LbapSpeaker {
     PolarVector vector{};
     output_patch_t outputPatch{}; /**< Physical output id. */
 };
@@ -63,18 +70,18 @@ struct lbap_speaker {
  * and `z`), the framework will automatically fill these values according
  * to the angular coordinates.
  */
-struct lbap_pos {
+struct LbapPosition {
     PolarVector vector{};
     CartesianVector position{};
     float azimuthSpan{};
     float zenithSpan{};
 
-    [[nodiscard]] constexpr bool operator==(lbap_pos const & other) const noexcept
+    [[nodiscard]] constexpr bool operator==(LbapPosition const & other) const noexcept
     {
         jassert((vector == other.vector) == (position == other.position));
         return vector == other.vector && azimuthSpan == other.azimuthSpan && zenithSpan == other.zenithSpan;
     }
-    [[nodiscard]] constexpr bool operator!=(lbap_pos const & other) const noexcept { return !(*this == other); }
+    [[nodiscard]] constexpr bool operator!=(LbapPosition const & other) const noexcept { return !(*this == other); }
 };
 
 /* =================================================================================
@@ -88,10 +95,10 @@ struct lbap_layer {
     radians_t elevation;                   /**< Elevation of the layer in the range 0 .. pi/2. */
     float gainExponent;                    /**< Speaker gain exponent for 4+ speakers. */
     std::vector<matrix_t> amplitudeMatrix; /**< Arrays of amplitude values [spk][x][y]. */
-    std::vector<lbap_pos> speakers;        /**< Array of speakers. */
+    std::vector<LbapPosition> speakers;    /**< Array of speakers. */
 };
 
-struct lbap_field {
+struct LbapField {
     std::vector<output_patch_t> outputOrder; /**< Physical output order. */
     std::vector<lbap_layer> layers;          /**< Array of layers. */
     [[nodiscard]] size_t getNumSpeakers() const
@@ -113,7 +120,7 @@ struct lbap_field {
  * speakers given as `speakers` argument. The argument `num` is the number of
  * speakers passed to the function.
  */
-lbap_field lbap_field_setup(SpeakersData const & speakers);
+LbapField lbapInit(SpeakersData const & speakers);
 
 /** \brief Calculates the gain of the outputs for a source's position.
  *
@@ -123,4 +130,4 @@ lbap_field lbap_field_setup(SpeakersData const & speakers);
  * memory. This array can be passed to the audio processing function
  * to control the gain of the signal outputs.
  */
-void lbap_field_compute(SourceData const & source, SpeakersSpatGains & gains, lbap_field const & field);
+void lbap(SourceData const & source, SpeakersSpatGains & gains, LbapField const & field);

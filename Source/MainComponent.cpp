@@ -746,8 +746,8 @@ void MainContentComponent::handleOpenManual()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    if (SERVER_GRIS_MANUAL_FILE.exists()) {
-        juce::Process::openDocument("file:" + SERVER_GRIS_MANUAL_FILE.getFullPathName(), juce::String());
+    if (MANUAL_FILE.exists()) {
+        juce::Process::openDocument("file:" + MANUAL_FILE.getFullPathName(), juce::String());
     }
 }
 
@@ -1356,10 +1356,10 @@ void MainContentComponent::refreshSourceVuMeterComponents()
                                                                   *this,
                                                                   mSmallLookAndFeel) };
         mInputsUiBox->addAndMakeVisible(newVuMeter.get());
-        juce::Rectangle<int> const bounds{ x, 20, VU_METER_WIDTH_IN_PIXELS, 200 };
+        juce::Rectangle<int> const bounds{ x, 20, VU_METER_WIDTH, 200 };
         newVuMeter->setBounds(bounds);
         mSourceVuMeterComponents.add(source.key, std::move(newVuMeter));
-        x += VU_METER_WIDTH_IN_PIXELS;
+        x += VU_METER_WIDTH;
     }
 }
 
@@ -1375,10 +1375,10 @@ void MainContentComponent::refreshSpeakerVuMeterComponents()
     for (auto const outputPatch : mData.speakerSetup.order) {
         auto newVuMeter{ std::make_unique<SpeakerVuMeterComponent>(outputPatch, *this, mSmallLookAndFeel) };
         mOutputsUiBox->addAndMakeVisible(newVuMeter.get());
-        juce::Rectangle<int> const bounds{ x, 20, VU_METER_WIDTH_IN_PIXELS, 200 };
+        juce::Rectangle<int> const bounds{ x, 20, VU_METER_WIDTH, 200 };
         newVuMeter->setBounds(bounds);
         mSpeakerVuMeters.add(outputPatch, std::move(newVuMeter));
-        x += VU_METER_WIDTH_IN_PIXELS;
+        x += VU_METER_WIDTH;
     }
 }
 
@@ -1905,7 +1905,7 @@ bool MainContentComponent::isRadiusNormalized() const
 void MainContentComponent::handleNumSourcesChanged(int const numSources)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-    jassert(numSources >= 1 && numSources <= MAX_INPUTS);
+    jassert(numSources >= 1 && numSources <= MAX_NUM_SOURCES);
     juce::ScopedWriteLock const lock{ mLock };
 
     mNumSourcesTextEditor->setText(juce::String{ numSources }, false);
@@ -2236,9 +2236,12 @@ void MainContentComponent::textEditorReturnKeyPressed([[maybe_unused]] juce::Tex
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     jassert(&textEditor == mNumSourcesTextEditor.get());
+    if (&textEditor != mNumSourcesTextEditor.get()) {
+        return;
+    }
 
     auto const unclippedValue{ mNumSourcesTextEditor->getTextValue().toString().getIntValue() };
-    auto const numOfInputs{ std::clamp(unclippedValue, 2, MAX_INPUTS) };
+    auto const numOfInputs{ std::clamp(unclippedValue, 1, MAX_NUM_SOURCES) };
     handleNumSourcesChanged(numOfInputs);
 }
 
@@ -2422,14 +2425,14 @@ void MainContentComponent::resized()
                                                      getWidth() - (mSpeakerViewComponent->getWidth() + PADDING),
                                                      231 };
     mInputsUiBox->setBounds(newInputsUiBoxBounds);
-    mInputsUiBox->correctSize(mData.project.sources.size() * VU_METER_WIDTH_IN_PIXELS + 4, 200);
+    mInputsUiBox->correctSize(mData.project.sources.size() * VU_METER_WIDTH + 4, 200);
 
     juce::Rectangle<int> const newOutputsUiBoxBounds{ 0,
                                                       233,
                                                       getWidth() - (mSpeakerViewComponent->getWidth() + PADDING),
                                                       210 };
     mOutputsUiBox->setBounds(newOutputsUiBoxBounds);
-    mOutputsUiBox->correctSize(mData.speakerSetup.speakers.size() * VU_METER_WIDTH_IN_PIXELS + 4, 180);
+    mOutputsUiBox->correctSize(mData.speakerSetup.speakers.size() * VU_METER_WIDTH + 4, 180);
 
     juce::Rectangle<int> const newControlUiBoxBounds{ 0,
                                                       443,

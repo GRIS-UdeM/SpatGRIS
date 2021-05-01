@@ -1,3 +1,22 @@
+/*
+ This file is part of SpatGRIS.
+
+ Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
+
+ SpatGRIS is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ SpatGRIS is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #pragma once
 
 #include "AudioStructs.hpp"
@@ -50,16 +69,16 @@ struct ViewportSpeakerConfig {
 };
 
 struct ViewportConfig {
-    StaticMap<output_patch_t, ViewportSpeakerConfig, MAX_OUTPUTS> speakers{};
+    StaticMap<output_patch_t, ViewportSpeakerConfig, MAX_NUM_SPEAKERS> speakers{};
     ViewSettings viewSettings{};
     SpatMode spatMode{};
     juce::String title{};
 };
 
 struct ViewportState {
-    StrongArray<source_index_t, AtomicExchanger<tl::optional<ViewportSourceData>>::Ticket *, MAX_INPUTS>
+    StrongArray<source_index_t, AtomicExchanger<tl::optional<ViewportSourceData>>::Ticket *, MAX_NUM_SOURCES>
         mostRecentSourcesData{};
-    StrongArray<output_patch_t, AtomicExchanger<float>::Ticket *, MAX_OUTPUTS> mostRectentSpeakersAlpha{};
+    StrongArray<output_patch_t, AtomicExchanger<float>::Ticket *, MAX_NUM_SPEAKERS> mostRectentSpeakersAlpha{};
     float cameraZoomVelocity{};
     PolarVector cameraPosition{};
     int lastRenderTimeMs{};
@@ -74,8 +93,8 @@ struct ViewportState {
 struct ViewportData {
     ViewportConfig config{};
     ViewportState state{};
-    StaticMap<source_index_t, AtomicExchanger<tl::optional<ViewportSourceData>>, MAX_INPUTS> sources{};
-    StrongArray<output_patch_t, AtomicExchanger<float>, MAX_OUTPUTS> speakersAlpha{};
+    StaticMap<source_index_t, AtomicExchanger<tl::optional<ViewportSourceData>>, MAX_NUM_SOURCES> sources{};
+    StrongArray<output_patch_t, AtomicExchanger<float>, MAX_NUM_SPEAKERS> speakersAlpha{};
 };
 
 //==============================================================================
@@ -209,7 +228,7 @@ struct RecordingOptions {
 };
 
 //==============================================================================
-using SourcesData = OwnedMap<source_index_t, SourceData, MAX_INPUTS>;
+using SourcesData = OwnedMap<source_index_t, SourceData, MAX_NUM_SOURCES>;
 struct SpatGrisProjectData {
     SourcesData sources{};
     LbapDistanceAttenuationData lbapDistanceAttenuationData{};
@@ -268,7 +287,7 @@ struct SpatGrisAppData {
 };
 
 //==============================================================================
-using SpeakersData = OwnedMap<output_patch_t, SpeakerData, MAX_OUTPUTS>;
+using SpeakersData = OwnedMap<output_patch_t, SpeakerData, MAX_NUM_SPEAKERS>;
 
 struct SpeakerSetup {
     SpeakersData speakers{};

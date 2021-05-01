@@ -19,10 +19,9 @@
 
 #pragma once
 
-#include "LogicStrucs.hpp"
-#include "lib/tl/optional.hpp"
-
 #include <JuceHeader.h>
+
+#include "lib/tl/optional.hpp"
 
 #include "AboutWindow.h"
 #include "AbstractSpatAlgorithm.hpp"
@@ -31,6 +30,7 @@
 #include "Configuration.h"
 #include "EditSpeakersWindow.h"
 #include "FlatViewWindow.h"
+#include "LogicStrucs.hpp"
 #include "OscInput.h"
 #include "OscLogWindow.h"
 #include "OwnedMap.hpp"
@@ -80,8 +80,8 @@ class MainContentComponent final
     // Speakers.
     juce::Array<Triplet> mTriplets{};
 
-    OwnedMap<source_index_t, SourceVuMeterComponent, MAX_INPUTS> mSourceVuMeterComponents{};
-    OwnedMap<output_patch_t, SpeakerVuMeterComponent, MAX_OUTPUTS> mSpeakerVuMeters{};
+    OwnedMap<source_index_t, SourceVuMeterComponent, MAX_NUM_SOURCES> mSourceVuMeterComponents{};
+    OwnedMap<output_patch_t, SpeakerVuMeterComponent, MAX_NUM_SPEAKERS> mSpeakerVuMeters{};
 
     // Open Sound Control.
     std::unique_ptr<OscInput> mOscReceiver{};
