@@ -44,6 +44,8 @@ juce::File const HRTF_FOLDER_0{ RESOURCES_DIR.getChildFile("hrtf_compact/elev" +
 juce::File const HRTF_FOLDER_40{ RESOURCES_DIR.getChildFile("hrtf_compact/elev" + juce::String(40) + "/") };
 juce::File const HRTF_FOLDER_80{ RESOURCES_DIR.getChildFile("hrtf_compact/elev" + juce::String(80) + "/") };
 
+juce::Colour const DEFAULT_SOURCE_COLOR{ narrow<juce::uint8>(255), 0, 0 };
+
 juce::StringArray const RECORDING_FORMAT_STRINGS{ "WAV", "AIFF" };
 juce::StringArray const RECORDING_FILE_TYPE_STRINGS{ "Multiple Mono Files", "Single Interleaved" };
 juce::StringArray const ATTENUATION_DB_STRINGS{ "0", "-12", "-24", "-36", "-48", "-60", "-72" };

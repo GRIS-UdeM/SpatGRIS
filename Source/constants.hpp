@@ -52,6 +52,8 @@ extern juce::File const HRTF_FOLDER_0;
 extern juce::File const HRTF_FOLDER_40;
 extern juce::File const HRTF_FOLDER_80;
 
+extern juce::Colour const DEFAULT_SOURCE_COLOR;
+
 //==============================================================================
 extern juce::StringArray const RECORDING_FORMAT_STRINGS;
 extern juce::StringArray const RECORDING_FILE_TYPE_STRINGS;

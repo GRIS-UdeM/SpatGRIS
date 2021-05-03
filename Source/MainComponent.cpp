@@ -1351,12 +1351,14 @@ void MainContentComponent::refreshSourceVuMeterComponents()
                                                                   source.value->colour,
                                                                   *this,
                                                                   mSmallLookAndFeel) };
-        mInputsUiBox->addAndMakeVisible(newVuMeter.get());
-        juce::Rectangle<int> const bounds{ x, 23, VU_METER_WIDTH, 200 };
+        mInputsUiBox->getContent()->addAndMakeVisible(newVuMeter.get());
+        juce::Rectangle<int> const bounds{ x, 5, VU_METER_WIDTH, 200 };
         newVuMeter->setBounds(bounds);
         mSourceVuMeterComponents.add(source.key, std::move(newVuMeter));
         x += VU_METER_WIDTH;
     }
+
+    resized();
 }
 
 //==============================================================================
@@ -1370,12 +1372,14 @@ void MainContentComponent::refreshSpeakerVuMeterComponents()
     auto x{ 3 };
     for (auto const outputPatch : mData.speakerSetup.order) {
         auto newVuMeter{ std::make_unique<SpeakerVuMeterComponent>(outputPatch, *this, mSmallLookAndFeel) };
-        mOutputsUiBox->addAndMakeVisible(newVuMeter.get());
-        juce::Rectangle<int> const bounds{ x, 23, VU_METER_WIDTH, 200 };
+        mOutputsUiBox->getContent()->addAndMakeVisible(newVuMeter.get());
+        juce::Rectangle<int> const bounds{ x, 5, VU_METER_WIDTH, 200 };
         newVuMeter->setBounds(bounds);
         mSpeakerVuMeters.add(outputPatch, std::move(newVuMeter));
         x += VU_METER_WIDTH;
     }
+
+    resized();
 }
 
 //==============================================================================
@@ -1923,8 +1927,8 @@ void MainContentComponent::handleNumSourcesChanged(int const numSources)
         }
     }
 
-    refreshSourceVuMeterComponents();
     updateAudioProcessor();
+    refreshSourceVuMeterComponents();
     unfocusAllComponents();
 }
 
@@ -2007,16 +2011,13 @@ bool MainContentComponent::refreshSpeakers()
     }
 
     mSpatAlgorithm = AbstractSpatAlgorithm::make(mData.appData.spatMode, mData.speakerSetup.speakers);
-    refreshSpeakerVuMeterComponents();
+    updateAudioProcessor();
 
+    refreshSpeakerVuMeterComponents();
+    updateViewportConfig();
     if (mEditSpeakersWindow != nullptr) {
         mEditSpeakersWindow->updateWinContent();
     }
-
-    mOutputsUiBox->repaint();
-    resized();
-    updateAudioProcessor();
-    updateViewportConfig();
 
     return true;
 }

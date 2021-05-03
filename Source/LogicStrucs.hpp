@@ -107,7 +107,7 @@ struct SourceData {
     tl::optional<output_patch_t> directOut{};
     float peak{};
     bool isSelected{};
-    juce::Colour colour{};
+    juce::Colour colour{ DEFAULT_SOURCE_COLOR };
     //==============================================================================
     [[nodiscard]] SourceAudioConfig toConfig(bool soloMode) const;
     [[nodiscard]] ViewportSourceData toViewportData(float alpha) const;

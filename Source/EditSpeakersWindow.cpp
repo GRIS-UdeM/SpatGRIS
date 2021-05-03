@@ -348,6 +348,10 @@ void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const 
         }
     };
 
+    if (newSortColumnId == 0) {
+        return;
+    }
+
     auto const & speakers{ mMainContentComponent.getData().speakerSetup.speakers };
     std::vector<std::pair<float, output_patch_t>> valuesToSort{};
     valuesToSort.reserve(narrow<size_t>(speakers.size()));

@@ -43,6 +43,7 @@
 
 class MainWindow;
 
+//==============================================================================
 class AudioDeviceManagerListener : public juce::ChangeListener
 {
 protected:
@@ -57,7 +58,6 @@ private:
 };
 
 //==============================================================================
-// This component lives inside our window, and this is where you should put all your controls and content.
 class MainContentComponent final
     : public juce::Component
     , public juce::MenuBarModel
