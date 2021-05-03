@@ -68,3 +68,33 @@ void Box::paint(juce::Graphics & g)
         g.drawText(mTitle, 0, 0, this->mContent.getWidth(), 20, juce::Justification::left);
     }
 }
+
+//==============================================================================
+MainUiSection::MainUiSection(juce::String title, juce::Component & contentComponent, GrisLookAndFeel & lookAndFeel)
+    : mTitle(std::move(title))
+    , mContentComponent(contentComponent)
+    , mLookAndFeel(lookAndFeel)
+{
+    addAndMakeVisible(mContentComponent);
+}
+
+//==============================================================================
+void MainUiSection::resized()
+{
+    auto const availableHeight{ std::max(getHeight() - TITLE_HEIGHT, 0) };
+    juce::Rectangle<int> const contentBounds{ 0, TITLE_HEIGHT, getWidth(), availableHeight };
+    mContentComponent.setBounds(contentBounds);
+}
+
+//==============================================================================
+void MainUiSection::paint(juce::Graphics & g)
+{
+    g.setColour(mLookAndFeel.getBackgroundColour());
+    g.fillRect(getLocalBounds());
+    if (mTitle != "") {
+        g.setColour(mLookAndFeel.getWinBackgroundColour());
+        g.fillRect(0, 0, getWidth(), TITLE_HEIGHT);
+        g.setColour(mLookAndFeel.getFontColour());
+        g.drawText(mTitle, 0, 0, getWidth(), TITLE_HEIGHT + 2, juce::Justification::left);
+    }
+}

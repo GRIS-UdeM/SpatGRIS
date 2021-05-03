@@ -53,10 +53,37 @@ public:
     [[nodiscard]] juce::Viewport * getViewport() { return &mViewport; }
 
     void resized() override { this->mViewport.setSize(this->getWidth(), this->getHeight()); }
-    void correctSize(int width, int const height);
+    void correctSize(int width, int height);
     void paint(juce::Graphics & g) override;
 
 private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(Box)
+};
+
+//==============================================================================
+class MainUiSection final : public juce::Component
+{
+    static constexpr auto TITLE_HEIGHT = 18;
+
+    juce::String mTitle{};
+    juce::Component & mContentComponent;
+    GrisLookAndFeel & mLookAndFeel;
+
+public:
+    //==============================================================================
+    MainUiSection(juce::String title, juce::Component & contentComponent, GrisLookAndFeel & lookAndFeel);
+    ~MainUiSection() override = default;
+    //==============================================================================
+    MainUiSection(MainUiSection const &) = delete;
+    MainUiSection(MainUiSection &&) = delete;
+    MainUiSection & operator=(MainUiSection const &) = delete;
+    MainUiSection & operator=(MainUiSection &&) = delete;
+    //==============================================================================
+    void resized() override;
+    void paint(juce::Graphics & g) override;
+
+private:
+    //==============================================================================
+    JUCE_LEAK_DETECTOR(MainUiSection)
 };

@@ -93,10 +93,16 @@ class MainContentComponent final
     std::unique_ptr<AboutWindow> mAboutWindow{};
     std::unique_ptr<OscLogWindow> mOscLogWindow{};
 
+    // Sources Section
+    juce::Viewport mSourcesVuMetersViewport{};
+    std::unique_ptr<MainUiSection> mSourcesSection{};
+
+    // Speakers Section
+    juce::Viewport mSpeakersVuMetersViewport{};
+    std::unique_ptr<MainUiSection> mSpeakersSection{};
+
     // 3 Main Boxes.
     std::unique_ptr<Box> mMainUiBox{};
-    std::unique_ptr<Box> mInputsUiBox{};
-    std::unique_ptr<Box> mOutputsUiBox{};
     std::unique_ptr<Box> mControlUiBox{};
 
     // Component in Box 3.
