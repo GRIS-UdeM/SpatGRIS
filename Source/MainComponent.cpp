@@ -99,8 +99,11 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         addAndMakeVisible(mSpeakerViewComponent.get());
 
         // Box Main
-        mMainUiBox.reset(new Box(mLookAndFeel, "", true, false));
-        addAndMakeVisible(mMainUiBox.get());
+        mMainUiViewport.setScrollBarsShown(true, false);
+        mMainUiViewport.setScrollBarThickness(15);
+        mMainUiViewport.getHorizontalScrollBar().setColour(juce::ScrollBar::ColourIds::thumbColourId,
+                                                           mLookAndFeel.getScrollBarColour());
+        mMainUiViewport.setViewedComponent(&mMainUiComponent, false);
 
         // Box Inputs
         mSourcesVuMetersViewport.setScrollBarsShown(false, true);
@@ -119,12 +122,13 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         mSpeakersSection = std::make_unique<MainUiSection>("Outputs", mSpeakersVuMetersViewport, mLookAndFeel);
 
         // Box Control
-        mControlUiBox.reset(new Box(mLookAndFeel, "Controls"));
-        addAndMakeVisible(mControlUiBox.get());
+        mControlUiBox = std::make_unique<Box>(mLookAndFeel, "Controls");
 
-        mMainUiBox->getContent()->addAndMakeVisible(*mSourcesSection);
-        mMainUiBox->getContent()->addAndMakeVisible(*mSpeakersSection);
-        mMainUiBox->getContent()->addAndMakeVisible(mControlUiBox.get());
+        mMainUiComponent.addAndMakeVisible(*mSourcesSection);
+        mMainUiComponent.addAndMakeVisible(*mSpeakersSection);
+        mMainUiComponent.addAndMakeVisible(mControlUiBox.get());
+
+        addAndMakeVisible(mMainUiViewport);
 
         // Components in Box Control
         mCpuUsageLabel.reset(addLabel("CPU usage", "CPU usage", 0, 0, 80, 28, mControlUiBox->getContent()));
@@ -1205,6 +1209,18 @@ bool MainContentComponent::isSpeakerSetupModified() const
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
+    switch (mData.appData.spatMode) {
+    case SpatMode::hrtfVbap:
+    case SpatMode::stereo:
+        // BINAURAL & STEREO are non-modifiable setups
+        return false;
+    case SpatMode::lbap:
+    case SpatMode::vbap:
+        break;
+    default:
+        jassertfalse;
+    }
+
     auto const savedElement{ juce::XmlDocument{ juce::File{ mData.appData.lastSpeakerSetup } }.getDocumentElement() };
     jassert(savedElement);
     if (!savedElement) {
@@ -1413,6 +1429,7 @@ void MainContentComponent::removeInvalidDirectOuts()
     }
 
     if (madeChange) {
+        refreshSourceVuMeterComponents();
         juce::AlertWindow::showMessageBox(
             juce::AlertWindow::AlertIconType::WarningIcon,
             "Dropped direct out",
@@ -2424,8 +2441,8 @@ void MainContentComponent::resized()
                                                    MENU_BAR_HEIGHT,
                                                    getWidth() - (mSpeakerViewComponent->getWidth() + PADDING),
                                                    getHeight() };
-    mMainUiBox->setBounds(newMainUiBoxBounds);
-    mMainUiBox->correctSize(getWidth() - mSpeakerViewComponent->getWidth() - 6, 610);
+    mMainUiViewport.setBounds(newMainUiBoxBounds);
+    mMainUiComponent.setSize(getWidth() - mSpeakerViewComponent->getWidth() - 6, 610);
 
     juce::Rectangle<int> const newInputsUiBoxBounds{ 0,
                                                      2,

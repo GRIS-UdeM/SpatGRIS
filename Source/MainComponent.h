@@ -101,9 +101,12 @@ class MainContentComponent final
     juce::Viewport mSpeakersVuMetersViewport{};
     std::unique_ptr<MainUiSection> mSpeakersSection{};
 
-    // 3 Main Boxes.
-    std::unique_ptr<Box> mMainUiBox{};
+    // Controls section
     std::unique_ptr<Box> mControlUiBox{};
+
+    // Main ui
+    juce::Component mMainUiComponent{};
+    juce::Viewport mMainUiViewport{};
 
     // Component in Box 3.
     std::unique_ptr<juce::Label> mCpuUsageLabel{};
