@@ -54,13 +54,12 @@ public:
 
 private:
     //==============================================================================
-    void drawFieldBackground(juce::Graphics & g, int fieldSize) const;
-    void drawSource(juce::Graphics & g, SourcesData::ConstNode const & source, const int fieldSize) const;
-    void drawSourceSpan(juce::Graphics & g,
-                        SourceData const & source,
-                        const int fieldSize,
-                        const int fieldCenter,
-                        SpatMode const spatMode) const;
+    void drawFieldBackground(juce::Graphics & g) const;
+    void drawSource(juce::Graphics & g, SourcesData::ConstNode const & source, SpatMode spatMode) const;
+    void drawSourceVbapSpan(juce::Graphics & g, SourceData const & source) const;
+    void drawSourceLbapSpan(juce::Graphics & g,
+                            juce::Point<float> const & sourcePositionAbsolute,
+                            SourceData const & source) const;
     //==============================================================================
     JUCE_LEAK_DETECTOR(FlatViewWindow)
 };

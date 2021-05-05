@@ -89,6 +89,8 @@ struct CartesianVector {
         return result.release();
     }
 
+    [[nodiscard]] juce::Point<float> discardZ() const noexcept { return juce::Point<float>{ x, y }; }
+
     [[nodiscard]] static tl::optional<CartesianVector> fromXml(juce::XmlElement const & xml)
     {
         juce::StringArray const requiredTags{ XmlTags::X, XmlTags::Y, XmlTags::Z };

@@ -28,47 +28,6 @@ static float constexpr SOURCE_RADIUS = 10.0f;
 static float constexpr SOURCE_DIAMETER = SOURCE_RADIUS * 2.f;
 
 //==============================================================================
-// TODO : remove this function
-static float degreeToRadian(float const degree)
-{
-    return degree * juce::MathConstants<float>::pi / 180.0f;
-}
-
-//==============================================================================
-// TODO : remove this function
-static juce::Point<float> degreeToXy(juce::Point<float> const & p, int const fieldWidth)
-{
-    auto const fieldWidthF{ static_cast<float>(fieldWidth) };
-    auto const x{ -((fieldWidthF - SOURCE_DIAMETER) / 2.0f) * std::sin(degreeToRadian(p.x))
-                  * std::cos(degreeToRadian(p.y)) };
-    auto const y{ -((fieldWidthF - SOURCE_DIAMETER) / 2.0f) * std::cos(degreeToRadian(p.x))
-                  * std::cos(degreeToRadian(p.y)) };
-    return juce::Point<float>{ x, y };
-}
-
-//==============================================================================
-// TODO : remove this function
-static juce::Point<float> getSourceAzimuthElevation(juce::Point<float> const point, bool const bUseCosElev = false)
-{
-    // Calculate azimuth in range [0,1], and negate it because zirkonium wants -1 on right side.
-    auto const fAzimuth{ -std::atan2(point.x, point.y) / juce::MathConstants<float>::pi };
-
-    // Calculate xy distance from origin, and clamp it to 2 (ie ignore outside of circle).
-    auto const hypo{ std::min(std::hypot(point.x, point.y), RADIUS_MAX) };
-
-    float fElev;
-    if (bUseCosElev) {
-        fElev = std::acos(hypo / RADIUS_MAX); // fElev is elevation in radian, [0,pi/2)
-        fElev /= HALF_PI.get();               // making range [0,1]
-        fElev /= 2.0f;                        // making range [0,.5] because that's what the zirkonium wants
-    } else {
-        fElev = (RADIUS_MAX - hypo) / 4.0f;
-    }
-
-    return juce::Point<float>(fAzimuth, fElev);
-}
-
-//==============================================================================
 FlatViewWindow::FlatViewWindow(MainContentComponent & parent, GrisLookAndFeel & feel)
     : DocumentWindow("2D View", feel.getBackgroundColour(), juce::DocumentWindow::allButtons)
     , mMainContentComponent(parent)
@@ -78,13 +37,15 @@ FlatViewWindow::FlatViewWindow(MainContentComponent & parent, GrisLookAndFeel & 
 }
 
 //==============================================================================
-void FlatViewWindow::drawFieldBackground(juce::Graphics & g, int const fieldSize) const
+void FlatViewWindow::drawFieldBackground(juce::Graphics & g) const
 {
-    auto const fieldSizeFloat{ narrow<float>(fieldSize) };
-    auto const realSize{ fieldSizeFloat - SOURCE_DIAMETER };
+    g.fillAll(mLookAndFeel.getWinBackgroundColour());
 
-    auto const getCenteredSquare = [fieldSizeFloat](float const size) -> juce::Rectangle<float> {
-        auto const offset{ (fieldSizeFloat - size) / 2.0f };
+    auto const fieldSize{ narrow<float>(getWidth()) };
+    auto const realSize{ fieldSize - SOURCE_DIAMETER };
+
+    auto const getCenteredSquare = [fieldSize](float const size) -> juce::Rectangle<float> {
+        auto const offset{ (fieldSize - size) / 2.0f };
         juce::Rectangle<float> const result{ offset, offset, size, size };
         return result;
     };
@@ -111,20 +72,20 @@ void FlatViewWindow::drawFieldBackground(juce::Graphics & g, int const fieldSize
         // Draw line and light circle.
         g.setColour(mLookAndFeel.getLightColour().withBrightness(0.5));
         auto w{ realSize / 1.3f };
-        auto x{ (fieldSizeFloat - w) / 2.0f };
+        auto x{ (fieldSize - w) / 2.0f };
         g.drawEllipse(x, x, w, w, 1);
         w = realSize / 4.0f;
-        x = (fieldSizeFloat - w) / 2.0f;
+        x = (fieldSize - w) / 2.0f;
         g.drawEllipse(x, x, w, w, 1);
 
         w = realSize;
-        x = (fieldSizeFloat - w) / 2.0f;
+        x = (fieldSize - w) / 2.0f;
         auto const r{ w / 2.0f * 0.296f };
 
         g.drawLine(x + r, x + r, w + x - r, w + x - r);
         g.drawLine(x + r, w + x - r, w + x - r, x + r);
-        g.drawLine(x, fieldSizeFloat / 2, w + x, fieldSizeFloat / 2);
-        g.drawLine(fieldSizeFloat / 2, x, fieldSizeFloat / 2, w + x);
+        g.drawLine(x, fieldSize / 2, w + x, fieldSize / 2);
+        g.drawLine(fieldSize / 2, x, fieldSize / 2, w + x);
 
         // Draw big background circle.
         g.setColour(mLookAndFeel.getLightColour());
@@ -132,14 +93,14 @@ void FlatViewWindow::drawFieldBackground(juce::Graphics & g, int const fieldSize
 
         // Draw little background circle.
         w = realSize / 2.0f;
-        x = (fieldSizeFloat - w) / 2.0f;
+        x = (fieldSize - w) / 2.0f;
         g.drawEllipse(x, x, w, w, 1);
 
         // Draw fill center circle.
         g.setColour(mLookAndFeel.getWinBackgroundColour());
         w = realSize / 4.0f;
         w -= 2.0f;
-        x = (fieldSizeFloat - w) / 2.0f;
+        x = (fieldSize - w) / 2.0f;
         g.fillEllipse(x, x, w, w);
     }
 }
@@ -149,13 +110,11 @@ void FlatViewWindow::paint(juce::Graphics & g)
 {
     static auto constexpr SOURCE_DIAMETER_INT{ narrow<int>(SOURCE_DIAMETER) };
 
+    drawFieldBackground(g);
+
     auto const fieldSize = getWidth(); // Same as getHeight()
     auto const fieldCenter = fieldSize / 2;
     auto const realSize = fieldSize - SOURCE_DIAMETER_INT;
-
-    g.fillAll(mLookAndFeel.getWinBackgroundColour());
-
-    drawFieldBackground(g, fieldSize);
 
     g.setFont(mLookAndFeel.getFont().withHeight(15.0f));
     g.setColour(mLookAndFeel.getLightColour());
@@ -192,13 +151,14 @@ void FlatViewWindow::paint(juce::Graphics & g)
 
     // Draw sources.
     for (auto const source : mMainContentComponent.getData().project.sources) {
-        drawSource(g, source, fieldSize);
-        drawSourceSpan(g, *source.value, fieldSize, fieldCenter, mMainContentComponent.getData().appData.spatMode);
+        drawSource(g, source, mMainContentComponent.getData().appData.spatMode);
     }
 }
 
 //==============================================================================
-void FlatViewWindow::drawSource(juce::Graphics & g, SourcesData::ConstNode const & source, const int fieldSize) const
+void FlatViewWindow::drawSource(juce::Graphics & g,
+                                SourcesData::ConstNode const & source,
+                                SpatMode const spatMode) const
 {
     static constexpr auto SOURCE_DIAMETER_INT{ narrow<int>(SOURCE_DIAMETER) };
 
@@ -206,157 +166,145 @@ void FlatViewWindow::drawSource(juce::Graphics & g, SourcesData::ConstNode const
         return;
     }
 
-    auto const fieldSizeFloat{ narrow<float>(fieldSize) };
-    auto const realSize = fieldSizeFloat - SOURCE_DIAMETER;
+    auto const fieldSize{ narrow<float>(getWidth()) };
+    auto const realSize = fieldSize - SOURCE_DIAMETER;
 
     auto const getSourcePosition = [&]() {
-        // The x and y are weirdly inverted, I know
-        auto const rawPosition{ juce::Point<float>{ -source.value->position->y, -source.value->position->x } };
-        auto const normalizedPosition{ rawPosition.translated(1.0f, 1.0f) / 2.0f };
-        auto const scaledPosition{ normalizedPosition * realSize };
-        return scaledPosition;
+        switch (spatMode) {
+        case SpatMode::hrtfVbap:
+        case SpatMode::vbap:
+        case SpatMode::stereo: {
+            jassert(source.value->vector);
+            auto const & vector{ *source.value->vector };
+            auto const radius{ 1.0f - vector.elevation / HALF_PI };
+            return juce::Point<float>{ std::cos(vector.azimuth.get()), -std::sin(vector.azimuth.get()) } * radius;
+        }
+        case SpatMode::lbap: {
+            jassert(source.value->position);
+            auto const & position{ *source.value->position };
+            return juce::Point<float>{ position.x, -position.y } / LBAP_EXTENDED_RADIUS;
+        }
+        }
+        jassertfalse;
+        return juce::Point<float>{};
     };
 
-    auto const sourcePosition{ getSourcePosition() };
+    auto const sourcePositionRelative{ getSourcePosition().translated(1.0f, 1.0f) * 0.5f };
+    auto const sourcePositionAbsolute{ (sourcePositionRelative * realSize).translated(SOURCE_RADIUS, SOURCE_RADIUS) };
 
-    g.setColour(source.value->colour);
-    g.fillEllipse(sourcePosition.x, sourcePosition.y, SOURCE_DIAMETER, SOURCE_DIAMETER);
+    auto const color{ source.value->colour };
 
-    g.setColour(
-        juce::Colours::black.withAlpha(source.value->colour.getAlpha())); // TODO : should read alpha from peaks?
-    auto const tx{ static_cast<int>(sourcePosition.x) };
-    auto const ty{ static_cast<int>(sourcePosition.y) };
-    juce::String const stringVal{ source.key.get() };
-    g.drawText(stringVal,
-               tx + 6,
-               ty + 1,
-               SOURCE_DIAMETER_INT + 10,
+    g.setColour(color);
+    g.fillEllipse(sourcePositionAbsolute.x - SOURCE_RADIUS,
+                  sourcePositionAbsolute.y - SOURCE_RADIUS,
+                  SOURCE_DIAMETER,
+                  SOURCE_DIAMETER);
+
+    g.setColour(juce::Colours::black.withAlpha(color.getAlpha())); // TODO : should read alpha from peaks?
+    auto const tx{ static_cast<int>(sourcePositionAbsolute.x - SOURCE_RADIUS) };
+    auto const ty{ static_cast<int>(sourcePositionAbsolute.y - SOURCE_RADIUS) };
+    juce::String const id{ source.key.get() };
+    g.drawText(id,
+               tx,
+               ty,
                SOURCE_DIAMETER_INT,
-               juce::Justification(juce::Justification::centredLeft),
+               SOURCE_DIAMETER_INT,
+               juce::Justification(juce::Justification::centred),
                false);
     g.setColour(
         juce::Colours::white.withAlpha(source.value->colour.getAlpha())); // TODO : should read alpha from peaks?
-    g.drawText(stringVal,
-               tx + 5,
+    g.drawText(id,
+               tx,
                ty,
-               SOURCE_DIAMETER_INT + 10,
                SOURCE_DIAMETER_INT,
-               juce::Justification(juce::Justification::centredLeft),
+               SOURCE_DIAMETER_INT,
+               juce::Justification(juce::Justification::centred),
                false);
+
+    // draw spans
+    switch (spatMode) {
+    case SpatMode::hrtfVbap:
+    case SpatMode::vbap:
+        drawSourceVbapSpan(g, *source.value);
+        break;
+    case SpatMode::lbap:
+        drawSourceLbapSpan(g, sourcePositionAbsolute, *source.value);
+        break;
+    case SpatMode::stereo:
+        break;
+    default:
+        jassertfalse;
+    }
 }
 
 //==============================================================================
-void FlatViewWindow::drawSourceSpan(juce::Graphics & g,
-                                    SourceData const & source,
-                                    const int fieldSize,
-                                    const int fieldCenter,
-                                    SpatMode const spatMode) const
+void FlatViewWindow::drawSourceLbapSpan(juce::Graphics & g,
+                                        juce::Point<float> const & sourcePositionAbsolute,
+                                        SourceData const & source) const
 {
-    jassertfalse; // TODO
+    auto const fieldSize{ narrow<float>(getWidth()) };
+    auto const realSize{ fieldSize - SOURCE_DIAMETER };
 
-    auto const fieldSizeF{ narrow<float>(fieldSize) };
+    auto const maxSpan{ realSize / LBAP_EXTENDED_RADIUS * juce::MathConstants<float>::sqrt2 };
+    auto const spanRange{ maxSpan - SOURCE_RADIUS };
 
-    auto const colorS{ source.colour };
+    auto const span{ source.azimuthSpan * spanRange + SOURCE_RADIUS };
+    auto const halfSpan{ span / 2.0f };
 
-    juce::Point<float> sourceP{};
+    auto const color{ source.colour };
 
-    auto const alpha{ 0.1f }; // TODO : should use alpha from peaks?
-    if (spatMode == SpatMode::lbap) {
-        auto const realW{ fieldSize - narrow<int>(SOURCE_DIAMETER) };
-        auto const azimuthSpan{ static_cast<float>(fieldSize) * (source.azimuthSpan * 0.5f) };
-        auto const halfAzimuthSpan{ azimuthSpan / 2.0f - SOURCE_RADIUS };
+    // TODO : should alpha be yielded from source peaks?
+    static constexpr auto ALPHA{ 1.0f };
 
-        sourceP.x = realW / 2.0f + realW / 4.0f * sourceP.x;
-        sourceP.y = realW / 2.0f - realW / 4.0f * sourceP.y;
-        sourceP.x
-            = sourceP.x < 0 ? 0 : sourceP.x > fieldSizeF - SOURCE_DIAMETER ? fieldSizeF - SOURCE_DIAMETER : sourceP.x;
-        sourceP.y
-            = sourceP.y < 0 ? 0 : sourceP.y > fieldSizeF - SOURCE_DIAMETER ? fieldSizeF - SOURCE_DIAMETER : sourceP.y;
+    g.setColour(color.withAlpha(ALPHA * 0.6f));
+    g.drawEllipse(sourcePositionAbsolute.x - halfSpan, sourcePositionAbsolute.y - halfSpan, span, span, 1.5f);
+    g.setColour(color.withAlpha(ALPHA * 0.2f));
+    g.fillEllipse(sourcePositionAbsolute.x - halfSpan, sourcePositionAbsolute.y - halfSpan, span, span);
+}
 
-        g.setColour(colorS.withAlpha(alpha * 0.6f));
-        g.drawEllipse(sourceP.x - halfAzimuthSpan, sourceP.y - halfAzimuthSpan, azimuthSpan, azimuthSpan, 1.5f);
-        g.setColour(colorS.withAlpha(alpha * 0.2f));
-        g.fillEllipse(sourceP.x - halfAzimuthSpan, sourceP.y - halfAzimuthSpan, azimuthSpan, azimuthSpan);
+//==============================================================================
+void FlatViewWindow::drawSourceVbapSpan(juce::Graphics & g, SourceData const & source) const
+{
+    auto const fieldSize{ narrow<float>(getWidth()) };
+    auto const halfFieldSize{ fieldSize / 2.0f };
+    auto const realSize{ fieldSize - SOURCE_DIAMETER };
+    auto const halfRealSize{ realSize / 2.0f };
 
-        return;
-    }
+    // Radius
+    jassert(source.vector);
+    auto const relativeElevation{ source.vector->elevation / HALF_PI };
+    auto const halfElevationSpan{ source.zenithSpan };
+    auto const innerRadius{ 1.0f - std::min(relativeElevation + halfElevationSpan, 0.999f) };
+    auto const outerRadius{ 1.0f - std::max(relativeElevation - halfElevationSpan, 0.0f) };
 
-    auto const HRAzimSpan{ 180.0f * source.azimuthSpan };
-    auto const HRElevSpan{ 180.0f * source.zenithSpan };
+    // Angle
+    auto const & sourceAzimuth{ HALF_PI - source.vector->azimuth };
+    auto const azimuthSpan{ PI * source.azimuthSpan };
+    auto const startAngle{ sourceAzimuth - azimuthSpan };
+    auto const endAngle{ sourceAzimuth + azimuthSpan };
 
-    jassertfalse;
-    // if ((HRAzimSpan < 0.002f && HRElevSpan < 0.002f) || !mMainContentComponent.isSpanShown()) {
-    //    return;
-    //}
-
-    auto const azimuthElevation{ getSourceAzimuthElevation(sourceP, true) };
-
-    auto const hrAzimuth{ azimuthElevation.x * 180.0f };
-    auto const hrElevation{ azimuthElevation.y * 180.0f };
-
-    // Calculate max and min elevation in degrees.
-    juce::Point<float> maxElev = { hrAzimuth, hrElevation + HRElevSpan / 2.0f };
-    juce::Point<float> minElev = { hrAzimuth, hrElevation - HRElevSpan / 2.0f };
-
-    if (minElev.y < 0) {
-        maxElev.y = maxElev.y - minElev.y;
-        minElev.y = 0.0f;
-    }
-
-    // Convert max min elev to xy.
-    auto const screenMaxElev = degreeToXy(maxElev, fieldSize);
-    auto const screenMinElev = degreeToXy(minElev, fieldSize);
-
-    // Form minMax elev, calculate minMax radius.
-    auto const maxRadius = std::sqrt(screenMaxElev.x * screenMaxElev.x + screenMaxElev.y * screenMaxElev.y);
-    auto const minRadius = std::sqrt(screenMinElev.x * screenMinElev.x + screenMinElev.y * screenMinElev.y);
-
-    // Drawing the path for spanning.
-    juce::Path myPath;
-    auto const fieldCenterF{ static_cast<float>(fieldCenter) };
-    myPath.startNewSubPath(fieldCenterF + screenMaxElev.x, fieldCenterF + screenMaxElev.y);
-    // Half first arc center.
-    myPath.addCentredArc(fieldCenterF,
-                         fieldCenterF,
-                         minRadius,
-                         minRadius,
-                         0.0,
-                         degreeToRadian(-hrAzimuth),
-                         degreeToRadian(-hrAzimuth + HRAzimSpan / 2));
-
-    // If we are over the top of the dome we draw the adjacent angle.
-    if (maxElev.getY() > 90.f) {
-        myPath.addCentredArc(fieldCenterF,
-                             fieldCenterF,
-                             maxRadius,
-                             maxRadius,
-                             0.0,
-                             juce::MathConstants<float>::pi + degreeToRadian(-hrAzimuth + HRAzimSpan / 2),
-                             juce::MathConstants<float>::pi + degreeToRadian(-hrAzimuth - HRAzimSpan / 2));
+    juce::Path path{};
+    path.addCentredArc(0.0f, 0.0f, outerRadius, outerRadius, 0.0f, endAngle.get(), startAngle.get(), true);
+    if (innerRadius > 0.0f) {
+        path.addCentredArc(0.0f, 0.0f, innerRadius, innerRadius, 0.0f, startAngle.get(), endAngle.get(), false);
     } else {
-        myPath.addCentredArc(fieldCenterF,
-                             fieldCenterF,
-                             maxRadius,
-                             maxRadius,
-                             0.0,
-                             degreeToRadian(-hrAzimuth + HRAzimSpan / 2),
-                             degreeToRadian(-hrAzimuth - HRAzimSpan / 2));
+        path.lineTo(halfFieldSize, halfFieldSize);
     }
-    myPath.addCentredArc(fieldCenterF,
-                         fieldCenterF,
-                         minRadius,
-                         minRadius,
-                         0.0,
-                         degreeToRadian(-hrAzimuth - HRAzimSpan / 2),
-                         degreeToRadian(-hrAzimuth));
+    path.closeSubPath();
+    path.applyTransform(juce::AffineTransform::translation(1.0f, 1.0f)
+                            .scaled(halfRealSize, halfRealSize)
+                            .translated(SOURCE_RADIUS, SOURCE_RADIUS));
 
-    myPath.closeSubPath();
+    auto const & color{ source.colour };
 
-    g.setColour(colorS.withAlpha(alpha * 0.2f));
-    g.fillPath(myPath);
+    // TODO : should be fetched from source peaks?
+    static constexpr auto ALPHA{ 1.0f };
 
-    g.setColour(colorS.withAlpha(alpha * 0.6f));
-    g.strokePath(myPath, juce::PathStrokeType(0.5));
+    g.setColour(color.withAlpha(ALPHA * 0.2f));
+    g.fillPath(path);
+
+    g.setColour(color.withAlpha(ALPHA * 0.6f));
+    g.strokePath(path, juce::PathStrokeType(0.5));
 }
 
 //==============================================================================
