@@ -44,7 +44,7 @@ void LevelBox::setBounds(juce::Rectangle<int> const & newBounds)
     mColorGrad.addColour(0.1, juce::Colours::yellow);
 
     // Create vu-meter foreground image.
-    mVuMeterBit = juce::Image{ juce::Image::RGB, WIDTH - 1, HEIGHT, true };
+    mVuMeterBit = juce::Image{ juce::Image::RGB, VU_METER_WIDTH - 1, VU_METER_HEIGHT, true };
     juce::Graphics gf{ mVuMeterBit };
     gf.setGradientFill(mColorGrad);
     gf.fillRect(0, 0, getWidth(), getHeight());
@@ -52,7 +52,7 @@ void LevelBox::setBounds(juce::Rectangle<int> const & newBounds)
     gf.setFont(10.0f);
 
     // Create vu-meter background image.
-    mVuMeterBackBit = juce::Image{ juce::Image::RGB, WIDTH - 1, HEIGHT, true };
+    mVuMeterBackBit = juce::Image{ juce::Image::RGB, VU_METER_WIDTH - 1, VU_METER_HEIGHT, true };
     juce::Graphics gb{ mVuMeterBackBit };
     gb.setColour(mLookAndFeel.getDarkColour());
     gb.fillRect(0, 0, getWidth(), getHeight());
@@ -60,7 +60,7 @@ void LevelBox::setBounds(juce::Rectangle<int> const & newBounds)
     gb.setFont(10.0f);
 
     // Create vu-meter muted image.
-    mVuMeterMutedBit = juce::Image(juce::Image::RGB, WIDTH - 1, HEIGHT, true);
+    mVuMeterMutedBit = juce::Image(juce::Image::RGB, VU_METER_WIDTH - 1, VU_METER_HEIGHT, true);
     juce::Graphics gm{ mVuMeterMutedBit };
     gm.setColour(mLookAndFeel.getWinBackgroundColour());
     gm.fillRect(0, 0, getWidth(), getHeight());
@@ -92,19 +92,19 @@ void LevelBox::paint(juce::Graphics & g)
     JUCE_ASSERT_MESSAGE_THREAD;
 
     if (mIsMuted) {
-        g.drawImage(mVuMeterMutedBit, 0, 0, WIDTH, HEIGHT, 0, 0, WIDTH, HEIGHT);
+        g.drawImage(mVuMeterMutedBit, 0, 0, VU_METER_WIDTH, VU_METER_HEIGHT, 0, 0, VU_METER_WIDTH, VU_METER_HEIGHT);
         return;
     }
 
     if (mLevel <= MIN_LEVEL_COMP && !mIsClipping) {
-        g.drawImage(mVuMeterBackBit, 0, 0, WIDTH, HEIGHT, 0, 0, WIDTH, HEIGHT);
+        g.drawImage(mVuMeterBackBit, 0, 0, VU_METER_WIDTH, VU_METER_HEIGHT, 0, 0, VU_METER_WIDTH, VU_METER_HEIGHT);
         return;
     }
 
     auto const h = static_cast<int>(mLevel.get() * -2.33333334f);
-    auto const rel = HEIGHT - h;
-    g.drawImage(mVuMeterBit, 0, h, WIDTH, rel, 0, h, WIDTH, rel);
-    g.drawImage(mVuMeterBackBit, 0, 0, WIDTH, h, 0, 0, WIDTH, h);
+    auto const rel = VU_METER_HEIGHT - h;
+    g.drawImage(mVuMeterBit, 0, h, VU_METER_WIDTH, rel, 0, h, VU_METER_WIDTH, rel);
+    g.drawImage(mVuMeterBackBit, 0, 0, VU_METER_WIDTH, h, 0, 0, VU_METER_WIDTH, h);
     if (mIsClipping) {
         g.setColour(juce::Colour::fromHSV(0.0, 1, 0.75, 1));
         juce::Rectangle<float> const clipRect{ 0.5, 0.5, static_cast<float>(getWidth() - 1), 5 };
@@ -170,37 +170,48 @@ AbstractVuMeterComponent::AbstractVuMeterComponent(int const channel, SmallGrisL
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    // Label
+    auto const initColors = [&](juce::Component & component) {
+        component.setLookAndFeel(&lookAndFeel);
+        component.setColour(juce::Label::textColourId, lookAndFeel.getFontColour());
+        component.setColour(juce::TextButton::textColourOnId, lookAndFeel.getFontColour());
+        component.setColour(juce::TextButton::textColourOffId, lookAndFeel.getFontColour());
+        component.setColour(juce::TextButton::buttonColourId, lookAndFeel.getBackgroundColour());
+        addAndMakeVisible(component);
+    };
+
+    auto const initButton = [&](juce::Button & button) {
+        button.addListener(this);
+        button.addMouseListener(this, true);
+        initColors(button);
+    };
+
+    auto const initMuteOrSoloLabel = [&](juce::Label & label, juce::String const & text) {
+        label.setText(text, juce::dontSendNotification);
+        label.setJustificationType(juce::Justification::centred);
+        label.setInterceptsMouseClicks(false, false);
+        initColors(label);
+    };
+
+    // Id
+    mIdButton.setBounds(0, 0, VU_METER_WIDTH, 17);
     mIdButton.setButtonText(juce::String{ channel });
-    mIdButton.setSize(22, 17);
-    mIdButton.setTopLeftPosition(0, 0);
-    mIdButton.setColour(juce::Label::textColourId, lookAndFeel.getFontColour());
-    mIdButton.setLookAndFeel(&lookAndFeel);
-    mIdButton.setColour(juce::TextButton::textColourOnId, lookAndFeel.getFontColour());
-    mIdButton.setColour(juce::TextButton::textColourOffId, lookAndFeel.getFontColour());
-    mIdButton.setColour(juce::TextButton::buttonColourId, lookAndFeel.getBackgroundColour());
-    mIdButton.addListener(this);
-    mIdButton.addMouseListener(this, true);
-    addAndMakeVisible(mIdButton);
+    initButton(mIdButton);
 
-    // ToggleButton (mute)
-    mMuteToggleButton.setButtonText("m");
-    mMuteToggleButton.setSize(13, 15);
-    mMuteToggleButton.addListener(this);
-    mMuteToggleButton.setToggleState(false, juce::dontSendNotification);
-    mMuteToggleButton.setLookAndFeel(&lookAndFeel);
-    mMuteToggleButton.setColour(juce::ToggleButton::textColourId, lookAndFeel.getFontColour());
-    addAndMakeVisible(mMuteToggleButton);
+    // Mute button
+    mMuteButton.setSize(VU_METER_WIDTH / 2, 15);
+    mMuteButton.setClickingTogglesState(true);
+    initButton(mMuteButton);
 
-    // ToggleButton (solo)
-    mSoloToggleButton.setButtonText("s");
-    mSoloToggleButton.setSize(13, 15);
-    mSoloToggleButton.addListener(this);
-    mSoloToggleButton.setToggleState(false, juce::dontSendNotification);
-    mSoloToggleButton.setColour(juce::ToggleButton::textColourId, lookAndFeel.getFontColour());
-    mSoloToggleButton.setColour(juce::TextButton::buttonColourId, lookAndFeel.getBackgroundColour());
-    mSoloToggleButton.setLookAndFeel(&lookAndFeel);
-    addAndMakeVisible(mSoloToggleButton);
+    // Mute label
+    initMuteOrSoloLabel(mMuteLabel, "m");
+
+    // Solo button
+    mSoloButton.setSize(VU_METER_WIDTH / 2, 15);
+    mSoloButton.setClickingTogglesState(true);
+    initButton(mSoloButton);
+
+    // Solo label
+    initMuteOrSoloLabel(mSoloLabel, "s");
 
     // Level box
     addAndMakeVisible(mLevelBox);
@@ -211,8 +222,8 @@ void AbstractVuMeterComponent::setState(PortState const state, bool const soloMo
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    mSoloToggleButton.setToggleState(state == PortState::solo, juce::dontSendNotification);
-    mMuteToggleButton.setToggleState(state == PortState::muted, juce::dontSendNotification);
+    mSoloButton.setToggleState(state == PortState::solo, juce::dontSendNotification);
+    mMuteButton.setToggleState(state == PortState::muted, juce::dontSendNotification);
     mLevelBox.setMuted(soloMode ? state != PortState::solo : state == PortState::muted);
 
     repaint();
@@ -240,11 +251,11 @@ void SpeakerVuMeterComponent::buttonClicked(juce::Button * button)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    if (button == &mMuteToggleButton) {
-        auto const newState{ mMuteToggleButton.getToggleState() ? PortState::muted : PortState::normal };
+    if (button == &mMuteButton) {
+        auto const newState{ mMuteButton.getToggleState() ? PortState::muted : PortState::normal };
         mOwner.handleSpeakerStateChanged(mOutputPatch, newState);
-    } else if (button == &mSoloToggleButton) {
-        auto const newState{ mSoloToggleButton.getToggleState() ? PortState::solo : PortState::normal };
+    } else if (button == &mSoloButton) {
+        auto const newState{ mSoloButton.getToggleState() ? PortState::solo : PortState::normal };
         mOwner.handleSpeakerStateChanged(mOutputPatch, newState);
     } else if (button == &mIdButton) {
         mOwner.handleSpeakerSelected(mOutputPatch);
@@ -256,23 +267,20 @@ void AbstractVuMeterComponent::setBounds(juce::Rectangle<int> const & newBounds)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    static constexpr auto LEVEL_SIZE{ LevelBox::HEIGHT };
-
     juce::Component::setBounds(newBounds);
 
     juce::Rectangle<int> const idBounds{ 0, 0, newBounds.getWidth(), mIdButton.getHeight() };
     mIdButton.setBounds(idBounds);
 
-    juce::Rectangle<int> const muteButtonBounds{ 0, 158, mMuteToggleButton.getWidth(), mMuteToggleButton.getHeight() };
-    mMuteToggleButton.setBounds(muteButtonBounds);
+    juce::Rectangle<int> const muteButtonBounds{ 0, 158, VU_METER_WIDTH / 2, mMuteButton.getHeight() };
+    mMuteButton.setBounds(muteButtonBounds);
+    mMuteLabel.setBounds(muteButtonBounds.withSizeKeepingCentre(100, 100));
 
-    juce::Rectangle<int> const soloButtonBounds{ mMuteToggleButton.getWidth() - 2,
-                                                 158,
-                                                 mMuteToggleButton.getWidth(),
-                                                 mMuteToggleButton.getHeight() };
-    mSoloToggleButton.setBounds(soloButtonBounds);
+    juce::Rectangle<int> const soloButtonBounds{ VU_METER_WIDTH / 2, 158, VU_METER_WIDTH / 2, mSoloButton.getHeight() };
+    mSoloButton.setBounds(soloButtonBounds);
+    mSoloLabel.setBounds(soloButtonBounds.withSizeKeepingCentre(100, 100));
 
-    juce::Rectangle<int> const levelBoxBounds{ 0, 18, newBounds.getWidth() - WIDTH_RECT, LEVEL_SIZE };
+    juce::Rectangle<int> const levelBoxBounds{ 0, 18, newBounds.getWidth() - 1, VU_METER_HEIGHT };
     mLevelBox.setBounds(levelBoxBounds);
 }
 
@@ -288,7 +296,7 @@ SourceVuMeterComponent::SourceVuMeterComponent(source_index_t const sourceIndex,
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    mDirectOutButton.setSize(22, 17);
+    mDirectOutButton.setSize(VU_METER_WIDTH, 17);
     mDirectOutButton.setColour(juce::Label::textColourId, lookAndFeel.getFontColour());
     mDirectOutButton.setLookAndFeel(&lookAndFeel);
     mDirectOutButton.addListener(this);
@@ -329,9 +337,9 @@ void SourceVuMeterComponent::buttonClicked(juce::Button * button)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    if (button == &mMuteToggleButton) {
+    if (button == &mMuteButton) {
         muteButtonClicked();
-    } else if (button == &mSoloToggleButton) {
+    } else if (button == &mSoloButton) {
         // SOLO
         soloButtonClicked();
     } else if (button == &mIdButton) {
@@ -372,7 +380,7 @@ void SourceVuMeterComponent::muteButtonClicked() const
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    auto const newState{ mMuteToggleButton.getToggleState() ? PortState::muted : PortState::normal };
+    auto const newState{ mMuteButton.getToggleState() ? PortState::muted : PortState::normal };
     mOwner.handleSourceStateChanged(mSourceIndex, newState);
 }
 
@@ -381,7 +389,7 @@ void SourceVuMeterComponent::soloButtonClicked() const
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    auto const newState{ mSoloToggleButton.getToggleState() ? PortState::solo : PortState::normal };
+    auto const newState{ mSoloButton.getToggleState() ? PortState::solo : PortState::normal };
     mOwner.handleSourceStateChanged(mSourceIndex, newState);
 }
 

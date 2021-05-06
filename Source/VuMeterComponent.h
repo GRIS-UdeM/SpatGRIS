@@ -27,18 +27,13 @@
 
 static dbfs_t constexpr MIN_LEVEL_COMP{ -60.0f };
 static dbfs_t constexpr MAX_LEVEL_COMP{ 0.0f };
-static int constexpr WIDTH_RECT = 1;
+// static int constexpr WIDTH_RECT = 1;
 
 class GrisLookAndFeel;
 
 //============================ LevelBox ================================
 class LevelBox final : public juce::Component
 {
-public:
-    static constexpr auto WIDTH = 22;
-    static constexpr auto HEIGHT = 140;
-
-private:
     //==============================================================================
     SmallGrisLookAndFeel & mLookAndFeel;
 
@@ -83,8 +78,10 @@ protected:
 
     LevelBox mLevelBox;
     juce::TextButton mIdButton;
-    juce::ToggleButton mMuteToggleButton;
-    juce::ToggleButton mSoloToggleButton;
+    juce::TextButton mMuteButton;
+    juce::Label mMuteLabel;
+    juce::TextButton mSoloButton;
+    juce::Label mSoloLabel;
 
 public:
     //==============================================================================
