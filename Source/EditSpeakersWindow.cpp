@@ -76,7 +76,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     mNumOfSpeakersTextEditor.addListener(&mMainContentComponent);
     mListSpeakerBox.getContent()->addAndMakeVisible(mNumOfSpeakersTextEditor);
 
-    mNumOfSpeakersTextEditor.setText("8");
+    mNumOfSpeakersTextEditor.setText("8", false);
     mNumOfSpeakersTextEditor.setInputRestrictions(3, "0123456789");
     mNumOfSpeakersTextEditor.addListener(this);
 
@@ -329,11 +329,11 @@ void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const 
     static auto const EXTRACT_VALUE = [](SpeakersData::ConstNode const & speaker, int const sortColumn) -> float {
         switch (sortColumn) {
         case Cols::X:
-            return speaker.value->position.z;
-        case Cols::Y:
             return speaker.value->position.x;
-        case Cols::Z:
+        case Cols::Y:
             return speaker.value->position.y;
+        case Cols::Z:
+            return speaker.value->position.z;
         case Cols::AZIMUTH:
             return speaker.value->vector.azimuth.get();
         case Cols::ELEVATION:
@@ -380,6 +380,7 @@ void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const 
 //==============================================================================
 void EditSpeakersWindow::sliderValueChanged(juce::Slider * slider)
 {
+    jassert(slider == &mPinkNoiseGainSlider);
     if (slider == &mPinkNoiseGainSlider && mPinkNoiseToggleButton.getToggleState()) {
         dbfs_t const db{ narrow<float>(mPinkNoiseGainSlider.getValue()) };
         mMainContentComponent.handlePinkNoiseGainChanged(db);
@@ -460,18 +461,9 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         mMainContentComponent.handlePinkNoiseGainChanged(newPinkNoiseLevel);
     } else if (button->getName().getIntValue() < DIRECT_OUT_BUTTON_ID_OFFSET) {
         // Delete button
-        if (mSpeakersTableListBox.getNumSelectedRows() > 1
-            && mSpeakersTableListBox.getSelectedRows().contains(button->getName().getIntValue())) {
-            for (auto i{ mSpeakersTableListBox.getSelectedRows().size() - 1 }; i >= 0; --i) {
-                auto const rowNumber{ mSpeakersTableListBox.getSelectedRows()[i] };
-                auto const speakerId{ mMainContentComponent.getSpeakersDisplayOrder()[rowNumber] };
-                mMainContentComponent.removeSpeaker(speakerId);
-            }
-        } else {
-            auto const row{ button->getName().getIntValue() };
-            auto const speakerId{ mMainContentComponent.getSpeakersDisplayOrder()[row] };
-            mMainContentComponent.removeSpeaker(speakerId);
-        }
+        auto const row{ button->getName().getIntValue() };
+        auto const speakerId{ mMainContentComponent.getSpeakersDisplayOrder()[row] };
+        mMainContentComponent.removeSpeaker(speakerId);
         updateWinContent();
         mSpeakersTableListBox.deselectAllRows();
         mShouldRefreshSpeakers = true;
@@ -487,49 +479,37 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
 }
 
 //==============================================================================
-void EditSpeakersWindow::textEditorTextChanged(juce::TextEditor & editor)
+void EditSpeakersWindow::textEditorTextChanged(juce::TextEditor & /*editor*/)
 {
-    float value;
-    juce::String test;
-    if (&editor == &mNumOfSpeakersTextEditor) {
-    } else if (&editor == &mZenithTextEditor) {
-        test = mZenithTextEditor.getText().retainCharacters(".");
-        if (test.length() > 1) {
-            mZenithTextEditor.setText(mZenithTextEditor.getText().dropLastCharacters(1), false);
-        }
-        value = mZenithTextEditor.getText().getFloatValue();
-        if (value > 90.0f) {
-            mZenithTextEditor.setText(juce::String(90.0f), false);
-        } else if (value < -90.0f) {
-            mZenithTextEditor.setText(juce::String(-90.0f), false);
-        }
-    } else if (&editor == &mRadiusTextEditor) {
-        test = mRadiusTextEditor.getText().retainCharacters(".");
-        if (test.length() > 1) {
-            mRadiusTextEditor.setText(mRadiusTextEditor.getText().dropLastCharacters(1), false);
-        }
-        value = mRadiusTextEditor.getText().getFloatValue();
-        if (value > 1.0f) {
-            mRadiusTextEditor.setText(juce::String(1.0f), false);
-        }
-    } else if (&editor == &mOffsetAngleTextEditor) {
-        test = mOffsetAngleTextEditor.getText().retainCharacters(".");
-        if (test.length() > 1) {
-            mOffsetAngleTextEditor.setText(mOffsetAngleTextEditor.getText().dropLastCharacters(1), false);
-        }
-        value = mOffsetAngleTextEditor.getText().getFloatValue();
-        if (value < -180.0f) {
-            mOffsetAngleTextEditor.setText(juce::String(-180.0f), false);
-        } else if (value > 180.0f) {
-            mOffsetAngleTextEditor.setText(juce::String(180.0f), false);
-        }
-    }
 }
 
 //==============================================================================
-void EditSpeakersWindow::textEditorReturnKeyPressed(juce::TextEditor & /*textEditor*/)
+void EditSpeakersWindow::textEditorReturnKeyPressed(juce::TextEditor & textEditor)
 {
     unfocusAllComponents();
+    if (&textEditor == &mNumOfSpeakersTextEditor) {
+        auto const value{ std::clamp(mNumOfSpeakersTextEditor.getText().getIntValue(), 2, 64) };
+        mNumOfSpeakersTextEditor.setText(juce::String{ value }, false);
+        return;
+    }
+    if (&textEditor == &mZenithTextEditor) {
+        auto const value{ std::clamp(mZenithTextEditor.getText().getFloatValue(), 0.0f, 90.0f) };
+        mZenithTextEditor.setText(juce::String{ value, 1 }, false);
+        return;
+    }
+    if (&textEditor == &mRadiusTextEditor) {
+        auto const value{
+            std::clamp(mRadiusTextEditor.getText().getFloatValue(), 0.001f, juce::MathConstants<float>::sqrt2)
+        };
+        mRadiusTextEditor.setText(juce::String{ value, 1 }, false);
+        return;
+    }
+    if (&textEditor == &mOffsetAngleTextEditor) {
+        auto const value{ std::clamp(mOffsetAngleTextEditor.getText().getFloatValue(), -360.0f, 360.0f) };
+        mOffsetAngleTextEditor.setText(juce::String{ value, 1 }, false);
+        return;
+    }
+    jassertfalse;
 }
 
 //==============================================================================
@@ -659,19 +639,19 @@ juce::String EditSpeakersWindow::getText(int const columnNumber, int const rowNu
     case Cols::Z:
         return juce::String{ speaker.position.z, 2 };
     case Cols::AZIMUTH:
-        return juce::String{ speaker.vector.azimuth.toDegrees().get(), 2 };
+        return juce::String{ (HALF_PI - speaker.vector.azimuth).toDegrees().madePositive().get(), 1 };
     case Cols::ELEVATION:
-        return juce::String{ speaker.vector.elevation.toDegrees().get(), 2 };
+        return juce::String{ speaker.vector.elevation.toDegrees().madePositive().get(), 1 };
     case Cols::DISTANCE:
         return juce::String{ speaker.vector.length, 2 };
     case Cols::OUTPUT_PATCH:
         return juce::String{ outputPatch.get() };
     case Cols::GAIN:
-        return juce::String{ speaker.gain.get(), 2 };
+        return juce::String{ speaker.gain.get(), 1 };
     case Cols::HIGHPASS:
         return juce::String{
             speaker.highpassData.map_or([](SpeakerHighpassData const & data) { return data.freq.get(); }, 0.0f),
-            2
+            1
         };
     case Cols::DIRECT_TOGGLE:
         return juce::String{ static_cast<int>(speaker.isDirectOutOnly) };
@@ -689,8 +669,29 @@ void EditSpeakersWindow::setText(int const columnNumber,
                                  juce::String const & newText,
                                  bool const altDown)
 {
-    // TODO : why a try-lock?
-    juce::ScopedWriteLock lock{ mMainContentComponent.getLock() };
+    auto const isEditable = [&](int const col, SpeakerData const & speaker) {
+        switch (col) {
+        case Cols::OUTPUT_PATCH:
+        case Cols::AZIMUTH:
+        case Cols::ELEVATION:
+        case Cols::GAIN:
+        case Cols::HIGHPASS:
+            return true;
+        case Cols::DRAG_HANDLE:
+        case Cols::DIRECT_TOGGLE:
+        case Cols::DELETE_BUTTON:
+            return false;
+        case Cols::X:
+        case Cols::Y:
+        case Cols::Z:
+        case Cols::DISTANCE:
+            return mMainContentComponent.getData().appData.spatMode == SpatMode::lbap || speaker.isDirectOutOnly;
+        default:
+            jassertfalse;
+        }
+    };
+
+    juce::ScopedReadLock lock{ mMainContentComponent.getLock() };
     auto const & speakers{ mMainContentComponent.getData().speakerSetup.speakers };
     if (speakers.size() > rowNumber) {
         auto const selectedRows{ mSpeakersTableListBox.getSelectedRows() };
@@ -699,155 +700,85 @@ void EditSpeakersWindow::setText(int const columnNumber,
 
         switch (columnNumber) {
         case Cols::X: {
-            auto newPosition = speaker.position;
-            auto const val{ std::clamp(newText.getFloatValue(), -1.0f, 1.0f) };
-            auto diff = val - newPosition.z;
-            newPosition.z = val;
-            mMainContentComponent.handleNewSpeakerPosition(outputPatch, newPosition);
-            if (selectedRows.size() > 1) {
-                for (int i{}; i < selectedRows.size(); ++i) {
-                    auto const rowNum = selectedRows[i];
-                    if (rowNum == rowNumber) {
-                        continue;
-                    }
-                    newPosition = speaker.position;
-                    if (altDown) {
-                        newPosition.z += diff;
-                    } else {
-                        newPosition.z = val;
-                    }
-                    mMainContentComponent.handleNewSpeakerPosition(outputPatch, newPosition);
-                }
+            if (!isEditable(Cols::X, speaker)) {
+                return;
+            }
+            auto const diff{ newText.getFloatValue() - speaker.position.x };
+            for (int i{}; i < selectedRows.size(); ++i) {
+                auto const outputPatch_{ getSpeakerOutputPatchForRow(selectedRows[i]) };
+                auto const & oldPosition{ speakers[outputPatch_].position };
+                auto const newValue{ std::clamp(oldPosition.x + diff, -1.0f, 1.0f) };
+                CartesianVector const newPosition{ newValue, oldPosition.y, oldPosition.z };
+                mMainContentComponent.handleNewSpeakerPosition(outputPatch_, newPosition);
             }
             mShouldRefreshSpeakers = true;
             break;
         }
         case Cols::Y: {
-            auto newPosition = speaker.position;
-            auto const val{ std::clamp(newText.getFloatValue(), -1.0f, 1.0f) };
-            auto diff = val - newPosition.x;
-            newPosition.x = val;
-            mMainContentComponent.handleNewSpeakerPosition(outputPatch, newPosition);
-            if (selectedRows.size() > 1) {
-                for (int i{}; i < selectedRows.size(); ++i) {
-                    auto const rowNum{ selectedRows[i] };
-                    if (rowNum == rowNumber) {
-                        continue;
-                    }
-                    newPosition = speaker.position;
-                    if (altDown) {
-                        newPosition.x += diff;
-                    } else {
-                        newPosition.x = val;
-                    }
-                    mMainContentComponent.handleNewSpeakerPosition(outputPatch, newPosition);
-                }
+            if (!isEditable(Cols::Y, speaker)) {
+                return;
+            }
+            auto const diff{ newText.getFloatValue() - speaker.position.y };
+            for (int i{}; i < selectedRows.size(); ++i) {
+                auto const outputPatch_{ getSpeakerOutputPatchForRow(selectedRows[i]) };
+                auto const & oldPosition{ speakers[outputPatch_].position };
+                auto const newValue{ std::clamp(oldPosition.y + diff, -1.0f, 1.0f) };
+                CartesianVector const newPosition{ oldPosition.x, newValue, oldPosition.z };
+                mMainContentComponent.handleNewSpeakerPosition(outputPatch_, newPosition);
             }
             mShouldRefreshSpeakers = true;
             break;
         }
         case Cols::Z: {
-            auto newPosition = speaker.position;
-            auto const val{ std::clamp(newText.getFloatValue(), 0.0f, 1.0f) };
-            auto diff = val - newPosition.y;
-            newPosition.y = val;
-            mMainContentComponent.handleNewSpeakerPosition(outputPatch, newPosition);
-            if (selectedRows.size() > 1) {
-                for (int i{}; i < selectedRows.size(); ++i) {
-                    auto const rowNum{ selectedRows[i] };
-                    if (rowNum == rowNumber) {
-                        continue;
-                    }
-                    newPosition = speaker.position;
-                    if (altDown) {
-                        newPosition.y += diff;
-                        newPosition.y = std::clamp(newPosition.y, -1.0f, 1.0f);
-                    } else {
-                        newPosition.y = val;
-                    }
-                    mMainContentComponent.handleNewSpeakerPosition(outputPatch, newPosition);
-                }
+            if (!isEditable(Cols::Z, speaker)) {
+                return;
+            }
+            auto const diff{ newText.getFloatValue() - speaker.position.z };
+            for (int i{}; i < selectedRows.size(); ++i) {
+                auto const outputPatch_{ getSpeakerOutputPatchForRow(selectedRows[i]) };
+                auto const & oldPosition{ speakers[outputPatch_].position };
+                auto const newValue{ std::clamp(oldPosition.z + diff, 0.0f, 1.0f) };
+                CartesianVector const newPosition{ oldPosition.x, oldPosition.y, newValue };
+                mMainContentComponent.handleNewSpeakerPosition(outputPatch_, newPosition);
             }
             mShouldRefreshSpeakers = true;
             break;
         }
         case Cols::AZIMUTH: {
-            auto newVector = speaker.vector;
-            degrees_t val{ getFloatPrecision(newText.getFloatValue(), 3.0f) };
-            auto diff = val - newVector.azimuth;
-            val = val.centered();
-            newVector.azimuth = val;
-            mMainContentComponent.handleNewSpeakerPosition(outputPatch, newVector);
-            if (selectedRows.size() > 1) {
-                for (int i{}; i < selectedRows.size(); ++i) {
-                    auto const rowNum{ selectedRows[i] };
-                    if (rowNum == rowNumber) {
-                        continue;
-                    }
-                    newVector = speaker.vector;
-                    if (altDown) {
-                        newVector.azimuth = (newVector.azimuth + diff).centered();
-                    } else {
-                        newVector.azimuth = val;
-                    }
-                    mMainContentComponent.handleNewSpeakerPosition(outputPatch, newVector);
-                }
+            auto const diff{ (HALF_PI - degrees_t{ newText.getFloatValue() }) - speaker.vector.azimuth };
+            for (int i{}; i < selectedRows.size(); ++i) {
+                auto const outputPatch_{ getSpeakerOutputPatchForRow(selectedRows[i]) };
+                auto const & oldPosition{ speakers[outputPatch_].vector };
+                auto const newValue{ (oldPosition.azimuth + diff).centered() };
+                PolarVector const newPosition{ newValue, oldPosition.elevation, oldPosition.length };
+                mMainContentComponent.handleNewSpeakerPosition(outputPatch_, newPosition);
             }
             mShouldRefreshSpeakers = true;
             break;
         }
         case Cols::ELEVATION: {
-            auto newVector = speaker.vector;
-            degrees_t const val{ std::clamp(newText.getFloatValue(), -90.0f, 90.0f) };
-            radians_t diff = val - newVector.elevation;
-            newVector.elevation = val;
-            mMainContentComponent.handleNewSpeakerPosition(outputPatch, newVector);
-            if (selectedRows.size() > 1) {
-                for (int i{}; i < selectedRows.size(); ++i) {
-                    auto const rowNum{ selectedRows[i] };
-                    if (rowNum == rowNumber) {
-                        continue;
-                    }
-                    newVector = speaker.vector;
-                    if (altDown) {
-                        newVector.elevation += diff;
-                        newVector.elevation = std::clamp(newVector.elevation, -HALF_PI, HALF_PI);
-                    } else {
-                        newVector.elevation = val;
-                    }
-                    mMainContentComponent.handleNewSpeakerPosition(outputPatch, newVector);
-                }
+            auto const diff{ degrees_t{ newText.getFloatValue() } - speaker.vector.elevation };
+            for (int i{}; i < selectedRows.size(); ++i) {
+                auto const outputPatch_{ getSpeakerOutputPatchForRow(selectedRows[i]) };
+                auto const & oldPosition{ speakers[outputPatch_].vector };
+                auto const newValue{ std::clamp(oldPosition.elevation + diff, radians_t{ 0.0f }, HALF_PI) };
+                PolarVector const newPosition{ oldPosition.azimuth, newValue, oldPosition.length };
+                mMainContentComponent.handleNewSpeakerPosition(outputPatch_, newPosition);
             }
             mShouldRefreshSpeakers = true;
             break;
         }
         case Cols::DISTANCE: {
-            auto newVector = speaker.vector;
-            float val{};
-            if (mMainContentComponent.isRadiusNormalized() && !speaker.isDirectOutOnly) {
-                val = 1.0f;
-            } else {
-                val = getFloatPrecision(newText.getFloatValue(), 3.0f);
+            if (!isEditable(Cols::DISTANCE, speaker)) {
+                return;
             }
-            auto diff = val - newVector.length;
-            val = std::clamp(val, 0.0f, juce::MathConstants<float>::sqrt2);
-            newVector.length = val;
-            mMainContentComponent.handleNewSpeakerPosition(outputPatch, newVector);
-            if (selectedRows.size() > 1) {
-                for (int i{}; i < selectedRows.size(); ++i) {
-                    auto const rowNum{ selectedRows[i] };
-                    if (rowNum == rowNumber) {
-                        continue;
-                    }
-                    newVector = speaker.vector;
-                    if (altDown) {
-                        newVector.length += diff;
-                        newVector.length = std::clamp(newVector.length, 0.0f, 2.5f);
-                    } else {
-                        newVector.length = val;
-                    }
-                    mMainContentComponent.handleNewSpeakerPosition(outputPatch, newVector);
-                }
+            auto const diff{ newText.getFloatValue() - speaker.vector.length };
+            for (int i{}; i < selectedRows.size(); ++i) {
+                auto const outputPatch_{ getSpeakerOutputPatchForRow(selectedRows[i]) };
+                auto const & oldPosition{ speakers[outputPatch_].vector };
+                auto const newValue{ std::clamp(oldPosition.length + diff, 0.0f, SQRT3) };
+                PolarVector const newPosition{ oldPosition.azimuth, oldPosition.elevation, newValue };
+                mMainContentComponent.handleNewSpeakerPosition(outputPatch_, newPosition);
             }
             mShouldRefreshSpeakers = true;
             break;
@@ -1043,12 +974,12 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
         case Cols::X:
         case Cols::Y:
         case Cols::Z:
+        case Cols::DISTANCE:
             if (mMainContentComponent.getData().appData.spatMode == SpatMode::lbap || speaker.isDirectOutOnly) {
                 return EditionType::valueDraggable;
             }
             return EditionType::notEditable;
         case Cols::AZIMUTH:
-        case Cols::DISTANCE:
         case Cols::ELEVATION:
         case Cols::GAIN:
         case Cols::HIGHPASS:
@@ -1057,6 +988,7 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
             return EditionType::editable;
         case Cols::DELETE_BUTTON:
         case Cols::DIRECT_TOGGLE:
+            return EditionType::notEditable;
         case Cols::DRAG_HANDLE:
             return EditionType::reorderDraggable;
         default:

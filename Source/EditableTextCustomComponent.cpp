@@ -49,8 +49,6 @@ void EditableTextCustomComponent::mouseDrag(const juce::MouseEvent & event)
         return;
     }
 
-    // auto const isXyzEditable{  };
-
     using col = EditSpeakersWindow::Cols;
 
     switch (mColumnId) {
@@ -62,13 +60,9 @@ void EditableTextCustomComponent::mouseDrag(const juce::MouseEvent & event)
     case col::X:
     case col::Y:
     case col::Z:
-        if (mOwner.getModeSelected() != SpatMode::lbap) {
-            return;
-        }
-        break;
+    case col::DISTANCE:
     case col::AZIMUTH:
     case col::ELEVATION:
-    case col::DISTANCE:
     case col::GAIN:
     case col::HIGHPASS:
         break;
@@ -92,6 +86,8 @@ void EditableTextCustomComponent::mouseDrag(const juce::MouseEvent & event)
     case col::HIGHPASS:
         increment = 1.0f;
         break;
+    default:
+        jassertfalse;
     }
 
     auto const offset{ event.getDistanceFromDragStartY() };

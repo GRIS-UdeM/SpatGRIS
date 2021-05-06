@@ -1801,7 +1801,7 @@ void MainContentComponent::updateAudioProcessor() const
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
-    mAudioProcessor->setAudioConfig(mData.toAudioConfig()); // TODO : use unique_ptr instead
+    mAudioProcessor->setAudioConfig(mData.toAudioConfig());
 }
 
 //==============================================================================
@@ -1916,6 +1916,7 @@ void MainContentComponent::removeSpeaker(output_patch_t const outputPatch)
     mData.speakerSetup.order.removeFirstMatchingValue(outputPatch);
     mData.speakerSetup.speakers.remove(outputPatch);
 
+    removeInvalidDirectOuts();
     updateViewportConfig();
     updateAudioProcessor();
 }
@@ -2259,7 +2260,6 @@ void MainContentComponent::textEditorFocusLost(juce::TextEditor & textEditor)
 void MainContentComponent::textEditorReturnKeyPressed([[maybe_unused]] juce::TextEditor & textEditor)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-    jassert(&textEditor == mNumSourcesTextEditor.get());
     if (&textEditor != mNumSourcesTextEditor.get()) {
         return;
     }

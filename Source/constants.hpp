@@ -31,6 +31,7 @@ constexpr auto HRTF_NUM_SAMPLES = 128;
 constexpr dbfs_t DEFAULT_PINK_NOISE_DB{ -20.0f };
 constexpr auto DEFAULT_SAMPLE_RATE{ 48000.0 };
 constexpr auto DEFAULT_BUFFER_SIZE{ 512 };
+constexpr auto SQRT3{ 1.7320508075688772935274463415059f };
 
 constexpr juce::Range<source_index_t> LEGAL_SOURCE_INDEX_RANGE{ source_index_t{ 1 },
                                                                 source_index_t{ MAX_NUM_SOURCES } };

@@ -182,6 +182,10 @@ public:
     explicit constexpr degrees_t(type const & value) : StrongFloat(value) {}
     //==============================================================================
     [[nodiscard]] constexpr degrees_t centered() const noexcept { return centeredAroundZero(static_cast<type>(360)); }
+    [[nodiscard]] constexpr degrees_t madePositive() const noexcept
+    {
+        return degrees_t{ mValue < 0 ? mValue + static_cast<type>(360) : mValue };
+    }
 };
 
 //==============================================================================
@@ -197,6 +201,11 @@ public:
     [[nodiscard]] constexpr radians_t centered() const noexcept
     {
         return centeredAroundZero(juce::MathConstants<type>::twoPi);
+    }
+    //==============================================================================
+    [[nodiscard]] constexpr radians_t madePositive() const noexcept
+    {
+        return radians_t{ mValue < 0 ? mValue + juce::MathConstants<type>::twoPi : mValue };
     }
     //==============================================================================
     [[nodiscard]] constexpr degrees_t toDegrees() const noexcept
