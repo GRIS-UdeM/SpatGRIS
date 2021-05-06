@@ -1430,7 +1430,7 @@ void MainContentComponent::removeInvalidDirectOuts()
 
     if (madeChange) {
         refreshSourceVuMeterComponents();
-        juce::AlertWindow::showMessageBox(
+        juce::AlertWindow::showMessageBoxAsync(
             juce::AlertWindow::AlertIconType::WarningIcon,
             "Dropped direct out",
             "One or more direct outs were disabled because the speakers where not available anymore.",

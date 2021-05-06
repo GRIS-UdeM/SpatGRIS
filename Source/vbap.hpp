@@ -2,13 +2,13 @@
  * Functions for 3D VBAP processing based on work by Ville Pulkki.
  * (c) Ville Pulkki - 2.2.1999 Helsinki University of Technology.
  * Updated by belangeo, 2017.
- * Updated by Samuel Béland, 2021.
+ * Updated by Samuel BÃ©land, 2021.
  */
 
 /*
  This file is part of SpatGRIS.
 
- Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
+ Developers: Samuel BÃ©land, Olivier BÃ©langer, Nicolas Masson
 
  SpatGRIS is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
