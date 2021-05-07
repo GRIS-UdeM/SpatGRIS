@@ -5,11 +5,47 @@
 //==============================================================================
 SpatModeComponent::SpatModeComponent(Listener & listener) : mListener(listener)
 {
+    using flag = juce::Button::ConnectedEdgeFlags;
+
+    static auto const getFlags = [](int const index) {
+        static_assert(NUM_ROWS == 2 && NUM_COLS == 2);
+
+        int result{};
+
+        switch (result / NUM_COLS) {
+        case 0:
+            result |= flag::ConnectedOnBottom;
+            break;
+        case 1:
+            result |= flag::ConnectedOnTop;
+            break;
+        default:
+            jassertfalse;
+        }
+
+        switch (result % NUM_ROWS) {
+        case 0:
+            result |= flag::ConnectedOnRight;
+            break;
+        case 1:
+            result |= flag::ConnectedOnLeft;
+            break;
+        default:
+            jassertfalse;
+        }
+
+        return result;
+    };
+
     mButtons.ensureStorageAllocated(SPAT_MODE_STRINGS.size());
-    for (auto const & spatModeString : SPAT_MODE_STRINGS) {
-        auto * newButton{ mButtons.add(std::make_unique<juce::TextButton>(spatModeString)) };
+
+    for (int i{}; i < SPAT_MODE_STRINGS.size(); ++i) {
+        auto * newButton{ mButtons.add(std::make_unique<juce::TextButton>(SPAT_MODE_STRINGS[i])) };
+        newButton->setTooltip(SPAT_MODE_TOOLTIPS[i]);
         newButton->setClickingTogglesState(true);
         newButton->setRadioGroupId(SPAT_MODE_BUTTONS_RADIO_GROUP_ID, juce::dontSendNotification);
+        newButton->setConnectedEdges(getFlags(i));
+        newButton->addListener(this);
         addAndMakeVisible(newButton);
     }
 
@@ -41,17 +77,20 @@ void SpatModeComponent::buttonClicked(juce::Button * button)
 //==============================================================================
 void SpatModeComponent::resized()
 {
-    static constexpr auto NUM_COLS = 2;
-    static constexpr auto NUM_ROWS = 2;
     jassert(NUM_COLS * NUM_ROWS == mButtons.size());
 
-    auto const buttonWidth{ getWidth() / NUM_COLS };
-    auto const buttonHeight{ getHeight() / NUM_ROWS };
+    auto const buttonWidth{ getWidth() / NUM_COLS + SPACING_TO_REMOVE * 2 };
+    auto const buttonHeight{ getHeight() / NUM_ROWS + SPACING_TO_REMOVE * 2 };
 
     for (int i{}; i < NUM_ROWS; ++i) {
+        auto const yOffset{ SPACING_TO_REMOVE + i * 2 * SPACING_TO_REMOVE };
         for (int j{}; j < NUM_COLS; ++j) {
+            auto const xOffset{ SPACING_TO_REMOVE + j * 2 * SPACING_TO_REMOVE };
             auto const index{ i * NUM_COLS + j };
-            juce::Rectangle<int> const bounds{ j * buttonWidth, i * buttonHeight, buttonWidth, buttonHeight };
+            juce::Rectangle<int> const bounds{ j * buttonWidth - xOffset,
+                                               i * buttonHeight - yOffset,
+                                               buttonWidth,
+                                               buttonHeight };
             mButtons[index]->setBounds(bounds);
         }
     }

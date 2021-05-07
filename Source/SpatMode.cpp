@@ -22,7 +22,11 @@
 #include "constants.hpp"
 
 //==============================================================================
-juce::StringArray const SPAT_MODE_STRINGS{ "DOME", "CUBE", "BINAURAL", "STEREO" };
+juce::StringArray const SPAT_MODE_STRINGS{ "Dome", "Cube", "Binaural", "Stereo" };
+juce::StringArray const SPAT_MODE_TOOLTIPS{ "Equidistant speaker dome implemented using the VBAP algorithm",
+                                            "Free-form speaker setup implemented using the LBAP algorithm",
+                                            "Headphone setup implemented using VBAP and HRTF algorithms",
+                                            "Simple Left/Right source panning" };
 
 //==============================================================================
 juce::String spatModeToString(SpatMode const mode)

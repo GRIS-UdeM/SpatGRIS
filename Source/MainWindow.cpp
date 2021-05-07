@@ -33,7 +33,7 @@ MainWindow::MainWindow(juce::String const & name,
     setResizable(true, true);
 
     // this lets the command manager use keypresses that arrive in our window.
-    addKeyListener(getApplicationCommandManager().getKeyMappings());
+    DocumentWindow::addKeyListener(getApplicationCommandManager().getKeyMappings());
 
     // These offset values compensate for the title bar size.
 #ifdef __linux__
@@ -54,15 +54,15 @@ MainWindow::MainWindow(juce::String const & name,
         if (fitInside) {
             auto const windowY{ appData.windowY };
             auto const windowHeight{ appData.windowHeight };
-            setBounds(windowX - X_OFFSET, windowY - Y_OFFSET, windowWidth, windowHeight);
+            DocumentWindow::setBounds(windowX - X_OFFSET, windowY - Y_OFFSET, windowWidth, windowHeight);
         } else {
-            centreWithSize(getWidth(), getHeight());
+            DocumentWindow::centreWithSize(DocumentWindow::getWidth(), DocumentWindow::getHeight());
         }
     } else {
-        centreWithSize(getWidth(), getHeight());
+        DocumentWindow::centreWithSize(DocumentWindow::getWidth(), DocumentWindow::getHeight());
     }
 
-    MainWindow::setVisible(true);
+    DocumentWindow::setVisible(true);
 }
 
 //==============================================================================

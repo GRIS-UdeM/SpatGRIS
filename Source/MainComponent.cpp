@@ -154,13 +154,6 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         mInterpolationSlider.reset(addSlider("Inter", "Interpolation", 70, 45, 60, 60, mControlUiBox->getContent()));
         mInterpolationSlider->setRange(0.0, 1.0, 0.001);
 
-        addLabel("Mode :", "Mode of spatialization", 150, 30, 60, 20, mControlUiBox->getContent());
-        mSpatModeCombo.reset(addComboBox("", "Mode of spatialization", 155, 48, 90, 22, mControlUiBox->getContent()));
-        for (int i{}; i < SPAT_MODE_STRINGS.size(); i++) {
-            mSpatModeCombo->addItem(SPAT_MODE_STRINGS[i], i + 1);
-        }
-        mSpatModeCombo->setSelectedId(narrow<int>(mData.appData.spatMode) + 1, juce::dontSendNotification);
-
         mNumSourcesTextEditor.reset(
             addTextEditor("Inputs :", "0", "Numbers of Inputs", 122, 83, 43, 22, mControlUiBox->getContent()));
         mNumSourcesTextEditor->setInputRestrictions(3, "0123456789");
@@ -173,6 +166,9 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         mStartRecordButton->setEnabled(false);
 
         mTimeRecordedLabel.reset(addLabel("00:00", "Record time", 327, 83, 50, 24, mControlUiBox->getContent()));
+
+        mSpatModeComponent.setBounds(300, 83, 150, 50);
+        mControlUiBox->addAndMakeVisible(mSpatModeComponent);
 
         // Set up the layout and resize bars.
         mVerticalLayout.setItemLayout(0,
@@ -263,7 +259,7 @@ MainContentComponent::~MainContentComponent()
     {
         juce::ScopedWriteLock const lock{ mLock };
 
-        auto const bounds{ MainWindow::getMainAppWindow()->getBounds() };
+        auto const bounds{ MainWindow::getMainAppWindow()->DocumentWindow::getBounds() };
         mData.appData.windowX = bounds.getX();
         mData.appData.windowY = bounds.getY();
         mData.appData.windowWidth = bounds.getWidth();
@@ -1699,11 +1695,23 @@ void MainContentComponent::handleSpatModeChanged(SpatMode const spatMode)
 
     jassert(narrow<int>(spatMode) >= 0 && narrow<int>(spatMode) <= narrow<int>(SpatMode::stereo));
 
-    mSpatModeCombo->setSelectedId(static_cast<int>(spatMode) + 1, juce::dontSendNotification);
-
     if (mData.appData.spatMode == spatMode && mSpatAlgorithm) {
         return;
     }
+
+    if (isSpeakerSetupModified()) {
+        juce::AlertWindow alert(
+            "The speaker configuration has changed!    ",
+            "Save your changes or close the speaker configuration window before switching mode...    ",
+            juce::AlertWindow::WarningIcon);
+        alert.setLookAndFeel(&mLookAndFeel);
+        alert.addButton("Ok", 0, juce::KeyPress(juce::KeyPress::returnKey));
+        alert.runModalLoop();
+        mSpatModeComponent.setSpatMode(mData.appData.spatMode);
+        return;
+    }
+
+    mSpatModeComponent.setSpatMode(spatMode);
 
     // handle speaker setup change
     auto const getForcedSpeakerSetup = [&]() -> tl::optional<juce::File> {
@@ -1743,6 +1751,13 @@ void MainContentComponent::handleSpatModeChanged(SpatMode const spatMode)
 
     updateAudioProcessor();
     updateViewportConfig();
+
+    if (mEditSpeakersWindow != nullptr) {
+        auto const windowName{ juce::String("Speakers Setup Edition - ")
+                               + juce::String(SPAT_MODE_STRINGS[static_cast<int>(spatMode)]) + juce::String(" - ")
+                               + mData.appData.lastSpeakerSetup };
+        mEditSpeakersWindow->setName(windowName);
+    }
 }
 
 //==============================================================================
@@ -2095,7 +2110,7 @@ void MainContentComponent::loadSpeakerSetup(juce::File const & file, tl::optiona
     juce::ScopedWriteLock const lock{ mLock };
     mData.speakerSetup = std::move(speakerSetup->first);
     mData.appData.spatMode = forceSpatMode.value_or(speakerSetup->second);
-    mSpatModeCombo->setSelectedId(narrow<int>(mData.appData.spatMode) + 1, juce::dontSendNotification);
+    mSpatModeComponent.setSpatMode(mData.appData.spatMode);
 
     switch (mData.appData.spatMode) {
     case SpatMode::lbap:
@@ -2119,7 +2134,7 @@ void MainContentComponent::setTitle() const
     juce::File const currentProject{ mData.appData.lastProject };
     auto const title{ juce::String{ "SpatGRIS v" } + juce::JUCEApplication::getInstance()->getApplicationVersion()
                       + " - " + currentProject.getFileName() };
-    mMainWindow.setName(title);
+    mMainWindow.DocumentWindow::setName(title);
 }
 
 //==============================================================================
@@ -2312,32 +2327,6 @@ void MainContentComponent::comboBoxChanged(juce::ComboBox * comboBoxThatHasChang
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
-
-    if (comboBoxThatHasChanged == mSpatModeCombo.get()) {
-        if (isSpeakerSetupModified()) {
-            juce::AlertWindow alert(
-                "The speaker configuration has changed!    ",
-                "Save your changes or close the speaker configuration window before switching mode...    ",
-                juce::AlertWindow::WarningIcon);
-            alert.setLookAndFeel(&mLookAndFeel);
-            alert.addButton("Ok", 0, juce::KeyPress(juce::KeyPress::returnKey));
-            alert.runModalLoop();
-            mSpatModeCombo->setSelectedId(static_cast<int>(mData.appData.spatMode) + 1,
-                                          juce::NotificationType::dontSendNotification);
-            return;
-        }
-
-        juce::ScopedLock const audioLock{ mAudioProcessor->getLock() };
-        auto const newSpatMode{ static_cast<SpatMode>(mSpatModeCombo->getSelectedId() - 1) };
-        handleSpatModeChanged(newSpatMode);
-
-        if (mEditSpeakersWindow != nullptr) {
-            auto const windowName{ juce::String("Speakers Setup Edition - ")
-                                   + juce::String(SPAT_MODE_STRINGS[static_cast<int>(newSpatMode)])
-                                   + juce::String(" - ") + mData.appData.lastSpeakerSetup };
-            mEditSpeakersWindow->setName(windowName);
-        }
-    }
 }
 
 //==============================================================================

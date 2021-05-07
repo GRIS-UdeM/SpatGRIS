@@ -35,6 +35,7 @@
 #include "OscLogWindow.h"
 #include "OwnedMap.hpp"
 #include "SettingsWindow.h"
+#include "SpatModeComponent.h"
 #include "SpeakerViewComponent.h"
 #include "StrongTypes.hpp"
 #include "Triplet.hpp"
@@ -70,6 +71,7 @@ class MainContentComponent final
     , public SpeakerVuMeterComponent::Owner
     , private AudioDeviceManagerListener
     , private juce::Timer
+    , private SpatModeComponent::Listener
 {
     enum class LoadProjectOption { removeInvalidDirectOuts, dontRemoveInvalidDirectOuts };
 
@@ -115,7 +117,7 @@ class MainContentComponent final
     std::unique_ptr<juce::Label> mBufferSizeLabel{};
     std::unique_ptr<juce::Label> mChannelCountLabel{};
 
-    std::unique_ptr<juce::ComboBox> mSpatModeCombo{};
+    SpatModeComponent mSpatModeComponent{ *this };
 
     std::unique_ptr<juce::Slider> mMasterGainOutSlider{};
     std::unique_ptr<juce::Slider> mInterpolationSlider{};
@@ -213,7 +215,7 @@ public:
     void handleSourceDirectOutChanged(source_index_t sourceIndex, tl::optional<output_patch_t> outputPatch) override;
     [[nodiscard]] SpeakersData const & getSpeakersData() const override { return mData.speakerSetup.speakers; }
 
-    void handleSpatModeChanged(SpatMode spatMode);
+    void handleSpatModeChanged(SpatMode spatMode) override;
     void handleMasterGainChanged(dbfs_t gain);
     void handleGainInterpolationChanged(float interpolation);
     void handleNewSpeakerPosition(output_patch_t outputPatch, CartesianVector const & position);

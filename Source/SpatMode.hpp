@@ -26,6 +26,7 @@
 enum class SpatMode { vbap = 0, lbap, hrtfVbap, stereo };
 //==============================================================================
 extern juce::StringArray const SPAT_MODE_STRINGS;
+extern juce::StringArray const SPAT_MODE_TOOLTIPS;
 //==============================================================================
 juce::String spatModeToString(SpatMode mode);
 tl::optional<SpatMode> stringToSpatMode(juce::String const & string);

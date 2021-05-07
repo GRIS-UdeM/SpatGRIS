@@ -27,7 +27,9 @@
 /* This class implements the desktop window that contains an instance of
    our MainContentComponent class.
 */
-class MainWindow final : public juce::DocumentWindow
+class MainWindow final
+    : public juce::DocumentWindow
+    , public juce::TooltipWindow
 {
 public:
     enum CommandIDs {
