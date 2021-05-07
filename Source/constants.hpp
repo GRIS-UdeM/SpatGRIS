@@ -33,6 +33,8 @@ constexpr auto DEFAULT_SAMPLE_RATE{ 48000.0 };
 constexpr auto DEFAULT_BUFFER_SIZE{ 512 };
 constexpr auto SQRT3{ 1.7320508075688772935274463415059f };
 
+constexpr auto SPAT_MODE_BUTTONS_RADIO_GROUP_ID = 1;
+
 constexpr juce::Range<source_index_t> LEGAL_SOURCE_INDEX_RANGE{ source_index_t{ 1 },
                                                                 source_index_t{ MAX_NUM_SOURCES } };
 constexpr juce::Range<output_patch_t> LEGAL_OUTPUT_PATCH_RANGE{ output_patch_t{ 1 },

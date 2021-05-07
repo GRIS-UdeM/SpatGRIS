@@ -125,12 +125,26 @@
           <FILE id="iVF8jr" name="SettingsWindow.h" compile="0" resource="0"
                 file="Source/SettingsWindow.h"/>
         </GROUP>
-        <FILE id="MW5ESG" name="Box.cpp" compile="1" resource="0" file="Source/Box.cpp"/>
-        <FILE id="RG3FbE" name="Box.h" compile="0" resource="0" file="Source/Box.h"/>
-        <FILE id="AYI1c0" name="EditableTextCustomComponent.cpp" compile="1"
-              resource="0" file="Source/EditableTextCustomComponent.cpp"/>
-        <FILE id="kl6jjL" name="EditableTextCustomComponent.h" compile="0"
-              resource="0" file="Source/EditableTextCustomComponent.h"/>
+        <GROUP id="{C6903A38-7C1A-A838-2840-26A1ED5DB75F}" name="Widgets">
+          <FILE id="MW5ESG" name="Box.cpp" compile="1" resource="0" file="Source/Box.cpp"/>
+          <FILE id="RG3FbE" name="Box.h" compile="0" resource="0" file="Source/Box.h"/>
+          <FILE id="AYI1c0" name="EditableTextCustomComponent.cpp" compile="1"
+                resource="0" file="Source/EditableTextCustomComponent.cpp"/>
+          <FILE id="kl6jjL" name="EditableTextCustomComponent.h" compile="0"
+                resource="0" file="Source/EditableTextCustomComponent.h"/>
+          <FILE id="QQ90uW" name="SpatModeComponent.cpp" compile="1" resource="0"
+                file="Source/SpatModeComponent.cpp"/>
+          <FILE id="hM6col" name="SpatModeComponent.h" compile="0" resource="0"
+                file="Source/SpatModeComponent.h"/>
+          <FILE id="Tz4yI1" name="SpeakerViewComponent.cpp" compile="1" resource="0"
+                file="Source/SpeakerViewComponent.cpp"/>
+          <FILE id="ItaT5M" name="SpeakerViewComponent.h" compile="0" resource="0"
+                file="Source/SpeakerViewComponent.h"/>
+          <FILE id="UxDOKf" name="VuMeterComponent.cpp" compile="1" resource="0"
+                file="Source/VuMeterComponent.cpp"/>
+          <FILE id="pQThlS" name="VuMeterComponent.h" compile="0" resource="0"
+                file="Source/VuMeterComponent.h"/>
+        </GROUP>
         <FILE id="XuxvPq" name="GlSphere.h" compile="0" resource="0" file="Source/GlSphere.h"/>
         <FILE id="uYO3os" name="GrisLookAndFeel.cpp" compile="1" resource="0"
               file="Source/GrisLookAndFeel.cpp"/>
@@ -138,14 +152,6 @@
               file="Source/GrisLookAndFeel.h"/>
         <FILE id="I0ICQu" name="Ray.cpp" compile="1" resource="0" file="Source/Ray.cpp"/>
         <FILE id="oaSq5k" name="Ray.h" compile="0" resource="0" file="Source/Ray.h"/>
-        <FILE id="Tz4yI1" name="SpeakerViewComponent.cpp" compile="1" resource="0"
-              file="Source/SpeakerViewComponent.cpp"/>
-        <FILE id="ItaT5M" name="SpeakerViewComponent.h" compile="0" resource="0"
-              file="Source/SpeakerViewComponent.h"/>
-        <FILE id="UxDOKf" name="VuMeterComponent.cpp" compile="1" resource="0"
-              file="Source/VuMeterComponent.cpp"/>
-        <FILE id="pQThlS" name="VuMeterComponent.h" compile="0" resource="0"
-              file="Source/VuMeterComponent.h"/>
       </GROUP>
       <FILE id="g2wgxx" name="Application.cpp" compile="1" resource="0" file="Source/Application.cpp"/>
       <FILE id="ObG5vj" name="Application.h" compile="0" resource="0" file="Source/Application.h"/>
