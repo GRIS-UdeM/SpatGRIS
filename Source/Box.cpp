@@ -70,7 +70,7 @@ void Box::paint(juce::Graphics & g)
 }
 
 //==============================================================================
-MainUiSection::MainUiSection(juce::String title, juce::Component & contentComponent, GrisLookAndFeel & lookAndFeel)
+MainUiSection::MainUiSection(juce::String title, MinSizedComponent * contentComponent, GrisLookAndFeel & lookAndFeel)
     : mTitle(std::move(title))
     , mContentComponent(contentComponent)
     , mLookAndFeel(lookAndFeel)
@@ -83,7 +83,7 @@ void MainUiSection::resized()
 {
     auto const availableHeight{ std::max(getHeight() - TITLE_HEIGHT, 0) };
     juce::Rectangle<int> const contentBounds{ 0, TITLE_HEIGHT, getWidth(), availableHeight };
-    mContentComponent.setBounds(contentBounds);
+    mContentComponent->setBounds(contentBounds);
 }
 
 //==============================================================================

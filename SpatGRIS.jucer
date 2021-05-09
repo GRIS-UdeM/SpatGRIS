@@ -132,6 +132,12 @@
                 resource="0" file="Source/EditableTextCustomComponent.cpp"/>
           <FILE id="kl6jjL" name="EditableTextCustomComponent.h" compile="0"
                 resource="0" file="Source/EditableTextCustomComponent.h"/>
+          <FILE id="SCdZpj" name="LayoutComponent.cpp" compile="1" resource="0"
+                file="Source/LayoutComponent.cpp"/>
+          <FILE id="ssxZC6" name="LayoutComponent.h" compile="0" resource="0"
+                file="Source/LayoutComponent.h"/>
+          <FILE id="jAqe5H" name="MinSizedComponent.hpp" compile="0" resource="0"
+                file="Source/MinSizedComponent.hpp"/>
           <FILE id="QQ90uW" name="SpatModeComponent.cpp" compile="1" resource="0"
                 file="Source/SpatModeComponent.cpp"/>
           <FILE id="hM6col" name="SpatModeComponent.h" compile="0" resource="0"

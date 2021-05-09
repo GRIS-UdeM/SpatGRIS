@@ -23,6 +23,7 @@
 
 #include "GrisLookAndFeel.h"
 #include "LogicStrucs.hpp"
+#include "MinSizedComponent.hpp"
 #include "StrongTypes.hpp"
 
 static dbfs_t constexpr MIN_LEVEL_COMP{ -60.0f };
@@ -55,7 +56,7 @@ public:
     LevelBox & operator=(LevelBox const &) = delete;
     LevelBox & operator=(LevelBox &&) = delete;
     //==============================================================================
-    void setBounds(juce::Rectangle<int> const & newBounds);
+    void resized() override;
     void resetClipping();
     void setLevel(dbfs_t level);
     void setMuted(bool muted);
@@ -70,10 +71,13 @@ private:
 
 //==============================================================================
 class AbstractVuMeterComponent
-    : public juce::Component
+    : public MinSizedComponent
     , public juce::ToggleButton::Listener
 {
 protected:
+    static constexpr auto ID_BUTTON_HEIGHT = 17;
+    static constexpr auto MUTE_AND_SOLO_BUTTONS_HEIGHT = 15;
+
     SmallGrisLookAndFeel & mLookAndFeel;
 
     LevelBox mLevelBox;
@@ -99,7 +103,8 @@ public:
     void resetClipping() { mLevelBox.resetClipping(); }
     void setState(PortState state, bool soloMode);
     //==============================================================================
-    virtual void setBounds(juce::Rectangle<int> const & newBounds);
+    void resized() override;
+    [[nodiscard]] int getMinWidth() const noexcept final { return VU_METER_WIDTH; }
 
 private:
     //==============================================================================
@@ -126,6 +131,7 @@ public:
     };
 
 private:
+    static constexpr auto DIRECT_OUT_BUTTON_HEIGHT = 17;
     //==============================================================================
     source_index_t mSourceIndex{};
     juce::TextButton mDirectOutButton;
@@ -150,8 +156,9 @@ public:
     //==============================================================================
     // overrides
     void buttonClicked(juce::Button * button) override;
-    void setBounds(const juce::Rectangle<int> & newBounds) override;
+    void resized() override;
     void changeListenerCallback(juce::ChangeBroadcaster * source) override;
+    [[nodiscard]] int getMinHeight() const noexcept override;
 
 private:
     //==============================================================================
@@ -194,6 +201,7 @@ public:
     void setSelected(bool value);
     //==============================================================================
     void buttonClicked(juce::Button * button) override;
+    [[nodiscard]] int getMinHeight() const noexcept override;
 
 private:
     //==============================================================================

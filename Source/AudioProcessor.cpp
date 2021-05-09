@@ -328,7 +328,7 @@ void AudioProcessor::processVBapHrtf(SourceAudioBuffer const & inputBuffer,
         auto & hrtfInputTmp{ hrtfState.inputTmp };
         auto const outputIndex{ speaker.key.removeOffset<size_t>() };
         auto const & outputSamplesBuffer{ outputBuffer[speaker.key] };
-        if (outputSamplesBuffer.getMagnitude(0, numSamples) == 0.0f) {
+        if (outputSamplesBuffer.getMagnitude(0, numSamples) < SMALL_GAIN) {
             continue;
         }
         auto const * outputSamples{ outputBuffer[speaker.key].getReadPointer(0) };

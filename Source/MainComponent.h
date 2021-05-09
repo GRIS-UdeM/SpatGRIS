@@ -30,6 +30,7 @@
 #include "Configuration.h"
 #include "EditSpeakersWindow.h"
 #include "FlatViewWindow.h"
+#include "LayoutComponent.h"
 #include "LogicStrucs.hpp"
 #include "OscInput.h"
 #include "OscLogWindow.h"
@@ -96,19 +97,18 @@ class MainContentComponent final
     std::unique_ptr<OscLogWindow> mOscLogWindow{};
 
     // Sources Section
-    juce::Viewport mSourcesVuMetersViewport{};
     std::unique_ptr<MainUiSection> mSourcesSection{};
+    std::unique_ptr<LayoutComponent> mSourcesLayout{};
 
     // Speakers Section
-    juce::Viewport mSpeakersVuMetersViewport{};
     std::unique_ptr<MainUiSection> mSpeakersSection{};
+    std::unique_ptr<LayoutComponent> mSpeakersLayout{};
 
     // Controls section
     std::unique_ptr<Box> mControlUiBox{};
 
     // Main ui
-    juce::Component mMainUiComponent{};
-    juce::Viewport mMainUiViewport{};
+    std::unique_ptr<LayoutComponent> mMainLayout{};
 
     // Component in Box 3.
     std::unique_ptr<juce::Label> mCpuUsageLabel{};

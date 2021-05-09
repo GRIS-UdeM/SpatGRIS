@@ -99,36 +99,24 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         addAndMakeVisible(mSpeakerViewComponent.get());
 
         // Box Main
-        mMainUiViewport.setScrollBarsShown(true, false);
-        mMainUiViewport.setScrollBarThickness(15);
-        mMainUiViewport.getHorizontalScrollBar().setColour(juce::ScrollBar::ColourIds::thumbColourId,
-                                                           mLookAndFeel.getScrollBarColour());
-        mMainUiViewport.setViewedComponent(&mMainUiComponent, false);
+        mMainLayout = std::make_unique<LayoutComponent>(LayoutComponent::Orientation::vertical, grisLookAndFeel);
 
         // Box Inputs
-        mSourcesVuMetersViewport.setScrollBarsShown(false, true);
-        mSourcesVuMetersViewport.setScrollBarThickness(15);
-        mSourcesVuMetersViewport.getHorizontalScrollBar().setColour(juce::ScrollBar::ColourIds::thumbColourId,
-                                                                    mLookAndFeel.getScrollBarColour());
-        mSourcesVuMetersViewport.setViewedComponent(new juce::Component{}, true);
-        mSourcesSection = std::make_unique<MainUiSection>("Inputs", mSourcesVuMetersViewport, mLookAndFeel);
+        mSourcesLayout = std::make_unique<LayoutComponent>(LayoutComponent::Orientation::horizontal, grisLookAndFeel);
+        mSourcesSection = std::make_unique<MainUiSection>("Inputs", mSourcesLayout.get(), mLookAndFeel);
 
         // Box Outputs
-        mSpeakersVuMetersViewport.setScrollBarsShown(false, true);
-        mSpeakersVuMetersViewport.setScrollBarThickness(15);
-        mSpeakersVuMetersViewport.getHorizontalScrollBar().setColour(juce::ScrollBar::ColourIds::thumbColourId,
-                                                                     mLookAndFeel.getScrollBarColour());
-        mSpeakersVuMetersViewport.setViewedComponent(new juce::Component{}, true);
-        mSpeakersSection = std::make_unique<MainUiSection>("Outputs", mSpeakersVuMetersViewport, mLookAndFeel);
+        mSpeakersLayout = std::make_unique<LayoutComponent>(LayoutComponent::Orientation::horizontal, grisLookAndFeel);
+        mSpeakersSection = std::make_unique<MainUiSection>("Outputs", mSpeakersLayout.get(), mLookAndFeel);
 
         // Box Control
         mControlUiBox = std::make_unique<Box>(mLookAndFeel, "Controls");
 
-        mMainUiComponent.addAndMakeVisible(*mSourcesSection);
-        mMainUiComponent.addAndMakeVisible(*mSpeakersSection);
-        mMainUiComponent.addAndMakeVisible(mControlUiBox.get());
+        mMainLayout->addSection(mSourcesSection.get()).withRelativeSize(1.0f);
+        mMainLayout->addSection(mSpeakersSection.get()).withRelativeSize(1.0f);
+        // mMainLayout->addSection(mControlUiBox.get()).withChildMinSize();
 
-        addAndMakeVisible(mMainUiViewport);
+        addAndMakeVisible(mMainLayout.get());
 
         // Components in Box Control
         mCpuUsageLabel.reset(addLabel("CPU usage", "CPU usage", 0, 0, 80, 28, mControlUiBox->getContent()));
@@ -1362,6 +1350,7 @@ void MainContentComponent::refreshSourceVuMeterComponents()
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
+    mSourcesLayout->clear();
     mSourceVuMeterComponents.clear();
 
     auto x{ 3 };
@@ -1371,9 +1360,9 @@ void MainContentComponent::refreshSourceVuMeterComponents()
                                                                   source.value->colour,
                                                                   *this,
                                                                   mSmallLookAndFeel) };
-        mSourcesVuMetersViewport.getViewedComponent()->addAndMakeVisible(newVuMeter.get());
-        juce::Rectangle<int> const bounds{ x, 5, VU_METER_WIDTH, 200 };
-        newVuMeter->setBounds(bounds);
+        mSourcesLayout->addSection(newVuMeter.get()).withChildMinSize();
+        // juce::Rectangle<int> const bounds{ x, 5, VU_METER_WIDTH, 200 };
+        // newVuMeter->setBounds(bounds);
         mSourceVuMeterComponents.add(source.key, std::move(newVuMeter));
         x += VU_METER_WIDTH;
     }
@@ -1387,12 +1376,13 @@ void MainContentComponent::refreshSpeakerVuMeterComponents()
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
+    mSpeakersLayout->clear();
     mSpeakerVuMeters.clear();
 
     auto x{ 3 };
     for (auto const outputPatch : mData.speakerSetup.order) {
         auto newVuMeter{ std::make_unique<SpeakerVuMeterComponent>(outputPatch, *this, mSmallLookAndFeel) };
-        mSpeakersVuMetersViewport.getViewedComponent()->addAndMakeVisible(newVuMeter.get());
+        mSpeakersLayout->addSection(newVuMeter.get()).withChildMinSize();
         juce::Rectangle<int> const bounds{ x, 5, VU_METER_WIDTH, 200 };
         newVuMeter->setBounds(bounds);
         mSpeakerVuMeters.add(outputPatch, std::move(newVuMeter));
@@ -2430,23 +2420,23 @@ void MainContentComponent::resized()
                                                    MENU_BAR_HEIGHT,
                                                    getWidth() - (mSpeakerViewComponent->getWidth() + PADDING),
                                                    getHeight() };
-    mMainUiViewport.setBounds(newMainUiBoxBounds);
-    mMainUiComponent.setSize(getWidth() - mSpeakerViewComponent->getWidth() - 6, 610);
+    mMainLayout->setBounds(newMainUiBoxBounds);
+    /*mMainUiComponent.setSize(getWidth() - mSpeakerViewComponent->getWidth() - 6, 610);*/
 
     juce::Rectangle<int> const newInputsUiBoxBounds{ 0,
                                                      2,
                                                      getWidth() - (mSpeakerViewComponent->getWidth() + PADDING),
                                                      231 };
-    mSourcesSection->setBounds(newInputsUiBoxBounds);
-    mSourcesVuMetersViewport.getViewedComponent()->setSize(mData.project.sources.size() * VU_METER_WIDTH + 4, 200);
+    mSourcesLayout->setBounds(newInputsUiBoxBounds);
+    // mSourcesVuMetersViewport.getViewedComponent()->setSize(mData.project.sources.size() * VU_METER_WIDTH + 4, 200);
 
     juce::Rectangle<int> const newOutputsUiBoxBounds{ 0,
                                                       233,
                                                       getWidth() - (mSpeakerViewComponent->getWidth() + PADDING),
                                                       210 };
-    mSpeakersSection->setBounds(newOutputsUiBoxBounds);
-    mSpeakersVuMetersViewport.getViewedComponent()->setSize(mData.speakerSetup.speakers.size() * VU_METER_WIDTH + 4,
-                                                            180);
+    mSpeakersLayout->setBounds(newOutputsUiBoxBounds);
+    /*mSpeakersVuMetersViewport.getViewedComponent()->setSize(mData.speakerSetup.speakers.size() * VU_METER_WIDTH + 4,
+                                                            180);*/
 
     juce::Rectangle<int> const newControlUiBoxBounds{ 0,
                                                       443,

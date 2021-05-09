@@ -25,18 +25,9 @@
 juce::String const SourceVuMeterComponent::NO_DIRECT_OUT_TEXT = "-";
 
 //==============================================================================
-void LevelBox::setBounds(juce::Rectangle<int> const & newBounds)
+void LevelBox::resized()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-
-    auto const shouldRecomputeImages{ newBounds.getWidth() != getBounds().getWidth()
-                                      || newBounds.getHeight() != getBounds().getHeight() };
-
-    juce::Component::setBounds(newBounds);
-
-    if (!shouldRecomputeImages) {
-        return;
-    }
 
     mColorGrad
         = juce::ColourGradient{ juce::Colour::fromRGB(255, 94, 69), 0.f,  0.f, juce::Colour::fromRGB(17, 255, 159), 0.f,
@@ -193,12 +184,12 @@ AbstractVuMeterComponent::AbstractVuMeterComponent(int const channel, SmallGrisL
     };
 
     // Id
-    mIdButton.setBounds(0, 0, VU_METER_WIDTH, 17);
+    mIdButton.setBounds(0, 0, VU_METER_WIDTH, ID_BUTTON_HEIGHT);
     mIdButton.setButtonText(juce::String{ channel });
     initButton(mIdButton);
 
     // Mute button
-    mMuteButton.setSize(VU_METER_WIDTH / 2, 15);
+    mMuteButton.setSize(VU_METER_WIDTH / 2, MUTE_AND_SOLO_BUTTONS_HEIGHT);
     mMuteButton.setClickingTogglesState(true);
     initButton(mMuteButton);
 
@@ -206,7 +197,7 @@ AbstractVuMeterComponent::AbstractVuMeterComponent(int const channel, SmallGrisL
     initMuteOrSoloLabel(mMuteLabel, "m");
 
     // Solo button
-    mSoloButton.setSize(VU_METER_WIDTH / 2, 15);
+    mSoloButton.setSize(VU_METER_WIDTH / 2, MUTE_AND_SOLO_BUTTONS_HEIGHT);
     mSoloButton.setClickingTogglesState(true);
     initButton(mSoloButton);
 
@@ -263,24 +254,32 @@ void SpeakerVuMeterComponent::buttonClicked(juce::Button * button)
 }
 
 //==============================================================================
-void AbstractVuMeterComponent::setBounds(juce::Rectangle<int> const & newBounds)
+int SpeakerVuMeterComponent::getMinHeight() const noexcept
+{
+    static constexpr auto PADDING = 20;
+    return ID_BUTTON_HEIGHT + VU_METER_HEIGHT + MUTE_AND_SOLO_BUTTONS_HEIGHT + PADDING;
+}
+
+//==============================================================================
+void AbstractVuMeterComponent::resized()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    juce::Component::setBounds(newBounds);
-
-    juce::Rectangle<int> const idBounds{ 0, 0, newBounds.getWidth(), mIdButton.getHeight() };
+    juce::Rectangle<int> const idBounds{ 0, 0, VU_METER_WIDTH, ID_BUTTON_HEIGHT };
     mIdButton.setBounds(idBounds);
 
-    juce::Rectangle<int> const muteButtonBounds{ 0, 158, VU_METER_WIDTH / 2, mMuteButton.getHeight() };
+    juce::Rectangle<int> const muteButtonBounds{ 0, 158, VU_METER_WIDTH / 2, MUTE_AND_SOLO_BUTTONS_HEIGHT };
     mMuteButton.setBounds(muteButtonBounds);
     mMuteLabel.setBounds(muteButtonBounds.withSizeKeepingCentre(100, 100));
 
-    juce::Rectangle<int> const soloButtonBounds{ VU_METER_WIDTH / 2, 158, VU_METER_WIDTH / 2, mSoloButton.getHeight() };
+    juce::Rectangle<int> const soloButtonBounds{ VU_METER_WIDTH / 2,
+                                                 158,
+                                                 VU_METER_WIDTH / 2,
+                                                 MUTE_AND_SOLO_BUTTONS_HEIGHT };
     mSoloButton.setBounds(soloButtonBounds);
     mSoloLabel.setBounds(soloButtonBounds.withSizeKeepingCentre(100, 100));
 
-    juce::Rectangle<int> const levelBoxBounds{ 0, 18, newBounds.getWidth() - 1, VU_METER_HEIGHT };
+    juce::Rectangle<int> const levelBoxBounds{ 0, ID_BUTTON_HEIGHT + 1, getWidth() - 1, VU_METER_HEIGHT };
     mLevelBox.setBounds(levelBoxBounds);
 }
 
@@ -296,7 +295,7 @@ SourceVuMeterComponent::SourceVuMeterComponent(source_index_t const sourceIndex,
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    mDirectOutButton.setSize(VU_METER_WIDTH, 17);
+    mDirectOutButton.setSize(VU_METER_WIDTH, DIRECT_OUT_BUTTON_HEIGHT);
     mDirectOutButton.setColour(juce::Label::textColourId, lookAndFeel.getFontColour());
     mDirectOutButton.setLookAndFeel(&lookAndFeel);
     mDirectOutButton.addListener(this);
@@ -350,15 +349,18 @@ void SourceVuMeterComponent::buttonClicked(juce::Button * button)
 }
 
 //==============================================================================
-void SourceVuMeterComponent::setBounds(const juce::Rectangle<int> & newBounds)
+void SourceVuMeterComponent::resized()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    AbstractVuMeterComponent::setBounds(newBounds);
+    static constexpr auto DIRECT_OUT_BUTTON_PADDING = 10;
+
+    AbstractVuMeterComponent::resized();
 
     juce::Rectangle<int> const directOutButtonBounds{ 0,
-                                                      getHeight() - 27,
-                                                      newBounds.getWidth(),
+                                                      getHeight()
+                                                          - (DIRECT_OUT_BUTTON_HEIGHT + DIRECT_OUT_BUTTON_PADDING),
+                                                      getWidth(),
                                                       mDirectOutButton.getHeight() };
     mDirectOutButton.setBounds(directOutButtonBounds);
 }
@@ -373,6 +375,13 @@ void SourceVuMeterComponent::changeListenerCallback(juce::ChangeBroadcaster * so
     if (colorSelector != nullptr) {
         mOwner.handleSourceColorChanged(mSourceIndex, colorSelector->getCurrentColour());
     }
+}
+
+//==============================================================================
+int SourceVuMeterComponent::getMinHeight() const noexcept
+{
+    static constexpr auto PADDING = 20;
+    return ID_BUTTON_HEIGHT + VU_METER_HEIGHT + MUTE_AND_SOLO_BUTTONS_HEIGHT + DIRECT_OUT_BUTTON_HEIGHT + PADDING;
 }
 
 //==============================================================================

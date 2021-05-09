@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include <JuceHeader.h>
+#include "MinSizedComponent.hpp"
 
 class GrisLookAndFeel;
 class AbstractVuMeterComponent;
@@ -62,17 +62,17 @@ private:
 };
 
 //==============================================================================
-class MainUiSection final : public juce::Component
+class MainUiSection final : public MinSizedComponent
 {
     static constexpr auto TITLE_HEIGHT = 18;
 
     juce::String mTitle{};
-    juce::Component & mContentComponent;
+    MinSizedComponent * mContentComponent;
     GrisLookAndFeel & mLookAndFeel;
 
 public:
     //==============================================================================
-    MainUiSection(juce::String title, juce::Component & contentComponent, GrisLookAndFeel & lookAndFeel);
+    MainUiSection(juce::String title, MinSizedComponent * contentComponent, GrisLookAndFeel & lookAndFeel);
     ~MainUiSection() override = default;
     //==============================================================================
     MainUiSection(MainUiSection const &) = delete;
@@ -82,6 +82,12 @@ public:
     //==============================================================================
     void resized() override;
     void paint(juce::Graphics & g) override;
+
+    [[nodiscard]] int getMinWidth() const noexcept override { return mContentComponent->getMinWidth(); }
+    [[nodiscard]] int getMinHeight() const noexcept override
+    {
+        return mContentComponent->getMinHeight() + TITLE_HEIGHT;
+    }
 
 private:
     //==============================================================================
