@@ -99,14 +99,17 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         addAndMakeVisible(mSpeakerViewComponent.get());
 
         // Box Main
-        mMainLayout = std::make_unique<LayoutComponent>(LayoutComponent::Orientation::vertical, grisLookAndFeel);
+        mMainLayout
+            = std::make_unique<LayoutComponent>(LayoutComponent::Orientation::vertical, false, true, grisLookAndFeel);
 
         // Box Inputs
-        mSourcesLayout = std::make_unique<LayoutComponent>(LayoutComponent::Orientation::horizontal, grisLookAndFeel);
+        mSourcesLayout
+            = std::make_unique<LayoutComponent>(LayoutComponent::Orientation::horizontal, true, false, grisLookAndFeel);
         mSourcesSection = std::make_unique<MainUiSection>("Inputs", mSourcesLayout.get(), mLookAndFeel);
 
         // Box Outputs
-        mSpeakersLayout = std::make_unique<LayoutComponent>(LayoutComponent::Orientation::horizontal, grisLookAndFeel);
+        mSpeakersLayout
+            = std::make_unique<LayoutComponent>(LayoutComponent::Orientation::horizontal, true, false, grisLookAndFeel);
         mSpeakersSection = std::make_unique<MainUiSection>("Outputs", mSpeakersLayout.get(), mLookAndFeel);
 
         // Box Control
@@ -847,7 +850,7 @@ void MainContentComponent::handleResetMeterClipping()
     for (auto vuMeter : mSourceVuMeterComponents) {
         vuMeter.value->resetClipping();
     }
-    for (auto vuMeter : mSpeakerVuMeters) {
+    for (auto vuMeter : mSpeakerVuMeterComponents) {
         vuMeter.value->resetClipping();
     }
 }
@@ -1313,7 +1316,7 @@ void MainContentComponent::updatePeaks()
     for (auto const speaker : mData.speakerSetup.speakers) {
         auto const & peak{ speakerPeaks[speaker.key] };
         auto const dbPeak{ dbfs_t::fromGain(peak) };
-        mSpeakerVuMeters[speaker.key].setLevel(dbPeak);
+        mSpeakerVuMeterComponents[speaker.key].setLevel(dbPeak);
 
         auto & exchanger{ viewportData.speakersAlpha[speaker.key] };
         auto * ticket{ exchanger.acquire() };
@@ -1353,18 +1356,18 @@ void MainContentComponent::refreshSourceVuMeterComponents()
     mSourcesLayout->clear();
     mSourceVuMeterComponents.clear();
 
-    auto x{ 3 };
+    // auto x{ 3 };
     for (auto source : mData.project.sources) {
         auto newVuMeter{ std::make_unique<SourceVuMeterComponent>(source.key,
                                                                   source.value->directOut,
                                                                   source.value->colour,
                                                                   *this,
                                                                   mSmallLookAndFeel) };
-        mSourcesLayout->addSection(newVuMeter.get()).withChildMinSize();
+        auto & addedVuMeter{ mSourceVuMeterComponents.add(source.key, std::move(newVuMeter)) };
+        mSourcesLayout->addSection(&addedVuMeter).withChildMinSize();
         // juce::Rectangle<int> const bounds{ x, 5, VU_METER_WIDTH, 200 };
         // newVuMeter->setBounds(bounds);
-        mSourceVuMeterComponents.add(source.key, std::move(newVuMeter));
-        x += VU_METER_WIDTH;
+        // x += VU_METER_WIDTH;
     }
 
     resized();
@@ -1377,16 +1380,16 @@ void MainContentComponent::refreshSpeakerVuMeterComponents()
     juce::ScopedReadLock const lock{ mLock };
 
     mSpeakersLayout->clear();
-    mSpeakerVuMeters.clear();
+    mSpeakerVuMeterComponents.clear();
 
-    auto x{ 3 };
+    // auto x{ 3 };
     for (auto const outputPatch : mData.speakerSetup.order) {
         auto newVuMeter{ std::make_unique<SpeakerVuMeterComponent>(outputPatch, *this, mSmallLookAndFeel) };
-        mSpeakersLayout->addSection(newVuMeter.get()).withChildMinSize();
-        juce::Rectangle<int> const bounds{ x, 5, VU_METER_WIDTH, 200 };
-        newVuMeter->setBounds(bounds);
-        mSpeakerVuMeters.add(outputPatch, std::move(newVuMeter));
-        x += VU_METER_WIDTH;
+        auto & addedVuMeter{ mSpeakerVuMeterComponents.add(outputPatch, std::move(newVuMeter)) };
+        mSpeakersLayout->addSection(&addedVuMeter).withChildMinSize();
+        // juce::Rectangle<int> const bounds{ x, 5, VU_METER_WIDTH, 200 };
+        // newVuMeter->setBounds(bounds);
+        // x += VU_METER_WIDTH;
     }
 
     resized();
@@ -1634,7 +1637,7 @@ void MainContentComponent::handleSpeakerSelected(juce::Array<output_patch_t> con
         }
 
         speaker.value->isSelected = isSelected;
-        mSpeakerVuMeters[speaker.key].setSelected(isSelected);
+        mSpeakerVuMeterComponents[speaker.key].setSelected(isSelected);
 
         if (!isSelected || !mEditSpeakersWindow) {
             continue;
@@ -1660,7 +1663,7 @@ void MainContentComponent::handleSpeakerStateChanged(output_patch_t const output
         mData.speakerSetup.speakers.cend(),
         [](SpeakersData::ConstNode const & node) { return node.value->state == PortState::solo; }) };
 
-    mSpeakerVuMeters[outputPatch].setState(state, isAtLeastOneSpeakerSolo);
+    mSpeakerVuMeterComponents[outputPatch].setState(state, isAtLeastOneSpeakerSolo);
     // TODO : update 3D view ?
 }
 
@@ -2423,25 +2426,25 @@ void MainContentComponent::resized()
     mMainLayout->setBounds(newMainUiBoxBounds);
     /*mMainUiComponent.setSize(getWidth() - mSpeakerViewComponent->getWidth() - 6, 610);*/
 
-    juce::Rectangle<int> const newInputsUiBoxBounds{ 0,
-                                                     2,
-                                                     getWidth() - (mSpeakerViewComponent->getWidth() + PADDING),
-                                                     231 };
-    mSourcesLayout->setBounds(newInputsUiBoxBounds);
+    // juce::Rectangle<int> const newInputsUiBoxBounds{ 0,
+    //                                                 2,
+    //                                                 getWidth() - (mSpeakerViewComponent->getWidth() + PADDING),
+    //                                                 231 };
+    // mSourcesLayout->setBounds(newInputsUiBoxBounds);
     // mSourcesVuMetersViewport.getViewedComponent()->setSize(mData.project.sources.size() * VU_METER_WIDTH + 4, 200);
 
-    juce::Rectangle<int> const newOutputsUiBoxBounds{ 0,
-                                                      233,
-                                                      getWidth() - (mSpeakerViewComponent->getWidth() + PADDING),
-                                                      210 };
-    mSpeakersLayout->setBounds(newOutputsUiBoxBounds);
+    // juce::Rectangle<int> const newOutputsUiBoxBounds{ 0,
+    //                                                  233,
+    //                                                  getWidth() - (mSpeakerViewComponent->getWidth() + PADDING),
+    //                                                  210 };
+    // mSpeakersLayout->setBounds(newOutputsUiBoxBounds);
     /*mSpeakersVuMetersViewport.getViewedComponent()->setSize(mData.speakerSetup.speakers.size() * VU_METER_WIDTH + 4,
                                                             180);*/
 
-    juce::Rectangle<int> const newControlUiBoxBounds{ 0,
-                                                      443,
-                                                      getWidth() - (mSpeakerViewComponent->getWidth() + PADDING),
-                                                      145 };
-    mControlUiBox->setBounds(newControlUiBoxBounds);
-    mControlUiBox->correctSize(410, 145);
+    // juce::Rectangle<int> const newControlUiBoxBounds{ 0,
+    //                                                  443,
+    //                                                  getWidth() - (mSpeakerViewComponent->getWidth() + PADDING),
+    //                                                  145 };
+    // mControlUiBox->setBounds(newControlUiBoxBounds);
+    // mControlUiBox->correctSize(410, 145);
 }

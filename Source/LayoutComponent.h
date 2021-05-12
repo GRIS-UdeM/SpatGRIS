@@ -10,6 +10,8 @@ class GrisLookAndFeel;
 //==============================================================================
 class LayoutComponent final : public MinSizedComponent
 {
+    static constexpr auto SCROLL_BAR_WIDTH = 15;
+
 public:
     enum class Orientation { horizontal, vertical };
     //==============================================================================
@@ -104,47 +106,78 @@ public:
         }
 
     private:
-        [[nodiscard]] int getMinComponentSize(Orientation const orientation) const noexcept
+        [[nodiscard]] int getMinComponentWidth(Orientation const orientation) const noexcept
         {
+            if (orientation == Orientation::horizontal && mMode == Mode::fixed) {
+                return mFixedSize;
+            }
             if (!mComponent) {
                 return 0;
             }
-            return orientation == Orientation::horizontal ? mComponent->getMinWidth() : mComponent->getMinHeight();
+            return mComponent->getMinWidth();
         }
-        [[nodiscard]] int getMinSize(Orientation const orientation) const noexcept
+        [[nodiscard]] int getMinSectionWidth(Orientation const orientation) const noexcept
         {
-            auto const padding{ orientation == Orientation::horizontal ? mLeftPadding + mRightPadding
-                                                                       : mTopPadding + mBottomPadding };
-            auto const minComponentSize{ getMinComponentSize(orientation) };
+            return mLeftPadding + getMinComponentWidth(orientation) + mRightPadding;
+        }
+        [[nodiscard]] int computeComponentWidth(Orientation const orientation,
+                                                float const pixelsPerRelativeUnit) const noexcept
+        {
+            auto const minComponentWidth{ getMinComponentWidth(orientation) };
             switch (mMode) {
             case Mode::childMinSize:
-                return minComponentSize + padding;
             case Mode::fixed:
-                return std::max(mFixedSize, minComponentSize) + padding;
+                return minComponentWidth;
             case Mode::relative:
-                return minComponentSize + padding;
+                jassert(pixelsPerRelativeUnit >= 0.0f);
+                return std::max(narrow<int>(std::round(pixelsPerRelativeUnit * mRelativeSize)), minComponentWidth);
             case Mode::undefined:
             default:
-                jassertfalse;
+                break;
+            }
+            jassertfalse;
+            return 0;
+        }
+        [[nodiscard]] int computeSectionWidth(Orientation const orientation,
+                                              float const pixelsPerRelativeUnit) const noexcept
+        {
+            return mLeftPadding + computeComponentWidth(orientation, pixelsPerRelativeUnit) + mRightPadding;
+        }
+        [[nodiscard]] int getMinComponentHeight(Orientation const orientation) const noexcept
+        {
+            if (orientation == Orientation::vertical && mMode == Mode::fixed) {
+                return mFixedSize;
+            }
+            if (!mComponent) {
                 return 0;
             }
+            return mComponent->getMinHeight();
         }
-        [[nodiscard]] int getInnerSize(Orientation const orientation, float const pixelPerRelativeUnit) const noexcept
+        [[nodiscard]] int getMinSectionHeight(Orientation const orientation) const noexcept
         {
-            auto const minComponentSize{ getMinComponentSize(orientation) };
+            return mTopPadding + getMinComponentHeight(orientation) + mBottomPadding;
+        }
+        [[nodiscard]] int computeComponentHeight(Orientation const orientation,
+                                                 float const pixelsPerRelativeUnit) const noexcept
+        {
+            auto const minComponentHeight{ getMinComponentHeight(orientation) };
             switch (mMode) {
             case Mode::childMinSize:
-                return minComponentSize;
             case Mode::fixed:
-                return std::max(mFixedSize, minComponentSize);
+                return minComponentHeight;
             case Mode::relative:
-                jassert(pixelPerRelativeUnit >= 0.0f);
-                return std::max(narrow<int>(std::round(pixelPerRelativeUnit * mRelativeSize)), minComponentSize);
+                return std::max(narrow<int>(std::round(pixelsPerRelativeUnit * mRelativeSize)), minComponentHeight);
             case Mode::undefined:
             default:
-                jassertfalse;
-                return 0;
+                break;
             }
+            jassertfalse;
+            return 0;
+        }
+        [[nodiscard]] int computeSectionHeight(Orientation const orientation,
+                                               float const pixelsPerRelativeUnit) const noexcept
+        {
+            return mTopPadding + computeComponentHeight(orientation, pixelsPerRelativeUnit) + mBottomPadding;
         }
     };
 
@@ -153,10 +186,15 @@ private:
     Orientation mOrientation{};
     juce::Array<Section> mSections{};
     juce::Viewport mViewport{};
+    bool mIsHorizontalScrollable{};
+    bool mIsVerticalScrollable{};
 
 public:
     //==============================================================================
-    explicit LayoutComponent(Orientation orientation, GrisLookAndFeel & lookAndFeel) noexcept;
+    explicit LayoutComponent(Orientation orientation,
+                             bool isHorizontalScrollable,
+                             bool isVerticalScrollable,
+                             GrisLookAndFeel & lookAndFeel) noexcept;
     ~LayoutComponent() override = default;
     //==============================================================================
     LayoutComponent(LayoutComponent const &) = delete;
@@ -171,4 +209,11 @@ public:
     void resized() override;
     [[nodiscard]] int getMinWidth() const noexcept override;
     [[nodiscard]] int getMinHeight() const noexcept override;
+
+private:
+    //==============================================================================
+    [[nodiscard]] int getMinInnerWidth() const noexcept;
+    [[nodiscard]] int getMinInnerHeight() const noexcept;
+    //==============================================================================
+    JUCE_LEAK_DETECTOR(LayoutComponent)
 };

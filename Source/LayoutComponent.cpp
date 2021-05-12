@@ -8,15 +8,22 @@ static auto const MAX_ELEM = [](auto const a, auto const b) {
 };
 
 //==============================================================================
-LayoutComponent::LayoutComponent(Orientation const orientation, GrisLookAndFeel & lookAndFeel) noexcept
+LayoutComponent::LayoutComponent(Orientation const orientation,
+                                 bool const isHorizontalScrollable,
+                                 bool const isVerticalScrollable,
+                                 GrisLookAndFeel & lookAndFeel) noexcept
     : mOrientation(orientation)
+    , mIsHorizontalScrollable(isHorizontalScrollable)
+    , mIsVerticalScrollable(isVerticalScrollable)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    mViewport.setScrollBarsShown(true, true);
-    mViewport.setScrollBarThickness(15);
+    mViewport.setScrollBarsShown(isVerticalScrollable, isHorizontalScrollable);
+    mViewport.setScrollBarThickness(SCROLL_BAR_WIDTH);
     mViewport.getHorizontalScrollBar().setColour(juce::ScrollBar::ColourIds::thumbColourId,
                                                  lookAndFeel.getScrollBarColour());
+    mViewport.getVerticalScrollBar().setColour(juce::ScrollBar::ColourIds::thumbColourId,
+                                               lookAndFeel.getScrollBarColour());
     mViewport.setViewedComponent(new juce::Component{}, true);
     addAndMakeVisible(mViewport);
 }
@@ -37,23 +44,23 @@ LayoutComponent::Section & LayoutComponent::addSection(MinSizedComponent * compo
 void LayoutComponent::clear()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-    removeAllChildren();
+    mViewport.getViewedComponent()->removeAllChildren();
     mSections.clearQuick();
 }
 
 //==============================================================================
 void LayoutComponent::paint(juce::Graphics & g)
 {
-    for (auto const & section : mSections) {
-        if (!section.mComponent) {
-            continue;
-        }
-        auto const bounds{ section.mComponent->getBounds() };
-        g.setColour(juce::Colours::blue.withAlpha(0.5f));
-        g.fillRect(bounds);
-        g.setColour(juce::Colours::red.withAlpha(0.5f));
-        g.fillRect(bounds.reduced(2));
-    }
+    // for (auto const & section : mSections) {
+    //    if (!section.mComponent) {
+    //        continue;
+    //    }
+    //    auto const bounds{ section.mComponent->getBounds() };
+    //    g.setColour(juce::Colours::blue.withAlpha(0.5f));
+    //    g.fillRect(bounds);
+    //    g.setColour(juce::Colours::red.withAlpha(0.5f));
+    //    g.fillRect(bounds.reduced(2));
+    //}
 }
 
 //==============================================================================
@@ -61,16 +68,20 @@ void LayoutComponent::resized()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    auto const minWidth{ getMinWidth() };
-    auto const minHeight{ getMinHeight() };
+    auto const outerWidth{ getWidth() };
+    auto const outerHeight{ getHeight() };
 
-    auto const availableWidth{ std::max(getWidth(), minWidth) };
-    auto const availableHeight{ std::max(getHeight(), minHeight) };
+    auto const minInnerWidth{ getMinInnerWidth() };
+    auto const minInnerHeight{ getMinInnerHeight() };
 
-    auto const constantDimension{ mOrientation == Orientation::horizontal ? availableHeight : availableWidth };
-    auto const dimensionToSplit{ mOrientation == Orientation::horizontal ? availableWidth : availableHeight };
+    auto const availableInnerWidth{ std::max(outerWidth, minInnerWidth) };
+    auto const availableInnerHeight{ std::max(outerHeight, minInnerHeight) };
 
-    auto const minSpace{ mOrientation == Orientation::horizontal ? minWidth : minHeight };
+    auto const constantDimension{ mOrientation == Orientation::horizontal ? availableInnerHeight
+                                                                          : availableInnerWidth };
+    auto const dimensionToSplit{ mOrientation == Orientation::horizontal ? availableInnerWidth : availableInnerHeight };
+
+    auto const minSpace{ mOrientation == Orientation::horizontal ? minInnerWidth : minInnerHeight };
     auto const spaceToShare{ std::max(dimensionToSplit - minSpace, 0) };
 
     auto const totalRelativeUnits{ std::transform_reduce(
@@ -84,7 +95,7 @@ void LayoutComponent::resized()
     if (mOrientation == Orientation::horizontal) {
         int offset{};
         for (auto & section : mSections) {
-            auto const size{ section.getInnerSize(mOrientation, pixelsPerRelativeUnit) };
+            auto const size{ section.computeComponentWidth(mOrientation, pixelsPerRelativeUnit) };
             if (section.mComponent) {
                 section.mComponent->setBounds(offset + section.mLeftPadding,
                                               section.mTopPadding,
@@ -97,10 +108,10 @@ void LayoutComponent::resized()
         jassert(mOrientation == Orientation::vertical);
         int offset{};
         for (auto & section : mSections) {
-            auto const size{ section.getInnerSize(mOrientation, pixelsPerRelativeUnit) };
+            auto const size{ section.computeComponentHeight(mOrientation, pixelsPerRelativeUnit) };
             if (section.mComponent) {
-                section.mComponent->setBounds(offset + section.mTopPadding,
-                                              section.mLeftPadding,
+                section.mComponent->setBounds(section.mLeftPadding,
+                                              offset + section.mTopPadding,
                                               constantDimension,
                                               size);
             }
@@ -108,7 +119,7 @@ void LayoutComponent::resized()
         }
     }
 
-    mViewport.getViewedComponent()->setSize(availableWidth, availableHeight);
+    mViewport.getViewedComponent()->setSize(availableInnerWidth, availableInnerHeight);
     mViewport.setSize(getWidth(), getHeight());
 }
 
@@ -117,12 +128,10 @@ int LayoutComponent::getMinWidth() const noexcept
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    return mOrientation == Orientation::horizontal
-               ? 0
-               : std::transform_reduce(mSections.begin(), mSections.end(), 0, MAX_ELEM, [](Section const & section) {
-                     return (section.mComponent ? section.mComponent->getMinWidth() : 0) + section.mLeftPadding
-                            + section.mRightPadding;
-                 });
+    if (mIsHorizontalScrollable) {
+        return 0;
+    }
+    return getMinInnerWidth();
 }
 
 //==============================================================================
@@ -130,10 +139,36 @@ int LayoutComponent::getMinHeight() const noexcept
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    return mOrientation == Orientation::vertical
-               ? 0
-               : std::transform_reduce(mSections.begin(), mSections.end(), 0, MAX_ELEM, [](Section const & section) {
-                     return (section.mComponent ? section.mComponent->getMinHeight() : 0) + section.mTopPadding
-                            + section.mBottomPadding;
-                 });
+    if (mIsVerticalScrollable) {
+        return 0;
+    }
+    return getMinInnerHeight();
+}
+
+//==============================================================================
+int LayoutComponent::getMinInnerWidth() const noexcept
+{
+    if (mOrientation == Orientation::horizontal) {
+        return std::transform_reduce(mSections.begin(), mSections.end(), 0, std::plus(), [=](Section const & section) {
+            return section.getMinSectionWidth(mOrientation);
+        });
+    }
+    jassert(mOrientation == Orientation::vertical);
+    return std::transform_reduce(mSections.begin(), mSections.end(), 0, MAX_ELEM, [=](Section const & section) {
+        return section.getMinSectionWidth(mOrientation);
+    });
+}
+
+//==============================================================================
+int LayoutComponent::getMinInnerHeight() const noexcept
+{
+    if (mOrientation == Orientation::vertical) {
+        return std::transform_reduce(mSections.begin(), mSections.end(), 0, std::plus(), [=](Section const & section) {
+            return section.getMinSectionHeight(mOrientation);
+        });
+    }
+    jassert(mOrientation == Orientation::horizontal);
+    return std::transform_reduce(mSections.begin(), mSections.end(), 0, MAX_ELEM, [=](Section const & section) {
+        return section.getMinSectionHeight(mOrientation);
+    });
 }
