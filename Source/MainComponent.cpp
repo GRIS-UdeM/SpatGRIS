@@ -117,6 +117,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
 
         mMainLayout->addSection(mSourcesSection.get()).withRelativeSize(1.0f);
         mMainLayout->addSection(mSpeakersSection.get()).withRelativeSize(1.0f);
+        mMainLayout->addSection(nullptr).withFixedSize(200);
         // mMainLayout->addSection(mControlUiBox.get()).withChildMinSize();
 
         addAndMakeVisible(mMainLayout.get());

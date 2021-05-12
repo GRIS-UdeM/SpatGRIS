@@ -28,7 +28,7 @@
 
 static dbfs_t constexpr MIN_LEVEL_COMP{ -60.0f };
 static dbfs_t constexpr MAX_LEVEL_COMP{ 0.0f };
-// static int constexpr WIDTH_RECT = 1;
+auto constexpr VU_METER_COMPONENT_WIDTH = 29;
 
 class GrisLookAndFeel;
 
@@ -47,6 +47,7 @@ class LevelBox final : public juce::Component
     dbfs_t mLevel{};
 
 public:
+    static constexpr auto MIN_HEIGHT = 140;
     //==============================================================================
     explicit LevelBox(SmallGrisLookAndFeel & lookAndFeel) : mLookAndFeel(lookAndFeel) {}
     ~LevelBox() override = default;
@@ -77,6 +78,7 @@ class AbstractVuMeterComponent
 protected:
     static constexpr auto ID_BUTTON_HEIGHT = 17;
     static constexpr auto MUTE_AND_SOLO_BUTTONS_HEIGHT = 15;
+    static constexpr auto INNER_ELEMENTS_PADDING = 1;
 
     SmallGrisLookAndFeel & mLookAndFeel;
 
@@ -104,7 +106,7 @@ public:
     void setState(PortState state, bool soloMode);
     //==============================================================================
     void resized() override;
-    [[nodiscard]] int getMinWidth() const noexcept final { return VU_METER_WIDTH; }
+    [[nodiscard]] int getMinWidth() const noexcept final { return VU_METER_COMPONENT_WIDTH; }
 
 private:
     //==============================================================================

@@ -129,8 +129,7 @@ public:
             case Mode::fixed:
                 return minComponentWidth;
             case Mode::relative:
-                jassert(pixelsPerRelativeUnit >= 0.0f);
-                return std::max(narrow<int>(std::round(pixelsPerRelativeUnit * mRelativeSize)), minComponentWidth);
+                return minComponentWidth + narrow<int>(std::round(pixelsPerRelativeUnit * mRelativeSize));
             case Mode::undefined:
             default:
                 break;
@@ -166,7 +165,7 @@ public:
             case Mode::fixed:
                 return minComponentHeight;
             case Mode::relative:
-                return std::max(narrow<int>(std::round(pixelsPerRelativeUnit * mRelativeSize)), minComponentHeight);
+                return minComponentHeight + narrow<int>(std::round(pixelsPerRelativeUnit * mRelativeSize));
             case Mode::undefined:
             default:
                 break;

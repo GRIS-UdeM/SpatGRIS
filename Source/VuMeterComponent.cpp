@@ -29,13 +29,20 @@ void LevelBox::resized()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    mColorGrad
-        = juce::ColourGradient{ juce::Colour::fromRGB(255, 94, 69), 0.f,  0.f, juce::Colour::fromRGB(17, 255, 159), 0.f,
-                                static_cast<float>(getHeight()),    false };
+    auto const width{ getWidth() };
+    auto const height{ getHeight() };
+
+    mColorGrad = juce::ColourGradient{ juce::Colour::fromRGB(255, 94, 69),
+                                       0.f,
+                                       0.f,
+                                       juce::Colour::fromRGB(17, 255, 159),
+                                       0.f,
+                                       narrow<float>(height),
+                                       false };
     mColorGrad.addColour(0.1, juce::Colours::yellow);
 
     // Create vu-meter foreground image.
-    mVuMeterBit = juce::Image{ juce::Image::RGB, VU_METER_WIDTH - 1, VU_METER_HEIGHT, true };
+    mVuMeterBit = juce::Image{ juce::Image::RGB, width, height, true }; // used to be width - 1
     juce::Graphics gf{ mVuMeterBit };
     gf.setGradientFill(mColorGrad);
     gf.fillRect(0, 0, getWidth(), getHeight());
@@ -43,7 +50,7 @@ void LevelBox::resized()
     gf.setFont(10.0f);
 
     // Create vu-meter background image.
-    mVuMeterBackBit = juce::Image{ juce::Image::RGB, VU_METER_WIDTH - 1, VU_METER_HEIGHT, true };
+    mVuMeterBackBit = juce::Image{ juce::Image::RGB, width, height, true }; // used to be width - 1
     juce::Graphics gb{ mVuMeterBackBit };
     gb.setColour(mLookAndFeel.getDarkColour());
     gb.fillRect(0, 0, getWidth(), getHeight());
@@ -51,7 +58,7 @@ void LevelBox::resized()
     gb.setFont(10.0f);
 
     // Create vu-meter muted image.
-    mVuMeterMutedBit = juce::Image(juce::Image::RGB, VU_METER_WIDTH - 1, VU_METER_HEIGHT, true);
+    mVuMeterMutedBit = juce::Image(juce::Image::RGB, width, height, true); // used to be width - 1
     juce::Graphics gm{ mVuMeterMutedBit };
     gm.setColour(mLookAndFeel.getWinBackgroundColour());
     gm.fillRect(0, 0, getWidth(), getHeight());
@@ -60,11 +67,12 @@ void LevelBox::resized()
 
     // Draw ticks on images.
     auto const start = getWidth() - 3;
-    for (int i{ 1 }; i < 10; i++) {
-        auto const y = i * 14;
-        auto const y_f{ static_cast<float>(y) };
-        auto const start_f{ static_cast<float>(start) };
-        auto const with_f{ static_cast<float>(getWidth()) };
+    static constexpr auto NUM_TICKS = 10;
+    for (int i{ 1 }; i < NUM_TICKS; i++) {
+        auto const y = i * height / NUM_TICKS;
+        auto const y_f{ narrow<float>(y) };
+        auto const start_f{ narrow<float>(start) };
+        auto const with_f{ narrow<float>(getWidth()) };
 
         gf.drawLine(start_f, y_f, with_f, y_f, 1.0f);
         gb.drawLine(start_f, y_f, with_f, y_f, 1.0f);
@@ -82,23 +90,27 @@ void LevelBox::paint(juce::Graphics & g)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
+    auto const width{ getWidth() };
+    auto const height{ getHeight() };
+
     if (mIsMuted) {
-        g.drawImage(mVuMeterMutedBit, 0, 0, VU_METER_WIDTH, VU_METER_HEIGHT, 0, 0, VU_METER_WIDTH, VU_METER_HEIGHT);
+        g.drawImage(mVuMeterMutedBit, 0, 0, width, height, 0, 0, width, height);
         return;
     }
 
     if (mLevel <= MIN_LEVEL_COMP && !mIsClipping) {
-        g.drawImage(mVuMeterBackBit, 0, 0, VU_METER_WIDTH, VU_METER_HEIGHT, 0, 0, VU_METER_WIDTH, VU_METER_HEIGHT);
+        g.drawImage(mVuMeterBackBit, 0, 0, width, height, 0, 0, width, height);
         return;
     }
 
-    auto const h = static_cast<int>(mLevel.get() * -2.33333334f);
-    auto const rel = VU_METER_HEIGHT - h;
-    g.drawImage(mVuMeterBit, 0, h, VU_METER_WIDTH, rel, 0, h, VU_METER_WIDTH, rel);
-    g.drawImage(mVuMeterBackBit, 0, 0, VU_METER_WIDTH, h, 0, 0, VU_METER_WIDTH, h);
+    auto const magnitude{ 1.0f - std::clamp(mLevel, MIN_LEVEL_COMP, MAX_LEVEL_COMP) / MIN_LEVEL_COMP };
+    auto const rel = narrow<int>(std::round(magnitude * narrow<float>(height)));
+    auto const h = height - rel;
+    g.drawImage(mVuMeterBit, 0, h, width, rel, 0, h, width, rel);
+    g.drawImage(mVuMeterBackBit, 0, 0, width, h, 0, 0, width, h);
     if (mIsClipping) {
         g.setColour(juce::Colour::fromHSV(0.0, 1, 0.75, 1));
-        juce::Rectangle<float> const clipRect{ 0.5, 0.5, static_cast<float>(getWidth() - 1), 5 };
+        juce::Rectangle<float> const clipRect{ 0.5, 0.5, narrow<float>(height - 1), 5 };
         g.fillRect(clipRect);
     }
 }
@@ -184,12 +196,10 @@ AbstractVuMeterComponent::AbstractVuMeterComponent(int const channel, SmallGrisL
     };
 
     // Id
-    mIdButton.setBounds(0, 0, VU_METER_WIDTH, ID_BUTTON_HEIGHT);
     mIdButton.setButtonText(juce::String{ channel });
     initButton(mIdButton);
 
     // Mute button
-    mMuteButton.setSize(VU_METER_WIDTH / 2, MUTE_AND_SOLO_BUTTONS_HEIGHT);
     mMuteButton.setClickingTogglesState(true);
     initButton(mMuteButton);
 
@@ -197,7 +207,6 @@ AbstractVuMeterComponent::AbstractVuMeterComponent(int const channel, SmallGrisL
     initMuteOrSoloLabel(mMuteLabel, "m");
 
     // Solo button
-    mSoloButton.setSize(VU_METER_WIDTH / 2, MUTE_AND_SOLO_BUTTONS_HEIGHT);
     mSoloButton.setClickingTogglesState(true);
     initButton(mSoloButton);
 
@@ -256,8 +265,8 @@ void SpeakerVuMeterComponent::buttonClicked(juce::Button * button)
 //==============================================================================
 int SpeakerVuMeterComponent::getMinHeight() const noexcept
 {
-    static constexpr auto PADDING = 20;
-    return ID_BUTTON_HEIGHT + VU_METER_HEIGHT + MUTE_AND_SOLO_BUTTONS_HEIGHT + PADDING;
+    return INNER_ELEMENTS_PADDING + ID_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING + LevelBox::MIN_HEIGHT
+           + INNER_ELEMENTS_PADDING + MUTE_AND_SOLO_BUTTONS_HEIGHT + INNER_ELEMENTS_PADDING;
 }
 
 //==============================================================================
@@ -265,22 +274,36 @@ void AbstractVuMeterComponent::resized()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    juce::Rectangle<int> const idBounds{ 0, 0, VU_METER_WIDTH, ID_BUTTON_HEIGHT };
+    auto yOffset{ INNER_ELEMENTS_PADDING };
+    static constexpr auto AVAILABLE_WIDTH{ VU_METER_COMPONENT_WIDTH - INNER_ELEMENTS_PADDING * 2 };
+
+    juce::Rectangle<int> const idBounds{ INNER_ELEMENTS_PADDING, yOffset, AVAILABLE_WIDTH, ID_BUTTON_HEIGHT };
     mIdButton.setBounds(idBounds);
 
-    juce::Rectangle<int> const muteButtonBounds{ 0, 158, VU_METER_WIDTH / 2, MUTE_AND_SOLO_BUTTONS_HEIGHT };
+    yOffset += ID_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING;
+
+    auto const vuMeterHeight{ std::max(LevelBox::MIN_HEIGHT, getHeight() - getMinHeight() + LevelBox::MIN_HEIGHT) };
+
+    juce::Rectangle<int> const levelBoxBounds{ INNER_ELEMENTS_PADDING, yOffset, AVAILABLE_WIDTH, vuMeterHeight };
+    mLevelBox.setBounds(levelBoxBounds);
+
+    yOffset += vuMeterHeight + INNER_ELEMENTS_PADDING;
+
+    static constexpr auto MUTE_AND_SOLO_WIDTH{ (AVAILABLE_WIDTH - INNER_ELEMENTS_PADDING) / 2 };
+
+    juce::Rectangle<int> const muteButtonBounds{ INNER_ELEMENTS_PADDING,
+                                                 yOffset,
+                                                 MUTE_AND_SOLO_WIDTH,
+                                                 MUTE_AND_SOLO_BUTTONS_HEIGHT };
     mMuteButton.setBounds(muteButtonBounds);
     mMuteLabel.setBounds(muteButtonBounds.withSizeKeepingCentre(100, 100));
 
-    juce::Rectangle<int> const soloButtonBounds{ VU_METER_WIDTH / 2,
-                                                 158,
-                                                 VU_METER_WIDTH / 2,
+    juce::Rectangle<int> const soloButtonBounds{ INNER_ELEMENTS_PADDING * 2 + MUTE_AND_SOLO_WIDTH,
+                                                 yOffset,
+                                                 MUTE_AND_SOLO_WIDTH,
                                                  MUTE_AND_SOLO_BUTTONS_HEIGHT };
     mSoloButton.setBounds(soloButtonBounds);
     mSoloLabel.setBounds(soloButtonBounds.withSizeKeepingCentre(100, 100));
-
-    juce::Rectangle<int> const levelBoxBounds{ 0, ID_BUTTON_HEIGHT + 1, getWidth() - 1, VU_METER_HEIGHT };
-    mLevelBox.setBounds(levelBoxBounds);
 }
 
 //==============================================================================
@@ -295,7 +318,6 @@ SourceVuMeterComponent::SourceVuMeterComponent(source_index_t const sourceIndex,
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    mDirectOutButton.setSize(VU_METER_WIDTH, DIRECT_OUT_BUTTON_HEIGHT);
     mDirectOutButton.setColour(juce::Label::textColourId, lookAndFeel.getFontColour());
     mDirectOutButton.setLookAndFeel(&lookAndFeel);
     mDirectOutButton.addListener(this);
@@ -353,15 +375,12 @@ void SourceVuMeterComponent::resized()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    static constexpr auto DIRECT_OUT_BUTTON_PADDING = 10;
-
     AbstractVuMeterComponent::resized();
 
-    juce::Rectangle<int> const directOutButtonBounds{ 0,
-                                                      getHeight()
-                                                          - (DIRECT_OUT_BUTTON_HEIGHT + DIRECT_OUT_BUTTON_PADDING),
-                                                      getWidth(),
-                                                      mDirectOutButton.getHeight() };
+    juce::Rectangle<int> const directOutButtonBounds{ INNER_ELEMENTS_PADDING,
+                                                      getHeight() - (DIRECT_OUT_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING),
+                                                      VU_METER_COMPONENT_WIDTH - INNER_ELEMENTS_PADDING * 2,
+                                                      DIRECT_OUT_BUTTON_HEIGHT };
     mDirectOutButton.setBounds(directOutButtonBounds);
 }
 
@@ -380,8 +399,9 @@ void SourceVuMeterComponent::changeListenerCallback(juce::ChangeBroadcaster * so
 //==============================================================================
 int SourceVuMeterComponent::getMinHeight() const noexcept
 {
-    static constexpr auto PADDING = 20;
-    return ID_BUTTON_HEIGHT + VU_METER_HEIGHT + MUTE_AND_SOLO_BUTTONS_HEIGHT + DIRECT_OUT_BUTTON_HEIGHT + PADDING;
+    return INNER_ELEMENTS_PADDING + ID_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING + LevelBox::MIN_HEIGHT
+           + INNER_ELEMENTS_PADDING + MUTE_AND_SOLO_BUTTONS_HEIGHT + INNER_ELEMENTS_PADDING + DIRECT_OUT_BUTTON_HEIGHT
+           + INNER_ELEMENTS_PADDING;
 }
 
 //==============================================================================

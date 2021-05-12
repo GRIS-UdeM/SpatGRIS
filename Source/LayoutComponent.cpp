@@ -120,7 +120,7 @@ void LayoutComponent::resized()
     }
 
     mViewport.getViewedComponent()->setSize(availableInnerWidth, availableInnerHeight);
-    mViewport.setSize(getWidth(), getHeight());
+    mViewport.setSize(outerWidth, outerHeight);
 }
 
 //==============================================================================

@@ -24,8 +24,6 @@
 
 constexpr auto MAX_NUM_SOURCES = 256;
 constexpr auto MAX_NUM_SPEAKERS = 256;
-constexpr auto VU_METER_WIDTH = 25;
-constexpr auto VU_METER_HEIGHT = 140;
 constexpr auto LBAP_EXTENDED_RADIUS = 1.6666667f;
 constexpr auto HRTF_NUM_SAMPLES = 128;
 constexpr dbfs_t DEFAULT_PINK_NOISE_DB{ -20.0f };
