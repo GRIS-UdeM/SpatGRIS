@@ -74,12 +74,15 @@ void LayoutComponent::resized()
     auto const minInnerWidth{ getMinInnerWidth() };
     auto const minInnerHeight{ getMinInnerHeight() };
 
-    auto const availableInnerWidth{ std::max(outerWidth, minInnerWidth) };
-    auto const availableInnerHeight{ std::max(outerHeight, minInnerHeight) };
+    auto const correctForHorizontalScrollBar{ minInnerWidth > outerWidth && mIsHorizontalScrollable };
+    auto const correctForVerticalScrollBar{ minInnerHeight > outerHeight && mIsVerticalScrollable };
 
-    auto const constantDimension{ mOrientation == Orientation::horizontal ? availableInnerHeight
-                                                                          : availableInnerWidth };
-    auto const dimensionToSplit{ mOrientation == Orientation::horizontal ? availableInnerWidth : availableInnerHeight };
+    auto const innerWidth{ std::max(outerWidth, minInnerWidth) - (correctForVerticalScrollBar ? SCROLL_BAR_WIDTH : 0) };
+    auto const innerHeight{ std::max(outerHeight, minInnerHeight)
+                            - (correctForHorizontalScrollBar ? SCROLL_BAR_WIDTH : 0) };
+
+    auto const constantDimension{ mOrientation == Orientation::horizontal ? innerHeight : innerWidth };
+    auto const dimensionToSplit{ mOrientation == Orientation::horizontal ? innerWidth : innerHeight };
 
     auto const minSpace{ mOrientation == Orientation::horizontal ? minInnerWidth : minInnerHeight };
     auto const spaceToShare{ std::max(dimensionToSplit - minSpace, 0) };
@@ -119,7 +122,7 @@ void LayoutComponent::resized()
         }
     }
 
-    mViewport.getViewedComponent()->setSize(availableInnerWidth, availableInnerHeight);
+    mViewport.getViewedComponent()->setSize(innerWidth, innerHeight);
     mViewport.setSize(outerWidth, outerHeight);
 }
 
@@ -131,7 +134,7 @@ int LayoutComponent::getMinWidth() const noexcept
     if (mIsHorizontalScrollable) {
         return 0;
     }
-    return getMinInnerWidth();
+    return getMinInnerWidth() + (mIsVerticalScrollable ? SCROLL_BAR_WIDTH : 0);
 }
 
 //==============================================================================
@@ -142,7 +145,7 @@ int LayoutComponent::getMinHeight() const noexcept
     if (mIsVerticalScrollable) {
         return 0;
     }
-    return getMinInnerHeight();
+    return getMinInnerHeight() + (mIsHorizontalScrollable ? SCROLL_BAR_WIDTH : 0);
 }
 
 //==============================================================================
