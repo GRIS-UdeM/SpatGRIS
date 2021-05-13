@@ -128,6 +128,9 @@
         <GROUP id="{C6903A38-7C1A-A838-2840-26A1ED5DB75F}" name="Widgets">
           <FILE id="MW5ESG" name="Box.cpp" compile="1" resource="0" file="Source/Box.cpp"/>
           <FILE id="RG3FbE" name="Box.h" compile="0" resource="0" file="Source/Box.h"/>
+          <FILE id="uXxKAd" name="ControlPanel.cpp" compile="1" resource="0"
+                file="Source/ControlPanel.cpp"/>
+          <FILE id="GjVbGz" name="ControlPanel.h" compile="0" resource="0" file="Source/ControlPanel.h"/>
           <FILE id="AYI1c0" name="EditableTextCustomComponent.cpp" compile="1"
                 resource="0" file="Source/EditableTextCustomComponent.cpp"/>
           <FILE id="kl6jjL" name="EditableTextCustomComponent.h" compile="0"

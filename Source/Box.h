@@ -93,3 +93,84 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(MainUiSection)
 };
+
+//==============================================================================
+class SpatSlider final
+    : public MinSizedComponent
+    , juce::Slider::Listener
+{
+public:
+    class Listener
+    {
+    public:
+        virtual void sliderMoved(float value, SpatSlider * slider) = 0;
+    };
+
+private:
+    //==============================================================================
+    Listener & mListener;
+    juce::Slider mSlider{};
+    int mMinSize{};
+    int mMaxSize{};
+
+public:
+    //==============================================================================
+    SpatSlider(float minValue,
+               float maxValue,
+               float step,
+               juce::String const & suffix,
+               int minSize,
+               int maxSize,
+               Listener & listener);
+    ~SpatSlider() override = default;
+    //==============================================================================
+    SpatSlider(SpatSlider const &) = delete;
+    SpatSlider(SpatSlider &&) = delete;
+    SpatSlider & operator=(SpatSlider const &) = delete;
+    SpatSlider & operator=(SpatSlider &&) = delete;
+    //==============================================================================
+    void setValue(float value);
+    //==============================================================================
+    void resized() override;
+    void sliderValueChanged(juce::Slider * slider) override;
+    [[nodiscard]] int getMinWidth() const noexcept override;
+    [[nodiscard]] int getMinHeight() const noexcept override;
+
+private:
+    //==============================================================================
+    JUCE_LEAK_DETECTOR(SpatSlider)
+};
+
+//==============================================================================
+class SpatTextEditor
+    : public MinSizedComponent
+    , public juce::TextEditor::Listener
+{
+public:
+    class Listener
+    {
+    public:
+        virtual void textEditorChanged(juce::String const & value, SpatTextEditor * editor) = 0;
+    };
+
+private:
+    Listener & mListener;
+    int mMinSize;
+    int mMaxSize;
+    juce::TextEditor mEditor{};
+
+public:
+    SpatTextEditor(juce::String const & tooltip, int minSize, int maxSize, Listener & listener);
+    ~SpatTextEditor() override = default;
+    SpatTextEditor(SpatTextEditor const &) = delete;
+    SpatTextEditor(SpatTextEditor &&) = delete;
+    SpatTextEditor & operator=(SpatTextEditor const &) = delete;
+    SpatTextEditor & operator=(SpatTextEditor &&) = delete;
+
+    void setText(juce::String const & text);
+    void textEditorFocusLost(juce::TextEditor & editor) override;
+    void resized() override;
+
+private:
+    JUCE_LEAK_DETECTOR(SpatTextEditor)
+};

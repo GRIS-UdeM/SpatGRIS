@@ -1,12 +1,11 @@
 #pragma once
 
-#include <JuceHeader.h>
-
+#include "MinSizedComponent.hpp"
 #include "SpatMode.hpp"
 
 //==============================================================================
 class SpatModeComponent final
-    : public juce::Component
+    : public MinSizedComponent
     , private juce::TextButton::Listener
 {
     static constexpr auto NUM_COLS = 2;
@@ -55,6 +54,8 @@ public:
     //==============================================================================
     void buttonClicked(juce::Button * button) override;
     void resized() override;
+    [[nodiscard]] int getMinWidth() const noexcept override { return 50; }
+    [[nodiscard]] int getMinHeight() const noexcept override { return 50; }
 
 private:
     //==============================================================================
