@@ -64,7 +64,7 @@ private:
     };
     SpatModeComponent mSpatModeComponent{ *this, mLookAndFeel };
     SpatTextEditor mNumSourcesTextEditor{ "Sources:", "Number of available sources", *this, mLookAndFeel };
-    RecordButton mRecordButton{ *this };
+    RecordButton mRecordButton{ *this, mLookAndFeel };
 
 public:
     //==============================================================================

@@ -2,6 +2,8 @@
 
 #include "MinSizedComponent.hpp"
 
+class GrisLookAndFeel;
+
 //==============================================================================
 class RecordButton final
     : public MinSizedComponent
@@ -35,10 +37,12 @@ private:
     bool mBlinkState{};
     bool mIsButtonDown{};
     juce::Rectangle<int> mActiveBounds{};
+    juce::Label mRecordedTime{};
+    juce::int64 mTimeRecordingStarted{};
 
 public:
     //==============================================================================
-    explicit RecordButton(Listener & listener);
+    explicit RecordButton(Listener & listener, GrisLookAndFeel & lookAndFeel);
     ~RecordButton() override = default;
     //==============================================================================
     RecordButton(RecordButton const &) = delete;
@@ -52,13 +56,15 @@ public:
     void resized() override;
     void mouseUp(juce::MouseEvent const & event) override;
     void mouseMove(const juce::MouseEvent & event) override;
+    void mouseExit(const juce::MouseEvent & event) override;
     [[nodiscard]] int getMinWidth() const noexcept override;
     [[nodiscard]] int getMinHeight() const noexcept override;
 
 private:
     //==============================================================================
+    void updateRecordedTime();
+    //==============================================================================
     void timerCallback() override;
-    void updateActiveBounds();
     //==============================================================================
     JUCE_LEAK_DETECTOR(RecordButton)
 };
