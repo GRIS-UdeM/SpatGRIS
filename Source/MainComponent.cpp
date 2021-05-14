@@ -1458,7 +1458,7 @@ void MainContentComponent::refreshSourceVuMeterComponents()
         mSourcesLayout->addSection(&addedVuMeter).withChildMinSize();
     }
 
-    resized();
+    mSourcesLayout->resized();
 }
 
 //==============================================================================
@@ -1477,7 +1477,7 @@ void MainContentComponent::refreshSpeakerVuMeterComponents()
         mSpeakersLayout->addSection(&addedVuMeter).withChildMinSize();
     }
 
-    resized();
+    mSpeakersLayout->resized();
 }
 
 //==============================================================================
