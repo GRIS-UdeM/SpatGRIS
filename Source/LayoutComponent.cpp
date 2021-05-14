@@ -107,14 +107,15 @@ void LayoutComponent::resized()
     if (mOrientation == Orientation::horizontal) {
         int offset{};
         for (auto & section : mSections) {
-            auto const size{ section.computeComponentWidth(mOrientation, pixelsPerRelativeUnit) };
+            auto const componentWidth{ section.computeComponentWidth(mOrientation, pixelsPerRelativeUnit) };
             if (section.mComponent) {
-                section.mComponent->setBounds(offset + section.mLeftPadding,
-                                              section.mTopPadding,
-                                              size,
-                                              constantDimension);
+                auto const x{ offset + section.mLeftPadding };
+                auto const y{ section.mTopPadding };
+                auto const height{ constantDimension - section.mBottomPadding - section.mTopPadding };
+                section.mComponent->setBounds(x, y, componentWidth, height);
             }
-            offset += section.mLeftPadding + size + section.mRightPadding;
+            auto const sectionWidth{ componentWidth + section.mLeftPadding + section.mRightPadding };
+            offset += sectionWidth;
         }
     } else {
         jassert(mOrientation == Orientation::vertical);
@@ -124,7 +125,7 @@ void LayoutComponent::resized()
             if (section.mComponent) {
                 section.mComponent->setBounds(section.mLeftPadding,
                                               offset + section.mTopPadding,
-                                              constantDimension,
+                                              constantDimension - section.mRightPadding,
                                               size);
             }
             offset += section.mTopPadding + size + section.mBottomPadding;

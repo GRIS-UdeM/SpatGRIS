@@ -2,6 +2,8 @@
 
 #include "MinSizedComponent.hpp"
 
+class GrisLookAndFeel;
+
 //==============================================================================
 class SpatSlider final
     : public MinSizedComponent
@@ -29,9 +31,8 @@ public:
 private:
     //==============================================================================
     Listener & mListener;
+    juce::Label mLabel{};
     juce::Slider mSlider{};
-    int mMinSize{};
-    int mMaxSize{};
 
 public:
     //==============================================================================
@@ -39,9 +40,10 @@ public:
                float maxValue,
                float step,
                juce::String const & suffix,
-               int minSize,
-               int maxSize,
-               Listener & listener);
+               juce::String const & label,
+               juce::String const & tooltip,
+               Listener & listener,
+               GrisLookAndFeel & lookAndFeel);
     ~SpatSlider() override = default;
     //==============================================================================
     SpatSlider(SpatSlider const &) = delete;

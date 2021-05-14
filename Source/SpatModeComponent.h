@@ -3,15 +3,13 @@
 #include "MinSizedComponent.hpp"
 #include "SpatMode.hpp"
 
+class GrisLookAndFeel;
+
 //==============================================================================
 class SpatModeComponent final
     : public MinSizedComponent
     , private juce::TextButton::Listener
 {
-    static constexpr auto NUM_COLS = 2;
-    static constexpr auto NUM_ROWS = 2;
-    static constexpr auto INNER_PADDING = 1;
-
 public:
     //==============================================================================
     class Listener
@@ -36,11 +34,12 @@ private:
     //==============================================================================
     SpatMode mSpatMode{};
     Listener & mListener;
+    juce::Label mLabel{};
     juce::OwnedArray<juce::Button> mButtons{};
 
 public:
     //==============================================================================
-    explicit SpatModeComponent(Listener & listener);
+    explicit SpatModeComponent(Listener & listener, GrisLookAndFeel & lookAndFeel);
     ~SpatModeComponent() override = default;
     //==============================================================================
     SpatModeComponent(SpatModeComponent const &) = delete;

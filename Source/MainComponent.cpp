@@ -118,9 +118,9 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         mControlPanel = std::make_unique<ControlPanel>(*this, mLookAndFeel);
         mControlsSection = std::make_unique<TitledComponent>("Controls", mControlPanel.get(), mLookAndFeel);
 
-        mMainLayout->addSection(mSourcesSection.get()).withRelativeSize(1.0f);
-        mMainLayout->addSection(mSpeakersSection.get()).withRelativeSize(1.0f);
-        mMainLayout->addSection(mControlsSection.get()).withChildMinSize().withBottomPadding(3);
+        mMainLayout->addSection(mSourcesSection.get()).withRelativeSize(1.0f).withRightPadding(5);
+        mMainLayout->addSection(mSpeakersSection.get()).withRelativeSize(1.0f).withRightPadding(5);
+        mMainLayout->addSection(mControlsSection.get()).withChildMinSize().withBottomPadding(5).withRightPadding(5);
 
         addAndMakeVisible(mMainLayout.get());
 
@@ -2357,14 +2357,12 @@ bool MainContentComponent::initRecording()
 void MainContentComponent::resized()
 {
     static constexpr auto MENU_BAR_HEIGHT = 20;
-    static constexpr auto PADDING = 10;
 
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    auto reducedLocalBounds{ getLocalBounds().reduced(2) };
-
     mMenuBar->setBounds(0, 0, getWidth(), MENU_BAR_HEIGHT);
-    reducedLocalBounds.removeFromTop(MENU_BAR_HEIGHT);
+
+    auto const availableBounds{ getLocalBounds().reduced(2).withTrimmedTop(MENU_BAR_HEIGHT) };
 
     // Lay out the speaker view and the vertical divider.
     Component * vComps[] = { mSpeakerViewComponent.get(), mVerticalDividerBar.get(), mMainLayout.get(), nullptr };
@@ -2372,10 +2370,10 @@ void MainContentComponent::resized()
     // Lay out side-by-side and resize the components' heights as well as widths.
     mVerticalLayout.layOutComponents(vComps,
                                      3,
-                                     reducedLocalBounds.getX(),
-                                     reducedLocalBounds.getY(),
-                                     reducedLocalBounds.getWidth(),
-                                     reducedLocalBounds.getHeight(),
+                                     availableBounds.getX(),
+                                     availableBounds.getY(),
+                                     availableBounds.getWidth(),
+                                     availableBounds.getHeight(),
                                      false,
                                      true);
 }

@@ -51,12 +51,19 @@ private:
     LayoutComponent mLayout{ LayoutComponent::Orientation::horizontal, true, false, mLookAndFeel };
     TitledComponent mSection{ "Controls", &mLayout, mLookAndFeel };
 
-    SpatSlider mMasterGainSlider{
-        LEGAL_MASTER_GAIN_RANGE.getStart().get(), LEGAL_MASTER_GAIN_RANGE.getEnd().get(), 0.1f, " db", 100, 150, *this
+    SpatSlider mMasterGainSlider{ LEGAL_MASTER_GAIN_RANGE.getStart().get(),
+                                  LEGAL_MASTER_GAIN_RANGE.getEnd().get(),
+                                  0.1f,
+                                  " db",
+                                  "Output gain",
+                                  "Gain applied to every speaker",
+                                  *this,
+                                  mLookAndFeel };
+    SpatSlider mInterpolationSlider{
+        0.0f, 1.0f, 0.01f, "", "Gain smoothing", "Determines how much source panning is smoothed", *this, mLookAndFeel
     };
-    SpatSlider mInterpolationSlider{ 0.0f, 1.0f, 0.01f, "", 100, 150, *this };
-    SpatModeComponent mSpatModeComponent{ *this };
-    SpatTextEditor mNumSourcesTextEditor{ "Number of available sources", 43, 22, *this };
+    SpatModeComponent mSpatModeComponent{ *this, mLookAndFeel };
+    SpatTextEditor mNumSourcesTextEditor{ "Sources:", "Number of available sources", *this, mLookAndFeel };
     RecordButton mRecordButton{ *this };
 
 public:

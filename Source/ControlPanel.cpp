@@ -7,11 +7,15 @@ ControlPanel::ControlPanel(Listener & listener, GrisLookAndFeel & lookAndFeel)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    mLayout.addSection(&mMasterGainSlider).withChildMinSize();
-    mLayout.addSection(&mInterpolationSlider).withChildMinSize();
-    mLayout.addSection(&mSpatModeComponent).withChildMinSize();
-    mLayout.addSection(&mNumSourcesTextEditor).withChildMinSize();
-    mLayout.addSection(&mRecordButton).withChildMinSize();
+    mLayout.addSection(&mMasterGainSlider).withChildMinSize(); //.withTopPadding(5).withBottomPadding(17)
+    mLayout.addSection(&mInterpolationSlider)
+        .withChildMinSize()
+        .withRightPadding(15); //.withTopPadding(5).withBottomPadding(17)
+    mLayout.addSection(&mSpatModeComponent).withChildMinSize().withRightPadding(15);
+    mLayout.addSection(&mNumSourcesTextEditor).withChildMinSize().withRightPadding(15);
+    mLayout.addSection(nullptr).withRelativeSize(1.0f);
+    mLayout.addSection(&mRecordButton).withChildMinSize().withRightPadding(20);
+    ;
     addAndMakeVisible(mLayout);
 }
 

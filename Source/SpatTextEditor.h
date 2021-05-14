@@ -2,6 +2,8 @@
 
 #include "MinSizedComponent.hpp"
 
+class GrisLookAndFeel;
+
 //==============================================================================
 class SpatTextEditor
     : public MinSizedComponent
@@ -30,13 +32,15 @@ public:
 private:
     //==============================================================================
     Listener & mListener;
-    int mWidth;
-    int mHeight;
+    juce::Label mLabel{};
     juce::TextEditor mEditor{};
 
 public:
     //==============================================================================
-    SpatTextEditor(juce::String const & tooltip, int width, int height, Listener & listener);
+    SpatTextEditor(juce::String const & label,
+                   juce::String const & tooltip,
+                   Listener & listener,
+                   GrisLookAndFeel & lookAndFeel);
     ~SpatTextEditor() override = default;
     //==============================================================================
     SpatTextEditor(SpatTextEditor const &) = delete;
@@ -48,8 +52,8 @@ public:
     //==============================================================================
     void textEditorFocusLost(juce::TextEditor & editor) override;
     void resized() override;
-    [[nodiscard]] int getMinWidth() const noexcept override { return mWidth; }
-    [[nodiscard]] int getMinHeight() const noexcept override { return mHeight; }
+    [[nodiscard]] int getMinWidth() const noexcept override;
+    [[nodiscard]] int getMinHeight() const noexcept override;
 
 private:
     //==============================================================================
