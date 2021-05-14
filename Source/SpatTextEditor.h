@@ -1,17 +1,12 @@
 #pragma once
 
 #include "MinSizedComponent.hpp"
-#include "SpatMode.hpp"
 
 //==============================================================================
-class SpatModeComponent final
+class SpatTextEditor
     : public MinSizedComponent
-    , private juce::TextButton::Listener
+    , public juce::TextEditor::Listener
 {
-    static constexpr auto NUM_COLS = 2;
-    static constexpr auto NUM_ROWS = 2;
-    static constexpr auto INNER_PADDING = 1;
-
 public:
     //==============================================================================
     class Listener
@@ -25,7 +20,7 @@ public:
         Listener & operator=(Listener const &) = delete;
         Listener & operator=(Listener &&) = delete;
         //==============================================================================
-        virtual void handleSpatModeChanged(SpatMode spatMode) = 0;
+        virtual void textEditorChanged(juce::String const & value, SpatTextEditor * editor) = 0;
 
     private:
         //==============================================================================
@@ -34,28 +29,29 @@ public:
 
 private:
     //==============================================================================
-    SpatMode mSpatMode{};
     Listener & mListener;
-    juce::OwnedArray<juce::Button> mButtons{};
+    int mWidth;
+    int mHeight;
+    juce::TextEditor mEditor{};
 
 public:
     //==============================================================================
-    explicit SpatModeComponent(Listener & listener);
-    ~SpatModeComponent() override = default;
+    SpatTextEditor(juce::String const & tooltip, int width, int height, Listener & listener);
+    ~SpatTextEditor() override = default;
     //==============================================================================
-    SpatModeComponent(SpatModeComponent const &) = delete;
-    SpatModeComponent(SpatModeComponent &&) = delete;
-    SpatModeComponent & operator=(SpatModeComponent const &) = delete;
-    SpatModeComponent & operator=(SpatModeComponent &&) = delete;
+    SpatTextEditor(SpatTextEditor const &) = delete;
+    SpatTextEditor(SpatTextEditor &&) = delete;
+    SpatTextEditor & operator=(SpatTextEditor const &) = delete;
+    SpatTextEditor & operator=(SpatTextEditor &&) = delete;
     //==============================================================================
-    void setSpatMode(SpatMode spatMode);
+    void setText(juce::String const & text);
     //==============================================================================
-    void buttonClicked(juce::Button * button) override;
+    void textEditorFocusLost(juce::TextEditor & editor) override;
     void resized() override;
-    [[nodiscard]] int getMinWidth() const noexcept override;
-    [[nodiscard]] int getMinHeight() const noexcept override;
+    [[nodiscard]] int getMinWidth() const noexcept override { return mWidth; }
+    [[nodiscard]] int getMinHeight() const noexcept override { return mHeight; }
 
 private:
     //==============================================================================
-    JUCE_LEAK_DETECTOR(SpatModeComponent)
+    JUCE_LEAK_DETECTOR(SpatTextEditor)
 };

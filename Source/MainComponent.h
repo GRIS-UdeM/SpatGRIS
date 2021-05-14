@@ -28,6 +28,7 @@
 #include "AudioProcessor.h"
 #include "Box.h"
 #include "Configuration.h"
+#include "ControlPanel.h"
 #include "EditSpeakersWindow.h"
 #include "FlatViewWindow.h"
 #include "LayoutComponent.h"
@@ -36,9 +37,9 @@
 #include "OscLogWindow.h"
 #include "OwnedMap.hpp"
 #include "SettingsWindow.h"
-#include "SpatModeComponent.h"
 #include "SpeakerViewComponent.h"
 #include "StrongTypes.hpp"
+#include "TitledComponent.h"
 #include "Triplet.hpp"
 #include "VuMeterComponent.h"
 #include "constants.hpp"
@@ -70,9 +71,10 @@ class MainContentComponent final
     , public juce::ComboBox::Listener
     , public SourceVuMeterComponent::Owner
     , public SpeakerVuMeterComponent::Owner
+    , public ControlPanel::Listener
     , private AudioDeviceManagerListener
     , private juce::Timer
-    , private SpatModeComponent::Listener
+//, private SpatModeComponent::Listener
 {
     enum class LoadProjectOption { removeInvalidDirectOuts, dontRemoveInvalidDirectOuts };
 
@@ -97,15 +99,16 @@ class MainContentComponent final
     std::unique_ptr<OscLogWindow> mOscLogWindow{};
 
     // Sources Section
-    std::unique_ptr<MainUiSection> mSourcesSection{};
+    std::unique_ptr<TitledComponent> mSourcesSection{};
     std::unique_ptr<LayoutComponent> mSourcesLayout{};
 
     // Speakers Section
-    std::unique_ptr<MainUiSection> mSpeakersSection{};
+    std::unique_ptr<TitledComponent> mSpeakersSection{};
     std::unique_ptr<LayoutComponent> mSpeakersLayout{};
 
     // Controls section
-    std::unique_ptr<Box> mControlUiBox{};
+    std::unique_ptr<TitledComponent> mControlsSection{};
+    std::unique_ptr<ControlPanel> mControlPanel{};
 
     // Main ui
     std::unique_ptr<LayoutComponent> mMainLayout{};
@@ -117,7 +120,7 @@ class MainContentComponent final
     std::unique_ptr<juce::Label> mBufferSizeLabel{};
     std::unique_ptr<juce::Label> mChannelCountLabel{};
 
-    SpatModeComponent mSpatModeComponent{ *this };
+    // SpatModeComponent mSpatModeComponent{ *this };
 
     std::unique_ptr<juce::Slider> mMasterGainOutSlider{};
     std::unique_ptr<juce::Slider> mInterpolationSlider{};
@@ -215,9 +218,9 @@ public:
     void handleSourceDirectOutChanged(source_index_t sourceIndex, tl::optional<output_patch_t> outputPatch) override;
     [[nodiscard]] SpeakersData const & getSpeakersData() const override { return mData.speakerSetup.speakers; }
 
-    void handleSpatModeChanged(SpatMode spatMode) override;
-    void handleMasterGainChanged(dbfs_t gain);
-    void handleGainInterpolationChanged(float interpolation);
+    // void handleSpatModeChanged(SpatMode spatMode) override;
+    // void handleMasterGainChanged(dbfs_t gain);
+    // void handleGainInterpolationChanged(float interpolation);
     void handleNewSpeakerPosition(output_patch_t outputPatch, CartesianVector const & position);
     void handleNewSpeakerPosition(output_patch_t outputPatch, PolarVector const & position);
 
@@ -226,7 +229,7 @@ public:
 
     void handleSetShowTriplets(bool state);
 
-    void handleNumSourcesChanged(int numSources);
+    // void handleNumSourcesChanged(int numSources);
 
     // Speakers.
     [[nodiscard]] auto const & getSpeakersDisplayOrder() const { return mData.speakerSetup.order; }
@@ -351,6 +354,15 @@ private:
     [[nodiscard]] bool perform(juce::ApplicationCommandTarget::InvocationInfo const & info) override;
     //==============================================================================
     static void handleOpenManual();
+
+public:
+    void masterGainChanged(dbfs_t gain) override;
+    void interpolationChanged(float interpolation) override;
+    void spatModeChanged(SpatMode spatMode) override;
+    void numSourcesChanged(int numSources) override;
+    void recordButtonPressed() override;
+
+private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(MainContentComponent)
 };

@@ -2,6 +2,11 @@
 
 #include "constants.hpp"
 
+static constexpr auto MIN_WIDTH = 150;
+static constexpr auto MAX_WIDTH = 200;
+static constexpr auto MIN_HEIGHT = 75;
+static constexpr auto MAX_HEIGHT = 100;
+
 //==============================================================================
 SpatModeComponent::SpatModeComponent(Listener & listener) : mListener(listener)
 {
@@ -79,19 +84,37 @@ void SpatModeComponent::resized()
 {
     jassert(NUM_COLS * NUM_ROWS == mButtons.size());
 
-    auto const buttonWidth{ getWidth() / NUM_COLS + SPACING_TO_REMOVE * 2 };
-    auto const buttonHeight{ getHeight() / NUM_ROWS + SPACING_TO_REMOVE * 2 };
+    auto const width{ std::clamp(getWidth(), MIN_WIDTH, MAX_WIDTH) };
+    auto const height{ std::clamp(getHeight(), MIN_HEIGHT, MAX_HEIGHT) };
+
+    auto const baseOffsetX{ std::max(getWidth() - width, 0) / 2 };
+    auto const baseOffsetY{ std::max(getHeight() - height, 0) / 2 };
+
+    auto const totalXPadding{ INNER_PADDING * (NUM_COLS - 1) };
+    auto const totalYPadding{ INNER_PADDING * (NUM_ROWS - 1) };
+
+    auto const buttonWidth{ (width - totalXPadding) / NUM_COLS };
+    auto const buttonHeight{ (height - totalYPadding) / NUM_ROWS };
 
     for (int i{}; i < NUM_ROWS; ++i) {
-        auto const yOffset{ SPACING_TO_REMOVE + i * 2 * SPACING_TO_REMOVE };
+        auto const yOffset{ baseOffsetY + i * (buttonHeight + INNER_PADDING) };
         for (int j{}; j < NUM_COLS; ++j) {
-            auto const xOffset{ SPACING_TO_REMOVE + j * 2 * SPACING_TO_REMOVE };
+            auto const xOffset{ baseOffsetX + j * (buttonWidth + INNER_PADDING) };
             auto const index{ i * NUM_COLS + j };
-            juce::Rectangle<int> const bounds{ j * buttonWidth - xOffset,
-                                               i * buttonHeight - yOffset,
-                                               buttonWidth,
-                                               buttonHeight };
+            juce::Rectangle<int> const bounds{ xOffset, yOffset, buttonWidth, buttonHeight };
             mButtons[index]->setBounds(bounds);
         }
     }
+}
+
+//==============================================================================
+int SpatModeComponent::getMinWidth() const noexcept
+{
+    return MIN_WIDTH;
+}
+
+//==============================================================================
+int SpatModeComponent::getMinHeight() const noexcept
+{
+    return MIN_HEIGHT;
 }

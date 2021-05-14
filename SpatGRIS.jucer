@@ -141,14 +141,27 @@
                 file="Source/LayoutComponent.h"/>
           <FILE id="jAqe5H" name="MinSizedComponent.hpp" compile="0" resource="0"
                 file="Source/MinSizedComponent.hpp"/>
+          <FILE id="eUdCf0" name="RecordButton.cpp" compile="1" resource="0"
+                file="Source/RecordButton.cpp"/>
+          <FILE id="FWo3ih" name="RecordButton.h" compile="0" resource="0" file="Source/RecordButton.h"/>
           <FILE id="QQ90uW" name="SpatModeComponent.cpp" compile="1" resource="0"
                 file="Source/SpatModeComponent.cpp"/>
           <FILE id="hM6col" name="SpatModeComponent.h" compile="0" resource="0"
                 file="Source/SpatModeComponent.h"/>
+          <FILE id="BBzzPc" name="SpatSlider.cpp" compile="1" resource="0" file="Source/SpatSlider.cpp"/>
+          <FILE id="spVbKg" name="SpatSlider.h" compile="0" resource="0" file="Source/SpatSlider.h"/>
+          <FILE id="KjXNsJ" name="SpatTextEditor.cpp" compile="1" resource="0"
+                file="Source/SpatTextEditor.cpp"/>
+          <FILE id="wO9VUI" name="SpatTextEditor.h" compile="0" resource="0"
+                file="Source/SpatTextEditor.h"/>
           <FILE id="Tz4yI1" name="SpeakerViewComponent.cpp" compile="1" resource="0"
                 file="Source/SpeakerViewComponent.cpp"/>
           <FILE id="ItaT5M" name="SpeakerViewComponent.h" compile="0" resource="0"
                 file="Source/SpeakerViewComponent.h"/>
+          <FILE id="RAONSv" name="TitledComponent.cpp" compile="1" resource="0"
+                file="Source/TitledComponent.cpp"/>
+          <FILE id="djERfK" name="TitledComponent.h" compile="0" resource="0"
+                file="Source/TitledComponent.h"/>
           <FILE id="UxDOKf" name="VuMeterComponent.cpp" compile="1" resource="0"
                 file="Source/VuMeterComponent.cpp"/>
           <FILE id="pQThlS" name="VuMeterComponent.h" compile="0" resource="0"

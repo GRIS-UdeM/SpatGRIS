@@ -20,8 +20,10 @@
 #include "MainComponent.h"
 
 #include "AudioManager.h"
+#include "ControlPanel.h"
 #include "LegacyLbapPosition.h"
 #include "MainWindow.h"
+#include "TitledComponent.h"
 #include "VuMeterComponent.h"
 #include "constants.hpp"
 
@@ -105,62 +107,22 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         // Box Inputs
         mSourcesLayout
             = std::make_unique<LayoutComponent>(LayoutComponent::Orientation::horizontal, true, false, grisLookAndFeel);
-        mSourcesSection = std::make_unique<MainUiSection>("Inputs", mSourcesLayout.get(), mLookAndFeel);
+        mSourcesSection = std::make_unique<TitledComponent>("Inputs", mSourcesLayout.get(), mLookAndFeel);
 
         // Box Outputs
         mSpeakersLayout
             = std::make_unique<LayoutComponent>(LayoutComponent::Orientation::horizontal, true, false, grisLookAndFeel);
-        mSpeakersSection = std::make_unique<MainUiSection>("Outputs", mSpeakersLayout.get(), mLookAndFeel);
+        mSpeakersSection = std::make_unique<TitledComponent>("Outputs", mSpeakersLayout.get(), mLookAndFeel);
 
         // Box Control
-        mControlUiBox = std::make_unique<Box>(mLookAndFeel, "Controls");
+        mControlPanel = std::make_unique<ControlPanel>(*this, mLookAndFeel);
+        mControlsSection = std::make_unique<TitledComponent>("Controls", mControlPanel.get(), mLookAndFeel);
 
         mMainLayout->addSection(mSourcesSection.get()).withRelativeSize(1.0f);
         mMainLayout->addSection(mSpeakersSection.get()).withRelativeSize(1.0f);
-        mMainLayout->addSection(nullptr).withFixedSize(200);
-        // mMainLayout->addSection(mControlUiBox.get()).withChildMinSize();
+        mMainLayout->addSection(mControlsSection.get()).withChildMinSize().withBottomPadding(3);
 
         addAndMakeVisible(mMainLayout.get());
-
-        // Components in Box Control
-        mCpuUsageLabel.reset(addLabel("CPU usage", "CPU usage", 0, 0, 80, 28, mControlUiBox->getContent()));
-        mCpuUsageLabel->setText("CPU usage : ", juce::dontSendNotification);
-        mCpuUsageValue.reset(addLabel("0 %", "CPU usage", 80, 0, 80, 28, mControlUiBox->getContent()));
-        mSampleRateLabel.reset(addLabel("0 Hz", "Rate", 120, 0, 80, 28, mControlUiBox->getContent()));
-        mBufferSizeLabel.reset(addLabel("0 spls", "Buffer Size", 200, 0, 80, 28, mControlUiBox->getContent()));
-        mChannelCountLabel.reset(addLabel("...", "Inputs/Outputs", 280, 0, 90, 28, mControlUiBox->getContent()));
-
-        mCpuUsageLabel->setColour(juce::Label::backgroundColourId, mLookAndFeel.getWinBackgroundColour());
-        mCpuUsageValue->setColour(juce::Label::backgroundColourId, mLookAndFeel.getWinBackgroundColour());
-        mSampleRateLabel->setColour(juce::Label::backgroundColourId, mLookAndFeel.getWinBackgroundColour());
-        mBufferSizeLabel->setColour(juce::Label::backgroundColourId, mLookAndFeel.getWinBackgroundColour());
-        mChannelCountLabel->setColour(juce::Label::backgroundColourId, mLookAndFeel.getWinBackgroundColour());
-
-        addLabel("Gain", "Master Gain Outputs", 15, 30, 120, 20, mControlUiBox->getContent());
-        mMasterGainOutSlider.reset(
-            addSlider("Master Gain", "Master Gain Outputs", 5, 45, 60, 60, mControlUiBox->getContent()));
-        mMasterGainOutSlider->setRange(-60.0, 12.0, 0.01);
-        mMasterGainOutSlider->setTextValueSuffix(" dB");
-
-        addLabel("Interpolation", "Master Interpolation", 60, 30, 120, 20, mControlUiBox->getContent());
-        mInterpolationSlider.reset(addSlider("Inter", "Interpolation", 70, 45, 60, 60, mControlUiBox->getContent()));
-        mInterpolationSlider->setRange(0.0, 1.0, 0.001);
-
-        mNumSourcesTextEditor.reset(
-            addTextEditor("Inputs :", "0", "Numbers of Inputs", 122, 83, 43, 22, mControlUiBox->getContent()));
-        mNumSourcesTextEditor->setInputRestrictions(3, "0123456789");
-
-        mInitRecordButton.reset(
-            addButton("Init Recording", "Init Recording", 268, 48, 103, 24, mControlUiBox->getContent()));
-
-        mStartRecordButton.reset(
-            addButton("Record", "Start/Stop Record", 268, 83, 60, 24, mControlUiBox->getContent()));
-        mStartRecordButton->setEnabled(false);
-
-        mTimeRecordedLabel.reset(addLabel("00:00", "Record time", 327, 83, 50, 24, mControlUiBox->getContent()));
-
-        mSpatModeComponent.setBounds(300, 83, 150, 50);
-        mControlUiBox->addAndMakeVisible(mSpatModeComponent);
 
         // Set up the layout and resize bars.
         mVerticalLayout.setItemLayout(0,
@@ -175,9 +137,6 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
             -0.565); // right panes must be at least 150 pixels wide, preferably 50% of the total width
         mVerticalDividerBar.reset(new juce::StretchableLayoutResizerBar(&mVerticalLayout, 1, true));
         addAndMakeVisible(mVerticalDividerBar.get());
-
-        mMasterGainOutSlider->setValue(0.0, juce::dontSendNotification);
-        mInterpolationSlider->setValue(0.1, juce::dontSendNotification);
 
         // Default application window size.
         setSize(1285, 610);
@@ -208,7 +167,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         switch (spatMode) {
         case SpatMode::hrtfVbap:
         case SpatMode::stereo:
-            handleSpatModeChanged(mData.appData.spatMode);
+            spatModeChanged(mData.appData.spatMode);
             return;
         case SpatMode::vbap:
         case SpatMode::lbap:
@@ -486,9 +445,9 @@ void MainContentComponent::loadProject(juce::File const & file, LoadProjectOptio
     mData.project = std::move(*projectData);
     mData.appData.lastProject = file.getFullPathName();
 
-    mNumSourcesTextEditor->setText(juce::String{ mData.project.sources.size() }, false);
-    mMasterGainOutSlider->setValue(mData.project.masterGain.get(), juce::dontSendNotification);
-    mInterpolationSlider->setValue(mData.project.spatGainsInterpolation, juce::dontSendNotification);
+    mControlPanel->setNumSources(mData.project.sources.size());
+    mControlPanel->setMasterGain(mData.project.masterGain);
+    mControlPanel->setInterpolation(mData.project.spatGainsInterpolation);
 
     if (loadProjectOption == LoadProjectOption::removeInvalidDirectOuts) {
         removeInvalidDirectOuts();
@@ -732,6 +691,137 @@ void MainContentComponent::handleOpenManual()
     if (MANUAL_FILE.exists()) {
         juce::Process::openDocument("file:" + MANUAL_FILE.getFullPathName(), juce::String());
     }
+}
+
+//==============================================================================
+void MainContentComponent::masterGainChanged(dbfs_t const gain)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    mData.project.masterGain = gain;
+    mControlPanel->setMasterGain(gain);
+
+    updateAudioProcessor();
+}
+
+//==============================================================================
+void MainContentComponent::interpolationChanged(float const interpolation)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    mData.project.spatGainsInterpolation = interpolation;
+    mControlPanel->setInterpolation(interpolation);
+
+    updateAudioProcessor();
+}
+
+//==============================================================================
+void MainContentComponent::spatModeChanged(SpatMode const spatMode)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    jassert(narrow<int>(spatMode) >= 0 && narrow<int>(spatMode) <= narrow<int>(SpatMode::stereo));
+
+    if (mData.appData.spatMode == spatMode && mSpatAlgorithm) {
+        return;
+    }
+
+    if (isSpeakerSetupModified()) {
+        juce::AlertWindow alert(
+            "The speaker configuration has changed!    ",
+            "Save your changes or close the speaker configuration window before switching mode...    ",
+            juce::AlertWindow::WarningIcon);
+        alert.setLookAndFeel(&mLookAndFeel);
+        alert.addButton("Ok", 0, juce::KeyPress(juce::KeyPress::returnKey));
+        alert.runModalLoop();
+        mControlPanel->setSpatMode(mData.appData.spatMode);
+        return;
+    }
+
+    mControlPanel->setSpatMode(spatMode);
+
+    // handle speaker setup change
+    auto const getForcedSpeakerSetup = [&]() -> tl::optional<juce::File> {
+        switch (spatMode) {
+        case SpatMode::hrtfVbap:
+            return BINAURAL_SPEAKER_SETUP_FILE;
+        case SpatMode::stereo:
+            return STEREO_SPEAKER_SETUP_FILE;
+        case SpatMode::lbap:
+        case SpatMode::vbap:
+            switch (mData.appData.spatMode) {
+            case SpatMode::hrtfVbap:
+            case SpatMode::stereo:
+                return mData.appData.lastSpeakerSetup;
+            case SpatMode::lbap:
+            case SpatMode::vbap:
+                // keep the current setup and adapt it to the new spatMode
+                return tl::nullopt;
+            }
+        }
+        jassertfalse;
+        return tl::nullopt;
+    };
+
+    mData.appData.viewSettings.showSpeakerTriplets = false;
+
+    auto const forcedSpeakerSetup{ getForcedSpeakerSetup() };
+    if (forcedSpeakerSetup) {
+        loadSpeakerSetup(*forcedSpeakerSetup, spatMode);
+        mAudioProcessor->resetHrtf();
+        return;
+    }
+
+    // speaker setup stays the same
+    mData.appData.spatMode = spatMode;
+    mSpatAlgorithm = AbstractSpatAlgorithm::make(spatMode, mData.speakerSetup.speakers);
+
+    updateAudioProcessor();
+    updateViewportConfig();
+
+    if (mEditSpeakersWindow != nullptr) {
+        auto const windowName{ juce::String("Speakers Setup Edition - ")
+                               + juce::String(SPAT_MODE_STRINGS[static_cast<int>(spatMode)]) + juce::String(" - ")
+                               + mData.appData.lastSpeakerSetup };
+        mEditSpeakersWindow->setName(windowName);
+    }
+}
+
+//==============================================================================
+void MainContentComponent::numSourcesChanged(int const numSources)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    jassert(numSources >= 1 && numSources <= MAX_NUM_SOURCES);
+    juce::ScopedWriteLock const lock{ mLock };
+
+    mControlPanel->setNumSources(numSources);
+
+    if (numSources > mData.project.sources.size()) {
+        source_index_t const firstNewIndex{ mData.project.sources.size() + 1 };
+        source_index_t const lastNewIndex{ numSources };
+        for (auto index{ firstNewIndex }; index <= lastNewIndex; ++index) {
+            mData.project.sources.add(index, std::make_unique<SourceData>());
+        }
+    } else if (numSources < mData.project.sources.size()) {
+        // remove some inputs
+        while (mData.project.sources.size() > numSources) {
+            source_index_t const index{ mData.project.sources.size() };
+            mData.project.sources.remove(index);
+        }
+    }
+
+    updateAudioProcessor();
+    refreshSourceVuMeterComponents();
+    unfocusAllComponents();
+}
+
+//==============================================================================
+void MainContentComponent::recordButtonPressed()
+{
+    mControlPanel->setRecordButtonState(RecordButton::State::recording);
 }
 
 //==============================================================================
@@ -1111,11 +1201,11 @@ void MainContentComponent::audioParametersChanged()
 
     AudioManager::getInstance().setBufferSize(bufferSize);
 
-    mSampleRateLabel->setText(juce::String{ narrow<unsigned>(sampleRate) } + " Hz",
-                              juce::NotificationType::dontSendNotification);
-    mBufferSizeLabel->setText(juce::String{ bufferSize } + " samples", juce::NotificationType::dontSendNotification);
-    mChannelCountLabel->setText("I : " + juce::String{ inputCount } + " - O : " + juce::String{ outputCount },
-                                juce::dontSendNotification);
+    // mSampleRateLabel->setText(juce::String{ narrow<unsigned>(sampleRate) } + " Hz",
+    //                          juce::NotificationType::dontSendNotification);
+    // mBufferSizeLabel->setText(juce::String{ bufferSize } + " samples", juce::NotificationType::dontSendNotification);
+    // mChannelCountLabel->setText("I : " + juce::String{ inputCount } + " - O : " + juce::String{ outputCount },
+    //                            juce::dontSendNotification);
 }
 
 //==============================================================================
@@ -1366,9 +1456,6 @@ void MainContentComponent::refreshSourceVuMeterComponents()
                                                                   mSmallLookAndFeel) };
         auto & addedVuMeter{ mSourceVuMeterComponents.add(source.key, std::move(newVuMeter)) };
         mSourcesLayout->addSection(&addedVuMeter).withChildMinSize();
-        // juce::Rectangle<int> const bounds{ x, 5, VU_METER_WIDTH, 200 };
-        // newVuMeter->setBounds(bounds);
-        // x += VU_METER_WIDTH;
     }
 
     resized();
@@ -1388,9 +1475,6 @@ void MainContentComponent::refreshSpeakerVuMeterComponents()
         auto newVuMeter{ std::make_unique<SpeakerVuMeterComponent>(outputPatch, *this, mSmallLookAndFeel) };
         auto & addedVuMeter{ mSpeakerVuMeterComponents.add(outputPatch, std::move(newVuMeter)) };
         mSpeakersLayout->addSection(&addedVuMeter).withChildMinSize();
-        // juce::Rectangle<int> const bounds{ x, 5, VU_METER_WIDTH, 200 };
-        // newVuMeter->setBounds(bounds);
-        // x += VU_METER_WIDTH;
     }
 
     resized();
@@ -1682,103 +1766,6 @@ void MainContentComponent::handleSourceDirectOutChanged(source_index_t const sou
 }
 
 //==============================================================================
-void MainContentComponent::handleSpatModeChanged(SpatMode const spatMode)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-    juce::ScopedWriteLock const lock{ mLock };
-
-    jassert(narrow<int>(spatMode) >= 0 && narrow<int>(spatMode) <= narrow<int>(SpatMode::stereo));
-
-    if (mData.appData.spatMode == spatMode && mSpatAlgorithm) {
-        return;
-    }
-
-    if (isSpeakerSetupModified()) {
-        juce::AlertWindow alert(
-            "The speaker configuration has changed!    ",
-            "Save your changes or close the speaker configuration window before switching mode...    ",
-            juce::AlertWindow::WarningIcon);
-        alert.setLookAndFeel(&mLookAndFeel);
-        alert.addButton("Ok", 0, juce::KeyPress(juce::KeyPress::returnKey));
-        alert.runModalLoop();
-        mSpatModeComponent.setSpatMode(mData.appData.spatMode);
-        return;
-    }
-
-    mSpatModeComponent.setSpatMode(spatMode);
-
-    // handle speaker setup change
-    auto const getForcedSpeakerSetup = [&]() -> tl::optional<juce::File> {
-        switch (spatMode) {
-        case SpatMode::hrtfVbap:
-            return BINAURAL_SPEAKER_SETUP_FILE;
-        case SpatMode::stereo:
-            return STEREO_SPEAKER_SETUP_FILE;
-        case SpatMode::lbap:
-        case SpatMode::vbap:
-            switch (mData.appData.spatMode) {
-            case SpatMode::hrtfVbap:
-            case SpatMode::stereo:
-                return mData.appData.lastSpeakerSetup;
-            case SpatMode::lbap:
-            case SpatMode::vbap:
-                // keep the current setup and adapt it to the new spatMode
-                return tl::nullopt;
-            }
-        }
-        jassertfalse;
-        return tl::nullopt;
-    };
-
-    mData.appData.viewSettings.showSpeakerTriplets = false;
-
-    auto const forcedSpeakerSetup{ getForcedSpeakerSetup() };
-    if (forcedSpeakerSetup) {
-        loadSpeakerSetup(*forcedSpeakerSetup, spatMode);
-        mAudioProcessor->resetHrtf();
-        return;
-    }
-
-    // speaker setup stays the same
-    mData.appData.spatMode = spatMode;
-    mSpatAlgorithm = AbstractSpatAlgorithm::make(spatMode, mData.speakerSetup.speakers);
-
-    updateAudioProcessor();
-    updateViewportConfig();
-
-    if (mEditSpeakersWindow != nullptr) {
-        auto const windowName{ juce::String("Speakers Setup Edition - ")
-                               + juce::String(SPAT_MODE_STRINGS[static_cast<int>(spatMode)]) + juce::String(" - ")
-                               + mData.appData.lastSpeakerSetup };
-        mEditSpeakersWindow->setName(windowName);
-    }
-}
-
-//==============================================================================
-void MainContentComponent::handleMasterGainChanged(dbfs_t const gain)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-    juce::ScopedWriteLock const lock{ mLock };
-
-    mData.project.masterGain = gain;
-    mMasterGainOutSlider->setValue(gain.get(), juce::dontSendNotification);
-
-    updateAudioProcessor();
-}
-
-//==============================================================================
-void MainContentComponent::handleGainInterpolationChanged(float const interpolation)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-    juce::ScopedWriteLock const lock{ mLock };
-
-    mData.project.spatGainsInterpolation = interpolation;
-    mInterpolationSlider->setValue(interpolation, juce::dontSendNotification);
-
-    updateAudioProcessor();
-}
-
-//==============================================================================
 void MainContentComponent::handleNewSpeakerPosition(output_patch_t const outputPatch, CartesianVector const & position)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -1940,34 +1927,6 @@ bool MainContentComponent::isRadiusNormalized() const
 }
 
 //==============================================================================
-void MainContentComponent::handleNumSourcesChanged(int const numSources)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-    jassert(numSources >= 1 && numSources <= MAX_NUM_SOURCES);
-    juce::ScopedWriteLock const lock{ mLock };
-
-    mNumSourcesTextEditor->setText(juce::String{ numSources }, false);
-
-    if (numSources > mData.project.sources.size()) {
-        source_index_t const firstNewIndex{ mData.project.sources.size() + 1 };
-        source_index_t const lastNewIndex{ numSources };
-        for (auto index{ firstNewIndex }; index <= lastNewIndex; ++index) {
-            mData.project.sources.add(index, std::make_unique<SourceData>());
-        }
-    } else if (numSources < mData.project.sources.size()) {
-        // remove some inputs
-        while (mData.project.sources.size() > numSources) {
-            source_index_t const index{ mData.project.sources.size() };
-            mData.project.sources.remove(index);
-        }
-    }
-
-    updateAudioProcessor();
-    refreshSourceVuMeterComponents();
-    unfocusAllComponents();
-}
-
-//==============================================================================
 bool MainContentComponent::refreshSpeakers()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -2104,7 +2063,7 @@ void MainContentComponent::loadSpeakerSetup(juce::File const & file, tl::optiona
     juce::ScopedWriteLock const lock{ mLock };
     mData.speakerSetup = std::move(speakerSetup->first);
     mData.appData.spatMode = forceSpatMode.value_or(speakerSetup->second);
-    mSpatModeComponent.setSpatMode(mData.appData.spatMode);
+    mControlPanel->setSpatMode(mData.appData.spatMode);
 
     switch (mData.appData.spatMode) {
     case SpatMode::lbap:
@@ -2207,7 +2166,7 @@ void MainContentComponent::timerCallback()
     }
 
     auto const cpuLoad{ narrow<int>(std::round(cpuRunningAverage)) };
-    mCpuUsageValue->setText(juce::String{ cpuLoad } + " %", juce::dontSendNotification);
+    // mCpuUsageValue->setText(juce::String{ cpuLoad } + " %", juce::dontSendNotification);
 
     auto const sampleRate{ audioDevice->getCurrentSampleRate() };
     auto seconds{ static_cast<int>(static_cast<double>(audioManager.getNumSamplesRecorded()) / sampleRate) };
@@ -2215,23 +2174,23 @@ void MainContentComponent::timerCallback()
     seconds = seconds % 60;
     auto const timeRecorded{ ((minute < 10) ? "0" + juce::String{ minute } : juce::String{ minute }) + " : "
                              + ((seconds < 10) ? "0" + juce::String{ seconds } : juce::String{ seconds }) };
-    mTimeRecordedLabel->setText(timeRecorded, juce::dontSendNotification);
+    // mTimeRecordedLabel->setText(timeRecorded, juce::dontSendNotification);
 
-    if (mStartRecordButton->getToggleState()) {
-        mStartRecordButton->setToggleState(false, juce::dontSendNotification);
-    }
+    // if (mStartRecordButton->getToggleState()) {
+    //    mStartRecordButton->setToggleState(false, juce::dontSendNotification);
+    //}
 
-    if (audioManager.isRecording()) {
-        mStartRecordButton->setButtonText("Stop");
-    } else {
-        mStartRecordButton->setButtonText("Record");
-    }
+    // if (audioManager.isRecording()) {
+    //    mStartRecordButton->setButtonText("Stop");
+    //} else {
+    //    mStartRecordButton->setButtonText("Record");
+    //}
 
-    if (cpuLoad >= 100) {
-        mCpuUsageValue->setColour(juce::Label::backgroundColourId, juce::Colours::darkred);
-    } else {
-        mCpuUsageValue->setColour(juce::Label::backgroundColourId, mLookAndFeel.getWinBackgroundColour());
-    }
+    // if (cpuLoad >= 100) {
+    //    mCpuUsageValue->setColour(juce::Label::backgroundColourId, juce::Colours::darkred);
+    //} else {
+    //    mCpuUsageValue->setColour(juce::Label::backgroundColourId, mLookAndFeel.getWinBackgroundColour());
+    //}
 
     if (mIsProcessForeground != juce::Process::isForegroundProcess()) {
         mIsProcessForeground = juce::Process::isForegroundProcess();
@@ -2275,7 +2234,7 @@ void MainContentComponent::textEditorReturnKeyPressed([[maybe_unused]] juce::Tex
 
     auto const unclippedValue{ mNumSourcesTextEditor->getTextValue().toString().getIntValue() };
     auto const numOfInputs{ std::clamp(unclippedValue, 1, MAX_NUM_SOURCES) };
-    handleNumSourcesChanged(numOfInputs);
+    numSourcesChanged(numOfInputs);
 }
 
 //==============================================================================
@@ -2309,10 +2268,10 @@ void MainContentComponent::sliderValueChanged(juce::Slider * slider)
 
     if (slider == mMasterGainOutSlider.get()) {
         dbfs_t const value{ static_cast<float>(mMasterGainOutSlider->getValue()) };
-        handleMasterGainChanged(value);
+        masterGainChanged(value);
     } else if (slider == mInterpolationSlider.get()) {
         auto const value{ static_cast<float>(mInterpolationSlider->getValue()) };
-        handleGainInterpolationChanged(value);
+        interpolationChanged(value);
     }
 }
 
@@ -2408,7 +2367,7 @@ void MainContentComponent::resized()
     reducedLocalBounds.removeFromTop(MENU_BAR_HEIGHT);
 
     // Lay out the speaker view and the vertical divider.
-    Component * vComps[] = { mSpeakerViewComponent.get(), mVerticalDividerBar.get(), nullptr };
+    Component * vComps[] = { mSpeakerViewComponent.get(), mVerticalDividerBar.get(), mMainLayout.get(), nullptr };
 
     // Lay out side-by-side and resize the components' heights as well as widths.
     mVerticalLayout.layOutComponents(vComps,
@@ -2419,33 +2378,4 @@ void MainContentComponent::resized()
                                      reducedLocalBounds.getHeight(),
                                      false,
                                      true);
-
-    juce::Rectangle<int> const newMainUiBoxBounds{ mSpeakerViewComponent->getWidth() + 6,
-                                                   MENU_BAR_HEIGHT,
-                                                   getWidth() - (mSpeakerViewComponent->getWidth() + PADDING),
-                                                   getHeight() };
-    mMainLayout->setBounds(newMainUiBoxBounds);
-    /*mMainUiComponent.setSize(getWidth() - mSpeakerViewComponent->getWidth() - 6, 610);*/
-
-    // juce::Rectangle<int> const newInputsUiBoxBounds{ 0,
-    //                                                 2,
-    //                                                 getWidth() - (mSpeakerViewComponent->getWidth() + PADDING),
-    //                                                 231 };
-    // mSourcesLayout->setBounds(newInputsUiBoxBounds);
-    // mSourcesVuMetersViewport.getViewedComponent()->setSize(mData.project.sources.size() * VU_METER_WIDTH + 4, 200);
-
-    // juce::Rectangle<int> const newOutputsUiBoxBounds{ 0,
-    //                                                  233,
-    //                                                  getWidth() - (mSpeakerViewComponent->getWidth() + PADDING),
-    //                                                  210 };
-    // mSpeakersLayout->setBounds(newOutputsUiBoxBounds);
-    /*mSpeakersVuMetersViewport.getViewedComponent()->setSize(mData.speakerSetup.speakers.size() * VU_METER_WIDTH + 4,
-                                                            180);*/
-
-    // juce::Rectangle<int> const newControlUiBoxBounds{ 0,
-    //                                                  443,
-    //                                                  getWidth() - (mSpeakerViewComponent->getWidth() + PADDING),
-    //                                                  145 };
-    // mControlUiBox->setBounds(newControlUiBoxBounds);
-    // mControlUiBox->correctSize(410, 145);
 }

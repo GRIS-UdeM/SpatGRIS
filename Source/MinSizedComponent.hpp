@@ -2,11 +2,14 @@
 
 #include <JuceHeader.h>
 
-class MinSizedComponent : public juce::Component
+//==============================================================================
+class MinSizedComponent
+    : public juce::Component
+    , public juce::SettableTooltipClient
 {
 public:
     MinSizedComponent() = default;
-    ~MinSizedComponent() override = default;
+    virtual ~MinSizedComponent() = default;
     //==============================================================================
     MinSizedComponent(MinSizedComponent const &) = delete;
     MinSizedComponent(MinSizedComponent &&) = delete;

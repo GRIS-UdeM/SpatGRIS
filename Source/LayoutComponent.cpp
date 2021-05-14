@@ -51,11 +51,20 @@ void LayoutComponent::clear()
 //==============================================================================
 void LayoutComponent::paint(juce::Graphics & g)
 {
+    // JUCE_ASSERT_MESSAGE_THREAD;
+
     // for (auto const & section : mSections) {
     //    if (!section.mComponent) {
     //        continue;
     //    }
     //    auto const bounds{ section.mComponent->getBounds() };
+
+    //    g.setColour(juce::Colours::green);
+    //    g.fillRect(bounds.withTop(0).withHeight(section.mTopPadding));
+    //    g.fillRect(bounds.withX(bounds.getRight()).withWidth(section.mRightPadding));
+    //    g.fillRect(bounds.withTop(bounds.getBottom()).withHeight(section.mBottomPadding));
+    //    g.fillRect(bounds.withX(0).withWidth(section.mLeftPadding));
+
     //    g.setColour(juce::Colours::blue.withAlpha(0.5f));
     //    g.fillRect(bounds);
     //    g.setColour(juce::Colours::red.withAlpha(0.5f));
@@ -151,6 +160,8 @@ int LayoutComponent::getMinHeight() const noexcept
 //==============================================================================
 int LayoutComponent::getMinInnerWidth() const noexcept
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     if (mOrientation == Orientation::horizontal) {
         return std::transform_reduce(mSections.begin(), mSections.end(), 0, std::plus(), [=](Section const & section) {
             return section.getMinSectionWidth(mOrientation);
@@ -165,6 +176,8 @@ int LayoutComponent::getMinInnerWidth() const noexcept
 //==============================================================================
 int LayoutComponent::getMinInnerHeight() const noexcept
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     if (mOrientation == Orientation::vertical) {
         return std::transform_reduce(mSections.begin(), mSections.end(), 0, std::plus(), [=](Section const & section) {
             return section.getMinSectionHeight(mOrientation);

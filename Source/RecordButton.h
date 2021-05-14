@@ -1,18 +1,14 @@
 #pragma once
 
 #include "MinSizedComponent.hpp"
-#include "SpatMode.hpp"
 
 //==============================================================================
-class SpatModeComponent final
+class RecordButton final
     : public MinSizedComponent
-    , private juce::TextButton::Listener
+    , private juce::Timer
 {
-    static constexpr auto NUM_COLS = 2;
-    static constexpr auto NUM_ROWS = 2;
-    static constexpr auto INNER_PADDING = 1;
-
 public:
+    enum class State { ready, recording };
     //==============================================================================
     class Listener
     {
@@ -25,7 +21,7 @@ public:
         Listener & operator=(Listener const &) = delete;
         Listener & operator=(Listener &&) = delete;
         //==============================================================================
-        virtual void handleSpatModeChanged(SpatMode spatMode) = 0;
+        virtual void recordButtonPressed() = 0;
 
     private:
         //==============================================================================
@@ -34,28 +30,35 @@ public:
 
 private:
     //==============================================================================
-    SpatMode mSpatMode{};
     Listener & mListener;
-    juce::OwnedArray<juce::Button> mButtons{};
+    State mState{ State::ready };
+    bool mBlinkState{};
+    bool mIsButtonDown{};
+    juce::Rectangle<int> mActiveBounds{};
 
 public:
     //==============================================================================
-    explicit SpatModeComponent(Listener & listener);
-    ~SpatModeComponent() override = default;
+    explicit RecordButton(Listener & listener);
+    ~RecordButton() override = default;
     //==============================================================================
-    SpatModeComponent(SpatModeComponent const &) = delete;
-    SpatModeComponent(SpatModeComponent &&) = delete;
-    SpatModeComponent & operator=(SpatModeComponent const &) = delete;
-    SpatModeComponent & operator=(SpatModeComponent &&) = delete;
+    RecordButton(RecordButton const &) = delete;
+    RecordButton(RecordButton &&) = delete;
+    RecordButton & operator=(RecordButton const &) = delete;
+    RecordButton & operator=(RecordButton &&) = delete;
     //==============================================================================
-    void setSpatMode(SpatMode spatMode);
+    void setState(State state);
     //==============================================================================
-    void buttonClicked(juce::Button * button) override;
+    void paint(juce::Graphics & g) override;
     void resized() override;
+    void mouseUp(juce::MouseEvent const & event) override;
+    void mouseMove(const juce::MouseEvent & event) override;
     [[nodiscard]] int getMinWidth() const noexcept override;
     [[nodiscard]] int getMinHeight() const noexcept override;
 
 private:
     //==============================================================================
-    JUCE_LEAK_DETECTOR(SpatModeComponent)
+    void timerCallback() override;
+    void updateActiveBounds();
+    //==============================================================================
+    JUCE_LEAK_DETECTOR(RecordButton)
 };
