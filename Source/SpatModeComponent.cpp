@@ -13,7 +13,7 @@ static constexpr auto INNER_PADDING = 1;
 //==============================================================================
 SpatModeComponent::SpatModeComponent(Listener & listener, GrisLookAndFeel & lookAndFeel)
     : mListener(listener)
-    , mLabel("", "Spatialization mode")
+    , mLabel("", "Algorithm Selection")
 {
     using flag = juce::Button::ConnectedEdgeFlags;
 
@@ -29,7 +29,6 @@ SpatModeComponent::SpatModeComponent(Listener & listener, GrisLookAndFeel & look
         newButton->setTooltip(SPAT_MODE_TOOLTIPS[i]);
         newButton->setClickingTogglesState(true);
         newButton->setRadioGroupId(SPAT_MODE_BUTTONS_RADIO_GROUP_ID, juce::dontSendNotification);
-        // newButton->setConnectedEdges(getFlags(i));
         newButton->addListener(this);
         addAndMakeVisible(newButton);
     }

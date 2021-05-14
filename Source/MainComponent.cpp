@@ -104,20 +104,24 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         mMainLayout
             = std::make_unique<LayoutComponent>(LayoutComponent::Orientation::vertical, false, true, grisLookAndFeel);
 
-        // Box Inputs
+        // info panel
+        mInfoPanel = std::make_unique<InfoPanel>(mLookAndFeel);
+
+        // Source panel
         mSourcesLayout
             = std::make_unique<LayoutComponent>(LayoutComponent::Orientation::horizontal, true, false, grisLookAndFeel);
         mSourcesSection = std::make_unique<TitledComponent>("Inputs", mSourcesLayout.get(), mLookAndFeel);
 
-        // Box Outputs
+        // Speaker panel
         mSpeakersLayout
             = std::make_unique<LayoutComponent>(LayoutComponent::Orientation::horizontal, true, false, grisLookAndFeel);
         mSpeakersSection = std::make_unique<TitledComponent>("Outputs", mSpeakersLayout.get(), mLookAndFeel);
 
-        // Box Control
+        // Control panel
         mControlPanel = std::make_unique<ControlPanel>(*this, mLookAndFeel);
         mControlsSection = std::make_unique<TitledComponent>("Controls", mControlPanel.get(), mLookAndFeel);
 
+        mMainLayout->addSection(mInfoPanel.get()).withChildMinSize().withRightPadding(5);
         mMainLayout->addSection(mSourcesSection.get()).withRelativeSize(1.0f).withRightPadding(5);
         mMainLayout->addSection(mSpeakersSection.get()).withRelativeSize(1.0f).withRightPadding(5);
         mMainLayout->addSection(mControlsSection.get()).withChildMinSize().withBottomPadding(5).withRightPadding(5);
@@ -222,157 +226,6 @@ MainContentComponent::~MainContentComponent()
     }
 
     mSpeakerViewComponent.reset();
-}
-
-//==============================================================================
-// Widget builder utilities.
-juce::Label * MainContentComponent::addLabel(juce::String const & s,
-                                             juce::String const & tooltip,
-                                             int const x,
-                                             int const y,
-                                             int const w,
-                                             int const h,
-                                             Component * into) const
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    auto * lb{ new juce::Label{} };
-    lb->setText(s, juce::NotificationType::dontSendNotification);
-    lb->setTooltip(tooltip);
-    lb->setJustificationType(juce::Justification::left);
-    lb->setFont(mLookAndFeel.getFont());
-    lb->setLookAndFeel(&mLookAndFeel);
-    lb->setColour(juce::Label::textColourId, mLookAndFeel.getFontColour());
-    lb->setBounds(x, y, w, h);
-    into->addAndMakeVisible(lb);
-    return lb;
-}
-
-//==============================================================================
-juce::TextButton * MainContentComponent::addButton(juce::String const & s,
-                                                   juce::String const & tooltip,
-                                                   int const x,
-                                                   int const y,
-                                                   int const w,
-                                                   int const h,
-                                                   Component * into)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    auto * tb{ new juce::TextButton{} };
-    tb->setTooltip(tooltip);
-    tb->setButtonText(s);
-    tb->setSize(w, h);
-    tb->setTopLeftPosition(x, y);
-    tb->addListener(this);
-    tb->setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
-    tb->setLookAndFeel(&mLookAndFeel);
-    into->addAndMakeVisible(tb);
-    return tb;
-}
-
-//==============================================================================
-juce::ToggleButton * MainContentComponent::addToggleButton(juce::String const & s,
-                                                           juce::String const & tooltip,
-                                                           int const x,
-                                                           int const y,
-                                                           int const w,
-                                                           int const h,
-                                                           Component * into,
-                                                           bool const toggle)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    auto * tb{ new juce::ToggleButton{} };
-    tb->setTooltip(tooltip);
-    tb->setButtonText(s);
-    tb->setToggleState(toggle, juce::dontSendNotification);
-    tb->setSize(w, h);
-    tb->setTopLeftPosition(x, y);
-    tb->addListener(this);
-    tb->setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
-    tb->setLookAndFeel(&mLookAndFeel);
-    into->addAndMakeVisible(tb);
-    return tb;
-}
-
-//==============================================================================
-juce::TextEditor * MainContentComponent::addTextEditor(juce::String const & s,
-                                                       juce::String const & emptyS,
-                                                       juce::String const & tooltip,
-                                                       int const x,
-                                                       int const y,
-                                                       int const w,
-                                                       int const h,
-                                                       Component * into,
-                                                       int const wLab)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    auto * te{ new juce::TextEditor{} };
-    te->setTooltip(tooltip);
-    te->setTextToShowWhenEmpty(emptyS, mLookAndFeel.getOffColour());
-    te->setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
-    te->setLookAndFeel(&mLookAndFeel);
-
-    if (s.isEmpty()) {
-        te->setBounds(x, y, w, h);
-    } else {
-        te->setBounds(x + wLab, y, w, h);
-        juce::Label * lb = addLabel(s, "", x, y, wLab, h, into);
-        lb->setJustificationType(juce::Justification::centredRight);
-    }
-
-    te->addListener(this);
-    into->addAndMakeVisible(te);
-    return te;
-}
-
-//==============================================================================
-juce::Slider * MainContentComponent::addSlider(juce::String const & /*s*/,
-                                               juce::String const & tooltip,
-                                               int const x,
-                                               int const y,
-                                               int const w,
-                                               int const h,
-                                               Component * into)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    auto * sd{ new juce::Slider{} };
-    sd->setTooltip(tooltip);
-    sd->setSize(w, h);
-    sd->setTopLeftPosition(x, y);
-    sd->setSliderStyle(juce::Slider::Rotary);
-    sd->setRotaryParameters(juce::MathConstants<float>::pi * 1.3f, juce::MathConstants<float>::pi * 2.7f, true);
-    sd->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 60, 20);
-    sd->setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
-    sd->setLookAndFeel(&mLookAndFeel);
-    sd->addListener(this);
-    into->addAndMakeVisible(sd);
-    return sd;
-}
-
-//==============================================================================
-juce::ComboBox * MainContentComponent::addComboBox(juce::String const & /*s*/,
-                                                   juce::String const & tooltip,
-                                                   int const x,
-                                                   int const y,
-                                                   int const w,
-                                                   int const h,
-                                                   Component * into)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    // TODO : naked new
-    auto * cb{ new juce::ComboBox{} };
-    cb->setTooltip(tooltip);
-    cb->setSize(w, h);
-    cb->setTopLeftPosition(x, y);
-    cb->setLookAndFeel(&mLookAndFeel);
-    cb->addListener(this);
-    into->addAndMakeVisible(cb);
-    return cb;
 }
 
 //==============================================================================
@@ -1201,11 +1054,10 @@ void MainContentComponent::audioParametersChanged()
 
     AudioManager::getInstance().setBufferSize(bufferSize);
 
-    // mSampleRateLabel->setText(juce::String{ narrow<unsigned>(sampleRate) } + " Hz",
-    //                          juce::NotificationType::dontSendNotification);
-    // mBufferSizeLabel->setText(juce::String{ bufferSize } + " samples", juce::NotificationType::dontSendNotification);
-    // mChannelCountLabel->setText("I : " + juce::String{ inputCount } + " - O : " + juce::String{ outputCount },
-    //                            juce::dontSendNotification);
+    mInfoPanel->setSampleRate(sampleRate);
+    mInfoPanel->setBufferSize(bufferSize);
+    mInfoPanel->setNumInputs(inputCount);
+    mInfoPanel->setNumOutputs(outputCount);
 }
 
 //==============================================================================
@@ -2165,32 +2017,7 @@ void MainContentComponent::timerCallback()
         amountToRemove *= 1.1;
     }
 
-    auto const cpuLoad{ narrow<int>(std::round(cpuRunningAverage)) };
-    // mCpuUsageValue->setText(juce::String{ cpuLoad } + " %", juce::dontSendNotification);
-
-    auto const sampleRate{ audioDevice->getCurrentSampleRate() };
-    auto seconds{ static_cast<int>(static_cast<double>(audioManager.getNumSamplesRecorded()) / sampleRate) };
-    auto const minute{ seconds / 60 % 60 };
-    seconds = seconds % 60;
-    auto const timeRecorded{ ((minute < 10) ? "0" + juce::String{ minute } : juce::String{ minute }) + " : "
-                             + ((seconds < 10) ? "0" + juce::String{ seconds } : juce::String{ seconds }) };
-    // mTimeRecordedLabel->setText(timeRecorded, juce::dontSendNotification);
-
-    // if (mStartRecordButton->getToggleState()) {
-    //    mStartRecordButton->setToggleState(false, juce::dontSendNotification);
-    //}
-
-    // if (audioManager.isRecording()) {
-    //    mStartRecordButton->setButtonText("Stop");
-    //} else {
-    //    mStartRecordButton->setButtonText("Record");
-    //}
-
-    // if (cpuLoad >= 100) {
-    //    mCpuUsageValue->setColour(juce::Label::backgroundColourId, juce::Colours::darkred);
-    //} else {
-    //    mCpuUsageValue->setColour(juce::Label::backgroundColourId, mLookAndFeel.getWinBackgroundColour());
-    //}
+    mInfoPanel->setCpuLoad(cpuRunningAverage);
 
     if (mIsProcessForeground != juce::Process::isForegroundProcess()) {
         mIsProcessForeground = juce::Process::isForegroundProcess();
@@ -2214,65 +2041,6 @@ void MainContentComponent::paint(juce::Graphics & g)
     JUCE_ASSERT_MESSAGE_THREAD;
 
     g.fillAll(mLookAndFeel.getWinBackgroundColour());
-}
-
-//==============================================================================
-void MainContentComponent::textEditorFocusLost(juce::TextEditor & textEditor)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    textEditorReturnKeyPressed(textEditor);
-}
-
-//==============================================================================
-void MainContentComponent::textEditorReturnKeyPressed([[maybe_unused]] juce::TextEditor & textEditor)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-    if (&textEditor != mNumSourcesTextEditor.get()) {
-        return;
-    }
-
-    auto const unclippedValue{ mNumSourcesTextEditor->getTextValue().toString().getIntValue() };
-    auto const numOfInputs{ std::clamp(unclippedValue, 1, MAX_NUM_SOURCES) };
-    numSourcesChanged(numOfInputs);
-}
-
-//==============================================================================
-void MainContentComponent::buttonClicked(juce::Button * button)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    auto & audioManager{ AudioManager::getInstance() };
-
-    if (button == mStartRecordButton.get()) {
-        if (audioManager.isRecording()) {
-            audioManager.stopRecording();
-            mStartRecordButton->setEnabled(false);
-            mTimeRecordedLabel->setColour(juce::Label::textColourId, mLookAndFeel.getFontColour());
-        } else {
-            audioManager.startRecording();
-            mTimeRecordedLabel->setColour(juce::Label::textColourId, mLookAndFeel.getRedColour());
-        }
-        mStartRecordButton->setToggleState(audioManager.isRecording(), juce::dontSendNotification);
-    } else if (button == mInitRecordButton.get()) {
-        if (initRecording()) {
-            mStartRecordButton->setEnabled(true);
-        }
-    }
-}
-
-//==============================================================================
-void MainContentComponent::sliderValueChanged(juce::Slider * slider)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    if (slider == mMasterGainOutSlider.get()) {
-        dbfs_t const value{ static_cast<float>(mMasterGainOutSlider->getValue()) };
-        masterGainChanged(value);
-    } else if (slider == mInterpolationSlider.get()) {
-        auto const value{ static_cast<float>(mInterpolationSlider->getValue()) };
-        interpolationChanged(value);
-    }
 }
 
 //==============================================================================

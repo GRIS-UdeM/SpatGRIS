@@ -26,11 +26,11 @@
 #include "AboutWindow.h"
 #include "AbstractSpatAlgorithm.hpp"
 #include "AudioProcessor.h"
-#include "Box.h"
 #include "Configuration.h"
 #include "ControlPanel.h"
 #include "EditSpeakersWindow.h"
 #include "FlatViewWindow.h"
+#include "InfoPanel.h"
 #include "LayoutComponent.h"
 #include "LogicStrucs.hpp"
 #include "OscInput.h"
@@ -65,16 +65,12 @@ class MainContentComponent final
     : public juce::Component
     , public juce::MenuBarModel
     , public juce::ApplicationCommandTarget
-    , public juce::Button::Listener
-    , public juce::TextEditor::Listener
-    , public juce::Slider::Listener
     , public juce::ComboBox::Listener
     , public SourceVuMeterComponent::Owner
     , public SpeakerVuMeterComponent::Owner
     , public ControlPanel::Listener
     , private AudioDeviceManagerListener
     , private juce::Timer
-//, private SpatModeComponent::Listener
 {
     enum class LoadProjectOption { removeInvalidDirectOuts, dontRemoveInvalidDirectOuts };
 
@@ -98,6 +94,9 @@ class MainContentComponent final
     std::unique_ptr<AboutWindow> mAboutWindow{};
     std::unique_ptr<OscLogWindow> mOscLogWindow{};
 
+    // info section
+    std::unique_ptr<InfoPanel> mInfoPanel{};
+
     // Sources Section
     std::unique_ptr<TitledComponent> mSourcesSection{};
     std::unique_ptr<LayoutComponent> mSourcesLayout{};
@@ -112,25 +111,6 @@ class MainContentComponent final
 
     // Main ui
     std::unique_ptr<LayoutComponent> mMainLayout{};
-
-    // Component in Box 3.
-    std::unique_ptr<juce::Label> mCpuUsageLabel{};
-    std::unique_ptr<juce::Label> mCpuUsageValue{};
-    std::unique_ptr<juce::Label> mSampleRateLabel{};
-    std::unique_ptr<juce::Label> mBufferSizeLabel{};
-    std::unique_ptr<juce::Label> mChannelCountLabel{};
-
-    // SpatModeComponent mSpatModeComponent{ *this };
-
-    std::unique_ptr<juce::Slider> mMasterGainOutSlider{};
-    std::unique_ptr<juce::Slider> mInterpolationSlider{};
-
-    std::unique_ptr<juce::TextEditor> mNumSourcesTextEditor{};
-
-    std::unique_ptr<juce::TextButton> mStartRecordButton{};
-    std::unique_ptr<juce::TextEditor> mMinRecordTextEditor{};
-    std::unique_ptr<juce::Label> mTimeRecordedLabel{};
-    std::unique_ptr<juce::TextButton> mInitRecordButton{};
 
     // UI Components.
     std::unique_ptr<SpeakerViewComponent> mSpeakerViewComponent{};
@@ -268,10 +248,6 @@ public:
     void timerCallback() override;
     void paint(juce::Graphics & g) override;
     void resized() override;
-    void buttonClicked(juce::Button * button) override;
-    void sliderValueChanged(juce::Slider * slider) override;
-    void textEditorFocusLost(juce::TextEditor & textEditor) override;
-    void textEditorReturnKeyPressed(juce::TextEditor & textEditor) override;
     void comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged) override;
     void menuItemSelected(int menuItemId, int /*topLevelMenuIndex*/) override;
     [[nodiscard]] juce::StringArray getMenuBarNames() override;

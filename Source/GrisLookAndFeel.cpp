@@ -22,7 +22,7 @@
 //==============================================================================
 GrisLookAndFeel::GrisLookAndFeel()
 {
-    this->mBackGroundAndFieldColour = juce::Colour::fromRGB(75, 75, 75); // Colours::darkGrey;
+    this->mBackGroundAndFieldColour = juce::Colours::blue.withBrightness(0.35f).withSaturation(0.05f);
     this->mWinBackGroundAndFieldColour = juce::Colour::fromRGB(46, 46, 46);
 
     this->mLightColour = juce::Colour::fromRGB(235, 245, 250); // Colours::whiteSmoke;

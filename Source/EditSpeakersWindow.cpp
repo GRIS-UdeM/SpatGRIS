@@ -73,7 +73,6 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     mNumOfSpeakersTextEditor.setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
     mNumOfSpeakersTextEditor.setLookAndFeel(&mLookAndFeel);
     mNumOfSpeakersTextEditor.setBounds(5 + WLAB, 435, 40, 24);
-    mNumOfSpeakersTextEditor.addListener(&mMainContentComponent);
     mListSpeakerBox.getContent()->addAndMakeVisible(mNumOfSpeakersTextEditor);
 
     mNumOfSpeakersTextEditor.setText("8", false);
@@ -92,7 +91,6 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     mZenithTextEditor.setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
     mZenithTextEditor.setLookAndFeel(&mLookAndFeel);
     mZenithTextEditor.setBounds(105 + WLAB, 435, 60, 24);
-    mZenithTextEditor.addListener(&mMainContentComponent);
     mListSpeakerBox.getContent()->addAndMakeVisible(mZenithTextEditor);
 
     mZenithTextEditor.setText("0.0");
@@ -111,7 +109,6 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     mRadiusTextEditor.setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
     mRadiusTextEditor.setLookAndFeel(&mLookAndFeel);
     mRadiusTextEditor.setBounds(230 + WLAB, 435, 60, 24);
-    mRadiusTextEditor.addListener(&mMainContentComponent);
     mListSpeakerBox.getContent()->addAndMakeVisible(mRadiusTextEditor);
 
     mRadiusTextEditor.setText("1.0");
@@ -130,7 +127,6 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     mOffsetAngleTextEditor.setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
     mOffsetAngleTextEditor.setLookAndFeel(&mLookAndFeel);
     mOffsetAngleTextEditor.setBounds(375 + WLAB, 435, 60, 24);
-    mOffsetAngleTextEditor.addListener(&mMainContentComponent);
     mListSpeakerBox.getContent()->addAndMakeVisible(mOffsetAngleTextEditor);
 
     mOffsetAngleTextEditor.setText("0.0");

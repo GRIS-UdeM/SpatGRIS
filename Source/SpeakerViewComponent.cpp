@@ -322,11 +322,15 @@ void SpeakerViewComponent::drawBackground()
 
     // Draw 2D image.
     glBegin(GL_QUADS);
-    glColor3f(0.6f, 0.6f, 0.6f);
+    static auto const BRIGHT_COLOR{ juce::Colours::blue.withBrightness(0.6f).withSaturation(0.1f) };
+    glColor3f(BRIGHT_COLOR.getFloatRed(), BRIGHT_COLOR.getFloatGreen(), BRIGHT_COLOR.getFloatBlue());
+    // glColor3f(0.6f, 0.6f, 0.6f);
+    // glColor3f(1.0f, 0.0f, 0.0f);
     glVertex2f(1.0f, 1.0f);
     glVertex2f(-1.0f, 1.0f);
 
-    glColor3f(0.3f, 0.3f, 0.3f);
+    static auto const DARK_COLOR{ BRIGHT_COLOR.withBrightness(0.3f) };
+    glColor3f(DARK_COLOR.getFloatRed(), DARK_COLOR.getFloatGreen(), DARK_COLOR.getFloatBlue());
     glVertex2f(0.0f, 0.0f);
     glVertex2f(1.0f, 0.0f);
     glEnd();

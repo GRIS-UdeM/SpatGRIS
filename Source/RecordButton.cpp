@@ -96,8 +96,13 @@ void RecordButton::resized()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    auto const buttonX{ std::max(getWidth() - getMinWidth(), 0) / 2 };
-    auto const buttonY{ std::max(getHeight() - getMinHeight(), 0) / 2 };
+    auto const height{ getHeight() };
+    auto const maxY{ (height + BUTTON_SIZE) / 2 + LABEL_TIME_HEIGHT };
+
+    auto const globalOffset{ std::min(height - maxY, 0) };
+
+    auto const buttonX{ std::max(getWidth() - BUTTON_SIZE, 0) / 2 };
+    auto const buttonY{ std::max(getHeight() - BUTTON_SIZE, 0) / 2 + globalOffset };
 
     auto const labelY{ buttonY + BUTTON_SIZE };
 
