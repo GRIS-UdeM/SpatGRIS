@@ -333,6 +333,7 @@ LbapAttenuationConfig LbapDistanceAttenuationData::toConfig(double const sampleR
     return result;
 }
 
+//==============================================================================
 std::unique_ptr<juce::XmlElement> LbapDistanceAttenuationData::toXml() const
 {
     auto result{ std::make_unique<juce::XmlElement>(XmlTags::MAIN_TAG) };

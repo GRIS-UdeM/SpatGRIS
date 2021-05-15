@@ -19,11 +19,11 @@
 
 #pragma once
 
-#include <JuceHeader.h>
-
 #include "AudioStructs.hpp"
-#include "Configuration.h"
+#include "LogicStrucs.hpp"
 #include "TaggedAudioBuffer.hpp"
+
+#include <JuceHeader.h>
 
 class AudioProcessor;
 

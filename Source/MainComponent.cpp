@@ -674,7 +674,23 @@ void MainContentComponent::numSourcesChanged(int const numSources)
 //==============================================================================
 void MainContentComponent::recordButtonPressed()
 {
-    mControlPanel->setRecordButtonState(RecordButton::State::recording);
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
+    if (AudioManager::getInstance().isRecording()) {
+        AudioManager::getInstance().stopRecording();
+        mControlPanel->setRecordButtonState(RecordButton::State::ready);
+        return;
+    }
+
+    if (mPrepareToRecordWindow) {
+        return;
+    }
+
+    mPrepareToRecordWindow = std::make_unique<PrepareToRecordWindow>(mData.appData.lastRecordingDirectory,
+                                                                     mData.appData.recordingOptions,
+                                                                     *this,
+                                                                     mLookAndFeel);
 }
 
 //==============================================================================
@@ -2060,40 +2076,19 @@ juce::StringArray MainContentComponent::getMenuBarNames()
 }
 
 //==============================================================================
-bool MainContentComponent::initRecording()
+void MainContentComponent::prepareAndStartRecording(juce::File const & fileOrDirectory,
+                                                    RecordingOptions const & recordingOptions)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-    juce::ScopedWriteLock const lock{ mLock };
 
-    juce::File dir{ mData.appData.lastRecordingDirectory };
-    if (!(dir.exists() && !dir.existsAsFile())) {
-        dir = juce::File::getSpecialLocation(juce::File::SpecialLocationType::userDesktopDirectory);
-    }
-    juce::String extF;
-    juce::String extChoice;
+    {
+        juce::ScopedWriteLock const lock{ mLock };
 
-    auto const recordingFormat{ mData.appData.recordingOptions.format };
-
-    if (recordingFormat == RecordingFormat::wav) {
-        extF = ".wav";
-        extChoice = "*.wav,*.aif";
-    } else {
-        extF = ".aif";
-        extChoice = "*.aif,*.wav";
+        mData.appData.lastRecordingDirectory = fileOrDirectory.getParentDirectory().getFullPathName();
+        mData.appData.recordingOptions = recordingOptions;
     }
 
-    auto const initialFile{ dir.getFullPathName() + "/recording" + extF };
-
-    juce::FileChooser fileChooser{ "Choose a file to save...", initialFile, extChoice, true };
-
-    if (!fileChooser.browseForFileToSave(true)) {
-        return false;
-    }
-    jassert(!fileChooser.getResults().isEmpty());
-
-    auto const fileToRecord{ fileChooser.getResults().getReference(0) };
-    mData.appData.lastRecordingDirectory = fileToRecord.getParentDirectory().getFullPathName();
-
+    juce::ScopedReadLock const lock{ mLock };
     auto const getSpeakersToRecord = [&]() {
         juce::Array<output_patch_t> result{};
         switch (mData.appData.spatMode) {
@@ -2114,11 +2109,15 @@ bool MainContentComponent::initRecording()
 
     auto speakersToRecord{ getSpeakersToRecord() };
 
-    AudioManager::RecordingParameters const recordingParams{ fileToRecord.getFullPathName(),
+    AudioManager::RecordingParameters const recordingParams{ fileOrDirectory.getFullPathName(),
                                                              mData.appData.recordingOptions,
                                                              mData.appData.audioSettings.sampleRate,
                                                              std::move(speakersToRecord) };
-    return AudioManager::getInstance().prepareToRecord(recordingParams);
+    if (AudioManager::getInstance().prepareToRecord(recordingParams)) {
+        AudioManager::getInstance().startRecording();
+        mControlPanel->setRecordButtonState(RecordButton::State::recording);
+        mPrepareToRecordWindow.reset();
+    }
 }
 
 //==============================================================================

@@ -32,6 +32,8 @@ constexpr auto DEFAULT_BUFFER_SIZE{ 512 };
 constexpr auto SQRT3{ 1.7320508075688772935274463415059f };
 
 constexpr auto SPAT_MODE_BUTTONS_RADIO_GROUP_ID = 1;
+constexpr auto PREPARE_TO_RECORD_WINDOW_FILE_FORMAT_GROUP_ID = 2;
+constexpr auto PREPARE_TO_RECORD_WINDOW_FILE_TYPE_GROUP_ID = 3;
 
 constexpr juce::Range<source_index_t> LEGAL_SOURCE_INDEX_RANGE{ source_index_t{ 1 },
                                                                 source_index_t{ MAX_NUM_SOURCES } };

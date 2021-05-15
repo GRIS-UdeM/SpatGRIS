@@ -36,6 +36,7 @@
 #include "OscInput.h"
 #include "OscLogWindow.h"
 #include "OwnedMap.hpp"
+#include "PrepareToRecordWindow.h"
 #include "SettingsWindow.h"
 #include "SpeakerViewComponent.h"
 #include "StrongTypes.hpp"
@@ -93,6 +94,7 @@ class MainContentComponent final
     std::unique_ptr<FlatViewWindow> mFlatViewWindow{};
     std::unique_ptr<AboutWindow> mAboutWindow{};
     std::unique_ptr<OscLogWindow> mOscLogWindow{};
+    std::unique_ptr<PrepareToRecordWindow> mPrepareToRecordWindow{};
 
     // info section
     std::unique_ptr<InfoPanel> mInfoPanel{};
@@ -244,6 +246,7 @@ public:
     void closeFlatViewWindow() { mFlatViewWindow.reset(); }
     void closeAboutWindow() { mAboutWindow.reset(); }
     void closeOscLogWindow() { mOscLogWindow.reset(); }
+    void closePrepareToRecordWindow() { mPrepareToRecordWindow.reset(); }
     //==============================================================================
     void timerCallback() override;
     void paint(juce::Graphics & g) override;
@@ -255,6 +258,14 @@ public:
 
     [[nodiscard]] bool isProjectModified() const;
     [[nodiscard]] bool isSpeakerSetupModified() const;
+
+    void prepareAndStartRecording(juce::File const & fileOrDirectory, RecordingOptions const & recordingOptions);
+
+    void masterGainChanged(dbfs_t gain) override;
+    void interpolationChanged(float interpolation) override;
+    void spatModeChanged(SpatMode spatMode) override;
+    void numSourcesChanged(int numSources) override;
+    void recordButtonPressed() override;
 
 private:
     //==============================================================================
@@ -319,7 +330,6 @@ private:
     void saveSpeakerSetup(juce::String const & path);
     void setTitle() const;
 
-    [[nodiscard]] bool initRecording();
     //==============================================================================
     // OVERRIDES
     void audioParametersChanged() override;
@@ -330,15 +340,6 @@ private:
     [[nodiscard]] bool perform(juce::ApplicationCommandTarget::InvocationInfo const & info) override;
     //==============================================================================
     static void handleOpenManual();
-
-public:
-    void masterGainChanged(dbfs_t gain) override;
-    void interpolationChanged(float interpolation) override;
-    void spatModeChanged(SpatMode spatMode) override;
-    void numSourcesChanged(int numSources) override;
-    void recordButtonPressed() override;
-
-private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(MainContentComponent)
 };
