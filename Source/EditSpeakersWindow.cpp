@@ -558,39 +558,11 @@ void EditSpeakersWindow::selectSpeaker(tl::optional<output_patch_t> const output
 //==============================================================================
 void EditSpeakersWindow::closeButtonPressed()
 {
-    enum Button { save, no, cancel };
-    int exitV{ no };
-
-    if (mShouldRefreshSpeakers || mMainContentComponent.isSpeakerSetupModified()) {
-        juce::AlertWindow alert("Closing Speaker Setup Window !",
-                                "Do you want to compute and save the current setup ?",
-                                juce::AlertWindow::WarningIcon);
-        alert.setLookAndFeel(&mLookAndFeel);
-        alert.addButton("Save", Button::save, juce::KeyPress(juce::KeyPress::returnKey));
-        alert.addButton("No", Button::no);
-        alert.addButton("Cancel", Button::cancel, juce::KeyPress(juce::KeyPress::escapeKey));
-        exitV = alert.runModalLoop();
-
-        if (exitV == Button::save) {
-            alert.setVisible(false);
-            auto const valid{ mMainContentComponent.refreshSpeakers() };
-            if (!valid) {
-                return;
-            }
-            mMainContentComponent.handleTimer(false);
-            setAlwaysOnTop(false);
-            mMainContentComponent.handleSaveAsSpeakerSetup();
-            mMainContentComponent.handleTimer(true);
-        } else if (exitV == Button::no) {
-            alert.setVisible(false);
-            mMainContentComponent.reloadXmlFileSpeaker();
-            mMainContentComponent.refreshSpeakers();
-        }
+    if (mShouldRefreshSpeakers) {
+        mMainContentComponent.refreshSpeakers();
     }
-    if (exitV != cancel) {
-        mMainContentComponent.handlePinkNoiseGainChanged(tl::nullopt);
-        mMainContentComponent.closeSpeakersConfigurationWindow();
-    }
+    mMainContentComponent.handlePinkNoiseGainChanged(tl::nullopt);
+    mMainContentComponent.closeSpeakersConfigurationWindow();
 }
 
 //==============================================================================

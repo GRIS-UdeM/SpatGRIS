@@ -238,7 +238,7 @@ public:
 
     // Screen refresh timer.
     void handleTimer(bool state);
-    void handleSaveAsSpeakerSetup();
+    void handleSaveSpeakerSetupAs();
 
     // Close windows other than the main one.
     void closeSpeakersConfigurationWindow();
@@ -263,7 +263,7 @@ public:
 
     void masterGainChanged(dbfs_t gain) override;
     void interpolationChanged(float interpolation) override;
-    void spatModeChanged(SpatMode spatMode) override;
+    void spatModeChanged(SpatMode spatMode, bool const forceRefreshSpeakers) override;
     void numSourcesChanged(int numSources) override;
     void recordButtonPressed() override;
 
@@ -305,7 +305,7 @@ private:
     void handleNewProject();
     void handleOpenProject();
     void handleSaveProject();
-    void handleSaveAsProject();
+    void handleSaveProjectAs();
     void handleOpenSpeakerSetup();
     void handleShowSpeakerEditWindow();
     void handleShowPreferences();
@@ -326,9 +326,13 @@ private:
     // Open - save.
     void loadSpeakerSetup(juce::File const & file, tl::optional<SpatMode> forceSpatMode = tl::nullopt);
     void loadProject(juce::File const & file, LoadProjectOption loadProjectOption);
-    void saveProject(juce::String const & path);
-    void saveSpeakerSetup(juce::String const & path);
+    [[nodiscard]] bool saveProject(tl::optional<juce::File> maybeFile);
+    [[nodiscard]] bool saveSpeakerSetup(tl::optional<juce::File> maybeFile);
+    [[nodiscard]] bool makeSureProjectIsSavedToDisk() noexcept;
+    [[nodiscard]] bool makeSureSpeakerSetupIsSavedToDisk() noexcept;
     void setTitle() const;
+    [[nodiscard]] static bool isDefaultFile(juce::File const & file) noexcept;
+    [[nodiscard]] bool performSafeSave(juce::XmlElement const & content, juce::File const & destination) noexcept;
 
     //==============================================================================
     // OVERRIDES

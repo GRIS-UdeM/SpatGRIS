@@ -40,6 +40,7 @@ public:
         SaveAsProjectID = 1003,
 
         OpenSpeakerSetupID = 2000,
+        SaveSpeakerSetupAsID = 2001,
         ShowSpeakerEditID = 2003,
 
         OpenSettingsWindowID = 9998,
@@ -56,7 +57,6 @@ public:
         ColorizeInputsID = 3010,
         ResetInputPosID = 3011,
         ResetMeterClipping = 3012,
-        ShowOscLogView = 3100,
 
         // Help menu
         AboutID = 4000,

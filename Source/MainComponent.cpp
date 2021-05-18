@@ -27,6 +27,10 @@
 #include "VuMeterComponent.h"
 #include "constants.hpp"
 
+static constexpr auto BUTTON_CANCEL = 0;
+static constexpr auto BUTTON_SAVE = 1;
+static constexpr auto BUTTON_DISCARD = 2;
+
 //==============================================================================
 static float gainToAlpha(float const gain)
 {
@@ -171,7 +175,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         switch (spatMode) {
         case SpatMode::hrtfVbap:
         case SpatMode::stereo:
-            spatModeChanged(mData.appData.spatMode);
+            spatModeChanged(mData.appData.spatMode, true);
             return;
         case SpatMode::vbap:
         case SpatMode::lbap:
@@ -318,26 +322,17 @@ void MainContentComponent::handleOpenProject()
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
 
-    juce::File const lastOpenProject{ mData.appData.lastProject };
-    auto const dir{ lastOpenProject.getParentDirectory() };
-    auto const filename{ lastOpenProject.getFileName() };
+    if (!makeSureProjectIsSavedToDisk()) {
+        return;
+    }
 
-    juce::FileChooser fc("Choose a file to open...", dir.getFullPathName() + "/" + filename, "*.xml", true);
+    juce::FileChooser fc{ "Choose a file to open...", mData.appData.lastProject, "*.xml", true, false, this };
 
     if (!fc.browseForFileToOpen()) {
         return;
     }
 
-    auto const chosen{ fc.getResults().getReference(0).getFullPathName() };
-    juce::AlertWindow alert("Open Project !",
-                            "You want to load : " + chosen + "\nEverything not saved will be lost !",
-                            juce::AlertWindow::WarningIcon);
-    alert.setLookAndFeel(&mLookAndFeel);
-    alert.addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
-    alert.addButton("Ok", 1, juce::KeyPress(juce::KeyPress::returnKey));
-    if (alert.runModalLoop() != 1) {
-        return;
-    }
+    auto const chosen{ fc.getResult() };
 
     loadProject(chosen, LoadProjectOption::removeInvalidDirectOuts);
 }
@@ -348,30 +343,16 @@ void MainContentComponent::handleSaveProject()
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
-    juce::File const lastOpenProject{ mData.appData.lastProject };
-    if (!lastOpenProject.existsAsFile() || lastOpenProject == DEFAULT_PROJECT_FILE) {
-        handleSaveAsProject();
-    }
-    saveProject(lastOpenProject.getFullPathName());
+    [[maybe_unused]] auto const success{ saveProject(mData.appData.lastProject) };
 }
 
 //==============================================================================
-void MainContentComponent::handleSaveAsProject()
+void MainContentComponent::handleSaveProjectAs()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
-    juce::File const lastOpenProject{ mData.appData.lastProject == DEFAULT_PROJECT_FILE.getFullPathName()
-                                          ? juce::File::getSpecialLocation(
-                                              juce::File::SpecialLocationType::userDesktopDirectory)
-                                          : mData.appData.lastProject };
-
-    juce::FileChooser fc{ "Choose a file to save...", lastOpenProject.getFullPathName(), "*.xml", true };
-
-    if (fc.browseForFileToSave(true)) {
-        auto const chosen{ fc.getResults().getReference(0).getFullPathName() };
-        saveProject(chosen);
-    }
+    [[maybe_unused]] auto const success{ saveProject(tl::nullopt) };
 }
 
 //==============================================================================
@@ -380,58 +361,29 @@ void MainContentComponent::handleOpenSpeakerSetup()
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
-    auto const initialFile{ juce::File{ mData.appData.lastSpeakerSetup }.existsAsFile()
-                                ? mData.appData.lastSpeakerSetup
-                                : juce::File::getSpecialLocation(
-                                    juce::File::SpecialLocationType::userDesktopDirectory) };
+    if (!makeSureSpeakerSetupIsSavedToDisk()) {
+        return;
+    }
+
+    auto const initialFile{ mData.appData.lastSpeakerSetup };
 
     juce::FileChooser fc{ "Choose a file to open...", initialFile, "*.xml", true };
 
-    if (fc.browseForFileToOpen()) {
-        auto const chosen{ fc.getResults().getReference(0).getFullPathName() };
-        juce::AlertWindow alert{ "Load Speaker Setup !",
-                                 "You want to load : " + chosen + "\nEverything not saved will be lost !",
-                                 juce::AlertWindow::WarningIcon };
-        alert.setLookAndFeel(&mLookAndFeel);
-        alert.addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
-        alert.addButton("Ok", 1, juce::KeyPress(juce::KeyPress::returnKey));
-        if (alert.runModalLoop() != 0) {
-            alert.setVisible(false);
-            loadSpeakerSetup(chosen);
-        }
+    if (!fc.browseForFileToOpen()) {
+        return;
     }
+
+    auto const chosen{ fc.getResult() };
+    loadSpeakerSetup(chosen);
 }
 
 //==============================================================================
-void MainContentComponent::handleSaveAsSpeakerSetup()
+void MainContentComponent::handleSaveSpeakerSetupAs()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
-    switch (mData.appData.spatMode) {
-    case SpatMode::hrtfVbap:
-    case SpatMode::stereo:
-        juce::AlertWindow::showMessageBox(juce::AlertWindow::AlertIconType::WarningIcon,
-                                          "Warning",
-                                          "Binaural and stereo setups should not be modified.",
-                                          "Ok",
-                                          this);
-        return;
-    case SpatMode::lbap:
-    case SpatMode::vbap:
-        break;
-    }
-
-    auto const initialFile{ mData.appData.lastSpeakerSetup == DEFAULT_SPEAKER_SETUP_FILE.getFullPathName()
-                                ? juce::File::getSpecialLocation(juce::File::SpecialLocationType::userDesktopDirectory)
-                                : mData.appData.lastSpeakerSetup };
-
-    juce::FileChooser fc{ "Choose a file to save...", initialFile, "*.xml", true };
-
-    if (fc.browseForFileToSave(true)) {
-        auto const chosen{ fc.getResults().getReference(0).getFullPathName() };
-        saveSpeakerSetup(chosen);
-    }
+    [[maybe_unused]] auto const success{ saveSpeakerSetup(tl::nullopt) };
 }
 
 //==============================================================================
@@ -449,17 +401,14 @@ void MainContentComponent::handleShowSpeakerEditWindow()
     juce::ScopedReadLock const lock{ mLock };
 
     switch (mData.appData.spatMode) {
-    case SpatMode::hrtfVbap:
-    case SpatMode::stereo:
-        juce::AlertWindow::showMessageBox(juce::AlertWindow::AlertIconType::WarningIcon,
-                                          "Warning",
-                                          "The Binaural and Stereo speaker setups cannot be modified.",
-                                          "Ok",
-                                          this);
-        return;
     case SpatMode::lbap:
     case SpatMode::vbap:
         break;
+    case SpatMode::hrtfVbap:
+    case SpatMode::stereo:
+    default:
+        jassertfalse;
+        return;
     }
 
     juce::Rectangle<int> const result{ getScreenX() + mSpeakerViewComponent->getWidth() + 20,
@@ -571,26 +520,22 @@ void MainContentComponent::interpolationChanged(float const interpolation)
 }
 
 //==============================================================================
-void MainContentComponent::spatModeChanged(SpatMode const spatMode)
+void MainContentComponent::spatModeChanged(SpatMode const spatMode, bool const forceRefreshSpeakers)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-    juce::ScopedWriteLock const lock{ mLock };
+    juce::ScopedReadLock const readLock{ mLock };
 
     jassert(narrow<int>(spatMode) >= 0 && narrow<int>(spatMode) <= narrow<int>(SpatMode::stereo));
 
     if (mData.appData.spatMode == spatMode && mSpatAlgorithm) {
+        if (forceRefreshSpeakers) {
+            refreshSpeakers();
+        }
         return;
     }
 
-    if (isSpeakerSetupModified()) {
-        juce::AlertWindow alert(
-            "The speaker configuration has changed!    ",
-            "Save your changes or close the speaker configuration window before switching mode...    ",
-            juce::AlertWindow::WarningIcon);
-        alert.setLookAndFeel(&mLookAndFeel);
-        alert.addButton("Ok", 0, juce::KeyPress(juce::KeyPress::returnKey));
-        alert.runModalLoop();
-        mControlPanel->setSpatMode(mData.appData.spatMode);
+    if (!makeSureSpeakerSetupIsSavedToDisk()) {
+        jassert(!forceRefreshSpeakers);
         return;
     }
 
@@ -619,21 +564,35 @@ void MainContentComponent::spatModeChanged(SpatMode const spatMode)
         return tl::nullopt;
     };
 
-    mData.appData.viewSettings.showSpeakerTriplets = false;
-
     auto const forcedSpeakerSetup{ getForcedSpeakerSetup() };
-    if (forcedSpeakerSetup) {
-        loadSpeakerSetup(*forcedSpeakerSetup, spatMode);
+    if (forcedSpeakerSetup && forcedSpeakerSetup->getFullPathName() != mData.appData.lastSpeakerSetup) {
+        loadSpeakerSetup(*forcedSpeakerSetup, spatMode); // This will eventually call the current method
         mAudioProcessor->resetHrtf();
         return;
+    }
+
+    juce::ScopedWriteLock const writeLock{ mLock };
+
+    switch (spatMode) {
+    case SpatMode::vbap:
+        mData.appData.viewSettings.showSpeakerTriplets = false;
+        break;
+    case SpatMode::lbap:
+        break;
+    case SpatMode::hrtfVbap:
+    case SpatMode::stereo:
+        closeSpeakersConfigurationWindow();
+        break;
+    default:
+        jassertfalse;
+        break;
     }
 
     // speaker setup stays the same
     mData.appData.spatMode = spatMode;
     mSpatAlgorithm = AbstractSpatAlgorithm::make(spatMode, mData.speakerSetup.speakers);
 
-    updateAudioProcessor();
-    updateViewportConfig();
+    refreshSpeakers();
 
     if (mEditSpeakersWindow != nullptr) {
         auto const windowName{ juce::String("Speakers Setup Edition - ")
@@ -844,6 +803,7 @@ void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & command
         MainWindow::SaveProjectID,
         MainWindow::SaveAsProjectID,
         MainWindow::OpenSpeakerSetupID,
+        MainWindow::SaveSpeakerSetupAsID,
         MainWindow::ShowSpeakerEditID,
         MainWindow::Show2DViewID,
         MainWindow::ShowNumbersID,
@@ -855,7 +815,6 @@ void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & command
         MainWindow::ColorizeInputsID,
         MainWindow::ResetInputPosID,
         MainWindow::ResetMeterClipping,
-        MainWindow::ShowOscLogView,
         MainWindow::OpenSettingsWindowID,
         MainWindow::QuitID,
         MainWindow::AboutID,
@@ -873,6 +832,9 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
 
     const juce::String generalCategory("General");
 
+    static constexpr auto DISABLED = juce::ApplicationCommandInfo::CommandFlags::isDisabled;
+    static constexpr auto TICKED = juce::ApplicationCommandInfo::CommandFlags::isTicked;
+
     switch (commandId) {
     case MainWindow::NewProjectID:
         result.setInfo("New Project", "Close the current project and open the default.", generalCategory, 0);
@@ -885,6 +847,7 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
     case MainWindow::SaveProjectID:
         result.setInfo("Save Project", "Save the current project on disk.", generalCategory, 0);
         result.addDefaultKeypress('S', juce::ModifierKeys::commandModifier);
+        result.setActive(isProjectModified());
         break;
     case MainWindow::SaveAsProjectID:
         result.setInfo("Save Project As...", "Save the current project under a new name on disk.", generalCategory, 0);
@@ -893,6 +856,13 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
     case MainWindow::OpenSpeakerSetupID:
         result.setInfo("Load Speaker Setup", "Choose a new speaker setup on disk.", generalCategory, 0);
         result.addDefaultKeypress('L', juce::ModifierKeys::commandModifier);
+        break;
+    case MainWindow::SaveSpeakerSetupAsID:
+        result.setInfo("Save Speaker Setup",
+                       "Save the current speaker setup under a new name on disk.",
+                       generalCategory,
+                       0);
+        result.setActive(mData.appData.spatMode == SpatMode::hrtfVbap || mData.appData.spatMode == SpatMode::stereo);
         break;
     case MainWindow::ShowSpeakerEditID:
         result.setInfo("Speaker Setup Edition", "Edit the current speaker setup.", generalCategory, 0);
@@ -916,6 +886,7 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
         result.setInfo("Show Speaker Triplets", "Show speaker triplets on the 3D view.", generalCategory, 0);
         result.addDefaultKeypress('T', juce::ModifierKeys::altModifier);
         result.setTicked(mData.appData.viewSettings.showSpeakerTriplets);
+        result.setActive(mData.appData.spatMode == SpatMode::vbap);
         break;
     case MainWindow::ShowSourceLevelID:
         result.setInfo("Show Source Activity", "Activate brightness on sources on the 3D view.", generalCategory, 0);
@@ -943,9 +914,6 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
     case MainWindow::ResetMeterClipping:
         result.setInfo("Reset Meter Clipping", "Reset clipping for all meters.", generalCategory, 0);
         result.addDefaultKeypress('M', juce::ModifierKeys::altModifier);
-        break;
-    case MainWindow::ShowOscLogView:
-        result.setInfo("Show OSC Log Window", "Show the OSC logging window.", generalCategory, 0);
         break;
     case MainWindow::OpenSettingsWindowID:
         result.setInfo("Settings...", "Open the settings window.", generalCategory, 0);
@@ -983,10 +951,13 @@ bool MainContentComponent::perform(const InvocationInfo & info)
             handleSaveProject();
             break;
         case MainWindow::SaveAsProjectID:
-            handleSaveAsProject();
+            handleSaveProjectAs();
             break;
         case MainWindow::OpenSpeakerSetupID:
             handleOpenSpeakerSetup();
+            break;
+        case MainWindow::SaveSpeakerSetupAsID:
+            handleSaveSpeakerSetupAs();
             break;
         case MainWindow::ShowSpeakerEditID:
             handleShowSpeakerEditWindow();
@@ -1190,45 +1161,13 @@ bool MainContentComponent::exitApp()
     static constexpr auto EXIT_APP = true;
     static constexpr auto DONT_EXIT_APP = false;
 
-    juce::XmlDocument lastProjectDocument{ mData.appData.lastProject };
-    auto lastProjectElement{ lastProjectDocument.getDocumentElement() };
-    std::unique_ptr<juce::XmlElement> currentProjectElement{ mData.appData.toXml() };
-
-    if (!isProjectModified()) {
-        return EXIT_APP;
-    }
-
-    static constexpr auto BUTTON_SAVE = 1;
-    static constexpr auto BUTTON_CANCEL = 0;
-    static constexpr auto BUTTON_EXIT = 2;
-    juce::AlertWindow alert("Exit SpatGRIS !",
-                            "Do you want to save the current project ?",
-                            juce::AlertWindow::InfoIcon);
-    alert.setLookAndFeel(&mLookAndFeel);
-    alert.addButton("Save", 1, juce::KeyPress(juce::KeyPress::returnKey));
-    alert.addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
-    alert.addButton("Exit", 2, juce::KeyPress(juce::KeyPress::deleteKey));
-    auto const action = alert.runModalLoop();
-
-    if (action == BUTTON_CANCEL) {
+    if (!makeSureSpeakerSetupIsSavedToDisk()) {
         return DONT_EXIT_APP;
     }
 
-    if (action == BUTTON_EXIT) {
-        return EXIT_APP;
-    }
-
-    jassert(action == BUTTON_SAVE);
-    alert.setVisible(false);
-    juce::ModalComponentManager::getInstance()->cancelAllModalComponents();
-
-    juce::FileChooser fc("Choose a file to save...", mData.appData.lastProject, "*.xml", true);
-    if (!fc.browseForFileToSave(true)) {
+    if (!makeSureProjectIsSavedToDisk()) {
         return DONT_EXIT_APP;
     }
-
-    auto const chosen{ fc.getResults().getReference(0).getFullPathName() };
-    saveProject(chosen);
 
     return EXIT_APP;
 }
@@ -1849,30 +1788,8 @@ bool MainContentComponent::refreshSpeakers()
         return false;
     }
 
-    // Test for duplicated output patch.
-    auto const testDuplicatedOutputPatch = [&]() {
-        jassert(mData.speakerSetup.order.size() == speakers.size());
-        auto outputPatches{ mData.speakerSetup.order };
-        std::sort(outputPatches.begin(), outputPatches.end());
-        auto const duplicate{ std::adjacent_find(outputPatches.begin(), outputPatches.end()) };
-        return duplicate != outputPatches.end();
-    };
-
-    if (testDuplicatedOutputPatch()) {
-        juce::AlertWindow alert{ "Duplicated Output Numbers!    ",
-                                 "Some output numbers are used more than once. Do you want to continue anyway?    "
-                                 "\nIf you continue, you may have to fix your speaker setup before using it!   ",
-                                 juce::AlertWindow::WarningIcon };
-        alert.setLookAndFeel(&mLookAndFeel);
-        alert.addButton("Load default setup", 0);
-        alert.addButton("Keep current setup", 1);
-        if (alert.runModalLoop() == 0) {
-            loadSpeakerSetup(DEFAULT_SPEAKER_SETUP_FILE);
-        }
-        return false;
-    }
-
     mSpatAlgorithm = AbstractSpatAlgorithm::make(mData.appData.spatMode, mData.speakerSetup.speakers);
+
     updateAudioProcessor();
 
     refreshSpeakerVuMeterComponents();
@@ -1930,20 +1847,9 @@ void MainContentComponent::loadSpeakerSetup(juce::File const & file, tl::optiona
 
     juce::ScopedWriteLock const lock{ mLock };
     mData.speakerSetup = std::move(speakerSetup->first);
-    mData.appData.spatMode = forceSpatMode.value_or(speakerSetup->second);
-    mControlPanel->setSpatMode(mData.appData.spatMode);
+    mData.appData.lastSpeakerSetup = file.getFullPathName();
 
-    switch (mData.appData.spatMode) {
-    case SpatMode::lbap:
-    case SpatMode::vbap:
-        mData.appData.lastSpeakerSetup = file.getFullPathName();
-        break;
-    case SpatMode::hrtfVbap:
-    case SpatMode::stereo:
-        break;
-    }
-
-    refreshSpeakers();
+    spatModeChanged(forceSpatMode.value_or(speakerSetup->second), true);
 }
 
 //==============================================================================
@@ -1959,6 +1865,32 @@ void MainContentComponent::setTitle() const
 }
 
 //==============================================================================
+bool MainContentComponent::performSafeSave(juce::XmlElement const & content, juce::File const & destination) noexcept
+{
+    if (destination == DEFAULT_PROJECT_FILE || destination == DEFAULT_SPEAKER_SETUP_FILE
+        || destination == BINAURAL_SPEAKER_SETUP_FILE || destination == STEREO_SPEAKER_SETUP_FILE) {
+        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
+                                               "Error",
+                                               "The file your are trying to save to is a default SpatGRIS file and "
+                                               "cannot be overridden. Please select an other location to save to.",
+                                               "",
+                                               this);
+        return false;
+    }
+    auto const success{ content.writeTo(destination) };
+    if (!success) {
+        juce::AlertWindow::showMessageBoxAsync(
+            juce::AlertWindow::WarningIcon,
+            "Error",
+            "SpatGRIS was unable to save the project file to the specified location. Make sure that this location "
+            "exists and that the current user has access to it.",
+            "",
+            this);
+    }
+    return success;
+}
+
+//==============================================================================
 void MainContentComponent::handleTimer(bool const state)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -1971,38 +1903,144 @@ void MainContentComponent::handleTimer(bool const state)
 }
 
 //==============================================================================
-void MainContentComponent::saveProject(juce::String const & path)
+bool MainContentComponent::saveProject(tl::optional<juce::File> maybeFile)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
 
-    juce::File const xmlFile{ path };
-    auto const xml{ mData.project.toXml() };
-    [[maybe_unused]] auto success{ xml->writeTo(xmlFile) };
-    jassert(success);
-    success = xmlFile.create();
-    jassert(success);
-    mData.appData.lastProject = path;
+    if (!maybeFile) {
+        juce::File const lastProjectFile{ mData.appData.lastProject };
+        auto const initialFile{ lastProjectFile == DEFAULT_PROJECT_FILE ? juce::File::getSpecialLocation(
+                                    juce::File::SpecialLocationType::userDesktopDirectory)
+                                                                        : lastProjectFile };
+        juce::FileChooser fc{ "Choose file to save to...", initialFile, "*.xml", true, false, this };
+        if (!fc.browseForFileToSave(true)) {
+            return false;
+        }
 
-    setTitle();
+        maybeFile = fc.getResult();
+    }
+
+    auto const file{ *maybeFile };
+
+    auto const success{ performSafeSave(*mData.project.toXml(), file) };
+    jassert(success);
+
+    if (success) {
+        mData.appData.lastProject = maybeFile->getFullPathName();
+    }
+
+    return success;
 }
 
 //==============================================================================
-void MainContentComponent::saveSpeakerSetup(juce::String const & path)
+bool MainContentComponent::saveSpeakerSetup(tl::optional<juce::File> maybeFile)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
 
-    juce::File const xmlFile{ path };
-    auto const xml{ mData.speakerSetup.toXml(mData.appData.spatMode) };
+    // Binaural and stereo setups should not be saved at all
+    switch (mData.appData.spatMode) {
+    case SpatMode::vbap:
+    case SpatMode::lbap:
+        break;
+    case SpatMode::hrtfVbap:
+    case SpatMode::stereo:
+    default:
+        jassertfalse;
+        return false;
+    }
 
-    [[maybe_unused]] auto success{ xml->writeTo(xmlFile) };
-    jassert(success);
-    success = xmlFile.create();
+    if (!maybeFile) {
+        juce::File const lastSpeakerSetup{ mData.appData.lastSpeakerSetup };
+        auto const initialFile{ lastSpeakerSetup == DEFAULT_SPEAKER_SETUP_FILE ? juce::File::getSpecialLocation(
+                                    juce::File::SpecialLocationType::userDesktopDirectory)
+                                                                               : mData.appData.lastSpeakerSetup };
+        juce::FileChooser fc{ "Choose file to save to...", initialFile, "*.xml", true, false, this };
+        if (!fc.browseForFileToSave(true)) {
+            return false;
+        }
+
+        maybeFile = fc.getResult();
+    }
+
+    auto const file{ *maybeFile };
+    auto const content{ mData.speakerSetup.toXml(mData.appData.spatMode) };
+
+    auto const success{ performSafeSave(*content, file) };
     jassert(success);
 
-    mData.appData.lastSpeakerSetup = path;
-    // TODO : some gui to update?
+    if (success) {
+        mData.appData.lastSpeakerSetup = maybeFile->getFullPathName();
+    }
+
+    return success;
+}
+
+//==============================================================================
+bool MainContentComponent::makeSureProjectIsSavedToDisk() noexcept
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    if (!isProjectModified()) {
+        return true;
+    }
+
+    juce::AlertWindow alertWindow{ "Unsaved project",
+                                   "Your current project has unsaved changes. Do you wish to save to save it to disk?",
+                                   juce::AlertWindow::AlertIconType::InfoIcon,
+                                   this };
+    alertWindow.addButton("Save", BUTTON_SAVE, juce::KeyPress{ juce::KeyPress::returnKey });
+    alertWindow.addButton("Discard", BUTTON_DISCARD);
+    alertWindow.addButton("Cancel", BUTTON_CANCEL, juce::KeyPress{ juce::KeyPress::escapeKey });
+
+    auto const pressedButton{ alertWindow.runModalLoop() };
+
+    if (pressedButton == BUTTON_CANCEL) {
+        return false;
+    }
+
+    if (pressedButton == BUTTON_DISCARD) {
+        return true;
+    }
+
+    jassert(pressedButton == BUTTON_SAVE);
+
+    return saveProject(tl::nullopt);
+}
+
+//==============================================================================
+bool MainContentComponent::makeSureSpeakerSetupIsSavedToDisk() noexcept
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    if (!isSpeakerSetupModified()) {
+        return true;
+    }
+
+    juce::AlertWindow alertWindow{
+        "Unsaved speaker setup",
+        "Your current speaker setup has unsaved changes. Do you wish to save to save it to disk?",
+        juce::AlertWindow::AlertIconType::InfoIcon,
+        this
+    };
+    alertWindow.addButton("Save", BUTTON_SAVE, juce::KeyPress{ juce::KeyPress::returnKey });
+    alertWindow.addButton("Discard", BUTTON_DISCARD);
+    alertWindow.addButton("Cancel", BUTTON_CANCEL, juce::KeyPress{ juce::KeyPress::escapeKey });
+
+    auto const pressedButton{ alertWindow.runModalLoop() };
+
+    if (pressedButton == BUTTON_CANCEL) {
+        return false;
+    }
+
+    if (pressedButton == BUTTON_DISCARD) {
+        return true;
+    }
+
+    jassert(pressedButton == BUTTON_SAVE);
+
+    return saveSpeakerSetup(tl::nullopt);
 }
 
 //==============================================================================

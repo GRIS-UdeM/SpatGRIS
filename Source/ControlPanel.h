@@ -35,7 +35,7 @@ public:
         //==============================================================================
         virtual void masterGainChanged(dbfs_t gain) = 0;
         virtual void interpolationChanged(float interpolation) = 0;
-        virtual void spatModeChanged(SpatMode spatMode) = 0;
+        virtual void spatModeChanged(SpatMode spatMode, bool const forceRefreshSpeakers) = 0;
         virtual void numSourcesChanged(int numSources) = 0;
         virtual void recordButtonPressed() = 0;
 

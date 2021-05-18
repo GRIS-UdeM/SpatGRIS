@@ -52,6 +52,9 @@ void SpatModeComponent::setSpatMode(SpatMode const spatMode)
 //==============================================================================
 void SpatModeComponent::buttonClicked(juce::Button * button)
 {
+    if (!button->getToggleState()) {
+        return;
+    }
     auto const index{ mButtons.indexOf(button) };
     jassert(index >= 0);
     mSpatMode = narrow<SpatMode>(index);
