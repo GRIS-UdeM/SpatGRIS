@@ -21,6 +21,7 @@
 
 #include "AudioManager.h"
 #include "ControlPanel.h"
+#include "FatalError.h"
 #include "LegacyLbapPosition.h"
 #include "MainWindow.h"
 #include "TitledComponent.h"
@@ -164,25 +165,24 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
 
     auto const initAppData = [&]() { mData.appData = mConfiguration.load(); };
     auto const initProject = [&]() {
-        if (juce::File{ mData.appData.lastProject }.existsAsFile()) {
-            loadProject(mData.appData.lastProject, LoadProjectOption::dontRemoveInvalidDirectOuts);
-        } else {
-            loadProject(DEFAULT_PROJECT_FILE, LoadProjectOption::dontRemoveInvalidDirectOuts);
+        auto const success{
+            loadProject(mData.appData.lastProject, LoadProjectOption::dontRemoveInvalidDirectOuts, true)
+        };
+        if (!success) {
+            if (!loadProject(DEFAULT_PROJECT_FILE, LoadProjectOption::dontRemoveInvalidDirectOuts, true)) {
+                fatalError("Unable to load the default project file.", this);
+            }
         }
     };
-    auto const initSpeakerSetup = [&]() {
-        auto const spatMode{ mData.appData.spatMode };
-        switch (spatMode) {
-        case SpatMode::hrtfVbap:
-        case SpatMode::stereo:
-            spatModeChanged(mData.appData.spatMode, true);
-            return;
-        case SpatMode::vbap:
-        case SpatMode::lbap:
-            loadSpeakerSetup(mData.appData.lastSpeakerSetup, spatMode);
-            return;
+
+    auto const initSpeakerSetupAndSpatMode = [&]() {
+        if (!spatModeChanged(mData.appData.spatMode, LoadSpeakerSetupOption::allowDiscardingUnsavedChanges)) {
+            if (!loadSpeakerSetup(DEFAULT_SPEAKER_SETUP_FILE,
+                                  SpatMode::vbap,
+                                  LoadSpeakerSetupOption::allowDiscardingUnsavedChanges)) {
+                fatalError("Unable to load the default speaker setup", this);
+            }
         }
-        jassertfalse;
     };
 
     auto const initCommandManager = [&]() {
@@ -200,7 +200,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     juce::ScopedLock const audioLock{ mAudioProcessor->getLock() };
 
     initProject();
-    initSpeakerSetup();
+    initSpeakerSetupAndSpatMode();
     startOsc();
     initCommandManager();
 
@@ -245,58 +245,55 @@ void MainContentComponent::handleNewProject()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    juce::AlertWindow alert{ "Closing current project !", "Do you want to save ?", juce::AlertWindow::InfoIcon };
-    alert.setLookAndFeel(&mLookAndFeel);
-    alert.addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::deleteKey));
-    alert.addButton("yes", 1, juce::KeyPress(juce::KeyPress::returnKey));
-    alert.addButton("No", 2, juce::KeyPress(juce::KeyPress::escapeKey));
-
-    auto const status{ alert.runModalLoop() };
-    if (status == 1) {
-        handleSaveProject();
-    } else if (status == 0) {
-        return;
+    auto const success{ loadProject(DEFAULT_PROJECT_FILE, LoadProjectOption::removeInvalidDirectOuts, false) };
+    if (!success) {
+        fatalError("Unable to load the default project file.", this);
     }
-
-    loadProject(DEFAULT_PROJECT_FILE, LoadProjectOption::removeInvalidDirectOuts);
 }
 
 //==============================================================================
-void MainContentComponent::loadProject(juce::File const & file, LoadProjectOption const loadProjectOption)
+bool MainContentComponent::loadProject(juce::File const & file,
+                                       LoadProjectOption const loadProjectOption,
+                                       bool const discardCurrentProject)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
 
-    jassert(file.existsAsFile());
+    if (!discardCurrentProject) {
+        if (!makeSureProjectIsSavedToDisk()) {
+            return false;
+        }
+    }
+
+    auto const displayError = [&](juce::String const & error) {
+        juce::AlertWindow::showNativeDialogBox("Unable to load SpatGRIS project.", error, false);
+    };
+
+    if (!file.existsAsFile()) {
+        displayError("File \"" + file.getFullPathName() + "\" does not exists.");
+        return false;
+    }
 
     juce::XmlDocument xmlDoc{ file };
     auto const mainXmlElem{ xmlDoc.getDocumentElement() };
 
     if (!mainXmlElem) {
-        // Formatting error
-        juce::AlertWindow::showMessageBox(juce::AlertWindow::AlertIconType::WarningIcon,
-                                          "Error in Open Project !",
-                                          "Your file is corrupted !\n" + file.getFullPathName() + "\n"
-                                              + xmlDoc.getLastParseError());
-        return;
+        displayError("File \"" + file.getFullPathName() + "\" is corrupted.\n" + xmlDoc.getLastParseError());
+        return false;
     }
 
     if (mainXmlElem->hasTagName("SpeakerSetup") || mainXmlElem->hasTagName(SpeakerSetup::XmlTags::MAIN_TAG)) {
         // Wrong file type
-        juce::AlertWindow::showMessageBox(juce::AlertWindow::WarningIcon,
-                                          "Error in Open Project !",
-                                          "You are trying to open a Speaker Setup instead of a project file !");
-        return;
+        displayError("File \"" + file.getFullPathName() + "\" is a Speaker Setup, not a project.");
+        return false;
     }
 
     auto projectData{ SpatGrisProjectData::fromXml(*mainXmlElem) };
     if (!projectData) {
         // Missing params
-        juce::AlertWindow::showMessageBox(juce::AlertWindow::AlertIconType::WarningIcon,
-                                          "Unable to read project file !",
-                                          "One or more mandatory parameters are missing. Your file might be corrupt.");
-        loadDefaultSpeakerSetup(SpatMode::vbap);
-        return;
+        displayError("File \"" + file.getFullPathName()
+                     + "\" is missing one more mandatory parameters.\nYour file might be corrupted.");
+        return false;
     }
 
     mData.project = std::move(*projectData);
@@ -314,6 +311,8 @@ void MainContentComponent::loadProject(juce::File const & file, LoadProjectOptio
     updateViewportConfig();
     setTitle();
     refreshSourceVuMeterComponents();
+
+    return true;
 }
 
 //==============================================================================
@@ -334,7 +333,8 @@ void MainContentComponent::handleOpenProject()
 
     auto const chosen{ fc.getResult() };
 
-    loadProject(chosen, LoadProjectOption::removeInvalidDirectOuts);
+    [[maybe_unused]] auto const success{ loadProject(chosen, LoadProjectOption::removeInvalidDirectOuts, true) };
+    jassert(success);
 }
 
 //==============================================================================
@@ -365,7 +365,7 @@ void MainContentComponent::handleOpenSpeakerSetup()
         return;
     }
 
-    auto const initialFile{ mData.appData.lastSpeakerSetup };
+    auto const initialFile{ mData.appData.lastLbapOrVbapSpeakerSetup };
 
     juce::FileChooser fc{ "Choose a file to open...", initialFile, "*.xml", true };
 
@@ -374,7 +374,8 @@ void MainContentComponent::handleOpenSpeakerSetup()
     }
 
     auto const chosen{ fc.getResult() };
-    loadSpeakerSetup(chosen);
+    [[maybe_unused]] auto const success{ loadSpeakerSetup(chosen) };
+    jassert(success);
 }
 
 //==============================================================================
@@ -406,9 +407,9 @@ void MainContentComponent::handleShowSpeakerEditWindow()
         break;
     case SpatMode::hrtfVbap:
     case SpatMode::stereo:
+        return;
     default:
         jassertfalse;
-        return;
     }
 
     juce::Rectangle<int> const result{ getScreenX() + mSpeakerViewComponent->getWidth() + 20,
@@ -418,7 +419,7 @@ void MainContentComponent::handleShowSpeakerEditWindow()
     if (mEditSpeakersWindow == nullptr) {
         auto const windowName = juce::String("Speakers Setup Edition - ")
                                 + juce::String(SPAT_MODE_STRINGS[static_cast<int>(mData.appData.spatMode)]) + " - "
-                                + mData.appData.lastSpeakerSetup;
+                                + mData.appData.lastLbapOrVbapSpeakerSetup;
         mEditSpeakersWindow
             = std::make_unique<EditSpeakersWindow>(windowName, mLookAndFeel, *this, mData.appData.lastProject);
         mEditSpeakersWindow->setBounds(result);
@@ -520,86 +521,38 @@ void MainContentComponent::interpolationChanged(float const interpolation)
 }
 
 //==============================================================================
-void MainContentComponent::spatModeChanged(SpatMode const spatMode, bool const forceRefreshSpeakers)
+void MainContentComponent::spatModeChanged(SpatMode const spatMode)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
+    auto const oldSpatMode{ mData.appData.spatMode };
+    auto const success{ spatModeChanged(spatMode, LoadSpeakerSetupOption::disallowDiscardingUnsavedChanges) };
+
+    if (!success) {
+        mControlPanel->setSpatMode(oldSpatMode);
+    }
+}
+
+//==============================================================================
+bool MainContentComponent::spatModeChanged(SpatMode const spatMode, LoadSpeakerSetupOption const option)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const readLock{ mLock };
 
     jassert(narrow<int>(spatMode) >= 0 && narrow<int>(spatMode) <= narrow<int>(SpatMode::stereo));
 
-    if (mData.appData.spatMode == spatMode && mSpatAlgorithm) {
-        if (forceRefreshSpeakers) {
-            refreshSpeakers();
-        }
-        return;
-    }
-
-    if (!makeSureSpeakerSetupIsSavedToDisk()) {
-        jassert(!forceRefreshSpeakers);
-        return;
-    }
-
-    mControlPanel->setSpatMode(spatMode);
-
-    // handle speaker setup change
-    auto const getForcedSpeakerSetup = [&]() -> tl::optional<juce::File> {
-        switch (spatMode) {
-        case SpatMode::hrtfVbap:
-            return BINAURAL_SPEAKER_SETUP_FILE;
-        case SpatMode::stereo:
-            return STEREO_SPEAKER_SETUP_FILE;
-        case SpatMode::lbap:
-        case SpatMode::vbap:
-            switch (mData.appData.spatMode) {
-            case SpatMode::hrtfVbap:
-            case SpatMode::stereo:
-                return mData.appData.lastSpeakerSetup;
-            case SpatMode::lbap:
-            case SpatMode::vbap:
-                // keep the current setup and adapt it to the new spatMode
-                return tl::nullopt;
-            }
-        }
-        jassertfalse;
-        return tl::nullopt;
-    };
-
-    auto const forcedSpeakerSetup{ getForcedSpeakerSetup() };
-    if (forcedSpeakerSetup && forcedSpeakerSetup->getFullPathName() != mData.appData.lastSpeakerSetup) {
-        loadSpeakerSetup(*forcedSpeakerSetup, spatMode); // This will eventually call the current method
-        mAudioProcessor->resetHrtf();
-        return;
-    }
-
-    juce::ScopedWriteLock const writeLock{ mLock };
-
     switch (spatMode) {
     case SpatMode::vbap:
-        mData.appData.viewSettings.showSpeakerTriplets = false;
-        break;
     case SpatMode::lbap:
-        break;
+        return loadSpeakerSetup(mData.appData.lastLbapOrVbapSpeakerSetup, spatMode, option);
     case SpatMode::hrtfVbap:
+        return loadSpeakerSetup(BINAURAL_SPEAKER_SETUP_FILE, SpatMode::hrtfVbap, option);
     case SpatMode::stereo:
-        closeSpeakersConfigurationWindow();
-        break;
-    default:
-        jassertfalse;
-        break;
+        return loadSpeakerSetup(STEREO_SPEAKER_SETUP_FILE, SpatMode::stereo, option);
     }
-
-    // speaker setup stays the same
-    mData.appData.spatMode = spatMode;
-    mSpatAlgorithm = AbstractSpatAlgorithm::make(spatMode, mData.speakerSetup.speakers);
-
-    refreshSpeakers();
-
-    if (mEditSpeakersWindow != nullptr) {
-        auto const windowName{ juce::String("Speakers Setup Edition - ")
-                               + juce::String(SPAT_MODE_STRINGS[static_cast<int>(spatMode)]) + juce::String(" - ")
-                               + mData.appData.lastSpeakerSetup };
-        mEditSpeakersWindow->setName(windowName);
-    }
+    jassertfalse;
+    return false;
 }
 
 //==============================================================================
@@ -682,12 +635,9 @@ void MainContentComponent::handleShowTriplets()
     juce::ScopedReadLock const readLock{ mLock };
     auto const newState{ !mData.appData.viewSettings.showSpeakerTriplets };
     if ((mData.appData.spatMode == SpatMode::lbap || mData.appData.spatMode == SpatMode::stereo) && newState) {
-        juce::AlertWindow alert("Can't draw triplets !",
-                                "Triplets are not effective with the CUBE or STEREO modes.",
-                                juce::AlertWindow::InfoIcon);
-        alert.setLookAndFeel(&mLookAndFeel);
-        alert.addButton("Close", 0, juce::KeyPress(juce::KeyPress::returnKey));
-        alert.runModalLoop();
+        juce::AlertWindow::showNativeDialogBox("Can't draw triplets !",
+                                               "Triplets are not effective with the CUBE or STEREO modes.",
+                                               false);
         return;
     }
 
@@ -862,11 +812,12 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
                        "Save the current speaker setup under a new name on disk.",
                        generalCategory,
                        0);
-        result.setActive(mData.appData.spatMode == SpatMode::hrtfVbap || mData.appData.spatMode == SpatMode::stereo);
+        result.setActive(mData.appData.spatMode == SpatMode::lbap || mData.appData.spatMode == SpatMode::vbap);
         break;
     case MainWindow::ShowSpeakerEditID:
         result.setInfo("Speaker Setup Edition", "Edit the current speaker setup.", generalCategory, 0);
         result.addDefaultKeypress('W', juce::ModifierKeys::altModifier);
+        result.setActive(mData.appData.spatMode == SpatMode::lbap || mData.appData.spatMode == SpatMode::vbap);
         break;
     case MainWindow::Show2DViewID:
         result.setInfo("Show 2D View", "Show the 2D action window.", generalCategory, 0);
@@ -1138,7 +1089,9 @@ bool MainContentComponent::isSpeakerSetupModified() const
         jassertfalse;
     }
 
-    auto const savedElement{ juce::XmlDocument{ juce::File{ mData.appData.lastSpeakerSetup } }.getDocumentElement() };
+    auto const savedElement{
+        juce::XmlDocument{ juce::File{ mData.appData.lastLbapOrVbapSpeakerSetup } }.getDocumentElement()
+    };
     jassert(savedElement);
     if (!savedElement) {
         return true;
@@ -1381,26 +1334,6 @@ void MainContentComponent::resetSourcePosition(source_index_t const sourceIndex)
 
     mData.project.sources[sourceIndex].position = tl::nullopt;
     mData.project.sources[sourceIndex].vector = tl::nullopt;
-}
-
-//==============================================================================
-void MainContentComponent::loadDefaultSpeakerSetup(SpatMode const spatMode)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    switch (spatMode) {
-    case SpatMode::vbap:
-    case SpatMode::lbap:
-        loadSpeakerSetup(DEFAULT_SPEAKER_SETUP_FILE, spatMode);
-        return;
-    case SpatMode::hrtfVbap:
-        loadSpeakerSetup(BINAURAL_SPEAKER_SETUP_FILE, spatMode);
-        return;
-    case SpatMode::stereo:
-        loadSpeakerSetup(STEREO_SPEAKER_SETUP_FILE, spatMode);
-        return;
-    }
-    jassertfalse;
 }
 
 //==============================================================================
@@ -1677,6 +1610,40 @@ output_patch_t MainContentComponent::getMaxSpeakerOutputPatch() const
 }
 
 //==============================================================================
+tl::optional<std::pair<SpeakerSetup, SpatMode>> MainContentComponent::extractSpeakerSetup(juce::File const & file)
+{
+    auto const displayError = [&](juce::String const & message) {
+        juce::AlertWindow::showNativeDialogBox("Unable to load Speaker Setup.", message, false);
+    };
+
+    if (!file.existsAsFile()) {
+        displayError("File \"" + file.getFullPathName() + "\" does not exist.");
+        return tl::nullopt;
+    }
+
+    juce::XmlDocument xmlDoc{ file };
+    auto const mainXmlElem(xmlDoc.getDocumentElement());
+    if (!mainXmlElem) {
+        displayError("Corrupted file.\n" + xmlDoc.getLastParseError());
+        return tl::nullopt;
+    }
+
+    if (mainXmlElem->hasTagName("ServerGRIS_Preset")
+        || mainXmlElem->hasTagName(SpatGrisProjectData::XmlTags::MAIN_TAG)) {
+        displayError("This is a project file, not a Speaker Setup !");
+        return tl::nullopt;
+    }
+
+    auto speakerSetup{ SpeakerSetup::fromXml(*mainXmlElem) };
+
+    if (!speakerSetup) {
+        displayError("Error while reading file.");
+    }
+
+    return speakerSetup;
+}
+
+//==============================================================================
 output_patch_t MainContentComponent::addSpeaker()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -1756,7 +1723,10 @@ bool MainContentComponent::refreshSpeakers()
         alert.addButton("No", 0);
         alert.addButton("Yes", 1, juce::KeyPress(juce::KeyPress::returnKey));
         if (alert.runModalLoop() != 0) {
-            loadSpeakerSetup(DEFAULT_SPEAKER_SETUP_FILE);
+            auto const success{ loadSpeakerSetup(DEFAULT_SPEAKER_SETUP_FILE) };
+            if (!success) {
+                fatalError("Unable to load the default speaker setup.", this);
+            }
         }
     };
 
@@ -1802,54 +1772,75 @@ bool MainContentComponent::refreshSpeakers()
 }
 
 //==============================================================================
-void MainContentComponent::reloadXmlFileSpeaker()
+bool MainContentComponent::loadSpeakerSetup(juce::File const & file,
+                                            tl::optional<SpatMode> const spatMode,
+                                            LoadSpeakerSetupOption const option)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-    juce::ScopedReadLock const lock{ mLock };
 
-    loadSpeakerSetup(mData.appData.lastSpeakerSetup, tl::nullopt);
+    auto data{ extractSpeakerSetup(file) };
+
+    if (!data) {
+        return false;
+    }
+
+    return loadSpeakerSetup(std::move(data->first), spatMode.value_or(data->second), file.getFullPathName(), option);
 }
 
 //==============================================================================
-void MainContentComponent::loadSpeakerSetup(juce::File const & file, tl::optional<SpatMode> const forceSpatMode)
+bool MainContentComponent::loadSpeakerSetup(SpeakerSetup speakerSetup,
+                                            SpatMode const spatMode,
+                                            juce::String const & filePath,
+                                            LoadSpeakerSetupOption const option)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    if (!file.existsAsFile()) {
-        juce::AlertWindow::showMessageBox(juce::AlertWindow::WarningIcon,
-                                          "Error in Load Speaker Setup !",
-                                          "Cannot find file " + file.getFullPathName() + ", loading default setup.");
-        loadSpeakerSetup(DEFAULT_SPEAKER_SETUP_FILE);
-        return;
-    }
-
-    juce::XmlDocument xmlDoc{ file };
-    auto const mainXmlElem(xmlDoc.getDocumentElement());
-    if (!mainXmlElem) {
-        juce::AlertWindow::showMessageBox(juce::AlertWindow::WarningIcon,
-                                          "Error in Load Speaker Setup !",
-                                          "Your file is corrupted !\n" + xmlDoc.getLastParseError());
-        loadSpeakerSetup(DEFAULT_SPEAKER_SETUP_FILE);
-        return;
-    }
-
-    auto speakerSetup{ SpeakerSetup::fromXml(*mainXmlElem) };
-
-    if (!speakerSetup) {
-        auto const msg{ mainXmlElem->hasTagName("ServerGRIS_Preset")
-                                || mainXmlElem->hasTagName(SpatGrisProjectData::XmlTags::MAIN_TAG)
-                            ? "You are trying to open a Server document, and not a Speaker Setup !"
-                            : "Your file is corrupted !\n" + xmlDoc.getLastParseError() };
-        juce::AlertWindow::showMessageBox(juce::AlertWindow::WarningIcon, "Error in Load Speaker Setup !", msg);
-        loadSpeakerSetup(DEFAULT_SPEAKER_SETUP_FILE);
-        return;
+    if (option == LoadSpeakerSetupOption::disallowDiscardingUnsavedChanges) {
+        if (!makeSureSpeakerSetupIsSavedToDisk()) {
+            return false;
+        }
     }
 
     juce::ScopedWriteLock const lock{ mLock };
-    mData.speakerSetup = std::move(speakerSetup->first);
-    mData.appData.lastSpeakerSetup = file.getFullPathName();
 
-    spatModeChanged(forceSpatMode.value_or(speakerSetup->second), true);
+    switch (spatMode) {
+    case SpatMode::hrtfVbap:
+    case SpatMode::stereo:
+        closeSpeakersConfigurationWindow();
+        [[fallthrough]];
+    case SpatMode::vbap:
+        mData.appData.viewSettings.showSpeakerTriplets = false;
+        break;
+    case SpatMode::lbap:
+        break;
+    default:
+        jassertfalse;
+        break;
+    }
+
+    mData.speakerSetup = std::move(speakerSetup);
+    mData.appData.spatMode = spatMode;
+
+    if (spatMode == SpatMode::lbap || spatMode == SpatMode::vbap) {
+        mData.appData.lastLbapOrVbapSpeakerSetup = filePath;
+    }
+
+    mSpatAlgorithm = AbstractSpatAlgorithm::make(spatMode, mData.speakerSetup.speakers);
+
+    mAudioProcessor->resetHrtf();
+
+    refreshSpeakers();
+
+    mControlPanel->setSpatMode(spatMode);
+
+    if (mEditSpeakersWindow != nullptr) {
+        auto const windowName{ juce::String("Speakers Setup Edition - ")
+                               + juce::String(SPAT_MODE_STRINGS[static_cast<int>(spatMode)]) + juce::String(" - ")
+                               + mData.appData.lastLbapOrVbapSpeakerSetup };
+        mEditSpeakersWindow->setName(windowName);
+    }
+
+    return true;
 }
 
 //==============================================================================
@@ -1930,6 +1921,8 @@ bool MainContentComponent::saveProject(tl::optional<juce::File> maybeFile)
         mData.appData.lastProject = maybeFile->getFullPathName();
     }
 
+    setTitle();
+
     return success;
 }
 
@@ -1952,10 +1945,11 @@ bool MainContentComponent::saveSpeakerSetup(tl::optional<juce::File> maybeFile)
     }
 
     if (!maybeFile) {
-        juce::File const lastSpeakerSetup{ mData.appData.lastSpeakerSetup };
-        auto const initialFile{ lastSpeakerSetup == DEFAULT_SPEAKER_SETUP_FILE ? juce::File::getSpecialLocation(
-                                    juce::File::SpecialLocationType::userDesktopDirectory)
-                                                                               : mData.appData.lastSpeakerSetup };
+        juce::File const lastSpeakerSetup{ mData.appData.lastLbapOrVbapSpeakerSetup };
+        auto const initialFile{ lastSpeakerSetup == DEFAULT_SPEAKER_SETUP_FILE
+                                    ? juce::File::getSpecialLocation(
+                                        juce::File::SpecialLocationType::userDesktopDirectory)
+                                    : mData.appData.lastLbapOrVbapSpeakerSetup };
         juce::FileChooser fc{ "Choose file to save to...", initialFile, "*.xml", true, false, this };
         if (!fc.browseForFileToSave(true)) {
             return false;
@@ -1971,7 +1965,7 @@ bool MainContentComponent::saveSpeakerSetup(tl::optional<juce::File> maybeFile)
     jassert(success);
 
     if (success) {
-        mData.appData.lastSpeakerSetup = maybeFile->getFullPathName();
+        mData.appData.lastLbapOrVbapSpeakerSetup = maybeFile->getFullPathName();
     }
 
     return success;

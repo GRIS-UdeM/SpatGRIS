@@ -256,7 +256,7 @@ struct SpatGrisAppData {
     RecordingOptions recordingOptions{};
     ViewSettings viewSettings{};
     CartesianVector cameraPosition{ 0.0f, -2.0f, 1.0f };
-    juce::String lastSpeakerSetup{ DEFAULT_SPEAKER_SETUP_FILE.getFullPathName() };
+    juce::String lastLbapOrVbapSpeakerSetup{ DEFAULT_SPEAKER_SETUP_FILE.getFullPathName() };
     juce::String lastProject{ DEFAULT_PROJECT_FILE.getFullPathName() };
     juce::String lastRecordingDirectory{
         juce::File::getSpecialLocation(juce::File::SpecialLocationType::userDesktopDirectory).getFullPathName()
@@ -293,7 +293,7 @@ struct SpeakerSetup {
     SpeakersData speakers{};
     juce::Array<output_patch_t> order{};
     //==============================================================================
-    [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml(SpatMode mode) const;
+    [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml(SpatMode spatMode) const;
     [[nodiscard]] static tl::optional<std::pair<SpeakerSetup, SpatMode>> fromXml(juce::XmlElement const & xml);
     [[nodiscard]] bool operator==(SpeakerSetup const & other) const noexcept;
     [[nodiscard]] bool operator!=(SpeakerSetup const & other) const noexcept { return !(*this == other); }

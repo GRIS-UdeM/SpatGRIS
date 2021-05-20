@@ -74,6 +74,7 @@ class MainContentComponent final
     , private juce::Timer
 {
     enum class LoadProjectOption { removeInvalidDirectOuts, dontRemoveInvalidDirectOuts };
+    enum class LoadSpeakerSetupOption { allowDiscardingUnsavedChanges, disallowDiscardingUnsavedChanges };
 
     juce::ReadWriteLock mLock{};
 
@@ -181,8 +182,6 @@ public:
                                      float newZenithSpan);
     void resetSourcePosition(source_index_t sourceIndex);
 
-    void loadDefaultSpeakerSetup(SpatMode spatMode);
-
     void setRecordingFormat(RecordingFormat format);
     void setRecordingFileType(RecordingFileType fileType);
 
@@ -200,9 +199,6 @@ public:
     void handleSourceDirectOutChanged(source_index_t sourceIndex, tl::optional<output_patch_t> outputPatch) override;
     [[nodiscard]] SpeakersData const & getSpeakersData() const override { return mData.speakerSetup.speakers; }
 
-    // void handleSpatModeChanged(SpatMode spatMode) override;
-    // void handleMasterGainChanged(dbfs_t gain);
-    // void handleGainInterpolationChanged(float interpolation);
     void handleNewSpeakerPosition(output_patch_t outputPatch, CartesianVector const & position);
     void handleNewSpeakerPosition(output_patch_t outputPatch, PolarVector const & position);
 
@@ -211,7 +207,8 @@ public:
 
     void handleSetShowTriplets(bool state);
 
-    // void handleNumSourcesChanged(int numSources);
+    void spatModeChanged(SpatMode spatMode) override;
+    [[nodiscard]] bool spatModeChanged(SpatMode spatMode, LoadSpeakerSetupOption option);
 
     // Speakers.
     [[nodiscard]] auto const & getSpeakersDisplayOrder() const { return mData.speakerSetup.order; }
@@ -232,9 +229,6 @@ public:
 
     // Called when the speaker setup has changed.
     bool refreshSpeakers();
-
-    // Open - save.
-    void reloadXmlFileSpeaker();
 
     // Screen refresh timer.
     void handleTimer(bool state);
@@ -263,7 +257,6 @@ public:
 
     void masterGainChanged(dbfs_t gain) override;
     void interpolationChanged(float interpolation) override;
-    void spatModeChanged(SpatMode spatMode, bool const forceRefreshSpeakers) override;
     void numSourcesChanged(int numSources) override;
     void recordButtonPressed() override;
 
@@ -324,8 +317,18 @@ private:
     [[nodiscard]] output_patch_t getMaxSpeakerOutputPatch() const;
     //==============================================================================
     // Open - save.
-    void loadSpeakerSetup(juce::File const & file, tl::optional<SpatMode> forceSpatMode = tl::nullopt);
-    void loadProject(juce::File const & file, LoadProjectOption loadProjectOption);
+    [[nodiscard]] static tl::optional<std::pair<SpeakerSetup, SpatMode>> extractSpeakerSetup(juce::File const & file);
+    [[nodiscard]] bool loadSpeakerSetup(juce::File const & file,
+                                        tl::optional<SpatMode> spatMode = tl::nullopt,
+                                        LoadSpeakerSetupOption option
+                                        = LoadSpeakerSetupOption::disallowDiscardingUnsavedChanges);
+    [[nodiscard]] bool loadSpeakerSetup(SpeakerSetup speakerSetup,
+                                        SpatMode spatMode,
+                                        juce::String const & filePath,
+                                        LoadSpeakerSetupOption option
+                                        = LoadSpeakerSetupOption::disallowDiscardingUnsavedChanges);
+    [[nodiscard]] bool
+        loadProject(juce::File const & file, LoadProjectOption loadProjectOption, bool discardCurrentProject);
     [[nodiscard]] bool saveProject(tl::optional<juce::File> maybeFile);
     [[nodiscard]] bool saveSpeakerSetup(tl::optional<juce::File> maybeFile);
     [[nodiscard]] bool makeSureProjectIsSavedToDisk() noexcept;

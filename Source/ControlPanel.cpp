@@ -62,7 +62,7 @@ void ControlPanel::resized()
 void ControlPanel::handleSpatModeChanged(SpatMode const spatMode)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-    mListener.spatModeChanged(spatMode, false);
+    mListener.spatModeChanged(spatMode);
 }
 
 //==============================================================================

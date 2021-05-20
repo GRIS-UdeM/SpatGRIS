@@ -602,7 +602,7 @@ std::unique_ptr<juce::XmlElement> SpatGrisAppData::toXml() const
     result->addChildElement(cameraElement.release());
     result->addChildElement(viewSettings.toXml().release());
 
-    result->setAttribute(XmlTags::LAST_SPEAKER_SETUP, lastSpeakerSetup);
+    result->setAttribute(XmlTags::LAST_SPEAKER_SETUP, lastLbapOrVbapSpeakerSetup);
     result->setAttribute(XmlTags::LAST_PROJECT, lastProject);
     result->setAttribute(XmlTags::LAST_RECORDING_DIRECTORY, lastRecordingDirectory);
     result->setAttribute(XmlTags::LAST_SPAT_MODE, spatModeToString(spatMode));
@@ -658,7 +658,7 @@ tl::optional<SpatGrisAppData> SpatGrisAppData::fromXml(juce::XmlElement const & 
     result.recordingOptions = *recordingOptions;
     result.spatMode = *lastSpatMode;
 
-    result.lastSpeakerSetup = xml.getStringAttribute(XmlTags::LAST_SPEAKER_SETUP);
+    result.lastLbapOrVbapSpeakerSetup = xml.getStringAttribute(XmlTags::LAST_SPEAKER_SETUP);
     result.lastProject = xml.getStringAttribute(XmlTags::LAST_PROJECT);
     result.lastRecordingDirectory = xml.getStringAttribute(XmlTags::LAST_RECORDING_DIRECTORY);
     result.windowX = xml.getIntAttribute(XmlTags::WINDOW_X);
@@ -778,7 +778,7 @@ ViewportConfig SpatGrisData::toViewportConfig() const noexcept
         switch (appData.spatMode) {
         case SpatMode::lbap:
         case SpatMode::vbap:
-            return juce::File{ appData.lastSpeakerSetup }.getFileName();
+            return juce::File{ appData.lastLbapOrVbapSpeakerSetup }.getFileName();
         case SpatMode::hrtfVbap:
         case SpatMode::stereo:
             return juce::String{};
