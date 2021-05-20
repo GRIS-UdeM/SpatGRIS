@@ -297,6 +297,7 @@ struct SpeakerSetup {
     [[nodiscard]] static tl::optional<std::pair<SpeakerSetup, SpatMode>> fromXml(juce::XmlElement const & xml);
     [[nodiscard]] bool operator==(SpeakerSetup const & other) const noexcept;
     [[nodiscard]] bool operator!=(SpeakerSetup const & other) const noexcept { return !(*this == other); }
+    [[nodiscard]] bool isDomeLike() const noexcept;
     //==============================================================================
     struct XmlTags {
         static juce::String const MAIN_TAG;

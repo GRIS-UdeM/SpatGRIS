@@ -727,6 +727,14 @@ bool SpeakerSetup::operator==(SpeakerSetup const & other) const noexcept
 }
 
 //==============================================================================
+bool SpeakerSetup::isDomeLike() const noexcept
+{
+    return std::all_of(speakers.cbegin(), speakers.cend(), [](SpeakersData::ConstNode const & node) {
+        return node.value->isDirectOutOnly || juce::isWithin(node.value->vector.length, 1.0f, 0.02f);
+    });
+}
+
+//==============================================================================
 std::unique_ptr<AudioConfig> SpatGrisData::toAudioConfig() const
 {
     auto result{ std::make_unique<AudioConfig>() };

@@ -29,7 +29,7 @@
 #include "constants.hpp"
 
 static constexpr auto BUTTON_CANCEL = 0;
-static constexpr auto BUTTON_SAVE = 1;
+static constexpr auto BUTTON_OK = 1;
 static constexpr auto BUTTON_DISCARD = 2;
 
 //==============================================================================
@@ -1801,8 +1801,31 @@ bool MainContentComponent::loadSpeakerSetup(SpeakerSetup speakerSetup,
         }
     }
 
+    if (spatMode == SpatMode::vbap && !speakerSetup.isDomeLike()) {
+        auto const result{ juce::AlertWindow::showOkCancelBox(
+            juce::AlertWindow::InfoIcon,
+            "Converting to DOME",
+            "A CUBE speaker setup will be converted to a DOME structure.\nThis will not affect the original file.",
+            "Ok",
+            "Cancel",
+            this) };
+        if (!result) {
+            return false;
+        }
+
+        for (auto & node : speakerSetup.speakers) {
+            auto & speaker{ *node.value };
+            if (speaker.isDirectOutOnly) {
+                continue;
+            }
+            speaker.vector = speaker.vector.normalized();
+            speaker.position = speaker.vector.toCartesian();
+        }
+    }
+
     juce::ScopedWriteLock const lock{ mLock };
 
+    // specific mode-dependent checks
     switch (spatMode) {
     case SpatMode::hrtfVbap:
     case SpatMode::stereo:
@@ -1812,6 +1835,7 @@ bool MainContentComponent::loadSpeakerSetup(SpeakerSetup speakerSetup,
         mData.appData.viewSettings.showSpeakerTriplets = false;
         break;
     case SpatMode::lbap:
+
         break;
     default:
         jassertfalse;
@@ -1984,7 +2008,7 @@ bool MainContentComponent::makeSureProjectIsSavedToDisk() noexcept
                                    "Your current project has unsaved changes. Do you wish to save to save it to disk?",
                                    juce::AlertWindow::AlertIconType::InfoIcon,
                                    this };
-    alertWindow.addButton("Save", BUTTON_SAVE, juce::KeyPress{ juce::KeyPress::returnKey });
+    alertWindow.addButton("Save", BUTTON_OK, juce::KeyPress{ juce::KeyPress::returnKey });
     alertWindow.addButton("Discard", BUTTON_DISCARD);
     alertWindow.addButton("Cancel", BUTTON_CANCEL, juce::KeyPress{ juce::KeyPress::escapeKey });
 
@@ -1998,7 +2022,7 @@ bool MainContentComponent::makeSureProjectIsSavedToDisk() noexcept
         return true;
     }
 
-    jassert(pressedButton == BUTTON_SAVE);
+    jassert(pressedButton == BUTTON_OK);
 
     return saveProject(tl::nullopt);
 }
@@ -2018,7 +2042,7 @@ bool MainContentComponent::makeSureSpeakerSetupIsSavedToDisk() noexcept
         juce::AlertWindow::AlertIconType::InfoIcon,
         this
     };
-    alertWindow.addButton("Save", BUTTON_SAVE, juce::KeyPress{ juce::KeyPress::returnKey });
+    alertWindow.addButton("Save", BUTTON_OK, juce::KeyPress{ juce::KeyPress::returnKey });
     alertWindow.addButton("Discard", BUTTON_DISCARD);
     alertWindow.addButton("Cancel", BUTTON_CANCEL, juce::KeyPress{ juce::KeyPress::escapeKey });
 
@@ -2032,7 +2056,7 @@ bool MainContentComponent::makeSureSpeakerSetupIsSavedToDisk() noexcept
         return true;
     }
 
-    jassert(pressedButton == BUTTON_SAVE);
+    jassert(pressedButton == BUTTON_OK);
 
     return saveSpeakerSetup(tl::nullopt);
 }
