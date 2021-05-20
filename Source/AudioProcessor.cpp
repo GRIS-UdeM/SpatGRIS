@@ -17,18 +17,18 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "AudioProcessor.h"
+#include "AudioProcessor.hpp"
+
+#include "AudioManager.hpp"
+#include "Constants.hpp"
+#include "MainComponent.hpp"
+#include "Narrow.hpp"
+#include "PinkNoiseGenerator.hpp"
+#include "StaticMap.hpp"
+#include "TaggedAudioBuffer.hpp"
 
 #include <array>
 #include <cstdarg>
-
-#include "AudioManager.h"
-#include "MainComponent.h"
-#include "PinkNoiseGenerator.h"
-#include "StaticMap.hpp"
-#include "TaggedAudioBuffer.hpp"
-#include "constants.hpp"
-#include "narrow.hpp"
 
 float constexpr SMALL_GAIN = 0.0000000000001f;
 size_t constexpr MAX_BUFFER_SIZE = 2048;

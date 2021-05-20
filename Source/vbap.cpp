@@ -26,11 +26,11 @@
 
 #include "vbap.hpp"
 
-#include <cstdlib>
-
 #include "LogicStrucs.hpp"
+#include "Narrow.hpp"
 #include "StrongTypes.hpp"
-#include "narrow.hpp"
+
+#include <cstdlib>
 
 //==============================================================================
 struct TripletData {

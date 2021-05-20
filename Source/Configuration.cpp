@@ -17,7 +17,7 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Configuration.h"
+#include "Configuration.hpp"
 
 juce::String const Configuration::XmlTags::MAIN_TAG = "SpatGRIS app data";
 

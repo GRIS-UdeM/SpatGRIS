@@ -19,11 +19,17 @@
 
 #pragma once
 
+#include "CartesianVector.hpp"
+#include "Constants.hpp"
+#include "LogicStrucs.hpp"
+#include "Ray.hpp"
+#include "Warnings.hpp"
+
 #include <JuceHeader.h>
 
-#include "CartesianVector.h"
-#include "LogicStrucs.hpp"
-
+DISABLE_WARNING_PUSH
+DISABLE_WARNING_NAMELESS_STRUCT
+DISABLE_WARNING_UNREFERENCED_FUNCTION
 #if defined(__APPLE__)
     #include <GLUT/glut.h>
     #include <OpenGL/gl.h>
@@ -31,9 +37,7 @@
     #include <OpenGl/glu.h>
 #endif
 #include "../glm/glm.hpp"
-
-#include "Ray.h"
-#include "constants.hpp"
+DISABLE_WARNING_POP
 
 struct SpeakerData;
 enum class SpatMode;
@@ -58,11 +62,10 @@ public:
     static auto constexpr SPACE_LIMIT{ MAX_RADIUS * LBAP_EXTENDED_RADIUS };
 
 private:
+    //==============================================================================
     MainContentComponent & mMainContentComponent;
     juce::CriticalSection mLock{};
-
     ViewportData mData{};
-
     double mDisplayScaling = 1.0;
 
     Ray mRay;
@@ -75,6 +78,7 @@ private:
     GLdouble mZe{};
 
 public:
+    //==============================================================================
     static constexpr auto SPHERE_RADIUS = 0.03f;
     static constexpr auto HALF_SPHERE_RADIUS = SPHERE_RADIUS / 2.0f;
     //==============================================================================

@@ -19,9 +19,9 @@
 
 #pragma once
 
-#include <bitset>
-
 #include "StrongTypes.hpp"
+
+#include <bitset>
 
 //==============================================================================
 template<typename KeyType, typename ValueType, size_t Capacity>

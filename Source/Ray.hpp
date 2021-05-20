@@ -19,33 +19,44 @@
 
 #pragma once
 
+#include "Warnings.hpp"
+
 #include <JuceHeader.h>
 
-#include "LogicStrucs.hpp"
+DISABLE_WARNING_PUSH
+DISABLE_WARNING_NAMELESS_STRUCT
+DISABLE_WARNING_UNREFERENCED_FUNCTION
+#if defined(__linux__)
+    #include <GL/gl.h>
+    #include <GL/glu.h>
+    #include <GL/glut.h>
+#elif defined(__APPLE__)
+    #include <GLUT/glut.h>
+    #include <OpenGL/gl.h>
+    #include <OpenGl/glu.h>
+#endif
 
-class Configuration
+#include "../glm/glm.hpp"
+DISABLE_WARNING_POP
+
+//==============================================================================
+class Ray
 {
-    struct XmlTags {
-        static juce::String const MAIN_TAG;
-    };
-
-    juce::ApplicationProperties mApplicationProperties{};
-    juce::PropertiesFile * mUserSettings{};
+    glm::vec3 mPosition{ 0.0f, 0.0f, 0.0f };
+    glm::vec3 mDirection{ 0.0f, 0.0f, 0.0f };
+    glm::vec3 mNormal{ 0.0f, 0.0f, 0.0f };
 
 public:
     //==============================================================================
-    Configuration();
-    ~Configuration();
+    void setRay(glm::vec3 const & p, glm::vec3 const & d);
     //==============================================================================
-    Configuration(Configuration const &) = delete;
-    Configuration(Configuration &&) = delete;
-    Configuration & operator=(Configuration const &) = delete;
-    Configuration & operator=(Configuration &&) = delete;
+    [[nodiscard]] glm::vec3 const & getNormal() const { return this->mNormal; }
+    [[nodiscard]] glm::vec3 const & getPosition() const { return this->mPosition; }
+    [[nodiscard]] glm::vec3 const & getDirection() const { return this->mDirection; }
     //==============================================================================
-    void save(SpatGrisAppData const & appData) const;
-    SpatGrisAppData load() const;
+    void draw() const;
 
 private:
     //==============================================================================
-    JUCE_LEAK_DETECTOR(Configuration)
+    JUCE_LEAK_DETECTOR(Ray)
 };

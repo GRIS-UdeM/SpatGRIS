@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "CartesianVector.h"
+#include "CartesianVector.hpp"
 #include "StrongTypes.hpp"
 
 static constexpr radians_t DEFAULT_ELEVATION_COMPARE_TOLERANCE{ degrees_t{ 5.0f } };

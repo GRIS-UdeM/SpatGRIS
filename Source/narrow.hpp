@@ -19,9 +19,9 @@
 
 #pragma once
 
-#include <type_traits>
-
 #include <JuceHeader.h>
+
+#include <type_traits>
 
 #ifdef NDEBUG
 //==============================================================================

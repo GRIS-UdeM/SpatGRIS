@@ -19,13 +19,13 @@
 
 #pragma once
 
+#include "AudioProcessor.hpp"
+#include "Box.hpp"
 #include "LogicStrucs.hpp"
-#include "lib/tl/optional.hpp"
 
 #include <JuceHeader.h>
 
-#include "AudioProcessor.h"
-#include "Box.h"
+#include "lib/tl/optional.hpp"
 
 class EditableTextCustomComponent;
 class MainContentComponent;

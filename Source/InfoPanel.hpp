@@ -19,47 +19,44 @@
 
 #pragma once
 
-#include <JuceHeader.h>
+#include "LayoutComponent.hpp"
 
-#include "LogicStrucs.hpp"
-
-class MainContentComponent;
 class GrisLookAndFeel;
-class InputModel;
 
 //==============================================================================
-class FlatViewWindow final
-    : public juce::DocumentWindow
-    , private juce::Timer
+class InfoPanel final : public MinSizedComponent
 {
-    MainContentComponent & mMainContentComponent;
     GrisLookAndFeel & mLookAndFeel;
+
+    juce::Label mCpuLabel{};
+    juce::Label mSampleRateLabel{};
+    juce::Label mBufferSizeLabel{};
+    juce::Label mNumInputsLabel{};
+    juce::Label mNumOutputsLabel{};
 
 public:
     //==============================================================================
-    FlatViewWindow(MainContentComponent & parent, GrisLookAndFeel & feel);
+    explicit InfoPanel(GrisLookAndFeel & lookAndFeel);
+    ~InfoPanel() override = default;
     //==============================================================================
-    FlatViewWindow() = delete;
-    ~FlatViewWindow() override = default;
+    InfoPanel(InfoPanel const &) = delete;
+    InfoPanel(InfoPanel &&) = delete;
+    InfoPanel & operator=(InfoPanel const &) = delete;
+    InfoPanel & operator=(InfoPanel &&) = delete;
     //==============================================================================
-    FlatViewWindow(FlatViewWindow const &) = delete;
-    FlatViewWindow(FlatViewWindow &&) = delete;
-    FlatViewWindow & operator=(FlatViewWindow const &) = delete;
-    FlatViewWindow & operator=(FlatViewWindow &&) = delete;
+    void setCpuLoad(double percentage);
+    void setSampleRate(double sampleRate);
+    void setBufferSize(int bufferSize);
+    void setNumInputs(int numInputs);
+    void setNumOutputs(int numOutputs);
     //==============================================================================
-    void timerCallback() override { this->repaint(); }
-    void paint(juce::Graphics & g) override;
     void resized() override;
-    void closeButtonPressed() override;
+    [[nodiscard]] int getMinWidth() const noexcept override;
+    [[nodiscard]] int getMinHeight() const noexcept override;
 
 private:
     //==============================================================================
-    void drawFieldBackground(juce::Graphics & g) const;
-    void drawSource(juce::Graphics & g, SourcesData::ConstNode const & source, SpatMode spatMode) const;
-    void drawSourceVbapSpan(juce::Graphics & g, SourceData const & source) const;
-    void drawSourceLbapSpan(juce::Graphics & g,
-                            juce::Point<float> const & sourcePositionAbsolute,
-                            SourceData const & source) const;
+    [[nodiscard]] juce::Array<juce::Label *> getLabels() noexcept;
     //==============================================================================
-    JUCE_LEAK_DETECTOR(FlatViewWindow)
+    JUCE_LEAK_DETECTOR(InfoPanel)
 };

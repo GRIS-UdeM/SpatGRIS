@@ -19,9 +19,7 @@
 
 #pragma once
 
-#include <JuceHeader.h>
-
-#include "MainComponent.h"
+#include "MainComponent.hpp"
 
 //==============================================================================
 /* This class implements the desktop window that contains an instance of

@@ -19,10 +19,10 @@
 
 #pragma once
 
-#include <JuceHeader.h>
-
 #include "OwnedMap.hpp"
 #include "StaticVector.hpp"
+
+#include <JuceHeader.h>
 
 //==============================================================================
 template<typename KeyType, size_t Capacity>

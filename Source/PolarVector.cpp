@@ -17,7 +17,7 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "PolarVector.h"
+#include "PolarVector.hpp"
 
 #define FAST_TRIGO 1
 

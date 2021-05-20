@@ -22,9 +22,14 @@
 #include <JuceHeader.h>
 
 #if defined(WIN32)
+    #include "Warnings.hpp"
+DISABLE_WARNING_PUSH
+DISABLE_WARNING_UNREFERENCED_FUNCTION
     #include <GL/freeglut.h>
+DISABLE_WARNING_POP
 #endif
 
+//==============================================================================
 // For some unknown reason, glutSolidSphere() crashes on Windows (and also maybe on Linux). This might be due to a
 // conflict between glm, freeglut and juce's OpenGL implementations.
 //

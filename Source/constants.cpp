@@ -17,7 +17,7 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "constants.hpp"
+#include "Constants.hpp"
 
 #ifdef __linux__
 auto const CURRENT_WORKING_DIR{ juce::File::getCurrentWorkingDirectory() };

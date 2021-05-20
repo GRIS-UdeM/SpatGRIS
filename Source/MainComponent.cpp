@@ -17,16 +17,16 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "MainComponent.h"
+#include "MainComponent.hpp"
 
-#include "AudioManager.h"
-#include "ControlPanel.h"
-#include "FatalError.h"
-#include "LegacyLbapPosition.h"
-#include "MainWindow.h"
-#include "TitledComponent.h"
-#include "VuMeterComponent.h"
-#include "constants.hpp"
+#include "AudioManager.hpp"
+#include "Constants.hpp"
+#include "ControlPanel.hpp"
+#include "FatalError.hpp"
+#include "LegacyLbapPosition.hpp"
+#include "MainWindow.hpp"
+#include "TitledComponent.hpp"
+#include "VuMeterComponent.hpp"
 
 static constexpr auto BUTTON_CANCEL = 0;
 static constexpr auto BUTTON_OK = 1;
@@ -441,7 +441,6 @@ void MainContentComponent::handleShowPreferences()
 
     if (mPropertiesWindow == nullptr) {
         mPropertiesWindow.reset(new SettingsWindow{ *this,
-                                                    mData.appData.recordingOptions,
                                                     mData.project.lbapDistanceAttenuationData,
                                                     mData.project.oscPort,
                                                     mLookAndFeel });
@@ -2113,13 +2112,6 @@ void MainContentComponent::paint(juce::Graphics & g)
     JUCE_ASSERT_MESSAGE_THREAD;
 
     g.fillAll(mLookAndFeel.getWinBackgroundColour());
-}
-
-//==============================================================================
-void MainContentComponent::comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-    juce::ScopedReadLock const lock{ mLock };
 }
 
 //==============================================================================

@@ -19,10 +19,10 @@
 
 #pragma once
 
-#include <JuceHeader.h>
-
 #include "AudioStructs.hpp"
 #include "TaggedAudioBuffer.hpp"
+
+#include <JuceHeader.h>
 
 class SpeakerModel;
 
@@ -67,8 +67,8 @@ private:
     void processVBapHrtf(SourceAudioBuffer const & inputBuffer,
                          SpeakerAudioBuffer & outputBuffer,
                          SourcePeaks const & sourcePeaks) noexcept;
-    void processStereo(SourceAudioBuffer const & sourceBuffer,
-                       SpeakerAudioBuffer & speakerBuffer,
+    void processStereo(SourceAudioBuffer const & inputBuffer,
+                       SpeakerAudioBuffer & outputBuffer,
                        SourcePeaks const &) noexcept;
     //==============================================================================
     JUCE_LEAK_DETECTOR(AudioProcessor)

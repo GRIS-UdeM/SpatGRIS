@@ -17,11 +17,11 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "AboutWindow.h"
+#include "AboutWindow.hpp"
 
-#include "GrisLookAndFeel.h"
-#include "MainComponent.h"
-#include "constants.hpp"
+#include "Constants.hpp"
+#include "GrisLookAndFeel.hpp"
+#include "MainComponent.hpp"
 
 //==============================================================================
 AboutComponent::AboutComponent(AboutWindow & parentWindow, GrisLookAndFeel & lookAndFeel) : mParentWindow(parentWindow)

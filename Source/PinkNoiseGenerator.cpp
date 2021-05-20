@@ -17,10 +17,10 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "PinkNoiseGenerator.h"
+#include "PinkNoiseGenerator.hpp"
 
+#include "Narrow.hpp"
 #include "StrongTypes.hpp"
-#include "narrow.hpp"
 
 static float pinkNoiseC0{};
 static float pinkNoiseC1{};

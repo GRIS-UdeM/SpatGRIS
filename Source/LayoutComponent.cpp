@@ -1,6 +1,25 @@
-#include "LayoutComponent.h"
+/*
+ This file is part of SpatGRIS.
 
-#include "GrisLookAndFeel.h"
+ Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
+
+ SpatGRIS is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ SpatGRIS is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+#include "LayoutComponent.hpp"
+
+#include "GrisLookAndFeel.hpp"
 
 static auto const MAX_ELEM = [](auto const a, auto const b) {
     static_assert(std::is_same_v<decltype(a), decltype(b)>);
@@ -46,30 +65,6 @@ void LayoutComponent::clear()
     JUCE_ASSERT_MESSAGE_THREAD;
     mViewport.getViewedComponent()->removeAllChildren();
     mSections.clearQuick();
-}
-
-//==============================================================================
-void LayoutComponent::paint(juce::Graphics & g)
-{
-    // JUCE_ASSERT_MESSAGE_THREAD;
-
-    // for (auto const & section : mSections) {
-    //    if (!section.mComponent) {
-    //        continue;
-    //    }
-    //    auto const bounds{ section.mComponent->getBounds() };
-
-    //    g.setColour(juce::Colours::green);
-    //    g.fillRect(bounds.withTop(0).withHeight(section.mTopPadding));
-    //    g.fillRect(bounds.withX(bounds.getRight()).withWidth(section.mRightPadding));
-    //    g.fillRect(bounds.withTop(bounds.getBottom()).withHeight(section.mBottomPadding));
-    //    g.fillRect(bounds.withX(0).withWidth(section.mLeftPadding));
-
-    //    g.setColour(juce::Colours::blue.withAlpha(0.5f));
-    //    g.fillRect(bounds);
-    //    g.setColour(juce::Colours::red.withAlpha(0.5f));
-    //    g.fillRect(bounds.reduced(2));
-    //}
 }
 
 //==============================================================================

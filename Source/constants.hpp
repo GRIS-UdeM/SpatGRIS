@@ -20,6 +20,7 @@
 #pragma once
 
 #include "StrongTypes.hpp"
+
 #include "lib/tl/optional.hpp"
 
 constexpr auto MAX_NUM_SOURCES = 256;

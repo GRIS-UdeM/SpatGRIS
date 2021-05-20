@@ -26,14 +26,14 @@
 
 #pragma once
 
-#include <JuceHeader.h>
-
 #include "AudioStructs.hpp"
-#include "CartesianVector.h"
+#include "CartesianVector.hpp"
+#include "Constants.hpp"
 #include "LogicStrucs.hpp"
-#include "PolarVector.h"
+#include "PolarVector.hpp"
 #include "StrongTypes.hpp"
-#include "constants.hpp"
+
+#include <JuceHeader.h>
 
 struct SourceData;
 constexpr auto MIN_VOL_P_SIDE_LENGTH = 0.01f;

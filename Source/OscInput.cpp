@@ -17,9 +17,9 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "OscInput.h"
+#include "OscInput.hpp"
 
-#include "MainComponent.h"
+#include "MainComponent.hpp"
 
 //==============================================================================
 OscInput::~OscInput()

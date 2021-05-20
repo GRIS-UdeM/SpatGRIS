@@ -17,7 +17,7 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Ray.h"
+#include "Ray.hpp"
 
 //==============================================================================
 void Ray::setRay(glm::vec3 const & p, glm::vec3 const & d)

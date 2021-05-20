@@ -32,10 +32,10 @@
 
 #pragma once
 
-#include "CartesianVector.h"
+#include "CartesianVector.hpp"
 #include "LogicStrucs.hpp"
 #include "OwnedMap.hpp"
-#include "PolarVector.h"
+#include "PolarVector.hpp"
 #include "StrongTypes.hpp"
 
 struct SpeakerData;

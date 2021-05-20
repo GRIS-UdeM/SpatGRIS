@@ -19,10 +19,10 @@
 
 #pragma once
 
+#include <JuceHeader.h>
+
 #include <array>
 #include <type_traits>
-
-#include <JuceHeader.h>
 
 //==============================================================================
 template<typename T, size_t CAPACITY>

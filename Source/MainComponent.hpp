@@ -19,31 +19,27 @@
 
 #pragma once
 
-#include <JuceHeader.h>
-
-#include "lib/tl/optional.hpp"
-
-#include "AboutWindow.h"
+#include "AboutWindow.hpp"
 #include "AbstractSpatAlgorithm.hpp"
-#include "AudioProcessor.h"
-#include "Configuration.h"
-#include "ControlPanel.h"
-#include "EditSpeakersWindow.h"
-#include "FlatViewWindow.h"
-#include "InfoPanel.h"
-#include "LayoutComponent.h"
+#include "AudioProcessor.hpp"
+#include "Configuration.hpp"
+#include "Constants.hpp"
+#include "ControlPanel.hpp"
+#include "EditSpeakersWindow.hpp"
+#include "FlatViewWindow.hpp"
+#include "InfoPanel.hpp"
+#include "LayoutComponent.hpp"
 #include "LogicStrucs.hpp"
-#include "OscInput.h"
-#include "OscLogWindow.h"
+#include "OscInput.hpp"
+#include "OscLogWindow.hpp"
 #include "OwnedMap.hpp"
-#include "PrepareToRecordWindow.h"
-#include "SettingsWindow.h"
-#include "SpeakerViewComponent.h"
+#include "PrepareToRecordWindow.hpp"
+#include "SettingsWindow.hpp"
+#include "SpeakerViewComponent.hpp"
 #include "StrongTypes.hpp"
-#include "TitledComponent.h"
+#include "TitledComponent.hpp"
 #include "Triplet.hpp"
-#include "VuMeterComponent.h"
-#include "constants.hpp"
+#include "VuMeterComponent.hpp"
 
 class MainWindow;
 
@@ -66,7 +62,6 @@ class MainContentComponent final
     : public juce::Component
     , public juce::MenuBarModel
     , public juce::ApplicationCommandTarget
-    , public juce::ComboBox::Listener
     , public SourceVuMeterComponent::Owner
     , public SpeakerVuMeterComponent::Owner
     , public ControlPanel::Listener
@@ -245,7 +240,6 @@ public:
     void timerCallback() override;
     void paint(juce::Graphics & g) override;
     void resized() override;
-    void comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged) override;
     void menuItemSelected(int menuItemId, int /*topLevelMenuIndex*/) override;
     [[nodiscard]] juce::StringArray getMenuBarNames() override;
     [[nodiscard]] juce::PopupMenu getMenuForIndex(int menuIndex, const juce::String & /*menuName*/) override;

@@ -24,17 +24,42 @@
     </GROUP>
     <GROUP id="{534A7161-2617-F3B1-0706-CC62D7A3FE71}" name="Source">
       <GROUP id="{D059D036-0ECD-ACF5-4465-BDC1A866C55E}" name="Audio">
+        <GROUP id="{FB6EEEB4-BE6B-EB4A-201D-755A3CFACAAC}" name="spat">
+          <FILE id="CKR5UT" name="VbapSpatAlgorithm.cpp" compile="1" resource="0"
+                file="Source/VbapSpatAlgorithm.cpp"/>
+          <FILE id="HLMRlF" name="VbapSpatAlgorithm.hpp" compile="0" resource="0"
+                file="Source/VbapSpatAlgorithm.hpp"/>
+          <GROUP id="{F536EC3E-463E-F7C1-C73E-F95B29576CC6}" name="implementations">
+            <FILE id="zKQ5WK" name="lbap.cpp" compile="1" resource="0" file="Source/lbap.cpp"/>
+            <FILE id="G3SJU6" name="lbap.hpp" compile="0" resource="0" file="Source/lbap.hpp"/>
+            <FILE id="ihjJqS" name="vbap.cpp" compile="1" resource="0" file="Source/vbap.cpp"/>
+            <FILE id="gyI4aY" name="vbap.hpp" compile="0" resource="0" file="Source/vbap.hpp"/>
+          </GROUP>
+          <FILE id="wPgW0E" name="LbapSpatAlgorithm.cpp" compile="1" resource="0"
+                file="Source/LbapSpatAlgorithm.cpp"/>
+          <FILE id="SRzTxM" name="LbapSpatAlgorithm.hpp" compile="0" resource="0"
+                file="Source/LbapSpatAlgorithm.hpp"/>
+          <FILE id="NWnli2" name="AbstractSpatAlgorithm.cpp" compile="1" resource="0"
+                file="Source/AbstractSpatAlgorithm.cpp"/>
+          <FILE id="SuIy1P" name="AbstractSpatAlgorithm.hpp" compile="0" resource="0"
+                file="Source/AbstractSpatAlgorithm.hpp"/>
+          <FILE id="a5pP1T" name="StereoSpatAlgorithm.cpp" compile="1" resource="0"
+                file="Source/StereoSpatAlgorithm.cpp"/>
+          <FILE id="VHmR6h" name="StereoSpatAlgorithm.hpp" compile="0" resource="0"
+                file="Source/StereoSpatAlgorithm.hpp"/>
+        </GROUP>
         <FILE id="S7vdPe" name="AudioManager.cpp" compile="1" resource="0"
               file="Source/AudioManager.cpp"/>
-        <FILE id="a7tJqo" name="AudioManager.h" compile="0" resource="0" file="Source/AudioManager.h"/>
+        <FILE id="a7tJqo" name="AudioManager.hpp" compile="0" resource="0"
+              file="Source/AudioManager.hpp"/>
         <FILE id="MwDdU3" name="AudioProcessor.cpp" compile="1" resource="0"
               file="Source/AudioProcessor.cpp"/>
-        <FILE id="bLDhY1" name="AudioProcessor.h" compile="0" resource="0"
-              file="Source/AudioProcessor.h"/>
+        <FILE id="bLDhY1" name="AudioProcessor.hpp" compile="0" resource="0"
+              file="Source/AudioProcessor.hpp"/>
         <FILE id="PgRLbY" name="PinkNoiseGenerator.cpp" compile="1" resource="0"
               file="Source/PinkNoiseGenerator.cpp"/>
-        <FILE id="H5EPIz" name="PinkNoiseGenerator.h" compile="0" resource="0"
-              file="Source/PinkNoiseGenerator.h"/>
+        <FILE id="H5EPIz" name="PinkNoiseGenerator.hpp" compile="0" resource="0"
+              file="Source/PinkNoiseGenerator.hpp"/>
         <FILE id="Qctsv6" name="TaggedAudioBuffer.hpp" compile="0" resource="0"
               file="Source/TaggedAudioBuffer.hpp"/>
       </GROUP>
@@ -42,160 +67,141 @@
         <FILE id="L4t4N9" name="AtomicExchanger.hpp" compile="0" resource="0"
               file="Source/AtomicExchanger.hpp"/>
       </GROUP>
-      <GROUP id="{CAE9BD57-C46F-25A5-8F7E-772337A1A370}" name="containers">
+      <GROUP id="{CAE9BD57-C46F-25A5-8F7E-772337A1A370}" name="Containers">
         <FILE id="X8vUnO" name="OwnedMap.hpp" compile="0" resource="0" file="Source/OwnedMap.hpp"/>
         <FILE id="yy5rCQ" name="StaticMap.hpp" compile="0" resource="0" file="Source/StaticMap.hpp"/>
         <FILE id="qrPHXG" name="StaticVector.hpp" compile="0" resource="0"
               file="Source/StaticVector.hpp"/>
         <FILE id="UFkY7k" name="StrongArray.hpp" compile="0" resource="0" file="Source/StrongArray.hpp"/>
       </GROUP>
-      <GROUP id="{B880ED62-D15F-78F9-F83A-129573A5FA84}" name="misc">
-        <FILE id="L2ry5O" name="FatalError.cpp" compile="1" resource="0" file="Source/FatalError.cpp"/>
-        <FILE id="knhaJI" name="FatalError.h" compile="0" resource="0" file="Source/FatalError.h"/>
-        <FILE id="c9O7Fi" name="SpatMode.cpp" compile="1" resource="0" file="Source/SpatMode.cpp"/>
-        <FILE id="wuCEse" name="SpatMode.hpp" compile="0" resource="0" file="Source/SpatMode.hpp"/>
-        <FILE id="F7hMuN" name="StrongTypes.hpp" compile="0" resource="0" file="Source/StrongTypes.hpp"/>
-        <FILE id="e9Tcnv" name="constants.cpp" compile="1" resource="0" file="Source/constants.cpp"/>
-        <FILE id="Ug97Mv" name="constants.hpp" compile="0" resource="0" file="Source/constants.hpp"/>
-        <FILE id="FqmBI2" name="macros.h" compile="0" resource="0" file="Source/macros.h"/>
-        <FILE id="apexeV" name="narrow.hpp" compile="0" resource="0" file="Source/narrow.hpp"/>
-      </GROUP>
-      <GROUP id="{FB6EEEB4-BE6B-EB4A-201D-755A3CFACAAC}" name="spat">
-        <FILE id="CKR5UT" name="VbapSpatAlgorithm.cpp" compile="1" resource="0"
-              file="Source/VbapSpatAlgorithm.cpp"/>
-        <FILE id="HLMRlF" name="VbapSpatAlgorithm.hpp" compile="0" resource="0"
-              file="Source/VbapSpatAlgorithm.hpp"/>
-        <GROUP id="{F536EC3E-463E-F7C1-C73E-F95B29576CC6}" name="implementations">
-          <FILE id="zKQ5WK" name="lbap.cpp" compile="1" resource="0" file="Source/lbap.cpp"/>
-          <FILE id="G3SJU6" name="lbap.hpp" compile="0" resource="0" file="Source/lbap.hpp"/>
-          <FILE id="ihjJqS" name="vbap.cpp" compile="1" resource="0" file="Source/vbap.cpp"/>
-          <FILE id="gyI4aY" name="vbap.hpp" compile="0" resource="0" file="Source/vbap.hpp"/>
-        </GROUP>
-        <FILE id="wPgW0E" name="LbapSpatAlgorithm.cpp" compile="1" resource="0"
-              file="Source/LbapSpatAlgorithm.cpp"/>
-        <FILE id="SRzTxM" name="LbapSpatAlgorithm.hpp" compile="0" resource="0"
-              file="Source/LbapSpatAlgorithm.hpp"/>
-        <FILE id="NWnli2" name="AbstractSpatAlgorithm.cpp" compile="1" resource="0"
-              file="Source/AbstractSpatAlgorithm.cpp"/>
-        <FILE id="SuIy1P" name="AbstractSpatAlgorithm.hpp" compile="0" resource="0"
-              file="Source/AbstractSpatAlgorithm.hpp"/>
-        <FILE id="a5pP1T" name="StereoSpatAlgorithm.cpp" compile="1" resource="0"
-              file="Source/StereoSpatAlgorithm.cpp"/>
-        <FILE id="VHmR6h" name="StereoSpatAlgorithm.hpp" compile="0" resource="0"
-              file="Source/StereoSpatAlgorithm.hpp"/>
-      </GROUP>
-      <GROUP id="{879FD67D-521A-EC98-EB2A-A3C056EDF2C2}" name="structs">
+      <GROUP id="{879FD67D-521A-EC98-EB2A-A3C056EDF2C2}" name="Data">
         <FILE id="mrd0M4" name="AudioStructs.cpp" compile="1" resource="0"
               file="Source/AudioStructs.cpp"/>
         <FILE id="iunGqH" name="AudioStructs.hpp" compile="0" resource="0"
               file="Source/AudioStructs.hpp"/>
         <FILE id="KYw7Ga" name="CartesianVector.cpp" compile="1" resource="0"
               file="Source/CartesianVector.cpp"/>
-        <FILE id="Fo1t1H" name="CartesianVector.h" compile="0" resource="0"
-              file="Source/CartesianVector.h"/>
+        <FILE id="Fo1t1H" name="CartesianVector.hpp" compile="0" resource="0"
+              file="Source/CartesianVector.hpp"/>
         <FILE id="wsG2iH" name="LegacyLbapPosition.cpp" compile="1" resource="0"
               file="Source/LegacyLbapPosition.cpp"/>
-        <FILE id="mKXXtD" name="LegacyLbapPosition.h" compile="0" resource="0"
-              file="Source/LegacyLbapPosition.h"/>
+        <FILE id="mKXXtD" name="LegacyLbapPosition.hpp" compile="0" resource="0"
+              file="Source/LegacyLbapPosition.hpp"/>
         <FILE id="ZYxwv4" name="LegacySpatFileFormat.cpp" compile="1" resource="0"
               file="Source/LegacySpatFileFormat.cpp"/>
-        <FILE id="aVZj0s" name="LegacySpatFileFormat.h" compile="0" resource="0"
-              file="Source/LegacySpatFileFormat.h"/>
+        <FILE id="aVZj0s" name="LegacySpatFileFormat.hpp" compile="0" resource="0"
+              file="Source/LegacySpatFileFormat.hpp"/>
         <FILE id="plOS8g" name="LogicStrucs.cpp" compile="1" resource="0" file="Source/LogicStrucs.cpp"/>
         <FILE id="myBXNh" name="LogicStrucs.hpp" compile="0" resource="0" file="Source/LogicStrucs.hpp"/>
         <FILE id="XZJcvv" name="PolarVector.cpp" compile="1" resource="0" file="Source/PolarVector.cpp"/>
-        <FILE id="v4qTK2" name="PolarVector.h" compile="0" resource="0" file="Source/PolarVector.h"/>
+        <FILE id="v4qTK2" name="PolarVector.hpp" compile="0" resource="0" file="Source/PolarVector.hpp"/>
         <FILE id="gaSzyY" name="Triplet.hpp" compile="0" resource="0" file="Source/Triplet.hpp"/>
+      </GROUP>
+      <GROUP id="{B880ED62-D15F-78F9-F83A-129573A5FA84}" name="Misc">
+        <FILE id="e9Tcnv" name="Constants.cpp" compile="1" resource="0" file="Source/Constants.cpp"/>
+        <FILE id="Ug97Mv" name="Constants.hpp" compile="0" resource="0" file="Source/Constants.hpp"/>
+        <FILE id="L2ry5O" name="FatalError.cpp" compile="1" resource="0" file="Source/FatalError.cpp"/>
+        <FILE id="knhaJI" name="FatalError.hpp" compile="0" resource="0" file="Source/FatalError.hpp"/>
+        <FILE id="apexeV" name="Narrow.hpp" compile="0" resource="0" file="Source/Narrow.hpp"/>
+        <FILE id="c9O7Fi" name="SpatMode.cpp" compile="1" resource="0" file="Source/SpatMode.cpp"/>
+        <FILE id="wuCEse" name="SpatMode.hpp" compile="0" resource="0" file="Source/SpatMode.hpp"/>
+        <FILE id="F7hMuN" name="StrongTypes.hpp" compile="0" resource="0" file="Source/StrongTypes.hpp"/>
+        <FILE id="GdihCz" name="Warnings.hpp" compile="0" resource="0" file="Source/Warnings.hpp"/>
       </GROUP>
       <GROUP id="{45A32A71-2629-205C-304E-C1093B6D3F59}" name="UI">
         <GROUP id="{202AE941-C78E-5F46-CB31-EA8A544A343C}" name="Secondary Windows">
           <FILE id="abLCw0" name="AboutWindow.cpp" compile="1" resource="0" file="Source/AboutWindow.cpp"/>
-          <FILE id="OQhNHY" name="AboutWindow.h" compile="0" resource="0" file="Source/AboutWindow.h"/>
+          <FILE id="OQhNHY" name="AboutWindow.hpp" compile="0" resource="0" file="Source/AboutWindow.hpp"/>
           <FILE id="jgvROy" name="EditSpeakersWindow.cpp" compile="1" resource="0"
                 file="Source/EditSpeakersWindow.cpp"/>
-          <FILE id="NSFdQD" name="EditSpeakersWindow.h" compile="0" resource="0"
-                file="Source/EditSpeakersWindow.h"/>
+          <FILE id="NSFdQD" name="EditSpeakersWindow.hpp" compile="0" resource="0"
+                file="Source/EditSpeakersWindow.hpp"/>
           <FILE id="CvWdkk" name="FlatViewWindow.cpp" compile="1" resource="0"
                 file="Source/FlatViewWindow.cpp"/>
-          <FILE id="wOKsHM" name="FlatViewWindow.h" compile="0" resource="0"
-                file="Source/FlatViewWindow.h"/>
+          <FILE id="wOKsHM" name="FlatViewWindow.hpp" compile="0" resource="0"
+                file="Source/FlatViewWindow.hpp"/>
           <FILE id="skBbdl" name="OscLogWindow.cpp" compile="1" resource="0"
                 file="Source/OscLogWindow.cpp"/>
-          <FILE id="GY7tUS" name="OscLogWindow.h" compile="0" resource="0" file="Source/OscLogWindow.h"/>
+          <FILE id="GY7tUS" name="OscLogWindow.hpp" compile="0" resource="0"
+                file="Source/OscLogWindow.hpp"/>
           <FILE id="sN01I8" name="PrepareToRecordWindow.cpp" compile="1" resource="0"
                 file="Source/PrepareToRecordWindow.cpp"/>
-          <FILE id="SEUQrE" name="PrepareToRecordWindow.h" compile="0" resource="0"
-                file="Source/PrepareToRecordWindow.h"/>
+          <FILE id="SEUQrE" name="PrepareToRecordWindow.hpp" compile="0" resource="0"
+                file="Source/PrepareToRecordWindow.hpp"/>
           <FILE id="yW4r82" name="SettingsWindow.cpp" compile="1" resource="0"
                 file="Source/SettingsWindow.cpp"/>
-          <FILE id="iVF8jr" name="SettingsWindow.h" compile="0" resource="0"
-                file="Source/SettingsWindow.h"/>
+          <FILE id="iVF8jr" name="SettingsWindow.hpp" compile="0" resource="0"
+                file="Source/SettingsWindow.hpp"/>
         </GROUP>
         <GROUP id="{C6903A38-7C1A-A838-2840-26A1ED5DB75F}" name="Widgets">
-          <FILE id="MW5ESG" name="Box.cpp" compile="1" resource="0" file="Source/Box.cpp"/>
-          <FILE id="RG3FbE" name="Box.h" compile="0" resource="0" file="Source/Box.h"/>
+          <FILE id="b3MbJj" name="Box.cpp" compile="1" resource="0" file="Source/Box.cpp"/>
+          <FILE id="SP61FZ" name="Box.hpp" compile="0" resource="0" file="Source/Box.hpp"/>
           <FILE id="uXxKAd" name="ControlPanel.cpp" compile="1" resource="0"
                 file="Source/ControlPanel.cpp"/>
-          <FILE id="GjVbGz" name="ControlPanel.h" compile="0" resource="0" file="Source/ControlPanel.h"/>
+          <FILE id="GjVbGz" name="ControlPanel.hpp" compile="0" resource="0"
+                file="Source/ControlPanel.hpp"/>
           <FILE id="AYI1c0" name="EditableTextCustomComponent.cpp" compile="1"
                 resource="0" file="Source/EditableTextCustomComponent.cpp"/>
-          <FILE id="kl6jjL" name="EditableTextCustomComponent.h" compile="0"
-                resource="0" file="Source/EditableTextCustomComponent.h"/>
+          <FILE id="kl6jjL" name="EditableTextCustomComponent.hpp" compile="0"
+                resource="0" file="Source/EditableTextCustomComponent.hpp"/>
           <FILE id="cMf9k0" name="InfoPanel.cpp" compile="1" resource="0" file="Source/InfoPanel.cpp"/>
-          <FILE id="Wquel5" name="InfoPanel.h" compile="0" resource="0" file="Source/InfoPanel.h"/>
+          <FILE id="Wquel5" name="InfoPanel.hpp" compile="0" resource="0" file="Source/InfoPanel.hpp"/>
           <FILE id="SCdZpj" name="LayoutComponent.cpp" compile="1" resource="0"
                 file="Source/LayoutComponent.cpp"/>
-          <FILE id="ssxZC6" name="LayoutComponent.h" compile="0" resource="0"
-                file="Source/LayoutComponent.h"/>
+          <FILE id="ssxZC6" name="LayoutComponent.hpp" compile="0" resource="0"
+                file="Source/LayoutComponent.hpp"/>
           <FILE id="jAqe5H" name="MinSizedComponent.hpp" compile="0" resource="0"
                 file="Source/MinSizedComponent.hpp"/>
           <FILE id="eUdCf0" name="RecordButton.cpp" compile="1" resource="0"
                 file="Source/RecordButton.cpp"/>
-          <FILE id="FWo3ih" name="RecordButton.h" compile="0" resource="0" file="Source/RecordButton.h"/>
+          <FILE id="FWo3ih" name="RecordButton.hpp" compile="0" resource="0"
+                file="Source/RecordButton.hpp"/>
           <FILE id="QQ90uW" name="SpatModeComponent.cpp" compile="1" resource="0"
                 file="Source/SpatModeComponent.cpp"/>
-          <FILE id="hM6col" name="SpatModeComponent.h" compile="0" resource="0"
-                file="Source/SpatModeComponent.h"/>
+          <FILE id="hM6col" name="SpatModeComponent.hpp" compile="0" resource="0"
+                file="Source/SpatModeComponent.hpp"/>
           <FILE id="BBzzPc" name="SpatSlider.cpp" compile="1" resource="0" file="Source/SpatSlider.cpp"/>
-          <FILE id="spVbKg" name="SpatSlider.h" compile="0" resource="0" file="Source/SpatSlider.h"/>
+          <FILE id="spVbKg" name="SpatSlider.hpp" compile="0" resource="0" file="Source/SpatSlider.hpp"/>
           <FILE id="KjXNsJ" name="SpatTextEditor.cpp" compile="1" resource="0"
                 file="Source/SpatTextEditor.cpp"/>
-          <FILE id="wO9VUI" name="SpatTextEditor.h" compile="0" resource="0"
-                file="Source/SpatTextEditor.h"/>
+          <FILE id="wO9VUI" name="SpatTextEditor.hpp" compile="0" resource="0"
+                file="Source/SpatTextEditor.hpp"/>
           <FILE id="Tz4yI1" name="SpeakerViewComponent.cpp" compile="1" resource="0"
                 file="Source/SpeakerViewComponent.cpp"/>
-          <FILE id="ItaT5M" name="SpeakerViewComponent.h" compile="0" resource="0"
-                file="Source/SpeakerViewComponent.h"/>
+          <FILE id="ItaT5M" name="SpeakerViewComponent.hpp" compile="0" resource="0"
+                file="Source/SpeakerViewComponent.hpp"/>
           <FILE id="RAONSv" name="TitledComponent.cpp" compile="1" resource="0"
                 file="Source/TitledComponent.cpp"/>
-          <FILE id="djERfK" name="TitledComponent.h" compile="0" resource="0"
-                file="Source/TitledComponent.h"/>
+          <FILE id="djERfK" name="TitledComponent.hpp" compile="0" resource="0"
+                file="Source/TitledComponent.hpp"/>
           <FILE id="UxDOKf" name="VuMeterComponent.cpp" compile="1" resource="0"
                 file="Source/VuMeterComponent.cpp"/>
-          <FILE id="pQThlS" name="VuMeterComponent.h" compile="0" resource="0"
-                file="Source/VuMeterComponent.h"/>
+          <FILE id="pQThlS" name="VuMeterComponent.hpp" compile="0" resource="0"
+                file="Source/VuMeterComponent.hpp"/>
         </GROUP>
-        <FILE id="XuxvPq" name="GlSphere.h" compile="0" resource="0" file="Source/GlSphere.h"/>
+        <FILE id="XuxvPq" name="GlSphere.hpp" compile="0" resource="0" file="Source/GlSphere.hpp"/>
         <FILE id="uYO3os" name="GrisLookAndFeel.cpp" compile="1" resource="0"
               file="Source/GrisLookAndFeel.cpp"/>
-        <FILE id="vyaPdB" name="GrisLookAndFeel.h" compile="0" resource="0"
-              file="Source/GrisLookAndFeel.h"/>
+        <FILE id="vyaPdB" name="GrisLookAndFeel.hpp" compile="0" resource="0"
+              file="Source/GrisLookAndFeel.hpp"/>
         <FILE id="I0ICQu" name="Ray.cpp" compile="1" resource="0" file="Source/Ray.cpp"/>
-        <FILE id="oaSq5k" name="Ray.h" compile="0" resource="0" file="Source/Ray.h"/>
+        <FILE id="oaSq5k" name="Ray.hpp" compile="0" resource="0" file="Source/Ray.hpp"/>
       </GROUP>
       <FILE id="g2wgxx" name="Application.cpp" compile="1" resource="0" file="Source/Application.cpp"/>
-      <FILE id="ObG5vj" name="Application.h" compile="0" resource="0" file="Source/Application.h"/>
+      <FILE id="ObG5vj" name="Application.hpp" compile="0" resource="0" file="Source/Application.hpp"/>
       <FILE id="qa9nCn" name="Configuration.cpp" compile="1" resource="0"
             file="Source/Configuration.cpp"/>
-      <FILE id="i5aeSY" name="Configuration.h" compile="0" resource="0" file="Source/Configuration.h"/>
+      <FILE id="i5aeSY" name="Configuration.hpp" compile="0" resource="0"
+            file="Source/Configuration.hpp"/>
       <FILE id="UmWQ55" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
       <FILE id="IoOl9R" name="MainComponent.cpp" compile="1" resource="0"
             file="Source/MainComponent.cpp"/>
-      <FILE id="eDgSPm" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
+      <FILE id="eDgSPm" name="MainComponent.hpp" compile="0" resource="0"
+            file="Source/MainComponent.hpp"/>
       <FILE id="xeds6R" name="MainWindow.cpp" compile="1" resource="0" file="Source/MainWindow.cpp"/>
-      <FILE id="MTyXJy" name="MainWindow.h" compile="0" resource="0" file="Source/MainWindow.h"/>
+      <FILE id="MTyXJy" name="MainWindow.hpp" compile="0" resource="0" file="Source/MainWindow.hpp"/>
       <FILE id="MSjj5i" name="OscInput.cpp" compile="1" resource="0" file="Source/OscInput.cpp"/>
-      <FILE id="oP6icJ" name="OscInput.h" compile="0" resource="0" file="Source/OscInput.h"/>
+      <FILE id="oP6icJ" name="OscInput.hpp" compile="0" resource="0" file="Source/OscInput.hpp"/>
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>

@@ -32,11 +32,11 @@
 
 #include "lbap.hpp"
 
-#include <JuceHeader.h>
-
 #include "AudioStructs.hpp"
-#include "constants.hpp"
-#include "narrow.hpp"
+#include "Constants.hpp"
+#include "Narrow.hpp"
+
+#include <JuceHeader.h>
 
 /* =================================================================================
 Utility functions.

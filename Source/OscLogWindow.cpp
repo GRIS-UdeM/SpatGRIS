@@ -17,10 +17,10 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "OscLogWindow.h"
+#include "OscLogWindow.hpp"
 
-#include "GrisLookAndFeel.h"
-#include "MainComponent.h"
+#include "GrisLookAndFeel.hpp"
+#include "MainComponent.hpp"
 
 //==============================================================================
 OscLogWindow::OscLogWindow(juce::String const & name,

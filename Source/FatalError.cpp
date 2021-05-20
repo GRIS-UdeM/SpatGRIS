@@ -1,4 +1,4 @@
-#include "FatalError.h"
+#include "FatalError.hpp"
 
 //==============================================================================
 void fatalError(juce::String const & message, juce::Component * component)

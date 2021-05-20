@@ -17,9 +17,9 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "LegacySpatFileFormat.h"
+#include "LegacySpatFileFormat.hpp"
 
-#include "LegacyLbapPosition.h"
+#include "LegacyLbapPosition.hpp"
 
 //==============================================================================
 tl::optional<std::pair<SpeakerSetup, SpatMode>> readLegacySpeakerSetup(juce::XmlElement const & xml)

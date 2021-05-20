@@ -17,13 +17,13 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "SettingsWindow.h"
+#include "SettingsWindow.hpp"
+
+#include "AudioManager.hpp"
+#include "GrisLookAndFeel.hpp"
+#include "MainComponent.hpp"
 
 #include <bitset>
-
-#include "AudioManager.h"
-#include "GrisLookAndFeel.h"
-#include "MainComponent.h"
 
 bool isNotPowerOfTwo(int const value)
 {
@@ -34,7 +34,6 @@ bool isNotPowerOfTwo(int const value)
 
 //==============================================================================
 SettingsComponent::SettingsComponent(MainContentComponent & parent,
-                                     RecordingOptions const & recordingOptions,
                                      LbapDistanceAttenuationData const & lbapData,
                                      int const oscPort,
                                      GrisLookAndFeel & lookAndFeel)
@@ -304,13 +303,12 @@ void SettingsComponent::comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged)
 
 //==============================================================================
 SettingsWindow::SettingsWindow(MainContentComponent & parent,
-                               RecordingOptions const & recordingOptions,
                                LbapDistanceAttenuationData const & lbapData,
                                int const oscPort,
                                GrisLookAndFeel & grisLookAndFeel)
     : juce::DocumentWindow("Settings", grisLookAndFeel.getBackgroundColour(), DocumentWindow::allButtons)
     , mMainContentComponent(parent)
-    , mPropertiesComponent(parent, recordingOptions, lbapData, oscPort, grisLookAndFeel)
+    , mPropertiesComponent(parent, lbapData, oscPort, grisLookAndFeel)
 {
     setContentNonOwned(&mPropertiesComponent, true);
     setResizable(false, false);

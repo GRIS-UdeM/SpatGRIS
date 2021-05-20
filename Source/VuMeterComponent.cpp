@@ -17,10 +17,10 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "VuMeterComponent.h"
+#include "VuMeterComponent.hpp"
 
 #include "LogicStrucs.hpp"
-#include "MainComponent.h"
+#include "MainComponent.hpp"
 
 juce::String const SourceVuMeterComponent::NO_DIRECT_OUT_TEXT = "-";
 

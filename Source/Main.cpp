@@ -17,7 +17,7 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Application.h"
+#include "Application.hpp"
 
 //==============================================================================
 // This macro generates the main() routine that launches the app.

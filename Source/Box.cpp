@@ -17,9 +17,9 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Box.h"
+#include "Box.hpp"
 
-#include "GrisLookAndFeel.h"
+#include "GrisLookAndFeel.hpp"
 
 //==============================================================================
 Box::Box(GrisLookAndFeel & feel,

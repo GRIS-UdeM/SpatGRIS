@@ -19,9 +19,9 @@
 
 #pragma once
 
-#include <JuceHeader.h>
+#include "Narrow.hpp"
 
-#include "narrow.hpp"
+#include <JuceHeader.h>
 
 //==============================================================================
 class StrongIndexBase

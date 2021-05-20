@@ -19,9 +19,8 @@
 
 #pragma once
 
-#include "vbap.hpp"
-
 #include "AbstractSpatAlgorithm.hpp"
+#include "vbap.hpp"
 
 VbapType getVbapType(SpeakersData const & speakers);
 

@@ -17,7 +17,7 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "LegacyLbapPosition.h"
+#include "LegacyLbapPosition.hpp"
 
 //==============================================================================
 PolarVector LegacyLbapPosition::toPolar() const noexcept

@@ -19,38 +19,33 @@
 
 #pragma once
 
-#if defined(__linux__)
-    #include <GL/gl.h>
-    #include <GL/glu.h>
-    #include <GL/glut.h>
-#elif defined(__APPLE__)
-    #include <GLUT/glut.h>
-    #include <OpenGL/gl.h>
-    #include <OpenGl/glu.h>
-#endif
-
-#include "../glm/glm.hpp"
+#include "LogicStrucs.hpp"
 
 #include <JuceHeader.h>
 
-//==============================================================================
-class Ray
+class Configuration
 {
-    glm::vec3 mPosition{ 0.0f, 0.0f, 0.0f };
-    glm::vec3 mDirection{ 0.0f, 0.0f, 0.0f };
-    glm::vec3 mNormal{ 0.0f, 0.0f, 0.0f };
+    struct XmlTags {
+        static juce::String const MAIN_TAG;
+    };
+
+    juce::ApplicationProperties mApplicationProperties{};
+    juce::PropertiesFile * mUserSettings{};
 
 public:
     //==============================================================================
-    void setRay(glm::vec3 const & p, glm::vec3 const & d);
+    Configuration();
+    ~Configuration();
     //==============================================================================
-    [[nodiscard]] glm::vec3 const & getNormal() const { return this->mNormal; }
-    [[nodiscard]] glm::vec3 const & getPosition() const { return this->mPosition; }
-    [[nodiscard]] glm::vec3 const & getDirection() const { return this->mDirection; }
+    Configuration(Configuration const &) = delete;
+    Configuration(Configuration &&) = delete;
+    Configuration & operator=(Configuration const &) = delete;
+    Configuration & operator=(Configuration &&) = delete;
     //==============================================================================
-    void draw() const;
+    void save(SpatGrisAppData const & appData) const;
+    SpatGrisAppData load() const;
 
 private:
     //==============================================================================
-    JUCE_LEAK_DETECTOR(Ray)
+    JUCE_LEAK_DETECTOR(Configuration)
 };

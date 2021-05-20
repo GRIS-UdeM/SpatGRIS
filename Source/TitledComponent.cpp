@@ -1,16 +1,25 @@
 /*
-  ==============================================================================
+ This file is part of SpatGRIS.
 
-    TitledComponent.cpp
-    Created: 13 May 2021 9:37:58pm
-    Author:  samue
+ Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
 
-  ==============================================================================
+ SpatGRIS is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ SpatGRIS is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "TitledComponent.h"
+#include "TitledComponent.hpp"
 
-#include "GrisLookAndFeel.h"
+#include "GrisLookAndFeel.hpp"
 
 static constexpr auto RIGHT_PADDING = 5;
 

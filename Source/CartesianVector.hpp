@@ -19,11 +19,11 @@
 
 #pragma once
 
+#include <JuceHeader.h>
+
 #include "lib/tl/optional.hpp"
 
 #include <cmath>
-
-#include <JuceHeader.h>
 
 struct CartesianVector {
     struct XmlTags {

@@ -19,10 +19,8 @@
 
 #pragma once
 
-#include <JuceHeader.h>
-
-#include "GrisLookAndFeel.h"
-#include "MainWindow.h"
+#include "GrisLookAndFeel.hpp"
+#include "MainWindow.hpp"
 
 //==============================================================================
 class SpatGrisApplication final : public juce::JUCEApplication

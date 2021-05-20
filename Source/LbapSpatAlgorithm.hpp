@@ -20,7 +20,6 @@
 #pragma once
 
 #include "AbstractSpatAlgorithm.hpp"
-
 #include "lbap.hpp"
 
 //==============================================================================

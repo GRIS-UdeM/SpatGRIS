@@ -17,10 +17,10 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "EditableTextCustomComponent.h"
+#include "EditableTextCustomComponent.hpp"
 
-#include "AudioProcessor.h"
-#include "EditSpeakersWindow.h"
+#include "AudioProcessor.hpp"
+#include "EditSpeakersWindow.hpp"
 
 //==============================================================================
 EditableTextCustomComponent::EditableTextCustomComponent(EditSpeakersWindow & editSpeakersWindow)

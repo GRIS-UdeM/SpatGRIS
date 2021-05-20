@@ -17,9 +17,9 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "MainWindow.h"
+#include "MainWindow.hpp"
 
-#include "AudioManager.h"
+#include "AudioManager.hpp"
 
 //==============================================================================
 MainWindow::MainWindow(juce::String const & name,

@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "Configuration.h"
+#include "Configuration.hpp"
 
 class MainContentComponent;
 class GrisLookAndFeel;
@@ -87,7 +87,6 @@ class SettingsComponent final
 public:
     //==============================================================================
     SettingsComponent(MainContentComponent & parent,
-                      RecordingOptions const & recordingOptions,
                       LbapDistanceAttenuationData const & lbapData,
                       int oscPort,
                       GrisLookAndFeel & lookAndFeel);
@@ -124,7 +123,6 @@ class SettingsWindow final : public juce::DocumentWindow
 public:
     //==============================================================================
     SettingsWindow(MainContentComponent & parent,
-                   RecordingOptions const & recordingOptions,
                    LbapDistanceAttenuationData const & lbapData,
                    int oscPort,
                    GrisLookAndFeel & grisLookAndFeel);

@@ -17,12 +17,12 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "SpeakerViewComponent.h"
+#include "SpeakerViewComponent.hpp"
+
+#include "GlSphere.hpp"
+#include "MainComponent.hpp"
 
 #include <algorithm>
-
-#include "GlSphere.h"
-#include "MainComponent.h"
 
 juce::Colour const SpeakerViewComponent::COLOR_SPEAKER{ 222u, 222u, 222u };
 juce::Colour const SpeakerViewComponent::COLOR_DIRECT_OUT_SPEAKER{ 64u, 64u, 64u };

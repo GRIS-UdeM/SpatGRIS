@@ -17,8 +17,8 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Application.h"
-#include "AudioManager.h"
+#include "Application.hpp"
+#include "AudioManager.hpp"
 
 //==============================================================================
 void SpatGrisApplication::initialise(juce::String const & /*commandLine*/)

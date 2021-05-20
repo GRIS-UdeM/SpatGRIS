@@ -19,10 +19,8 @@
 
 #pragma once
 
-#include <JuceHeader.h>
-
 #include "BinaryData.h"
-#include "narrow.hpp"
+#include "Narrow.hpp"
 
 //==============================================================================
 /** Custom Look And Feel */

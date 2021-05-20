@@ -17,10 +17,10 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "AudioManager.h"
+#include "AudioManager.hpp"
 
-#include "AudioProcessor.h"
-#include "constants.hpp"
+#include "AudioProcessor.hpp"
+#include "Constants.hpp"
 
 //==============================================================================
 std::unique_ptr<AudioManager> AudioManager::mInstance{ nullptr };
@@ -41,9 +41,6 @@ AudioManager::AudioManager(juce::String const & deviceType,
         mAudioDeviceManager.initialiseWithDefaultDevices(MAX_NUM_SOURCES, MAX_NUM_SPEAKERS);
     }
 
-    // Register physical ports
-    auto * audioDevice{ mAudioDeviceManager.getCurrentAudioDevice() };
-    jassert(audioDevice != nullptr);
     mRecordersThread.setPriority(9);
     mAudioDeviceManager.addAudioCallback(this);
 }

@@ -17,7 +17,7 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "CartesianVector.h"
+#include "CartesianVector.hpp"
 
 #include <algorithm>
 

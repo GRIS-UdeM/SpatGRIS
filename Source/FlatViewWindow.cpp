@@ -17,11 +17,11 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "FlatViewWindow.h"
+#include "FlatViewWindow.hpp"
 
-#include "MainComponent.h"
-#include "constants.hpp"
-#include "narrow.hpp"
+#include "Constants.hpp"
+#include "MainComponent.hpp"
+#include "Narrow.hpp"
 
 static float constexpr RADIUS_MAX = 2.0f;
 static float constexpr SOURCE_RADIUS = 10.0f;

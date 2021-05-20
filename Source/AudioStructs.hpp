@@ -19,15 +19,16 @@
 
 #pragma once
 
-#include "lib/tl/optional.hpp"
-#include <JuceHeader.h>
-
 #include "AtomicExchanger.hpp"
-#include "PolarVector.h"
+#include "Constants.hpp"
+#include "PolarVector.hpp"
 #include "SpatMode.hpp"
 #include "StaticMap.hpp"
 #include "StrongArray.hpp"
-#include "constants.hpp"
+
+#include <JuceHeader.h>
+
+#include "lib/tl/optional.hpp"
 
 enum class VbapType { twoD, threeD };
 

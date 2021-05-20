@@ -19,7 +19,7 @@
 
 #include "LogicStrucs.hpp"
 
-#include "LegacySpatFileFormat.h"
+#include "LegacySpatFileFormat.hpp"
 
 juce::String const SourceData::XmlTags::STATE = "STATE";
 juce::String const SourceData::XmlTags::DIRECT_OUT = "DIRECT_OUT";

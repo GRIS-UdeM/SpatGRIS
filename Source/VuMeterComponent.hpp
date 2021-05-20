@@ -19,12 +19,12 @@
 
 #pragma once
 
-#include <JuceHeader.h>
-
-#include "GrisLookAndFeel.h"
+#include "GrisLookAndFeel.hpp"
 #include "LogicStrucs.hpp"
 #include "MinSizedComponent.hpp"
 #include "StrongTypes.hpp"
+
+#include <JuceHeader.h>
 
 static dbfs_t constexpr MIN_LEVEL_COMP{ -60.0f };
 static dbfs_t constexpr MAX_LEVEL_COMP{ 0.0f };

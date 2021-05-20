@@ -17,12 +17,12 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "EditSpeakersWindow.h"
+#include "EditSpeakersWindow.hpp"
 
-#include "EditableTextCustomComponent.h"
-#include "GrisLookAndFeel.h"
-#include "MainComponent.h"
-#include "narrow.hpp"
+#include "EditableTextCustomComponent.hpp"
+#include "GrisLookAndFeel.hpp"
+#include "MainComponent.hpp"
+#include "Narrow.hpp"
 
 //==============================================================================
 template<typename T>
@@ -657,6 +657,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
         default:
             jassertfalse;
         }
+        return false;
     };
 
     juce::ScopedReadLock lock{ mMainContentComponent.getLock() };
