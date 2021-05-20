@@ -451,11 +451,12 @@ void SourceVuMeterComponent::directOutButtonClicked() const
         auto & destination{ speaker.value->isDirectOutOnly ? directOutSpeakers : nonDirectOutSpeakers };
         destination.add(speaker.key);
     }
-    menu.addItem(CHOICE_NOT_DIRECT_OUT, "-");
     for (auto const outputPatch : directOutSpeakers) {
         menu.addItem(outputPatch.get(), juce::String{ outputPatch.get() });
     }
-    menu.addItem(CHOICE_NOT_DIRECT_OUT, "-");
+    if (!directOutSpeakers.isEmpty()) {
+        menu.addItem(CHOICE_NOT_DIRECT_OUT, "-");
+    }
     for (auto const outputPatch : nonDirectOutSpeakers) {
         menu.addItem(outputPatch.get(), juce::String{ outputPatch.get() });
     }
