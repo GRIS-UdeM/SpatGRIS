@@ -132,7 +132,7 @@ public:
         do {
             ++index;
         } while (index < CAPACITY && !mUsed.test(index));
-        return KeyType{ narrow<KeyType::type>(index) + KeyType::OFFSET };
+        return KeyType{ narrow<typename KeyType::type>(index) + KeyType::OFFSET };
     }
     //==============================================================================
     [[nodiscard]] KeyType getFirstUsedKey() const noexcept

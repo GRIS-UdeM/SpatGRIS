@@ -78,7 +78,9 @@ struct LbapPosition {
 
     [[nodiscard]] constexpr bool operator==(LbapPosition const & other) const noexcept
     {
+#ifndef __APPLE__
         jassert((vector == other.vector) == (position == other.position));
+#endif
         return vector == other.vector && azimuthSpan == other.azimuthSpan && zenithSpan == other.zenithSpan;
     }
     [[nodiscard]] constexpr bool operator!=(LbapPosition const & other) const noexcept { return !(*this == other); }

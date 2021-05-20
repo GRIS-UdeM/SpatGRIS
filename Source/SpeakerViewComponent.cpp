@@ -32,7 +32,7 @@ juce::Colour const SpeakerViewComponent::COLOR_SPEAKER_SELECT{ 255u, 163u, 23u }
 void SpeakerViewComponent::initialise()
 {
     // TODO : continuous repainting should be set to false
-    openGLContext.setContinuousRepainting(true);
+    // openGLContext.setContinuousRepainting(true);
 
     glClearColor(0.0, 0.0, 0.0, 1.0);
     glColor3f(1.0, 1.0, 1.0);
@@ -104,7 +104,7 @@ void SpeakerViewComponent::render()
 
     // Process zoom smoothed animation
     auto const currentTime{ glutGet(GLUT_ELAPSED_TIME) };
-    auto const deciSecondsElapsed{ narrow<float>(currentTime - mData.state.lastRenderTimeMs) / 100.0f };
+    auto const deciSecondsElapsed{ std::clamp(narrow<float>(currentTime - mData.state.lastRenderTimeMs) / 100.0f, 0.0f, 1.0f) };
     auto const zoomToAdd{ deciSecondsElapsed * mData.state.cameraZoomVelocity };
     auto const currentZoom{ (mData.state.cameraPosition.length - MIN_ZOOM) / ZOOM_RANGE };
     auto const scaledZoom{ std::pow(currentZoom, ZOOM_CURVE) };

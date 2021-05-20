@@ -107,7 +107,7 @@ public:
     void copyToPhysicalOutput(float * const * outs, int const numOutputs) const
     {
         for (auto const buffer : mBuffers) {
-            auto const outIndex{ buffer.key.removeOffset<decltype(numOutputs)>() };
+            auto const outIndex{ buffer.key.get() - decltype(buffer.key)::OFFSET };
             jassert(outIndex >= 0);
             if (outIndex < numOutputs) {
                 auto const * origin{ buffer.value->getReadPointer(0) };
