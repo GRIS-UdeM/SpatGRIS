@@ -19,8 +19,6 @@
 
 #pragma once
 
-#include <JuceHeader.h>
-
 #include "Configuration.h"
 
 class MainContentComponent;
@@ -74,12 +72,6 @@ class SettingsComponent final
 
     juce::Label mOscInputPortLabel{ "", "OSC Input Port :" };
     juce::TextEditor mOscInputPortTextEditor{};
-
-    juce::Label mRecFormatLabel{ "", "File Format :" };
-    juce::ComboBox mRecFormatCombo;
-
-    juce::Label mRecFileConfigLabel{ "", "Output Format :" };
-    juce::ComboBox mRecFileTypeCombo;
 
     //==============================================================================
     juce::Label mCubeSectionLabel{ "", "CUBE Distance Settings" };

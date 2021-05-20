@@ -100,12 +100,6 @@ SettingsComponent::SettingsComponent(MainContentComponent & parent,
     mOscInputPortTextEditor.setText(juce::String{ oscPort });
     addAndMakeVisible(mOscInputPortTextEditor);
 
-    initLabel(mRecFormatLabel);
-    initComboBox(mRecFormatCombo, RECORDING_FORMAT_STRINGS, narrow<int>(recordingOptions.format) + 1);
-
-    initLabel(mRecFileConfigLabel);
-    initComboBox(mRecFileTypeCombo, RECORDING_FILE_TYPE_STRINGS, narrow<int>(recordingOptions.fileType) + 1);
-
     //==============================================================================
     initSectionLabel(mCubeSectionLabel);
 
@@ -183,14 +177,6 @@ void SettingsComponent::placeComponents()
 
     mOscInputPortLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
     mOscInputPortTextEditor.setTopLeftPosition(RIGHT_COL_START, yPosition);
-    skip();
-
-    mRecFormatLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
-    mRecFormatCombo.setTopLeftPosition(RIGHT_COL_START, yPosition);
-    skip();
-
-    mRecFileConfigLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
-    mRecFileTypeCombo.setTopLeftPosition(RIGHT_COL_START, yPosition);
     skipSection();
 
     //==============================================================================
@@ -304,14 +290,6 @@ void SettingsComponent::comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged)
     } else if (comboBoxThatHasChanged == &mBufferSizeCombo) {
         setup.bufferSize = mBufferSizeCombo.getText().getIntValue();
         audioDeviceManager.setAudioDeviceSetup(setup, true);
-    } else if (comboBoxThatHasChanged == &mRecFormatCombo) {
-        auto const format{ stringToRecordingFormat(mRecFormatCombo.getText()) };
-        jassert(format);
-        mMainContentComponent.setRecordingFormat(format.value_or(RecordingFormat::aiff));
-    } else if (comboBoxThatHasChanged == &mRecFileTypeCombo) {
-        auto const fileType{ stringToRecordingFileType(mRecFileTypeCombo.getText()) };
-        jassert(fileType);
-        mMainContentComponent.setRecordingFileType(fileType.value_or(RecordingFileType::mono));
     } else if (comboBoxThatHasChanged == &mDistanceDbCombo) {
         dbfs_t const attenuation{ mDistanceDbCombo.getText().getFloatValue() };
         mMainContentComponent.setLbapAttenuationDb(attenuation);
