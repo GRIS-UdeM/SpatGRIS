@@ -104,14 +104,34 @@ function build_package() {
 					"$PACKAGE_NAME" || exit 1
 }
 
-function send_for_notarisation() {
-	ZIP_FILE="$PACKAGE_NAME.zip"
+function build_dmg() {
+	echo "assembling DMG..."
+	mkdir -p "$DMG_DIR" || exit 1
+	cd "$DMG_DIR" || exit 1
+	cp "../$PACKAGE_NAME" . || exit 1
+	cp -r "../../../Resources/templates" . || exit 1
+	cp "../../BlackHole128ch.v0.2.8.pkg" "BlackHole128ch.v0.2.8.pkg" || exit -1
 
-	zip -r "$ZIP_FILE" "$PACKAGE_NAME"
+	cd ..
+
+	hdiutil create "$DMG_NAME" -srcfolder "$DMG_DIR" || exit 1
+
+	cd ..
+	mv $INSTALLER_DIR/$DMG_NAME . || exit 1
+
+	# sign dmg
+	echo "Signing dmg"
+	codesign -s "$appSignature" "$DMG_NAME" --timestamp --verbose || exit 1
+}
+
+function send_for_notarisation() {
+	#ZIP_FILE="$PACKAGE_NAME.zip"
+
+	#zip -r "$ZIP_FILE" "$PACKAGE_NAME"
 
 	echo "Sending to notarization authority..."
-	xcrun altool --notarize-app --primary-bundle-id "$identifier" -u "$notarizeUser" -p "$PASS" --file "$ZIP_FILE"
-	rm "$ZIP_FILE"
+	xcrun altool --notarize-app --primary-bundle-id "$identifier" -u "$notarizeUser" -p "$PASS" --file "$DMG_NAME"
+	#rm "$ZIP_FILE"
 }
 
 function get_last_request_uuid() {
@@ -144,27 +164,7 @@ function wait_for_notarization() {
 
 function staple() {
 	echo "Rubber stamping spatGRIS..."
-	xcrun stapler staple "$PACKAGE_NAME" || exit 1
-}
-
-function build_dmg() {
-	echo "assembling DMG..."
-	mkdir -p "$DMG_DIR" || exit 1
-	cd "$DMG_DIR" || exit 1
-	cp "../$PACKAGE_NAME" . || exit 1
-	cp -r "../../../Resources/templates" . || exit 1
-	cp "../../BlackHole128ch.v0.2.8.pkg" "BlackHole128ch.v0.2.8.pkg" || exit -1
-
-	cd ..
-
-	hdiutil create "$DMG_NAME" -srcfolder "$DMG_DIR" || exit 1
-
-	cd ..
-	mv $INSTALLER_DIR/$DMG_NAME . || exit 1
-
-	# sign dmg
-	echo "Signing dmg"
-	codesign -s "$signUser" "$DMG_NAME" --timestamp --verbose || exit 1
+	xcrun stapler staple "$DMG_NAME" || exit 1
 }
 
 function cleanup() {
@@ -173,9 +173,9 @@ function cleanup() {
 }
 
 build_package
+build_dmg
 send_for_notarisation
 wait_a_bit
 wait_for_notarization
 staple
-build_dmg
 cleanup
