@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<installer-gui-script minSpecVersion="1">
+    <title>SpatGRIS</title>
+    <options customize="both" allow-external-scripts="no"/>
+    <domains enable_anywhere="true" enable_localSystem="true"/>
+    <welcome file="Welcome.rtf" />
+    <readme file="ReadMe.rtf" />
+    <license file="License.rtf" />
+
+    <pkg-ref id="ca.umontreal.musique.gris.spatgris"/>
+    <options customize="never" require-scripts="false"/>
+    <choices-outline>
+        <line choice="default">
+            <line choice="ca.umontreal.musique.gris.spatgris"/>
+        </line>
+    </choices-outline>
+    <choice id="default"/>
+    <choice id="ca.umontreal.musique.gris.spatgris" visible="false">
+        <pkg-ref id="ca.umontreal.musique.gris.spatgris"/>
+    </choice>
+    <pkg-ref id="ca.umontreal.musique.gris.spatgris" version="2.1.9" onConclusion="none">Application.pkg</pkg-ref>
+</installer-gui-script>
