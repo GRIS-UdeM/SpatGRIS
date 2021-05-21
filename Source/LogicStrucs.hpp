@@ -81,7 +81,7 @@ struct ViewportState {
     StrongArray<output_patch_t, AtomicExchanger<float>::Ticket *, MAX_NUM_SPEAKERS> mostRectentSpeakersAlpha{};
     float cameraZoomVelocity{};
     PolarVector cameraPosition{};
-    int lastRenderTimeMs{};
+    juce::int64 lastRenderTimeMs{ juce::Time::currentTimeMillis() };
     juce::Point<float> rayClick{};
     bool shouldRayCast{};
     juce::Point<float> panMouseOrigin{};
