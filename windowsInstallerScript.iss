@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "SpatGris"
-#define MyAppVersion "2.1.8"
+#define MyAppVersion "2.1.9"
 #define MyAppPublisher "Gris - UdeM"
 #define MyAppURL "http://gris.musique.umontreal.ca/"
 #define MyAppExeName "SpatGRIS.exe"

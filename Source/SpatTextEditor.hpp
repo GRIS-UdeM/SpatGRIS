@@ -69,12 +69,14 @@ public:
     //==============================================================================
     void setText(juce::String const & text);
     //==============================================================================
-    void textEditorFocusLost(juce::TextEditor & editor) override;
     void resized() override;
     [[nodiscard]] int getMinWidth() const noexcept override;
     [[nodiscard]] int getMinHeight() const noexcept override;
 
 private:
+    //==============================================================================
+    void textEditorFocusLost(juce::TextEditor & editor) override;
+    void textEditorReturnKeyPressed(juce::TextEditor & /* editor*/) override;
     //==============================================================================
     JUCE_LEAK_DETECTOR(SpatTextEditor)
 };

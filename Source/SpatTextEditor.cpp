@@ -34,6 +34,8 @@ SpatTextEditor::SpatTextEditor(juce::String const & label,
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
+    setWantsKeyboardFocus(true);
+
     mLabel.setJustificationType(juce::Justification::centredRight);
     mLabel.setColour(juce::Label::ColourIds::textColourId, lookAndFeel.getFontColour());
     addAndMakeVisible(mLabel);
@@ -41,6 +43,7 @@ SpatTextEditor::SpatTextEditor(juce::String const & label,
     mEditor.setTooltip(tooltip);
     mEditor.addListener(this);
     mEditor.setJustification(juce::Justification::centredLeft);
+    mEditor.setSelectAllWhenFocused(true);
     addAndMakeVisible(mEditor);
 }
 
@@ -55,7 +58,15 @@ void SpatTextEditor::setText(juce::String const & text)
 void SpatTextEditor::textEditorFocusLost(juce::TextEditor & editor)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
+    jassert(&editor == &mEditor);
     mListener.textEditorChanged(editor.getText(), this);
+}
+
+//==============================================================================
+void SpatTextEditor::textEditorReturnKeyPressed(juce::TextEditor & /*editor*/)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    grabKeyboardFocus();
 }
 
 //==============================================================================

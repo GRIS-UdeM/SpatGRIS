@@ -40,16 +40,16 @@ constexpr To narrow(From const value)
     #ifndef __APPLE__
     // If you hit this assertion, it means that you tried to cast a negative value into an unsigned type.
     jassert(std::is_signed_v<To> == std::is_signed_v<From> || value >= From{ 0 });
-#endif
+    #endif
 
     auto const expanded_value{ static_cast<To>(value) };
-    
+
     #ifndef __APPLE__
     auto const sanity_check{ static_cast<From>(expanded_value) };
 
     // If you hit this assertion, it means that you tried to
     jassert(sanity_check == value);
-#endif
+    #endif
     return expanded_value;
 }
 #endif

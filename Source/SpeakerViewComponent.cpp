@@ -104,7 +104,9 @@ void SpeakerViewComponent::render()
 
     // Process zoom smoothed animation
     auto const currentTime{ glutGet(GLUT_ELAPSED_TIME) };
-    auto const deciSecondsElapsed{ std::clamp(narrow<float>(currentTime - mData.state.lastRenderTimeMs) / 100.0f, 0.0f, 1.0f) };
+    auto const deciSecondsElapsed{
+        std::clamp(narrow<float>(currentTime - mData.state.lastRenderTimeMs) / 100.0f, 0.0f, 1.0f)
+    };
     auto const zoomToAdd{ deciSecondsElapsed * mData.state.cameraZoomVelocity };
     auto const currentZoom{ (mData.state.cameraPosition.length - MIN_ZOOM) / ZOOM_RANGE };
     auto const scaledZoom{ std::pow(currentZoom, ZOOM_CURVE) };
