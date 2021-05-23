@@ -44,7 +44,7 @@ class LevelBox final : public juce::Component
     juce::Image mVuMeterMutedBit;
     bool mIsClipping{};
     bool mIsMuted{};
-    dbfs_t mLevel{};
+    dbfs_t mLevel{ MIN_LEVEL_COMP };
 
 public:
     static constexpr auto MIN_HEIGHT = 140;

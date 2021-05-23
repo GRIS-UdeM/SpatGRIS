@@ -78,7 +78,7 @@ struct ViewportConfig {
 struct ViewportState {
     StrongArray<source_index_t, AtomicExchanger<tl::optional<ViewportSourceData>>::Ticket *, MAX_NUM_SOURCES>
         mostRecentSourcesData{};
-    StrongArray<output_patch_t, AtomicExchanger<float>::Ticket *, MAX_NUM_SPEAKERS> mostRectentSpeakersAlpha{};
+    StrongArray<output_patch_t, AtomicExchanger<float>::Ticket *, MAX_NUM_SPEAKERS> mostRecentSpeakersAlpha{};
     float cameraZoomVelocity{};
     PolarVector cameraPosition{};
     juce::int64 lastRenderTimeMs{ juce::Time::currentTimeMillis() };

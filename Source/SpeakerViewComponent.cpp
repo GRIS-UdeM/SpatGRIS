@@ -753,7 +753,7 @@ void SpeakerViewComponent::drawSpeaker(output_patch_t const outputPatch, Viewpor
             return DEFAULT_ALPHA;
         }
         auto & exchanger{ mData.speakersAlpha[outputPatch] };
-        auto *& ticket{ mData.state.mostRectentSpeakersAlpha[outputPatch] };
+        auto *& ticket{ mData.state.mostRecentSpeakersAlpha[outputPatch] };
         exchanger.getMostRecent(ticket);
         if (ticket == nullptr) {
             return DEFAULT_ALPHA;
