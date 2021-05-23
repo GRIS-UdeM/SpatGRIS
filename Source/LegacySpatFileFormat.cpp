@@ -35,6 +35,7 @@ tl::optional<std::pair<SpeakerSetup, SpatMode>> readLegacySpeakerSetup(juce::Xml
         && spatMode != SpatMode::stereo) {
         return tl::nullopt;
     }
+
     juce::Array<std::pair<int, output_patch_t>> layout;
     SpeakerSetup result{};
 
@@ -111,7 +112,14 @@ tl::optional<std::pair<SpeakerSetup, SpatMode>> readLegacySpeakerSetup(juce::Xml
                    result.order.begin(),
                    [](std::pair<int, output_patch_t> const & indexOutputPair) { return indexOutputPair.second; });
 
-    return std::pair(std::move(result), spatMode);
+    auto const getCorrectedSpatMode = [&]() {
+        if (!result.isDomeLike()) {
+            return SpatMode::lbap;
+        }
+        return spatMode;
+    };
+
+    return std::pair(std::move(result), getCorrectedSpatMode());
 }
 
 //==============================================================================
