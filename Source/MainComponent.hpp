@@ -227,6 +227,7 @@ public:
 
     // Screen refresh timer.
     void handleTimer(bool state);
+    void handleSaveSpeakerSetup();
     void handleSaveSpeakerSetupAs();
 
     // Close windows other than the main one.

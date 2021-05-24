@@ -747,27 +747,28 @@ void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & command
 
     // this returns the set of all commands that this target can perform.
     const juce::CommandID ids[] = {
-        MainWindow::NewProjectID,
-        MainWindow::OpenProjectID,
-        MainWindow::SaveProjectID,
-        MainWindow::SaveAsProjectID,
-        MainWindow::OpenSpeakerSetupID,
-        MainWindow::SaveSpeakerSetupAsID,
-        MainWindow::ShowSpeakerEditID,
-        MainWindow::Show2DViewID,
-        MainWindow::ShowNumbersID,
-        MainWindow::ShowSpeakersID,
-        MainWindow::ShowTripletsID,
-        MainWindow::ShowSourceLevelID,
-        MainWindow::ShowSpeakerLevelID,
-        MainWindow::ShowSphereID,
-        MainWindow::ColorizeInputsID,
-        MainWindow::ResetInputPosID,
-        MainWindow::ResetMeterClipping,
-        MainWindow::OpenSettingsWindowID,
-        MainWindow::QuitID,
-        MainWindow::AboutID,
-        MainWindow::OpenManualID,
+        MainWindow::CommandIDs::NewProjectID,
+        MainWindow::CommandIDs::OpenProjectID,
+        MainWindow::CommandIDs::SaveProjectID,
+        MainWindow::CommandIDs::SaveAsProjectID,
+        MainWindow::CommandIDs::OpenSpeakerSetupID,
+        MainWindow::CommandIDs::SaveSpeakerSetupID,
+        MainWindow::CommandIDs::SaveSpeakerSetupAsID,
+        MainWindow::CommandIDs::ShowSpeakerEditID,
+        MainWindow::CommandIDs::Show2DViewID,
+        MainWindow::CommandIDs::ShowNumbersID,
+        MainWindow::CommandIDs::ShowSpeakersID,
+        MainWindow::CommandIDs::ShowTripletsID,
+        MainWindow::CommandIDs::ShowSourceLevelID,
+        MainWindow::CommandIDs::ShowSpeakerLevelID,
+        MainWindow::CommandIDs::ShowSphereID,
+        MainWindow::CommandIDs::ColorizeInputsID,
+        MainWindow::CommandIDs::ResetInputPosID,
+        MainWindow::CommandIDs::ResetMeterClipping,
+        MainWindow::CommandIDs::OpenSettingsWindowID,
+        MainWindow::CommandIDs::QuitID,
+        MainWindow::CommandIDs::AboutID,
+        MainWindow::CommandIDs::OpenManualID,
     };
 
     commands.addArray(ids, juce::numElementsInArray(ids));
@@ -781,8 +782,8 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
 
     const juce::String generalCategory("General");
 
-    static constexpr auto DISABLED = juce::ApplicationCommandInfo::CommandFlags::isDisabled;
-    static constexpr auto TICKED = juce::ApplicationCommandInfo::CommandFlags::isTicked;
+    auto const isEditableSpeakerSetup{ mData.appData.spatMode == SpatMode::lbap
+                                       || mData.appData.spatMode == SpatMode::vbap };
 
     switch (commandId) {
     case MainWindow::NewProjectID:
@@ -806,17 +807,21 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
         result.setInfo("Load Speaker Setup", "Choose a new speaker setup on disk.", generalCategory, 0);
         result.addDefaultKeypress('L', juce::ModifierKeys::commandModifier);
         break;
+    case MainWindow::SaveSpeakerSetupID:
+        result.setInfo("Save Speaker Setup", "Save the current speaker setup on disk.", generalCategory, 0);
+        result.setActive(isEditableSpeakerSetup && isSpeakerSetupModified());
+        break;
     case MainWindow::SaveSpeakerSetupAsID:
-        result.setInfo("Save Speaker Setup",
+        result.setInfo("Save Speaker Setup As...",
                        "Save the current speaker setup under a new name on disk.",
                        generalCategory,
                        0);
-        result.setActive(mData.appData.spatMode == SpatMode::lbap || mData.appData.spatMode == SpatMode::vbap);
+        result.setActive(isEditableSpeakerSetup);
         break;
     case MainWindow::ShowSpeakerEditID:
         result.setInfo("Speaker Setup Edition", "Edit the current speaker setup.", generalCategory, 0);
         result.addDefaultKeypress('W', juce::ModifierKeys::altModifier);
-        result.setActive(mData.appData.spatMode == SpatMode::lbap || mData.appData.spatMode == SpatMode::vbap);
+        result.setActive(isEditableSpeakerSetup);
         break;
     case MainWindow::Show2DViewID:
         result.setInfo("Show 2D View", "Show the 2D action window.", generalCategory, 0);
@@ -905,6 +910,9 @@ bool MainContentComponent::perform(const InvocationInfo & info)
             break;
         case MainWindow::OpenSpeakerSetupID:
             handleOpenSpeakerSetup();
+            break;
+        case MainWindow::SaveSpeakerSetupID:
+            handleSaveSpeakerSetup();
             break;
         case MainWindow::SaveSpeakerSetupAsID:
             handleSaveSpeakerSetupAs();
@@ -1013,6 +1021,8 @@ juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const j
         menu.addCommandItem(commandManager, MainWindow::SaveAsProjectID);
         menu.addSeparator();
         menu.addCommandItem(commandManager, MainWindow::OpenSpeakerSetupID);
+        menu.addCommandItem(commandManager, MainWindow::SaveSpeakerSetupID);
+        menu.addCommandItem(commandManager, MainWindow::SaveSpeakerSetupAsID);
         menu.addSeparator();
         menu.addCommandItem(commandManager, MainWindow::OpenSettingsWindowID);
 #if !JUCE_MAC
@@ -1914,6 +1924,16 @@ void MainContentComponent::handleTimer(bool const state)
     } else {
         stopTimer();
     }
+}
+
+//==============================================================================
+void MainContentComponent::handleSaveSpeakerSetup()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
+    [[maybe_unused]] auto const success{ saveSpeakerSetup(mData.appData.lastLbapOrVbapSpeakerSetup) };
+    jassert(success);
 }
 
 //==============================================================================

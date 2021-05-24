@@ -38,7 +38,8 @@ public:
         SaveAsProjectID = 1003,
 
         OpenSpeakerSetupID = 2000,
-        SaveSpeakerSetupAsID = 2001,
+        SaveSpeakerSetupID = 2001,
+        SaveSpeakerSetupAsID = 2002,
         ShowSpeakerEditID = 2003,
 
         OpenSettingsWindowID = 9998,
