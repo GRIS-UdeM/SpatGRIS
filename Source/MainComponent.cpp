@@ -1653,35 +1653,40 @@ tl::optional<std::pair<SpeakerSetup, SpatMode>> MainContentComponent::extractSpe
 }
 
 //==============================================================================
-output_patch_t MainContentComponent::addSpeaker()
+output_patch_t MainContentComponent::addSpeaker(tl::optional<output_patch_t> const speakerToCopy,
+                                                tl::optional<int> const index)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
+
+    auto newSpeaker{ std::make_unique<SpeakerData>() };
+
+    if (speakerToCopy) {
+        auto const speakerToCopyExists{ mData.speakerSetup.speakers.contains(*speakerToCopy) };
+        jassert(speakerToCopyExists);
+        if (speakerToCopyExists) {
+            *newSpeaker = mData.speakerSetup.speakers[*speakerToCopy];
+        }
+    }
 
     auto const newOutputPatch{ ++getMaxSpeakerOutputPatch() };
-    mData.speakerSetup.speakers.add(newOutputPatch, std::make_unique<SpeakerData>());
-    mData.speakerSetup.order.add(newOutputPatch);
 
-    refreshSpeakerVuMeterComponents();
+    if (index) {
+        auto const isValidIndex{ *index >= 0 && *index < mData.speakerSetup.order.size() };
+        jassert(isValidIndex);
+        if (isValidIndex) {
+            mData.speakerSetup.order.insert(*index, newOutputPatch);
+        }
+    } else {
+        mData.speakerSetup.order.add(newOutputPatch);
+    }
 
-    return newOutputPatch;
-}
+    mData.speakerSetup.speakers.add(newOutputPatch, std::move(newSpeaker));
 
-//==============================================================================
-output_patch_t MainContentComponent::insertSpeaker(int const position)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-    juce::ScopedWriteLock const lock{ mLock };
+    // refreshSpeakerVuMeterComponents();
+    // updateViewportConfig();
 
-    auto const newPosition{ position };
-    auto const newOutputPatch{ addSpeaker() };
-    auto & order{ mData.speakerSetup.order };
-    [[maybe_unused]] auto const lastAppenedOutputPatch{ mData.speakerSetup.order.getLast() };
-    jassert(newOutputPatch == lastAppenedOutputPatch);
-    order.removeLast();
-    order.insert(newPosition, newOutputPatch);
-
-    refreshSpeakerVuMeterComponents(); // TODO : this will be done twice sometimes
+    refreshSpeakers();
 
     return newOutputPatch;
 }

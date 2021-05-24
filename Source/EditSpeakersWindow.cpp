@@ -404,13 +404,15 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
     if (button == &mAddSpeakerButton) {
         // Add speaker button
         if (!selectedRow) {
-            mMainContentComponent.addSpeaker();
+            auto const newOutputPatch{ mMainContentComponent.addSpeaker(tl::nullopt, tl::nullopt) };
             updateWinContent();
-            mSpeakersTableListBox.selectRow(getNumRows() - 1);
+            /*mSpeakersTableListBox.selectRow(getNumRows() - 1);*/
+            selectSpeaker(newOutputPatch);
         } else {
-            mMainContentComponent.insertSpeaker(*selectedRow);
+            auto const newOutputPatch{ mMainContentComponent.addSpeaker(getSpeakerOutputPatchForRow(*selectedRow),
+                                                                        *selectedRow) };
             updateWinContent();
-            mSpeakersTableListBox.selectRow(*selectedRow + 1);
+            selectSpeaker(newOutputPatch);
         }
         mSpeakersTableListBox.getHeader().setSortColumnId(sortColumnId, sortedForwards); // TODO: necessary?
         mShouldRefreshSpeakers = true;
@@ -420,14 +422,14 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         mShouldRefreshSpeakers = !success;
     } else if (button == &mAddRingButton) {
         // Add ring button
+        output_patch_t newOutputPatch;
         for (int i{}; i < mNumOfSpeakersTextEditor.getText().getIntValue(); i++) {
-            output_patch_t newOutputPatch;
             if (!selectedRow) {
-                newOutputPatch = mMainContentComponent.addSpeaker();
+                newOutputPatch = mMainContentComponent.addSpeaker(tl::nullopt, tl::nullopt);
                 mNumRows = speakers.size();
-                selectedRow = mNumRows - 1;
             } else {
-                newOutputPatch = mMainContentComponent.insertSpeaker(*selectedRow);
+                newOutputPatch
+                    = mMainContentComponent.addSpeaker(getSpeakerOutputPatchForRow(*selectedRow), *selectedRow);
                 *selectedRow += 1;
                 mNumRows = speakers.size();
             }
@@ -442,11 +444,11 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
             mMainContentComponent.handleNewSpeakerPosition(newOutputPatch, PolarVector{ azimuth, zenith, radius });
         }
         updateWinContent();
-        mSpeakersTableListBox.selectRow(*selectedRow);
         // TableList needs different sorting parameters to trigger the sorting function.
         mSpeakersTableListBox.getHeader().setSortColumnId(sortColumnId, !sortedForwards);
         // This is the real sorting!
         mSpeakersTableListBox.getHeader().setSortColumnId(sortColumnId, sortedForwards);
+        selectSpeaker(newOutputPatch);
         mShouldRefreshSpeakers = true;
     } else if (button == &mPinkNoiseToggleButton) {
         // Pink noise button
@@ -553,6 +555,7 @@ void EditSpeakersWindow::selectSpeaker(tl::optional<output_patch_t> const output
     };
 
     selectRow(outputPatch.map(getSelectedRow));
+    pushSelectionToMainComponent();
 }
 
 //==============================================================================

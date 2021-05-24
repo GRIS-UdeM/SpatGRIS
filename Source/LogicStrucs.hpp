@@ -141,8 +141,8 @@ struct SpeakerHighpassData {
 //==============================================================================
 struct SpeakerData {
     PortState state{};
-    PolarVector vector{};
-    CartesianVector position{};
+    PolarVector vector{ radians_t{}, radians_t{}, 1.0f };
+    CartesianVector position{ vector.toCartesian() };
     dbfs_t gain{};
     tl::optional<SpeakerHighpassData> highpassData{};
     float peak{};

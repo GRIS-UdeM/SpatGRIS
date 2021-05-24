@@ -208,8 +208,7 @@ public:
     // Speakers.
     [[nodiscard]] auto const & getSpeakersDisplayOrder() const { return mData.speakerSetup.order; }
 
-    output_patch_t addSpeaker();
-    output_patch_t insertSpeaker(int position);
+    output_patch_t addSpeaker(tl::optional<output_patch_t> speakerToCopy, tl::optional<int> index);
     void removeSpeaker(output_patch_t outputPatch);
     void reorderSpeakers(juce::Array<output_patch_t> newOrder);
 
