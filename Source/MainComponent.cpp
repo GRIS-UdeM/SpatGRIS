@@ -1266,7 +1266,7 @@ void MainContentComponent::removeInvalidDirectOuts()
         juce::AlertWindow::showMessageBoxAsync(
             juce::AlertWindow::AlertIconType::WarningIcon,
             "Dropped direct out",
-            "One or more direct outs were disabled because the speakers where not available anymore.",
+            "One or more direct outs were disabled after their speakers became unavailable.",
             "Ok",
             this);
     }
