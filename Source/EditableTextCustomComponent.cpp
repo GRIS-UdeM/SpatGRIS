@@ -76,7 +76,7 @@ void EditableTextCustomComponent::mouseDrag(const juce::MouseEvent & event)
     case col::Y:
     case col::Z:
     case col::DISTANCE:
-        increment = 0.01f;
+        increment = 0.02f;
         break;
     case col::GAIN:
         increment = 0.1f;

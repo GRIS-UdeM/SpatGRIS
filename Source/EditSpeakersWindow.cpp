@@ -605,7 +605,7 @@ juce::String EditSpeakersWindow::getText(int const columnNumber, int const rowNu
     case Cols::Y:
         return juce::String{ speaker.position.y, 2 };
     case Cols::Z:
-        return juce::String{ speaker.position.z, 2 };
+        return juce::String{ std::max(speaker.position.z, 0.0f), 2 };
     case Cols::AZIMUTH:
         return juce::String{ (HALF_PI - speaker.vector.azimuth).toDegrees().madePositive().get(), 1 };
     case Cols::ELEVATION:
