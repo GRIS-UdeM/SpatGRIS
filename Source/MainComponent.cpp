@@ -2024,7 +2024,7 @@ bool MainContentComponent::makeSureProjectIsSavedToDisk() noexcept
     }
 
     juce::AlertWindow alertWindow{ "Unsaved project",
-                                   "Your current project has unsaved changes. Do you wish to save to save it to disk?",
+                                   "Your current project has unsaved changes. Do you wish to save it to disk?",
                                    juce::AlertWindow::AlertIconType::InfoIcon,
                                    this };
     alertWindow.addButton("Save", BUTTON_OK, juce::KeyPress{ juce::KeyPress::returnKey });
@@ -2055,12 +2055,10 @@ bool MainContentComponent::makeSureSpeakerSetupIsSavedToDisk() noexcept
         return true;
     }
 
-    juce::AlertWindow alertWindow{
-        "Unsaved speaker setup",
-        "Your current speaker setup has unsaved changes. Do you wish to save to save it to disk?",
-        juce::AlertWindow::AlertIconType::InfoIcon,
-        this
-    };
+    juce::AlertWindow alertWindow{ "Unsaved speaker setup",
+                                   "Your current speaker setup has unsaved changes. Do you wish to save it to disk?",
+                                   juce::AlertWindow::AlertIconType::InfoIcon,
+                                   this };
     alertWindow.addButton("Save", BUTTON_OK, juce::KeyPress{ juce::KeyPress::returnKey });
     alertWindow.addButton("Discard", BUTTON_DISCARD);
     alertWindow.addButton("Cancel", BUTTON_CANCEL, juce::KeyPress{ juce::KeyPress::escapeKey });
