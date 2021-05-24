@@ -37,6 +37,7 @@ tl::optional<std::pair<SpeakerSetup, SpatMode>> readLegacySpeakerSetup(juce::Xml
     }
 
     juce::Array<std::pair<int, output_patch_t>> layout;
+    juce::OwnedArray<SpeakerData> duplicatedSpeakers{};
     SpeakerSetup result{};
 
     forEachXmlChildElement(xml, ring)
@@ -79,32 +80,43 @@ tl::optional<std::pair<SpeakerSetup, SpatMode>> readLegacySpeakerSetup(juce::Xml
                         = (highpass == hz_t{} ? tl::optional<SpeakerHighpassData>{} : SpeakerHighpassData{ highpass });
                     speakerData->isDirectOutOnly = isDirectOutOnly;
 
-                    layout.add(std::make_pair(layoutIndex, outputPatch));
-                    result.speakers.add(outputPatch, std::move(speakerData));
+                    if (!result.speakers.contains(outputPatch)) {
+                        layout.add(std::make_pair(layoutIndex, outputPatch));
+                        result.speakers.add(outputPatch, std::move(speakerData));
+                    } else {
+                        duplicatedSpeakers.add(std::move(speakerData));
+                    }
                 }
             }
         }
     }
 
-    std::sort(layout.begin(), layout.end());
-    auto const isLayoutValid = [&]() {
-        // Layout should be numbers 0 to n
-        int expected{};
-        for (auto const & node : layout) {
-            if (node.first != expected++) {
-                return false;
+    static auto const GET_MAX_OUTPUT_PATCH = [&](SpeakersData const & speakers) {
+        if (speakers.size() == 0) {
+            return output_patch_t{};
+        }
+        auto node{ speakers.cbegin() };
+        auto maxOutputPatch{ node->key };
+        while (++node != speakers.cend()) {
+            if (node->key > maxOutputPatch) {
+                maxOutputPatch = node->key;
             }
         }
-
-        // output patches should all be existing speakers
-        return std::all_of(layout.begin(), layout.end(), [&](std::pair<int, output_patch_t> const & node) {
-            return result.speakers.contains(node.second);
-        });
+        return maxOutputPatch;
     };
-    jassert(isLayoutValid());
-    if (!isLayoutValid()) {
-        return tl::nullopt;
+
+    std::sort(layout.begin(), layout.end());
+
+    auto maxOutputPatch{ GET_MAX_OUTPUT_PATCH(result.speakers) };
+    auto maxLayoutIndex{ layout.getLast().first };
+
+    for (auto * speaker : duplicatedSpeakers) {
+        auto const outputPatch{ ++maxOutputPatch };
+        auto const layoutIndex{ ++maxLayoutIndex };
+        result.speakers.add(outputPatch, std::unique_ptr<SpeakerData>(speaker));
+        layout.add(std::make_pair(layoutIndex, outputPatch));
     }
+    duplicatedSpeakers.clearQuick(false);
 
     result.order.resize(layout.size());
     std::transform(layout.begin(),
