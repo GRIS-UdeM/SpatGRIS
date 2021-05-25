@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "LayoutComponent.hpp"
+#include "MinSizedComponent.hpp"
 
 class GrisLookAndFeel;
 
@@ -33,6 +33,9 @@ class InfoPanel final : public MinSizedComponent
     juce::Label mBufferSizeLabel{};
     juce::Label mNumInputsLabel{};
     juce::Label mNumOutputsLabel{};
+
+    bool mCpuPeaked{};
+    bool mCpuIsCurrentlyPeaking{};
 
 public:
     //==============================================================================
@@ -51,12 +54,14 @@ public:
     void setNumOutputs(int numOutputs);
     //==============================================================================
     void resized() override;
+    void mouseDown(juce::MouseEvent const & event) override;
     [[nodiscard]] int getMinWidth() const noexcept override;
     [[nodiscard]] int getMinHeight() const noexcept override;
 
 private:
     //==============================================================================
     [[nodiscard]] juce::Array<juce::Label *> getLabels() noexcept;
+    void setComponentsColors(juce::Array<juce::Label *> const & labels);
     //==============================================================================
     JUCE_LEAK_DETECTOR(InfoPanel)
 };

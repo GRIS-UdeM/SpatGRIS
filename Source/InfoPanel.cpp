@@ -33,7 +33,6 @@ InfoPanel::InfoPanel(GrisLookAndFeel & lookAndFeel) : mLookAndFeel(lookAndFeel)
     auto const primeLabel = [&](juce::Label & label, int const index) {
         label.setJustificationType(juce::Justification::centred);
         label.setColour(juce::Label::ColourIds::textColourId, lookAndFeel.getFontColour());
-        label.setColour(juce::Label::ColourIds::backgroundColourId, index % 2 ? COLOR_1 : COLOR_2);
         addAndMakeVisible(label);
     };
 
@@ -42,6 +41,10 @@ InfoPanel::InfoPanel(GrisLookAndFeel & lookAndFeel) : mLookAndFeel(lookAndFeel)
     for (int i{}; i < labels.size(); ++i) {
         primeLabel(*labels[i], i);
     }
+
+    setComponentsColors(labels);
+
+    mCpuLabel.addMouseListener(this, false);
 }
 
 //==============================================================================
@@ -51,6 +54,16 @@ void InfoPanel::setCpuLoad(double const percentage)
 
     static juce::String const PREFIX{ "Cpu usage: " };
     static juce::String const SUFFIX{ " %" };
+
+    auto const isPeaking{ percentage >= 100.0 };
+
+    if (isPeaking != mCpuIsCurrentlyPeaking) {
+        if (isPeaking) {
+            mCpuPeaked = true;
+        }
+        mCpuIsCurrentlyPeaking = isPeaking;
+        setComponentsColors(getLabels());
+    }
 
     auto const intValue{ narrow<int>(std::round(percentage)) };
     auto const newString{ PREFIX + juce::String{ intValue } + SUFFIX };
@@ -109,6 +122,21 @@ void InfoPanel::resized()
 }
 
 //==============================================================================
+void InfoPanel::mouseDown(juce::MouseEvent const & event)
+{
+    if (event.eventComponent != &mCpuLabel) {
+        return;
+    }
+
+    if (!mCpuPeaked) {
+        return;
+    }
+
+    mCpuPeaked = false;
+    setComponentsColors(getLabels());
+}
+
+//==============================================================================
 int InfoPanel::getMinWidth() const noexcept
 {
     return MIN_WIDTH;
@@ -128,4 +156,24 @@ juce::Array<juce::Label *> InfoPanel::getLabels() noexcept
                                        &mBufferSizeLabel,
                                        &mNumInputsLabel,
                                        &mNumOutputsLabel };
+}
+
+//==============================================================================
+void InfoPanel::setComponentsColors(juce::Array<juce::Label *> const & labels)
+{
+    int index{};
+    for (auto * label : labels) {
+        auto const & color{ index++ % 2 ? COLOR_1 : COLOR_2 };
+        label->setColour(juce::Label::ColourIds::backgroundColourId, color);
+        label->setColour(juce::Label::ColourIds::outlineColourId, color);
+    }
+
+    static auto const PEAK_COLOR{ juce::Colours::red };
+
+    if (mCpuPeaked) {
+        mCpuLabel.setColour(juce::Label::ColourIds::outlineColourId, PEAK_COLOR);
+    }
+    if (mCpuIsCurrentlyPeaking) {
+        mCpuLabel.setColour(juce::Label::ColourIds::backgroundColourId, PEAK_COLOR);
+    }
 }
