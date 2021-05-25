@@ -20,7 +20,6 @@
 #pragma once
 
 #include "AudioManager.hpp"
-#include "LayoutComponent.hpp"
 
 class MainContentComponent;
 class GrisLookAndFeel;
@@ -35,6 +34,13 @@ class PrepareToRecordComponent final
 
     juce::TextEditor mPathEditor{};
     juce::TextButton mBrowseButton{};
+
+    juce::TextButton mWavButton{};
+    juce::TextButton mAiffButton{};
+#ifdef __APPLE__
+    juce::TextButton mCafButton{};
+#endif
+
     juce::TextButton mMonoButton{};
     juce::TextButton mInterleavedButton{};
     juce::TextButton mRecordButton{};
@@ -58,6 +64,12 @@ public:
     void buttonClicked(juce::Button * button) override;
 
 private:
+    //==============================================================================
+    void performBrowse();
+    void performRecord();
+
+    RecordingFileType getSelectedFileType() const;
+    RecordingFormat getSelectedFormat() const;
     //==============================================================================
     JUCE_LEAK_DETECTOR(PrepareToRecordComponent)
 };

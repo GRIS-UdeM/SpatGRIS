@@ -24,9 +24,10 @@
 
 static constexpr int PADDING = 10;
 static constexpr auto BUTTONS_WIDTH = 100;
-static constexpr auto BUTTONS_HEIGHT = 35;
+static constexpr auto BUTTONS_HEIGHT = 30;
 static constexpr auto WIDTH = 600;
-static constexpr auto HEIGHT = PADDING * 3 + BUTTONS_HEIGHT * 2;
+static constexpr auto NUM_ROWS = 3;
+static constexpr auto HEIGHT = PADDING * (NUM_ROWS + 1) + BUTTONS_HEIGHT * NUM_ROWS;
 
 using flags = juce::FileBrowserComponent::FileChooserFlags;
 
@@ -58,6 +59,23 @@ PrepareToRecordComponent::PrepareToRecordComponent(juce::File const & recordingD
     mBrowseButton.addListener(this);
     addAndMakeVisible(mBrowseButton);
 
+    mWavButton.setButtonText(recordingFormatToString(RecordingFormat::wav));
+    mWavButton.setClickingTogglesState(true);
+    mWavButton.setRadioGroupId(PREPARE_TO_RECORD_WINDOW_FILE_FORMAT_GROUP_ID, juce::dontSendNotification);
+    addAndMakeVisible(mWavButton);
+
+    mAiffButton.setButtonText(recordingFormatToString(RecordingFormat::aiff));
+    mAiffButton.setClickingTogglesState(true);
+    mAiffButton.setRadioGroupId(PREPARE_TO_RECORD_WINDOW_FILE_FORMAT_GROUP_ID, juce::dontSendNotification);
+    addAndMakeVisible(mAiffButton);
+
+#ifdef __APPLE__
+    mCafButton.setButtonText(recordingFormatToString(RecordingFormat::caf));
+    mCafButton.setClickingTogglesState(true);
+    mCafButton.setRadioGroupId(PREPARE_TO_RECORD_WINDOW_FILE_FORMAT_GROUP_ID, juce::dontSendNotification);
+    addAndMakeVisible(mCafButton);
+#endif
+
     mMonoButton.setButtonText(recordingFileTypeToString(RecordingFileType::mono));
     mMonoButton.setClickingTogglesState(true);
     mMonoButton.setRadioGroupId(PREPARE_TO_RECORD_WINDOW_FILE_TYPE_GROUP_ID, juce::dontSendNotification);
@@ -72,26 +90,65 @@ PrepareToRecordComponent::PrepareToRecordComponent(juce::File const & recordingD
     mRecordButton.addListener(this);
     addAndMakeVisible(mRecordButton);
 
-    if (recordingOptions.fileType == RecordingFileType::mono) {
+    switch (recordingOptions.format) {
+    case RecordingFormat::wav:
+        mWavButton.setToggleState(true, juce::dontSendNotification);
+        break;
+    case RecordingFormat::aiff:
+        mAiffButton.setToggleState(true, juce::dontSendNotification);
+        break;
+#ifdef __APPLE__
+    case RecordingFormat::caf:
+        mCafButton.setToggleState(true, juce::dontSendNotification);
+        break;
+#endif
+    default:
+        jassertfalse;
+    }
+
+    switch (recordingOptions.fileType) {
+    case RecordingFileType::mono:
         mMonoButton.setToggleState(true, juce::dontSendNotification);
-    } else {
-        jassert(recordingOptions.fileType == RecordingFileType::interleaved);
+        break;
+    case RecordingFileType::interleaved:
         mInterleavedButton.setToggleState(true, juce::dontSendNotification);
+        break;
+    default:
+        jassertfalse;
     }
 }
 
 //==============================================================================
 void PrepareToRecordComponent::resized()
 {
+    auto yOffset{ PADDING };
+    auto xOffset{ PADDING };
+
+    auto const nextLine = [&]() { yOffset += PADDING + BUTTONS_HEIGHT; };
+    auto const nextButton = [&]() { xOffset += BUTTONS_WIDTH; };
+    auto const resetX = [&]() { xOffset = PADDING; };
+
     auto const pathWidth{ WIDTH - PADDING * 3 - BUTTONS_WIDTH };
     auto const pathBounds{ juce::Rectangle<int>{ PADDING, PADDING, pathWidth, BUTTONS_HEIGHT }.reduced(0, 1) };
     mPathEditor.setBounds(pathBounds);
     mBrowseButton.setBounds(PADDING * 2 + pathWidth, PADDING, BUTTONS_WIDTH, BUTTONS_HEIGHT);
 
-    auto const yOffset{ PADDING * 2 + BUTTONS_HEIGHT };
+    nextLine();
 
-    mMonoButton.setBounds(PADDING, yOffset, BUTTONS_WIDTH, BUTTONS_HEIGHT);
-    mInterleavedButton.setBounds(PADDING + BUTTONS_WIDTH + PADDING, yOffset, BUTTONS_WIDTH, BUTTONS_HEIGHT);
+    mWavButton.setBounds(xOffset, yOffset, BUTTONS_WIDTH, BUTTONS_HEIGHT);
+    nextButton();
+    mAiffButton.setBounds(xOffset, yOffset, BUTTONS_WIDTH, BUTTONS_HEIGHT);
+#ifdef __APPLE__
+    nextButton();
+    mCafButton.setBounds(xOffset, yOffset, BUTTONS_WIDTH, BUTTONS_HEIGHT);
+#endif
+
+    resetX();
+    nextLine();
+
+    mMonoButton.setBounds(xOffset, yOffset, BUTTONS_WIDTH, BUTTONS_HEIGHT);
+    nextButton();
+    mInterleavedButton.setBounds(xOffset, yOffset, BUTTONS_WIDTH, BUTTONS_HEIGHT);
     mRecordButton.setBounds(WIDTH - PADDING - BUTTONS_WIDTH, yOffset, BUTTONS_WIDTH, BUTTONS_HEIGHT);
 }
 
@@ -101,45 +158,47 @@ void PrepareToRecordComponent::buttonClicked(juce::Button * button)
     JUCE_ASSERT_MESSAGE_THREAD;
 
     if (button == &mBrowseButton) {
-        if (!mFileChooser.browseForFileToSave(false)) {
-            return;
-        }
-        auto const file{ mFileChooser.getResult() };
-
-        mPathEditor.setText(file.getFullPathName(), juce::dontSendNotification);
+        performBrowse();
         return;
     }
 
-    if (button != &mRecordButton) {
+    if (button == &mRecordButton) {
+        performRecord();
+    }
+}
+
+//==============================================================================
+void PrepareToRecordComponent::performBrowse()
+{
+    if (!mFileChooser.browseForFileToSave(false)) {
         return;
     }
+    auto const file{ mFileChooser.getResult() };
 
-    auto const getFileType = [&]() {
-        if (mMonoButton.getToggleState()) {
-            return RecordingFileType::mono;
-        }
-        jassert(mInterleavedButton.getToggleState());
-        return RecordingFileType::interleaved;
-    };
+    mPathEditor.setText(file.getFullPathName(), juce::dontSendNotification);
+}
+
+//==============================================================================
+void PrepareToRecordComponent::performRecord()
+{
+    auto const fileType{ getSelectedFileType() };
+    auto const format{ getSelectedFormat() };
 
     juce::File const path{ mPathEditor.getText() };
 
-    auto const extension{ path.getFileExtension().toUpperCase().substring(1) }; // remove the dot
-    auto const fileFormat{ stringToRecordingFormat(extension) };
+    auto const getFinalPath = [&]() {
+        auto const expectedExtension{ "." + recordingFormatToString(format).toLowerCase() };
 
-    if (!fileFormat) {
-        auto const message{ juce::String{ "Unsupported file format.\nValid file extensions are \"." }
-                            + RECORDING_FORMAT_STRINGS.joinIntoString("\" \".") + "\"" };
-        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::WarningIcon,
-                                               "Error",
-                                               message,
-                                               "Ok",
-                                               this);
-        return;
-    }
+        if (path.getFullPathName().endsWithIgnoreCase(expectedExtension)) {
+            return path;
+        }
+        return juce::File{ path.getFullPathName() + expectedExtension };
+    };
 
-    if (!path.getParentDirectory().isDirectory()) {
-        auto const message{ juce::String{ "The parent directory \"" } + path.getParentDirectory().getFullPathName()
+    auto const finalPath{ getFinalPath() };
+
+    if (!finalPath.getParentDirectory().isDirectory()) {
+        auto const message{ juce::String{ "The parent directory \"" } + finalPath.getParentDirectory().getFullPathName()
                             + "\" does not exist." };
         juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::WarningIcon,
                                                "Error",
@@ -149,8 +208,36 @@ void PrepareToRecordComponent::buttonClicked(juce::Button * button)
         return;
     }
 
-    RecordingOptions const recordingOptions{ *fileFormat, getFileType() };
-    mMainContentComponent.prepareAndStartRecording(path, recordingOptions);
+    RecordingOptions const recordingOptions{ format, fileType };
+    mMainContentComponent.prepareAndStartRecording(finalPath, recordingOptions);
+}
+
+//==============================================================================
+RecordingFileType PrepareToRecordComponent::getSelectedFileType() const
+{
+    if (mMonoButton.getToggleState()) {
+        return RecordingFileType::mono;
+    }
+    jassert(mInterleavedButton.getToggleState());
+    return RecordingFileType::interleaved;
+}
+
+//==============================================================================
+RecordingFormat PrepareToRecordComponent::getSelectedFormat() const
+{
+    if (mWavButton.getToggleState()) {
+        return RecordingFormat::wav;
+    }
+    if (mAiffButton.getToggleState()) {
+        return RecordingFormat::aiff;
+    }
+#ifdef __APPLE__
+    jassert(mCafButton.getToggleState());
+    return RecordingFormat::caf;
+#else
+    jassertfalse;
+    return RecordingFormat::wav;
+#endif
 }
 
 //==============================================================================

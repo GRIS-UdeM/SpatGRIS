@@ -202,7 +202,14 @@ struct AudioSettings {
 };
 
 //==============================================================================
-enum class RecordingFormat { wav, aiff };
+enum class RecordingFormat {
+    wav,
+    aiff
+#ifdef __APPLE__
+    ,
+    caf
+#endif
+};
 constexpr auto DEFAULT_RECORDING_FORMAT{ RecordingFormat::wav };
 enum class RecordingFileType { mono, interleaved };
 constexpr auto DEFAULT_RECORDING_FILE_TYPE{ RecordingFileType::mono };

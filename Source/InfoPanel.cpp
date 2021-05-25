@@ -30,7 +30,7 @@ static auto const COLOR_2 = juce::Colours::blue.withBrightness(0.2f).withSaturat
 //==============================================================================
 InfoPanel::InfoPanel(GrisLookAndFeel & lookAndFeel) : mLookAndFeel(lookAndFeel)
 {
-    auto const primeLabel = [&](juce::Label & label, int const index) {
+    auto const primeLabel = [&](juce::Label & label) {
         label.setJustificationType(juce::Justification::centred);
         label.setColour(juce::Label::ColourIds::textColourId, lookAndFeel.getFontColour());
         addAndMakeVisible(label);
@@ -38,8 +38,8 @@ InfoPanel::InfoPanel(GrisLookAndFeel & lookAndFeel) : mLookAndFeel(lookAndFeel)
 
     auto const labels{ getLabels() };
 
-    for (int i{}; i < labels.size(); ++i) {
-        primeLabel(*labels[i], i);
+    for (auto * label : labels) {
+        primeLabel(*label);
     }
 
     setComponentsColors(labels);

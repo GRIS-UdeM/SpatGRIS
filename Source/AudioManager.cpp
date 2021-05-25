@@ -216,13 +216,20 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
     std::unique_ptr<juce::AudioFormat> audioFormat{};
     switch (recordingParams.options.format) {
     case RecordingFormat::aiff:
-        audioFormat.reset(new juce::AiffAudioFormat{});
+        audioFormat = std::make_unique<juce::AiffAudioFormat>();
         break;
     case RecordingFormat::wav:
-        audioFormat.reset(new juce::WavAudioFormat{});
+        audioFormat = std::make_unique<juce::WavAudioFormat>();
         break;
+#ifdef __APPLE__
+    case RecordingFormat::caf:
+        audioFormat = std::make_unique<juce::CoreAudioFormat>();
+#endif
     }
     jassert(audioFormat);
+    if (!audioFormat) {
+        return false;
+    }
 
     // subroutine to build the RecorderInfos
     static auto const makeRecordingInfo
