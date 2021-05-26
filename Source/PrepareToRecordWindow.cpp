@@ -38,7 +38,6 @@ PrepareToRecordComponent::PrepareToRecordComponent(juce::File const & recordingD
                                                    GrisLookAndFeel & lookAndFeel)
     : mMainContentComponent(mainContentComponent)
     , mLookAndFeel(lookAndFeel)
-    , mFileChooser("SpatGris recording", recordingDirectory, "*.wav;*.aiff", true, false, &mainContentComponent)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -46,48 +45,47 @@ PrepareToRecordComponent::PrepareToRecordComponent(juce::File const & recordingD
                                    ? recordingDirectory
                                    : juce::File::getSpecialLocation(
                                        juce::File::SpecialLocationType::userDesktopDirectory) };
-    auto const fileName{ juce::String{ "recording." }
-                         + (recordingOptions.format == RecordingFormat::wav ? "wav" : "aiff") };
-    auto const path{ validDirectory.getChildFile(fileName) };
+    auto const path{ validDirectory.getChildFile(DEFAULT_FILE_NAME) };
     mPathEditor.setColour(juce::TextEditor::ColourIds::backgroundColourId, juce::Colours::transparentBlack);
     mPathEditor.setColour(juce::TextEditor::ColourIds::outlineColourId, juce::Colours::white);
     mPathEditor.setBorder(juce::BorderSize<int>{ 1 });
     mPathEditor.setText(path.getFullPathName());
+    mPathEditor.setJustification(juce::Justification::centredRight);
+    mPathEditor.setScrollbarsShown(true);
+    mPathEditor.onFocusLost = [&]() { mPathEditor.setCaretPosition(mPathEditor.getText().length()); };
     addAndMakeVisible(mPathEditor);
 
     mBrowseButton.setButtonText("Browse");
     mBrowseButton.addListener(this);
     addAndMakeVisible(mBrowseButton);
 
-    mWavButton.setButtonText(recordingFormatToString(RecordingFormat::wav));
-    mWavButton.setClickingTogglesState(true);
-    mWavButton.setRadioGroupId(PREPARE_TO_RECORD_WINDOW_FILE_FORMAT_GROUP_ID, juce::dontSendNotification);
-    addAndMakeVisible(mWavButton);
+    auto const initFormatButton = [&](juce::TextButton & button, RecordingFormat const format) {
+        button.setButtonText(recordingFormatToString(format));
+        button.setClickingTogglesState(true);
+        button.setRadioGroupId(PREPARE_TO_RECORD_WINDOW_FILE_FORMAT_GROUP_ID, juce::dontSendNotification);
+        button.addListener(this);
+        addAndMakeVisible(button);
+    };
 
-    mAiffButton.setButtonText(recordingFormatToString(RecordingFormat::aiff));
-    mAiffButton.setClickingTogglesState(true);
-    mAiffButton.setRadioGroupId(PREPARE_TO_RECORD_WINDOW_FILE_FORMAT_GROUP_ID, juce::dontSendNotification);
-    addAndMakeVisible(mAiffButton);
-
+    initFormatButton(mWavButton, RecordingFormat::wav);
+    initFormatButton(mAiffButton, RecordingFormat::aiff);
 #ifdef __APPLE__
-    mCafButton.setButtonText(recordingFormatToString(RecordingFormat::caf));
-    mCafButton.setClickingTogglesState(true);
-    mCafButton.setRadioGroupId(PREPARE_TO_RECORD_WINDOW_FILE_FORMAT_GROUP_ID, juce::dontSendNotification);
-    addAndMakeVisible(mCafButton);
+    initFormatButton(mCafButton, RecordingFormat::caf);
 #endif
 
-    mMonoButton.setButtonText(recordingFileTypeToString(RecordingFileType::mono));
-    mMonoButton.setClickingTogglesState(true);
-    mMonoButton.setRadioGroupId(PREPARE_TO_RECORD_WINDOW_FILE_TYPE_GROUP_ID, juce::dontSendNotification);
-    addAndMakeVisible(mMonoButton);
+    auto const initTypeButton = [&](juce::TextButton & button, RecordingFileType const type) {
+        button.setButtonText(recordingFileTypeToString(type));
+        button.setClickingTogglesState(true);
+        button.setRadioGroupId(PREPARE_TO_RECORD_WINDOW_FILE_TYPE_GROUP_ID, juce::dontSendNotification);
+        addAndMakeVisible(button);
+    };
 
-    mInterleavedButton.setButtonText(recordingFileTypeToString(RecordingFileType::interleaved));
-    mInterleavedButton.setClickingTogglesState(true);
-    mInterleavedButton.setRadioGroupId(PREPARE_TO_RECORD_WINDOW_FILE_TYPE_GROUP_ID, juce::dontSendNotification);
-    addAndMakeVisible(mInterleavedButton);
+    initTypeButton(mMonoButton, RecordingFileType::mono);
+    initTypeButton(mInterleavedButton, RecordingFileType::interleaved);
 
-    mRecordButton.setButtonText("Start recording");
+    mRecordButton.setButtonText("Record");
     mRecordButton.addListener(this);
+    mRecordButton.setColour(juce::TextButton::ColourIds::buttonColourId, juce::Colours::red.withSaturation(0.5f));
     addAndMakeVisible(mRecordButton);
 
     switch (recordingOptions.format) {
@@ -116,6 +114,8 @@ PrepareToRecordComponent::PrepareToRecordComponent(juce::File const & recordingD
     default:
         jassertfalse;
     }
+
+    adjustPathExtension();
 }
 
 //==============================================================================
@@ -164,23 +164,37 @@ void PrepareToRecordComponent::buttonClicked(juce::Button * button)
 
     if (button == &mRecordButton) {
         performRecord();
+        return;
+    }
+
+    if (isFileFormatButton(button)) {
+        if (!button->getToggleState()) {
+            return;
+        }
+        adjustPathExtension();
     }
 }
 
 //==============================================================================
 void PrepareToRecordComponent::performBrowse()
 {
-    if (!mFileChooser.browseForFileToSave(false)) {
+    auto const extension{ "*." + recordingFormatToString(getSelectedFormat()).toLowerCase() };
+
+    juce::FileChooser fileChooser{ "SpatGris recording", mPathEditor.getText(), extension, true, false, this };
+    if (!fileChooser.browseForFileToSave(false)) {
         return;
     }
-    auto const file{ mFileChooser.getResult() };
+    auto const file{ fileChooser.getResult() };
 
     mPathEditor.setText(file.getFullPathName(), juce::dontSendNotification);
+    adjustPathExtension();
 }
 
 //==============================================================================
 void PrepareToRecordComponent::performRecord()
 {
+    adjustPathExtension();
+
     auto const fileType{ getSelectedFileType() };
     auto const format{ getSelectedFormat() };
 
@@ -210,6 +224,38 @@ void PrepareToRecordComponent::performRecord()
 
     RecordingOptions const recordingOptions{ format, fileType };
     mMainContentComponent.prepareAndStartRecording(finalPath, recordingOptions);
+}
+
+//==============================================================================
+bool PrepareToRecordComponent::isFileFormatButton(juce::Button const * button) const noexcept
+{
+    if (button == &mWavButton || button == &mAiffButton) {
+        return true;
+    }
+#ifdef __APPLE__
+    if (button == &mCafButton) {
+        return true;
+    }
+#endif
+    return false;
+}
+
+//==============================================================================
+void PrepareToRecordComponent::adjustPathExtension()
+{
+    auto const newFormat{ getSelectedFormat() };
+    auto const newExtension{ "." + recordingFormatToString(newFormat).toLowerCase() };
+    auto const currentPath{ mPathEditor.getText() };
+
+    for (auto const & possibleExtension : RECORDING_FORMAT_STRINGS) {
+        auto const extensionToTest{ "." + possibleExtension.toLowerCase() };
+        if (currentPath.endsWithIgnoreCase(extensionToTest)) {
+            mPathEditor.setText(currentPath.upToLastOccurrenceOf(extensionToTest, false, true) + newExtension);
+            return;
+        }
+    }
+
+    mPathEditor.setText(currentPath + newExtension);
 }
 
 //==============================================================================

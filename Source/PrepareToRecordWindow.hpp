@@ -29,6 +29,8 @@ class PrepareToRecordComponent final
     : public juce::Component
     , public juce::TextButton::Listener
 {
+    static constexpr auto DEFAULT_FILE_NAME = "recording";
+
     MainContentComponent & mMainContentComponent;
     GrisLookAndFeel & mLookAndFeel;
 
@@ -44,8 +46,6 @@ class PrepareToRecordComponent final
     juce::TextButton mMonoButton{};
     juce::TextButton mInterleavedButton{};
     juce::TextButton mRecordButton{};
-
-    juce::FileChooser mFileChooser;
 
 public:
     //==============================================================================
@@ -67,6 +67,8 @@ private:
     //==============================================================================
     void performBrowse();
     void performRecord();
+    bool isFileFormatButton(juce::Button const * button) const noexcept;
+    void adjustPathExtension();
 
     RecordingFileType getSelectedFileType() const;
     RecordingFormat getSelectedFormat() const;
