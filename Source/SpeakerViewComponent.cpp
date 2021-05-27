@@ -185,12 +185,11 @@ void SpeakerViewComponent::render()
         switch (mData.config.spatMode) {
         case SpatMode::hrtfVbap:
         case SpatMode::vbap:
+        case SpatMode::stereo:
             drawFieldSphere();
             break;
         case SpatMode::lbap:
             drawFieldCube();
-            break;
-        case SpatMode::stereo:
             break;
         default:
             jassertfalse;
@@ -556,11 +555,7 @@ void SpeakerViewComponent::drawSource(source_index_t const index, ViewportSource
               source.colour.getFloatBlue(),
               source.colour.getAlpha());
 
-#if defined(__APPLE__)
-    glutSolidSphere(static_cast<double>(SPHERE_RADIUS), 8, 8);
-#else
-    drawSphere(SPHERE_RADIUS);
-#endif
+    drawSphere<7>(SPHERE_RADIUS);
 
     glTranslatef(-pos.x, -pos.y, -pos.z);
 
@@ -641,7 +636,7 @@ void SpeakerViewComponent::drawFieldSphere()
     glRotatef(HALF_PI.toDegrees().get(), 1.0f, 0.0f, 0.0f);
     glColor3f(0.8f, 0.2f, 0.1f);
 #if defined(WIN32)
-    drawSphere(std::max(MAX_RADIUS, 1.0f));
+    drawSphere<16>(std::max(MAX_RADIUS, 1.0f));
 #else
     glutSolidSphere(std::max(MAX_RADIUS, 1.0f), SPACE_LIMIT, SPACE_LIMIT);
 #endif

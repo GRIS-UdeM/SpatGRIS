@@ -34,11 +34,15 @@ DISABLE_WARNING_POP
 // conflict between glm, freeglut and juce's OpenGL implementations.
 //
 // This fix avoids calling glutSolidSphere().
+template<int DETAILS>
 static auto inline drawSphere = [](float const r) {
-    static auto constexpr LATS = 8;
-    static auto constexpr LONGS = 8;
+    static auto constexpr LATS = DETAILS;
+    static auto constexpr LONGS = DETAILS;
 
     ASSERT_OPEN_GL_THREAD;
+
+    glPushMatrix();
+    glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
 
     for (int i{}; i <= LATS; ++i) {
         auto const lat0
@@ -64,4 +68,6 @@ static auto inline drawSphere = [](float const r) {
         }
         glEnd();
     }
+
+    glPopMatrix();
 };
