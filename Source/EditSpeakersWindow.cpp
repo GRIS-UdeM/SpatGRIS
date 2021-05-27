@@ -758,7 +758,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
         case Cols::OUTPUT_PATCH: {
             mMainContentComponent.handleSetShowTriplets(false);
             auto const & oldOutputPatch{ outputPatch };
-            output_patch_t newOutputPatch{ std::clamp(newText.getIntValue(), 0, 256) };
+            output_patch_t newOutputPatch{ std::clamp(newText.getIntValue(), 0, MAX_NUM_SPEAKERS) };
             if (newOutputPatch != oldOutputPatch) {
                 if (speakers.contains(newOutputPatch)) {
                     juce::AlertWindow alert("Wrong output patch!    ",
