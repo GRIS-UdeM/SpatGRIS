@@ -28,7 +28,6 @@
 
 static dbfs_t constexpr MIN_LEVEL_COMP{ -60.0f };
 static dbfs_t constexpr MAX_LEVEL_COMP{ 0.0f };
-auto constexpr VU_METER_COMPONENT_WIDTH = 29;
 
 class GrisLookAndFeel;
 
@@ -83,6 +82,7 @@ protected:
     SmallGrisLookAndFeel & mLookAndFeel;
 
     LevelBox mLevelBox;
+    juce::Label mIdLabel;
     juce::TextButton mIdButton;
     juce::TextButton mMuteButton;
     juce::Label mMuteLabel;
@@ -106,7 +106,7 @@ public:
     void setState(PortState state, bool soloMode);
     //==============================================================================
     void resized() override;
-    [[nodiscard]] int getMinWidth() const noexcept final { return VU_METER_COMPONENT_WIDTH; }
+    [[nodiscard]] int getMinWidth() const noexcept final;
 
 private:
     //==============================================================================

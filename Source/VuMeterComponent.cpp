@@ -22,6 +22,8 @@
 #include "LogicStrucs.hpp"
 #include "MainComponent.hpp"
 
+auto constexpr VU_METER_COMPONENT_WIDTH = 25;
+
 juce::String const SourceVuMeterComponent::NO_DIRECT_OUT_TEXT = "-";
 
 //==============================================================================
@@ -193,11 +195,12 @@ AbstractVuMeterComponent::AbstractVuMeterComponent(int const channel, SmallGrisL
         label.setJustificationType(juce::Justification::centred);
         label.setInterceptsMouseClicks(false, false);
         initColors(label);
+        label.setFont(juce::Font{ 1.0f });
     };
 
     // Id
-    mIdButton.setButtonText(juce::String{ channel });
     initButton(mIdButton);
+    initMuteOrSoloLabel(mIdLabel, juce::String{ channel });
 
     // Mute button
     mMuteButton.setClickingTogglesState(true);
@@ -278,6 +281,7 @@ void AbstractVuMeterComponent::resized()
     static constexpr auto AVAILABLE_WIDTH{ VU_METER_COMPONENT_WIDTH - INNER_ELEMENTS_PADDING * 2 };
 
     juce::Rectangle<int> const idBounds{ INNER_ELEMENTS_PADDING, yOffset, AVAILABLE_WIDTH, ID_BUTTON_HEIGHT };
+    mIdLabel.setBounds(idBounds.withSizeKeepingCentre(100, 100));
     mIdButton.setBounds(idBounds);
 
     yOffset += ID_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING;
@@ -304,6 +308,12 @@ void AbstractVuMeterComponent::resized()
                                                  MUTE_AND_SOLO_BUTTONS_HEIGHT };
     mSoloButton.setBounds(soloButtonBounds);
     mSoloLabel.setBounds(soloButtonBounds.withSizeKeepingCentre(100, 100));
+}
+
+//==============================================================================
+int AbstractVuMeterComponent::getMinWidth() const noexcept
+{
+    return VU_METER_COMPONENT_WIDTH;
 }
 
 //==============================================================================
