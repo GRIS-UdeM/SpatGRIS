@@ -352,37 +352,15 @@ static void sortSpeakers2d(std::array<LoudSpeaker, MAX_NUM_SPEAKERS> & speakers,
                            std::array<int, MAX_NUM_SPEAKERS> & sortedSpeakers,
                            int const numSpeakers)
 {
-    // TODO: this whole function needs to be rewritten
+    for (auto & speaker : speakers) {
+        speaker.angles.azimuth = speaker.angles.azimuth.centered();
+    }
 
-    int i, j, index = 0;
-    float tmp, tmp_azi;
+    std::iota(sortedSpeakers.begin(), sortedSpeakers.begin() + numSpeakers, 0);
 
-    /* Transforming angles between -180 and 180. */
-    for (i = 0; i < numSpeakers; i++) {
-        speakers[i].coords = speakers[i].angles.toCartesian();
-        speakers[i].angles.azimuth = degrees_t{ std::acos(speakers[i].coords.x) }; // TODO: weird
-        if (std::abs(speakers[i].coords.y) <= 0.001)
-            tmp = 1.0;
-        else
-            tmp = speakers[i].coords.y / std::abs(speakers[i].coords.y);
-        speakers[i].angles.azimuth *= tmp;
-    }
-    for (i = 0; i < numSpeakers; i++) {
-        tmp = 2000;
-        for (j = 0; j < numSpeakers; j++) {
-            if (speakers[j].angles.azimuth.get() <= tmp) {
-                tmp = speakers[j].angles.azimuth.get();
-                index = j;
-            }
-        }
-        sortedSpeakers[i] = index;
-        tmp_azi = speakers[index].angles.azimuth.get();
-        speakers[index].angles.azimuth = degrees_t{ tmp_azi + 4000.0f };
-    }
-    for (i = 0; i < numSpeakers; i++) {
-        tmp_azi = speakers[i].angles.azimuth.get();
-        speakers[i].angles.azimuth = degrees_t{ tmp_azi - 4000.0f };
-    }
+    std::sort(sortedSpeakers.begin(), sortedSpeakers.begin() + numSpeakers, [&](int const a, int const b) {
+        return speakers[a].angles.azimuth < speakers[b].angles.azimuth;
+    });
 }
 
 //==============================================================================
