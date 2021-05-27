@@ -436,7 +436,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
 
             degrees_t azimuth{ 360.0f / narrow<float>(mNumOfSpeakersTextEditor.getText().getIntValue())
                                    * narrow<float>(i)
-                               + mOffsetAngleTextEditor.getText().getFloatValue() };
+                               - mOffsetAngleTextEditor.getText().getFloatValue() + 90.0f };
             azimuth = azimuth.centered();
             degrees_t const zenith{ mZenithTextEditor.getText().getFloatValue() };
             auto const radius{ mRadiusTextEditor.getText().getFloatValue() };
