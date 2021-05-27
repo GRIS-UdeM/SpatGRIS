@@ -555,6 +555,26 @@ bool MainContentComponent::spatModeChanged(SpatMode const spatMode, LoadSpeakerS
 }
 
 //==============================================================================
+void MainContentComponent::cubeAttenuationDbChanged(dbfs_t const value)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    mData.project.lbapDistanceAttenuationData.attenuation = value;
+    updateAudioProcessor();
+}
+
+//==============================================================================
+void MainContentComponent::cubeAttenuationHzChanged(hz_t const value)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    mData.project.lbapDistanceAttenuationData.freq = value;
+    updateAudioProcessor();
+}
+
+//==============================================================================
 void MainContentComponent::numSourcesChanged(int const numSources)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -1183,28 +1203,6 @@ void MainContentComponent::updatePeaks()
         ticket->get() = gainToAlpha(peak);
         exchanger.setMostRecent(ticket);
     }
-}
-
-//==============================================================================
-void MainContentComponent::setLbapAttenuationDb(dbfs_t const attenuation)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-    juce::ScopedWriteLock const lock{ mLock };
-
-    mData.project.lbapDistanceAttenuationData.attenuation = attenuation;
-
-    updateAudioProcessor();
-}
-
-//==============================================================================
-void MainContentComponent::setLbapAttenuationFreq(hz_t const freq)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-    juce::ScopedWriteLock const lock{ mLock };
-
-    mData.project.lbapDistanceAttenuationData.freq = freq;
-
-    updateAudioProcessor();
 }
 
 //==============================================================================
@@ -1861,6 +1859,11 @@ bool MainContentComponent::loadSpeakerSetup(SpeakerSetup speakerSetup,
 
     if (spatMode == SpatMode::lbap || spatMode == SpatMode::vbap) {
         mData.appData.lastLbapOrVbapSpeakerSetup = filePath;
+    }
+
+    if (spatMode == SpatMode::lbap) {
+        mControlPanel->setCubeAttenuationDb(mData.project.lbapDistanceAttenuationData.attenuation);
+        mControlPanel->setCubeAttenuationHz(mData.project.lbapDistanceAttenuationData.freq);
     }
 
     mSpatAlgorithm = AbstractSpatAlgorithm::make(spatMode, mData.speakerSetup.speakers);

@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "MinSizedComponent.hpp"
+#include <JuceHeader.h>
 
 class GrisLookAndFeel;
 class AbstractVuMeterComponent;

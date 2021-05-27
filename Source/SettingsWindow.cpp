@@ -100,19 +100,6 @@ SettingsComponent::SettingsComponent(MainContentComponent & parent,
     addAndMakeVisible(mOscInputPortTextEditor);
 
     //==============================================================================
-    initSectionLabel(mCubeSectionLabel);
-
-    auto const attenuationDbIndex{ attenuationDbToComboBoxIndex(lbapData.attenuation) };
-    jassert(attenuationDbIndex);
-    initLabel(mDistanceDbLabel);
-    initComboBox(mDistanceDbCombo, ATTENUATION_DB_STRINGS, attenuationDbIndex.value_or(0));
-
-    auto const attenuationFreqIndex{ attenuationFreqToComboBoxIndex(lbapData.freq) };
-    jassert(attenuationFreqIndex);
-    initLabel(mDistanceCutoffLabel);
-    initComboBox(mDistanceCutoffCombo, ATTENUATION_FREQUENCY_STRINGS, attenuationFreqIndex.value_or(0));
-
-    //==============================================================================
     mSaveSettingsButton.setButtonText("Save");
     mSaveSettingsButton.setBounds(0, 0, RIGHT_COL_WIDTH / 2, COMPONENT_HEIGHT);
     mSaveSettingsButton.addListener(this);
@@ -176,18 +163,6 @@ void SettingsComponent::placeComponents()
 
     mOscInputPortLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
     mOscInputPortTextEditor.setTopLeftPosition(RIGHT_COL_START, yPosition);
-    skipSection();
-
-    //==============================================================================
-    mCubeSectionLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
-    skip();
-
-    mDistanceDbLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
-    mDistanceDbCombo.setTopLeftPosition(RIGHT_COL_START, yPosition);
-    skip();
-
-    mDistanceCutoffLabel.setTopLeftPosition(LEFT_COL_START, yPosition);
-    mDistanceCutoffCombo.setTopLeftPosition(RIGHT_COL_START, yPosition);
     skipSection();
 
     mSaveSettingsButton.setTopRightPosition(RIGHT_COL_START + RIGHT_COL_WIDTH, yPosition);
@@ -289,12 +264,6 @@ void SettingsComponent::comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged)
     } else if (comboBoxThatHasChanged == &mBufferSizeCombo) {
         setup.bufferSize = mBufferSizeCombo.getText().getIntValue();
         audioDeviceManager.setAudioDeviceSetup(setup, true);
-    } else if (comboBoxThatHasChanged == &mDistanceDbCombo) {
-        dbfs_t const attenuation{ mDistanceDbCombo.getText().getFloatValue() };
-        mMainContentComponent.setLbapAttenuationDb(attenuation);
-    } else if (comboBoxThatHasChanged == &mDistanceCutoffCombo) {
-        hz_t const freq{ mDistanceCutoffCombo.getText().getFloatValue() };
-        mMainContentComponent.setLbapAttenuationFreq(freq);
     } else {
         jassertfalse;
     }

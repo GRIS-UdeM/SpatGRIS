@@ -73,15 +73,6 @@ class SettingsComponent final
     juce::Label mOscInputPortLabel{ "", "OSC Input Port :" };
     juce::TextEditor mOscInputPortTextEditor{};
 
-    //==============================================================================
-    juce::Label mCubeSectionLabel{ "", "CUBE Distance Settings" };
-
-    juce::Label mDistanceDbLabel{ "", "Attenuation (dB) :" };
-    juce::ComboBox mDistanceDbCombo;
-
-    juce::Label mDistanceCutoffLabel{ "", "Attenuation (Hz) :" };
-    juce::ComboBox mDistanceCutoffCombo;
-
     juce::TextButton mSaveSettingsButton;
 
 public:

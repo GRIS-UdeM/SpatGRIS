@@ -159,9 +159,6 @@ public:
 
     auto const & getData() const noexcept { return mData; }
 
-    void setLbapAttenuationDb(dbfs_t attenuation);
-    void setLbapAttenuationFreq(hz_t freq);
-
     void refreshSourceVuMeterComponents();
     void refreshSpeakerVuMeterComponents();
 
@@ -204,6 +201,8 @@ public:
 
     void spatModeChanged(SpatMode spatMode) override;
     [[nodiscard]] bool spatModeChanged(SpatMode spatMode, LoadSpeakerSetupOption option);
+    void cubeAttenuationDbChanged(dbfs_t value) override;
+    void cubeAttenuationHzChanged(hz_t value) override;
 
     // Speakers.
     [[nodiscard]] auto const & getSpeakersDisplayOrder() const { return mData.speakerSetup.order; }
@@ -255,38 +254,6 @@ public:
     void recordButtonPressed() override;
 
 private:
-    //==============================================================================
-    // Widget creation helpers.
-    juce::TextEditor * addTextEditor(juce::String const & s,
-                                     juce::String const & emptyS,
-                                     juce::String const & tooltip,
-                                     int x,
-                                     int y,
-                                     int w,
-                                     int h,
-                                     juce::Component * into,
-                                     int wLab = 80);
-    juce::Label * addLabel(const juce::String & s,
-                           const juce::String & tooltip,
-                           int x,
-                           int y,
-                           int w,
-                           int h,
-                           Component * into) const;
-    juce::TextButton *
-        addButton(const juce::String & s, const juce::String & tooltip, int x, int y, int w, int h, Component * into);
-    juce::ToggleButton * addToggleButton(const juce::String & s,
-                                         const juce::String & tooltip,
-                                         int x,
-                                         int y,
-                                         int w,
-                                         int h,
-                                         Component * into,
-                                         bool toggle = false);
-    juce::Slider *
-        addSlider(const juce::String & s, const juce::String & tooltip, int x, int y, int w, int h, Component * into);
-    juce::ComboBox *
-        addComboBox(const juce::String & s, const juce::String & tooltip, int x, int y, int w, int h, Component * into);
     //==============================================================================
     // MenuBar handlers.
     void handleNewProject();

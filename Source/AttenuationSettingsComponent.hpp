@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS.
 
- Developers: Samuel BÃ©land, Olivier BÃ©langer, Nicolas Masson
+ Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
 
  SpatGRIS is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -20,14 +20,14 @@
 #pragma once
 
 #include "MinSizedComponent.hpp"
-#include "SpatMode.hpp"
+#include "StrongTypes.hpp"
 
 class GrisLookAndFeel;
 
 //==============================================================================
-class SpatModeComponent final
+class AttenuationSettingsComponent final
     : public MinSizedComponent
-    , private juce::TextButton::Listener
+    , public juce::ComboBox::Listener
 {
 public:
     //==============================================================================
@@ -42,7 +42,8 @@ public:
         Listener & operator=(Listener const &) = delete;
         Listener & operator=(Listener &&) = delete;
         //==============================================================================
-        virtual void handleSpatModeChanged(SpatMode spatMode) = 0;
+        virtual void cubeAttenuationDbChanged(dbfs_t value) = 0;
+        virtual void cubeAttenuationHzChanged(hz_t value) = 0;
 
     private:
         //==============================================================================
@@ -51,30 +52,41 @@ public:
 
 private:
     //==============================================================================
-    SpatMode mSpatMode{};
+    struct Infos {
+        juce::Array<dbfs_t> dbValues{};
+        juce::StringArray dbStrings{};
+        juce::Array<hz_t> hzValues{};
+        juce::StringArray hzStrings{};
+    };
+    //==============================================================================
     Listener & mListener;
+    GrisLookAndFeel & mLookAndFeel;
     juce::Label mLabel{};
-    juce::OwnedArray<juce::Button> mButtons{};
+    juce::ComboBox mDbCombobox{};
+    juce::ComboBox mHzComboBox{};
+    Infos mComboboxInfos{};
 
 public:
     //==============================================================================
-    explicit SpatModeComponent(Listener & listener, GrisLookAndFeel & lookAndFeel);
-    ~SpatModeComponent() override = default;
+    AttenuationSettingsComponent(Listener & listener, GrisLookAndFeel & lookAndFeel);
+    ~AttenuationSettingsComponent() override = default;
     //==============================================================================
-    SpatModeComponent(SpatModeComponent const &) = delete;
-    SpatModeComponent(SpatModeComponent &&) = delete;
-    SpatModeComponent & operator=(SpatModeComponent const &) = delete;
-    SpatModeComponent & operator=(SpatModeComponent &&) = delete;
+    AttenuationSettingsComponent(AttenuationSettingsComponent const &) = delete;
+    AttenuationSettingsComponent(AttenuationSettingsComponent &&) = delete;
+    AttenuationSettingsComponent & operator=(AttenuationSettingsComponent const &) = delete;
+    AttenuationSettingsComponent & operator=(AttenuationSettingsComponent &&) = delete;
     //==============================================================================
-    void setSpatMode(SpatMode spatMode);
-    SpatMode getSpatMode() const noexcept { return mSpatMode; }
+    void setAttenuationDb(dbfs_t value);
+    void setAttenuationHz(hz_t value);
     //==============================================================================
-    void buttonClicked(juce::Button * button) override;
     void resized() override;
+    void comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged) override;
     [[nodiscard]] int getMinWidth() const noexcept override;
     [[nodiscard]] int getMinHeight() const noexcept override;
 
 private:
     //==============================================================================
-    JUCE_LEAK_DETECTOR(SpatModeComponent)
+    static Infos getInfos();
+    //==============================================================================
+    JUCE_LEAK_DETECTOR(AttenuationSettingsComponent)
 };

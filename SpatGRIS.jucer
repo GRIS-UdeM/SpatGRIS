@@ -134,6 +134,10 @@
                 file="Source/SettingsWindow.hpp"/>
         </GROUP>
         <GROUP id="{C6903A38-7C1A-A838-2840-26A1ED5DB75F}" name="Widgets">
+          <FILE id="Ue6l3Z" name="AttenuationSettingsComponent.cpp" compile="1"
+                resource="0" file="Source/AttenuationSettingsComponent.cpp"/>
+          <FILE id="TN6PZv" name="AttenuationSettingsComponent.hpp" compile="0"
+                resource="0" file="Source/AttenuationSettingsComponent.hpp"/>
           <FILE id="b3MbJj" name="Box.cpp" compile="1" resource="0" file="Source/Box.cpp"/>
           <FILE id="SP61FZ" name="Box.hpp" compile="0" resource="0" file="Source/Box.hpp"/>
           <FILE id="uXxKAd" name="ControlPanel.cpp" compile="1" resource="0"

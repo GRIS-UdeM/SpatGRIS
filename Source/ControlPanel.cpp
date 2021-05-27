@@ -25,14 +25,7 @@ ControlPanel::ControlPanel(Listener & listener, GrisLookAndFeel & lookAndFeel)
     , mLookAndFeel(lookAndFeel)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-
-    mLayout.addSection(&mMasterGainSlider).withChildMinSize();
-    mLayout.addSection(&mInterpolationSlider).withChildMinSize().withRightPadding(15);
-    mLayout.addSection(&mSpatModeComponent).withChildMinSize().withRightPadding(15);
-    mLayout.addSection(&mNumSourcesTextEditor).withChildMinSize().withRightPadding(15);
-    mLayout.addSection(nullptr).withRelativeSize(1.0f);
-    mLayout.addSection(&mRecordButton).withChildMinSize().withRightPadding(20);
-    ;
+    refreshLayout();
     addAndMakeVisible(mLayout);
 }
 
@@ -54,7 +47,25 @@ void ControlPanel::setInterpolation(float const interpolation)
 void ControlPanel::setSpatMode(SpatMode const spatMode)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
+    if (spatMode == mSpatModeComponent.getSpatMode()) {
+        return;
+    }
     mSpatModeComponent.setSpatMode(spatMode);
+    refreshLayout();
+}
+
+//==============================================================================
+void ControlPanel::setCubeAttenuationDb(dbfs_t const value)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    mCubeSettingsComponent.setAttenuationDb(value);
+}
+
+//==============================================================================
+void ControlPanel::setCubeAttenuationHz(hz_t const value)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    mCubeSettingsComponent.setAttenuationHz(value);
 }
 
 //==============================================================================
@@ -82,6 +93,7 @@ void ControlPanel::handleSpatModeChanged(SpatMode const spatMode)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     mListener.spatModeChanged(spatMode);
+    refreshLayout();
 }
 
 //==============================================================================
@@ -110,4 +122,41 @@ void ControlPanel::recordButtonPressed()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     mListener.recordButtonPressed();
+}
+
+//==============================================================================
+void ControlPanel::cubeAttenuationDbChanged(dbfs_t const value)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    mListener.cubeAttenuationDbChanged(value);
+}
+
+//==============================================================================
+void ControlPanel::cubeAttenuationHzChanged(hz_t const value)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    mListener.cubeAttenuationHzChanged(value);
+}
+
+//==============================================================================
+void ControlPanel::refreshLayout()
+{
+    mLayout.clear();
+
+    mLayout.addSection(&mMasterGainSlider).withChildMinSize();
+    mLayout.addSection(&mInterpolationSlider).withChildMinSize().withRightPadding(15);
+    mLayout.addSection(&mSpatModeComponent).withChildMinSize().withRightPadding(15);
+
+    if (mSpatModeComponent.getSpatMode() == SpatMode::lbap) {
+        mLayout.addSection(&mCubeSettingsComponent)
+            .withChildMinSize()
+            .withRightPadding(15)
+            .withTopPadding(10)
+            .withBottomPadding(10);
+    }
+
+    mLayout.addSection(&mNumSourcesTextEditor).withChildMinSize().withRightPadding(15);
+    mLayout.addSection(nullptr).withRelativeSize(1.0f);
+    mLayout.addSection(&mRecordButton).withChildMinSize().withRightPadding(20);
+    mLayout.resized();
 }
