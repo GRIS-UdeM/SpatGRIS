@@ -26,7 +26,7 @@ Configuration::Configuration()
 {
     // App user settings storage file.
     juce::PropertiesFile::Options options{};
-    options.applicationName = juce::JUCEApplicationBase::getInstance()->getApplicationName();
+    options.applicationName = "SpatGRIS3";
     options.commonToAllUsers = false;
     options.filenameSuffix = "xml";
     options.folderName = "GRIS";
