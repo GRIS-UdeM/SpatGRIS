@@ -108,6 +108,7 @@ struct SourceAudioConfig {
 //==============================================================================
 struct AudioConfig {
     SpatMode spatMode{};
+    tl::optional<StereoMode> stereoMode{};
     float masterGain{};
     float spatGainsInterpolation{};
 
@@ -158,27 +159,4 @@ struct AudioData {
     // Live audio thread -> message thread
     AtomicExchanger<SourcePeaks> sourcePeaks{};
     AtomicExchanger<SpeakerPeaks> speakerPeaks{};
-};
-
-//==============================================================================
-// LOGIC/GUI SIDE
-//==============================================================================
-
-//==============================================================================
-// Spat algorithms side
-//=============================================================================
-
-static auto constexpr LBAP_MATRIX_SIZE = 64;
-using matrix_t = std::array<std::array<float, LBAP_MATRIX_SIZE + 1>, LBAP_MATRIX_SIZE + 1>;
-
-struct LbapLayer {
-    int id{};
-    radians_t elevation{};
-    float gainExponent{};
-    std::vector<matrix_t> amplitudeMatrix{};
-};
-
-struct LbapData {
-    LbapSourceAttenuationState attenuationData{};
-    PolarVector lastVector{};
 };

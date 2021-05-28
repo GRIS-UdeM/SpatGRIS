@@ -365,7 +365,7 @@ void MainContentComponent::handleOpenSpeakerSetup()
         return;
     }
 
-    auto const initialFile{ mData.appData.lastLbapOrVbapSpeakerSetup };
+    auto const initialFile{ mData.appData.lastSpeakerSetup };
 
     juce::FileChooser fc{ "Choose a file to open...", initialFile, "*.xml", true };
 
@@ -419,7 +419,7 @@ void MainContentComponent::handleShowSpeakerEditWindow()
     if (mEditSpeakersWindow == nullptr) {
         auto const windowName = juce::String("Speakers Setup Edition - ")
                                 + juce::String(SPAT_MODE_STRINGS[static_cast<int>(mData.appData.spatMode)]) + " - "
-                                + mData.appData.lastLbapOrVbapSpeakerSetup;
+                                + mData.appData.lastSpeakerSetup;
         mEditSpeakersWindow
             = std::make_unique<EditSpeakersWindow>(windowName, mLookAndFeel, *this, mData.appData.lastProject);
         mEditSpeakersWindow->setBounds(result);
@@ -544,7 +544,7 @@ bool MainContentComponent::spatModeChanged(SpatMode const spatMode, LoadSpeakerS
     switch (spatMode) {
     case SpatMode::vbap:
     case SpatMode::lbap:
-        return loadSpeakerSetup(mData.appData.lastLbapOrVbapSpeakerSetup, spatMode, option);
+        return loadSpeakerSetup(mData.appData.lastSpeakerSetup, spatMode, option);
     case SpatMode::hrtfVbap:
         return loadSpeakerSetup(BINAURAL_SPEAKER_SETUP_FILE, SpatMode::hrtfVbap, option);
     case SpatMode::stereo:
@@ -1118,9 +1118,7 @@ bool MainContentComponent::isSpeakerSetupModified() const
         jassertfalse;
     }
 
-    auto const savedElement{
-        juce::XmlDocument{ juce::File{ mData.appData.lastLbapOrVbapSpeakerSetup } }.getDocumentElement()
-    };
+    auto const savedElement{ juce::XmlDocument{ juce::File{ mData.appData.lastSpeakerSetup } }.getDocumentElement() };
     jassert(savedElement);
     if (!savedElement) {
         return true;
@@ -1860,7 +1858,7 @@ bool MainContentComponent::loadSpeakerSetup(SpeakerSetup speakerSetup,
     mData.appData.spatMode = spatMode;
 
     if (spatMode == SpatMode::lbap || spatMode == SpatMode::vbap) {
-        mData.appData.lastLbapOrVbapSpeakerSetup = filePath;
+        mData.appData.lastSpeakerSetup = filePath;
     }
 
     if (spatMode == SpatMode::lbap) {
@@ -1879,7 +1877,7 @@ bool MainContentComponent::loadSpeakerSetup(SpeakerSetup speakerSetup,
     if (mEditSpeakersWindow != nullptr) {
         auto const windowName{ juce::String("Speakers Setup Edition - ")
                                + juce::String(SPAT_MODE_STRINGS[static_cast<int>(spatMode)]) + juce::String(" - ")
-                               + mData.appData.lastLbapOrVbapSpeakerSetup };
+                               + mData.appData.lastSpeakerSetup };
         mEditSpeakersWindow->setName(windowName);
     }
 
@@ -1942,7 +1940,7 @@ void MainContentComponent::handleSaveSpeakerSetup()
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
-    [[maybe_unused]] auto const success{ saveSpeakerSetup(mData.appData.lastLbapOrVbapSpeakerSetup) };
+    [[maybe_unused]] auto const success{ saveSpeakerSetup(mData.appData.lastSpeakerSetup) };
     jassert(success);
 }
 
@@ -1998,11 +1996,10 @@ bool MainContentComponent::saveSpeakerSetup(tl::optional<juce::File> maybeFile)
     }
 
     if (!maybeFile) {
-        juce::File const lastSpeakerSetup{ mData.appData.lastLbapOrVbapSpeakerSetup };
-        auto const initialFile{ lastSpeakerSetup == DEFAULT_SPEAKER_SETUP_FILE
-                                    ? juce::File::getSpecialLocation(
-                                        juce::File::SpecialLocationType::userDesktopDirectory)
-                                    : mData.appData.lastLbapOrVbapSpeakerSetup };
+        juce::File const lastSpeakerSetup{ mData.appData.lastSpeakerSetup };
+        auto const initialFile{ lastSpeakerSetup == DEFAULT_SPEAKER_SETUP_FILE ? juce::File::getSpecialLocation(
+                                    juce::File::SpecialLocationType::userDesktopDirectory)
+                                                                               : mData.appData.lastSpeakerSetup };
         juce::FileChooser fc{ "Choose file to save to...", initialFile, "*.xml", true, false, this };
         if (!fc.browseForFileToSave(true)) {
             return false;
@@ -2018,7 +2015,7 @@ bool MainContentComponent::saveSpeakerSetup(tl::optional<juce::File> maybeFile)
     jassert(success);
 
     if (success) {
-        mData.appData.lastLbapOrVbapSpeakerSetup = maybeFile->getFullPathName();
+        mData.appData.lastSpeakerSetup = maybeFile->getFullPathName();
     }
 
     return success;

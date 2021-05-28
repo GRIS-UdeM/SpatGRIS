@@ -23,10 +23,15 @@
 
 #include "lib/tl/optional.hpp"
 
-enum class SpatMode { vbap = 0, lbap, hrtfVbap, stereo };
+enum class SpatMode { vbap = 0, lbap };
+enum class StereoMode { hrtf, stereo };
 //==============================================================================
 extern juce::StringArray const SPAT_MODE_STRINGS;
 extern juce::StringArray const SPAT_MODE_TOOLTIPS;
+extern juce::StringArray const STEREO_MODE_STRINGS;
+extern juce::StringArray const STEREO_MODE_TOOLTIPS;
 //==============================================================================
 juce::String spatModeToString(SpatMode mode);
 tl::optional<SpatMode> stringToSpatMode(juce::String const & string);
+juce::String stereoModeToString(StereoMode mode);
+tl::optional<StereoMode> stringToStereoMode(juce::String const & string);

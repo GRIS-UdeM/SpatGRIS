@@ -21,5 +21,5 @@
 
 #include "LogicStrucs.hpp"
 
-tl::optional<std::pair<SpeakerSetup, SpatMode>> readLegacySpeakerSetup(juce::XmlElement const & xml);
+tl::optional<SpeakerSetup> readLegacySpeakerSetup(juce::XmlElement const & xml);
 tl::optional<SpatGrisProjectData> readLegacyProjectFile(juce::XmlElement const & xml);

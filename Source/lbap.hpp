@@ -40,6 +40,9 @@
 
 struct SpeakerData;
 
+static auto constexpr LBAP_MATRIX_SIZE = 64;
+using matrix_t = std::array<std::array<float, LBAP_MATRIX_SIZE + 1>, LBAP_MATRIX_SIZE + 1>;
+
 /** \brief A structure containing coordinates of a speaker in the field.
  *
  * This structure is used to hold informations about a given speaker in
