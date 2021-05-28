@@ -414,23 +414,32 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer, SpeakerAudio
         fillWithPinkNoise(data.data(), numSamples, narrow<int>(data.size()), *mAudioData.config->pinkNoiseGain);
     } else {
         // Process spat algorithm
-        switch (mAudioData.config->spatMode) {
-        case SpatMode::vbap:
-            processVbap(sourceBuffer, speakerBuffer, sourcePeaks);
-            break;
-        case SpatMode::lbap:
-            processLbap(sourceBuffer, speakerBuffer, sourcePeaks);
-            break;
-        case SpatMode::hrtfVbap:
-            processVBapHrtf(sourceBuffer, speakerBuffer, sourcePeaks);
-            break;
-        case SpatMode::stereo:
-            processStereo(sourceBuffer, speakerBuffer, sourcePeaks);
-            break;
-        default:
+        auto const processSpat = [&]() {
+            auto const & stereoMode{ mAudioData.config->stereoMode };
+            if (stereoMode) {
+                switch (*stereoMode) {
+                case StereoMode::hrtf:
+                    processVBapHrtf(sourceBuffer, speakerBuffer, sourcePeaks);
+                    return;
+                case StereoMode::stereo:
+                    processStereo(sourceBuffer, speakerBuffer, sourcePeaks);
+                    return;
+                }
+                jassertfalse;
+            }
+
+            switch (mAudioData.config->spatMode) {
+            case SpatMode::vbap:
+                processVbap(sourceBuffer, speakerBuffer, sourcePeaks);
+                return;
+            case SpatMode::lbap:
+                processLbap(sourceBuffer, speakerBuffer, sourcePeaks);
+                return;
+            }
             jassertfalse;
-            break;
-        }
+        };
+
+        processSpat();
 
         // Process direct outs
         for (auto const & directOutPair : mAudioData.config->directOutPairs) {

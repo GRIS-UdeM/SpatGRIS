@@ -35,10 +35,6 @@
                 file="Source/AbstractSpatAlgorithm.cpp"/>
           <FILE id="SuIy1P" name="AbstractSpatAlgorithm.hpp" compile="0" resource="0"
                 file="Source/AbstractSpatAlgorithm.hpp"/>
-          <FILE id="Gs0OUf" name="HrtfSpatAlgorithm.cpp" compile="1" resource="0"
-                file="Source/HrtfSpatAlgorithm.cpp"/>
-          <FILE id="colUAA" name="HrtfSpatAlgorithm.hpp" compile="0" resource="0"
-                file="Source/HrtfSpatAlgorithm.hpp"/>
           <FILE id="wPgW0E" name="LbapSpatAlgorithm.cpp" compile="1" resource="0"
                 file="Source/LbapSpatAlgorithm.cpp"/>
           <FILE id="SRzTxM" name="LbapSpatAlgorithm.hpp" compile="0" resource="0"

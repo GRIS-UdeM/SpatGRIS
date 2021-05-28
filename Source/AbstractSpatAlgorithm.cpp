@@ -19,7 +19,6 @@
 
 #include "AbstractSpatAlgorithm.hpp"
 
-#include "HrtfSpatAlgorithm.hpp"
 #include "LbapSpatAlgorithm.hpp"
 #include "StereoSpatAlgorithm.hpp"
 #include "VbapSpatAlgorithm.hpp"
@@ -29,22 +28,32 @@ std::unique_ptr<AbstractSpatAlgorithm> AbstractSpatAlgorithm::make(SpatMode cons
                                                                    tl::optional<StereoMode> const stereoMode,
                                                                    SpeakersData const & speakers)
 {
+    static auto const FROM_SPAT_MODE
+        = [](SpatMode const spatMode, SpeakersData const & speakers) -> std::unique_ptr<AbstractSpatAlgorithm> {
+        switch (spatMode) {
+        case SpatMode::vbap:
+            return std::make_unique<VbapSpatAlgorithm>(speakers);
+        case SpatMode::lbap:
+            return std::make_unique<LbapSpatAlgorithm>(speakers);
+        }
+        jassertfalse;
+        return nullptr;
+    };
+
     if (stereoMode) {
         switch (*stereoMode) {
-        case StereoMode::hrtf:
-            return std::make_unique<HrtfSpatAlgorithm>(spatMode);
+        case StereoMode::hrtf: {
+            auto const xml{ juce::XmlDocument{ BINAURAL_SPEAKER_SETUP_FILE }.getDocumentElement() };
+            jassert(xml);
+            auto const setup{ SpeakerSetup::fromXml(*xml) };
+            jassert(setup);
+            return FROM_SPAT_MODE(spatMode, setup->speakers);
+        }
         case StereoMode::stereo:
             return std::make_unique<StereoSpatAlgorithm>();
         }
         jassertfalse;
     }
 
-    switch (spatMode) {
-    case SpatMode::vbap:
-        return std::make_unique<VbapSpatAlgorithm>(speakers);
-    case SpatMode::lbap:
-        return std::make_unique<LbapSpatAlgorithm>(speakers);
-    }
-    jassertfalse;
-    return nullptr;
+    return FROM_SPAT_MODE(spatMode, speakers);
 }
