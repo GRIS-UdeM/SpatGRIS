@@ -25,28 +25,32 @@
     <GROUP id="{534A7161-2617-F3B1-0706-CC62D7A3FE71}" name="Source">
       <GROUP id="{D059D036-0ECD-ACF5-4465-BDC1A866C55E}" name="Audio">
         <GROUP id="{FB6EEEB4-BE6B-EB4A-201D-755A3CFACAAC}" name="spat">
-          <FILE id="CKR5UT" name="VbapSpatAlgorithm.cpp" compile="1" resource="0"
-                file="Source/VbapSpatAlgorithm.cpp"/>
-          <FILE id="HLMRlF" name="VbapSpatAlgorithm.hpp" compile="0" resource="0"
-                file="Source/VbapSpatAlgorithm.hpp"/>
           <GROUP id="{F536EC3E-463E-F7C1-C73E-F95B29576CC6}" name="implementations">
             <FILE id="zKQ5WK" name="lbap.cpp" compile="1" resource="0" file="Source/lbap.cpp"/>
             <FILE id="G3SJU6" name="lbap.hpp" compile="0" resource="0" file="Source/lbap.hpp"/>
             <FILE id="ihjJqS" name="vbap.cpp" compile="1" resource="0" file="Source/vbap.cpp"/>
             <FILE id="gyI4aY" name="vbap.hpp" compile="0" resource="0" file="Source/vbap.hpp"/>
           </GROUP>
-          <FILE id="wPgW0E" name="LbapSpatAlgorithm.cpp" compile="1" resource="0"
-                file="Source/LbapSpatAlgorithm.cpp"/>
-          <FILE id="SRzTxM" name="LbapSpatAlgorithm.hpp" compile="0" resource="0"
-                file="Source/LbapSpatAlgorithm.hpp"/>
           <FILE id="NWnli2" name="AbstractSpatAlgorithm.cpp" compile="1" resource="0"
                 file="Source/AbstractSpatAlgorithm.cpp"/>
           <FILE id="SuIy1P" name="AbstractSpatAlgorithm.hpp" compile="0" resource="0"
                 file="Source/AbstractSpatAlgorithm.hpp"/>
+          <FILE id="Gs0OUf" name="HrtfSpatAlgorithm.cpp" compile="1" resource="0"
+                file="Source/HrtfSpatAlgorithm.cpp"/>
+          <FILE id="colUAA" name="HrtfSpatAlgorithm.hpp" compile="0" resource="0"
+                file="Source/HrtfSpatAlgorithm.hpp"/>
+          <FILE id="wPgW0E" name="LbapSpatAlgorithm.cpp" compile="1" resource="0"
+                file="Source/LbapSpatAlgorithm.cpp"/>
+          <FILE id="SRzTxM" name="LbapSpatAlgorithm.hpp" compile="0" resource="0"
+                file="Source/LbapSpatAlgorithm.hpp"/>
           <FILE id="a5pP1T" name="StereoSpatAlgorithm.cpp" compile="1" resource="0"
                 file="Source/StereoSpatAlgorithm.cpp"/>
           <FILE id="VHmR6h" name="StereoSpatAlgorithm.hpp" compile="0" resource="0"
                 file="Source/StereoSpatAlgorithm.hpp"/>
+          <FILE id="CKR5UT" name="VbapSpatAlgorithm.cpp" compile="1" resource="0"
+                file="Source/VbapSpatAlgorithm.cpp"/>
+          <FILE id="HLMRlF" name="VbapSpatAlgorithm.hpp" compile="0" resource="0"
+                file="Source/VbapSpatAlgorithm.hpp"/>
         </GROUP>
         <FILE id="S7vdPe" name="AudioManager.cpp" compile="1" resource="0"
               file="Source/AudioManager.cpp"/>
