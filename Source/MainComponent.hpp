@@ -162,7 +162,7 @@ public:
     void refreshSourceVuMeterComponents();
     void refreshSpeakerVuMeterComponents();
 
-    void removeInvalidDirectOuts();
+    void warnIfDirectOutMismatch();
 
     auto const & getLock() const { return mLock; }
 

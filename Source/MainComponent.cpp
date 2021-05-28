@@ -304,7 +304,7 @@ bool MainContentComponent::loadProject(juce::File const & file,
     mControlPanel->setInterpolation(mData.project.spatGainsInterpolation);
 
     if (loadProjectOption == LoadProjectOption::removeInvalidDirectOuts) {
-        removeInvalidDirectOuts();
+        warnIfDirectOutMismatch();
     }
 
     updateAudioProcessor();
@@ -1248,12 +1248,12 @@ void MainContentComponent::refreshSpeakerVuMeterComponents()
 }
 
 //==============================================================================
-void MainContentComponent::removeInvalidDirectOuts()
+void MainContentComponent::warnIfDirectOutMismatch()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-    juce::ScopedWriteLock const lock{ mLock };
+    juce::ScopedReadLock const lock{ mLock };
 
-    bool madeChange{};
+    static bool errorShown{};
 
     for (auto & source : mData.project.sources) {
         auto & directOut{ source.value->directOut };
@@ -1265,19 +1265,21 @@ void MainContentComponent::removeInvalidDirectOuts()
             continue;
         }
 
-        directOut = tl::nullopt;
-        madeChange = true;
-    }
+        if (errorShown) {
+            return;
+        }
 
-    if (madeChange) {
-        refreshSourceVuMeterComponents();
         juce::AlertWindow::showMessageBoxAsync(
             juce::AlertWindow::AlertIconType::WarningIcon,
-            "Dropped direct out",
-            "One or more direct outs were disabled after their speakers became unavailable.",
+            "Direct Out Mismatch",
+            "Some of your selected direct out channels don't exist in the current speaker setup.",
             "Ok",
             this);
+        errorShown = true;
+        return;
     }
+
+    errorShown = false;
 }
 
 //==============================================================================
@@ -1698,7 +1700,7 @@ void MainContentComponent::removeSpeaker(output_patch_t const outputPatch)
     mData.speakerSetup.order.removeFirstMatchingValue(outputPatch);
     mData.speakerSetup.speakers.remove(outputPatch);
 
-    removeInvalidDirectOuts();
+    warnIfDirectOutMismatch();
     updateViewportConfig();
     updateAudioProcessor();
 }
@@ -1718,7 +1720,7 @@ bool MainContentComponent::refreshSpeakers()
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
-    removeInvalidDirectOuts();
+    warnIfDirectOutMismatch();
 
     auto const & speakers{ mData.speakerSetup.speakers };
     auto const numActiveSpeakers{ std::count_if(

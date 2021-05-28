@@ -748,9 +748,28 @@ std::unique_ptr<AudioConfig> SpatGrisData::toAudioConfig() const
         speakerSetup.speakers.cend(),
         [](auto const node) { return node.value->state == PortState::solo; }) };
 
-    for (auto source : project.sources) {
-        if (source.value->directOut && source.value->state != PortState::muted
-            && !(isAtLeastOneSourceSolo && source.value->state != PortState::solo)) {
+    auto const isValidDirectOut = [&](SourceData const & source) {
+        if (!source.directOut) {
+            return false;
+        }
+
+        if (source.state == PortState::muted) {
+            return false;
+        }
+
+        if (isAtLeastOneSourceSolo && source.state != PortState::solo) {
+            return false;
+        }
+
+        if (!speakerSetup.speakers.contains(*source.directOut)) {
+            return false;
+        }
+
+        return true;
+    };
+
+    for (auto const & source : project.sources) {
+        if (isValidDirectOut(*source.value)) {
             result->directOutPairs.add(std::make_pair(source.key, *source.value->directOut));
         }
     }
