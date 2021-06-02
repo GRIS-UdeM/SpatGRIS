@@ -56,6 +56,7 @@ public:
         virtual void masterGainChanged(dbfs_t gain) = 0;
         virtual void interpolationChanged(float interpolation) = 0;
         virtual bool setSpatMode(SpatMode spatMode) = 0;
+        virtual void setStereoMode(tl::optional<StereoMode> stereoMode) = 0;
         virtual void cubeAttenuationDbChanged(dbfs_t value) = 0;
         virtual void cubeAttenuationHzChanged(hz_t value) = 0;
         virtual void numSourcesChanged(int numSources) = 0;
@@ -111,6 +112,7 @@ public:
     int getMinWidth() const noexcept override { return mLayout.getMinWidth(); }
     int getMinHeight() const noexcept override { return mLayout.getMinHeight(); }
     void handleSpatModeChanged(SpatMode spatMode) override;
+    void handleStereoModeChanged(tl::optional<StereoMode> stereoMode) override;
     void sliderMoved(float value, SpatSlider * slider) override;
     void textEditorChanged(juce::String const & value, SpatTextEditor * editor) override;
     void recordButtonPressed() override;

@@ -738,17 +738,31 @@ bool SpeakerSetup::isDomeLike() const noexcept
 }
 
 //==============================================================================
+SpeakersAudioConfig SpeakerSetup::toAudioConfig(double const sampleRate) const noexcept
+{
+    SpeakersAudioConfig result{};
+
+    auto const isAtLeastOnSpeakerSolo{ std::any_of(speakers.cbegin(), speakers.cend(), [](auto const node) {
+        return node.value->state == PortState::solo;
+    }) };
+
+    for (auto const speaker : speakers) {
+        result.add(speaker.key, speaker.value->toConfig(isAtLeastOnSpeakerSolo, sampleRate));
+    }
+
+    return result;
+}
+
+//==============================================================================
 std::unique_ptr<AudioConfig> SpatGrisData::toAudioConfig() const
 {
     auto result{ std::make_unique<AudioConfig>() };
 
+    result->speakersAudioConfig = speakerSetup.toAudioConfig(appData.audioSettings.sampleRate);
+
     auto const isAtLeastOneSourceSolo{ std::any_of(
         project.sources.cbegin(),
         project.sources.cend(),
-        [](auto const node) { return node.value->state == PortState::solo; }) };
-    auto const isAtLeastOnSpeakerSolo{ std::any_of(
-        speakerSetup.speakers.cbegin(),
-        speakerSetup.speakers.cend(),
         [](auto const node) { return node.value->state == PortState::solo; }) };
 
     auto const isValidDirectOut = [&](SourceData const & source) {
@@ -786,11 +800,6 @@ std::unique_ptr<AudioConfig> SpatGrisData::toAudioConfig() const
     result->spatMode = speakerSetup.spatMode;
     result->stereoMode = appData.stereoMode;
     result->spatGainsInterpolation = project.spatGainsInterpolation;
-    for (auto const speaker : speakerSetup.speakers) {
-        result->speakersAudioConfig.add(
-            speaker.key,
-            speaker.value->toConfig(isAtLeastOnSpeakerSolo, appData.audioSettings.sampleRate));
-    }
 
     return result;
 }

@@ -97,6 +97,13 @@ void ControlPanel::handleSpatModeChanged(SpatMode const spatMode)
 }
 
 //==============================================================================
+void ControlPanel::handleStereoModeChanged(tl::optional<StereoMode> const stereoMode)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    mListener.setStereoMode(stereoMode);
+}
+
+//==============================================================================
 void ControlPanel::sliderMoved(float const value, SpatSlider * slider)
 {
     JUCE_ASSERT_MESSAGE_THREAD;

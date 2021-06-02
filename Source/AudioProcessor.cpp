@@ -25,6 +25,7 @@
 #include "Narrow.hpp"
 #include "PinkNoiseGenerator.hpp"
 #include "StaticMap.hpp"
+#include "StrongArray.hpp"
 #include "TaggedAudioBuffer.hpp"
 
 #include <array>
@@ -109,6 +110,18 @@ AudioProcessor::AudioProcessor()
         std::memcpy(hrtf.rightImpulses[i + 14].data(), buffer.getReadPointer(rightChannel), 128);
     }
 
+    // Init temp hrtf buffer
+    juce::Array<output_patch_t> hrtfPatches{};
+    auto const binauralXml{ juce::XmlDocument{ BINAURAL_SPEAKER_SETUP_FILE }.getDocumentElement() };
+    jassert(binauralXml);
+    auto const binauralSpeakerSetup{ SpeakerSetup::fromXml(*binauralXml) };
+    jassert(binauralSpeakerSetup);
+    mAudioData.state.hrtf.speakersAudioConfig
+        = binauralSpeakerSetup->toAudioConfig(48000.0f); // TODO: find a way to update this number!
+    auto speakers{ binauralSpeakerSetup->order };
+    speakers.sort();
+    mAudioData.state.hrtf.speakersBuffer.init(speakers);
+
     // Initialize pink noise
     srand(static_cast<unsigned>(time(nullptr))); // NOLINT(cert-msc51-cpp)
 }
@@ -188,6 +201,7 @@ void AudioProcessor::muteSoloVuMeterGainOut(SpeakerAudioBuffer & speakersBuffer,
 //==============================================================================
 void AudioProcessor::processVbap(SourceAudioBuffer const & inputBuffer,
                                  SpeakerAudioBuffer & outputBuffer,
+                                 SpeakersAudioConfig const &,
                                  SourcePeaks const & sourcePeaks) noexcept
 {
     auto const & gainInterpolation{ mAudioData.config->spatGainsInterpolation };
@@ -199,7 +213,7 @@ void AudioProcessor::processVbap(SourceAudioBuffer const & inputBuffer,
             continue;
         }
         auto & spatDataQueue{ mAudioData.spatData[source.key] };
-        auto * spatDataTicket{ mAudioData.state.spatDataTickets[source.key] };
+        auto *& spatDataTicket{ mAudioData.state.spatDataTickets[source.key] };
         spatDataQueue.getMostRecent(spatDataTicket);
         if (spatDataTicket == nullptr) {
             continue;
@@ -245,6 +259,7 @@ void AudioProcessor::processVbap(SourceAudioBuffer const & inputBuffer,
 //==============================================================================
 void AudioProcessor::processLbap(SourceAudioBuffer & sourcesBuffer,
                                  SpeakerAudioBuffer & speakersBuffer,
+                                 SpeakersAudioConfig const & speakersAudioConfig,
                                  SourcePeaks const & sourcePeaks) noexcept
 {
     auto const & gainInterpolation{ mAudioData.config->spatGainsInterpolation };
@@ -257,7 +272,7 @@ void AudioProcessor::processLbap(SourceAudioBuffer & sourcesBuffer,
         }
 
         auto & spatDataExchanger{ mAudioData.spatData[source.key] };
-        auto * spatDataTicket{ mAudioData.state.spatDataTickets[source.key] };
+        auto *& spatDataTicket{ mAudioData.state.spatDataTickets[source.key] };
         spatDataExchanger.getMostRecent(spatDataTicket);
         if (spatDataTicket == nullptr) {
             continue;
@@ -276,7 +291,7 @@ void AudioProcessor::processLbap(SourceAudioBuffer & sourcesBuffer,
         // Process spatialization
         auto & lastGains{ mAudioData.state.sourcesAudioState[source.key].lastSpatGains };
 
-        for (auto const & speaker : mAudioData.config->speakersAudioConfig) {
+        for (auto const & speaker : speakersAudioConfig) {
             auto * outputSamples{ speakersBuffer[speaker.key].getWritePointer(0) };
             auto const & targetGain{ gains[speaker.key] };
             auto & currentGain{ lastGains[speaker.key] };
@@ -308,13 +323,25 @@ void AudioProcessor::processLbap(SourceAudioBuffer & sourcesBuffer,
 }
 
 //==============================================================================
-void AudioProcessor::processVBapHrtf(SourceAudioBuffer const & inputBuffer,
-                                     SpeakerAudioBuffer & outputBuffer,
-                                     SourcePeaks const & sourcePeaks) noexcept
+void AudioProcessor::processHrtf(SourceAudioBuffer & inputBuffer,
+                                 SpeakerAudioBuffer & outputBuffer,
+                                 SourcePeaks const & sourcePeaks) noexcept
 {
-    jassert(outputBuffer.size() == 16);
+    auto & hrtfBuffer{ mAudioData.state.hrtf.speakersBuffer };
+    jassert(hrtfBuffer.size() == 16);
 
-    processVbap(inputBuffer, outputBuffer, sourcePeaks);
+    hrtfBuffer.silence();
+
+    switch (mAudioData.config->spatMode) {
+    case SpatMode::vbap:
+        processVbap(inputBuffer, hrtfBuffer, mAudioData.state.hrtf.speakersAudioConfig, sourcePeaks);
+        break;
+    case SpatMode::lbap:
+        processLbap(inputBuffer, hrtfBuffer, mAudioData.state.hrtf.speakersAudioConfig, sourcePeaks);
+        break;
+    default:
+        jassertfalse;
+    }
 
     auto const numSamples{ inputBuffer.getNumSamples() };
 
@@ -325,16 +352,16 @@ void AudioProcessor::processVBapHrtf(SourceAudioBuffer const & inputBuffer,
     std::fill_n(leftOutputSamples.begin(), numSamples, 0.0f);
     std::fill_n(rightOutputSamples.begin(), numSamples, 0.0f);
 
-    for (auto const & speaker : mAudioData.config->speakersAudioConfig) {
+    for (auto const & speaker : mAudioData.state.hrtf.speakersBuffer) {
         auto & hrtfState{ mAudioData.state.hrtf };
         auto & hrtfCount{ hrtfState.count };
         auto & hrtfInputTmp{ hrtfState.inputTmp };
         auto const outputIndex{ speaker.key.removeOffset<size_t>() };
-        auto const & outputSamplesBuffer{ outputBuffer[speaker.key] };
+        auto const & outputSamplesBuffer{ *speaker.value };
         if (outputSamplesBuffer.getMagnitude(0, numSamples) < SMALL_GAIN) {
             continue;
         }
-        auto const * outputSamples{ outputBuffer[speaker.key].getReadPointer(0) };
+        auto const * outputSamples{ outputSamplesBuffer.getReadPointer(0) };
         auto const & hrtfLeftImpulses{ hrtfState.leftImpulses };
         auto const & hrtfRightImpulses{ hrtfState.rightImpulses };
         for (size_t sampleIndex{}; sampleIndex < narrow<size_t>(numSamples); ++sampleIndex) {
@@ -357,17 +384,14 @@ void AudioProcessor::processVBapHrtf(SourceAudioBuffer const & inputBuffer,
         }
     }
 
-    static constexpr output_patch_t LEFT_OUTPUT_PATCH{ 1 };
-    static constexpr output_patch_t RIGHT_OUTPUT_PATCH{ 2 };
-    for (auto const & speaker : mAudioData.config->speakersAudioConfig) {
-        if (speaker.key == LEFT_OUTPUT_PATCH) {
-            outputBuffer[LEFT_OUTPUT_PATCH].copyFrom(0, 0, leftOutputSamples.data(), numSamples);
-        } else if (speaker.key == RIGHT_OUTPUT_PATCH) {
-            outputBuffer[RIGHT_OUTPUT_PATCH].copyFrom(0, 0, rightOutputSamples.data(), numSamples);
-        } else {
-            outputBuffer[speaker.key].clear();
-        }
-    }
+    auto it{ outputBuffer.begin() };
+
+    auto & leftBuffer{ *it->value };
+    ++it;
+    auto & rightBuffer{ *it->value };
+
+    leftBuffer.copyFrom(0, 0, leftOutputSamples.data(), numSamples);
+    rightBuffer.copyFrom(0, 0, rightOutputSamples.data(), numSamples);
 }
 
 //==============================================================================
@@ -377,8 +401,7 @@ void AudioProcessor::processStereo(SourceAudioBuffer const & inputBuffer,
 {
     jassert(outputBuffer.size() == 2);
 
-    // Vbap does what we're looking for
-    processVbap(inputBuffer, outputBuffer, sourcePeaks);
+    jassertfalse; // process stuff!
 
     // Apply gain compensation.
     auto & leftBuffer{ outputBuffer[output_patch_t{ 1 }] };
@@ -422,7 +445,7 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer, SpeakerAudio
             if (stereoMode) {
                 switch (*stereoMode) {
                 case StereoMode::hrtf:
-                    processVBapHrtf(sourceBuffer, speakerBuffer, sourcePeaks);
+                    processHrtf(sourceBuffer, speakerBuffer, sourcePeaks);
                     return;
                 case StereoMode::stereo:
                     processStereo(sourceBuffer, speakerBuffer, sourcePeaks);
@@ -433,10 +456,10 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer, SpeakerAudio
 
             switch (mAudioData.config->spatMode) {
             case SpatMode::vbap:
-                processVbap(sourceBuffer, speakerBuffer, sourcePeaks);
+                processVbap(sourceBuffer, speakerBuffer, mAudioData.config->speakersAudioConfig, sourcePeaks);
                 return;
             case SpatMode::lbap:
-                processLbap(sourceBuffer, speakerBuffer, sourcePeaks);
+                processLbap(sourceBuffer, speakerBuffer, mAudioData.config->speakersAudioConfig, sourcePeaks);
                 return;
             }
             jassertfalse;

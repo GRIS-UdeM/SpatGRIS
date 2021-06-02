@@ -239,6 +239,8 @@ void SettingsComponent::comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged)
         audioDeviceManager.getCurrentDeviceTypeObject()->hasSeparateInputsAndOutputs()
     };
 
+    juce::ScopedLock const lock{ mMainContentComponent.getAudioProcessor().getLock() };
+
     if (comboBoxThatHasChanged == &mDeviceTypeCombo) {
         audioDeviceManager.setCurrentAudioDeviceType(comboBoxThatHasChanged->getText(), true);
     } else if (comboBoxThatHasChanged == &mInputDeviceCombo) {

@@ -21,6 +21,7 @@
 
 #include "AudioStructs.hpp"
 #include "OwnedMap.hpp"
+#include "StaticMap.hpp"
 #include "Triplet.hpp"
 
 static constexpr auto DEFAULT_OSC_INPUT_PORT = 18032;
@@ -306,6 +307,7 @@ struct SpeakerSetup {
     [[nodiscard]] bool operator==(SpeakerSetup const & other) const noexcept;
     [[nodiscard]] bool operator!=(SpeakerSetup const & other) const noexcept { return !(*this == other); }
     [[nodiscard]] bool isDomeLike() const noexcept;
+    [[nodiscard]] SpeakersAudioConfig toAudioConfig(double sampleRate) const noexcept;
     //==============================================================================
     struct XmlTags {
         static juce::String const MAIN_TAG;

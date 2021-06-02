@@ -20,6 +20,7 @@
 #pragma once
 
 #include "AudioStructs.hpp"
+#include "StrongArray.hpp"
 #include "TaggedAudioBuffer.hpp"
 
 #include <JuceHeader.h>
@@ -60,13 +61,15 @@ private:
     void muteSoloVuMeterGainOut(SpeakerAudioBuffer & speakersBuffer, SpeakerPeaks & peaks) noexcept;
     void processVbap(SourceAudioBuffer const & inputBuffer,
                      SpeakerAudioBuffer & outputBuffer,
+                     SpeakersAudioConfig const & speakersAudioConfig,
                      SourcePeaks const & sourcePeaks) noexcept;
     void processLbap(SourceAudioBuffer & sourcesBuffer,
                      SpeakerAudioBuffer & speakersBuffer,
-                     SourcePeaks const &) noexcept;
-    void processVBapHrtf(SourceAudioBuffer const & inputBuffer,
-                         SpeakerAudioBuffer & outputBuffer,
-                         SourcePeaks const & sourcePeaks) noexcept;
+                     SpeakersAudioConfig const & speakersAudioConfig,
+                     SourcePeaks const & sourcePeaks) noexcept;
+    void processHrtf(SourceAudioBuffer & inputBuffer,
+                     SpeakerAudioBuffer & outputBuffer,
+                     SourcePeaks const & sourcePeaks) noexcept;
     void processStereo(SourceAudioBuffer const & inputBuffer,
                        SpeakerAudioBuffer & outputBuffer,
                        SourcePeaks const &) noexcept;

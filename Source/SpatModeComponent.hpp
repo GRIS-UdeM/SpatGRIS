@@ -28,6 +28,7 @@ class GrisLookAndFeel;
 class SpatModeComponent final
     : public MinSizedComponent
     , private juce::TextButton::Listener
+    , private juce::ComboBox::Listener
 {
 public:
     //==============================================================================
@@ -43,6 +44,7 @@ public:
         Listener & operator=(Listener &&) = delete;
         //==============================================================================
         virtual void handleSpatModeChanged(SpatMode spatMode) = 0;
+        virtual void handleStereoModeChanged(tl::optional<StereoMode> stereoMode) = 0;
 
     private:
         //==============================================================================
@@ -51,10 +53,14 @@ public:
 
 private:
     //==============================================================================
-    SpatMode mSpatMode{};
     Listener & mListener;
-    juce::Label mLabel{};
-    juce::OwnedArray<juce::Button> mButtons{};
+
+    juce::Label mSpatModeLabel{};
+    juce::TextButton mDomeButton{};
+    juce::TextButton mCubeButton{};
+
+    juce::Label mStereoModeLabel{};
+    juce::ComboBox mStereoComboBox{};
 
 public:
     //==============================================================================
@@ -67,9 +73,11 @@ public:
     SpatModeComponent & operator=(SpatModeComponent &&) = delete;
     //==============================================================================
     void setSpatMode(SpatMode spatMode);
-    SpatMode getSpatMode() const noexcept { return mSpatMode; }
+    [[nodiscard]] SpatMode getSpatMode() const noexcept;
+    [[nodiscard]] tl::optional<StereoMode> getStereoMode() const noexcept;
     //==============================================================================
     void buttonClicked(juce::Button * button) override;
+    void comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged) override;
     void resized() override;
     [[nodiscard]] int getMinWidth() const noexcept override;
     [[nodiscard]] int getMinHeight() const noexcept override;

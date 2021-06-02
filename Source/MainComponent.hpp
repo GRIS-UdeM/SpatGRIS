@@ -195,11 +195,13 @@ public:
     void handleNewSpeakerPosition(output_patch_t outputPatch, PolarVector const & position);
 
     void updateAudioProcessor() const;
+    void updateSpatAlgorithm();
     void updateViewportConfig() const;
 
     void handleSetShowTriplets(bool state);
 
-    bool setSpatMode(SpatMode spatMode) override;
+    [[nodiscard]] bool setSpatMode(SpatMode spatMode) override;
+    void setStereoMode(tl::optional<StereoMode> stereoMode) override;
     [[nodiscard]] bool spatModeChanged(SpatMode spatMode, LoadSpeakerSetupOption option);
     void cubeAttenuationDbChanged(dbfs_t value) override;
     void cubeAttenuationHzChanged(hz_t value) override;

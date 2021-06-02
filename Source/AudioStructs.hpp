@@ -25,10 +25,7 @@
 #include "SpatMode.hpp"
 #include "StaticMap.hpp"
 #include "StrongArray.hpp"
-
-#include <JuceHeader.h>
-
-#include "lib/tl/optional.hpp"
+#include "TaggedAudioBuffer.hpp"
 
 enum class VbapType { twoD, threeD };
 
@@ -105,6 +102,9 @@ struct SourceAudioConfig {
     tl::optional<output_patch_t> directOut{};
 };
 
+using SourcesAudioConfig = StaticMap<source_index_t, SourceAudioConfig, MAX_NUM_SOURCES>;
+using SpeakersAudioConfig = StaticMap<output_patch_t, SpeakerAudioConfig, MAX_NUM_SPEAKERS>;
+
 //==============================================================================
 struct AudioConfig {
     SpatMode spatMode{};
@@ -114,8 +114,8 @@ struct AudioConfig {
 
     juce::Array<std::pair<source_index_t, output_patch_t>> directOutPairs{};
 
-    StaticMap<source_index_t, SourceAudioConfig, MAX_NUM_SOURCES> sourcesAudioConfig{};
-    StaticMap<output_patch_t, SpeakerAudioConfig, MAX_NUM_SPEAKERS> speakersAudioConfig{};
+    SourcesAudioConfig sourcesAudioConfig{};
+    SpeakersAudioConfig speakersAudioConfig{};
 
     tl::optional<float> pinkNoiseGain{};
 
@@ -129,6 +129,9 @@ struct HrtfData {
     std::array<std::array<float, 128>, 16> inputTmp{};
     std::array<std::array<float, 128>, 16> leftImpulses{};
     std::array<std::array<float, 128>, 16> rightImpulses{};
+
+    SpeakersAudioConfig speakersAudioConfig{};
+    SpeakerAudioBuffer speakersBuffer{};
 };
 
 //==============================================================================

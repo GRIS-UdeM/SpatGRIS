@@ -31,11 +31,19 @@ juce::StringArray const STEREO_MODE_STRINGS{ "Binaural", "Stereo" };
 juce::StringArray const STEREO_TOOLTIPS{ "HRTF transfer", "Dumb Left/Right panning" };
 
 //==============================================================================
-juce::String spatModeToString(SpatMode const mode)
+juce::String const & spatModeToString(SpatMode const mode)
 {
     auto const index{ static_cast<int>(mode) };
     jassert(index >= 0 && index < SPAT_MODE_STRINGS.size());
     return SPAT_MODE_STRINGS[index];
+}
+
+//==============================================================================
+juce::String const & spatModeToTooltip(SpatMode mode)
+{
+    auto const index{ static_cast<int>(mode) };
+    jassert(index >= 0 && index < SPAT_MODE_TOOLTIPS.size());
+    return SPAT_MODE_TOOLTIPS[index];
 }
 
 //==============================================================================
@@ -49,7 +57,7 @@ tl::optional<SpatMode> stringToSpatMode(juce::String const & string)
 }
 
 //==============================================================================
-juce::String stereoModeToString(StereoMode const mode)
+juce::String const & stereoModeToString(StereoMode const mode)
 {
     auto const index{ static_cast<int>(mode) };
     jassert(index >= 0 && index < STEREO_MODE_STRINGS.size());

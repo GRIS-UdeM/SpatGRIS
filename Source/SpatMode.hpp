@@ -31,7 +31,8 @@ extern juce::StringArray const SPAT_MODE_TOOLTIPS;
 extern juce::StringArray const STEREO_MODE_STRINGS;
 extern juce::StringArray const STEREO_MODE_TOOLTIPS;
 //==============================================================================
-juce::String spatModeToString(SpatMode mode);
+juce::String const & spatModeToString(SpatMode mode);
+juce::String const & spatModeToTooltip(SpatMode mode);
 tl::optional<SpatMode> stringToSpatMode(juce::String const & string);
-juce::String stereoModeToString(StereoMode mode);
+juce::String const & stereoModeToString(StereoMode mode);
 tl::optional<StereoMode> stringToStereoMode(juce::String const & string);

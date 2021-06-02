@@ -180,7 +180,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
 
     auto const initSpeakerSetup = [&]() {
         if (!loadSpeakerSetup(mData.appData.lastSpeakerSetup, LoadSpeakerSetupOption::allowDiscardingUnsavedChanges)) {
-            if (loadSpeakerSetup(DEFAULT_SPEAKER_SETUP_FILE, LoadSpeakerSetupOption::allowDiscardingUnsavedChanges)) {
+            if (!loadSpeakerSetup(DEFAULT_SPEAKER_SETUP_FILE, LoadSpeakerSetupOption::allowDiscardingUnsavedChanges)) {
                 fatalError("Unable to load the default speaker setup", this);
             }
         }
@@ -533,12 +533,24 @@ bool MainContentComponent::setSpatMode(SpatMode const spatMode)
             speaker.vector = speaker.vector.normalized();
             speaker.position = speaker.vector.toCartesian();
         }
+
+        refreshSpeakers();
     }
 
     mData.speakerSetup.spatMode = spatMode;
 
     mControlPanel->setSpatMode(spatMode);
     return true;
+}
+
+//==============================================================================
+void MainContentComponent::setStereoMode(tl::optional<StereoMode> const stereoMode)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    mData.appData.stereoMode = stereoMode;
+    updateSpatAlgorithm();
 }
 
 //==============================================================================
@@ -1512,6 +1524,19 @@ void MainContentComponent::updateAudioProcessor() const
 }
 
 //==============================================================================
+void MainContentComponent::updateSpatAlgorithm()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
+    auto & spatData{ mAudioProcessor->getAudioData().spatData }; // no need to lock for spatData
+    mSpatAlgorithm
+        = AbstractSpatAlgorithm::make(mData.speakerSetup, mData.appData.stereoMode, mData.project.sources, spatData);
+    mAudioProcessor->resetHrtf();
+    updateAudioProcessor();
+}
+
+//==============================================================================
 void MainContentComponent::updateViewportConfig() const
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -1726,12 +1751,7 @@ bool MainContentComponent::refreshSpeakers()
         return false;
     }
 
-    auto & spatData{ mAudioProcessor->getAudioData().spatData }; // no need to lock for spatData
-    mSpatAlgorithm
-        = AbstractSpatAlgorithm::make(mData.speakerSetup, mData.appData.stereoMode, mData.project.sources, spatData);
-
-    updateAudioProcessor();
-    mAudioProcessor->resetHrtf();
+    updateSpatAlgorithm();
 
     refreshSpeakerVuMeterComponents();
     updateViewportConfig();
