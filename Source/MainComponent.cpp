@@ -125,6 +125,9 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         // Control panel
         mControlPanel = std::make_unique<ControlPanel>(*this, mLookAndFeel);
         mControlsSection = std::make_unique<TitledComponent>("Controls", mControlPanel.get(), mLookAndFeel);
+        mControlPanel->setSpatMode(mData.speakerSetup.spatMode);
+        mControlPanel->setCubeAttenuationDb(mData.project.lbapDistanceAttenuationData.attenuation);
+        mControlPanel->setCubeAttenuationHz(mData.project.lbapDistanceAttenuationData.freq);
 
         mMainLayout->addSection(mInfoPanel.get()).withChildMinSize().withRightPadding(5);
         mMainLayout->addSection(mSourcesSection.get()).withRelativeSize(1.0f).withRightPadding(5);
@@ -175,11 +178,9 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         }
     };
 
-    auto const initSpeakerSetupAndSpatMode = [&]() {
-        if (!spatModeChanged(mData.appData.spatMode, LoadSpeakerSetupOption::allowDiscardingUnsavedChanges)) {
-            if (!loadSpeakerSetup(DEFAULT_SPEAKER_SETUP_FILE,
-                                  SpatMode::vbap,
-                                  LoadSpeakerSetupOption::allowDiscardingUnsavedChanges)) {
+    auto const initSpeakerSetup = [&]() {
+        if (!loadSpeakerSetup(mData.appData.lastSpeakerSetup, LoadSpeakerSetupOption::allowDiscardingUnsavedChanges)) {
+            if (loadSpeakerSetup(DEFAULT_SPEAKER_SETUP_FILE, LoadSpeakerSetupOption::allowDiscardingUnsavedChanges)) {
                 fatalError("Unable to load the default speaker setup", this);
             }
         }
@@ -200,7 +201,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     juce::ScopedLock const audioLock{ mAudioProcessor->getLock() };
 
     initProject();
-    initSpeakerSetupAndSpatMode();
+    initSpeakerSetup();
     startOsc();
     initCommandManager();
 
@@ -374,7 +375,8 @@ void MainContentComponent::handleOpenSpeakerSetup()
     }
 
     auto const chosen{ fc.getResult() };
-    [[maybe_unused]] auto const success{ loadSpeakerSetup(chosen) };
+    [[maybe_unused]] auto const success{ loadSpeakerSetup(chosen,
+                                                          LoadSpeakerSetupOption::disallowDiscardingUnsavedChanges) };
     jassert(success);
 }
 
@@ -401,24 +403,13 @@ void MainContentComponent::handleShowSpeakerEditWindow()
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
-    switch (mData.appData.spatMode) {
-    case SpatMode::lbap:
-    case SpatMode::vbap:
-        break;
-    case SpatMode::hrtfVbap:
-    case SpatMode::stereo:
-        return;
-    default:
-        jassertfalse;
-    }
-
     juce::Rectangle<int> const result{ getScreenX() + mSpeakerViewComponent->getWidth() + 20,
                                        getScreenY() + 20,
                                        850,
                                        600 };
     if (mEditSpeakersWindow == nullptr) {
-        auto const windowName = juce::String("Speakers Setup Edition - ")
-                                + juce::String(SPAT_MODE_STRINGS[static_cast<int>(mData.appData.spatMode)]) + " - "
+        auto const windowName = juce::String{ "Speakers Setup Edition - " }
+                                + spatModeToString(mData.speakerSetup.spatMode) + " - "
                                 + mData.appData.lastSpeakerSetup;
         mEditSpeakersWindow
             = std::make_unique<EditSpeakersWindow>(windowName, mLookAndFeel, *this, mData.appData.lastProject);
@@ -440,10 +431,7 @@ void MainContentComponent::handleShowPreferences()
     juce::ScopedReadLock const lock{ mLock };
 
     if (mPropertiesWindow == nullptr) {
-        mPropertiesWindow.reset(new SettingsWindow{ *this,
-                                                    mData.project.lbapDistanceAttenuationData,
-                                                    mData.project.oscPort,
-                                                    mLookAndFeel });
+        mPropertiesWindow.reset(new SettingsWindow{ *this, mData.project.oscPort, mLookAndFeel });
     }
 }
 
@@ -520,38 +508,37 @@ void MainContentComponent::interpolationChanged(float const interpolation)
 }
 
 //==============================================================================
-void MainContentComponent::spatModeChanged(SpatMode const spatMode)
+bool MainContentComponent::setSpatMode(SpatMode const spatMode)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-    juce::ScopedReadLock const lock{ mLock };
+    juce::ScopedWriteLock const lock{ mLock };
 
-    auto const oldSpatMode{ mData.appData.spatMode };
-    auto const success{ spatModeChanged(spatMode, LoadSpeakerSetupOption::disallowDiscardingUnsavedChanges) };
+    if (spatMode == SpatMode::vbap && !mData.speakerSetup.isDomeLike()) {
+        auto const result{ juce::AlertWindow::showOkCancelBox(
+            juce::AlertWindow::InfoIcon,
+            "Converting to DOME",
+            "A CUBE speaker setup will be converted to a DOME structure.\nThis will not affect the original file.",
+            "Ok",
+            "Cancel",
+            this) };
+        if (!result) {
+            return false;
+        }
 
-    if (!success) {
-        mControlPanel->setSpatMode(oldSpatMode);
+        for (auto & node : mData.speakerSetup.speakers) {
+            auto & speaker{ *node.value };
+            if (speaker.isDirectOutOnly) {
+                continue;
+            }
+            speaker.vector = speaker.vector.normalized();
+            speaker.position = speaker.vector.toCartesian();
+        }
     }
-}
 
-//==============================================================================
-bool MainContentComponent::spatModeChanged(SpatMode const spatMode, LoadSpeakerSetupOption const option)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-    juce::ScopedReadLock const readLock{ mLock };
+    mData.speakerSetup.spatMode = spatMode;
 
-    jassert(narrow<int>(spatMode) >= 0 && narrow<int>(spatMode) <= narrow<int>(SpatMode::stereo));
-
-    switch (spatMode) {
-    case SpatMode::vbap:
-    case SpatMode::lbap:
-        return loadSpeakerSetup(mData.appData.lastSpeakerSetup, spatMode, option);
-    case SpatMode::hrtfVbap:
-        return loadSpeakerSetup(BINAURAL_SPEAKER_SETUP_FILE, SpatMode::hrtfVbap, option);
-    case SpatMode::stereo:
-        return loadSpeakerSetup(STEREO_SPEAKER_SETUP_FILE, SpatMode::stereo, option);
-    }
-    jassertfalse;
-    return false;
+    mControlPanel->setSpatMode(spatMode);
+    return true;
 }
 
 //==============================================================================
@@ -650,13 +637,11 @@ void MainContentComponent::handleShowSpeakers()
 void MainContentComponent::handleShowTriplets()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-
     juce::ScopedReadLock const readLock{ mLock };
+
     auto const newState{ !mData.appData.viewSettings.showSpeakerTriplets };
-    if ((mData.appData.spatMode == SpatMode::lbap || mData.appData.spatMode == SpatMode::stereo) && newState) {
-        juce::AlertWindow::showNativeDialogBox("Can't draw triplets !",
-                                               "Triplets are not effective with the CUBE or STEREO modes.",
-                                               false);
+    if (newState && !mSpatAlgorithm->hasTriplets()) {
+        jassertfalse;
         return;
     }
 
@@ -705,7 +690,7 @@ void MainContentComponent::handleResetInputPositions()
     juce::ScopedWriteLock const lock{ mLock };
 
     auto & viewPortData{ mSpeakerViewComponent->getData() };
-    auto & gainMatrix{ mAudioProcessor->getAudioData().spatGainMatrix };
+    auto & spatDataExchangers{ mAudioProcessor->getAudioData().spatData };
     for (auto const source : mData.project.sources) {
         // reset positions
         source.value->position = tl::nullopt;
@@ -720,10 +705,10 @@ void MainContentComponent::handleResetInputPositions()
         }
         {
             // reset gain matrix
-            auto & exchanger{ gainMatrix[source.key] };
-            auto * gains{ exchanger.acquire() };
-            gains->get() = SpeakersSpatGains{};
-            exchanger.setMostRecent(gains);
+            auto & exchanger{ spatDataExchangers[source.key] };
+            auto * spatData{ exchanger.acquire() };
+            spatData->get() = SourceSpatData{};
+            exchanger.setMostRecent(spatData);
         }
     }
 
@@ -802,9 +787,6 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
 
     const juce::String generalCategory("General");
 
-    auto const isEditableSpeakerSetup{ mData.appData.spatMode == SpatMode::lbap
-                                       || mData.appData.spatMode == SpatMode::vbap };
-
     switch (commandId) {
     case MainWindow::NewProjectID:
         result.setInfo("New Project", "Close the current project and open the default.", generalCategory, 0);
@@ -829,19 +811,17 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
         break;
     case MainWindow::SaveSpeakerSetupID:
         result.setInfo("Save Speaker Setup", "Save the current speaker setup on disk.", generalCategory, 0);
-        result.setActive(isEditableSpeakerSetup && isSpeakerSetupModified());
+        result.setActive(isSpeakerSetupModified());
         break;
     case MainWindow::SaveSpeakerSetupAsID:
         result.setInfo("Save Speaker Setup As...",
                        "Save the current speaker setup under a new name on disk.",
                        generalCategory,
                        0);
-        result.setActive(isEditableSpeakerSetup);
         break;
     case MainWindow::ShowSpeakerEditID:
         result.setInfo("Speaker Setup Edition", "Edit the current speaker setup.", generalCategory, 0);
         result.addDefaultKeypress('W', juce::ModifierKeys::altModifier);
-        result.setActive(isEditableSpeakerSetup);
         break;
     case MainWindow::Show2DViewID:
         result.setInfo("Show 2D View", "Show the 2D action window.", generalCategory, 0);
@@ -861,7 +841,7 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
         result.setInfo("Show Speaker Triplets", "Show speaker triplets on the 3D view.", generalCategory, 0);
         result.addDefaultKeypress('T', juce::ModifierKeys::altModifier);
         result.setTicked(mData.appData.viewSettings.showSpeakerTriplets);
-        result.setActive(mData.appData.spatMode == SpatMode::vbap);
+        result.setActive(mSpatAlgorithm->hasTriplets());
         break;
     case MainWindow::ShowSourceLevelID:
         result.setInfo("Show Source Activity", "Activate brightness on sources on the 3D view.", generalCategory, 0);
@@ -1106,18 +1086,6 @@ bool MainContentComponent::isSpeakerSetupModified() const
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
-    switch (mData.appData.spatMode) {
-    case SpatMode::hrtfVbap:
-    case SpatMode::stereo:
-        // BINAURAL & STEREO are non-modifiable setups
-        return false;
-    case SpatMode::lbap:
-    case SpatMode::vbap:
-        break;
-    default:
-        jassertfalse;
-    }
-
     auto const savedElement{ juce::XmlDocument{ juce::File{ mData.appData.lastSpeakerSetup } }.getDocumentElement() };
     jassert(savedElement);
     if (!savedElement) {
@@ -1129,7 +1097,7 @@ bool MainContentComponent::isSpeakerSetupModified() const
     if (!savedSpeakerSetup) {
         return true;
     }
-    return mData.speakerSetup != savedSpeakerSetup->first;
+    return mData.speakerSetup != *savedSpeakerSetup;
 }
 
 //==============================================================================
@@ -1289,17 +1257,15 @@ void MainContentComponent::handleSourcePositionChanged(source_index_t const sour
                                                        float const newZenithSpan)
 {
     jassert(juce::Thread::getCurrentThread()->getThreadName() == "JUCE OSC server");
-    juce::ScopedWriteLock const lock{ mLock };
+    juce::ScopedReadLock const readLock{ mLock };
 
     if (!mData.project.sources.contains(sourceIndex)) {
         return;
     }
 
     auto const getCorrectPosition = [&]() {
-        switch (mData.appData.spatMode) {
+        switch (mData.speakerSetup.spatMode) {
         case SpatMode::vbap:
-        case SpatMode::hrtfVbap:
-        case SpatMode::stereo:
             return PolarVector{ azimuth, elevation, length }.normalized();
         case SpatMode::lbap: {
             return LegacyLbapPosition{ azimuth, elevation, length }.toPolar();
@@ -1317,20 +1283,18 @@ void MainContentComponent::handleSourcePositionChanged(source_index_t const sour
         return;
     }
 
+    juce::ScopedWriteLock const writeLock{ mLock };
+
     source.vector = correctedPosition;
     source.position = source.vector->toCartesian();
     source.azimuthSpan = newAzimuthSpan;
     source.zenithSpan = newZenithSpan;
 
     auto & audioData{ mAudioProcessor->getAudioData() };
-    auto & exchanger{ audioData.spatGainMatrix[sourceIndex] };
+    auto & exchanger{ audioData.spatData[sourceIndex] };
     auto * ticket{ exchanger.acquire() };
-    mSpatAlgorithm->computeSpeakerGains(source, ticket->get());
+    mSpatAlgorithm->updateSpatData(source, ticket->get());
     exchanger.setMostRecent(ticket);
-
-    if (mData.appData.spatMode == SpatMode::lbap) {
-        mAudioProcessor->getAudioData().lbapSourceDistances[sourceIndex] = length;
-    }
 }
 
 //==============================================================================
@@ -1617,7 +1581,7 @@ output_patch_t MainContentComponent::getMaxSpeakerOutputPatch() const
 }
 
 //==============================================================================
-tl::optional<std::pair<SpeakerSetup, SpatMode>> MainContentComponent::extractSpeakerSetup(juce::File const & file)
+tl::optional<SpeakerSetup> MainContentComponent::extractSpeakerSetup(juce::File const & file)
 {
     auto const displayError = [&](juce::String const & message) {
         juce::AlertWindow::showNativeDialogBox("Unable to load Speaker Setup.", message, false);
@@ -1704,15 +1668,6 @@ void MainContentComponent::removeSpeaker(output_patch_t const outputPatch)
 }
 
 //==============================================================================
-bool MainContentComponent::isRadiusNormalized() const
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-    juce::ScopedReadLock const lock{ mLock };
-
-    return mData.appData.spatMode == SpatMode::vbap || mData.appData.spatMode == SpatMode::hrtfVbap;
-}
-
-//==============================================================================
 bool MainContentComponent::refreshSpeakers()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -1735,7 +1690,8 @@ bool MainContentComponent::refreshSpeakers()
         alert.addButton("No", 0);
         alert.addButton("Yes", 1, juce::KeyPress(juce::KeyPress::returnKey));
         if (alert.runModalLoop() != 0) {
-            auto const success{ loadSpeakerSetup(DEFAULT_SPEAKER_SETUP_FILE) };
+            auto const success{ loadSpeakerSetup(DEFAULT_SPEAKER_SETUP_FILE,
+                                                 LoadSpeakerSetupOption::allowDiscardingUnsavedChanges) };
             if (!success) {
                 fatalError("Unable to load the default speaker setup.", this);
             }
@@ -1770,9 +1726,12 @@ bool MainContentComponent::refreshSpeakers()
         return false;
     }
 
-    mSpatAlgorithm = AbstractSpatAlgorithm::make(mData.appData.spatMode, mData.speakerSetup.speakers);
+    auto & spatData{ mAudioProcessor->getAudioData().spatData }; // no need to lock for spatData
+    mSpatAlgorithm
+        = AbstractSpatAlgorithm::make(mData.speakerSetup, mData.appData.stereoMode, mData.project.sources, spatData);
 
     updateAudioProcessor();
+    mAudioProcessor->resetHrtf();
 
     refreshSpeakerVuMeterComponents();
     updateViewportConfig();
@@ -1784,28 +1743,15 @@ bool MainContentComponent::refreshSpeakers()
 }
 
 //==============================================================================
-bool MainContentComponent::loadSpeakerSetup(juce::File const & file,
-                                            tl::optional<SpatMode> const spatMode,
-                                            LoadSpeakerSetupOption const option)
+bool MainContentComponent::loadSpeakerSetup(juce::File const file, LoadSpeakerSetupOption const option)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    auto data{ extractSpeakerSetup(file) };
+    auto speakerSetup{ extractSpeakerSetup(file) };
 
-    if (!data) {
+    if (!speakerSetup) {
         return false;
     }
-
-    return loadSpeakerSetup(std::move(data->first), spatMode.value_or(data->second), file.getFullPathName(), option);
-}
-
-//==============================================================================
-bool MainContentComponent::loadSpeakerSetup(SpeakerSetup speakerSetup,
-                                            SpatMode const spatMode,
-                                            juce::String const & filePath,
-                                            LoadSpeakerSetupOption const option)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
 
     if (option == LoadSpeakerSetupOption::disallowDiscardingUnsavedChanges) {
         if (!makeSureSpeakerSetupIsSavedToDisk()) {
@@ -1813,70 +1759,32 @@ bool MainContentComponent::loadSpeakerSetup(SpeakerSetup speakerSetup,
         }
     }
 
-    if (spatMode == SpatMode::vbap && !speakerSetup.isDomeLike()) {
-        auto const result{ juce::AlertWindow::showOkCancelBox(
-            juce::AlertWindow::InfoIcon,
-            "Converting to DOME",
-            "A CUBE speaker setup will be converted to a DOME structure.\nThis will not affect the original file.",
-            "Ok",
-            "Cancel",
-            this) };
-        if (!result) {
-            return false;
-        }
-
-        for (auto & node : speakerSetup.speakers) {
-            auto & speaker{ *node.value };
-            if (speaker.isDirectOutOnly) {
-                continue;
-            }
-            speaker.vector = speaker.vector.normalized();
-            speaker.position = speaker.vector.toCartesian();
-        }
-    }
-
     juce::ScopedWriteLock const lock{ mLock };
 
+    mData.speakerSetup = std::move(*speakerSetup);
+    mData.appData.lastSpeakerSetup = file.getFullPathName();
+
     // specific mode-dependent checks
-    switch (spatMode) {
-    case SpatMode::hrtfVbap:
-    case SpatMode::stereo:
-        closeSpeakersConfigurationWindow();
-        [[fallthrough]];
+    switch (mData.speakerSetup.spatMode) {
     case SpatMode::vbap:
         mData.appData.viewSettings.showSpeakerTriplets = false;
         break;
     case SpatMode::lbap:
-
+        mControlPanel->setCubeAttenuationDb(mData.project.lbapDistanceAttenuationData.attenuation);
+        mControlPanel->setCubeAttenuationHz(mData.project.lbapDistanceAttenuationData.freq);
         break;
     default:
         jassertfalse;
         break;
     }
 
-    mData.speakerSetup = std::move(speakerSetup);
-    mData.appData.spatMode = spatMode;
-
-    if (spatMode == SpatMode::lbap || spatMode == SpatMode::vbap) {
-        mData.appData.lastSpeakerSetup = filePath;
-    }
-
-    if (spatMode == SpatMode::lbap) {
-        mControlPanel->setCubeAttenuationDb(mData.project.lbapDistanceAttenuationData.attenuation);
-        mControlPanel->setCubeAttenuationHz(mData.project.lbapDistanceAttenuationData.freq);
-    }
-
-    mSpatAlgorithm = AbstractSpatAlgorithm::make(spatMode, mData.speakerSetup.speakers);
-
-    mAudioProcessor->resetHrtf();
-
     refreshSpeakers();
 
-    mControlPanel->setSpatMode(spatMode);
+    mControlPanel->setSpatMode(mData.speakerSetup.spatMode);
 
     if (mEditSpeakersWindow != nullptr) {
-        auto const windowName{ juce::String("Speakers Setup Edition - ")
-                               + juce::String(SPAT_MODE_STRINGS[static_cast<int>(spatMode)]) + juce::String(" - ")
+        auto const windowName{ juce::String{ "Speakers Setup Edition - " }
+                               + spatModeToString(mData.speakerSetup.spatMode) + juce::String(" - ")
                                + mData.appData.lastSpeakerSetup };
         mEditSpeakersWindow->setName(windowName);
     }
@@ -1983,18 +1891,6 @@ bool MainContentComponent::saveSpeakerSetup(tl::optional<juce::File> maybeFile)
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
 
-    // Binaural and stereo setups should not be saved at all
-    switch (mData.appData.spatMode) {
-    case SpatMode::vbap:
-    case SpatMode::lbap:
-        break;
-    case SpatMode::hrtfVbap:
-    case SpatMode::stereo:
-    default:
-        jassertfalse;
-        return false;
-    }
-
     if (!maybeFile) {
         juce::File const lastSpeakerSetup{ mData.appData.lastSpeakerSetup };
         auto const initialFile{ lastSpeakerSetup == DEFAULT_SPEAKER_SETUP_FILE ? juce::File::getSpecialLocation(
@@ -2008,8 +1904,8 @@ bool MainContentComponent::saveSpeakerSetup(tl::optional<juce::File> maybeFile)
         maybeFile = fc.getResult();
     }
 
-    auto const file{ *maybeFile };
-    auto const content{ mData.speakerSetup.toXml(mData.appData.spatMode) };
+    auto const & file{ *maybeFile };
+    auto const content{ mData.speakerSetup.toXml() };
 
     auto const success{ performSafeSave(*content, file) };
     jassert(success);
@@ -2164,28 +2060,23 @@ void MainContentComponent::prepareAndStartRecording(juce::File const & fileOrDir
     juce::ScopedReadLock const lock{ mLock };
     auto const getSpeakersToRecord = [&]() {
         juce::Array<output_patch_t> result{};
-        switch (mData.appData.spatMode) {
-        case SpatMode::lbap:
-        case SpatMode::vbap:
-            result = mData.speakerSetup.order;
-            result.sort();
-            break;
-        case SpatMode::hrtfVbap:
-        case SpatMode::stereo:
+
+        if (mData.appData.stereoMode) {
             result.add(output_patch_t{ 1 });
             result.add(output_patch_t{ 2 });
-            break;
+            return result;
         }
+
+        result = mData.speakerSetup.order;
+        result.sort();
 
         return result;
     };
 
-    auto speakersToRecord{ getSpeakersToRecord() };
-
     AudioManager::RecordingParameters const recordingParams{ fileOrDirectory.getFullPathName(),
                                                              mData.appData.recordingOptions,
                                                              mData.appData.audioSettings.sampleRate,
-                                                             std::move(speakersToRecord) };
+                                                             getSpeakersToRecord() };
     if (AudioManager::getInstance().prepareToRecord(recordingParams)) {
         AudioManager::getInstance().startRecording();
         mControlPanel->setRecordButtonState(RecordButton::State::recording);

@@ -33,7 +33,7 @@ public:
     //==============================================================================
     explicit VbapSpatAlgorithm(SpeakersData const & speakers);
     //==============================================================================
-    void computeSpeakerGains(SourceData const & source, SpeakersSpatGains & gains) const noexcept override;
+    void updateSpatData(SourceData const & sourceData, SourceSpatData & spatData) const noexcept override;
     [[nodiscard]] juce::Array<Triplet> getTriplets() const noexcept override;
     [[nodiscard]] bool hasTriplets() const noexcept override;
 };

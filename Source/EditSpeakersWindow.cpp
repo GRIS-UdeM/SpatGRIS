@@ -656,7 +656,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
         case Cols::Y:
         case Cols::Z:
         case Cols::DISTANCE:
-            return mMainContentComponent.getData().appData.spatMode == SpatMode::lbap || speaker.isDirectOutOnly;
+            return mMainContentComponent.getData().speakerSetup.spatMode == SpatMode::lbap || speaker.isDirectOutOnly;
         default:
             jassertfalse;
         }
@@ -941,18 +941,24 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
 
     enum class EditionType { notEditable, editable, valueDraggable, reorderDraggable };
 
+    auto const & spatMode{ mMainContentComponent.getData().speakerSetup.spatMode };
+
     auto const getEditionType = [=]() -> EditionType {
         switch (columnId) {
         case Cols::X:
         case Cols::Y:
         case Cols::Z:
         case Cols::DISTANCE:
-            if (mMainContentComponent.getData().appData.spatMode == SpatMode::lbap || speaker.isDirectOutOnly) {
+            if (spatMode == SpatMode::lbap || speaker.isDirectOutOnly) {
                 return EditionType::valueDraggable;
             }
             return EditionType::notEditable;
         case Cols::AZIMUTH:
         case Cols::ELEVATION:
+            if (spatMode == SpatMode::vbap || speaker.isDirectOutOnly) {
+                return EditionType::valueDraggable;
+            }
+            return EditionType::notEditable;
         case Cols::GAIN:
         case Cols::HIGHPASS:
             return EditionType::valueDraggable;
@@ -1051,10 +1057,4 @@ void EditSpeakersWindow::mouseDrag(juce::MouseEvent const & event)
     mSpeakersTableListBox.selectRow(newIndex);
 
     updateWinContent();
-}
-
-//==============================================================================
-SpatMode EditSpeakersWindow::getModeSelected() const
-{
-    return mMainContentComponent.getData().appData.spatMode;
 }

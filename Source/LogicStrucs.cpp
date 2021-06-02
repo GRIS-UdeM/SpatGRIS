@@ -651,7 +651,7 @@ tl::optional<SpatGrisAppData> SpatGrisAppData::fromXml(juce::XmlElement const & 
     auto const viewSettings{ ViewSettings::fromXml(*viewSettingsElement) };
     auto const lastStereoMode{ stringToStereoMode(xml.getStringAttribute(XmlTags::LAST_STEREO_MODE)) };
 
-    if (!audioSettings || !recordingOptions || !lastStereoMode || !cameraPosition || !viewSettings) {
+    if (!audioSettings || !recordingOptions || !cameraPosition || !viewSettings) {
         return tl::nullopt;
     }
 
@@ -726,7 +726,7 @@ tl::optional<SpeakerSetup> SpeakerSetup::fromXml(juce::XmlElement const & xml)
 //==============================================================================
 bool SpeakerSetup::operator==(SpeakerSetup const & other) const noexcept
 {
-    return other.order == order && other.speakers == speakers;
+    return other.order == order && other.speakers == speakers && other.spatMode == spatMode;
 }
 
 //==============================================================================

@@ -55,7 +55,7 @@ public:
         //==============================================================================
         virtual void masterGainChanged(dbfs_t gain) = 0;
         virtual void interpolationChanged(float interpolation) = 0;
-        virtual void spatModeChanged(SpatMode spatMode) = 0;
+        virtual bool setSpatMode(SpatMode spatMode) = 0;
         virtual void cubeAttenuationDbChanged(dbfs_t value) = 0;
         virtual void cubeAttenuationHzChanged(hz_t value) = 0;
         virtual void numSourcesChanged(int numSources) = 0;

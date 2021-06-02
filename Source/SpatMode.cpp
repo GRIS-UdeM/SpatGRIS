@@ -61,7 +61,6 @@ tl::optional<StereoMode> stringToStereoMode(juce::String const & string)
 {
     auto const index{ STEREO_MODE_STRINGS.indexOf(string, true) };
     if (index < 0) {
-        jassertfalse;
         return tl::nullopt;
     }
     return static_cast<StereoMode>(index);

@@ -198,12 +198,13 @@ void AudioProcessor::processVbap(SourceAudioBuffer const & inputBuffer,
         if (source.value.isMuted || source.value.directOut || sourcePeaks[source.key] < SMALL_GAIN) {
             continue;
         }
-        auto *& gainsTicket{ mAudioData.state.mostRecentSpatGains[source.key] };
-        mAudioData.spatGainMatrix[source.key].getMostRecent(gainsTicket);
-        if (gainsTicket == nullptr) {
+        auto & spatDataQueue{ mAudioData.spatData[source.key] };
+        auto * spatDataTicket{ mAudioData.state.spatDataTickets[source.key] };
+        spatDataQueue.getMostRecent(spatDataTicket);
+        if (spatDataTicket == nullptr) {
             continue;
         }
-        auto const & gains{ gainsTicket->get() };
+        auto const & gains{ spatDataTicket->get().gains };
         auto & lastGains{ mAudioData.state.sourcesAudioState[source.key].lastSpatGains };
         auto const * inputSamples{ inputBuffer[source.key].getReadPointer(0) };
 
@@ -255,19 +256,21 @@ void AudioProcessor::processLbap(SourceAudioBuffer & sourcesBuffer,
             continue;
         }
 
-        auto *& gainsTicket{ mAudioData.state.mostRecentSpatGains[source.key] };
-        mAudioData.spatGainMatrix[source.key].getMostRecent(gainsTicket);
-        if (gainsTicket == nullptr) {
+        auto & spatDataExchanger{ mAudioData.spatData[source.key] };
+        auto * spatDataTicket{ mAudioData.state.spatDataTickets[source.key] };
+        spatDataExchanger.getMostRecent(spatDataTicket);
+        if (spatDataTicket == nullptr) {
             continue;
         }
-        auto const & gains{ gainsTicket->get() };
+        auto const & spatData{ spatDataTicket->get() };
+        auto const & gains{ spatData.gains };
 
         // process attenuation
         auto * inputData{ sourcesBuffer[source.key].getWritePointer(0) };
         mAudioData.config->lbapAttenuationConfig.process(
             inputData,
             numSamples,
-            mAudioData.lbapSourceDistances[source.key].load(),
+            spatData.lbapSourceDistance,
             mAudioData.state.sourcesAudioState[source.key].lbapAttenuationState);
 
         // Process spatialization

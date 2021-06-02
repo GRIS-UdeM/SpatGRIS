@@ -36,12 +36,18 @@ public:
     AbstractSpatAlgorithm & operator=(AbstractSpatAlgorithm const &) = delete;
     AbstractSpatAlgorithm & operator=(AbstractSpatAlgorithm &&) = delete;
     //==============================================================================
-    virtual void computeSpeakerGains(SourceData const & source, SpeakersSpatGains & gains) const noexcept = 0;
+    void fixDirectOutsIntoPlace(SourcesData const & sources,
+                                SpeakerSetup const & speakerSetup,
+                                SpatData & spatData) const noexcept;
+    //==============================================================================
+    virtual void updateSpatData(SourceData const & sourceData, SourceSpatData & spatData) const noexcept = 0;
     [[nodiscard]] virtual juce::Array<Triplet> getTriplets() const noexcept = 0;
     [[nodiscard]] virtual bool hasTriplets() const noexcept = 0;
     //==============================================================================
-    [[nodiscard]] static std::unique_ptr<AbstractSpatAlgorithm>
-        make(SpatMode spatMode, tl::optional<StereoMode> stereoMode, SpeakersData const & speakers);
+    [[nodiscard]] static std::unique_ptr<AbstractSpatAlgorithm> make(SpeakerSetup const & speakerSetup,
+                                                                     tl::optional<StereoMode> stereoMode,
+                                                                     SourcesData const & sources,
+                                                                     SpatData & spatData);
 
 private:
     JUCE_LEAK_DETECTOR(AbstractSpatAlgorithm)

@@ -183,9 +183,7 @@ void SpeakerViewComponent::render()
     // Draw Sphere / Cube
     if (viewSettings.showSphereOrCube) {
         switch (mData.config.spatMode) {
-        case SpatMode::hrtfVbap:
         case SpatMode::vbap:
-        case SpatMode::stereo:
             drawFieldSphere();
             break;
         case SpatMode::lbap:
@@ -371,7 +369,7 @@ void SpeakerViewComponent::drawOriginGrid() const
     glLineWidth(1.5f);
 
     // Squares & circles
-    auto const spatMode{ mMainContentComponent.getData().appData.spatMode };
+    auto const spatMode{ mMainContentComponent.getData().speakerSetup.spatMode };
     if (spatMode == SpatMode::lbap) {
         // light grey
         glColor3f(0.59f, 0.59f, 0.59f);
@@ -566,9 +564,6 @@ void SpeakerViewComponent::drawSource(source_index_t const index, ViewportSource
             break;
         case SpatMode::vbap:
             drawVbapSpan(source);
-            break;
-        case SpatMode::hrtfVbap:
-        case SpatMode::stereo:
             break;
         default:
             jassertfalse;

@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS.
 
- Developers: Samuel BÃ©land, Olivier BÃ©langer, Nicolas Masson
+ Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
 
  SpatGRIS is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -20,21 +20,30 @@
 #pragma once
 
 #include "AbstractSpatAlgorithm.hpp"
-#include "lbap.hpp"
+#include "SpatMode.hpp"
 
 //==============================================================================
-class LbapSpatAlgorithm final : public AbstractSpatAlgorithm
+class HrtfSpatAlgorithm final : public AbstractSpatAlgorithm
 {
-    LbapField mData{};
+    std::unique_ptr<AbstractSpatAlgorithm> mInnerAlgorithm{};
 
 public:
     //==============================================================================
-    explicit LbapSpatAlgorithm(SpeakersData const & speakers);
+    HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup, SourcesData const & sources, SpatData & spatData);
+    //==============================================================================
+    HrtfSpatAlgorithm() = delete;
+    ~HrtfSpatAlgorithm() override = default;
+    //==============================================================================
+    HrtfSpatAlgorithm(HrtfSpatAlgorithm const &) = delete;
+    HrtfSpatAlgorithm(HrtfSpatAlgorithm &&) = delete;
+    HrtfSpatAlgorithm & operator=(HrtfSpatAlgorithm const &) = delete;
+    HrtfSpatAlgorithm & operator=(HrtfSpatAlgorithm &&) = delete;
     //==============================================================================
     void updateSpatData(SourceData const & sourceData, SourceSpatData & spatData) const noexcept override;
     [[nodiscard]] juce::Array<Triplet> getTriplets() const noexcept override;
-    [[nodiscard]] bool hasTriplets() const noexcept override { return true; }
+    [[nodiscard]] bool hasTriplets() const noexcept override;
 
 private:
-    JUCE_LEAK_DETECTOR(LbapSpatAlgorithm)
+    //==============================================================================
+    JUCE_LEAK_DETECTOR(HrtfSpatAlgorithm)
 };

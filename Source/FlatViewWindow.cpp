@@ -50,7 +50,7 @@ void FlatViewWindow::drawFieldBackground(juce::Graphics & g) const
         return result;
     };
 
-    if (mMainContentComponent.getData().appData.spatMode == SpatMode::lbap) {
+    if (mMainContentComponent.getData().speakerSetup.spatMode == SpatMode::lbap) {
         // Draw shaded background squares.
         g.setColour(mLookAndFeel.getLightColour().withBrightness(0.5));
         auto const smallRect{ getCenteredSquare(realSize / LBAP_EXTENDED_RADIUS / 2.0f) };
@@ -151,7 +151,7 @@ void FlatViewWindow::paint(juce::Graphics & g)
 
     // Draw sources.
     for (auto const source : mMainContentComponent.getData().project.sources) {
-        drawSource(g, source, mMainContentComponent.getData().appData.spatMode);
+        drawSource(g, source, mMainContentComponent.getData().speakerSetup.spatMode);
     }
 }
 
@@ -171,9 +171,7 @@ void FlatViewWindow::drawSource(juce::Graphics & g,
 
     auto const getSourcePosition = [&]() {
         switch (spatMode) {
-        case SpatMode::hrtfVbap:
-        case SpatMode::vbap:
-        case SpatMode::stereo: {
+        case SpatMode::vbap: {
             jassert(source.value->vector);
             auto const & vector{ *source.value->vector };
             auto const radius{ 1.0f - vector.elevation / HALF_PI };
@@ -223,14 +221,11 @@ void FlatViewWindow::drawSource(juce::Graphics & g,
 
     // draw spans
     switch (spatMode) {
-    case SpatMode::hrtfVbap:
     case SpatMode::vbap:
         drawSourceVbapSpan(g, *source.value);
         break;
     case SpatMode::lbap:
         drawSourceLbapSpan(g, sourcePositionAbsolute, *source.value);
-        break;
-    case SpatMode::stereo:
         break;
     default:
         jassertfalse;

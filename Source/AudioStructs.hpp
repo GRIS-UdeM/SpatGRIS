@@ -132,13 +132,21 @@ struct HrtfData {
 };
 
 //==============================================================================
+struct SourceSpatData {
+    SpeakersSpatGains gains{};
+    float lbapSourceDistance{};
+};
+
+//==============================================================================
 struct AudioState {
     StrongArray<source_index_t, SourceAudioState, MAX_NUM_SOURCES> sourcesAudioState{};
     StrongArray<output_patch_t, SpeakerAudioState, MAX_NUM_SPEAKERS> speakersAudioState{};
-    StrongArray<source_index_t, AtomicExchanger<SpeakersSpatGains>::Ticket *, MAX_NUM_SOURCES> mostRecentSpatGains{};
+    StrongArray<source_index_t, AtomicExchanger<SourceSpatData>::Ticket *, MAX_NUM_SOURCES> spatDataTickets{};
     // HRTF-specific
     HrtfData hrtf{};
 };
+
+using SpatData = StrongArray<source_index_t, AtomicExchanger<SourceSpatData>, MAX_NUM_SOURCES>;
 
 //==============================================================================
 using SourcePeaks = StrongArray<source_index_t, float, MAX_NUM_SOURCES>;
@@ -146,17 +154,16 @@ using SpeakerPeaks = StrongArray<output_patch_t, float, MAX_NUM_SPEAKERS>;
 
 //==============================================================================
 struct AudioData {
-    // Offline message thread -> audio thread
+    // message thread -> audio thread (cold)
     std::unique_ptr<AudioConfig> config{};
 
-    // Live audio thread -> audio thread
+    // audio thread -> audio thread (hot)
     AudioState state{};
 
-    // Live message thread -> audio thread
-    StrongArray<source_index_t, AtomicExchanger<SpeakersSpatGains>, MAX_NUM_SOURCES> spatGainMatrix{};
-    StrongArray<source_index_t, std::atomic<float>, MAX_NUM_SOURCES> lbapSourceDistances{}; // Lbap-specific
+    // message thread -> audio thread (hot)
+    SpatData spatData{};
 
-    // Live audio thread -> message thread
+    // audio thread -> message thread (hot)
     AtomicExchanger<SourcePeaks> sourcePeaks{};
     AtomicExchanger<SpeakerPeaks> speakerPeaks{};
 };

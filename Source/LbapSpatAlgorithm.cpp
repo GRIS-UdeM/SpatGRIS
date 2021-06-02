@@ -25,9 +25,11 @@ LbapSpatAlgorithm::LbapSpatAlgorithm(SpeakersData const & speakers) : mData(lbap
 }
 
 //==============================================================================
-void LbapSpatAlgorithm::computeSpeakerGains(SourceData const & source, SpeakersSpatGains & gains) const noexcept
+void LbapSpatAlgorithm::updateSpatData(SourceData const & sourceData, SourceSpatData & spatData) const noexcept
 {
-    lbap(source, gains, mData);
+    jassert(sourceData.vector);
+    lbap(sourceData, spatData.gains, mData);
+    spatData.lbapSourceDistance = sourceData.vector->length;
 }
 
 //==============================================================================

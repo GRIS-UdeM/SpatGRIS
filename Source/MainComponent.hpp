@@ -199,7 +199,7 @@ public:
 
     void handleSetShowTriplets(bool state);
 
-    void spatModeChanged(SpatMode spatMode) override;
+    bool setSpatMode(SpatMode spatMode) override;
     [[nodiscard]] bool spatModeChanged(SpatMode spatMode, LoadSpeakerSetupOption option);
     void cubeAttenuationDbChanged(dbfs_t value) override;
     void cubeAttenuationHzChanged(hz_t value) override;
@@ -210,8 +210,6 @@ public:
     output_patch_t addSpeaker(tl::optional<output_patch_t> speakerToCopy, tl::optional<int> index);
     void removeSpeaker(output_patch_t outputPatch);
     void reorderSpeakers(juce::Array<output_patch_t> newOrder);
-
-    [[nodiscard]] bool isRadiusNormalized() const;
 
     [[nodiscard]] AudioProcessor & getAudioProcessor() { return *mAudioProcessor; }
     [[nodiscard]] AudioProcessor const & getAudioProcessor() const { return *mAudioProcessor; }
@@ -278,16 +276,8 @@ private:
     [[nodiscard]] output_patch_t getMaxSpeakerOutputPatch() const;
     //==============================================================================
     // Open - save.
-    [[nodiscard]] static tl::optional<std::pair<SpeakerSetup, SpatMode>> extractSpeakerSetup(juce::File const & file);
-    [[nodiscard]] bool loadSpeakerSetup(juce::File const & file,
-                                        tl::optional<SpatMode> spatMode = tl::nullopt,
-                                        LoadSpeakerSetupOption option
-                                        = LoadSpeakerSetupOption::disallowDiscardingUnsavedChanges);
-    [[nodiscard]] bool loadSpeakerSetup(SpeakerSetup speakerSetup,
-                                        SpatMode spatMode,
-                                        juce::String const & filePath,
-                                        LoadSpeakerSetupOption option
-                                        = LoadSpeakerSetupOption::disallowDiscardingUnsavedChanges);
+    [[nodiscard]] static tl::optional<SpeakerSetup> extractSpeakerSetup(juce::File const & file);
+    [[nodiscard]] bool loadSpeakerSetup(juce::File file, LoadSpeakerSetupOption option);
     [[nodiscard]] bool
         loadProject(juce::File const & file, LoadProjectOption loadProjectOption, bool discardCurrentProject);
     [[nodiscard]] bool saveProject(tl::optional<juce::File> maybeFile);

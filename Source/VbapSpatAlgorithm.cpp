@@ -59,10 +59,10 @@ VbapSpatAlgorithm::VbapSpatAlgorithm(SpeakersData const & speakers)
 }
 
 //==============================================================================
-void VbapSpatAlgorithm::computeSpeakerGains(SourceData const & source, SpeakersSpatGains & gains) const noexcept
+void VbapSpatAlgorithm::updateSpatData(SourceData const & sourceData, SourceSpatData & spatData) const noexcept
 {
-    jassert(source.vector);
-    vbapCompute(source, gains, *mData);
+    jassert(sourceData.vector);
+    vbapCompute(sourceData, spatData.gains, *mData);
 }
 
 //==============================================================================

@@ -48,7 +48,10 @@ constexpr bool PolarVector::operator==(PolarVector const & other) const noexcept
 //==============================================================================
 constexpr PolarVector PolarVector::normalized() const noexcept
 {
-    return PolarVector{ azimuth, elevation, 1.0f };
+    if (length == 0.0f) {
+        return PolarVector{ HALF_PI, radians_t{}, 1.0f };
+    }
+    return PolarVector{ azimuth, std::max(elevation, radians_t{}), 1.0f };
 }
 
 //==============================================================================

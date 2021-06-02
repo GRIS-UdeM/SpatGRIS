@@ -116,7 +116,6 @@ public:
 private:
     //==============================================================================
     void pushSelectionToMainComponent() const;
-    [[nodiscard]] SpatMode getModeSelected() const;
     [[nodiscard]] juce::String getText(int columnNumber, int rowNumber) const;
     void setText(int columnNumber, int rowNumber, juce::String const & newText, bool altDown = false);
     bool isMouseOverDragHandle(juce::MouseEvent const & event);

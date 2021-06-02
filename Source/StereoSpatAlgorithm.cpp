@@ -20,6 +20,20 @@
 #include "StereoSpatAlgorithm.hpp"
 
 //==============================================================================
+void StereoSpatAlgorithm::updateSpatData(SourceData const & sourceData, SourceSpatData & spatData) const noexcept
+{
+    jassert(sourceData.vector);
+    using fast = juce::dsp::FastMathApproximations;
+
+    static auto const TO_GAIN = [](radians_t const angle) { return fast::sin(angle.get()) / 2.0f + 0.5f; };
+
+    auto & gains{ spatData.gains };
+
+    gains[output_patch_t{ 1 }] = TO_GAIN(sourceData.vector->azimuth - HALF_PI);
+    gains[output_patch_t{ 2 }] = TO_GAIN(sourceData.vector->azimuth + HALF_PI);
+}
+
+//==============================================================================
 juce::Array<Triplet> StereoSpatAlgorithm::getTriplets() const noexcept
 {
     jassertfalse;
@@ -27,13 +41,9 @@ juce::Array<Triplet> StereoSpatAlgorithm::getTriplets() const noexcept
 }
 
 //==============================================================================
-void StereoSpatAlgorithm::computeSpeakerGains(SourceData const & source, SpeakersSpatGains & gains) const noexcept
+StereoSpatAlgorithm::StereoSpatAlgorithm(SpeakerSetup const & speakerSetup,
+                                         SourcesData const & sources,
+                                         SpatData & spatData)
 {
-    jassert(source.vector);
-    using fast = juce::dsp::FastMathApproximations;
-
-    static auto const TO_GAIN = [](radians_t const angle) { return fast::sin(angle.get()) / 2.0f + 0.5f; };
-
-    gains[output_patch_t{ 1 }] = TO_GAIN(source.vector->azimuth - HALF_PI);
-    gains[output_patch_t{ 2 }] = TO_GAIN(source.vector->azimuth + HALF_PI);
+    fixDirectOutsIntoPlace(sources, speakerSetup, spatData);
 }

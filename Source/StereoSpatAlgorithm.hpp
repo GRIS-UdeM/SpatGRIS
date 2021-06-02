@@ -25,7 +25,18 @@
 class StereoSpatAlgorithm final : public AbstractSpatAlgorithm
 {
 public:
-    void computeSpeakerGains(SourceData const & source, SpeakersSpatGains & gains) const noexcept override;
+    StereoSpatAlgorithm(SpeakerSetup const & speakerSetup, SourcesData const & sources, SpatData & spatData);
+    ~StereoSpatAlgorithm() override = default;
+    //==============================================================================
+    StereoSpatAlgorithm(StereoSpatAlgorithm const &) = delete;
+    StereoSpatAlgorithm(StereoSpatAlgorithm &&) = delete;
+    StereoSpatAlgorithm & operator=(StereoSpatAlgorithm const &) = delete;
+    StereoSpatAlgorithm & operator=(StereoSpatAlgorithm &&) = delete;
+    //==============================================================================
+    void updateSpatData(SourceData const & sourceData, SourceSpatData & spatData) const noexcept override;
     [[nodiscard]] juce::Array<Triplet> getTriplets() const noexcept override;
     [[nodiscard]] bool hasTriplets() const noexcept override { return false; }
+
+private:
+    JUCE_LEAK_DETECTOR(StereoSpatAlgorithm)
 };
