@@ -26,6 +26,7 @@
 class HrtfSpatAlgorithm final : public AbstractSpatAlgorithm
 {
     std::unique_ptr<AbstractSpatAlgorithm> mInnerAlgorithm{};
+    HrtfData mHrtfData{};
 
 public:
     //==============================================================================
@@ -39,7 +40,12 @@ public:
     HrtfSpatAlgorithm & operator=(HrtfSpatAlgorithm const &) = delete;
     HrtfSpatAlgorithm & operator=(HrtfSpatAlgorithm &&) = delete;
     //==============================================================================
-    void updateSpatData(SourceData const & sourceData, SourceSpatData & spatData) const noexcept override;
+    void updateSpatData(source_index_t sourceIndex, SourceData const & sourceData) noexcept override;
+    void process(AudioConfig const & config,
+                 SourceAudioBuffer & sourcesBuffer,
+                 SpeakerAudioBuffer & speakersBuffer,
+                 SourcePeaks const & sourcePeaks,
+                 SpeakersAudioConfig const * altSpeakerConfig) override;
     [[nodiscard]] juce::Array<Triplet> getTriplets() const noexcept override;
     [[nodiscard]] bool hasTriplets() const noexcept override;
 

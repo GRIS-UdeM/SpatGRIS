@@ -21,9 +21,23 @@
 
 #include "AbstractSpatAlgorithm.hpp"
 
+using StereoSpeakerGains = std::array<float, 2>;
+
+using StereoGainsQueue = AtomicExchanger<StereoSpeakerGains>;
+
+struct StereoSourceData {
+    StereoGainsQueue gainsQueue{};
+    StereoGainsQueue::Ticket * currentGains{};
+    StereoSpeakerGains lastGains{};
+};
+
+using StereoSourcesData = StrongArray<source_index_t, StereoSourceData, MAX_NUM_SOURCES>;
+
 //==============================================================================
 class StereoSpatAlgorithm final : public AbstractSpatAlgorithm
 {
+    StereoSourcesData mData{};
+
 public:
     StereoSpatAlgorithm(SpeakerSetup const & speakerSetup, SourcesData const & sources, SpatData & spatData);
     ~StereoSpatAlgorithm() override = default;
@@ -33,7 +47,12 @@ public:
     StereoSpatAlgorithm & operator=(StereoSpatAlgorithm const &) = delete;
     StereoSpatAlgorithm & operator=(StereoSpatAlgorithm &&) = delete;
     //==============================================================================
-    void updateSpatData(SourceData const & sourceData, SourceSpatData & spatData) const noexcept override;
+    void updateSpatData(source_index_t sourceIndex, SourceData const & sourceData) noexcept override;
+    void process(AudioConfig const & config,
+                 SourceAudioBuffer & sourcesBuffer,
+                 SpeakerAudioBuffer & speakersBuffer,
+                 SourcePeaks const & sourcePeaks,
+                 SpeakersAudioConfig const * altSpeakerConfig) override;
     [[nodiscard]] juce::Array<Triplet> getTriplets() const noexcept override;
     [[nodiscard]] bool hasTriplets() const noexcept override { return false; }
 

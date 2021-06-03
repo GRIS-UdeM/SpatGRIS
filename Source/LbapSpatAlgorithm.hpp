@@ -22,16 +22,36 @@
 #include "AbstractSpatAlgorithm.hpp"
 #include "lbap.hpp"
 
+struct LbapSpatData {
+    SpeakersSpatGains gains{};
+    float lbapSourceDistance{};
+};
+
+using LbapSpatDataQueue = AtomicExchanger<LbapSpatData>;
+
+struct LbapSourceData {
+    LbapSpatDataQueue dataQueue{};
+    LbapSpatDataQueue::Ticket * currentData{};
+    LbapSourceAttenuationState attenuationState{};
+    SpeakersSpatGains lastGains{};
+};
+
 //==============================================================================
 class LbapSpatAlgorithm final : public AbstractSpatAlgorithm
 {
-    LbapField mData{};
+    mField mField{};
+    StrongArray<source_index_t, LbapSourceData, MAX_NUM_SOURCES> mData{};
 
 public:
     //==============================================================================
     explicit LbapSpatAlgorithm(SpeakersData const & speakers);
     //==============================================================================
-    void updateSpatData(SourceData const & sourceData, SourceSpatData & spatData) const noexcept override;
+    void updateSpatData(source_index_t sourceIndex, SourceData const & sourceData) noexcept override;
+    void process(AudioConfig const & config,
+                 SourceAudioBuffer & sourceBuffer,
+                 SpeakerAudioBuffer & speakersBuffer,
+                 SourcePeaks const & sourcesPeaks,
+                 SpeakersAudioConfig const * altSpeakerConfig) override;
     [[nodiscard]] juce::Array<Triplet> getTriplets() const noexcept override;
     [[nodiscard]] bool hasTriplets() const noexcept override { return true; }
 

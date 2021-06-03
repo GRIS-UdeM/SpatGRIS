@@ -28,8 +28,7 @@
 
 //==============================================================================
 void AbstractSpatAlgorithm::fixDirectOutsIntoPlace(SourcesData const & sources,
-                                                   SpeakerSetup const & speakerSetup,
-                                                   SpatData & spatData) const noexcept
+                                                   SpeakerSetup const & speakerSetup) noexcept
 {
     auto const getFakeSourceData = [&](SourceData const & source, SpeakerData const & speaker) -> SourceData {
         auto fakeSourceData{ source };
@@ -56,11 +55,7 @@ void AbstractSpatAlgorithm::fixDirectOutsIntoPlace(SourcesData const & sources,
 
         auto const & speaker{ speakerSetup.speakers[*directOut] };
 
-        auto & exchanger{ spatData[source.key] };
-        auto * sourceSpatData{ exchanger.acquire() };
-
-        updateSpatData(getFakeSourceData(*source.value, speaker), sourceSpatData->get());
-        exchanger.setMostRecent(sourceSpatData);
+        updateSpatData(source.key, getFakeSourceData(*source.value, speaker));
     }
 }
 

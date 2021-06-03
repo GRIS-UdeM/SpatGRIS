@@ -55,28 +55,96 @@ VbapSpatAlgorithm::VbapSpatAlgorithm(SpeakersData const & speakers)
     auto const dimensions{ getVbapType(speakers) == VbapType::twoD ? 2 : 3 };
     auto const numSpeakers{ narrow<int>(index) };
 
-    mData.reset(vbapInit(loudSpeakers, numSpeakers, dimensions, outputPatches));
+    mSetupData.reset(vbapInit(loudSpeakers, numSpeakers, dimensions, outputPatches));
 }
 
 //==============================================================================
-void VbapSpatAlgorithm::updateSpatData(SourceData const & sourceData, SourceSpatData & spatData) const noexcept
+void VbapSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, SourceData const & sourceData) noexcept
 {
     jassert(sourceData.vector);
-    vbapCompute(sourceData, spatData.gains, *mData);
+
+    auto & spatDataQueue{ mData[sourceIndex].spatDataQueue };
+    auto * ticket{ spatDataQueue.acquire() };
+
+    vbapCompute(sourceData, ticket->get(), *mSetupData);
+    spatDataQueue.setMostRecent(ticket);
+}
+
+//==============================================================================
+void VbapSpatAlgorithm::process(AudioConfig const & config,
+                                SourceAudioBuffer & sourcesBuffer,
+                                SpeakerAudioBuffer & speakersBuffer,
+                                SourcePeaks const & sourcePeaks,
+                                SpeakersAudioConfig const * altSpeakerConfig)
+{
+    auto const & gainInterpolation{ config.spatGainsInterpolation };
+    auto const gainFactor{ std::pow(gainInterpolation, 0.1f) * 0.0099f + 0.99f };
+
+    auto const & speakersAudioConfig{ altSpeakerConfig ? *altSpeakerConfig : config.speakersAudioConfig };
+
+    auto const numSamples{ sourcesBuffer.getNumSamples() };
+    for (auto const & source : config.sourcesAudioConfig) {
+        if (source.value.isMuted || source.value.directOut || sourcePeaks[source.key] < SMALL_GAIN) {
+            continue;
+        }
+
+        auto & data{ mData[source.key] };
+
+        data.spatDataQueue.getMostRecent(data.currentSpatData);
+        if (data.currentSpatData == nullptr) {
+            continue;
+        }
+        auto const & gains{ data.currentSpatData->get() };
+
+        auto & lastGains{ data.lastGains };
+        auto const * inputSamples{ sourcesBuffer[source.key].getReadPointer(0) };
+
+        for (auto const & speaker : speakersAudioConfig) {
+            if (speaker.value.isMuted || speaker.value.isDirectOutOnly || speaker.value.gain < SMALL_GAIN) {
+                continue;
+            }
+            auto & currentGain{ lastGains[speaker.key] };
+            auto const & targetGain{ gains[speaker.key] };
+            auto * outputSamples{ speakersBuffer[speaker.key].getWritePointer(0) };
+            if (gainInterpolation == 0.0f) {
+                // linear interpolation over buffer size
+                auto const gainSlope = (targetGain - currentGain) / narrow<float>(numSamples);
+                if (targetGain < SMALL_GAIN && currentGain < SMALL_GAIN) {
+                    // this is not going to produce any more sounds!
+                    continue;
+                }
+                for (int sampleIndex{}; sampleIndex < numSamples; ++sampleIndex) {
+                    currentGain += gainSlope;
+                    outputSamples[sampleIndex] += inputSamples[sampleIndex] * currentGain;
+                }
+            } else {
+                // log interpolation with 1st order filter
+                for (int sampleIndex{}; sampleIndex < numSamples; ++sampleIndex) {
+                    currentGain = targetGain + (currentGain - targetGain) * gainFactor;
+                    if (currentGain < SMALL_GAIN && targetGain < SMALL_GAIN) {
+                        // If the gain is near zero and the target gain is also near zero, this means that
+                        // currentGain will no ever increase over this buffer
+                        break;
+                    }
+                    outputSamples[sampleIndex] += inputSamples[sampleIndex] * currentGain;
+                }
+            }
+        }
+    }
 }
 
 //==============================================================================
 juce::Array<Triplet> VbapSpatAlgorithm::getTriplets() const noexcept
 {
     jassert(hasTriplets());
-    return vbapExtractTriplets(*mData);
+    return vbapExtractTriplets(*mSetupData);
 }
 
 //==============================================================================
 bool VbapSpatAlgorithm::hasTriplets() const noexcept
 {
-    if (!mData) {
+    if (!mSetupData) {
         return false;
     }
-    return mData->dimension == 3;
+    return mSetupData->dimension == 3;
 }

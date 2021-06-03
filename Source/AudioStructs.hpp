@@ -29,6 +29,8 @@
 
 enum class VbapType { twoD, threeD };
 
+float constexpr SMALL_GAIN = 0.0000000000001f;
+
 //==============================================================================
 struct SpeakerHighpassState {
     double x1{};
@@ -135,12 +137,6 @@ struct HrtfData {
 };
 
 //==============================================================================
-struct SourceSpatData {
-    SpeakersSpatGains gains{};
-    float lbapSourceDistance{};
-};
-
-//==============================================================================
 struct AudioState {
     StrongArray<source_index_t, SourceAudioState, MAX_NUM_SOURCES> sourcesAudioState{};
     StrongArray<output_patch_t, SpeakerAudioState, MAX_NUM_SPEAKERS> speakersAudioState{};
@@ -159,9 +155,6 @@ using SpeakerPeaks = StrongArray<output_patch_t, float, MAX_NUM_SPEAKERS>;
 struct AudioData {
     // message thread -> audio thread (cold)
     std::unique_ptr<AudioConfig> config{};
-
-    // audio thread -> audio thread (hot)
-    AudioState state{};
 
     // message thread -> audio thread (hot)
     SpatData spatData{};

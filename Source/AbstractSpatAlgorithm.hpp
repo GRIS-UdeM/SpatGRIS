@@ -19,10 +19,13 @@
 
 #pragma once
 
-#include "AudioStructs.hpp"
 #include "LogicStrucs.hpp"
-#include "SpatMode.hpp"
 #include "Triplet.hpp"
+
+#define ASSERT_OSC_THREAD jassert(juce::Thread::getCurrentThread()->getThreadName() == "OSC_SERVER")
+#define ASSERT_AUDIO_THREAD                                                                                            \
+    jassert(juce::Thread::getCurrentThread()->getThreadName() != "OSC_SERVER"                                          \
+            && !juce::MessageManager::getInstance()->isThisTheMessageThread())
 
 //==============================================================================
 class AbstractSpatAlgorithm
@@ -36,11 +39,15 @@ public:
     AbstractSpatAlgorithm & operator=(AbstractSpatAlgorithm const &) = delete;
     AbstractSpatAlgorithm & operator=(AbstractSpatAlgorithm &&) = delete;
     //==============================================================================
-    void fixDirectOutsIntoPlace(SourcesData const & sources,
-                                SpeakerSetup const & speakerSetup,
-                                SpatData & spatData) const noexcept;
+    void fixDirectOutsIntoPlace(SourcesData const & sources, SpeakerSetup const & speakerSetup) noexcept;
     //==============================================================================
-    virtual void updateSpatData(SourceData const & sourceData, SourceSpatData & spatData) const noexcept = 0;
+    virtual void updateSpatData(source_index_t sourceIndex, SourceData const & sourceData) noexcept = 0;
+    virtual void process(AudioConfig const & config,
+                         SourceAudioBuffer & sourcesBuffer,
+                         SpeakerAudioBuffer & speakersBuffer,
+                         SourcePeaks const & sourcePeaks,
+                         SpeakersAudioConfig const * altSpeakerConfig)
+        = 0;
     [[nodiscard]] virtual juce::Array<Triplet> getTriplets() const noexcept = 0;
     [[nodiscard]] virtual bool hasTriplets() const noexcept = 0;
     //==============================================================================

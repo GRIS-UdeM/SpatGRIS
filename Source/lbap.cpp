@@ -153,7 +153,7 @@ static void computeMatrix(lbap_layer & layer)
 //==============================================================================
 /* Create a new layer, based on a lbap_pos array, and add it the to field.*/
 static lbap_layer
-    createLayer(LbapField const & field, radians_t const elevation, std::vector<LbapPosition> const & speakers)
+    createLayer(mField const & field, radians_t const elevation, std::vector<LbapPosition> const & speakers)
 {
     auto result{ initLayers(narrow<int>(field.layers.size()), elevation, speakers) };
     computeMatrix(result);
@@ -205,7 +205,7 @@ Layer-Based Amplitude Panning interface implementation.
 ================================================================================= */
 
 //==============================================================================
-LbapField lbapInit(SpeakersData const & speakers)
+mField lbapInit(SpeakersData const & speakers)
 {
     std::vector<LbapSpeaker> lbapSpeakers{};
     lbapSpeakers.reserve(speakers.size());
@@ -223,7 +223,7 @@ LbapField lbapInit(SpeakersData const & speakers)
         return a.vector.elevation < b.vector.elevation;
     });
 
-    LbapField field{};
+    mField field{};
     std::transform(lbapSpeakers.cbegin(),
                    lbapSpeakers.cend(),
                    std::back_inserter(field.outputOrder),
@@ -247,7 +247,7 @@ LbapField lbapInit(SpeakersData const & speakers)
 }
 
 //==============================================================================
-void lbap(SourceData const & source, SpeakersSpatGains & gains, LbapField const & field)
+void lbap(SourceData const & source, SpeakersSpatGains & gains, mField const & field)
 {
     jassert(source.vector);
     auto const & position{ *source.vector };
