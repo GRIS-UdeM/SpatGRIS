@@ -59,9 +59,7 @@ static juce::AudioBuffer<float> getSamplesFromWavFile(juce::File const & file)
 }
 
 //==============================================================================
-HrtfSpatAlgorithm::HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup,
-                                     SourcesData const & sources,
-                                     SpatData & spatData)
+HrtfSpatAlgorithm::HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup, SourcesData const & sources)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 

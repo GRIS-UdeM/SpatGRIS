@@ -23,6 +23,17 @@
 #include "SpatMode.hpp"
 
 //==============================================================================
+struct HrtfData {
+    std::array<unsigned, 16> count{};
+    std::array<std::array<float, 128>, 16> inputTmp{};
+    std::array<std::array<float, 128>, 16> leftImpulses{};
+    std::array<std::array<float, 128>, 16> rightImpulses{};
+
+    SpeakersAudioConfig speakersAudioConfig{};
+    SpeakerAudioBuffer speakersBuffer{};
+};
+
+//==============================================================================
 class HrtfSpatAlgorithm final : public AbstractSpatAlgorithm
 {
     std::unique_ptr<AbstractSpatAlgorithm> mInnerAlgorithm{};
@@ -30,7 +41,7 @@ class HrtfSpatAlgorithm final : public AbstractSpatAlgorithm
 
 public:
     //==============================================================================
-    HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup, SourcesData const & sources, SpatData & spatData);
+    HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup, SourcesData const & sources);
     //==============================================================================
     HrtfSpatAlgorithm() = delete;
     ~HrtfSpatAlgorithm() override = default;

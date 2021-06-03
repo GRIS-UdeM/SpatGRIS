@@ -39,7 +39,7 @@ class StereoSpatAlgorithm final : public AbstractSpatAlgorithm
     StereoSourcesData mData{};
 
 public:
-    StereoSpatAlgorithm(SpeakerSetup const & speakerSetup, SourcesData const & sources, SpatData & spatData);
+    StereoSpatAlgorithm(SpeakerSetup const & speakerSetup, SourcesData const & sources);
     ~StereoSpatAlgorithm() override = default;
     //==============================================================================
     StereoSpatAlgorithm(StereoSpatAlgorithm const &) = delete;

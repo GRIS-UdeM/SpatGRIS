@@ -126,9 +126,7 @@ juce::Array<Triplet> StereoSpatAlgorithm::getTriplets() const noexcept
 }
 
 //==============================================================================
-StereoSpatAlgorithm::StereoSpatAlgorithm(SpeakerSetup const & speakerSetup,
-                                         SourcesData const & sources,
-                                         SpatData & spatData)
+StereoSpatAlgorithm::StereoSpatAlgorithm(SpeakerSetup const & speakerSetup, SourcesData const & sources)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     fixDirectOutsIntoPlace(sources, speakerSetup);

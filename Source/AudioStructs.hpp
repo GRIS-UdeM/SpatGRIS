@@ -126,26 +126,10 @@ struct AudioConfig {
 };
 
 //==============================================================================
-struct HrtfData {
-    std::array<unsigned, 16> count{};
-    std::array<std::array<float, 128>, 16> inputTmp{};
-    std::array<std::array<float, 128>, 16> leftImpulses{};
-    std::array<std::array<float, 128>, 16> rightImpulses{};
-
-    SpeakersAudioConfig speakersAudioConfig{};
-    SpeakerAudioBuffer speakersBuffer{};
-};
-
-//==============================================================================
 struct AudioState {
     StrongArray<source_index_t, SourceAudioState, MAX_NUM_SOURCES> sourcesAudioState{};
     StrongArray<output_patch_t, SpeakerAudioState, MAX_NUM_SPEAKERS> speakersAudioState{};
-    StrongArray<source_index_t, AtomicExchanger<SourceSpatData>::Ticket *, MAX_NUM_SOURCES> spatDataTickets{};
-    // HRTF-specific
-    HrtfData hrtf{};
 };
-
-using SpatData = StrongArray<source_index_t, AtomicExchanger<SourceSpatData>, MAX_NUM_SOURCES>;
 
 //==============================================================================
 using SourcePeaks = StrongArray<source_index_t, float, MAX_NUM_SOURCES>;
@@ -156,8 +140,8 @@ struct AudioData {
     // message thread -> audio thread (cold)
     std::unique_ptr<AudioConfig> config{};
 
-    // message thread -> audio thread (hot)
-    SpatData spatData{};
+    // audio thread -> audio thread (hot)
+    AudioState state{};
 
     // audio thread -> message thread (hot)
     AtomicExchanger<SourcePeaks> sourcePeaks{};
