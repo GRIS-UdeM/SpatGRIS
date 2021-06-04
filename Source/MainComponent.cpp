@@ -1527,6 +1527,7 @@ void MainContentComponent::updateSpatAlgorithm() const
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
+    juce::ScopedLock const audioLock{ mAudioProcessor->getLock() };
 
     mAudioProcessor->getSpatAlgorithm()
         = AbstractSpatAlgorithm::make(mData.speakerSetup, mData.appData.stereoMode, mData.project.sources);
