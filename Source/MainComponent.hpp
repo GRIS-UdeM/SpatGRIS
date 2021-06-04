@@ -20,7 +20,6 @@
 #pragma once
 
 #include "AboutWindow.hpp"
-#include "AbstractSpatAlgorithm.hpp"
 #include "AudioProcessor.hpp"
 #include "Configuration.hpp"
 #include "Constants.hpp"
@@ -135,7 +134,6 @@ class MainContentComponent final
     juce::Rectangle<int> mFlatViewWindowRect{};
 
     SpatGrisData mData{};
-    std::unique_ptr<AbstractSpatAlgorithm> mSpatAlgorithm{};
 
 public:
     //==============================================================================
@@ -195,7 +193,7 @@ public:
     void handleNewSpeakerPosition(output_patch_t outputPatch, PolarVector const & position);
 
     void updateAudioProcessor() const;
-    void updateSpatAlgorithm();
+    void updateSpatAlgorithm() const;
     void updateViewportConfig() const;
 
     void handleSetShowTriplets(bool state);

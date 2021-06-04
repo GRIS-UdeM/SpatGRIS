@@ -22,8 +22,8 @@
 #include "LogicStrucs.hpp"
 #include "Triplet.hpp"
 
-#define ASSERT_OSC_THREAD jassert(juce::Thread::getCurrentThread()->getThreadName() == "OSC_SERVER")
-#define ASSERT_AUDIO_THREAD                                                                                            \
+#define ASSERT_OSC_THREAD // jassert(juce::Thread::getCurrentThread()->getThreadName() == "OSC_SERVER")
+#define ASSERT_AUDIO_THREAD //                                                                                           \
     jassert(juce::Thread::getCurrentThread()->getThreadName() != "OSC_SERVER"                                          \
             && !juce::MessageManager::getInstance()->isThisTheMessageThread())
 

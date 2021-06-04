@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include "AbstractSpatAlgorithm.hpp"
 #include "AudioStructs.hpp"
 #include "StrongArray.hpp"
 #include "TaggedAudioBuffer.hpp"
@@ -35,6 +36,7 @@ class AudioProcessor
 {
     AudioData mAudioData{};
     juce::CriticalSection mLock{};
+    std::unique_ptr<AbstractSpatAlgorithm> mSpatAlgorithm{};
 
 public:
     //==============================================================================
@@ -46,8 +48,6 @@ public:
     AudioProcessor & operator=(AudioProcessor const &) = delete;
     AudioProcessor & operator=(AudioProcessor &&) = delete;
     //==============================================================================
-    // Reinit HRTF delay lines.
-    void resetHrtf();
     void setAudioConfig(std::unique_ptr<AudioConfig> newAudioConfig);
     [[nodiscard]] juce::CriticalSection const & getLock() const noexcept { return mLock; }
     void processAudio(SourceAudioBuffer & sourceBuffer, SpeakerAudioBuffer & speakerBuffer) noexcept;
@@ -55,24 +55,13 @@ public:
     auto & getAudioData() { return mAudioData; }
     auto const & getAudioData() const { return mAudioData; }
 
+    auto const & getSpatAlgorithm() const { return mSpatAlgorithm; }
+    auto & getSpatAlgorithm() { return mSpatAlgorithm; }
+
 private:
     //==============================================================================
     void muteSoloVuMeterIn(SourceAudioBuffer & inputBuffer, SourcePeaks & peaks) const noexcept;
     void muteSoloVuMeterGainOut(SpeakerAudioBuffer & speakersBuffer, SpeakerPeaks & peaks) noexcept;
-    void processVbap(SourceAudioBuffer const & inputBuffer,
-                     SpeakerAudioBuffer & outputBuffer,
-                     SpeakersAudioConfig const & speakersAudioConfig,
-                     SourcePeaks const & sourcePeaks) noexcept;
-    void processLbap(SourceAudioBuffer & sourcesBuffer,
-                     SpeakerAudioBuffer & speakersBuffer,
-                     SpeakersAudioConfig const & speakersAudioConfig,
-                     SourcePeaks const & sourcePeaks) noexcept;
-    void processHrtf(SourceAudioBuffer & inputBuffer,
-                     SpeakerAudioBuffer & outputBuffer,
-                     SourcePeaks const & sourcePeaks) noexcept;
-    void processStereo(SourceAudioBuffer const & inputBuffer,
-                       SpeakerAudioBuffer & outputBuffer,
-                       SourcePeaks const &) noexcept;
     //==============================================================================
     JUCE_LEAK_DETECTOR(AudioProcessor)
 };

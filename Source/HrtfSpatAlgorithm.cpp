@@ -148,7 +148,7 @@ void HrtfSpatAlgorithm::process(AudioConfig const & config,
         auto & left{ *(*it++).value };
         auto & right{ *(*it).value };
 
-        return std::array<juce::AudioBuffer<float> &, 2>{ left, right };
+        return std::array<juce::AudioBuffer<float> *, 2>{ &left, &right };
     };
 
     auto outputBuffers{ getFirstTwoBuffers() };
@@ -162,8 +162,8 @@ void HrtfSpatAlgorithm::process(AudioConfig const & config,
     auto const numSamples{ sourcesBuffer.getNumSamples() };
 
     // Process hrtf and mix to stereo
-    auto * leftOutputSamples{ outputBuffers[0].getWritePointer(0) };
-    auto * rightOutputSamples{ outputBuffers[1].getWritePointer(0) };
+    auto * leftOutputSamples{ outputBuffers[0]->getWritePointer(0) };
+    auto * rightOutputSamples{ outputBuffers[1]->getWritePointer(0) };
 
     std::fill_n(leftOutputSamples, numSamples, 0.0f);
     std::fill_n(rightOutputSamples, numSamples, 0.0f);

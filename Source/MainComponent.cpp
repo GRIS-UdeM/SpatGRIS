@@ -652,7 +652,7 @@ void MainContentComponent::handleShowTriplets()
     juce::ScopedReadLock const readLock{ mLock };
 
     auto const newState{ !mData.appData.viewSettings.showSpeakerTriplets };
-    if (newState && !mSpatAlgorithm->hasTriplets()) {
+    if (newState && !mAudioProcessor->getSpatAlgorithm()->hasTriplets()) {
         jassertfalse;
         return;
     }
@@ -699,32 +699,35 @@ void MainContentComponent::handleShowSphere()
 void MainContentComponent::handleResetInputPositions()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-    juce::ScopedWriteLock const lock{ mLock };
 
-    auto & viewPortData{ mSpeakerViewComponent->getData() };
-    auto & spatDataExchangers{ mAudioProcessor->getAudioData().spatData };
-    for (auto const source : mData.project.sources) {
-        // reset positions
-        source.value->position = tl::nullopt;
-        source.value->vector = tl::nullopt;
+    jassertfalse; // TODO
 
-        {
-            // reset 3d view
-            auto & exchanger{ viewPortData.sources[source.key] };
-            auto * sourceTicket{ exchanger.acquire() };
-            sourceTicket->get() = tl::nullopt;
-            exchanger.setMostRecent(sourceTicket);
-        }
-        {
-            // reset gain matrix
-            auto & exchanger{ spatDataExchangers[source.key] };
-            auto * spatData{ exchanger.acquire() };
-            spatData->get() = SourceSpatData{};
-            exchanger.setMostRecent(spatData);
-        }
-    }
+    // juce::ScopedWriteLock const lock{ mLock };
 
-    updateAudioProcessor();
+    // auto & viewPortData{ mSpeakerViewComponent->getData() };
+    // auto & spatDataExchangers{ mAudioProcessor->getAudioData().spatData };
+    // for (auto const source : mData.project.sources) {
+    //    // reset positions
+    //    source.value->position = tl::nullopt;
+    //    source.value->vector = tl::nullopt;
+
+    //    {
+    //        // reset 3d view
+    //        auto & exchanger{ viewPortData.sources[source.key] };
+    //        auto * sourceTicket{ exchanger.acquire() };
+    //        sourceTicket->get() = tl::nullopt;
+    //        exchanger.setMostRecent(sourceTicket);
+    //    }
+    //    {
+    //        // reset gain matrix
+    //        auto & exchanger{ spatDataExchangers[source.key] };
+    //        auto * spatData{ exchanger.acquire() };
+    //        spatData->get() = SourceSpatData{};
+    //        exchanger.setMostRecent(spatData);
+    //    }
+    //}
+
+    // updateAudioProcessor();
 }
 
 //==============================================================================
@@ -853,7 +856,7 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
         result.setInfo("Show Speaker Triplets", "Show speaker triplets on the 3D view.", generalCategory, 0);
         result.addDefaultKeypress('T', juce::ModifierKeys::altModifier);
         result.setTicked(mData.appData.viewSettings.showSpeakerTriplets);
-        result.setActive(mSpatAlgorithm->hasTriplets());
+        result.setActive(mAudioProcessor->getSpatAlgorithm()->hasTriplets());
         break;
     case MainWindow::ShowSourceLevelID:
         result.setInfo("Show Source Activity", "Activate brightness on sources on the 3D view.", generalCategory, 0);
@@ -1047,7 +1050,7 @@ juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const j
         menu.addSeparator();
         menu.addCommandItem(commandManager, MainWindow::ShowNumbersID);
         menu.addCommandItem(commandManager, MainWindow::ShowSpeakersID);
-        if (mSpatAlgorithm->hasTriplets()) {
+        if (mAudioProcessor->getSpatAlgorithm()->hasTriplets()) {
             menu.addCommandItem(commandManager, MainWindow::ShowTripletsID);
         } else {
             menu.addItem(MainWindow::ShowTripletsID, "Show Speaker Triplets", false, false);
@@ -1302,11 +1305,7 @@ void MainContentComponent::handleSourcePositionChanged(source_index_t const sour
     source.azimuthSpan = newAzimuthSpan;
     source.zenithSpan = newZenithSpan;
 
-    auto & audioData{ mAudioProcessor->getAudioData() };
-    auto & exchanger{ audioData.spatData[sourceIndex] };
-    auto * ticket{ exchanger.acquire() };
-    mSpatAlgorithm->updateSpatData(source, ticket->get());
-    exchanger.setMostRecent(ticket);
+    mAudioProcessor->getSpatAlgorithm()->updateSpatData(sourceIndex, source);
 }
 
 //==============================================================================
@@ -1524,15 +1523,13 @@ void MainContentComponent::updateAudioProcessor() const
 }
 
 //==============================================================================
-void MainContentComponent::updateSpatAlgorithm()
+void MainContentComponent::updateSpatAlgorithm() const
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
-    auto & spatData{ mAudioProcessor->getAudioData().spatData }; // no need to lock for spatData
-    mSpatAlgorithm
-        = AbstractSpatAlgorithm::make(mData.speakerSetup, mData.appData.stereoMode, mData.project.sources, spatData);
-    mAudioProcessor->resetHrtf();
+    mAudioProcessor->getSpatAlgorithm()
+        = AbstractSpatAlgorithm::make(mData.speakerSetup, mData.appData.stereoMode, mData.project.sources);
     updateAudioProcessor();
 }
 
@@ -1542,9 +1539,11 @@ void MainContentComponent::updateViewportConfig() const
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
+    auto const & spatAlgorithm{ *mAudioProcessor->getSpatAlgorithm() };
+
     auto const newConfig{ mData.toViewportConfig() };
-    if (newConfig.viewSettings.showSpeakerTriplets && mSpatAlgorithm && mSpatAlgorithm->hasTriplets()) {
-        mSpeakerViewComponent->setTriplets(mSpatAlgorithm->getTriplets());
+    if (newConfig.viewSettings.showSpeakerTriplets && spatAlgorithm.hasTriplets()) {
+        mSpeakerViewComponent->setTriplets(spatAlgorithm.getTriplets());
     }
     mSpeakerViewComponent->setConfig(newConfig, mData.project.sources);
 }

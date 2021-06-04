@@ -54,7 +54,7 @@ void StereoSpatAlgorithm::process(AudioConfig const & config,
         auto it{ speakersBuffer.begin() };
         auto & leftBuffer{ *(*it++).value };
         auto & rightBuffer{ *(*it).value };
-        return std::array<juce::AudioBuffer<float> &, 2>{ leftBuffer, rightBuffer };
+        return std::array<juce::AudioBuffer<float> *, 2>{ &leftBuffer, &rightBuffer };
     };
 
     auto const & gainInterpolation{ config.spatGainsInterpolation };
@@ -84,7 +84,7 @@ void StereoSpatAlgorithm::process(AudioConfig const & config,
         for (auto const & speaker : SPEAKERS) {
             auto & currentGain{ lastGains[speaker] };
             auto const & targetGain{ gains[speaker] };
-            auto * outputSamples{ buffers[speaker].getWritePointer(0) };
+            auto * outputSamples{ buffers[speaker]->getWritePointer(0) };
             if (gainInterpolation == 0.0f) {
                 // linear interpolation over buffer size
                 auto const gainSlope = (targetGain - currentGain) / narrow<float>(numSamples);
@@ -113,8 +113,8 @@ void StereoSpatAlgorithm::process(AudioConfig const & config,
 
     // Apply gain compensation.
     auto const compensation{ std::pow(10.0f, (narrow<float>(config.sourcesAudioConfig.size()) - 1.0f) * -0.005f) };
-    buffers[0].applyGain(0, numSamples, compensation);
-    buffers[1].applyGain(0, numSamples, compensation);
+    buffers[0]->applyGain(0, numSamples, compensation);
+    buffers[1]->applyGain(0, numSamples, compensation);
 }
 
 //==============================================================================

@@ -32,6 +32,7 @@ void AbstractSpatAlgorithm::fixDirectOutsIntoPlace(SourcesData const & sources,
 {
     auto const getFakeSourceData = [&](SourceData const & source, SpeakerData const & speaker) -> SourceData {
         auto fakeSourceData{ source };
+        fakeSourceData.directOut.reset();
         switch (speakerSetup.spatMode) {
         case SpatMode::vbap:
             fakeSourceData.vector = speaker.vector.normalized();
