@@ -452,9 +452,10 @@ void SourceVuMeterComponent::directOutButtonClicked() const
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    juce::PopupMenu menu{};
     static constexpr auto CHOICE_NOT_DIRECT_OUT = std::numeric_limits<int>::min();
     static constexpr auto CHOICE_CANCELED = 0;
+
+    juce::PopupMenu menu{};
     juce::Array<output_patch_t> directOutSpeakers{};
     juce::Array<output_patch_t> nonDirectOutSpeakers{};
     for (auto const speaker : mOwner.getSpeakersData()) {
@@ -464,9 +465,7 @@ void SourceVuMeterComponent::directOutButtonClicked() const
     for (auto const outputPatch : directOutSpeakers) {
         menu.addItem(outputPatch.get(), juce::String{ outputPatch.get() });
     }
-    if (!directOutSpeakers.isEmpty()) {
-        menu.addItem(CHOICE_NOT_DIRECT_OUT, "-");
-    }
+    menu.addItem(CHOICE_NOT_DIRECT_OUT, NO_DIRECT_OUT_TEXT);
     for (auto const outputPatch : nonDirectOutSpeakers) {
         menu.addItem(outputPatch.get(), juce::String{ outputPatch.get() });
     }

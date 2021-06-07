@@ -54,6 +54,10 @@ void AbstractSpatAlgorithm::fixDirectOutsIntoPlace(SourcesData const & sources,
             continue;
         }
 
+        if (!speakerSetup.speakers.contains(*directOut)) {
+            continue;
+        }
+
         auto const & speaker{ speakerSetup.speakers[*directOut] };
 
         updateSpatData(source.key, getFakeSourceData(*source.value, speaker));
