@@ -128,6 +128,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         mControlPanel->setSpatMode(mData.speakerSetup.spatMode);
         mControlPanel->setCubeAttenuationDb(mData.project.lbapDistanceAttenuationData.attenuation);
         mControlPanel->setCubeAttenuationHz(mData.project.lbapDistanceAttenuationData.freq);
+        mControlPanel->setStereoMode(mData.appData.stereoMode);
 
         mMainLayout->addSection(mInfoPanel.get()).withChildMinSize().withRightPadding(5);
         mMainLayout->addSection(mSourcesSection.get()).withRelativeSize(1.0f).withRightPadding(5);

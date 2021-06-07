@@ -103,6 +103,7 @@ public:
     void setMasterGain(dbfs_t gain);
     void setInterpolation(float interpolation);
     void setSpatMode(SpatMode spatMode);
+    void setStereoMode(tl::optional<StereoMode> const & mode);
     void setCubeAttenuationDb(dbfs_t value);
     void setCubeAttenuationHz(hz_t value);
     void setNumSources(int numSources);

@@ -55,6 +55,12 @@ void ControlPanel::setSpatMode(SpatMode const spatMode)
 }
 
 //==============================================================================
+void ControlPanel::setStereoMode(tl::optional<StereoMode> const & mode)
+{
+    mSpatModeComponent.setStereoMode(mode);
+}
+
+//==============================================================================
 void ControlPanel::setCubeAttenuationDb(dbfs_t const value)
 {
     JUCE_ASSERT_MESSAGE_THREAD;

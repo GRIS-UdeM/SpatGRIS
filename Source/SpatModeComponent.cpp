@@ -81,6 +81,18 @@ void SpatModeComponent::setSpatMode(SpatMode const spatMode)
 }
 
 //==============================================================================
+void SpatModeComponent::setStereoMode(tl::optional<StereoMode> const & mode)
+{
+    if (!mode) {
+        mStereoComboBox.setSelectedItemIndex(0, juce::dontSendNotification);
+        return;
+    }
+
+    auto const index{ static_cast<int>(*mode) + 1 };
+    mStereoComboBox.setSelectedItemIndex(index, juce::dontSendNotification);
+}
+
+//==============================================================================
 SpatMode SpatModeComponent::getSpatMode() const noexcept
 {
     if (mDomeButton.getToggleState()) {
@@ -139,8 +151,8 @@ void SpatModeComponent::resized()
     auto const minWidth{ getMinWidth() };
     auto const minHeight{ getMinHeight() };
 
-    auto const xPadding{ std::max(availableWidth - minWidth, 0) };
-    auto const yPadding{ std::max(availableHeight - minHeight, 0) };
+    auto const xPadding{ std::max(availableWidth - minWidth, 0) / 2 };
+    auto const yPadding{ std::max(availableHeight - minHeight, 0) / 2 };
 
     juce::Rectangle<int> const labelBaseBounds{ availableWidth, LABELS_HEIGHT };
     juce::Rectangle<int> const buttonBaseBounds{ BUTTONS_WIDTH, BUTTONS_HEIGHT };
@@ -157,9 +169,9 @@ void SpatModeComponent::resized()
     x = 0;
     y += BUTTONS_HEIGHT + INNER_PADDING;
     mStereoModeLabel.setBounds(labelBaseBounds.translated(x, y));
-    x = (availableWidth - BUTTONS_WIDTH) / 2;
+    x = 0;
     y += LABELS_HEIGHT + INNER_PADDING;
-    mStereoComboBox.setBounds(buttonBaseBounds.translated(x, y));
+    mStereoComboBox.setBounds(labelBaseBounds.translated(x, y));
 }
 
 //==============================================================================

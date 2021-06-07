@@ -73,6 +73,7 @@ public:
     SpatModeComponent & operator=(SpatModeComponent &&) = delete;
     //==============================================================================
     void setSpatMode(SpatMode spatMode);
+    void setStereoMode(tl::optional<StereoMode> const & mode);
     [[nodiscard]] SpatMode getSpatMode() const noexcept;
     [[nodiscard]] tl::optional<StereoMode> getStereoMode() const noexcept;
     //==============================================================================
