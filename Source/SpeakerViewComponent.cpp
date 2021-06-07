@@ -537,7 +537,7 @@ void SpeakerViewComponent::drawSource(source_index_t const index, ViewportSource
 {
     ASSERT_OPEN_GL_THREAD;
 
-    if (source.colour.getAlpha() == 0.0f) {
+    if (source.colour.getFloatAlpha() == 0.0f) {
         return;
     }
 
@@ -551,7 +551,7 @@ void SpeakerViewComponent::drawSource(source_index_t const index, ViewportSource
     glColor4f(source.colour.getFloatRed(),
               source.colour.getFloatGreen(),
               source.colour.getFloatBlue(),
-              source.colour.getAlpha());
+              source.colour.getFloatAlpha());
 
     drawSphere<7>(SPHERE_RADIUS);
 

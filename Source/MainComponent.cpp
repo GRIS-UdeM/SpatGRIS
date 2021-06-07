@@ -33,7 +33,7 @@ static constexpr auto BUTTON_OK = 1;
 static constexpr auto BUTTON_DISCARD = 2;
 
 //==============================================================================
-static float gainToAlpha(float const gain)
+static float gainToSpeakerAlpha(float const gain)
 {
     static constexpr auto MIN_ALPHA{ 0.1f };
     static constexpr auto MAX_ALPHA{ 1.0f };
@@ -50,6 +50,17 @@ static float gainToAlpha(float const gain)
     auto const result{ std::pow(ratio, ALPHA_CURVE) * ALPHA_RANGE + MIN_ALPHA };
 
     return result;
+}
+
+//==============================================================================
+static float gainToSourceAlpha(float const gain)
+{
+    static constexpr auto OFF = 0.02f;
+    static constexpr auto ON = 0.8f;
+
+    static constexpr dbfs_t MIN_GAIN{ -80.0f };
+
+    return dbfs_t::fromGain(gain) > MIN_GAIN ? ON : OFF;
 }
 
 //==============================================================================
@@ -1165,7 +1176,8 @@ void MainContentComponent::updatePeaks()
 
         auto & exchanger{ viewportData.sources[sourceData.key] };
         auto * ticket{ exchanger.acquire() };
-        ticket->get() = sourceData.value->toViewportData(gainToAlpha(peak));
+        ticket->get() = sourceData.value->toViewportData(
+            mData.appData.viewSettings.showSourceActivity ? gainToSourceAlpha(peak) : 0.8f);
         exchanger.setMostRecent(ticket);
     }
 
@@ -1182,7 +1194,7 @@ void MainContentComponent::updatePeaks()
 
         auto & exchanger{ viewportData.speakersAlpha[speaker.key] };
         auto * ticket{ exchanger.acquire() };
-        ticket->get() = gainToAlpha(peak);
+        ticket->get() = gainToSpeakerAlpha(peak);
         exchanger.setMostRecent(ticket);
     }
 }
