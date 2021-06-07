@@ -525,34 +525,39 @@ bool MainContentComponent::setSpatMode(SpatMode const spatMode)
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
 
-    if (spatMode == SpatMode::vbap && !mData.speakerSetup.isDomeLike()) {
-        auto const result{ juce::AlertWindow::showOkCancelBox(
-            juce::AlertWindow::InfoIcon,
-            "Converting to DOME",
-            "A CUBE speaker setup will be converted to a DOME structure.\nThis will not affect the original file.",
-            "Ok",
-            "Cancel",
-            this) };
-        if (!result) {
-            return false;
-        }
-
-        for (auto & node : mData.speakerSetup.speakers) {
-            auto & speaker{ *node.value };
-            if (speaker.isDirectOutOnly) {
-                continue;
+    auto const ensureVbapIsDomeLike = [&]() {
+        if (spatMode == SpatMode::vbap && !mData.speakerSetup.isDomeLike()) {
+            auto const result{ juce::AlertWindow::showOkCancelBox(
+                juce::AlertWindow::InfoIcon,
+                "Converting to DOME",
+                "A CUBE speaker setup will be converted to a DOME structure.\nThis will not affect the original file.",
+                "Ok",
+                "Cancel",
+                this) };
+            if (!result) {
+                return false;
             }
-            speaker.vector = speaker.vector.normalized();
-            speaker.position = speaker.vector.toCartesian();
-        }
 
-        refreshSpeakers();
+            for (auto & node : mData.speakerSetup.speakers) {
+                auto & speaker{ *node.value };
+                if (speaker.isDirectOutOnly) {
+                    continue;
+                }
+                speaker.vector = speaker.vector.normalized();
+                speaker.position = speaker.vector.toCartesian();
+            }
+        }
+        return true;
+    };
+
+    if (!ensureVbapIsDomeLike()) {
+        mControlPanel->setSpatMode(mData.speakerSetup.spatMode);
+        return false;
     }
 
     mData.speakerSetup.spatMode = spatMode;
-
     mControlPanel->setSpatMode(spatMode);
-    return true;
+    return refreshSpeakers();
 }
 
 //==============================================================================
