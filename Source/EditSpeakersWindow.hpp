@@ -127,6 +127,7 @@ private:
     void buttonClicked(juce::Button * button) override;
     void textEditorTextChanged(juce::TextEditor & editor) override;
     void textEditorReturnKeyPressed(juce::TextEditor & textEditor) override;
+    void textEditorFocusLost(juce::TextEditor &) override;
     void closeButtonPressed() override;
     void sliderValueChanged(juce::Slider * slider) override;
     void sortOrderChanged(int newSortColumnId, bool isForwards) override;

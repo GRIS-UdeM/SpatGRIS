@@ -44,6 +44,8 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     , mListSpeakerBox(lookAndFeel, "Configuration Speakers")
     , mFont(14.0f)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     mAddSpeakerButton.setButtonText("Add Speaker");
     mAddSpeakerButton.setBounds(5, 404, 100, 22);
     mAddSpeakerButton.addListener(this);
@@ -178,6 +180,8 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
 //==============================================================================
 void EditSpeakersWindow::initComp()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     mSpeakersTableListBox.setModel(this);
 
     mSpeakersTableListBox.setColour(juce::ListBox::outlineColourId, mLookAndFeel.getWinBackgroundColour());
@@ -322,6 +326,8 @@ bool compareGreaterThan(Sorter const & a, Sorter const & b)
 //==============================================================================
 void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const isForwards)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     static auto const EXTRACT_VALUE = [](SpeakersData::ConstNode const & speaker, int const sortColumn) -> float {
         switch (sortColumn) {
         case Cols::X:
@@ -376,7 +382,9 @@ void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const 
 //==============================================================================
 void EditSpeakersWindow::sliderValueChanged(juce::Slider * slider)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
     jassert(slider == &mPinkNoiseGainSlider);
+
     if (slider == &mPinkNoiseGainSlider && mPinkNoiseToggleButton.getToggleState()) {
         dbfs_t const db{ narrow<float>(mPinkNoiseGainSlider.getValue()) };
         mMainContentComponent.handlePinkNoiseGainChanged(db);
@@ -386,6 +394,8 @@ void EditSpeakersWindow::sliderValueChanged(juce::Slider * slider)
 //==============================================================================
 void EditSpeakersWindow::buttonClicked(juce::Button * button)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     static auto const GET_SELECTED_ROW = [](juce::TableListBox const & tableListBox) -> tl::optional<int> {
         auto const selectedRow{ tableListBox.getSelectedRow() };
         if (selectedRow < 0) {
@@ -438,7 +448,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
                                    * narrow<float>(i)
                                - mOffsetAngleTextEditor.getText().getFloatValue() + 90.0f };
             azimuth = azimuth.centered();
-            degrees_t const zenith{ mZenithTextEditor.getText().getFloatValue() };
+            degrees_t const zenith{ std::clamp(mZenithTextEditor.getText().getFloatValue(), 0.0f, 90.0f) };
             auto const radius{ mRadiusTextEditor.getText().getFloatValue() };
 
             mMainContentComponent.handleNewSpeakerPosition(newOutputPatch, PolarVector{ azimuth, zenith, radius });
@@ -479,11 +489,14 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
 //==============================================================================
 void EditSpeakersWindow::textEditorTextChanged(juce::TextEditor & /*editor*/)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
 }
 
 //==============================================================================
 void EditSpeakersWindow::textEditorReturnKeyPressed(juce::TextEditor & textEditor)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     unfocusAllComponents();
     if (&textEditor == &mNumOfSpeakersTextEditor) {
         auto const value{ std::clamp(mNumOfSpeakersTextEditor.getText().getIntValue(), 2, 64) };
@@ -496,9 +509,11 @@ void EditSpeakersWindow::textEditorReturnKeyPressed(juce::TextEditor & textEdito
         return;
     }
     if (&textEditor == &mRadiusTextEditor) {
-        auto const value{
-            std::clamp(mRadiusTextEditor.getText().getFloatValue(), 0.001f, juce::MathConstants<float>::sqrt2)
-        };
+        juce::ScopedReadLock const lock{ mMainContentComponent.getLock() };
+        auto const spatMode{ mMainContentComponent.getData().speakerSetup.spatMode };
+        auto const minRadius{ spatMode == SpatMode::vbap ? 1.0f : 0.001f };
+        auto const maxRadius{ spatMode == SpatMode::vbap ? 1.0f : SQRT3 };
+        auto const value{ std::clamp(mRadiusTextEditor.getText().getFloatValue(), minRadius, maxRadius) };
         mRadiusTextEditor.setText(juce::String{ value, 1 }, false);
         return;
     }
@@ -511,8 +526,18 @@ void EditSpeakersWindow::textEditorReturnKeyPressed(juce::TextEditor & textEdito
 }
 
 //==============================================================================
+void EditSpeakersWindow::textEditorFocusLost(juce::TextEditor & textEditor)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    textEditorReturnKeyPressed(textEditor);
+}
+
+//==============================================================================
 void EditSpeakersWindow::updateWinContent()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     mNumRows = mMainContentComponent.getData().speakerSetup.speakers.size();
     mSpeakersTableListBox.updateContent();
 }
@@ -520,6 +545,8 @@ void EditSpeakersWindow::updateWinContent()
 //==============================================================================
 void EditSpeakersWindow::pushSelectionToMainComponent() const
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     auto const selectedRows{ mSpeakersTableListBox.getSelectedRows() };
     if (selectedRows == mLastSelectedRows) {
         return;
@@ -539,6 +566,8 @@ void EditSpeakersWindow::pushSelectionToMainComponent() const
 //==============================================================================
 void EditSpeakersWindow::selectRow(tl::optional<int> const value)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     juce::MessageManagerLock const mmLock{};
     mSpeakersTableListBox.selectRow(value.value_or(-1));
     repaint();
@@ -561,6 +590,8 @@ void EditSpeakersWindow::selectSpeaker(tl::optional<output_patch_t> const output
 //==============================================================================
 void EditSpeakersWindow::closeButtonPressed()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     if (mShouldRefreshSpeakers) {
         mMainContentComponent.refreshSpeakers();
     }
@@ -571,6 +602,8 @@ void EditSpeakersWindow::closeButtonPressed()
 //==============================================================================
 void EditSpeakersWindow::resized()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     DocumentWindow::resized();
 
     mSpeakersTableListBox.setSize(getWidth(), getHeight() - 195);
@@ -598,6 +631,8 @@ void EditSpeakersWindow::resized()
 //==============================================================================
 juce::String EditSpeakersWindow::getText(int const columnNumber, int const rowNumber) const
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     auto const & data{ mMainContentComponent.getData() };
     jassert(data.speakerSetup.speakers.size() > rowNumber);
     auto const outputPatch{ getSpeakerOutputPatchForRow(rowNumber) };
@@ -640,6 +675,8 @@ void EditSpeakersWindow::setText(int const columnNumber,
                                  juce::String const & newText,
                                  bool const altDown)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     auto const isEditable = [&](int const col, SpeakerData const & speaker) {
         switch (col) {
         case Cols::OUTPUT_PATCH:
@@ -839,6 +876,8 @@ void EditSpeakersWindow::setText(int const columnNumber,
 //==============================================================================
 bool EditSpeakersWindow::isMouseOverDragHandle(juce::MouseEvent const & event)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     auto const positionRelativeToSpeakersTableListBox{ event.getEventRelativeTo(&mSpeakersTableListBox).getPosition() };
     auto const speakersTableListBoxBounds{ mSpeakersTableListBox.getBounds() };
 
@@ -850,6 +889,8 @@ bool EditSpeakersWindow::isMouseOverDragHandle(juce::MouseEvent const & event)
 //==============================================================================
 SpeakerData const & EditSpeakersWindow::getSpeakerData(int const rowNum) const
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     auto const outputPatch{ getSpeakerOutputPatchForRow(rowNum) };
     return mMainContentComponent.getData().speakerSetup.speakers[outputPatch];
 }
@@ -857,6 +898,8 @@ SpeakerData const & EditSpeakersWindow::getSpeakerData(int const rowNum) const
 //==============================================================================
 output_patch_t EditSpeakersWindow::getSpeakerOutputPatchForRow(int const row) const
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     auto const & data{ mMainContentComponent.getData() };
     jassert(row >= 0 && row < data.speakerSetup.order.size());
     auto const result{ data.speakerSetup.order[row] };
@@ -872,6 +915,8 @@ void EditSpeakersWindow::paintRowBackground(juce::Graphics & g,
                                             int const /*height*/,
                                             bool const rowIsSelected)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     juce::ScopedReadLock const lock{ mMainContentComponent.getLock() };
     auto const & speakers{ mMainContentComponent.getData().speakerSetup.speakers };
     if (rowNumber >= speakers.size()) {
@@ -899,6 +944,7 @@ void EditSpeakersWindow::paintCell(juce::Graphics & /*g*/,
                                    int const /*height*/,
                                    bool /*rowIsSelected*/)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
 }
 
 //==============================================================================
@@ -907,6 +953,8 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
                                                               bool const /*isRowSelected*/,
                                                               Component * existingComponentToUpdate)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     juce::ScopedReadLock const lock{ mMainContentComponent.getLock() };
     auto const outputPatch{ getSpeakerOutputPatchForRow(rowNumber) };
     auto const & data{ mMainContentComponent.getData() };
@@ -1008,6 +1056,8 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
 //==============================================================================
 void EditSpeakersWindow::mouseDown(juce::MouseEvent const & event)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     if (isMouseOverDragHandle(event)) {
         mDragStartY = event.getEventRelativeTo(&mSpeakersTableListBox).getPosition().getY();
     } else {
@@ -1019,6 +1069,8 @@ void EditSpeakersWindow::mouseDown(juce::MouseEvent const & event)
 //==============================================================================
 void EditSpeakersWindow::mouseDrag(juce::MouseEvent const & event)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     if (!mDragStartY) {
         return;
     }
