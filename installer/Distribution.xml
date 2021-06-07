@@ -18,5 +18,5 @@
     <choice id="ca.umontreal.musique.gris.spatgris" visible="false">
         <pkg-ref id="ca.umontreal.musique.gris.spatgris"/>
     </choice>
-    <pkg-ref id="ca.umontreal.musique.gris.spatgris" version="2.1.9" onConclusion="none">Application.pkg</pkg-ref>
+    <pkg-ref id="ca.umontreal.musique.gris.spatgris" version="2.1.10" onConclusion="none">Application.pkg</pkg-ref>
 </installer-gui-script>
