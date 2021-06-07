@@ -50,6 +50,12 @@ void SpeakerViewComponent::initialise()
 }
 
 //==============================================================================
+bool isOpenGlThread()
+{
+    return juce::Thread::getCurrentThread()->getThreadName() == "Pool";
+}
+
+//==============================================================================
 CartesianVector SpeakerViewComponent::getCameraPosition() const
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -98,7 +104,9 @@ void SpeakerViewComponent::render()
     static constexpr auto ZOOM_CURVE = 0.7f;
     static constexpr auto INVERSE_ZOOM_CURVE = 1.0f / ZOOM_CURVE;
 
-    ASSERT_OPEN_GL_THREAD;
+    if (!isOpenGlThread()) {
+        return;
+    }
     jassert(juce::OpenGLHelpers::isContextActive());
     juce::ScopedLock const lock{ mLock };
 
