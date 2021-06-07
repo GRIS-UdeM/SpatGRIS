@@ -110,7 +110,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
             = std::make_unique<LayoutComponent>(LayoutComponent::Orientation::vertical, false, true, grisLookAndFeel);
 
         // info panel
-        mInfoPanel = std::make_unique<InfoPanel>(mLookAndFeel);
+        mInfoPanel = std::make_unique<InfoPanel>(*this, mLookAndFeel);
 
         // Source panel
         mSourcesLayout

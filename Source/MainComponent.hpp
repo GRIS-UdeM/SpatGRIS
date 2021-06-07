@@ -225,6 +225,7 @@ public:
     void handleTimer(bool state);
     void handleSaveSpeakerSetup();
     void handleSaveSpeakerSetupAs();
+    void handleShowPreferences();
 
     // Close windows other than the main one.
     void closeSpeakersConfigurationWindow();
@@ -260,7 +261,6 @@ private:
     void handleSaveProjectAs();
     void handleOpenSpeakerSetup();
     void handleShowSpeakerEditWindow();
-    void handleShowPreferences();
     void handleShowAbout();
     void handleShow2DView();
     void handleShowNumbers();
