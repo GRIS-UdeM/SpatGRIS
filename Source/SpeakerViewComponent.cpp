@@ -219,7 +219,6 @@ void SpeakerViewComponent::render()
 //==============================================================================
 void SpeakerViewComponent::paint(juce::Graphics & g)
 {
-    ASSERT_OPEN_GL_THREAD;
     juce::ScopedLock const lock{ mLock };
 
     g.setColour(juce::Colours::white);
