@@ -39,6 +39,8 @@ VbapType getVbapType(SpeakersData const & speakers)
 //==============================================================================
 VbapSpatAlgorithm::VbapSpatAlgorithm(SpeakersData const & speakers)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     std::array<LoudSpeaker, MAX_NUM_SPEAKERS> loudSpeakers{};
     std::array<output_patch_t, MAX_NUM_SPEAKERS> outputPatches{};
     size_t index{};
@@ -61,6 +63,7 @@ VbapSpatAlgorithm::VbapSpatAlgorithm(SpeakersData const & speakers)
 //==============================================================================
 void VbapSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, SourceData const & sourceData) noexcept
 {
+    jassert(!isProbablyAudioThread());
     jassert(sourceData.vector);
 
     auto & spatDataQueue{ mData[sourceIndex].spatDataQueue };
@@ -77,6 +80,8 @@ void VbapSpatAlgorithm::process(AudioConfig const & config,
                                 SourcePeaks const & sourcePeaks,
                                 SpeakersAudioConfig const * altSpeakerConfig)
 {
+    ASSERT_AUDIO_THREAD;
+
     auto const & gainInterpolation{ config.spatGainsInterpolation };
     auto const gainFactor{ std::pow(gainInterpolation, 0.1f) * 0.0099f + 0.99f };
 
@@ -136,6 +141,7 @@ void VbapSpatAlgorithm::process(AudioConfig const & config,
 //==============================================================================
 juce::Array<Triplet> VbapSpatAlgorithm::getTriplets() const noexcept
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
     jassert(hasTriplets());
     return vbapExtractTriplets(*mSetupData);
 }
@@ -143,6 +149,7 @@ juce::Array<Triplet> VbapSpatAlgorithm::getTriplets() const noexcept
 //==============================================================================
 bool VbapSpatAlgorithm::hasTriplets() const noexcept
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
     if (!mSetupData) {
         return false;
     }

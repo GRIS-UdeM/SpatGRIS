@@ -28,6 +28,8 @@ static constexpr size_t MAX_BUFFER_SIZE = 2048;
 // Load samples from a wav file into a float array.
 static juce::AudioBuffer<float> getSamplesFromWavFile(juce::File const & file)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     if (!file.existsAsFile()) {
         auto const error{ file.getFullPathName() + "\n\nTry re-installing SpatGRIS." };
         juce::AlertWindow::showMessageBox(juce::AlertWindow::AlertIconType::WarningIcon, "Missing file", error);
@@ -129,7 +131,11 @@ HrtfSpatAlgorithm::HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup, SourcesD
 //==============================================================================
 void HrtfSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, SourceData const & sourceData) noexcept
 {
-    ASSERT_OSC_THREAD;
+    jassert(!isProbablyAudioThread());
+
+    if (sourceData.directOut) {
+        return;
+    }
 
     mInnerAlgorithm->updateSpatData(sourceIndex, sourceData);
 }

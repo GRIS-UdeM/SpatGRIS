@@ -28,7 +28,7 @@ LbapSpatAlgorithm::LbapSpatAlgorithm(SpeakersData const & speakers) : mField(lba
 //==============================================================================
 void LbapSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, SourceData const & sourceData) noexcept
 {
-    ASSERT_OSC_THREAD;
+    jassert(!isProbablyAudioThread());
     jassert(sourceData.vector);
 
     auto & data{ mData[sourceIndex] };

@@ -568,6 +568,14 @@ void MainContentComponent::setStereoMode(tl::optional<StereoMode> const stereoMo
 
     mData.appData.stereoMode = stereoMode;
     updateSpatAlgorithm();
+
+    for (auto const & source : mData.project.sources) {
+        if (!source.value->position) {
+            continue;
+        }
+
+        updateSourceSpatData(source.key);
+    }
 }
 
 //==============================================================================
@@ -1247,6 +1255,15 @@ void MainContentComponent::refreshSpeakerVuMeterComponents()
 }
 
 //==============================================================================
+void MainContentComponent::updateSourceSpatData(source_index_t const sourceIndex)
+{
+    jassert(!isProbablyAudioThread());
+
+    juce::ScopedReadLock const lock{ mLock };
+    mAudioProcessor->getSpatAlgorithm()->updateSpatData(sourceIndex, mData.project.sources[sourceIndex]);
+}
+
+//==============================================================================
 void MainContentComponent::warnIfDirectOutMismatch()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -1289,7 +1306,7 @@ void MainContentComponent::handleSourcePositionChanged(source_index_t const sour
                                                        float const newAzimuthSpan,
                                                        float const newZenithSpan)
 {
-    jassert(juce::Thread::getCurrentThread()->getThreadName() == "JUCE OSC server");
+    ASSERT_OSC_THREAD;
     juce::ScopedReadLock const readLock{ mLock };
 
     if (!mData.project.sources.contains(sourceIndex)) {
@@ -1323,7 +1340,7 @@ void MainContentComponent::handleSourcePositionChanged(source_index_t const sour
     source.azimuthSpan = newAzimuthSpan;
     source.zenithSpan = newZenithSpan;
 
-    mAudioProcessor->getSpatAlgorithm()->updateSpatData(sourceIndex, source);
+    updateSourceSpatData(sourceIndex);
 }
 
 //==============================================================================
@@ -1501,7 +1518,12 @@ void MainContentComponent::handleSourceDirectOutChanged(source_index_t const sou
 
     mData.project.sources[sourceIndex].directOut = outputPatch;
 
-    updateAudioProcessor();
+    if (mData.appData.stereoMode) {
+        refreshSpeakers();
+    } else {
+        updateAudioProcessor();
+    }
+
     mSourceVuMeterComponents[sourceIndex].setDirectOut(outputPatch);
 }
 
@@ -1770,6 +1792,14 @@ bool MainContentComponent::refreshSpeakers()
     }
 
     updateSpatAlgorithm();
+
+    // re-assign source positions
+    for (auto const & source : mData.project.sources) {
+        if (!source.value->position) {
+            continue;
+        }
+        updateSourceSpatData(source.key);
+    }
 
     refreshSpeakerVuMeterComponents();
     updateViewportConfig();

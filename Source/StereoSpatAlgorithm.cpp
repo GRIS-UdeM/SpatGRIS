@@ -22,8 +22,12 @@
 //==============================================================================
 void StereoSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, SourceData const & sourceData) noexcept
 {
-    ASSERT_OSC_THREAD;
+    jassert(!isProbablyAudioThread());
     jassert(sourceData.vector);
+
+    if (sourceData.directOut) {
+        return;
+    }
 
     using fast = juce::dsp::FastMathApproximations;
 

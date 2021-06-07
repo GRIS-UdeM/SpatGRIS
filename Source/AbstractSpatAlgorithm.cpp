@@ -23,13 +23,29 @@
 #include "LbapSpatAlgorithm.hpp"
 #include "StereoSpatAlgorithm.hpp"
 #include "VbapSpatAlgorithm.hpp"
-//#include "OwnedMap.hpp"
-//#include "StrongArray.hpp"
+
+//==============================================================================
+bool isOscThread()
+{
+    auto * currentThread{ juce::Thread::getCurrentThread() };
+    if (!currentThread) {
+        return false;
+    }
+    return currentThread->getThreadName() == "JUCE OSC server";
+}
+
+//==============================================================================
+bool isProbablyAudioThread()
+{
+    return !isOscThread() && !juce::MessageManager::getInstance()->isThisTheMessageThread();
+}
 
 //==============================================================================
 void AbstractSpatAlgorithm::fixDirectOutsIntoPlace(SourcesData const & sources,
                                                    SpeakerSetup const & speakerSetup) noexcept
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     auto const getFakeSourceData = [&](SourceData const & source, SpeakerData const & speaker) -> SourceData {
         auto fakeSourceData{ source };
         fakeSourceData.directOut.reset();
@@ -69,6 +85,8 @@ std::unique_ptr<AbstractSpatAlgorithm> AbstractSpatAlgorithm::make(SpeakerSetup 
                                                                    tl::optional<StereoMode> const stereoMode,
                                                                    SourcesData const & sources)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     if (stereoMode) {
         switch (*stereoMode) {
         case StereoMode::hrtf:

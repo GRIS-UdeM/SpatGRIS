@@ -160,6 +160,8 @@ public:
     void refreshSourceVuMeterComponents();
     void refreshSpeakerVuMeterComponents();
 
+    void updateSourceSpatData(source_index_t sourceIndex);
+
     void warnIfDirectOutMismatch();
 
     auto const & getLock() const { return mLock; }
