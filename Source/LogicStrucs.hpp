@@ -24,6 +24,8 @@
 #include "StaticMap.hpp"
 #include "Triplet.hpp"
 
+#undef USE_CAF
+
 static constexpr auto DEFAULT_OSC_INPUT_PORT = 18032;
 static constexpr auto MAX_OSC_INPUT_PORT = 65535;
 
@@ -206,7 +208,7 @@ struct AudioSettings {
 enum class RecordingFormat {
     wav,
     aiff
-#ifdef __APPLE__
+#ifdef USE_CAF
     ,
     caf
 #endif

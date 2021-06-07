@@ -221,7 +221,7 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
     case RecordingFormat::wav:
         audioFormat = std::make_unique<juce::WavAudioFormat>();
         break;
-#ifdef __APPLE__
+#ifdef USE_CAF
     case RecordingFormat::caf:
         audioFormat = std::make_unique<juce::CoreAudioFormat>();
 #endif
