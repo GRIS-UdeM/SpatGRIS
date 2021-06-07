@@ -53,7 +53,7 @@ public:
                  SourcePeaks const & sourcesPeaks,
                  SpeakersAudioConfig const * altSpeakerConfig) override;
     [[nodiscard]] juce::Array<Triplet> getTriplets() const noexcept override;
-    [[nodiscard]] bool hasTriplets() const noexcept override { return true; }
+    [[nodiscard]] bool hasTriplets() const noexcept override { return false; }
 
 private:
     JUCE_LEAK_DETECTOR(LbapSpatAlgorithm)
