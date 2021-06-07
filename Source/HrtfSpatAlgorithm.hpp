@@ -20,32 +20,36 @@
 #pragma once
 
 #include "AbstractSpatAlgorithm.hpp"
-
-using StereoSpeakerGains = std::array<float, 2>;
-
-using StereoGainsQueue = AtomicExchanger<StereoSpeakerGains>;
-
-struct StereoSourceData {
-    StereoGainsQueue gainsQueue{};
-    StereoGainsQueue::Ticket * currentGains{};
-    StereoSpeakerGains lastGains{};
-};
-
-using StereoSourcesData = StrongArray<source_index_t, StereoSourceData, MAX_NUM_SOURCES>;
+#include "SpatMode.hpp"
 
 //==============================================================================
-class StereoSpatAlgorithm final : public AbstractSpatAlgorithm
+struct HrtfData {
+    std::array<unsigned, 16> count{};
+    std::array<std::array<float, 128>, 16> inputTmp{};
+    std::array<std::array<float, 128>, 16> leftImpulses{};
+    std::array<std::array<float, 128>, 16> rightImpulses{};
+
+    SpeakersAudioConfig speakersAudioConfig{};
+    SpeakerAudioBuffer speakersBuffer{};
+};
+
+//==============================================================================
+class HrtfSpatAlgorithm final : public AbstractSpatAlgorithm
 {
-    StereoSourcesData mData{};
+    std::unique_ptr<AbstractSpatAlgorithm> mInnerAlgorithm{};
+    HrtfData mHrtfData{};
 
 public:
-    StereoSpatAlgorithm(SpeakerSetup const & speakerSetup, SourcesData const & sources);
-    ~StereoSpatAlgorithm() override = default;
     //==============================================================================
-    StereoSpatAlgorithm(StereoSpatAlgorithm const &) = delete;
-    StereoSpatAlgorithm(StereoSpatAlgorithm &&) = delete;
-    StereoSpatAlgorithm & operator=(StereoSpatAlgorithm const &) = delete;
-    StereoSpatAlgorithm & operator=(StereoSpatAlgorithm &&) = delete;
+    HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup, SourcesData const & sources);
+    //==============================================================================
+    HrtfSpatAlgorithm() = delete;
+    ~HrtfSpatAlgorithm() override = default;
+    //==============================================================================
+    HrtfSpatAlgorithm(HrtfSpatAlgorithm const &) = delete;
+    HrtfSpatAlgorithm(HrtfSpatAlgorithm &&) = delete;
+    HrtfSpatAlgorithm & operator=(HrtfSpatAlgorithm const &) = delete;
+    HrtfSpatAlgorithm & operator=(HrtfSpatAlgorithm &&) = delete;
     //==============================================================================
     void updateSpatData(source_index_t sourceIndex, SourceData const & sourceData) noexcept override;
     void process(AudioConfig const & config,
@@ -54,8 +58,9 @@ public:
                  SourcePeaks const & sourcePeaks,
                  SpeakersAudioConfig const * altSpeakerConfig) override;
     [[nodiscard]] juce::Array<Triplet> getTriplets() const noexcept override;
-    [[nodiscard]] bool hasTriplets() const noexcept override { return false; }
+    [[nodiscard]] bool hasTriplets() const noexcept override;
 
 private:
-    JUCE_LEAK_DETECTOR(StereoSpatAlgorithm)
+    //==============================================================================
+    JUCE_LEAK_DETECTOR(HrtfSpatAlgorithm)
 };

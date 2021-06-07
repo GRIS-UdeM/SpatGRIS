@@ -22,17 +22,15 @@
 #include "LegacyLbapPosition.hpp"
 
 //==============================================================================
-tl::optional<std::pair<SpeakerSetup, SpatMode>> readLegacySpeakerSetup(juce::XmlElement const & xml)
+tl::optional<SpeakerSetup> readLegacySpeakerSetup(juce::XmlElement const & xml)
 {
     if (!xml.hasTagName("SpeakerSetup")) {
         return tl::nullopt;
     }
 
     auto const spatMode{ static_cast<SpatMode>(xml.getIntAttribute("SpatMode")) };
-    jassert(spatMode == SpatMode::hrtfVbap || spatMode == SpatMode::lbap || spatMode == SpatMode::vbap
-            || spatMode == SpatMode::stereo);
-    if (spatMode != SpatMode::hrtfVbap && spatMode != SpatMode::lbap && spatMode != SpatMode::vbap
-        && spatMode != SpatMode::stereo) {
+    if (spatMode != SpatMode::lbap && spatMode != SpatMode::vbap) {
+        jassertfalse;
         return tl::nullopt;
     }
 
@@ -131,7 +129,9 @@ tl::optional<std::pair<SpeakerSetup, SpatMode>> readLegacySpeakerSetup(juce::Xml
         return spatMode;
     };
 
-    return std::pair(std::move(result), getCorrectedSpatMode());
+    result.spatMode = getCorrectedSpatMode();
+
+    return result;
 }
 
 //==============================================================================

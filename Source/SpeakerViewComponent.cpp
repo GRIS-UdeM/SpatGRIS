@@ -50,6 +50,16 @@ void SpeakerViewComponent::initialise()
 }
 
 //==============================================================================
+bool isOpenGlThread()
+{
+    auto const * currentThread{ juce::Thread::getCurrentThread() };
+    if (!currentThread) {
+        return false;
+    }
+    return currentThread->getThreadName() == "Pool";
+}
+
+//==============================================================================
 CartesianVector SpeakerViewComponent::getCameraPosition() const
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -98,7 +108,9 @@ void SpeakerViewComponent::render()
     static constexpr auto ZOOM_CURVE = 0.7f;
     static constexpr auto INVERSE_ZOOM_CURVE = 1.0f / ZOOM_CURVE;
 
-    ASSERT_OPEN_GL_THREAD;
+    if (!isOpenGlThread()) {
+        return;
+    }
     jassert(juce::OpenGLHelpers::isContextActive());
     juce::ScopedLock const lock{ mLock };
 
@@ -183,9 +195,7 @@ void SpeakerViewComponent::render()
     // Draw Sphere / Cube
     if (viewSettings.showSphereOrCube) {
         switch (mData.config.spatMode) {
-        case SpatMode::hrtfVbap:
         case SpatMode::vbap:
-        case SpatMode::stereo:
             drawFieldSphere();
             break;
         case SpatMode::lbap:
@@ -209,7 +219,6 @@ void SpeakerViewComponent::render()
 //==============================================================================
 void SpeakerViewComponent::paint(juce::Graphics & g)
 {
-    ASSERT_OPEN_GL_THREAD;
     juce::ScopedLock const lock{ mLock };
 
     g.setColour(juce::Colours::white);
@@ -371,7 +380,7 @@ void SpeakerViewComponent::drawOriginGrid() const
     glLineWidth(1.5f);
 
     // Squares & circles
-    auto const spatMode{ mMainContentComponent.getData().appData.spatMode };
+    auto const spatMode{ mMainContentComponent.getData().speakerSetup.spatMode };
     if (spatMode == SpatMode::lbap) {
         // light grey
         glColor3f(0.59f, 0.59f, 0.59f);
@@ -539,7 +548,7 @@ void SpeakerViewComponent::drawSource(source_index_t const index, ViewportSource
 {
     ASSERT_OPEN_GL_THREAD;
 
-    if (source.colour.getAlpha() == 0.0f) {
+    if (source.colour.getFloatAlpha() == 0.0f) {
         return;
     }
 
@@ -553,7 +562,7 @@ void SpeakerViewComponent::drawSource(source_index_t const index, ViewportSource
     glColor4f(source.colour.getFloatRed(),
               source.colour.getFloatGreen(),
               source.colour.getFloatBlue(),
-              source.colour.getAlpha());
+              source.colour.getFloatAlpha());
 
     drawSphere<7>(SPHERE_RADIUS);
 
@@ -566,9 +575,6 @@ void SpeakerViewComponent::drawSource(source_index_t const index, ViewportSource
             break;
         case SpatMode::vbap:
             drawVbapSpan(source);
-            break;
-        case SpatMode::hrtfVbap:
-        case SpatMode::stereo:
             break;
         default:
             jassertfalse;

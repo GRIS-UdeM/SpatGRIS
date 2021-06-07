@@ -19,23 +19,91 @@
 
 #include "AbstractSpatAlgorithm.hpp"
 
+#include "HrtfSpatAlgorithm.hpp"
 #include "LbapSpatAlgorithm.hpp"
 #include "StereoSpatAlgorithm.hpp"
 #include "VbapSpatAlgorithm.hpp"
 
 //==============================================================================
-std::unique_ptr<AbstractSpatAlgorithm> AbstractSpatAlgorithm::make(SpatMode const spatMode,
-                                                                   SpeakersData const & speakers)
+bool isOscThread()
 {
-    switch (spatMode) {
-    case SpatMode::vbap:
-        return std::make_unique<VbapSpatAlgorithm>(speakers);
-    case SpatMode::lbap:
-    case SpatMode::hrtfVbap:
-        return std::make_unique<LbapSpatAlgorithm>(speakers);
-    case SpatMode::stereo:
-        return std::make_unique<StereoSpatAlgorithm>();
+    auto * currentThread{ juce::Thread::getCurrentThread() };
+    if (!currentThread) {
+        return false;
     }
-    jassertfalse; // not implemented
+    return currentThread->getThreadName() == "JUCE OSC server";
+}
+
+//==============================================================================
+bool isProbablyAudioThread()
+{
+    return !isOscThread() && !juce::MessageManager::getInstance()->isThisTheMessageThread();
+}
+
+//==============================================================================
+void AbstractSpatAlgorithm::fixDirectOutsIntoPlace(SourcesData const & sources,
+                                                   SpeakerSetup const & speakerSetup) noexcept
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    auto const getFakeSourceData = [&](SourceData const & source, SpeakerData const & speaker) -> SourceData {
+        auto fakeSourceData{ source };
+        fakeSourceData.directOut.reset();
+        switch (speakerSetup.spatMode) {
+        case SpatMode::vbap:
+            fakeSourceData.vector = speaker.vector.normalized();
+            fakeSourceData.position = fakeSourceData.vector->toCartesian();
+            break;
+        case SpatMode::lbap:
+            fakeSourceData.vector = speaker.vector;
+            fakeSourceData.position = speaker.position;
+            break;
+        default:
+            jassertfalse;
+        }
+        return fakeSourceData;
+    };
+
+    for (auto const & source : sources) {
+        auto const & directOut{ source.value->directOut };
+        if (!directOut) {
+            continue;
+        }
+
+        if (!speakerSetup.speakers.contains(*directOut)) {
+            continue;
+        }
+
+        auto const & speaker{ speakerSetup.speakers[*directOut] };
+
+        updateSpatData(source.key, getFakeSourceData(*source.value, speaker));
+    }
+}
+
+//==============================================================================
+std::unique_ptr<AbstractSpatAlgorithm> AbstractSpatAlgorithm::make(SpeakerSetup const & speakerSetup,
+                                                                   tl::optional<StereoMode> const stereoMode,
+                                                                   SourcesData const & sources)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    if (stereoMode) {
+        switch (*stereoMode) {
+        case StereoMode::hrtf:
+            return std::make_unique<HrtfSpatAlgorithm>(speakerSetup, sources);
+        case StereoMode::stereo:
+            return std::make_unique<StereoSpatAlgorithm>(speakerSetup, sources);
+        }
+        jassertfalse;
+    }
+
+    switch (speakerSetup.spatMode) {
+    case SpatMode::vbap:
+        return std::make_unique<VbapSpatAlgorithm>(speakerSetup.speakers);
+    case SpatMode::lbap:
+        return std::make_unique<LbapSpatAlgorithm>(speakerSetup.speakers);
+    }
+
+    jassertfalse;
     return {};
 }

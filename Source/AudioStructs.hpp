@@ -25,12 +25,11 @@
 #include "SpatMode.hpp"
 #include "StaticMap.hpp"
 #include "StrongArray.hpp"
-
-#include <JuceHeader.h>
-
-#include "lib/tl/optional.hpp"
+#include "TaggedAudioBuffer.hpp"
 
 enum class VbapType { twoD, threeD };
+
+float constexpr SMALL_GAIN = 0.0000000000001f;
 
 //==============================================================================
 struct SpeakerHighpassState {
@@ -105,16 +104,20 @@ struct SourceAudioConfig {
     tl::optional<output_patch_t> directOut{};
 };
 
+using SourcesAudioConfig = StaticMap<source_index_t, SourceAudioConfig, MAX_NUM_SOURCES>;
+using SpeakersAudioConfig = StaticMap<output_patch_t, SpeakerAudioConfig, MAX_NUM_SPEAKERS>;
+
 //==============================================================================
 struct AudioConfig {
     SpatMode spatMode{};
+    tl::optional<StereoMode> stereoMode{};
     float masterGain{};
     float spatGainsInterpolation{};
 
     juce::Array<std::pair<source_index_t, output_patch_t>> directOutPairs{};
 
-    StaticMap<source_index_t, SourceAudioConfig, MAX_NUM_SOURCES> sourcesAudioConfig{};
-    StaticMap<output_patch_t, SpeakerAudioConfig, MAX_NUM_SPEAKERS> speakersAudioConfig{};
+    SourcesAudioConfig sourcesAudioConfig{};
+    SpeakersAudioConfig speakersAudioConfig{};
 
     tl::optional<float> pinkNoiseGain{};
 
@@ -123,20 +126,9 @@ struct AudioConfig {
 };
 
 //==============================================================================
-struct HrtfData {
-    std::array<unsigned, 16> count{};
-    std::array<std::array<float, 128>, 16> inputTmp{};
-    std::array<std::array<float, 128>, 16> leftImpulses{};
-    std::array<std::array<float, 128>, 16> rightImpulses{};
-};
-
-//==============================================================================
 struct AudioState {
     StrongArray<source_index_t, SourceAudioState, MAX_NUM_SOURCES> sourcesAudioState{};
     StrongArray<output_patch_t, SpeakerAudioState, MAX_NUM_SPEAKERS> speakersAudioState{};
-    StrongArray<source_index_t, AtomicExchanger<SpeakersSpatGains>::Ticket *, MAX_NUM_SOURCES> mostRecentSpatGains{};
-    // HRTF-specific
-    HrtfData hrtf{};
 };
 
 //==============================================================================
@@ -145,40 +137,13 @@ using SpeakerPeaks = StrongArray<output_patch_t, float, MAX_NUM_SPEAKERS>;
 
 //==============================================================================
 struct AudioData {
-    // Offline message thread -> audio thread
+    // message thread -> audio thread (cold)
     std::unique_ptr<AudioConfig> config{};
 
-    // Live audio thread -> audio thread
+    // audio thread -> audio thread (hot)
     AudioState state{};
 
-    // Live message thread -> audio thread
-    StrongArray<source_index_t, AtomicExchanger<SpeakersSpatGains>, MAX_NUM_SOURCES> spatGainMatrix{};
-    StrongArray<source_index_t, std::atomic<float>, MAX_NUM_SOURCES> lbapSourceDistances{}; // Lbap-specific
-
-    // Live audio thread -> message thread
+    // audio thread -> message thread (hot)
     AtomicExchanger<SourcePeaks> sourcePeaks{};
     AtomicExchanger<SpeakerPeaks> speakerPeaks{};
-};
-
-//==============================================================================
-// LOGIC/GUI SIDE
-//==============================================================================
-
-//==============================================================================
-// Spat algorithms side
-//=============================================================================
-
-static auto constexpr LBAP_MATRIX_SIZE = 64;
-using matrix_t = std::array<std::array<float, LBAP_MATRIX_SIZE + 1>, LBAP_MATRIX_SIZE + 1>;
-
-struct LbapLayer {
-    int id{};
-    radians_t elevation{};
-    float gainExponent{};
-    std::vector<matrix_t> amplitudeMatrix{};
-};
-
-struct LbapData {
-    LbapSourceAttenuationState attenuationData{};
-    PolarVector lastVector{};
 };

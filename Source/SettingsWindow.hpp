@@ -77,10 +77,7 @@ class SettingsComponent final
 
 public:
     //==============================================================================
-    SettingsComponent(MainContentComponent & parent,
-                      LbapDistanceAttenuationData const & lbapData,
-                      int oscPort,
-                      GrisLookAndFeel & lookAndFeel);
+    SettingsComponent(MainContentComponent & parent, int oscPort, GrisLookAndFeel & lookAndFeel);
     //==============================================================================
     SettingsComponent() = delete;
     ~SettingsComponent() override = default;
@@ -113,10 +110,7 @@ class SettingsWindow final : public juce::DocumentWindow
 
 public:
     //==============================================================================
-    SettingsWindow(MainContentComponent & parent,
-                   LbapDistanceAttenuationData const & lbapData,
-                   int oscPort,
-                   GrisLookAndFeel & grisLookAndFeel);
+    SettingsWindow(MainContentComponent & parent, int oscPort, GrisLookAndFeel & grisLookAndFeel);
     //==============================================================================
     SettingsWindow() = delete;
     ~SettingsWindow() override = default;

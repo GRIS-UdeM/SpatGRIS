@@ -20,7 +20,6 @@
 #pragma once
 
 #include "AboutWindow.hpp"
-#include "AbstractSpatAlgorithm.hpp"
 #include "AudioProcessor.hpp"
 #include "Configuration.hpp"
 #include "Constants.hpp"
@@ -135,7 +134,6 @@ class MainContentComponent final
     juce::Rectangle<int> mFlatViewWindowRect{};
 
     SpatGrisData mData{};
-    std::unique_ptr<AbstractSpatAlgorithm> mSpatAlgorithm{};
 
 public:
     //==============================================================================
@@ -161,6 +159,8 @@ public:
 
     void refreshSourceVuMeterComponents();
     void refreshSpeakerVuMeterComponents();
+
+    void updateSourceSpatData(source_index_t sourceIndex);
 
     void warnIfDirectOutMismatch();
 
@@ -195,11 +195,13 @@ public:
     void handleNewSpeakerPosition(output_patch_t outputPatch, PolarVector const & position);
 
     void updateAudioProcessor() const;
+    void updateSpatAlgorithm() const;
     void updateViewportConfig() const;
 
     void handleSetShowTriplets(bool state);
 
-    void spatModeChanged(SpatMode spatMode) override;
+    [[nodiscard]] bool setSpatMode(SpatMode spatMode) override;
+    void setStereoMode(tl::optional<StereoMode> stereoMode) override;
     [[nodiscard]] bool spatModeChanged(SpatMode spatMode, LoadSpeakerSetupOption option);
     void cubeAttenuationDbChanged(dbfs_t value) override;
     void cubeAttenuationHzChanged(hz_t value) override;
@@ -210,8 +212,6 @@ public:
     output_patch_t addSpeaker(tl::optional<output_patch_t> speakerToCopy, tl::optional<int> index);
     void removeSpeaker(output_patch_t outputPatch);
     void reorderSpeakers(juce::Array<output_patch_t> newOrder);
-
-    [[nodiscard]] bool isRadiusNormalized() const;
 
     [[nodiscard]] AudioProcessor & getAudioProcessor() { return *mAudioProcessor; }
     [[nodiscard]] AudioProcessor const & getAudioProcessor() const { return *mAudioProcessor; }
@@ -227,6 +227,7 @@ public:
     void handleTimer(bool state);
     void handleSaveSpeakerSetup();
     void handleSaveSpeakerSetupAs();
+    void handleShowPreferences();
 
     // Close windows other than the main one.
     void closeSpeakersConfigurationWindow();
@@ -262,7 +263,6 @@ private:
     void handleSaveProjectAs();
     void handleOpenSpeakerSetup();
     void handleShowSpeakerEditWindow();
-    void handleShowPreferences();
     void handleShowAbout();
     void handleShow2DView();
     void handleShowNumbers();
@@ -278,16 +278,8 @@ private:
     [[nodiscard]] output_patch_t getMaxSpeakerOutputPatch() const;
     //==============================================================================
     // Open - save.
-    [[nodiscard]] static tl::optional<std::pair<SpeakerSetup, SpatMode>> extractSpeakerSetup(juce::File const & file);
-    [[nodiscard]] bool loadSpeakerSetup(juce::File const & file,
-                                        tl::optional<SpatMode> spatMode = tl::nullopt,
-                                        LoadSpeakerSetupOption option
-                                        = LoadSpeakerSetupOption::disallowDiscardingUnsavedChanges);
-    [[nodiscard]] bool loadSpeakerSetup(SpeakerSetup speakerSetup,
-                                        SpatMode spatMode,
-                                        juce::String const & filePath,
-                                        LoadSpeakerSetupOption option
-                                        = LoadSpeakerSetupOption::disallowDiscardingUnsavedChanges);
+    [[nodiscard]] static tl::optional<SpeakerSetup> extractSpeakerSetup(juce::File const & file);
+    [[nodiscard]] bool loadSpeakerSetup(juce::File file, LoadSpeakerSetupOption option);
     [[nodiscard]] bool
         loadProject(juce::File const & file, LoadProjectOption loadProjectOption, bool discardCurrentProject);
     [[nodiscard]] bool saveProject(tl::optional<juce::File> maybeFile);

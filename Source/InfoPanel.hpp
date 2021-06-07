@@ -22,10 +22,12 @@
 #include "MinSizedComponent.hpp"
 
 class GrisLookAndFeel;
+class MainContentComponent;
 
 //==============================================================================
 class InfoPanel final : public MinSizedComponent
 {
+    MainContentComponent & mMainContentComponent;
     GrisLookAndFeel & mLookAndFeel;
 
     juce::Label mCpuLabel{};
@@ -39,7 +41,7 @@ class InfoPanel final : public MinSizedComponent
 
 public:
     //==============================================================================
-    explicit InfoPanel(GrisLookAndFeel & lookAndFeel);
+    explicit InfoPanel(MainContentComponent & mainContentComponent, GrisLookAndFeel & lookAndFeel);
     ~InfoPanel() override = default;
     //==============================================================================
     InfoPanel(InfoPanel const &) = delete;

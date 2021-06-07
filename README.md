@@ -4,7 +4,7 @@ SpatGRIS lets composers and sound designers spatialize audio in a way that is de
 
 It is developed by the _Groupe de recherche en immersion spatiale_ (GRIS) at Université de Montréal. When used in tandem with [ControlGRIS](https://github.com/GRIS-UdeM/ControlGris) (an open-source plugin for digital audio workstations), virtual trajectories can be assigned to sounds directly in the DAW. The audio is spatialized in realtime by SpatGRIS, according to the current speaker setup.
 
-SpatGRIS works in 2D for standard cinema or octophonic setups or in 3D for dome-like speaker layouts or arbitrary speaker layouts. It can handle up to 256 inputs and outputs. It has 3D and 2D view windows and offers the possibility of viewing sound activity in the 3D window.
+SpatGRIS works in 2D for standard cinema or octophonic setups or in 3D for dome-like speaker layouts or arbitrary speaker layouts. It can handle up to 128 inputs and outputs. It has 3D and 2D view windows and offers the possibility of viewing sound activity in the 3D window.
 
 This software is in active development. Updates are published on a regular basis.
 

@@ -67,7 +67,7 @@ juce::String const SpatGrisAppData::XmlTags::MAIN_TAG = "SPAT_GRIS_APP_DATA";
 juce::String const SpatGrisAppData::XmlTags::LAST_SPEAKER_SETUP = "LAST_SPEAKER_SETUP";
 juce::String const SpatGrisAppData::XmlTags::LAST_PROJECT = "LAST_PROJECT";
 juce::String const SpatGrisAppData::XmlTags::LAST_RECORDING_DIRECTORY = "LAST_RECORDING_DIRECTORY";
-juce::String const SpatGrisAppData::XmlTags::LAST_SPAT_MODE = "LAST_SPAT_MODE";
+juce::String const SpatGrisAppData::XmlTags::LAST_STEREO_MODE = "LAST_STEREO_MODE";
 juce::String const SpatGrisAppData::XmlTags::WINDOW_X = "WINDOW_X";
 juce::String const SpatGrisAppData::XmlTags::WINDOW_Y = "WINDOW_Y";
 juce::String const SpatGrisAppData::XmlTags::WINDOW_WIDTH = "WINDOW_WIDTH";
@@ -122,7 +122,7 @@ ViewportSourceData SourceData::toViewportData(float const alpha) const
 {
     jassert(position);
 
-    ViewportSourceData result{};
+    ViewportSourceData result;
     result.colour = colour.withAlpha(alpha);
     result.azimuthSpan = azimuthSpan;
     result.zenithSpan = zenithSpan;
@@ -602,15 +602,18 @@ std::unique_ptr<juce::XmlElement> SpatGrisAppData::toXml() const
     result->addChildElement(cameraElement.release());
     result->addChildElement(viewSettings.toXml().release());
 
-    result->setAttribute(XmlTags::LAST_SPEAKER_SETUP, lastLbapOrVbapSpeakerSetup);
+    result->setAttribute(XmlTags::LAST_SPEAKER_SETUP, lastSpeakerSetup);
     result->setAttribute(XmlTags::LAST_PROJECT, lastProject);
     result->setAttribute(XmlTags::LAST_RECORDING_DIRECTORY, lastRecordingDirectory);
-    result->setAttribute(XmlTags::LAST_SPAT_MODE, spatModeToString(spatMode));
     result->setAttribute(XmlTags::WINDOW_X, windowX);
     result->setAttribute(XmlTags::WINDOW_Y, windowY);
     result->setAttribute(XmlTags::WINDOW_WIDTH, windowWidth);
     result->setAttribute(XmlTags::WINDOW_HEIGHT, windowHeight);
     result->setAttribute(XmlTags::SASH_POSITION, sashPosition);
+
+    if (stereoMode) {
+        result->setAttribute(XmlTags::LAST_STEREO_MODE, stereoModeToString(*stereoMode));
+    }
 
     return result;
 }
@@ -619,9 +622,9 @@ std::unique_ptr<juce::XmlElement> SpatGrisAppData::toXml() const
 tl::optional<SpatGrisAppData> SpatGrisAppData::fromXml(juce::XmlElement const & xml)
 {
     juce::StringArray const requiredTags{
-        XmlTags::LAST_SPEAKER_SETUP, XmlTags::LAST_PROJECT,  XmlTags::LAST_RECORDING_DIRECTORY,
-        XmlTags::LAST_SPAT_MODE,     XmlTags::WINDOW_X,      XmlTags::WINDOW_Y,
-        XmlTags::WINDOW_WIDTH,       XmlTags::WINDOW_HEIGHT, XmlTags::SASH_POSITION
+        XmlTags::LAST_SPEAKER_SETUP, XmlTags::LAST_PROJECT, XmlTags::LAST_RECORDING_DIRECTORY,
+        XmlTags::WINDOW_X,           XmlTags::WINDOW_Y,     XmlTags::WINDOW_WIDTH,
+        XmlTags::WINDOW_HEIGHT,      XmlTags::SASH_POSITION
     };
 
     auto const * audioSettingsElement{ xml.getChildByName(AudioSettings::XmlTags::MAIN_TAG) };
@@ -644,11 +647,11 @@ tl::optional<SpatGrisAppData> SpatGrisAppData::fromXml(juce::XmlElement const & 
 
     auto const audioSettings{ AudioSettings::fromXml(*audioSettingsElement) };
     auto const recordingOptions{ RecordingOptions::fromXml(*recordingOptionsElement) };
-    auto const lastSpatMode{ stringToSpatMode(xml.getStringAttribute(XmlTags::LAST_SPAT_MODE)) };
     auto const cameraPosition{ CartesianVector::fromXml(*cameraPositionElement) };
     auto const viewSettings{ ViewSettings::fromXml(*viewSettingsElement) };
+    auto const lastStereoMode{ stringToStereoMode(xml.getStringAttribute(XmlTags::LAST_STEREO_MODE)) };
 
-    if (!audioSettings || !recordingOptions || !lastSpatMode || !cameraPosition || !viewSettings) {
+    if (!audioSettings || !recordingOptions || !cameraPosition || !viewSettings) {
         return tl::nullopt;
     }
 
@@ -656,9 +659,9 @@ tl::optional<SpatGrisAppData> SpatGrisAppData::fromXml(juce::XmlElement const & 
 
     result.audioSettings = *audioSettings;
     result.recordingOptions = *recordingOptions;
-    result.spatMode = *lastSpatMode;
+    result.stereoMode = lastStereoMode;
 
-    result.lastLbapOrVbapSpeakerSetup = xml.getStringAttribute(XmlTags::LAST_SPEAKER_SETUP);
+    result.lastSpeakerSetup = xml.getStringAttribute(XmlTags::LAST_SPEAKER_SETUP);
     result.lastProject = xml.getStringAttribute(XmlTags::LAST_PROJECT);
     result.lastRecordingDirectory = xml.getStringAttribute(XmlTags::LAST_RECORDING_DIRECTORY);
     result.windowX = xml.getIntAttribute(XmlTags::WINDOW_X);
@@ -673,7 +676,7 @@ tl::optional<SpatGrisAppData> SpatGrisAppData::fromXml(juce::XmlElement const & 
 }
 
 //==============================================================================
-std::unique_ptr<juce::XmlElement> SpeakerSetup::toXml(SpatMode const spatMode) const
+std::unique_ptr<juce::XmlElement> SpeakerSetup::toXml() const
 {
     auto result{ std::make_unique<juce::XmlElement>(XmlTags::MAIN_TAG) };
 
@@ -688,7 +691,7 @@ std::unique_ptr<juce::XmlElement> SpeakerSetup::toXml(SpatMode const spatMode) c
 }
 
 //==============================================================================
-tl::optional<std::pair<SpeakerSetup, SpatMode>> SpeakerSetup::fromXml(juce::XmlElement const & xml)
+tl::optional<SpeakerSetup> SpeakerSetup::fromXml(juce::XmlElement const & xml)
 {
     auto const spatMode{ stringToSpatMode(xml.getStringAttribute(XmlTags::SPAT_MODE)) };
 
@@ -696,8 +699,8 @@ tl::optional<std::pair<SpeakerSetup, SpatMode>> SpeakerSetup::fromXml(juce::XmlE
         return readLegacySpeakerSetup(xml);
     }
 
-    std::pair<SpeakerSetup, SpatMode> result{};
-    result.second = *spatMode;
+    tl::optional<SpeakerSetup> result{ SpeakerSetup{} };
+    result->spatMode = *spatMode;
 
     forEachXmlChildElement(xml, speaker)
     {
@@ -708,22 +711,22 @@ tl::optional<std::pair<SpeakerSetup, SpatMode>> SpeakerSetup::fromXml(juce::XmlE
         output_patch_t const outputPatch{
             tagName.substring(SpeakerData::XmlTags::MAIN_TAG_PREFIX.length()).getIntValue()
         };
-        result.first.order.add(outputPatch);
+        result->order.add(outputPatch);
         auto const speakerData{ SpeakerData::fromXml(*speaker) };
         if (!speakerData) {
             return tl::nullopt;
         }
 
-        result.first.speakers.add(outputPatch, std::make_unique<SpeakerData>(*speakerData));
+        result->speakers.add(outputPatch, std::make_unique<SpeakerData>(*speakerData));
     }
 
-    return tl::make_optional(std::move(result));
+    return result;
 }
 
 //==============================================================================
 bool SpeakerSetup::operator==(SpeakerSetup const & other) const noexcept
 {
-    return other.order == order && other.speakers == speakers;
+    return other.order == order && other.speakers == speakers && other.spatMode == spatMode;
 }
 
 //==============================================================================
@@ -735,17 +738,31 @@ bool SpeakerSetup::isDomeLike() const noexcept
 }
 
 //==============================================================================
+SpeakersAudioConfig SpeakerSetup::toAudioConfig(double const sampleRate) const noexcept
+{
+    SpeakersAudioConfig result{};
+
+    auto const isAtLeastOnSpeakerSolo{ std::any_of(speakers.cbegin(), speakers.cend(), [](auto const node) {
+        return node.value->state == PortState::solo;
+    }) };
+
+    for (auto const speaker : speakers) {
+        result.add(speaker.key, speaker.value->toConfig(isAtLeastOnSpeakerSolo, sampleRate));
+    }
+
+    return result;
+}
+
+//==============================================================================
 std::unique_ptr<AudioConfig> SpatGrisData::toAudioConfig() const
 {
     auto result{ std::make_unique<AudioConfig>() };
 
+    result->speakersAudioConfig = speakerSetup.toAudioConfig(appData.audioSettings.sampleRate);
+
     auto const isAtLeastOneSourceSolo{ std::any_of(
         project.sources.cbegin(),
         project.sources.cend(),
-        [](auto const node) { return node.value->state == PortState::solo; }) };
-    auto const isAtLeastOnSpeakerSolo{ std::any_of(
-        speakerSetup.speakers.cbegin(),
-        speakerSetup.speakers.cend(),
         [](auto const node) { return node.value->state == PortState::solo; }) };
 
     auto const isValidDirectOut = [&](SourceData const & source) {
@@ -780,12 +797,17 @@ std::unique_ptr<AudioConfig> SpatGrisData::toAudioConfig() const
     for (auto const source : project.sources) {
         result->sourcesAudioConfig.add(source.key, source.value->toConfig(isAtLeastOneSourceSolo));
     }
-    result->spatMode = appData.spatMode;
+    result->spatMode = speakerSetup.spatMode;
+    result->stereoMode = appData.stereoMode;
     result->spatGainsInterpolation = project.spatGainsInterpolation;
-    for (auto const speaker : speakerSetup.speakers) {
-        result->speakersAudioConfig.add(
-            speaker.key,
-            speaker.value->toConfig(isAtLeastOnSpeakerSolo, appData.audioSettings.sampleRate));
+
+    if (appData.stereoMode) {
+        // direct outs are ignored in stereo mode
+        result->directOutPairs.clearQuick();
+
+        for (auto & source : result->sourcesAudioConfig) {
+            source.value.directOut.reset();
+        }
     }
 
     return result;
@@ -798,23 +820,9 @@ ViewportConfig SpatGrisData::toViewportConfig() const noexcept
     for (auto const & speaker : speakerSetup.speakers) {
         result.speakers.add(speaker.key, speaker.value->toViewportConfig());
     }
-    result.spatMode = appData.spatMode;
+    result.spatMode = speakerSetup.spatMode;
     result.viewSettings = appData.viewSettings;
-
-    auto const getTitle = [&]() {
-        switch (appData.spatMode) {
-        case SpatMode::lbap:
-        case SpatMode::vbap:
-            return juce::File{ appData.lastLbapOrVbapSpeakerSetup }.getFileName();
-        case SpatMode::hrtfVbap:
-        case SpatMode::stereo:
-            return juce::String{};
-        }
-        jassertfalse;
-        return juce::String{};
-    };
-
-    result.title = getTitle();
+    result.title = juce::File{ appData.lastSpeakerSetup }.getFileName();
 
     return result;
 }

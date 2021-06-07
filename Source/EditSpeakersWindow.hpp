@@ -116,7 +116,6 @@ public:
 private:
     //==============================================================================
     void pushSelectionToMainComponent() const;
-    [[nodiscard]] SpatMode getModeSelected() const;
     [[nodiscard]] juce::String getText(int columnNumber, int rowNumber) const;
     void setText(int columnNumber, int rowNumber, juce::String const & newText, bool altDown = false);
     bool isMouseOverDragHandle(juce::MouseEvent const & event);
@@ -128,6 +127,7 @@ private:
     void buttonClicked(juce::Button * button) override;
     void textEditorTextChanged(juce::TextEditor & editor) override;
     void textEditorReturnKeyPressed(juce::TextEditor & textEditor) override;
+    void textEditorFocusLost(juce::TextEditor &) override;
     void closeButtonPressed() override;
     void sliderValueChanged(juce::Slider * slider) override;
     void sortOrderChanged(int newSortColumnId, bool isForwards) override;

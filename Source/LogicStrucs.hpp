@@ -21,7 +21,10 @@
 
 #include "AudioStructs.hpp"
 #include "OwnedMap.hpp"
+#include "StaticMap.hpp"
 #include "Triplet.hpp"
+
+#undef USE_CAF
 
 static constexpr auto DEFAULT_OSC_INPUT_PORT = 18032;
 static constexpr auto MAX_OSC_INPUT_PORT = 65535;
@@ -205,7 +208,7 @@ struct AudioSettings {
 enum class RecordingFormat {
     wav,
     aiff
-#ifdef __APPLE__
+#ifdef USE_CAF
     ,
     caf
 #endif
@@ -263,12 +266,12 @@ struct SpatGrisAppData {
     RecordingOptions recordingOptions{};
     ViewSettings viewSettings{};
     CartesianVector cameraPosition{ 0.0f, -2.0f, 1.0f };
-    juce::String lastLbapOrVbapSpeakerSetup{ DEFAULT_SPEAKER_SETUP_FILE.getFullPathName() };
+    juce::String lastSpeakerSetup{ DEFAULT_SPEAKER_SETUP_FILE.getFullPathName() };
     juce::String lastProject{ DEFAULT_PROJECT_FILE.getFullPathName() };
     juce::String lastRecordingDirectory{
         juce::File::getSpecialLocation(juce::File::SpecialLocationType::userDesktopDirectory).getFullPathName()
     };
-    SpatMode spatMode{};
+    tl::optional<StereoMode> stereoMode{};
     int windowX{ 100 };
     int windowY{ 100 };
     int windowWidth{ 1285 };
@@ -283,7 +286,7 @@ struct SpatGrisAppData {
         static juce::String const LAST_SPEAKER_SETUP;
         static juce::String const LAST_PROJECT;
         static juce::String const LAST_RECORDING_DIRECTORY;
-        static juce::String const LAST_SPAT_MODE;
+        static juce::String const LAST_STEREO_MODE;
         static juce::String const WINDOW_X;
         static juce::String const WINDOW_Y;
         static juce::String const WINDOW_WIDTH;
@@ -299,12 +302,14 @@ using SpeakersData = OwnedMap<output_patch_t, SpeakerData, MAX_NUM_SPEAKERS>;
 struct SpeakerSetup {
     SpeakersData speakers{};
     juce::Array<output_patch_t> order{};
+    SpatMode spatMode{};
     //==============================================================================
-    [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml(SpatMode spatMode) const;
-    [[nodiscard]] static tl::optional<std::pair<SpeakerSetup, SpatMode>> fromXml(juce::XmlElement const & xml);
+    [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
+    [[nodiscard]] static tl::optional<SpeakerSetup> fromXml(juce::XmlElement const & xml);
     [[nodiscard]] bool operator==(SpeakerSetup const & other) const noexcept;
     [[nodiscard]] bool operator!=(SpeakerSetup const & other) const noexcept { return !(*this == other); }
     [[nodiscard]] bool isDomeLike() const noexcept;
+    [[nodiscard]] SpeakersAudioConfig toAudioConfig(double sampleRate) const noexcept;
     //==============================================================================
     struct XmlTags {
         static juce::String const MAIN_TAG;

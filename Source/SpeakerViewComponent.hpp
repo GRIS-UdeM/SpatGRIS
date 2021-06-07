@@ -43,7 +43,9 @@ struct SpeakerData;
 enum class SpatMode;
 struct SourceData;
 
-#define ASSERT_OPEN_GL_THREAD jassert(juce::Thread::getCurrentThread()->getThreadName() == "Pool")
+bool isOpenGlThread();
+
+#define ASSERT_OPEN_GL_THREAD jassert(isOpenGlThread())
 
 class MainContentComponent;
 class SpeakerModel;

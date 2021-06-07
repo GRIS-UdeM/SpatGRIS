@@ -92,7 +92,7 @@ void EditableTextCustomComponent::mouseDrag(const juce::MouseEvent & event)
 
     auto const offset{ event.getDistanceFromDragStartY() };
     if (increment) {
-        auto const diff{ offset < mLastOffset ? *increment : *increment * -1.0f };
+        auto const diff{ *increment * narrow<float>(mLastOffset - offset) / 2.5f };
         auto const val{ getText().getFloatValue() + diff };
         mOwner.setText(mColumnId, mRow, juce::String(val), event.mods.isAltDown());
     }

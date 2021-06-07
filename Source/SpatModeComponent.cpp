@@ -22,50 +22,98 @@
 #include "Constants.hpp"
 #include "GrisLookAndFeel.hpp"
 
-static constexpr auto PREFERRED_WIDTH = 135;
-static constexpr auto PREFERRED_HEIGHT = 75;
-static constexpr auto LABEL_HEIGHT = 20;
-static constexpr auto NUM_COLS = 2;
-static constexpr auto NUM_ROWS = 2;
+static constexpr auto BUTTONS_WIDTH = 60;
+static constexpr auto BUTTONS_HEIGHT = 25;
+static constexpr auto LABELS_HEIGHT = 20;
 static constexpr auto INNER_PADDING = 1;
 
 //==============================================================================
 SpatModeComponent::SpatModeComponent(Listener & listener, GrisLookAndFeel & lookAndFeel)
     : mListener(listener)
-    , mLabel("", "Algorithm Selection")
+    , mSpatModeLabel("", "Algorithm Selection")
+    , mStereoModeLabel("", "Stereo Reduction")
 {
     using flag = juce::Button::ConnectedEdgeFlags;
 
-    mLabel.setJustificationType(juce::Justification::centred);
-    mLabel.setFont(lookAndFeel.getFont());
-    mLabel.setColour(juce::Label::ColourIds::textColourId, lookAndFeel.getFontColour());
-    addAndMakeVisible(mLabel);
+    auto const initLabel = [&](juce::Label & label) {
+        label.setJustificationType(juce::Justification::centred);
+        label.setFont(lookAndFeel.getFont());
+        label.setColour(juce::Label::ColourIds::textColourId, lookAndFeel.getFontColour());
+        addAndMakeVisible(label);
+    };
 
-    mButtons.ensureStorageAllocated(SPAT_MODE_STRINGS.size());
+    auto const initButton = [&](juce::TextButton & button, juce::String const & text, juce::String const & tooltip) {
+        button.setButtonText(text);
+        button.setTooltip(tooltip);
+        button.setClickingTogglesState(true);
+        button.setRadioGroupId(SPAT_MODE_BUTTONS_RADIO_GROUP_ID, juce::dontSendNotification);
+        button.addListener(this);
+        addAndMakeVisible(button);
+    };
 
-    for (int i{}; i < SPAT_MODE_STRINGS.size(); ++i) {
-        auto * newButton{ mButtons.add(std::make_unique<juce::TextButton>(SPAT_MODE_STRINGS[i])) };
-        newButton->setTooltip(SPAT_MODE_TOOLTIPS[i]);
-        newButton->setClickingTogglesState(true);
-        newButton->setRadioGroupId(SPAT_MODE_BUTTONS_RADIO_GROUP_ID, juce::dontSendNotification);
-        newButton->addListener(this);
-        addAndMakeVisible(newButton);
-    }
+    initLabel(mSpatModeLabel);
+    initLabel(mStereoModeLabel);
 
-    mButtons.getFirst()->setToggleState(true, juce::dontSendNotification);
+    initButton(mDomeButton, spatModeToString(SpatMode::vbap), spatModeToTooltip(SpatMode::vbap));
+    initButton(mCubeButton, spatModeToString(SpatMode::lbap), spatModeToTooltip(SpatMode::lbap));
+    mDomeButton.setToggleState(true, juce::dontSendNotification);
+
+    auto stereoModeStrings{ STEREO_MODE_STRINGS };
+    stereoModeStrings.insert(0, "None");
+    mStereoComboBox.addItemList(stereoModeStrings, 1);
+    mStereoComboBox.setSelectedItemIndex(0, juce::NotificationType::dontSendNotification);
+    mStereoComboBox.addListener(this);
+    addAndMakeVisible(mStereoComboBox);
 }
 
 //==============================================================================
 void SpatModeComponent::setSpatMode(SpatMode const spatMode)
 {
-    if (spatMode == mSpatMode) {
+    switch (spatMode) {
+    case SpatMode::vbap:
+        mDomeButton.setToggleState(true, juce::dontSendNotification);
+        return;
+    case SpatMode::lbap:
+        mCubeButton.setToggleState(true, juce::dontSendNotification);
+        return;
+    }
+    jassertfalse;
+}
+
+//==============================================================================
+void SpatModeComponent::setStereoMode(tl::optional<StereoMode> const & mode)
+{
+    if (!mode) {
+        mStereoComboBox.setSelectedItemIndex(0, juce::dontSendNotification);
         return;
     }
 
-    mSpatMode = spatMode;
-    auto const index{ narrow<int>(spatMode) };
-    jassert(index >= 0 && index <= SPAT_MODE_STRINGS.size());
-    mButtons[index]->setToggleState(true, juce::dontSendNotification);
+    auto const index{ static_cast<int>(*mode) + 1 };
+    mStereoComboBox.setSelectedItemIndex(index, juce::dontSendNotification);
+}
+
+//==============================================================================
+SpatMode SpatModeComponent::getSpatMode() const noexcept
+{
+    if (mDomeButton.getToggleState()) {
+        return SpatMode::vbap;
+    }
+    jassert(mCubeButton.getToggleState());
+    return SpatMode::lbap;
+}
+
+//==============================================================================
+tl::optional<StereoMode> SpatModeComponent::getStereoMode() const noexcept
+{
+    auto const selectedIndex{ mStereoComboBox.getSelectedItemIndex() };
+
+    jassert(selectedIndex >= 0 && selectedIndex <= 2);
+
+    if (selectedIndex == 0) {
+        return tl::nullopt;
+    }
+
+    return static_cast<StereoMode>(selectedIndex - 1);
 }
 
 //==============================================================================
@@ -74,54 +122,68 @@ void SpatModeComponent::buttonClicked(juce::Button * button)
     if (!button->getToggleState()) {
         return;
     }
-    auto const index{ mButtons.indexOf(button) };
-    jassert(index >= 0);
-    mSpatMode = narrow<SpatMode>(index);
-    mListener.handleSpatModeChanged(mSpatMode);
+
+    if (button != &mDomeButton && button != &mCubeButton) {
+        jassertfalse;
+        return;
+    }
+
+    mListener.handleSpatModeChanged(getSpatMode());
+}
+
+//==============================================================================
+void SpatModeComponent::comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged)
+{
+    if (comboBoxThatHasChanged != &mStereoComboBox) {
+        jassertfalse;
+        return;
+    }
+
+    mListener.handleStereoModeChanged(getStereoMode());
 }
 
 //==============================================================================
 void SpatModeComponent::resized()
 {
-    jassert(NUM_COLS * NUM_ROWS == mButtons.size());
+    auto const availableWidth{ getWidth() };
+    auto const availableHeight{ getHeight() };
 
-    auto const width{ getWidth() };
-    auto const height{ getHeight() };
+    auto const minWidth{ getMinWidth() };
+    auto const minHeight{ getMinHeight() };
 
-    auto const yLabelOffset{ std::max(height - PREFERRED_HEIGHT, 0) / 2 };
+    auto const xPadding{ std::max(availableWidth - minWidth, 0) / 2 };
+    auto const yPadding{ std::max(availableHeight - minHeight, 0) / 2 };
 
-    mLabel.setBounds(0, yLabelOffset, width, LABEL_HEIGHT);
+    juce::Rectangle<int> const labelBaseBounds{ availableWidth, LABELS_HEIGHT };
+    juce::Rectangle<int> const buttonBaseBounds{ BUTTONS_WIDTH, BUTTONS_HEIGHT };
 
-    auto const totalButtonsWidth{ std::min(width, PREFERRED_WIDTH) };
-    auto const totalButtonsHeight{ std::clamp(PREFERRED_HEIGHT - LABEL_HEIGHT, 0, height) };
+    auto x{ 0 };
+    auto y{ yPadding };
 
-    auto const xButtonsOffset{ std::max(width - totalButtonsWidth, 0) / 2 };
-    auto const yButtonsOffset{ yLabelOffset + LABEL_HEIGHT };
-
-    static constexpr auto TOTAL_X_PADDING{ INNER_PADDING * (NUM_COLS - 1) };
-    static constexpr auto TOTAL_Y_PADDING{ INNER_PADDING * (NUM_ROWS - 1) };
-    auto const buttonsWidth{ (totalButtonsWidth - TOTAL_X_PADDING) / NUM_COLS };
-    auto const buttonsHeight{ (totalButtonsHeight - TOTAL_Y_PADDING) / NUM_ROWS };
-
-    for (int i{}; i < NUM_ROWS; ++i) {
-        auto const yOffset{ yButtonsOffset + i * (buttonsHeight + INNER_PADDING) };
-        for (int j{}; j < NUM_COLS; ++j) {
-            auto const xOffset{ xButtonsOffset + j * (buttonsWidth + INNER_PADDING) };
-            auto const index{ i * NUM_COLS + j };
-            juce::Rectangle<int> const bounds{ xOffset, yOffset, buttonsWidth, buttonsHeight };
-            mButtons[index]->setBounds(bounds);
-        }
-    }
+    mSpatModeLabel.setBounds(labelBaseBounds.translated(x, y));
+    x = xPadding;
+    y += LABELS_HEIGHT + INNER_PADDING;
+    mDomeButton.setBounds(buttonBaseBounds.translated(x, y));
+    x += BUTTONS_WIDTH + INNER_PADDING;
+    mCubeButton.setBounds(buttonBaseBounds.translated(x, y));
+    x = 0;
+    y += BUTTONS_HEIGHT + INNER_PADDING;
+    mStereoModeLabel.setBounds(labelBaseBounds.translated(x, y));
+    x = 0;
+    y += LABELS_HEIGHT + INNER_PADDING;
+    mStereoComboBox.setBounds(labelBaseBounds.translated(x, y));
 }
 
 //==============================================================================
 int SpatModeComponent::getMinWidth() const noexcept
 {
-    return PREFERRED_WIDTH;
+    static auto constexpr MIN_WIDTH = BUTTONS_WIDTH * 2 + INNER_PADDING;
+    return MIN_WIDTH;
 }
 
 //==============================================================================
 int SpatModeComponent::getMinHeight() const noexcept
 {
-    return PREFERRED_HEIGHT;
+    static auto constexpr MIN_HEIGHT = BUTTONS_HEIGHT * 2 + LABELS_HEIGHT * 2 + INNER_PADDING * 3;
+    return MIN_HEIGHT;
 }

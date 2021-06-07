@@ -23,6 +23,7 @@
 
 static constexpr auto MIN_LABEL_WIDTH = 90;
 static constexpr auto LABEL_HEIGHT = 20;
+static constexpr auto PADDING = 0;
 static constexpr auto ENTRY_BOX_HEIGHT = 20;
 static constexpr auto ENTRY_BOX_WIDTH = 50;
 static constexpr auto SLIDER_SIZE = 60;
@@ -43,7 +44,7 @@ SpatSlider::SpatSlider(float const minValue,
     JUCE_ASSERT_MESSAGE_THREAD;
 
     mLabel.setColour(juce::Label::ColourIds::textColourId, lookAndFeel.getFontColour());
-    mLabel.setJustificationType(juce::Justification::centred);
+    mLabel.setJustificationType(juce::Justification::centredTop);
     mLabel.setInterceptsMouseClicks(false, false);
 
     addAndMakeVisible(mLabel);
@@ -78,7 +79,7 @@ void SpatSlider::resized()
     auto const labelY{ std::max(height - getMinHeight(), 0) / 2 };
 
     auto const sliderX{ std::max(width - SLIDER_SIZE, 0) / 2 };
-    auto const sliderY{ labelY + LABEL_HEIGHT };
+    auto const sliderY{ labelY + LABEL_HEIGHT + PADDING };
 
     mLabel.setBounds(0, labelY, width, LABEL_HEIGHT);
     mSlider.setBounds(sliderX, sliderY, SLIDER_SIZE, SLIDER_SIZE);
@@ -103,5 +104,5 @@ int SpatSlider::getMinWidth() const noexcept
 int SpatSlider::getMinHeight() const noexcept
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-    return SLIDER_SIZE + ENTRY_BOX_HEIGHT;
+    return SLIDER_SIZE + ENTRY_BOX_HEIGHT + PADDING;
 }

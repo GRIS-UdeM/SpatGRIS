@@ -69,7 +69,7 @@ PrepareToRecordComponent::PrepareToRecordComponent(juce::File const & recordingD
 
     initFormatButton(mWavButton, RecordingFormat::wav);
     initFormatButton(mAiffButton, RecordingFormat::aiff);
-#ifdef __APPLE__
+#ifdef USE_CAF
     initFormatButton(mCafButton, RecordingFormat::caf);
 #endif
 
@@ -95,7 +95,7 @@ PrepareToRecordComponent::PrepareToRecordComponent(juce::File const & recordingD
     case RecordingFormat::aiff:
         mAiffButton.setToggleState(true, juce::dontSendNotification);
         break;
-#ifdef __APPLE__
+#ifdef USE_CAF
     case RecordingFormat::caf:
         mCafButton.setToggleState(true, juce::dontSendNotification);
         break;
@@ -277,7 +277,7 @@ RecordingFormat PrepareToRecordComponent::getSelectedFormat() const
     if (mAiffButton.getToggleState()) {
         return RecordingFormat::aiff;
     }
-#ifdef __APPLE__
+#ifdef USE_CAF
     jassert(mCafButton.getToggleState());
     return RecordingFormat::caf;
 #else

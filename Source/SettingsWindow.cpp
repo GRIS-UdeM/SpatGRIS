@@ -33,10 +33,7 @@ bool isNotPowerOfTwo(int const value)
 }
 
 //==============================================================================
-SettingsComponent::SettingsComponent(MainContentComponent & parent,
-                                     LbapDistanceAttenuationData const & lbapData,
-                                     int const oscPort,
-                                     GrisLookAndFeel & lookAndFeel)
+SettingsComponent::SettingsComponent(MainContentComponent & parent, int const oscPort, GrisLookAndFeel & lookAndFeel)
     : mMainContentComponent(parent)
     , mLookAndFeel(lookAndFeel)
 {
@@ -242,6 +239,8 @@ void SettingsComponent::comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged)
         audioDeviceManager.getCurrentDeviceTypeObject()->hasSeparateInputsAndOutputs()
     };
 
+    juce::ScopedLock const lock{ mMainContentComponent.getAudioProcessor().getLock() };
+
     if (comboBoxThatHasChanged == &mDeviceTypeCombo) {
         audioDeviceManager.setCurrentAudioDeviceType(comboBoxThatHasChanged->getText(), true);
     } else if (comboBoxThatHasChanged == &mInputDeviceCombo) {
@@ -271,13 +270,10 @@ void SettingsComponent::comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged)
 }
 
 //==============================================================================
-SettingsWindow::SettingsWindow(MainContentComponent & parent,
-                               LbapDistanceAttenuationData const & lbapData,
-                               int const oscPort,
-                               GrisLookAndFeel & grisLookAndFeel)
+SettingsWindow::SettingsWindow(MainContentComponent & parent, int const oscPort, GrisLookAndFeel & grisLookAndFeel)
     : juce::DocumentWindow("Settings", grisLookAndFeel.getBackgroundColour(), DocumentWindow::allButtons)
     , mMainContentComponent(parent)
-    , mPropertiesComponent(parent, lbapData, oscPort, grisLookAndFeel)
+    , mPropertiesComponent(parent, oscPort, grisLookAndFeel)
 {
     setContentNonOwned(&mPropertiesComponent, true);
     setResizable(false, false);

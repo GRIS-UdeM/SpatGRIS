@@ -20,6 +20,7 @@
 #include "InfoPanel.hpp"
 
 #include "GrisLookAndFeel.hpp"
+#include "MainComponent.hpp"
 
 static constexpr auto MIN_WIDTH = 400;
 static constexpr auto MIN_HEIGHT = 25;
@@ -28,11 +29,14 @@ static auto const COLOR_1 = juce::Colours::blue.withBrightness(0.3f).withSaturat
 static auto const COLOR_2 = juce::Colours::blue.withBrightness(0.2f).withSaturation(0.2f);
 
 //==============================================================================
-InfoPanel::InfoPanel(GrisLookAndFeel & lookAndFeel) : mLookAndFeel(lookAndFeel)
+InfoPanel::InfoPanel(MainContentComponent & mainContentComponent, GrisLookAndFeel & lookAndFeel)
+    : mMainContentComponent(mainContentComponent)
+    , mLookAndFeel(lookAndFeel)
 {
     auto const primeLabel = [&](juce::Label & label) {
         label.setJustificationType(juce::Justification::centred);
         label.setColour(juce::Label::ColourIds::textColourId, lookAndFeel.getFontColour());
+        label.addMouseListener(this, false);
         addAndMakeVisible(label);
     };
 
@@ -43,8 +47,6 @@ InfoPanel::InfoPanel(GrisLookAndFeel & lookAndFeel) : mLookAndFeel(lookAndFeel)
     }
 
     setComponentsColors(labels);
-
-    mCpuLabel.addMouseListener(this, false);
 }
 
 //==============================================================================
@@ -125,6 +127,7 @@ void InfoPanel::resized()
 void InfoPanel::mouseDown(juce::MouseEvent const & event)
 {
     if (event.eventComponent != &mCpuLabel) {
+        mMainContentComponent.handleShowPreferences();
         return;
     }
 

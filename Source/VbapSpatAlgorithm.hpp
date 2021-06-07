@@ -24,16 +24,30 @@
 
 VbapType getVbapType(SpeakersData const & speakers);
 
+struct VbapSourceData {
+    AtomicExchanger<SpeakersSpatGains> spatDataQueue{};
+    AtomicExchanger<SpeakersSpatGains>::Ticket * currentSpatData{};
+    SpeakersSpatGains lastGains{};
+};
+
+using VbapSourcesData = StrongArray<source_index_t, VbapSourceData, MAX_NUM_SOURCES>;
+
 //==============================================================================
 class VbapSpatAlgorithm final : public AbstractSpatAlgorithm
 {
-    std::unique_ptr<VbapData> mData{};
+    std::unique_ptr<VbapData> mSetupData{};
+    VbapSourcesData mData{};
 
 public:
     //==============================================================================
     explicit VbapSpatAlgorithm(SpeakersData const & speakers);
     //==============================================================================
-    void computeSpeakerGains(SourceData const & source, SpeakersSpatGains & gains) const noexcept override;
+    void updateSpatData(source_index_t sourceIndex, SourceData const & sourceData) noexcept override;
+    void process(AudioConfig const & config,
+                 SourceAudioBuffer & sourcesBuffer,
+                 SpeakerAudioBuffer & speakersBuffer,
+                 SourcePeaks const & sourcePeaks,
+                 SpeakersAudioConfig const * altSpeakerConfig) override;
     [[nodiscard]] juce::Array<Triplet> getTriplets() const noexcept override;
     [[nodiscard]] bool hasTriplets() const noexcept override;
 };

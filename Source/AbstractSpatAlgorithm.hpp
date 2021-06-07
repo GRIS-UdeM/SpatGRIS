@@ -19,20 +19,44 @@
 
 #pragma once
 
-#include "AudioStructs.hpp"
 #include "LogicStrucs.hpp"
-#include "SpatMode.hpp"
 #include "Triplet.hpp"
+
+//==============================================================================
+bool isOscThread();
+bool isProbablyAudioThread();
+
+//==============================================================================
+#define ASSERT_OSC_THREAD jassert(isOscThread())
+#define ASSERT_AUDIO_THREAD jassert(isProbablyAudioThread())
 
 //==============================================================================
 class AbstractSpatAlgorithm
 {
 public:
+    AbstractSpatAlgorithm() = default;
     virtual ~AbstractSpatAlgorithm() = default;
     //==============================================================================
-    virtual void computeSpeakerGains(SourceData const & source, SpeakersSpatGains & gains) const noexcept = 0;
+    AbstractSpatAlgorithm(AbstractSpatAlgorithm const &) = delete;
+    AbstractSpatAlgorithm(AbstractSpatAlgorithm &&) = delete;
+    AbstractSpatAlgorithm & operator=(AbstractSpatAlgorithm const &) = delete;
+    AbstractSpatAlgorithm & operator=(AbstractSpatAlgorithm &&) = delete;
+    //==============================================================================
+    void fixDirectOutsIntoPlace(SourcesData const & sources, SpeakerSetup const & speakerSetup) noexcept;
+    //==============================================================================
+    virtual void updateSpatData(source_index_t sourceIndex, SourceData const & sourceData) noexcept = 0;
+    virtual void process(AudioConfig const & config,
+                         SourceAudioBuffer & sourcesBuffer,
+                         SpeakerAudioBuffer & speakersBuffer,
+                         SourcePeaks const & sourcePeaks,
+                         SpeakersAudioConfig const * altSpeakerConfig)
+        = 0;
     [[nodiscard]] virtual juce::Array<Triplet> getTriplets() const noexcept = 0;
     [[nodiscard]] virtual bool hasTriplets() const noexcept = 0;
     //==============================================================================
-    [[nodiscard]] static std::unique_ptr<AbstractSpatAlgorithm> make(SpatMode spatMode, SpeakersData const & speakers);
+    [[nodiscard]] static std::unique_ptr<AbstractSpatAlgorithm>
+        make(SpeakerSetup const & speakerSetup, tl::optional<StereoMode> stereoMode, SourcesData const & sources);
+
+private:
+    JUCE_LEAK_DETECTOR(AbstractSpatAlgorithm)
 };
