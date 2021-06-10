@@ -754,6 +754,16 @@ SpeakersAudioConfig SpeakerSetup::toAudioConfig(double const sampleRate) const n
 }
 
 //==============================================================================
+int SpeakerSetup::numOfSpatializedSpeakers() const noexcept
+{
+    auto const result{ std::count_if(speakers.cbegin(), speakers.cend(), [](SpeakersData::ConstNode const & speaker) {
+        return !speaker.value->isDirectOutOnly;
+    }) };
+
+    return narrow<int>(result);
+}
+
+//==============================================================================
 std::unique_ptr<AudioConfig> SpatGrisData::toAudioConfig() const
 {
     auto result{ std::make_unique<AudioConfig>() };

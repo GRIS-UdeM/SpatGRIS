@@ -19,6 +19,7 @@
 
 #include "HrtfSpatAlgorithm.hpp"
 
+#include "DummySpatAlgorithm.hpp"
 #include "LbapSpatAlgorithm.hpp"
 #include "VbapSpatAlgorithm.hpp"
 
@@ -145,9 +146,11 @@ void HrtfSpatAlgorithm::process(AudioConfig const & config,
                                 SourceAudioBuffer & sourcesBuffer,
                                 SpeakerAudioBuffer & speakersBuffer,
                                 SourcePeaks const & sourcePeaks,
-                                SpeakersAudioConfig const * altSpeakerConfig)
+                                [[maybe_unused]] SpeakersAudioConfig const * altSpeakerConfig)
 {
     ASSERT_AUDIO_THREAD;
+    jassert(!altSpeakerConfig);
+    jassert(speakersBuffer.size() >= 2);
 
     auto const getFirstTwoBuffers = [&]() {
         auto it{ speakersBuffer.begin() };
@@ -209,11 +212,37 @@ void HrtfSpatAlgorithm::process(AudioConfig const & config,
 //==============================================================================
 juce::Array<Triplet> HrtfSpatAlgorithm::getTriplets() const noexcept
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
     return mInnerAlgorithm->getTriplets();
 }
 
 //==============================================================================
 bool HrtfSpatAlgorithm::hasTriplets() const noexcept
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
     return mInnerAlgorithm->hasTriplets();
+}
+
+//==============================================================================
+std::unique_ptr<AbstractSpatAlgorithm>
+    HrtfSpatAlgorithm::make(SpeakerSetup const & speakerSetup, SourcesData const & sources, juce::Component * parent)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    static bool errorShown{};
+
+    if (speakerSetup.numOfSpatializedSpeakers() < 2) {
+        if (!errorShown) {
+            juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::InfoIcon,
+                                                   "Disabled spatialization",
+                                                   "The Binaural mode needs at least 2 speakers.\n",
+                                                   "Ok",
+                                                   parent);
+            errorShown = true;
+        }
+        return std::make_unique<DummySpatAlgorithm>();
+    }
+
+    errorShown = false;
+    return std::make_unique<HrtfSpatAlgorithm>(speakerSetup, sources);
 }

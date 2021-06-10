@@ -18,6 +18,7 @@
 */
 
 #include "StereoSpatAlgorithm.hpp"
+#include "DummySpatAlgorithm.hpp"
 
 //==============================================================================
 void StereoSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, SourceData const & sourceData) noexcept
@@ -59,6 +60,7 @@ void StereoSpatAlgorithm::process(AudioConfig const & config,
 {
     ASSERT_AUDIO_THREAD;
     jassert(!altSpeakerConfig);
+    jassert(speakersBuffer.size() >= 2);
 
     auto const getBuffers = [&]() {
         auto it{ speakersBuffer.begin() };
@@ -133,6 +135,30 @@ juce::Array<Triplet> StereoSpatAlgorithm::getTriplets() const noexcept
     JUCE_ASSERT_MESSAGE_THREAD;
     jassertfalse;
     return juce::Array<Triplet>{};
+}
+
+//==============================================================================
+std::unique_ptr<AbstractSpatAlgorithm>
+    StereoSpatAlgorithm::make(SpeakerSetup const & speakerSetup, SourcesData const & sources, juce::Component * parent)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    static bool errorShown{};
+
+    if (speakerSetup.numOfSpatializedSpeakers() < 2) {
+        if (!errorShown) {
+            juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::InfoIcon,
+                                                   "Disabled spatialization",
+                                                   "The Stereo mode needs at least 2 speakers.\n",
+                                                   "Ok",
+                                                   parent);
+            errorShown = true;
+        }
+        return std::make_unique<DummySpatAlgorithm>();
+    }
+
+    errorShown = false;
+    return std::make_unique<StereoSpatAlgorithm>(speakerSetup, sources);
 }
 
 //==============================================================================

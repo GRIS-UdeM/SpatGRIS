@@ -59,6 +59,9 @@ public:
                  SpeakersAudioConfig const * altSpeakerConfig) override;
     [[nodiscard]] juce::Array<Triplet> getTriplets() const noexcept override;
     [[nodiscard]] bool hasTriplets() const noexcept override;
+    //==============================================================================
+    static std::unique_ptr<AbstractSpatAlgorithm>
+        make(SpeakerSetup const & speakerSetup, SourcesData const & sources, juce::Component * parent);
 
 private:
     //==============================================================================

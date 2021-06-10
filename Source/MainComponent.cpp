@@ -1579,14 +1579,14 @@ void MainContentComponent::updateAudioProcessor() const
 }
 
 //==============================================================================
-void MainContentComponent::updateSpatAlgorithm() const
+void MainContentComponent::updateSpatAlgorithm()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-    juce::ScopedReadLock const lock{ mLock };
+    juce::ScopedWriteLock const lock{ mLock };
     juce::ScopedLock const audioLock{ mAudioProcessor->getLock() };
 
     mAudioProcessor->getSpatAlgorithm()
-        = AbstractSpatAlgorithm::make(mData.speakerSetup, mData.appData.stereoMode, mData.project.sources);
+        = AbstractSpatAlgorithm::make(mData.speakerSetup, mData.appData.stereoMode, mData.project.sources, this);
     updateAudioProcessor();
 }
 
@@ -1653,11 +1653,11 @@ void MainContentComponent::reorderSpeakers(juce::Array<output_patch_t> newOrder)
 output_patch_t MainContentComponent::getMaxSpeakerOutputPatch() const
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-    jassert(!mData.speakerSetup.order.isEmpty());
     juce::ScopedReadLock const lock{ mLock };
 
     auto const & patches{ mData.speakerSetup.order };
-    auto const maxPatch{ *std::max_element(patches.begin(), patches.end()) };
+    auto const * maxIterator{ std::max_element(patches.begin(), patches.end()) };
+    auto const maxPatch{ maxIterator != mData.speakerSetup.order.end() ? *maxIterator : output_patch_t{} };
     return maxPatch;
 }
 
@@ -1756,58 +1756,11 @@ bool MainContentComponent::refreshSpeakers()
 
     warnIfDirectOutMismatch();
 
-    auto const & speakers{ mData.speakerSetup.speakers };
-    auto const numActiveSpeakers{ std::count_if(
-        speakers.cbegin(),
-        speakers.cend(),
-        [](SpeakersData::ConstNode const speaker) { return !speaker.value->isDirectOutOnly; }) };
-
-    // Ensure there is enough speakers
-    auto const showNotEnoughSpeakersError = [&]() {
-        juce::AlertWindow alert("Not enough speakers !    ",
-                                "Do you want to reload the default setup ?    ",
-                                juce::AlertWindow::WarningIcon);
-        alert.setLookAndFeel(&mLookAndFeel);
-        alert.addButton("No", 0);
-        alert.addButton("Yes", 1, juce::KeyPress(juce::KeyPress::returnKey));
-        if (alert.runModalLoop() != 0) {
-            auto const success{ loadSpeakerSetup(DEFAULT_SPEAKER_SETUP_FILE,
-                                                 LoadSpeakerSetupOption::allowDiscardingUnsavedChanges) };
-            if (!success) {
-                fatalError("Unable to load the default speaker setup.", this);
-            }
-        }
-    };
-
-    if (numActiveSpeakers < 2) {
-        showNotEnoughSpeakersError();
-        return false;
-    }
-
-    auto const getVbapDimensions = [&]() {
-        auto const firstSpeaker{ *mData.speakerSetup.speakers.begin() };
-        auto const firstZenith{ firstSpeaker.value->vector.elevation };
-        auto const minZenith{ firstZenith - degrees_t{ 4.9f } };
-        auto const maxZenith{ firstZenith + degrees_t{ 4.9f } };
-
-        auto const areSpeakersOnSamePlane{ std::all_of(mData.speakerSetup.speakers.cbegin(),
-                                                       mData.speakerSetup.speakers.cend(),
-                                                       [&](SpeakersData::ConstNode const node) {
-                                                           auto const zenith{ node.value->vector.elevation };
-                                                           return zenith < maxZenith && zenith > minZenith;
-                                                       }) };
-        return areSpeakersOnSamePlane ? VbapType::twoD : VbapType::threeD;
-    };
-
-    auto const lbapDimensions{ getVbapDimensions() };
-    if (lbapDimensions == VbapType::twoD) {
-        mData.appData.viewSettings.showSpeakerTriplets = false;
-    } else if (mData.speakerSetup.speakers.size() < 3) {
-        showNotEnoughSpeakersError();
-        return false;
-    }
-
     updateSpatAlgorithm();
+
+    if (!mAudioProcessor->getSpatAlgorithm()->hasTriplets()) {
+        mData.appData.viewSettings.showSpeakerTriplets = false;
+    }
 
     // re-assign source positions
     for (auto const & source : mData.project.sources) {

@@ -39,6 +39,7 @@ class StereoSpatAlgorithm final : public AbstractSpatAlgorithm
     StereoSourcesData mData{};
 
 public:
+    //==============================================================================
     StereoSpatAlgorithm(SpeakerSetup const & speakerSetup, SourcesData const & sources);
     ~StereoSpatAlgorithm() override = default;
     //==============================================================================
@@ -55,6 +56,9 @@ public:
                  SpeakersAudioConfig const * altSpeakerConfig) override;
     [[nodiscard]] juce::Array<Triplet> getTriplets() const noexcept override;
     [[nodiscard]] bool hasTriplets() const noexcept override { return false; }
+    //==============================================================================
+    static std::unique_ptr<AbstractSpatAlgorithm>
+        make(SpeakerSetup const & speakerSetup, SourcesData const & sources, juce::Component * parent);
 
 private:
     JUCE_LEAK_DETECTOR(StereoSpatAlgorithm)

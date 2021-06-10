@@ -66,21 +66,21 @@ struct LoudSpeaker {
 
 /* VBAP structure of n loudspeaker panning */
 struct VbapData {
-    std::array<output_patch_t, MAX_NUM_SPEAKERS> outputPatches; /* Physical outputs (starts at 1). */
-    std::array<float, MAX_NUM_SPEAKERS> gainsSmoothing;         /* Loudspeaker gains smoothing. */
-    int dimension;                                              /* Dimensions, 2 or 3. */
-    juce::Array<SpeakerSet> speakerSets;                        /* Loudspeaker triplet structure. */
-    int numOutputPatches;                                       /* Number of output patches. */
-    int numSpeakers;                                            /* Number of loudspeakers. */
-    PolarVector angularDirection;                               /* Angular direction. */
-    CartesianVector cartesianDirection;                         /* Cartesian direction. */
-    CartesianVector spreadingVector;                            /* Spreading vector. */
+    std::array<output_patch_t, MAX_NUM_SPEAKERS> outputPatches{}; /* Physical outputs (starts at 1). */
+    std::array<float, MAX_NUM_SPEAKERS> gainsSmoothing{};         /* Loudspeaker gains smoothing. */
+    int dimension{};                                              /* Dimensions, 2 or 3. */
+    juce::Array<SpeakerSet> speakerSets{};                        /* Loudspeaker triplet structure. */
+    int numOutputPatches{};                                       /* Number of output patches. */
+    int numSpeakers{};                                            /* Number of loudspeakers. */
+    PolarVector angularDirection{};                               /* Angular direction. */
+    CartesianVector cartesianDirection{};                         /* Cartesian direction. */
+    CartesianVector spreadingVector{};                            /* Spreading vector. */
 };
 
-VbapData * vbapInit(std::array<LoudSpeaker, MAX_NUM_SPEAKERS> & speakers,
-                    int count,
-                    int dimensions,
-                    std::array<output_patch_t, MAX_NUM_SPEAKERS> const & outputPatches);
+std::unique_ptr<VbapData> vbapInit(std::array<LoudSpeaker, MAX_NUM_SPEAKERS> & speakers,
+                                   int count,
+                                   int dimensions,
+                                   std::array<output_patch_t, MAX_NUM_SPEAKERS> const & outputPatches);
 
 /* Calculates gain factors using loudspeaker setup and angle direction.
  */

@@ -54,8 +54,10 @@ public:
     [[nodiscard]] virtual juce::Array<Triplet> getTriplets() const noexcept = 0;
     [[nodiscard]] virtual bool hasTriplets() const noexcept = 0;
     //==============================================================================
-    [[nodiscard]] static std::unique_ptr<AbstractSpatAlgorithm>
-        make(SpeakerSetup const & speakerSetup, tl::optional<StereoMode> stereoMode, SourcesData const & sources);
+    [[nodiscard]] static std::unique_ptr<AbstractSpatAlgorithm> make(SpeakerSetup const & speakerSetup,
+                                                                     tl::optional<StereoMode> stereoMode,
+                                                                     SourcesData const & sources,
+                                                                     juce::Component * parent);
 
 private:
     JUCE_LEAK_DETECTOR(AbstractSpatAlgorithm)

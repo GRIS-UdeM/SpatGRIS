@@ -312,6 +312,7 @@ struct SpeakerSetup {
     [[nodiscard]] bool operator!=(SpeakerSetup const & other) const noexcept { return !(*this == other); }
     [[nodiscard]] bool isDomeLike() const noexcept;
     [[nodiscard]] SpeakersAudioConfig toAudioConfig(double sampleRate) const noexcept;
+    [[nodiscard]] int numOfSpatializedSpeakers() const noexcept;
     //==============================================================================
     struct XmlTags {
         static juce::String const MAIN_TAG;

@@ -195,7 +195,7 @@ public:
     void handleNewSpeakerPosition(output_patch_t outputPatch, PolarVector const & position);
 
     void updateAudioProcessor() const;
-    void updateSpatAlgorithm() const;
+    void updateSpatAlgorithm();
     void updateViewportConfig() const;
 
     void handleSetShowTriplets(bool state);

@@ -665,14 +665,14 @@ static void
 }
 
 //==============================================================================
-VbapData * vbapInit(std::array<LoudSpeaker, MAX_NUM_SPEAKERS> & speakers,
-                    int const count,
-                    int const dimensions,
-                    std::array<output_patch_t, MAX_NUM_SPEAKERS> const & outputPatches)
+std::unique_ptr<VbapData> vbapInit(std::array<LoudSpeaker, MAX_NUM_SPEAKERS> & speakers,
+                                   int const count,
+                                   int const dimensions,
+                                   std::array<output_patch_t, MAX_NUM_SPEAKERS> const & outputPatches)
 {
     int offset{};
     TripletList triplets{};
-    auto * data = new VbapData;
+    auto data = std::make_unique<VbapData>();
     if (dimensions == 3) {
         triplets = generateTriplets(speakers, count);
         computeMatrices3d(triplets, speakers, count);

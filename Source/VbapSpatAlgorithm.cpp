@@ -18,9 +18,10 @@
 */
 
 #include "VbapSpatAlgorithm.hpp"
+#include "DummySpatAlgorithm.hpp"
 
 //==============================================================================
-VbapType getVbapType(SpeakersData const & speakers)
+static VbapType getVbapType(SpeakersData const & speakers)
 {
     auto const firstSpeaker{ *speakers.begin() };
     auto const firstZenith{ firstSpeaker.value->vector.elevation };
@@ -57,7 +58,7 @@ VbapSpatAlgorithm::VbapSpatAlgorithm(SpeakersData const & speakers)
     auto const dimensions{ getVbapType(speakers) == VbapType::twoD ? 2 : 3 };
     auto const numSpeakers{ narrow<int>(index) };
 
-    mSetupData.reset(vbapInit(loudSpeakers, numSpeakers, dimensions, outputPatches));
+    mSetupData = vbapInit(loudSpeakers, numSpeakers, dimensions, outputPatches);
 }
 
 //==============================================================================
@@ -159,4 +160,75 @@ bool VbapSpatAlgorithm::hasTriplets() const noexcept
         return false;
     }
     return mSetupData->dimension == 3;
+}
+
+//==============================================================================
+std::unique_ptr<AbstractSpatAlgorithm> VbapSpatAlgorithm::make(SpeakerSetup const & speakerSetup,
+                                                               juce::Component * parent)
+{
+    using error_t = tl::optional<juce::String>;
+
+    auto const getDummy = [&](error_t error) {
+        if (error) {
+            juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::InfoIcon,
+                                                   "Disabled spatialization",
+                                                   *error,
+                                                   "Ok",
+                                                   parent);
+        }
+        return std::make_unique<DummySpatAlgorithm>();
+    };
+
+    auto const getVbap = [&]() { return std::make_unique<VbapSpatAlgorithm>(speakerSetup.speakers); };
+
+    static bool missingSpeakersErrorShown{};
+    if (speakerSetup.numOfSpatializedSpeakers() < 3) {
+        auto const error{ missingSpeakersErrorShown ? error_t{}
+                                                    : error_t{ "The Dome mode needs at least 3 speakers.\n" } };
+        missingSpeakersErrorShown = true;
+        return getDummy(error);
+    }
+    missingSpeakersErrorShown = false;
+
+    auto const dimensions{ getVbapType(speakerSetup.speakers) };
+
+    if (dimensions == VbapType::threeD) {
+        return getVbap();
+    }
+
+    // Verify that the speakers are not too far apart
+
+    juce::Array<radians_t> angles{};
+    angles.ensureStorageAllocated(speakerSetup.speakers.size());
+    for (auto const & speaker : speakerSetup.speakers) {
+        if (speaker.value->isDirectOutOnly) {
+            continue;
+        }
+        angles.add(speaker.value->vector.azimuth.centered());
+    }
+
+    angles.sort();
+
+    static constexpr degrees_t MAX_ANGLE_DIFF{ 170.0f };
+
+    auto const * invalidSpeaker{ std::adjacent_find(
+        angles.begin(),
+        angles.end(),
+        [](radians_t const a, radians_t const b) { return b - a > MAX_ANGLE_DIFF; }) };
+
+    auto const innerAreValid{ invalidSpeaker == angles.end() };
+    auto const firstAndLastAreValid{ angles.getFirst() + degrees_t{ 360.0f } - angles.getLast() <= MAX_ANGLE_DIFF };
+
+    static bool invalidAnglesErrorShown{};
+    if (innerAreValid && firstAndLastAreValid) {
+        invalidAnglesErrorShown = false;
+        return getVbap();
+    }
+
+    auto const error{ invalidAnglesErrorShown
+                          ? error_t{}
+                          : error_t{ "If all speakers are at the same height, Dome mode requires speakers to be not "
+                                     "more than 170 degrees apart from each others.\n" } };
+    invalidAnglesErrorShown = true;
+    return getDummy(error);
 }

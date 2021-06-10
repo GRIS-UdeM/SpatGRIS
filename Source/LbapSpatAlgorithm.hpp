@@ -44,6 +44,14 @@ class LbapSpatAlgorithm final : public AbstractSpatAlgorithm
 
 public:
     //==============================================================================
+    LbapSpatAlgorithm() = delete;
+    ~LbapSpatAlgorithm() override = default;
+    //==============================================================================
+    LbapSpatAlgorithm(LbapSpatAlgorithm const &) = delete;
+    LbapSpatAlgorithm(LbapSpatAlgorithm &&) = delete;
+    LbapSpatAlgorithm & operator=(LbapSpatAlgorithm const &) = delete;
+    LbapSpatAlgorithm & operator=(LbapSpatAlgorithm &&) = delete;
+    //==============================================================================
     explicit LbapSpatAlgorithm(SpeakersData const & speakers);
     //==============================================================================
     void updateSpatData(source_index_t sourceIndex, SourceData const & sourceData) noexcept override;
@@ -54,6 +62,8 @@ public:
                  SpeakersAudioConfig const * altSpeakerConfig) override;
     [[nodiscard]] juce::Array<Triplet> getTriplets() const noexcept override;
     [[nodiscard]] bool hasTriplets() const noexcept override { return false; }
+    //==============================================================================
+    static std::unique_ptr<AbstractSpatAlgorithm> make(SpeakerSetup const & speakerSetup, juce::Component * parent);
 
 private:
     JUCE_LEAK_DETECTOR(LbapSpatAlgorithm)

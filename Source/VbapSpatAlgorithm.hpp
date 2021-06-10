@@ -41,6 +41,12 @@ class VbapSpatAlgorithm final : public AbstractSpatAlgorithm
 public:
     //==============================================================================
     explicit VbapSpatAlgorithm(SpeakersData const & speakers);
+    ~VbapSpatAlgorithm() override = default;
+    //==============================================================================
+    VbapSpatAlgorithm(VbapSpatAlgorithm const &) = delete;
+    VbapSpatAlgorithm(VbapSpatAlgorithm &&) = delete;
+    VbapSpatAlgorithm & operator=(VbapSpatAlgorithm const &) = delete;
+    VbapSpatAlgorithm & operator=(VbapSpatAlgorithm &&) = delete;
     //==============================================================================
     void updateSpatData(source_index_t sourceIndex, SourceData const & sourceData) noexcept override;
     void process(AudioConfig const & config,
@@ -50,4 +56,9 @@ public:
                  SpeakersAudioConfig const * altSpeakerConfig) override;
     [[nodiscard]] juce::Array<Triplet> getTriplets() const noexcept override;
     [[nodiscard]] bool hasTriplets() const noexcept override;
+    //==============================================================================
+    static std::unique_ptr<AbstractSpatAlgorithm> make(SpeakerSetup const & speakerSetup, juce::Component * parent);
+
+private:
+    JUCE_LEAK_DETECTOR(VbapSpatAlgorithm)
 };
