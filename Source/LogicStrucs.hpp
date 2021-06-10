@@ -78,10 +78,12 @@ struct ViewportConfig {
     juce::String title{};
 };
 
+using ViewPortSourceDataQueue = AtomicExchanger<tl::optional<ViewportSourceData>>;
+using ViewPortSpeakerAlphaQueue = AtomicExchanger<float>;
+
 struct ViewportState {
-    StrongArray<source_index_t, AtomicExchanger<tl::optional<ViewportSourceData>>::Ticket *, MAX_NUM_SOURCES>
-        mostRecentSourcesData{};
-    StrongArray<output_patch_t, AtomicExchanger<float>::Ticket *, MAX_NUM_SPEAKERS> mostRecentSpeakersAlpha{};
+    StrongArray<source_index_t, ViewPortSourceDataQueue::Ticket *, MAX_NUM_SOURCES> mostRecentSourcesData{};
+    StrongArray<output_patch_t, ViewPortSpeakerAlphaQueue::Ticket *, MAX_NUM_SPEAKERS> mostRecentSpeakersAlpha{};
     float cameraZoomVelocity{};
     PolarVector cameraPosition{};
     juce::int64 lastRenderTimeMs{ juce::Time::currentTimeMillis() };
@@ -96,8 +98,8 @@ struct ViewportState {
 struct ViewportData {
     ViewportConfig config{};
     ViewportState state{};
-    StaticMap<source_index_t, AtomicExchanger<tl::optional<ViewportSourceData>>, MAX_NUM_SOURCES> sources{};
-    StrongArray<output_patch_t, AtomicExchanger<float>, MAX_NUM_SPEAKERS> speakersAlpha{};
+    StaticMap<source_index_t, ViewPortSourceDataQueue, MAX_NUM_SOURCES> sourcesDataQueues{};
+    StrongArray<output_patch_t, ViewPortSpeakerAlphaQueue, MAX_NUM_SPEAKERS> speakersAlphaQueues{};
 };
 
 //==============================================================================

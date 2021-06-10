@@ -82,9 +82,9 @@ void SpeakerViewComponent::setConfig(ViewportConfig const & config, SourcesData 
     juce::ScopedLock const lock{ mLock };
 
     mData.config = config;
-    mData.sources.clear();
+    mData.sourcesDataQueues.clear();
     for (auto const & source : sources) {
-        mData.sources.add(source.key);
+        mData.sourcesDataQueues.add(source.key);
     }
     repaint();
 }
@@ -176,7 +176,7 @@ void SpeakerViewComponent::render()
 
     // Draw sources
     auto const & viewSettings{ mData.config.viewSettings };
-    for (auto & source : mData.sources) {
+    for (auto & source : mData.sourcesDataQueues) {
         auto & exchanger{ source.value };
         auto *& ticket{ mData.state.mostRecentSourcesData[source.key] };
         exchanger.getMostRecent(ticket);
@@ -776,7 +776,7 @@ void SpeakerViewComponent::drawSpeaker(output_patch_t const outputPatch, Viewpor
         if (!showSpeakerLevels) {
             return DEFAULT_ALPHA;
         }
-        auto & exchanger{ mData.speakersAlpha[outputPatch] };
+        auto & exchanger{ mData.speakersAlphaQueues[outputPatch] };
         auto *& ticket{ mData.state.mostRecentSpeakersAlpha[outputPatch] };
         exchanger.getMostRecent(ticket);
         if (ticket == nullptr) {

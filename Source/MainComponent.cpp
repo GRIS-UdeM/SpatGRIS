@@ -25,6 +25,7 @@
 #include "FatalError.hpp"
 #include "LegacyLbapPosition.hpp"
 #include "MainWindow.hpp"
+#include "ScopeGuard.hpp"
 #include "TitledComponent.hpp"
 #include "VuMeterComponent.hpp"
 
@@ -53,14 +54,28 @@ static float gainToSpeakerAlpha(float const gain)
 }
 
 //==============================================================================
-static float gainToSourceAlpha(float const gain)
+static float gainToSourceAlpha(source_index_t const sourceIndex, float const gain)
 {
-    static constexpr auto OFF = 0.02f;
+    static constexpr auto RAMP = 0.12f;
+    static constexpr auto OFF = 0.0f;
     static constexpr auto ON = 0.8f;
-
     static constexpr dbfs_t MIN_GAIN{ -80.0f };
 
-    return dbfs_t::fromGain(gain) > MIN_GAIN ? ON : OFF;
+    // TODO : static variables bad
+    static StrongArray<source_index_t, float, MAX_NUM_SOURCES> lastAlphas{};
+    auto & lastAlpha{ lastAlphas[sourceIndex] };
+
+    if (dbfs_t::fromGain(gain) > MIN_GAIN) {
+        lastAlpha = ON;
+        return lastAlpha;
+    }
+
+    if (lastAlpha <= OFF) {
+        return OFF;
+    }
+
+    lastAlpha = std::max(lastAlpha - RAMP, OFF);
+    return lastAlpha;
 }
 
 //==============================================================================
@@ -737,7 +752,7 @@ void MainContentComponent::handleResetInputPositions()
 
         {
             // reset 3d view
-            auto & exchanger{ viewPortData.sources[source.key] };
+            auto & exchanger{ viewPortData.sourcesDataQueues[source.key] };
             auto * sourceTicket{ exchanger.acquire() };
             sourceTicket->get() = tl::nullopt;
             exchanger.setMostRecent(sourceTicket);
@@ -1177,14 +1192,14 @@ void MainContentComponent::updatePeaks()
         if (!sourceData.value->position) {
             continue;
         }
-        if (!viewportData.sources.contains(sourceData.key)) {
-            viewportData.sources.add(sourceData.key);
+        if (!viewportData.sourcesDataQueues.contains(sourceData.key)) {
+            viewportData.sourcesDataQueues.add(sourceData.key);
         }
 
-        auto & exchanger{ viewportData.sources[sourceData.key] };
+        auto & exchanger{ viewportData.sourcesDataQueues[sourceData.key] };
         auto * ticket{ exchanger.acquire() };
         ticket->get() = sourceData.value->toViewportData(
-            mData.appData.viewSettings.showSourceActivity ? gainToSourceAlpha(peak) : 0.8f);
+            mData.appData.viewSettings.showSourceActivity ? gainToSourceAlpha(sourceData.key, peak) : 0.8f);
         exchanger.setMostRecent(ticket);
     }
 
@@ -1199,7 +1214,7 @@ void MainContentComponent::updatePeaks()
         auto const dbPeak{ dbfs_t::fromGain(peak) };
         mSpeakerVuMeterComponents[speaker.key].setLevel(dbPeak);
 
-        auto & exchanger{ viewportData.speakersAlpha[speaker.key] };
+        auto & exchanger{ viewportData.speakersAlphaQueues[speaker.key] };
         auto * ticket{ exchanger.acquire() };
         ticket->get() = gainToSpeakerAlpha(peak);
         exchanger.setMostRecent(ticket);
