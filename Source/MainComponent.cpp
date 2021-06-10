@@ -726,34 +726,27 @@ void MainContentComponent::handleResetInputPositions()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    jassertfalse; // TODO
+    juce::ScopedWriteLock const lock{ mLock };
 
-    // juce::ScopedWriteLock const lock{ mLock };
+    auto & viewPortData{ mSpeakerViewComponent->getData() };
+    auto & spatAlgorithm{ *mAudioProcessor->getSpatAlgorithm() };
+    for (auto const source : mData.project.sources) {
+        // reset positions
+        source.value->position = tl::nullopt;
+        source.value->vector = tl::nullopt;
 
-    // auto & viewPortData{ mSpeakerViewComponent->getData() };
-    // auto & spatDataExchangers{ mAudioProcessor->getAudioData().spatData };
-    // for (auto const source : mData.project.sources) {
-    //    // reset positions
-    //    source.value->position = tl::nullopt;
-    //    source.value->vector = tl::nullopt;
+        {
+            // reset 3d view
+            auto & exchanger{ viewPortData.sources[source.key] };
+            auto * sourceTicket{ exchanger.acquire() };
+            sourceTicket->get() = tl::nullopt;
+            exchanger.setMostRecent(sourceTicket);
+        }
+        // spatData
+        spatAlgorithm.updateSpatData(source.key, *source.value);
+    }
 
-    //    {
-    //        // reset 3d view
-    //        auto & exchanger{ viewPortData.sources[source.key] };
-    //        auto * sourceTicket{ exchanger.acquire() };
-    //        sourceTicket->get() = tl::nullopt;
-    //        exchanger.setMostRecent(sourceTicket);
-    //    }
-    //    {
-    //        // reset gain matrix
-    //        auto & exchanger{ spatDataExchangers[source.key] };
-    //        auto * spatData{ exchanger.acquire() };
-    //        spatData->get() = SourceSpatData{};
-    //        exchanger.setMostRecent(spatData);
-    //    }
-    //}
-
-    // updateAudioProcessor();
+    updateAudioProcessor();
 }
 
 //==============================================================================

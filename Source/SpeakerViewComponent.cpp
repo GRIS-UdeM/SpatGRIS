@@ -50,13 +50,20 @@ void SpeakerViewComponent::initialise()
 }
 
 //==============================================================================
-bool isOpenGlThread()
+static bool isOpenGlThread()
 {
     auto const * currentThread{ juce::Thread::getCurrentThread() };
     if (!currentThread) {
         return false;
     }
+
     return currentThread->getThreadName() == "Pool";
+}
+
+//==============================================================================
+bool isOpenGlOrMessageThread()
+{
+    return juce::MessageManager::existsAndIsCurrentThread() || isOpenGlThread();
 }
 
 //==============================================================================
@@ -108,10 +115,13 @@ void SpeakerViewComponent::render()
     static constexpr auto ZOOM_CURVE = 0.7f;
     static constexpr auto INVERSE_ZOOM_CURVE = 1.0f / ZOOM_CURVE;
 
-    if (!isOpenGlThread()) {
+    ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD;
+
+    if (!juce::OpenGLHelpers::isContextActive()) {
+        jassertfalse;
         return;
     }
-    jassert(juce::OpenGLHelpers::isContextActive());
+
     juce::ScopedLock const lock{ mLock };
 
     // Process zoom smoothed animation
@@ -219,6 +229,7 @@ void SpeakerViewComponent::render()
 //==============================================================================
 void SpeakerViewComponent::paint(juce::Graphics & g)
 {
+    ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD;
     juce::ScopedLock const lock{ mLock };
 
     g.setColour(juce::Colours::white);
@@ -229,7 +240,7 @@ void SpeakerViewComponent::paint(juce::Graphics & g)
 //==============================================================================
 void SpeakerViewComponent::clickRay()
 {
-    ASSERT_OPEN_GL_THREAD;
+    ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD;
 
     double matModelView[16], matProjection[16];
     int viewport[4];
@@ -322,6 +333,8 @@ void SpeakerViewComponent::mouseWheelMove(const juce::MouseEvent & /*e*/, const 
 //==============================================================================
 void SpeakerViewComponent::drawBackground()
 {
+    ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD;
+
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(0.0, 1.0, 0.0, 1.0, -1.0, 1.0);
@@ -353,7 +366,7 @@ void SpeakerViewComponent::drawBackground()
 //==============================================================================
 void SpeakerViewComponent::drawOriginGrid() const
 {
-    ASSERT_OPEN_GL_THREAD;
+    ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD;
 
     static auto const drawSquare = [](float const length) -> void {
         glBegin(GL_LINES);
@@ -482,7 +495,7 @@ void SpeakerViewComponent::drawText(juce::String const & val,
                                     float const scale,
                                     bool const camLock) const
 {
-    ASSERT_OPEN_GL_THREAD;
+    ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD;
 
     glPushMatrix();
     glTranslatef(position.x, position.y, position.z);
@@ -507,6 +520,8 @@ void SpeakerViewComponent::drawText(juce::String const & val,
 //==============================================================================
 void SpeakerViewComponent::drawTextOnGrid(std::string const & val, glm::vec3 const position, float const scale)
 {
+    ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD;
+
     glPushMatrix();
     glTranslatef(position.x, position.y, position.z);
     glRotatef(0.0f, 0.0f, 0.0f, 1.0f);
@@ -523,7 +538,7 @@ void SpeakerViewComponent::drawTextOnGrid(std::string const & val, glm::vec3 con
 //==============================================================================
 void SpeakerViewComponent::drawTripletConnection() const
 {
-    ASSERT_OPEN_GL_THREAD;
+    ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD;
 
     for (auto const & triplet : mData.state.triplets) {
         auto const & spk1{ mData.config.speakers[triplet.id1].position };
@@ -546,7 +561,7 @@ void SpeakerViewComponent::drawTripletConnection() const
 //==============================================================================
 void SpeakerViewComponent::drawSource(source_index_t const index, ViewportSourceData const & source) const
 {
-    ASSERT_OPEN_GL_THREAD;
+    ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD;
 
     if (source.colour.getFloatAlpha() == 0.0f) {
         return;
@@ -594,6 +609,8 @@ void SpeakerViewComponent::drawSource(source_index_t const index, ViewportSource
 //==============================================================================
 void SpeakerViewComponent::drawVbapSpan(ViewportSourceData const & source)
 {
+    ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD;
+
     static auto constexpr NUM{ 8 };
 
     glPointSize(4);
@@ -636,16 +653,16 @@ void SpeakerViewComponent::drawVbapSpan(ViewportSourceData const & source)
 //==============================================================================
 void SpeakerViewComponent::drawFieldSphere()
 {
+    ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD;
+
     glPushMatrix();
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glLineWidth(1.0f);
     glRotatef(HALF_PI.toDegrees().get(), 1.0f, 0.0f, 0.0f);
     glColor3f(0.8f, 0.2f, 0.1f);
-#if defined(WIN32)
+
     drawSphere<16>(std::max(MAX_RADIUS, 1.0f));
-#else
-    glutSolidSphere(std::max(MAX_RADIUS, 1.0f), SPACE_LIMIT, SPACE_LIMIT);
-#endif
+
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glPopMatrix();
 }
@@ -653,6 +670,8 @@ void SpeakerViewComponent::drawFieldSphere()
 //==============================================================================
 void SpeakerViewComponent::drawFieldCube()
 {
+    ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD;
+
     glPushMatrix();
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glLineWidth(1.0f);
@@ -696,6 +715,8 @@ void SpeakerViewComponent::drawFieldCube()
 //==============================================================================
 void SpeakerViewComponent::drawLbapSpan(ViewportSourceData const & source)
 {
+    ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD;
+
     static auto constexpr NUM = 4;
 
     glPointSize(4);
@@ -746,6 +767,8 @@ void SpeakerViewComponent::drawLbapSpan(ViewportSourceData const & source)
 //==============================================================================
 void SpeakerViewComponent::drawSpeaker(output_patch_t const outputPatch, ViewportSpeakerConfig const & speaker)
 {
+    ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD;
+
     static constexpr auto DEFAULT_ALPHA = 0.75f;
 
     auto const & showSpeakerLevels{ mData.config.viewSettings.showSpeakerLevels };
@@ -773,8 +796,6 @@ void SpeakerViewComponent::drawSpeaker(output_patch_t const outputPatch, Viewpor
         }
         return COLOR_SPEAKER.withAlpha(alpha);
     };
-
-    ASSERT_OPEN_GL_THREAD;
 
     auto const & center{ speaker.position };
     auto const vector{ PolarVector::fromCartesian(speaker.position) };
@@ -897,7 +918,7 @@ void SpeakerViewComponent::drawSpeaker(output_patch_t const outputPatch, Viewpor
 //==============================================================================
 float SpeakerViewComponent::rayCast(CartesianVector const & speakerPosition) const
 {
-    ASSERT_OPEN_GL_THREAD;
+    ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD;
 
     auto const t1{ (speakerPosition.x - SIZE_SPEAKER - mRay.getPosition().x) / mRay.getNormal().x };
     auto const t2{ (speakerPosition.x + SIZE_SPEAKER - mRay.getPosition().x) / mRay.getNormal().x };
@@ -928,7 +949,7 @@ float SpeakerViewComponent::rayCast(CartesianVector const & speakerPosition) con
 //==============================================================================
 bool SpeakerViewComponent::speakerNearCam(CartesianVector const & speak1, CartesianVector const & speak2) const
 {
-    ASSERT_OPEN_GL_THREAD;
+    ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD;
 
     auto const camPosition{ mData.state.cameraPosition.toCartesian() };
     auto const distance1{ (speak1 - camPosition).length2() };

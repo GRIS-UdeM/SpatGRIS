@@ -43,9 +43,9 @@ struct SpeakerData;
 enum class SpatMode;
 struct SourceData;
 
-bool isOpenGlThread();
+bool isOpenGlOrMessageThread();
 
-#define ASSERT_OPEN_GL_THREAD jassert(isOpenGlThread())
+#define ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD jassert(isOpenGlOrMessageThread())
 
 class MainContentComponent;
 class SpeakerModel;

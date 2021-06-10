@@ -64,12 +64,17 @@ VbapSpatAlgorithm::VbapSpatAlgorithm(SpeakersData const & speakers)
 void VbapSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, SourceData const & sourceData) noexcept
 {
     jassert(!isProbablyAudioThread());
-    jassert(sourceData.vector);
 
     auto & spatDataQueue{ mData[sourceIndex].spatDataQueue };
     auto * ticket{ spatDataQueue.acquire() };
+    auto & gains{ ticket->get() };
 
-    vbapCompute(sourceData, ticket->get(), *mSetupData);
+    if (sourceData.vector) {
+        vbapCompute(sourceData, gains, *mSetupData);
+    } else {
+        gains = SpeakersSpatGains{};
+    }
+
     spatDataQueue.setMostRecent(ticket);
 }
 

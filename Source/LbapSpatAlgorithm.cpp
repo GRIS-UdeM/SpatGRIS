@@ -29,7 +29,6 @@ LbapSpatAlgorithm::LbapSpatAlgorithm(SpeakersData const & speakers) : mField(lba
 void LbapSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, SourceData const & sourceData) noexcept
 {
     jassert(!isProbablyAudioThread());
-    jassert(sourceData.vector);
 
     auto & data{ mData[sourceIndex] };
 
@@ -37,8 +36,12 @@ void LbapSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, SourceD
     auto * ticket{ exchanger.acquire() };
     auto & spatData{ ticket->get() };
 
-    lbap(sourceData, spatData.gains, mField);
-    spatData.lbapSourceDistance = sourceData.vector->length;
+    if (sourceData.vector) {
+        lbap(sourceData, spatData.gains, mField);
+        spatData.lbapSourceDistance = sourceData.vector->length;
+    } else {
+        spatData.gains = SpeakersSpatGains{};
+    }
 
     exchanger.setMostRecent(ticket);
 }

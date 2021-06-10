@@ -23,7 +23,6 @@
 void StereoSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, SourceData const & sourceData) noexcept
 {
     jassert(!isProbablyAudioThread());
-    jassert(sourceData.position);
 
     if (sourceData.directOut) {
         return;
@@ -31,18 +30,22 @@ void StereoSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, Sourc
 
     using fast = juce::dsp::FastMathApproximations;
 
-    auto const x{ std::clamp(sourceData.position->x, -1.0f, 1.0f) * (1.0f - sourceData.azimuthSpan) };
-
-    auto const rightGain{ ((x + 1.0f) / 2.0f) };
-    auto const leftGain{ 1.0f - rightGain };
-
     auto & queue{ mData[sourceIndex].gainsQueue };
     auto * ticket{ queue.acquire() };
-
     auto & gains{ ticket->get() };
 
-    gains[0] = leftGain;
-    gains[1] = rightGain;
+    if (sourceData.position) {
+        auto const x{ std::clamp(sourceData.position->x, -1.0f, 1.0f) * (1.0f - sourceData.azimuthSpan) };
+
+        auto const rightGain{ ((x + 1.0f) / 2.0f) };
+        auto const leftGain{ 1.0f - rightGain };
+
+        gains[0] = leftGain;
+        gains[1] = rightGain;
+    } else {
+        gains[0] = 0.0f;
+        gains[1] = 0.0f;
+    }
 
     queue.setMostRecent(ticket);
 }

@@ -39,7 +39,7 @@ static auto inline drawSphere = [](float const r) {
     static auto constexpr LATS = DETAILS;
     static auto constexpr LONGS = DETAILS;
 
-    ASSERT_OPEN_GL_THREAD;
+    ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD;
 
     glPushMatrix();
     glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
