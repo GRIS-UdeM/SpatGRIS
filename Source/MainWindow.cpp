@@ -19,8 +19,6 @@
 
 #include "MainWindow.hpp"
 
-#include "AudioManager.hpp"
-
 //==============================================================================
 MainWindow::MainWindow(juce::String const & name,
                        GrisLookAndFeel & newLookAndFeel,

@@ -444,6 +444,7 @@ void MainContentComponent::handleShowPreferences()
 
     if (mPropertiesWindow == nullptr) {
         mPropertiesWindow.reset(new SettingsWindow{ *this, mData.project.oscPort, mLookAndFeel });
+        mPropertiesWindow->centreAroundComponent(this, mPropertiesWindow->getWidth(), mPropertiesWindow->getHeight());
     }
 }
 
