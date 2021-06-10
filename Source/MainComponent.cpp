@@ -1371,9 +1371,16 @@ void MainContentComponent::handleSpeakerOnlyDirectOutChanged(output_patch_t cons
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
 
-    auto & val{ mData.speakerSetup.speakers[outputPatch].isDirectOutOnly };
+    auto & speaker{ mData.speakerSetup.speakers[outputPatch] };
+    auto & val{ speaker.isDirectOutOnly };
     if (state != val) {
         val = state;
+
+        if (!state && mData.speakerSetup.spatMode == SpatMode::vbap) {
+            speaker.vector = speaker.vector.normalized();
+            speaker.position = speaker.vector.toCartesian();
+        }
+
         updateAudioProcessor();
         updateViewportConfig();
     }
