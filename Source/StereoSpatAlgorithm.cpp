@@ -38,11 +38,13 @@ void StereoSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, Sourc
     if (sourceData.position) {
         auto const x{ std::clamp(sourceData.position->x, -1.0f, 1.0f) * (1.0f - sourceData.azimuthSpan) };
 
-        auto const rightGain{ ((x + 1.0f) / 2.0f) };
-        auto const leftGain{ 1.0f - rightGain };
+        auto const fromZeroToPi{ (x + 1.0f) * HALF_PI.get() };
 
-        gains[0] = leftGain;
-        gains[1] = rightGain;
+        auto const leftGain{ std::cos(fromZeroToPi) * 0.5f + 0.5f };
+        auto const rightGain{ std::cos(PI.get() - fromZeroToPi) * 0.5f + 0.5f };
+
+        gains[0] = std::pow(leftGain, 0.5f);
+        gains[1] = std::pow(rightGain, 0.5f);
     } else {
         gains[0] = 0.0f;
         gains[1] = 0.0f;
@@ -60,7 +62,10 @@ void StereoSpatAlgorithm::process(AudioConfig const & config,
 {
     ASSERT_AUDIO_THREAD;
     jassert(!altSpeakerConfig);
-    jassert(speakersBuffer.size() >= 2);
+
+    if (speakersBuffer.size() < 2) {
+        return;
+    }
 
     auto const getBuffers = [&]() {
         auto it{ speakersBuffer.begin() };

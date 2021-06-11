@@ -150,7 +150,10 @@ void HrtfSpatAlgorithm::process(AudioConfig const & config,
 {
     ASSERT_AUDIO_THREAD;
     jassert(!altSpeakerConfig);
-    jassert(speakersBuffer.size() >= 2);
+
+    if (speakersBuffer.size() < 2) {
+        return;
+    }
 
     auto const getFirstTwoBuffers = [&]() {
         auto it{ speakersBuffer.begin() };
