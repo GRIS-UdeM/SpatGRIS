@@ -21,7 +21,7 @@
 #include "DummySpatAlgorithm.hpp"
 
 //==============================================================================
-static VbapType getVbapType(SpeakersData const & speakers)
+VbapType getVbapType(SpeakersData const & speakers)
 {
     auto const firstSpeaker{ *speakers.begin() };
     auto const firstZenith{ firstSpeaker.value->vector.elevation };

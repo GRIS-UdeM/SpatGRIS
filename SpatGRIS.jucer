@@ -131,6 +131,8 @@
                 file="Source/OscLogWindow.cpp"/>
           <FILE id="GY7tUS" name="OscLogWindow.hpp" compile="0" resource="0"
                 file="Source/OscLogWindow.hpp"/>
+          <FILE id="Z68HbI" name="OscMonitor.cpp" compile="1" resource="0" file="Source/OscMonitor.cpp"/>
+          <FILE id="yKBv0w" name="OscMonitor.hpp" compile="0" resource="0" file="Source/OscMonitor.hpp"/>
           <FILE id="sN01I8" name="PrepareToRecordWindow.cpp" compile="1" resource="0"
                 file="Source/PrepareToRecordWindow.cpp"/>
           <FILE id="SEUQrE" name="PrepareToRecordWindow.hpp" compile="0" resource="0"

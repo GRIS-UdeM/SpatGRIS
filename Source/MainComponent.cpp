@@ -189,8 +189,8 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     };
 
     auto const startOsc = [&]() {
-        mOscReceiver.reset(new OscInput(*this));
-        mOscReceiver->startConnection(mData.project.oscPort);
+        mOscInput.reset(new OscInput(*this));
+        mOscInput->startConnection(mData.project.oscPort);
     };
 
     auto const initAppData = [&]() { mData.appData = mConfiguration.load(); };
@@ -241,7 +241,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
 MainContentComponent::~MainContentComponent()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-    mOscReceiver.reset();
+    mOscInput.reset();
 
     {
         juce::ScopedWriteLock const lock{ mLock };
@@ -460,6 +460,14 @@ void MainContentComponent::handleShowPreferences()
     if (mPropertiesWindow == nullptr) {
         mPropertiesWindow.reset(new SettingsWindow{ *this, mData.project.oscPort, mLookAndFeel });
         mPropertiesWindow->centreAroundComponent(this, mPropertiesWindow->getWidth(), mPropertiesWindow->getHeight());
+    }
+}
+
+//==============================================================================
+void MainContentComponent::handleShowOscMonitorWindow()
+{
+    if (!mOscMonitorWindow) {
+        mOscMonitorWindow = std::make_unique<OscMonitorWindow>(*this, mLookAndFeel);
     }
 }
 
@@ -810,6 +818,7 @@ void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & command
         MainWindow::CommandIDs::SaveSpeakerSetupAsID,
         MainWindow::CommandIDs::ShowSpeakerEditID,
         MainWindow::CommandIDs::Show2DViewID,
+        MainWindow::CommandIDs::ShowOscMonitorID,
         MainWindow::CommandIDs::ShowNumbersID,
         MainWindow::CommandIDs::ShowSpeakersID,
         MainWindow::CommandIDs::ShowTripletsID,
@@ -875,6 +884,9 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
     case MainWindow::Show2DViewID:
         result.setInfo("Show 2D View", "Show the 2D action window.", generalCategory, 0);
         result.addDefaultKeypress('D', juce::ModifierKeys::altModifier);
+        break;
+    case MainWindow::ShowOscMonitorID:
+        result.setInfo("Show OSC monitor", "Show the OSC monitor window", generalCategory, 0);
         break;
     case MainWindow::ShowNumbersID:
         result.setInfo("Show Numbers", "Show source and speaker numbers on the 3D view.", generalCategory, 0);
@@ -971,6 +983,9 @@ bool MainContentComponent::perform(const InvocationInfo & info)
             break;
         case MainWindow::Show2DViewID:
             handleShow2DView();
+            break;
+        case MainWindow::ShowOscMonitorID:
+            handleShowOscMonitorWindow();
             break;
         case MainWindow::ShowNumbersID:
             handleShowNumbers();
@@ -1081,6 +1096,7 @@ juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const j
     } else if (menuName == "View") {
         menu.addCommandItem(commandManager, MainWindow::Show2DViewID);
         menu.addCommandItem(commandManager, MainWindow::ShowSpeakerEditID);
+        menu.addCommandItem(commandManager, MainWindow::ShowOscMonitorID);
         menu.addSeparator();
         menu.addCommandItem(commandManager, MainWindow::ShowNumbersID);
         menu.addCommandItem(commandManager, MainWindow::ShowSpeakersID);

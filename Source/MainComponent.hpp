@@ -30,7 +30,7 @@
 #include "LayoutComponent.hpp"
 #include "LogicStrucs.hpp"
 #include "OscInput.hpp"
-#include "OscLogWindow.hpp"
+#include "OscMonitor.hpp"
 #include "OwnedMap.hpp"
 #include "PrepareToRecordWindow.hpp"
 #include "SettingsWindow.hpp"
@@ -81,15 +81,15 @@ class MainContentComponent final
     OwnedMap<output_patch_t, SpeakerVuMeterComponent, MAX_NUM_SPEAKERS> mSpeakerVuMeterComponents{};
 
     // Open Sound Control.
-    std::unique_ptr<OscInput> mOscReceiver{};
+    std::unique_ptr<OscInput> mOscInput{};
 
     // Windows.
     std::unique_ptr<EditSpeakersWindow> mEditSpeakersWindow{};
     std::unique_ptr<SettingsWindow> mPropertiesWindow{};
     std::unique_ptr<FlatViewWindow> mFlatViewWindow{};
     std::unique_ptr<AboutWindow> mAboutWindow{};
-    std::unique_ptr<OscLogWindow> mOscLogWindow{};
     std::unique_ptr<PrepareToRecordWindow> mPrepareToRecordWindow{};
+    std::unique_ptr<OscMonitorWindow> mOscMonitorWindow{};
 
     // info section
     std::unique_ptr<InfoPanel> mInfoPanel{};
@@ -216,6 +216,8 @@ public:
     [[nodiscard]] AudioProcessor & getAudioProcessor() { return *mAudioProcessor; }
     [[nodiscard]] AudioProcessor const & getAudioProcessor() const { return *mAudioProcessor; }
 
+    [[nodiscard]] std::unique_ptr<OscMonitorWindow> & getOscMonitor() { return mOscMonitorWindow; }
+
     // Mute - solo.
     void setSourceState(source_index_t sourceIndex, PortState state);
     void setSpeakerState(output_patch_t outputPatch, PortState state);
@@ -228,13 +230,14 @@ public:
     void handleSaveSpeakerSetup();
     void handleSaveSpeakerSetupAs();
     void handleShowPreferences();
+    void handleShowOscMonitorWindow();
 
     // Close windows other than the main one.
     void closeSpeakersConfigurationWindow();
     void closePropertiesWindow() { mPropertiesWindow.reset(); }
     void closeFlatViewWindow() { mFlatViewWindow.reset(); }
     void closeAboutWindow() { mAboutWindow.reset(); }
-    void closeOscLogWindow() { mOscLogWindow.reset(); }
+    void closeOscMonitorWindow() { mOscMonitorWindow.reset(); }
     void closePrepareToRecordWindow() { mPrepareToRecordWindow.reset(); }
     //==============================================================================
     void timerCallback() override;

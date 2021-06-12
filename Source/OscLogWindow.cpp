@@ -61,7 +61,7 @@ OscLogWindow::OscLogWindow(juce::String const & name,
 //==============================================================================
 OscLogWindow::~OscLogWindow()
 {
-    this->mMainContentComponent->closeOscLogWindow();
+    this->mMainContentComponent->closeOscMonitorWindow();
 }
 
 //==============================================================================
@@ -86,7 +86,7 @@ void OscLogWindow::closeButtonPressed()
 {
     this->mStopButton.setButtonText("Start");
     this->mActivated = false;
-    this->mMainContentComponent->closeOscLogWindow();
+    this->mMainContentComponent->closeOscMonitorWindow();
     delete this;
 }
 

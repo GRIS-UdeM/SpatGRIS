@@ -71,6 +71,10 @@ void OscInput::oscMessageReceived(const juce::OSCMessage & message)
 
             mMainContentComponent
                 .handleSourcePositionChanged(sourceIndex, azimuth, zenith, length, azimuthSpan, zenithSpan);
+            auto & oscMonitor{ mMainContentComponent.getOscMonitor() };
+            if (oscMonitor) {
+                oscMonitor->addMessage(message);
+            }
         }
 
         else if (address == OSC_PAN_AZ) {

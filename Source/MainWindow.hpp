@@ -56,6 +56,7 @@ public:
         ColorizeInputsID = 3010,
         ResetInputPosID = 3011,
         ResetMeterClipping = 3012,
+        ShowOscMonitorID = 3013,
 
         // Help menu
         AboutID = 4000,
