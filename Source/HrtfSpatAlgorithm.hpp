@@ -24,11 +24,6 @@
 
 //==============================================================================
 struct HrtfData {
-    std::array<unsigned, 16> count{};
-    std::array<std::array<float, 128>, 16> inputTmp{};
-    std::array<std::array<float, 128>, 16> leftImpulses{};
-    std::array<std::array<float, 128>, 16> rightImpulses{};
-
     SpeakersAudioConfig speakersAudioConfig{};
     SpeakerAudioBuffer speakersBuffer{};
 };
@@ -38,6 +33,7 @@ class HrtfSpatAlgorithm final : public AbstractSpatAlgorithm
 {
     std::unique_ptr<AbstractSpatAlgorithm> mInnerAlgorithm{};
     HrtfData mHrtfData{};
+    std::array<juce::dsp::Gain<float>, 16> mConvolutions{};
 
 public:
     //==============================================================================

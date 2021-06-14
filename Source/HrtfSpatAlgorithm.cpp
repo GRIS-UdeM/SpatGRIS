@@ -66,6 +66,12 @@ HrtfSpatAlgorithm::HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup, SourcesD
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
+    juce::Array<juce::AudioBuffer<float>> impulseResponses{};
+    impulseResponses.resize(16);
+    for (auto & buffer : impulseResponses) {
+        buffer.setSize(2, 128);
+    }
+
     // Initialize impulse responses for VBAP+HRTF (BINAURAL mode).
     // Azimuth = 0
     juce::String names0[8] = { "H0e025a.wav", "H0e020a.wav", "H0e065a.wav", "H0e110a.wav",
@@ -76,8 +82,8 @@ HrtfSpatAlgorithm::HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup, SourcesD
         auto const buffer{ getSamplesFromWavFile(file) };
         auto const leftChannel{ reverse0[i] };
         auto const rightChannel{ 1 - reverse0[i] };
-        std::memcpy(mHrtfData.leftImpulses[i].data(), buffer.getReadPointer(leftChannel), 128);
-        std::memcpy(mHrtfData.rightImpulses[i].data(), buffer.getReadPointer(rightChannel), 128);
+        std::copy_n(buffer.getReadPointer(leftChannel), 128, impulseResponses[i].getWritePointer(0));
+        std::copy_n(buffer.getReadPointer(rightChannel), 128, impulseResponses[i].getWritePointer(1));
     }
     // Azimuth = 40
     juce::String names40[6]
@@ -88,8 +94,9 @@ HrtfSpatAlgorithm::HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup, SourcesD
         auto const buffer{ getSamplesFromWavFile(file) };
         auto const leftChannel{ reverse40[i] };
         auto const rightChannel{ 1 - reverse40[i] };
-        std::memcpy(mHrtfData.leftImpulses[i + 8].data(), buffer.getReadPointer(leftChannel), 128);
-        std::memcpy(mHrtfData.rightImpulses[i + 8].data(), buffer.getReadPointer(rightChannel), 128);
+        auto const index{ i + 8 };
+        std::copy_n(buffer.getReadPointer(leftChannel), 128, impulseResponses[index].getWritePointer(0));
+        std::copy_n(buffer.getReadPointer(rightChannel), 128, impulseResponses[index].getWritePointer(1));
     }
     // Azimuth = 80
     for (int i{}; i < 2; ++i) {
@@ -97,8 +104,9 @@ HrtfSpatAlgorithm::HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup, SourcesD
         auto const buffer{ getSamplesFromWavFile(file) };
         auto const leftChannel{ 1 - i };
         auto const rightChannel{ i };
-        std::memcpy(mHrtfData.leftImpulses[i + 14].data(), buffer.getReadPointer(leftChannel), 128);
-        std::memcpy(mHrtfData.rightImpulses[i + 14].data(), buffer.getReadPointer(rightChannel), 128);
+        auto const index{ i + 14 };
+        std::copy_n(buffer.getReadPointer(leftChannel), 128, impulseResponses[index].getWritePointer(0));
+        std::copy_n(buffer.getReadPointer(rightChannel), 128, impulseResponses[index].getWritePointer(1));
     }
 
     // Init temp hrtf buffer
@@ -122,6 +130,13 @@ HrtfSpatAlgorithm::HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup, SourcesD
     case SpatMode::lbap:
         mInnerAlgorithm = std::make_unique<LbapSpatAlgorithm>(binauralSpeakerData);
         break;
+    }
+
+    for (int i{}; i < impulseResponses.size(); ++i) {
+        // mConvolutions[i].loadImpulseResponse(std::move(impulseResponses.getReference(i)), 44100.0,
+        // juce::dsp::Convolution::Stereo::yes, juce::dsp::Convolution::Trim::no, juce::dsp::Convolution::Normalise::no);
+        mConvolutions[i].prepare(juce::dsp::ProcessSpec{ 44100.0, 2048, 2 });
+        mConvolutions[i].reset();
     }
 
     jassert(mInnerAlgorithm);
@@ -155,6 +170,16 @@ void HrtfSpatAlgorithm::process(AudioConfig const & config,
         return;
     }
 
+    speakersBuffer.silence();
+
+    auto & hrtfBuffer{ mHrtfData.speakersBuffer };
+    jassert(hrtfBuffer.size() == 16);
+    hrtfBuffer.silence();
+
+    mInnerAlgorithm->process(config, sourcesBuffer, hrtfBuffer, sourcePeaks, &mHrtfData.speakersAudioConfig);
+
+    auto const numSamples{ sourcesBuffer.getNumSamples() };
+
     auto const getFirstTwoBuffers = [&]() {
         auto it{ speakersBuffer.begin() };
         auto & left{ *(*it++).value };
@@ -165,50 +190,20 @@ void HrtfSpatAlgorithm::process(AudioConfig const & config,
 
     auto outputBuffers{ getFirstTwoBuffers() };
 
-    auto & hrtfBuffer{ mHrtfData.speakersBuffer };
-    jassert(hrtfBuffer.size() == 16);
-    hrtfBuffer.silence();
+    static juce::AudioBuffer<float> convolutionBuffer{};
+    convolutionBuffer.setSize(2, numSamples);
 
-    mInnerAlgorithm->process(config, sourcesBuffer, hrtfBuffer, sourcePeaks, &mHrtfData.speakersAudioConfig);
-
-    auto const numSamples{ sourcesBuffer.getNumSamples() };
-
-    // Process hrtf and mix to stereo
-    auto * leftOutputSamples{ outputBuffers[0]->getWritePointer(0) };
-    auto * rightOutputSamples{ outputBuffers[1]->getWritePointer(0) };
-
-    std::fill_n(leftOutputSamples, numSamples, 0.0f);
-    std::fill_n(rightOutputSamples, numSamples, 0.0f);
-
-    for (auto const & speaker : hrtfBuffer) {
-        auto & hrtfCount{ mHrtfData.count };
-        auto & hrtfInputTmp{ mHrtfData.inputTmp };
-        auto const outputIndex{ speaker.key.removeOffset<size_t>() };
-        auto const & outputSamplesBuffer{ *speaker.value };
-        if (outputSamplesBuffer.getMagnitude(0, numSamples) < SMALL_GAIN) {
-            continue;
-        }
-        auto const * outputSamples{ outputSamplesBuffer.getReadPointer(0) };
-        auto const & hrtfLeftImpulses{ mHrtfData.leftImpulses };
-        auto const & hrtfRightImpulses{ mHrtfData.rightImpulses };
-        for (size_t sampleIndex{}; sampleIndex < narrow<size_t>(numSamples); ++sampleIndex) {
-            auto tmpCount{ narrow<int>(hrtfCount[outputIndex]) };
-            for (unsigned hrtfIndex{}; hrtfIndex < HRTF_NUM_SAMPLES; ++hrtfIndex) {
-                if (tmpCount < 0) {
-                    tmpCount += HRTF_NUM_SAMPLES;
-                }
-                // TODO : traversing tmpCount backwards is probably hurting performances
-                auto const sig{ hrtfInputTmp[outputIndex][tmpCount] };
-                leftOutputSamples[sampleIndex] += sig * hrtfLeftImpulses[outputIndex][hrtfIndex];
-                rightOutputSamples[sampleIndex] += sig * hrtfRightImpulses[outputIndex][hrtfIndex];
-                --tmpCount;
-            }
-            hrtfCount[outputIndex]++;
-            if (hrtfCount[outputIndex] >= HRTF_NUM_SAMPLES) {
-                hrtfCount[outputIndex] = 0;
-            }
-            hrtfInputTmp[outputIndex][hrtfCount[outputIndex]] = outputSamples[sampleIndex];
-        }
+    size_t speakerIndex{};
+    static auto constexpr MAGNITUDE{ 1.0f / 16.0f };
+    for (auto const & speaker : mHrtfData.speakersAudioConfig) {
+        convolutionBuffer.copyFrom(0, 0, hrtfBuffer[speaker.key], 0, 0, numSamples);
+        convolutionBuffer.copyFrom(1, 0, hrtfBuffer[speaker.key], 0, 0, numSamples);
+        juce::dsp::AudioBlock<float> block{ convolutionBuffer };
+        juce::dsp::ProcessContextReplacing<float> const context{ block };
+        mConvolutions[speakerIndex++].process(context);
+        auto const & result{ context.getOutputBlock() };
+        outputBuffers[0]->addFrom(0, 0, result.getChannelPointer(0), numSamples, MAGNITUDE);
+        outputBuffers[1]->addFrom(0, 0, result.getChannelPointer(1), numSamples, MAGNITUDE);
     }
 }
 
