@@ -33,7 +33,7 @@ class HrtfSpatAlgorithm final : public AbstractSpatAlgorithm
 {
     std::unique_ptr<AbstractSpatAlgorithm> mInnerAlgorithm{};
     HrtfData mHrtfData{};
-    std::array<juce::dsp::Gain<float>, 16> mConvolutions{};
+    std::array<juce::dsp::Convolution, 16> mConvolutions{};
 
 public:
     //==============================================================================
