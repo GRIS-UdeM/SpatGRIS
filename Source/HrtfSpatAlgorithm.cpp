@@ -26,42 +26,6 @@
 static constexpr size_t MAX_BUFFER_SIZE = 2048;
 
 //==============================================================================
-// Load samples from a wav file into a float array.
-static juce::AudioBuffer<float> getSamplesFromWavFile(juce::File const & file)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    if (!file.existsAsFile()) {
-        auto const error{ file.getFullPathName() + "\n\nTry re-installing SpatGRIS." };
-        juce::AlertWindow::showMessageBox(juce::AlertWindow::AlertIconType::WarningIcon, "Missing file", error);
-        std::exit(-1);
-    }
-
-    static auto const FACTOR{ std::pow(2.0f, 31.0f) };
-
-    juce::WavAudioFormat wavAudioFormat{};
-    std::unique_ptr<juce::AudioFormatReader> audioFormatReader{
-        wavAudioFormat.createReaderFor(file.createInputStream().release(), true)
-    };
-    jassert(audioFormatReader);
-    std::array<int *, 2> wavData{};
-    wavData[0] = new int[audioFormatReader->lengthInSamples];
-    wavData[1] = new int[audioFormatReader->lengthInSamples];
-    audioFormatReader->read(wavData.data(), 2, 0, narrow<int>(audioFormatReader->lengthInSamples), false);
-    juce::AudioBuffer<float> samples{ 2, narrow<int>(audioFormatReader->lengthInSamples) };
-    for (int i{}; i < 2; ++i) {
-        for (int j{}; j < audioFormatReader->lengthInSamples; ++j) {
-            samples.setSample(i, j, static_cast<float>(wavData[i][j]) / FACTOR);
-        }
-    }
-
-    for (auto * it : wavData) {
-        delete[] it;
-    }
-    return samples;
-}
-
-//==============================================================================
 HrtfSpatAlgorithm::HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup, SourcesData const & sources)
 {
     JUCE_ASSERT_MESSAGE_THREAD;

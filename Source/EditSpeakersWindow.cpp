@@ -24,13 +24,52 @@
 #include "MainComponent.hpp"
 #include "Narrow.hpp"
 
-//==============================================================================
-template<typename T>
-static T getFloatPrecision(T const value, T const precision)
+static PolarVector getLegalPosition(PolarVector const & vector, SpatMode const spatMode, int const modifiedCol)
 {
-    static_assert(std::is_floating_point_v<T>);
-    return std::floor((value * std::pow(narrow<T>(10), precision) + narrow<T>(0.5)))
-           / std::pow(narrow<T>(10), precision);
+    using Col = EditSpeakersWindow::Cols;
+
+    jassert(modifiedCol == Col::AZIMUTH || modifiedCol == Col::ELEVATION || modifiedCol == Col::DISTANCE);
+
+    if (spatMode == SpatMode::vbap) {
+        return vector.normalized();
+    }
+
+    jassert(spatMode == SpatMode::lbap);
+
+    auto const cartesian{ vector.toCartesian() };
+    auto const clamped{ cartesian.clamped() };
+    if (clamped == cartesian) {
+        return vector;
+    }
+
+    return PolarVector::fromCartesian(clamped);
+
+    if (modifiedCol == Col::DISTANCE) {
+        return PolarVector::fromCartesian(clamped);
+    }
+
+    // TODO : this is a terrible solution.
+    auto result{ vector };
+    do {
+        result.length = std::max(result.length - 0.01f, 0.0f);
+    } while (result.toCartesian().clamped() != result.toCartesian());
+
+    return result;
+}
+
+static CartesianVector getLegalPosition(CartesianVector const & vector, SpatMode const spatMode, int const modifiedCol)
+{
+    using Col = EditSpeakersWindow::Cols;
+
+    jassert(modifiedCol == Col::X || modifiedCol == Col::Y || modifiedCol == Col::Z);
+
+    if (spatMode == SpatMode::vbap) {
+        return PolarVector::fromCartesian(vector).normalized().toCartesian();
+    }
+
+    jassert(spatMode == SpatMode::lbap);
+
+    return vector.clamped();
 }
 
 //==============================================================================
@@ -676,6 +715,9 @@ void EditSpeakersWindow::setText(int const columnNumber,
                                  bool const altDown)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock lock{ mMainContentComponent.getLock() };
+
+    auto const spatMode{ mMainContentComponent.getData().speakerSetup.spatMode };
 
     auto const isEditable = [&](int const col, SpeakerData const & speaker) {
         switch (col) {
@@ -684,70 +726,71 @@ void EditSpeakersWindow::setText(int const columnNumber,
         case Cols::ELEVATION:
         case Cols::GAIN:
         case Cols::HIGHPASS:
+        case Cols::X:
+        case Cols::Y:
+        case Cols::Z:
             return true;
         case Cols::DRAG_HANDLE:
         case Cols::DIRECT_TOGGLE:
         case Cols::DELETE_BUTTON:
             return false;
-        case Cols::X:
-        case Cols::Y:
-        case Cols::Z:
         case Cols::DISTANCE:
-            return mMainContentComponent.getData().speakerSetup.spatMode == SpatMode::lbap || speaker.isDirectOutOnly;
+            return spatMode == SpatMode::lbap || speaker.isDirectOutOnly;
         default:
             jassertfalse;
         }
         return false;
     };
 
-    juce::ScopedReadLock lock{ mMainContentComponent.getLock() };
     auto const & speakers{ mMainContentComponent.getData().speakerSetup.speakers };
+
     if (speakers.size() > rowNumber) {
         auto const selectedRows{ mSpeakersTableListBox.getSelectedRows() };
         auto const outputPatch{ getSpeakerOutputPatchForRow(rowNumber) };
         auto const & speaker{ speakers[outputPatch] };
 
+        if (!isEditable(columnNumber, speaker)) {
+            return;
+        }
+
         switch (columnNumber) {
         case Cols::X: {
-            if (!isEditable(Cols::X, speaker)) {
-                return;
-            }
             auto const diff{ newText.getFloatValue() - speaker.position.x };
             for (int i{}; i < selectedRows.size(); ++i) {
                 auto const outputPatch_{ getSpeakerOutputPatchForRow(selectedRows[i]) };
                 auto const & oldPosition{ speakers[outputPatch_].position };
-                auto const newValue{ std::clamp(oldPosition.x + diff, -1.0f, 1.0f) };
-                CartesianVector const newPosition{ newValue, oldPosition.y, oldPosition.z };
+                auto const newPosition{ getLegalPosition(
+                    CartesianVector{ oldPosition.x + diff, oldPosition.y, oldPosition.z },
+                    spatMode,
+                    Cols::X) };
                 mMainContentComponent.handleNewSpeakerPosition(outputPatch_, newPosition);
             }
             mShouldRefreshSpeakers = true;
             break;
         }
         case Cols::Y: {
-            if (!isEditable(Cols::Y, speaker)) {
-                return;
-            }
             auto const diff{ newText.getFloatValue() - speaker.position.y };
             for (int i{}; i < selectedRows.size(); ++i) {
                 auto const outputPatch_{ getSpeakerOutputPatchForRow(selectedRows[i]) };
                 auto const & oldPosition{ speakers[outputPatch_].position };
-                auto const newValue{ std::clamp(oldPosition.y + diff, -1.0f, 1.0f) };
-                CartesianVector const newPosition{ oldPosition.x, newValue, oldPosition.z };
+                auto const newPosition{ getLegalPosition(
+                    CartesianVector{ oldPosition.x, oldPosition.y + diff, oldPosition.z },
+                    spatMode,
+                    Cols::Y) };
                 mMainContentComponent.handleNewSpeakerPosition(outputPatch_, newPosition);
             }
             mShouldRefreshSpeakers = true;
             break;
         }
         case Cols::Z: {
-            if (!isEditable(Cols::Z, speaker)) {
-                return;
-            }
             auto const diff{ newText.getFloatValue() - speaker.position.z };
             for (int i{}; i < selectedRows.size(); ++i) {
                 auto const outputPatch_{ getSpeakerOutputPatchForRow(selectedRows[i]) };
                 auto const & oldPosition{ speakers[outputPatch_].position };
-                auto const newValue{ std::clamp(oldPosition.z + diff, 0.0f, 1.0f) };
-                CartesianVector const newPosition{ oldPosition.x, oldPosition.y, newValue };
+                auto const newPosition{ getLegalPosition(
+                    CartesianVector{ oldPosition.x, oldPosition.y, oldPosition.z + diff },
+                    spatMode,
+                    Cols::Z) };
                 mMainContentComponent.handleNewSpeakerPosition(outputPatch_, newPosition);
             }
             mShouldRefreshSpeakers = true;
@@ -758,8 +801,10 @@ void EditSpeakersWindow::setText(int const columnNumber,
             for (int i{}; i < selectedRows.size(); ++i) {
                 auto const outputPatch_{ getSpeakerOutputPatchForRow(selectedRows[i]) };
                 auto const & oldPosition{ speakers[outputPatch_].vector };
-                auto const newValue{ (oldPosition.azimuth + diff).centered() };
-                PolarVector const newPosition{ newValue, oldPosition.elevation, oldPosition.length };
+                auto const newPosition{ getLegalPosition(
+                    PolarVector{ (oldPosition.azimuth + diff).centered(), oldPosition.elevation, oldPosition.length },
+                    spatMode,
+                    Cols::AZIMUTH) };
                 mMainContentComponent.handleNewSpeakerPosition(outputPatch_, newPosition);
             }
             mShouldRefreshSpeakers = true;
@@ -770,23 +815,27 @@ void EditSpeakersWindow::setText(int const columnNumber,
             for (int i{}; i < selectedRows.size(); ++i) {
                 auto const outputPatch_{ getSpeakerOutputPatchForRow(selectedRows[i]) };
                 auto const & oldPosition{ speakers[outputPatch_].vector };
-                auto const newValue{ std::clamp(oldPosition.elevation + diff, radians_t{ 0.0f }, HALF_PI) };
-                PolarVector const newPosition{ oldPosition.azimuth, newValue, oldPosition.length };
+                auto const newPosition{ getLegalPosition(
+                    PolarVector{ oldPosition.azimuth,
+                                 std::clamp(oldPosition.elevation + diff, radians_t{}, HALF_PI),
+                                 oldPosition.length },
+                    spatMode,
+                    Cols::ELEVATION) };
                 mMainContentComponent.handleNewSpeakerPosition(outputPatch_, newPosition);
             }
             mShouldRefreshSpeakers = true;
             break;
         }
         case Cols::DISTANCE: {
-            if (!isEditable(Cols::DISTANCE, speaker)) {
-                return;
-            }
             auto const diff{ newText.getFloatValue() - speaker.vector.length };
             for (int i{}; i < selectedRows.size(); ++i) {
                 auto const outputPatch_{ getSpeakerOutputPatchForRow(selectedRows[i]) };
                 auto const & oldPosition{ speakers[outputPatch_].vector };
-                auto const newValue{ std::clamp(oldPosition.length + diff, 0.0f, SQRT3) };
-                PolarVector const newPosition{ oldPosition.azimuth, oldPosition.elevation, newValue };
+                auto const newPosition{ getLegalPosition(PolarVector{ oldPosition.azimuth,
+                                                                      oldPosition.elevation,
+                                                                      std::max(oldPosition.length + diff, 0.0f) },
+                                                         spatMode,
+                                                         Cols::DISTANCE) };
                 mMainContentComponent.handleNewSpeakerPosition(outputPatch_, newPosition);
             }
             mShouldRefreshSpeakers = true;
@@ -993,20 +1042,16 @@ juce::Component * EditSpeakersWindow::refreshComponentForCell(int const rowNumbe
 
     auto const getEditionType = [=]() -> EditionType {
         switch (columnId) {
-        case Cols::X:
-        case Cols::Y:
-        case Cols::Z:
         case Cols::DISTANCE:
             if (spatMode == SpatMode::lbap || speaker.isDirectOutOnly) {
                 return EditionType::valueDraggable;
             }
             return EditionType::notEditable;
+        case Cols::X:
+        case Cols::Y:
+        case Cols::Z:
         case Cols::AZIMUTH:
         case Cols::ELEVATION:
-            if (spatMode == SpatMode::vbap || speaker.isDirectOutOnly) {
-                return EditionType::valueDraggable;
-            }
-            return EditionType::notEditable;
         case Cols::GAIN:
         case Cols::HIGHPASS:
             return EditionType::valueDraggable;

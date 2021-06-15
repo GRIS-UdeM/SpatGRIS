@@ -42,6 +42,8 @@ struct CartesianVector {
         return x == other.x && y == other.y && z == other.z;
     }
 
+    [[nodiscard]] constexpr bool operator!=(CartesianVector const & other) const noexcept { return !(*this == other); }
+
     [[nodiscard]] constexpr CartesianVector operator-(CartesianVector const & other) const noexcept
     {
         CartesianVector const result{ x - other.x, y - other.y, z - other.z };
@@ -53,6 +55,8 @@ struct CartesianVector {
         CartesianVector const result{ x / scalar, y / scalar, z / scalar };
         return result;
     }
+
+    [[nodiscard]] float CartesianVector::angleWith(CartesianVector const & other) const noexcept;
 
     /* Returns the vector length without the sqrt. */
     [[nodiscard]] constexpr float length2() const noexcept { return x * x + y * y + z * z; }
@@ -68,6 +72,11 @@ struct CartesianVector {
         return x * other.x + y * other.y + z * other.z;
     }
 
+    [[nodiscard]] constexpr CartesianVector clamped() const noexcept
+    {
+        return CartesianVector{ std::clamp(x, -1.0f, 1.0f), std::clamp(y, -1.0f, 1.0f), std::clamp(z, 0.0f, 1.0f) };
+    }
+
     [[nodiscard]] constexpr CartesianVector mean(CartesianVector const & other) const noexcept
     {
         auto const newX{ (x + other.x) * 0.5f };
@@ -77,8 +86,6 @@ struct CartesianVector {
         CartesianVector const result{ newX, newY, newZ };
         return result;
     }
-
-    [[nodiscard]] float angleWith(CartesianVector const & other) const noexcept;
 
     [[nodiscard]] juce::XmlElement * toXml() const noexcept
     {
