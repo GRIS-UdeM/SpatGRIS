@@ -772,6 +772,15 @@ void MainContentComponent::handleResetInputPositions()
             sourceTicket->get() = tl::nullopt;
             exchanger.setMostRecent(sourceTicket);
         }
+
+        if (mFlatViewWindow) {
+            // reset 2d view
+            auto & exchanger{ mFlatViewWindow->getSourceDataQueues()[source.key] };
+            auto * sourceTicket{ exchanger.acquire() };
+            sourceTicket->get() = tl::nullopt;
+            exchanger.setMostRecent(sourceTicket);
+        }
+
         // spatData
         spatAlgorithm.updateSpatData(source.key, *source.value);
     }
@@ -1200,7 +1209,8 @@ void MainContentComponent::updatePeaks()
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
-    auto & viewportData{ mSpeakerViewComponent->getData() };
+    auto & viewPortData{ mSpeakerViewComponent->getData() };
+    auto * flatViewViewportDataQueues{ mFlatViewWindow ? &mFlatViewWindow->getSourceDataQueues() : nullptr };
 
     auto & audioData{ mAudioProcessor->getAudioData() };
     auto *& sourcePeaksTicket{ mData.mostRecentSourcePeaks };
@@ -1217,15 +1227,29 @@ void MainContentComponent::updatePeaks()
         if (!sourceData.value->position) {
             continue;
         }
-        if (!viewportData.sourcesDataQueues.contains(sourceData.key)) {
-            viewportData.sourcesDataQueues.add(sourceData.key);
+
+        auto const data{ sourceData.value->toViewportData(
+            mData.appData.viewSettings.showSourceActivity ? gainToSourceAlpha(sourceData.key, peak) : 0.8f) };
+
+        // update 3d view
+        if (!viewPortData.sourcesDataQueues.contains(sourceData.key)) {
+            viewPortData.sourcesDataQueues.add(sourceData.key);
         }
 
-        auto & exchanger{ viewportData.sourcesDataQueues[sourceData.key] };
-        auto * ticket{ exchanger.acquire() };
-        ticket->get() = sourceData.value->toViewportData(
-            mData.appData.viewSettings.showSourceActivity ? gainToSourceAlpha(sourceData.key, peak) : 0.8f);
-        exchanger.setMostRecent(ticket);
+        {
+            auto & exchanger{ viewPortData.sourcesDataQueues[sourceData.key] };
+            auto * ticket{ exchanger.acquire() };
+            ticket->get() = data;
+            exchanger.setMostRecent(ticket);
+        }
+
+        // update 2d view
+        if (flatViewViewportDataQueues) {
+            auto & exchanger{ (*flatViewViewportDataQueues)[sourceData.key] };
+            auto * ticket{ exchanger.acquire() };
+            ticket->get() = data;
+            exchanger.setMostRecent(ticket);
+        }
     }
 
     auto *& speakerPeaksTicket{ mData.mostRecentSpeakerPeaks };
@@ -1239,7 +1263,7 @@ void MainContentComponent::updatePeaks()
         auto const dbPeak{ dbfs_t::fromGain(peak) };
         mSpeakerVuMeterComponents[speaker.key].setLevel(dbPeak);
 
-        auto & exchanger{ viewportData.speakersAlphaQueues[speaker.key] };
+        auto & exchanger{ viewPortData.speakersAlphaQueues[speaker.key] };
         auto * ticket{ exchanger.acquire() };
         ticket->get() = gainToSpeakerAlpha(peak);
         exchanger.setMostRecent(ticket);

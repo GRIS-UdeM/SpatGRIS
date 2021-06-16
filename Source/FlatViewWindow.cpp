@@ -149,20 +149,38 @@ void FlatViewWindow::paint(juce::Graphics & g)
 
     juce::ScopedReadLock const lock{ mMainContentComponent.getLock() };
 
+    auto const spatMode{ mMainContentComponent.getData().speakerSetup.spatMode };
+
     // Draw sources.
-    for (auto const source : mMainContentComponent.getData().project.sources) {
-        drawSource(g, source, mMainContentComponent.getData().speakerSetup.spatMode);
+    for (auto const & source : mMainContentComponent.getData().project.sources) {
+        auto *& ticket{ mLastSourceData[source.key] };
+
+        auto & exchanger{ mSourceDataQueues[source.key] };
+        exchanger.getMostRecent(ticket);
+
+        if (ticket == nullptr) {
+            continue;
+        }
+
+        auto const & sourceData{ ticket->get() };
+
+        if (!sourceData) {
+            continue;
+        }
+
+        drawSource(g, source.key, *sourceData, spatMode);
     }
 }
 
 //==============================================================================
 void FlatViewWindow::drawSource(juce::Graphics & g,
-                                SourcesData::ConstNode const & source,
+                                source_index_t const sourceIndex,
+                                ViewportSourceData const & sourceData,
                                 SpatMode const spatMode) const
 {
     static constexpr auto SOURCE_DIAMETER_INT{ narrow<int>(SOURCE_DIAMETER) };
 
-    if (!source.value->position) {
+    if (sourceData.colour.getAlpha() == 0) {
         return;
     }
 
@@ -172,14 +190,12 @@ void FlatViewWindow::drawSource(juce::Graphics & g,
     auto const getSourcePosition = [&]() {
         switch (spatMode) {
         case SpatMode::vbap: {
-            jassert(source.value->vector);
-            auto const & vector{ *source.value->vector };
+            auto const & vector{ PolarVector::fromCartesian(sourceData.position) };
             auto const radius{ 1.0f - vector.elevation / HALF_PI };
             return juce::Point<float>{ std::cos(vector.azimuth.get()), -std::sin(vector.azimuth.get()) } * radius;
         }
         case SpatMode::lbap: {
-            jassert(source.value->position);
-            auto const & position{ *source.value->position };
+            auto const & position{ sourceData.position };
             return juce::Point<float>{ position.x, -position.y } / LBAP_EXTENDED_RADIUS;
         }
         }
@@ -190,18 +206,30 @@ void FlatViewWindow::drawSource(juce::Graphics & g,
     auto const sourcePositionRelative{ getSourcePosition().translated(1.0f, 1.0f) * 0.5f };
     auto const sourcePositionAbsolute{ (sourcePositionRelative * realSize).translated(SOURCE_RADIUS, SOURCE_RADIUS) };
 
-    auto const color{ source.value->colour };
+    // draw spans
+    switch (spatMode) {
+    case SpatMode::vbap:
+        drawSourceVbapSpan(g, sourceData);
+        break;
+    case SpatMode::lbap:
+        drawSourceLbapSpan(g, sourceData, sourcePositionAbsolute);
+        break;
+    default:
+        jassertfalse;
+    }
 
-    g.setColour(color);
+    auto const colour{ sourceData.colour };
+
+    g.setColour(colour);
     g.fillEllipse(sourcePositionAbsolute.x - SOURCE_RADIUS,
                   sourcePositionAbsolute.y - SOURCE_RADIUS,
                   SOURCE_DIAMETER,
                   SOURCE_DIAMETER);
 
-    g.setColour(juce::Colours::black.withAlpha(color.getAlpha())); // TODO : should read alpha from peaks?
     auto const tx{ static_cast<int>(sourcePositionAbsolute.x - SOURCE_RADIUS) };
     auto const ty{ static_cast<int>(sourcePositionAbsolute.y - SOURCE_RADIUS) };
-    juce::String const id{ source.key.get() };
+    juce::String const id{ sourceIndex.get() };
+    g.setColour(juce::Colours::black.withAlpha(colour.getFloatAlpha()));
     g.drawText(id,
                tx,
                ty,
@@ -209,8 +237,7 @@ void FlatViewWindow::drawSource(juce::Graphics & g,
                SOURCE_DIAMETER_INT,
                juce::Justification(juce::Justification::centred),
                false);
-    g.setColour(
-        juce::Colours::white.withAlpha(source.value->colour.getAlpha())); // TODO : should read alpha from peaks?
+    g.setColour(juce::Colours::white.withAlpha(colour.getFloatAlpha()));
     g.drawText(id,
                tx,
                ty,
@@ -218,47 +245,32 @@ void FlatViewWindow::drawSource(juce::Graphics & g,
                SOURCE_DIAMETER_INT,
                juce::Justification(juce::Justification::centred),
                false);
-
-    // draw spans
-    switch (spatMode) {
-    case SpatMode::vbap:
-        drawSourceVbapSpan(g, *source.value);
-        break;
-    case SpatMode::lbap:
-        drawSourceLbapSpan(g, sourcePositionAbsolute, *source.value);
-        break;
-    default:
-        jassertfalse;
-    }
 }
 
 //==============================================================================
 void FlatViewWindow::drawSourceLbapSpan(juce::Graphics & g,
-                                        juce::Point<float> const & sourcePositionAbsolute,
-                                        SourceData const & source) const
+                                        ViewportSourceData const & sourceData,
+                                        juce::Point<float> const & sourcePositionAbsolute) const
 {
     auto const fieldSize{ narrow<float>(getWidth()) };
     auto const realSize{ fieldSize - SOURCE_DIAMETER };
 
     auto const maxSpan{ realSize / LBAP_EXTENDED_RADIUS * juce::MathConstants<float>::sqrt2 };
-    auto const spanRange{ maxSpan - SOURCE_RADIUS };
+    auto const spanRange{ maxSpan - SOURCE_DIAMETER };
 
-    auto const span{ source.azimuthSpan * spanRange + SOURCE_RADIUS };
+    auto const span{ sourceData.azimuthSpan * spanRange + SOURCE_DIAMETER };
     auto const halfSpan{ span / 2.0f };
 
-    auto const color{ source.colour };
+    auto const color{ sourceData.colour };
 
-    // TODO : should alpha be yielded from source peaks?
-    static constexpr auto ALPHA{ 1.0f };
-
-    g.setColour(color.withAlpha(ALPHA * 0.6f));
+    g.setColour(color);
     g.drawEllipse(sourcePositionAbsolute.x - halfSpan, sourcePositionAbsolute.y - halfSpan, span, span, 1.5f);
-    g.setColour(color.withAlpha(ALPHA * 0.2f));
+    g.setColour(color.withAlpha(color.getFloatAlpha() * 0.5f));
     g.fillEllipse(sourcePositionAbsolute.x - halfSpan, sourcePositionAbsolute.y - halfSpan, span, span);
 }
 
 //==============================================================================
-void FlatViewWindow::drawSourceVbapSpan(juce::Graphics & g, SourceData const & source) const
+void FlatViewWindow::drawSourceVbapSpan(juce::Graphics & g, ViewportSourceData const & sourceData) const
 {
     auto const fieldSize{ narrow<float>(getWidth()) };
     auto const halfFieldSize{ fieldSize / 2.0f };
@@ -266,15 +278,15 @@ void FlatViewWindow::drawSourceVbapSpan(juce::Graphics & g, SourceData const & s
     auto const halfRealSize{ realSize / 2.0f };
 
     // Radius
-    jassert(source.vector);
-    auto const relativeElevation{ source.vector->elevation / HALF_PI };
-    auto const halfElevationSpan{ source.zenithSpan };
+    auto const vector{ PolarVector::fromCartesian(sourceData.position) };
+    auto const relativeElevation{ vector.elevation / HALF_PI };
+    auto const halfElevationSpan{ sourceData.zenithSpan };
     auto const innerRadius{ 1.0f - std::min(relativeElevation + halfElevationSpan, 0.999f) };
     auto const outerRadius{ 1.0f - std::max(relativeElevation - halfElevationSpan, 0.0f) };
 
     // Angle
-    auto const & sourceAzimuth{ HALF_PI - source.vector->azimuth };
-    auto const azimuthSpan{ PI * source.azimuthSpan };
+    auto const & sourceAzimuth{ HALF_PI - vector.azimuth };
+    auto const azimuthSpan{ PI * sourceData.azimuthSpan };
     auto const startAngle{ sourceAzimuth - azimuthSpan };
     auto const endAngle{ sourceAzimuth + azimuthSpan };
 
@@ -290,15 +302,12 @@ void FlatViewWindow::drawSourceVbapSpan(juce::Graphics & g, SourceData const & s
                             .scaled(halfRealSize, halfRealSize)
                             .translated(SOURCE_RADIUS, SOURCE_RADIUS));
 
-    auto const & color{ source.colour };
+    auto const & color{ sourceData.colour };
 
-    // TODO : should be fetched from source peaks?
-    static constexpr auto ALPHA{ 1.0f };
-
-    g.setColour(color.withAlpha(ALPHA * 0.2f));
+    g.setColour(color.withAlpha(color.getFloatAlpha() * 0.5f));
     g.fillPath(path);
 
-    g.setColour(color.withAlpha(ALPHA * 0.6f));
+    g.setColour(color);
     g.strokePath(path, juce::PathStrokeType(0.5));
 }
 

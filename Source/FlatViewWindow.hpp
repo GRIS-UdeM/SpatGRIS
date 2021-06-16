@@ -20,6 +20,7 @@
 #pragma once
 
 #include "LogicStrucs.hpp"
+#include "OwnedMap.hpp"
 
 #include <JuceHeader.h>
 
@@ -34,6 +35,8 @@ class FlatViewWindow final
 {
     MainContentComponent & mMainContentComponent;
     GrisLookAndFeel & mLookAndFeel;
+    StrongArray<source_index_t, ViewPortSourceDataQueue, MAX_NUM_SOURCES> mSourceDataQueues{};
+    StrongArray<source_index_t, ViewPortSourceDataQueue::Ticket *, MAX_NUM_SOURCES> mLastSourceData{};
 
 public:
     //==============================================================================
@@ -47,6 +50,8 @@ public:
     FlatViewWindow & operator=(FlatViewWindow const &) = delete;
     FlatViewWindow & operator=(FlatViewWindow &&) = delete;
     //==============================================================================
+    auto & getSourceDataQueues() { return mSourceDataQueues; }
+    //==============================================================================
     void timerCallback() override { this->repaint(); }
     void paint(juce::Graphics & g) override;
     void resized() override;
@@ -55,11 +60,14 @@ public:
 private:
     //==============================================================================
     void drawFieldBackground(juce::Graphics & g) const;
-    void drawSource(juce::Graphics & g, SourcesData::ConstNode const & source, SpatMode spatMode) const;
-    void drawSourceVbapSpan(juce::Graphics & g, SourceData const & source) const;
+    void drawSource(juce::Graphics & g,
+                    source_index_t sourceIndex,
+                    ViewportSourceData const & sourceData,
+                    SpatMode spatMode) const;
+    void drawSourceVbapSpan(juce::Graphics & g, ViewportSourceData const & sourceData) const;
     void drawSourceLbapSpan(juce::Graphics & g,
-                            juce::Point<float> const & sourcePositionAbsolute,
-                            SourceData const & source) const;
+                            ViewportSourceData const & sourceData,
+                            juce::Point<float> const & sourcePositionAbsolute) const;
     //==============================================================================
     JUCE_LEAK_DETECTOR(FlatViewWindow)
 };
