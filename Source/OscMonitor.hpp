@@ -28,6 +28,8 @@ class OscMonitorComponent final : public juce::Component
 {
     juce::TextEditor mTextEditor{};
 
+    juce::TextButton mRecordButton{ "Record" };
+
 public:
     //==============================================================================
     OscMonitorComponent();

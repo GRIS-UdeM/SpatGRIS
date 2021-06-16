@@ -28,7 +28,7 @@ static constexpr auto DEFAULT_HEIGHT = 500;
 juce::String messageToString(juce::OSCMessage const & message)
 {
     static juce::String const INVALID = "<INVALID FORMAT>\n";
-    static constexpr auto SEPARATOR{ '\t' };
+    static constexpr auto SEPARATOR{ ", " };
 
     auto const isValidPosition{ message.size() == 7 && message.begin()->isInt32()
                                 && std::all_of(message.begin() + 1, message.end(), [](juce::OSCArgument const & arg) {
@@ -41,14 +41,16 @@ juce::String messageToString(juce::OSCMessage const & message)
         return INVALID;
     }
 
+    auto const currentTime{ juce::String{ "[" } + juce::String{ juce::Time::currentTimeMillis() } + "] : " };
+
     if (isValidResetCommand) {
-        return message[0].getString() + SEPARATOR + juce::String{ message[1].getInt32() } + '\n';
+        return currentTime + message[0].getString() + SEPARATOR + juce::String{ message[1].getInt32() } + '\n';
     }
 
-    auto const extract = [&](int const index) { return juce::String{ message[index].getFloat32() }; };
+    auto const extract = [&](int const index) { return SEPARATOR + juce::String{ message[index].getFloat32() }; };
 
-    return juce::String{ message[0].getInt32() } + extract(1) + extract(2) + extract(3) + extract(4) + extract(5)
-           + extract(6) + '\n';
+    return currentTime + juce::String{ message[0].getInt32() } + extract(1) + extract(2) + extract(3) + extract(4)
+           + extract(5) + extract(6) + '\n';
 }
 
 //==============================================================================
@@ -58,13 +60,20 @@ OscMonitorComponent::OscMonitorComponent()
     mTextEditor.setBorder(juce::BorderSize<int>{ 3 });
     mTextEditor.setMultiLine(true, false);
     mTextEditor.setScrollbarsShown(true);
-    mTextEditor.setWantsKeyboardFocus(false);
+    // mTextEditor.setWantsKeyboardFocus(false);
     addAndMakeVisible(mTextEditor);
+
+    mRecordButton.setClickingTogglesState(true);
+    addAndMakeVisible(mRecordButton);
 }
 
 //==============================================================================
 void OscMonitorComponent::addMessage(juce::OSCMessage const & message)
 {
+    if (!mRecordButton.getToggleState()) {
+        return;
+    }
+
     juce::MessageManagerLock const mml{};
 
     mTextEditor.setCaretPosition(mTextEditor.getText().length());
@@ -74,7 +83,21 @@ void OscMonitorComponent::addMessage(juce::OSCMessage const & message)
 //==============================================================================
 void OscMonitorComponent::resized()
 {
-    mTextEditor.setBounds(0, 0, getWidth(), getHeight());
+    static auto constexpr BUTTON_WIDTH = 100;
+    static auto constexpr BUTTON_HEIGHT = 30;
+    static auto constexpr PADDING = 5;
+
+    juce::Rectangle<int> const textEditorBounds{ PADDING,
+                                                 PADDING,
+                                                 DEFAULT_WIDTH - PADDING * 2,
+                                                 DEFAULT_HEIGHT - BUTTON_HEIGHT - PADDING * 3 };
+    juce::Rectangle<int> const recordButtonBounds{ DEFAULT_WIDTH - PADDING - BUTTON_WIDTH,
+                                                   textEditorBounds.getBottom() + PADDING,
+                                                   BUTTON_WIDTH,
+                                                   BUTTON_HEIGHT };
+
+    mTextEditor.setBounds(textEditorBounds);
+    mRecordButton.setBounds(recordButtonBounds);
 }
 
 //==============================================================================
@@ -82,6 +105,7 @@ OscMonitorWindow::OscMonitorWindow(MainContentComponent & mainContentComponent, 
     : DocumentWindow("OSC monitor", lookAndFeel.getBackgroundColour(), juce::DocumentWindow::allButtons)
     , mMainContentComponent(mainContentComponent)
 {
+    setUsingNativeTitleBar(true);
     setContentNonOwned(&mComponent, false);
     centreAroundComponent(&mainContentComponent, DEFAULT_WIDTH, DEFAULT_HEIGHT);
     DocumentWindow::setVisible(true);
