@@ -43,9 +43,9 @@ CartesianVector PolarVector::toCartesian() const noexcept
 
     auto const inverseElevation{ HALF_PI - elevation };
 
-    auto const x{ length * SIN(inverseElevation.get()) * COS(azimuth.get()) };
-    auto const y{ length * SIN(inverseElevation.get()) * SIN(azimuth.get()) };
-    auto const z{ length * COS(inverseElevation.get()) };
+    auto const x{ length * std::sin(inverseElevation.get()) * std::cos(azimuth.get()) };
+    auto const y{ length * std::sin(inverseElevation.get()) * std::sin(azimuth.get()) };
+    auto const z{ length * std::cos(inverseElevation.get()) };
 
     CartesianVector const result{ x, y, z };
     return result;
@@ -65,14 +65,14 @@ PolarVector PolarVector::fromCartesian(CartesianVector const & pos) noexcept
         return PolarVector{ radians_t{}, radians_t{}, 0.0f };
     }
 
-    radians_t const zenith{ std::acos(pos.z / length) };
+    radians_t const zenith{ std::acos(std::clamp(pos.z / length, -1.0f, 1.0f)) };
     auto const inverseZenith{ HALF_PI - zenith };
 
     if (pos.x == 0.0f && pos.y == 0.0f) {
         return PolarVector{ radians_t{}, inverseZenith, length };
     }
 
-    radians_t const azimuth{ std::acos(pos.x / std::sqrt(pos.x * pos.x + pos.y * pos.y))
+    radians_t const azimuth{ std::acos(std::clamp(pos.x / std::sqrt(pos.x * pos.x + pos.y * pos.y), -1.0f, 1.0f))
                              * (pos.y < 0.0f ? -1.0f : 1.0f) };
 
     PolarVector const result{ azimuth, inverseZenith, length };
