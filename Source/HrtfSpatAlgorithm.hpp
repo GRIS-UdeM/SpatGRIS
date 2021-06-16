@@ -21,6 +21,7 @@
 
 #include "AbstractSpatAlgorithm.hpp"
 #include "SpatMode.hpp"
+#include "TaggedAudioBuffer.hpp"
 
 //==============================================================================
 struct HrtfData {
@@ -37,7 +38,10 @@ class HrtfSpatAlgorithm final : public AbstractSpatAlgorithm
 
 public:
     //==============================================================================
-    HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup, SourcesData const & sources);
+    HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup,
+                      SourcesData const & sources,
+                      double sampleRate,
+                      int bufferSize);
     //==============================================================================
     HrtfSpatAlgorithm() = delete;
     ~HrtfSpatAlgorithm() override = default;
@@ -56,8 +60,11 @@ public:
     [[nodiscard]] juce::Array<Triplet> getTriplets() const noexcept override;
     [[nodiscard]] bool hasTriplets() const noexcept override;
     //==============================================================================
-    static std::unique_ptr<AbstractSpatAlgorithm>
-        make(SpeakerSetup const & speakerSetup, SourcesData const & sources, juce::Component * parent);
+    static std::unique_ptr<AbstractSpatAlgorithm> make(SpeakerSetup const & speakerSetup,
+                                                       SourcesData const & sources,
+                                                       double sampleRate,
+                                                       int bufferSize,
+                                                       juce::Component * parent);
 
 private:
     //==============================================================================

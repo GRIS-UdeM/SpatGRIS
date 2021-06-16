@@ -25,7 +25,6 @@
 #include "SpatMode.hpp"
 #include "StaticMap.hpp"
 #include "StrongArray.hpp"
-#include "TaggedAudioBuffer.hpp"
 
 enum class VbapType { twoD, threeD };
 

@@ -43,18 +43,6 @@ static PolarVector getLegalPosition(PolarVector const & vector, SpatMode const s
     }
 
     return PolarVector::fromCartesian(clamped);
-
-    if (modifiedCol == Col::DISTANCE) {
-        return PolarVector::fromCartesian(clamped);
-    }
-
-    // TODO : this is a terrible solution.
-    auto result{ vector };
-    do {
-        result.length = std::max(result.length - 0.01f, 0.0f);
-    } while (result.toCartesian().clamped() != result.toCartesian());
-
-    return result;
 }
 
 static CartesianVector getLegalPosition(CartesianVector const & vector, SpatMode const spatMode, int const modifiedCol)

@@ -292,6 +292,7 @@ private:
     void setTitle() const;
     [[nodiscard]] static bool isDefaultFile(juce::File const & file) noexcept;
     [[nodiscard]] bool performSafeSave(juce::XmlElement const & content, juce::File const & destination) noexcept;
+    void reassignSourcesPositions();
 
     //==============================================================================
     // OVERRIDES

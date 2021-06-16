@@ -20,6 +20,7 @@
 #pragma once
 
 #include "LogicStrucs.hpp"
+#include "TaggedAudioBuffer.hpp"
 #include "Triplet.hpp"
 
 //==============================================================================
@@ -57,6 +58,8 @@ public:
     [[nodiscard]] static std::unique_ptr<AbstractSpatAlgorithm> make(SpeakerSetup const & speakerSetup,
                                                                      tl::optional<StereoMode> stereoMode,
                                                                      SourcesData const & sources,
+                                                                     double sampleRate,
+                                                                     int bufferSize,
                                                                      juce::Component * parent);
 
 private:

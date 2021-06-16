@@ -82,8 +82,10 @@ void AbstractSpatAlgorithm::fixDirectOutsIntoPlace(SourcesData const & sources,
 
 //==============================================================================
 std::unique_ptr<AbstractSpatAlgorithm> AbstractSpatAlgorithm::make(SpeakerSetup const & speakerSetup,
-                                                                   tl::optional<StereoMode> const stereoMode,
+                                                                   tl::optional<StereoMode> stereoMode,
                                                                    SourcesData const & sources,
+                                                                   double sampleRate,
+                                                                   int bufferSize,
                                                                    juce::Component * parent)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -91,7 +93,7 @@ std::unique_ptr<AbstractSpatAlgorithm> AbstractSpatAlgorithm::make(SpeakerSetup 
     if (stereoMode) {
         switch (*stereoMode) {
         case StereoMode::hrtf:
-            return HrtfSpatAlgorithm::make(speakerSetup, sources, parent);
+            return HrtfSpatAlgorithm::make(speakerSetup, sources, sampleRate, bufferSize, parent);
         case StereoMode::stereo:
             return StereoSpatAlgorithm::make(speakerSetup, sources, parent);
         }

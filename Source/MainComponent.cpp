@@ -222,13 +222,13 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     showSplashScreen();
     initAppData();
     initGui();
+
+    initProject();
+    initSpeakerSetup();
     initAudioManager();
     initAudioProcessor();
 
     juce::ScopedLock const audioLock{ mAudioProcessor->getLock() };
-
-    initProject();
-    initSpeakerSetup();
     startOsc();
     initCommandManager();
 
@@ -1074,6 +1074,8 @@ void MainContentComponent::audioParametersChanged()
     mInfoPanel->setBufferSize(bufferSize);
     mInfoPanel->setNumInputs(inputCount);
     mInfoPanel->setNumOutputs(outputCount);
+
+    refreshSpeakers();
 }
 
 //==============================================================================
@@ -1598,6 +1600,10 @@ void MainContentComponent::updateAudioProcessor() const
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
+    if (!mAudioProcessor) {
+        return;
+    }
+
     mAudioProcessor->setAudioConfig(mData.toAudioConfig());
 }
 
@@ -1606,11 +1612,21 @@ void MainContentComponent::updateSpatAlgorithm()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
+
+    if (!mAudioProcessor) {
+        return;
+    }
+
     juce::ScopedLock const audioLock{ mAudioProcessor->getLock() };
 
-    mAudioProcessor->getSpatAlgorithm()
-        = AbstractSpatAlgorithm::make(mData.speakerSetup, mData.appData.stereoMode, mData.project.sources, this);
+    mAudioProcessor->getSpatAlgorithm() = AbstractSpatAlgorithm::make(mData.speakerSetup,
+                                                                      mData.appData.stereoMode,
+                                                                      mData.project.sources,
+                                                                      mData.appData.audioSettings.sampleRate,
+                                                                      mData.appData.audioSettings.bufferSize,
+                                                                      this);
     updateAudioProcessor();
+    reassignSourcesPositions();
 }
 
 //==============================================================================
@@ -1618,6 +1634,10 @@ void MainContentComponent::updateViewportConfig() const
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
+
+    if (!mAudioProcessor) {
+        return;
+    }
 
     auto const & spatAlgorithm{ *mAudioProcessor->getSpatAlgorithm() };
 
@@ -1785,20 +1805,16 @@ bool MainContentComponent::refreshSpeakers()
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
+    if (!mAudioProcessor) {
+        return false;
+    }
+
     warnIfDirectOutMismatch();
 
     updateSpatAlgorithm();
 
     if (!mAudioProcessor->getSpatAlgorithm()->hasTriplets()) {
         mData.appData.viewSettings.showSpeakerTriplets = false;
-    }
-
-    // re-assign source positions
-    for (auto const & source : mData.project.sources) {
-        if (!source.value->position) {
-            continue;
-        }
-        updateSourceSpatData(source.key);
     }
 
     refreshSpeakerVuMeterComponents();
@@ -1896,6 +1912,17 @@ bool MainContentComponent::performSafeSave(juce::XmlElement const & content, juc
             this);
     }
     return success;
+}
+
+//==============================================================================
+void MainContentComponent::reassignSourcesPositions()
+{
+    for (auto const & source : mData.project.sources) {
+        if (!source.value->position) {
+            continue;
+        }
+        updateSourceSpatData(source.key);
+    }
 }
 
 //==============================================================================

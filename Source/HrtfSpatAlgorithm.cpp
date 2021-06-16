@@ -26,7 +26,10 @@
 static constexpr size_t MAX_BUFFER_SIZE = 2048;
 
 //==============================================================================
-HrtfSpatAlgorithm::HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup, SourcesData const & sources)
+HrtfSpatAlgorithm::HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup,
+                                     SourcesData const & sources,
+                                     double const sampleRate,
+                                     int const bufferSize)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -84,6 +87,8 @@ HrtfSpatAlgorithm::HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup, SourcesD
         break;
     }
 
+    jassert(mInnerAlgorithm);
+
     // load IRs
     for (int i{}; i < 16; ++i) {
         mConvolutions[i].loadImpulseResponse(FILES[i],
@@ -91,11 +96,13 @@ HrtfSpatAlgorithm::HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup, SourcesD
                                              juce::dsp::Convolution::Trim::no,
                                              0,
                                              juce::dsp::Convolution::Normalise::no);
-        mConvolutions[i].prepare(juce::dsp::ProcessSpec{ 44100.0, 2048, 2 });
-        mConvolutions[i].reset();
     }
 
-    jassert(mInnerAlgorithm);
+    juce::dsp::ProcessSpec const spec{ sampleRate, narrow<juce::uint32>(bufferSize), 2 };
+    for (auto & convolution : mConvolutions) {
+        convolution.prepare(spec);
+        convolution.reset();
+    }
 
     fixDirectOutsIntoPlace(sources, speakerSetup);
 }
@@ -186,8 +193,11 @@ bool HrtfSpatAlgorithm::hasTriplets() const noexcept
 }
 
 //==============================================================================
-std::unique_ptr<AbstractSpatAlgorithm>
-    HrtfSpatAlgorithm::make(SpeakerSetup const & speakerSetup, SourcesData const & sources, juce::Component * parent)
+std::unique_ptr<AbstractSpatAlgorithm> HrtfSpatAlgorithm::make(SpeakerSetup const & speakerSetup,
+                                                               SourcesData const & sources,
+                                                               double const sampleRate,
+                                                               int const bufferSize,
+                                                               juce::Component * parent)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -206,5 +216,5 @@ std::unique_ptr<AbstractSpatAlgorithm>
     }
 
     errorShown = false;
-    return std::make_unique<HrtfSpatAlgorithm>(speakerSetup, sources);
+    return std::make_unique<HrtfSpatAlgorithm>(speakerSetup, sources, sampleRate, bufferSize);
 }
