@@ -108,44 +108,9 @@ void FlatViewWindow::drawFieldBackground(juce::Graphics & g) const
 //==============================================================================
 void FlatViewWindow::paint(juce::Graphics & g)
 {
-    static auto constexpr SOURCE_DIAMETER_INT{ narrow<int>(SOURCE_DIAMETER) };
-
     drawFieldBackground(g);
 
-    auto const fieldSize = getWidth(); // Same as getHeight()
-    auto const fieldCenter = fieldSize / 2;
-    auto const realSize = fieldSize - SOURCE_DIAMETER_INT;
-
     g.setFont(mLookAndFeel.getFont().withHeight(15.0f));
-    g.setColour(mLookAndFeel.getLightColour());
-    g.drawText("0",
-               fieldCenter,
-               10,
-               SOURCE_DIAMETER_INT,
-               SOURCE_DIAMETER_INT,
-               juce::Justification(juce::Justification::centred),
-               false);
-    g.drawText("90",
-               realSize - 10,
-               (fieldSize - 4) / 2,
-               SOURCE_DIAMETER_INT,
-               SOURCE_DIAMETER_INT,
-               juce::Justification(juce::Justification::centred),
-               false);
-    g.drawText("180",
-               fieldCenter,
-               realSize - 6,
-               SOURCE_DIAMETER_INT,
-               SOURCE_DIAMETER_INT,
-               juce::Justification(juce::Justification::centred),
-               false);
-    g.drawText("270",
-               14,
-               (fieldSize - 4) / 2,
-               SOURCE_DIAMETER_INT,
-               SOURCE_DIAMETER_INT,
-               juce::Justification(juce::Justification::centred),
-               false);
 
     juce::ScopedReadLock const lock{ mMainContentComponent.getLock() };
 
