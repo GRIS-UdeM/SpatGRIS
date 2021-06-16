@@ -58,6 +58,7 @@ juce::String const ViewSettings::XmlTags::SHOW_SPHERE_OR_CUBE = "SHOW_SPHERE_OR_
 juce::String const ViewSettings::XmlTags::SHOW_SOURCE_ACTIVITY = "SHOW_SOURCE_ACTIVITY";
 
 juce::String const SpatGrisProjectData::XmlTags::MAIN_TAG = "SPAT_GRIS_PROJECT_DATA";
+juce::String const SpatGrisProjectData::XmlTags::VERSION = "VERSION";
 juce::String const SpatGrisProjectData::XmlTags::SOURCES = "SOURCES";
 juce::String const SpatGrisProjectData::XmlTags::MASTER_GAIN = "MASTER_GAIN";
 juce::String const SpatGrisProjectData::XmlTags::GAIN_INTERPOLATION = "GAIN_INTERPOLATION";
@@ -76,6 +77,7 @@ juce::String const SpatGrisAppData::XmlTags::SASH_POSITION = "SASH_POSITION";
 juce::String const SpatGrisAppData::XmlTags::CAMERA = "CAMERA";
 
 juce::String const SpeakerSetup::XmlTags::MAIN_TAG = "SPEAKER_SETUP";
+juce::String const SpeakerSetup::XmlTags::VERSION = "VERSION";
 juce::String const SpeakerSetup::XmlTags::SPAT_MODE = "SPAT_MODE";
 
 //==============================================================================
@@ -524,6 +526,7 @@ std::unique_ptr<juce::XmlElement> SpatGrisProjectData::toXml() const
     result->setAttribute(XmlTags::OSC_PORT, oscPort);
     result->setAttribute(XmlTags::MASTER_GAIN, masterGain.get());
     result->setAttribute(XmlTags::GAIN_INTERPOLATION, spatGainsInterpolation);
+    result->setAttribute(XmlTags::VERSION, SPAT_GRIS_VERSION.toString());
 
     return result;
 }
@@ -680,6 +683,7 @@ std::unique_ptr<juce::XmlElement> SpeakerSetup::toXml() const
 {
     auto result{ std::make_unique<juce::XmlElement>(XmlTags::MAIN_TAG) };
 
+    result->setAttribute(XmlTags::VERSION, SPAT_GRIS_VERSION.toString());
     result->setAttribute(XmlTags::SPAT_MODE, spatModeToString(spatMode));
 
     jassert(order.size() == speakers.size());

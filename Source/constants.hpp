@@ -23,6 +23,42 @@
 
 #include "lib/tl/optional.hpp"
 
+struct SpatGrisVersion {
+    int major;
+    int minor;
+    int patch;
+
+    constexpr int compare(SpatGrisVersion const & other) const noexcept
+    {
+        auto const majorDiff{ major - other.major };
+        if (majorDiff != 0) {
+            return majorDiff;
+        }
+        auto const minorDiff{ minor - other.minor };
+        if (minorDiff != 0) {
+            return minorDiff;
+        }
+        return patch - other.patch;
+    }
+
+    juce::String toString() const noexcept
+    {
+        return juce::String{ major } + '.' + juce::String{ minor } + '.' + juce::String{ patch };
+    }
+
+    static SpatGrisVersion fromString(juce::String const & string)
+    {
+        SpatGrisVersion result;
+        result.major = string.upToFirstOccurrenceOf(".", false, true).getIntValue();
+        result.minor
+            = string.fromFirstOccurrenceOf(".", false, true).upToLastOccurrenceOf(".", false, true).getIntValue();
+        result.patch = string.fromLastOccurrenceOf(".", false, true).getIntValue();
+        return result;
+    }
+};
+
+extern const SpatGrisVersion SPAT_GRIS_VERSION;
+
 constexpr auto MAX_NUM_SOURCES = 128;
 constexpr auto MAX_NUM_SPEAKERS = 128;
 constexpr auto LBAP_EXTENDED_RADIUS = 1.6666667f;

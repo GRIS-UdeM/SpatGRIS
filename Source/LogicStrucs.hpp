@@ -255,6 +255,7 @@ struct SpatGrisProjectData {
     //==============================================================================
     struct XmlTags {
         static juce::String const MAIN_TAG;
+        static juce::String const VERSION;
         static juce::String const SOURCES;
         static juce::String const MASTER_GAIN;
         static juce::String const GAIN_INTERPOLATION;
@@ -316,6 +317,7 @@ struct SpeakerSetup {
     //==============================================================================
     struct XmlTags {
         static juce::String const MAIN_TAG;
+        static juce::String const VERSION;
         static juce::String const SPAT_MODE;
     };
 };

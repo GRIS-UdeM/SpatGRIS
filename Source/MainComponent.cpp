@@ -318,6 +318,13 @@ bool MainContentComponent::loadProject(juce::File const & file,
 
     auto projectData{ SpatGrisProjectData::fromXml(*mainXmlElem) };
     if (!projectData) {
+        auto const version{ SpatGrisVersion::fromString(
+            mainXmlElem->getStringAttribute(SpatGrisProjectData::XmlTags::VERSION)) };
+        if (version.compare(SPAT_GRIS_VERSION) > 0) {
+            displayError("This project was created using a newer version of SpatGRIS that is not compatible with this "
+                         "one.\nPlease upgrade to the latest version.");
+            return false;
+        }
         // Missing params
         displayError("File \"" + file.getFullPathName()
                      + "\" is missing one more mandatory parameters.\nYour file might be corrupted.");
@@ -1705,7 +1712,15 @@ tl::optional<SpeakerSetup> MainContentComponent::extractSpeakerSetup(juce::File 
     auto speakerSetup{ SpeakerSetup::fromXml(*mainXmlElem) };
 
     if (!speakerSetup) {
-        displayError("Error while reading file.");
+        auto const version{ SpatGrisVersion::fromString(
+            mainXmlElem->getStringAttribute(SpeakerSetup::XmlTags::VERSION)) };
+        if (version.compare(SPAT_GRIS_VERSION) > 0) {
+            displayError("This speaker setup was created using a newer version of SpatGRIS that is not compatible with "
+                         "this one.\nPlease upgrade to the latest version.");
+        } else {
+            displayError("File \"" + file.getFullPathName()
+                         + "\" is missing one more mandatory parameters.\nYour file might be corrupted.");
+        }
     }
 
     return speakerSetup;

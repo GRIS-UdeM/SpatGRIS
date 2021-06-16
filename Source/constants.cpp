@@ -19,6 +19,8 @@
 
 #include "Constants.hpp"
 
+SpatGrisVersion const SPAT_GRIS_VERSION{ SpatGrisVersion::fromString(JUCE_STRINGIFY(JUCE_APP_VERSION)) };
+
 #ifdef __linux__
 auto const CURRENT_WORKING_DIR{ juce::File::getCurrentWorkingDirectory() };
 auto const RESOURCES_DIR{ CURRENT_WORKING_DIR.getChildFile("Resources") };
