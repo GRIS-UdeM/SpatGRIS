@@ -56,7 +56,7 @@ struct CartesianVector {
         return result;
     }
 
-    [[nodiscard]] float CartesianVector::angleWith(CartesianVector const & other) const noexcept;
+    [[nodiscard]] float angleWith(CartesianVector const & other) const noexcept;
 
     /* Returns the vector length without the sqrt. */
     [[nodiscard]] constexpr float length2() const noexcept { return x * x + y * y + z * z; }
