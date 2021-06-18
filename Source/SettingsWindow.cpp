@@ -97,7 +97,7 @@ SettingsComponent::SettingsComponent(MainContentComponent & parent, int const os
     addAndMakeVisible(mOscInputPortTextEditor);
 
     //==============================================================================
-    mSaveSettingsButton.setButtonText("Save");
+    mSaveSettingsButton.setButtonText("Close");
     mSaveSettingsButton.setBounds(0, 0, RIGHT_COL_WIDTH / 2, COMPONENT_HEIGHT);
     mSaveSettingsButton.addListener(this);
     mSaveSettingsButton.setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
