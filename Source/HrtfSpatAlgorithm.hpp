@@ -27,6 +27,7 @@
 struct HrtfData {
     SpeakersAudioConfig speakersAudioConfig{};
     SpeakerAudioBuffer speakersBuffer{};
+    StrongArray<output_patch_t, bool, MAX_NUM_SPEAKERS> hadSoundLastBlock{};
 };
 
 //==============================================================================

@@ -160,6 +160,21 @@ void HrtfSpatAlgorithm::process(AudioConfig const & config,
     static constexpr std::array<bool, 16> REVERSE{ true, false, false, false, false, true, true, true,
                                                    true, false, false, false, true,  true, true, false };
     for (auto const & speaker : mHrtfData.speakersAudioConfig) {
+        auto const magnitude{ hrtfBuffer[speaker.key].getMagnitude(0, numSamples) };
+        auto & hadSoundLastBlock{ mHrtfData.hadSoundLastBlock[speaker.key] };
+
+        // We can skip the speaker if the gain is small enough, but we have to perform one last block so that the
+        // convolution's inner state stays coherent.
+        if (magnitude <= SMALL_GAIN) {
+            if (!hadSoundLastBlock) {
+                speakerIndex++;
+                continue;
+            }
+            hadSoundLastBlock = false;
+        } else {
+            hadSoundLastBlock = true;
+        }
+
         convolutionBuffer.copyFrom(0, 0, hrtfBuffer[speaker.key], 0, 0, numSamples);
         convolutionBuffer.copyFrom(1, 0, hrtfBuffer[speaker.key], 0, 0, numSamples);
         juce::dsp::AudioBlock<float> block{ convolutionBuffer };
