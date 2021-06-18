@@ -222,13 +222,13 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     showSplashScreen();
     initAppData();
     initGui();
-
     initProject();
     initSpeakerSetup();
     initAudioManager();
     initAudioProcessor();
 
-    juce::ScopedLock const audioLock{ mAudioProcessor->getLock() };
+    // juce::ScopedLock const audioLock{ mAudioProcessor->getLock() };
+
     startOsc();
     initCommandManager();
 
@@ -268,7 +268,6 @@ juce::ApplicationCommandTarget * MainContentComponent::getNextCommandTarget()
 }
 
 //==============================================================================
-// Menu item action handlers.
 void MainContentComponent::handleNewProject()
 {
     JUCE_ASSERT_MESSAGE_THREAD;

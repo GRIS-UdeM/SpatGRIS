@@ -140,11 +140,23 @@ bool AudioManager::tryInitAudioDevice(juce::String const & deviceType,
     jassert(deviceTypeObject);
     deviceTypeObject->scanForDevices();
 
+    auto const filterDevice = [&](juce::String const & name, bool const isInput) -> juce::String {
+        auto const names{ deviceTypeObject->getDeviceNames(isInput) };
+        if (names.contains(name)) {
+            return name;
+        }
+
+        return names[deviceTypeObject->getDefaultDeviceIndex(isInput)];
+    };
+
+    auto const filteredInputDevice{ filterDevice(inputDevice, true) };
+    auto const filteredOutputDevice{ filterDevice(outputDevice, false) };
+
     juce::BigInteger neededInputChannels{};
     neededInputChannels.setRange(0, MAX_NUM_SOURCES, true);
     juce::BigInteger neededOutputChannels{};
     neededOutputChannels.setRange(0, MAX_NUM_SPEAKERS, true);
-    juce::AudioDeviceManager::AudioDeviceSetup const setup{ outputDevice,         inputDevice,
+    juce::AudioDeviceManager::AudioDeviceSetup const setup{ filteredOutputDevice, filteredInputDevice,
                                                             requestedSampleRate,  requestedBufferSize,
                                                             neededInputChannels,  false,
                                                             neededOutputChannels, false };
