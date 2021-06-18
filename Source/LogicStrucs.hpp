@@ -29,8 +29,10 @@
 static constexpr auto DEFAULT_OSC_INPUT_PORT = 18032;
 static constexpr auto MAX_OSC_INPUT_PORT = 65535;
 
+//==============================================================================
 enum class PortState { normal, muted, solo };
 
+//==============================================================================
 [[nodiscard]] juce::String portStateToString(PortState state);
 [[nodiscard]] tl::optional<PortState> stringToPortState(juce::String const & string);
 
@@ -65,12 +67,14 @@ struct ViewportSourceData {
     juce::Colour colour{};
 };
 
+//==============================================================================
 struct ViewportSpeakerConfig {
     CartesianVector position{};
     bool isSelected{};
     bool isDirectOutOnly{};
 };
 
+//==============================================================================
 struct ViewportConfig {
     StaticMap<output_patch_t, ViewportSpeakerConfig, MAX_NUM_SPEAKERS> speakers{};
     ViewSettings viewSettings{};
@@ -78,9 +82,11 @@ struct ViewportConfig {
     juce::String title{};
 };
 
+//==============================================================================
 using ViewPortSourceDataQueue = AtomicExchanger<tl::optional<ViewportSourceData>>;
 using ViewPortSpeakerAlphaQueue = AtomicExchanger<float>;
 
+//==============================================================================
 struct ViewportState {
     StrongArray<source_index_t, ViewPortSourceDataQueue::Ticket *, MAX_NUM_SOURCES> mostRecentSourcesData{};
     StrongArray<output_patch_t, ViewPortSpeakerAlphaQueue::Ticket *, MAX_NUM_SPEAKERS> mostRecentSpeakersAlpha{};
@@ -95,6 +101,7 @@ struct ViewportState {
     juce::Array<Triplet> triplets{};
 };
 
+//==============================================================================
 struct ViewportData {
     ViewportConfig config{};
     ViewportState state{};
@@ -240,6 +247,21 @@ struct RecordingOptions {
 };
 
 //==============================================================================
+struct StereoRouting {
+    output_patch_t left{ 1 };
+    output_patch_t right{ 2 };
+    //==============================================================================
+    [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
+    [[nodiscard]] static tl::optional<StereoRouting> fromXml(juce::XmlElement const & xml);
+    //==============================================================================
+    struct XmlTags {
+        static juce::String const MAIN_TAG;
+        static juce::String const LEFT;
+        static juce::String const RIGHT;
+    };
+};
+
+//==============================================================================
 using SourcesData = OwnedMap<source_index_t, SourceData, MAX_NUM_SOURCES>;
 struct SpatGrisProjectData {
     SourcesData sources{};
@@ -275,6 +297,7 @@ struct SpatGrisAppData {
         juce::File::getSpecialLocation(juce::File::SpecialLocationType::userDesktopDirectory).getFullPathName()
     };
     tl::optional<StereoMode> stereoMode{};
+    StereoRouting stereoRouting{};
     int windowX{ 100 };
     int windowY{ 100 };
     int windowWidth{ 1285 };
@@ -301,10 +324,11 @@ struct SpatGrisAppData {
 
 //==============================================================================
 using SpeakersData = OwnedMap<output_patch_t, SpeakerData, MAX_NUM_SPEAKERS>;
+using SpeakersOrdering = juce::Array<output_patch_t>;
 
 struct SpeakerSetup {
     SpeakersData speakers{};
-    juce::Array<output_patch_t> order{};
+    SpeakersOrdering ordering{};
     SpatMode spatMode{};
     //==============================================================================
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;

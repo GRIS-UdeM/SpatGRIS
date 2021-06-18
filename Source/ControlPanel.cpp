@@ -58,6 +58,7 @@ void ControlPanel::setSpatMode(SpatMode const spatMode)
 void ControlPanel::setStereoMode(tl::optional<StereoMode> const & mode)
 {
     mSpatModeComponent.setStereoMode(mode);
+    refreshLayout();
 }
 
 //==============================================================================
@@ -89,6 +90,18 @@ void ControlPanel::setRecordButtonState(RecordButton::State const state)
 }
 
 //==============================================================================
+void ControlPanel::setStereoRouting(StereoRouting const & routing)
+{
+    mStereoRoutingComponent.setStereoRouting(routing);
+}
+
+//==============================================================================
+void ControlPanel::updateSpeakers(SpeakersOrdering ordering)
+{
+    mStereoRoutingComponent.updateSpeakers(std::move(ordering));
+}
+
+//==============================================================================
 void ControlPanel::resized()
 {
     mLayout.setBounds(0, 0, getWidth(), getHeight());
@@ -107,6 +120,7 @@ void ControlPanel::handleStereoModeChanged(tl::optional<StereoMode> const stereo
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     mListener.setStereoMode(stereoMode);
+    refreshLayout();
 }
 
 //==============================================================================
@@ -152,6 +166,12 @@ void ControlPanel::cubeAttenuationHzChanged(hz_t const value)
 }
 
 //==============================================================================
+void ControlPanel::handleStereoRoutingChanged(StereoRouting const & routing)
+{
+    mListener.stereoRoutingChanged(routing);
+}
+
+//==============================================================================
 void ControlPanel::refreshLayout()
 {
     mLayout.clear();
@@ -159,6 +179,14 @@ void ControlPanel::refreshLayout()
     mLayout.addSection(&mMasterGainSlider).withChildMinSize();
     mLayout.addSection(&mInterpolationSlider).withChildMinSize().withRightPadding(15);
     mLayout.addSection(&mSpatModeComponent).withChildMinSize().withRightPadding(15);
+
+    if (mSpatModeComponent.getStereoMode()) {
+        mLayout.addSection(&mStereoRoutingComponent)
+            .withChildMinSize()
+            .withRightPadding(15)
+            .withTopPadding(10)
+            .withBottomPadding(10);
+    }
 
     if (mSpatModeComponent.getSpatMode() == SpatMode::lbap) {
         mLayout.addSection(&mCubeSettingsComponent)

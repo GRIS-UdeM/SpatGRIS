@@ -28,8 +28,9 @@ static constexpr size_t MAX_BUFFER_SIZE = 2048;
 //==============================================================================
 HrtfSpatAlgorithm::HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup,
                                      SourcesData const & sources,
-                                     double const sampleRate,
-                                     int const bufferSize)
+                                     StereoRouting const & stereoRouting,
+                                     double sampleRate,
+                                     int bufferSize)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -72,7 +73,7 @@ HrtfSpatAlgorithm::HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup,
     jassert(binauralSpeakerSetup);
     mHrtfData.speakersAudioConfig
         = binauralSpeakerSetup->toAudioConfig(44100.0); // TODO: find a way to update this number!
-    auto speakers{ binauralSpeakerSetup->order };
+    auto speakers{ binauralSpeakerSetup->ordering };
     speakers.sort();
     mHrtfData.speakersBuffer.init(speakers);
 
@@ -104,6 +105,8 @@ HrtfSpatAlgorithm::HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup,
         convolution.reset();
     }
 
+    mHrtfData.routing = stereoRouting;
+
     fixDirectOutsIntoPlace(sources, speakerSetup);
 }
 
@@ -128,10 +131,7 @@ void HrtfSpatAlgorithm::process(AudioConfig const & config,
 {
     ASSERT_AUDIO_THREAD;
     jassert(!altSpeakerConfig);
-
-    if (speakersBuffer.size() < 2) {
-        return;
-    }
+    jassert(speakersBuffer.contains(mHrtfData.routing.left) && speakersBuffer.contains(mHrtfData.routing.right));
 
     speakersBuffer.silence();
 
@@ -143,15 +143,8 @@ void HrtfSpatAlgorithm::process(AudioConfig const & config,
 
     auto const numSamples{ sourcesBuffer.getNumSamples() };
 
-    auto const getFirstTwoBuffers = [&]() {
-        auto it{ speakersBuffer.begin() };
-        auto & left{ *(*it++).value };
-        auto & right{ *(*it).value };
-
-        return std::array<juce::AudioBuffer<float> *, 2>{ &left, &right };
-    };
-
-    auto outputBuffers{ getFirstTwoBuffers() };
+    std::array<juce::AudioBuffer<float> *, 2> const outputBuffers{ &speakersBuffer[mHrtfData.routing.left],
+                                                                   &speakersBuffer[mHrtfData.routing.right] };
 
     static juce::AudioBuffer<float> convolutionBuffer{};
     convolutionBuffer.setSize(2, numSamples);
@@ -204,6 +197,7 @@ juce::Array<Triplet> HrtfSpatAlgorithm::getTriplets() const noexcept
 //==============================================================================
 std::unique_ptr<AbstractSpatAlgorithm> HrtfSpatAlgorithm::make(SpeakerSetup const & speakerSetup,
                                                                SourcesData const & sources,
+                                                               StereoRouting const & routing,
                                                                double const sampleRate,
                                                                int const bufferSize,
                                                                juce::Component * parent)
@@ -212,11 +206,11 @@ std::unique_ptr<AbstractSpatAlgorithm> HrtfSpatAlgorithm::make(SpeakerSetup cons
 
     static bool errorShown{};
 
-    if (speakerSetup.numOfSpatializedSpeakers() < 2) {
+    if (!speakerSetup.ordering.contains(routing.left) || !speakerSetup.ordering.contains(routing.right)) {
         if (!errorShown) {
             juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::InfoIcon,
                                                    "Disabled spatialization",
-                                                   "The Binaural mode needs at least 2 speakers.\n",
+                                                   "Please select valid stereo channels",
                                                    "Ok",
                                                    parent);
             errorShown = true;
@@ -225,5 +219,5 @@ std::unique_ptr<AbstractSpatAlgorithm> HrtfSpatAlgorithm::make(SpeakerSetup cons
     }
 
     errorShown = false;
-    return std::make_unique<HrtfSpatAlgorithm>(speakerSetup, sources, sampleRate, bufferSize);
+    return std::make_unique<HrtfSpatAlgorithm>(speakerSetup, sources, routing, sampleRate, bufferSize);
 }

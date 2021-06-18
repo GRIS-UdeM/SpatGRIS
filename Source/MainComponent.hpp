@@ -22,7 +22,6 @@
 #include "AboutWindow.hpp"
 #include "AudioProcessor.hpp"
 #include "Configuration.hpp"
-#include "Constants.hpp"
 #include "ControlPanel.hpp"
 #include "EditSpeakersWindow.hpp"
 #include "FlatViewWindow.hpp"
@@ -39,6 +38,7 @@
 #include "TitledComponent.hpp"
 #include "Triplet.hpp"
 #include "VuMeterComponent.hpp"
+#include "constants.hpp"
 
 class MainWindow;
 
@@ -200,11 +200,12 @@ public:
     [[nodiscard]] bool setSpatMode(SpatMode spatMode) override;
     void setStereoMode(tl::optional<StereoMode> stereoMode) override;
     [[nodiscard]] bool spatModeChanged(SpatMode spatMode, LoadSpeakerSetupOption option);
+    void stereoRoutingChanged(StereoRouting const & routing) override;
     void cubeAttenuationDbChanged(dbfs_t value) override;
     void cubeAttenuationHzChanged(hz_t value) override;
 
     // Speakers.
-    [[nodiscard]] auto const & getSpeakersDisplayOrder() const { return mData.speakerSetup.order; }
+    [[nodiscard]] auto const & getSpeakersDisplayOrder() const { return mData.speakerSetup.ordering; }
 
     output_patch_t addSpeaker(tl::optional<output_patch_t> speakerToCopy, tl::optional<int> index);
     void removeSpeaker(output_patch_t outputPatch);
@@ -300,6 +301,8 @@ private:
     [[nodiscard]] bool perform(juce::ApplicationCommandTarget::InvocationInfo const & info) override;
     //==============================================================================
     static void handleOpenManual();
+
+private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(MainContentComponent)
 };

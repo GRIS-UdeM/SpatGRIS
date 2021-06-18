@@ -20,7 +20,6 @@
 #include "MainComponent.hpp"
 
 #include "AudioManager.hpp"
-#include "Constants.hpp"
 #include "ControlPanel.hpp"
 #include "FatalError.hpp"
 #include "LegacyLbapPosition.hpp"
@@ -28,6 +27,7 @@
 #include "ScopeGuard.hpp"
 #include "TitledComponent.hpp"
 #include "VuMeterComponent.hpp"
+#include "constants.hpp"
 
 static constexpr auto BUTTON_CANCEL = 0;
 static constexpr auto BUTTON_OK = 1;
@@ -155,6 +155,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         mControlPanel->setCubeAttenuationDb(mData.project.lbapDistanceAttenuationData.attenuation);
         mControlPanel->setCubeAttenuationHz(mData.project.lbapDistanceAttenuationData.freq);
         mControlPanel->setStereoMode(mData.appData.stereoMode);
+        mControlPanel->setStereoRouting(mData.appData.stereoRouting);
 
         mMainLayout->addSection(mInfoPanel.get()).withChildMinSize().withRightPadding(5);
         mMainLayout->addSection(mSourcesSection.get()).withRelativeSize(1.0f).withRightPadding(5);
@@ -592,6 +593,16 @@ void MainContentComponent::setStereoMode(tl::optional<StereoMode> const stereoMo
     }
 
     updateViewportConfig();
+}
+
+//==============================================================================
+void MainContentComponent::stereoRoutingChanged(StereoRouting const & routing)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    mData.appData.stereoRouting = routing;
+    updateSpatAlgorithm();
 }
 
 //==============================================================================
@@ -1288,7 +1299,7 @@ void MainContentComponent::refreshSpeakerVuMeterComponents()
     mSpeakerVuMeterComponents.clear();
 
     // auto x{ 3 };
-    for (auto const outputPatch : mData.speakerSetup.order) {
+    for (auto const outputPatch : mData.speakerSetup.ordering) {
         auto newVuMeter{ std::make_unique<SpeakerVuMeterComponent>(outputPatch, *this, mSmallLookAndFeel) };
         auto & addedVuMeter{ mSpeakerVuMeterComponents.add(outputPatch, std::move(newVuMeter)) };
         mSpeakersLayout->addSection(&addedVuMeter).withChildMinSize();
@@ -1411,7 +1422,7 @@ void MainContentComponent::handleSpeakerOutputPatchChanged(output_patch_t const 
     speakers.add(newOutputPatch, std::make_unique<SpeakerData>(speakers[oldOutputPatch]));
     speakers.remove(oldOutputPatch);
 
-    auto & order{ mData.speakerSetup.order };
+    auto & order{ mData.speakerSetup.ordering };
     order.set(order.indexOf(oldOutputPatch), newOutputPatch);
 
     refreshSpeakerVuMeterComponents();
@@ -1596,6 +1607,7 @@ void MainContentComponent::updateSpatAlgorithm()
     mAudioProcessor->getSpatAlgorithm() = AbstractSpatAlgorithm::make(mData.speakerSetup,
                                                                       mData.appData.stereoMode,
                                                                       mData.project.sources,
+                                                                      mData.appData.stereoRouting,
                                                                       mData.appData.audioSettings.sampleRate,
                                                                       mData.appData.audioSettings.bufferSize,
                                                                       this);
@@ -1660,7 +1672,7 @@ void MainContentComponent::reorderSpeakers(juce::Array<output_patch_t> newOrder)
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
 
-    auto & order{ mData.speakerSetup.order };
+    auto & order{ mData.speakerSetup.ordering };
     jassert(newOrder.size() == order.size());
     order = std::move(newOrder);
     refreshSpeakerVuMeterComponents();
@@ -1672,9 +1684,9 @@ output_patch_t MainContentComponent::getMaxSpeakerOutputPatch() const
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
-    auto const & patches{ mData.speakerSetup.order };
+    auto const & patches{ mData.speakerSetup.ordering };
     auto const * maxIterator{ std::max_element(patches.begin(), patches.end()) };
-    auto const maxPatch{ maxIterator != mData.speakerSetup.order.end() ? *maxIterator : output_patch_t{} };
+    auto const maxPatch{ maxIterator != mData.speakerSetup.ordering.end() ? *maxIterator : output_patch_t{} };
     return maxPatch;
 }
 
@@ -1740,13 +1752,13 @@ output_patch_t MainContentComponent::addSpeaker(tl::optional<output_patch_t> con
     auto const newOutputPatch{ ++getMaxSpeakerOutputPatch() };
 
     if (index) {
-        auto const isValidIndex{ *index >= 0 && *index < mData.speakerSetup.order.size() };
+        auto const isValidIndex{ *index >= 0 && *index < mData.speakerSetup.ordering.size() };
         jassert(isValidIndex);
         if (isValidIndex) {
-            mData.speakerSetup.order.insert(*index, newOutputPatch);
+            mData.speakerSetup.ordering.insert(*index, newOutputPatch);
         }
     } else {
-        mData.speakerSetup.order.add(newOutputPatch);
+        mData.speakerSetup.ordering.add(newOutputPatch);
     }
 
     mData.speakerSetup.speakers.add(newOutputPatch, std::move(newSpeaker));
@@ -1758,13 +1770,13 @@ output_patch_t MainContentComponent::addSpeaker(tl::optional<output_patch_t> con
 void MainContentComponent::removeSpeaker(output_patch_t const outputPatch)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-    juce::ScopedWriteLock const lock{ mLock };
+    juce::ScopedWriteLock const dataLock{ mLock };
+    juce::ScopedLock const audioLock{ mAudioProcessor->getLock() };
 
-    mData.speakerSetup.order.removeFirstMatchingValue(outputPatch);
+    mData.speakerSetup.ordering.removeFirstMatchingValue(outputPatch);
     mData.speakerSetup.speakers.remove(outputPatch);
 
-    updateViewportConfig();
-    updateAudioProcessor();
+    refreshSpeakers();
 }
 
 //==============================================================================
@@ -1788,6 +1800,7 @@ bool MainContentComponent::refreshSpeakers()
     if (mEditSpeakersWindow != nullptr) {
         mEditSpeakersWindow->updateWinContent();
     }
+    mControlPanel->updateSpeakers(mData.speakerSetup.ordering);
 
     return true;
 }
@@ -2119,25 +2132,41 @@ void MainContentComponent::prepareAndStartRecording(juce::File const & fileOrDir
     }
 
     juce::ScopedReadLock const lock{ mLock };
-    auto const getSpeakersToRecord = [&]() {
+    auto const getSpeakersToRecord = [&]() -> juce::Array<output_patch_t> {
         juce::Array<output_patch_t> result{};
 
         if (mData.appData.stereoMode) {
-            result.add(output_patch_t{ 1 });
-            result.add(output_patch_t{ 2 });
+            auto const & routing{ mData.appData.stereoRouting };
+            result.add(routing.left);
+            result.add(routing.right);
             return result;
         }
 
-        result = mData.speakerSetup.order;
+        result = mData.speakerSetup.ordering;
         result.sort();
 
         return result;
     };
 
+    auto speakersToRecord{ getSpeakersToRecord() };
+
+    for (auto const & outputPatch : speakersToRecord) {
+        if (!mData.speakerSetup.ordering.contains(outputPatch)) {
+            juce::AlertWindow::showMessageBoxAsync(
+                juce::AlertWindow::AlertIconType::WarningIcon,
+                "Recording canceled",
+                "Recording cannot start because an output patch used in either in your direct outputs or in your "
+                "stereo reduction channels does not exists in the current speaker setup.",
+                "Ok",
+                this);
+            return;
+        }
+    }
+
     AudioManager::RecordingParameters const recordingParams{ fileOrDirectory.getFullPathName(),
                                                              mData.appData.recordingOptions,
                                                              mData.appData.audioSettings.sampleRate,
-                                                             getSpeakersToRecord() };
+                                                             std::move(speakersToRecord) };
     if (AudioManager::getInstance().prepareToRecord(recordingParams)) {
         AudioManager::getInstance().startRecording();
         mControlPanel->setRecordButtonState(RecordButton::State::recording);

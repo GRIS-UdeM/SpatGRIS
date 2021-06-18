@@ -33,14 +33,19 @@ struct StereoSourceData {
 
 using StereoSourcesData = StrongArray<source_index_t, StereoSourceData, MAX_NUM_SOURCES>;
 
+struct StereoData {
+    StereoSourcesData sourcesData{};
+    StereoRouting routing{};
+};
+
 //==============================================================================
 class StereoSpatAlgorithm final : public AbstractSpatAlgorithm
 {
-    StereoSourcesData mData{};
+    StereoData mData{};
 
 public:
     //==============================================================================
-    StereoSpatAlgorithm(SpeakerSetup const & speakerSetup, SourcesData const & sources);
+    StereoSpatAlgorithm(SpeakerSetup const & speakerSetup, SourcesData const & sources, StereoRouting const & routing);
     ~StereoSpatAlgorithm() override = default;
     //==============================================================================
     StereoSpatAlgorithm(StereoSpatAlgorithm const &) = delete;
@@ -57,8 +62,10 @@ public:
     [[nodiscard]] juce::Array<Triplet> getTriplets() const noexcept override;
     [[nodiscard]] bool hasTriplets() const noexcept override { return false; }
     //==============================================================================
-    static std::unique_ptr<AbstractSpatAlgorithm>
-        make(SpeakerSetup const & speakerSetup, SourcesData const & sources, juce::Component * parent);
+    static std::unique_ptr<AbstractSpatAlgorithm> make(SpeakerSetup const & speakerSetup,
+                                                       SourcesData const & sources,
+                                                       StereoRouting const & routing,
+                                                       juce::Component * parent);
 
 private:
     JUCE_LEAK_DETECTOR(StereoSpatAlgorithm)

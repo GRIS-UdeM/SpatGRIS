@@ -20,11 +20,11 @@
 #pragma once
 
 #include "AtomicExchanger.hpp"
-#include "Constants.hpp"
 #include "PolarVector.hpp"
 #include "SpatMode.hpp"
 #include "StaticMap.hpp"
 #include "StrongArray.hpp"
+#include "constants.hpp"
 
 enum class VbapType { twoD, threeD };
 
@@ -103,13 +103,21 @@ struct SourceAudioConfig {
     tl::optional<output_patch_t> directOut{};
 };
 
+//==============================================================================
+struct StereoConfig {
+    StereoMode stereoMode{};
+    output_patch_t leftPatch{};
+    output_patch_t rightPatch{};
+};
+
+//==============================================================================
 using SourcesAudioConfig = StaticMap<source_index_t, SourceAudioConfig, MAX_NUM_SOURCES>;
 using SpeakersAudioConfig = StaticMap<output_patch_t, SpeakerAudioConfig, MAX_NUM_SPEAKERS>;
 
 //==============================================================================
 struct AudioConfig {
     SpatMode spatMode{};
-    tl::optional<StereoMode> stereoMode{};
+    tl::optional<StereoConfig> stereoConfig{};
     float masterGain{};
     float spatGainsInterpolation{};
 

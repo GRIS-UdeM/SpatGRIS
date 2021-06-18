@@ -183,6 +183,10 @@
                 file="Source/SpeakerViewComponent.cpp"/>
           <FILE id="ItaT5M" name="SpeakerViewComponent.hpp" compile="0" resource="0"
                 file="Source/SpeakerViewComponent.hpp"/>
+          <FILE id="GiNIHB" name="StereoPatchSelectionComponent.cpp" compile="1"
+                resource="0" file="Source/StereoPatchSelectionComponent.cpp"/>
+          <FILE id="uSg1gy" name="StereoPatchSelectionComponent.hpp" compile="0"
+                resource="0" file="Source/StereoPatchSelectionComponent.hpp"/>
           <FILE id="RAONSv" name="TitledComponent.cpp" compile="1" resource="0"
                 file="Source/TitledComponent.cpp"/>
           <FILE id="djERfK" name="TitledComponent.hpp" compile="0" resource="0"

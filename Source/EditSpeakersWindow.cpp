@@ -24,7 +24,8 @@
 #include "MainComponent.hpp"
 #include "Narrow.hpp"
 
-static PolarVector getLegalPosition(PolarVector const & vector, SpatMode const spatMode, int const modifiedCol)
+static PolarVector
+    getLegalPosition(PolarVector const & vector, SpatMode const spatMode, [[maybe_unused]] int const modifiedCol)
 {
     using Col = EditSpeakersWindow::Cols;
 
@@ -942,8 +943,8 @@ output_patch_t EditSpeakersWindow::getSpeakerOutputPatchForRow(int const row) co
     JUCE_ASSERT_MESSAGE_THREAD;
 
     auto const & data{ mMainContentComponent.getData() };
-    jassert(row >= 0 && row < data.speakerSetup.order.size());
-    auto const result{ data.speakerSetup.order[row] };
+    jassert(row >= 0 && row < data.speakerSetup.ordering.size());
+    auto const result{ data.speakerSetup.ordering[row] };
     jassert(data.speakerSetup.speakers.contains(result));
     return result;
 }

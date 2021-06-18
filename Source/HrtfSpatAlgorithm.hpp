@@ -28,6 +28,7 @@ struct HrtfData {
     SpeakersAudioConfig speakersAudioConfig{};
     SpeakerAudioBuffer speakersBuffer{};
     StrongArray<output_patch_t, bool, MAX_NUM_SPEAKERS> hadSoundLastBlock{};
+    StereoRouting routing{};
 };
 
 //==============================================================================
@@ -41,6 +42,7 @@ public:
     //==============================================================================
     HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup,
                       SourcesData const & sources,
+                      StereoRouting const & stereoRouting,
                       double sampleRate,
                       int bufferSize);
     //==============================================================================
@@ -63,6 +65,7 @@ public:
     //==============================================================================
     static std::unique_ptr<AbstractSpatAlgorithm> make(SpeakerSetup const & speakerSetup,
                                                        SourcesData const & sources,
+                                                       StereoRouting const & routing,
                                                        double sampleRate,
                                                        int bufferSize,
                                                        juce::Component * parent);

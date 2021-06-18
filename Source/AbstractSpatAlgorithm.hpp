@@ -58,6 +58,7 @@ public:
     [[nodiscard]] static std::unique_ptr<AbstractSpatAlgorithm> make(SpeakerSetup const & speakerSetup,
                                                                      tl::optional<StereoMode> stereoMode,
                                                                      SourcesData const & sources,
+                                                                     StereoRouting const & routing,
                                                                      double sampleRate,
                                                                      int bufferSize,
                                                                      juce::Component * parent);

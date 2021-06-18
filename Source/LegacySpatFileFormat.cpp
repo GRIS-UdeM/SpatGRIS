@@ -116,10 +116,10 @@ tl::optional<SpeakerSetup> readLegacySpeakerSetup(juce::XmlElement const & xml)
     }
     duplicatedSpeakers.clearQuick(false);
 
-    result.order.resize(layout.size());
+    result.ordering.resize(layout.size());
     std::transform(layout.begin(),
                    layout.end(),
-                   result.order.begin(),
+                   result.ordering.begin(),
                    [](std::pair<int, output_patch_t> const & indexOutputPair) { return indexOutputPair.second; });
 
     auto const getCorrectedSpatMode = [&]() {
