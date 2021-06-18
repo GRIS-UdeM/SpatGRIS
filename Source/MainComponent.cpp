@@ -195,11 +195,9 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
 
     auto const initAppData = [&]() { mData.appData = mConfiguration.load(); };
     auto const initProject = [&]() {
-        auto const success{
-            loadProject(mData.appData.lastProject, LoadProjectOption::dontRemoveInvalidDirectOuts, true)
-        };
+        auto const success{ loadProject(mData.appData.lastProject, true) };
         if (!success) {
-            if (!loadProject(DEFAULT_PROJECT_FILE, LoadProjectOption::dontRemoveInvalidDirectOuts, true)) {
+            if (!loadProject(DEFAULT_PROJECT_FILE, true)) {
                 fatalError("Unable to load the default project file.", this);
             }
         }
@@ -272,16 +270,14 @@ void MainContentComponent::handleNewProject()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    auto const success{ loadProject(DEFAULT_PROJECT_FILE, LoadProjectOption::removeInvalidDirectOuts, false) };
+    auto const success{ loadProject(DEFAULT_PROJECT_FILE, false) };
     if (!success) {
         fatalError("Unable to load the default project file.", this);
     }
 }
 
 //==============================================================================
-bool MainContentComponent::loadProject(juce::File const & file,
-                                       LoadProjectOption const loadProjectOption,
-                                       bool const discardCurrentProject)
+bool MainContentComponent::loadProject(juce::File const & file, bool const discardCurrentProject)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
@@ -337,10 +333,6 @@ bool MainContentComponent::loadProject(juce::File const & file,
     mControlPanel->setMasterGain(mData.project.masterGain);
     mControlPanel->setInterpolation(mData.project.spatGainsInterpolation);
 
-    if (loadProjectOption == LoadProjectOption::removeInvalidDirectOuts) {
-        warnIfDirectOutMismatch();
-    }
-
     updateAudioProcessor();
     updateViewportConfig();
     setTitle();
@@ -355,10 +347,6 @@ void MainContentComponent::handleOpenProject()
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
 
-    if (!makeSureProjectIsSavedToDisk()) {
-        return;
-    }
-
     juce::FileChooser fc{ "Choose a file to open...", mData.appData.lastProject, "*.xml", true, false, this };
 
     if (!fc.browseForFileToOpen()) {
@@ -367,7 +355,7 @@ void MainContentComponent::handleOpenProject()
 
     auto const chosen{ fc.getResult() };
 
-    [[maybe_unused]] auto const success{ loadProject(chosen, LoadProjectOption::removeInvalidDirectOuts, true) };
+    [[maybe_unused]] auto const success{ loadProject(chosen, false) };
     jassert(success);
 }
 
@@ -1319,41 +1307,6 @@ void MainContentComponent::updateSourceSpatData(source_index_t const sourceIndex
 }
 
 //==============================================================================
-void MainContentComponent::warnIfDirectOutMismatch()
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-    juce::ScopedReadLock const lock{ mLock };
-
-    static bool errorShown{};
-
-    for (auto & source : mData.project.sources) {
-        auto & directOut{ source.value->directOut };
-        if (!directOut) {
-            continue;
-        }
-
-        if (mData.speakerSetup.speakers.contains(*directOut)) {
-            continue;
-        }
-
-        if (errorShown) {
-            return;
-        }
-
-        juce::AlertWindow::showMessageBoxAsync(
-            juce::AlertWindow::AlertIconType::WarningIcon,
-            "Direct Out Mismatch",
-            "Some of your selected direct out channels don't exist in the current speaker setup.",
-            "Ok",
-            this);
-        errorShown = true;
-        return;
-    }
-
-    errorShown = false;
-}
-
-//==============================================================================
 void MainContentComponent::handleSourcePositionChanged(source_index_t const sourceIndex,
                                                        radians_t const azimuth,
                                                        radians_t const elevation,
@@ -1798,11 +1751,6 @@ output_patch_t MainContentComponent::addSpeaker(tl::optional<output_patch_t> con
 
     mData.speakerSetup.speakers.add(newOutputPatch, std::move(newSpeaker));
 
-    // refreshSpeakerVuMeterComponents();
-    // updateViewportConfig();
-
-    refreshSpeakers();
-
     return newOutputPatch;
 }
 
@@ -1815,7 +1763,6 @@ void MainContentComponent::removeSpeaker(output_patch_t const outputPatch)
     mData.speakerSetup.order.removeFirstMatchingValue(outputPatch);
     mData.speakerSetup.speakers.remove(outputPatch);
 
-    warnIfDirectOutMismatch();
     updateViewportConfig();
     updateAudioProcessor();
 }
@@ -1829,8 +1776,6 @@ bool MainContentComponent::refreshSpeakers()
     if (!mAudioProcessor) {
         return false;
     }
-
-    warnIfDirectOutMismatch();
 
     updateSpatAlgorithm();
 

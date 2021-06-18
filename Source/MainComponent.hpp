@@ -67,7 +67,6 @@ class MainContentComponent final
     , private AudioDeviceManagerListener
     , private juce::Timer
 {
-    enum class LoadProjectOption { removeInvalidDirectOuts, dontRemoveInvalidDirectOuts };
     enum class LoadSpeakerSetupOption { allowDiscardingUnsavedChanges, disallowDiscardingUnsavedChanges };
 
     juce::ReadWriteLock mLock{};
@@ -161,8 +160,6 @@ public:
     void refreshSpeakerVuMeterComponents();
 
     void updateSourceSpatData(source_index_t sourceIndex);
-
-    void warnIfDirectOutMismatch();
 
     auto const & getLock() const { return mLock; }
 
@@ -283,8 +280,7 @@ private:
     // Open - save.
     [[nodiscard]] static tl::optional<SpeakerSetup> extractSpeakerSetup(juce::File const & file);
     [[nodiscard]] bool loadSpeakerSetup(juce::File file, LoadSpeakerSetupOption option);
-    [[nodiscard]] bool
-        loadProject(juce::File const & file, LoadProjectOption loadProjectOption, bool discardCurrentProject);
+    [[nodiscard]] bool loadProject(juce::File const & file, bool discardCurrentProject);
     [[nodiscard]] bool saveProject(tl::optional<juce::File> maybeFile);
     [[nodiscard]] bool saveSpeakerSetup(tl::optional<juce::File> maybeFile);
     [[nodiscard]] bool makeSureProjectIsSavedToDisk() noexcept;
