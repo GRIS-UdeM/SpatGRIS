@@ -58,7 +58,7 @@ public:
                  SourcePeaks const & sourcePeaks,
                  SpeakersAudioConfig const * altSpeakerConfig) override;
     [[nodiscard]] juce::Array<Triplet> getTriplets() const noexcept override;
-    [[nodiscard]] bool hasTriplets() const noexcept override;
+    [[nodiscard]] bool hasTriplets() const noexcept override { return false; }
     //==============================================================================
     static std::unique_ptr<AbstractSpatAlgorithm> make(SpeakerSetup const & speakerSetup,
                                                        SourcesData const & sources,

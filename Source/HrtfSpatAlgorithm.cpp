@@ -182,14 +182,8 @@ void HrtfSpatAlgorithm::process(AudioConfig const & config,
 juce::Array<Triplet> HrtfSpatAlgorithm::getTriplets() const noexcept
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-    return mInnerAlgorithm->getTriplets();
-}
-
-//==============================================================================
-bool HrtfSpatAlgorithm::hasTriplets() const noexcept
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-    return mInnerAlgorithm->hasTriplets();
+    jassertfalse;
+    return juce::Array<Triplet>{};
 }
 
 //==============================================================================

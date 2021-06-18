@@ -592,6 +592,7 @@ void MainContentComponent::setStereoMode(tl::optional<StereoMode> const stereoMo
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
 
+    mData.appData.viewSettings.showSpeakerTriplets = false;
     mData.appData.stereoMode = stereoMode;
     updateSpatAlgorithm();
 
@@ -602,6 +603,8 @@ void MainContentComponent::setStereoMode(tl::optional<StereoMode> const stereoMo
 
         updateSourceSpatData(source.key);
     }
+
+    updateViewportConfig();
 }
 
 //==============================================================================
