@@ -235,6 +235,8 @@ void SettingsComponent::comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged)
 {
     auto & audioDeviceManager{ AudioManager::getInstance().getAudioDeviceManager() };
     auto setup{ audioDeviceManager.getAudioDeviceSetup() };
+    setup.inputChannels = NEEDED_INPUT_CHANNELS;
+    setup.outputChannels = NEEDED_OUTPUT_CHANNELS;
     auto const hasSeparateInputsAndOutputs{
         audioDeviceManager.getCurrentDeviceTypeObject()->hasSeparateInputsAndOutputs()
     };

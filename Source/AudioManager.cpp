@@ -22,6 +22,18 @@
 #include "AudioProcessor.hpp"
 #include "Constants.hpp"
 
+juce::BigInteger const NEEDED_INPUT_CHANNELS{ [] {
+    juce::BigInteger channels{};
+    channels.setRange(0, MAX_NUM_SOURCES, true);
+    return channels;
+}() };
+
+juce::BigInteger const NEEDED_OUTPUT_CHANNELS{ [] {
+    juce::BigInteger channels{};
+    channels.setRange(0, MAX_NUM_SPEAKERS, true);
+    return channels;
+}() };
+
 //==============================================================================
 std::unique_ptr<AudioManager> AudioManager::mInstance{ nullptr };
 
@@ -39,6 +51,13 @@ AudioManager::AudioManager(juce::String const & deviceType,
 
     if (!success) {
         mAudioDeviceManager.initialiseWithDefaultDevices(MAX_NUM_SOURCES, MAX_NUM_SPEAKERS);
+
+        auto setup{ mAudioDeviceManager.getAudioDeviceSetup() };
+        setup.inputChannels = NEEDED_INPUT_CHANNELS;
+        setup.outputChannels = NEEDED_OUTPUT_CHANNELS;
+        if (mAudioDeviceManager.setAudioDeviceSetup(setup, true).isNotEmpty()) {
+            mAudioDeviceManager.initialiseWithDefaultDevices(MAX_NUM_SOURCES, MAX_NUM_SPEAKERS);
+        }
     }
 
     mRecordersThread.setPriority(9);
@@ -152,14 +171,10 @@ bool AudioManager::tryInitAudioDevice(juce::String const & deviceType,
     auto const filteredInputDevice{ filterDevice(inputDevice, true) };
     auto const filteredOutputDevice{ filterDevice(outputDevice, false) };
 
-    juce::BigInteger neededInputChannels{};
-    neededInputChannels.setRange(0, MAX_NUM_SOURCES, true);
-    juce::BigInteger neededOutputChannels{};
-    neededOutputChannels.setRange(0, MAX_NUM_SPEAKERS, true);
-    juce::AudioDeviceManager::AudioDeviceSetup const setup{ filteredOutputDevice, filteredInputDevice,
-                                                            requestedSampleRate,  requestedBufferSize,
-                                                            neededInputChannels,  false,
-                                                            neededOutputChannels, false };
+    juce::AudioDeviceManager::AudioDeviceSetup const setup{ filteredOutputDevice,   filteredInputDevice,
+                                                            requestedSampleRate,    requestedBufferSize,
+                                                            NEEDED_INPUT_CHANNELS,  false,
+                                                            NEEDED_OUTPUT_CHANNELS, false };
     auto const errorString{ mAudioDeviceManager.setAudioDeviceSetup(setup, true) };
     if (errorString.isNotEmpty()) {
         return false;
