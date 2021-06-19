@@ -24,6 +24,7 @@
 #include "MainComponent.hpp"
 #include "Narrow.hpp"
 
+//==============================================================================
 static PolarVector
     getLegalPosition(PolarVector const & vector, SpatMode const spatMode, [[maybe_unused]] int const modifiedCol)
 {
@@ -38,7 +39,7 @@ static PolarVector
     jassert(spatMode == SpatMode::lbap);
 
     auto const cartesian{ vector.toCartesian() };
-    auto const clamped{ cartesian.clamped() };
+    auto const clamped{ cartesian.clampedToFarField() };
     if (clamped == cartesian) {
         return vector;
     }
@@ -46,6 +47,7 @@ static PolarVector
     return PolarVector::fromCartesian(clamped);
 }
 
+//==============================================================================
 static CartesianVector getLegalPosition(CartesianVector const & vector, SpatMode const spatMode, int const modifiedCol)
 {
     using Col = EditSpeakersWindow::Cols;
@@ -58,7 +60,7 @@ static CartesianVector getLegalPosition(CartesianVector const & vector, SpatMode
 
     jassert(spatMode == SpatMode::lbap);
 
-    return vector.clamped();
+    return vector.clampedToFarField();
 }
 
 //==============================================================================

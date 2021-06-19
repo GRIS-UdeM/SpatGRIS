@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include "constants.hpp"
+
 #include <JuceHeader.h>
 
 #include "lib/tl/optional.hpp"
@@ -72,9 +74,11 @@ struct CartesianVector {
         return x * other.x + y * other.y + z * other.z;
     }
 
-    [[nodiscard]] constexpr CartesianVector clamped() const noexcept
+    [[nodiscard]] constexpr CartesianVector clampedToFarField() const noexcept
     {
-        return CartesianVector{ std::clamp(x, -1.0f, 1.0f), std::clamp(y, -1.0f, 1.0f), std::clamp(z, 0.0f, 1.0f) };
+        return CartesianVector{ std::clamp(x, -LBAP_EXTENDED_RADIUS, LBAP_EXTENDED_RADIUS),
+                                std::clamp(y, -LBAP_EXTENDED_RADIUS, LBAP_EXTENDED_RADIUS),
+                                std::clamp(z, 0.0f, 1.0f) };
     }
 
     [[nodiscard]] constexpr CartesianVector mean(CartesianVector const & other) const noexcept
