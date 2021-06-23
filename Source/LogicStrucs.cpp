@@ -49,6 +49,10 @@ juce::String const RecordingOptions::XmlTags::MAIN_TAG = "RECORDING_OPTIONS";
 juce::String const RecordingOptions::XmlTags::FORMAT = "FORMAT";
 juce::String const RecordingOptions::XmlTags::FILE_TYPE = "FILE_TYPE";
 
+juce::String const StereoRouting::XmlTags::MAIN_TAG = "STEREO_ROUTING";
+juce::String const StereoRouting::XmlTags::LEFT = "LEFT";
+juce::String const StereoRouting::XmlTags::RIGHT = "RIGHT";
+
 juce::String const ViewSettings::XmlTags::MAIN_TAG = "VIEW_SETTINGS";
 juce::String const ViewSettings::XmlTags::SHOW_SPEAKERS = "SHOW_SPEAKERS";
 juce::String const ViewSettings::XmlTags::SHOW_SPEAKER_NUMBERS = "SHOW_SPEAKER_NUMBERS";
@@ -269,7 +273,7 @@ std::unique_ptr<juce::XmlElement> SpeakerData::toXml(output_patch_t const output
     auto result{ std::make_unique<juce::XmlElement>(XmlTags::MAIN_TAG_PREFIX + juce::String{ outputPatch.get() }) };
 
     result->setAttribute(XmlTags::STATE, portStateToString(state));
-    result->addChildElement(position.toXml());
+    result->addChildElement(position.getCartesian().toXml());
     result->setAttribute(XmlTags::GAIN, gain.get());
     if (highpassData) {
         result->addChildElement(highpassData->toXml().release());
@@ -305,7 +309,6 @@ tl::optional<SpeakerData> SpeakerData::fromXml(juce::XmlElement const & xml) noe
     SpeakerData result{};
     result.state = *state;
     result.position = *position;
-    result.vector = PolarVector::fromCartesian(*position);
     result.gain = dbfs_t{ static_cast<float>(xml.getDoubleAttribute(XmlTags::GAIN)) };
     if (crossoverElement) {
         auto const crossover{ SpeakerHighpassData::fromXml(*crossoverElement) };
@@ -471,6 +474,31 @@ tl::optional<RecordingOptions> RecordingOptions::fromXml(juce::XmlElement const 
 }
 
 //==============================================================================
+std::unique_ptr<juce::XmlElement> StereoRouting::toXml() const
+{
+    auto result{ std::make_unique<juce::XmlElement>(XmlTags::MAIN_TAG) };
+
+    result->setAttribute(XmlTags::LEFT, left.get());
+    result->setAttribute(XmlTags::RIGHT, right.get());
+
+    return result;
+}
+
+//==============================================================================
+tl::optional<StereoRouting> StereoRouting::fromXml(juce::XmlElement const & xml)
+{
+    if (xml.getTagName() != XmlTags::MAIN_TAG || !xml.hasAttribute(XmlTags::LEFT)
+        || !xml.hasAttribute(XmlTags::RIGHT)) {
+        return tl::nullopt;
+    }
+
+    StereoRouting result;
+    result.left = output_patch_t{ xml.getIntAttribute(XmlTags::LEFT, 1) };
+    result.right = output_patch_t{ xml.getIntAttribute(XmlTags::RIGHT, 2) };
+    return result;
+}
+
+//==============================================================================
 std::unique_ptr<juce::XmlElement> ViewSettings::toXml() const
 {
     auto result{ std::make_unique<juce::XmlElement>(XmlTags::MAIN_TAG) };
@@ -604,6 +632,7 @@ std::unique_ptr<juce::XmlElement> SpatGrisAppData::toXml() const
     result->addChildElement(recordingOptions.toXml().release());
     result->addChildElement(cameraElement.release());
     result->addChildElement(viewSettings.toXml().release());
+    result->addChildElement(stereoRouting.toXml().release());
 
     result->setAttribute(XmlTags::LAST_SPEAKER_SETUP, lastSpeakerSetup);
     result->setAttribute(XmlTags::LAST_PROJECT, lastProject);
@@ -634,9 +663,10 @@ tl::optional<SpatGrisAppData> SpatGrisAppData::fromXml(juce::XmlElement const & 
     auto const * recordingOptionsElement{ xml.getChildByName(RecordingOptions::XmlTags::MAIN_TAG) };
     auto const * cameraElement{ xml.getChildByName(XmlTags::CAMERA) };
     auto const * viewSettingsElement{ xml.getChildByName(ViewSettings::XmlTags::MAIN_TAG) };
+    auto const * stereoRoutingElement{ xml.getChildByName(StereoRouting::XmlTags::MAIN_TAG) };
 
     if (xml.getTagName() != XmlTags::MAIN_TAG || !audioSettingsElement || !recordingOptionsElement || !cameraElement
-        || !viewSettingsElement
+        || !viewSettingsElement || !stereoRoutingElement
         || !std::all_of(requiredTags.begin(), requiredTags.end(), [&](juce::String const & tag) {
                return xml.hasAttribute(tag);
            })) {
@@ -653,8 +683,9 @@ tl::optional<SpatGrisAppData> SpatGrisAppData::fromXml(juce::XmlElement const & 
     auto const cameraPosition{ CartesianVector::fromXml(*cameraPositionElement) };
     auto const viewSettings{ ViewSettings::fromXml(*viewSettingsElement) };
     auto const lastStereoMode{ stringToStereoMode(xml.getStringAttribute(XmlTags::LAST_STEREO_MODE)) };
+    auto const stereoRouting{ StereoRouting::fromXml(*stereoRoutingElement) };
 
-    if (!audioSettings || !recordingOptions || !cameraPosition || !viewSettings) {
+    if (!audioSettings || !recordingOptions || !cameraPosition || !viewSettings || !stereoRouting) {
         return tl::nullopt;
     }
 
@@ -663,6 +694,7 @@ tl::optional<SpatGrisAppData> SpatGrisAppData::fromXml(juce::XmlElement const & 
     result.audioSettings = *audioSettings;
     result.recordingOptions = *recordingOptions;
     result.stereoMode = lastStereoMode;
+    result.stereoRouting = *stereoRouting;
 
     result.lastSpeakerSetup = xml.getStringAttribute(XmlTags::LAST_SPEAKER_SETUP);
     result.lastProject = xml.getStringAttribute(XmlTags::LAST_PROJECT);
@@ -686,8 +718,8 @@ std::unique_ptr<juce::XmlElement> SpeakerSetup::toXml() const
     result->setAttribute(XmlTags::VERSION, SPAT_GRIS_VERSION.toString());
     result->setAttribute(XmlTags::SPAT_MODE, spatModeToString(spatMode));
 
-    jassert(order.size() == speakers.size());
-    for (auto const outputPatch : order) {
+    jassert(ordering.size() == speakers.size());
+    for (auto const outputPatch : ordering) {
         result->addChildElement(speakers[outputPatch].toXml(outputPatch).release());
     }
 
@@ -715,7 +747,7 @@ tl::optional<SpeakerSetup> SpeakerSetup::fromXml(juce::XmlElement const & xml)
         output_patch_t const outputPatch{
             tagName.substring(SpeakerData::XmlTags::MAIN_TAG_PREFIX.length()).getIntValue()
         };
-        result->order.add(outputPatch);
+        result->ordering.add(outputPatch);
         auto const speakerData{ SpeakerData::fromXml(*speaker) };
         if (!speakerData) {
             return tl::nullopt;
@@ -730,14 +762,14 @@ tl::optional<SpeakerSetup> SpeakerSetup::fromXml(juce::XmlElement const & xml)
 //==============================================================================
 bool SpeakerSetup::operator==(SpeakerSetup const & other) const noexcept
 {
-    return other.order == order && other.speakers == speakers && other.spatMode == spatMode;
+    return other.ordering == ordering && other.speakers == speakers && other.spatMode == spatMode;
 }
 
 //==============================================================================
 bool SpeakerSetup::isDomeLike() const noexcept
 {
     return std::all_of(speakers.cbegin(), speakers.cend(), [](SpeakersData::ConstNode const & node) {
-        return node.value->isDirectOutOnly || juce::isWithin(node.value->vector.length, 1.0f, 0.02f);
+        return node.value->isDirectOutOnly || juce::isWithin(node.value->position.getPolar().length, 1.0f, 0.02f);
     });
 }
 
@@ -812,10 +844,12 @@ std::unique_ptr<AudioConfig> SpatGrisData::toAudioConfig() const
         result->sourcesAudioConfig.add(source.key, source.value->toConfig(isAtLeastOneSourceSolo));
     }
     result->spatMode = speakerSetup.spatMode;
-    result->stereoMode = appData.stereoMode;
     result->spatGainsInterpolation = project.spatGainsInterpolation;
 
     if (appData.stereoMode) {
+        result->stereoConfig
+            = StereoConfig{ *appData.stereoMode, appData.stereoRouting.left, appData.stereoRouting.right };
+
         // direct outs are ignored in stereo mode
         result->directOutPairs.clearQuick();
 

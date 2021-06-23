@@ -24,14 +24,14 @@
 VbapType getVbapType(SpeakersData const & speakers)
 {
     auto const firstSpeaker{ *speakers.begin() };
-    auto const firstZenith{ firstSpeaker.value->vector.elevation };
+    auto const firstZenith{ firstSpeaker.value->position.getPolar().elevation };
     auto const minZenith{ firstZenith - degrees_t{ 4.9f } };
     auto const maxZenith{ firstZenith + degrees_t{ 4.9f } };
 
     auto const areSpeakersOnSamePlane{ std::all_of(speakers.cbegin(),
                                                    speakers.cend(),
                                                    [&](SpeakersData::ConstNode const node) {
-                                                       auto const zenith{ node.value->vector.elevation };
+                                                       auto const zenith{ node.value->position.getPolar().elevation };
                                                        return zenith < maxZenith && zenith > minZenith;
                                                    }) };
     return areSpeakersOnSamePlane ? VbapType::twoD : VbapType::threeD;
@@ -42,7 +42,7 @@ VbapSpatAlgorithm::VbapSpatAlgorithm(SpeakersData const & speakers)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    std::array<LoudSpeaker, MAX_NUM_SPEAKERS> loudSpeakers{};
+    std::array<Position, MAX_NUM_SPEAKERS> loudSpeakers{};
     std::array<output_patch_t, MAX_NUM_SPEAKERS> outputPatches{};
     size_t index{};
     for (auto const & speaker : speakers) {
@@ -50,8 +50,7 @@ VbapSpatAlgorithm::VbapSpatAlgorithm(SpeakersData const & speakers)
             continue;
         }
 
-        loudSpeakers[index].coords = speaker.value->position;
-        loudSpeakers[index].angles = speaker.value->vector;
+        loudSpeakers[index] = speaker.value->position;
         outputPatches[index] = speaker.key;
         ++index;
     }
@@ -70,7 +69,7 @@ void VbapSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, SourceD
     auto * ticket{ spatDataQueue.acquire() };
     auto & gains{ ticket->get() };
 
-    if (sourceData.vector) {
+    if (sourceData.position) {
         vbapCompute(sourceData, gains, *mSetupData);
     } else {
         gains = SpeakersSpatGains{};
@@ -204,7 +203,7 @@ std::unique_ptr<AbstractSpatAlgorithm> VbapSpatAlgorithm::make(SpeakerSetup cons
         if (speaker.value->isDirectOutOnly) {
             continue;
         }
-        angles.add(speaker.value->vector.azimuth.centered());
+        angles.add(speaker.value->position.getPolar().azimuth.balanced());
     }
 
     angles.sort();

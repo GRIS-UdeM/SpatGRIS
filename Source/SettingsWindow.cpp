@@ -97,7 +97,7 @@ SettingsComponent::SettingsComponent(MainContentComponent & parent, int const os
     addAndMakeVisible(mOscInputPortTextEditor);
 
     //==============================================================================
-    mSaveSettingsButton.setButtonText("Save");
+    mSaveSettingsButton.setButtonText("Close");
     mSaveSettingsButton.setBounds(0, 0, RIGHT_COL_WIDTH / 2, COMPONENT_HEIGHT);
     mSaveSettingsButton.addListener(this);
     mSaveSettingsButton.setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
@@ -235,6 +235,8 @@ void SettingsComponent::comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged)
 {
     auto & audioDeviceManager{ AudioManager::getInstance().getAudioDeviceManager() };
     auto setup{ audioDeviceManager.getAudioDeviceSetup() };
+    setup.inputChannels = NEEDED_INPUT_CHANNELS;
+    setup.outputChannels = NEEDED_OUTPUT_CHANNELS;
     auto const hasSeparateInputsAndOutputs{
         audioDeviceManager.getCurrentDeviceTypeObject()->hasSeparateInputsAndOutputs()
     };

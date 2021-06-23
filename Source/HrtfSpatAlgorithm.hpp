@@ -27,6 +27,8 @@
 struct HrtfData {
     SpeakersAudioConfig speakersAudioConfig{};
     SpeakerAudioBuffer speakersBuffer{};
+    StrongArray<output_patch_t, bool, MAX_NUM_SPEAKERS> hadSoundLastBlock{};
+    StereoRouting routing{};
 };
 
 //==============================================================================
@@ -40,6 +42,7 @@ public:
     //==============================================================================
     HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup,
                       SourcesData const & sources,
+                      StereoRouting const & stereoRouting,
                       double sampleRate,
                       int bufferSize);
     //==============================================================================
@@ -58,10 +61,11 @@ public:
                  SourcePeaks const & sourcePeaks,
                  SpeakersAudioConfig const * altSpeakerConfig) override;
     [[nodiscard]] juce::Array<Triplet> getTriplets() const noexcept override;
-    [[nodiscard]] bool hasTriplets() const noexcept override;
+    [[nodiscard]] bool hasTriplets() const noexcept override { return false; }
     //==============================================================================
     static std::unique_ptr<AbstractSpatAlgorithm> make(SpeakerSetup const & speakerSetup,
                                                        SourcesData const & sources,
+                                                       StereoRouting const & routing,
                                                        double sampleRate,
                                                        int bufferSize,
                                                        juce::Component * parent);

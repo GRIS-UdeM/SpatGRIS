@@ -20,6 +20,7 @@
 #include "LegacySpatFileFormat.hpp"
 
 #include "LegacyLbapPosition.hpp"
+#include "LogicStrucs.hpp"
 
 //==============================================================================
 tl::optional<SpeakerSetup> readLegacySpeakerSetup(juce::XmlElement const & xml)
@@ -60,9 +61,9 @@ tl::optional<SpeakerSetup> readLegacySpeakerSetup(juce::XmlElement const & xml)
                         degrees_t{ static_cast<float>(spk->getDoubleAttribute("Zenith", 0.0)) }.centered()
                     };
                     auto const length{ static_cast<float>(spk->getDoubleAttribute("Radius", 1.0)) };
-                    auto const vector{ spatMode == SpatMode::lbap
-                                           ? LegacyLbapPosition{ azimuth, zenith, length }.toPolar()
-                                           : PolarVector{ azimuth, zenith, length } };
+                    auto const position{ spatMode == SpatMode::lbap
+                                             ? LegacyLbapPosition{ azimuth, zenith, length }.toPosition()
+                                             : Position{ PolarVector{ azimuth, zenith, length } } };
 
                     // audio params
                     dbfs_t const gain{ static_cast<float>(spk->getDoubleAttribute("Gain", 0.0)) };
@@ -71,8 +72,7 @@ tl::optional<SpeakerSetup> readLegacySpeakerSetup(juce::XmlElement const & xml)
 
                     // build data
                     auto speakerData{ std::make_unique<SpeakerData>() };
-                    speakerData->vector = vector;
-                    speakerData->position = vector.toCartesian();
+                    speakerData->position = position;
                     speakerData->gain = gain;
                     speakerData->highpassData
                         = (highpass == hz_t{} ? tl::optional<SpeakerHighpassData>{} : SpeakerHighpassData{ highpass });
@@ -116,10 +116,10 @@ tl::optional<SpeakerSetup> readLegacySpeakerSetup(juce::XmlElement const & xml)
     }
     duplicatedSpeakers.clearQuick(false);
 
-    result.order.resize(layout.size());
+    result.ordering.resize(layout.size());
     std::transform(layout.begin(),
                    layout.end(),
-                   result.order.begin(),
+                   result.ordering.begin(),
                    [](std::pair<int, output_patch_t> const & indexOutputPair) { return indexOutputPair.second; });
 
     auto const getCorrectedSpatMode = [&]() {

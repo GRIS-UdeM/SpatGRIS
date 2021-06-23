@@ -39,7 +39,7 @@ struct LbapSourceData {
 //==============================================================================
 class LbapSpatAlgorithm final : public AbstractSpatAlgorithm
 {
-    mField mField{};
+    LbapField mField{};
     StrongArray<source_index_t, LbapSourceData, MAX_NUM_SOURCES> mData{};
 
 public:

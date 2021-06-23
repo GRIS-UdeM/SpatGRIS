@@ -26,6 +26,7 @@
 #include "SpatModeComponent.hpp"
 #include "SpatSlider.hpp"
 #include "SpatTextEditor.hpp"
+#include "StereoPatchSelectionComponent.hpp"
 #include "StrongTypes.hpp"
 #include "TitledComponent.hpp"
 
@@ -37,6 +38,7 @@ class ControlPanel final
     , public SpatSlider::Listener
     , public SpatTextEditor::Listener
     , public RecordButton::Listener
+    , public StereoPatchSelectionComponent::Listener
 {
     static constexpr auto PADDING = 5;
 
@@ -61,6 +63,7 @@ public:
         virtual void cubeAttenuationHzChanged(hz_t value) = 0;
         virtual void numSourcesChanged(int numSources) = 0;
         virtual void recordButtonPressed() = 0;
+        virtual void stereoRoutingChanged(StereoRouting const & routing) = 0;
 
     private:
         //==============================================================================
@@ -87,6 +90,7 @@ private:
     };
     SpatModeComponent mSpatModeComponent{ *this, mLookAndFeel };
     AttenuationSettingsComponent mCubeSettingsComponent{ *this, mLookAndFeel };
+    StereoPatchSelectionComponent mStereoRoutingComponent{ *this, mLookAndFeel };
     SpatTextEditor mNumSourcesTextEditor{ "Sources:", "Number of available sources", *this, mLookAndFeel };
     RecordButton mRecordButton{ *this, mLookAndFeel };
 
@@ -108,6 +112,8 @@ public:
     void setCubeAttenuationHz(hz_t value);
     void setNumSources(int numSources);
     void setRecordButtonState(RecordButton::State state);
+    void setStereoRouting(StereoRouting const & routing);
+    void updateSpeakers(SpeakersOrdering ordering, StereoRouting const & routing);
     //==============================================================================
     void resized() override;
     int getMinWidth() const noexcept override { return mLayout.getMinWidth(); }
@@ -119,6 +125,7 @@ public:
     void recordButtonPressed() override;
     void cubeAttenuationDbChanged(dbfs_t value) override;
     void cubeAttenuationHzChanged(hz_t value) override;
+    void handleStereoRoutingChanged(StereoRouting const & routing) override;
 
 private:
     //==============================================================================

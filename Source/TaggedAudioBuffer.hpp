@@ -66,6 +66,8 @@ public:
         }
     }
     //==============================================================================
+    [[nodiscard]] bool contains(key_type const key) const noexcept { return mBuffers.contains(key); }
+    //==============================================================================
     [[nodiscard]] int size() const { return mBuffers.size(); }
     //==============================================================================
     void silence()

@@ -27,6 +27,9 @@
 
 class AudioProcessor;
 
+extern juce::BigInteger const NEEDED_INPUT_CHANNELS;
+extern juce::BigInteger const NEEDED_OUTPUT_CHANNELS;
+
 //==============================================================================
 class AudioManager final : juce::AudioSourcePlayer
 {

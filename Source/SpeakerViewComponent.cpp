@@ -260,11 +260,12 @@ void SpeakerViewComponent::clickRay()
     tl::optional<output_patch_t> iBestSpeaker{};
     auto const & speakers{ mData.config.speakers };
     for (auto const speaker : speakers) {
-        if (rayCast(speaker.value.position) != -1.0f) {
+        if (rayCast(speaker.value.position.getCartesian()) != -1.0f) {
             if (!iBestSpeaker) {
                 iBestSpeaker = speaker.key;
             } else {
-                if (speakerNearCam(speaker.value.position, speakers[*iBestSpeaker].position)) {
+                if (speakerNearCam(speaker.value.position.getCartesian(),
+                                   speakers[*iBestSpeaker].position.getCartesian())) {
                     iBestSpeaker = speaker.key;
                 }
             }
@@ -312,9 +313,9 @@ void SpeakerViewComponent::mouseDrag(const juce::MouseEvent & e)
         auto const delta{ (e.getPosition().toFloat() - mData.state.panMouseOrigin) };
 
         mData.state.cameraPosition.azimuth
-            = (mData.state.panCameraOrigin.azimuth - radians_t{ delta.x / CAM_SLOW_DOWN }).centered();
+            = (mData.state.panCameraOrigin.azimuth - radians_t{ delta.x / CAM_SLOW_DOWN }).balanced();
         mData.state.cameraPosition.elevation
-            = std::clamp((mData.state.panCameraOrigin.elevation + radians_t{ delta.y / CAM_SLOW_DOWN }).centered(),
+            = std::clamp((mData.state.panCameraOrigin.elevation + radians_t{ delta.y / CAM_SLOW_DOWN }).balanced(),
                          -NEARLY_90_DEG,
                          NEARLY_90_DEG);
     }
@@ -541,9 +542,9 @@ void SpeakerViewComponent::drawTripletConnection() const
     ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD;
 
     for (auto const & triplet : mData.state.triplets) {
-        auto const & spk1{ mData.config.speakers[triplet.id1].position };
-        auto const & spk2{ mData.config.speakers[triplet.id2].position };
-        auto const & spk3{ mData.config.speakers[triplet.id3].position };
+        auto const & spk1{ mData.config.speakers[triplet.id1].position.getCartesian() };
+        auto const & spk2{ mData.config.speakers[triplet.id2].position.getCartesian() };
+        auto const & spk3{ mData.config.speakers[triplet.id3].position.getCartesian() };
 
         glLineWidth(1.0f);
         glBegin(GL_LINES);
@@ -569,7 +570,7 @@ void SpeakerViewComponent::drawSource(source_index_t const index, ViewportSource
 
     // Draw 3D sphere.
     glPushMatrix();
-    auto const & pos{ source.position };
+    auto const & pos{ source.position.getCartesian() };
     glTranslatef(pos.x, pos.y, pos.z);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glLineWidth(2.0f);
@@ -600,7 +601,7 @@ void SpeakerViewComponent::drawSource(source_index_t const index, ViewportSource
     glPopMatrix();
 
     if (mData.config.viewSettings.showSpeakerNumbers) {
-        auto position{ source.position };
+        auto position{ source.position.getCartesian() };
         position.y += SIZE_SPEAKER + 0.04f;
         drawText(juce::String{ index.get() }, position, source.colour, 0.0003f, true);
     }
@@ -616,22 +617,18 @@ void SpeakerViewComponent::drawVbapSpan(ViewportSourceData const & source)
     glPointSize(4);
     glBegin(GL_POINTS);
 
-    auto const polarCoords{ PolarVector::fromCartesian(source.position) };
-    auto const & azimuth{ polarCoords.azimuth };
-    auto const & elevation{ polarCoords.elevation };
-    auto const & length{ polarCoords.length };
+    auto const position{ source.position };
+    auto const & azimuth{ position.getPolar().azimuth };
+    auto const & elevation{ position.getPolar().elevation };
+    auto const & length{ position.getPolar().length };
 
     for (int i{}; i < NUM; ++i) {
         radians_t const aziDev{ source.azimuthSpan * narrow<float>(i) * 0.42f };
         for (int j{}; j < 2; ++j) {
-            auto newAzimuth{ j ? azimuth + aziDev : azimuth - aziDev };
-
-            newAzimuth = newAzimuth.centered();
+            auto const newAzimuth{ j ? azimuth + aziDev : azimuth - aziDev };
 
             {
-                auto const vertex{
-                    PolarVector{ newAzimuth, elevation, polarCoords.length * MAX_RADIUS }.toCartesian()
-                };
+                auto const vertex{ source.position.getPolar().withBalancedAzimuth(newAzimuth).toCartesian() };
                 glVertex3f(vertex.x, vertex.y, vertex.z);
             }
             for (int k{}; k < 4; ++k) {
@@ -722,7 +719,7 @@ void SpeakerViewComponent::drawLbapSpan(ViewportSourceData const & source)
     glPointSize(4);
     glBegin(GL_POINTS);
 
-    auto const & pos{ source.position };
+    auto const & pos{ source.position.getCartesian() };
 
     // For the same elevation as the source position.
     for (auto i{ 1 }; i <= NUM; ++i) {
@@ -797,8 +794,8 @@ void SpeakerViewComponent::drawSpeaker(output_patch_t const outputPatch, Viewpor
         return COLOR_SPEAKER.withAlpha(alpha);
     };
 
-    auto const & center{ speaker.position };
-    auto const vector{ PolarVector::fromCartesian(speaker.position) };
+    auto const & center{ speaker.position.getCartesian() };
+    auto const & vector{ speaker.position.getPolar() };
 
     glPushMatrix();
     glTranslatef(center.x, center.y, center.z);
@@ -909,7 +906,7 @@ void SpeakerViewComponent::drawSpeaker(output_patch_t const outputPatch, Viewpor
     glPopMatrix();
 
     if (mData.config.viewSettings.showSpeakerNumbers) {
-        auto posT{ speaker.position };
+        auto posT{ speaker.position.getCartesian() };
         posT.z += SIZE_SPEAKER + 0.04f;
         drawText(juce::String{ outputPatch.get() }, posT, juce::Colours::black, 0.0003f);
     }

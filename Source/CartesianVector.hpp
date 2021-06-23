@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include "constants.hpp"
+
 #include <JuceHeader.h>
 
 #include "lib/tl/optional.hpp"
@@ -36,47 +38,56 @@ struct CartesianVector {
     float x;
     float y;
     float z;
-
+    //==============================================================================
     [[nodiscard]] constexpr bool operator==(CartesianVector const & other) const noexcept
     {
         return x == other.x && y == other.y && z == other.z;
     }
-
     [[nodiscard]] constexpr bool operator!=(CartesianVector const & other) const noexcept { return !(*this == other); }
-
     [[nodiscard]] constexpr CartesianVector operator-(CartesianVector const & other) const noexcept
     {
         CartesianVector const result{ x - other.x, y - other.y, z - other.z };
         return result;
     }
-
     [[nodiscard]] constexpr CartesianVector operator/(float const scalar) const noexcept
     {
         CartesianVector const result{ x / scalar, y / scalar, z / scalar };
         return result;
     }
-
-    [[nodiscard]] float angleWith(CartesianVector const & other) const noexcept;
-
-    /* Returns the vector length without the sqrt. */
-    [[nodiscard]] constexpr float length2() const noexcept { return x * x + y * y + z * z; }
-
-    [[nodiscard]] float length() const noexcept { return std::sqrt(length2()); }
-
-    [[nodiscard]] CartesianVector crossProduct(CartesianVector const & other) const noexcept;
-
     [[nodiscard]] constexpr CartesianVector operator-() const noexcept { return CartesianVector{ -x, -y, -z }; }
-
+    //==============================================================================
+    [[nodiscard]] constexpr CartesianVector withX(float const newX) const noexcept
+    {
+        auto result{ *this };
+        result.x = newX;
+        return result;
+    }
+    [[nodiscard]] constexpr CartesianVector withY(float const newY) const noexcept
+    {
+        auto result{ *this };
+        result.y = newY;
+        return result;
+    }
+    [[nodiscard]] constexpr CartesianVector withZ(float const newZ) const noexcept
+    {
+        auto result{ *this };
+        result.z = newZ;
+        return result;
+    }
+    [[nodiscard]] constexpr CartesianVector translatedX(float const delta) const noexcept { return withX(x + delta); }
+    [[nodiscard]] constexpr CartesianVector translatedY(float const delta) const noexcept { return withY(y + delta); }
+    [[nodiscard]] constexpr CartesianVector translatedZ(float const delta) const noexcept { return withZ(z + delta); }
+    //==============================================================================
     [[nodiscard]] constexpr float dotProduct(CartesianVector const & other) const noexcept
     {
         return x * other.x + y * other.y + z * other.z;
     }
-
-    [[nodiscard]] constexpr CartesianVector clamped() const noexcept
+    [[nodiscard]] constexpr CartesianVector clampedToFarField() const noexcept
     {
-        return CartesianVector{ std::clamp(x, -1.0f, 1.0f), std::clamp(y, -1.0f, 1.0f), std::clamp(z, 0.0f, 1.0f) };
+        return CartesianVector{ std::clamp(x, -LBAP_EXTENDED_RADIUS, LBAP_EXTENDED_RADIUS),
+                                std::clamp(y, -LBAP_EXTENDED_RADIUS, LBAP_EXTENDED_RADIUS),
+                                std::clamp(z, 0.0f, 1.0f) };
     }
-
     [[nodiscard]] constexpr CartesianVector mean(CartesianVector const & other) const noexcept
     {
         auto const newX{ (x + other.x) * 0.5f };
@@ -86,7 +97,13 @@ struct CartesianVector {
         CartesianVector const result{ newX, newY, newZ };
         return result;
     }
-
+    [[nodiscard]] juce::Point<float> discardZ() const noexcept { return juce::Point<float>{ x, y }; }
+    //==============================================================================
+    [[nodiscard]] float angleWith(CartesianVector const & other) const noexcept;
+    [[nodiscard]] constexpr float length2() const noexcept { return x * x + y * y + z * z; }
+    [[nodiscard]] float length() const noexcept { return std::sqrt(length2()); }
+    [[nodiscard]] CartesianVector crossProduct(CartesianVector const & other) const noexcept;
+    //==============================================================================
     [[nodiscard]] juce::XmlElement * toXml() const noexcept
     {
         auto result{ std::make_unique<juce::XmlElement>(XmlTags::MAIN_TAG) };
@@ -95,9 +112,7 @@ struct CartesianVector {
         result->setAttribute(XmlTags::Z, z);
         return result.release();
     }
-
-    [[nodiscard]] juce::Point<float> discardZ() const noexcept { return juce::Point<float>{ x, y }; }
-
+    //==============================================================================
     [[nodiscard]] static tl::optional<CartesianVector> fromXml(juce::XmlElement const & xml)
     {
         juce::StringArray const requiredTags{ XmlTags::X, XmlTags::Y, XmlTags::Z };
@@ -116,3 +131,5 @@ struct CartesianVector {
         return result;
     }
 };
+
+static_assert(std::is_trivially_destructible_v<CartesianVector>);

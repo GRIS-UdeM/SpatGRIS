@@ -198,7 +198,7 @@ public:
     explicit constexpr radians_t(type const & value) : StrongFloat(value) {}
     constexpr radians_t(degrees_t const & degrees) : StrongFloat(degrees.get() * RADIAN_PER_DEGREE) {}
     //==============================================================================
-    [[nodiscard]] constexpr radians_t centered() const noexcept
+    [[nodiscard]] constexpr radians_t balanced() const noexcept
     {
         return centeredAroundZero(juce::MathConstants<type>::twoPi);
     }

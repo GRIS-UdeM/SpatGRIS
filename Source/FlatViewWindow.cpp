@@ -155,12 +155,12 @@ void FlatViewWindow::drawSource(juce::Graphics & g,
     auto const getSourcePosition = [&]() {
         switch (spatMode) {
         case SpatMode::vbap: {
-            auto const & vector{ PolarVector::fromCartesian(sourceData.position) };
+            auto const & vector{ sourceData.position.getPolar() };
             auto const radius{ 1.0f - vector.elevation / HALF_PI };
             return juce::Point<float>{ std::cos(vector.azimuth.get()), -std::sin(vector.azimuth.get()) } * radius;
         }
         case SpatMode::lbap: {
-            auto const & position{ sourceData.position };
+            auto const & position{ sourceData.position.getCartesian() };
             return juce::Point<float>{ position.x, -position.y } / LBAP_EXTENDED_RADIUS;
         }
         }
@@ -243,7 +243,7 @@ void FlatViewWindow::drawSourceVbapSpan(juce::Graphics & g, ViewportSourceData c
     auto const halfRealSize{ realSize / 2.0f };
 
     // Radius
-    auto const vector{ PolarVector::fromCartesian(sourceData.position) };
+    auto const vector{ sourceData.position.getPolar() };
     auto const relativeElevation{ vector.elevation / HALF_PI };
     auto const halfElevationSpan{ sourceData.zenithSpan };
     auto const innerRadius{ 1.0f - std::min(relativeElevation + halfElevationSpan, 0.999f) };

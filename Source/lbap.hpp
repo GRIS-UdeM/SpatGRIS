@@ -56,67 +56,29 @@ using matrix_t = std::array<std::array<float, LBAP_MATRIX_SIZE + 1>, LBAP_MATRIX
  * at 0) used by the field to properly order the output signals.
  */
 struct LbapSpeaker {
-    PolarVector vector{};
-    output_patch_t outputPatch{}; /**< Physical output id. */
+    Position position{};
+    output_patch_t outputPatch{};
 };
 
-/** \brief A structure containing coordinates of a point in the field.
- *
- * This structure is used by other functions of the framework to compute
- * the position of the speakers and the sources in the field. It is the
- * responsibility of the user to provide angular coordinates (`azi`, `ele`
- * and `rad`) values. parameters `azi` (-pi .. pi) and `ele` (0 .. pi/2)
- * must be given in radians and parameter `rad` (the length of the vector)
- * is in the range 0 to 1.
- *
- * The user should never give values to the cartesian coordinates (`x`, `y`
- * and `z`), the framework will automatically fill these values according
- * to the angular coordinates.
- */
-struct LbapPosition {
-    PolarVector vector{};
-    CartesianVector position{};
-    float azimuthSpan{};
-    float zenithSpan{};
-
-    [[nodiscard]] constexpr bool operator==(LbapPosition const & other) const noexcept
-    {
-#ifndef __APPLE__
-        jassert((vector == other.vector) == (position == other.position));
-#endif
-        return vector == other.vector && azimuthSpan == other.azimuthSpan && zenithSpan == other.zenithSpan;
-    }
-    [[nodiscard]] constexpr bool operator!=(LbapPosition const & other) const noexcept { return !(*this == other); }
-};
-
-/* =================================================================================
-Opaque data type declarations.
-================================================================================= */
-
+//==============================================================================
 using matrix_t = std::array<std::array<float, LBAP_MATRIX_SIZE + 1>, LBAP_MATRIX_SIZE + 1>;
 
-struct lbap_layer {
-    int id;                                /**< Layer id. */
-    radians_t elevation;                   /**< Elevation of the layer in the range 0 .. pi/2. */
-    float gainExponent;                    /**< Speaker gain exponent for 4+ speakers. */
-    std::vector<matrix_t> amplitudeMatrix; /**< Arrays of amplitude values [spk][x][y]. */
-    std::vector<LbapPosition> speakers;    /**< Array of speakers. */
+//==============================================================================
+struct LbapLayer {
+    int id;                                 /**< Layer id. */
+    float height;                           /**< Elevation of the layer in the range 0 .. 1. */
+    float gainExponent;                     /**< Speaker gain exponent for 4+ speakers. */
+    std::vector<matrix_t> amplitudeMatrix;  /**< Arrays of amplitude values [spk][x][y]. */
+    std::vector<Position> speakerPositions; /**< Array of speakers. */
 };
 
-struct mField {
+//==============================================================================
+struct LbapField {
     std::vector<output_patch_t> outputOrder; /**< Physical output order. */
-    std::vector<lbap_layer> layers;          /**< Array of layers. */
-    [[nodiscard]] size_t getNumSpeakers() const
-    {
-        return std::reduce(layers.cbegin(), layers.cend(), size_t{}, [](size_t const sum, lbap_layer const & layer) {
-            return sum + layer.speakers.size();
-        });
-    }
-    void reset()
-    {
-        outputOrder.clear();
-        layers.clear();
-    }
+    std::vector<LbapLayer> layers;           /**< Array of layers. */
+    //==============================================================================
+    [[nodiscard]] size_t getNumSpeakers() const;
+    void reset();
 };
 
 /** \brief Creates the field's layers according to the position of speakers.
@@ -125,7 +87,7 @@ struct mField {
  * speakers given as `speakers` argument. The argument `num` is the number of
  * speakers passed to the function.
  */
-mField lbapInit(SpeakersData const & speakers);
+LbapField lbapInit(SpeakersData const & speakers);
 
 /** \brief Calculates the gain of the outputs for a source's position.
  *
@@ -135,4 +97,4 @@ mField lbapInit(SpeakersData const & speakers);
  * memory. This array can be passed to the audio processing function
  * to control the gain of the signal outputs.
  */
-void lbap(SourceData const & source, SpeakersSpatGains & gains, mField const & field);
+void lbap(SourceData const & source, SpeakersSpatGains & gains, LbapField const & field);

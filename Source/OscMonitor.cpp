@@ -22,35 +22,38 @@
 #include "GrisLookAndFeel.hpp"
 #include "MainComponent.hpp"
 
-static constexpr auto DEFAULT_WIDTH = 500;
+static constexpr auto DEFAULT_WIDTH = 800;
 static constexpr auto DEFAULT_HEIGHT = 500;
 
+//==============================================================================
+juce::String argumentToString(juce::OSCArgument const & argument) noexcept
+{
+    if (argument.isFloat32()) {
+        return juce::String{ argument.getFloat32() };
+    }
+    if (argument.isInt32()) {
+        return juce::String{ argument.getInt32() };
+    }
+    if (argument.isString()) {
+        return argument.getString();
+    }
+    return "<INVALID TYPE>";
+}
+
+//==============================================================================
 juce::String messageToString(juce::OSCMessage const & message)
 {
-    static juce::String const INVALID = "<INVALID FORMAT>\n";
     static constexpr auto SEPARATOR{ ", " };
 
-    auto const isValidPosition{ message.size() == 7 && message.begin()->isInt32()
-                                && std::all_of(message.begin() + 1, message.end(), [](juce::OSCArgument const & arg) {
-                                       return arg.isFloat32();
-                                   }) };
+    auto const currentTime{ juce::String{ "[" } + juce::String{ juce::Time::currentTimeMillis() } + "ms] " };
 
-    auto const isValidResetCommand{ message.size() == 2 && message[0].isString() && message[1].isInt32() };
+    auto result{ currentTime + message.getAddressPattern().toString() };
 
-    if (!isValidPosition && !isValidResetCommand) {
-        return INVALID;
+    for (auto const & argument : message) {
+        result += SEPARATOR + argumentToString(argument);
     }
 
-    auto const currentTime{ juce::String{ "[" } + juce::String{ juce::Time::currentTimeMillis() } + "] : " };
-
-    if (isValidResetCommand) {
-        return currentTime + message[0].getString() + SEPARATOR + juce::String{ message[1].getInt32() } + '\n';
-    }
-
-    auto const extract = [&](int const index) { return SEPARATOR + juce::String{ message[index].getFloat32() }; };
-
-    return currentTime + juce::String{ message[0].getInt32() } + extract(1) + extract(2) + extract(3) + extract(4)
-           + extract(5) + extract(6) + '\n';
+    return result;
 }
 
 //==============================================================================
@@ -60,7 +63,6 @@ OscMonitorComponent::OscMonitorComponent()
     mTextEditor.setBorder(juce::BorderSize<int>{ 3 });
     mTextEditor.setMultiLine(true, false);
     mTextEditor.setScrollbarsShown(true);
-    // mTextEditor.setWantsKeyboardFocus(false);
     addAndMakeVisible(mTextEditor);
 
     mRecordButton.setClickingTogglesState(true);
@@ -77,7 +79,7 @@ void OscMonitorComponent::addMessage(juce::OSCMessage const & message)
     juce::MessageManagerLock const mml{};
 
     mTextEditor.setCaretPosition(mTextEditor.getText().length());
-    mTextEditor.insertTextAtCaret(messageToString(message));
+    mTextEditor.insertTextAtCaret(messageToString(message) + '\n');
 }
 
 //==============================================================================

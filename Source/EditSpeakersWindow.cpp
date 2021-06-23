@@ -24,40 +24,22 @@
 #include "MainComponent.hpp"
 #include "Narrow.hpp"
 
-static PolarVector getLegalPosition(PolarVector const & vector, SpatMode const spatMode, int const modifiedCol)
+//==============================================================================
+static Position getLegalPosition(Position position,
+                                 SpatMode const spatMode,
+                                 bool const isDirectOutOnly,
+                                 [[maybe_unused]] int const modifiedCol)
 {
     using Col = EditSpeakersWindow::Cols;
 
-    jassert(modifiedCol == Col::AZIMUTH || modifiedCol == Col::ELEVATION || modifiedCol == Col::DISTANCE);
+    jassert(modifiedCol == Col::AZIMUTH || modifiedCol == Col::ELEVATION || modifiedCol == Col::DISTANCE
+            || modifiedCol == Col::X || modifiedCol == Col::Y || modifiedCol == Col::Z);
 
-    if (spatMode == SpatMode::vbap) {
-        return vector.normalized();
+    if (spatMode == SpatMode::vbap && !isDirectOutOnly) {
+        return position = position.getPolar().normalized();
     }
 
-    jassert(spatMode == SpatMode::lbap);
-
-    auto const cartesian{ vector.toCartesian() };
-    auto const clamped{ cartesian.clamped() };
-    if (clamped == cartesian) {
-        return vector;
-    }
-
-    return PolarVector::fromCartesian(clamped);
-}
-
-static CartesianVector getLegalPosition(CartesianVector const & vector, SpatMode const spatMode, int const modifiedCol)
-{
-    using Col = EditSpeakersWindow::Cols;
-
-    jassert(modifiedCol == Col::X || modifiedCol == Col::Y || modifiedCol == Col::Z);
-
-    if (spatMode == SpatMode::vbap) {
-        return PolarVector::fromCartesian(vector).normalized().toCartesian();
-    }
-
-    jassert(spatMode == SpatMode::lbap);
-
-    return vector.clamped();
+    return position = position.getCartesian().clampedToFarField();
 }
 
 //==============================================================================
@@ -356,19 +338,20 @@ void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const 
     JUCE_ASSERT_MESSAGE_THREAD;
 
     static auto const EXTRACT_VALUE = [](SpeakersData::ConstNode const & speaker, int const sortColumn) -> float {
+        auto const & position{ speaker.value->position };
         switch (sortColumn) {
         case Cols::X:
-            return speaker.value->position.x;
+            return position.getCartesian().x;
         case Cols::Y:
-            return speaker.value->position.y;
+            return position.getCartesian().y;
         case Cols::Z:
-            return speaker.value->position.z;
+            return position.getCartesian().z;
         case Cols::AZIMUTH:
-            return speaker.value->vector.azimuth.get();
+            return position.getPolar().azimuth.get();
         case Cols::ELEVATION:
-            return speaker.value->vector.elevation.get();
+            return position.getPolar().elevation.get();
         case Cols::DISTANCE:
-            return speaker.value->vector.length;
+            return position.getPolar().length;
         case Cols::OUTPUT_PATCH:
             return static_cast<float>(speaker.key.get());
         default:
@@ -440,17 +423,18 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
 
     if (button == &mAddSpeakerButton) {
         // Add speaker button
-        if (!selectedRow) {
-            auto const newOutputPatch{ mMainContentComponent.addSpeaker(tl::nullopt, tl::nullopt) };
-            updateWinContent();
-            /*mSpeakersTableListBox.selectRow(getNumRows() - 1);*/
-            selectSpeaker(newOutputPatch);
-        } else {
-            auto const newOutputPatch{ mMainContentComponent.addSpeaker(getSpeakerOutputPatchForRow(*selectedRow),
-                                                                        *selectedRow) };
-            updateWinContent();
-            selectSpeaker(newOutputPatch);
+        tl::optional<output_patch_t> outputPatch{};
+        tl::optional<int> index{};
+
+        if (selectedRow) {
+            outputPatch = getSpeakerOutputPatchForRow(*selectedRow);
+            index = *selectedRow;
         }
+
+        auto const newOutputPatch{ mMainContentComponent.addSpeaker(outputPatch, index) };
+        mMainContentComponent.refreshSpeakers();
+        updateWinContent();
+        selectSpeaker(newOutputPatch);
         mSpeakersTableListBox.getHeader().setSortColumnId(sortColumnId, sortedForwards); // TODO: necessary?
         mShouldRefreshSpeakers = true;
     } else if (button == &mCompSpeakersButton) {
@@ -461,15 +445,17 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         // Add ring button
         output_patch_t newOutputPatch;
         for (int i{}; i < mNumOfSpeakersTextEditor.getText().getIntValue(); i++) {
-            if (!selectedRow) {
-                newOutputPatch = mMainContentComponent.addSpeaker(tl::nullopt, tl::nullopt);
-                mNumRows = speakers.size();
-            } else {
-                newOutputPatch
-                    = mMainContentComponent.addSpeaker(getSpeakerOutputPatchForRow(*selectedRow), *selectedRow);
+            tl::optional<output_patch_t> outputPatch{};
+            tl::optional<int> index{};
+
+            if (selectedRow) {
+                outputPatch = getSpeakerOutputPatchForRow(*selectedRow);
+                index = *selectedRow;
                 *selectedRow += 1;
-                mNumRows = speakers.size();
             }
+
+            newOutputPatch = mMainContentComponent.addSpeaker(outputPatch, index);
+            mNumRows = speakers.size();
 
             degrees_t azimuth{ 360.0f / narrow<float>(mNumOfSpeakersTextEditor.getText().getIntValue())
                                    * narrow<float>(i)
@@ -480,6 +466,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
 
             mMainContentComponent.handleNewSpeakerPosition(newOutputPatch, PolarVector{ azimuth, zenith, radius });
         }
+        mMainContentComponent.refreshSpeakers();
         updateWinContent();
         // TableList needs different sorting parameters to trigger the sorting function.
         mSpeakersTableListBox.getHeader().setSortColumnId(sortColumnId, !sortedForwards);
@@ -666,17 +653,17 @@ juce::String EditSpeakersWindow::getText(int const columnNumber, int const rowNu
     auto const & speaker{ data.speakerSetup.speakers[outputPatch] };
     switch (columnNumber) {
     case Cols::X:
-        return juce::String{ speaker.position.x, 2 };
+        return juce::String{ speaker.position.getCartesian().x, 2 };
     case Cols::Y:
-        return juce::String{ speaker.position.y, 2 };
+        return juce::String{ speaker.position.getCartesian().y, 2 };
     case Cols::Z:
-        return juce::String{ std::max(speaker.position.z, 0.0f), 2 };
+        return juce::String{ std::max(speaker.position.getCartesian().z, 0.0f), 2 };
     case Cols::AZIMUTH:
-        return juce::String{ (HALF_PI - speaker.vector.azimuth).toDegrees().madePositive().get(), 1 };
+        return juce::String{ (HALF_PI - speaker.position.getPolar().azimuth).toDegrees().madePositive().get(), 1 };
     case Cols::ELEVATION:
-        return juce::String{ speaker.vector.elevation.toDegrees().madePositive().get(), 1 };
+        return juce::String{ speaker.position.getPolar().elevation.toDegrees().madePositive().get(), 1 };
     case Cols::DISTANCE:
-        return juce::String{ speaker.vector.length, 2 };
+        return juce::String{ speaker.position.getPolar().length, 2 };
     case Cols::OUTPUT_PATCH:
         return juce::String{ outputPatch.get() };
     case Cols::GAIN:
@@ -743,86 +730,90 @@ void EditSpeakersWindow::setText(int const columnNumber,
 
         switch (columnNumber) {
         case Cols::X: {
-            auto const diff{ newText.getFloatValue() - speaker.position.x };
+            auto const diff{ newText.getFloatValue() - speaker.position.getCartesian().x };
             for (int i{}; i < selectedRows.size(); ++i) {
                 auto const outputPatch_{ getSpeakerOutputPatchForRow(selectedRows[i]) };
-                auto const & oldPosition{ speakers[outputPatch_].position };
-                auto const newPosition{ getLegalPosition(
-                    CartesianVector{ oldPosition.x + diff, oldPosition.y, oldPosition.z },
-                    spatMode,
-                    Cols::X) };
+                auto const & speaker_{ speakers[outputPatch_] };
+                auto const & oldPosition{ speaker_.position };
+                auto const & isDirectOutOnly{ speaker_.isDirectOutOnly };
+                auto const newPosition{
+                    getLegalPosition(oldPosition.translatedX(diff), spatMode, isDirectOutOnly, Cols::X)
+                };
                 mMainContentComponent.handleNewSpeakerPosition(outputPatch_, newPosition);
             }
             mShouldRefreshSpeakers = true;
             break;
         }
         case Cols::Y: {
-            auto const diff{ newText.getFloatValue() - speaker.position.y };
+            auto const diff{ newText.getFloatValue() - speaker.position.getCartesian().y };
             for (int i{}; i < selectedRows.size(); ++i) {
                 auto const outputPatch_{ getSpeakerOutputPatchForRow(selectedRows[i]) };
-                auto const & oldPosition{ speakers[outputPatch_].position };
-                auto const newPosition{ getLegalPosition(
-                    CartesianVector{ oldPosition.x, oldPosition.y + diff, oldPosition.z },
-                    spatMode,
-                    Cols::Y) };
+                auto const & speaker_{ speakers[outputPatch_] };
+                auto const & oldPosition{ speaker_.position };
+                auto const & isDirectOutOnly{ speaker_.isDirectOutOnly };
+                auto const newPosition{
+                    getLegalPosition(oldPosition.translatedY(diff), spatMode, isDirectOutOnly, Cols::Y)
+                };
                 mMainContentComponent.handleNewSpeakerPosition(outputPatch_, newPosition);
             }
             mShouldRefreshSpeakers = true;
             break;
         }
         case Cols::Z: {
-            auto const diff{ newText.getFloatValue() - speaker.position.z };
+            auto const diff{ newText.getFloatValue() - speaker.position.getCartesian().z };
             for (int i{}; i < selectedRows.size(); ++i) {
                 auto const outputPatch_{ getSpeakerOutputPatchForRow(selectedRows[i]) };
-                auto const & oldPosition{ speakers[outputPatch_].position };
-                auto const newPosition{ getLegalPosition(
-                    CartesianVector{ oldPosition.x, oldPosition.y, oldPosition.z + diff },
-                    spatMode,
-                    Cols::Z) };
+                auto const & speaker_{ speakers[outputPatch_] };
+                auto const & oldPosition{ speaker_.position };
+                auto const & isDirectOutOnly{ speaker_.isDirectOutOnly };
+                auto const newPosition{
+                    getLegalPosition(oldPosition.translatedZ(diff), spatMode, isDirectOutOnly, Cols::Z)
+                };
                 mMainContentComponent.handleNewSpeakerPosition(outputPatch_, newPosition);
             }
             mShouldRefreshSpeakers = true;
             break;
         }
         case Cols::AZIMUTH: {
-            auto const diff{ (HALF_PI - degrees_t{ newText.getFloatValue() }) - speaker.vector.azimuth };
+            auto const diff{ (HALF_PI - degrees_t{ newText.getFloatValue() }) - speaker.position.getPolar().azimuth };
             for (int i{}; i < selectedRows.size(); ++i) {
                 auto const outputPatch_{ getSpeakerOutputPatchForRow(selectedRows[i]) };
-                auto const & oldPosition{ speakers[outputPatch_].vector };
-                auto const newPosition{ getLegalPosition(
-                    PolarVector{ (oldPosition.azimuth + diff).centered(), oldPosition.elevation, oldPosition.length },
-                    spatMode,
-                    Cols::AZIMUTH) };
+                auto const & speaker_{ speakers[outputPatch_] };
+                auto const & oldPosition{ speaker_.position };
+                auto const & isDirectOutOnly{ speaker_.isDirectOutOnly };
+                auto const newPosition{
+                    getLegalPosition(oldPosition.rotatedBalancedAzimuth(diff), spatMode, isDirectOutOnly, Cols::AZIMUTH)
+                };
                 mMainContentComponent.handleNewSpeakerPosition(outputPatch_, newPosition);
             }
             mShouldRefreshSpeakers = true;
             break;
         }
         case Cols::ELEVATION: {
-            auto const diff{ degrees_t{ newText.getFloatValue() } - speaker.vector.elevation };
+            auto const diff{ degrees_t{ newText.getFloatValue() } - speaker.position.getPolar().elevation };
             for (int i{}; i < selectedRows.size(); ++i) {
                 auto const outputPatch_{ getSpeakerOutputPatchForRow(selectedRows[i]) };
-                auto const & oldPosition{ speakers[outputPatch_].vector };
-                auto const newPosition{ getLegalPosition(
-                    PolarVector{ oldPosition.azimuth,
-                                 std::clamp(oldPosition.elevation + diff, radians_t{}, HALF_PI),
-                                 oldPosition.length },
-                    spatMode,
-                    Cols::ELEVATION) };
+                auto const & speaker_{ speakers[outputPatch_] };
+                auto const & oldPosition{ speaker_.position };
+                auto const & isDirectOutOnly{ speaker_.isDirectOutOnly };
+                auto const newPosition{
+                    getLegalPosition(oldPosition.elevatedClipped(diff), spatMode, isDirectOutOnly, Cols::ELEVATION)
+                };
                 mMainContentComponent.handleNewSpeakerPosition(outputPatch_, newPosition);
             }
             mShouldRefreshSpeakers = true;
             break;
         }
         case Cols::DISTANCE: {
-            auto const diff{ newText.getFloatValue() - speaker.vector.length };
+            auto const diff{ newText.getFloatValue() - speaker.position.getPolar().length };
             for (int i{}; i < selectedRows.size(); ++i) {
                 auto const outputPatch_{ getSpeakerOutputPatchForRow(selectedRows[i]) };
-                auto const & oldPosition{ speakers[outputPatch_].vector };
-                auto const newPosition{ getLegalPosition(PolarVector{ oldPosition.azimuth,
-                                                                      oldPosition.elevation,
-                                                                      std::max(oldPosition.length + diff, 0.0f) },
+                auto const & speaker_{ speakers[outputPatch_] };
+                auto const & oldPosition{ speaker_.position };
+                auto const & isDirectOutOnly{ speaker_.isDirectOutOnly };
+                auto const newPosition{ getLegalPosition(oldPosition.pushedWithPositiveRadius(diff),
                                                          spatMode,
+                                                         isDirectOutOnly,
                                                          Cols::DISTANCE) };
                 mMainContentComponent.handleNewSpeakerPosition(outputPatch_, newPosition);
             }
@@ -938,8 +929,8 @@ output_patch_t EditSpeakersWindow::getSpeakerOutputPatchForRow(int const row) co
     JUCE_ASSERT_MESSAGE_THREAD;
 
     auto const & data{ mMainContentComponent.getData() };
-    jassert(row >= 0 && row < data.speakerSetup.order.size());
-    auto const result{ data.speakerSetup.order[row] };
+    jassert(row >= 0 && row < data.speakerSetup.ordering.size());
+    auto const result{ data.speakerSetup.ordering[row] };
     jassert(data.speakerSetup.speakers.contains(result));
     return result;
 }

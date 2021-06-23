@@ -22,7 +22,6 @@
 #include "AboutWindow.hpp"
 #include "AudioProcessor.hpp"
 #include "Configuration.hpp"
-#include "Constants.hpp"
 #include "ControlPanel.hpp"
 #include "EditSpeakersWindow.hpp"
 #include "FlatViewWindow.hpp"
@@ -39,6 +38,7 @@
 #include "TitledComponent.hpp"
 #include "Triplet.hpp"
 #include "VuMeterComponent.hpp"
+#include "constants.hpp"
 
 class MainWindow;
 
@@ -67,7 +67,6 @@ class MainContentComponent final
     , private AudioDeviceManagerListener
     , private juce::Timer
 {
-    enum class LoadProjectOption { removeInvalidDirectOuts, dontRemoveInvalidDirectOuts };
     enum class LoadSpeakerSetupOption { allowDiscardingUnsavedChanges, disallowDiscardingUnsavedChanges };
 
     juce::ReadWriteLock mLock{};
@@ -162,11 +161,9 @@ public:
 
     void updateSourceSpatData(source_index_t sourceIndex);
 
-    void warnIfDirectOutMismatch();
-
     auto const & getLock() const { return mLock; }
 
-    void handleSourcePositionChanged(source_index_t const sourceIndex,
+    void handleSourcePositionChanged(source_index_t sourceIndex,
                                      radians_t azimuth,
                                      radians_t elevation,
                                      float length,
@@ -191,8 +188,17 @@ public:
     void handleSourceDirectOutChanged(source_index_t sourceIndex, tl::optional<output_patch_t> outputPatch) override;
     [[nodiscard]] SpeakersData const & getSpeakersData() const override { return mData.speakerSetup.speakers; }
 
-    void handleNewSpeakerPosition(output_patch_t outputPatch, CartesianVector const & position);
-    void handleNewSpeakerPosition(output_patch_t outputPatch, PolarVector const & position);
+    template<typename T>
+    void handleNewSpeakerPosition(output_patch_t const outputPatch, T const & position)
+    {
+        JUCE_ASSERT_MESSAGE_THREAD;
+        juce::ScopedWriteLock const lock{ mLock };
+
+        auto & speaker{ mData.speakerSetup.speakers[outputPatch] };
+        speaker.position = position;
+
+        updateViewportConfig();
+    }
 
     void updateAudioProcessor() const;
     void updateSpatAlgorithm();
@@ -203,11 +209,12 @@ public:
     [[nodiscard]] bool setSpatMode(SpatMode spatMode) override;
     void setStereoMode(tl::optional<StereoMode> stereoMode) override;
     [[nodiscard]] bool spatModeChanged(SpatMode spatMode, LoadSpeakerSetupOption option);
+    void stereoRoutingChanged(StereoRouting const & routing) override;
     void cubeAttenuationDbChanged(dbfs_t value) override;
     void cubeAttenuationHzChanged(hz_t value) override;
 
     // Speakers.
-    [[nodiscard]] auto const & getSpeakersDisplayOrder() const { return mData.speakerSetup.order; }
+    [[nodiscard]] auto const & getSpeakersDisplayOrder() const { return mData.speakerSetup.ordering; }
 
     output_patch_t addSpeaker(tl::optional<output_patch_t> speakerToCopy, tl::optional<int> index);
     void removeSpeaker(output_patch_t outputPatch);
@@ -283,8 +290,7 @@ private:
     // Open - save.
     [[nodiscard]] static tl::optional<SpeakerSetup> extractSpeakerSetup(juce::File const & file);
     [[nodiscard]] bool loadSpeakerSetup(juce::File file, LoadSpeakerSetupOption option);
-    [[nodiscard]] bool
-        loadProject(juce::File const & file, LoadProjectOption loadProjectOption, bool discardCurrentProject);
+    [[nodiscard]] bool loadProject(juce::File const & file, bool discardCurrentProject);
     [[nodiscard]] bool saveProject(tl::optional<juce::File> maybeFile);
     [[nodiscard]] bool saveSpeakerSetup(tl::optional<juce::File> maybeFile);
     [[nodiscard]] bool makeSureProjectIsSavedToDisk() noexcept;
@@ -304,6 +310,8 @@ private:
     [[nodiscard]] bool perform(juce::ApplicationCommandTarget::InvocationInfo const & info) override;
     //==============================================================================
     static void handleOpenManual();
+
+private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(MainContentComponent)
 };

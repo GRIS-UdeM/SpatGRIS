@@ -23,14 +23,13 @@
 
 class MainContentComponent;
 
-static const std::string OSC_PAN_AZ = "/pan/az";
-static const std::string OSC_SPAT_SERV = "/spat/serv";
-
 //==============================================================================
 class OscInput final
     : private juce::OSCReceiver
     , private juce::OSCReceiver::Listener<juce::OSCReceiver::RealtimeCallback>
 {
+    enum class MessageType { invalid, sourcePosition, resetPosition };
+
     MainContentComponent & mMainContentComponent;
 
 public:
@@ -51,8 +50,13 @@ public:
 
 private:
     //==============================================================================
+    void processSourcePositionMessage(juce::OSCMessage const & message) const noexcept;
+    void processSourceResetPositionMessage(juce::OSCMessage const & message) noexcept;
+    //==============================================================================
     void oscMessageReceived(juce::OSCMessage const & message) override;
     void oscBundleReceived(juce::OSCBundle const & bundle) override;
+    //==============================================================================
+    static MessageType getMessageType(juce::OSCMessage const & message) noexcept;
     //==============================================================================
     JUCE_LEAK_DETECTOR(OscInput)
 };

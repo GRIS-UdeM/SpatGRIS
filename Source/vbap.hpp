@@ -58,12 +58,6 @@ struct SpeakerSet {
     int neg_g_am;
 };
 
-/* A struct for a loudspeaker instance. */
-struct LoudSpeaker {
-    CartesianVector coords;
-    PolarVector angles;
-};
-
 /* VBAP structure of n loudspeaker panning */
 struct VbapData {
     std::array<output_patch_t, MAX_NUM_SPEAKERS> outputPatches{}; /* Physical outputs (starts at 1). */
@@ -72,12 +66,11 @@ struct VbapData {
     juce::Array<SpeakerSet> speakerSets{};                        /* Loudspeaker triplet structure. */
     int numOutputPatches{};                                       /* Number of output patches. */
     int numSpeakers{};                                            /* Number of loudspeakers. */
-    PolarVector angularDirection{};                               /* Angular direction. */
-    CartesianVector cartesianDirection{};                         /* Cartesian direction. */
-    CartesianVector spreadingVector{};                            /* Spreading vector. */
+    Position direction{};
+    CartesianVector spreadingVector{}; /* Spreading vector. */
 };
 
-std::unique_ptr<VbapData> vbapInit(std::array<LoudSpeaker, MAX_NUM_SPEAKERS> & speakers,
+std::unique_ptr<VbapData> vbapInit(std::array<Position, MAX_NUM_SPEAKERS> & speakers,
                                    int count,
                                    int dimensions,
                                    std::array<output_patch_t, MAX_NUM_SPEAKERS> const & outputPatches);
