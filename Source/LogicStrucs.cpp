@@ -273,7 +273,7 @@ std::unique_ptr<juce::XmlElement> SpeakerData::toXml(output_patch_t const output
     auto result{ std::make_unique<juce::XmlElement>(XmlTags::MAIN_TAG_PREFIX + juce::String{ outputPatch.get() }) };
 
     result->setAttribute(XmlTags::STATE, portStateToString(state));
-    result->addChildElement(position.toXml());
+    result->addChildElement(position.getCartesian().toXml());
     result->setAttribute(XmlTags::GAIN, gain.get());
     if (highpassData) {
         result->addChildElement(highpassData->toXml().release());
@@ -309,7 +309,6 @@ tl::optional<SpeakerData> SpeakerData::fromXml(juce::XmlElement const & xml) noe
     SpeakerData result{};
     result.state = *state;
     result.position = *position;
-    result.vector = PolarVector::fromCartesian(*position);
     result.gain = dbfs_t{ static_cast<float>(xml.getDoubleAttribute(XmlTags::GAIN)) };
     if (crossoverElement) {
         auto const crossover{ SpeakerHighpassData::fromXml(*crossoverElement) };
@@ -770,7 +769,7 @@ bool SpeakerSetup::operator==(SpeakerSetup const & other) const noexcept
 bool SpeakerSetup::isDomeLike() const noexcept
 {
     return std::all_of(speakers.cbegin(), speakers.cend(), [](SpeakersData::ConstNode const & node) {
-        return node.value->isDirectOutOnly || juce::isWithin(node.value->vector.length, 1.0f, 0.02f);
+        return node.value->isDirectOutOnly || juce::isWithin(node.value->position.getPolar().length, 1.0f, 0.02f);
     });
 }
 

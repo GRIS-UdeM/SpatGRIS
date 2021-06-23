@@ -81,26 +81,30 @@
         <FILE id="UFkY7k" name="StrongArray.hpp" compile="0" resource="0" file="Source/StrongArray.hpp"/>
       </GROUP>
       <GROUP id="{879FD67D-521A-EC98-EB2A-A3C056EDF2C2}" name="Data">
+        <GROUP id="{A47D0E48-D57C-A616-3220-66380B687460}" name="Position">
+          <FILE id="KYw7Ga" name="CartesianVector.cpp" compile="1" resource="0"
+                file="Source/CartesianVector.cpp"/>
+          <FILE id="Fo1t1H" name="CartesianVector.hpp" compile="0" resource="0"
+                file="Source/CartesianVector.hpp"/>
+          <FILE id="wsG2iH" name="LegacyLbapPosition.cpp" compile="1" resource="0"
+                file="Source/LegacyLbapPosition.cpp"/>
+          <FILE id="mKXXtD" name="LegacyLbapPosition.hpp" compile="0" resource="0"
+                file="Source/LegacyLbapPosition.hpp"/>
+          <FILE id="XZJcvv" name="PolarVector.cpp" compile="1" resource="0" file="Source/PolarVector.cpp"/>
+          <FILE id="v4qTK2" name="PolarVector.hpp" compile="0" resource="0" file="Source/PolarVector.hpp"/>
+          <FILE id="Ud28OG" name="Position.cpp" compile="1" resource="0" file="Source/Position.cpp"/>
+          <FILE id="W9fOoX" name="Position.hpp" compile="0" resource="0" file="Source/Position.hpp"/>
+        </GROUP>
         <FILE id="mrd0M4" name="AudioStructs.cpp" compile="1" resource="0"
               file="Source/AudioStructs.cpp"/>
         <FILE id="iunGqH" name="AudioStructs.hpp" compile="0" resource="0"
               file="Source/AudioStructs.hpp"/>
-        <FILE id="KYw7Ga" name="CartesianVector.cpp" compile="1" resource="0"
-              file="Source/CartesianVector.cpp"/>
-        <FILE id="Fo1t1H" name="CartesianVector.hpp" compile="0" resource="0"
-              file="Source/CartesianVector.hpp"/>
-        <FILE id="wsG2iH" name="LegacyLbapPosition.cpp" compile="1" resource="0"
-              file="Source/LegacyLbapPosition.cpp"/>
-        <FILE id="mKXXtD" name="LegacyLbapPosition.hpp" compile="0" resource="0"
-              file="Source/LegacyLbapPosition.hpp"/>
         <FILE id="ZYxwv4" name="LegacySpatFileFormat.cpp" compile="1" resource="0"
               file="Source/LegacySpatFileFormat.cpp"/>
         <FILE id="aVZj0s" name="LegacySpatFileFormat.hpp" compile="0" resource="0"
               file="Source/LegacySpatFileFormat.hpp"/>
         <FILE id="plOS8g" name="LogicStrucs.cpp" compile="1" resource="0" file="Source/LogicStrucs.cpp"/>
         <FILE id="myBXNh" name="LogicStrucs.hpp" compile="0" resource="0" file="Source/LogicStrucs.hpp"/>
-        <FILE id="XZJcvv" name="PolarVector.cpp" compile="1" resource="0" file="Source/PolarVector.cpp"/>
-        <FILE id="v4qTK2" name="PolarVector.hpp" compile="0" resource="0" file="Source/PolarVector.hpp"/>
         <FILE id="gaSzyY" name="Triplet.hpp" compile="0" resource="0" file="Source/Triplet.hpp"/>
       </GROUP>
       <GROUP id="{B880ED62-D15F-78F9-F83A-129573A5FA84}" name="Misc">

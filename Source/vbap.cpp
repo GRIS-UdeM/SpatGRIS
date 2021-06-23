@@ -46,14 +46,14 @@ using TripletList = std::vector<TripletData>;
 static void computeGains(juce::Array<SpeakerSet> & sets,
                          SpeakersSpatGains & gains,
                          int const numSpeakers,
-                         CartesianVector const cart_dir,
+                         Position const & cart_dir,
                          int const dim) noexcept
 {
     float vec[3];
     /* Direction of the virtual source in cartesian coordinates. */
-    vec[0] = cart_dir.x;
-    vec[1] = cart_dir.y;
-    vec[2] = cart_dir.z;
+    vec[0] = cart_dir.getCartesian().x;
+    vec[1] = cart_dir.getCartesian().y;
+    vec[2] = cart_dir.getCartesian().z;
 
     for (auto & set : sets) {
         set.setGains[0] = 0.0f;
@@ -117,14 +117,14 @@ static void computeGains(juce::Array<SpeakerSet> & sets,
 static bool testTripletContainsSpeaker(int const a,
                                        int const b,
                                        int const c,
-                                       std::array<LoudSpeaker, MAX_NUM_SPEAKERS> const & speakers,
+                                       std::array<Position, MAX_NUM_SPEAKERS> const & speakers,
                                        int const numSpeakers) noexcept
 {
     InverseMatrix inverseMatrix;
 
-    auto const * const lp1 = &(speakers[a].coords);
-    auto const * const lp2 = &(speakers[b].coords);
-    auto const * const lp3 = &(speakers[c].coords);
+    auto const * const lp1 = &(speakers[a].getCartesian());
+    auto const * const lp2 = &(speakers[b].getCartesian());
+    auto const * const lp3 = &(speakers[c].getCartesian());
 
     /* Matrix inversion. */
     auto const invdet
@@ -146,9 +146,9 @@ static bool testTripletContainsSpeaker(int const a,
         if (i != a && i != b && i != c) {
             auto this_inside{ true };
             for (int j{}; j < 3; ++j) {
-                auto tmp = speakers[i].coords.x * inverseMatrix[0 + j * 3];
-                tmp += speakers[i].coords.y * inverseMatrix[1 + j * 3];
-                tmp += speakers[i].coords.z * inverseMatrix[2 + j * 3];
+                auto tmp = speakers[i].getCartesian().x * inverseMatrix[0 + j * 3];
+                tmp += speakers[i].getCartesian().y * inverseMatrix[1 + j * 3];
+                tmp += speakers[i].getCartesian().z * inverseMatrix[2 + j * 3];
                 if (tmp < -0.001f) {
                     this_inside = false;
                     break;
@@ -172,23 +172,23 @@ static int linesIntersect(int const i,
                           int const j,
                           int const k,
                           int const l,
-                          std::array<LoudSpeaker, MAX_NUM_SPEAKERS> const & speakers) noexcept
+                          std::array<Position, MAX_NUM_SPEAKERS> const & speakers) noexcept
 {
-    auto const v1{ speakers[i].coords.crossProduct(speakers[j].coords) };
-    auto const v2{ speakers[k].coords.crossProduct(speakers[l].coords) };
+    auto const v1{ speakers[i].getCartesian().crossProduct(speakers[j].getCartesian()) };
+    auto const v2{ speakers[k].getCartesian().crossProduct(speakers[l].getCartesian()) };
     auto const v3{ v1.crossProduct(v2) };
     auto const negV3{ -v3 };
 
-    auto const dist_ij = speakers[i].coords.angleWith(speakers[j].coords);
-    auto const dist_kl = speakers[k].coords.angleWith(speakers[l].coords);
-    auto const dist_iv3 = speakers[i].coords.angleWith(v3);
-    auto const dist_jv3 = v3.angleWith(speakers[j].coords);
-    auto const dist_inv3 = speakers[i].coords.angleWith(negV3);
-    auto const dist_jnv3 = negV3.angleWith(speakers[j].coords);
-    auto const dist_kv3 = speakers[k].coords.angleWith(v3);
-    auto const dist_lv3 = v3.angleWith(speakers[l].coords);
-    auto const dist_knv3 = speakers[k].coords.angleWith(negV3);
-    auto const dist_lnv3 = negV3.angleWith(speakers[l].coords);
+    auto const dist_ij = speakers[i].getCartesian().angleWith(speakers[j].getCartesian());
+    auto const dist_kl = speakers[k].getCartesian().angleWith(speakers[l].getCartesian());
+    auto const dist_iv3 = speakers[i].getCartesian().angleWith(v3);
+    auto const dist_jv3 = v3.angleWith(speakers[j].getCartesian());
+    auto const dist_inv3 = speakers[i].getCartesian().angleWith(negV3);
+    auto const dist_jnv3 = negV3.angleWith(speakers[j].getCartesian());
+    auto const dist_kv3 = speakers[k].getCartesian().angleWith(v3);
+    auto const dist_lv3 = v3.angleWith(speakers[l].getCartesian());
+    auto const dist_knv3 = speakers[k].getCartesian().angleWith(negV3);
+    auto const dist_lnv3 = negV3.angleWith(speakers[l].getCartesian());
 
     /*One of loudspeakers is close to crossing point, don't do anything.*/
     if (std::abs(dist_iv3) <= 0.01f || std::abs(dist_jv3) <= 0.01f || std::abs(dist_kv3) <= 0.01f
@@ -233,36 +233,36 @@ static void spreadGains3d(SourceData const & source, SpeakersSpatGains & gains, 
         for (int k{}; k < kNum; ++k) {
             switch (k) {
             case 0:
-                newAzimuth = data.angularDirection.azimuth + azimuthDev;
-                newElevation = data.angularDirection.elevation + elevationDev;
+                newAzimuth = data.direction.getPolar().azimuth + azimuthDev;
+                newElevation = data.direction.getPolar().elevation + elevationDev;
                 break;
             case 1:
-                newAzimuth = data.angularDirection.azimuth - azimuthDev;
-                newElevation = data.angularDirection.elevation - elevationDev;
+                newAzimuth = data.direction.getPolar().azimuth - azimuthDev;
+                newElevation = data.direction.getPolar().elevation - elevationDev;
                 break;
             case 2:
-                newAzimuth = data.angularDirection.azimuth + azimuthDev;
-                newElevation = data.angularDirection.elevation - elevationDev;
+                newAzimuth = data.direction.getPolar().azimuth + azimuthDev;
+                newElevation = data.direction.getPolar().elevation - elevationDev;
                 break;
             case 3:
-                newAzimuth = data.angularDirection.azimuth - azimuthDev;
-                newElevation = data.angularDirection.elevation + elevationDev;
+                newAzimuth = data.direction.getPolar().azimuth - azimuthDev;
+                newElevation = data.direction.getPolar().elevation + elevationDev;
                 break;
             case 4:
-                newAzimuth = data.angularDirection.azimuth;
-                newElevation = data.angularDirection.elevation + elevationDev;
+                newAzimuth = data.direction.getPolar().azimuth;
+                newElevation = data.direction.getPolar().elevation + elevationDev;
                 break;
             case 5:
-                newAzimuth = data.angularDirection.azimuth;
-                newElevation = data.angularDirection.elevation - elevationDev;
+                newAzimuth = data.direction.getPolar().azimuth;
+                newElevation = data.direction.getPolar().elevation - elevationDev;
                 break;
             case 6:
-                newAzimuth = data.angularDirection.azimuth + azimuthDev;
-                newElevation = data.angularDirection.elevation;
+                newAzimuth = data.direction.getPolar().azimuth + azimuthDev;
+                newElevation = data.direction.getPolar().elevation;
                 break;
             case 7:
-                newAzimuth = data.angularDirection.azimuth - azimuthDev;
-                newElevation = data.angularDirection.elevation;
+                newAzimuth = data.direction.getPolar().azimuth - azimuthDev;
+                newElevation = data.direction.getPolar().elevation;
                 break;
             default:
                 jassertfalse;
@@ -271,16 +271,12 @@ static void spreadGains3d(SourceData const & source, SpeakersSpatGains & gains, 
             newElevation = std::clamp(newElevation, degrees_t{}, HALF_PI.toDegrees());
             newAzimuth = newAzimuth.centered();
             PolarVector const spreadAngle{ newAzimuth, newElevation, 1.0f };
-            auto const spreadCartesian{ spreadAngle.toCartesian() };
-            computeGains(data.speakerSets, tmp_gains, data.numSpeakers, spreadCartesian, data.dimension);
+            computeGains(data.speakerSets, tmp_gains, data.numSpeakers, Position{ spreadAngle }, data.dimension);
             std::transform(gains.cbegin(),
                            gains.cend(),
                            tmp_gains.cbegin(),
                            gains.begin(),
                            [compensation](float const a, float const b) { return a + b * compensation; });
-            // for (int j{}; j < cnt; ++j) {
-            //    rawGains[j] += rawTmpGains[j] * comp;
-            //}
         }
     }
 
@@ -321,16 +317,15 @@ static void spreadGains2d(SourceData const & source, SpeakersSpatGains & gains, 
         degrees_t const azidev{ (i + 1) * aznimuthSpread * 45.0f };
         for (int k = 0; k < 2; k++) {
             if (k == 0) {
-                newazi = data.angularDirection.azimuth + azidev;
+                newazi = data.direction.getPolar().azimuth + azidev;
             } else if (k == 1) {
-                newazi = data.angularDirection.azimuth - azidev;
+                newazi = data.direction.getPolar().azimuth - azidev;
             }
             newazi = newazi.centered();
             spreadang.azimuth = newazi;
             spreadang.elevation = degrees_t{};
             spreadang.length = 1.0;
-            CartesianVector spreadcart = spreadang.toCartesian();
-            computeGains(data.speakerSets, tmp_gains, data.numSpeakers, spreadcart, data.dimension);
+            computeGains(data.speakerSets, tmp_gains, data.numSpeakers, Position{ spreadang }, data.dimension);
             auto const * rawTmpGains{ tmp_gains.data() };
             for (int j = 0; j < cnt; j++) {
                 rawGains[j] += (rawTmpGains[j] * comp);
@@ -348,18 +343,18 @@ static void spreadGains2d(SourceData const & source, SpeakersSpatGains & gains, 
 }
 
 //==============================================================================
-static void sortSpeakers2d(std::array<LoudSpeaker, MAX_NUM_SPEAKERS> & speakers,
+static void sortSpeakers2d(std::array<Position, MAX_NUM_SPEAKERS> & speakers,
                            std::array<int, MAX_NUM_SPEAKERS> & sortedSpeakers,
                            int const numSpeakers)
 {
     for (auto & speaker : speakers) {
-        speaker.angles.azimuth = speaker.angles.azimuth.centered();
+        speaker = speaker.withBalancedAzimuth(speaker.getPolar().azimuth);
     }
 
     std::iota(sortedSpeakers.begin(), sortedSpeakers.begin() + numSpeakers, 0);
 
     std::sort(sortedSpeakers.begin(), sortedSpeakers.begin() + numSpeakers, [&](int const a, int const b) {
-        return speakers[a].angles.azimuth < speakers[b].angles.azimuth;
+        return speakers[a].getPolar().azimuth < speakers[b].getPolar().azimuth;
     });
 }
 
@@ -390,7 +385,7 @@ static int computeInverseMatrix2d(radians_t const azi1, radians_t const azi2, fl
  * matrices and stores the data to a global array.
  */
 static void
-    generateTuplets(std::array<LoudSpeaker, MAX_NUM_SPEAKERS> & speakers, TripletList & triplets, int const numSpeakers)
+    generateTuplets(std::array<Position, MAX_NUM_SPEAKERS> & speakers, TripletList & triplets, int const numSpeakers)
 {
     std::array<int, MAX_NUM_SPEAKERS> exist{};
     std::array<int, MAX_NUM_SPEAKERS> sortedSpeakers{};
@@ -401,10 +396,10 @@ static void
     int amount = 0;
     float inv_mat[MAX_NUM_SPEAKERS][4];
     for (int i = 0; i < (numSpeakers - 1); i++) {
-        if (speakers[sortedSpeakers[i + 1]].angles.azimuth - speakers[sortedSpeakers[i]].angles.azimuth
+        if (speakers[sortedSpeakers[i + 1]].getPolar().azimuth - speakers[sortedSpeakers[i]].getPolar().azimuth
             <= degrees_t{ 170.0f }) {
-            if (computeInverseMatrix2d(speakers[sortedSpeakers[i]].angles.azimuth,
-                                       speakers[sortedSpeakers[i + 1]].angles.azimuth,
+            if (computeInverseMatrix2d(speakers[sortedSpeakers[i]].getPolar().azimuth,
+                                       speakers[sortedSpeakers[i + 1]].getPolar().azimuth,
                                        inv_mat[i])
                 != 0) {
                 exist[i] = 1;
@@ -413,11 +408,11 @@ static void
         }
     }
 
-    if (degrees_t{ 360.0f } - speakers[sortedSpeakers[numSpeakers - 1]].angles.azimuth
-            + speakers[sortedSpeakers[0]].angles.azimuth
+    if (degrees_t{ 360.0f } - speakers[sortedSpeakers[numSpeakers - 1]].getPolar().azimuth
+            + speakers[sortedSpeakers[0]].getPolar().azimuth
         <= degrees_t{ 170 }) {
-        if (computeInverseMatrix2d(speakers[sortedSpeakers[numSpeakers - 1]].angles.azimuth,
-                                   speakers[sortedSpeakers[0]].angles.azimuth,
+        if (computeInverseMatrix2d(speakers[sortedSpeakers[numSpeakers - 1]].getPolar().azimuth,
+                                   speakers[sortedSpeakers[0]].getPolar().azimuth,
                                    inv_mat[numSpeakers - 1])
             != 0) {
             exist[numSpeakers - 1] = 1;
@@ -455,17 +450,17 @@ static void
 /* Calculate volume of the parallelepiped defined by the loudspeaker
  * direction vectors and divide it with total length of the triangle sides.
  * This is used when removing too narrow triangles. */
-static float
-    parallelepipedVolumeSideLength(LoudSpeaker const & i, LoudSpeaker const & j, LoudSpeaker const & k) noexcept
+static float parallelepipedVolumeSideLength(Position const & i, Position const & j, Position const & k) noexcept
 {
-    auto const length = i.coords.angleWith(j.coords) + i.coords.angleWith(k.coords) + j.coords.angleWith(k.coords);
+    auto const length = i.getCartesian().angleWith(j.getCartesian()) + i.getCartesian().angleWith(k.getCartesian())
+                        + j.getCartesian().angleWith(k.getCartesian());
 
     if (length <= 0.00001f) {
         return 0.0f;
     }
 
-    auto const xProduct{ i.coords.crossProduct(j.coords) };
-    auto const volper = std::abs(xProduct.dotProduct(k.coords));
+    auto const xProduct{ i.getCartesian().crossProduct(j.getCartesian()) };
+    auto const volper = std::abs(xProduct.dotProduct(k.getCartesian()));
 
     return volper / length;
 }
@@ -478,7 +473,7 @@ static float
  * connections are searched and the longer connection is erased.
  * This yields non-intersecting triangles, which can be used in panning.
  */
-static TripletList generateTriplets(std::array<LoudSpeaker, MAX_NUM_SPEAKERS> const & speakers,
+static TripletList generateTriplets(std::array<Position, MAX_NUM_SPEAKERS> const & speakers,
                                     int const numSpeakers) noexcept
 {
     jassert(numSpeakers > 0);
@@ -505,7 +500,7 @@ static TripletList generateTriplets(std::array<LoudSpeaker, MAX_NUM_SPEAKERS> co
 
     // ...then we sort it according to the elevation values
     auto const sortIndexesBySpeakerElevation = [speakers](size_t const & indexA, size_t const & indexB) -> bool {
-        return speakers[indexA].angles.elevation < speakers[indexB].angles.elevation;
+        return speakers[indexA].getPolar().elevation < speakers[indexB].getPolar().elevation;
     };
     std::sort(std::begin(speakerIndexesSortedByElevation),
               std::end(speakerIndexesSortedByElevation),
@@ -522,7 +517,7 @@ static TripletList generateTriplets(std::array<LoudSpeaker, MAX_NUM_SPEAKERS> co
             auto const speaker2Index{ speakerIndexesSortedByElevation[j] };
             auto const & speaker2{ speakers[speaker2Index] };
             static constexpr degrees_t MAX_ELEVATION_DIFF{ 10.0f };
-            if (speaker2.angles.elevation - speaker1.angles.elevation > MAX_ELEVATION_DIFF) {
+            if (speaker2.getPolar().elevation - speaker1.getPolar().elevation > MAX_ELEVATION_DIFF) {
                 // The elevation difference is only going to get greater : we can move the 1st speaker and reset the
                 // other loops
                 break;
@@ -572,7 +567,7 @@ static TripletList generateTriplets(std::array<LoudSpeaker, MAX_NUM_SPEAKERS> co
     for (int i{}; i < numSpeakers; i++) {
         for (auto j = (i + 1); j < numSpeakers; j++) {
             if (connections[i][j]) {
-                auto const distance = speakers[i].coords.angleWith(speakers[j].coords);
+                auto const distance = speakers[i].getCartesian().angleWith(speakers[j].getCartesian());
                 int k{};
                 while (distance_table[k] < distance) {
                     ++k;
@@ -638,12 +633,12 @@ static TripletList generateTriplets(std::array<LoudSpeaker, MAX_NUM_SPEAKERS> co
  * and the inverse matrix needed to compute channel gains.
  */
 static void
-    computeMatrices3d(TripletList & triplets, std::array<LoudSpeaker, MAX_NUM_SPEAKERS> & speakers, int /*numSpeakers*/)
+    computeMatrices3d(TripletList & triplets, std::array<Position, MAX_NUM_SPEAKERS> & speakers, int /*numSpeakers*/)
 {
     for (auto & triplet : triplets) {
-        auto const * lp1 = &(speakers[triplet.tripletSpeakerNumber[0]].coords);
-        auto const * lp2 = &(speakers[triplet.tripletSpeakerNumber[1]].coords);
-        auto const * lp3 = &(speakers[triplet.tripletSpeakerNumber[2]].coords);
+        auto const * lp1 = &(speakers[triplet.tripletSpeakerNumber[0]].getCartesian());
+        auto const * lp2 = &(speakers[triplet.tripletSpeakerNumber[1]].getCartesian());
+        auto const * lp3 = &(speakers[triplet.tripletSpeakerNumber[2]].getCartesian());
 
         /* Matrix inversion. */
         auto * inverseMatrix = triplet.tripletInverseMatrix;
@@ -665,7 +660,7 @@ static void
 }
 
 //==============================================================================
-std::unique_ptr<VbapData> vbapInit(std::array<LoudSpeaker, MAX_NUM_SPEAKERS> & speakers,
+std::unique_ptr<VbapData> vbapInit(std::array<Position, MAX_NUM_SPEAKERS> & speakers,
                                    int const count,
                                    int const dimensions,
                                    std::array<output_patch_t, MAX_NUM_SPEAKERS> const & outputPatches)
@@ -707,13 +702,9 @@ std::unique_ptr<VbapData> vbapInit(std::array<LoudSpeaker, MAX_NUM_SPEAKERS> & s
 void vbapCompute(SourceData const & source, SpeakersSpatGains & gains, VbapData & data) noexcept
 {
     jassert(source.position);
-    jassert(source.vector);
-    data.angularDirection.azimuth = source.vector->azimuth;
-    data.angularDirection.elevation = source.vector->elevation;
-    data.angularDirection.length = 1.0;
-    data.cartesianDirection = *source.position;
+    data.direction = source.position->getPolar();
     std::fill(gains.begin(), gains.end(), 0.0f);
-    computeGains(data.speakerSets, gains, data.numSpeakers, data.cartesianDirection, data.dimension);
+    computeGains(data.speakerSets, gains, data.numSpeakers, data.direction, data.dimension);
     if (data.dimension == 3) {
         if (source.azimuthSpan > 0 || source.zenithSpan > 0) {
             spreadGains3d(source, gains, data);

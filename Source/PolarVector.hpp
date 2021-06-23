@@ -36,6 +36,68 @@ struct PolarVector {
     [[nodiscard]] constexpr bool isOnSameElevation(PolarVector const & other,
                                                    radians_t tolerance
                                                    = DEFAULT_ELEVATION_COMPARE_TOLERANCE) const noexcept;
+    //==============================================================================
+    [[nodiscard]] constexpr PolarVector withAzimuth(radians_t const newAzimuth) const noexcept
+    {
+        auto result{ *this };
+        result.azimuth = newAzimuth;
+        return result;
+    }
+    [[nodiscard]] constexpr PolarVector withBalancedAzimuth(radians_t const newAzimuth) const noexcept
+    {
+        auto result{ *this };
+        result.azimuth = newAzimuth.balanced();
+        return result;
+    }
+    [[nodiscard]] constexpr PolarVector withElevation(radians_t const newElevation) const noexcept
+    {
+        auto result{ *this };
+        result.elevation = newElevation;
+        return result;
+    }
+    [[nodiscard]] constexpr PolarVector withClippedElevation(radians_t const newElevation) const noexcept
+    {
+        auto result{ *this };
+        result.elevation = std::clamp(newElevation, radians_t{ 0.0f }, HALF_PI);
+        return result;
+    }
+    [[nodiscard]] constexpr PolarVector withRadius(float const newRadius) const noexcept
+    {
+        auto result{ *this };
+        result.length = newRadius;
+        return result;
+    }
+    [[nodiscard]] constexpr PolarVector withPositiveRadius(float const newRadius) const noexcept
+    {
+        auto result{ *this };
+        result.length = std::max(newRadius, 0.0f);
+        return result;
+    }
+    [[nodiscard]] constexpr PolarVector rotatedAzimuth(radians_t const azimuthDelta) const noexcept
+    {
+        return withAzimuth(azimuth + azimuthDelta);
+    }
+    [[nodiscard]] constexpr PolarVector rotatedBalancedAzimuth(radians_t const azimuthDelta) const noexcept
+    {
+        return withBalancedAzimuth(azimuth + azimuthDelta);
+    }
+    [[nodiscard]] constexpr PolarVector elevated(radians_t const elevationDelta) const noexcept
+    {
+        return withElevation(elevation + elevationDelta);
+    }
+    [[nodiscard]] constexpr PolarVector elevatedClipped(radians_t const elevationDelta) const noexcept
+    {
+        return withClippedElevation(elevation + elevationDelta);
+    }
+    [[nodiscard]] constexpr PolarVector pushed(float const radiusDelta) const noexcept
+    {
+        return withRadius(length + radiusDelta);
+    }
+    [[nodiscard]] constexpr PolarVector pushedWithPositiveRadius(float const radiusDelta) const noexcept
+    {
+        return withPositiveRadius(length + radiusDelta);
+    }
+    //==============================================================================
     [[nodiscard]] static PolarVector fromCartesian(CartesianVector const & pos) noexcept;
 };
 
@@ -59,3 +121,5 @@ constexpr bool PolarVector::isOnSameElevation(PolarVector const & other, radians
 {
     return elevation > other.elevation - tolerance && elevation < other.elevation + tolerance;
 }
+
+static_assert(std::is_trivially_destructible_v<PolarVector>);

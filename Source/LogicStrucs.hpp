@@ -21,6 +21,7 @@
 
 #include "AudioStructs.hpp"
 #include "OwnedMap.hpp"
+#include "Position.hpp"
 #include "StaticMap.hpp"
 #include "Triplet.hpp"
 
@@ -61,7 +62,7 @@ struct ViewSettings {
 
 //==============================================================================
 struct ViewportSourceData {
-    CartesianVector position{};
+    Position position{};
     float azimuthSpan{};
     float zenithSpan{};
     juce::Colour colour{};
@@ -69,7 +70,7 @@ struct ViewportSourceData {
 
 //==============================================================================
 struct ViewportSpeakerConfig {
-    CartesianVector position{};
+    Position position{};
     bool isSelected{};
     bool isDirectOutOnly{};
 };
@@ -112,8 +113,7 @@ struct ViewportData {
 //==============================================================================
 struct SourceData {
     PortState state{};
-    tl::optional<PolarVector> vector{};
-    tl::optional<CartesianVector> position{};
+    tl::optional<Position> position{};
     float azimuthSpan{};
     float zenithSpan{};
     tl::optional<output_patch_t> directOut{};
@@ -153,8 +153,7 @@ struct SpeakerHighpassData {
 //==============================================================================
 struct SpeakerData {
     PortState state{};
-    PolarVector vector{ radians_t{}, radians_t{}, 1.0f };
-    CartesianVector position{ vector.toCartesian() };
+    Position position{ PolarVector{ radians_t{ 0.0f }, radians_t{ 0.0f }, 1.0f } };
     dbfs_t gain{};
     tl::optional<SpeakerHighpassData> highpassData{};
     float peak{};

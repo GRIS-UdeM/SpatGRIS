@@ -20,7 +20,6 @@
 #pragma once
 
 #include "AtomicExchanger.hpp"
-#include "PolarVector.hpp"
 #include "SpatMode.hpp"
 #include "StaticMap.hpp"
 #include "StrongArray.hpp"

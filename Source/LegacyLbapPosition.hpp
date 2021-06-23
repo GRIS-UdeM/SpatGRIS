@@ -19,14 +19,12 @@
 
 #pragma once
 
-#include "PolarVector.hpp"
+#include "Position.hpp"
 
 struct LegacyLbapPosition {
     radians_t azimuth{};
     radians_t elevation{};
     float floorDistance{};
 
-    [[nodiscard]] PolarVector toPolar() const noexcept;
-
-    [[nodiscard]] CartesianVector toCartesian() const noexcept;
+    [[nodiscard]] Position toPosition() const noexcept;
 };

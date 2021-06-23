@@ -56,7 +56,7 @@ using matrix_t = std::array<std::array<float, LBAP_MATRIX_SIZE + 1>, LBAP_MATRIX
  * at 0) used by the field to properly order the output signals.
  */
 struct LbapSpeaker {
-    CartesianVector position{};
+    Position position{};
     output_patch_t outputPatch{};
 };
 
@@ -65,11 +65,11 @@ using matrix_t = std::array<std::array<float, LBAP_MATRIX_SIZE + 1>, LBAP_MATRIX
 
 //==============================================================================
 struct LbapLayer {
-    int id;                                        /**< Layer id. */
-    float height;                                  /**< Elevation of the layer in the range 0 .. 1. */
-    float gainExponent;                            /**< Speaker gain exponent for 4+ speakers. */
-    std::vector<matrix_t> amplitudeMatrix;         /**< Arrays of amplitude values [spk][x][y]. */
-    std::vector<CartesianVector> speakerPositions; /**< Array of speakers. */
+    int id;                                 /**< Layer id. */
+    float height;                           /**< Elevation of the layer in the range 0 .. 1. */
+    float gainExponent;                     /**< Speaker gain exponent for 4+ speakers. */
+    std::vector<matrix_t> amplitudeMatrix;  /**< Arrays of amplitude values [spk][x][y]. */
+    std::vector<Position> speakerPositions; /**< Array of speakers. */
 };
 
 //==============================================================================

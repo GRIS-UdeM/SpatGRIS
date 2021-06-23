@@ -37,9 +37,9 @@ void LbapSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, SourceD
     auto * ticket{ exchanger.acquire() };
     auto & spatData{ ticket->get() };
 
-    if (sourceData.vector) {
+    if (sourceData.position) {
         lbap(sourceData, spatData.gains, mField);
-        spatData.lbapSourceDistance = sourceData.vector->length;
+        spatData.lbapSourceDistance = sourceData.position->getCartesian().discardZ().getDistanceFromOrigin();
     } else {
         spatData.gains = SpeakersSpatGains{};
     }

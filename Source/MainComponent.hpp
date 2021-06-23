@@ -163,7 +163,7 @@ public:
 
     auto const & getLock() const { return mLock; }
 
-    void handleSourcePositionChanged(source_index_t const sourceIndex,
+    void handleSourcePositionChanged(source_index_t sourceIndex,
                                      radians_t azimuth,
                                      radians_t elevation,
                                      float length,
@@ -188,8 +188,17 @@ public:
     void handleSourceDirectOutChanged(source_index_t sourceIndex, tl::optional<output_patch_t> outputPatch) override;
     [[nodiscard]] SpeakersData const & getSpeakersData() const override { return mData.speakerSetup.speakers; }
 
-    void handleNewSpeakerPosition(output_patch_t outputPatch, CartesianVector const & position);
-    void handleNewSpeakerPosition(output_patch_t outputPatch, PolarVector const & position);
+    template<typename T>
+    void handleNewSpeakerPosition(output_patch_t const outputPatch, T const & position)
+    {
+        JUCE_ASSERT_MESSAGE_THREAD;
+        juce::ScopedWriteLock const lock{ mLock };
+
+        auto & speaker{ mData.speakerSetup.speakers[outputPatch] };
+        speaker.position = position;
+
+        updateViewportConfig();
+    }
 
     void updateAudioProcessor() const;
     void updateSpatAlgorithm();

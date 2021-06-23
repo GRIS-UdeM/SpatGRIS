@@ -36,7 +36,8 @@ void StereoSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, Sourc
     auto & gains{ ticket->get() };
 
     if (sourceData.position) {
-        auto const x{ std::clamp(sourceData.position->x, -1.0f, 1.0f) * (1.0f - sourceData.azimuthSpan) };
+        auto const x{ std::clamp(sourceData.position->getCartesian().x, -1.0f, 1.0f)
+                      * (1.0f - sourceData.azimuthSpan) };
 
         auto const fromZeroToPi{ (x + 1.0f) * HALF_PI.get() };
 

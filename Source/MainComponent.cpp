@@ -557,8 +557,7 @@ bool MainContentComponent::setSpatMode(SpatMode const spatMode)
                 if (speaker.isDirectOutOnly) {
                     continue;
                 }
-                speaker.vector = speaker.vector.normalized();
-                speaker.position = speaker.vector.toCartesian();
+                speaker.position = speaker.position.normalized();
             }
         }
         return true;
@@ -759,7 +758,6 @@ void MainContentComponent::handleResetInputPositions()
     for (auto const source : mData.project.sources) {
         // reset positions
         source.value->position = tl::nullopt;
-        source.value->vector = tl::nullopt;
 
         {
             // reset 3d view
@@ -1332,30 +1330,30 @@ void MainContentComponent::handleSourcePositionChanged(source_index_t const sour
         return;
     }
 
-    auto const getCorrectPosition = [&]() {
+    auto const getCorrectedPosition = [&]() -> Position {
         switch (mData.speakerSetup.spatMode) {
-        case SpatMode::vbap:
-            return PolarVector{ azimuth, elevation, length }.normalized();
+        case SpatMode::vbap: {
+            return Position{ PolarVector{ azimuth, elevation, length }.normalized() };
+        }
         case SpatMode::lbap: {
-            return LegacyLbapPosition{ azimuth, elevation, length }.toPolar();
+            return LegacyLbapPosition{ azimuth, elevation, length }.toPosition();
         }
         }
         jassertfalse;
-        return PolarVector{};
+        return {};
     };
 
-    auto const correctedPosition{ getCorrectPosition() };
+    auto const correctedPosition{ getCorrectedPosition() };
     auto & source{ mData.project.sources[sourceIndex] };
 
-    if (correctedPosition == source.vector && newAzimuthSpan == source.azimuthSpan
+    if (correctedPosition == source.position && newAzimuthSpan == source.azimuthSpan
         && newZenithSpan == source.zenithSpan) {
         return;
     }
 
     juce::ScopedWriteLock const writeLock{ mLock };
 
-    source.vector = correctedPosition;
-    source.position = source.vector->toCartesian();
+    source.position = correctedPosition;
     source.azimuthSpan = newAzimuthSpan;
     source.zenithSpan = newZenithSpan;
 
@@ -1369,7 +1367,6 @@ void MainContentComponent::resetSourcePosition(source_index_t const sourceIndex)
     juce::ScopedWriteLock const lock{ mLock };
 
     mData.project.sources[sourceIndex].position = tl::nullopt;
-    mData.project.sources[sourceIndex].vector = tl::nullopt;
 }
 
 //==============================================================================
@@ -1402,8 +1399,7 @@ void MainContentComponent::handleSpeakerOnlyDirectOutChanged(output_patch_t cons
         val = state;
 
         if (!state && mData.speakerSetup.spatMode == SpatMode::vbap) {
-            speaker.vector = speaker.vector.normalized();
-            speaker.position = speaker.vector.toCartesian();
+            speaker.position = speaker.position.normalized();
         }
 
         updateAudioProcessor();
@@ -1551,32 +1547,6 @@ void MainContentComponent::handleSourceDirectOutChanged(source_index_t const sou
     }
 
     mSourceVuMeterComponents[sourceIndex].setDirectOut(outputPatch);
-}
-
-//==============================================================================
-void MainContentComponent::handleNewSpeakerPosition(output_patch_t const outputPatch, CartesianVector const & position)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-    juce::ScopedWriteLock const lock{ mLock };
-
-    auto & speaker{ mData.speakerSetup.speakers[outputPatch] };
-    speaker.vector = PolarVector::fromCartesian(position);
-    speaker.position = position;
-
-    updateViewportConfig();
-}
-
-//==============================================================================
-void MainContentComponent::handleNewSpeakerPosition(output_patch_t const outputPatch, PolarVector const & position)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-    juce::ScopedWriteLock const lock{ mLock };
-
-    auto & speaker{ mData.speakerSetup.speakers[outputPatch] };
-    speaker.vector = position;
-    speaker.position = position.toCartesian();
-
-    // TODO : re-init spat algorithm?
 }
 
 //==============================================================================
