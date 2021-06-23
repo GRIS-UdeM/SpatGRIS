@@ -1770,7 +1770,7 @@ bool MainContentComponent::refreshSpeakers()
     if (mEditSpeakersWindow != nullptr) {
         mEditSpeakersWindow->updateWinContent();
     }
-    mControlPanel->updateSpeakers(mData.speakerSetup.ordering);
+    mControlPanel->updateSpeakers(mData.speakerSetup.ordering, mData.appData.stereoRouting);
 
     return true;
 }

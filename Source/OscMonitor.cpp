@@ -43,7 +43,6 @@ juce::String argumentToString(juce::OSCArgument const & argument) noexcept
 //==============================================================================
 juce::String messageToString(juce::OSCMessage const & message)
 {
-    static juce::String const INVALID = "<INVALID FORMAT>\n";
     static constexpr auto SEPARATOR{ ", " };
 
     auto const currentTime{ juce::String{ "[" } + juce::String{ juce::Time::currentTimeMillis() } + "ms] " };

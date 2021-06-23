@@ -113,7 +113,7 @@ public:
     void setNumSources(int numSources);
     void setRecordButtonState(RecordButton::State state);
     void setStereoRouting(StereoRouting const & routing);
-    void updateSpeakers(SpeakersOrdering ordering);
+    void updateSpeakers(SpeakersOrdering ordering, StereoRouting const & routing);
     //==============================================================================
     void resized() override;
     int getMinWidth() const noexcept override { return mLayout.getMinWidth(); }

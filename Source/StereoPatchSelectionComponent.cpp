@@ -59,12 +59,9 @@ void StereoPatchSelectionComponent::setStereoRouting(StereoRouting const & routi
 }
 
 //==============================================================================
-void StereoPatchSelectionComponent::updateSpeakers(SpeakersOrdering speakers)
+void StereoPatchSelectionComponent::updateSpeakers(SpeakersOrdering speakers, StereoRouting const & routing)
 {
     speakers.sort();
-
-    auto const selectedLeftId{ mLeftCombobox.getSelectedId() };
-    auto const selectedRightId{ mRightCombobox.getSelectedId() };
 
     mLeftCombobox.clear(juce::dontSendNotification);
     mRightCombobox.clear(juce::dontSendNotification);
@@ -75,8 +72,8 @@ void StereoPatchSelectionComponent::updateSpeakers(SpeakersOrdering speakers)
         mRightCombobox.addItem(juce::String{ outputPatchInt }, outputPatchInt);
     }
 
-    mLeftCombobox.setSelectedId(selectedLeftId, juce::dontSendNotification);
-    mRightCombobox.setSelectedId(selectedRightId, juce::dontSendNotification);
+    mLeftCombobox.setSelectedId(routing.left.get(), juce::dontSendNotification);
+    mRightCombobox.setSelectedId(routing.right.get(), juce::dontSendNotification);
 
     updateEnabledItems();
 }

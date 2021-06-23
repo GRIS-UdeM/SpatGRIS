@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include "AttenuationSettingsComponent.hpp"
 #include "LogicStrucs.hpp"
 #include "MinSizedComponent.hpp"
 #include "SpatMode.hpp"
@@ -71,7 +72,7 @@ public:
     StereoPatchSelectionComponent & operator=(StereoPatchSelectionComponent &&) = delete;
     //==============================================================================
     void setStereoRouting(StereoRouting const & routing);
-    void updateSpeakers(SpeakersOrdering speakers);
+    void updateSpeakers(SpeakersOrdering speakers, StereoRouting const & routing);
     //==============================================================================
     void comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged) override;
     void resized() override;

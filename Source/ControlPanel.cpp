@@ -96,9 +96,9 @@ void ControlPanel::setStereoRouting(StereoRouting const & routing)
 }
 
 //==============================================================================
-void ControlPanel::updateSpeakers(SpeakersOrdering ordering)
+void ControlPanel::updateSpeakers(SpeakersOrdering ordering, StereoRouting const & routing)
 {
-    mStereoRoutingComponent.updateSpeakers(std::move(ordering));
+    mStereoRoutingComponent.updateSpeakers(std::move(ordering), routing);
 }
 
 //==============================================================================
