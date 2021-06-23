@@ -24,18 +24,20 @@
 #include "MainComponent.hpp"
 #include "Narrow.hpp"
 
-static Position getLegalPosition(Position position, SpatMode const spatMode, [[maybe_unused]] int const modifiedCol)
+//==============================================================================
+static Position getLegalPosition(Position position,
+                                 SpatMode const spatMode,
+                                 bool const isDirectOutOnly,
+                                 [[maybe_unused]] int const modifiedCol)
 {
     using Col = EditSpeakersWindow::Cols;
 
     jassert(modifiedCol == Col::AZIMUTH || modifiedCol == Col::ELEVATION || modifiedCol == Col::DISTANCE
             || modifiedCol == Col::X || modifiedCol == Col::Y || modifiedCol == Col::Z);
 
-    if (spatMode == SpatMode::vbap) {
+    if (spatMode == SpatMode::vbap && !isDirectOutOnly) {
         return position = position.getPolar().normalized();
     }
-
-    jassert(spatMode == SpatMode::lbap);
 
     return position = position.getCartesian().clampedToFarField();
 }
@@ -731,8 +733,12 @@ void EditSpeakersWindow::setText(int const columnNumber,
             auto const diff{ newText.getFloatValue() - speaker.position.getCartesian().x };
             for (int i{}; i < selectedRows.size(); ++i) {
                 auto const outputPatch_{ getSpeakerOutputPatchForRow(selectedRows[i]) };
-                auto const & oldPosition{ speakers[outputPatch_].position };
-                auto const newPosition{ getLegalPosition(oldPosition.translatedX(diff), spatMode, Cols::X) };
+                auto const & speaker_{ speakers[outputPatch_] };
+                auto const & oldPosition{ speaker_.position };
+                auto const & isDirectOutOnly{ speaker_.isDirectOutOnly };
+                auto const newPosition{
+                    getLegalPosition(oldPosition.translatedX(diff), spatMode, isDirectOutOnly, Cols::X)
+                };
                 mMainContentComponent.handleNewSpeakerPosition(outputPatch_, newPosition);
             }
             mShouldRefreshSpeakers = true;
@@ -742,8 +748,12 @@ void EditSpeakersWindow::setText(int const columnNumber,
             auto const diff{ newText.getFloatValue() - speaker.position.getCartesian().y };
             for (int i{}; i < selectedRows.size(); ++i) {
                 auto const outputPatch_{ getSpeakerOutputPatchForRow(selectedRows[i]) };
-                auto const & oldPosition{ speakers[outputPatch_].position };
-                auto const newPosition{ getLegalPosition(oldPosition.translatedY(diff), spatMode, Cols::Y) };
+                auto const & speaker_{ speakers[outputPatch_] };
+                auto const & oldPosition{ speaker_.position };
+                auto const & isDirectOutOnly{ speaker_.isDirectOutOnly };
+                auto const newPosition{
+                    getLegalPosition(oldPosition.translatedY(diff), spatMode, isDirectOutOnly, Cols::Y)
+                };
                 mMainContentComponent.handleNewSpeakerPosition(outputPatch_, newPosition);
             }
             mShouldRefreshSpeakers = true;
@@ -753,8 +763,12 @@ void EditSpeakersWindow::setText(int const columnNumber,
             auto const diff{ newText.getFloatValue() - speaker.position.getCartesian().z };
             for (int i{}; i < selectedRows.size(); ++i) {
                 auto const outputPatch_{ getSpeakerOutputPatchForRow(selectedRows[i]) };
-                auto const & oldPosition{ speakers[outputPatch_].position };
-                auto const newPosition{ getLegalPosition(oldPosition.translatedZ(diff), spatMode, Cols::Z) };
+                auto const & speaker_{ speakers[outputPatch_] };
+                auto const & oldPosition{ speaker_.position };
+                auto const & isDirectOutOnly{ speaker_.isDirectOutOnly };
+                auto const newPosition{
+                    getLegalPosition(oldPosition.translatedZ(diff), spatMode, isDirectOutOnly, Cols::Z)
+                };
                 mMainContentComponent.handleNewSpeakerPosition(outputPatch_, newPosition);
             }
             mShouldRefreshSpeakers = true;
@@ -764,9 +778,11 @@ void EditSpeakersWindow::setText(int const columnNumber,
             auto const diff{ (HALF_PI - degrees_t{ newText.getFloatValue() }) - speaker.position.getPolar().azimuth };
             for (int i{}; i < selectedRows.size(); ++i) {
                 auto const outputPatch_{ getSpeakerOutputPatchForRow(selectedRows[i]) };
-                auto const & oldPosition{ speakers[outputPatch_].position };
+                auto const & speaker_{ speakers[outputPatch_] };
+                auto const & oldPosition{ speaker_.position };
+                auto const & isDirectOutOnly{ speaker_.isDirectOutOnly };
                 auto const newPosition{
-                    getLegalPosition(oldPosition.rotatedBalancedAzimuth(diff), spatMode, Cols::AZIMUTH)
+                    getLegalPosition(oldPosition.rotatedBalancedAzimuth(diff), spatMode, isDirectOutOnly, Cols::AZIMUTH)
                 };
                 mMainContentComponent.handleNewSpeakerPosition(outputPatch_, newPosition);
             }
@@ -777,9 +793,11 @@ void EditSpeakersWindow::setText(int const columnNumber,
             auto const diff{ degrees_t{ newText.getFloatValue() } - speaker.position.getPolar().elevation };
             for (int i{}; i < selectedRows.size(); ++i) {
                 auto const outputPatch_{ getSpeakerOutputPatchForRow(selectedRows[i]) };
-                auto const & oldPosition{ speakers[outputPatch_].position };
+                auto const & speaker_{ speakers[outputPatch_] };
+                auto const & oldPosition{ speaker_.position };
+                auto const & isDirectOutOnly{ speaker_.isDirectOutOnly };
                 auto const newPosition{
-                    getLegalPosition(oldPosition.elevatedClipped(diff), spatMode, Cols::ELEVATION)
+                    getLegalPosition(oldPosition.elevatedClipped(diff), spatMode, isDirectOutOnly, Cols::ELEVATION)
                 };
                 mMainContentComponent.handleNewSpeakerPosition(outputPatch_, newPosition);
             }
@@ -790,10 +808,13 @@ void EditSpeakersWindow::setText(int const columnNumber,
             auto const diff{ newText.getFloatValue() - speaker.position.getPolar().length };
             for (int i{}; i < selectedRows.size(); ++i) {
                 auto const outputPatch_{ getSpeakerOutputPatchForRow(selectedRows[i]) };
-                auto const & oldPosition{ speakers[outputPatch_].position };
-                auto const newPosition{
-                    getLegalPosition(oldPosition.pushedWithPositiveRadius(diff), spatMode, Cols::DISTANCE)
-                };
+                auto const & speaker_{ speakers[outputPatch_] };
+                auto const & oldPosition{ speaker_.position };
+                auto const & isDirectOutOnly{ speaker_.isDirectOutOnly };
+                auto const newPosition{ getLegalPosition(oldPosition.pushedWithPositiveRadius(diff),
+                                                         spatMode,
+                                                         isDirectOutOnly,
+                                                         Cols::DISTANCE) };
                 mMainContentComponent.handleNewSpeakerPosition(outputPatch_, newPosition);
             }
             mShouldRefreshSpeakers = true;
