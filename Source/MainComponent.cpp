@@ -1721,9 +1721,11 @@ output_patch_t MainContentComponent::addSpeaker(tl::optional<output_patch_t> con
 
     if (index) {
         auto const isValidIndex{ *index >= 0 && *index < mData.speakerSetup.ordering.size() };
-        jassert(isValidIndex);
         if (isValidIndex) {
             mData.speakerSetup.ordering.insert(*index, newOutputPatch);
+        } else {
+            static constexpr auto AT_END = -1;
+            mData.speakerSetup.ordering.insert(AT_END, newOutputPatch);
         }
     } else {
         mData.speakerSetup.ordering.add(newOutputPatch);
