@@ -39,6 +39,7 @@ void EditableTextCustomComponent::mouseDown(const juce::MouseEvent & event)
     } else {
         mOwner.mSpeakersTableListBox.selectRowsBasedOnModifierKeys(mRow, event.mods, false);
     }
+    mLastOffset = 0;
     Label::mouseDown(event);
 }
 
