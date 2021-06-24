@@ -57,6 +57,10 @@ static Position getLegalPosition(Position const & position,
         return Position{ position.getCartesian().clampedToFarField() };
     }
 
+    if (modifiedCol == Col::AZIMUTH || modifiedCol == Col::ELEVATION) {
+        return position.normalized();
+    }
+
     auto newPosition{ position.getCartesian() };
 
     auto & x{ newPosition.x };
@@ -491,7 +495,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
             newOutputPatch = mMainContentComponent.addSpeaker(outputPatch, index);
             mNumRows = speakers.size();
 
-            degrees_t azimuth{ 360.0f / narrow<float>(mNumOfSpeakersTextEditor.getText().getIntValue())
+            degrees_t azimuth{ -360.0f / narrow<float>(mNumOfSpeakersTextEditor.getText().getIntValue())
                                    * narrow<float>(i)
                                - mOffsetAngleTextEditor.getText().getFloatValue() + 90.0f };
             azimuth = azimuth.centered();
