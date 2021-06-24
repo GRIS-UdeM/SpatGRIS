@@ -25,7 +25,7 @@
 #include "Narrow.hpp"
 
 //==============================================================================
-static Position getLegalPosition(Position position,
+static Position getLegalPosition(Position const & position,
                                  SpatMode const spatMode,
                                  bool const isDirectOutOnly,
                                  [[maybe_unused]] int const modifiedCol)
@@ -35,11 +35,45 @@ static Position getLegalPosition(Position position,
     jassert(modifiedCol == Col::AZIMUTH || modifiedCol == Col::ELEVATION || modifiedCol == Col::DISTANCE
             || modifiedCol == Col::X || modifiedCol == Col::Y || modifiedCol == Col::Z);
 
-    if (spatMode == SpatMode::vbap && !isDirectOutOnly) {
-        return position = position.getPolar().normalized();
+    static auto const constrainCartesian
+        = [](float const & valueModified, float & valueToAdjust, float & valueToTryToKeepIntact) {
+              auto const valueModified2{ valueModified * valueModified };
+              auto const lengthWithoutValueToAdjust{ valueModified2 + valueToTryToKeepIntact * valueToTryToKeepIntact };
+
+              if (lengthWithoutValueToAdjust > 1.0f) {
+                  auto const sign{ valueToTryToKeepIntact < 0.0f ? -1.0f : 1.0f };
+                  auto const length{ std::sqrt(1.0f - valueModified2) };
+                  valueToTryToKeepIntact = sign * length;
+                  valueToAdjust = 0.0f;
+                  return;
+              }
+
+              auto const sign{ valueToAdjust < 0.0f ? -1.0f : 1.0f };
+              auto const length{ std::sqrt(1.0f - lengthWithoutValueToAdjust) };
+              valueToAdjust = sign * length;
+          };
+
+    if (spatMode == SpatMode::lbap || isDirectOutOnly) {
+        return Position{ position.getCartesian().clampedToFarField() };
     }
 
-    return position = position.getCartesian().clampedToFarField();
+    auto newPosition{ position.getCartesian() };
+
+    auto & x{ newPosition.x };
+    auto & y{ newPosition.y };
+    auto & z{ newPosition.z };
+    if (modifiedCol == Col::X) {
+        x = std::clamp(x, -1.0f, 1.0f);
+        constrainCartesian(x, y, z);
+    } else if (modifiedCol == Col::Y) {
+        y = std::clamp(y, -1.0f, 1.0f);
+        constrainCartesian(y, x, z);
+    } else {
+        jassert(modifiedCol == Col::Z);
+        z = std::clamp(z, 0.0f, 1.0f);
+        constrainCartesian(z, x, y);
+    }
+    return Position{ newPosition };
 }
 
 //==============================================================================
