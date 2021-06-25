@@ -86,7 +86,7 @@ private:
                                   *this,
                                   mLookAndFeel };
     SpatSlider mInterpolationSlider{
-        0.0f, 1.0f, 0.01f, "", "Gain smoothing", "Determines how much source panning is smoothed", *this, mLookAndFeel
+        0.0f, 1.0f, 0.01f, "", "Interpolation", "Determines how much source panning is smoothed", *this, mLookAndFeel
     };
     SpatModeComponent mSpatModeComponent{ *this, mLookAndFeel };
     AttenuationSettingsComponent mCubeSettingsComponent{ *this, mLookAndFeel };

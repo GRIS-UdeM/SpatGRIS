@@ -219,7 +219,7 @@ public:
     LayoutComponent & operator=(LayoutComponent &&) = delete;
     //==============================================================================
     Section & addSection(MinSizedComponent * component) noexcept;
-    void clear();
+    void clearSections();
     //==============================================================================
     void resized() override;
     [[nodiscard]] int getMinWidth() const noexcept override;

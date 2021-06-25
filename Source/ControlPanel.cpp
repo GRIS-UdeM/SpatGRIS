@@ -174,18 +174,14 @@ void ControlPanel::handleStereoRoutingChanged(StereoRouting const & routing)
 //==============================================================================
 void ControlPanel::refreshLayout()
 {
-    mLayout.clear();
+    mLayout.clearSections();
 
     mLayout.addSection(&mMasterGainSlider).withChildMinSize();
-    mLayout.addSection(&mInterpolationSlider).withChildMinSize().withRightPadding(15);
-    mLayout.addSection(&mSpatModeComponent).withChildMinSize().withRightPadding(15);
+    mLayout.addSection(&mInterpolationSlider).withChildMinSize();
+    mLayout.addSection(&mSpatModeComponent).withChildMinSize();
 
     if (mSpatModeComponent.getStereoMode()) {
-        mLayout.addSection(&mStereoRoutingComponent)
-            .withChildMinSize()
-            .withRightPadding(15)
-            .withTopPadding(10)
-            .withBottomPadding(10);
+        mLayout.addSection(&mStereoRoutingComponent).withChildMinSize();
     }
 
     if (mSpatModeComponent.getSpatMode() == SpatMode::lbap) {
@@ -196,8 +192,8 @@ void ControlPanel::refreshLayout()
             .withBottomPadding(10);
     }
 
-    mLayout.addSection(&mNumSourcesTextEditor).withChildMinSize().withRightPadding(15);
+    mLayout.addSection(&mNumSourcesTextEditor).withChildMinSize();
     mLayout.addSection(nullptr).withRelativeSize(1.0f);
-    mLayout.addSection(&mRecordButton).withChildMinSize().withRightPadding(20);
+    mLayout.addSection(&mRecordButton).withChildMinSize();
     mLayout.resized();
 }

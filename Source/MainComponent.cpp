@@ -1268,7 +1268,7 @@ void MainContentComponent::refreshSourceVuMeterComponents()
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
-    mSourcesLayout->clear();
+    mSourcesLayout->clearSections();
     mSourceVuMeterComponents.clear();
 
     // auto x{ 3 };
@@ -1291,7 +1291,7 @@ void MainContentComponent::refreshSpeakerVuMeterComponents()
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
-    mSpeakersLayout->clear();
+    mSpeakersLayout->clearSections();
     mSpeakerVuMeterComponents.clear();
 
     // auto x{ 3 };

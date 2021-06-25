@@ -22,9 +22,9 @@
 #include "GrisLookAndFeel.hpp"
 #include "constants.hpp"
 
-static constexpr auto BUTTONS_WIDTH = 60;
+static constexpr auto BUTTONS_WIDTH = 45;
 static constexpr auto BUTTONS_HEIGHT = 25;
-static constexpr auto LABELS_HEIGHT = 20;
+static constexpr auto LABELS_HEIGHT = 18;
 static constexpr auto INNER_PADDING = 1;
 
 //==============================================================================
@@ -146,32 +146,20 @@ void SpatModeComponent::comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged)
 void SpatModeComponent::resized()
 {
     auto const availableWidth{ getWidth() };
-    auto const availableHeight{ getHeight() };
-
-    auto const minWidth{ getMinWidth() };
-    auto const minHeight{ getMinHeight() };
-
-    auto const xPadding{ std::max(availableWidth - minWidth, 0) / 2 };
-    auto const yPadding{ std::max(availableHeight - minHeight, 0) / 2 };
-
-    juce::Rectangle<int> const labelBaseBounds{ availableWidth, LABELS_HEIGHT };
-    juce::Rectangle<int> const buttonBaseBounds{ BUTTONS_WIDTH, BUTTONS_HEIGHT };
 
     auto x{ 0 };
-    auto y{ yPadding };
+    auto y{ 0 };
 
-    mSpatModeLabel.setBounds(labelBaseBounds.translated(x, y));
-    x = xPadding;
+    mSpatModeLabel.setBounds(x, y, availableWidth, LABELS_HEIGHT);
     y += LABELS_HEIGHT + INNER_PADDING;
-    mDomeButton.setBounds(buttonBaseBounds.translated(x, y));
+    mDomeButton.setBounds(x, y, BUTTONS_WIDTH, BUTTONS_HEIGHT);
     x += BUTTONS_WIDTH + INNER_PADDING;
-    mCubeButton.setBounds(buttonBaseBounds.translated(x, y));
+    mCubeButton.setBounds(x, y, BUTTONS_WIDTH, BUTTONS_HEIGHT);
     x = 0;
     y += BUTTONS_HEIGHT + INNER_PADDING;
-    mStereoModeLabel.setBounds(labelBaseBounds.translated(x, y));
-    x = 0;
+    mStereoModeLabel.setBounds(x, y, availableWidth, LABELS_HEIGHT);
     y += LABELS_HEIGHT + INNER_PADDING;
-    mStereoComboBox.setBounds(labelBaseBounds.translated(x, y));
+    mStereoComboBox.setBounds(x, y, availableWidth, BUTTONS_HEIGHT);
 }
 
 //==============================================================================

@@ -437,14 +437,17 @@ void SourceVuMeterComponent::colorSelectorButtonClicked()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    auto * colourSelector{ new juce::ColourSelector{} };
+    auto colourSelector{ std::make_unique<juce::ColourSelector>(juce::ColourSelector::showColourAtTop
+                                                                    | juce::ColourSelector::showSliders
+                                                                    | juce::ColourSelector::showColourspace,
+                                                                4,
+                                                                4) };
     colourSelector->setName("background");
     colourSelector->setCurrentColour(mIdButton.findColour(juce::TextButton::buttonColourId));
     colourSelector->addChangeListener(this);
     colourSelector->setColour(juce::ColourSelector::backgroundColourId, juce::Colours::transparentBlack);
     colourSelector->setSize(300, 400);
-    std::unique_ptr<juce::Component> component{ colourSelector };
-    juce::CallOutBox::launchAsynchronously(std::move(component), getScreenBounds(), nullptr);
+    juce::CallOutBox::launchAsynchronously(std::move(colourSelector), getScreenBounds(), nullptr);
 }
 
 //==============================================================================

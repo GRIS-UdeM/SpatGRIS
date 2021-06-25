@@ -60,7 +60,7 @@ LayoutComponent::Section & LayoutComponent::addSection(MinSizedComponent * compo
 }
 
 //==============================================================================
-void LayoutComponent::clear()
+void LayoutComponent::clearSections()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     mViewport.getViewedComponent()->removeAllChildren();

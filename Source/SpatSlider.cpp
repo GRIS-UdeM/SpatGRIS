@@ -21,11 +21,11 @@
 
 #include "GrisLookAndFeel.hpp"
 
-static constexpr auto MIN_LABEL_WIDTH = 90;
-static constexpr auto LABEL_HEIGHT = 20;
+static constexpr auto LABEL_WIDTH = 75;
+static constexpr auto LABEL_HEIGHT = 18;
 static constexpr auto PADDING = 0;
-static constexpr auto ENTRY_BOX_HEIGHT = 20;
 static constexpr auto ENTRY_BOX_WIDTH = 50;
+static constexpr auto ENTRY_BOX_HEIGHT = 20;
 static constexpr auto SLIDER_SIZE = 60;
 
 //==============================================================================
@@ -76,13 +76,15 @@ void SpatSlider::resized()
     auto const width{ getWidth() };
     auto const height{ getHeight() };
 
-    auto const labelY{ std::max(height - getMinHeight(), 0) / 2 };
+    int x{};
+    int y{};
 
-    auto const sliderX{ std::max(width - SLIDER_SIZE, 0) / 2 };
-    auto const sliderY{ labelY + LABEL_HEIGHT + PADDING };
+    mLabel.setBounds(x, y, width, LABEL_HEIGHT);
 
-    mLabel.setBounds(0, labelY, width, LABEL_HEIGHT);
-    mSlider.setBounds(sliderX, sliderY, SLIDER_SIZE, SLIDER_SIZE);
+    x = (width - SLIDER_SIZE) / 2;
+    y = LABEL_HEIGHT + PADDING;
+
+    mSlider.setBounds(x, y, SLIDER_SIZE, SLIDER_SIZE);
 }
 
 //==============================================================================
@@ -97,12 +99,13 @@ void SpatSlider::sliderValueChanged(juce::Slider * slider)
 int SpatSlider::getMinWidth() const noexcept
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-    return std::max(std::max(SLIDER_SIZE, ENTRY_BOX_WIDTH), MIN_LABEL_WIDTH);
+    static constexpr auto MIN_WIDTH{ std::max(std::max(SLIDER_SIZE, ENTRY_BOX_WIDTH), LABEL_WIDTH) };
+    return MIN_WIDTH;
 }
 
 //==============================================================================
 int SpatSlider::getMinHeight() const noexcept
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-    return SLIDER_SIZE + ENTRY_BOX_HEIGHT + PADDING;
+    return LABEL_HEIGHT + PADDING + std::max(SLIDER_SIZE, ENTRY_BOX_HEIGHT);
 }

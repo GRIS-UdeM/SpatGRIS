@@ -191,6 +191,10 @@
                 resource="0" file="Source/StereoPatchSelectionComponent.cpp"/>
           <FILE id="uSg1gy" name="StereoPatchSelectionComponent.hpp" compile="0"
                 resource="0" file="Source/StereoPatchSelectionComponent.hpp"/>
+          <FILE id="X1cHL5" name="SubPanelComponent.cpp" compile="1" resource="0"
+                file="Source/SubPanelComponent.cpp"/>
+          <FILE id="M7d65B" name="SubPanelComponent.hpp" compile="0" resource="0"
+                file="Source/SubPanelComponent.hpp"/>
           <FILE id="RAONSv" name="TitledComponent.cpp" compile="1" resource="0"
                 file="Source/TitledComponent.cpp"/>
           <FILE id="djERfK" name="TitledComponent.hpp" compile="0" resource="0"
