@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "narrow.hpp"
+#include "Narrow.hpp"
 
 #include <JuceHeader.h>
 

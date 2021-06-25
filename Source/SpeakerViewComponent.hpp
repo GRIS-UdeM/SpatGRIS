@@ -20,10 +20,10 @@
 #pragma once
 
 #include "CartesianVector.hpp"
-#include "Constants.hpp"
 #include "LogicStrucs.hpp"
 #include "Ray.hpp"
 #include "Warnings.hpp"
+#include "constants.hpp"
 
 #include <JuceHeader.h>
 

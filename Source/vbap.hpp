@@ -28,10 +28,10 @@
 
 #include "AudioStructs.hpp"
 #include "CartesianVector.hpp"
-#include "Constants.hpp"
 #include "LogicStrucs.hpp"
 #include "PolarVector.hpp"
 #include "StrongTypes.hpp"
+#include "constants.hpp"
 
 #include <JuceHeader.h>
 
