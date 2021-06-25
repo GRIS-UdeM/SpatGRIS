@@ -160,7 +160,7 @@ static void computeGains(LbapLayer const & layer, SourceData const & source, flo
 //==============================================================================
 size_t LbapField::getNumSpeakers() const
 {
-    return std::reduce(layers.cbegin(), layers.cend(), size_t{}, [](size_t const sum, LbapLayer const & layer) {
+    return std::accumulate(layers.cbegin(), layers.cend(), size_t{}, [](size_t const sum, LbapLayer const & layer) {
         return sum + layer.speakerPositions.size();
     });
 }
@@ -209,7 +209,7 @@ LbapField lbapInit(SpeakersData const & speakers)
         auto const howMany{ count - start };
         auto const spk{ lbapPositionsFromSpeakers(&lbapSpeakers[start], howMany) };
 
-        auto const heightSum{ std::reduce(
+        auto const heightSum{ std::accumulate(
             spk.cbegin(),
             spk.cend(),
             0.0f,

@@ -20,13 +20,13 @@
 #include "AudioProcessor.hpp"
 
 #include "AudioManager.hpp"
-#include "Constants.hpp"
 #include "MainComponent.hpp"
 #include "Narrow.hpp"
 #include "PinkNoiseGenerator.hpp"
 #include "StaticMap.hpp"
 #include "StrongArray.hpp"
 #include "TaggedAudioBuffer.hpp"
+#include "constants.hpp"
 
 #include <array>
 

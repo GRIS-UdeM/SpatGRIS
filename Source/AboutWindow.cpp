@@ -19,9 +19,9 @@
 
 #include "AboutWindow.hpp"
 
-#include "Constants.hpp"
 #include "GrisLookAndFeel.hpp"
 #include "MainComponent.hpp"
+#include "constants.hpp"
 
 //==============================================================================
 AboutComponent::AboutComponent(AboutWindow & parentWindow, GrisLookAndFeel & lookAndFeel) : mParentWindow(parentWindow)

@@ -108,8 +108,8 @@
         <FILE id="gaSzyY" name="Triplet.hpp" compile="0" resource="0" file="Source/Triplet.hpp"/>
       </GROUP>
       <GROUP id="{B880ED62-D15F-78F9-F83A-129573A5FA84}" name="Misc">
-        <FILE id="e9Tcnv" name="Constants.cpp" compile="1" resource="0" file="Source/Constants.cpp"/>
-        <FILE id="Ug97Mv" name="Constants.hpp" compile="0" resource="0" file="Source/Constants.hpp"/>
+        <FILE id="rIr4D3" name="constants.cpp" compile="1" resource="0" file="Source/constants.cpp"/>
+        <FILE id="JoJDHm" name="constants.hpp" compile="0" resource="0" file="Source/constants.hpp"/>
         <FILE id="L2ry5O" name="FatalError.cpp" compile="1" resource="0" file="Source/FatalError.cpp"/>
         <FILE id="knhaJI" name="FatalError.hpp" compile="0" resource="0" file="Source/FatalError.hpp"/>
         <FILE id="apexeV" name="Narrow.hpp" compile="0" resource="0" file="Source/Narrow.hpp"/>
@@ -254,12 +254,13 @@
       </MODULEPATHS>
     </XCODE_MAC>
     <LINUX_MAKE targetFolder="Builds/LinuxMakefile" smallIcon="G8JPcc" bigIcon="YxmFrL"
-                extraLinkerFlags="-ljack -ljackserver -lGLU -lglut">
+                extraLinkerFlags="-lGLU -lglut">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="SpatGRIS"
-                       libraryPath="/usr/lib/x86_64-linux-gnu"/>
+                       libraryPath="/usr/lib/x86_64-linux-gnu" recommendedWarnings="LLVM"/>
         <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="SpatGRIS"
-                       libraryPath="/usr/lib/x86_64-linux-gnu" linkTimeOptimisation="1"/>
+                       libraryPath="/usr/lib/x86_64-linux-gnu" linkTimeOptimisation="1"
+                       recommendedWarnings="LLVM"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_osc" path="../../sdks/JUCE-4.3.1/modules"/>

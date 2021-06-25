@@ -20,7 +20,6 @@
 #pragma once
 
 #include "AttenuationSettingsComponent.hpp"
-#include "Constants.hpp"
 #include "LayoutComponent.hpp"
 #include "RecordButton.hpp"
 #include "SpatModeComponent.hpp"
@@ -29,6 +28,7 @@
 #include "StereoPatchSelectionComponent.hpp"
 #include "StrongTypes.hpp"
 #include "TitledComponent.hpp"
+#include "constants.hpp"
 
 //==============================================================================
 class ControlPanel final

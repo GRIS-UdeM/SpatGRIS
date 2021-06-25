@@ -20,7 +20,7 @@
 #include "AudioManager.hpp"
 
 #include "AudioProcessor.hpp"
-#include "Constants.hpp"
+#include "constants.hpp"
 
 juce::BigInteger const NEEDED_INPUT_CHANNELS{ [] {
     juce::BigInteger channels{};

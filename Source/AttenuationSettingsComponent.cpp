@@ -19,8 +19,8 @@
 
 #include "AttenuationSettingsComponent.hpp"
 
-#include "Constants.hpp"
 #include "GrisLookAndFeel.hpp"
+#include "constants.hpp"
 
 static constexpr auto LABEL_WIDTH = 120;
 static constexpr auto LABEL_HEIGHT = 18;

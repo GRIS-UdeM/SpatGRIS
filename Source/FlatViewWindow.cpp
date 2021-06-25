@@ -19,9 +19,9 @@
 
 #include "FlatViewWindow.hpp"
 
-#include "Constants.hpp"
 #include "MainComponent.hpp"
 #include "Narrow.hpp"
+#include "constants.hpp"
 
 static float constexpr RADIUS_MAX = 2.0f;
 static float constexpr SOURCE_RADIUS = 10.0f;

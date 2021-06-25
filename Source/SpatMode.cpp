@@ -19,7 +19,7 @@
 
 #include "SpatMode.hpp"
 
-#include "Constants.hpp"
+#include "constants.hpp"
 
 //==============================================================================
 juce::StringArray const SPAT_MODE_STRINGS{ "Dome", "Cube", "Binaural", "Stereo" };

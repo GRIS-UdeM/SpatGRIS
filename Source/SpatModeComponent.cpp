@@ -19,8 +19,8 @@
 
 #include "SpatModeComponent.hpp"
 
-#include "Constants.hpp"
 #include "GrisLookAndFeel.hpp"
+#include "constants.hpp"
 
 static constexpr auto BUTTONS_WIDTH = 60;
 static constexpr auto BUTTONS_HEIGHT = 25;
