@@ -116,7 +116,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         audioManager.registerAudioProcessor(mAudioProcessor.get());
         AudioManager::getInstance().getAudioDeviceManager().addChangeListener(this);
         audioParametersChanged();
-        jassert(AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice());
+        // jassert(AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice());
     };
 
     auto const initGui = [&]() {
@@ -1050,33 +1050,31 @@ void MainContentComponent::audioParametersChanged()
     juce::ScopedLock const audioLock{ mAudioProcessor->getLock() };
 
     auto * currentAudioDevice{ AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice() };
-    jassert(currentAudioDevice);
-    if (!currentAudioDevice) {
-        return;
+
+    if (currentAudioDevice) {
+        auto const deviceTypeName{ currentAudioDevice->getTypeName() };
+        auto const setup{ AudioManager::getInstance().getAudioDeviceManager().getAudioDeviceSetup() };
+
+        auto const sampleRate{ currentAudioDevice->getCurrentSampleRate() };
+        auto const bufferSize{ currentAudioDevice->getCurrentBufferSizeSamples() };
+        auto const inputCount{ currentAudioDevice->getActiveInputChannels().countNumberOfSetBits() };
+        auto const outputCount{ currentAudioDevice->getActiveOutputChannels().countNumberOfSetBits() };
+
+        juce::ScopedWriteLock const lock{ mLock };
+
+        mData.appData.audioSettings.sampleRate = setup.sampleRate;
+        mData.appData.audioSettings.bufferSize = setup.bufferSize;
+        mData.appData.audioSettings.deviceType = deviceTypeName;
+        mData.appData.audioSettings.inputDevice = setup.inputDeviceName;
+        mData.appData.audioSettings.outputDevice = setup.outputDeviceName;
+
+        AudioManager::getInstance().setBufferSize(bufferSize);
+
+        mInfoPanel->setSampleRate(sampleRate);
+        mInfoPanel->setBufferSize(bufferSize);
+        mInfoPanel->setNumInputs(inputCount);
+        mInfoPanel->setNumOutputs(outputCount);
     }
-
-    auto const deviceTypeName{ currentAudioDevice->getTypeName() };
-    auto const setup{ AudioManager::getInstance().getAudioDeviceManager().getAudioDeviceSetup() };
-
-    auto const sampleRate{ currentAudioDevice->getCurrentSampleRate() };
-    auto const bufferSize{ currentAudioDevice->getCurrentBufferSizeSamples() };
-    auto const inputCount{ currentAudioDevice->getActiveInputChannels().countNumberOfSetBits() };
-    auto const outputCount{ currentAudioDevice->getActiveOutputChannels().countNumberOfSetBits() };
-
-    juce::ScopedWriteLock const lock{ mLock };
-
-    mData.appData.audioSettings.sampleRate = setup.sampleRate;
-    mData.appData.audioSettings.bufferSize = setup.bufferSize;
-    mData.appData.audioSettings.deviceType = deviceTypeName;
-    mData.appData.audioSettings.inputDevice = setup.inputDeviceName;
-    mData.appData.audioSettings.outputDevice = setup.outputDeviceName;
-
-    AudioManager::getInstance().setBufferSize(bufferSize);
-
-    mInfoPanel->setSampleRate(sampleRate);
-    mInfoPanel->setBufferSize(bufferSize);
-    mInfoPanel->setNumInputs(inputCount);
-    mInfoPanel->setNumOutputs(outputCount);
 
     refreshSpeakers();
 }

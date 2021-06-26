@@ -22,6 +22,8 @@
 #include "AudioProcessor.hpp"
 #include "constants.hpp"
 
+// #define SIMULATE_NO_AUDIO_DEVICES
+
 juce::BigInteger const NEEDED_INPUT_CHANNELS{ [] {
     juce::BigInteger channels{};
     channels.setRange(0, MAX_NUM_SOURCES, true);
@@ -47,6 +49,7 @@ AudioManager::AudioManager(juce::String const & deviceType,
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
+#ifndef SIMULATE_NO_AUDIO_DEVICES
     auto const success{ tryInitAudioDevice(deviceType, inputDevice, outputDevice, sampleRate, bufferSize) };
 
     if (!success) {
@@ -59,6 +62,7 @@ AudioManager::AudioManager(juce::String const & deviceType,
             mAudioDeviceManager.initialiseWithDefaultDevices(MAX_NUM_SOURCES, MAX_NUM_SPEAKERS);
         }
     }
+#endif
 
     mRecordersThread.setPriority(9);
     mAudioDeviceManager.addAudioCallback(this);
