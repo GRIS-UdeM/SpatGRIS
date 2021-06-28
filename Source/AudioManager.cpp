@@ -82,17 +82,17 @@ void AudioManager::audioDeviceIOCallback(float const ** inputChannelData,
         return;
     }
 
-    juce::ScopedTryLock const lock{ mAudioProcessor->getLock() };
-    if (!lock.isLocked()) {
-        return;
-    }
-
     // clear buffers
     mInputBuffer.silence();
     mOutputBuffer.silence();
     std::for_each_n(outputChannelData, totalNumOutputChannels, [numSamples](float * const data) {
         std::fill_n(data, numSamples, 0.0f);
     });
+
+    juce::ScopedTryLock const lock{ mAudioProcessor->getLock() };
+    if (!lock.isLocked()) {
+        return;
+    }
 
     // copy input data to buffers
     auto const numInputChannelsToCopy{ std::min(totalNumInputChannels, mInputBuffer.size()) };
