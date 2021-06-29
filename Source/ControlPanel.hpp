@@ -27,21 +27,70 @@
 #include "SpatTextEditor.hpp"
 #include "StereoPatchSelectionComponent.hpp"
 #include "StrongTypes.hpp"
+#include "SubPanelComponent.hpp"
 #include "TitledComponent.hpp"
 #include "constants.hpp"
+
+//==============================================================================
+class GainsSubPanel final
+    : public SubPanelComponent
+    , public SpatSlider::Listener
+{
+public:
+    //==============================================================================
+    class Listener
+    {
+    public:
+        virtual ~Listener() = default;
+        //==============================================================================
+        virtual void masterGainChanged(dbfs_t gain) = 0;
+        virtual void gainInterpolationChanged(float interpolation) = 0;
+    };
+
+private:
+    //==============================================================================
+    Listener & mListener;
+    GrisLookAndFeel & mLookAndFeel;
+    SpatSlider mMasterGainSlider{ LEGAL_MASTER_GAIN_RANGE.getStart().get(),
+                                  LEGAL_MASTER_GAIN_RANGE.getEnd().get(),
+                                  0.1f,
+                                  " db",
+                                  "Output gain",
+                                  "Gain applied to every speaker",
+                                  *this,
+                                  mLookAndFeel };
+    SpatSlider mInterpolationSlider{
+        0.0f, 1.0f, 0.01f, "", "Interpolation", "Determines how much source panning is smoothed", *this, mLookAndFeel
+    };
+
+public:
+    //==============================================================================
+    GainsSubPanel(Listener & listener, GrisLookAndFeel & lookAndFeel);
+    ~GainsSubPanel() override = default;
+    //==============================================================================
+    GainsSubPanel(GainsSubPanel const &) = delete;
+    GainsSubPanel(GainsSubPanel &&) = delete;
+    GainsSubPanel & operator=(GainsSubPanel const &) = delete;
+    GainsSubPanel & operator=(GainsSubPanel &&) = delete;
+    //==============================================================================
+    void setMasterGain(dbfs_t gain);
+    void setInterpolation(float interpolation);
+    void sliderMoved(float value, SpatSlider * slider) override;
+
+private:
+    JUCE_LEAK_DETECTOR(GainsSubPanel)
+};
 
 //==============================================================================
 class ControlPanel final
     : public MinSizedComponent
     , public SpatModeComponent::Listener
     , public AttenuationSettingsComponent::Listener
-    , public SpatSlider::Listener
+    , public GainsSubPanel::Listener
     , public SpatTextEditor::Listener
     , public RecordButton::Listener
     , public StereoPatchSelectionComponent::Listener
 {
-    static constexpr auto PADDING = 5;
-
 public:
     //==============================================================================
     class Listener
@@ -77,17 +126,7 @@ private:
     LayoutComponent mLayout{ LayoutComponent::Orientation::horizontal, true, false, mLookAndFeel };
     TitledComponent mSection{ "Controls", &mLayout, mLookAndFeel };
 
-    SpatSlider mMasterGainSlider{ LEGAL_MASTER_GAIN_RANGE.getStart().get(),
-                                  LEGAL_MASTER_GAIN_RANGE.getEnd().get(),
-                                  0.1f,
-                                  " db",
-                                  "Output gain",
-                                  "Gain applied to every speaker",
-                                  *this,
-                                  mLookAndFeel };
-    SpatSlider mInterpolationSlider{
-        0.0f, 1.0f, 0.01f, "", "Interpolation", "Determines how much source panning is smoothed", *this, mLookAndFeel
-    };
+    GainsSubPanel mGainsSubPanel{ *this, mLookAndFeel };
     SpatModeComponent mSpatModeComponent{ *this, mLookAndFeel };
     AttenuationSettingsComponent mCubeSettingsComponent{ *this, mLookAndFeel };
     StereoPatchSelectionComponent mStereoRoutingComponent{ *this, mLookAndFeel };
@@ -120,12 +159,13 @@ public:
     int getMinHeight() const noexcept override { return mLayout.getMinHeight(); }
     void handleSpatModeChanged(SpatMode spatMode) override;
     void handleStereoModeChanged(tl::optional<StereoMode> stereoMode) override;
-    void sliderMoved(float value, SpatSlider * slider) override;
     void textEditorChanged(juce::String const & value, SpatTextEditor * editor) override;
     void recordButtonPressed() override;
     void cubeAttenuationDbChanged(dbfs_t value) override;
     void cubeAttenuationHzChanged(hz_t value) override;
     void handleStereoRoutingChanged(StereoRouting const & routing) override;
+    void masterGainChanged(dbfs_t gain) override;
+    void gainInterpolationChanged(float interpolation) override;
 
 private:
     //==============================================================================

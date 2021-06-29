@@ -20,6 +20,44 @@
 #include "ControlPanel.hpp"
 
 //==============================================================================
+GainsSubPanel::GainsSubPanel(Listener & listener, GrisLookAndFeel & lookAndFeel)
+    : SubPanelComponent(LayoutComponent::Orientation::horizontal, lookAndFeel)
+    , mListener(listener)
+    , mLookAndFeel(lookAndFeel)
+{
+    addSection(mMasterGainSlider).withChildMinSize();
+    addSection(mInterpolationSlider).withChildMinSize();
+}
+
+//==============================================================================
+void GainsSubPanel::setMasterGain(dbfs_t const gain)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    mMasterGainSlider.setValue(gain.get());
+}
+
+//==============================================================================
+void GainsSubPanel::setInterpolation(float const interpolation)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    mInterpolationSlider.setValue(interpolation);
+}
+
+//==============================================================================
+void GainsSubPanel::sliderMoved(float const value, SpatSlider * const slider)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    if (slider == &mMasterGainSlider) {
+        mListener.masterGainChanged(dbfs_t{ value });
+        return;
+    }
+
+    jassert(slider == &mInterpolationSlider);
+    mListener.gainInterpolationChanged(value);
+}
+
+//==============================================================================
 ControlPanel::ControlPanel(Listener & listener, GrisLookAndFeel & lookAndFeel)
     : mListener(listener)
     , mLookAndFeel(lookAndFeel)
@@ -33,14 +71,14 @@ ControlPanel::ControlPanel(Listener & listener, GrisLookAndFeel & lookAndFeel)
 void ControlPanel::setMasterGain(dbfs_t const gain)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-    mMasterGainSlider.setValue(gain.get());
+    mGainsSubPanel.setMasterGain(gain);
 }
 
 //==============================================================================
 void ControlPanel::setInterpolation(float const interpolation)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-    mInterpolationSlider.setValue(interpolation);
+    mGainsSubPanel.setInterpolation(interpolation);
 }
 
 //==============================================================================
@@ -124,18 +162,6 @@ void ControlPanel::handleStereoModeChanged(tl::optional<StereoMode> const stereo
 }
 
 //==============================================================================
-void ControlPanel::sliderMoved(float const value, SpatSlider * slider)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-    if (slider == &mMasterGainSlider) {
-        mListener.masterGainChanged(dbfs_t{ value });
-        return;
-    }
-    jassert(slider == &mInterpolationSlider);
-    mListener.interpolationChanged(value);
-}
-
-//==============================================================================
 void ControlPanel::textEditorChanged(juce::String const & value, [[maybe_unused]] SpatTextEditor * editor)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -168,32 +194,48 @@ void ControlPanel::cubeAttenuationHzChanged(hz_t const value)
 //==============================================================================
 void ControlPanel::handleStereoRoutingChanged(StereoRouting const & routing)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
     mListener.stereoRoutingChanged(routing);
+}
+
+//==============================================================================
+void ControlPanel::masterGainChanged(dbfs_t const gain)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    mListener.masterGainChanged(gain);
+}
+
+//==============================================================================
+void ControlPanel::gainInterpolationChanged(float const interpolation)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    mListener.interpolationChanged(interpolation);
 }
 
 //==============================================================================
 void ControlPanel::refreshLayout()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     mLayout.clearSections();
 
-    mLayout.addSection(&mMasterGainSlider).withChildMinSize();
-    mLayout.addSection(&mInterpolationSlider).withChildMinSize();
-    mLayout.addSection(&mSpatModeComponent).withChildMinSize();
+    mLayout.addSection(mGainsSubPanel).withChildMinSize().widthPadding(5);
+    mLayout.addSection(mSpatModeComponent).withChildMinSize();
 
     if (mSpatModeComponent.getStereoMode()) {
         mLayout.addSection(&mStereoRoutingComponent).withChildMinSize();
     }
 
     if (mSpatModeComponent.getSpatMode() == SpatMode::lbap) {
-        mLayout.addSection(&mCubeSettingsComponent)
+        mLayout.addSection(mCubeSettingsComponent)
             .withChildMinSize()
             .withRightPadding(15)
             .withTopPadding(10)
             .withBottomPadding(10);
     }
 
-    mLayout.addSection(&mNumSourcesTextEditor).withChildMinSize();
+    mLayout.addSection(mNumSourcesTextEditor).withChildMinSize();
     mLayout.addSection(nullptr).withRelativeSize(1.0f);
-    mLayout.addSection(&mRecordButton).withChildMinSize();
+    mLayout.addSection(mRecordButton).withChildMinSize();
     mLayout.resized();
 }

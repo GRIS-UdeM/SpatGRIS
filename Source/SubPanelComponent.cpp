@@ -21,8 +21,8 @@
 
 #include "GrisLookAndFeel.hpp"
 
-static constexpr auto CORNER_SIZE = 20;
-static constexpr auto INNER_PADDING = 20;
+static constexpr auto CORNER_SIZE = 8;
+static constexpr auto INNER_PADDING = 8;
 
 static constexpr auto OFFSET{ INNER_PADDING / 2 };
 
@@ -43,8 +43,13 @@ void SubPanelComponent::resized()
 //==============================================================================
 void SubPanelComponent::paint(juce::Graphics & g)
 {
-    g.setColour(mLookAndFeel.getDarkColour());
-    g.fillRoundedRectangle(OFFSET, OFFSET, narrow<float>(getWidth()), narrow<float>(getHeight()), CORNER_SIZE);
+    g.setColour(mLookAndFeel.getWinBackgroundColour());
+    auto const layoutBounds{ mLayout.getBoundsInParent().expanded(OFFSET, OFFSET).toFloat() };
+    g.fillRoundedRectangle(layoutBounds.getX(),
+                           layoutBounds.getY(),
+                           layoutBounds.getWidth(),
+                           layoutBounds.getHeight(),
+                           CORNER_SIZE);
 }
 
 //==============================================================================

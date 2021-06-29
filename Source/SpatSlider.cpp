@@ -21,7 +21,7 @@
 
 #include "GrisLookAndFeel.hpp"
 
-static constexpr auto LABEL_WIDTH = 75;
+static constexpr auto LABEL_WIDTH = 78;
 static constexpr auto LABEL_HEIGHT = 18;
 static constexpr auto PADDING = 0;
 static constexpr auto ENTRY_BOX_WIDTH = 50;
@@ -74,15 +74,11 @@ void SpatSlider::resized()
     JUCE_ASSERT_MESSAGE_THREAD;
 
     auto const width{ getWidth() };
-    auto const height{ getHeight() };
 
-    int x{};
-    int y{};
+    mLabel.setBounds(0, 0, width, LABEL_HEIGHT);
 
-    mLabel.setBounds(x, y, width, LABEL_HEIGHT);
-
-    x = (width - SLIDER_SIZE) / 2;
-    y = LABEL_HEIGHT + PADDING;
+    auto const x{ std::max((width - SLIDER_SIZE) / 2, 0) };
+    auto const y{ LABEL_HEIGHT + PADDING };
 
     mSlider.setBounds(x, y, SLIDER_SIZE, SLIDER_SIZE);
 }
@@ -107,5 +103,8 @@ int SpatSlider::getMinWidth() const noexcept
 int SpatSlider::getMinHeight() const noexcept
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-    return LABEL_HEIGHT + PADDING + std::max(SLIDER_SIZE, ENTRY_BOX_HEIGHT);
+
+    static constexpr auto CORRECTION = 5;
+
+    return LABEL_HEIGHT + PADDING + std::max(SLIDER_SIZE, ENTRY_BOX_HEIGHT) - CORRECTION;
 }
