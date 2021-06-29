@@ -19,18 +19,42 @@
 
 #include "SubPanelComponent.hpp"
 
+#include "GrisLookAndFeel.hpp"
+
+static constexpr auto CORNER_SIZE = 20;
+static constexpr auto INNER_PADDING = 20;
+
+static constexpr auto OFFSET{ INNER_PADDING / 2 };
+
 //==============================================================================
-SubPanelComponent::SubPanelComponent(LayoutComponent::Orientation const orientation,
-                                     juce::String title,
-                                     GrisLookAndFeel & lookAndFeel)
+SubPanelComponent::SubPanelComponent(LayoutComponent::Orientation const orientation, GrisLookAndFeel & lookAndFeel)
     : mLookAndFeel(lookAndFeel)
     , mLayout(orientation, false, false, lookAndFeel)
-    , mTitle(std::move(title))
 {
+    addAndMakeVisible(mLayout);
 }
 
 //==============================================================================
 void SubPanelComponent::resized()
 {
-    mLayout.setBounds(0, 0, getWidth(), getHeight());
+    mLayout.setBounds(OFFSET, OFFSET, getWidth() - INNER_PADDING, getHeight() - INNER_PADDING);
+}
+
+//==============================================================================
+void SubPanelComponent::paint(juce::Graphics & g)
+{
+    g.setColour(mLookAndFeel.getDarkColour());
+    g.fillRoundedRectangle(OFFSET, OFFSET, narrow<float>(getWidth()), narrow<float>(getHeight()), CORNER_SIZE);
+}
+
+//==============================================================================
+int SubPanelComponent::getMinWidth() const noexcept
+{
+    return mLayout.getMinWidth() + INNER_PADDING;
+}
+
+//==============================================================================
+int SubPanelComponent::getMinHeight() const noexcept
+{
+    return mLayout.getMinHeight() + INNER_PADDING;
 }

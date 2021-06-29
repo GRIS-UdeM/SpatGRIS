@@ -28,11 +28,10 @@ class SubPanelComponent : public MinSizedComponent
 {
     GrisLookAndFeel & mLookAndFeel;
     LayoutComponent mLayout;
-    juce::String mTitle{};
 
 public:
     //==============================================================================
-    SubPanelComponent(LayoutComponent::Orientation orientation, juce::String title, GrisLookAndFeel & lookAndFeel);
+    SubPanelComponent(LayoutComponent::Orientation orientation, GrisLookAndFeel & lookAndFeel);
     ~SubPanelComponent() override = default;
     //==============================================================================
     SubPanelComponent(SubPanelComponent const &) = delete;
@@ -45,5 +44,7 @@ public:
     void clearSections() { mLayout.clearSections(); }
     //==============================================================================
     void resized() override;
-    // void paint(juce::Graphics & g) override;
+    void paint(juce::Graphics & g) override;
+    [[nodiscard]] int getMinWidth() const noexcept override;
+    [[nodiscard]] int getMinHeight() const noexcept override;
 };
