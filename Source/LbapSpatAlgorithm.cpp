@@ -65,49 +65,71 @@ void LbapSpatAlgorithm::process(AudioConfig const & config,
 
     for (auto const & source : config.sourcesAudioConfig) {
         if (source.value.isMuted || source.value.directOut || sourcePeaks[source.key] < SMALL_GAIN) {
+            // speaker silent
             continue;
         }
 
         auto & data{ mData[source.key] };
-
         data.dataQueue.getMostRecent(data.currentData);
         if (data.currentData == nullptr) {
+            // no spat data
             continue;
         }
+
         auto const & spatData{ data.currentData->get() };
         auto const & targetGains{ spatData.gains };
         auto & lastGains{ data.lastGains };
 
         // process attenuation
-        auto * inputData{ sourcesBuffer[source.key].getWritePointer(0) };
-        config.lbapAttenuationConfig.process(inputData, numSamples, spatData.lbapSourceDistance, data.attenuationState);
+        auto * inputSamples{ sourcesBuffer[source.key].getWritePointer(0) };
+        config.lbapAttenuationConfig.process(inputSamples,
+                                             numSamples,
+                                             spatData.lbapSourceDistance,
+                                             data.attenuationState);
 
         // Process spatialization
         for (auto const & speaker : speakersAudioConfig) {
-            auto * outputSamples{ speakersBuffer[speaker.key].getWritePointer(0) };
-            auto const & targetGain{ targetGains[speaker.key] };
+            if (speaker.value.isMuted || speaker.value.isDirectOutOnly || speaker.value.gain < SMALL_GAIN) {
+                // speaker silent
+                continue;
+            }
+
             auto & currentGain{ lastGains[speaker.key] };
+            auto const & targetGain{ targetGains[speaker.key] };
+            auto * outputSamples{ speakersBuffer[speaker.key].getWritePointer(0) };
+            auto const gainDiff{ targetGain - currentGain };
+            auto const gainSlope{ gainDiff / narrow<float>(numSamples) };
+
+            if (gainSlope == 0.0f || std::abs(gainDiff) < SMALL_GAIN) {
+                // no interpolation
+                currentGain = targetGain;
+                if (currentGain >= SMALL_GAIN) {
+                    juce::FloatVectorOperations::addWithMultiply(outputSamples, inputSamples, currentGain, numSamples);
+                }
+                continue;
+            }
+
             if (gainInterpolation == 0.0f) {
                 // linear interpolation over buffer size
-                auto const gainSlope = (targetGain - currentGain) / narrow<float>(numSamples);
-                if (currentGain < SMALL_GAIN && targetGain < SMALL_GAIN) {
-                    // This is not going to produce any more sounds!
-                    continue;
-                }
                 for (int sampleIndex{}; sampleIndex < numSamples; ++sampleIndex) {
                     currentGain += gainSlope;
-                    outputSamples[sampleIndex] += inputData[sampleIndex] * currentGain;
+                    outputSamples[sampleIndex] += inputSamples[sampleIndex] * currentGain;
                 }
             } else {
                 // log interpolation with 1st order filter
+                if (targetGain < SMALL_GAIN) {
+                    // targeting silence
+                    for (int sampleIndex{}; sampleIndex < numSamples && currentGain >= SMALL_GAIN; ++sampleIndex) {
+                        currentGain = targetGain + (currentGain - targetGain) * gainFactor;
+                        outputSamples[sampleIndex] += inputSamples[sampleIndex] * currentGain;
+                    }
+                    continue;
+                }
+
+                // not targeting silence
                 for (int sampleIndex{}; sampleIndex < numSamples; ++sampleIndex) {
                     currentGain = (currentGain - targetGain) * gainFactor + targetGain;
-                    if (currentGain < SMALL_GAIN && targetGain < SMALL_GAIN) {
-                        // If the gain is near zero and the target gain is also near zero, this means that
-                        // currentGain will no ever increase over this buffer
-                        break;
-                    }
-                    outputSamples[sampleIndex] += inputData[sampleIndex] * currentGain;
+                    outputSamples[sampleIndex] += inputSamples[sampleIndex] * currentGain;
                 }
             }
         }
