@@ -141,12 +141,12 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         // Source panel
         mSourcesLayout
             = std::make_unique<LayoutComponent>(LayoutComponent::Orientation::horizontal, true, false, grisLookAndFeel);
-        mSourcesSection = std::make_unique<TitledComponent>("Inputs", mSourcesLayout.get(), mLookAndFeel);
+        mSourcesSection = std::make_unique<TitledComponent>("Sources", mSourcesLayout.get(), mLookAndFeel);
 
         // Speaker panel
         mSpeakersLayout
             = std::make_unique<LayoutComponent>(LayoutComponent::Orientation::horizontal, true, false, grisLookAndFeel);
-        mSpeakersSection = std::make_unique<TitledComponent>("Outputs", mSpeakersLayout.get(), mLookAndFeel);
+        mSpeakersSection = std::make_unique<TitledComponent>("Speakers", mSpeakersLayout.get(), mLookAndFeel);
 
         // Control panel
         mControlPanel = std::make_unique<ControlPanel>(*this, mLookAndFeel);
