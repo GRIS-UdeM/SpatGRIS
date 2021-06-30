@@ -25,8 +25,18 @@ GainsSubPanel::GainsSubPanel(Listener & listener, GrisLookAndFeel & lookAndFeel)
     , mListener(listener)
     , mLookAndFeel(lookAndFeel)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+    addSection(mNumSourcesEditor).withChildMinSize();
     addSection(mMasterGainSlider).withChildMinSize();
     addSection(mInterpolationSlider).withChildMinSize();
+}
+
+//==============================================================================
+void GainsSubPanel::setNumberOfSources(int const numberOfSources)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    jassert(numberOfSources > 0 && numberOfSources <= MAX_NUM_SOURCES);
+    mNumSourcesEditor.setText(juce::String{ numberOfSources });
 }
 
 //==============================================================================
@@ -41,6 +51,22 @@ void GainsSubPanel::setInterpolation(float const interpolation)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     mInterpolationSlider.setValue(interpolation);
+}
+
+//==============================================================================
+void GainsSubPanel::textEditorChanged(juce::String const & value, [[maybe_unused]] SpatTextEditor * editor)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    jassert(editor == &mNumSourcesEditor);
+
+    auto const intValue{ value.getIntValue() };
+    auto const clippedValue{ std::clamp(intValue, 1, MAX_NUM_SOURCES) };
+
+    mListener.numberOfSourcesChanged(clippedValue);
+
+    if (intValue != clippedValue) {
+        setNumberOfSources(clippedValue);
+    }
 }
 
 //==============================================================================
@@ -117,7 +143,7 @@ void ControlPanel::setCubeAttenuationHz(hz_t const value)
 void ControlPanel::setNumSources(int const numSources)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-    mNumSourcesTextEditor.setText(juce::String{ numSources });
+    mGainsSubPanel.setNumberOfSources(numSources);
 }
 
 //==============================================================================
@@ -130,19 +156,29 @@ void ControlPanel::setRecordButtonState(RecordButton::State const state)
 //==============================================================================
 void ControlPanel::setStereoRouting(StereoRouting const & routing)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
     mStereoRoutingComponent.setStereoRouting(routing);
 }
 
 //==============================================================================
 void ControlPanel::updateSpeakers(SpeakersOrdering ordering, StereoRouting const & routing)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
     mStereoRoutingComponent.updateSpeakers(std::move(ordering), routing);
 }
 
 //==============================================================================
 void ControlPanel::resized()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
     mLayout.setBounds(0, 0, getWidth(), getHeight());
+}
+
+//==============================================================================
+void ControlPanel::numberOfSourcesChanged(int const numberOfSources)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    mListener.numSourcesChanged(numberOfSources);
 }
 
 //==============================================================================
@@ -159,15 +195,6 @@ void ControlPanel::handleStereoModeChanged(tl::optional<StereoMode> const stereo
     JUCE_ASSERT_MESSAGE_THREAD;
     mListener.setStereoMode(stereoMode);
     refreshLayout();
-}
-
-//==============================================================================
-void ControlPanel::textEditorChanged(juce::String const & value, [[maybe_unused]] SpatTextEditor * editor)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-    jassert(editor == &mNumSourcesTextEditor);
-    auto const numSources{ std::clamp(value.getIntValue(), 1, MAX_NUM_SOURCES) };
-    mListener.numSourcesChanged(numSources);
 }
 
 //==============================================================================
@@ -234,7 +261,6 @@ void ControlPanel::refreshLayout()
             .withBottomPadding(10);
     }
 
-    mLayout.addSection(mNumSourcesTextEditor).withChildMinSize();
     mLayout.addSection(nullptr).withRelativeSize(1.0f);
     mLayout.addSection(mRecordButton).withChildMinSize();
     mLayout.resized();

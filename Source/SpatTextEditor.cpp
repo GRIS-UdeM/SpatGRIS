@@ -21,6 +21,10 @@
 
 #include "GrisLookAndFeel.hpp"
 
+static constexpr auto LABEL_HEIGHT = 18;
+
+static constexpr auto PADDING = 0;
+
 static constexpr auto BOX_WIDTH = 43;
 static constexpr auto BOX_HEIGHT = 22;
 
@@ -42,7 +46,7 @@ SpatTextEditor::SpatTextEditor(juce::String const & label,
 
     mEditor.setTooltip(tooltip);
     mEditor.addListener(this);
-    mEditor.setJustification(juce::Justification::centredLeft);
+    mEditor.setJustification(juce::Justification::centredTop);
     mEditor.setSelectAllWhenFocused(true);
     addAndMakeVisible(mEditor);
 }
@@ -74,23 +78,25 @@ void SpatTextEditor::resized()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    auto const extraWidth{ std::max(getWidth() - getMinWidth(), 0) };
-    auto const labelWidth{ std::max(getWidth() - BOX_WIDTH - extraWidth / 2, 0) };
+    auto const width{ getWidth() };
+    auto const height{ getHeight() };
 
-    auto const yOffset{ std::max(getHeight() - getMinHeight(), 0) / 2 };
+    mLabel.setBounds(0, 0, width, LABEL_HEIGHT);
 
-    mLabel.setBounds(0, yOffset, labelWidth, BOX_HEIGHT);
-    mEditor.setBounds(labelWidth, yOffset, BOX_WIDTH, BOX_HEIGHT);
+    auto const x{ std::max((width - BOX_WIDTH) / 2, 0) };
+    auto const y{ LABEL_HEIGHT + PADDING };
+
+    mEditor.setBounds(x, y, BOX_WIDTH, BOX_HEIGHT);
 }
 
 //==============================================================================
 int SpatTextEditor::getMinWidth() const noexcept
 {
-    return mLabel.getFont().getStringWidth(mLabel.getText()) + BOX_WIDTH;
+    return std::max(mLabel.getFont().getStringWidth(mLabel.getText()), BOX_WIDTH);
 }
 
 //==============================================================================
 int SpatTextEditor::getMinHeight() const noexcept
 {
-    return BOX_HEIGHT;
+    return LABEL_HEIGHT + PADDING + BOX_HEIGHT;
 }

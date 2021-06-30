@@ -35,6 +35,7 @@
 class GainsSubPanel final
     : public SubPanelComponent
     , public SpatSlider::Listener
+    , public SpatTextEditor::Listener
 {
 public:
     //==============================================================================
@@ -43,6 +44,7 @@ public:
     public:
         virtual ~Listener() = default;
         //==============================================================================
+        virtual void numberOfSourcesChanged(int numberOfSources) = 0;
         virtual void masterGainChanged(dbfs_t gain) = 0;
         virtual void gainInterpolationChanged(float interpolation) = 0;
     };
@@ -51,6 +53,7 @@ private:
     //==============================================================================
     Listener & mListener;
     GrisLookAndFeel & mLookAndFeel;
+    SpatTextEditor mNumSourcesEditor{ "Sources", "Set the number of sources.", *this, mLookAndFeel };
     SpatSlider mMasterGainSlider{ LEGAL_MASTER_GAIN_RANGE.getStart().get(),
                                   LEGAL_MASTER_GAIN_RANGE.getEnd().get(),
                                   0.1f,
@@ -73,8 +76,11 @@ public:
     GainsSubPanel & operator=(GainsSubPanel const &) = delete;
     GainsSubPanel & operator=(GainsSubPanel &&) = delete;
     //==============================================================================
+    void setNumberOfSources(int numberOfSources);
     void setMasterGain(dbfs_t gain);
     void setInterpolation(float interpolation);
+    //==============================================================================
+    void textEditorChanged(juce::String const & value, SpatTextEditor * editor) override;
     void sliderMoved(float value, SpatSlider * slider) override;
 
 private:
@@ -87,7 +93,6 @@ class ControlPanel final
     , public SpatModeComponent::Listener
     , public AttenuationSettingsComponent::Listener
     , public GainsSubPanel::Listener
-    , public SpatTextEditor::Listener
     , public RecordButton::Listener
     , public StereoPatchSelectionComponent::Listener
 {
@@ -130,7 +135,6 @@ private:
     SpatModeComponent mSpatModeComponent{ *this, mLookAndFeel };
     AttenuationSettingsComponent mCubeSettingsComponent{ *this, mLookAndFeel };
     StereoPatchSelectionComponent mStereoRoutingComponent{ *this, mLookAndFeel };
-    SpatTextEditor mNumSourcesTextEditor{ "Sources:", "Number of available sources", *this, mLookAndFeel };
     RecordButton mRecordButton{ *this, mLookAndFeel };
 
 public:
@@ -157,9 +161,9 @@ public:
     void resized() override;
     int getMinWidth() const noexcept override { return mLayout.getMinWidth(); }
     int getMinHeight() const noexcept override { return mLayout.getMinHeight(); }
+    void numberOfSourcesChanged(int numberOfSources) override;
     void handleSpatModeChanged(SpatMode spatMode) override;
     void handleStereoModeChanged(tl::optional<StereoMode> stereoMode) override;
-    void textEditorChanged(juce::String const & value, SpatTextEditor * editor) override;
     void recordButtonPressed() override;
     void cubeAttenuationDbChanged(dbfs_t value) override;
     void cubeAttenuationHzChanged(hz_t value) override;
