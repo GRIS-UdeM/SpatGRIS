@@ -20,6 +20,7 @@
 #pragma once
 
 #include "AboutWindow.hpp"
+#include "AddRemoveSourcesWindow.hpp"
 #include "AudioProcessor.hpp"
 #include "Configuration.hpp"
 #include "ControlPanel.hpp"
@@ -33,6 +34,7 @@
 #include "OwnedMap.hpp"
 #include "PrepareToRecordWindow.hpp"
 #include "SettingsWindow.hpp"
+#include "SpatButton.hpp"
 #include "SpeakerViewComponent.hpp"
 #include "StrongTypes.hpp"
 #include "TitledComponent.hpp"
@@ -64,6 +66,7 @@ class MainContentComponent final
     , public SourceVuMeterComponent::Owner
     , public SpeakerVuMeterComponent::Owner
     , public ControlPanel::Listener
+    , private SpatButton::Listener
     , private AudioDeviceManagerListener
     , private juce::Timer
 {
@@ -89,13 +92,16 @@ class MainContentComponent final
     std::unique_ptr<AboutWindow> mAboutWindow{};
     std::unique_ptr<PrepareToRecordWindow> mPrepareToRecordWindow{};
     std::unique_ptr<OscMonitorWindow> mOscMonitorWindow{};
+    std::unique_ptr<AddRemoveSourcesWindow> mAddRemoveSourcesWindow{};
 
     // info section
     std::unique_ptr<InfoPanel> mInfoPanel{};
 
     // Sources Section
+    SpatButton mAddRemoveSourcesButton{ "+/-", "Add or remove sources.", 30, 0, *this };
+    std::unique_ptr<LayoutComponent> mSourcesInnerLayout{};
+    std::unique_ptr<LayoutComponent> mSourcesOuterLayout{};
     std::unique_ptr<TitledComponent> mSourcesSection{};
-    std::unique_ptr<LayoutComponent> mSourcesLayout{};
 
     // Speakers Section
     std::unique_ptr<TitledComponent> mSpeakersSection{};
@@ -246,6 +252,7 @@ public:
     void closeAboutWindow() { mAboutWindow.reset(); }
     void closeOscMonitorWindow() { mOscMonitorWindow.reset(); }
     void closePrepareToRecordWindow() { mPrepareToRecordWindow.reset(); }
+    void closeAddRemoveSourcesWindow() { mAddRemoveSourcesWindow.reset(); }
     //==============================================================================
     void timerCallback() override;
     void paint(juce::Graphics & g) override;
@@ -259,9 +266,9 @@ public:
 
     void prepareAndStartRecording(juce::File const & fileOrDirectory, RecordingOptions const & recordingOptions);
 
+    void numSourcesChanged(int numSources);
     void masterGainChanged(dbfs_t gain) override;
     void interpolationChanged(float interpolation) override;
-    void numSourcesChanged(int numSources) override;
     void recordButtonPressed() override;
 
 private:
@@ -300,8 +307,7 @@ private:
     [[nodiscard]] bool performSafeSave(juce::XmlElement const & content, juce::File const & destination) noexcept;
     void reassignSourcesPositions();
 
-    //==============================================================================
-    // OVERRIDES
+    void buttonPressed(SpatButton * button) override;
     void audioParametersChanged() override;
 
     void getAllCommands(juce::Array<juce::CommandID> & commands) override;

@@ -24,7 +24,6 @@
 #include "RecordButton.hpp"
 #include "SpatModeComponent.hpp"
 #include "SpatSlider.hpp"
-#include "SpatTextEditor.hpp"
 #include "StereoPatchSelectionComponent.hpp"
 #include "StrongTypes.hpp"
 #include "SubPanelComponent.hpp"
@@ -35,7 +34,6 @@
 class GainsSubPanel final
     : public SubPanelComponent
     , public SpatSlider::Listener
-    , public SpatTextEditor::Listener
 {
 public:
     //==============================================================================
@@ -44,7 +42,6 @@ public:
     public:
         virtual ~Listener() = default;
         //==============================================================================
-        virtual void numberOfSourcesChanged(int numberOfSources) = 0;
         virtual void masterGainChanged(dbfs_t gain) = 0;
         virtual void gainInterpolationChanged(float interpolation) = 0;
     };
@@ -53,7 +50,6 @@ private:
     //==============================================================================
     Listener & mListener;
     GrisLookAndFeel & mLookAndFeel;
-    SpatTextEditor mNumSourcesEditor{ "Sources", "Set the number of sources.", *this, mLookAndFeel };
     SpatSlider mMasterGainSlider{ LEGAL_MASTER_GAIN_RANGE.getStart().get(),
                                   LEGAL_MASTER_GAIN_RANGE.getEnd().get(),
                                   0.1f,
@@ -76,11 +72,9 @@ public:
     GainsSubPanel & operator=(GainsSubPanel const &) = delete;
     GainsSubPanel & operator=(GainsSubPanel &&) = delete;
     //==============================================================================
-    void setNumberOfSources(int numberOfSources);
     void setMasterGain(dbfs_t gain);
     void setInterpolation(float interpolation);
     //==============================================================================
-    void textEditorChanged(juce::String const & value, SpatTextEditor * editor) override;
     void sliderMoved(float value, SpatSlider * slider) override;
 
 private:
@@ -115,7 +109,6 @@ public:
         virtual void setStereoMode(tl::optional<StereoMode> stereoMode) = 0;
         virtual void cubeAttenuationDbChanged(dbfs_t value) = 0;
         virtual void cubeAttenuationHzChanged(hz_t value) = 0;
-        virtual void numSourcesChanged(int numSources) = 0;
         virtual void recordButtonPressed() = 0;
         virtual void stereoRoutingChanged(StereoRouting const & routing) = 0;
 
@@ -153,7 +146,6 @@ public:
     void setStereoMode(tl::optional<StereoMode> const & mode);
     void setCubeAttenuationDb(dbfs_t value);
     void setCubeAttenuationHz(hz_t value);
-    void setNumSources(int numSources);
     void setRecordButtonState(RecordButton::State state);
     void setStereoRouting(StereoRouting const & routing);
     void updateSpeakers(SpeakersOrdering ordering, StereoRouting const & routing);
@@ -161,7 +153,6 @@ public:
     void resized() override;
     int getMinWidth() const noexcept override { return mLayout.getMinWidth(); }
     int getMinHeight() const noexcept override { return mLayout.getMinHeight(); }
-    void numberOfSourcesChanged(int numberOfSources) override;
     void handleSpatModeChanged(SpatMode spatMode) override;
     void handleStereoModeChanged(tl::optional<StereoMode> stereoMode) override;
     void recordButtonPressed() override;

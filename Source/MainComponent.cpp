@@ -116,7 +116,6 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         audioManager.registerAudioProcessor(mAudioProcessor.get());
         AudioManager::getInstance().getAudioDeviceManager().addChangeListener(this);
         audioParametersChanged();
-        // jassert(AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice());
     };
 
     auto const initGui = [&]() {
@@ -138,16 +137,6 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         // info panel
         mInfoPanel = std::make_unique<InfoPanel>(*this, mLookAndFeel);
 
-        // Source panel
-        mSourcesLayout
-            = std::make_unique<LayoutComponent>(LayoutComponent::Orientation::horizontal, true, false, grisLookAndFeel);
-        mSourcesSection = std::make_unique<TitledComponent>("Sources", mSourcesLayout.get(), mLookAndFeel);
-
-        // Speaker panel
-        mSpeakersLayout
-            = std::make_unique<LayoutComponent>(LayoutComponent::Orientation::horizontal, true, false, grisLookAndFeel);
-        mSpeakersSection = std::make_unique<TitledComponent>("Speakers", mSpeakersLayout.get(), mLookAndFeel);
-
         // Control panel
         mControlPanel = std::make_unique<ControlPanel>(*this, mLookAndFeel);
         mControlsSection = std::make_unique<TitledComponent>("Controls", mControlPanel.get(), mLookAndFeel);
@@ -157,6 +146,23 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         mControlPanel->setStereoMode(mData.appData.stereoMode);
         mControlPanel->setStereoRouting(mData.appData.stereoRouting);
 
+        // Source panel
+        mSourcesInnerLayout
+            = std::make_unique<LayoutComponent>(LayoutComponent::Orientation::horizontal, true, false, grisLookAndFeel);
+        mSourcesOuterLayout = std::make_unique<LayoutComponent>(LayoutComponent::Orientation::horizontal,
+                                                                false,
+                                                                false,
+                                                                grisLookAndFeel);
+        mSourcesOuterLayout->addSection(*mSourcesInnerLayout).withRelativeSize(1.0f);
+        mSourcesOuterLayout->addSection(mAddRemoveSourcesButton).withChildMinSize();
+        mSourcesSection = std::make_unique<TitledComponent>("Sources", mSourcesOuterLayout.get(), grisLookAndFeel);
+
+        // Speaker panel
+        mSpeakersLayout
+            = std::make_unique<LayoutComponent>(LayoutComponent::Orientation::horizontal, true, false, grisLookAndFeel);
+        mSpeakersSection = std::make_unique<TitledComponent>("Speakers", mSpeakersLayout.get(), mLookAndFeel);
+
+        // main sections
         mMainLayout->addSection(mInfoPanel.get()).withChildMinSize().withRightPadding(5);
         mMainLayout->addSection(mSourcesSection.get()).withRelativeSize(1.0f).withRightPadding(5);
         mMainLayout->addSection(mSpeakersSection.get()).withRelativeSize(1.0f).withRightPadding(5);
@@ -330,7 +336,6 @@ bool MainContentComponent::loadProject(juce::File const & file, bool const disca
     mData.project = std::move(*projectData);
     mData.appData.lastProject = file.getFullPathName();
 
-    mControlPanel->setNumSources(mData.project.sources.size());
     mControlPanel->setMasterGain(mData.project.masterGain);
     mControlPanel->setInterpolation(mData.project.spatGainsInterpolation);
 
@@ -630,8 +635,6 @@ void MainContentComponent::numSourcesChanged(int const numSources)
     JUCE_ASSERT_MESSAGE_THREAD;
     jassert(numSources >= 1 && numSources <= MAX_NUM_SOURCES);
     juce::ScopedWriteLock const lock{ mLock };
-
-    mControlPanel->setNumSources(numSources);
 
     if (numSources > mData.project.sources.size()) {
         source_index_t const firstNewIndex{ mData.project.sources.size() + 1 };
@@ -1268,7 +1271,7 @@ void MainContentComponent::refreshSourceVuMeterComponents()
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
-    mSourcesLayout->clearSections();
+    mSourcesInnerLayout->clearSections();
     mSourceVuMeterComponents.clear();
 
     // auto x{ 3 };
@@ -1279,10 +1282,10 @@ void MainContentComponent::refreshSourceVuMeterComponents()
                                                                   *this,
                                                                   mSmallLookAndFeel) };
         auto & addedVuMeter{ mSourceVuMeterComponents.add(source.key, std::move(newVuMeter)) };
-        mSourcesLayout->addSection(&addedVuMeter).withChildMinSize();
+        mSourcesInnerLayout->addSection(&addedVuMeter).withChildMinSize();
     }
 
-    mSourcesLayout->resized();
+    mSourcesInnerLayout->resized();
 }
 
 //==============================================================================
@@ -1872,6 +1875,14 @@ void MainContentComponent::reassignSourcesPositions()
         }
         updateSourceSpatData(source.key);
     }
+}
+
+//==============================================================================
+void MainContentComponent::buttonPressed([[maybe_unused]] SpatButton * button)
+{
+    jassert(button == &mAddRemoveSourcesButton);
+    mAddRemoveSourcesWindow
+        = std::make_unique<AddRemoveSourcesWindow>(mData.project.sources.size(), *this, mLookAndFeel);
 }
 
 //==============================================================================
