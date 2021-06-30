@@ -212,12 +212,15 @@ public:
 
     void handleSetShowTriplets(bool state);
 
-    [[nodiscard]] bool setSpatMode(SpatMode spatMode) override;
-    void setStereoMode(tl::optional<StereoMode> stereoMode) override;
-    [[nodiscard]] bool spatModeChanged(SpatMode spatMode, LoadSpeakerSetupOption option);
-    void stereoRoutingChanged(StereoRouting const & routing) override;
-    void cubeAttenuationDbChanged(dbfs_t value) override;
-    void cubeAttenuationHzChanged(hz_t value) override;
+    [[nodiscard]] bool setSpatMode(SpatMode spatMode);
+    void setStereoMode(tl::optional<StereoMode> stereoMode);
+    void stereoRoutingChanged(StereoRouting const & routing);
+    void cubeAttenuationDbChanged(dbfs_t value);
+    void cubeAttenuationHzChanged(hz_t value);
+    void numSourcesChanged(int numSources);
+    void masterGainChanged(dbfs_t gain);
+    void interpolationChanged(float interpolation);
+    void recordButtonPressed() override;
 
     // Speakers.
     [[nodiscard]] auto const & getSpeakersDisplayOrder() const { return mData.speakerSetup.ordering; }
@@ -265,11 +268,6 @@ public:
     [[nodiscard]] bool isSpeakerSetupModified() const;
 
     void prepareAndStartRecording(juce::File const & fileOrDirectory, RecordingOptions const & recordingOptions);
-
-    void numSourcesChanged(int numSources);
-    void masterGainChanged(dbfs_t gain) override;
-    void interpolationChanged(float interpolation) override;
-    void recordButtonPressed() override;
 
 private:
     //==============================================================================

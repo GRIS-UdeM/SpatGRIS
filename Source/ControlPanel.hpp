@@ -19,36 +19,25 @@
 
 #pragma once
 
-#include "AttenuationSettingsComponent.hpp"
 #include "LayoutComponent.hpp"
+#include "LogicStrucs.hpp"
 #include "RecordButton.hpp"
-#include "SpatModeComponent.hpp"
 #include "SpatSlider.hpp"
-#include "StereoPatchSelectionComponent.hpp"
 #include "StrongTypes.hpp"
 #include "SubPanelComponent.hpp"
 #include "TitledComponent.hpp"
 #include "constants.hpp"
+
+class MainContentComponent;
+class ControlPanel;
 
 //==============================================================================
 class GainsSubPanel final
     : public SubPanelComponent
     , public SpatSlider::Listener
 {
-public:
     //==============================================================================
-    class Listener
-    {
-    public:
-        virtual ~Listener() = default;
-        //==============================================================================
-        virtual void masterGainChanged(dbfs_t gain) = 0;
-        virtual void gainInterpolationChanged(float interpolation) = 0;
-    };
-
-private:
-    //==============================================================================
-    Listener & mListener;
+    MainContentComponent & mMainContentComponent;
     GrisLookAndFeel & mLookAndFeel;
     SpatSlider mMasterGainSlider{ LEGAL_MASTER_GAIN_RANGE.getStart().get(),
                                   LEGAL_MASTER_GAIN_RANGE.getEnd().get(),
@@ -64,7 +53,7 @@ private:
 
 public:
     //==============================================================================
-    GainsSubPanel(Listener & listener, GrisLookAndFeel & lookAndFeel);
+    GainsSubPanel(MainContentComponent & mainContentComponent, GrisLookAndFeel & lookAndFeel);
     ~GainsSubPanel() override = default;
     //==============================================================================
     GainsSubPanel(GainsSubPanel const &) = delete;
@@ -82,57 +71,106 @@ private:
 };
 
 //==============================================================================
-class ControlPanel final
-    : public MinSizedComponent
-    , public SpatModeComponent::Listener
-    , public AttenuationSettingsComponent::Listener
-    , public GainsSubPanel::Listener
-    , public RecordButton::Listener
-    , public StereoPatchSelectionComponent::Listener
+class SpatSettingsSubPanel final
+    : public SubPanelComponent
+    , private juce::ComboBox::Listener
+    , private juce::TextButton::Listener
 {
+    struct AttenuationValues {
+        juce::Array<dbfs_t> dbValues{};
+        juce::StringArray dbStrings{};
+        juce::Array<hz_t> hzValues{};
+        juce::StringArray hzStrings{};
+    };
+
+    ControlPanel & mControlPanel;
+    MainContentComponent & mMainContentComponent;
+    GrisLookAndFeel & mLookAndFeel;
+
+    AttenuationValues mAttenuationValues{};
+
+    LayoutComponent mCol1Layout{ LayoutComponent::Orientation::vertical, false, false, mLookAndFeel };
+    LayoutComponent mAlgorithmButtonsLayout{ LayoutComponent::Orientation::horizontal, false, false, mLookAndFeel };
+
+    LayoutComponent mCol2Layout{ LayoutComponent::Orientation::vertical, false, false, mLookAndFeel };
+    LayoutComponent mAttenuationLayout{ LayoutComponent::Orientation::horizontal, false, false, mLookAndFeel };
+    LayoutComponent mStereoRoutingLayout{ LayoutComponent::Orientation::horizontal, false, false, mLookAndFeel };
+
+    juce::Label mAlgorithmSelectionLabel{};
+    juce::Label mAttenuationSettingsLabel{};
+
+    juce::TextButton mDomeButton{};
+    juce::TextButton mCubeButton{};
+
+    juce::ComboBox mAttenuationDbCombo{};
+    juce::ComboBox mAttenuationHzCombo{};
+
+    juce::Label mStereoReductionLabel{};
+    juce::Label mStereoRoutingLabel{};
+
+    juce::ComboBox mStereoReductionCombo{};
+
+    juce::Label mLeftLabel{};
+    juce::ComboBox mLeftCombo{};
+    juce::Label mRightLabel{};
+    juce::ComboBox mRightCombo{};
+
 public:
     //==============================================================================
-    class Listener
-    {
-    public:
-        Listener() = default;
-        virtual ~Listener() = default;
-        //==============================================================================
-        Listener(Listener const &) = delete;
-        Listener(Listener &&) = delete;
-        Listener & operator=(Listener const &) = delete;
-        Listener & operator=(Listener &&) = delete;
-        //==============================================================================
-        virtual void masterGainChanged(dbfs_t gain) = 0;
-        virtual void interpolationChanged(float interpolation) = 0;
-        virtual bool setSpatMode(SpatMode spatMode) = 0;
-        virtual void setStereoMode(tl::optional<StereoMode> stereoMode) = 0;
-        virtual void cubeAttenuationDbChanged(dbfs_t value) = 0;
-        virtual void cubeAttenuationHzChanged(hz_t value) = 0;
-        virtual void recordButtonPressed() = 0;
-        virtual void stereoRoutingChanged(StereoRouting const & routing) = 0;
-
-    private:
-        //==============================================================================
-        JUCE_LEAK_DETECTOR(Listener)
-    };
+    SpatSettingsSubPanel(ControlPanel & controlPanel,
+                         MainContentComponent & mainContentComponent,
+                         GrisLookAndFeel & lookAndFeel);
+    ~SpatSettingsSubPanel() override = default;
+    //==============================================================================
+    SpatSettingsSubPanel(SpatSettingsSubPanel const &) = delete;
+    SpatSettingsSubPanel(SpatSettingsSubPanel &&) = delete;
+    SpatSettingsSubPanel & operator=(SpatSettingsSubPanel const &) = delete;
+    SpatSettingsSubPanel & operator=(SpatSettingsSubPanel &&) = delete;
+    //==============================================================================
+    void updateSpeakers(SpeakersOrdering speakers, StereoRouting const & routing);
+    //==============================================================================
+    void setSpatMode(SpatMode spatMode);
+    void setStereoMode(tl::optional<StereoMode> const & stereoMode);
+    void setAttenuationDb(dbfs_t attenuation);
+    void setAttenuationHz(hz_t freq);
+    void setStereoRouting(StereoRouting const & routing);
 
 private:
     //==============================================================================
-    Listener & mListener;
+    [[nodiscard]] SpatMode getSpatMode() const;
+    [[nodiscard]] tl::optional<StereoMode> getStereoMode() const;
+    [[nodiscard]] bool shouldShowAttenuationSettings() const;
+    [[nodiscard]] bool shouldShowStereoRouting() const;
+    void updateEnabledStereoRoutings();
+    void updateVisibility();
+    void updateLayout();
+    //==============================================================================
+    void buttonClicked(juce::Button * button) override;
+    void comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged) override;
+    //==============================================================================
+    static AttenuationValues getAttenuationValues();
+    //==============================================================================
+    JUCE_LEAK_DETECTOR(SpatSettingsSubPanel)
+};
+
+//==============================================================================
+class ControlPanel final
+    : public MinSizedComponent
+    , public RecordButton::Listener
+{
+    //==============================================================================
+    MainContentComponent & mMainContentComponent;
     GrisLookAndFeel & mLookAndFeel;
     LayoutComponent mLayout{ LayoutComponent::Orientation::horizontal, true, false, mLookAndFeel };
     TitledComponent mSection{ "Controls", &mLayout, mLookAndFeel };
 
-    GainsSubPanel mGainsSubPanel{ *this, mLookAndFeel };
-    SpatModeComponent mSpatModeComponent{ *this, mLookAndFeel };
-    AttenuationSettingsComponent mCubeSettingsComponent{ *this, mLookAndFeel };
-    StereoPatchSelectionComponent mStereoRoutingComponent{ *this, mLookAndFeel };
+    GainsSubPanel mGainsSubPanel{ mMainContentComponent, mLookAndFeel };
+    SpatSettingsSubPanel mSpatSettingsSubPanel{ *this, mMainContentComponent, mLookAndFeel };
     RecordButton mRecordButton{ *this, mLookAndFeel };
 
 public:
     //==============================================================================
-    ControlPanel(Listener & listener, GrisLookAndFeel & lookAndFeel);
+    ControlPanel(MainContentComponent & mainContentComponent, GrisLookAndFeel & lookAndFeel);
     ~ControlPanel() override = default;
     //==============================================================================
     ControlPanel(ControlPanel const &) = delete;
@@ -151,20 +189,13 @@ public:
     void updateSpeakers(SpeakersOrdering ordering, StereoRouting const & routing);
     //==============================================================================
     void resized() override;
-    int getMinWidth() const noexcept override { return mLayout.getMinWidth(); }
-    int getMinHeight() const noexcept override { return mLayout.getMinHeight(); }
-    void handleSpatModeChanged(SpatMode spatMode) override;
-    void handleStereoModeChanged(tl::optional<StereoMode> stereoMode) override;
-    void recordButtonPressed() override;
-    void cubeAttenuationDbChanged(dbfs_t value) override;
-    void cubeAttenuationHzChanged(hz_t value) override;
-    void handleStereoRoutingChanged(StereoRouting const & routing) override;
-    void masterGainChanged(dbfs_t gain) override;
-    void gainInterpolationChanged(float interpolation) override;
+    void forceLayoutUpdate();
+    [[nodiscard]] int getMinWidth() const noexcept override { return mLayout.getMinWidth(); }
+    [[nodiscard]] int getMinHeight() const noexcept override { return mLayout.getMinHeight(); }
 
 private:
     //==============================================================================
-    void refreshLayout();
+    void recordButtonPressed() override;
     //==============================================================================
     JUCE_LEAK_DETECTOR(ControlPanel)
 };

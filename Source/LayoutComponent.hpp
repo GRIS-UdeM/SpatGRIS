@@ -39,7 +39,7 @@ public:
         friend LayoutComponent;
 
     private:
-        MinSizedComponent * mComponent{};
+        juce::Component * mComponent{};
         Mode mMode{ Mode::undefined };
         int mFixedSize{};
         float mRelativeSize{};
@@ -112,7 +112,7 @@ public:
             mTopPadding = value;
             return *this;
         }
-        Section & widthPadding(int const value)
+        Section & withPadding(int const value)
         {
             jassert(mLeftPadding == 0 && mRightPadding == 0 && mTopPadding == 0 && mBottomPadding == 0);
             mBottomPadding = value;
@@ -128,10 +128,11 @@ public:
             if (orientation == Orientation::horizontal && mMode == Mode::fixed) {
                 return mFixedSize;
             }
-            if (!mComponent) {
+            auto const * minSizedComponent{ dynamic_cast<MinSizedComponent *>(mComponent) };
+            if (!minSizedComponent) {
                 return 0;
             }
-            return mComponent->getMinWidth();
+            return minSizedComponent->getMinWidth();
         }
         [[nodiscard]] int getMinSectionWidth(Orientation const orientation) const noexcept
         {
@@ -164,10 +165,11 @@ public:
             if (orientation == Orientation::vertical && mMode == Mode::fixed) {
                 return mFixedSize;
             }
-            if (!mComponent) {
+            auto const * minSizedComponent{ dynamic_cast<MinSizedComponent *>(mComponent) };
+            if (!minSizedComponent) {
                 return 0;
             }
-            return mComponent->getMinHeight();
+            return minSizedComponent->getMinHeight();
         }
         [[nodiscard]] int getMinSectionHeight(Orientation const orientation) const noexcept
         {
@@ -218,8 +220,14 @@ public:
     LayoutComponent & operator=(LayoutComponent const &) = delete;
     LayoutComponent & operator=(LayoutComponent &&) = delete;
     //==============================================================================
-    Section & addSection(MinSizedComponent * component) noexcept;
+    Section & addSection(juce::Component * component) noexcept;
+    Section & addSection(juce::Component & component) noexcept { return addSection(&component); }
+    Section & addSection(MinSizedComponent * component) noexcept
+    {
+        return addSection(static_cast<juce::Component *>(component));
+    }
     Section & addSection(MinSizedComponent & component) noexcept { return addSection(&component); }
+    Section & addSection(nullptr_t) noexcept { return addSection(static_cast<juce::Component *>(nullptr)); }
     void clearSections();
     //==============================================================================
     void resized() override;

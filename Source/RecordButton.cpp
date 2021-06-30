@@ -24,7 +24,7 @@
 
 static constexpr auto LABEL_TIME_HEIGHT = 20;
 
-static constexpr auto BUTTON_SIZE = 50;
+static constexpr auto BUTTON_SIZE = 55;
 static constexpr auto BLINK_PERIOD_MS = 500;
 static constexpr auto ACTIVE_TO_OUTER_CIRCLE_RATIO = 0.7f;
 static constexpr auto OUTER_TO_INNER_CIRCLE_RATIO = 0.7f;

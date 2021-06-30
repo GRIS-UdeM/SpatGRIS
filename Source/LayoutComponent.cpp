@@ -48,7 +48,7 @@ LayoutComponent::LayoutComponent(Orientation const orientation,
 }
 
 //==============================================================================
-LayoutComponent::Section & LayoutComponent::addSection(MinSizedComponent * component) noexcept
+LayoutComponent::Section & LayoutComponent::addSection(juce::Component * component) noexcept
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 

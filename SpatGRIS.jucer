@@ -163,10 +163,6 @@
             <FILE id="wO9VUI" name="SpatTextEditor.hpp" compile="0" resource="0"
                   file="Source/SpatTextEditor.hpp"/>
           </GROUP>
-          <FILE id="Ue6l3Z" name="AttenuationSettingsComponent.cpp" compile="1"
-                resource="0" file="Source/AttenuationSettingsComponent.cpp"/>
-          <FILE id="TN6PZv" name="AttenuationSettingsComponent.hpp" compile="0"
-                resource="0" file="Source/AttenuationSettingsComponent.hpp"/>
           <FILE id="b3MbJj" name="Box.cpp" compile="1" resource="0" file="Source/Box.cpp"/>
           <FILE id="SP61FZ" name="Box.hpp" compile="0" resource="0" file="Source/Box.hpp"/>
           <FILE id="uXxKAd" name="ControlPanel.cpp" compile="1" resource="0"
@@ -187,18 +183,10 @@
                 file="Source/RecordButton.cpp"/>
           <FILE id="FWo3ih" name="RecordButton.hpp" compile="0" resource="0"
                 file="Source/RecordButton.hpp"/>
-          <FILE id="QQ90uW" name="SpatModeComponent.cpp" compile="1" resource="0"
-                file="Source/SpatModeComponent.cpp"/>
-          <FILE id="hM6col" name="SpatModeComponent.hpp" compile="0" resource="0"
-                file="Source/SpatModeComponent.hpp"/>
           <FILE id="Tz4yI1" name="SpeakerViewComponent.cpp" compile="1" resource="0"
                 file="Source/SpeakerViewComponent.cpp"/>
           <FILE id="ItaT5M" name="SpeakerViewComponent.hpp" compile="0" resource="0"
                 file="Source/SpeakerViewComponent.hpp"/>
-          <FILE id="GiNIHB" name="StereoPatchSelectionComponent.cpp" compile="1"
-                resource="0" file="Source/StereoPatchSelectionComponent.cpp"/>
-          <FILE id="uSg1gy" name="StereoPatchSelectionComponent.hpp" compile="0"
-                resource="0" file="Source/StereoPatchSelectionComponent.hpp"/>
           <FILE id="X1cHL5" name="SubPanelComponent.cpp" compile="1" resource="0"
                 file="Source/SubPanelComponent.cpp"/>
           <FILE id="M7d65B" name="SubPanelComponent.hpp" compile="0" resource="0"
