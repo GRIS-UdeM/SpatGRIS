@@ -51,7 +51,7 @@ static constexpr auto SPEAKER_SETUP_TEMPLATES_COMMANDS_OFFSET = 2000;
 static auto const GET_SPEAKER_SETUP_TEMPLATES = []() -> SpeakerSetupTemplates {
 #ifdef __APPLE__
     auto const templatesDir{ RESOURCES_DIR.getChildFile("Speaker setups") };
-#elif
+#else
     auto const templatesDir{ RESOURCES_DIR.getChildFile("templates").getChildFile("Speaker setups") };
 #endif
     jassert(templatesDir.isDirectory());
