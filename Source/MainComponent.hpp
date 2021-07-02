@@ -294,15 +294,13 @@ private:
     //==============================================================================
     // Open - save.
     [[nodiscard]] static tl::optional<SpeakerSetup> extractSpeakerSetup(juce::File const & file);
-    [[nodiscard]] bool loadSpeakerSetup(juce::File const & file, LoadSpeakerSetupOption option);
-    [[nodiscard]] bool loadProject(juce::File const & file, bool discardCurrentProject);
-    [[nodiscard]] bool saveProject(tl::optional<juce::File> maybeFile);
-    [[nodiscard]] bool saveSpeakerSetup(tl::optional<juce::File> maybeFile);
+    bool loadSpeakerSetup(juce::File const & file, LoadSpeakerSetupOption option);
+    bool loadProject(juce::File const & file, bool discardCurrentProject);
+    bool saveProject(tl::optional<juce::File> maybeFile);
+    bool saveSpeakerSetup(tl::optional<juce::File> maybeFile);
     [[nodiscard]] bool makeSureProjectIsSavedToDisk() noexcept;
     [[nodiscard]] bool makeSureSpeakerSetupIsSavedToDisk() noexcept;
     void setTitle() const;
-    [[nodiscard]] static bool isDefaultFile(juce::File const & file) noexcept;
-    [[nodiscard]] bool performSafeSave(juce::XmlElement const & content, juce::File const & destination) noexcept;
     void reassignSourcesPositions();
 
     void buttonPressed(SpatButton * button) override;

@@ -79,6 +79,7 @@ constexpr juce::Range<dbfs_t> LEGAL_MASTER_GAIN_RANGE{ dbfs_t{ -60.0f }, dbfs_t{
 constexpr juce::Range<float> LEGAL_GAIN_INTERPOLATION_RANGE{ 0.0f, 1.0f };
 constexpr juce::Range<dbfs_t> LEGAL_PINK_NOISE_GAIN_RANGE{ dbfs_t{ -60.0f }, dbfs_t{ 0.0f } };
 
+extern juce::File const CURRENT_WORKING_DIR;
 extern juce::File const SPLASH_SCREEN_FILE;
 extern juce::File const DEFAULT_PROJECT_FILE;
 extern juce::File const DEFAULT_PROJECT_DIRECTORY;

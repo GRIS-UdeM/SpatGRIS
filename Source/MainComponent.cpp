@@ -1131,10 +1131,9 @@ juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const j
         menu.addCommandItem(commandManager, MainWindow::saveProjectAsId);
         menu.addSeparator();
         menu.addCommandItem(commandManager, MainWindow::openSpeakerSetupId);
+        menu.addSubMenu("Templates", getTemplatesMenu());
         menu.addCommandItem(commandManager, MainWindow::saveSpeakerSetupId);
         menu.addCommandItem(commandManager, MainWindow::saveSpeakerSetupAsId);
-        menu.addSeparator();
-        menu.addSubMenu("Templates", getTemplatesMenu());
         menu.addSeparator();
         menu.addCommandItem(commandManager, MainWindow::openSettingsWindowId);
 #if !JUCE_MAC
@@ -1876,32 +1875,6 @@ void MainContentComponent::setTitle() const
 }
 
 //==============================================================================
-bool MainContentComponent::performSafeSave(juce::XmlElement const & content, juce::File const & destination) noexcept
-{
-    if (destination == DEFAULT_PROJECT_FILE || destination == DEFAULT_SPEAKER_SETUP_FILE
-        || destination == BINAURAL_SPEAKER_SETUP_FILE || destination == STEREO_SPEAKER_SETUP_FILE) {
-        juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
-                                               "Error",
-                                               "The file your are trying to save to is a default SpatGRIS file and "
-                                               "cannot be overridden. Please select an other location to save to.",
-                                               "",
-                                               this);
-        return false;
-    }
-    auto const success{ content.writeTo(destination) };
-    if (!success) {
-        juce::AlertWindow::showMessageBoxAsync(
-            juce::AlertWindow::WarningIcon,
-            "Error",
-            "SpatGRIS was unable to save the project file to the specified location. Make sure that this location "
-            "exists and that the current user has access to it.",
-            "",
-            this);
-    }
-    return success;
-}
-
-//==============================================================================
 void MainContentComponent::reassignSourcesPositions()
 {
     for (auto const & source : mData.project.sources) {
@@ -1938,8 +1911,7 @@ void MainContentComponent::handleSaveSpeakerSetup()
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
-    [[maybe_unused]] auto const success{ saveSpeakerSetup(mData.appData.lastSpeakerSetup) };
-    jassert(success);
+    saveSpeakerSetup(mData.appData.lastSpeakerSetup);
 }
 
 //==============================================================================
@@ -1948,11 +1920,13 @@ bool MainContentComponent::saveProject(tl::optional<juce::File> maybeFile)
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
 
-    if (!maybeFile) {
+    static auto const IS_SAVABLE = [](juce::File const & file) { return !file.isAChildOf(CURRENT_WORKING_DIR); };
+
+    if (!maybeFile || !IS_SAVABLE(*maybeFile)) {
         juce::File const lastProjectFile{ mData.appData.lastProject };
-        auto const initialFile{ lastProjectFile == DEFAULT_PROJECT_FILE ? juce::File::getSpecialLocation(
-                                    juce::File::SpecialLocationType::userDesktopDirectory)
-                                                                        : lastProjectFile };
+        auto const initialFile{ lastProjectFile.isAChildOf(CURRENT_WORKING_DIR) ? juce::File::getSpecialLocation(
+                                    juce::File::SpecialLocationType::userDocumentsDirectory)
+                                                                                : lastProjectFile };
         juce::FileChooser fc{ "Choose file to save to...", initialFile, "*.xml", true, false, this };
         if (!fc.browseForFileToSave(true)) {
             return false;
@@ -1962,8 +1936,8 @@ bool MainContentComponent::saveProject(tl::optional<juce::File> maybeFile)
     }
 
     auto const file{ *maybeFile };
-
-    auto const success{ performSafeSave(*mData.project.toXml(), file) };
+    auto const content{ mData.project.toXml() };
+    auto const success{ content->writeTo(file) };
     jassert(success);
 
     if (success) {
@@ -1981,11 +1955,13 @@ bool MainContentComponent::saveSpeakerSetup(tl::optional<juce::File> maybeFile)
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
 
-    if (!maybeFile) {
-        juce::File const lastSpeakerSetup{ mData.appData.lastSpeakerSetup };
-        auto const initialFile{ lastSpeakerSetup == DEFAULT_SPEAKER_SETUP_FILE ? juce::File::getSpecialLocation(
-                                    juce::File::SpecialLocationType::userDesktopDirectory)
-                                                                               : mData.appData.lastSpeakerSetup };
+    static auto const IS_SAVABLE = [](juce::File const & file) { return !file.isAChildOf(CURRENT_WORKING_DIR); };
+
+    if (!maybeFile || !IS_SAVABLE(*maybeFile)) {
+        juce::File const & lastSpeakerSetup{ mData.appData.lastSpeakerSetup };
+        auto const initialFile{ lastSpeakerSetup.isAChildOf(CURRENT_WORKING_DIR) ? juce::File::getSpecialLocation(
+                                    juce::File::SpecialLocationType::userDocumentsDirectory)
+                                                                                 : lastSpeakerSetup };
         juce::FileChooser fc{ "Choose file to save to...", initialFile, "*.xml", true, false, this };
         if (!fc.browseForFileToSave(true)) {
             return false;
@@ -1996,8 +1972,7 @@ bool MainContentComponent::saveSpeakerSetup(tl::optional<juce::File> maybeFile)
 
     auto const & file{ *maybeFile };
     auto const content{ mData.speakerSetup.toXml() };
-
-    auto const success{ performSafeSave(*content, file) };
+    auto const success{ content->writeTo(file) };
     jassert(success);
 
     if (success) {

@@ -21,15 +21,12 @@
 
 SpatGrisVersion const SPAT_GRIS_VERSION{ SpatGrisVersion::fromString(JUCE_STRINGIFY(JUCE_APP_VERSION)) };
 
-#ifdef __linux__
-auto const CURRENT_WORKING_DIR{ juce::File::getCurrentWorkingDirectory() };
+#if defined(__linux__) || defined(WIN32)
+juce::File const CURRENT_WORKING_DIR{ juce::File::getCurrentWorkingDirectory() };
 auto const RESOURCES_DIR{ CURRENT_WORKING_DIR.getChildFile("Resources") };
-#elif defined WIN32
-auto const CURRENT_WORKING_DIR{ juce::File::getCurrentWorkingDirectory() };
-auto const RESOURCES_DIR{ CURRENT_WORKING_DIR.getChildFile("Resources") };
-#elif defined __APPLE__
-juce::File CURRENT_WORKING_DIR = juce::File::getSpecialLocation(juce::File::currentApplicationFile);
-juce::File RESOURCES_DIR{ CURRENT_WORKING_DIR.getChildFile("Contents").getChildFile("Resources") };
+#elif defined(__APPLE__)
+juce::File const CURRENT_WORKING_DIR = juce::File::getSpecialLocation(juce::File::currentApplicationFile);
+auto const RESOURCES_DIR{ CURRENT_WORKING_DIR.getChildFile("Contents").getChildFile("Resources") };
 #else
 static_assert(false, "What are you building this on?");
 #endif
