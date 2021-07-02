@@ -42,7 +42,7 @@ Source: "Builds\VisualStudio2019\x64\Release\App\{#MyAppExeName}"; DestDir: "{ap
 Source: "Builds\VisualStudio2019\x64\Release\App\freeglut.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "Resources\hrtf_compact\*"; DestDir: "{app}\Resources\hrtf_compact"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "Resources\default_preset\*"; DestDir: "{app}\Resources\default_preset"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "Resources\templates\*"; DestDir: "{app}\templates"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "Resources\templates\*"; DestDir: "{app}\Resources\templates"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "Resources\SpatGRIS2_2.0_Manual.pdf"; DestDir: "{app}\Resources"; Flags: ignoreversion
 Source: "Resources\ServerGRIS_icon_splash_small.png"; DestDir: "{app}\Resources"; Flags: ignoreversion
 Source: "Resources\splash_screen.png"; DestDir: "{app}\Resources"; Flags: ignoreversion
