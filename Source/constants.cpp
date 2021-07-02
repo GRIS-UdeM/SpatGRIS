@@ -55,7 +55,7 @@ static auto const GET_SPEAKER_SETUP_TEMPLATES = []() -> SpeakerSetupTemplates {
     auto const templatesDir{ RESOURCES_DIR.getChildFile("templates").getChildFile("Speaker setups") };
 #endif
     jassert(templatesDir.isDirectory());
-    
+
     auto const domeDir{ templatesDir.getChildFile("DOME") };
     auto const cubeDir{ templatesDir.getChildFile("CUBE") };
     jassert(domeDir.isDirectory());

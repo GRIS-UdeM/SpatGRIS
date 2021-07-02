@@ -227,7 +227,7 @@ public:
         return addSection(static_cast<juce::Component *>(component));
     }
     Section & addSection(MinSizedComponent & component) noexcept { return addSection(&component); }
-    Section & addSection(nullptr_t) noexcept { return addSection(static_cast<juce::Component *>(nullptr)); }
+    Section & addSection(std::nullptr_t) noexcept { return addSection(static_cast<juce::Component *>(nullptr)); }
     void clearSections();
     //==============================================================================
     void resized() override;

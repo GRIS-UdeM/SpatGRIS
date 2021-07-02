@@ -41,7 +41,7 @@ public:
     //==============================================================================
     LayoutComponent::Section & addSection(MinSizedComponent * component) { return mLayout.addSection(component); }
     LayoutComponent::Section & addSection(MinSizedComponent & component) { return mLayout.addSection(component); }
-    LayoutComponent::Section & addSection(nullptr_t) { return mLayout.addSection(nullptr); }
+    LayoutComponent::Section & addSection(std::nullptr_t) { return mLayout.addSection(nullptr); }
     void clearSections() { mLayout.clearSections(); }
     //==============================================================================
     void resized() override;
