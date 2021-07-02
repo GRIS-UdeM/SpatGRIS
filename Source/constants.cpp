@@ -47,7 +47,36 @@ juce::File const HRTF_FOLDER_40{ RESOURCES_DIR.getChildFile("hrtf_compact/elev" 
 juce::File const HRTF_FOLDER_80{ RESOURCES_DIR.getChildFile("hrtf_compact/elev" + juce::String(80) + "/") };
 
 juce::Colour const DEFAULT_SOURCE_COLOR{ narrow<juce::uint8>(255), 0, 0 };
+//==============================================================================
 
+static constexpr auto SPEAKER_SETUP_TEMPLATES_COMMANDS_OFFSET = 2000;
+
+static auto const GET_SPEAKER_SETUP_TEMPLATES = []() -> SpeakerSetupTemplates {
+    auto const templatesDir{ RESOURCES_DIR.getChildFile("templates").getChildFile("Speaker setups") };
+    auto const domeDir{ templatesDir.getChildFile("DOME") };
+    auto const cubeDir{ templatesDir.getChildFile("CUBE") };
+
+    auto commandId{ SPEAKER_SETUP_TEMPLATES_COMMANDS_OFFSET };
+
+    auto const extract = [&](juce::File const & dir) {
+        juce::Array<SpeakerSetupTemplate> result{};
+
+        for (auto const & file : dir.findChildFiles(juce::File::TypesOfFileToFind::findFiles, false)) {
+            SpeakerSetupTemplate setup{ file.getFileNameWithoutExtension(), commandId++, file };
+            result.add(setup);
+        }
+
+        return result;
+    };
+
+    SpeakerSetupTemplates const result{ extract(domeDir), extract(cubeDir) };
+
+    return result;
+};
+
+SpeakerSetupTemplates const SPEAKER_SETUP_TEMPLATES{ GET_SPEAKER_SETUP_TEMPLATES() };
+
+//==============================================================================
 juce::StringArray const RECORDING_FORMAT_STRINGS{ "WAV",
                                                   "AIFF"
 #ifdef __APPLE__
@@ -73,6 +102,35 @@ static juce::Array<T> stringToStronglyTypedFloat(juce::StringArray const & strin
         result.add(T{ string.getFloatValue() });
     }
     return result;
+}
+
+//==============================================================================
+tl::optional<SpeakerSetupTemplate const &> commandIdToTemplate(juce::CommandID commandId)
+{
+    auto const find
+        = [&](juce::Array<SpeakerSetupTemplate> const & templates) -> tl::optional<SpeakerSetupTemplate const &> {
+        auto const * it{ std::find_if(
+            templates.begin(),
+            templates.end(),
+            [&](SpeakerSetupTemplate const & templateInfo) { return templateInfo.commandId == commandId; }) };
+        if (it == templates.end()) {
+            return tl::nullopt;
+        }
+        return *it;
+    };
+
+    auto const domeTemplate{ find(SPEAKER_SETUP_TEMPLATES.dome) };
+
+    if (domeTemplate) {
+        return domeTemplate;
+    }
+
+    auto const cubeTemplate{ find(SPEAKER_SETUP_TEMPLATES.cube) };
+    if (cubeTemplate) {
+        return cubeTemplate;
+    }
+
+    return tl::nullopt;
 }
 
 //==============================================================================

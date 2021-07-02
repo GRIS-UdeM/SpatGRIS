@@ -294,7 +294,7 @@ private:
     //==============================================================================
     // Open - save.
     [[nodiscard]] static tl::optional<SpeakerSetup> extractSpeakerSetup(juce::File const & file);
-    [[nodiscard]] bool loadSpeakerSetup(juce::File file, LoadSpeakerSetupOption option);
+    [[nodiscard]] bool loadSpeakerSetup(juce::File const & file, LoadSpeakerSetupOption option);
     [[nodiscard]] bool loadProject(juce::File const & file, bool discardCurrentProject);
     [[nodiscard]] bool saveProject(tl::optional<juce::File> maybeFile);
     [[nodiscard]] bool saveSpeakerSetup(tl::optional<juce::File> maybeFile);

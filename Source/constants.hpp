@@ -62,7 +62,6 @@ extern const SpatGrisVersion SPAT_GRIS_VERSION;
 constexpr auto MAX_NUM_SOURCES = 128;
 constexpr auto MAX_NUM_SPEAKERS = 128;
 constexpr auto LBAP_EXTENDED_RADIUS = 1.6666667f;
-constexpr auto HRTF_NUM_SAMPLES = 128;
 constexpr dbfs_t DEFAULT_PINK_NOISE_DB{ -20.0f };
 constexpr auto DEFAULT_SAMPLE_RATE{ 48000.0 };
 constexpr auto DEFAULT_BUFFER_SIZE{ 512 };
@@ -73,9 +72,9 @@ constexpr auto PREPARE_TO_RECORD_WINDOW_FILE_FORMAT_GROUP_ID = 2;
 constexpr auto PREPARE_TO_RECORD_WINDOW_FILE_TYPE_GROUP_ID = 3;
 
 constexpr juce::Range<source_index_t> LEGAL_SOURCE_INDEX_RANGE{ source_index_t{ 1 },
-                                                                source_index_t{ MAX_NUM_SOURCES } };
+                                                                source_index_t{ MAX_NUM_SOURCES + 1 } };
 constexpr juce::Range<output_patch_t> LEGAL_OUTPUT_PATCH_RANGE{ output_patch_t{ 1 },
-                                                                output_patch_t{ MAX_NUM_SPEAKERS } };
+                                                                output_patch_t{ MAX_NUM_SPEAKERS + 1 } };
 constexpr juce::Range<dbfs_t> LEGAL_MASTER_GAIN_RANGE{ dbfs_t{ -60.0f }, dbfs_t{ 12.0f } };
 constexpr juce::Range<float> LEGAL_GAIN_INTERPOLATION_RANGE{ 0.0f, 1.0f };
 constexpr juce::Range<dbfs_t> LEGAL_PINK_NOISE_GAIN_RANGE{ dbfs_t{ -60.0f }, dbfs_t{ 0.0f } };
@@ -93,6 +92,22 @@ extern juce::File const HRTF_FOLDER_40;
 extern juce::File const HRTF_FOLDER_80;
 
 extern juce::Colour const DEFAULT_SOURCE_COLOR;
+
+//==============================================================================
+
+struct SpeakerSetupTemplate {
+    juce::String name{};
+    juce::CommandID commandId{};
+    juce::File path{};
+};
+
+struct SpeakerSetupTemplates {
+    juce::Array<SpeakerSetupTemplate> dome{};
+    juce::Array<SpeakerSetupTemplate> cube{};
+};
+
+extern SpeakerSetupTemplates const SPEAKER_SETUP_TEMPLATES;
+tl::optional<SpeakerSetupTemplate const &> commandIdToTemplate(juce::CommandID commandId);
 
 //==============================================================================
 extern juce::StringArray const RECORDING_FORMAT_STRINGS;

@@ -30,37 +30,40 @@ class MainWindow final
     , public juce::TooltipWindow
 {
 public:
-    enum CommandIDs {
+    enum CommandIds {
         // File menu
-        NewProjectID = 1000,
-        OpenProjectID = 1001,
-        SaveProjectID = 1002,
-        SaveAsProjectID = 1003,
+        newProjectId = 1000,
+        openProjectId,
+        saveProjectId,
+        saveProjectAsId,
 
-        OpenSpeakerSetupID = 2000,
-        SaveSpeakerSetupID = 2001,
-        SaveSpeakerSetupAsID = 2002,
-        ShowSpeakerEditID = 2003,
+        openSpeakerSetupId,
+        saveSpeakerSetupId,
+        saveSpeakerSetupAsId,
 
-        OpenSettingsWindowID = 9998,
-        QuitID = 9999,
+        openSettingsWindowId,
+
+        quitId,
 
         // View menu
-        Show2DViewID = 3000,
-        ShowNumbersID = 3001,
-        ShowSpeakersID = 3002,
-        ShowTripletsID = 3003,
-        ShowSourceLevelID = 3004,
-        ShowSpeakerLevelID = 3005,
-        ShowSphereID = 3006,
-        ColorizeInputsID = 3010,
-        ResetInputPosID = 3011,
-        ResetMeterClipping = 3012,
-        ShowOscMonitorID = 3013,
+        show2DViewId,
+        showSpeakerEditId,
+        showOscMonitorId,
+
+        showNumbersId,
+        showSpeakersId,
+        showTripletsId,
+        showSourceActivityId,
+        showSpeakerActivityId,
+        showSphereId,
+
+        colorizeInputsId,
+        resetInputPosId,
+        resetMeterClipping,
 
         // Help menu
-        AboutID = 4000,
-        OpenManualID = 4001,
+        aboutId,
+        openManualId
     };
 
 private:
