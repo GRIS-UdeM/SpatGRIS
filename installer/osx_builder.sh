@@ -109,7 +109,6 @@ function build_dmg() {
 	mkdir -p "$DMG_DIR" || exit 1
 	cd "$DMG_DIR" || exit 1
 	cp "../$PACKAGE_NAME" . || exit 1
-	cp -r "../../../Resources/templates" . || exit 1
 	cp "../../BlackHole128ch.v0.2.8.pkg" "BlackHole128ch.v0.2.8.pkg" || exit -1
 
 	cd ..
