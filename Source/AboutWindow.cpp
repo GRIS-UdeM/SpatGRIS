@@ -26,7 +26,7 @@
 //==============================================================================
 AboutComponent::AboutComponent(AboutWindow & parentWindow, GrisLookAndFeel & lookAndFeel) : mParentWindow(parentWindow)
 {
-    setSize(400, 500);
+    setSize(400, 550);
 
     auto const & icon{ ICON_SMALL_FILE };
     if (icon.exists()) {
@@ -36,7 +36,7 @@ AboutComponent::AboutComponent(AboutWindow & parentWindow, GrisLookAndFeel & loo
         addAndMakeVisible(mLogoImage);
     }
 
-    mTitleLabel.setText("SpatGRIS v2 - Sound Spatialization Tool\n\n", juce::NotificationType::dontSendNotification);
+    mTitleLabel.setText("SpatGRIS 3 - Sound Spatialization Tool", juce::NotificationType::dontSendNotification);
     mTitleLabel.setJustificationType(juce::Justification::horizontallyCentred);
     mTitleLabel.setBounds(5, 150, 390, 50);
     mTitleLabel.setLookAndFeel(&lookAndFeel);
@@ -44,7 +44,7 @@ AboutComponent::AboutComponent(AboutWindow & parentWindow, GrisLookAndFeel & loo
     addAndMakeVisible(mTitleLabel);
 
     auto const version{ juce::JUCEApplication::getInstance()->getApplicationVersion() };
-    mVersionLabel.setText("Version " + version + "\n\n\n", juce::NotificationType::dontSendNotification);
+    mVersionLabel.setText("Version " + version, juce::NotificationType::dontSendNotification);
     mVersionLabel.setJustificationType(juce::Justification::horizontallyCentred);
     mVersionLabel.setBounds(5, 180, 390, 50);
     mVersionLabel.setLookAndFeel(&lookAndFeel);
@@ -52,19 +52,19 @@ AboutComponent::AboutComponent(AboutWindow & parentWindow, GrisLookAndFeel & loo
     addAndMakeVisible(mVersionLabel);
 
     juce::String infos{};
-    infos << "Developed by the G.R.I.S. at Université de Montréal\n\n";
-    infos << "(Groupe de Recherche en Immersion Spatiale)\n\n\n";
-    infos << "Director:\n\n";
-    infos << "Robert NORMANDEAU\n\n\n";
-    infos << "Programmers:\n\n";
-    infos << "Actual: Samuel BÉLAND\n\n";
-    infos << "Former: Olivier BÉLANGER, Vincent BERTHIAUME, Nicolas MASSON, Antoine MISSOUT\n\n\n";
-    infos << "Assistants:\n\n";
-    infos << "Christophe LENGELÉ, Nicola GIANNINI, Mélanie Frisoli\n\n";
+    infos << "Developed by the G.R.I.S. at Université de Montréal\n";
+    infos << "(Groupe de Recherche en Immersion Spatiale)\n\n";
+    infos << "Director:\n";
+    infos << "Robert NORMANDEAU\n\n";
+    infos << "Programmers:\n";
+    infos << "Actual: Samuel BÉLAND\n";
+    infos << "Former: Olivier BÉLANGER, Vincent BERTHIAUME, Nicolas MASSON, Antoine MISSOUT\n\n";
+    infos << "Assistants:\n";
+    infos << "Christophe LENGELÉ, Nicola GIANNINI, Mélanie FRISOLI";
 
     mInfosLabel.setText(infos, juce::NotificationType::dontSendNotification);
     mInfosLabel.setJustificationType(juce::Justification::left);
-    mInfosLabel.setBounds(5, 230, 390, 250);
+    mInfosLabel.setBounds(5, 230, 390, 300);
     mInfosLabel.setFont(lookAndFeel.getFont());
     mInfosLabel.setLookAndFeel(&lookAndFeel);
     mInfosLabel.setColour(juce::Label::textColourId, lookAndFeel.getFontColour());
@@ -73,14 +73,14 @@ AboutComponent::AboutComponent(AboutWindow & parentWindow, GrisLookAndFeel & loo
     mWebsiteHyperlink.setButtonText("GRIS Web Site");
     mWebsiteHyperlink.setURL(juce::URL{ "http://gris.musique.umontreal.ca/" });
     mWebsiteHyperlink.setColour(juce::HyperlinkButton::textColourId, lookAndFeel.getFontColour());
-    mWebsiteHyperlink.setBounds(20, 470, 150, 22);
+    mWebsiteHyperlink.setBounds(20, 520, 150, 22);
     mWebsiteHyperlink.setColour(juce::ToggleButton::textColourId, lookAndFeel.getFontColour());
     mWebsiteHyperlink.setLookAndFeel(&lookAndFeel);
     mWebsiteHyperlink.addListener(this);
     addAndMakeVisible(mWebsiteHyperlink);
 
     mCloseButton.setButtonText("Close");
-    mCloseButton.setBounds(250, 470, 100, 22);
+    mCloseButton.setBounds(250, 520, 100, 22);
     mCloseButton.setColour(juce::ToggleButton::textColourId, lookAndFeel.getFontColour());
     mCloseButton.setLookAndFeel(&lookAndFeel);
     mCloseButton.addListener(this);

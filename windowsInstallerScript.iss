@@ -44,6 +44,8 @@ Source: "Resources\hrtf_compact\*"; DestDir: "{app}\Resources\hrtf_compact"; Fla
 Source: "Resources\default_preset\*"; DestDir: "{app}\Resources\default_preset"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "Resources\templates\*"; DestDir: "{app}\templates"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "Resources\SpatGRIS2_2.0_Manual.pdf"; DestDir: "{app}\Resources"; Flags: ignoreversion
+Source: "Resources\ServerGRIS_icon_splash_small.png"; DestDir: "{app}\Resources"; Flags: ignoreversion
+Source: "Resources\splash_screen.png"; DestDir: "{app}\Resources"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
