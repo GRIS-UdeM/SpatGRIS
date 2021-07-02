@@ -227,7 +227,7 @@
   </MAINGROUP>
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX" externalLibraries="" extraFrameworks="GLUT"
-               customXcodeResourceFolders="Resources/default_preset&#10;Resources/hrtf_compact"
+               customXcodeResourceFolders="Resources/default_preset&#10;Resources/hrtf_compact&#10;Resources/templates/Speaker Setups"
                smallIcon="" bigIcon="YxmFrL" extraLinkerFlags="-F/Library/Frameworks"
                microphonePermissionNeeded="1" hardenedRuntime="1" hardenedRuntimeOptions="com.apple.security.device.audio-input">
       <CONFIGURATIONS>

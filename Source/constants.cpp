@@ -49,9 +49,17 @@ juce::Colour const DEFAULT_SOURCE_COLOR{ narrow<juce::uint8>(255), 0, 0 };
 static constexpr auto SPEAKER_SETUP_TEMPLATES_COMMANDS_OFFSET = 2000;
 
 static auto const GET_SPEAKER_SETUP_TEMPLATES = []() -> SpeakerSetupTemplates {
+#ifdef __APPLE__
+    auto const templatesDir{ RESOURCES_DIR.getChildFile("Speaker setups") };
+#elif
     auto const templatesDir{ RESOURCES_DIR.getChildFile("templates").getChildFile("Speaker setups") };
+#endif
+    jassert(templatesDir.isDirectory());
+    
     auto const domeDir{ templatesDir.getChildFile("DOME") };
     auto const cubeDir{ templatesDir.getChildFile("CUBE") };
+    jassert(domeDir.isDirectory());
+    jassert(cubeDir.isDirectory());
 
     auto commandId{ SPEAKER_SETUP_TEMPLATES_COMMANDS_OFFSET };
 
