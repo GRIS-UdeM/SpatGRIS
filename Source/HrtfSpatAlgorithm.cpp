@@ -209,8 +209,8 @@ std::unique_ptr<AbstractSpatAlgorithm> HrtfSpatAlgorithm::make(SpeakerSetup cons
     if (!speakerSetup.ordering.contains(routing.left) || !speakerSetup.ordering.contains(routing.right)) {
         if (!errorShown) {
             juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::InfoIcon,
-                                                   "Disabled spatialization",
-                                                   "Please select valid stereo channels",
+                                                   "Disabled audio",
+                                                   "An output patch used for stereo reduction is unavailable.",
                                                    "Ok",
                                                    parent);
             errorShown = true;
