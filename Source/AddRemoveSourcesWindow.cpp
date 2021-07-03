@@ -102,7 +102,7 @@ void AddRemoveSourcesComponent::resized()
 AddRemoveSourcesWindow::AddRemoveSourcesWindow(int const currentNumberOfSources,
                                                MainContentComponent & mainContentComponent,
                                                GrisLookAndFeel & lookAndFeel)
-    : DocumentWindow("Set number of sources", lookAndFeel.getBackgroundColour(), juce::DocumentWindow::closeButton)
+    : DocumentWindow("Set sources", lookAndFeel.getBackgroundColour(), juce::DocumentWindow::closeButton)
     , mMainContentComponent(mainContentComponent)
     , mComponent(currentNumberOfSources, mainContentComponent, lookAndFeel)
 {
