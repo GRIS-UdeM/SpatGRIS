@@ -218,10 +218,22 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     mListSpeakerBox.repaint();
     mListSpeakerBox.resized();
 
-    // add drag listener
     mListSpeakerBox.addMouseListener(this, true);
 
+    setResizable(true, true);
+    setUsingNativeTitleBar(true);
+    setAlwaysOnTop(true);
+
     setContentNonOwned(&mListSpeakerBox, false);
+    auto const & controlsComponent{ *mainContentComponent.getControlsComponent() };
+
+    static constexpr auto WIDTH = 850;
+    static constexpr auto HEIGHT = 600;
+    static constexpr auto TITLE_BAR_HEIGHT = 30;
+
+    setBounds(controlsComponent.getScreenX(), controlsComponent.getScreenY() + TITLE_BAR_HEIGHT, WIDTH, HEIGHT);
+
+    DocumentWindow::setVisible(true);
 }
 
 //==============================================================================

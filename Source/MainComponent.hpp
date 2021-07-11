@@ -222,6 +222,8 @@ public:
     void interpolationChanged(float interpolation);
     void recordButtonPressed() override;
 
+    juce::Component * getControlsComponent() const;
+
     // Speakers.
     [[nodiscard]] auto const & getSpeakersDisplayOrder() const { return mData.speakerSetup.ordering; }
 

@@ -434,25 +434,14 @@ void MainContentComponent::handleShowSpeakerEditWindow()
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
-    juce::Rectangle<int> const result{ getScreenX() + mSpeakerViewComponent->getWidth() + 20,
-                                       getScreenY() + 20,
-                                       850,
-                                       600 };
     if (mEditSpeakersWindow == nullptr) {
         auto const windowName = juce::String{ "Speakers Setup Edition - " }
                                 + spatModeToString(mData.speakerSetup.spatMode) + " - "
                                 + mData.appData.lastSpeakerSetup;
         mEditSpeakersWindow
             = std::make_unique<EditSpeakersWindow>(windowName, mLookAndFeel, *this, mData.appData.lastProject);
-        mEditSpeakersWindow->setBounds(result);
         mEditSpeakersWindow->initComp();
     }
-    mEditSpeakersWindow->setBounds(result);
-    mEditSpeakersWindow->setResizable(true, true);
-    mEditSpeakersWindow->setUsingNativeTitleBar(true);
-    mEditSpeakersWindow->setVisible(true);
-    mEditSpeakersWindow->setAlwaysOnTop(true);
-    mEditSpeakersWindow->repaint();
 }
 
 //==============================================================================
@@ -684,6 +673,12 @@ void MainContentComponent::recordButtonPressed()
                                                                      mData.appData.recordingOptions,
                                                                      *this,
                                                                      mLookAndFeel);
+}
+
+//==============================================================================
+juce::Component * MainContentComponent::getControlsComponent() const
+{
+    return mMainLayout.get();
 }
 
 //==============================================================================
