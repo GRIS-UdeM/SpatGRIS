@@ -100,6 +100,8 @@ struct SpeakerSetupTemplate {
     juce::String name{};
     juce::CommandID commandId{};
     juce::File path{};
+
+    bool operator<(SpeakerSetupTemplate const & other) const noexcept;
 };
 
 struct SpeakerSetupTemplates {

@@ -71,6 +71,8 @@ static auto const GET_SPEAKER_SETUP_TEMPLATES = []() -> SpeakerSetupTemplates {
             result.add(setup);
         }
 
+        result.sort();
+
         return result;
     };
 
@@ -107,6 +109,60 @@ static juce::Array<T> stringToStronglyTypedFloat(juce::StringArray const & strin
         result.add(T{ string.getFloatValue() });
     }
     return result;
+}
+
+//==============================================================================
+static bool fancyStringCmp(juce::String const & a, juce::String const & b)
+{
+    static auto const IS_NUMERIC = [](int const c) { return c >= '0' && c <= '9'; };
+    static auto const IS_NOT_NUMERIC = [](int const c) { return !IS_NUMERIC(c); };
+
+    static auto const STARTS_WITH_A_NUMBER = [](juce::String const & string) {
+        if (string.isEmpty()) {
+            return false;
+        }
+        return IS_NUMERIC(string[0]);
+    };
+
+    static auto const extract = [](juce::String const & string, auto const & pred) {
+        auto const end{ std::find_if_not(string.begin(), string.end(), pred) };
+        auto const length{ narrow<int>(end - string.begin()) };
+        auto const extracted{ string.substring(0, length) };
+        auto const left{ string.substring(length, string.length() - length) };
+        return std::make_pair(extracted, left);
+    };
+
+    auto const aStartsWithNumber{ STARTS_WITH_A_NUMBER(a) };
+    auto const bStartsWithNumber{ STARTS_WITH_A_NUMBER(b) };
+
+    if (aStartsWithNumber != bStartsWithNumber) {
+        return a < b;
+    }
+
+    if (aStartsWithNumber) {
+        auto const [aNumber, aLeft] = extract(a, IS_NUMERIC);
+        auto const [bNumber, bLeft] = extract(b, IS_NUMERIC);
+
+        if (aNumber.getIntValue() == bNumber.getIntValue()) {
+            return fancyStringCmp(aLeft, bLeft);
+        }
+
+        return aNumber.getIntValue() < bNumber.getIntValue();
+    }
+
+    auto const [aString, aLeft] = extract(a, IS_NOT_NUMERIC);
+    auto const [bString, bLeft] = extract(b, IS_NOT_NUMERIC);
+
+    if (aString == bString) {
+        return fancyStringCmp(aLeft, bLeft);
+    }
+    return aString < bString;
+}
+
+//==============================================================================
+bool SpeakerSetupTemplate::operator<(SpeakerSetupTemplate const & other) const noexcept
+{
+    return fancyStringCmp(name, other.name);
 }
 
 //==============================================================================
