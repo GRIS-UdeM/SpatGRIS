@@ -110,7 +110,7 @@ void SpeakerViewComponent::setTriplets(juce::Array<Triplet> triplets) noexcept
 void SpeakerViewComponent::render()
 {
     static constexpr auto MIN_ZOOM = 0.7f;
-    static constexpr auto MAX_ZOOM = 4.0f;
+    static constexpr auto MAX_ZOOM = 7.0f;
     static constexpr auto ZOOM_RANGE = MAX_ZOOM - MIN_ZOOM;
     static constexpr auto ZOOM_CURVE = 0.7f;
     static constexpr auto INVERSE_ZOOM_CURVE = 1.0f / ZOOM_CURVE;
