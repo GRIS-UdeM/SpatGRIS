@@ -1123,8 +1123,8 @@ juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const j
         };
 
         juce::PopupMenu menu{};
-        menu.addSubMenu("dome", extractTemplatesToMenu(SPEAKER_SETUP_TEMPLATES.dome));
-        menu.addSubMenu("cube", extractTemplatesToMenu(SPEAKER_SETUP_TEMPLATES.cube));
+        menu.addSubMenu("Dome", extractTemplatesToMenu(SPEAKER_SETUP_TEMPLATES.dome));
+        menu.addSubMenu("Cube", extractTemplatesToMenu(SPEAKER_SETUP_TEMPLATES.cube));
         return menu;
     };
 
