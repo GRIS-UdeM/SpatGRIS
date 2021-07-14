@@ -1662,7 +1662,7 @@ void MainContentComponent::updateSpatAlgorithm()
             break;
         case AbstractSpatAlgorithm::Error::stereoOutputUnavailable:
             juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::InfoIcon,
-                                                   "Disabled spatialization",
+                                                   "Stereo output disabled",
                                                    "An output patch used for stereo reduction is unavailable.",
                                                    "Ok",
                                                    this);
