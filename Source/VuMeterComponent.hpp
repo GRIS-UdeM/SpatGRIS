@@ -161,13 +161,16 @@ public:
     void resized() override;
     void changeListenerCallback(juce::ChangeBroadcaster * source) override;
     [[nodiscard]] int getMinHeight() const noexcept override;
+    void mouseUp(const juce::MouseEvent & event) override;
 
 private:
     //==============================================================================
     void muteButtonClicked() const;
     void soloButtonClicked() const;
-    void colorSelectorButtonClicked();
+    void colorSelectorLeftButtonClicked();
+    void colorSelectorRightButtonClicked() const;
     void directOutButtonClicked() const;
+    [[nodiscard]] juce::Colour getSourceColor() const;
     //==============================================================================
     JUCE_LEAK_DETECTOR(AbstractVuMeterComponent)
 }; // class LevelComponent

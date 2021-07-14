@@ -332,6 +332,7 @@ SourceVuMeterComponent::SourceVuMeterComponent(source_index_t const sourceIndex,
     mDirectOutButton.setLookAndFeel(&lookAndFeel);
     mDirectOutButton.addListener(this);
     mDirectOutButton.addMouseListener(this, true);
+    mIdButton.addMouseListener(this, true);
     setDirectOut(directOut);
     addAndMakeVisible(mDirectOutButton);
 
@@ -373,8 +374,6 @@ void SourceVuMeterComponent::buttonClicked(juce::Button * button)
     } else if (button == &mSoloButton) {
         // SOLO
         soloButtonClicked();
-    } else if (button == &mIdButton) {
-        colorSelectorButtonClicked();
     } else if (button == &mDirectOutButton) {
         directOutButtonClicked();
     }
@@ -415,6 +414,20 @@ int SourceVuMeterComponent::getMinHeight() const noexcept
 }
 
 //==============================================================================
+void SourceVuMeterComponent::mouseUp(juce::MouseEvent const & event)
+{
+    if (!mIdButton.contains(event.getPosition())) {
+        return;
+    }
+
+    if (event.mods.isLeftButtonDown()) {
+        colorSelectorLeftButtonClicked();
+    } else if (event.mods.isRightButtonDown()) {
+        colorSelectorRightButtonClicked();
+    }
+}
+
+//==============================================================================
 void SourceVuMeterComponent::muteButtonClicked() const
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -433,7 +446,7 @@ void SourceVuMeterComponent::soloButtonClicked() const
 }
 
 //==============================================================================
-void SourceVuMeterComponent::colorSelectorButtonClicked()
+void SourceVuMeterComponent::colorSelectorLeftButtonClicked()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -443,11 +456,19 @@ void SourceVuMeterComponent::colorSelectorButtonClicked()
                                                                 4,
                                                                 4) };
     colourSelector->setName("background");
-    colourSelector->setCurrentColour(mIdButton.findColour(juce::TextButton::buttonColourId));
+    colourSelector->setCurrentColour(getSourceColor());
     colourSelector->addChangeListener(this);
     colourSelector->setColour(juce::ColourSelector::backgroundColourId, juce::Colours::transparentBlack);
     colourSelector->setSize(300, 400);
     juce::CallOutBox::launchAsynchronously(std::move(colourSelector), getScreenBounds(), nullptr);
+}
+
+//==============================================================================
+void SourceVuMeterComponent::colorSelectorRightButtonClicked() const
+{
+    source_index_t const nextSourceIndex{ mSourceIndex.get() + 1 };
+    auto const currentColor{ getSourceColor() };
+    mOwner.handleSourceColorChanged(nextSourceIndex, currentColor);
 }
 
 //==============================================================================
@@ -485,6 +506,12 @@ void SourceVuMeterComponent::directOutButtonClicked() const
     }
 
     mOwner.handleSourceDirectOutChanged(mSourceIndex, newOutputPatch);
+}
+
+//==============================================================================
+juce::Colour SourceVuMeterComponent::getSourceColor() const
+{
+    return mIdButton.findColour(juce::TextButton::buttonColourId);
 }
 
 //==============================================================================

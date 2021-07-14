@@ -1514,6 +1514,11 @@ void MainContentComponent::handleSourceColorChanged(source_index_t const sourceI
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
 
+    if (sourceIndex.get() == mData.project.sources.size() + 1) {
+        // Right click on the last source's color selector
+        return;
+    }
+
     mData.project.sources[sourceIndex].colour = colour;
     mSourceVuMeterComponents[sourceIndex].setSourceColour(colour);
 }
