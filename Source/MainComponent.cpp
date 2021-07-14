@@ -1984,9 +1984,11 @@ bool MainContentComponent::saveProject(tl::optional<juce::File> maybeFile)
 
     if (!maybeFile || !IS_SAVABLE(*maybeFile)) {
         juce::File const lastProjectFile{ mData.appData.lastProject };
-        auto const initialFile{ lastProjectFile.isAChildOf(CURRENT_WORKING_DIR) ? juce::File::getSpecialLocation(
-                                    juce::File::SpecialLocationType::userDocumentsDirectory)
-                                                                                : lastProjectFile };
+        auto const initialFile{ lastProjectFile.isAChildOf(CURRENT_WORKING_DIR)
+                                    ? juce::File::getSpecialLocation(
+                                          juce::File::SpecialLocationType::userDocumentsDirectory)
+                                          .getChildFile(lastProjectFile.getFileName())
+                                    : lastProjectFile };
         juce::FileChooser fc{ "Choose file to save to...", initialFile, "*.xml", true, false, this };
         if (!fc.browseForFileToSave(true)) {
             return false;
