@@ -20,7 +20,6 @@
 #pragma once
 
 #include "AbstractSpatAlgorithm.hpp"
-#include "SpatMode.hpp"
 #include "TaggedAudioBuffer.hpp"
 
 //==============================================================================
@@ -62,13 +61,13 @@ public:
                  SpeakersAudioConfig const * altSpeakerConfig) override;
     [[nodiscard]] juce::Array<Triplet> getTriplets() const noexcept override;
     [[nodiscard]] bool hasTriplets() const noexcept override { return false; }
+    [[nodiscard]] tl::optional<Error> getError() const noexcept override { return tl::nullopt; }
     //==============================================================================
     static std::unique_ptr<AbstractSpatAlgorithm> make(SpeakerSetup const & speakerSetup,
                                                        SourcesData const & sources,
                                                        StereoRouting const & routing,
                                                        double sampleRate,
-                                                       int bufferSize,
-                                                       juce::Component * parent);
+                                                       int bufferSize);
 
 private:
     //==============================================================================

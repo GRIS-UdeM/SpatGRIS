@@ -1615,13 +1615,54 @@ void MainContentComponent::updateSpatAlgorithm()
 
     juce::ScopedLock const audioLock{ mAudioProcessor->getLock() };
 
-    mAudioProcessor->getSpatAlgorithm() = AbstractSpatAlgorithm::make(mData.speakerSetup,
-                                                                      mData.appData.stereoMode,
-                                                                      mData.project.sources,
-                                                                      mData.appData.stereoRouting,
-                                                                      mData.appData.audioSettings.sampleRate,
-                                                                      mData.appData.audioSettings.bufferSize,
-                                                                      this);
+    auto & oldSpatAlgorithm{ mAudioProcessor->getSpatAlgorithm() };
+    auto newSpatAlgorithm{ AbstractSpatAlgorithm::make(mData.speakerSetup,
+                                                       mData.appData.stereoMode,
+                                                       mData.project.sources,
+                                                       mData.appData.stereoRouting,
+                                                       mData.appData.audioSettings.sampleRate,
+                                                       mData.appData.audioSettings.bufferSize) };
+
+    if (newSpatAlgorithm->getError()
+        && (!oldSpatAlgorithm || oldSpatAlgorithm->getError() != newSpatAlgorithm->getError())) {
+        switch (*newSpatAlgorithm->getError()) {
+        case AbstractSpatAlgorithm::Error::notEnoughDomeSpeakers:
+            juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::InfoIcon,
+                                                   "Disabled spatialization",
+                                                   "Domes need at least 3 speakers.\n",
+                                                   "Ok",
+                                                   this);
+            break;
+        case AbstractSpatAlgorithm::Error::notEnoughCubeSpeakers:
+            juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::InfoIcon,
+                                                   "Disabled spatialization",
+                                                   "The Cubes need at least 2 speakers.\n",
+                                                   "Ok",
+                                                   this);
+            break;
+        case AbstractSpatAlgorithm::Error::flatDomeSpeakersTooFarApart:
+            juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::InfoIcon,
+                                                   "Disabled spatialization",
+                                                   "If all speakers are at the same height, Domes require their "
+                                                   "speakers not to be more than 170 degrees apart from each others.\n",
+                                                   "Ok",
+                                                   this);
+            break;
+        case AbstractSpatAlgorithm::Error::stereoOutputUnavailable:
+            juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::InfoIcon,
+                                                   "Disabled spatialization",
+                                                   "An output patch used for stereo reduction is unavailable.",
+                                                   "Ok",
+                                                   this);
+            break;
+        default:
+            jassertfalse;
+            break;
+        }
+    }
+
+    oldSpatAlgorithm = std::move(newSpatAlgorithm);
+
     updateAudioProcessor();
     reassignSourcesPositions();
 }

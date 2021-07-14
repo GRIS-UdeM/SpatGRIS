@@ -35,6 +35,13 @@ bool isProbablyAudioThread();
 class AbstractSpatAlgorithm
 {
 public:
+    enum class Error {
+        notEnoughDomeSpeakers,
+        notEnoughCubeSpeakers,
+        flatDomeSpeakersTooFarApart,
+        stereoOutputUnavailable,
+    };
+    //==============================================================================
     AbstractSpatAlgorithm() = default;
     virtual ~AbstractSpatAlgorithm() = default;
     //==============================================================================
@@ -54,14 +61,14 @@ public:
         = 0;
     [[nodiscard]] virtual juce::Array<Triplet> getTriplets() const noexcept = 0;
     [[nodiscard]] virtual bool hasTriplets() const noexcept = 0;
+    [[nodiscard]] virtual tl::optional<Error> getError() const noexcept = 0;
     //==============================================================================
     [[nodiscard]] static std::unique_ptr<AbstractSpatAlgorithm> make(SpeakerSetup const & speakerSetup,
                                                                      tl::optional<StereoMode> stereoMode,
                                                                      SourcesData const & sources,
                                                                      StereoRouting const & routing,
                                                                      double sampleRate,
-                                                                     int bufferSize,
-                                                                     juce::Component * parent);
+                                                                     int bufferSize);
 
 private:
     JUCE_LEAK_DETECTOR(AbstractSpatAlgorithm)

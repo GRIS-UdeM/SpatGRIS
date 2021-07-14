@@ -178,32 +178,13 @@ bool VbapSpatAlgorithm::hasTriplets() const noexcept
 }
 
 //==============================================================================
-std::unique_ptr<AbstractSpatAlgorithm> VbapSpatAlgorithm::make(SpeakerSetup const & speakerSetup,
-                                                               juce::Component * parent)
+std::unique_ptr<AbstractSpatAlgorithm> VbapSpatAlgorithm::make(SpeakerSetup const & speakerSetup)
 {
-    using error_t = tl::optional<juce::String>;
-
-    auto const getDummy = [&](error_t error) {
-        if (error) {
-            juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::InfoIcon,
-                                                   "Disabled spatialization",
-                                                   *error,
-                                                   "Ok",
-                                                   parent);
-        }
-        return std::make_unique<DummySpatAlgorithm>();
-    };
-
     auto const getVbap = [&]() { return std::make_unique<VbapSpatAlgorithm>(speakerSetup.speakers); };
 
-    static bool missingSpeakersErrorShown{};
     if (speakerSetup.numOfSpatializedSpeakers() < 3) {
-        auto const error{ missingSpeakersErrorShown ? error_t{}
-                                                    : error_t{ "The Dome mode needs at least 3 speakers.\n" } };
-        missingSpeakersErrorShown = true;
-        return getDummy(error);
+        return std::make_unique<DummySpatAlgorithm>(Error::notEnoughDomeSpeakers);
     }
-    missingSpeakersErrorShown = false;
 
     auto const dimensions{ getVbapType(speakerSetup.speakers) };
 
@@ -234,16 +215,9 @@ std::unique_ptr<AbstractSpatAlgorithm> VbapSpatAlgorithm::make(SpeakerSetup cons
     auto const innerAreValid{ invalidSpeaker == angles.end() };
     auto const firstAndLastAreValid{ angles.getFirst() + degrees_t{ 360.0f } - angles.getLast() <= MAX_ANGLE_DIFF };
 
-    static bool invalidAnglesErrorShown{};
     if (innerAreValid && firstAndLastAreValid) {
-        invalidAnglesErrorShown = false;
         return getVbap();
     }
 
-    auto const error{ invalidAnglesErrorShown
-                          ? error_t{}
-                          : error_t{ "If all speakers are at the same height, Dome mode requires speakers to be not "
-                                     "more than 170 degrees apart from each others.\n" } };
-    invalidAnglesErrorShown = true;
-    return getDummy(error);
+    return std::make_unique<DummySpatAlgorithm>(Error::flatDomeSpeakersTooFarApart);
 }

@@ -137,26 +137,14 @@ juce::Array<Triplet> StereoSpatAlgorithm::getTriplets() const noexcept
 //==============================================================================
 std::unique_ptr<AbstractSpatAlgorithm> StereoSpatAlgorithm::make(SpeakerSetup const & speakerSetup,
                                                                  SourcesData const & sources,
-                                                                 StereoRouting const & routing,
-                                                                 juce::Component * parent)
+                                                                 StereoRouting const & routing)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    static bool errorShown{};
-
     if (!speakerSetup.ordering.contains(routing.left) || !speakerSetup.ordering.contains(routing.right)) {
-        if (!errorShown) {
-            juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::InfoIcon,
-                                                   "Disabled audio",
-                                                   "An output patch used for stereo reduction is unavailable.",
-                                                   "Ok",
-                                                   parent);
-            errorShown = true;
-        }
-        return std::make_unique<DummySpatAlgorithm>();
+        return std::make_unique<DummySpatAlgorithm>(Error::stereoOutputUnavailable);
     }
 
-    errorShown = false;
     return std::make_unique<StereoSpatAlgorithm>(speakerSetup, sources, routing);
 }
 

@@ -24,8 +24,11 @@
 //==============================================================================
 class DummySpatAlgorithm final : public AbstractSpatAlgorithm
 {
+    Error mError;
+
 public:
-    DummySpatAlgorithm() = default;
+    //==============================================================================
+    explicit DummySpatAlgorithm(Error const error) : mError(error) {}
     ~DummySpatAlgorithm() override = default;
     //==============================================================================
     DummySpatAlgorithm(DummySpatAlgorithm const &) = delete;
@@ -43,6 +46,7 @@ public:
     }
     [[nodiscard]] juce::Array<Triplet> getTriplets() const noexcept override { return juce::Array<Triplet>{}; }
     [[nodiscard]] bool hasTriplets() const noexcept override { return false; }
+    [[nodiscard]] tl::optional<Error> getError() const noexcept override { return mError; }
 
 private:
     //==============================================================================

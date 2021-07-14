@@ -145,25 +145,13 @@ juce::Array<Triplet> LbapSpatAlgorithm::getTriplets() const noexcept
 }
 
 //==============================================================================
-std::unique_ptr<AbstractSpatAlgorithm> LbapSpatAlgorithm::make(SpeakerSetup const & speakerSetup,
-                                                               juce::Component * parent)
+std::unique_ptr<AbstractSpatAlgorithm> LbapSpatAlgorithm::make(SpeakerSetup const & speakerSetup)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    static bool errorShown{};
-
     if (speakerSetup.numOfSpatializedSpeakers() < 2) {
-        if (!errorShown) {
-            juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::InfoIcon,
-                                                   "Disabled spatialization",
-                                                   "The CUBE mode needs at least 2 speakers.\n",
-                                                   "Ok",
-                                                   parent);
-            errorShown = true;
-        }
-        return std::make_unique<DummySpatAlgorithm>();
+        return std::make_unique<DummySpatAlgorithm>(Error::notEnoughCubeSpeakers);
     }
 
-    errorShown = false;
     return std::make_unique<LbapSpatAlgorithm>(speakerSetup.speakers);
 }

@@ -199,25 +199,13 @@ std::unique_ptr<AbstractSpatAlgorithm> HrtfSpatAlgorithm::make(SpeakerSetup cons
                                                                SourcesData const & sources,
                                                                StereoRouting const & routing,
                                                                double const sampleRate,
-                                                               int const bufferSize,
-                                                               juce::Component * parent)
+                                                               int const bufferSize)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    static bool errorShown{};
-
     if (!speakerSetup.ordering.contains(routing.left) || !speakerSetup.ordering.contains(routing.right)) {
-        if (!errorShown) {
-            juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::InfoIcon,
-                                                   "Disabled audio",
-                                                   "An output patch used for stereo reduction is unavailable.",
-                                                   "Ok",
-                                                   parent);
-            errorShown = true;
-        }
-        return std::make_unique<DummySpatAlgorithm>();
+        return std::make_unique<DummySpatAlgorithm>(Error::stereoOutputUnavailable);
     }
 
-    errorShown = false;
     return std::make_unique<HrtfSpatAlgorithm>(speakerSetup, sources, routing, sampleRate, bufferSize);
 }

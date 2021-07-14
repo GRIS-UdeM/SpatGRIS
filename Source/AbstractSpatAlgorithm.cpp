@@ -84,26 +84,25 @@ std::unique_ptr<AbstractSpatAlgorithm> AbstractSpatAlgorithm::make(SpeakerSetup 
                                                                    SourcesData const & sources,
                                                                    StereoRouting const & routing,
                                                                    double const sampleRate,
-                                                                   int const bufferSize,
-                                                                   juce::Component * parent)
+                                                                   int const bufferSize)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
     if (stereoMode) {
         switch (*stereoMode) {
         case StereoMode::hrtf:
-            return HrtfSpatAlgorithm::make(speakerSetup, sources, routing, sampleRate, bufferSize, parent);
+            return HrtfSpatAlgorithm::make(speakerSetup, sources, routing, sampleRate, bufferSize);
         case StereoMode::stereo:
-            return StereoSpatAlgorithm::make(speakerSetup, sources, routing, parent);
+            return StereoSpatAlgorithm::make(speakerSetup, sources, routing);
         }
         jassertfalse;
     }
 
     switch (speakerSetup.spatMode) {
     case SpatMode::vbap:
-        return VbapSpatAlgorithm::make(speakerSetup, parent);
+        return VbapSpatAlgorithm::make(speakerSetup);
     case SpatMode::lbap:
-        return LbapSpatAlgorithm::make(speakerSetup, parent);
+        return LbapSpatAlgorithm::make(speakerSetup);
     }
 
     jassertfalse;
