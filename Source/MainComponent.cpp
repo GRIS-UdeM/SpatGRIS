@@ -894,6 +894,7 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
         return;
     case MainWindow::saveSpeakerSetupId:
         result.setInfo("Save Speaker Setup", "Save the current speaker setup on disk.", generalCategory, 0);
+        result.addDefaultKeypress('E', juce::ModifierKeys::commandModifier);
         result.setActive(isSpeakerSetupModified());
         return;
     case MainWindow::saveSpeakerSetupAsId:
@@ -901,6 +902,7 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
                        "Save the current speaker setup under a new name on disk.",
                        generalCategory,
                        0);
+        result.addDefaultKeypress('E', juce::ModifierKeys::commandModifier | juce::ModifierKeys::shiftModifier);
         return;
     case MainWindow::showSpeakerEditId:
         result.setInfo("Speaker Setup Edition", "Edit the current speaker setup.", generalCategory, 0);
