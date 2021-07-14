@@ -341,7 +341,7 @@ bool MainContentComponent::loadProject(juce::File const & file, bool const disca
 
     updateAudioProcessor();
     updateViewportConfig();
-    setTitle();
+    setTitles();
     refreshSourceVuMeterComponents();
 
     return true;
@@ -437,7 +437,7 @@ void MainContentComponent::handleShowSpeakerEditWindow()
     if (mEditSpeakersWindow == nullptr) {
         auto const windowName = juce::String{ "Speakers Setup Edition - " }
                                 + spatModeToString(mData.speakerSetup.spatMode) + " - "
-                                + mData.appData.lastSpeakerSetup;
+                                + juce::File{ mData.appData.lastSpeakerSetup }.getFileNameWithoutExtension();
         mEditSpeakersWindow
             = std::make_unique<EditSpeakersWindow>(windowName, mLookAndFeel, *this, mData.appData.lastProject);
         mEditSpeakersWindow->initComp();
@@ -1858,26 +1858,32 @@ bool MainContentComponent::loadSpeakerSetup(juce::File const & file, LoadSpeaker
 
     mControlPanel->setSpatMode(mData.speakerSetup.spatMode);
 
-    if (mEditSpeakersWindow != nullptr) {
-        auto const windowName{ juce::String{ "Speakers Setup Edition - " }
-                               + spatModeToString(mData.speakerSetup.spatMode) + juce::String(" - ")
-                               + mData.appData.lastSpeakerSetup };
-        mEditSpeakersWindow->setName(windowName);
-    }
+    setTitles();
 
     return true;
 }
 
 //==============================================================================
-void MainContentComponent::setTitle() const
+void MainContentComponent::setTitles() const
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
-    juce::File const currentProject{ mData.appData.lastProject };
-    auto const title{ juce::String{ "SpatGRIS v" } + juce::JUCEApplication::getInstance()->getApplicationVersion()
-                      + " - " + currentProject.getFileName() };
-    mMainWindow.DocumentWindow::setName(title);
+    auto const projectFileName{ juce::File{ mData.appData.lastProject }.getFileNameWithoutExtension() };
+    auto const mainWindowTitle{ juce::String{ "SpatGRIS v" }
+                                + juce::JUCEApplication::getInstance()->getApplicationVersion() + " - "
+                                + projectFileName };
+    mMainWindow.DocumentWindow::setName(mainWindowTitle);
+
+    if (mEditSpeakersWindow != nullptr) {
+        auto const speakerSetupFileName{ juce::File{ mData.appData.lastSpeakerSetup }.getFileNameWithoutExtension() };
+        auto const windowName{ juce::String{ "Speakers Setup Edition - " }
+                               + spatModeToString(mData.speakerSetup.spatMode) + juce::String(" - ")
+                               + speakerSetupFileName };
+        mEditSpeakersWindow->setName(windowName);
+    }
+
+    updateViewportConfig();
 }
 
 //==============================================================================
@@ -1950,7 +1956,7 @@ bool MainContentComponent::saveProject(tl::optional<juce::File> maybeFile)
         mData.appData.lastProject = maybeFile->getFullPathName();
     }
 
-    setTitle();
+    setTitles();
 
     return success;
 }
@@ -1981,11 +1987,13 @@ bool MainContentComponent::saveSpeakerSetup(tl::optional<juce::File> maybeFile)
     auto const & file{ *maybeFile };
     auto const content{ mData.speakerSetup.toXml() };
     auto const success{ content->writeTo(file) };
-    jassert(success);
 
+    jassert(success);
     if (success) {
         mData.appData.lastSpeakerSetup = maybeFile->getFullPathName();
     }
+
+    setTitles();
 
     return success;
 }

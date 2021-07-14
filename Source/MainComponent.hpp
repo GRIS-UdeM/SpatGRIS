@@ -302,7 +302,7 @@ private:
     bool saveSpeakerSetup(tl::optional<juce::File> maybeFile);
     [[nodiscard]] bool makeSureProjectIsSavedToDisk() noexcept;
     [[nodiscard]] bool makeSureSpeakerSetupIsSavedToDisk() noexcept;
-    void setTitle() const;
+    void setTitles() const;
     void reassignSourcesPositions();
 
     void buttonPressed(SpatButton * button) override;

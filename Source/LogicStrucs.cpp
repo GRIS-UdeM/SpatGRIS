@@ -870,7 +870,7 @@ ViewportConfig SpatGrisData::toViewportConfig() const noexcept
     }
     result.spatMode = speakerSetup.spatMode;
     result.viewSettings = appData.viewSettings;
-    result.title = juce::File{ appData.lastSpeakerSetup }.getFileName();
+    result.title = juce::File{ appData.lastSpeakerSetup }.getFileNameWithoutExtension();
 
     return result;
 }
