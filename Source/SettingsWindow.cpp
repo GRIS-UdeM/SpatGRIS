@@ -277,6 +277,7 @@ SettingsWindow::SettingsWindow(MainContentComponent & parent, int const oscPort,
     , mMainContentComponent(parent)
     , mPropertiesComponent(parent, oscPort, grisLookAndFeel)
 {
+    setAlwaysOnTop(true);
     setContentNonOwned(&mPropertiesComponent, true);
     setResizable(false, false);
     setUsingNativeTitleBar(true);
