@@ -1963,9 +1963,11 @@ bool MainContentComponent::saveSpeakerSetup(tl::optional<juce::File> maybeFile)
 
     if (!maybeFile || !IS_SAVABLE(*maybeFile)) {
         juce::File const & lastSpeakerSetup{ mData.appData.lastSpeakerSetup };
-        auto const initialFile{ lastSpeakerSetup.isAChildOf(CURRENT_WORKING_DIR) ? juce::File::getSpecialLocation(
-                                    juce::File::SpecialLocationType::userDocumentsDirectory)
-                                                                                 : lastSpeakerSetup };
+        auto const initialFile{ lastSpeakerSetup.isAChildOf(CURRENT_WORKING_DIR)
+                                    ? juce::File::getSpecialLocation(
+                                          juce::File::SpecialLocationType::userDocumentsDirectory)
+                                          .getChildFile(juce::File{ mData.appData.lastSpeakerSetup }.getFileName())
+                                    : lastSpeakerSetup };
         juce::FileChooser fc{ "Choose file to save to...", initialFile, "*.xml", true, false, this };
         if (!fc.browseForFileToSave(true)) {
             return false;
