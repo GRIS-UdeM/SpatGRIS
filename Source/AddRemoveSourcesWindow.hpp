@@ -28,6 +28,7 @@ class MainContentComponent;
 class AddRemoveSourcesComponent final
     : public juce::Component
     , private juce::TextButton::Listener
+    , private juce::TextEditor::Listener
 {
     MainContentComponent & mMainContentComponent;
     juce::Label mLabel{};
@@ -46,13 +47,16 @@ public:
     AddRemoveSourcesComponent & operator=(AddRemoveSourcesComponent const &) = delete;
     AddRemoveSourcesComponent & operator=(AddRemoveSourcesComponent &&) = delete;
     //==============================================================================
-    static int getWidth();
-    static int getHeight();
-    //==============================================================================
     void buttonClicked(juce::Button *) override;
     void resized() override;
+    void textEditorReturnKeyPressed(juce::TextEditor & editor) override;
+    //==============================================================================
+    static int getWidth();
+    static int getHeight();
 
 private:
+    //==============================================================================
+    void applyAndClose() const;
     //==============================================================================
     JUCE_LEAK_DETECTOR(AddRemoveSourcesComponent)
 };

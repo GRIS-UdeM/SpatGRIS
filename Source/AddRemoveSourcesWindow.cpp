@@ -46,6 +46,7 @@ AddRemoveSourcesComponent::AddRemoveSourcesComponent(int const currentNumberOfSo
     mNumberOfSourcesEditor.setJustification(juce::Justification::centredLeft);
     mNumberOfSourcesEditor.setSelectAllWhenFocused(true);
     mNumberOfSourcesEditor.setText(juce::String{ currentNumberOfSources }, false);
+    mNumberOfSourcesEditor.addListener(this);
 
     mApplyButton.addListener(this);
 
@@ -67,12 +68,19 @@ int AddRemoveSourcesComponent::getHeight()
 }
 
 //==============================================================================
-void AddRemoveSourcesComponent::buttonClicked(juce::Button *)
+void AddRemoveSourcesComponent::applyAndClose() const
 {
-    JUCE_ASSERT_MESSAGE_THREAD;
     auto const numberOfSources{ std::clamp(mNumberOfSourcesEditor.getText().getIntValue(), 1, MAX_NUM_SOURCES) };
     mMainContentComponent.numSourcesChanged(numberOfSources);
     mMainContentComponent.closeAddRemoveSourcesWindow();
+}
+
+//==============================================================================
+void AddRemoveSourcesComponent::buttonClicked([[maybe_unused]] juce::Button * button)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    jassert(button == &mApplyButton);
+    applyAndClose();
 }
 
 //==============================================================================
@@ -96,6 +104,14 @@ void AddRemoveSourcesComponent::resized()
     y = height - PADDING - ROW_HEIGHT;
 
     mApplyButton.setBounds(x, y, BUTTON_WIDTH, ROW_HEIGHT);
+}
+
+//==============================================================================
+void AddRemoveSourcesComponent::textEditorReturnKeyPressed([[maybe_unused]] juce::TextEditor & editor)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    jassert(&editor == &mNumberOfSourcesEditor);
+    applyAndClose();
 }
 
 //==============================================================================
