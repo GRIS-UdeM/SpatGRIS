@@ -31,6 +31,14 @@ auto const RESOURCES_DIR{ CURRENT_WORKING_DIR.getChildFile("Contents").getChildF
 static_assert(false, "What are you building this on?");
 #endif
 
+#ifdef __APPLE__
+static auto const TEMPLATES_DIR{ RESOURCES_DIR };
+#else
+static auto const TEMPLATES_DIR{ RESOURCES_DIR.getChildFile("templates") };
+#endif
+
+juce::File const SPEAKER_TEMPLATES_DIR{ TEMPLATES_DIR.getChildFile("Speaker setups") };
+juce::File const PROJECT_TEMPLATES_DIR{ TEMPLATES_DIR.getChildFile("Projects") };
 juce::File const SPLASH_SCREEN_FILE{ RESOURCES_DIR.getChildFile("splash_screen.png") };
 juce::File const DEFAULT_PROJECT_DIRECTORY{ RESOURCES_DIR.getChildFile("default_preset/") };
 juce::File const DEFAULT_PROJECT_FILE{ DEFAULT_PROJECT_DIRECTORY.getChildFile("default_preset.xml") };
@@ -44,44 +52,48 @@ juce::File const HRTF_FOLDER_40{ RESOURCES_DIR.getChildFile("hrtf_compact/elev" 
 juce::File const HRTF_FOLDER_80{ RESOURCES_DIR.getChildFile("hrtf_compact/elev" + juce::String(80) + "/") };
 
 juce::Colour const DEFAULT_SOURCE_COLOR{ narrow<juce::uint8>(255), 0, 0 };
-//==============================================================================
 
 static constexpr auto SPEAKER_SETUP_TEMPLATES_COMMANDS_OFFSET = 2000;
+static constexpr auto PROJECT_TEMPLATES_COMMANDS_OFFSET = 3000;
 
-static auto const GET_SPEAKER_SETUP_TEMPLATES = []() -> SpeakerSetupTemplates {
-#ifdef __APPLE__
-    auto const templatesDir{ RESOURCES_DIR.getChildFile("Speaker setups") };
-#else
-    auto const templatesDir{ RESOURCES_DIR.getChildFile("templates").getChildFile("Speaker setups") };
-#endif
-    jassert(templatesDir.isDirectory());
+//==============================================================================
+static juce::Array<FileTemplate> extract(juce::File const & dir, juce::CommandID & commandId)
+{
+    jassert(dir.isDirectory());
+    juce::Array<FileTemplate> result{};
 
-    auto const domeDir{ templatesDir.getChildFile("DOME") };
-    auto const cubeDir{ templatesDir.getChildFile("CUBE") };
-    jassert(domeDir.isDirectory());
-    jassert(cubeDir.isDirectory());
+    for (auto const & file : dir.findChildFiles(juce::File::TypesOfFileToFind::findFiles, false)) {
+        FileTemplate setup{ file.getFileNameWithoutExtension(), commandId++, file };
+        result.add(setup);
+    }
 
-    auto commandId{ SPEAKER_SETUP_TEMPLATES_COMMANDS_OFFSET };
-
-    auto const extract = [&](juce::File const & dir) {
-        juce::Array<SpeakerSetupTemplate> result{};
-
-        for (auto const & file : dir.findChildFiles(juce::File::TypesOfFileToFind::findFiles, false)) {
-            SpeakerSetupTemplate setup{ file.getFileNameWithoutExtension(), commandId++, file };
-            result.add(setup);
-        }
-
-        result.sort();
-
-        return result;
-    };
-
-    SpeakerSetupTemplates const result{ extract(domeDir), extract(cubeDir) };
+    result.sort();
 
     return result;
 };
 
-SpeakerSetupTemplates const SPEAKER_SETUP_TEMPLATES{ GET_SPEAKER_SETUP_TEMPLATES() };
+//==============================================================================
+static SpeakerSetupTemplates getSpeakerSetupTemplates()
+{
+    auto const domeDir{ SPEAKER_TEMPLATES_DIR.getChildFile("DOME") };
+    auto const cubeDir{ SPEAKER_TEMPLATES_DIR.getChildFile("CUBE") };
+    auto commandId{ SPEAKER_SETUP_TEMPLATES_COMMANDS_OFFSET };
+
+    SpeakerSetupTemplates const result{ extract(domeDir, commandId), extract(cubeDir, commandId) };
+
+    return result;
+};
+
+//==============================================================================
+static ProjectTemplates getProjectTemplates()
+{
+    auto commandId{ PROJECT_TEMPLATES_COMMANDS_OFFSET };
+
+    return extract(PROJECT_TEMPLATES_DIR, commandId);
+}
+
+SpeakerSetupTemplates const SPEAKER_SETUP_TEMPLATES{ getSpeakerSetupTemplates() };
+ProjectTemplates const PROJECT_TEMPLATES{ getProjectTemplates() };
 
 //==============================================================================
 juce::StringArray const RECORDING_FORMAT_STRINGS{ "WAV",
@@ -132,6 +144,10 @@ static bool fancyStringCmp(juce::String const & a, juce::String const & b)
         return std::make_pair(extracted, left);
     };
 
+    if (a.isEmpty() && b.isEmpty()) {
+        return false;
+    }
+
     auto const aStartsWithNumber{ STARTS_WITH_A_NUMBER(a) };
     auto const bStartsWithNumber{ STARTS_WITH_A_NUMBER(b) };
 
@@ -160,20 +176,18 @@ static bool fancyStringCmp(juce::String const & a, juce::String const & b)
 }
 
 //==============================================================================
-bool SpeakerSetupTemplate::operator<(SpeakerSetupTemplate const & other) const noexcept
+bool FileTemplate::operator<(FileTemplate const & other) const noexcept
 {
     return fancyStringCmp(name, other.name);
 }
 
 //==============================================================================
-tl::optional<SpeakerSetupTemplate const &> commandIdToTemplate(juce::CommandID commandId)
+tl::optional<FileTemplate const &> commandIdToTemplate(juce::CommandID commandId)
 {
-    auto const find
-        = [&](juce::Array<SpeakerSetupTemplate> const & templates) -> tl::optional<SpeakerSetupTemplate const &> {
-        auto const * it{ std::find_if(
-            templates.begin(),
-            templates.end(),
-            [&](SpeakerSetupTemplate const & templateInfo) { return templateInfo.commandId == commandId; }) };
+    auto const find = [&](juce::Array<FileTemplate> const & templates) -> tl::optional<FileTemplate const &> {
+        auto const * it{ std::find_if(templates.begin(), templates.end(), [&](FileTemplate const & templateInfo) {
+            return templateInfo.commandId == commandId;
+        }) };
         if (it == templates.end()) {
             return tl::nullopt;
         }
@@ -189,6 +203,11 @@ tl::optional<SpeakerSetupTemplate const &> commandIdToTemplate(juce::CommandID c
     auto const cubeTemplate{ find(SPEAKER_SETUP_TEMPLATES.cube) };
     if (cubeTemplate) {
         return cubeTemplate;
+    }
+
+    auto const projectTemplates{ find(PROJECT_TEMPLATES) };
+    if (projectTemplates) {
+        return projectTemplates;
     }
 
     return tl::nullopt;

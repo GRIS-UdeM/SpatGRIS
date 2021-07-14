@@ -79,6 +79,8 @@ constexpr juce::Range<dbfs_t> LEGAL_MASTER_GAIN_RANGE{ dbfs_t{ -60.0f }, dbfs_t{
 constexpr juce::Range<float> LEGAL_GAIN_INTERPOLATION_RANGE{ 0.0f, 1.0f };
 constexpr juce::Range<dbfs_t> LEGAL_PINK_NOISE_GAIN_RANGE{ dbfs_t{ -60.0f }, dbfs_t{ 0.0f } };
 
+extern juce::File const SPEAKER_TEMPLATES_DIR;
+extern juce::File const PROJECT_TEMPLATES_DIR;
 extern juce::File const CURRENT_WORKING_DIR;
 extern juce::File const SPLASH_SCREEN_FILE;
 extern juce::File const DEFAULT_PROJECT_FILE;
@@ -96,21 +98,24 @@ extern juce::Colour const DEFAULT_SOURCE_COLOR;
 
 //==============================================================================
 
-struct SpeakerSetupTemplate {
+struct FileTemplate {
     juce::String name{};
     juce::CommandID commandId{};
     juce::File path{};
 
-    bool operator<(SpeakerSetupTemplate const & other) const noexcept;
+    bool operator<(FileTemplate const & other) const noexcept;
 };
 
 struct SpeakerSetupTemplates {
-    juce::Array<SpeakerSetupTemplate> dome{};
-    juce::Array<SpeakerSetupTemplate> cube{};
+    juce::Array<FileTemplate> dome{};
+    juce::Array<FileTemplate> cube{};
 };
 
+using ProjectTemplates = juce::Array<FileTemplate>;
+
 extern SpeakerSetupTemplates const SPEAKER_SETUP_TEMPLATES;
-tl::optional<SpeakerSetupTemplate const &> commandIdToTemplate(juce::CommandID commandId);
+extern ProjectTemplates const PROJECT_TEMPLATES;
+tl::optional<FileTemplate const &> commandIdToTemplate(juce::CommandID commandId);
 
 //==============================================================================
 extern juce::StringArray const RECORDING_FORMAT_STRINGS;

@@ -860,6 +860,7 @@ void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & command
 
     addTemplate(SPEAKER_SETUP_TEMPLATES.dome);
     addTemplate(SPEAKER_SETUP_TEMPLATES.cube);
+    addTemplate(PROJECT_TEMPLATES);
 }
 
 //==============================================================================
@@ -1063,7 +1064,12 @@ bool MainContentComponent::perform(InvocationInfo const & info)
             if (!templateInfo) {
                 return false;
             }
-            loadSpeakerSetup(templateInfo->path, LoadSpeakerSetupOption::disallowDiscardingUnsavedChanges);
+            if (templateInfo->path.isAChildOf(SPEAKER_TEMPLATES_DIR)) {
+                loadSpeakerSetup(templateInfo->path, LoadSpeakerSetupOption::disallowDiscardingUnsavedChanges);
+                break;
+            }
+            jassert(templateInfo->path.isAChildOf(PROJECT_TEMPLATES_DIR));
+            loadProject(templateInfo->path, false);
             break;
         }
     }
@@ -1113,15 +1119,15 @@ juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const j
 
     juce::ApplicationCommandManager * commandManager = &mMainWindow.getApplicationCommandManager();
 
-    auto const getTemplatesMenu = [&]() {
-        auto const extractTemplatesToMenu = [&](auto const & templates) {
-            juce::PopupMenu menu{};
-            for (auto const & setupTemplate : templates) {
-                menu.addCommandItem(commandManager, setupTemplate.commandId, setupTemplate.name);
-            }
-            return menu;
-        };
+    auto const extractTemplatesToMenu = [&](auto const & templates) {
+        juce::PopupMenu menu{};
+        for (auto const & setupTemplate : templates) {
+            menu.addCommandItem(commandManager, setupTemplate.commandId, setupTemplate.name);
+        }
+        return menu;
+    };
 
+    auto const getSpeakerSetupTemplatesMenu = [&]() {
         juce::PopupMenu menu{};
         menu.addSubMenu("Dome", extractTemplatesToMenu(SPEAKER_SETUP_TEMPLATES.dome));
         menu.addSubMenu("Cube", extractTemplatesToMenu(SPEAKER_SETUP_TEMPLATES.cube));
@@ -1133,11 +1139,12 @@ juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const j
     if (menuName == "File") {
         menu.addCommandItem(commandManager, MainWindow::newProjectId);
         menu.addCommandItem(commandManager, MainWindow::openProjectId);
+        menu.addSubMenu("Templates", extractTemplatesToMenu(PROJECT_TEMPLATES));
         menu.addCommandItem(commandManager, MainWindow::saveProjectId);
         menu.addCommandItem(commandManager, MainWindow::saveProjectAsId);
         menu.addSeparator();
         menu.addCommandItem(commandManager, MainWindow::openSpeakerSetupId);
-        menu.addSubMenu("Templates", getTemplatesMenu());
+        menu.addSubMenu("Templates", getSpeakerSetupTemplatesMenu());
         menu.addCommandItem(commandManager, MainWindow::saveSpeakerSetupId);
         menu.addCommandItem(commandManager, MainWindow::saveSpeakerSetupAsId);
         menu.addSeparator();
