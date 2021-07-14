@@ -889,7 +889,7 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
         result.addDefaultKeypress('S', juce::ModifierKeys::shiftModifier | juce::ModifierKeys::commandModifier);
         return;
     case MainWindow::openSpeakerSetupId:
-        result.setInfo("Load Speaker Setup", "Choose a new speaker setup on disk.", generalCategory, 0);
+        result.setInfo("Open Speaker Setup", "Choose a new speaker setup on disk.", generalCategory, 0);
         result.addDefaultKeypress('L', juce::ModifierKeys::commandModifier);
         return;
     case MainWindow::saveSpeakerSetupId:
@@ -1746,7 +1746,7 @@ output_patch_t MainContentComponent::getMaxSpeakerOutputPatch() const
 tl::optional<SpeakerSetup> MainContentComponent::extractSpeakerSetup(juce::File const & file)
 {
     auto const displayError = [&](juce::String const & message) {
-        juce::AlertWindow::showNativeDialogBox("Unable to load Speaker Setup.", message, false);
+        juce::AlertWindow::showNativeDialogBox("Unable to open Speaker Setup.", message, false);
     };
 
     if (!file.existsAsFile()) {
