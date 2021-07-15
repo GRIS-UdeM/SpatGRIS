@@ -1321,6 +1321,11 @@ void MainContentComponent::refreshSourceVuMeterComponents()
     mSourcesInnerLayout->clearSections();
     mSourceVuMeterComponents.clear();
 
+    auto const isAtLeastOneSourceSolo{ std::any_of(
+        mData.project.sources.cbegin(),
+        mData.project.sources.cend(),
+        [](SourcesData::ConstNode const & node) { return node.value->state == PortState::solo; }) };
+
     // auto x{ 3 };
     for (auto source : mData.project.sources) {
         auto newVuMeter{ std::make_unique<SourceVuMeterComponent>(source.key,
@@ -1328,6 +1333,8 @@ void MainContentComponent::refreshSourceVuMeterComponents()
                                                                   source.value->colour,
                                                                   *this,
                                                                   mSmallLookAndFeel) };
+        auto const & state{ source.value->state };
+        newVuMeter->setState(state, isAtLeastOneSourceSolo);
         auto & addedVuMeter{ mSourceVuMeterComponents.add(source.key, std::move(newVuMeter)) };
         mSourcesInnerLayout->addSection(&addedVuMeter).withChildMinSize();
     }
@@ -1344,9 +1351,15 @@ void MainContentComponent::refreshSpeakerVuMeterComponents()
     mSpeakersLayout->clearSections();
     mSpeakerVuMeterComponents.clear();
 
-    // auto x{ 3 };
+    auto const isAtLeastOneSpeakerSolo{ std::any_of(
+        mData.speakerSetup.speakers.cbegin(),
+        mData.speakerSetup.speakers.cend(),
+        [](SpeakersData::ConstNode const & node) { return node.value->state == PortState::solo; }) };
+
     for (auto const outputPatch : mData.speakerSetup.ordering) {
         auto newVuMeter{ std::make_unique<SpeakerVuMeterComponent>(outputPatch, *this, mSmallLookAndFeel) };
+        auto const & state{ mData.speakerSetup.speakers[outputPatch].state };
+        newVuMeter->setState(state, isAtLeastOneSpeakerSolo);
         auto & addedVuMeter{ mSpeakerVuMeterComponents.add(outputPatch, std::move(newVuMeter)) };
         mSpeakersLayout->addSection(&addedVuMeter).withChildMinSize();
     }
@@ -1531,13 +1544,8 @@ void MainContentComponent::handleSourceStateChanged(source_index_t const sourceI
 
     mData.project.sources[sourceIndex].state = state;
 
-    auto const isAtLeastOneSourceSolo{ std::any_of(
-        mData.project.sources.cbegin(),
-        mData.project.sources.cend(),
-        [](SourcesData::ConstNode const & node) { return node.value->state == PortState::solo; }) };
-
     updateAudioProcessor();
-    mSourceVuMeterComponents[sourceIndex].setState(state, isAtLeastOneSourceSolo);
+    refreshSourceVuMeterComponents();
 }
 
 //==============================================================================
@@ -1573,15 +1581,9 @@ void MainContentComponent::handleSpeakerStateChanged(output_patch_t const output
     juce::ScopedWriteLock const lock{ mLock };
 
     mData.speakerSetup.speakers[outputPatch].state = state;
+
     updateAudioProcessor();
-
-    auto const isAtLeastOneSpeakerSolo{ std::any_of(
-        mData.speakerSetup.speakers.cbegin(),
-        mData.speakerSetup.speakers.cend(),
-        [](SpeakersData::ConstNode const & node) { return node.value->state == PortState::solo; }) };
-
-    mSpeakerVuMeterComponents[outputPatch].setState(state, isAtLeastOneSpeakerSolo);
-    // TODO : update 3D view ?
+    refreshSpeakerVuMeterComponents();
 }
 
 //==============================================================================

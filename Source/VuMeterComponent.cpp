@@ -372,7 +372,6 @@ void SourceVuMeterComponent::buttonClicked(juce::Button * button)
     if (button == &mMuteButton) {
         muteButtonClicked();
     } else if (button == &mSoloButton) {
-        // SOLO
         soloButtonClicked();
     } else if (button == &mDirectOutButton) {
         directOutButtonClicked();
@@ -416,7 +415,7 @@ int SourceVuMeterComponent::getMinHeight() const noexcept
 //==============================================================================
 void SourceVuMeterComponent::mouseUp(juce::MouseEvent const & event)
 {
-    if (!mIdButton.contains(event.getPosition())) {
+    if (!mIdButton.getScreenBounds().contains(event.getScreenPosition())) {
         return;
     }
 
