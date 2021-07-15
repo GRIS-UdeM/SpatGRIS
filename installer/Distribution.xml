@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <installer-gui-script minSpecVersion="1">
     <title>SpatGRIS</title>
+    <allowed-os-versions>
+        <os-version min="10.12"/>
+    </allowed-os-versions>
     <options customize="both" allow-external-scripts="no"/>
     <domains enable_anywhere="true" enable_localSystem="true"/>
     <welcome file="Welcome.rtf" />
@@ -10,13 +13,13 @@
     <pkg-ref id="ca.umontreal.musique.gris.spatgris"/>
     <options customize="never" require-scripts="false"/>
     <choices-outline>
-        <line choice="default">
-            <line choice="ca.umontreal.musique.gris.spatgris"/>
-        </line>
+        <line choice="default"/>
+        <line choice="plugins"/>
     </choices-outline>
-    <choice id="default"/>
-    <choice id="ca.umontreal.musique.gris.spatgris" visible="false">
-        <pkg-ref id="ca.umontreal.musique.gris.spatgris"/>
+    <choice id="default" title="SpatGRIS" start_enabled="false" start_selected="true" visible="false">
+        <pkg-ref id="ca.umontreal.musique.gris.spatgris">Application.pkg</pkg-ref>
     </choice>
-    <pkg-ref id="ca.umontreal.musique.gris.spatgris" version="2.1.14" onConclusion="none">Application.pkg</pkg-ref>
+    <choice id="plugins" title="ControlGRIS plugins" start_enabled="true" start_selected="true"visible="true">
+        <pkg-ref id="ca.umontreal.musique.gris.controlgris">Plugins.pkg</pkg-ref>
+    </choice>
 </installer-gui-script>
