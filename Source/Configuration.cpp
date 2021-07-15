@@ -35,9 +35,9 @@ Configuration::Configuration()
     options.osxLibrarySubFolder = "Application Support";
     mApplicationProperties.setStorageParameters(options);
     mUserSettings = mApplicationProperties.getUserSettings();
-    juce::Process::openDocument(
-        "file:" + mApplicationProperties.getUserSettings()->getFile().getParentDirectory().getFullPathName(),
-        juce::String());
+    // juce::Process::openDocument(
+    //    "file:" + mApplicationProperties.getUserSettings()->getFile().getParentDirectory().getFullPathName(),
+    //    juce::String());
 }
 
 //==============================================================================

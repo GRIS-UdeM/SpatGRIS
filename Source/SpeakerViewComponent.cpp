@@ -274,7 +274,7 @@ void SpeakerViewComponent::clickRay()
 
     if (iBestSpeaker) {
         juce::MessageManager::callAsync([this, speaker = *iBestSpeaker] {
-            mMainContentComponent.handleSpeakerSelected(juce::Array<output_patch_t>{ speaker });
+            mMainContentComponent.setSelectedSpeakers(juce::Array<output_patch_t>{ speaker });
         });
     }
 }
@@ -296,7 +296,7 @@ void SpeakerViewComponent::mouseDown(const juce::MouseEvent & e)
         mData.state.rayClick.y = narrow<float>(e.getPosition().y);
         mData.state.shouldRayCast = true;
     } else if (e.mods.isRightButtonDown()) {
-        mMainContentComponent.handleSpeakerSelected(juce::Array<output_patch_t>{});
+        mMainContentComponent.setSelectedSpeakers(juce::Array<output_patch_t>{});
     }
 }
 

@@ -447,7 +447,7 @@ void EditSpeakersWindow::sliderValueChanged(juce::Slider * slider)
 
     if (slider == &mPinkNoiseGainSlider && mPinkNoiseToggleButton.getToggleState()) {
         dbfs_t const db{ narrow<float>(mPinkNoiseGainSlider.getValue()) };
-        mMainContentComponent.handlePinkNoiseGainChanged(db);
+        mMainContentComponent.setPinkNoiseGain(db);
     }
 }
 
@@ -469,7 +469,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
     auto const & speakers{ mMainContentComponent.getData().speakerSetup.speakers };
     auto selectedRow{ GET_SELECTED_ROW(mSpeakersTableListBox) };
 
-    mMainContentComponent.handleSetShowTriplets(false);
+    mMainContentComponent.setShowTriplets(false);
 
     if (button == &mAddSpeakerButton) {
         // Add speaker button
@@ -514,7 +514,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
             degrees_t const zenith{ std::clamp(mZenithTextEditor.getText().getFloatValue(), 0.0f, 90.0f) };
             auto const radius{ mRadiusTextEditor.getText().getFloatValue() };
 
-            mMainContentComponent.handleNewSpeakerPosition(newOutputPatch, PolarVector{ azimuth, zenith, radius });
+            mMainContentComponent.setSpeakerPosition(newOutputPatch, PolarVector{ azimuth, zenith, radius });
         }
         mMainContentComponent.refreshSpeakers();
         updateWinContent();
@@ -530,11 +530,11 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         if (mPinkNoiseToggleButton.getToggleState()) {
             newPinkNoiseLevel = dbfs_t{ static_cast<float>(mPinkNoiseGainSlider.getValue()) };
         }
-        mMainContentComponent.handlePinkNoiseGainChanged(newPinkNoiseLevel);
+        mMainContentComponent.setPinkNoiseGain(newPinkNoiseLevel);
     } else if (button->getName().getIntValue() < DIRECT_OUT_BUTTON_ID_OFFSET) {
         // Delete button
         auto const row{ button->getName().getIntValue() };
-        auto const speakerId{ mMainContentComponent.getSpeakersDisplayOrder()[row] };
+        auto const speakerId{ mMainContentComponent.getData().speakerSetup.ordering[row] };
         mMainContentComponent.removeSpeaker(speakerId);
         updateWinContent();
         mSpeakersTableListBox.deselectAllRows();
@@ -544,7 +544,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         jassert(button->getName().getIntValue() >= DIRECT_OUT_BUTTON_ID_OFFSET);
         auto const row{ button->getName().getIntValue() - DIRECT_OUT_BUTTON_ID_OFFSET };
         auto const outputPatch{ getSpeakerOutputPatchForRow(row) };
-        mMainContentComponent.handleSpeakerOnlyDirectOutChanged(outputPatch, button->getToggleState());
+        mMainContentComponent.speakerOnlyDirectOutChanged(outputPatch, button->getToggleState());
         updateWinContent();
         mShouldRefreshSpeakers = true;
     }
@@ -624,7 +624,7 @@ void EditSpeakersWindow::pushSelectionToMainComponent() const
         selection.add(outputPatch);
     }
 
-    mMainContentComponent.handleSpeakerSelected(std::move(selection));
+    mMainContentComponent.setSelectedSpeakers(std::move(selection));
 }
 
 //==============================================================================
@@ -642,7 +642,7 @@ void EditSpeakersWindow::selectSpeaker(tl::optional<output_patch_t> const output
 {
     auto const getSelectedRow = [this](output_patch_t const id) {
         juce::ScopedReadLock const lock{ mMainContentComponent.getLock() };
-        auto const & displayOrder{ mMainContentComponent.getSpeakersDisplayOrder() };
+        auto const & displayOrder{ mMainContentComponent.getData().speakerSetup.ordering };
         jassert(displayOrder.contains(id));
         return displayOrder.indexOf(id);
     };
@@ -659,7 +659,7 @@ void EditSpeakersWindow::closeButtonPressed()
     if (mShouldRefreshSpeakers) {
         mMainContentComponent.refreshSpeakers();
     }
-    mMainContentComponent.handlePinkNoiseGainChanged(tl::nullopt);
+    mMainContentComponent.setPinkNoiseGain(tl::nullopt);
     mMainContentComponent.closeSpeakersConfigurationWindow();
 }
 
@@ -789,7 +789,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
                 auto const newPosition{
                     getLegalPosition(oldPosition.translatedX(diff), spatMode, isDirectOutOnly, Cols::X)
                 };
-                mMainContentComponent.handleNewSpeakerPosition(outputPatch_, newPosition);
+                mMainContentComponent.setSpeakerPosition(outputPatch_, newPosition);
             }
             mShouldRefreshSpeakers = true;
             break;
@@ -804,7 +804,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
                 auto const newPosition{
                     getLegalPosition(oldPosition.translatedY(diff), spatMode, isDirectOutOnly, Cols::Y)
                 };
-                mMainContentComponent.handleNewSpeakerPosition(outputPatch_, newPosition);
+                mMainContentComponent.setSpeakerPosition(outputPatch_, newPosition);
             }
             mShouldRefreshSpeakers = true;
             break;
@@ -819,7 +819,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
                 auto const newPosition{
                     getLegalPosition(oldPosition.translatedZ(diff), spatMode, isDirectOutOnly, Cols::Z)
                 };
-                mMainContentComponent.handleNewSpeakerPosition(outputPatch_, newPosition);
+                mMainContentComponent.setSpeakerPosition(outputPatch_, newPosition);
             }
             mShouldRefreshSpeakers = true;
             break;
@@ -834,7 +834,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
                 auto const newPosition{
                     getLegalPosition(oldPosition.rotatedBalancedAzimuth(diff), spatMode, isDirectOutOnly, Cols::AZIMUTH)
                 };
-                mMainContentComponent.handleNewSpeakerPosition(outputPatch_, newPosition);
+                mMainContentComponent.setSpeakerPosition(outputPatch_, newPosition);
             }
             mShouldRefreshSpeakers = true;
             break;
@@ -849,7 +849,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
                 auto const newPosition{
                     getLegalPosition(oldPosition.elevatedClipped(diff), spatMode, isDirectOutOnly, Cols::ELEVATION)
                 };
-                mMainContentComponent.handleNewSpeakerPosition(outputPatch_, newPosition);
+                mMainContentComponent.setSpeakerPosition(outputPatch_, newPosition);
             }
             mShouldRefreshSpeakers = true;
             break;
@@ -865,13 +865,13 @@ void EditSpeakersWindow::setText(int const columnNumber,
                                                          spatMode,
                                                          isDirectOutOnly,
                                                          Cols::DISTANCE) };
-                mMainContentComponent.handleNewSpeakerPosition(outputPatch_, newPosition);
+                mMainContentComponent.setSpeakerPosition(outputPatch_, newPosition);
             }
             mShouldRefreshSpeakers = true;
             break;
         }
         case Cols::OUTPUT_PATCH: {
-            mMainContentComponent.handleSetShowTriplets(false);
+            mMainContentComponent.setShowTriplets(false);
             auto const & oldOutputPatch{ outputPatch };
             output_patch_t newOutputPatch{ std::clamp(newText.getIntValue(), 0, MAX_NUM_SPEAKERS) };
             if (newOutputPatch != oldOutputPatch) {
@@ -884,7 +884,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
                     alert.addButton("OK", 0, juce::KeyPress(juce::KeyPress::returnKey));
                     alert.runModalLoop();
                 } else {
-                    mMainContentComponent.handleSpeakerOutputPatchChanged(oldOutputPatch, newOutputPatch);
+                    mMainContentComponent.speakerOutputPatchChanged(oldOutputPatch, newOutputPatch);
                 }
             }
             mShouldRefreshSpeakers = true;
@@ -896,7 +896,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
             dbfs_t val{ newText.getFloatValue() };
             auto diff = val - speaker.gain;
             val = std::clamp(val, MIN_GAIN, MAX_GAIN);
-            mMainContentComponent.handleSetSpeakerGain(outputPatch, val);
+            mMainContentComponent.setSpeakerGain(outputPatch, val);
             if (selectedRows.size() > 1) {
                 for (int i{}; i < selectedRows.size(); ++i) {
                     auto const rowNum{ selectedRows[i] };
@@ -905,9 +905,9 @@ void EditSpeakersWindow::setText(int const columnNumber,
                     }
                     if (altDown) {
                         auto const g{ std::clamp(speaker.gain + diff, MIN_GAIN, MAX_GAIN) };
-                        mMainContentComponent.handleSetSpeakerGain(outputPatch, g);
+                        mMainContentComponent.setSpeakerGain(outputPatch, g);
                     } else {
-                        mMainContentComponent.handleSetSpeakerGain(outputPatch, val);
+                        mMainContentComponent.setSpeakerGain(outputPatch, val);
                     }
                 }
             }
@@ -921,7 +921,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
                 = val
                   - speaker.highpassData.map_or([](SpeakerHighpassData const & data) { return data.freq; }, MIN_FREQ);
             val = std::clamp(val, MIN_FREQ, MAX_FREQ);
-            mMainContentComponent.handleSetSpeakerHighPassFreq(outputPatch, val);
+            mMainContentComponent.setSpeakerHighPassFreq(outputPatch, val);
             if (mSpeakersTableListBox.getNumSelectedRows() > 1) {
                 for (int i{}; i < mSpeakersTableListBox.getSelectedRows().size(); ++i) {
                     auto const rowNum{ mSpeakersTableListBox.getSelectedRows()[i] };
@@ -930,17 +930,17 @@ void EditSpeakersWindow::setText(int const columnNumber,
                     }
                     if (altDown) {
                         auto const g{ std::clamp(speaker.highpassData->freq + diff, MIN_FREQ, MAX_FREQ) };
-                        mMainContentComponent.handleSetSpeakerHighPassFreq(outputPatch, g);
+                        mMainContentComponent.setSpeakerHighPassFreq(outputPatch, g);
                     } else {
-                        mMainContentComponent.handleSetSpeakerHighPassFreq(outputPatch, val);
+                        mMainContentComponent.setSpeakerHighPassFreq(outputPatch, val);
                     }
                 }
             }
             break;
         }
         case Cols::DIRECT_TOGGLE:
-            mMainContentComponent.handleSetShowTriplets(false);
-            mMainContentComponent.handleSpeakerOnlyDirectOutChanged(outputPatch, newText.getIntValue());
+            mMainContentComponent.setShowTriplets(false);
+            mMainContentComponent.speakerOnlyDirectOutChanged(outputPatch, newText.getIntValue());
             mShouldRefreshSpeakers = true;
             break;
         default:
@@ -948,7 +948,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
         }
     }
     updateWinContent(); // necessary?
-    mMainContentComponent.updateViewportConfig();
+    mMainContentComponent.refreshViewportConfig();
 }
 
 //==============================================================================
@@ -1173,7 +1173,7 @@ void EditSpeakersWindow::mouseDrag(juce::MouseEvent const & event)
         return;
     }
 
-    auto order{ mMainContentComponent.getSpeakersDisplayOrder() };
+    auto order{ mMainContentComponent.getData().speakerSetup.ordering };
     order.swap(selectedRow, newIndex);
 
     mMainContentComponent.reorderSpeakers(order);

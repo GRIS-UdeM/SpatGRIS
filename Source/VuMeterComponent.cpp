@@ -256,12 +256,12 @@ void SpeakerVuMeterComponent::buttonClicked(juce::Button * button)
 
     if (button == &mMuteButton) {
         auto const newState{ mMuteButton.getToggleState() ? PortState::muted : PortState::normal };
-        mOwner.handleSpeakerStateChanged(mOutputPatch, newState);
+        mOwner.setSpeakerState(mOutputPatch, newState);
     } else if (button == &mSoloButton) {
         auto const newState{ mSoloButton.getToggleState() ? PortState::solo : PortState::normal };
-        mOwner.handleSpeakerStateChanged(mOutputPatch, newState);
+        mOwner.setSpeakerState(mOutputPatch, newState);
     } else if (button == &mIdButton) {
-        mOwner.handleSpeakerSelected(mOutputPatch);
+        mOwner.setSelectedSpeakers(mOutputPatch);
     }
 }
 
@@ -400,7 +400,7 @@ void SourceVuMeterComponent::changeListenerCallback(juce::ChangeBroadcaster * so
     auto * colorSelector{ dynamic_cast<juce::ColourSelector *>(source) };
     jassert(colorSelector);
     if (colorSelector != nullptr) {
-        mOwner.handleSourceColorChanged(mSourceIndex, colorSelector->getCurrentColour());
+        mOwner.setSourceColor(mSourceIndex, colorSelector->getCurrentColour());
     }
 }
 
@@ -432,7 +432,7 @@ void SourceVuMeterComponent::muteButtonClicked() const
     JUCE_ASSERT_MESSAGE_THREAD;
 
     auto const newState{ mMuteButton.getToggleState() ? PortState::muted : PortState::normal };
-    mOwner.handleSourceStateChanged(mSourceIndex, newState);
+    mOwner.setSourceState(mSourceIndex, newState);
 }
 
 //==============================================================================
@@ -441,7 +441,7 @@ void SourceVuMeterComponent::soloButtonClicked() const
     JUCE_ASSERT_MESSAGE_THREAD;
 
     auto const newState{ mSoloButton.getToggleState() ? PortState::solo : PortState::normal };
-    mOwner.handleSourceStateChanged(mSourceIndex, newState);
+    mOwner.setSourceState(mSourceIndex, newState);
 }
 
 //==============================================================================
@@ -467,7 +467,7 @@ void SourceVuMeterComponent::colorSelectorRightButtonClicked() const
 {
     source_index_t const nextSourceIndex{ mSourceIndex.get() + 1 };
     auto const currentColor{ getSourceColor() };
-    mOwner.handleSourceColorChanged(nextSourceIndex, currentColor);
+    mOwner.setSourceColor(nextSourceIndex, currentColor);
 }
 
 //==============================================================================
@@ -504,7 +504,7 @@ void SourceVuMeterComponent::directOutButtonClicked() const
         newOutputPatch = output_patch_t{ result };
     }
 
-    mOwner.handleSourceDirectOutChanged(mSourceIndex, newOutputPatch);
+    mOwner.setSourceDirectOut(mSourceIndex, newOutputPatch);
 }
 
 //==============================================================================

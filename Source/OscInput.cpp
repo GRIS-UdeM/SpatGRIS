@@ -58,7 +58,7 @@ void OscInput::processSourcePositionMessage(juce::OSCMessage const & message) co
 
     [[maybe_unused]] auto const gain{ message[6].getFloat32() };
 
-    mMainContentComponent.handleSourcePositionChanged(sourceIndex, azimuth, zenith, length, azimuthSpan, zenithSpan);
+    mMainContentComponent.setSourcePosition(sourceIndex, azimuth, zenith, length, azimuthSpan, zenithSpan);
 }
 
 //==============================================================================

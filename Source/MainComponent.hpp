@@ -76,13 +76,9 @@ class MainContentComponent final
 
     std::unique_ptr<AudioProcessor> mAudioProcessor{};
 
-    // Speakers.
-    juce::Array<Triplet> mTriplets{};
-
     OwnedMap<source_index_t, SourceVuMeterComponent, MAX_NUM_SOURCES> mSourceVuMeterComponents{};
     OwnedMap<output_patch_t, SpeakerVuMeterComponent, MAX_NUM_SPEAKERS> mSpeakerVuMeterComponents{};
 
-    // Open Sound Control.
     std::unique_ptr<OscInput> mOscInput{};
 
     // Windows.
@@ -94,6 +90,7 @@ class MainContentComponent final
     std::unique_ptr<OscMonitorWindow> mOscMonitorWindow{};
     std::unique_ptr<AddRemoveSourcesWindow> mAddRemoveSourcesWindow{};
 
+    //==============================================================================
     // info section
     std::unique_ptr<InfoPanel> mInfoPanel{};
 
@@ -111,21 +108,16 @@ class MainContentComponent final
     std::unique_ptr<TitledComponent> mControlsSection{};
     std::unique_ptr<ControlPanel> mControlPanel{};
 
-    // Main ui
     std::unique_ptr<LayoutComponent> mMainLayout{};
-
-    // UI Components.
+    //==============================================================================
     std::unique_ptr<SpeakerViewComponent> mSpeakerViewComponent{};
     juce::StretchableLayoutManager mVerticalLayout{};
     std::unique_ptr<juce::StretchableLayoutResizerBar> mVerticalDividerBar{};
 
-    // App splash screen.
     std::unique_ptr<juce::SplashScreen> mSplashScreen{};
 
-    // Flags.
     bool mIsProcessForeground{ true };
-    //==============================================================================
-    // Look-and-feel.
+
     GrisLookAndFeel & mLookAndFeel;
     SmallGrisLookAndFeel & mSmallLookAndFeel;
 
@@ -138,6 +130,8 @@ class MainContentComponent final
     Configuration mConfiguration;
     juce::Rectangle<int> mFlatViewWindowRect{};
 
+    //==============================================================================
+    // State
     SpatGrisData mData{};
 
 public:
@@ -155,47 +149,37 @@ public:
     MainContentComponent & operator=(MainContentComponent const &) = delete;
     MainContentComponent & operator=(MainContentComponent &&) = delete;
     //==============================================================================
-    // Exit application.
     [[nodiscard]] bool exitApp();
 
-    void updatePeaks();
-
     auto const & getData() const noexcept { return mData; }
-
-    void refreshSourceVuMeterComponents();
-    void refreshSpeakerVuMeterComponents();
-
-    void updateSourceSpatData(source_index_t sourceIndex);
-
     auto const & getLock() const { return mLock; }
-
-    void handleSourcePositionChanged(source_index_t sourceIndex,
-                                     radians_t azimuth,
-                                     radians_t elevation,
-                                     float length,
-                                     float newAzimuthSpan,
-                                     float newZenithSpan);
-    void resetSourcePosition(source_index_t sourceIndex);
-
-    void setRecordingFormat(RecordingFormat format);
-    void setRecordingFileType(RecordingFileType fileType);
-
-    void handleSpeakerOnlyDirectOutChanged(output_patch_t outputPatch, bool state);
-    void handleSpeakerOutputPatchChanged(output_patch_t oldOutputPatch, output_patch_t newOutputPatch);
-    void handleSetSpeakerGain(output_patch_t outputPatch, dbfs_t gain);
-    void handleSetSpeakerHighPassFreq(output_patch_t outputPatch, hz_t freq);
-
-    void handlePinkNoiseGainChanged(tl::optional<dbfs_t> gain);
-
-    void handleSourceColorChanged(source_index_t sourceIndex, juce::Colour colour) override;
-    void handleSourceStateChanged(source_index_t sourceIndex, PortState state) override;
-    void handleSpeakerSelected(juce::Array<output_patch_t> selection) override;
-    void handleSpeakerStateChanged(output_patch_t outputPatch, PortState state) override;
-    void handleSourceDirectOutChanged(source_index_t sourceIndex, tl::optional<output_patch_t> outputPatch) override;
     [[nodiscard]] SpeakersData const & getSpeakersData() const override { return mData.speakerSetup.speakers; }
 
+    void setSourcePosition(source_index_t sourceIndex,
+                           radians_t azimuth,
+                           radians_t elevation,
+                           float length,
+                           float newAzimuthSpan,
+                           float newZenithSpan);
+
+    void resetSourcePosition(source_index_t sourceIndex);
+
+    void speakerOnlyDirectOutChanged(output_patch_t outputPatch, bool state);
+    void speakerOutputPatchChanged(output_patch_t oldOutputPatch, output_patch_t newOutputPatch);
+    void setSpeakerGain(output_patch_t outputPatch, dbfs_t gain);
+    void setSpeakerHighPassFreq(output_patch_t outputPatch, hz_t freq);
+
+    void setPinkNoiseGain(tl::optional<dbfs_t> gain);
+
+    void setSourceColor(source_index_t sourceIndex, juce::Colour colour) override;
+    void setSourceState(source_index_t sourceIndex, PortState state) override;
+    void setSelectedSpeakers(juce::Array<output_patch_t> selection) override;
+    void setSpeakerState(output_patch_t outputPatch, PortState state) override;
+    void setSourceDirectOut(source_index_t sourceIndex, tl::optional<output_patch_t> outputPatch) override;
+    void setShowTriplets(bool state);
+
     template<typename T>
-    void handleNewSpeakerPosition(output_patch_t const outputPatch, T const & position)
+    void setSpeakerPosition(output_patch_t const outputPatch, T const & position)
     {
         JUCE_ASSERT_MESSAGE_THREAD;
         juce::ScopedWriteLock const lock{ mLock };
@@ -203,15 +187,13 @@ public:
         auto & speaker{ mData.speakerSetup.speakers[outputPatch] };
         speaker.position = position;
 
-        updateViewportConfig();
+        refreshViewportConfig();
     }
 
-    void updateAudioProcessor() const;
-    void updateSpatAlgorithm();
-    void updateViewportConfig() const;
+    void refreshViewportConfig() const; // TODO: should be private
 
-    void handleSetShowTriplets(bool state);
-
+    //==============================================================================
+    // Control Panel
     [[nodiscard]] bool setSpatMode(SpatMode spatMode);
     void setStereoMode(tl::optional<StereoMode> stereoMode);
     void stereoRoutingChanged(StereoRouting const & routing);
@@ -224,9 +206,6 @@ public:
 
     juce::Component * getControlsComponent() const;
 
-    // Speakers.
-    [[nodiscard]] auto const & getSpeakersDisplayOrder() const { return mData.speakerSetup.ordering; }
-
     output_patch_t addSpeaker(tl::optional<output_patch_t> speakerToCopy, tl::optional<int> index);
     void removeSpeaker(output_patch_t outputPatch);
     void reorderSpeakers(juce::Array<output_patch_t> newOrder);
@@ -236,21 +215,14 @@ public:
 
     [[nodiscard]] std::unique_ptr<OscMonitorWindow> & getOscMonitor() { return mOscMonitorWindow; }
 
-    // Mute - solo.
-    void setSourceState(source_index_t sourceIndex, PortState state);
-    void setSpeakerState(output_patch_t outputPatch, PortState state);
+    [[nodiscard]] bool refreshSpeakers();
 
-    // Called when the speaker setup has changed.
-    bool refreshSpeakers();
-
-    // Screen refresh timer.
-    void handleTimer(bool state);
-    void handleSaveSpeakerSetup();
-    void handleSaveSpeakerSetupAs();
+    //==============================================================================
+    // Commands.
     void handleShowPreferences();
-    void handleShowOscMonitorWindow();
 
-    // Close windows other than the main one.
+    //==============================================================================
+    // Close windows
     void closeSpeakersConfigurationWindow();
     void closePropertiesWindow() { mPropertiesWindow.reset(); }
     void closeFlatViewWindow() { mFlatViewWindow.reset(); }
@@ -259,19 +231,13 @@ public:
     void closePrepareToRecordWindow() { mPrepareToRecordWindow.reset(); }
     void closeAddRemoveSourcesWindow() { mAddRemoveSourcesWindow.reset(); }
     //==============================================================================
-    void timerCallback() override;
-    void paint(juce::Graphics & g) override;
-    void resized() override;
-    void menuItemSelected(int menuItemId, int /*topLevelMenuIndex*/) override;
-    [[nodiscard]] juce::StringArray getMenuBarNames() override;
-    [[nodiscard]] juce::PopupMenu getMenuForIndex(int menuIndex, const juce::String & /*menuName*/) override;
-
-    [[nodiscard]] bool isProjectModified() const;
-    [[nodiscard]] bool isSpeakerSetupModified() const;
-
     void prepareAndStartRecording(juce::File const & fileOrDirectory, RecordingOptions const & recordingOptions);
 
 private:
+    //==============================================================================
+    [[nodiscard]] bool isProjectModified() const;
+    [[nodiscard]] bool isSpeakerSetupModified() const;
+
     //==============================================================================
     // MenuBar handlers.
     void handleNewProject();
@@ -291,8 +257,20 @@ private:
     void handleResetInputPositions();
     void handleResetMeterClipping();
     void handleColorizeInputs();
+    void handleSaveSpeakerSetup();
+    void handleSaveSpeakerSetupAs();
+    void handleShowOscMonitorWindow();
 
+    void refreshSourceVuMeterComponents();
+    void refreshSpeakerVuMeterComponents();
+
+    void updateSourceSpatData(source_index_t sourceIndex);
+
+    void refreshAudioProcessor() const;
+    void refreshSpatAlgorithm();
+    void updatePeaks();
     [[nodiscard]] output_patch_t getMaxSpeakerOutputPatch() const;
+    void reassignSourcesPositions();
     //==============================================================================
     // Open - save.
     [[nodiscard]] static tl::optional<SpeakerSetup> extractSpeakerSetup(juce::File const & file);
@@ -303,7 +281,13 @@ private:
     [[nodiscard]] bool makeSureProjectIsSavedToDisk() noexcept;
     [[nodiscard]] bool makeSureSpeakerSetupIsSavedToDisk() noexcept;
     void setTitles() const;
-    void reassignSourcesPositions();
+
+    void timerCallback() override;
+    void paint(juce::Graphics & g) override;
+    void resized() override;
+    void menuItemSelected(int menuItemId, int /*topLevelMenuIndex*/) override;
+    [[nodiscard]] juce::StringArray getMenuBarNames() override;
+    [[nodiscard]] juce::PopupMenu getMenuForIndex(int menuIndex, const juce::String & /*menuName*/) override;
 
     void buttonPressed(SpatButton * button) override;
     void audioParametersChanged() override;
@@ -314,8 +298,6 @@ private:
     [[nodiscard]] bool perform(juce::ApplicationCommandTarget::InvocationInfo const & info) override;
     //==============================================================================
     static void handleOpenManual();
-
-private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(MainContentComponent)
 };

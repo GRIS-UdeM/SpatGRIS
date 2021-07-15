@@ -125,10 +125,9 @@ public:
     {
     public:
         virtual ~Owner() = default;
-        virtual void handleSourceDirectOutChanged(source_index_t sourceIndex, tl::optional<output_patch_t> outputPatch)
-            = 0;
-        virtual void handleSourceColorChanged(source_index_t sourceIndex, juce::Colour colour) = 0;
-        virtual void handleSourceStateChanged(source_index_t sourceIndex, PortState state) = 0;
+        virtual void setSourceDirectOut(source_index_t sourceIndex, tl::optional<output_patch_t> outputPatch) = 0;
+        virtual void setSourceColor(source_index_t sourceIndex, juce::Colour colour) = 0;
+        virtual void setSourceState(source_index_t sourceIndex, PortState state) = 0;
         [[nodiscard]] virtual SpeakersData const & getSpeakersData() const = 0;
     };
 
@@ -184,8 +183,8 @@ public:
     {
     public:
         virtual ~Owner() = default;
-        virtual void handleSpeakerSelected(juce::Array<output_patch_t> selection) = 0;
-        virtual void handleSpeakerStateChanged(output_patch_t outputPatch, PortState state) = 0;
+        virtual void setSelectedSpeakers(juce::Array<output_patch_t> selection) = 0;
+        virtual void setSpeakerState(output_patch_t outputPatch, PortState state) = 0;
     };
 
 private:
