@@ -1,39 +1,46 @@
 # SpatGRIS
 
-SpatGRIS lets composers and sound designers spatialize audio in a way that is decoupled from any specific speaker layout.
+SpatGRIS is a sound spatialization software that frees composers and sound designers from the constraints of real-world speaker setups.
 
-It is developed by the _Groupe de recherche en immersion spatiale_ (GRIS) at Université de Montréal. When used in tandem with [ControlGRIS](https://github.com/GRIS-UdeM/ControlGris) (an open-source plugin for digital audio workstations), virtual trajectories can be assigned to sounds directly in the DAW. The audio is spatialized in realtime by SpatGRIS, according to the current speaker setup.
+With the ControlGRIS plugin distributed with SpatGRIS, rich spatial trajectories can be composed directly in your DAW project and reproduced in real-time on any speaker layout. It is fast, stable, cross-platform, easy to learn and works with the tools you already know.
 
-SpatGRIS works in 2D for standard cinema or octophonic setups or in 3D for dome-like speaker layouts or arbitrary speaker layouts. It can handle up to 128 inputs and outputs. It has 3D and 2D view windows and offers the possibility of viewing sound activity in the 3D window.
+SpatGRIS supports any speaker setup, including 2D layouts like quad, 5.1 or octophonic rings, and 3D layouts like speaker domes, concert halls, theatres, etc. Projects can also be mixed down to stereo using a binaural head-related transfer function or simple stereo panning.
 
-This software is in active development. Updates are published on a regular basis.
+It can handle up to 128 inputs and outputs simultaneously and features a 3D and a 2D view that help visualizing sources motions and monitor sound activity.
 
-## Virtual audio device
+SpatGRIS is developed by the _Groupe de recherche en immersion spatiale_ (GRIS) at Université de Montréal and is in active development. Updates are published on a regular basis.
+
+- [Using a virtual audio device](#using-a-virtual-audio-device)
+- [Building](#building)
+- [Running](#running)
+- [Using alternative OSC interfaces](#using-alternative-OSC-interfaces)
+
+## Using a virtual audio device
 
 If you want to use SpatGRIS and ControlGRIS on the same computer, you will need a virtual audio device that can route the audio from your DAW to SpatGRIS.
 
 #### MacOS
 
-We officially support using [BlackHole](https://github.com/ExistentialAudio/BlackHole). A 128 channels version [is made available with every SpatGRIS release](https://github.com/GRIS-UdeM/ServerGRIS/releases).
+We officially support using [BlackHole](https://github.com/ExistentialAudio/BlackHole). A 128 channels version is distributed with SpatGRIS.
 
 #### Windows
 
-Note : ASIO dissalows interfacing with two different devices simoultaneously. If you are internally routing audio on Windows, you will need to find a non-ASIO virtual interface. ASIO should be reserved for setups where SpatGRIS uses the same audio interface for input and ouput and operates on a different machine than ControlGRIS.
+ASIO dissalows interfacing with two different audio devices simoultaneously. If you are internally routing audio on Windows, you will need to find a non-ASIO virtual interface. ASIO should be reserved for setups where SpatGRIS operates on a different machine than ControlGRIS and uses the same audio interface both for input and ouput.
 
-There is a donationware called [VB-CABLE Virtual Audio Device](https://vb-audio.com/Cable/) that _sorta_ works, although it seems to have trouble staying in sync with SpatGRIS and is limited to 32 channels.
-
-If you know of any other solution (preferably open sourced) that works better on Windows, __please tell us all about it__!
+There is a donationware called [VB-CABLE Virtual Audio Device](https://vb-audio.com/Cable/) that _sorta_ works, although it sometimes seems to have trouble staying in sync with SpatGRIS and is limited to 32 channels.
 
 #### Linux
 
-Their are numerous ways of creating loopback audio ports in Linux with ALSA, PulseAudio or JACK. While we do not provide a standard way of doing it, power users should have no problem figuring it out ;-).
+While we do not officially support any specific way of doing this, there is a lot of different ways of creating loopback audio ports with ALSA, PulseAudio or JACK.
 
-## Dependencies
+## Building
+
+#### 1. Installing dependencies
 
 - [Juce 6](https://juce.com/get-juce)
 - freeglut 3 (Windows only)
 
-### Additional dependencies on Linux :
+Additional dependencies on Linux :
 
 ```bash
 sudo apt-get install clang++-10 ladspa-sdk freeglut3-dev libasound2-dev \
@@ -41,23 +48,57 @@ libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev \
 libxcursor-dev libxinerama-dev libxrandr-dev mesa-common-dev
 ```
 
-## Build
-
-
-1. Generate the project files.
+#### 2. Generating project files
 
 ```bash
 cd <ServerGRIS-path>
 <path-to-projucer> --resave SpatGRIS.jucer
 ```
 
-2. Go to the generated `Builds/` folder. On Windows, use the Visual Studio 2019 solution file. On MacOS, use the Xcode project. On Linux :
+#### Compiling
+
+Go to the generated `Builds/` folder.
+
+On Windows, use the Visual Studio 2019 solution file.
+
+On MacOS, use the Xcode project.
+
+On Linux :
 
 ```bash
 cd Builds/LinuxMakeFile
-make CONFIG=Release CXX=clang++-10
+make CONFIG=Release CXX=clang++-10 -j 8
 ```
 
-## Run
+## Running
 
-The software must be launched from the project root directory.
+SpatGRIS must be launched from the project root directory.
+
+## Using alternative OSC interfaces
+
+OSC can be sent directly to SpatGRIS without going through ControlGRIS.
+
+The server address is `/spat/serv`.
+
+#### Moving a source
+
+SpatGRIS expects an `iffffff` list (1 integer and 6 floats).
+
+1. (i) Source index (starting at 0).
+2. (f) Azimuth angle (between 0 and 2π).
+3. (f) Elevation :
+	- In DOME mode : elevation angle (between 0 and π/2, where 0 is the pole).
+	- In CUBE mode : source height (between 0 and π, where 0 is the ground level and π is the maximum height).
+4. (f) Azimuth span (between 0 and 2).
+5. (f) Elevation span (between 0 and 0.5).
+6. (f) Radius :
+	- In DOME mode : __unused__ : must always be set to 0.
+	- In CUBE mode : the distance between the origin and the source __projected onto the ground plane__. For example, this means that a source located at [1,0,0.5] would have a radius of 1. 
+7. (f) __reserved__ : must always be set to 0.
+
+#### Resetting a source's position
+
+SpatGRIS expects an `si` list (1 string and 1 integer).
+
+1. (s) The string "reset"
+2. (i) The source index (starting at 0).
