@@ -31,6 +31,7 @@ case $key in
 	PLUGINS_PKG="$2"
 	shift
 	shift
+	;;
     *)    # unknown option
     POSITIONAL+=("$1") # save it in an array for later
     shift # past argument
@@ -91,9 +92,10 @@ function build_package() {
 	echo "copying application..."
 	cp -r $BIN_PATH $APPLICATIONS_DIR/ || exit 1
 
-	cd $INSTALLER_DIR
+	echo "Copying \"$PLUGINS_PKG\" to \"`pwd`/Plugins.pkg\""
+	cp -r $PLUGINS_PKG Plugins.pkg
 
-	cp -r $PLUGINS_DIR Plugins.pkg
+	cd $INSTALLER_DIR
 
 	echo "building Application.pkg"
 	pkgbuild    --identifier "$IDENTIFIER" \
@@ -196,4 +198,4 @@ send_for_notarisation
 wait_a_bit
 wait_for_notarization
 staple
-cleanup
+# cleanup
