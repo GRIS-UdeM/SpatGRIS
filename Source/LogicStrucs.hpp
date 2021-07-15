@@ -289,7 +289,7 @@ struct SpatGrisAppData {
     AudioSettings audioSettings{};
     RecordingOptions recordingOptions{};
     ViewSettings viewSettings{};
-    CartesianVector cameraPosition{ 0.0f, -2.0f, 1.0f };
+    CartesianVector cameraPosition{ -0.5256794095039368, -2.008379459381104, 1.312143206596375 };
     juce::String lastSpeakerSetup{ DEFAULT_SPEAKER_SETUP_FILE.getFullPathName() };
     juce::String lastProject{ DEFAULT_PROJECT_FILE.getFullPathName() };
     juce::String lastRecordingDirectory{
@@ -299,9 +299,9 @@ struct SpatGrisAppData {
     StereoRouting stereoRouting{};
     int windowX{ 100 };
     int windowY{ 100 };
-    int windowWidth{ 1285 };
-    int windowHeight{ 610 };
-    double sashPosition{ 0.5 };
+    int windowWidth{ 1200 };
+    int windowHeight{ 637 };
+    double sashPosition{ -0.4694048616932104 };
     //==============================================================================
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
     [[nodiscard]] static tl::optional<SpatGrisAppData> fromXml(juce::XmlElement const & xml);
