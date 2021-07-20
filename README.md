@@ -88,7 +88,7 @@ SpatGRIS expects an `iffffff` list (1 integer and 6 floats).
 2. (f) Azimuth angle (between 0 and 2π).
 3. (f) Elevation :
 	- In DOME mode : elevation angle (between 0 and π/2, where 0 is the pole).
-	- In CUBE mode : source height (between 0 and π, where 0 is the ground level and π is the maximum height).
+	- In CUBE mode : source height (between 0 and π/2, where 0 is the ground level and π is the maximum height).
 4. (f) Azimuth span (between 0 and 2).
 5. (f) Elevation span (between 0 and 0.5).
 6. (f) Radius :
