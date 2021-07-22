@@ -98,7 +98,9 @@ void AudioProcessor::muteSoloVuMeterGainOut(SpeakerAudioBuffer & speakersBuffer,
 }
 
 //==============================================================================
-void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer, SpeakerAudioBuffer & speakerBuffer) noexcept
+void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer,
+                                  SpeakerAudioBuffer & speakerBuffer,
+                                  juce::AudioBuffer<float> & stereoBuffer) noexcept
 {
     // Skip if the user is editing the speaker setup.
     juce::ScopedTryLock const lock{ mLock };
@@ -124,7 +126,7 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer, SpeakerAudio
         fillWithPinkNoise(data.data(), numSamples, narrow<int>(data.size()), *mAudioData.config->pinkNoiseGain);
     } else {
         // Process spat algorithm
-        mSpatAlgorithm->process(*mAudioData.config, sourceBuffer, speakerBuffer, sourcePeaks, nullptr);
+        mSpatAlgorithm->process(*mAudioData.config, sourceBuffer, speakerBuffer, stereoBuffer, sourcePeaks, nullptr);
 
         // Process direct outs
         for (auto const & directOutPair : mAudioData.config->directOutPairs) {
@@ -134,14 +136,27 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer, SpeakerAudio
         }
     }
 
-    // Process speaker peaks/gains/highpass
-    auto * speakerPeaksTicket{ mAudioData.speakerPeaks.acquire() };
-    auto & speakerPeaks{ speakerPeaksTicket->get() };
-    muteSoloVuMeterGainOut(speakerBuffer, speakerPeaks);
-
-    // return peaks data to message thread
+    // Process peaks/gains/highpass
     mAudioData.sourcePeaks.setMostRecent(sourcePeaksTicket);
-    mAudioData.speakerPeaks.setMostRecent(speakerPeaksTicket);
+
+    if (mAudioData.config->isStereo) {
+        auto const & masterGain{ mAudioData.config->masterGain };
+        if (masterGain != 0.0f) {
+            stereoBuffer.applyGain(masterGain);
+        }
+        auto * stereoPeaksTicket{ mAudioData.stereoPeaks.acquire() };
+        auto & stereoPeaks{ stereoPeaksTicket->get() };
+        for (int i{}; i < 2; ++i) {
+            stereoPeaks[narrow<size_t>(i)] = stereoBuffer.getMagnitude(i, 0, numSamples);
+        }
+        mAudioData.stereoPeaks.setMostRecent(stereoPeaksTicket);
+    } else {
+        auto * speakerPeaksTicket{ mAudioData.speakerPeaks.acquire() };
+        auto & speakerPeaks{ speakerPeaksTicket->get() };
+        // Process speaker peaks/gains/highpass
+        muteSoloVuMeterGainOut(speakerBuffer, speakerPeaks);
+        mAudioData.speakerPeaks.setMostRecent(speakerPeaksTicket);
+    }
 }
 
 //==============================================================================

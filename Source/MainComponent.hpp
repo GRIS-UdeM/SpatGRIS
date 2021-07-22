@@ -38,7 +38,6 @@
 #include "SpeakerViewComponent.hpp"
 #include "StrongTypes.hpp"
 #include "TitledComponent.hpp"
-#include "Triplet.hpp"
 #include "VuMeterComponent.hpp"
 #include "constants.hpp"
 
@@ -78,6 +77,7 @@ class MainContentComponent final
 
     OwnedMap<source_index_t, SourceVuMeterComponent, MAX_NUM_SOURCES> mSourceVuMeterComponents{};
     OwnedMap<output_patch_t, SpeakerVuMeterComponent, MAX_NUM_SPEAKERS> mSpeakerVuMeterComponents{};
+    juce::OwnedArray<StereoVuMeterComponent> mStereoVuMeterComponents{};
 
     std::unique_ptr<OscInput> mOscInput{};
 
@@ -196,7 +196,7 @@ public:
     // Control Panel
     [[nodiscard]] bool setSpatMode(SpatMode spatMode);
     void setStereoMode(tl::optional<StereoMode> stereoMode);
-    void stereoRoutingChanged(StereoRouting const & routing);
+    void setStereoRouting(StereoRouting const & routing);
     void cubeAttenuationDbChanged(dbfs_t value);
     void cubeAttenuationHzChanged(hz_t value);
     void numSourcesChanged(int numSources);
