@@ -20,6 +20,8 @@
             xcodeResource="1"/>
       <FILE id="sL2wMU" name="SinkinSans-400Regular.otf" compile="0" resource="1"
             file="Source/SinkinSans-400Regular.otf"/>
+      <FILE id="c5gwNH" name="SpatGRIS_3.0_Manual.pdf" compile="0" resource="0"
+            file="Resources/SpatGRIS_3.0_Manual.pdf" xcodeResource="1"/>
       <FILE id="skBwoU" name="SpatGRIS2_2.0_Manual.pdf" compile="0" resource="0"
             file="Resources/SpatGRIS2_2.0_Manual.pdf" xcodeResource="1"/>
       <FILE id="VMUncp" name="splash_screen.png" compile="0" resource="1"
