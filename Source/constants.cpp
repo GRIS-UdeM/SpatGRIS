@@ -45,7 +45,7 @@ juce::File const DEFAULT_PROJECT_FILE{ DEFAULT_PROJECT_DIRECTORY.getChildFile("d
 juce::File const DEFAULT_SPEAKER_SETUP_FILE{ DEFAULT_PROJECT_DIRECTORY.getChildFile("default_speaker_setup.xml") };
 juce::File const BINAURAL_SPEAKER_SETUP_FILE{ DEFAULT_PROJECT_DIRECTORY.getChildFile("BINAURAL_SPEAKER_SETUP.xml") };
 juce::File const STEREO_SPEAKER_SETUP_FILE{ DEFAULT_PROJECT_DIRECTORY.getChildFile("STEREO_SPEAKER_SETUP.xml") };
-juce::File const MANUAL_FILE{ RESOURCES_DIR.getChildFile("SpatGRIS2_2.0_Manual.pdf") };
+juce::File const MANUAL_FILE{ RESOURCES_DIR.getChildFile("SpatGRIS_3.0_Manual.pdf") };
 juce::File const ICON_SMALL_FILE{ RESOURCES_DIR.getChildFile("ServerGRIS_icon_splash_small.png") };
 juce::File const HRTF_FOLDER_0{ RESOURCES_DIR.getChildFile("hrtf_compact/elev" + juce::String(0) + "/") };
 juce::File const HRTF_FOLDER_40{ RESOURCES_DIR.getChildFile("hrtf_compact/elev" + juce::String(40) + "/") };
@@ -79,9 +79,7 @@ static SpeakerSetupTemplates getSpeakerSetupTemplates()
     auto const cubeDir{ SPEAKER_TEMPLATES_DIR.getChildFile("CUBE") };
     auto commandId{ SPEAKER_SETUP_TEMPLATES_COMMANDS_OFFSET };
 
-    SpeakerSetupTemplates const result{ extract(domeDir, commandId), extract(cubeDir, commandId) };
-
-    return result;
+    return SpeakerSetupTemplates{ extract(domeDir, commandId), extract(cubeDir, commandId) };
 };
 
 //==============================================================================
@@ -126,6 +124,10 @@ static juce::Array<T> stringToStronglyTypedFloat(juce::StringArray const & strin
 //==============================================================================
 static bool fancyStringCmp(juce::String const & a, juce::String const & b)
 {
+    static juce::StringArray const DEFAULT_FILES{ "Cube_default_speaker_setup",
+                                                  "Dome_default_speaker_setup",
+                                                  "default_project18(8X2-Subs2)" };
+
     static auto const IS_NUMERIC = [](int const c) { return c >= '0' && c <= '9'; };
     static auto const IS_NOT_NUMERIC = [](int const c) { return !IS_NUMERIC(c); };
 
@@ -136,11 +138,11 @@ static bool fancyStringCmp(juce::String const & a, juce::String const & b)
         return IS_NUMERIC(string[0]);
     };
 
-    static auto const extract = [](juce::String const & string, auto const & pred) {
-        auto const end{ std::find_if_not(string.begin(), string.end(), pred) };
+    static auto const SPLIT = [](juce::String const & string, auto const & predicate) {
+        auto const end{ std::find_if_not(string.begin(), string.end(), predicate) };
         auto const length{ narrow<int>(end - string.begin()) };
         auto const extracted{ string.substring(0, length) };
-        auto const left{ string.substring(length, string.length() - length) };
+        auto const left{ string.substring(length) };
         return std::make_pair(extracted, left);
     };
 
@@ -148,16 +150,24 @@ static bool fancyStringCmp(juce::String const & a, juce::String const & b)
         return false;
     }
 
+    if (DEFAULT_FILES.contains(a)) {
+        return true;
+    }
+
+    if (DEFAULT_FILES.contains(b)) {
+        return false;
+    }
+
     auto const aStartsWithNumber{ STARTS_WITH_A_NUMBER(a) };
     auto const bStartsWithNumber{ STARTS_WITH_A_NUMBER(b) };
 
     if (aStartsWithNumber != bStartsWithNumber) {
-        return a < b;
+        return aStartsWithNumber;
     }
 
     if (aStartsWithNumber) {
-        auto const [aNumber, aLeft] = extract(a, IS_NUMERIC);
-        auto const [bNumber, bLeft] = extract(b, IS_NUMERIC);
+        auto const [aNumber, aLeft] = SPLIT(a, IS_NUMERIC);
+        auto const [bNumber, bLeft] = SPLIT(b, IS_NUMERIC);
 
         if (aNumber.getIntValue() == bNumber.getIntValue()) {
             return fancyStringCmp(aLeft, bLeft);
@@ -166,12 +176,13 @@ static bool fancyStringCmp(juce::String const & a, juce::String const & b)
         return aNumber.getIntValue() < bNumber.getIntValue();
     }
 
-    auto const [aString, aLeft] = extract(a, IS_NOT_NUMERIC);
-    auto const [bString, bLeft] = extract(b, IS_NOT_NUMERIC);
+    auto const [aString, aLeft] = SPLIT(a, IS_NOT_NUMERIC);
+    auto const [bString, bLeft] = SPLIT(b, IS_NOT_NUMERIC);
 
     if (aString == bString) {
         return fancyStringCmp(aLeft, bLeft);
     }
+
     return aString < bString;
 }
 
