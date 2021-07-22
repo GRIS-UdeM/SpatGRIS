@@ -93,10 +93,11 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     auto const showSplashScreen = [&]() {
 #if NDEBUG
         if (SPLASH_SCREEN_FILE.exists()) {
-            mSplashScreen.reset(
-                new juce::SplashScreen("SpatGRIS3", juce::ImageFileFormat::loadFrom(SPLASH_SCREEN_FILE), true));
-            mSplashScreen->deleteAfterDelay(juce::RelativeTime::seconds(4), false);
-            mSplashScreen.release();
+            auto splashScreen{ std::make_unique<juce::SplashScreen>("SpatGRIS3",
+                                                                    juce::ImageFileFormat::loadFrom(SPLASH_SCREEN_FILE),
+                                                                    true) };
+            splashScreen->deleteAfterDelay(juce::RelativeTime::seconds(3.5), true);
+            splashScreen.release();
         }
 #endif
     };

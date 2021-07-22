@@ -114,8 +114,6 @@ class MainContentComponent final
     juce::StretchableLayoutManager mVerticalLayout{};
     std::unique_ptr<juce::StretchableLayoutResizerBar> mVerticalDividerBar{};
 
-    std::unique_ptr<juce::SplashScreen> mSplashScreen{};
-
     bool mIsProcessForeground{ true };
 
     GrisLookAndFeel & mLookAndFeel;
