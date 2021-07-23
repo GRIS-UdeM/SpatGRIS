@@ -61,10 +61,12 @@ Source: "{#ResourcesDir}\splash_screen.png"; DestDir: "{app}\Resources"; Flags: 
 ; ControlGris
 Source: "{#ControlGrisDir}\ControlGris.dll"; DestDir: {code:GetVST2Dir|0}; Components: VST64;
 Source: "{#ControlGrisDir}\ControlGris.vst3"; DestDir: "{cf64}\VST3\"; Components: VST364;
+;Source: "{#ControlGrisDir}\ControlGris.aaxplugin"; DestDir: "C:\Program Files\Common Files\Avid\Audio\Plug-Ins"
 
 [Components]
-Name: "VST364"; Description: "ControlGris {#ControlGrisVersion} VST3"; Types: full custom;
-Name: "VST64"; Description: "ControlGris {#ControlGrisVersion} VST"; Types: custom;
+Name: "VST364"; Description: "ControlGris {#ControlGrisVersion} VST3"; Types: custom full;
+Name: "VST64"; Description: "ControlGris {#ControlGrisVersion} VST"; Types: custom full;
+;Name: "AAX"; Description: "ControlGris {#ControlGrisVersion} AAX"; Types: custom full;
 
 [Icons]
 Name: "{autoprograms}\{#AppName}"; Filename: "{app}\{#AppExeName}"
