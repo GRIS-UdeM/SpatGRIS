@@ -154,14 +154,10 @@ function get_last_request_uuid() {
 }
 
 #==============================================================================
-function wait_a_bit() {
-	echo "waiting a bit..."
-	sleep 10
-}
-
-#==============================================================================
 function wait_for_notarization() {
 	echo "Checking for notarization success..."
+	echo "waiting a bit..."
+	sleep 30
 	WAITING=" in progress"
 	SUCCESS=" success"
 	uuid=`get_last_request_uuid`
@@ -173,7 +169,11 @@ function wait_for_notarization() {
 		echo "Status is \"$status\""
 	done
 	if [[ "$status" != "$SUCCESS" ]];then
-		echo "Error : notarization was refused"
+		echo -e "Error : notarization was refused, see the report:\n"
+		xcrun altool \
+			--notarization-info "$uuid" \
+			-u "$notarizeUser" \
+			-p "$PASS"
 		exit 1
 	fi
 }
@@ -195,7 +195,6 @@ function cleanup() {
 build_package
 build_dmg
 send_for_notarisation
-wait_a_bit
 wait_for_notarization
 staple
 # cleanup
