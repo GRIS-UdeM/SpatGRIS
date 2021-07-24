@@ -92,8 +92,8 @@ function build_package() {
 	echo "copying application..."
 	cp -r $BIN_PATH $APPLICATIONS_DIR/ || exit 1
 
-	echo "Copying \"$PLUGINS_PKG\" to \"`pwd`/Plugins.pkg\""
-	cp -r $PLUGINS_PKG Plugins.pkg
+	echo "Copying plugins..."
+	cp -r $PLUGINS_PKG "$INSTALLER_DIR/Plugins.pkg"
 
 	cd $INSTALLER_DIR
 
