@@ -35,7 +35,6 @@
 #include "CartesianVector.hpp"
 #include "LogicStrucs.hpp"
 #include "OwnedMap.hpp"
-#include "PolarVector.hpp"
 #include "StrongTypes.hpp"
 
 struct SpeakerData;
@@ -43,18 +42,6 @@ struct SpeakerData;
 static auto constexpr LBAP_MATRIX_SIZE = 64;
 using matrix_t = std::array<std::array<float, LBAP_MATRIX_SIZE + 1>, LBAP_MATRIX_SIZE + 1>;
 
-/** \brief A structure containing coordinates of a speaker in the field.
- *
- * This structure is used to hold informations about a given speaker in
- * the field. It is the responsibility of the user to provide angular
- * coordinates (`azi`, `ele` and `rad`) values. parameters `azi` (-pi .. pi)
- * and `ele` (0 .. pi/2) must be given in radians and parameter `rad`
- * (the length of the vector) is in the range 0 to 1.
- *
- * The order of the physical outputs may not match the order in which the
- * field will process the speakers. The `spkid` is an integer (starting
- * at 0) used by the field to properly order the output signals.
- */
 struct LbapSpeaker {
     Position position{};
     output_patch_t outputPatch{};

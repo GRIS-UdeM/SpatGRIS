@@ -29,7 +29,6 @@
 #include "AudioStructs.hpp"
 #include "CartesianVector.hpp"
 #include "LogicStrucs.hpp"
-#include "PolarVector.hpp"
 #include "StrongTypes.hpp"
 #include "constants.hpp"
 
@@ -55,14 +54,14 @@ struct SpeakerSet {
     InverseMatrix invMx;
     std::array<float, 3> setGains;
     float smallestWt;
-    int neg_g_am;
+    int negGAm;
 };
 
 /* VBAP structure of n loudspeaker panning */
 struct VbapData {
     std::array<output_patch_t, MAX_NUM_SPEAKERS> outputPatches{}; /* Physical outputs (starts at 1). */
     std::array<float, MAX_NUM_SPEAKERS> gainsSmoothing{};         /* Loudspeaker gains smoothing. */
-    int dimension{};                                              /* Dimensions, 2 or 3. */
+    std::size_t dimension{};                                      /* Dimensions, 2 or 3. */
     juce::Array<SpeakerSet> speakerSets{};                        /* Loudspeaker triplet structure. */
     int numOutputPatches{};                                       /* Number of output patches. */
     int numSpeakers{};                                            /* Number of loudspeakers. */

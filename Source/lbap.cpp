@@ -42,8 +42,9 @@
 /* Bilinear interpolation to retrieve the value at position (x, y) in a 2D matrix. */
 static float bilinearInterpolation(matrix_t const & matrix, float const x, float const y)
 {
-    auto const xi = static_cast<int>(x);
-    auto const yi = static_cast<int>(y);
+    jassert(x >= 0.0f && y >= 0.0f);
+    auto const xi = static_cast<std::size_t>(x);
+    auto const yi = static_cast<std::size_t>(y);
     auto const xf = narrow<float>(x) - xi;
     auto const yf = narrow<float>(y) - yi;
     auto const v1 = matrix[xi][yi];
@@ -150,10 +151,6 @@ static void computeGains(LbapLayer const & layer, SourceData const & source, flo
         std::transform(gains, gains + layer.speakerPositions.size(), gains, [norm](float & gain) {
             return gain * norm;
         });
-        // TODO : should this be done again?
-        /*for (size_t i{}; i < layer.speakers.size(); ++i) {
-            gains.data()[i] *= norm;
-        }*/
     }
 }
 
@@ -276,7 +273,7 @@ void lbap(SourceData const & source, SpeakersSpatGains & gains, LbapField const 
     }
 
     for (size_t i{}; i < field.getNumSpeakers(); ++i) {
-        auto const outputPatch{ field.outputOrder[i] };
+        auto const & outputPatch{ field.outputOrder[i] };
         gains[outputPatch] = tempGains[i];
     }
 }
