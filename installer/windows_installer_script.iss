@@ -12,6 +12,8 @@
 
 #define AppExePath BuildDir + "\" + AppExeName
 #define ControlGrisVersion Copy(ControlGrisVersionLong, 0, Len(ControlGrisVersionLong) - 2)
+#define AaxInPath RootDir + "\installer\ControlGris\ControlGris.aaxplugin"
+#define AaxOutPath "C:\Program Files\Common Files\Avid\Audio\Plug-Ins\ControlGris.aaxplugin"
 
 #define AppVersionLong GetVersionNumbersString(AppExePath)
 
@@ -48,7 +50,6 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 Source: "{#AppExePath}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#BuildDir}\freeglut.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#ResourcesDir}\hrtf_compact\*"; DestDir: "{app}\Resources\hrtf_compact"; Flags: ignoreversion recursesubdirs createallsubdirs
@@ -61,12 +62,15 @@ Source: "{#ResourcesDir}\splash_screen.png"; DestDir: "{app}\Resources"; Flags: 
 ; ControlGris
 Source: "{#ControlGrisDir}\ControlGris.dll"; DestDir: {code:GetVST2Dir|0}; Components: VST64;
 Source: "{#ControlGrisDir}\ControlGris.vst3"; DestDir: "{cf64}\VST3\"; Components: VST364;
-;Source: "{#ControlGrisDir}\ControlGris.aaxplugin"; DestDir: "C:\Program Files\Common Files\Avid\Audio\Plug-Ins"
+;Source: "{#AaxInPath}\Contents"; DestDir: "{#AaxOutPath}"; Components: AAX; Flags: ignoreversion recursesubdirs createallsubdirs;
+Source: "{#AaxInPath}"; DestDir: "C:\Program Files\Common Files\Avid\Audio\Plug-Ins"; Components: AAX; Flags: ignoreversion recursesubdirs createallsubdirs;
+Source: "{#AaxInPath}\desktop.ini"; DestDir: "{#AaxOutPath}"; Components: AAX; Flags: ignoreversion; Attribs: hidden system;
+Source: "{#AaxInPath}\PlugIn.ico"; DestDir: "{#AaxOutPath}"; Components: AAX; Flags: ignoreversion; Attribs: hidden system;
 
 [Components]
 Name: "VST364"; Description: "ControlGris {#ControlGrisVersion} VST3"; Types: custom full;
 Name: "VST64"; Description: "ControlGris {#ControlGrisVersion} VST"; Types: custom full;
-;Name: "AAX"; Description: "ControlGris {#ControlGrisVersion} AAX"; Types: custom full;
+Name: "AAX"; Description: "ControlGris {#ControlGrisVersion} AAX"; Types: custom full;
 
 [Icons]
 Name: "{autoprograms}\{#AppName}"; Filename: "{app}\{#AppExeName}"
