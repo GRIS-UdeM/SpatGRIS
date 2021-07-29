@@ -38,6 +38,10 @@
                 file="Source/AbstractSpatAlgorithm.cpp"/>
           <FILE id="SuIy1P" name="AbstractSpatAlgorithm.hpp" compile="0" resource="0"
                 file="Source/AbstractSpatAlgorithm.hpp"/>
+          <FILE id="F5JcB7" name="DopplerSpatAlgorithm.cpp" compile="1" resource="0"
+                file="Source/DopplerSpatAlgorithm.cpp"/>
+          <FILE id="ng5naj" name="DopplerSpatAlgorithm.hpp" compile="0" resource="0"
+                file="Source/DopplerSpatAlgorithm.hpp"/>
           <FILE id="GfjSnA" name="DummySpatAlgorithm.hpp" compile="0" resource="0"
                 file="Source/DummySpatAlgorithm.hpp"/>
           <FILE id="xSq7Rb" name="HrtfSpatAlgorithm.cpp" compile="1" resource="0"
