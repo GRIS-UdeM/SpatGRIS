@@ -167,7 +167,7 @@ void SpeakerViewComponent::render()
     gluPerspective(70.0, static_cast<GLdouble>(getWidth()) / static_cast<GLdouble>(getHeight()), 0.5, 75.0);
     glMatrixMode(GL_MODELVIEW);
 
-    auto const & camPos{ mData.state.cameraPosition.toCartesian() };
+    auto const camPos{ mData.state.cameraPosition.toCartesian() };
 
     glLoadIdentity();
     gluLookAt(camPos.x, camPos.y, camPos.z, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
