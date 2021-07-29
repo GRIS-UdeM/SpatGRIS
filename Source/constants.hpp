@@ -19,9 +19,13 @@
 
 #pragma once
 
-#include "StrongTypes.hpp"
+#include "Dbfs.hpp"
+#include "Hz.hpp"
+#include "OutputPatch.hpp"
+#include "SourceIndex.hpp"
 
 #include "lib/tl/optional.hpp"
+#include <JuceHeader.h>
 
 struct SpatGrisVersion {
     int major;

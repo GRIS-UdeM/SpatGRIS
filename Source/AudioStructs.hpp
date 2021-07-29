@@ -20,6 +20,7 @@
 #pragma once
 
 #include "AtomicExchanger.hpp"
+#include "Radians.hpp"
 #include "SpatMode.hpp"
 #include "StaticMap.hpp"
 #include "StrongArray.hpp"
@@ -101,13 +102,6 @@ struct SourceAudioConfig {
     bool isMuted{};
     tl::optional<output_patch_t> directOut{};
 };
-
-//==============================================================================
-// struct StereoConfig {
-//    StereoMode stereoMode{};
-//    output_patch_t leftPatch{};
-//    output_patch_t rightPatch{};
-//};
 
 //==============================================================================
 using SourcesAudioConfig = StaticMap<source_index_t, SourceAudioConfig, MAX_NUM_SOURCES>;

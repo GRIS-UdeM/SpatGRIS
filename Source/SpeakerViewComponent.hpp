@@ -98,7 +98,7 @@ public:
     auto & getData() noexcept { return mData; }
     auto const & getData() const noexcept { return mData; }
 
-    CartesianVector getCameraPosition() const;
+    Position getCameraPosition() const noexcept;
 
     void setConfig(ViewportConfig const & config, SourcesData const & sources);
     void setCameraPosition(CartesianVector const & position) noexcept;

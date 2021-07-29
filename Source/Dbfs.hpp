@@ -17,16 +17,19 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "LegacyLbapPosition.hpp"
+#pragma once
 
-#include "Position.hpp"
+#include "StrongFloat.hpp"
+
+#include <JuceHeader.h>
 
 //==============================================================================
-Position LegacyLbapPosition::toPosition() const noexcept
+class dbfs_t final : public StrongFloat<float, dbfs_t, struct VolumeT>
 {
-    auto const x{ floorDistance * std::cos(azimuth.get()) };
-    auto const y{ floorDistance * std::sin(azimuth.get()) };
-    auto const z{ 1.0f - (HALF_PI - elevation) / HALF_PI };
-
-    return Position{ CartesianVector{ x, y, z } };
-}
+public:
+    dbfs_t() = default;
+    explicit constexpr dbfs_t(type const & value) : StrongFloat(value) {}
+    //==============================================================================
+    [[nodiscard]] type toGain() const { return juce::Decibels::decibelsToGain(mValue); }
+    static dbfs_t fromGain(type const gain) { return dbfs_t{ juce::Decibels::gainToDecibels(gain) }; }
+};

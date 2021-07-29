@@ -28,7 +28,6 @@
 
 #include "LogicStrucs.hpp"
 #include "Narrow.hpp"
-#include "StrongTypes.hpp"
 
 #include <cstdlib>
 
@@ -209,8 +208,8 @@ static void spreadGains3d(SourceData const & source, SpeakersSpatGains & gains, 
 {
     int ind;
     static constexpr auto NUM = 4;
-    degrees_t newAzimuth;
-    degrees_t newElevation;
+    radians_t newAzimuth;
+    radians_t newElevation;
     float sum{};
     SpeakersSpatGains tmpGains{};
 
@@ -225,9 +224,9 @@ static void spreadGains3d(SourceData const & source, SpeakersSpatGains & gains, 
 
     for (int i{}; i < NUM; ++i) {
         auto const iFloat{ narrow<float>(i) };
-        auto const compensation = std::pow(10.0f, (iFloat + 1.0f) * -3.0f * 0.05f);
-        auto const azimuthDev = degrees_t{ 45.0f } * (iFloat + 1.0f) * spAzi;
-        auto const elevationDev = degrees_t{ 22.5f } * (iFloat + 1.0f) * spEle;
+        auto const compensation{ std::pow(10.0f, (iFloat + 1.0f) * -3.0f * 0.05f) };
+        radians_t const azimuthDev{ degrees_t{ 45.0f } * (iFloat + 1.0f) * spAzi };
+        radians_t const elevationDev{ degrees_t{ 22.5f } * (iFloat + 1.0f) * spEle };
         for (int k{}; k < kNum; ++k) {
             switch (k) {
             case 0:
@@ -266,8 +265,8 @@ static void spreadGains3d(SourceData const & source, SpeakersSpatGains & gains, 
                 jassertfalse;
             }
 
-            newElevation = std::clamp(newElevation, degrees_t{}, HALF_PI.toDegrees());
-            newAzimuth = newAzimuth.centered();
+            newElevation = std::clamp(newElevation, radians_t{}, HALF_PI);
+            newAzimuth = newAzimuth.balanced();
             PolarVector const spreadAngle{ newAzimuth, newElevation, 1.0f };
             computeGains(data.speakerSets, tmpGains, data.numSpeakers, Position{ spreadAngle }, data.dimension);
             std::transform(gains.cbegin(),
@@ -301,7 +300,7 @@ static void spreadGains2d(SourceData const & source, SpeakersSpatGains & gains, 
 {
     int i;
     static constexpr auto NUM = 4;
-    degrees_t newAzimuth{};
+    radians_t newAzimuth{};
     auto const cnt{ data.numSpeakers };
     SpeakersSpatGains tmpGains{};
     auto * rawGains{ gains.data() };
@@ -311,15 +310,15 @@ static void spreadGains2d(SourceData const & source, SpeakersSpatGains & gains, 
 
     for (i = 0; i < NUM; i++) {
         auto const compensation{ std::pow(10.0f, narrow<float>(i + 1) * -3.0f * 0.05f) };
-        degrees_t const azimuthDeviation{ narrow<float>(i + 1) * azimuthSpread * 45.0f };
+        radians_t const azimuthDeviation{ degrees_t{ narrow<float>(i + 1) * azimuthSpread * 45.0f } };
         for (int k{}; k < 2; ++k) {
             if (k == 0) {
                 newAzimuth = data.direction.getPolar().azimuth + azimuthDeviation;
             } else if (k == 1) {
                 newAzimuth = data.direction.getPolar().azimuth - azimuthDeviation;
             }
-            newAzimuth = newAzimuth.centered();
-            PolarVector const spreadAngle{ newAzimuth, degrees_t{}, 1.0f };
+            newAzimuth = newAzimuth.balanced();
+            PolarVector const spreadAngle{ newAzimuth, radians_t{}, 1.0f };
             computeGains(data.speakerSets, tmpGains, data.numSpeakers, Position{ spreadAngle }, data.dimension);
             auto const * rawTmpGains{ tmpGains.data() };
             for (int j{}; j < cnt; ++j) {
@@ -385,6 +384,8 @@ static void generateTuplets(std::array<Position, MAX_NUM_SPEAKERS> & speakers,
                             triplet_list_t & triplets,
                             std::size_t const numSpeakers)
 {
+    static constexpr radians_t MAX_SPREAD_ANGLE{ degrees_t{ 170.0f } };
+
     std::array<std::size_t, MAX_NUM_SPEAKERS> exist{};
     std::array<std::size_t, MAX_NUM_SPEAKERS> sortedSpeakers{};
     /* Sort loudspeakers according their azimuth angle. */
@@ -395,7 +396,7 @@ static void generateTuplets(std::array<Position, MAX_NUM_SPEAKERS> & speakers,
     float inverseMatrix[MAX_NUM_SPEAKERS][4]{};
     for (std::size_t i{}; i < (numSpeakers - 1); ++i) {
         if (speakers[sortedSpeakers[i + 1]].getPolar().azimuth - speakers[sortedSpeakers[i]].getPolar().azimuth
-            <= degrees_t{ 170.0f }) {
+            <= MAX_SPREAD_ANGLE) {
             if (computeInverseMatrix2d(speakers[sortedSpeakers[i]].getPolar().azimuth,
                                        speakers[sortedSpeakers[i + 1]].getPolar().azimuth,
                                        inverseMatrix[i])
@@ -406,9 +407,9 @@ static void generateTuplets(std::array<Position, MAX_NUM_SPEAKERS> & speakers,
         }
     }
 
-    if (degrees_t{ 360.0f } - speakers[sortedSpeakers[numSpeakers - 1]].getPolar().azimuth
+    if (TWO_PI - speakers[sortedSpeakers[numSpeakers - 1]].getPolar().azimuth
             + speakers[sortedSpeakers[0]].getPolar().azimuth
-        <= degrees_t{ 170 }) {
+        <= MAX_SPREAD_ANGLE) {
         if (computeInverseMatrix2d(speakers[sortedSpeakers[numSpeakers - 1]].getPolar().azimuth,
                                    speakers[sortedSpeakers[0]].getPolar().azimuth,
                                    inverseMatrix[numSpeakers - 1])
@@ -514,7 +515,7 @@ static triplet_list_t generateTriplets(std::array<Position, MAX_NUM_SPEAKERS> co
         for (auto j{ i + 1 }; j < speakerIndexesSortedByElevation.size(); ++j) {
             auto const speaker2Index{ speakerIndexesSortedByElevation[j] };
             auto const & speaker2{ speakers[speaker2Index] };
-            static constexpr degrees_t MAX_ELEVATION_DIFF{ 10.0f };
+            static constexpr radians_t MAX_ELEVATION_DIFF{ degrees_t{ 10.0f } };
             if (speaker2.getPolar().elevation - speaker1.getPolar().elevation > MAX_ELEVATION_DIFF) {
                 // The elevation difference is only going to get greater : we can move the 1st speaker and reset the
                 // other loops

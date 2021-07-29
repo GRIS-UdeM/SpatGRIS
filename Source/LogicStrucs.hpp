@@ -20,8 +20,13 @@
 #pragma once
 
 #include "AudioStructs.hpp"
+#include "CartesianVector.hpp"
+#include "Dbfs.hpp"
+#include "Hz.hpp"
 #include "OwnedMap.hpp"
 #include "Position.hpp"
+#include "Radians.hpp"
+#include "SourceIndex.hpp"
 #include "StaticMap.hpp"
 #include "Triplet.hpp"
 
@@ -92,7 +97,7 @@ struct ViewportState {
     StrongArray<source_index_t, ViewPortSourceDataQueue::Ticket *, MAX_NUM_SOURCES> mostRecentSourcesData{};
     StrongArray<output_patch_t, ViewPortSpeakerAlphaQueue::Ticket *, MAX_NUM_SPEAKERS> mostRecentSpeakersAlpha{};
     float cameraZoomVelocity{};
-    PolarVector cameraPosition{};
+    Position cameraPosition{};
     juce::int64 lastRenderTimeMs{ juce::Time::currentTimeMillis() };
     juce::Point<float> rayClick{};
     bool shouldRayCast{};
@@ -289,7 +294,7 @@ struct SpatGrisAppData {
     AudioSettings audioSettings{};
     RecordingOptions recordingOptions{};
     ViewSettings viewSettings{};
-    CartesianVector cameraPosition{ -0.5256794095039368, -2.008379459381104, 1.312143206596375 };
+    CartesianVector cameraPosition{ -0.5256794095039368f, -2.008379459381104f, 1.312143206596375f };
     juce::String lastSpeakerSetup{ DEFAULT_SPEAKER_SETUP_FILE.getFullPathName() };
     juce::String lastProject{ DEFAULT_PROJECT_FILE.getFullPathName() };
     juce::String lastRecordingDirectory{

@@ -67,12 +67,12 @@ bool isOpenGlOrMessageThread()
 }
 
 //==============================================================================
-CartesianVector SpeakerViewComponent::getCameraPosition() const
+Position SpeakerViewComponent::getCameraPosition() const noexcept
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedLock const lock{ mLock };
 
-    return mData.state.cameraPosition.toCartesian();
+    return mData.state.cameraPosition;
 }
 
 //==============================================================================
@@ -95,7 +95,7 @@ void SpeakerViewComponent::setCameraPosition(CartesianVector const & position) n
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedLock const lock{ mLock };
 
-    mData.state.cameraPosition = PolarVector::fromCartesian(position);
+    mData.state.cameraPosition = PolarVector{ position };
 }
 
 //==============================================================================
@@ -130,7 +130,7 @@ void SpeakerViewComponent::render()
         std::clamp(narrow<float>(currentTime - mData.state.lastRenderTimeMs) / 100.0f, 0.0f, 1.0f)
     };
     auto const zoomToAdd{ deciSecondsElapsed * mData.state.cameraZoomVelocity };
-    auto const currentZoom{ (mData.state.cameraPosition.length - MIN_ZOOM) / ZOOM_RANGE };
+    auto const currentZoom{ (mData.state.cameraPosition.getPolar().length - MIN_ZOOM) / ZOOM_RANGE };
     auto const scaledZoom{ std::pow(currentZoom, ZOOM_CURVE) };
     auto const scaledTargetZoom{ std::max(scaledZoom + zoomToAdd, 0.0f) };
     auto const unclippedTargetZoom{ std::pow(scaledTargetZoom, INVERSE_ZOOM_CURVE) * ZOOM_RANGE + MIN_ZOOM };
@@ -138,7 +138,7 @@ void SpeakerViewComponent::render()
 
     jassert(std::isfinite(targetZoom));
 
-    mData.state.cameraPosition.length = targetZoom;
+    mData.state.cameraPosition = mData.state.cameraPosition.withRadius(targetZoom);
     mData.state.cameraZoomVelocity *= std::pow(0.5f, deciSecondsElapsed);
     mData.state.lastRenderTimeMs = currentTime;
 
@@ -167,7 +167,7 @@ void SpeakerViewComponent::render()
     gluPerspective(70.0, static_cast<GLdouble>(getWidth()) / static_cast<GLdouble>(getHeight()), 0.5, 75.0);
     glMatrixMode(GL_MODELVIEW);
 
-    auto const camPos{ mData.state.cameraPosition.toCartesian() };
+    auto const & camPos{ mData.state.cameraPosition.getCartesian() };
 
     glLoadIdentity();
     gluLookAt(camPos.x, camPos.y, camPos.z, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
@@ -286,7 +286,7 @@ void SpeakerViewComponent::mouseDown(const juce::MouseEvent & e)
 
     juce::ScopedLock const lock{ mLock };
     mData.state.panMouseOrigin = e.getPosition().toFloat();
-    mData.state.panCameraOrigin = mData.state.cameraPosition;
+    mData.state.panCameraOrigin = mData.state.cameraPosition.getPolar();
 
     // Always check on which display the speaker view component is.
     mDisplayScaling = juce::Desktop::getInstance().getDisplays().getDisplayForPoint(e.getScreenPosition())->scale;
@@ -312,12 +312,13 @@ void SpeakerViewComponent::mouseDrag(const juce::MouseEvent & e)
     if (e.mods.isLeftButtonDown()) {
         auto const delta{ (e.getPosition().toFloat() - mData.state.panMouseOrigin) };
 
-        mData.state.cameraPosition.azimuth
-            = (mData.state.panCameraOrigin.azimuth - radians_t{ delta.x / CAM_SLOW_DOWN }).balanced();
-        mData.state.cameraPosition.elevation
-            = std::clamp((mData.state.panCameraOrigin.elevation + radians_t{ delta.y / CAM_SLOW_DOWN }).balanced(),
-                         -NEARLY_90_DEG,
-                         NEARLY_90_DEG);
+        auto const azimuth{ mData.state.panCameraOrigin.azimuth - radians_t{ delta.x / CAM_SLOW_DOWN } };
+        auto const elevation{ std::clamp(mData.state.panCameraOrigin.elevation + radians_t{ delta.y / CAM_SLOW_DOWN },
+                                         -NEARLY_90_DEG,
+                                         NEARLY_90_DEG) };
+
+        mData.state.cameraPosition
+            = mData.state.cameraPosition.getPolar().withBalancedAzimuth(azimuth).withClippedElevation(elevation);
     }
 }
 
@@ -502,10 +503,10 @@ void SpeakerViewComponent::drawText(juce::String const & val,
     glTranslatef(position.x, position.y, position.z);
 
     if (camLock) {
-        auto const & camPos{ mData.state.cameraPosition };
-        auto const azimuth{ camPos.azimuth.toDegrees() + HALF_PI };
+        auto const & camPos{ mData.state.cameraPosition.getPolar() };
+        auto const azimuth{ degrees_t{ camPos.azimuth + HALF_PI } };
 
-        glRotatef(HALF_PI.toDegrees().get(), 1.0f, 0.0f, 0.0f);
+        glRotatef(degrees_t{ 90.0f }.get(), 1.0f, 0.0f, 0.0f);
         glRotatef(azimuth.get(), 0.0f, 1.0f, 0.0f);
     }
 
@@ -628,7 +629,7 @@ void SpeakerViewComponent::drawVbapSpan(ViewportSourceData const & source)
             auto const newAzimuth{ j ? azimuth + aziDev : azimuth - aziDev };
 
             {
-                auto const vertex{ source.position.getPolar().withBalancedAzimuth(newAzimuth).toCartesian() };
+                CartesianVector const vertex{ source.position.getPolar().withBalancedAzimuth(newAzimuth) };
                 glVertex3f(vertex.x, vertex.y, vertex.z);
             }
             for (int k{}; k < 4; ++k) {
@@ -636,7 +637,7 @@ void SpeakerViewComponent::drawVbapSpan(ViewportSourceData const & source)
                 for (int l{}; l < 2; ++l) {
                     auto newElevation{ l ? elevation + eleDev : elevation - eleDev };
                     newElevation = std::clamp(newElevation, radians_t{}, HALF_PI);
-                    auto const vertex{ PolarVector{ newAzimuth, newElevation, length * MAX_RADIUS }.toCartesian() };
+                    CartesianVector const vertex{ PolarVector{ newAzimuth, newElevation, length * MAX_RADIUS } };
                     glVertex3f(vertex.x, vertex.y, vertex.z);
                 }
             }
@@ -655,7 +656,7 @@ void SpeakerViewComponent::drawFieldSphere()
     glPushMatrix();
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glLineWidth(1.0f);
-    glRotatef(HALF_PI.toDegrees().get(), 1.0f, 0.0f, 0.0f);
+    glRotatef(degrees_t{ 90.0f }.get(), 1.0f, 0.0f, 0.0f);
     glColor3f(0.8f, 0.2f, 0.1f);
 
     drawSphere<16>(std::max(MAX_RADIUS, 1.0f));
@@ -672,7 +673,7 @@ void SpeakerViewComponent::drawFieldCube()
     glPushMatrix();
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glLineWidth(1.0f);
-    glRotatef(HALF_PI.toDegrees().get(), 1.0f, 0.0f, 0.0f);
+    glRotatef(degrees_t{ 90.0f }.get(), 1.0f, 0.0f, 0.0f);
     glColor3f(0.8f, 0.2f, 0.1f);
     // Draw a cube when in LBAP mode.
     static constexpr int DEFINITION = 10;
@@ -799,8 +800,8 @@ void SpeakerViewComponent::drawSpeaker(output_patch_t const outputPatch, Viewpor
 
     glPushMatrix();
     glTranslatef(center.x, center.y, center.z);
-    glRotatef((PI + vector.azimuth).toDegrees().get(), 0.0f, 0.0f, 1.0f);
-    glRotatef(vector.elevation.toDegrees().get(), 0.0f, 1.0f, 0.0f);
+    glRotatef(degrees_t(PI + vector.azimuth).get(), 0.0f, 0.0f, 1.0f);
+    glRotatef(degrees_t{ vector.elevation }.get(), 0.0f, 1.0f, 0.0f);
     glTranslatef(-center.x, -center.y, -center.z);
 
     CartesianVector const vertexMin{ center.x - SIZE_SPEAKER, center.y - SIZE_SPEAKER, center.z - SIZE_SPEAKER };
@@ -948,7 +949,7 @@ bool SpeakerViewComponent::speakerNearCam(CartesianVector const & speak1, Cartes
 {
     ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD;
 
-    auto const camPosition{ mData.state.cameraPosition.toCartesian() };
+    auto const & camPosition{ mData.state.cameraPosition.getCartesian() };
     auto const distance1{ (speak1 - camPosition).length2() };
     auto const distance2{ (speak2 - camPosition).length2() };
     return distance1 < distance2;

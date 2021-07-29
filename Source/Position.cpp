@@ -152,11 +152,11 @@ Position Position::translatedZ(float const delta) const noexcept
 //==============================================================================
 void Position::updatePolarFromCartesian() noexcept
 {
-    mPolar = PolarVector::fromCartesian(mCartesian);
+    mPolar = PolarVector{ mCartesian };
 }
 
 //==============================================================================
 void Position::updateCartesianFromPolar() noexcept
 {
-    mCartesian = mPolar.toCartesian();
+    mCartesian = CartesianVector{ mPolar };
 }

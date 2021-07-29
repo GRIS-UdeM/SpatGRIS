@@ -17,16 +17,8 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "LegacyLbapPosition.hpp"
+#pragma once
 
-#include "Position.hpp"
+#include "StrongIndex.hpp"
 
-//==============================================================================
-Position LegacyLbapPosition::toPosition() const noexcept
-{
-    auto const x{ floorDistance * std::cos(azimuth.get()) };
-    auto const y{ floorDistance * std::sin(azimuth.get()) };
-    auto const z{ 1.0f - (HALF_PI - elevation) / HALF_PI };
-
-    return Position{ CartesianVector{ x, y, z } };
-}
+using source_index_t = StrongIndex<int, struct SourceIndexT, 1>;

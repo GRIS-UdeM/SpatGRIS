@@ -19,8 +19,8 @@
 
 #include "PinkNoiseGenerator.hpp"
 
+#include "Dbfs.hpp"
 #include "Narrow.hpp"
-#include "StrongTypes.hpp"
 
 static float pinkNoiseC0{};
 static float pinkNoiseC1{};

@@ -84,42 +84,49 @@
         <FILE id="UFkY7k" name="StrongArray.hpp" compile="0" resource="0" file="Source/StrongArray.hpp"/>
       </GROUP>
       <GROUP id="{879FD67D-521A-EC98-EB2A-A3C056EDF2C2}" name="Data">
-        <GROUP id="{A47D0E48-D57C-A616-3220-66380B687460}" name="Position">
+        <GROUP id="{92A881EF-457B-1766-C06E-A7FB79588252}" name="StrongTypes">
           <FILE id="KYw7Ga" name="CartesianVector.cpp" compile="1" resource="0"
                 file="Source/CartesianVector.cpp"/>
           <FILE id="Fo1t1H" name="CartesianVector.hpp" compile="0" resource="0"
                 file="Source/CartesianVector.hpp"/>
+          <FILE id="qpAp6f" name="Dbfs.hpp" compile="0" resource="0" file="Source/Dbfs.hpp"/>
+          <FILE id="aYaCSE" name="Degrees.hpp" compile="0" resource="0" file="Source/Degrees.hpp"/>
+          <FILE id="HP3TTt" name="Hz.hpp" compile="0" resource="0" file="Source/Hz.hpp"/>
           <FILE id="wsG2iH" name="LegacyLbapPosition.cpp" compile="1" resource="0"
                 file="Source/LegacyLbapPosition.cpp"/>
           <FILE id="mKXXtD" name="LegacyLbapPosition.hpp" compile="0" resource="0"
                 file="Source/LegacyLbapPosition.hpp"/>
+          <FILE id="TBl2Uf" name="OutputPatch.hpp" compile="0" resource="0" file="Source/OutputPatch.hpp"/>
           <FILE id="XZJcvv" name="PolarVector.cpp" compile="1" resource="0" file="Source/PolarVector.cpp"/>
           <FILE id="v4qTK2" name="PolarVector.hpp" compile="0" resource="0" file="Source/PolarVector.hpp"/>
           <FILE id="Ud28OG" name="Position.cpp" compile="1" resource="0" file="Source/Position.cpp"/>
           <FILE id="W9fOoX" name="Position.hpp" compile="0" resource="0" file="Source/Position.hpp"/>
+          <FILE id="vJ1NKi" name="Radians.hpp" compile="0" resource="0" file="Source/Radians.hpp"/>
+          <FILE id="Ij2GAt" name="SourceIndex.hpp" compile="0" resource="0" file="Source/SourceIndex.hpp"/>
+          <FILE id="rnULBp" name="StrongFloat.hpp" compile="0" resource="0" file="Source/StrongFloat.hpp"/>
+          <FILE id="dbvqvY" name="StrongIndex.hpp" compile="0" resource="0" file="Source/StrongIndex.hpp"/>
         </GROUP>
         <FILE id="mrd0M4" name="AudioStructs.cpp" compile="1" resource="0"
               file="Source/AudioStructs.cpp"/>
         <FILE id="iunGqH" name="AudioStructs.hpp" compile="0" resource="0"
               file="Source/AudioStructs.hpp"/>
+        <FILE id="rIr4D3" name="constants.cpp" compile="1" resource="0" file="Source/constants.cpp"/>
+        <FILE id="JoJDHm" name="constants.hpp" compile="0" resource="0" file="Source/constants.hpp"/>
         <FILE id="ZYxwv4" name="LegacySpatFileFormat.cpp" compile="1" resource="0"
               file="Source/LegacySpatFileFormat.cpp"/>
         <FILE id="aVZj0s" name="LegacySpatFileFormat.hpp" compile="0" resource="0"
               file="Source/LegacySpatFileFormat.hpp"/>
         <FILE id="plOS8g" name="LogicStrucs.cpp" compile="1" resource="0" file="Source/LogicStrucs.cpp"/>
         <FILE id="myBXNh" name="LogicStrucs.hpp" compile="0" resource="0" file="Source/LogicStrucs.hpp"/>
+        <FILE id="c9O7Fi" name="SpatMode.cpp" compile="1" resource="0" file="Source/SpatMode.cpp"/>
+        <FILE id="wuCEse" name="SpatMode.hpp" compile="0" resource="0" file="Source/SpatMode.hpp"/>
         <FILE id="gaSzyY" name="Triplet.hpp" compile="0" resource="0" file="Source/Triplet.hpp"/>
       </GROUP>
       <GROUP id="{B880ED62-D15F-78F9-F83A-129573A5FA84}" name="Misc">
-        <FILE id="rIr4D3" name="constants.cpp" compile="1" resource="0" file="Source/constants.cpp"/>
-        <FILE id="JoJDHm" name="constants.hpp" compile="0" resource="0" file="Source/constants.hpp"/>
         <FILE id="L2ry5O" name="FatalError.cpp" compile="1" resource="0" file="Source/FatalError.cpp"/>
         <FILE id="knhaJI" name="FatalError.hpp" compile="0" resource="0" file="Source/FatalError.hpp"/>
         <FILE id="apexeV" name="Narrow.hpp" compile="0" resource="0" file="Source/Narrow.hpp"/>
         <FILE id="qnxZSG" name="ScopeGuard.hpp" compile="0" resource="0" file="Source/ScopeGuard.hpp"/>
-        <FILE id="c9O7Fi" name="SpatMode.cpp" compile="1" resource="0" file="Source/SpatMode.cpp"/>
-        <FILE id="wuCEse" name="SpatMode.hpp" compile="0" resource="0" file="Source/SpatMode.hpp"/>
-        <FILE id="F7hMuN" name="StrongTypes.hpp" compile="0" resource="0" file="Source/StrongTypes.hpp"/>
         <FILE id="GdihCz" name="Warnings.hpp" compile="0" resource="0" file="Source/Warnings.hpp"/>
       </GROUP>
       <GROUP id="{45A32A71-2629-205C-304E-C1093B6D3F59}" name="UI">

@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "StrongTypes.hpp"
+#include "StrongIndex.hpp"
 
 #include <bitset>
 

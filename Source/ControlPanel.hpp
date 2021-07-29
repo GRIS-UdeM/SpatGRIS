@@ -23,7 +23,6 @@
 #include "LogicStrucs.hpp"
 #include "RecordButton.hpp"
 #include "SpatSlider.hpp"
-#include "StrongTypes.hpp"
 #include "SubPanelComponent.hpp"
 #include "TitledComponent.hpp"
 #include "constants.hpp"

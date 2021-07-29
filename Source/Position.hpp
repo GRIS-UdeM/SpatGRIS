@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include "CartesianVector.hpp"
 #include "PolarVector.hpp"
 
 //==============================================================================
@@ -30,12 +31,8 @@ class Position
 public:
     //==============================================================================
     Position() = default;
-    explicit Position(PolarVector const & polar) : mPolar(polar), mCartesian(polar.toCartesian()) {}
-    explicit Position(CartesianVector const & cartesian)
-        : mPolar(PolarVector::fromCartesian(cartesian))
-        , mCartesian(cartesian)
-    {
-    }
+    explicit Position(PolarVector const & polar) : mPolar(polar), mCartesian(CartesianVector{ polar }) {}
+    explicit Position(CartesianVector const & cartesian) : mPolar(PolarVector{ cartesian }), mCartesian(cartesian) {}
     ~Position() = default;
     //==============================================================================
     Position(Position const &) = default;

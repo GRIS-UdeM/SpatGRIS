@@ -269,7 +269,7 @@ MainContentComponent::~MainContentComponent()
         mData.appData.windowWidth = bounds.getWidth();
         mData.appData.windowHeight = bounds.getHeight();
         mData.appData.sashPosition = mVerticalLayout.getItemCurrentRelativeSize(0);
-        mData.appData.cameraPosition = mSpeakerViewComponent->getCameraPosition();
+        mData.appData.cameraPosition = mSpeakerViewComponent->getCameraPosition().getCartesian();
 
         mConfiguration.save(mData.appData);
     }

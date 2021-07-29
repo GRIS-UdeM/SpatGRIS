@@ -17,16 +17,14 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "LegacyLbapPosition.hpp"
+#pragma once
 
-#include "Position.hpp"
+#include "StrongFloat.hpp"
 
 //==============================================================================
-Position LegacyLbapPosition::toPosition() const noexcept
+class hz_t final : public StrongFloat<float, hz_t, struct HzT>
 {
-    auto const x{ floorDistance * std::cos(azimuth.get()) };
-    auto const y{ floorDistance * std::sin(azimuth.get()) };
-    auto const z{ 1.0f - (HALF_PI - elevation) / HALF_PI };
-
-    return Position{ CartesianVector{ x, y, z } };
-}
+public:
+    hz_t() = default;
+    explicit constexpr hz_t(type const & value) : StrongFloat(value) {}
+};

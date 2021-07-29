@@ -19,6 +19,8 @@
 
 #include "PolarVector.hpp"
 
+#include "CartesianVector.hpp"
+
 #define FAST_TRIGO 1
 
 #ifdef FAST_TRIGO
@@ -33,7 +35,7 @@ using fast = juce::dsp::FastMathApproximations;
 #endif
 
 //==============================================================================
-CartesianVector PolarVector::toCartesian() const noexcept
+PolarVector::PolarVector(CartesianVector const & cartesian) noexcept
 {
     // Mathematically, the azimuth angle should start from the pole and be equal to 90 degrees at the equator.
     // We have to accomodate for a slightly different coordinate system where the azimuth angle starts at the equator
@@ -41,40 +43,20 @@ CartesianVector PolarVector::toCartesian() const noexcept
 
     // This is quite dangerous because any trigonometry done outside of this class might get things wrong.
 
-    auto const inverseElevation{ HALF_PI - elevation };
-
-    auto const x{ length * std::sin(inverseElevation.get()) * std::cos(azimuth.get()) };
-    auto const y{ length * std::sin(inverseElevation.get()) * std::sin(azimuth.get()) };
-    auto const z{ length * std::cos(inverseElevation.get()) };
-
-    CartesianVector const result{ x, y, z };
-    return result;
-}
-
-//==============================================================================
-PolarVector PolarVector::fromCartesian(CartesianVector const & pos) noexcept
-{
-    // Mathematically, the azimuth angle should start from the pole and be equal to 90 degrees at the equator.
-    // We have to accomodate for a slightly different coordinate system where the azimuth angle starts at the equator
-    // and is equal to 90 degrees at the north pole.
-
-    // This is quite dangerous because any trigonometry done outside of this class might get things wrong.
-
-    auto const length{ std::sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z) };
+    length = std::sqrt(cartesian.x * cartesian.x + cartesian.y * cartesian.y + cartesian.z * cartesian.z);
     if (length == 0.0f) {
-        return PolarVector{ radians_t{}, radians_t{}, 0.0f };
+        return;
     }
 
-    radians_t const zenith{ std::acos(std::clamp(pos.z / length, -1.0f, 1.0f)) };
-    auto const inverseZenith{ HALF_PI - zenith };
+    elevation = HALF_PI - radians_t{ std::acos(std::clamp(cartesian.z / length, -1.0f, 1.0f)) };
 
-    if (pos.x == 0.0f && pos.y == 0.0f) {
-        return PolarVector{ radians_t{}, inverseZenith, length };
+    if (cartesian.x == 0.0f && cartesian.y == 0.0f) {
+        return;
     }
 
-    radians_t const azimuth{ std::acos(std::clamp(pos.x / std::sqrt(pos.x * pos.x + pos.y * pos.y), -1.0f, 1.0f))
-                             * (pos.y < 0.0f ? -1.0f : 1.0f) };
-
-    PolarVector const result{ azimuth, inverseZenith, length };
-    return result;
+    azimuth = radians_t{
+        std::acos(
+            std::clamp(cartesian.x / std::sqrt(cartesian.x * cartesian.x + cartesian.y * cartesian.y), -1.0f, 1.0f))
+        * (cartesian.y < 0.0f ? -1.0f : 1.0f)
+    };
 }

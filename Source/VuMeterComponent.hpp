@@ -22,7 +22,6 @@
 #include "GrisLookAndFeel.hpp"
 #include "LogicStrucs.hpp"
 #include "MinSizedComponent.hpp"
-#include "StrongTypes.hpp"
 
 #include <JuceHeader.h>
 

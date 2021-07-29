@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "StrongTypes.hpp"
+#include "StrongIndex.hpp"
 
 //==============================================================================
 template<typename KeyType, typename ValueType, size_t CAPACITY>

@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "StrongTypes.hpp"
+#include "OutputPatch.hpp"
 
 //==============================================================================
 struct Triplet {

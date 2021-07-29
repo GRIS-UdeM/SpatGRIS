@@ -36,7 +36,6 @@
 #include "SettingsWindow.hpp"
 #include "SpatButton.hpp"
 #include "SpeakerViewComponent.hpp"
-#include "StrongTypes.hpp"
 #include "TitledComponent.hpp"
 #include "VuMeterComponent.hpp"
 #include "constants.hpp"

@@ -28,8 +28,8 @@ VbapType getVbapType(SpeakersData const & speakers)
 {
     auto const firstSpeaker{ *speakers.begin() };
     auto const firstZenith{ firstSpeaker.value->position.getPolar().elevation };
-    auto const minZenith{ firstZenith - degrees_t{ 4.9f } };
-    auto const maxZenith{ firstZenith + degrees_t{ 4.9f } };
+    auto const minZenith{ firstZenith - radians_t{ degrees_t{ 4.9f } } };
+    auto const maxZenith{ firstZenith + radians_t{ degrees_t{ 4.9f } } };
 
     auto const areSpeakersOnSamePlane{ std::all_of(speakers.cbegin(),
                                                    speakers.cend(),
@@ -209,7 +209,7 @@ std::unique_ptr<AbstractSpatAlgorithm> VbapSpatAlgorithm::make(SpeakerSetup cons
 
     angles.sort();
 
-    static constexpr degrees_t MAX_ANGLE_DIFF{ 170.0f };
+    static constexpr radians_t MAX_ANGLE_DIFF{ degrees_t{ 170.0f } };
 
     auto const * invalidSpeaker{ std::adjacent_find(
         angles.begin(),
@@ -217,7 +217,7 @@ std::unique_ptr<AbstractSpatAlgorithm> VbapSpatAlgorithm::make(SpeakerSetup cons
         [](radians_t const a, radians_t const b) { return b - a > MAX_ANGLE_DIFF; }) };
 
     auto const innerAreValid{ invalidSpeaker == angles.end() };
-    auto const firstAndLastAreValid{ angles.getFirst() + degrees_t{ 360.0f } - angles.getLast() <= MAX_ANGLE_DIFF };
+    auto const firstAndLastAreValid{ angles.getFirst() + TWO_PI - angles.getLast() <= MAX_ANGLE_DIFF };
 
     if (innerAreValid && firstAndLastAreValid) {
         return getVbap();

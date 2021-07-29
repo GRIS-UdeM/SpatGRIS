@@ -514,7 +514,8 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
             degrees_t const zenith{ std::clamp(mZenithTextEditor.getText().getFloatValue(), 0.0f, 90.0f) };
             auto const radius{ mRadiusTextEditor.getText().getFloatValue() };
 
-            mMainContentComponent.setSpeakerPosition(newOutputPatch, PolarVector{ azimuth, zenith, radius });
+            mMainContentComponent.setSpeakerPosition(newOutputPatch,
+                                                     PolarVector{ radians_t{ azimuth }, radians_t{ zenith }, radius });
         }
         mMainContentComponent.refreshSpeakers();
         updateWinContent();
@@ -709,9 +710,9 @@ juce::String EditSpeakersWindow::getText(int const columnNumber, int const rowNu
     case Cols::Z:
         return juce::String{ std::max(speaker.position.getCartesian().z, 0.0f), 2 };
     case Cols::AZIMUTH:
-        return juce::String{ (HALF_PI - speaker.position.getPolar().azimuth).toDegrees().madePositive().get(), 1 };
+        return juce::String{ degrees_t{ HALF_PI - speaker.position.getPolar().azimuth }.madePositive().get(), 1 };
     case Cols::ELEVATION:
-        return juce::String{ speaker.position.getPolar().elevation.toDegrees().madePositive().get(), 1 };
+        return juce::String{ degrees_t{ speaker.position.getPolar().elevation }.madePositive().get(), 1 };
     case Cols::DISTANCE:
         return juce::String{ speaker.position.getPolar().length, 2 };
     case Cols::OUTPUT_PATCH:
@@ -825,7 +826,8 @@ void EditSpeakersWindow::setText(int const columnNumber,
             break;
         }
         case Cols::AZIMUTH: {
-            auto const diff{ (HALF_PI - degrees_t{ newText.getFloatValue() }) - speaker.position.getPolar().azimuth };
+            radians_t const diff{ (degrees_t{ 90.0f } - degrees_t{ newText.getFloatValue() })
+                                  - degrees_t{ speaker.position.getPolar().azimuth } };
             for (int i{}; i < selectedRows.size(); ++i) {
                 auto const outputPatch_{ getSpeakerOutputPatchForRow(selectedRows[i]) };
                 auto const & speaker_{ speakers[outputPatch_] };
@@ -840,7 +842,8 @@ void EditSpeakersWindow::setText(int const columnNumber,
             break;
         }
         case Cols::ELEVATION: {
-            auto const diff{ degrees_t{ newText.getFloatValue() } - speaker.position.getPolar().elevation };
+            radians_t const diff{ degrees_t{ newText.getFloatValue() }
+                                  - degrees_t{ speaker.position.getPolar().elevation } };
             for (int i{}; i < selectedRows.size(); ++i) {
                 auto const outputPatch_{ getSpeakerOutputPatchForRow(selectedRows[i]) };
                 auto const & speaker_{ speakers[outputPatch_] };

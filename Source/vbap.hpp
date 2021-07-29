@@ -29,7 +29,6 @@
 #include "AudioStructs.hpp"
 #include "CartesianVector.hpp"
 #include "LogicStrucs.hpp"
-#include "StrongTypes.hpp"
 #include "constants.hpp"
 
 #include <JuceHeader.h>
