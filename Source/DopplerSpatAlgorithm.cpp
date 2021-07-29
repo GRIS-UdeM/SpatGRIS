@@ -72,7 +72,7 @@ void DopplerSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, Sour
 
     auto & spatData{ ticket->get() };
 
-    auto const & sourcePosition{ *sourceData.position };
+    auto const & sourcePosition{ sourceData.position->getCartesian() };
     auto const leftEarDistance{ (LEFT_EAR_POSITION - sourcePosition).length() / MAX_RELATIVE_DISTANCE };
     auto const rightEarDistance{ (RIGHT_EAR_POSITION - sourcePosition).length() / MAX_RELATIVE_DISTANCE };
 
@@ -86,7 +86,8 @@ void DopplerSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, Sour
 void DopplerSpatAlgorithm::process(AudioConfig const & config,
                                    SourceAudioBuffer & sourcesBuffer,
                                    SpeakerAudioBuffer & speakersBuffer,
-                                   SourcePeaks const & sourcePeaks,
+                                   juce::AudioBuffer<float> & /*stereoBuffer*/,
+                                   SourcePeaks const & /*sourcePeaks*/,
                                    [[maybe_unused]] SpeakersAudioConfig const * altSpeakerConfig)
 {
     ASSERT_AUDIO_THREAD;
@@ -170,6 +171,12 @@ void DopplerSpatAlgorithm::process(AudioConfig const & config,
         std::fill_n(dopplerSamplesBegin, bufferSize, 0.0f);
         std::rotate(dopplerSamplesBegin, dopplerSamplesBegin + bufferSize, dopplerSamplesEnd);
     }
+}
+
+//==============================================================================
+std::unique_ptr<AbstractSpatAlgorithm> DopplerSpatAlgorithm::make(double sampleRate, int bufferSize) noexcept
+{
+    return std::make_unique<DopplerSpatAlgorithm>(sampleRate, bufferSize);
 }
 
 //==============================================================================

@@ -64,6 +64,7 @@ struct CartesianVector {
     [[nodiscard]] constexpr CartesianVector mean(CartesianVector const & other) const noexcept;
     [[nodiscard]] constexpr juce::Point<float> discardZ() const noexcept;
     [[nodiscard]] constexpr float length2() const noexcept;
+    [[nodiscard]] constexpr float constexprLength() const noexcept;
     [[nodiscard]] constexpr float dotProduct(CartesianVector const & other) const noexcept;
     //==============================================================================
     [[nodiscard]] float angleWith(CartesianVector const & other) const noexcept;
@@ -191,6 +192,22 @@ constexpr juce::Point<float> CartesianVector::discardZ() const noexcept
 constexpr float CartesianVector::length2() const noexcept
 {
     return x * x + y * y + z * z;
+}
+
+//==============================================================================
+template<typename T>
+static double constexpr sqrtNewtonRaphson(T const x, T const current, T const previous)
+{
+    static_assert(std::is_floating_point_v<T>, "only works with floating point values");
+    return current == previous ? current : sqrtNewtonRaphson(x, static_cast<T>(0.5) * (current + x / current), current);
+}
+
+//==============================================================================
+constexpr float CartesianVector::constexprLength() const noexcept
+{
+    auto const value{ length2() };
+    return value >= 0.0f && value < std::numeric_limits<float>::infinity() ? sqrtNewtonRaphson(value, value, 0.0f)
+                                                                           : std::numeric_limits<double>::quiet_NaN();
 }
 
 //==============================================================================

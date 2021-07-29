@@ -100,6 +100,7 @@
                 file="Source/LegacyLbapPosition.cpp"/>
           <FILE id="mKXXtD" name="LegacyLbapPosition.hpp" compile="0" resource="0"
                 file="Source/LegacyLbapPosition.hpp"/>
+          <FILE id="O5bTv4" name="Meters.hpp" compile="0" resource="0" file="Source/Meters.hpp"/>
           <FILE id="TBl2Uf" name="OutputPatch.hpp" compile="0" resource="0" file="Source/OutputPatch.hpp"/>
           <FILE id="XZJcvv" name="PolarVector.cpp" compile="1" resource="0" file="Source/PolarVector.cpp"/>
           <FILE id="v4qTK2" name="PolarVector.hpp" compile="0" resource="0" file="Source/PolarVector.hpp"/>

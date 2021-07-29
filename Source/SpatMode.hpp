@@ -23,8 +23,15 @@
 
 #include "lib/tl/optional.hpp"
 
+#define USE_DOPPLER 1
+
 enum class SpatMode { vbap = 0, lbap };
+#ifdef USE_DOPPLER
+enum class StereoMode { hrtf, stereo, doppler };
+#else
 enum class StereoMode { hrtf, stereo };
+#endif
+
 //==============================================================================
 extern juce::StringArray const SPAT_MODE_STRINGS;
 extern juce::StringArray const SPAT_MODE_TOOLTIPS;

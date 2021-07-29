@@ -22,54 +22,66 @@
 #include "constants.hpp"
 
 //==============================================================================
-juce::StringArray const SPAT_MODE_STRINGS{ "Dome", "Cube", "Binaural", "Stereo" };
+juce::StringArray const SPAT_MODE_STRINGS{ "Dome", "Cube" };
 juce::StringArray const SPAT_MODE_TOOLTIPS{
     "Equidistant speaker dome implemented using the VBAP algorithm",
     "Free-form speaker setup implemented using the LBAP algorithm",
 };
+
+#ifdef USE_DOPPLER
+juce::StringArray const STEREO_MODE_STRINGS{ "Binaural", "Stereo", "Doppler" };
+juce::StringArray const STEREO_TOOLTIPS{ "HRTF transfer", "Dumb Left/Right panning", "Doppler shifted sources" };
+#else
 juce::StringArray const STEREO_MODE_STRINGS{ "Binaural", "Stereo" };
 juce::StringArray const STEREO_TOOLTIPS{ "HRTF transfer", "Dumb Left/Right panning" };
+#endif
+
+//==============================================================================
+template<typename T>
+static juce::String const & enumToString(T const value, juce::StringArray const & stringArray) noexcept
+{
+    auto const index{ static_cast<int>(value) };
+    jassert(index >= 0 && index < stringArray.size());
+    return stringArray[index];
+}
+
+//==============================================================================
+template<typename T>
+static tl::optional<T> stringToEnum(juce::String const & string, juce::StringArray const & stringArray) noexcept
+{
+    auto const index{ stringArray.indexOf(string, true) };
+    if (index < 0) {
+        return tl::nullopt;
+    }
+    return static_cast<T>(index);
+}
 
 //==============================================================================
 juce::String const & spatModeToString(SpatMode const mode)
 {
-    auto const index{ static_cast<int>(mode) };
-    jassert(index >= 0 && index < SPAT_MODE_STRINGS.size());
-    return SPAT_MODE_STRINGS[index];
+    return enumToString(mode, SPAT_MODE_STRINGS);
 }
 
 //==============================================================================
-juce::String const & spatModeToTooltip(SpatMode mode)
+juce::String const & spatModeToTooltip(SpatMode const mode)
 {
-    auto const index{ static_cast<int>(mode) };
-    jassert(index >= 0 && index < SPAT_MODE_TOOLTIPS.size());
-    return SPAT_MODE_TOOLTIPS[index];
+    return enumToString(mode, SPAT_MODE_TOOLTIPS);
 }
 
 //==============================================================================
 tl::optional<SpatMode> stringToSpatMode(juce::String const & string)
 {
-    auto const index{ SPAT_MODE_STRINGS.indexOf(string, true) };
-    if (index < 0) {
-        return tl::nullopt;
-    }
-    return static_cast<SpatMode>(index);
+    return stringToEnum<SpatMode>(string, SPAT_MODE_STRINGS);
 }
 
 //==============================================================================
 juce::String const & stereoModeToString(StereoMode const mode)
 {
-    auto const index{ static_cast<int>(mode) };
-    jassert(index >= 0 && index < STEREO_MODE_STRINGS.size());
-    return STEREO_MODE_STRINGS[index];
+    return enumToString(mode, STEREO_MODE_STRINGS);
 }
 
 //==============================================================================
 tl::optional<StereoMode> stringToStereoMode(juce::String const & string)
 {
-    auto const index{ STEREO_MODE_STRINGS.indexOf(string, true) };
-    if (index < 0) {
-        return tl::nullopt;
-    }
-    return static_cast<StereoMode>(index);
+    return stringToEnum<StereoMode>(string, STEREO_MODE_STRINGS);
 }

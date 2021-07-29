@@ -24,6 +24,10 @@
 #include "StereoSpatAlgorithm.hpp"
 #include "VbapSpatAlgorithm.hpp"
 
+#ifdef USE_DOPPLER
+    #include "DopplerSpatAlgorithm.hpp"
+#endif
+
 //==============================================================================
 bool isOscThread()
 {
@@ -93,6 +97,10 @@ std::unique_ptr<AbstractSpatAlgorithm> AbstractSpatAlgorithm::make(SpeakerSetup 
             return HrtfSpatAlgorithm::make(speakerSetup, sources, sampleRate, bufferSize);
         case StereoMode::stereo:
             return StereoSpatAlgorithm::make(speakerSetup, sources);
+#ifdef USE_DOPPLER
+        case StereoMode::doppler:
+            return DopplerSpatAlgorithm::make(sampleRate, bufferSize);
+#endif
         }
         jassertfalse;
     }

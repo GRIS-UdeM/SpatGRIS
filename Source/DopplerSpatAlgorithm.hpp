@@ -20,8 +20,7 @@
 #pragma once
 
 #include "AbstractSpatAlgorithm.hpp"
-
-#include "StrongTypes.hpp"
+#include "Meters.hpp"
 
 static constexpr meters_t FIELD_RADIUS{ 8.0f };
 static constexpr meters_t HEAD_RADIUS{ 0.075f };
@@ -32,7 +31,7 @@ static constexpr std::array<CartesianVector, 2> EARS_POSITIONS{ LEFT_EAR_POSITIO
 
 static constexpr CartesianVector UPPER_LEFT_CORNER{ 1.0f, 1.0f, 1.0f };
 
-static auto constexpr MAX_RELATIVE_DISTANCE{ (RIGHT_EAR_POSITION - UPPER_LEFT_CORNER).constexpr_length() };
+static auto constexpr MAX_RELATIVE_DISTANCE{ (RIGHT_EAR_POSITION - UPPER_LEFT_CORNER).constexprLength() };
 static auto constexpr MAX_DISTANCE{ FIELD_RADIUS * MAX_RELATIVE_DISTANCE };
 
 static auto constexpr MAX_SAMPLE_RATE = 48000.0;
@@ -76,13 +75,17 @@ public:
     DopplerSpatAlgorithm & operator=(DopplerSpatAlgorithm &&) = delete;
     //==============================================================================
     void updateSpatData(source_index_t sourceIndex, SourceData const & sourceData) noexcept override;
+    [[nodiscard]] juce::Array<Triplet> getTriplets() const noexcept override;
+    [[nodiscard]] bool hasTriplets() const noexcept override;
     void process(AudioConfig const & config,
                  SourceAudioBuffer & sourcesBuffer,
                  SpeakerAudioBuffer & speakersBuffer,
+                 juce::AudioBuffer<float> & stereoBuffer,
                  SourcePeaks const & sourcePeaks,
                  SpeakersAudioConfig const * altSpeakerConfig) override;
-    [[nodiscard]] juce::Array<Triplet> getTriplets() const noexcept override;
-    [[nodiscard]] bool hasTriplets() const noexcept override;
+    [[nodiscard]] tl::optional<Error> getError() const noexcept override { return tl::nullopt; }
+    //==============================================================================
+    static std::unique_ptr<AbstractSpatAlgorithm> make(double sampleRate, int bufferSize) noexcept;
 
 private:
     //==============================================================================
