@@ -489,8 +489,8 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         mShouldRefreshSpeakers = true;
     } else if (button == &mCompSpeakersButton) {
         // Compute speaker button
-        auto const success{ mMainContentComponent.refreshSpeakers() };
-        mShouldRefreshSpeakers = !success;
+        mMainContentComponent.refreshSpeakers();
+        mShouldRefreshSpeakers = false;
     } else if (button == &mAddRingButton) {
         // Add ring button
         output_patch_t newOutputPatch;
@@ -721,7 +721,7 @@ juce::String EditSpeakersWindow::getText(int const columnNumber, int const rowNu
         return juce::String{ speaker.gain.get(), 1 };
     case Cols::HIGHPASS:
         return juce::String{
-            speaker.highpassData.map_or([](SpeakerHighpassData const & data) { return data.freq.get(); }, 0.0f),
+            speaker.highpassData.map_or([](SpeakerHighpassData const & data) { return data.freq.get(); }, float{}),
             1
         };
     case Cols::DIRECT_TOGGLE:
@@ -922,7 +922,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
             hz_t val{ newText.getFloatValue() };
             auto diff
                 = val
-                  - speaker.highpassData.map_or([](SpeakerHighpassData const & data) { return data.freq; }, MIN_FREQ);
+                - speaker.highpassData.map_or([](SpeakerHighpassData const& data) { return data.freq; }, hz_t{ MIN_FREQ });
             val = std::clamp(val, MIN_FREQ, MAX_FREQ);
             mMainContentComponent.setSpeakerHighPassFreq(outputPatch, val);
             if (mSpeakersTableListBox.getNumSelectedRows() > 1) {

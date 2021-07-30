@@ -113,11 +113,11 @@ static void computeGains(juce::Array<SpeakerSet> & sets,
 
 //==============================================================================
 /* Returns 1 if there is loudspeaker(s) inside given ls triplet. */
-static bool testTripletContainsSpeaker(int const a,
-                                       int const b,
-                                       int const c,
+static bool testTripletContainsSpeaker(std::size_t const a,
+                                       std::size_t const b,
+                                       std::size_t const c,
                                        std::array<Position, MAX_NUM_SPEAKERS> const & speakers,
-                                       int const numSpeakers) noexcept
+                                       std::size_t const numSpeakers) noexcept
 {
     InverseMatrix inverseMatrix{};
 
@@ -141,7 +141,7 @@ static bool testTripletContainsSpeaker(int const a,
     inverseMatrix[5] = ((lp1->x * lp3->y) - (lp1->y * lp3->x)) * -inverseDeterminant;
     inverseMatrix[8] = ((lp1->x * lp2->y) - (lp1->y * lp2->x)) * inverseDeterminant;
 
-    for (int i{}; i < numSpeakers; ++i) {
+    for (std::size_t i{}; i < numSpeakers; ++i) {
         if (i != a && i != b && i != c) {
             auto thisInside{ true };
             for (std::size_t j{}; j < 3; ++j) {
@@ -167,10 +167,10 @@ static bool testTripletContainsSpeaker(int const a,
  * Loudspeakers Using VBAP: A Case Study with DIVA Project" in
  * International Conference on Auditory Displays -98.
  * E-mail Ville.Pulkki@hut.fi if you want to have that paper. */
-static int linesIntersect(int const i,
-                          int const j,
-                          int const k,
-                          int const l,
+static int linesIntersect(std::size_t const i,
+                          std::size_t const j,
+                          std::size_t const k,
+                          std::size_t const l,
                           std::array<Position, MAX_NUM_SPEAKERS> const & speakers) noexcept
 {
     auto const v1{ speakers[i].getCartesian().crossProduct(speakers[j].getCartesian()) };
@@ -507,7 +507,8 @@ static triplet_list_t generateTriplets(std::array<Position, MAX_NUM_SPEAKERS> co
 
     // ...then we test for valid triplets ONLY when the elevation difference is within a specified range for two
     // speakers
-    std::array<std::array<bool, MAX_NUM_SPEAKERS>, MAX_NUM_SPEAKERS> connections{};
+    auto const connectionsPtr{std::make_unique< std::array<std::array<bool, MAX_NUM_SPEAKERS>, MAX_NUM_SPEAKERS>> ()};
+    auto& connections{ *connectionsPtr };
     triplet_list_t triplets{};
     for (size_t i{}; i < speakerIndexesSortedByElevation.size(); ++i) {
         auto const speaker1Index{ speakerIndexesSortedByElevation[i] };
@@ -552,7 +553,7 @@ static triplet_list_t generateTriplets(std::array<Position, MAX_NUM_SPEAKERS> co
     }
 
     /* Calculate distances between all lss and sorting them. */
-    auto tableSize = (((numSpeakers - 1) * (numSpeakers)) / 2);
+    auto tableSize = (numSpeakers - 1) * numSpeakers / 2;
     std::vector<float> distanceTable{};
     distanceTable.resize(tableSize);
     std::fill(std::begin(distanceTable), std::end(distanceTable), 100000.0f);
@@ -646,15 +647,15 @@ static void
               / (lp1->x * ((lp2->y * lp3->z) - (lp2->z * lp3->y)) - lp1->y * ((lp2->x * lp3->z) - (lp2->z * lp3->x))
                  + lp1->z * ((lp2->x * lp3->y) - (lp2->y * lp3->x)));
 
-        inverseMatrix[0] = ((lp2->y * lp3->z) - (lp2->z * lp3->y)) * inverseDet;
-        inverseMatrix[3] = ((lp1->y * lp3->z) - (lp1->z * lp3->y)) * -inverseDet;
-        inverseMatrix[6] = ((lp1->y * lp2->z) - (lp1->z * lp2->y)) * inverseDet;
-        inverseMatrix[1] = ((lp2->x * lp3->z) - (lp2->z * lp3->x)) * -inverseDet;
-        inverseMatrix[4] = ((lp1->x * lp3->z) - (lp1->z * lp3->x)) * inverseDet;
-        inverseMatrix[7] = ((lp1->x * lp2->z) - (lp1->z * lp2->x)) * -inverseDet;
-        inverseMatrix[2] = ((lp2->x * lp3->y) - (lp2->y * lp3->x)) * inverseDet;
-        inverseMatrix[5] = ((lp1->x * lp3->y) - (lp1->y * lp3->x)) * -inverseDet;
-        inverseMatrix[8] = ((lp1->x * lp2->y) - (lp1->y * lp2->x)) * inverseDet;
+        inverseMatrix[0] = (lp2->y * lp3->z - lp2->z * lp3->y) * inverseDet;
+        inverseMatrix[3] = (lp1->y * lp3->z - lp1->z * lp3->y) * -inverseDet;
+        inverseMatrix[6] = (lp1->y * lp2->z - lp1->z * lp2->y) * inverseDet;
+        inverseMatrix[1] = (lp2->x * lp3->z - lp2->z * lp3->x) * -inverseDet;
+        inverseMatrix[4] = (lp1->x * lp3->z - lp1->z * lp3->x) * inverseDet;
+        inverseMatrix[7] = (lp1->x * lp2->z - lp1->z * lp2->x) * -inverseDet;
+        inverseMatrix[2] = (lp2->x * lp3->y - lp2->y * lp3->x) * inverseDet;
+        inverseMatrix[5] = (lp1->x * lp3->y - lp1->y * lp3->x) * -inverseDet;
+        inverseMatrix[8] = (lp1->x * lp2->y - lp1->y * lp2->x) * inverseDet;
     }
 }
 

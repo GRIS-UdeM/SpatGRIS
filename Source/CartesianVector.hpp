@@ -196,7 +196,7 @@ constexpr float CartesianVector::length2() const noexcept
 
 //==============================================================================
 template<typename T>
-static double constexpr sqrtNewtonRaphson(T const x, T const current, T const previous)
+static constexpr T sqrtNewtonRaphson(T const x, T const current, T const previous)
 {
     static_assert(std::is_floating_point_v<T>, "only works with floating point values");
     return current == previous ? current : sqrtNewtonRaphson(x, static_cast<T>(0.5) * (current + x / current), current);
@@ -207,7 +207,7 @@ constexpr float CartesianVector::constexprLength() const noexcept
 {
     auto const value{ length2() };
     return value >= 0.0f && value < std::numeric_limits<float>::infinity() ? sqrtNewtonRaphson(value, value, 0.0f)
-                                                                           : std::numeric_limits<double>::quiet_NaN();
+                                                                           : std::numeric_limits<float>::quiet_NaN();
 }
 
 //==============================================================================

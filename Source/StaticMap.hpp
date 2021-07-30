@@ -37,8 +37,8 @@ public:
     using value_type = ValueType;
     //==============================================================================
     struct Node {
-        KeyType key;
-        ValueType value;
+        KeyType key{};
+        ValueType value{};
     };
     static constexpr auto CAPACITY = Capacity;
 

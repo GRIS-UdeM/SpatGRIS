@@ -337,7 +337,7 @@ void SpatSettingsSubPanel::buttonClicked(juce::Button * button)
 
     jassert(button == &mDomeButton || button == &mCubeButton);
     auto const spatMode{ button == &mDomeButton ? SpatMode::vbap : SpatMode::lbap };
-    mMainContentComponent.setSpatMode(spatMode);
+    [[maybe_unused]] auto const success{ mMainContentComponent.setSpatMode(spatMode) };
     updateLayout();
     mControlPanel.forceLayoutUpdate();
 }

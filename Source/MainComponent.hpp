@@ -212,7 +212,7 @@ public:
 
     [[nodiscard]] std::unique_ptr<OscMonitorWindow> & getOscMonitor() { return mOscMonitorWindow; }
 
-    [[nodiscard]] bool refreshSpeakers();
+    void refreshSpeakers();
 
     //==============================================================================
     // Commands.

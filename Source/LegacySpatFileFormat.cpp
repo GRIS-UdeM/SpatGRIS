@@ -39,10 +39,10 @@ tl::optional<SpeakerSetup> readLegacySpeakerSetup(juce::XmlElement const & xml)
     juce::OwnedArray<SpeakerData> duplicatedSpeakers{};
     SpeakerSetup result{};
 
-    forEachXmlChildElement(xml, ring)
+    for (auto const * ring : xml.getChildIterator())
     {
         if (ring->hasTagName("Ring")) {
-            forEachXmlChildElement(*ring, spk)
+            for (auto const * spk : ring->getChildIterator())
             {
                 if (spk->hasTagName("Speaker")) {
                     // layout
@@ -152,7 +152,7 @@ tl::optional<SpatGrisProjectData> readLegacyProjectFile(juce::XmlElement const &
 
     SpatGrisProjectData result{};
 
-    forEachXmlChildElement(xml, source)
+    for (auto const * source : xml.getChildIterator())
     {
         if (source->hasTagName("Input")) {
             source_index_t const index{ source->getIntAttribute("Index") };

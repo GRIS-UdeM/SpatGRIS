@@ -60,7 +60,7 @@ void StereoSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, Sourc
 //==============================================================================
 void StereoSpatAlgorithm::process(AudioConfig const & config,
                                   SourceAudioBuffer & sourcesBuffer,
-                                  SpeakerAudioBuffer & speakersBuffer,
+                                  SpeakerAudioBuffer & /*speakersBuffer*/,
                                   juce::AudioBuffer<float> & stereoBuffer,
                                   SourcePeaks const & sourcePeaks,
                                   [[maybe_unused]] SpeakersAudioConfig const * altSpeakerConfig)
@@ -71,9 +71,6 @@ void StereoSpatAlgorithm::process(AudioConfig const & config,
 
     auto const & gainInterpolation{ config.spatGainsInterpolation };
     auto const gainFactor{ std::pow(gainInterpolation, 0.1f) * 0.0099f + 0.99f };
-
-    // std::array<juce::AudioBuffer<float> *, 2> const buffers{ &speakersBuffer[mData.routing.left],
-    //                                                         &speakersBuffer[mData.routing.right] };
 
     auto const numSamples{ sourcesBuffer.getNumSamples() };
     for (auto const & source : config.sourcesAudioConfig) {

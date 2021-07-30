@@ -585,7 +585,8 @@ bool MainContentComponent::setSpatMode(SpatMode const spatMode)
 
     mData.speakerSetup.spatMode = spatMode;
     mControlPanel->setSpatMode(spatMode);
-    return refreshSpeakers();
+    refreshSpeakers();
+    return true;
 }
 
 //==============================================================================
@@ -1835,17 +1836,17 @@ void MainContentComponent::removeSpeaker(output_patch_t const outputPatch)
     mData.speakerSetup.ordering.removeFirstMatchingValue(outputPatch);
     mData.speakerSetup.speakers.remove(outputPatch);
 
-    [[maybe_unused]] auto const success{ refreshSpeakers() };
+    refreshSpeakers();
 }
 
 //==============================================================================
-bool MainContentComponent::refreshSpeakers()
+void MainContentComponent::refreshSpeakers()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
     if (!mAudioProcessor) {
-        return false;
+        return;
     }
 
     refreshSpatAlgorithm();
@@ -1859,8 +1860,6 @@ bool MainContentComponent::refreshSpeakers()
     if (mEditSpeakersWindow != nullptr) {
         mEditSpeakersWindow->updateWinContent();
     }
-
-    return true;
 }
 
 //==============================================================================
