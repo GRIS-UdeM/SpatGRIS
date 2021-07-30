@@ -31,7 +31,7 @@ class InputModel;
 //==============================================================================
 class FlatViewWindow final
     : public juce::DocumentWindow
-    , private juce::Timer
+    , juce::Timer
 {
     MainContentComponent & mMainContentComponent;
     GrisLookAndFeel & mLookAndFeel;

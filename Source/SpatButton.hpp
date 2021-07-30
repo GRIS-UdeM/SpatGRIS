@@ -24,7 +24,7 @@
 //==============================================================================
 class SpatButton final
     : public MinSizedComponent
-    , private juce::TextButton::Listener
+    , juce::TextButton::Listener
 {
 public:
     //==============================================================================

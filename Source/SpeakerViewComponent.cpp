@@ -305,7 +305,7 @@ void SpeakerViewComponent::mouseDrag(const juce::MouseEvent & e)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    static constexpr float CAM_SLOW_DOWN = 250.0f;
+    static constexpr auto CAM_SLOW_DOWN = 250.0f;
     static constexpr radians_t NEARLY_90_DEG{ degrees_t{ 89.99f } };
 
     juce::ScopedLock const lock{ mLock };
@@ -370,7 +370,7 @@ void SpeakerViewComponent::drawOriginGrid() const
 {
     ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD;
 
-    static auto const drawSquare = [](float const length) -> void {
+    static auto const DRAW_SQUARE = [](float const length) -> void {
         glBegin(GL_LINES);
         glVertex3f(-length, length, 0.0f);
         glVertex3f(length, length, 0.0f);
@@ -383,7 +383,7 @@ void SpeakerViewComponent::drawOriginGrid() const
         glEnd();
     };
 
-    static auto const drawCircle = [](float const radius) -> void {
+    static auto const DRAW_CIRCLE = [](float const radius) -> void {
         glBegin(GL_LINE_LOOP);
         for (int i{}; i <= 180; ++i) {
             auto const angle{ juce::MathConstants<float>::twoPi * narrow<float>(i) / 180.0f };
@@ -399,25 +399,25 @@ void SpeakerViewComponent::drawOriginGrid() const
     if (spatMode == SpatMode::lbap) {
         // light grey
         glColor3f(0.59f, 0.59f, 0.59f);
-        drawSquare(MAX_RADIUS);
-        drawSquare(SPACE_LIMIT);
+        DRAW_SQUARE(MAX_RADIUS);
+        DRAW_SQUARE(SPACE_LIMIT);
 
         // dark grey
         glColor3f(0.49f, 0.49f, 0.49f);
-        drawCircle(MAX_RADIUS);
-        drawCircle(SPACE_LIMIT);
-        drawSquare(MAX_RADIUS / 2.0f);
+        DRAW_CIRCLE(MAX_RADIUS);
+        DRAW_CIRCLE(SPACE_LIMIT);
+        DRAW_SQUARE(MAX_RADIUS / 2.0f);
     } else {
         // light grey
         glColor3f(0.59f, 0.59f, 0.59f);
-        drawCircle(MAX_RADIUS / 2.0f);
-        drawCircle(MAX_RADIUS);
+        DRAW_CIRCLE(MAX_RADIUS / 2.0f);
+        DRAW_CIRCLE(MAX_RADIUS);
 
         // dark grey
         glColor3f(0.49f, 0.49f, 0.49f);
-        drawCircle(MAX_RADIUS / 4.0f);
-        drawCircle(MAX_RADIUS / 4.0f * 3.0f);
-        drawCircle(MAX_RADIUS / 4.0f * 5.0f);
+        DRAW_CIRCLE(MAX_RADIUS / 4.0f);
+        DRAW_CIRCLE(MAX_RADIUS / 4.0f * 3.0f);
+        DRAW_CIRCLE(MAX_RADIUS / 4.0f * 5.0f);
     }
 
     // 3D RGB line.
@@ -676,7 +676,7 @@ void SpeakerViewComponent::drawFieldCube()
     glRotatef(degrees_t{ 90.0f }.get(), 1.0f, 0.0f, 0.0f);
     glColor3f(0.8f, 0.2f, 0.1f);
     // Draw a cube when in LBAP mode.
-    static constexpr int DEFINITION = 10;
+    static constexpr auto DEFINITION = 10;
     for (auto i{ -DEFINITION }; i <= DEFINITION; i += 2) {
         auto const i_f{ narrow<float>(i) / narrow<float>(DEFINITION) };
         glBegin(GL_LINES);

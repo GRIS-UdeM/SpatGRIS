@@ -285,7 +285,7 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
     }
 
     // subroutine to build the RecorderInfos
-    static auto const makeRecordingInfo
+    static auto const MAKE_RECORDING_INFO
         = [](juce::String const & path,
              juce::AudioFormat & format,
              double const sampleRate_,
@@ -396,12 +396,12 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
         juce::Array<float const *> dataToRecord{};
         dataToRecord.add(mStereoOutputBuffer.getReadPointer(0));
         dataToRecord.add(mStereoOutputBuffer.getReadPointer(1));
-        auto recorder{ makeRecordingInfo(filePaths[0],
-                                         *audioFormat,
-                                         recordingParams.sampleRate,
-                                         recordingBufferSize,
-                                         std::move(dataToRecord),
-                                         mRecordersThread) };
+        auto recorder{ MAKE_RECORDING_INFO(filePaths[0],
+                                           *audioFormat,
+                                           recordingParams.sampleRate,
+                                           recordingBufferSize,
+                                           std::move(dataToRecord),
+                                           mRecordersThread) };
         if (!recorder) {
             return false;
         }
@@ -412,12 +412,12 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
         jassert(filePaths.size() == 2);
         jassert(mStereoOutputBuffer.getNumChannels() == 2);
         for (int i{}; i < 2; ++i) {
-            auto recorder{ makeRecordingInfo(filePaths[i],
-                                             *audioFormat,
-                                             recordingParams.sampleRate,
-                                             recordingBufferSize,
-                                             juce::Array<float const *>{ mStereoOutputBuffer.getReadPointer(i) },
-                                             mRecordersThread) };
+            auto recorder{ MAKE_RECORDING_INFO(filePaths[i],
+                                               *audioFormat,
+                                               recordingParams.sampleRate,
+                                               recordingBufferSize,
+                                               juce::Array<float const *>{ mStereoOutputBuffer.getReadPointer(i) },
+                                               mRecordersThread) };
             if (!recorder) {
                 return false;
             }
@@ -429,12 +429,12 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
         jassert(filePaths.size() == 1);
         auto const & filePath{ filePaths[0] };
         auto dataToRecord{ mOutputBuffer.getArrayOfReadPointers(recordingParams.speakersToRecord) };
-        auto recordingInfo{ makeRecordingInfo(filePath,
-                                              *audioFormat,
-                                              recordingParams.sampleRate,
-                                              recordingBufferSize,
-                                              std::move(dataToRecord),
-                                              mRecordersThread) };
+        auto recordingInfo{ MAKE_RECORDING_INFO(filePath,
+                                                *audioFormat,
+                                                recordingParams.sampleRate,
+                                                recordingBufferSize,
+                                                std::move(dataToRecord),
+                                                mRecordersThread) };
         if (!recordingInfo) {
             return false;
         }
@@ -448,12 +448,12 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
             auto const & filePath{ filePaths[i] };
             juce::Array<float const *> dataToRecord{};
             dataToRecord.add(mOutputBuffer[outputPatch].getReadPointer(0));
-            auto recordingInfo{ makeRecordingInfo(filePath,
-                                                  *audioFormat,
-                                                  recordingParams.sampleRate,
-                                                  recordingBufferSize,
-                                                  std::move(dataToRecord),
-                                                  mRecordersThread) };
+            auto recordingInfo{ MAKE_RECORDING_INFO(filePath,
+                                                    *audioFormat,
+                                                    recordingParams.sampleRate,
+                                                    recordingBufferSize,
+                                                    std::move(dataToRecord),
+                                                    mRecordersThread) };
             if (!recordingInfo) {
                 return false;
             }

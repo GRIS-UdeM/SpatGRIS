@@ -104,7 +104,7 @@ void OscMonitorComponent::resized()
 
 //==============================================================================
 OscMonitorWindow::OscMonitorWindow(MainContentComponent & mainContentComponent, GrisLookAndFeel & lookAndFeel)
-    : DocumentWindow("OSC monitor", lookAndFeel.getBackgroundColour(), juce::DocumentWindow::allButtons)
+    : DocumentWindow("OSC monitor", lookAndFeel.getBackgroundColour(), allButtons)
     , mMainContentComponent(mainContentComponent)
 {
     setUsingNativeTitleBar(true);

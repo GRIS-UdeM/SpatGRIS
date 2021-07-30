@@ -70,7 +70,7 @@ void LevelBox::resized()
     // Draw ticks on images.
     auto const start = getWidth() - 3;
     static constexpr auto NUM_TICKS = 10;
-    for (int i{ 1 }; i < NUM_TICKS; i++) {
+    for (auto i{ 1 }; i < NUM_TICKS; ++i) {
         auto const y = i * height / NUM_TICKS;
         auto const y_f{ narrow<float>(y) };
         auto const start_f{ narrow<float>(start) };
@@ -175,7 +175,7 @@ AbstractVuMeterComponent::AbstractVuMeterComponent(juce::String const & id, Smal
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    auto const initColors = [&](juce::Component & component) {
+    auto const initColors = [&](Component & component) {
         component.setLookAndFeel(&lookAndFeel);
         component.setColour(juce::Label::textColourId, lookAndFeel.getFontColour());
         component.setColour(juce::TextButton::textColourOnId, lookAndFeel.getFontColour());

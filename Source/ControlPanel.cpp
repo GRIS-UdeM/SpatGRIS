@@ -83,7 +83,7 @@ SpatSettingsSubPanel::SpatSettingsSubPanel(ControlPanel & controlPanel,
 {
     auto const initLabel = [&](juce::Label & label,
                                juce::String const & text,
-                               juce::Justification justification = juce::Justification::centredTop) {
+                               juce::Justification const justification = juce::Justification::centredTop) {
         label.setText(text, juce::dontSendNotification);
         label.setJustificationType(justification);
         label.setColour(juce::Label::ColourIds::textColourId, lookAndFeel.getFontColour());
@@ -274,7 +274,7 @@ void SpatSettingsSubPanel::updateEnabledStereoRoutings()
     auto const rightId{ mRightCombo.getSelectedId() };
 
     jassert(mLeftCombo.getNumItems() == mRightCombo.getNumItems());
-    jassert((leftId == 0 && rightId == 0) || (mLeftCombo.getSelectedId() != mRightCombo.getSelectedId()));
+    jassert(leftId == 0 && rightId == 0 || mLeftCombo.getSelectedId() != mRightCombo.getSelectedId());
 
     for (int i{}; i < mLeftCombo.getNumItems(); ++i) {
         auto const itemId{ mLeftCombo.getItemId(i) };

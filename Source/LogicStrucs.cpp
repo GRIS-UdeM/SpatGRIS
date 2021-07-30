@@ -592,8 +592,7 @@ tl::optional<SpatGrisProjectData> SpatGrisProjectData::fromXml(juce::XmlElement 
     result.oscPort = xml.getIntAttribute(XmlTags::OSC_PORT); // TODO : validate value
     result.lbapDistanceAttenuationData = *lbapAttenuation;
 
-    for (auto const * sourceElement : sourcesElement->getChildIterator())
-    {
+    for (auto const * sourceElement : sourcesElement->getChildIterator()) {
         jassert(sourceElement);
         auto const sourceData{ SourceData::fromXml(*sourceElement) };
         if (!sourceData) {
@@ -738,8 +737,7 @@ tl::optional<SpeakerSetup> SpeakerSetup::fromXml(juce::XmlElement const & xml)
     tl::optional<SpeakerSetup> result{ SpeakerSetup{} };
     result->spatMode = *spatMode;
 
-    for (auto const * speaker : xml.getChildIterator())
-    {
+    for (auto const * speaker : xml.getChildIterator()) {
         auto const tagName{ speaker->getTagName() };
         if (!tagName.startsWith(SpeakerData::XmlTags::MAIN_TAG_PREFIX)) {
             return tl::nullopt;

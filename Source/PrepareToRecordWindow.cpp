@@ -291,7 +291,7 @@ PrepareToRecordWindow::PrepareToRecordWindow(juce::File const & recordingDirecto
                                              RecordingOptions const & recordingOptions,
                                              MainContentComponent & mainContentComponent,
                                              GrisLookAndFeel & lookAndFeel)
-    : DocumentWindow("Start recording", lookAndFeel.getBackgroundColour(), DocumentWindow::closeButton)
+    : DocumentWindow("Start recording", lookAndFeel.getBackgroundColour(), closeButton)
     , mMainContentComponent(mainContentComponent)
     , mContentComponent(recordingDirectory, recordingOptions, mainContentComponent, lookAndFeel)
 {

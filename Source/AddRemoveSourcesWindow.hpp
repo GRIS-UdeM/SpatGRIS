@@ -27,8 +27,8 @@ class MainContentComponent;
 //==============================================================================
 class AddRemoveSourcesComponent final
     : public juce::Component
-    , private juce::TextButton::Listener
-    , private juce::TextEditor::Listener
+    , juce::TextButton::Listener
+    , juce::TextEditor::Listener
 {
     MainContentComponent & mMainContentComponent;
     juce::Label mLabel{};

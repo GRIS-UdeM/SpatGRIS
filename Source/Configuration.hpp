@@ -43,7 +43,7 @@ public:
     Configuration & operator=(Configuration &&) = delete;
     //==============================================================================
     void save(SpatGrisAppData const & appData) const;
-    SpatGrisAppData load() const;
+    [[nodiscard]] SpatGrisAppData load() const;
 
 private:
     //==============================================================================

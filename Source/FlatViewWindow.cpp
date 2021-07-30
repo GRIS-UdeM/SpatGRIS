@@ -23,13 +23,12 @@
 #include "Narrow.hpp"
 #include "constants.hpp"
 
-static float constexpr RADIUS_MAX = 2.0f;
 static float constexpr SOURCE_RADIUS = 10.0f;
 static float constexpr SOURCE_DIAMETER = SOURCE_RADIUS * 2.f;
 
 //==============================================================================
 FlatViewWindow::FlatViewWindow(MainContentComponent & parent, GrisLookAndFeel & feel)
-    : DocumentWindow("2D View", feel.getBackgroundColour(), juce::DocumentWindow::allButtons)
+    : DocumentWindow("2D View", feel.getBackgroundColour(), allButtons)
     , mMainContentComponent(parent)
     , mLookAndFeel(feel)
 {

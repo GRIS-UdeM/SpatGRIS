@@ -91,7 +91,7 @@ AboutComponent::AboutComponent(AboutWindow & parentWindow, GrisLookAndFeel & loo
 AboutWindow::AboutWindow(juce::String const & name,
                          GrisLookAndFeel & lookAndFeel,
                          MainContentComponent & mainContentComponent)
-    : juce::DocumentWindow(name, lookAndFeel.getBackgroundColour(), DocumentWindow::closeButton)
+    : DocumentWindow(name, lookAndFeel.getBackgroundColour(), closeButton)
     , mMainContentComponent(mainContentComponent)
 {
     setContentOwned(new AboutComponent{ *this, lookAndFeel }, true);
@@ -99,7 +99,7 @@ AboutWindow::AboutWindow(juce::String const & name,
     centreWithSize(getContentComponent()->getWidth(), getContentComponent()->getHeight());
     setUsingNativeTitleBar(true);
     setResizable(false, false);
-    juce::Component::setVisible(true);
+    Component::setVisible(true);
 }
 
 //==============================================================================

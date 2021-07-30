@@ -34,10 +34,10 @@ DISABLE_WARNING_POP
 // conflict between glm, freeglut and juce's OpenGL implementations.
 //
 // This fix avoids calling glutSolidSphere().
-template<int DETAILS>
+template<int Details>
 static auto inline drawSphere = [](float const r) {
-    static auto constexpr LATS = DETAILS;
-    static auto constexpr LONGS = DETAILS;
+    static auto constexpr LATS = Details;
+    static auto constexpr LONGS = Details;
 
     ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD;
 

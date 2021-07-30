@@ -29,9 +29,9 @@ OscLogWindow::OscLogWindow(juce::String const & name,
                            MainContentComponent * parent,
                            GrisLookAndFeel * feel)
     : DocumentWindow(name, backgroundColour, buttonsNeeded)
-    , mLogger(mCodeDocument, 0)
     , mMainContentComponent(parent)
     , mLookAndFeel(feel)
+    , mLogger(mCodeDocument, nullptr)
 {
     this->mIndex = 0;
     this->mActivated = true;

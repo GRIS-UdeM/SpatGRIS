@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS.
 
- Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
+ Developers: Samuel BÃ©land, Olivier BÃ©langer, Nicolas Masson
 
  SpatGRIS is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -25,6 +25,6 @@
 class meters_t final : public StrongFloat<float, meters_t, struct MetresT>
 {
 public:
-	meters_t() = default;
-	explicit constexpr meters_t(float const value) : StrongFloat(value) {}
+    meters_t() = default;
+    explicit constexpr meters_t(float const value) : StrongFloat(value) {}
 };

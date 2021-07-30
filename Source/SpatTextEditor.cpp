@@ -79,7 +79,6 @@ void SpatTextEditor::resized()
     JUCE_ASSERT_MESSAGE_THREAD;
 
     auto const width{ getWidth() };
-    auto const height{ getHeight() };
 
     mLabel.setBounds(0, 0, width, LABEL_HEIGHT);
 

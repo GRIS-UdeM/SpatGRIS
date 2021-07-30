@@ -65,7 +65,7 @@ static void computeGains(juce::Array<SpeakerSet> & sets,
     for (auto & set : sets) {
         for (std::size_t j{}; j < dim; ++j) {
             for (std::size_t k{}; k < dim; ++k) {
-                set.setGains[j] += vec[k] * set.invMx[((dim * j) + k)];
+                set.setGains[j] += vec[k] * set.invMx[(dim * j + k)];
             }
             if (set.smallestWt > set.setGains[j])
                 set.smallestWt = set.setGains[j];
@@ -121,25 +121,25 @@ static bool testTripletContainsSpeaker(std::size_t const a,
 {
     InverseMatrix inverseMatrix{};
 
-    auto const * const lp1 = &(speakers[a].getCartesian());
-    auto const * const lp2 = &(speakers[b].getCartesian());
-    auto const * const lp3 = &(speakers[c].getCartesian());
+    auto const * const lp1 = &speakers[a].getCartesian();
+    auto const * const lp2 = &speakers[b].getCartesian();
+    auto const * const lp3 = &speakers[c].getCartesian();
 
     /* Matrix inversion. */
     auto const inverseDeterminant
         = 1.0f
-          / (lp1->x * ((lp2->y * lp3->z) - (lp2->z * lp3->y)) - lp1->y * ((lp2->x * lp3->z) - (lp2->z * lp3->x))
-             + lp1->z * ((lp2->x * lp3->y) - (lp2->y * lp3->x)));
+          / (lp1->x * (lp2->y * lp3->z - lp2->z * lp3->y) - lp1->y * (lp2->x * lp3->z - lp2->z * lp3->x)
+             + lp1->z * (lp2->x * lp3->y - lp2->y * lp3->x));
 
-    inverseMatrix[0] = ((lp2->y * lp3->z) - (lp2->z * lp3->y)) * inverseDeterminant;
-    inverseMatrix[3] = ((lp1->y * lp3->z) - (lp1->z * lp3->y)) * -inverseDeterminant;
-    inverseMatrix[6] = ((lp1->y * lp2->z) - (lp1->z * lp2->y)) * inverseDeterminant;
-    inverseMatrix[1] = ((lp2->x * lp3->z) - (lp2->z * lp3->x)) * -inverseDeterminant;
-    inverseMatrix[4] = ((lp1->x * lp3->z) - (lp1->z * lp3->x)) * inverseDeterminant;
-    inverseMatrix[7] = ((lp1->x * lp2->z) - (lp1->z * lp2->x)) * -inverseDeterminant;
-    inverseMatrix[2] = ((lp2->x * lp3->y) - (lp2->y * lp3->x)) * inverseDeterminant;
-    inverseMatrix[5] = ((lp1->x * lp3->y) - (lp1->y * lp3->x)) * -inverseDeterminant;
-    inverseMatrix[8] = ((lp1->x * lp2->y) - (lp1->y * lp2->x)) * inverseDeterminant;
+    inverseMatrix[0] = (lp2->y * lp3->z - lp2->z * lp3->y) * inverseDeterminant;
+    inverseMatrix[3] = (lp1->y * lp3->z - lp1->z * lp3->y) * -inverseDeterminant;
+    inverseMatrix[6] = (lp1->y * lp2->z - lp1->z * lp2->y) * inverseDeterminant;
+    inverseMatrix[1] = (lp2->x * lp3->z - lp2->z * lp3->x) * -inverseDeterminant;
+    inverseMatrix[4] = (lp1->x * lp3->z - lp1->z * lp3->x) * inverseDeterminant;
+    inverseMatrix[7] = (lp1->x * lp2->z - lp1->z * lp2->x) * -inverseDeterminant;
+    inverseMatrix[2] = (lp2->x * lp3->y - lp2->y * lp3->x) * inverseDeterminant;
+    inverseMatrix[5] = (lp1->x * lp3->y - lp1->y * lp3->x) * -inverseDeterminant;
+    inverseMatrix[8] = (lp1->x * lp2->y - lp1->y * lp2->x) * inverseDeterminant;
 
     for (std::size_t i{}; i < numSpeakers; ++i) {
         if (i != a && i != b && i != c) {
@@ -167,11 +167,11 @@ static bool testTripletContainsSpeaker(std::size_t const a,
  * Loudspeakers Using VBAP: A Case Study with DIVA Project" in
  * International Conference on Auditory Displays -98.
  * E-mail Ville.Pulkki@hut.fi if you want to have that paper. */
-static int linesIntersect(std::size_t const i,
-                          std::size_t const j,
-                          std::size_t const k,
-                          std::size_t const l,
-                          std::array<Position, MAX_NUM_SPEAKERS> const & speakers) noexcept
+static bool linesIntersect(std::size_t const i,
+                           std::size_t const j,
+                           std::size_t const k,
+                           std::size_t const l,
+                           std::array<Position, MAX_NUM_SPEAKERS> const & speakers) noexcept
 {
     auto const v1{ speakers[i].getCartesian().crossProduct(speakers[j].getCartesian()) };
     auto const v2{ speakers[k].getCartesian().crossProduct(speakers[l].getCartesian()) };
@@ -193,14 +193,14 @@ static int linesIntersect(std::size_t const i,
     if (std::abs(distIv3) <= 0.01f || std::abs(distJv3) <= 0.01f || std::abs(distKv3) <= 0.01f
         || std::abs(distLv3) <= 0.01f || std::abs(distInv3) <= 0.01f || std::abs(distJnv3) <= 0.01f
         || std::abs(distKnv3) <= 0.01f || std::abs(distLnv3) <= 0.01f) {
-        return (0);
+        return false;
     }
 
-    if (((std::abs(distIj - (distIv3 + distJv3)) <= 0.01) && (std::abs(distKl - (distKv3 + distLv3)) <= 0.01))
-        || ((std::abs(distIj - (distInv3 + distJnv3)) <= 0.01) && (std::abs(distKl - (distKnv3 + distLnv3)) <= 0.01))) {
-        return (1);
+    if (std::abs(distIj - (distIv3 + distJv3)) <= 0.01f && std::abs(distKl - (distKv3 + distLv3)) <= 0.01f
+        || std::abs(distIj - (distInv3 + distJnv3)) <= 0.01f && std::abs(distKl - (distKnv3 + distLnv3)) <= 0.01f) {
+        return true;
     }
-    return (0);
+    return false;
 }
 
 //==============================================================================
@@ -286,7 +286,7 @@ static void spreadGains3d(SourceData const & source, SpeakersSpatGains & gains, 
 
     for (int i{}; i < data.numOutputPatches; ++i) {
         ind = data.outputPatches[i].get() - 1;
-        sum += (rawGains[ind] * rawGains[ind]);
+        sum += rawGains[ind] * rawGains[ind];
     }
     sum = std::sqrt(sum);
     for (int i{}; i < data.numOutputPatches; ++i) {
@@ -328,7 +328,7 @@ static void spreadGains2d(SourceData const & source, SpeakersSpatGains & gains, 
     }
 
     for (i = 0; i < cnt; i++) {
-        sum += (rawGains[i] * rawGains[i]);
+        sum += rawGains[i] * rawGains[i];
     }
     sum = std::sqrt(sum);
     for (i = 0; i < cnt; i++) {
@@ -355,24 +355,24 @@ static void sortSpeakers2d(std::array<Position, MAX_NUM_SPEAKERS> & speakers,
 }
 
 //==============================================================================
-static int computeInverseMatrix2d(radians_t const azi1, radians_t const azi2, float inv_mat[4])
+static int computeInverseMatrix2d(radians_t const azi1, radians_t const azi2, float invMat[4])
 {
     auto const x1 = fast::cos(azi1.get());
     auto const x2 = fast::sin(azi1.get());
     auto const x3 = fast::cos(azi2.get());
     auto const x4 = fast::sin(azi2.get());
-    auto const det = (x1 * x4) - (x3 * x2);
+    auto const det = x1 * x4 - x3 * x2;
     if (std::abs(det) <= 0.001) {
-        inv_mat[0] = 0.0;
-        inv_mat[1] = 0.0;
-        inv_mat[2] = 0.0;
-        inv_mat[3] = 0.0;
+        invMat[0] = 0.0;
+        invMat[1] = 0.0;
+        invMat[2] = 0.0;
+        invMat[3] = 0.0;
         return 0;
     }
-    inv_mat[0] = x4 / det;
-    inv_mat[1] = -x3 / det;
-    inv_mat[2] = -x2 / det;
-    inv_mat[3] = x1 / det;
+    invMat[0] = x4 / det;
+    invMat[1] = -x3 / det;
+    invMat[2] = -x2 / det;
+    invMat[3] = x1 / det;
     return 1;
 }
 
@@ -473,7 +473,7 @@ static float parallelepipedVolumeSideLength(Position const & i, Position const &
  * This yields non-intersecting triangles, which can be used in panning.
  */
 static triplet_list_t generateTriplets(std::array<Position, MAX_NUM_SPEAKERS> const & speakers,
-                                       std::size_t const numSpeakers) noexcept
+                                       std::size_t const numSpeakers)
 {
     jassert(numSpeakers > 0);
 
@@ -507,8 +507,8 @@ static triplet_list_t generateTriplets(std::array<Position, MAX_NUM_SPEAKERS> co
 
     // ...then we test for valid triplets ONLY when the elevation difference is within a specified range for two
     // speakers
-    auto const connectionsPtr{std::make_unique< std::array<std::array<bool, MAX_NUM_SPEAKERS>, MAX_NUM_SPEAKERS>> ()};
-    auto& connections{ *connectionsPtr };
+    auto const connectionsPtr{ std::make_unique<std::array<std::array<bool, MAX_NUM_SPEAKERS>, MAX_NUM_SPEAKERS>>() };
+    auto & connections{ *connectionsPtr };
     triplet_list_t triplets{};
     for (size_t i{}; i < speakerIndexesSortedByElevation.size(); ++i) {
         auto const speaker1Index{ speakerIndexesSortedByElevation[i] };
@@ -636,16 +636,16 @@ static void
     computeMatrices3d(triplet_list_t & triplets, std::array<Position, MAX_NUM_SPEAKERS> & speakers, int /*numSpeakers*/)
 {
     for (auto & triplet : triplets) {
-        auto const * lp1 = &(speakers[triplet.tripletSpeakerNumber[0]].getCartesian());
-        auto const * lp2 = &(speakers[triplet.tripletSpeakerNumber[1]].getCartesian());
-        auto const * lp3 = &(speakers[triplet.tripletSpeakerNumber[2]].getCartesian());
+        auto const * lp1 = &speakers[triplet.tripletSpeakerNumber[0]].getCartesian();
+        auto const * lp2 = &speakers[triplet.tripletSpeakerNumber[1]].getCartesian();
+        auto const * lp3 = &speakers[triplet.tripletSpeakerNumber[2]].getCartesian();
 
         /* Matrix inversion. */
         auto & inverseMatrix = triplet.tripletInverseMatrix;
         auto const inverseDet
             = 1.0f
-              / (lp1->x * ((lp2->y * lp3->z) - (lp2->z * lp3->y)) - lp1->y * ((lp2->x * lp3->z) - (lp2->z * lp3->x))
-                 + lp1->z * ((lp2->x * lp3->y) - (lp2->y * lp3->x)));
+              / (lp1->x * (lp2->y * lp3->z - lp2->z * lp3->y) - lp1->y * (lp2->x * lp3->z - lp2->z * lp3->x)
+                 + lp1->z * (lp2->x * lp3->y - lp2->y * lp3->x));
 
         inverseMatrix[0] = (lp2->y * lp3->z - lp2->z * lp3->y) * inverseDet;
         inverseMatrix[3] = (lp1->y * lp3->z - lp1->z * lp3->y) * -inverseDet;
@@ -677,7 +677,7 @@ std::unique_ptr<VbapData> vbapInit(std::array<Position, MAX_NUM_SPEAKERS> & spea
     }
 
     data->numOutputPatches = count;
-    for (int i = 0; i < count; i++) {
+    for (int i{}; i < count; i++) {
         data->outputPatches[i] = outputPatches[i];
     }
 
@@ -689,7 +689,7 @@ std::unique_ptr<VbapData> vbapInit(std::array<Position, MAX_NUM_SPEAKERS> & spea
         for (std::size_t j{}; j < data->dimension; ++j) {
             newSet.speakerNos[j] = outputPatches[triplet.tripletSpeakerNumber[j] + offset - 1];
         }
-        for (std::size_t j{}; j < (data->dimension * data->dimension); ++j) {
+        for (std::size_t j{}; j < data->dimension * data->dimension; ++j) {
             newSet.invMx[j] = triplet.tripletInverseMatrix[j];
         }
         data->speakerSets.add(newSet);

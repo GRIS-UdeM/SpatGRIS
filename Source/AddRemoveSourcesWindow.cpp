@@ -94,7 +94,7 @@ void AddRemoveSourcesComponent::resized()
     auto x{ PADDING };
     auto y{ PADDING };
 
-    auto const labelWidth{ width - (PADDING * 3) - EDITOR_WIDTH };
+    auto const labelWidth{ width - PADDING * 3 - EDITOR_WIDTH };
     mLabel.setBounds(x, y, labelWidth, ROW_HEIGHT);
 
     x += labelWidth;
@@ -118,7 +118,7 @@ void AddRemoveSourcesComponent::textEditorReturnKeyPressed([[maybe_unused]] juce
 AddRemoveSourcesWindow::AddRemoveSourcesWindow(int const currentNumberOfSources,
                                                MainContentComponent & mainContentComponent,
                                                GrisLookAndFeel & lookAndFeel)
-    : DocumentWindow("Set sources", lookAndFeel.getBackgroundColour(), juce::DocumentWindow::closeButton)
+    : DocumentWindow("Set sources", lookAndFeel.getBackgroundColour(), closeButton)
     , mMainContentComponent(mainContentComponent)
     , mComponent(currentNumberOfSources, mainContentComponent, lookAndFeel)
 {

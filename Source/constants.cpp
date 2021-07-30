@@ -70,7 +70,7 @@ static juce::Array<FileTemplate> extract(juce::File const & dir, juce::CommandID
     result.sort();
 
     return result;
-};
+}
 
 //==============================================================================
 static SpeakerSetupTemplates getSpeakerSetupTemplates()
@@ -80,7 +80,7 @@ static SpeakerSetupTemplates getSpeakerSetupTemplates()
     auto commandId{ SPEAKER_SETUP_TEMPLATES_COMMANDS_OFFSET };
 
     return SpeakerSetupTemplates{ extract(domeDir, commandId), extract(cubeDir, commandId) };
-};
+}
 
 //==============================================================================
 static ProjectTemplates getProjectTemplates()

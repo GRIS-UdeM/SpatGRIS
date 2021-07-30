@@ -22,12 +22,9 @@
 #include "GrisLookAndFeel.hpp"
 
 //==============================================================================
-Box::Box(GrisLookAndFeel & feel,
-         juce::String const & title,
-         bool const verticalScrollbar,
-         bool const horizontalScrollbar)
+Box::Box(GrisLookAndFeel & feel, juce::String title, bool const verticalScrollbar, bool const horizontalScrollbar)
     : mLookAndFeel(feel)
-    , mTitle(title)
+    , mTitle(std::move(title))
 {
     this->mViewport.setViewedComponent(&this->mContent, false);
     this->mViewport.setScrollBarsShown(verticalScrollbar, horizontalScrollbar);

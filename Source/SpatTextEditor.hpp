@@ -24,7 +24,7 @@
 class GrisLookAndFeel;
 
 //==============================================================================
-class SpatTextEditor
+class SpatTextEditor final
     : public MinSizedComponent
     , public juce::TextEditor::Listener
 {

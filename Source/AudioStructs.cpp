@@ -19,8 +19,6 @@
 
 #include "AudioStructs.hpp"
 
-#pragma once
-
 //==============================================================================
 void SpeakerHighpassConfig::process(float * data, int const numSamples, SpeakerHighpassState & state) const
 {

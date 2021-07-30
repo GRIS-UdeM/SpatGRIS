@@ -112,7 +112,7 @@ void EditableTextCustomComponent::setRowAndColumn(const int newRow, const int ne
     mRow = newRow;
     mColumnId = newColumn;
     if (newColumn == EditSpeakersWindow::Cols::DRAG_HANDLE) {
-        setColour(ColourIds::outlineColourId, juce::Colours::black.withAlpha(0.2f));
+        setColour(outlineColourId, juce::Colours::black.withAlpha(0.2f));
         setBorderSize(juce::BorderSize<int>{ 1 });
     }
     setText(mOwner.getText(mColumnId, mRow), juce::dontSendNotification);

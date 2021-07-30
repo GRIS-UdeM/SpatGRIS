@@ -26,7 +26,7 @@ class GrisLookAndFeel;
 //==============================================================================
 class RecordButton final
     : public MinSizedComponent
-    , private juce::Timer
+    , juce::Timer
 {
 public:
     enum class State { ready, recording };

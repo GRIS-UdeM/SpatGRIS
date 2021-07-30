@@ -99,7 +99,7 @@ void VbapSpatAlgorithm::process(AudioConfig const & config,
     auto const numSamples{ sourcesBuffer.getNumSamples() };
     for (auto const & source : config.sourcesAudioConfig) {
         if (source.value.isMuted || source.value.directOut || sourcePeaks[source.key] < SMALL_GAIN) {
-            // source slient
+            // source silent
             continue;
         }
 

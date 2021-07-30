@@ -184,7 +184,7 @@ void RecordButton::updateRecordedTime()
     auto const elapsedMinutes{ elapsedSeconds / 60 };
     auto const remainingSeconds{ elapsedSeconds - elapsedMinutes * 60 };
 
-    static auto const toPaddedString = [](auto const value) {
+    static auto const TO_PADDED_STRING = [](auto const value) {
         juce::String result{ value };
         jassert(result.length() == 1 || result.length() == 2);
         if (result.length() < 2) {
@@ -193,8 +193,8 @@ void RecordButton::updateRecordedTime()
         return result;
     };
 
-    auto const minutes{ toPaddedString(elapsedMinutes) };
-    auto const seconds{ toPaddedString(remainingSeconds) };
+    auto const minutes{ TO_PADDED_STRING(elapsedMinutes) };
+    auto const seconds{ TO_PADDED_STRING(remainingSeconds) };
 
     auto const timeString{ minutes + ':' + seconds };
     mRecordedTime.setText(timeString, juce::dontSendNotification);

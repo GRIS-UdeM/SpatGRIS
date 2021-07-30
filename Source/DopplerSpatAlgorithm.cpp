@@ -19,6 +19,8 @@
 
 #include "DopplerSpatAlgorithm.hpp"
 
+#include "Meters.hpp"
+
 static void interpolate(float const * inputSamples,
                         int const numInputSamples,
                         float * outputSamples,
@@ -116,7 +118,7 @@ void DopplerSpatAlgorithm::process(AudioConfig const & config,
         for (size_t earIndex{}; earIndex < EARS_POSITIONS.size(); ++earIndex) {
             auto * dopplerSamples{ mData.dopplerLines.getWritePointer(narrow<int>(earIndex)) };
 
-            auto const MAX_DISTANCE_DIFF = meters_t{ 1000.0f };
+            static constexpr meters_t MAX_DISTANCE_DIFF{ 1000.0f };
 
             auto const beginAbsoluteDistance{ FIELD_RADIUS * lastSpatData[earIndex] };
             auto const endAbsoluteDistance{ std::clamp(FIELD_RADIUS * spatData[earIndex],
@@ -165,7 +167,7 @@ void DopplerSpatAlgorithm::process(AudioConfig const & config,
     for (int channel{}; channel < mData.dopplerLines.getNumChannels(); ++channel) {
         auto * dopplerSamplesBegin{ mData.dopplerLines.getWritePointer(channel) };
         auto * dopplerSamplesEnd{ dopplerSamplesBegin + dopplerBufferSize };
-        auto * speakerSamples{ (speakerIt++)->value->getWritePointer(0) };
+        auto * speakerSamples{ speakerIt++->value->getWritePointer(0) };
 
         std::copy_n(dopplerSamplesBegin, bufferSize, speakerSamples);
         std::fill_n(dopplerSamplesBegin, bufferSize, 0.0f);

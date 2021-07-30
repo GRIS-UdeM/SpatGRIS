@@ -27,7 +27,7 @@ struct Triplet {
     output_patch_t id2{};
     output_patch_t id3{};
     //==============================================================================
-    [[nodiscard]] constexpr bool contains(output_patch_t const outputPatch) const noexcept;
+    [[nodiscard]] constexpr bool contains(output_patch_t outputPatch) const noexcept;
     [[nodiscard]] constexpr bool isSameAs(Triplet const & other) const noexcept;
 };
 

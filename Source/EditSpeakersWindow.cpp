@@ -35,7 +35,7 @@ static Position getLegalPosition(Position const & position,
     jassert(modifiedCol == Col::AZIMUTH || modifiedCol == Col::ELEVATION || modifiedCol == Col::DISTANCE
             || modifiedCol == Col::X || modifiedCol == Col::Y || modifiedCol == Col::Z);
 
-    static auto const constrainCartesian
+    static auto const CONSTRAIN_CARTESIAN
         = [](float const & valueModified, float & valueToAdjust, float & valueToTryToKeepIntact) {
               auto const valueModified2{ valueModified * valueModified };
               auto const lengthWithoutValueToAdjust{ valueModified2 + valueToTryToKeepIntact * valueToTryToKeepIntact };
@@ -68,14 +68,14 @@ static Position getLegalPosition(Position const & position,
     auto & z{ newPosition.z };
     if (modifiedCol == Col::X) {
         x = std::clamp(x, -1.0f, 1.0f);
-        constrainCartesian(x, y, z);
+        CONSTRAIN_CARTESIAN(x, y, z);
     } else if (modifiedCol == Col::Y) {
         y = std::clamp(y, -1.0f, 1.0f);
-        constrainCartesian(y, x, z);
+        CONSTRAIN_CARTESIAN(y, x, z);
     } else {
         jassert(modifiedCol == Col::Z);
         z = std::clamp(z, 0.0f, 1.0f);
-        constrainCartesian(z, x, y);
+        CONSTRAIN_CARTESIAN(z, x, y);
     }
     return Position{ newPosition };
 }
@@ -85,7 +85,7 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
                                        GrisLookAndFeel & lookAndFeel,
                                        MainContentComponent & mainContentComponent,
                                        juce::String const & /*configName*/)
-    : juce::DocumentWindow(name, lookAndFeel.getBackgroundColour(), DocumentWindow::allButtons)
+    : DocumentWindow(name, lookAndFeel.getBackgroundColour(), allButtons)
     , mMainContentComponent(mainContentComponent)
     , mLookAndFeel(lookAndFeel)
     , mListSpeakerBox(lookAndFeel, "Configuration Speakers")
@@ -826,7 +826,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
             break;
         }
         case Cols::AZIMUTH: {
-            radians_t const diff{ (degrees_t{ 90.0f } - degrees_t{ newText.getFloatValue() })
+            radians_t const diff{ degrees_t{ 90.0f } - degrees_t{ newText.getFloatValue() }
                                   - degrees_t{ speaker.position.getPolar().azimuth } };
             for (int i{}; i < selectedRows.size(); ++i) {
                 auto const outputPatch_{ getSpeakerOutputPatchForRow(selectedRows[i]) };
@@ -920,9 +920,9 @@ void EditSpeakersWindow::setText(int const columnNumber,
             static constexpr hz_t MIN_FREQ{ 0.0f };
             static constexpr hz_t MAX_FREQ{ 150.0f };
             hz_t val{ newText.getFloatValue() };
-            auto diff
-                = val
-                - speaker.highpassData.map_or([](SpeakerHighpassData const& data) { return data.freq; }, hz_t{ MIN_FREQ });
+            auto diff = val
+                        - speaker.highpassData.map_or([](SpeakerHighpassData const & data) { return data.freq; },
+                                                      hz_t{ MIN_FREQ });
             val = std::clamp(val, MIN_FREQ, MAX_FREQ);
             mMainContentComponent.setSpeakerHighPassFreq(outputPatch, val);
             if (mSpeakersTableListBox.getNumSelectedRows() > 1) {

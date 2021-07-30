@@ -30,14 +30,14 @@ class Box final : public juce::Component
 {
     GrisLookAndFeel & mLookAndFeel;
 
-    juce::Component mContent;
+    Component mContent;
     juce::Viewport mViewport;
     juce::String mTitle;
 
 public:
     //==============================================================================
     explicit Box(GrisLookAndFeel & feel,
-                 juce::String const & title = "",
+                 juce::String title = "",
                  bool verticalScrollbar = false,
                  bool horizontalScrollbar = true);
     ~Box() override { this->mContent.deleteAllChildren(); }
@@ -48,8 +48,8 @@ public:
     Box & operator=(Box const &) = delete;
     Box & operator=(Box &&) = delete;
     //==============================================================================
-    [[nodiscard]] juce::Component * getContent() { return &this->mContent; }
-    [[nodiscard]] juce::Component const * getContent() const { return &this->mContent; }
+    [[nodiscard]] Component * getContent() { return &this->mContent; }
+    [[nodiscard]] Component const * getContent() const { return &this->mContent; }
     [[nodiscard]] juce::Viewport * getViewport() { return &mViewport; }
 
     void resized() override { this->mViewport.setSize(this->getWidth(), this->getHeight()); }

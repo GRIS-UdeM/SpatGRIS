@@ -108,7 +108,7 @@ public:
     EditSpeakersWindow & operator=(EditSpeakersWindow &&) = delete;
     //==============================================================================
     void initComp();
-    void selectRow(tl::optional<int> const value);
+    void selectRow(tl::optional<int> value);
     void selectSpeaker(tl::optional<output_patch_t> outputPatch);
     void updateWinContent();
 

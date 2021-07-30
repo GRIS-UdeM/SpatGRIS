@@ -72,8 +72,8 @@ private:
 //==============================================================================
 class SpatSettingsSubPanel final
     : public SubPanelComponent
-    , private juce::ComboBox::Listener
-    , private juce::TextButton::Listener
+    , juce::ComboBox::Listener
+    , juce::TextButton::Listener
 {
     struct AttenuationValues {
         juce::Array<dbfs_t> dbValues{};

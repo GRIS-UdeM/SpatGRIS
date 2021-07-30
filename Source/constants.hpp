@@ -32,7 +32,7 @@ struct SpatGrisVersion {
     int minor;
     int patch;
 
-    constexpr int compare(SpatGrisVersion const & other) const noexcept
+    [[nodiscard]] constexpr int compare(SpatGrisVersion const & other) const noexcept
     {
         auto const majorDiff{ major - other.major };
         if (majorDiff != 0) {
@@ -45,14 +45,14 @@ struct SpatGrisVersion {
         return patch - other.patch;
     }
 
-    juce::String toString() const noexcept
+    [[nodiscard]] juce::String toString() const noexcept
     {
         return juce::String{ major } + '.' + juce::String{ minor } + '.' + juce::String{ patch };
     }
 
     static SpatGrisVersion fromString(juce::String const & string)
     {
-        SpatGrisVersion result;
+        SpatGrisVersion result{};
         result.major = string.upToFirstOccurrenceOf(".", false, true).getIntValue();
         result.minor
             = string.fromFirstOccurrenceOf(".", false, true).upToLastOccurrenceOf(".", false, true).getIntValue();
@@ -132,4 +132,4 @@ extern juce::Array<int> const ATTENUATION_FREQUENCY_VALUES;
 
 //==============================================================================
 [[nodiscard]] tl::optional<int> attenuationDbToComboBoxIndex(dbfs_t attenuation);
-[[nodiscard]] tl::optional<int> attenuationFreqToComboBoxIndex(hz_t const freq);
+[[nodiscard]] tl::optional<int> attenuationFreqToComboBoxIndex(hz_t freq);

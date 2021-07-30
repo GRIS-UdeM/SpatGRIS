@@ -101,10 +101,10 @@ public:
                       int width,
                       int height,
                       bool isButtonDown,
-                      int buttonX,
-                      int buttonY,
-                      int buttonW,
-                      int buttonH,
+                      int buttonXF,
+                      int buttonYF,
+                      int buttonWF,
+                      int buttonHF,
                       juce::ComboBox & box) override;
     void drawRoundThumb(juce::Graphics & g,
                         float x,
@@ -135,7 +135,7 @@ public:
                                float sliderPos,
                                float minSliderPos,
                                float maxSliderPos,
-                               const juce::Slider::SliderStyle style,
+                               juce::Slider::SliderStyle style,
                                juce::Slider & slider) override;
     void drawLinearSlider(juce::Graphics & g,
                           int x,
@@ -145,7 +145,7 @@ public:
                           float sliderPos,
                           float minSliderPos,
                           float maxSliderPos,
-                          const juce::Slider::SliderStyle style,
+                          juce::Slider::SliderStyle style,
                           juce::Slider & slider) override;
     void drawLinearSliderBackground(juce::Graphics & g,
                                     int x,

@@ -273,7 +273,7 @@ void SettingsComponent::comboBoxChanged(juce::ComboBox * comboBoxThatHasChanged)
 
 //==============================================================================
 SettingsWindow::SettingsWindow(MainContentComponent & parent, int const oscPort, GrisLookAndFeel & grisLookAndFeel)
-    : juce::DocumentWindow("Settings", grisLookAndFeel.getBackgroundColour(), DocumentWindow::allButtons)
+    : DocumentWindow("Settings", grisLookAndFeel.getBackgroundColour(), allButtons)
     , mMainContentComponent(parent)
     , mPropertiesComponent(parent, oscPort, grisLookAndFeel)
 {

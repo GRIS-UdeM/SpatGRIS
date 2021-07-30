@@ -39,11 +39,9 @@ tl::optional<SpeakerSetup> readLegacySpeakerSetup(juce::XmlElement const & xml)
     juce::OwnedArray<SpeakerData> duplicatedSpeakers{};
     SpeakerSetup result{};
 
-    for (auto const * ring : xml.getChildIterator())
-    {
+    for (auto const * ring : xml.getChildIterator()) {
         if (ring->hasTagName("Ring")) {
-            for (auto const * spk : ring->getChildIterator())
-            {
+            for (auto const * spk : ring->getChildIterator()) {
                 if (spk->hasTagName("Speaker")) {
                     // layout
                     auto const layoutIndex{ spk->getIntAttribute("LayoutIndex") - 1 };
@@ -152,8 +150,7 @@ tl::optional<SpatGrisProjectData> readLegacyProjectFile(juce::XmlElement const &
 
     SpatGrisProjectData result{};
 
-    for (auto const * source : xml.getChildIterator())
-    {
+    for (auto const * source : xml.getChildIterator()) {
         if (source->hasTagName("Input")) {
             source_index_t const index{ source->getIntAttribute("Index") };
             jassert(LEGAL_SOURCE_INDEX_RANGE.contains(index));

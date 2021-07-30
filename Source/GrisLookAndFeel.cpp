@@ -105,23 +105,28 @@ void GrisLookAndFeel::drawComboBox(juce::Graphics & g,
 
     g.fillAll(this->mEditBgcolor); // box.findColour (juce::ComboBox::backgroundColourId))
 
-    const float arrowX = 0.3f;
-    const float arrowH = 0.2f;
+    auto const arrowX = 0.3f;
+    auto const arrowH = 0.2f;
+
+    auto const buttonXF{ narrow<float>(buttonX) };
+    auto const buttonYF{ narrow<float>(buttonY) };
+    auto const buttonWF{ narrow<float>(buttonW) };
+    auto const buttonHF{ narrow<float>(buttonH) };
 
     juce::Path p;
-    p.addTriangle(buttonX + buttonW * 0.5f,
-                  buttonY + buttonH * (0.45f - arrowH),
-                  buttonX + buttonW * (1.0f - arrowX),
-                  buttonY + buttonH * 0.45f,
-                  buttonX + buttonW * arrowX,
-                  buttonY + buttonH * 0.45f);
+    p.addTriangle(buttonXF + buttonWF * 0.5f,
+                  buttonYF + buttonHF * (0.45f - arrowH),
+                  buttonXF + buttonWF * (1.0f - arrowX),
+                  buttonYF + buttonHF * 0.45f,
+                  buttonXF + buttonWF * arrowX,
+                  buttonYF + buttonHF * 0.45f);
 
-    p.addTriangle(buttonX + buttonW * 0.5f,
-                  buttonY + buttonH * (0.55f + arrowH),
-                  buttonX + buttonW * (1.0f - arrowX),
-                  buttonY + buttonH * 0.55f,
-                  buttonX + buttonW * arrowX,
-                  buttonY + buttonH * 0.55f);
+    p.addTriangle(buttonXF + buttonWF * 0.5f,
+                  buttonYF + buttonHF * (0.55f + arrowH),
+                  buttonXF + buttonWF * (1.0f - arrowX),
+                  buttonYF + buttonHF * 0.55f,
+                  buttonXF + buttonWF * arrowX,
+                  buttonYF + buttonHF * 0.55f);
 
     g.setColour(this->mDarkColour.withMultipliedAlpha(
         box.isEnabled() ? 1.0f : 0.3f)); // box.findColour (juce::ComboBox::arrowColourId)
@@ -158,11 +163,11 @@ void GrisLookAndFeel::drawButtonBackground(juce::Graphics & g,
                                            bool const isMouseOverButton,
                                            bool const isButtonDown)
 {
-    const float width = button.getWidth() - 1.0f;
-    const float height = button.getHeight() - 1.0f;
-    const float cornerSize = juce::jmin(15.0f, juce::jmin(width, height) * 0.45f);
-    const float lineThickness = cornerSize * 0.1f;
-    const float halfThickness = lineThickness * 0.5f;
+    auto const width{ narrow<float>(button.getWidth() - 1) };
+    auto const height{ narrow<float>(button.getHeight() - 1) };
+    auto const cornerSize = juce::jmin(15.0f, juce::jmin(width, height) * 0.45f);
+    auto const lineThickness = cornerSize * 0.1f;
+    auto const halfThickness = lineThickness * 0.5f;
     juce::Path outline;
     outline.addRectangle(0.5f + halfThickness, 0.5f + halfThickness, width - lineThickness, height - lineThickness);
     g.setColour(button.findColour(juce::TextButton::buttonColourId));
@@ -190,11 +195,11 @@ void GrisLookAndFeel::drawTickBox(juce::Graphics & g,
                                   bool /*isMouseOverButton*/,
                                   bool /*isButtonDown*/)
 {
-    const float boxSize = w * 0.8f;
-    const juce::Rectangle<float> r(x, y + (h - boxSize) * 0.5f, boxSize, boxSize);
+    auto const boxSize{ w * 0.8f };
+    juce::Rectangle<float> const r{ x, y + (h - boxSize) * 0.5f, boxSize, boxSize };
 
     if (ticked) {
-        juce::Colour colour = this->mOnColor;
+        auto colour{ this->mOnColor };
 
         if (component.isMouseOver()) {
             colour = this->mOnColorOver;
@@ -237,13 +242,13 @@ void GrisLookAndFeel::drawLinearSliderThumb(juce::Graphics & g,
     float kx, ky;
 
     if (style == juce::Slider::LinearVertical) {
-        kx = x + width * 0.5f;
+        kx = narrow<float>(x) + narrow<float>(width) * 0.5f;
         ky = sliderPos;
     } else {
         kx = sliderPos;
-        ky = y + height * 0.5f;
+        ky = narrow<float>(y) + narrow<float>(height) * 0.5f;
     }
-    const juce::Rectangle<float> r(kx - (sliderRadius / 2.0f), ky - sliderRadius, 6, height * 2.0f);
+    const juce::Rectangle<float> r(kx - (sliderRadius / 2.0f), ky - sliderRadius, 6, narrow<float>(height) * 2.0f);
 
     if (slider.isEnabled()) {
         auto colour = this->mOnColor;
@@ -264,14 +269,14 @@ void GrisLookAndFeel::drawLinearSliderThumb(juce::Graphics & g,
 
 //==============================================================================
 void GrisLookAndFeel::drawLinearSlider(juce::Graphics & g,
-                                       int x,
-                                       int y,
-                                       int width,
-                                       int height,
-                                       float sliderPos,
-                                       float minSliderPos,
-                                       float maxSliderPos,
-                                       const juce::Slider::SliderStyle style,
+                                       int const x,
+                                       int const y,
+                                       int const width,
+                                       int const height,
+                                       float const sliderPos,
+                                       float const minSliderPos,
+                                       float const maxSliderPos,
+                                       juce::Slider::SliderStyle const style,
                                        juce::Slider & slider)
 {
     drawLinearSliderBackground(g, x, y, width, height + 2, sliderPos, minSliderPos, maxSliderPos, style, slider);
@@ -290,18 +295,23 @@ void GrisLookAndFeel::drawLinearSliderBackground(juce::Graphics & g,
                                                  const juce::Slider::SliderStyle /*style*/,
                                                  juce::Slider & slider)
 {
-    const float sliderRadius = getSliderThumbRadius(slider) - 5.0f;
+    auto const sliderRadius{ narrow<float>(getSliderThumbRadius(slider) - 5) };
     juce::Path on, off;
 
+    auto const x_f{ narrow<float>(x) };
+    auto const y_f{ narrow<float>(y) };
+    auto const width_f{ narrow<float>(width) };
+    auto const height_f{ narrow<float>(height) };
+
     if (slider.isHorizontal()) {
-        auto const iy = y + height * 0.5f - sliderRadius * 0.5f;
-        juce::Rectangle<float> r(x - sliderRadius * 0.5f, iy, width + sliderRadius, sliderRadius);
+        auto const iy = y_f + height_f * 0.5f - sliderRadius * 0.5f;
+        juce::Rectangle<float> r(x_f - sliderRadius * 0.5f, iy, width_f + sliderRadius, sliderRadius);
         auto const onW = r.getWidth() * static_cast<float>(slider.valueToProportionOfLength(slider.getValue()));
         on.addRectangle(r.removeFromLeft(onW));
         off.addRectangle(r);
     } else {
-        auto const ix = x + width * 0.5f - sliderRadius * 0.5f;
-        juce::Rectangle<float> r(ix, y - sliderRadius * 0.5f, sliderRadius, height + sliderRadius);
+        auto const ix = x_f + width_f * 0.5f - sliderRadius * 0.5f;
+        juce::Rectangle<float> r(ix, y_f - sliderRadius * 0.5f, sliderRadius, height_f + sliderRadius);
         auto const onH = r.getHeight() * static_cast<float>(slider.valueToProportionOfLength(slider.getValue()));
         on.addRectangle(r.removeFromBottom(onH));
         off.addRectangle(r);
@@ -374,13 +384,13 @@ void GrisLookAndFeel::drawToggleButton(juce::Graphics & g,
                          10);
 
     } else {
-        auto const fontSize = juce::jmin(15.0f, button.getHeight() * 0.75f);
+        auto const fontSize = juce::jmin(15.0f, narrow<float>(button.getHeight()) * 0.75f);
         auto const tickWidth = fontSize * 1.1f;
 
         drawTickBox(g,
                     button,
                     4.0f,
-                    (button.getHeight() - tickWidth) * 0.5f,
+                    (narrow<float>(button.getHeight()) - tickWidth) * 0.5f,
                     tickWidth,
                     tickWidth,
                     button.getToggleState(),
@@ -488,8 +498,8 @@ void GrisLookAndFeel::drawRotarySlider(juce::Graphics & g,
                                        juce::Slider & slider)
 {
     auto const radius = juce::jmin(width / 2, height / 2) - 2.0f;
-    auto const centreX = x + width * 0.5f;
-    auto const centreY = (y + height * 0.5f) + 6.0f;
+    auto const centreX = narrow<float>(x) + narrow<float>(width) * 0.5f;
+    auto const centreY = narrow<float>(y) + narrow<float>(height) * 0.5f + 6.0f;
     auto const rx = centreX - radius;
     auto const ry = centreY - radius;
     auto const rw = radius * 2.0f;
@@ -497,7 +507,6 @@ void GrisLookAndFeel::drawRotarySlider(juce::Graphics & g,
     auto const isMouseOver = slider.isMouseOverOrDragging() && slider.isEnabled();
 
     if (slider.isEnabled()) {
-        // slider.findColour (juce::Slider::rotarySliderFillColourId).withAlpha (isMouseOver ? 0.7f : 1.0f)
         if (isMouseOver) {
             g.setColour(this->mOnColorOver);
         } else {
@@ -550,13 +559,13 @@ void SmallGrisLookAndFeel::drawToggleButton(juce::Graphics & g,
                          10);
 
     } else {
-        auto const fontSize = juce::jmin(15.0f, button.getHeight() * 0.75f);
+        auto const fontSize = juce::jmin(15.0f, narrow<float>(button.getHeight()) * 0.75f);
         auto const tickWidth = fontSize * 1.1f;
 
         drawTickBox(g,
                     button,
                     4.0f,
-                    (button.getHeight() - tickWidth) * 0.5f,
+                    (narrow<float>(button.getHeight()) - tickWidth) * 0.5f,
                     tickWidth,
                     tickWidth,
                     button.getToggleState(),
