@@ -2,11 +2,11 @@
 
 SpatGRIS is a sound spatialization software that frees composers and sound designers from the constraints of real-world speaker setups.
 
-With the ControlGRIS plugin distributed with SpatGRIS, rich spatial trajectories can be composed directly in your DAW project and reproduced in real-time on any speaker layout. It is fast, stable, cross-platform, easy to learn and works with the tools you already know.
+With the ControlGRIS plugin distributed with SpatGRIS, rich spatial trajectories can be composed directly in your DAW and reproduced in real-time on any speaker layout. It is fast, stable, cross-platform, easy to learn and works with the tools you already know.
 
 SpatGRIS supports any speaker setup, including 2D layouts like quad, 5.1 or octophonic rings, and 3D layouts like speaker domes, concert halls, theatres, etc. Projects can also be mixed down to stereo using a binaural head-related transfer function or simple stereo panning.
 
-It can handle up to 128 inputs and outputs simultaneously and features a 3D and a 2D view that help visualizing sources motions and monitor sound activity.
+It can handle up to 128 inputs and outputs simultaneously and features 3D and 2D views that help visualizing sources motions and monitor sound activity.
 
 SpatGRIS is developed by the _Groupe de recherche en immersion spatiale_ (GRIS) at Université de Montréal and is in active development. Updates are published on a regular basis.
 
@@ -21,17 +21,17 @@ If you want to use SpatGRIS and ControlGRIS on the same computer, you will need 
 
 #### MacOS
 
-We officially support using [BlackHole](https://github.com/ExistentialAudio/BlackHole). A 128 channels version is distributed with SpatGRIS.
+We officially support using [BlackHole](https://github.com/ExistentialAudio/BlackHole). A 128 channels version is distributed alongside SpatGRIS.
 
 #### Windows
 
-ASIO dissalows interfacing with two different audio devices simoultaneously. If you are internally routing audio on Windows, you will need to find a non-ASIO virtual interface. ASIO should be reserved for setups where SpatGRIS operates on a different machine than ControlGRIS and uses the same audio interface both for input and ouput.
+If you are a [Reaper](https://www.reaper.fm/) user, ReaRoute seems to be the best-working virtual interface available at this time on Windows. Because ASIO dissalows interfacing with two different audio devices simoultaneously, sound has to be sent back to Reaper.
 
-There is a donationware called [VB-CABLE Virtual Audio Device](https://vb-audio.com/Cable/) that _sorta_ works, although it sometimes seems to have trouble staying in sync with SpatGRIS and is limited to 32 channels.
+If you use an other DAW, there is a donationware called [VB-CABLE Virtual Audio Device](https://vb-audio.com/Cable/) that _sorta_ works, although it seems to have trouble staying in sync with SpatGRIS and is limited to 32 channels.
 
 #### Linux
 
-While we do not officially support any specific way of doing this, there is a lot of different ways of creating loopback audio ports with ALSA, PulseAudio or JACK.
+While we do not support a specific routing solution on Linux, there are a lot of different ways of creating loopback audio ports with either JACK, ALSA or PulseAudio.
 
 ## Building
 
@@ -67,7 +67,7 @@ On Linux :
 
 ```bash
 cd Builds/LinuxMakeFile
-make CONFIG=Release CXX=clang++-10 -j 8
+make CONFIG=Release CXX=clang++-10 -j <number_of_virtual_cores_on_your_CPU>
 ```
 
 ## Running
@@ -88,7 +88,7 @@ SpatGRIS expects an `iffffff` list (1 integer and 6 floats).
 2. (f) Azimuth angle (between 0 and 2π).
 3. (f) Elevation :
 	- In DOME mode : elevation angle (between 0 and π/2, where 0 is the pole).
-	- In CUBE mode : source height (between 0 and π/2, where 0 is the ground level and π is the maximum height).
+	- In CUBE mode : source height (between 0 and π/2, where 0 is the ground level and π/2 is the maximum height).
 4. (f) Azimuth span (between 0 and 2).
 5. (f) Elevation span (between 0 and 0.5).
 6. (f) Radius :
