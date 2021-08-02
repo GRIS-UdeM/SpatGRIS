@@ -960,7 +960,7 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
         result.addDefaultKeypress('C', juce::ModifierKeys::altModifier);
         return;
     case MainWindow::resetInputPosId:
-        result.setInfo("Reset Input Position", "Reset the position of the input sources.", generalCategory, 0);
+        result.setInfo("Reset Sources Positions", "Reset the positions of the input sources.", generalCategory, 0);
         result.addDefaultKeypress('R', juce::ModifierKeys::altModifier);
         return;
     case MainWindow::resetMeterClipping:
