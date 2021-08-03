@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<JUCERPROJECT id="MXmiSb" name="SpatGRIS" projectType="guiapp" version="3.0.0"
+              bundleIdentifier="ca.umontreal.musique.gris.spatgris" includeBinaryInAppConfig="0"
+              companyName="GRIS - UdeM" projectLineFeed="&#10;" cppLanguageStandard="17"
+              jucerFormatVersion="1" displaySplashScreen="1" maxBinaryFileSize="1048576"
+              addUsingNamespaceToJuceHeader="0">
+  <MAINGROUP id="lsxaKA" name="SpatGRIS">
+    <GROUP id="{6EAF4FF6-A4F0-94E9-AA8A-98D9BF95CA11}" name="Resources">
+      <FILE id="HYWx0V" name="JAS.jpil" compile="0" resource="1" file="Resources/JAS.jpil"
+            xcodeResource="1"/>
+      <FILE id="TMAuh7" name="ServerGRIS_icon_doc.png" compile="0" resource="1"
+            file="Resources/ServerGRIS_icon_doc.png" xcodeResource="1"/>
+      <FILE id="bC6POS" name="ServerGRIS_icon_small.png" compile="0" resource="1"
+            file="Resources/ServerGRIS_icon_small.png" xcodeResource="1"/>
+      <FILE id="YxmFrL" name="ServerGRIS_icon_splash.png" compile="0" resource="1"
+            file="Resources/ServerGRIS_icon_splash.png" xcodeResource="1"/>
+      <FILE id="FrHmyE" name="ServerGRIS_icon_splash_small.png" compile="0"
+            resource="1" file="Resources/ServerGRIS_icon_splash_small.png"
+            xcodeResource="1"/>
+      <FILE id="sL2wMU" name="SinkinSans-400Regular.otf" compile="0" resource="1"
+            file="Source/SinkinSans-400Regular.otf"/>
+      <FILE id="c5gwNH" name="SpatGRIS_3.0_Manual.pdf" compile="0" resource="0"
+            file="Resources/SpatGRIS_3.0_Manual.pdf" xcodeResource="1"/>
+      <FILE id="VMUncp" name="splash_screen.png" compile="0" resource="1"
+            file="Resources/splash_screen.png" xcodeResource="1"/>
+    </GROUP>
+    <GROUP id="{534A7161-2617-F3B1-0706-CC62D7A3FE71}" name="Source">
+      <GROUP id="{D059D036-0ECD-ACF5-4465-BDC1A866C55E}" name="Audio">
+        <GROUP id="{FB6EEEB4-BE6B-EB4A-201D-755A3CFACAAC}" name="spat">
+          <GROUP id="{F536EC3E-463E-F7C1-C73E-F95B29576CC6}" name="implementations">
+            <FILE id="zKQ5WK" name="lbap.cpp" compile="1" resource="0" file="Source/lbap.cpp"/>
+            <FILE id="G3SJU6" name="lbap.hpp" compile="0" resource="0" file="Source/lbap.hpp"/>
+            <FILE id="ihjJqS" name="vbap.cpp" compile="1" resource="0" file="Source/vbap.cpp"/>
+            <FILE id="gyI4aY" name="vbap.hpp" compile="0" resource="0" file="Source/vbap.hpp"/>
+          </GROUP>
+          <FILE id="NWnli2" name="AbstractSpatAlgorithm.cpp" compile="1" resource="0"
+                file="Source/AbstractSpatAlgorithm.cpp"/>
+          <FILE id="SuIy1P" name="AbstractSpatAlgorithm.hpp" compile="0" resource="0"
+                file="Source/AbstractSpatAlgorithm.hpp"/>
+          <FILE id="GfjSnA" name="DummySpatAlgorithm.hpp" compile="0" resource="0"
+                file="Source/DummySpatAlgorithm.hpp"/>
+          <FILE id="xSq7Rb" name="HrtfSpatAlgorithm.cpp" compile="1" resource="0"
+                file="Source/HrtfSpatAlgorithm.cpp"/>
+          <FILE id="Gx252P" name="HrtfSpatAlgorithm.hpp" compile="0" resource="0"
+                file="Source/HrtfSpatAlgorithm.hpp"/>
+          <FILE id="wPgW0E" name="LbapSpatAlgorithm.cpp" compile="1" resource="0"
+                file="Source/LbapSpatAlgorithm.cpp"/>
+          <FILE id="SRzTxM" name="LbapSpatAlgorithm.hpp" compile="0" resource="0"
+                file="Source/LbapSpatAlgorithm.hpp"/>
+          <FILE id="a5pP1T" name="StereoSpatAlgorithm.cpp" compile="1" resource="0"
+                file="Source/StereoSpatAlgorithm.cpp"/>
+          <FILE id="VHmR6h" name="StereoSpatAlgorithm.hpp" compile="0" resource="0"
+                file="Source/StereoSpatAlgorithm.hpp"/>
+          <FILE id="CKR5UT" name="VbapSpatAlgorithm.cpp" compile="1" resource="0"
+                file="Source/VbapSpatAlgorithm.cpp"/>
+          <FILE id="HLMRlF" name="VbapSpatAlgorithm.hpp" compile="0" resource="0"
+                file="Source/VbapSpatAlgorithm.hpp"/>
+        </GROUP>
+        <FILE id="S7vdPe" name="AudioManager.cpp" compile="1" resource="0"
+              file="Source/AudioManager.cpp"/>
+        <FILE id="a7tJqo" name="AudioManager.hpp" compile="0" resource="0"
+              file="Source/AudioManager.hpp"/>
+        <FILE id="MwDdU3" name="AudioProcessor.cpp" compile="1" resource="0"
+              file="Source/AudioProcessor.cpp"/>
+        <FILE id="bLDhY1" name="AudioProcessor.hpp" compile="0" resource="0"
+              file="Source/AudioProcessor.hpp"/>
+        <FILE id="PgRLbY" name="PinkNoiseGenerator.cpp" compile="1" resource="0"
+              file="Source/PinkNoiseGenerator.cpp"/>
+        <FILE id="H5EPIz" name="PinkNoiseGenerator.hpp" compile="0" resource="0"
+              file="Source/PinkNoiseGenerator.hpp"/>
+        <FILE id="Qctsv6" name="TaggedAudioBuffer.hpp" compile="0" resource="0"
+              file="Source/TaggedAudioBuffer.hpp"/>
+      </GROUP>
+      <GROUP id="{10C840A3-25DC-D3B8-3ADA-AF70CFA44CC0}" name="Concurrency">
+        <FILE id="L4t4N9" name="AtomicExchanger.hpp" compile="0" resource="0"
+              file="Source/AtomicExchanger.hpp"/>
+      </GROUP>
+      <GROUP id="{CAE9BD57-C46F-25A5-8F7E-772337A1A370}" name="Containers">
+        <FILE id="X8vUnO" name="OwnedMap.hpp" compile="0" resource="0" file="Source/OwnedMap.hpp"/>
+        <FILE id="yy5rCQ" name="StaticMap.hpp" compile="0" resource="0" file="Source/StaticMap.hpp"/>
+        <FILE id="qrPHXG" name="StaticVector.hpp" compile="0" resource="0"
+              file="Source/StaticVector.hpp"/>
+        <FILE id="UFkY7k" name="StrongArray.hpp" compile="0" resource="0" file="Source/StrongArray.hpp"/>
+      </GROUP>
+      <GROUP id="{879FD67D-521A-EC98-EB2A-A3C056EDF2C2}" name="Data">
+        <GROUP id="{A47D0E48-D57C-A616-3220-66380B687460}" name="Position">
+          <FILE id="KYw7Ga" name="CartesianVector.cpp" compile="1" resource="0"
+                file="Source/CartesianVector.cpp"/>
+          <FILE id="Fo1t1H" name="CartesianVector.hpp" compile="0" resource="0"
+                file="Source/CartesianVector.hpp"/>
+          <FILE id="wsG2iH" name="LegacyLbapPosition.cpp" compile="1" resource="0"
+                file="Source/LegacyLbapPosition.cpp"/>
+          <FILE id="mKXXtD" name="LegacyLbapPosition.hpp" compile="0" resource="0"
+                file="Source/LegacyLbapPosition.hpp"/>
+          <FILE id="XZJcvv" name="PolarVector.cpp" compile="1" resource="0" file="Source/PolarVector.cpp"/>
+          <FILE id="v4qTK2" name="PolarVector.hpp" compile="0" resource="0" file="Source/PolarVector.hpp"/>
+          <FILE id="Ud28OG" name="Position.cpp" compile="1" resource="0" file="Source/Position.cpp"/>
+          <FILE id="W9fOoX" name="Position.hpp" compile="0" resource="0" file="Source/Position.hpp"/>
+        </GROUP>
+        <FILE id="mrd0M4" name="AudioStructs.cpp" compile="1" resource="0"
+              file="Source/AudioStructs.cpp"/>
+        <FILE id="iunGqH" name="AudioStructs.hpp" compile="0" resource="0"
+              file="Source/AudioStructs.hpp"/>
+        <FILE id="ZYxwv4" name="LegacySpatFileFormat.cpp" compile="1" resource="0"
+              file="Source/LegacySpatFileFormat.cpp"/>
+        <FILE id="aVZj0s" name="LegacySpatFileFormat.hpp" compile="0" resource="0"
+              file="Source/LegacySpatFileFormat.hpp"/>
+        <FILE id="plOS8g" name="LogicStrucs.cpp" compile="1" resource="0" file="Source/LogicStrucs.cpp"/>
+        <FILE id="myBXNh" name="LogicStrucs.hpp" compile="0" resource="0" file="Source/LogicStrucs.hpp"/>
+        <FILE id="gaSzyY" name="Triplet.hpp" compile="0" resource="0" file="Source/Triplet.hpp"/>
+      </GROUP>
+      <GROUP id="{B880ED62-D15F-78F9-F83A-129573A5FA84}" name="Misc">
+        <FILE id="rIr4D3" name="constants.cpp" compile="1" resource="0" file="Source/constants.cpp"/>
+        <FILE id="JoJDHm" name="constants.hpp" compile="0" resource="0" file="Source/constants.hpp"/>
+        <FILE id="L2ry5O" name="FatalError.cpp" compile="1" resource="0" file="Source/FatalError.cpp"/>
+        <FILE id="knhaJI" name="FatalError.hpp" compile="0" resource="0" file="Source/FatalError.hpp"/>
+        <FILE id="apexeV" name="Narrow.hpp" compile="0" resource="0" file="Source/Narrow.hpp"/>
+        <FILE id="qnxZSG" name="ScopeGuard.hpp" compile="0" resource="0" file="Source/ScopeGuard.hpp"/>
+        <FILE id="c9O7Fi" name="SpatMode.cpp" compile="1" resource="0" file="Source/SpatMode.cpp"/>
+        <FILE id="wuCEse" name="SpatMode.hpp" compile="0" resource="0" file="Source/SpatMode.hpp"/>
+        <FILE id="F7hMuN" name="StrongTypes.hpp" compile="0" resource="0" file="Source/StrongTypes.hpp"/>
+        <FILE id="GdihCz" name="Warnings.hpp" compile="0" resource="0" file="Source/Warnings.hpp"/>
+      </GROUP>
+      <GROUP id="{45A32A71-2629-205C-304E-C1093B6D3F59}" name="UI">
+        <GROUP id="{202AE941-C78E-5F46-CB31-EA8A544A343C}" name="Secondary Windows">
+          <FILE id="abLCw0" name="AboutWindow.cpp" compile="1" resource="0" file="Source/AboutWindow.cpp"/>
+          <FILE id="OQhNHY" name="AboutWindow.hpp" compile="0" resource="0" file="Source/AboutWindow.hpp"/>
+          <FILE id="ZDKPXZ" name="AddRemoveSourcesWindow.cpp" compile="1" resource="0"
+                file="Source/AddRemoveSourcesWindow.cpp"/>
+          <FILE id="dyQ9gr" name="AddRemoveSourcesWindow.hpp" compile="0" resource="0"
+                file="Source/AddRemoveSourcesWindow.hpp"/>
+          <FILE id="jgvROy" name="EditSpeakersWindow.cpp" compile="1" resource="0"
+                file="Source/EditSpeakersWindow.cpp"/>
+          <FILE id="NSFdQD" name="EditSpeakersWindow.hpp" compile="0" resource="0"
+                file="Source/EditSpeakersWindow.hpp"/>
+          <FILE id="CvWdkk" name="FlatViewWindow.cpp" compile="1" resource="0"
+                file="Source/FlatViewWindow.cpp"/>
+          <FILE id="wOKsHM" name="FlatViewWindow.hpp" compile="0" resource="0"
+                file="Source/FlatViewWindow.hpp"/>
+          <FILE id="skBbdl" name="OscLogWindow.cpp" compile="1" resource="0"
+                file="Source/OscLogWindow.cpp"/>
+          <FILE id="GY7tUS" name="OscLogWindow.hpp" compile="0" resource="0"
+                file="Source/OscLogWindow.hpp"/>
+          <FILE id="Z68HbI" name="OscMonitor.cpp" compile="1" resource="0" file="Source/OscMonitor.cpp"/>
+          <FILE id="yKBv0w" name="OscMonitor.hpp" compile="0" resource="0" file="Source/OscMonitor.hpp"/>
+          <FILE id="sN01I8" name="PrepareToRecordWindow.cpp" compile="1" resource="0"
+                file="Source/PrepareToRecordWindow.cpp"/>
+          <FILE id="SEUQrE" name="PrepareToRecordWindow.hpp" compile="0" resource="0"
+                file="Source/PrepareToRecordWindow.hpp"/>
+          <FILE id="yW4r82" name="SettingsWindow.cpp" compile="1" resource="0"
+                file="Source/SettingsWindow.cpp"/>
+          <FILE id="iVF8jr" name="SettingsWindow.hpp" compile="0" resource="0"
+                file="Source/SettingsWindow.hpp"/>
+        </GROUP>
+        <GROUP id="{C6903A38-7C1A-A838-2840-26A1ED5DB75F}" name="Widgets">
+          <GROUP id="{76FB1BFC-CB57-4DB9-4F29-106D07BDDB8A}" name="MinSizedComponents">
+            <FILE id="jAqe5H" name="MinSizedComponent.hpp" compile="0" resource="0"
+                  file="Source/MinSizedComponent.hpp"/>
+            <FILE id="TqyG8K" name="SpatButton.cpp" compile="1" resource="0" file="Source/SpatButton.cpp"/>
+            <FILE id="mNIkKj" name="SpatButton.hpp" compile="0" resource="0" file="Source/SpatButton.hpp"/>
+            <FILE id="BBzzPc" name="SpatSlider.cpp" compile="1" resource="0" file="Source/SpatSlider.cpp"/>
+            <FILE id="spVbKg" name="SpatSlider.hpp" compile="0" resource="0" file="Source/SpatSlider.hpp"/>
+            <FILE id="KjXNsJ" name="SpatTextEditor.cpp" compile="1" resource="0"
+                  file="Source/SpatTextEditor.cpp"/>
+            <FILE id="wO9VUI" name="SpatTextEditor.hpp" compile="0" resource="0"
+                  file="Source/SpatTextEditor.hpp"/>
+          </GROUP>
+          <FILE id="b3MbJj" name="Box.cpp" compile="1" resource="0" file="Source/Box.cpp"/>
+          <FILE id="SP61FZ" name="Box.hpp" compile="0" resource="0" file="Source/Box.hpp"/>
+          <FILE id="uXxKAd" name="ControlPanel.cpp" compile="1" resource="0"
+                file="Source/ControlPanel.cpp"/>
+          <FILE id="GjVbGz" name="ControlPanel.hpp" compile="0" resource="0"
+                file="Source/ControlPanel.hpp"/>
+          <FILE id="AYI1c0" name="EditableTextCustomComponent.cpp" compile="1"
+                resource="0" file="Source/EditableTextCustomComponent.cpp"/>
+          <FILE id="kl6jjL" name="EditableTextCustomComponent.hpp" compile="0"
+                resource="0" file="Source/EditableTextCustomComponent.hpp"/>
+          <FILE id="cMf9k0" name="InfoPanel.cpp" compile="1" resource="0" file="Source/InfoPanel.cpp"/>
+          <FILE id="Wquel5" name="InfoPanel.hpp" compile="0" resource="0" file="Source/InfoPanel.hpp"/>
+          <FILE id="SCdZpj" name="LayoutComponent.cpp" compile="1" resource="0"
+                file="Source/LayoutComponent.cpp"/>
+          <FILE id="ssxZC6" name="LayoutComponent.hpp" compile="0" resource="0"
+                file="Source/LayoutComponent.hpp"/>
+          <FILE id="eUdCf0" name="RecordButton.cpp" compile="1" resource="0"
+                file="Source/RecordButton.cpp"/>
+          <FILE id="FWo3ih" name="RecordButton.hpp" compile="0" resource="0"
+                file="Source/RecordButton.hpp"/>
+          <FILE id="Tz4yI1" name="SpeakerViewComponent.cpp" compile="1" resource="0"
+                file="Source/SpeakerViewComponent.cpp"/>
+          <FILE id="ItaT5M" name="SpeakerViewComponent.hpp" compile="0" resource="0"
+                file="Source/SpeakerViewComponent.hpp"/>
+          <FILE id="X1cHL5" name="SubPanelComponent.cpp" compile="1" resource="0"
+                file="Source/SubPanelComponent.cpp"/>
+          <FILE id="M7d65B" name="SubPanelComponent.hpp" compile="0" resource="0"
+                file="Source/SubPanelComponent.hpp"/>
+          <FILE id="RAONSv" name="TitledComponent.cpp" compile="1" resource="0"
+                file="Source/TitledComponent.cpp"/>
+          <FILE id="djERfK" name="TitledComponent.hpp" compile="0" resource="0"
+                file="Source/TitledComponent.hpp"/>
+          <FILE id="UxDOKf" name="VuMeterComponent.cpp" compile="1" resource="0"
+                file="Source/VuMeterComponent.cpp"/>
+          <FILE id="pQThlS" name="VuMeterComponent.hpp" compile="0" resource="0"
+                file="Source/VuMeterComponent.hpp"/>
+        </GROUP>
+        <FILE id="XuxvPq" name="GlSphere.hpp" compile="0" resource="0" file="Source/GlSphere.hpp"/>
+        <FILE id="uYO3os" name="GrisLookAndFeel.cpp" compile="1" resource="0"
+              file="Source/GrisLookAndFeel.cpp"/>
+        <FILE id="vyaPdB" name="GrisLookAndFeel.hpp" compile="0" resource="0"
+              file="Source/GrisLookAndFeel.hpp"/>
+        <FILE id="I0ICQu" name="Ray.cpp" compile="1" resource="0" file="Source/Ray.cpp"/>
+        <FILE id="oaSq5k" name="Ray.hpp" compile="0" resource="0" file="Source/Ray.hpp"/>
+      </GROUP>
+      <FILE id="g2wgxx" name="Application.cpp" compile="1" resource="0" file="Source/Application.cpp"/>
+      <FILE id="ObG5vj" name="Application.hpp" compile="0" resource="0" file="Source/Application.hpp"/>
+      <FILE id="qa9nCn" name="Configuration.cpp" compile="1" resource="0"
+            file="Source/Configuration.cpp"/>
+      <FILE id="i5aeSY" name="Configuration.hpp" compile="0" resource="0"
+            file="Source/Configuration.hpp"/>
+      <FILE id="UmWQ55" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
+      <FILE id="IoOl9R" name="MainComponent.cpp" compile="1" resource="0"
+            file="Source/MainComponent.cpp"/>
+      <FILE id="eDgSPm" name="MainComponent.hpp" compile="0" resource="0"
+            file="Source/MainComponent.hpp"/>
+      <FILE id="xeds6R" name="MainWindow.cpp" compile="1" resource="0" file="Source/MainWindow.cpp"/>
+      <FILE id="MTyXJy" name="MainWindow.hpp" compile="0" resource="0" file="Source/MainWindow.hpp"/>
+      <FILE id="MSjj5i" name="OscInput.cpp" compile="1" resource="0" file="Source/OscInput.cpp"/>
+      <FILE id="oP6icJ" name="OscInput.hpp" compile="0" resource="0" file="Source/OscInput.hpp"/>
+    </GROUP>
+  </MAINGROUP>
+  <EXPORTFORMATS>
+    <XCODE_MAC targetFolder="Builds/MacOSX" externalLibraries="" extraFrameworks="GLUT"
+               customXcodeResourceFolders="Resources/default_preset&#10;Resources/hrtf_compact&#10;Resources/templates/Speaker Setups&#10;Resources/templates/Projects"
+               smallIcon="" bigIcon="YxmFrL" extraLinkerFlags="-F/Library/Frameworks"
+               microphonePermissionNeeded="1" hardenedRuntime="1" hardenedRuntimeOptions="com.apple.security.device.audio-input">
+      <CONFIGURATIONS>
+        <CONFIGURATION name="Debug" osxCompatibility="10.11 SDK" isDebug="1" optimisation="1"
+                       targetName="SpatGRIS" headerPath="../../glm" fastMath="1"/>
+        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="SpatGRIS"
+                       headerPath="../../glm" osxArchitecture="Native" fastMath="1"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_core" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_events" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_graphics" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_opengl" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_audio_basics" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_osc" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_dsp" path="../../../../../dev/JUCE/modules"/>
+      </MODULEPATHS>
+    </XCODE_MAC>
+    <LINUX_MAKE targetFolder="Builds/LinuxMakefile" smallIcon="G8JPcc" bigIcon="YxmFrL"
+                extraLinkerFlags="-lGLU -lglut">
+      <CONFIGURATIONS>
+        <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="SpatGRIS"
+                       libraryPath="/usr/lib/x86_64-linux-gnu" recommendedWarnings="LLVM"/>
+        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="SpatGRIS"
+                       libraryPath="/usr/lib/x86_64-linux-gnu" linkTimeOptimisation="1"
+                       recommendedWarnings="LLVM"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_osc" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_opengl" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_graphics" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_events" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_core" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_audio_basics" path="../../sdks/JUCE-4.3.1/modules"/>
+        <MODULEPATH id="juce_dsp" path="../../../../../dev/JUCE/modules"/>
+      </MODULEPATHS>
+    </LINUX_MAKE>
+    <VS2019 targetFolder="Builds/VisualStudio2019" bigIcon="YxmFrL">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug" headerPath="C:\dev\ASIO_SDK\common"
+                       fastMath="1"/>
+        <CONFIGURATION isDebug="0" name="Release" headerPath="C:\dev\ASIO_SDK\common"
+                       enableIncrementalLinking="1" alwaysGenerateDebugSymbols="1" fastMath="1"
+                       linkTimeOptimisation="1" usePrecompiledHeaderFile="0"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_osc" path="../../juce"/>
+        <MODULEPATH id="juce_opengl" path="../../juce"/>
+        <MODULEPATH id="juce_gui_extra" path="../../juce"/>
+        <MODULEPATH id="juce_gui_basics" path="../../juce"/>
+        <MODULEPATH id="juce_graphics" path="../../juce"/>
+        <MODULEPATH id="juce_events" path="../../juce"/>
+        <MODULEPATH id="juce_data_structures" path="../../juce"/>
+        <MODULEPATH id="juce_core" path="../../juce"/>
+        <MODULEPATH id="juce_audio_utils" path="../../juce"/>
+        <MODULEPATH id="juce_audio_processors" path="../../juce"/>
+        <MODULEPATH id="juce_audio_formats" path="../../juce"/>
+        <MODULEPATH id="juce_audio_devices" path="../../juce"/>
+        <MODULEPATH id="juce_audio_basics" path="../../juce"/>
+        <MODULEPATH id="juce_dsp" path="../../../../../dev/JUCE/modules"/>
+      </MODULEPATHS>
+    </VS2019>
+  </EXPORTFORMATS>
+  <MODULES>
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
+    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
+    <MODULE id="juce_dsp" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
+    <MODULE id="juce_opengl" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
+    <MODULE id="juce_osc" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
+  </MODULES>
+  <JUCEOPTIONS JUCE_ASIO="1" JUCE_JACK="1"/>
+  <LIVE_SETTINGS>
+    <OSX/>
+    <LINUX/>
+    <WINDOWS/>
+  </LIVE_SETTINGS>
+</JUCERPROJECT>

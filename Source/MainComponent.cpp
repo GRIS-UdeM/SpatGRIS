@@ -1,2351 +1,2242 @@
 /*
- This file is part of SpatGRIS2.
- 
- Developers: Olivier Belanger, Nicolas Masson
- 
- SpatGRIS2 is free software: you can redistribute it and/or modify
+ This file is part of SpatGRIS.
+
+ Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
+
+ SpatGRIS is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
- 
- SpatGRIS2 is distributed in the hope that it will be useful,
+
+ SpatGRIS is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
- 
+
  You should have received a copy of the GNU General Public License
- along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
+ along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "MainComponent.h"
+#include "MainComponent.hpp"
 
-// Audio recorder class used to write an interleaved multi-channel soundfile on disk.
-class AudioRenderer : public ThreadWithProgressWindow
+#include "AudioManager.hpp"
+#include "ControlPanel.hpp"
+#include "FatalError.hpp"
+#include "LegacyLbapPosition.hpp"
+#include "MainWindow.hpp"
+#include "ScopeGuard.hpp"
+#include "TitledComponent.hpp"
+#include "VuMeterComponent.hpp"
+#include "constants.hpp"
+
+static constexpr auto BUTTON_CANCEL = 0;
+static constexpr auto BUTTON_OK = 1;
+static constexpr auto BUTTON_DISCARD = 2;
+
+//==============================================================================
+static float gainToSpeakerAlpha(float const gain)
 {
-public:
-    AudioRenderer() : ThreadWithProgressWindow("Merging recorded mono files into an interleaved multi-channel file...", true, false) {
-        setStatusMessage("Initializing...");
+    static constexpr auto MIN_ALPHA{ 0.1f };
+    static constexpr auto MAX_ALPHA{ 1.0f };
+    static constexpr auto ALPHA_RANGE{ MAX_ALPHA - MIN_ALPHA };
+    static constexpr auto ALPHA_CURVE{ 0.7f };
+
+    static constexpr dbfs_t MIN_DB{ -60.0f };
+    static constexpr dbfs_t MAX_DB{ 0.0f };
+    static constexpr dbfs_t DB_RANGE{ MAX_DB - MIN_DB };
+
+    auto const clippedGain{ std::clamp(dbfs_t::fromGain(gain), MIN_DB, MAX_DB) };
+    auto const ratio{ (clippedGain - MIN_DB) / DB_RANGE };
+    jassert(ratio >= 0.0f && ratio <= 1.0f);
+    auto const result{ std::pow(ratio, ALPHA_CURVE) * ALPHA_RANGE + MIN_ALPHA };
+
+    return result;
+}
+
+//==============================================================================
+static float gainToSourceAlpha(source_index_t const sourceIndex, float const gain)
+{
+    static constexpr auto RAMP = 0.12f;
+    static constexpr auto OFF = 0.0f;
+    static constexpr auto ON = 0.8f;
+    static constexpr dbfs_t MIN_GAIN{ -80.0f };
+
+    // TODO : static variables bad
+    static StrongArray<source_index_t, float, MAX_NUM_SOURCES> lastAlphas{};
+    auto & lastAlpha{ lastAlphas[sourceIndex] };
+
+    if (dbfs_t::fromGain(gain) > MIN_GAIN) {
+        lastAlpha = ON;
+        return lastAlpha;
     }
 
-    ~AudioRenderer() {
+    if (lastAlpha <= OFF) {
+        return OFF;
     }
+
+    lastAlpha = std::max(lastAlpha - RAMP, OFF);
+    return lastAlpha;
+}
+
+//==============================================================================
+MainContentComponent::MainContentComponent(MainWindow & mainWindow,
+                                           GrisLookAndFeel & grisLookAndFeel,
+                                           SmallGrisLookAndFeel & smallGrisLookAndFeel)
+    : mLookAndFeel(grisLookAndFeel)
+    , mSmallLookAndFeel(smallGrisLookAndFeel)
+    , mMainWindow(mainWindow)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
 
     //==============================================================================
-    void prepareRecording(const File& file, const Array<File> filenames, unsigned int sampleRate) {
-        this->fileToRecord = file;
-        this->filenames = filenames;
-        this->sampleRate = sampleRate;
-    }
-
-    void run() override {
-        unsigned int numberOfPasses = 0, blockSize = 2048;
-        float factor = powf(2.0f, 31.0f);
-        int numberOfChannels = this->filenames.size();
-        String extF = this->filenames[0].getFileExtension();
-
-        int **data = new int * [2]; 
-        data[0] = new int[blockSize];
-        data[1] = 0;
-
-        float **buffer = new float * [numberOfChannels];
-        for (int i = 0; i < numberOfChannels; i++) {
-            buffer[i] = new float[blockSize];
+    auto const showSplashScreen = [&]() {
+#if NDEBUG
+        if (SPLASH_SCREEN_FILE.exists()) {
+            auto splashScreen{ std::make_unique<juce::SplashScreen>("SpatGRIS3",
+                                                                    juce::ImageFileFormat::loadFrom(SPLASH_SCREEN_FILE),
+                                                                    true) };
+            splashScreen->deleteAfterDelay(juce::RelativeTime::seconds(3.5), true);
+            splashScreen.release();
         }
+#endif
+    };
 
-        formatManager.registerBasicFormats();
-        AudioFormatReader *readers[MaxOutputs];
-        for (int i = 0; i < numberOfChannels; i++) {
-            readers[i] = formatManager.createReaderFor(filenames[i]);
-        }
+    //==============================================================================
+    auto const initAppData = [&]() { mData.appData = mConfiguration.load(); };
 
-        unsigned int duration = (unsigned int)readers[0]->lengthInSamples;
-        unsigned int howmanyPasses = duration / blockSize;
+    //==============================================================================
+    auto const initGui = [&]() {
+        // Set look and feel
+        juce::LookAndFeel::setDefaultLookAndFeel(&grisLookAndFeel);
 
-        // Create an OutputStream to write to our destination file.
-        this->fileToRecord.deleteFile();
-        std::unique_ptr<FileOutputStream> fileStream (this->fileToRecord.createOutputStream());
+        // Create the menu bar.
+        mMenuBar.reset(new juce::MenuBarComponent(this));
+        addAndMakeVisible(mMenuBar.get());
 
-        AudioFormatWriter *writer;
+        // SpeakerViewComponent 3D view
+        mSpeakerViewComponent.reset(new SpeakerViewComponent(*this));
+        addAndMakeVisible(mSpeakerViewComponent.get());
 
-        if (fileStream != nullptr) {
-            // Now create a writer object that writes to our output stream...
-            if (extF == ".wav") {
-                WavAudioFormat wavFormat;
-                writer = wavFormat.createWriterFor(fileStream.get(), this->sampleRate, numberOfChannels, 24, NULL, 0);
-            } else {
-                AiffAudioFormat aiffFormat;
-                writer = aiffFormat.createWriterFor(fileStream.get(), this->sampleRate, numberOfChannels, 24, NULL, 0);
+        // Box Main
+        mMainLayout
+            = std::make_unique<LayoutComponent>(LayoutComponent::Orientation::vertical, false, true, grisLookAndFeel);
+
+        // info panel
+        mInfoPanel = std::make_unique<InfoPanel>(*this, mLookAndFeel);
+
+        // Control panel
+        mControlPanel = std::make_unique<ControlPanel>(*this, mLookAndFeel);
+        mControlsSection = std::make_unique<TitledComponent>("Controls", mControlPanel.get(), mLookAndFeel);
+        mControlPanel->setSpatMode(mData.speakerSetup.spatMode);
+        mControlPanel->setCubeAttenuationDb(mData.project.lbapDistanceAttenuationData.attenuation);
+        mControlPanel->setCubeAttenuationHz(mData.project.lbapDistanceAttenuationData.freq);
+        mControlPanel->setStereoMode(mData.appData.stereoMode);
+        mControlPanel->setStereoRouting(mData.appData.stereoRouting);
+
+        // Source panel
+        mSourcesInnerLayout
+            = std::make_unique<LayoutComponent>(LayoutComponent::Orientation::horizontal, true, false, grisLookAndFeel);
+        mSourcesOuterLayout = std::make_unique<LayoutComponent>(LayoutComponent::Orientation::horizontal,
+                                                                false,
+                                                                false,
+                                                                grisLookAndFeel);
+        mSourcesOuterLayout->addSection(*mSourcesInnerLayout).withRelativeSize(1.0f);
+        mSourcesOuterLayout->addSection(mAddRemoveSourcesButton).withChildMinSize();
+        mSourcesSection = std::make_unique<TitledComponent>("Sources", mSourcesOuterLayout.get(), grisLookAndFeel);
+
+        // Speaker panel
+        mSpeakersLayout
+            = std::make_unique<LayoutComponent>(LayoutComponent::Orientation::horizontal, true, false, grisLookAndFeel);
+        mSpeakersSection = std::make_unique<TitledComponent>("Speakers", mSpeakersLayout.get(), mLookAndFeel);
+
+        // main sections
+        mMainLayout->addSection(mInfoPanel.get()).withChildMinSize().withRightPadding(5);
+        mMainLayout->addSection(mSourcesSection.get()).withRelativeSize(1.0f).withRightPadding(5);
+        mMainLayout->addSection(mSpeakersSection.get()).withRelativeSize(1.0f).withRightPadding(5);
+        mMainLayout->addSection(mControlsSection.get()).withChildMinSize().withBottomPadding(5).withRightPadding(5);
+
+        addAndMakeVisible(mMainLayout.get());
+
+        // Set up the layout and resize bars.
+        mVerticalLayout.setItemLayout(0,
+                                      -0.2,
+                                      -0.8,
+                                      -0.435); // width of the speaker view must be between 20% and 80%, preferably 50%
+        mVerticalLayout.setItemLayout(1, 8, 8, 8); // the vertical divider drag-bar thing is always 8 pixels wide
+        mVerticalLayout.setItemLayout(
+            2,
+            150.0,
+            -1.0,
+            -0.565); // right panes must be at least 150 pixels wide, preferably 50% of the total width
+        mVerticalDividerBar.reset(new juce::StretchableLayoutResizerBar(&mVerticalLayout, 1, true));
+        addAndMakeVisible(mVerticalDividerBar.get());
+
+        // Default application window size.
+        setSize(1285, 610);
+
+        // Restore last vertical divider position and speaker view cam distance.
+        auto const sashPosition{ mData.appData.sashPosition };
+        auto const trueSize{ narrow<int>(std::round(narrow<double>(getWidth() - 3) * std::abs(sashPosition))) };
+        mVerticalLayout.setItemPosition(1, trueSize);
+
+        mSpeakerViewComponent->setCameraPosition(mData.appData.cameraPosition);
+    };
+
+    //==============================================================================
+    auto const initProject = [&]() {
+        auto const success{ loadProject(mData.appData.lastProject, true) };
+        if (!success) {
+            if (!loadProject(DEFAULT_PROJECT_FILE, true)) {
+                fatalError("Unable to load the default project file.", this);
             }
+        }
+    };
 
-            if (writer != nullptr) {
-                fileStream.release(); // (passes responsibility for deleting the stream to the writer object that is now using it)
+    //==============================================================================
+    auto const initSpeakerSetup = [&]() {
+        if (!loadSpeakerSetup(mData.appData.lastSpeakerSetup, LoadSpeakerSetupOption::allowDiscardingUnsavedChanges)) {
+            if (!loadSpeakerSetup(DEFAULT_SPEAKER_SETUP_FILE, LoadSpeakerSetupOption::allowDiscardingUnsavedChanges)) {
+                fatalError("Unable to load the default speaker setup", this);
             }
         }
+    };
 
-        while ((numberOfPasses * blockSize) < duration) {
-            // this will update the progress bar on the dialog box
-            setProgress (numberOfPasses / (double)howmanyPasses);
+    //==============================================================================
+    auto const initAudioManager = [&]() {
+        auto const & audioSettings{ mData.appData.audioSettings };
+        AudioManager::init(audioSettings.deviceType,
+                           audioSettings.inputDevice,
+                           audioSettings.outputDevice,
+                           audioSettings.sampleRate,
+                           audioSettings.bufferSize,
+                           mData.appData.stereoMode ? tl::make_optional(mData.appData.stereoRouting) : tl::nullopt);
+    };
 
-            setStatusMessage("Processing...");
+    //==============================================================================
+    auto const initAudioProcessor = [&]() {
+        mAudioProcessor = std::make_unique<AudioProcessor>();
+        juce::ScopedLock const audioLock{ mAudioProcessor->getLock() };
+        auto & audioManager{ AudioManager::getInstance() };
+        audioManager.registerAudioProcessor(mAudioProcessor.get());
+        AudioManager::getInstance().getAudioDeviceManager().addChangeListener(this);
+        audioParametersChanged();
+    };
 
-            for (int i = 0; i < numberOfChannels; i++) {
-                readers[i]->read(data, 1, numberOfPasses * blockSize, blockSize, false);
-                for (unsigned int j = 0; j < blockSize; j++) {
-                    buffer[i][j] = data[0][j] / factor;
-                }
-            }
-            writer->writeFromFloatArrays(buffer, numberOfChannels, blockSize);
-            numberOfPasses++;
-            wait(1);
-        }
+    //==============================================================================
+    auto const startOsc = [&]() {
+        mOscInput.reset(new OscInput(*this));
+        mOscInput->startConnection(mData.project.oscPort);
+    };
 
-        if (writer != nullptr)
-            delete writer;
+    //==============================================================================
+    auto const initCommandManager = [&]() {
+        auto & commandManager{ mMainWindow.getApplicationCommandManager() };
+        commandManager.registerAllCommandsForTarget(this);
+    };
 
-        setProgress(-1.0); // setting a value beyond the range 0 -> 1 will show a spinning bar.
-        setStatusMessage("Finishing the creation of the multi-channel file!");
+    // Load app config
+    showSplashScreen();
+    initAppData();
+    initGui();
+    initProject();
+    initSpeakerSetup();
+    initAudioManager();
+    initAudioProcessor();
 
-        // Delete the monophonic files.
-        for (auto&& it : this->filenames) {
-            it.deleteFile();
-            wait(50);
-        }
-        wait(1000);
-    }
+    // juce::ScopedLock const audioLock{ mAudioProcessor->getLock() };
 
-    // This method gets called on the message thread once our thread has finished..
-    void threadComplete (bool userPressedCancel) override {
-        // thread finished normally.
-        AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon,
-                                         "Multi-channel processing window",
-                                         "Merging files finished!");
-
-        // Clean up by deleting our thread object.
-        delete this;
-    }
-
-private:
-    AudioFormatManager formatManager;
-    File fileToRecord;
-    Array<File> filenames;
-    unsigned int sampleRate;
-};
-
-MainContentComponent::MainContentComponent(DocumentWindow *parent)
-{
-    this->parent = parent;
-
-    LookAndFeel::setDefaultLookAndFeel(&mGrisFeel);
-
-    // Create the menubar.
-    menuBar.reset( new MenuBarComponent (this));
-    this->addAndMakeVisible(menuBar.get());
-
-    // Start the Splash screen.
-    File fs = File(SplashScreenFilePath);
-    if (fs.exists()) {
-        this->splash = new SplashScreen("SpatGRIS2", ImageFileFormat::loadFrom(fs), true);
-    }
-    
-    // App user settings storage file.
-    PropertiesFile::Options options;
-    options.applicationName = "SpatGRIS2";
-    options.commonToAllUsers = false;
-    options.filenameSuffix = "xml";
-    options.folderName = "GRIS";
-    options.storageFormat = PropertiesFile::storeAsXML;
-    options.ignoreCaseOfKeyNames = true;
-    options.osxLibrarySubFolder = "Application Support";
-    this->applicationProperties.setStorageParameters(options);
-
-    PropertiesFile *props = this->applicationProperties.getUserSettings();
-
-    // Initialize class variables.
-    this->isProcessForeground = true;
-    this->isNumbersShown = false;
-    this->isSpeakersShown = true;
-    this->isTripletsShown = false;
-    this->isSourceLevelShown = false;
-    this->isSphereShown = false;
-    this->isSpanShown = true;
-    this->isRecording = false;
-
-    // Get a reference to the last opened VBAP speaker setup.
-    File lastVbap = File(props->getValue("lastVbapSpeakerSetup", "./not_saved_yet"));
-    if (!lastVbap.existsAsFile()) {
-        this->pathLastVbapSpeakerSetup = DefaultSpeakerSetupFilePath;
-    }
-    else {
-        this->pathLastVbapSpeakerSetup = props->getValue("lastVbapSpeakerSetup");
-    }
-
-    this->listSpeaker = vector<Speaker *>();
-    this->listSourceInput = vector<Input *>();
-    
-    this->lockSpeakers = new mutex();
-    this->lockInputs = new mutex();
-    
-    this->winSpeakConfig = nullptr;
-    this->windowProperties = nullptr;
-    this->winControlSource = nullptr;
-    this->aboutWindow = nullptr;
-    this->oscLogWindow = nullptr;
-
-    // SpeakerViewComponent 3D view
-    this->speakerView = new SpeakerViewComponent(this);
-    addAndMakeVisible(this->speakerView);
-
-    // Box Main
-    this->boxMainUI = new Box(&mGrisFeel, "", true, false);
-    addAndMakeVisible(this->boxMainUI);
-
-    // Box Inputs
-    this->boxInputsUI = new Box(&mGrisFeel, "Inputs");
-    addAndMakeVisible(this->boxInputsUI);
-    
-    // Box Outputs
-    this->boxOutputsUI = new Box(&mGrisFeel, "Outputs");
-    addAndMakeVisible(this->boxOutputsUI);
-    
-    // Box Control
-    this->boxControlUI = new Box(&mGrisFeel);
-    addAndMakeVisible(this->boxControlUI);
-
-    this->boxMainUI->getContent()->addAndMakeVisible(this->boxInputsUI);
-    this->boxMainUI->getContent()->addAndMakeVisible(this->boxOutputsUI);
-    this->boxMainUI->getContent()->addAndMakeVisible(this->boxControlUI);
-
-    // Components in Box Control
-    this->labelJackStatus = addLabel("Jack Unknown", "Jack Status", 0, 0, 80, 28, this->boxControlUI->getContent());
-    this->labelJackLoad = addLabel("0.000000 %", "Load Jack CPU", 80, 0, 80, 28, this->boxControlUI->getContent());
-    this->labelJackRate = addLabel("00000 Hz", "Rate", 160, 0, 80, 28, this->boxControlUI->getContent());
-    this->labelJackBuffer = addLabel("0000 spls", "Buffer Size", 240, 0, 80, 28, this->boxControlUI->getContent());
-    this->labelJackInfo = addLabel("...", "Jack Inputs/Outputs system", 320, 0, 90, 28, this->boxControlUI->getContent());
-    
-    this->labelJackStatus->setColour(Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
-    this->labelJackLoad->setColour(Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
-    this->labelJackRate->setColour(Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
-    this->labelJackBuffer->setColour(Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
-    this->labelJackInfo->setColour(Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
-
-    addLabel("Gain", "Master Gain Outputs", 15, 30, 120, 20, this->boxControlUI->getContent());
-    this->sliderMasterGainOut = addSlider("Master Gain", "Master Gain Outputs", 5, 45, 60, 60, this->boxControlUI->getContent());
-    this->sliderMasterGainOut->setRange(-60.0, 12.0, 0.01);
-    this->sliderMasterGainOut->setTextValueSuffix(" dB");
-    
-    addLabel("Interpolation", "Master Interpolation", 60, 30, 120, 20, this->boxControlUI->getContent());
-    this->sliderInterpolation = addSlider("Inter", "Interpolation", 70, 45, 60, 60, this->boxControlUI->getContent());
-    this->sliderInterpolation->setRange(0.0, 1.0, 0.001);
-
-    addLabel("Mode :", "Mode of spatilization", 150, 30, 60, 20, this->boxControlUI->getContent());
-    this->comBoxModeSpat = addComboBox("", "Mode of spatilization", 155, 48, 90, 22, this->boxControlUI->getContent());
-    for (int i = 0; i < ModeSpatString.size(); i++) {
-        this->comBoxModeSpat->addItem(ModeSpatString[i], i+1);
-    }
-
-    this->tedAddInputs = addTextEditor("Inputs :", "0", "Numbers of Inputs", 122, 83, 43, 22, this->boxControlUI->getContent());
-    this->tedAddInputs->setInputRestrictions(3, "0123456789");
-
-    this->butInitRecord = addButton("Init Recording", "Init Recording", 268, 48, 103, 24, this->boxControlUI->getContent());
-    
-    this->butStartRecord = addButton("Record", "Start/Stop Record", 268, 83, 60, 24, this->boxControlUI->getContent());
-    this->butStartRecord->setEnabled(false);
-
-    this->labelTimeRecorded = addLabel("00:00","Record time", 327, 83, 50, 24,this->boxControlUI->getContent());
-
-    // Jack client box.
-    this->boxClientJack = new BoxClient(this, &mGrisFeel);
-    this->boxClientJack->setBounds(410, 0, 304, 138);
-    this->boxControlUI->getContent()->addAndMakeVisible(this->boxClientJack);
-    
-    // Set up the layout and resizer bars.
-    this->verticalLayout.setItemLayout(0, -0.2, -0.8, -0.435); // width of the speaker view must be between 20% and 80%, preferably 50%
-    this->verticalLayout.setItemLayout(1, 8, 8, 8);          // the vertical divider drag-bar thing is always 8 pixels wide
-    this->verticalLayout.setItemLayout(2, 150, -1.0, -0.565);  // right panes must be at least 150 pixels wide, preferably 50% of the total width
-    this->verticalDividerBar.reset( new StretchableLayoutResizerBar (&verticalLayout, 1, true));
-    this->addAndMakeVisible (verticalDividerBar.get());
-
-    // Default application window size.
-    this->setSize(1285, 610);
-
-    // Jack Initialization parameters.
-    unsigned int BufferValue = props->getIntValue("BufferValue", 1024);
-    unsigned int RateValue = props->getIntValue("RateValue", 48000);
-    
-    if (std::isnan(float(BufferValue)) || BufferValue == 0 || std::isnan(float(RateValue)) || RateValue == 0) {
-        BufferValue = 1024;
-        RateValue = 48000;
-    }
-
-    this->samplingRate = RateValue;
-
-    // Start Jack Server and client.
-    int errorCode = 0;
-    alsaOutputDevice = props->getValue("AlsaOutputDevice", "");
-    this->jackServer = new jackServerGRIS(RateValue, BufferValue, alsaOutputDevice, &errorCode);
-    if (errorCode > 0) {
-        String msg;
-        if (errorCode == 1) { msg = "Failed to create Jack server..."; }
-        else if (errorCode == 2) { msg = "Failed to open Jack server..."; }
-        else if (errorCode == 3) { msg = "Failed to start Jack server..."; }
-        AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon,
-                                         "Jack Server Failure",
-                                         msg + String("\nYou should check for any mismatch between the server and your device\n(Sampling Rate, Input/Ouput Channels, etc.)"));
-    }
-    this->jackClient = new jackClientGris();
-
-    alsaAvailableOutputDevices = this->jackServer->getAvailableOutputDevices();
-
-    unsigned int fileformat = props->getIntValue("FileFormat", 0);
-    this->jackClient->setRecordFormat(fileformat);
-    unsigned int fileconfig = props->getIntValue("FileConfig", 0);
-    this->jackClient->setRecordFileConfig(fileconfig);
-
-    if (!jackClient->isReady()) {
-        this->labelJackStatus->setText("Jack ERROR", dontSendNotification);
-    } else {
-        this->labelJackStatus->setText("Jack Run", dontSendNotification);
-    }
-
-    this->labelJackRate->setText(String(this->jackClient->sampleRate) + " Hz", dontSendNotification);
-    this->labelJackBuffer->setText(String(this->jackClient->bufferSize) + " spls", dontSendNotification);
-    this->labelJackInfo->setText("I : " + String(this->jackClient->numberOutputs) +
-                                 " - O : " + String(this->jackClient->numberInputs), dontSendNotification);
-
-    //Start the OSC Receiver.
-    this->oscReceiver = new OscInput(this);
-    this->oscReceiver->startConnection(this->oscInputPort);
-
-    // Default widget values.
-    this->sliderMasterGainOut->setValue(0.0);
-    this->sliderInterpolation->setValue(0.1);
-    this->comBoxModeSpat->setSelectedId(1);
-
-    this->tedAddInputs->setText("16", dontSendNotification);
-    textEditorReturnKeyPressed(*this->tedAddInputs);
-
-    // Open the default preset if lastOpenPreset is not a valid file.
-    File preset = File(props->getValue("lastOpenPreset", "./not_saved_yet"));
-    if (!preset.existsAsFile()) {
-        this->openPreset(DefaultPresetFilePath);
-    }
-    else {
-        this->openPreset(props->getValue("lastOpenPreset"));
-    }
-
-    // Open the default speaker setup if lastOpenSpeakerSetup is not a valid file.
-    File setup = File(props->getValue("lastOpenSpeakerSetup", "./not_saved_yet"));
-    if (!setup.existsAsFile()) {
-        this->openXmlFileSpeaker(DefaultSpeakerSetupFilePath);
-    }
-    else {
-        this->openXmlFileSpeaker(props->getValue("lastOpenSpeakerSetup"));
-    }
+    startOsc();
+    initCommandManager();
 
     // End layout and start refresh timer.
-    this->resized();
+    resized();
     startTimerHz(24);
-    
-    //End Splash screen.
-    if (this->splash) {
-        this->splash->deleteAfterDelay(RelativeTime::seconds(4), false);
+}
+
+//==============================================================================
+MainContentComponent::~MainContentComponent()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    mOscInput.reset();
+
+    {
+        juce::ScopedWriteLock const lock{ mLock };
+
+        auto const bounds{ MainWindow::getMainAppWindow()->DocumentWindow::getBounds() };
+        mData.appData.windowX = bounds.getX();
+        mData.appData.windowY = bounds.getY();
+        mData.appData.windowWidth = bounds.getWidth();
+        mData.appData.windowHeight = bounds.getHeight();
+        mData.appData.sashPosition = mVerticalLayout.getItemCurrentRelativeSize(0);
+        mData.appData.cameraPosition = mSpeakerViewComponent->getCameraPosition();
+
+        mConfiguration.save(mData.appData);
     }
 
-    // Initialize the command manager for the menubar items.
-    ApplicationCommandManager* commandManager = &MainWindow::getApplicationCommandManager();
-    commandManager->registerAllCommandsForTarget(this);
+    mSpeakerViewComponent.reset();
+}
 
-    // Restore last vertical divider position and speaker view cam distance.
-    if (props->containsKey("sashPosition")) {
-        int trueSize = (int)round((this->getWidth() - 3) * abs(props->getDoubleValue("sashPosition")));
-        this->verticalLayout.setItemPosition(1, trueSize);
+//==============================================================================
+juce::ApplicationCommandTarget * MainContentComponent::getNextCommandTarget()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    return findFirstTargetParentComponent();
+}
+
+//==============================================================================
+void MainContentComponent::handleNewProject()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    auto const success{ loadProject(DEFAULT_PROJECT_FILE, false) };
+    if (!success) {
+        fatalError("Unable to load the default project file.", this);
     }
 }
 
-MainContentComponent::~MainContentComponent() {
-    PropertiesFile *props = this->applicationProperties.getUserSettings();
-    props->setValue("lastOpenPreset", this->pathCurrentPreset);
-    props->setValue("lastOpenSpeakerSetup", this->pathCurrentFileSpeaker);
-    props->setValue("lastVbapSpeakerSetup", this->pathLastVbapSpeakerSetup);
-    props->setValue("sashPosition", this->verticalLayout.getItemCurrentRelativeSize(0));
-    this->applicationProperties.saveIfNeeded();
-    this->applicationProperties.closeFiles();
+//==============================================================================
+bool MainContentComponent::loadProject(juce::File const & file, bool const discardCurrentProject)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
 
-    delete this->oscReceiver;
-    
-    if (this->winSpeakConfig != nullptr) {
-        delete this->winSpeakConfig;
-    }
-    if (this->windowProperties != nullptr) {
-        delete this->windowProperties;
-    }
-    if (this->winControlSource != nullptr) {
-        delete this->winControlSource;
+    if (!discardCurrentProject) {
+        if (!makeSureProjectIsSavedToDisk()) {
+            return false;
+        }
     }
 
-    delete this->speakerView;
+    auto const displayError = [&](juce::String const & error) {
+        juce::AlertWindow::showNativeDialogBox("Unable to load SpatGRIS project.", error, false);
+    };
 
-    this->lockSpeakers->lock();
-    for (auto&& it : this->listSpeaker) {
-        delete (it);
+    if (!file.existsAsFile()) {
+        displayError("File \"" + file.getFullPathName() + "\" does not exists.");
+        return false;
     }
-    this->listSpeaker.clear();
-    this->lockSpeakers->unlock();
-    delete this->lockSpeakers;
 
-    this->lockInputs->lock();
-    for (auto&& it : this->listSourceInput) {
-        delete (it);
+    juce::XmlDocument xmlDoc{ file };
+    auto const mainXmlElem{ xmlDoc.getDocumentElement() };
+
+    if (!mainXmlElem) {
+        displayError("File \"" + file.getFullPathName() + "\" is corrupted.\n" + xmlDoc.getLastParseError());
+        return false;
     }
-    this->listSourceInput.clear();
-    this->lockInputs->unlock();
-    delete this->lockInputs;
-   
-    delete this->boxInputsUI;
-    delete this->boxOutputsUI;
-    delete this->boxControlUI;
-    delete this->boxMainUI;
 
-    delete this->jackClient;
-    delete this->jackServer;
-}
-
-// Widget builder utilities.
-Label* MainContentComponent::addLabel(const String &s, const String &stooltip,
-                                      int x, int y, int w, int h, Component *into) {
-    Label *lb = new Label();
-    lb->setText(s, NotificationType::dontSendNotification);
-    lb->setTooltip(stooltip);
-    lb->setJustificationType(Justification::left);
-    lb->setFont(mGrisFeel.getFont());
-    lb->setLookAndFeel(&mGrisFeel);
-    lb->setColour(Label::textColourId, mGrisFeel.getFontColour());
-    lb->setBounds(x, y, w, h);
-    into->addAndMakeVisible(lb);
-    return lb;
-}
-
-TextButton* MainContentComponent::addButton(const String &s, const String &stooltip,
-                                            int x, int y, int w, int h, Component *into) {
-    TextButton *tb = new TextButton();
-    tb->setTooltip(stooltip);
-    tb->setButtonText(s);
-    tb->setSize(w, h);
-    tb->setTopLeftPosition(x, y);
-    tb->addListener(this);
-    tb->setColour(ToggleButton::textColourId, mGrisFeel.getFontColour());
-    tb->setLookAndFeel(&mGrisFeel);
-    into->addAndMakeVisible(tb);
-    return tb;
-}
-
-ToggleButton* MainContentComponent::addToggleButton(const String &s, const String &stooltip,
-                                                    int x, int y, int w, int h, Component *into, bool toggle) {
-    ToggleButton *tb = new ToggleButton();
-    tb->setTooltip(stooltip);
-    tb->setButtonText(s);
-    tb->setToggleState(toggle, dontSendNotification);
-    tb->setSize(w, h);
-    tb->setTopLeftPosition(x, y);
-    tb->addListener(this);
-    tb->setColour(ToggleButton::textColourId, mGrisFeel.getFontColour());
-    tb->setLookAndFeel(&mGrisFeel);
-    into->addAndMakeVisible(tb);
-    return tb;
-}
-
-TextEditor* MainContentComponent::addTextEditor(const String &s, const String &emptyS, const String &stooltip,
-                                                int x, int y, int w, int h, Component *into, int wLab) {
-    TextEditor *te = new TextEditor();
-    te->setTooltip(stooltip);
-    te->setTextToShowWhenEmpty(emptyS, mGrisFeel.getOffColour());
-    te->setColour(ToggleButton::textColourId, mGrisFeel.getFontColour());
-    te->setLookAndFeel(&mGrisFeel);
-    
-    if (s.isEmpty()) {
-        te->setBounds(x, y, w, h);
-    } else {
-        te->setBounds(x+wLab, y, w, h);
-        Label *lb =addLabel(s, "", x, y, wLab, h, into);
-        lb->setJustificationType(Justification::centredRight);
+    if (mainXmlElem->hasTagName("SpeakerSetup") || mainXmlElem->hasTagName(SpeakerSetup::XmlTags::MAIN_TAG)) {
+        // Wrong file type
+        displayError("File \"" + file.getFullPathName() + "\" is a Speaker Setup, not a project.");
+        return false;
     }
-    
-    te->addListener(this);
-    into->addAndMakeVisible(te);
-    return te;
+
+    auto projectData{ SpatGrisProjectData::fromXml(*mainXmlElem) };
+    if (!projectData) {
+        auto const version{ SpatGrisVersion::fromString(
+            mainXmlElem->getStringAttribute(SpatGrisProjectData::XmlTags::VERSION)) };
+        if (version.compare(SPAT_GRIS_VERSION) > 0) {
+            displayError("This project was created using a newer version of SpatGRIS that is not compatible with this "
+                         "one.\nPlease upgrade to the latest version.");
+            return false;
+        }
+        // Missing params
+        displayError("File \"" + file.getFullPathName()
+                     + "\" is missing one more mandatory parameters.\nYour file might be corrupted.");
+        return false;
+    }
+
+    mData.project = std::move(*projectData);
+    mData.appData.lastProject = file.getFullPathName();
+
+    mControlPanel->setMasterGain(mData.project.masterGain);
+    mControlPanel->setInterpolation(mData.project.spatGainsInterpolation);
+
+    refreshAudioProcessor();
+    refreshViewportConfig();
+    setTitles();
+    refreshSourceVuMeterComponents();
+
+    return true;
 }
 
-Slider* MainContentComponent::addSlider(const String &s, const String &stooltip,
-                                        int x, int y, int w, int h, Component *into) {
-    Slider *sd = new Slider();
-    sd->setTooltip(stooltip);
-    sd->setSize(w, h);
-    sd->setTopLeftPosition(x, y);
-    sd->setSliderStyle(Slider::Rotary);
-    sd->setRotaryParameters(M_PI * 1.3f, M_PI * 2.7f, true);
-    sd->setTextBoxStyle (Slider::TextBoxBelow, false, 60, 20);
-    sd->setColour(ToggleButton::textColourId, mGrisFeel.getFontColour());
-    sd->setLookAndFeel(&mGrisFeel);
-    sd->addListener(this);
-    into->addAndMakeVisible(sd);
-    return sd;
-}
+//==============================================================================
+void MainContentComponent::handleOpenProject()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
 
-ComboBox* MainContentComponent::addComboBox(const String &s, const String &stooltip,
-                                            int x, int y, int w, int h, Component *into) {
-    ComboBox *cb = new ComboBox();
-    cb->setTooltip(stooltip);
-    cb->setSize(w, h);
-    cb->setTopLeftPosition(x, y);
-    cb->setLookAndFeel(&mGrisFeel);
-    cb->addListener(this);
-    into->addAndMakeVisible(cb);
-    return cb;
-}
+    juce::File const & lastProject{ mData.appData.lastProject };
+    juce::File const initialPath{ lastProject.isAChildOf(CURRENT_WORKING_DIR) ? juce::File::getSpecialLocation(
+                                      juce::File::SpecialLocationType::userDocumentsDirectory)
+                                                                              : lastProject };
 
-// Menu item action handlers.
-void MainContentComponent::handleNew() {
-    AlertWindow alert ("Closing current preset !", "Do you want to save ?", AlertWindow::InfoIcon);
-    alert.setLookAndFeel(&mGrisFeel);
-    alert.addButton ("Cancel", 0, KeyPress(KeyPress::deleteKey));
-    alert.addButton ("yes", 1, KeyPress(KeyPress::returnKey));
-    alert.addButton ("No", 2, KeyPress(KeyPress::escapeKey));
+    juce::FileChooser fc{ "Choose a file to open...", initialPath, "*.xml", true, false, this };
 
-    int status = alert.runModalLoop();
-    if (status == 1) {
-        this->handleSavePreset();
-    } else if (status == 0) {
+    if (!fc.browseForFileToOpen()) {
         return;
     }
 
-    this->openPreset(DefaultPresetFilePath);
+    auto const chosen{ fc.getResult() };
+
+    [[maybe_unused]] auto const success{ loadProject(chosen, false) };
+    jassert(success);
 }
 
-void MainContentComponent::handleOpenPreset() {
-    String dir = this->applicationProperties.getUserSettings()->getValue("lastPresetDirectory");
-    if (! File(dir).isDirectory()) {
-        dir = File("~").getFullPathName();
-    }
-    String filename = File(this->pathCurrentPreset).getFileName();
-    
-    FileChooser fc ("Choose a file to open...", dir + "/" + filename, "*.xml", UseOSNativeDialogBox);
+//==============================================================================
+void MainContentComponent::handleSaveProject()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
 
-    bool loaded = false;
-    if (fc.browseForFileToOpen()) {
-        String chosen = fc.getResults().getReference(0).getFullPathName();
-        AlertWindow alert ("Open Project !", 
-                           "You want to load : " + chosen + "\nEverything not saved will be lost !", 
-                           AlertWindow::WarningIcon);
-        alert.setLookAndFeel(&mGrisFeel);
-        alert.addButton ("Cancel", 0, KeyPress(KeyPress::escapeKey));
-        alert.addButton ("Ok", 1, KeyPress(KeyPress::returnKey));
-        if (alert.runModalLoop() != 0) {
-            this->openPreset(chosen);
-            loaded = true;
-        }
+    [[maybe_unused]] auto const success{ saveProject(mData.appData.lastProject) };
+}
+
+//==============================================================================
+void MainContentComponent::handleSaveProjectAs()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
+    [[maybe_unused]] auto const success{ saveProject(tl::nullopt) };
+}
+
+//==============================================================================
+void MainContentComponent::handleOpenSpeakerSetup()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
+    juce::File const lastSetup{ mData.appData.lastSpeakerSetup };
+
+    auto const initialFile{ lastSetup.isAChildOf(CURRENT_WORKING_DIR) ? juce::File::getSpecialLocation(
+                                juce::File::SpecialLocationType::userDocumentsDirectory)
+                                                                      : lastSetup };
+
+    juce::FileChooser fc{ "Choose a file to open...", initialFile, "*.xml", true };
+
+    if (!fc.browseForFileToOpen()) {
+        return;
     }
 
-    if (loaded) { // Check for direct out OutputPatch mismatch.
-        for (auto&& it : listSourceInput) {
-            if (it->getDirectOutChannel() != 0) {
-                vector<int> directOutOutputPatches = this->jackClient->getDirectOutOutputPatches();
-                if (std::find(directOutOutputPatches.begin(),
-                              directOutOutputPatches.end(),
-                              it->getDirectOutChannel()) == directOutOutputPatches.end())
-                {
-                    AlertWindow alert ("Direct Out Mismatch!",
-                                        "Some of the direct out channels of this project don't exist in the current speaker setup.\n",
-                                        AlertWindow::WarningIcon);
-                    alert.setLookAndFeel(&mGrisFeel);
-                    alert.addButton ("Ok", 1, KeyPress(KeyPress::returnKey));
-                    alert.runModalLoop();
-                    break;
+    auto const chosen{ fc.getResult() };
+    [[maybe_unused]] auto const success{ loadSpeakerSetup(chosen,
+                                                          LoadSpeakerSetupOption::disallowDiscardingUnsavedChanges) };
+}
+
+//==============================================================================
+void MainContentComponent::handleSaveSpeakerSetupAs()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
+    [[maybe_unused]] auto const success{ saveSpeakerSetup(tl::nullopt) };
+}
+
+//==============================================================================
+void MainContentComponent::closeSpeakersConfigurationWindow()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    mEditSpeakersWindow.reset();
+}
+
+//==============================================================================
+void MainContentComponent::handleShowSpeakerEditWindow()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
+    if (mEditSpeakersWindow == nullptr) {
+        auto const windowName = juce::String{ "Speakers Setup Edition - " }
+                                + spatModeToString(mData.speakerSetup.spatMode) + " - "
+                                + juce::File{ mData.appData.lastSpeakerSetup }.getFileNameWithoutExtension();
+        mEditSpeakersWindow
+            = std::make_unique<EditSpeakersWindow>(windowName, mLookAndFeel, *this, mData.appData.lastProject);
+        mEditSpeakersWindow->initComp();
+    }
+}
+
+//==============================================================================
+void MainContentComponent::handleShowPreferences()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
+    if (mPropertiesWindow == nullptr) {
+        mPropertiesWindow.reset(new SettingsWindow{ *this, mData.project.oscPort, mLookAndFeel });
+        mPropertiesWindow->centreAroundComponent(this, mPropertiesWindow->getWidth(), mPropertiesWindow->getHeight());
+    }
+}
+
+//==============================================================================
+void MainContentComponent::handleShowOscMonitorWindow()
+{
+    if (!mOscMonitorWindow) {
+        mOscMonitorWindow = std::make_unique<OscMonitorWindow>(*this, mLookAndFeel);
+    }
+}
+
+//==============================================================================
+void MainContentComponent::handleShow2DView()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
+    if (mFlatViewWindow == nullptr) {
+        mFlatViewWindow.reset(new FlatViewWindow{ *this, mLookAndFeel });
+    } else {
+        mFlatViewWindowRect.setBounds(mFlatViewWindow->getScreenX(),
+                                      mFlatViewWindow->getScreenY(),
+                                      mFlatViewWindow->getWidth(),
+                                      mFlatViewWindow->getHeight());
+    }
+
+    if (mFlatViewWindowRect.getWidth() == 0) {
+        mFlatViewWindowRect.setBounds(getScreenX() + mSpeakerViewComponent->getWidth() + 22,
+                                      getScreenY() + 100,
+                                      500,
+                                      500);
+    }
+
+    mFlatViewWindow->setBounds(mFlatViewWindowRect);
+    mFlatViewWindow->setResizable(true, true);
+    mFlatViewWindow->setUsingNativeTitleBar(true);
+    mFlatViewWindow->setVisible(true);
+}
+
+//==============================================================================
+void MainContentComponent::handleShowAbout()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    if (!mAboutWindow) {
+        mAboutWindow.reset(new AboutWindow{ "About SpatGRIS", mLookAndFeel, *this });
+    }
+}
+
+//==============================================================================
+void MainContentComponent::handleOpenManual()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    if (MANUAL_FILE.exists()) {
+        juce::Process::openDocument("file:" + MANUAL_FILE.getFullPathName(), juce::String());
+    }
+}
+
+//==============================================================================
+void MainContentComponent::masterGainChanged(dbfs_t const gain)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    mData.project.masterGain = gain;
+    mControlPanel->setMasterGain(gain);
+
+    refreshAudioProcessor();
+}
+
+//==============================================================================
+void MainContentComponent::interpolationChanged(float const interpolation)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    mData.project.spatGainsInterpolation = interpolation;
+    mControlPanel->setInterpolation(interpolation);
+
+    refreshAudioProcessor();
+}
+
+//==============================================================================
+bool MainContentComponent::setSpatMode(SpatMode const spatMode)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    auto const ensureVbapIsDomeLike = [&]() {
+        if (spatMode == SpatMode::vbap && !mData.speakerSetup.isDomeLike()) {
+            auto const result{ juce::AlertWindow::showOkCancelBox(
+                juce::AlertWindow::InfoIcon,
+                "Converting to DOME",
+                "A CUBE speaker setup will be converted to a DOME structure.\nThis will not affect the original file.",
+                "Ok",
+                "Cancel",
+                this) };
+            if (!result) {
+                return false;
+            }
+
+            for (auto & node : mData.speakerSetup.speakers) {
+                auto & speaker{ *node.value };
+                if (speaker.isDirectOutOnly) {
+                    continue;
                 }
+                speaker.position = speaker.position.normalized();
             }
         }
+        return true;
+    };
+
+    if (!ensureVbapIsDomeLike()) {
+        mControlPanel->setSpatMode(mData.speakerSetup.spatMode);
+        return false;
     }
+
+    mData.speakerSetup.spatMode = spatMode;
+    mControlPanel->setSpatMode(spatMode);
+    return refreshSpeakers();
 }
 
-void MainContentComponent::handleSavePreset() {
-    if (! File(this->pathCurrentPreset).existsAsFile() || this->pathCurrentPreset.endsWith("default_preset/default_preset.xml")) {
-        this->handleSaveAsPreset();
-    }
-    this->savePreset(this->pathCurrentPreset);
+//==============================================================================
+void MainContentComponent::setStereoMode(tl::optional<StereoMode> const stereoMode)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    mData.appData.viewSettings.showSpeakerTriplets = false;
+    mData.appData.stereoMode = stereoMode;
+
+    AudioManager::getInstance().setStereoRouting(stereoMode ? tl::make_optional(mData.appData.stereoRouting)
+                                                            : tl::nullopt);
+
+    refreshSpatAlgorithm();
+    refreshSpeakerVuMeterComponents();
+    refreshViewportConfig();
 }
 
-void MainContentComponent::handleSaveAsPreset() {
-    String dir = this->applicationProperties.getUserSettings()->getValue("lastPresetDirectory");
-    if (! File(dir).isDirectory()) {
-        dir = File("~").getFullPathName();
-    }
-    String filename = File(this->pathCurrentPreset).getFileName();
+//==============================================================================
+void MainContentComponent::setStereoRouting(StereoRouting const & routing)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
 
-    FileChooser fc ("Choose a file to save...", dir + "/" + filename, "*.xml", UseOSNativeDialogBox);
-    
-    if (fc.browseForFileToSave (true)) {
-        String chosen = fc.getResults().getReference(0).getFullPathName();
-        this->savePreset(chosen);
-    }
+    mData.appData.stereoRouting = routing;
+    AudioManager::getInstance().setStereoRouting(mData.appData.stereoMode ? tl::make_optional(routing) : tl::nullopt);
 }
 
-void MainContentComponent::handleOpenSpeakerSetup() {
-    String dir = this->applicationProperties.getUserSettings()->getValue("lastSpeakerSetupDirectory");
-    if (! File(dir).isDirectory()) {
-        dir = File("~").getFullPathName();
-    }
-    String filename = File(this->pathCurrentFileSpeaker).getFileName();
+//==============================================================================
+void MainContentComponent::cubeAttenuationDbChanged(dbfs_t const value)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
 
-    FileChooser fc ("Choose a file to open...", dir + "/" + filename, "*.xml", UseOSNativeDialogBox);
+    mData.project.lbapDistanceAttenuationData.attenuation = value;
+    refreshAudioProcessor();
+}
 
-    if (fc.browseForFileToOpen()) {
-        String chosen = fc.getResults().getReference(0).getFullPathName();
-        AlertWindow alert ("Load Speaker Setup !", 
-                           "You want to load : " + chosen + "\nEverything not saved will be lost !", 
-                           AlertWindow::WarningIcon);
-        alert.setLookAndFeel(&mGrisFeel);
-        alert.addButton ("Cancel", 0, KeyPress(KeyPress::escapeKey));
-        alert.addButton ("Ok", 1, KeyPress(KeyPress::returnKey));
-        if (alert.runModalLoop() != 0) {
-            alert.setVisible(false);
-            this->openXmlFileSpeaker(chosen);
+//==============================================================================
+void MainContentComponent::cubeAttenuationHzChanged(hz_t const value)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    mData.project.lbapDistanceAttenuationData.freq = value;
+    refreshAudioProcessor();
+}
+
+//==============================================================================
+void MainContentComponent::numSourcesChanged(int const numSources)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    jassert(numSources >= 1 && numSources <= MAX_NUM_SOURCES);
+    juce::ScopedWriteLock const lock{ mLock };
+
+    if (numSources > mData.project.sources.size()) {
+        source_index_t const firstNewIndex{ mData.project.sources.size() + 1 };
+        source_index_t const lastNewIndex{ numSources };
+        for (auto index{ firstNewIndex }; index <= lastNewIndex; ++index) {
+            mData.project.sources.add(index, std::make_unique<SourceData>());
+        }
+    } else if (numSources < mData.project.sources.size()) {
+        // remove some inputs
+        while (mData.project.sources.size() > numSources) {
+            source_index_t const index{ mData.project.sources.size() };
+            mData.project.sources.remove(index);
         }
     }
+
+    refreshAudioProcessor();
+    refreshSourceVuMeterComponents();
+    unfocusAllComponents();
 }
 
-void MainContentComponent::handleSaveAsSpeakerSetup() {
-    String dir = this->applicationProperties.getUserSettings()->getValue("lastSpeakerSetupDirectory");
-    if (! File(dir).isDirectory() || dir.endsWith("/default_preset")) {
-        dir = File("~").getFullPathName();
-    }
-    String filename = File(this->pathCurrentFileSpeaker).getFileName();
+//==============================================================================
+void MainContentComponent::recordButtonPressed()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
 
-    FileChooser fc ("Choose a file to save...", dir + "/" + filename, "*.xml", UseOSNativeDialogBox);
-
-    if (fc.browseForFileToSave (true)) {
-        String chosen = fc.getResults().getReference(0).getFullPathName();
-        this->saveSpeakerSetup(chosen);
-    }
-}
-
-void MainContentComponent::handleShowSpeakerEditWindow() {
-	juce::Rectangle<int> result (this->getScreenX() + this->speakerView->getWidth() + 20, this->getScreenY() + 20, 850, 600);
-    if (this->winSpeakConfig == nullptr) {
-        String windowName = String("Speakers Setup Edition - ") + String(ModeSpatString[this->jackClient->modeSelected]) + \
-                            String(" - ") + File(this->pathCurrentFileSpeaker).getFileName();
-        this->winSpeakConfig = new WindowEditSpeaker(windowName,
-                                                     this->nameConfig, this->mGrisFeel.getWinBackgroundColour(),
-                                                     DocumentWindow::allButtons, this, &this->mGrisFeel);
-        this->winSpeakConfig->setBounds(result);
-        this->winSpeakConfig->initComp();
-    }
-    this->winSpeakConfig->setBounds(result);
-    this->winSpeakConfig->setResizable(true, true);
-    this->winSpeakConfig->setUsingNativeTitleBar(true);
-    this->winSpeakConfig->setVisible(true);
-    this->winSpeakConfig->setAlwaysOnTop(true);
-    this->winSpeakConfig->repaint();
-}
-
-void MainContentComponent::handleShowPreferences() {
-    PropertiesFile *props = this->applicationProperties.getUserSettings();
-    if (this->windowProperties == nullptr) {
-        unsigned int BufferValue = props->getIntValue("BufferValue", 1024);
-        unsigned int RateValue = props->getIntValue("RateValue", 48000);
-        unsigned int FileFormat = props->getIntValue("FileFormat", 0);
-        unsigned int FileConfig = props->getIntValue("FileConfig", 0);
-        unsigned int AttenuationDB = props->getIntValue("AttenuationDB", 3);
-        unsigned int AttenuationHz = props->getIntValue("AttenuationHz", 3);
-        unsigned int OscInputPort = props->getIntValue("OscInputPort", 18032);
-        if (std::isnan(float(BufferValue)) || BufferValue == 0) { BufferValue = 1024; }
-        if (std::isnan(float(RateValue)) || RateValue == 0) { RateValue = 48000; }
-        if (std::isnan(float(FileFormat))) { FileFormat = 0; }
-        if (std::isnan(float(FileConfig))) { FileConfig = 0; }
-        if (std::isnan(float(AttenuationDB))) { AttenuationDB = 3; }
-        if (std::isnan(float(AttenuationHz))) { AttenuationHz = 3; }
-        if (std::isnan(float(OscInputPort))) { OscInputPort = 18032; }
-        this->windowProperties = new WindowProperties("Preferences", this->mGrisFeel.getWinBackgroundColour(),
-                                                     DocumentWindow::allButtons, this, &this->mGrisFeel, 
-                                                     alsaAvailableOutputDevices, alsaOutputDevice,
-                                                     RateValues.indexOf(String(RateValue)), 
-                                                     BufferSizes.indexOf(String(BufferValue)),
-                                                     FileFormat, FileConfig, AttenuationDB, AttenuationHz, OscInputPort);
-    }
-    int height = 450;
-    if (alsaAvailableOutputDevices.isEmpty()) {
-        height = 420;
-    }
-    juce::Rectangle<int> result (this->getScreenX()+ (this->speakerView->getWidth()/2)-150, this->getScreenY()+(this->speakerView->getHeight()/2)-75, 270, height);
-    this->windowProperties->setBounds(result);
-    this->windowProperties->setResizable(false, false);
-    this->windowProperties->setUsingNativeTitleBar(true);
-    this->windowProperties->setVisible(true);
-    this->windowProperties->repaint();
-}
-
-void MainContentComponent::handleShow2DView() {
-    if (this->winControlSource == nullptr) {
-        this->winControlSource = new WinControl("2D View", this->mGrisFeel.getWinBackgroundColour(), DocumentWindow::allButtons, this, &this->mGrisFeel);
-    } else {
-        this->winControlRect.setBounds(this->winControlSource->getScreenX(), this->winControlSource->getScreenY(),
-                                       this->winControlSource->getWidth(), this->winControlSource->getHeight());
+    if (AudioManager::getInstance().isRecording()) {
+        AudioManager::getInstance().stopRecording();
+        mControlPanel->setRecordButtonState(RecordButton::State::ready);
+        return;
     }
 
-    if (this->winControlRect.getWidth() == 0) {
-        this->winControlRect.setBounds(this->getScreenX()+this->speakerView->getWidth()+22, this->getScreenY()+100, 500, 500);
+    if (mPrepareToRecordWindow) {
+        return;
     }
 
-    this->winControlSource->setBounds(this->winControlRect);
-    this->winControlSource->setResizable(true, true);
-    this->winControlSource->setUsingNativeTitleBar(true);
-    this->winControlSource->setVisible(true);
+    mPrepareToRecordWindow = std::make_unique<PrepareToRecordWindow>(mData.appData.lastRecordingDirectory,
+                                                                     mData.appData.recordingOptions,
+                                                                     *this,
+                                                                     mLookAndFeel);
 }
 
-void MainContentComponent::handleShowOscLogView() {
-    if (this->oscLogWindow == nullptr) {
-        this->oscLogWindow = new OscLogWindow("OSC Logging Windows", this->mGrisFeel.getWinBackgroundColour(),
-                                               DocumentWindow::allButtons, this, &this->mGrisFeel);
+//==============================================================================
+juce::Component * MainContentComponent::getControlsComponent() const
+{
+    return mMainLayout.get();
+}
+
+//==============================================================================
+void MainContentComponent::handleShowNumbers()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    auto & var{ mData.appData.viewSettings.showSpeakerNumbers };
+    var = !var;
+    refreshViewportConfig();
+}
+
+//==============================================================================
+void MainContentComponent::handleShowSpeakers()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    auto & var{ mData.appData.viewSettings.showSpeakers };
+    var = !var;
+    refreshViewportConfig();
+}
+
+//==============================================================================
+void MainContentComponent::handleShowTriplets()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const readLock{ mLock };
+
+    auto const newState{ !mData.appData.viewSettings.showSpeakerTriplets };
+    if (newState && !mAudioProcessor->getSpatAlgorithm()->hasTriplets()) {
+        jassertfalse;
+        return;
     }
-    this->oscLogWindow->centreWithSize(500, 500);
-    this->oscLogWindow->setResizable(false, false);
-    this->oscLogWindow->setUsingNativeTitleBar(true);
-    this->oscLogWindow->setVisible(true);
-    this->oscLogWindow->repaint();
+
+    juce::ScopedWriteLock const writeLock{ mLock };
+    mData.appData.viewSettings.showSpeakerTriplets = newState;
+    refreshViewportConfig();
 }
 
-void MainContentComponent::handleShowAbout() {
-    if (this->aboutWindow == nullptr) {
-        this->aboutWindow = new AboutWindow("About SpatGRIS", this->mGrisFeel.getWinBackgroundColour(),
-                                            DocumentWindow::allButtons, this, &this->mGrisFeel);
-    }
-    this->aboutWindow->centreWithSize(400, 500);
-    this->aboutWindow->setResizable(false, false);
-    this->aboutWindow->setUsingNativeTitleBar(true);
-    this->aboutWindow->setVisible(true);
-    this->aboutWindow->repaint();
+//==============================================================================
+void MainContentComponent::handleShowSourceLevel()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    auto & var{ mData.appData.viewSettings.showSourceActivity };
+    var = !var;
+    refreshViewportConfig();
 }
 
-void MainContentComponent::handleOpenManual() {
-    File fs = File(ServerGrisManualFilePath);
-    if (fs.exists()) {
-        juce::Process::openDocument("file:" + fs.getFullPathName(), String());
-    }
+//==============================================================================
+void MainContentComponent::handleShowSpeakerLevel()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    auto & var{ mData.appData.viewSettings.showSpeakerLevels };
+    var = !var;
+    refreshViewportConfig();
 }
 
-void MainContentComponent::handleShowNumbers() {
-    this->setShowNumbers(!this->isNumbersShown);
+//==============================================================================
+void MainContentComponent::handleShowSphere()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    auto & var{ mData.appData.viewSettings.showSphereOrCube };
+    var = !var;
+    refreshViewportConfig();
 }
 
-void MainContentComponent::setShowNumbers(bool state) {
-    this->isNumbersShown = state;
-    this->speakerView->setShowNumber(state);
-}
+//==============================================================================
+void MainContentComponent::handleResetInputPositions()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
 
-void MainContentComponent::handleShowSpeakers() {
-    this->setShowSpeakers(!this->isSpeakersShown);
-}
+    juce::ScopedWriteLock const lock{ mLock };
 
-void MainContentComponent::setShowSpeakers(bool state) {
-    this->isSpeakersShown = state;
-    this->speakerView->setHideSpeaker(!state);
-}
+    auto & viewPortData{ mSpeakerViewComponent->getData() };
+    auto & spatAlgorithm{ *mAudioProcessor->getSpatAlgorithm() };
+    for (auto const source : mData.project.sources) {
+        // reset positions
+        source.value->position = tl::nullopt;
 
-void MainContentComponent::handleShowTriplets() {
-    this->setShowTriplets(!this->isTripletsShown);
-}
-
-void MainContentComponent::setShowTriplets(bool state) {
-    if (this->getModeSelected() == LBAP && state == true) {
-        AlertWindow alert ("Can't draw triplets !",
-                           "Triplets are not effective with the CUBE mode.",
-                           AlertWindow::InfoIcon);
-        alert.setLookAndFeel(&mGrisFeel);
-        alert.addButton("Close", 0, KeyPress(KeyPress::returnKey));
-        alert.runModalLoop();
-        this->setShowTriplets(false);
-    } else if (this->validateShowTriplets() || state == false) {
-        this->isTripletsShown = state;
-        this->speakerView->setShowTriplets(state);
-    } else {
-        AlertWindow alert ("Can't draw all triplets !",
-                           "Maybe you didn't compute your current speaker setup ?",
-                           AlertWindow::InfoIcon);
-        alert.setLookAndFeel(&mGrisFeel);
-        alert.addButton("Close", 0, KeyPress(KeyPress::returnKey));
-        alert.runModalLoop();
-        this->setShowTriplets(false);
-    }
-}
-
-bool MainContentComponent::validateShowTriplets() {
-    int success = true;
-    for (unsigned int i = 0; i < this->getListTriplet().size(); ++i) {
-        Speaker *spk1 = this->getSpeakerFromOutputPatch(this->getListTriplet()[i].id1);
-        Speaker *spk2 = this->getSpeakerFromOutputPatch(this->getListTriplet()[i].id2);
-        Speaker *spk3 = this->getSpeakerFromOutputPatch(this->getListTriplet()[i].id3);
-
-        if (spk1 == nullptr || spk2 == nullptr || spk3 == nullptr) {
-            success = false;
-            break;
+        {
+            // reset 3d view
+            auto & exchanger{ viewPortData.sourcesDataQueues[source.key] };
+            auto * sourceTicket{ exchanger.acquire() };
+            sourceTicket->get() = tl::nullopt;
+            exchanger.setMostRecent(sourceTicket);
         }
+
+        if (mFlatViewWindow) {
+            // reset 2d view
+            auto & exchanger{ mFlatViewWindow->getSourceDataQueues()[source.key] };
+            auto * sourceTicket{ exchanger.acquire() };
+            sourceTicket->get() = tl::nullopt;
+            exchanger.setMostRecent(sourceTicket);
+        }
+
+        // spatData
+        spatAlgorithm.updateSpatData(source.key, *source.value);
     }
-    return success;
+
+    refreshAudioProcessor();
 }
 
-void MainContentComponent::handleShowSourceLevel() {
-    this->isSourceLevelShown = !this->isSourceLevelShown;
-}
+//==============================================================================
+void MainContentComponent::handleResetMeterClipping()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
 
-void MainContentComponent::handleShowSpeakerLevel() {
-    this->isSpeakerLevelShown = !this->isSpeakerLevelShown;
-}
-
-void MainContentComponent::handleShowSphere() {
-    this->isSphereShown = !this->isSphereShown;
-    this->speakerView->setShowSphere(this->isSphereShown);
-}
-
-void MainContentComponent::handleResetInputPositions() {
-    for (auto&& it : this->listSourceInput) {
-        it->resetPosition();
+    for (auto vuMeter : mSourceVuMeterComponents) {
+        vuMeter.value->resetClipping();
     }
-}
-
-void MainContentComponent::handleResetMeterClipping() {
-    for (auto&& it : this->listSourceInput) {
-        it->getVuMeter()->resetClipping();
-    }
-    for (auto&& it : this->listSpeaker) {
-        it->getVuMeter()->resetClipping();
+    for (auto vuMeter : mSpeakerVuMeterComponents) {
+        vuMeter.value->resetClipping();
     }
 }
 
-void MainContentComponent::handleInputColours() {
-    float hue = 0.0f;
-    float inc = 1.0 / (this->listSourceInput.size() + 1);
-    for (auto&& it : this->listSourceInput) {
-        it->setColor(Colour::fromHSV(hue, 1, 0.75, 1), true);
+//==============================================================================
+void MainContentComponent::handleColorizeInputs()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    float hue{};
+    auto const inc{ 1.0f / static_cast<float>(mData.project.sources.size() + 1) };
+    for (auto source : mData.project.sources) {
+        auto const colour{ juce::Colour::fromHSV(hue, 1, 0.75, 1) };
+        source.value->colour = colour;
+        mSourceVuMeterComponents[source.key].setSourceColour(colour);
         hue += inc;
     }
 }
 
+//==============================================================================
 // Command manager methods.
-void MainContentComponent::getAllCommands (Array<CommandID>& commands) {
-    // this returns the set of all commands that this target can perform.
-    const CommandID ids[] = { MainWindow::NewPresetID,
-                              MainWindow::OpenPresetID,
-                              MainWindow::SavePresetID,
-                              MainWindow::SaveAsPresetID,
-                              MainWindow::OpenSpeakerSetupID,
-                              MainWindow::ShowSpeakerEditID,
-                              MainWindow::Show2DViewID,
-                              MainWindow::ShowNumbersID,
-                              MainWindow::ShowSpeakersID,
-                              MainWindow::ShowTripletsID,
-                              MainWindow::ShowSourceLevelID,
-                              MainWindow::ShowSpeakerLevelID,
-                              MainWindow::ShowSphereID,
-                              MainWindow::ColorizeInputsID,
-                              MainWindow::ResetInputPosID,
-                              MainWindow::ResetMeterClipping,
-                              MainWindow::ShowOscLogView,
-                              MainWindow::PrefsID,
-                              MainWindow::QuitID,
-                              MainWindow::AboutID,
-                              MainWindow::OpenManualID,
-                            };
+void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & commands)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
 
-    commands.addArray (ids, numElementsInArray(ids));
+    const juce::CommandID ids[] = {
+        MainWindow::CommandIds::newProjectId,
+        MainWindow::CommandIds::openProjectId,
+        MainWindow::CommandIds::saveProjectId,
+        MainWindow::CommandIds::saveProjectAsId,
+        MainWindow::CommandIds::openSpeakerSetupId,
+        MainWindow::CommandIds::saveSpeakerSetupId,
+        MainWindow::CommandIds::saveSpeakerSetupAsId,
+        MainWindow::CommandIds::showSpeakerEditId,
+        MainWindow::CommandIds::show2DViewId,
+        MainWindow::CommandIds::showOscMonitorId,
+        MainWindow::CommandIds::showNumbersId,
+        MainWindow::CommandIds::showSpeakersId,
+        MainWindow::CommandIds::showTripletsId,
+        MainWindow::CommandIds::showSourceActivityId,
+        MainWindow::CommandIds::showSpeakerActivityId,
+        MainWindow::CommandIds::showSphereId,
+        MainWindow::CommandIds::colorizeInputsId,
+        MainWindow::CommandIds::resetInputPosId,
+        MainWindow::CommandIds::resetMeterClipping,
+        MainWindow::CommandIds::openSettingsWindowId,
+        MainWindow::CommandIds::quitId,
+        MainWindow::CommandIds::aboutId,
+        MainWindow::CommandIds::openManualId,
+    };
+
+    commands.addArray(ids, juce::numElementsInArray(ids));
+
+    auto const addTemplate = [&](auto const & templates) {
+        for (auto const & speakerTemplate : templates) {
+            commands.add(speakerTemplate.commandId);
+        }
+    };
+
+    addTemplate(SPEAKER_SETUP_TEMPLATES.dome);
+    addTemplate(SPEAKER_SETUP_TEMPLATES.cube);
+    addTemplate(PROJECT_TEMPLATES);
 }
 
-void MainContentComponent::getCommandInfo (CommandID commandID, ApplicationCommandInfo& result) {
-    const String generalCategory ("General");
+//==============================================================================
+void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce::ApplicationCommandInfo & result)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
 
-    switch (commandID) {
-        case MainWindow::NewPresetID:
-            result.setInfo ("New Project", "Close the current preset and open the default.", generalCategory, 0);
-            result.addDefaultKeypress ('N', ModifierKeys::commandModifier);
-            break;
-        case MainWindow::OpenPresetID:
-            result.setInfo ("Open Project", "Choose a new preset on disk.", generalCategory, 0);
-            result.addDefaultKeypress ('O', ModifierKeys::commandModifier);
-            break;
-        case MainWindow::SavePresetID:
-            result.setInfo ("Save Project", "Save the current preset on disk.", generalCategory, 0);
-            result.addDefaultKeypress ('S', ModifierKeys::commandModifier);
-            break;
-        case MainWindow::SaveAsPresetID:
-            result.setInfo ("Save Project As...", "Save the current preset under a new name on disk.", generalCategory, 0);
-            result.addDefaultKeypress ('S', ModifierKeys::shiftModifier|ModifierKeys::commandModifier);
-            break;
-        case MainWindow::OpenSpeakerSetupID:
-            result.setInfo ("Load Speaker Setup", "Choose a new speaker setup on disk.", generalCategory, 0);
-            result.addDefaultKeypress ('L', ModifierKeys::commandModifier);
-            break;
-        case MainWindow::ShowSpeakerEditID:
-            result.setInfo ("Speaker Setup Edition", "Edit the current speaker setup.", generalCategory, 0);
-            result.addDefaultKeypress ('W', ModifierKeys::altModifier);
-            break;
-        case MainWindow::Show2DViewID:
-            result.setInfo ("Show 2D View", "Show the 2D action window.", generalCategory, 0);
-            result.addDefaultKeypress ('D', ModifierKeys::altModifier);
-            break;
-        case MainWindow::ShowNumbersID:
-            result.setInfo ("Show Numbers", "Show source and speaker numbers on the 3D view.", generalCategory, 0);
-            result.addDefaultKeypress ('N', ModifierKeys::altModifier);
-            result.setTicked(this->isNumbersShown);
-            break;
-        case MainWindow::ShowSpeakersID:
-            result.setInfo ("Show Speakers", "Show speakers on the 3D view.", generalCategory, 0);
-            result.addDefaultKeypress ('S', ModifierKeys::altModifier);
-            result.setTicked(this->isSpeakersShown);
-            break;
-        case MainWindow::ShowTripletsID:
-            result.setInfo ("Show Speaker Triplets", "Show speaker triplets on the 3D view.", generalCategory, 0);
-            result.addDefaultKeypress ('T', ModifierKeys::altModifier);
-            result.setTicked(this->isTripletsShown);
-            break;
-        case MainWindow::ShowSourceLevelID:
-            result.setInfo ("Show Source Activity", "Activate brightness on sources on the 3D view.", generalCategory, 0);
-            result.addDefaultKeypress ('A', ModifierKeys::altModifier);
-            result.setTicked(this->isSourceLevelShown);
-            break;
-        case MainWindow::ShowSpeakerLevelID:
-            result.setInfo ("Show Speaker Level", "Activate brightness on speakers on the 3D view.", generalCategory, 0);
-            result.addDefaultKeypress ('L', ModifierKeys::altModifier);
-            result.setTicked(this->isSpeakerLevelShown);
-            break;
-        case MainWindow::ShowSphereID:
-            result.setInfo ("Show Sphere/Cube", "Show the sphere on the 3D view.", generalCategory, 0);
-            result.addDefaultKeypress ('O', ModifierKeys::altModifier);
-            result.setTicked(this->isSphereShown);
-            break;
-        case MainWindow::ColorizeInputsID:
-            result.setInfo ("Colorize Inputs", "Spread the colour of the inputs over the colour range.", generalCategory, 0);
-            result.addDefaultKeypress ('C', ModifierKeys::altModifier);
-            break;
-        case MainWindow::ResetInputPosID:
-            result.setInfo ("Reset Input Position", "Reset the position of the input sources.", generalCategory, 0);
-            result.addDefaultKeypress ('R', ModifierKeys::altModifier);
-            break;
-        case MainWindow::ResetMeterClipping:
-            result.setInfo ("Reset Meter Clipping", "Reset clipping for all meters.", generalCategory, 0);
-            result.addDefaultKeypress ('M', ModifierKeys::altModifier);
-            break;
-        case MainWindow::ShowOscLogView:
-            result.setInfo ("Show OSC Log Window", "Show the OSC logging window.", generalCategory, 0);
-            break;
-        case MainWindow::PrefsID:
-            result.setInfo ("Preferences...", "Open the preferences window.", generalCategory, 0);
-            result.addDefaultKeypress (';', ModifierKeys::commandModifier);
-            break;
-        case MainWindow::QuitID:
-            result.setInfo ("Quit", "Quit the SpatGRIS.", generalCategory, 0);
-            result.addDefaultKeypress ('Q', ModifierKeys::commandModifier);
-            break;
-        case MainWindow::AboutID:
-            result.setInfo ("About SpatGRIS", "Open the about window.", generalCategory, 0);
-            break;
-        case MainWindow::OpenManualID:
-            result.setInfo ("Open Documentation", "Open the manual in pdf viewer.", generalCategory, 0);
-            break;
-        default:
-            break;
+    const juce::String generalCategory("General");
+
+    switch (commandId) {
+    case MainWindow::newProjectId:
+        result.setInfo("New Project", "Close the current project and open the default.", generalCategory, 0);
+        result.addDefaultKeypress('N', juce::ModifierKeys::commandModifier);
+        return;
+    case MainWindow::openProjectId:
+        result.setInfo("Open Project", "Choose a new project on disk.", generalCategory, 0);
+        result.addDefaultKeypress('O', juce::ModifierKeys::commandModifier);
+        return;
+    case MainWindow::saveProjectId:
+        result.setInfo("Save Project", "Save the current project on disk.", generalCategory, 0);
+        result.addDefaultKeypress('S', juce::ModifierKeys::commandModifier);
+        result.setActive(isProjectModified());
+        return;
+    case MainWindow::saveProjectAsId:
+        result.setInfo("Save Project As...", "Save the current project under a new name on disk.", generalCategory, 0);
+        result.addDefaultKeypress('S', juce::ModifierKeys::shiftModifier | juce::ModifierKeys::commandModifier);
+        return;
+    case MainWindow::openSpeakerSetupId:
+        result.setInfo("Open Speaker Setup", "Choose a new speaker setup on disk.", generalCategory, 0);
+        result.addDefaultKeypress('L', juce::ModifierKeys::commandModifier);
+        return;
+    case MainWindow::saveSpeakerSetupId:
+        result.setInfo("Save Speaker Setup", "Save the current speaker setup on disk.", generalCategory, 0);
+        result.addDefaultKeypress('E', juce::ModifierKeys::commandModifier);
+        result.setActive(isSpeakerSetupModified());
+        return;
+    case MainWindow::saveSpeakerSetupAsId:
+        result.setInfo("Save Speaker Setup As...",
+                       "Save the current speaker setup under a new name on disk.",
+                       generalCategory,
+                       0);
+        result.addDefaultKeypress('E', juce::ModifierKeys::commandModifier | juce::ModifierKeys::shiftModifier);
+        return;
+    case MainWindow::showSpeakerEditId:
+        result.setInfo("Speaker Setup Edition", "Edit the current speaker setup.", generalCategory, 0);
+        result.addDefaultKeypress('W', juce::ModifierKeys::altModifier);
+        return;
+    case MainWindow::show2DViewId:
+        result.setInfo("Show 2D View", "Show the 2D action window.", generalCategory, 0);
+        result.addDefaultKeypress('D', juce::ModifierKeys::altModifier);
+        return;
+    case MainWindow::showOscMonitorId:
+        result.setInfo("Show OSC monitor", "Show the OSC monitor window", generalCategory, 0);
+        return;
+    case MainWindow::showNumbersId:
+        result.setInfo("Show Numbers", "Show source and speaker numbers on the 3D view.", generalCategory, 0);
+        result.addDefaultKeypress('N', juce::ModifierKeys::altModifier);
+        result.setTicked(mData.appData.viewSettings.showSpeakerNumbers);
+        return;
+    case MainWindow::showSpeakersId:
+        result.setInfo("Show Speakers", "Show speakers on the 3D view.", generalCategory, 0);
+        result.addDefaultKeypress('S', juce::ModifierKeys::altModifier);
+        result.setTicked(mData.appData.viewSettings.showSpeakers);
+        return;
+    case MainWindow::showTripletsId:
+        result.setInfo("Show Speaker Triplets", "Show speaker triplets on the 3D view.", generalCategory, 0);
+        result.addDefaultKeypress('T', juce::ModifierKeys::altModifier);
+        result.setTicked(mData.appData.viewSettings.showSpeakerTriplets);
+        result.setActive(mAudioProcessor->getSpatAlgorithm()->hasTriplets());
+        return;
+    case MainWindow::showSourceActivityId:
+        result.setInfo("Show Source Activity", "Activate brightness on sources on the 3D view.", generalCategory, 0);
+        result.addDefaultKeypress('A', juce::ModifierKeys::altModifier);
+        result.setTicked(mData.appData.viewSettings.showSourceActivity);
+        return;
+    case MainWindow::showSpeakerActivityId:
+        result.setInfo("Show Speaker Level", "Activate brightness on speakers on the 3D view.", generalCategory, 0);
+        result.addDefaultKeypress('L', juce::ModifierKeys::altModifier);
+        result.setTicked(mData.appData.viewSettings.showSpeakerLevels);
+        return;
+    case MainWindow::showSphereId:
+        result.setInfo("Show Sphere/Cube", "Show the sphere on the 3D view.", generalCategory, 0);
+        result.addDefaultKeypress('O', juce::ModifierKeys::altModifier);
+        result.setTicked(mData.appData.viewSettings.showSphereOrCube);
+        return;
+    case MainWindow::colorizeInputsId:
+        result.setInfo("Colorize Inputs", "Spread the colour of the inputs over the colour range.", generalCategory, 0);
+        result.addDefaultKeypress('C', juce::ModifierKeys::altModifier);
+        return;
+    case MainWindow::resetInputPosId:
+        result.setInfo("Reset Sources Positions", "Reset the positions of the input sources.", generalCategory, 0);
+        result.addDefaultKeypress('R', juce::ModifierKeys::altModifier);
+        return;
+    case MainWindow::resetMeterClipping:
+        result.setInfo("Reset Meter Clipping", "Reset clipping for all meters.", generalCategory, 0);
+        result.addDefaultKeypress('M', juce::ModifierKeys::altModifier);
+        return;
+    case MainWindow::openSettingsWindowId:
+        result.setInfo("Settings...", "Open the settings window.", generalCategory, 0);
+        result.addDefaultKeypress(',', juce::ModifierKeys::commandModifier);
+        return;
+    case MainWindow::quitId:
+        result.setInfo("Quit", "Quit the SpatGRIS.", generalCategory, 0);
+        result.addDefaultKeypress('Q', juce::ModifierKeys::commandModifier);
+        return;
+    case MainWindow::aboutId:
+        result.setInfo("About SpatGRIS", "Open the about window.", generalCategory, 0);
+        return;
+    case MainWindow::openManualId:
+        result.setInfo("Open Documentation", "Open the manual in pdf viewer.", generalCategory, 0);
+        return;
     }
+
+    // probably a template
+    auto const templateInfo{ commandIdToTemplate(commandId) };
+    jassert(templateInfo);
+    auto const longName{ juce::String{ "Open template " } + templateInfo->name };
+    result.setInfo(longName, templateInfo->name, generalCategory, 0);
 }
 
-bool MainContentComponent::perform(const InvocationInfo& info) {
+//==============================================================================
+bool MainContentComponent::perform(InvocationInfo const & info)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     if (MainWindow::getMainAppWindow()) {
         switch (info.commandID) {
-            case MainWindow::NewPresetID: this->handleNew(); break;
-            case MainWindow::OpenPresetID: this->handleOpenPreset(); break;
-            case MainWindow::SavePresetID: this->handleSavePreset(); break;
-            case MainWindow::SaveAsPresetID: this->handleSaveAsPreset(); break;
-            case MainWindow::OpenSpeakerSetupID: this->handleOpenSpeakerSetup(); break;
-            case MainWindow::ShowSpeakerEditID: this->handleShowSpeakerEditWindow(); break;
-            case MainWindow::Show2DViewID: this->handleShow2DView(); break;
-            case MainWindow::ShowNumbersID: this->handleShowNumbers(); break;
-            case MainWindow::ShowSpeakersID: this->handleShowSpeakers(); break;
-            case MainWindow::ShowTripletsID: this->handleShowTriplets(); break;
-            case MainWindow::ShowSourceLevelID: this->handleShowSourceLevel(); break;
-            case MainWindow::ShowSpeakerLevelID: this->handleShowSpeakerLevel(); break;
-            case MainWindow::ShowSphereID: this->handleShowSphere(); break;
-            case MainWindow::ColorizeInputsID: this->handleInputColours(); break;
-            case MainWindow::ResetInputPosID: this->handleResetInputPositions(); break;
-            case MainWindow::ResetMeterClipping: this->handleResetMeterClipping(); break;
-            case MainWindow::ShowOscLogView: this->handleShowOscLogView(); break;
-            case MainWindow::PrefsID: this->handleShowPreferences(); break;
-            case MainWindow::QuitID: dynamic_cast<MainWindow*>(this->parent)->closeButtonPressed(); break;
-            case MainWindow::AboutID: this->handleShowAbout(); break;
-            case MainWindow::OpenManualID: this->handleOpenManual(); break;
-            default:
+        case MainWindow::newProjectId:
+            handleNewProject();
+            break;
+        case MainWindow::openProjectId:
+            handleOpenProject();
+            break;
+        case MainWindow::saveProjectId:
+            handleSaveProject();
+            break;
+        case MainWindow::saveProjectAsId:
+            handleSaveProjectAs();
+            break;
+        case MainWindow::openSpeakerSetupId:
+            handleOpenSpeakerSetup();
+            break;
+        case MainWindow::saveSpeakerSetupId:
+            handleSaveSpeakerSetup();
+            break;
+        case MainWindow::saveSpeakerSetupAsId:
+            handleSaveSpeakerSetupAs();
+            break;
+        case MainWindow::showSpeakerEditId:
+            handleShowSpeakerEditWindow();
+            break;
+        case MainWindow::show2DViewId:
+            handleShow2DView();
+            break;
+        case MainWindow::showOscMonitorId:
+            handleShowOscMonitorWindow();
+            break;
+        case MainWindow::showNumbersId:
+            handleShowNumbers();
+            break;
+        case MainWindow::showSpeakersId:
+            handleShowSpeakers();
+            break;
+        case MainWindow::showTripletsId:
+            handleShowTriplets();
+            break;
+        case MainWindow::showSourceActivityId:
+            handleShowSourceLevel();
+            break;
+        case MainWindow::showSpeakerActivityId:
+            handleShowSpeakerLevel();
+            break;
+        case MainWindow::showSphereId:
+            handleShowSphere();
+            break;
+        case MainWindow::colorizeInputsId:
+            handleColorizeInputs();
+            break;
+        case MainWindow::resetInputPosId:
+            handleResetInputPositions();
+            break;
+        case MainWindow::resetMeterClipping:
+            handleResetMeterClipping();
+            break;
+        case MainWindow::openSettingsWindowId:
+            handleShowPreferences();
+            break;
+        case MainWindow::quitId:
+            dynamic_cast<MainWindow *>(&mMainWindow)->closeButtonPressed();
+            break;
+        case MainWindow::aboutId:
+            handleShowAbout();
+            break;
+        case MainWindow::openManualId:
+            handleOpenManual();
+            break;
+        default:
+            // open a template
+            auto const templateInfo{ commandIdToTemplate(info.commandID) };
+            if (!templateInfo) {
                 return false;
+            }
+            if (templateInfo->path.isAChildOf(SPEAKER_TEMPLATES_DIR)) {
+                loadSpeakerSetup(templateInfo->path, LoadSpeakerSetupOption::disallowDiscardingUnsavedChanges);
+                break;
+            }
+            jassert(templateInfo->path.isAChildOf(PROJECT_TEMPLATES_DIR));
+            loadProject(templateInfo->path, false);
+            break;
         }
     }
     return true;
 }
 
-PopupMenu MainContentComponent::getMenuForIndex (int menuIndex, const String& menuName) {
+//==============================================================================
+void MainContentComponent::audioParametersChanged()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedLock const audioLock{ mAudioProcessor->getLock() };
 
-    ApplicationCommandManager* commandManager = &MainWindow::getApplicationCommandManager();
+    auto * currentAudioDevice{ AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice() };
 
-    PopupMenu menu;
+    if (currentAudioDevice) {
+        auto const deviceTypeName{ currentAudioDevice->getTypeName() };
+        auto const setup{ AudioManager::getInstance().getAudioDeviceManager().getAudioDeviceSetup() };
+
+        auto const sampleRate{ currentAudioDevice->getCurrentSampleRate() };
+        auto const bufferSize{ currentAudioDevice->getCurrentBufferSizeSamples() };
+        auto const inputCount{ currentAudioDevice->getActiveInputChannels().countNumberOfSetBits() };
+        auto const outputCount{ currentAudioDevice->getActiveOutputChannels().countNumberOfSetBits() };
+
+        juce::ScopedWriteLock const lock{ mLock };
+
+        mData.appData.audioSettings.sampleRate = setup.sampleRate;
+        mData.appData.audioSettings.bufferSize = setup.bufferSize;
+        mData.appData.audioSettings.deviceType = deviceTypeName;
+        mData.appData.audioSettings.inputDevice = setup.inputDeviceName;
+        mData.appData.audioSettings.outputDevice = setup.outputDeviceName;
+
+        AudioManager::getInstance().setBufferSize(bufferSize);
+
+        mInfoPanel->setSampleRate(sampleRate);
+        mInfoPanel->setBufferSize(bufferSize);
+        mInfoPanel->setNumInputs(inputCount);
+        mInfoPanel->setNumOutputs(outputCount);
+
+        output_patch_t const maxOutputPatch{ outputCount };
+        mControlPanel->updateMaxOutputPatch(maxOutputPatch, mData.appData.stereoRouting);
+    }
+
+    refreshSpeakers();
+}
+
+//==============================================================================
+juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const juce::String & menuName)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    juce::ApplicationCommandManager * commandManager = &mMainWindow.getApplicationCommandManager();
+
+    auto const extractTemplatesToMenu = [&](auto const & templates) {
+        juce::PopupMenu menu{};
+        for (auto const & setupTemplate : templates) {
+            menu.addCommandItem(commandManager, setupTemplate.commandId, setupTemplate.name);
+        }
+        return menu;
+    };
+
+    auto const getSpeakerSetupTemplatesMenu = [&]() {
+        juce::PopupMenu menu{};
+        menu.addSubMenu("Dome", extractTemplatesToMenu(SPEAKER_SETUP_TEMPLATES.dome));
+        menu.addSubMenu("Cube", extractTemplatesToMenu(SPEAKER_SETUP_TEMPLATES.cube));
+        return menu;
+    };
+
+    juce::PopupMenu menu;
 
     if (menuName == "File") {
-        menu.addCommandItem(commandManager, MainWindow::NewPresetID);
-        menu.addCommandItem(commandManager, MainWindow::OpenPresetID);
-        menu.addCommandItem(commandManager, MainWindow::SavePresetID);
-        menu.addCommandItem(commandManager, MainWindow::SaveAsPresetID);
+        menu.addCommandItem(commandManager, MainWindow::newProjectId);
+        menu.addCommandItem(commandManager, MainWindow::openProjectId);
+        menu.addSubMenu("Templates", extractTemplatesToMenu(PROJECT_TEMPLATES));
+        menu.addCommandItem(commandManager, MainWindow::saveProjectId);
+        menu.addCommandItem(commandManager, MainWindow::saveProjectAsId);
         menu.addSeparator();
-        menu.addCommandItem(commandManager, MainWindow::OpenSpeakerSetupID);
+        menu.addCommandItem(commandManager, MainWindow::openSpeakerSetupId);
+        menu.addSubMenu("Templates", getSpeakerSetupTemplatesMenu());
+        menu.addCommandItem(commandManager, MainWindow::saveSpeakerSetupId);
+        menu.addCommandItem(commandManager, MainWindow::saveSpeakerSetupAsId);
         menu.addSeparator();
-        menu.addCommandItem (commandManager, MainWindow::PrefsID);
-#if ! JUCE_MAC
+        menu.addCommandItem(commandManager, MainWindow::openSettingsWindowId);
+#if !JUCE_MAC
         menu.addSeparator();
-        menu.addCommandItem(commandManager, MainWindow::QuitID);
+        menu.addCommandItem(commandManager, MainWindow::quitId);
 #endif
-    }
-    else if (menuName == "View") {
-        menu.addCommandItem(commandManager, MainWindow::Show2DViewID);
-        menu.addCommandItem(commandManager, MainWindow::ShowSpeakerEditID);
+    } else if (menuName == "View") {
+        menu.addCommandItem(commandManager, MainWindow::show2DViewId);
+        menu.addCommandItem(commandManager, MainWindow::showSpeakerEditId);
+        menu.addCommandItem(commandManager, MainWindow::showOscMonitorId);
         menu.addSeparator();
-        menu.addCommandItem(commandManager, MainWindow::ShowNumbersID);
-        menu.addCommandItem(commandManager, MainWindow::ShowSpeakersID);
-        if (this->jackClient->vbapDimensions == 3) {
-            menu.addCommandItem(commandManager, MainWindow::ShowTripletsID);
+        menu.addCommandItem(commandManager, MainWindow::showNumbersId);
+        menu.addCommandItem(commandManager, MainWindow::showSpeakersId);
+        if (mAudioProcessor->getSpatAlgorithm()->hasTriplets()) {
+            menu.addCommandItem(commandManager, MainWindow::showTripletsId);
         } else {
-            menu.addItem(MainWindow::ShowTripletsID, "Show Speaker Triplets", false, false);
+            menu.addItem(MainWindow::showTripletsId, "Show Speaker Triplets", false, false);
         }
-        menu.addCommandItem(commandManager, MainWindow::ShowSourceLevelID);
-        menu.addCommandItem(commandManager, MainWindow::ShowSpeakerLevelID);
-        menu.addCommandItem(commandManager, MainWindow::ShowSphereID);
+        menu.addCommandItem(commandManager, MainWindow::showSourceActivityId);
+        menu.addCommandItem(commandManager, MainWindow::showSpeakerActivityId);
+        menu.addCommandItem(commandManager, MainWindow::showSphereId);
         menu.addSeparator();
-        menu.addCommandItem(commandManager, MainWindow::ColorizeInputsID);
-        menu.addCommandItem(commandManager, MainWindow::ResetInputPosID);
-        menu.addCommandItem(commandManager, MainWindow::ResetMeterClipping);
-        // TODO: Osc log window still crashes on MacOS. Useful only in debugging process.
-        //menu.addSeparator();
-        //menu.addCommandItem(commandManager, MainWindow::ShowOscLogView);
-    }
-    else if (menuName == "Help") {
-        menu.addCommandItem(commandManager, MainWindow::AboutID);
-        menu.addCommandItem(commandManager, MainWindow::OpenManualID);
+        menu.addCommandItem(commandManager, MainWindow::colorizeInputsId);
+        menu.addCommandItem(commandManager, MainWindow::resetInputPosId);
+        menu.addCommandItem(commandManager, MainWindow::resetMeterClipping);
+    } else if (menuName == "Help") {
+        menu.addCommandItem(commandManager, MainWindow::aboutId);
+        menu.addCommandItem(commandManager, MainWindow::openManualId);
     }
     return menu;
 }
 
-void MainContentComponent::menuItemSelected (int menuItemID, int /*topLevelMenuIndex*/) {
-    switch (menuItemID) {}
+//==============================================================================
+void MainContentComponent::menuItemSelected(int /*menuItemID*/, int /*topLevelMenuIndex*/)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
 }
 
+//==============================================================================
 // Exit functions.
-bool MainContentComponent::isPresetModified() {
-    File xmlFile = File(this->pathCurrentPreset.toStdString());
-    XmlDocument xmlDoc(xmlFile);
-    std::unique_ptr<XmlElement> savedState (xmlDoc.getDocumentElement());
-    if (savedState == nullptr) {
+bool MainContentComponent::isProjectModified() const
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
+    auto const savedElement{ juce::XmlDocument{ juce::File{ mData.appData.lastProject } }.getDocumentElement() };
+    jassert(savedElement);
+    if (!savedElement) {
+        return true;
+    }
+    auto const savedProject{ SpatGrisProjectData::fromXml(*savedElement) };
+    jassert(savedProject);
+    if (!savedProject) {
+        return true;
+    }
+    return mData.project != *savedProject;
+}
+
+//==============================================================================
+bool MainContentComponent::isSpeakerSetupModified() const
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
+    auto const savedElement{ juce::XmlDocument{ juce::File{ mData.appData.lastSpeakerSetup } }.getDocumentElement() };
+    jassert(savedElement);
+    if (!savedElement) {
         return true;
     }
 
-    auto currentState = std::make_unique<XmlElement>("ServerGRIS_Preset");
-    this->getPresetData(currentState.get());
-
-    if (! savedState->isEquivalentTo(currentState.get(), true)) {
+    auto const savedSpeakerSetup{ SpeakerSetup::fromXml(*savedElement) };
+    jassert(savedSpeakerSetup);
+    if (!savedSpeakerSetup) {
         return true;
     }
-
-    return false;
+    return mData.speakerSetup != *savedSpeakerSetup;
 }
 
-bool MainContentComponent::exitApp() {
-    int exitV = 2;
+//==============================================================================
+bool MainContentComponent::exitApp()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
 
-    if (this->isPresetModified()) {
-        AlertWindow alert ("Exit SpatGRIS !",
-                           "Do you want to save the current project ?",
-                           AlertWindow::InfoIcon);
-        alert.setLookAndFeel(&mGrisFeel);
-        alert.addButton ("Save", 1, KeyPress(KeyPress::returnKey));
-        alert.addButton ("Cancel", 0, KeyPress(KeyPress::escapeKey));
-        alert.addButton ("Exit", 2, KeyPress(KeyPress::deleteKey));
-        exitV = alert.runModalLoop();
-        if (exitV == 1) {
-            alert.setVisible(false);
-            ModalComponentManager::getInstance()->cancelAllModalComponents();
-            String dir = this->applicationProperties.getUserSettings()->getValue("lastPresetDirectory");
-            if (! File(dir).isDirectory()) {
-                dir = File("~").getFullPathName();
-            }
-            String filename = File(this->pathCurrentPreset).getFileName();
+    static constexpr auto EXIT_APP = true;
+    static constexpr auto DONT_EXIT_APP = false;
 
-            FileChooser fc ("Choose a file to save...", dir + "/" + filename, "*.xml", UseOSNativeDialogBox);
-
-            if (fc.browseForFileToSave(true)) {
-                String chosen = fc.getResults().getReference(0).getFullPathName();
-                this->savePreset(chosen);
-            } else {
-                exitV = 0;
-            }
-        }
+    if (!makeSureSpeakerSetupIsSavedToDisk()) {
+        return DONT_EXIT_APP;
     }
 
-    return (exitV != 0); 
+    if (!makeSureProjectIsSavedToDisk()) {
+        return DONT_EXIT_APP;
+    }
+
+    return EXIT_APP;
 }
 
-void MainContentComponent::connectionClientJack(String nameCli, bool conn) {
-    unsigned int maxport = 0;
-    for (auto&& cli : this->jackClient->listClient) {
-        if (cli.portEnd > maxport) {
-            maxport = cli.portEnd;
-        }
+//==============================================================================
+void MainContentComponent::updatePeaks()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
+    auto & viewPortData{ mSpeakerViewComponent->getData() };
+    auto * flatViewViewportDataQueues{ mFlatViewWindow ? &mFlatViewWindow->getSourceDataQueues() : nullptr };
+
+    auto & audioData{ mAudioProcessor->getAudioData() };
+    auto *& sourcePeaksTicket{ mData.mostRecentSourcePeaks };
+    audioData.sourcePeaks.getMostRecent(sourcePeaksTicket);
+    if (!sourcePeaksTicket) {
+        return;
     }
-    if (maxport > (unsigned int)this->tedAddInputs->getTextValue().toString().getIntValue()) {
-        this->tedAddInputs->setText(String(maxport), dontSendNotification);
-        textEditorReturnKeyPressed(*this->tedAddInputs);
-    }
-    this->jackClient->processBlockOn = false;
-    this->jackClient->connectionClient(nameCli, conn);
-    this->jackClient->processBlockOn = true;
-}
+    auto const & sourcePeaks{ sourcePeaksTicket->get() };
+    for (auto const sourceData : mData.project.sources) {
+        auto const & peak{ sourcePeaks[sourceData.key] };
+        auto const dbPeak{ dbfs_t::fromGain(peak) };
+        mSourceVuMeterComponents[sourceData.key].setLevel(dbPeak);
 
-void MainContentComponent::selectSpeaker(unsigned int idS) {
-    for (unsigned int i = 0; i < this->listSpeaker.size(); ++i) {
-        if (i != idS) {
-            this->listSpeaker[i]->unSelectSpeaker();
-        } else {
-            this->listSpeaker[i]->selectSpeaker();
-        }
-    }
-    if (this->winSpeakConfig != nullptr) {
-        this->winSpeakConfig->selectedRow(idS);
-    }
-}
-
-void MainContentComponent::selectTripletSpeaker(int idS) {
-    int countS = 0;
-    for(unsigned int i = 0; i < this->listSpeaker.size(); ++i) {
-        if (this->listSpeaker[i]->isSelected()) {
-            countS+=1;
-        }
-    }
-
-    if (!this->listSpeaker[idS]->isSelected() && countS < 3) {
-        this->listSpeaker[idS]->selectSpeaker();
-        countS += 1;
-    } else {
-        this->listSpeaker[idS]->unSelectSpeaker();
-    }
-
-    if (countS == 3) {
-        int i1 = -1, i2= -1, i3 = -1;
-        for (unsigned int i = 0; i < this->listSpeaker.size(); ++i) {
-            if (this->listSpeaker[i]->isSelected()) {
-                if (i1 == -1) {
-                    i1 = i;
-                } else {
-                    if (i2 == -1) {
-                        i2 = i;
-                    } else {
-                        if (i3 == -1) {
-                            i3 = i;
-                        }
-                    }
-                }
-            }
-        }
-        if (i1 != -1 && i2 != -1 && i3 != -1) {
-            Triplet tri;
-            tri.id1 = i1;
-            tri.id2 = i2;
-            tri.id3 = i3;
-            int posDel = -1;
-            if (this->tripletExist(tri, posDel)) {
-                this->listTriplet.erase(this->listTriplet.begin() + posDel);
-            } else {
-                this->listTriplet.push_back(tri);
-            }
-        }
-    }
-}
-
-bool MainContentComponent::tripletExist(Triplet tri, int &pos) {
-    pos = 0;
-    for (auto&& ti : this->listTriplet) {
-        if ((ti.id1 == tri.id1 && ti.id2 == tri.id2 && ti.id3 == tri.id3) ||
-           (ti.id1 == tri.id1 && ti.id2 == tri.id3 && ti.id3 == tri.id2) ||
-           (ti.id1 == tri.id2 && ti.id2 == tri.id1 && ti.id3 == tri.id3) ||
-           (ti.id1 == tri.id2 && ti.id2 == tri.id3 && ti.id3 == tri.id1) ||
-           (ti.id1 == tri.id3 && ti.id2 == tri.id2 && ti.id3 == tri.id1) ||
-           (ti.id1 == tri.id3 && ti.id2 == tri.id1 && ti.id3 == tri.id2)) {
-            return true;
-        }
-        pos += 1;
-    }
-    
-    return false;
-}
-
-void MainContentComponent::resetSpeakerIds() {
-    int id = 1;
-    for (auto&& it : this->listSpeaker) {
-        it->setSpeakerId(id++);
-    }
-}
-
-void MainContentComponent::reorderSpeakers(vector<int> newOrder) {
-    int size = (int)this->listSpeaker.size();
-
-    vector<Speaker *> tempListSpeaker(size);
-    for (int i = 0; i < size; i++) {
-        for (auto&& it : this->listSpeaker) {
-            if (it->getIdSpeaker() == newOrder[i]) {
-                tempListSpeaker[i] = it;
-                break;
-            }
-        }
-    }
-
-    this->lockSpeakers->lock();
-    for (int i = 0; i < size; i++) {
-        this->listSpeaker[i] = tempListSpeaker[i];
-    }
-    this->lockSpeakers->unlock();
-}
-
-int MainContentComponent::getMaxSpeakerId() {
-    int maxId = 0;
-    for (auto&& it : this->listSpeaker) {
-        if (it->getIdSpeaker() > maxId)
-            maxId = it->getIdSpeaker();
-    }
-    return maxId;
-}
-
-int MainContentComponent::getMaxSpeakerOutputPatch() {
-    int maxOut = 0;
-    for (auto&& it : this->listSpeaker) {
-        if (it->getOutputPatch() > maxOut)
-            maxOut = it->getOutputPatch();
-    }
-    return maxOut;
-}
-
-void MainContentComponent::addSpeaker(int sortColumnId, bool isSortedForwards) {
-    int newId = this->getMaxSpeakerId() + 1;
-
-    this->lockSpeakers->lock();
-    this->listSpeaker.push_back(new Speaker(this, newId, newId, 0.0f, 0.0f, 1.0f));
-
-    if (sortColumnId == 1 && isSortedForwards) {
-        for (unsigned int i = 0; i < this->listSpeaker.size(); i++) {
-            this->listSpeaker[i]->setSpeakerId(i + 1);
-        }
-    } else if (sortColumnId == 1 && ! isSortedForwards) {
-        for (unsigned int i = 0; i < this->listSpeaker.size(); i++) {
-            this->listSpeaker[i]->setSpeakerId((int)this->listSpeaker.size() - i);
-        }
-    }
-    this->lockSpeakers->unlock();
-
-    this->jackClient->processBlockOn = false;
-    this->jackClient->addOutput(this->listSpeaker.back()->getOutputPatch());
-    this->jackClient->processBlockOn = true;
-}
-
-void MainContentComponent::insertSpeaker(int position, int sortColumnId, bool isSortedForwards) {
-    int newPosition = position + 1;
-    int newId = this->getMaxSpeakerId() + 1;
-    int newOut = this->getMaxSpeakerOutputPatch() + 1;
-
-    this->lockSpeakers->lock();
-    if (sortColumnId == 1 && isSortedForwards) {
-        newId = this->listSpeaker[position]->getIdSpeaker() + 1;
-        this->listSpeaker.emplace(this->listSpeaker.begin() + newPosition,
-                                  new Speaker(this, newId, newOut, 0.0f, 0.0f, 1.0f));
-        for (unsigned int i = 0; i < this->listSpeaker.size(); i++) {
-            this->listSpeaker[i]->setSpeakerId(i + 1);
-        }
-    } else if (sortColumnId == 1 && ! isSortedForwards) {
-        newId = this->listSpeaker[position]->getIdSpeaker() - 1;;
-        this->listSpeaker.emplace(this->listSpeaker.begin() + newPosition,
-                                  new Speaker(this, newId, newOut, 0.0f, 0.0f, 1.0f));
-        for (unsigned int i = 0; i < this->listSpeaker.size(); i++) {
-            this->listSpeaker[i]->setSpeakerId((int)this->listSpeaker.size() - i);
-        }
-    } else {
-        this->listSpeaker.emplace(this->listSpeaker.begin() + newPosition,
-                                  new Speaker(this, newId, newOut, 0.0f, 0.0f, 1.0f));
-    }
-    this->lockSpeakers->unlock();
-
-    this->jackClient->processBlockOn = false;
-    this->jackClient->clearOutput();
-    for (auto&& it : this->listSpeaker) {
-        this->jackClient->addOutput(it->getOutputPatch());
-    }
-    this->jackClient->processBlockOn = true;
-}
-
-void MainContentComponent::removeSpeaker(int idSpeaker) {
-    this->jackClient->removeOutput(idSpeaker);
-    this->lockSpeakers->lock();
-    int index = 0;
-    for (auto&& it : this->listSpeaker) {
-        if (index == idSpeaker) {
-            delete (it);
-            this->listSpeaker.erase(this->listSpeaker.begin() + idSpeaker);
-        }
-        index += 1;
-    }
-    this->lockSpeakers->unlock();
-}
-
-bool MainContentComponent::isRadiusNormalized() {
-    if (this->jackClient->modeSelected == VBAP || this->jackClient->modeSelected == VBAP_HRTF)
-        return true;
-    else
-        return false;
-}
-
-void MainContentComponent::updateInputJack(int inInput, Input &inp) {
-    SourceIn *si = &this->jackClient->listSourceIn[inInput];
-
-    if (this->jackClient->modeSelected == LBAP) {
-        si->radazi = inp.getAziMuth();
-        si->radele = M_PI2 - inp.getZenith();
-    } else {
-        si->azimuth = ((inp.getAziMuth() / M2_PI) * 360.0f);
-        if (si->azimuth > 180.0f) {
-            si->azimuth = si->azimuth - 360.0f;
-        }
-        si->zenith  = 90.0f - (inp.getZenith() / M2_PI) * 360.0f;
-    }
-    si->radius  = inp.getRadius();
-    
-    si->aziSpan = inp.getAziMuthSpan() * 0.5f;
-    si->zenSpan = inp.getZenithSpan() * 2.0f;
-    
-    if (this->jackClient->modeSelected == VBAP || this->jackClient->modeSelected == VBAP_HRTF) {
-        this->jackClient->vbapSourcesToUpdate[inInput] = 1;
-    }
-}
-
-void MainContentComponent::setListTripletFromVbap() {
-    this->clearListTriplet();
-    for (unsigned int i=0; i<this->jackClient->vbap_triplets.size(); i++) {
-        Triplet tri;
-        tri.id1 = this->jackClient->vbap_triplets[i][0];
-        tri.id2 = this->jackClient->vbap_triplets[i][1];
-        tri.id3 = this->jackClient->vbap_triplets[i][2];
-        this->listTriplet.push_back(tri);
-    }
-}
-
-Speaker * MainContentComponent::getSpeakerFromOutputPatch(int out) {
-    for (auto&& it : this->listSpeaker) {
-        if (it->getOutputPatch() == out && !it->getDirectOut()) {
-            return it;
-        }
-    }
-    return nullptr;
-}
-
-static void Linkwitz_Riley_compute_variables(double freq, double sr, double **coeffs, int length) {
-    double wc = 2 * M_PI * freq;
-    double wc2 = wc * wc;
-    double wc3 = wc2 * wc;
-    double wc4 = wc2 * wc2;
-    double k = wc / tan(M_PI * freq / sr);
-    double k2 = k * k;
-    double k3 = k2 * k;
-    double k4 = k2 * k2;
-    double sqrt2 = sqrt(2.0);
-    double sq_tmp1 = sqrt2 * wc3 * k;
-    double sq_tmp2 = sqrt2 * wc * k3;
-    double a_tmp = 4.0 * wc2 * k2 + 2.0 * sq_tmp1 + k4 + 2.0 * sq_tmp2 + wc4;
-    double k4_a_tmp = k4 / a_tmp;
-
-    *coeffs = (double *)malloc(length * sizeof(double));
-
-    /* common */
-    double b1 = (4.0 * (wc4 + sq_tmp1 - k4 - sq_tmp2)) / a_tmp;
-    double b2 = (6.0 * wc4 - 8.0 * wc2 * k2 + 6.0 * k4) / a_tmp;
-    double b3 = (4.0 * (wc4 - sq_tmp1 + sq_tmp2 - k4)) / a_tmp;
-    double b4 = (k4 - 2.0 * sq_tmp1 + wc4 - 2.0 * sq_tmp2 + 4.0 * wc2 * k2) / a_tmp;
-
-    /* highpass */
-    double ha0 = k4_a_tmp;
-    double ha1 = -4.0 * k4_a_tmp;
-    double ha2 = 6.0 * k4_a_tmp;
-
-    (*coeffs)[0] = b1; (*coeffs)[1] = b2; (*coeffs)[2] = b3; (*coeffs)[3] = b4;
-    (*coeffs)[4] = ha0; (*coeffs)[5] = ha1; (*coeffs)[6] = ha2; 
-}
-
-bool MainContentComponent::updateLevelComp() {
-    unsigned int dimensions = 2, directOutSpeakers = 0;
-
-    if (this->listSpeaker.size() == 0)
-        return false;
-
-    // Test for a 2-D or 3-D configuration.
-    float zenith = -1.0f;
-    for (auto&& it : this->listSpeaker) {
-        if (it->getDirectOut()) {
-            directOutSpeakers++;
+        if (!sourceData.value->position) {
             continue;
         }
-        if (zenith == -1.0f) {
-            zenith = it->getAziZenRad().y;
-        } else if (it->getAziZenRad().y < (zenith - 4.9) || it->getAziZenRad().y > (zenith + 4.9)) {
-            dimensions = 3;
+
+        auto const data{ sourceData.value->toViewportData(
+            mData.appData.viewSettings.showSourceActivity ? gainToSourceAlpha(sourceData.key, peak) : 0.8f) };
+
+        // update 3d view
+        if (!viewPortData.sourcesDataQueues.contains(sourceData.key)) {
+            viewPortData.sourcesDataQueues.add(sourceData.key);
+        }
+
+        {
+            auto & exchanger{ viewPortData.sourcesDataQueues[sourceData.key] };
+            auto * ticket{ exchanger.acquire() };
+            ticket->get() = data;
+            exchanger.setMostRecent(ticket);
+        }
+
+        // update 2d view
+        if (flatViewViewportDataQueues) {
+            auto & exchanger{ (*flatViewViewportDataQueues)[sourceData.key] };
+            auto * ticket{ exchanger.acquire() };
+            ticket->get() = data;
+            exchanger.setMostRecent(ticket);
         }
     }
 
-    // Too few speakers...
-    if ((this->listSpeaker.size() - directOutSpeakers) < dimensions) {
-        AlertWindow alert ("Not enough speakers!    ",
-                           "Do you want to reload previous config?    ", 
-                           AlertWindow::WarningIcon);
-        alert.setLookAndFeel(&mGrisFeel);
-        alert.addButton ("No", 0);
-        alert.addButton ("Yes", 1, KeyPress(KeyPress::returnKey));
-        if (alert.runModalLoop() != 0) {
-            this->openXmlFileSpeaker(this->pathCurrentFileSpeaker);
-        }
-        return false;
-    }
-
-    // Test for duplicated output patch.
-    vector<int> tempout;
-    for (unsigned int i = 0; i < this->listSpeaker.size(); i++) {
-        if (!this->listSpeaker[i]->getDirectOut()) {
-            tempout.push_back(this->listSpeaker[i]->getOutputPatch());
-        }
-    }
-
-    std::sort(tempout.begin(), tempout.end());
-    for (unsigned int i = 0; i < tempout.size() - 1; i++) {
-        if (tempout[i] == tempout[i + 1]) {
-            AlertWindow alert ("Duplicated Output Numbers!    ",
-                               "Some output numbers are used more than once. Do you want to continue anyway?    "
-                               "\nIf you continue, you may have to fix your speaker setup before using it!   ", 
-                               AlertWindow::WarningIcon);
-            alert.setLookAndFeel(&mGrisFeel);
-            alert.addButton ("No", 0);
-            alert.addButton ("Yes", 1);
-            if (alert.runModalLoop() == 0) {
-                if (this->pathCurrentFileSpeaker.compare(this->pathLastVbapSpeakerSetup) == 0) {
-                    this->openXmlFileSpeaker(DefaultSpeakerSetupFilePath);
-                } else {
-                    this->openXmlFileSpeaker(this->pathLastVbapSpeakerSetup);
-                }
-            }
-            return false;
-        }
-    }
-
-    this->jackClient->processBlockOn = false;
-    this->jackClient->maxOutputPatch = 0;
-
-    // Save mute/solo/directout states
-    bool inputsIsMuted[MaxInputs];
-    bool inputsIsSolo[MaxInputs];
-    bool soloIn = this->jackClient->soloIn;
-    int directOuts[MaxInputs];
-    for (unsigned int i = 0; i < MaxInputs; i++) {
-        inputsIsMuted[i] = (&this->jackClient->listSourceIn[i])->isMuted;
-        inputsIsSolo[i] = (&this->jackClient->listSourceIn[i])->isSolo;
-        directOuts[i] = (&this->jackClient->listSourceIn[i])->directOut;
-    }
-
-    bool outputsIsMuted[MaxInputs];
-    bool outputsIsSolo[MaxInputs];
-    bool soloOut = this->jackClient->soloOut;
-    for (unsigned int i = 0; i < MaxOutputs; i++) {
-        outputsIsMuted[i] = (&this->jackClient->listSpeakerOut[i])->isMuted;
-        outputsIsSolo[i] = (&this->jackClient->listSpeakerOut[i])->isSolo;
-    }
-
-    // Cleanup speakers output patch
-    for (auto&& it : this->jackClient->listSpeakerOut) {
-        it.outputPatch = 0;
-    }
-
-    // Create outputs.
-    int i = 0, x = 2;
-    for (auto&& it : this->listSpeaker) {
-        juce::Rectangle<int> level(x, 4, VuMeterWidthInPixels, 200);
-        it->getVuMeter()->setBounds(level);
-        it->getVuMeter()->resetClipping();
-        this->boxOutputsUI->getContent()->addAndMakeVisible(it->getVuMeter());
-        it->getVuMeter()->repaint();
-        
-        x += VuMeterWidthInPixels;
-
-        if (this->jackClient->modeSelected == VBAP || this->jackClient->modeSelected == VBAP_HRTF) {
-            it->normalizeRadius();
+    if (mData.appData.stereoMode) {
+        auto *& stereoPeaksTicket{ mData.mostRecentStereoPeaks };
+        audioData.stereoPeaks.getMostRecent(stereoPeaksTicket);
+        if (stereoPeaksTicket == nullptr) {
+            return;
         }
 
-        SpeakerOut so;
-        so.id = it->getOutputPatch();        
-        so.x = it->getCoordinate().x;
-        so.y = it->getCoordinate().y;
-        so.z = it->getCoordinate().z;
-        so.azimuth = it->getAziZenRad().x;
-        so.zenith  = it->getAziZenRad().y;
-        so.radius  = it->getAziZenRad().z;
-        so.outputPatch = it->getOutputPatch();
-        so.directOut = it->getDirectOut();
-        
-        this->jackClient->listSpeakerOut[i++] = so;
-
-        if ((unsigned int)it->getOutputPatch() > this->jackClient->maxOutputPatch)
-            this->jackClient->maxOutputPatch = it->getOutputPatch();
-    }
-
-    // Set user gain and highpass filter cutoff frequency for each speaker.
-    for (auto&& it : this->listSpeaker) {
-        this->jackClient->listSpeakerOut[it->outputPatch-1].gain = pow(10.0, it->getGain() * 0.05);
-        if (it->getHighPassCutoff() > 0.0f) {
-            double *coeffs;
-            Linkwitz_Riley_compute_variables((double)it->getHighPassCutoff(), (double)this->samplingRate, &coeffs, 7);
-            this->jackClient->listSpeakerOut[it->outputPatch-1].b1 = coeffs[0];
-            this->jackClient->listSpeakerOut[it->outputPatch-1].b2 = coeffs[1];
-            this->jackClient->listSpeakerOut[it->outputPatch-1].b3 = coeffs[2];
-            this->jackClient->listSpeakerOut[it->outputPatch-1].b4 = coeffs[3];
-            this->jackClient->listSpeakerOut[it->outputPatch-1].ha0 = coeffs[4];
-            this->jackClient->listSpeakerOut[it->outputPatch-1].ha1 = coeffs[5];
-            this->jackClient->listSpeakerOut[it->outputPatch-1].ha2 = coeffs[6];
-            this->jackClient->listSpeakerOut[it->outputPatch-1].hpActive = true;
-            free(coeffs);
+        auto const & stereoPeaks{ stereoPeaksTicket->get() };
+        for (size_t i{}; i < 2; ++i) {
+            auto const & peak{ stereoPeaks[i] };
+            auto const dbPeak{ dbfs_t::fromGain(peak) };
+            mStereoVuMeterComponents[static_cast<int>(i)]->setLevel(dbPeak);
         }
-    }
-    
-    i = 0;
-    x = 2;
-    this->lockInputs->lock();
-    for (auto&& it : this->listSourceInput) {
-        juce::Rectangle<int> level(x, 4, VuMeterWidthInPixels, 200);
-        it->getVuMeter()->setBounds(level);
-        it->getVuMeter()->updateDirectOutMenu(this->listSpeaker);
-        it->getVuMeter()->resetClipping();
-        this->boxInputsUI->getContent()->addAndMakeVisible(it->getVuMeter());
-        it->getVuMeter()->repaint();
-        
-        x += VuMeterWidthInPixels;
-
-        SourceIn si;
-        si.id = it->getId();
-        si.radazi = it->getAziMuth();
-        si.radele = M_PI2 - it->getZenith();
-        si.azimuth = it->getAziMuth();
-        si.zenith  = it->getZenith();
-        si.radius  = it->getRadius();
-        si.gain = 0.0f;
-        this->jackClient->listSourceIn[i++] = si;
-    }
-
-    this->lockInputs->unlock();
-
-    if (this->winSpeakConfig != nullptr) {
-        this->winSpeakConfig->updateWinContent();
-    }
-
-    this->boxOutputsUI->repaint();
-    this->resized();
-
-    // Temporarily remove direct out speakers to construct vbap or lbap algorithm. 
-    i = 0;
-    vector<Speaker *> tempListSpeaker;
-    tempListSpeaker.resize(this->listSpeaker.size());
-    for (auto&& it : this->listSpeaker) {
-        if (! it->getDirectOut()) {
-            tempListSpeaker[i++] = it;
-        }
-    }
-    tempListSpeaker.resize(i);
-
-    bool retval = false;
-    if (this->jackClient->modeSelected == VBAP || this->jackClient->modeSelected == VBAP_HRTF) {
-        this->jackClient->vbapDimensions = dimensions;
-        if (dimensions == 2) {
-            this->setShowTriplets(false);
-        }
-        retval = this->jackClient->initSpeakersTripplet(tempListSpeaker, dimensions, this->needToComputeVbap);
-
-        if (retval) {
-            this->setListTripletFromVbap();
-            this->needToComputeVbap = false;
-        } else {
-            AlertWindow alert ("Not a valid DOME 3-D configuration!    ",
-                               "Maybe you want to open it in CUBE mode? Reload the default speaker setup...    ",
-                               AlertWindow::WarningIcon);
-            alert.setLookAndFeel(&mGrisFeel);
-            alert.addButton ("Ok", 0, KeyPress(KeyPress::returnKey));
-            alert.runModalLoop();
-            this->openXmlFileSpeaker(DefaultSpeakerSetupFilePath);
-            return false;
-        }
-    } else if (this->jackClient->modeSelected == LBAP) {
-        this->setShowTriplets(false);
-        retval = this->jackClient->lbapSetupSpeakerField(tempListSpeaker);
-    }
-
-    // Restore mute/solo/directout states
-    this->jackClient->soloIn = soloIn;
-    for (unsigned int i = 0; i < MaxInputs; i++) {
-        (&this->jackClient->listSourceIn[i])->isMuted = inputsIsMuted[i];
-        (&this->jackClient->listSourceIn[i])->isSolo = inputsIsSolo[i];
-        (&this->jackClient->listSourceIn[i])->directOut = directOuts[i];
-    }
-    this->lockInputs->lock();
-    for (unsigned int i = 0; i < this->listSourceInput.size(); i++) {
-        this->listSourceInput[i]->setDirectOutChannel(directOuts[i]);
-    }
-    this->lockInputs->unlock();
-
-    this->jackClient->soloOut = soloOut;
-    for (unsigned int i = 0; i < MaxOutputs; i++) {
-        (&this->jackClient->listSpeakerOut[i])->isMuted = outputsIsMuted[i];
-        (&this->jackClient->listSpeakerOut[i])->isSolo = outputsIsSolo[i];
-    }
-
-    this->jackClient->processBlockOn = true;
-
-    return retval;
-}
-
-void MainContentComponent::setNameConfig() {
-    this->nameConfig = this->pathCurrentFileSpeaker.fromLastOccurrenceOf("/", false, false);
-    this->speakerView->setNameConfig(this->nameConfig);
-}
-
-void MainContentComponent::muteInput(int id, bool mute) {
-    (&this->jackClient->listSourceIn[id-1])->isMuted = mute;
-}
-
-void MainContentComponent::muteOutput(int id, bool mute) {
-    (&this->jackClient->listSpeakerOut[id-1])->isMuted = mute;
-}
-
-void MainContentComponent::soloInput(int id, bool solo) {
-    (&this->jackClient->listSourceIn[id-1])->isSolo = solo;
-
-    this->jackClient->soloIn = false;
-    for (unsigned int i = 0; i < MaxInputs; i++) {
-        if ((&this->jackClient->listSourceIn[i])->isSolo) {
-            this->jackClient->soloIn = true;
-            break;
-        }
-    }
-}
-void MainContentComponent::soloOutput(int id, bool solo) {
-    (&this->jackClient->listSpeakerOut[id-1])->isSolo = solo;
-    
-    this->jackClient->soloOut = false;
-    for (unsigned int i = 0; i < MaxOutputs; i++) {
-        if ((&this->jackClient->listSpeakerOut[i])->isSolo) {
-            this->jackClient->soloOut = true;
-            break;
-        }
-    }
-}
-
-void MainContentComponent::setDirectOut(int id, int chn) {
-    (&this->jackClient->listSourceIn[id-1])->directOut = chn;
-}
-
-void MainContentComponent::reloadXmlFileSpeaker() {
-    if (File(this->pathCurrentFileSpeaker).existsAsFile()) {
-        this->openXmlFileSpeaker(this->pathCurrentFileSpeaker);
-    }
-}
-
-void MainContentComponent::openXmlFileSpeaker(String path) {
-    String msg;
-    String oldPath = this->pathCurrentFileSpeaker;
-    bool isNewSameAsOld = oldPath.compare(path) == 0;
-    bool isNewSameAsLastSetup = this->pathLastVbapSpeakerSetup.compare(path) == 0;
-    bool ok = false;
-    if (! File(path.toStdString()).existsAsFile()) {
-        AlertWindow alert ("Error in Load Speaker Setup !", 
-                           "Can't found file " + path.toStdString() + ", the current setup will be kept.", 
-                           AlertWindow::WarningIcon);
-        alert.setLookAndFeel(&mGrisFeel);
-        alert.addButton ("Ok", 0, KeyPress(KeyPress::returnKey));
-        alert.runModalLoop();
-    } else {
-        this->pathCurrentFileSpeaker = path.toStdString();
-        XmlDocument xmlDoc (File (this->pathCurrentFileSpeaker));
-        std::unique_ptr<XmlElement> mainXmlElem (xmlDoc.getDocumentElement());
-        if (mainXmlElem == nullptr) {
-            AlertWindow alert ("Error in Load Speaker Setup !", 
-                               "Your file is corrupted !\n" + xmlDoc.getLastParseError(), 
-                               AlertWindow::WarningIcon);
-            alert.setLookAndFeel(&mGrisFeel);
-            alert.addButton ("Ok", 0);
-            alert.runModalLoop();
-        } else {
-            if (mainXmlElem->hasTagName("SpeakerSetup")) {
-                this->lockSpeakers->lock();
-                for (auto&& it : this->listSpeaker) {
-                    delete (it);
-                }
-                this->listSpeaker.clear();
-                this->lockSpeakers->unlock();
-                if (path.compare(BinauralSpeakerSetupFilePath) == 0) {
-                    this->jackClient->modeSelected = (ModeSpatEnum)(VBAP_HRTF);
-                    this->comBoxModeSpat->setSelectedId(VBAP_HRTF + 1, NotificationType::dontSendNotification);
-                } else if (path.compare(StereoSpeakerSetupFilePath) == 0) {
-                    this->jackClient->modeSelected = (ModeSpatEnum)(STEREO);
-                    this->comBoxModeSpat->setSelectedId(STEREO + 1, NotificationType::dontSendNotification);
-               } else if (!isNewSameAsOld && oldPath.compare(BinauralSpeakerSetupFilePath) != 0 &&
-                           oldPath.compare(StereoSpeakerSetupFilePath) != 0) {
-                    int spatMode = mainXmlElem->getIntAttribute("SpatMode");
-                    this->jackClient->modeSelected = (ModeSpatEnum)(spatMode);
-                    this->comBoxModeSpat->setSelectedId(spatMode + 1, NotificationType::dontSendNotification);
-                } else if (!isNewSameAsLastSetup) {
-                    int spatMode = mainXmlElem->getIntAttribute("SpatMode");
-                    this->jackClient->modeSelected = (ModeSpatEnum)(spatMode);
-                    this->comBoxModeSpat->setSelectedId(spatMode + 1, NotificationType::dontSendNotification);
-                }
-
-                bool loadSetupFromXYZ = false;
-                if (isNewSameAsOld && this->jackClient->modeSelected == LBAP)
-                    loadSetupFromXYZ = true;
-
-                this->setNameConfig();
-                this->jackClient->processBlockOn = false;
-                this->jackClient->clearOutput();
-                this->jackClient->maxOutputPatch = 0;
-                Array<int> layoutIndexes;
-                int maxLayoutIndex = 0;
-                forEachXmlChildElement(*mainXmlElem, ring) {
-                    if (ring->hasTagName("Ring")) {
-                        forEachXmlChildElement(*ring, spk) {
-                            if (spk->hasTagName ("Speaker")) {
-
-                                // Safety against layoutIndex doubles in the speaker setup.
-                                int layoutIndex = spk->getIntAttribute("LayoutIndex");
-                                if (layoutIndexes.contains(layoutIndex)) {
-                                    layoutIndex = ++maxLayoutIndex;
-                                }
-                                layoutIndexes.add(layoutIndex);
-                                if (layoutIndex > maxLayoutIndex) {
-                                    maxLayoutIndex = layoutIndex;
-                                }
-
-                                this->listSpeaker.push_back(new Speaker(this,
-                                                                        layoutIndex,
-                                                                        spk->getIntAttribute("OutputPatch"),
-                                                                        spk->getDoubleAttribute("Azimuth"),
-                                                                        spk->getDoubleAttribute("Zenith"),
-                                                                        spk->getDoubleAttribute("Radius")));
-                                if (loadSetupFromXYZ) {
-                                    this->listSpeaker.back()->setCoordinate(glm::vec3(spk->getDoubleAttribute("PositionX"),
-                                                                                      spk->getDoubleAttribute("PositionZ"),
-                                                                                      spk->getDoubleAttribute("PositionY")));
-                                }
-                                if (spk->hasAttribute("Gain")) {
-                                    this->listSpeaker.back()->setGain(spk->getDoubleAttribute("Gain"));
-                                }
-                                if (spk->hasAttribute("HighPassCutoff")) {
-                                    this->listSpeaker.back()->setHighPassCutoff(spk->getDoubleAttribute("HighPassCutoff"));
-                                }
-                                if (spk->hasAttribute("DirectOut")) {
-                                    this->listSpeaker.back()->setDirectOut(spk->getBoolAttribute("DirectOut"));
-                                }
-                                this->jackClient->addOutput((unsigned int)spk->getIntAttribute("OutputPatch"));
-                            }
-                        }
-                    }
-                    if (ring->hasTagName("triplet")) {
-                        Triplet tri;
-                        tri.id1 = ring->getIntAttribute("id1");
-                        tri.id2 = ring->getIntAttribute("id2");
-                        tri.id3 = ring->getIntAttribute("id3");
-                        this->listTriplet.push_back(tri);
-                    }
-                }
-                this->jackClient->processBlockOn = true;
-                ok = true;
-            } else {
-                if (mainXmlElem->hasTagName("ServerGRIS_Preset")) {
-                    msg = "You are trying to open a Server document, and not a Speaker Setup !";
-                } else {
-                    msg = "Your file is corrupted !\n" + xmlDoc.getLastParseError();
-                }
-                AlertWindow alert ("Error in Load Speaker Setup !", msg, AlertWindow::WarningIcon);
-                alert.setLookAndFeel(&mGrisFeel);
-                alert.addButton ("Ok", 0, KeyPress(KeyPress::returnKey));
-                alert.runModalLoop();
-            }
-        }
-    }
-    if (ok) {
-        if (this->pathCurrentFileSpeaker.endsWith("default_preset/default_speaker_setup.xml")) {
-            this->applicationProperties.getUserSettings()->setValue("lastSpeakerSetupDirectory", 
-                                                                    File::getSpecialLocation(File::userHomeDirectory).getFullPathName());
-        } else {
-            this->applicationProperties.getUserSettings()->setValue("lastSpeakerSetupDirectory", 
-                                                                    File(this->pathCurrentFileSpeaker).getParentDirectory().getFullPathName());
-        }
-        this->needToComputeVbap = true;
-        this->updateLevelComp();
-        if (this->getJackClient()->modeSelected != VBAP_HRTF && this->getJackClient()->modeSelected != STEREO) {
-            if (this->pathCurrentFileSpeaker.compare(BinauralSpeakerSetupFilePath) != 0 && this->pathCurrentFileSpeaker.compare(StereoSpeakerSetupFilePath) != 0) {
-                this->pathLastVbapSpeakerSetup = this->pathCurrentFileSpeaker;
-            }
-        }
-    } else {
-        if (isNewSameAsOld) {
-            this->openXmlFileSpeaker(DefaultSpeakerSetupFilePath);
-        } else {
-            this->openXmlFileSpeaker(oldPath);
-        }
-    }
-}
-
-void MainContentComponent::setTitle() {
-    String version = STRING(JUCE_APP_VERSION);
-    version = "SpatGRIS v" + version + " - ";
-    this->parent->setName(version + File(this->pathCurrentPreset).getFileName());
-}
-
-void MainContentComponent::openPreset(String path) {
-    String msg;
-    this->jackClient->processBlockOn = false;
-    File xmlFile = File(path.toStdString());
-    XmlDocument xmlDoc(xmlFile);
-    std::unique_ptr<XmlElement> mainXmlElem(xmlDoc.getDocumentElement());
-    if (mainXmlElem == nullptr) {
-        AlertWindow alert ("Error in Open Preset !", 
-                           "Your file is corrupted !\n" + path.toStdString() + "\n" + xmlDoc.getLastParseError().toStdString(), 
-                           AlertWindow::WarningIcon);
-        alert.setLookAndFeel(&mGrisFeel);
-        alert.addButton ("Ok", 1, KeyPress(KeyPress::returnKey));
-        alert.runModalLoop();
-    } else {
-        if (mainXmlElem->hasTagName("SpatServerGRIS_Preset") || mainXmlElem->hasTagName("ServerGRIS_Preset")) {
-            this->pathCurrentPreset = path;
-            this->oscInputPort = mainXmlElem->getIntAttribute("OSC_Input_Port"); // TODO: app preferences instead of project settings ?
-            this->tedAddInputs->setText(mainXmlElem->getStringAttribute("Number_Of_Inputs"));
-            this->sliderMasterGainOut->setValue(mainXmlElem->getDoubleAttribute("Master_Gain_Out", 0.0), sendNotification);
-            this->sliderInterpolation->setValue(mainXmlElem->getDoubleAttribute("Master_Interpolation", 0.1), sendNotification);
-            this->setShowNumbers(mainXmlElem->getBoolAttribute("Show_Numbers"));
-            if (mainXmlElem->hasAttribute("Show_Speakers")) {
-                this->setShowSpeakers(mainXmlElem->getBoolAttribute("Show_Speakers"));
-            } else {
-                this->setShowSpeakers(true);
-            }
-            if (mainXmlElem->hasAttribute("Show_Triplets")) {
-                this->setShowTriplets(mainXmlElem->getBoolAttribute("Show_Triplets"));
-            } else {
-                this->setShowTriplets(false);
-            }
-            if (mainXmlElem->hasAttribute("Use_Alpha")) {
-                this->isSourceLevelShown = mainXmlElem->getBoolAttribute("Use_Alpha");
-            } else {
-                this->isSourceLevelShown = false;
-            }
-            if (mainXmlElem->hasAttribute("Use_Alpha")) {
-                this->isSourceLevelShown = mainXmlElem->getBoolAttribute("Use_Alpha");
-            } else {
-                this->isSourceLevelShown = false;
-            }
-            if (mainXmlElem->hasAttribute("Show_Speaker_Level")) {
-                this->isSpeakerLevelShown = mainXmlElem->getBoolAttribute("Show_Speaker_Level");
-            } else {
-                this->isSpeakerLevelShown = false;
-            }
-            if (mainXmlElem->hasAttribute("Show_Sphere")) {
-                this->isSphereShown = mainXmlElem->getBoolAttribute("Show_Sphere");
-            } else {
-                this->isSphereShown = false;
-            }
-            this->speakerView->setShowSphere(this->isSphereShown);
-
-            if (mainXmlElem->hasAttribute("CamAngleX")) {
-                float angleX = mainXmlElem->getDoubleAttribute("CamAngleX");
-                float angleY = mainXmlElem->getDoubleAttribute("CamAngleY");
-                float distance = mainXmlElem->getDoubleAttribute("CamDistance");
-                this->speakerView->setCamPosition(angleX, angleY, distance);
-            } else {
-                this->speakerView->setCamPosition(80.0f, 25.0f, 22.0f); // TODO: named constants ?
-            }
-
-            // Update
-            this->textEditorReturnKeyPressed(*this->tedAddInputs);
-            this->sliderValueChanged(this->sliderMasterGainOut);
-            this->sliderValueChanged(this->sliderInterpolation);
-
-            File speakerSetup = File(this->pathCurrentFileSpeaker.toStdString());
-            if (! this->pathCurrentFileSpeaker.startsWith("/")) {
-                this->pathCurrentFileSpeaker = DefaultPresetDirectoryPath + this->pathCurrentFileSpeaker;
-            }
-
-            forEachXmlChildElement(*mainXmlElem, input) {
-                if (input->hasTagName ("Input")) {
-                    for (auto&& it : listSourceInput) {
-                        if (it->getId() == input->getIntAttribute("Index")) {
-                            it->setColor(Colour::fromFloatRGBA((float)input->getDoubleAttribute("R"),
-                                                               (float)input->getDoubleAttribute("G"),
-                                                               (float)input->getDoubleAttribute("B"), 1.0f), true);
-                            if (input->hasAttribute("DirectOut")) {
-                                it->setDirectOutChannel(input->getIntAttribute("DirectOut"));
-                                this->setDirectOut(it->getId(), input->getIntAttribute("DirectOut"));
-                            } else {
-                                it->setDirectOutChannel(0);
-                                this->setDirectOut(it->getId(), 0);
-                            }
-                        }
-                    }
-                }
-            }
-        } else {
-            if (mainXmlElem->hasTagName("SpeakerSetup")) {
-                msg = "You are trying to open a Speaker Setup, and not a Server document !";
-            } else {
-                msg = "Your file is corrupted !\n" + xmlDoc.getLastParseError();
-            }
-            AlertWindow alert ("Error in Open Preset !", msg, AlertWindow::WarningIcon);
-            alert.setLookAndFeel(&mGrisFeel);
-            alert.addButton ("Ok", 0, KeyPress(KeyPress::returnKey));
-            alert.runModalLoop();
-        }
-    }
-
-    this->jackClient->pinkNoiseSound = false;
-    this->jackClient->processBlockOn = true;
-
-    if (this->pathCurrentPreset.endsWith("default_preset/default_preset.xml")) {
-        this->applicationProperties.getUserSettings()->setValue("lastPresetDirectory", 
-                                                                File::getSpecialLocation(File::userHomeDirectory).getFullPathName());
-    } else {
-        this->applicationProperties.getUserSettings()->setValue("lastPresetDirectory", 
-                                                                File(this->pathCurrentPreset).getParentDirectory().getFullPathName());
-    }
-    this->setTitle();
-}
-
-void MainContentComponent::getPresetData(XmlElement *xml) {
-    xml->setAttribute("OSC_Input_Port", String(this->oscInputPort));
-    xml->setAttribute("Number_Of_Inputs", this->tedAddInputs->getTextValue().toString());
-    xml->setAttribute("Master_Gain_Out", this->sliderMasterGainOut->getValue());
-    xml->setAttribute("Master_Interpolation", this->sliderInterpolation->getValue());
-    xml->setAttribute("Show_Numbers", this->isNumbersShown);
-    xml->setAttribute("Show_Speakers", this->isSpeakersShown);
-    xml->setAttribute("Show_Triplets", this->isTripletsShown);
-    xml->setAttribute("Use_Alpha", this->isSourceLevelShown);
-    xml->setAttribute("Show_Speaker_Level", this->isSpeakerLevelShown);
-    xml->setAttribute("Show_Sphere", this->isSphereShown);
-    xml->setAttribute("CamAngleX", this->speakerView->getCamAngleX());
-    xml->setAttribute("CamAngleY", this->speakerView->getCamAngleY());
-    xml->setAttribute("CamDistance", this->speakerView->getCamDistance());
-    
-    for (auto&& it : listSourceInput) {
-        XmlElement *xmlInput = new XmlElement("Input");
-        xmlInput->setAttribute("Index", it->getId());
-        xmlInput->setAttribute("R", it->getColor().x);
-        xmlInput->setAttribute("G", it->getColor().y);
-        xmlInput->setAttribute("B", it->getColor().z);
-        xmlInput->setAttribute("DirectOut", String(it->getDirectOutChannel()));
-        xml->addChildElement(xmlInput);
-    }
-}
-
-void MainContentComponent::savePreset(String path) {
-    File xmlFile = File(path.toStdString());
-    auto xml = std::make_unique<XmlElement>("ServerGRIS_Preset");
-    this->getPresetData(xml.get());
-    xml->writeTo(xmlFile);
-    xmlFile.create();
-    this->pathCurrentPreset = path;
-    this->applicationProperties.getUserSettings()->setValue("lastPresetDirectory", 
-                                                            File(this->pathCurrentPreset).getParentDirectory().getFullPathName());
-    this->setTitle();
-}
-
-void MainContentComponent::saveSpeakerSetup(String path) {
-    this->pathCurrentFileSpeaker = path;
-    File xmlFile = File (path.toStdString());
-    auto xml = std::make_unique<XmlElement>("SpeakerSetup");
-    
-    xml->setAttribute ("Name", this->nameConfig);
-    xml->setAttribute ("Dimension", 3);
-    xml->setAttribute ("SpatMode", getModeSelected());
-    
-    XmlElement *xmlRing = new  XmlElement("Ring");
-    
-    for (auto&& it : listSpeaker) {
-        XmlElement *xmlInput = new XmlElement("Speaker");
-        xmlInput->setAttribute("PositionX", it->getCoordinate().x);
-        xmlInput->setAttribute("PositionY", it->getCoordinate().z);
-        xmlInput->setAttribute("PositionZ", it->getCoordinate().y);
-        xmlInput->setAttribute("Azimuth", it->getAziZenRad().x);
-        xmlInput->setAttribute("Zenith", it->getAziZenRad().y);
-        xmlInput->setAttribute("Radius", it->getAziZenRad().z);
-        xmlInput->setAttribute("LayoutIndex", it->getIdSpeaker());
-        xmlInput->setAttribute("OutputPatch", it->getOutputPatch());
-        xmlInput->setAttribute("Gain", it->getGain());
-        xmlInput->setAttribute("HighPassCutoff", it->getHighPassCutoff());
-        xmlInput->setAttribute("DirectOut", it->getDirectOut());
-        xmlRing->addChildElement(xmlInput);
-    }
-    xml->addChildElement(xmlRing);
-
-    for (auto&& it : listTriplet) {
-        XmlElement *xmlInput = new XmlElement("triplet");
-        xmlInput->setAttribute("id1", it.id1);
-        xmlInput->setAttribute("id2", it.id2);
-        xmlInput->setAttribute("id3", it.id3);
-        xml->addChildElement(xmlInput);
-    }
-    
-    xml->writeTo(xmlFile);
-    xmlFile.create();
-
-    this->applicationProperties.getUserSettings()->setValue("lastSpeakerSetupDirectory", 
-                                                            File(this->pathCurrentFileSpeaker).getParentDirectory().getFullPathName());
-
-    this->needToSaveSpeakerSetup = false;
-
-    if (this->getJackClient()->modeSelected != VBAP_HRTF && this->getJackClient()->modeSelected != STEREO) {
-        if (this->pathCurrentFileSpeaker.compare(BinauralSpeakerSetupFilePath) != 0 && this->pathCurrentFileSpeaker.compare(StereoSpeakerSetupFilePath) != 0) {
-            this->pathLastVbapSpeakerSetup = this->pathCurrentFileSpeaker;
-        }
-    }
-
-    this->setNameConfig();
-}
-
-void MainContentComponent::saveProperties(String device, int rate, int buff, int fileformat, int fileconfig,
-                                          int attenuationDB, int attenuationHz, int oscPort) {
-
-    PropertiesFile *props = this->applicationProperties.getUserSettings();
-
-    String DeviceValue = props->getValue("AlsaOutputDevice", "");
-    int BufferValue = props->getIntValue("BufferValue", 1024);
-    int RateValue = props->getIntValue("RateValue", 48000);
-    int OscInputPort = props->getIntValue("OscInputPort", 18032);
-
-    if (std::isnan(float(BufferValue)) || BufferValue == 0) { BufferValue = 1024; }
-    if (std::isnan(float(RateValue)) || RateValue == 0) { RateValue = 48000; }
-
-    if (device.compare(DeviceValue) != 0 || rate != RateValue || buff != BufferValue) {
-        AlertWindow alert ("You Need to Restart SpatGRIS!",
-                           "New settings will be effective on next launch of the SpatGRIS.", 
-                           AlertWindow::InfoIcon);
-        alert.setLookAndFeel(&mGrisFeel);
-        alert.addButton ("Cancel", 0);
-        alert.addButton ("Ok", 1, KeyPress(KeyPress::returnKey));
-        if (alert.runModalLoop() != 0) {
-            props->setValue("AlsaOutputDevice", device);
-            props->setValue("BufferValue", (int)buff);
-            props->setValue("RateValue", (int)rate);
-        }
-    }
-
-    // Handle OSC Input Port
-    if (oscPort < 0 || oscPort > 65535) { oscPort = 18032; }
-    if (oscPort != OscInputPort) {
-        this->oscInputPort = oscPort;
-        props->setValue("OscInputPort", oscPort);
-        this->oscReceiver->closeConnection();
-        if (this->oscReceiver->startConnection(this->oscInputPort)) {
-            cout << "OSC receiver connected to port " << oscPort << endl;
-        } else {
-            cout << "OSC receiver connection to port " << oscPort << " failed... Should popup an alert window." << endl;
-        }
-    }
-
-    // Handle recording settings
-    this->jackClient->setRecordFormat(fileformat);
-    props->setValue("FileFormat", fileformat);
-
-    this->jackClient->setRecordFileConfig(fileconfig);
-    props->setValue("FileConfig", fileconfig);
-
-    // Handle CUBE distance attenuation
-    float linGain = powf(10.0f, AttenuationDBs[attenuationDB].getFloatValue() * 0.05f);
-    this->jackClient->setAttenuationDB(linGain);
-    props->setValue("AttenuationDB", attenuationDB);
-
-    float coeff = expf(-M2_PI * AttenuationCutoffs[attenuationHz].getFloatValue() / this->jackClient->sampleRate);
-    this->jackClient->setAttenuationHz(coeff);
-    props->setValue("AttenuationHz", attenuationHz);
-
-    applicationProperties.saveIfNeeded();
-}
-
-void MainContentComponent::timerCallback() {
-    this->labelJackLoad->setText(String(this->jackClient->getCpuUsed(), 4)+ " %", dontSendNotification);
-    int seconds = this->jackClient->indexRecord/this->jackClient->sampleRate;
-    int minute = int(seconds / 60) % 60;
-    seconds = int(seconds % 60);
-    String timeRecorded = ((minute < 10) ? "0" + String(minute) : String(minute)) + " : " +
-                          ((seconds < 10) ? "0" + String(seconds) : String(seconds));
-    this->labelTimeRecorded->setText(timeRecorded, dontSendNotification);
-    
-    if (this->butStartRecord->getToggleState()) {
-        this->butStartRecord->setToggleState(false, dontSendNotification);
-    }
-    
-    if (this->jackClient->isSavingRun()) {
-        this->butStartRecord->setButtonText("Stop");
-    } else if (this->jackClient->getRecordingPath() == "") {
-        this->butStartRecord->setButtonText("Record");
-    } else {
-        this->butStartRecord->setButtonText("Record");
-    } 
-
-    if (this->isRecording && !this->jackClient->recording) {
-        bool isReadyToMerge = true;
-        for (unsigned int i = 0; i < MaxOutputs; i++) {
-            if (this->jackClient->recorder[i].backgroundThread.isThreadRunning()) {
-                isReadyToMerge = false;
-            }
-        }
-        if (isReadyToMerge) {
-            this->isRecording = false;
-            if (this->jackClient->getRecordFileConfig()) {
-                this->jackClient->processBlockOn = false;
-                AudioRenderer *renderer = new AudioRenderer();
-                renderer->prepareRecording(this->jackClient->getRecordingPath(),
-                                           this->jackClient->outputFilenames,
-                                           this->jackClient->sampleRate);
-                renderer->runThread();
-                this->jackClient->processBlockOn = true;
-            }
-        }
-    }
-
-    if (this->jackClient->overload) {
-        this->labelJackLoad->setColour(Label::backgroundColourId, Colours::darkred);
-    } else {
-        this->labelJackLoad->setColour(Label::backgroundColourId, mGrisFeel.getWinBackgroundColour());
-    }
-    
-    for (auto&& it : listSourceInput) {
-        it->getVuMeter()->update();
-    }
-
-    for (auto&& it : listSpeaker) {
-        it->getVuMeter()->update();
-    }
-    
-    this->boxClientJack->updateContentCli();
-
-    if (this->isProcessForeground != Process::isForegroundProcess()) {
-        this->isProcessForeground = Process::isForegroundProcess();
-        if (this->winSpeakConfig != nullptr && this->isProcessForeground) {
-            this->winSpeakConfig->setVisible(true);
-            this->winSpeakConfig->setAlwaysOnTop(true);
-        }
-        else if (this->winSpeakConfig != nullptr && !this->isProcessForeground) {
-            this->winSpeakConfig->setVisible(false);
-            this->winSpeakConfig->setAlwaysOnTop(false);
-        }
-        if (this->winControlSource != nullptr && this->isProcessForeground) {
-            this->winControlSource->toFront(false);
-            this->toFront(true);
-        }
-    }
-}
-
-void MainContentComponent::paint(Graphics& g) {
-    g.fillAll(mGrisFeel.getWinBackgroundColour());
-}
-
-
-void MainContentComponent::textEditorFocusLost(TextEditor &textEditor) {
-    textEditorReturnKeyPressed(textEditor);
-}
-
-void MainContentComponent::textEditorReturnKeyPressed (TextEditor & textEditor) {
-    if (&textEditor == this->tedAddInputs) {
-        unsigned int num_of_inputs = (unsigned int)this->tedAddInputs->getTextValue().toString().getIntValue();
-        if (num_of_inputs < 1) {
-            this->tedAddInputs->setText("1");
-        }
-        if (num_of_inputs > MaxInputs) {
-            this->tedAddInputs->setText(String(MaxInputs));
-        }
-
-        if (this->jackClient->inputsPort.size() != num_of_inputs) {
-            this->jackClient->processBlockOn = false;
-            this->jackClient->addRemoveInput(num_of_inputs);
-            this->jackClient->processBlockOn = true;
-            
-            this->lockInputs->lock();
-            bool addInput = false;
-            for (unsigned int i = 0 ; i < this->jackClient->inputsPort.size(); i++) {
-                if (i >= this->listSourceInput.size()) {
-                    this->listSourceInput.push_back(new Input(this, &mSmallTextGrisFeel, i+1));
-                    addInput = true;
-                }
-            }
-            if (!addInput) {
-                for (auto it = this->listSourceInput.begin() + this->jackClient->inputsPort.size(); it != this->listSourceInput.end(); ) {
-                    delete *it;
-                    it = this->listSourceInput.erase(it);
-                }
-            }
-            this->lockInputs->unlock();
-        }
-        this->unfocusAllComponents();
-        updateLevelComp();
-    }
-}
-
-void MainContentComponent::buttonClicked(Button *button) {
-    if (button == this->butStartRecord) {
-        if (this->jackClient->recording) {
-            this->jackClient->stopRecord();
-            this->butStartRecord->setEnabled(false);
-            this->labelTimeRecorded->setColour(Label::textColourId, mGrisFeel.getFontColour());
-        } else {
-            this->isRecording = true;
-            this->jackClient->startRecord();
-            this->labelTimeRecorded->setColour(Label::textColourId, mGrisFeel.getRedColour());
-        }
-        this->butStartRecord->setToggleState(this->jackClient->recording, dontSendNotification);
-    }
-    else if (button == this->butInitRecord) {
-        this->chooseRecordingPath();
-        this->butStartRecord->setEnabled(true);
-    }
-}
-
-void MainContentComponent::sliderValueChanged(Slider* slider) {
-    if (slider == this->sliderMasterGainOut) {
-        this->jackClient->masterGainOut = pow(10.0, this->sliderMasterGainOut->getValue() * 0.05);
-    }
-
-    else if (slider == this->sliderInterpolation) {
-        this->jackClient->interMaster = this->sliderInterpolation->getValue();
-    }
-}
-
-void MainContentComponent::comboBoxChanged(ComboBox *comboBox) {
-    if (this->winSpeakConfig != nullptr && this->needToSaveSpeakerSetup) {
-        AlertWindow alert ("The speaker configuration has changed!    ",
-                           "Save your changes or close the speaker configuration window before switching mode...    ",
-                           AlertWindow::WarningIcon);
-        alert.setLookAndFeel(&mGrisFeel);
-        alert.addButton ("Ok", 0, KeyPress(KeyPress::returnKey));
-        alert.runModalLoop();
-        this->comBoxModeSpat->setSelectedId(this->jackClient->modeSelected+1, NotificationType::dontSendNotification);
         return;
     }
 
-    if (this->comBoxModeSpat == comboBox) {
-        this->jackClient->processBlockOn = false;
-        this->jackClient->modeSelected = (ModeSpatEnum)(this->comBoxModeSpat->getSelectedId() - 1);
-        switch (this->jackClient->modeSelected) {
-            case VBAP:
-                this->openXmlFileSpeaker(this->pathLastVbapSpeakerSetup);
-                this->needToSaveSpeakerSetup = false;
-                this->isSpanShown = true;
-                break;
-            case LBAP:
-                this->openXmlFileSpeaker(this->pathLastVbapSpeakerSetup);
-                this->needToSaveSpeakerSetup = false;
-                this->isSpanShown = true;
-                break;
-            case VBAP_HRTF:
-                this->openXmlFileSpeaker(BinauralSpeakerSetupFilePath);
-                this->needToSaveSpeakerSetup = false;
-                this->jackClient->resetHRTF();
-                this->isSpanShown = false;
-                break;
-            case STEREO:
-                this->openXmlFileSpeaker(StereoSpeakerSetupFilePath);
-                this->needToSaveSpeakerSetup = false;
-                this->isSpanShown = false;
-                break;
-            default:
-                break;
-        }
-        this->jackClient->processBlockOn = true;
+    auto *& speakerPeaksTicket{ mData.mostRecentSpeakerPeaks };
+    audioData.speakerPeaks.getMostRecent(speakerPeaksTicket);
+    if (speakerPeaksTicket == nullptr) {
+        return;
+    }
+    auto const & speakerPeaks{ speakerPeaksTicket->get() };
+    for (auto const speaker : mData.speakerSetup.speakers) {
+        auto const & peak{ speakerPeaks[speaker.key] };
+        auto const dbPeak{ dbfs_t::fromGain(peak) };
+        mSpeakerVuMeterComponents[speaker.key].setLevel(dbPeak);
 
-        if (this->winSpeakConfig != nullptr) {
-            String windowName = String("Speakers Setup Edition - ") + String(ModeSpatString[this->jackClient->modeSelected]) + \
-                                String(" - ") + File(this->pathCurrentFileSpeaker).getFileName();
-            this->winSpeakConfig->setName(windowName);
-        }
+        auto & exchanger{ viewPortData.speakersAlphaQueues[speaker.key] };
+        auto * ticket{ exchanger.acquire() };
+        ticket->get() = gainToSpeakerAlpha(peak);
+        exchanger.setMostRecent(ticket);
     }
 }
 
-int MainContentComponent::getModeSelected() {
-    return this->comBoxModeSpat->getSelectedId() - 1;
+//==============================================================================
+void MainContentComponent::refreshSourceVuMeterComponents()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
+    mSourcesInnerLayout->clearSections();
+    mSourceVuMeterComponents.clear();
+
+    auto const isAtLeastOneSourceSolo{ std::any_of(
+        mData.project.sources.cbegin(),
+        mData.project.sources.cend(),
+        [](SourcesData::ConstNode const & node) { return node.value->state == PortState::solo; }) };
+
+    // auto x{ 3 };
+    for (auto source : mData.project.sources) {
+        auto newVuMeter{ std::make_unique<SourceVuMeterComponent>(source.key,
+                                                                  source.value->directOut,
+                                                                  source.value->colour,
+                                                                  *this,
+                                                                  mSmallLookAndFeel) };
+        auto const & state{ source.value->state };
+        newVuMeter->setState(state, isAtLeastOneSourceSolo);
+        auto & addedVuMeter{ mSourceVuMeterComponents.add(source.key, std::move(newVuMeter)) };
+        mSourcesInnerLayout->addSection(&addedVuMeter).withChildMinSize();
+    }
+
+    mSourcesInnerLayout->resized();
 }
 
-void MainContentComponent::setOscLogging(const OSCMessage& message) {
-    if (this->oscLogWindow != nullptr) {
-        String address = message.getAddressPattern().toString();
-        this->oscLogWindow->addToLog(address + "\n");
-        String msg;
-        for (int i = 0; i < message.size(); i++) {
-            if (message[i].isInt32()) {
-                msg = msg + String(message[i].getInt32()) + " ";
-            } else if (message[i].isFloat32()) {
-                msg = msg + String(message[i].getFloat32()) + " ";
-            } else if (message[i].isString()) {
-                msg = msg + message[i].getString() + " ";
-            }
-        }
-        this->oscLogWindow->addToLog(msg + "\n");
-    }
-}
+//==============================================================================
+void MainContentComponent::refreshSpeakerVuMeterComponents()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
 
-void MainContentComponent::chooseRecordingPath() {
-    String dir = this->applicationProperties.getUserSettings()->getValue("lastRecordingDirectory");
-    if (! File(dir).isDirectory()) {
-        dir = File("~").getFullPathName();
-    }
-    String extF;
-    String extChoice;
-    if (this->jackClient->getRecordFormat() == 0) {
-        extF = ".wav";
-        extChoice = "*.wav,*.aif";
+    mSpeakersLayout->clearSections();
+    mSpeakerVuMeterComponents.clear();
+    mStereoVuMeterComponents.clearQuick(true);
+
+    auto const isAtLeastOneSpeakerSolo{ std::any_of(
+        mData.speakerSetup.speakers.cbegin(),
+        mData.speakerSetup.speakers.cend(),
+        [](SpeakersData::ConstNode const & node) { return node.value->state == PortState::solo; }) };
+
+    if (mData.appData.stereoMode) {
+        mSpeakersLayout
+            ->addSection(mStereoVuMeterComponents.add(std::make_unique<StereoVuMeterComponent>("L", mSmallLookAndFeel)))
+            .withChildMinSize();
+        mSpeakersLayout
+            ->addSection(mStereoVuMeterComponents.add(std::make_unique<StereoVuMeterComponent>("R", mSmallLookAndFeel)))
+            .withChildMinSize();
     } else {
-        extF = ".aif";
-        extChoice = "*.aif,*.wav";
+        for (auto const outputPatch : mData.speakerSetup.ordering) {
+            auto newVuMeter{ std::make_unique<SpeakerVuMeterComponent>(outputPatch, *this, mSmallLookAndFeel) };
+            auto const & state{ mData.speakerSetup.speakers[outputPatch].state };
+            newVuMeter->setState(state, isAtLeastOneSpeakerSolo);
+            auto & addedVuMeter{ mSpeakerVuMeterComponents.add(outputPatch, std::move(newVuMeter)) };
+            mSpeakersLayout->addSection(&addedVuMeter).withChildMinSize();
+        }
     }
 
-    FileChooser fc ("Choose a file to save...", dir + "/recording" + extF, extChoice, UseOSNativeDialogBox);
-
-    if (fc.browseForFileToSave(true)) {
-        String filePath = fc.getResults().getReference(0).getFullPathName();
-        this->applicationProperties.getUserSettings()->setValue("lastRecordingDirectory", 
-                                                                File(filePath).getParentDirectory().getFullPathName());
-        this->jackClient->setRecordingPath(filePath);
-    }
-    this->jackClient->prepareToRecord();
+    mSpeakersLayout->resized();
 }
 
-void MainContentComponent::resized() {
-	juce::Rectangle<int> r (getLocalBounds().reduced (2));
+//==============================================================================
+void MainContentComponent::updateSourceSpatData(source_index_t const sourceIndex)
+{
+    jassert(!isProbablyAudioThread());
 
-    menuBar->setBounds(0, 0, this->getWidth(), 20);
-    r.removeFromTop(20);
-    
+    juce::ScopedReadLock const lock{ mLock };
+    mAudioProcessor->getSpatAlgorithm()->updateSpatData(sourceIndex, mData.project.sources[sourceIndex]);
+}
+
+//==============================================================================
+void MainContentComponent::setSourcePosition(source_index_t const sourceIndex,
+                                             radians_t const azimuth,
+                                             radians_t const elevation,
+                                             float const length,
+                                             float const newAzimuthSpan,
+                                             float const newZenithSpan)
+{
+    ASSERT_OSC_THREAD;
+    juce::ScopedReadLock const readLock{ mLock };
+
+    if (!mData.project.sources.contains(sourceIndex)) {
+        return;
+    }
+
+    auto const getCorrectedPosition = [&]() -> Position {
+        switch (mData.speakerSetup.spatMode) {
+        case SpatMode::vbap: {
+            return Position{ PolarVector{ azimuth, elevation, length }.normalized() };
+        }
+        case SpatMode::lbap: {
+            return LegacyLbapPosition{ azimuth, elevation, length }.toPosition();
+        }
+        }
+        jassertfalse;
+        return {};
+    };
+
+    auto const correctedPosition{ getCorrectedPosition() };
+    auto & source{ mData.project.sources[sourceIndex] };
+
+    if (correctedPosition == source.position && newAzimuthSpan == source.azimuthSpan
+        && newZenithSpan == source.zenithSpan) {
+        return;
+    }
+
+    juce::ScopedWriteLock const writeLock{ mLock };
+
+    source.position = correctedPosition;
+    source.azimuthSpan = newAzimuthSpan;
+    source.zenithSpan = newZenithSpan;
+
+    updateSourceSpatData(sourceIndex);
+}
+
+//==============================================================================
+void MainContentComponent::resetSourcePosition(source_index_t const sourceIndex)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    mData.project.sources[sourceIndex].position = tl::nullopt;
+}
+
+//==============================================================================
+void MainContentComponent::speakerOnlyDirectOutChanged(output_patch_t const outputPatch, bool const state)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    auto & speaker{ mData.speakerSetup.speakers[outputPatch] };
+    auto & val{ speaker.isDirectOutOnly };
+    if (state != val) {
+        val = state;
+
+        if (!state && mData.speakerSetup.spatMode == SpatMode::vbap) {
+            speaker.position = speaker.position.normalized();
+        }
+
+        refreshAudioProcessor();
+        refreshViewportConfig();
+    }
+}
+
+//==============================================================================
+void MainContentComponent::speakerOutputPatchChanged(output_patch_t const oldOutputPatch,
+                                                     output_patch_t const newOutputPatch)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    auto & speakers{ mData.speakerSetup.speakers };
+    speakers.add(newOutputPatch, std::make_unique<SpeakerData>(speakers[oldOutputPatch]));
+    speakers.remove(oldOutputPatch);
+
+    auto & order{ mData.speakerSetup.ordering };
+    order.set(order.indexOf(oldOutputPatch), newOutputPatch);
+
+    refreshSpeakerVuMeterComponents();
+}
+
+//==============================================================================
+void MainContentComponent::setSpeakerGain(output_patch_t const outputPatch, dbfs_t const gain)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    mData.speakerSetup.speakers[outputPatch].gain = gain;
+
+    refreshAudioProcessor();
+}
+
+//==============================================================================
+void MainContentComponent::setSpeakerHighPassFreq(output_patch_t const outputPatch, hz_t const freq)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    if (freq == hz_t{ 0.0f }) {
+        mData.speakerSetup.speakers[outputPatch].highpassData.reset();
+    } else {
+        mData.speakerSetup.speakers[outputPatch].highpassData = SpeakerHighpassData{ freq };
+    }
+}
+
+//==============================================================================
+void MainContentComponent::setPinkNoiseGain(tl::optional<dbfs_t> const gain)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    if (gain != mData.pinkNoiseLevel) {
+        mData.pinkNoiseLevel = gain;
+        mAudioProcessor->setAudioConfig(mData.toAudioConfig());
+    }
+}
+
+//==============================================================================
+void MainContentComponent::setSourceColor(source_index_t const sourceIndex, juce::Colour const colour)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    if (sourceIndex.get() == mData.project.sources.size() + 1) {
+        // Right click on the last source's color selector
+        return;
+    }
+
+    mData.project.sources[sourceIndex].colour = colour;
+    mSourceVuMeterComponents[sourceIndex].setSourceColour(colour);
+}
+
+//==============================================================================
+void MainContentComponent::setSourceState(source_index_t const sourceIndex, PortState const state)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    mData.project.sources[sourceIndex].state = state;
+
+    refreshAudioProcessor();
+    refreshSourceVuMeterComponents();
+}
+
+//==============================================================================
+void MainContentComponent::setSelectedSpeakers(juce::Array<output_patch_t> const selection)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    for (auto const speaker : mData.speakerSetup.speakers) {
+        auto const isSelected{ selection.contains(speaker.key) };
+
+        if (speaker.value->isSelected == isSelected) {
+            continue;
+        }
+
+        speaker.value->isSelected = isSelected;
+        if (mSpeakerVuMeterComponents.contains(speaker.key)) {
+            mSpeakerVuMeterComponents[speaker.key].setSelected(isSelected);
+        }
+
+        if (!isSelected || !mEditSpeakersWindow) {
+            continue;
+        }
+
+        mEditSpeakersWindow->selectSpeaker(speaker.key);
+    }
+
+    refreshViewportConfig();
+}
+
+//==============================================================================
+void MainContentComponent::setSpeakerState(output_patch_t const outputPatch, PortState const state)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    mData.speakerSetup.speakers[outputPatch].state = state;
+
+    refreshAudioProcessor();
+    refreshSpeakerVuMeterComponents();
+}
+
+//==============================================================================
+void MainContentComponent::setSourceDirectOut(source_index_t const sourceIndex,
+                                              tl::optional<output_patch_t> const outputPatch)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    mData.project.sources[sourceIndex].directOut = outputPatch;
+
+    if (mData.appData.stereoMode) {
+        refreshSpeakers();
+    } else {
+        refreshAudioProcessor();
+    }
+
+    mSourceVuMeterComponents[sourceIndex].setDirectOut(outputPatch);
+}
+
+//==============================================================================
+void MainContentComponent::refreshAudioProcessor() const
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
+    if (!mAudioProcessor) {
+        return;
+    }
+
+    mAudioProcessor->setAudioConfig(mData.toAudioConfig());
+}
+
+//==============================================================================
+void MainContentComponent::refreshSpatAlgorithm()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    if (!mAudioProcessor) {
+        return;
+    }
+
+    juce::ScopedLock const audioLock{ mAudioProcessor->getLock() };
+
+    auto & oldSpatAlgorithm{ mAudioProcessor->getSpatAlgorithm() };
+    auto newSpatAlgorithm{ AbstractSpatAlgorithm::make(mData.speakerSetup,
+                                                       mData.appData.stereoMode,
+                                                       mData.project.sources,
+                                                       mData.appData.audioSettings.sampleRate,
+                                                       mData.appData.audioSettings.bufferSize) };
+
+    if (newSpatAlgorithm->getError()
+        && (!oldSpatAlgorithm || oldSpatAlgorithm->getError() != newSpatAlgorithm->getError())) {
+        switch (*newSpatAlgorithm->getError()) {
+        case AbstractSpatAlgorithm::Error::notEnoughDomeSpeakers:
+            juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::InfoIcon,
+                                                   "Disabled spatialization",
+                                                   "Domes need at least 3 speakers.\n",
+                                                   "Ok",
+                                                   this);
+            break;
+        case AbstractSpatAlgorithm::Error::notEnoughCubeSpeakers:
+            juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::InfoIcon,
+                                                   "Disabled spatialization",
+                                                   "The Cubes need at least 2 speakers.\n",
+                                                   "Ok",
+                                                   this);
+            break;
+        case AbstractSpatAlgorithm::Error::flatDomeSpeakersTooFarApart:
+            juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::InfoIcon,
+                                                   "Disabled spatialization",
+                                                   "If all speakers are at the same height, Domes require their "
+                                                   "speakers not to be more than 170 degrees apart from each others.\n",
+                                                   "Ok",
+                                                   this);
+            break;
+        default:
+            jassertfalse;
+            break;
+        }
+    }
+
+    oldSpatAlgorithm = std::move(newSpatAlgorithm);
+
+    refreshAudioProcessor();
+    reassignSourcesPositions();
+}
+
+//==============================================================================
+void MainContentComponent::refreshViewportConfig() const
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
+    if (!mAudioProcessor) {
+        return;
+    }
+
+    auto const & spatAlgorithm{ *mAudioProcessor->getSpatAlgorithm() };
+
+    auto const newConfig{ mData.toViewportConfig() };
+    if (newConfig.viewSettings.showSpeakerTriplets && spatAlgorithm.hasTriplets()) {
+        mSpeakerViewComponent->setTriplets(spatAlgorithm.getTriplets());
+    }
+    mSpeakerViewComponent->setConfig(newConfig, mData.project.sources);
+}
+
+//==============================================================================
+void MainContentComponent::setShowTriplets(bool const state)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    mData.appData.viewSettings.showSpeakerTriplets = state;
+    refreshViewportConfig();
+}
+
+//==============================================================================
+void MainContentComponent::reorderSpeakers(juce::Array<output_patch_t> newOrder)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    auto & order{ mData.speakerSetup.ordering };
+    jassert(newOrder.size() == order.size());
+    order = std::move(newOrder);
+    refreshSpeakerVuMeterComponents();
+}
+
+//==============================================================================
+output_patch_t MainContentComponent::getMaxSpeakerOutputPatch() const
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
+    auto const & patches{ mData.speakerSetup.ordering };
+    auto const * maxIterator{ std::max_element(patches.begin(), patches.end()) };
+    auto const maxPatch{ maxIterator != mData.speakerSetup.ordering.end() ? *maxIterator : output_patch_t{} };
+    return maxPatch;
+}
+
+//==============================================================================
+tl::optional<SpeakerSetup> MainContentComponent::extractSpeakerSetup(juce::File const & file)
+{
+    auto const displayError = [&](juce::String const & message) {
+        juce::AlertWindow::showNativeDialogBox("Unable to open Speaker Setup.", message, false);
+    };
+
+    if (!file.existsAsFile()) {
+        displayError("File \"" + file.getFullPathName() + "\" does not exist.");
+        return tl::nullopt;
+    }
+
+    juce::XmlDocument xmlDoc{ file };
+    auto const mainXmlElem(xmlDoc.getDocumentElement());
+    if (!mainXmlElem) {
+        displayError("Corrupted file.\n" + xmlDoc.getLastParseError());
+        return tl::nullopt;
+    }
+
+    if (mainXmlElem->hasTagName("ServerGRIS_Preset")
+        || mainXmlElem->hasTagName(SpatGrisProjectData::XmlTags::MAIN_TAG)) {
+        displayError("This is a project file, not a Speaker Setup !");
+        return tl::nullopt;
+    }
+
+    auto speakerSetup{ SpeakerSetup::fromXml(*mainXmlElem) };
+
+    if (!speakerSetup) {
+        auto const version{ SpatGrisVersion::fromString(
+            mainXmlElem->getStringAttribute(SpeakerSetup::XmlTags::VERSION)) };
+        if (version.compare(SPAT_GRIS_VERSION) > 0) {
+            displayError("This speaker setup was created using a newer version of SpatGRIS that is not compatible with "
+                         "this one.\nPlease upgrade to the latest version.");
+        } else {
+            displayError("File \"" + file.getFullPathName()
+                         + "\" is missing one more mandatory parameters.\nYour file might be corrupted.");
+        }
+    }
+
+    return speakerSetup;
+}
+
+//==============================================================================
+output_patch_t MainContentComponent::addSpeaker(tl::optional<output_patch_t> const speakerToCopy,
+                                                tl::optional<int> const index)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    auto newSpeaker{ std::make_unique<SpeakerData>() };
+
+    if (speakerToCopy) {
+        auto const speakerToCopyExists{ mData.speakerSetup.speakers.contains(*speakerToCopy) };
+        jassert(speakerToCopyExists);
+        if (speakerToCopyExists) {
+            *newSpeaker = mData.speakerSetup.speakers[*speakerToCopy];
+        }
+    }
+
+    auto const newOutputPatch{ ++getMaxSpeakerOutputPatch() };
+
+    if (index) {
+        auto const isValidIndex{ *index >= 0 && *index < mData.speakerSetup.ordering.size() };
+        if (isValidIndex) {
+            mData.speakerSetup.ordering.insert(*index, newOutputPatch);
+        } else {
+            static constexpr auto AT_END = -1;
+            mData.speakerSetup.ordering.insert(AT_END, newOutputPatch);
+        }
+    } else {
+        mData.speakerSetup.ordering.add(newOutputPatch);
+    }
+
+    mData.speakerSetup.speakers.add(newOutputPatch, std::move(newSpeaker));
+
+    return newOutputPatch;
+}
+
+//==============================================================================
+void MainContentComponent::removeSpeaker(output_patch_t const outputPatch)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const dataLock{ mLock };
+    juce::ScopedLock const audioLock{ mAudioProcessor->getLock() };
+
+    mData.speakerSetup.ordering.removeFirstMatchingValue(outputPatch);
+    mData.speakerSetup.speakers.remove(outputPatch);
+
+    [[maybe_unused]] auto const success{ refreshSpeakers() };
+}
+
+//==============================================================================
+bool MainContentComponent::refreshSpeakers()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
+    if (!mAudioProcessor) {
+        return false;
+    }
+
+    refreshSpatAlgorithm();
+
+    if (!mAudioProcessor->getSpatAlgorithm()->hasTriplets()) {
+        mData.appData.viewSettings.showSpeakerTriplets = false;
+    }
+
+    refreshSpeakerVuMeterComponents();
+    refreshViewportConfig();
+    if (mEditSpeakersWindow != nullptr) {
+        mEditSpeakersWindow->updateWinContent();
+    }
+
+    return true;
+}
+
+//==============================================================================
+bool MainContentComponent::loadSpeakerSetup(juce::File const & file, LoadSpeakerSetupOption const option)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    auto speakerSetup{ extractSpeakerSetup(file) };
+
+    if (!speakerSetup) {
+        return false;
+    }
+
+    if (option == LoadSpeakerSetupOption::disallowDiscardingUnsavedChanges) {
+        if (!makeSureSpeakerSetupIsSavedToDisk()) {
+            return false;
+        }
+    }
+
+    juce::ScopedWriteLock const lock{ mLock };
+
+    mData.speakerSetup = std::move(*speakerSetup);
+    mData.appData.lastSpeakerSetup = file.getFullPathName();
+
+    // specific mode-dependent checks
+    switch (mData.speakerSetup.spatMode) {
+    case SpatMode::vbap:
+        mData.appData.viewSettings.showSpeakerTriplets = false;
+        break;
+    case SpatMode::lbap:
+        mControlPanel->setCubeAttenuationDb(mData.project.lbapDistanceAttenuationData.attenuation);
+        mControlPanel->setCubeAttenuationHz(mData.project.lbapDistanceAttenuationData.freq);
+        break;
+    default:
+        jassertfalse;
+        break;
+    }
+
+    refreshSpeakers();
+
+    mControlPanel->setSpatMode(mData.speakerSetup.spatMode);
+
+    setTitles();
+
+    return true;
+}
+
+//==============================================================================
+void MainContentComponent::setTitles() const
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
+    auto const projectFileName{ juce::File{ mData.appData.lastProject }.getFileNameWithoutExtension() };
+    auto const mainWindowTitle{ juce::String{ "SpatGRIS v" }
+                                + juce::JUCEApplication::getInstance()->getApplicationVersion() + " - "
+                                + projectFileName };
+    mMainWindow.DocumentWindow::setName(mainWindowTitle);
+
+    if (mEditSpeakersWindow != nullptr) {
+        auto const speakerSetupFileName{ juce::File{ mData.appData.lastSpeakerSetup }.getFileNameWithoutExtension() };
+        auto const windowName{ juce::String{ "Speakers Setup Edition - " }
+                               + spatModeToString(mData.speakerSetup.spatMode) + juce::String(" - ")
+                               + speakerSetupFileName };
+        mEditSpeakersWindow->setName(windowName);
+    }
+
+    refreshViewportConfig();
+}
+
+//==============================================================================
+void MainContentComponent::reassignSourcesPositions()
+{
+    for (auto const & source : mData.project.sources) {
+        if (!source.value->position) {
+            continue;
+        }
+        updateSourceSpatData(source.key);
+    }
+}
+
+//==============================================================================
+void MainContentComponent::buttonPressed([[maybe_unused]] SpatButton * button)
+{
+    jassert(button == &mAddRemoveSourcesButton);
+    mAddRemoveSourcesWindow
+        = std::make_unique<AddRemoveSourcesWindow>(mData.project.sources.size(), *this, mLookAndFeel);
+}
+
+//==============================================================================
+void MainContentComponent::handleSaveSpeakerSetup()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedReadLock const lock{ mLock };
+
+    saveSpeakerSetup(mData.appData.lastSpeakerSetup);
+}
+
+//==============================================================================
+bool MainContentComponent::saveProject(tl::optional<juce::File> maybeFile)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    static auto const IS_SAVABLE = [](juce::File const & file) { return !file.isAChildOf(CURRENT_WORKING_DIR); };
+
+    if (!maybeFile || !IS_SAVABLE(*maybeFile)) {
+        juce::File const lastProjectFile{ mData.appData.lastProject };
+        auto const initialFile{ lastProjectFile.isAChildOf(CURRENT_WORKING_DIR)
+                                    ? juce::File::getSpecialLocation(
+                                          juce::File::SpecialLocationType::userDocumentsDirectory)
+                                          .getChildFile(lastProjectFile.getFileName())
+                                    : lastProjectFile };
+        juce::FileChooser fc{ "Choose file to save to...", initialFile, "*.xml", true, false, this };
+        if (!fc.browseForFileToSave(true)) {
+            return false;
+        }
+
+        maybeFile = fc.getResult();
+    }
+
+    auto const file{ *maybeFile };
+    auto const content{ mData.project.toXml() };
+    auto const success{ content->writeTo(file) };
+    jassert(success);
+
+    if (success) {
+        mData.appData.lastProject = maybeFile->getFullPathName();
+    }
+
+    setTitles();
+
+    return success;
+}
+
+//==============================================================================
+bool MainContentComponent::saveSpeakerSetup(tl::optional<juce::File> maybeFile)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    static auto const IS_SAVABLE = [](juce::File const & file) { return !file.isAChildOf(CURRENT_WORKING_DIR); };
+
+    if (!maybeFile || !IS_SAVABLE(*maybeFile)) {
+        juce::File const & lastSpeakerSetup{ mData.appData.lastSpeakerSetup };
+        auto const initialFile{ lastSpeakerSetup.isAChildOf(CURRENT_WORKING_DIR)
+                                    ? juce::File::getSpecialLocation(
+                                          juce::File::SpecialLocationType::userDocumentsDirectory)
+                                          .getChildFile(juce::File{ mData.appData.lastSpeakerSetup }.getFileName())
+                                    : lastSpeakerSetup };
+        juce::FileChooser fc{ "Choose file to save to...", initialFile, "*.xml", true, false, this };
+        if (!fc.browseForFileToSave(true)) {
+            return false;
+        }
+
+        maybeFile = fc.getResult();
+    }
+
+    auto const & file{ *maybeFile };
+    auto const content{ mData.speakerSetup.toXml() };
+    auto const success{ content->writeTo(file) };
+
+    jassert(success);
+    if (success) {
+        mData.appData.lastSpeakerSetup = maybeFile->getFullPathName();
+    }
+
+    setTitles();
+
+    return success;
+}
+
+//==============================================================================
+bool MainContentComponent::makeSureProjectIsSavedToDisk() noexcept
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    if (!isProjectModified()) {
+        return true;
+    }
+
+    juce::AlertWindow alertWindow{ "Unsaved project",
+                                   "Your current project has unsaved changes. Do you wish to save it to disk?",
+                                   juce::AlertWindow::AlertIconType::InfoIcon,
+                                   this };
+    alertWindow.addButton("Save", BUTTON_OK, juce::KeyPress{ juce::KeyPress::returnKey });
+    alertWindow.addButton("Discard", BUTTON_DISCARD);
+    alertWindow.addButton("Cancel", BUTTON_CANCEL, juce::KeyPress{ juce::KeyPress::escapeKey });
+
+    auto const pressedButton{ alertWindow.runModalLoop() };
+
+    if (pressedButton == BUTTON_CANCEL) {
+        return false;
+    }
+
+    if (pressedButton == BUTTON_DISCARD) {
+        return true;
+    }
+
+    jassert(pressedButton == BUTTON_OK);
+
+    return saveProject(tl::nullopt);
+}
+
+//==============================================================================
+bool MainContentComponent::makeSureSpeakerSetupIsSavedToDisk() noexcept
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    if (!isSpeakerSetupModified()) {
+        return true;
+    }
+
+    juce::AlertWindow alertWindow{ "Unsaved speaker setup",
+                                   "Your current speaker setup has unsaved changes. Do you wish to save it to disk?",
+                                   juce::AlertWindow::AlertIconType::InfoIcon,
+                                   this };
+    alertWindow.addButton("Save", BUTTON_OK, juce::KeyPress{ juce::KeyPress::returnKey });
+    alertWindow.addButton("Discard", BUTTON_DISCARD);
+    alertWindow.addButton("Cancel", BUTTON_CANCEL, juce::KeyPress{ juce::KeyPress::escapeKey });
+
+    auto const pressedButton{ alertWindow.runModalLoop() };
+
+    if (pressedButton == BUTTON_CANCEL) {
+        return false;
+    }
+
+    if (pressedButton == BUTTON_DISCARD) {
+        return true;
+    }
+
+    jassert(pressedButton == BUTTON_OK);
+
+    return saveSpeakerSetup(tl::nullopt);
+}
+
+//==============================================================================
+void MainContentComponent::timerCallback()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    // Update levels
+    updatePeaks();
+
+    auto & audioManager{ AudioManager::getInstance() };
+    auto & audioDeviceManager{ audioManager.getAudioDeviceManager() };
+    auto * audioDevice{ audioDeviceManager.getCurrentAudioDevice() };
+
+    if (!audioDevice) {
+        return;
+    }
+
+    // TODO : static variables no good
+    static double cpuRunningAverage{};
+    static double amountToRemove{};
+    auto const currentCpuUsage{ audioDeviceManager.getCpuUsage() * 100.0 };
+    if (currentCpuUsage > cpuRunningAverage) {
+        cpuRunningAverage = currentCpuUsage;
+        amountToRemove = 0.01;
+    } else {
+        cpuRunningAverage = std::max(cpuRunningAverage - amountToRemove, currentCpuUsage);
+        amountToRemove *= 1.1;
+    }
+
+    mInfoPanel->setCpuLoad(cpuRunningAverage);
+
+    if (mIsProcessForeground != juce::Process::isForegroundProcess()) {
+        mIsProcessForeground = juce::Process::isForegroundProcess();
+        if (mEditSpeakersWindow != nullptr && mIsProcessForeground) {
+            mEditSpeakersWindow->setVisible(true);
+            mEditSpeakersWindow->setAlwaysOnTop(true);
+        } else if (mEditSpeakersWindow != nullptr && !mIsProcessForeground) {
+            mEditSpeakersWindow->setVisible(false);
+            mEditSpeakersWindow->setAlwaysOnTop(false);
+        }
+        if (mFlatViewWindow != nullptr && mIsProcessForeground) {
+            mFlatViewWindow->toFront(false);
+            toFront(true);
+        }
+    }
+}
+
+//==============================================================================
+void MainContentComponent::paint(juce::Graphics & g)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    g.fillAll(mLookAndFeel.getWinBackgroundColour());
+}
+
+//==============================================================================
+juce::StringArray MainContentComponent::getMenuBarNames()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    char const * names[] = { "File", "View", "Help", nullptr };
+    return juce::StringArray{ names };
+}
+
+//==============================================================================
+void MainContentComponent::prepareAndStartRecording(juce::File const & fileOrDirectory,
+                                                    RecordingOptions const & recordingOptions)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    {
+        juce::ScopedWriteLock const lock{ mLock };
+
+        mData.appData.lastRecordingDirectory = fileOrDirectory.getParentDirectory().getFullPathName();
+        mData.appData.recordingOptions = recordingOptions;
+    }
+
+    juce::ScopedReadLock const lock{ mLock };
+    auto const getSpeakersToRecord = [&]() -> juce::Array<output_patch_t> {
+        juce::Array<output_patch_t> result{};
+
+        if (mData.appData.stereoMode) {
+            auto const & routing{ mData.appData.stereoRouting };
+            result.add(routing.left);
+            result.add(routing.right);
+            return result;
+        }
+
+        result = mData.speakerSetup.ordering;
+        result.sort();
+
+        return result;
+    };
+
+    auto speakersToRecord{ getSpeakersToRecord() };
+
+    for (auto const & outputPatch : speakersToRecord) {
+        if (!mData.speakerSetup.ordering.contains(outputPatch)) {
+            juce::AlertWindow::showMessageBoxAsync(
+                juce::AlertWindow::AlertIconType::WarningIcon,
+                "Recording canceled",
+                "Recording cannot start because an output patch used in either in your direct outputs or in your "
+                "stereo reduction channels does not exists in the current speaker setup.",
+                "Ok",
+                this);
+            return;
+        }
+    }
+
+    AudioManager::RecordingParameters const recordingParams{ fileOrDirectory.getFullPathName(),
+                                                             mData.appData.recordingOptions,
+                                                             mData.appData.audioSettings.sampleRate,
+                                                             std::move(speakersToRecord) };
+    if (AudioManager::getInstance().prepareToRecord(recordingParams)) {
+        AudioManager::getInstance().startRecording();
+        mControlPanel->setRecordButtonState(RecordButton::State::recording);
+        mPrepareToRecordWindow.reset();
+    }
+}
+
+//==============================================================================
+void MainContentComponent::resized()
+{
+    static constexpr auto MENU_BAR_HEIGHT = 20;
+
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    mMenuBar->setBounds(0, 0, getWidth(), MENU_BAR_HEIGHT);
+
+    auto const availableBounds{ getLocalBounds().reduced(2).withTrimmedTop(MENU_BAR_HEIGHT) };
+
     // Lay out the speaker view and the vertical divider.
-    Component* vcomps[] = { this->speakerView, this->verticalDividerBar.get(), nullptr };
-    
+    Component * vComps[] = { mSpeakerViewComponent.get(), mVerticalDividerBar.get(), mMainLayout.get(), nullptr };
+
     // Lay out side-by-side and resize the components' heights as well as widths.
-    this->verticalLayout.layOutComponents(vcomps, 3, r.getX(), r.getY(), r.getWidth(), r.getHeight(), false, true);
-    
-    this->boxMainUI->setBounds(this->speakerView->getWidth()+6, 20, getWidth()-(this->speakerView->getWidth()+10), getHeight());
-    this->boxMainUI->correctSize(getWidth()-this->speakerView->getWidth()-6, 610);
-
-    this->boxInputsUI->setBounds(0, 2, getWidth()-(this->speakerView->getWidth()+10), 231);
-    this->boxInputsUI->correctSize(((unsigned int)this->listSourceInput.size()*(VuMeterWidthInPixels))+4, 200);
-
-    this->boxOutputsUI->setBounds(0, 233, getWidth()-(this->speakerView->getWidth()+10), 210);
-    this->boxOutputsUI->correctSize(((unsigned int)this->listSpeaker.size()*(VuMeterWidthInPixels))+4, 180);
-    
-    this->boxControlUI->setBounds(0, 443, getWidth()-(this->speakerView->getWidth()+10), 145);
-    this->boxControlUI->correctSize(720, 145);
+    mVerticalLayout.layOutComponents(vComps,
+                                     3,
+                                     availableBounds.getX(),
+                                     availableBounds.getY(),
+                                     availableBounds.getWidth(),
+                                     availableBounds.getHeight(),
+                                     false,
+                                     true);
 }

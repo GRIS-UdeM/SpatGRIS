@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<installer-gui-script minSpecVersion="1">
+
+    <title>SpatGRIS</title>
+    <options customize="always" allow-external-scripts="no"/>
+    <domains enable_anywhere="true" enable_localSystem="true"/>
+    <welcome file="Welcome.rtf" />
+    <readme file="ReadMe.rtf" />
+    <license file="License.rtf" />
+
+    <pkg-ref id="ca.umontreal.musique.gris.spatgris.pkg"/>
+    <pkg-ref id="ca.umontreal.musique.gris.controlgris.pkg"/>
+<!--     <pkg-ref id="audio.existential.BlackHole128ch">
+        <bundle-version>
+            <bundle CFBundleShortVersionString="0.2.8" CFBundleVersion="1" id="audio.existential.BlackHole128ch" path="BlackHole128ch.driver"/>
+        </bundle-version>
+    </pkg-ref> -->
+
+    <choices-outline>
+        <line choice="ca.umontreal.musique.gris.spatgris.pkg"/>
+        <line choice="ca.umontreal.musique.gris.controlgris.pkg"/>
+<!--         <line choice="audio.existential.BlackHole128ch"/> -->
+    </choices-outline>
+    
+    <choice id="ca.umontreal.musique.gris.spatgris.pkg" visible="true" title="SpatGRIS">
+        <pkg-ref id="ca.umontreal.musique.gris.spatgris.pkg"/>
+    </choice>
+    <choice id="ca.umontreal.musique.gris.controlgris.pkg" visible="true" title="ControlGRIS">
+        <pkg-ref id="ca.umontreal.musique.gris.controlgris.pkg"/>
+    </choice>
+<!--     <choice id="audio.existential.BlackHole128ch" visible="true" title="Plugins">
+        <pkg-ref id="audio.existential.BlackHole128ch"/>
+    </choice> -->
+    
+    <pkg-ref id="ca.umontreal.musique.gris.spatgris.pkg" onConclusion="none" auth="root">Application.pkg</pkg-ref>
+    <pkg-ref id="ca.umontreal.musique.gris.controlgris.pkg" onConclusion="none" auth="root">Plugins.pkg</pkg-ref>
+<!--     <pkg-ref id="audio.existential.BlackHole128ch" version="0.2.8" onConclusion="none" installKBytes="418">#Blackhole.pkg</pkg-ref> -->
+</installer-gui-script>

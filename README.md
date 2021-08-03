@@ -1,47 +1,104 @@
-# SpatGRIS2
-SpatGRIS2 is developed by the Groupe de recherche en immersion spatiale (GRIS) at Université de Montréal. The software is dedicated to sound spatialization in 2D (plane mode, X and Y axis) and 3D (with vertical mode, Z axis). It includes a Speaker Setup design page and the movements are controled by an external OSC source, namely ControlGRIS, a plugin for Audio Unit and VST DAWs. 
-The Server works on Jack and includes 256 inputs and outputs with as many VU-meters as needed.
-The Server has a 3D and 2D view window and offers the possibility of viewing the sound activity in the 3D window.
-The software is in its development phase and updates are published on a regular basis.
+# SpatGRIS
 
-## Building the SpatGRIS2 on Debian (Ubuntu)
+SpatGRIS is a sound spatialization software that frees composers and sound designers from the constraints of real-world speaker setups.
 
-### Install dependencies
+With the ControlGRIS plugin distributed with SpatGRIS, rich spatial trajectories can be composed directly in your DAW and reproduced in real-time on any speaker layout. It is fast, stable, cross-platform, easy to learn and works with the tools you already know.
 
+SpatGRIS supports any speaker setup, including 2D layouts like quad, 5.1 or octophonic rings, and 3D layouts like speaker domes, concert halls, theatres, etc. Projects can also be mixed down to stereo using a binaural head-related transfer function or simple stereo panning.
+
+It can handle up to 128 inputs and outputs simultaneously and features 3D and 2D views that help visualizing sources motions and monitor sound activity.
+
+SpatGRIS is developed by the _Groupe de recherche en immersion spatiale_ (GRIS) at Université de Montréal and is in active development. Updates are published on a regular basis.
+
+- [Using a virtual audio device](#using-a-virtual-audio-device)
+- [Building](#building)
+- [Running](#running)
+- [Using alternative OSC interfaces](#using-alternative-OSC-interfaces)
+
+## Using a virtual audio device
+
+If you want to use SpatGRIS and ControlGRIS on the same computer, you will need a virtual audio device that can route the audio from your DAW to SpatGRIS.
+
+#### MacOS
+
+We officially support using [BlackHole](https://github.com/ExistentialAudio/BlackHole). A 128 channels version is distributed alongside SpatGRIS.
+
+#### Windows
+
+If you are a [Reaper](https://www.reaper.fm/) user, ReaRoute seems to be the best-working virtual interface available at this time on Windows. Because ASIO dissalows interfacing with two different audio devices simoultaneously, sound has to be sent back to Reaper.
+
+If you use an other DAW, there is a donationware called [VB-CABLE Virtual Audio Device](https://vb-audio.com/Cable/) that _sorta_ works, although it seems to have trouble staying in sync with SpatGRIS and is limited to 32 channels.
+
+#### Linux
+
+While we do not support a specific routing solution on Linux, there are a lot of different ways of creating loopback audio ports with either JACK, ALSA or PulseAudio.
+
+## Building
+
+#### 1. Installing dependencies
+
+- [Juce 6](https://juce.com/get-juce)
+- freeglut 3 (Windows only)
+
+Additional dependencies on Linux :
+
+```bash
+sudo apt-get install clang++-10 ladspa-sdk freeglut3-dev libasound2-dev \
+libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev \
+libxcursor-dev libxinerama-dev libxrandr-dev mesa-common-dev
 ```
-sudo apt-get install clang git ladspa-sdk freeglut3-dev g++ libasound2-dev libcurl4-openssl-dev libfreetype6-dev libjack-jackd2-dev libx11-dev libxcomposite-dev libxcursor-dev libxinerama-dev libxrandr-dev mesa-common-dev webkit2gtk-4.0 juce-tools
+
+#### 2. Generating project files
+
+```bash
+cd <ServerGRIS-path>
+<path-to-projucer> --resave SpatGRIS.jucer
 ```
 
-### Download Juce
+#### Compiling
 
-To build the SpatGRIS2, you'll need Juce 5, download it from https://shop.juce.com/get-juce/download page.
+Go to the generated `Builds/` folder.
 
-### Clone SpatGRIS2 sources
+On Windows, use the Visual Studio 2019 solution file.
 
-```
-git clone https://github.com/GRIS-UdeM/ServerGRIS.git
-```
+On MacOS, use the Xcode project.
 
-### Build the app
+On Linux :
 
-1. Start the Projucer app, open the SpatGRIS2.jucer file and save the project. This step must be done each time the structure of the project changes (new files, new JUCE version, etc.).
-
-```
-cd /path/to/JUCE/folder
-./Projucer
+```bash
+cd Builds/LinuxMakeFile
+make CONFIG=Release CXX=clang++-10 -j <number_of_virtual_cores_on_your_CPU>
 ```
 
-After saving the project, you can quit the Projucer.
+## Running
 
-2. Go to the SpatGRIS2 Builds folder and compile the app.
+SpatGRIS must be launched from the project root directory.
 
-```
-cd ServerGRIS/Builds/LinuxMakeFile
-make CONFIG=Release
-```
+## Using alternative OSC interfaces
 
-### Run the SpatGRIS2 (from LinuxMakeFile directory)
+OSC can be sent directly to SpatGRIS without going through ControlGRIS.
 
-```
-./build/SpatGRIS2
-```
+The server address is `/spat/serv`.
+
+#### Moving a source
+
+SpatGRIS expects an `iffffff` list (1 integer and 6 floats).
+
+1. (i) Source index (starting at 0).
+2. (f) Azimuth angle (between 0 and 2π).
+3. (f) Elevation :
+	- In DOME mode : elevation angle (between 0 and π/2, where 0 is the pole).
+	- In CUBE mode : source height (between 0 and π/2, where 0 is the ground level and π/2 is the maximum height).
+4. (f) Azimuth span (between 0 and 2).
+5. (f) Elevation span (between 0 and 0.5).
+6. (f) Radius :
+	- In DOME mode : __unused__ : must always be set to 0.
+	- In CUBE mode : the distance between the origin and the source __projected onto the ground plane__. For example, this means that a source located at [1,0,0.5] would have a radius of 1. 
+7. (f) __reserved__ : must always be set to 0.
+
+#### Resetting a source's position
+
+SpatGRIS expects an `si` list (1 string and 1 integer).
+
+1. (s) The string "reset"
+2. (i) The source index (starting at 0).

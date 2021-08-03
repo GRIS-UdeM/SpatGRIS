@@ -1,80 +1,92 @@
 /*
- This file is part of SpatGRIS2.
- 
- Developers: Olivier Belanger, Nicolas Masson
- 
- SpatGRIS2 is free software: you can redistribute it and/or modify
+ This file is part of SpatGRIS.
+
+ Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
+
+ SpatGRIS is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
- 
- SpatGRIS2 is distributed in the hope that it will be useful,
+
+ SpatGRIS is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
- 
+
  You should have received a copy of the GNU General Public License
- along with SpatGRIS2.  If not, see <http://www.gnu.org/licenses/>.
+ along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "MainWindow.h"
+#include "MainWindow.hpp"
 
-static std::unique_ptr<ApplicationCommandManager> applicationCommandManager;
-
-MainWindow::MainWindow(String name) : DocumentWindow(name, Colours::lightgrey,
-                                                     DocumentWindow::allButtons)
+//==============================================================================
+MainWindow::MainWindow(juce::String const & name,
+                       GrisLookAndFeel & newLookAndFeel,
+                       SmallGrisLookAndFeel & smallGrisLookAndFeel)
+    : DocumentWindow(name, juce::Colours::lightgrey, DocumentWindow::allButtons)
+    , mMainContentComponent(std::make_unique<MainContentComponent>(*this, newLookAndFeel, smallGrisLookAndFeel))
 {
     setUsingNativeTitleBar(true);
-    mcc = new MainContentComponent(this);
-    setContentOwned(mcc, true);
+    setContentOwned(mMainContentComponent.get(), true);
     setResizable(true, true);
 
     // this lets the command manager use keypresses that arrive in our window.
-    addKeyListener(getApplicationCommandManager().getKeyMappings());
-
-    PropertiesFile *props = mcc->applicationProperties.getUserSettings();
+    DocumentWindow::addKeyListener(getApplicationCommandManager().getKeyMappings());
 
     // These offset values compensate for the title bar size.
-    // TODO: it works on linux, need to be tested on MacOS.
 #ifdef __linux__
-    int xOffset = 3;
-    int yOffset = 29;
+    static constexpr auto X_OFFSET = 3;
+    static constexpr auto Y_OFFSET = 29;
 #else
-    int xOffset = 0;
-    int yOffset = 0;
+    static constexpr auto X_OFFSET = 0;
+    static constexpr auto Y_OFFSET = 0;
 #endif
 
-    juce::Rectangle<int> totalScreen = Desktop::getInstance().getDisplays().getTotalBounds(true);
+    auto const screenBounds = juce::Desktop::getInstance().getDisplays().getTotalBounds(true);
 
-    if (props->containsKey("xPosition")) {
-        bool fitInside = (props->getIntValue("xPosition") + props->getIntValue("winWidth")) <= totalScreen.getWidth();
+    auto const & appData{ mMainContentComponent->getData().appData };
+    auto const windowX{ appData.windowX };
+    if (windowX != -1) {
+        auto const windowWidth{ appData.windowWidth };
+        auto const fitInside{ windowX + windowWidth <= screenBounds.getWidth() };
         if (fitInside) {
-            this->setBounds(props->getIntValue("xPosition")-xOffset,
-                            props->getIntValue("yPosition")-yOffset,
-                            props->getIntValue("winWidth"),
-                            props->getIntValue("winHeight"));
+            auto const windowY{ appData.windowY };
+            auto const windowHeight{ appData.windowHeight };
+            DocumentWindow::setBounds(windowX - X_OFFSET, windowY - Y_OFFSET, windowWidth, windowHeight);
         } else {
-            centreWithSize(getWidth(), getHeight());
+            DocumentWindow::centreWithSize(DocumentWindow::getWidth(), DocumentWindow::getHeight());
         }
     } else {
-        centreWithSize(getWidth(), getHeight());
+        DocumentWindow::centreWithSize(DocumentWindow::getWidth(), DocumentWindow::getHeight());
     }
 
-    setVisible(true);
+    DocumentWindow::setVisible(true);
 }
 
-bool MainWindow::exitWinApp() {
-    PropertiesFile *props = mcc->applicationProperties.getUserSettings();
-    props->setValue("xPosition", this->getScreenX());
-    props->setValue("yPosition", this->getScreenY());
-    props->setValue("winWidth", this->getWidth());
-    props->setValue("winHeight", this->getHeight());
-    return mcc->exitApp();
+//==============================================================================
+bool MainWindow::exitWinApp() const
+{
+    return mMainContentComponent->exitApp();
 }
 
-ApplicationCommandManager& MainWindow::getApplicationCommandManager() {
-    if (applicationCommandManager == nullptr)
-        applicationCommandManager.reset( new ApplicationCommandManager());
+//==============================================================================
+void MainWindow::closeButtonPressed()
+{
+    juce::JUCEApplication::getInstance()->systemRequestedQuit();
+}
 
-    return *(applicationCommandManager.get());
+//==============================================================================
+MainWindow * MainWindow::getMainAppWindow()
+{
+    for (int i = TopLevelWindow::getNumTopLevelWindows(); --i >= 0;) {
+        if (auto * maw = dynamic_cast<MainWindow *>(TopLevelWindow::getTopLevelWindow(i)))
+            return maw;
+    }
+    return nullptr;
+}
+
+//==============================================================================
+juce::ApplicationCommandManager & MainWindow::getApplicationCommandManager()
+{
+    return mApplicationCommandManager;
 }
