@@ -301,6 +301,7 @@ PrepareToRecordWindow::PrepareToRecordWindow(juce::File const & recordingDirecto
     setContentNonOwned(&mContentComponent, false);
     centreAroundComponent(&mainContentComponent, WIDTH, HEIGHT);
     mContentComponent.setSize(WIDTH, HEIGHT);
+    setAlwaysOnTop(true);
     DocumentWindow::setVisible(true);
 }
 
