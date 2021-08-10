@@ -408,6 +408,7 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
         mRecorders.add(std::move(recorder));
         return true;
     };
+
     auto const makeSeparateStereoRecorder = [&]() {
         jassert(filePaths.size() == 2);
         jassert(mStereoOutputBuffer.getNumChannels() == 2);
@@ -425,6 +426,7 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
         }
         return true;
     };
+
     auto const makeInterleavedSpeakersRecorder = [&]() {
         jassert(filePaths.size() == 1);
         auto const & filePath{ filePaths[0] };
@@ -441,6 +443,7 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
         mRecorders.add(std::move(recordingInfo));
         return true;
     };
+
     auto const makeSeparateSpeakersRecorder = [&]() {
         jassert(recordingParams.speakersToRecord.size() == filePaths.size());
         for (int i{}; i < recordingParams.speakersToRecord.size(); ++i) {

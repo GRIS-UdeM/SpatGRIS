@@ -2180,6 +2180,7 @@ void MainContentComponent::prepareAndStartRecording(juce::File const & fileOrDir
         juce::Array<output_patch_t> result{};
 
         if (mData.appData.stereoMode) {
+            // I'm not even sure this is useful
             auto const & routing{ mData.appData.stereoRouting };
             result.add(routing.left);
             result.add(routing.right);
@@ -2193,19 +2194,6 @@ void MainContentComponent::prepareAndStartRecording(juce::File const & fileOrDir
     };
 
     auto speakersToRecord{ getSpeakersToRecord() };
-
-    for (auto const & outputPatch : speakersToRecord) {
-        if (!mData.speakerSetup.ordering.contains(outputPatch)) {
-            juce::AlertWindow::showMessageBoxAsync(
-                juce::AlertWindow::AlertIconType::WarningIcon,
-                "Recording canceled",
-                "Recording cannot start because an output patch used in either in your direct outputs or in your "
-                "stereo reduction channels does not exists in the current speaker setup.",
-                "Ok",
-                this);
-            return;
-        }
-    }
 
     AudioManager::RecordingParameters const recordingParams{ fileOrDirectory.getFullPathName(),
                                                              mData.appData.recordingOptions,
