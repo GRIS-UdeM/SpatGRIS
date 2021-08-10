@@ -957,7 +957,10 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
         result.setTicked(mData.appData.viewSettings.showSphereOrCube);
         return;
     case MainWindow::colorizeInputsId:
-        result.setInfo("Colorize Inputs", "Spread the colour of the inputs over the colour range.", generalCategory, 0);
+        result.setInfo("Colorize Sources",
+                       "Spread the colour of the sources over the colour range.",
+                       generalCategory,
+                       0);
         result.addDefaultKeypress('C', juce::ModifierKeys::altModifier);
         return;
     case MainWindow::resetInputPosId:
