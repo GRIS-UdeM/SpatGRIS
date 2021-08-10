@@ -23,7 +23,8 @@
 
 #include "lib/tl/optional.hpp"
 
-#define USE_DOPPLER 1
+// Uncomment to enable the Doppler stereo reduction.
+//#define USE_DOPPLER 1
 
 enum class SpatMode { vbap = 0, lbap };
 #ifdef USE_DOPPLER
