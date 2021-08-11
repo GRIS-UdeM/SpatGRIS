@@ -21,6 +21,7 @@
 
 #include "Position.hpp"
 
+//==============================================================================
 struct LegacyLbapPosition {
     radians_t azimuth{};
     radians_t elevation{};

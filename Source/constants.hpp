@@ -27,11 +27,12 @@
 #include "lib/tl/optional.hpp"
 #include <JuceHeader.h>
 
+//==============================================================================
 struct SpatGrisVersion {
     int major;
     int minor;
     int patch;
-
+    //==============================================================================
     [[nodiscard]] constexpr int compare(SpatGrisVersion const & other) const noexcept
     {
         auto const majorDiff{ major - other.major };
@@ -44,12 +45,12 @@ struct SpatGrisVersion {
         }
         return patch - other.patch;
     }
-
+    //==============================================================================
     [[nodiscard]] juce::String toString() const noexcept
     {
         return juce::String{ major } + '.' + juce::String{ minor } + '.' + juce::String{ patch };
     }
-
+    //==============================================================================
     static SpatGrisVersion fromString(juce::String const & string)
     {
         SpatGrisVersion result{};
@@ -101,7 +102,6 @@ extern juce::File const HRTF_FOLDER_80;
 extern juce::Colour const DEFAULT_SOURCE_COLOR;
 
 //==============================================================================
-
 struct FileTemplate {
     juce::String name{};
     juce::CommandID commandId{};
@@ -110,6 +110,7 @@ struct FileTemplate {
     bool operator<(FileTemplate const & other) const noexcept;
 };
 
+//==============================================================================
 struct SpeakerSetupTemplates {
     juce::Array<FileTemplate> dome{};
     juce::Array<FileTemplate> cube{};

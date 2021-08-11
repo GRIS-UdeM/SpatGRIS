@@ -43,10 +43,7 @@ public:
     [[nodiscard]] constexpr auto const & getPolar() const noexcept { return mPolar; }
     [[nodiscard]] constexpr auto const & getCartesian() const noexcept { return mCartesian; }
     //==============================================================================
-    [[nodiscard]] constexpr bool operator==(Position const & other) const noexcept
-    {
-        return mCartesian == other.mCartesian;
-    }
+    [[nodiscard]] constexpr bool operator==(Position const & other) const noexcept;
     //==============================================================================
     Position & operator=(PolarVector const & polar) noexcept;
     Position & operator=(CartesianVector const & cartesian) noexcept;
@@ -77,4 +74,11 @@ private:
     void updateCartesianFromPolar() noexcept;
 };
 
+//==============================================================================
+constexpr bool Position::operator==(Position const & other) const noexcept
+{
+    return mCartesian == other.mCartesian;
+}
+
+//==============================================================================
 static_assert(std::is_trivially_destructible_v<Position>);

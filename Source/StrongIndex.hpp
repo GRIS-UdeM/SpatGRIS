@@ -51,21 +51,41 @@ public:
     //==============================================================================
     [[nodiscard]] constexpr type const & get() const { return mValue; }
     //==============================================================================
-    StrongIndex & operator++()
-    {
-        ++mValue;
-        return *this;
-    }
-    StrongIndex operator++(int) { return StrongIndex{ mValue++ }; }
-    StrongIndex & operator--()
-    {
-        --mValue;
-        return *this;
-    }
+    StrongIndex & operator++();
+    StrongIndex operator++(int);
+    StrongIndex & operator--();
     //==============================================================================
     template<typename TargetType>
-    [[nodiscard]] TargetType removeOffset() const
-    {
-        return narrow<TargetType>(mValue - OFFSET);
-    }
+    [[nodiscard]] TargetType removeOffset() const;
 };
+
+//==============================================================================
+template<typename T, typename Dummy, T StartsAt>
+StrongIndex<T, Dummy, StartsAt> & StrongIndex<T, Dummy, StartsAt>::operator++()
+{
+    ++mValue;
+    return *this;
+}
+
+//==============================================================================
+template<typename T, typename Dummy, T StartsAt>
+StrongIndex<T, Dummy, StartsAt> StrongIndex<T, Dummy, StartsAt>::operator++(int)
+{
+    return StrongIndex{ mValue++ };
+}
+
+//==============================================================================
+template<typename T, typename Dummy, T StartsAt>
+StrongIndex<T, Dummy, StartsAt> & StrongIndex<T, Dummy, StartsAt>::operator--()
+{
+    --mValue;
+    return *this;
+}
+
+//==============================================================================
+template<typename T, typename Dummy, T StartsAt>
+template<typename TargetType>
+TargetType StrongIndex<T, Dummy, StartsAt>::removeOffset() const
+{
+    return narrow<TargetType>(mValue - OFFSET);
+}
