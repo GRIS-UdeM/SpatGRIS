@@ -56,7 +56,9 @@
     #define DISABLE_WARNING(warningName) DO_PRAGMA(GCC diagnostic ignored #warningName)
 
     #define DISABLE_WARNING_NAMELESS_STRUCT
-    #define DISABLE_WARNING_UNREFERENCED_FUNCTION DISABLE_WARNING(-Wunused - function)
+// clang-format off
+    #define DISABLE_WARNING_UNREFERENCED_FUNCTION DISABLE_WARNING(-Wunused-function)
+// clang-format on
 // other warnings you want to deactivate...
 
 #else

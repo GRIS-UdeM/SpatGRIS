@@ -78,11 +78,10 @@ public:
                SmallGrisLookAndFeel & smallGrisLookAndFeel);
     //==============================================================================
     MainWindow() = delete;
-    ~MainWindow() = default;
-
+    ~MainWindow() override = default;
+    //==============================================================================
     MainWindow(MainWindow const &) = delete;
     MainWindow(MainWindow &&) = delete;
-
     MainWindow & operator=(MainWindow const &) = delete;
     MainWindow & operator=(MainWindow &&) = delete;
     //==============================================================================

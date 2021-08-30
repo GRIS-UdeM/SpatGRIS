@@ -67,7 +67,7 @@ class DopplerSpatAlgorithm final : public AbstractSpatAlgorithm
 public:
     //==============================================================================
     DopplerSpatAlgorithm(double sampleRate, int bufferSize);
-    ~DopplerSpatAlgorithm() = default;
+    ~DopplerSpatAlgorithm() override = default;
     //==============================================================================
     DopplerSpatAlgorithm(DopplerSpatAlgorithm const &) = delete;
     DopplerSpatAlgorithm(DopplerSpatAlgorithm &&) = delete;
