@@ -1435,7 +1435,7 @@ void MainContentComponent::setSourcePosition(source_index_t const sourceIndex,
     auto const getCorrectedPosition = [&]() -> Position {
         switch (mData.speakerSetup.spatMode) {
         case SpatMode::vbap: {
-            return Position{ PolarVector{ azimuth, elevation, length }.normalized() };
+            return Position{ PolarVector{ azimuth, elevation, 1.0f } };
         }
         case SpatMode::lbap: {
             return LegacyLbapPosition{ azimuth, elevation, length }.toPosition();

@@ -44,8 +44,8 @@ void OscInput::processSourcePositionMessage(juce::OSCMessage const & message) co
     // int id, float azi [0, 2pi], float ele [0, pi], float azispan [0, 2],
     // float elespan [0, 0.5], float distance [0, 1], float gain [0, 1].
     source_index_t const sourceIndex{ message[0].getInt32() + 1 };
-    jassert(LEGAL_SOURCE_INDEX_RANGE.contains(sourceIndex));
     if (!LEGAL_SOURCE_INDEX_RANGE.contains(sourceIndex)) {
+        jassertfalse;
         return;
     }
     auto const azimuth{ HALF_PI - radians_t{ message[1].getFloat32() }.balanced() };
