@@ -296,14 +296,12 @@
       </MODULEPATHS>
     </XCODE_MAC>
     <LINUX_MAKE targetFolder="Builds/LinuxMakefile" smallIcon="G8JPcc" bigIcon="YxmFrL"
-                extraLinkerFlags="-lGLU -lglut">
+                extraLinkerFlags="-lGLU -lglut -lfftw3 -lfftw3f -lfftw3l">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="SpatGRIS"
-                       libraryPath="/usr/lib/x86_64-linux-gnu" recommendedWarnings="LLVM"
-                       headerPath="/usr/include/gtk-3.0&#10;/usr/include/freetype2"/>
+                       recommendedWarnings="LLVM"/>
         <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="SpatGRIS"
-                       libraryPath="/usr/lib/x86_64-linux-gnu" linkTimeOptimisation="1"
-                       recommendedWarnings="LLVM" headerPath="/usr/include/gtk-3.0&#10;/usr/include/freetype2"/>
+                       linkTimeOptimisation="1" recommendedWarnings="LLVM"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_osc" path="../../sdks/JUCE-4.3.1/modules"/>
