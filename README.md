@@ -50,14 +50,22 @@ libfftw3-dev
 
 ##### Additional dependencies on Windows :
 
-- freeglut 3
-- fftw3
+Usage of [vcpkg](https://github.com/microsoft/vcpkg) is highly recommended on Windows.
 
-__\*note__ : the usage of [vcpkg](https://github.com/microsoft/vcpkg) is highly recommended.
+```bash
+# as an admin
+vcpkg install freeglut:x64-windows
+vcpkg install fftw3:x64-windows
+vcpkg integrate install
+```
 
 ##### Additional dependencies on MacOS :
 
-- fftw3
+Usage of [Homebrew](https://brew.sh/) is highly recommended on MacOS.
+
+```bash
+brew install fftw
+```
 
 #### 2. Generating project files
 
