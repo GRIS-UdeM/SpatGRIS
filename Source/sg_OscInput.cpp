@@ -62,11 +62,12 @@ void OscInput::processSourcePositionMessage(juce::OSCMessage const & message) co
 }
 
 //==============================================================================
-void OscInput::processSourceResetPositionMessage(juce::OSCMessage const & message) noexcept
+void OscInput::processSourceResetPositionMessage(juce::OSCMessage const & message) const noexcept
 {
-    if (message[0].getString().compare("reset") == 0) {
+    if (message[0].getString() == juce::String{ "reset" }) {
         // string "reset", int voice_to_reset.
         source_index_t const sourceIndex{ message[1].getInt32() };
+
         mMainContentComponent.resetSourcePosition(sourceIndex);
     }
 }

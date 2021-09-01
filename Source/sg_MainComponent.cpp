@@ -1429,6 +1429,7 @@ void MainContentComponent::setSourcePosition(source_index_t const sourceIndex,
     juce::ScopedReadLock const readLock{ mLock };
 
     if (!mData.project.sources.contains(sourceIndex)) {
+        jassertfalse;
         return;
     }
 
@@ -1467,6 +1468,11 @@ void MainContentComponent::resetSourcePosition(source_index_t const sourceIndex)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
+
+    if (!mData.project.sources.contains(sourceIndex)) {
+        jassertfalse;
+        return;
+    }
 
     mData.project.sources[sourceIndex].position = tl::nullopt;
 }

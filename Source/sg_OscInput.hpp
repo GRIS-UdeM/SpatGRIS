@@ -51,7 +51,7 @@ public:
 private:
     //==============================================================================
     void processSourcePositionMessage(juce::OSCMessage const & message) const noexcept;
-    void processSourceResetPositionMessage(juce::OSCMessage const & message) noexcept;
+    void processSourceResetPositionMessage(juce::OSCMessage const & message) const noexcept;
     //==============================================================================
     void oscMessageReceived(juce::OSCMessage const & message) override;
     void oscBundleReceived(juce::OSCBundle const & bundle) override;
