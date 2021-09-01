@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="MXmiSb" name="SpatGRIS" projectType="guiapp" version="3.0.0"
+<JUCERPROJECT id="MXmiSb" name="SpatGRIS" projectType="guiapp" version="3.0.1"
               bundleIdentifier="ca.umontreal.musique.gris.spatgris" includeBinaryInAppConfig="0"
               companyName="GRIS - UdeM" projectLineFeed="&#10;" cppLanguageStandard="17"
               jucerFormatVersion="1" displaySplashScreen="1" maxBinaryFileSize="1048576"
@@ -268,10 +268,10 @@
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>
-    <XCODE_MAC targetFolder="Builds/MacOSX" externalLibraries="" extraFrameworks="GLUT"
-               customXcodeResourceFolders="Resources/default_preset&#10;Resources/hrtf_compact&#10;Resources/templates/Speaker Setups&#10;Resources/templates/Projects"
-               smallIcon="" bigIcon="YxmFrL" extraLinkerFlags="-F/Library/Frameworks"
-               microphonePermissionNeeded="1" hardenedRuntime="1" hardenedRuntimeOptions="com.apple.security.device.audio-input">
+    <XCODE_MAC targetFolder="Builds/MacOSX" extraFrameworks="GLUT" customXcodeResourceFolders="Resources/default_preset&#10;Resources/hrtf_compact&#10;Resources/templates/Speaker Setups&#10;Resources/templates/Projects"
+               smallIcon="" bigIcon="YxmFrL" microphonePermissionNeeded="1"
+               hardenedRuntime="1" hardenedRuntimeOptions="com.apple.security.device.audio-input"
+               extraLinkerFlags="-L/usr/local/lib&#10;-lfftw3&#10;-lfftw3f&#10;-lfftw3l">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" osxCompatibility="10.11 SDK" isDebug="1" optimisation="1"
                        targetName="SpatGRIS" headerPath="../../glm" fastMath="1"/>
