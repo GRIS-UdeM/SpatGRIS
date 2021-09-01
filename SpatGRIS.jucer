@@ -271,7 +271,7 @@
     <XCODE_MAC targetFolder="Builds/MacOSX" extraFrameworks="GLUT" customXcodeResourceFolders="Resources/default_preset&#10;Resources/hrtf_compact&#10;Resources/templates/Speaker Setups&#10;Resources/templates/Projects"
                smallIcon="" bigIcon="YxmFrL" microphonePermissionNeeded="1"
                hardenedRuntime="1" hardenedRuntimeOptions="com.apple.security.device.audio-input"
-               extraLinkerFlags="-L/usr/local/lib&#10;-lfftw3&#10;-lfftw3f&#10;-lfftw3l">
+               extraLinkerFlags="-L/usr/local/lib" externalLibraries="fftw3&#10;fftw3f&#10;fftw3l">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" osxCompatibility="10.11 SDK" isDebug="1" optimisation="1"
                        targetName="SpatGRIS" headerPath="../../glm" fastMath="1"/>
