@@ -271,7 +271,7 @@
     <XCODE_MAC targetFolder="Builds/MacOSX" extraFrameworks="GLUT" customXcodeResourceFolders="Resources/default_preset&#10;Resources/hrtf_compact&#10;Resources/templates/Speaker Setups&#10;Resources/templates/Projects"
                smallIcon="" bigIcon="YxmFrL" microphonePermissionNeeded="1"
                hardenedRuntime="1" hardenedRuntimeOptions="com.apple.security.device.audio-input"
-               extraLinkerFlags="/usr/local/opt/fftw/lib/libfftw3f.a" iosDevelopmentTeamID="Q2A837SX87">
+               iosDevelopmentTeamID="Q2A837SX87">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" osxCompatibility="10.11 SDK" isDebug="1" optimisation="1"
                        targetName="SpatGRIS" headerPath="../../glm" fastMath="1"/>
@@ -296,7 +296,7 @@
       </MODULEPATHS>
     </XCODE_MAC>
     <LINUX_MAKE targetFolder="Builds/LinuxMakefile" smallIcon="G8JPcc" bigIcon="YxmFrL"
-                extraLinkerFlags="-lGLU -lglut -lfftw3 -lfftw3f -lfftw3l">
+                extraLinkerFlags="-lGLU -lglut">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="SpatGRIS"
                        recommendedWarnings="LLVM"/>
@@ -362,7 +362,7 @@
     <MODULE id="juce_opengl" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
     <MODULE id="juce_osc" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
   </MODULES>
-  <JUCEOPTIONS JUCE_ASIO="1" JUCE_JACK="1" JUCE_WEB_BROWSER="0" JUCE_DSP_USE_STATIC_FFTW="1"/>
+  <JUCEOPTIONS JUCE_ASIO="1" JUCE_JACK="1" JUCE_WEB_BROWSER="0"/>
   <LIVE_SETTINGS>
     <OSX/>
     <LINUX/>

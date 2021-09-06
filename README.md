@@ -44,8 +44,7 @@ Download and extract [Juce 6.0.8](https://github.com/juce-framework/JUCE/release
 ```bash
 sudo apt-get install clang++-10 ladspa-sdk freeglut3-dev libasound2-dev \
 libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev \
-libxcursor-dev libxinerama-dev libxrandr-dev mesa-common-dev libjack-dev \
-libfftw3-dev
+libxcursor-dev libxinerama-dev libxrandr-dev mesa-common-dev libjack-dev
 ```
 
 ##### Additional dependencies on Windows :
@@ -55,16 +54,7 @@ Usage of [vcpkg](https://github.com/microsoft/vcpkg) is highly recommended on Wi
 ```bash
 # as an admin
 vcpkg install freeglut:x64-windows
-vcpkg install fftw3:x64-windows
 vcpkg integrate install
-```
-
-##### Additional dependencies on MacOS :
-
-Usage of [Homebrew](https://brew.sh/) is highly recommended on MacOS.
-
-```bash
-brew install fftw
 ```
 
 #### 2. Generating project files
