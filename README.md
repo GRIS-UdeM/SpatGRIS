@@ -80,13 +80,13 @@ Go to the generated `Builds/` folder.
 
 On Windows, use the Visual Studio 2019 solution file.
 
-On MacOS, use the Xcode project.
+On MacOS, use the Xcode project. You will have to supply your own developer ID to XCode.
 
 On Linux :
 
 ```bash
 cd Builds/LinuxMakeFile
-make CONFIG=Release CXX=clang++-10 -j <number_of_virtual_cores_on_your_CPU>
+make CONFIG=Release CXX=clang++-10 -j 8
 ```
 
 ## Running
@@ -115,7 +115,7 @@ SpatGRIS expects an `iffffff` list (1 integer and 6 floats).
 	- In CUBE mode : the distance between the origin and the source __projected onto the ground plane__. For example, this means that a source located at [1,0,0.5] would have a radius of 1. 
 7. (f) __reserved__ : must always be set to 0.
 
-#### Resetting a source's position
+#### Resetting a source
 
 SpatGRIS expects an `si` list (1 string and 1 integer).
 
