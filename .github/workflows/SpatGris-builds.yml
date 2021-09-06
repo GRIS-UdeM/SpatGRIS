@@ -2,6 +2,8 @@ name: SpatGRIS Linux build
 on:
   push:
     branches: ['dev']
+  pull_request:
+    branches: ['dev']
 jobs:
   Explore-GitHub-Actions:
     runs-on: ubuntu-latest
