@@ -322,10 +322,10 @@
     </LINUX_MAKE>
     <VS2019 targetFolder="Builds/VisualStudio2019" bigIcon="YxmFrL">
       <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug" headerPath="C:\dev\ASIO_SDK\common&#10;C:\Program Files (x86)\Intel\oneAPI\mkl\2021.3.0\include"
+        <CONFIGURATION isDebug="1" name="Debug" headerPath="C:\dev\ASIO_SDK\common"
                        fastMath="1" warningsAreErrors="1"/>
-        <CONFIGURATION isDebug="0" name="Release" headerPath="C:\dev\ASIO_SDK\common&#10;C:\Program Files (x86)\Intel\oneAPI\mkl\2021.3.0\include"
-                       enableIncrementalLinking="1" alwaysGenerateDebugSymbols="1" fastMath="1"
+        <CONFIGURATION isDebug="0" name="Release" headerPath="C:\dev\ASIO_SDK\common"
+                       enableIncrementalLinking="0" alwaysGenerateDebugSymbols="0" fastMath="1"
                        linkTimeOptimisation="1" usePrecompiledHeaderFile="0" warningsAreErrors="1"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
