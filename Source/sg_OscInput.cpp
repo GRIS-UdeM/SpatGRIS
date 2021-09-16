@@ -125,8 +125,11 @@ void OscInput::oscMessageReceived(const juce::OSCMessage & message)
         }
     }
 
-    auto & oscMonitor{ mMainContentComponent.getOscMonitor() };
-    if (oscMonitor) {
-        oscMonitor->addMessage(message);
+    if (mMainContentComponent.getOscMonitor()) {
+        juce::MessageManagerLock const mml{};
+        auto & oscMonitor{ mMainContentComponent.getOscMonitor() };
+        if (oscMonitor) {
+            oscMonitor->addMessage(message);
+        }
     }
 }
