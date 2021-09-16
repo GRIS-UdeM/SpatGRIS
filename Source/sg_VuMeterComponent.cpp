@@ -375,6 +375,7 @@ void SourceVuMeterComponent::setSourceColour(juce::Colour const colour)
     JUCE_ASSERT_MESSAGE_THREAD;
 
     mIdButton.setColour(juce::TextButton::buttonColourId, colour);
+    mIdLabel.setColour(juce::Label::textColourId, colour.contrasting(1.0f));
 }
 
 //==============================================================================
