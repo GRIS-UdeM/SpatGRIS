@@ -1466,7 +1466,6 @@ void MainContentComponent::setSourcePosition(source_index_t const sourceIndex,
 //==============================================================================
 void MainContentComponent::resetSourcePosition(source_index_t const sourceIndex)
 {
-    JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
 
     if (!mData.project.sources.contains(sourceIndex)) {
