@@ -66,7 +66,7 @@ void OscInput::processSourceResetPositionMessage(juce::OSCMessage const & messag
 {
     if (message[0].getString() == juce::String{ "reset" }) {
         // string "reset", int voice_to_reset.
-        source_index_t const sourceIndex{ message[1].getInt32() };
+        source_index_t const sourceIndex{ message[1].getInt32() + 1 };
         if (!LEGAL_SOURCE_INDEX_RANGE.contains(sourceIndex)) {
             jassertfalse;
             return;
