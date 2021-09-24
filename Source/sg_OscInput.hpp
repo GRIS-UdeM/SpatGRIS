@@ -27,6 +27,7 @@ class MainContentComponent;
 class OscInput final
     : private juce::OSCReceiver
     , private juce::OSCReceiver::Listener<juce::OSCReceiver::RealtimeCallback>
+    , public juce::ActionBroadcaster
 {
     enum class MessageType { invalid, sourcePosition, resetPosition };
 
