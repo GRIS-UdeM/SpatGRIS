@@ -193,15 +193,8 @@ void FlatViewWindow::drawSource(juce::Graphics & g,
     auto const tx{ static_cast<int>(sourcePositionAbsolute.x - SOURCE_RADIUS) };
     auto const ty{ static_cast<int>(sourcePositionAbsolute.y - SOURCE_RADIUS) };
     juce::String const id{ sourceIndex.get() };
-    g.setColour(juce::Colours::black.withAlpha(colour.getFloatAlpha()));
-    g.drawText(id,
-               tx,
-               ty,
-               SOURCE_DIAMETER_INT,
-               SOURCE_DIAMETER_INT,
-               juce::Justification(juce::Justification::centred),
-               false);
-    g.setColour(juce::Colours::white.withAlpha(colour.getFloatAlpha()));
+    g.setFont(mLookAndFeel.getFont().withPointHeight(SOURCE_RADIUS * 1.0f));
+    g.setColour(colour.contrasting(1.0f));
     g.drawText(id,
                tx,
                ty,
