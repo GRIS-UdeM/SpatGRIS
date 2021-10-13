@@ -516,12 +516,17 @@ static triplet_list_t generateTriplets(std::array<Position, MAX_NUM_SPEAKERS> co
         for (auto j{ i + 1 }; j < speakerIndexesSortedByElevation.size(); ++j) {
             auto const speaker2Index{ speakerIndexesSortedByElevation[j] };
             auto const & speaker2{ speakers[speaker2Index] };
-            static constexpr radians_t MAX_ELEVATION_DIFF{ degrees_t{ 10.0f } };
-            if (speaker2.getPolar().elevation - speaker1.getPolar().elevation > MAX_ELEVATION_DIFF) {
-                // The elevation difference is only going to get greater : we can move the 1st speaker and reset the
-                // other loops
-                break;
-            }
+
+            // TODO : disabling this check seems to have solved a lot of incomplete triangular meshes that used to
+            // happen on various random speaker setups.
+
+            // static constexpr radians_t MAX_ELEVATION_DIFF{ degrees_t{ 10.0f } };
+            // if (speaker2.getPolar().elevation - speaker1.getPolar().elevation > MAX_ELEVATION_DIFF) {
+            //    // The elevation difference is only going to get greater : we can move the 1st speaker and reset the
+            //    // other loops
+            //    break;
+            //}
+
             for (size_t k{}; k < speakerIndexesSortedByElevation.size(); ++k) {
                 if (k >= i && k <= j) {
                     // If k is between i and j, it means that i and k are within the elevation threshold (as well as k
@@ -530,9 +535,8 @@ static triplet_list_t generateTriplets(std::array<Position, MAX_NUM_SPEAKERS> co
                 }
                 auto const speaker3Index{ speakerIndexesSortedByElevation[k] };
                 auto const & speaker3{ speakers[speaker3Index] };
-                auto const isValidCandidate{ parallelepipedVolumeSideLength(speaker1, speaker2, speaker3)
-                                             > MIN_VOL_P_SIDE_LENGTH };
-                if (isValidCandidate) {
+                auto const parallelepipedVolume{ parallelepipedVolumeSideLength(speaker1, speaker2, speaker3) };
+                if (parallelepipedVolume > MIN_VOL_P_SIDE_LENGTH) {
                     connections[speaker1Index][speaker2Index] = true;
                     connections[speaker2Index][speaker1Index] = true;
                     connections[speaker1Index][speaker3Index] = true;
