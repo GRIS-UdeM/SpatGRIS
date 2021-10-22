@@ -54,7 +54,7 @@ private:
 
     LayoutComponent mLayout{ LayoutComponent::Orientation::horizontal, false, false, mLookAndFeel };
     SmallToggleButton mMuteButton{ "m", *this, mSmallLookAndFeel };
-    SmallToggleButton mSoloButton{ "m", *this, mSmallLookAndFeel };
+    SmallToggleButton mSoloButton{ "s", *this, mSmallLookAndFeel };
 
 public:
     //==============================================================================

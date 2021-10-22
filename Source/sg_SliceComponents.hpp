@@ -22,7 +22,7 @@
 #include "sg_LayoutComponent.hpp"
 #include "sg_LogicStrucs.hpp"
 #include "sg_MinSizedComponent.hpp"
-#include "sg_SmallToggleButton.hpp"
+#include "sg_MuteSoloComponent.hpp"
 #include "sg_VuMeterComponent.hpp"
 
 #include <JuceHeader.h>
@@ -37,7 +37,8 @@ class SmallGrisLookAndFeel;
 class AbstractSliceComponent
     : public MinSizedComponent
     , public juce::ToggleButton::Listener
-    , public SmallToggleButton::Listener
+    , public MuteSoloComponent::Listener
+
 {
 protected:
     static constexpr auto ID_BUTTON_HEIGHT = 17;
@@ -51,9 +52,7 @@ protected:
     juce::Label mIdLabel;
     juce::TextButton mIdButton;
 
-    LayoutComponent mMuteSoloLayout{ LayoutComponent::Orientation::horizontal, false, false, mLookAndFeel };
-    SmallToggleButton mMuteButton{ "m", *this, mSmallLookAndFeel };
-    SmallToggleButton mSoloButton{ "s", *this, mSmallLookAndFeel };
+    MuteSoloComponent mMuteSoloComponent{ *this, mLookAndFeel, mSmallLookAndFeel };
 
 public:
     //==============================================================================
@@ -136,7 +135,7 @@ public:
     //==============================================================================
     // overrides
     void buttonClicked(juce::Button * button) override;
-    void smallButtonClicked(SmallToggleButton * button, bool state) override;
+    void muteSoloButtonClicked(PortState state) override;
     void resized() override;
     void changeListenerCallback(juce::ChangeBroadcaster * source) override;
     [[nodiscard]] int getMinHeight() const noexcept override;
@@ -188,8 +187,8 @@ public:
     void setSelected(bool value);
     //==============================================================================
     void buttonClicked(juce::Button * button) override;
+    void muteSoloButtonClicked(PortState state) override;
     [[nodiscard]] int getMinHeight() const noexcept override;
-    void smallButtonClicked(SmallToggleButton * button, bool state) override;
 
 private:
     //==============================================================================
@@ -212,5 +211,5 @@ public:
 
     [[nodiscard]] int getMinHeight() const noexcept override;
     void buttonClicked(juce::Button *) override { jassertfalse; }
-    void smallButtonClicked(SmallToggleButton *, bool) override { jassertfalse; }
+    void muteSoloButtonClicked(PortState) override { jassertfalse; }
 };

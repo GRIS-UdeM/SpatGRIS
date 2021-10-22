@@ -66,11 +66,7 @@ AbstractSliceComponent::AbstractSliceComponent(juce::String const & id,
     // Level box
     addAndMakeVisible(mLevelBox);
 
-    mMuteSoloLayout.addSection(mMuteButton).withRelativeSize(0.5f);
-    // mMuteSoloLayout.addSection(mMuteButton).withRelativeSize(0.5f).withRightPadding(INNER_ELEMENTS_PADDING);
-    mMuteSoloLayout.addSection(mSoloButton).withRelativeSize(0.5f);
-
-    addAndMakeVisible(mMuteSoloLayout);
+    addAndMakeVisible(mMuteSoloComponent);
 }
 
 //==============================================================================
@@ -78,8 +74,7 @@ void AbstractSliceComponent::setState(PortState const state, bool const soloMode
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    mSoloButton.setToggleState(state == PortState::solo);
-    mMuteButton.setToggleState(state == PortState::muted);
+    mMuteSoloComponent.setPortState(state);
     mLevelBox.setMuted(soloMode ? state != PortState::solo : state == PortState::muted);
 
     repaint();
@@ -115,28 +110,18 @@ void SpeakerSliceComponent::buttonClicked(juce::Button * button)
 }
 
 //==============================================================================
+void SpeakerSliceComponent::muteSoloButtonClicked(PortState const state)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    mOwner.setSpeakerState(mOutputPatch, state);
+}
+
+//==============================================================================
 int SpeakerSliceComponent::getMinHeight() const noexcept
 {
     return INNER_ELEMENTS_PADDING + ID_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING + mLevelBox.getMinHeight()
            + INNER_ELEMENTS_PADDING + MUTE_AND_SOLO_BUTTONS_HEIGHT + INNER_ELEMENTS_PADDING;
-}
-
-//==============================================================================
-void SpeakerSliceComponent::smallButtonClicked(SmallToggleButton * button, bool const state)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    if (button == &mMuteButton) {
-        auto const newState{ state ? PortState::muted : PortState::normal };
-        mOwner.setSpeakerState(mOutputPatch, newState);
-        return;
-    }
-    if (button == &mSoloButton) {
-        auto const newState{ state ? PortState::solo : PortState::normal };
-        mOwner.setSpeakerState(mOutputPatch, newState);
-        return;
-    }
-    jassertfalse;
 }
 
 //==============================================================================
@@ -176,8 +161,7 @@ void AbstractSliceComponent::resized()
 
     yOffset += vuMeterHeight + INNER_ELEMENTS_PADDING;
 
-    mMuteSoloLayout.setBounds(INNER_ELEMENTS_PADDING, yOffset, AVAILABLE_WIDTH, MUTE_AND_SOLO_BUTTONS_HEIGHT);
-    mMuteButton.resized();
+    mMuteSoloComponent.setBounds(INNER_ELEMENTS_PADDING, yOffset, AVAILABLE_WIDTH, MUTE_AND_SOLO_BUTTONS_HEIGHT);
 }
 
 //==============================================================================
@@ -294,19 +278,9 @@ void SourceSliceComponent::buttonClicked(juce::Button * button)
 }
 
 //==============================================================================
-void SourceSliceComponent::smallButtonClicked(SmallToggleButton * button, bool const state)
+void SourceSliceComponent::muteSoloButtonClicked(PortState const state)
 {
-    if (button == &mMuteButton) {
-        auto const newState{ state ? PortState::muted : PortState::normal };
-        mOwner.setSourceState(mSourceIndex, newState);
-        return;
-    }
-    if (button == &mSoloButton) {
-        auto const newState{ state ? PortState::solo : PortState::normal };
-        mOwner.setSourceState(mSourceIndex, newState);
-        return;
-    }
-    jassertfalse;
+    mOwner.setSourceState(mSourceIndex, state);
 }
 
 //==============================================================================
