@@ -332,6 +332,8 @@ int AbstractVuMeterComponent::getMinWidth() const noexcept
 //==============================================================================
 SourceVuMeterComponent::SourceVuMeterComponent(source_index_t const sourceIndex,
                                                tl::optional<output_patch_t> const directOut,
+                                               SpatMode const projectSpatMode,
+                                               SpatMode const hybridSpatMode,
                                                juce::Colour const colour,
                                                Owner & owner,
                                                SmallGrisLookAndFeel & lookAndFeel)
@@ -341,15 +343,31 @@ SourceVuMeterComponent::SourceVuMeterComponent(source_index_t const sourceIndex,
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    mDirectOutButton.setColour(juce::Label::textColourId, lookAndFeel.getFontColour());
-    mDirectOutButton.setLookAndFeel(&lookAndFeel);
-    mDirectOutButton.addListener(this);
-    mDirectOutButton.addMouseListener(this, true);
+    auto const initButton = [&](juce::TextButton & button, bool const setColors = true) {
+        button.addListener(this);
+
+        addAndMakeVisible(button);
+
+        if (!setColors) {
+            return;
+        }
+
+        button.setColour(juce::Label::textColourId, lookAndFeel.getFontColour());
+        button.setLookAndFeel(&lookAndFeel);
+    };
+
+    initButton(mIdButton, false);
     mIdButton.addMouseListener(this, true);
+
+    initButton(mDirectOutButton);
     setDirectOut(directOut);
-    addAndMakeVisible(mDirectOutButton);
+
+    initButton(mDomeButton);
+    initButton(mCubeButton);
 
     setSourceColour(colour);
+    setProjectSpatMode(projectSpatMode);
+    setHybridSpatMode(hybridSpatMode);
 }
 
 //==============================================================================
@@ -379,17 +397,50 @@ void SourceVuMeterComponent::setSourceColour(juce::Colour const colour)
 }
 
 //==============================================================================
+void SourceVuMeterComponent::setProjectSpatMode(SpatMode const spatMode)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    auto const showHybridButtons{ spatMode == SpatMode::hybrid };
+    mDomeButton.setVisible(showHybridButtons);
+    mCubeButton.setVisible(showHybridButtons);
+}
+
+//==============================================================================
+void SourceVuMeterComponent::setHybridSpatMode(SpatMode const spatMode)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    mDomeButton.setToggleState(spatMode == SpatMode::vbap, juce::dontSendNotification);
+    mCubeButton.setToggleState(spatMode == SpatMode::lbap, juce::dontSendNotification);
+}
+
+//==============================================================================
 void SourceVuMeterComponent::buttonClicked(juce::Button * button)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
     if (button == &mMuteButton) {
         muteButtonClicked();
-    } else if (button == &mSoloButton) {
-        soloButtonClicked();
-    } else if (button == &mDirectOutButton) {
-        directOutButtonClicked();
+        return;
     }
+    if (button == &mSoloButton) {
+        soloButtonClicked();
+        return;
+    }
+    if (button == &mDirectOutButton) {
+        directOutButtonClicked();
+        return;
+    }
+    if (button == &mDomeButton) {
+        domeButtonClicked();
+        return;
+    }
+    if (button == &mCubeButton) {
+        cubeButtonClicked();
+        return;
+    }
+    jassertfalse;
 }
 
 //==============================================================================
@@ -399,10 +450,20 @@ void SourceVuMeterComponent::resized()
 
     AbstractVuMeterComponent::resized();
 
-    juce::Rectangle<int> const directOutButtonBounds{ INNER_ELEMENTS_PADDING,
-                                                      getHeight() - (DIRECT_OUT_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING),
-                                                      VU_METER_COMPONENT_WIDTH - INNER_ELEMENTS_PADDING * 2,
-                                                      DIRECT_OUT_BUTTON_HEIGHT };
+    juce::Rectangle<int> const domeButtonBounds{
+        INNER_ELEMENTS_PADDING,
+        getHeight() - (DIRECT_OUT_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING * 3 + MUTE_AND_SOLO_BUTTONS_HEIGHT * 2),
+        VU_METER_COMPONENT_WIDTH - INNER_ELEMENTS_PADDING * 2,
+        MUTE_AND_SOLO_BUTTONS_HEIGHT
+    };
+    auto const cubeButtonBounds{ domeButtonBounds.translated(0,
+                                                             MUTE_AND_SOLO_BUTTONS_HEIGHT + INNER_ELEMENTS_PADDING) };
+    auto const directOutButtonBounds{
+        cubeButtonBounds.translated(0, MUTE_AND_SOLO_BUTTONS_HEIGHT + INNER_ELEMENTS_PADDING)
+    };
+
+    mDomeButton.setBounds(domeButtonBounds);
+    mCubeButton.setBounds(cubeButtonBounds);
     mDirectOutButton.setBounds(directOutButtonBounds);
 }
 
@@ -422,8 +483,9 @@ void SourceVuMeterComponent::changeListenerCallback(juce::ChangeBroadcaster * so
 int SourceVuMeterComponent::getMinHeight() const noexcept
 {
     return INNER_ELEMENTS_PADDING + ID_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING + LevelBox::MIN_HEIGHT
-           + INNER_ELEMENTS_PADDING + MUTE_AND_SOLO_BUTTONS_HEIGHT + INNER_ELEMENTS_PADDING + DIRECT_OUT_BUTTON_HEIGHT
-           + INNER_ELEMENTS_PADDING;
+           + INNER_ELEMENTS_PADDING + MUTE_AND_SOLO_BUTTONS_HEIGHT + INNER_ELEMENTS_PADDING
+           + MUTE_AND_SOLO_BUTTONS_HEIGHT + INNER_ELEMENTS_PADDING + MUTE_AND_SOLO_BUTTONS_HEIGHT
+           + INNER_ELEMENTS_PADDING + DIRECT_OUT_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING;
 }
 
 //==============================================================================
@@ -519,6 +581,22 @@ void SourceVuMeterComponent::directOutButtonClicked() const
     }
 
     mOwner.setSourceDirectOut(mSourceIndex, newOutputPatch);
+}
+
+//==============================================================================
+void SourceVuMeterComponent::domeButtonClicked() const
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    mOwner.setSourceHybridSpatMode(mSourceIndex, SpatMode::vbap);
+}
+
+//==============================================================================
+void SourceVuMeterComponent::cubeButtonClicked() const
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    mOwner.setSourceHybridSpatMode(mSourceIndex, SpatMode::lbap);
 }
 
 //==============================================================================

@@ -586,6 +586,7 @@ bool MainContentComponent::setSpatMode(SpatMode const spatMode)
     mData.speakerSetup.spatMode = spatMode;
     mControlPanel->setSpatMode(spatMode);
     refreshSpeakers();
+    refreshSourceVuMeterComponents();
     return true;
 }
 
@@ -1361,6 +1362,8 @@ void MainContentComponent::refreshSourceVuMeterComponents()
     for (auto source : mData.project.sources) {
         auto newVuMeter{ std::make_unique<SourceVuMeterComponent>(source.key,
                                                                   source.value->directOut,
+                                                                  mData.speakerSetup.spatMode,
+                                                                  source.value->hybridSpatMode,
                                                                   source.value->colour,
                                                                   *this,
                                                                   mSmallLookAndFeel) };
@@ -1738,6 +1741,19 @@ void MainContentComponent::setShowTriplets(bool const state)
 }
 
 //==============================================================================
+void MainContentComponent::setSourceHybridSpatMode(source_index_t const sourceIndex, SpatMode const spatMode)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    mData.project.sources[sourceIndex].hybridSpatMode = spatMode;
+
+    refreshViewportConfig();
+
+    mSourceVuMeterComponents[sourceIndex].setHybridSpatMode(spatMode);
+}
+
+//==============================================================================
 void MainContentComponent::reorderSpeakers(juce::Array<output_patch_t> newOrder)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -1910,10 +1926,8 @@ bool MainContentComponent::loadSpeakerSetup(juce::File const & file, LoadSpeaker
         break;
     }
 
-    refreshSpeakers();
-
-    mControlPanel->setSpatMode(mData.speakerSetup.spatMode);
-
+    [[maybe_unused]] auto const success{ setSpatMode(mData.speakerSetup.spatMode) };
+    jassert(success);
     setTitles();
 
     return true;

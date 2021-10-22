@@ -83,10 +83,10 @@ protected:
     LevelBox mLevelBox;
     juce::Label mIdLabel;
     juce::TextButton mIdButton;
-    juce::TextButton mMuteButton;
     juce::Label mMuteLabel;
-    juce::TextButton mSoloButton;
+    juce::TextButton mMuteButton;
     juce::Label mSoloLabel;
+    juce::TextButton mSoloButton;
 
 public:
     //==============================================================================
@@ -127,6 +127,7 @@ public:
         virtual void setSourceDirectOut(source_index_t sourceIndex, tl::optional<output_patch_t> outputPatch) = 0;
         virtual void setSourceColor(source_index_t sourceIndex, juce::Colour colour) = 0;
         virtual void setSourceState(source_index_t sourceIndex, PortState state) = 0;
+        virtual void setSourceHybridSpatMode(source_index_t sourceIndex, SpatMode spatMode) = 0;
         [[nodiscard]] virtual SpeakersData const & getSpeakersData() const = 0;
     };
 
@@ -134,13 +135,20 @@ private:
     static constexpr auto DIRECT_OUT_BUTTON_HEIGHT = 17;
     //==============================================================================
     source_index_t mSourceIndex{};
-    juce::TextButton mDirectOutButton;
     Owner & mOwner;
+
+    juce::Label mDomeLabel;
+    juce::TextButton mDomeButton;
+    juce::Label mCubeLabel;
+    juce::TextButton mCubeButton;
+    juce::TextButton mDirectOutButton;
 
 public:
     //==============================================================================
     SourceVuMeterComponent(source_index_t sourceIndex,
                            tl::optional<output_patch_t> directOut,
+                           SpatMode projectSpatMode,
+                           SpatMode hybridSpatMode,
                            juce::Colour colour,
                            Owner & owner,
                            SmallGrisLookAndFeel & lookAndFeel);
@@ -153,6 +161,8 @@ public:
     //==============================================================================
     void setDirectOut(tl::optional<output_patch_t> outputPatch);
     void setSourceColour(juce::Colour colour);
+    void setProjectSpatMode(SpatMode spatMode);
+    void setHybridSpatMode(SpatMode spatMode);
     //==============================================================================
     // overrides
     void buttonClicked(juce::Button * button) override;
@@ -168,6 +178,8 @@ private:
     void colorSelectorLeftButtonClicked();
     void colorSelectorRightButtonClicked() const;
     void directOutButtonClicked() const;
+    void domeButtonClicked() const;
+    void cubeButtonClicked() const;
     [[nodiscard]] juce::Colour getSourceColor() const;
     //==============================================================================
     JUCE_LEAK_DETECTOR(AbstractVuMeterComponent)
