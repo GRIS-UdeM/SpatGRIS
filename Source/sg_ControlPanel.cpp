@@ -21,16 +21,22 @@
 
 #include "sg_MainComponent.hpp"
 
-static constexpr auto COL_1_WIDTH = 100;
-static constexpr auto COL_2_WIDTH = 160;
-static constexpr auto ROW_1_CONTENT_HEIGHT = 20;
-static constexpr auto ROW_2_CONTENT_HEIGHT = 20;
+namespace
+{
+constexpr auto COL_1_WIDTH = 140;
+constexpr auto COL_2_WIDTH = 160;
 
-static constexpr auto COL_PADDING = 5;
-static constexpr auto ROW_PADDING = 5;
+constexpr auto NUM_SPAT_MODES = 3;
 
-static constexpr auto LABEL_HEIGHT = 18;
-static constexpr auto COL_INNER_PADDING = 3;
+constexpr auto ROW_1_CONTENT_HEIGHT = 20;
+constexpr auto ROW_2_CONTENT_HEIGHT = 20;
+
+constexpr auto COL_PADDING = 5;
+constexpr auto ROW_PADDING = 5;
+
+constexpr auto LABEL_HEIGHT = 18;
+constexpr auto COL_INNER_PADDING = 3;
+} // namespace
 
 //==============================================================================
 GainsSubPanel::GainsSubPanel(MainContentComponent & mainContentComponent, GrisLookAndFeel & lookAndFeel)
@@ -124,11 +130,15 @@ SpatSettingsSubPanel::SpatSettingsSubPanel(ControlPanel & controlPanel,
 
     mDomeButton.setToggleState(true, juce::dontSendNotification);
 
-    static constexpr auto ALGORITHM_BUTTONS_WIDTH = (COL_1_WIDTH - COL_INNER_PADDING) / 2;
+    static constexpr auto ALGORITHM_BUTTONS_WIDTH
+        = (COL_1_WIDTH - (COL_INNER_PADDING * (NUM_SPAT_MODES - 1))) / NUM_SPAT_MODES;
     mAlgorithmButtonsLayout.addSection(mDomeButton)
         .withFixedSize(ALGORITHM_BUTTONS_WIDTH)
         .withRightPadding(COL_INNER_PADDING);
-    mAlgorithmButtonsLayout.addSection(mCubeButton).withFixedSize(ALGORITHM_BUTTONS_WIDTH);
+    mAlgorithmButtonsLayout.addSection(mCubeButton)
+        .withFixedSize(ALGORITHM_BUTTONS_WIDTH)
+        .withRightPadding(COL_INNER_PADDING);
+    mAlgorithmButtonsLayout.addSection(mHybridButton).withFixedSize(ALGORITHM_BUTTONS_WIDTH);
 
     mCol1Layout.addSection(mAlgorithmSelectionLabel).withFixedSize(LABEL_HEIGHT);
     mCol1Layout.addSection(mAlgorithmButtonsLayout).withFixedSize(ROW_1_CONTENT_HEIGHT).withBottomPadding(ROW_PADDING);
@@ -352,8 +362,6 @@ void SpatSettingsSubPanel::buttonClicked(juce::Button * button)
     if (!button->getToggleState()) {
         return;
     }
-
-    jassert(button == &mDomeButton || button == &mCubeButton);
 
     auto const getSpatMode = [&]() {
         if (button == &mDomeButton) {
