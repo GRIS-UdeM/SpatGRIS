@@ -53,7 +53,10 @@ private:
 
 public:
     //==============================================================================
-    SmallToggleButton(juce::String const & text, Listener & listener, SmallGrisLookAndFeel & lookAndFeel);
+    SmallToggleButton(juce::String const & text,
+                      juce::String const & toolTip,
+                      Listener & listener,
+                      SmallGrisLookAndFeel & lookAndFeel);
     ~SmallToggleButton() override = default;
     //==============================================================================
     SmallToggleButton(SmallToggleButton const &) = delete;

@@ -22,10 +22,14 @@
 #include "sg_GrisLookAndFeel.hpp"
 
 //==============================================================================
-SmallToggleButton::SmallToggleButton(juce::String const & text, Listener & listener, SmallGrisLookAndFeel & lookAndFeel)
+SmallToggleButton::SmallToggleButton(juce::String const & text,
+                                     juce::String const & toolTip,
+                                     Listener & listener,
+                                     SmallGrisLookAndFeel & lookAndFeel)
     : mListener(listener)
     , mLookAndFeel(lookAndFeel)
     , mLabel("", text)
+    , mButton("", toolTip)
 {
     auto const initColors = [&](Component & component) {
         component.setLookAndFeel(&lookAndFeel);
