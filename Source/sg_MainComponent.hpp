@@ -34,10 +34,10 @@
 #include "sg_OwnedMap.hpp"
 #include "sg_PrepareToRecordWindow.hpp"
 #include "sg_SettingsWindow.hpp"
+#include "sg_SliceComponents.hpp"
 #include "sg_SpatButton.hpp"
 #include "sg_SpeakerViewComponent.hpp"
 #include "sg_TitledComponent.hpp"
-#include "sg_VuMeterComponent.hpp"
 #include "sg_constants.hpp"
 
 class MainWindow;

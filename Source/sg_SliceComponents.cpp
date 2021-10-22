@@ -17,7 +17,7 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "sg_VuMeterComponent.hpp"
+#include "sg_SliceComponents.hpp"
 
 #include "sg_LogicStrucs.hpp"
 #include "sg_MainComponent.hpp"
