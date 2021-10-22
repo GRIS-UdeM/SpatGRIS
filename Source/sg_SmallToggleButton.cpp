@@ -43,7 +43,7 @@ SmallToggleButton::SmallToggleButton(juce::String const & text, Listener & liste
     mLabel.setJustificationType(juce::Justification::centred);
     mLabel.setInterceptsMouseClicks(false, false);
     initColors(mLabel);
-    mLabel.setFont(juce::Font{ 1.0f });
+    mLabel.setFont(juce::Font{ 0.8f });
 }
 
 //==============================================================================
@@ -62,6 +62,14 @@ int SmallToggleButton::getMinWidth() const noexcept
 int SmallToggleButton::getMinHeight() const noexcept
 {
     return 15;
+}
+
+//==============================================================================
+void SmallToggleButton::resized()
+{
+    auto const localBounds{ getLocalBounds() };
+    mButton.setBounds(localBounds);
+    mLabel.setBounds(localBounds.withSizeKeepingCentre(100, 100));
 }
 
 //==============================================================================

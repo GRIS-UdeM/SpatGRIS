@@ -27,18 +27,21 @@
 juce::String const SourceSliceComponent::NO_DIRECT_OUT_TEXT = "-";
 
 //==============================================================================
-AbstractSliceComponent::AbstractSliceComponent(juce::String const & id, SmallGrisLookAndFeel & lookAndFeel)
+AbstractSliceComponent::AbstractSliceComponent(juce::String const & id,
+                                               GrisLookAndFeel & lookAndFeel,
+                                               SmallGrisLookAndFeel & smallLookAndFeel)
     : mLookAndFeel(lookAndFeel)
-    , mLevelBox(lookAndFeel)
+    , mSmallLookAndFeel(smallLookAndFeel)
+    , mLevelBox(smallLookAndFeel)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
     auto const initColors = [&](Component & component) {
-        component.setLookAndFeel(&lookAndFeel);
-        component.setColour(juce::Label::textColourId, lookAndFeel.getFontColour());
-        component.setColour(juce::TextButton::textColourOnId, lookAndFeel.getFontColour());
-        component.setColour(juce::TextButton::textColourOffId, lookAndFeel.getFontColour());
-        component.setColour(juce::TextButton::buttonColourId, lookAndFeel.getBackgroundColour());
+        component.setLookAndFeel(&smallLookAndFeel);
+        component.setColour(juce::Label::textColourId, smallLookAndFeel.getFontColour());
+        component.setColour(juce::TextButton::textColourOnId, smallLookAndFeel.getFontColour());
+        component.setColour(juce::TextButton::textColourOffId, smallLookAndFeel.getFontColour());
+        component.setColour(juce::TextButton::buttonColourId, smallLookAndFeel.getBackgroundColour());
         addAndMakeVisible(component);
     };
 
@@ -53,29 +56,21 @@ AbstractSliceComponent::AbstractSliceComponent(juce::String const & id, SmallGri
         label.setJustificationType(juce::Justification::centred);
         label.setInterceptsMouseClicks(false, false);
         initColors(label);
-        label.setFont(juce::Font{ 1.0f });
+        label.setFont(juce::Font{ 0.8f });
     };
 
     // Id
     initButton(mIdButton);
     initLabel(mIdLabel, id);
 
-    // Mute button
-    mMuteButton.setClickingTogglesState(true);
-    initButton(mMuteButton);
-
-    // Mute label
-    initLabel(mMuteLabel, "m");
-
-    // Solo button
-    mSoloButton.setClickingTogglesState(true);
-    initButton(mSoloButton);
-
-    // Solo label
-    initLabel(mSoloLabel, "s");
-
     // Level box
     addAndMakeVisible(mLevelBox);
+
+    mMuteSoloLayout.addSection(mMuteButton).withRelativeSize(0.5f);
+    // mMuteSoloLayout.addSection(mMuteButton).withRelativeSize(0.5f).withRightPadding(INNER_ELEMENTS_PADDING);
+    mMuteSoloLayout.addSection(mSoloButton).withRelativeSize(0.5f);
+
+    addAndMakeVisible(mMuteSoloLayout);
 }
 
 //==============================================================================
@@ -83,8 +78,8 @@ void AbstractSliceComponent::setState(PortState const state, bool const soloMode
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    mSoloButton.setToggleState(state == PortState::solo, juce::dontSendNotification);
-    mMuteButton.setToggleState(state == PortState::muted, juce::dontSendNotification);
+    mSoloButton.setToggleState(state == PortState::solo);
+    mMuteButton.setToggleState(state == PortState::muted);
     mLevelBox.setMuted(soloMode ? state != PortState::solo : state == PortState::muted);
 
     repaint();
@@ -96,13 +91,13 @@ void SpeakerSliceComponent::setSelected(bool const value)
     JUCE_ASSERT_MESSAGE_THREAD;
 
     if (value) {
-        mIdButton.setColour(juce::TextButton::textColourOnId, mLookAndFeel.getWinBackgroundColour());
-        mIdButton.setColour(juce::TextButton::textColourOffId, mLookAndFeel.getWinBackgroundColour());
-        mIdButton.setColour(juce::TextButton::buttonColourId, mLookAndFeel.getOnColour());
+        mIdButton.setColour(juce::TextButton::textColourOnId, mSmallLookAndFeel.getWinBackgroundColour());
+        mIdButton.setColour(juce::TextButton::textColourOffId, mSmallLookAndFeel.getWinBackgroundColour());
+        mIdButton.setColour(juce::TextButton::buttonColourId, mSmallLookAndFeel.getOnColour());
     } else {
-        mIdButton.setColour(juce::TextButton::textColourOnId, mLookAndFeel.getFontColour());
-        mIdButton.setColour(juce::TextButton::textColourOffId, mLookAndFeel.getFontColour());
-        mIdButton.setColour(juce::TextButton::buttonColourId, mLookAndFeel.getBackgroundColour());
+        mIdButton.setColour(juce::TextButton::textColourOnId, mSmallLookAndFeel.getFontColour());
+        mIdButton.setColour(juce::TextButton::textColourOffId, mSmallLookAndFeel.getFontColour());
+        mIdButton.setColour(juce::TextButton::buttonColourId, mSmallLookAndFeel.getBackgroundColour());
     }
     repaint();
 }
@@ -112,15 +107,11 @@ void SpeakerSliceComponent::buttonClicked(juce::Button * button)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    if (button == &mMuteButton) {
-        auto const newState{ mMuteButton.getToggleState() ? PortState::muted : PortState::normal };
-        mOwner.setSpeakerState(mOutputPatch, newState);
-    } else if (button == &mSoloButton) {
-        auto const newState{ mSoloButton.getToggleState() ? PortState::solo : PortState::normal };
-        mOwner.setSpeakerState(mOutputPatch, newState);
-    } else if (button == &mIdButton) {
+    if (button == &mIdButton) {
         mOwner.setSelectedSpeakers(mOutputPatch);
+        return;
     }
+    jassertfalse;
 }
 
 //==============================================================================
@@ -131,8 +122,28 @@ int SpeakerSliceComponent::getMinHeight() const noexcept
 }
 
 //==============================================================================
-StereoSliceComponent::StereoSliceComponent(juce::String const & id, SmallGrisLookAndFeel & lookAndFeel)
-    : AbstractSliceComponent(id, lookAndFeel)
+void SpeakerSliceComponent::smallButtonClicked(SmallToggleButton * button, bool const state)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    if (button == &mMuteButton) {
+        auto const newState{ state ? PortState::muted : PortState::normal };
+        mOwner.setSpeakerState(mOutputPatch, newState);
+        return;
+    }
+    if (button == &mSoloButton) {
+        auto const newState{ state ? PortState::solo : PortState::normal };
+        mOwner.setSpeakerState(mOutputPatch, newState);
+        return;
+    }
+    jassertfalse;
+}
+
+//==============================================================================
+StereoSliceComponent::StereoSliceComponent(juce::String const & id,
+                                           GrisLookAndFeel & lookAndFeel,
+                                           SmallGrisLookAndFeel & smallLookAndFeel)
+    : AbstractSliceComponent(id, lookAndFeel, smallLookAndFeel)
 {
 }
 
@@ -165,21 +176,8 @@ void AbstractSliceComponent::resized()
 
     yOffset += vuMeterHeight + INNER_ELEMENTS_PADDING;
 
-    static constexpr auto MUTE_AND_SOLO_WIDTH{ (AVAILABLE_WIDTH - INNER_ELEMENTS_PADDING) / 2 };
-
-    juce::Rectangle<int> const muteButtonBounds{ INNER_ELEMENTS_PADDING,
-                                                 yOffset,
-                                                 MUTE_AND_SOLO_WIDTH,
-                                                 MUTE_AND_SOLO_BUTTONS_HEIGHT };
-    mMuteButton.setBounds(muteButtonBounds);
-    mMuteLabel.setBounds(muteButtonBounds.withSizeKeepingCentre(100, 100));
-
-    juce::Rectangle<int> const soloButtonBounds{ INNER_ELEMENTS_PADDING * 2 + MUTE_AND_SOLO_WIDTH,
-                                                 yOffset,
-                                                 MUTE_AND_SOLO_WIDTH,
-                                                 MUTE_AND_SOLO_BUTTONS_HEIGHT };
-    mSoloButton.setBounds(soloButtonBounds);
-    mSoloLabel.setBounds(soloButtonBounds.withSizeKeepingCentre(100, 100));
+    mMuteSoloLayout.setBounds(INNER_ELEMENTS_PADDING, yOffset, AVAILABLE_WIDTH, MUTE_AND_SOLO_BUTTONS_HEIGHT);
+    mMuteButton.resized();
 }
 
 //==============================================================================
@@ -195,8 +193,9 @@ SourceSliceComponent::SourceSliceComponent(source_index_t const sourceIndex,
                                            SpatMode const hybridSpatMode,
                                            juce::Colour const colour,
                                            Owner & owner,
-                                           SmallGrisLookAndFeel & lookAndFeel)
-    : AbstractSliceComponent(juce::String{ sourceIndex.get() }, lookAndFeel)
+                                           GrisLookAndFeel & lookAndFeel,
+                                           SmallGrisLookAndFeel & smallLookAndFeel)
+    : AbstractSliceComponent(juce::String{ sourceIndex.get() }, lookAndFeel, smallLookAndFeel)
     , mSourceIndex(sourceIndex)
     , mOwner(owner)
 {
@@ -211,8 +210,8 @@ SourceSliceComponent::SourceSliceComponent(source_index_t const sourceIndex,
             return;
         }
 
-        button.setColour(juce::Label::textColourId, lookAndFeel.getFontColour());
-        button.setLookAndFeel(&lookAndFeel);
+        button.setColour(juce::Label::textColourId, smallLookAndFeel.getFontColour());
+        button.setLookAndFeel(&smallLookAndFeel);
     };
 
     initButton(mIdButton, false);
@@ -279,14 +278,6 @@ void SourceSliceComponent::buttonClicked(juce::Button * button)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    if (button == &mMuteButton) {
-        muteButtonClicked();
-        return;
-    }
-    if (button == &mSoloButton) {
-        soloButtonClicked();
-        return;
-    }
     if (button == &mDirectOutButton) {
         directOutButtonClicked();
         return;
@@ -297,6 +288,22 @@ void SourceSliceComponent::buttonClicked(juce::Button * button)
     }
     if (button == &mCubeButton) {
         cubeButtonClicked();
+        return;
+    }
+    jassertfalse;
+}
+
+//==============================================================================
+void SourceSliceComponent::smallButtonClicked(SmallToggleButton * button, bool const state)
+{
+    if (button == &mMuteButton) {
+        auto const newState{ state ? PortState::muted : PortState::normal };
+        mOwner.setSourceState(mSourceIndex, newState);
+        return;
+    }
+    if (button == &mSoloButton) {
+        auto const newState{ state ? PortState::solo : PortState::normal };
+        mOwner.setSourceState(mSourceIndex, newState);
         return;
     }
     jassertfalse;
@@ -359,24 +366,6 @@ void SourceSliceComponent::mouseUp(juce::MouseEvent const & event)
     } else if (event.mods.isRightButtonDown()) {
         colorSelectorRightButtonClicked();
     }
-}
-
-//==============================================================================
-void SourceSliceComponent::muteButtonClicked() const
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    auto const newState{ mMuteButton.getToggleState() ? PortState::muted : PortState::normal };
-    mOwner.setSourceState(mSourceIndex, newState);
-}
-
-//==============================================================================
-void SourceSliceComponent::soloButtonClicked() const
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    auto const newState{ mSoloButton.getToggleState() ? PortState::solo : PortState::normal };
-    mOwner.setSourceState(mSourceIndex, newState);
 }
 
 //==============================================================================
@@ -467,8 +456,9 @@ juce::Colour SourceSliceComponent::getSourceColor() const
 //==============================================================================
 SpeakerSliceComponent::SpeakerSliceComponent(output_patch_t const outputPatch,
                                              Owner & owner,
-                                             SmallGrisLookAndFeel & lookAndFeel)
-    : AbstractSliceComponent(juce::String{ outputPatch.get() }, lookAndFeel)
+                                             GrisLookAndFeel & lookAndFeel,
+                                             SmallGrisLookAndFeel & smallLookAndFeel)
+    : AbstractSliceComponent(juce::String{ outputPatch.get() }, lookAndFeel, smallLookAndFeel)
     , mOutputPatch(outputPatch)
     , mOwner(owner)
 {

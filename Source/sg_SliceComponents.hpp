@@ -19,8 +19,10 @@
 
 #pragma once
 
+#include "sg_LayoutComponent.hpp"
 #include "sg_LogicStrucs.hpp"
 #include "sg_MinSizedComponent.hpp"
+#include "sg_SmallToggleButton.hpp"
 #include "sg_VuMeterComponent.hpp"
 
 #include <JuceHeader.h>
@@ -35,25 +37,29 @@ class SmallGrisLookAndFeel;
 class AbstractSliceComponent
     : public MinSizedComponent
     , public juce::ToggleButton::Listener
+    , public SmallToggleButton::Listener
 {
 protected:
     static constexpr auto ID_BUTTON_HEIGHT = 17;
     static constexpr auto MUTE_AND_SOLO_BUTTONS_HEIGHT = 15;
     static constexpr auto INNER_ELEMENTS_PADDING = 1;
 
-    SmallGrisLookAndFeel & mLookAndFeel;
+    GrisLookAndFeel & mLookAndFeel;
+    SmallGrisLookAndFeel & mSmallLookAndFeel;
 
     VuMeterComponent mLevelBox;
     juce::Label mIdLabel;
     juce::TextButton mIdButton;
-    juce::Label mMuteLabel;
-    juce::TextButton mMuteButton;
-    juce::Label mSoloLabel;
-    juce::TextButton mSoloButton;
+
+    LayoutComponent mMuteSoloLayout{ LayoutComponent::Orientation::horizontal, false, false, mLookAndFeel };
+    SmallToggleButton mMuteButton{ "m", *this, mSmallLookAndFeel };
+    SmallToggleButton mSoloButton{ "s", *this, mSmallLookAndFeel };
 
 public:
     //==============================================================================
-    explicit AbstractSliceComponent(juce::String const & id, SmallGrisLookAndFeel & lookAndFeel);
+    explicit AbstractSliceComponent(juce::String const & id,
+                                    GrisLookAndFeel & lookAndFeel,
+                                    SmallGrisLookAndFeel & smallLookAndFeel);
     //==============================================================================
     AbstractSliceComponent() = delete;
     ~AbstractSliceComponent() override = default;
@@ -114,7 +120,8 @@ public:
                          SpatMode hybridSpatMode,
                          juce::Colour colour,
                          Owner & owner,
-                         SmallGrisLookAndFeel & lookAndFeel);
+                         GrisLookAndFeel & lookAndFeel,
+                         SmallGrisLookAndFeel & smallLookAndFeel);
     ~SourceSliceComponent() override = default;
     //==============================================================================
     SourceSliceComponent(SourceSliceComponent const &) = delete;
@@ -129,6 +136,7 @@ public:
     //==============================================================================
     // overrides
     void buttonClicked(juce::Button * button) override;
+    void smallButtonClicked(SmallToggleButton * button, bool state) override;
     void resized() override;
     void changeListenerCallback(juce::ChangeBroadcaster * source) override;
     [[nodiscard]] int getMinHeight() const noexcept override;
@@ -136,8 +144,6 @@ public:
 
 private:
     //==============================================================================
-    void muteButtonClicked() const;
-    void soloButtonClicked() const;
     void colorSelectorLeftButtonClicked();
     void colorSelectorRightButtonClicked() const;
     void directOutButtonClicked() const;
@@ -168,7 +174,10 @@ private:
 
 public:
     //==============================================================================
-    SpeakerSliceComponent(output_patch_t outputPatch, Owner & owner, SmallGrisLookAndFeel & lookAndFeel);
+    SpeakerSliceComponent(output_patch_t outputPatch,
+                          Owner & owner,
+                          GrisLookAndFeel & lookAndFeel,
+                          SmallGrisLookAndFeel & smallLookAndFeel);
     ~SpeakerSliceComponent() override = default;
     //==============================================================================
     SpeakerSliceComponent(SpeakerSliceComponent const &) = delete;
@@ -180,6 +189,7 @@ public:
     //==============================================================================
     void buttonClicked(juce::Button * button) override;
     [[nodiscard]] int getMinHeight() const noexcept override;
+    void smallButtonClicked(SmallToggleButton * button, bool state) override;
 
 private:
     //==============================================================================
@@ -190,7 +200,9 @@ private:
 class StereoSliceComponent final : public AbstractSliceComponent
 {
 public:
-    StereoSliceComponent(juce::String const & id, SmallGrisLookAndFeel & lookAndFeel);
+    StereoSliceComponent(juce::String const & id,
+                         GrisLookAndFeel & lookAndFeel,
+                         SmallGrisLookAndFeel & smallLookAndFeel);
     ~StereoSliceComponent() override = default;
 
     StereoSliceComponent(StereoSliceComponent const &) = delete;
@@ -199,5 +211,6 @@ public:
     StereoSliceComponent & operator=(StereoSliceComponent &&) = delete;
 
     [[nodiscard]] int getMinHeight() const noexcept override;
-    void buttonClicked(juce::Button *) override {}
+    void buttonClicked(juce::Button *) override { jassertfalse; }
+    void smallButtonClicked(SmallToggleButton *, bool) override { jassertfalse; }
 };

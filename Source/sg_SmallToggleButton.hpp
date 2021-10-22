@@ -65,6 +65,7 @@ public:
     //==============================================================================
     [[nodiscard]] int getMinWidth() const noexcept override;
     [[nodiscard]] int getMinHeight() const noexcept override;
+    void resized() override;
 
 private:
     //==============================================================================

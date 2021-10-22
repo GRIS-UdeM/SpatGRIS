@@ -1367,6 +1367,7 @@ void MainContentComponent::refreshSourceSlices()
                                                               source.value->hybridSpatMode,
                                                               source.value->colour,
                                                               *this,
+                                                              mLookAndFeel,
                                                               mSmallLookAndFeel) };
         auto const & state{ source.value->state };
         newSlice->setState(state, isAtLeastOneSourceSolo);
@@ -1394,14 +1395,18 @@ void MainContentComponent::refreshSpeakerSlices()
 
     if (mData.appData.stereoMode) {
         mSpeakersLayout
-            ->addSection(mStereoSliceComponents.add(std::make_unique<StereoSliceComponent>("L", mSmallLookAndFeel)))
+            ->addSection(mStereoSliceComponents.add(
+                std::make_unique<StereoSliceComponent>("L", mLookAndFeel, mSmallLookAndFeel)))
             .withChildMinSize();
         mSpeakersLayout
-            ->addSection(mStereoSliceComponents.add(std::make_unique<StereoSliceComponent>("R", mSmallLookAndFeel)))
+            ->addSection(mStereoSliceComponents.add(
+                std::make_unique<StereoSliceComponent>("R", mLookAndFeel, mSmallLookAndFeel)))
             .withChildMinSize();
     } else {
         for (auto const outputPatch : mData.speakerSetup.ordering) {
-            auto newSlice{ std::make_unique<SpeakerSliceComponent>(outputPatch, *this, mSmallLookAndFeel) };
+            auto newSlice{
+                std::make_unique<SpeakerSliceComponent>(outputPatch, *this, mLookAndFeel, mSmallLookAndFeel)
+            };
             auto const & state{ mData.speakerSetup.speakers[outputPatch].state };
             newSlice->setState(state, isAtLeastOneSpeakerSolo);
             auto & addedSlice{ mSpeakerSliceComponents.add(outputPatch, std::move(newSlice)) };
