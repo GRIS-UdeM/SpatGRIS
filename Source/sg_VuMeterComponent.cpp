@@ -24,10 +24,10 @@
 
 auto constexpr VU_METER_COMPONENT_WIDTH = 25;
 
-juce::String const SourceVuMeterComponent::NO_DIRECT_OUT_TEXT = "-";
+juce::String const SourceSliceComponent::NO_DIRECT_OUT_TEXT = "-";
 
 //==============================================================================
-void LevelBox::resized()
+void VuMeterComponent::resized()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -88,7 +88,7 @@ void LevelBox::resized()
 }
 
 //==============================================================================
-void LevelBox::paint(juce::Graphics & g)
+void VuMeterComponent::paint(juce::Graphics & g)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -118,7 +118,7 @@ void LevelBox::paint(juce::Graphics & g)
 }
 
 //==============================================================================
-void LevelBox::mouseDown(juce::MouseEvent const & e)
+void VuMeterComponent::mouseDown(juce::MouseEvent const & e)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -129,7 +129,7 @@ void LevelBox::mouseDown(juce::MouseEvent const & e)
 }
 
 //==============================================================================
-void LevelBox::resetClipping()
+void VuMeterComponent::resetClipping()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -138,7 +138,7 @@ void LevelBox::resetClipping()
 }
 
 //==============================================================================
-void LevelBox::setLevel(dbfs_t const level)
+void VuMeterComponent::setLevel(dbfs_t const level)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -157,7 +157,7 @@ void LevelBox::setLevel(dbfs_t const level)
 }
 
 //==============================================================================
-void LevelBox::setMuted(bool const muted)
+void VuMeterComponent::setMuted(bool const muted)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -169,7 +169,7 @@ void LevelBox::setMuted(bool const muted)
 }
 
 //==============================================================================
-AbstractVuMeterComponent::AbstractVuMeterComponent(juce::String const & id, SmallGrisLookAndFeel & lookAndFeel)
+AbstractSliceComponent::AbstractSliceComponent(juce::String const & id, SmallGrisLookAndFeel & lookAndFeel)
     : mLookAndFeel(lookAndFeel)
     , mLevelBox(lookAndFeel)
 {
@@ -221,7 +221,7 @@ AbstractVuMeterComponent::AbstractVuMeterComponent(juce::String const & id, Smal
 }
 
 //==============================================================================
-void AbstractVuMeterComponent::setState(PortState const state, bool const soloMode)
+void AbstractSliceComponent::setState(PortState const state, bool const soloMode)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -233,7 +233,7 @@ void AbstractVuMeterComponent::setState(PortState const state, bool const soloMo
 }
 
 //==============================================================================
-void SpeakerVuMeterComponent::setSelected(bool const value)
+void SpeakerSliceComponent::setSelected(bool const value)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -250,7 +250,7 @@ void SpeakerVuMeterComponent::setSelected(bool const value)
 }
 
 //==============================================================================
-void SpeakerVuMeterComponent::buttonClicked(juce::Button * button)
+void SpeakerSliceComponent::buttonClicked(juce::Button * button)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -266,27 +266,27 @@ void SpeakerVuMeterComponent::buttonClicked(juce::Button * button)
 }
 
 //==============================================================================
-int SpeakerVuMeterComponent::getMinHeight() const noexcept
+int SpeakerSliceComponent::getMinHeight() const noexcept
 {
-    return INNER_ELEMENTS_PADDING + ID_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING + LevelBox::MIN_HEIGHT
+    return INNER_ELEMENTS_PADDING + ID_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING + VuMeterComponent::MIN_HEIGHT
            + INNER_ELEMENTS_PADDING + MUTE_AND_SOLO_BUTTONS_HEIGHT + INNER_ELEMENTS_PADDING;
 }
 
 //==============================================================================
-StereoVuMeterComponent::StereoVuMeterComponent(juce::String const & id, SmallGrisLookAndFeel & lookAndFeel)
-    : AbstractVuMeterComponent(id, lookAndFeel)
+StereoSliceComponent::StereoSliceComponent(juce::String const & id, SmallGrisLookAndFeel & lookAndFeel)
+    : AbstractSliceComponent(id, lookAndFeel)
 {
 }
 
 //==============================================================================
-int StereoVuMeterComponent::getMinHeight() const noexcept
+int StereoSliceComponent::getMinHeight() const noexcept
 {
-    return INNER_ELEMENTS_PADDING + ID_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING + LevelBox::MIN_HEIGHT
+    return INNER_ELEMENTS_PADDING + ID_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING + VuMeterComponent::MIN_HEIGHT
            + INNER_ELEMENTS_PADDING;
 }
 
 //==============================================================================
-void AbstractVuMeterComponent::resized()
+void AbstractSliceComponent::resized()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -299,7 +299,8 @@ void AbstractVuMeterComponent::resized()
 
     yOffset += ID_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING;
 
-    auto const vuMeterHeight{ std::max(LevelBox::MIN_HEIGHT, getHeight() - getMinHeight() + LevelBox::MIN_HEIGHT) };
+    auto const vuMeterHeight{ std::max(VuMeterComponent::MIN_HEIGHT,
+                                       getHeight() - getMinHeight() + VuMeterComponent::MIN_HEIGHT) };
 
     juce::Rectangle<int> const levelBoxBounds{ INNER_ELEMENTS_PADDING, yOffset, AVAILABLE_WIDTH, vuMeterHeight };
     mLevelBox.setBounds(levelBoxBounds);
@@ -324,20 +325,20 @@ void AbstractVuMeterComponent::resized()
 }
 
 //==============================================================================
-int AbstractVuMeterComponent::getMinWidth() const noexcept
+int AbstractSliceComponent::getMinWidth() const noexcept
 {
     return VU_METER_COMPONENT_WIDTH;
 }
 
 //==============================================================================
-SourceVuMeterComponent::SourceVuMeterComponent(source_index_t const sourceIndex,
-                                               tl::optional<output_patch_t> const directOut,
-                                               SpatMode const projectSpatMode,
-                                               SpatMode const hybridSpatMode,
-                                               juce::Colour const colour,
-                                               Owner & owner,
-                                               SmallGrisLookAndFeel & lookAndFeel)
-    : AbstractVuMeterComponent(juce::String{ sourceIndex.get() }, lookAndFeel)
+SourceSliceComponent::SourceSliceComponent(source_index_t const sourceIndex,
+                                           tl::optional<output_patch_t> const directOut,
+                                           SpatMode const projectSpatMode,
+                                           SpatMode const hybridSpatMode,
+                                           juce::Colour const colour,
+                                           Owner & owner,
+                                           SmallGrisLookAndFeel & lookAndFeel)
+    : AbstractSliceComponent(juce::String{ sourceIndex.get() }, lookAndFeel)
     , mSourceIndex(sourceIndex)
     , mOwner(owner)
 {
@@ -371,7 +372,7 @@ SourceVuMeterComponent::SourceVuMeterComponent(source_index_t const sourceIndex,
 }
 
 //==============================================================================
-void SourceVuMeterComponent::setDirectOut(tl::optional<output_patch_t> const outputPatch)
+void SourceSliceComponent::setDirectOut(tl::optional<output_patch_t> const outputPatch)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -388,7 +389,7 @@ void SourceVuMeterComponent::setDirectOut(tl::optional<output_patch_t> const out
 }
 
 //==============================================================================
-void SourceVuMeterComponent::setSourceColour(juce::Colour const colour)
+void SourceSliceComponent::setSourceColour(juce::Colour const colour)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -397,7 +398,7 @@ void SourceVuMeterComponent::setSourceColour(juce::Colour const colour)
 }
 
 //==============================================================================
-void SourceVuMeterComponent::setProjectSpatMode(SpatMode const spatMode)
+void SourceSliceComponent::setProjectSpatMode(SpatMode const spatMode)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -407,7 +408,7 @@ void SourceVuMeterComponent::setProjectSpatMode(SpatMode const spatMode)
 }
 
 //==============================================================================
-void SourceVuMeterComponent::setHybridSpatMode(SpatMode const spatMode)
+void SourceSliceComponent::setHybridSpatMode(SpatMode const spatMode)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -416,7 +417,7 @@ void SourceVuMeterComponent::setHybridSpatMode(SpatMode const spatMode)
 }
 
 //==============================================================================
-void SourceVuMeterComponent::buttonClicked(juce::Button * button)
+void SourceSliceComponent::buttonClicked(juce::Button * button)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -444,11 +445,11 @@ void SourceVuMeterComponent::buttonClicked(juce::Button * button)
 }
 
 //==============================================================================
-void SourceVuMeterComponent::resized()
+void SourceSliceComponent::resized()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    AbstractVuMeterComponent::resized();
+    AbstractSliceComponent::resized();
 
     juce::Rectangle<int> const domeButtonBounds{
         INNER_ELEMENTS_PADDING,
@@ -468,7 +469,7 @@ void SourceVuMeterComponent::resized()
 }
 
 //==============================================================================
-void SourceVuMeterComponent::changeListenerCallback(juce::ChangeBroadcaster * source)
+void SourceSliceComponent::changeListenerCallback(juce::ChangeBroadcaster * source)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -480,16 +481,16 @@ void SourceVuMeterComponent::changeListenerCallback(juce::ChangeBroadcaster * so
 }
 
 //==============================================================================
-int SourceVuMeterComponent::getMinHeight() const noexcept
+int SourceSliceComponent::getMinHeight() const noexcept
 {
-    return INNER_ELEMENTS_PADDING + ID_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING + LevelBox::MIN_HEIGHT
+    return INNER_ELEMENTS_PADDING + ID_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING + VuMeterComponent::MIN_HEIGHT
            + INNER_ELEMENTS_PADDING + MUTE_AND_SOLO_BUTTONS_HEIGHT + INNER_ELEMENTS_PADDING
            + MUTE_AND_SOLO_BUTTONS_HEIGHT + INNER_ELEMENTS_PADDING + MUTE_AND_SOLO_BUTTONS_HEIGHT
            + INNER_ELEMENTS_PADDING + DIRECT_OUT_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING;
 }
 
 //==============================================================================
-void SourceVuMeterComponent::mouseUp(juce::MouseEvent const & event)
+void SourceSliceComponent::mouseUp(juce::MouseEvent const & event)
 {
     if (!mIdButton.getScreenBounds().contains(event.getScreenPosition())) {
         return;
@@ -503,7 +504,7 @@ void SourceVuMeterComponent::mouseUp(juce::MouseEvent const & event)
 }
 
 //==============================================================================
-void SourceVuMeterComponent::muteButtonClicked() const
+void SourceSliceComponent::muteButtonClicked() const
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -512,7 +513,7 @@ void SourceVuMeterComponent::muteButtonClicked() const
 }
 
 //==============================================================================
-void SourceVuMeterComponent::soloButtonClicked() const
+void SourceSliceComponent::soloButtonClicked() const
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -521,7 +522,7 @@ void SourceVuMeterComponent::soloButtonClicked() const
 }
 
 //==============================================================================
-void SourceVuMeterComponent::colorSelectorLeftButtonClicked()
+void SourceSliceComponent::colorSelectorLeftButtonClicked()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -539,7 +540,7 @@ void SourceVuMeterComponent::colorSelectorLeftButtonClicked()
 }
 
 //==============================================================================
-void SourceVuMeterComponent::colorSelectorRightButtonClicked() const
+void SourceSliceComponent::colorSelectorRightButtonClicked() const
 {
     source_index_t const nextSourceIndex{ mSourceIndex.get() + 1 };
     auto const currentColor{ getSourceColor() };
@@ -547,7 +548,7 @@ void SourceVuMeterComponent::colorSelectorRightButtonClicked() const
 }
 
 //==============================================================================
-void SourceVuMeterComponent::directOutButtonClicked() const
+void SourceSliceComponent::directOutButtonClicked() const
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -584,7 +585,7 @@ void SourceVuMeterComponent::directOutButtonClicked() const
 }
 
 //==============================================================================
-void SourceVuMeterComponent::domeButtonClicked() const
+void SourceSliceComponent::domeButtonClicked() const
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -592,7 +593,7 @@ void SourceVuMeterComponent::domeButtonClicked() const
 }
 
 //==============================================================================
-void SourceVuMeterComponent::cubeButtonClicked() const
+void SourceSliceComponent::cubeButtonClicked() const
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -600,16 +601,16 @@ void SourceVuMeterComponent::cubeButtonClicked() const
 }
 
 //==============================================================================
-juce::Colour SourceVuMeterComponent::getSourceColor() const
+juce::Colour SourceSliceComponent::getSourceColor() const
 {
     return mIdButton.findColour(juce::TextButton::buttonColourId);
 }
 
 //==============================================================================
-SpeakerVuMeterComponent::SpeakerVuMeterComponent(output_patch_t const outputPatch,
-                                                 Owner & owner,
-                                                 SmallGrisLookAndFeel & lookAndFeel)
-    : AbstractVuMeterComponent(juce::String{ outputPatch.get() }, lookAndFeel)
+SpeakerSliceComponent::SpeakerSliceComponent(output_patch_t const outputPatch,
+                                             Owner & owner,
+                                             SmallGrisLookAndFeel & lookAndFeel)
+    : AbstractSliceComponent(juce::String{ outputPatch.get() }, lookAndFeel)
     , mOutputPatch(outputPatch)
     , mOwner(owner)
 {

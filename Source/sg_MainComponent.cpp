@@ -354,7 +354,7 @@ bool MainContentComponent::loadProject(juce::File const & file, bool const disca
     refreshAudioProcessor();
     refreshViewportConfig();
     setTitles();
-    refreshSourceVuMeterComponents();
+    refreshSourceSlices();
 
     return true;
 }
@@ -586,7 +586,7 @@ bool MainContentComponent::setSpatMode(SpatMode const spatMode)
     mData.speakerSetup.spatMode = spatMode;
     mControlPanel->setSpatMode(spatMode);
     refreshSpeakers();
-    refreshSourceVuMeterComponents();
+    refreshSourceSlices();
     return true;
 }
 
@@ -603,7 +603,7 @@ void MainContentComponent::setStereoMode(tl::optional<StereoMode> const stereoMo
                                                             : tl::nullopt);
 
     refreshSpatAlgorithm();
-    refreshSpeakerVuMeterComponents();
+    refreshSpeakerSlices();
     refreshViewportConfig();
 }
 
@@ -659,7 +659,7 @@ void MainContentComponent::numSourcesChanged(int const numSources)
     }
 
     refreshAudioProcessor();
-    refreshSourceVuMeterComponents();
+    refreshSourceSlices();
     unfocusAllComponents();
 }
 
@@ -804,11 +804,11 @@ void MainContentComponent::handleResetMeterClipping()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    for (auto vuMeter : mSourceVuMeterComponents) {
-        vuMeter.value->resetClipping();
+    for (auto const & slice : mSourceSliceComponents) {
+        slice.value->resetClipping();
     }
-    for (auto vuMeter : mSpeakerVuMeterComponents) {
-        vuMeter.value->resetClipping();
+    for (auto const & slice : mSpeakerSliceComponents) {
+        slice.value->resetClipping();
     }
 }
 
@@ -820,10 +820,10 @@ void MainContentComponent::handleColorizeInputs()
 
     float hue{};
     auto const inc{ 1.0f / static_cast<float>(mData.project.sources.size() + 1) };
-    for (auto source : mData.project.sources) {
+    for (auto const & source : mData.project.sources) {
         auto const colour{ juce::Colour::fromHSV(hue, 1, 0.75, 1) };
         source.value->colour = colour;
-        mSourceVuMeterComponents[source.key].setSourceColour(colour);
+        mSourceSliceComponents[source.key].setSourceColour(colour);
         hue += inc;
     }
 }
@@ -1280,7 +1280,7 @@ void MainContentComponent::updatePeaks()
     for (auto const sourceData : mData.project.sources) {
         auto const & peak{ sourcePeaks[sourceData.key] };
         auto const dbPeak{ dbfs_t::fromGain(peak) };
-        mSourceVuMeterComponents[sourceData.key].setLevel(dbPeak);
+        mSourceSliceComponents[sourceData.key].setLevel(dbPeak);
 
         if (!sourceData.value->position) {
             continue;
@@ -1321,7 +1321,7 @@ void MainContentComponent::updatePeaks()
         for (size_t i{}; i < 2; ++i) {
             auto const & peak{ stereoPeaks[i] };
             auto const dbPeak{ dbfs_t::fromGain(peak) };
-            mStereoVuMeterComponents[static_cast<int>(i)]->setLevel(dbPeak);
+            mStereoSliceComponents[static_cast<int>(i)]->setLevel(dbPeak);
         }
         return;
     }
@@ -1335,7 +1335,7 @@ void MainContentComponent::updatePeaks()
     for (auto const speaker : mData.speakerSetup.speakers) {
         auto const & peak{ speakerPeaks[speaker.key] };
         auto const dbPeak{ dbfs_t::fromGain(peak) };
-        mSpeakerVuMeterComponents[speaker.key].setLevel(dbPeak);
+        mSpeakerSliceComponents[speaker.key].setLevel(dbPeak);
 
         auto & exchanger{ viewPortData.speakersAlphaQueues[speaker.key] };
         auto * ticket{ exchanger.acquire() };
@@ -1345,13 +1345,13 @@ void MainContentComponent::updatePeaks()
 }
 
 //==============================================================================
-void MainContentComponent::refreshSourceVuMeterComponents()
+void MainContentComponent::refreshSourceSlices()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
     mSourcesInnerLayout->clearSections();
-    mSourceVuMeterComponents.clear();
+    mSourceSliceComponents.clear();
 
     auto const isAtLeastOneSourceSolo{ std::any_of(
         mData.project.sources.cbegin(),
@@ -1360,31 +1360,31 @@ void MainContentComponent::refreshSourceVuMeterComponents()
 
     // auto x{ 3 };
     for (auto source : mData.project.sources) {
-        auto newVuMeter{ std::make_unique<SourceVuMeterComponent>(source.key,
-                                                                  source.value->directOut,
-                                                                  mData.speakerSetup.spatMode,
-                                                                  source.value->hybridSpatMode,
-                                                                  source.value->colour,
-                                                                  *this,
-                                                                  mSmallLookAndFeel) };
+        auto newSlice{ std::make_unique<SourceSliceComponent>(source.key,
+                                                              source.value->directOut,
+                                                              mData.speakerSetup.spatMode,
+                                                              source.value->hybridSpatMode,
+                                                              source.value->colour,
+                                                              *this,
+                                                              mSmallLookAndFeel) };
         auto const & state{ source.value->state };
-        newVuMeter->setState(state, isAtLeastOneSourceSolo);
-        auto & addedVuMeter{ mSourceVuMeterComponents.add(source.key, std::move(newVuMeter)) };
-        mSourcesInnerLayout->addSection(&addedVuMeter).withChildMinSize();
+        newSlice->setState(state, isAtLeastOneSourceSolo);
+        auto & addedSlice{ mSourceSliceComponents.add(source.key, std::move(newSlice)) };
+        mSourcesInnerLayout->addSection(&addedSlice).withChildMinSize();
     }
 
     mSourcesInnerLayout->resized();
 }
 
 //==============================================================================
-void MainContentComponent::refreshSpeakerVuMeterComponents()
+void MainContentComponent::refreshSpeakerSlices()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
     mSpeakersLayout->clearSections();
-    mSpeakerVuMeterComponents.clear();
-    mStereoVuMeterComponents.clearQuick(true);
+    mSpeakerSliceComponents.clear();
+    mStereoSliceComponents.clearQuick(true);
 
     auto const isAtLeastOneSpeakerSolo{ std::any_of(
         mData.speakerSetup.speakers.cbegin(),
@@ -1393,18 +1393,18 @@ void MainContentComponent::refreshSpeakerVuMeterComponents()
 
     if (mData.appData.stereoMode) {
         mSpeakersLayout
-            ->addSection(mStereoVuMeterComponents.add(std::make_unique<StereoVuMeterComponent>("L", mSmallLookAndFeel)))
+            ->addSection(mStereoSliceComponents.add(std::make_unique<StereoSliceComponent>("L", mSmallLookAndFeel)))
             .withChildMinSize();
         mSpeakersLayout
-            ->addSection(mStereoVuMeterComponents.add(std::make_unique<StereoVuMeterComponent>("R", mSmallLookAndFeel)))
+            ->addSection(mStereoSliceComponents.add(std::make_unique<StereoSliceComponent>("R", mSmallLookAndFeel)))
             .withChildMinSize();
     } else {
         for (auto const outputPatch : mData.speakerSetup.ordering) {
-            auto newVuMeter{ std::make_unique<SpeakerVuMeterComponent>(outputPatch, *this, mSmallLookAndFeel) };
+            auto newSlice{ std::make_unique<SpeakerSliceComponent>(outputPatch, *this, mSmallLookAndFeel) };
             auto const & state{ mData.speakerSetup.speakers[outputPatch].state };
-            newVuMeter->setState(state, isAtLeastOneSpeakerSolo);
-            auto & addedVuMeter{ mSpeakerVuMeterComponents.add(outputPatch, std::move(newVuMeter)) };
-            mSpeakersLayout->addSection(&addedVuMeter).withChildMinSize();
+            newSlice->setState(state, isAtLeastOneSpeakerSolo);
+            auto & addedSlice{ mSpeakerSliceComponents.add(outputPatch, std::move(newSlice)) };
+            mSpeakersLayout->addSection(&addedSlice).withChildMinSize();
         }
     }
 
@@ -1518,7 +1518,7 @@ void MainContentComponent::speakerOutputPatchChanged(output_patch_t const oldOut
     auto & order{ mData.speakerSetup.ordering };
     order.set(order.indexOf(oldOutputPatch), newOutputPatch);
 
-    refreshSpeakerVuMeterComponents();
+    refreshSpeakerSlices();
 }
 
 //==============================================================================
@@ -1569,7 +1569,7 @@ void MainContentComponent::setSourceColor(source_index_t const sourceIndex, juce
     }
 
     mData.project.sources[sourceIndex].colour = colour;
-    mSourceVuMeterComponents[sourceIndex].setSourceColour(colour);
+    mSourceSliceComponents[sourceIndex].setSourceColour(colour);
 }
 
 //==============================================================================
@@ -1581,7 +1581,7 @@ void MainContentComponent::setSourceState(source_index_t const sourceIndex, Port
     mData.project.sources[sourceIndex].state = state;
 
     refreshAudioProcessor();
-    refreshSourceVuMeterComponents();
+    refreshSourceSlices();
 }
 
 //==============================================================================
@@ -1598,8 +1598,8 @@ void MainContentComponent::setSelectedSpeakers(juce::Array<output_patch_t> const
         }
 
         speaker.value->isSelected = isSelected;
-        if (mSpeakerVuMeterComponents.contains(speaker.key)) {
-            mSpeakerVuMeterComponents[speaker.key].setSelected(isSelected);
+        if (mSpeakerSliceComponents.contains(speaker.key)) {
+            mSpeakerSliceComponents[speaker.key].setSelected(isSelected);
         }
 
         if (!isSelected || !mEditSpeakersWindow) {
@@ -1621,7 +1621,7 @@ void MainContentComponent::setSpeakerState(output_patch_t const outputPatch, Por
     mData.speakerSetup.speakers[outputPatch].state = state;
 
     refreshAudioProcessor();
-    refreshSpeakerVuMeterComponents();
+    refreshSpeakerSlices();
 }
 
 //==============================================================================
@@ -1639,7 +1639,7 @@ void MainContentComponent::setSourceDirectOut(source_index_t const sourceIndex,
         refreshAudioProcessor();
     }
 
-    mSourceVuMeterComponents[sourceIndex].setDirectOut(outputPatch);
+    mSourceSliceComponents[sourceIndex].setDirectOut(outputPatch);
 }
 
 //==============================================================================
@@ -1750,7 +1750,7 @@ void MainContentComponent::setSourceHybridSpatMode(source_index_t const sourceIn
 
     refreshViewportConfig();
 
-    mSourceVuMeterComponents[sourceIndex].setHybridSpatMode(spatMode);
+    mSourceSliceComponents[sourceIndex].setHybridSpatMode(spatMode);
 }
 
 //==============================================================================
@@ -1762,7 +1762,7 @@ void MainContentComponent::reorderSpeakers(juce::Array<output_patch_t> newOrder)
     auto & order{ mData.speakerSetup.ordering };
     jassert(newOrder.size() == order.size());
     order = std::move(newOrder);
-    refreshSpeakerVuMeterComponents();
+    refreshSpeakerSlices();
 }
 
 //==============================================================================
@@ -1884,7 +1884,7 @@ void MainContentComponent::refreshSpeakers()
         mData.appData.viewSettings.showSpeakerTriplets = false;
     }
 
-    refreshSpeakerVuMeterComponents();
+    refreshSpeakerSlices();
     refreshViewportConfig();
     if (mEditSpeakersWindow != nullptr) {
         mEditSpeakersWindow->updateWinContent();

@@ -61,8 +61,8 @@ class MainContentComponent final
     : public juce::Component
     , public juce::MenuBarModel
     , public juce::ApplicationCommandTarget
-    , public SourceVuMeterComponent::Owner
-    , public SpeakerVuMeterComponent::Owner
+    , public SourceSliceComponent::Owner
+    , public SpeakerSliceComponent::Owner
     , public ControlPanel::Listener
     , private SpatButton::Listener
     , private AudioDeviceManagerListener
@@ -74,9 +74,9 @@ class MainContentComponent final
 
     std::unique_ptr<AudioProcessor> mAudioProcessor{};
 
-    OwnedMap<source_index_t, SourceVuMeterComponent, MAX_NUM_SOURCES> mSourceVuMeterComponents{};
-    OwnedMap<output_patch_t, SpeakerVuMeterComponent, MAX_NUM_SPEAKERS> mSpeakerVuMeterComponents{};
-    juce::OwnedArray<StereoVuMeterComponent> mStereoVuMeterComponents{};
+    OwnedMap<source_index_t, SourceSliceComponent, MAX_NUM_SOURCES> mSourceSliceComponents{};
+    OwnedMap<output_patch_t, SpeakerSliceComponent, MAX_NUM_SPEAKERS> mSpeakerSliceComponents{};
+    juce::OwnedArray<StereoSliceComponent> mStereoSliceComponents{};
 
     std::unique_ptr<OscInput> mOscInput{};
 
@@ -259,8 +259,8 @@ private:
     void handleSaveSpeakerSetupAs();
     void handleShowOscMonitorWindow();
 
-    void refreshSourceVuMeterComponents();
-    void refreshSpeakerVuMeterComponents();
+    void refreshSourceSlices();
+    void refreshSpeakerSlices();
 
     void updateSourceSpatData(source_index_t sourceIndex);
 

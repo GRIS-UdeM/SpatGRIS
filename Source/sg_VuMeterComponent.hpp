@@ -30,8 +30,8 @@ static dbfs_t constexpr MAX_LEVEL_COMP{ 0.0f };
 
 class GrisLookAndFeel;
 
-//============================ LevelBox ================================
-class LevelBox final : public juce::Component
+//============================ VuMeterComponent ================================
+class VuMeterComponent final : public juce::Component
 {
     //==============================================================================
     SmallGrisLookAndFeel & mLookAndFeel;
@@ -47,13 +47,13 @@ class LevelBox final : public juce::Component
 public:
     static constexpr auto MIN_HEIGHT = 140;
     //==============================================================================
-    explicit LevelBox(SmallGrisLookAndFeel & lookAndFeel) : mLookAndFeel(lookAndFeel) {}
-    ~LevelBox() override = default;
+    explicit VuMeterComponent(SmallGrisLookAndFeel & lookAndFeel) : mLookAndFeel(lookAndFeel) {}
+    ~VuMeterComponent() override = default;
     //==============================================================================
-    LevelBox(LevelBox const &) = delete;
-    LevelBox(LevelBox &&) = delete;
-    LevelBox & operator=(LevelBox const &) = delete;
-    LevelBox & operator=(LevelBox &&) = delete;
+    VuMeterComponent(VuMeterComponent const &) = delete;
+    VuMeterComponent(VuMeterComponent &&) = delete;
+    VuMeterComponent & operator=(VuMeterComponent const &) = delete;
+    VuMeterComponent & operator=(VuMeterComponent &&) = delete;
     //==============================================================================
     void resized() override;
     void resetClipping();
@@ -65,11 +65,11 @@ public:
 
 private:
     //==============================================================================
-    JUCE_LEAK_DETECTOR(LevelBox)
+    JUCE_LEAK_DETECTOR(VuMeterComponent)
 };
 
 //==============================================================================
-class AbstractVuMeterComponent
+class AbstractSliceComponent
     : public MinSizedComponent
     , public juce::ToggleButton::Listener
 {
@@ -80,7 +80,7 @@ protected:
 
     SmallGrisLookAndFeel & mLookAndFeel;
 
-    LevelBox mLevelBox;
+    VuMeterComponent mLevelBox;
     juce::Label mIdLabel;
     juce::TextButton mIdButton;
     juce::Label mMuteLabel;
@@ -90,15 +90,15 @@ protected:
 
 public:
     //==============================================================================
-    explicit AbstractVuMeterComponent(juce::String const & id, SmallGrisLookAndFeel & lookAndFeel);
+    explicit AbstractSliceComponent(juce::String const & id, SmallGrisLookAndFeel & lookAndFeel);
     //==============================================================================
-    AbstractVuMeterComponent() = delete;
-    ~AbstractVuMeterComponent() override = default;
+    AbstractSliceComponent() = delete;
+    ~AbstractSliceComponent() override = default;
     //==============================================================================
-    AbstractVuMeterComponent(AbstractVuMeterComponent const &) = delete;
-    AbstractVuMeterComponent(AbstractVuMeterComponent &&) = delete;
-    AbstractVuMeterComponent & operator=(AbstractVuMeterComponent const &) = delete;
-    AbstractVuMeterComponent & operator=(AbstractVuMeterComponent &&) = delete;
+    AbstractSliceComponent(AbstractSliceComponent const &) = delete;
+    AbstractSliceComponent(AbstractSliceComponent &&) = delete;
+    AbstractSliceComponent & operator=(AbstractSliceComponent const &) = delete;
+    AbstractSliceComponent & operator=(AbstractSliceComponent &&) = delete;
     //==============================================================================
     void setLevel(dbfs_t const level) { mLevelBox.setLevel(level); }
     void resetClipping() { mLevelBox.resetClipping(); }
@@ -109,12 +109,12 @@ public:
 
 private:
     //==============================================================================
-    JUCE_LEAK_DETECTOR(AbstractVuMeterComponent)
+    JUCE_LEAK_DETECTOR(AbstractSliceComponent)
 }; // class LevelComponent
 
 //==============================================================================
-class SourceVuMeterComponent final
-    : public AbstractVuMeterComponent
+class SourceSliceComponent final
+    : public AbstractSliceComponent
     , public juce::ChangeListener
 {
 public:
@@ -145,19 +145,19 @@ private:
 
 public:
     //==============================================================================
-    SourceVuMeterComponent(source_index_t sourceIndex,
-                           tl::optional<output_patch_t> directOut,
-                           SpatMode projectSpatMode,
-                           SpatMode hybridSpatMode,
-                           juce::Colour colour,
-                           Owner & owner,
-                           SmallGrisLookAndFeel & lookAndFeel);
-    ~SourceVuMeterComponent() override = default;
+    SourceSliceComponent(source_index_t sourceIndex,
+                         tl::optional<output_patch_t> directOut,
+                         SpatMode projectSpatMode,
+                         SpatMode hybridSpatMode,
+                         juce::Colour colour,
+                         Owner & owner,
+                         SmallGrisLookAndFeel & lookAndFeel);
+    ~SourceSliceComponent() override = default;
     //==============================================================================
-    SourceVuMeterComponent(SourceVuMeterComponent const &) = delete;
-    SourceVuMeterComponent(SourceVuMeterComponent &&) = delete;
-    SourceVuMeterComponent & operator=(SourceVuMeterComponent const &) = delete;
-    SourceVuMeterComponent & operator=(SourceVuMeterComponent &&) = delete;
+    SourceSliceComponent(SourceSliceComponent const &) = delete;
+    SourceSliceComponent(SourceSliceComponent &&) = delete;
+    SourceSliceComponent & operator=(SourceSliceComponent const &) = delete;
+    SourceSliceComponent & operator=(SourceSliceComponent &&) = delete;
     //==============================================================================
     void setDirectOut(tl::optional<output_patch_t> outputPatch);
     void setSourceColour(juce::Colour colour);
@@ -182,11 +182,11 @@ private:
     void cubeButtonClicked() const;
     [[nodiscard]] juce::Colour getSourceColor() const;
     //==============================================================================
-    JUCE_LEAK_DETECTOR(AbstractVuMeterComponent)
+    JUCE_LEAK_DETECTOR(AbstractSliceComponent)
 }; // class LevelComponent
 
 //==============================================================================
-class SpeakerVuMeterComponent final : public AbstractVuMeterComponent
+class SpeakerSliceComponent final : public AbstractSliceComponent
 {
 public:
     //==============================================================================
@@ -205,13 +205,13 @@ private:
 
 public:
     //==============================================================================
-    SpeakerVuMeterComponent(output_patch_t outputPatch, Owner & owner, SmallGrisLookAndFeel & lookAndFeel);
-    ~SpeakerVuMeterComponent() override = default;
+    SpeakerSliceComponent(output_patch_t outputPatch, Owner & owner, SmallGrisLookAndFeel & lookAndFeel);
+    ~SpeakerSliceComponent() override = default;
     //==============================================================================
-    SpeakerVuMeterComponent(SpeakerVuMeterComponent const &) = delete;
-    SpeakerVuMeterComponent(SpeakerVuMeterComponent &&) = delete;
-    SpeakerVuMeterComponent & operator=(SpeakerVuMeterComponent const &) = delete;
-    SpeakerVuMeterComponent & operator=(SpeakerVuMeterComponent &&) = delete;
+    SpeakerSliceComponent(SpeakerSliceComponent const &) = delete;
+    SpeakerSliceComponent(SpeakerSliceComponent &&) = delete;
+    SpeakerSliceComponent & operator=(SpeakerSliceComponent const &) = delete;
+    SpeakerSliceComponent & operator=(SpeakerSliceComponent &&) = delete;
     //==============================================================================
     void setSelected(bool value);
     //==============================================================================
@@ -220,20 +220,20 @@ public:
 
 private:
     //==============================================================================
-    JUCE_LEAK_DETECTOR(SpeakerVuMeterComponent)
+    JUCE_LEAK_DETECTOR(SpeakerSliceComponent)
 }; // class LevelComponent
 
 //==============================================================================
-class StereoVuMeterComponent final : public AbstractVuMeterComponent
+class StereoSliceComponent final : public AbstractSliceComponent
 {
 public:
-    StereoVuMeterComponent(juce::String const & id, SmallGrisLookAndFeel & lookAndFeel);
-    ~StereoVuMeterComponent() override = default;
+    StereoSliceComponent(juce::String const & id, SmallGrisLookAndFeel & lookAndFeel);
+    ~StereoSliceComponent() override = default;
 
-    StereoVuMeterComponent(StereoVuMeterComponent const &) = delete;
-    StereoVuMeterComponent(StereoVuMeterComponent &&) = delete;
-    StereoVuMeterComponent & operator=(StereoVuMeterComponent const &) = delete;
-    StereoVuMeterComponent & operator=(StereoVuMeterComponent &&) = delete;
+    StereoSliceComponent(StereoSliceComponent const &) = delete;
+    StereoSliceComponent(StereoSliceComponent &&) = delete;
+    StereoSliceComponent & operator=(StereoSliceComponent const &) = delete;
+    StereoSliceComponent & operator=(StereoSliceComponent &&) = delete;
 
     [[nodiscard]] int getMinHeight() const noexcept override;
     void buttonClicked(juce::Button *) override {}
