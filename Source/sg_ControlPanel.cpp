@@ -106,6 +106,7 @@ SpatSettingsSubPanel::SpatSettingsSubPanel(ControlPanel & controlPanel,
 
     initButton(mDomeButton, spatModeToString(SpatMode::vbap), spatModeToTooltip(SpatMode::vbap));
     initButton(mCubeButton, spatModeToString(SpatMode::lbap), spatModeToTooltip(SpatMode::lbap));
+    initButton(mHybridButton, spatModeToString(SpatMode::hybrid), spatModeToTooltip(SpatMode::hybrid));
 
     juce::StringArray items{ "None" };
     items.addArray(STEREO_MODE_STRINGS);
@@ -161,9 +162,12 @@ SpatMode SpatSettingsSubPanel::getSpatMode() const
     if (mDomeButton.getToggleState()) {
         return SpatMode::vbap;
     }
+    if (mCubeButton.getToggleState()) {
+        return SpatMode::lbap;
+    }
 
-    jassert(mCubeButton.getToggleState());
-    return SpatMode::lbap;
+    jassert(mHybridButton.getToggleState());
+    return SpatMode::hybrid;
 }
 
 //==============================================================================
@@ -176,7 +180,15 @@ tl::optional<StereoMode> SpatSettingsSubPanel::getStereoMode() const
 //==============================================================================
 bool SpatSettingsSubPanel::shouldShowAttenuationSettings() const
 {
-    return getSpatMode() == SpatMode::lbap;
+    switch (getSpatMode()) {
+    case SpatMode::vbap:
+        return false;
+    case SpatMode::lbap:
+    case SpatMode::hybrid:
+        return true;
+    }
+    jassertfalse;
+    return false;
 }
 
 //==============================================================================
@@ -206,16 +218,22 @@ void SpatSettingsSubPanel::updateMaxOutputPatch(output_patch_t const maxOutputPa
 void SpatSettingsSubPanel::setSpatMode(SpatMode const spatMode)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-    switch (spatMode) {
-    case SpatMode::vbap:
-        mDomeButton.setToggleState(true, juce::dontSendNotification);
-        break;
-    case SpatMode::lbap:
-        mCubeButton.setToggleState(true, juce::dontSendNotification);
-        break;
-    default:
+
+    [&] {
+        switch (spatMode) {
+        case SpatMode::vbap:
+            mDomeButton.setToggleState(true, juce::dontSendNotification);
+            return;
+        case SpatMode::lbap:
+            mCubeButton.setToggleState(true, juce::dontSendNotification);
+            return;
+        case SpatMode::hybrid:
+            mHybridButton.setToggleState(true, juce::dontSendNotification);
+            return;
+        }
         jassertfalse;
-    }
+    }();
+
     updateLayout();
     mControlPanel.forceLayoutUpdate();
 }
@@ -336,7 +354,19 @@ void SpatSettingsSubPanel::buttonClicked(juce::Button * button)
     }
 
     jassert(button == &mDomeButton || button == &mCubeButton);
-    auto const spatMode{ button == &mDomeButton ? SpatMode::vbap : SpatMode::lbap };
+
+    auto const getSpatMode = [&]() {
+        if (button == &mDomeButton) {
+            return SpatMode::vbap;
+        }
+        if (button == &mCubeButton) {
+            return SpatMode::lbap;
+        }
+        jassert(button == &mHybridButton);
+        return SpatMode::hybrid;
+    };
+
+    auto const spatMode{ getSpatMode() };
     [[maybe_unused]] auto const success{ mMainContentComponent.setSpatMode(spatMode) };
     updateLayout();
     mControlPanel.forceLayoutUpdate();

@@ -161,7 +161,7 @@ public:
 
     void resetSourcePosition(source_index_t sourceIndex);
 
-    void speakerOnlyDirectOutChanged(output_patch_t outputPatch, bool state);
+    void speakerDirectOutOnlyChanged(output_patch_t outputPatch, bool state);
     void speakerOutputPatchChanged(output_patch_t oldOutputPatch, output_patch_t newOutputPatch);
     void setSpeakerGain(output_patch_t outputPatch, dbfs_t gain);
     void setSpeakerHighPassFreq(output_patch_t outputPatch, hz_t freq);

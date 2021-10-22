@@ -24,6 +24,7 @@
 juce::String const SourceData::XmlTags::STATE = "STATE";
 juce::String const SourceData::XmlTags::DIRECT_OUT = "DIRECT_OUT";
 juce::String const SourceData::XmlTags::COLOUR = "COLOR";
+juce::String const SourceData::XmlTags::HYBRID_SPAT_MODE = "HYBRID_SPAT_MODE";
 juce::String const SourceData::XmlTags::MAIN_TAG_PREFIX = "SOURCE_";
 
 juce::String const SpeakerHighpassData::XmlTags::MAIN_TAG = "HIGHPASS";
@@ -133,6 +134,7 @@ ViewportSourceData SourceData::toViewportData(float const alpha) const
     result.azimuthSpan = azimuthSpan;
     result.zenithSpan = zenithSpan;
     result.position = *position;
+    result.hybridSpatMode = hybridSpatMode;
 
     return result;
 }
@@ -147,6 +149,8 @@ std::unique_ptr<juce::XmlElement> SourceData::toXml(source_index_t const index) 
         result->setAttribute(XmlTags::DIRECT_OUT, directOut->get());
     }
     result->setAttribute(XmlTags::COLOUR, juce::String{ colour.getARGB() });
+
+    result->setAttribute(XmlTags::HYBRID_SPAT_MODE, spatModeToString(hybridSpatMode));
 
     return result;
 }
@@ -177,6 +181,11 @@ tl::optional<SourceData> SourceData::fromXml(juce::XmlElement const & xml)
     if (xml.hasAttribute(XmlTags::DIRECT_OUT)) {
         result.directOut = output_patch_t{ xml.getIntAttribute(XmlTags::DIRECT_OUT) };
     }
+
+    if (auto const maybeHybridSpatMode{ stringToSpatMode(xml.getStringAttribute(XmlTags::HYBRID_SPAT_MODE)) }) {
+        result.hybridSpatMode = *maybeHybridSpatMode;
+    }
+
     result.colour = juce::Colour{ narrow<uint32_t>(xml.getStringAttribute(XmlTags::COLOUR).getLargeIntValue()) };
 
     return result;
@@ -187,7 +196,7 @@ bool SourceData::operator==(SourceData const & other) const noexcept
 {
     // TODO : this is very misleading and should be replaced with something that does make it seem like we're really
     // comparing the two sources.
-    return other.directOut == directOut && other.colour == colour;
+    return other.directOut == directOut && other.colour == colour && other.hybridSpatMode == hybridSpatMode;
 }
 
 //==============================================================================

@@ -555,7 +555,7 @@ bool MainContentComponent::setSpatMode(SpatMode const spatMode)
     juce::ScopedWriteLock const lock{ mLock };
 
     auto const ensureVbapIsDomeLike = [&]() {
-        if (spatMode == SpatMode::vbap && !mData.speakerSetup.isDomeLike()) {
+        if (spatMode != SpatMode::lbap && !mData.speakerSetup.isDomeLike()) {
             auto const result{ juce::AlertWindow::showOkCancelBox(
                 juce::AlertWindow::InfoIcon,
                 "Converting to DOME",
@@ -1434,13 +1434,18 @@ void MainContentComponent::setSourcePosition(source_index_t const sourceIndex,
     }
 
     auto const getCorrectedPosition = [&]() -> Position {
-        switch (mData.speakerSetup.spatMode) {
-        case SpatMode::vbap: {
+        auto const & projectSpatMode{ mData.speakerSetup.spatMode };
+        auto const spatMode{ projectSpatMode == SpatMode::hybrid ? mData.project.sources[sourceIndex].hybridSpatMode
+                                                                 : projectSpatMode };
+
+        switch (spatMode) {
+        case SpatMode::vbap:
             return Position{ PolarVector{ azimuth, elevation, 1.0f } };
-        }
-        case SpatMode::lbap: {
+
+        case SpatMode::lbap:
             return LegacyLbapPosition{ azimuth, elevation, length }.toPosition();
-        }
+        case SpatMode::hybrid:
+            break;
         }
         jassertfalse;
         return {};
@@ -1477,7 +1482,7 @@ void MainContentComponent::resetSourcePosition(source_index_t const sourceIndex)
 }
 
 //==============================================================================
-void MainContentComponent::speakerOnlyDirectOutChanged(output_patch_t const outputPatch, bool const state)
+void MainContentComponent::speakerDirectOutOnlyChanged(output_patch_t const outputPatch, bool const state)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
@@ -1487,7 +1492,7 @@ void MainContentComponent::speakerOnlyDirectOutChanged(output_patch_t const outp
     if (state != val) {
         val = state;
 
-        if (!state && mData.speakerSetup.spatMode == SpatMode::vbap) {
+        if (!state && mData.speakerSetup.spatMode != SpatMode::lbap) {
             speaker.position = speaker.position.normalized();
         }
 
@@ -1894,15 +1899,14 @@ bool MainContentComponent::loadSpeakerSetup(juce::File const & file, LoadSpeaker
 
     // specific mode-dependent checks
     switch (mData.speakerSetup.spatMode) {
-    case SpatMode::vbap:
-        mData.appData.viewSettings.showSpeakerTriplets = false;
-        break;
     case SpatMode::lbap:
+        mData.appData.viewSettings.showSpeakerTriplets = false;
+        [[fallthrough]];
+    case SpatMode::hybrid:
         mControlPanel->setCubeAttenuationDb(mData.project.lbapDistanceAttenuationData.attenuation);
         mControlPanel->setCubeAttenuationHz(mData.project.lbapDistanceAttenuationData.freq);
         break;
-    default:
-        jassertfalse;
+    case SpatMode::vbap:
         break;
     }
 

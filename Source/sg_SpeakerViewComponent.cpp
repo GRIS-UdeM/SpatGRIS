@@ -211,8 +211,9 @@ void SpeakerViewComponent::render()
         case SpatMode::lbap:
             drawFieldCube();
             break;
-        default:
-            jassertfalse;
+        case SpatMode::hybrid:
+            drawFieldSphere();
+            drawFieldCube();
             break;
         }
     }
@@ -394,20 +395,7 @@ void SpeakerViewComponent::drawOriginGrid() const
 
     glLineWidth(1.5f);
 
-    // Squares & circles
-    auto const spatMode{ mMainContentComponent.getData().speakerSetup.spatMode };
-    if (spatMode == SpatMode::lbap) {
-        // light grey
-        glColor3f(0.59f, 0.59f, 0.59f);
-        DRAW_SQUARE(MAX_RADIUS);
-        DRAW_SQUARE(SPACE_LIMIT);
-
-        // dark grey
-        glColor3f(0.49f, 0.49f, 0.49f);
-        DRAW_CIRCLE(MAX_RADIUS);
-        DRAW_CIRCLE(SPACE_LIMIT);
-        DRAW_SQUARE(MAX_RADIUS / 2.0f);
-    } else {
+    auto const drawDomeGrid = [&]() {
         // light grey
         glColor3f(0.59f, 0.59f, 0.59f);
         DRAW_CIRCLE(MAX_RADIUS / 2.0f);
@@ -418,6 +406,34 @@ void SpeakerViewComponent::drawOriginGrid() const
         DRAW_CIRCLE(MAX_RADIUS / 4.0f);
         DRAW_CIRCLE(MAX_RADIUS / 4.0f * 3.0f);
         DRAW_CIRCLE(MAX_RADIUS / 4.0f * 5.0f);
+    };
+
+    auto const drawCubeGrid = [&]() {
+        // light grey
+        glColor3f(0.59f, 0.59f, 0.59f);
+        DRAW_SQUARE(MAX_RADIUS);
+        DRAW_SQUARE(SPACE_LIMIT);
+
+        // dark grey
+        glColor3f(0.49f, 0.49f, 0.49f);
+        DRAW_CIRCLE(MAX_RADIUS);
+        DRAW_CIRCLE(SPACE_LIMIT);
+        DRAW_SQUARE(MAX_RADIUS / 2.0f);
+    };
+
+    // Squares & circles
+    auto const spatMode{ mMainContentComponent.getData().speakerSetup.spatMode };
+    switch (spatMode) {
+    case SpatMode::vbap:
+        drawDomeGrid();
+        break;
+    case SpatMode::lbap:
+        drawCubeGrid();
+        break;
+    case SpatMode::hybrid:
+        drawDomeGrid();
+        drawCubeGrid();
+        break;
     }
 
     // 3D RGB line.
@@ -449,35 +465,59 @@ void SpeakerViewComponent::drawOriginGrid() const
     glColor3f(0.49f, 0.49f, 0.49f);
 
     // Draw aligned cross
-    auto const alignedCrossLength{ spatMode == SpatMode::lbap ? SPACE_LIMIT : MAX_RADIUS * 1.5f };
-    glBegin(GL_LINE_LOOP);
-    glVertex3f(0.0f, -alignedCrossLength, 0.0f);
-    glVertex3f(0.0f, alignedCrossLength, 0.0f);
-    glEnd();
-    glBegin(GL_LINE_LOOP);
-    glVertex3f(-alignedCrossLength, 0.0f, 0.0f);
-    glVertex3f(alignedCrossLength, 0.0f, 0.0f);
-    glEnd();
+    auto const drawAlignedCross = [&](float const alignedCrossLength) {
+        glBegin(GL_LINE_LOOP);
+        glVertex3f(0.0f, -alignedCrossLength, 0.0f);
+        glVertex3f(0.0f, alignedCrossLength, 0.0f);
+        glEnd();
+        glBegin(GL_LINE_LOOP);
+        glVertex3f(-alignedCrossLength, 0.0f, 0.0f);
+        glVertex3f(alignedCrossLength, 0.0f, 0.0f);
+        glEnd();
+    };
 
-    // Draw diagonal cross
-    auto const diagonalCrossLength{ spatMode == SpatMode::lbap ? SPACE_LIMIT * juce::MathConstants<float>::sqrt2
-                                                               : alignedCrossLength };
-    glBegin(GL_LINE_LOOP);
-    glVertex3f(std::cos(QUARTER_PI.get()) * diagonalCrossLength,
-               std::sin(QUARTER_PI.get()) * diagonalCrossLength,
-               0.0f);
-    glVertex3f(-std::cos(QUARTER_PI.get()) * diagonalCrossLength,
-               -std::sin(QUARTER_PI.get()) * diagonalCrossLength,
-               0.0f);
-    glEnd();
-    glBegin(GL_LINE_LOOP);
-    glVertex3f(std::cos(QUARTER_PI.get() * 3.0f) * diagonalCrossLength,
-               std::sin(QUARTER_PI.get() * 3.0f) * diagonalCrossLength,
-               0.0f);
-    glVertex3f(-std::cos(QUARTER_PI.get() * 3.0f) * diagonalCrossLength,
-               -std::sin(QUARTER_PI.get() * 3.0f) * diagonalCrossLength,
-               0.0f);
-    glEnd();
+    auto const drawDiagonalCross = [&](float const diagonalCrossLength) {
+        glBegin(GL_LINE_LOOP);
+        glVertex3f(std::cos(QUARTER_PI.get()) * diagonalCrossLength,
+                   std::sin(QUARTER_PI.get()) * diagonalCrossLength,
+                   0.0f);
+        glVertex3f(-std::cos(QUARTER_PI.get()) * diagonalCrossLength,
+                   -std::sin(QUARTER_PI.get()) * diagonalCrossLength,
+                   0.0f);
+        glEnd();
+        glBegin(GL_LINE_LOOP);
+        glVertex3f(std::cos(QUARTER_PI.get() * 3.0f) * diagonalCrossLength,
+                   std::sin(QUARTER_PI.get() * 3.0f) * diagonalCrossLength,
+                   0.0f);
+        glVertex3f(-std::cos(QUARTER_PI.get() * 3.0f) * diagonalCrossLength,
+                   -std::sin(QUARTER_PI.get() * 3.0f) * diagonalCrossLength,
+                   0.0f);
+        glEnd();
+    };
+
+    auto const drawDomeCrosses = [&]() {
+        static auto constexpr CROSS_LENGTH{ MAX_RADIUS * 1.5f };
+        drawAlignedCross(CROSS_LENGTH);
+        drawDiagonalCross(CROSS_LENGTH);
+    };
+
+    auto const drawCubeCrosses = [&]() {
+        drawAlignedCross(SPACE_LIMIT);
+        drawDiagonalCross(SPACE_LIMIT * juce::MathConstants<float>::sqrt2);
+    };
+
+    switch (spatMode) {
+    case SpatMode::vbap:
+        drawDomeCrosses();
+        break;
+    case SpatMode::lbap:
+        drawCubeCrosses();
+        break;
+    case SpatMode::hybrid:
+        drawDomeCrosses();
+        drawCubeCrosses();
+        break;
+    }
 
     static auto constexpr HALF_CHAR_WIDTH = 0.025f;
     drawText("X", CartesianVector{ MAX_RADIUS, -HALF_CHAR_WIDTH, 0.0f }, juce::Colours::white, 0.0005f);
@@ -585,8 +625,21 @@ void SpeakerViewComponent::drawSource(source_index_t const index, ViewportSource
 
     glTranslatef(-pos.x, -pos.y, -pos.z);
 
+    auto const getEffectiveSpatMode = [&]() {
+        auto const & baseSpatMode{ mData.config.spatMode };
+        switch (baseSpatMode) {
+        case SpatMode::vbap:
+        case SpatMode::lbap:
+            return baseSpatMode;
+        case SpatMode::hybrid:
+            return source.hybridSpatMode;
+        }
+        jassertfalse;
+        return SpatMode::vbap;
+    };
+
     if (source.azimuthSpan != 0.0f || source.zenithSpan != 0.0f) {
-        switch (mData.config.spatMode) {
+        switch (getEffectiveSpatMode()) {
         case SpatMode::lbap:
             drawLbapSpan(source);
             break;

@@ -20,6 +20,7 @@
 #include "sg_HrtfSpatAlgorithm.hpp"
 
 #include "sg_DummySpatAlgorithm.hpp"
+#include "sg_HybridSpatAlgorithm.hpp"
 #include "sg_LbapSpatAlgorithm.hpp"
 #include "sg_StaticMap.hpp"
 #include "sg_StrongArray.hpp"
@@ -87,6 +88,9 @@ HrtfSpatAlgorithm::HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup,
         break;
     case SpatMode::lbap:
         mInnerAlgorithm = std::make_unique<LbapSpatAlgorithm>(binauralSpeakerData);
+        break;
+    case SpatMode::hybrid:
+        mInnerAlgorithm = std::make_unique<HybridSpatAlgorithm>(binauralSpeakerData);
         break;
     }
 

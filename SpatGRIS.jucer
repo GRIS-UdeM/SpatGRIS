@@ -48,6 +48,10 @@
                 file="Source/sg_HrtfSpatAlgorithm.cpp"/>
           <FILE id="tzcPNu" name="sg_HrtfSpatAlgorithm.hpp" compile="0" resource="0"
                 file="Source/sg_HrtfSpatAlgorithm.hpp"/>
+          <FILE id="bcGZDB" name="sg_HybridSpatAlgorithm.cpp" compile="1" resource="0"
+                file="Source/sg_HybridSpatAlgorithm.cpp"/>
+          <FILE id="ncBTxz" name="sg_HybridSpatAlgorithm.hpp" compile="0" resource="0"
+                file="Source/sg_HybridSpatAlgorithm.hpp"/>
           <FILE id="wYF40j" name="sg_LbapSpatAlgorithm.cpp" compile="1" resource="0"
                 file="Source/sg_LbapSpatAlgorithm.cpp"/>
           <FILE id="u2DKQo" name="sg_LbapSpatAlgorithm.hpp" compile="0" resource="0"
