@@ -168,6 +168,10 @@
                   file="Source/sg_LayoutComponent.hpp"/>
             <FILE id="HejRjk" name="sg_MinSizedComponent.hpp" compile="0" resource="0"
                   file="Source/sg_MinSizedComponent.hpp"/>
+            <FILE id="Mk6cuu" name="sg_MuteSoloComponent.cpp" compile="1" resource="0"
+                  file="Source/sg_MuteSoloComponent.cpp"/>
+            <FILE id="K2kV5Q" name="sg_MuteSoloComponent.hpp" compile="0" resource="0"
+                  file="Source/sg_MuteSoloComponent.hpp"/>
             <FILE id="XMwxQU" name="sg_RecordButton.cpp" compile="1" resource="0"
                   file="Source/sg_RecordButton.cpp"/>
             <FILE id="mGRo1q" name="sg_RecordButton.hpp" compile="0" resource="0"
