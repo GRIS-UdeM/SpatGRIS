@@ -172,6 +172,10 @@
                   file="Source/sg_RecordButton.cpp"/>
             <FILE id="mGRo1q" name="sg_RecordButton.hpp" compile="0" resource="0"
                   file="Source/sg_RecordButton.hpp"/>
+            <FILE id="k7agLg" name="sg_SmallToggleButton.cpp" compile="1" resource="0"
+                  file="Source/sg_SmallToggleButton.cpp"/>
+            <FILE id="F9eSOc" name="sg_SmallToggleButton.hpp" compile="0" resource="0"
+                  file="Source/sg_SmallToggleButton.hpp"/>
             <FILE id="KJNtIT" name="sg_SpatButton.cpp" compile="1" resource="0"
                   file="Source/sg_SpatButton.cpp"/>
             <FILE id="mjGmxf" name="sg_SpatButton.hpp" compile="0" resource="0"
