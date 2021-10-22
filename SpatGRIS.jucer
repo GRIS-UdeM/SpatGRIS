@@ -158,6 +158,10 @@
                   file="Source/sg_ControlPanel.cpp"/>
             <FILE id="Q33KJr" name="sg_ControlPanel.hpp" compile="0" resource="0"
                   file="Source/sg_ControlPanel.hpp"/>
+            <FILE id="ckGmmQ" name="sg_DirectOutSelectorComponent.cpp" compile="1"
+                  resource="0" file="Source/sg_DirectOutSelectorComponent.cpp"/>
+            <FILE id="kGggoM" name="sg_DirectOutSelectorComponent.hpp" compile="0"
+                  resource="0" file="Source/sg_DirectOutSelectorComponent.hpp"/>
             <FILE id="Vvls6a" name="sg_InfoPanel.cpp" compile="1" resource="0"
                   file="Source/sg_InfoPanel.cpp"/>
             <FILE id="f7lFiY" name="sg_InfoPanel.hpp" compile="0" resource="0"
