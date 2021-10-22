@@ -19,9 +19,9 @@
 
 #pragma once
 
-#include "sg_GrisLookAndFeel.hpp"
 #include "sg_LogicStrucs.hpp"
 #include "sg_MinSizedComponent.hpp"
+#include "sg_VuMeterComponent.hpp"
 
 #include <JuceHeader.h>
 
@@ -29,44 +29,7 @@ static dbfs_t constexpr MIN_LEVEL_COMP{ -60.0f };
 static dbfs_t constexpr MAX_LEVEL_COMP{ 0.0f };
 
 class GrisLookAndFeel;
-
-//============================ VuMeterComponent ================================
-class VuMeterComponent final : public juce::Component
-{
-    //==============================================================================
-    SmallGrisLookAndFeel & mLookAndFeel;
-
-    juce::ColourGradient mColorGrad;
-    juce::Image mVuMeterBit;
-    juce::Image mVuMeterBackBit;
-    juce::Image mVuMeterMutedBit;
-    bool mIsClipping{};
-    bool mIsMuted{};
-    dbfs_t mLevel{ MIN_LEVEL_COMP };
-
-public:
-    static constexpr auto MIN_HEIGHT = 140;
-    //==============================================================================
-    explicit VuMeterComponent(SmallGrisLookAndFeel & lookAndFeel) : mLookAndFeel(lookAndFeel) {}
-    ~VuMeterComponent() override = default;
-    //==============================================================================
-    VuMeterComponent(VuMeterComponent const &) = delete;
-    VuMeterComponent(VuMeterComponent &&) = delete;
-    VuMeterComponent & operator=(VuMeterComponent const &) = delete;
-    VuMeterComponent & operator=(VuMeterComponent &&) = delete;
-    //==============================================================================
-    void resized() override;
-    void resetClipping();
-    void setLevel(dbfs_t level);
-    void setMuted(bool muted);
-    //==============================================================================
-    void paint(juce::Graphics & g) override;
-    void mouseDown(const juce::MouseEvent & e) override;
-
-private:
-    //==============================================================================
-    JUCE_LEAK_DETECTOR(VuMeterComponent)
-};
+class SmallGrisLookAndFeel;
 
 //==============================================================================
 class AbstractSliceComponent

@@ -19,6 +19,7 @@
 
 #include "sg_ControlPanel.hpp"
 
+#include "sg_GrisLookAndFeel.hpp"
 #include "sg_MainComponent.hpp"
 
 namespace

@@ -19,6 +19,7 @@
 
 #include "sg_FlatViewWindow.hpp"
 
+#include "sg_GrisLookAndFeel.hpp"
 #include "sg_MainComponent.hpp"
 #include "sg_Narrow.hpp"
 #include "sg_constants.hpp"

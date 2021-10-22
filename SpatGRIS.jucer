@@ -192,6 +192,10 @@
                   file="Source/sg_TitledComponent.cpp"/>
             <FILE id="kZfQOp" name="sg_TitledComponent.hpp" compile="0" resource="0"
                   file="Source/sg_TitledComponent.hpp"/>
+            <FILE id="UMeTuN" name="sg_VuMeterComponent.cpp" compile="1" resource="0"
+                  file="Source/sg_VuMeterComponent.cpp"/>
+            <FILE id="P02EOB" name="sg_VuMeterComponent.hpp" compile="0" resource="0"
+                  file="Source/sg_VuMeterComponent.hpp"/>
           </GROUP>
           <FILE id="YCYrPZ" name="sg_Box.cpp" compile="1" resource="0" file="Source/sg_Box.cpp"/>
           <FILE id="KCs132" name="sg_Box.hpp" compile="0" resource="0" file="Source/sg_Box.hpp"/>

@@ -19,154 +19,12 @@
 
 #include "sg_SliceComponents.hpp"
 
+#include "sg_GrisLookAndFeel.hpp"
 #include "sg_LogicStrucs.hpp"
 #include "sg_MainComponent.hpp"
-
-auto constexpr VU_METER_COMPONENT_WIDTH = 25;
+#include "sg_constants.hpp"
 
 juce::String const SourceSliceComponent::NO_DIRECT_OUT_TEXT = "-";
-
-//==============================================================================
-void VuMeterComponent::resized()
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    auto const width{ getWidth() };
-    auto const height{ getHeight() };
-
-    mColorGrad = juce::ColourGradient{ juce::Colour::fromRGB(255, 94, 69),
-                                       0.f,
-                                       0.f,
-                                       juce::Colour::fromRGB(17, 255, 159),
-                                       0.f,
-                                       narrow<float>(height),
-                                       false };
-    mColorGrad.addColour(0.1, juce::Colours::yellow);
-
-    // Create vu-meter foreground image.
-    mVuMeterBit = juce::Image{ juce::Image::RGB, width, height, true }; // used to be width - 1
-    juce::Graphics gf{ mVuMeterBit };
-    gf.setGradientFill(mColorGrad);
-    gf.fillRect(0, 0, getWidth(), getHeight());
-    gf.setColour(mLookAndFeel.getDarkColour());
-    gf.setFont(10.0f);
-
-    // Create vu-meter background image.
-    mVuMeterBackBit = juce::Image{ juce::Image::RGB, width, height, true }; // used to be width - 1
-    juce::Graphics gb{ mVuMeterBackBit };
-    gb.setColour(mLookAndFeel.getDarkColour());
-    gb.fillRect(0, 0, getWidth(), getHeight());
-    gb.setColour(mLookAndFeel.getScrollBarColour());
-    gb.setFont(10.0f);
-
-    // Create vu-meter muted image.
-    mVuMeterMutedBit = juce::Image(juce::Image::RGB, width, height, true); // used to be width - 1
-    juce::Graphics gm{ mVuMeterMutedBit };
-    gm.setColour(mLookAndFeel.getWinBackgroundColour());
-    gm.fillRect(0, 0, getWidth(), getHeight());
-    gm.setColour(mLookAndFeel.getScrollBarColour());
-    gm.setFont(10.0f);
-
-    // Draw ticks on images.
-    auto const start = getWidth() - 3;
-    static constexpr auto NUM_TICKS = 10;
-    for (auto i{ 1 }; i < NUM_TICKS; ++i) {
-        auto const y = i * height / NUM_TICKS;
-        auto const y_f{ narrow<float>(y) };
-        auto const start_f{ narrow<float>(start) };
-        auto const with_f{ narrow<float>(getWidth()) };
-
-        gf.drawLine(start_f, y_f, with_f, y_f, 1.0f);
-        gb.drawLine(start_f, y_f, with_f, y_f, 1.0f);
-        gm.drawLine(start_f, y_f, with_f, y_f, 1.0f);
-        if (i % 2 == 1) {
-            gf.drawText(juce::String(i * -6), start - 15, y - 5, 15, 10, juce::Justification::centred, false);
-            gb.drawText(juce::String(i * -6), start - 15, y - 5, 15, 10, juce::Justification::centred, false);
-            gm.drawText(juce::String(i * -6), start - 15, y - 5, 15, 10, juce::Justification::centred, false);
-        }
-    }
-}
-
-//==============================================================================
-void VuMeterComponent::paint(juce::Graphics & g)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    auto const width{ getWidth() };
-    auto const height{ getHeight() };
-
-    if (mIsMuted) {
-        g.drawImage(mVuMeterMutedBit, 0, 0, width, height, 0, 0, width, height);
-        return;
-    }
-
-    if (mLevel <= MIN_LEVEL_COMP && !mIsClipping) {
-        g.drawImage(mVuMeterBackBit, 0, 0, width, height, 0, 0, width, height);
-        return;
-    }
-
-    auto const magnitude{ 1.0f - std::clamp(mLevel, MIN_LEVEL_COMP, MAX_LEVEL_COMP) / MIN_LEVEL_COMP };
-    auto const rel = narrow<int>(std::round(magnitude * narrow<float>(height)));
-    auto const h = height - rel;
-    g.drawImage(mVuMeterBit, 0, h, width, rel, 0, h, width, rel);
-    g.drawImage(mVuMeterBackBit, 0, 0, width, h, 0, 0, width, h);
-    if (mIsClipping) {
-        g.setColour(juce::Colour::fromHSV(0.0, 1, 0.75, 1));
-        juce::Rectangle<float> const clipRect{ 0.5, 0.5, narrow<float>(height - 1), 5 };
-        g.fillRect(clipRect);
-    }
-}
-
-//==============================================================================
-void VuMeterComponent::mouseDown(juce::MouseEvent const & e)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    juce::Rectangle<int> const hitBox{ 0, 0, getWidth(), 20 };
-    if (hitBox.contains(e.getPosition())) {
-        resetClipping();
-    }
-}
-
-//==============================================================================
-void VuMeterComponent::resetClipping()
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    mIsClipping = false;
-    repaint();
-}
-
-//==============================================================================
-void VuMeterComponent::setLevel(dbfs_t const level)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    auto const & clippedLevel{ std::clamp(level, MIN_LEVEL_COMP, MAX_LEVEL_COMP) };
-
-    if (clippedLevel == mLevel) {
-        return;
-    }
-
-    if (level > MAX_LEVEL_COMP) {
-        mIsClipping = true;
-    }
-    mLevel = clippedLevel;
-
-    repaint();
-}
-
-//==============================================================================
-void VuMeterComponent::setMuted(bool const muted)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    if (muted == mIsMuted) {
-        return;
-    }
-    mIsMuted = muted;
-    repaint();
-}
 
 //==============================================================================
 AbstractSliceComponent::AbstractSliceComponent(juce::String const & id, SmallGrisLookAndFeel & lookAndFeel)
@@ -268,7 +126,7 @@ void SpeakerSliceComponent::buttonClicked(juce::Button * button)
 //==============================================================================
 int SpeakerSliceComponent::getMinHeight() const noexcept
 {
-    return INNER_ELEMENTS_PADDING + ID_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING + VuMeterComponent::MIN_HEIGHT
+    return INNER_ELEMENTS_PADDING + ID_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING + mLevelBox.getMinHeight()
            + INNER_ELEMENTS_PADDING + MUTE_AND_SOLO_BUTTONS_HEIGHT + INNER_ELEMENTS_PADDING;
 }
 
@@ -281,7 +139,7 @@ StereoSliceComponent::StereoSliceComponent(juce::String const & id, SmallGrisLoo
 //==============================================================================
 int StereoSliceComponent::getMinHeight() const noexcept
 {
-    return INNER_ELEMENTS_PADDING + ID_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING + VuMeterComponent::MIN_HEIGHT
+    return INNER_ELEMENTS_PADDING + ID_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING + mLevelBox.getMinHeight()
            + INNER_ELEMENTS_PADDING;
 }
 
@@ -291,7 +149,7 @@ void AbstractSliceComponent::resized()
     JUCE_ASSERT_MESSAGE_THREAD;
 
     auto yOffset{ INNER_ELEMENTS_PADDING };
-    static constexpr auto AVAILABLE_WIDTH{ VU_METER_COMPONENT_WIDTH - INNER_ELEMENTS_PADDING * 2 };
+    static constexpr auto AVAILABLE_WIDTH{ SLICES_WIDTH - INNER_ELEMENTS_PADDING * 2 };
 
     juce::Rectangle<int> const idBounds{ INNER_ELEMENTS_PADDING, yOffset, AVAILABLE_WIDTH, ID_BUTTON_HEIGHT };
     mIdLabel.setBounds(idBounds.withSizeKeepingCentre(100, 100));
@@ -299,8 +157,8 @@ void AbstractSliceComponent::resized()
 
     yOffset += ID_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING;
 
-    auto const vuMeterHeight{ std::max(VuMeterComponent::MIN_HEIGHT,
-                                       getHeight() - getMinHeight() + VuMeterComponent::MIN_HEIGHT) };
+    auto const vuMeterHeight{ std::max(mLevelBox.getMinHeight(),
+                                       getHeight() - getMinHeight() + mLevelBox.getMinHeight()) };
 
     juce::Rectangle<int> const levelBoxBounds{ INNER_ELEMENTS_PADDING, yOffset, AVAILABLE_WIDTH, vuMeterHeight };
     mLevelBox.setBounds(levelBoxBounds);
@@ -327,7 +185,7 @@ void AbstractSliceComponent::resized()
 //==============================================================================
 int AbstractSliceComponent::getMinWidth() const noexcept
 {
-    return VU_METER_COMPONENT_WIDTH;
+    return SLICES_WIDTH;
 }
 
 //==============================================================================
@@ -454,7 +312,7 @@ void SourceSliceComponent::resized()
     juce::Rectangle<int> const domeButtonBounds{
         INNER_ELEMENTS_PADDING,
         getHeight() - (DIRECT_OUT_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING * 3 + MUTE_AND_SOLO_BUTTONS_HEIGHT * 2),
-        VU_METER_COMPONENT_WIDTH - INNER_ELEMENTS_PADDING * 2,
+        SLICES_WIDTH - INNER_ELEMENTS_PADDING * 2,
         MUTE_AND_SOLO_BUTTONS_HEIGHT
     };
     auto const cubeButtonBounds{ domeButtonBounds.translated(0,
@@ -483,7 +341,7 @@ void SourceSliceComponent::changeListenerCallback(juce::ChangeBroadcaster * sour
 //==============================================================================
 int SourceSliceComponent::getMinHeight() const noexcept
 {
-    return INNER_ELEMENTS_PADDING + ID_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING + VuMeterComponent::MIN_HEIGHT
+    return INNER_ELEMENTS_PADDING + ID_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING + mLevelBox.getMinHeight()
            + INNER_ELEMENTS_PADDING + MUTE_AND_SOLO_BUTTONS_HEIGHT + INNER_ELEMENTS_PADDING
            + MUTE_AND_SOLO_BUTTONS_HEIGHT + INNER_ELEMENTS_PADDING + MUTE_AND_SOLO_BUTTONS_HEIGHT
            + INNER_ELEMENTS_PADDING + DIRECT_OUT_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING;
