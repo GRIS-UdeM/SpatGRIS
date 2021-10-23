@@ -24,6 +24,7 @@
 #include "sg_LogicStrucs.hpp"
 #include "sg_MinSizedComponent.hpp"
 #include "sg_MuteSoloComponent.hpp"
+#include "sg_SmallToggleButton.hpp"
 #include "sg_VuMeterComponent.hpp"
 
 #include <JuceHeader.h>
@@ -37,7 +38,7 @@ class SmallGrisLookAndFeel;
 //==============================================================================
 class AbstractSliceComponent
     : public MinSizedComponent
-    , public juce::ToggleButton::Listener
+    , public SmallToggleButton::Listener
     , public MuteSoloComponent::Listener
 
 {
@@ -49,9 +50,8 @@ protected:
     GrisLookAndFeel & mLookAndFeel;
     SmallGrisLookAndFeel & mSmallLookAndFeel;
 
-    VuMeterComponent mLevelBox;
-    juce::Label mIdLabel;
-    juce::TextButton mIdButton;
+    VuMeterComponent mVuMeter;
+    SmallToggleButton mIdButton;
 
     MuteSoloComponent mMuteSoloComponent{ *this, mLookAndFeel, mSmallLookAndFeel };
 
@@ -69,8 +69,8 @@ public:
     AbstractSliceComponent & operator=(AbstractSliceComponent const &) = delete;
     AbstractSliceComponent & operator=(AbstractSliceComponent &&) = delete;
     //==============================================================================
-    void setLevel(dbfs_t const level) { mLevelBox.setLevel(level); }
-    void resetClipping() { mLevelBox.resetClipping(); }
+    void setLevel(dbfs_t const level) { mVuMeter.setLevel(level); }
+    void resetClipping() { mVuMeter.resetClipping(); }
     void setState(PortState state, bool soloMode);
     //==============================================================================
     void resized() override;
@@ -139,12 +139,11 @@ public:
     void setHybridSpatMode(SpatMode spatMode);
     //==============================================================================
     // overrides
-    void buttonClicked(juce::Button * button) override;
+    void smallButtonClicked(SmallToggleButton * button, bool state, bool isLeftMouseButton) override;
     void muteSoloButtonClicked(PortState state) override;
     void resized() override;
     void changeListenerCallback(juce::ChangeBroadcaster * source) override;
     [[nodiscard]] int getMinHeight() const noexcept override;
-    void mouseUp(const juce::MouseEvent & event) override;
     void directOutSelectorComponentClicked(tl::optional<output_patch_t> directOut) override;
 
 private:
@@ -154,7 +153,6 @@ private:
     void directOutButtonClicked() const;
     void domeButtonClicked() const;
     void cubeButtonClicked() const;
-    [[nodiscard]] juce::Colour getSourceColor() const;
     //==============================================================================
     JUCE_LEAK_DETECTOR(AbstractSliceComponent)
 }; // class LevelComponent
@@ -192,7 +190,7 @@ public:
     //==============================================================================
     void setSelected(bool value);
     //==============================================================================
-    void buttonClicked(juce::Button * button) override;
+    void smallButtonClicked(SmallToggleButton * button, bool state, bool isLeftMouseButton) override;
     void muteSoloButtonClicked(PortState state) override;
     [[nodiscard]] int getMinHeight() const noexcept override;
 
@@ -216,6 +214,9 @@ public:
     StereoSliceComponent & operator=(StereoSliceComponent &&) = delete;
 
     [[nodiscard]] int getMinHeight() const noexcept override;
-    void buttonClicked(juce::Button *) override { jassertfalse; }
     void muteSoloButtonClicked(PortState) override { jassertfalse; }
+    void smallButtonClicked(SmallToggleButton * /*button*/, bool /*state*/, bool /*isLeftMouseButton*/) override
+    {
+        jassertfalse;
+    }
 };

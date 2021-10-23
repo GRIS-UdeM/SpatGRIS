@@ -32,39 +32,18 @@ AbstractSliceComponent::AbstractSliceComponent(juce::String const & id,
                                                SmallGrisLookAndFeel & smallLookAndFeel)
     : mLookAndFeel(lookAndFeel)
     , mSmallLookAndFeel(smallLookAndFeel)
-    , mLevelBox(smallLookAndFeel)
+    , mVuMeter(smallLookAndFeel)
+    , mIdButton(false, id, "", *this, smallLookAndFeel)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    auto const initColors = [&](Component & component) {
-        component.setLookAndFeel(&smallLookAndFeel);
-        component.setColour(juce::Label::textColourId, smallLookAndFeel.getFontColour());
-        component.setColour(juce::TextButton::textColourOnId, smallLookAndFeel.getFontColour());
-        component.setColour(juce::TextButton::textColourOffId, smallLookAndFeel.getFontColour());
-        component.setColour(juce::TextButton::buttonColourId, smallLookAndFeel.getBackgroundColour());
-        addAndMakeVisible(component);
-    };
+    mIdButton.setLabelColour(juce::Label::textColourId, smallLookAndFeel.getFontColour());
+    mIdButton.setButtonColor(juce::TextButton::textColourOnId, smallLookAndFeel.getFontColour());
+    mIdButton.setButtonColor(juce::TextButton::textColourOffId, smallLookAndFeel.getFontColour());
+    mIdButton.setButtonColor(juce::TextButton::buttonColourId, smallLookAndFeel.getBackgroundColour());
+    addAndMakeVisible(mIdButton);
 
-    auto const initButton = [&](juce::Button & button) {
-        button.addListener(this);
-        button.addMouseListener(this, true);
-        initColors(button);
-    };
-
-    auto const initLabel = [&](juce::Label & label, juce::String const & text) {
-        label.setText(text, juce::dontSendNotification);
-        label.setJustificationType(juce::Justification::centred);
-        label.setInterceptsMouseClicks(false, false);
-        initColors(label);
-        label.setFont(juce::Font{ 0.8f });
-    };
-
-    // Id
-    initButton(mIdButton);
-    initLabel(mIdLabel, id);
-
-    // Level box
-    addAndMakeVisible(mLevelBox);
+    addAndMakeVisible(mVuMeter);
 
     addAndMakeVisible(mMuteSoloComponent);
 }
@@ -75,7 +54,7 @@ void AbstractSliceComponent::setState(PortState const state, bool const soloMode
     JUCE_ASSERT_MESSAGE_THREAD;
 
     mMuteSoloComponent.setPortState(state);
-    mLevelBox.setMuted(soloMode ? state != PortState::solo : state == PortState::muted);
+    mVuMeter.setMuted(soloMode ? state != PortState::solo : state == PortState::muted);
 
     repaint();
 }
@@ -86,19 +65,19 @@ void SpeakerSliceComponent::setSelected(bool const value)
     JUCE_ASSERT_MESSAGE_THREAD;
 
     if (value) {
-        mIdButton.setColour(juce::TextButton::textColourOnId, mSmallLookAndFeel.getWinBackgroundColour());
-        mIdButton.setColour(juce::TextButton::textColourOffId, mSmallLookAndFeel.getWinBackgroundColour());
-        mIdButton.setColour(juce::TextButton::buttonColourId, mSmallLookAndFeel.getOnColour());
+        mIdButton.setButtonColor(juce::TextButton::textColourOnId, mSmallLookAndFeel.getWinBackgroundColour());
+        mIdButton.setButtonColor(juce::TextButton::textColourOffId, mSmallLookAndFeel.getWinBackgroundColour());
+        mIdButton.setButtonColor(juce::TextButton::buttonColourId, mSmallLookAndFeel.getOnColour());
     } else {
-        mIdButton.setColour(juce::TextButton::textColourOnId, mSmallLookAndFeel.getFontColour());
-        mIdButton.setColour(juce::TextButton::textColourOffId, mSmallLookAndFeel.getFontColour());
-        mIdButton.setColour(juce::TextButton::buttonColourId, mSmallLookAndFeel.getBackgroundColour());
+        mIdButton.setButtonColor(juce::TextButton::textColourOnId, mSmallLookAndFeel.getFontColour());
+        mIdButton.setButtonColor(juce::TextButton::textColourOffId, mSmallLookAndFeel.getFontColour());
+        mIdButton.setButtonColor(juce::TextButton::buttonColourId, mSmallLookAndFeel.getBackgroundColour());
     }
     repaint();
 }
 
 //==============================================================================
-void SpeakerSliceComponent::buttonClicked(juce::Button * button)
+void SpeakerSliceComponent::smallButtonClicked(SmallToggleButton * button, bool /*state*/, bool /*isLeftMouseButton*/)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -120,7 +99,7 @@ void SpeakerSliceComponent::muteSoloButtonClicked(PortState const state)
 //==============================================================================
 int SpeakerSliceComponent::getMinHeight() const noexcept
 {
-    return INNER_ELEMENTS_PADDING + ID_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING + mLevelBox.getMinHeight()
+    return INNER_ELEMENTS_PADDING + ID_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING + mVuMeter.getMinHeight()
            + INNER_ELEMENTS_PADDING + MUTE_AND_SOLO_BUTTONS_HEIGHT + INNER_ELEMENTS_PADDING;
 }
 
@@ -135,7 +114,7 @@ StereoSliceComponent::StereoSliceComponent(juce::String const & id,
 //==============================================================================
 int StereoSliceComponent::getMinHeight() const noexcept
 {
-    return INNER_ELEMENTS_PADDING + ID_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING + mLevelBox.getMinHeight()
+    return INNER_ELEMENTS_PADDING + ID_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING + mVuMeter.getMinHeight()
            + INNER_ELEMENTS_PADDING;
 }
 
@@ -148,16 +127,15 @@ void AbstractSliceComponent::resized()
     static constexpr auto AVAILABLE_WIDTH{ SLICES_WIDTH - INNER_ELEMENTS_PADDING * 2 };
 
     juce::Rectangle<int> const idBounds{ INNER_ELEMENTS_PADDING, yOffset, AVAILABLE_WIDTH, ID_BUTTON_HEIGHT };
-    mIdLabel.setBounds(idBounds.withSizeKeepingCentre(100, 100));
     mIdButton.setBounds(idBounds);
 
     yOffset += ID_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING;
 
-    auto const vuMeterHeight{ std::max(mLevelBox.getMinHeight(),
-                                       getHeight() - getMinHeight() + mLevelBox.getMinHeight()) };
+    auto const vuMeterHeight{ std::max(mVuMeter.getMinHeight(),
+                                       getHeight() - getMinHeight() + mVuMeter.getMinHeight()) };
 
     juce::Rectangle<int> const levelBoxBounds{ INNER_ELEMENTS_PADDING, yOffset, AVAILABLE_WIDTH, vuMeterHeight };
-    mLevelBox.setBounds(levelBoxBounds);
+    mVuMeter.setBounds(levelBoxBounds);
 
     yOffset += vuMeterHeight + INNER_ELEMENTS_PADDING;
 
@@ -218,8 +196,8 @@ void SourceSliceComponent::setSourceColour(juce::Colour const colour)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    mIdButton.setColour(juce::TextButton::buttonColourId, colour);
-    mIdLabel.setColour(juce::Label::textColourId, colour.contrasting(1.0f));
+    mIdButton.setButtonColor(juce::TextButton::buttonColourId, colour);
+    mIdButton.setLabelColour(juce::Label::textColourId, colour.contrasting(1.0f));
 }
 
 //==============================================================================
@@ -242,19 +220,21 @@ void SourceSliceComponent::setHybridSpatMode(SpatMode const spatMode)
 }
 
 //==============================================================================
-void SourceSliceComponent::buttonClicked(juce::Button * button)
+void SourceSliceComponent::smallButtonClicked(SmallToggleButton * button, bool /*state*/, bool const isLeftMouseButton)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    if (button == &mDomeButton) {
-        domeButtonClicked();
+    if (button != &mIdButton) {
+        jassertfalse;
         return;
     }
-    if (button == &mCubeButton) {
-        cubeButtonClicked();
+
+    if (isLeftMouseButton) {
+        colorSelectorLeftButtonClicked();
         return;
     }
-    jassertfalse;
+
+    colorSelectorRightButtonClicked();
 }
 
 //==============================================================================
@@ -302,24 +282,10 @@ void SourceSliceComponent::changeListenerCallback(juce::ChangeBroadcaster * sour
 //==============================================================================
 int SourceSliceComponent::getMinHeight() const noexcept
 {
-    return INNER_ELEMENTS_PADDING + ID_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING + mLevelBox.getMinHeight()
+    return INNER_ELEMENTS_PADDING + ID_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING + mVuMeter.getMinHeight()
            + INNER_ELEMENTS_PADDING + MUTE_AND_SOLO_BUTTONS_HEIGHT + INNER_ELEMENTS_PADDING
            + MUTE_AND_SOLO_BUTTONS_HEIGHT + INNER_ELEMENTS_PADDING + MUTE_AND_SOLO_BUTTONS_HEIGHT
            + INNER_ELEMENTS_PADDING + DIRECT_OUT_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING;
-}
-
-//==============================================================================
-void SourceSliceComponent::mouseUp(juce::MouseEvent const & event)
-{
-    if (!mIdButton.getScreenBounds().contains(event.getScreenPosition())) {
-        return;
-    }
-
-    if (event.mods.isLeftButtonDown()) {
-        colorSelectorLeftButtonClicked();
-    } else if (event.mods.isRightButtonDown()) {
-        colorSelectorRightButtonClicked();
-    }
 }
 
 //==============================================================================
@@ -339,7 +305,7 @@ void SourceSliceComponent::colorSelectorLeftButtonClicked()
                                                                 4,
                                                                 4) };
     colourSelector->setName("background");
-    colourSelector->setCurrentColour(getSourceColor());
+    colourSelector->setCurrentColour(mIdButton.getButtonColor());
     colourSelector->addChangeListener(this);
     colourSelector->setColour(juce::ColourSelector::backgroundColourId, juce::Colours::transparentBlack);
     colourSelector->setSize(300, 400);
@@ -350,7 +316,7 @@ void SourceSliceComponent::colorSelectorLeftButtonClicked()
 void SourceSliceComponent::colorSelectorRightButtonClicked() const
 {
     source_index_t const nextSourceIndex{ mSourceIndex.get() + 1 };
-    auto const currentColor{ getSourceColor() };
+    auto const currentColor{ mIdButton.getButtonColor() };
     mOwner.setSourceColor(nextSourceIndex, currentColor);
 }
 
@@ -405,12 +371,6 @@ void SourceSliceComponent::cubeButtonClicked() const
     JUCE_ASSERT_MESSAGE_THREAD;
 
     mOwner.setSourceHybridSpatMode(mSourceIndex, SpatMode::lbap);
-}
-
-//==============================================================================
-juce::Colour SourceSliceComponent::getSourceColor() const
-{
-    return mIdButton.findColour(juce::TextButton::buttonColourId);
 }
 
 //==============================================================================

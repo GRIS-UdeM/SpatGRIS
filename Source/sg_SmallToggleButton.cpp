@@ -22,7 +22,8 @@
 #include "sg_GrisLookAndFeel.hpp"
 
 //==============================================================================
-SmallToggleButton::SmallToggleButton(juce::String const & text,
+SmallToggleButton::SmallToggleButton(bool const isToggle,
+                                     juce::String const & text,
                                      juce::String const & toolTip,
                                      Listener & listener,
                                      SmallGrisLookAndFeel & lookAndFeel)
@@ -42,7 +43,7 @@ SmallToggleButton::SmallToggleButton(juce::String const & text,
         addAndMakeVisible(component);
     };
 
-    mButton.setClickingTogglesState(true);
+    mButton.setClickingTogglesState(isToggle);
     mButton.addMouseListener(this, false);
     initColors(mButton);
 
@@ -50,6 +51,12 @@ SmallToggleButton::SmallToggleButton(juce::String const & text,
     mLabel.setInterceptsMouseClicks(false, false);
     initColors(mLabel);
     mLabel.setFont(juce::Font{ 0.8f });
+}
+
+//==============================================================================
+juce::Colour SmallToggleButton::getButtonColor() const
+{
+    return mButton.findColour(juce::TextButton::buttonColourId);
 }
 
 //==============================================================================

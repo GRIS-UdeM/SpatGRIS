@@ -51,7 +51,8 @@ private:
 
 public:
     //==============================================================================
-    SmallToggleButton(juce::String const & text,
+    SmallToggleButton(bool isToggle,
+                      juce::String const & text,
                       juce::String const & toolTip,
                       Listener & listener,
                       SmallGrisLookAndFeel & lookAndFeel);
@@ -62,6 +63,7 @@ public:
     SmallToggleButton & operator=(SmallToggleButton const &) = delete;
     SmallToggleButton & operator=(SmallToggleButton &&) = delete;
     //==============================================================================
+    [[nodiscard]] juce::Colour getButtonColor() const;
     void setToggleState(bool state);
     void setButtonColor(int colorId, juce::Colour colour);
     void setLabelColour(int colorId, juce::Colour colour);

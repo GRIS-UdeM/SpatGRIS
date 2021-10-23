@@ -53,8 +53,8 @@ private:
     SmallGrisLookAndFeel & mSmallLookAndFeel;
 
     LayoutComponent mLayout{ LayoutComponent::Orientation::horizontal, false, false, mLookAndFeel };
-    SmallToggleButton mMuteButton{ "m", "mute", *this, mSmallLookAndFeel };
-    SmallToggleButton mSoloButton{ "s", "solo", *this, mSmallLookAndFeel };
+    SmallToggleButton mMuteButton{ true, "m", "mute", *this, mSmallLookAndFeel };
+    SmallToggleButton mSoloButton{ true, "s", "solo", *this, mSmallLookAndFeel };
 
 public:
     //==============================================================================
