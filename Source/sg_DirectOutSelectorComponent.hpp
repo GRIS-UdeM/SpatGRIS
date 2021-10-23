@@ -67,7 +67,6 @@ public:
     DirectOutSelectorComponent(tl::optional<output_patch_t> const & directOut,
                                std::shared_ptr<Choices> choices,
                                Listener & listener,
-                               juce::String const & tooltip,
                                SmallGrisLookAndFeel & lookAndFeel);
     ~DirectOutSelectorComponent() override = default;
     //==============================================================================

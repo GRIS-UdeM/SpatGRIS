@@ -176,36 +176,21 @@ SourceSliceComponent::SourceSliceComponent(source_index_t const sourceIndex,
                                            SpatMode const projectSpatMode,
                                            SpatMode const hybridSpatMode,
                                            juce::Colour const colour,
+                                           std::shared_ptr<DirectOutSelectorComponent::Choices> directOutChoices,
                                            Owner & owner,
                                            GrisLookAndFeel & lookAndFeel,
                                            SmallGrisLookAndFeel & smallLookAndFeel)
     : AbstractSliceComponent(juce::String{ sourceIndex.get() }, lookAndFeel, smallLookAndFeel)
     , mSourceIndex(sourceIndex)
     , mOwner(owner)
+    , mDirectOutSelectorComponent(directOut, std::move(directOutChoices), *this, smallLookAndFeel)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    auto const initButton = [&](juce::TextButton & button, bool const setColors = true) {
-        button.addListener(this);
-
-        addAndMakeVisible(button);
-
-        if (!setColors) {
-            return;
-        }
-
-        button.setColour(juce::Label::textColourId, smallLookAndFeel.getFontColour());
-        button.setLookAndFeel(&smallLookAndFeel);
-    };
-
-    initButton(mIdButton, false);
     mIdButton.addMouseListener(this, true);
+    addAndMakeVisible(mIdButton);
 
-    initButton(mDirectOutButton);
-    setDirectOut(directOut);
-
-    initButton(mDomeButton);
-    initButton(mCubeButton);
+    addAndMakeVisible(mDirectOutSelectorComponent);
 
     setSourceColour(colour);
     setProjectSpatMode(projectSpatMode);
@@ -213,20 +198,19 @@ SourceSliceComponent::SourceSliceComponent(source_index_t const sourceIndex,
 }
 
 //==============================================================================
-void SourceSliceComponent::setDirectOut(tl::optional<output_patch_t> const outputPatch)
+void SourceSliceComponent::setDirectOut(tl::optional<output_patch_t> const directOut)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    // TODO : the following code always results in some app-crashing invalid string when the optional holds a value. Why
-    // is that ? Is it possible that the perfect-forwarding of a juce::String does something weird ?
+    mDirectOutSelectorComponent.setDirectOut(directOut);
+}
 
-    /*static auto const PATCH_TO_STRING
-        = [](output_patch_t const outputPatch) -> juce::String { return juce::String{ outputPatch.get() }; };
+//==============================================================================
+void SourceSliceComponent::setDirectOutChoices(std::shared_ptr<DirectOutSelectorComponent::Choices> choices)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
 
-    auto const newText{ outputPatch.map_or(PATCH_TO_STRING, NO_DIRECT_OUT_TEXT) };*/
-
-    auto const newText{ outputPatch ? juce::String{ outputPatch->get() } : NO_DIRECT_OUT_TEXT };
-    mDirectOutButton.setButtonText(newText);
+    mDirectOutSelectorComponent.setChoices(std::move(choices));
 }
 
 //==============================================================================
@@ -262,10 +246,6 @@ void SourceSliceComponent::buttonClicked(juce::Button * button)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    if (button == &mDirectOutButton) {
-        directOutButtonClicked();
-        return;
-    }
     if (button == &mDomeButton) {
         domeButtonClicked();
         return;
@@ -304,7 +284,7 @@ void SourceSliceComponent::resized()
 
     mDomeButton.setBounds(domeButtonBounds);
     mCubeButton.setBounds(cubeButtonBounds);
-    mDirectOutButton.setBounds(directOutButtonBounds);
+    mDirectOutSelectorComponent.setBounds(directOutButtonBounds);
 }
 
 //==============================================================================
@@ -340,6 +320,12 @@ void SourceSliceComponent::mouseUp(juce::MouseEvent const & event)
     } else if (event.mods.isRightButtonDown()) {
         colorSelectorRightButtonClicked();
     }
+}
+
+//==============================================================================
+void SourceSliceComponent::directOutSelectorComponentClicked(tl::optional<output_patch_t> const directOut)
+{
+    mOwner.setSourceDirectOut(mSourceIndex, directOut);
 }
 
 //==============================================================================

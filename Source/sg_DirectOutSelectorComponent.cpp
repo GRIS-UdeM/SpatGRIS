@@ -25,12 +25,11 @@
 DirectOutSelectorComponent::DirectOutSelectorComponent(tl::optional<output_patch_t> const & directOut,
                                                        std::shared_ptr<Choices> choices,
                                                        Listener & listener,
-                                                       juce::String const & tooltip,
                                                        SmallGrisLookAndFeel & lookAndFeel)
     : mListener(listener)
     , mLookAndFeel(lookAndFeel)
     , mChoices(std::move(choices))
-    , mButton("", tooltip)
+    , mButton("", "Direct out")
 {
     mButton.addListener(this);
 
@@ -94,12 +93,12 @@ void DirectOutSelectorComponent::setDirectOut(tl::optional<output_patch_t> const
 {
     mButton.setButtonText(directOut.has_value() ? juce::String{ directOut->get() } : NO_DIRECT_OUT_STRING);
 
-    if (!directOut) {
-        return;
-    }
+    // if (!directOut) {
+    //    return;
+    //}
 
-    jassert(mChoices->nonDirectOutputPatches.contains(*directOut)
-            || mChoices->directOutputPatches.contains(*directOut));
+    // jassert(mChoices->nonDirectOutputPatches.contains(*directOut)
+    //        || mChoices->directOutputPatches.contains(*directOut));
 }
 
 //==============================================================================

@@ -587,7 +587,6 @@ bool MainContentComponent::setSpatMode(SpatMode const spatMode)
     mData.speakerSetup.spatMode = spatMode;
     mControlPanel->setSpatMode(spatMode);
     refreshSpeakers();
-    refreshSourceSlices();
     return true;
 }
 
@@ -1359,13 +1358,21 @@ void MainContentComponent::refreshSourceSlices()
         mData.project.sources.cend(),
         [](SourcesData::ConstNode const & node) { return node.value->state == PortState::solo; }) };
 
-    // auto x{ 3 };
+    auto const directOutChoices{ std::make_shared<DirectOutSelectorComponent::Choices>() };
+
+    for (const auto speaker : mData.speakerSetup.speakers) {
+        auto & destination{ speaker.value->isDirectOutOnly ? directOutChoices->directOutputPatches
+                                                           : directOutChoices->nonDirectOutputPatches };
+        destination.add(speaker.key);
+    }
+
     for (auto source : mData.project.sources) {
         auto newSlice{ std::make_unique<SourceSliceComponent>(source.key,
                                                               source.value->directOut,
                                                               mData.speakerSetup.spatMode,
                                                               source.value->hybridSpatMode,
                                                               source.value->colour,
+                                                              directOutChoices,
                                                               *this,
                                                               mLookAndFeel,
                                                               mSmallLookAndFeel) };
@@ -1507,6 +1514,7 @@ void MainContentComponent::speakerDirectOutOnlyChanged(output_patch_t const outp
 
         refreshAudioProcessor();
         refreshViewportConfig();
+        refreshSourceSlices();
     }
 }
 
@@ -1524,6 +1532,7 @@ void MainContentComponent::speakerOutputPatchChanged(output_patch_t const oldOut
     auto & order{ mData.speakerSetup.ordering };
     order.set(order.indexOf(oldOutputPatch), newOutputPatch);
 
+    refreshSourceSlices();
     refreshSpeakerSlices();
 }
 
@@ -1890,6 +1899,7 @@ void MainContentComponent::refreshSpeakers()
         mData.appData.viewSettings.showSpeakerTriplets = false;
     }
 
+    refreshSourceSlices();
     refreshSpeakerSlices();
     refreshViewportConfig();
     if (mEditSpeakersWindow != nullptr) {

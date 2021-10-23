@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include "sg_DirectOutSelectorComponent.hpp"
 #include "sg_LayoutComponent.hpp"
 #include "sg_LogicStrucs.hpp"
 #include "sg_MinSizedComponent.hpp"
@@ -84,6 +85,7 @@ private:
 class SourceSliceComponent final
     : public AbstractSliceComponent
     , public juce::ChangeListener
+    , public DirectOutSelectorComponent::Listener
 {
 public:
     static juce::String const NO_DIRECT_OUT_TEXT;
@@ -109,7 +111,8 @@ private:
     juce::TextButton mDomeButton;
     juce::Label mCubeLabel;
     juce::TextButton mCubeButton;
-    juce::TextButton mDirectOutButton;
+
+    DirectOutSelectorComponent mDirectOutSelectorComponent;
 
 public:
     //==============================================================================
@@ -118,6 +121,7 @@ public:
                          SpatMode projectSpatMode,
                          SpatMode hybridSpatMode,
                          juce::Colour colour,
+                         std::shared_ptr<DirectOutSelectorComponent::Choices> directOutChoices,
                          Owner & owner,
                          GrisLookAndFeel & lookAndFeel,
                          SmallGrisLookAndFeel & smallLookAndFeel);
@@ -128,7 +132,8 @@ public:
     SourceSliceComponent & operator=(SourceSliceComponent const &) = delete;
     SourceSliceComponent & operator=(SourceSliceComponent &&) = delete;
     //==============================================================================
-    void setDirectOut(tl::optional<output_patch_t> outputPatch);
+    void setDirectOut(tl::optional<output_patch_t> directOut);
+    void setDirectOutChoices(std::shared_ptr<DirectOutSelectorComponent::Choices> choices);
     void setSourceColour(juce::Colour colour);
     void setProjectSpatMode(SpatMode spatMode);
     void setHybridSpatMode(SpatMode spatMode);
@@ -140,6 +145,7 @@ public:
     void changeListenerCallback(juce::ChangeBroadcaster * source) override;
     [[nodiscard]] int getMinHeight() const noexcept override;
     void mouseUp(const juce::MouseEvent & event) override;
+    void directOutSelectorComponentClicked(tl::optional<output_patch_t> directOut) override;
 
 private:
     //==============================================================================
