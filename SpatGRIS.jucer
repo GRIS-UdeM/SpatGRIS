@@ -184,6 +184,10 @@
                   file="Source/sg_SmallToggleButton.cpp"/>
             <FILE id="F9eSOc" name="sg_SmallToggleButton.hpp" compile="0" resource="0"
                   file="Source/sg_SmallToggleButton.hpp"/>
+            <FILE id="dHBPJg" name="sg_SourceIdButton.cpp" compile="1" resource="0"
+                  file="Source/sg_SourceIdButton.cpp"/>
+            <FILE id="jZJZsw" name="sg_SourceIdButton.hpp" compile="0" resource="0"
+                  file="Source/sg_SourceIdButton.hpp"/>
             <FILE id="KJNtIT" name="sg_SpatButton.cpp" compile="1" resource="0"
                   file="Source/sg_SpatButton.cpp"/>
             <FILE id="mjGmxf" name="sg_SpatButton.hpp" compile="0" resource="0"
@@ -196,6 +200,10 @@
                   file="Source/sg_SpatTextEditor.cpp"/>
             <FILE id="L27uyO" name="sg_SpatTextEditor.hpp" compile="0" resource="0"
                   file="Source/sg_SpatTextEditor.hpp"/>
+            <FILE id="JQEF1K" name="sg_SpeakerIdButton.cpp" compile="1" resource="0"
+                  file="Source/sg_SpeakerIdButton.cpp"/>
+            <FILE id="kNGO0a" name="sg_SpeakerIdButton.hpp" compile="0" resource="0"
+                  file="Source/sg_SpeakerIdButton.hpp"/>
             <FILE id="j2IMjp" name="sg_SubPanelComponent.cpp" compile="1" resource="0"
                   file="Source/sg_SubPanelComponent.cpp"/>
             <FILE id="HOKrJx" name="sg_SubPanelComponent.hpp" compile="0" resource="0"
