@@ -33,18 +33,10 @@ AbstractSliceComponent::AbstractSliceComponent(juce::String const & id,
     : mLookAndFeel(lookAndFeel)
     , mSmallLookAndFeel(smallLookAndFeel)
     , mVuMeter(smallLookAndFeel)
-    , mIdButton(false, id, "", *this, smallLookAndFeel)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    mIdButton.setLabelColour(juce::Label::textColourId, smallLookAndFeel.getFontColour());
-    mIdButton.setButtonColor(juce::TextButton::textColourOnId, smallLookAndFeel.getFontColour());
-    mIdButton.setButtonColor(juce::TextButton::textColourOffId, smallLookAndFeel.getFontColour());
-    mIdButton.setButtonColor(juce::TextButton::buttonColourId, smallLookAndFeel.getBackgroundColour());
-    addAndMakeVisible(mIdButton);
-
     addAndMakeVisible(mVuMeter);
-
     addAndMakeVisible(mMuteSoloComponent);
 }
 
@@ -64,28 +56,16 @@ void SpeakerSliceComponent::setSelected(bool const value)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    if (value) {
-        mIdButton.setButtonColor(juce::TextButton::textColourOnId, mSmallLookAndFeel.getWinBackgroundColour());
-        mIdButton.setButtonColor(juce::TextButton::textColourOffId, mSmallLookAndFeel.getWinBackgroundColour());
-        mIdButton.setButtonColor(juce::TextButton::buttonColourId, mSmallLookAndFeel.getOnColour());
-    } else {
-        mIdButton.setButtonColor(juce::TextButton::textColourOnId, mSmallLookAndFeel.getFontColour());
-        mIdButton.setButtonColor(juce::TextButton::textColourOffId, mSmallLookAndFeel.getFontColour());
-        mIdButton.setButtonColor(juce::TextButton::buttonColourId, mSmallLookAndFeel.getBackgroundColour());
-    }
-    repaint();
+    mIdButton.setSelected(value);
 }
 
 //==============================================================================
-void SpeakerSliceComponent::smallButtonClicked(SmallToggleButton * button, bool /*state*/, bool /*isLeftMouseButton*/)
+void SpeakerSliceComponent::speakerIdButtonClicked([[maybe_unused]] SpeakerIdButton * button)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
+    jassert(button == &mIdButton);
 
-    if (button == &mIdButton) {
-        mOwner.setSelectedSpeakers(mOutputPatch);
-        return;
-    }
-    jassertfalse;
+    mOwner.setSelectedSpeakers(mOutputPatch);
 }
 
 //==============================================================================
@@ -161,16 +141,14 @@ SourceSliceComponent::SourceSliceComponent(source_index_t const sourceIndex,
     : AbstractSliceComponent(juce::String{ sourceIndex.get() }, lookAndFeel, smallLookAndFeel)
     , mSourceIndex(sourceIndex)
     , mOwner(owner)
+    , mIdButton(sourceIndex, colour, *this, smallLookAndFeel)
     , mDirectOutSelectorComponent(directOut, std::move(directOutChoices), *this, smallLookAndFeel)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    mIdButton.addMouseListener(this, true);
     addAndMakeVisible(mIdButton);
-
     addAndMakeVisible(mDirectOutSelectorComponent);
 
-    setSourceColour(colour);
     setProjectSpatMode(projectSpatMode);
     setHybridSpatMode(hybridSpatMode);
 }
@@ -196,8 +174,7 @@ void SourceSliceComponent::setSourceColour(juce::Colour const colour)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    mIdButton.setButtonColor(juce::TextButton::buttonColourId, colour);
-    mIdButton.setLabelColour(juce::Label::textColourId, colour.contrasting(1.0f));
+    mIdButton.setColor(colour);
 }
 
 //==============================================================================
@@ -220,26 +197,10 @@ void SourceSliceComponent::setHybridSpatMode(SpatMode const spatMode)
 }
 
 //==============================================================================
-void SourceSliceComponent::smallButtonClicked(SmallToggleButton * button, bool /*state*/, bool const isLeftMouseButton)
+void SourceSliceComponent::muteSoloButtonClicked(PortState const state)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    if (button != &mIdButton) {
-        jassertfalse;
-        return;
-    }
-
-    if (isLeftMouseButton) {
-        colorSelectorLeftButtonClicked();
-        return;
-    }
-
-    colorSelectorRightButtonClicked();
-}
-
-//==============================================================================
-void SourceSliceComponent::muteSoloButtonClicked(PortState const state)
-{
     mOwner.setSourceState(mSourceIndex, state);
 }
 
@@ -268,20 +229,31 @@ void SourceSliceComponent::resized()
 }
 
 //==============================================================================
-void SourceSliceComponent::changeListenerCallback(juce::ChangeBroadcaster * source)
+void SourceSliceComponent::sourceIdButtonColorChanged([[maybe_unused]] SourceIdButton * button,
+                                                      juce::Colour const color)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
+    jassert(button == &mIdButton);
 
-    auto * colorSelector{ dynamic_cast<juce::ColourSelector *>(source) };
-    jassert(colorSelector);
-    if (colorSelector != nullptr) {
-        mOwner.setSourceColor(mSourceIndex, colorSelector->getCurrentColour());
-    }
+    mOwner.setSourceColor(mSourceIndex, color);
+}
+
+//==============================================================================
+void SourceSliceComponent::sourceIdButtonCopyColorToNextSource([[maybe_unused]] SourceIdButton * button,
+                                                               juce::Colour const color)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    jassert(button == &mIdButton);
+
+    source_index_t const nextSourceIndex{ mSourceIndex.get() + 1 };
+    mOwner.setSourceColor(nextSourceIndex, color);
 }
 
 //==============================================================================
 int SourceSliceComponent::getMinHeight() const noexcept
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     return INNER_ELEMENTS_PADDING + ID_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING + mVuMeter.getMinHeight()
            + INNER_ELEMENTS_PADDING + MUTE_AND_SOLO_BUTTONS_HEIGHT + INNER_ELEMENTS_PADDING
            + MUTE_AND_SOLO_BUTTONS_HEIGHT + INNER_ELEMENTS_PADDING + MUTE_AND_SOLO_BUTTONS_HEIGHT
@@ -291,33 +263,9 @@ int SourceSliceComponent::getMinHeight() const noexcept
 //==============================================================================
 void SourceSliceComponent::directOutSelectorComponentClicked(tl::optional<output_patch_t> const directOut)
 {
-    mOwner.setSourceDirectOut(mSourceIndex, directOut);
-}
-
-//==============================================================================
-void SourceSliceComponent::colorSelectorLeftButtonClicked()
-{
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    auto colourSelector{ std::make_unique<juce::ColourSelector>(juce::ColourSelector::showColourAtTop
-                                                                    | juce::ColourSelector::showSliders
-                                                                    | juce::ColourSelector::showColourspace,
-                                                                4,
-                                                                4) };
-    colourSelector->setName("background");
-    colourSelector->setCurrentColour(mIdButton.getButtonColor());
-    colourSelector->addChangeListener(this);
-    colourSelector->setColour(juce::ColourSelector::backgroundColourId, juce::Colours::transparentBlack);
-    colourSelector->setSize(300, 400);
-    juce::CallOutBox::launchAsynchronously(std::move(colourSelector), getScreenBounds(), nullptr);
-}
-
-//==============================================================================
-void SourceSliceComponent::colorSelectorRightButtonClicked() const
-{
-    source_index_t const nextSourceIndex{ mSourceIndex.get() + 1 };
-    auto const currentColor{ mIdButton.getButtonColor() };
-    mOwner.setSourceColor(nextSourceIndex, currentColor);
+    mOwner.setSourceDirectOut(mSourceIndex, directOut);
 }
 
 //==============================================================================
@@ -381,8 +329,10 @@ SpeakerSliceComponent::SpeakerSliceComponent(output_patch_t const outputPatch,
     : AbstractSliceComponent(juce::String{ outputPatch.get() }, lookAndFeel, smallLookAndFeel)
     , mOutputPatch(outputPatch)
     , mOwner(owner)
+    , mIdButton(outputPatch, *this, smallLookAndFeel)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
+    addAndMakeVisible(mIdButton);
     setSelected(false);
 }

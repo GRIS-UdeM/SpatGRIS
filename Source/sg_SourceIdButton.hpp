@@ -21,6 +21,7 @@
 
 #include "sg_SmallToggleButton.hpp"
 #include "sg_SourceIndex.hpp"
+#include "sg_constants.hpp"
 
 class SmallGrisLookAndFeel;
 
@@ -68,8 +69,8 @@ public:
     //==============================================================================
     void setColor(juce::Colour const & color);
     //==============================================================================
-    [[nodiscard]] int getMinWidth() const noexcept override { return 0; }
-    [[nodiscard]] int getMinHeight() const noexcept override { return 0; }
+    [[nodiscard]] int getMinWidth() const noexcept override { return SLICES_WIDTH; }
+    [[nodiscard]] int getMinHeight() const noexcept override { return SLICES_ID_BUTTON_HEIGHT; }
 
 private:
     //==============================================================================

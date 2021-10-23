@@ -21,6 +21,7 @@
 
 #include "sg_OutputPatch.hpp"
 #include "sg_SmallToggleButton.hpp"
+#include "sg_constants.hpp"
 
 class SmallGrisLookAndFeel;
 
@@ -62,8 +63,8 @@ public:
     //==============================================================================
     void setSelected(bool state);
     //==============================================================================
-    [[nodiscard]] int getMinWidth() const noexcept override { return 0; }
-    [[nodiscard]] int getMinHeight() const noexcept override { return 0; }
+    [[nodiscard]] int getMinWidth() const noexcept override { return SLICES_WIDTH; }
+    [[nodiscard]] int getMinHeight() const noexcept override { return SLICES_ID_BUTTON_HEIGHT; }
     void resized() override;
 
 private:
