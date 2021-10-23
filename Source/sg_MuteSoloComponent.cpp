@@ -27,6 +27,8 @@ MuteSoloComponent::MuteSoloComponent(Listener & listener,
     , mLookAndFeel(lookAndFeel)
     , mSmallLookAndFeel(smallLookAndFeel)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     mLayout.addSection(mMuteButton).withRelativeSize(0.5f);
     mLayout.addSection(mSoloButton).withRelativeSize(0.5f);
     addAndMakeVisible(mLayout);
@@ -35,6 +37,8 @@ MuteSoloComponent::MuteSoloComponent(Listener & listener,
 //==============================================================================
 void MuteSoloComponent::setPortState(PortState const state)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     mMuteButton.setToggleState(state == PortState::muted);
     mSoloButton.setToggleState(state == PortState::solo);
 }
@@ -42,24 +46,32 @@ void MuteSoloComponent::setPortState(PortState const state)
 //==============================================================================
 int MuteSoloComponent::getMinWidth() const noexcept
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     return mLayout.getMinWidth();
 }
 
 //==============================================================================
 int MuteSoloComponent::getMinHeight() const noexcept
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     return mLayout.getMinHeight();
 }
 
 //==============================================================================
 void MuteSoloComponent::resized()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     mLayout.setBounds(getLocalBounds());
 }
 
 //==============================================================================
-void MuteSoloComponent::smallButtonClicked(SmallToggleButton * button, bool const state)
+void MuteSoloComponent::smallButtonClicked(SmallToggleButton * button, bool const state, bool /*isLeftMouseButton*/)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     if (button == &mMuteButton) {
         auto const portState{ state ? PortState::muted : PortState::normal };
         mListener.muteSoloButtonClicked(portState);

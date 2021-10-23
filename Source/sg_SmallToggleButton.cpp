@@ -31,6 +31,8 @@ SmallToggleButton::SmallToggleButton(juce::String const & text,
     , mLabel("", text)
     , mButton("", toolTip)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     auto const initColors = [&](Component & component) {
         component.setLookAndFeel(&lookAndFeel);
         component.setColour(juce::Label::textColourId, lookAndFeel.getFontColour());
@@ -41,7 +43,7 @@ SmallToggleButton::SmallToggleButton(juce::String const & text,
     };
 
     mButton.setClickingTogglesState(true);
-    mButton.addListener(this);
+    mButton.addMouseListener(this, false);
     initColors(mButton);
 
     mLabel.setJustificationType(juce::Justification::centred);
@@ -53,31 +55,68 @@ SmallToggleButton::SmallToggleButton(juce::String const & text,
 //==============================================================================
 void SmallToggleButton::setToggleState(bool const state)
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     mButton.setToggleState(state, juce::dontSendNotification);
+}
+
+//==============================================================================
+void SmallToggleButton::setButtonColor(int const colorId, juce::Colour const colour)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    mButton.setColour(colorId, colour);
+}
+
+//==============================================================================
+void SmallToggleButton::setLabelColour(int const colorId, juce::Colour const colour)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    mLabel.setColour(colorId, colour);
 }
 
 //==============================================================================
 int SmallToggleButton::getMinWidth() const noexcept
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     return 0;
 }
 
 //==============================================================================
 int SmallToggleButton::getMinHeight() const noexcept
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     return 15;
 }
 
 //==============================================================================
 void SmallToggleButton::resized()
 {
+    JUCE_ASSERT_MESSAGE_THREAD;
+
     auto const localBounds{ getLocalBounds() };
     mButton.setBounds(localBounds);
     mLabel.setBounds(localBounds.withSizeKeepingCentre(100, 100));
 }
 
 //==============================================================================
-void SmallToggleButton::buttonClicked([[maybe_unused]] juce::Button * button)
+void SmallToggleButton::mouseUp(const juce::MouseEvent & event)
 {
-    mListener.smallButtonClicked(this, button->getToggleState());
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    if (!mButton.getBounds().contains(event.getPosition())) {
+        return;
+    }
+
+    auto const isLeftButton{ event.mods.isLeftButtonDown() };
+    auto const isRightButton{ event.mods.isRightButtonDown() };
+
+    if (!isLeftButton && !isRightButton) {
+        return;
+    }
+
+    mListener.smallButtonClicked(this, mButton.getToggleState(), isLeftButton);
 }

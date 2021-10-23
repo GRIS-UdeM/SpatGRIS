@@ -24,9 +24,7 @@
 class SmallGrisLookAndFeel;
 
 //==============================================================================
-class SmallToggleButton final
-    : public MinSizedComponent
-    , private juce::TextButton::Listener
+class SmallToggleButton final : public MinSizedComponent
 {
 public:
     //==============================================================================
@@ -40,7 +38,7 @@ public:
         Listener & operator=(Listener const &) = default;
         Listener & operator=(Listener &&) = default;
         //==============================================================================
-        virtual void smallButtonClicked(SmallToggleButton * button, bool state) = 0;
+        virtual void smallButtonClicked(SmallToggleButton * button, bool state, bool isLeftMouseButton) = 0;
     };
 
 private:
@@ -65,6 +63,8 @@ public:
     SmallToggleButton & operator=(SmallToggleButton &&) = delete;
     //==============================================================================
     void setToggleState(bool state);
+    void setButtonColor(int colorId, juce::Colour colour);
+    void setLabelColour(int colorId, juce::Colour colour);
     //==============================================================================
     [[nodiscard]] int getMinWidth() const noexcept override;
     [[nodiscard]] int getMinHeight() const noexcept override;
@@ -72,7 +72,7 @@ public:
 
 private:
     //==============================================================================
-    void buttonClicked(juce::Button * button) override;
+    void mouseUp(const juce::MouseEvent & event) override;
     //==============================================================================
     JUCE_LEAK_DETECTOR(SmallToggleButton)
 };

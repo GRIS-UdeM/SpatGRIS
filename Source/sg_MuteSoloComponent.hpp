@@ -74,7 +74,7 @@ public:
 
 private:
     //==============================================================================
-    void smallButtonClicked(SmallToggleButton * button, bool state) override;
+    void smallButtonClicked(SmallToggleButton * button, bool state, bool isLeftMouseButton) override;
     //==============================================================================
     JUCE_LEAK_DETECTOR(MuteSoloComponent)
 };
