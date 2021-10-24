@@ -18,3 +18,55 @@
 */
 
 #pragma once
+
+#include "sg_LayoutComponent.hpp"
+#include "sg_SmallToggleButton.hpp"
+#include "sg_SpatMode.hpp"
+
+//==============================================================================
+class HybridSpatModeSelectorComponent final
+    : public MinSizedComponent
+    , private SmallToggleButton::Listener
+{
+public:
+    //==============================================================================
+    class Listener
+    {
+    public:
+        Listener() = default;
+        virtual ~Listener() = default;
+        //==============================================================================
+        Listener(Listener const &) = default;
+        Listener(Listener &&) = default;
+        Listener & operator=(Listener const &) = default;
+        Listener & operator=(Listener &&) = default;
+        //==============================================================================
+        virtual void hybridSpatModeSelectorClicked(SpatMode newHybridSpatMode) = 0;
+    };
+
+private:
+    //==============================================================================
+    Listener & mListener;
+    SmallToggleButton mDomeButton;
+    SmallToggleButton mCubeButton;
+
+public:
+    //==============================================================================
+    HybridSpatModeSelectorComponent(SpatMode hybridSpatMode, Listener & listener, SmallGrisLookAndFeel & lookAndFeel);
+    ~HybridSpatModeSelectorComponent() override = default;
+    //==============================================================================
+    HybridSpatModeSelectorComponent(HybridSpatModeSelectorComponent const &) = delete;
+    HybridSpatModeSelectorComponent(HybridSpatModeSelectorComponent &&) = delete;
+    HybridSpatModeSelectorComponent & operator=(HybridSpatModeSelectorComponent const &) = delete;
+    HybridSpatModeSelectorComponent & operator=(HybridSpatModeSelectorComponent &&) = delete;
+    //==============================================================================
+    void setSpatMode(SpatMode spatMode);
+    void resized() override;
+    [[nodiscard]] int getMinWidth() const noexcept override { return 0; }
+    [[nodiscard]] int getMinHeight() const noexcept override;
+    void smallButtonClicked(SmallToggleButton * button, bool state, bool isLeftMouseButton) override;
+
+private:
+    //==============================================================================
+    JUCE_LEAK_DETECTOR(HybridSpatModeSelectorComponent)
+};

@@ -18,3 +18,70 @@
 */
 
 #include "sg_HybridSpatModeSelectorComponent.hpp"
+
+//==============================================================================
+HybridSpatModeSelectorComponent::HybridSpatModeSelectorComponent(SpatMode const hybridSpatMode,
+                                                                 Listener & listener,
+                                                                 SmallGrisLookAndFeel & lookAndFeel)
+    : mListener(listener)
+    , mDomeButton(true, spatModeToString(SpatMode::vbap), "Set this source to DOME mode", *this, lookAndFeel)
+    , mCubeButton(true, spatModeToString(SpatMode::lbap), "Set this source to CUBE mode", *this, lookAndFeel)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    setSpatMode(hybridSpatMode);
+}
+
+//==============================================================================
+void HybridSpatModeSelectorComponent::setSpatMode(SpatMode const spatMode)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    auto const isDome{ [&]() {
+        switch (spatMode) {
+        case SpatMode::lbap:
+            return false;
+        case SpatMode::vbap:
+            return true;
+        case SpatMode::hybrid:
+            break;
+        }
+        jassertfalse;
+        return true;
+    }() };
+
+    mDomeButton.setToggleState(isDome);
+    mCubeButton.setToggleState(!isDome);
+}
+
+//==============================================================================
+void HybridSpatModeSelectorComponent::resized()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    auto const localBounds{ getLocalBounds() };
+    auto const halfHeight{ localBounds.getHeight() / 2 };
+    mDomeButton.setBounds(localBounds.withBottom(halfHeight));
+    mCubeButton.setBounds(localBounds.withTop(halfHeight));
+}
+
+//==============================================================================
+int HybridSpatModeSelectorComponent::getMinHeight() const noexcept
+{
+    return mDomeButton.getMinHeight() + mCubeButton.getMinHeight();
+}
+
+//==============================================================================
+void HybridSpatModeSelectorComponent::smallButtonClicked(SmallToggleButton * button,
+                                                         bool state,
+                                                         bool /*isLeftMouseButton*/)
+{
+    if (button == &mDomeButton) {
+        auto const spatMode{ state ? SpatMode::vbap : SpatMode::lbap };
+        mListener.hybridSpatModeSelectorClicked(spatMode);
+        return;
+    }
+    jassert(button == &mCubeButton);
+    auto const spatMode{ state ? SpatMode::lbap : SpatMode::vbap };
+    mListener.hybridSpatModeSelectorClicked(spatMode);
+}
