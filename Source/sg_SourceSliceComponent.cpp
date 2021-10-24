@@ -22,8 +22,8 @@
 //==============================================================================
 SourceSliceComponent::SourceSliceComponent(source_index_t const sourceIndex,
                                            tl::optional<output_patch_t> const directOut,
-                                           SpatMode const /*projectSpatMode*/,
-                                           SpatMode const /*hybridSpatMode*/,
+                                           SpatMode const projectSpatMode,
+                                           SpatMode const hybridSpatMode,
                                            juce::Colour const colour,
                                            std::shared_ptr<DirectOutSelectorComponent::Choices> directOutChoices,
                                            Listener & owner,
@@ -33,17 +33,12 @@ SourceSliceComponent::SourceSliceComponent(source_index_t const sourceIndex,
     , mOwner(owner)
     , mSourceIndex(sourceIndex)
     , mIdButton(sourceIndex, colour, *this, smallLookAndFeel)
+    , mHybridSpatModeSelectorComponent(hybridSpatMode, *this, smallLookAndFeel)
     , mDirectOutSelectorComponent(directOut, std::move(directOutChoices), *this, smallLookAndFeel)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    mLayout.addSection(mIdButton).withChildMinSize().withPadding(INNER_ELEMENTS_PADDING);
-    mLayout.addSection(mVuMeter).withRelativeSize(1.0f).withHorizontalPadding(INNER_ELEMENTS_PADDING);
-    mLayout.addSection(mMuteSoloComponent).withChildMinSize().withPadding(INNER_ELEMENTS_PADDING);
-    mLayout.addSection(mDirectOutSelectorComponent)
-        .withChildMinSize()
-        .withHorizontalPadding(INNER_ELEMENTS_PADDING)
-        .withBottomPadding(INNER_ELEMENTS_PADDING);
+    setProjectSpatMode(projectSpatMode);
 }
 
 //==============================================================================
@@ -71,19 +66,20 @@ void SourceSliceComponent::setSourceColour(juce::Colour const colour)
 }
 
 //==============================================================================
-void SourceSliceComponent::setProjectSpatMode(SpatMode const /*spatMode*/)
+void SourceSliceComponent::setProjectSpatMode(SpatMode const spatMode)
 {
-    // JUCE_ASSERT_MESSAGE_THREAD;
+    JUCE_ASSERT_MESSAGE_THREAD;
 
-    // auto const showHybridButtons{ spatMode == SpatMode::hybrid };
-    //// TODO
+    mShouldShowHybridSpatModes = spatMode == SpatMode::hybrid;
+    rebuildLayout();
 }
 
 //==============================================================================
-void SourceSliceComponent::setHybridSpatMode(SpatMode const /*spatMode*/)
+void SourceSliceComponent::setHybridSpatMode(SpatMode const spatMode)
 {
-    // TODO
     JUCE_ASSERT_MESSAGE_THREAD;
+
+    mHybridSpatModeSelectorComponent.setSpatMode(spatMode);
 }
 
 //==============================================================================
@@ -124,17 +120,29 @@ void SourceSliceComponent::directOutSelectorComponentClicked(tl::optional<output
 }
 
 //==============================================================================
-void SourceSliceComponent::domeButtonClicked() const
+void SourceSliceComponent::hybridSpatModeSelectorClicked(SpatMode const newHybridSpatMode)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    mOwner.setSourceHybridSpatMode(mSourceIndex, SpatMode::vbap);
+    mOwner.setSourceHybridSpatMode(mSourceIndex, newHybridSpatMode);
 }
 
 //==============================================================================
-void SourceSliceComponent::cubeButtonClicked() const
+void SourceSliceComponent::rebuildLayout()
 {
-    JUCE_ASSERT_MESSAGE_THREAD;
+    mLayout.clearSections();
 
-    mOwner.setSourceHybridSpatMode(mSourceIndex, SpatMode::lbap);
+    mLayout.addSection(mIdButton).withChildMinSize().withPadding(INNER_ELEMENTS_PADDING);
+    if (mShouldShowHybridSpatModes) {
+        mLayout.addSection(mHybridSpatModeSelectorComponent)
+            .withChildMinSize()
+            .withHorizontalPadding(INNER_ELEMENTS_PADDING)
+            .withBottomPadding(INNER_ELEMENTS_PADDING);
+    }
+    mLayout.addSection(mVuMeter).withRelativeSize(1.0f).withHorizontalPadding(INNER_ELEMENTS_PADDING);
+    mLayout.addSection(mMuteSoloComponent).withChildMinSize().withPadding(INNER_ELEMENTS_PADDING);
+    mLayout.addSection(mDirectOutSelectorComponent)
+        .withChildMinSize()
+        .withHorizontalPadding(INNER_ELEMENTS_PADDING)
+        .withBottomPadding(INNER_ELEMENTS_PADDING);
 }

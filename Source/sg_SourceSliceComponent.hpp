@@ -21,6 +21,7 @@
 
 #include "sg_AbstractSliceComponent.hpp"
 #include "sg_DirectOutSelectorComponent.hpp"
+#include "sg_HybridSpatModeSelectorComponent.hpp"
 #include "sg_SourceIdButton.hpp"
 
 class GrisLookAndFeel;
@@ -31,6 +32,7 @@ class SourceSliceComponent final
     : public AbstractSliceComponent
     , private DirectOutSelectorComponent::Listener
     , private SourceIdButton::Listener
+    , private HybridSpatModeSelectorComponent::Listener
 {
 public:
     //==============================================================================
@@ -57,7 +59,10 @@ private:
     source_index_t mSourceIndex{};
 
     SourceIdButton mIdButton;
+    HybridSpatModeSelectorComponent mHybridSpatModeSelectorComponent;
     DirectOutSelectorComponent mDirectOutSelectorComponent;
+
+    bool mShouldShowHybridSpatModes{};
 
 public:
     //==============================================================================
@@ -87,12 +92,11 @@ public:
     void sourceIdButtonColorChanged(SourceIdButton * button, juce::Colour color) override;
     void sourceIdButtonCopyColorToNextSource(SourceIdButton * button, juce::Colour color) override;
     void directOutSelectorComponentClicked(tl::optional<output_patch_t> directOut) override;
+    void hybridSpatModeSelectorClicked(SpatMode newHybridSpatMode) override;
 
 private:
     //==============================================================================
-    void directOutButtonClicked() const;
-    void domeButtonClicked() const;
-    void cubeButtonClicked() const;
+    void rebuildLayout();
     //==============================================================================
     JUCE_LEAK_DETECTOR(AbstractSliceComponent)
 }; // class LevelComponent

@@ -61,6 +61,7 @@ public:
     HybridSpatModeSelectorComponent & operator=(HybridSpatModeSelectorComponent &&) = delete;
     //==============================================================================
     void setSpatMode(SpatMode spatMode);
+    //==============================================================================
     void resized() override;
     [[nodiscard]] int getMinWidth() const noexcept override { return 0; }
     [[nodiscard]] int getMinHeight() const noexcept override;

@@ -24,11 +24,13 @@ HybridSpatModeSelectorComponent::HybridSpatModeSelectorComponent(SpatMode const 
                                                                  Listener & listener,
                                                                  SmallGrisLookAndFeel & lookAndFeel)
     : mListener(listener)
-    , mDomeButton(true, spatModeToString(SpatMode::vbap), "Set this source to DOME mode", *this, lookAndFeel)
-    , mCubeButton(true, spatModeToString(SpatMode::lbap), "Set this source to CUBE mode", *this, lookAndFeel)
+    , mDomeButton(true, "dom", "Set this source to DOME mode", *this, lookAndFeel)
+    , mCubeButton(true, "cub", "Set this source to CUBE mode", *this, lookAndFeel)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
+    addAndMakeVisible(mDomeButton);
+    addAndMakeVisible(mCubeButton);
     setSpatMode(hybridSpatMode);
 }
 
