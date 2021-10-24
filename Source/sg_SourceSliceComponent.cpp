@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS.
 
- Developers: Samuel BÃ©land, Olivier BÃ©langer, Nicolas Masson
+ Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
 
  SpatGRIS is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -17,59 +17,7 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "sg_SliceComponents.hpp"
-
-#include "sg_GrisLookAndFeel.hpp"
-#include "sg_LogicStrucs.hpp"
-#include "sg_MainComponent.hpp"
-#include "sg_constants.hpp"
-
-//==============================================================================
-AbstractSliceComponent::AbstractSliceComponent(GrisLookAndFeel & lookAndFeel, SmallGrisLookAndFeel & smallLookAndFeel)
-    : mLayout(LayoutComponent::Orientation::vertical, false, false, lookAndFeel)
-    , mVuMeter(smallLookAndFeel)
-    , mMuteSoloComponent(*this, lookAndFeel, smallLookAndFeel)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    addAndMakeVisible(mLayout);
-}
-
-//==============================================================================
-void AbstractSliceComponent::setState(PortState const state, bool const soloMode)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    mMuteSoloComponent.setPortState(state);
-    mVuMeter.setMuted(soloMode ? state != PortState::solo : state == PortState::muted);
-
-    repaint();
-}
-
-//==============================================================================
-void SpeakerSliceComponent::setSelected(bool const value)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    mIdButton.setSelected(value);
-}
-
-//==============================================================================
-void SpeakerSliceComponent::speakerIdButtonClicked([[maybe_unused]] SpeakerIdButton * button)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-    jassert(button == &mIdButton);
-
-    mOwner.setSelectedSpeakers(mOutputPatch);
-}
-
-//==============================================================================
-void SpeakerSliceComponent::muteSoloButtonClicked(PortState const state)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    mOwner.setSpeakerState(mOutputPatch, state);
-}
+#include "sg_SourceSliceComponent.hpp"
 
 //==============================================================================
 SourceSliceComponent::SourceSliceComponent(source_index_t const sourceIndex,
@@ -189,34 +137,4 @@ void SourceSliceComponent::cubeButtonClicked() const
     JUCE_ASSERT_MESSAGE_THREAD;
 
     mOwner.setSourceHybridSpatMode(mSourceIndex, SpatMode::lbap);
-}
-
-//==============================================================================
-SpeakerSliceComponent::SpeakerSliceComponent(output_patch_t const outputPatch,
-                                             Listener & owner,
-                                             GrisLookAndFeel & lookAndFeel,
-                                             SmallGrisLookAndFeel & smallLookAndFeel)
-    : AbstractSliceComponent(lookAndFeel, smallLookAndFeel)
-    , mOwner(owner)
-    , mOutputPatch(outputPatch)
-    , mIdButton(outputPatch, *this, smallLookAndFeel)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    mLayout.addSection(mIdButton).withChildMinSize();
-    mLayout.addSection(mVuMeter).withRelativeSize(1.0f).withHorizontalPadding(INNER_ELEMENTS_PADDING);
-    mLayout.addSection(mMuteSoloComponent).withChildMinSize().withHorizontalPadding(INNER_ELEMENTS_PADDING);
-
-    setSelected(false);
-}
-
-//==============================================================================
-StereoSliceComponent::StereoSliceComponent(juce::String const & id,
-                                           GrisLookAndFeel & lookAndFeel,
-                                           SmallGrisLookAndFeel & smallLookAndFeel)
-    : AbstractSliceComponent(lookAndFeel, smallLookAndFeel)
-    , mIdButton(false, id, "", *this, smallLookAndFeel)
-{
-    mLayout.addSection(mIdButton).withFixedSize(SLICES_ID_BUTTON_HEIGHT);
-    mLayout.addSection(mVuMeter).withRelativeSize(1.0f).withHorizontalPadding(INNER_ELEMENTS_PADDING);
 }

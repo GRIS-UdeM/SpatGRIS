@@ -26,7 +26,6 @@
 #include "sg_LegacyLbapPosition.hpp"
 #include "sg_MainWindow.hpp"
 #include "sg_ScopeGuard.hpp"
-#include "sg_SliceComponents.hpp"
 #include "sg_TitledComponent.hpp"
 #include "sg_constants.hpp"
 

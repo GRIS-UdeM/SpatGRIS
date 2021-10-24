@@ -19,17 +19,16 @@
 
 #pragma once
 
-#include "sg_LayoutComponent.hpp"
-#include "sg_LogicStrucs.hpp"
-#include "sg_SmallToggleButton.hpp"
+#include "sg_AbstractSliceComponent.hpp"
+#include "sg_SpeakerIdButton.hpp"
 
 class GrisLookAndFeel;
 class SmallGrisLookAndFeel;
 
 //==============================================================================
-class MuteSoloComponent final
-    : public MinSizedComponent
-    , private SmallToggleButton::Listener
+class SpeakerSliceComponent final
+    : public AbstractSliceComponent
+    , private SpeakerIdButton::Listener
 {
 public:
     //==============================================================================
@@ -38,43 +37,42 @@ public:
     public:
         Listener() = default;
         virtual ~Listener() = default;
+        //==============================================================================
         Listener(Listener const &) = default;
         Listener(Listener &&) = default;
         Listener & operator=(Listener const &) = default;
         Listener & operator=(Listener &&) = default;
         //==============================================================================
-        virtual void muteSoloButtonClicked(PortState state) = 0;
+        virtual void setSelectedSpeakers(juce::Array<output_patch_t> selection) = 0;
+        virtual void setSpeakerState(output_patch_t outputPatch, PortState state) = 0;
     };
 
 private:
     //==============================================================================
-    Listener & mListener;
-    GrisLookAndFeel & mLookAndFeel;
-    SmallGrisLookAndFeel & mSmallLookAndFeel;
+    Listener & mOwner;
+    output_patch_t mOutputPatch{};
 
-    LayoutComponent mLayout{ LayoutComponent::Orientation::horizontal, false, false, mLookAndFeel };
-    SmallToggleButton mMuteButton{ true, "m", "mute", *this, mSmallLookAndFeel };
-    SmallToggleButton mSoloButton{ true, "s", "solo", *this, mSmallLookAndFeel };
+    SpeakerIdButton mIdButton;
 
 public:
     //==============================================================================
-    MuteSoloComponent(Listener & listener, GrisLookAndFeel & lookAndFeel, SmallGrisLookAndFeel & smallLookAndFeel);
-    ~MuteSoloComponent() override = default;
+    SpeakerSliceComponent(output_patch_t outputPatch,
+                          Listener & owner,
+                          GrisLookAndFeel & lookAndFeel,
+                          SmallGrisLookAndFeel & smallLookAndFeel);
+    ~SpeakerSliceComponent() override = default;
     //==============================================================================
-    MuteSoloComponent(MuteSoloComponent const &) = delete;
-    MuteSoloComponent(MuteSoloComponent &&) = delete;
-    MuteSoloComponent & operator=(MuteSoloComponent const &) = delete;
-    MuteSoloComponent & operator=(MuteSoloComponent &&) = delete;
+    SpeakerSliceComponent(SpeakerSliceComponent const &) = delete;
+    SpeakerSliceComponent(SpeakerSliceComponent &&) = delete;
+    SpeakerSliceComponent & operator=(SpeakerSliceComponent const &) = delete;
+    SpeakerSliceComponent & operator=(SpeakerSliceComponent &&) = delete;
     //==============================================================================
-    void setPortState(PortState state);
+    void setSelected(bool value);
     //==============================================================================
-    [[nodiscard]] int getMinWidth() const noexcept override;
-    [[nodiscard]] int getMinHeight() const noexcept override;
-    void resized() override;
+    void speakerIdButtonClicked(SpeakerIdButton * button) override;
+    void muteSoloButtonClicked(PortState state) override;
 
 private:
     //==============================================================================
-    void smallButtonClicked(SmallToggleButton * button, bool state, bool isLeftMouseButton) override;
-    //==============================================================================
-    JUCE_LEAK_DETECTOR(MuteSoloComponent)
-};
+    JUCE_LEAK_DETECTOR(SpeakerSliceComponent)
+}; // class LevelComponent
