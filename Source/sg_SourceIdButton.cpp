@@ -44,6 +44,12 @@ void SourceIdButton::setColor(juce::Colour const & color)
 }
 
 //==============================================================================
+void SourceIdButton::resized()
+{
+    mButton.setBounds(getLocalBounds());
+}
+
+//==============================================================================
 void SourceIdButton::changeListenerCallback(juce::ChangeBroadcaster * source)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -68,6 +74,7 @@ void SourceIdButton::smallButtonClicked([[maybe_unused]] SmallToggleButton * but
 
     if (!isLeftMouseButton) {
         mListener.sourceIdButtonCopyColorToNextSource(this, mButton.getButtonColor());
+        return;
     }
 
     auto colourSelector{ std::make_unique<juce::ColourSelector>(juce::ColourSelector::showColourAtTop

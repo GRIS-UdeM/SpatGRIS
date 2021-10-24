@@ -71,6 +71,7 @@ public:
     //==============================================================================
     [[nodiscard]] int getMinWidth() const noexcept override { return SLICES_WIDTH; }
     [[nodiscard]] int getMinHeight() const noexcept override { return SLICES_ID_BUTTON_HEIGHT; }
+    void resized() override;
 
 private:
     //==============================================================================

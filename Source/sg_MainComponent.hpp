@@ -61,8 +61,8 @@ class MainContentComponent final
     : public juce::Component
     , public juce::MenuBarModel
     , public juce::ApplicationCommandTarget
-    , public SourceSliceComponent::Owner
-    , public SpeakerSliceComponent::Owner
+    , public SourceSliceComponent::Listener
+    , public SpeakerSliceComponent::Listener
     , public ControlPanel::Listener
     , private SpatButton::Listener
     , private AudioDeviceManagerListener
@@ -150,7 +150,6 @@ public:
 
     auto const & getData() const noexcept { return mData; }
     auto const & getLock() const { return mLock; }
-    [[nodiscard]] SpeakersData const & getSpeakersData() const override { return mData.speakerSetup.speakers; }
 
     void setSourcePosition(source_index_t sourceIndex,
                            radians_t azimuth,

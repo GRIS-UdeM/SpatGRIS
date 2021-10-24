@@ -85,7 +85,7 @@ int DirectOutSelectorComponent::getMinWidth() const noexcept
 //==============================================================================
 int DirectOutSelectorComponent::getMinHeight() const noexcept
 {
-    return 0;
+    return 17;
 }
 
 //==============================================================================

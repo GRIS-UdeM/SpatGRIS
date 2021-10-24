@@ -43,22 +43,15 @@ class AbstractSliceComponent
     , public MuteSoloComponent::Listener
 {
 protected:
-    static constexpr auto ID_BUTTON_HEIGHT = 17;
-    static constexpr auto MUTE_AND_SOLO_BUTTONS_HEIGHT = 15;
     static constexpr auto INNER_ELEMENTS_PADDING = 1;
 
-    GrisLookAndFeel & mLookAndFeel;
-    SmallGrisLookAndFeel & mSmallLookAndFeel;
-
+    LayoutComponent mLayout;
     VuMeterComponent mVuMeter;
-
-    MuteSoloComponent mMuteSoloComponent{ *this, mLookAndFeel, mSmallLookAndFeel };
+    MuteSoloComponent mMuteSoloComponent;
 
 public:
     //==============================================================================
-    explicit AbstractSliceComponent(juce::String const & id,
-                                    GrisLookAndFeel & lookAndFeel,
-                                    SmallGrisLookAndFeel & smallLookAndFeel);
+    explicit AbstractSliceComponent(GrisLookAndFeel & lookAndFeel, SmallGrisLookAndFeel & smallLookAndFeel);
     //==============================================================================
     AbstractSliceComponent() = delete;
     ~AbstractSliceComponent() override = default;
@@ -72,8 +65,9 @@ public:
     void resetClipping() { mVuMeter.resetClipping(); }
     void setState(PortState state, bool soloMode);
     //==============================================================================
-    void resized() override;
-    [[nodiscard]] int getMinWidth() const noexcept final;
+    [[nodiscard]] int getMinWidth() const noexcept final { return SLICES_WIDTH; }
+    [[nodiscard]] int getMinHeight() const noexcept final { return mLayout.getMinHeight(); }
+    void resized() final { mLayout.setBounds(getLocalBounds()); }
 
 private:
     //==============================================================================
@@ -88,39 +82,29 @@ class SourceSliceComponent final
 {
 public:
     //==============================================================================
-    class Owner
+    class Listener
     {
     public:
-        Owner() = default;
-        virtual ~Owner() = default;
+        Listener() = default;
+        virtual ~Listener() = default;
         //==============================================================================
-        Owner(Owner const &) = default;
-        Owner(Owner &&) = default;
-        Owner & operator=(Owner const &) = default;
-        Owner & operator=(Owner &&) = default;
+        Listener(Listener const &) = default;
+        Listener(Listener &&) = default;
+        Listener & operator=(Listener const &) = default;
+        Listener & operator=(Listener &&) = default;
         //==============================================================================
         virtual void setSourceDirectOut(source_index_t sourceIndex, tl::optional<output_patch_t> outputPatch) = 0;
         virtual void setSourceColor(source_index_t sourceIndex, juce::Colour colour) = 0;
         virtual void setSourceState(source_index_t sourceIndex, PortState state) = 0;
         virtual void setSourceHybridSpatMode(source_index_t sourceIndex, SpatMode spatMode) = 0;
-        [[nodiscard]] virtual SpeakersData const & getSpeakersData() const = 0;
     };
 
 private:
     //==============================================================================
-    static constexpr auto DIRECT_OUT_BUTTON_HEIGHT = 17;
-    static juce::String const NO_DIRECT_OUT_TEXT;
-
+    Listener & mOwner;
     source_index_t mSourceIndex{};
-    Owner & mOwner;
 
     SourceIdButton mIdButton;
-
-    juce::Label mDomeLabel;
-    juce::TextButton mDomeButton;
-    juce::Label mCubeLabel;
-    juce::TextButton mCubeButton;
-
     DirectOutSelectorComponent mDirectOutSelectorComponent;
 
 public:
@@ -131,7 +115,7 @@ public:
                          SpatMode hybridSpatMode,
                          juce::Colour colour,
                          std::shared_ptr<DirectOutSelectorComponent::Choices> directOutChoices,
-                         Owner & owner,
+                         Listener & owner,
                          GrisLookAndFeel & lookAndFeel,
                          SmallGrisLookAndFeel & smallLookAndFeel);
     ~SourceSliceComponent() override = default;
@@ -148,10 +132,8 @@ public:
     void setHybridSpatMode(SpatMode spatMode);
     //==============================================================================
     void muteSoloButtonClicked(PortState state) override;
-    void resized() override;
     void sourceIdButtonColorChanged(SourceIdButton * button, juce::Colour color) override;
     void sourceIdButtonCopyColorToNextSource(SourceIdButton * button, juce::Colour color) override;
-    [[nodiscard]] int getMinHeight() const noexcept override;
     void directOutSelectorComponentClicked(tl::optional<output_patch_t> directOut) override;
 
 private:
@@ -170,16 +152,16 @@ class SpeakerSliceComponent final
 {
 public:
     //==============================================================================
-    class Owner
+    class Listener
     {
     public:
-        Owner() = default;
-        virtual ~Owner() = default;
+        Listener() = default;
+        virtual ~Listener() = default;
         //==============================================================================
-        Owner(Owner const &) = default;
-        Owner(Owner &&) = default;
-        Owner & operator=(Owner const &) = default;
-        Owner & operator=(Owner &&) = default;
+        Listener(Listener const &) = default;
+        Listener(Listener &&) = default;
+        Listener & operator=(Listener const &) = default;
+        Listener & operator=(Listener &&) = default;
         //==============================================================================
         virtual void setSelectedSpeakers(juce::Array<output_patch_t> selection) = 0;
         virtual void setSpeakerState(output_patch_t outputPatch, PortState state) = 0;
@@ -187,14 +169,15 @@ public:
 
 private:
     //==============================================================================
+    Listener & mOwner;
     output_patch_t mOutputPatch{};
-    Owner & mOwner;
+
     SpeakerIdButton mIdButton;
 
 public:
     //==============================================================================
     SpeakerSliceComponent(output_patch_t outputPatch,
-                          Owner & owner,
+                          Listener & owner,
                           GrisLookAndFeel & lookAndFeel,
                           SmallGrisLookAndFeel & smallLookAndFeel);
     ~SpeakerSliceComponent() override = default;
@@ -208,7 +191,6 @@ public:
     //==============================================================================
     void speakerIdButtonClicked(SpeakerIdButton * button) override;
     void muteSoloButtonClicked(PortState state) override;
-    [[nodiscard]] int getMinHeight() const noexcept override;
 
 private:
     //==============================================================================
@@ -218,20 +200,26 @@ private:
 //==============================================================================
 class StereoSliceComponent final
     : public AbstractSliceComponent
-    , private SpeakerIdButton::Listener
+    , private SmallToggleButton::Listener
 {
+    SmallToggleButton mIdButton;
+
 public:
+    //==============================================================================
     StereoSliceComponent(juce::String const & id,
                          GrisLookAndFeel & lookAndFeel,
                          SmallGrisLookAndFeel & smallLookAndFeel);
     ~StereoSliceComponent() override = default;
-
+    //==============================================================================
     StereoSliceComponent(StereoSliceComponent const &) = delete;
     StereoSliceComponent(StereoSliceComponent &&) = delete;
     StereoSliceComponent & operator=(StereoSliceComponent const &) = delete;
     StereoSliceComponent & operator=(StereoSliceComponent &&) = delete;
-
-    [[nodiscard]] int getMinHeight() const noexcept override;
+    //==============================================================================
     void muteSoloButtonClicked(PortState) override { jassertfalse; }
-    void speakerIdButtonClicked(SpeakerIdButton * /*button*/) override { jassertfalse; }
+    void smallButtonClicked(SmallToggleButton * /*button*/, bool /*state*/, bool /*isLeftMouseButton*/) override {}
+
+private:
+    //==============================================================================
+    JUCE_LEAK_DETECTOR(StereoSliceComponent)
 };

@@ -24,20 +24,15 @@
 #include "sg_MainComponent.hpp"
 #include "sg_constants.hpp"
 
-juce::String const SourceSliceComponent::NO_DIRECT_OUT_TEXT = "-";
-
 //==============================================================================
-AbstractSliceComponent::AbstractSliceComponent(juce::String const & id,
-                                               GrisLookAndFeel & lookAndFeel,
-                                               SmallGrisLookAndFeel & smallLookAndFeel)
-    : mLookAndFeel(lookAndFeel)
-    , mSmallLookAndFeel(smallLookAndFeel)
+AbstractSliceComponent::AbstractSliceComponent(GrisLookAndFeel & lookAndFeel, SmallGrisLookAndFeel & smallLookAndFeel)
+    : mLayout(LayoutComponent::Orientation::vertical, false, false, lookAndFeel)
     , mVuMeter(smallLookAndFeel)
+    , mMuteSoloComponent(*this, lookAndFeel, smallLookAndFeel)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    addAndMakeVisible(mVuMeter);
-    addAndMakeVisible(mMuteSoloComponent);
+    addAndMakeVisible(mLayout);
 }
 
 //==============================================================================
@@ -77,80 +72,30 @@ void SpeakerSliceComponent::muteSoloButtonClicked(PortState const state)
 }
 
 //==============================================================================
-int SpeakerSliceComponent::getMinHeight() const noexcept
-{
-    return INNER_ELEMENTS_PADDING + ID_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING + mVuMeter.getMinHeight()
-           + INNER_ELEMENTS_PADDING + MUTE_AND_SOLO_BUTTONS_HEIGHT + INNER_ELEMENTS_PADDING;
-}
-
-//==============================================================================
-StereoSliceComponent::StereoSliceComponent(juce::String const & id,
-                                           GrisLookAndFeel & lookAndFeel,
-                                           SmallGrisLookAndFeel & smallLookAndFeel)
-    : AbstractSliceComponent(id, lookAndFeel, smallLookAndFeel)
-{
-}
-
-//==============================================================================
-int StereoSliceComponent::getMinHeight() const noexcept
-{
-    return INNER_ELEMENTS_PADDING + ID_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING + mVuMeter.getMinHeight()
-           + INNER_ELEMENTS_PADDING;
-}
-
-//==============================================================================
-void AbstractSliceComponent::resized()
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    auto yOffset{ INNER_ELEMENTS_PADDING };
-    static constexpr auto AVAILABLE_WIDTH{ SLICES_WIDTH - INNER_ELEMENTS_PADDING * 2 };
-
-    juce::Rectangle<int> const idBounds{ INNER_ELEMENTS_PADDING, yOffset, AVAILABLE_WIDTH, ID_BUTTON_HEIGHT };
-    mIdButton.setBounds(idBounds);
-
-    yOffset += ID_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING;
-
-    auto const vuMeterHeight{ std::max(mVuMeter.getMinHeight(),
-                                       getHeight() - getMinHeight() + mVuMeter.getMinHeight()) };
-
-    juce::Rectangle<int> const levelBoxBounds{ INNER_ELEMENTS_PADDING, yOffset, AVAILABLE_WIDTH, vuMeterHeight };
-    mVuMeter.setBounds(levelBoxBounds);
-
-    yOffset += vuMeterHeight + INNER_ELEMENTS_PADDING;
-
-    mMuteSoloComponent.setBounds(INNER_ELEMENTS_PADDING, yOffset, AVAILABLE_WIDTH, MUTE_AND_SOLO_BUTTONS_HEIGHT);
-}
-
-//==============================================================================
-int AbstractSliceComponent::getMinWidth() const noexcept
-{
-    return SLICES_WIDTH;
-}
-
-//==============================================================================
 SourceSliceComponent::SourceSliceComponent(source_index_t const sourceIndex,
                                            tl::optional<output_patch_t> const directOut,
-                                           SpatMode const projectSpatMode,
-                                           SpatMode const hybridSpatMode,
+                                           SpatMode const /*projectSpatMode*/,
+                                           SpatMode const /*hybridSpatMode*/,
                                            juce::Colour const colour,
                                            std::shared_ptr<DirectOutSelectorComponent::Choices> directOutChoices,
-                                           Owner & owner,
+                                           Listener & owner,
                                            GrisLookAndFeel & lookAndFeel,
                                            SmallGrisLookAndFeel & smallLookAndFeel)
-    : AbstractSliceComponent(juce::String{ sourceIndex.get() }, lookAndFeel, smallLookAndFeel)
-    , mSourceIndex(sourceIndex)
+    : AbstractSliceComponent(lookAndFeel, smallLookAndFeel)
     , mOwner(owner)
+    , mSourceIndex(sourceIndex)
     , mIdButton(sourceIndex, colour, *this, smallLookAndFeel)
     , mDirectOutSelectorComponent(directOut, std::move(directOutChoices), *this, smallLookAndFeel)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    addAndMakeVisible(mIdButton);
-    addAndMakeVisible(mDirectOutSelectorComponent);
-
-    setProjectSpatMode(projectSpatMode);
-    setHybridSpatMode(hybridSpatMode);
+    mLayout.addSection(mIdButton).withChildMinSize().withPadding(INNER_ELEMENTS_PADDING);
+    mLayout.addSection(mVuMeter).withRelativeSize(1.0f).withHorizontalPadding(INNER_ELEMENTS_PADDING);
+    mLayout.addSection(mMuteSoloComponent).withChildMinSize().withPadding(INNER_ELEMENTS_PADDING);
+    mLayout.addSection(mDirectOutSelectorComponent)
+        .withChildMinSize()
+        .withHorizontalPadding(INNER_ELEMENTS_PADDING)
+        .withBottomPadding(INNER_ELEMENTS_PADDING);
 }
 
 //==============================================================================
@@ -178,22 +123,19 @@ void SourceSliceComponent::setSourceColour(juce::Colour const colour)
 }
 
 //==============================================================================
-void SourceSliceComponent::setProjectSpatMode(SpatMode const spatMode)
+void SourceSliceComponent::setProjectSpatMode(SpatMode const /*spatMode*/)
 {
-    JUCE_ASSERT_MESSAGE_THREAD;
+    // JUCE_ASSERT_MESSAGE_THREAD;
 
-    auto const showHybridButtons{ spatMode == SpatMode::hybrid };
-    mDomeButton.setVisible(showHybridButtons);
-    mCubeButton.setVisible(showHybridButtons);
+    // auto const showHybridButtons{ spatMode == SpatMode::hybrid };
+    //// TODO
 }
 
 //==============================================================================
-void SourceSliceComponent::setHybridSpatMode(SpatMode const spatMode)
+void SourceSliceComponent::setHybridSpatMode(SpatMode const /*spatMode*/)
 {
+    // TODO
     JUCE_ASSERT_MESSAGE_THREAD;
-
-    mDomeButton.setToggleState(spatMode == SpatMode::vbap, juce::dontSendNotification);
-    mCubeButton.setToggleState(spatMode == SpatMode::lbap, juce::dontSendNotification);
 }
 
 //==============================================================================
@@ -202,30 +144,6 @@ void SourceSliceComponent::muteSoloButtonClicked(PortState const state)
     JUCE_ASSERT_MESSAGE_THREAD;
 
     mOwner.setSourceState(mSourceIndex, state);
-}
-
-//==============================================================================
-void SourceSliceComponent::resized()
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    AbstractSliceComponent::resized();
-
-    juce::Rectangle<int> const domeButtonBounds{
-        INNER_ELEMENTS_PADDING,
-        getHeight() - (DIRECT_OUT_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING * 3 + MUTE_AND_SOLO_BUTTONS_HEIGHT * 2),
-        SLICES_WIDTH - INNER_ELEMENTS_PADDING * 2,
-        MUTE_AND_SOLO_BUTTONS_HEIGHT
-    };
-    auto const cubeButtonBounds{ domeButtonBounds.translated(0,
-                                                             MUTE_AND_SOLO_BUTTONS_HEIGHT + INNER_ELEMENTS_PADDING) };
-    auto const directOutButtonBounds{
-        cubeButtonBounds.translated(0, MUTE_AND_SOLO_BUTTONS_HEIGHT + INNER_ELEMENTS_PADDING)
-    };
-
-    mDomeButton.setBounds(domeButtonBounds);
-    mCubeButton.setBounds(cubeButtonBounds);
-    mDirectOutSelectorComponent.setBounds(directOutButtonBounds);
 }
 
 //==============================================================================
@@ -250,59 +168,11 @@ void SourceSliceComponent::sourceIdButtonCopyColorToNextSource([[maybe_unused]] 
 }
 
 //==============================================================================
-int SourceSliceComponent::getMinHeight() const noexcept
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    return INNER_ELEMENTS_PADDING + ID_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING + mVuMeter.getMinHeight()
-           + INNER_ELEMENTS_PADDING + MUTE_AND_SOLO_BUTTONS_HEIGHT + INNER_ELEMENTS_PADDING
-           + MUTE_AND_SOLO_BUTTONS_HEIGHT + INNER_ELEMENTS_PADDING + MUTE_AND_SOLO_BUTTONS_HEIGHT
-           + INNER_ELEMENTS_PADDING + DIRECT_OUT_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING;
-}
-
-//==============================================================================
 void SourceSliceComponent::directOutSelectorComponentClicked(tl::optional<output_patch_t> const directOut)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
     mOwner.setSourceDirectOut(mSourceIndex, directOut);
-}
-
-//==============================================================================
-void SourceSliceComponent::directOutButtonClicked() const
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    static constexpr auto CHOICE_NOT_DIRECT_OUT = std::numeric_limits<int>::min();
-    static constexpr auto CHOICE_CANCELED = 0;
-
-    juce::PopupMenu menu{};
-    juce::Array<output_patch_t> directOutSpeakers{};
-    juce::Array<output_patch_t> nonDirectOutSpeakers{};
-    for (auto const speaker : mOwner.getSpeakersData()) {
-        auto & destination{ speaker.value->isDirectOutOnly ? directOutSpeakers : nonDirectOutSpeakers };
-        destination.add(speaker.key);
-    }
-    for (auto const outputPatch : directOutSpeakers) {
-        menu.addItem(outputPatch.get(), juce::String{ outputPatch.get() });
-    }
-    menu.addItem(CHOICE_NOT_DIRECT_OUT, NO_DIRECT_OUT_TEXT);
-    for (auto const outputPatch : nonDirectOutSpeakers) {
-        menu.addItem(outputPatch.get(), juce::String{ outputPatch.get() });
-    }
-
-    auto const result{ menu.show() };
-
-    if (result == CHOICE_CANCELED) {
-        return;
-    }
-
-    tl::optional<output_patch_t> newOutputPatch{};
-    if (result != CHOICE_NOT_DIRECT_OUT) {
-        newOutputPatch = output_patch_t{ result };
-    }
-
-    mOwner.setSourceDirectOut(mSourceIndex, newOutputPatch);
 }
 
 //==============================================================================
@@ -323,16 +193,30 @@ void SourceSliceComponent::cubeButtonClicked() const
 
 //==============================================================================
 SpeakerSliceComponent::SpeakerSliceComponent(output_patch_t const outputPatch,
-                                             Owner & owner,
+                                             Listener & owner,
                                              GrisLookAndFeel & lookAndFeel,
                                              SmallGrisLookAndFeel & smallLookAndFeel)
-    : AbstractSliceComponent(juce::String{ outputPatch.get() }, lookAndFeel, smallLookAndFeel)
-    , mOutputPatch(outputPatch)
+    : AbstractSliceComponent(lookAndFeel, smallLookAndFeel)
     , mOwner(owner)
+    , mOutputPatch(outputPatch)
     , mIdButton(outputPatch, *this, smallLookAndFeel)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    addAndMakeVisible(mIdButton);
+    mLayout.addSection(mIdButton).withChildMinSize();
+    mLayout.addSection(mVuMeter).withRelativeSize(1.0f).withHorizontalPadding(INNER_ELEMENTS_PADDING);
+    mLayout.addSection(mMuteSoloComponent).withChildMinSize().withHorizontalPadding(INNER_ELEMENTS_PADDING);
+
     setSelected(false);
+}
+
+//==============================================================================
+StereoSliceComponent::StereoSliceComponent(juce::String const & id,
+                                           GrisLookAndFeel & lookAndFeel,
+                                           SmallGrisLookAndFeel & smallLookAndFeel)
+    : AbstractSliceComponent(lookAndFeel, smallLookAndFeel)
+    , mIdButton(false, id, "", *this, smallLookAndFeel)
+{
+    mLayout.addSection(mIdButton).withFixedSize(SLICES_ID_BUTTON_HEIGHT);
+    mLayout.addSection(mVuMeter).withRelativeSize(1.0f).withHorizontalPadding(INNER_ELEMENTS_PADDING);
 }
