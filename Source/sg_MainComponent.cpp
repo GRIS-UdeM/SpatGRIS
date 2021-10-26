@@ -1433,12 +1433,12 @@ void MainContentComponent::updateSourceSpatData(source_index_t const sourceIndex
 }
 
 //==============================================================================
-void MainContentComponent::setSourcePosition(source_index_t const sourceIndex,
-                                             radians_t const azimuth,
-                                             radians_t const elevation,
-                                             float const length,
-                                             float const newAzimuthSpan,
-                                             float const newZenithSpan)
+void MainContentComponent::setSourcePositionLegacy(source_index_t const sourceIndex,
+                                                   radians_t const azimuth,
+                                                   radians_t const elevation,
+                                                   float const length,
+                                                   float const newAzimuthSpan,
+                                                   float const newZenithSpan)
 {
     ASSERT_OSC_THREAD;
     juce::ScopedReadLock const readLock{ mLock };
@@ -1484,6 +1484,51 @@ void MainContentComponent::setSourcePosition(source_index_t const sourceIndex,
 }
 
 //==============================================================================
+void MainContentComponent::setSourcePosition(source_index_t const sourceIndex,
+                                             Position position,
+                                             float azimuthSpan,
+                                             float zenithSpan)
+{
+    ASSERT_OSC_THREAD;
+
+    juce::ScopedWriteLock const lock{ getLock() };
+
+    if (!mData.project.sources.contains(sourceIndex)) {
+        jassertfalse;
+        return;
+    }
+
+    auto & source{ mData.project.sources[sourceIndex] };
+
+    azimuthSpan = std::clamp(azimuthSpan, 0.0f, 1.0f);
+    zenithSpan = std::clamp(zenithSpan, 0.0f, 1.0f);
+
+    auto const & setupSpatMode{ mData.speakerSetup.spatMode };
+    auto const effectiveSpatMode{ setupSpatMode == SpatMode::hybrid ? source.hybridSpatMode : setupSpatMode };
+    switch (effectiveSpatMode) {
+    case SpatMode::vbap:
+        position = position.getPolar().normalized();
+        break;
+    case SpatMode::lbap:
+        position = position.getCartesian().clampedToFarField();
+        break;
+    case SpatMode::hybrid:
+        jassertfalse;
+        break;
+    }
+
+    if (position == source.position && azimuthSpan == source.azimuthSpan && zenithSpan == source.zenithSpan) {
+        return;
+    }
+
+    source.position = position;
+    source.azimuthSpan = azimuthSpan;
+    source.zenithSpan = zenithSpan;
+
+    updateSourceSpatData(sourceIndex);
+}
+
+//==============================================================================
 void MainContentComponent::resetSourcePosition(source_index_t const sourceIndex)
 {
     juce::ScopedWriteLock const lock{ mLock };
@@ -1494,6 +1539,7 @@ void MainContentComponent::resetSourcePosition(source_index_t const sourceIndex)
     }
 
     mData.project.sources[sourceIndex].position = tl::nullopt;
+    updateSourceSpatData(sourceIndex);
 }
 
 //==============================================================================
