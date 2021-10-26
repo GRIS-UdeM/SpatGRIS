@@ -158,8 +158,8 @@ void SpeakerViewComponent::render()
     juce::gl::glHint(juce::gl::GL_POINT_SMOOTH, juce::gl::GL_NICEST);
 
 #ifndef WIN32
-    juce::gl::glEnable(GL_MULTISAMPLE_ARB);
-    glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
+    juce::gl::glEnable(juce::gl::GL_MULTISAMPLE_ARB);
+    juce::gl::glHint(juce::gl::GL_MULTISAMPLE_FILTER_HINT_NV, juce::gl::GL_NICEST);
 #endif
 
     drawBackground();
