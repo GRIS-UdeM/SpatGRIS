@@ -51,7 +51,7 @@ public:
 private:
     //==============================================================================
     Listener & mListener;
-    SmallGrisLookAndFeel & mLookAndFeel;
+
     SmallToggleButton mButton;
 
 public:

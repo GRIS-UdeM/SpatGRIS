@@ -58,7 +58,6 @@ private:
     static inline juce::String const NO_DIRECT_OUT_STRING = "-";
 
     Listener & mListener;
-    SmallGrisLookAndFeel & mLookAndFeel;
     std::shared_ptr<Choices> mChoices;
     juce::TextButton mButton{};
 

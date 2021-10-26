@@ -27,7 +27,6 @@ DirectOutSelectorComponent::DirectOutSelectorComponent(tl::optional<output_patch
                                                        Listener & listener,
                                                        SmallGrisLookAndFeel & lookAndFeel)
     : mListener(listener)
-    , mLookAndFeel(lookAndFeel)
     , mChoices(std::move(choices))
     , mButton("", "Direct out")
 {

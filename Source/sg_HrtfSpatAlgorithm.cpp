@@ -27,8 +27,6 @@
 #include "sg_TaggedAudioBuffer.hpp"
 #include "sg_VbapSpatAlgorithm.hpp"
 
-static constexpr size_t MAX_BUFFER_SIZE = 2048;
-
 //==============================================================================
 HrtfSpatAlgorithm::HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup,
                                      SourcesData const & sources,
@@ -98,11 +96,11 @@ HrtfSpatAlgorithm::HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup,
 
     // load IRs
     for (int i{}; i < 16; ++i) {
-        mConvolutions[i].loadImpulseResponse(FILES[i],
-                                             juce::dsp::Convolution::Stereo::yes,
-                                             juce::dsp::Convolution::Trim::no,
-                                             0,
-                                             juce::dsp::Convolution::Normalise::no);
+        mConvolutions[narrow<std::size_t>(i)].loadImpulseResponse(FILES[i],
+                                                                  juce::dsp::Convolution::Stereo::yes,
+                                                                  juce::dsp::Convolution::Trim::no,
+                                                                  0,
+                                                                  juce::dsp::Convolution::Normalise::no);
     }
 
     juce::dsp::ProcessSpec const spec{ sampleRate, narrow<juce::uint32>(bufferSize), 2 };

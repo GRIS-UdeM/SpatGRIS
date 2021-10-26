@@ -28,7 +28,7 @@ SmallToggleButton::SmallToggleButton(bool const isToggle,
                                      Listener & listener,
                                      SmallGrisLookAndFeel & lookAndFeel)
     : mListener(listener)
-    , mLookAndFeel(lookAndFeel)
+
     , mLabel("", text)
     , mButton("", toolTip)
 {

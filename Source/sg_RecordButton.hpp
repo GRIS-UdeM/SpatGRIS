@@ -54,7 +54,7 @@ private:
     Listener & mListener;
     State mState{ State::ready };
     bool mBlinkState{};
-    bool mIsButtonDown{};
+
     juce::Rectangle<int> mActiveBounds{};
     juce::Label mRecordedTime{};
     juce::int64 mTimeRecordingStarted{};

@@ -55,7 +55,6 @@ public:
 private:
     //==============================================================================
     AudioProcessor * mAudioProcessor{};
-    AudioConfig const * mAudioConfigRef{};
     juce::AudioDeviceManager mAudioDeviceManager{};
     SourceAudioBuffer mInputBuffer{};
     SpeakerAudioBuffer mOutputBuffer{};
@@ -71,7 +70,7 @@ private:
 
 public:
     //==============================================================================
-    ~AudioManager();
+    ~AudioManager() override;
     //==============================================================================
     AudioManager(AudioManager const &) = delete;
     AudioManager(AudioManager &&) = delete;

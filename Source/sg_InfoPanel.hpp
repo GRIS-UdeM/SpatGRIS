@@ -28,7 +28,6 @@ class MainContentComponent;
 class InfoPanel final : public MinSizedComponent
 {
     MainContentComponent & mMainContentComponent;
-    GrisLookAndFeel & mLookAndFeel;
 
     juce::Label mCpuLabel{};
     juce::Label mSampleRateLabel{};
@@ -41,7 +40,7 @@ class InfoPanel final : public MinSizedComponent
 
 public:
     //==============================================================================
-    explicit InfoPanel(MainContentComponent & mainContentComponent, GrisLookAndFeel & lookAndFeel);
+    explicit InfoPanel(MainContentComponent & mainContentComponent, GrisLookAndFeel const & lookAndFeel);
     ~InfoPanel() override = default;
     //==============================================================================
     InfoPanel(InfoPanel const &) = delete;

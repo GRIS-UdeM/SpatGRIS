@@ -25,7 +25,7 @@ SourceIdButton::SourceIdButton(source_index_t const sourceIndex,
                                Listener & listener,
                                SmallGrisLookAndFeel & lookAndFeel)
     : mListener(listener)
-    , mLookAndFeel(lookAndFeel)
+
     , mButton(false, juce::String{ sourceIndex.get() }, "Change color", *this, lookAndFeel)
 {
     JUCE_ASSERT_MESSAGE_THREAD;

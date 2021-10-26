@@ -32,7 +32,7 @@ void StereoSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, Sourc
         return;
     }
 
-    using fast = juce::dsp::FastMathApproximations;
+    // using fast = juce::dsp::FastMathApproximations;
 
     auto & queue{ mData[sourceIndex].gainsQueue };
     auto * ticket{ queue.acquire() };

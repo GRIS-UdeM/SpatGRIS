@@ -302,7 +302,7 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
         }
         auto * audioFormatWriter{ format.createWriterFor(outputStream.release(),
                                                          sampleRate_,
-                                                         dataToRecord.size(),
+                                                         narrow<unsigned>(dataToRecord.size()),
                                                          BITS_PER_SAMPLE,
                                                          metaData,
                                                          RECORD_QUALITY) };

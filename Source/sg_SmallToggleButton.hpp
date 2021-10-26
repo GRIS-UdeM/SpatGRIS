@@ -44,7 +44,6 @@ public:
 private:
     //==============================================================================
     Listener & mListener;
-    SmallGrisLookAndFeel & mLookAndFeel;
 
     juce::Label mLabel;
     juce::TextButton mButton;
