@@ -15,6 +15,8 @@ SpatGRIS is developed by the _Groupe de recherche en immersion spatiale_ (GRIS) 
 - [Running](#running)
 - [Using alternative OSC interfaces](#using-alternative-OSC-interfaces)
 
+![alt text](https://samuelbeland.com/gris/spatGRIS_3.1.png "SpatGRIS")
+
 ## Using a virtual audio device
 
 If you want to use SpatGRIS and ControlGRIS on the same computer, you will need a virtual audio device that can route the audio from your DAW to SpatGRIS.
