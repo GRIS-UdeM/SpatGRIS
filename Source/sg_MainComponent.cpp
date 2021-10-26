@@ -308,7 +308,13 @@ bool MainContentComponent::loadProject(juce::File const & file, bool const disca
     }
 
     auto const displayError = [&](juce::String const & error) {
-        juce::AlertWindow::showNativeDialogBox("Unable to load SpatGRIS project.", error, false);
+        juce::NativeMessageBox::showAsync(juce::MessageBoxOptions{}
+                                              .withButton("ok")
+                                              .withAssociatedComponent(this)
+                                              .withIconType(juce::MessageBoxIconType::WarningIcon)
+                                              .withMessage(error)
+                                              .withTitle("Unable to load SpatGRIS project."),
+                                          nullptr);
     };
 
     if (!file.existsAsFile()) {
@@ -1861,7 +1867,10 @@ output_patch_t MainContentComponent::getMaxSpeakerOutputPatch() const
 tl::optional<SpeakerSetup> MainContentComponent::extractSpeakerSetup(juce::File const & file)
 {
     auto const displayError = [&](juce::String const & message) {
-        juce::AlertWindow::showNativeDialogBox("Unable to open Speaker Setup.", message, false);
+        juce::NativeMessageBox::show(juce::MessageBoxOptions{}
+                                         .withTitle("Unable to open Speaker Setup")
+                                         .withMessage(message)
+                                         .withIconType(juce::MessageBoxIconType::WarningIcon));
     };
 
     if (!file.existsAsFile()) {

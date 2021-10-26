@@ -34,15 +34,15 @@ void SpeakerViewComponent::initialise()
     // TODO : continuous repainting should be set to false
     // openGLContext.setContinuousRepainting(true);
 
-    glClearColor(0.0, 0.0, 0.0, 1.0);
-    glColor3f(1.0, 1.0, 1.0);
+    juce::gl::glClearColor(0.0, 0.0, 0.0, 1.0);
+    juce::gl::glColor3f(1.0, 1.0, 1.0);
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
+    juce::gl::glMatrixMode(juce::gl::GL_PROJECTION);
+    juce::gl::glLoadIdentity();
     gluPerspective(80.0, static_cast<GLdouble>(getWidth()) / static_cast<GLdouble>(getHeight()), 0.5, 75.0);
 
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    juce::gl::glMatrixMode(juce::gl::GL_MODELVIEW);
+    juce::gl::glLoadIdentity();
     gluLookAt(4.0, 6.0, 5.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
 
     int noArgs{};
@@ -143,33 +143,33 @@ void SpeakerViewComponent::render()
     mData.state.lastRenderTimeMs = currentTime;
 
     // Init OpenGL context
-    glEnable(GL_DEPTH_TEST);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    juce::gl::glEnable(juce::gl::GL_DEPTH_TEST);
+    juce::gl::glClear(juce::gl::GL_COLOR_BUFFER_BIT | juce::gl::GL_DEPTH_BUFFER_BIT);
 
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH | GLUT_MULTISAMPLE);
 
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    juce::gl::glEnable(juce::gl::GL_BLEND);
+    juce::gl::glBlendFunc(juce::gl::GL_SRC_ALPHA, juce::gl::GL_ONE_MINUS_SRC_ALPHA);
 
-    glEnable(GL_LINE_SMOOTH);
-    glHint(GL_LINE_SMOOTH, GL_NICEST);
+    juce::gl::glEnable(juce::gl::GL_LINE_SMOOTH);
+    juce::gl::glHint(juce::gl::GL_LINE_SMOOTH, juce::gl::GL_NICEST);
 
-    glEnable(GL_POINT_SMOOTH);
-    glHint(GL_POINT_SMOOTH, GL_NICEST);
+    juce::gl::glEnable(juce::gl::GL_POINT_SMOOTH);
+    juce::gl::glHint(juce::gl::GL_POINT_SMOOTH, juce::gl::GL_NICEST);
 
 #ifndef WIN32
-    glEnable(GL_MULTISAMPLE_ARB);
+    juce::gl::glEnable(GL_MULTISAMPLE_ARB);
     glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
 #endif
 
     drawBackground();
 
     gluPerspective(70.0, static_cast<GLdouble>(getWidth()) / static_cast<GLdouble>(getHeight()), 0.5, 75.0);
-    glMatrixMode(GL_MODELVIEW);
+    juce::gl::glMatrixMode(juce::gl::GL_MODELVIEW);
 
     auto const & camPos{ mData.state.cameraPosition.getCartesian() };
 
-    glLoadIdentity();
+    juce::gl::glLoadIdentity();
     gluLookAt(camPos.x, camPos.y, camPos.z, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
 
     drawOriginGrid();
@@ -224,7 +224,7 @@ void SpeakerViewComponent::render()
         mData.state.shouldRayCast = false;
     }
 
-    glFlush();
+    juce::gl::glFlush();
 }
 
 //==============================================================================
@@ -246,9 +246,9 @@ void SpeakerViewComponent::clickRay()
     double matModelView[16], matProjection[16];
     int viewport[4];
 
-    glGetDoublev(GL_MODELVIEW_MATRIX, matModelView);
-    glGetDoublev(GL_PROJECTION_MATRIX, matProjection);
-    glGetIntegerv(GL_VIEWPORT, viewport);
+    juce::gl::glGetDoublev(juce::gl::GL_MODELVIEW_MATRIX, matModelView);
+    juce::gl::glGetDoublev(juce::gl::GL_PROJECTION_MATRIX, matProjection);
+    juce::gl::glGetIntegerv(juce::gl::GL_VIEWPORT, viewport);
 
     auto const winX{ mData.state.rayClick.x * mDisplayScaling };
     auto const winY{ viewport[3] - mData.state.rayClick.y * mDisplayScaling };
@@ -338,32 +338,32 @@ void SpeakerViewComponent::drawBackground()
 {
     ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD;
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(0.0, 1.0, 0.0, 1.0, -1.0, 1.0);
-    glDisable(GL_DEPTH_TEST);
+    juce::gl::glMatrixMode(juce::gl::GL_PROJECTION);
+    juce::gl::glLoadIdentity();
+    juce::gl::glOrtho(0.0, 1.0, 0.0, 1.0, -1.0, 1.0);
+    juce::gl::glDisable(juce::gl::GL_DEPTH_TEST);
 
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    juce::gl::glMatrixMode(juce::gl::GL_MODELVIEW);
+    juce::gl::glLoadIdentity();
 
     // Draw 2D image.
-    glBegin(GL_QUADS);
+    juce::gl::glBegin(juce::gl::GL_QUADS);
     static auto const BRIGHT_COLOR{ juce::Colours::blue.withBrightness(0.6f).withSaturation(0.1f) };
-    glColor3f(BRIGHT_COLOR.getFloatRed(), BRIGHT_COLOR.getFloatGreen(), BRIGHT_COLOR.getFloatBlue());
-    // glColor3f(0.6f, 0.6f, 0.6f);
-    // glColor3f(1.0f, 0.0f, 0.0f);
-    glVertex2f(1.0f, 1.0f);
-    glVertex2f(-1.0f, 1.0f);
+    juce::gl::glColor3f(BRIGHT_COLOR.getFloatRed(), BRIGHT_COLOR.getFloatGreen(), BRIGHT_COLOR.getFloatBlue());
+    // juce::gl::glColor3f(0.6f, 0.6f, 0.6f);
+    // juce::gl::glColor3f(1.0f, 0.0f, 0.0f);
+    juce::gl::glVertex2f(1.0f, 1.0f);
+    juce::gl::glVertex2f(-1.0f, 1.0f);
 
     static auto const DARK_COLOR{ BRIGHT_COLOR.withBrightness(0.3f) };
-    glColor3f(DARK_COLOR.getFloatRed(), DARK_COLOR.getFloatGreen(), DARK_COLOR.getFloatBlue());
-    glVertex2f(0.0f, 0.0f);
-    glVertex2f(1.0f, 0.0f);
-    glEnd();
+    juce::gl::glColor3f(DARK_COLOR.getFloatRed(), DARK_COLOR.getFloatGreen(), DARK_COLOR.getFloatBlue());
+    juce::gl::glVertex2f(0.0f, 0.0f);
+    juce::gl::glVertex2f(1.0f, 0.0f);
+    juce::gl::glEnd();
 
-    glEnable(GL_DEPTH_TEST);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
+    juce::gl::glEnable(juce::gl::GL_DEPTH_TEST);
+    juce::gl::glMatrixMode(juce::gl::GL_PROJECTION);
+    juce::gl::glLoadIdentity();
 }
 
 //==============================================================================
@@ -372,37 +372,37 @@ void SpeakerViewComponent::drawOriginGrid() const
     ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD;
 
     static auto const DRAW_SQUARE = [](float const length) -> void {
-        glBegin(GL_LINES);
-        glVertex3f(-length, length, 0.0f);
-        glVertex3f(length, length, 0.0f);
-        glVertex3f(length, -length, 0.0f);
-        glVertex3f(length, length, 0.0f);
-        glVertex3f(length, -length, 0.0f);
-        glVertex3f(-length, -length, 0.0f);
-        glVertex3f(-length, -length, 0.0f);
-        glVertex3f(-length, length, 0.0f);
-        glEnd();
+        juce::gl::glBegin(juce::gl::GL_LINES);
+        juce::gl::glVertex3f(-length, length, 0.0f);
+        juce::gl::glVertex3f(length, length, 0.0f);
+        juce::gl::glVertex3f(length, -length, 0.0f);
+        juce::gl::glVertex3f(length, length, 0.0f);
+        juce::gl::glVertex3f(length, -length, 0.0f);
+        juce::gl::glVertex3f(-length, -length, 0.0f);
+        juce::gl::glVertex3f(-length, -length, 0.0f);
+        juce::gl::glVertex3f(-length, length, 0.0f);
+        juce::gl::glEnd();
     };
 
     static auto const DRAW_CIRCLE = [](float const radius) -> void {
-        glBegin(GL_LINE_LOOP);
+        juce::gl::glBegin(juce::gl::GL_LINE_LOOP);
         for (int i{}; i <= 180; ++i) {
             auto const angle{ juce::MathConstants<float>::twoPi * narrow<float>(i) / 180.0f };
-            glVertex3f(std::cos(angle) * radius, std::sin(angle) * radius, 0.0f);
+            juce::gl::glVertex3f(std::cos(angle) * radius, std::sin(angle) * radius, 0.0f);
         }
-        glEnd();
+        juce::gl::glEnd();
     };
 
-    glLineWidth(1.5f);
+    juce::gl::glLineWidth(1.5f);
 
     auto const drawDomeGrid = [&]() {
         // light grey
-        glColor3f(0.59f, 0.59f, 0.59f);
+        juce::gl::glColor3f(0.59f, 0.59f, 0.59f);
         DRAW_CIRCLE(MAX_RADIUS / 2.0f);
         DRAW_CIRCLE(MAX_RADIUS);
 
         // dark grey
-        glColor3f(0.49f, 0.49f, 0.49f);
+        juce::gl::glColor3f(0.49f, 0.49f, 0.49f);
         DRAW_CIRCLE(MAX_RADIUS / 4.0f);
         DRAW_CIRCLE(MAX_RADIUS / 4.0f * 3.0f);
         DRAW_CIRCLE(MAX_RADIUS / 4.0f * 5.0f);
@@ -410,12 +410,12 @@ void SpeakerViewComponent::drawOriginGrid() const
 
     auto const drawCubeGrid = [&]() {
         // light grey
-        glColor3f(0.59f, 0.59f, 0.59f);
+        juce::gl::glColor3f(0.59f, 0.59f, 0.59f);
         DRAW_SQUARE(MAX_RADIUS);
         DRAW_SQUARE(SPACE_LIMIT);
 
         // dark grey
-        glColor3f(0.49f, 0.49f, 0.49f);
+        juce::gl::glColor3f(0.49f, 0.49f, 0.49f);
         DRAW_CIRCLE(MAX_RADIUS);
         DRAW_CIRCLE(SPACE_LIMIT);
         DRAW_SQUARE(MAX_RADIUS / 2.0f);
@@ -437,62 +437,62 @@ void SpeakerViewComponent::drawOriginGrid() const
     }
 
     // 3D RGB line.
-    glLineWidth(2.0f);
-    glBegin(GL_LINES);
+    juce::gl::glLineWidth(2.0f);
+    juce::gl::glBegin(juce::gl::GL_LINES);
     // X
-    glColor3f(0.0f, 0.4f, 0.0f);
-    glVertex3f(0.0f, 0.0f, 0.0f);
-    glVertex3f(-MAX_RADIUS, 0.0f, 0.0f);
-    glColor3f(0.0f, 1.0f, 0.0f);
-    glVertex3f(MAX_RADIUS, 0.0f, 0.0f);
-    glVertex3f(0.0f, 0.0f, 0.0f);
+    juce::gl::glColor3f(0.0f, 0.4f, 0.0f);
+    juce::gl::glVertex3f(0.0f, 0.0f, 0.0f);
+    juce::gl::glVertex3f(-MAX_RADIUS, 0.0f, 0.0f);
+    juce::gl::glColor3f(0.0f, 1.0f, 0.0f);
+    juce::gl::glVertex3f(MAX_RADIUS, 0.0f, 0.0f);
+    juce::gl::glVertex3f(0.0f, 0.0f, 0.0f);
     // Y
-    glColor3f(0.4f, 0.0f, 0.0f);
-    glVertex3f(0.0f, -MAX_RADIUS, 0.0f);
-    glVertex3f(0.0f, 0.0f, 0.0f);
-    glColor3f(1.0f, 0.0f, 0.0f);
-    glVertex3f(0.0f, 0.0f, 0.0f);
-    glVertex3f(0.0f, MAX_RADIUS, 0.0f);
+    juce::gl::glColor3f(0.4f, 0.0f, 0.0f);
+    juce::gl::glVertex3f(0.0f, -MAX_RADIUS, 0.0f);
+    juce::gl::glVertex3f(0.0f, 0.0f, 0.0f);
+    juce::gl::glColor3f(1.0f, 0.0f, 0.0f);
+    juce::gl::glVertex3f(0.0f, 0.0f, 0.0f);
+    juce::gl::glVertex3f(0.0f, MAX_RADIUS, 0.0f);
     // Z
-    glColor3f(0.0f, 0.0f, 1.0f);
-    glVertex3f(0.0f, 0.0f, 0.0f);
-    glVertex3f(0.0f, 0.0f, MAX_RADIUS);
+    juce::gl::glColor3f(0.0f, 0.0f, 1.0f);
+    juce::gl::glVertex3f(0.0f, 0.0f, 0.0f);
+    juce::gl::glVertex3f(0.0f, 0.0f, MAX_RADIUS);
 
-    glEnd();
+    juce::gl::glEnd();
 
     // Grid.
-    glLineWidth(1.0f);
-    glColor3f(0.49f, 0.49f, 0.49f);
+    juce::gl::glLineWidth(1.0f);
+    juce::gl::glColor3f(0.49f, 0.49f, 0.49f);
 
     // Draw aligned cross
     auto const drawAlignedCross = [&](float const alignedCrossLength) {
-        glBegin(GL_LINE_LOOP);
-        glVertex3f(0.0f, -alignedCrossLength, 0.0f);
-        glVertex3f(0.0f, alignedCrossLength, 0.0f);
-        glEnd();
-        glBegin(GL_LINE_LOOP);
-        glVertex3f(-alignedCrossLength, 0.0f, 0.0f);
-        glVertex3f(alignedCrossLength, 0.0f, 0.0f);
-        glEnd();
+        juce::gl::glBegin(juce::gl::GL_LINE_LOOP);
+        juce::gl::glVertex3f(0.0f, -alignedCrossLength, 0.0f);
+        juce::gl::glVertex3f(0.0f, alignedCrossLength, 0.0f);
+        juce::gl::glEnd();
+        juce::gl::glBegin(juce::gl::GL_LINE_LOOP);
+        juce::gl::glVertex3f(-alignedCrossLength, 0.0f, 0.0f);
+        juce::gl::glVertex3f(alignedCrossLength, 0.0f, 0.0f);
+        juce::gl::glEnd();
     };
 
     auto const drawDiagonalCross = [&](float const diagonalCrossLength) {
-        glBegin(GL_LINE_LOOP);
-        glVertex3f(std::cos(QUARTER_PI.get()) * diagonalCrossLength,
-                   std::sin(QUARTER_PI.get()) * diagonalCrossLength,
-                   0.0f);
-        glVertex3f(-std::cos(QUARTER_PI.get()) * diagonalCrossLength,
-                   -std::sin(QUARTER_PI.get()) * diagonalCrossLength,
-                   0.0f);
-        glEnd();
-        glBegin(GL_LINE_LOOP);
-        glVertex3f(std::cos(QUARTER_PI.get() * 3.0f) * diagonalCrossLength,
-                   std::sin(QUARTER_PI.get() * 3.0f) * diagonalCrossLength,
-                   0.0f);
-        glVertex3f(-std::cos(QUARTER_PI.get() * 3.0f) * diagonalCrossLength,
-                   -std::sin(QUARTER_PI.get() * 3.0f) * diagonalCrossLength,
-                   0.0f);
-        glEnd();
+        juce::gl::glBegin(juce::gl::GL_LINE_LOOP);
+        juce::gl::glVertex3f(std::cos(QUARTER_PI.get()) * diagonalCrossLength,
+                             std::sin(QUARTER_PI.get()) * diagonalCrossLength,
+                             0.0f);
+        juce::gl::glVertex3f(-std::cos(QUARTER_PI.get()) * diagonalCrossLength,
+                             -std::sin(QUARTER_PI.get()) * diagonalCrossLength,
+                             0.0f);
+        juce::gl::glEnd();
+        juce::gl::glBegin(juce::gl::GL_LINE_LOOP);
+        juce::gl::glVertex3f(std::cos(QUARTER_PI.get() * 3.0f) * diagonalCrossLength,
+                             std::sin(QUARTER_PI.get() * 3.0f) * diagonalCrossLength,
+                             0.0f);
+        juce::gl::glVertex3f(-std::cos(QUARTER_PI.get() * 3.0f) * diagonalCrossLength,
+                             -std::sin(QUARTER_PI.get() * 3.0f) * diagonalCrossLength,
+                             0.0f);
+        juce::gl::glEnd();
     };
 
     auto const drawDomeCrosses = [&]() {
@@ -539,24 +539,24 @@ void SpeakerViewComponent::drawText(juce::String const & val,
 {
     ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD;
 
-    glPushMatrix();
-    glTranslatef(position.x, position.y, position.z);
+    juce::gl::glPushMatrix();
+    juce::gl::glTranslatef(position.x, position.y, position.z);
 
     if (camLock) {
         auto const & camPos{ mData.state.cameraPosition.getPolar() };
         auto const azimuth{ degrees_t{ camPos.azimuth + HALF_PI } };
 
-        glRotatef(degrees_t{ 90.0f }.get(), 1.0f, 0.0f, 0.0f);
-        glRotatef(azimuth.get(), 0.0f, 1.0f, 0.0f);
+        juce::gl::glRotatef(degrees_t{ 90.0f }.get(), 1.0f, 0.0f, 0.0f);
+        juce::gl::glRotatef(azimuth.get(), 0.0f, 1.0f, 0.0f);
     }
 
-    glScalef(scale, scale, scale);
-    glColor4f(color.getFloatRed(), color.getFloatGreen(), color.getFloatBlue(), color.getAlpha());
+    juce::gl::glScalef(scale, scale, scale);
+    juce::gl::glColor4f(color.getFloatRed(), color.getFloatGreen(), color.getFloatBlue(), color.getAlpha());
     for (auto const c : val) {
         glutStrokeCharacter(GLUT_STROKE_MONO_ROMAN, c);
     }
-    glTranslatef(-position.x, -position.y, -position.z);
-    glPopMatrix();
+    juce::gl::glTranslatef(-position.x, -position.y, -position.z);
+    juce::gl::glPopMatrix();
 }
 
 //==============================================================================
@@ -564,17 +564,17 @@ void SpeakerViewComponent::drawTextOnGrid(std::string const & val, glm::vec3 con
 {
     ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD;
 
-    glPushMatrix();
-    glTranslatef(position.x, position.y, position.z);
-    glRotatef(0.0f, 0.0f, 0.0f, 1.0f);
+    juce::gl::glPushMatrix();
+    juce::gl::glTranslatef(position.x, position.y, position.z);
+    juce::gl::glRotatef(0.0f, 0.0f, 0.0f, 1.0f);
 
-    glScalef(scale, scale, scale);
-    glColor3f(1.0f, 1.0f, 1.0f);
+    juce::gl::glScalef(scale, scale, scale);
+    juce::gl::glColor3f(1.0f, 1.0f, 1.0f);
     for (auto const c : val) {
         glutStrokeCharacter(GLUT_STROKE_MONO_ROMAN, c);
     }
-    glTranslatef(-position.x, -position.y, -position.z);
-    glPopMatrix();
+    juce::gl::glTranslatef(-position.x, -position.y, -position.z);
+    juce::gl::glPopMatrix();
 }
 
 //==============================================================================
@@ -587,16 +587,16 @@ void SpeakerViewComponent::drawTripletConnection() const
         auto const & spk2{ mData.config.speakers[triplet.id2].position.getCartesian() };
         auto const & spk3{ mData.config.speakers[triplet.id3].position.getCartesian() };
 
-        glLineWidth(1.0f);
-        glBegin(GL_LINES);
-        glColor3f(0.8f, 0.8f, 0.8f);
-        glVertex3f(spk1.x, spk1.y, spk1.z);
-        glVertex3f(spk2.x, spk2.y, spk2.z);
-        glVertex3f(spk1.x, spk1.y, spk1.z);
-        glVertex3f(spk3.x, spk3.y, spk3.z);
-        glVertex3f(spk2.x, spk2.y, spk2.z);
-        glVertex3f(spk3.x, spk3.y, spk3.z);
-        glEnd();
+        juce::gl::glLineWidth(1.0f);
+        juce::gl::glBegin(juce::gl::GL_LINES);
+        juce::gl::glColor3f(0.8f, 0.8f, 0.8f);
+        juce::gl::glVertex3f(spk1.x, spk1.y, spk1.z);
+        juce::gl::glVertex3f(spk2.x, spk2.y, spk2.z);
+        juce::gl::glVertex3f(spk1.x, spk1.y, spk1.z);
+        juce::gl::glVertex3f(spk3.x, spk3.y, spk3.z);
+        juce::gl::glVertex3f(spk2.x, spk2.y, spk2.z);
+        juce::gl::glVertex3f(spk3.x, spk3.y, spk3.z);
+        juce::gl::glEnd();
     }
 }
 
@@ -610,20 +610,20 @@ void SpeakerViewComponent::drawSource(source_index_t const index, ViewportSource
     }
 
     // Draw 3D sphere.
-    glPushMatrix();
+    juce::gl::glPushMatrix();
     auto const & pos{ source.position.getCartesian() };
-    glTranslatef(pos.x, pos.y, pos.z);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    glLineWidth(2.0f);
+    juce::gl::glTranslatef(pos.x, pos.y, pos.z);
+    juce::gl::glPolygonMode(juce::gl::GL_FRONT_AND_BACK, juce::gl::GL_FILL);
+    juce::gl::glLineWidth(2.0f);
 
-    glColor4f(source.colour.getFloatRed(),
-              source.colour.getFloatGreen(),
-              source.colour.getFloatBlue(),
-              source.colour.getFloatAlpha());
+    juce::gl::glColor4f(source.colour.getFloatRed(),
+                        source.colour.getFloatGreen(),
+                        source.colour.getFloatBlue(),
+                        source.colour.getFloatAlpha());
 
     drawSphere<7>(SPHERE_RADIUS);
 
-    glTranslatef(-pos.x, -pos.y, -pos.z);
+    juce::gl::glTranslatef(-pos.x, -pos.y, -pos.z);
 
     auto const getEffectiveSpatMode = [&]() {
         auto const & baseSpatMode{ mData.config.spatMode };
@@ -651,8 +651,8 @@ void SpeakerViewComponent::drawSource(source_index_t const index, ViewportSource
         }
     }
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    glPopMatrix();
+    juce::gl::glPolygonMode(juce::gl::GL_FRONT_AND_BACK, juce::gl::GL_FILL);
+    juce::gl::glPopMatrix();
 
     if (mData.config.viewSettings.showSpeakerNumbers) {
         auto position{ source.position.getCartesian() };
@@ -668,8 +668,8 @@ void SpeakerViewComponent::drawVbapSpan(ViewportSourceData const & source)
 
     static auto constexpr NUM{ 8 };
 
-    glPointSize(4);
-    glBegin(GL_POINTS);
+    juce::gl::glPointSize(4);
+    juce::gl::glBegin(juce::gl::GL_POINTS);
 
     auto const position{ source.position };
     auto const & azimuth{ position.getPolar().azimuth };
@@ -683,7 +683,7 @@ void SpeakerViewComponent::drawVbapSpan(ViewportSourceData const & source)
 
             {
                 CartesianVector const vertex{ source.position.getPolar().withBalancedAzimuth(newAzimuth) };
-                glVertex3f(vertex.x, vertex.y, vertex.z);
+                juce::gl::glVertex3f(vertex.x, vertex.y, vertex.z);
             }
             for (int k{}; k < 4; ++k) {
                 radians_t const eleDev{ (static_cast<float>(k) + 1.0f) * source.zenithSpan * 0.38f };
@@ -691,14 +691,14 @@ void SpeakerViewComponent::drawVbapSpan(ViewportSourceData const & source)
                     auto newElevation{ l ? elevation + eleDev : elevation - eleDev };
                     newElevation = std::clamp(newElevation, radians_t{}, HALF_PI);
                     CartesianVector const vertex{ PolarVector{ newAzimuth, newElevation, length * MAX_RADIUS } };
-                    glVertex3f(vertex.x, vertex.y, vertex.z);
+                    juce::gl::glVertex3f(vertex.x, vertex.y, vertex.z);
                 }
             }
         }
     }
 
-    glEnd();
-    glPointSize(1);
+    juce::gl::glEnd();
+    juce::gl::glPointSize(1);
 }
 
 //==============================================================================
@@ -706,16 +706,16 @@ void SpeakerViewComponent::drawFieldSphere()
 {
     ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD;
 
-    glPushMatrix();
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    glLineWidth(1.0f);
-    glRotatef(degrees_t{ 90.0f }.get(), 1.0f, 0.0f, 0.0f);
-    glColor3f(0.8f, 0.2f, 0.1f);
+    juce::gl::glPushMatrix();
+    juce::gl::glPolygonMode(juce::gl::GL_FRONT_AND_BACK, juce::gl::GL_LINE);
+    juce::gl::glLineWidth(1.0f);
+    juce::gl::glRotatef(degrees_t{ 90.0f }.get(), 1.0f, 0.0f, 0.0f);
+    juce::gl::glColor3f(0.8f, 0.2f, 0.1f);
 
     drawSphere<16>(std::max(MAX_RADIUS, 1.0f));
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    glPopMatrix();
+    juce::gl::glPolygonMode(juce::gl::GL_FRONT_AND_BACK, juce::gl::GL_FILL);
+    juce::gl::glPopMatrix();
 }
 
 //==============================================================================
@@ -723,44 +723,44 @@ void SpeakerViewComponent::drawFieldCube()
 {
     ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD;
 
-    glPushMatrix();
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    glLineWidth(1.0f);
-    glRotatef(degrees_t{ 90.0f }.get(), 1.0f, 0.0f, 0.0f);
-    glColor3f(0.8f, 0.2f, 0.1f);
+    juce::gl::glPushMatrix();
+    juce::gl::glPolygonMode(juce::gl::GL_FRONT_AND_BACK, juce::gl::GL_LINE);
+    juce::gl::glLineWidth(1.0f);
+    juce::gl::glRotatef(degrees_t{ 90.0f }.get(), 1.0f, 0.0f, 0.0f);
+    juce::gl::glColor3f(0.8f, 0.2f, 0.1f);
     // Draw a cube when in LBAP mode.
     static constexpr auto DEFINITION = 10;
     for (auto i{ -DEFINITION }; i <= DEFINITION; i += 2) {
         auto const i_f{ narrow<float>(i) / narrow<float>(DEFINITION) };
-        glBegin(GL_LINES);
-        glVertex3f(i_f, MAX_RADIUS, -MAX_RADIUS);
-        glVertex3f(i_f, MAX_RADIUS, MAX_RADIUS);
-        glVertex3f(i_f, -MAX_RADIUS, -MAX_RADIUS);
-        glVertex3f(i_f, -MAX_RADIUS, MAX_RADIUS);
-        glVertex3f(MAX_RADIUS, -MAX_RADIUS, i_f);
-        glVertex3f(MAX_RADIUS, MAX_RADIUS, i_f);
-        glVertex3f(-MAX_RADIUS, -MAX_RADIUS, i_f);
-        glVertex3f(-MAX_RADIUS, MAX_RADIUS, i_f);
-        glVertex3f(MAX_RADIUS, i_f, -MAX_RADIUS);
-        glVertex3f(MAX_RADIUS, i_f, MAX_RADIUS);
-        glVertex3f(-MAX_RADIUS, i_f, -MAX_RADIUS);
-        glVertex3f(-MAX_RADIUS, i_f, MAX_RADIUS);
-        glVertex3f(-MAX_RADIUS, i_f, MAX_RADIUS);
-        glVertex3f(MAX_RADIUS, i_f, MAX_RADIUS);
-        glVertex3f(-MAX_RADIUS, i_f, -MAX_RADIUS);
-        glVertex3f(MAX_RADIUS, i_f, -MAX_RADIUS);
-        glVertex3f(-MAX_RADIUS, MAX_RADIUS, i_f);
-        glVertex3f(MAX_RADIUS, MAX_RADIUS, i_f);
-        glVertex3f(-MAX_RADIUS, -MAX_RADIUS, i_f);
-        glVertex3f(MAX_RADIUS, -MAX_RADIUS, i_f);
-        glVertex3f(i_f, -MAX_RADIUS, MAX_RADIUS);
-        glVertex3f(i_f, MAX_RADIUS, MAX_RADIUS);
-        glVertex3f(i_f, -MAX_RADIUS, -MAX_RADIUS);
-        glVertex3f(i_f, MAX_RADIUS, -MAX_RADIUS);
-        glEnd();
+        juce::gl::glBegin(juce::gl::GL_LINES);
+        juce::gl::glVertex3f(i_f, MAX_RADIUS, -MAX_RADIUS);
+        juce::gl::glVertex3f(i_f, MAX_RADIUS, MAX_RADIUS);
+        juce::gl::glVertex3f(i_f, -MAX_RADIUS, -MAX_RADIUS);
+        juce::gl::glVertex3f(i_f, -MAX_RADIUS, MAX_RADIUS);
+        juce::gl::glVertex3f(MAX_RADIUS, -MAX_RADIUS, i_f);
+        juce::gl::glVertex3f(MAX_RADIUS, MAX_RADIUS, i_f);
+        juce::gl::glVertex3f(-MAX_RADIUS, -MAX_RADIUS, i_f);
+        juce::gl::glVertex3f(-MAX_RADIUS, MAX_RADIUS, i_f);
+        juce::gl::glVertex3f(MAX_RADIUS, i_f, -MAX_RADIUS);
+        juce::gl::glVertex3f(MAX_RADIUS, i_f, MAX_RADIUS);
+        juce::gl::glVertex3f(-MAX_RADIUS, i_f, -MAX_RADIUS);
+        juce::gl::glVertex3f(-MAX_RADIUS, i_f, MAX_RADIUS);
+        juce::gl::glVertex3f(-MAX_RADIUS, i_f, MAX_RADIUS);
+        juce::gl::glVertex3f(MAX_RADIUS, i_f, MAX_RADIUS);
+        juce::gl::glVertex3f(-MAX_RADIUS, i_f, -MAX_RADIUS);
+        juce::gl::glVertex3f(MAX_RADIUS, i_f, -MAX_RADIUS);
+        juce::gl::glVertex3f(-MAX_RADIUS, MAX_RADIUS, i_f);
+        juce::gl::glVertex3f(MAX_RADIUS, MAX_RADIUS, i_f);
+        juce::gl::glVertex3f(-MAX_RADIUS, -MAX_RADIUS, i_f);
+        juce::gl::glVertex3f(MAX_RADIUS, -MAX_RADIUS, i_f);
+        juce::gl::glVertex3f(i_f, -MAX_RADIUS, MAX_RADIUS);
+        juce::gl::glVertex3f(i_f, MAX_RADIUS, MAX_RADIUS);
+        juce::gl::glVertex3f(i_f, -MAX_RADIUS, -MAX_RADIUS);
+        juce::gl::glVertex3f(i_f, MAX_RADIUS, -MAX_RADIUS);
+        juce::gl::glEnd();
     }
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    glPopMatrix();
+    juce::gl::glPolygonMode(juce::gl::GL_FRONT_AND_BACK, juce::gl::GL_FILL);
+    juce::gl::glPopMatrix();
 }
 
 //==============================================================================
@@ -770,8 +770,8 @@ void SpeakerViewComponent::drawLbapSpan(ViewportSourceData const & source)
 
     static auto constexpr NUM = 4;
 
-    glPointSize(4);
-    glBegin(GL_POINTS);
+    juce::gl::glPointSize(4);
+    juce::gl::glBegin(juce::gl::GL_POINTS);
 
     auto const & pos{ source.position.getCartesian() };
 
@@ -779,15 +779,15 @@ void SpeakerViewComponent::drawLbapSpan(ViewportSourceData const & source)
     for (auto i{ 1 }; i <= NUM; ++i) {
         auto const raddev{ narrow<float>(i) * source.azimuthSpan / narrow<float>(NUM - 1) };
         if (i < NUM) {
-            glVertex3f(pos.x + raddev, pos.y + raddev, pos.z);
-            glVertex3f(pos.x + raddev, pos.y - raddev, pos.z);
-            glVertex3f(pos.x - raddev, pos.y + raddev, pos.z);
-            glVertex3f(pos.x - raddev, pos.y - raddev, pos.z);
+            juce::gl::glVertex3f(pos.x + raddev, pos.y + raddev, pos.z);
+            juce::gl::glVertex3f(pos.x + raddev, pos.y - raddev, pos.z);
+            juce::gl::glVertex3f(pos.x - raddev, pos.y + raddev, pos.z);
+            juce::gl::glVertex3f(pos.x - raddev, pos.y - raddev, pos.z);
         }
-        glVertex3f(pos.x + raddev, pos.y, pos.z);
-        glVertex3f(pos.x - raddev, pos.y, pos.z);
-        glVertex3f(pos.x, pos.y + raddev, pos.z);
-        glVertex3f(pos.x, pos.y - raddev, pos.z);
+        juce::gl::glVertex3f(pos.x + raddev, pos.y, pos.z);
+        juce::gl::glVertex3f(pos.x - raddev, pos.y, pos.z);
+        juce::gl::glVertex3f(pos.x, pos.y + raddev, pos.z);
+        juce::gl::glVertex3f(pos.x, pos.y - raddev, pos.z);
     }
 
     // For all other elevation levels.
@@ -798,21 +798,21 @@ void SpeakerViewComponent::drawLbapSpan(ViewportSourceData const & source)
             for (auto i{ 1 }; i <= NUM; ++i) {
                 auto const raddev{ narrow<float>(i) * source.azimuthSpan / narrow<float>(NUM - 1) };
                 if (i < NUM) {
-                    glVertex3f(pos.x + raddev, pos.y + raddev, zTemp);
-                    glVertex3f(pos.x + raddev, pos.y - raddev, zTemp);
-                    glVertex3f(pos.x - raddev, pos.y + raddev, zTemp);
-                    glVertex3f(pos.x - raddev, pos.y - raddev, zTemp);
+                    juce::gl::glVertex3f(pos.x + raddev, pos.y + raddev, zTemp);
+                    juce::gl::glVertex3f(pos.x + raddev, pos.y - raddev, zTemp);
+                    juce::gl::glVertex3f(pos.x - raddev, pos.y + raddev, zTemp);
+                    juce::gl::glVertex3f(pos.x - raddev, pos.y - raddev, zTemp);
                 }
-                glVertex3f(pos.x + raddev, pos.y, zTemp);
-                glVertex3f(pos.x - raddev, pos.y, zTemp);
-                glVertex3f(pos.x, pos.y + raddev, zTemp);
-                glVertex3f(pos.x, pos.y - raddev, zTemp);
+                juce::gl::glVertex3f(pos.x + raddev, pos.y, zTemp);
+                juce::gl::glVertex3f(pos.x - raddev, pos.y, zTemp);
+                juce::gl::glVertex3f(pos.x, pos.y + raddev, zTemp);
+                juce::gl::glVertex3f(pos.x, pos.y - raddev, zTemp);
             }
         }
     }
 
-    glEnd();
-    glPointSize(1);
+    juce::gl::glEnd();
+    juce::gl::glPointSize(1);
 }
 
 //==============================================================================
@@ -851,113 +851,113 @@ void SpeakerViewComponent::drawSpeaker(output_patch_t const outputPatch, Viewpor
     auto const & center{ speaker.position.getCartesian() };
     auto const & vector{ speaker.position.getPolar() };
 
-    glPushMatrix();
-    glTranslatef(center.x, center.y, center.z);
-    glRotatef(degrees_t(PI + vector.azimuth).get(), 0.0f, 0.0f, 1.0f);
-    glRotatef(degrees_t{ vector.elevation }.get(), 0.0f, 1.0f, 0.0f);
-    glTranslatef(-center.x, -center.y, -center.z);
+    juce::gl::glPushMatrix();
+    juce::gl::glTranslatef(center.x, center.y, center.z);
+    juce::gl::glRotatef(degrees_t(PI + vector.azimuth).get(), 0.0f, 0.0f, 1.0f);
+    juce::gl::glRotatef(degrees_t{ vector.elevation }.get(), 0.0f, 1.0f, 0.0f);
+    juce::gl::glTranslatef(-center.x, -center.y, -center.z);
 
     CartesianVector const vertexMin{ center.x - SIZE_SPEAKER, center.y - SIZE_SPEAKER, center.z - SIZE_SPEAKER };
     CartesianVector const vertexMax{ center.x + SIZE_SPEAKER, center.y + SIZE_SPEAKER, center.z + SIZE_SPEAKER };
     auto const colour{ getSpeakerColour() };
 
     // Draw box
-    glBegin(GL_QUADS);
-    glColor4f(colour.getFloatRed(), colour.getFloatGreen(), colour.getFloatBlue(), colour.getFloatAlpha());
-    glVertex3f(vertexMin.x, vertexMin.y, vertexMax.z);
-    glVertex3f(vertexMax.x, vertexMin.y, vertexMax.z);
-    glVertex3f(vertexMax.x, vertexMax.y, vertexMax.z);
-    glVertex3f(vertexMin.x, vertexMax.y, vertexMax.z);
+    juce::gl::glBegin(juce::gl::GL_QUADS);
+    juce::gl::glColor4f(colour.getFloatRed(), colour.getFloatGreen(), colour.getFloatBlue(), colour.getFloatAlpha());
+    juce::gl::glVertex3f(vertexMin.x, vertexMin.y, vertexMax.z);
+    juce::gl::glVertex3f(vertexMax.x, vertexMin.y, vertexMax.z);
+    juce::gl::glVertex3f(vertexMax.x, vertexMax.y, vertexMax.z);
+    juce::gl::glVertex3f(vertexMin.x, vertexMax.y, vertexMax.z);
 
-    glVertex3f(vertexMax.x, vertexMin.y, vertexMax.z);
-    glVertex3f(vertexMax.x, vertexMin.y, vertexMin.z);
-    glVertex3f(vertexMax.x, vertexMax.y, vertexMin.z);
-    glVertex3f(vertexMax.x, vertexMax.y, vertexMax.z);
+    juce::gl::glVertex3f(vertexMax.x, vertexMin.y, vertexMax.z);
+    juce::gl::glVertex3f(vertexMax.x, vertexMin.y, vertexMin.z);
+    juce::gl::glVertex3f(vertexMax.x, vertexMax.y, vertexMin.z);
+    juce::gl::glVertex3f(vertexMax.x, vertexMax.y, vertexMax.z);
 
-    glVertex3f(vertexMin.x, vertexMax.y, vertexMax.z);
-    glVertex3f(vertexMax.x, vertexMax.y, vertexMax.z);
-    glVertex3f(vertexMax.x, vertexMax.y, vertexMin.z);
-    glVertex3f(vertexMin.x, vertexMax.y, vertexMin.z);
+    juce::gl::glVertex3f(vertexMin.x, vertexMax.y, vertexMax.z);
+    juce::gl::glVertex3f(vertexMax.x, vertexMax.y, vertexMax.z);
+    juce::gl::glVertex3f(vertexMax.x, vertexMax.y, vertexMin.z);
+    juce::gl::glVertex3f(vertexMin.x, vertexMax.y, vertexMin.z);
 
-    glVertex3f(vertexMin.x, vertexMin.y, vertexMin.z);
-    glVertex3f(vertexMin.x, vertexMax.y, vertexMin.z);
-    glVertex3f(vertexMax.x, vertexMax.y, vertexMin.z);
-    glVertex3f(vertexMax.x, vertexMin.y, vertexMin.z);
+    juce::gl::glVertex3f(vertexMin.x, vertexMin.y, vertexMin.z);
+    juce::gl::glVertex3f(vertexMin.x, vertexMax.y, vertexMin.z);
+    juce::gl::glVertex3f(vertexMax.x, vertexMax.y, vertexMin.z);
+    juce::gl::glVertex3f(vertexMax.x, vertexMin.y, vertexMin.z);
 
-    glVertex3f(vertexMin.x, vertexMin.y, vertexMin.z);
-    glVertex3f(vertexMax.x, vertexMin.y, vertexMin.z);
-    glVertex3f(vertexMax.x, vertexMin.y, vertexMax.z);
-    glVertex3f(vertexMin.x, vertexMin.y, vertexMax.z);
+    juce::gl::glVertex3f(vertexMin.x, vertexMin.y, vertexMin.z);
+    juce::gl::glVertex3f(vertexMax.x, vertexMin.y, vertexMin.z);
+    juce::gl::glVertex3f(vertexMax.x, vertexMin.y, vertexMax.z);
+    juce::gl::glVertex3f(vertexMin.x, vertexMin.y, vertexMax.z);
 
-    glVertex3f(vertexMin.x, vertexMin.y, vertexMin.z);
-    glVertex3f(vertexMin.x, vertexMin.y, vertexMax.z);
-    glVertex3f(vertexMin.x, vertexMax.y, vertexMax.z);
-    glVertex3f(vertexMin.x, vertexMax.y, vertexMin.z);
+    juce::gl::glVertex3f(vertexMin.x, vertexMin.y, vertexMin.z);
+    juce::gl::glVertex3f(vertexMin.x, vertexMin.y, vertexMax.z);
+    juce::gl::glVertex3f(vertexMin.x, vertexMax.y, vertexMax.z);
+    juce::gl::glVertex3f(vertexMin.x, vertexMax.y, vertexMin.z);
 
-    glEnd();
+    juce::gl::glEnd();
 
     // Draw selection wireframe
     if (speaker.isSelected) {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        glLineWidth(3.0f);
-        glColor3f(0.0f, 0.0f, 0.0f);
-        glBegin(GL_LINES);
+        juce::gl::glPolygonMode(juce::gl::GL_FRONT_AND_BACK, juce::gl::GL_LINE);
+        juce::gl::glLineWidth(3.0f);
+        juce::gl::glColor3f(0.0f, 0.0f, 0.0f);
+        juce::gl::glBegin(juce::gl::GL_LINES);
 
         static constexpr auto OVER = 0.001f;
 
-        glVertex3f(vertexMin.x - OVER, vertexMin.y - OVER, vertexMin.z - OVER);
-        glVertex3f(vertexMin.x - OVER, vertexMin.y - OVER, vertexMax.z + OVER);
+        juce::gl::glVertex3f(vertexMin.x - OVER, vertexMin.y - OVER, vertexMin.z - OVER);
+        juce::gl::glVertex3f(vertexMin.x - OVER, vertexMin.y - OVER, vertexMax.z + OVER);
 
-        glVertex3f(vertexMax.x + OVER, vertexMin.y - OVER, vertexMin.z - OVER);
-        glVertex3f(vertexMax.x + OVER, vertexMin.y - OVER, vertexMax.z + OVER);
+        juce::gl::glVertex3f(vertexMax.x + OVER, vertexMin.y - OVER, vertexMin.z - OVER);
+        juce::gl::glVertex3f(vertexMax.x + OVER, vertexMin.y - OVER, vertexMax.z + OVER);
 
-        glVertex3f(vertexMax.x + OVER, vertexMax.y + OVER, vertexMin.z - OVER);
-        glVertex3f(vertexMax.x + OVER, vertexMax.y + OVER, vertexMax.z + OVER);
+        juce::gl::glVertex3f(vertexMax.x + OVER, vertexMax.y + OVER, vertexMin.z - OVER);
+        juce::gl::glVertex3f(vertexMax.x + OVER, vertexMax.y + OVER, vertexMax.z + OVER);
 
-        glVertex3f(vertexMin.x - OVER, vertexMax.y + OVER, vertexMin.z - OVER);
-        glVertex3f(vertexMin.x - OVER, vertexMax.y + OVER, vertexMax.z + OVER);
+        juce::gl::glVertex3f(vertexMin.x - OVER, vertexMax.y + OVER, vertexMin.z - OVER);
+        juce::gl::glVertex3f(vertexMin.x - OVER, vertexMax.y + OVER, vertexMax.z + OVER);
 
-        glVertex3f(vertexMin.x - OVER, vertexMin.y - OVER, vertexMin.z - OVER);
-        glVertex3f(vertexMax.x + OVER, vertexMin.y - OVER, vertexMin.z - OVER);
+        juce::gl::glVertex3f(vertexMin.x - OVER, vertexMin.y - OVER, vertexMin.z - OVER);
+        juce::gl::glVertex3f(vertexMax.x + OVER, vertexMin.y - OVER, vertexMin.z - OVER);
 
-        glVertex3f(vertexMin.x - OVER, vertexMin.y - OVER, vertexMax.z + OVER);
-        glVertex3f(vertexMax.x + OVER, vertexMin.y - OVER, vertexMax.z + OVER);
+        juce::gl::glVertex3f(vertexMin.x - OVER, vertexMin.y - OVER, vertexMax.z + OVER);
+        juce::gl::glVertex3f(vertexMax.x + OVER, vertexMin.y - OVER, vertexMax.z + OVER);
 
-        glVertex3f(vertexMin.x - OVER, vertexMax.y + OVER, vertexMin.z - OVER);
-        glVertex3f(vertexMax.x + OVER, vertexMax.y + OVER, vertexMin.z - OVER);
+        juce::gl::glVertex3f(vertexMin.x - OVER, vertexMax.y + OVER, vertexMin.z - OVER);
+        juce::gl::glVertex3f(vertexMax.x + OVER, vertexMax.y + OVER, vertexMin.z - OVER);
 
-        glVertex3f(vertexMin.x - OVER, vertexMax.y + OVER, vertexMax.z + OVER);
-        glVertex3f(vertexMax.x + OVER, vertexMax.y + OVER, vertexMax.z + OVER);
+        juce::gl::glVertex3f(vertexMin.x - OVER, vertexMax.y + OVER, vertexMax.z + OVER);
+        juce::gl::glVertex3f(vertexMax.x + OVER, vertexMax.y + OVER, vertexMax.z + OVER);
 
-        glVertex3f(vertexMin.x - OVER, vertexMin.y - OVER, vertexMin.z - OVER);
-        glVertex3f(vertexMin.x - OVER, vertexMax.y + OVER, vertexMin.z - OVER);
+        juce::gl::glVertex3f(vertexMin.x - OVER, vertexMin.y - OVER, vertexMin.z - OVER);
+        juce::gl::glVertex3f(vertexMin.x - OVER, vertexMax.y + OVER, vertexMin.z - OVER);
 
-        glVertex3f(vertexMin.x - OVER, vertexMin.y - OVER, vertexMax.z + OVER);
-        glVertex3f(vertexMin.x - OVER, vertexMax.y + OVER, vertexMax.z + OVER);
+        juce::gl::glVertex3f(vertexMin.x - OVER, vertexMin.y - OVER, vertexMax.z + OVER);
+        juce::gl::glVertex3f(vertexMin.x - OVER, vertexMax.y + OVER, vertexMax.z + OVER);
 
-        glVertex3f(vertexMax.x + OVER, vertexMin.y - OVER, vertexMin.z - OVER);
-        glVertex3f(vertexMax.x + OVER, vertexMax.y + OVER, vertexMin.z - OVER);
+        juce::gl::glVertex3f(vertexMax.x + OVER, vertexMin.y - OVER, vertexMin.z - OVER);
+        juce::gl::glVertex3f(vertexMax.x + OVER, vertexMax.y + OVER, vertexMin.z - OVER);
 
-        glVertex3f(vertexMax.x + OVER, vertexMin.y - OVER, vertexMax.z + OVER);
-        glVertex3f(vertexMax.x + OVER, vertexMax.y + OVER, vertexMax.z + OVER);
+        juce::gl::glVertex3f(vertexMax.x + OVER, vertexMin.y - OVER, vertexMax.z + OVER);
+        juce::gl::glVertex3f(vertexMax.x + OVER, vertexMax.y + OVER, vertexMax.z + OVER);
 
-        glEnd();
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        juce::gl::glEnd();
+        juce::gl::glPolygonMode(juce::gl::GL_FRONT_AND_BACK, juce::gl::GL_FILL);
     }
 
     // draw direction line
-    glLineWidth(2.0f);
-    glBegin(GL_LINES);
+    juce::gl::glLineWidth(2.0f);
+    juce::gl::glBegin(juce::gl::GL_LINES);
     if (speaker.isSelected) {
-        glColor4f(0.0f, 0.0f, 0.0f, alpha);
+        juce::gl::glColor4f(0.0f, 0.0f, 0.0f, alpha);
     } else {
-        glColor4f(0.37f, 0.37f, 0.37f, alpha);
+        juce::gl::glColor4f(0.37f, 0.37f, 0.37f, alpha);
     }
-    glVertex3f(center.x + SIZE_SPEAKER, center.y, center.z);
-    glVertex3f(center.x + 0.12f, center.y, center.z);
-    glEnd();
+    juce::gl::glVertex3f(center.x + SIZE_SPEAKER, center.y, center.z);
+    juce::gl::glVertex3f(center.x + 0.12f, center.y, center.z);
+    juce::gl::glEnd();
 
-    glPopMatrix();
+    juce::gl::glPopMatrix();
 
     if (mData.config.viewSettings.showSpeakerNumbers) {
         auto posT{ speaker.position.getCartesian() };

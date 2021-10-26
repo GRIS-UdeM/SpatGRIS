@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="MXmiSb" name="SpatGRIS" projectType="guiapp" version="3.0.3"
+<JUCERPROJECT id="MXmiSb" name="SpatGRIS" projectType="guiapp" version="3.1"
               bundleIdentifier="ca.umontreal.musique.gris.spatgris" includeBinaryInAppConfig="0"
               companyName="GRIS - UdeM" projectLineFeed="&#10;" cppLanguageStandard="17"
               jucerFormatVersion="1" displaySplashScreen="1" maxBinaryFileSize="1048576"
-              addUsingNamespaceToJuceHeader="0" defines="JUCE_DISPLAY_SPLASH_SCREEN=0">
+              addUsingNamespaceToJuceHeader="0" defines="JUCE_DISPLAY_SPLASH_SCREEN=0&#10;JUCE_MODAL_LOOPS_PERMITTED=1">
   <MAINGROUP id="lsxaKA" name="SpatGRIS">
     <GROUP id="{6EAF4FF6-A4F0-94E9-AA8A-98D9BF95CA11}" name="Resources">
       <FILE id="HYWx0V" name="JAS.jpil" compile="0" resource="1" file="Resources/JAS.jpil"
@@ -320,7 +320,7 @@
                iosDevelopmentTeamID="Q2A837SX87">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" osxCompatibility="10.11 SDK" isDebug="1" optimisation="1"
-                       targetName="SpatGRIS" headerPath="../../glm" fastMath="1"/>
+                       targetName="SpatGRIS" headerPath="../../glm" fastMath="1" macOSDeploymentTarget="10.11"/>
         <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="SpatGRIS"
                        headerPath="../../glm" osxArchitecture="Native" fastMath="1"/>
       </CONFIGURATIONS>
