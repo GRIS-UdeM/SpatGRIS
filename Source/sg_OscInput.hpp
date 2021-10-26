@@ -31,7 +31,13 @@ class OscInput final
     , private juce::OSCReceiver::Listener<juce::OSCReceiver::RealtimeCallback>
     , public juce::ActionBroadcaster
 {
-    enum class MessageType { invalid, sourcePosition, legacySourcePosition, resetPosition };
+    enum class MessageType {
+        invalid,
+        sourcePosition,
+        resetSourcePosition,
+        legacySourcePosition,
+        legacyResetSourcePosition
+    };
 
     MainContentComponent & mMainContentComponent;
 
@@ -68,6 +74,7 @@ private:
                                                float verticalSpan) const noexcept;
     void processLegacySourcePositionMessage(juce::OSCMessage const & message) const noexcept;
     void processSourceResetPositionMessage(juce::OSCMessage const & message) const noexcept;
+    void processLegacySourceResetPositionMessage(juce::OSCMessage const & message) const noexcept;
     //==============================================================================
     void oscMessageReceived(juce::OSCMessage const & message) override;
     void oscBundleReceived(juce::OSCBundle const & bundle) override;

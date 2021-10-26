@@ -83,31 +83,61 @@ make CONFIG=Release CXX=clang++-10 -j 8
 
 SpatGRIS must be launched from the project root directory.
 
-## Using alternative OSC interfaces
+## Using custom OSC interfaces
 
-OSC can be sent directly to SpatGRIS without going through ControlGRIS.
+OSC can be sent directly to SpatGRIS without having to use ControlGRIS.
 
-The server address is `/spat/serv`.
+__Please note that angles are always measured clockwise, starting from the upstage center (the positive Y direction).__
 
-#### Moving a source
+The server address is always `/spat/serv`.
 
-SpatGRIS expects an `iffffff` list (1 integer and 6 floats).
+##### `pol` moves a source using polar coordinates in radians.
 
-1. (i) Source index (starting at 0).
-2. (f) Azimuth angle (between 0 and 2π).
-3. (f) Elevation :
-	- In DOME mode : elevation angle (between 0 and π/2, where 0 is the pole).
-	- In CUBE mode : source height (between 0 and π/2, where 0 is the ground level and π/2 is the maximum height).
-4. (f) Azimuth span (between 0 and 2).
-5. (f) Elevation span (between 0 and 0.5).
-6. (f) Radius :
-	- In DOME mode : __unused__ : must always be set to 0.
-	- In CUBE mode : the distance between the origin and the source __projected onto the ground plane__. For example, this means that a source located at [1,0,0.5] would have a radius of 1. 
-7. (f) __reserved__ : must always be set to 0.
+| #parameter | type   | allowed values | meaning         |
+| :---       | :---   | :---           | :---            |
+| 1          | string | `pol`          | coordinate type |
+| 2          | int    | [1, 128]       | Source index    |
+| 3          | float  | any            | azimuth angle   |
+| 4          | float  | [0, π/2]       | elevation angle |
+| 5          | float  | [0, 2.56]      | radius          |
+| 6          | float  | [0, 1]         | Horizontal span |
+| 7          | float  | [0, 1]         | Vertical span   |
 
-#### Resetting a source
+ex : The message `/spat/serv pol 7 0.0 0.78 0.5 0.1 0.2` moves the source #7 in the front at half elevation and placed at half the distance from the origin, with an horizontal span of 10% and a vertical span of 20%.
 
-SpatGRIS expects an `si` list (1 string and 1 integer).
+#### `deg` moves a source using polar coordinates in degrees.
 
-1. (s) The string "reset"
-2. (i) The source index (starting at 0).
+| index | type   | allowed values | meaning         |
+| :---  | :---   | :---           | :---            |
+| 1     | string | `deg`          | coordinate type |
+| 2     | int    | [1, 128]       | Source index    |
+| 3     | float  | any            | azimuth angle   |
+| 4     | float  | [0, 90]        | elevation angle |
+| 5     | float  | [0, 2.56]      | radius          |
+| 6     | float  | [0, 1]         | Horizontal span |
+| 7     | float  | [0, 1]         | Vertical span   |
+
+ex : The message `/spat/serv deg 7 -90.0 45.0 0.5 0.1 0.2` moves the source #7 at the extreme left, at half elevation and half the distance of the space, with an horizontal span of 10% and a vertical span of 20%.
+
+#### `car` moves a source using cartesian coordinates.
+
+| index | type   | allowed values | meaning         |
+| :---  | :---   | :---           | :---            |
+| 1     | string | `car`          | coordinate type |
+| 2     | int    | [1, 128]       | Source index    |
+| 3     | float  | [-1.66, 1.66]  | x (left/right)  |
+| 4     | float  | [-1.66, 1.66]  | y (back/front)  |
+| 5     | float  | [0, 1]         | z (down/up)     |
+| 6     | float  | [0, 1]         | Horizontal span |
+| 7     | float  | [0, 1]         | Vertical span   |
+
+ex : The message `/spat/serv car 7 1.0 1.0 1.0 0.0 0.0` moves the source #7 at the top right corner, with no horizontal or vertical spans.
+
+#### `clr` clears a source's position.
+
+| index | type   | allowed values | meaning      |
+| :---  | :---   | :---           | :---         |
+| 1     | string |`clr`          | clear        |
+| 2     | int    | [1, 128]       | Source index |
+
+ex : The message `spat/serv clr 7` clears the seventh source's position.

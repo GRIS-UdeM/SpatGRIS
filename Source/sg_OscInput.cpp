@@ -133,6 +133,20 @@ void OscInput::processLegacySourcePositionMessage(juce::OSCMessage const & messa
 //==============================================================================
 void OscInput::processSourceResetPositionMessage(juce::OSCMessage const & message) const noexcept
 {
+    jassert(message[0].getString() == "clr");
+
+    source_index_t const sourceIndex{ message[1].getInt32() };
+    if (!LEGAL_SOURCE_INDEX_RANGE.contains(sourceIndex)) {
+        jassertfalse;
+        return;
+    }
+
+    mMainContentComponent.resetSourcePosition(sourceIndex);
+}
+
+//==============================================================================
+void OscInput::processLegacySourceResetPositionMessage(juce::OSCMessage const & message) const noexcept
+{
     if (message[0].getString() == juce::String{ "reset" }) {
         // string "reset", int voice_to_reset.
         source_index_t const sourceIndex{ message[1].getInt32() + 1 };
@@ -167,8 +181,14 @@ OscInput::MessageType OscInput::getMessageType(juce::OSCMessage const & message)
 
     switch (message.size()) {
     case 2:
-        if (OSC_ARGUMENT_IS_STRING(message[0]) && OSC_ARGUMENT_IS_INT(message[1])) {
-            return MessageType::resetPosition;
+        if (!OSC_ARGUMENT_IS_STRING(message[0]) || !OSC_ARGUMENT_IS_INT(message[1])) {
+            break;
+        }
+        if (message[0].getString() == "reset") {
+            return MessageType::legacyResetSourcePosition;
+        }
+        if (message[0].getString() == "clr") {
+            return MessageType::resetSourcePosition;
         }
         break;
     case 7:
@@ -196,11 +216,14 @@ void OscInput::oscMessageReceived(const juce::OSCMessage & message)
         case MessageType::legacySourcePosition:
             processLegacySourcePositionMessage(message);
             break;
-        case MessageType::resetPosition:
-            processSourceResetPositionMessage(message);
+        case MessageType::legacyResetSourcePosition:
+            processLegacySourceResetPositionMessage(message);
             break;
         case MessageType::sourcePosition:
             processSourcePositionMessage(message);
+            break;
+        case MessageType::resetSourcePosition:
+            processSourceResetPositionMessage(message);
             break;
         case MessageType::invalid:
             jassertfalse;
