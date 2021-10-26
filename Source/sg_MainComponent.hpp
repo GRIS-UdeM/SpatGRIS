@@ -34,10 +34,12 @@
 #include "sg_OwnedMap.hpp"
 #include "sg_PrepareToRecordWindow.hpp"
 #include "sg_SettingsWindow.hpp"
+#include "sg_SourceSliceComponent.hpp"
 #include "sg_SpatButton.hpp"
+#include "sg_SpeakerSliceComponent.hpp"
 #include "sg_SpeakerViewComponent.hpp"
+#include "sg_StereoSliceComponent.hpp"
 #include "sg_TitledComponent.hpp"
-#include "sg_VuMeterComponent.hpp"
 #include "sg_constants.hpp"
 
 class MainWindow;
@@ -61,8 +63,8 @@ class MainContentComponent final
     : public juce::Component
     , public juce::MenuBarModel
     , public juce::ApplicationCommandTarget
-    , public SourceVuMeterComponent::Owner
-    , public SpeakerVuMeterComponent::Owner
+    , public SourceSliceComponent::Listener
+    , public SpeakerSliceComponent::Listener
     , public ControlPanel::Listener
     , private SpatButton::Listener
     , private AudioDeviceManagerListener
@@ -74,9 +76,9 @@ class MainContentComponent final
 
     std::unique_ptr<AudioProcessor> mAudioProcessor{};
 
-    OwnedMap<source_index_t, SourceVuMeterComponent, MAX_NUM_SOURCES> mSourceVuMeterComponents{};
-    OwnedMap<output_patch_t, SpeakerVuMeterComponent, MAX_NUM_SPEAKERS> mSpeakerVuMeterComponents{};
-    juce::OwnedArray<StereoVuMeterComponent> mStereoVuMeterComponents{};
+    OwnedMap<source_index_t, SourceSliceComponent, MAX_NUM_SOURCES> mSourceSliceComponents{};
+    OwnedMap<output_patch_t, SpeakerSliceComponent, MAX_NUM_SPEAKERS> mSpeakerSliceComponents{};
+    juce::OwnedArray<StereoSliceComponent> mStereoSliceComponents{};
 
     std::unique_ptr<OscInput> mOscInput{};
 
@@ -150,18 +152,18 @@ public:
 
     auto const & getData() const noexcept { return mData; }
     auto const & getLock() const { return mLock; }
-    [[nodiscard]] SpeakersData const & getSpeakersData() const override { return mData.speakerSetup.speakers; }
 
-    void setSourcePosition(source_index_t sourceIndex,
-                           radians_t azimuth,
-                           radians_t elevation,
-                           float length,
-                           float newAzimuthSpan,
-                           float newZenithSpan);
+    void setSourcePositionLegacy(source_index_t sourceIndex,
+                                 radians_t azimuth,
+                                 radians_t elevation,
+                                 float length,
+                                 float newAzimuthSpan,
+                                 float newZenithSpan);
+    void setSourcePosition(source_index_t sourceIndex, Position position, float azimuthSpan, float zenithSpan);
 
     void resetSourcePosition(source_index_t sourceIndex);
 
-    void speakerOnlyDirectOutChanged(output_patch_t outputPatch, bool state);
+    void speakerDirectOutOnlyChanged(output_patch_t outputPatch, bool state);
     void speakerOutputPatchChanged(output_patch_t oldOutputPatch, output_patch_t newOutputPatch);
     void setSpeakerGain(output_patch_t outputPatch, dbfs_t gain);
     void setSpeakerHighPassFreq(output_patch_t outputPatch, hz_t freq);
@@ -174,6 +176,7 @@ public:
     void setSpeakerState(output_patch_t outputPatch, PortState state) override;
     void setSourceDirectOut(source_index_t sourceIndex, tl::optional<output_patch_t> outputPatch) override;
     void setShowTriplets(bool state);
+    void setSourceHybridSpatMode(source_index_t sourceIndex, SpatMode spatMode) override;
 
     template<typename T>
     void setSpeakerPosition(output_patch_t const outputPatch, T const & position)
@@ -251,15 +254,15 @@ private:
     void handleShowSourceLevel();
     void handleShowSpeakerLevel();
     void handleShowSphere();
-    void handleResetInputPositions();
+    void handleResetSourcesPositions();
     void handleResetMeterClipping();
     void handleColorizeInputs();
     void handleSaveSpeakerSetup();
     void handleSaveSpeakerSetupAs();
     void handleShowOscMonitorWindow();
 
-    void refreshSourceVuMeterComponents();
-    void refreshSpeakerVuMeterComponents();
+    void refreshSourceSlices();
+    void refreshSpeakerSlices();
 
     void updateSourceSpatData(source_index_t sourceIndex);
 

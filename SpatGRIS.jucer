@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="MXmiSb" name="SpatGRIS" projectType="guiapp" version="3.0.3"
+<JUCERPROJECT id="MXmiSb" name="SpatGRIS" projectType="guiapp" version="3.1.0"
               bundleIdentifier="ca.umontreal.musique.gris.spatgris" includeBinaryInAppConfig="0"
               companyName="GRIS - UdeM" projectLineFeed="&#10;" cppLanguageStandard="17"
               jucerFormatVersion="1" displaySplashScreen="1" maxBinaryFileSize="1048576"
-              addUsingNamespaceToJuceHeader="0" defines="JUCE_DISPLAY_SPLASH_SCREEN=0">
+              addUsingNamespaceToJuceHeader="0" defines="JUCE_DISPLAY_SPLASH_SCREEN=0&#10;JUCE_MODAL_LOOPS_PERMITTED=1">
   <MAINGROUP id="lsxaKA" name="SpatGRIS">
     <GROUP id="{6EAF4FF6-A4F0-94E9-AA8A-98D9BF95CA11}" name="Resources">
       <FILE id="HYWx0V" name="JAS.jpil" compile="0" resource="1" file="Resources/JAS.jpil"
@@ -48,6 +48,10 @@
                 file="Source/sg_HrtfSpatAlgorithm.cpp"/>
           <FILE id="tzcPNu" name="sg_HrtfSpatAlgorithm.hpp" compile="0" resource="0"
                 file="Source/sg_HrtfSpatAlgorithm.hpp"/>
+          <FILE id="bcGZDB" name="sg_HybridSpatAlgorithm.cpp" compile="1" resource="0"
+                file="Source/sg_HybridSpatAlgorithm.cpp"/>
+          <FILE id="ncBTxz" name="sg_HybridSpatAlgorithm.hpp" compile="0" resource="0"
+                file="Source/sg_HybridSpatAlgorithm.hpp"/>
           <FILE id="wYF40j" name="sg_LbapSpatAlgorithm.cpp" compile="1" resource="0"
                 file="Source/sg_LbapSpatAlgorithm.cpp"/>
           <FILE id="u2DKQo" name="sg_LbapSpatAlgorithm.hpp" compile="0" resource="0"
@@ -150,6 +154,52 @@
       <GROUP id="{45A32A71-2629-205C-304E-C1093B6D3F59}" name="UI">
         <GROUP id="{C6903A38-7C1A-A838-2840-26A1ED5DB75F}" name="Components">
           <GROUP id="{76FB1BFC-CB57-4DB9-4F29-106D07BDDB8A}" name="MinSizedComponents">
+            <GROUP id="{C74FFF63-58F0-65E8-62CE-4B3CEC945435}" name="Slices">
+              <FILE id="EPNfbe" name="sg_AbstractSliceComponent.cpp" compile="1"
+                    resource="0" file="Source/sg_AbstractSliceComponent.cpp"/>
+              <FILE id="ZYddrt" name="sg_AbstractSliceComponent.hpp" compile="0"
+                    resource="0" file="Source/sg_AbstractSliceComponent.hpp"/>
+              <FILE id="ckGmmQ" name="sg_DirectOutSelectorComponent.cpp" compile="1"
+                    resource="0" file="Source/sg_DirectOutSelectorComponent.cpp"/>
+              <FILE id="kGggoM" name="sg_DirectOutSelectorComponent.hpp" compile="0"
+                    resource="0" file="Source/sg_DirectOutSelectorComponent.hpp"/>
+              <FILE id="L0cgsG" name="sg_HybridSpatModeSelectorComponent.cpp" compile="1"
+                    resource="0" file="Source/sg_HybridSpatModeSelectorComponent.cpp"/>
+              <FILE id="HYdMkR" name="sg_HybridSpatModeSelectorComponent.hpp" compile="0"
+                    resource="0" file="Source/sg_HybridSpatModeSelectorComponent.hpp"/>
+              <FILE id="Mk6cuu" name="sg_MuteSoloComponent.cpp" compile="1" resource="0"
+                    file="Source/sg_MuteSoloComponent.cpp"/>
+              <FILE id="K2kV5Q" name="sg_MuteSoloComponent.hpp" compile="0" resource="0"
+                    file="Source/sg_MuteSoloComponent.hpp"/>
+              <FILE id="k7agLg" name="sg_SmallToggleButton.cpp" compile="1" resource="0"
+                    file="Source/sg_SmallToggleButton.cpp"/>
+              <FILE id="F9eSOc" name="sg_SmallToggleButton.hpp" compile="0" resource="0"
+                    file="Source/sg_SmallToggleButton.hpp"/>
+              <FILE id="dHBPJg" name="sg_SourceIdButton.cpp" compile="1" resource="0"
+                    file="Source/sg_SourceIdButton.cpp"/>
+              <FILE id="jZJZsw" name="sg_SourceIdButton.hpp" compile="0" resource="0"
+                    file="Source/sg_SourceIdButton.hpp"/>
+              <FILE id="aoRTQy" name="sg_SourceSliceComponent.cpp" compile="1" resource="0"
+                    file="Source/sg_SourceSliceComponent.cpp"/>
+              <FILE id="zTYPdC" name="sg_SourceSliceComponent.hpp" compile="0" resource="0"
+                    file="Source/sg_SourceSliceComponent.hpp"/>
+              <FILE id="JQEF1K" name="sg_SpeakerIdButton.cpp" compile="1" resource="0"
+                    file="Source/sg_SpeakerIdButton.cpp"/>
+              <FILE id="kNGO0a" name="sg_SpeakerIdButton.hpp" compile="0" resource="0"
+                    file="Source/sg_SpeakerIdButton.hpp"/>
+              <FILE id="L9CQEO" name="sg_SpeakerSliceComponent.cpp" compile="1" resource="0"
+                    file="Source/sg_SpeakerSliceComponent.cpp"/>
+              <FILE id="HjFfte" name="sg_SpeakerSliceComponent.hpp" compile="0" resource="0"
+                    file="Source/sg_SpeakerSliceComponent.hpp"/>
+              <FILE id="YK6BUq" name="sg_StereoSliceComponent.cpp" compile="1" resource="0"
+                    file="Source/sg_StereoSliceComponent.cpp"/>
+              <FILE id="D0doxJ" name="sg_StereoSliceComponent.hpp" compile="0" resource="0"
+                    file="Source/sg_StereoSliceComponent.hpp"/>
+              <FILE id="UMeTuN" name="sg_VuMeterComponent.cpp" compile="1" resource="0"
+                    file="Source/sg_VuMeterComponent.cpp"/>
+              <FILE id="P02EOB" name="sg_VuMeterComponent.hpp" compile="0" resource="0"
+                    file="Source/sg_VuMeterComponent.hpp"/>
+            </GROUP>
             <FILE id="FXUVD7" name="sg_ControlPanel.cpp" compile="1" resource="0"
                   file="Source/sg_ControlPanel.cpp"/>
             <FILE id="Q33KJr" name="sg_ControlPanel.hpp" compile="0" resource="0"
@@ -203,10 +253,6 @@
                 file="Source/sg_SpeakerViewComponent.cpp"/>
           <FILE id="rQi0F2" name="sg_SpeakerViewComponent.hpp" compile="0" resource="0"
                 file="Source/sg_SpeakerViewComponent.hpp"/>
-          <FILE id="Mqrk7X" name="sg_VuMeterComponent.cpp" compile="1" resource="0"
-                file="Source/sg_VuMeterComponent.cpp"/>
-          <FILE id="HhCAnz" name="sg_VuMeterComponent.hpp" compile="0" resource="0"
-                file="Source/sg_VuMeterComponent.hpp"/>
         </GROUP>
         <GROUP id="{202AE941-C78E-5F46-CB31-EA8A544A343C}" name="Windows">
           <FILE id="SHGT1U" name="sg_AboutWindow.cpp" compile="1" resource="0"
@@ -274,7 +320,7 @@
                iosDevelopmentTeamID="Q2A837SX87">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" osxCompatibility="10.11 SDK" isDebug="1" optimisation="1"
-                       targetName="SpatGRIS" headerPath="../../glm" fastMath="1"/>
+                       targetName="SpatGRIS" headerPath="../../glm" fastMath="1" macOSDeploymentTarget="10.11"/>
         <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="SpatGRIS"
                        headerPath="../../glm" osxArchitecture="Native" fastMath="1"/>
       </CONFIGURATIONS>

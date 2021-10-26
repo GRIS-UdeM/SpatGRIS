@@ -29,9 +29,9 @@ static auto const COLOR_1 = juce::Colours::blue.withBrightness(0.3f).withSaturat
 static auto const COLOR_2 = juce::Colours::blue.withBrightness(0.2f).withSaturation(0.2f);
 
 //==============================================================================
-InfoPanel::InfoPanel(MainContentComponent & mainContentComponent, GrisLookAndFeel & lookAndFeel)
+InfoPanel::InfoPanel(MainContentComponent & mainContentComponent, GrisLookAndFeel const & lookAndFeel)
     : mMainContentComponent(mainContentComponent)
-    , mLookAndFeel(lookAndFeel)
+
 {
     auto const primeLabel = [&](juce::Label & label) {
         label.setJustificationType(juce::Justification::centred);

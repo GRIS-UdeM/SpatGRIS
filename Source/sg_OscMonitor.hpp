@@ -24,6 +24,7 @@
 class MainContentComponent;
 class GrisLookAndFeel;
 
+//==============================================================================
 class OscMonitorComponent final : public juce::Component
 {
     juce::TextEditor mTextEditor{};

@@ -19,15 +19,17 @@
 
 #include "sg_VuMeterComponent.hpp"
 
-#include "sg_LogicStrucs.hpp"
-#include "sg_MainComponent.hpp"
+#include "sg_GrisLookAndFeel.hpp"
+#include "sg_Narrow.hpp"
+#include "sg_constants.hpp"
 
-auto constexpr VU_METER_COMPONENT_WIDTH = 25;
-
-juce::String const SourceVuMeterComponent::NO_DIRECT_OUT_TEXT = "-";
+namespace
+{
+constexpr auto VU_METER_MIN_HEIGHT = 140;
+}
 
 //==============================================================================
-void LevelBox::resized()
+void VuMeterComponent::resized()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -88,7 +90,7 @@ void LevelBox::resized()
 }
 
 //==============================================================================
-void LevelBox::paint(juce::Graphics & g)
+void VuMeterComponent::paint(juce::Graphics & g)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -118,7 +120,7 @@ void LevelBox::paint(juce::Graphics & g)
 }
 
 //==============================================================================
-void LevelBox::mouseDown(juce::MouseEvent const & e)
+void VuMeterComponent::mouseDown(juce::MouseEvent const & e)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -129,7 +131,19 @@ void LevelBox::mouseDown(juce::MouseEvent const & e)
 }
 
 //==============================================================================
-void LevelBox::resetClipping()
+int VuMeterComponent::getMinWidth() const noexcept
+{
+    return SLICES_WIDTH;
+}
+
+//==============================================================================
+int VuMeterComponent::getMinHeight() const noexcept
+{
+    return VU_METER_MIN_HEIGHT;
+}
+
+//==============================================================================
+void VuMeterComponent::resetClipping()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -138,7 +152,7 @@ void LevelBox::resetClipping()
 }
 
 //==============================================================================
-void LevelBox::setLevel(dbfs_t const level)
+void VuMeterComponent::setLevel(dbfs_t const level)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -157,7 +171,7 @@ void LevelBox::setLevel(dbfs_t const level)
 }
 
 //==============================================================================
-void LevelBox::setMuted(bool const muted)
+void VuMeterComponent::setMuted(bool const muted)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -166,376 +180,4 @@ void LevelBox::setMuted(bool const muted)
     }
     mIsMuted = muted;
     repaint();
-}
-
-//==============================================================================
-AbstractVuMeterComponent::AbstractVuMeterComponent(juce::String const & id, SmallGrisLookAndFeel & lookAndFeel)
-    : mLookAndFeel(lookAndFeel)
-    , mLevelBox(lookAndFeel)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    auto const initColors = [&](Component & component) {
-        component.setLookAndFeel(&lookAndFeel);
-        component.setColour(juce::Label::textColourId, lookAndFeel.getFontColour());
-        component.setColour(juce::TextButton::textColourOnId, lookAndFeel.getFontColour());
-        component.setColour(juce::TextButton::textColourOffId, lookAndFeel.getFontColour());
-        component.setColour(juce::TextButton::buttonColourId, lookAndFeel.getBackgroundColour());
-        addAndMakeVisible(component);
-    };
-
-    auto const initButton = [&](juce::Button & button) {
-        button.addListener(this);
-        button.addMouseListener(this, true);
-        initColors(button);
-    };
-
-    auto const initLabel = [&](juce::Label & label, juce::String const & text) {
-        label.setText(text, juce::dontSendNotification);
-        label.setJustificationType(juce::Justification::centred);
-        label.setInterceptsMouseClicks(false, false);
-        initColors(label);
-        label.setFont(juce::Font{ 1.0f });
-    };
-
-    // Id
-    initButton(mIdButton);
-    initLabel(mIdLabel, id);
-
-    // Mute button
-    mMuteButton.setClickingTogglesState(true);
-    initButton(mMuteButton);
-
-    // Mute label
-    initLabel(mMuteLabel, "m");
-
-    // Solo button
-    mSoloButton.setClickingTogglesState(true);
-    initButton(mSoloButton);
-
-    // Solo label
-    initLabel(mSoloLabel, "s");
-
-    // Level box
-    addAndMakeVisible(mLevelBox);
-}
-
-//==============================================================================
-void AbstractVuMeterComponent::setState(PortState const state, bool const soloMode)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    mSoloButton.setToggleState(state == PortState::solo, juce::dontSendNotification);
-    mMuteButton.setToggleState(state == PortState::muted, juce::dontSendNotification);
-    mLevelBox.setMuted(soloMode ? state != PortState::solo : state == PortState::muted);
-
-    repaint();
-}
-
-//==============================================================================
-void SpeakerVuMeterComponent::setSelected(bool const value)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    if (value) {
-        mIdButton.setColour(juce::TextButton::textColourOnId, mLookAndFeel.getWinBackgroundColour());
-        mIdButton.setColour(juce::TextButton::textColourOffId, mLookAndFeel.getWinBackgroundColour());
-        mIdButton.setColour(juce::TextButton::buttonColourId, mLookAndFeel.getOnColour());
-    } else {
-        mIdButton.setColour(juce::TextButton::textColourOnId, mLookAndFeel.getFontColour());
-        mIdButton.setColour(juce::TextButton::textColourOffId, mLookAndFeel.getFontColour());
-        mIdButton.setColour(juce::TextButton::buttonColourId, mLookAndFeel.getBackgroundColour());
-    }
-    repaint();
-}
-
-//==============================================================================
-void SpeakerVuMeterComponent::buttonClicked(juce::Button * button)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    if (button == &mMuteButton) {
-        auto const newState{ mMuteButton.getToggleState() ? PortState::muted : PortState::normal };
-        mOwner.setSpeakerState(mOutputPatch, newState);
-    } else if (button == &mSoloButton) {
-        auto const newState{ mSoloButton.getToggleState() ? PortState::solo : PortState::normal };
-        mOwner.setSpeakerState(mOutputPatch, newState);
-    } else if (button == &mIdButton) {
-        mOwner.setSelectedSpeakers(mOutputPatch);
-    }
-}
-
-//==============================================================================
-int SpeakerVuMeterComponent::getMinHeight() const noexcept
-{
-    return INNER_ELEMENTS_PADDING + ID_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING + LevelBox::MIN_HEIGHT
-           + INNER_ELEMENTS_PADDING + MUTE_AND_SOLO_BUTTONS_HEIGHT + INNER_ELEMENTS_PADDING;
-}
-
-//==============================================================================
-StereoVuMeterComponent::StereoVuMeterComponent(juce::String const & id, SmallGrisLookAndFeel & lookAndFeel)
-    : AbstractVuMeterComponent(id, lookAndFeel)
-{
-}
-
-//==============================================================================
-int StereoVuMeterComponent::getMinHeight() const noexcept
-{
-    return INNER_ELEMENTS_PADDING + ID_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING + LevelBox::MIN_HEIGHT
-           + INNER_ELEMENTS_PADDING;
-}
-
-//==============================================================================
-void AbstractVuMeterComponent::resized()
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    auto yOffset{ INNER_ELEMENTS_PADDING };
-    static constexpr auto AVAILABLE_WIDTH{ VU_METER_COMPONENT_WIDTH - INNER_ELEMENTS_PADDING * 2 };
-
-    juce::Rectangle<int> const idBounds{ INNER_ELEMENTS_PADDING, yOffset, AVAILABLE_WIDTH, ID_BUTTON_HEIGHT };
-    mIdLabel.setBounds(idBounds.withSizeKeepingCentre(100, 100));
-    mIdButton.setBounds(idBounds);
-
-    yOffset += ID_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING;
-
-    auto const vuMeterHeight{ std::max(LevelBox::MIN_HEIGHT, getHeight() - getMinHeight() + LevelBox::MIN_HEIGHT) };
-
-    juce::Rectangle<int> const levelBoxBounds{ INNER_ELEMENTS_PADDING, yOffset, AVAILABLE_WIDTH, vuMeterHeight };
-    mLevelBox.setBounds(levelBoxBounds);
-
-    yOffset += vuMeterHeight + INNER_ELEMENTS_PADDING;
-
-    static constexpr auto MUTE_AND_SOLO_WIDTH{ (AVAILABLE_WIDTH - INNER_ELEMENTS_PADDING) / 2 };
-
-    juce::Rectangle<int> const muteButtonBounds{ INNER_ELEMENTS_PADDING,
-                                                 yOffset,
-                                                 MUTE_AND_SOLO_WIDTH,
-                                                 MUTE_AND_SOLO_BUTTONS_HEIGHT };
-    mMuteButton.setBounds(muteButtonBounds);
-    mMuteLabel.setBounds(muteButtonBounds.withSizeKeepingCentre(100, 100));
-
-    juce::Rectangle<int> const soloButtonBounds{ INNER_ELEMENTS_PADDING * 2 + MUTE_AND_SOLO_WIDTH,
-                                                 yOffset,
-                                                 MUTE_AND_SOLO_WIDTH,
-                                                 MUTE_AND_SOLO_BUTTONS_HEIGHT };
-    mSoloButton.setBounds(soloButtonBounds);
-    mSoloLabel.setBounds(soloButtonBounds.withSizeKeepingCentre(100, 100));
-}
-
-//==============================================================================
-int AbstractVuMeterComponent::getMinWidth() const noexcept
-{
-    return VU_METER_COMPONENT_WIDTH;
-}
-
-//==============================================================================
-SourceVuMeterComponent::SourceVuMeterComponent(source_index_t const sourceIndex,
-                                               tl::optional<output_patch_t> const directOut,
-                                               juce::Colour const colour,
-                                               Owner & owner,
-                                               SmallGrisLookAndFeel & lookAndFeel)
-    : AbstractVuMeterComponent(juce::String{ sourceIndex.get() }, lookAndFeel)
-    , mSourceIndex(sourceIndex)
-    , mOwner(owner)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    mDirectOutButton.setColour(juce::Label::textColourId, lookAndFeel.getFontColour());
-    mDirectOutButton.setLookAndFeel(&lookAndFeel);
-    mDirectOutButton.addListener(this);
-    mDirectOutButton.addMouseListener(this, true);
-    mIdButton.addMouseListener(this, true);
-    setDirectOut(directOut);
-    addAndMakeVisible(mDirectOutButton);
-
-    setSourceColour(colour);
-}
-
-//==============================================================================
-void SourceVuMeterComponent::setDirectOut(tl::optional<output_patch_t> const outputPatch)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    // TODO : the following code always results in some app-crashing invalid string when the optional holds a value. Why
-    // is that ? Is it possible that the perfect-forwarding of a juce::String does something weird ?
-
-    /*static auto const PATCH_TO_STRING
-        = [](output_patch_t const outputPatch) -> juce::String { return juce::String{ outputPatch.get() }; };
-
-    auto const newText{ outputPatch.map_or(PATCH_TO_STRING, NO_DIRECT_OUT_TEXT) };*/
-
-    auto const newText{ outputPatch ? juce::String{ outputPatch->get() } : NO_DIRECT_OUT_TEXT };
-    mDirectOutButton.setButtonText(newText);
-}
-
-//==============================================================================
-void SourceVuMeterComponent::setSourceColour(juce::Colour const colour)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    mIdButton.setColour(juce::TextButton::buttonColourId, colour);
-    mIdLabel.setColour(juce::Label::textColourId, colour.contrasting(1.0f));
-}
-
-//==============================================================================
-void SourceVuMeterComponent::buttonClicked(juce::Button * button)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    if (button == &mMuteButton) {
-        muteButtonClicked();
-    } else if (button == &mSoloButton) {
-        soloButtonClicked();
-    } else if (button == &mDirectOutButton) {
-        directOutButtonClicked();
-    }
-}
-
-//==============================================================================
-void SourceVuMeterComponent::resized()
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    AbstractVuMeterComponent::resized();
-
-    juce::Rectangle<int> const directOutButtonBounds{ INNER_ELEMENTS_PADDING,
-                                                      getHeight() - (DIRECT_OUT_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING),
-                                                      VU_METER_COMPONENT_WIDTH - INNER_ELEMENTS_PADDING * 2,
-                                                      DIRECT_OUT_BUTTON_HEIGHT };
-    mDirectOutButton.setBounds(directOutButtonBounds);
-}
-
-//==============================================================================
-void SourceVuMeterComponent::changeListenerCallback(juce::ChangeBroadcaster * source)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    auto * colorSelector{ dynamic_cast<juce::ColourSelector *>(source) };
-    jassert(colorSelector);
-    if (colorSelector != nullptr) {
-        mOwner.setSourceColor(mSourceIndex, colorSelector->getCurrentColour());
-    }
-}
-
-//==============================================================================
-int SourceVuMeterComponent::getMinHeight() const noexcept
-{
-    return INNER_ELEMENTS_PADDING + ID_BUTTON_HEIGHT + INNER_ELEMENTS_PADDING + LevelBox::MIN_HEIGHT
-           + INNER_ELEMENTS_PADDING + MUTE_AND_SOLO_BUTTONS_HEIGHT + INNER_ELEMENTS_PADDING + DIRECT_OUT_BUTTON_HEIGHT
-           + INNER_ELEMENTS_PADDING;
-}
-
-//==============================================================================
-void SourceVuMeterComponent::mouseUp(juce::MouseEvent const & event)
-{
-    if (!mIdButton.getScreenBounds().contains(event.getScreenPosition())) {
-        return;
-    }
-
-    if (event.mods.isLeftButtonDown()) {
-        colorSelectorLeftButtonClicked();
-    } else if (event.mods.isRightButtonDown()) {
-        colorSelectorRightButtonClicked();
-    }
-}
-
-//==============================================================================
-void SourceVuMeterComponent::muteButtonClicked() const
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    auto const newState{ mMuteButton.getToggleState() ? PortState::muted : PortState::normal };
-    mOwner.setSourceState(mSourceIndex, newState);
-}
-
-//==============================================================================
-void SourceVuMeterComponent::soloButtonClicked() const
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    auto const newState{ mSoloButton.getToggleState() ? PortState::solo : PortState::normal };
-    mOwner.setSourceState(mSourceIndex, newState);
-}
-
-//==============================================================================
-void SourceVuMeterComponent::colorSelectorLeftButtonClicked()
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    auto colourSelector{ std::make_unique<juce::ColourSelector>(juce::ColourSelector::showColourAtTop
-                                                                    | juce::ColourSelector::showSliders
-                                                                    | juce::ColourSelector::showColourspace,
-                                                                4,
-                                                                4) };
-    colourSelector->setName("background");
-    colourSelector->setCurrentColour(getSourceColor());
-    colourSelector->addChangeListener(this);
-    colourSelector->setColour(juce::ColourSelector::backgroundColourId, juce::Colours::transparentBlack);
-    colourSelector->setSize(300, 400);
-    juce::CallOutBox::launchAsynchronously(std::move(colourSelector), getScreenBounds(), nullptr);
-}
-
-//==============================================================================
-void SourceVuMeterComponent::colorSelectorRightButtonClicked() const
-{
-    source_index_t const nextSourceIndex{ mSourceIndex.get() + 1 };
-    auto const currentColor{ getSourceColor() };
-    mOwner.setSourceColor(nextSourceIndex, currentColor);
-}
-
-//==============================================================================
-void SourceVuMeterComponent::directOutButtonClicked() const
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    static constexpr auto CHOICE_NOT_DIRECT_OUT = std::numeric_limits<int>::min();
-    static constexpr auto CHOICE_CANCELED = 0;
-
-    juce::PopupMenu menu{};
-    juce::Array<output_patch_t> directOutSpeakers{};
-    juce::Array<output_patch_t> nonDirectOutSpeakers{};
-    for (auto const speaker : mOwner.getSpeakersData()) {
-        auto & destination{ speaker.value->isDirectOutOnly ? directOutSpeakers : nonDirectOutSpeakers };
-        destination.add(speaker.key);
-    }
-    for (auto const outputPatch : directOutSpeakers) {
-        menu.addItem(outputPatch.get(), juce::String{ outputPatch.get() });
-    }
-    menu.addItem(CHOICE_NOT_DIRECT_OUT, NO_DIRECT_OUT_TEXT);
-    for (auto const outputPatch : nonDirectOutSpeakers) {
-        menu.addItem(outputPatch.get(), juce::String{ outputPatch.get() });
-    }
-
-    auto const result{ menu.show() };
-
-    if (result == CHOICE_CANCELED) {
-        return;
-    }
-
-    tl::optional<output_patch_t> newOutputPatch{};
-    if (result != CHOICE_NOT_DIRECT_OUT) {
-        newOutputPatch = output_patch_t{ result };
-    }
-
-    mOwner.setSourceDirectOut(mSourceIndex, newOutputPatch);
-}
-
-//==============================================================================
-juce::Colour SourceVuMeterComponent::getSourceColor() const
-{
-    return mIdButton.findColour(juce::TextButton::buttonColourId);
-}
-
-//==============================================================================
-SpeakerVuMeterComponent::SpeakerVuMeterComponent(output_patch_t const outputPatch,
-                                                 Owner & owner,
-                                                 SmallGrisLookAndFeel & lookAndFeel)
-    : AbstractVuMeterComponent(juce::String{ outputPatch.get() }, lookAndFeel)
-    , mOutputPatch(outputPatch)
-    , mOwner(owner)
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    setSelected(false);
 }

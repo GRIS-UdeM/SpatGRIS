@@ -67,7 +67,7 @@ private:
     Box mListSpeakerBox;
 
     juce::TextButton mAddSpeakerButton;
-    juce::TextButton mCompSpeakersButton;
+    juce::TextButton mComputeSpeakerSetupButton;
 
     juce::Label mNumOfSpeakersLabel;
     juce::TextEditor mNumOfSpeakersTextEditor;

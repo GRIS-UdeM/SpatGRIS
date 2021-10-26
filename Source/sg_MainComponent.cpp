@@ -22,11 +22,11 @@
 #include "sg_AudioManager.hpp"
 #include "sg_ControlPanel.hpp"
 #include "sg_FatalError.hpp"
+#include "sg_GrisLookAndFeel.hpp"
 #include "sg_LegacyLbapPosition.hpp"
 #include "sg_MainWindow.hpp"
 #include "sg_ScopeGuard.hpp"
 #include "sg_TitledComponent.hpp"
-#include "sg_VuMeterComponent.hpp"
 #include "sg_constants.hpp"
 
 static constexpr auto BUTTON_CANCEL = 0;
@@ -308,7 +308,13 @@ bool MainContentComponent::loadProject(juce::File const & file, bool const disca
     }
 
     auto const displayError = [&](juce::String const & error) {
-        juce::AlertWindow::showNativeDialogBox("Unable to load SpatGRIS project.", error, false);
+        juce::NativeMessageBox::showAsync(juce::MessageBoxOptions{}
+                                              .withButton("ok")
+                                              .withAssociatedComponent(this)
+                                              .withIconType(juce::MessageBoxIconType::WarningIcon)
+                                              .withMessage(error)
+                                              .withTitle("Unable to load SpatGRIS project."),
+                                          nullptr);
     };
 
     if (!file.existsAsFile()) {
@@ -354,7 +360,7 @@ bool MainContentComponent::loadProject(juce::File const & file, bool const disca
     refreshAudioProcessor();
     refreshViewportConfig();
     setTitles();
-    refreshSourceVuMeterComponents();
+    refreshSourceSlices();
 
     return true;
 }
@@ -555,7 +561,7 @@ bool MainContentComponent::setSpatMode(SpatMode const spatMode)
     juce::ScopedWriteLock const lock{ mLock };
 
     auto const ensureVbapIsDomeLike = [&]() {
-        if (spatMode == SpatMode::vbap && !mData.speakerSetup.isDomeLike()) {
+        if (spatMode != SpatMode::lbap && !mData.speakerSetup.isDomeLike()) {
             auto const result{ juce::AlertWindow::showOkCancelBox(
                 juce::AlertWindow::InfoIcon,
                 "Converting to DOME",
@@ -602,7 +608,7 @@ void MainContentComponent::setStereoMode(tl::optional<StereoMode> const stereoMo
                                                             : tl::nullopt);
 
     refreshSpatAlgorithm();
-    refreshSpeakerVuMeterComponents();
+    refreshSpeakerSlices();
     refreshViewportConfig();
 }
 
@@ -658,7 +664,7 @@ void MainContentComponent::numSourcesChanged(int const numSources)
     }
 
     refreshAudioProcessor();
-    refreshSourceVuMeterComponents();
+    refreshSourceSlices();
     unfocusAllComponents();
 }
 
@@ -763,7 +769,7 @@ void MainContentComponent::handleShowSphere()
 }
 
 //==============================================================================
-void MainContentComponent::handleResetInputPositions()
+void MainContentComponent::handleResetSourcesPositions()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -803,11 +809,11 @@ void MainContentComponent::handleResetMeterClipping()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    for (auto vuMeter : mSourceVuMeterComponents) {
-        vuMeter.value->resetClipping();
+    for (auto const & slice : mSourceSliceComponents) {
+        slice.value->resetClipping();
     }
-    for (auto vuMeter : mSpeakerVuMeterComponents) {
-        vuMeter.value->resetClipping();
+    for (auto const & slice : mSpeakerSliceComponents) {
+        slice.value->resetClipping();
     }
 }
 
@@ -819,10 +825,10 @@ void MainContentComponent::handleColorizeInputs()
 
     float hue{};
     auto const inc{ 1.0f / static_cast<float>(mData.project.sources.size() + 1) };
-    for (auto source : mData.project.sources) {
+    for (auto const & source : mData.project.sources) {
         auto const colour{ juce::Colour::fromHSV(hue, 1, 0.75, 1) };
         source.value->colour = colour;
-        mSourceVuMeterComponents[source.key].setSourceColour(colour);
+        mSourceSliceComponents[source.key].setSourceColour(colour);
         hue += inc;
     }
 }
@@ -1053,7 +1059,7 @@ bool MainContentComponent::perform(InvocationInfo const & info)
             handleColorizeInputs();
             break;
         case MainWindow::resetInputPosId:
-            handleResetInputPositions();
+            handleResetSourcesPositions();
             break;
         case MainWindow::resetMeterClipping:
             handleResetMeterClipping();
@@ -1279,7 +1285,7 @@ void MainContentComponent::updatePeaks()
     for (auto const sourceData : mData.project.sources) {
         auto const & peak{ sourcePeaks[sourceData.key] };
         auto const dbPeak{ dbfs_t::fromGain(peak) };
-        mSourceVuMeterComponents[sourceData.key].setLevel(dbPeak);
+        mSourceSliceComponents[sourceData.key].setLevel(dbPeak);
 
         if (!sourceData.value->position) {
             continue;
@@ -1320,7 +1326,7 @@ void MainContentComponent::updatePeaks()
         for (size_t i{}; i < 2; ++i) {
             auto const & peak{ stereoPeaks[i] };
             auto const dbPeak{ dbfs_t::fromGain(peak) };
-            mStereoVuMeterComponents[static_cast<int>(i)]->setLevel(dbPeak);
+            mStereoSliceComponents[static_cast<int>(i)]->setLevel(dbPeak);
         }
         return;
     }
@@ -1334,7 +1340,7 @@ void MainContentComponent::updatePeaks()
     for (auto const speaker : mData.speakerSetup.speakers) {
         auto const & peak{ speakerPeaks[speaker.key] };
         auto const dbPeak{ dbfs_t::fromGain(peak) };
-        mSpeakerVuMeterComponents[speaker.key].setLevel(dbPeak);
+        mSpeakerSliceComponents[speaker.key].setLevel(dbPeak);
 
         auto & exchanger{ viewPortData.speakersAlphaQueues[speaker.key] };
         auto * ticket{ exchanger.acquire() };
@@ -1344,44 +1350,55 @@ void MainContentComponent::updatePeaks()
 }
 
 //==============================================================================
-void MainContentComponent::refreshSourceVuMeterComponents()
+void MainContentComponent::refreshSourceSlices()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
     mSourcesInnerLayout->clearSections();
-    mSourceVuMeterComponents.clear();
+    mSourceSliceComponents.clear();
 
     auto const isAtLeastOneSourceSolo{ std::any_of(
         mData.project.sources.cbegin(),
         mData.project.sources.cend(),
         [](SourcesData::ConstNode const & node) { return node.value->state == PortState::solo; }) };
 
-    // auto x{ 3 };
+    auto const directOutChoices{ std::make_shared<DirectOutSelectorComponent::Choices>() };
+
+    for (const auto speaker : mData.speakerSetup.speakers) {
+        auto & destination{ speaker.value->isDirectOutOnly ? directOutChoices->directOutputPatches
+                                                           : directOutChoices->nonDirectOutputPatches };
+        destination.add(speaker.key);
+    }
+
     for (auto source : mData.project.sources) {
-        auto newVuMeter{ std::make_unique<SourceVuMeterComponent>(source.key,
-                                                                  source.value->directOut,
-                                                                  source.value->colour,
-                                                                  *this,
-                                                                  mSmallLookAndFeel) };
+        auto newSlice{ std::make_unique<SourceSliceComponent>(source.key,
+                                                              source.value->directOut,
+                                                              mData.speakerSetup.spatMode,
+                                                              source.value->hybridSpatMode,
+                                                              source.value->colour,
+                                                              directOutChoices,
+                                                              *this,
+                                                              mLookAndFeel,
+                                                              mSmallLookAndFeel) };
         auto const & state{ source.value->state };
-        newVuMeter->setState(state, isAtLeastOneSourceSolo);
-        auto & addedVuMeter{ mSourceVuMeterComponents.add(source.key, std::move(newVuMeter)) };
-        mSourcesInnerLayout->addSection(&addedVuMeter).withChildMinSize();
+        newSlice->setState(state, isAtLeastOneSourceSolo);
+        auto & addedSlice{ mSourceSliceComponents.add(source.key, std::move(newSlice)) };
+        mSourcesInnerLayout->addSection(&addedSlice).withChildMinSize();
     }
 
     mSourcesInnerLayout->resized();
 }
 
 //==============================================================================
-void MainContentComponent::refreshSpeakerVuMeterComponents()
+void MainContentComponent::refreshSpeakerSlices()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
     mSpeakersLayout->clearSections();
-    mSpeakerVuMeterComponents.clear();
-    mStereoVuMeterComponents.clearQuick(true);
+    mSpeakerSliceComponents.clear();
+    mStereoSliceComponents.clearQuick(true);
 
     auto const isAtLeastOneSpeakerSolo{ std::any_of(
         mData.speakerSetup.speakers.cbegin(),
@@ -1390,18 +1407,22 @@ void MainContentComponent::refreshSpeakerVuMeterComponents()
 
     if (mData.appData.stereoMode) {
         mSpeakersLayout
-            ->addSection(mStereoVuMeterComponents.add(std::make_unique<StereoVuMeterComponent>("L", mSmallLookAndFeel)))
+            ->addSection(mStereoSliceComponents.add(
+                std::make_unique<StereoSliceComponent>("L", mLookAndFeel, mSmallLookAndFeel)))
             .withChildMinSize();
         mSpeakersLayout
-            ->addSection(mStereoVuMeterComponents.add(std::make_unique<StereoVuMeterComponent>("R", mSmallLookAndFeel)))
+            ->addSection(mStereoSliceComponents.add(
+                std::make_unique<StereoSliceComponent>("R", mLookAndFeel, mSmallLookAndFeel)))
             .withChildMinSize();
     } else {
         for (auto const outputPatch : mData.speakerSetup.ordering) {
-            auto newVuMeter{ std::make_unique<SpeakerVuMeterComponent>(outputPatch, *this, mSmallLookAndFeel) };
+            auto newSlice{
+                std::make_unique<SpeakerSliceComponent>(outputPatch, *this, mLookAndFeel, mSmallLookAndFeel)
+            };
             auto const & state{ mData.speakerSetup.speakers[outputPatch].state };
-            newVuMeter->setState(state, isAtLeastOneSpeakerSolo);
-            auto & addedVuMeter{ mSpeakerVuMeterComponents.add(outputPatch, std::move(newVuMeter)) };
-            mSpeakersLayout->addSection(&addedVuMeter).withChildMinSize();
+            newSlice->setState(state, isAtLeastOneSpeakerSolo);
+            auto & addedSlice{ mSpeakerSliceComponents.add(outputPatch, std::move(newSlice)) };
+            mSpeakersLayout->addSection(&addedSlice).withChildMinSize();
         }
     }
 
@@ -1418,12 +1439,12 @@ void MainContentComponent::updateSourceSpatData(source_index_t const sourceIndex
 }
 
 //==============================================================================
-void MainContentComponent::setSourcePosition(source_index_t const sourceIndex,
-                                             radians_t const azimuth,
-                                             radians_t const elevation,
-                                             float const length,
-                                             float const newAzimuthSpan,
-                                             float const newZenithSpan)
+void MainContentComponent::setSourcePositionLegacy(source_index_t const sourceIndex,
+                                                   radians_t const azimuth,
+                                                   radians_t const elevation,
+                                                   float const length,
+                                                   float const newAzimuthSpan,
+                                                   float const newZenithSpan)
 {
     ASSERT_OSC_THREAD;
     juce::ScopedReadLock const readLock{ mLock };
@@ -1434,13 +1455,18 @@ void MainContentComponent::setSourcePosition(source_index_t const sourceIndex,
     }
 
     auto const getCorrectedPosition = [&]() -> Position {
-        switch (mData.speakerSetup.spatMode) {
-        case SpatMode::vbap: {
+        auto const & projectSpatMode{ mData.speakerSetup.spatMode };
+        auto const spatMode{ projectSpatMode == SpatMode::hybrid ? mData.project.sources[sourceIndex].hybridSpatMode
+                                                                 : projectSpatMode };
+
+        switch (spatMode) {
+        case SpatMode::vbap:
             return Position{ PolarVector{ azimuth, elevation, 1.0f } };
-        }
-        case SpatMode::lbap: {
+
+        case SpatMode::lbap:
             return LegacyLbapPosition{ azimuth, elevation, length }.toPosition();
-        }
+        case SpatMode::hybrid:
+            break;
         }
         jassertfalse;
         return {};
@@ -1464,6 +1490,51 @@ void MainContentComponent::setSourcePosition(source_index_t const sourceIndex,
 }
 
 //==============================================================================
+void MainContentComponent::setSourcePosition(source_index_t const sourceIndex,
+                                             Position position,
+                                             float azimuthSpan,
+                                             float zenithSpan)
+{
+    ASSERT_OSC_THREAD;
+
+    juce::ScopedWriteLock const lock{ getLock() };
+
+    if (!mData.project.sources.contains(sourceIndex)) {
+        jassertfalse;
+        return;
+    }
+
+    auto & source{ mData.project.sources[sourceIndex] };
+
+    azimuthSpan = std::clamp(azimuthSpan, 0.0f, 1.0f);
+    zenithSpan = std::clamp(zenithSpan, 0.0f, 1.0f);
+
+    auto const & setupSpatMode{ mData.speakerSetup.spatMode };
+    auto const effectiveSpatMode{ setupSpatMode == SpatMode::hybrid ? source.hybridSpatMode : setupSpatMode };
+    switch (effectiveSpatMode) {
+    case SpatMode::vbap:
+        position = position.getPolar().normalized();
+        break;
+    case SpatMode::lbap:
+        position = position.getCartesian().clampedToFarField();
+        break;
+    case SpatMode::hybrid:
+        jassertfalse;
+        break;
+    }
+
+    if (position == source.position && azimuthSpan == source.azimuthSpan && zenithSpan == source.zenithSpan) {
+        return;
+    }
+
+    source.position = position;
+    source.azimuthSpan = azimuthSpan;
+    source.zenithSpan = zenithSpan;
+
+    updateSourceSpatData(sourceIndex);
+}
+
+//==============================================================================
 void MainContentComponent::resetSourcePosition(source_index_t const sourceIndex)
 {
     juce::ScopedWriteLock const lock{ mLock };
@@ -1474,10 +1545,11 @@ void MainContentComponent::resetSourcePosition(source_index_t const sourceIndex)
     }
 
     mData.project.sources[sourceIndex].position = tl::nullopt;
+    updateSourceSpatData(sourceIndex);
 }
 
 //==============================================================================
-void MainContentComponent::speakerOnlyDirectOutChanged(output_patch_t const outputPatch, bool const state)
+void MainContentComponent::speakerDirectOutOnlyChanged(output_patch_t const outputPatch, bool const state)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
@@ -1487,12 +1559,13 @@ void MainContentComponent::speakerOnlyDirectOutChanged(output_patch_t const outp
     if (state != val) {
         val = state;
 
-        if (!state && mData.speakerSetup.spatMode == SpatMode::vbap) {
+        if (!state && mData.speakerSetup.spatMode != SpatMode::lbap) {
             speaker.position = speaker.position.normalized();
         }
 
         refreshAudioProcessor();
         refreshViewportConfig();
+        refreshSourceSlices();
     }
 }
 
@@ -1510,7 +1583,8 @@ void MainContentComponent::speakerOutputPatchChanged(output_patch_t const oldOut
     auto & order{ mData.speakerSetup.ordering };
     order.set(order.indexOf(oldOutputPatch), newOutputPatch);
 
-    refreshSpeakerVuMeterComponents();
+    refreshSourceSlices();
+    refreshSpeakerSlices();
 }
 
 //==============================================================================
@@ -1530,11 +1604,19 @@ void MainContentComponent::setSpeakerHighPassFreq(output_patch_t const outputPat
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
 
-    if (freq == hz_t{ 0.0f }) {
-        mData.speakerSetup.speakers[outputPatch].highpassData.reset();
-    } else {
-        mData.speakerSetup.speakers[outputPatch].highpassData = SpeakerHighpassData{ freq };
+    if (!mData.speakerSetup.speakers.contains(outputPatch)) {
+        jassertfalse;
+        return;
     }
+
+    auto & speaker{ mData.speakerSetup.speakers[outputPatch] };
+
+    if (freq == hz_t{ 0.0f }) {
+        speaker.highpassData.reset();
+    } else {
+        speaker.highpassData = SpeakerHighpassData{ freq };
+    }
+    refreshAudioProcessor();
 }
 
 //==============================================================================
@@ -1543,10 +1625,12 @@ void MainContentComponent::setPinkNoiseGain(tl::optional<dbfs_t> const gain)
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
 
-    if (gain != mData.pinkNoiseLevel) {
-        mData.pinkNoiseLevel = gain;
-        mAudioProcessor->setAudioConfig(mData.toAudioConfig());
+    if (gain == mData.pinkNoiseLevel) {
+        return;
     }
+
+    mData.pinkNoiseLevel = gain;
+    refreshAudioProcessor();
 }
 
 //==============================================================================
@@ -1561,7 +1645,7 @@ void MainContentComponent::setSourceColor(source_index_t const sourceIndex, juce
     }
 
     mData.project.sources[sourceIndex].colour = colour;
-    mSourceVuMeterComponents[sourceIndex].setSourceColour(colour);
+    mSourceSliceComponents[sourceIndex].setSourceColour(colour);
 }
 
 //==============================================================================
@@ -1573,7 +1657,7 @@ void MainContentComponent::setSourceState(source_index_t const sourceIndex, Port
     mData.project.sources[sourceIndex].state = state;
 
     refreshAudioProcessor();
-    refreshSourceVuMeterComponents();
+    refreshSourceSlices();
 }
 
 //==============================================================================
@@ -1590,8 +1674,8 @@ void MainContentComponent::setSelectedSpeakers(juce::Array<output_patch_t> const
         }
 
         speaker.value->isSelected = isSelected;
-        if (mSpeakerVuMeterComponents.contains(speaker.key)) {
-            mSpeakerVuMeterComponents[speaker.key].setSelected(isSelected);
+        if (mSpeakerSliceComponents.contains(speaker.key)) {
+            mSpeakerSliceComponents[speaker.key].setSelected(isSelected);
         }
 
         if (!isSelected || !mEditSpeakersWindow) {
@@ -1613,7 +1697,7 @@ void MainContentComponent::setSpeakerState(output_patch_t const outputPatch, Por
     mData.speakerSetup.speakers[outputPatch].state = state;
 
     refreshAudioProcessor();
-    refreshSpeakerVuMeterComponents();
+    refreshSpeakerSlices();
 }
 
 //==============================================================================
@@ -1631,7 +1715,7 @@ void MainContentComponent::setSourceDirectOut(source_index_t const sourceIndex,
         refreshAudioProcessor();
     }
 
-    mSourceVuMeterComponents[sourceIndex].setDirectOut(outputPatch);
+    mSourceSliceComponents[sourceIndex].setDirectOut(outputPatch);
 }
 
 //==============================================================================
@@ -1733,6 +1817,29 @@ void MainContentComponent::setShowTriplets(bool const state)
 }
 
 //==============================================================================
+void MainContentComponent::setSourceHybridSpatMode(source_index_t const sourceIndex, SpatMode const spatMode)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    juce::ScopedWriteLock const lock{ mLock };
+
+    auto & source{ mData.project.sources[sourceIndex] };
+
+    source.hybridSpatMode = spatMode;
+
+    // we need to erase the position in the current spat algorithm
+    auto const position{ source.position };
+    source.position = tl::nullopt;
+    updateSourceSpatData(sourceIndex);
+
+    // we now reinstate the position and update again
+    source.position = position;
+    updateSourceSpatData(sourceIndex);
+
+    refreshViewportConfig();
+    mSourceSliceComponents[sourceIndex].setHybridSpatMode(spatMode);
+}
+
+//==============================================================================
 void MainContentComponent::reorderSpeakers(juce::Array<output_patch_t> newOrder)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -1741,7 +1848,7 @@ void MainContentComponent::reorderSpeakers(juce::Array<output_patch_t> newOrder)
     auto & order{ mData.speakerSetup.ordering };
     jassert(newOrder.size() == order.size());
     order = std::move(newOrder);
-    refreshSpeakerVuMeterComponents();
+    refreshSpeakerSlices();
 }
 
 //==============================================================================
@@ -1760,7 +1867,10 @@ output_patch_t MainContentComponent::getMaxSpeakerOutputPatch() const
 tl::optional<SpeakerSetup> MainContentComponent::extractSpeakerSetup(juce::File const & file)
 {
     auto const displayError = [&](juce::String const & message) {
-        juce::AlertWindow::showNativeDialogBox("Unable to open Speaker Setup.", message, false);
+        juce::NativeMessageBox::show(juce::MessageBoxOptions{}
+                                         .withTitle("Unable to open Speaker Setup")
+                                         .withMessage(message)
+                                         .withIconType(juce::MessageBoxIconType::WarningIcon));
     };
 
     if (!file.existsAsFile()) {
@@ -1863,7 +1973,8 @@ void MainContentComponent::refreshSpeakers()
         mData.appData.viewSettings.showSpeakerTriplets = false;
     }
 
-    refreshSpeakerVuMeterComponents();
+    refreshSourceSlices();
+    refreshSpeakerSlices();
     refreshViewportConfig();
     if (mEditSpeakersWindow != nullptr) {
         mEditSpeakersWindow->updateWinContent();
@@ -1894,22 +2005,19 @@ bool MainContentComponent::loadSpeakerSetup(juce::File const & file, LoadSpeaker
 
     // specific mode-dependent checks
     switch (mData.speakerSetup.spatMode) {
-    case SpatMode::vbap:
-        mData.appData.viewSettings.showSpeakerTriplets = false;
-        break;
     case SpatMode::lbap:
+        mData.appData.viewSettings.showSpeakerTriplets = false;
+        [[fallthrough]];
+    case SpatMode::hybrid:
         mControlPanel->setCubeAttenuationDb(mData.project.lbapDistanceAttenuationData.attenuation);
         mControlPanel->setCubeAttenuationHz(mData.project.lbapDistanceAttenuationData.freq);
         break;
-    default:
-        jassertfalse;
+    case SpatMode::vbap:
         break;
     }
 
-    refreshSpeakers();
-
-    mControlPanel->setSpatMode(mData.speakerSetup.spatMode);
-
+    [[maybe_unused]] auto const success{ setSpatMode(mData.speakerSetup.spatMode) };
+    jassert(success);
     setTitles();
 
     return true;

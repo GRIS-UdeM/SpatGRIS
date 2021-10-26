@@ -77,7 +77,7 @@ public:
         }
     }
     //==============================================================================
-    void silence(key_type const channel, int const numSamples) { (*this)[channel].clear(); }
+    void silence(key_type const channel) { (*this)[channel].clear(); }
     //==============================================================================
     [[nodiscard]] value_type & operator[](key_type const key) { return mBuffers[key]; }
     //==============================================================================

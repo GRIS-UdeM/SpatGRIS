@@ -57,7 +57,7 @@ void AudioProcessor::setAudioConfig(std::unique_ptr<AudioConfig> newAudioConfig)
 }
 
 //==============================================================================
-void AudioProcessor::muteSoloVuMeterIn(SourceAudioBuffer & inputBuffer, SourcePeaks & peaks) const noexcept
+void AudioProcessor::processInputPeaks(SourceAudioBuffer & inputBuffer, SourcePeaks & peaks) const noexcept
 {
     for (auto const channel : inputBuffer) {
         auto const & config{ mAudioData.config->sourcesAudioConfig[channel.key] };
@@ -69,7 +69,7 @@ void AudioProcessor::muteSoloVuMeterIn(SourceAudioBuffer & inputBuffer, SourcePe
 }
 
 //==============================================================================
-void AudioProcessor::muteSoloVuMeterGainOut(SpeakerAudioBuffer & speakersBuffer, SpeakerPeaks & peaks) noexcept
+void AudioProcessor::processOutputModifiersAndPeaks(SpeakerAudioBuffer & speakersBuffer, SpeakerPeaks & peaks) noexcept
 {
     auto const numSamples{ speakersBuffer.getNumSamples() };
 
@@ -114,7 +114,7 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer,
     // Process source peaks
     auto * sourcePeaksTicket{ mAudioData.sourcePeaks.acquire() };
     auto & sourcePeaks{ sourcePeaksTicket->get() };
-    muteSoloVuMeterIn(sourceBuffer, sourcePeaks);
+    processInputPeaks(sourceBuffer, sourcePeaks);
 
     if (mAudioData.config->pinkNoiseGain) {
         // Process pink noise
@@ -154,7 +154,7 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer,
         auto * speakerPeaksTicket{ mAudioData.speakerPeaks.acquire() };
         auto & speakerPeaks{ speakerPeaksTicket->get() };
         // Process speaker peaks/gains/highpass
-        muteSoloVuMeterGainOut(speakerBuffer, speakerPeaks);
+        processOutputModifiersAndPeaks(speakerBuffer, speakerPeaks);
         mAudioData.speakerPeaks.setMostRecent(speakerPeaksTicket);
     }
 }

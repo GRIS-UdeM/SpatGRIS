@@ -20,13 +20,12 @@
 #include "sg_HrtfSpatAlgorithm.hpp"
 
 #include "sg_DummySpatAlgorithm.hpp"
+#include "sg_HybridSpatAlgorithm.hpp"
 #include "sg_LbapSpatAlgorithm.hpp"
 #include "sg_StaticMap.hpp"
 #include "sg_StrongArray.hpp"
 #include "sg_TaggedAudioBuffer.hpp"
 #include "sg_VbapSpatAlgorithm.hpp"
-
-static constexpr size_t MAX_BUFFER_SIZE = 2048;
 
 //==============================================================================
 HrtfSpatAlgorithm::HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup,
@@ -88,17 +87,20 @@ HrtfSpatAlgorithm::HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup,
     case SpatMode::lbap:
         mInnerAlgorithm = std::make_unique<LbapSpatAlgorithm>(binauralSpeakerData);
         break;
+    case SpatMode::hybrid:
+        mInnerAlgorithm = std::make_unique<HybridSpatAlgorithm>(binauralSpeakerData);
+        break;
     }
 
     jassert(mInnerAlgorithm);
 
     // load IRs
     for (int i{}; i < 16; ++i) {
-        mConvolutions[i].loadImpulseResponse(FILES[i],
-                                             juce::dsp::Convolution::Stereo::yes,
-                                             juce::dsp::Convolution::Trim::no,
-                                             0,
-                                             juce::dsp::Convolution::Normalise::no);
+        mConvolutions[narrow<std::size_t>(i)].loadImpulseResponse(FILES[i],
+                                                                  juce::dsp::Convolution::Stereo::yes,
+                                                                  juce::dsp::Convolution::Trim::no,
+                                                                  0,
+                                                                  juce::dsp::Convolution::Normalise::no);
     }
 
     juce::dsp::ProcessSpec const spec{ sampleRate, narrow<juce::uint32>(bufferSize), 2 };

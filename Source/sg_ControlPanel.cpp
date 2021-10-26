@@ -19,18 +19,25 @@
 
 #include "sg_ControlPanel.hpp"
 
+#include "sg_GrisLookAndFeel.hpp"
 #include "sg_MainComponent.hpp"
 
-static constexpr auto COL_1_WIDTH = 100;
-static constexpr auto COL_2_WIDTH = 160;
-static constexpr auto ROW_1_CONTENT_HEIGHT = 20;
-static constexpr auto ROW_2_CONTENT_HEIGHT = 20;
+namespace
+{
+constexpr auto COL_1_WIDTH = 140;
+constexpr auto COL_2_WIDTH = 160;
 
-static constexpr auto COL_PADDING = 5;
-static constexpr auto ROW_PADDING = 5;
+constexpr auto NUM_SPAT_MODES = 3;
 
-static constexpr auto LABEL_HEIGHT = 18;
-static constexpr auto COL_INNER_PADDING = 3;
+constexpr auto ROW_1_CONTENT_HEIGHT = 20;
+constexpr auto ROW_2_CONTENT_HEIGHT = 20;
+
+constexpr auto COL_PADDING = 5;
+constexpr auto ROW_PADDING = 5;
+
+constexpr auto LABEL_HEIGHT = 18;
+constexpr auto COL_INNER_PADDING = 3;
+} // namespace
 
 //==============================================================================
 GainsSubPanel::GainsSubPanel(MainContentComponent & mainContentComponent, GrisLookAndFeel & lookAndFeel)
@@ -106,6 +113,7 @@ SpatSettingsSubPanel::SpatSettingsSubPanel(ControlPanel & controlPanel,
 
     initButton(mDomeButton, spatModeToString(SpatMode::vbap), spatModeToTooltip(SpatMode::vbap));
     initButton(mCubeButton, spatModeToString(SpatMode::lbap), spatModeToTooltip(SpatMode::lbap));
+    initButton(mHybridButton, spatModeToString(SpatMode::hybrid), spatModeToTooltip(SpatMode::hybrid));
 
     juce::StringArray items{ "None" };
     items.addArray(STEREO_MODE_STRINGS);
@@ -123,11 +131,15 @@ SpatSettingsSubPanel::SpatSettingsSubPanel(ControlPanel & controlPanel,
 
     mDomeButton.setToggleState(true, juce::dontSendNotification);
 
-    static constexpr auto ALGORITHM_BUTTONS_WIDTH = (COL_1_WIDTH - COL_INNER_PADDING) / 2;
+    static constexpr auto ALGORITHM_BUTTONS_WIDTH
+        = (COL_1_WIDTH - (COL_INNER_PADDING * (NUM_SPAT_MODES - 1))) / NUM_SPAT_MODES;
     mAlgorithmButtonsLayout.addSection(mDomeButton)
         .withFixedSize(ALGORITHM_BUTTONS_WIDTH)
         .withRightPadding(COL_INNER_PADDING);
-    mAlgorithmButtonsLayout.addSection(mCubeButton).withFixedSize(ALGORITHM_BUTTONS_WIDTH);
+    mAlgorithmButtonsLayout.addSection(mCubeButton)
+        .withFixedSize(ALGORITHM_BUTTONS_WIDTH)
+        .withRightPadding(COL_INNER_PADDING);
+    mAlgorithmButtonsLayout.addSection(mHybridButton).withFixedSize(ALGORITHM_BUTTONS_WIDTH);
 
     mCol1Layout.addSection(mAlgorithmSelectionLabel).withFixedSize(LABEL_HEIGHT);
     mCol1Layout.addSection(mAlgorithmButtonsLayout).withFixedSize(ROW_1_CONTENT_HEIGHT).withBottomPadding(ROW_PADDING);
@@ -161,9 +173,12 @@ SpatMode SpatSettingsSubPanel::getSpatMode() const
     if (mDomeButton.getToggleState()) {
         return SpatMode::vbap;
     }
+    if (mCubeButton.getToggleState()) {
+        return SpatMode::lbap;
+    }
 
-    jassert(mCubeButton.getToggleState());
-    return SpatMode::lbap;
+    jassert(mHybridButton.getToggleState());
+    return SpatMode::hybrid;
 }
 
 //==============================================================================
@@ -176,7 +191,15 @@ tl::optional<StereoMode> SpatSettingsSubPanel::getStereoMode() const
 //==============================================================================
 bool SpatSettingsSubPanel::shouldShowAttenuationSettings() const
 {
-    return getSpatMode() == SpatMode::lbap;
+    switch (getSpatMode()) {
+    case SpatMode::vbap:
+        return false;
+    case SpatMode::lbap:
+    case SpatMode::hybrid:
+        return true;
+    }
+    jassertfalse;
+    return false;
 }
 
 //==============================================================================
@@ -206,16 +229,22 @@ void SpatSettingsSubPanel::updateMaxOutputPatch(output_patch_t const maxOutputPa
 void SpatSettingsSubPanel::setSpatMode(SpatMode const spatMode)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-    switch (spatMode) {
-    case SpatMode::vbap:
-        mDomeButton.setToggleState(true, juce::dontSendNotification);
-        break;
-    case SpatMode::lbap:
-        mCubeButton.setToggleState(true, juce::dontSendNotification);
-        break;
-    default:
+
+    [&] {
+        switch (spatMode) {
+        case SpatMode::vbap:
+            mDomeButton.setToggleState(true, juce::dontSendNotification);
+            return;
+        case SpatMode::lbap:
+            mCubeButton.setToggleState(true, juce::dontSendNotification);
+            return;
+        case SpatMode::hybrid:
+            mHybridButton.setToggleState(true, juce::dontSendNotification);
+            return;
+        }
         jassertfalse;
-    }
+    }();
+
     updateLayout();
     mControlPanel.forceLayoutUpdate();
 }
@@ -335,8 +364,18 @@ void SpatSettingsSubPanel::buttonClicked(juce::Button * button)
         return;
     }
 
-    jassert(button == &mDomeButton || button == &mCubeButton);
-    auto const spatMode{ button == &mDomeButton ? SpatMode::vbap : SpatMode::lbap };
+    auto const getSpatMode = [&]() {
+        if (button == &mDomeButton) {
+            return SpatMode::vbap;
+        }
+        if (button == &mCubeButton) {
+            return SpatMode::lbap;
+        }
+        jassert(button == &mHybridButton);
+        return SpatMode::hybrid;
+    };
+
+    auto const spatMode{ getSpatMode() };
     [[maybe_unused]] auto const success{ mMainContentComponent.setSpatMode(spatMode) };
     updateLayout();
     mControlPanel.forceLayoutUpdate();

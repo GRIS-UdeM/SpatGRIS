@@ -41,8 +41,8 @@ static auto inline drawSphere = [](float const r) {
 
     ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD;
 
-    glPushMatrix();
-    glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+    juce::gl::glPushMatrix();
+    juce::gl::glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
 
     for (int i{}; i <= LATS; ++i) {
         auto const lat0
@@ -54,20 +54,20 @@ static auto inline drawSphere = [](float const r) {
         auto const z1 = std::sin(lat1);
         auto const zr1 = std::cos(lat1);
 
-        glBegin(GL_QUAD_STRIP);
+        juce::gl::glBegin(juce::gl::GL_QUAD_STRIP);
         for (int j{}; j <= LONGS; ++j) {
             auto const lng
                 = 2.0f * juce::MathConstants<float>::pi * static_cast<float>(j - 1) / static_cast<float>(LONGS);
             auto const x = std::cos(lng);
             auto const y = std::sin(lng);
 
-            glNormal3f(x * zr0, y * zr0, z0);
-            glVertex3f(r * x * zr0, r * y * zr0, r * z0);
-            glNormal3f(x * zr1, y * zr1, z1);
-            glVertex3f(r * x * zr1, r * y * zr1, r * z1);
+            juce::gl::glNormal3f(x * zr0, y * zr0, z0);
+            juce::gl::glVertex3f(r * x * zr0, r * y * zr0, r * z0);
+            juce::gl::glNormal3f(x * zr1, y * zr1, z1);
+            juce::gl::glVertex3f(r * x * zr1, r * y * zr1, r * z1);
         }
-        glEnd();
+        juce::gl::glEnd();
     }
 
-    glPopMatrix();
+    juce::gl::glPopMatrix();
 };

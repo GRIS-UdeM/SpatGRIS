@@ -100,6 +100,7 @@ class SpatSettingsSubPanel final
 
     juce::TextButton mDomeButton{};
     juce::TextButton mCubeButton{};
+    juce::TextButton mHybridButton{};
 
     juce::ComboBox mAttenuationDbCombo{};
     juce::ComboBox mAttenuationHzCombo{};

@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include "sg_SourceIndex.hpp"
+
 #include <JuceHeader.h>
 
 class MainContentComponent;
@@ -29,7 +31,13 @@ class OscInput final
     , private juce::OSCReceiver::Listener<juce::OSCReceiver::RealtimeCallback>
     , public juce::ActionBroadcaster
 {
-    enum class MessageType { invalid, sourcePosition, resetPosition };
+    enum class MessageType {
+        invalid,
+        sourcePosition,
+        resetSourcePosition,
+        legacySourcePosition,
+        legacyResetSourcePosition
+    };
 
     MainContentComponent & mMainContentComponent;
 
@@ -52,7 +60,21 @@ public:
 private:
     //==============================================================================
     void processSourcePositionMessage(juce::OSCMessage const & message) const noexcept;
+    void processPolarRadianSourcePositionMessage(juce::OSCMessage const & message,
+                                                 source_index_t sourceIndex,
+                                                 float azimuthSpan,
+                                                 float zenithSpan) const noexcept;
+    void processPolarDegreeSourcePosition(juce::OSCMessage const & message,
+                                          source_index_t sourceIndex,
+                                          float azimuthSpan,
+                                          float zenithSpan) const noexcept;
+    void processCartesianSourcePositionMessage(juce::OSCMessage const & message,
+                                               source_index_t sourceIndex,
+                                               float horizontalSpan,
+                                               float verticalSpan) const noexcept;
+    void processLegacySourcePositionMessage(juce::OSCMessage const & message) const noexcept;
     void processSourceResetPositionMessage(juce::OSCMessage const & message) const noexcept;
+    void processLegacySourceResetPositionMessage(juce::OSCMessage const & message) const noexcept;
     //==============================================================================
     void oscMessageReceived(juce::OSCMessage const & message) override;
     void oscBundleReceived(juce::OSCBundle const & bundle) override;

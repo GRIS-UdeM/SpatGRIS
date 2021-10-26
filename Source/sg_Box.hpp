@@ -22,7 +22,7 @@
 #include <JuceHeader.h>
 
 class GrisLookAndFeel;
-class AbstractVuMeterComponent;
+class AbstractSliceComponent;
 class MainContentComponent;
 
 //==============================================================================

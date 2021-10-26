@@ -97,7 +97,8 @@ void LayoutComponent::resized()
         0.0f,
         std::plus(),
         [](Section const & section) { return section.mRelativeSize; }) };
-    auto const pixelsPerRelativeUnit{ totalRelativeUnits == 0.0f ? 0.0f : spaceToShare / totalRelativeUnits };
+    auto const pixelsPerRelativeUnit{ totalRelativeUnits == 0.0f ? 0.0f
+                                                                 : narrow<float>(spaceToShare) / totalRelativeUnits };
 
     if (mOrientation == Orientation::horizontal) {
         int offset{};

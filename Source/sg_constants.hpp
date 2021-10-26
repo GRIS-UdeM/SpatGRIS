@@ -84,6 +84,9 @@ constexpr juce::Range<dbfs_t> LEGAL_MASTER_GAIN_RANGE{ dbfs_t{ -60.0f }, dbfs_t{
 constexpr juce::Range<float> LEGAL_GAIN_INTERPOLATION_RANGE{ 0.0f, 1.0f };
 constexpr juce::Range<dbfs_t> LEGAL_PINK_NOISE_GAIN_RANGE{ dbfs_t{ -60.0f }, dbfs_t{ 0.0f } };
 
+constexpr auto SLICES_WIDTH = 25;
+constexpr auto SLICES_ID_BUTTON_HEIGHT = 17;
+
 extern juce::File const SPEAKER_TEMPLATES_DIR;
 extern juce::File const PROJECT_TEMPLATES_DIR;
 extern juce::File const CURRENT_WORKING_DIR;

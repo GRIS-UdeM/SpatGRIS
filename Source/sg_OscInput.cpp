@@ -22,7 +22,6 @@
 #include "sg_MainComponent.hpp"
 
 static juce::String const SPAT_GRIS_OSC_ADDRESS = "/spat/serv";
-static juce::String const LEGACY_SPAT_GRIS_OSC_ADDRESS = "/pan/az";
 
 //==============================================================================
 OscInput::~OscInput()
@@ -41,6 +40,76 @@ bool OscInput::startConnection(int const port)
 //==============================================================================
 void OscInput::processSourcePositionMessage(juce::OSCMessage const & message) const noexcept
 {
+    source_index_t const sourceIndex{ message[1].getInt32() };
+    if (!LEGAL_SOURCE_INDEX_RANGE.contains(sourceIndex)) {
+        jassertfalse;
+        return;
+    }
+
+    auto const azimuthSpan{ message[5].getFloat32() };
+    auto const zenithSpan{ message[6].getFloat32() };
+
+    auto const coordinateType{ message[0].getString() };
+    if (coordinateType == "pol") {
+        processPolarRadianSourcePositionMessage(message, sourceIndex, azimuthSpan, zenithSpan);
+        return;
+    }
+    if (coordinateType == "deg") {
+        processPolarDegreeSourcePosition(message, sourceIndex, azimuthSpan, zenithSpan);
+        return;
+    }
+    if (coordinateType == "car") {
+        processCartesianSourcePositionMessage(message, sourceIndex, azimuthSpan, zenithSpan);
+        return;
+    }
+    jassertfalse;
+}
+
+//==============================================================================
+void OscInput::processPolarRadianSourcePositionMessage(juce::OSCMessage const & message,
+                                                       source_index_t const sourceIndex,
+                                                       float const azimuthSpan,
+                                                       float const zenithSpan) const noexcept
+{
+    auto const azimuth{ HALF_PI - radians_t{ message[2].getFloat32() } };
+    radians_t const zenith{ message[3].getFloat32() };
+    float const radius{ message[4].getFloat32() };
+
+    Position const position{ PolarVector{ azimuth.balanced(), zenith.balanced(), radius } };
+    mMainContentComponent.setSourcePosition(sourceIndex, position, azimuthSpan, zenithSpan);
+}
+
+//==============================================================================
+void OscInput::processPolarDegreeSourcePosition(juce::OSCMessage const & message,
+                                                source_index_t const sourceIndex,
+                                                float const azimuthSpan,
+                                                float const zenithSpan) const noexcept
+{
+    auto const azimuth{ HALF_PI - radians_t{ degrees_t{ message[2].getFloat32() } } };
+    radians_t const zenith{ degrees_t{ message[3].getFloat32() } };
+    float const radius{ message[4].getFloat32() };
+
+    Position const position{ PolarVector{ azimuth.balanced(), zenith.balanced(), radius } };
+    mMainContentComponent.setSourcePosition(sourceIndex, position, azimuthSpan, zenithSpan);
+}
+
+//==============================================================================
+void OscInput::processCartesianSourcePositionMessage(juce::OSCMessage const & message,
+                                                     source_index_t const sourceIndex,
+                                                     float const horizontalSpan,
+                                                     float const verticalSpan) const noexcept
+{
+    auto const x{ message[2].getFloat32() };
+    auto const y{ message[3].getFloat32() };
+    auto const z{ message[4].getFloat32() };
+
+    Position const position{ CartesianVector{ x, y, z } };
+    mMainContentComponent.setSourcePosition(sourceIndex, position, horizontalSpan, verticalSpan);
+}
+
+//==============================================================================
+void OscInput::processLegacySourcePositionMessage(juce::OSCMessage const & message) const noexcept
+{
     // int id, float azi [0, 2pi], float ele [0, pi], float azispan [0, 2],
     // float elespan [0, 0.5], float distance [0, 1], float gain [0, 1].
     source_index_t const sourceIndex{ message[0].getInt32() + 1 };
@@ -58,11 +127,25 @@ void OscInput::processSourcePositionMessage(juce::OSCMessage const & message) co
 
     [[maybe_unused]] auto const gain{ message[6].getFloat32() };
 
-    mMainContentComponent.setSourcePosition(sourceIndex, azimuth, zenith, length, azimuthSpan, zenithSpan);
+    mMainContentComponent.setSourcePositionLegacy(sourceIndex, azimuth, zenith, length, azimuthSpan, zenithSpan);
 }
 
 //==============================================================================
 void OscInput::processSourceResetPositionMessage(juce::OSCMessage const & message) const noexcept
+{
+    jassert(message[0].getString() == "clr");
+
+    source_index_t const sourceIndex{ message[1].getInt32() };
+    if (!LEGAL_SOURCE_INDEX_RANGE.contains(sourceIndex)) {
+        jassertfalse;
+        return;
+    }
+
+    mMainContentComponent.resetSourcePosition(sourceIndex);
+}
+
+//==============================================================================
+void OscInput::processLegacySourceResetPositionMessage(juce::OSCMessage const & message) const noexcept
 {
     if (message[0].getString() == juce::String{ "reset" }) {
         // string "reset", int voice_to_reset.
@@ -90,20 +173,33 @@ void OscInput::oscBundleReceived(const juce::OSCBundle & bundle)
 //==============================================================================
 OscInput::MessageType OscInput::getMessageType(juce::OSCMessage const & message) noexcept
 {
+    static auto constexpr OSC_ARGUMENT_IS_INT = [](juce::OSCArgument const & argument) { return argument.isInt32(); };
+    static auto constexpr OSC_ARGUMENT_IS_STRING
+        = [](juce::OSCArgument const & argument) { return argument.isString(); };
+    static auto constexpr OSC_ARGUMENT_IS_FLOAT
+        = [](juce::OSCArgument const & argument) { return argument.isFloat32(); };
+
     switch (message.size()) {
     case 2:
-        if (message[0].isString() && message[1].isInt32()) {
-            return MessageType::resetPosition;
+        if (!OSC_ARGUMENT_IS_STRING(message[0]) || !OSC_ARGUMENT_IS_INT(message[1])) {
+            break;
         }
-        return MessageType::invalid;
+        if (message[0].getString() == "reset") {
+            return MessageType::legacyResetSourcePosition;
+        }
+        if (message[0].getString() == "clr") {
+            return MessageType::resetSourcePosition;
+        }
+        break;
     case 7:
-        if (message[0].isInt32()
-            && std::all_of(message.begin() + 1, message.end(), [](juce::OSCArgument const & argument) {
-                   return argument.isFloat32();
-               })) {
+        if (OSC_ARGUMENT_IS_STRING(message[0]) && OSC_ARGUMENT_IS_INT(message[1])
+            && std::all_of(message.begin() + 2, message.end(), OSC_ARGUMENT_IS_FLOAT)) {
             return MessageType::sourcePosition;
         }
-        return MessageType::invalid;
+        if (OSC_ARGUMENT_IS_INT(message[0]) && std::all_of(message.begin() + 1, message.end(), OSC_ARGUMENT_IS_FLOAT)) {
+            return MessageType::legacySourcePosition;
+        }
+        break;
     default:
         break;
     }
@@ -117,10 +213,16 @@ void OscInput::oscMessageReceived(const juce::OSCMessage & message)
     auto const address{ message.getAddressPattern().toString() };
     if (address == SPAT_GRIS_OSC_ADDRESS) {
         switch (getMessageType(message)) {
+        case MessageType::legacySourcePosition:
+            processLegacySourcePositionMessage(message);
+            break;
+        case MessageType::legacyResetSourcePosition:
+            processLegacySourceResetPositionMessage(message);
+            break;
         case MessageType::sourcePosition:
             processSourcePositionMessage(message);
             break;
-        case MessageType::resetPosition:
+        case MessageType::resetSourcePosition:
             processSourceResetPositionMessage(message);
             break;
         case MessageType::invalid:
@@ -131,7 +233,7 @@ void OscInput::oscMessageReceived(const juce::OSCMessage & message)
 
     if (mMainContentComponent.getOscMonitor()) {
         juce::MessageManagerLock const mml{};
-        auto & oscMonitor{ mMainContentComponent.getOscMonitor() };
+        const auto & oscMonitor{ mMainContentComponent.getOscMonitor() };
         if (oscMonitor) {
             oscMonitor->addMessage(message);
         }

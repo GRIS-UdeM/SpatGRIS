@@ -72,7 +72,7 @@ GrisLookAndFeel::GrisLookAndFeel()
 
     this->mFont.setHeight(this->mFontSize);
     this->mSmallFont.setHeight(this->mFontSize - 1);
-    this->mSmallerFont.setHeight(this->mFontSize - 2);
+    this->mSmallerFont.setHeight(this->mFontSize - 3);
     this->mBigFont.setHeight(this->mFontSize + 3);
     this->mBiggerFont.setHeight(this->mFontSize + 6);
 }
