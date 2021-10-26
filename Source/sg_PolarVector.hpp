@@ -80,9 +80,12 @@ constexpr bool PolarVector::operator==(PolarVector const & other) const noexcept
 //==============================================================================
 constexpr PolarVector PolarVector::normalized() const noexcept
 {
-    if (length == 0.0f) {
-        return PolarVector{ HALF_PI, radians_t{}, 1.0f };
-    }
+    // NOTE : removing this check doesn't seem to break anything, but I'm pretty I put that in for a reason!
+
+    // if (length == 0.0f) {
+    //    return PolarVector{ HALF_PI, radians_t{}, 1.0f };
+    //}
+
     return PolarVector{ azimuth, std::max(elevation, radians_t{}), 1.0f };
 }
 
