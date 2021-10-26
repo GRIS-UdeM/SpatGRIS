@@ -763,7 +763,7 @@ void MainContentComponent::handleShowSphere()
 }
 
 //==============================================================================
-void MainContentComponent::handleResetInputPositions()
+void MainContentComponent::handleResetSourcesPositions()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -1053,7 +1053,7 @@ bool MainContentComponent::perform(InvocationInfo const & info)
             handleColorizeInputs();
             break;
         case MainWindow::resetInputPosId:
-            handleResetInputPositions();
+            handleResetSourcesPositions();
             break;
         case MainWindow::resetMeterClipping:
             handleResetMeterClipping();
@@ -1552,11 +1552,19 @@ void MainContentComponent::setSpeakerHighPassFreq(output_patch_t const outputPat
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
 
-    if (freq == hz_t{ 0.0f }) {
-        mData.speakerSetup.speakers[outputPatch].highpassData.reset();
-    } else {
-        mData.speakerSetup.speakers[outputPatch].highpassData = SpeakerHighpassData{ freq };
+    if (!mData.speakerSetup.speakers.contains(outputPatch)) {
+        jassertfalse;
+        return;
     }
+
+    auto & speaker{ mData.speakerSetup.speakers[outputPatch] };
+
+    if (freq == hz_t{ 0.0f }) {
+        speaker.highpassData.reset();
+    } else {
+        speaker.highpassData = SpeakerHighpassData{ freq };
+    }
+    refreshAudioProcessor();
 }
 
 //==============================================================================
@@ -1565,10 +1573,12 @@ void MainContentComponent::setPinkNoiseGain(tl::optional<dbfs_t> const gain)
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
 
-    if (gain != mData.pinkNoiseLevel) {
-        mData.pinkNoiseLevel = gain;
-        mAudioProcessor->setAudioConfig(mData.toAudioConfig());
+    if (gain == mData.pinkNoiseLevel) {
+        return;
     }
+
+    mData.pinkNoiseLevel = gain;
+    refreshAudioProcessor();
 }
 
 //==============================================================================
@@ -1760,10 +1770,20 @@ void MainContentComponent::setSourceHybridSpatMode(source_index_t const sourceIn
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
 
-    mData.project.sources[sourceIndex].hybridSpatMode = spatMode;
+    auto & source{ mData.project.sources[sourceIndex] };
+
+    source.hybridSpatMode = spatMode;
+
+    // we need to erase the position in the current spat algorithm
+    auto const position{ source.position };
+    source.position = tl::nullopt;
+    updateSourceSpatData(sourceIndex);
+
+    // we now reinstate the position and update again
+    source.position = position;
+    updateSourceSpatData(sourceIndex);
 
     refreshViewportConfig();
-
     mSourceSliceComponents[sourceIndex].setHybridSpatMode(spatMode);
 }
 

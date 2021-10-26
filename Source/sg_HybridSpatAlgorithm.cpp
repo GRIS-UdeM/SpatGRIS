@@ -29,6 +29,14 @@ HybridSpatAlgorithm::HybridSpatAlgorithm(SpeakersData const & speakersData)
 //==============================================================================
 void HybridSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, SourceData const & sourceData) noexcept
 {
+    if (!sourceData.position.has_value()) {
+        // resetting a position should reset both algorithms
+        mVbap->updateSpatData(sourceIndex, sourceData);
+        mLbap->updateSpatData(sourceIndex, sourceData);
+        return;
+    }
+
+    // Valid position: only send to the right algorithm
     switch (sourceData.hybridSpatMode) {
     case SpatMode::vbap:
         mVbap->updateSpatData(sourceIndex, sourceData);

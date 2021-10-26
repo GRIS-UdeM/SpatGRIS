@@ -39,7 +39,7 @@ public:
     //==============================================================================
     explicit HybridSpatAlgorithm(SpeakersData const & speakersData);
     //==============================================================================
-    void updateSpatData(source_index_t const sourceIndex, SourceData const & sourceData) noexcept override;
+    void updateSpatData(source_index_t sourceIndex, SourceData const & sourceData) noexcept override;
     void process(AudioConfig const & config,
                  SourceAudioBuffer & sourcesBuffer,
                  SpeakerAudioBuffer & speakersBuffer,

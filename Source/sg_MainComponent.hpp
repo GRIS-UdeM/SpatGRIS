@@ -253,7 +253,7 @@ private:
     void handleShowSourceLevel();
     void handleShowSpeakerLevel();
     void handleShowSphere();
-    void handleResetInputPositions();
+    void handleResetSourcesPositions();
     void handleResetMeterClipping();
     void handleColorizeInputs();
     void handleSaveSpeakerSetup();
