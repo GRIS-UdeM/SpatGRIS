@@ -100,12 +100,12 @@ EditSpeakersWindow::EditSpeakersWindow(juce::String const & name,
     mAddSpeakerButton.setLookAndFeel(&mLookAndFeel);
     mListSpeakerBox.getContent()->addAndMakeVisible(mAddSpeakerButton);
 
-    mCompSpeakersButton.setButtonText("Compute");
-    mCompSpeakersButton.setBounds(110, 404, 100, 22);
-    mCompSpeakersButton.addListener(this);
-    mCompSpeakersButton.setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
-    mCompSpeakersButton.setLookAndFeel(&mLookAndFeel);
-    mListSpeakerBox.getContent()->addAndMakeVisible(mCompSpeakersButton);
+    mComputeSpeakerSetupButton.setButtonText("Compute");
+    mComputeSpeakerSetupButton.setBounds(110, 404, 100, 22);
+    mComputeSpeakerSetupButton.addListener(this);
+    mComputeSpeakerSetupButton.setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
+    mComputeSpeakerSetupButton.setLookAndFeel(&mLookAndFeel);
+    mListSpeakerBox.getContent()->addAndMakeVisible(mComputeSpeakerSetupButton);
 
     // Generate ring of speakers.
     static auto constexpr WLAB{ 80 };
@@ -469,7 +469,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
     auto const & speakers{ mMainContentComponent.getData().speakerSetup.speakers };
     auto selectedRow{ GET_SELECTED_ROW(mSpeakersTableListBox) };
 
-    mMainContentComponent.setShowTriplets(false);
+    // mMainContentComponent.setShowTriplets(false);
 
     if (button == &mAddSpeakerButton) {
         // Add speaker button
@@ -487,7 +487,7 @@ void EditSpeakersWindow::buttonClicked(juce::Button * button)
         selectSpeaker(newOutputPatch);
         mSpeakersTableListBox.getHeader().setSortColumnId(sortColumnId, sortedForwards); // TODO: necessary?
         mShouldRefreshSpeakers = true;
-    } else if (button == &mCompSpeakersButton) {
+    } else if (button == &mComputeSpeakerSetupButton) {
         // Compute speaker button
         mMainContentComponent.refreshSpeakers();
         mShouldRefreshSpeakers = false;
@@ -677,7 +677,7 @@ void EditSpeakersWindow::resized()
     mListSpeakerBox.correctSize(getWidth() - 10, getHeight() - 30);
 
     mAddSpeakerButton.setBounds(5, getHeight() - 180, 100, 22);
-    mCompSpeakersButton.setBounds(getWidth() - 105, getHeight() - 180, 100, 22);
+    mComputeSpeakerSetupButton.setBounds(getWidth() - 105, getHeight() - 180, 100, 22);
 
     mNumOfSpeakersLabel.setBounds(5, getHeight() - 140, 80, 24);
     mNumOfSpeakersTextEditor.setBounds(5 + 80, getHeight() - 140, 40, 24);
