@@ -28,7 +28,7 @@ class MinSizedComponent
 {
 public:
     MinSizedComponent() = default;
-    virtual ~MinSizedComponent() = default;
+    ~MinSizedComponent() override = default;
     //==============================================================================
     MinSizedComponent(MinSizedComponent const &) = delete;
     MinSizedComponent(MinSizedComponent &&) = delete;

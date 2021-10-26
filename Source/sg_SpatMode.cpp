@@ -22,11 +22,10 @@
 #include "sg_constants.hpp"
 
 //==============================================================================
-juce::StringArray const SPAT_MODE_STRINGS{ "Dome", "Cube" };
-juce::StringArray const SPAT_MODE_TOOLTIPS{
-    "Equidistant speaker dome implemented using the VBAP algorithm",
-    "Free-form speaker setup implemented using the LBAP algorithm",
-};
+juce::StringArray const SPAT_MODE_STRINGS{ "Dome", "Cube", "Hybrid" };
+juce::StringArray const SPAT_MODE_TOOLTIPS{ "Equidistant speaker dome implemented using the VBAP algorithm",
+                                            "Free-form speaker setup implemented using the LBAP algorithm",
+                                            "By-source selection of Dome or Cube spatialization" };
 
 #ifdef USE_DOPPLER
 juce::StringArray const STEREO_MODE_STRINGS{ "Binaural", "Stereo", "Doppler" };

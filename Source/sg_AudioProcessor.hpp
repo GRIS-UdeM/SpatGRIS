@@ -62,8 +62,8 @@ public:
 
 private:
     //==============================================================================
-    void muteSoloVuMeterIn(SourceAudioBuffer & inputBuffer, SourcePeaks & peaks) const noexcept;
-    void muteSoloVuMeterGainOut(SpeakerAudioBuffer & speakersBuffer, SpeakerPeaks & peaks) noexcept;
+    void processInputPeaks(SourceAudioBuffer & inputBuffer, SourcePeaks & peaks) const noexcept;
+    void processOutputModifiersAndPeaks(SpeakerAudioBuffer & speakersBuffer, SpeakerPeaks & peaks) noexcept;
     //==============================================================================
     JUCE_LEAK_DETECTOR(AudioProcessor)
 };

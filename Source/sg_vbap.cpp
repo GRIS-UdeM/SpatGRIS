@@ -196,8 +196,8 @@ static bool linesIntersect(std::size_t const i,
         return false;
     }
 
-    if (std::abs(distIj - (distIv3 + distJv3)) <= 0.01f && std::abs(distKl - (distKv3 + distLv3)) <= 0.01f
-        || std::abs(distIj - (distInv3 + distJnv3)) <= 0.01f && std::abs(distKl - (distKnv3 + distLnv3)) <= 0.01f) {
+    if ((std::abs(distIj - (distIv3 + distJv3)) <= 0.01f && std::abs(distKl - (distKv3 + distLv3)) <= 0.01f)
+        || (std::abs(distIj - (distInv3 + distJnv3)) <= 0.01f && std::abs(distKl - (distKnv3 + distLnv3)) <= 0.01f)) {
         return true;
     }
     return false;
@@ -280,17 +280,17 @@ static void spreadGains3d(SourceData const & source, SpeakersSpatGains & gains, 
     if (spAzi > 0.8f && spEle > 0.8f) {
         auto const compensation = (spAzi - 0.8f) / 0.2f * (spEle - 0.8f) / 0.2f * 10.0f;
         for (int i{}; i < data.numOutputPatches; ++i) {
-            rawGains[data.outputPatches[i].get() - 1] += compensation;
+            rawGains[data.outputPatches[narrow<std::size_t>(i)].get() - 1] += compensation;
         }
     }
 
     for (int i{}; i < data.numOutputPatches; ++i) {
-        ind = data.outputPatches[i].get() - 1;
+        ind = data.outputPatches[narrow<std::size_t>(i)].get() - 1;
         sum += rawGains[ind] * rawGains[ind];
     }
     sum = std::sqrt(sum);
     for (int i{}; i < data.numOutputPatches; ++i) {
-        ind = data.outputPatches[i].get() - 1;
+        ind = data.outputPatches[narrow<std::size_t>(i)].get() - 1;
         rawGains[ind] /= sum;
     }
 }
@@ -424,7 +424,7 @@ static void generateTuplets(std::array<Position, MAX_NUM_SPEAKERS> & speakers,
 
             newTripletData.tripletSpeakerNumber[0] = sortedSpeakers[i] + 1;
             newTripletData.tripletSpeakerNumber[1] = sortedSpeakers[i + 1] + 1;
-            for (int j{}; j < 4; ++j) {
+            for (std::size_t j{}; j < 4; ++j) {
                 newTripletData.tripletInverseMatrix[j] = inverseMatrix[i][j];
             }
 
@@ -512,16 +512,21 @@ static triplet_list_t generateTriplets(std::array<Position, MAX_NUM_SPEAKERS> co
     triplet_list_t triplets{};
     for (size_t i{}; i < speakerIndexesSortedByElevation.size(); ++i) {
         auto const speaker1Index{ speakerIndexesSortedByElevation[i] };
-        auto const & speaker1{ speakers[speaker1Index] };
+        auto const & speaker1{ speakers[narrow<std::size_t>(speaker1Index)] };
         for (auto j{ i + 1 }; j < speakerIndexesSortedByElevation.size(); ++j) {
             auto const speaker2Index{ speakerIndexesSortedByElevation[j] };
-            auto const & speaker2{ speakers[speaker2Index] };
-            static constexpr radians_t MAX_ELEVATION_DIFF{ degrees_t{ 10.0f } };
-            if (speaker2.getPolar().elevation - speaker1.getPolar().elevation > MAX_ELEVATION_DIFF) {
-                // The elevation difference is only going to get greater : we can move the 1st speaker and reset the
-                // other loops
-                break;
-            }
+            auto const & speaker2{ speakers[narrow<std::size_t>(speaker2Index)] };
+
+            // TODO : disabling this check seems to have solved a lot of incomplete triangular meshes that used to
+            // happen on various random speaker setups.
+
+            // static constexpr radians_t MAX_ELEVATION_DIFF{ degrees_t{ 10.0f } };
+            // if (speaker2.getPolar().elevation - speaker1.getPolar().elevation > MAX_ELEVATION_DIFF) {
+            //    // The elevation difference is only going to get greater : we can move the 1st speaker and reset the
+            //    // other loops
+            //    break;
+            //}
+
             for (size_t k{}; k < speakerIndexesSortedByElevation.size(); ++k) {
                 if (k >= i && k <= j) {
                     // If k is between i and j, it means that i and k are within the elevation threshold (as well as k
@@ -529,22 +534,21 @@ static triplet_list_t generateTriplets(std::array<Position, MAX_NUM_SPEAKERS> co
                     continue;
                 }
                 auto const speaker3Index{ speakerIndexesSortedByElevation[k] };
-                auto const & speaker3{ speakers[speaker3Index] };
-                auto const isValidCandidate{ parallelepipedVolumeSideLength(speaker1, speaker2, speaker3)
-                                             > MIN_VOL_P_SIDE_LENGTH };
-                if (isValidCandidate) {
-                    connections[speaker1Index][speaker2Index] = true;
-                    connections[speaker2Index][speaker1Index] = true;
-                    connections[speaker1Index][speaker3Index] = true;
-                    connections[speaker3Index][speaker1Index] = true;
-                    connections[speaker2Index][speaker3Index] = true;
-                    connections[speaker3Index][speaker2Index] = true;
+                auto const & speaker3{ speakers[narrow<std::size_t>(speaker3Index)] };
+                auto const parallelepipedVolume{ parallelepipedVolumeSideLength(speaker1, speaker2, speaker3) };
+                if (parallelepipedVolume > MIN_VOL_P_SIDE_LENGTH) {
+                    connections[narrow<std::size_t>(speaker1Index)][narrow<std::size_t>(speaker2Index)] = true;
+                    connections[narrow<std::size_t>(speaker2Index)][narrow<std::size_t>(speaker1Index)] = true;
+                    connections[narrow<std::size_t>(speaker1Index)][narrow<std::size_t>(speaker3Index)] = true;
+                    connections[narrow<std::size_t>(speaker3Index)][narrow<std::size_t>(speaker1Index)] = true;
+                    connections[narrow<std::size_t>(speaker2Index)][narrow<std::size_t>(speaker3Index)] = true;
+                    connections[narrow<std::size_t>(speaker3Index)][narrow<std::size_t>(speaker2Index)] = true;
 
                     TripletData newTripletData{};
 
-                    newTripletData.tripletSpeakerNumber[0] = speaker1Index;
-                    newTripletData.tripletSpeakerNumber[1] = speaker2Index;
-                    newTripletData.tripletSpeakerNumber[2] = speaker3Index;
+                    newTripletData.tripletSpeakerNumber[0] = narrow<std::size_t>(speaker1Index);
+                    newTripletData.tripletSpeakerNumber[1] = narrow<std::size_t>(speaker2Index);
+                    newTripletData.tripletSpeakerNumber[2] = narrow<std::size_t>(speaker3Index);
 
                     triplets.push_back(newTripletData);
                 }
@@ -669,25 +673,25 @@ std::unique_ptr<VbapData> vbapInit(std::array<Position, MAX_NUM_SPEAKERS> & spea
     triplet_list_t triplets{};
     auto data = std::make_unique<VbapData>();
     if (dimensions == 3) {
-        triplets = generateTriplets(speakers, count);
+        triplets = generateTriplets(speakers, narrow<std::size_t>(count));
         computeMatrices3d(triplets, speakers, count);
         offset = 1;
     } else if (dimensions == 2) {
-        generateTuplets(speakers, triplets, count);
+        generateTuplets(speakers, triplets, narrow<std::size_t>(count));
     }
 
     data->numOutputPatches = count;
-    for (int i{}; i < count; i++) {
+    for (std::size_t i{}; i < narrow<std::size_t>(count); i++) {
         data->outputPatches[i] = outputPatches[i];
     }
 
-    data->dimension = dimensions;
+    data->dimension = narrow<std::size_t>(dimensions);
     data->numSpeakers = narrow<int>(speakers.size());
 
     for (auto const & triplet : triplets) {
         SpeakerSet newSet{};
         for (std::size_t j{}; j < data->dimension; ++j) {
-            newSet.speakerNos[j] = outputPatches[triplet.tripletSpeakerNumber[j] + offset - 1];
+            newSet.speakerNos[j] = outputPatches[triplet.tripletSpeakerNumber[j] + narrow<std::size_t>(offset) - 1];
         }
         for (std::size_t j{}; j < data->dimension * data->dimension; ++j) {
             newSet.invMx[j] = triplet.tripletInverseMatrix[j];

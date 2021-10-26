@@ -30,9 +30,9 @@ void Ray::setRay(glm::vec3 const & p, glm::vec3 const & d)
 //==============================================================================
 void Ray::draw() const
 {
-    glBegin(GL_LINES);
-    glColor3f(1.0f, 0.0f, 0.0f);
-    glVertex3f(this->mPosition.x, this->mPosition.y, this->mPosition.z);
-    glVertex3f(this->mDirection.x, this->mDirection.y, this->mDirection.z);
-    glEnd();
+    juce::gl::glBegin(juce::gl::GL_LINES);
+    juce::gl::glColor3f(1.0f, 0.0f, 0.0f);
+    juce::gl::glVertex3f(this->mPosition.x, this->mPosition.y, this->mPosition.z);
+    juce::gl::glVertex3f(this->mDirection.x, this->mDirection.y, this->mDirection.z);
+    juce::gl::glEnd();
 }

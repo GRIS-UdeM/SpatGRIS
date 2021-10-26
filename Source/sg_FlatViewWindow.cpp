@@ -19,12 +19,16 @@
 
 #include "sg_FlatViewWindow.hpp"
 
+#include "sg_GrisLookAndFeel.hpp"
 #include "sg_MainComponent.hpp"
 #include "sg_Narrow.hpp"
 #include "sg_constants.hpp"
 
-static float constexpr SOURCE_RADIUS = 10.0f;
-static float constexpr SOURCE_DIAMETER = SOURCE_RADIUS * 2.f;
+namespace
+{
+float constexpr SOURCE_RADIUS = 10.0f;
+float constexpr SOURCE_DIAMETER = SOURCE_RADIUS * 2.f;
+} // namespace
 
 //==============================================================================
 FlatViewWindow::FlatViewWindow(MainContentComponent & parent, GrisLookAndFeel & feel)
@@ -49,25 +53,7 @@ void FlatViewWindow::drawFieldBackground(juce::Graphics & g) const
         return result;
     };
 
-    if (mMainContentComponent.getData().speakerSetup.spatMode == SpatMode::lbap) {
-        // Draw shaded background squares.
-        g.setColour(mLookAndFeel.getLightColour().withBrightness(0.5));
-        auto const smallRect{ getCenteredSquare(realSize / LBAP_EXTENDED_RADIUS / 2.0f) };
-        auto const noAttenuationRect{ getCenteredSquare(realSize / LBAP_EXTENDED_RADIUS) };
-        auto const maxAttenuationRect{ getCenteredSquare(realSize) };
-        g.drawRect(smallRect);
-        g.drawEllipse(noAttenuationRect, 1.0f);
-        g.drawEllipse(maxAttenuationRect, 1.0f);
-        // Draw lines.
-        static constexpr auto LINE_START{ SOURCE_DIAMETER / 2.0f };
-        auto const lineEnd{ realSize + SOURCE_DIAMETER / 2.0f };
-        g.drawLine(LINE_START, LINE_START, lineEnd, lineEnd);
-        g.drawLine(LINE_START, lineEnd, lineEnd, LINE_START);
-        // Draw light background squares.
-        g.setColour(mLookAndFeel.getLightColour());
-        g.drawRect(noAttenuationRect);
-        g.drawRect(maxAttenuationRect);
-    } else {
+    auto const drawVbapBackground = [&]() {
         // Draw line and light circle.
         g.setColour(mLookAndFeel.getLightColour().withBrightness(0.5));
         auto w{ realSize / 1.3f };
@@ -101,7 +87,41 @@ void FlatViewWindow::drawFieldBackground(juce::Graphics & g) const
         w -= 2.0f;
         x = (fieldSize - w) / 2.0f;
         g.fillEllipse(x, x, w, w);
+    };
+
+    auto const drawLbapBackground = [&]() {
+        // Draw shaded background squares.
+        g.setColour(mLookAndFeel.getLightColour().withBrightness(0.5));
+        auto const smallRect{ getCenteredSquare(realSize / LBAP_EXTENDED_RADIUS / 2.0f) };
+        auto const noAttenuationRect{ getCenteredSquare(realSize / LBAP_EXTENDED_RADIUS) };
+        auto const maxAttenuationRect{ getCenteredSquare(realSize) };
+        g.drawRect(smallRect);
+        g.drawEllipse(noAttenuationRect, 1.0f);
+        g.drawEllipse(maxAttenuationRect, 1.0f);
+        // Draw lines.
+        static constexpr auto LINE_START{ SOURCE_DIAMETER / 2.0f };
+        auto const lineEnd{ realSize + SOURCE_DIAMETER / 2.0f };
+        g.drawLine(LINE_START, LINE_START, lineEnd, lineEnd);
+        g.drawLine(LINE_START, lineEnd, lineEnd, LINE_START);
+        // Draw light background squares.
+        g.setColour(mLookAndFeel.getLightColour());
+        g.drawRect(noAttenuationRect);
+        g.drawRect(maxAttenuationRect);
+    };
+
+    switch (mMainContentComponent.getData().speakerSetup.spatMode) {
+    case SpatMode::vbap:
+        drawVbapBackground();
+        return;
+    case SpatMode::lbap:
+        drawLbapBackground();
+        return;
+    case SpatMode::hybrid:
+        drawVbapBackground();
+        drawLbapBackground();
+        return;
     }
+    jassertfalse;
 }
 
 //==============================================================================
@@ -113,7 +133,7 @@ void FlatViewWindow::paint(juce::Graphics & g)
 
     juce::ScopedReadLock const lock{ mMainContentComponent.getLock() };
 
-    auto const spatMode{ mMainContentComponent.getData().speakerSetup.spatMode };
+    auto const baseSpatMode{ mMainContentComponent.getData().speakerSetup.spatMode };
 
     // Draw sources.
     for (auto const & source : mMainContentComponent.getData().project.sources) {
@@ -132,7 +152,19 @@ void FlatViewWindow::paint(juce::Graphics & g)
             continue;
         }
 
-        drawSource(g, source.key, *sourceData, spatMode);
+        auto const getEffectiveSpatMode = [&]() {
+            switch (baseSpatMode) {
+            case SpatMode::vbap:
+            case SpatMode::lbap:
+                return baseSpatMode;
+            case SpatMode::hybrid:
+                return sourceData->hybridSpatMode;
+            }
+            jassertfalse;
+            return SpatMode::vbap;
+        };
+
+        drawSource(g, source.key, *sourceData, getEffectiveSpatMode());
     }
 }
 
@@ -151,7 +183,7 @@ void FlatViewWindow::drawSource(juce::Graphics & g,
     auto const fieldSize{ narrow<float>(getWidth()) };
     auto const realSize = fieldSize - SOURCE_DIAMETER;
 
-    auto const getSourcePosition = [&]() {
+    auto const getSourcePosition = [&](ViewportSourceData const & sourceData) {
         switch (spatMode) {
         case SpatMode::vbap: {
             auto const & vector{ sourceData.position.getPolar() };
@@ -162,12 +194,14 @@ void FlatViewWindow::drawSource(juce::Graphics & g,
             auto const & position{ sourceData.position.getCartesian() };
             return juce::Point<float>{ position.x, -position.y } / LBAP_EXTENDED_RADIUS;
         }
+        case SpatMode::hybrid:
+            break;
         }
         jassertfalse;
         return juce::Point<float>{};
     };
 
-    auto const sourcePositionRelative{ getSourcePosition().translated(1.0f, 1.0f) * 0.5f };
+    auto const sourcePositionRelative{ getSourcePosition(sourceData).translated(1.0f, 1.0f) * 0.5f };
     auto const sourcePositionAbsolute{ (sourcePositionRelative * realSize).translated(SOURCE_RADIUS, SOURCE_RADIUS) };
 
     // draw spans
@@ -178,8 +212,9 @@ void FlatViewWindow::drawSource(juce::Graphics & g,
     case SpatMode::lbap:
         drawSourceLbapSpan(g, sourceData, sourcePositionAbsolute);
         break;
-    default:
+    case SpatMode::hybrid:
         jassertfalse;
+        break;
     }
 
     auto const colour{ sourceData.colour };

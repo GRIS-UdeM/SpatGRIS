@@ -69,6 +69,7 @@ struct ViewportSourceData {
     float azimuthSpan{};
     float zenithSpan{};
     juce::Colour colour{};
+    SpatMode hybridSpatMode{};
 };
 
 //==============================================================================
@@ -123,6 +124,7 @@ struct SourceData {
     float peak{};
     bool isSelected{};
     juce::Colour colour{ DEFAULT_SOURCE_COLOR };
+    SpatMode hybridSpatMode{};
     //==============================================================================
     [[nodiscard]] SourceAudioConfig toConfig(bool soloMode) const;
     [[nodiscard]] ViewportSourceData toViewportData(float alpha) const;
@@ -134,6 +136,7 @@ struct SourceData {
         static juce::String const STATE;
         static juce::String const DIRECT_OUT;
         static juce::String const COLOUR;
+        static juce::String const HYBRID_SPAT_MODE;
         static juce::String const MAIN_TAG_PREFIX;
     };
 };

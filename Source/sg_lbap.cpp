@@ -43,8 +43,8 @@ static float bilinearInterpolation(matrix_t const & matrix, float const x, float
     jassert(x >= 0.0f && y >= 0.0f);
     auto const xi = static_cast<std::size_t>(x);
     auto const yi = static_cast<std::size_t>(y);
-    auto const xf = narrow<float>(x) - xi;
-    auto const yf = narrow<float>(y) - yi;
+    auto const xf = narrow<float>(x) - narrow<float>(xi);
+    auto const yf = narrow<float>(y) - narrow<float>(yi);
     auto const v1 = matrix[xi][yi];
     auto const v2 = matrix[xi + 1][yi];
     auto const v3 = matrix[xi][yi + 1];
@@ -95,7 +95,7 @@ static void computeMatrix(LbapLayer & layer)
         auto const py = layer.speakerPositions[i].getCartesian().y * H_SIZE + H_SIZE;
         for (size_t x{}; x < LBAP_MATRIX_SIZE; ++x) {
             for (size_t y{}; y < LBAP_MATRIX_SIZE; ++y) {
-                auto dist = std::sqrt(std::pow(x - px, 2.0f) + std::pow(y - py, 2.0f));
+                auto dist = std::sqrt(std::pow(narrow<float>(x) - px, 2.0f) + std::pow(narrow<float>(y) - py, 2.0f));
                 dist /= LBAP_MATRIX_SIZE;
                 dist = std::clamp(dist, 0.0f, 1.0f);
                 layer.amplitudeMatrix[i][x][y] = 1.0f - dist;
@@ -171,7 +171,7 @@ void LbapField::reset()
 LbapField lbapInit(SpeakersData const & speakers)
 {
     std::vector<LbapSpeaker> lbapSpeakers{};
-    lbapSpeakers.reserve(speakers.size());
+    lbapSpeakers.reserve(narrow<std::size_t>(speakers.size()));
 
     for (auto const & speaker : speakers) {
         if (speaker.value->isDirectOutOnly) {
@@ -261,13 +261,14 @@ void lbap(SourceData const & source, SpeakersSpatGains & gains, LbapField const 
         } else {
             gain = elevationSpan / narrow<float>((i - secondLayer->id) * 2);
         }
+        auto const i_size{ narrow<std::size_t>(i) };
         gain = std::min(gain, 1.0f);
-        computeGains(field.layers[i], source, tempGains.data() + c);
+        computeGains(field.layers[i_size], source, tempGains.data() + c);
         std::transform(tempGains.cbegin() + c,
-                       tempGains.cbegin() + c + field.layers[i].speakerPositions.size(),
+                       tempGains.cbegin() + c + field.layers[i_size].speakerPositions.size(),
                        tempGains.begin() + c,
                        [gain](float const x) { return x * gain; });
-        c += field.layers[i].speakerPositions.size();
+        c += field.layers[i_size].speakerPositions.size();
     }
 
     for (size_t i{}; i < field.getNumSpeakers(); ++i) {

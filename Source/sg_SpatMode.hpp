@@ -26,7 +26,7 @@
 // Uncomment to enable the Doppler stereo reduction.
 //#define USE_DOPPLER 1
 
-enum class SpatMode { vbap = 0, lbap };
+enum class SpatMode { vbap = 0, lbap, hybrid };
 #ifdef USE_DOPPLER
 enum class StereoMode { hrtf, stereo, doppler };
 #else

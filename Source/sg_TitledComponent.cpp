@@ -21,8 +21,6 @@
 
 #include "sg_GrisLookAndFeel.hpp"
 
-static constexpr auto RIGHT_PADDING = 5;
-
 //==============================================================================
 TitledComponent::TitledComponent(juce::String title,
                                  MinSizedComponent * contentComponent,
