@@ -35,6 +35,7 @@ class OscInput final
         invalid,
         sourcePosition,
         resetSourcePosition,
+        sourceHybridMode,
         legacySourcePosition,
         legacyResetSourcePosition
     };
@@ -75,6 +76,7 @@ private:
     void processLegacySourcePositionMessage(juce::OSCMessage const & message) const noexcept;
     void processSourceResetPositionMessage(juce::OSCMessage const & message) const noexcept;
     void processLegacySourceResetPositionMessage(juce::OSCMessage const & message) const noexcept;
+    void processSourceHybridModeMessage(juce::OSCMessage const & message) const noexcept;
     //==============================================================================
     void oscMessageReceived(juce::OSCMessage const & message) override;
     void oscBundleReceived(juce::OSCBundle const & bundle) override;

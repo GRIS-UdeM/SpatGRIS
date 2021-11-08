@@ -1439,7 +1439,7 @@ void MainContentComponent::updateSourceSpatData(source_index_t const sourceIndex
 }
 
 //==============================================================================
-void MainContentComponent::setSourcePositionLegacy(source_index_t const sourceIndex,
+void MainContentComponent::setLegacySourcePosition(source_index_t const sourceIndex,
                                                    radians_t const azimuth,
                                                    radians_t const elevation,
                                                    float const length,
@@ -1822,7 +1822,14 @@ void MainContentComponent::setSourceHybridSpatMode(source_index_t const sourceIn
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
 
-    auto & source{ mData.project.sources[sourceIndex] };
+    auto & sources{ mData.project.sources };
+
+    if (!sources.contains(sourceIndex)) {
+        jassertfalse;
+        return;
+    }
+
+    auto & source{ sources[sourceIndex] };
 
     source.hybridSpatMode = spatMode;
 

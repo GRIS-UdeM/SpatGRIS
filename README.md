@@ -97,7 +97,7 @@ The server address is always `/spat/serv`.
 
 | #parameter | type   | allowed values | meaning         |
 | :---       | :---   | :---           | :---            |
-| 1          | string | `pol`          | coordinate type |
+| 1          | string | `pol`          | -               |
 | 2          | int    | [1, 128]       | Source index    |
 | 3          | float  | any            | azimuth angle   |
 | 4          | float  | [0, π/2]       | elevation angle |
@@ -111,7 +111,7 @@ ex : The message `/spat/serv pol 7 0.0 0.78 0.5 0.1 0.2` moves the source #7 in 
 
 | index | type   | allowed values | meaning         |
 | :---  | :---   | :---           | :---            |
-| 1     | string | `deg`          | coordinate type |
+| 1     | string | `deg`          | -               |
 | 2     | int    | [1, 128]       | Source index    |
 | 3     | float  | any            | azimuth angle   |
 | 4     | float  | [0, 90]        | elevation angle |
@@ -125,7 +125,7 @@ ex : The message `/spat/serv deg 7 -90.0 45.0 0.5 0.1 0.2` moves the source #7 a
 
 | index | type   | allowed values | meaning         |
 | :---  | :---   | :---           | :---            |
-| 1     | string | `car`          | coordinate type |
+| 1     | string | `car`          | -               |
 | 2     | int    | [1, 128]       | Source index    |
 | 3     | float  | [-1.66, 1.66]  | x (left/right)  |
 | 4     | float  | [-1.66, 1.66]  | y (back/front)  |
@@ -139,7 +139,17 @@ ex : The message `/spat/serv car 7 1.0 1.0 1.0 0.0 0.0` moves the source #7 at t
 
 | index | type   | allowed values | meaning      |
 | :---  | :---   | :---           | :---         |
-| 1     | string |`clr`          | clear        |
+| 1     | string |`clr`           | clear        |
 | 2     | int    | [1, 128]       | Source index |
 
-ex : The message `spat/serv clr 7` clears the seventh source's position.
+ex : The message `/spat/serv clr 7` clears the seventh source's position.
+
+#### `alg` sets a source's hybrid spatialization mode.
+
+| index | type   | allowed values   | meaning      |
+| :---  | :---   | :---             | :---         |
+| 1     | string | `alg`            | -            |
+| 2     | int    | [1, 128]         | Source index |
+| 3     | string | `dome` or `cube` | Algorithm    |
+
+ex : The message `/spat/serv alg 7 cube` sets the seventh source's spatialization algorithm to "dome" (only works in _hybrid_ mode).
