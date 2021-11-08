@@ -186,7 +186,7 @@ void OscInput::processSourceHybridModeMessage(juce::OSCMessage const & message) 
         jassertfalse;
         return {};
     };
-
+    
     auto const spatMode{ stringToSpatMode(message[2].getString()).and_then(filter_spat_mode) };
 
     if (!spatMode) {
@@ -196,7 +196,7 @@ void OscInput::processSourceHybridModeMessage(juce::OSCMessage const & message) 
 
     // Some side-effects of setSourceHybridSpatMode() expect to be visited only by the message thread.
     // MessageManager::callAsync() is pretty inefficient but it's no big deal since we only call this when we want to
-    // change a source's hybrid spat mode, which shouldn't have too often.
+    // change a source's hybrid spat mode, which shouldn't be too often.
     juce::MessageManager::callAsync([this, sourceIndex, spatMode = *spatMode] {
         this->mMainContentComponent.setSourceHybridSpatMode(sourceIndex, spatMode);
     });
