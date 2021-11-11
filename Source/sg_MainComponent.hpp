@@ -153,7 +153,7 @@ public:
     auto const & getData() const noexcept { return mData; }
     auto const & getLock() const { return mLock; }
 
-    void setSourcePositionLegacy(source_index_t sourceIndex,
+    void setLegacySourcePosition(source_index_t sourceIndex,
                                  radians_t azimuth,
                                  radians_t elevation,
                                  float length,
@@ -248,7 +248,8 @@ private:
     void handleShowSpeakerEditWindow();
     void handleShowAbout();
     void handleShow2DView();
-    void handleShowNumbers();
+    void handleShowSourceNumbers();
+    void handleShowSpeakerNumbers();
     void handleShowSpeakers();
     void handleShowTriplets();
     void handleShowSourceLevel();

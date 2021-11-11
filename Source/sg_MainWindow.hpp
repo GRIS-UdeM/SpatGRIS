@@ -29,45 +29,6 @@ class MainWindow final
     : public juce::DocumentWindow
     , public juce::TooltipWindow
 {
-public:
-    enum CommandIds {
-        // File menu
-        newProjectId = 1000,
-        openProjectId,
-        saveProjectId,
-        saveProjectAsId,
-
-        openSpeakerSetupId,
-        saveSpeakerSetupId,
-        saveSpeakerSetupAsId,
-
-        openSettingsWindowId,
-
-        quitId,
-
-        // View menu
-        show2DViewId,
-        showSpeakerEditId,
-        showOscMonitorId,
-
-        showNumbersId,
-        showSpeakersId,
-        showTripletsId,
-        showSourceActivityId,
-        showSpeakerActivityId,
-        showSphereId,
-
-        colorizeInputsId,
-        resetInputPosId,
-        resetMeterClipping,
-
-        // Help menu
-        aboutId,
-        openManualId
-    };
-
-private:
-    //==============================================================================
     juce::ApplicationCommandManager mApplicationCommandManager{};
     std::unique_ptr<MainContentComponent> mMainContentComponent{};
 

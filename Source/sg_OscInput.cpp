@@ -127,7 +127,7 @@ void OscInput::processLegacySourcePositionMessage(juce::OSCMessage const & messa
 
     [[maybe_unused]] auto const gain{ message[6].getFloat32() };
 
-    mMainContentComponent.setSourcePositionLegacy(sourceIndex, azimuth, zenith, length, azimuthSpan, zenithSpan);
+    mMainContentComponent.setLegacySourcePosition(sourceIndex, azimuth, zenith, length, azimuthSpan, zenithSpan);
 }
 
 //==============================================================================
@@ -160,6 +160,49 @@ void OscInput::processLegacySourceResetPositionMessage(juce::OSCMessage const & 
 }
 
 //==============================================================================
+void OscInput::processSourceHybridModeMessage(juce::OSCMessage const & message) const noexcept
+{
+    jassert(message[0].isString() && message[1].isInt32() && message[2].isString());
+
+    if (message[0].getString() != "alg") {
+        jassertfalse;
+        return;
+    }
+
+    source_index_t const sourceIndex{ message[1].getInt32() };
+    if (!LEGAL_SOURCE_INDEX_RANGE.contains(sourceIndex)) {
+        jassertfalse;
+        return;
+    }
+
+    static auto constexpr filter_spat_mode = [](SpatMode const spatMode) -> tl::optional<SpatMode> {
+        switch (spatMode) {
+        case SpatMode::hybrid:
+            return tl::nullopt;
+        case SpatMode::lbap:
+        case SpatMode::vbap:
+            return spatMode;
+        }
+        jassertfalse;
+        return {};
+    };
+
+    auto const spatMode{ stringToSpatMode(message[2].getString()).and_then(filter_spat_mode) };
+
+    if (!spatMode) {
+        jassertfalse;
+        return;
+    }
+
+    // Some side-effects of setSourceHybridSpatMode() expect to be visited only by the message thread.
+    // MessageManager::callAsync() is pretty inefficient but it's no big deal since we only call this when we want to
+    // change a source's hybrid spat mode, which shouldn't be too often.
+    juce::MessageManager::callAsync([this, sourceIndex, spatMode = *spatMode] {
+        this->mMainContentComponent.setSourceHybridSpatMode(sourceIndex, spatMode);
+    });
+}
+
+//==============================================================================
 void OscInput::oscBundleReceived(const juce::OSCBundle & bundle)
 {
     for (auto const & element : bundle) {
@@ -189,6 +232,12 @@ OscInput::MessageType OscInput::getMessageType(juce::OSCMessage const & message)
         }
         if (message[0].getString() == "clr") {
             return MessageType::resetSourcePosition;
+        }
+        break;
+    case 3:
+        if (OSC_ARGUMENT_IS_STRING(message[0]) && OSC_ARGUMENT_IS_INT(message[1])
+            && OSC_ARGUMENT_IS_STRING(message[2])) {
+            return MessageType::sourceHybridMode;
         }
         break;
     case 7:
@@ -225,9 +274,13 @@ void OscInput::oscMessageReceived(const juce::OSCMessage & message)
         case MessageType::resetSourcePosition:
             processSourceResetPositionMessage(message);
             break;
+        case MessageType::sourceHybridMode:
+            processSourceHybridModeMessage(message);
+            break;
         case MessageType::invalid:
             jassertfalse;
             break;
+        default:;
         }
     }
 
