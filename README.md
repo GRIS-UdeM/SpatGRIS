@@ -89,6 +89,8 @@ SpatGRIS must be launched from the project root directory.
 
 OSC can be sent directly to SpatGRIS without having to use ControlGRIS.
 
+There is an example patch made for MAX 7 provided in this repo ([osc_max_example.maxpat](osc_max_example.maxpat)).
+
 __Please note that angles are always measured clockwise, starting from the upstage center (the positive Y direction).__
 
 The server address is always `/spat/serv`.
