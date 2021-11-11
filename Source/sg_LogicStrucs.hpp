@@ -43,6 +43,7 @@ enum class PortState { normal, muted, solo };
 //==============================================================================
 struct ViewSettings {
     bool showSpeakers{ true };
+    bool showSourceNumbers{ false };
     bool showSpeakerNumbers{ false };
     bool showSpeakerTriplets{ false };
     bool showSpeakerLevels{ false };
@@ -55,6 +56,7 @@ struct ViewSettings {
     struct XmlTags {
         static juce::String const MAIN_TAG;
         static juce::String const SHOW_SPEAKERS;
+        static juce::String const SHOW_SOURCE_NUMBERS;
         static juce::String const SHOW_SPEAKER_NUMBERS;
         static juce::String const SHOW_SPEAKER_TRIPLETS;
         static juce::String const SHOW_SPEAKER_LEVELS;

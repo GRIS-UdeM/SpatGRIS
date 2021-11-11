@@ -19,7 +19,7 @@
 
 #pragma once
 
-enum CommandIds {
+enum CommandId {
     // File menu
     newProjectId = 1000,
     openProjectId,
@@ -39,7 +39,8 @@ enum CommandIds {
     showSpeakerEditId,
     showOscMonitorId,
 
-    showNumbersId,
+    showSourceNumbersId,
+    showSpeakerNumbersId,
     showSpeakersId,
     showTripletsId,
     showSourceActivityId,

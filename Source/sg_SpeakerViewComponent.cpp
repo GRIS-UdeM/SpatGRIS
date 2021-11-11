@@ -654,7 +654,7 @@ void SpeakerViewComponent::drawSource(source_index_t const index, ViewportSource
     juce::gl::glPolygonMode(juce::gl::GL_FRONT_AND_BACK, juce::gl::GL_FILL);
     juce::gl::glPopMatrix();
 
-    if (mData.config.viewSettings.showSpeakerNumbers) {
+    if (mData.config.viewSettings.showSourceNumbers) {
         auto position{ source.position.getCartesian() };
         position.y += SIZE_SPEAKER + 0.04f;
         drawText(juce::String{ index.get() }, position, source.colour, 0.0003f, true);

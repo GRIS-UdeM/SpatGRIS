@@ -248,7 +248,8 @@ private:
     void handleShowSpeakerEditWindow();
     void handleShowAbout();
     void handleShow2DView();
-    void handleShowNumbers();
+    void handleShowSourceNumbers();
+    void handleShowSpeakerNumbers();
     void handleShowSpeakers();
     void handleShowTriplets();
     void handleShowSourceLevel();

@@ -56,6 +56,7 @@ juce::String const StereoRouting::XmlTags::RIGHT = "RIGHT";
 
 juce::String const ViewSettings::XmlTags::MAIN_TAG = "VIEW_SETTINGS";
 juce::String const ViewSettings::XmlTags::SHOW_SPEAKERS = "SHOW_SPEAKERS";
+juce::String const ViewSettings::XmlTags::SHOW_SOURCE_NUMBERS = "SHOW_SOURCE_NUMBERS";
 juce::String const ViewSettings::XmlTags::SHOW_SPEAKER_NUMBERS = "SHOW_SPEAKER_NUMBERS";
 juce::String const ViewSettings::XmlTags::SHOW_SPEAKER_TRIPLETS = "SHOW_SPEAKER_TRIPLETS";
 juce::String const ViewSettings::XmlTags::SHOW_SPEAKER_LEVELS = "SHOW_SPEAKER_LEVELS";
@@ -513,6 +514,7 @@ std::unique_ptr<juce::XmlElement> ViewSettings::toXml() const
     auto result{ std::make_unique<juce::XmlElement>(XmlTags::MAIN_TAG) };
 
     result->setAttribute(XmlTags::SHOW_SPEAKERS, showSpeakers);
+    result->setAttribute(XmlTags::SHOW_SOURCE_NUMBERS, showSourceNumbers);
     result->setAttribute(XmlTags::SHOW_SPEAKER_NUMBERS, showSpeakerNumbers);
     result->setAttribute(XmlTags::SHOW_SPEAKER_TRIPLETS, showSpeakerTriplets);
     result->setAttribute(XmlTags::SHOW_SPEAKER_LEVELS, showSpeakerLevels);
@@ -525,9 +527,10 @@ std::unique_ptr<juce::XmlElement> ViewSettings::toXml() const
 //==============================================================================
 tl::optional<ViewSettings> ViewSettings::fromXml(juce::XmlElement const & xml)
 {
-    juce::StringArray const requiredTags{ XmlTags::SHOW_SPEAKERS,         XmlTags::SHOW_SPEAKER_NUMBERS,
-                                          XmlTags::SHOW_SPEAKER_TRIPLETS, XmlTags::SHOW_SPEAKER_LEVELS,
-                                          XmlTags::SHOW_SPHERE_OR_CUBE,   XmlTags::SHOW_SOURCE_ACTIVITY };
+    juce::StringArray const requiredTags{ XmlTags::SHOW_SPEAKERS,        XmlTags::SHOW_SOURCE_NUMBERS,
+                                          XmlTags::SHOW_SPEAKER_NUMBERS, XmlTags::SHOW_SPEAKER_TRIPLETS,
+                                          XmlTags::SHOW_SPEAKER_LEVELS,  XmlTags::SHOW_SPHERE_OR_CUBE,
+                                          XmlTags::SHOW_SOURCE_ACTIVITY };
 
     if (xml.getTagName() != XmlTags::MAIN_TAG
         || !std::all_of(requiredTags.begin(), requiredTags.end(), [&](juce::String const & tag) {
@@ -538,6 +541,7 @@ tl::optional<ViewSettings> ViewSettings::fromXml(juce::XmlElement const & xml)
 
     ViewSettings result;
     result.showSpeakers = xml.getBoolAttribute(XmlTags::SHOW_SPEAKERS);
+    result.showSourceNumbers = xml.getBoolAttribute(XmlTags::SHOW_SOURCE_NUMBERS);
     result.showSpeakerNumbers = xml.getBoolAttribute(XmlTags::SHOW_SPEAKER_NUMBERS);
     result.showSpeakerTriplets = xml.getBoolAttribute(XmlTags::SHOW_SPEAKER_TRIPLETS);
     result.showSpeakerLevels = xml.getBoolAttribute(XmlTags::SHOW_SPEAKER_LEVELS);
