@@ -186,7 +186,7 @@ void OscInput::processSourceHybridModeMessage(juce::OSCMessage const & message) 
         jassertfalse;
         return {};
     };
-    
+
     auto const spatMode{ stringToSpatMode(message[2].getString()).and_then(filter_spat_mode) };
 
     if (!spatMode) {

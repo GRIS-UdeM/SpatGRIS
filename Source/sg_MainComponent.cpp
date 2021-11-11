@@ -20,6 +20,7 @@
 #include "sg_MainComponent.hpp"
 
 #include "sg_AudioManager.hpp"
+#include "sg_CommandId.hpp"
 #include "sg_ControlPanel.hpp"
 #include "sg_FatalError.hpp"
 #include "sg_GrisLookAndFeel.hpp"
@@ -840,29 +841,29 @@ void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & command
     JUCE_ASSERT_MESSAGE_THREAD;
 
     const juce::CommandID ids[] = {
-        MainWindow::CommandIds::newProjectId,
-        MainWindow::CommandIds::openProjectId,
-        MainWindow::CommandIds::saveProjectId,
-        MainWindow::CommandIds::saveProjectAsId,
-        MainWindow::CommandIds::openSpeakerSetupId,
-        MainWindow::CommandIds::saveSpeakerSetupId,
-        MainWindow::CommandIds::saveSpeakerSetupAsId,
-        MainWindow::CommandIds::showSpeakerEditId,
-        MainWindow::CommandIds::show2DViewId,
-        MainWindow::CommandIds::showOscMonitorId,
-        MainWindow::CommandIds::showNumbersId,
-        MainWindow::CommandIds::showSpeakersId,
-        MainWindow::CommandIds::showTripletsId,
-        MainWindow::CommandIds::showSourceActivityId,
-        MainWindow::CommandIds::showSpeakerActivityId,
-        MainWindow::CommandIds::showSphereId,
-        MainWindow::CommandIds::colorizeInputsId,
-        MainWindow::CommandIds::resetInputPosId,
-        MainWindow::CommandIds::resetMeterClipping,
-        MainWindow::CommandIds::openSettingsWindowId,
-        MainWindow::CommandIds::quitId,
-        MainWindow::CommandIds::aboutId,
-        MainWindow::CommandIds::openManualId,
+        CommandIds::newProjectId,
+        CommandIds::openProjectId,
+        CommandIds::saveProjectId,
+        CommandIds::saveProjectAsId,
+        CommandIds::openSpeakerSetupId,
+        CommandIds::saveSpeakerSetupId,
+        CommandIds::saveSpeakerSetupAsId,
+        CommandIds::showSpeakerEditId,
+        CommandIds::show2DViewId,
+        CommandIds::showOscMonitorId,
+        CommandIds::showNumbersId,
+        CommandIds::showSpeakersId,
+        CommandIds::showTripletsId,
+        CommandIds::showSourceActivityId,
+        CommandIds::showSpeakerActivityId,
+        CommandIds::showSphereId,
+        CommandIds::colorizeInputsId,
+        CommandIds::resetInputPosId,
+        CommandIds::resetMeterClipping,
+        CommandIds::openSettingsWindowId,
+        CommandIds::quitId,
+        CommandIds::aboutId,
+        CommandIds::openManualId,
     };
 
     commands.addArray(ids, juce::numElementsInArray(ids));
@@ -887,108 +888,108 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
     const juce::String generalCategory("General");
 
     switch (commandId) {
-    case MainWindow::newProjectId:
+    case CommandIds::newProjectId:
         result.setInfo("New Project", "Close the current project and open the default.", generalCategory, 0);
         result.addDefaultKeypress('N', juce::ModifierKeys::commandModifier);
         return;
-    case MainWindow::openProjectId:
+    case CommandIds::openProjectId:
         result.setInfo("Open Project", "Choose a new project on disk.", generalCategory, 0);
         result.addDefaultKeypress('O', juce::ModifierKeys::commandModifier);
         return;
-    case MainWindow::saveProjectId:
+    case CommandIds::saveProjectId:
         result.setInfo("Save Project", "Save the current project on disk.", generalCategory, 0);
         result.addDefaultKeypress('S', juce::ModifierKeys::commandModifier);
         result.setActive(isProjectModified());
         return;
-    case MainWindow::saveProjectAsId:
+    case CommandIds::saveProjectAsId:
         result.setInfo("Save Project As...", "Save the current project under a new name on disk.", generalCategory, 0);
         result.addDefaultKeypress('S', juce::ModifierKeys::shiftModifier | juce::ModifierKeys::commandModifier);
         return;
-    case MainWindow::openSpeakerSetupId:
+    case CommandIds::openSpeakerSetupId:
         result.setInfo("Open Speaker Setup", "Choose a new speaker setup on disk.", generalCategory, 0);
         result.addDefaultKeypress('L', juce::ModifierKeys::commandModifier);
         return;
-    case MainWindow::saveSpeakerSetupId:
+    case CommandIds::saveSpeakerSetupId:
         result.setInfo("Save Speaker Setup", "Save the current speaker setup on disk.", generalCategory, 0);
         result.addDefaultKeypress('E', juce::ModifierKeys::commandModifier);
         result.setActive(isSpeakerSetupModified());
         return;
-    case MainWindow::saveSpeakerSetupAsId:
+    case CommandIds::saveSpeakerSetupAsId:
         result.setInfo("Save Speaker Setup As...",
                        "Save the current speaker setup under a new name on disk.",
                        generalCategory,
                        0);
         result.addDefaultKeypress('E', juce::ModifierKeys::commandModifier | juce::ModifierKeys::shiftModifier);
         return;
-    case MainWindow::showSpeakerEditId:
+    case CommandIds::showSpeakerEditId:
         result.setInfo("Speaker Setup Edition", "Edit the current speaker setup.", generalCategory, 0);
         result.addDefaultKeypress('W', juce::ModifierKeys::altModifier);
         return;
-    case MainWindow::show2DViewId:
+    case CommandIds::show2DViewId:
         result.setInfo("Show 2D View", "Show the 2D action window.", generalCategory, 0);
         result.addDefaultKeypress('D', juce::ModifierKeys::altModifier);
         return;
-    case MainWindow::showOscMonitorId:
+    case CommandIds::showOscMonitorId:
         result.setInfo("Show OSC monitor", "Show the OSC monitor window", generalCategory, 0);
         return;
-    case MainWindow::showNumbersId:
+    case CommandIds::showNumbersId:
         result.setInfo("Show Numbers", "Show source and speaker numbers on the 3D view.", generalCategory, 0);
         result.addDefaultKeypress('N', juce::ModifierKeys::altModifier);
         result.setTicked(mData.appData.viewSettings.showSpeakerNumbers);
         return;
-    case MainWindow::showSpeakersId:
+    case CommandIds::showSpeakersId:
         result.setInfo("Show Speakers", "Show speakers on the 3D view.", generalCategory, 0);
         result.addDefaultKeypress('S', juce::ModifierKeys::altModifier);
         result.setTicked(mData.appData.viewSettings.showSpeakers);
         return;
-    case MainWindow::showTripletsId:
+    case CommandIds::showTripletsId:
         result.setInfo("Show Speaker Triplets", "Show speaker triplets on the 3D view.", generalCategory, 0);
         result.addDefaultKeypress('T', juce::ModifierKeys::altModifier);
         result.setTicked(mData.appData.viewSettings.showSpeakerTriplets);
         result.setActive(mAudioProcessor->getSpatAlgorithm()->hasTriplets());
         return;
-    case MainWindow::showSourceActivityId:
+    case CommandIds::showSourceActivityId:
         result.setInfo("Show Source Activity", "Activate brightness on sources on the 3D view.", generalCategory, 0);
         result.addDefaultKeypress('A', juce::ModifierKeys::altModifier);
         result.setTicked(mData.appData.viewSettings.showSourceActivity);
         return;
-    case MainWindow::showSpeakerActivityId:
+    case CommandIds::showSpeakerActivityId:
         result.setInfo("Show Speaker Level", "Activate brightness on speakers on the 3D view.", generalCategory, 0);
         result.addDefaultKeypress('L', juce::ModifierKeys::altModifier);
         result.setTicked(mData.appData.viewSettings.showSpeakerLevels);
         return;
-    case MainWindow::showSphereId:
+    case CommandIds::showSphereId:
         result.setInfo("Show Sphere/Cube", "Show the sphere on the 3D view.", generalCategory, 0);
         result.addDefaultKeypress('O', juce::ModifierKeys::altModifier);
         result.setTicked(mData.appData.viewSettings.showSphereOrCube);
         return;
-    case MainWindow::colorizeInputsId:
+    case CommandIds::colorizeInputsId:
         result.setInfo("Colorize Sources",
                        "Spread the colour of the sources over the colour range.",
                        generalCategory,
                        0);
         result.addDefaultKeypress('C', juce::ModifierKeys::altModifier);
         return;
-    case MainWindow::resetInputPosId:
+    case CommandIds::resetInputPosId:
         result.setInfo("Reset Sources Positions", "Reset the positions of the input sources.", generalCategory, 0);
         result.addDefaultKeypress('R', juce::ModifierKeys::altModifier);
         return;
-    case MainWindow::resetMeterClipping:
+    case CommandIds::resetMeterClipping:
         result.setInfo("Reset Meter Clipping", "Reset clipping for all meters.", generalCategory, 0);
         result.addDefaultKeypress('M', juce::ModifierKeys::altModifier);
         return;
-    case MainWindow::openSettingsWindowId:
+    case CommandIds::openSettingsWindowId:
         result.setInfo("Settings...", "Open the settings window.", generalCategory, 0);
         result.addDefaultKeypress(',', juce::ModifierKeys::commandModifier);
         return;
-    case MainWindow::quitId:
+    case CommandIds::quitId:
         result.setInfo("Quit", "Quit the SpatGRIS.", generalCategory, 0);
         result.addDefaultKeypress('Q', juce::ModifierKeys::commandModifier);
         return;
-    case MainWindow::aboutId:
+    case CommandIds::aboutId:
         result.setInfo("About SpatGRIS", "Open the about window.", generalCategory, 0);
         return;
-    case MainWindow::openManualId:
+    case CommandIds::openManualId:
         result.setInfo("Open Documentation", "Open the manual in pdf viewer.", generalCategory, 0);
         return;
     }
@@ -1007,73 +1008,73 @@ bool MainContentComponent::perform(InvocationInfo const & info)
 
     if (MainWindow::getMainAppWindow()) {
         switch (info.commandID) {
-        case MainWindow::newProjectId:
+        case CommandIds::newProjectId:
             handleNewProject();
             break;
-        case MainWindow::openProjectId:
+        case CommandIds::openProjectId:
             handleOpenProject();
             break;
-        case MainWindow::saveProjectId:
+        case CommandIds::saveProjectId:
             handleSaveProject();
             break;
-        case MainWindow::saveProjectAsId:
+        case CommandIds::saveProjectAsId:
             handleSaveProjectAs();
             break;
-        case MainWindow::openSpeakerSetupId:
+        case CommandIds::openSpeakerSetupId:
             handleOpenSpeakerSetup();
             break;
-        case MainWindow::saveSpeakerSetupId:
+        case CommandIds::saveSpeakerSetupId:
             handleSaveSpeakerSetup();
             break;
-        case MainWindow::saveSpeakerSetupAsId:
+        case CommandIds::saveSpeakerSetupAsId:
             handleSaveSpeakerSetupAs();
             break;
-        case MainWindow::showSpeakerEditId:
+        case CommandIds::showSpeakerEditId:
             handleShowSpeakerEditWindow();
             break;
-        case MainWindow::show2DViewId:
+        case CommandIds::show2DViewId:
             handleShow2DView();
             break;
-        case MainWindow::showOscMonitorId:
+        case CommandIds::showOscMonitorId:
             handleShowOscMonitorWindow();
             break;
-        case MainWindow::showNumbersId:
+        case CommandIds::showNumbersId:
             handleShowNumbers();
             break;
-        case MainWindow::showSpeakersId:
+        case CommandIds::showSpeakersId:
             handleShowSpeakers();
             break;
-        case MainWindow::showTripletsId:
+        case CommandIds::showTripletsId:
             handleShowTriplets();
             break;
-        case MainWindow::showSourceActivityId:
+        case CommandIds::showSourceActivityId:
             handleShowSourceLevel();
             break;
-        case MainWindow::showSpeakerActivityId:
+        case CommandIds::showSpeakerActivityId:
             handleShowSpeakerLevel();
             break;
-        case MainWindow::showSphereId:
+        case CommandIds::showSphereId:
             handleShowSphere();
             break;
-        case MainWindow::colorizeInputsId:
+        case CommandIds::colorizeInputsId:
             handleColorizeInputs();
             break;
-        case MainWindow::resetInputPosId:
+        case CommandIds::resetInputPosId:
             handleResetSourcesPositions();
             break;
-        case MainWindow::resetMeterClipping:
+        case CommandIds::resetMeterClipping:
             handleResetMeterClipping();
             break;
-        case MainWindow::openSettingsWindowId:
+        case CommandIds::openSettingsWindowId:
             handleShowPreferences();
             break;
-        case MainWindow::quitId:
+        case CommandIds::quitId:
             dynamic_cast<MainWindow *>(&mMainWindow)->closeButtonPressed();
             break;
-        case MainWindow::aboutId:
+        case CommandIds::aboutId:
             handleShowAbout();
             break;
-        case MainWindow::openManualId:
+        case CommandIds::openManualId:
             handleOpenManual();
             break;
         default:
@@ -1158,44 +1159,44 @@ juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const j
     juce::PopupMenu menu;
 
     if (menuName == "File") {
-        menu.addCommandItem(commandManager, MainWindow::newProjectId);
-        menu.addCommandItem(commandManager, MainWindow::openProjectId);
+        menu.addCommandItem(commandManager, CommandIds::newProjectId);
+        menu.addCommandItem(commandManager, CommandIds::openProjectId);
         menu.addSubMenu("Templates", extractTemplatesToMenu(PROJECT_TEMPLATES));
-        menu.addCommandItem(commandManager, MainWindow::saveProjectId);
-        menu.addCommandItem(commandManager, MainWindow::saveProjectAsId);
+        menu.addCommandItem(commandManager, CommandIds::saveProjectId);
+        menu.addCommandItem(commandManager, CommandIds::saveProjectAsId);
         menu.addSeparator();
-        menu.addCommandItem(commandManager, MainWindow::openSpeakerSetupId);
+        menu.addCommandItem(commandManager, CommandIds::openSpeakerSetupId);
         menu.addSubMenu("Templates", getSpeakerSetupTemplatesMenu());
-        menu.addCommandItem(commandManager, MainWindow::saveSpeakerSetupId);
-        menu.addCommandItem(commandManager, MainWindow::saveSpeakerSetupAsId);
+        menu.addCommandItem(commandManager, CommandIds::saveSpeakerSetupId);
+        menu.addCommandItem(commandManager, CommandIds::saveSpeakerSetupAsId);
         menu.addSeparator();
-        menu.addCommandItem(commandManager, MainWindow::openSettingsWindowId);
+        menu.addCommandItem(commandManager, CommandIds::openSettingsWindowId);
 #if !JUCE_MAC
         menu.addSeparator();
-        menu.addCommandItem(commandManager, MainWindow::quitId);
+        menu.addCommandItem(commandManager, CommandIds::quitId);
 #endif
     } else if (menuName == "View") {
-        menu.addCommandItem(commandManager, MainWindow::show2DViewId);
-        menu.addCommandItem(commandManager, MainWindow::showSpeakerEditId);
-        menu.addCommandItem(commandManager, MainWindow::showOscMonitorId);
+        menu.addCommandItem(commandManager, CommandIds::show2DViewId);
+        menu.addCommandItem(commandManager, CommandIds::showSpeakerEditId);
+        menu.addCommandItem(commandManager, CommandIds::showOscMonitorId);
         menu.addSeparator();
-        menu.addCommandItem(commandManager, MainWindow::showNumbersId);
-        menu.addCommandItem(commandManager, MainWindow::showSpeakersId);
+        menu.addCommandItem(commandManager, CommandIds::showNumbersId);
+        menu.addCommandItem(commandManager, CommandIds::showSpeakersId);
         if (mAudioProcessor->getSpatAlgorithm()->hasTriplets()) {
-            menu.addCommandItem(commandManager, MainWindow::showTripletsId);
+            menu.addCommandItem(commandManager, CommandIds::showTripletsId);
         } else {
-            menu.addItem(MainWindow::showTripletsId, "Show Speaker Triplets", false, false);
+            menu.addItem(CommandIds::showTripletsId, "Show Speaker Triplets", false, false);
         }
-        menu.addCommandItem(commandManager, MainWindow::showSourceActivityId);
-        menu.addCommandItem(commandManager, MainWindow::showSpeakerActivityId);
-        menu.addCommandItem(commandManager, MainWindow::showSphereId);
+        menu.addCommandItem(commandManager, CommandIds::showSourceActivityId);
+        menu.addCommandItem(commandManager, CommandIds::showSpeakerActivityId);
+        menu.addCommandItem(commandManager, CommandIds::showSphereId);
         menu.addSeparator();
-        menu.addCommandItem(commandManager, MainWindow::colorizeInputsId);
-        menu.addCommandItem(commandManager, MainWindow::resetInputPosId);
-        menu.addCommandItem(commandManager, MainWindow::resetMeterClipping);
+        menu.addCommandItem(commandManager, CommandIds::colorizeInputsId);
+        menu.addCommandItem(commandManager, CommandIds::resetInputPosId);
+        menu.addCommandItem(commandManager, CommandIds::resetMeterClipping);
     } else if (menuName == "Help") {
-        menu.addCommandItem(commandManager, MainWindow::aboutId);
-        menu.addCommandItem(commandManager, MainWindow::openManualId);
+        menu.addCommandItem(commandManager, CommandIds::aboutId);
+        menu.addCommandItem(commandManager, CommandIds::openManualId);
     }
     return menu;
 }

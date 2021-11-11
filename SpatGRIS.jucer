@@ -111,6 +111,8 @@
           <FILE id="zHS1fK" name="sg_StrongIndex.hpp" compile="0" resource="0"
                 file="Source/sg_StrongIndex.hpp"/>
         </GROUP>
+        <FILE id="wUn028" name="sg_CommandId.hpp" compile="0" resource="0"
+              file="Source/sg_CommandId.hpp"/>
         <FILE id="nytjRj" name="sg_AudioStructs.cpp" compile="1" resource="0"
               file="Source/sg_AudioStructs.cpp"/>
         <FILE id="wHT3Fd" name="sg_AudioStructs.hpp" compile="0" resource="0"
