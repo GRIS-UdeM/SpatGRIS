@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="MXmiSb" name="SpatGRIS" projectType="guiapp" version="3.1.1"
+<JUCERPROJECT id="MXmiSb" name="SpatGRIS" projectType="guiapp" version="3.1.2"
               bundleIdentifier="ca.umontreal.musique.gris.spatgris" includeBinaryInAppConfig="0"
               companyName="GRIS - UdeM" projectLineFeed="&#10;" cppLanguageStandard="17"
               jucerFormatVersion="1" displaySplashScreen="1" maxBinaryFileSize="1048576"
@@ -20,8 +20,8 @@
             xcodeResource="1"/>
       <FILE id="sL2wMU" name="SinkinSans-400Regular.otf" compile="0" resource="1"
             file="Source/SinkinSans-400Regular.otf"/>
-      <FILE id="RM1FaB" name="SpatGRIS_3.0.2_Manual.pdf" compile="0" resource="0"
-            file="Resources/SpatGRIS_3.0.2_Manual.pdf" xcodeResource="1"/>
+      <FILE id="s4NxEX" name="SpatGRIS_3.1.2_Manual.pdf" compile="0" resource="0"
+            file="Resources/SpatGRIS_3.1.2_Manual.pdf" xcodeResource="1"/>
       <FILE id="VMUncp" name="splash_screen.png" compile="0" resource="1"
             file="Resources/splash_screen.png" xcodeResource="1"/>
     </GROUP>
