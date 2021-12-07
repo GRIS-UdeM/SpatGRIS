@@ -40,6 +40,7 @@ class HrtfSpatAlgorithm final : public AbstractSpatAlgorithm
 
 public:
     //==============================================================================
+    /** Note: You should never use this function directly. Use HrtfSpatAlgorithm::make() instead. */
     HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup,
                       SourcesData const & sources,
                       double sampleRate,
@@ -64,6 +65,7 @@ public:
     [[nodiscard]] bool hasTriplets() const noexcept override { return false; }
     [[nodiscard]] tl::optional<Error> getError() const noexcept override { return tl::nullopt; }
     //==============================================================================
+    /** Instantiates an HRTF algorithm. This should never fail. */
     static std::unique_ptr<AbstractSpatAlgorithm>
         make(SpeakerSetup const & speakerSetup, SourcesData const & sources, double sampleRate, int bufferSize);
 

@@ -29,7 +29,7 @@ using StereoGainsQueue = AtomicExchanger<StereoSpeakerGains>;
 
 struct StereoSourceData {
     StereoGainsQueue gainsQueue{};
-    StereoGainsQueue::Ticket * currentGains{};
+    StereoGainsQueue::Token * currentGains{};
     StereoSpeakerGains lastGains{};
 };
 

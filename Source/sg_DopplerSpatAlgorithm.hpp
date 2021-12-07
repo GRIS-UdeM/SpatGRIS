@@ -19,8 +19,13 @@
 
 #pragma once
 
-#include "sg_AbstractSpatAlgorithm.hpp"
-#include "sg_Meters.hpp"
+#include "sg_SpatMode.hpp"
+
+/** Experimental : a spatialization algorithm based on doppler-shift. */
+#ifdef USE_DOPPLER
+
+    #include "sg_AbstractSpatAlgorithm.hpp"
+    #include "sg_Meters.hpp"
 
 static constexpr meters_t FIELD_RADIUS{ 8.0f };
 static constexpr meters_t HEAD_RADIUS{ 0.075f };
@@ -46,7 +51,7 @@ using DopplerSpatDataQueue = AtomicExchanger<DopplerSpatData>;
 
 struct DopplerSourceData {
     DopplerSpatDataQueue spatDataQueue{};
-    DopplerSpatDataQueue::Ticket * mostRecentSpatData{};
+    DopplerSpatDataQueue::Token * mostRecentSpatData{};
 };
 
 struct DopplerData {
@@ -91,3 +96,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(DopplerSpatAlgorithm)
 };
+
+#endif

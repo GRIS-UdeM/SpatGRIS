@@ -423,7 +423,7 @@ tl::optional<AudioSettings> AudioSettings::fromXml(juce::XmlElement const & xml)
 //==============================================================================
 juce::String recordingFormatToString(RecordingFormat const format)
 {
-    return RECORDING_FORMAT_STRINGS[narrow<int>(format)];
+    return RECORDING_FORMAT_STRINGS[static_cast<int>(format)];
 }
 
 //==============================================================================
@@ -431,7 +431,7 @@ tl::optional<RecordingFormat> stringToRecordingFormat(juce::String const & strin
 {
     for (int i{}; i < RECORDING_FORMAT_STRINGS.size(); ++i) {
         if (string == RECORDING_FORMAT_STRINGS[i]) {
-            return narrow<RecordingFormat>(i);
+            return static_cast<RecordingFormat>(i);
         }
     }
 
@@ -441,7 +441,7 @@ tl::optional<RecordingFormat> stringToRecordingFormat(juce::String const & strin
 //==============================================================================
 juce::String recordingFileTypeToString(RecordingFileType const fileType)
 {
-    return RECORDING_FILE_TYPE_STRINGS[narrow<int>(fileType)];
+    return RECORDING_FILE_TYPE_STRINGS[static_cast<int>(fileType)];
 }
 
 //==============================================================================
@@ -449,7 +449,7 @@ tl::optional<RecordingFileType> stringToRecordingFileType(juce::String const & s
 {
     for (int i{}; i < RECORDING_FILE_TYPE_STRINGS.size(); ++i) {
         if (string == RECORDING_FILE_TYPE_STRINGS[i]) {
-            return narrow<RecordingFileType>(i);
+            return static_cast<RecordingFileType>(i);
         }
     }
     return tl::nullopt;

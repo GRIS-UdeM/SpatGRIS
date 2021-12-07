@@ -35,7 +35,7 @@ class FlatViewWindow final
     MainContentComponent & mMainContentComponent;
     GrisLookAndFeel & mLookAndFeel;
     StrongArray<source_index_t, ViewPortSourceDataQueue, MAX_NUM_SOURCES> mSourceDataQueues{};
-    StrongArray<source_index_t, ViewPortSourceDataQueue::Ticket *, MAX_NUM_SOURCES> mLastSourceData{};
+    StrongArray<source_index_t, ViewPortSourceDataQueue::Token *, MAX_NUM_SOURCES> mLastSourceData{};
 
 public:
     //==============================================================================

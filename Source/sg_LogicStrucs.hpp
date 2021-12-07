@@ -95,8 +95,8 @@ using ViewPortSpeakerAlphaQueue = AtomicExchanger<float>;
 
 //==============================================================================
 struct ViewportState {
-    StrongArray<source_index_t, ViewPortSourceDataQueue::Ticket *, MAX_NUM_SOURCES> mostRecentSourcesData{};
-    StrongArray<output_patch_t, ViewPortSpeakerAlphaQueue::Ticket *, MAX_NUM_SPEAKERS> mostRecentSpeakersAlpha{};
+    StrongArray<source_index_t, ViewPortSourceDataQueue::Token *, MAX_NUM_SOURCES> mostRecentSourcesData{};
+    StrongArray<output_patch_t, ViewPortSpeakerAlphaQueue::Token *, MAX_NUM_SPEAKERS> mostRecentSpeakersAlpha{};
     float cameraZoomVelocity{};
     Position cameraPosition{};
     juce::int64 lastRenderTimeMs{ juce::Time::currentTimeMillis() };
@@ -358,9 +358,9 @@ struct SpatGrisData {
     SpatGrisProjectData project{};
     SpatGrisAppData appData{};
     tl::optional<dbfs_t> pinkNoiseLevel{};
-    AtomicExchanger<SourcePeaks>::Ticket * mostRecentSourcePeaks{};
-    AtomicExchanger<SpeakerPeaks>::Ticket * mostRecentSpeakerPeaks{};
-    AtomicExchanger<StereoPeaks>::Ticket * mostRecentStereoPeaks{};
+    AtomicExchanger<SourcePeaks>::Token * mostRecentSourcePeaks{};
+    AtomicExchanger<SpeakerPeaks>::Token * mostRecentSpeakerPeaks{};
+    AtomicExchanger<StereoPeaks>::Token * mostRecentStereoPeaks{};
     //==============================================================================
     [[nodiscard]] std::unique_ptr<AudioConfig> toAudioConfig() const;
     [[nodiscard]] ViewportConfig toViewportConfig() const noexcept;
