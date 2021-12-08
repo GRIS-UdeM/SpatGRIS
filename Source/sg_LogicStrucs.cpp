@@ -87,14 +87,14 @@ juce::String const SpeakerSetup::XmlTags::VERSION = "VERSION";
 juce::String const SpeakerSetup::XmlTags::SPAT_MODE = "SPAT_MODE";
 
 //==============================================================================
-juce::String portStateToString(PortState const state)
+juce::String sliceStateToString(SliceState const state)
 {
     switch (state) {
-    case PortState::muted:
+    case SliceState::muted:
         return "muted";
-    case PortState::solo:
+    case SliceState::solo:
         return "solo";
-    case PortState::normal:
+    case SliceState::normal:
         return "normal";
     }
     jassertfalse;
@@ -102,16 +102,16 @@ juce::String portStateToString(PortState const state)
 }
 
 //==============================================================================
-tl::optional<PortState> stringToPortState(juce::String const & string)
+tl::optional<SliceState> stringToSliceState(juce::String const & string)
 {
     if (string == "muted") {
-        return PortState::muted;
+        return SliceState::muted;
     }
     if (string == "solo") {
-        return PortState::solo;
+        return SliceState::solo;
     }
     if (string == "normal") {
-        return PortState::normal;
+        return SliceState::normal;
     }
     return tl::nullopt;
 }
@@ -121,7 +121,7 @@ SourceAudioConfig SourceData::toConfig(bool const soloMode) const
 {
     SourceAudioConfig result;
     result.directOut = directOut;
-    result.isMuted = soloMode ? state != PortState::solo : state == PortState::muted;
+    result.isMuted = soloMode ? state != SliceState::solo : state == SliceState::muted;
     return result;
 }
 
@@ -145,7 +145,7 @@ std::unique_ptr<juce::XmlElement> SourceData::toXml(source_index_t const index) 
 {
     auto result{ std::make_unique<juce::XmlElement>(XmlTags::MAIN_TAG_PREFIX + juce::String{ index.get() }) };
 
-    result->setAttribute(XmlTags::STATE, portStateToString(state));
+    result->setAttribute(XmlTags::STATE, sliceStateToString(state));
     if (directOut) {
         result->setAttribute(XmlTags::DIRECT_OUT, directOut->get());
     }
@@ -171,7 +171,7 @@ tl::optional<SourceData> SourceData::fromXml(juce::XmlElement const & xml)
         return tl::nullopt;
     }
 
-    auto const state{ stringToPortState(xml.getStringAttribute(XmlTags::STATE)) };
+    auto const state{ stringToSliceState(xml.getStringAttribute(XmlTags::STATE)) };
 
     if (!state) {
         return tl::nullopt;
@@ -264,7 +264,7 @@ SpeakerAudioConfig SpeakerData::toConfig(bool const soloMode, double const sampl
     auto const getHighpassConfig = [&](SpeakerHighpassData const & data) { return data.toConfig(sampleRate); };
 
     SpeakerAudioConfig result;
-    result.isMuted = soloMode ? state != PortState::solo : state == PortState::muted;
+    result.isMuted = soloMode ? state != SliceState::solo : state == SliceState::muted;
     result.gain = gain.toGain();
     result.highpassConfig = highpassData.map(getHighpassConfig);
     result.isDirectOutOnly = isDirectOutOnly;
@@ -282,7 +282,7 @@ std::unique_ptr<juce::XmlElement> SpeakerData::toXml(output_patch_t const output
 {
     auto result{ std::make_unique<juce::XmlElement>(XmlTags::MAIN_TAG_PREFIX + juce::String{ outputPatch.get() }) };
 
-    result->setAttribute(XmlTags::STATE, portStateToString(state));
+    result->setAttribute(XmlTags::STATE, sliceStateToString(state));
     result->addChildElement(position.getCartesian().toXml());
     result->setAttribute(XmlTags::GAIN, gain.get());
     if (highpassData) {
@@ -308,7 +308,7 @@ tl::optional<SpeakerData> SpeakerData::fromXml(juce::XmlElement const & xml) noe
     }
 
     auto const position{ CartesianVector::fromXml(*positionElement) };
-    auto const state{ stringToPortState(xml.getStringAttribute(XmlTags::STATE)) };
+    auto const state{ stringToSliceState(xml.getStringAttribute(XmlTags::STATE)) };
 
     if (!position || !state) {
         return tl::nullopt;
@@ -790,7 +790,7 @@ SpeakersAudioConfig SpeakerSetup::toAudioConfig(double const sampleRate) const n
     SpeakersAudioConfig result{};
 
     auto const isAtLeastOnSpeakerSolo{ std::any_of(speakers.cbegin(), speakers.cend(), [](auto const node) {
-        return node.value->state == PortState::solo;
+        return node.value->state == SliceState::solo;
     }) };
 
     for (auto const speaker : speakers) {
@@ -820,18 +820,18 @@ std::unique_ptr<AudioConfig> SpatGrisData::toAudioConfig() const
     auto const isAtLeastOneSourceSolo{ std::any_of(
         project.sources.cbegin(),
         project.sources.cend(),
-        [](auto const node) { return node.value->state == PortState::solo; }) };
+        [](auto const node) { return node.value->state == SliceState::solo; }) };
 
     auto const isValidDirectOut = [&](SourceData const & source) {
         if (!source.directOut) {
             return false;
         }
 
-        if (source.state == PortState::muted) {
+        if (source.state == SliceState::muted) {
             return false;
         }
 
-        if (isAtLeastOneSourceSolo && source.state != PortState::solo) {
+        if (isAtLeastOneSourceSolo && source.state != SliceState::solo) {
             return false;
         }
 

@@ -21,7 +21,7 @@
 
 #include "sg_SpatMode.hpp"
 
-/** Experimental : a spatialization algorithm based on doppler-shift. */
+/** Experimental : a stereo reduction algorithm based on doppler-shifting. */
 #ifdef USE_DOPPLER
 
     #include "sg_AbstractSpatAlgorithm.hpp"
@@ -47,7 +47,7 @@ static auto constexpr DOPPLER_BUFFER_SIZE
 static constexpr auto SOUND_METERS_PER_SECOND = 400.0f;
 
 using DopplerSpatData = std::array<float, 2>;
-using DopplerSpatDataQueue = AtomicExchanger<DopplerSpatData>;
+using DopplerSpatDataQueue = AtomicUpdater<DopplerSpatData>;
 
 struct DopplerSourceData {
     DopplerSpatDataQueue spatDataQueue{};

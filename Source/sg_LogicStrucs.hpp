@@ -33,15 +33,41 @@
 static constexpr auto DEFAULT_OSC_INPUT_PORT = 18032;
 static constexpr auto MAX_OSC_INPUT_PORT = 65535;
 
-//==============================================================================
-enum class PortState { normal, muted, solo };
+/** Signifies that a piece of data will be updated by an external thread DURING PLAYBACK.
+ *
+ * These structures have to be updated using a lock-free mechanisms (see AtomicUpdater) in order to prevent audio or
+ * visual glitches.
+ *
+ * This  doesn't do anything: it's just a reminder tag.
+ */
+struct HOT {
+};
+
+/** Signifies that a piece of data will be updated by an external thread BUT NEVER DURING PLAYBACK.
+ *
+ * This means that audio and visual glitches are ok and that a standard lock-based approach can be used.
+ *
+ * This  doesn't do anything: it's just a reminder tag.
+ */
+struct WARM {
+};
+
+/** Signifies that a piece of data that is NEVER updated by an external thread.
+ *
+ * This  doesn't do anything: it's just a reminder tag.
+ */
+struct COLD {
+};
 
 //==============================================================================
-[[nodiscard]] juce::String portStateToString(PortState state);
-[[nodiscard]] tl::optional<PortState> stringToPortState(juce::String const & string);
+/** The classical states of a mixing slice (input or output). */
+enum class SliceState { normal, muted, solo };
+[[nodiscard]] juce::String sliceStateToString(SliceState state);
+[[nodiscard]] tl::optional<SliceState> stringToSliceState(juce::String const & string);
 
 //==============================================================================
-struct ViewSettings {
+/** The settings associated with the 3D viewport. */
+struct ViewSettings : COLD {
     bool showSpeakers{ true };
     bool showSourceNumbers{ false };
     bool showSpeakerNumbers{ false };
@@ -50,7 +76,9 @@ struct ViewSettings {
     bool showSphereOrCube{ false };
     bool showSourceActivity{ false };
     //==============================================================================
+    /** Used for saving. */
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
+    /** Used for loading. */
     [[nodiscard]] static tl::optional<ViewSettings> fromXml(juce::XmlElement const & xml);
     //==============================================================================
     struct XmlTags {
@@ -66,23 +94,31 @@ struct ViewSettings {
 };
 
 //==============================================================================
-struct ViewportSourceData {
+/** The data needed in order to properly display a source in the 3D viewport. */
+struct ViewportSourceData : HOT {
     Position position{};
     float azimuthSpan{};
     float zenithSpan{};
     juce::Colour colour{};
     SpatMode hybridSpatMode{};
 };
+/** A ViewportSourceData thread-safe updater. The writer is the message thread and the reader is the OpenGL thread. */
+using ViewPortSourceDataUpdater = AtomicUpdater<tl::optional<ViewportSourceData>>;
 
 //==============================================================================
-struct ViewportSpeakerConfig {
+/** The WARM data needed in order to properly display a speaker in the 3D viewport. */
+struct ViewportSpeakerConfig : WARM {
     Position position{};
     bool isSelected{};
     bool isDirectOutOnly{};
 };
+/** An updater used by the 3D viewport to read the speakers' alpha levels. The writer is the message thread and the
+ * reader is the OpenGL thread. */
+using ViewPortSpeakerAlphaUpdater = AtomicUpdater<float>;
 
 //==============================================================================
-struct ViewportConfig {
+/** The WARM data needed by the 3D viewport that will be updated, but only once in a while with a mutex. */
+struct ViewportConfig : WARM {
     StaticMap<output_patch_t, ViewportSpeakerConfig, MAX_NUM_SPEAKERS> speakers{};
     ViewSettings viewSettings{};
     SpatMode spatMode{};
@@ -90,13 +126,10 @@ struct ViewportConfig {
 };
 
 //==============================================================================
-using ViewPortSourceDataQueue = AtomicExchanger<tl::optional<ViewportSourceData>>;
-using ViewPortSpeakerAlphaQueue = AtomicExchanger<float>;
-
-//==============================================================================
-struct ViewportState {
-    StrongArray<source_index_t, ViewPortSourceDataQueue::Token *, MAX_NUM_SOURCES> mostRecentSourcesData{};
-    StrongArray<output_patch_t, ViewPortSpeakerAlphaQueue::Token *, MAX_NUM_SPEAKERS> mostRecentSpeakersAlpha{};
+/** The COLD 3D viewport's data. */
+struct ViewportState : COLD {
+    StrongArray<source_index_t, ViewPortSourceDataUpdater::Token *, MAX_NUM_SOURCES> mostRecentSourcesData{};
+    StrongArray<output_patch_t, ViewPortSpeakerAlphaUpdater::Token *, MAX_NUM_SPEAKERS> mostRecentSpeakersAlpha{};
     float cameraZoomVelocity{};
     Position cameraPosition{};
     juce::int64 lastRenderTimeMs{ juce::Time::currentTimeMillis() };
@@ -109,22 +142,24 @@ struct ViewportState {
 };
 
 //==============================================================================
+/** All of the 3D viewport's data. */
 struct ViewportData {
-    ViewportConfig config{};
-    ViewportState state{};
-    StaticMap<source_index_t, ViewPortSourceDataQueue, MAX_NUM_SOURCES> sourcesDataQueues{};
-    StrongArray<output_patch_t, ViewPortSpeakerAlphaQueue, MAX_NUM_SPEAKERS> speakersAlphaQueues{};
+    ViewportConfig config{}; // Modified once in a while by the message thread
+    ViewportState state{};   // Never touched by the message thread
+    StaticMap<source_index_t, ViewPortSourceDataUpdater, MAX_NUM_SOURCES>
+        sourcesDataQueues{}; // Constantly modified by the message thread
+    StrongArray<output_patch_t, ViewPortSpeakerAlphaUpdater, MAX_NUM_SPEAKERS>
+        speakersAlphaQueues{}; // Constantly modified by the message thread
 };
 
 //==============================================================================
+/**  */
 struct SourceData {
-    PortState state{};
-    tl::optional<Position> position{};
+    SliceState state{};
+    tl::optional<Position> position{}; // tl::nullopt if source is inactive
     float azimuthSpan{};
     float zenithSpan{};
     tl::optional<output_patch_t> directOut{};
-    float peak{};
-    bool isSelected{};
     juce::Colour colour{ DEFAULT_SOURCE_COLOR };
     SpatMode hybridSpatMode{};
     //==============================================================================
@@ -160,7 +195,7 @@ struct SpeakerHighpassData {
 
 //==============================================================================
 struct SpeakerData {
-    PortState state{};
+    SliceState state{};
     Position position{ PolarVector{ radians_t{ 0.0f }, radians_t{ 0.0f }, 1.0f } };
     dbfs_t gain{};
     tl::optional<SpeakerHighpassData> highpassData{};
@@ -358,9 +393,9 @@ struct SpatGrisData {
     SpatGrisProjectData project{};
     SpatGrisAppData appData{};
     tl::optional<dbfs_t> pinkNoiseLevel{};
-    AtomicExchanger<SourcePeaks>::Token * mostRecentSourcePeaks{};
-    AtomicExchanger<SpeakerPeaks>::Token * mostRecentSpeakerPeaks{};
-    AtomicExchanger<StereoPeaks>::Token * mostRecentStereoPeaks{};
+    AtomicUpdater<SourcePeaks>::Token * mostRecentSourcePeaks{};
+    AtomicUpdater<SpeakerPeaks>::Token * mostRecentSpeakerPeaks{};
+    AtomicUpdater<StereoPeaks>::Token * mostRecentStereoPeaks{};
     //==============================================================================
     [[nodiscard]] std::unique_ptr<AudioConfig> toAudioConfig() const;
     [[nodiscard]] ViewportConfig toViewportConfig() const noexcept;

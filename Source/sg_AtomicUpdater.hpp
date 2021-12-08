@@ -22,29 +22,36 @@
 #include "sg_StaticVector.hpp"
 
 //==============================================================================
-/** This class implements a single-writer/single-reader thread-safe lockless communication interface.
+/** This class implements a thread-safe lock-free single-writer/single-reader communication interface.
  *
- * The writer thread uses acquire() to get an exchange token. This token can be used to retrieve dedicated data that can
+ * It provides a reader thread with the most recent data that made available by the writer thread.
+ *
+ * Note : simply using std::atomic<WholeDataStructure> was not an option because :
+ *
+ * - std::atomic are only lock-free with specific architecture-dependent primitive data types.
+ * - the writer must be able to push new data at any time, without waiting, without disturbing the reader and without
+ * having to rely on a queue to acquire or release tokens
+ *
+ * The writer thread uses acquire() to get an update token. This token can be used to retrieve dedicated data that can
  * be written to. When the writing is done, the writer thread calls setMostRecent(token) in order to update the
- * exchanger.
+ * updater. If the writer does multiple updates before the reader accesses them, the older writes are simply tossed
+ * away.
  *
- * The reader thread uses getMostRecent(token) to update a local pointer to the most recently pushed token.
- *
- * This class could be updated to a multiple-writers/single-reader with very little effort, but I'm not sure that would
- * be very useful...
+ * The reader thread uses getMostRecent(token) to update it's local pointer to the most recently pushed token.
  */
 template<typename T>
-class AtomicExchanger
+class AtomicUpdater
 {
-    // The number of tokens to use. While the real safe capacity is probably 4 or 5, we set this to 6 just to be extra
-    // safe.
+    // The number of tokens to use. The safe capacity is probably 4 or 5, but we still set it to 6 just to be extra
+    // safe...
     static constexpr size_t CAPACITY = 6;
 
 public:
     //==============================================================================
+    /** An update token. Use the get() method to access its data. */
     class Token
     {
-        friend AtomicExchanger;
+        friend AtomicUpdater;
 
         // The actual data
         T mValue{};
@@ -64,81 +71,85 @@ private:
 
 public:
     //==============================================================================
-    AtomicExchanger() = default;
-    ~AtomicExchanger() = default;
+    AtomicUpdater() = default;
+    ~AtomicUpdater() = default;
     //==============================================================================
-    AtomicExchanger(AtomicExchanger const &) = delete;
-    AtomicExchanger(AtomicExchanger &&) = delete;
-    AtomicExchanger & operator=(AtomicExchanger const &) = delete;
-    AtomicExchanger & operator=(AtomicExchanger &&) = delete;
+    AtomicUpdater(AtomicUpdater const &) = delete;
+    AtomicUpdater(AtomicUpdater &&) = delete;
+    AtomicUpdater & operator=(AtomicUpdater const &) = delete;
+    AtomicUpdater & operator=(AtomicUpdater &&) = delete;
     //==============================================================================
-    /** @returns a pointer to a token that can be written to. Use setMostRecent() to signal the exchanger when the write
-     * is done. */
+    /** @returns a pointer to previously unused token. Use setMostRecent() to return the data to the updater after
+     * writing to it. */
     Token * acquire() noexcept;
-    /** Updates a local pointer to the most recently edited token.
+    /** Updates a local token pointer to the most recently pushed token.
      *
-     * @param[out] tokenToUpdate the token address that should be updated (or not). Can be nullptr ONCE. A reader MUST
-     * keep this pointer intact between calls and ALWAYS re-use its value for its next call so that the exchanger knows
-     * when to return a token into its pool.
+     * @param[out] tokenToUpdate the token address that should be updated (or not). This has to be nullptr when called
+     * for the first time. Subsequent writes must always put in the address to the last token that they got through the
+     * getMostRecent() call so that the updater knows when the data isn't in use anymore.
      */
     void getMostRecent(Token *& tokenToUpdate) noexcept;
-    /** Sets a token as the most recent.
+    /** Sets a token as the most recent one.
      *
      * @param newMostRecent the address of a token acquired with acquire() that should replace the reader's token ASAP.
      */
     void setMostRecent(Token * newMostRecent) noexcept;
-
-private:
-    //==============================================================================
-    JUCE_LEAK_DETECTOR(AtomicExchanger)
 };
 
 //==============================================================================
 template<typename T>
-typename AtomicExchanger<T>::Token * AtomicExchanger<T>::acquire() noexcept
+typename AtomicUpdater<T>::Token * AtomicUpdater<T>::acquire() noexcept
 {
     auto expected{ true };
+    // Find a free token
     for (auto & token : mData) {
         token.mIsFree.compare_exchange_strong(expected, false);
         if (expected) {
+            // found a free token
             return &token;
         }
         expected = true;
     }
+    // This should never happen
     jassertfalse;
     return nullptr;
 }
 
 //==============================================================================
 template<typename T>
-void AtomicExchanger<T>::getMostRecent(Token *& tokenToUpdate) noexcept
+void AtomicUpdater<T>::getMostRecent(Token *& tokenToUpdate) noexcept
 {
+    // Query most recent token
     auto * mostRecent{ mMostRecent.exchange(nullptr) };
     if (mostRecent == nullptr) {
+        // No new token : tokenToUpdate is already the most recent one
         return;
     }
+    // Found a newer token
     jassert(mostRecent != tokenToUpdate);
     jassert(!mostRecent->mIsFree.load());
     if (tokenToUpdate) {
+        // Initial pointer was not nullptr and should be freed
         jassert(!tokenToUpdate->mIsFree.load());
         tokenToUpdate->mIsFree.store(true);
     }
+    // actual update
     tokenToUpdate = mostRecent;
 }
 
 //==============================================================================
 template<typename T>
-void AtomicExchanger<T>::setMostRecent(Token * newMostRecent) noexcept
+void AtomicUpdater<T>::setMostRecent(Token * newMostRecent) noexcept
 {
     jassert(newMostRecent);
     jassert(!newMostRecent->mIsFree.load());
     auto * oldMostRecent{ mMostRecent.exchange(newMostRecent) };
     jassert(newMostRecent != oldMostRecent);
     if (oldMostRecent == nullptr) {
+        // This was the first token pushed since the last read
         return;
     }
     jassert(!oldMostRecent->mIsFree.load());
-    if (oldMostRecent) {
-        oldMostRecent->mIsFree.store(true);
-    }
+    // This update replaced an unread token: free it
+    oldMostRecent->mIsFree.store(true);
 }

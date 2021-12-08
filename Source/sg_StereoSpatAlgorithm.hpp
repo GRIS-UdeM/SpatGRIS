@@ -25,7 +25,7 @@
 #include "sg_TaggedAudioBuffer.hpp"
 
 using StereoSpeakerGains = std::array<float, 2>;
-using StereoGainsQueue = AtomicExchanger<StereoSpeakerGains>;
+using StereoGainsQueue = AtomicUpdater<StereoSpeakerGains>;
 
 struct StereoSourceData {
     StereoGainsQueue gainsQueue{};

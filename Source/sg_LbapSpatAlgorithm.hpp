@@ -29,7 +29,7 @@ struct LbapSpatData {
     float lbapSourceDistance{};
 };
 
-using LbapSpatDataQueue = AtomicExchanger<LbapSpatData>;
+using LbapSpatDataQueue = AtomicUpdater<LbapSpatData>;
 
 struct LbapSourceData {
     LbapSpatDataQueue dataQueue{};

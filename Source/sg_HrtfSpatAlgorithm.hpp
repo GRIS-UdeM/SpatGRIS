@@ -25,6 +25,7 @@
 #include "sg_TaggedAudioBuffer.hpp"
 
 //==============================================================================
+/**  */
 struct HrtfData {
     SpeakersAudioConfig speakersAudioConfig{};
     SpeakerAudioBuffer speakersBuffer{};
@@ -32,6 +33,11 @@ struct HrtfData {
 };
 
 //==============================================================================
+/** A head-related-transfer-function based stereo reduction algorithm.
+ *
+ * This uses internally the juce::dsp::Convolution class, which could probably run faster if we were to use Intel's IPP
+ * library (but that would not work on Apple silicon).
+ */
 class HrtfSpatAlgorithm final : public AbstractSpatAlgorithm
 {
     std::unique_ptr<AbstractSpatAlgorithm> mInnerAlgorithm{};

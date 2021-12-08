@@ -25,6 +25,9 @@
 #include "sg_TaggedAudioBuffer.hpp"
 
 //==============================================================================
+/** A dummy spatialization algorithm created when the instantiation of an other algorithm fails.
+ *
+ * It holds an error and removes the possibility of having no active algorithms when a problem occurs.  */
 class DummySpatAlgorithm final : public AbstractSpatAlgorithm
 {
     Error mError;

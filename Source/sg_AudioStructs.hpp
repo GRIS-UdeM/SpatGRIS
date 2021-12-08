@@ -19,12 +19,14 @@
 
 #pragma once
 
-#include "sg_AtomicExchanger.hpp"
+#include "sg_AtomicUpdater.hpp"
 #include "sg_Radians.hpp"
 #include "sg_SpatMode.hpp"
 #include "sg_StaticMap.hpp"
 #include "sg_StrongArray.hpp"
 #include "sg_constants.hpp"
+
+/** This file contains most of the structures used in an audio context. */
 
 enum class VbapType { twoD, threeD };
 
@@ -145,7 +147,7 @@ struct AudioData {
     AudioState state{};
 
     // audio thread -> message thread (hot)
-    AtomicExchanger<SourcePeaks> sourcePeaks{};
-    AtomicExchanger<SpeakerPeaks> speakerPeaks{};
-    AtomicExchanger<StereoPeaks> stereoPeaks{};
+    AtomicUpdater<SourcePeaks> sourcePeaks{};
+    AtomicUpdater<SpeakerPeaks> speakerPeaks{};
+    AtomicUpdater<StereoPeaks> stereoPeaks{};
 };
