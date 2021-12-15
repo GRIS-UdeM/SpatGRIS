@@ -42,7 +42,7 @@ class StereoSpatAlgorithm final : public AbstractSpatAlgorithm
 
 public:
     //==============================================================================
-    StereoSpatAlgorithm(SpeakerSetup const & speakerSetup, SourcesData const & sources);
+    StereoSpatAlgorithm(ColdSpeakerSetup const & speakerSetup, ColdSourcesData const & sources);
     ~StereoSpatAlgorithm() override = default;
     //==============================================================================
     StereoSpatAlgorithm(StereoSpatAlgorithm const &) = delete;
@@ -50,7 +50,7 @@ public:
     StereoSpatAlgorithm & operator=(StereoSpatAlgorithm const &) = delete;
     StereoSpatAlgorithm & operator=(StereoSpatAlgorithm &&) = delete;
     //==============================================================================
-    void updateSpatData(source_index_t sourceIndex, SourceData const & sourceData) noexcept override;
+    void updateSpatData(source_index_t sourceIndex, ColdSourceData const & sourceData) noexcept override;
     void process(AudioConfig const & config,
                  SourceAudioBuffer & sourcesBuffer,
                  SpeakerAudioBuffer & speakersBuffer,
@@ -61,7 +61,8 @@ public:
     [[nodiscard]] bool hasTriplets() const noexcept override { return false; }
     [[nodiscard]] tl::optional<Error> getError() const noexcept override { return tl::nullopt; }
     //==============================================================================
-    static std::unique_ptr<AbstractSpatAlgorithm> make(SpeakerSetup const & speakerSetup, SourcesData const & sources);
+    static std::unique_ptr<AbstractSpatAlgorithm> make(ColdSpeakerSetup const & speakerSetup,
+                                                       ColdSourcesData const & sources);
 
 private:
     JUCE_LEAK_DETECTOR(StereoSpatAlgorithm)

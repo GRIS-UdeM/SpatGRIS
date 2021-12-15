@@ -33,7 +33,7 @@ enum class VbapType { twoD, threeD };
 float constexpr SMALL_GAIN = 0.0000000000001f;
 
 //==============================================================================
-struct SpeakerHighpassState {
+struct ColdSpeakerHighpass {
     double x1{};
     double x2{};
     double x3{};
@@ -54,7 +54,7 @@ struct SpeakerHighpassConfig {
     double ha1{};
     double ha2{};
     //==============================================================================
-    void process(float * data, int numSamples, SpeakerHighpassState & state) const;
+    void process(float * data, int numSamples, ColdSpeakerHighpass & state) const;
 };
 
 //==============================================================================
@@ -67,7 +67,7 @@ struct SpeakerAudioConfig {
 
 //==============================================================================
 struct SpeakerAudioState {
-    SpeakerHighpassState highpassState{};
+    ColdSpeakerHighpass highpassState{};
 };
 
 //==============================================================================

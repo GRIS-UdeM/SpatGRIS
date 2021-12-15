@@ -47,7 +47,7 @@ public:
     //==============================================================================
     struct RecordingParameters {
         juce::String path{};
-        RecordingOptions options{};
+        ColdRecordingOptions options{};
         double sampleRate{};
         juce::Array<output_patch_t> speakersToRecord{};
     };
@@ -59,7 +59,7 @@ private:
     SourceAudioBuffer mInputBuffer{};
     SpeakerAudioBuffer mOutputBuffer{};
     juce::AudioBuffer<float> mStereoOutputBuffer{};
-    tl::optional<StereoRouting> mStereoRouting{};
+    tl::optional<ColdStereoRouting> mStereoRouting{};
     // Recording
     bool mIsRecording{};
     juce::Atomic<int64_t> mNumSamplesRecorded{};
@@ -93,7 +93,7 @@ public:
     void initInputBuffer(juce::Array<source_index_t> const & sources);
     void initOutputBuffer(juce::Array<output_patch_t> const & speakers);
     void setBufferSize(int newBufferSize);
-    void setStereoRouting(tl::optional<StereoRouting> const & stereoRouting);
+    void setStereoRouting(tl::optional<ColdStereoRouting> const & stereoRouting);
     //==============================================================================
     // AudioSourcePlayer overrides
     void audioDeviceError(const juce::String & errorMessage) override;
@@ -110,7 +110,7 @@ public:
                      juce::String const & outputDevice,
                      double sampleRate,
                      int bufferSize,
-                     tl::optional<StereoRouting> const & stereoRouting);
+                     tl::optional<ColdStereoRouting> const & stereoRouting);
     static void free();
     [[nodiscard]] static AudioManager & getInstance();
 
@@ -121,7 +121,7 @@ private:
                  juce::String const & outputDevice,
                  double sampleRate,
                  int bufferSize,
-                 tl::optional<StereoRouting> const & stereoRouting);
+                 tl::optional<ColdStereoRouting> const & stereoRouting);
     //==============================================================================
     [[nodiscard]] bool tryInitAudioDevice(juce::String const & deviceType,
                                           juce::String const & inputDevice,

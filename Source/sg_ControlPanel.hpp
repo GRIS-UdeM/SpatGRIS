@@ -127,13 +127,13 @@ public:
     SpatSettingsSubPanel & operator=(SpatSettingsSubPanel const &) = delete;
     SpatSettingsSubPanel & operator=(SpatSettingsSubPanel &&) = delete;
     //==============================================================================
-    void updateMaxOutputPatch(output_patch_t maxOutputPatch, StereoRouting const & routing);
+    void updateMaxOutputPatch(output_patch_t maxOutputPatch, ColdStereoRouting const & routing);
     //==============================================================================
     void setSpatMode(SpatMode spatMode);
     void setStereoMode(tl::optional<StereoMode> const & stereoMode);
     void setAttenuationDb(dbfs_t attenuation);
     void setAttenuationHz(hz_t freq);
-    void setStereoRouting(StereoRouting const & routing);
+    void setStereoRouting(ColdStereoRouting const & routing);
 
 private:
     //==============================================================================
@@ -185,8 +185,8 @@ public:
     void setCubeAttenuationDb(dbfs_t value);
     void setCubeAttenuationHz(hz_t value);
     void setRecordButtonState(RecordButton::State state);
-    void setStereoRouting(StereoRouting const & routing);
-    void updateMaxOutputPatch(output_patch_t maxOutputPatch, StereoRouting const & routing);
+    void setStereoRouting(ColdStereoRouting const & routing);
+    void updateMaxOutputPatch(output_patch_t maxOutputPatch, ColdStereoRouting const & routing);
     //==============================================================================
     void resized() override;
     void forceLayoutUpdate();

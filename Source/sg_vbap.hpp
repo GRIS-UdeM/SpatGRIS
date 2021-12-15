@@ -33,7 +33,7 @@
 
 #include <JuceHeader.h>
 
-struct SourceData;
+struct ColdSourceData;
 
 using InverseMatrix = std::array<float, 9>;
 
@@ -65,6 +65,6 @@ std::unique_ptr<VbapData> vbapInit(std::array<Position, MAX_NUM_SPEAKERS> & spea
 
 /* Calculates gain factors using loudspeaker setup and angle direction.
  */
-void vbapCompute(SourceData const & source, SpeakersSpatGains & gains, VbapData & data) noexcept;
+void vbapCompute(ColdSourceData const & source, SpeakersSpatGains & gains, VbapData & data) noexcept;
 
 juce::Array<Triplet> vbapExtractTriplets(VbapData const & data);

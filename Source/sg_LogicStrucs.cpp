@@ -21,70 +21,70 @@
 
 #include "sg_LegacySpatFileFormat.hpp"
 
-juce::String const SourceData::XmlTags::STATE = "STATE";
-juce::String const SourceData::XmlTags::DIRECT_OUT = "DIRECT_OUT";
-juce::String const SourceData::XmlTags::COLOUR = "COLOR";
-juce::String const SourceData::XmlTags::HYBRID_SPAT_MODE = "HYBRID_SPAT_MODE";
-juce::String const SourceData::XmlTags::MAIN_TAG_PREFIX = "SOURCE_";
+juce::String const ColdSourceData::XmlTags::STATE = "STATE";
+juce::String const ColdSourceData::XmlTags::DIRECT_OUT = "DIRECT_OUT";
+juce::String const ColdSourceData::XmlTags::COLOUR = "COLOR";
+juce::String const ColdSourceData::XmlTags::HYBRID_SPAT_MODE = "HYBRID_SPAT_MODE";
+juce::String const ColdSourceData::XmlTags::MAIN_TAG_PREFIX = "SOURCE_";
 
-juce::String const SpeakerHighpassData::XmlTags::MAIN_TAG = "HIGHPASS";
-juce::String const SpeakerHighpassData::XmlTags::FREQ = "FREQ";
+juce::String const ColdSpeakerHighpassData::XmlTags::MAIN_TAG = "HIGHPASS";
+juce::String const ColdSpeakerHighpassData::XmlTags::FREQ = "FREQ";
 
-juce::String const SpeakerData::XmlTags::STATE = "STATE";
-juce::String const SpeakerData::XmlTags::GAIN = "GAIN";
-juce::String const SpeakerData::XmlTags::IS_DIRECT_OUT_ONLY = "DIRECT_OUT_ONLY";
-juce::String const SpeakerData::XmlTags::MAIN_TAG_PREFIX = "SPEAKER_";
+juce::String const ColdSpeakerData::XmlTags::STATE = "STATE";
+juce::String const ColdSpeakerData::XmlTags::GAIN = "GAIN";
+juce::String const ColdSpeakerData::XmlTags::IS_DIRECT_OUT_ONLY = "DIRECT_OUT_ONLY";
+juce::String const ColdSpeakerData::XmlTags::MAIN_TAG_PREFIX = "SPEAKER_";
 
-juce::String const LbapDistanceAttenuationData::XmlTags::MAIN_TAG = "LBAP_SETTINGS";
-juce::String const LbapDistanceAttenuationData::XmlTags::FREQ = "FREQ";
-juce::String const LbapDistanceAttenuationData::XmlTags::ATTENUATION = "ATTENUATION";
+juce::String const ColdLbapDistanceAttenuationData::XmlTags::MAIN_TAG = "LBAP_SETTINGS";
+juce::String const ColdLbapDistanceAttenuationData::XmlTags::FREQ = "FREQ";
+juce::String const ColdLbapDistanceAttenuationData::XmlTags::ATTENUATION = "ATTENUATION";
 
-juce::String const AudioSettings::XmlTags::MAIN_TAG = "AUDIO_SETTINGS";
-juce::String const AudioSettings::XmlTags::INTERFACE_TYPE = "INTERFACE_TYPE";
-juce::String const AudioSettings::XmlTags::INPUT_INTERFACE = "INPUT_INTERFACE";
-juce::String const AudioSettings::XmlTags::OUTPUT_INTERFACE = "OUTPUT_INTERFACE";
-juce::String const AudioSettings::XmlTags::SAMPLE_RATE = "SAMPLE_RATE";
-juce::String const AudioSettings::XmlTags::BUFFER_SIZE = "BUFFER_SIZE";
+juce::String const ColdAudioSettings::XmlTags::MAIN_TAG = "AUDIO_SETTINGS";
+juce::String const ColdAudioSettings::XmlTags::INTERFACE_TYPE = "INTERFACE_TYPE";
+juce::String const ColdAudioSettings::XmlTags::INPUT_INTERFACE = "INPUT_INTERFACE";
+juce::String const ColdAudioSettings::XmlTags::OUTPUT_INTERFACE = "OUTPUT_INTERFACE";
+juce::String const ColdAudioSettings::XmlTags::SAMPLE_RATE = "SAMPLE_RATE";
+juce::String const ColdAudioSettings::XmlTags::BUFFER_SIZE = "BUFFER_SIZE";
 
-juce::String const RecordingOptions::XmlTags::MAIN_TAG = "RECORDING_OPTIONS";
-juce::String const RecordingOptions::XmlTags::FORMAT = "FORMAT";
-juce::String const RecordingOptions::XmlTags::FILE_TYPE = "FILE_TYPE";
+juce::String const ColdRecordingOptions::XmlTags::MAIN_TAG = "RECORDING_OPTIONS";
+juce::String const ColdRecordingOptions::XmlTags::FORMAT = "FORMAT";
+juce::String const ColdRecordingOptions::XmlTags::FILE_TYPE = "FILE_TYPE";
 
-juce::String const StereoRouting::XmlTags::MAIN_TAG = "STEREO_ROUTING";
-juce::String const StereoRouting::XmlTags::LEFT = "LEFT";
-juce::String const StereoRouting::XmlTags::RIGHT = "RIGHT";
+juce::String const ColdStereoRouting::XmlTags::MAIN_TAG = "STEREO_ROUTING";
+juce::String const ColdStereoRouting::XmlTags::LEFT = "LEFT";
+juce::String const ColdStereoRouting::XmlTags::RIGHT = "RIGHT";
 
-juce::String const ViewSettings::XmlTags::MAIN_TAG = "VIEW_SETTINGS";
-juce::String const ViewSettings::XmlTags::SHOW_SPEAKERS = "SHOW_SPEAKERS";
-juce::String const ViewSettings::XmlTags::SHOW_SOURCE_NUMBERS = "SHOW_SOURCE_NUMBERS";
-juce::String const ViewSettings::XmlTags::SHOW_SPEAKER_NUMBERS = "SHOW_SPEAKER_NUMBERS";
-juce::String const ViewSettings::XmlTags::SHOW_SPEAKER_TRIPLETS = "SHOW_SPEAKER_TRIPLETS";
-juce::String const ViewSettings::XmlTags::SHOW_SPEAKER_LEVELS = "SHOW_SPEAKER_LEVELS";
-juce::String const ViewSettings::XmlTags::SHOW_SPHERE_OR_CUBE = "SHOW_SPHERE_OR_CUBE";
-juce::String const ViewSettings::XmlTags::SHOW_SOURCE_ACTIVITY = "SHOW_SOURCE_ACTIVITY";
+juce::String const ColdViewSettings::XmlTags::MAIN_TAG = "VIEW_SETTINGS";
+juce::String const ColdViewSettings::XmlTags::SHOW_SPEAKERS = "SHOW_SPEAKERS";
+juce::String const ColdViewSettings::XmlTags::SHOW_SOURCE_NUMBERS = "SHOW_SOURCE_NUMBERS";
+juce::String const ColdViewSettings::XmlTags::SHOW_SPEAKER_NUMBERS = "SHOW_SPEAKER_NUMBERS";
+juce::String const ColdViewSettings::XmlTags::SHOW_SPEAKER_TRIPLETS = "SHOW_SPEAKER_TRIPLETS";
+juce::String const ColdViewSettings::XmlTags::SHOW_SPEAKER_LEVELS = "SHOW_SPEAKER_LEVELS";
+juce::String const ColdViewSettings::XmlTags::SHOW_SPHERE_OR_CUBE = "SHOW_SPHERE_OR_CUBE";
+juce::String const ColdViewSettings::XmlTags::SHOW_SOURCE_ACTIVITY = "SHOW_SOURCE_ACTIVITY";
 
-juce::String const SpatGrisProjectData::XmlTags::MAIN_TAG = "SPAT_GRIS_PROJECT_DATA";
-juce::String const SpatGrisProjectData::XmlTags::VERSION = "VERSION";
-juce::String const SpatGrisProjectData::XmlTags::SOURCES = "SOURCES";
-juce::String const SpatGrisProjectData::XmlTags::MASTER_GAIN = "MASTER_GAIN";
-juce::String const SpatGrisProjectData::XmlTags::GAIN_INTERPOLATION = "GAIN_INTERPOLATION";
-juce::String const SpatGrisProjectData::XmlTags::OSC_PORT = "OSC_PORT";
+juce::String const ColdSpatGrisProjectData::XmlTags::MAIN_TAG = "SPAT_GRIS_PROJECT_DATA";
+juce::String const ColdSpatGrisProjectData::XmlTags::VERSION = "VERSION";
+juce::String const ColdSpatGrisProjectData::XmlTags::SOURCES = "SOURCES";
+juce::String const ColdSpatGrisProjectData::XmlTags::MASTER_GAIN = "MASTER_GAIN";
+juce::String const ColdSpatGrisProjectData::XmlTags::GAIN_INTERPOLATION = "GAIN_INTERPOLATION";
+juce::String const ColdSpatGrisProjectData::XmlTags::OSC_PORT = "OSC_PORT";
 
-juce::String const SpatGrisAppData::XmlTags::MAIN_TAG = "SPAT_GRIS_APP_DATA";
-juce::String const SpatGrisAppData::XmlTags::LAST_SPEAKER_SETUP = "LAST_SPEAKER_SETUP";
-juce::String const SpatGrisAppData::XmlTags::LAST_PROJECT = "LAST_PROJECT";
-juce::String const SpatGrisAppData::XmlTags::LAST_RECORDING_DIRECTORY = "LAST_RECORDING_DIRECTORY";
-juce::String const SpatGrisAppData::XmlTags::LAST_STEREO_MODE = "LAST_STEREO_MODE";
-juce::String const SpatGrisAppData::XmlTags::WINDOW_X = "WINDOW_X";
-juce::String const SpatGrisAppData::XmlTags::WINDOW_Y = "WINDOW_Y";
-juce::String const SpatGrisAppData::XmlTags::WINDOW_WIDTH = "WINDOW_WIDTH";
-juce::String const SpatGrisAppData::XmlTags::WINDOW_HEIGHT = "WINDOW_HEIGHT";
-juce::String const SpatGrisAppData::XmlTags::SASH_POSITION = "SASH_POSITION";
-juce::String const SpatGrisAppData::XmlTags::CAMERA = "CAMERA";
+juce::String const ColdSpatGrisAppData::XmlTags::MAIN_TAG = "SPAT_GRIS_APP_DATA";
+juce::String const ColdSpatGrisAppData::XmlTags::LAST_SPEAKER_SETUP = "LAST_SPEAKER_SETUP";
+juce::String const ColdSpatGrisAppData::XmlTags::LAST_PROJECT = "LAST_PROJECT";
+juce::String const ColdSpatGrisAppData::XmlTags::LAST_RECORDING_DIRECTORY = "LAST_RECORDING_DIRECTORY";
+juce::String const ColdSpatGrisAppData::XmlTags::LAST_STEREO_MODE = "LAST_STEREO_MODE";
+juce::String const ColdSpatGrisAppData::XmlTags::WINDOW_X = "WINDOW_X";
+juce::String const ColdSpatGrisAppData::XmlTags::WINDOW_Y = "WINDOW_Y";
+juce::String const ColdSpatGrisAppData::XmlTags::WINDOW_WIDTH = "WINDOW_WIDTH";
+juce::String const ColdSpatGrisAppData::XmlTags::WINDOW_HEIGHT = "WINDOW_HEIGHT";
+juce::String const ColdSpatGrisAppData::XmlTags::SASH_POSITION = "SASH_POSITION";
+juce::String const ColdSpatGrisAppData::XmlTags::CAMERA = "CAMERA";
 
-juce::String const SpeakerSetup::XmlTags::MAIN_TAG = "SPEAKER_SETUP";
-juce::String const SpeakerSetup::XmlTags::VERSION = "VERSION";
-juce::String const SpeakerSetup::XmlTags::SPAT_MODE = "SPAT_MODE";
+juce::String const ColdSpeakerSetup::XmlTags::MAIN_TAG = "SPEAKER_SETUP";
+juce::String const ColdSpeakerSetup::XmlTags::VERSION = "VERSION";
+juce::String const ColdSpeakerSetup::XmlTags::SPAT_MODE = "SPAT_MODE";
 
 //==============================================================================
 juce::String sliceStateToString(SliceState const state)
@@ -117,7 +117,7 @@ tl::optional<SliceState> stringToSliceState(juce::String const & string)
 }
 
 //==============================================================================
-SourceAudioConfig SourceData::toConfig(bool const soloMode) const
+SourceAudioConfig ColdSourceData::toConfig(bool const soloMode) const
 {
     SourceAudioConfig result;
     result.directOut = directOut;
@@ -126,11 +126,11 @@ SourceAudioConfig SourceData::toConfig(bool const soloMode) const
 }
 
 //==============================================================================
-ViewportSourceData SourceData::toViewportData(float const alpha) const
+HotViewportSourceData ColdSourceData::toViewportData(float const alpha) const
 {
     jassert(position);
 
-    ViewportSourceData result;
+    HotViewportSourceData result;
     result.colour = colour.withAlpha(alpha);
     result.azimuthSpan = azimuthSpan;
     result.zenithSpan = zenithSpan;
@@ -141,7 +141,7 @@ ViewportSourceData SourceData::toViewportData(float const alpha) const
 }
 
 //==============================================================================
-std::unique_ptr<juce::XmlElement> SourceData::toXml(source_index_t const index) const
+std::unique_ptr<juce::XmlElement> ColdSourceData::toXml(source_index_t const index) const
 {
     auto result{ std::make_unique<juce::XmlElement>(XmlTags::MAIN_TAG_PREFIX + juce::String{ index.get() }) };
 
@@ -157,7 +157,7 @@ std::unique_ptr<juce::XmlElement> SourceData::toXml(source_index_t const index) 
 }
 
 //==============================================================================
-tl::optional<SourceData> SourceData::fromXml(juce::XmlElement const & xml)
+tl::optional<ColdSourceData> ColdSourceData::fromXml(juce::XmlElement const & xml)
 {
     if (!xml.getTagName().startsWith(XmlTags::MAIN_TAG_PREFIX)) {
         return tl::nullopt;
@@ -177,7 +177,7 @@ tl::optional<SourceData> SourceData::fromXml(juce::XmlElement const & xml)
         return tl::nullopt;
     }
 
-    SourceData result{};
+    ColdSourceData result{};
     result.state = *state;
     if (xml.hasAttribute(XmlTags::DIRECT_OUT)) {
         result.directOut = output_patch_t{ xml.getIntAttribute(XmlTags::DIRECT_OUT) };
@@ -193,7 +193,7 @@ tl::optional<SourceData> SourceData::fromXml(juce::XmlElement const & xml)
 }
 
 //==============================================================================
-bool SourceData::operator==(SourceData const & other) const noexcept
+bool ColdSourceData::operator==(ColdSourceData const & other) const noexcept
 {
     // TODO : this is very misleading and should be replaced with something that does make it seem like we're really
     // comparing the two sources.
@@ -201,7 +201,7 @@ bool SourceData::operator==(SourceData const & other) const noexcept
 }
 
 //==============================================================================
-SpeakerHighpassConfig SpeakerHighpassData::toConfig(double const sampleRate) const
+SpeakerHighpassConfig ColdSpeakerHighpassData::toConfig(double const sampleRate) const
 {
     auto const f{ narrow<double>(freq.get()) };
     auto const wc{ 2.0 * juce::MathConstants<double>::pi * f };
@@ -232,7 +232,7 @@ SpeakerHighpassConfig SpeakerHighpassData::toConfig(double const sampleRate) con
 }
 
 //==============================================================================
-std::unique_ptr<juce::XmlElement> SpeakerHighpassData::toXml() const
+std::unique_ptr<juce::XmlElement> ColdSpeakerHighpassData::toXml() const
 {
     auto result{ std::make_unique<juce::XmlElement>(XmlTags::MAIN_TAG) };
     result->setAttribute(XmlTags::FREQ, freq.get());
@@ -240,28 +240,28 @@ std::unique_ptr<juce::XmlElement> SpeakerHighpassData::toXml() const
 }
 
 //==============================================================================
-tl::optional<SpeakerHighpassData> SpeakerHighpassData::fromXml(juce::XmlElement const & xml)
+tl::optional<ColdSpeakerHighpassData> ColdSpeakerHighpassData::fromXml(juce::XmlElement const & xml)
 {
     if (xml.getTagName() != XmlTags::MAIN_TAG || !xml.hasAttribute(XmlTags::FREQ)) {
         return tl::nullopt;
     }
 
-    SpeakerHighpassData result;
+    ColdSpeakerHighpassData result;
     result.freq = hz_t{ static_cast<float>(xml.getDoubleAttribute(XmlTags::FREQ)) };
 
     return result;
 }
 
 //==============================================================================
-bool SpeakerHighpassData::operator==(SpeakerHighpassData const & other) const noexcept
+bool ColdSpeakerHighpassData::operator==(ColdSpeakerHighpassData const & other) const noexcept
 {
     return other.freq == freq;
 }
 
 //==============================================================================
-SpeakerAudioConfig SpeakerData::toConfig(bool const soloMode, double const sampleRate) const noexcept
+SpeakerAudioConfig ColdSpeakerData::toConfig(bool const soloMode, double const sampleRate) const noexcept
 {
-    auto const getHighpassConfig = [&](SpeakerHighpassData const & data) { return data.toConfig(sampleRate); };
+    auto const getHighpassConfig = [&](ColdSpeakerHighpassData const & data) { return data.toConfig(sampleRate); };
 
     SpeakerAudioConfig result;
     result.isMuted = soloMode ? state != SliceState::solo : state == SliceState::muted;
@@ -272,13 +272,13 @@ SpeakerAudioConfig SpeakerData::toConfig(bool const soloMode, double const sampl
 }
 
 //==============================================================================
-ViewportSpeakerConfig SpeakerData::toViewportConfig() const noexcept
+WarmViewportSpeakerData ColdSpeakerData::toViewportConfig() const noexcept
 {
-    return ViewportSpeakerConfig{ position, isSelected, isDirectOutOnly };
+    return WarmViewportSpeakerData{ position, isSelected, isDirectOutOnly };
 }
 
 //==============================================================================
-std::unique_ptr<juce::XmlElement> SpeakerData::toXml(output_patch_t const outputPatch) const noexcept
+std::unique_ptr<juce::XmlElement> ColdSpeakerData::toXml(output_patch_t const outputPatch) const noexcept
 {
     auto result{ std::make_unique<juce::XmlElement>(XmlTags::MAIN_TAG_PREFIX + juce::String{ outputPatch.get() }) };
 
@@ -294,7 +294,7 @@ std::unique_ptr<juce::XmlElement> SpeakerData::toXml(output_patch_t const output
 }
 
 //==============================================================================
-tl::optional<SpeakerData> SpeakerData::fromXml(juce::XmlElement const & xml) noexcept
+tl::optional<ColdSpeakerData> ColdSpeakerData::fromXml(juce::XmlElement const & xml) noexcept
 {
     juce::StringArray const requiredTags{ XmlTags::GAIN, XmlTags::IS_DIRECT_OUT_ONLY, XmlTags::STATE };
 
@@ -314,14 +314,14 @@ tl::optional<SpeakerData> SpeakerData::fromXml(juce::XmlElement const & xml) noe
         return tl::nullopt;
     }
 
-    auto const * crossoverElement{ xml.getChildByName(SpeakerHighpassData::XmlTags::MAIN_TAG) };
+    auto const * crossoverElement{ xml.getChildByName(ColdSpeakerHighpassData::XmlTags::MAIN_TAG) };
 
-    SpeakerData result{};
+    ColdSpeakerData result{};
     result.state = *state;
     result.position = *position;
     result.gain = dbfs_t{ static_cast<float>(xml.getDoubleAttribute(XmlTags::GAIN)) };
     if (crossoverElement) {
-        auto const crossover{ SpeakerHighpassData::fromXml(*crossoverElement) };
+        auto const crossover{ ColdSpeakerHighpassData::fromXml(*crossoverElement) };
         if (!crossover) {
             return tl::nullopt;
         }
@@ -333,14 +333,14 @@ tl::optional<SpeakerData> SpeakerData::fromXml(juce::XmlElement const & xml) noe
 }
 
 //==============================================================================
-bool SpeakerData::operator==(SpeakerData const & other) const noexcept
+bool ColdSpeakerData::operator==(ColdSpeakerData const & other) const noexcept
 {
     return other.isDirectOutOnly == isDirectOutOnly && other.highpassData == highpassData && other.position == position
            && other.gain == gain;
 }
 
 //==============================================================================
-LbapAttenuationConfig LbapDistanceAttenuationData::toConfig(double const sampleRate) const
+LbapAttenuationConfig ColdLbapDistanceAttenuationData::toConfig(double const sampleRate) const
 {
     auto const coefficient{ std::exp(-juce::MathConstants<float>::twoPi * freq.get() / narrow<float>(sampleRate)) };
     auto const gain{ attenuation.toGain() };
@@ -349,7 +349,7 @@ LbapAttenuationConfig LbapDistanceAttenuationData::toConfig(double const sampleR
 }
 
 //==============================================================================
-std::unique_ptr<juce::XmlElement> LbapDistanceAttenuationData::toXml() const
+std::unique_ptr<juce::XmlElement> ColdLbapDistanceAttenuationData::toXml() const
 {
     auto result{ std::make_unique<juce::XmlElement>(XmlTags::MAIN_TAG) };
 
@@ -360,14 +360,14 @@ std::unique_ptr<juce::XmlElement> LbapDistanceAttenuationData::toXml() const
 }
 
 //==============================================================================
-tl::optional<LbapDistanceAttenuationData> LbapDistanceAttenuationData::fromXml(juce::XmlElement const & xml)
+tl::optional<ColdLbapDistanceAttenuationData> ColdLbapDistanceAttenuationData::fromXml(juce::XmlElement const & xml)
 {
     if (xml.getTagName() != XmlTags::MAIN_TAG || !xml.hasAttribute(XmlTags::FREQ)
         || !xml.hasAttribute(XmlTags::ATTENUATION)) {
         return tl::nullopt;
     }
 
-    LbapDistanceAttenuationData result{};
+    ColdLbapDistanceAttenuationData result{};
     result.freq = hz_t{ static_cast<float>(xml.getDoubleAttribute(XmlTags::FREQ)) };
     result.attenuation = dbfs_t{ static_cast<float>(xml.getDoubleAttribute(XmlTags::ATTENUATION)) };
 
@@ -375,13 +375,13 @@ tl::optional<LbapDistanceAttenuationData> LbapDistanceAttenuationData::fromXml(j
 }
 
 //==============================================================================
-bool LbapDistanceAttenuationData::operator==(LbapDistanceAttenuationData const & other) const noexcept
+bool ColdLbapDistanceAttenuationData::operator==(ColdLbapDistanceAttenuationData const & other) const noexcept
 {
     return other.attenuation == attenuation && other.freq == freq;
 }
 
 //==============================================================================
-std::unique_ptr<juce::XmlElement> AudioSettings::toXml() const
+std::unique_ptr<juce::XmlElement> ColdAudioSettings::toXml() const
 {
     auto result{ std::make_unique<juce::XmlElement>(XmlTags::MAIN_TAG) };
 
@@ -395,7 +395,7 @@ std::unique_ptr<juce::XmlElement> AudioSettings::toXml() const
 }
 
 //==============================================================================
-tl::optional<AudioSettings> AudioSettings::fromXml(juce::XmlElement const & xml)
+tl::optional<ColdAudioSettings> ColdAudioSettings::fromXml(juce::XmlElement const & xml)
 {
     juce::StringArray requiredAttributes{ XmlTags::INTERFACE_TYPE,
                                           XmlTags::INPUT_INTERFACE,
@@ -410,7 +410,7 @@ tl::optional<AudioSettings> AudioSettings::fromXml(juce::XmlElement const & xml)
         return tl::nullopt;
     }
 
-    tl::optional<AudioSettings> result{ AudioSettings{} };
+    tl::optional<ColdAudioSettings> result{ ColdAudioSettings{} };
     result->deviceType = xml.getStringAttribute(XmlTags::INTERFACE_TYPE);
     result->inputDevice = xml.getStringAttribute(XmlTags::INPUT_INTERFACE);
     result->outputDevice = xml.getStringAttribute(XmlTags::OUTPUT_INTERFACE);
@@ -456,7 +456,7 @@ tl::optional<RecordingFileType> stringToRecordingFileType(juce::String const & s
 }
 
 //==============================================================================
-std::unique_ptr<juce::XmlElement> RecordingOptions::toXml() const
+std::unique_ptr<juce::XmlElement> ColdRecordingOptions::toXml() const
 {
     auto result{ std::make_unique<juce::XmlElement>(XmlTags::MAIN_TAG) };
 
@@ -467,7 +467,7 @@ std::unique_ptr<juce::XmlElement> RecordingOptions::toXml() const
 }
 
 //==============================================================================
-tl::optional<RecordingOptions> RecordingOptions::fromXml(juce::XmlElement const & xml)
+tl::optional<ColdRecordingOptions> ColdRecordingOptions::fromXml(juce::XmlElement const & xml)
 {
     auto const format{ stringToRecordingFormat(xml.getStringAttribute(XmlTags::FORMAT)) };
     auto const fileType{ stringToRecordingFileType(xml.getStringAttribute(XmlTags::FILE_TYPE)) };
@@ -476,7 +476,7 @@ tl::optional<RecordingOptions> RecordingOptions::fromXml(juce::XmlElement const 
         return tl::nullopt;
     }
 
-    RecordingOptions result;
+    ColdRecordingOptions result;
     result.format = *format;
     result.fileType = *fileType;
 
@@ -484,7 +484,7 @@ tl::optional<RecordingOptions> RecordingOptions::fromXml(juce::XmlElement const 
 }
 
 //==============================================================================
-std::unique_ptr<juce::XmlElement> StereoRouting::toXml() const
+std::unique_ptr<juce::XmlElement> ColdStereoRouting::toXml() const
 {
     auto result{ std::make_unique<juce::XmlElement>(XmlTags::MAIN_TAG) };
 
@@ -495,21 +495,21 @@ std::unique_ptr<juce::XmlElement> StereoRouting::toXml() const
 }
 
 //==============================================================================
-tl::optional<StereoRouting> StereoRouting::fromXml(juce::XmlElement const & xml)
+tl::optional<ColdStereoRouting> ColdStereoRouting::fromXml(juce::XmlElement const & xml)
 {
     if (xml.getTagName() != XmlTags::MAIN_TAG || !xml.hasAttribute(XmlTags::LEFT)
         || !xml.hasAttribute(XmlTags::RIGHT)) {
         return tl::nullopt;
     }
 
-    StereoRouting result;
+    ColdStereoRouting result;
     result.left = output_patch_t{ xml.getIntAttribute(XmlTags::LEFT, 1) };
     result.right = output_patch_t{ xml.getIntAttribute(XmlTags::RIGHT, 2) };
     return result;
 }
 
 //==============================================================================
-std::unique_ptr<juce::XmlElement> ViewSettings::toXml() const
+std::unique_ptr<juce::XmlElement> ColdViewSettings::toXml() const
 {
     auto result{ std::make_unique<juce::XmlElement>(XmlTags::MAIN_TAG) };
 
@@ -525,7 +525,7 @@ std::unique_ptr<juce::XmlElement> ViewSettings::toXml() const
 }
 
 //==============================================================================
-tl::optional<ViewSettings> ViewSettings::fromXml(juce::XmlElement const & xml)
+tl::optional<ColdViewSettings> ColdViewSettings::fromXml(juce::XmlElement const & xml)
 {
     juce::StringArray const requiredTags{ XmlTags::SHOW_SPEAKERS,        XmlTags::SHOW_SOURCE_NUMBERS,
                                           XmlTags::SHOW_SPEAKER_NUMBERS, XmlTags::SHOW_SPEAKER_TRIPLETS,
@@ -539,7 +539,7 @@ tl::optional<ViewSettings> ViewSettings::fromXml(juce::XmlElement const & xml)
         return tl::nullopt;
     }
 
-    ViewSettings result;
+    ColdViewSettings result;
     result.showSpeakers = xml.getBoolAttribute(XmlTags::SHOW_SPEAKERS);
     result.showSourceNumbers = xml.getBoolAttribute(XmlTags::SHOW_SOURCE_NUMBERS);
     result.showSpeakerNumbers = xml.getBoolAttribute(XmlTags::SHOW_SPEAKER_NUMBERS);
@@ -552,7 +552,7 @@ tl::optional<ViewSettings> ViewSettings::fromXml(juce::XmlElement const & xml)
 }
 
 //==============================================================================
-std::unique_ptr<juce::XmlElement> SpatGrisProjectData::toXml() const
+std::unique_ptr<juce::XmlElement> ColdSpatGrisProjectData::toXml() const
 {
     auto result{ std::make_unique<juce::XmlElement>(XmlTags::MAIN_TAG) };
 
@@ -573,7 +573,7 @@ std::unique_ptr<juce::XmlElement> SpatGrisProjectData::toXml() const
 }
 
 //==============================================================================
-tl::optional<SpatGrisProjectData> SpatGrisProjectData::fromXml(juce::XmlElement const & xml)
+tl::optional<ColdSpatGrisProjectData> ColdSpatGrisProjectData::fromXml(juce::XmlElement const & xml)
 {
     juce::StringArray const requiredTags{ XmlTags::MASTER_GAIN, XmlTags::GAIN_INTERPOLATION, XmlTags::OSC_PORT };
     if (xml.getTagName() != XmlTags::MAIN_TAG
@@ -584,15 +584,15 @@ tl::optional<SpatGrisProjectData> SpatGrisProjectData::fromXml(juce::XmlElement 
     }
 
     auto const * sourcesElement{ xml.getChildByName(XmlTags::SOURCES) };
-    auto const * lbapAttenuationElement{ xml.getChildByName(LbapDistanceAttenuationData::XmlTags::MAIN_TAG) };
+    auto const * lbapAttenuationElement{ xml.getChildByName(ColdLbapDistanceAttenuationData::XmlTags::MAIN_TAG) };
 
     if (!sourcesElement || !lbapAttenuationElement) {
         return tl::nullopt;
     }
 
-    SpatGrisProjectData result{};
+    ColdSpatGrisProjectData result{};
 
-    auto const lbapAttenuation{ LbapDistanceAttenuationData::fromXml(*lbapAttenuationElement) };
+    auto const lbapAttenuation{ ColdLbapDistanceAttenuationData::fromXml(*lbapAttenuationElement) };
 
     if (!lbapAttenuation) {
         return tl::nullopt;
@@ -607,25 +607,25 @@ tl::optional<SpatGrisProjectData> SpatGrisProjectData::fromXml(juce::XmlElement 
 
     for (auto const * sourceElement : sourcesElement->getChildIterator()) {
         jassert(sourceElement);
-        auto const sourceData{ SourceData::fromXml(*sourceElement) };
+        auto const sourceData{ ColdSourceData::fromXml(*sourceElement) };
         if (!sourceData) {
             return tl::nullopt;
         }
 
         auto const sourceIndex{ source_index_t{
-            sourceElement->getTagName().substring(SourceData::XmlTags::MAIN_TAG_PREFIX.length()).getIntValue() } };
+            sourceElement->getTagName().substring(ColdSourceData::XmlTags::MAIN_TAG_PREFIX.length()).getIntValue() } };
         jassert(LEGAL_SOURCE_INDEX_RANGE.contains(sourceIndex));
         if (!LEGAL_SOURCE_INDEX_RANGE.contains(sourceIndex)) {
             return tl::nullopt;
         }
-        result.sources.add(sourceIndex, std::make_unique<SourceData>(*sourceData));
+        result.sources.add(sourceIndex, std::make_unique<ColdSourceData>(*sourceData));
     }
 
     return tl::make_optional(std::move(result));
 }
 
 //==============================================================================
-bool SpatGrisProjectData::operator==(SpatGrisProjectData const & other) const noexcept
+bool ColdSpatGrisProjectData::operator==(ColdSpatGrisProjectData const & other) const noexcept
 {
     return other.spatGainsInterpolation == spatGainsInterpolation && other.oscPort == oscPort
            && other.masterGain == masterGain && other.lbapDistanceAttenuationData == lbapDistanceAttenuationData
@@ -633,7 +633,7 @@ bool SpatGrisProjectData::operator==(SpatGrisProjectData const & other) const no
 }
 
 //==============================================================================
-std::unique_ptr<juce::XmlElement> SpatGrisAppData::toXml() const
+std::unique_ptr<juce::XmlElement> ColdSpatGrisAppData::toXml() const
 {
     auto result{ std::make_unique<juce::XmlElement>(XmlTags::MAIN_TAG) };
 
@@ -663,7 +663,7 @@ std::unique_ptr<juce::XmlElement> SpatGrisAppData::toXml() const
 }
 
 //==============================================================================
-tl::optional<SpatGrisAppData> SpatGrisAppData::fromXml(juce::XmlElement const & xml)
+tl::optional<ColdSpatGrisAppData> ColdSpatGrisAppData::fromXml(juce::XmlElement const & xml)
 {
     juce::StringArray const requiredTags{
         XmlTags::LAST_SPEAKER_SETUP, XmlTags::LAST_PROJECT, XmlTags::LAST_RECORDING_DIRECTORY,
@@ -671,11 +671,11 @@ tl::optional<SpatGrisAppData> SpatGrisAppData::fromXml(juce::XmlElement const & 
         XmlTags::WINDOW_HEIGHT,      XmlTags::SASH_POSITION
     };
 
-    auto const * audioSettingsElement{ xml.getChildByName(AudioSettings::XmlTags::MAIN_TAG) };
-    auto const * recordingOptionsElement{ xml.getChildByName(RecordingOptions::XmlTags::MAIN_TAG) };
+    auto const * audioSettingsElement{ xml.getChildByName(ColdAudioSettings::XmlTags::MAIN_TAG) };
+    auto const * recordingOptionsElement{ xml.getChildByName(ColdRecordingOptions::XmlTags::MAIN_TAG) };
     auto const * cameraElement{ xml.getChildByName(XmlTags::CAMERA) };
-    auto const * viewSettingsElement{ xml.getChildByName(ViewSettings::XmlTags::MAIN_TAG) };
-    auto const * stereoRoutingElement{ xml.getChildByName(StereoRouting::XmlTags::MAIN_TAG) };
+    auto const * viewSettingsElement{ xml.getChildByName(ColdViewSettings::XmlTags::MAIN_TAG) };
+    auto const * stereoRoutingElement{ xml.getChildByName(ColdStereoRouting::XmlTags::MAIN_TAG) };
 
     if (xml.getTagName() != XmlTags::MAIN_TAG || !audioSettingsElement || !recordingOptionsElement || !cameraElement
         || !viewSettingsElement || !stereoRoutingElement
@@ -690,18 +690,18 @@ tl::optional<SpatGrisAppData> SpatGrisAppData::fromXml(juce::XmlElement const & 
         return tl::nullopt;
     }
 
-    auto const audioSettings{ AudioSettings::fromXml(*audioSettingsElement) };
-    auto const recordingOptions{ RecordingOptions::fromXml(*recordingOptionsElement) };
+    auto const audioSettings{ ColdAudioSettings::fromXml(*audioSettingsElement) };
+    auto const recordingOptions{ ColdRecordingOptions::fromXml(*recordingOptionsElement) };
     auto const cameraPosition{ CartesianVector::fromXml(*cameraPositionElement) };
-    auto const viewSettings{ ViewSettings::fromXml(*viewSettingsElement) };
+    auto const viewSettings{ ColdViewSettings::fromXml(*viewSettingsElement) };
     auto const lastStereoMode{ stringToStereoMode(xml.getStringAttribute(XmlTags::LAST_STEREO_MODE)) };
-    auto const stereoRouting{ StereoRouting::fromXml(*stereoRoutingElement) };
+    auto const stereoRouting{ ColdStereoRouting::fromXml(*stereoRoutingElement) };
 
     if (!audioSettings || !recordingOptions || !cameraPosition || !viewSettings || !stereoRouting) {
         return tl::nullopt;
     }
 
-    SpatGrisAppData result;
+    ColdSpatGrisAppData result;
 
     result.audioSettings = *audioSettings;
     result.recordingOptions = *recordingOptions;
@@ -723,7 +723,7 @@ tl::optional<SpatGrisAppData> SpatGrisAppData::fromXml(juce::XmlElement const & 
 }
 
 //==============================================================================
-std::unique_ptr<juce::XmlElement> SpeakerSetup::toXml() const
+std::unique_ptr<juce::XmlElement> ColdSpeakerSetup::toXml() const
 {
     auto result{ std::make_unique<juce::XmlElement>(XmlTags::MAIN_TAG) };
 
@@ -739,7 +739,7 @@ std::unique_ptr<juce::XmlElement> SpeakerSetup::toXml() const
 }
 
 //==============================================================================
-tl::optional<SpeakerSetup> SpeakerSetup::fromXml(juce::XmlElement const & xml)
+tl::optional<ColdSpeakerSetup> ColdSpeakerSetup::fromXml(juce::XmlElement const & xml)
 {
     auto const spatMode{ stringToSpatMode(xml.getStringAttribute(XmlTags::SPAT_MODE)) };
 
@@ -747,45 +747,45 @@ tl::optional<SpeakerSetup> SpeakerSetup::fromXml(juce::XmlElement const & xml)
         return readLegacySpeakerSetup(xml);
     }
 
-    tl::optional<SpeakerSetup> result{ SpeakerSetup{} };
+    tl::optional<ColdSpeakerSetup> result{ ColdSpeakerSetup{} };
     result->spatMode = *spatMode;
 
     for (auto const * speaker : xml.getChildIterator()) {
         auto const tagName{ speaker->getTagName() };
-        if (!tagName.startsWith(SpeakerData::XmlTags::MAIN_TAG_PREFIX)) {
+        if (!tagName.startsWith(ColdSpeakerData::XmlTags::MAIN_TAG_PREFIX)) {
             return tl::nullopt;
         }
         output_patch_t const outputPatch{
-            tagName.substring(SpeakerData::XmlTags::MAIN_TAG_PREFIX.length()).getIntValue()
+            tagName.substring(ColdSpeakerData::XmlTags::MAIN_TAG_PREFIX.length()).getIntValue()
         };
         result->ordering.add(outputPatch);
-        auto const speakerData{ SpeakerData::fromXml(*speaker) };
+        auto const speakerData{ ColdSpeakerData::fromXml(*speaker) };
         if (!speakerData) {
             return tl::nullopt;
         }
 
-        result->speakers.add(outputPatch, std::make_unique<SpeakerData>(*speakerData));
+        result->speakers.add(outputPatch, std::make_unique<ColdSpeakerData>(*speakerData));
     }
 
     return result;
 }
 
 //==============================================================================
-bool SpeakerSetup::operator==(SpeakerSetup const & other) const noexcept
+bool ColdSpeakerSetup::operator==(ColdSpeakerSetup const & other) const noexcept
 {
     return other.ordering == ordering && other.speakers == speakers && other.spatMode == spatMode;
 }
 
 //==============================================================================
-bool SpeakerSetup::isDomeLike() const noexcept
+bool ColdSpeakerSetup::isDomeLike() const noexcept
 {
-    return std::all_of(speakers.cbegin(), speakers.cend(), [](SpeakersData::ConstNode const & node) {
+    return std::all_of(speakers.cbegin(), speakers.cend(), [](ColdSpeakersData::ConstNode const & node) {
         return node.value->isDirectOutOnly || juce::isWithin(node.value->position.getPolar().length, 1.0f, 0.02f);
     });
 }
 
 //==============================================================================
-SpeakersAudioConfig SpeakerSetup::toAudioConfig(double const sampleRate) const noexcept
+SpeakersAudioConfig ColdSpeakerSetup::toAudioConfig(double const sampleRate) const noexcept
 {
     SpeakersAudioConfig result{};
 
@@ -801,17 +801,18 @@ SpeakersAudioConfig SpeakerSetup::toAudioConfig(double const sampleRate) const n
 }
 
 //==============================================================================
-int SpeakerSetup::numOfSpatializedSpeakers() const noexcept
+int ColdSpeakerSetup::numOfSpatializedSpeakers() const noexcept
 {
-    auto const result{ std::count_if(speakers.cbegin(), speakers.cend(), [](SpeakersData::ConstNode const & speaker) {
-        return !speaker.value->isDirectOutOnly;
-    }) };
+    auto const result{ std::count_if(
+        speakers.cbegin(),
+        speakers.cend(),
+        [](ColdSpeakersData::ConstNode const & speaker) { return !speaker.value->isDirectOutOnly; }) };
 
     return narrow<int>(result);
 }
 
 //==============================================================================
-std::unique_ptr<AudioConfig> SpatGrisData::toAudioConfig() const
+std::unique_ptr<AudioConfig> ColdSpatGrisData::toAudioConfig() const
 {
     auto result{ std::make_unique<AudioConfig>() };
 
@@ -822,7 +823,7 @@ std::unique_ptr<AudioConfig> SpatGrisData::toAudioConfig() const
         project.sources.cend(),
         [](auto const node) { return node.value->state == SliceState::solo; }) };
 
-    auto const isValidDirectOut = [&](SourceData const & source) {
+    auto const isValidDirectOut = [&](ColdSourceData const & source) {
         if (!source.directOut) {
             return false;
         }
@@ -872,9 +873,9 @@ std::unique_ptr<AudioConfig> SpatGrisData::toAudioConfig() const
 }
 
 //==============================================================================
-ViewportConfig SpatGrisData::toViewportConfig() const noexcept
+WarmViewportData ColdSpatGrisData::toViewportConfig() const noexcept
 {
-    ViewportConfig result{};
+    WarmViewportData result{};
     for (auto const & speaker : speakerSetup.speakers) {
         result.speakers.add(speaker.key, speaker.value->toViewportConfig());
     }

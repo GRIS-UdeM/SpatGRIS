@@ -35,7 +35,7 @@
 #include "sg_LogicStrucs.hpp"
 #include "sg_OwnedMap.hpp"
 
-struct SpeakerData;
+struct ColdSpeakerData;
 
 static auto constexpr LBAP_MATRIX_SIZE = 64;
 using matrix_t = std::array<std::array<float, LBAP_MATRIX_SIZE + 1>, LBAP_MATRIX_SIZE + 1>;
@@ -72,7 +72,7 @@ struct LbapField {
  * speakers given as `speakers` argument. The argument `num` is the number of
  * speakers passed to the function.
  */
-LbapField lbapInit(SpeakersData const & speakers);
+LbapField lbapInit(ColdSpeakersData const & speakers);
 
 /** \brief Calculates the gain of the outputs for a source's position.
  *
@@ -82,4 +82,4 @@ LbapField lbapInit(SpeakersData const & speakers);
  * memory. This array can be passed to the audio processing function
  * to control the gain of the signal outputs.
  */
-void lbap(SourceData const & source, SpeakersSpatGains & gains, LbapField const & field);
+void lbap(ColdSourceData const & source, SpeakersSpatGains & gains, LbapField const & field);

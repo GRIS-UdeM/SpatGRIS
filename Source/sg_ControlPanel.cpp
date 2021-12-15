@@ -209,7 +209,7 @@ bool SpatSettingsSubPanel::shouldShowStereoRouting() const
 }
 
 //==============================================================================
-void SpatSettingsSubPanel::updateMaxOutputPatch(output_patch_t const maxOutputPatch, StereoRouting const & routing)
+void SpatSettingsSubPanel::updateMaxOutputPatch(output_patch_t const maxOutputPatch, ColdStereoRouting const & routing)
 {
     mLeftCombo.clear(juce::dontSendNotification);
     mRightCombo.clear(juce::dontSendNotification);
@@ -282,7 +282,7 @@ void SpatSettingsSubPanel::setAttenuationHz(hz_t const freq)
 }
 
 //==============================================================================
-void SpatSettingsSubPanel::setStereoRouting(StereoRouting const & routing)
+void SpatSettingsSubPanel::setStereoRouting(ColdStereoRouting const & routing)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -412,8 +412,8 @@ void SpatSettingsSubPanel::comboBoxChanged(juce::ComboBox * comboBoxThatHasChang
     }
 
     if (comboBoxThatHasChanged == &mLeftCombo || comboBoxThatHasChanged == &mRightCombo) {
-        StereoRouting const routing{ output_patch_t{ mLeftCombo.getSelectedId() },
-                                     output_patch_t{ mRightCombo.getSelectedId() } };
+        ColdStereoRouting const routing{ output_patch_t{ mLeftCombo.getSelectedId() },
+                                         output_patch_t{ mRightCombo.getSelectedId() } };
         jassert(routing.left != routing.right);
 
         mMainContentComponent.setStereoRouting(routing);
@@ -511,14 +511,14 @@ void ControlPanel::setRecordButtonState(RecordButton::State const state)
 }
 
 //==============================================================================
-void ControlPanel::setStereoRouting(StereoRouting const & routing)
+void ControlPanel::setStereoRouting(ColdStereoRouting const & routing)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     mSpatSettingsSubPanel.setStereoRouting(routing);
 }
 
 //==============================================================================
-void ControlPanel::updateMaxOutputPatch(output_patch_t const maxOutputPatch, StereoRouting const & routing)
+void ControlPanel::updateMaxOutputPatch(output_patch_t const maxOutputPatch, ColdStereoRouting const & routing)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     mSpatSettingsSubPanel.updateMaxOutputPatch(maxOutputPatch, routing);

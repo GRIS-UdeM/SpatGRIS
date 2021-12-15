@@ -46,12 +46,13 @@ bool isProbablyAudioThread()
 }
 
 //==============================================================================
-void AbstractSpatAlgorithm::fixDirectOutsIntoPlace(SourcesData const & sources,
-                                                   SpeakerSetup const & speakerSetup) noexcept
+void AbstractSpatAlgorithm::fixDirectOutsIntoPlace(ColdSourcesData const & sources,
+                                                   ColdSpeakerSetup const & speakerSetup) noexcept
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    auto const getFakeSourceData = [&](SourceData const & source, SpeakerData const & speaker) -> SourceData {
+    auto const getFakeSourceData
+        = [&](ColdSourceData const & source, ColdSpeakerData const & speaker) -> ColdSourceData {
         auto fakeSourceData{ source };
         fakeSourceData.directOut.reset();
         switch (speakerSetup.spatMode) {
@@ -84,9 +85,9 @@ void AbstractSpatAlgorithm::fixDirectOutsIntoPlace(SourcesData const & sources,
 }
 
 //==============================================================================
-std::unique_ptr<AbstractSpatAlgorithm> AbstractSpatAlgorithm::make(SpeakerSetup const & speakerSetup,
+std::unique_ptr<AbstractSpatAlgorithm> AbstractSpatAlgorithm::make(ColdSpeakerSetup const & speakerSetup,
                                                                    tl::optional<StereoMode> stereoMode,
-                                                                   SourcesData const & sources,
+                                                                   ColdSourcesData const & sources,
                                                                    double const sampleRate,
                                                                    int const bufferSize)
 {

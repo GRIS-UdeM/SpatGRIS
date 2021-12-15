@@ -119,7 +119,7 @@ static LbapLayer createLayer(LbapField const & field, float const height, std::v
 /* Compute the gain of each layer's speakers, for the given position, and store
  * the result in the `gains` array.
  */
-static void computeGains(LbapLayer const & layer, SourceData const & source, float * gains)
+static void computeGains(LbapLayer const & layer, ColdSourceData const & source, float * gains)
 {
     static constexpr auto H_SIZE = LBAP_MATRIX_SIZE / 2.0f;
     static constexpr auto SIZE_MINUS_ONE = LBAP_MATRIX_SIZE - 1.0f;
@@ -168,7 +168,7 @@ void LbapField::reset()
 }
 
 //==============================================================================
-LbapField lbapInit(SpeakersData const & speakers)
+LbapField lbapInit(ColdSpeakersData const & speakers)
 {
     std::vector<LbapSpeaker> lbapSpeakers{};
     lbapSpeakers.reserve(narrow<std::size_t>(speakers.size()));
@@ -218,7 +218,7 @@ LbapField lbapInit(SpeakersData const & speakers)
 }
 
 //==============================================================================
-void lbap(SourceData const & source, SpeakersSpatGains & gains, LbapField const & field)
+void lbap(ColdSourceData const & source, SpeakersSpatGains & gains, LbapField const & field)
 {
     jassert(source.position);
     auto const & position{ *source.position };

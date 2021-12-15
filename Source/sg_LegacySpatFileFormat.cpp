@@ -23,7 +23,7 @@
 #include "sg_LogicStrucs.hpp"
 
 //==============================================================================
-tl::optional<SpeakerSetup> readLegacySpeakerSetup(juce::XmlElement const & xml)
+tl::optional<ColdSpeakerSetup> readLegacySpeakerSetup(juce::XmlElement const & xml)
 {
     if (!xml.hasTagName("SpeakerSetup")) {
         return tl::nullopt;
@@ -36,8 +36,8 @@ tl::optional<SpeakerSetup> readLegacySpeakerSetup(juce::XmlElement const & xml)
     }
 
     juce::Array<std::pair<int, output_patch_t>> layout;
-    juce::OwnedArray<SpeakerData> duplicatedSpeakers{};
-    SpeakerSetup result{};
+    juce::OwnedArray<ColdSpeakerData> duplicatedSpeakers{};
+    ColdSpeakerSetup result{};
 
     for (auto const * ring : xml.getChildIterator()) {
         if (ring->hasTagName("Ring")) {
@@ -69,11 +69,11 @@ tl::optional<SpeakerSetup> readLegacySpeakerSetup(juce::XmlElement const & xml)
                     auto const isDirectOutOnly{ spk->getBoolAttribute("DirectOut", false) };
 
                     // build data
-                    auto speakerData{ std::make_unique<SpeakerData>() };
+                    auto speakerData{ std::make_unique<ColdSpeakerData>() };
                     speakerData->position = position;
                     speakerData->gain = gain;
-                    speakerData->highpassData
-                        = (highpass == hz_t{} ? tl::optional<SpeakerHighpassData>{} : SpeakerHighpassData{ highpass });
+                    speakerData->highpassData = (highpass == hz_t{} ? tl::optional<ColdSpeakerHighpassData>{}
+                                                                    : ColdSpeakerHighpassData{ highpass });
                     speakerData->isDirectOutOnly = isDirectOutOnly;
 
                     if (!result.speakers.contains(outputPatch)) {
@@ -87,7 +87,7 @@ tl::optional<SpeakerSetup> readLegacySpeakerSetup(juce::XmlElement const & xml)
         }
     }
 
-    static auto const GET_MAX_OUTPUT_PATCH = [&](SpeakersData const & speakers) {
+    static auto const GET_MAX_OUTPUT_PATCH = [&](ColdSpeakersData const & speakers) {
         if (speakers.size() == 0) {
             return output_patch_t{};
         }
@@ -109,7 +109,7 @@ tl::optional<SpeakerSetup> readLegacySpeakerSetup(juce::XmlElement const & xml)
     for (auto * speaker : duplicatedSpeakers) {
         auto const outputPatch{ ++maxOutputPatch };
         auto const layoutIndex{ ++maxLayoutIndex };
-        result.speakers.add(outputPatch, std::unique_ptr<SpeakerData>(speaker));
+        result.speakers.add(outputPatch, std::unique_ptr<ColdSpeakerData>(speaker));
         layout.add(std::make_pair(layoutIndex, outputPatch));
     }
     duplicatedSpeakers.clearQuick(false);
@@ -133,7 +133,7 @@ tl::optional<SpeakerSetup> readLegacySpeakerSetup(juce::XmlElement const & xml)
 }
 
 //==============================================================================
-tl::optional<SpatGrisProjectData> readLegacyProjectFile(juce::XmlElement const & xml)
+tl::optional<ColdSpatGrisProjectData> readLegacyProjectFile(juce::XmlElement const & xml)
 {
     if (!xml.hasTagName("SpatServerGRIS_Preset") && !xml.hasTagName("ServerGRIS_Preset")) {
         return tl::nullopt;
@@ -148,7 +148,7 @@ tl::optional<SpatGrisProjectData> readLegacyProjectFile(juce::XmlElement const &
     auto const gainInterpolation{ LEGAL_GAIN_INTERPOLATION_RANGE.clipValue(
         static_cast<float>(xml.getDoubleAttribute("Master_Interpolation", 0.1))) };
 
-    SpatGrisProjectData result{};
+    ColdSpatGrisProjectData result{};
 
     for (auto const * source : xml.getChildIterator()) {
         if (source->hasTagName("Input")) {
@@ -170,7 +170,7 @@ tl::optional<SpatGrisProjectData> readLegacyProjectFile(juce::XmlElement const &
                 }
             }
 
-            auto newSourceData{ std::make_unique<SourceData>() };
+            auto newSourceData{ std::make_unique<ColdSourceData>() };
             newSourceData->colour = color;
             newSourceData->directOut = directOut;
 

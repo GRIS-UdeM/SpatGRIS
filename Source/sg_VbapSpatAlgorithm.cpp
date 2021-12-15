@@ -24,7 +24,7 @@
 #include "sg_TaggedAudioBuffer.hpp"
 
 //==============================================================================
-VbapType getVbapType(SpeakersData const & speakers)
+VbapType getVbapType(ColdSpeakersData const & speakers)
 {
     auto const firstSpeaker{ *speakers.begin() };
     auto const firstZenith{ firstSpeaker.value->position.getPolar().elevation };
@@ -33,7 +33,7 @@ VbapType getVbapType(SpeakersData const & speakers)
 
     auto const areSpeakersOnSamePlane{ std::all_of(speakers.cbegin(),
                                                    speakers.cend(),
-                                                   [&](SpeakersData::ConstNode const node) {
+                                                   [&](ColdSpeakersData::ConstNode const node) {
                                                        auto const zenith{ node.value->position.getPolar().elevation };
                                                        return zenith < maxZenith && zenith > minZenith;
                                                    }) };
@@ -41,7 +41,7 @@ VbapType getVbapType(SpeakersData const & speakers)
 }
 
 //==============================================================================
-VbapSpatAlgorithm::VbapSpatAlgorithm(SpeakersData const & speakers)
+VbapSpatAlgorithm::VbapSpatAlgorithm(ColdSpeakersData const & speakers)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -64,7 +64,7 @@ VbapSpatAlgorithm::VbapSpatAlgorithm(SpeakersData const & speakers)
 }
 
 //==============================================================================
-void VbapSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, SourceData const & sourceData) noexcept
+void VbapSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, ColdSourceData const & sourceData) noexcept
 {
     jassert(!isProbablyAudioThread());
 
@@ -182,7 +182,7 @@ bool VbapSpatAlgorithm::hasTriplets() const noexcept
 }
 
 //==============================================================================
-std::unique_ptr<AbstractSpatAlgorithm> VbapSpatAlgorithm::make(SpeakerSetup const & speakerSetup)
+std::unique_ptr<AbstractSpatAlgorithm> VbapSpatAlgorithm::make(ColdSpeakerSetup const & speakerSetup)
 {
     auto const getVbap = [&]() { return std::make_unique<VbapSpatAlgorithm>(speakerSetup.speakers); };
 

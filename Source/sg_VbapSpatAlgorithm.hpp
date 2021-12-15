@@ -25,7 +25,7 @@
 #include "sg_TaggedAudioBuffer.hpp"
 #include "sg_vbap.hpp"
 
-VbapType getVbapType(SpeakersData const & speakers);
+VbapType getVbapType(ColdSpeakersData const & speakers);
 
 struct VbapSourceData {
     AtomicUpdater<SpeakersSpatGains> spatDataQueue{};
@@ -43,7 +43,7 @@ class VbapSpatAlgorithm final : public AbstractSpatAlgorithm
 
 public:
     //==============================================================================
-    explicit VbapSpatAlgorithm(SpeakersData const & speakers);
+    explicit VbapSpatAlgorithm(ColdSpeakersData const & speakers);
     ~VbapSpatAlgorithm() override = default;
     //==============================================================================
     VbapSpatAlgorithm(VbapSpatAlgorithm const &) = delete;
@@ -51,7 +51,7 @@ public:
     VbapSpatAlgorithm & operator=(VbapSpatAlgorithm const &) = delete;
     VbapSpatAlgorithm & operator=(VbapSpatAlgorithm &&) = delete;
     //==============================================================================
-    void updateSpatData(source_index_t sourceIndex, SourceData const & sourceData) noexcept override;
+    void updateSpatData(source_index_t sourceIndex, ColdSourceData const & sourceData) noexcept override;
     void process(AudioConfig const & config,
                  SourceAudioBuffer & sourcesBuffer,
                  SpeakerAudioBuffer & speakersBuffer,
@@ -62,7 +62,7 @@ public:
     [[nodiscard]] bool hasTriplets() const noexcept override;
     [[nodiscard]] tl::optional<Error> getError() const noexcept override { return tl::nullopt; }
     //==============================================================================
-    static std::unique_ptr<AbstractSpatAlgorithm> make(SpeakerSetup const & speakerSetup);
+    static std::unique_ptr<AbstractSpatAlgorithm> make(ColdSpeakerSetup const & speakerSetup);
 
 private:
     JUCE_LEAK_DETECTOR(VbapSpatAlgorithm)

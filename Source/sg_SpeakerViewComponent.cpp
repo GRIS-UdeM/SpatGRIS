@@ -72,19 +72,19 @@ Position SpeakerViewComponent::getCameraPosition() const noexcept
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedLock const lock{ mLock };
 
-    return mData.state.cameraPosition;
+    return mData.coldData.cameraPosition;
 }
 
 //==============================================================================
-void SpeakerViewComponent::setConfig(ViewportConfig const & config, SourcesData const & sources)
+void SpeakerViewComponent::setConfig(WarmViewportData const & config, ColdSourcesData const & sources)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedLock const lock{ mLock };
 
-    mData.config = config;
-    mData.sourcesDataQueues.clear();
+    mData.warmData = config;
+    mData.hotSourcesDataUpdaters.clear();
     for (auto const & source : sources) {
-        mData.sourcesDataQueues.add(source.key);
+        mData.hotSourcesDataUpdaters.add(source.key);
     }
     repaint();
 }
@@ -95,7 +95,7 @@ void SpeakerViewComponent::setCameraPosition(CartesianVector const & position) n
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedLock const lock{ mLock };
 
-    mData.state.cameraPosition = PolarVector{ position };
+    mData.coldData.cameraPosition = PolarVector{ position };
 }
 
 //==============================================================================
@@ -103,7 +103,7 @@ void SpeakerViewComponent::setTriplets(juce::Array<Triplet> triplets) noexcept
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedLock const lock{ mLock };
-    mData.state.triplets = std::move(triplets);
+    mData.coldData.triplets = std::move(triplets);
 }
 
 //==============================================================================
@@ -127,10 +127,10 @@ void SpeakerViewComponent::render()
     // Process zoom smoothed animation
     auto const currentTime{ juce::Time::currentTimeMillis() };
     auto const deciSecondsElapsed{
-        std::clamp(narrow<float>(currentTime - mData.state.lastRenderTimeMs) / 100.0f, 0.0f, 1.0f)
+        std::clamp(narrow<float>(currentTime - mData.coldData.lastRenderTimeMs) / 100.0f, 0.0f, 1.0f)
     };
-    auto const zoomToAdd{ deciSecondsElapsed * mData.state.cameraZoomVelocity };
-    auto const currentZoom{ (mData.state.cameraPosition.getPolar().length - MIN_ZOOM) / ZOOM_RANGE };
+    auto const zoomToAdd{ deciSecondsElapsed * mData.coldData.cameraZoomVelocity };
+    auto const currentZoom{ (mData.coldData.cameraPosition.getPolar().length - MIN_ZOOM) / ZOOM_RANGE };
     auto const scaledZoom{ std::pow(currentZoom, ZOOM_CURVE) };
     auto const scaledTargetZoom{ std::max(scaledZoom + zoomToAdd, 0.0f) };
     auto const unclippedTargetZoom{ std::pow(scaledTargetZoom, INVERSE_ZOOM_CURVE) * ZOOM_RANGE + MIN_ZOOM };
@@ -138,9 +138,9 @@ void SpeakerViewComponent::render()
 
     jassert(std::isfinite(targetZoom));
 
-    mData.state.cameraPosition = mData.state.cameraPosition.withRadius(targetZoom);
-    mData.state.cameraZoomVelocity *= std::pow(0.5f, deciSecondsElapsed);
-    mData.state.lastRenderTimeMs = currentTime;
+    mData.coldData.cameraPosition = mData.coldData.cameraPosition.withRadius(targetZoom);
+    mData.coldData.cameraZoomVelocity *= std::pow(0.5f, deciSecondsElapsed);
+    mData.coldData.lastRenderTimeMs = currentTime;
 
     // Init OpenGL context
     juce::gl::glEnable(juce::gl::GL_DEPTH_TEST);
@@ -167,7 +167,7 @@ void SpeakerViewComponent::render()
     gluPerspective(70.0, static_cast<GLdouble>(getWidth()) / static_cast<GLdouble>(getHeight()), 0.5, 75.0);
     juce::gl::glMatrixMode(juce::gl::GL_MODELVIEW);
 
-    auto const & camPos{ mData.state.cameraPosition.getCartesian() };
+    auto const & camPos{ mData.coldData.cameraPosition.getCartesian() };
 
     juce::gl::glLoadIdentity();
     gluLookAt(camPos.x, camPos.y, camPos.z, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
@@ -175,10 +175,10 @@ void SpeakerViewComponent::render()
     drawOriginGrid();
 
     // Draw sources
-    auto const & viewSettings{ mData.config.viewSettings };
-    for (auto & source : mData.sourcesDataQueues) {
+    auto const & viewSettings{ mData.warmData.viewSettings };
+    for (auto & source : mData.hotSourcesDataUpdaters) {
         auto & exchanger{ source.value };
-        auto *& ticket{ mData.state.mostRecentSourcesData[source.key] };
+        auto *& ticket{ mData.coldData.mostRecentSourcesData[source.key] };
         exchanger.getMostRecent(ticket);
         if (ticket == nullptr) {
             continue;
@@ -192,7 +192,7 @@ void SpeakerViewComponent::render()
 
     // Draw speakers
     if (viewSettings.showSpeakers) {
-        for (auto const & speaker : mData.config.speakers) {
+        for (auto const & speaker : mData.warmData.speakers) {
             drawSpeaker(speaker.key, speaker.value);
         }
     }
@@ -204,7 +204,7 @@ void SpeakerViewComponent::render()
 
     // Draw Sphere / Cube
     if (viewSettings.showSphereOrCube) {
-        switch (mData.config.spatMode) {
+        switch (mData.warmData.spatMode) {
         case SpatMode::vbap:
             drawFieldSphere();
             break;
@@ -219,9 +219,9 @@ void SpeakerViewComponent::render()
     }
 
     // test speaker selection
-    if (mData.state.shouldRayCast) {
+    if (mData.coldData.shouldRayCast) {
         clickRay();
-        mData.state.shouldRayCast = false;
+        mData.coldData.shouldRayCast = false;
     }
 
     juce::gl::glFlush();
@@ -235,7 +235,7 @@ void SpeakerViewComponent::paint(juce::Graphics & g)
 
     g.setColour(juce::Colours::white);
     g.setFont(16.0f);
-    g.drawText(mData.config.title, 18, 18, 300, 30, juce::Justification::left);
+    g.drawText(mData.warmData.title, 18, 18, 300, 30, juce::Justification::left);
 }
 
 //==============================================================================
@@ -250,8 +250,8 @@ void SpeakerViewComponent::clickRay()
     juce::gl::glGetDoublev(juce::gl::GL_PROJECTION_MATRIX, matProjection);
     juce::gl::glGetIntegerv(juce::gl::GL_VIEWPORT, viewport);
 
-    auto const winX{ mData.state.rayClick.x * mDisplayScaling };
-    auto const winY{ viewport[3] - mData.state.rayClick.y * mDisplayScaling };
+    auto const winX{ mData.coldData.rayClick.x * mDisplayScaling };
+    auto const winY{ viewport[3] - mData.coldData.rayClick.y * mDisplayScaling };
 
     gluUnProject(winX, winY, 0.0, matModelView, matProjection, viewport, &mXs, &mYs, &mZs);
     gluUnProject(winX, winY, 1.0, matModelView, matProjection, viewport, &mXe, &mYe, &mZe);
@@ -259,7 +259,7 @@ void SpeakerViewComponent::clickRay()
     mRay.setRay(glm::vec3{ mXs, mYs, mZs }, glm::vec3{ mXe, mYe, mZe });
 
     tl::optional<output_patch_t> iBestSpeaker{};
-    auto const & speakers{ mData.config.speakers };
+    auto const & speakers{ mData.warmData.speakers };
     for (auto const speaker : speakers) {
         if (rayCast(speaker.value.position.getCartesian()) != -1.0f) {
             if (!iBestSpeaker) {
@@ -286,16 +286,16 @@ void SpeakerViewComponent::mouseDown(const juce::MouseEvent & e)
     JUCE_ASSERT_MESSAGE_THREAD;
 
     juce::ScopedLock const lock{ mLock };
-    mData.state.panMouseOrigin = e.getPosition().toFloat();
-    mData.state.panCameraOrigin = mData.state.cameraPosition.getPolar();
+    mData.coldData.panMouseOrigin = e.getPosition().toFloat();
+    mData.coldData.panCameraOrigin = mData.coldData.cameraPosition.getPolar();
 
     // Always check on which display the speaker view component is.
     mDisplayScaling = juce::Desktop::getInstance().getDisplays().getDisplayForPoint(e.getScreenPosition())->scale;
 
     if (e.mods.isLeftButtonDown()) {
-        mData.state.rayClick.x = narrow<float>(e.getPosition().x);
-        mData.state.rayClick.y = narrow<float>(e.getPosition().y);
-        mData.state.shouldRayCast = true;
+        mData.coldData.rayClick.x = narrow<float>(e.getPosition().x);
+        mData.coldData.rayClick.y = narrow<float>(e.getPosition().y);
+        mData.coldData.shouldRayCast = true;
     } else if (e.mods.isRightButtonDown()) {
         mMainContentComponent.setSelectedSpeakers(juce::Array<output_patch_t>{});
     }
@@ -311,15 +311,16 @@ void SpeakerViewComponent::mouseDrag(const juce::MouseEvent & e)
 
     juce::ScopedLock const lock{ mLock };
     if (e.mods.isLeftButtonDown()) {
-        auto const delta{ (e.getPosition().toFloat() - mData.state.panMouseOrigin) };
+        auto const delta{ (e.getPosition().toFloat() - mData.coldData.panMouseOrigin) };
 
-        auto const azimuth{ mData.state.panCameraOrigin.azimuth - radians_t{ delta.x / CAM_SLOW_DOWN } };
-        auto const elevation{ std::clamp(mData.state.panCameraOrigin.elevation + radians_t{ delta.y / CAM_SLOW_DOWN },
+        auto const azimuth{ mData.coldData.panCameraOrigin.azimuth - radians_t{ delta.x / CAM_SLOW_DOWN } };
+        auto const elevation{ std::clamp(mData.coldData.panCameraOrigin.elevation
+                                             + radians_t{ delta.y / CAM_SLOW_DOWN },
                                          -NEARLY_90_DEG,
                                          NEARLY_90_DEG) };
 
-        mData.state.cameraPosition
-            = mData.state.cameraPosition.getPolar().withBalancedAzimuth(azimuth).withClippedElevation(elevation);
+        mData.coldData.cameraPosition
+            = mData.coldData.cameraPosition.getPolar().withBalancedAzimuth(azimuth).withClippedElevation(elevation);
     }
 }
 
@@ -330,7 +331,7 @@ void SpeakerViewComponent::mouseWheelMove(const juce::MouseEvent & /*e*/, const 
     juce::ScopedLock const lock{ mLock };
 
     // mData.state.cameraZoomVelocity -= wheel.deltaY * 0.05f;
-    mData.state.cameraZoomVelocity -= wheel.deltaY * (mData.state.cameraZoomVelocity + 1.0f) * 0.1f;
+    mData.coldData.cameraZoomVelocity -= wheel.deltaY * (mData.coldData.cameraZoomVelocity + 1.0f) * 0.1f;
 }
 
 //==============================================================================
@@ -543,7 +544,7 @@ void SpeakerViewComponent::drawText(juce::String const & val,
     juce::gl::glTranslatef(position.x, position.y, position.z);
 
     if (camLock) {
-        auto const & camPos{ mData.state.cameraPosition.getPolar() };
+        auto const & camPos{ mData.coldData.cameraPosition.getPolar() };
         auto const azimuth{ degrees_t{ camPos.azimuth + HALF_PI } };
 
         juce::gl::glRotatef(degrees_t{ 90.0f }.get(), 1.0f, 0.0f, 0.0f);
@@ -582,10 +583,10 @@ void SpeakerViewComponent::drawTripletConnection() const
 {
     ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD;
 
-    for (auto const & triplet : mData.state.triplets) {
-        auto const & spk1{ mData.config.speakers[triplet.id1].position.getCartesian() };
-        auto const & spk2{ mData.config.speakers[triplet.id2].position.getCartesian() };
-        auto const & spk3{ mData.config.speakers[triplet.id3].position.getCartesian() };
+    for (auto const & triplet : mData.coldData.triplets) {
+        auto const & spk1{ mData.warmData.speakers[triplet.id1].position.getCartesian() };
+        auto const & spk2{ mData.warmData.speakers[triplet.id2].position.getCartesian() };
+        auto const & spk3{ mData.warmData.speakers[triplet.id3].position.getCartesian() };
 
         juce::gl::glLineWidth(1.0f);
         juce::gl::glBegin(juce::gl::GL_LINES);
@@ -601,7 +602,7 @@ void SpeakerViewComponent::drawTripletConnection() const
 }
 
 //==============================================================================
-void SpeakerViewComponent::drawSource(source_index_t const index, ViewportSourceData const & source) const
+void SpeakerViewComponent::drawSource(source_index_t const index, HotViewportSourceData const & source) const
 {
     ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD;
 
@@ -626,7 +627,7 @@ void SpeakerViewComponent::drawSource(source_index_t const index, ViewportSource
     juce::gl::glTranslatef(-pos.x, -pos.y, -pos.z);
 
     auto const getEffectiveSpatMode = [&]() {
-        auto const & baseSpatMode{ mData.config.spatMode };
+        auto const & baseSpatMode{ mData.warmData.spatMode };
         switch (baseSpatMode) {
         case SpatMode::vbap:
         case SpatMode::lbap:
@@ -654,7 +655,7 @@ void SpeakerViewComponent::drawSource(source_index_t const index, ViewportSource
     juce::gl::glPolygonMode(juce::gl::GL_FRONT_AND_BACK, juce::gl::GL_FILL);
     juce::gl::glPopMatrix();
 
-    if (mData.config.viewSettings.showSourceNumbers) {
+    if (mData.warmData.viewSettings.showSourceNumbers) {
         auto position{ source.position.getCartesian() };
         position.y += SIZE_SPEAKER + 0.04f;
         drawText(juce::String{ index.get() }, position, source.colour, 0.0003f, true);
@@ -662,7 +663,7 @@ void SpeakerViewComponent::drawSource(source_index_t const index, ViewportSource
 }
 
 //==============================================================================
-void SpeakerViewComponent::drawVbapSpan(ViewportSourceData const & source)
+void SpeakerViewComponent::drawVbapSpan(HotViewportSourceData const & source)
 {
     ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD;
 
@@ -764,7 +765,7 @@ void SpeakerViewComponent::drawFieldCube()
 }
 
 //==============================================================================
-void SpeakerViewComponent::drawLbapSpan(ViewportSourceData const & source)
+void SpeakerViewComponent::drawLbapSpan(HotViewportSourceData const & source)
 {
     ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD;
 
@@ -816,19 +817,19 @@ void SpeakerViewComponent::drawLbapSpan(ViewportSourceData const & source)
 }
 
 //==============================================================================
-void SpeakerViewComponent::drawSpeaker(output_patch_t const outputPatch, ViewportSpeakerConfig const & speaker)
+void SpeakerViewComponent::drawSpeaker(output_patch_t const outputPatch, WarmViewportSpeakerData const & speaker)
 {
     ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD;
 
     static constexpr auto DEFAULT_ALPHA = 0.75f;
 
-    auto const & showSpeakerLevels{ mData.config.viewSettings.showSpeakerLevels };
+    auto const & showSpeakerLevels{ mData.warmData.viewSettings.showSpeakerLevels };
     auto const getAlpha = [&]() {
         if (!showSpeakerLevels) {
             return DEFAULT_ALPHA;
         }
-        auto & exchanger{ mData.speakersAlphaQueues[outputPatch] };
-        auto *& ticket{ mData.state.mostRecentSpeakersAlpha[outputPatch] };
+        auto & exchanger{ mData.hotSpeakersAlphaUpdaters[outputPatch] };
+        auto *& ticket{ mData.coldData.mostRecentSpeakersAlpha[outputPatch] };
         exchanger.getMostRecent(ticket);
         if (ticket == nullptr) {
             return DEFAULT_ALPHA;
@@ -959,7 +960,7 @@ void SpeakerViewComponent::drawSpeaker(output_patch_t const outputPatch, Viewpor
 
     juce::gl::glPopMatrix();
 
-    if (mData.config.viewSettings.showSpeakerNumbers) {
+    if (mData.warmData.viewSettings.showSpeakerNumbers) {
         auto posT{ speaker.position.getCartesian() };
         posT.z += SIZE_SPEAKER + 0.04f;
         drawText(juce::String{ outputPatch.get() }, posT, juce::Colours::black, 0.0003f);
@@ -1002,7 +1003,7 @@ bool SpeakerViewComponent::speakerNearCam(CartesianVector const & speak1, Cartes
 {
     ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD;
 
-    auto const & camPosition{ mData.state.cameraPosition.getCartesian() };
+    auto const & camPosition{ mData.coldData.cameraPosition.getCartesian() };
     auto const distance1{ (speak1 - camPosition).length2() };
     auto const distance2{ (speak2 - camPosition).length2() };
     return distance1 < distance2;

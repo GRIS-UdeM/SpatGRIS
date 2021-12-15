@@ -42,7 +42,7 @@ public:
     DummySpatAlgorithm & operator=(DummySpatAlgorithm const &) = delete;
     DummySpatAlgorithm & operator=(DummySpatAlgorithm &&) = delete;
     //==============================================================================
-    void updateSpatData(source_index_t /*sourceIndex*/, SourceData const & /*sourceData*/) noexcept override {}
+    void updateSpatData(source_index_t /*sourceIndex*/, ColdSourceData const & /*sourceData*/) noexcept override {}
     void process(AudioConfig const & /*config*/,
                  SourceAudioBuffer & /*sourcesBuffer*/,
                  SpeakerAudioBuffer & /*speakersBuffer*/,

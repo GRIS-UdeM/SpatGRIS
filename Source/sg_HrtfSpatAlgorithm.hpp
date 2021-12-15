@@ -47,8 +47,8 @@ class HrtfSpatAlgorithm final : public AbstractSpatAlgorithm
 public:
     //==============================================================================
     /** Note: You should never use this function directly. Use HrtfSpatAlgorithm::make() instead. */
-    HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup,
-                      SourcesData const & sources,
+    HrtfSpatAlgorithm(ColdSpeakerSetup const & speakerSetup,
+                      ColdSourcesData const & sources,
                       double sampleRate,
                       int bufferSize);
     //==============================================================================
@@ -60,7 +60,7 @@ public:
     HrtfSpatAlgorithm & operator=(HrtfSpatAlgorithm const &) = delete;
     HrtfSpatAlgorithm & operator=(HrtfSpatAlgorithm &&) = delete;
     //==============================================================================
-    void updateSpatData(source_index_t sourceIndex, SourceData const & sourceData) noexcept override;
+    void updateSpatData(source_index_t sourceIndex, ColdSourceData const & sourceData) noexcept override;
     void process(AudioConfig const & config,
                  SourceAudioBuffer & sourcesBuffer,
                  SpeakerAudioBuffer & speakersBuffer,
@@ -73,7 +73,7 @@ public:
     //==============================================================================
     /** Instantiates an HRTF algorithm. This should never fail. */
     static std::unique_ptr<AbstractSpatAlgorithm>
-        make(SpeakerSetup const & speakerSetup, SourcesData const & sources, double sampleRate, int bufferSize);
+        make(ColdSpeakerSetup const & speakerSetup, ColdSourcesData const & sources, double sampleRate, int bufferSize);
 
 private:
     //==============================================================================
