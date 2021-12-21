@@ -31,8 +31,6 @@ constexpr auto VU_METER_MIN_HEIGHT = 140;
 //==============================================================================
 void VuMeterComponent::resized()
 {
-    JUCE_ASSERT_MESSAGE_THREAD;
-
     auto const width{ getWidth() };
     auto const height{ getHeight() };
 
@@ -92,8 +90,6 @@ void VuMeterComponent::resized()
 //==============================================================================
 void VuMeterComponent::paint(juce::Graphics & g)
 {
-    JUCE_ASSERT_MESSAGE_THREAD;
-
     auto const width{ getWidth() };
     auto const height{ getHeight() };
 
@@ -120,14 +116,9 @@ void VuMeterComponent::paint(juce::Graphics & g)
 }
 
 //==============================================================================
-void VuMeterComponent::mouseDown(juce::MouseEvent const & e)
+void VuMeterComponent::mouseDown(juce::MouseEvent const & /*e*/)
 {
-    JUCE_ASSERT_MESSAGE_THREAD;
-
-    juce::Rectangle<int> const hitBox{ 0, 0, getWidth(), 20 };
-    if (hitBox.contains(e.getPosition())) {
-        resetClipping();
-    }
+    resetClipping();
 }
 
 //==============================================================================
@@ -145,8 +136,6 @@ int VuMeterComponent::getMinHeight() const noexcept
 //==============================================================================
 void VuMeterComponent::resetClipping()
 {
-    JUCE_ASSERT_MESSAGE_THREAD;
-
     mIsClipping = false;
     repaint();
 }
@@ -154,8 +143,6 @@ void VuMeterComponent::resetClipping()
 //==============================================================================
 void VuMeterComponent::setLevel(dbfs_t const level)
 {
-    JUCE_ASSERT_MESSAGE_THREAD;
-
     auto const & clippedLevel{ std::clamp(level, MIN_LEVEL_COMP, MAX_LEVEL_COMP) };
 
     if (clippedLevel == mLevel) {
@@ -173,8 +160,6 @@ void VuMeterComponent::setLevel(dbfs_t const level)
 //==============================================================================
 void VuMeterComponent::setMuted(bool const muted)
 {
-    JUCE_ASSERT_MESSAGE_THREAD;
-
     if (muted == mIsMuted) {
         return;
     }

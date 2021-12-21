@@ -20,7 +20,7 @@
 #include "sg_AudioStructs.hpp"
 
 //==============================================================================
-void SpeakerHighpassConfig::process(float * data, int const numSamples, SpeakerHighpassState & state) const
+void SpeakerHighpassConfig::process(float * data, int const numSamples, ColdSpeakerHighpass & state) const
 {
     for (int sampleIndex{}; sampleIndex < numSamples; ++sampleIndex) {
         auto const sample{ static_cast<double>(data[sampleIndex]) };

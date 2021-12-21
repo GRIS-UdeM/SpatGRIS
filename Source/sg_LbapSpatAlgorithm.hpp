@@ -20,7 +20,6 @@
 #pragma once
 
 #include "sg_AbstractSpatAlgorithm.hpp"
-#include "sg_StaticMap.hpp"
 #include "sg_StrongArray.hpp"
 #include "sg_TaggedAudioBuffer.hpp"
 #include "sg_lbap.hpp"
@@ -30,11 +29,11 @@ struct LbapSpatData {
     float lbapSourceDistance{};
 };
 
-using LbapSpatDataQueue = AtomicExchanger<LbapSpatData>;
+using LbapSpatDataQueue = AtomicUpdater<LbapSpatData>;
 
 struct LbapSourceData {
     LbapSpatDataQueue dataQueue{};
-    LbapSpatDataQueue::Ticket * currentData{};
+    LbapSpatDataQueue::Token * currentData{};
     LbapSourceAttenuationState attenuationState{};
     SpeakersSpatGains lastGains{};
 };

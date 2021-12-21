@@ -25,6 +25,7 @@
 #include "sg_TaggedAudioBuffer.hpp"
 
 //==============================================================================
+/**  */
 struct HrtfData {
     SpeakersAudioConfig speakersAudioConfig{};
     SpeakerAudioBuffer speakersBuffer{};
@@ -32,6 +33,11 @@ struct HrtfData {
 };
 
 //==============================================================================
+/** A head-related-transfer-function based stereo reduction algorithm.
+ *
+ * This uses internally the juce::dsp::Convolution class, which could probably run faster if we were to use Intel's IPP
+ * library (but that would not work on Apple silicon).
+ */
 class HrtfSpatAlgorithm final : public AbstractSpatAlgorithm
 {
     std::unique_ptr<AbstractSpatAlgorithm> mInnerAlgorithm{};
@@ -40,6 +46,7 @@ class HrtfSpatAlgorithm final : public AbstractSpatAlgorithm
 
 public:
     //==============================================================================
+    /** Note: You should never use this function directly. Use HrtfSpatAlgorithm::make() instead. */
     HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup,
                       SourcesData const & sources,
                       double sampleRate,
@@ -64,6 +71,7 @@ public:
     [[nodiscard]] bool hasTriplets() const noexcept override { return false; }
     [[nodiscard]] tl::optional<Error> getError() const noexcept override { return tl::nullopt; }
     //==============================================================================
+    /** Instantiates an HRTF algorithm. This should never fail. */
     static std::unique_ptr<AbstractSpatAlgorithm>
         make(SpeakerSetup const & speakerSetup, SourcesData const & sources, double sampleRate, int bufferSize);
 

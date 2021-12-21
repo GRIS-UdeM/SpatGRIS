@@ -23,33 +23,43 @@
 
 #include <type_traits>
 
-#ifdef NDEBUG
+/** jassert() seems to prevent narrow() from being constexpr on Apple Clang. */
+#if defined(NDEBUG) || defined(__APPLE__)
 //==============================================================================
+/** Does a static_cast.
+ *
+ * On Windows and Linux debug builds, it also verifies that the original value is preserved. */
 template<typename To, typename From>
-constexpr To narrow(From const value)
+constexpr To narrow(From const & value) noexcept
 {
     return static_cast<To>(value);
 }
 #else
 //==============================================================================
+/** Does a static_cast.
+ *
+ * On Windows and Linux debug builds, it also verifies that the original value is preserved. */
 template<typename To, typename From>
-constexpr To narrow(From const value)
+[[nodiscard]] constexpr To narrow(From const & value)
 {
-    static_assert(std::is_scalar_v<To> && std::is_scalar_v<From>);
+    static_assert(std::is_scalar_v<From> && std::is_scalar_v<To>, "narrow() can only be used with scalar types.");
 
-    #ifndef __APPLE__
-    // If you hit this assertion, it means that you tried to cast a negative value into an unsigned type.
-    jassert(std::is_signed_v<To> == std::is_signed_v<From> || value >= From{ 0 });
-    #endif
+    auto const result{ static_cast<To>(value) };
 
-    auto const expanded_value{ static_cast<To>(value) };
+    if constexpr (std::is_signed_v<From> != std::is_signed_v<To>) {
+        // If you hit this assertion, it means that you tried casting a negative value into an unsigned type.
+        jassert(value >= 0);
+        // If you hit this assertion, it means that you tried casting a positive value into a signed type that was to
+        // narrow for it.
+        jassert(result >= 0);
+    }
 
-    #ifndef __APPLE__
-    auto const sanity_check{ static_cast<From>(expanded_value) };
+    auto const sanity_check{ static_cast<From>(result) };
 
-    // If you hit this assertion, it means that you tried to
+    // If you hit this assertion, it either means that you tried casting a value into a type that was too narrow for it
+    // or that you loss precision when going to of from a floating point type.
     jassert(sanity_check == value);
-    #endif
-    return expanded_value;
+
+    return result;
 }
 #endif

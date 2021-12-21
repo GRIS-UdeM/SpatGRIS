@@ -337,10 +337,10 @@ bool MainContentComponent::loadProject(juce::File const & file, bool const disca
         return false;
     }
 
-    auto projectData{ SpatGrisProjectData::fromXml(*mainXmlElem) };
+    auto projectData{ ProjectData::fromXml(*mainXmlElem) };
     if (!projectData) {
         auto const version{ SpatGrisVersion::fromString(
-            mainXmlElem->getStringAttribute(SpatGrisProjectData::XmlTags::VERSION)) };
+            mainXmlElem->getStringAttribute(ProjectData::XmlTags::VERSION)) };
         if (version.compare(SPAT_GRIS_VERSION) > 0) {
             displayError("This project was created using a newer version of SpatGRIS that is not compatible with this "
                          "one.\nPlease upgrade to the latest version.");
@@ -799,7 +799,7 @@ void MainContentComponent::handleResetSourcesPositions()
 
         {
             // reset 3d view
-            auto & exchanger{ viewPortData.sourcesDataQueues[source.key] };
+            auto & exchanger{ viewPortData.hotSourcesDataUpdaters[source.key] };
             auto * sourceTicket{ exchanger.acquire() };
             sourceTicket->get() = tl::nullopt;
             exchanger.setMostRecent(sourceTicket);
@@ -1244,7 +1244,7 @@ bool MainContentComponent::isProjectModified() const
     if (!savedElement) {
         return true;
     }
-    auto const savedProject{ SpatGrisProjectData::fromXml(*savedElement) };
+    auto const savedProject{ ProjectData::fromXml(*savedElement) };
     jassert(savedProject);
     if (!savedProject) {
         return true;
@@ -1321,12 +1321,12 @@ void MainContentComponent::updatePeaks()
             mData.appData.viewSettings.showSourceActivity ? gainToSourceAlpha(sourceData.key, peak) : 0.8f) };
 
         // update 3d view
-        if (!viewPortData.sourcesDataQueues.contains(sourceData.key)) {
-            viewPortData.sourcesDataQueues.add(sourceData.key);
+        if (!viewPortData.hotSourcesDataUpdaters.contains(sourceData.key)) {
+            viewPortData.hotSourcesDataUpdaters.add(sourceData.key);
         }
 
         {
-            auto & exchanger{ viewPortData.sourcesDataQueues[sourceData.key] };
+            auto & exchanger{ viewPortData.hotSourcesDataUpdaters[sourceData.key] };
             auto * ticket{ exchanger.acquire() };
             ticket->get() = data;
             exchanger.setMostRecent(ticket);
@@ -1368,7 +1368,7 @@ void MainContentComponent::updatePeaks()
         auto const dbPeak{ dbfs_t::fromGain(peak) };
         mSpeakerSliceComponents[speaker.key].setLevel(dbPeak);
 
-        auto & exchanger{ viewPortData.speakersAlphaQueues[speaker.key] };
+        auto & exchanger{ viewPortData.hotSpeakersAlphaUpdaters[speaker.key] };
         auto * ticket{ exchanger.acquire() };
         ticket->get() = gainToSpeakerAlpha(peak);
         exchanger.setMostRecent(ticket);
@@ -1387,7 +1387,7 @@ void MainContentComponent::refreshSourceSlices()
     auto const isAtLeastOneSourceSolo{ std::any_of(
         mData.project.sources.cbegin(),
         mData.project.sources.cend(),
-        [](SourcesData::ConstNode const & node) { return node.value->state == PortState::solo; }) };
+        [](SourcesData::ConstNode const & node) { return node.value->state == SliceState::solo; }) };
 
     auto const directOutChoices{ std::make_shared<DirectOutSelectorComponent::Choices>() };
 
@@ -1429,7 +1429,7 @@ void MainContentComponent::refreshSpeakerSlices()
     auto const isAtLeastOneSpeakerSolo{ std::any_of(
         mData.speakerSetup.speakers.cbegin(),
         mData.speakerSetup.speakers.cend(),
-        [](SpeakersData::ConstNode const & node) { return node.value->state == PortState::solo; }) };
+        [](SpeakersData::ConstNode const & node) { return node.value->state == SliceState::solo; }) };
 
     if (mData.appData.stereoMode) {
         mSpeakersLayout
@@ -1675,7 +1675,7 @@ void MainContentComponent::setSourceColor(source_index_t const sourceIndex, juce
 }
 
 //==============================================================================
-void MainContentComponent::setSourceState(source_index_t const sourceIndex, PortState const state)
+void MainContentComponent::setSourceState(source_index_t const sourceIndex, SliceState const state)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
@@ -1715,7 +1715,7 @@ void MainContentComponent::setSelectedSpeakers(juce::Array<output_patch_t> const
 }
 
 //==============================================================================
-void MainContentComponent::setSpeakerState(output_patch_t const outputPatch, PortState const state)
+void MainContentComponent::setSpeakerState(output_patch_t const outputPatch, SliceState const state)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedWriteLock const lock{ mLock };
@@ -1918,8 +1918,7 @@ tl::optional<SpeakerSetup> MainContentComponent::extractSpeakerSetup(juce::File 
         return tl::nullopt;
     }
 
-    if (mainXmlElem->hasTagName("ServerGRIS_Preset")
-        || mainXmlElem->hasTagName(SpatGrisProjectData::XmlTags::MAIN_TAG)) {
+    if (mainXmlElem->hasTagName("ServerGRIS_Preset") || mainXmlElem->hasTagName(ProjectData::XmlTags::MAIN_TAG)) {
         displayError("This is a project file, not a Speaker Setup !");
         return tl::nullopt;
     }

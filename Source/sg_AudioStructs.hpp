@@ -19,19 +19,21 @@
 
 #pragma once
 
-#include "sg_AtomicExchanger.hpp"
+#include "sg_AtomicUpdater.hpp"
 #include "sg_Radians.hpp"
 #include "sg_SpatMode.hpp"
 #include "sg_StaticMap.hpp"
 #include "sg_StrongArray.hpp"
 #include "sg_constants.hpp"
 
+/** This file contains most of the structures used in an audio context. */
+
 enum class VbapType { twoD, threeD };
 
 float constexpr SMALL_GAIN = 0.0000000000001f;
 
 //==============================================================================
-struct SpeakerHighpassState {
+struct ColdSpeakerHighpass {
     double x1{};
     double x2{};
     double x3{};
@@ -52,7 +54,7 @@ struct SpeakerHighpassConfig {
     double ha1{};
     double ha2{};
     //==============================================================================
-    void process(float * data, int numSamples, SpeakerHighpassState & state) const;
+    void process(float * data, int numSamples, ColdSpeakerHighpass & state) const;
 };
 
 //==============================================================================
@@ -65,7 +67,7 @@ struct SpeakerAudioConfig {
 
 //==============================================================================
 struct SpeakerAudioState {
-    SpeakerHighpassState highpassState{};
+    ColdSpeakerHighpass highpassState{};
 };
 
 //==============================================================================
@@ -145,7 +147,7 @@ struct AudioData {
     AudioState state{};
 
     // audio thread -> message thread (hot)
-    AtomicExchanger<SourcePeaks> sourcePeaks{};
-    AtomicExchanger<SpeakerPeaks> speakerPeaks{};
-    AtomicExchanger<StereoPeaks> stereoPeaks{};
+    AtomicUpdater<SourcePeaks> sourcePeaks{};
+    AtomicUpdater<SpeakerPeaks> speakerPeaks{};
+    AtomicUpdater<StereoPeaks> stereoPeaks{};
 };

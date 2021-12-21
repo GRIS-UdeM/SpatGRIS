@@ -28,8 +28,8 @@
 VbapType getVbapType(SpeakersData const & speakers);
 
 struct VbapSourceData {
-    AtomicExchanger<SpeakersSpatGains> spatDataQueue{};
-    AtomicExchanger<SpeakersSpatGains>::Ticket * currentSpatData{};
+    AtomicUpdater<SpeakersSpatGains> spatDataQueue{};
+    AtomicUpdater<SpeakersSpatGains>::Token * currentSpatData{};
     SpeakersSpatGains lastGains{};
 };
 
