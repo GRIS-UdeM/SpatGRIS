@@ -43,7 +43,7 @@ public:
         Listener & operator=(Listener const &) = default;
         Listener & operator=(Listener &&) = default;
         //==============================================================================
-        virtual void muteSoloButtonClicked(PortState state) = 0;
+        virtual void muteSoloButtonClicked(SliceState state) = 0;
     };
 
 private:
@@ -66,7 +66,7 @@ public:
     MuteSoloComponent & operator=(MuteSoloComponent const &) = delete;
     MuteSoloComponent & operator=(MuteSoloComponent &&) = delete;
     //==============================================================================
-    void setPortState(PortState state);
+    void setPortState(SliceState state);
     //==============================================================================
     [[nodiscard]] int getMinWidth() const noexcept override;
     [[nodiscard]] int getMinHeight() const noexcept override;

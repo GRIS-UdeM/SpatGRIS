@@ -357,16 +357,18 @@ static void sortSpeakers2d(std::array<Position, MAX_NUM_SPEAKERS> & speakers,
 //==============================================================================
 static int computeInverseMatrix2d(radians_t const azi1, radians_t const azi2, float invMat[4])
 {
+    using fast = juce::dsp::FastMathApproximations;
+
     auto const x1 = fast::cos(azi1.get());
     auto const x2 = fast::sin(azi1.get());
     auto const x3 = fast::cos(azi2.get());
     auto const x4 = fast::sin(azi2.get());
     auto const det = x1 * x4 - x3 * x2;
-    if (std::abs(det) <= 0.001) {
-        invMat[0] = 0.0;
-        invMat[1] = 0.0;
-        invMat[2] = 0.0;
-        invMat[3] = 0.0;
+    if (std::abs(det) <= 0.001f) {
+        invMat[0] = 0.0f;
+        invMat[1] = 0.0f;
+        invMat[2] = 0.0f;
+        invMat[3] = 0.0f;
         return 0;
     }
     invMat[0] = x4 / det;
@@ -536,6 +538,7 @@ static triplet_list_t generateTriplets(std::array<Position, MAX_NUM_SPEAKERS> co
                 auto const speaker3Index{ speakerIndexesSortedByElevation[k] };
                 auto const & speaker3{ speakers[narrow<std::size_t>(speaker3Index)] };
                 auto const parallelepipedVolume{ parallelepipedVolumeSideLength(speaker1, speaker2, speaker3) };
+                static constexpr auto MIN_VOL_P_SIDE_LENGTH = 0.01f;
                 if (parallelepipedVolume > MIN_VOL_P_SIDE_LENGTH) {
                     connections[narrow<std::size_t>(speaker1Index)][narrow<std::size_t>(speaker2Index)] = true;
                     connections[narrow<std::size_t>(speaker2Index)][narrow<std::size_t>(speaker1Index)] = true;

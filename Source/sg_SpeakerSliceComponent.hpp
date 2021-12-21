@@ -44,7 +44,7 @@ public:
         Listener & operator=(Listener &&) = default;
         //==============================================================================
         virtual void setSelectedSpeakers(juce::Array<output_patch_t> selection) = 0;
-        virtual void setSpeakerState(output_patch_t outputPatch, PortState state) = 0;
+        virtual void setSpeakerState(output_patch_t outputPatch, SliceState state) = 0;
     };
 
 private:
@@ -70,7 +70,7 @@ public:
     void setSelected(bool value);
     //==============================================================================
     void speakerIdButtonClicked(SpeakerIdButton * button) override;
-    void muteSoloButtonClicked(PortState state) override;
+    void muteSoloButtonClicked(SliceState state) override;
 
 private:
     //==============================================================================

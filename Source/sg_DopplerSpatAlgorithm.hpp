@@ -19,8 +19,13 @@
 
 #pragma once
 
-#include "sg_AbstractSpatAlgorithm.hpp"
-#include "sg_Meters.hpp"
+#include "sg_SpatMode.hpp"
+
+/** Experimental : a stereo reduction algorithm based on doppler-shifting. */
+#ifdef USE_DOPPLER
+
+    #include "sg_AbstractSpatAlgorithm.hpp"
+    #include "sg_Meters.hpp"
 
 static constexpr meters_t FIELD_RADIUS{ 8.0f };
 static constexpr meters_t HEAD_RADIUS{ 0.075f };
@@ -42,11 +47,11 @@ static auto constexpr DOPPLER_BUFFER_SIZE
 static constexpr auto SOUND_METERS_PER_SECOND = 400.0f;
 
 using DopplerSpatData = std::array<float, 2>;
-using DopplerSpatDataQueue = AtomicExchanger<DopplerSpatData>;
+using DopplerSpatDataQueue = AtomicUpdater<DopplerSpatData>;
 
 struct DopplerSourceData {
     DopplerSpatDataQueue spatDataQueue{};
-    DopplerSpatDataQueue::Ticket * mostRecentSpatData{};
+    DopplerSpatDataQueue::Token * mostRecentSpatData{};
 };
 
 struct DopplerData {
@@ -91,3 +96,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(DopplerSpatAlgorithm)
 };
+
+#endif

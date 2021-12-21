@@ -133,7 +133,7 @@ tl::optional<SpeakerSetup> readLegacySpeakerSetup(juce::XmlElement const & xml)
 }
 
 //==============================================================================
-tl::optional<SpatGrisProjectData> readLegacyProjectFile(juce::XmlElement const & xml)
+tl::optional<ProjectData> readLegacyProjectFile(juce::XmlElement const & xml)
 {
     if (!xml.hasTagName("SpatServerGRIS_Preset") && !xml.hasTagName("ServerGRIS_Preset")) {
         return tl::nullopt;
@@ -148,7 +148,7 @@ tl::optional<SpatGrisProjectData> readLegacyProjectFile(juce::XmlElement const &
     auto const gainInterpolation{ LEGAL_GAIN_INTERPOLATION_RANGE.clipValue(
         static_cast<float>(xml.getDoubleAttribute("Master_Interpolation", 0.1))) };
 
-    SpatGrisProjectData result{};
+    ProjectData result{};
 
     for (auto const * source : xml.getChildIterator()) {
         if (source->hasTagName("Input")) {

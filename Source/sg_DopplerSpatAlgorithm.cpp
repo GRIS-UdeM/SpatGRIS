@@ -17,18 +17,20 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "sg_DopplerSpatAlgorithm.hpp"
+#ifdef USE_DOPPLER
 
-#include "sg_Meters.hpp"
+    #include "sg_DopplerSpatAlgorithm.hpp"
+
+    #include "sg_Meters.hpp"
 
 static void interpolate(float const * inputSamples,
                         int const numInputSamples,
                         float * outputSamples,
                         int const numOutputSamples) noexcept
 {
-#ifndef NDEBUG
+    #ifndef NDEBUG
     auto const * const inEnd{ inputSamples + numInputSamples };
-#endif
+    #endif
 
     if (numInputSamples == numOutputSamples) {
         std::copy_n(inputSamples, numInputSamples, outputSamples);
@@ -195,3 +197,5 @@ bool DopplerSpatAlgorithm::hasTriplets() const noexcept
     JUCE_ASSERT_MESSAGE_THREAD;
     return false;
 }
+
+#endif

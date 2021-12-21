@@ -171,9 +171,9 @@ public:
     void setPinkNoiseGain(tl::optional<dbfs_t> gain);
 
     void setSourceColor(source_index_t sourceIndex, juce::Colour colour) override;
-    void setSourceState(source_index_t sourceIndex, PortState state) override;
+    void setSourceState(source_index_t sourceIndex, SliceState state) override;
     void setSelectedSpeakers(juce::Array<output_patch_t> selection) override;
-    void setSpeakerState(output_patch_t outputPatch, PortState state) override;
+    void setSpeakerState(output_patch_t outputPatch, SliceState state) override;
     void setSourceDirectOut(source_index_t sourceIndex, tl::optional<output_patch_t> outputPatch) override;
     void setShowTriplets(bool state);
     void setSourceHybridSpatMode(source_index_t sourceIndex, SpatMode spatMode) override;

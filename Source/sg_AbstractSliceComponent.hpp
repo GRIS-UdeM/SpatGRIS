@@ -51,7 +51,7 @@ public:
     //==============================================================================
     void setLevel(dbfs_t const level) { mVuMeter.setLevel(level); }
     void resetClipping() { mVuMeter.resetClipping(); }
-    void setState(PortState state, bool soloMode);
+    void setState(SliceState state, bool soloMode);
     //==============================================================================
     [[nodiscard]] int getMinWidth() const noexcept final { return SLICES_WIDTH; }
     [[nodiscard]] int getMinHeight() const noexcept final { return mLayout.getMinHeight(); }

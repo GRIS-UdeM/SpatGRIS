@@ -45,7 +45,7 @@ public:
     StereoSliceComponent & operator=(StereoSliceComponent const &) = delete;
     StereoSliceComponent & operator=(StereoSliceComponent &&) = delete;
     //==============================================================================
-    void muteSoloButtonClicked(PortState) override { jassertfalse; }
+    void muteSoloButtonClicked(SliceState) override { jassertfalse; }
     void smallButtonClicked(SmallToggleButton * /*button*/, bool /*state*/, bool /*isLeftMouseButton*/) override {}
 
 private:

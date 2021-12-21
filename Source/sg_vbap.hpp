@@ -1,11 +1,4 @@
 /*
- * Functions for 3D VBAP processing based on work by Ville Pulkki.
- * (c) Ville Pulkki - 2.2.1999 Helsinki University of Technology.
- * Updated by belangeo, 2017.
- * Updated by Samuel Béland, 2021.
- */
-
-/*
  This file is part of SpatGRIS.
 
  Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
@@ -24,6 +17,13 @@
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+/*
+ * Functions for 3D VBAP processing based on work by Ville Pulkki.
+ * (c) Ville Pulkki - 2.2.1999 Helsinki University of Technology.
+ * Updated by belangeo, 2017.
+ * Updated by Samuel Béland, 2021.
+ */
+
 #pragma once
 
 #include "sg_AudioStructs.hpp"
@@ -34,16 +34,6 @@
 #include <JuceHeader.h>
 
 struct SourceData;
-constexpr auto MIN_VOL_P_SIDE_LENGTH = 0.01f;
-
-using fast = juce::dsp::FastMathApproximations;
-
-struct SpeakersSetup {
-    int dimension;         /* Number of dimension, always 3. */
-    int count;             /* Number of speakers. */
-    degrees_t * azimuth;   /* Azimuth angle of speakers. */
-    degrees_t * elevation; /* Elevation angle of speakers. */
-};
 
 using InverseMatrix = std::array<float, 9>;
 

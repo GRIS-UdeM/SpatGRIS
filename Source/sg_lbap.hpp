@@ -1,16 +1,3 @@
-/**
- *  Layer-Based Amplitude Panning framework.
- *
- * LBAP (Layer-Based Amplitude Panning) is a framework written in C
- * to do 2-D or 3-D sound spatialization. It uses a pre-computed
- * gain matrices to perform the spatialization of the sources very
- * efficiently.
- *
- * author : Olivier Belanger, 2018
- *
- * Modified by Samuel Béland, 2021
- */
-
 /*
  This file is part of SpatGRIS.
 
@@ -29,6 +16,19 @@
  You should have received a copy of the GNU General Public License
  along with SpatGRIS.  If not, see <http://www.gnu.org/licenses/>.
 */
+
+/**
+ *  Layer-Based Amplitude Panning framework.
+ *
+ * LBAP (Layer-Based Amplitude Panning) is a framework written in C
+ * to do 2-D or 3-D sound spatialization. It uses a pre-computed
+ * gain matrices to perform the spatialization of the sources very
+ * efficiently.
+ *
+ * Original author : Olivier Belanger, 2018
+ *
+ * Modified by Samuel Béland, 2021
+ */
 
 #pragma once
 

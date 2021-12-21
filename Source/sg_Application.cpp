@@ -23,6 +23,9 @@
 //==============================================================================
 void SpatGrisApplication::initialise(juce::String const & /*commandLine*/)
 {
+    // Make sure that the manual can be found.
+    jassert(MANUAL_FILE.existsAsFile());
+
     mMainWindow = std::make_unique<MainWindow>(getApplicationName(), mGrisFeel, mSmallLookAndFeel);
 }
 

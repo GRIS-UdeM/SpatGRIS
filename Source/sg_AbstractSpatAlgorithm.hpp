@@ -24,7 +24,9 @@
 #include "sg_Triplet.hpp"
 
 //==============================================================================
+/** @return true if executed from the OSC thread. */
 bool isOscThread();
+/** @return true if executed neither from the OSC thread nor from the message thread. */
 bool isProbablyAudioThread();
 
 //==============================================================================
@@ -32,9 +34,11 @@ bool isProbablyAudioThread();
 #define ASSERT_AUDIO_THREAD jassert(isProbablyAudioThread())
 
 //==============================================================================
+/** Base class for a spatialization algorithm. */
 class AbstractSpatAlgorithm
 {
 public:
+    /** The types of errors that can arise when instantiating a spatialization algorithm. */
     enum class Error {
         notEnoughDomeSpeakers,
         notEnoughCubeSpeakers,
@@ -49,9 +53,27 @@ public:
     AbstractSpatAlgorithm & operator=(AbstractSpatAlgorithm const &) = delete;
     AbstractSpatAlgorithm & operator=(AbstractSpatAlgorithm &&) = delete;
     //==============================================================================
+    /** Assigns the position of sources in direct out mode to their assigned speakers' positions.
+     *
+     * Sources that use the "direct out" feature usually don't receive any positional OSC data. This is not a problem in
+     * a physical setup, where there is an actual speaker assigned to the direct output. In a stereo reduction, the
+     * source's position has to be faked so that it matches the position of the speaker used as a direct out.     */
     void fixDirectOutsIntoPlace(SourcesData const & sources, SpeakerSetup const & speakerSetup) noexcept;
     //==============================================================================
+    /** Updates the data of a source (its position, span, etc.).
+     *
+     * This is a function that is called really often and that does not happen on the audio thread, so be very careful
+     * not to do anything here that might slow down the audio thread. */
     virtual void updateSpatData(source_index_t sourceIndex, SourceData const & sourceData) noexcept = 0;
+    /** Processes the actual audio spatialization.
+     *
+     * @param config current audio configuration
+     * @param sourcesBuffer audio input buffers
+     * @param speakersBuffer audio output buffers
+     * @param stereoBuffer audio output buffers used specifically for stereo reduction
+     * @param sourcePeaks pre-processed peak values of the sources buffers
+     * @param altSpeakerConfig OPTIONAL. The inner speakers audio configuration when encapsulating two algorithms.
+     */
     virtual void process(AudioConfig const & config,
                          SourceAudioBuffer & sourcesBuffer,
                          SpeakerAudioBuffer & speakersBuffer,
@@ -59,10 +81,21 @@ public:
                          SourcePeaks const & sourcePeaks,
                          SpeakersAudioConfig const * altSpeakerConfig)
         = 0;
+    /** @return the speaker triplets. Only works with VBAP-type algorithms. */
     [[nodiscard]] virtual juce::Array<Triplet> getTriplets() const noexcept = 0;
+    /** @return true if the current algorithm uses VBAP internally. */
     [[nodiscard]] virtual bool hasTriplets() const noexcept = 0;
+    /** @return the error that happened during instantiation or tl::nullopt if none. */
     [[nodiscard]] virtual tl::optional<Error> getError() const noexcept = 0;
     //==============================================================================
+    /** Builds a spatialization algorithm. If the instantiation fails, this will hold a DummySpatAlgorithm.
+     *
+     * @param speakerSetup the current speaker setup
+     * @param stereoMode the stereo reduction mode, or tl::nullopt if none.
+     * @param sources the sources' data.
+     * @param sampleRate the expected sample rate
+     * @param bufferSize the expected buffer size in samples
+     */
     [[nodiscard]] static std::unique_ptr<AbstractSpatAlgorithm> make(SpeakerSetup const & speakerSetup,
                                                                      tl::optional<StereoMode> stereoMode,
                                                                      SourcesData const & sources,
@@ -70,5 +103,6 @@ public:
                                                                      int bufferSize);
 
 private:
+    //==============================================================================
     JUCE_LEAK_DETECTOR(AbstractSpatAlgorithm)
 };

@@ -22,6 +22,10 @@
 #include "sg_LbapSpatAlgorithm.hpp"
 #include "sg_VbapSpatAlgorithm.hpp"
 
+/** A spatialization algorithm that uses both Vbap (dome) and Lbap (cube).
+ *
+ * The selection of the algorithm is done on a per-source basis.
+ */
 class HybridSpatAlgorithm : public AbstractSpatAlgorithm
 {
     std::unique_ptr<AbstractSpatAlgorithm> mVbap{};
@@ -37,6 +41,7 @@ public:
     HybridSpatAlgorithm & operator=(HybridSpatAlgorithm const &) = delete;
     HybridSpatAlgorithm & operator=(HybridSpatAlgorithm &&) = delete;
     //==============================================================================
+    /** Note: do not use this function directly. Use HybridSpatAlgorithm::make() instead. */
     explicit HybridSpatAlgorithm(SpeakersData const & speakersData);
     //==============================================================================
     void updateSpatData(source_index_t sourceIndex, SourceData const & sourceData) noexcept override;
@@ -49,5 +54,11 @@ public:
     [[nodiscard]] juce::Array<Triplet> getTriplets() const noexcept override;
     [[nodiscard]] bool hasTriplets() const noexcept override;
     [[nodiscard]] tl::optional<Error> getError() const noexcept override;
+    //==============================================================================
+    /** Instantiates an HybridSpatAlgorithm. Make sure to check getError() as this might fail. */
     static std::unique_ptr<AbstractSpatAlgorithm> make(SpeakerSetup const & speakerSetup);
+
+private:
+    //==============================================================================
+    JUCE_LEAK_DETECTOR(HybridSpatAlgorithm)
 };

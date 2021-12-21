@@ -3,10 +3,11 @@
 # Developer: Olivier Belanger & Samuel Béland
 
 #==============================================================================
-export USAGE="usage:\n\tosx_builder --path <bin-path> --plugins <pugins-pkg-path> --pass <dev-id-password>"
+export USAGE="usage:\n\tosx_builder --path <bin-path> --plugins <pugins-pkg-path> --blackhole <blackhole-pkg-path> --pass <dev-id-password>"
 export BIN_PATH=""
 export PASS=""
 export PLUGINS_PKG=""
+export BLACKHOLE_PKG=""
 
 #==============================================================================
 # Parse args
@@ -32,6 +33,11 @@ case $key in
 	shift
 	shift
 	;;
+	--blackhole)
+	BLACKHOLE_PKG="$2"
+	shift
+	shift
+	;;
     *)    # unknown option
     POSITIONAL+=("$1") # save it in an array for later
     shift # past argument
@@ -50,6 +56,10 @@ elif [[ "$PASS" == "" ]];then
 	exit 1
 elif [[ $PLUGINS_PKG == "" ]];then
 	echo "Missing param --plugins"
+	echo -e "$USAGE"
+	exit 1
+elif [[ $BLACKHOLE_PKG == "" ]];then
+	echo "Missing param --backhole"
 	echo -e "$USAGE"
 	exit 1
 fi
@@ -122,7 +132,7 @@ function build_dmg() {
 	mkdir -p "$DMG_DIR" || exit 1
 	cd "$DMG_DIR" || exit 1
 	cp "../$PACKAGE_NAME" . || exit 1
-	cp "../../BlackHole128ch.v0.2.8.pkg" "BlackHole128ch.v0.2.8.pkg" || exit -1
+	cp "$BLACKHOLE_PKG" . || exit -1
 
 	cd ..
 
