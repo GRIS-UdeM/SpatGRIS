@@ -131,7 +131,7 @@ class MainContentComponent final
 
     //==============================================================================
     // State
-    ColdSpatGrisData mData{};
+    SpatGrisData mData{};
 
 public:
     //==============================================================================
@@ -196,7 +196,7 @@ public:
     // Control Panel
     [[nodiscard]] bool setSpatMode(SpatMode spatMode);
     void setStereoMode(tl::optional<StereoMode> stereoMode);
-    void setStereoRouting(ColdStereoRouting const & routing);
+    void setStereoRouting(StereoRouting const & routing);
     void cubeAttenuationDbChanged(dbfs_t value);
     void cubeAttenuationHzChanged(hz_t value);
     void numSourcesChanged(int numSources);
@@ -231,7 +231,7 @@ public:
     void closePrepareToRecordWindow() { mPrepareToRecordWindow.reset(); }
     void closeAddRemoveSourcesWindow() { mAddRemoveSourcesWindow.reset(); }
     //==============================================================================
-    void prepareAndStartRecording(juce::File const & fileOrDirectory, ColdRecordingOptions const & recordingOptions);
+    void prepareAndStartRecording(juce::File const & fileOrDirectory, RecordingOptions const & recordingOptions);
 
 private:
     //==============================================================================
@@ -274,7 +274,7 @@ private:
     void reassignSourcesPositions();
     //==============================================================================
     // Open - save.
-    [[nodiscard]] static tl::optional<ColdSpeakerSetup> extractSpeakerSetup(juce::File const & file);
+    [[nodiscard]] static tl::optional<SpeakerSetup> extractSpeakerSetup(juce::File const & file);
     bool loadSpeakerSetup(juce::File const & file, LoadSpeakerSetupOption option);
     bool loadProject(juce::File const & file, bool discardCurrentProject);
     bool saveProject(tl::optional<juce::File> maybeFile);

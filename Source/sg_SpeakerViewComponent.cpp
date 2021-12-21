@@ -76,7 +76,7 @@ Position SpeakerViewComponent::getCameraPosition() const noexcept
 }
 
 //==============================================================================
-void SpeakerViewComponent::setConfig(WarmViewportData const & config, ColdSourcesData const & sources)
+void SpeakerViewComponent::setConfig(WarmViewportConfig const & config, SourcesData const & sources)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedLock const lock{ mLock };
@@ -602,7 +602,7 @@ void SpeakerViewComponent::drawTripletConnection() const
 }
 
 //==============================================================================
-void SpeakerViewComponent::drawSource(source_index_t const index, HotViewportSourceData const & source) const
+void SpeakerViewComponent::drawSource(source_index_t const index, ViewportSourceData const & source) const
 {
     ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD;
 
@@ -663,7 +663,7 @@ void SpeakerViewComponent::drawSource(source_index_t const index, HotViewportSou
 }
 
 //==============================================================================
-void SpeakerViewComponent::drawVbapSpan(HotViewportSourceData const & source)
+void SpeakerViewComponent::drawVbapSpan(ViewportSourceData const & source)
 {
     ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD;
 
@@ -765,7 +765,7 @@ void SpeakerViewComponent::drawFieldCube()
 }
 
 //==============================================================================
-void SpeakerViewComponent::drawLbapSpan(HotViewportSourceData const & source)
+void SpeakerViewComponent::drawLbapSpan(ViewportSourceData const & source)
 {
     ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD;
 
@@ -817,7 +817,7 @@ void SpeakerViewComponent::drawLbapSpan(HotViewportSourceData const & source)
 }
 
 //==============================================================================
-void SpeakerViewComponent::drawSpeaker(output_patch_t const outputPatch, WarmViewportSpeakerData const & speaker)
+void SpeakerViewComponent::drawSpeaker(output_patch_t const outputPatch, ViewportSpeakerConfig const & speaker)
 {
     ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD;
 

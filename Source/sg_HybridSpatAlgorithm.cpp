@@ -20,14 +20,14 @@
 #include "sg_HybridSpatAlgorithm.hpp"
 
 //==============================================================================
-HybridSpatAlgorithm::HybridSpatAlgorithm(ColdSpeakersData const & speakersData)
+HybridSpatAlgorithm::HybridSpatAlgorithm(SpeakersData const & speakersData)
     : mVbap(std::make_unique<VbapSpatAlgorithm>(speakersData))
     , mLbap(std::make_unique<LbapSpatAlgorithm>(speakersData))
 {
 }
 
 //==============================================================================
-void HybridSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, ColdSourceData const & sourceData) noexcept
+void HybridSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, SourceData const & sourceData) noexcept
 {
     if (!sourceData.position.has_value()) {
         // resetting a position should reset both algorithms
@@ -81,7 +81,7 @@ tl::optional<AbstractSpatAlgorithm::Error> HybridSpatAlgorithm::getError() const
 }
 
 //==============================================================================
-std::unique_ptr<AbstractSpatAlgorithm> HybridSpatAlgorithm::make(ColdSpeakerSetup const & speakerSetup)
+std::unique_ptr<AbstractSpatAlgorithm> HybridSpatAlgorithm::make(SpeakerSetup const & speakerSetup)
 {
     return std::make_unique<HybridSpatAlgorithm>(speakerSetup.speakers);
 }

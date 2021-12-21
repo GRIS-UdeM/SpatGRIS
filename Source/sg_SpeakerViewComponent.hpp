@@ -39,9 +39,9 @@ DISABLE_WARNING_UNREFERENCED_FUNCTION
 #include "../glm/glm.hpp"
 DISABLE_WARNING_POP
 
-struct ColdSpeakerData;
+struct SpeakerData;
 enum class SpatMode;
-struct ColdSourceData;
+struct SourceData;
 
 bool isOpenGlOrMessageThread();
 
@@ -100,7 +100,7 @@ public:
 
     Position getCameraPosition() const noexcept;
 
-    void setConfig(WarmViewportData const & config, ColdSourcesData const & sources);
+    void setConfig(WarmViewportConfig const & config, SourcesData const & sources);
     void setCameraPosition(CartesianVector const & position) noexcept;
     void setTriplets(juce::Array<Triplet> triplets) noexcept;
 
@@ -130,13 +130,13 @@ private:
                   float scale = 0.005f,
                   bool camLock = true) const;
     void drawTripletConnection() const;
-    void drawSource(source_index_t index, HotViewportSourceData const & source) const;
-    void drawSpeaker(output_patch_t outputPatch, WarmViewportSpeakerData const & speaker);
+    void drawSource(source_index_t index, ViewportSourceData const & source) const;
+    void drawSpeaker(output_patch_t outputPatch, ViewportSpeakerConfig const & speaker);
     //==============================================================================
     static void drawBackground();
     static void drawTextOnGrid(std::string const & val, glm::vec3 position, float scale = 0.003f);
-    static void drawVbapSpan(HotViewportSourceData const & source);
-    static void drawLbapSpan(HotViewportSourceData const & source);
+    static void drawVbapSpan(ViewportSourceData const & source);
+    static void drawLbapSpan(ViewportSourceData const & source);
     static void drawFieldSphere();
     static void drawFieldCube();
     //==============================================================================

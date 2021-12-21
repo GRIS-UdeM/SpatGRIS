@@ -42,8 +42,8 @@ public:
     Configuration & operator=(Configuration const &) = delete;
     Configuration & operator=(Configuration &&) = delete;
     //==============================================================================
-    void save(ColdSpatGrisAppData const & appData) const;
-    [[nodiscard]] ColdSpatGrisAppData load() const;
+    void save(AppData const & appData) const;
+    [[nodiscard]] AppData load() const;
 
 private:
     //==============================================================================

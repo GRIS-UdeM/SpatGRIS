@@ -49,22 +49,22 @@ Configuration::~Configuration()
 }
 
 //==============================================================================
-void Configuration::save(ColdSpatGrisAppData const & appData) const
+void Configuration::save(AppData const & appData) const
 {
     mUserSettings->clear();
     mUserSettings->setValue(XmlTags::MAIN_TAG, appData.toXml().get());
 }
 
 //==============================================================================
-ColdSpatGrisAppData Configuration::load() const
+AppData Configuration::load() const
 {
     auto const appDataElement{ mUserSettings->getXmlValue(XmlTags::MAIN_TAG) };
 
     if (appDataElement) {
-        auto const appData{ ColdSpatGrisAppData::fromXml(*appDataElement) };
+        auto const appData{ AppData::fromXml(*appDataElement) };
         if (appData) {
             return *appData;
         }
     }
-    return ColdSpatGrisAppData{};
+    return AppData{};
 }

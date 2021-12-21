@@ -24,13 +24,13 @@
 #include "sg_TaggedAudioBuffer.hpp"
 
 //==============================================================================
-LbapSpatAlgorithm::LbapSpatAlgorithm(ColdSpeakersData const & speakers) : mField(lbapInit(speakers))
+LbapSpatAlgorithm::LbapSpatAlgorithm(SpeakersData const & speakers) : mField(lbapInit(speakers))
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 }
 
 //==============================================================================
-void LbapSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, ColdSourceData const & sourceData) noexcept
+void LbapSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, SourceData const & sourceData) noexcept
 {
     jassert(!isProbablyAudioThread());
 
@@ -149,7 +149,7 @@ juce::Array<Triplet> LbapSpatAlgorithm::getTriplets() const noexcept
 }
 
 //==============================================================================
-std::unique_ptr<AbstractSpatAlgorithm> LbapSpatAlgorithm::make(ColdSpeakerSetup const & speakerSetup)
+std::unique_ptr<AbstractSpatAlgorithm> LbapSpatAlgorithm::make(SpeakerSetup const & speakerSetup)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 

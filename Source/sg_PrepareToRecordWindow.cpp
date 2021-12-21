@@ -33,7 +33,7 @@ using flags = juce::FileBrowserComponent::FileChooserFlags;
 
 //==============================================================================
 PrepareToRecordComponent::PrepareToRecordComponent(juce::File const & recordingDirectory,
-                                                   ColdRecordingOptions const & recordingOptions,
+                                                   RecordingOptions const & recordingOptions,
                                                    MainContentComponent & mainContentComponent,
                                                    GrisLookAndFeel & lookAndFeel)
     : mMainContentComponent(mainContentComponent)
@@ -222,7 +222,7 @@ void PrepareToRecordComponent::performRecord()
         return;
     }
 
-    ColdRecordingOptions const recordingOptions{ format, fileType };
+    RecordingOptions const recordingOptions{ format, fileType };
     mMainContentComponent.prepareAndStartRecording(finalPath, recordingOptions);
 }
 
@@ -288,7 +288,7 @@ RecordingFormat PrepareToRecordComponent::getSelectedFormat() const
 
 //==============================================================================
 PrepareToRecordWindow::PrepareToRecordWindow(juce::File const & recordingDirectory,
-                                             ColdRecordingOptions const & recordingOptions,
+                                             RecordingOptions const & recordingOptions,
                                              MainContentComponent & mainContentComponent,
                                              GrisLookAndFeel & lookAndFeel)
     : DocumentWindow("Start recording", lookAndFeel.getBackgroundColour(), closeButton)

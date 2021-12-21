@@ -40,8 +40,19 @@ enum class SliceState { normal, muted, solo };
 [[nodiscard]] tl::optional<SliceState> stringToSliceState(juce::String const & string);
 
 //==============================================================================
-/** The settings associated with the 3D viewport. */
-struct ColdViewSettings {
+/** For the following data structures, we use the following semantics:
+ *
+ * COLD : no concurrent access.
+ * WARM : concurrent access, but never during a performance. Usually done with a lock.
+ * HOT  : concurrent access DURING PERFORMANCE. Usually done with a lockless pattern.
+ */
+
+//==============================================================================
+/** The settings associated with the 3D viewport.
+ *
+ * COLD
+ */
+struct ViewSettings {
     bool showSpeakers{ true };
     bool showSourceNumbers{ false };
     bool showSpeakerNumbers{ false };
@@ -53,7 +64,7 @@ struct ColdViewSettings {
     /** Used for saving. */
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
     /** Used for loading. */
-    [[nodiscard]] static tl::optional<ColdViewSettings> fromXml(juce::XmlElement const & xml);
+    [[nodiscard]] static tl::optional<ViewSettings> fromXml(juce::XmlElement const & xml);
     //==============================================================================
     struct XmlTags {
         static juce::String const MAIN_TAG;
@@ -68,41 +79,50 @@ struct ColdViewSettings {
 };
 
 //==============================================================================
-/** The data needed in order to properly display a source in the 3D viewport. */
-struct HotViewportSourceData {
+/** The data needed in order to properly display a source in the 3D viewport.
+ *
+ * HOT
+ */
+struct ViewportSourceData {
     Position position{};
     float azimuthSpan{};
     float zenithSpan{};
     juce::Colour colour{};
     SpatMode hybridSpatMode{};
 };
-using HotViewportSourceDataUpdater = AtomicUpdater<tl::optional<HotViewportSourceData>>;
+using ViewportSourceDataUpdater = AtomicUpdater<tl::optional<ViewportSourceData>>;
 
 //==============================================================================
-/** The WARM data needed in order to properly display a speaker in the 3D viewport. */
-struct WarmViewportSpeakerData {
+/** The WARM data needed in order to properly display a speaker in the 3D viewport.
+ *
+ * WARM
+ */
+struct ViewportSpeakerConfig {
     Position position{};
     bool isSelected{};
     bool isDirectOutOnly{};
 };
 /** An updater used by the 3D viewport to read the speakers' alpha levels. The writer is the message thread and the
  * reader is the OpenGL thread. */
-using HotViewportSpeakerAlphaUpdater = AtomicUpdater<float>;
+using ViewportSpeakerAlphaUpdater = AtomicUpdater<float>;
 
 //==============================================================================
-/** The WARM data needed by the 3D viewport that will be updated, but only once in a while with a mutex. */
-struct WarmViewportData {
-    StaticMap<output_patch_t, WarmViewportSpeakerData, MAX_NUM_SPEAKERS> speakers{};
-    ColdViewSettings viewSettings{};
+/** The data needed by the 3D viewport that will be updated, but only once in a while with a mutex.
+ *
+ * WARM
+ */
+struct WarmViewportConfig {
+    StaticMap<output_patch_t, ViewportSpeakerConfig, MAX_NUM_SPEAKERS> speakers{};
+    ViewSettings viewSettings{};
     SpatMode spatMode{};
     juce::String title{};
 };
 
 //==============================================================================
 /** The COLD 3D viewport's data. */
-struct ColdViewportData {
-    StrongArray<source_index_t, HotViewportSourceDataUpdater::Token *, MAX_NUM_SOURCES> mostRecentSourcesData{};
-    StrongArray<output_patch_t, HotViewportSpeakerAlphaUpdater::Token *, MAX_NUM_SPEAKERS> mostRecentSpeakersAlpha{};
+struct ViewportState {
+    StrongArray<source_index_t, ViewportSourceDataUpdater::Token *, MAX_NUM_SOURCES> mostRecentSourcesData{};
+    StrongArray<output_patch_t, ViewportSpeakerAlphaUpdater::Token *, MAX_NUM_SPEAKERS> mostRecentSpeakersAlpha{};
     float cameraZoomVelocity{};
     Position cameraPosition{};
     juce::int64 lastRenderTimeMs{ juce::Time::currentTimeMillis() };
@@ -117,15 +137,15 @@ struct ColdViewportData {
 //==============================================================================
 /** All of the 3D viewport's data. */
 struct ViewportData {
-    WarmViewportData warmData{};
-    ColdViewportData coldData{};
-    StaticMap<source_index_t, HotViewportSourceDataUpdater, MAX_NUM_SOURCES> hotSourcesDataUpdaters{};
-    StrongArray<output_patch_t, HotViewportSpeakerAlphaUpdater, MAX_NUM_SPEAKERS> hotSpeakersAlphaUpdaters{};
+    WarmViewportConfig warmData{};
+    ViewportState coldData{};
+    StaticMap<source_index_t, ViewportSourceDataUpdater, MAX_NUM_SOURCES> hotSourcesDataUpdaters{};
+    StrongArray<output_patch_t, ViewportSpeakerAlphaUpdater, MAX_NUM_SPEAKERS> hotSpeakersAlphaUpdaters{};
 };
 
 //==============================================================================
 /** TODO */
-struct ColdSourceData {
+struct SourceData {
     SliceState state{};
     tl::optional<Position> position{}; // tl::nullopt if source is inactive
     float azimuthSpan{};
@@ -135,10 +155,10 @@ struct ColdSourceData {
     SpatMode hybridSpatMode{};
     //==============================================================================
     [[nodiscard]] SourceAudioConfig toConfig(bool soloMode) const;
-    [[nodiscard]] HotViewportSourceData toViewportData(float alpha) const;
+    [[nodiscard]] ViewportSourceData toViewportData(float alpha) const;
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml(source_index_t index) const;
-    [[nodiscard]] static tl::optional<ColdSourceData> fromXml(juce::XmlElement const & xml);
-    [[nodiscard]] bool operator==(ColdSourceData const & other) const noexcept;
+    [[nodiscard]] static tl::optional<SourceData> fromXml(juce::XmlElement const & xml);
+    [[nodiscard]] bool operator==(SourceData const & other) const noexcept;
     //==============================================================================
     struct XmlTags {
         static juce::String const STATE;
@@ -150,13 +170,16 @@ struct ColdSourceData {
 };
 
 //==============================================================================
-struct ColdSpeakerHighpassData {
+using SourcesData = OwnedMap<source_index_t, SourceData, MAX_NUM_SOURCES>;
+
+//==============================================================================
+struct SpeakerHighpassData {
     hz_t freq{};
     //==============================================================================
     [[nodiscard]] SpeakerHighpassConfig toConfig(double sampleRate) const;
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
-    [[nodiscard]] static tl::optional<ColdSpeakerHighpassData> fromXml(juce::XmlElement const & xml);
-    [[nodiscard]] bool operator==(ColdSpeakerHighpassData const & other) const noexcept;
+    [[nodiscard]] static tl::optional<SpeakerHighpassData> fromXml(juce::XmlElement const & xml);
+    [[nodiscard]] bool operator==(SpeakerHighpassData const & other) const noexcept;
     //==============================================================================
     struct XmlTags {
         static juce::String const MAIN_TAG;
@@ -165,20 +188,20 @@ struct ColdSpeakerHighpassData {
 };
 
 //==============================================================================
-struct ColdSpeakerData {
+struct SpeakerData {
     SliceState state{};
     Position position{ PolarVector{ radians_t{ 0.0f }, radians_t{ 0.0f }, 1.0f } };
     dbfs_t gain{};
-    tl::optional<ColdSpeakerHighpassData> highpassData{};
+    tl::optional<SpeakerHighpassData> highpassData{};
     float peak{};
     bool isSelected{};
     bool isDirectOutOnly{};
     //==============================================================================
     [[nodiscard]] SpeakerAudioConfig toConfig(bool soloMode, double sampleRate) const noexcept;
-    [[nodiscard]] WarmViewportSpeakerData toViewportConfig() const noexcept;
+    [[nodiscard]] ViewportSpeakerConfig toViewportConfig() const noexcept;
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml(output_patch_t outputPatch) const noexcept;
-    [[nodiscard]] static tl::optional<ColdSpeakerData> fromXml(juce::XmlElement const & xml) noexcept;
-    [[nodiscard]] bool operator==(ColdSpeakerData const & other) const noexcept;
+    [[nodiscard]] static tl::optional<SpeakerData> fromXml(juce::XmlElement const & xml) noexcept;
+    [[nodiscard]] bool operator==(SpeakerData const & other) const noexcept;
     //==============================================================================
     struct XmlTags {
         static juce::String const STATE;
@@ -189,14 +212,17 @@ struct ColdSpeakerData {
 };
 
 //==============================================================================
-struct ColdLbapDistanceAttenuationData {
+using SpeakersData = OwnedMap<output_patch_t, SpeakerData, MAX_NUM_SPEAKERS>;
+
+//==============================================================================
+struct LbapDistanceAttenuationData {
     hz_t freq{ 1000.0f };
     dbfs_t attenuation{};
     //==============================================================================
     [[nodiscard]] LbapAttenuationConfig toConfig(double sampleRate) const;
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
-    [[nodiscard]] static tl::optional<ColdLbapDistanceAttenuationData> fromXml(juce::XmlElement const & xml);
-    [[nodiscard]] bool operator==(ColdLbapDistanceAttenuationData const & other) const noexcept;
+    [[nodiscard]] static tl::optional<LbapDistanceAttenuationData> fromXml(juce::XmlElement const & xml);
+    [[nodiscard]] bool operator==(LbapDistanceAttenuationData const & other) const noexcept;
     //==============================================================================
     struct XmlTags {
         static juce::String const MAIN_TAG;
@@ -206,7 +232,7 @@ struct ColdLbapDistanceAttenuationData {
 };
 
 //==============================================================================
-struct ColdAudioSettings {
+struct AudioSettings {
     juce::String deviceType{};
     juce::String inputDevice{};
     juce::String outputDevice{};
@@ -214,7 +240,7 @@ struct ColdAudioSettings {
     int bufferSize{ DEFAULT_BUFFER_SIZE };
     //==============================================================================
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
-    [[nodiscard]] static tl::optional<ColdAudioSettings> fromXml(juce::XmlElement const & xml);
+    [[nodiscard]] static tl::optional<AudioSettings> fromXml(juce::XmlElement const & xml);
     //==============================================================================
     struct XmlTags {
         static juce::String const MAIN_TAG;
@@ -245,12 +271,12 @@ juce::String recordingFileTypeToString(RecordingFileType fileType);
 tl::optional<RecordingFileType> stringToRecordingFileType(juce::String const & string);
 
 //==============================================================================
-struct ColdRecordingOptions {
+struct RecordingOptions {
     RecordingFormat format{ DEFAULT_RECORDING_FORMAT };
     RecordingFileType fileType{ DEFAULT_RECORDING_FILE_TYPE };
     //==============================================================================
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
-    [[nodiscard]] static tl::optional<ColdRecordingOptions> fromXml(juce::XmlElement const & xml);
+    [[nodiscard]] static tl::optional<RecordingOptions> fromXml(juce::XmlElement const & xml);
     //==============================================================================
     struct XmlTags {
         static juce::String const MAIN_TAG;
@@ -260,12 +286,12 @@ struct ColdRecordingOptions {
 };
 
 //==============================================================================
-struct ColdStereoRouting {
+struct StereoRouting {
     output_patch_t left{ 1 };
     output_patch_t right{ 2 };
     //==============================================================================
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
-    [[nodiscard]] static tl::optional<ColdStereoRouting> fromXml(juce::XmlElement const & xml);
+    [[nodiscard]] static tl::optional<StereoRouting> fromXml(juce::XmlElement const & xml);
     //==============================================================================
     struct XmlTags {
         static juce::String const MAIN_TAG;
@@ -275,18 +301,17 @@ struct ColdStereoRouting {
 };
 
 //==============================================================================
-using ColdSourcesData = OwnedMap<source_index_t, ColdSourceData, MAX_NUM_SOURCES>;
-struct ColdSpatGrisProjectData {
-    ColdSourcesData sources{};
-    ColdLbapDistanceAttenuationData lbapDistanceAttenuationData{};
+struct ProjectData {
+    SourcesData sources{};
+    LbapDistanceAttenuationData lbapDistanceAttenuationData{};
     int oscPort{ DEFAULT_OSC_INPUT_PORT };
     dbfs_t masterGain{};
     float spatGainsInterpolation{};
     //==============================================================================
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
-    [[nodiscard]] static tl::optional<ColdSpatGrisProjectData> fromXml(juce::XmlElement const & xml);
-    [[nodiscard]] bool operator==(ColdSpatGrisProjectData const & other) const noexcept;
-    [[nodiscard]] bool operator!=(ColdSpatGrisProjectData const & other) const noexcept { return !(*this == other); }
+    [[nodiscard]] static tl::optional<ProjectData> fromXml(juce::XmlElement const & xml);
+    [[nodiscard]] bool operator==(ProjectData const & other) const noexcept;
+    [[nodiscard]] bool operator!=(ProjectData const & other) const noexcept { return !(*this == other); }
     //==============================================================================
     struct XmlTags {
         static juce::String const MAIN_TAG;
@@ -299,10 +324,10 @@ struct ColdSpatGrisProjectData {
 };
 
 //==============================================================================
-struct ColdSpatGrisAppData {
-    ColdAudioSettings audioSettings{};
-    ColdRecordingOptions recordingOptions{};
-    ColdViewSettings viewSettings{};
+struct AppData {
+    AudioSettings audioSettings{};
+    RecordingOptions recordingOptions{};
+    ViewSettings viewSettings{};
     CartesianVector cameraPosition{ -0.5256794095039368f, -2.008379459381104f, 1.312143206596375f };
     juce::String lastSpeakerSetup{ DEFAULT_SPEAKER_SETUP_FILE.getFullPathName() };
     juce::String lastProject{ DEFAULT_PROJECT_FILE.getFullPathName() };
@@ -310,7 +335,7 @@ struct ColdSpatGrisAppData {
         juce::File::getSpecialLocation(juce::File::SpecialLocationType::userDesktopDirectory).getFullPathName()
     };
     tl::optional<StereoMode> stereoMode{};
-    ColdStereoRouting stereoRouting{};
+    StereoRouting stereoRouting{};
     int windowX{ 100 };
     int windowY{ 100 };
     int windowWidth{ 1200 };
@@ -318,7 +343,7 @@ struct ColdSpatGrisAppData {
     double sashPosition{ -0.4694048616932104 };
     //==============================================================================
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
-    [[nodiscard]] static tl::optional<ColdSpatGrisAppData> fromXml(juce::XmlElement const & xml);
+    [[nodiscard]] static tl::optional<AppData> fromXml(juce::XmlElement const & xml);
     //==============================================================================
     struct XmlTags {
         static juce::String const MAIN_TAG;
@@ -336,18 +361,18 @@ struct ColdSpatGrisAppData {
 };
 
 //==============================================================================
-using ColdSpeakersData = OwnedMap<output_patch_t, ColdSpeakerData, MAX_NUM_SPEAKERS>;
-using ColdSpeakersOrdering = juce::Array<output_patch_t>;
+using SpeakersOrdering = juce::Array<output_patch_t>;
 
-struct ColdSpeakerSetup {
-    ColdSpeakersData speakers{};
-    ColdSpeakersOrdering ordering{};
+//==============================================================================
+struct SpeakerSetup {
+    SpeakersData speakers{};
+    SpeakersOrdering ordering{};
     SpatMode spatMode{};
     //==============================================================================
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
-    [[nodiscard]] static tl::optional<ColdSpeakerSetup> fromXml(juce::XmlElement const & xml);
-    [[nodiscard]] bool operator==(ColdSpeakerSetup const & other) const noexcept;
-    [[nodiscard]] bool operator!=(ColdSpeakerSetup const & other) const noexcept { return !(*this == other); }
+    [[nodiscard]] static tl::optional<SpeakerSetup> fromXml(juce::XmlElement const & xml);
+    [[nodiscard]] bool operator==(SpeakerSetup const & other) const noexcept;
+    [[nodiscard]] bool operator!=(SpeakerSetup const & other) const noexcept { return !(*this == other); }
     [[nodiscard]] bool isDomeLike() const noexcept;
     [[nodiscard]] SpeakersAudioConfig toAudioConfig(double sampleRate) const noexcept;
     [[nodiscard]] int numOfSpatializedSpeakers() const noexcept;
@@ -359,15 +384,16 @@ struct ColdSpeakerSetup {
     };
 };
 
-struct ColdSpatGrisData {
-    ColdSpeakerSetup speakerSetup{};
-    ColdSpatGrisProjectData project{};
-    ColdSpatGrisAppData appData{};
+//==============================================================================
+struct SpatGrisData {
+    SpeakerSetup speakerSetup{};
+    ProjectData project{};
+    AppData appData{};
     tl::optional<dbfs_t> pinkNoiseLevel{};
     AtomicUpdater<SourcePeaks>::Token * mostRecentSourcePeaks{};
     AtomicUpdater<SpeakerPeaks>::Token * mostRecentSpeakerPeaks{};
     AtomicUpdater<StereoPeaks>::Token * mostRecentStereoPeaks{};
     //==============================================================================
     [[nodiscard]] std::unique_ptr<AudioConfig> toAudioConfig() const;
-    [[nodiscard]] WarmViewportData toViewportConfig() const noexcept;
+    [[nodiscard]] WarmViewportConfig toViewportConfig() const noexcept;
 };

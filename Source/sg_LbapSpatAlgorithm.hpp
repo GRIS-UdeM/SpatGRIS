@@ -54,9 +54,9 @@ public:
     LbapSpatAlgorithm & operator=(LbapSpatAlgorithm const &) = delete;
     LbapSpatAlgorithm & operator=(LbapSpatAlgorithm &&) = delete;
     //==============================================================================
-    explicit LbapSpatAlgorithm(ColdSpeakersData const & speakers);
+    explicit LbapSpatAlgorithm(SpeakersData const & speakers);
     //==============================================================================
-    void updateSpatData(source_index_t sourceIndex, ColdSourceData const & sourceData) noexcept override;
+    void updateSpatData(source_index_t sourceIndex, SourceData const & sourceData) noexcept override;
     void process(AudioConfig const & config,
                  SourceAudioBuffer & sourceBuffer,
                  SpeakerAudioBuffer & speakersBuffer,
@@ -67,7 +67,7 @@ public:
     [[nodiscard]] bool hasTriplets() const noexcept override { return false; }
     [[nodiscard]] tl::optional<Error> getError() const noexcept override { return tl::nullopt; }
     //==============================================================================
-    static std::unique_ptr<AbstractSpatAlgorithm> make(ColdSpeakerSetup const & speakerSetup);
+    static std::unique_ptr<AbstractSpatAlgorithm> make(SpeakerSetup const & speakerSetup);
 
 private:
     JUCE_LEAK_DETECTOR(LbapSpatAlgorithm)

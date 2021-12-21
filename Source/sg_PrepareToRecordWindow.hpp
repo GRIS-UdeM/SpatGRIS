@@ -50,7 +50,7 @@ class PrepareToRecordComponent final
 public:
     //==============================================================================
     PrepareToRecordComponent(juce::File const & recordingDirectory,
-                             ColdRecordingOptions const & recordingOptions,
+                             RecordingOptions const & recordingOptions,
                              MainContentComponent & mainContentComponent,
                              GrisLookAndFeel & lookAndFeel);
     ~PrepareToRecordComponent() override = default;
@@ -85,7 +85,7 @@ class PrepareToRecordWindow final : public juce::DocumentWindow
 public:
     //==============================================================================
     PrepareToRecordWindow(juce::File const & recordingDirectory,
-                          ColdRecordingOptions const & recordingOptions,
+                          RecordingOptions const & recordingOptions,
                           MainContentComponent & mainContentComponent,
                           GrisLookAndFeel & lookAndFeel);
     ~PrepareToRecordWindow() override = default;

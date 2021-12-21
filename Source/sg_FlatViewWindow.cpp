@@ -171,7 +171,7 @@ void FlatViewWindow::paint(juce::Graphics & g)
 //==============================================================================
 void FlatViewWindow::drawSource(juce::Graphics & g,
                                 source_index_t const sourceIndex,
-                                HotViewportSourceData const & sourceData,
+                                ViewportSourceData const & sourceData,
                                 SpatMode const spatMode) const
 {
     static constexpr auto SOURCE_DIAMETER_INT{ narrow<int>(SOURCE_DIAMETER) };
@@ -183,7 +183,7 @@ void FlatViewWindow::drawSource(juce::Graphics & g,
     auto const fieldSize{ narrow<float>(getWidth()) };
     auto const realSize = fieldSize - SOURCE_DIAMETER;
 
-    auto const getSourcePosition = [&](HotViewportSourceData const & sourceData) {
+    auto const getSourcePosition = [&](ViewportSourceData const & sourceData) {
         switch (spatMode) {
         case SpatMode::vbap: {
             auto const & vector{ sourceData.position.getPolar() };
@@ -241,7 +241,7 @@ void FlatViewWindow::drawSource(juce::Graphics & g,
 
 //==============================================================================
 void FlatViewWindow::drawSourceLbapSpan(juce::Graphics & g,
-                                        HotViewportSourceData const & sourceData,
+                                        ViewportSourceData const & sourceData,
                                         juce::Point<float> const & sourcePositionAbsolute) const
 {
     auto const fieldSize{ narrow<float>(getWidth()) };
@@ -262,7 +262,7 @@ void FlatViewWindow::drawSourceLbapSpan(juce::Graphics & g,
 }
 
 //==============================================================================
-void FlatViewWindow::drawSourceVbapSpan(juce::Graphics & g, HotViewportSourceData const & sourceData) const
+void FlatViewWindow::drawSourceVbapSpan(juce::Graphics & g, ViewportSourceData const & sourceData) const
 {
     auto const fieldSize{ narrow<float>(getWidth()) };
     auto const halfFieldSize{ fieldSize / 2.0f };

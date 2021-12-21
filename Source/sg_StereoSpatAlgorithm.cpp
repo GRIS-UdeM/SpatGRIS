@@ -24,7 +24,7 @@
 #include "sg_TaggedAudioBuffer.hpp"
 
 //==============================================================================
-void StereoSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, ColdSourceData const & sourceData) noexcept
+void StereoSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, SourceData const & sourceData) noexcept
 {
     jassert(!isProbablyAudioThread());
 
@@ -136,8 +136,8 @@ juce::Array<Triplet> StereoSpatAlgorithm::getTriplets() const noexcept
 }
 
 //==============================================================================
-std::unique_ptr<AbstractSpatAlgorithm> StereoSpatAlgorithm::make(ColdSpeakerSetup const & speakerSetup,
-                                                                 ColdSourcesData const & sources)
+std::unique_ptr<AbstractSpatAlgorithm> StereoSpatAlgorithm::make(SpeakerSetup const & speakerSetup,
+                                                                 SourcesData const & sources)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
@@ -145,7 +145,7 @@ std::unique_ptr<AbstractSpatAlgorithm> StereoSpatAlgorithm::make(ColdSpeakerSetu
 }
 
 //==============================================================================
-StereoSpatAlgorithm::StereoSpatAlgorithm(ColdSpeakerSetup const & speakerSetup, ColdSourcesData const & sources)
+StereoSpatAlgorithm::StereoSpatAlgorithm(SpeakerSetup const & speakerSetup, SourcesData const & sources)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     fixDirectOutsIntoPlace(sources, speakerSetup);

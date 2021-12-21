@@ -58,13 +58,13 @@ public:
      * Sources that use the "direct out" feature usually don't receive any positional OSC data. This is not a problem in
      * a physical setup, where there is an actual speaker assigned to the direct output. In a stereo reduction, the
      * source's position has to be faked so that it matches the position of the speaker used as a direct out.     */
-    void fixDirectOutsIntoPlace(ColdSourcesData const & sources, ColdSpeakerSetup const & speakerSetup) noexcept;
+    void fixDirectOutsIntoPlace(SourcesData const & sources, SpeakerSetup const & speakerSetup) noexcept;
     //==============================================================================
     /** Updates the data of a source (its position, span, etc.).
      *
      * This is a function that is called really often and that does not happen on the audio thread, so be very careful
      * not to do anything here that might slow down the audio thread. */
-    virtual void updateSpatData(source_index_t sourceIndex, ColdSourceData const & sourceData) noexcept = 0;
+    virtual void updateSpatData(source_index_t sourceIndex, SourceData const & sourceData) noexcept = 0;
     /** Processes the actual audio spatialization.
      *
      * @param config current audio configuration
@@ -96,9 +96,9 @@ public:
      * @param sampleRate the expected sample rate
      * @param bufferSize the expected buffer size in samples
      */
-    [[nodiscard]] static std::unique_ptr<AbstractSpatAlgorithm> make(ColdSpeakerSetup const & speakerSetup,
+    [[nodiscard]] static std::unique_ptr<AbstractSpatAlgorithm> make(SpeakerSetup const & speakerSetup,
                                                                      tl::optional<StereoMode> stereoMode,
-                                                                     ColdSourcesData const & sources,
+                                                                     SourcesData const & sources,
                                                                      double sampleRate,
                                                                      int bufferSize);
 

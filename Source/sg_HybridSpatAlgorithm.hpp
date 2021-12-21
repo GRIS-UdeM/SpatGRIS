@@ -42,9 +42,9 @@ public:
     HybridSpatAlgorithm & operator=(HybridSpatAlgorithm &&) = delete;
     //==============================================================================
     /** Note: do not use this function directly. Use HybridSpatAlgorithm::make() instead. */
-    explicit HybridSpatAlgorithm(ColdSpeakersData const & speakersData);
+    explicit HybridSpatAlgorithm(SpeakersData const & speakersData);
     //==============================================================================
-    void updateSpatData(source_index_t sourceIndex, ColdSourceData const & sourceData) noexcept override;
+    void updateSpatData(source_index_t sourceIndex, SourceData const & sourceData) noexcept override;
     void process(AudioConfig const & config,
                  SourceAudioBuffer & sourcesBuffer,
                  SpeakerAudioBuffer & speakersBuffer,
@@ -56,7 +56,7 @@ public:
     [[nodiscard]] tl::optional<Error> getError() const noexcept override;
     //==============================================================================
     /** Instantiates an HybridSpatAlgorithm. Make sure to check getError() as this might fail. */
-    static std::unique_ptr<AbstractSpatAlgorithm> make(ColdSpeakerSetup const & speakerSetup);
+    static std::unique_ptr<AbstractSpatAlgorithm> make(SpeakerSetup const & speakerSetup);
 
 private:
     //==============================================================================

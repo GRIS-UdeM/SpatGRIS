@@ -21,5 +21,5 @@
 
 #include "sg_LogicStrucs.hpp"
 
-tl::optional<ColdSpeakerSetup> readLegacySpeakerSetup(juce::XmlElement const & xml);
-tl::optional<ColdSpatGrisProjectData> readLegacyProjectFile(juce::XmlElement const & xml);
+tl::optional<SpeakerSetup> readLegacySpeakerSetup(juce::XmlElement const & xml);
+tl::optional<ProjectData> readLegacyProjectFile(juce::XmlElement const & xml);

@@ -204,7 +204,7 @@ static bool linesIntersect(std::size_t const i,
 }
 
 //==============================================================================
-static void spreadGains3d(ColdSourceData const & source, SpeakersSpatGains & gains, VbapData & data) noexcept
+static void spreadGains3d(SourceData const & source, SpeakersSpatGains & gains, VbapData & data) noexcept
 {
     int ind;
     static constexpr auto NUM = 4;
@@ -296,7 +296,7 @@ static void spreadGains3d(ColdSourceData const & source, SpeakersSpatGains & gai
 }
 
 //==============================================================================
-static void spreadGains2d(ColdSourceData const & source, SpeakersSpatGains & gains, VbapData & data)
+static void spreadGains2d(SourceData const & source, SpeakersSpatGains & gains, VbapData & data)
 {
     int i;
     static constexpr auto NUM = 4;
@@ -706,7 +706,7 @@ std::unique_ptr<VbapData> vbapInit(std::array<Position, MAX_NUM_SPEAKERS> & spea
 }
 
 //==============================================================================
-void vbapCompute(ColdSourceData const & source, SpeakersSpatGains & gains, VbapData & data) noexcept
+void vbapCompute(SourceData const & source, SpeakersSpatGains & gains, VbapData & data) noexcept
 {
     jassert(source.position);
     data.direction = source.position->getPolar();

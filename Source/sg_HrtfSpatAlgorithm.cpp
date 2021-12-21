@@ -28,8 +28,8 @@
 #include "sg_VbapSpatAlgorithm.hpp"
 
 //==============================================================================
-HrtfSpatAlgorithm::HrtfSpatAlgorithm(ColdSpeakerSetup const & speakerSetup,
-                                     ColdSourcesData const & sources,
+HrtfSpatAlgorithm::HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup,
+                                     SourcesData const & sources,
                                      double const sampleRate,
                                      int const bufferSize)
 {
@@ -70,7 +70,7 @@ HrtfSpatAlgorithm::HrtfSpatAlgorithm(ColdSpeakerSetup const & speakerSetup,
     juce::Array<output_patch_t> hrtfPatches{};
     auto const binauralXml{ juce::XmlDocument{ BINAURAL_SPEAKER_SETUP_FILE }.getDocumentElement() };
     jassert(binauralXml);
-    auto const binauralSpeakerSetup{ ColdSpeakerSetup::fromXml(*binauralXml) };
+    auto const binauralSpeakerSetup{ SpeakerSetup::fromXml(*binauralXml) };
     jassert(binauralSpeakerSetup);
     mHrtfData.speakersAudioConfig
         = binauralSpeakerSetup->toAudioConfig(44100.0); // TODO: find a way to update this number!
@@ -113,7 +113,7 @@ HrtfSpatAlgorithm::HrtfSpatAlgorithm(ColdSpeakerSetup const & speakerSetup,
 }
 
 //==============================================================================
-void HrtfSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, ColdSourceData const & sourceData) noexcept
+void HrtfSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, SourceData const & sourceData) noexcept
 {
     jassert(!isProbablyAudioThread());
 
@@ -196,8 +196,8 @@ juce::Array<Triplet> HrtfSpatAlgorithm::getTriplets() const noexcept
 }
 
 //==============================================================================
-std::unique_ptr<AbstractSpatAlgorithm> HrtfSpatAlgorithm::make(ColdSpeakerSetup const & speakerSetup,
-                                                               ColdSourcesData const & sources,
+std::unique_ptr<AbstractSpatAlgorithm> HrtfSpatAlgorithm::make(SpeakerSetup const & speakerSetup,
+                                                               SourcesData const & sources,
                                                                double const sampleRate,
                                                                int const bufferSize)
 {

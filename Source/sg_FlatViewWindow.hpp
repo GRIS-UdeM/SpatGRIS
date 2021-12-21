@@ -34,8 +34,8 @@ class FlatViewWindow final
 {
     MainContentComponent & mMainContentComponent;
     GrisLookAndFeel & mLookAndFeel;
-    StrongArray<source_index_t, HotViewportSourceDataUpdater, MAX_NUM_SOURCES> mSourceDataQueues{};
-    StrongArray<source_index_t, HotViewportSourceDataUpdater::Token *, MAX_NUM_SOURCES> mLastSourceData{};
+    StrongArray<source_index_t, ViewportSourceDataUpdater, MAX_NUM_SOURCES> mSourceDataQueues{};
+    StrongArray<source_index_t, ViewportSourceDataUpdater::Token *, MAX_NUM_SOURCES> mLastSourceData{};
 
 public:
     //==============================================================================
@@ -61,11 +61,11 @@ private:
     void drawFieldBackground(juce::Graphics & g) const;
     void drawSource(juce::Graphics & g,
                     source_index_t sourceIndex,
-                    HotViewportSourceData const & sourceData,
+                    ViewportSourceData const & sourceData,
                     SpatMode spatMode) const;
-    void drawSourceVbapSpan(juce::Graphics & g, HotViewportSourceData const & sourceData) const;
+    void drawSourceVbapSpan(juce::Graphics & g, ViewportSourceData const & sourceData) const;
     void drawSourceLbapSpan(juce::Graphics & g,
-                            HotViewportSourceData const & sourceData,
+                            ViewportSourceData const & sourceData,
                             juce::Point<float> const & sourcePositionAbsolute) const;
     //==============================================================================
     JUCE_LEAK_DETECTOR(FlatViewWindow)

@@ -118,7 +118,7 @@ private:
     [[nodiscard]] juce::String getText(int columnNumber, int rowNumber) const;
     void setText(int columnNumber, int rowNumber, juce::String const & newText, bool altDown = false);
     bool isMouseOverDragHandle(juce::MouseEvent const & event);
-    ColdSpeakerData const & getSpeakerData(int rowNum) const;
+    SpeakerData const & getSpeakerData(int rowNum) const;
     [[nodiscard]] output_patch_t getSpeakerOutputPatchForRow(int row) const;
     //==============================================================================
     // VIRTUALS

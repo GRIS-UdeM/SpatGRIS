@@ -387,7 +387,7 @@ void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const 
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    static auto const EXTRACT_VALUE = [](ColdSpeakersData::ConstNode const & speaker, int const sortColumn) -> float {
+    static auto const EXTRACT_VALUE = [](SpeakersData::ConstNode const & speaker, int const sortColumn) -> float {
         auto const & position{ speaker.value->position };
         switch (sortColumn) {
         case Cols::X:
@@ -420,7 +420,7 @@ void EditSpeakersWindow::sortOrderChanged(int const newSortColumnId, bool const 
     std::transform(speakers.cbegin(),
                    speakers.cend(),
                    std::back_inserter(valuesToSort),
-                   [newSortColumnId](ColdSpeakersData::ConstNode const speaker) {
+                   [newSortColumnId](SpeakersData::ConstNode const speaker) {
                        return std::make_pair(EXTRACT_VALUE(speaker, newSortColumnId), speaker.key);
                    });
     if (isForwards) {
@@ -721,7 +721,7 @@ juce::String EditSpeakersWindow::getText(int const columnNumber, int const rowNu
         return juce::String{ speaker.gain.get(), 1 };
     case Cols::HIGHPASS:
         return juce::String{
-            speaker.highpassData.map_or([](ColdSpeakerHighpassData const & data) { return data.freq.get(); }, float{}),
+            speaker.highpassData.map_or([](SpeakerHighpassData const & data) { return data.freq.get(); }, float{}),
             1
         };
     case Cols::DIRECT_TOGGLE:
@@ -745,7 +745,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
 
     auto const spatMode{ mMainContentComponent.getData().speakerSetup.spatMode };
 
-    auto const isEditable = [&](int const col, ColdSpeakerData const & speaker) {
+    auto const isEditable = [&](int const col, SpeakerData const & speaker) {
         switch (col) {
         case Cols::OUTPUT_PATCH:
         case Cols::AZIMUTH:
@@ -923,7 +923,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
             static constexpr hz_t MAX_FREQ{ 150.0f };
             hz_t val{ newText.getFloatValue() };
             auto diff = val
-                        - speaker.highpassData.map_or([](ColdSpeakerHighpassData const & data) { return data.freq; },
+                        - speaker.highpassData.map_or([](SpeakerHighpassData const & data) { return data.freq; },
                                                       hz_t{ MIN_FREQ });
             val = std::clamp(val, MIN_FREQ, MAX_FREQ);
             mMainContentComponent.setSpeakerHighPassFreq(outputPatch, val);
@@ -970,7 +970,7 @@ bool EditSpeakersWindow::isMouseOverDragHandle(juce::MouseEvent const & event)
 }
 
 //==============================================================================
-ColdSpeakerData const & EditSpeakersWindow::getSpeakerData(int const rowNum) const
+SpeakerData const & EditSpeakersWindow::getSpeakerData(int const rowNum) const
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
