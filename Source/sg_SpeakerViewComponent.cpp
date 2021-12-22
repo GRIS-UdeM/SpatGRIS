@@ -256,7 +256,8 @@ void SpeakerViewComponent::clickRay()
     gluUnProject(winX, winY, 0.0, matModelView, matProjection, viewport, &mXs, &mYs, &mZs);
     gluUnProject(winX, winY, 1.0, matModelView, matProjection, viewport, &mXe, &mYe, &mZe);
 
-    mRay.setRay(glm::vec3{ mXs, mYs, mZs }, glm::vec3{ mXe, mYe, mZe });
+    mRay.setRay(CartesianVector{ static_cast<float>(mXs), static_cast<float>(mYs), static_cast<float>(mZs) },
+                CartesianVector{ static_cast<float>(mXe), static_cast<float>(mYe), static_cast<float>(mZe) });
 
     tl::optional<output_patch_t> iBestSpeaker{};
     auto const & speakers{ mData.warmData.speakers };
@@ -525,10 +526,10 @@ void SpeakerViewComponent::drawOriginGrid() const
     drawText("Y", CartesianVector{ -HALF_CHAR_WIDTH, MAX_RADIUS, 0.0f }, juce::Colours::white, 0.0005f);
     drawText("Z", CartesianVector{ -HALF_CHAR_WIDTH, 0.0f, MAX_RADIUS + 0.03f }, juce::Colours::white, 0.0005f);
 
-    drawTextOnGrid("0", glm::vec3(0.02f, 0.94f, 0.0f), 0.00035f);
-    drawTextOnGrid("90", glm::vec3(0.91f, -0.08f, 0.0f), 0.00035f);
-    drawTextOnGrid("180", glm::vec3(0.03f, -0.94f, 0.0f), 0.00035f);
-    drawTextOnGrid("270", glm::vec3(-0.98f, -0.08f, 0.0f), 0.00035f);
+    drawTextOnGrid("0", CartesianVector(0.02f, 0.94f, 0.0f), 0.00035f);
+    drawTextOnGrid("90", CartesianVector(0.91f, -0.08f, 0.0f), 0.00035f);
+    drawTextOnGrid("180", CartesianVector(0.03f, -0.94f, 0.0f), 0.00035f);
+    drawTextOnGrid("270", CartesianVector(-0.98f, -0.08f, 0.0f), 0.00035f);
 }
 
 //==============================================================================
@@ -561,7 +562,7 @@ void SpeakerViewComponent::drawText(juce::String const & val,
 }
 
 //==============================================================================
-void SpeakerViewComponent::drawTextOnGrid(std::string const & val, glm::vec3 const position, float const scale)
+void SpeakerViewComponent::drawTextOnGrid(std::string const & val, CartesianVector const & position, float const scale)
 {
     ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD;
 

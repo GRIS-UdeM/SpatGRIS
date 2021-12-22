@@ -36,7 +36,6 @@ DISABLE_WARNING_UNREFERENCED_FUNCTION
     #include <OpenGL/gl3.h>
     #include <OpenGl/glu.h>
 #endif
-#include "../glm/glm.hpp"
 DISABLE_WARNING_POP
 
 struct SpeakerData;
@@ -134,7 +133,7 @@ private:
     void drawSpeaker(output_patch_t outputPatch, ViewportSpeakerConfig const & speaker);
     //==============================================================================
     static void drawBackground();
-    static void drawTextOnGrid(std::string const & val, glm::vec3 position, float scale = 0.003f);
+    static void drawTextOnGrid(std::string const & val, CartesianVector const & position, float scale = 0.003f);
     static void drawVbapSpan(ViewportSourceData const & source);
     static void drawLbapSpan(ViewportSourceData const & source);
     static void drawFieldSphere();

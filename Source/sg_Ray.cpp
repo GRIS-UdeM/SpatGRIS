@@ -20,7 +20,7 @@
 #include "sg_Ray.hpp"
 
 //==============================================================================
-void Ray::setRay(glm::vec3 const & p, glm::vec3 const & d)
+void Ray::setRay(CartesianVector const & p, CartesianVector const & d)
 {
     this->mPosition = p;
     this->mDirection = d;

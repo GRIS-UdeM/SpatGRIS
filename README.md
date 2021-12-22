@@ -51,6 +51,8 @@ libxcursor-dev libxinerama-dev libxrandr-dev mesa-common-dev libjack-dev
 
 ##### Additional dependencies on Windows :
 
+The `freeglut` library must be globally available.
+
 Usage of [vcpkg](https://github.com/microsoft/vcpkg) is highly recommended on Windows.
 
 ```bash
