@@ -13,7 +13,7 @@ SpatGRIS is developed by the _Groupe de recherche en immersion spatiale_ (GRIS) 
 - [Using a virtual audio device](#using-a-virtual-audio-device)
 - [Building](#building)
 - [Running](#running)
-- [Using alternative OSC interfaces](#using-alternative-OSC-interfaces)
+- [Using custom OSC interfaces](#using-custom-OSC-interfaces)
 
 ![alt text](https://samuelbeland.com/gris/spatGRIS_3.1.png "SpatGRIS")
 
@@ -37,7 +37,7 @@ While we do not support a specific routing solution on Linux, there are a lot of
 
 ## Building
 
-#### 1. Installing dependencies
+#### 1. Install dependencies
 
 Download and extract [Juce 6.1.4](https://github.com/juce-framework/JUCE/releases/tag/6.1.4)
 
