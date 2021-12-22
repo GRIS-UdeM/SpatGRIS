@@ -69,7 +69,7 @@ bool isOpenGlOrMessageThread()
 //==============================================================================
 Position SpeakerViewComponent::getCameraPosition() const noexcept
 {
-    JUCE_ASSERT_MESSAGE_THREAD;
+    JUCE_ASSERT_MESSAGE_THREAD
     juce::ScopedLock const lock{ mLock };
 
     return mData.coldData.cameraPosition;
@@ -78,7 +78,7 @@ Position SpeakerViewComponent::getCameraPosition() const noexcept
 //==============================================================================
 void SpeakerViewComponent::setConfig(ViewportConfig const & config, SourcesData const & sources)
 {
-    JUCE_ASSERT_MESSAGE_THREAD;
+    JUCE_ASSERT_MESSAGE_THREAD
     juce::ScopedLock const lock{ mLock };
 
     mData.warmData = config;
@@ -92,7 +92,7 @@ void SpeakerViewComponent::setConfig(ViewportConfig const & config, SourcesData 
 //==============================================================================
 void SpeakerViewComponent::setCameraPosition(CartesianVector const & position) noexcept
 {
-    JUCE_ASSERT_MESSAGE_THREAD;
+    JUCE_ASSERT_MESSAGE_THREAD
     juce::ScopedLock const lock{ mLock };
 
     mData.coldData.cameraPosition = PolarVector{ position };
@@ -101,7 +101,7 @@ void SpeakerViewComponent::setCameraPosition(CartesianVector const & position) n
 //==============================================================================
 void SpeakerViewComponent::setTriplets(juce::Array<Triplet> triplets) noexcept
 {
-    JUCE_ASSERT_MESSAGE_THREAD;
+    JUCE_ASSERT_MESSAGE_THREAD
     juce::ScopedLock const lock{ mLock };
     mData.coldData.triplets = std::move(triplets);
 }
@@ -261,7 +261,7 @@ void SpeakerViewComponent::clickRay()
 
     tl::optional<output_patch_t> iBestSpeaker{};
     auto const & speakers{ mData.warmData.speakers };
-    for (auto const speaker : speakers) {
+    for (auto const & speaker : speakers) {
         if (rayCast(speaker.value.position.getCartesian()) != -1.0f) {
             if (!iBestSpeaker) {
                 iBestSpeaker = speaker.key;
@@ -555,7 +555,7 @@ void SpeakerViewComponent::drawText(juce::String const & val,
     juce::gl::glScalef(scale, scale, scale);
     juce::gl::glColor4f(color.getFloatRed(), color.getFloatGreen(), color.getFloatBlue(), color.getAlpha());
     for (auto const c : val) {
-        glutStrokeCharacter(GLUT_STROKE_MONO_ROMAN, c);
+        glutStrokeCharacter(GLUT_STROKE_MONO_ROMAN, narrow<int>(c));
     }
     juce::gl::glTranslatef(-position.x, -position.y, -position.z);
     juce::gl::glPopMatrix();
@@ -648,8 +648,9 @@ void SpeakerViewComponent::drawSource(source_index_t const index, ViewportSource
         case SpatMode::vbap:
             drawVbapSpan(source);
             break;
-        default:
+        case SpatMode::hybrid:
             jassertfalse;
+            break;
         }
     }
 
