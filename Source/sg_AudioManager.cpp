@@ -103,7 +103,7 @@ void AudioManager::audioDeviceIOCallback(float const ** inputChannelData,
     // copy input data to buffers
     auto const numInputChannelsToCopy{ std::min(totalNumInputChannels, mInputBuffer.size()) };
     for (int i{}; i < numInputChannelsToCopy; ++i) {
-        source_index_t const sourceIndex{ i + 1 };
+        source_index_t const sourceIndex{ i + source_index_t::OFFSET };
         auto const * sourceData{ inputChannelData[i] };
         auto * destinationData{ mInputBuffer[sourceIndex].getWritePointer(0) };
         std::copy_n(sourceData, numSamples, destinationData);
@@ -142,8 +142,8 @@ void AudioManager::audioDeviceIOCallback(float const ** inputChannelData,
         for (auto const & recorder : mRecorders) {
             jassert(recorder->audioFormatWriter->getNumChannels() == recorder->dataToRecord.size());
             auto const success{ recorder->threadedWriter->write(recorder->dataToRecord.data(), numSamples) };
-            jassert(success);
             if (!success) {
+                jassertfalse;
                 stopRecordingAndDisplayError();
             }
         }

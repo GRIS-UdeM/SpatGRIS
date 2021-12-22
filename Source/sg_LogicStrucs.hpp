@@ -42,9 +42,9 @@ enum class SliceState { normal, muted, solo };
 //==============================================================================
 /** For the following data structures, we use the following semantics:
  *
- * COLD : no concurrent access.
+ * COLD : no concurrent access. All reads and writes happen on the same thread.
  * WARM : concurrent access, but never during a performance. Usually done with a lock.
- * HOT  : concurrent access DURING PERFORMANCE. Usually done with a lockless pattern.
+ * HOT  : concurrent access DURING PERFORMANCE. Usually done with an AtomicUpdater<>.
  */
 
 //==============================================================================
@@ -61,9 +61,7 @@ struct ViewSettings {
     bool showSphereOrCube{ false };
     bool showSourceActivity{ false };
     //==============================================================================
-    /** Used for saving. */
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
-    /** Used for loading. */
     [[nodiscard]] static tl::optional<ViewSettings> fromXml(juce::XmlElement const & xml);
     //==============================================================================
     struct XmlTags {
@@ -85,15 +83,20 @@ struct ViewSettings {
  */
 struct ViewportSourceData {
     Position position{};
+    /** Between 0 and 1. */
     float azimuthSpan{};
+    /** Between 0 and 1. */
     float zenithSpan{};
     juce::Colour colour{};
+    /** Only used in hybrid mode. */
     SpatMode hybridSpatMode{};
 };
+
+/** The updater type used to send a source's data from the message thread to the OpenGL thread. */
 using ViewportSourceDataUpdater = AtomicUpdater<tl::optional<ViewportSourceData>>;
 
 //==============================================================================
-/** The WARM data needed in order to properly display a speaker in the 3D viewport.
+/** The data needed in order to properly display a speaker in the 3D viewport.
  *
  * WARM
  */
@@ -102,8 +105,8 @@ struct ViewportSpeakerConfig {
     bool isSelected{};
     bool isDirectOutOnly{};
 };
-/** An updater used by the 3D viewport to read the speakers' alpha levels. The writer is the message thread and the
- * reader is the OpenGL thread. */
+
+/** The updater type used to send a speaker's alpha level from the message thread to the OpenGL thread. */
 using ViewportSpeakerAlphaUpdater = AtomicUpdater<float>;
 
 //==============================================================================
@@ -111,7 +114,7 @@ using ViewportSpeakerAlphaUpdater = AtomicUpdater<float>;
  *
  * WARM
  */
-struct WarmViewportConfig {
+struct ViewportConfig {
     StaticMap<output_patch_t, ViewportSpeakerConfig, MAX_NUM_SPEAKERS> speakers{};
     ViewSettings viewSettings{};
     SpatMode spatMode{};
@@ -137,7 +140,7 @@ struct ViewportState {
 //==============================================================================
 /** All of the 3D viewport's data. */
 struct ViewportData {
-    WarmViewportConfig warmData{};
+    ViewportConfig warmData{};
     ViewportState coldData{};
     StaticMap<source_index_t, ViewportSourceDataUpdater, MAX_NUM_SOURCES> hotSourcesDataUpdaters{};
     StrongArray<output_patch_t, ViewportSpeakerAlphaUpdater, MAX_NUM_SPEAKERS> hotSpeakersAlphaUpdaters{};
@@ -395,5 +398,5 @@ struct SpatGrisData {
     AtomicUpdater<StereoPeaks>::Token * mostRecentStereoPeaks{};
     //==============================================================================
     [[nodiscard]] std::unique_ptr<AudioConfig> toAudioConfig() const;
-    [[nodiscard]] WarmViewportConfig toViewportConfig() const noexcept;
+    [[nodiscard]] ViewportConfig toViewportConfig() const noexcept;
 };

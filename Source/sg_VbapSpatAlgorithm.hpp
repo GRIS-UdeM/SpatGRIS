@@ -20,7 +20,6 @@
 #pragma once
 
 #include "sg_AbstractSpatAlgorithm.hpp"
-#include "sg_StaticMap.hpp"
 #include "sg_StrongArray.hpp"
 #include "sg_TaggedAudioBuffer.hpp"
 #include "sg_vbap.hpp"

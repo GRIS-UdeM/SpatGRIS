@@ -100,7 +100,7 @@ public:
 
     Position getCameraPosition() const noexcept;
 
-    void setConfig(WarmViewportConfig const & config, SourcesData const & sources);
+    void setConfig(ViewportConfig const & config, SourcesData const & sources);
     void setCameraPosition(CartesianVector const & position) noexcept;
     void setTriplets(juce::Array<Triplet> triplets) noexcept;
 

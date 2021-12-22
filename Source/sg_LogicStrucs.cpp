@@ -872,9 +872,9 @@ std::unique_ptr<AudioConfig> SpatGrisData::toAudioConfig() const
 }
 
 //==============================================================================
-WarmViewportConfig SpatGrisData::toViewportConfig() const noexcept
+ViewportConfig SpatGrisData::toViewportConfig() const noexcept
 {
-    WarmViewportConfig result{};
+    ViewportConfig result{};
     for (auto const & speaker : speakerSetup.speakers) {
         result.speakers.add(speaker.key, speaker.value->toViewportConfig());
     }

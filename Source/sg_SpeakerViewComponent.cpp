@@ -76,7 +76,7 @@ Position SpeakerViewComponent::getCameraPosition() const noexcept
 }
 
 //==============================================================================
-void SpeakerViewComponent::setConfig(WarmViewportConfig const & config, SourcesData const & sources)
+void SpeakerViewComponent::setConfig(ViewportConfig const & config, SourcesData const & sources)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedLock const lock{ mLock };
