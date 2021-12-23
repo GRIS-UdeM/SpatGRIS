@@ -54,11 +54,7 @@ public:
     //==============================================================================
     HrtfSpatAlgorithm() = delete;
     ~HrtfSpatAlgorithm() override = default;
-    //==============================================================================
-    HrtfSpatAlgorithm(HrtfSpatAlgorithm const &) = delete;
-    HrtfSpatAlgorithm(HrtfSpatAlgorithm &&) = delete;
-    HrtfSpatAlgorithm & operator=(HrtfSpatAlgorithm const &) = delete;
-    HrtfSpatAlgorithm & operator=(HrtfSpatAlgorithm &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(HrtfSpatAlgorithm)
     //==============================================================================
     void updateSpatData(source_index_t sourceIndex, SourceData const & sourceData) noexcept override;
     void process(AudioConfig const & config,

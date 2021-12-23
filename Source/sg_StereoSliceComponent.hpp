@@ -39,11 +39,7 @@ public:
                          GrisLookAndFeel & lookAndFeel,
                          SmallGrisLookAndFeel & smallLookAndFeel);
     ~StereoSliceComponent() override = default;
-    //==============================================================================
-    StereoSliceComponent(StereoSliceComponent const &) = delete;
-    StereoSliceComponent(StereoSliceComponent &&) = delete;
-    StereoSliceComponent & operator=(StereoSliceComponent const &) = delete;
-    StereoSliceComponent & operator=(StereoSliceComponent &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(StereoSliceComponent)
     //==============================================================================
     void muteSoloButtonClicked(SliceState) override { jassertfalse; }
     void smallButtonClicked(SmallToggleButton * /*button*/, bool /*state*/, bool /*isLeftMouseButton*/) override {}

@@ -38,11 +38,7 @@ public:
     public:
         Listener() = default;
         virtual ~Listener() = default;
-        //==============================================================================
-        Listener(Listener const &) = delete;
-        Listener(Listener &&) = delete;
-        Listener & operator=(Listener const &) = delete;
-        Listener & operator=(Listener &&) = delete;
+        SG_DEFAULT_COPY_AND_MOVE(Listener)
         //==============================================================================
         virtual void sourceIdButtonColorChanged(SourceIdButton * button, juce::Colour color) = 0;
         virtual void sourceIdButtonCopyColorToNextSource(SourceIdButton * button, juce::Colour color) = 0;
@@ -61,11 +57,7 @@ public:
                    Listener & listener,
                    SmallGrisLookAndFeel & lookAndFeel);
     ~SourceIdButton() override = default;
-    //==============================================================================
-    SourceIdButton(SourceIdButton const &) = delete;
-    SourceIdButton(SourceIdButton &&) = delete;
-    SourceIdButton & operator=(SourceIdButton const &) = delete;
-    SourceIdButton & operator=(SourceIdButton &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(SourceIdButton)
     //==============================================================================
     void setColor(juce::Colour const & color);
     //==============================================================================

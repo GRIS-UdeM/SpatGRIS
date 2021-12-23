@@ -33,10 +33,7 @@ public:
     public:
         Listener() = default;
         virtual ~Listener() = default;
-        Listener(Listener const &) = default;
-        Listener(Listener &&) = default;
-        Listener & operator=(Listener const &) = default;
-        Listener & operator=(Listener &&) = default;
+        SG_DEFAULT_COPY_AND_MOVE(Listener)
         //==============================================================================
         virtual void smallButtonClicked(SmallToggleButton * button, bool state, bool isLeftMouseButton) = 0;
     };
@@ -56,11 +53,7 @@ public:
                       Listener & listener,
                       SmallGrisLookAndFeel & lookAndFeel);
     ~SmallToggleButton() override = default;
-    //==============================================================================
-    SmallToggleButton(SmallToggleButton const &) = delete;
-    SmallToggleButton(SmallToggleButton &&) = delete;
-    SmallToggleButton & operator=(SmallToggleButton const &) = delete;
-    SmallToggleButton & operator=(SmallToggleButton &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(SmallToggleButton)
     //==============================================================================
     [[nodiscard]] juce::Colour getButtonColor() const;
     void setToggleState(bool state);

@@ -34,11 +34,7 @@ public:
     public:
         Listener() = default;
         virtual ~Listener() = default;
-        //==============================================================================
-        Listener(Listener const &) = delete;
-        Listener(Listener &&) = delete;
-        Listener & operator=(Listener const &) = delete;
-        Listener & operator=(Listener &&) = delete;
+        SG_DEFAULT_COPY_AND_MOVE(Listener)
         //==============================================================================
         virtual void sliderMoved(float value, SpatSlider * slider) = 0;
 
@@ -64,11 +60,7 @@ public:
                Listener & listener,
                GrisLookAndFeel & lookAndFeel);
     ~SpatSlider() override = default;
-    //==============================================================================
-    SpatSlider(SpatSlider const &) = delete;
-    SpatSlider(SpatSlider &&) = delete;
-    SpatSlider & operator=(SpatSlider const &) = delete;
-    SpatSlider & operator=(SpatSlider &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(SpatSlider)
     //==============================================================================
     void setValue(float value);
     //==============================================================================

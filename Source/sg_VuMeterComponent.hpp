@@ -43,11 +43,7 @@ public:
     //==============================================================================
     explicit VuMeterComponent(SmallGrisLookAndFeel & lookAndFeel) : mLookAndFeel(lookAndFeel) {}
     ~VuMeterComponent() override = default;
-    //==============================================================================
-    VuMeterComponent(VuMeterComponent const &) = delete;
-    VuMeterComponent(VuMeterComponent &&) = delete;
-    VuMeterComponent & operator=(VuMeterComponent const &) = delete;
-    VuMeterComponent & operator=(VuMeterComponent &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(VuMeterComponent)
     //==============================================================================
     void resized() override;
     void resetClipping();

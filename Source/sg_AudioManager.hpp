@@ -70,14 +70,14 @@ private:
 
 public:
     //==============================================================================
+    AudioManager() = delete;
     ~AudioManager() override;
+    SG_DELETE_COPY_AND_MOVE(AudioManager)
     //==============================================================================
-    AudioManager(AudioManager const &) = delete;
-    AudioManager(AudioManager &&) = delete;
-    AudioManager & operator=(AudioManager const &) = delete;
-    AudioManager & operator=(AudioManager &&) = delete;
-    //==============================================================================
-    [[nodiscard]] juce::AudioDeviceManager const & getAudioDeviceManager() const { return mAudioDeviceManager; }
+    [[nodiscard]] juce::AudioDeviceManager const & getAudioDeviceManager() const
+    {
+        return mAudioDeviceManager;
+    }
     [[nodiscard]] juce::AudioDeviceManager & getAudioDeviceManager() { return mAudioDeviceManager; }
 
     juce::StringArray getAvailableDeviceTypeNames();

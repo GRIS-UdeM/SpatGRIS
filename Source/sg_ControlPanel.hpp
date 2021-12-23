@@ -54,11 +54,7 @@ public:
     //==============================================================================
     GainsSubPanel(MainContentComponent & mainContentComponent, GrisLookAndFeel & lookAndFeel);
     ~GainsSubPanel() override = default;
-    //==============================================================================
-    GainsSubPanel(GainsSubPanel const &) = delete;
-    GainsSubPanel(GainsSubPanel &&) = delete;
-    GainsSubPanel & operator=(GainsSubPanel const &) = delete;
-    GainsSubPanel & operator=(GainsSubPanel &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(GainsSubPanel)
     //==============================================================================
     void setMasterGain(dbfs_t gain);
     void setInterpolation(float interpolation);
@@ -121,11 +117,7 @@ public:
                          MainContentComponent & mainContentComponent,
                          GrisLookAndFeel & lookAndFeel);
     ~SpatSettingsSubPanel() override = default;
-    //==============================================================================
-    SpatSettingsSubPanel(SpatSettingsSubPanel const &) = delete;
-    SpatSettingsSubPanel(SpatSettingsSubPanel &&) = delete;
-    SpatSettingsSubPanel & operator=(SpatSettingsSubPanel const &) = delete;
-    SpatSettingsSubPanel & operator=(SpatSettingsSubPanel &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(SpatSettingsSubPanel)
     //==============================================================================
     void updateMaxOutputPatch(output_patch_t maxOutputPatch, StereoRouting const & routing);
     //==============================================================================
@@ -172,11 +164,7 @@ public:
     //==============================================================================
     ControlPanel(MainContentComponent & mainContentComponent, GrisLookAndFeel & lookAndFeel);
     ~ControlPanel() override = default;
-    //==============================================================================
-    ControlPanel(ControlPanel const &) = delete;
-    ControlPanel(ControlPanel &&) = delete;
-    ControlPanel & operator=(ControlPanel const &) = delete;
-    ControlPanel & operator=(ControlPanel &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(ControlPanel)
     //==============================================================================
     void setMasterGain(dbfs_t gain);
     void setInterpolation(float interpolation);

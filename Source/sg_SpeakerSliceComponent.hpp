@@ -37,11 +37,7 @@ public:
     public:
         Listener() = default;
         virtual ~Listener() = default;
-        //==============================================================================
-        Listener(Listener const &) = default;
-        Listener(Listener &&) = default;
-        Listener & operator=(Listener const &) = default;
-        Listener & operator=(Listener &&) = default;
+        SG_DEFAULT_COPY_AND_MOVE(Listener)
         //==============================================================================
         virtual void setSelectedSpeakers(juce::Array<output_patch_t> selection) = 0;
         virtual void setSpeakerState(output_patch_t outputPatch, SliceState state) = 0;
@@ -61,11 +57,7 @@ public:
                           GrisLookAndFeel & lookAndFeel,
                           SmallGrisLookAndFeel & smallLookAndFeel);
     ~SpeakerSliceComponent() override = default;
-    //==============================================================================
-    SpeakerSliceComponent(SpeakerSliceComponent const &) = delete;
-    SpeakerSliceComponent(SpeakerSliceComponent &&) = delete;
-    SpeakerSliceComponent & operator=(SpeakerSliceComponent const &) = delete;
-    SpeakerSliceComponent & operator=(SpeakerSliceComponent &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(SpeakerSliceComponent)
     //==============================================================================
     void setSelected(bool value);
     //==============================================================================

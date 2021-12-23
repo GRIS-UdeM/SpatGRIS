@@ -41,11 +41,7 @@ public:
     public:
         Listener() = default;
         virtual ~Listener() = default;
-        //==============================================================================
-        Listener(Listener const &) = default;
-        Listener(Listener &&) = default;
-        Listener & operator=(Listener const &) = default;
-        Listener & operator=(Listener &&) = default;
+        SG_DEFAULT_COPY_AND_MOVE(Listener)
         //==============================================================================
         virtual void setSourceDirectOut(source_index_t sourceIndex, tl::optional<output_patch_t> outputPatch) = 0;
         virtual void setSourceColor(source_index_t sourceIndex, juce::Colour colour) = 0;
@@ -76,11 +72,7 @@ public:
                          GrisLookAndFeel & lookAndFeel,
                          SmallGrisLookAndFeel & smallLookAndFeel);
     ~SourceSliceComponent() override = default;
-    //==============================================================================
-    SourceSliceComponent(SourceSliceComponent const &) = delete;
-    SourceSliceComponent(SourceSliceComponent &&) = delete;
-    SourceSliceComponent & operator=(SourceSliceComponent const &) = delete;
-    SourceSliceComponent & operator=(SourceSliceComponent &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(SourceSliceComponent)
     //==============================================================================
     void setDirectOut(tl::optional<output_patch_t> directOut);
     void setDirectOutChoices(std::shared_ptr<DirectOutSelectorComponent::Choices> choices);

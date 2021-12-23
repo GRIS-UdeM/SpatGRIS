@@ -81,12 +81,7 @@ public:
     //==============================================================================
     SettingsComponent() = delete;
     ~SettingsComponent() override = default;
-
-    SettingsComponent(SettingsComponent const &) = delete;
-    SettingsComponent(SettingsComponent &&) = delete;
-
-    SettingsComponent & operator=(SettingsComponent const &) = delete;
-    SettingsComponent & operator=(SettingsComponent &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(SettingsComponent)
     //==============================================================================
 
     void buttonClicked(juce::Button * button) override;
@@ -114,12 +109,7 @@ public:
     //==============================================================================
     SettingsWindow() = delete;
     ~SettingsWindow() override = default;
-
-    SettingsWindow(SettingsWindow const &) = delete;
-    SettingsWindow(SettingsWindow &&) = delete;
-
-    SettingsWindow & operator=(SettingsWindow const &) = delete;
-    SettingsWindow & operator=(SettingsWindow &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(SettingsWindow)
     //==============================================================================
     void closeButtonPressed() override;
 

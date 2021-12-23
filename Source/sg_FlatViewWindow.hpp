@@ -43,11 +43,7 @@ public:
     //==============================================================================
     FlatViewWindow() = delete;
     ~FlatViewWindow() override = default;
-    //==============================================================================
-    FlatViewWindow(FlatViewWindow const &) = delete;
-    FlatViewWindow(FlatViewWindow &&) = delete;
-    FlatViewWindow & operator=(FlatViewWindow const &) = delete;
-    FlatViewWindow & operator=(FlatViewWindow &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(FlatViewWindow)
     //==============================================================================
     auto & getSourceDataQueues() { return mSourceDataQueues; }
     //==============================================================================

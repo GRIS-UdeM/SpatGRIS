@@ -34,7 +34,7 @@ void StereoSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, Sourc
 
     // using fast = juce::dsp::FastMathApproximations;
 
-    auto & queue{ mData[sourceIndex].gainsQueue };
+    auto & queue{ mData[sourceIndex].gainsUpdater };
     auto * ticket{ queue.acquire() };
     auto & gains{ ticket->get() };
 
@@ -80,7 +80,7 @@ void StereoSpatAlgorithm::process(AudioConfig const & config,
 
         auto & data{ mData[source.key] };
 
-        data.gainsQueue.getMostRecent(data.currentGains);
+        data.gainsUpdater.getMostRecent(data.currentGains);
         if (data.currentGains == nullptr) {
             continue;
         }

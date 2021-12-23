@@ -35,11 +35,7 @@ public:
     public:
         Listener() = default;
         virtual ~Listener() = default;
-        //==============================================================================
-        Listener(Listener const &) = delete;
-        Listener(Listener &&) = delete;
-        Listener & operator=(Listener const &) = delete;
-        Listener & operator=(Listener &&) = delete;
+        SG_DEFAULT_COPY_AND_MOVE(Listener)
         //==============================================================================
         virtual void textEditorChanged(juce::String const & value, SpatTextEditor * editor) = 0;
 
@@ -61,11 +57,7 @@ public:
                    Listener & listener,
                    GrisLookAndFeel & lookAndFeel);
     ~SpatTextEditor() override = default;
-    //==============================================================================
-    SpatTextEditor(SpatTextEditor const &) = delete;
-    SpatTextEditor(SpatTextEditor &&) = delete;
-    SpatTextEditor & operator=(SpatTextEditor const &) = delete;
-    SpatTextEditor & operator=(SpatTextEditor &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(SpatTextEditor)
     //==============================================================================
     void setText(juce::String const & text);
     //==============================================================================

@@ -35,11 +35,7 @@ public:
     //==============================================================================
     OscMonitorComponent();
     ~OscMonitorComponent() override = default;
-    //==============================================================================
-    OscMonitorComponent(OscMonitorComponent const &) = delete;
-    OscMonitorComponent(OscMonitorComponent &&) = delete;
-    OscMonitorComponent & operator=(OscMonitorComponent const &) = delete;
-    OscMonitorComponent & operator=(OscMonitorComponent &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(OscMonitorComponent)
     //==============================================================================
     void addMessage(juce::OSCMessage const & message);
     //==============================================================================
@@ -60,11 +56,7 @@ public:
     //==============================================================================
     OscMonitorWindow(MainContentComponent & mainContentComponent, GrisLookAndFeel & lookAndFeel);
     ~OscMonitorWindow() override = default;
-    //==============================================================================
-    OscMonitorWindow(OscMonitorWindow const &) = delete;
-    OscMonitorWindow(OscMonitorWindow &&) = delete;
-    OscMonitorWindow & operator=(OscMonitorWindow const &) = delete;
-    OscMonitorWindow & operator=(OscMonitorWindow &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(OscMonitorWindow)
     //==============================================================================
     void addMessage(juce::OSCMessage const & message);
     //==============================================================================

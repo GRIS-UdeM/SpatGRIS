@@ -152,12 +152,12 @@ public:
     }
     ~StaticMap() = default;
     //==============================================================================
-    StaticMap(StaticMap const &) = default;
-    StaticMap(StaticMap &&) = default;
-    StaticMap & operator=(StaticMap const &) = default;
-    StaticMap & operator=(StaticMap &&) = default;
+    SG_DEFAULT_COPY_AND_MOVE(StaticMap)
     //==============================================================================
-    [[nodiscard]] bool isEmpty() const { return mUsed.none(); }
+    [[nodiscard]] bool isEmpty() const
+    {
+        return mUsed.none();
+    }
     //==============================================================================
     [[nodiscard]] size_t size() const { return mUsed.count(); }
     //==============================================================================

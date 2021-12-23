@@ -22,7 +22,7 @@
 #include "sg_SpatMode.hpp"
 
 /** Experimental : a stereo reduction algorithm based on doppler-shifting. */
-#ifdef USE_DOPPLER
+#if defined(USE_DOPPLER) || defined(DOXYGEN)
 
     #include "sg_AbstractSpatAlgorithm.hpp"
     #include "sg_Meters.hpp"

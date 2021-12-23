@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include "sg_Macros.hpp"
+
 #include <JuceHeader.h>
 
 class GrisLookAndFeel;
@@ -41,11 +43,7 @@ public:
                               MainContentComponent & mainContentComponent,
                               GrisLookAndFeel & lookAndFeel);
     ~AddRemoveSourcesComponent() override = default;
-    //==============================================================================
-    AddRemoveSourcesComponent(AddRemoveSourcesComponent const &) = delete;
-    AddRemoveSourcesComponent(AddRemoveSourcesComponent &&) = delete;
-    AddRemoveSourcesComponent & operator=(AddRemoveSourcesComponent const &) = delete;
-    AddRemoveSourcesComponent & operator=(AddRemoveSourcesComponent &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(AddRemoveSourcesComponent)
     //==============================================================================
     void buttonClicked(juce::Button *) override;
     void resized() override;
@@ -73,11 +71,8 @@ public:
                            MainContentComponent & mainContentComponent,
                            GrisLookAndFeel & lookAndFeel);
     ~AddRemoveSourcesWindow() override = default;
+    SG_DELETE_COPY_AND_MOVE(AddRemoveSourcesWindow)
     //==============================================================================
-    AddRemoveSourcesWindow(AddRemoveSourcesWindow const &) = delete;
-    AddRemoveSourcesWindow(AddRemoveSourcesWindow &&) = delete;
-    AddRemoveSourcesWindow & operator=(AddRemoveSourcesWindow const &) = delete;
-    AddRemoveSourcesWindow & operator=(AddRemoveSourcesWindow &&) = delete;
     void closeButtonPressed() override;
 
 private:

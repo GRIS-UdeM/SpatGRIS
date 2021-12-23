@@ -34,17 +34,12 @@ class MainWindow final
 
 public:
     //==============================================================================
+    MainWindow() = delete;
     MainWindow(juce::String const & name,
                GrisLookAndFeel & newLookAndFeel,
                SmallGrisLookAndFeel & smallGrisLookAndFeel);
-    //==============================================================================
-    MainWindow() = delete;
     ~MainWindow() override = default;
-    //==============================================================================
-    MainWindow(MainWindow const &) = delete;
-    MainWindow(MainWindow &&) = delete;
-    MainWindow & operator=(MainWindow const &) = delete;
-    MainWindow & operator=(MainWindow &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(MainWindow)
     //==============================================================================
     [[nodiscard]] bool exitWinApp() const;
     [[nodiscard]] juce::ApplicationCommandManager & getApplicationCommandManager();

@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include "sg_Macros.hpp"
+
 #include <JuceHeader.h>
 
 class GrisLookAndFeel;
@@ -50,12 +52,7 @@ public:
     //==============================================================================
     OscLogWindow() = delete;
     ~OscLogWindow() override;
-
-    OscLogWindow(OscLogWindow const &) = delete;
-    OscLogWindow(OscLogWindow &&) = delete;
-
-    OscLogWindow & operator=(OscLogWindow const &) = delete;
-    OscLogWindow & operator=(OscLogWindow &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(OscLogWindow)
     //==============================================================================
     void addToLog(juce::String msg);
     //==============================================================================

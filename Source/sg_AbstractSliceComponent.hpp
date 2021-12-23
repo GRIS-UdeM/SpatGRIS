@@ -43,11 +43,7 @@ public:
     //==============================================================================
     AbstractSliceComponent() = delete;
     ~AbstractSliceComponent() override = default;
-    //==============================================================================
-    AbstractSliceComponent(AbstractSliceComponent const &) = delete;
-    AbstractSliceComponent(AbstractSliceComponent &&) = delete;
-    AbstractSliceComponent & operator=(AbstractSliceComponent const &) = delete;
-    AbstractSliceComponent & operator=(AbstractSliceComponent &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(AbstractSliceComponent)
     //==============================================================================
     void setLevel(dbfs_t const level) { mVuMeter.setLevel(level); }
     void resetClipping() { mVuMeter.resetClipping(); }

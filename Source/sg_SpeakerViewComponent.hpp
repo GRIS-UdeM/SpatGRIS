@@ -88,11 +88,7 @@ public:
     {
     }
     ~SpeakerViewComponent() override { shutdownOpenGL(); }
-    //==============================================================================
-    SpeakerViewComponent(SpeakerViewComponent const &) = delete;
-    SpeakerViewComponent(SpeakerViewComponent &&) = delete;
-    SpeakerViewComponent & operator=(SpeakerViewComponent const &) = delete;
-    SpeakerViewComponent & operator=(SpeakerViewComponent &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(SpeakerViewComponent)
     //==============================================================================
     auto & getData() noexcept { return mData; }
     auto const & getData() const noexcept { return mData; }

@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include "sg_Macros.hpp"
 #include "sg_Narrow.hpp"
 
 #include "BinaryData.h"
@@ -64,12 +65,7 @@ public:
     //==============================================================================
     GrisLookAndFeel();
     ~GrisLookAndFeel() override = default;
-
-    GrisLookAndFeel(GrisLookAndFeel const &) = delete;
-    GrisLookAndFeel(GrisLookAndFeel &&) = delete;
-
-    GrisLookAndFeel & operator=(GrisLookAndFeel const &) = delete;
-    GrisLookAndFeel & operator=(GrisLookAndFeel &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(GrisLookAndFeel)
     //==============================================================================
     [[nodiscard]] juce::Font getLabelFont(juce::Label & label) override;
     [[nodiscard]] juce::Font getFont() const { return this->mFont; }

@@ -21,7 +21,6 @@
 
 #include "sg_AbstractSpatAlgorithm.hpp"
 #include "sg_AudioStructs.hpp"
-#include "sg_StrongArray.hpp"
 #include "sg_TaggedAudioBuffer.hpp"
 
 #include <JuceHeader.h>
@@ -42,11 +41,7 @@ public:
     //==============================================================================
     AudioProcessor();
     ~AudioProcessor();
-    //==============================================================================
-    AudioProcessor(AudioProcessor const &) = delete;
-    AudioProcessor(AudioProcessor &&) = delete;
-    AudioProcessor & operator=(AudioProcessor const &) = delete;
-    AudioProcessor & operator=(AudioProcessor &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(AudioProcessor)
     //==============================================================================
     void setAudioConfig(std::unique_ptr<AudioConfig> newAudioConfig);
     [[nodiscard]] juce::CriticalSection const & getLock() const noexcept { return mLock; }

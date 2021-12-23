@@ -31,7 +31,9 @@ public:
     class Listener
     {
     public:
+        Listener() = default;
         virtual ~Listener() = default;
+        SG_DEFAULT_COPY_AND_MOVE(Listener)
         //==============================================================================
         virtual void buttonPressed(SpatButton * button) = 0;
     };
@@ -46,13 +48,12 @@ public:
     //==============================================================================
     SpatButton(juce::String const & text, juce::String const & tooltip, int width, int height, Listener & listener);
     ~SpatButton() override = default;
+    SG_DELETE_COPY_AND_MOVE(SpatButton)
     //==============================================================================
-    SpatButton(SpatButton const &) = delete;
-    SpatButton(SpatButton &&) = delete;
-    SpatButton & operator=(SpatButton const &) = delete;
-    SpatButton & operator=(SpatButton &&) = delete;
-    //==============================================================================
-    [[nodiscard]] int getMinWidth() const noexcept override { return mWidth; }
+    [[nodiscard]] int getMinWidth() const noexcept override
+    {
+        return mWidth;
+    }
     [[nodiscard]] int getMinHeight() const noexcept override { return mHeight; }
     void resized() override;
 

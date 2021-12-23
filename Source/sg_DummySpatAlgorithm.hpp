@@ -25,7 +25,7 @@
 #include "sg_TaggedAudioBuffer.hpp"
 
 //==============================================================================
-/** A dummy spatialization algorithm created when the instantiation of an other algorithm fails.
+/** A dummy spatialization algorithm created when the instantiation of another algorithm fails.
  *
  * It holds an error and removes the possibility of having no active algorithms when a problem occurs.  */
 class DummySpatAlgorithm final : public AbstractSpatAlgorithm
@@ -36,11 +36,7 @@ public:
     //==============================================================================
     explicit DummySpatAlgorithm(Error const error) : mError(error) {}
     ~DummySpatAlgorithm() override = default;
-    //==============================================================================
-    DummySpatAlgorithm(DummySpatAlgorithm const &) = delete;
-    DummySpatAlgorithm(DummySpatAlgorithm &&) = delete;
-    DummySpatAlgorithm & operator=(DummySpatAlgorithm const &) = delete;
-    DummySpatAlgorithm & operator=(DummySpatAlgorithm &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(DummySpatAlgorithm)
     //==============================================================================
     void updateSpatData(source_index_t /*sourceIndex*/, SourceData const & /*sourceData*/) noexcept override {}
     void process(AudioConfig const & /*config*/,

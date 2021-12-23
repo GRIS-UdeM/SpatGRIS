@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include "sg_Macros.hpp"
+
 #include <JuceHeader.h>
 
 class GrisLookAndFeel;
@@ -41,14 +43,12 @@ public:
                  bool verticalScrollbar = false,
                  bool horizontalScrollbar = true);
     ~Box() override { this->mContent.deleteAllChildren(); }
-
-    Box(Box const &) = delete;
-    Box(Box &&) = delete;
-
-    Box & operator=(Box const &) = delete;
-    Box & operator=(Box &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(Box)
     //==============================================================================
-    [[nodiscard]] Component * getContent() { return &this->mContent; }
+    [[nodiscard]] Component * getContent()
+    {
+        return &this->mContent;
+    }
     [[nodiscard]] Component const * getContent() const { return &this->mContent; }
     [[nodiscard]] juce::Viewport * getViewport() { return &mViewport; }
 

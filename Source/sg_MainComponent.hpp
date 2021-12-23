@@ -141,12 +141,7 @@ public:
     //==============================================================================
     MainContentComponent() = delete;
     ~MainContentComponent() override;
-
-    MainContentComponent(MainContentComponent const &) = delete;
-    MainContentComponent(MainContentComponent &&) = delete;
-
-    MainContentComponent & operator=(MainContentComponent const &) = delete;
-    MainContentComponent & operator=(MainContentComponent &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(MainContentComponent)
     //==============================================================================
     [[nodiscard]] bool exitApp();
 

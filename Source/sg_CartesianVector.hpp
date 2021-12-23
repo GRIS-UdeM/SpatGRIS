@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include "sg_Macros.hpp"
 #include "sg_constants.hpp"
 
 struct PolarVector;
@@ -41,11 +42,7 @@ struct CartesianVector {
     constexpr CartesianVector(float newX, float newY, float newZ) noexcept;
     explicit CartesianVector(PolarVector const & polarVector) noexcept;
     ~CartesianVector() = default;
-    //==============================================================================
-    CartesianVector(CartesianVector const &) = default;
-    CartesianVector(CartesianVector &&) = default;
-    CartesianVector & operator=(CartesianVector const &) = default;
-    CartesianVector & operator=(CartesianVector &&) = default;
+    SG_DEFAULT_COPY_AND_MOVE(CartesianVector)
     //==============================================================================
     [[nodiscard]] constexpr bool operator==(CartesianVector const & other) const noexcept;
     [[nodiscard]] constexpr bool operator!=(CartesianVector const & other) const noexcept;

@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include "sg_Macros.hpp"
 #include "sg_StaticVector.hpp"
 
 //==============================================================================
@@ -73,11 +74,7 @@ public:
     //==============================================================================
     AtomicUpdater() = default;
     ~AtomicUpdater() = default;
-    //==============================================================================
-    AtomicUpdater(AtomicUpdater const &) = delete;
-    AtomicUpdater(AtomicUpdater &&) = delete;
-    AtomicUpdater & operator=(AtomicUpdater const &) = delete;
-    AtomicUpdater & operator=(AtomicUpdater &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(AtomicUpdater)
     //==============================================================================
     /** @returns a pointer to previously unused token. Use setMostRecent() to return the data to the updater after
      * writing to it. */

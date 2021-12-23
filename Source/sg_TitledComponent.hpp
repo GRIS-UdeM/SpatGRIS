@@ -36,11 +36,7 @@ public:
     //==============================================================================
     TitledComponent(juce::String title, MinSizedComponent * contentComponent, GrisLookAndFeel & lookAndFeel);
     ~TitledComponent() override = default;
-    //==============================================================================
-    TitledComponent(TitledComponent const &) = delete;
-    TitledComponent(TitledComponent &&) = delete;
-    TitledComponent & operator=(TitledComponent const &) = delete;
-    TitledComponent & operator=(TitledComponent &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(TitledComponent)
     //==============================================================================
     void resized() override;
     void paint(juce::Graphics & g) override;

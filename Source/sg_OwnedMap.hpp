@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include "sg_Macros.hpp"
 #include "sg_StrongIndex.hpp"
 
 #include <bitset>
@@ -60,9 +61,8 @@ public:
         }
     }
     //==============================================================================
-    OwnedMap(OwnedMap const &) = delete;
+    SG_DELETE_COPY(OwnedMap)
     OwnedMap(OwnedMap && other) noexcept : mData(other.mData), mUsed(other.mUsed) { other.mUsed.reset(); }
-    OwnedMap & operator=(OwnedMap const &) = delete;
     OwnedMap & operator=(OwnedMap && other) noexcept
     {
         clear();

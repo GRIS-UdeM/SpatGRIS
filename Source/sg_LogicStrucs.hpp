@@ -42,13 +42,17 @@ enum class SliceState { normal, muted, solo };
 //==============================================================================
 /** For the following data structures, we use the following semantics:
  *
- * COLD : no concurrent access. All reads and writes happen on the same thread.
- * WARM : concurrent access, but never during a performance. Usually done with a lock.
- * HOT  : concurrent access DURING PERFORMANCE. Usually done with an AtomicUpdater<>.
+ * COLD  : no concurrent access. All reads and writes happen on the same thread.
+ * WARM  : concurrent access, but never during a performance. Usually done with a lock.
+ * HOT   : concurrent access DURING PERFORMANCE. Usually done with an AtomicUpdater<>.
+ * MIXED : a top-level structure that holds multiple access patterns.
+ *
+ * Note that the term "Config" is associated with WARM data transmitted from the message thread to another thread and
+ * that the term "State" is associate with COLD data created and accessed by something else that the message thread.
  */
 
 //==============================================================================
-/** The settings associated with the 3D viewport.
+/** The settings associated with the 2D and 3D viewports.
  *
  * COLD
  */
@@ -77,7 +81,7 @@ struct ViewSettings {
 };
 
 //==============================================================================
-/** The data needed in order to properly display a source in the 3D viewport.
+/** The data needed to display a source in the 3D viewport.
  *
  * HOT
  */
@@ -96,7 +100,7 @@ struct ViewportSourceData {
 using ViewportSourceDataUpdater = AtomicUpdater<tl::optional<ViewportSourceData>>;
 
 //==============================================================================
-/** The data needed in order to properly display a speaker in the 3D viewport.
+/** The data needed to display a speaker in the 3D viewport.
  *
  * WARM
  */
@@ -110,7 +114,7 @@ struct ViewportSpeakerConfig {
 using ViewportSpeakerAlphaUpdater = AtomicUpdater<float>;
 
 //==============================================================================
-/** The data needed by the 3D viewport that will be updated, but only once in a while with a mutex.
+/** The data needed by the 3D viewport.
  *
  * WARM
  */
@@ -122,7 +126,10 @@ struct ViewportConfig {
 };
 
 //==============================================================================
-/** The COLD 3D viewport's data. */
+/** The inner (no concurrent access) 3D viewport data.
+ *
+ * COLD
+ */
 struct ViewportState {
     StrongArray<source_index_t, ViewportSourceDataUpdater::Token *, MAX_NUM_SOURCES> mostRecentSourcesData{};
     StrongArray<output_patch_t, ViewportSpeakerAlphaUpdater::Token *, MAX_NUM_SPEAKERS> mostRecentSpeakersAlpha{};
@@ -134,11 +141,14 @@ struct ViewportState {
     juce::Point<float> panMouseOrigin{};
     PolarVector panCameraOrigin{};
     float displayScaling{};
-    juce::Array<Triplet> triplets{};
+    juce::Array<Triplet> triplets{}; // TODO : this should be part of the ViewportConfig?
 };
 
 //==============================================================================
-/** All of the 3D viewport's data. */
+/** All of the 3D viewport's data.
+ *
+ * MIXED
+ */
 struct ViewportData {
     ViewportConfig warmData{};
     ViewportState coldData{};
@@ -147,10 +157,13 @@ struct ViewportData {
 };
 
 //==============================================================================
-/** TODO */
+/** All of the data associated with a source.
+ *
+ * COLD
+ */
 struct SourceData {
-    SliceState state{};
-    tl::optional<Position> position{}; // tl::nullopt if source is inactive
+    SliceState state{};                // normal / muted / solo
+    tl::optional<Position> position{}; // tl::nullopt if the source is inactive
     float azimuthSpan{};
     float zenithSpan{};
     tl::optional<output_patch_t> directOut{};

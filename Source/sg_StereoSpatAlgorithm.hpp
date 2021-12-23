@@ -20,16 +20,15 @@
 #pragma once
 
 #include "sg_AbstractSpatAlgorithm.hpp"
-#include "sg_StaticMap.hpp"
 #include "sg_StrongArray.hpp"
 #include "sg_TaggedAudioBuffer.hpp"
 
 using StereoSpeakerGains = std::array<float, 2>;
-using StereoGainsQueue = AtomicUpdater<StereoSpeakerGains>;
+using StereoGainsUpdater = AtomicUpdater<StereoSpeakerGains>;
 
 struct StereoSourceData {
-    StereoGainsQueue gainsQueue{};
-    StereoGainsQueue::Token * currentGains{};
+    StereoGainsUpdater gainsUpdater{};
+    StereoGainsUpdater::Token * currentGains{};
     StereoSpeakerGains lastGains{};
 };
 
@@ -44,11 +43,7 @@ public:
     //==============================================================================
     StereoSpatAlgorithm(SpeakerSetup const & speakerSetup, SourcesData const & sources);
     ~StereoSpatAlgorithm() override = default;
-    //==============================================================================
-    StereoSpatAlgorithm(StereoSpatAlgorithm const &) = delete;
-    StereoSpatAlgorithm(StereoSpatAlgorithm &&) = delete;
-    StereoSpatAlgorithm & operator=(StereoSpatAlgorithm const &) = delete;
-    StereoSpatAlgorithm & operator=(StereoSpatAlgorithm &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(StereoSpatAlgorithm)
     //==============================================================================
     void updateSpatData(source_index_t sourceIndex, SourceData const & sourceData) noexcept override;
     void process(AudioConfig const & config,

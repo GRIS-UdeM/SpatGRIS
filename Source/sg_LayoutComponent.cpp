@@ -21,10 +21,191 @@
 
 #include "sg_GrisLookAndFeel.hpp"
 
+//==============================================================================
 static auto const MAX_ELEM = [](auto const a, auto const b) {
     static_assert(std::is_same_v<decltype(a), decltype(b)>);
     return a < b ? b : a;
 };
+
+//==============================================================================
+LayoutComponent::Section & LayoutComponent::Section::withFixedSize(int const value)
+{
+    jassert(mMode == Mode::undefined);
+    jassert(value >= 0);
+    mFixedSize = value;
+    mMode = Mode::fixed;
+    return *this;
+}
+
+//==============================================================================
+LayoutComponent::Section & LayoutComponent::Section::withRelativeSize(float const value)
+{
+    jassert(mMode == Mode::undefined);
+    jassert(value > 0.0f);
+    mRelativeSize = value;
+    mMode = Mode::relative;
+    return *this;
+}
+
+//==============================================================================
+LayoutComponent::Section & LayoutComponent::Section::withChildMinSize()
+{
+    jassert(mMode == Mode::undefined);
+    jassert(mComponent != nullptr);
+    mMode = Mode::childMinSize;
+    return *this;
+}
+
+//==============================================================================
+LayoutComponent::Section & LayoutComponent::Section::withTopPadding(int const value)
+{
+    jassert(mTopPadding == 0);
+    mTopPadding = value;
+    return *this;
+}
+
+//==============================================================================
+LayoutComponent::Section & LayoutComponent::Section::withLeftPadding(int const value)
+{
+    jassert(mLeftPadding == 0);
+    mLeftPadding = value;
+    return *this;
+}
+
+//==============================================================================
+LayoutComponent::Section & LayoutComponent::Section::withBottomPadding(int const value)
+{
+    jassert(mBottomPadding == 0);
+    mBottomPadding = value;
+    return *this;
+}
+
+//==============================================================================
+LayoutComponent::Section & LayoutComponent::Section::withRightPadding(int const value)
+{
+    jassert(mRightPadding == 0);
+    mRightPadding = value;
+    return *this;
+}
+
+//==============================================================================
+LayoutComponent::Section & LayoutComponent::Section::withHorizontalPadding(int const value)
+{
+    jassert(mLeftPadding == 0 && mRightPadding == 0);
+    mLeftPadding = value;
+    mRightPadding = value;
+    return *this;
+}
+
+//==============================================================================
+LayoutComponent::Section & LayoutComponent::Section::withVerticalPadding(int const value)
+{
+    jassert(mTopPadding == 0 && mBottomPadding == 0);
+    mBottomPadding = value;
+    mTopPadding = value;
+    return *this;
+}
+
+//==============================================================================
+LayoutComponent::Section & LayoutComponent::Section::withPadding(int const value)
+{
+    jassert(mLeftPadding == 0 && mRightPadding == 0 && mTopPadding == 0 && mBottomPadding == 0);
+    mBottomPadding = value;
+    mTopPadding = value;
+    mLeftPadding = value;
+    mRightPadding = value;
+    return *this;
+}
+
+//==============================================================================
+int LayoutComponent::Section::getMinComponentWidth(Orientation const orientation) const noexcept
+{
+    if (orientation == Orientation::horizontal && mMode == Mode::fixed) {
+        return mFixedSize;
+    }
+    auto const * minSizedComponent{ dynamic_cast<MinSizedComponent *>(mComponent) };
+    if (!minSizedComponent) {
+        return 0;
+    }
+    return minSizedComponent->getMinWidth();
+}
+
+//==============================================================================
+int LayoutComponent::Section::getMinSectionWidth(Orientation const orientation) const noexcept
+{
+    return mLeftPadding + getMinComponentWidth(orientation) + mRightPadding;
+}
+
+//==============================================================================
+int LayoutComponent::Section::computeComponentWidth(Orientation const orientation,
+                                                    float const pixelsPerRelativeUnit) const noexcept
+{
+    auto const minComponentWidth{ getMinComponentWidth(orientation) };
+    switch (mMode) {
+    case Mode::childMinSize:
+    case Mode::fixed:
+        return minComponentWidth;
+    case Mode::relative:
+        return minComponentWidth + narrow<int>(std::round(pixelsPerRelativeUnit * mRelativeSize));
+    case Mode::undefined:
+    default:
+        break;
+    }
+    jassertfalse;
+    return 0;
+}
+
+//==============================================================================
+int LayoutComponent::Section::computeSectionWidth(Orientation const orientation,
+                                                  float const pixelsPerRelativeUnit) const noexcept
+{
+    return mLeftPadding + computeComponentWidth(orientation, pixelsPerRelativeUnit) + mRightPadding;
+}
+
+//==============================================================================
+int LayoutComponent::Section::getMinComponentHeight(Orientation const orientation) const noexcept
+{
+    if (orientation == Orientation::vertical && mMode == Mode::fixed) {
+        return mFixedSize;
+    }
+    auto const * minSizedComponent{ dynamic_cast<MinSizedComponent *>(mComponent) };
+    if (!minSizedComponent) {
+        return 0;
+    }
+    return minSizedComponent->getMinHeight();
+}
+
+//==============================================================================
+int LayoutComponent::Section::getMinSectionHeight(Orientation const orientation) const noexcept
+{
+    return mTopPadding + getMinComponentHeight(orientation) + mBottomPadding;
+}
+
+//==============================================================================
+int LayoutComponent::Section::computeComponentHeight(Orientation const orientation,
+                                                     float const pixelsPerRelativeUnit) const noexcept
+{
+    auto const minComponentHeight{ getMinComponentHeight(orientation) };
+    switch (mMode) {
+    case Mode::childMinSize:
+    case Mode::fixed:
+        return minComponentHeight;
+    case Mode::relative:
+        return minComponentHeight + narrow<int>(std::round(pixelsPerRelativeUnit * mRelativeSize));
+    case Mode::undefined:
+    default:
+        break;
+    }
+    jassertfalse;
+    return 0;
+}
+
+//==============================================================================
+int LayoutComponent::Section::computeSectionHeight(Orientation const orientation,
+                                                   float const pixelsPerRelativeUnit) const noexcept
+{
+    return mTopPadding + computeComponentHeight(orientation, pixelsPerRelativeUnit) + mBottomPadding;
+}
 
 //==============================================================================
 LayoutComponent::LayoutComponent(Orientation const orientation,
@@ -57,6 +238,30 @@ LayoutComponent::Section & LayoutComponent::addSection(juce::Component * compone
     section.mComponent = component;
     mViewport.getViewedComponent()->addAndMakeVisible(component);
     return section;
+}
+
+//==============================================================================
+LayoutComponent::Section & LayoutComponent::addSection(juce::Component & component) noexcept
+{
+    return addSection(&component);
+}
+
+//==============================================================================
+LayoutComponent::Section & LayoutComponent::addSection(MinSizedComponent * component) noexcept
+{
+    return addSection(static_cast<juce::Component *>(component));
+}
+
+//==============================================================================
+LayoutComponent::Section & LayoutComponent::addSection(MinSizedComponent & component) noexcept
+{
+    return addSection(&component);
+}
+
+//==============================================================================
+LayoutComponent::Section & LayoutComponent::addSection(std::nullptr_t) noexcept
+{
+    return addSection(static_cast<juce::Component *>(nullptr));
 }
 
 //==============================================================================

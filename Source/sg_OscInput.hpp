@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include "sg_Macros.hpp"
 #include "sg_SourceIndex.hpp"
 
 #include <JuceHeader.h>
@@ -48,12 +49,7 @@ public:
     //==============================================================================
     OscInput() = delete;
     ~OscInput() override;
-
-    OscInput(OscInput const &) = delete;
-    OscInput(OscInput &&) = delete;
-
-    OscInput & operator=(OscInput const &) = delete;
-    OscInput & operator=(OscInput &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(OscInput)
     //==============================================================================
     bool startConnection(int port);
     bool closeConnection() { return this->disconnect(); }

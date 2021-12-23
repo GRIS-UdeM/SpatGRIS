@@ -148,6 +148,7 @@
               file="Source/sg_FatalError.cpp"/>
         <FILE id="i24Hrh" name="sg_FatalError.hpp" compile="0" resource="0"
               file="Source/sg_FatalError.hpp"/>
+        <FILE id="yJeDzO" name="sg_Macros.hpp" compile="0" resource="0" file="Source/sg_Macros.hpp"/>
         <FILE id="sooBmS" name="sg_Narrow.hpp" compile="0" resource="0" file="Source/sg_Narrow.hpp"/>
         <FILE id="y1tIHN" name="sg_ScopeGuard.hpp" compile="0" resource="0"
               file="Source/sg_ScopeGuard.hpp"/>

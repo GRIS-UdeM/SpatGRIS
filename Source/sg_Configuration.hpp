@@ -36,11 +36,7 @@ public:
     //==============================================================================
     Configuration();
     ~Configuration();
-    //==============================================================================
-    Configuration(Configuration const &) = delete;
-    Configuration(Configuration &&) = delete;
-    Configuration & operator=(Configuration const &) = delete;
-    Configuration & operator=(Configuration &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(Configuration)
     //==============================================================================
     void save(AppData const & appData) const;
     [[nodiscard]] AppData load() const;
