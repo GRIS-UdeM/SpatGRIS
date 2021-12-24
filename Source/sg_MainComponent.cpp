@@ -1303,7 +1303,7 @@ void MainContentComponent::updatePeaks()
 
     auto & audioData{ mAudioProcessor->getAudioData() };
     auto *& sourcePeaksTicket{ mData.mostRecentSourcePeaks };
-    audioData.sourcePeaks.getMostRecent(sourcePeaksTicket);
+    audioData.sourcePeaksUpdater.getMostRecent(sourcePeaksTicket);
     if (!sourcePeaksTicket) {
         return;
     }
@@ -1343,7 +1343,7 @@ void MainContentComponent::updatePeaks()
 
     if (mData.appData.stereoMode) {
         auto *& stereoPeaksTicket{ mData.mostRecentStereoPeaks };
-        audioData.stereoPeaks.getMostRecent(stereoPeaksTicket);
+        audioData.stereoPeaksUpdater.getMostRecent(stereoPeaksTicket);
         if (stereoPeaksTicket == nullptr) {
             return;
         }
@@ -1358,7 +1358,7 @@ void MainContentComponent::updatePeaks()
     }
 
     auto *& speakerPeaksTicket{ mData.mostRecentSpeakerPeaks };
-    audioData.speakerPeaks.getMostRecent(speakerPeaksTicket);
+    audioData.speakerPeaksUpdater.getMostRecent(speakerPeaksTicket);
     if (speakerPeaksTicket == nullptr) {
         return;
     }

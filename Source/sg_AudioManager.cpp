@@ -234,6 +234,30 @@ void AudioManager::registerAudioProcessor(AudioProcessor * audioProcessor)
 }
 
 //==============================================================================
+juce::AudioDeviceManager const & AudioManager::getAudioDeviceManager() const
+{
+    return mAudioDeviceManager;
+}
+
+//==============================================================================
+juce::AudioDeviceManager & AudioManager::getAudioDeviceManager()
+{
+    return mAudioDeviceManager;
+}
+
+//==============================================================================
+bool AudioManager::isRecording() const
+{
+    return mIsRecording;
+}
+
+//==============================================================================
+int64_t AudioManager::getNumSamplesRecorded() const
+{
+    return mNumSamplesRecorded.get();
+}
+
+//==============================================================================
 juce::StringArray AudioManager::getAvailableDeviceTypeNames()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -291,7 +315,7 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
              double const sampleRate_,
              int const bufferSize_,
              juce::Array<float const *> dataToRecord,
-             juce::TimeSliceThread & timeSlicedThread) -> std::unique_ptr<RecorderInfo> {
+             juce::TimeSliceThread & timeSlicedThread) -> std::unique_ptr<FileRecorder> {
         juce::StringPairArray const metaData{}; // lets leave this empty for now
 
         juce::File const outputFile{ path };
@@ -314,7 +338,7 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
             std::make_unique<juce::AudioFormatWriter::ThreadedWriter>(audioFormatWriter, timeSlicedThread, bufferSize_)
         };
         jassert(threadedWriter);
-        auto result{ std::make_unique<RecorderInfo>() };
+        auto result{ std::make_unique<FileRecorder>() };
         result->audioFormatWriter = audioFormatWriter;
         result->threadedWriter = std::move(threadedWriter);
         result->dataToRecord = std::move(dataToRecord);

@@ -22,6 +22,10 @@
 #include "sg_StrongIndex.hpp"
 
 //==============================================================================
+/** A stack-allocated fixed-capacity vector of objects accessed using a strongly-typed index.
+ *
+ * Values have to be trivial since the destructor is sometimes omitted.
+ */
 template<typename KeyType, typename ValueType, size_t CAPACITY>
 class StrongArray
 {

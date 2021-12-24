@@ -147,7 +147,7 @@ struct AudioData {
     AudioState state{};
 
     // audio thread -> message thread (hot)
-    AtomicUpdater<SourcePeaks> sourcePeaks{};
-    AtomicUpdater<SpeakerPeaks> speakerPeaks{};
-    AtomicUpdater<StereoPeaks> stereoPeaks{};
+    AtomicUpdater<SourcePeaks> sourcePeaksUpdater{};
+    AtomicUpdater<SpeakerPeaks> speakerPeaksUpdater{};
+    AtomicUpdater<StereoPeaks> stereoPeaksUpdater{};
 };

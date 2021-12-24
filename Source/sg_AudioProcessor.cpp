@@ -112,7 +112,7 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer,
     auto const numSamples{ sourceBuffer.getNumSamples() };
 
     // Process source peaks
-    auto * sourcePeaksTicket{ mAudioData.sourcePeaks.acquire() };
+    auto * sourcePeaksTicket{ mAudioData.sourcePeaksUpdater.acquire() };
     auto & sourcePeaks{ sourcePeaksTicket->get() };
     processInputPeaks(sourceBuffer, sourcePeaks);
 
@@ -137,25 +137,25 @@ void AudioProcessor::processAudio(SourceAudioBuffer & sourceBuffer,
     }
 
     // Process peaks/gains/highpass
-    mAudioData.sourcePeaks.setMostRecent(sourcePeaksTicket);
+    mAudioData.sourcePeaksUpdater.setMostRecent(sourcePeaksTicket);
 
     if (mAudioData.config->isStereo) {
         auto const & masterGain{ mAudioData.config->masterGain };
         if (masterGain != 0.0f) {
             stereoBuffer.applyGain(masterGain);
         }
-        auto * stereoPeaksTicket{ mAudioData.stereoPeaks.acquire() };
+        auto * stereoPeaksTicket{ mAudioData.stereoPeaksUpdater.acquire() };
         auto & stereoPeaks{ stereoPeaksTicket->get() };
         for (int i{}; i < 2; ++i) {
             stereoPeaks[narrow<size_t>(i)] = stereoBuffer.getMagnitude(i, 0, numSamples);
         }
-        mAudioData.stereoPeaks.setMostRecent(stereoPeaksTicket);
+        mAudioData.stereoPeaksUpdater.setMostRecent(stereoPeaksTicket);
     } else {
-        auto * speakerPeaksTicket{ mAudioData.speakerPeaks.acquire() };
+        auto * speakerPeaksTicket{ mAudioData.speakerPeaksUpdater.acquire() };
         auto & speakerPeaks{ speakerPeaksTicket->get() };
         // Process speaker peaks/gains/highpass
         processOutputModifiersAndPeaks(speakerBuffer, speakerPeaks);
-        mAudioData.speakerPeaks.setMostRecent(speakerPeaksTicket);
+        mAudioData.speakerPeaksUpdater.setMostRecent(speakerPeaksTicket);
     }
 }
 

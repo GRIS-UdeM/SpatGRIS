@@ -31,20 +31,32 @@ extern juce::BigInteger const NEEDED_INPUT_CHANNELS;
 extern juce::BigInteger const NEEDED_OUTPUT_CHANNELS;
 
 //==============================================================================
+/** Manages the audio hardware, the main audio callback and is responsible for recording live audio.
+ *
+ * This class is a Singleton that can be accessed with getInstance(), but note that is HAS to be initialized first with
+ * init() and freed before main() exits with free(). TODO : this should NOT be a singleton at all, then!.
+ */
 class AudioManager final : juce::AudioSourcePlayer
 {
     // 2^17 samples * 32 bits per sample == 0.5 mb buffer per channel
     static constexpr auto RECORDERS_BUFFER_SIZE_IN_SAMPLES = 131072;
     //==============================================================================
-    struct RecorderInfo {
+    /** Records audio for a single file, regardless of the number of channels. */
+    struct FileRecorder {
+        // The actual object that writes to disk.
         std::unique_ptr<juce::AudioFormatWriter::ThreadedWriter> threadedWriter{};
-        juce::AudioFormatWriter *
-            audioFormatWriter{}; // this is only left for safety assertions : it will get deleted by the threadedWriter
+        // A pointer to the audio format. Note that the format writer is actually owned and accessed by the
+        // ThreadedWriter : this pointer is never actually used. This has been left in only for doing sanity checks
+        // assertions.
+        juce::AudioFormatWriter * audioFormatWriter{};
+        // A collection of pointers to the buffers that will get recorded on disk. Note that this is NOT null terminated
+        // : all pointers are non-null and valid.
         juce::Array<float const *> dataToRecord{};
     };
 
 public:
     //==============================================================================
+    /** The main parameters needed before starting a recording. */
     struct RecordingParameters {
         juce::String path{};
         RecordingOptions options{};
@@ -63,7 +75,7 @@ private:
     // Recording
     bool mIsRecording{};
     juce::Atomic<int64_t> mNumSamplesRecorded{};
-    juce::OwnedArray<RecorderInfo> mRecorders{};
+    juce::OwnedArray<FileRecorder> mRecorders{};
     juce::TimeSliceThread mRecordersThread{ "SpatGRIS recording thread" };
     //==============================================================================
     static std::unique_ptr<AudioManager> mInstance;
@@ -74,11 +86,8 @@ public:
     ~AudioManager() override;
     SG_DELETE_COPY_AND_MOVE(AudioManager)
     //==============================================================================
-    [[nodiscard]] juce::AudioDeviceManager const & getAudioDeviceManager() const
-    {
-        return mAudioDeviceManager;
-    }
-    [[nodiscard]] juce::AudioDeviceManager & getAudioDeviceManager() { return mAudioDeviceManager; }
+    [[nodiscard]] juce::AudioDeviceManager const & getAudioDeviceManager() const;
+    [[nodiscard]] juce::AudioDeviceManager & getAudioDeviceManager();
 
     juce::StringArray getAvailableDeviceTypeNames();
 
@@ -87,8 +96,8 @@ public:
     bool prepareToRecord(RecordingParameters const & recordingParams);
     void startRecording();
     void stopRecording();
-    bool isRecording() const { return mIsRecording; }
-    int64_t getNumSamplesRecorded() const { return mNumSamplesRecorded.get(); }
+    bool isRecording() const;
+    int64_t getNumSamplesRecorded() const;
 
     void initInputBuffer(juce::Array<source_index_t> const & sources);
     void initOutputBuffer(juce::Array<output_patch_t> const & speakers);

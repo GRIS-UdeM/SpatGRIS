@@ -28,9 +28,7 @@
 class SpeakerModel;
 
 //==============================================================================
-/**
- * Does most of the spatialization heavy-lifting.
- */
+/** Holds the spatialization algorithm instance and does most of the audio processing. */
 class AudioProcessor
 {
     AudioData mAudioData{};

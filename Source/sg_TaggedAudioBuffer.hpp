@@ -25,6 +25,10 @@
 #include <JuceHeader.h>
 
 //==============================================================================
+/** Holds multiple audio buffers that can be accessed using a strongly typed index value.
+ *
+ * Note that all buffers are mono.
+ */
 template<typename KeyType, size_t Capacity>
 class TaggedAudioBuffer
 {
