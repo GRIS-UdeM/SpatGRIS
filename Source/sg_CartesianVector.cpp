@@ -59,13 +59,13 @@ CartesianVector CartesianVector::crossProduct(CartesianVector const & other) con
 }
 
 //==============================================================================
-juce::XmlElement * CartesianVector::toXml() const noexcept
+std::unique_ptr<juce::XmlElement> CartesianVector::toXml() const noexcept
 {
     auto result{ std::make_unique<juce::XmlElement>(XmlTags::MAIN_TAG) };
     result->setAttribute(XmlTags::X, x);
     result->setAttribute(XmlTags::Y, y);
     result->setAttribute(XmlTags::Z, z);
-    return result.release();
+    return result;
 }
 
 //==============================================================================

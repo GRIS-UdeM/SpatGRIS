@@ -283,7 +283,7 @@ std::unique_ptr<juce::XmlElement> SpeakerData::toXml(output_patch_t const output
     auto result{ std::make_unique<juce::XmlElement>(XmlTags::MAIN_TAG_PREFIX + juce::String{ outputPatch.get() }) };
 
     result->setAttribute(XmlTags::STATE, sliceStateToString(state));
-    result->addChildElement(position.getCartesian().toXml());
+    result->addChildElement(position.getCartesian().toXml().release());
     result->setAttribute(XmlTags::GAIN, gain.get());
     if (highpassData) {
         result->addChildElement(highpassData->toXml().release());
@@ -638,7 +638,7 @@ std::unique_ptr<juce::XmlElement> AppData::toXml() const
     auto result{ std::make_unique<juce::XmlElement>(XmlTags::MAIN_TAG) };
 
     auto cameraElement{ std::make_unique<juce::XmlElement>(XmlTags::CAMERA) };
-    cameraElement->addChildElement(cameraPosition.toXml());
+    cameraElement->addChildElement(cameraPosition.toXml().release());
 
     result->addChildElement(audioSettings.toXml().release());
     result->addChildElement(recordingOptions.toXml().release());
