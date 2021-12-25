@@ -26,6 +26,7 @@
 class degrees_t;
 
 //==============================================================================
+/** Strongly-typed radians. */
 class radians_t final : public StrongFloat<float, radians_t, struct RadiansT>
 {
 public:

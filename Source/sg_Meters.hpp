@@ -22,6 +22,7 @@
 #include "sg_StrongFloat.hpp"
 
 //==============================================================================
+/** Strongly-typed meters. */
 class meters_t final : public StrongFloat<float, meters_t, struct MetresT>
 {
 public:

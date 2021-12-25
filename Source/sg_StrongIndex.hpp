@@ -22,11 +22,13 @@
 #include "sg_Narrow.hpp"
 
 //==============================================================================
+/** Used for validating template parameters using std::is_base_of_v<>. */
 class StrongIndexBase
 {
 };
 
 //==============================================================================
+/** CRTP base for an integer-based strong type. */
 template<typename T, typename Dummy, T StartsAt>
 class StrongIndex : public StrongIndexBase
 {

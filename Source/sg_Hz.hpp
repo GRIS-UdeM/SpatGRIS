@@ -22,6 +22,7 @@
 #include "sg_StrongFloat.hpp"
 
 //==============================================================================
+/** Strongly-typed hertz. */
 class hz_t final : public StrongFloat<float, hz_t, struct HzT>
 {
 public:

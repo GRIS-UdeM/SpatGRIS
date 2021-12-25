@@ -25,6 +25,7 @@
 #include <JuceHeader.h>
 
 //==============================================================================
+/** Strongly-typed decibels full-scale. */
 class dbfs_t final : public StrongFloat<float, dbfs_t, struct VolumeT>
 {
 public:

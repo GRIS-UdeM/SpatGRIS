@@ -21,4 +21,8 @@
 
 #include "sg_StrongIndex.hpp"
 
+/** Strongly-typed output patch index.
+ *
+ * Starts at 1.
+ */
 using output_patch_t = StrongIndex<int, struct OutputPatchT, 1>;

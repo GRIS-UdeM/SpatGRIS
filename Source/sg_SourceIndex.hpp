@@ -21,4 +21,8 @@
 
 #include "sg_StrongIndex.hpp"
 
+/** Strongly-typed source index.
+ *
+ * Starts at 1.
+ */
 using source_index_t = StrongIndex<int, struct SourceIndexT, 1>;
