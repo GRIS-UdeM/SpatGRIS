@@ -23,6 +23,8 @@
 
 #include <JuceHeader.h>
 
+namespace gris
+{
 class degrees_t;
 
 //==============================================================================
@@ -40,9 +42,13 @@ public:
     [[nodiscard]] constexpr radians_t madePositive() const noexcept;
 };
 
+} // namespace gris
+
 //==============================================================================
 #include "sg_Degrees.hpp"
 
+namespace gris
+{
 //==============================================================================
 constexpr radians_t::radians_t(degrees_t const & degrees) : StrongFloat(degrees.get() * RADIAN_PER_DEGREE)
 {
@@ -70,3 +76,5 @@ constexpr radians_t QUARTER_PI{ juce::MathConstants<radians_t::type>::halfPi / 2
 constexpr radians_t HALF_PI{ juce::MathConstants<radians_t::type>::halfPi };
 constexpr radians_t PI{ juce::MathConstants<radians_t::type>::pi };
 constexpr radians_t TWO_PI{ juce::MathConstants<radians_t::type>::twoPi };
+
+} // namespace gris

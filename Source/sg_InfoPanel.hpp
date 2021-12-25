@@ -21,6 +21,8 @@
 
 #include "sg_MinSizedComponent.hpp"
 
+namespace gris
+{
 class GrisLookAndFeel;
 class MainContentComponent;
 
@@ -62,3 +64,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(InfoPanel)
 };
+
+} // namespace gris

@@ -21,6 +21,8 @@
 
 #include "sg_MinSizedComponent.hpp"
 
+namespace gris
+{
 //==============================================================================
 class SpatButton final
     : public MinSizedComponent
@@ -63,3 +65,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(SpatButton)
 };
+
+} // namespace gris

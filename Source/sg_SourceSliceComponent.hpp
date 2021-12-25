@@ -24,6 +24,8 @@
 #include "sg_HybridSpatModeSelectorComponent.hpp"
 #include "sg_SourceIdButton.hpp"
 
+namespace gris
+{
 class GrisLookAndFeel;
 class SmallGrisLookAndFeel;
 
@@ -92,3 +94,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(AbstractSliceComponent)
 }; // class LevelComponent
+
+} // namespace gris

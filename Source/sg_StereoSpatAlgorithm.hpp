@@ -23,6 +23,8 @@
 #include "sg_StrongArray.hpp"
 #include "sg_TaggedAudioBuffer.hpp"
 
+namespace gris
+{
 using StereoSpeakerGains = std::array<float, 2>;
 using StereoGainsUpdater = AtomicUpdater<StereoSpeakerGains>;
 
@@ -61,3 +63,5 @@ public:
 private:
     JUCE_LEAK_DETECTOR(StereoSpatAlgorithm)
 };
+
+} // namespace gris

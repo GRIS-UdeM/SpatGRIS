@@ -24,6 +24,8 @@
 
 #include <JuceHeader.h>
 
+namespace gris
+{
 //==============================================================================
 /** Strongly-typed decibels full-scale. */
 class dbfs_t final : public StrongFloat<float, dbfs_t, struct VolumeT>
@@ -39,3 +41,5 @@ public:
     }
     static dbfs_t fromGain(type const gain) { return dbfs_t{ juce::Decibels::gainToDecibels(gain) }; }
 };
+
+} // namespace gris

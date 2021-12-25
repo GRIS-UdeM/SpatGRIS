@@ -23,6 +23,8 @@
 
 #include <algorithm>
 
+namespace gris
+{
 juce::String const CartesianVector::XmlTags::MAIN_TAG = "POSITION";
 juce::String const CartesianVector::XmlTags::X = "X";
 juce::String const CartesianVector::XmlTags::Y = "Y";
@@ -100,3 +102,5 @@ float CartesianVector::length() const noexcept
 {
     return std::sqrt(length2());
 }
+
+} // namespace gris

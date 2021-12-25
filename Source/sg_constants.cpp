@@ -21,6 +21,8 @@
 
 #include "BinaryData.h"
 
+namespace gris
+{
 SpatGrisVersion const SPAT_GRIS_VERSION{ SpatGrisVersion::fromString(JUCE_STRINGIFY(JUCE_APP_VERSION)) };
 
 #if defined(__linux__) || defined(WIN32)
@@ -252,3 +254,5 @@ tl::optional<int> attenuationFreqToComboBoxIndex(hz_t const freq)
     }
     return index + 1;
 }
+
+} // namespace gris

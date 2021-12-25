@@ -24,6 +24,8 @@
 #include "sg_TaggedAudioBuffer.hpp"
 #include "sg_lbap.hpp"
 
+namespace gris
+{
 struct LbapSpatData {
     SpeakersSpatGains gains{};
     float lbapSourceDistance{};
@@ -68,3 +70,5 @@ public:
 private:
     JUCE_LEAK_DETECTOR(LbapSpatAlgorithm)
 };
+
+} // namespace gris

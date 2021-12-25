@@ -30,6 +30,8 @@
 
 #include <array>
 
+namespace gris
+{
 //==============================================================================
 AudioProcessor::AudioProcessor()
 {
@@ -164,3 +166,4 @@ AudioProcessor::~AudioProcessor()
 {
     AudioManager::getInstance().getAudioDeviceManager().getCurrentAudioDevice()->close();
 }
+} // namespace gris

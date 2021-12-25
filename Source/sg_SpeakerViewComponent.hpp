@@ -38,13 +38,15 @@ DISABLE_WARNING_UNREFERENCED_FUNCTION
 #endif
 DISABLE_WARNING_POP
 
+#define ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD jassert(isOpenGlOrMessageThread())
+
+namespace gris
+{
 struct SpeakerData;
 enum class SpatMode;
 struct SourceData;
 
 bool isOpenGlOrMessageThread();
-
-#define ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD jassert(isOpenGlOrMessageThread())
 
 class MainContentComponent;
 class SpeakerModel;
@@ -137,3 +139,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(SpeakerViewComponent)
 }; // class SpeakerViewComponent
+
+} // namespace gris

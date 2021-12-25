@@ -22,6 +22,8 @@
 #include "sg_Macros.hpp"
 #include "sg_constants.hpp"
 
+namespace gris
+{
 struct PolarVector;
 
 //==============================================================================
@@ -225,3 +227,5 @@ constexpr float CartesianVector::constexprLength() const noexcept
 
 //==============================================================================
 static_assert(std::is_trivially_destructible_v<CartesianVector>);
+
+} // namespace gris

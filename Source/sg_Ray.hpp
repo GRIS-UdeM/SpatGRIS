@@ -40,6 +40,8 @@ DISABLE_WARNING_UNREFERENCED_FUNCTION
 
 DISABLE_WARNING_POP
 
+namespace gris
+{
 //==============================================================================
 class Ray
 {
@@ -61,3 +63,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(Ray)
 };
+
+} // namespace gris

@@ -21,6 +21,8 @@
 
 #include "sg_StrongFloat.hpp"
 
+namespace gris
+{
 //==============================================================================
 /** Strongly-typed meters. */
 class meters_t final : public StrongFloat<float, meters_t, struct MetresT>
@@ -29,3 +31,5 @@ public:
     meters_t() = default;
     explicit constexpr meters_t(float const value) : StrongFloat(value) {}
 };
+
+} // namespace gris

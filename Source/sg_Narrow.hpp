@@ -23,6 +23,8 @@
 
 #include <type_traits>
 
+namespace gris
+{
 /** jassert() seems to prevent narrow() from being constexpr on Apple Clang. */
 #if defined(NDEBUG) || defined(__APPLE__)
 //==============================================================================
@@ -63,3 +65,5 @@ template<typename To, typename From>
     return result;
 }
 #endif
+
+} // namespace gris

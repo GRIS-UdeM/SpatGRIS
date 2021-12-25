@@ -23,6 +23,8 @@
 #include "sg_SourceIndex.hpp"
 #include "sg_constants.hpp"
 
+namespace gris
+{
 class SmallGrisLookAndFeel;
 
 //==============================================================================
@@ -72,3 +74,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(SourceIdButton)
 };
+
+} // namespace gris

@@ -19,6 +19,8 @@
 
 #include "sg_AudioStructs.hpp"
 
+namespace gris
+{
 //==============================================================================
 void SpeakerHighpassConfig::process(float * data, int const numSamples, ColdSpeakerHighpass & state) const
 {
@@ -105,3 +107,5 @@ void LbapAttenuationConfig::process(float * data,
         jassert(std::isfinite(state.lowpassZ));
     }
 }
+
+} // namespace gris

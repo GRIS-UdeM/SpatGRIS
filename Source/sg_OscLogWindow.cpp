@@ -22,6 +22,8 @@
 #include "sg_GrisLookAndFeel.hpp"
 #include "sg_MainComponent.hpp"
 
+namespace gris
+{
 //==============================================================================
 OscLogWindow::OscLogWindow(juce::String const & name,
                            juce::Colour const backgroundColour,
@@ -105,3 +107,5 @@ void OscLogWindow::buttonClicked(juce::Button * button)
         this->closeButtonPressed();
     }
 }
+
+} // namespace gris

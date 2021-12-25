@@ -42,6 +42,8 @@
 #include "sg_TitledComponent.hpp"
 #include "sg_constants.hpp"
 
+namespace gris
+{
 class MainWindow;
 
 //==============================================================================
@@ -297,3 +299,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(MainContentComponent)
 };
+
+} // namespace gris

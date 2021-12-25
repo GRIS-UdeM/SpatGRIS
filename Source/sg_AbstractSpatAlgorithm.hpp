@@ -23,6 +23,8 @@
 #include "sg_TaggedAudioBuffer.hpp"
 #include "sg_Triplet.hpp"
 
+namespace gris
+{
 //==============================================================================
 /** @return true if executed from the OSC thread. */
 bool isOscThread();
@@ -102,3 +104,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(AbstractSpatAlgorithm)
 };
+
+} // namespace gris

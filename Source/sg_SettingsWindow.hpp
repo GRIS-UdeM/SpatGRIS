@@ -21,6 +21,8 @@
 
 #include "sg_Configuration.hpp"
 
+namespace gris
+{
 class MainContentComponent;
 class GrisLookAndFeel;
 
@@ -117,3 +119,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(SettingsWindow)
 }; // class PropertiesWindow
+
+} // namespace gris

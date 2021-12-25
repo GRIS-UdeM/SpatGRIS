@@ -23,6 +23,8 @@
 #include "sg_SmallToggleButton.hpp"
 #include "sg_SpatMode.hpp"
 
+namespace gris
+{
 //==============================================================================
 class HybridSpatModeSelectorComponent final
     : public MinSizedComponent
@@ -63,3 +65,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(HybridSpatModeSelectorComponent)
 };
+
+} // namespace gris

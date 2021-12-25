@@ -19,6 +19,8 @@
 
 #include "sg_SpatButton.hpp"
 
+namespace gris
+{
 //==============================================================================
 SpatButton::SpatButton(juce::String const & text,
                        juce::String const & tooltip,
@@ -46,3 +48,5 @@ void SpatButton::buttonClicked(juce::Button *)
 {
     mListener.buttonPressed(this);
 }
+
+} // namespace gris

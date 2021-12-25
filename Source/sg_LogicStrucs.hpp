@@ -30,8 +30,10 @@
 #include "sg_StaticMap.hpp"
 #include "sg_Triplet.hpp"
 
-static constexpr auto DEFAULT_OSC_INPUT_PORT = 18032;
-static constexpr auto MAX_OSC_INPUT_PORT = 65535;
+namespace gris
+{
+constexpr auto DEFAULT_OSC_INPUT_PORT = 18032;
+constexpr auto MAX_OSC_INPUT_PORT = 65535;
 
 //==============================================================================
 /** The classical states of a mixing slice (input or output). */
@@ -413,3 +415,4 @@ struct SpatGrisData {
     [[nodiscard]] std::unique_ptr<AudioConfig> toAudioConfig() const;
     [[nodiscard]] ViewportConfig toViewportConfig() const noexcept;
 };
+} // namespace gris

@@ -24,6 +24,8 @@
 #include "sg_MainComponent.hpp"
 #include "sg_Narrow.hpp"
 
+namespace gris
+{
 //==============================================================================
 static Position getLegalSpeakerPosition(Position const & position,
                                         SpatMode const spatMode,
@@ -1189,3 +1191,5 @@ void EditSpeakersWindow::mouseDrag(juce::MouseEvent const & event)
 
     updateWinContent();
 }
+
+} // namespace gris

@@ -19,6 +19,8 @@
 
 #include "sg_StereoSliceComponent.hpp"
 
+namespace gris
+{
 //==============================================================================
 StereoSliceComponent::StereoSliceComponent(juce::String const & id,
                                            GrisLookAndFeel & lookAndFeel,
@@ -29,3 +31,5 @@ StereoSliceComponent::StereoSliceComponent(juce::String const & id,
     mLayout.addSection(mIdButton).withFixedSize(SLICES_ID_BUTTON_HEIGHT);
     mLayout.addSection(mVuMeter).withRelativeSize(1.0f).withHorizontalPadding(INNER_ELEMENTS_PADDING);
 }
+
+} // namespace gris

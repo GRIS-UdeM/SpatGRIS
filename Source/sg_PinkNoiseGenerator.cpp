@@ -22,14 +22,20 @@
 #include "sg_Dbfs.hpp"
 #include "sg_Narrow.hpp"
 
-static float pinkNoiseC0{};
-static float pinkNoiseC1{};
-static float pinkNoiseC2{};
-static float pinkNoiseC3{};
-static float pinkNoiseC4{};
-static float pinkNoiseC5{};
-static float pinkNoiseC6{};
+namespace
+{
+float pinkNoiseC0{};
+float pinkNoiseC1{};
+float pinkNoiseC2{};
+float pinkNoiseC3{};
+float pinkNoiseC4{};
+float pinkNoiseC5{};
+float pinkNoiseC6{};
 
+} // namespace
+
+namespace gris
+{
 //==============================================================================
 void fillWithPinkNoise(float * const * samples, int const numSamples, int const numChannels, float const gain)
 {
@@ -56,3 +62,5 @@ void fillWithPinkNoise(float * const * samples, int const numSamples, int const 
         }
     }
 }
+
+} // namespace gris

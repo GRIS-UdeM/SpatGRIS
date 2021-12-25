@@ -24,6 +24,8 @@
 #include "sg_StrongArray.hpp"
 #include "sg_TaggedAudioBuffer.hpp"
 
+namespace gris
+{
 //==============================================================================
 /** A dummy spatialization algorithm created when the instantiation of another algorithm fails.
  *
@@ -55,3 +57,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(DummySpatAlgorithm)
 };
+
+} // namespace gris

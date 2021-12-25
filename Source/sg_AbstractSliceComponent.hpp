@@ -22,6 +22,8 @@
 #include "sg_MuteSoloComponent.hpp"
 #include "sg_VuMeterComponent.hpp"
 
+namespace gris
+{
 class GrisLookAndFeel;
 class SmallGrisLookAndFeel;
 
@@ -57,3 +59,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(AbstractSliceComponent)
 }; // class LevelComponent
+
+} // namespace gris

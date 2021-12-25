@@ -23,6 +23,8 @@
 
 #include <utility>
 
+namespace gris
+{
 //==============================================================================
 // call a function when the object goes out of scope
 template<typename Func>
@@ -52,3 +54,5 @@ ScopeGuard<Func> make_scope_guard(Func func)
 {
     return ScopeGuard<Func>(std::move(func));
 }
+
+} // namespace gris

@@ -19,6 +19,8 @@
 
 #include "sg_SourceIdButton.hpp"
 
+namespace gris
+{
 //==============================================================================
 SourceIdButton::SourceIdButton(source_index_t const sourceIndex,
                                juce::Colour const color,
@@ -90,3 +92,5 @@ void SourceIdButton::smallButtonClicked([[maybe_unused]] SmallToggleButton * but
 
     juce::CallOutBox::launchAsynchronously(std::move(colourSelector), getScreenBounds(), nullptr);
 }
+
+} // namespace gris

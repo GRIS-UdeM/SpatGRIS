@@ -22,6 +22,8 @@
 #include "sg_Macros.hpp"
 #include "sg_StaticVector.hpp"
 
+namespace gris
+{
 //==============================================================================
 /** This class implements a thread-safe lock-free single-writer/single-reader communication interface.
  *
@@ -150,3 +152,5 @@ void AtomicUpdater<T>::setMostRecent(Token * newMostRecent) noexcept
     // This update replaced an unread token: free it
     oldMostRecent->mIsFree.store(true);
 }
+
+} // namespace gris

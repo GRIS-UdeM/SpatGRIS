@@ -24,6 +24,8 @@
 
 #include "BinaryData.h"
 
+namespace gris
+{
 //==============================================================================
 /** Custom Look And Feel */
 class GrisLookAndFeel : public juce::LookAndFeel_V3
@@ -208,3 +210,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(SmallGrisLookAndFeel)
 }; // class SmallGrisLookAndFeel
+
+} // namespace gris

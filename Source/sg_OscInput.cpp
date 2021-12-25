@@ -21,6 +21,8 @@
 
 #include "sg_MainComponent.hpp"
 
+namespace gris
+{
 static juce::String const SPAT_GRIS_OSC_ADDRESS = "/spat/serv";
 
 //==============================================================================
@@ -292,3 +294,5 @@ void OscInput::oscMessageReceived(const juce::OSCMessage & message)
         }
     }
 }
+
+} // namespace gris

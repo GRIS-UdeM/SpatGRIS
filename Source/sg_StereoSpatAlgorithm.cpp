@@ -23,6 +23,8 @@
 #include "sg_StrongArray.hpp"
 #include "sg_TaggedAudioBuffer.hpp"
 
+namespace gris
+{
 //==============================================================================
 void StereoSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, SourceData const & sourceData) noexcept
 {
@@ -150,3 +152,5 @@ StereoSpatAlgorithm::StereoSpatAlgorithm(SpeakerSetup const & speakerSetup, Sour
     JUCE_ASSERT_MESSAGE_THREAD;
     fixDirectOutsIntoPlace(sources, speakerSetup);
 }
+
+} // namespace gris

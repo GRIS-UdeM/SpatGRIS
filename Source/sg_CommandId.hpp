@@ -19,6 +19,8 @@
 
 #pragma once
 
+namespace gris
+{
 enum CommandId {
     // File menu
     newProjectId = 1000,
@@ -55,3 +57,5 @@ enum CommandId {
     aboutId,
     openManualId
 };
+
+}

@@ -24,6 +24,8 @@
 #include "sg_TaggedAudioBuffer.hpp"
 #include "sg_vbap.hpp"
 
+namespace gris
+{
 VbapType getVbapType(SpeakersData const & speakers);
 
 struct VbapSourceData {
@@ -62,3 +64,5 @@ public:
 private:
     JUCE_LEAK_DETECTOR(VbapSpatAlgorithm)
 };
+
+} // namespace gris

@@ -19,6 +19,8 @@
 
 #include "sg_Configuration.hpp"
 
+namespace gris
+{
 juce::String const Configuration::XmlTags::MAIN_TAG = "SpatGRIS app data";
 
 //==============================================================================
@@ -68,3 +70,5 @@ AppData Configuration::load() const
     }
     return AppData{};
 }
+
+} // namespace gris

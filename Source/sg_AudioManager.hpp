@@ -25,10 +25,12 @@
 
 #include <JuceHeader.h>
 
-class AudioProcessor;
-
+namespace gris
+{
 extern juce::BigInteger const NEEDED_INPUT_CHANNELS;
 extern juce::BigInteger const NEEDED_OUTPUT_CHANNELS;
+
+class AudioProcessor;
 
 //==============================================================================
 /** Manages the audio hardware, the main audio callback and is responsible for recording live audio.
@@ -140,3 +142,4 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(AudioManager)
 }; // class AudioManager
+} // namespace gris

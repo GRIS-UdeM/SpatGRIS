@@ -21,6 +21,8 @@
 
 #include "sg_GrisLookAndFeel.hpp"
 
+namespace gris
+{
 //==============================================================================
 static auto const MAX_ELEM = [](auto const a, auto const b) {
     static_assert(std::is_same_v<decltype(a), decltype(b)>);
@@ -390,3 +392,5 @@ int LayoutComponent::getMinInnerHeight() const noexcept
         return section.getMinSectionHeight(mOrientation);
     });
 }
+
+} // namespace gris

@@ -23,6 +23,8 @@
 
 #include <JuceHeader.h>
 
+namespace gris
+{
 class Configuration
 {
     struct XmlTags {
@@ -45,3 +47,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(Configuration)
 };
+
+} // namespace gris

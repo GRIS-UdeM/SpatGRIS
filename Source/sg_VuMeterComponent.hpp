@@ -22,6 +22,8 @@
 #include "sg_Dbfs.hpp"
 #include "sg_MinSizedComponent.hpp"
 
+namespace gris
+{
 class SmallGrisLookAndFeel;
 
 class VuMeterComponent final : public MinSizedComponent
@@ -59,3 +61,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(VuMeterComponent)
 };
+
+} // namespace gris

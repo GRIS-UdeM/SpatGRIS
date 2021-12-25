@@ -23,6 +23,8 @@
 #include "sg_StrongArray.hpp"
 #include "sg_TaggedAudioBuffer.hpp"
 
+namespace gris
+{
 //==============================================================================
 LbapSpatAlgorithm::LbapSpatAlgorithm(SpeakersData const & speakers) : mField(lbapInit(speakers))
 {
@@ -159,3 +161,5 @@ std::unique_ptr<AbstractSpatAlgorithm> LbapSpatAlgorithm::make(SpeakerSetup cons
 
     return std::make_unique<LbapSpatAlgorithm>(speakerSetup.speakers);
 }
+
+} // namespace gris

@@ -22,6 +22,8 @@
 #include "sg_GrisLookAndFeel.hpp"
 #include "sg_MainWindow.hpp"
 
+namespace gris
+{
 //==============================================================================
 class SpatGrisApplication final : public juce::JUCEApplication
 {
@@ -50,3 +52,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(SpatGrisApplication)
 };
+
+} // namespace gris

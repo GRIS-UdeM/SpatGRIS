@@ -26,6 +26,8 @@
 #include <array>
 #include <type_traits>
 
+namespace gris
+{
 //==============================================================================
 /** A stack-allocated fixed-capacity vector of objects.
  *
@@ -276,3 +278,5 @@ void StaticVector<T, CAPACITY>::erase(const_iterator const & it)
     *it = back();
     --mSize;
 }
+
+} // namespace gris

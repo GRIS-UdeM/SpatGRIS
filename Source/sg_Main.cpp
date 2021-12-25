@@ -21,4 +21,4 @@
 
 //==============================================================================
 // This macro generates the main() routine that launches the app.
-START_JUCE_APPLICATION(SpatGrisApplication)
+START_JUCE_APPLICATION(gris::SpatGrisApplication)

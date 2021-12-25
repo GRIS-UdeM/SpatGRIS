@@ -21,6 +21,8 @@
 
 #include "sg_Narrow.hpp"
 
+namespace gris
+{
 //==============================================================================
 /** Used for validating template parameters using std::is_base_of_v<>. */
 class StrongIndexBase
@@ -91,3 +93,5 @@ TargetType StrongIndex<T, Dummy, StartsAt>::removeOffset() const
 {
     return narrow<TargetType>(mValue - OFFSET);
 }
+
+} // namespace gris

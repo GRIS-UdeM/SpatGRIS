@@ -19,6 +19,8 @@
 
 #include "sg_Position.hpp"
 
+namespace gris
+{
 //==============================================================================
 Position & Position::operator=(PolarVector const & polar) noexcept
 {
@@ -160,3 +162,5 @@ void Position::updateCartesianFromPolar() noexcept
 {
     mCartesian = CartesianVector{ mPolar };
 }
+
+} // namespace gris

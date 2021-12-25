@@ -21,6 +21,8 @@
 
 #include "sg_AudioManager.hpp"
 
+namespace gris
+{
 class MainContentComponent;
 class GrisLookAndFeel;
 
@@ -93,3 +95,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(PrepareToRecordWindow)
 };
+
+} // namespace gris

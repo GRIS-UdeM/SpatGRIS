@@ -24,6 +24,8 @@
 
 #include <JuceHeader.h>
 
+namespace gris
+{
 //==============================================================================
 /** Holds multiple audio buffers that can be accessed using a strongly typed index value.
  *
@@ -135,3 +137,4 @@ public:
 //==============================================================================
 using SourceAudioBuffer = TaggedAudioBuffer<source_index_t, MAX_NUM_SOURCES>;
 using SpeakerAudioBuffer = TaggedAudioBuffer<output_patch_t, MAX_NUM_SPEAKERS>;
+} // namespace gris

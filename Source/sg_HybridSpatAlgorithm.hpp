@@ -22,6 +22,8 @@
 #include "sg_LbapSpatAlgorithm.hpp"
 #include "sg_VbapSpatAlgorithm.hpp"
 
+namespace gris
+{
 //==============================================================================
 /** A spatialization algorithm that uses both Vbap (dome) and Lbap (cube).
  *
@@ -59,3 +61,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(HybridSpatAlgorithm)
 };
+
+} // namespace gris

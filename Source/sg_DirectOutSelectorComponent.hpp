@@ -24,6 +24,8 @@
 
 #include "lib/tl/optional.hpp"
 
+namespace gris
+{
 class SmallGrisLookAndFeel;
 
 //==============================================================================
@@ -79,3 +81,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(DirectOutSelectorComponent)
 };
+
+} // namespace gris

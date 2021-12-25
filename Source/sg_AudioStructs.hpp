@@ -28,6 +28,8 @@
 
 /** This file contains most of the structures used in an audio context. */
 
+namespace gris
+{
 enum class VbapType { twoD, threeD };
 
 float constexpr SMALL_GAIN = 0.0000000000001f;
@@ -151,3 +153,5 @@ struct AudioData {
     AtomicUpdater<SpeakerPeaks> speakerPeaksUpdater{};
     AtomicUpdater<StereoPeaks> stereoPeaksUpdater{};
 };
+
+} // namespace gris

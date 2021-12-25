@@ -23,6 +23,8 @@
 #include "sg_SmallToggleButton.hpp"
 #include "sg_constants.hpp"
 
+namespace gris
+{
 class SmallGrisLookAndFeel;
 
 //==============================================================================
@@ -66,3 +68,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(SpeakerIdButton)
 };
+
+} // namespace gris

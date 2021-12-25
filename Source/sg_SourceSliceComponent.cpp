@@ -19,6 +19,8 @@
 
 #include "sg_SourceSliceComponent.hpp"
 
+namespace gris
+{
 //==============================================================================
 SourceSliceComponent::SourceSliceComponent(source_index_t const sourceIndex,
                                            tl::optional<output_patch_t> const directOut,
@@ -146,3 +148,5 @@ void SourceSliceComponent::rebuildLayout()
         .withHorizontalPadding(INNER_ELEMENTS_PADDING)
         .withBottomPadding(INNER_ELEMENTS_PADDING);
 }
+
+} // namespace gris

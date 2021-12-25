@@ -35,6 +35,8 @@
 #include "sg_LogicStrucs.hpp"
 #include "sg_OwnedMap.hpp"
 
+namespace gris
+{
 struct SpeakerData;
 
 static auto constexpr LBAP_MATRIX_SIZE = 64;
@@ -83,3 +85,5 @@ LbapField lbapInit(SpeakersData const & speakers);
  * to control the gain of the signal outputs.
  */
 void lbap(SourceData const & source, SpeakersSpatGains & gains, LbapField const & field);
+
+} // namespace gris

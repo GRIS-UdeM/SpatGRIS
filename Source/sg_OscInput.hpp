@@ -24,6 +24,8 @@
 
 #include <JuceHeader.h>
 
+namespace gris
+{
 class MainContentComponent;
 
 //==============================================================================
@@ -81,3 +83,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(OscInput)
 };
+
+} // namespace gris

@@ -25,6 +25,8 @@
 
 #include <JuceHeader.h>
 
+namespace gris
+{
 class SpeakerModel;
 
 //==============================================================================
@@ -60,3 +62,4 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(AudioProcessor)
 };
+} // namespace gris

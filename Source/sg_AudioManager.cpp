@@ -24,12 +24,16 @@
 
 // #define SIMULATE_NO_AUDIO_DEVICES
 
+namespace gris
+{
+//==============================================================================
 juce::BigInteger const NEEDED_INPUT_CHANNELS{ [] {
     juce::BigInteger channels{};
     channels.setRange(0, MAX_NUM_SOURCES, true);
     return channels;
 }() };
 
+//==============================================================================
 juce::BigInteger const NEEDED_OUTPUT_CHANNELS{ [] {
     juce::BigInteger channels{};
     channels.setRange(0, MAX_NUM_SPEAKERS, true);
@@ -604,3 +608,4 @@ void AudioManager::free()
     JUCE_ASSERT_MESSAGE_THREAD;
     mInstance.reset();
 }
+} // namespace gris

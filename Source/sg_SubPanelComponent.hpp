@@ -21,6 +21,8 @@
 
 #include "sg_LayoutComponent.hpp"
 
+namespace gris
+{
 class GrisLookAndFeel;
 
 //==============================================================================
@@ -45,3 +47,5 @@ public:
     [[nodiscard]] int getMinWidth() const noexcept override;
     [[nodiscard]] int getMinHeight() const noexcept override;
 };
+
+} // namespace gris

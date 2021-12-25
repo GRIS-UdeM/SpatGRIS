@@ -23,6 +23,8 @@
 
 #include <JuceHeader.h>
 
+namespace gris
+{
 class GrisLookAndFeel;
 class MainContentComponent;
 
@@ -63,3 +65,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(OscLogWindow)
 };
+
+} // namespace gris

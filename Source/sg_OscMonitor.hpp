@@ -21,6 +21,8 @@
 
 #include "sg_LayoutComponent.hpp"
 
+namespace gris
+{
 class MainContentComponent;
 class GrisLookAndFeel;
 
@@ -66,3 +68,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(OscMonitorWindow)
 };
+
+} // namespace gris

@@ -24,6 +24,8 @@
 
 #include <bitset>
 
+namespace gris
+{
 //==============================================================================
 /** A heap-allocated fixed-capacity associative map of objects accessed using a strongly-typed index.
  */
@@ -521,3 +523,5 @@ typename OwnedMap<KeyType, ValueType, CAPACITY>::const_iterator
 {
     return const_iterator{ *this, KeyType{ narrow<typename KeyType::type>(CAPACITY) + KeyType::OFFSET } };
 }
+
+} // namespace gris

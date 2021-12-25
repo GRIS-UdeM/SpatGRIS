@@ -26,6 +26,8 @@
 
 #include "lib/tl/optional.hpp"
 
+namespace gris
+{
 class EditableTextCustomComponent;
 class MainContentComponent;
 class GrisLookAndFeel;
@@ -138,3 +140,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(EditSpeakersWindow)
 };
+
+} // namespace gris

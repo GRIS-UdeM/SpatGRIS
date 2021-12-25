@@ -21,6 +21,8 @@
 
 #include "sg_MinSizedComponent.hpp"
 
+namespace gris
+{
 class SmallGrisLookAndFeel;
 
 //==============================================================================
@@ -70,3 +72,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(SmallToggleButton)
 };
+
+} // namespace gris

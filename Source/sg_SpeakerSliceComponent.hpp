@@ -22,6 +22,8 @@
 #include "sg_AbstractSliceComponent.hpp"
 #include "sg_SpeakerIdButton.hpp"
 
+namespace gris
+{
 class GrisLookAndFeel;
 class SmallGrisLookAndFeel;
 
@@ -68,3 +70,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(SpeakerSliceComponent)
 }; // class LevelComponent
+
+} // namespace gris

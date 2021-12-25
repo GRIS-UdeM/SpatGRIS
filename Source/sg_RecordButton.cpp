@@ -22,20 +22,26 @@
 #include "sg_GrisLookAndFeel.hpp"
 #include "sg_Narrow.hpp"
 
-static constexpr auto LABEL_TIME_HEIGHT = 20;
+namespace gris
+{
+namespace
+{
+constexpr auto LABEL_TIME_HEIGHT = 20;
 
-static constexpr auto BUTTON_SIZE = 55;
-static constexpr auto BLINK_PERIOD_MS = 500;
-static constexpr auto ACTIVE_TO_OUTER_CIRCLE_RATIO = 0.7f;
-static constexpr auto OUTER_TO_INNER_CIRCLE_RATIO = 0.7f;
-static constexpr auto LINE_THICKNESS = 3.0f;
+constexpr auto BUTTON_SIZE = 55;
+constexpr auto BLINK_PERIOD_MS = 500;
+constexpr auto ACTIVE_TO_OUTER_CIRCLE_RATIO = 0.7f;
+constexpr auto OUTER_TO_INNER_CIRCLE_RATIO = 0.7f;
+constexpr auto LINE_THICKNESS = 3.0f;
 
-static auto const ACTIVE_COLOR{ juce::Colours::red };
-static auto const INACTIVE_COLOR{ juce::Colour::fromRGB(128, 0, 0) };
+auto const ACTIVE_COLOR{ juce::Colours::red };
+auto const INACTIVE_COLOR{ juce::Colour::fromRGB(128, 0, 0) };
 
-static auto const BACKGROUND_COLOR{ juce::Colours::black.withAlpha(0.3f) };
-static auto const HOVER_BACKGROUND_COLOR{ juce::Colours::black.withAlpha(0.1f) };
-static auto const MOUSE_DOWN_BACKGROUND_COLOR{ juce::Colours::black.withAlpha(0.2f) };
+auto const BACKGROUND_COLOR{ juce::Colours::black.withAlpha(0.3f) };
+auto const HOVER_BACKGROUND_COLOR{ juce::Colours::black.withAlpha(0.1f) };
+auto const MOUSE_DOWN_BACKGROUND_COLOR{ juce::Colours::black.withAlpha(0.2f) };
+
+} // namespace
 
 //==============================================================================
 RecordButton::RecordButton(Listener & listener, GrisLookAndFeel & lookAndFeel) : mListener(listener)
@@ -199,3 +205,5 @@ void RecordButton::updateRecordedTime()
     auto const timeString{ minutes + ':' + seconds };
     mRecordedTime.setText(timeString, juce::dontSendNotification);
 }
+
+} // namespace gris

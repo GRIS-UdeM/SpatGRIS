@@ -21,6 +21,8 @@
 
 #include "sg_StrongIndex.hpp"
 
+namespace gris
+{
 //==============================================================================
 /** A stack-allocated fixed-capacity vector of objects accessed using a strongly-typed index.
  *
@@ -64,3 +66,5 @@ private:
         return index;
     }
 };
+
+} // namespace gris

@@ -22,6 +22,8 @@
 #include "sg_Macros.hpp"
 #include "sg_Radians.hpp"
 
+namespace gris
+{
 struct CartesianVector;
 
 static constexpr radians_t DEFAULT_ELEVATION_COMPARE_TOLERANCE{ degrees_t{ 5.0f } };
@@ -178,3 +180,4 @@ constexpr PolarVector PolarVector::pushedWithPositiveRadius(float const radiusDe
 
 //==============================================================================
 static_assert(std::is_trivially_destructible_v<PolarVector>);
+} // namespace gris

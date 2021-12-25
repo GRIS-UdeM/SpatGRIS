@@ -27,6 +27,8 @@
 #include "sg_TaggedAudioBuffer.hpp"
 #include "sg_VbapSpatAlgorithm.hpp"
 
+namespace gris
+{
 //==============================================================================
 HrtfSpatAlgorithm::HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup,
                                      SourcesData const & sources,
@@ -204,3 +206,5 @@ std::unique_ptr<AbstractSpatAlgorithm> HrtfSpatAlgorithm::make(SpeakerSetup cons
     JUCE_ASSERT_MESSAGE_THREAD;
     return std::make_unique<HrtfSpatAlgorithm>(speakerSetup, sources, sampleRate, bufferSize);
 }
+
+} // namespace gris

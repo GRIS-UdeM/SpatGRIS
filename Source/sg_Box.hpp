@@ -23,6 +23,8 @@
 
 #include <JuceHeader.h>
 
+namespace gris
+{
 class GrisLookAndFeel;
 class AbstractSliceComponent;
 class MainContentComponent;
@@ -60,3 +62,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(Box)
 };
+
+} // namespace gris

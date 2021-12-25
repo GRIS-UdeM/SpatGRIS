@@ -25,6 +25,8 @@
 
 #include <bitset>
 
+namespace gris
+{
 bool isNotPowerOfTwo(int const value)
 {
     jassert(value >= 0);
@@ -284,3 +286,5 @@ SettingsWindow::SettingsWindow(MainContentComponent & parent, int const oscPort,
     centreWithSize(getWidth(), getHeight());
     SettingsWindow::setVisible(true);
 }
+
+} // namespace gris

@@ -21,4 +21,8 @@
 
 #include <JuceHeader.h>
 
+namespace gris
+{
 [[noreturn]] void fatalError(juce::String const & message, juce::Component * component);
+
+}

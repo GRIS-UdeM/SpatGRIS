@@ -30,12 +30,16 @@
 #include "sg_TitledComponent.hpp"
 #include "sg_constants.hpp"
 
-static constexpr auto BUTTON_CANCEL = 0;
-static constexpr auto BUTTON_OK = 1;
-static constexpr auto BUTTON_DISCARD = 2;
+namespace gris
+{
+namespace
+{
+constexpr auto BUTTON_CANCEL = 0;
+constexpr auto BUTTON_OK = 1;
+constexpr auto BUTTON_DISCARD = 2;
 
 //==============================================================================
-static float gainToSpeakerAlpha(float const gain)
+float gainToSpeakerAlpha(float const gain)
 {
     static constexpr auto MIN_ALPHA{ 0.1f };
     static constexpr auto MAX_ALPHA{ 1.0f };
@@ -55,7 +59,7 @@ static float gainToSpeakerAlpha(float const gain)
 }
 
 //==============================================================================
-static float gainToSourceAlpha(source_index_t const sourceIndex, float const gain)
+float gainToSourceAlpha(source_index_t const sourceIndex, float const gain)
 {
     static constexpr auto RAMP = 0.12f;
     static constexpr auto OFF = 0.0f;
@@ -78,6 +82,8 @@ static float gainToSourceAlpha(source_index_t const sourceIndex, float const gai
     lastAlpha = std::max(lastAlpha - RAMP, OFF);
     return lastAlpha;
 }
+
+} // namespace
 
 //==============================================================================
 MainContentComponent::MainContentComponent(MainWindow & mainWindow,
@@ -2375,3 +2381,5 @@ void MainContentComponent::resized()
                                      false,
                                      true);
 }
+
+} // namespace gris

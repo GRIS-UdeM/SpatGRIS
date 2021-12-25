@@ -19,6 +19,8 @@
 
 #include "sg_GrisLookAndFeel.hpp"
 
+namespace gris
+{
 //==============================================================================
 GrisLookAndFeel::GrisLookAndFeel()
 {
@@ -590,3 +592,5 @@ void SmallGrisLookAndFeel::drawToggleButton(juce::Graphics & g,
                          10);
     }
 }
+
+} // namespace gris

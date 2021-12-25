@@ -23,6 +23,8 @@
 
 #include <JuceHeader.h>
 
+namespace gris
+{
 class EditSpeakersWindow;
 
 //==============================================================================
@@ -51,3 +53,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(EditableTextCustomComponent)
 };
+
+} // namespace gris

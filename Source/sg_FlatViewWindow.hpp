@@ -23,6 +23,8 @@
 
 #include <JuceHeader.h>
 
+namespace gris
+{
 class MainContentComponent;
 class GrisLookAndFeel;
 class InputModel;
@@ -66,3 +68,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(FlatViewWindow)
 };
+
+} // namespace gris

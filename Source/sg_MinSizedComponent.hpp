@@ -23,6 +23,8 @@
 
 #include <JuceHeader.h>
 
+namespace gris
+{
 //==============================================================================
 class MinSizedComponent
     : public juce::Component
@@ -40,3 +42,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(MinSizedComponent)
 };
+
+} // namespace gris

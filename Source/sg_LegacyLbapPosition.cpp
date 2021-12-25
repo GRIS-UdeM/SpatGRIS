@@ -21,6 +21,8 @@
 
 #include "sg_Position.hpp"
 
+namespace gris
+{
 //==============================================================================
 Position LegacyLbapPosition::toPosition() const noexcept
 {
@@ -30,3 +32,5 @@ Position LegacyLbapPosition::toPosition() const noexcept
 
     return Position{ CartesianVector{ x, y, z } };
 }
+
+} // namespace gris

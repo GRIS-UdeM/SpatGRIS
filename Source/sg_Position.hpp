@@ -22,6 +22,8 @@
 #include "sg_CartesianVector.hpp"
 #include "sg_PolarVector.hpp"
 
+namespace gris
+{
 //==============================================================================
 class Position
 {
@@ -81,3 +83,5 @@ constexpr bool Position::operator==(Position const & other) const noexcept
 
 //==============================================================================
 static_assert(std::is_trivially_destructible_v<Position>);
+
+} // namespace gris

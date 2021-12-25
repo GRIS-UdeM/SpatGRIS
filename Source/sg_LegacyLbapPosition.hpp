@@ -21,6 +21,8 @@
 
 #include "sg_Position.hpp"
 
+namespace gris
+{
 //==============================================================================
 struct LegacyLbapPosition {
     radians_t azimuth{};
@@ -29,3 +31,5 @@ struct LegacyLbapPosition {
 
     [[nodiscard]] Position toPosition() const noexcept;
 };
+
+} // namespace gris

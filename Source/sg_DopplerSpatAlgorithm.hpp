@@ -27,6 +27,8 @@
     #include "sg_AbstractSpatAlgorithm.hpp"
     #include "sg_Meters.hpp"
 
+namespace gris
+{
 static constexpr meters_t FIELD_RADIUS{ 8.0f };
 static constexpr meters_t HEAD_RADIUS{ 0.075f };
 
@@ -96,5 +98,7 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(DopplerSpatAlgorithm)
 };
+
+} // namespace gris
 
 #endif

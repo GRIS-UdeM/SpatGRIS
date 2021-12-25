@@ -22,6 +22,8 @@
 #include "sg_AudioProcessor.hpp"
 #include "sg_EditSpeakersWindow.hpp"
 
+namespace gris
+{
 //==============================================================================
 EditableTextCustomComponent::EditableTextCustomComponent(EditSpeakersWindow & editSpeakersWindow)
     : mOwner(editSpeakersWindow)
@@ -117,3 +119,5 @@ void EditableTextCustomComponent::setRowAndColumn(const int newRow, const int ne
     }
     setText(mOwner.getText(mColumnId, mRow), juce::dontSendNotification);
 }
+
+} // namespace gris

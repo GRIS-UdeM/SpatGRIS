@@ -24,6 +24,8 @@
 #include "sg_StrongArray.hpp"
 #include "sg_TaggedAudioBuffer.hpp"
 
+namespace gris
+{
 //==============================================================================
 /**  */
 struct HrtfData {
@@ -75,3 +77,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(HrtfSpatAlgorithm)
 };
+
+} // namespace gris

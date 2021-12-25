@@ -24,6 +24,8 @@
 
 #include <algorithm>
 
+namespace gris
+{
 juce::Colour const SpeakerViewComponent::COLOR_SPEAKER{ 222u, 222u, 222u };
 juce::Colour const SpeakerViewComponent::COLOR_DIRECT_OUT_SPEAKER{ 64u, 64u, 64u };
 juce::Colour const SpeakerViewComponent::COLOR_SPEAKER_SELECT{ 255u, 163u, 23u };
@@ -1010,3 +1012,5 @@ bool SpeakerViewComponent::speakerNearCam(CartesianVector const & speak1, Cartes
     auto const distance2{ (speak2 - camPosition).length2() };
     return distance1 < distance2;
 }
+
+} // namespace gris

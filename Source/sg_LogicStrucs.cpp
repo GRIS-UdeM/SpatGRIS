@@ -21,6 +21,8 @@
 
 #include "sg_LegacySpatFileFormat.hpp"
 
+namespace gris
+{
 juce::String const SourceData::XmlTags::STATE = "STATE";
 juce::String const SourceData::XmlTags::DIRECT_OUT = "DIRECT_OUT";
 juce::String const SourceData::XmlTags::COLOUR = "COLOR";
@@ -884,3 +886,5 @@ ViewportConfig SpatGrisData::toViewportConfig() const noexcept
 
     return result;
 }
+
+} // namespace gris

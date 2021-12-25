@@ -23,6 +23,8 @@
 #include "sg_LogicStrucs.hpp"
 #include "sg_SmallToggleButton.hpp"
 
+namespace gris
+{
 class GrisLookAndFeel;
 class SmallGrisLookAndFeel;
 
@@ -48,3 +50,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(StereoSliceComponent)
 };
+
+} // namespace gris

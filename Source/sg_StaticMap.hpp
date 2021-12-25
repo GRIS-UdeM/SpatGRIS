@@ -23,6 +23,8 @@
 
 #include <bitset>
 
+namespace gris
+{
 //==============================================================================
 /** A stack-allocated fixed-capacity associative map of objects accessed using a strongly-typed index.
  *
@@ -476,3 +478,5 @@ typename StaticMap<KeyType, ValueType, Capacity>::Node const &
     jassert(index < CAPACITY);
     return mData[index];
 }
+
+} // namespace gris

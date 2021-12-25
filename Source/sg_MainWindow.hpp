@@ -21,6 +21,8 @@
 
 #include "sg_MainComponent.hpp"
 
+namespace gris
+{
 //==============================================================================
 /* This class implements the desktop window that contains an instance of
    our MainContentComponent class.
@@ -52,3 +54,5 @@ private:
     //=============================================================
     JUCE_LEAK_DETECTOR(MainWindow)
 };
+
+} // namespace gris

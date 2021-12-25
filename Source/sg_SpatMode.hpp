@@ -26,6 +26,8 @@
 // Uncomment to enable the Doppler stereo reduction.
 //#define USE_DOPPLER 1
 
+namespace gris
+{
 enum class SpatMode { vbap = 0, lbap, hybrid };
 #ifdef USE_DOPPLER
 enum class StereoMode { hrtf, stereo, doppler };
@@ -44,3 +46,5 @@ juce::String const & spatModeToTooltip(SpatMode mode);
 tl::optional<SpatMode> stringToSpatMode(juce::String const & string);
 juce::String const & stereoModeToString(StereoMode mode);
 tl::optional<StereoMode> stringToStereoMode(juce::String const & string);
+
+} // namespace gris

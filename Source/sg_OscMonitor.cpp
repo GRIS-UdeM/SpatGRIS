@@ -22,8 +22,14 @@
 #include "sg_GrisLookAndFeel.hpp"
 #include "sg_MainComponent.hpp"
 
-static constexpr auto DEFAULT_WIDTH = 800;
-static constexpr auto DEFAULT_HEIGHT = 500;
+namespace gris
+{
+namespace
+{
+constexpr auto DEFAULT_WIDTH = 800;
+constexpr auto DEFAULT_HEIGHT = 500;
+
+} // namespace
 
 //==============================================================================
 juce::String argumentToString(juce::OSCArgument const & argument) noexcept
@@ -124,3 +130,5 @@ void OscMonitorWindow::closeButtonPressed()
 {
     mMainContentComponent.closeOscMonitorWindow();
 }
+
+} // namespace gris

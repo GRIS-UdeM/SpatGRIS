@@ -19,6 +19,8 @@
 
 #include "sg_Ray.hpp"
 
+namespace gris
+{
 //==============================================================================
 void Ray::setRay(CartesianVector const & p, CartesianVector const & d)
 {
@@ -36,3 +38,5 @@ void Ray::draw() const
     juce::gl::glVertex3f(this->mDirection.x, this->mDirection.y, this->mDirection.z);
     juce::gl::glEnd();
 }
+
+} // namespace gris
