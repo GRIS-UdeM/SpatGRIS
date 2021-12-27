@@ -44,6 +44,7 @@ class OscInput final
     };
 
     MainContentComponent & mMainContentComponent;
+    juce::String mError{};
 
 public:
     //==============================================================================

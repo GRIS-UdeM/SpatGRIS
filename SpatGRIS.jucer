@@ -90,6 +90,8 @@
               file="Source/sg_StaticVector.hpp"/>
         <FILE id="iHp2Hz" name="sg_StrongArray.hpp" compile="0" resource="0"
               file="Source/sg_StrongArray.hpp"/>
+        <FILE id="e4ZtRa" name="sg_ThreadSafeBuffer.hpp" compile="0" resource="0"
+              file="Source/sg_ThreadSafeBuffer.hpp"/>
       </GROUP>
       <GROUP id="{879FD67D-521A-EC98-EB2A-A3C056EDF2C2}" name="Data">
         <GROUP id="{92A881EF-457B-1766-C06E-A7FB79588252}" name="StrongTypes">
