@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS.
 
- Developers: Samuel BÃ©land, Olivier BÃ©langer, Nicolas Masson
+ Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
 
  SpatGRIS is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -25,46 +25,44 @@
 
 namespace gris
 {
-class GrisLookAndFeel;
-class MainContentComponent;
-
 //==============================================================================
-class OscLogWindow final
-    : public juce::DocumentWindow
-    , public juce::TextButton::Listener
-    , public juce::AsyncUpdater
+class LogBuffer final : private juce::AsyncUpdater
 {
-    MainContentComponent * mMainContentComponent;
-    GrisLookAndFeel * mLookAndFeel;
-
-    int mIndex;
-    bool mActivated;
-
-    juce::CodeDocument mCodeDocument;
-    juce::CodeEditorComponent mLogger;
-    juce::TextButton mStopButton;
-    juce::TextButton mCloseButton;
-
 public:
     //==============================================================================
-    OscLogWindow(juce::String const & name,
-                 juce::Colour backgroundColour,
-                 int buttonsNeeded,
-                 MainContentComponent * parent,
-                 GrisLookAndFeel * feel);
-    //==============================================================================
-    OscLogWindow() = delete;
-    ~OscLogWindow() override;
-    SG_DELETE_COPY_AND_MOVE(OscLogWindow)
-    //==============================================================================
-    void addToLog(juce::String msg);
-    //==============================================================================
-    void buttonClicked(juce::Button * button) override;
-    void closeButtonPressed() override;
+    class Listener
+    {
+    public:
+        Listener() = default;
+        virtual ~Listener() = default;
+        SG_DEFAULT_COPY_AND_MOVE(Listener)
+        //==============================================================================
+        virtual void oscEventReceived(juce::String const & event) = 0;
+    };
 
 private:
     //==============================================================================
-    JUCE_LEAK_DETECTOR(OscLogWindow)
+    juce::StringArray mBuffer{};
+    juce::CriticalSection mMutex{};
+    std::atomic<bool> mCollectLog{};
+    juce::ListenerList<Listener> mListeners{};
+
+public:
+    //==============================================================================
+    LogBuffer() = default;
+    ~LogBuffer() override = default;
+    SG_DELETE_COPY_AND_MOVE(LogBuffer)
+    //==============================================================================
+    void addListener(Listener & l);
+    void removeListener(Listener & l);
+    void add(juce::String const & event);
+
+private:
+    //==============================================================================
+    juce::StringArray stealData();
+    void handleAsyncUpdate() override;
+    //==============================================================================
+    JUCE_LEAK_DETECTOR(LogBuffer)
 };
 
 } // namespace gris

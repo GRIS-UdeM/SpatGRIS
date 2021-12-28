@@ -83,6 +83,10 @@
       <GROUP id="{CAE9BD57-C46F-25A5-8F7E-772337A1A370}" name="Containers">
         <FILE id="jjvsce" name="sg_AtomicUpdater.hpp" compile="0" resource="0"
               file="Source/sg_AtomicUpdater.hpp"/>
+        <FILE id="AGM16k" name="sg_LogBuffer.cpp" compile="1" resource="0"
+              file="Source/sg_LogBuffer.cpp"/>
+        <FILE id="TC2Gn9" name="sg_LogBuffer.hpp" compile="0" resource="0"
+              file="Source/sg_LogBuffer.hpp"/>
         <FILE id="iccVyO" name="sg_OwnedMap.hpp" compile="0" resource="0" file="Source/sg_OwnedMap.hpp"/>
         <FILE id="WOH8r9" name="sg_StaticMap.hpp" compile="0" resource="0"
               file="Source/sg_StaticMap.hpp"/>
