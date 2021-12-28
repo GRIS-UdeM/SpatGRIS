@@ -28,6 +28,7 @@
 #include "sg_FlatViewWindow.hpp"
 #include "sg_InfoPanel.hpp"
 #include "sg_LayoutComponent.hpp"
+#include "sg_LogBuffer.hpp"
 #include "sg_LogicStrucs.hpp"
 #include "sg_OscInput.hpp"
 #include "sg_OscMonitor.hpp"
@@ -125,6 +126,7 @@ class MainContentComponent final
     MainWindow & mMainWindow;
 
     std::unique_ptr<juce::MenuBarComponent> mMenuBar{};
+    LogBuffer mLogBuffer{};
     //==============================================================================
     // App user settings.
 
@@ -209,8 +211,6 @@ public:
 
     [[nodiscard]] AudioProcessor & getAudioProcessor() { return *mAudioProcessor; }
     [[nodiscard]] AudioProcessor const & getAudioProcessor() const { return *mAudioProcessor; }
-
-    [[nodiscard]] std::unique_ptr<OscMonitorWindow> & getOscMonitor() { return mOscMonitorWindow; }
 
     void refreshSpeakers();
 

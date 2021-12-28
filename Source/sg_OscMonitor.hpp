@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "sg_LayoutComponent.hpp"
+#include "sg_LogBuffer.hpp"
 
 namespace gris
 {
@@ -27,20 +27,25 @@ class MainContentComponent;
 class GrisLookAndFeel;
 
 //==============================================================================
-class OscMonitorComponent final : public juce::Component
+class OscMonitorComponent final
+    : public juce::Component
+    , public LogBuffer::Listener
+    , private juce::TextButton::Listener
 {
-    juce::TextEditor mTextEditor{};
+    LogBuffer & mLogBuffer;
 
-    juce::TextButton mRecordButton{ "Monitor" };
+    juce::TextEditor mTextEditor{};
+    juce::TextButton mStartStopButton{};
 
 public:
     //==============================================================================
-    OscMonitorComponent();
-    ~OscMonitorComponent() override = default;
+    explicit OscMonitorComponent(LogBuffer & logBuffer);
+    OscMonitorComponent() = delete;
+    ~OscMonitorComponent() override;
     SG_DELETE_COPY_AND_MOVE(OscMonitorComponent)
     //==============================================================================
-    void addMessage(juce::OSCMessage const & message);
-    //==============================================================================
+    void buttonClicked(juce::Button * button) override;
+    void oscEventReceived(juce::String const & event) override;
     void resized() override;
 
 private:
@@ -52,15 +57,13 @@ private:
 class OscMonitorWindow final : public juce::DocumentWindow
 {
     MainContentComponent & mMainContentComponent;
-    OscMonitorComponent mComponent{};
+    OscMonitorComponent mComponent;
 
 public:
     //==============================================================================
-    OscMonitorWindow(MainContentComponent & mainContentComponent, GrisLookAndFeel & lookAndFeel);
+    OscMonitorWindow(LogBuffer & logBuffer, MainContentComponent & mainContentComponent, GrisLookAndFeel & lookAndFeel);
     ~OscMonitorWindow() override = default;
     SG_DELETE_COPY_AND_MOVE(OscMonitorWindow)
-    //==============================================================================
-    void addMessage(juce::OSCMessage const & message);
     //==============================================================================
     void closeButtonPressed() override;
 

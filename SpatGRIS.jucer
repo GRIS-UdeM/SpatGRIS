@@ -254,10 +254,6 @@
                 resource="0" file="Source/sg_EditableTextCustomComponent.cpp"/>
           <FILE id="rOZ5jL" name="sg_EditableTextCustomComponent.hpp" compile="0"
                 resource="0" file="Source/sg_EditableTextCustomComponent.hpp"/>
-          <FILE id="lpP3gh" name="sg_OscMonitor.cpp" compile="1" resource="0"
-                file="Source/sg_OscMonitor.cpp"/>
-          <FILE id="FZjASO" name="sg_OscMonitor.hpp" compile="0" resource="0"
-                file="Source/sg_OscMonitor.hpp"/>
           <FILE id="cbWnv8" name="sg_SpeakerViewComponent.cpp" compile="1" resource="0"
                 file="Source/sg_SpeakerViewComponent.cpp"/>
           <FILE id="rQi0F2" name="sg_SpeakerViewComponent.hpp" compile="0" resource="0"
@@ -280,10 +276,10 @@
                 file="Source/sg_FlatViewWindow.cpp"/>
           <FILE id="pGOSFt" name="sg_FlatViewWindow.hpp" compile="0" resource="0"
                 file="Source/sg_FlatViewWindow.hpp"/>
-          <FILE id="NYwTzZ" name="sg_OscLogWindow.cpp" compile="1" resource="0"
-                file="Source/sg_OscLogWindow.cpp"/>
-          <FILE id="MYUvj8" name="sg_OscLogWindow.hpp" compile="0" resource="0"
-                file="Source/sg_OscLogWindow.hpp"/>
+          <FILE id="lpP3gh" name="sg_OscMonitor.cpp" compile="1" resource="0"
+                file="Source/sg_OscMonitor.cpp"/>
+          <FILE id="FZjASO" name="sg_OscMonitor.hpp" compile="0" resource="0"
+                file="Source/sg_OscMonitor.hpp"/>
           <FILE id="POrFql" name="sg_PrepareToRecordWindow.cpp" compile="1" resource="0"
                 file="Source/sg_PrepareToRecordWindow.cpp"/>
           <FILE id="CJfKN0" name="sg_PrepareToRecordWindow.hpp" compile="0" resource="0"

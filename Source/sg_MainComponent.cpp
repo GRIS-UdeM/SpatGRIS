@@ -232,7 +232,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
 
     //==============================================================================
     auto const startOsc = [&]() {
-        mOscInput.reset(new OscInput(*this));
+        mOscInput.reset(new OscInput(*this, mLogBuffer));
         mOscInput->startConnection(mData.project.oscPort);
     };
 
@@ -485,7 +485,7 @@ void MainContentComponent::handleShowPreferences()
 void MainContentComponent::handleShowOscMonitorWindow()
 {
     if (!mOscMonitorWindow) {
-        mOscMonitorWindow = std::make_unique<OscMonitorWindow>(*this, mLookAndFeel);
+        mOscMonitorWindow = std::make_unique<OscMonitorWindow>(mLogBuffer, *this, mLookAndFeel);
     }
 }
 

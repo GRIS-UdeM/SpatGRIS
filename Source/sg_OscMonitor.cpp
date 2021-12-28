@@ -28,64 +28,58 @@ namespace
 {
 constexpr auto DEFAULT_WIDTH = 800;
 constexpr auto DEFAULT_HEIGHT = 500;
+constexpr auto MAX_TEXT_LENGTH = 10000;
 
 } // namespace
 
 //==============================================================================
-juce::String argumentToString(juce::OSCArgument const & argument) noexcept
-{
-    if (argument.isFloat32()) {
-        return juce::String{ argument.getFloat32() };
-    }
-    if (argument.isInt32()) {
-        return juce::String{ argument.getInt32() };
-    }
-    if (argument.isString()) {
-        return argument.getString();
-    }
-    return "<INVALID TYPE>";
-}
-
-//==============================================================================
-juce::String messageToString(juce::OSCMessage const & message)
-{
-    static constexpr auto SEPARATOR{ ", " };
-
-    auto const currentTime{ juce::String{ "[" } + juce::String{ juce::Time::currentTimeMillis() } + "ms] " };
-
-    auto result{ currentTime + message.getAddressPattern().toString() };
-
-    for (auto const & argument : message) {
-        result += SEPARATOR + argumentToString(argument);
-    }
-
-    return result;
-}
-
-//==============================================================================
-OscMonitorComponent::OscMonitorComponent()
+OscMonitorComponent::OscMonitorComponent(LogBuffer & logBuffer) : mLogBuffer(logBuffer)
 {
     mTextEditor.setCaretVisible(false);
+    mTextEditor.setReadOnly(true);
     mTextEditor.setBorder(juce::BorderSize<int>{ 3 });
     mTextEditor.setMultiLine(true, false);
     mTextEditor.setScrollbarsShown(true);
     addAndMakeVisible(mTextEditor);
 
-    mRecordButton.setClickingTogglesState(true);
-    addAndMakeVisible(mRecordButton);
+    mStartStopButton.setButtonText("Stop");
+    mStartStopButton.setClickingTogglesState(true);
+    mStartStopButton.setToggleState(true, juce::NotificationType::dontSendNotification);
+    mStartStopButton.addListener(this);
+    addAndMakeVisible(mStartStopButton);
+
+    logBuffer.addListener(this);
+    logBuffer.start();
 }
 
 //==============================================================================
-void OscMonitorComponent::addMessage(juce::OSCMessage const & message)
+OscMonitorComponent::~OscMonitorComponent()
 {
-    if (!mRecordButton.getToggleState()) {
+    mLogBuffer.removeListener(this);
+    mLogBuffer.stop();
+}
+
+//==============================================================================
+void OscMonitorComponent::buttonClicked([[maybe_unused]] juce::Button * button)
+{
+    jassert(button == &mStartStopButton);
+    if (mStartStopButton.getToggleState()) {
+        mLogBuffer.start();
+        mStartStopButton.setButtonText("Stop");
         return;
     }
+    mLogBuffer.stop();
+    mStartStopButton.setButtonText("Start");
+}
 
-    juce::MessageManagerLock const mml{};
+//==============================================================================
+void OscMonitorComponent::oscEventReceived(juce::String const & event)
+{
+    auto const text{ mTextEditor.getText() + event + "\n" };
+    auto const shortenText{ text.substring(std::max(text.length() - MAX_TEXT_LENGTH, 0)) };
 
-    mTextEditor.setCaretPosition(mTextEditor.getText().length());
-    mTextEditor.insertTextAtCaret(messageToString(message) + '\n');
+    mTextEditor.setText(shortenText);
+    mTextEditor.setCaretPosition(shortenText.length());
 }
 
 //==============================================================================
@@ -105,24 +99,21 @@ void OscMonitorComponent::resized()
                                                    BUTTON_HEIGHT };
 
     mTextEditor.setBounds(textEditorBounds);
-    mRecordButton.setBounds(recordButtonBounds);
+    mStartStopButton.setBounds(recordButtonBounds);
 }
 
 //==============================================================================
-OscMonitorWindow::OscMonitorWindow(MainContentComponent & mainContentComponent, GrisLookAndFeel & lookAndFeel)
+OscMonitorWindow::OscMonitorWindow(LogBuffer & logBuffer,
+                                   MainContentComponent & mainContentComponent,
+                                   GrisLookAndFeel & lookAndFeel)
     : DocumentWindow("OSC monitor", lookAndFeel.getBackgroundColour(), allButtons)
     , mMainContentComponent(mainContentComponent)
+    , mComponent(logBuffer)
 {
     setUsingNativeTitleBar(true);
     setContentNonOwned(&mComponent, false);
     centreAroundComponent(&mainContentComponent, DEFAULT_WIDTH, DEFAULT_HEIGHT);
     DocumentWindow::setVisible(true);
-}
-
-//==============================================================================
-void OscMonitorWindow::addMessage(juce::OSCMessage const & message)
-{
-    mComponent.addMessage(message);
 }
 
 //==============================================================================

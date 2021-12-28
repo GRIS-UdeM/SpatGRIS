@@ -19,10 +19,8 @@
 
 #pragma once
 
-#include "sg_Macros.hpp"
+#include "sg_LogBuffer.hpp"
 #include "sg_SourceIndex.hpp"
-
-#include <JuceHeader.h>
 
 namespace gris
 {
@@ -32,7 +30,6 @@ class MainContentComponent;
 class OscInput final
     : private juce::OSCReceiver
     , private juce::OSCReceiver::Listener<juce::OSCReceiver::RealtimeCallback>
-    , public juce::ActionBroadcaster
 {
     enum class MessageType {
         invalid,
@@ -44,12 +41,15 @@ class OscInput final
     };
 
     MainContentComponent & mMainContentComponent;
-    juce::String mError{};
+    LogBuffer & mLogBuffer;
 
 public:
     //==============================================================================
-    explicit OscInput(MainContentComponent & parent) : mMainContentComponent(parent) {}
-    //==============================================================================
+    OscInput(MainContentComponent & parent, LogBuffer & logBuffer)
+        : mMainContentComponent(parent)
+        , mLogBuffer(logBuffer)
+    {
+    }
     OscInput() = delete;
     ~OscInput() override;
     SG_DELETE_COPY_AND_MOVE(OscInput)

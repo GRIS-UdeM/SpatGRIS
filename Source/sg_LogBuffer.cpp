@@ -22,17 +22,17 @@
 namespace gris
 {
 //==============================================================================
-void LogBuffer::addListener(Listener & l)
+void LogBuffer::addListener(Listener * l)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-    mListeners.add(&l);
+    mListeners.add(l);
 }
 
 //==============================================================================
-void LogBuffer::removeListener(Listener & l)
+void LogBuffer::removeListener(Listener * l)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
-    mListeners.remove(&l);
+    mListeners.remove(l);
 }
 
 //==============================================================================
@@ -44,6 +44,26 @@ void LogBuffer::add(juce::String const & event)
         mBuffer.add(event);
     }
     triggerAsyncUpdate();
+}
+
+//==============================================================================
+void LogBuffer::start()
+{
+    juce::ScopedLock const lock{ mMutex };
+    mBuffer.clearQuick();
+    mActive.store(true);
+}
+
+//==============================================================================
+void LogBuffer::stop()
+{
+    mActive.store(false);
+}
+
+//==============================================================================
+bool LogBuffer::isActive() const noexcept
+{
+    return mActive.load();
 }
 
 //==============================================================================
@@ -61,6 +81,9 @@ void LogBuffer::handleAsyncUpdate()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
     auto const events{ stealData() };
+    if (events.isEmpty()) {
+        return;
+    }
     auto const consolidatedString{ events.joinIntoString("\n") };
     auto const callback = [&](Listener & l) { l.oscEventReceived(consolidatedString); };
     mListeners.call(callback);

@@ -23,7 +23,42 @@
 
 namespace gris
 {
-static juce::String const SPAT_GRIS_OSC_ADDRESS = "/spat/serv";
+namespace
+{
+//==============================================================================
+juce::String argumentToString(juce::OSCArgument const & argument) noexcept
+{
+    if (argument.isFloat32()) {
+        return juce::String{ argument.getFloat32() };
+    }
+    if (argument.isInt32()) {
+        return juce::String{ argument.getInt32() };
+    }
+    if (argument.isString()) {
+        return argument.getString();
+    }
+    return "<INVALID TYPE>";
+}
+
+//==============================================================================
+juce::String messageToString(juce::OSCMessage const & message)
+{
+    static constexpr auto SEPARATOR{ ", " };
+
+    auto const currentTime{ juce::String{ "[" } + juce::String{ juce::Time::currentTimeMillis() } + "ms] " };
+
+    auto result{ currentTime + message.getAddressPattern().toString() };
+
+    for (auto const & argument : message) {
+        result += SEPARATOR + argumentToString(argument);
+    }
+
+    return result;
+}
+
+//==============================================================================
+juce::String const SPAT_GRIS_OSC_ADDRESS = "/spat/serv";
+} // namespace
 
 //==============================================================================
 OscInput::~OscInput()
@@ -286,12 +321,8 @@ void OscInput::oscMessageReceived(const juce::OSCMessage & message)
         }
     }
 
-    if (mMainContentComponent.getOscMonitor()) {
-        juce::MessageManagerLock const mml{};
-        const auto & oscMonitor{ mMainContentComponent.getOscMonitor() };
-        if (oscMonitor) {
-            oscMonitor->addMessage(message);
-        }
+    if (mLogBuffer.isActive()) {
+        mLogBuffer.add(messageToString(message));
     }
 }
 

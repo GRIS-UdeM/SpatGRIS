@@ -44,7 +44,7 @@ private:
     //==============================================================================
     juce::StringArray mBuffer{};
     juce::CriticalSection mMutex{};
-    std::atomic<bool> mCollectLog{};
+    std::atomic<bool> mActive{};
     juce::ListenerList<Listener> mListeners{};
 
 public:
@@ -53,9 +53,12 @@ public:
     ~LogBuffer() override = default;
     SG_DELETE_COPY_AND_MOVE(LogBuffer)
     //==============================================================================
-    void addListener(Listener & l);
-    void removeListener(Listener & l);
+    void addListener(Listener * l);
+    void removeListener(Listener * l);
     void add(juce::String const & event);
+    void start();
+    void stop();
+    [[nodiscard]] bool isActive() const noexcept;
 
 private:
     //==============================================================================
