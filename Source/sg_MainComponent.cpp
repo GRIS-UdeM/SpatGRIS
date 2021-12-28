@@ -837,6 +837,9 @@ void MainContentComponent::handleResetMeterClipping()
     for (auto const & slice : mSpeakerSliceComponents) {
         slice.value->resetClipping();
     }
+    for (auto const & slice : mStereoSliceComponents) {
+        slice->resetClipping();
+    }
 }
 
 //==============================================================================
