@@ -22,6 +22,8 @@
 #include "sg_LogBuffer.hpp"
 #include "sg_SourceIndex.hpp"
 
+#include "lib/tl/optional.hpp"
+
 namespace gris
 {
 class MainContentComponent;
@@ -76,11 +78,18 @@ private:
     void processSourceResetPositionMessage(juce::OSCMessage const & message) const noexcept;
     void processLegacySourceResetPositionMessage(juce::OSCMessage const & message) const noexcept;
     void processSourceHybridModeMessage(juce::OSCMessage const & message) const noexcept;
+    MessageType getMessageType(juce::OSCMessage const & message) const noexcept;
+
+    enum class SourceIndexBase { fromZero, fromOne };
+
+    tl::optional<source_index_t> extractSourceIndex(juce::OSCArgument const & arg,
+                                                    SourceIndexBase const base) const noexcept;
+    //==============================================================================
+    void addToBuffer(juce::String const & string) const;
+    void addErrorToBuffer(juce::String const & string) const;
     //==============================================================================
     void oscMessageReceived(juce::OSCMessage const & message) override;
     void oscBundleReceived(juce::OSCBundle const & bundle) override;
-    //==============================================================================
-    static MessageType getMessageType(juce::OSCMessage const & message) noexcept;
     //==============================================================================
     JUCE_LEAK_DETECTOR(OscInput)
 };
