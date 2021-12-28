@@ -166,6 +166,7 @@ public:
     void speakerOutputPatchChanged(output_patch_t oldOutputPatch, output_patch_t newOutputPatch);
     void setSpeakerGain(output_patch_t outputPatch, dbfs_t gain);
     void setSpeakerHighPassFreq(output_patch_t outputPatch, hz_t freq);
+    void setOscPort(int newOscPort);
 
     void setPinkNoiseGain(tl::optional<dbfs_t> gain);
 

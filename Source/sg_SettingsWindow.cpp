@@ -27,6 +27,20 @@
 
 namespace gris
 {
+namespace
+{
+constexpr auto PADDING = 20;
+constexpr auto LEFT_COL_WIDTH = 150;
+constexpr auto RIGHT_COL_WIDTH = 150;
+
+constexpr auto LEFT_COL_START = PADDING;
+constexpr auto RIGHT_COL_START = LEFT_COL_START + LEFT_COL_WIDTH + PADDING;
+
+constexpr auto COMPONENT_HEIGHT = 22;
+
+constexpr auto LINE_SKIP = 30;
+constexpr auto SECTION_SKIP = 50;
+
 bool isNotPowerOfTwo(int const value)
 {
     jassert(value >= 0);
@@ -34,10 +48,13 @@ bool isNotPowerOfTwo(int const value)
     return bitSet.count() != 1;
 }
 
+} // namespace
+
 //==============================================================================
 SettingsComponent::SettingsComponent(MainContentComponent & parent, int const oscPort, GrisLookAndFeel & lookAndFeel)
     : mMainContentComponent(parent)
     , mLookAndFeel(lookAndFeel)
+    , mOscPortWhenLoaded(oscPort)
 {
     auto initLabel = [this](juce::Label & label) {
         label.setJustificationType(juce::Justification::Flags::centredRight);
@@ -99,7 +116,7 @@ SettingsComponent::SettingsComponent(MainContentComponent & parent, int const os
     addAndMakeVisible(mOscInputPortTextEditor);
 
     //==============================================================================
-    mSaveSettingsButton.setButtonText("Close");
+    mSaveSettingsButton.setButtonText("Apply");
     mSaveSettingsButton.setBounds(0, 0, RIGHT_COL_WIDTH / 2, COMPONENT_HEIGHT);
     mSaveSettingsButton.addListener(this);
     mSaveSettingsButton.setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
@@ -108,6 +125,16 @@ SettingsComponent::SettingsComponent(MainContentComponent & parent, int const os
 
     fillComboBoxes();
     placeComponents();
+}
+
+//==============================================================================
+SettingsComponent::~SettingsComponent()
+{
+    auto const newOscPort{ mOscInputPortTextEditor.getText().getIntValue() };
+    if (newOscPort == mOscPortWhenLoaded) {
+        return;
+    }
+    mMainContentComponent.setOscPort(newOscPort);
 }
 
 //==============================================================================

@@ -1652,6 +1652,18 @@ void MainContentComponent::setSpeakerHighPassFreq(output_patch_t const outputPat
 }
 
 //==============================================================================
+void MainContentComponent::setOscPort(int const newOscPort)
+{
+    juce::ScopedWriteLock const lock{ mLock };
+    mData.project.oscPort = newOscPort;
+    if (!mOscInput) {
+        return;
+    }
+    mOscInput->closeConnection();
+    mOscInput->startConnection(newOscPort);
+}
+
+//==============================================================================
 void MainContentComponent::setPinkNoiseGain(tl::optional<dbfs_t> const gain)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
