@@ -458,7 +458,7 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
     auto const makeInterleavedSpeakersRecorder = [&]() {
         jassert(filePaths.size() == 1);
         auto const & filePath{ filePaths[0] };
-        auto dataToRecord{ mOutputBuffer.getArrayOfReadPointers(recordingParams.speakersToRecord) };
+        auto dataToRecord = mOutputBuffer.getArrayOfReadPointers(recordingParams.speakersToRecord);
         auto recordingInfo{ MAKE_RECORDING_INFO(filePath,
                                                 *audioFormat,
                                                 recordingParams.sampleRate,

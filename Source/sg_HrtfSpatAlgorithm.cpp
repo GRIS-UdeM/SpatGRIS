@@ -66,7 +66,7 @@ HrtfSpatAlgorithm::HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup,
         return files;
     };
 
-    static auto const FILES{ GET_HRTF_IR_FILES() };
+    static auto const FILES = GET_HRTF_IR_FILES();
 
     // Init inner spat algorithm
     juce::Array<output_patch_t> hrtfPatches{};
@@ -76,7 +76,7 @@ HrtfSpatAlgorithm::HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup,
     jassert(binauralSpeakerSetup);
     mHrtfData.speakersAudioConfig
         = binauralSpeakerSetup->toAudioConfig(44100.0); // TODO: find a way to update this number!
-    auto speakers{ binauralSpeakerSetup->ordering };
+    auto speakers = binauralSpeakerSetup->ordering;
     speakers.sort();
     mHrtfData.speakersBuffer.init(speakers);
 

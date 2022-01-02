@@ -1180,7 +1180,7 @@ void EditSpeakersWindow::mouseDrag(juce::MouseEvent const & event)
         return;
     }
 
-    auto order{ mMainContentComponent.getData().speakerSetup.ordering };
+    auto order = mMainContentComponent.getData().speakerSetup.ordering;
     order.swap(selectedRow, newIndex);
 
     mMainContentComponent.reorderSpeakers(order);

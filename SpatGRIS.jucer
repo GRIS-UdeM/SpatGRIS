@@ -350,9 +350,9 @@
                 extraLinkerFlags="-lGLU -lglut">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="SpatGRIS"
-                       recommendedWarnings="LLVM"/>
+                       recommendedWarnings="GCC"/>
         <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="SpatGRIS"
-                       linkTimeOptimisation="1" recommendedWarnings="LLVM"/>
+                       linkTimeOptimisation="1" recommendedWarnings="GCC"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_osc" path="../../sdks/JUCE-4.3.1/modules"/>
