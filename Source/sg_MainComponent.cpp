@@ -2359,7 +2359,7 @@ void MainContentComponent::prepareAndStartRecording(juce::File const & fileOrDir
         return result;
     };
 
-    auto speakersToRecord{ getSpeakersToRecord() };
+    auto speakersToRecord = getSpeakersToRecord();
 
     AudioManager::RecordingParameters const recordingParams{ fileOrDirectory.getFullPathName(),
                                                              mData.appData.recordingOptions,

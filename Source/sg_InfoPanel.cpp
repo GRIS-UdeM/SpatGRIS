@@ -45,7 +45,7 @@ InfoPanel::InfoPanel(MainContentComponent & mainContentComponent, GrisLookAndFee
         addAndMakeVisible(label);
     };
 
-    auto const labels{ getLabels() };
+    auto const labels = getLabels();
 
     for (auto * label : labels) {
         primeLabel(*label);
@@ -114,7 +114,7 @@ void InfoPanel::setNumOutputs(int const numOutputs)
 //==============================================================================
 void InfoPanel::resized()
 {
-    auto const labels{ getLabels() };
+    auto const labels = getLabels();
     auto const availableWidth{ narrow<float>(getWidth()) };
     auto const labelWidthFloat{ availableWidth / narrow<float>(labels.size()) };
     auto const labelWidthInt{ narrow<int>(std::round(labelWidthFloat)) };

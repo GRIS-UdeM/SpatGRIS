@@ -242,14 +242,14 @@ void SettingsComponent::fillComboBoxes()
     mOutputDeviceCombo.setSelectedItemIndex(outputDeviceIndex, juce::dontSendNotification);
 
     if (audioDevice) {
-        auto const sampleRates{ audioDevice->getAvailableSampleRates() };
+        auto const sampleRates = audioDevice->getAvailableSampleRates();
         auto const currentSampleRate{ audioDevice->getCurrentSampleRate() };
         auto const sampleRateIndex{ sampleRates.indexOf(currentSampleRate) };
 
         mSampleRateCombo.addItemList(TO_STRING_ARRAY(sampleRates), 1);
         mSampleRateCombo.setSelectedItemIndex(sampleRateIndex, juce::dontSendNotification);
 
-        auto bufferSizes{ audioDevice->getAvailableBufferSizes() };
+        auto bufferSizes = audioDevice->getAvailableBufferSizes();
         bufferSizes.removeIf(isNotPowerOfTwo);
         auto const currentBufferSize{ audioDevice->getCurrentBufferSizeSamples() };
         auto const bufferSizeIndex{ bufferSizes.indexOf(currentBufferSize) };

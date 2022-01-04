@@ -95,7 +95,7 @@ static ProjectTemplates getProjectTemplates()
 }
 
 SpeakerSetupTemplates const SPEAKER_SETUP_TEMPLATES{ getSpeakerSetupTemplates() };
-ProjectTemplates const PROJECT_TEMPLATES{ getProjectTemplates() };
+ProjectTemplates const PROJECT_TEMPLATES = getProjectTemplates();
 
 //==============================================================================
 juce::StringArray const RECORDING_FORMAT_STRINGS{ "WAV",
@@ -234,7 +234,7 @@ tl::optional<FileTemplate const &> commandIdToTemplate(juce::CommandID commandId
 //==============================================================================
 tl::optional<int> attenuationDbToComboBoxIndex(dbfs_t const attenuation)
 {
-    static auto const ALLOWED_VALUES{ stringToStronglyTypedFloat<dbfs_t>(ATTENUATION_DB_STRINGS) };
+    static auto const ALLOWED_VALUES = stringToStronglyTypedFloat<dbfs_t>(ATTENUATION_DB_STRINGS);
 
     auto const index{ ALLOWED_VALUES.indexOf(attenuation) };
     if (index < 0) {
@@ -246,7 +246,7 @@ tl::optional<int> attenuationDbToComboBoxIndex(dbfs_t const attenuation)
 //==============================================================================
 tl::optional<int> attenuationFreqToComboBoxIndex(hz_t const freq)
 {
-    static auto const ALLOWED_VALUES{ stringToStronglyTypedFloat<hz_t>(ATTENUATION_FREQUENCY_STRINGS) };
+    static auto const ALLOWED_VALUES = stringToStronglyTypedFloat<hz_t>(ATTENUATION_FREQUENCY_STRINGS);
 
     auto const index{ ALLOWED_VALUES.indexOf(freq) };
     if (index < 0) {
