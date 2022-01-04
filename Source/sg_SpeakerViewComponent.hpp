@@ -36,16 +36,17 @@ DISABLE_WARNING_UNREFERENCED_FUNCTION
     #include <OpenGL/gl3.h>
     #include <OpenGl/glu.h>
 #endif
-#include "../glm/glm.hpp"
 DISABLE_WARNING_POP
 
+#define ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD jassert(isOpenGlOrMessageThread())
+
+namespace gris
+{
 struct SpeakerData;
 enum class SpatMode;
 struct SourceData;
 
 bool isOpenGlOrMessageThread();
-
-#define ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD jassert(isOpenGlOrMessageThread())
 
 class MainContentComponent;
 class SpeakerModel;
@@ -89,18 +90,14 @@ public:
     {
     }
     ~SpeakerViewComponent() override { shutdownOpenGL(); }
-    //==============================================================================
-    SpeakerViewComponent(SpeakerViewComponent const &) = delete;
-    SpeakerViewComponent(SpeakerViewComponent &&) = delete;
-    SpeakerViewComponent & operator=(SpeakerViewComponent const &) = delete;
-    SpeakerViewComponent & operator=(SpeakerViewComponent &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(SpeakerViewComponent)
     //==============================================================================
     auto & getData() noexcept { return mData; }
     auto const & getData() const noexcept { return mData; }
 
     Position getCameraPosition() const noexcept;
 
-    void setConfig(WarmViewportConfig const & config, SourcesData const & sources);
+    void setConfig(ViewportConfig const & config, SourcesData const & sources);
     void setCameraPosition(CartesianVector const & position) noexcept;
     void setTriplets(juce::Array<Triplet> triplets) noexcept;
 
@@ -134,7 +131,7 @@ private:
     void drawSpeaker(output_patch_t outputPatch, ViewportSpeakerConfig const & speaker);
     //==============================================================================
     static void drawBackground();
-    static void drawTextOnGrid(std::string const & val, glm::vec3 position, float scale = 0.003f);
+    static void drawTextOnGrid(std::string const & val, CartesianVector const & position, float scale = 0.003f);
     static void drawVbapSpan(ViewportSourceData const & source);
     static void drawLbapSpan(ViewportSourceData const & source);
     static void drawFieldSphere();
@@ -142,3 +139,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(SpeakerViewComponent)
 }; // class SpeakerViewComponent
+
+} // namespace gris

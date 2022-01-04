@@ -20,6 +20,8 @@
 #include "sg_Application.hpp"
 #include "sg_AudioManager.hpp"
 
+namespace gris
+{
 //==============================================================================
 void SpatGrisApplication::initialise(juce::String const & /*commandLine*/)
 {
@@ -43,3 +45,5 @@ void SpatGrisApplication::systemRequestedQuit()
         quit();
     }
 }
+
+} // namespace gris

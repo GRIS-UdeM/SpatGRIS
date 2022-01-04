@@ -21,6 +21,8 @@
 
 #include "sg_OutputPatch.hpp"
 
+namespace gris
+{
 //==============================================================================
 struct Triplet {
     output_patch_t id1{};
@@ -42,3 +44,5 @@ constexpr bool Triplet::isSameAs(Triplet const & other) const noexcept
 {
     return contains(other.id1) && contains(other.id2) && contains(other.id3);
 }
+
+} // namespace gris

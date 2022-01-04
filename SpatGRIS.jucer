@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="MXmiSb" name="SpatGRIS" projectType="guiapp" version="3.1.2"
+<JUCERPROJECT id="MXmiSb" name="SpatGRIS" projectType="guiapp" version="3.1.3"
               bundleIdentifier="ca.umontreal.musique.gris.spatgris" includeBinaryInAppConfig="0"
               companyName="GRIS - UdeM" projectLineFeed="&#10;" cppLanguageStandard="17"
               jucerFormatVersion="1" displaySplashScreen="1" maxBinaryFileSize="1048576"
@@ -20,8 +20,8 @@
             xcodeResource="1"/>
       <FILE id="sL2wMU" name="SinkinSans-400Regular.otf" compile="0" resource="1"
             file="Source/SinkinSans-400Regular.otf"/>
-      <FILE id="s4NxEX" name="SpatGRIS_3.1.2_Manual.pdf" compile="0" resource="0"
-            file="Resources/SpatGRIS_3.1.2_Manual.pdf" xcodeResource="1"/>
+      <FILE id="U1pyvz" name="SpatGRIS_3.1_Manual.pdf" compile="0" resource="0"
+            file="Resources/SpatGRIS_3.1_Manual.pdf" xcodeResource="1"/>
       <FILE id="VMUncp" name="splash_screen.png" compile="0" resource="1"
             file="Resources/splash_screen.png" xcodeResource="1"/>
     </GROUP>
@@ -83,6 +83,10 @@
       <GROUP id="{CAE9BD57-C46F-25A5-8F7E-772337A1A370}" name="Containers">
         <FILE id="jjvsce" name="sg_AtomicUpdater.hpp" compile="0" resource="0"
               file="Source/sg_AtomicUpdater.hpp"/>
+        <FILE id="AGM16k" name="sg_LogBuffer.cpp" compile="1" resource="0"
+              file="Source/sg_LogBuffer.cpp"/>
+        <FILE id="TC2Gn9" name="sg_LogBuffer.hpp" compile="0" resource="0"
+              file="Source/sg_LogBuffer.hpp"/>
         <FILE id="iccVyO" name="sg_OwnedMap.hpp" compile="0" resource="0" file="Source/sg_OwnedMap.hpp"/>
         <FILE id="WOH8r9" name="sg_StaticMap.hpp" compile="0" resource="0"
               file="Source/sg_StaticMap.hpp"/>
@@ -90,6 +94,8 @@
               file="Source/sg_StaticVector.hpp"/>
         <FILE id="iHp2Hz" name="sg_StrongArray.hpp" compile="0" resource="0"
               file="Source/sg_StrongArray.hpp"/>
+        <FILE id="e4ZtRa" name="sg_ThreadSafeBuffer.hpp" compile="0" resource="0"
+              file="Source/sg_ThreadSafeBuffer.hpp"/>
       </GROUP>
       <GROUP id="{879FD67D-521A-EC98-EB2A-A3C056EDF2C2}" name="Data">
         <GROUP id="{92A881EF-457B-1766-C06E-A7FB79588252}" name="StrongTypes">
@@ -148,6 +154,7 @@
               file="Source/sg_FatalError.cpp"/>
         <FILE id="i24Hrh" name="sg_FatalError.hpp" compile="0" resource="0"
               file="Source/sg_FatalError.hpp"/>
+        <FILE id="yJeDzO" name="sg_Macros.hpp" compile="0" resource="0" file="Source/sg_Macros.hpp"/>
         <FILE id="sooBmS" name="sg_Narrow.hpp" compile="0" resource="0" file="Source/sg_Narrow.hpp"/>
         <FILE id="y1tIHN" name="sg_ScopeGuard.hpp" compile="0" resource="0"
               file="Source/sg_ScopeGuard.hpp"/>
@@ -247,10 +254,6 @@
                 resource="0" file="Source/sg_EditableTextCustomComponent.cpp"/>
           <FILE id="rOZ5jL" name="sg_EditableTextCustomComponent.hpp" compile="0"
                 resource="0" file="Source/sg_EditableTextCustomComponent.hpp"/>
-          <FILE id="lpP3gh" name="sg_OscMonitor.cpp" compile="1" resource="0"
-                file="Source/sg_OscMonitor.cpp"/>
-          <FILE id="FZjASO" name="sg_OscMonitor.hpp" compile="0" resource="0"
-                file="Source/sg_OscMonitor.hpp"/>
           <FILE id="cbWnv8" name="sg_SpeakerViewComponent.cpp" compile="1" resource="0"
                 file="Source/sg_SpeakerViewComponent.cpp"/>
           <FILE id="rQi0F2" name="sg_SpeakerViewComponent.hpp" compile="0" resource="0"
@@ -273,10 +276,10 @@
                 file="Source/sg_FlatViewWindow.cpp"/>
           <FILE id="pGOSFt" name="sg_FlatViewWindow.hpp" compile="0" resource="0"
                 file="Source/sg_FlatViewWindow.hpp"/>
-          <FILE id="NYwTzZ" name="sg_OscLogWindow.cpp" compile="1" resource="0"
-                file="Source/sg_OscLogWindow.cpp"/>
-          <FILE id="MYUvj8" name="sg_OscLogWindow.hpp" compile="0" resource="0"
-                file="Source/sg_OscLogWindow.hpp"/>
+          <FILE id="lpP3gh" name="sg_OscMonitor.cpp" compile="1" resource="0"
+                file="Source/sg_OscMonitor.cpp"/>
+          <FILE id="FZjASO" name="sg_OscMonitor.hpp" compile="0" resource="0"
+                file="Source/sg_OscMonitor.hpp"/>
           <FILE id="POrFql" name="sg_PrepareToRecordWindow.cpp" compile="1" resource="0"
                 file="Source/sg_PrepareToRecordWindow.cpp"/>
           <FILE id="CJfKN0" name="sg_PrepareToRecordWindow.hpp" compile="0" resource="0"
@@ -347,9 +350,9 @@
                 extraLinkerFlags="-lGLU -lglut">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="SpatGRIS"
-                       recommendedWarnings="LLVM"/>
+                       recommendedWarnings="GCC"/>
         <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="SpatGRIS"
-                       linkTimeOptimisation="1" recommendedWarnings="LLVM"/>
+                       linkTimeOptimisation="1" recommendedWarnings="GCC"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_osc" path="../../sdks/JUCE-4.3.1/modules"/>

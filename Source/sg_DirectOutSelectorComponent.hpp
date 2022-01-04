@@ -24,6 +24,8 @@
 
 #include "lib/tl/optional.hpp"
 
+namespace gris
+{
 class SmallGrisLookAndFeel;
 
 //==============================================================================
@@ -38,11 +40,7 @@ public:
     public:
         Listener() = default;
         virtual ~Listener() = default;
-        //==============================================================================
-        Listener(Listener const &) = default;
-        Listener(Listener &&) = default;
-        Listener & operator=(Listener const &) = default;
-        Listener & operator=(Listener &&) = default;
+        SG_DEFAULT_COPY_AND_MOVE(Listener)
         //==============================================================================
         virtual void directOutSelectorComponentClicked(tl::optional<output_patch_t> directOut) = 0;
     };
@@ -68,11 +66,7 @@ public:
                                Listener & listener,
                                SmallGrisLookAndFeel & lookAndFeel);
     ~DirectOutSelectorComponent() override = default;
-    //==============================================================================
-    DirectOutSelectorComponent(DirectOutSelectorComponent const &) = delete;
-    DirectOutSelectorComponent(DirectOutSelectorComponent &&) = delete;
-    DirectOutSelectorComponent & operator=(DirectOutSelectorComponent const &) = delete;
-    DirectOutSelectorComponent & operator=(DirectOutSelectorComponent &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(DirectOutSelectorComponent)
     //==============================================================================
     [[nodiscard]] int getMinWidth() const noexcept override;
     [[nodiscard]] int getMinHeight() const noexcept override;
@@ -87,3 +81,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(DirectOutSelectorComponent)
 };
+
+} // namespace gris

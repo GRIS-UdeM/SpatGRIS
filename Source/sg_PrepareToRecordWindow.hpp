@@ -21,6 +21,8 @@
 
 #include "sg_AudioManager.hpp"
 
+namespace gris
+{
 class MainContentComponent;
 class GrisLookAndFeel;
 
@@ -54,11 +56,7 @@ public:
                              MainContentComponent & mainContentComponent,
                              GrisLookAndFeel & lookAndFeel);
     ~PrepareToRecordComponent() override = default;
-    //==============================================================================
-    PrepareToRecordComponent(PrepareToRecordComponent const &) = delete;
-    PrepareToRecordComponent(PrepareToRecordComponent &&) = delete;
-    PrepareToRecordComponent & operator=(PrepareToRecordComponent const &) = delete;
-    PrepareToRecordComponent & operator=(PrepareToRecordComponent &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(PrepareToRecordComponent)
     //==============================================================================
     void resized() override;
     void buttonClicked(juce::Button * button) override;
@@ -89,11 +87,7 @@ public:
                           MainContentComponent & mainContentComponent,
                           GrisLookAndFeel & lookAndFeel);
     ~PrepareToRecordWindow() override = default;
-    //==============================================================================
-    PrepareToRecordWindow(PrepareToRecordWindow const &) = delete;
-    PrepareToRecordWindow(PrepareToRecordWindow &&) = delete;
-    PrepareToRecordWindow & operator=(PrepareToRecordWindow const &) = delete;
-    PrepareToRecordWindow & operator=(PrepareToRecordWindow &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(PrepareToRecordWindow)
     //==============================================================================
     void closeButtonPressed() override;
 
@@ -101,3 +95,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(PrepareToRecordWindow)
 };
+
+} // namespace gris

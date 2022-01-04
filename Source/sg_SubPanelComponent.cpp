@@ -21,11 +21,16 @@
 
 #include "sg_GrisLookAndFeel.hpp"
 
-static constexpr auto CORNER_SIZE = 8;
-static constexpr auto INNER_PADDING = 8;
+namespace
+{
+constexpr auto CORNER_SIZE = 8;
+constexpr auto INNER_PADDING = 8;
+constexpr auto OFFSET{ INNER_PADDING / 2 };
 
-static constexpr auto OFFSET{ INNER_PADDING / 2 };
+} // namespace
 
+namespace gris
+{
 //==============================================================================
 SubPanelComponent::SubPanelComponent(LayoutComponent::Orientation const orientation, GrisLookAndFeel & lookAndFeel)
     : mLookAndFeel(lookAndFeel)
@@ -63,3 +68,5 @@ int SubPanelComponent::getMinHeight() const noexcept
 {
     return mLayout.getMinHeight() + INNER_PADDING;
 }
+
+} // namespace gris

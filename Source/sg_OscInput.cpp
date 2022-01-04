@@ -21,7 +21,51 @@
 
 #include "sg_MainComponent.hpp"
 
-static juce::String const SPAT_GRIS_OSC_ADDRESS = "/spat/serv";
+namespace gris
+{
+namespace
+{
+// see juce::OSCTypes
+constexpr auto INT_TAG = 'i';
+constexpr auto FLOAT_TAG = 'f';
+constexpr auto STRING_TAG = 's';
+
+auto constexpr IS_INT = [](juce::OSCArgument const & arg) -> bool { return arg.getType() == INT_TAG; };
+auto constexpr IS_FLOAT = [](juce::OSCArgument const & arg) -> bool { return arg.getType() == FLOAT_TAG; };
+auto constexpr IS_STRING = [](juce::OSCArgument const & arg) -> bool { return arg.getType() == STRING_TAG; };
+
+juce::String const SPAT_GRIS_OSC_ADDRESS = "/spat/serv";
+
+//==============================================================================
+juce::String argumentToString(juce::OSCArgument const & argument) noexcept
+{
+    if (IS_FLOAT(argument)) {
+        return juce::String{ argument.getFloat32() };
+    }
+    if (IS_INT(argument)) {
+        return juce::String{ argument.getInt32() };
+    }
+    if (IS_STRING(argument)) {
+        return argument.getString();
+    }
+    return "<INVALID TYPE>";
+}
+
+//==============================================================================
+juce::String messageToString(juce::OSCMessage const & message)
+{
+    static constexpr auto SEPARATOR{ ", " };
+
+    auto result{ juce::String{ "[" } + message.getAddressPattern().toString() + "] " };
+
+    for (auto const & argument : message) {
+        result += SEPARATOR + argumentToString(argument);
+    }
+
+    return result;
+}
+
+} // namespace
 
 //==============================================================================
 OscInput::~OscInput()
@@ -32,17 +76,16 @@ OscInput::~OscInput()
 //==============================================================================
 bool OscInput::startConnection(int const port)
 {
-    auto const b = connect(port);
+    auto const success = connect(port);
     addListener(this);
-    return b;
+    return success;
 }
 
 //==============================================================================
 void OscInput::processSourcePositionMessage(juce::OSCMessage const & message) const noexcept
 {
-    source_index_t const sourceIndex{ message[1].getInt32() };
-    if (!LEGAL_SOURCE_INDEX_RANGE.contains(sourceIndex)) {
-        jassertfalse;
+    auto const sourceIndex{ extractSourceIndex(message[1], SourceIndexBase::fromOne) };
+    if (!sourceIndex) {
         return;
     }
 
@@ -51,15 +94,15 @@ void OscInput::processSourcePositionMessage(juce::OSCMessage const & message) co
 
     auto const coordinateType{ message[0].getString() };
     if (coordinateType == "pol") {
-        processPolarRadianSourcePositionMessage(message, sourceIndex, azimuthSpan, zenithSpan);
+        processPolarRadianSourcePositionMessage(message, *sourceIndex, azimuthSpan, zenithSpan);
         return;
     }
     if (coordinateType == "deg") {
-        processPolarDegreeSourcePosition(message, sourceIndex, azimuthSpan, zenithSpan);
+        processPolarDegreeSourcePosition(message, *sourceIndex, azimuthSpan, zenithSpan);
         return;
     }
     if (coordinateType == "car") {
-        processCartesianSourcePositionMessage(message, sourceIndex, azimuthSpan, zenithSpan);
+        processCartesianSourcePositionMessage(message, *sourceIndex, azimuthSpan, zenithSpan);
         return;
     }
     jassertfalse;
@@ -112,11 +155,11 @@ void OscInput::processLegacySourcePositionMessage(juce::OSCMessage const & messa
 {
     // int id, float azi [0, 2pi], float ele [0, pi], float azispan [0, 2],
     // float elespan [0, 0.5], float distance [0, 1], float gain [0, 1].
-    source_index_t const sourceIndex{ message[0].getInt32() + 1 };
-    if (!LEGAL_SOURCE_INDEX_RANGE.contains(sourceIndex)) {
-        jassertfalse;
+    auto const sourceIndex{ extractSourceIndex(message[0], SourceIndexBase::fromZero) };
+    if (!sourceIndex) {
         return;
     }
+
     auto const azimuth{ HALF_PI - radians_t{ message[1].getFloat32() }.balanced() };
     auto const zenith{ HALF_PI - radians_t{ message[2].getFloat32() } };
     auto const azimuthSpan{ message[3].getFloat32() / 2.0f };
@@ -127,51 +170,34 @@ void OscInput::processLegacySourcePositionMessage(juce::OSCMessage const & messa
 
     [[maybe_unused]] auto const gain{ message[6].getFloat32() };
 
-    mMainContentComponent.setLegacySourcePosition(sourceIndex, azimuth, zenith, length, azimuthSpan, zenithSpan);
+    mMainContentComponent.setLegacySourcePosition(*sourceIndex, azimuth, zenith, length, azimuthSpan, zenithSpan);
 }
 
 //==============================================================================
 void OscInput::processSourceResetPositionMessage(juce::OSCMessage const & message) const noexcept
 {
-    jassert(message[0].getString() == "clr");
-
-    source_index_t const sourceIndex{ message[1].getInt32() };
-    if (!LEGAL_SOURCE_INDEX_RANGE.contains(sourceIndex)) {
-        jassertfalse;
-        return;
+    auto const sourceIndex{ extractSourceIndex(message[1], SourceIndexBase::fromOne) };
+    if (sourceIndex) {
+        mMainContentComponent.resetSourcePosition(*sourceIndex);
     }
-
-    mMainContentComponent.resetSourcePosition(sourceIndex);
 }
 
 //==============================================================================
 void OscInput::processLegacySourceResetPositionMessage(juce::OSCMessage const & message) const noexcept
 {
-    if (message[0].getString() == juce::String{ "reset" }) {
-        // string "reset", int voice_to_reset.
-        source_index_t const sourceIndex{ message[1].getInt32() + 1 };
-        if (!LEGAL_SOURCE_INDEX_RANGE.contains(sourceIndex)) {
-            jassertfalse;
-            return;
-        }
-
-        mMainContentComponent.resetSourcePosition(sourceIndex);
+    // string "reset", int voice_to_reset.
+    auto const sourceIndex{ extractSourceIndex(message[0], SourceIndexBase::fromZero) };
+    if (sourceIndex) {
+        mMainContentComponent.resetSourcePosition(*sourceIndex);
     }
 }
 
 //==============================================================================
 void OscInput::processSourceHybridModeMessage(juce::OSCMessage const & message) const noexcept
 {
-    jassert(message[0].isString() && message[1].isInt32() && message[2].isString());
+    auto const sourceIndex{ extractSourceIndex(message[1], SourceIndexBase::fromOne) };
 
-    if (message[0].getString() != "alg") {
-        jassertfalse;
-        return;
-    }
-
-    source_index_t const sourceIndex{ message[1].getInt32() };
-    if (!LEGAL_SOURCE_INDEX_RANGE.contains(sourceIndex)) {
-        jassertfalse;
+    if (!sourceIndex) {
         return;
     }
 
@@ -190,16 +216,33 @@ void OscInput::processSourceHybridModeMessage(juce::OSCMessage const & message) 
     auto const spatMode{ stringToSpatMode(message[2].getString()).and_then(filter_spat_mode) };
 
     if (!spatMode) {
-        jassertfalse;
+        addErrorToBuffer("unrecognized hybrid spat mode.");
         return;
     }
 
     // Some side-effects of setSourceHybridSpatMode() expect to be visited only by the message thread.
     // MessageManager::callAsync() is pretty inefficient but it's no big deal since we only call this when we want to
     // change a source's hybrid spat mode, which shouldn't be too often.
-    juce::MessageManager::callAsync([this, sourceIndex, spatMode = *spatMode] {
+    juce::MessageManager::callAsync([this, sourceIndex = *sourceIndex, spatMode = *spatMode] {
         this->mMainContentComponent.setSourceHybridSpatMode(sourceIndex, spatMode);
     });
+}
+
+//==============================================================================
+void OscInput::addToBuffer(juce::String const & string) const
+{
+    if (mLogBuffer.isActive()) {
+        mLogBuffer.add(string);
+    }
+}
+
+//==============================================================================
+void OscInput::addErrorToBuffer(juce::String const & string) const
+{
+    jassertfalse;
+    if (mLogBuffer.isActive()) {
+        mLogBuffer.add(juce::String{ "ERROR : " } + string);
+    }
 }
 
 //==============================================================================
@@ -214,81 +257,122 @@ void OscInput::oscBundleReceived(const juce::OSCBundle & bundle)
 }
 
 //==============================================================================
-OscInput::MessageType OscInput::getMessageType(juce::OSCMessage const & message) noexcept
+OscInput::MessageType OscInput::getMessageType(juce::OSCMessage const & message) const noexcept
 {
-    static auto constexpr OSC_ARGUMENT_IS_INT = [](juce::OSCArgument const & argument) { return argument.isInt32(); };
-    static auto constexpr OSC_ARGUMENT_IS_STRING
-        = [](juce::OSCArgument const & argument) { return argument.isString(); };
-    static auto constexpr OSC_ARGUMENT_IS_FLOAT
-        = [](juce::OSCArgument const & argument) { return argument.isFloat32(); };
-
-    switch (message.size()) {
-    case 2:
-        if (!OSC_ARGUMENT_IS_STRING(message[0]) || !OSC_ARGUMENT_IS_INT(message[1])) {
-            break;
-        }
-        if (message[0].getString() == "reset") {
-            return MessageType::legacyResetSourcePosition;
-        }
-        if (message[0].getString() == "clr") {
-            return MessageType::resetSourcePosition;
-        }
-        break;
-    case 3:
-        if (OSC_ARGUMENT_IS_STRING(message[0]) && OSC_ARGUMENT_IS_INT(message[1])
-            && OSC_ARGUMENT_IS_STRING(message[2])) {
-            return MessageType::sourceHybridMode;
-        }
-        break;
-    case 7:
-        if (OSC_ARGUMENT_IS_STRING(message[0]) && OSC_ARGUMENT_IS_INT(message[1])
-            && std::all_of(message.begin() + 2, message.end(), OSC_ARGUMENT_IS_FLOAT)) {
-            return MessageType::sourcePosition;
-        }
-        if (OSC_ARGUMENT_IS_INT(message[0]) && std::all_of(message.begin() + 1, message.end(), OSC_ARGUMENT_IS_FLOAT)) {
-            return MessageType::legacySourcePosition;
-        }
-        break;
-    default:
-        break;
+    if (message.getAddressPattern().toString() != SPAT_GRIS_OSC_ADDRESS) {
+        addErrorToBuffer("wrong OSC address.");
+        return MessageType::invalid;
     }
-    jassertfalse;
+
+    if (message.size() < 2) {
+        addErrorToBuffer("messages need at least 2 arguments.");
+        return MessageType::invalid;
+    }
+
+    if (!IS_STRING(message[0])) {
+        if (message.size() < 6) {
+            addErrorToBuffer("expected legacy source position message to have at least 6 arguments.");
+            return MessageType::invalid;
+        }
+        if (!std::all_of(message.begin() + 1, message.end(), IS_FLOAT)) {
+            addErrorToBuffer("expected arguments 2 to 6 of legacy source position message to be floats.");
+            return MessageType::invalid;
+        }
+        return MessageType::legacySourcePosition;
+    }
+
+    auto const firstArg{ message[0].getString() };
+    if (firstArg == "rad" || firstArg == "deg" || firstArg == "car") {
+        if (message.size() != 7) {
+            addErrorToBuffer("expected source position message to be exactly 7 arguments long.");
+            return MessageType::invalid;
+        }
+        if (!std::all_of(message.begin() + 2, message.end(), IS_FLOAT)) {
+            addErrorToBuffer("expected arguments 2 to 7 of source position message to be floats.");
+            return MessageType::invalid;
+        }
+        return MessageType::sourcePosition;
+    }
+
+    if (firstArg == "clr") {
+        if (message.size() != 2) {
+            addErrorToBuffer("expected clear message to be exactly 2 arguments long.");
+            return MessageType::invalid;
+        }
+        return MessageType::resetSourcePosition;
+    }
+
+    if (firstArg == "alg") {
+        if (message.size() != 3) {
+            addErrorToBuffer("expected source hybrid mode message to be exactly 3 arguments long.");
+            return MessageType::invalid;
+        }
+        if (!IS_STRING(message[2])) {
+            addErrorToBuffer("expected the 3rd argument of a source hybrid mode message to be a string.");
+            return MessageType::invalid;
+        }
+        return MessageType::sourceHybridMode;
+    }
+
+    if (firstArg == "reset") {
+        if (message.size() != 2) {
+            addErrorToBuffer("expected a legacy source reset position message to be exactly 2 arguments long.");
+            return MessageType::invalid;
+        }
+        return MessageType::legacyResetSourcePosition;
+    }
+
+    addErrorToBuffer(juce::String{ "unknown command \"" } + firstArg + "\".");
     return MessageType::invalid;
 }
 
 //==============================================================================
-void OscInput::oscMessageReceived(const juce::OSCMessage & message)
+tl::optional<source_index_t> OscInput::extractSourceIndex(juce::OSCArgument const & arg,
+                                                          SourceIndexBase const base) const noexcept
 {
-    auto const address{ message.getAddressPattern().toString() };
-    if (address == SPAT_GRIS_OSC_ADDRESS) {
-        switch (getMessageType(message)) {
-        case MessageType::legacySourcePosition:
-            processLegacySourcePositionMessage(message);
-            break;
-        case MessageType::legacyResetSourcePosition:
-            processLegacySourceResetPositionMessage(message);
-            break;
-        case MessageType::sourcePosition:
-            processSourcePositionMessage(message);
-            break;
-        case MessageType::resetSourcePosition:
-            processSourceResetPositionMessage(message);
-            break;
-        case MessageType::sourceHybridMode:
-            processSourceHybridModeMessage(message);
-            break;
-        case MessageType::invalid:
-            jassertfalse;
-            break;
-        default:;
-        }
+    auto const offset{ base == SourceIndexBase::fromZero ? 1 : 0 };
+    source_index_t result;
+    if (IS_INT(arg)) {
+        result = source_index_t{ arg.getInt32() + offset };
+    } else if (IS_FLOAT(arg)) {
+        result = source_index_t{ narrow<source_index_t::type>(std::round(arg.getFloat32())) + offset };
+    } else {
+        addErrorToBuffer("source index should be either an int or a float.");
+        return tl::nullopt;
+    }
+    if (!LEGAL_SOURCE_INDEX_RANGE.contains(result)) {
+        addErrorToBuffer("source index out of range.");
+        return tl::nullopt;
     }
 
-    if (mMainContentComponent.getOscMonitor()) {
-        juce::MessageManagerLock const mml{};
-        const auto & oscMonitor{ mMainContentComponent.getOscMonitor() };
-        if (oscMonitor) {
-            oscMonitor->addMessage(message);
-        }
-    }
+    return result;
 }
+
+//==============================================================================
+void OscInput::oscMessageReceived(juce::OSCMessage const & message)
+{
+    addToBuffer(messageToString(message));
+
+    switch (getMessageType(message)) {
+    case MessageType::legacySourcePosition:
+        processLegacySourcePositionMessage(message);
+        return;
+    case MessageType::legacyResetSourcePosition:
+        processLegacySourceResetPositionMessage(message);
+        return;
+    case MessageType::sourcePosition:
+        processSourcePositionMessage(message);
+        return;
+    case MessageType::resetSourcePosition:
+        processSourceResetPositionMessage(message);
+        return;
+    case MessageType::sourceHybridMode:
+        processSourceHybridModeMessage(message);
+        return;
+    case MessageType::invalid:
+        break;
+    }
+    jassertfalse;
+}
+
+} // namespace gris

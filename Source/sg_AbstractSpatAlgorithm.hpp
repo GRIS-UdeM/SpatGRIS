@@ -23,6 +23,8 @@
 #include "sg_TaggedAudioBuffer.hpp"
 #include "sg_Triplet.hpp"
 
+namespace gris
+{
 //==============================================================================
 /** @return true if executed from the OSC thread. */
 bool isOscThread();
@@ -47,11 +49,7 @@ public:
     //==============================================================================
     AbstractSpatAlgorithm() = default;
     virtual ~AbstractSpatAlgorithm() = default;
-    //==============================================================================
-    AbstractSpatAlgorithm(AbstractSpatAlgorithm const &) = delete;
-    AbstractSpatAlgorithm(AbstractSpatAlgorithm &&) = delete;
-    AbstractSpatAlgorithm & operator=(AbstractSpatAlgorithm const &) = delete;
-    AbstractSpatAlgorithm & operator=(AbstractSpatAlgorithm &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(AbstractSpatAlgorithm)
     //==============================================================================
     /** Assigns the position of sources in direct out mode to their assigned speakers' positions.
      *
@@ -106,3 +104,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(AbstractSpatAlgorithm)
 };
+
+} // namespace gris

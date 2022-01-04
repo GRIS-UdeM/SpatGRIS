@@ -24,6 +24,8 @@
 #include "sg_StrongArray.hpp"
 #include "sg_TaggedAudioBuffer.hpp"
 
+namespace gris
+{
 //==============================================================================
 /**  */
 struct HrtfData {
@@ -54,11 +56,7 @@ public:
     //==============================================================================
     HrtfSpatAlgorithm() = delete;
     ~HrtfSpatAlgorithm() override = default;
-    //==============================================================================
-    HrtfSpatAlgorithm(HrtfSpatAlgorithm const &) = delete;
-    HrtfSpatAlgorithm(HrtfSpatAlgorithm &&) = delete;
-    HrtfSpatAlgorithm & operator=(HrtfSpatAlgorithm const &) = delete;
-    HrtfSpatAlgorithm & operator=(HrtfSpatAlgorithm &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(HrtfSpatAlgorithm)
     //==============================================================================
     void updateSpatData(source_index_t sourceIndex, SourceData const & sourceData) noexcept override;
     void process(AudioConfig const & config,
@@ -79,3 +77,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(HrtfSpatAlgorithm)
 };
+
+} // namespace gris

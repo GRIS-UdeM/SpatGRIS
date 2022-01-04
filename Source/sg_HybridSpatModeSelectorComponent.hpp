@@ -23,6 +23,8 @@
 #include "sg_SmallToggleButton.hpp"
 #include "sg_SpatMode.hpp"
 
+namespace gris
+{
 //==============================================================================
 class HybridSpatModeSelectorComponent final
     : public MinSizedComponent
@@ -35,11 +37,7 @@ public:
     public:
         Listener() = default;
         virtual ~Listener() = default;
-        //==============================================================================
-        Listener(Listener const &) = default;
-        Listener(Listener &&) = default;
-        Listener & operator=(Listener const &) = default;
-        Listener & operator=(Listener &&) = default;
+        SG_DEFAULT_COPY_AND_MOVE(Listener)
         //==============================================================================
         virtual void hybridSpatModeSelectorClicked(SpatMode newHybridSpatMode) = 0;
     };
@@ -54,11 +52,7 @@ public:
     //==============================================================================
     HybridSpatModeSelectorComponent(SpatMode hybridSpatMode, Listener & listener, SmallGrisLookAndFeel & lookAndFeel);
     ~HybridSpatModeSelectorComponent() override = default;
-    //==============================================================================
-    HybridSpatModeSelectorComponent(HybridSpatModeSelectorComponent const &) = delete;
-    HybridSpatModeSelectorComponent(HybridSpatModeSelectorComponent &&) = delete;
-    HybridSpatModeSelectorComponent & operator=(HybridSpatModeSelectorComponent const &) = delete;
-    HybridSpatModeSelectorComponent & operator=(HybridSpatModeSelectorComponent &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(HybridSpatModeSelectorComponent)
     //==============================================================================
     void setSpatMode(SpatMode spatMode);
     //==============================================================================
@@ -71,3 +65,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(HybridSpatModeSelectorComponent)
 };
+
+} // namespace gris

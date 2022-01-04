@@ -21,4 +21,12 @@
 
 #include "sg_StrongIndex.hpp"
 
+namespace gris
+{
+/** Strongly-typed source index.
+ *
+ * Starts at 1.
+ */
 using source_index_t = StrongIndex<int, struct SourceIndexT, 1>;
+
+} // namespace gris

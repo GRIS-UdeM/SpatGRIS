@@ -19,11 +19,15 @@
 
 #pragma once
 
+#include "sg_Macros.hpp"
 #include "sg_constants.hpp"
 
+namespace gris
+{
 struct PolarVector;
 
 //==============================================================================
+/** A straightforward 3D [x,y,z] cartesian vector. */
 struct CartesianVector {
     //==============================================================================
     struct XmlTags {
@@ -41,11 +45,7 @@ struct CartesianVector {
     constexpr CartesianVector(float newX, float newY, float newZ) noexcept;
     explicit CartesianVector(PolarVector const & polarVector) noexcept;
     ~CartesianVector() = default;
-    //==============================================================================
-    CartesianVector(CartesianVector const &) = default;
-    CartesianVector(CartesianVector &&) = default;
-    CartesianVector & operator=(CartesianVector const &) = default;
-    CartesianVector & operator=(CartesianVector &&) = default;
+    SG_DEFAULT_COPY_AND_MOVE(CartesianVector)
     //==============================================================================
     [[nodiscard]] constexpr bool operator==(CartesianVector const & other) const noexcept;
     [[nodiscard]] constexpr bool operator!=(CartesianVector const & other) const noexcept;
@@ -53,25 +53,40 @@ struct CartesianVector {
     [[nodiscard]] constexpr CartesianVector operator/(float scalar) const noexcept;
     [[nodiscard]] constexpr CartesianVector operator-() const noexcept;
     //==============================================================================
+    /** @return a vector identical to this one but with its x value replaced by newX. */
     [[nodiscard]] constexpr CartesianVector withX(float newX) const noexcept;
+    /** @return a vector identical to this one but with its y value replaced by newY. */
     [[nodiscard]] constexpr CartesianVector withY(float newY) const noexcept;
+    /** @return a vector identical to this one but with its z value replaced by newZ. */
     [[nodiscard]] constexpr CartesianVector withZ(float newZ) const noexcept;
+    /** @return a vector identical to this one but with its x value moved by delta. */
     [[nodiscard]] constexpr CartesianVector translatedX(float delta) const noexcept;
+    /** @return a vector identical to this one but with its y value moved by delta. */
     [[nodiscard]] constexpr CartesianVector translatedY(float delta) const noexcept;
+    /** @return a vector identical to this one but with its z value moved by delta. */
     [[nodiscard]] constexpr CartesianVector translatedZ(float delta) const noexcept;
     //==============================================================================
+    /** @return this vector clipped to the LBAP extended field. */
     [[nodiscard]] constexpr CartesianVector clampedToFarField() const noexcept;
-    [[nodiscard]] constexpr CartesianVector mean(CartesianVector const & other) const noexcept;
+    /** @return the midpoint between this vector and another one. */
+    [[nodiscard]] constexpr CartesianVector midPoint(CartesianVector const & other) const noexcept;
+    /** @return a flat projection on the x-y plane of this vector, in the form of a standard JUCE point. */
     [[nodiscard]] constexpr juce::Point<float> discardZ() const noexcept;
+    /** @return the vector's squared euclidean length. */
     [[nodiscard]] constexpr float length2() const noexcept;
+    /** @return the vector's squared euclidean length. This function is MUCH slower than length() but can be called at
+     * constexpr-time. */
     [[nodiscard]] constexpr float constexprLength() const noexcept;
+    /** @return the dot product between this vector and another one. */
     [[nodiscard]] constexpr float dotProduct(CartesianVector const & other) const noexcept;
-    //==============================================================================
     [[nodiscard]] float angleWith(CartesianVector const & other) const noexcept;
+    /** @return the vector's euclidean length. */
     [[nodiscard]] float length() const noexcept;
     [[nodiscard]] CartesianVector crossProduct(CartesianVector const & other) const noexcept;
-    [[nodiscard]] juce::XmlElement * toXml() const noexcept;
+    /** @return an XML representation of this vector. */
+    [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const noexcept;
     //==============================================================================
+    /** @return the CartesianVector encoded in an XML element. tl::nullopt if parsing fails. */
     [[nodiscard]] static tl::optional<CartesianVector> fromXml(juce::XmlElement const & xml);
 };
 
@@ -172,7 +187,7 @@ constexpr CartesianVector CartesianVector::clampedToFarField() const noexcept
 }
 
 //==============================================================================
-constexpr CartesianVector CartesianVector::mean(CartesianVector const & other) const noexcept
+constexpr CartesianVector CartesianVector::midPoint(CartesianVector const & other) const noexcept
 {
     auto const newX{ (x + other.x) * 0.5f };
     auto const newY{ (y + other.y) * 0.5f };
@@ -212,3 +227,5 @@ constexpr float CartesianVector::constexprLength() const noexcept
 
 //==============================================================================
 static_assert(std::is_trivially_destructible_v<CartesianVector>);
+
+} // namespace gris

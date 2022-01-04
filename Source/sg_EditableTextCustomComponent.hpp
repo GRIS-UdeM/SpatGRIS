@@ -19,8 +19,12 @@
 
 #pragma once
 
+#include "sg_Macros.hpp"
+
 #include <JuceHeader.h>
 
+namespace gris
+{
 class EditSpeakersWindow;
 
 //==============================================================================
@@ -36,11 +40,7 @@ public:
     // DEFAULTS
     explicit EditableTextCustomComponent(EditSpeakersWindow & editSpeakersWindow);
     ~EditableTextCustomComponent() override = default;
-    //==============================================================================
-    EditableTextCustomComponent(EditableTextCustomComponent const &) = delete;
-    EditableTextCustomComponent(EditableTextCustomComponent &&) = delete;
-    EditableTextCustomComponent & operator=(EditableTextCustomComponent const &) = delete;
-    EditableTextCustomComponent & operator=(EditableTextCustomComponent &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(EditableTextCustomComponent)
     //==============================================================================
     void setRowAndColumn(int newRow, int newColumn);
     //==============================================================================
@@ -53,3 +53,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(EditableTextCustomComponent)
 };
+
+} // namespace gris

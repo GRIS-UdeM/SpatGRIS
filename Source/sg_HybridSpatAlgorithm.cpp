@@ -19,6 +19,8 @@
 
 #include "sg_HybridSpatAlgorithm.hpp"
 
+namespace gris
+{
 //==============================================================================
 HybridSpatAlgorithm::HybridSpatAlgorithm(SpeakersData const & speakersData)
     : mVbap(std::make_unique<VbapSpatAlgorithm>(speakersData))
@@ -85,3 +87,5 @@ std::unique_ptr<AbstractSpatAlgorithm> HybridSpatAlgorithm::make(SpeakerSetup co
 {
     return std::make_unique<HybridSpatAlgorithm>(speakerSetup.speakers);
 }
+
+} // namespace gris

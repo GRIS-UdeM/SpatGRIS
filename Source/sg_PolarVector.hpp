@@ -19,8 +19,11 @@
 
 #pragma once
 
+#include "sg_Macros.hpp"
 #include "sg_Radians.hpp"
 
+namespace gris
+{
 struct CartesianVector;
 
 static constexpr radians_t DEFAULT_ELEVATION_COMPARE_TOLERANCE{ degrees_t{ 5.0f } };
@@ -35,11 +38,7 @@ struct PolarVector {
     constexpr PolarVector(radians_t newAzimuth, radians_t newElevation, float newLength) noexcept;
     explicit PolarVector(CartesianVector const & cartesianVector) noexcept;
     ~PolarVector() = default;
-    //==============================================================================
-    PolarVector(PolarVector const &) = default;
-    PolarVector(PolarVector &&) = default;
-    PolarVector & operator=(PolarVector const &) = default;
-    PolarVector & operator=(PolarVector &&) = default;
+    SG_DEFAULT_COPY_AND_MOVE(PolarVector)
     //==============================================================================
     [[nodiscard]] constexpr bool operator==(PolarVector const & other) const noexcept;
     [[nodiscard]] constexpr PolarVector normalized() const noexcept;
@@ -181,3 +180,4 @@ constexpr PolarVector PolarVector::pushedWithPositiveRadius(float const radiusDe
 
 //==============================================================================
 static_assert(std::is_trivially_destructible_v<PolarVector>);
+} // namespace gris

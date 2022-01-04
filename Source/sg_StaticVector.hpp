@@ -26,7 +26,13 @@
 #include <array>
 #include <type_traits>
 
+namespace gris
+{
 //==============================================================================
+/** A stack-allocated fixed-capacity vector of objects.
+ *
+ * Values have to be trivial since the destructor is sometimes omitted.
+ */
 template<typename T, size_t CAPACITY>
 class StaticVector
 {
@@ -42,94 +48,235 @@ public:
     using iterator = typename container_t::iterator;
     using const_iterator = typename container_t::const_iterator;
     //==============================================================================
-    T & operator[](int const index)
-    {
-        auto const index_u{ narrow<size_t>(index) };
-        jassert(index_u < mSize);
-        return mData[index_u];
-    }
-    T const & operator[](int const index) const
-    {
-        auto const index_u{ narrow<size_t>(index) };
-        jassert(index_u < mSize);
-        return mData[index_u];
-    }
+    [[nodiscard]] T & operator[](int index);
+    [[nodiscard]] T const & operator[](int index) const;
+    [[nodiscard]] T & operator[](size_t index);
+    [[nodiscard]] T const & operator[](size_t index) const;
     //==============================================================================
-    T & operator[](size_t const index)
-    {
-        jassert(index < mSize);
-        return mData[index];
-    }
-    T const & operator[](size_t const index) const
-    {
-        jassert(index < mSize);
-        return mData[index];
-    }
+    void push_back(T const & value);
+    void push_back(T && value);
+    [[nodiscard]] T pop_back() noexcept;
     //==============================================================================
-    void push_back(T const & value)
-    {
-        jassert(!isFull());
-        mData[mSize++] = value;
-    }
-    void push_back(T && value)
-    {
-        jassert(!isFull());
-        mData[mSize++] = std::move(value);
-    }
-    T pop_back() noexcept
-    {
-        jassert(!isEmpty());
-        return std::move(mData[--mSize]);
-    }
+    void clear();
+    void resize(size_t newSize);
     //==============================================================================
-    void clear() { mSize = 0; }
+    [[nodiscard]] T * data() noexcept;
+    [[nodiscard]] T const * data() const noexcept;
     //==============================================================================
-    void resize(size_t const newSize)
-    {
-        jassert(newSize <= CAPACITY);
-        mSize = newSize;
-    }
+    [[nodiscard]] bool isEmpty() const;
+    [[nodiscard]] bool isFull() const;
+    [[nodiscard]] size_t size() const;
     //==============================================================================
-    T * data() { return mData.data(); }
+    [[nodiscard]] iterator begin();
+    [[nodiscard]] iterator end();
+    [[nodiscard]] const_iterator begin() const;
+    [[nodiscard]] const_iterator end() const;
+    [[nodiscard]] const_iterator cbegin() const;
+    [[nodiscard]] const_iterator cend() const;
     //==============================================================================
-    [[nodiscard]] bool isEmpty() const { return mSize == 0; }
-    [[nodiscard]] bool isFull() const { return mSize == CAPACITY; }
-    [[nodiscard]] size_t size() const { return mSize; }
+    T & front();
+    T const & front() const;
     //==============================================================================
-    [[nodiscard]] iterator begin() { return mData.begin(); }
-    [[nodiscard]] iterator end() { return mData.begin() + mSize; }
-    [[nodiscard]] const_iterator begin() const { return mData.cbegin(); }
-    [[nodiscard]] const_iterator end() const { return mData.cbegin() + mSize; }
-    [[nodiscard]] const_iterator cbegin() const { return mData.cbegin(); }
-    [[nodiscard]] const_iterator cend() const { return mData.cbegin() + mSize; }
+    T & back();
+    T const & back() const;
     //==============================================================================
-    T & front()
-    {
-        jassert(!isEmpty());
-        return mData.front();
-    }
-    T const & front() const
-    {
-        jassert(!isEmpty());
-        return mData.front();
-    }
+    void erase(const_iterator const & it);
+
+private:
     //==============================================================================
-    T & back()
-    {
-        jassert(!isEmpty());
-        return mData[mSize - 1];
-    }
-    T const & back() const
-    {
-        jassert(!isEmpty());
-        return mData[mSize - 1];
-    }
-    //==============================================================================
-    void erase(const_iterator const & it)
-    {
-        jassert(it != cend());
-        jassert(!isEmpty());
-        *it = back();
-        --mSize;
-    }
+    JUCE_LEAK_DETECTOR(StaticVector)
 };
+
+//==============================================================================
+template<typename T, size_t CAPACITY>
+T & StaticVector<T, CAPACITY>::operator[](int const index)
+{
+    auto const index_u{ narrow<size_t>(index) };
+    jassert(index_u < mSize);
+    return mData[index_u];
+}
+
+//==============================================================================
+template<typename T, size_t CAPACITY>
+T const & StaticVector<T, CAPACITY>::operator[](int const index) const
+{
+    auto const index_u{ narrow<size_t>(index) };
+    jassert(index_u < mSize);
+    return mData[index_u];
+}
+
+//==============================================================================
+template<typename T, size_t CAPACITY>
+T & StaticVector<T, CAPACITY>::operator[](size_t const index)
+{
+    jassert(index < mSize);
+    return mData[index];
+}
+
+//==============================================================================
+template<typename T, size_t CAPACITY>
+T const & StaticVector<T, CAPACITY>::operator[](size_t const index) const
+{
+    jassert(index < mSize);
+    return mData[index];
+}
+
+//==============================================================================
+template<typename T, size_t CAPACITY>
+void StaticVector<T, CAPACITY>::push_back(T const & value)
+{
+    jassert(!isFull());
+    mData[mSize++] = value;
+}
+
+//==============================================================================
+template<typename T, size_t CAPACITY>
+void StaticVector<T, CAPACITY>::push_back(T && value)
+{
+    jassert(!isFull());
+    mData[mSize++] = std::forward<T>(value);
+}
+
+//==============================================================================
+template<typename T, size_t CAPACITY>
+T StaticVector<T, CAPACITY>::pop_back() noexcept
+{
+    jassert(!isEmpty());
+    return std::move(mData[--mSize]);
+}
+
+//==============================================================================
+template<typename T, size_t CAPACITY>
+void StaticVector<T, CAPACITY>::clear()
+{
+    mSize = 0;
+}
+
+//==============================================================================
+template<typename T, size_t CAPACITY>
+void StaticVector<T, CAPACITY>::resize(size_t const newSize)
+{
+    jassert(newSize <= CAPACITY);
+    mSize = newSize;
+}
+
+//==============================================================================
+template<typename T, size_t CAPACITY>
+T * StaticVector<T, CAPACITY>::data() noexcept
+{
+    return mData.data();
+}
+
+//==============================================================================
+template<typename T, size_t CAPACITY>
+T const * StaticVector<T, CAPACITY>::data() const noexcept
+{
+    return mData.data();
+}
+
+//==============================================================================
+template<typename T, size_t CAPACITY>
+bool StaticVector<T, CAPACITY>::isEmpty() const
+{
+    return mSize == 0;
+}
+
+//==============================================================================
+template<typename T, size_t CAPACITY>
+bool StaticVector<T, CAPACITY>::isFull() const
+{
+    return mSize == CAPACITY;
+}
+
+//==============================================================================
+template<typename T, size_t CAPACITY>
+size_t StaticVector<T, CAPACITY>::size() const
+{
+    return mSize;
+}
+
+//==============================================================================
+template<typename T, size_t CAPACITY>
+typename StaticVector<T, CAPACITY>::iterator StaticVector<T, CAPACITY>::begin()
+{
+    return mData.begin();
+}
+
+//==============================================================================
+template<typename T, size_t CAPACITY>
+typename StaticVector<T, CAPACITY>::iterator StaticVector<T, CAPACITY>::end()
+{
+    return mData.begin() + mSize;
+}
+
+//==============================================================================
+template<typename T, size_t CAPACITY>
+typename StaticVector<T, CAPACITY>::const_iterator StaticVector<T, CAPACITY>::begin() const
+{
+    return mData.cbegin();
+}
+
+//==============================================================================
+template<typename T, size_t CAPACITY>
+typename StaticVector<T, CAPACITY>::const_iterator StaticVector<T, CAPACITY>::end() const
+{
+    return mData.cbegin() + mSize;
+}
+
+//==============================================================================
+template<typename T, size_t CAPACITY>
+typename StaticVector<T, CAPACITY>::const_iterator StaticVector<T, CAPACITY>::cbegin() const
+{
+    return mData.cbegin();
+}
+
+//==============================================================================
+template<typename T, size_t CAPACITY>
+typename StaticVector<T, CAPACITY>::const_iterator StaticVector<T, CAPACITY>::cend() const
+{
+    return mData.cbegin() + mSize;
+}
+
+//==============================================================================
+template<typename T, size_t CAPACITY>
+T & StaticVector<T, CAPACITY>::front()
+{
+    jassert(!isEmpty());
+    return mData.front();
+}
+
+//==============================================================================
+template<typename T, size_t CAPACITY>
+T const & StaticVector<T, CAPACITY>::front() const
+{
+    jassert(!isEmpty());
+    return mData.front();
+}
+
+//==============================================================================
+template<typename T, size_t CAPACITY>
+T & StaticVector<T, CAPACITY>::back()
+{
+    jassert(!isEmpty());
+    return mData[mSize - 1];
+}
+
+//==============================================================================
+template<typename T, size_t CAPACITY>
+T const & StaticVector<T, CAPACITY>::back() const
+{
+    jassert(!isEmpty());
+    return mData[mSize - 1];
+}
+
+//==============================================================================
+template<typename T, size_t CAPACITY>
+void StaticVector<T, CAPACITY>::erase(const_iterator const & it)
+{
+    jassert(it != cend());
+    jassert(!isEmpty());
+    *it = back();
+    --mSize;
+}
+
+} // namespace gris

@@ -19,10 +19,14 @@
 
 #pragma once
 
+#include "sg_Macros.hpp"
+
 #include <utility>
 
+namespace gris
+{
 //==============================================================================
-// call a function when the instance exits its scope (when it is destroyed)
+// call a function when the object goes out of scope
 template<typename Func>
 class ScopeGuard
 {
@@ -39,10 +43,9 @@ public:
         }
     }
     //==============================================================================
-    ScopeGuard(ScopeGuard const &) = delete;
     ScopeGuard(ScopeGuard && other) noexcept : mDestructor(std::move(other.mDestructor)) { other.mDestroyed = true; }
-    ScopeGuard & operator=(ScopeGuard const &) = delete;
     ScopeGuard & operator=(ScopeGuard &&) = delete;
+    SG_DELETE_COPY(ScopeGuard)
 };
 
 //==============================================================================
@@ -51,3 +54,5 @@ ScopeGuard<Func> make_scope_guard(Func func)
 {
     return ScopeGuard<Func>(std::move(func));
 }
+
+} // namespace gris

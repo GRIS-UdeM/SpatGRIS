@@ -21,13 +21,18 @@
 
 #include "sg_GrisLookAndFeel.hpp"
 
-static constexpr auto LABEL_WIDTH = 78;
-static constexpr auto LABEL_HEIGHT = 18;
-static constexpr auto PADDING = 0;
-static constexpr auto ENTRY_BOX_WIDTH = 50;
-static constexpr auto ENTRY_BOX_HEIGHT = 20;
-static constexpr auto SLIDER_SIZE = 60;
+namespace
+{
+constexpr auto LABEL_WIDTH = 78;
+constexpr auto LABEL_HEIGHT = 18;
+constexpr auto PADDING = 0;
+constexpr auto ENTRY_BOX_WIDTH = 50;
+constexpr auto ENTRY_BOX_HEIGHT = 20;
+constexpr auto SLIDER_SIZE = 60;
+} // namespace
 
+namespace gris
+{
 //==============================================================================
 SpatSlider::SpatSlider(float const minValue,
                        float const maxValue,
@@ -108,3 +113,5 @@ int SpatSlider::getMinHeight() const noexcept
 
     return LABEL_HEIGHT + PADDING + std::max(SLIDER_SIZE, ENTRY_BOX_HEIGHT) - CORRECTION;
 }
+
+} // namespace gris

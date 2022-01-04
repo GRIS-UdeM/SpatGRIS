@@ -19,6 +19,8 @@
 
 #include "sg_FatalError.hpp"
 
+namespace gris
+{
 //==============================================================================
 void fatalError(juce::String const & message, juce::Component * component)
 {
@@ -30,3 +32,5 @@ void fatalError(juce::String const & message, juce::Component * component)
                                       component);
     std::terminate();
 }
+
+} // namespace gris

@@ -23,6 +23,8 @@
 #include "sg_SmallToggleButton.hpp"
 #include "sg_constants.hpp"
 
+namespace gris
+{
 class SmallGrisLookAndFeel;
 
 //==============================================================================
@@ -37,10 +39,7 @@ public:
     public:
         Listener() = default;
         virtual ~Listener() = default;
-        Listener(Listener const &) = delete;
-        Listener(Listener &&) = delete;
-        Listener & operator=(Listener const &) = delete;
-        Listener & operator=(Listener &&) = delete;
+        SG_DEFAULT_COPY_AND_MOVE(Listener)
         //==============================================================================
         virtual void speakerIdButtonClicked(SpeakerIdButton * button) = 0;
     };
@@ -55,11 +54,7 @@ public:
     //==============================================================================
     SpeakerIdButton(output_patch_t outputPatch, Listener & listener, SmallGrisLookAndFeel & lookAndFeel);
     ~SpeakerIdButton() override = default;
-    //==============================================================================
-    SpeakerIdButton(SpeakerIdButton const &) = delete;
-    SpeakerIdButton(SpeakerIdButton &&) = delete;
-    SpeakerIdButton & operator=(SpeakerIdButton const &) = delete;
-    SpeakerIdButton & operator=(SpeakerIdButton &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(SpeakerIdButton)
     //==============================================================================
     void setSelected(bool state);
     //==============================================================================
@@ -73,3 +68,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(SpeakerIdButton)
 };
+
+} // namespace gris

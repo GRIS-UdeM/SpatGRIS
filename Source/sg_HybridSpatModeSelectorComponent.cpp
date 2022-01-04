@@ -19,6 +19,8 @@
 
 #include "sg_HybridSpatModeSelectorComponent.hpp"
 
+namespace gris
+{
 //==============================================================================
 HybridSpatModeSelectorComponent::HybridSpatModeSelectorComponent(SpatMode const hybridSpatMode,
                                                                  Listener & listener,
@@ -87,3 +89,5 @@ void HybridSpatModeSelectorComponent::smallButtonClicked(SmallToggleButton * but
     auto const spatMode{ state ? SpatMode::lbap : SpatMode::vbap };
     mListener.hybridSpatModeSelectorClicked(spatMode);
 }
+
+} // namespace gris

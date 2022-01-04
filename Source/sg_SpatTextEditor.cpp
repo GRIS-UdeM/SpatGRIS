@@ -21,13 +21,17 @@
 
 #include "sg_GrisLookAndFeel.hpp"
 
-static constexpr auto LABEL_HEIGHT = 18;
+namespace
+{
+constexpr auto LABEL_HEIGHT = 18;
+constexpr auto PADDING = 0;
+constexpr auto BOX_WIDTH = 43;
+constexpr auto BOX_HEIGHT = 22;
 
-static constexpr auto PADDING = 0;
+} // namespace
 
-static constexpr auto BOX_WIDTH = 43;
-static constexpr auto BOX_HEIGHT = 22;
-
+namespace gris
+{
 //==============================================================================
 SpatTextEditor::SpatTextEditor(juce::String const & label,
                                juce::String const & tooltip,
@@ -99,3 +103,5 @@ int SpatTextEditor::getMinHeight() const noexcept
 {
     return LABEL_HEIGHT + PADDING + BOX_HEIGHT;
 }
+
+} // namespace gris

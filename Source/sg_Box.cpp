@@ -21,6 +21,8 @@
 
 #include "sg_GrisLookAndFeel.hpp"
 
+namespace gris
+{
 //==============================================================================
 Box::Box(GrisLookAndFeel & feel, juce::String title, bool const verticalScrollbar, bool const horizontalScrollbar)
     : mLookAndFeel(feel)
@@ -65,3 +67,5 @@ void Box::paint(juce::Graphics & g)
         g.drawText(mTitle, 0, 0, this->mContent.getWidth(), 20, juce::Justification::left);
     }
 }
+
+} // namespace gris

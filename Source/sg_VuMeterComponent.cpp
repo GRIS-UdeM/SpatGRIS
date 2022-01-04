@@ -28,6 +28,8 @@ namespace
 constexpr auto VU_METER_MIN_HEIGHT = 140;
 }
 
+namespace gris
+{
 //==============================================================================
 void VuMeterComponent::resized()
 {
@@ -166,3 +168,5 @@ void VuMeterComponent::setMuted(bool const muted)
     mIsMuted = muted;
     repaint();
 }
+
+} // namespace gris

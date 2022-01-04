@@ -22,11 +22,14 @@
 #include "sg_LbapSpatAlgorithm.hpp"
 #include "sg_VbapSpatAlgorithm.hpp"
 
+namespace gris
+{
+//==============================================================================
 /** A spatialization algorithm that uses both Vbap (dome) and Lbap (cube).
  *
  * The selection of the algorithm is done on a per-source basis.
  */
-class HybridSpatAlgorithm : public AbstractSpatAlgorithm
+class HybridSpatAlgorithm final : public AbstractSpatAlgorithm
 {
     std::unique_ptr<AbstractSpatAlgorithm> mVbap{};
     std::unique_ptr<AbstractSpatAlgorithm> mLbap{};
@@ -35,11 +38,7 @@ public:
     //==============================================================================
     HybridSpatAlgorithm() = default;
     ~HybridSpatAlgorithm() override = default;
-    //==============================================================================
-    HybridSpatAlgorithm(HybridSpatAlgorithm const &) = delete;
-    HybridSpatAlgorithm(HybridSpatAlgorithm &&) = delete;
-    HybridSpatAlgorithm & operator=(HybridSpatAlgorithm const &) = delete;
-    HybridSpatAlgorithm & operator=(HybridSpatAlgorithm &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(HybridSpatAlgorithm)
     //==============================================================================
     /** Note: do not use this function directly. Use HybridSpatAlgorithm::make() instead. */
     explicit HybridSpatAlgorithm(SpeakersData const & speakersData);
@@ -62,3 +61,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(HybridSpatAlgorithm)
 };
+
+} // namespace gris

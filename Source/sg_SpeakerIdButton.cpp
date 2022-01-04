@@ -21,6 +21,8 @@
 
 #include "sg_GrisLookAndFeel.hpp"
 
+namespace gris
+{
 //==============================================================================
 SpeakerIdButton::SpeakerIdButton(output_patch_t const outputPatch,
                                  Listener & listener,
@@ -60,3 +62,5 @@ void SpeakerIdButton::smallButtonClicked([[maybe_unused]] SmallToggleButton * bu
 {
     mListener.speakerIdButtonClicked(this);
 }
+
+} // namespace gris

@@ -30,12 +30,16 @@
 #include "sg_TitledComponent.hpp"
 #include "sg_constants.hpp"
 
-static constexpr auto BUTTON_CANCEL = 0;
-static constexpr auto BUTTON_OK = 1;
-static constexpr auto BUTTON_DISCARD = 2;
+namespace gris
+{
+namespace
+{
+constexpr auto BUTTON_CANCEL = 0;
+constexpr auto BUTTON_OK = 1;
+constexpr auto BUTTON_DISCARD = 2;
 
 //==============================================================================
-static float gainToSpeakerAlpha(float const gain)
+float gainToSpeakerAlpha(float const gain)
 {
     static constexpr auto MIN_ALPHA{ 0.1f };
     static constexpr auto MAX_ALPHA{ 1.0f };
@@ -55,7 +59,7 @@ static float gainToSpeakerAlpha(float const gain)
 }
 
 //==============================================================================
-static float gainToSourceAlpha(source_index_t const sourceIndex, float const gain)
+float gainToSourceAlpha(source_index_t const sourceIndex, float const gain)
 {
     static constexpr auto RAMP = 0.12f;
     static constexpr auto OFF = 0.0f;
@@ -78,6 +82,8 @@ static float gainToSourceAlpha(source_index_t const sourceIndex, float const gai
     lastAlpha = std::max(lastAlpha - RAMP, OFF);
     return lastAlpha;
 }
+
+} // namespace
 
 //==============================================================================
 MainContentComponent::MainContentComponent(MainWindow & mainWindow,
@@ -226,7 +232,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
 
     //==============================================================================
     auto const startOsc = [&]() {
-        mOscInput.reset(new OscInput(*this));
+        mOscInput.reset(new OscInput(*this, mLogBuffer));
         mOscInput->startConnection(mData.project.oscPort);
     };
 
@@ -479,7 +485,7 @@ void MainContentComponent::handleShowPreferences()
 void MainContentComponent::handleShowOscMonitorWindow()
 {
     if (!mOscMonitorWindow) {
-        mOscMonitorWindow = std::make_unique<OscMonitorWindow>(*this, mLookAndFeel);
+        mOscMonitorWindow = std::make_unique<OscMonitorWindow>(mLogBuffer, *this, mLookAndFeel);
     }
 }
 
@@ -830,6 +836,9 @@ void MainContentComponent::handleResetMeterClipping()
     }
     for (auto const & slice : mSpeakerSliceComponents) {
         slice.value->resetClipping();
+    }
+    for (auto const & slice : mStereoSliceComponents) {
+        slice->resetClipping();
     }
 }
 
@@ -1303,7 +1312,7 @@ void MainContentComponent::updatePeaks()
 
     auto & audioData{ mAudioProcessor->getAudioData() };
     auto *& sourcePeaksTicket{ mData.mostRecentSourcePeaks };
-    audioData.sourcePeaks.getMostRecent(sourcePeaksTicket);
+    audioData.sourcePeaksUpdater.getMostRecent(sourcePeaksTicket);
     if (!sourcePeaksTicket) {
         return;
     }
@@ -1343,7 +1352,7 @@ void MainContentComponent::updatePeaks()
 
     if (mData.appData.stereoMode) {
         auto *& stereoPeaksTicket{ mData.mostRecentStereoPeaks };
-        audioData.stereoPeaks.getMostRecent(stereoPeaksTicket);
+        audioData.stereoPeaksUpdater.getMostRecent(stereoPeaksTicket);
         if (stereoPeaksTicket == nullptr) {
             return;
         }
@@ -1358,7 +1367,7 @@ void MainContentComponent::updatePeaks()
     }
 
     auto *& speakerPeaksTicket{ mData.mostRecentSpeakerPeaks };
-    audioData.speakerPeaks.getMostRecent(speakerPeaksTicket);
+    audioData.speakerPeaksUpdater.getMostRecent(speakerPeaksTicket);
     if (speakerPeaksTicket == nullptr) {
         return;
     }
@@ -1643,6 +1652,18 @@ void MainContentComponent::setSpeakerHighPassFreq(output_patch_t const outputPat
         speaker.highpassData = SpeakerHighpassData{ freq };
     }
     refreshAudioProcessor();
+}
+
+//==============================================================================
+void MainContentComponent::setOscPort(int const newOscPort)
+{
+    juce::ScopedWriteLock const lock{ mLock };
+    mData.project.oscPort = newOscPort;
+    if (!mOscInput) {
+        return;
+    }
+    mOscInput->closeConnection();
+    mOscInput->startConnection(newOscPort);
 }
 
 //==============================================================================
@@ -2338,7 +2359,7 @@ void MainContentComponent::prepareAndStartRecording(juce::File const & fileOrDir
         return result;
     };
 
-    auto speakersToRecord{ getSpeakersToRecord() };
+    auto speakersToRecord = getSpeakersToRecord();
 
     AudioManager::RecordingParameters const recordingParams{ fileOrDirectory.getFullPathName(),
                                                              mData.appData.recordingOptions,
@@ -2375,3 +2396,5 @@ void MainContentComponent::resized()
                                      false,
                                      true);
 }
+
+} // namespace gris

@@ -33,6 +33,8 @@
 
 #include <JuceHeader.h>
 
+namespace gris
+{
 struct SourceData;
 
 using InverseMatrix = std::array<float, 9>;
@@ -68,3 +70,5 @@ std::unique_ptr<VbapData> vbapInit(std::array<Position, MAX_NUM_SPEAKERS> & spea
 void vbapCompute(SourceData const & source, SpeakersSpatGains & gains, VbapData & data) noexcept;
 
 juce::Array<Triplet> vbapExtractTriplets(VbapData const & data);
+
+} // namespace gris

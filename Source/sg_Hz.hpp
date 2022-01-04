@@ -21,10 +21,15 @@
 
 #include "sg_StrongFloat.hpp"
 
+namespace gris
+{
 //==============================================================================
+/** Strongly-typed hertz. */
 class hz_t final : public StrongFloat<float, hz_t, struct HzT>
 {
 public:
     hz_t() = default;
     explicit constexpr hz_t(type const & value) : StrongFloat(value) {}
 };
+
+} // namespace gris

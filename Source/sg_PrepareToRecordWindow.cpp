@@ -22,14 +22,19 @@
 #include "sg_GrisLookAndFeel.hpp"
 #include "sg_MainComponent.hpp"
 
-static constexpr int PADDING = 10;
-static constexpr auto BUTTONS_WIDTH = 100;
-static constexpr auto BUTTONS_HEIGHT = 30;
-static constexpr auto WIDTH = 600;
-static constexpr auto NUM_ROWS = 3;
-static constexpr auto HEIGHT = PADDING * (NUM_ROWS + 1) + BUTTONS_HEIGHT * NUM_ROWS;
+namespace gris
+{
+namespace
+{
+constexpr int PADDING = 10;
+constexpr auto BUTTONS_WIDTH = 100;
+constexpr auto BUTTONS_HEIGHT = 30;
+constexpr auto WIDTH = 600;
+constexpr auto NUM_ROWS = 3;
+constexpr auto HEIGHT = PADDING * (NUM_ROWS + 1) + BUTTONS_HEIGHT * NUM_ROWS;
 
 using flags = juce::FileBrowserComponent::FileChooserFlags;
+} // namespace
 
 //==============================================================================
 PrepareToRecordComponent::PrepareToRecordComponent(juce::File const & recordingDirectory,
@@ -311,3 +316,5 @@ void PrepareToRecordWindow::closeButtonPressed()
     JUCE_ASSERT_MESSAGE_THREAD;
     mMainContentComponent.closePrepareToRecordWindow();
 }
+
+} // namespace gris

@@ -21,17 +21,16 @@
 
 #include "sg_AbstractSpatAlgorithm.hpp"
 #include "sg_AudioStructs.hpp"
-#include "sg_StrongArray.hpp"
 #include "sg_TaggedAudioBuffer.hpp"
 
 #include <JuceHeader.h>
 
+namespace gris
+{
 class SpeakerModel;
 
 //==============================================================================
-/**
- * Does most of the spatialization heavy-lifting.
- */
+/** Holds the spatialization algorithm instance and does most of the audio processing. */
 class AudioProcessor
 {
     AudioData mAudioData{};
@@ -42,11 +41,7 @@ public:
     //==============================================================================
     AudioProcessor();
     ~AudioProcessor();
-    //==============================================================================
-    AudioProcessor(AudioProcessor const &) = delete;
-    AudioProcessor(AudioProcessor &&) = delete;
-    AudioProcessor & operator=(AudioProcessor const &) = delete;
-    AudioProcessor & operator=(AudioProcessor &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(AudioProcessor)
     //==============================================================================
     void setAudioConfig(std::unique_ptr<AudioConfig> newAudioConfig);
     [[nodiscard]] juce::CriticalSection const & getLock() const noexcept { return mLock; }
@@ -67,3 +62,4 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(AudioProcessor)
 };
+} // namespace gris

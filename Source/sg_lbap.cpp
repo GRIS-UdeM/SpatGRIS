@@ -36,6 +36,8 @@
 #include "sg_Narrow.hpp"
 #include "sg_constants.hpp"
 
+namespace gris
+{
 //==============================================================================
 /* Bilinear interpolation to retrieve the value at position (x, y) in a 2D matrix. */
 static float bilinearInterpolation(matrix_t const & matrix, float const x, float const y)
@@ -276,3 +278,5 @@ void lbap(SourceData const & source, SpeakersSpatGains & gains, LbapField const 
         gains[outputPatch] = tempGains[i];
     }
 }
+
+} // namespace gris

@@ -19,4 +19,9 @@
 
 #pragma once
 
+namespace gris
+{
+/** A simple function that fills multiple audio buffers with pink noise. */
 void fillWithPinkNoise(float * const * samples, int numSamples, int numChannels, float gain);
+
+} // namespace gris

@@ -22,12 +22,17 @@
 #include "sg_GrisLookAndFeel.hpp"
 #include "sg_MainComponent.hpp"
 
-static constexpr auto MIN_WIDTH = 400;
-static constexpr auto MIN_HEIGHT = 25;
+namespace
+{
+constexpr auto MIN_WIDTH = 400;
+constexpr auto MIN_HEIGHT = 25;
+auto const COLOR_1 = juce::Colours::blue.withBrightness(0.3f).withSaturation(0.2f);
+auto const COLOR_2 = juce::Colours::blue.withBrightness(0.2f).withSaturation(0.2f);
 
-static auto const COLOR_1 = juce::Colours::blue.withBrightness(0.3f).withSaturation(0.2f);
-static auto const COLOR_2 = juce::Colours::blue.withBrightness(0.2f).withSaturation(0.2f);
+} // namespace
 
+namespace gris
+{
 //==============================================================================
 InfoPanel::InfoPanel(MainContentComponent & mainContentComponent, GrisLookAndFeel const & lookAndFeel)
     : mMainContentComponent(mainContentComponent)
@@ -40,7 +45,7 @@ InfoPanel::InfoPanel(MainContentComponent & mainContentComponent, GrisLookAndFee
         addAndMakeVisible(label);
     };
 
-    auto const labels{ getLabels() };
+    auto const labels = getLabels();
 
     for (auto * label : labels) {
         primeLabel(*label);
@@ -109,7 +114,7 @@ void InfoPanel::setNumOutputs(int const numOutputs)
 //==============================================================================
 void InfoPanel::resized()
 {
-    auto const labels{ getLabels() };
+    auto const labels = getLabels();
     auto const availableWidth{ narrow<float>(getWidth()) };
     auto const labelWidthFloat{ availableWidth / narrow<float>(labels.size()) };
     auto const labelWidthInt{ narrow<int>(std::round(labelWidthFloat)) };
@@ -180,3 +185,5 @@ void InfoPanel::setComponentsColors(juce::Array<juce::Label *> const & labels)
         mCpuLabel.setColour(juce::Label::ColourIds::backgroundColourId, PEAK_COLOR);
     }
 }
+
+} // namespace gris

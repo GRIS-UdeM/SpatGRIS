@@ -22,6 +22,8 @@
 #include "sg_CartesianVector.hpp"
 #include "sg_PolarVector.hpp"
 
+namespace gris
+{
 //==============================================================================
 class Position
 {
@@ -34,13 +36,12 @@ public:
     explicit Position(PolarVector const & polar) : mPolar(polar), mCartesian(CartesianVector{ polar }) {}
     explicit Position(CartesianVector const & cartesian) : mPolar(PolarVector{ cartesian }), mCartesian(cartesian) {}
     ~Position() = default;
+    SG_DEFAULT_COPY_AND_MOVE(Position)
     //==============================================================================
-    Position(Position const &) = default;
-    Position(Position &&) = default;
-    Position & operator=(Position const &) = default;
-    Position & operator=(Position &&) = default;
-    //==============================================================================
-    [[nodiscard]] constexpr auto const & getPolar() const noexcept { return mPolar; }
+    [[nodiscard]] constexpr auto const & getPolar() const noexcept
+    {
+        return mPolar;
+    }
     [[nodiscard]] constexpr auto const & getCartesian() const noexcept { return mCartesian; }
     //==============================================================================
     [[nodiscard]] constexpr bool operator==(Position const & other) const noexcept;
@@ -82,3 +83,5 @@ constexpr bool Position::operator==(Position const & other) const noexcept
 
 //==============================================================================
 static_assert(std::is_trivially_destructible_v<Position>);
+
+} // namespace gris

@@ -21,6 +21,8 @@
 
 #include "sg_GrisLookAndFeel.hpp"
 
+namespace gris
+{
 //==============================================================================
 DirectOutSelectorComponent::DirectOutSelectorComponent(tl::optional<output_patch_t> const & directOut,
                                                        std::shared_ptr<Choices> choices,
@@ -111,3 +113,5 @@ void DirectOutSelectorComponent::resized()
 {
     mButton.setBounds(getLocalBounds());
 }
+
+} // namespace gris

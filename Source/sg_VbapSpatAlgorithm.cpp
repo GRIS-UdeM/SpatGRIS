@@ -23,6 +23,8 @@
 #include "sg_StrongArray.hpp"
 #include "sg_TaggedAudioBuffer.hpp"
 
+namespace gris
+{
 //==============================================================================
 VbapType getVbapType(SpeakersData const & speakers)
 {
@@ -225,3 +227,5 @@ std::unique_ptr<AbstractSpatAlgorithm> VbapSpatAlgorithm::make(SpeakerSetup cons
 
     return std::make_unique<DummySpatAlgorithm>(Error::flatDomeSpeakersTooFarApart);
 }
+
+} // namespace gris

@@ -31,6 +31,8 @@
 
 #include <cstdlib>
 
+namespace gris
+{
 //==============================================================================
 struct TripletData {
     std::array<std::size_t, 3> tripletSpeakerNumber{}; /* Triplet speaker numbers */
@@ -742,3 +744,5 @@ juce::Array<Triplet> vbapExtractTriplets(VbapData const & data)
     }
     return result;
 }
+
+} // namespace gris

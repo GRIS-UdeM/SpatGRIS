@@ -29,6 +29,8 @@ DISABLE_WARNING_UNREFERENCED_FUNCTION
 DISABLE_WARNING_POP
 #endif
 
+namespace gris
+{
 //==============================================================================
 // For some unknown reason, glutSolidSphere() crashes on Windows (and also maybe on Linux). This might be due to a
 // conflict between glm, freeglut and juce's OpenGL implementations.
@@ -71,3 +73,5 @@ static auto inline drawSphere = [](float const r) {
 
     juce::gl::glPopMatrix();
 };
+
+} // namespace gris

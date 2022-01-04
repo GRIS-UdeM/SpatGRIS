@@ -24,7 +24,13 @@
 
 #include <JuceHeader.h>
 
+namespace gris
+{
 //==============================================================================
+/** Holds multiple audio buffers that can be accessed using a strongly typed index value.
+ *
+ * Note that all buffers are mono.
+ */
 template<typename KeyType, size_t Capacity>
 class TaggedAudioBuffer
 {
@@ -117,7 +123,6 @@ public:
             auto const * const origin{ buffer.value->getReadPointer(0) };
             auto * const dest{ outs[outIndex] };
             std::copy_n(origin, mNumSamples, dest);
-            // std::transform(origin, origin + mNumSamples, dest, dest, std::plus());
         }
     }
     //==============================================================================
@@ -132,3 +137,4 @@ public:
 //==============================================================================
 using SourceAudioBuffer = TaggedAudioBuffer<source_index_t, MAX_NUM_SOURCES>;
 using SpeakerAudioBuffer = TaggedAudioBuffer<output_patch_t, MAX_NUM_SPEAKERS>;
+} // namespace gris

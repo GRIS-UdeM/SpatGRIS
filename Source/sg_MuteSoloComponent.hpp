@@ -23,6 +23,8 @@
 #include "sg_LogicStrucs.hpp"
 #include "sg_SmallToggleButton.hpp"
 
+namespace gris
+{
 class GrisLookAndFeel;
 class SmallGrisLookAndFeel;
 
@@ -38,10 +40,7 @@ public:
     public:
         Listener() = default;
         virtual ~Listener() = default;
-        Listener(Listener const &) = default;
-        Listener(Listener &&) = default;
-        Listener & operator=(Listener const &) = default;
-        Listener & operator=(Listener &&) = default;
+        SG_DEFAULT_COPY_AND_MOVE(Listener)
         //==============================================================================
         virtual void muteSoloButtonClicked(SliceState state) = 0;
     };
@@ -60,11 +59,7 @@ public:
     //==============================================================================
     MuteSoloComponent(Listener & listener, GrisLookAndFeel & lookAndFeel, SmallGrisLookAndFeel & smallLookAndFeel);
     ~MuteSoloComponent() override = default;
-    //==============================================================================
-    MuteSoloComponent(MuteSoloComponent const &) = delete;
-    MuteSoloComponent(MuteSoloComponent &&) = delete;
-    MuteSoloComponent & operator=(MuteSoloComponent const &) = delete;
-    MuteSoloComponent & operator=(MuteSoloComponent &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(MuteSoloComponent)
     //==============================================================================
     void setPortState(SliceState state);
     //==============================================================================
@@ -78,3 +73,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(MuteSoloComponent)
 };
+
+} // namespace gris

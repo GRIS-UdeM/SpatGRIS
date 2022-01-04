@@ -22,12 +22,16 @@
 #include <cmath>
 #include <type_traits>
 
+namespace gris
+{
 //==============================================================================
+/** Used for validating template parameters using std::is_base_of_v<>. */
 class StrongFloatBase
 {
 };
 
 //==============================================================================
+/** CRPT base for a float-based strong type. */
 template<typename T, typename Derived, typename Dummy>
 class StrongFloat : public StrongFloatBase
 {
@@ -131,3 +135,5 @@ Derived & StrongFloat<T, Derived, Dummy>::operator/=(type const & mod) noexcept
     mValue /= mod;
     return *static_cast<Derived *>(this);
 }
+
+} // namespace gris

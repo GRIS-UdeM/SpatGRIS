@@ -24,6 +24,8 @@
 #include "sg_TaggedAudioBuffer.hpp"
 #include "sg_lbap.hpp"
 
+namespace gris
+{
 struct LbapSpatData {
     SpeakersSpatGains gains{};
     float lbapSourceDistance{};
@@ -48,11 +50,7 @@ public:
     //==============================================================================
     LbapSpatAlgorithm() = delete;
     ~LbapSpatAlgorithm() override = default;
-    //==============================================================================
-    LbapSpatAlgorithm(LbapSpatAlgorithm const &) = delete;
-    LbapSpatAlgorithm(LbapSpatAlgorithm &&) = delete;
-    LbapSpatAlgorithm & operator=(LbapSpatAlgorithm const &) = delete;
-    LbapSpatAlgorithm & operator=(LbapSpatAlgorithm &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(LbapSpatAlgorithm)
     //==============================================================================
     explicit LbapSpatAlgorithm(SpeakersData const & speakers);
     //==============================================================================
@@ -72,3 +70,5 @@ public:
 private:
     JUCE_LEAK_DETECTOR(LbapSpatAlgorithm)
 };
+
+} // namespace gris

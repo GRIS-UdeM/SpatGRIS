@@ -39,6 +39,8 @@ constexpr auto LABEL_HEIGHT = 18;
 constexpr auto COL_INNER_PADDING = 3;
 } // namespace
 
+namespace gris
+{
 //==============================================================================
 GainsSubPanel::GainsSubPanel(MainContentComponent & mainContentComponent, GrisLookAndFeel & lookAndFeel)
     : SubPanelComponent(LayoutComponent::Orientation::horizontal, lookAndFeel)
@@ -545,3 +547,5 @@ void ControlPanel::recordButtonPressed()
     JUCE_ASSERT_MESSAGE_THREAD;
     mMainContentComponent.recordButtonPressed();
 }
+
+} // namespace gris

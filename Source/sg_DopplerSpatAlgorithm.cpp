@@ -23,6 +23,8 @@
 
     #include "sg_Meters.hpp"
 
+namespace gris
+{
 static void interpolate(float const * inputSamples,
                         int const numInputSamples,
                         float * outputSamples,
@@ -197,5 +199,7 @@ bool DopplerSpatAlgorithm::hasTriplets() const noexcept
     JUCE_ASSERT_MESSAGE_THREAD;
     return false;
 }
+
+} // namespace gris
 
 #endif

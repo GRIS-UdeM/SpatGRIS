@@ -21,6 +21,8 @@
 
 #include "sg_GrisLookAndFeel.hpp"
 
+namespace gris
+{
 //==============================================================================
 TitledComponent::TitledComponent(juce::String title,
                                  MinSizedComponent * contentComponent,
@@ -52,3 +54,5 @@ void TitledComponent::paint(juce::Graphics & g)
         g.drawText(mTitle, 0, 0, getWidth(), TITLE_HEIGHT + 2, juce::Justification::left);
     }
 }
+
+} // namespace gris

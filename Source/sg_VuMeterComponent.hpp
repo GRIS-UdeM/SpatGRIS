@@ -22,6 +22,8 @@
 #include "sg_Dbfs.hpp"
 #include "sg_MinSizedComponent.hpp"
 
+namespace gris
+{
 class SmallGrisLookAndFeel;
 
 class VuMeterComponent final : public MinSizedComponent
@@ -43,11 +45,7 @@ public:
     //==============================================================================
     explicit VuMeterComponent(SmallGrisLookAndFeel & lookAndFeel) : mLookAndFeel(lookAndFeel) {}
     ~VuMeterComponent() override = default;
-    //==============================================================================
-    VuMeterComponent(VuMeterComponent const &) = delete;
-    VuMeterComponent(VuMeterComponent &&) = delete;
-    VuMeterComponent & operator=(VuMeterComponent const &) = delete;
-    VuMeterComponent & operator=(VuMeterComponent &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(VuMeterComponent)
     //==============================================================================
     void resized() override;
     void resetClipping();
@@ -63,3 +61,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(VuMeterComponent)
 };
+
+} // namespace gris

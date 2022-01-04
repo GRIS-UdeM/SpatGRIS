@@ -28,6 +28,7 @@
 #include "sg_FlatViewWindow.hpp"
 #include "sg_InfoPanel.hpp"
 #include "sg_LayoutComponent.hpp"
+#include "sg_LogBuffer.hpp"
 #include "sg_LogicStrucs.hpp"
 #include "sg_OscInput.hpp"
 #include "sg_OscMonitor.hpp"
@@ -42,6 +43,8 @@
 #include "sg_TitledComponent.hpp"
 #include "sg_constants.hpp"
 
+namespace gris
+{
 class MainWindow;
 
 //==============================================================================
@@ -123,6 +126,7 @@ class MainContentComponent final
     MainWindow & mMainWindow;
 
     std::unique_ptr<juce::MenuBarComponent> mMenuBar{};
+    LogBuffer mLogBuffer{};
     //==============================================================================
     // App user settings.
 
@@ -141,12 +145,7 @@ public:
     //==============================================================================
     MainContentComponent() = delete;
     ~MainContentComponent() override;
-
-    MainContentComponent(MainContentComponent const &) = delete;
-    MainContentComponent(MainContentComponent &&) = delete;
-
-    MainContentComponent & operator=(MainContentComponent const &) = delete;
-    MainContentComponent & operator=(MainContentComponent &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(MainContentComponent)
     //==============================================================================
     [[nodiscard]] bool exitApp();
 
@@ -167,6 +166,7 @@ public:
     void speakerOutputPatchChanged(output_patch_t oldOutputPatch, output_patch_t newOutputPatch);
     void setSpeakerGain(output_patch_t outputPatch, dbfs_t gain);
     void setSpeakerHighPassFreq(output_patch_t outputPatch, hz_t freq);
+    void setOscPort(int newOscPort);
 
     void setPinkNoiseGain(tl::optional<dbfs_t> gain);
 
@@ -212,8 +212,6 @@ public:
 
     [[nodiscard]] AudioProcessor & getAudioProcessor() { return *mAudioProcessor; }
     [[nodiscard]] AudioProcessor const & getAudioProcessor() const { return *mAudioProcessor; }
-
-    [[nodiscard]] std::unique_ptr<OscMonitorWindow> & getOscMonitor() { return mOscMonitorWindow; }
 
     void refreshSpeakers();
 
@@ -302,3 +300,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(MainContentComponent)
 };
+
+} // namespace gris

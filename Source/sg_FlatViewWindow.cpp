@@ -24,6 +24,8 @@
 #include "sg_Narrow.hpp"
 #include "sg_constants.hpp"
 
+namespace gris
+{
 namespace
 {
 float constexpr SOURCE_RADIUS = 10.0f;
@@ -315,3 +317,5 @@ void FlatViewWindow::closeButtonPressed()
 {
     mMainContentComponent.closeFlatViewWindow();
 }
+
+} // namespace gris

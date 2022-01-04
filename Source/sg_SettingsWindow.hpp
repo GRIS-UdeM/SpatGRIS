@@ -21,6 +21,8 @@
 
 #include "sg_Configuration.hpp"
 
+namespace gris
+{
 class MainContentComponent;
 class GrisLookAndFeel;
 
@@ -31,23 +33,13 @@ class SettingsComponent final
     , public juce::ComboBox::Listener
     , public juce::TextEditor::Listener
 {
-    static constexpr auto PADDING = 20;
-    static constexpr auto LEFT_COL_WIDTH = 150;
-    static constexpr auto RIGHT_COL_WIDTH = 150;
-
-    static constexpr auto LEFT_COL_START = PADDING;
-    static constexpr auto RIGHT_COL_START = LEFT_COL_START + LEFT_COL_WIDTH + PADDING;
-
-    static constexpr auto COMPONENT_HEIGHT = 22;
-
-    static constexpr auto LINE_SKIP = 30;
-    static constexpr auto SECTION_SKIP = 50;
-
     juce::StringArray mInputDevices{};
     juce::StringArray mOutputDevices{};
 
     MainContentComponent & mMainContentComponent;
     GrisLookAndFeel & mLookAndFeel;
+
+    int mOscPortWhenLoaded;
 
     //==============================================================================
     juce::Label mAudioSectionLabel{ "", "Audio Settings" };
@@ -80,13 +72,8 @@ public:
     SettingsComponent(MainContentComponent & parent, int oscPort, GrisLookAndFeel & lookAndFeel);
     //==============================================================================
     SettingsComponent() = delete;
-    ~SettingsComponent() override = default;
-
-    SettingsComponent(SettingsComponent const &) = delete;
-    SettingsComponent(SettingsComponent &&) = delete;
-
-    SettingsComponent & operator=(SettingsComponent const &) = delete;
-    SettingsComponent & operator=(SettingsComponent &&) = delete;
+    ~SettingsComponent() override;
+    SG_DELETE_COPY_AND_MOVE(SettingsComponent)
     //==============================================================================
 
     void buttonClicked(juce::Button * button) override;
@@ -114,12 +101,7 @@ public:
     //==============================================================================
     SettingsWindow() = delete;
     ~SettingsWindow() override = default;
-
-    SettingsWindow(SettingsWindow const &) = delete;
-    SettingsWindow(SettingsWindow &&) = delete;
-
-    SettingsWindow & operator=(SettingsWindow const &) = delete;
-    SettingsWindow & operator=(SettingsWindow &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(SettingsWindow)
     //==============================================================================
     void closeButtonPressed() override;
 
@@ -127,3 +109,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(SettingsWindow)
 }; // class PropertiesWindow
+
+} // namespace gris

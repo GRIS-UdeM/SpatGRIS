@@ -26,6 +26,8 @@
 
 #include "lib/tl/optional.hpp"
 
+namespace gris
+{
 class EditableTextCustomComponent;
 class MainContentComponent;
 class GrisLookAndFeel;
@@ -101,11 +103,7 @@ public:
     //==============================================================================
     EditSpeakersWindow() = delete;
     ~EditSpeakersWindow() override = default;
-    //==============================================================================
-    EditSpeakersWindow(EditSpeakersWindow const &) = delete;
-    EditSpeakersWindow(EditSpeakersWindow &&) = delete;
-    EditSpeakersWindow & operator=(EditSpeakersWindow const &) = delete;
-    EditSpeakersWindow & operator=(EditSpeakersWindow &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(EditSpeakersWindow)
     //==============================================================================
     void initComp();
     void selectRow(tl::optional<int> value);
@@ -142,3 +140,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(EditSpeakersWindow)
 };
+
+} // namespace gris

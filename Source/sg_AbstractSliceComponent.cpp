@@ -19,6 +19,8 @@
 
 #include "sg_AbstractSliceComponent.hpp"
 
+namespace gris
+{
 //==============================================================================
 AbstractSliceComponent::AbstractSliceComponent(GrisLookAndFeel & lookAndFeel, SmallGrisLookAndFeel & smallLookAndFeel)
     : mLayout(LayoutComponent::Orientation::vertical, false, false, lookAndFeel)
@@ -40,3 +42,5 @@ void AbstractSliceComponent::setState(SliceState const state, bool const soloMod
 
     repaint();
 }
+
+} // namespace gris

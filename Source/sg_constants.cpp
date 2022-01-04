@@ -21,6 +21,8 @@
 
 #include "BinaryData.h"
 
+namespace gris
+{
 SpatGrisVersion const SPAT_GRIS_VERSION{ SpatGrisVersion::fromString(JUCE_STRINGIFY(JUCE_APP_VERSION)) };
 
 #if defined(__linux__) || defined(WIN32)
@@ -47,7 +49,7 @@ juce::File const DEFAULT_PROJECT_FILE{ DEFAULT_PROJECT_DIRECTORY.getChildFile("d
 juce::File const DEFAULT_SPEAKER_SETUP_FILE{ DEFAULT_PROJECT_DIRECTORY.getChildFile("default_speaker_setup.xml") };
 juce::File const BINAURAL_SPEAKER_SETUP_FILE{ DEFAULT_PROJECT_DIRECTORY.getChildFile("BINAURAL_SPEAKER_SETUP.xml") };
 juce::File const STEREO_SPEAKER_SETUP_FILE{ DEFAULT_PROJECT_DIRECTORY.getChildFile("STEREO_SPEAKER_SETUP.xml") };
-juce::File const MANUAL_FILE{ RESOURCES_DIR.getChildFile("SpatGRIS_3.1.2_Manual.pdf") };
+juce::File const MANUAL_FILE{ RESOURCES_DIR.getChildFile("SpatGRIS_3.1_Manual.pdf") };
 juce::File const ICON_SMALL_FILE{ RESOURCES_DIR.getChildFile("ServerGRIS_icon_splash_small.png") };
 juce::File const HRTF_FOLDER_0{ RESOURCES_DIR.getChildFile("hrtf_compact/elev" + juce::String(0) + "/") };
 juce::File const HRTF_FOLDER_40{ RESOURCES_DIR.getChildFile("hrtf_compact/elev" + juce::String(40) + "/") };
@@ -93,7 +95,7 @@ static ProjectTemplates getProjectTemplates()
 }
 
 SpeakerSetupTemplates const SPEAKER_SETUP_TEMPLATES{ getSpeakerSetupTemplates() };
-ProjectTemplates const PROJECT_TEMPLATES{ getProjectTemplates() };
+ProjectTemplates const PROJECT_TEMPLATES = getProjectTemplates();
 
 //==============================================================================
 juce::StringArray const RECORDING_FORMAT_STRINGS{ "WAV",
@@ -232,7 +234,7 @@ tl::optional<FileTemplate const &> commandIdToTemplate(juce::CommandID commandId
 //==============================================================================
 tl::optional<int> attenuationDbToComboBoxIndex(dbfs_t const attenuation)
 {
-    static auto const ALLOWED_VALUES{ stringToStronglyTypedFloat<dbfs_t>(ATTENUATION_DB_STRINGS) };
+    static auto const ALLOWED_VALUES = stringToStronglyTypedFloat<dbfs_t>(ATTENUATION_DB_STRINGS);
 
     auto const index{ ALLOWED_VALUES.indexOf(attenuation) };
     if (index < 0) {
@@ -244,7 +246,7 @@ tl::optional<int> attenuationDbToComboBoxIndex(dbfs_t const attenuation)
 //==============================================================================
 tl::optional<int> attenuationFreqToComboBoxIndex(hz_t const freq)
 {
-    static auto const ALLOWED_VALUES{ stringToStronglyTypedFloat<hz_t>(ATTENUATION_FREQUENCY_STRINGS) };
+    static auto const ALLOWED_VALUES = stringToStronglyTypedFloat<hz_t>(ATTENUATION_FREQUENCY_STRINGS);
 
     auto const index{ ALLOWED_VALUES.indexOf(freq) };
     if (index < 0) {
@@ -252,3 +254,5 @@ tl::optional<int> attenuationFreqToComboBoxIndex(hz_t const freq)
     }
     return index + 1;
 }
+
+} // namespace gris

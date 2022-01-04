@@ -21,6 +21,8 @@
 
 #include "sg_MinSizedComponent.hpp"
 
+namespace gris
+{
 class GrisLookAndFeel;
 
 //==============================================================================
@@ -36,11 +38,7 @@ public:
     public:
         Listener() = default;
         virtual ~Listener() = default;
-        //==============================================================================
-        Listener(Listener const &) = delete;
-        Listener(Listener &&) = delete;
-        Listener & operator=(Listener const &) = delete;
-        Listener & operator=(Listener &&) = delete;
+        SG_DEFAULT_COPY_AND_MOVE(Listener)
         //==============================================================================
         virtual void recordButtonPressed() = 0;
 
@@ -63,11 +61,7 @@ public:
     //==============================================================================
     explicit RecordButton(Listener & listener, GrisLookAndFeel & lookAndFeel);
     ~RecordButton() override = default;
-    //==============================================================================
-    RecordButton(RecordButton const &) = delete;
-    RecordButton(RecordButton &&) = delete;
-    RecordButton & operator=(RecordButton const &) = delete;
-    RecordButton & operator=(RecordButton &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(RecordButton)
     //==============================================================================
     void setState(State state);
     //==============================================================================
@@ -87,3 +81,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(RecordButton)
 };
+
+} // namespace gris

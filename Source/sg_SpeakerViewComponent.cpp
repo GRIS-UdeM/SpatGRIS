@@ -24,6 +24,8 @@
 
 #include <algorithm>
 
+namespace gris
+{
 juce::Colour const SpeakerViewComponent::COLOR_SPEAKER{ 222u, 222u, 222u };
 juce::Colour const SpeakerViewComponent::COLOR_DIRECT_OUT_SPEAKER{ 64u, 64u, 64u };
 juce::Colour const SpeakerViewComponent::COLOR_SPEAKER_SELECT{ 255u, 163u, 23u };
@@ -69,16 +71,16 @@ bool isOpenGlOrMessageThread()
 //==============================================================================
 Position SpeakerViewComponent::getCameraPosition() const noexcept
 {
-    JUCE_ASSERT_MESSAGE_THREAD;
+    JUCE_ASSERT_MESSAGE_THREAD
     juce::ScopedLock const lock{ mLock };
 
     return mData.coldData.cameraPosition;
 }
 
 //==============================================================================
-void SpeakerViewComponent::setConfig(WarmViewportConfig const & config, SourcesData const & sources)
+void SpeakerViewComponent::setConfig(ViewportConfig const & config, SourcesData const & sources)
 {
-    JUCE_ASSERT_MESSAGE_THREAD;
+    JUCE_ASSERT_MESSAGE_THREAD
     juce::ScopedLock const lock{ mLock };
 
     mData.warmData = config;
@@ -92,7 +94,7 @@ void SpeakerViewComponent::setConfig(WarmViewportConfig const & config, SourcesD
 //==============================================================================
 void SpeakerViewComponent::setCameraPosition(CartesianVector const & position) noexcept
 {
-    JUCE_ASSERT_MESSAGE_THREAD;
+    JUCE_ASSERT_MESSAGE_THREAD
     juce::ScopedLock const lock{ mLock };
 
     mData.coldData.cameraPosition = PolarVector{ position };
@@ -101,7 +103,7 @@ void SpeakerViewComponent::setCameraPosition(CartesianVector const & position) n
 //==============================================================================
 void SpeakerViewComponent::setTriplets(juce::Array<Triplet> triplets) noexcept
 {
-    JUCE_ASSERT_MESSAGE_THREAD;
+    JUCE_ASSERT_MESSAGE_THREAD
     juce::ScopedLock const lock{ mLock };
     mData.coldData.triplets = std::move(triplets);
 }
@@ -256,11 +258,12 @@ void SpeakerViewComponent::clickRay()
     gluUnProject(winX, winY, 0.0, matModelView, matProjection, viewport, &mXs, &mYs, &mZs);
     gluUnProject(winX, winY, 1.0, matModelView, matProjection, viewport, &mXe, &mYe, &mZe);
 
-    mRay.setRay(glm::vec3{ mXs, mYs, mZs }, glm::vec3{ mXe, mYe, mZe });
+    mRay.setRay(CartesianVector{ static_cast<float>(mXs), static_cast<float>(mYs), static_cast<float>(mZs) },
+                CartesianVector{ static_cast<float>(mXe), static_cast<float>(mYe), static_cast<float>(mZe) });
 
     tl::optional<output_patch_t> iBestSpeaker{};
     auto const & speakers{ mData.warmData.speakers };
-    for (auto const speaker : speakers) {
+    for (auto const & speaker : speakers) {
         if (rayCast(speaker.value.position.getCartesian()) != -1.0f) {
             if (!iBestSpeaker) {
                 iBestSpeaker = speaker.key;
@@ -525,10 +528,10 @@ void SpeakerViewComponent::drawOriginGrid() const
     drawText("Y", CartesianVector{ -HALF_CHAR_WIDTH, MAX_RADIUS, 0.0f }, juce::Colours::white, 0.0005f);
     drawText("Z", CartesianVector{ -HALF_CHAR_WIDTH, 0.0f, MAX_RADIUS + 0.03f }, juce::Colours::white, 0.0005f);
 
-    drawTextOnGrid("0", glm::vec3(0.02f, 0.94f, 0.0f), 0.00035f);
-    drawTextOnGrid("90", glm::vec3(0.91f, -0.08f, 0.0f), 0.00035f);
-    drawTextOnGrid("180", glm::vec3(0.03f, -0.94f, 0.0f), 0.00035f);
-    drawTextOnGrid("270", glm::vec3(-0.98f, -0.08f, 0.0f), 0.00035f);
+    drawTextOnGrid("0", CartesianVector(0.02f, 0.94f, 0.0f), 0.00035f);
+    drawTextOnGrid("90", CartesianVector(0.91f, -0.08f, 0.0f), 0.00035f);
+    drawTextOnGrid("180", CartesianVector(0.03f, -0.94f, 0.0f), 0.00035f);
+    drawTextOnGrid("270", CartesianVector(-0.98f, -0.08f, 0.0f), 0.00035f);
 }
 
 //==============================================================================
@@ -554,14 +557,14 @@ void SpeakerViewComponent::drawText(juce::String const & val,
     juce::gl::glScalef(scale, scale, scale);
     juce::gl::glColor4f(color.getFloatRed(), color.getFloatGreen(), color.getFloatBlue(), color.getAlpha());
     for (auto const c : val) {
-        glutStrokeCharacter(GLUT_STROKE_MONO_ROMAN, c);
+        glutStrokeCharacter(GLUT_STROKE_MONO_ROMAN, narrow<int>(c));
     }
     juce::gl::glTranslatef(-position.x, -position.y, -position.z);
     juce::gl::glPopMatrix();
 }
 
 //==============================================================================
-void SpeakerViewComponent::drawTextOnGrid(std::string const & val, glm::vec3 const position, float const scale)
+void SpeakerViewComponent::drawTextOnGrid(std::string const & val, CartesianVector const & position, float const scale)
 {
     ASSERT_IS_OPEN_GL_OR_MESSAGE_THREAD;
 
@@ -647,8 +650,9 @@ void SpeakerViewComponent::drawSource(source_index_t const index, ViewportSource
         case SpatMode::vbap:
             drawVbapSpan(source);
             break;
-        default:
+        case SpatMode::hybrid:
             jassertfalse;
+            break;
         }
     }
 
@@ -1008,3 +1012,5 @@ bool SpeakerViewComponent::speakerNearCam(CartesianVector const & speak1, Cartes
     auto const distance2{ (speak2 - camPosition).length2() };
     return distance1 < distance2;
 }
+
+} // namespace gris

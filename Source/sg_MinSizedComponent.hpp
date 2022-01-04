@@ -19,8 +19,12 @@
 
 #pragma once
 
+#include "sg_Macros.hpp"
+
 #include <JuceHeader.h>
 
+namespace gris
+{
 //==============================================================================
 class MinSizedComponent
     : public juce::Component
@@ -29,11 +33,7 @@ class MinSizedComponent
 public:
     MinSizedComponent() = default;
     ~MinSizedComponent() override = default;
-    //==============================================================================
-    MinSizedComponent(MinSizedComponent const &) = delete;
-    MinSizedComponent(MinSizedComponent &&) = delete;
-    MinSizedComponent & operator=(MinSizedComponent const &) = delete;
-    MinSizedComponent & operator=(MinSizedComponent &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(MinSizedComponent)
     //==============================================================================
     [[nodiscard]] virtual int getMinWidth() const noexcept = 0;
     [[nodiscard]] virtual int getMinHeight() const noexcept = 0;
@@ -42,3 +42,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(MinSizedComponent)
 };
+
+} // namespace gris

@@ -19,17 +19,19 @@
 
 #pragma once
 
+#include "sg_LogBuffer.hpp"
 #include "sg_SourceIndex.hpp"
 
-#include <JuceHeader.h>
+#include "lib/tl/optional.hpp"
 
+namespace gris
+{
 class MainContentComponent;
 
 //==============================================================================
 class OscInput final
     : private juce::OSCReceiver
     , private juce::OSCReceiver::Listener<juce::OSCReceiver::RealtimeCallback>
-    , public juce::ActionBroadcaster
 {
     enum class MessageType {
         invalid,
@@ -41,19 +43,18 @@ class OscInput final
     };
 
     MainContentComponent & mMainContentComponent;
+    LogBuffer & mLogBuffer;
 
 public:
     //==============================================================================
-    explicit OscInput(MainContentComponent & parent) : mMainContentComponent(parent) {}
-    //==============================================================================
+    OscInput(MainContentComponent & parent, LogBuffer & logBuffer)
+        : mMainContentComponent(parent)
+        , mLogBuffer(logBuffer)
+    {
+    }
     OscInput() = delete;
     ~OscInput() override;
-
-    OscInput(OscInput const &) = delete;
-    OscInput(OscInput &&) = delete;
-
-    OscInput & operator=(OscInput const &) = delete;
-    OscInput & operator=(OscInput &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(OscInput)
     //==============================================================================
     bool startConnection(int port);
     bool closeConnection() { return this->disconnect(); }
@@ -77,11 +78,20 @@ private:
     void processSourceResetPositionMessage(juce::OSCMessage const & message) const noexcept;
     void processLegacySourceResetPositionMessage(juce::OSCMessage const & message) const noexcept;
     void processSourceHybridModeMessage(juce::OSCMessage const & message) const noexcept;
+    MessageType getMessageType(juce::OSCMessage const & message) const noexcept;
+
+    enum class SourceIndexBase { fromZero, fromOne };
+
+    tl::optional<source_index_t> extractSourceIndex(juce::OSCArgument const & arg,
+                                                    SourceIndexBase const base) const noexcept;
+    //==============================================================================
+    void addToBuffer(juce::String const & string) const;
+    void addErrorToBuffer(juce::String const & string) const;
     //==============================================================================
     void oscMessageReceived(juce::OSCMessage const & message) override;
     void oscBundleReceived(juce::OSCBundle const & bundle) override;
     //==============================================================================
-    static MessageType getMessageType(juce::OSCMessage const & message) noexcept;
-    //==============================================================================
     JUCE_LEAK_DETECTOR(OscInput)
 };
+
+} // namespace gris

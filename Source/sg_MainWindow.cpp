@@ -19,6 +19,8 @@
 
 #include "sg_MainWindow.hpp"
 
+namespace gris
+{
 //==============================================================================
 MainWindow::MainWindow(juce::String const & name,
                        GrisLookAndFeel & newLookAndFeel,
@@ -90,3 +92,5 @@ juce::ApplicationCommandManager & MainWindow::getApplicationCommandManager()
 {
     return mApplicationCommandManager;
 }
+
+} // namespace gris

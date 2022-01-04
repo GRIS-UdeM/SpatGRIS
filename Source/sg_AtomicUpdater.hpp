@@ -19,8 +19,11 @@
 
 #pragma once
 
+#include "sg_Macros.hpp"
 #include "sg_StaticVector.hpp"
 
+namespace gris
+{
 //==============================================================================
 /** This class implements a thread-safe lock-free single-writer/single-reader communication interface.
  *
@@ -73,11 +76,7 @@ public:
     //==============================================================================
     AtomicUpdater() = default;
     ~AtomicUpdater() = default;
-    //==============================================================================
-    AtomicUpdater(AtomicUpdater const &) = delete;
-    AtomicUpdater(AtomicUpdater &&) = delete;
-    AtomicUpdater & operator=(AtomicUpdater const &) = delete;
-    AtomicUpdater & operator=(AtomicUpdater &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(AtomicUpdater)
     //==============================================================================
     /** @returns a pointer to previously unused token. Use setMostRecent() to return the data to the updater after
      * writing to it. */
@@ -153,3 +152,5 @@ void AtomicUpdater<T>::setMostRecent(Token * newMostRecent) noexcept
     // This update replaced an unread token: free it
     oldMostRecent->mIsFree.store(true);
 }
+
+} // namespace gris

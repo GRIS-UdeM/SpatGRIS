@@ -19,6 +19,8 @@
 
 #include "sg_MuteSoloComponent.hpp"
 
+namespace gris
+{
 //==============================================================================
 MuteSoloComponent::MuteSoloComponent(Listener & listener,
                                      GrisLookAndFeel & lookAndFeel,
@@ -84,3 +86,5 @@ void MuteSoloComponent::smallButtonClicked(SmallToggleButton * button, bool cons
     }
     jassertfalse;
 }
+
+} // namespace gris

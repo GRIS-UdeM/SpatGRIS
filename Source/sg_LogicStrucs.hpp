@@ -30,8 +30,10 @@
 #include "sg_StaticMap.hpp"
 #include "sg_Triplet.hpp"
 
-static constexpr auto DEFAULT_OSC_INPUT_PORT = 18032;
-static constexpr auto MAX_OSC_INPUT_PORT = 65535;
+namespace gris
+{
+constexpr auto DEFAULT_OSC_INPUT_PORT = 18032;
+constexpr auto MAX_OSC_INPUT_PORT = 65535;
 
 //==============================================================================
 /** The classical states of a mixing slice (input or output). */
@@ -42,13 +44,17 @@ enum class SliceState { normal, muted, solo };
 //==============================================================================
 /** For the following data structures, we use the following semantics:
  *
- * COLD : no concurrent access.
- * WARM : concurrent access, but never during a performance. Usually done with a lock.
- * HOT  : concurrent access DURING PERFORMANCE. Usually done with a lockless pattern.
+ * COLD  : no concurrent access. All reads and writes happen on the same thread.
+ * WARM  : concurrent access, but never during a performance. Usually done with a lock.
+ * HOT   : concurrent access DURING PERFORMANCE. Usually done with an AtomicUpdater<>.
+ * MIXED : a top-level structure that holds multiple access patterns.
+ *
+ * Note that the term "Config" is associated with WARM data transmitted from the message thread to another thread and
+ * that the term "State" is associate with COLD data created and accessed by something else that the message thread.
  */
 
 //==============================================================================
-/** The settings associated with the 3D viewport.
+/** The settings associated with the 2D and 3D viewports.
  *
  * COLD
  */
@@ -61,9 +67,7 @@ struct ViewSettings {
     bool showSphereOrCube{ false };
     bool showSourceActivity{ false };
     //==============================================================================
-    /** Used for saving. */
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
-    /** Used for loading. */
     [[nodiscard]] static tl::optional<ViewSettings> fromXml(juce::XmlElement const & xml);
     //==============================================================================
     struct XmlTags {
@@ -79,21 +83,26 @@ struct ViewSettings {
 };
 
 //==============================================================================
-/** The data needed in order to properly display a source in the 3D viewport.
+/** The data needed to display a source in the 3D viewport.
  *
  * HOT
  */
 struct ViewportSourceData {
     Position position{};
+    /** Between 0 and 1. */
     float azimuthSpan{};
+    /** Between 0 and 1. */
     float zenithSpan{};
     juce::Colour colour{};
+    /** Only used in hybrid mode. */
     SpatMode hybridSpatMode{};
 };
+
+/** The updater type used to send a source's data from the message thread to the OpenGL thread. */
 using ViewportSourceDataUpdater = AtomicUpdater<tl::optional<ViewportSourceData>>;
 
 //==============================================================================
-/** The WARM data needed in order to properly display a speaker in the 3D viewport.
+/** The data needed to display a speaker in the 3D viewport.
  *
  * WARM
  */
@@ -102,16 +111,16 @@ struct ViewportSpeakerConfig {
     bool isSelected{};
     bool isDirectOutOnly{};
 };
-/** An updater used by the 3D viewport to read the speakers' alpha levels. The writer is the message thread and the
- * reader is the OpenGL thread. */
+
+/** The updater type used to send a speaker's alpha level from the message thread to the OpenGL thread. */
 using ViewportSpeakerAlphaUpdater = AtomicUpdater<float>;
 
 //==============================================================================
-/** The data needed by the 3D viewport that will be updated, but only once in a while with a mutex.
+/** The data needed by the 3D viewport.
  *
  * WARM
  */
-struct WarmViewportConfig {
+struct ViewportConfig {
     StaticMap<output_patch_t, ViewportSpeakerConfig, MAX_NUM_SPEAKERS> speakers{};
     ViewSettings viewSettings{};
     SpatMode spatMode{};
@@ -119,7 +128,10 @@ struct WarmViewportConfig {
 };
 
 //==============================================================================
-/** The COLD 3D viewport's data. */
+/** The inner (no concurrent access) 3D viewport data.
+ *
+ * COLD
+ */
 struct ViewportState {
     StrongArray<source_index_t, ViewportSourceDataUpdater::Token *, MAX_NUM_SOURCES> mostRecentSourcesData{};
     StrongArray<output_patch_t, ViewportSpeakerAlphaUpdater::Token *, MAX_NUM_SPEAKERS> mostRecentSpeakersAlpha{};
@@ -131,23 +143,29 @@ struct ViewportState {
     juce::Point<float> panMouseOrigin{};
     PolarVector panCameraOrigin{};
     float displayScaling{};
-    juce::Array<Triplet> triplets{};
+    juce::Array<Triplet> triplets{}; // TODO : this should be part of the ViewportConfig?
 };
 
 //==============================================================================
-/** All of the 3D viewport's data. */
+/** All of the 3D viewport's data.
+ *
+ * MIXED
+ */
 struct ViewportData {
-    WarmViewportConfig warmData{};
+    ViewportConfig warmData{};
     ViewportState coldData{};
     StaticMap<source_index_t, ViewportSourceDataUpdater, MAX_NUM_SOURCES> hotSourcesDataUpdaters{};
     StrongArray<output_patch_t, ViewportSpeakerAlphaUpdater, MAX_NUM_SPEAKERS> hotSpeakersAlphaUpdaters{};
 };
 
 //==============================================================================
-/** TODO */
+/** All of the data associated with a source.
+ *
+ * COLD
+ */
 struct SourceData {
-    SliceState state{};
-    tl::optional<Position> position{}; // tl::nullopt if source is inactive
+    SliceState state{};                // normal / muted / solo
+    tl::optional<Position> position{}; // tl::nullopt if the source is inactive
     float azimuthSpan{};
     float zenithSpan{};
     tl::optional<output_patch_t> directOut{};
@@ -395,5 +413,6 @@ struct SpatGrisData {
     AtomicUpdater<StereoPeaks>::Token * mostRecentStereoPeaks{};
     //==============================================================================
     [[nodiscard]] std::unique_ptr<AudioConfig> toAudioConfig() const;
-    [[nodiscard]] WarmViewportConfig toViewportConfig() const noexcept;
+    [[nodiscard]] ViewportConfig toViewportConfig() const noexcept;
 };
+} // namespace gris

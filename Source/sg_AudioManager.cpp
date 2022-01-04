@@ -24,12 +24,16 @@
 
 // #define SIMULATE_NO_AUDIO_DEVICES
 
+namespace gris
+{
+//==============================================================================
 juce::BigInteger const NEEDED_INPUT_CHANNELS{ [] {
     juce::BigInteger channels{};
     channels.setRange(0, MAX_NUM_SOURCES, true);
     return channels;
 }() };
 
+//==============================================================================
 juce::BigInteger const NEEDED_OUTPUT_CHANNELS{ [] {
     juce::BigInteger channels{};
     channels.setRange(0, MAX_NUM_SPEAKERS, true);
@@ -103,7 +107,7 @@ void AudioManager::audioDeviceIOCallback(float const ** inputChannelData,
     // copy input data to buffers
     auto const numInputChannelsToCopy{ std::min(totalNumInputChannels, mInputBuffer.size()) };
     for (int i{}; i < numInputChannelsToCopy; ++i) {
-        source_index_t const sourceIndex{ i + 1 };
+        source_index_t const sourceIndex{ i + source_index_t::OFFSET };
         auto const * sourceData{ inputChannelData[i] };
         auto * destinationData{ mInputBuffer[sourceIndex].getWritePointer(0) };
         std::copy_n(sourceData, numSamples, destinationData);
@@ -142,8 +146,8 @@ void AudioManager::audioDeviceIOCallback(float const ** inputChannelData,
         for (auto const & recorder : mRecorders) {
             jassert(recorder->audioFormatWriter->getNumChannels() == recorder->dataToRecord.size());
             auto const success{ recorder->threadedWriter->write(recorder->dataToRecord.data(), numSamples) };
-            jassert(success);
             if (!success) {
+                jassertfalse;
                 stopRecordingAndDisplayError();
             }
         }
@@ -234,6 +238,30 @@ void AudioManager::registerAudioProcessor(AudioProcessor * audioProcessor)
 }
 
 //==============================================================================
+juce::AudioDeviceManager const & AudioManager::getAudioDeviceManager() const
+{
+    return mAudioDeviceManager;
+}
+
+//==============================================================================
+juce::AudioDeviceManager & AudioManager::getAudioDeviceManager()
+{
+    return mAudioDeviceManager;
+}
+
+//==============================================================================
+bool AudioManager::isRecording() const
+{
+    return mIsRecording;
+}
+
+//==============================================================================
+int64_t AudioManager::getNumSamplesRecorded() const
+{
+    return mNumSamplesRecorded.get();
+}
+
+//==============================================================================
 juce::StringArray AudioManager::getAvailableDeviceTypeNames()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -291,7 +319,7 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
              double const sampleRate_,
              int const bufferSize_,
              juce::Array<float const *> dataToRecord,
-             juce::TimeSliceThread & timeSlicedThread) -> std::unique_ptr<RecorderInfo> {
+             juce::TimeSliceThread & timeSlicedThread) -> std::unique_ptr<FileRecorder> {
         juce::StringPairArray const metaData{}; // lets leave this empty for now
 
         juce::File const outputFile{ path };
@@ -314,7 +342,7 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
             std::make_unique<juce::AudioFormatWriter::ThreadedWriter>(audioFormatWriter, timeSlicedThread, bufferSize_)
         };
         jassert(threadedWriter);
-        auto result{ std::make_unique<RecorderInfo>() };
+        auto result{ std::make_unique<FileRecorder>() };
         result->audioFormatWriter = audioFormatWriter;
         result->threadedWriter = std::move(threadedWriter);
         result->dataToRecord = std::move(dataToRecord);
@@ -430,7 +458,7 @@ bool AudioManager::prepareToRecord(RecordingParameters const & recordingParams)
     auto const makeInterleavedSpeakersRecorder = [&]() {
         jassert(filePaths.size() == 1);
         auto const & filePath{ filePaths[0] };
-        auto dataToRecord{ mOutputBuffer.getArrayOfReadPointers(recordingParams.speakersToRecord) };
+        auto dataToRecord = mOutputBuffer.getArrayOfReadPointers(recordingParams.speakersToRecord);
         auto recordingInfo{ MAKE_RECORDING_INFO(filePath,
                                                 *audioFormat,
                                                 recordingParams.sampleRate,
@@ -580,3 +608,4 @@ void AudioManager::free()
     JUCE_ASSERT_MESSAGE_THREAD;
     mInstance.reset();
 }
+} // namespace gris

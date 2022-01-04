@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include "sg_CartesianVector.hpp"
+
 #include "sg_Warnings.hpp"
 
 #include <JuceHeader.h>
@@ -36,23 +38,24 @@ DISABLE_WARNING_UNREFERENCED_FUNCTION
     #include <OpenGl/glu.h>
 #endif
 
-#include "../glm/glm.hpp"
 DISABLE_WARNING_POP
 
+namespace gris
+{
 //==============================================================================
 class Ray
 {
-    glm::vec3 mPosition{ 0.0f, 0.0f, 0.0f };
-    glm::vec3 mDirection{ 0.0f, 0.0f, 0.0f };
-    glm::vec3 mNormal{ 0.0f, 0.0f, 0.0f };
+    CartesianVector mPosition{ 0.0f, 0.0f, 0.0f };
+    CartesianVector mDirection{ 0.0f, 0.0f, 0.0f };
+    CartesianVector mNormal{ 0.0f, 0.0f, 0.0f };
 
 public:
     //==============================================================================
-    void setRay(glm::vec3 const & p, glm::vec3 const & d);
+    void setRay(CartesianVector const & p, CartesianVector const & d);
     //==============================================================================
-    [[nodiscard]] glm::vec3 const & getNormal() const { return this->mNormal; }
-    [[nodiscard]] glm::vec3 const & getPosition() const { return this->mPosition; }
-    [[nodiscard]] glm::vec3 const & getDirection() const { return this->mDirection; }
+    [[nodiscard]] CartesianVector const & getNormal() const { return this->mNormal; }
+    [[nodiscard]] CartesianVector const & getPosition() const { return this->mPosition; }
+    [[nodiscard]] CartesianVector const & getDirection() const { return this->mDirection; }
     //==============================================================================
     void draw() const;
 
@@ -60,3 +63,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(Ray)
 };
+
+} // namespace gris

@@ -21,8 +21,12 @@
 
 #pragma once
 
+#include "sg_Macros.hpp"
+
 #include <JuceHeader.h>
 
+namespace gris
+{
 class MainContentComponent;
 class GrisLookAndFeel;
 
@@ -37,12 +41,7 @@ public:
     //==============================================================================
     AboutWindow() = delete;
     ~AboutWindow() override = default;
-
-    AboutWindow(AboutWindow const &) = delete;
-    AboutWindow(AboutWindow &&) = delete;
-
-    AboutWindow & operator=(AboutWindow const &) = delete;
-    AboutWindow & operator=(AboutWindow &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(AboutWindow)
     //==============================================================================
     void closeButtonPressed() override;
 
@@ -71,12 +70,7 @@ public:
     //==============================================================================
     AboutComponent() = delete;
     ~AboutComponent() override = default;
-
-    AboutComponent(AboutComponent const &) = delete;
-    AboutComponent(AboutComponent &&) = delete;
-
-    AboutComponent & operator=(AboutComponent const &) = delete;
-    AboutComponent & operator=(AboutComponent &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(AboutComponent)
     //==============================================================================
     void buttonClicked([[maybe_unused]] juce::Button * button) override { mParentWindow.closeButtonPressed(); }
 
@@ -84,3 +78,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(AboutComponent)
 }; // class AboutComponent
+
+} // namespace gris

@@ -19,6 +19,8 @@
 
 #include "sg_SpeakerSliceComponent.hpp"
 
+namespace gris
+{
 //==============================================================================
 void SpeakerSliceComponent::setSelected(bool const value)
 {
@@ -62,3 +64,5 @@ SpeakerSliceComponent::SpeakerSliceComponent(output_patch_t const outputPatch,
 
     setSelected(false);
 }
+
+} // namespace gris

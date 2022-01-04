@@ -23,11 +23,17 @@
 #include "sg_MainComponent.hpp"
 #include "sg_constants.hpp"
 
-static constexpr auto COMPONENT_WIDTH = 200;
-static constexpr auto ROW_HEIGHT = 23;
-static constexpr auto EDITOR_WIDTH = 50;
-static constexpr auto BUTTON_WIDTH = 80;
-static constexpr auto PADDING = 12;
+namespace gris
+{
+namespace
+{
+constexpr auto COMPONENT_WIDTH = 200;
+constexpr auto ROW_HEIGHT = 23;
+constexpr auto EDITOR_WIDTH = 50;
+constexpr auto BUTTON_WIDTH = 80;
+constexpr auto PADDING = 12;
+
+} // namespace
 
 //==============================================================================
 AddRemoveSourcesComponent::AddRemoveSourcesComponent(int const currentNumberOfSources,
@@ -137,3 +143,5 @@ void AddRemoveSourcesWindow::closeButtonPressed()
     JUCE_ASSERT_MESSAGE_THREAD;
     mMainContentComponent.closeAddRemoveSourcesWindow();
 }
+
+} // namespace gris

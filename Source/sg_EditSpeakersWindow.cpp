@@ -24,6 +24,8 @@
 #include "sg_MainComponent.hpp"
 #include "sg_Narrow.hpp"
 
+namespace gris
+{
 //==============================================================================
 static Position getLegalSpeakerPosition(Position const & position,
                                         SpatMode const spatMode,
@@ -1178,7 +1180,7 @@ void EditSpeakersWindow::mouseDrag(juce::MouseEvent const & event)
         return;
     }
 
-    auto order{ mMainContentComponent.getData().speakerSetup.ordering };
+    auto order = mMainContentComponent.getData().speakerSetup.ordering;
     order.swap(selectedRow, newIndex);
 
     mMainContentComponent.reorderSpeakers(order);
@@ -1189,3 +1191,5 @@ void EditSpeakersWindow::mouseDrag(juce::MouseEvent const & event)
 
     updateWinContent();
 }
+
+} // namespace gris

@@ -21,6 +21,8 @@
 
 #include "sg_LayoutComponent.hpp"
 
+namespace gris
+{
 class GrisLookAndFeel;
 
 //==============================================================================
@@ -33,11 +35,7 @@ public:
     //==============================================================================
     SubPanelComponent(LayoutComponent::Orientation orientation, GrisLookAndFeel & lookAndFeel);
     ~SubPanelComponent() override = default;
-    //==============================================================================
-    SubPanelComponent(SubPanelComponent const &) = delete;
-    SubPanelComponent(SubPanelComponent &&) = delete;
-    SubPanelComponent & operator=(SubPanelComponent const &) = delete;
-    SubPanelComponent & operator=(SubPanelComponent &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(SubPanelComponent)
     //==============================================================================
     LayoutComponent::Section & addSection(MinSizedComponent * component) { return mLayout.addSection(component); }
     LayoutComponent::Section & addSection(MinSizedComponent & component) { return mLayout.addSection(component); }
@@ -49,3 +47,5 @@ public:
     [[nodiscard]] int getMinWidth() const noexcept override;
     [[nodiscard]] int getMinHeight() const noexcept override;
 };
+
+} // namespace gris

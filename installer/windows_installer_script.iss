@@ -3,7 +3,7 @@
 #define AppURL "http://gris.musique.umontreal.ca/"
 #define AppExeName "SpatGris.exe"
 #define ControlGrisDir "ControlGris"
-#define ManualName "SpatGRIS_3.1.2_Manual.pdf"
+#define ManualName "SpatGRIS_3.1_Manual.pdf"
 #define RootDir ".."
 
 #define BuildDir RootDir + "\Builds\VisualStudio2019\x64\Release\App"
@@ -32,7 +32,7 @@ ArchitecturesInstallIn64BitMode=x64
 Compression=lzma
 DefaultDirName={autopf}\{#AppName}
 DisableProgramGroupPage=yes
-LicenseFile="..\license.txt"
+LicenseFile="..\LICENSE"
 OutputDir=.
 OutputBaseFilename="{#AppName}_{#AppVersion}_Windows_x64"  
 PrivilegesRequired=admin 

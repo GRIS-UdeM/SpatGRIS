@@ -22,6 +22,8 @@
 #include "sg_GrisLookAndFeel.hpp"
 #include "sg_MainWindow.hpp"
 
+namespace gris
+{
 //==============================================================================
 class SpatGrisApplication final : public juce::JUCEApplication
 {
@@ -33,14 +35,12 @@ public:
     //==============================================================================
     SpatGrisApplication() = default;
     ~SpatGrisApplication() override = default;
-
-    SpatGrisApplication(SpatGrisApplication const &) = delete;
-    SpatGrisApplication(SpatGrisApplication &&) = delete;
-
-    SpatGrisApplication & operator=(SpatGrisApplication const &) = delete;
-    SpatGrisApplication & operator=(SpatGrisApplication &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(SpatGrisApplication)
     //==============================================================================
-    [[nodiscard]] const juce::String getApplicationName() override { return ProjectInfo::projectName; }
+    [[nodiscard]] const juce::String getApplicationName() override
+    {
+        return ProjectInfo::projectName;
+    }
     [[nodiscard]] const juce::String getApplicationVersion() override { return ProjectInfo::versionString; }
     [[nodiscard]] bool moreThanOneInstanceAllowed() override { return true; }
     void initialise(const juce::String & /*commandLine*/) override;
@@ -52,3 +52,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(SpatGrisApplication)
 };
+
+} // namespace gris

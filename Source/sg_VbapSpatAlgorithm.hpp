@@ -20,11 +20,12 @@
 #pragma once
 
 #include "sg_AbstractSpatAlgorithm.hpp"
-#include "sg_StaticMap.hpp"
 #include "sg_StrongArray.hpp"
 #include "sg_TaggedAudioBuffer.hpp"
 #include "sg_vbap.hpp"
 
+namespace gris
+{
 VbapType getVbapType(SpeakersData const & speakers);
 
 struct VbapSourceData {
@@ -45,11 +46,7 @@ public:
     //==============================================================================
     explicit VbapSpatAlgorithm(SpeakersData const & speakers);
     ~VbapSpatAlgorithm() override = default;
-    //==============================================================================
-    VbapSpatAlgorithm(VbapSpatAlgorithm const &) = delete;
-    VbapSpatAlgorithm(VbapSpatAlgorithm &&) = delete;
-    VbapSpatAlgorithm & operator=(VbapSpatAlgorithm const &) = delete;
-    VbapSpatAlgorithm & operator=(VbapSpatAlgorithm &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(VbapSpatAlgorithm)
     //==============================================================================
     void updateSpatData(source_index_t sourceIndex, SourceData const & sourceData) noexcept override;
     void process(AudioConfig const & config,
@@ -67,3 +64,5 @@ public:
 private:
     JUCE_LEAK_DETECTOR(VbapSpatAlgorithm)
 };
+
+} // namespace gris

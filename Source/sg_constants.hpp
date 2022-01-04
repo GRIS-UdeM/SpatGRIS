@@ -27,6 +27,8 @@
 #include "lib/tl/optional.hpp"
 #include <JuceHeader.h>
 
+namespace gris
+{
 //==============================================================================
 struct SpatGrisVersion {
     int major;
@@ -137,3 +139,5 @@ extern juce::Array<int> const ATTENUATION_FREQUENCY_VALUES;
 //==============================================================================
 [[nodiscard]] tl::optional<int> attenuationDbToComboBoxIndex(dbfs_t attenuation);
 [[nodiscard]] tl::optional<int> attenuationFreqToComboBoxIndex(hz_t freq);
+
+} // namespace gris

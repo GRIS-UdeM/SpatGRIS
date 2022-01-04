@@ -21,6 +21,8 @@
 
 #include "sg_constants.hpp"
 
+namespace gris
+{
 //==============================================================================
 juce::StringArray const SPAT_MODE_STRINGS{ "Dome", "Cube", "Hybrid" };
 juce::StringArray const SPAT_MODE_TOOLTIPS{ "Equidistant speaker dome implemented using the VBAP algorithm",
@@ -84,3 +86,5 @@ tl::optional<StereoMode> stringToStereoMode(juce::String const & string)
 {
     return stringToEnum<StereoMode>(string, STEREO_MODE_STRINGS);
 }
+
+} // namespace gris

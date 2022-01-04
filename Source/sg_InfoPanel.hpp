@@ -21,6 +21,8 @@
 
 #include "sg_MinSizedComponent.hpp"
 
+namespace gris
+{
 class GrisLookAndFeel;
 class MainContentComponent;
 
@@ -42,11 +44,7 @@ public:
     //==============================================================================
     explicit InfoPanel(MainContentComponent & mainContentComponent, GrisLookAndFeel const & lookAndFeel);
     ~InfoPanel() override = default;
-    //==============================================================================
-    InfoPanel(InfoPanel const &) = delete;
-    InfoPanel(InfoPanel &&) = delete;
-    InfoPanel & operator=(InfoPanel const &) = delete;
-    InfoPanel & operator=(InfoPanel &&) = delete;
+    SG_DELETE_COPY_AND_MOVE(InfoPanel)
     //==============================================================================
     void setCpuLoad(double percentage);
     void setSampleRate(double sampleRate);
@@ -66,3 +64,5 @@ private:
     //==============================================================================
     JUCE_LEAK_DETECTOR(InfoPanel)
 };
+
+} // namespace gris

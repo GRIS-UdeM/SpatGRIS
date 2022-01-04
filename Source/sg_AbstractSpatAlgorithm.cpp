@@ -29,6 +29,8 @@
     #include "sg_DopplerSpatAlgorithm.hpp"
 #endif
 
+namespace gris
+{
 //==============================================================================
 bool isOscThread()
 {
@@ -118,3 +120,5 @@ std::unique_ptr<AbstractSpatAlgorithm> AbstractSpatAlgorithm::make(SpeakerSetup 
     jassertfalse;
     return nullptr;
 }
+
+} // namespace gris

@@ -21,6 +21,8 @@
 
 #include "sg_GrisLookAndFeel.hpp"
 
+namespace gris
+{
 //==============================================================================
 SmallToggleButton::SmallToggleButton(bool const isToggle,
                                      juce::String const & text,
@@ -127,3 +129,5 @@ void SmallToggleButton::mouseUp(const juce::MouseEvent & event)
 
     mListener.smallButtonClicked(this, mButton.getToggleState(), isLeftButton);
 }
+
+} // namespace gris

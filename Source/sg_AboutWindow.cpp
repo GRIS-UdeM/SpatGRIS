@@ -23,6 +23,8 @@
 #include "sg_MainComponent.hpp"
 #include "sg_constants.hpp"
 
+namespace gris
+{
 //==============================================================================
 AboutComponent::AboutComponent(AboutWindow & parentWindow, GrisLookAndFeel & lookAndFeel) : mParentWindow(parentWindow)
 {
@@ -107,3 +109,5 @@ void AboutWindow::closeButtonPressed()
 {
     mMainContentComponent.closeAboutWindow();
 }
+
+} // namespace gris

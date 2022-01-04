@@ -34,6 +34,8 @@ using fast = juce::dsp::FastMathApproximations;
     #define ACOS(x) std::acos(x)
 #endif
 
+namespace gris
+{
 //==============================================================================
 PolarVector::PolarVector(CartesianVector const & cartesian) noexcept
 {
@@ -60,3 +62,5 @@ PolarVector::PolarVector(CartesianVector const & cartesian) noexcept
         * (cartesian.y < 0.0f ? -1.0f : 1.0f)
     };
 }
+
+} // namespace gris
