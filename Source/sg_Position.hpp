@@ -38,10 +38,7 @@ public:
     ~Position() = default;
     SG_DEFAULT_COPY_AND_MOVE(Position)
     //==============================================================================
-    [[nodiscard]] constexpr auto const & getPolar() const noexcept
-    {
-        return mPolar;
-    }
+    [[nodiscard]] constexpr auto const & getPolar() const noexcept { return mPolar; }
     [[nodiscard]] constexpr auto const & getCartesian() const noexcept { return mCartesian; }
     //==============================================================================
     [[nodiscard]] constexpr bool operator==(Position const & other) const noexcept;

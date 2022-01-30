@@ -52,10 +52,7 @@ public:
     ~SpatButton() override = default;
     SG_DELETE_COPY_AND_MOVE(SpatButton)
     //==============================================================================
-    [[nodiscard]] int getMinWidth() const noexcept override
-    {
-        return mWidth;
-    }
+    [[nodiscard]] int getMinWidth() const noexcept override { return mWidth; }
     [[nodiscard]] int getMinHeight() const noexcept override { return mHeight; }
     void resized() override;
 

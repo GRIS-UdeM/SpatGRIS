@@ -47,10 +47,7 @@ public:
     ~Box() override { this->mContent.deleteAllChildren(); }
     SG_DELETE_COPY_AND_MOVE(Box)
     //==============================================================================
-    [[nodiscard]] Component * getContent()
-    {
-        return &this->mContent;
-    }
+    [[nodiscard]] Component * getContent() { return &this->mContent; }
     [[nodiscard]] Component const * getContent() const { return &this->mContent; }
     [[nodiscard]] juce::Viewport * getViewport() { return &mViewport; }
 

@@ -35,10 +35,7 @@ public:
     explicit constexpr dbfs_t(type const & value) : StrongFloat(value) {}
     SG_DEFAULT_COPY_AND_MOVE(dbfs_t)
     //==============================================================================
-    [[nodiscard]] type toGain() const
-    {
-        return juce::Decibels::decibelsToGain(mValue);
-    }
+    [[nodiscard]] type toGain() const { return juce::Decibels::decibelsToGain(mValue); }
     static dbfs_t fromGain(type const gain) { return dbfs_t{ juce::Decibels::gainToDecibels(gain) }; }
 };
 

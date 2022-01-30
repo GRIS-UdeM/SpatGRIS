@@ -37,10 +37,7 @@ public:
     ~SpatGrisApplication() override = default;
     SG_DELETE_COPY_AND_MOVE(SpatGrisApplication)
     //==============================================================================
-    [[nodiscard]] const juce::String getApplicationName() override
-    {
-        return ProjectInfo::projectName;
-    }
+    [[nodiscard]] const juce::String getApplicationName() override { return ProjectInfo::projectName; }
     [[nodiscard]] const juce::String getApplicationVersion() override { return ProjectInfo::versionString; }
     [[nodiscard]] bool moreThanOneInstanceAllowed() override { return true; }
     void initialise(const juce::String & /*commandLine*/) override;
