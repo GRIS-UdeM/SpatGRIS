@@ -27,12 +27,11 @@ namespace gris
 /* This class implements the desktop window that contains an instance of
    our MainContentComponent class.
 */
-class MainWindow final
-    : public juce::DocumentWindow
-    , public juce::TooltipWindow
+class MainWindow final : public juce::DocumentWindow
 {
     juce::ApplicationCommandManager mApplicationCommandManager{};
-    std::unique_ptr<MainContentComponent> mMainContentComponent{};
+    MainContentComponent mMainContentComponent;
+    juce::TooltipWindow mTooltipWindow;
 
 public:
     //==============================================================================
@@ -43,7 +42,7 @@ public:
     ~MainWindow() override = default;
     SG_DELETE_COPY_AND_MOVE(MainWindow)
     //==============================================================================
-    [[nodiscard]] bool exitWinApp() const;
+    [[nodiscard]] bool exitWinApp();
     [[nodiscard]] juce::ApplicationCommandManager & getApplicationCommandManager();
     //==============================================================================
     void closeButtonPressed() override;

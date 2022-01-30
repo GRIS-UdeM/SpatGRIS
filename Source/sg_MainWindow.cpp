@@ -26,10 +26,11 @@ MainWindow::MainWindow(juce::String const & name,
                        GrisLookAndFeel & newLookAndFeel,
                        SmallGrisLookAndFeel & smallGrisLookAndFeel)
     : DocumentWindow(name, juce::Colours::lightgrey, DocumentWindow::allButtons)
-    , mMainContentComponent(std::make_unique<MainContentComponent>(*this, newLookAndFeel, smallGrisLookAndFeel))
+    , mMainContentComponent(*this, newLookAndFeel, smallGrisLookAndFeel)
+    , mTooltipWindow(&mMainContentComponent)
 {
     setUsingNativeTitleBar(true);
-    setContentOwned(mMainContentComponent.get(), true);
+    setContentNonOwned(&mMainContentComponent, true);
     setResizable(true, true);
 
     // this lets the command manager use keypresses that arrive in our window.
@@ -46,7 +47,7 @@ MainWindow::MainWindow(juce::String const & name,
 
     auto const screenBounds = juce::Desktop::getInstance().getDisplays().getTotalBounds(true);
 
-    auto const & appData{ mMainContentComponent->getData().appData };
+    auto const & appData{ mMainContentComponent.getData().appData };
     auto const windowX{ appData.windowX };
     if (windowX != -1) {
         auto const windowWidth{ appData.windowWidth };
@@ -66,9 +67,9 @@ MainWindow::MainWindow(juce::String const & name,
 }
 
 //==============================================================================
-bool MainWindow::exitWinApp() const
+bool MainWindow::exitWinApp()
 {
-    return mMainContentComponent->exitApp();
+    return mMainContentComponent.exitApp();
 }
 
 //==============================================================================
