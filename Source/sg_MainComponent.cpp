@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS.
 
- Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
+ Developers: Gaël Lane Lépine, Samuel Béland, Olivier Bélanger, Nicolas Masson
 
  SpatGRIS is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -518,6 +518,19 @@ void MainContentComponent::handleShow2DView()
 }
 
 //==============================================================================
+void MainContentComponent::handleShowPlayerWindow()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    if (mPlayerWindow) {
+        mPlayerWindow->toFront(true);
+        return;
+    }
+
+    mPlayerWindow = std::make_unique<PlayerWindow>(*this, mLookAndFeel);
+}
+
+//==============================================================================
 void MainContentComponent::handleShowAbout()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -864,7 +877,7 @@ void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & command
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    constexpr std::array<CommandId, 24> ids{
+    constexpr std::array<CommandId, 25> ids{
         CommandId::newProjectId,
         CommandId::openProjectId,
         CommandId::saveProjectId,
@@ -874,6 +887,7 @@ void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & command
         CommandId::saveSpeakerSetupAsId,
         CommandId::showSpeakerEditId,
         CommandId::show2DViewId,
+        CommandId::showPlayerWindowId,
         CommandId::showOscMonitorId,
         CommandId::showSourceNumbersId,
         CommandId::showSpeakerNumbersId,
@@ -954,6 +968,10 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
     case CommandId::show2DViewId:
         result.setInfo("Show 2D View", "Show the 2D action window.", generalCategory, 0);
         result.addDefaultKeypress('D', juce::ModifierKeys::altModifier);
+        return;
+    case CommandId::showPlayerWindowId:
+        result.setInfo("Show Player View", "Show the sound player window.", generalCategory, 0);
+        result.addDefaultKeypress('P', juce::ModifierKeys::commandModifier);
         return;
     case CommandId::showOscMonitorId:
         result.setInfo("Show OSC monitor", "Show the OSC monitor window", generalCategory, 0);
@@ -1065,6 +1083,9 @@ bool MainContentComponent::perform(InvocationInfo const & info)
             break;
         case CommandId::show2DViewId:
             handleShow2DView();
+            break;
+        case CommandId::showPlayerWindowId:
+            handleShowPlayerWindow();
             break;
         case CommandId::showOscMonitorId:
             handleShowOscMonitorWindow();
@@ -1213,6 +1234,7 @@ juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const j
     } else if (menuName == "View") {
         menu.addCommandItem(commandManager, CommandId::show2DViewId);
         menu.addCommandItem(commandManager, CommandId::showSpeakerEditId);
+        menu.addCommandItem(commandManager, CommandId::showPlayerWindowId);
         menu.addCommandItem(commandManager, CommandId::showOscMonitorId);
         menu.addSeparator();
         menu.addCommandItem(commandManager, CommandId::showSourceNumbersId);

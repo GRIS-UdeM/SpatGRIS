@@ -280,6 +280,10 @@
                 file="Source/sg_OscMonitor.cpp"/>
           <FILE id="FZjASO" name="sg_OscMonitor.hpp" compile="0" resource="0"
                 file="Source/sg_OscMonitor.hpp"/>
+          <FILE id="IrunM7" name="sg_PlayerWindow.cpp" compile="1" resource="0"
+                file="Source/sg_PlayerWindow.cpp"/>
+          <FILE id="CgSog8" name="sg_PlayerWindow.hpp" compile="0" resource="0"
+                file="Source/sg_PlayerWindow.hpp"/>
           <FILE id="POrFql" name="sg_PrepareToRecordWindow.cpp" compile="1" resource="0"
                 file="Source/sg_PrepareToRecordWindow.cpp"/>
           <FILE id="CJfKN0" name="sg_PrepareToRecordWindow.hpp" compile="0" resource="0"

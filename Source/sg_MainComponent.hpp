@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS.
 
- Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
+ Developers: Gaël Lane Lépine, Samuel Béland, Olivier Bélanger, Nicolas Masson
 
  SpatGRIS is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@
 #include "sg_OscInput.hpp"
 #include "sg_OscMonitor.hpp"
 #include "sg_OwnedMap.hpp"
+#include "sg_PlayerWindow.hpp"
 #include "sg_PrepareToRecordWindow.hpp"
 #include "sg_SettingsWindow.hpp"
 #include "sg_SourceSliceComponent.hpp"
@@ -93,6 +94,7 @@ class MainContentComponent final
     std::unique_ptr<PrepareToRecordWindow> mPrepareToRecordWindow{};
     std::unique_ptr<OscMonitorWindow> mOscMonitorWindow{};
     std::unique_ptr<AddRemoveSourcesWindow> mAddRemoveSourcesWindow{};
+    std::unique_ptr<PlayerWindow> mPlayerWindow{};
 
     //==============================================================================
     // info section
@@ -225,6 +227,7 @@ public:
     void closePropertiesWindow() { mPropertiesWindow.reset(); }
     void closeFlatViewWindow() { mFlatViewWindow.reset(); }
     void closeAboutWindow() { mAboutWindow.reset(); }
+    void closePlayerWindow() { mPlayerWindow.reset(); }
     void closeOscMonitorWindow() { mOscMonitorWindow.reset(); }
     void closePrepareToRecordWindow() { mPrepareToRecordWindow.reset(); }
     void closeAddRemoveSourcesWindow() { mAddRemoveSourcesWindow.reset(); }
@@ -246,6 +249,7 @@ private:
     void handleShowSpeakerEditWindow();
     void handleShowAbout();
     void handleShow2DView();
+    void handleShowPlayerWindow();
     void handleShowSourceNumbers();
     void handleShowSpeakerNumbers();
     void handleShowSpeakers();
