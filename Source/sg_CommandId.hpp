@@ -38,6 +38,7 @@ enum CommandId {
 
     // View menu
     show2DViewId,
+    showPlayerWindowId,
     showSpeakerEditId,
     showOscMonitorId,
 

@@ -227,13 +227,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         auto & audioManager{ AudioManager::getInstance() };
         audioManager.registerAudioProcessor(mAudioProcessor.get());
         AudioManager::getInstance().getAudioDeviceManager().addChangeListener(this);
-        audioParametersChanged();
-    };
-
-    //==============================================================================
-    auto const startOsc = [&]() {
-        mOscInput.reset(new OscInput(*this, mLogBuffer));
-        mOscInput->startConnection(mData.project.oscPort);
+        audioParametersChanged(); // size of buffers not initialized here...
     };
 
     //==============================================================================
@@ -259,6 +253,9 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     // End layout and start refresh timer.
     resized();
     startTimerHz(24);
+
+    // init buffers properly
+    audioParametersChanged();
 }
 
 //==============================================================================
@@ -469,6 +466,14 @@ void MainContentComponent::closeSpeakersConfigurationWindow()
 }
 
 //==============================================================================
+void MainContentComponent::closePlayerWindow()
+{
+    mPlayerWindow.reset();
+    startOsc();
+    handleResetSourcesPositions();
+}
+
+//==============================================================================
 void MainContentComponent::handleShowSpeakerEditWindow()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -530,6 +535,59 @@ void MainContentComponent::handleShow2DView()
     mFlatViewWindow->setResizable(true, true);
     mFlatViewWindow->setUsingNativeTitleBar(true);
     mFlatViewWindow->setVisible(true);
+}
+
+//==============================================================================
+void MainContentComponent::handleShowPlayerWindow()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    if (mPlayerWindow) {
+        mPlayerWindow->toFront(true);
+        return;
+    }
+
+    juce::ScopedWriteLock const dataLock{ mLock };
+
+    auto const displayError = [&](juce::String const & error) {
+        juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon,
+                                               "Player",
+                                               error,
+                                               "OK",
+                                               this,
+                                               nullptr);
+    };
+
+    // check if number of sources matches the number of speakers
+    if (mData.project.sources.size() != mData.speakerSetup.speakers.size()) {
+        displayError("Number of sources in project must match the number of speakers.");
+        return;
+    }
+
+    stopOsc();
+    handleResetSourcesPositions();
+
+    auto emulatePlayerSourcePositions = [&]() {
+        for (int i{}; i < mData.project.sources.size(); ++i) {
+            source_index_t const sourceIndex{ i + source_index_t::OFFSET };
+            output_patch_t const outputIndex{ i + output_patch_t::OFFSET };
+            mData.project.sources.getNode(sourceIndex).value->position
+                = mData.speakerSetup.speakers.getNode(outputIndex).value->position;
+        }
+    };
+    emulatePlayerSourcePositions();
+    auto & spatAlgorithm{ *mAudioProcessor->getSpatAlgorithm() };
+    for (auto const source : mData.project.sources) {
+        // remove source spans
+        source.value->azimuthSpan = 0.0f;
+        source.value->zenithSpan = 0.0f;
+        // spatData
+        spatAlgorithm.updateSpatData(source.key, *source.value);
+    }
+
+    refreshAudioProcessor();
+
+    mPlayerWindow = std::make_unique<PlayerWindow>(*this, mLookAndFeel);
 }
 
 //==============================================================================
@@ -688,6 +746,7 @@ void MainContentComponent::numSourcesChanged(int const numSources)
     }
 
     refreshAudioProcessor();
+    audioParametersChanged(); // Make sure the size of the buffers does not reset to MAX_NUM_SAMPLES
     refreshSourceSlices();
     unfocusAllComponents();
 }
@@ -881,7 +940,7 @@ void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & command
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    constexpr std::array<CommandId, 24> ids{
+    constexpr std::array<CommandId, 25> ids{
         CommandId::newProjectId,
         CommandId::openProjectId,
         CommandId::saveProjectId,
@@ -891,6 +950,7 @@ void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & command
         CommandId::saveSpeakerSetupAsId,
         CommandId::showSpeakerEditId,
         CommandId::show2DViewId,
+        CommandId::showPlayerWindowId,
         CommandId::showOscMonitorId,
         CommandId::showSourceNumbersId,
         CommandId::showSpeakerNumbersId,
@@ -979,6 +1039,10 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
     case CommandId::show2DViewId:
         result.setInfo("Show 2D View", "Show the 2D action window.", generalCategory, 0);
         result.addDefaultKeypress('D', juce::ModifierKeys::altModifier);
+        return;
+    case CommandId::showPlayerWindowId:
+        result.setInfo("Show Player View", "Show the player window.", generalCategory, 0);
+        result.addDefaultKeypress('P', juce::ModifierKeys::altModifier);
         return;
     case CommandId::showOscMonitorId:
         result.setInfo("Show OSC monitor", "Show the OSC monitor window", generalCategory, 0);
@@ -1090,6 +1154,9 @@ bool MainContentComponent::perform(InvocationInfo const & info)
             break;
         case CommandId::show2DViewId:
             handleShow2DView();
+            break;
+        case CommandId::showPlayerWindowId:
+            handleShowPlayerWindow();
             break;
         case CommandId::showOscMonitorId:
             handleShowOscMonitorWindow();
@@ -1246,6 +1313,7 @@ juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const j
     } else if (menuName == "View") {
         menu.addCommandItem(commandManager, CommandId::show2DViewId);
         menu.addCommandItem(commandManager, CommandId::showSpeakerEditId);
+        menu.addCommandItem(commandManager, CommandId::showPlayerWindowId);
         menu.addCommandItem(commandManager, CommandId::showOscMonitorId);
         menu.addSeparator();
         menu.addCommandItem(commandManager, CommandId::showSourceNumbersId);
@@ -2155,6 +2223,20 @@ void MainContentComponent::reassignSourcesPositions()
 }
 
 //==============================================================================
+void MainContentComponent::startOsc()
+{
+    mOscInput.reset(new OscInput(*this, mLogBuffer));
+    mOscInput->startConnection(mData.project.oscPort);
+}
+
+//==============================================================================
+void MainContentComponent::stopOsc()
+{
+    mOscInput->closeConnection();
+    mOscInput.reset();
+}
+
+//==============================================================================
 void MainContentComponent::buttonPressed([[maybe_unused]] SpatButton * button)
 {
     jassert(button == &mAddRemoveSourcesButton);
@@ -2416,6 +2498,19 @@ void MainContentComponent::prepareAndStartRecording(juce::File const & fileOrDir
         mControlPanel->setRecordButtonState(RecordButton::State::recording);
         mPrepareToRecordWindow.reset();
     }
+}
+
+//==============================================================================
+tl::optional<SpeakerSetup> MainContentComponent::playerExtractSpeakerSetup(juce::File const & file)
+{
+    juce::XmlDocument xmlDoc{ file };
+    auto const mainXmlElem{ xmlDoc.getDocumentElement() };
+
+    if (mainXmlElem->hasTagName("SpeakerSetup") || mainXmlElem->hasTagName(SpeakerSetup::XmlTags::MAIN_TAG)) {
+        return extractSpeakerSetup(file);
+    }
+
+    return tl::nullopt;
 }
 
 //==============================================================================

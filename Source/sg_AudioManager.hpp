@@ -56,6 +56,15 @@ class AudioManager final : juce::AudioSourcePlayer
         juce::Array<float const *> dataToRecord{};
     };
 
+    class FileSorter
+    {
+    public:
+        static int compareElements(juce::File a, juce::File b)
+        {
+            return a.getFileName().compareNatural(b.getFileName());
+        }
+    };
+
 public:
     //==============================================================================
     /** The main parameters needed before starting a recording. */
@@ -79,6 +88,16 @@ private:
     juce::Atomic<int64_t> mNumSamplesRecorded{};
     juce::OwnedArray<FileRecorder> mRecorders{};
     juce::TimeSliceThread mRecordersThread{ "SpatGRIS recording thread" };
+    // Playing
+    juce::AudioFormatManager mFormatManager{};
+    juce::Array<juce::File> mAudioFiles; // for audio thumbnails
+    juce::OwnedArray<juce::AudioFormatReaderSource> mReaderSources;
+    juce::OwnedArray<juce::AudioTransportSource> mTransportSources{};
+    juce::TimeSliceThread mPlayerThread{ "SpatGRIS player thread" };
+    juce::AudioFormat * mAudioFormat{};
+    bool mFormatsRegistered{};
+    bool mIsPlaying{};
+    bool mIsStopping{};
     //==============================================================================
     static std::unique_ptr<AudioManager> mInstance;
 
@@ -100,6 +119,17 @@ public:
     void stopRecording();
     bool isRecording() const;
     int64_t getNumSamplesRecorded() const;
+
+    // Player stuff
+    bool prepareAudioPlayer(juce::File const & folder);
+    void startPlaying();
+    void stopPlaying();
+    bool isPlaying() const;
+    void unloadPlayer();
+    void setPosition(double const newPos);
+    juce::OwnedArray<juce::AudioTransportSource> & getTransportSources();
+    juce::AudioFormatManager & getAudioFormatManager();
+    juce::Array<juce::File> & getAudioFiles();
 
     void initInputBuffer(juce::Array<source_index_t> const & sources);
     void initOutputBuffer(juce::Array<output_patch_t> const & speakers);

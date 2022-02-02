@@ -47,7 +47,6 @@ std::unique_ptr<AudioManager> AudioManager::mInstance{ nullptr };
 AudioManager::AudioManager(juce::String const & deviceType,
                            juce::String const & inputDevice,
                            juce::String const & outputDevice,
-
                            double const sampleRate,
                            int const bufferSize,
                            tl::optional<StereoRouting> const & stereoRouting)
@@ -71,6 +70,7 @@ AudioManager::AudioManager(juce::String const & deviceType,
 #endif
 
     mRecordersThread.setPriority(9);
+    mPlayerThread.setPriority(9);
     mAudioDeviceManager.addAudioCallback(this);
 }
 
@@ -104,13 +104,29 @@ void AudioManager::audioDeviceIOCallback(float const ** inputChannelData,
         return;
     }
 
+    // if there is a player, copy audio file data to buffers, if not,
     // copy input data to buffers
-    auto const numInputChannelsToCopy{ std::min(totalNumInputChannels, mInputBuffer.size()) };
-    for (int i{}; i < numInputChannelsToCopy; ++i) {
-        source_index_t const sourceIndex{ i + source_index_t::OFFSET };
-        auto const * sourceData{ inputChannelData[i] };
-        auto * destinationData{ mInputBuffer[sourceIndex].getWritePointer(0) };
-        std::copy_n(sourceData, numSamples, destinationData);
+    if (isPlaying()) {
+        auto const numInputChannelsToCopy{ mTransportSources.size() };
+        for (int i{}; i < numInputChannelsToCopy; ++i) {
+            source_index_t const sourceIndex{ i + source_index_t::OFFSET };
+            auto & buffer{ mInputBuffer[sourceIndex] };
+            juce::AudioSourceChannelInfo const info{ buffer };
+            mTransportSources.getUnchecked(i)->getNextAudioBlock(info);
+            if (i > 0 && !mIsStopping) {
+                // make sure all the audioTransportSources are in sync
+                mTransportSources.getUnchecked(i)->setNextReadPosition(
+                    mTransportSources.getUnchecked(0)->getNextReadPosition());
+            }
+        }
+    } else {
+        auto const numInputChannelsToCopy{ std::min(totalNumInputChannels, mInputBuffer.size()) };
+        for (int i{}; i < numInputChannelsToCopy; ++i) {
+            source_index_t const sourceIndex{ i + source_index_t::OFFSET };
+            auto const * sourceData{ inputChannelData[i] };
+            auto * destinationData{ mInputBuffer[sourceIndex].getWritePointer(0) };
+            std::copy_n(sourceData, numSamples, destinationData);
+        }
     }
 
     // do the actual processing
@@ -224,10 +240,13 @@ void AudioManager::init(juce::String const & deviceType,
 AudioManager::~AudioManager()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
+
     if (mIsRecording) {
         stopRecording();
         mRecorders.clear(true);
     }
+
+    unloadPlayer();
 }
 
 //==============================================================================
@@ -259,6 +278,145 @@ bool AudioManager::isRecording() const
 int64_t AudioManager::getNumSamplesRecorded() const
 {
     return mNumSamplesRecorded.get();
+}
+
+//==============================================================================
+bool AudioManager::prepareAudioPlayer(juce::File const & folder)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    auto * currentAudioDevice{ mAudioDeviceManager.getCurrentAudioDevice() };
+    jassert(currentAudioDevice);
+    if (!currentAudioDevice) {
+        return false;
+    }
+
+    if (mFormatsRegistered == false) {
+        mFormatManager.registerBasicFormats();
+        mFormatsRegistered = true;
+    }
+
+    if (isPlaying()) {
+        stopPlaying();
+    }
+
+    mAudioFiles.clear();
+    mTransportSources.clear(true);
+    mReaderSources.clear(true);
+
+    // load audio files to and sort them
+    auto files = folder.findChildFiles(juce::File::TypesOfFileToFind::findFiles, false, "*.wav;*.aiff");
+    FileSorter sorter;
+    files.sort(sorter);
+    mAudioFiles = files; // for audio thumbnails
+    for (const auto & filenameThatWasFound : files) {
+        jassert(filenameThatWasFound.existsAsFile());
+
+        // audio format to use
+        mAudioFormat = mFormatManager.findFormatForFileExtension(filenameThatWasFound.getFileExtension());
+        jassert(mAudioFormat);
+
+        // for AudioFormatReaderSource
+        // auto * reader = mAudioFormat->createMemoryMappedReader(filenameThatWasFound);
+        juce::AudioFormatReader * reader = nullptr;
+        auto localFile = juce::URL(filenameThatWasFound);
+        reader = mFormatManager.createReaderFor(localFile.getLocalFile());
+        jassert(reader);
+
+        // make sure the file is mono
+        jassert(reader->getChannelLayout().size() == 1);
+        // for AudioFormatReaderSource
+        // reader->mapEntireFile();
+
+        mReaderSources.add(new juce::AudioFormatReaderSource(reader, true));
+
+        auto transportSource = std::make_unique<juce::AudioTransportSource>();
+        transportSource->setSource(mReaderSources.getLast(), 32768, &mPlayerThread, reader->sampleRate);
+
+        mTransportSources.add(transportSource.release());
+    }
+
+    mPlayerThread.startThread();
+
+    for (auto transportSource : mTransportSources) {
+        transportSource->prepareToPlay(currentAudioDevice->getCurrentBufferSizeSamples(),
+                                       currentAudioDevice->getCurrentSampleRate());
+        transportSource->setPosition(0.0);
+    }
+
+    return true;
+}
+
+//==============================================================================
+void AudioManager::startPlaying()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    for (auto transportSource : mTransportSources) {
+        transportSource->start();
+    }
+
+    mIsPlaying = true;
+}
+
+//==============================================================================
+void AudioManager::stopPlaying()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    mIsStopping = true;
+
+    for (auto transportSource : mTransportSources) {
+        transportSource->stop();
+    }
+
+    mIsPlaying = false;
+    mIsStopping = false;
+}
+
+//==============================================================================
+bool AudioManager::isPlaying() const
+{
+    return mIsPlaying;
+}
+
+//==============================================================================
+void AudioManager::unloadPlayer()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    mTransportSources.clear(true);
+    mReaderSources.clear(true);
+    mAudioFiles.clear();
+    mPlayerThread.stopThread(-1);
+}
+
+//==============================================================================
+void AudioManager::setPosition(double const newPos)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    for (auto transportSource : mTransportSources) {
+        transportSource->setPosition(newPos);
+    }
+}
+
+//==============================================================================
+juce::OwnedArray<juce::AudioTransportSource> & AudioManager::getTransportSources()
+{
+    return mTransportSources;
+}
+
+//==============================================================================
+juce::AudioFormatManager & AudioManager::getAudioFormatManager()
+{
+    return mFormatManager;
+}
+
+//==============================================================================
+juce::Array<juce::File> & AudioManager::getAudioFiles()
+{
+    return mAudioFiles;
 }
 
 //==============================================================================
