@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include "sg_Player.hpp"
+
 #include <JuceHeader.h>
 
 namespace gris
@@ -30,6 +32,7 @@ class PlayerWindow final : public juce::DocumentWindow
 {
     MainContentComponent & mMainContentComponent;
     GrisLookAndFeel & mLookAndFeel;
+    Player mPlayer{};
 
 public:
     //==============================================================================
@@ -41,6 +44,7 @@ public:
     PlayerWindow(PlayerWindow &&) = delete;
     PlayerWindow & operator=(PlayerWindow const &) = delete;
     PlayerWindow & operator=(PlayerWindow &&) = delete;
+    //SG_DELETE_COPY_AND_MOVE(PlayerWindow)
     //==============================================================================
     void resized() override;
     void closeButtonPressed() override;

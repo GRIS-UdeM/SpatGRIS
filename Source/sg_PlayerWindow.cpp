@@ -35,6 +35,7 @@ PlayerWindow::PlayerWindow(MainContentComponent & mainContentComponent, GrisLook
     : juce::DocumentWindow("Player", lookAndFeel.getBackgroundColour(), juce::DocumentWindow::allButtons, true)
     , mMainContentComponent(mainContentComponent)
     , mLookAndFeel(lookAndFeel)
+    , mPlayer()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 

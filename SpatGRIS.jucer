@@ -320,6 +320,8 @@
             file="Source/sg_MainWindow.hpp"/>
       <FILE id="hAjUTJ" name="sg_OscInput.cpp" compile="1" resource="0" file="Source/sg_OscInput.cpp"/>
       <FILE id="LWdvSw" name="sg_OscInput.hpp" compile="0" resource="0" file="Source/sg_OscInput.hpp"/>
+      <FILE id="axdgHb" name="sg_Player.cpp" compile="1" resource="0" file="Source/sg_Player.cpp"/>
+      <FILE id="EZg9n6" name="sg_Player.hpp" compile="0" resource="0" file="Source/sg_Player.hpp"/>
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>
