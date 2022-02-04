@@ -44,7 +44,7 @@ public:
     PlayerWindow(PlayerWindow &&) = delete;
     PlayerWindow & operator=(PlayerWindow const &) = delete;
     PlayerWindow & operator=(PlayerWindow &&) = delete;
-    //SG_DELETE_COPY_AND_MOVE(PlayerWindow)
+    // SG_DELETE_COPY_AND_MOVE(PlayerWindow)
     //==============================================================================
     void resized() override;
     void closeButtonPressed() override;

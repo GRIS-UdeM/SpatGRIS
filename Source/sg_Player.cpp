@@ -21,11 +21,7 @@
 
 namespace gris
 {
-Player::Player()
-    : manager{}
-    , file{}
-    , wavFormat{ nullptr }
-    , reader{ nullptr }
+Player::Player() : manager{}, file{}, wavFormat{ nullptr }, reader{ nullptr }
 {
     manager.registerBasicFormats();
     // audio file to map in memory
@@ -48,7 +44,7 @@ Player::Player()
     juce::AudioTransportSource resampled_source{};
     resampled_source.setSource(&source);
     // inform the source about sample rate
-    //resampled_source.prepareToPlay(/*buffer size*/, /*sample rate*/);
+    // resampled_source.prepareToPlay(/*buffer size*/, /*sample rate*/);
     DBG("Player constructor.");
 }
 
@@ -59,7 +55,6 @@ Player::~Player()
 
 void Player::loadWavFilesAndSpeakerSetupFolder()
 {
-
 }
 
 } // namespace gris

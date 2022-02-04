@@ -25,31 +25,30 @@
 
 namespace gris
 {
-
 //// audio format manager
-//juce::AudioFormatManager manager{};
-//manager.registerBasicFormats();
+// juce::AudioFormatManager manager{};
+// manager.registerBasicFormats();
 //// audio file to map in memory
-//juce::File const file{ "C:/musik.wav" };
-//jassert(file.existsAsFile());
+// juce::File const file{ "C:/musik.wav" };
+// jassert(file.existsAsFile());
 //// audio format to use
-//juce::AudioFormat * wavFormat{ manager.findFormatForFileExtension(file.getFileExtension()) };
+// juce::AudioFormat * wavFormat{ manager.findFormatForFileExtension(file.getFileExtension()) };
 //// make sure the format is valid and registered
-//jassert(wavFormat);
+// jassert(wavFormat);
 //// create a file reader
-//juce::MemoryMappedAudioFormatReader * reader = wavFormat->createMemoryMappedReader(file);
+// juce::MemoryMappedAudioFormatReader * reader = wavFormat->createMemoryMappedReader(file);
 //// make sure the reader is created
-//jassert(reader);
+// jassert(reader);
 //// make sure the file is mono
-//jassert(reader->getChannelLayout().size() == 1);
+// jassert(reader->getChannelLayout().size() == 1);
 //// create an audio source that takes ownership of the reader
 //// this audio source only knows how to get the next audio block
-//juce::AudioFormatReaderSource source{ reader, true };
+// juce::AudioFormatReaderSource source{ reader, true };
 //// create an other audio source that can do start, stop, but more importantly, resampling
-//juce::AudioTransportSource resampled_source{};
-//resampled_source.setSource(&source);
+// juce::AudioTransportSource resampled_source{};
+// resampled_source.setSource(&source);
 //// inform the source about sample rate
-//resampled_source.prepareToPlay(/*buffer size*/, /*sample rate*/);
+// resampled_source.prepareToPlay(/*buffer size*/, /*sample rate*/);
 
 class Player
 {
@@ -66,9 +65,8 @@ public:
     void loadWavFilesAndSpeakerSetupFolder();
 
 private:
-//==============================================================================
-JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Player)
+    //==============================================================================
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Player)
 };
-
 
 } // namespace gris
