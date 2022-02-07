@@ -45,6 +45,7 @@ Player::Player() : manager{}, file{}, wavFormat{ nullptr }, reader{ nullptr }
     resampled_source.setSource(&source);
     // inform the source about sample rate
     // resampled_source.prepareToPlay(/*buffer size*/, /*sample rate*/);
+
     DBG("Player constructor.");
 }
 

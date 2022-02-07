@@ -1,10 +1,4 @@
 /*
-  ==============================================================================
-
-    sg_PlayerWindow.cpp
-    Created: 2 Feb 2022 2:57:35pm
-    Author:  glanelepine
-/*
  This file is part of SpatGRIS.
 
  Developers: Gaël Lane Lépine, Samuel Béland, Olivier Bélanger, Nicolas Masson
@@ -31,25 +25,81 @@
 namespace gris
 {
 //==============================================================================
+PlayerComponent::PlayerComponent() : mPlayer()
+{
+    mLoadWavFilesAndSpeakerSetupButton.setButtonText("Load wav files and Speaker setup folder");
+    // mLoadWavFilesAndSpeakerSetupButton.setClickingTogglesState(true);
+    mLoadWavFilesAndSpeakerSetupButton.setToggleState(true, juce::NotificationType::dontSendNotification);
+    mLoadWavFilesAndSpeakerSetupButton.addListener(this);
+    addAndMakeVisible(mLoadWavFilesAndSpeakerSetupButton);
+}
+
+//==============================================================================
+PlayerComponent::~PlayerComponent()
+{
+    mLoadWavFilesAndSpeakerSetupButton.removeListener(this);
+}
+
+//==============================================================================
+bool PlayerComponent::loadWavFilesAndSpeakerSetup()
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+    // juce::ScopedReadLock const lock {}
+
+    juce::File wavFilesAndSSFolder;
+
+    juce::FileChooser fc{ "Choose a folder to open...", wavFilesAndSSFolder, {}, true };
+
+    if (!fc.browseForDirectory()) {
+        return false;
+    }
+
+    wavFilesAndSSFolder = fc.getResult();
+
+    juce::StringArray fileList;
+
+    for (const auto & filenameThatWasFound :
+         wavFilesAndSSFolder.findChildFiles(juce::File::TypesOfFileToFind::findFiles, false, "*"))
+        fileList.add(filenameThatWasFound.getFileName());
+
+    for (const auto & file : fileList) {
+        DBG("File in player folder : " << file);
+    }
+
+    return true;
+}
+
+//==============================================================================
+void PlayerComponent::buttonClicked([[maybe_unused]] juce::Button * button)
+{
+    jassert(button == &mLoadWavFilesAndSpeakerSetupButton);
+    DBG("Play button pressed.");
+    loadWavFilesAndSpeakerSetup();
+}
+
+//==============================================================================
+void PlayerComponent::resized()
+{
+    mLoadWavFilesAndSpeakerSetupButton.setBounds(10, 10, 250, 30);
+}
+
+//==============================================================================
 PlayerWindow::PlayerWindow(MainContentComponent & mainContentComponent, GrisLookAndFeel & lookAndFeel)
-    : juce::DocumentWindow("Player", lookAndFeel.getBackgroundColour(), juce::DocumentWindow::allButtons, true)
+    : DocumentWindow("SpatGRIS Player", lookAndFeel.getBackgroundColour(), allButtons)
     , mMainContentComponent(mainContentComponent)
     , mLookAndFeel(lookAndFeel)
-    , mPlayer()
+    , mPlayerComponent()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
     setResizable(true, true);
     setUsingNativeTitleBar(true);
+    setContentNonOwned(&mPlayerComponent, false);
     centreWithSize(800, 400);
-    Component::setVisible(true);
+    DocumentWindow::setVisible(true);
 }
 
-void PlayerWindow::resized()
-{
-    JUCE_ASSERT_MESSAGE_THREAD;
-}
-
+//==============================================================================
 void PlayerWindow::closeButtonPressed()
 {
     JUCE_ASSERT_MESSAGE_THREAD;

@@ -19,7 +19,10 @@
 
 #pragma once
 
+#include "sg_LayoutComponent.hpp"
 #include "sg_Player.hpp"
+#include "sg_SpatButton.hpp"
+#include "sg_TitledComponent.hpp"
 
 #include <JuceHeader.h>
 
@@ -28,11 +31,33 @@ namespace gris
 class MainContentComponent;
 class GrisLookAndFeel;
 
+class PlayerComponent final
+    : public juce::Component
+    , private juce::TextButton::Listener
+{
+    juce::TextButton mLoadWavFilesAndSpeakerSetupButton{};
+    Player mPlayer{};
+
+public:
+    //==============================================================================
+    PlayerComponent();
+    ~PlayerComponent() override;
+    SG_DELETE_COPY_AND_MOVE(PlayerComponent)
+    //==============================================================================
+    bool loadWavFilesAndSpeakerSetup();
+    void buttonClicked(juce::Button * button) override;
+    void resized() override;
+
+private:
+    //==============================================================================
+    JUCE_LEAK_DETECTOR(PlayerComponent)
+};
+
 class PlayerWindow final : public juce::DocumentWindow
 {
     MainContentComponent & mMainContentComponent;
     GrisLookAndFeel & mLookAndFeel;
-    Player mPlayer{};
+    PlayerComponent mPlayerComponent;
 
 public:
     //==============================================================================
@@ -46,7 +71,6 @@ public:
     PlayerWindow & operator=(PlayerWindow &&) = delete;
     // SG_DELETE_COPY_AND_MOVE(PlayerWindow)
     //==============================================================================
-    void resized() override;
     void closeButtonPressed() override;
 
 private:
