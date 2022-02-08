@@ -527,7 +527,11 @@ void MainContentComponent::handleShowPlayerWindow()
         return;
     }
 
-    mPlayerWindow = std::make_unique<PlayerWindow>(*this, mLookAndFeel);
+    if (!mPlayer)
+        // mPlayer.reset(new Player(*this));
+        mPlayer = std::make_unique<Player>(*this);
+
+    mPlayerWindow = std::make_unique<PlayerWindow>(*mPlayer, *this, mLookAndFeel);
 }
 
 //==============================================================================

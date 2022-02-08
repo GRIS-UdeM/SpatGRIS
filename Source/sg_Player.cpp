@@ -19,9 +19,16 @@
 
 #include "sg_Player.hpp"
 
+#include "sg_MainComponent.hpp"
+
 namespace gris
 {
-Player::Player() : manager{}, file{}, wavFormat{ nullptr }, reader{ nullptr }
+Player::Player(MainContentComponent & parent)
+    : mMainContentComponent(parent)
+    , manager{}
+    , file{}
+    , wavFormat{ nullptr }
+    , reader{ nullptr }
 {
     manager.registerBasicFormats();
     // audio file to map in memory
@@ -56,6 +63,25 @@ Player::~Player()
 
 void Player::loadWavFilesAndSpeakerSetupFolder()
 {
+}
+
+bool Player::loadWavFilesAndSpeakerSetup(juce::File const & folder)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    juce::StringArray fileList;
+
+    for (const auto & filenameThatWasFound :
+         folder.findChildFiles(juce::File::TypesOfFileToFind::findFiles, false, "*")) {
+        // filenameThatWasFound.get
+        fileList.add(filenameThatWasFound.getFileName());
+    }
+
+    for (const auto & filename : fileList) {
+        DBG("File in player folder : " << filename);
+    }
+
+    return false;
 }
 
 } // namespace gris

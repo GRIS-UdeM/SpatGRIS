@@ -25,6 +25,7 @@
 
 namespace gris
 {
+class MainContentComponent;
 //// audio format manager
 // juce::AudioFormatManager manager{};
 // manager.registerBasicFormats();
@@ -52,6 +53,7 @@ namespace gris
 
 class Player
 {
+    MainContentComponent & mMainContentComponent;
     juce::AudioFormatManager manager{};
     juce::File file{};
     juce::AudioFormat * wavFormat{};
@@ -59,10 +61,13 @@ class Player
 
 public:
     //==============================================================================
-    Player();
+    explicit Player(MainContentComponent & parent);
+    Player() = delete;
     ~Player();
+    SG_DELETE_COPY_AND_MOVE(Player)
     //==============================================================================
     void loadWavFilesAndSpeakerSetupFolder();
+    bool loadWavFilesAndSpeakerSetup(juce::File const & folder);
 
 private:
     //==============================================================================

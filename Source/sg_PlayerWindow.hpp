@@ -19,10 +19,11 @@
 
 #pragma once
 
-#include "sg_LayoutComponent.hpp"
-#include "sg_Player.hpp"
-#include "sg_SpatButton.hpp"
-#include "sg_TitledComponent.hpp"
+//#include "sg_LayoutComponent.hpp"
+//#include "sg_Player.hpp"
+//#include "sg_SpatButton.hpp"
+//#include "sg_TitledComponent.hpp"
+#include "sg_Macros.hpp"
 
 #include <JuceHeader.h>
 
@@ -30,21 +31,27 @@ namespace gris
 {
 class MainContentComponent;
 class GrisLookAndFeel;
+class Player;
 
 class PlayerComponent final
     : public juce::Component
     , private juce::TextButton::Listener
 {
+    Player & mPlayer;
+
+    juce::ReadWriteLock mLock{};
+
     juce::TextButton mLoadWavFilesAndSpeakerSetupButton{};
-    Player mPlayer{};
 
 public:
     //==============================================================================
-    PlayerComponent();
+    PlayerComponent() = delete;
+    explicit PlayerComponent(Player & player);
     ~PlayerComponent() override;
     SG_DELETE_COPY_AND_MOVE(PlayerComponent)
     //==============================================================================
-    bool loadWavFilesAndSpeakerSetup();
+    void handleOpenWavFilesAndSpeakerSetup();
+    bool loadWavFilesAndSpeakerSetup(juce::File const & folder);
     void buttonClicked(juce::Button * button) override;
     void resized() override;
 
@@ -61,15 +68,15 @@ class PlayerWindow final : public juce::DocumentWindow
 
 public:
     //==============================================================================
-    PlayerWindow(MainContentComponent & mainContentComponent, GrisLookAndFeel & lookAndFeel);
+    PlayerWindow(Player & player, MainContentComponent & mainContentComponent, GrisLookAndFeel & lookAndFeel);
     PlayerWindow() = delete;
     ~PlayerWindow() override = default;
+    SG_DELETE_COPY_AND_MOVE(PlayerWindow)
     //==============================================================================
-    PlayerWindow(PlayerWindow const &) = delete;
-    PlayerWindow(PlayerWindow &&) = delete;
-    PlayerWindow & operator=(PlayerWindow const &) = delete;
-    PlayerWindow & operator=(PlayerWindow &&) = delete;
-    // SG_DELETE_COPY_AND_MOVE(PlayerWindow)
+    // PlayerWindow(PlayerWindow const &) = delete;
+    // PlayerWindow(PlayerWindow &&) = delete;
+    // PlayerWindow & operator=(PlayerWindow const &) = delete;
+    // PlayerWindow & operator=(PlayerWindow &&) = delete;
     //==============================================================================
     void closeButtonPressed() override;
 
