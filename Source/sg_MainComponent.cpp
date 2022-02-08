@@ -975,7 +975,7 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
         return;
     case CommandId::showPlayerWindowId:
         result.setInfo("Show Player View", "Show the sound player window.", generalCategory, 0);
-        result.addDefaultKeypress('P', juce::ModifierKeys::commandModifier);
+        result.addDefaultKeypress('P', juce::ModifierKeys::altModifier);
         return;
     case CommandId::showOscMonitorId:
         result.setInfo("Show OSC monitor", "Show the OSC monitor window", generalCategory, 0);
