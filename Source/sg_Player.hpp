@@ -54,10 +54,11 @@ class MainContentComponent;
 class Player
 {
     MainContentComponent & mMainContentComponent;
-    juce::AudioFormatManager manager{};
-    juce::File file{};
-    juce::AudioFormat * wavFormat{};
-    juce::MemoryMappedAudioFormatReader * reader{};
+
+    juce::AudioFormatManager mManager{};
+    juce::File mWavFile{};
+    juce::AudioFormat * mWavFormat{};
+    juce::MemoryMappedAudioFormatReader * mReader{};
 
 public:
     //==============================================================================
@@ -66,8 +67,9 @@ public:
     ~Player();
     SG_DELETE_COPY_AND_MOVE(Player)
     //==============================================================================
-    void loadWavFilesAndSpeakerSetupFolder();
+    // void loadWavFilesAndSpeakerSetupFolder();
     bool loadWavFilesAndSpeakerSetup(juce::File const & folder);
+    // bool validateSpeakerSetup(juce::File const & file);
 
 private:
     //==============================================================================

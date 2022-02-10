@@ -61,26 +61,6 @@ void PlayerComponent::handleOpenWavFilesAndSpeakerSetup()
 }
 
 //==============================================================================
-// bool PlayerComponent::loadWavFilesAndSpeakerSetup(juce::File const & folder)
-//{
-//    JUCE_ASSERT_MESSAGE_THREAD;
-//
-//    juce::StringArray fileList;
-//
-//    for (const auto & filenameThatWasFound :
-//         folder.findChildFiles(juce::File::TypesOfFileToFind::findFiles, false, "*")) {
-//        // filenameThatWasFound.get
-//        fileList.add(filenameThatWasFound.getFileName());
-//    }
-//
-//    for (const auto & file : fileList) {
-//        DBG("File in player folder : " << file);
-//    }
-//
-//    return false;
-//}
-
-//==============================================================================
 void PlayerComponent::buttonClicked([[maybe_unused]] juce::Button * button)
 {
     jassert(button == &mLoadWavFilesAndSpeakerSetupButton);

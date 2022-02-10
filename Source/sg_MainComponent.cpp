@@ -2401,6 +2401,12 @@ void MainContentComponent::prepareAndStartRecording(juce::File const & fileOrDir
 }
 
 //==============================================================================
+tl::optional<SpeakerSetup> MainContentComponent::playerExtractSpeakerSetup(juce::File const & file)
+{
+    return extractSpeakerSetup(file);
+}
+
+//==============================================================================
 void MainContentComponent::resized()
 {
     static constexpr auto MENU_BAR_HEIGHT = 20;

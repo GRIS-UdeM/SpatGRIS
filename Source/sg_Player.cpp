@@ -23,30 +23,31 @@
 
 namespace gris
 {
+//==============================================================================
 Player::Player(MainContentComponent & parent)
     : mMainContentComponent(parent)
-    , manager{}
-    , file{}
-    , wavFormat{ nullptr }
-    , reader{ nullptr }
+    , mManager{}
+    , mWavFile{}
+    , mWavFormat{ nullptr }
+    , mReader{ nullptr }
 {
-    manager.registerBasicFormats();
+    mManager.registerBasicFormats();
     // audio file to map in memory
-    file = "C:/musik.wav";
-    jassert(file.existsAsFile());
+    mWavFile = "C:/musik.wav";
+    jassert(mWavFile.existsAsFile());
     // audio format to use
-    wavFormat = manager.findFormatForFileExtension(file.getFileExtension());
+    mWavFormat = mManager.findFormatForFileExtension(mWavFile.getFileExtension());
     // make sure the format is valid and registered
-    jassert(wavFormat);
-    reader = wavFormat->createMemoryMappedReader(file);
+    jassert(mWavFormat);
+    mReader = mWavFormat->createMemoryMappedReader(mWavFile);
     // make sure the reader is created
-    jassert(reader);
+    jassert(mReader);
     // make sure the file is mono
-    jassert(reader->getChannelLayout().size() == 1);
+    jassert(mReader->getChannelLayout().size() == 1);
 
     // create an audio source that takes ownership of the reader
     // this audio source only knows how to get the next audio block
-    juce::AudioFormatReaderSource source{ reader, true };
+    juce::AudioFormatReaderSource source{ mReader, true };
     // create an other audio source that can do start, stop, but more importantly, resampling
     juce::AudioTransportSource resampled_source{};
     resampled_source.setSource(&source);
@@ -56,32 +57,97 @@ Player::Player(MainContentComponent & parent)
     DBG("Player constructor.");
 }
 
+//==============================================================================
 Player::~Player()
 {
     DBG("Player destructor.");
 }
 
-void Player::loadWavFilesAndSpeakerSetupFolder()
-{
-}
+//==============================================================================
+// void Player::loadWavFilesAndSpeakerSetupFolder()
+//{
+//}
 
+//==============================================================================
 bool Player::loadWavFilesAndSpeakerSetup(juce::File const & folder)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    juce::StringArray fileList;
+    juce::StringArray wavFileList;
+    juce::StringArray speakerList;
+    tl::optional<SpeakerSetup> speakerSetup;
+    juce::XmlElement xml("tmp");
+
+    auto const displayError = [&](juce::String const & message) {
+        juce::NativeMessageBox::show(juce::MessageBoxOptions{}
+                                         .withTitle("Unable to open Speaker Setup and Audio Files folder")
+                                         .withMessage(message)
+                                         .withIconType(juce::MessageBoxIconType::WarningIcon));
+    };
 
     for (const auto & filenameThatWasFound :
          folder.findChildFiles(juce::File::TypesOfFileToFind::findFiles, false, "*")) {
         // filenameThatWasFound.get
-        fileList.add(filenameThatWasFound.getFileName());
+        // DBG("Filename : " << filenameThatWasFound.getFileName());
+        // DBG("File path : " << filenameThatWasFound.getFullPathName());
+        // DBG("File extension : " << filenameThatWasFound.getFileExtension());
+
+        jassert(filenameThatWasFound.existsAsFile());
+
+        if (filenameThatWasFound.getFileExtension() == ".wav") {
+            // wavFileList.add(filenameThatWasFound.getFileName());
+            wavFileList.add(filenameThatWasFound.getFileNameWithoutExtension().substring(
+                filenameThatWasFound.getFileNameWithoutExtension().lastIndexOfChar('-') + 1));
+            // DBG("Found wav file : " << filenameThatWasFound.getFileName());
+
+        } else if (filenameThatWasFound.getFileExtension() == ".xml") {
+            speakerSetup
+                = mMainContentComponent.playerExtractSpeakerSetup(juce::File(filenameThatWasFound.getFullPathName()));
+
+            if (!speakerSetup) {
+                return false;
+            }
+
+            juce::XmlDocument xmlDoc(juce::File(filenameThatWasFound.getFullPathName()));
+            xml = *xmlDoc.getDocumentElement();
+
+            // DBG("Found speaker setup file.");
+        }
     }
 
-    for (const auto & filename : fileList) {
-        DBG("File in player folder : " << filename);
+    for (auto const * speaker : xml.getChildIterator()) {
+        auto const tagName{ speaker->getTagName() };
+        if (tagName.startsWith(SpeakerData::XmlTags::MAIN_TAG_PREFIX)) {
+            speakerList.add(tagName.substring(juce::String(SpeakerData::XmlTags::MAIN_TAG_PREFIX).length()));
+            // DBG("speaker number : " <<
+            // tagName.substring(juce::String(SpeakerData::XmlTags::MAIN_TAG_PREFIX).length()));
+        }
     }
 
-    return false;
+    if (speakerList.size() != wavFileList.size()) {
+        displayError("Audio files do not match Speaker Setup.\n" + juce::String(wavFileList.size()) + " Audio files\n"
+                     + juce::String(speakerList.size()) + " Speakers");
+        return false;
+    }
+
+    for (auto const elem : wavFileList) {
+        if (!speakerList.contains(elem)) {
+            displayError("Audio file list does not match Speaker Setup.");
+            return false;
+        }
+    }
+
+    return true;
 }
+
+//==============================================================================
+// bool Player::validateSpeakerSetup(juce::File const & file)
+//{
+//    JUCE_ASSERT_MESSAGE_THREAD;
+//
+//    auto speakerSetup{ MainContentComponent::playerExtractSpeakerSetup(file) };
+//
+//    return false;
+//}
 
 } // namespace gris

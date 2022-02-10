@@ -51,7 +51,6 @@ public:
     SG_DELETE_COPY_AND_MOVE(PlayerComponent)
     //==============================================================================
     void handleOpenWavFilesAndSpeakerSetup();
-    bool loadWavFilesAndSpeakerSetup(juce::File const & folder);
     void buttonClicked(juce::Button * button) override;
     void resized() override;
 

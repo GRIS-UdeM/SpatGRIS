@@ -240,6 +240,9 @@ public:
     void closeAddRemoveSourcesWindow() { mAddRemoveSourcesWindow.reset(); }
     //==============================================================================
     void prepareAndStartRecording(juce::File const & fileOrDirectory, RecordingOptions const & recordingOptions);
+    //==============================================================================
+    // Player open - save.
+    [[nodiscard]] static tl::optional<SpeakerSetup> playerExtractSpeakerSetup(juce::File const & file);
 
 private:
     //==============================================================================
