@@ -75,10 +75,10 @@ echo "Version is $VERSION"
 # package app
 
 IDENTIFIER="ca.umontreal.musique.gris.spatgris.pkg"
-installerSignature="Developer ID Installer: Samuel Beland (Q2A837SX87)"
-appSignature="Developer ID Application: Samuel Beland (Q2A837SX87)"
+installerSignature="Developer ID Installer: Gael Lane Lepine (62PMMWH49Z)"
+appSignature="Developer ID Application: Gael Lane Lepine (62PMMWH49Z)"
 
-export notarizeUser="samuel.beland@gmail.com"
+export notarizeUser="glanelepine@gmail.com"
 export identifier="ca.umontreal.musique.gris.spatgris.installer"
 export PACKAGE_NAME="SpatGRIS_v$VERSION.pkg"
 export DMG_DIR="SpatGRIS_v$VERSION"
