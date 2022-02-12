@@ -368,7 +368,7 @@
         <MODULEPATH id="juce_audio_formats" path="../../sdks/JUCE-4.3.1/modules"/>
         <MODULEPATH id="juce_audio_devices" path="../../sdks/JUCE-4.3.1/modules"/>
         <MODULEPATH id="juce_audio_basics" path="../../sdks/JUCE-4.3.1/modules"/>
-        <MODULEPATH id="juce_dsp" path="../../../../../dev/JUCE/modules"/>
+        <MODULEPATH id="juce_dsp" path="../../../../../dev/JUCE/modules"/> f4ehgrn798w3b aptr97edztygre;utgr;
       </MODULEPATHS>
     </LINUX_MAKE>
     <VS2019 targetFolder="Builds/VisualStudio2019" bigIcon="YxmFrL">
