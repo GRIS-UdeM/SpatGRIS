@@ -104,13 +104,24 @@ void AudioManager::audioDeviceIOCallback(float const ** inputChannelData,
         return;
     }
 
+    // if there is a player, copy audio file data to buffers, if not,
     // copy input data to buffers
-    auto const numInputChannelsToCopy{ std::min(totalNumInputChannels, mInputBuffer.size()) };
-    for (int i{}; i < numInputChannelsToCopy; ++i) {
-        source_index_t const sourceIndex{ i + source_index_t::OFFSET };
-        auto const * sourceData{ inputChannelData[i] };
-        auto * destinationData{ mInputBuffer[sourceIndex].getWritePointer(0) };
-        std::copy_n(sourceData, numSamples, destinationData);
+    if (mPlayerExists) {
+        // get a reference to the buffer we need to copy the audio file's data to
+        auto & buffer{ mInputBuffer[source_index_t{ 1 }] };
+        // create a source channel info for the juce audio methods
+        juce::AudioSourceChannelInfo const info{ buffer };
+        // read the next file audio data and copy it to the referenced buffer
+        mResampledSource.getNextAudioBlock(info);
+        //DBG("In player buffer loop.");
+    } else {
+        auto const numInputChannelsToCopy{ std::min(totalNumInputChannels, mInputBuffer.size()) };
+        for (int i{}; i < numInputChannelsToCopy; ++i) {
+            source_index_t const sourceIndex{ i + source_index_t::OFFSET };
+            auto const * sourceData{ inputChannelData[i] };
+            auto * destinationData{ mInputBuffer[sourceIndex].getWritePointer(0) };
+            std::copy_n(sourceData, numSamples, destinationData);
+        }
     }
 
     // do the actual processing
@@ -228,6 +239,8 @@ AudioManager::~AudioManager()
         stopRecording();
         mRecorders.clear(true);
     }
+
+    //mResampledSource.releaseResources();
 }
 
 //==============================================================================
@@ -259,6 +272,37 @@ bool AudioManager::isRecording() const
 int64_t AudioManager::getNumSamplesRecorded() const
 {
     return mNumSamplesRecorded.get();
+}
+
+//==============================================================================
+void AudioManager::playerOn()
+{
+    mPlayerExists = true;
+}
+
+//==============================================================================
+void AudioManager::playerOff()
+{
+    //if (mPlayerExists) {
+    //    mResampledSource.releaseResources();
+    //}
+    mPlayerExists = false;
+}
+
+//==============================================================================
+bool AudioManager::playerExists()
+{
+    return mPlayerExists;
+}
+
+//==============================================================================
+void AudioManager::setPlayerSource(juce::AudioFormatReaderSource & readerSource,
+                                   double readerSourceSampleRate,
+                                   int readerSourceBufferSize)
+{
+    DBG("length of source: " + juce::String(readerSource.getTotalLength()));
+    mResampledSource.setSource(&readerSource);
+    mResampledSource.prepareToPlay(readerSourceBufferSize, readerSourceSampleRate);
 }
 
 //==============================================================================
@@ -593,7 +637,14 @@ void AudioManager::audioDeviceAboutToStart(juce::AudioIODevice * /*device*/)
 void AudioManager::audioDeviceStopped()
 {
     // when AudioProcessor will be a real AudioSource, releaseResources() should be called here.
+    mResampledSource.releaseResources();
 }
+
+//==============================================================================
+//void AudioManager::releaseResources()
+//{
+//    mResampledSource.releaseResources();
+//}
 
 //==============================================================================
 AudioManager & AudioManager::getInstance()

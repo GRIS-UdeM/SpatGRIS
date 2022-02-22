@@ -79,6 +79,10 @@ private:
     juce::Atomic<int64_t> mNumSamplesRecorded{};
     juce::OwnedArray<FileRecorder> mRecorders{};
     juce::TimeSliceThread mRecordersThread{ "SpatGRIS recording thread" };
+    // Playing
+    bool mPlayerExists{};
+    juce::AudioTransportSource mResampledSource{}; // tmp for player
+
     //==============================================================================
     static std::unique_ptr<AudioManager> mInstance;
 
@@ -101,6 +105,11 @@ public:
     bool isRecording() const;
     int64_t getNumSamplesRecorded() const;
 
+    void playerOn();
+    void playerOff();
+    bool playerExists();
+    void setPlayerSource(juce::AudioFormatReaderSource & readerSource, double sampleRate, int bufferSize);
+
     void initInputBuffer(juce::Array<source_index_t> const & sources);
     void initOutputBuffer(juce::Array<output_patch_t> const & speakers);
     void setBufferSize(int newBufferSize);
@@ -115,6 +124,7 @@ public:
                                int numSamples) override;
     void audioDeviceAboutToStart(juce::AudioIODevice * device) override;
     void audioDeviceStopped() override;
+    //void releaseResources() override;
     //==============================================================================
     static void init(juce::String const & deviceType,
                      juce::String const & inputDevice,

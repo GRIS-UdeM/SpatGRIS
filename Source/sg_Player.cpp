@@ -31,28 +31,31 @@ Player::Player(MainContentComponent & parent)
     , mWavFormat{ nullptr }
     , mReader{ nullptr }
 {
-    mManager.registerBasicFormats();
-    // audio file to map in memory
-    mWavFile = "C:/musik.wav";
-    jassert(mWavFile.existsAsFile());
-    // audio format to use
-    mWavFormat = mManager.findFormatForFileExtension(mWavFile.getFileExtension());
-    // make sure the format is valid and registered
-    jassert(mWavFormat);
-    mReader = mWavFormat->createMemoryMappedReader(mWavFile);
-    // make sure the reader is created
-    jassert(mReader);
-    // make sure the file is mono
-    jassert(mReader->getChannelLayout().size() == 1);
+    // mManager.registerBasicFormats();
+    //// audio file to map in memory
+    // mWavFile = "C:/musik.wav";
+    // jassert(mWavFile.existsAsFile());
+    //// audio format to use
+    // mWavFormat = mManager.findFormatForFileExtension(mWavFile.getFileExtension());
+    //// make sure the format is valid and registered
+    // jassert(mWavFormat);
+    // mReader = mWavFormat->createMemoryMappedReader(mWavFile);
+    //// make sure the reader is created
+    // jassert(mReader);
+    //// make sure the file is mono
+    // jassert(mReader->getChannelLayout().size() == 1);
 
-    // create an audio source that takes ownership of the reader
-    // this audio source only knows how to get the next audio block
-    juce::AudioFormatReaderSource source{ mReader, true };
-    // create an other audio source that can do start, stop, but more importantly, resampling
-    juce::AudioTransportSource resampled_source{};
-    resampled_source.setSource(&source);
-    // inform the source about sample rate
-    // resampled_source.prepareToPlay(/*buffer size*/, /*sample rate*/);
+    //// create an audio source that takes ownership of the reader
+    //// this audio source only knows how to get the next audio block
+    // juce::AudioFormatReaderSource source{ mReader, true };
+    //// create an other audio source that can do start, stop, but more importantly, resampling
+    // juce::AudioTransportSource resampled_source{};
+    // resampled_source.setSource(&source);
+    //// inform the source about sample rate
+    // auto const & data{ mMainContentComponent.getData() };
+    // auto const sampleRate{ data.appData.audioSettings.sampleRate };
+    // auto const bufferSize{ data.appData.audioSettings.bufferSize };
+    // resampled_source.prepareToPlay(bufferSize, sampleRate);
 
     DBG("Player constructor.");
 }
@@ -60,19 +63,71 @@ Player::Player(MainContentComponent & parent)
 //==============================================================================
 Player::~Player()
 {
+    if (mSource != nullptr) {
+        mSource.reset();
+    }
     DBG("Player destructor.");
 }
-
-//==============================================================================
-// void Player::loadWavFilesAndSpeakerSetupFolder()
-//{
-//}
 
 //==============================================================================
 bool Player::loadWavFilesAndSpeakerSetup(juce::File const & folder)
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
+    if (validateWavFilesAndSpeakerSetup(folder)) {
+        for (const auto & filenameThatWasFound :
+             folder.findChildFiles(juce::File::TypesOfFileToFind::findFiles, false, "*.wav")) {
+            mAudioFileSet.push_back(filenameThatWasFound);
+        }
+        DBG("Wav files loaded.");
+
+        if (!AudioManager::getInstance().playerExists()) {
+            mManager.registerBasicFormats();
+        }
+        // audio file to map in memory
+        mWavFile = "C:/musik.wav";
+        jassert(mWavFile.existsAsFile());
+        // audio format to use
+        mWavFormat = mManager.findFormatForFileExtension(mWavFile.getFileExtension());
+        // make sure the format is valid and registered
+        jassert(mWavFormat);
+        mReader = mWavFormat->createMemoryMappedReader(mWavFile);
+        //mReader.reset(mWavFormat->createMemoryMappedReader(mWavFile));
+        //mReader = std::make_unique<juce::MemoryMappedAudioFormatReader>(mWavFormat->createMemoryMappedReader(mWavFile));
+        // make sure the reader is created
+        jassert(mReader);
+        // make sure the file is mono
+        jassert(mReader->getChannelLayout().size() == 1);
+
+        // create an audio source that takes ownership of the reader
+        // this audio source only knows how to get the next audio block
+        //juce::AudioFormatReaderSource source{ mReader.get(), true };
+        if (mSource != nullptr) {
+            mSource.reset();
+            //mSource = nullptr;
+        }
+        mSource = std::make_unique<juce::AudioFormatReaderSource>(mReader, true);
+        //mSource = std::make_unique<juce::AudioFormatReaderSource>(mReader.get(), true);
+        // create an other audio source that can do start, stop, but more importantly, resampling
+        // juce::AudioTransportSource resampled_source{};
+        // resampled_source.setSource(&source);
+
+        // inform the source about sample rate
+        auto const & data{ mMainContentComponent.getData() };
+        auto const sampleRate{ data.appData.audioSettings.sampleRate };
+        auto const bufferSize{ data.appData.audioSettings.bufferSize };
+        // resampled_source.prepareToPlay(bufferSize, sampleRate);
+        AudioManager::getInstance().setPlayerSource(*mSource.get(), sampleRate, bufferSize);
+        AudioManager::getInstance().playerOn();
+
+        return true;
+    }
+
+    return false;
+}
+
+bool Player::validateWavFilesAndSpeakerSetup(juce::File const & folder)
+{
     juce::StringArray wavFileList;
     juce::StringArray speakerList;
     tl::optional<SpeakerSetup> speakerSetup;
@@ -139,15 +194,5 @@ bool Player::loadWavFilesAndSpeakerSetup(juce::File const & folder)
 
     return true;
 }
-
-//==============================================================================
-// bool Player::validateSpeakerSetup(juce::File const & file)
-//{
-//    JUCE_ASSERT_MESSAGE_THREAD;
-//
-//    auto speakerSetup{ MainContentComponent::playerExtractSpeakerSetup(file) };
-//
-//    return false;
-//}
 
 } // namespace gris

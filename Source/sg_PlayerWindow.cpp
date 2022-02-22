@@ -95,6 +95,7 @@ void PlayerWindow::closeButtonPressed()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
+    AudioManager::getInstance().playerOff();
     mMainContentComponent.closePlayerWindow();
 }
 

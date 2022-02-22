@@ -72,11 +72,6 @@ public:
     ~PlayerWindow() override = default;
     SG_DELETE_COPY_AND_MOVE(PlayerWindow)
     //==============================================================================
-    // PlayerWindow(PlayerWindow const &) = delete;
-    // PlayerWindow(PlayerWindow &&) = delete;
-    // PlayerWindow & operator=(PlayerWindow const &) = delete;
-    // PlayerWindow & operator=(PlayerWindow &&) = delete;
-    //==============================================================================
     void closeButtonPressed() override;
 
 private:

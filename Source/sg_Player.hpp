@@ -59,6 +59,10 @@ class Player
     juce::File mWavFile{};
     juce::AudioFormat * mWavFormat{};
     juce::MemoryMappedAudioFormatReader * mReader{};
+    //std::unique_ptr<juce::MemoryMappedAudioFormatReader> mReader{};
+    std::unique_ptr<juce::AudioFormatReaderSource> mSource{};
+
+    std::vector<juce::File> mAudioFileSet{};
 
 public:
     //==============================================================================
@@ -73,6 +77,8 @@ public:
 
 private:
     //==============================================================================
+    bool validateWavFilesAndSpeakerSetup(juce::File const & folder);
+
     JUCE_LEAK_DETECTOR(Player)
 };
 
