@@ -322,7 +322,7 @@
     <XCODE_MAC targetFolder="Builds/MacOSX" extraFrameworks="GLUT" customXcodeResourceFolders="Resources/default_preset&#10;Resources/hrtf_compact&#10;Resources/templates/Speaker Setups&#10;Resources/templates/Projects"
                smallIcon="" bigIcon="YxmFrL" microphonePermissionNeeded="1"
                hardenedRuntime="1" hardenedRuntimeOptions="com.apple.security.device.audio-input"
-               iosDevelopmentTeamID="Q2A837SX87">
+               iosDevelopmentTeamID="62PMMWH49Z">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" osxCompatibility="10.11 SDK" isDebug="1" optimisation="1"
                        targetName="SpatGRIS" headerPath="../../glm" fastMath="1" macOSDeploymentTarget="10.11"/>

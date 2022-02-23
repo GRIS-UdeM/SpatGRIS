@@ -33,6 +33,7 @@ namespace gris
 enum class VbapType { twoD, threeD };
 
 float constexpr SMALL_GAIN = 0.0000000000001f;
+double constexpr DENORM_GAIN = 1.0e-60;
 
 //==============================================================================
 struct ColdSpeakerHighpass {
