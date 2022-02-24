@@ -58,9 +58,10 @@ class Player
     juce::AudioFormatManager mManager{};
     juce::File mWavFile{};
     juce::AudioFormat * mWavFormat{};
-    juce::MemoryMappedAudioFormatReader * mReader{};
+    //juce::MemoryMappedAudioFormatReader * mReader{};
     //std::unique_ptr<juce::MemoryMappedAudioFormatReader> mReader{};
-    std::unique_ptr<juce::AudioFormatReaderSource> mSource{};
+    std::unique_ptr<juce::AudioFormatReaderSource> mReaderSource{};
+    juce::AudioTransportSource mTransportSource{};
 
     std::vector<juce::File> mAudioFileSet{};
 

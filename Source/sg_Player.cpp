@@ -29,7 +29,6 @@ Player::Player(MainContentComponent & parent)
     , mManager{}
     , mWavFile{}
     , mWavFormat{ nullptr }
-    , mReader{ nullptr }
 {
     // mManager.registerBasicFormats();
     //// audio file to map in memory
@@ -63,9 +62,6 @@ Player::Player(MainContentComponent & parent)
 //==============================================================================
 Player::~Player()
 {
-    if (mSource != nullptr) {
-        mSource.reset();
-    }
     DBG("Player destructor.");
 }
 
@@ -76,7 +72,7 @@ bool Player::loadWavFilesAndSpeakerSetup(juce::File const & folder)
 
     if (validateWavFilesAndSpeakerSetup(folder)) {
         for (const auto & filenameThatWasFound :
-             folder.findChildFiles(juce::File::TypesOfFileToFind::findFiles, false, "*.wav")) {
+            folder.findChildFiles(juce::File::TypesOfFileToFind::findFiles, false, "*.wav")) {
             mAudioFileSet.push_back(filenameThatWasFound);
         }
         DBG("Wav files loaded.");
@@ -91,34 +87,33 @@ bool Player::loadWavFilesAndSpeakerSetup(juce::File const & folder)
         mWavFormat = mManager.findFormatForFileExtension(mWavFile.getFileExtension());
         // make sure the format is valid and registered
         jassert(mWavFormat);
-        mReader = mWavFormat->createMemoryMappedReader(mWavFile);
-        //mReader.reset(mWavFormat->createMemoryMappedReader(mWavFile));
-        //mReader = std::make_unique<juce::MemoryMappedAudioFormatReader>(mWavFormat->createMemoryMappedReader(mWavFile));
+        auto * reader = mWavFormat->createMemoryMappedReader(mWavFile);
         // make sure the reader is created
-        jassert(mReader);
+        jassert(reader);
         // make sure the file is mono
-        jassert(mReader->getChannelLayout().size() == 1);
+        jassert(reader->getChannelLayout().size() == 1);
 
         // create an audio source that takes ownership of the reader
         // this audio source only knows how to get the next audio block
-        //juce::AudioFormatReaderSource source{ mReader.get(), true };
-        if (mSource != nullptr) {
-            mSource.reset();
-            //mSource = nullptr;
-        }
-        mSource = std::make_unique<juce::AudioFormatReaderSource>(mReader, true);
-        //mSource = std::make_unique<juce::AudioFormatReaderSource>(mReader.get(), true);
+        //juce::AudioFormatReaderSource source{ reader, true };
+        // 
         // create an other audio source that can do start, stop, but more importantly, resampling
         // juce::AudioTransportSource resampled_source{};
         // resampled_source.setSource(&source);
+        auto newSource = std::make_unique<juce::AudioFormatReaderSource>(reader, true);
+        mTransportSource.setSource(newSource.get(), 0, nullptr, reader->sampleRate);
+        mReaderSource.reset(newSource.release());
 
         // inform the source about sample rate
         auto const & data{ mMainContentComponent.getData() };
         auto const sampleRate{ data.appData.audioSettings.sampleRate };
         auto const bufferSize{ data.appData.audioSettings.bufferSize };
         // resampled_source.prepareToPlay(bufferSize, sampleRate);
-        AudioManager::getInstance().setPlayerSource(*mSource.get(), sampleRate, bufferSize);
-        AudioManager::getInstance().playerOn();
+        //AudioManager::getInstance().setPlayerSource(&AFRSource, sampleRate, bufferSize);
+        //AudioManager::getInstance().playerOn();
+        mTransportSource.prepareToPlay(bufferSize, sampleRate);
+        mTransportSource.setPosition(0.0);
+        mTransportSource.start();
 
         return true;
     }

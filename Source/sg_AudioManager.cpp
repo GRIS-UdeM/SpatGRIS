@@ -286,6 +286,7 @@ void AudioManager::playerOff()
     //if (mPlayerExists) {
     //    mResampledSource.releaseResources();
     //}
+    //mResampledSource.releaseResources();
     mPlayerExists = false;
 }
 
@@ -296,14 +297,15 @@ bool AudioManager::playerExists()
 }
 
 //==============================================================================
-void AudioManager::setPlayerSource(juce::AudioFormatReaderSource & readerSource,
-                                   double readerSourceSampleRate,
-                                   int readerSourceBufferSize)
-{
-    DBG("length of source: " + juce::String(readerSource.getTotalLength()));
-    mResampledSource.setSource(&readerSource);
-    mResampledSource.prepareToPlay(readerSourceBufferSize, readerSourceSampleRate);
-}
+//void AudioManager::setPlayerSource(juce::AudioFormatReaderSource * readerSource,
+//                                   double readerSourceSampleRate,
+//                                   int readerSourceBufferSize)
+//{
+//    mReaderSource.reset(readerSource);
+//    DBG("length of source: " + juce::String(mReaderSource->getTotalLength()));
+//    mResampledSource.setSource(mReaderSource.get(), 0, nullptr, 0.0, 1);
+//    mResampledSource.prepareToPlay(readerSourceBufferSize, readerSourceSampleRate);
+//}
 
 //==============================================================================
 juce::StringArray AudioManager::getAvailableDeviceTypeNames()
