@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS.
 
- Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
+ Developers: Gaël Lane Lépine, Samuel Béland, Olivier Bélanger, Nicolas Masson
 
  SpatGRIS is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@ namespace gris
 enum class VbapType { twoD, threeD };
 
 float constexpr SMALL_GAIN = 0.0000000000001f;
+double constexpr DENORM_GAIN = 1.0e-60;
 
 //==============================================================================
 struct ColdSpeakerHighpass {
