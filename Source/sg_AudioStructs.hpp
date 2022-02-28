@@ -57,7 +57,7 @@ struct SpeakerHighpassConfig {
     double ha1{};
     double ha2{};
     //==============================================================================
-    void process(float * data, int numSamples, ColdSpeakerHighpass & state) const;
+    void process(float * data, int numSamples, ColdSpeakerHighpass & state, const double whiteNoise) const;
 };
 
 //==============================================================================

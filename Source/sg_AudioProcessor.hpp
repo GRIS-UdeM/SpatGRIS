@@ -36,6 +36,7 @@ class AudioProcessor
     AudioData mAudioData{};
     juce::CriticalSection mLock{};
     std::unique_ptr<AbstractSpatAlgorithm> mSpatAlgorithm{};
+    juce::Random randomNoise{};
 
 public:
     //==============================================================================
@@ -59,6 +60,7 @@ private:
     //==============================================================================
     void processInputPeaks(SourceAudioBuffer & inputBuffer, SourcePeaks & peaks) const noexcept;
     void processOutputModifiersAndPeaks(SpeakerAudioBuffer & speakersBuffer, SpeakerPeaks & peaks) noexcept;
+    double denormWhiteNoise();
     //==============================================================================
     JUCE_LEAK_DETECTOR(AudioProcessor)
 };
