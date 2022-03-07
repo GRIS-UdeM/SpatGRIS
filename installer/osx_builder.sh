@@ -69,7 +69,13 @@ fi
 
 PROJECT_FILE="../SpatGRIS.jucer"
 VERSION=`Projucer --get-version "$PROJECT_FILE"`
-echo "Version is $VERSION"
+echo "SpatGris version is $VERSION"
+
+#==============================================================================
+# get plugins version
+
+PLUGINS_VERSION=$(echo $PLUGINS_PKG | awk -F 'ControlGris_' '{print $NF}' | awk -F '.pkg' '{print $1}')
+echo "ControlGris version is $PLUGINS_VERSION"
 
 #==============================================================================
 # package app
@@ -117,6 +123,10 @@ function build_package() {
 	            --timestamp \
 	            "Application.pkg" || exit 1
 
+	echo "adding SpatGris and CoontrolGris versions to installer"
+	sed -i '' "s/title=\"SpatGRIS.*\"/title=\"SpatGRIS $VERSION\"/" ../Distribution.xml || exit 1
+	sed -i '' "s/title=\"ControlGRIS.*\"/title=\"ControlGRIS $PLUGINS_VERSION\"/" ../Distribution.xml || exit 1
+
 	echo "building $PACKAGE_NAME"
 	productbuild 	--distribution "../Distribution.xml" \
 					--resources "$BUILD_RESOURCES" \
@@ -124,6 +134,10 @@ function build_package() {
 					--timestamp \
 					--version "$VERSION" \
 					"$PACKAGE_NAME" || exit 1
+
+	echo "resetting Distribution.xml file"
+	sed -i '' "s/title=\"SpatGRIS.*\"/title=\"SpatGRIS\"/" ../Distribution.xml || exit 1
+	sed -i '' "s/title=\"ControlGRIS.*\"/title=\"ControlGRIS\"/" ../Distribution.xml || exit 1
 }
 
 #==============================================================================
