@@ -22,10 +22,14 @@
 namespace gris
 {
 //==============================================================================
-void SpeakerHighpassConfig::process(float * data, int const numSamples, ColdSpeakerHighpass & state) const
+void SpeakerHighpassConfig::process(float * data,
+                                    int const numSamples,
+                                    ColdSpeakerHighpass & state,
+                                    juce::Random & randNoise) const
 {
     for (int sampleIndex{}; sampleIndex < numSamples; ++sampleIndex) {
-        auto const sample{ static_cast<double>(data[sampleIndex]) + DENORM_GAIN };
+        auto const sample{ static_cast<double>(data[sampleIndex])
+                           + (randNoise.nextDouble() * 2.0 - 1.0) * DENORM_GAIN };
         auto const val{ ha0 * sample + ha1 * state.x1 + ha2 * state.x2 + ha1 * state.x3 + ha0 * state.x4 - b1 * state.y1
                         - b2 * state.y2 - b3 * state.y3 - b4 * state.y4 };
         state.y4 = state.y3;
