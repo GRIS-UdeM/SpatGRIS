@@ -81,9 +81,10 @@ static SpeakerSetupTemplates getSpeakerSetupTemplates()
 {
     auto const domeDir{ SPEAKER_TEMPLATES_DIR.getChildFile("DOME") };
     auto const cubeDir{ SPEAKER_TEMPLATES_DIR.getChildFile("CUBE") };
+    auto const hybridDir{ SPEAKER_TEMPLATES_DIR.getChildFile("HYBRID") };
     auto commandId{ SPEAKER_SETUP_TEMPLATES_COMMANDS_OFFSET };
 
-    return SpeakerSetupTemplates{ extract(domeDir, commandId), extract(cubeDir, commandId) };
+    return SpeakerSetupTemplates{ extract(domeDir, commandId), extract(cubeDir, commandId), extract(hybridDir, commandId) };
 }
 
 //==============================================================================
@@ -221,6 +222,11 @@ tl::optional<FileTemplate const &> commandIdToTemplate(juce::CommandID commandId
     auto const cubeTemplate{ find(SPEAKER_SETUP_TEMPLATES.cube) };
     if (cubeTemplate) {
         return cubeTemplate;
+    }
+    
+    auto const hybridTemplate{ find(SPEAKER_SETUP_TEMPLATES.hybrid) };
+    if (hybridTemplate) {
+        return hybridTemplate;
     }
 
     auto const projectTemplates{ find(PROJECT_TEMPLATES) };
