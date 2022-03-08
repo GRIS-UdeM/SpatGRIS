@@ -19,9 +19,9 @@
             resource="1" file="Resources/ServerGRIS_icon_splash_small.png"
             xcodeResource="1"/>
       <FILE id="sL2wMU" name="SinkinSans-400Regular.otf" compile="0" resource="1"
-            file="Source/SinkinSans-400Regular.otf"/>
+            file="Source/SinkinSans-400Regular.otf" xcodeResource="1"/>
       <FILE id="PQELPj" name="SpatGRIS_3.1.6_Manual.pdf" compile="0" resource="1"
-            file="Resources/SpatGRIS_3.1.6_Manual.pdf"/>
+            file="Resources/SpatGRIS_3.1.6_Manual.pdf" xcodeResource="1"/>
       <FILE id="VMUncp" name="splash_screen.png" compile="0" resource="1"
             file="Resources/splash_screen.png" xcodeResource="1"/>
     </GROUP>
