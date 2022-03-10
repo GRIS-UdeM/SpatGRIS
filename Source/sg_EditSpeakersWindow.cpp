@@ -921,13 +921,22 @@ void EditSpeakersWindow::setText(int const columnNumber,
             break;
         }
         case Cols::HIGHPASS: {
-            static constexpr hz_t MIN_FREQ{ 0.0f };
+            static constexpr hz_t OFF_FREQ{ 0.0f };
+            static constexpr hz_t MIN_FREQ{ 10.0f };
             static constexpr hz_t MAX_FREQ{ 150.0f };
             hz_t val{ newText.getFloatValue() };
             auto diff = val
                         - speaker.highpassData.map_or([](SpeakerHighpassData const & data) { return data.freq; },
                                                       hz_t{ MIN_FREQ });
-            val = std::clamp(val, MIN_FREQ, MAX_FREQ);
+            auto map_value = [&](hz_t value) {
+                if (value < MIN_FREQ && value != OFF_FREQ) {
+                    value = OFF_FREQ;
+                } else {
+                    value = std::clamp(value, MIN_FREQ, MAX_FREQ);
+                }
+                return value;
+            };
+            val = map_value(val);
             mMainContentComponent.setSpeakerHighPassFreq(outputPatch, val);
             if (mSpeakersTableListBox.getNumSelectedRows() > 1) {
                 for (int i{}; i < mSpeakersTableListBox.getSelectedRows().size(); ++i) {
@@ -936,7 +945,8 @@ void EditSpeakersWindow::setText(int const columnNumber,
                         continue;
                     }
                     if (altDown) {
-                        auto const g{ std::clamp(speaker.highpassData->freq + diff, MIN_FREQ, MAX_FREQ) };
+                        auto g{ speaker.highpassData->freq + diff };
+                        g = map_value(g);
                         mMainContentComponent.setSpeakerHighPassFreq(outputPatch, g);
                     } else {
                         mMainContentComponent.setSpeakerHighPassFreq(outputPatch, val);
