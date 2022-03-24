@@ -84,7 +84,9 @@ static SpeakerSetupTemplates getSpeakerSetupTemplates()
     auto const hybridDir{ SPEAKER_TEMPLATES_DIR.getChildFile("HYBRID") };
     auto commandId{ SPEAKER_SETUP_TEMPLATES_COMMANDS_OFFSET };
 
-    return SpeakerSetupTemplates{ extract(domeDir, commandId), extract(cubeDir, commandId), extract(hybridDir, commandId) };
+    return SpeakerSetupTemplates{ extract(domeDir, commandId),
+                                  extract(cubeDir, commandId),
+                                  extract(hybridDir, commandId) };
 }
 
 //==============================================================================
@@ -223,7 +225,7 @@ tl::optional<FileTemplate const &> commandIdToTemplate(juce::CommandID commandId
     if (cubeTemplate) {
         return cubeTemplate;
     }
-    
+
     auto const hybridTemplate{ find(SPEAKER_SETUP_TEMPLATES.hybrid) };
     if (hybridTemplate) {
         return hybridTemplate;

@@ -922,7 +922,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
         }
         case Cols::HIGHPASS: {
             static constexpr hz_t OFF_FREQ{ 0.0f };
-            static constexpr hz_t MIN_FREQ{ 10.0f };
+            static constexpr hz_t MIN_FREQ{ 20.0f };
             static constexpr hz_t MAX_FREQ{ 150.0f };
             hz_t val{ newText.getFloatValue() };
             auto diff = val
