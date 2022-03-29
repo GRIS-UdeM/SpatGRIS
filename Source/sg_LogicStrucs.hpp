@@ -325,6 +325,7 @@ struct ProjectData {
     int oscPort{ DEFAULT_OSC_INPUT_PORT };
     dbfs_t masterGain{};
     float spatGainsInterpolation{};
+    SpatMode spatMode{};
     //==============================================================================
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
     [[nodiscard]] static tl::optional<ProjectData> fromXml(juce::XmlElement const & xml);
@@ -334,6 +335,7 @@ struct ProjectData {
     struct XmlTags {
         static juce::String const MAIN_TAG;
         static juce::String const VERSION;
+        static juce::String const SPAT_MODE;
         static juce::String const SOURCES;
         static juce::String const MASTER_GAIN;
         static juce::String const GAIN_INTERPOLATION;
