@@ -298,7 +298,10 @@ void MainContentComponent::handleNewProject()
 
     auto const success{ loadProject(DEFAULT_PROJECT_FILE, false) };
     if (!success) {
-        fatalError("Unable to load the default project file.", this);
+        if (!DEFAULT_PROJECT_FILE.existsAsFile()) {
+            fatalError("Unable to load the default project file.", this);
+        }
+        return;
     }
 }
 
