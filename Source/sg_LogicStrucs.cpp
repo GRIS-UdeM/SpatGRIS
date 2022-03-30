@@ -589,12 +589,11 @@ tl::optional<ProjectData> ProjectData::fromXml(juce::XmlElement const & xml)
 
     auto const * sourcesElement{ xml.getChildByName(XmlTags::SOURCES) };
     auto const * lbapAttenuationElement{ xml.getChildByName(LbapDistanceAttenuationData::XmlTags::MAIN_TAG) };
-    auto spatMode{ stringToSpatMode(xml.getStringAttribute(XmlTags::SPAT_MODE)) };
 
     // If spatMode does not have a value, it will take spatMode value from SpeakerSetup
-    if (!spatMode) {
-        spatMode = SpatMode::invalid;
-    }
+    auto const spatMode{ (stringToSpatMode(xml.getStringAttribute(XmlTags::SPAT_MODE)))
+                             ? stringToSpatMode(xml.getStringAttribute(XmlTags::SPAT_MODE))
+                             : SpatMode::invalid };
 
     if (!sourcesElement || !lbapAttenuationElement) {
         return tl::nullopt;
