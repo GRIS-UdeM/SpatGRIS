@@ -28,7 +28,7 @@
 
 namespace gris
 {
-enum class SpatMode { vbap = 0, lbap, hybrid };
+enum class SpatMode { invalid = -1, vbap = 0, lbap, hybrid };
 #ifdef USE_DOPPLER
 enum class StereoMode { hrtf, stereo, doppler };
 #else

@@ -298,7 +298,10 @@ void MainContentComponent::handleNewProject()
 
     auto const success{ loadProject(DEFAULT_PROJECT_FILE, false) };
     if (!success) {
-        fatalError("Unable to load the default project file.", this);
+        if (!DEFAULT_PROJECT_FILE.existsAsFile()) {
+            fatalError("Unable to load the default project file.", this);
+        }
+        return;
     }
 }
 
@@ -361,8 +364,17 @@ bool MainContentComponent::loadProject(juce::File const & file, bool const disca
     mData.project = std::move(*projectData);
     mData.appData.lastProject = file.getFullPathName();
 
+    if (mData.project.spatMode == SpatMode::invalid) {
+        mData.project.spatMode = mData.speakerSetup.spatMode;
+    }
+
+    [[maybe_unused]] auto const success{ setSpatMode(mData.project.spatMode) };
+    jassert(success);
+
     mControlPanel->setMasterGain(mData.project.masterGain);
     mControlPanel->setInterpolation(mData.project.spatGainsInterpolation);
+    mControlPanel->setCubeAttenuationDb(mData.project.lbapDistanceAttenuationData.attenuation);
+    mControlPanel->setCubeAttenuationHz(mData.project.lbapDistanceAttenuationData.freq);
 
     refreshAudioProcessor();
     refreshViewportConfig();
@@ -610,10 +622,12 @@ bool MainContentComponent::setSpatMode(SpatMode const spatMode)
 
     if (!ensureVbapIsDomeLike()) {
         mControlPanel->setSpatMode(mData.speakerSetup.spatMode);
+        mData.project.spatMode = mData.speakerSetup.spatMode;
         return false;
     }
 
     mData.speakerSetup.spatMode = spatMode;
+    mData.project.spatMode = spatMode;
     mControlPanel->setSpatMode(spatMode);
     refreshSpeakers();
     return true;
@@ -1437,7 +1451,7 @@ void MainContentComponent::refreshSourceSlices()
     for (auto source : mData.project.sources) {
         auto newSlice{ std::make_unique<SourceSliceComponent>(source.key,
                                                               source.value->directOut,
-                                                              mData.speakerSetup.spatMode,
+                                                              mData.project.spatMode,
                                                               source.value->hybridSpatMode,
                                                               source.value->colour,
                                                               directOutChoices,
@@ -2099,6 +2113,7 @@ bool MainContentComponent::loadSpeakerSetup(juce::File const & file, LoadSpeaker
 
     [[maybe_unused]] auto const success{ setSpatMode(mData.speakerSetup.spatMode) };
     jassert(success);
+
     setTitles();
 
     return true;

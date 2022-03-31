@@ -67,6 +67,7 @@ juce::String const ViewSettings::XmlTags::SHOW_SOURCE_ACTIVITY = "SHOW_SOURCE_AC
 
 juce::String const ProjectData::XmlTags::MAIN_TAG = "SPAT_GRIS_PROJECT_DATA";
 juce::String const ProjectData::XmlTags::VERSION = "VERSION";
+juce::String const ProjectData::XmlTags::SPAT_MODE = "SPAT_MODE";
 juce::String const ProjectData::XmlTags::SOURCES = "SOURCES";
 juce::String const ProjectData::XmlTags::MASTER_GAIN = "MASTER_GAIN";
 juce::String const ProjectData::XmlTags::GAIN_INTERPOLATION = "GAIN_INTERPOLATION";
@@ -570,6 +571,7 @@ std::unique_ptr<juce::XmlElement> ProjectData::toXml() const
     result->setAttribute(XmlTags::MASTER_GAIN, masterGain.get());
     result->setAttribute(XmlTags::GAIN_INTERPOLATION, spatGainsInterpolation);
     result->setAttribute(XmlTags::VERSION, SPAT_GRIS_VERSION.toString());
+    result->setAttribute(XmlTags::SPAT_MODE, spatModeToString(spatMode));
 
     return result;
 }
@@ -587,6 +589,11 @@ tl::optional<ProjectData> ProjectData::fromXml(juce::XmlElement const & xml)
 
     auto const * sourcesElement{ xml.getChildByName(XmlTags::SOURCES) };
     auto const * lbapAttenuationElement{ xml.getChildByName(LbapDistanceAttenuationData::XmlTags::MAIN_TAG) };
+
+    // If spatMode does not have a value, it will take spatMode value from SpeakerSetup
+    auto const spatMode{ (stringToSpatMode(xml.getStringAttribute(XmlTags::SPAT_MODE)))
+                             ? stringToSpatMode(xml.getStringAttribute(XmlTags::SPAT_MODE))
+                             : SpatMode::invalid };
 
     if (!sourcesElement || !lbapAttenuationElement) {
         return tl::nullopt;
@@ -606,6 +613,7 @@ tl::optional<ProjectData> ProjectData::fromXml(juce::XmlElement const & xml)
         static_cast<float>(xml.getDoubleAttribute(XmlTags::GAIN_INTERPOLATION)));
     result.oscPort = xml.getIntAttribute(XmlTags::OSC_PORT); // TODO : validate value
     result.lbapDistanceAttenuationData = *lbapAttenuation;
+    result.spatMode = *spatMode;
 
     for (auto const * sourceElement : sourcesElement->getChildIterator()) {
         jassert(sourceElement);
@@ -631,7 +639,7 @@ bool ProjectData::operator==(ProjectData const & other) const noexcept
 {
     return other.spatGainsInterpolation == spatGainsInterpolation && other.oscPort == oscPort
            && other.masterGain == masterGain && other.lbapDistanceAttenuationData == lbapDistanceAttenuationData
-           && other.sources == sources;
+           && other.sources == sources && other.spatMode == spatMode;
 }
 
 //==============================================================================

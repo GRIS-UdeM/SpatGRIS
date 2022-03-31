@@ -49,7 +49,7 @@ juce::File const DEFAULT_PROJECT_FILE{ DEFAULT_PROJECT_DIRECTORY.getChildFile("d
 juce::File const DEFAULT_SPEAKER_SETUP_FILE{ DEFAULT_PROJECT_DIRECTORY.getChildFile("default_speaker_setup.xml") };
 juce::File const BINAURAL_SPEAKER_SETUP_FILE{ DEFAULT_PROJECT_DIRECTORY.getChildFile("BINAURAL_SPEAKER_SETUP.xml") };
 juce::File const STEREO_SPEAKER_SETUP_FILE{ DEFAULT_PROJECT_DIRECTORY.getChildFile("STEREO_SPEAKER_SETUP.xml") };
-juce::File const MANUAL_FILE{ RESOURCES_DIR.getChildFile("SpatGRIS_3.1.6_Manual.pdf") };
+juce::File const MANUAL_FILE{ RESOURCES_DIR.getChildFile("SpatGRIS_3.1.8_Manual.pdf") };
 juce::File const ICON_SMALL_FILE{ RESOURCES_DIR.getChildFile("ServerGRIS_icon_splash_small.png") };
 juce::File const HRTF_FOLDER_0{ RESOURCES_DIR.getChildFile("hrtf_compact/elev" + juce::String(0) + "/") };
 juce::File const HRTF_FOLDER_40{ RESOURCES_DIR.getChildFile("hrtf_compact/elev" + juce::String(40) + "/") };
@@ -84,7 +84,9 @@ static SpeakerSetupTemplates getSpeakerSetupTemplates()
     auto const hybridDir{ SPEAKER_TEMPLATES_DIR.getChildFile("HYBRID") };
     auto commandId{ SPEAKER_SETUP_TEMPLATES_COMMANDS_OFFSET };
 
-    return SpeakerSetupTemplates{ extract(domeDir, commandId), extract(cubeDir, commandId), extract(hybridDir, commandId) };
+    return SpeakerSetupTemplates{ extract(domeDir, commandId),
+                                  extract(cubeDir, commandId),
+                                  extract(hybridDir, commandId) };
 }
 
 //==============================================================================
@@ -223,7 +225,7 @@ tl::optional<FileTemplate const &> commandIdToTemplate(juce::CommandID commandId
     if (cubeTemplate) {
         return cubeTemplate;
     }
-    
+
     auto const hybridTemplate{ find(SPEAKER_SETUP_TEMPLATES.hybrid) };
     if (hybridTemplate) {
         return hybridTemplate;
