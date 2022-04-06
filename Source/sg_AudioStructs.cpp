@@ -112,4 +112,17 @@ void LbapAttenuationConfig::process(float * data,
     }
 }
 
+//==============================================================================
+void ColdSpeakerHighpass::resetValues()
+{
+    x1 = 0.0;
+    x2 = 0.0;
+    x3 = 0.0;
+    x4 = 0.0;
+    y1 = 0.0;
+    y2 = 0.0;
+    y3 = 0.0;
+    y4 = 0.0;
+}
+
 } // namespace gris

@@ -91,6 +91,10 @@ void AudioProcessor::processOutputModifiersAndPeaks(SpeakerAudioBuffer & speaker
             auto * const samples{ buffer.getWritePointer(0) };
             auto const & highpassConfig{ *config.highpassConfig };
             auto & highpassVars{ mAudioData.state.speakersAudioState[channel.key].highpassState };
+            if (highpassConfig.isNewConfig) {
+                highpassVars.resetValues();
+                highpassConfig.isNewConfig = false;
+            }
             highpassConfig.process(samples, numSamples, highpassVars, randomNoise);
         }
 
