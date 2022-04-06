@@ -122,7 +122,11 @@ struct SpeakerSetupTemplates {
     juce::Array<FileTemplate> hybrid{};
 };
 
-using ProjectTemplates = juce::Array<FileTemplate>;
+struct ProjectTemplates {
+    juce::Array<FileTemplate> dome{};
+    juce::Array<FileTemplate> cube{};
+    juce::Array<FileTemplate> hybrid{};
+};
 
 extern SpeakerSetupTemplates const SPEAKER_SETUP_TEMPLATES;
 extern ProjectTemplates const PROJECT_TEMPLATES;

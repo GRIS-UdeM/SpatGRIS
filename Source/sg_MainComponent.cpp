@@ -913,10 +913,18 @@ void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & command
         }
     };
 
+    auto const addProjectTemplate = [&](auto const & templates) {
+        for (auto const & projectTemplate : templates) {
+            commands.add(projectTemplate.commandId);
+        }
+    };
+
     addTemplate(SPEAKER_SETUP_TEMPLATES.dome);
     addTemplate(SPEAKER_SETUP_TEMPLATES.cube);
     addTemplate(SPEAKER_SETUP_TEMPLATES.hybrid);
-    addTemplate(PROJECT_TEMPLATES);
+    addProjectTemplate(PROJECT_TEMPLATES.dome);
+    addProjectTemplate(PROJECT_TEMPLATES.cube);
+    addProjectTemplate(PROJECT_TEMPLATES.hybrid);
 }
 
 //==============================================================================
@@ -1197,6 +1205,14 @@ juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const j
         return menu;
     };
 
+    auto const getProjectTemplatesMenu = [&]() {
+        juce::PopupMenu menu{};
+        menu.addSubMenu("Dome", extractTemplatesToMenu(PROJECT_TEMPLATES.dome));
+        menu.addSubMenu("Cube", extractTemplatesToMenu(PROJECT_TEMPLATES.cube));
+        menu.addSubMenu("Hybrid", extractTemplatesToMenu(PROJECT_TEMPLATES.hybrid));
+        return menu;
+    };
+
     auto const getSpeakerSetupTemplatesMenu = [&]() {
         juce::PopupMenu menu{};
         menu.addSubMenu("Dome", extractTemplatesToMenu(SPEAKER_SETUP_TEMPLATES.dome));
@@ -1210,12 +1226,12 @@ juce::PopupMenu MainContentComponent::getMenuForIndex(int /*menuIndex*/, const j
     if (menuName == "File") {
         menu.addCommandItem(commandManager, CommandId::newProjectId);
         menu.addCommandItem(commandManager, CommandId::openProjectId);
-        menu.addSubMenu("Templates", extractTemplatesToMenu(PROJECT_TEMPLATES));
+        menu.addSubMenu("Project Templates", getProjectTemplatesMenu());
         menu.addCommandItem(commandManager, CommandId::saveProjectId);
         menu.addCommandItem(commandManager, CommandId::saveProjectAsId);
         menu.addSeparator();
         menu.addCommandItem(commandManager, CommandId::openSpeakerSetupId);
-        menu.addSubMenu("Templates", getSpeakerSetupTemplatesMenu());
+        menu.addSubMenu("Speaker Setup Templates", getSpeakerSetupTemplatesMenu());
         menu.addCommandItem(commandManager, CommandId::saveSpeakerSetupId);
         menu.addCommandItem(commandManager, CommandId::saveSpeakerSetupAsId);
         menu.addSeparator();

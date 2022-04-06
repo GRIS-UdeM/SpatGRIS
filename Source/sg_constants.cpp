@@ -92,13 +92,16 @@ static SpeakerSetupTemplates getSpeakerSetupTemplates()
 //==============================================================================
 static ProjectTemplates getProjectTemplates()
 {
+    auto const domeDir{ PROJECT_TEMPLATES_DIR.getChildFile("DOME") };
+    auto const cubeDir{ PROJECT_TEMPLATES_DIR.getChildFile("CUBE") };
+    auto const hybridDir{ PROJECT_TEMPLATES_DIR.getChildFile("HYBRID") };
     auto commandId{ PROJECT_TEMPLATES_COMMANDS_OFFSET };
 
-    return extract(PROJECT_TEMPLATES_DIR, commandId);
+    return ProjectTemplates{ extract(domeDir, commandId), extract(cubeDir, commandId), extract(hybridDir, commandId) };
 }
 
 SpeakerSetupTemplates const SPEAKER_SETUP_TEMPLATES{ getSpeakerSetupTemplates() };
-ProjectTemplates const PROJECT_TEMPLATES = getProjectTemplates();
+ProjectTemplates const PROJECT_TEMPLATES{ getProjectTemplates() };
 
 //==============================================================================
 juce::StringArray const RECORDING_FORMAT_STRINGS{ "WAV",
@@ -216,7 +219,6 @@ tl::optional<FileTemplate const &> commandIdToTemplate(juce::CommandID commandId
     };
 
     auto const domeTemplate{ find(SPEAKER_SETUP_TEMPLATES.dome) };
-
     if (domeTemplate) {
         return domeTemplate;
     }
@@ -231,9 +233,19 @@ tl::optional<FileTemplate const &> commandIdToTemplate(juce::CommandID commandId
         return hybridTemplate;
     }
 
-    auto const projectTemplates{ find(PROJECT_TEMPLATES) };
-    if (projectTemplates) {
-        return projectTemplates;
+    auto const domeProjectTemplate{ find(PROJECT_TEMPLATES.dome) };
+    if (domeProjectTemplate) {
+        return domeProjectTemplate;
+    }
+
+    auto const cubeProjectTemplate{ find(PROJECT_TEMPLATES.cube) };
+    if (cubeProjectTemplate) {
+        return cubeProjectTemplate;
+    }
+
+    auto const hybridProjectTemplate{ find(PROJECT_TEMPLATES.hybrid) };
+    if (hybridProjectTemplate) {
+        return hybridProjectTemplate;
     }
 
     return tl::nullopt;
