@@ -95,7 +95,7 @@ void AudioProcessor::processOutputModifiersAndPeaks(SpeakerAudioBuffer & speaker
                 highpassVars.resetValues();
                 highpassConfig.isNewConfig = false;
             }
-            highpassConfig.process(samples, numSamples, highpassVars, randomNoise);
+            highpassConfig.process(samples, numSamples, highpassVars, mRandomNoise);
         }
 
         auto const magnitude{ buffer.getMagnitude(0, numSamples) };

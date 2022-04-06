@@ -36,7 +36,7 @@ class AudioProcessor
     AudioData mAudioData{};
     juce::CriticalSection mLock{};
     std::unique_ptr<AbstractSpatAlgorithm> mSpatAlgorithm{};
-    juce::Random randomNoise{};
+    juce::Random mRandomNoise{};
 
 public:
     //==============================================================================
