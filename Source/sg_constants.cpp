@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS.
 
- Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
+ Developers: Gaël Lane Lépine, Samuel Béland, Olivier Bélanger, Nicolas Masson
 
  SpatGRIS is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -49,7 +49,7 @@ juce::File const DEFAULT_PROJECT_FILE{ DEFAULT_PROJECT_DIRECTORY.getChildFile("d
 juce::File const DEFAULT_SPEAKER_SETUP_FILE{ DEFAULT_PROJECT_DIRECTORY.getChildFile("default_speaker_setup.xml") };
 juce::File const BINAURAL_SPEAKER_SETUP_FILE{ DEFAULT_PROJECT_DIRECTORY.getChildFile("BINAURAL_SPEAKER_SETUP.xml") };
 juce::File const STEREO_SPEAKER_SETUP_FILE{ DEFAULT_PROJECT_DIRECTORY.getChildFile("STEREO_SPEAKER_SETUP.xml") };
-juce::File const MANUAL_FILE{ RESOURCES_DIR.getChildFile("SpatGRIS_3.1.8_Manual.pdf") };
+juce::File const MANUAL_FILE{ RESOURCES_DIR.getChildFile("SpatGRIS_3.1.9_Manual.pdf") };
 juce::File const ICON_SMALL_FILE{ RESOURCES_DIR.getChildFile("ServerGRIS_icon_splash_small.png") };
 juce::File const HRTF_FOLDER_0{ RESOURCES_DIR.getChildFile("hrtf_compact/elev" + juce::String(0) + "/") };
 juce::File const HRTF_FOLDER_40{ RESOURCES_DIR.getChildFile("hrtf_compact/elev" + juce::String(40) + "/") };
@@ -92,13 +92,16 @@ static SpeakerSetupTemplates getSpeakerSetupTemplates()
 //==============================================================================
 static ProjectTemplates getProjectTemplates()
 {
+    auto const domeDir{ PROJECT_TEMPLATES_DIR.getChildFile("DOME") };
+    auto const cubeDir{ PROJECT_TEMPLATES_DIR.getChildFile("CUBE") };
+    auto const hybridDir{ PROJECT_TEMPLATES_DIR.getChildFile("HYBRID") };
     auto commandId{ PROJECT_TEMPLATES_COMMANDS_OFFSET };
 
-    return extract(PROJECT_TEMPLATES_DIR, commandId);
+    return ProjectTemplates{ extract(domeDir, commandId), extract(cubeDir, commandId), extract(hybridDir, commandId) };
 }
 
 SpeakerSetupTemplates const SPEAKER_SETUP_TEMPLATES{ getSpeakerSetupTemplates() };
-ProjectTemplates const PROJECT_TEMPLATES = getProjectTemplates();
+ProjectTemplates const PROJECT_TEMPLATES{ getProjectTemplates() };
 
 //==============================================================================
 juce::StringArray const RECORDING_FORMAT_STRINGS{ "WAV",
@@ -216,7 +219,6 @@ tl::optional<FileTemplate const &> commandIdToTemplate(juce::CommandID commandId
     };
 
     auto const domeTemplate{ find(SPEAKER_SETUP_TEMPLATES.dome) };
-
     if (domeTemplate) {
         return domeTemplate;
     }
@@ -231,9 +233,19 @@ tl::optional<FileTemplate const &> commandIdToTemplate(juce::CommandID commandId
         return hybridTemplate;
     }
 
-    auto const projectTemplates{ find(PROJECT_TEMPLATES) };
-    if (projectTemplates) {
-        return projectTemplates;
+    auto const domeProjectTemplate{ find(PROJECT_TEMPLATES.dome) };
+    if (domeProjectTemplate) {
+        return domeProjectTemplate;
+    }
+
+    auto const cubeProjectTemplate{ find(PROJECT_TEMPLATES.cube) };
+    if (cubeProjectTemplate) {
+        return cubeProjectTemplate;
+    }
+
+    auto const hybridProjectTemplate{ find(PROJECT_TEMPLATES.hybrid) };
+    if (hybridProjectTemplate) {
+        return hybridProjectTemplate;
     }
 
     return tl::nullopt;

@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS.
 
- Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
+ Developers: Gaël Lane Lépine, Samuel Béland, Olivier Bélanger, Nicolas Masson
 
  SpatGRIS is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -122,7 +122,11 @@ struct SpeakerSetupTemplates {
     juce::Array<FileTemplate> hybrid{};
 };
 
-using ProjectTemplates = juce::Array<FileTemplate>;
+struct ProjectTemplates {
+    juce::Array<FileTemplate> dome{};
+    juce::Array<FileTemplate> cube{};
+    juce::Array<FileTemplate> hybrid{};
+};
 
 extern SpeakerSetupTemplates const SPEAKER_SETUP_TEMPLATES;
 extern ProjectTemplates const PROJECT_TEMPLATES;

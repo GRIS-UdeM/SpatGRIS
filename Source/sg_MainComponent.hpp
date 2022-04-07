@@ -124,6 +124,7 @@ class MainContentComponent final
     std::unique_ptr<juce::StretchableLayoutResizerBar> mVerticalDividerBar{};
 
     bool mIsProcessForeground{ true };
+    bool mIsLoadingSpeakerSetupOrProjectFile{ false };
 
     GrisLookAndFeel & mLookAndFeel;
     SmallGrisLookAndFeel & mSmallLookAndFeel;

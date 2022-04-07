@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS.
 
- Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
+ Developers: Gaël Lane Lépine, Samuel Béland, Olivier Bélanger, Nicolas Masson
 
  SpatGRIS is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -927,16 +927,18 @@ void EditSpeakersWindow::setText(int const columnNumber,
             hz_t val{ newText.getFloatValue() };
             auto diff = val
                         - speaker.highpassData.map_or([](SpeakerHighpassData const & data) { return data.freq; },
-                                                      hz_t{ MIN_FREQ });
-            auto map_value = [&](hz_t value) {
-                if (value < MIN_FREQ && value != OFF_FREQ) {
+                                                      hz_t{ OFF_FREQ });
+            auto mapValue = [&](hz_t value, hz_t modDiff) {
+                if (value <= OFF_FREQ && modDiff <= OFF_FREQ) {
+                    value = OFF_FREQ;
+                } else if (value < MIN_FREQ && value > OFF_FREQ && modDiff < OFF_FREQ) {
                     value = OFF_FREQ;
                 } else {
                     value = std::clamp(value, MIN_FREQ, MAX_FREQ);
                 }
                 return value;
             };
-            val = map_value(val);
+            val = mapValue(val, diff);
             mMainContentComponent.setSpeakerHighPassFreq(outputPatch, val);
             if (mSpeakersTableListBox.getNumSelectedRows() > 1) {
                 for (int i{}; i < mSpeakersTableListBox.getSelectedRows().size(); ++i) {
@@ -946,7 +948,7 @@ void EditSpeakersWindow::setText(int const columnNumber,
                     }
                     if (altDown) {
                         auto g{ speaker.highpassData->freq + diff };
-                        g = map_value(g);
+                        g = mapValue(g, diff);
                         mMainContentComponent.setSpeakerHighPassFreq(outputPatch, g);
                     } else {
                         mMainContentComponent.setSpeakerHighPassFreq(outputPatch, val);

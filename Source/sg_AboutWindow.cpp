@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS.
 
- Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
+ Developers: Gaël Lane Lépine, Samuel Béland, Olivier Bélanger, Nicolas Masson
 
  SpatGRIS is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -59,8 +59,8 @@ AboutComponent::AboutComponent(AboutWindow & parentWindow, GrisLookAndFeel & loo
     infos << "Director:\n";
     infos << "Robert NORMANDEAU\n\n";
     infos << "Programmers:\n";
-    infos << "Actual: Samuel BÉLAND\n";
-    infos << "Former: Olivier BÉLANGER, Vincent BERTHIAUME, Nicolas MASSON, Antoine MISSOUT\n\n";
+    infos << "Actual: Gaël LANE LÉPINE\n";
+    infos << "Former: Samuel BÉLAND, Olivier BÉLANGER, Vincent BERTHIAUME, Nicolas MASSON, Antoine MISSOUT\n\n";
     infos << "Assistants:\n";
     infos << "Christophe LENGELÉ, Nicola GIANNINI, Mélanie FRISOLI";
 

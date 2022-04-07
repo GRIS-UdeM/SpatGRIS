@@ -45,6 +45,8 @@ struct ColdSpeakerHighpass {
     double y2{};
     double y3{};
     double y4{};
+    //==============================================================================
+    void resetValues();
 };
 
 //==============================================================================
@@ -56,6 +58,7 @@ struct SpeakerHighpassConfig {
     double ha0{};
     double ha1{};
     double ha2{};
+    mutable bool isNewConfig{ true };
     //==============================================================================
     void process(float * data, int numSamples, ColdSpeakerHighpass & state, juce::Random & randNoise) const;
 };

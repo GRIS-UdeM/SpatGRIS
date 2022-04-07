@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS.
 
- Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
+ Developers: Gaël Lane Lépine, Samuel Béland, Olivier Bélanger, Nicolas Masson
 
  SpatGRIS is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -110,6 +110,19 @@ void LbapAttenuationConfig::process(float * data,
         jassert(std::isfinite(state.lowpassY));
         jassert(std::isfinite(state.lowpassZ));
     }
+}
+
+//==============================================================================
+void ColdSpeakerHighpass::resetValues()
+{
+    x1 = 0.0;
+    x2 = 0.0;
+    x3 = 0.0;
+    x4 = 0.0;
+    y1 = 0.0;
+    y2 = 0.0;
+    y3 = 0.0;
+    y4 = 0.0;
 }
 
 } // namespace gris

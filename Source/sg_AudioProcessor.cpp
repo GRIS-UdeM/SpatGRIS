@@ -1,7 +1,7 @@
 /*
  This file is part of SpatGRIS.
 
- Developers: Samuel Béland, Olivier Bélanger, Nicolas Masson
+ Developers: Gaël Lane Lépine, Samuel Béland, Olivier Bélanger, Nicolas Masson
 
  SpatGRIS is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -91,7 +91,11 @@ void AudioProcessor::processOutputModifiersAndPeaks(SpeakerAudioBuffer & speaker
             auto * const samples{ buffer.getWritePointer(0) };
             auto const & highpassConfig{ *config.highpassConfig };
             auto & highpassVars{ mAudioData.state.speakersAudioState[channel.key].highpassState };
-            highpassConfig.process(samples, numSamples, highpassVars, randomNoise);
+            if (highpassConfig.isNewConfig) {
+                highpassVars.resetValues();
+                highpassConfig.isNewConfig = false;
+            }
+            highpassConfig.process(samples, numSamples, highpassVars, mRandomNoise);
         }
 
         auto const magnitude{ buffer.getMagnitude(0, numSamples) };
