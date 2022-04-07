@@ -361,6 +361,8 @@ bool MainContentComponent::loadProject(juce::File const & file, bool const disca
         return false;
     }
 
+    mIsLoadingSpeakerSetupOrProjectFile = true;
+
     mData.project = std::move(*projectData);
     mData.appData.lastProject = file.getFullPathName();
 
@@ -380,6 +382,8 @@ bool MainContentComponent::loadProject(juce::File const & file, bool const disca
     refreshViewportConfig();
     setTitles();
     refreshSourceSlices();
+
+    mIsLoadingSpeakerSetupOrProjectFile = false;
 
     return true;
 }
@@ -2085,6 +2089,8 @@ bool MainContentComponent::loadSpeakerSetup(juce::File const & file, LoadSpeaker
 
     juce::ScopedWriteLock const lock{ mLock };
 
+    mIsLoadingSpeakerSetupOrProjectFile = true;
+
     mData.speakerSetup = std::move(*speakerSetup);
     mData.appData.lastSpeakerSetup = file.getFullPathName();
 
@@ -2105,6 +2111,7 @@ bool MainContentComponent::loadSpeakerSetup(juce::File const & file, LoadSpeaker
     jassert(success);
 
     setTitles();
+    mIsLoadingSpeakerSetupOrProjectFile = false;
 
     return true;
 }
@@ -2304,7 +2311,9 @@ void MainContentComponent::timerCallback()
     JUCE_ASSERT_MESSAGE_THREAD;
 
     // Update levels
-    updatePeaks();
+    if (!mIsLoadingSpeakerSetupOrProjectFile) {
+        updatePeaks();
+    }
 
     auto & audioManager{ AudioManager::getInstance() };
     auto & audioDeviceManager{ audioManager.getAudioDeviceManager() };
