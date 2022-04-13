@@ -75,6 +75,7 @@ public:
     // void loadWavFilesAndSpeakerSetupFolder();
     bool loadWavFilesAndSpeakerSetup(juce::File const & folder);
     // bool validateSpeakerSetup(juce::File const & file);
+    void playAudio();
 
 private:
     //==============================================================================

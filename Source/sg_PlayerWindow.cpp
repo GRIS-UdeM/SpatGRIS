@@ -29,10 +29,14 @@ namespace gris
 PlayerComponent::PlayerComponent(Player & player) : mPlayer(player)
 {
     mLoadWavFilesAndSpeakerSetupButton.setButtonText("Load wav files and Speaker setup folder");
+    mPlayButton.setButtonText("Play");
     // mLoadWavFilesAndSpeakerSetupButton.setClickingTogglesState(true);
     mLoadWavFilesAndSpeakerSetupButton.setToggleState(true, juce::NotificationType::dontSendNotification);
+    mPlayButton.setToggleState(true, juce::NotificationType::dontSendNotification);
     mLoadWavFilesAndSpeakerSetupButton.addListener(this);
+    mPlayButton.addListener(this);
     addAndMakeVisible(mLoadWavFilesAndSpeakerSetupButton);
+    addAndMakeVisible(mPlayButton);
 }
 
 //==============================================================================
@@ -63,15 +67,20 @@ void PlayerComponent::handleOpenWavFilesAndSpeakerSetup()
 //==============================================================================
 void PlayerComponent::buttonClicked([[maybe_unused]] juce::Button * button)
 {
-    jassert(button == &mLoadWavFilesAndSpeakerSetupButton);
-    DBG("Play button pressed.");
-    handleOpenWavFilesAndSpeakerSetup();
+    //jassert(button == &mLoadWavFilesAndSpeakerSetupButton);
+    //DBG("Play button pressed.");
+    if (button == &mLoadWavFilesAndSpeakerSetupButton) {
+        handleOpenWavFilesAndSpeakerSetup();
+    } else if (button == &mPlayButton) {
+        mPlayer.playAudio();
+    }
 }
 
 //==============================================================================
 void PlayerComponent::resized()
 {
     mLoadWavFilesAndSpeakerSetupButton.setBounds(10, 10, 250, 30);
+    mPlayButton.setBounds(10, 40, 50, 30);
 }
 
 //==============================================================================

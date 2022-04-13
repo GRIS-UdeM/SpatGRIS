@@ -62,6 +62,7 @@ Player::Player(MainContentComponent & parent)
 //==============================================================================
 Player::~Player()
 {
+    AudioManager::getInstance().playerOff();
     DBG("Player destructor.");
 }
 
@@ -81,7 +82,7 @@ bool Player::loadWavFilesAndSpeakerSetup(juce::File const & folder)
             mManager.registerBasicFormats();
         }
         // audio file to map in memory
-        mWavFile = "C:/musik.wav";
+        mWavFile = "C:/musik2.wav";
         jassert(mWavFile.existsAsFile());
         // audio format to use
         mWavFormat = mManager.findFormatForFileExtension(mWavFile.getFileExtension());
@@ -92,6 +93,7 @@ bool Player::loadWavFilesAndSpeakerSetup(juce::File const & folder)
         jassert(reader);
         // make sure the file is mono
         jassert(reader->getChannelLayout().size() == 1);
+        reader->mapEntireFile();
 
         // create an audio source that takes ownership of the reader
         // this audio source only knows how to get the next audio block
@@ -105,20 +107,33 @@ bool Player::loadWavFilesAndSpeakerSetup(juce::File const & folder)
         mReaderSource.reset(newSource.release());
 
         // inform the source about sample rate
-        auto const & data{ mMainContentComponent.getData() };
-        auto const sampleRate{ data.appData.audioSettings.sampleRate };
-        auto const bufferSize{ data.appData.audioSettings.bufferSize };
+        //auto const & data{ mMainContentComponent.getData() };
+        //auto const sampleRate{ data.appData.audioSettings.sampleRate };
+        //auto const bufferSize{ data.appData.audioSettings.bufferSize };
         // resampled_source.prepareToPlay(bufferSize, sampleRate);
         //AudioManager::getInstance().setPlayerSource(&AFRSource, sampleRate, bufferSize);
         //AudioManager::getInstance().playerOn();
-        mTransportSource.prepareToPlay(bufferSize, sampleRate);
-        mTransportSource.setPosition(0.0);
-        mTransportSource.start();
+        //mTransportSource.prepareToPlay(bufferSize, sampleRate);
+        //mTransportSource.setPosition(0.0);
+        //mTransportSource.start();
+        //AudioManager::getInstance().initPlayer(*mReaderSource, mTransportSource);
 
         return true;
     }
 
     return false;
+}
+
+void Player::playAudio()
+{
+    auto const & data{ mMainContentComponent.getData() };
+    auto const sampleRate{ data.appData.audioSettings.sampleRate };
+    auto const bufferSize{ data.appData.audioSettings.bufferSize };
+
+    mTransportSource.prepareToPlay(bufferSize, sampleRate);
+    mTransportSource.setPosition(0.0);
+    //mTransportSource.start();
+    AudioManager::getInstance().initPlayer(mTransportSource);
 }
 
 bool Player::validateWavFilesAndSpeakerSetup(juce::File const & folder)

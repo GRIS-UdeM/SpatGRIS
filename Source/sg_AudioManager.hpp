@@ -81,8 +81,9 @@ private:
     juce::TimeSliceThread mRecordersThread{ "SpatGRIS recording thread" };
     // Playing
     bool mPlayerExists{};
-    std::unique_ptr<juce::AudioFormatReaderSource> mReaderSource{}; // tmp for player
-    juce::AudioTransportSource mResampledSource{}; // tmp for player
+    //std::unique_ptr<juce::AudioFormatReaderSource> mReaderSource{}; // tmp for player
+    //juce::AudioTransportSource mResampledSource{};                  // tmp for player
+    std::unique_ptr<juce::AudioTransportSource> mResampledSource{}; // tmp for player
 
     //==============================================================================
     static std::unique_ptr<AudioManager> mInstance;
@@ -109,6 +110,7 @@ public:
     void playerOn();
     void playerOff();
     bool playerExists();
+    void initPlayer(juce::AudioTransportSource & transportSource);
     //void setPlayerSource(juce::AudioFormatReaderSource * readerSource,
     //                     double sampleRate,
     //                     int bufferSize);

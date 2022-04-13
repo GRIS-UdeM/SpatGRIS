@@ -112,7 +112,17 @@ void AudioManager::audioDeviceIOCallback(float const ** inputChannelData,
         // create a source channel info for the juce audio methods
         juce::AudioSourceChannelInfo const info{ buffer };
         // read the next file audio data and copy it to the referenced buffer
-        mResampledSource.getNextAudioBlock(info);
+        //mResampledSource.getNextAudioBlock(info);
+        //if (!mResampledSource->()) {
+        mResampledSource->getNextAudioBlock(info);
+        DBG("TOTAL LENGTH : " << mResampledSource->getTotalLength());
+        DBG("TOTAL LENGTH IN SECONDS : " << mResampledSource->getLengthInSeconds());
+        DBG("NEXT READ POSITION : " << mResampledSource->getNextReadPosition());
+        DBG("CURRENT POSITION : " << mResampledSource->getCurrentPosition());
+        if (mResampledSource->hasStreamFinished()) {
+            playerOff();
+        }
+        //}
         //DBG("In player buffer loop.");
     } else {
         auto const numInputChannelsToCopy{ std::min(totalNumInputChannels, mInputBuffer.size()) };
@@ -240,7 +250,7 @@ AudioManager::~AudioManager()
         mRecorders.clear(true);
     }
 
-    //mResampledSource.releaseResources();
+    //mResampledSource->releaseResources();
 }
 
 //==============================================================================
@@ -294,6 +304,16 @@ void AudioManager::playerOff()
 bool AudioManager::playerExists()
 {
     return mPlayerExists;
+}
+
+//==============================================================================
+void AudioManager::initPlayer(juce::AudioTransportSource & transportSource)
+{
+    //mReaderSource.reset(&readerSource);
+    mResampledSource.reset( &transportSource);
+    mResampledSource->start();
+
+    playerOn();
 }
 
 //==============================================================================
@@ -639,7 +659,7 @@ void AudioManager::audioDeviceAboutToStart(juce::AudioIODevice * /*device*/)
 void AudioManager::audioDeviceStopped()
 {
     // when AudioProcessor will be a real AudioSource, releaseResources() should be called here.
-    mResampledSource.releaseResources();
+    //mResampledSource->releaseResources();
 }
 
 //==============================================================================

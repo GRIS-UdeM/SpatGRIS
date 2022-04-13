@@ -42,6 +42,7 @@ class PlayerComponent final
     juce::ReadWriteLock mLock{};
 
     juce::TextButton mLoadWavFilesAndSpeakerSetupButton{};
+    juce::TextButton mPlayButton{};
 
 public:
     //==============================================================================
