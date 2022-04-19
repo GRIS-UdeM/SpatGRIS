@@ -76,7 +76,7 @@ static Position getLegalSpeakerPosition(Position const & position,
         CONSTRAIN_CARTESIAN(y, x, z);
     } else {
         jassert(modifiedCol == Col::Z);
-        z = std::clamp(z, 0.0f, 1.0f);
+        z = std::clamp(z, -1.0f, 1.0f);
         CONSTRAIN_CARTESIAN(z, x, y);
     }
     return Position{ newPosition };
@@ -710,7 +710,7 @@ juce::String EditSpeakersWindow::getText(int const columnNumber, int const rowNu
     case Cols::Y:
         return juce::String{ speaker.position.getCartesian().y, 2 };
     case Cols::Z:
-        return juce::String{ std::max(speaker.position.getCartesian().z, 0.0f), 2 };
+        return juce::String{ speaker.position.getCartesian().z, 2 };
     case Cols::AZIMUTH:
         return juce::String{ degrees_t{ HALF_PI - speaker.position.getPolar().azimuth }.madePositive().get(), 1 };
     case Cols::ELEVATION:
