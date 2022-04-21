@@ -1537,6 +1537,7 @@ void MainContentComponent::setLegacySourcePosition(source_index_t const sourceIn
         case SpatMode::lbap:
             return LegacyLbapPosition{ azimuth, elevation, length }.toPosition();
         case SpatMode::hybrid:
+        case SpatMode::invalid:
             break;
         }
         jassertfalse;
@@ -1590,6 +1591,7 @@ void MainContentComponent::setSourcePosition(source_index_t const sourceIndex,
         position = position.getCartesian().clampedToFarField();
         break;
     case SpatMode::hybrid:
+    case SpatMode::invalid:
         jassertfalse;
         break;
     }
@@ -2104,6 +2106,7 @@ bool MainContentComponent::loadSpeakerSetup(juce::File const & file, LoadSpeaker
         mControlPanel->setCubeAttenuationHz(mData.project.lbapDistanceAttenuationData.freq);
         break;
     case SpatMode::vbap:
+    case SpatMode::invalid:
         break;
     }
 

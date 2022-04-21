@@ -92,6 +92,8 @@ HrtfSpatAlgorithm::HrtfSpatAlgorithm(SpeakerSetup const & speakerSetup,
     case SpatMode::hybrid:
         mInnerAlgorithm = std::make_unique<HybridSpatAlgorithm>(binauralSpeakerData);
         break;
+    case SpatMode::invalid:
+        break;
     }
 
     jassert(mInnerAlgorithm);

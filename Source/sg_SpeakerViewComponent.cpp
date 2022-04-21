@@ -217,6 +217,8 @@ void SpeakerViewComponent::render()
             drawFieldSphere();
             drawFieldCube();
             break;
+        case SpatMode::invalid:
+            break;
         }
     }
 
@@ -438,6 +440,8 @@ void SpeakerViewComponent::drawOriginGrid() const
         drawDomeGrid();
         drawCubeGrid();
         break;
+    case SpatMode::invalid:
+        break;
     }
 
     // 3D RGB line.
@@ -520,6 +524,8 @@ void SpeakerViewComponent::drawOriginGrid() const
     case SpatMode::hybrid:
         drawDomeCrosses();
         drawCubeCrosses();
+        break;
+    case SpatMode::invalid:
         break;
     }
 
@@ -637,6 +643,8 @@ void SpeakerViewComponent::drawSource(source_index_t const index, ViewportSource
             return baseSpatMode;
         case SpatMode::hybrid:
             return source.hybridSpatMode;
+        case SpatMode::invalid:
+            break;
         }
         jassertfalse;
         return SpatMode::vbap;
@@ -651,6 +659,7 @@ void SpeakerViewComponent::drawSource(source_index_t const index, ViewportSource
             drawVbapSpan(source);
             break;
         case SpatMode::hybrid:
+        case SpatMode::invalid:
             jassertfalse;
             break;
         }

@@ -64,6 +64,8 @@ void AbstractSpatAlgorithm::fixDirectOutsIntoPlace(SourcesData const & sources,
         case SpatMode::lbap:
             fakeSourceData.position = speaker.position;
             return fakeSourceData;
+        case SpatMode::invalid:
+            break;
         }
         jassertfalse;
         return fakeSourceData;
@@ -115,6 +117,8 @@ std::unique_ptr<AbstractSpatAlgorithm> AbstractSpatAlgorithm::make(SpeakerSetup 
         return LbapSpatAlgorithm::make(speakerSetup);
     case SpatMode::hybrid:
         return HybridSpatAlgorithm::make(speakerSetup);
+    case SpatMode::invalid:
+        break;
     }
 
     jassertfalse;

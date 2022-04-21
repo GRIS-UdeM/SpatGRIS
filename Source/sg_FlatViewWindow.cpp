@@ -122,6 +122,8 @@ void FlatViewWindow::drawFieldBackground(juce::Graphics & g) const
         drawVbapBackground();
         drawLbapBackground();
         return;
+    case SpatMode::invalid:
+        return;
     }
     jassertfalse;
 }
@@ -161,6 +163,8 @@ void FlatViewWindow::paint(juce::Graphics & g)
                 return baseSpatMode;
             case SpatMode::hybrid:
                 return sourceData->hybridSpatMode;
+            case SpatMode::invalid:
+                break;
             }
             jassertfalse;
             return SpatMode::vbap;
@@ -197,6 +201,7 @@ void FlatViewWindow::drawSource(juce::Graphics & g,
             return juce::Point<float>{ position.x, -position.y } / LBAP_EXTENDED_RADIUS;
         }
         case SpatMode::hybrid:
+        case SpatMode::invalid:
             break;
         }
         jassertfalse;
@@ -215,6 +220,7 @@ void FlatViewWindow::drawSource(juce::Graphics & g,
         drawSourceLbapSpan(g, sourceData, sourcePositionAbsolute);
         break;
     case SpatMode::hybrid:
+    case SpatMode::invalid:
         jassertfalse;
         break;
     }
