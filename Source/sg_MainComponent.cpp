@@ -318,17 +318,16 @@ bool MainContentComponent::loadProject(juce::File const & file, bool const disca
     }
 
     auto const displayError = [&](juce::String const & error) {
-        juce::NativeMessageBox::showAsync(juce::MessageBoxOptions{}
-                                              .withButton("ok")
-                                              .withAssociatedComponent(this)
-                                              .withIconType(juce::MessageBoxIconType::WarningIcon)
-                                              .withMessage(error)
-                                              .withTitle("Unable to load SpatGRIS project."),
-                                          nullptr);
+        juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon,
+                                               "Unable to load SpatGRIS project.",
+                                               error,
+                                               "OK",
+                                               this,
+                                               nullptr);
     };
 
     if (!file.existsAsFile()) {
-        displayError("File \"" + file.getFullPathName() + "\" does not exists.");
+        displayError("File \"" + file.getFullPathName() + "\" does not exist.");
         return false;
     }
 
@@ -1959,10 +1958,12 @@ output_patch_t MainContentComponent::getMaxSpeakerOutputPatch() const
 tl::optional<SpeakerSetup> MainContentComponent::extractSpeakerSetup(juce::File const & file)
 {
     auto const displayError = [&](juce::String const & message) {
-        juce::NativeMessageBox::show(juce::MessageBoxOptions{}
-                                         .withTitle("Unable to open Speaker Setup")
-                                         .withMessage(message)
-                                         .withIconType(juce::MessageBoxIconType::WarningIcon));
+        juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon,
+                                               "Unable to open Speaker Setup.",
+                                               message,
+                                               "OK",
+                                               nullptr,
+                                               nullptr);
     };
 
     if (!file.existsAsFile()) {
