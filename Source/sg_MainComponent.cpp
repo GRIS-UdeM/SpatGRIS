@@ -990,7 +990,7 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
         return;
     case CommandId::showSpeakerNumbersId:
         result.setInfo("Show Speaker Numbers", "Show speaker numbers on the 3D view.", generalCategory, 0);
-        // TODO : add a default keypress
+        result.addDefaultKeypress('Z', juce::ModifierKeys::altModifier);
         result.setTicked(mData.appData.viewSettings.showSpeakerNumbers);
         return;
     case CommandId::showSpeakersId:
