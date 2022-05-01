@@ -3,7 +3,7 @@
 #define AppURL "http://gris.musique.umontreal.ca/"
 #define AppExeName "SpatGris.exe"
 #define ControlGrisDir "ControlGris"
-#define ManualName "SpatGRIS_3.1.9_Manual.pdf"
+#define ManualName "SpatGRIS_3.1.10_Manual.pdf"
 #define RootDir ".."
 
 #define BuildDir RootDir + "\Builds\VisualStudio2019\x64\Release\App"
