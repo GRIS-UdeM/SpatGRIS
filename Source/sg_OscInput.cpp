@@ -282,7 +282,7 @@ OscInput::MessageType OscInput::getMessageType(juce::OSCMessage const & message)
     }
 
     auto const firstArg{ message[0].getString() };
-    if (firstArg == "rad" || firstArg == "deg" || firstArg == "car") {
+    if (firstArg == "pol" || firstArg == "deg" || firstArg == "car") {
         if (message.size() != 7) {
             addErrorToBuffer("expected source position message to be exactly 7 arguments long.");
             return MessageType::invalid;

@@ -199,6 +199,8 @@ bool SpatSettingsSubPanel::shouldShowAttenuationSettings() const
     case SpatMode::lbap:
     case SpatMode::hybrid:
         return true;
+    case SpatMode::invalid:
+        break;
     }
     jassertfalse;
     return false;
@@ -242,6 +244,8 @@ void SpatSettingsSubPanel::setSpatMode(SpatMode const spatMode)
             return;
         case SpatMode::hybrid:
             mHybridButton.setToggleState(true, juce::dontSendNotification);
+            return;
+        case SpatMode::invalid:
             return;
         }
         jassertfalse;

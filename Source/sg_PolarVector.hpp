@@ -122,7 +122,23 @@ constexpr PolarVector PolarVector::withElevation(radians_t const newElevation) c
 constexpr PolarVector PolarVector::withClippedElevation(radians_t const newElevation) const noexcept
 {
     auto result{ *this };
-    result.elevation = std::clamp(newElevation, radians_t{ 0.0f }, HALF_PI);
+    if (newElevation > TWO_PI) {
+        result.elevation = radians_t{ 0.0f };
+    } else if (newElevation < radians_t{ 0.0F }) {
+        result.elevation = TWO_PI;
+    } else if (newElevation >= HALF_PI && newElevation <= PI) {
+        // replace with this line to wrap around elevation
+        // result.elevation = std::clamp(newElevation, PI + HALF_PI, TWO_PI);
+        result.elevation = HALF_PI;
+    } else if (newElevation < PI + HALF_PI && newElevation > PI) {
+        // replace with this line to wrap around elevation
+        // result.elevation = std::clamp(newElevation, radians_t{ 0.0f }, HALF_PI);
+        result.elevation = PI + HALF_PI;
+    } else if (newElevation < HALF_PI) {
+        result.elevation = std::clamp(newElevation, radians_t{ 0.0f }, HALF_PI);
+    } else {
+        result.elevation = std::clamp(newElevation, PI + HALF_PI, TWO_PI);
+    }
     return result;
 }
 

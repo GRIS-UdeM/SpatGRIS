@@ -318,17 +318,16 @@ bool MainContentComponent::loadProject(juce::File const & file, bool const disca
     }
 
     auto const displayError = [&](juce::String const & error) {
-        juce::NativeMessageBox::showAsync(juce::MessageBoxOptions{}
-                                              .withButton("ok")
-                                              .withAssociatedComponent(this)
-                                              .withIconType(juce::MessageBoxIconType::WarningIcon)
-                                              .withMessage(error)
-                                              .withTitle("Unable to load SpatGRIS project."),
-                                          nullptr);
+        juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon,
+                                               "Unable to load SpatGRIS project.",
+                                               error,
+                                               "OK",
+                                               this,
+                                               nullptr);
     };
 
     if (!file.existsAsFile()) {
-        displayError("File \"" + file.getFullPathName() + "\" does not exists.");
+        displayError("File \"" + file.getFullPathName() + "\" does not exist.");
         return false;
     }
 
@@ -1013,7 +1012,7 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
         return;
     case CommandId::showSpeakerNumbersId:
         result.setInfo("Show Speaker Numbers", "Show speaker numbers on the 3D view.", generalCategory, 0);
-        // TODO : add a default keypress
+        result.addDefaultKeypress('Z', juce::ModifierKeys::altModifier);
         result.setTicked(mData.appData.viewSettings.showSpeakerNumbers);
         return;
     case CommandId::showSpeakersId:
@@ -1563,6 +1562,7 @@ void MainContentComponent::setLegacySourcePosition(source_index_t const sourceIn
         case SpatMode::lbap:
             return LegacyLbapPosition{ azimuth, elevation, length }.toPosition();
         case SpatMode::hybrid:
+        case SpatMode::invalid:
             break;
         }
         jassertfalse;
@@ -1616,6 +1616,7 @@ void MainContentComponent::setSourcePosition(source_index_t const sourceIndex,
         position = position.getCartesian().clampedToFarField();
         break;
     case SpatMode::hybrid:
+    case SpatMode::invalid:
         jassertfalse;
         break;
     }
@@ -1983,10 +1984,12 @@ output_patch_t MainContentComponent::getMaxSpeakerOutputPatch() const
 tl::optional<SpeakerSetup> MainContentComponent::extractSpeakerSetup(juce::File const & file)
 {
     auto const displayError = [&](juce::String const & message) {
-        juce::NativeMessageBox::show(juce::MessageBoxOptions{}
-                                         .withTitle("Unable to open Speaker Setup")
-                                         .withMessage(message)
-                                         .withIconType(juce::MessageBoxIconType::WarningIcon));
+        juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon,
+                                               "Unable to open Speaker Setup.",
+                                               message,
+                                               "OK",
+                                               nullptr,
+                                               nullptr);
     };
 
     if (!file.existsAsFile()) {
@@ -2130,6 +2133,7 @@ bool MainContentComponent::loadSpeakerSetup(juce::File const & file, LoadSpeaker
         mControlPanel->setCubeAttenuationHz(mData.project.lbapDistanceAttenuationData.freq);
         break;
     case SpatMode::vbap:
+    case SpatMode::invalid:
         break;
     }
 

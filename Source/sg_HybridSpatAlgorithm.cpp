@@ -47,6 +47,7 @@ void HybridSpatAlgorithm::updateSpatData(source_index_t const sourceIndex, Sourc
         mLbap->updateSpatData(sourceIndex, sourceData);
         return;
     case SpatMode::hybrid:
+    case SpatMode::invalid:
         break;
     }
     jassertfalse;
