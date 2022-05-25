@@ -33,7 +33,6 @@
 #include "sg_OscInput.hpp"
 #include "sg_OscMonitor.hpp"
 #include "sg_OwnedMap.hpp"
-#include "sg_Player.hpp"
 #include "sg_PlayerWindow.hpp"
 #include "sg_PrepareToRecordWindow.hpp"
 #include "sg_SettingsWindow.hpp"
@@ -86,8 +85,6 @@ class MainContentComponent final
     juce::OwnedArray<StereoSliceComponent> mStereoSliceComponents{};
 
     std::unique_ptr<OscInput> mOscInput{};
-
-    std::unique_ptr<Player> mPlayer{};
 
     // Windows.
     std::unique_ptr<EditSpeakersWindow> mEditSpeakersWindow{};
@@ -231,11 +228,7 @@ public:
     void closePropertiesWindow() { mPropertiesWindow.reset(); }
     void closeFlatViewWindow() { mFlatViewWindow.reset(); }
     void closeAboutWindow() { mAboutWindow.reset(); }
-    void closePlayerWindow()
-    {
-        mPlayerWindow.reset();
-        mPlayer.reset();
-    }
+    void closePlayerWindow();
     void closeOscMonitorWindow() { mOscMonitorWindow.reset(); }
     void closePrepareToRecordWindow() { mPrepareToRecordWindow.reset(); }
     void closeAddRemoveSourcesWindow() { mAddRemoveSourcesWindow.reset(); }
@@ -285,6 +278,10 @@ private:
     void updatePeaks();
     [[nodiscard]] output_patch_t getMaxSpeakerOutputPatch() const;
     void reassignSourcesPositions();
+    //==============================================================================
+    // OSC
+    void startOsc();
+    void stopOsc();
     //==============================================================================
     // Open - save.
     [[nodiscard]] static tl::optional<SpeakerSetup> extractSpeakerSetup(juce::File const & file);

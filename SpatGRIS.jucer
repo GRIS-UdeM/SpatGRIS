@@ -7,6 +7,8 @@
               addUsingNamespaceToJuceHeader="0" defines="JUCE_DISPLAY_SPLASH_SCREEN=0&#10;JUCE_MODAL_LOOPS_PERMITTED=1">
   <MAINGROUP id="lsxaKA" name="SpatGRIS">
     <GROUP id="{6EAF4FF6-A4F0-94E9-AA8A-98D9BF95CA11}" name="Resources">
+      <FILE id="FbCRQM" name="FreeFarsi-Mono.otf" compile="0" resource="1"
+            file="Source/FreeFarsi-Mono.otf" xcodeResource="1"/>
       <FILE id="HYWx0V" name="JAS.jpil" compile="0" resource="1" file="Resources/JAS.jpil"
             xcodeResource="1"/>
       <FILE id="TMAuh7" name="ServerGRIS_icon_doc.png" compile="0" resource="1"
@@ -320,8 +322,6 @@
             file="Source/sg_MainWindow.hpp"/>
       <FILE id="hAjUTJ" name="sg_OscInput.cpp" compile="1" resource="0" file="Source/sg_OscInput.cpp"/>
       <FILE id="LWdvSw" name="sg_OscInput.hpp" compile="0" resource="0" file="Source/sg_OscInput.hpp"/>
-      <FILE id="axdgHb" name="sg_Player.cpp" compile="1" resource="0" file="Source/sg_Player.cpp"/>
-      <FILE id="EZg9n6" name="sg_Player.hpp" compile="0" resource="0" file="Source/sg_Player.hpp"/>
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>

@@ -77,11 +77,15 @@ GrisLookAndFeel::GrisLookAndFeel()
     this->mSmallerFont.setHeight(this->mFontSize - 3);
     this->mBigFont.setHeight(this->mFontSize + 3);
     this->mBiggerFont.setHeight(this->mFontSize + 6);
+    this->mMonoFont.setHeight(this->mFontSize + 8);
 }
 
 //==============================================================================
 juce::Font GrisLookAndFeel::getLabelFont(juce::Label & label)
 {
+    if (label.getName() == "TimeCode_label") {
+        return this->mMonoFont;
+    }
     if (label.getName() == "AboutBox_title") {
         return this->mBiggerFont;
     }

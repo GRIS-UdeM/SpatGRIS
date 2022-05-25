@@ -41,6 +41,9 @@ class GrisLookAndFeel : public juce::LookAndFeel_V3
     juce::Font mBiggerFont = juce::Font(
         juce::CustomTypeface::createSystemTypefaceFor(BinaryData::SinkinSans400Regular_otf,
                                                       narrow<size_t>(BinaryData::SinkinSans400Regular_otfSize)));
+    juce::Font mMonoFont
+        = juce::Font(juce::CustomTypeface::createSystemTypefaceFor(BinaryData::FreeFarsiMono_otf,
+                                                                   narrow<size_t>(BinaryData::FreeFarsiMono_otfSize)));
 
     juce::Colour mBackGroundAndFieldColour;
     juce::Colour mWinBackGroundAndFieldColour;

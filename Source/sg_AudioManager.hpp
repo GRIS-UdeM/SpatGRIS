@@ -56,6 +56,15 @@ class AudioManager final : juce::AudioSourcePlayer
         juce::Array<float const *> dataToRecord{};
     };
 
+    class FileSorter
+    {
+    public:
+        static int compareElements(juce::File a, juce::File b)
+        {
+            return a.getFileName().compareNatural(b.getFileName());
+        }
+    };
+
 public:
     //==============================================================================
     /** The main parameters needed before starting a recording. */
@@ -80,11 +89,15 @@ private:
     juce::OwnedArray<FileRecorder> mRecorders{};
     juce::TimeSliceThread mRecordersThread{ "SpatGRIS recording thread" };
     // Playing
-    bool mPlayerExists{};
-    //std::unique_ptr<juce::AudioFormatReaderSource> mReaderSource{}; // tmp for player
-    //juce::AudioTransportSource mResampledSource{};                  // tmp for player
-    std::unique_ptr<juce::AudioTransportSource> mResampledSource{}; // tmp for player
-
+    juce::AudioFormatManager mFormatManager{};
+    juce::Array<juce::File> mAudioFiles; // for audio thumbnails
+    juce::OwnedArray<juce::AudioFormatReaderSource> mReaderSources;
+    juce::OwnedArray<juce::AudioTransportSource> mTransportSources{};
+    juce::TimeSliceThread mPlayerThread{ "SpatGRIS player thread" };
+    juce::AudioFormat * mAudioFormat{};
+    bool mFormatsRegistered{};
+    bool mIsPlaying{};
+    bool mIsStopping{};
     //==============================================================================
     static std::unique_ptr<AudioManager> mInstance;
 
@@ -107,13 +120,16 @@ public:
     bool isRecording() const;
     int64_t getNumSamplesRecorded() const;
 
-    void playerOn();
-    void playerOff();
-    bool playerExists();
-    void initPlayer(juce::AudioTransportSource & transportSource);
-    //void setPlayerSource(juce::AudioFormatReaderSource * readerSource,
-    //                     double sampleRate,
-    //                     int bufferSize);
+    // Player stuff
+    bool prepareAudioPlayer(juce::File const & folder);
+    void startPlaying();
+    void stopPlaying();
+    bool isPlaying() const;
+    void unloadPlayer();
+    void setPosition(double const newPos);
+    juce::OwnedArray<juce::AudioTransportSource> & getTransportSources();
+    juce::AudioFormatManager & getAudioFormatManager();
+    juce::Array<juce::File> & getAudioFiles();
 
     void initInputBuffer(juce::Array<source_index_t> const & sources);
     void initOutputBuffer(juce::Array<output_patch_t> const & speakers);
@@ -129,7 +145,6 @@ public:
                                int numSamples) override;
     void audioDeviceAboutToStart(juce::AudioIODevice * device) override;
     void audioDeviceStopped() override;
-    //void releaseResources() override;
     //==============================================================================
     static void init(juce::String const & deviceType,
                      juce::String const & inputDevice,

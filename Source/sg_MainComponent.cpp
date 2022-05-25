@@ -227,13 +227,7 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
         auto & audioManager{ AudioManager::getInstance() };
         audioManager.registerAudioProcessor(mAudioProcessor.get());
         AudioManager::getInstance().getAudioDeviceManager().addChangeListener(this);
-        audioParametersChanged();
-    };
-
-    //==============================================================================
-    auto const startOsc = [&]() {
-        mOscInput.reset(new OscInput(*this, mLogBuffer));
-        mOscInput->startConnection(mData.project.oscPort);
+        audioParametersChanged(); // size of buffers not initialized here...
     };
 
     //==============================================================================
@@ -259,6 +253,9 @@ MainContentComponent::MainContentComponent(MainWindow & mainWindow,
     // End layout and start refresh timer.
     resized();
     startTimerHz(24);
+
+    // init buffers properly
+    audioParametersChanged();
 }
 
 //==============================================================================
@@ -469,6 +466,14 @@ void MainContentComponent::closeSpeakersConfigurationWindow()
 }
 
 //==============================================================================
+void MainContentComponent::closePlayerWindow()
+{
+    mPlayerWindow.reset();
+    startOsc();
+    handleResetSourcesPositions();
+}
+
+//==============================================================================
 void MainContentComponent::handleShowSpeakerEditWindow()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
@@ -542,11 +547,47 @@ void MainContentComponent::handleShowPlayerWindow()
         return;
     }
 
-    if (!mPlayer)
-        // mPlayer.reset(new Player(*this));
-        mPlayer = std::make_unique<Player>(*this);
+    juce::ScopedWriteLock const dataLock{ mLock };
 
-    mPlayerWindow = std::make_unique<PlayerWindow>(*mPlayer, *this, mLookAndFeel);
+    auto const displayError = [&](juce::String const & error) {
+        juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon,
+                                               "Player",
+                                               error,
+                                               "OK",
+                                               this,
+                                               nullptr);
+    };
+
+    // check if number of sources matches the number of speakers
+    if (mData.project.sources.size() != mData.speakerSetup.speakers.size()) {
+        displayError("Number of sources in project must match the number of speakers.");
+        return;
+    }
+
+    stopOsc();
+    handleResetSourcesPositions();
+
+    auto emulatePlayerSourcePositions = [&]() {
+        for (int i{}; i < mData.project.sources.size(); ++i) {
+            source_index_t const sourceIndex{ i + source_index_t::OFFSET };
+            output_patch_t const outputIndex{ i + output_patch_t::OFFSET };
+            mData.project.sources.getNode(sourceIndex).value->position
+                = mData.speakerSetup.speakers.getNode(outputIndex).value->position;
+        }
+    };
+    emulatePlayerSourcePositions();
+    auto & spatAlgorithm{ *mAudioProcessor->getSpatAlgorithm() };
+    for (auto const source : mData.project.sources) {
+        // remove source spans
+        source.value->azimuthSpan = 0.0f;
+        source.value->zenithSpan = 0.0f;
+        // spatData
+        spatAlgorithm.updateSpatData(source.key, *source.value);
+    }
+
+    refreshAudioProcessor();
+
+    mPlayerWindow = std::make_unique<PlayerWindow>(*this, mLookAndFeel);
 }
 
 //==============================================================================
@@ -705,6 +746,7 @@ void MainContentComponent::numSourcesChanged(int const numSources)
     }
 
     refreshAudioProcessor();
+    audioParametersChanged(); // Make sure the size of the buffers does not reset to MAX_NUM_SAMPLES
     refreshSourceSlices();
     unfocusAllComponents();
 }
@@ -999,7 +1041,7 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
         result.addDefaultKeypress('D', juce::ModifierKeys::altModifier);
         return;
     case CommandId::showPlayerWindowId:
-        result.setInfo("Show Player View", "Show the sound player window.", generalCategory, 0);
+        result.setInfo("Show Player View", "Show the player window.", generalCategory, 0);
         result.addDefaultKeypress('P', juce::ModifierKeys::altModifier);
         return;
     case CommandId::showOscMonitorId:
@@ -2181,6 +2223,20 @@ void MainContentComponent::reassignSourcesPositions()
 }
 
 //==============================================================================
+void MainContentComponent::startOsc()
+{
+    mOscInput.reset(new OscInput(*this, mLogBuffer));
+    mOscInput->startConnection(mData.project.oscPort);
+}
+
+//==============================================================================
+void MainContentComponent::stopOsc()
+{
+    mOscInput->closeConnection();
+    mOscInput.reset();
+}
+
+//==============================================================================
 void MainContentComponent::buttonPressed([[maybe_unused]] SpatButton * button)
 {
     jassert(button == &mAddRemoveSourcesButton);
@@ -2447,7 +2503,14 @@ void MainContentComponent::prepareAndStartRecording(juce::File const & fileOrDir
 //==============================================================================
 tl::optional<SpeakerSetup> MainContentComponent::playerExtractSpeakerSetup(juce::File const & file)
 {
-    return extractSpeakerSetup(file);
+    juce::XmlDocument xmlDoc{ file };
+    auto const mainXmlElem{ xmlDoc.getDocumentElement() };
+
+    if (mainXmlElem->hasTagName("SpeakerSetup") || mainXmlElem->hasTagName(SpeakerSetup::XmlTags::MAIN_TAG)) {
+        return extractSpeakerSetup(file);
+    }
+
+    return tl::nullopt;
 }
 
 //==============================================================================
