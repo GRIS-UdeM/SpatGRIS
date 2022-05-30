@@ -113,8 +113,9 @@ void AudioManager::audioDeviceIOCallback(float const ** inputChannelData,
             auto & buffer{ mInputBuffer[sourceIndex] };
             juce::AudioSourceChannelInfo const info{ buffer };
             mTransportSources.getUnchecked(i)->getNextAudioBlock(info);
-            if (i > 0 && !mIsStopping) {
-                // make sure all the audioTransportSources are in sync
+
+            // make sure all the audioTransportSources are in sync
+            if (i > 0) {
                 mTransportSources.getUnchecked(i)->setNextReadPosition(
                     mTransportSources.getUnchecked(0)->getNextReadPosition());
             }
@@ -352,6 +353,10 @@ void AudioManager::startPlaying()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
+    // Two loops to avoid clicks
+    for (auto transportSource : mTransportSources) {
+        transportSource->setGain(1.0f);
+    }
     for (auto transportSource : mTransportSources) {
         transportSource->start();
     }
@@ -364,14 +369,15 @@ void AudioManager::stopPlaying()
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    mIsStopping = true;
-
+    // Two loops to avoid clicks
+    for (auto transportSource : mTransportSources) {
+        transportSource->setGain(0.001f);
+    }
     for (auto transportSource : mTransportSources) {
         transportSource->stop();
     }
 
     mIsPlaying = false;
-    mIsStopping = false;
 }
 
 //==============================================================================
