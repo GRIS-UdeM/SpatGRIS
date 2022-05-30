@@ -56,6 +56,7 @@ class AudioManager final : juce::AudioSourcePlayer
         juce::Array<float const *> dataToRecord{};
     };
 
+    //==============================================================================
     class FileSorter
     {
     public:
@@ -97,7 +98,6 @@ private:
     juce::AudioFormat * mAudioFormat{};
     bool mFormatsRegistered{};
     bool mIsPlaying{};
-    bool mIsStopping{};
     //==============================================================================
     static std::unique_ptr<AudioManager> mInstance;
 
@@ -170,6 +170,7 @@ private:
                                           double requestedSampleRate,
                                           int requestedBufferSize);
     //==============================================================================
+
     JUCE_LEAK_DETECTOR(AudioManager)
 }; // class AudioManager
 } // namespace gris

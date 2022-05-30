@@ -216,10 +216,11 @@ PlayerComponent::~PlayerComponent()
     mPlayButton.removeListener(this);
     mStopButton.removeListener(this);
 
-    auto & transortSources{ AudioManager::getInstance().getTransportSources() };
-    for (auto transportSource : transortSources) {
-        transportSource->removeChangeListener(this);
-    }
+    auto & audioManager = AudioManager::getInstance();
+    auto & transportSources{ audioManager.getTransportSources() };
+    transportSources[0]->removeChangeListener(this);
+
+    audioManager.unloadPlayer();
 }
 
 //==============================================================================
@@ -235,17 +236,15 @@ void PlayerComponent::handleOpenWavFilesAndSpeakerSetup()
         return;
     }
     auto const chosen{ fc.getResult() };
-    
+
     if (validateWavFilesAndSpeakerSetup(chosen)) {
         if (AudioManager::getInstance().prepareAudioPlayer(chosen)) {
             mPlayButton.setEnabled(true);
             mStopButton.setEnabled(true);
 
-            // register listeners
-            auto & transortSources{ AudioManager::getInstance().getTransportSources() };
-            for (auto transportSource : transortSources) {
-                transportSource->addChangeListener(this);
-            }
+            // register listener (only the first AudioTransportSource)
+            auto & transportSources{ AudioManager::getInstance().getTransportSources() };
+            transportSources[0]->addChangeListener(this);
 
             mThumbnails->updateCursorPosition();
             setTimeCode(0.0);
@@ -378,6 +377,8 @@ void PlayerComponent::buttonClicked(juce::Button * button)
         playAudio();
     } else if (button == &mStopButton) {
         stopAudio();
+        mThumbnails->updateCursorPosition();
+        setTimeCode(AudioManager::getInstance().getTransportSources().getFirst()->getCurrentPosition());
     }
 }
 
@@ -428,8 +429,8 @@ void PlayerComponent::setTimeCode(double const timeInSec)
                                    + formattedMillis.paddedRight('0', 3),
                                juce::NotificationType::dontSendNotification);
     } else {
-        mTimeCodeLabel.setText(hours + " : " + minutes.paddedLeft('0', 2) + " : "
-                                   + secs.paddedLeft('0', 2) + " . " + formattedMillis.paddedRight('0', 3),
+        mTimeCodeLabel.setText(hours + " : " + minutes.paddedLeft('0', 2) + " : " + secs.paddedLeft('0', 2) + " . "
+                                   + formattedMillis.paddedRight('0', 3),
                                juce::NotificationType::dontSendNotification);
     }
 }
