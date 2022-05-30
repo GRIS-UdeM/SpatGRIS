@@ -471,6 +471,7 @@ void MainContentComponent::closePlayerWindow()
     mPlayerWindow.reset();
     startOsc();
     handleResetSourcesPositions();
+    mAddRemoveSourcesButton.setEnabled(true);
 }
 
 //==============================================================================
@@ -587,7 +588,7 @@ void MainContentComponent::handleShowPlayerWindow()
     }
 
     refreshAudioProcessor();
-
+    mAddRemoveSourcesButton.setEnabled(false);
     mPlayerWindow = std::make_unique<PlayerWindow>(*this, mLookAndFeel);
 }
 
@@ -998,6 +999,23 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
     juce::ScopedReadLock const lock{ mLock };
 
     const juce::String generalCategory("General");
+
+    // Disable menus if player is open
+    if (mPlayerWindow != nullptr) {
+        switch (commandId) {
+        case CommandId::showPlayerWindowId:
+            result.setInfo("Show Player View", "Show the player window.", generalCategory, 0);
+            result.addDefaultKeypress('P', juce::ModifierKeys::altModifier);
+            return;
+        case CommandId::quitId:
+            result.setInfo("Quit", "Quit the SpatGRIS.", generalCategory, 0);
+            result.addDefaultKeypress('Q', juce::ModifierKeys::commandModifier);
+            return;
+        default:
+            result.setActive(false);
+            return;
+        }
+    }
 
     switch (commandId) {
     case CommandId::newProjectId:
