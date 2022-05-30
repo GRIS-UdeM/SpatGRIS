@@ -560,7 +560,8 @@ void MainContentComponent::handleShowPlayerWindow()
 
     // check if number of sources matches the number of speakers
     if (mData.project.sources.size() != mData.speakerSetup.speakers.size()) {
-        displayError("Number of sources in project must match the number of speakers.");
+        displayError("Number of sources in project must match the number of speakers. Make sure to load the right "
+                     "Speaker Setup file before opening the Player.");
         return;
     }
 

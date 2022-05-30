@@ -218,7 +218,9 @@ PlayerComponent::~PlayerComponent()
 
     auto & audioManager = AudioManager::getInstance();
     auto & transportSources{ audioManager.getTransportSources() };
-    transportSources[0]->removeChangeListener(this);
+    if (transportSources.size() > 0) {
+        transportSources[0]->removeChangeListener(this);
+    }
 
     audioManager.unloadPlayer();
 }
@@ -305,6 +307,13 @@ bool PlayerComponent::validateWavFilesAndSpeakerSetup(juce::File const & folder)
         if (tagName.startsWith(SpeakerData::XmlTags::MAIN_TAG_PREFIX)) {
             speakerList.add(tagName.substring(juce::String(SpeakerData::XmlTags::MAIN_TAG_PREFIX).length()));
         }
+    }
+
+    if (speakerList.size() != mMainContentComponent.getData().speakerSetup.speakers.size()) {
+        displayError(
+            "The number of speakers in Speaker Setup file does not match the number of speakers in the currently "
+            "loaded Speaker Setup.");
+        return false;
     }
 
     if (speakerList.size() != audioFileList.size()) {
