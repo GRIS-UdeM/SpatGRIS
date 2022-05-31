@@ -231,6 +231,12 @@ void PlayerComponent::handleOpenWavFilesAndSpeakerSetup()
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
+    auto const displayError = [&](juce::String const & message) {
+        juce::NativeMessageBox::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon,
+                                                    "Unable to open Speaker Setup and Audio Files folder",
+                                                    message);
+    };
+
     juce::File const wavFilesAndSSFolder;
     juce::FileChooser fc{ "Choose a folder to open...", wavFilesAndSSFolder, {}, true };
 
@@ -250,6 +256,8 @@ void PlayerComponent::handleOpenWavFilesAndSpeakerSetup()
 
             mThumbnails->updateCursorPosition();
             setTimeCode(0.0);
+        } else {
+            displayError("Audio files do not have the same length.");
         }
     }
 }

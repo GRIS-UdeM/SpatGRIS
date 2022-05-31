@@ -337,6 +337,16 @@ bool AudioManager::prepareAudioPlayer(juce::File const & folder)
         mTransportSources.add(transportSource.release());
     }
 
+    // check all audio files are the same length
+    for (auto transportSource : mTransportSources) {
+        if (transportSource->getTotalLength() != mTransportSources[0]->getTotalLength()) {
+            mTransportSources.clear(true);
+            mReaderSources.clear(true);
+            mAudioFiles.clear();
+            return false;
+        }
+    }
+
     mPlayerThread.startThread();
 
     for (auto transportSource : mTransportSources) {
