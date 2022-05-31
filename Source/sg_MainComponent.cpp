@@ -496,7 +496,7 @@ void MainContentComponent::handleShowPreferences()
     JUCE_ASSERT_MESSAGE_THREAD;
     juce::ScopedReadLock const lock{ mLock };
 
-    if (mPropertiesWindow == nullptr) {
+    if (mPropertiesWindow == nullptr && mPlayerWindow == nullptr) {
         mPropertiesWindow.reset(new SettingsWindow{ *this, mData.project.oscPort, mLookAndFeel });
         mPropertiesWindow->centreAroundComponent(this, mPropertiesWindow->getWidth(), mPropertiesWindow->getHeight());
     }
