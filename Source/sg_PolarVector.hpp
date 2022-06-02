@@ -85,7 +85,7 @@ constexpr PolarVector PolarVector::normalized() const noexcept
     //    return PolarVector{ HALF_PI, radians_t{}, 1.0f };
     //}
 
-    return PolarVector{ azimuth, std::max(elevation, radians_t{}), 1.0f };
+    return PolarVector{ azimuth, elevation, 1.0f };
 }
 
 //==============================================================================
