@@ -95,12 +95,12 @@ static void computeMatrix(LbapLayer & layer)
     for (size_t i{}; i < layer.speakerPositions.size(); ++i) {
         auto const px = layer.speakerPositions[i].getCartesian().x * H_SIZE + H_SIZE;
         auto const py = layer.speakerPositions[i].getCartesian().y * H_SIZE + H_SIZE;
+
         for (size_t x{}; x < LBAP_MATRIX_SIZE; ++x) {
             for (size_t y{}; y < LBAP_MATRIX_SIZE; ++y) {
                 auto dist = std::sqrt(std::pow(narrow<float>(x) - px, 2.0f) + std::pow(narrow<float>(y) - py, 2.0f));
-                dist /= LBAP_MATRIX_SIZE;
-                dist = std::clamp(dist, 0.0f, 1.0f);
-                layer.amplitudeMatrix[i][x][y] = 1.0f - dist;
+                dist = std::pow(std::pow(10.0f, 1.0f / 20), dist);       // root-power ratio
+                layer.amplitudeMatrix[i][x][y] = 1.0f / std::sqrt(dist); // inverse square law
             }
             layer.amplitudeMatrix[i][x][LBAP_MATRIX_SIZE] = layer.amplitudeMatrix[i][x][0];
         }
@@ -143,9 +143,9 @@ static void computeGains(LbapLayer const & layer, SourceData const & source, flo
     auto const sum{ std::reduce(gains, gains + layer.speakerPositions.size(), 0.0f, std::plus()) };
 
     if (sum > 0.0f) {
-        // (pow(3.0, (1.0 - rad))) for energy spreading when moving toward the center.
+        // (pow(2.0, (1.0 - rad))) for energy spreading when moving toward the center.
         auto const flatRadius{ source.position->getCartesian().discardZ().getDistanceFromOrigin() };
-        auto const comp = flatRadius < 1.0f ? std::pow(3.0f, 1.0f - flatRadius) : 1.0f;
+        auto const comp = flatRadius < 1.0f ? std::pow(2.0f, 1.0f - flatRadius) : 1.0f;
         // normalization (1.0 / sum) and compensation
         auto const norm = 1.0f / sum * comp;
         std::transform(gains, gains + layer.speakerPositions.size(), gains, [norm](float & gain) {
