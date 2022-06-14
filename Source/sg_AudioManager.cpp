@@ -305,8 +305,8 @@ bool AudioManager::prepareAudioPlayer(juce::File const & folder)
     mTransportSources.clear(true);
     mReaderSources.clear(true);
 
-    // load audio files to and sort them
-    auto files = folder.findChildFiles(juce::File::TypesOfFileToFind::findFiles, false, "*.wav;*.aiff");
+    // load audio files and sort them
+    auto files = folder.findChildFiles(juce::File::TypesOfFileToFind::findFiles, false, "*.wav;*.aif;*.aiff");
     FileSorter sorter;
     files.sort(sorter);
     mAudioFiles = files; // for audio thumbnails

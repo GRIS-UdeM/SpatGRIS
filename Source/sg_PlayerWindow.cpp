@@ -270,7 +270,7 @@ bool PlayerComponent::validateWavFilesAndSpeakerSetup(juce::File const & folder)
 {
     juce::StringArray audioFileList;
     juce::StringArray speakerList;
-    juce::StringArray audioFileExtensions{ ".wav", ".aiff" };
+    juce::StringArray audioFileExtensions{ ".wav", ".aif", ".aiff" };
     juce::XmlElement xml("tmp");
 
     auto const displayError = [&](juce::String const & message) {
