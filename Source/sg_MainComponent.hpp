@@ -235,8 +235,9 @@ public:
     //==============================================================================
     void prepareAndStartRecording(juce::File const & fileOrDirectory, RecordingOptions const & recordingOptions);
     //==============================================================================
-    // Player open - save.
+    // Player
     [[nodiscard]] static tl::optional<SpeakerSetup> playerExtractSpeakerSetup(juce::File const & file);
+    void handlePlayerSourcesPositions(tl::optional<SpeakerSetup> & speakerSetup);
 
 private:
     //==============================================================================

@@ -27,22 +27,12 @@ namespace gris
 ThumbnailComp::ThumbnailComp(PlayerComponent & playerComponent,
                              GrisLookAndFeel & lookAndFeel,
                              juce::OwnedArray<juce::AudioTransportSource> & transportSources,
-                             juce::AudioFormatManager & manager,
-                             int numSources)
+                             juce::AudioFormatManager & manager)
     : mPlayerComponent(playerComponent)
     , mLookAndFeel(lookAndFeel)
     , mTransportSources(transportSources)
+    , mManager(manager)
 {
-    for (int i{}; i < numSources; ++i) {
-        auto thumbnail = std::make_unique<juce::AudioThumbnail>(512, manager, mThumbnailCache);
-        thumbnail->addChangeListener(this);
-        mThumbnails.add(thumbnail.release());
-    }
-
-    if (mTransportSources.size() > 0) {
-        setSources();
-    }
-
     currentPositionMarker.setFill(mLookAndFeel.getLightColour());
     addAndMakeVisible(currentPositionMarker);
 }
@@ -124,6 +114,22 @@ void ThumbnailComp::updateCursorPosition()
 }
 
 //==============================================================================
+void ThumbnailComp::addThumbnails(int numThumbnails)
+{
+    mThumbnails.clear();
+
+    for (int i{}; i < numThumbnails; ++i) {
+        auto thumbnail = std::make_unique<juce::AudioThumbnail>(512, mManager, mThumbnailCache);
+        thumbnail->addChangeListener(this);
+        mThumbnails.add(thumbnail.release());
+    }
+
+    if (mTransportSources.size() > 0) {
+        setSources();
+    }
+}
+
+//==============================================================================
 void ThumbnailComp::timerCallback()
 {
     if (mTransportSources[0]->isPlaying()) {
@@ -196,14 +202,8 @@ PlayerComponent::PlayerComponent(MainContentComponent & mainContentComponent, Gr
     mThumbnails.reset(new ThumbnailComp(*this,
                                         mLookAndFeel,
                                         AudioManager::getInstance().getTransportSources(),
-                                        AudioManager::getInstance().getAudioFormatManager(),
-                                        mMainContentComponent.getData().project.sources.size()));
+                                        AudioManager::getInstance().getAudioFormatManager()));
     addAndMakeVisible(mThumbnails.get());
-
-    if (mThumbnails->getNumSources() > 0) {
-        mPlayButton.setEnabled(true);
-        mStopButton.setEnabled(true);
-    }
 }
 
 //==============================================================================
@@ -247,6 +247,9 @@ void PlayerComponent::handleOpenWavFilesAndSpeakerSetup()
 
     if (validateWavFilesAndSpeakerSetup(chosen)) {
         if (AudioManager::getInstance().prepareAudioPlayer(chosen)) {
+            mMainContentComponent.handlePlayerSourcesPositions(mPlayerSpeakerSetup);
+            mThumbnails->addThumbnails(mPlayerSpeakerSetup->speakers.size());
+
             mPlayButton.setEnabled(true);
             mStopButton.setEnabled(true);
 
@@ -267,7 +270,7 @@ bool PlayerComponent::validateWavFilesAndSpeakerSetup(juce::File const & folder)
 {
     juce::StringArray audioFileList;
     juce::StringArray speakerList;
-    tl::optional<SpeakerSetup> speakerSetup;
+    juce::StringArray audioFileExtensions{ ".wav", ".aiff" };
     juce::XmlElement xml("tmp");
 
     auto const displayError = [&](juce::String const & message) {
@@ -281,15 +284,15 @@ bool PlayerComponent::validateWavFilesAndSpeakerSetup(juce::File const & folder)
          folder.findChildFiles(juce::File::TypesOfFileToFind::findFiles, false, "*")) {
         jassert(filenameThatWasFound.existsAsFile());
 
-        if (filenameThatWasFound.getFileExtension() == ".wav" || filenameThatWasFound.getFileExtension() == ".aiff") {
+        if (audioFileExtensions.contains(filenameThatWasFound.getFileExtension())) {
             audioFileList.add(filenameThatWasFound.getFileNameWithoutExtension().substring(
                 filenameThatWasFound.getFileNameWithoutExtension().lastIndexOfChar('-') + 1));
 
         } else if (filenameThatWasFound.getFileExtension() == ".xml" && !foundSpeakerSetup) {
-            speakerSetup
+            mPlayerSpeakerSetup
                 = mMainContentComponent.playerExtractSpeakerSetup(juce::File(filenameThatWasFound.getFullPathName()));
 
-            if (!speakerSetup) {
+            if (!mPlayerSpeakerSetup) {
                 continue;
             }
 
@@ -315,13 +318,6 @@ bool PlayerComponent::validateWavFilesAndSpeakerSetup(juce::File const & folder)
         if (tagName.startsWith(SpeakerData::XmlTags::MAIN_TAG_PREFIX)) {
             speakerList.add(tagName.substring(juce::String(SpeakerData::XmlTags::MAIN_TAG_PREFIX).length()));
         }
-    }
-
-    if (speakerList.size() != mMainContentComponent.getData().speakerSetup.speakers.size()) {
-        displayError(
-            "The number of speakers in Speaker Setup file does not match the number of speakers in the currently "
-            "loaded Speaker Setup.");
-        return false;
     }
 
     if (speakerList.size() != audioFileList.size()) {

@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include "sg_LogicStrucs.hpp"
 #include "sg_Macros.hpp"
 #include "sg_constants.hpp"
 
@@ -47,6 +48,7 @@ class PlayerComponent final
     juce::Label mTimeCodeLabel{};
 
     std::unique_ptr<ThumbnailComp> mThumbnails;
+    tl::optional<SpeakerSetup> mPlayerSpeakerSetup;
 
 public:
     //==============================================================================
@@ -87,6 +89,7 @@ class ThumbnailComp
     GrisLookAndFeel & mLookAndFeel;
 
     juce::OwnedArray<juce::AudioTransportSource> & mTransportSources;
+    juce::AudioFormatManager & mManager;
     juce::AudioThumbnailCache mThumbnailCache{ MAX_NUM_SOURCES };
     juce::OwnedArray<juce::AudioThumbnail> mThumbnails;
 
@@ -97,8 +100,7 @@ public:
     ThumbnailComp(PlayerComponent & playerComponent,
                   GrisLookAndFeel & lookAndFeel,
                   juce::OwnedArray<juce::AudioTransportSource> & transportSources,
-                  juce::AudioFormatManager & manager,
-                  int numSources);
+                  juce::AudioFormatManager & manager);
     ThumbnailComp() = delete;
     ~ThumbnailComp() override;
     SG_DELETE_COPY_AND_MOVE(ThumbnailComp)
@@ -106,6 +108,7 @@ public:
     //==============================================================================
     void setSources();
     void updateCursorPosition();
+    void addThumbnails(int numThumbnails);
 
     //==============================================================================
     int getNumSources() const;

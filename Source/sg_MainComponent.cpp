@@ -550,43 +550,8 @@ void MainContentComponent::handleShowPlayerWindow()
 
     juce::ScopedWriteLock const dataLock{ mLock };
 
-    auto const displayError = [&](juce::String const & error) {
-        juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon,
-                                               "Player",
-                                               error,
-                                               "OK",
-                                               this,
-                                               nullptr);
-    };
-
-    // check if number of sources matches the number of speakers
-    if (mData.project.sources.size() != mData.speakerSetup.speakers.size()) {
-        displayError("Number of sources in project must match the number of speakers. Make sure to load the right "
-                     "Speaker Setup file before opening the Player.");
-        return;
-    }
-
     stopOsc();
     handleResetSourcesPositions();
-
-    auto emulatePlayerSourcePositions = [&]() {
-        for (int i{}; i < mData.project.sources.size(); ++i) {
-            source_index_t const sourceIndex{ i + source_index_t::OFFSET };
-            output_patch_t const outputIndex{ i + output_patch_t::OFFSET };
-            mData.project.sources.getNode(sourceIndex).value->position
-                = mData.speakerSetup.speakers.getNode(outputIndex).value->position;
-        }
-    };
-    emulatePlayerSourcePositions();
-    auto & spatAlgorithm{ *mAudioProcessor->getSpatAlgorithm() };
-    for (auto const source : mData.project.sources) {
-        // remove source spans
-        source.value->azimuthSpan = 0.0f;
-        source.value->zenithSpan = 0.0f;
-        // spatData
-        spatAlgorithm.updateSpatData(source.key, *source.value);
-    }
-
     refreshAudioProcessor();
     mAddRemoveSourcesButton.setEnabled(false);
     mPlayerWindow = std::make_unique<PlayerWindow>(*this, mLookAndFeel);
@@ -2530,6 +2495,34 @@ tl::optional<SpeakerSetup> MainContentComponent::playerExtractSpeakerSetup(juce:
     }
 
     return tl::nullopt;
+}
+
+//==============================================================================
+void MainContentComponent::handlePlayerSourcesPositions(tl::optional<SpeakerSetup> & speakerSetup)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    if (!speakerSetup) {
+        return;
+    }
+
+    auto const numberOfSources = std::clamp(speakerSetup->speakers.size(), 1, MAX_NUM_SOURCES);
+    numSourcesChanged(numberOfSources);
+
+    auto & spatAlgorithm{ *mAudioProcessor->getSpatAlgorithm() };
+
+    for (int i{}; i < speakerSetup->speakers.size(); ++i) {
+        source_index_t const sourceIndex{ i + source_index_t::OFFSET };
+        output_patch_t const outputIndex{ i + output_patch_t::OFFSET };
+        auto source = mData.project.sources.getNode(sourceIndex);
+        source.value->position = speakerSetup->speakers.getConstNode(outputIndex).value->position;
+        source.value->azimuthSpan = 0.0f;
+        source.value->zenithSpan = 0.0f;
+
+        spatAlgorithm.updateSpatData(source.key, *source.value);
+    }
+
+    refreshAudioProcessor();
 }
 
 //==============================================================================
