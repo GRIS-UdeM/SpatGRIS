@@ -18,6 +18,7 @@
 */
 
 #include "sg_HybridSpatAlgorithm.hpp"
+#include "sg_DummySpatAlgorithm.hpp"
 
 namespace gris
 {
@@ -80,12 +81,16 @@ bool HybridSpatAlgorithm::hasTriplets() const noexcept
 //==============================================================================
 tl::optional<AbstractSpatAlgorithm::Error> HybridSpatAlgorithm::getError() const noexcept
 {
+    // It seems this always return nullopt...
     return mVbap->getError().disjunction(mLbap->getError());
 }
 
 //==============================================================================
 std::unique_ptr<AbstractSpatAlgorithm> HybridSpatAlgorithm::make(SpeakerSetup const & speakerSetup)
 {
+    if (speakerSetup.numOfSpatializedSpeakers() < 3) {
+        return std::make_unique<DummySpatAlgorithm>(Error::notEnoughDomeSpeakers);
+    }
     return std::make_unique<HybridSpatAlgorithm>(speakerSetup.speakers);
 }
 
