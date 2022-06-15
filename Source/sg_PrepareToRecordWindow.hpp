@@ -41,6 +41,8 @@ class PrepareToRecordComponent final
 
     juce::TextButton mWavButton{};
     juce::TextButton mAiffButton{};
+
+    juce::ToggleButton mSaveSpeakerSetupToggleButton{};
 #ifdef __APPLE__
     juce::TextButton mCafButton{};
 #endif

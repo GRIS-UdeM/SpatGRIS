@@ -88,6 +88,12 @@ PrepareToRecordComponent::PrepareToRecordComponent(juce::File const & recordingD
     initTypeButton(mMonoButton, RecordingFileType::mono);
     initTypeButton(mInterleavedButton, RecordingFileType::interleaved);
 
+    mSaveSpeakerSetupToggleButton.setButtonText("Export Speaker Setup");
+    mSaveSpeakerSetupToggleButton.addListener(this);
+    mSaveSpeakerSetupToggleButton.setColour(juce::ToggleButton::textColourId, mLookAndFeel.getFontColour());
+    mSaveSpeakerSetupToggleButton.setLookAndFeel(&mLookAndFeel);
+    addAndMakeVisible(mSaveSpeakerSetupToggleButton);
+
     mRecordButton.setButtonText("Record");
     mRecordButton.addListener(this);
     mRecordButton.setColour(juce::TextButton::ColourIds::buttonColourId, juce::Colours::red.withSaturation(0.5f));
@@ -154,6 +160,8 @@ void PrepareToRecordComponent::resized()
     mMonoButton.setBounds(xOffset, yOffset, BUTTONS_WIDTH, BUTTONS_HEIGHT);
     nextButton();
     mInterleavedButton.setBounds(xOffset, yOffset, BUTTONS_WIDTH, BUTTONS_HEIGHT);
+    nextButton();
+    mSaveSpeakerSetupToggleButton.setBounds(xOffset + 10, yOffset + 10, 150, 24);
     mRecordButton.setBounds(WIDTH - PADDING - BUTTONS_WIDTH, yOffset, BUTTONS_WIDTH, BUTTONS_HEIGHT);
 }
 
@@ -227,7 +235,7 @@ void PrepareToRecordComponent::performRecord()
         return;
     }
 
-    RecordingOptions const recordingOptions{ format, fileType };
+    RecordingOptions const recordingOptions{ format, fileType, mSaveSpeakerSetupToggleButton.getToggleState() };
     mMainContentComponent.prepareAndStartRecording(finalPath, recordingOptions);
 }
 

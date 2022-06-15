@@ -292,6 +292,7 @@ tl::optional<RecordingFileType> stringToRecordingFileType(juce::String const & s
 struct RecordingOptions {
     RecordingFormat format{ DEFAULT_RECORDING_FORMAT };
     RecordingFileType fileType{ DEFAULT_RECORDING_FILE_TYPE };
+    bool shouldSaveSpeakerSetup{};
     //==============================================================================
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
     [[nodiscard]] static tl::optional<RecordingOptions> fromXml(juce::XmlElement const & xml);

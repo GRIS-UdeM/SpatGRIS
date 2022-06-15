@@ -2462,6 +2462,17 @@ void MainContentComponent::prepareAndStartRecording(juce::File const & fileOrDir
                                                              std::move(speakersToRecord) };
     if (AudioManager::getInstance().prepareToRecord(recordingParams)) {
         AudioManager::getInstance().startRecording();
+        
+        // export speaker setup
+        if (recordingOptions.shouldSaveSpeakerSetup) {
+            juce::File const & lastSpeakerSetup{ mData.appData.lastSpeakerSetup };
+            auto const file{ fileOrDirectory.getParentDirectory().getFullPathName() + "\\"
+                             + lastSpeakerSetup.getFileName() };
+            auto const content{ mData.speakerSetup.toXml() };
+            auto const success{ content->writeTo(file) };
+            jassert(success);
+        }
+
         mControlPanel->setRecordButtonState(RecordButton::State::recording);
         mPrepareToRecordWindow.reset();
     }
