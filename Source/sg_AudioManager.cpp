@@ -348,13 +348,7 @@ bool AudioManager::prepareAudioPlayer(juce::File const & folder)
     }
 
     mPlayerThread.startThread();
-
-    for (auto transportSource : mTransportSources) {
-        transportSource->prepareToPlay(currentAudioDevice->getCurrentBufferSizeSamples(),
-                                       currentAudioDevice->getCurrentSampleRate());
-        transportSource->setPosition(0.0);
-    }
-
+    reloadPlayer(currentAudioDevice->getCurrentBufferSizeSamples(), currentAudioDevice->getCurrentSampleRate());
     return true;
 }
 
@@ -414,6 +408,17 @@ void AudioManager::setPosition(double const newPos)
 
     for (auto transportSource : mTransportSources) {
         transportSource->setPosition(newPos);
+    }
+}
+
+//==============================================================================
+void AudioManager::reloadPlayer(int currentBufferSize, double currentSampleRate)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    for (auto transportSource : mTransportSources) {
+        transportSource->prepareToPlay(currentBufferSize, currentSampleRate);
+        transportSource->setPosition(0.0);
     }
 }
 

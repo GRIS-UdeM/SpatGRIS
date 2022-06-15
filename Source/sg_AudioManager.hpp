@@ -127,6 +127,7 @@ public:
     bool isPlaying() const;
     void unloadPlayer();
     void setPosition(double const newPos);
+    void reloadPlayer(int currentBufferSize, double currentSampleRate);
     juce::OwnedArray<juce::AudioTransportSource> & getTransportSources();
     juce::AudioFormatManager & getAudioFormatManager();
     juce::Array<juce::File> & getAudioFiles();
