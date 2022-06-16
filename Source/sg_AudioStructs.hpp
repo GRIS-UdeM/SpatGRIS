@@ -88,6 +88,7 @@ struct LbapSourceAttenuationState {
 struct LbapAttenuationConfig {
     float linearGain{};
     float lowpassCoefficient{};
+    bool shouldProcess{};
     //==============================================================================
     void process(float * data, int numSamples, float distance, LbapSourceAttenuationState & state) const;
 };

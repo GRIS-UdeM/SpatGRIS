@@ -469,9 +469,11 @@ void MainContentComponent::closeSpeakersConfigurationWindow()
 void MainContentComponent::closePlayerWindow()
 {
     mPlayerWindow.reset();
+    mData.appData.playerExists = false;
     startOsc();
     handleResetSourcesPositions();
     mAddRemoveSourcesButton.setEnabled(true);
+    refreshAudioProcessor();
 }
 
 //==============================================================================
@@ -555,6 +557,8 @@ void MainContentComponent::handleShowPlayerWindow()
     refreshAudioProcessor();
     mAddRemoveSourcesButton.setEnabled(false);
     mPlayerWindow = std::make_unique<PlayerWindow>(*this, mLookAndFeel);
+    mData.appData.playerExists = true;
+    refreshAudioProcessor();
 }
 
 //==============================================================================
@@ -2462,7 +2466,7 @@ void MainContentComponent::prepareAndStartRecording(juce::File const & fileOrDir
                                                              std::move(speakersToRecord) };
     if (AudioManager::getInstance().prepareToRecord(recordingParams)) {
         AudioManager::getInstance().startRecording();
-        
+
         // export speaker setup
         if (recordingOptions.shouldSaveSpeakerSetup) {
             juce::File const & lastSpeakerSetup{ mData.appData.lastSpeakerSetup };

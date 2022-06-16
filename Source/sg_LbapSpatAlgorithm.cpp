@@ -86,12 +86,14 @@ void LbapSpatAlgorithm::process(AudioConfig const & config,
         auto const & targetGains{ spatData.gains };
         auto & lastGains{ data.lastGains };
 
-        // process attenuation
+        // process attenuation if Player does not exist
         auto * inputSamples{ sourceBuffer[source.key].getWritePointer(0) };
-        config.lbapAttenuationConfig.process(inputSamples,
-                                             numSamples,
-                                             spatData.lbapSourceDistance,
-                                             data.attenuationState);
+        if (config.lbapAttenuationConfig.shouldProcess) {
+            config.lbapAttenuationConfig.process(inputSamples,
+                                                 numSamples,
+                                                 spatData.lbapSourceDistance,
+                                                 data.attenuationState);
+        }
 
         // Process spatialization
         for (auto const & speaker : speakersAudioConfig) {

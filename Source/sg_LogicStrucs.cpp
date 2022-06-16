@@ -343,11 +343,11 @@ bool SpeakerData::operator==(SpeakerData const & other) const noexcept
 }
 
 //==============================================================================
-LbapAttenuationConfig LbapDistanceAttenuationData::toConfig(double const sampleRate) const
+LbapAttenuationConfig LbapDistanceAttenuationData::toConfig(double const sampleRate, bool shouldProcess) const
 {
     auto const coefficient{ std::exp(-juce::MathConstants<float>::twoPi * freq.get() / narrow<float>(sampleRate)) };
     auto const gain{ attenuation.toGain() };
-    LbapAttenuationConfig const result{ gain, coefficient };
+    LbapAttenuationConfig const result{ gain, coefficient, shouldProcess };
     return result;
 }
 
@@ -858,7 +858,8 @@ std::unique_ptr<AudioConfig> SpatGrisData::toAudioConfig() const
         }
     }
 
-    result->lbapAttenuationConfig = project.lbapDistanceAttenuationData.toConfig(appData.audioSettings.sampleRate);
+    result->lbapAttenuationConfig
+        = project.lbapDistanceAttenuationData.toConfig(appData.audioSettings.sampleRate, !appData.playerExists);
     result->masterGain = project.masterGain.toGain();
     result->pinkNoiseGain = pinkNoiseLevel.map([](auto const & level) { return level.toGain(); });
     for (auto const source : project.sources) {

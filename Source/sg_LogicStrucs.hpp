@@ -237,7 +237,7 @@ struct LbapDistanceAttenuationData {
     hz_t freq{ 1000.0f };
     dbfs_t attenuation{};
     //==============================================================================
-    [[nodiscard]] LbapAttenuationConfig toConfig(double sampleRate) const;
+    [[nodiscard]] LbapAttenuationConfig toConfig(double sampleRate, bool shouldProcess) const;
     [[nodiscard]] std::unique_ptr<juce::XmlElement> toXml() const;
     [[nodiscard]] static tl::optional<LbapDistanceAttenuationData> fromXml(juce::XmlElement const & xml);
     [[nodiscard]] bool operator==(LbapDistanceAttenuationData const & other) const noexcept;
@@ -357,6 +357,7 @@ struct AppData {
     };
     tl::optional<StereoMode> stereoMode{};
     StereoRouting stereoRouting{};
+    bool playerExists{};
     int windowX{ 100 };
     int windowY{ 100 };
     int windowWidth{ 1200 };
