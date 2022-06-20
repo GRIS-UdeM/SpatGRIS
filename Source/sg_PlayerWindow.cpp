@@ -477,4 +477,19 @@ void PlayerWindow::closeButtonPressed()
     mMainContentComponent.closePlayerWindow();
 }
 
+//==============================================================================
+bool PlayerWindow::keyPressed(const juce::KeyPress & k)
+{
+    JUCE_ASSERT_MESSAGE_THREAD;
+
+    if (k == juce::KeyPress::spaceKey) {
+        auto & audioManager{ AudioManager::getInstance() };
+        if (audioManager.getTransportSources().size() > 0) {
+            audioManager.isPlaying() ? mPlayerComponent.stopAudio() : mPlayerComponent.playAudio();
+            return true;
+        }
+    }
+    return false;
+}
+
 } // namespace gris

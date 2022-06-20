@@ -911,33 +911,32 @@ void MainContentComponent::getAllCommands(juce::Array<juce::CommandID> & command
 {
     JUCE_ASSERT_MESSAGE_THREAD;
 
-    constexpr std::array<CommandId, 25> ids{
-        CommandId::newProjectId,
-        CommandId::openProjectId,
-        CommandId::saveProjectId,
-        CommandId::saveProjectAsId,
-        CommandId::openSpeakerSetupId,
-        CommandId::saveSpeakerSetupId,
-        CommandId::saveSpeakerSetupAsId,
-        CommandId::showSpeakerEditId,
-        CommandId::show2DViewId,
-        CommandId::showPlayerWindowId,
-        CommandId::showOscMonitorId,
-        CommandId::showSourceNumbersId,
-        CommandId::showSpeakerNumbersId,
-        CommandId::showSpeakersId,
-        CommandId::showTripletsId,
-        CommandId::showSourceActivityId,
-        CommandId::showSpeakerActivityId,
-        CommandId::showSphereId,
-        CommandId::colorizeInputsId,
-        CommandId::resetInputPosId,
-        CommandId::resetMeterClipping,
-        CommandId::openSettingsWindowId,
-        CommandId::quitId,
-        CommandId::aboutId,
-        CommandId::openManualId,
-    };
+    constexpr std::array<CommandId, 26> ids{ CommandId::newProjectId,
+                                             CommandId::openProjectId,
+                                             CommandId::saveProjectId,
+                                             CommandId::saveProjectAsId,
+                                             CommandId::openSpeakerSetupId,
+                                             CommandId::saveSpeakerSetupId,
+                                             CommandId::saveSpeakerSetupAsId,
+                                             CommandId::showSpeakerEditId,
+                                             CommandId::show2DViewId,
+                                             CommandId::showPlayerWindowId,
+                                             CommandId::showOscMonitorId,
+                                             CommandId::showSourceNumbersId,
+                                             CommandId::showSpeakerNumbersId,
+                                             CommandId::showSpeakersId,
+                                             CommandId::showTripletsId,
+                                             CommandId::showSourceActivityId,
+                                             CommandId::showSpeakerActivityId,
+                                             CommandId::showSphereId,
+                                             CommandId::colorizeInputsId,
+                                             CommandId::resetInputPosId,
+                                             CommandId::resetMeterClipping,
+                                             CommandId::openSettingsWindowId,
+                                             CommandId::quitId,
+                                             CommandId::aboutId,
+                                             CommandId::openManualId,
+                                             CommandId::playerPlayStopId };
 
     commands.addArray(ids.data(), narrow<int>(ids.size()));
 
@@ -1083,6 +1082,10 @@ void MainContentComponent::getCommandInfo(juce::CommandID const commandId, juce:
     case CommandId::openManualId:
         result.setInfo("Open Documentation", "Open the manual in pdf viewer.", generalCategory, 0);
         return;
+    case CommandId::playerPlayStopId:
+        result.setInfo("Play Stop", "Play or Stop Player Playback", generalCategory, 0);
+        result.addDefaultKeypress(juce::KeyPress::spaceKey, juce::ModifierKeys::noModifiers);
+        return;
     }
 
     // probably a template
@@ -1173,6 +1176,9 @@ bool MainContentComponent::perform(InvocationInfo const & info)
             break;
         case CommandId::openManualId:
             handleOpenManual();
+            break;
+        case CommandId::playerPlayStopId:
+            handlePlayerPlayStop();
             break;
         default:
             // open a template
@@ -2205,6 +2211,15 @@ void MainContentComponent::stopOsc()
 {
     mOscInput->closeConnection();
     mOscInput.reset();
+}
+
+//==============================================================================
+void MainContentComponent::handlePlayerPlayStop()
+{
+    if (mPlayerWindow != nullptr) {
+        const juce::KeyPress spaceKey(juce::KeyPress::spaceKey);
+        mPlayerWindow->keyPressed(spaceKey);
+    }
 }
 
 //==============================================================================

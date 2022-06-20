@@ -284,6 +284,9 @@ private:
     void startOsc();
     void stopOsc();
     //==============================================================================
+    // Player control
+    void handlePlayerPlayStop();
+    //==============================================================================
     // Open - save.
     [[nodiscard]] static tl::optional<SpeakerSetup> extractSpeakerSetup(juce::File const & file);
     bool loadSpeakerSetup(juce::File const & file, LoadSpeakerSetupOption option);

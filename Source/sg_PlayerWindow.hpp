@@ -63,13 +63,13 @@ public:
     double getTimeCode() const;
     //==============================================================================
     void setTimeCode(double const timeInSec);
+    void playAudio();
+    void stopAudio();
 
 private:
     //==============================================================================
     void handleOpenWavFilesAndSpeakerSetup();
     bool validateWavFilesAndSpeakerSetup(juce::File const & folder);
-    void playAudio();
-    void stopAudio();
     //==============================================================================
     void paint(juce::Graphics & g) override;
     void changeListenerCallback(juce::ChangeBroadcaster * source) override;
@@ -141,6 +141,7 @@ public:
     SG_DELETE_COPY_AND_MOVE(PlayerWindow)
     //==============================================================================
     void closeButtonPressed() override;
+    bool keyPressed(const juce::KeyPress & k) override;
 
 private:
     //==============================================================================
