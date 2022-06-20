@@ -2524,15 +2524,16 @@ void MainContentComponent::handlePlayerSourcesPositions(tl::optional<SpeakerSetu
 
     auto & spatAlgorithm{ *mAudioProcessor->getSpatAlgorithm() };
 
-    for (int i{}; i < speakerSetup->speakers.size(); ++i) {
+    int i{};
+    for (auto speaker : speakerSetup->speakers) {
         source_index_t const sourceIndex{ i + source_index_t::OFFSET };
-        output_patch_t const outputIndex{ i + output_patch_t::OFFSET };
         auto source = mData.project.sources.getNode(sourceIndex);
-        source.value->position = speakerSetup->speakers.getConstNode(outputIndex).value->position;
+        source.value->position = speaker.value->position;
         source.value->azimuthSpan = 0.0f;
         source.value->zenithSpan = 0.0f;
 
         spatAlgorithm.updateSpatData(source.key, *source.value);
+        ++i;
     }
 
     refreshAudioProcessor();
