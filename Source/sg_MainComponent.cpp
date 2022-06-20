@@ -2531,6 +2531,7 @@ void MainContentComponent::handlePlayerSourcesPositions(tl::optional<SpeakerSetu
         source.value->position = speaker.value->position;
         source.value->azimuthSpan = 0.0f;
         source.value->zenithSpan = 0.0f;
+        setSourceDirectOut(sourceIndex, tl::nullopt);
 
         spatAlgorithm.updateSpatData(source.key, *source.value);
         ++i;
